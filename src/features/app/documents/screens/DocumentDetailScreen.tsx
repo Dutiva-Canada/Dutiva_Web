@@ -204,14 +204,14 @@ function DetailSkeleton() {
   return (
     <div className="mx-auto max-w-300 px-7 pt-1 pb-16 max-[640px]:px-4">
       <Skel className="mb-3.5 h-3.75 w-37.5" />
-      <Skel className="mb-2.5 h-7 w-[440px] max-w-full" />
-      <Skel className="mb-4 h-5.5 w-[300px] max-w-full" />
+      <Skel className="mb-2.5 h-7 w-110 max-w-full" />
+      <Skel className="mb-4 h-5.5 w-75 max-w-full" />
       <div className="flex items-start gap-6.5 max-[1023px]:flex-col">
         <div className="min-w-0 flex-1 max-[1023px]:w-full">
           <Skel className="mb-4.5 h-9.5" />
-          <Skel className="h-[360px]" />
+          <Skel className="h-90" />
         </div>
-        <Skel className="h-[420px] w-80 shrink-0 max-[1023px]:w-full" />
+        <Skel className="h-105 w-80 shrink-0 max-[1023px]:w-full" />
       </div>
     </div>
   )
@@ -265,7 +265,7 @@ function DocumentActions({
 function AccessBanner({ role, t }: { readonly role: WorkspaceRole; readonly t: Translator }) {
   if (role === 'viewer') {
     return (
-      <div className="mb-4 flex items-center gap-2.5 rounded-[11px] border border-border bg-inset px-3.5 py-[11px] text-text-muted">
+      <div className="mb-4 flex items-center gap-2.5 rounded-[11px] border border-border bg-inset px-3.5 py-2.75 text-text-muted">
         <Lock size={16} strokeWidth={1.9} className="shrink-0" aria-hidden="true" />
         <div className="text-[12.5px]">
           <b className="text-text">{t('doclib_docd_readOnly')}</b> · {t('doclib_docd_readOnlySub')}
@@ -275,7 +275,7 @@ function AccessBanner({ role, t }: { readonly role: WorkspaceRole; readonly t: T
   }
   if (role === 'external') {
     return (
-      <div className="mb-4 flex items-center gap-2.5 rounded-[11px] bg-accent-soft px-3.5 py-[11px] text-accent">
+      <div className="mb-4 flex items-center gap-2.5 rounded-[11px] bg-accent-soft px-3.5 py-2.75 text-accent">
         <Lock size={16} strokeWidth={1.9} className="shrink-0" aria-hidden="true" />
         <div className="text-[12.5px] font-medium">
           {t('doclib_docd_permDenied')} · {t('doclib_docd_readOnlySub')}
@@ -302,7 +302,7 @@ function ReviewBanner({
   const toneClass = tone === 'risk' ? 'bg-risk-bg text-risk-fg' : 'bg-warn-bg text-warn-fg'
   return (
     <div
-      className={`mb-4 flex items-start gap-[11px] rounded-[11px] px-3.5 py-3 font-medium ${toneClass}`}
+      className={`mb-4 flex items-start gap-2.75 rounded-[11px] px-3.5 py-3 font-medium ${toneClass}`}
     >
       <TriangleAlert size={17} strokeWidth={2} className="mt-px shrink-0" aria-hidden="true" />
       <div className="text-[13px] leading-normal">{t(message)}</div>
@@ -537,7 +537,7 @@ export function DocumentDetailScreen() {
                 return (
                   <div
                     key={token}
-                    className="grid grid-cols-[200px_1fr] gap-3.5 border-b border-inset px-4 py-[11px] last:border-b-0 max-[640px]:grid-cols-1 max-[640px]:gap-1"
+                    className="grid grid-cols-[200px_1fr] gap-3.5 border-b border-inset px-4 py-2.75 last:border-b-0 max-[640px]:grid-cols-1 max-[640px]:gap-1"
                   >
                     <div className="text-[12.5px] font-semibold text-text-muted">
                       {question ? x(question.label) : token.replaceAll('_', ' ')}

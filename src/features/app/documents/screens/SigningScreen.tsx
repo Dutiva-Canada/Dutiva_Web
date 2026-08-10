@@ -67,7 +67,7 @@ export function SigningScreen() {
 
   if (!doc || !envelopeId) {
     return (
-      <div className="mx-auto max-w-[680px] px-6 py-16 text-center">
+      <div className="mx-auto max-w-170 px-6 py-16 text-center">
         <h1 className="mb-2 font-display text-[20px] font-semibold text-text">
           {t('doclib_sign_notFound')}
         </h1>
@@ -98,17 +98,17 @@ export function SigningScreen() {
   }
 
   return (
-    <div className="mx-auto max-w-[1200px] px-[28px] pt-[4px] pb-[64px] max-[640px]:px-[16px]">
+    <div className="mx-auto max-w-300 px-7 pt-1 pb-16 max-[640px]:px-4">
       <button
         type="button"
         onClick={() => navigate('/app/documents')}
-        className="mb-[14px] inline-flex items-center gap-[6px] py-[4px] text-[13px] font-semibold text-text-muted transition-colors hover:text-text"
+        className="mb-3.5 inline-flex items-center gap-1.5 py-1 text-[13px] font-semibold text-text-muted transition-colors hover:text-text"
       >
         <ChevronLeft size={15} strokeWidth={2} aria-hidden="true" />
         {t('doclib_sign_back')}
       </button>
 
-      <div className="mb-[18px] flex flex-wrap items-start justify-between gap-[16px]">
+      <div className="mb-4.5 flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="mb-1 text-[11px] font-bold uppercase tracking-[0.08em] text-text-muted">
             {doc.ref}
@@ -121,7 +121,7 @@ export function SigningScreen() {
       </div>
 
       {pendingRecipients.length > 1 && !selectedEmail && (
-        <div className="mb-6 rounded-[12px] border border-border bg-surface p-4">
+        <div className="mb-6 rounded-xl border border-border bg-surface p-4">
           <div className="mb-3 text-[13px] font-semibold text-text">{t('doclib_sign_select')}</div>
           <div className="space-y-2">
             {pendingRecipients.map((recipient) => (
@@ -135,7 +135,7 @@ export function SigningScreen() {
                   <div className="text-[13px] font-semibold text-text">{recipient.name}</div>
                   <div className="text-[11.5px] text-text-faint">{recipient.email}</div>
                 </div>
-                <span className="rounded-[8px] bg-navy px-2.5 py-1 text-[12px] font-semibold text-white">
+                <span className="rounded-lg bg-navy px-2.5 py-1 text-[12px] font-semibold text-white">
                   {t('doclib_docd_sendSign')}
                 </span>
               </button>
@@ -145,7 +145,7 @@ export function SigningScreen() {
       )}
 
 
-      <div className="flex flex-col gap-[26px] lg:flex-row">
+      <div className="flex flex-col gap-6.5 lg:flex-row">
         <div className="min-w-0 flex-1">
           {blocksAndValues && (
             <div className="max-h-[70vh] overflow-y-auto rounded-[14px] border border-border">
@@ -158,7 +158,7 @@ export function SigningScreen() {
           )}
         </div>
 
-        <aside className="w-full shrink-0 lg:w-[360px]">
+        <aside className="w-full shrink-0 lg:w-90">
           <div className="sticky top-[14px] rounded-[14px] border border-border bg-surface p-5">
             <h2 className="mb-1 font-display text-[16px] font-semibold text-text">
               {t('doclib_sign_title')}

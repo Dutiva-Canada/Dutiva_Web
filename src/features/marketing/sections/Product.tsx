@@ -25,7 +25,7 @@ export function Product() {
   const { lt } = useLanding()
   const { p } = usePublicPath()
   return (
-    <section id="product" className="mx-auto max-w-[1200px] scroll-mt-[80px] px-6 py-16">
+    <section id="product" className="mx-auto max-w-300 scroll-mt-20 px-6 py-16">
       <SectionIntro
         badge={lt('landing_prod_badge')}
         title={lt('landing_prod_title')}
