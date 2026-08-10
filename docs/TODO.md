@@ -490,10 +490,8 @@ out of a specific provider's training. (PR #154)
 (2026-07-20) is the plan of record. CANONICAL_FACTS § Positioning and § Open
 items 3 updated. _Owner action remaining:_ paste the prepared wording into
 the Beta Launch Brief and mark the other business plans as superseded in
-Drive.
-
-Proposed Beta Launch Brief privacy-claim replacement (from CANONICAL_FACTS
-§ Claims to stop making 1):
+Drive. The replacement wording lives in [CANONICAL_FACTS.md](CANONICAL_FACTS.md)
+§ Claims to stop making 1 and the superseded note is below.
 
 > **Data storage and privacy.** Dutiva stores employee and employer data in
 > a Postgres database with row-level security, not only in the browser. The
