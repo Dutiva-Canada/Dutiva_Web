@@ -10,6 +10,14 @@ on:
   # require inventing a commit.
   workflow_dispatch:
 
+# Public environment values. These are not secrets (the anon key is
+# publishable and the GA4 measurement ID is public in the HTML when loaded).
+# Change them here if they ever need to differ from these defaults.
+env:
+  SUPABASE_URL: https://khtwpxnvziiyplaflwru.supabase.co
+  SUPABASE_ANON_KEY: sb_publishable_4cpptaftDcwRSI0K2KuBjA_0vJcC0-S
+  VITE_GA_MEASUREMENT_ID: G-V85ZQ75EWL
+
 jobs:
   # ── The gate. Everything here is deterministic and needs no credentials, so
   # it verifies the same thing on every branch and fork. Kept as its own job
@@ -53,8 +61,6 @@ jobs:
       # service worker. Fails on any metadata/sitemap/link/build drift.
       - name: Build + SEO validation
         run: npm run build
-        env:
-          VITE_GA_MEASUREMENT_ID: ${{ vars.VITE_GA_MEASUREMENT_ID || 'G-V85ZQ75EWL' }}
 
   # ── Live-project checks. These hit the real Supabase project and only run
   # once their credentials exist as repository secrets/variables (fork PRs and
@@ -85,15 +91,11 @@ jobs:
       # RLS regression guard: as the anon role, confirm the sensitive tables
       # (beta_signups, hr_documents, signatures) return no rows and a known
       # public table does — catching the out-of-band world-open policies the
-      # 2026-08-08 audit found (migration 0073). Needs SUPABASE_URL and the
-      # public SUPABASE_ANON_KEY (safe as a repository variable). `if:
+      # 2026-08-08 audit found (migration 0073). `if:
       # !cancelled()` so a drift failure above doesn't skip it.
       - name: RLS regression check
         if: ${{ !cancelled() }}
         run: npm run check:rls
-        env:
-          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
 
   # ── End-to-end smoke tests. Builds the production bundle and drives it in a
   # real Chromium behind the same routing contract Vercel serves (via
@@ -122,8 +124,6 @@ jobs:
       # The e2e server (e2e/serve-dist.mjs) serves dist/, so build it first.
       - name: Build
         run: npm run build
-        env:
-          VITE_GA_MEASUREMENT_ID: ${{ vars.VITE_GA_MEASUREMENT_ID || 'G-V85ZQ75EWL' }}
 
       - name: Run e2e smoke tests
         run: npm run test:e2e
