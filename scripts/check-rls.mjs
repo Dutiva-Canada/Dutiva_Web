@@ -159,7 +159,7 @@ const problems = []
 
 try {
   const control = await probe(POSITIVE_CONTROL)
-  if (control.status !== 200) {
+  if (![200, 206].includes(control.status)) {
     console.error(
       `check-rls: positive control ${POSITIVE_CONTROL} returned ${control.status} — ` +
         `the anon key or SUPABASE_URL is wrong, so every result below is meaningless.\n` +
@@ -202,7 +202,7 @@ for (const table of SENSITIVE_TABLES) {
     console.log(`check-rls: ${table} denied to anon (${result.status}) — OK`)
     continue
   }
-  if (result.status !== 200) {
+  if (![200, 206].includes(result.status)) {
     problems.push(
       `${table}: unexpected status ${result.status} as anon — cannot confirm it is ` +
         `locked down${result.body ? ` (body: ${result.body})` : ''}`,
