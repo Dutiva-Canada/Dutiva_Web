@@ -624,23 +624,20 @@ finalized to `completed` with a token count: `deepseek-3.2`, 3,059 prompt /
 `retrieved_chunks: 4`. The guardrail claim/finalize lifecycle is working end to
 end. (PRs #87, #90)
 
-**EF2 — Ontario and Québec fetch/detection code is built; it has never run
-live.** _Verify, then Owner._ Built 2026-08-05, in the shape the Justice
-Canada XML path established: `MONITORED_PAGES` now carries Ontario's ESA,
-Human Rights Code and WSIA on the confirmed `act-versions` API ids (`00e41`,
-`90h19`, `97w16`), and Quebec's LNT and Charter on Données Québec's CKAN
-dataset (`c8433300-f752-4815-8ea2-69cad416dd80`, "Lois" resource). See
-`ontarioApi.ts` / `quebecCkan.ts` and
-[LAW_MONITORING.md § Sourcing evaluation](LAW_MONITORING.md) for the sourcing
-this implements and what it deliberately does not yet do (per-statute
-drill-down into the Québec zip; independent liveness alarms for the two
-Ontario health checks beyond the per-fetch verdict).
-
-No session here can reach a deployed edge function or the cron schedule, so
-none of this has executed against the live APIs — it is unit-tested against
-captured real responses only. **Do not flip `monitoringCoverage.ts`'s
-ON/QC-unmonitored claim until a real scheduled sweep proves it**, the same
-discipline OA2 already applies to Federal. (PRs #105, #106)
+**EF2 — Done.** _Verified 2026-08-10._ The scheduled `monitor-law-changes-daily`
+sweep at 07:00 UTC ran the live `monitor-law-changes` edge function and
+fetched all 19 pages. `law_page_hashes` for Ontario (`Employment Standards Act,
+2000`, `Ontario Human Rights Code`, `Workplace Safety and Insurance Act, 1997`)
+and Québec (`Act respecting labour standards (LNT)`, `Charter of Human Rights
+and Freedoms (Quebec)`) are all `is_broken = false` with `ontario-api:` and
+`quebec-ckan:` fingerprints, and `law_monitor_status()` reports the job
+scheduled, secret configured, and last update at 2026-08-10 07:00. This proves
+the e-Laws act-versions API and Données Québec CKAN dataset are working sources.
+`src/features/app/guidance/monitoringCoverage.ts` and its test were updated:
+`COVERAGE_AUDITED_ON` is now `2026-08-10`, and ON/QC are `active` alongside
+Federal. The unbuilt follow-ups noted in `LAW_MONITORING.md` remain: per-statute
+drill-down into the Québec zip and independent liveness alarms for the two
+Ontario health checks beyond the per-fetch verdict. (PRs #105, #106)
 
 **EF3 — Done.** Three follow-ups from the export protection system, all
 closed 2026-08-06:

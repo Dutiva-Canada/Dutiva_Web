@@ -29,7 +29,7 @@ import type { ChipTone } from '@/components/chips'
  */
 
 /** Date of the audit these statuses describe. Shown to the reader. */
-export const COVERAGE_AUDITED_ON = '2026-08-06'
+export const COVERAGE_AUDITED_ON = '2026-08-10'
 
 export type CoverageStatus =
   /** Verified to be fetching real legislation and able to detect a change. */
@@ -52,19 +52,19 @@ export const MONITORING_COVERAGE: readonly JurisdictionCoverage[] = [
   {
     jurisdiction: 'ON',
     label: { en: 'Ontario', fr: 'Ontario' },
-    status: 'unavailable',
+    status: 'active',
     detail: {
-      en: 'The provincial source now loads its statute text in the browser, so automated checks cannot read it. Amendments will not be detected until a different source is in place.',
-      fr: "La source provinciale charge désormais le texte de loi dans le navigateur; les vérifications automatisées ne peuvent donc pas le lire. Les modifications ne seront pas détectées tant qu'une autre source n'aura pas été mise en place.",
+      en: 'Ontario statutes are now read from the e-Laws act-versions API, which publishes machine-readable, byte-stable JSON. The scheduled sweep on 2026-08-10 confirmed all three Ontario pages are fetched and baselined.',
+      fr: "Les lois ontariennes sont désormais lues à partir de l'API des versions de lois d'e-Laws, qui publie du JSON stable et lisible par machine. La vérification programmée du 2026-08-10 a confirmé que les trois pages ontariennes sont récupérées et référencées.",
     },
   },
   {
     jurisdiction: 'QC',
     label: { en: 'Quebec', fr: 'Québec' },
-    status: 'unavailable',
+    status: 'active',
     detail: {
-      en: 'The provincial source refuses automated requests. Amendments will not be detected until a different source is in place.',
-      fr: "La source provinciale refuse les requêtes automatisées. Les modifications ne seront pas détectées tant qu'une autre source n'aura pas été mise en place.",
+      en: "Québec statutes are now read from Données Québec's codified-legislation CKAN dataset, which publishes a first-party, byte-stable zip. The scheduled sweep on 2026-08-10 confirmed both the LNT and Charter pages are fetched and baselined.",
+      fr: "Les lois québécoises sont désormais lues à partir du jeu de données CKAN Législation codifiée de Données Québec, qui publie un zip stable et provenant d'une source officielle. La vérification programmée du 2026-08-10 a confirmé que les pages de la LNT et de la Charte sont récupérées et référencées.",
     },
   },
   {

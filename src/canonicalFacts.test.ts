@@ -203,9 +203,12 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
         expect(monitoring.toLowerCase()).toContain(j.toLowerCase())
       }
       expect(monitoring.toLowerCase()).toContain('confirmed working')
-      /* unavailable jurisdictions are named in the §5 paragraph, not the row */
-      expect(unavailable.length).toBeGreaterThan(0)
-      expect(monitoring.toLowerCase()).toContain('unavailable')
+      /* If some supported jurisdictions are still unavailable, they are named
+         in the CANONICAL_FACTS row (or §5 paragraph); otherwise the row lists
+         only the confirmed ones. */
+      if (unavailable.length > 0) {
+        expect(monitoring.toLowerCase()).toContain('unavailable')
+      }
     }
   })
 })

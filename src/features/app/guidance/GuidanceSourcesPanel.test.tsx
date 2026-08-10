@@ -29,8 +29,8 @@ describe('GuidanceSourcesPanel', () => {
     expect(screen.getByText('Ontario')).toBeInTheDocument()
     expect(screen.getByText('Quebec')).toBeInTheDocument()
     expect(screen.getByText('Federal')).toBeInTheDocument()
-    expect(screen.getAllByText('Not monitored')).toHaveLength(2)
-    expect(screen.getByText('Monitored')).toBeInTheDocument()
+    expect(screen.getAllByText('Monitored')).toHaveLength(3)
+    expect(screen.queryByText('Not monitored')).not.toBeInTheDocument()
     expect(
       screen.queryByText(guidanceMessages.guidance_coverage_none_active.en),
     ).not.toBeInTheDocument()
