@@ -2127,9 +2127,12 @@ CREATE OR REPLACE FUNCTION "public"."current_user_is_workspace_member"() RETURNS
     coalesce(auth.jwt() ->> 'email', '') <> ''
     and (
       lower(auth.jwt() ->> 'email') = 'martin.constantineau@dutiva.ca'
-      or exists (
-        select 1 from public.beta_signups
-        where lower(email) = lower(auth.jwt() ->> 'email')
+      or lower(auth.jwt() ->> 'email') in (
+        select lower(email)
+        from public.beta_signups
+        where status not in ('declined', 'bounced')
+        order by created_at asc nulls first, id asc
+        limit 15
       )
       or exists (
         select 1 from public.admin_beta_access
@@ -2292,6 +2295,44 @@ $$;
 
 
 ALTER FUNCTION "public"."fail_job"("target_job_id" "uuid", "error_text" "text", "retry_delay_seconds" integer) OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."flag_guidance_chunks_on_law_change"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'pg_catalog', 'public'
+    AS $$
+declare
+  v_jurisdiction text;
+begin
+  if new.event_type <> 'change' then
+    return new;
+  end if;
+
+  v_jurisdiction := case new.jurisdiction
+    when 'Ontario' then 'ON'
+    when 'Quebec' then 'QC'
+    when 'Québec' then 'QC'
+    when 'Federal' then 'FED'
+    else null
+  end;
+  if v_jurisdiction is null then
+    return new;
+  end if;
+
+  update public.advisor_guidance_chunks
+     set source_changed_at = timezone('utc', now()),
+         source_change_note = new.law_name,
+         updated_at = timezone('utc', now())
+   where jurisdiction = v_jurisdiction
+     and status = 'active'
+     and source_changed_at is null;
+
+  return new;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."flag_guidance_chunks_on_law_change"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."generate_basic_risk_forecast"("target_organization_id" "uuid", "window_days" integer DEFAULT 30) RETURNS "public"."predictive_risk_forecasts"
@@ -2930,7 +2971,7 @@ $$;
 ALTER FUNCTION "public"."mark_notification_read"("target_notification_id" "uuid") OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."match_advisor_guidance"("q" "text", "k" integer DEFAULT 4) RETURNS TABLE("title" "text", "content" "text", "source_url" "text", "source_name" "text", "jurisdiction" "text", "effective_note" "text", "topic" "text", "review_status" "text")
+CREATE OR REPLACE FUNCTION "public"."match_advisor_guidance"("q" "text", "k" integer DEFAULT 4) RETURNS TABLE("title" "text", "content" "text", "source_url" "text", "source_name" "text", "jurisdiction" "text", "effective_note" "text", "topic" "text", "review_status" "text", "source_changed_at" timestamp with time zone)
     LANGUAGE "sql" STABLE
     SET "search_path" TO 'public'
     AS $$
@@ -2949,7 +2990,7 @@ CREATE OR REPLACE FUNCTION "public"."match_advisor_guidance"("q" "text", "k" int
     from unnest(tsvector_to_array(to_tsvector('french', q))) as lexeme
   )
   select c.title, c.content, c.source_url, c.source_name, c.jurisdiction,
-         c.effective_note, c.topic, c.review_status
+         c.effective_note, c.topic, c.review_status, c.source_changed_at
   from public.advisor_guidance_chunks c, lex_en, lex_fr
   where c.status = 'active'
     and (
@@ -3037,6 +3078,7 @@ ALTER FUNCTION "public"."normalize_document_jurisdiction_label"("p_code" "text",
 
 CREATE OR REPLACE FUNCTION "public"."pin_profile_billing_columns"() RETURNS "trigger"
     LANGUAGE "plpgsql"
+    SET "search_path" TO 'pg_catalog', 'public'
     AS $$
 begin
   if coalesce(auth.role(), '') not in ('authenticated', 'anon') then
@@ -3525,6 +3567,27 @@ $$;
 ALTER FUNCTION "public"."rls_grant_gaps"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."score_snapshot_status"() RETURNS TABLE("secret_configured" boolean, "daily_job_scheduled" boolean, "close_job_scheduled" boolean, "organizations_total" bigint, "orgs_with_current_month" bigint, "orgs_with_closed_prev_month" bigint, "last_write_at" timestamp with time zone)
+    LANGUAGE "sql" SECURITY DEFINER
+    SET "search_path" TO 'pg_catalog', 'public'
+    AS $$
+  select
+    exists (select 1 from vault.decrypted_secrets where name = 'score_snapshot_service_key'),
+    exists (select 1 from cron.job where jobname = 'record-score-snapshots-daily' and active),
+    exists (select 1 from cron.job where jobname = 'record-score-snapshots-month-close' and active),
+    (select count(*) from public.organizations),
+    (select count(*) from public.compliance_score_snapshots
+      where month = date_trunc('month', timezone('utc', now()))::date),
+    (select count(*) from public.compliance_score_snapshots
+      where month = (date_trunc('month', timezone('utc', now())) - interval '1 month')::date
+        and updated_at >= date_trunc('month', now() at time zone 'utc') at time zone 'utc'),
+    (select max(updated_at) from public.compliance_score_snapshots);
+$$;
+
+
+ALTER FUNCTION "public"."score_snapshot_status"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."set_support_ticket_reference"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     SET "search_path" TO 'pg_catalog', 'public'
@@ -3767,6 +3830,7 @@ ALTER FUNCTION "public"."sync_document_jurisdiction_fields"() OWNER TO "postgres
 
 CREATE OR REPLACE FUNCTION "public"."touch_advisor_guidance_updated_at"() RETURNS "trigger"
     LANGUAGE "plpgsql"
+    SET "search_path" TO 'pg_catalog', 'public'
     AS $$
 begin
   new.updated_at := timezone('utc', now());
@@ -4034,6 +4098,40 @@ $$;
 ALTER FUNCTION "public"."trigger_law_update_digest"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."trigger_score_snapshots"() RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'pg_catalog', 'public'
+    AS $$
+declare
+  v_key text;
+begin
+  select decrypted_secret into v_key
+    from vault.decrypted_secrets
+   where name = 'score_snapshot_service_key';
+
+  if v_key is null or length(btrim(v_key)) = 0 then
+    raise warning '[score-snapshots] vault secret "score_snapshot_service_key" is not set; skipping run';
+    return;
+  end if;
+
+  -- Fire-and-forget: pg_net queues the request and the edge function does
+  -- the work (a handful of small per-org queries; the timeout is ample).
+  perform net.http_post(
+    url     := 'https://khtwpxnvziiyplaflwru.supabase.co/functions/v1/record-score-snapshots',
+    headers := jsonb_build_object(
+      'Content-Type',  'application/json',
+      'Authorization', 'Bearer ' || v_key
+    ),
+    body                 := '{}'::jsonb,
+    timeout_milliseconds := 120000
+  );
+end;
+$$;
+
+
+ALTER FUNCTION "public"."trigger_score_snapshots"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."trigger_support_call_scheduler"() RETURNS "void"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'pg_catalog', 'public'
@@ -4247,6 +4345,8 @@ CREATE TABLE IF NOT EXISTS "public"."advisor_guidance_chunks" (
     "title_fr" "text",
     "content_fr" "text",
     "fts_fr" "tsvector" GENERATED ALWAYS AS ("to_tsvector"('"french"'::"regconfig", ((COALESCE("title_fr", ''::"text") || ' '::"text") || COALESCE("content_fr", ''::"text")))) STORED,
+    "source_changed_at" timestamp with time zone,
+    "source_change_note" "text",
     CONSTRAINT "advisor_guidance_chunks_jurisdiction_check" CHECK (("jurisdiction" = ANY (ARRAY['ON'::"text", 'QC'::"text", 'FED'::"text", 'ALL'::"text"]))),
     CONSTRAINT "advisor_guidance_chunks_review_status_check" CHECK (("review_status" = ANY (ARRAY['machine_curated'::"text", 'reviewed'::"text"]))),
     CONSTRAINT "advisor_guidance_chunks_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'retired'::"text"])))
@@ -4261,6 +4361,10 @@ COMMENT ON COLUMN "public"."advisor_guidance_chunks"."title_fr" IS 'Optional Fre
 
 
 COMMENT ON COLUMN "public"."advisor_guidance_chunks"."content_fr" IS 'Optional French body, authored from a live French official source -- never machine-translated from content. Null until backfilled.';
+
+
+
+COMMENT ON COLUMN "public"."advisor_guidance_chunks"."source_changed_at" IS 'Stamped by the law_updates trigger when the monitor detects a change in this chunk''s jurisdiction. While set, the chunk''s citation renders as needs-review even if review_status = reviewed. Cleared by a human on re-verification.';
 
 
 
@@ -4471,6 +4575,33 @@ CREATE TABLE IF NOT EXISTS "public"."compliance_assessments" (
 ALTER TABLE "public"."compliance_assessments" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."compliance_score_snapshots" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "month" "date" NOT NULL,
+    "score" integer NOT NULL,
+    "components" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "headcount" integer,
+    "formula_version" integer DEFAULT 1 NOT NULL,
+    CONSTRAINT "compliance_score_snapshots_headcount_nonnegative" CHECK ((("headcount" IS NULL) OR ("headcount" >= 0))),
+    CONSTRAINT "compliance_score_snapshots_month_is_month_start" CHECK (("month" = ("date_trunc"('month'::"text", ("month")::timestamp with time zone))::"date")),
+    CONSTRAINT "compliance_score_snapshots_score_range" CHECK ((("score" >= 0) AND ("score" <= 100)))
+);
+
+
+ALTER TABLE "public"."compliance_score_snapshots" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."compliance_score_snapshots"."headcount" IS 'Active (non-terminated) employees at snapshot time; null for rows written before 0063.';
+
+
+
+COMMENT ON COLUMN "public"."compliance_score_snapshots"."formula_version" IS 'Score formula that produced this row. 1: unweighted done/total blend. 2: severity-weighted findings, cancelled tasks excluded, open-critical ceiling of 69. 3: obligations component (status ok over all), tasks scoped to provenanced rows (category <> general or metadata.kind set). Source of truth: SCORE_FORMULA_VERSION in src/features/app/views/analytics/aggregation.ts and its mirror in supabase/functions/record-score-snapshots/scoring.ts.';
+
+
+
 CREATE TABLE IF NOT EXISTS "public"."conversations" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "user_id" "uuid" NOT NULL,
@@ -4571,11 +4702,21 @@ CREATE TABLE IF NOT EXISTS "public"."employees" (
     "created_by" "uuid",
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "probation_end_date" "date",
+    "termination_date" "date",
     CONSTRAINT "employees_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'on_leave'::"text", 'terminated'::"text"])))
 );
 
 
 ALTER TABLE "public"."employees" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."employees"."probation_end_date" IS 'End of the probationary period, entered per employee (never derived from start_date).';
+
+
+
+COMMENT ON COLUMN "public"."employees"."termination_date" IS 'Date employment ended; null for pre-0066 terminations, which are excluded from turnover.';
+
 
 
 CREATE TABLE IF NOT EXISTS "public"."employer_profiles" (
@@ -4788,6 +4929,48 @@ CREATE TABLE IF NOT EXISTS "public"."hr_cases" (
 ALTER TABLE "public"."hr_cases" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."hr_communications" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "title" "text" NOT NULL,
+    "audience" "text",
+    "channel" "text" DEFAULT 'email'::"text" NOT NULL,
+    "status" "text" DEFAULT 'draft'::"text" NOT NULL,
+    "scheduled_for" "date",
+    "sent_on" "date",
+    "template_tid" "text",
+    "note" "text",
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "hr_communications_channel_check" CHECK (("channel" = ANY (ARRAY['email'::"text", 'meeting'::"text", 'intranet'::"text", 'letter'::"text", 'other'::"text"]))),
+    CONSTRAINT "hr_communications_status_check" CHECK (("status" = ANY (ARRAY['draft'::"text", 'scheduled'::"text", 'sent'::"text"])))
+);
+
+
+ALTER TABLE "public"."hr_communications" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."hr_compensation_records" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "employee_id" "uuid" NOT NULL,
+    "base_salary" numeric(12,2) NOT NULL,
+    "band" "text",
+    "band_midpoint" numeric(12,2),
+    "effective_date" "date",
+    "note" "text",
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "hr_compensation_records_band_midpoint_check" CHECK (("band_midpoint" > (0)::numeric)),
+    CONSTRAINT "hr_compensation_records_base_salary_check" CHECK (("base_salary" >= (0)::numeric))
+);
+
+
+ALTER TABLE "public"."hr_compensation_records" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."hr_documents" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "filename" "text" NOT NULL,
@@ -4831,6 +5014,62 @@ CREATE TABLE IF NOT EXISTS "public"."hr_employee_notes" (
 ALTER TABLE "public"."hr_employee_notes" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."hr_expiry_records" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "employee_id" "uuid" NOT NULL,
+    "kind" "text" NOT NULL,
+    "name" "text" NOT NULL,
+    "expiry_date" "date" NOT NULL,
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "hr_expiry_records_kind_check" CHECK (("kind" = ANY (ARRAY['certification'::"text", 'document'::"text"])))
+);
+
+
+ALTER TABLE "public"."hr_expiry_records" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."hr_leaves" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "employee_id" "uuid" NOT NULL,
+    "leave_type" "text" NOT NULL,
+    "is_protected" boolean DEFAULT false NOT NULL,
+    "start_date" "date",
+    "expected_return_date" "date",
+    "ended_on" "date",
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."hr_leaves" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."hr_obligations" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "title" "text" NOT NULL,
+    "area" "text",
+    "jurisdiction" "text",
+    "due_on" "date",
+    "recurrence" "text",
+    "owner_name" "text",
+    "status" "text" DEFAULT 'needs_evidence'::"text" NOT NULL,
+    "evidence" "text",
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "hr_obligations_status_check" CHECK (("status" = ANY (ARRAY['ok'::"text", 'in_progress'::"text", 'needs_evidence'::"text"])))
+);
+
+
+ALTER TABLE "public"."hr_obligations" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."hr_policies" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "organization_id" "uuid" NOT NULL,
@@ -4845,6 +5084,26 @@ CREATE TABLE IF NOT EXISTS "public"."hr_policies" (
 
 
 ALTER TABLE "public"."hr_policies" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."hr_wellbeing_initiatives" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "kind" "text" DEFAULT 'other'::"text" NOT NULL,
+    "status" "text" DEFAULT 'planned'::"text" NOT NULL,
+    "owner" "text",
+    "review_date" "date",
+    "note" "text",
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "hr_wellbeing_initiatives_kind_check" CHECK (("kind" = ANY (ARRAY['eap'::"text", 'training'::"text", 'policy'::"text", 'check_in'::"text", 'accommodation_support'::"text", 'other'::"text"]))),
+    CONSTRAINT "hr_wellbeing_initiatives_status_check" CHECK (("status" = ANY (ARRAY['planned'::"text", 'active'::"text", 'paused'::"text", 'retired'::"text"])))
+);
+
+
+ALTER TABLE "public"."hr_wellbeing_initiatives" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."job_attempts" (
@@ -5990,6 +6249,16 @@ ALTER TABLE ONLY "public"."compliance_findings"
 
 
 
+ALTER TABLE ONLY "public"."compliance_score_snapshots"
+    ADD CONSTRAINT "compliance_score_snapshots_org_month_key" UNIQUE ("organization_id", "month");
+
+
+
+ALTER TABLE ONLY "public"."compliance_score_snapshots"
+    ADD CONSTRAINT "compliance_score_snapshots_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."compliance_tasks"
     ADD CONSTRAINT "compliance_tasks_pkey" PRIMARY KEY ("id");
 
@@ -6135,6 +6404,21 @@ ALTER TABLE ONLY "public"."hr_cases"
 
 
 
+ALTER TABLE ONLY "public"."hr_communications"
+    ADD CONSTRAINT "hr_communications_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."hr_compensation_records"
+    ADD CONSTRAINT "hr_compensation_records_employee_unique" UNIQUE ("employee_id");
+
+
+
+ALTER TABLE ONLY "public"."hr_compensation_records"
+    ADD CONSTRAINT "hr_compensation_records_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."hr_documents"
     ADD CONSTRAINT "hr_documents_filename_key" UNIQUE ("filename");
 
@@ -6150,8 +6434,28 @@ ALTER TABLE ONLY "public"."hr_employee_notes"
 
 
 
+ALTER TABLE ONLY "public"."hr_expiry_records"
+    ADD CONSTRAINT "hr_expiry_records_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."hr_leaves"
+    ADD CONSTRAINT "hr_leaves_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."hr_obligations"
+    ADD CONSTRAINT "hr_obligations_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."hr_policies"
     ADD CONSTRAINT "hr_policies_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."hr_wellbeing_initiatives"
+    ADD CONSTRAINT "hr_wellbeing_initiatives_pkey" PRIMARY KEY ("id");
 
 
 
@@ -6776,6 +7080,10 @@ CREATE INDEX "compliance_findings_org_status_idx" ON "public"."compliance_findin
 
 
 
+CREATE INDEX "compliance_score_snapshots_organization_id_idx" ON "public"."compliance_score_snapshots" USING "btree" ("organization_id");
+
+
+
 CREATE INDEX "compliance_tasks_assigned_status_idx" ON "public"."compliance_tasks" USING "btree" ("assigned_to", "status");
 
 
@@ -6912,6 +7220,14 @@ CREATE INDEX "hr_cases_organization_id_idx" ON "public"."hr_cases" USING "btree"
 
 
 
+CREATE INDEX "hr_communications_organization_id_idx" ON "public"."hr_communications" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "hr_compensation_records_organization_id_idx" ON "public"."hr_compensation_records" USING "btree" ("organization_id");
+
+
+
 CREATE INDEX "hr_docs_jurisdiction_idx" ON "public"."hr_documents" USING "btree" ("jurisdiction");
 
 
@@ -6940,7 +7256,31 @@ CREATE INDEX "hr_employee_notes_employee_id_idx" ON "public"."hr_employee_notes"
 
 
 
+CREATE INDEX "hr_expiry_records_employee_id_idx" ON "public"."hr_expiry_records" USING "btree" ("employee_id");
+
+
+
+CREATE INDEX "hr_expiry_records_organization_id_idx" ON "public"."hr_expiry_records" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "hr_leaves_employee_id_idx" ON "public"."hr_leaves" USING "btree" ("employee_id");
+
+
+
+CREATE INDEX "hr_leaves_organization_id_idx" ON "public"."hr_leaves" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "hr_obligations_organization_id_idx" ON "public"."hr_obligations" USING "btree" ("organization_id");
+
+
+
 CREATE INDEX "hr_policies_organization_id_idx" ON "public"."hr_policies" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "hr_wellbeing_initiatives_organization_id_idx" ON "public"."hr_wellbeing_initiatives" USING "btree" ("organization_id");
 
 
 
@@ -7468,6 +7808,10 @@ CREATE OR REPLACE TRIGGER "advisor_guidance_chunks_touch_updated_at" BEFORE UPDA
 
 
 
+CREATE OR REPLACE TRIGGER "law_updates_flag_guidance" AFTER INSERT ON "public"."law_updates" FOR EACH ROW EXECUTE FUNCTION "public"."flag_guidance_chunks_on_law_change"();
+
+
+
 CREATE OR REPLACE TRIGGER "profiles_pin_billing_columns" BEFORE UPDATE ON "public"."profiles" FOR EACH ROW EXECUTE FUNCTION "public"."pin_profile_billing_columns"();
 
 
@@ -7822,6 +8166,11 @@ ALTER TABLE ONLY "public"."compliance_findings"
 
 
 
+ALTER TABLE ONLY "public"."compliance_score_snapshots"
+    ADD CONSTRAINT "compliance_score_snapshots_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."compliance_tasks"
     ADD CONSTRAINT "compliance_tasks_assigned_to_fkey" FOREIGN KEY ("assigned_to") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
 
@@ -8032,6 +8381,31 @@ ALTER TABLE ONLY "public"."hr_cases"
 
 
 
+ALTER TABLE ONLY "public"."hr_communications"
+    ADD CONSTRAINT "hr_communications_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."hr_communications"
+    ADD CONSTRAINT "hr_communications_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."hr_compensation_records"
+    ADD CONSTRAINT "hr_compensation_records_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."hr_compensation_records"
+    ADD CONSTRAINT "hr_compensation_records_employee_id_fkey" FOREIGN KEY ("employee_id") REFERENCES "public"."employees"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."hr_compensation_records"
+    ADD CONSTRAINT "hr_compensation_records_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."hr_employee_notes"
     ADD CONSTRAINT "hr_employee_notes_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
 
@@ -8047,6 +8421,46 @@ ALTER TABLE ONLY "public"."hr_employee_notes"
 
 
 
+ALTER TABLE ONLY "public"."hr_expiry_records"
+    ADD CONSTRAINT "hr_expiry_records_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."hr_expiry_records"
+    ADD CONSTRAINT "hr_expiry_records_employee_id_fkey" FOREIGN KEY ("employee_id") REFERENCES "public"."employees"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."hr_expiry_records"
+    ADD CONSTRAINT "hr_expiry_records_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."hr_leaves"
+    ADD CONSTRAINT "hr_leaves_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."hr_leaves"
+    ADD CONSTRAINT "hr_leaves_employee_id_fkey" FOREIGN KEY ("employee_id") REFERENCES "public"."employees"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."hr_leaves"
+    ADD CONSTRAINT "hr_leaves_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."hr_obligations"
+    ADD CONSTRAINT "hr_obligations_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."hr_obligations"
+    ADD CONSTRAINT "hr_obligations_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."hr_policies"
     ADD CONSTRAINT "hr_policies_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
 
@@ -8054,6 +8468,16 @@ ALTER TABLE ONLY "public"."hr_policies"
 
 ALTER TABLE ONLY "public"."hr_policies"
     ADD CONSTRAINT "hr_policies_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."hr_wellbeing_initiatives"
+    ADD CONSTRAINT "hr_wellbeing_initiatives_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."hr_wellbeing_initiatives"
+    ADD CONSTRAINT "hr_wellbeing_initiatives_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
 
 
 
@@ -8780,14 +9204,6 @@ CREATE POLICY "Anyone can read service status" ON "public"."service_status" FOR 
 
 
 
-CREATE POLICY "Anyone can update signature by token" ON "public"."signatures" FOR UPDATE TO "anon" USING (("status" = 'pending'::"text")) WITH CHECK (("status" = 'signed'::"text"));
-
-
-
-CREATE POLICY "Anyone can view and sign by token" ON "public"."signatures" FOR SELECT TO "anon" USING (true);
-
-
-
 CREATE POLICY "Authenticated can read active AI agents" ON "public"."ai_agents" FOR SELECT TO "authenticated" USING ((("status" = 'active'::"text") OR "public"."is_admin"(( SELECT "auth"."uid"() AS "uid"))));
 
 
@@ -9141,6 +9557,14 @@ CREATE POLICY "Org admins can delete cases" ON "public"."hr_cases" FOR DELETE US
 
 
 
+CREATE POLICY "Org admins can delete communications" ON "public"."hr_communications" FOR DELETE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete compensation records" ON "public"."hr_compensation_records" FOR DELETE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can delete employee notes" ON "public"."hr_employee_notes" FOR DELETE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
@@ -9149,7 +9573,27 @@ CREATE POLICY "Org admins can delete employees" ON "public"."employees" FOR DELE
 
 
 
+CREATE POLICY "Org admins can delete expiry records" ON "public"."hr_expiry_records" FOR DELETE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete leaves" ON "public"."hr_leaves" FOR DELETE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete obligations" ON "public"."hr_obligations" FOR DELETE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can delete policies" ON "public"."hr_policies" FOR DELETE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete score snapshots" ON "public"."compliance_score_snapshots" FOR DELETE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete wellbeing initiatives" ON "public"."hr_wellbeing_initiatives" FOR DELETE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -9161,6 +9605,14 @@ CREATE POLICY "Org admins can insert cases" ON "public"."hr_cases" FOR INSERT WI
 
 
 
+CREATE POLICY "Org admins can insert communications" ON "public"."hr_communications" FOR INSERT WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert compensation records" ON "public"."hr_compensation_records" FOR INSERT WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can insert employee notes" ON "public"."hr_employee_notes" FOR INSERT WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
@@ -9169,7 +9621,27 @@ CREATE POLICY "Org admins can insert employees" ON "public"."employees" FOR INSE
 
 
 
+CREATE POLICY "Org admins can insert expiry records" ON "public"."hr_expiry_records" FOR INSERT WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert leaves" ON "public"."hr_leaves" FOR INSERT WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert obligations" ON "public"."hr_obligations" FOR INSERT WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can insert policies" ON "public"."hr_policies" FOR INSERT WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert score snapshots" ON "public"."compliance_score_snapshots" FOR INSERT WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert wellbeing initiatives" ON "public"."hr_wellbeing_initiatives" FOR INSERT WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -9189,7 +9661,27 @@ CREATE POLICY "Org admins can update cases" ON "public"."hr_cases" FOR UPDATE US
 
 
 
+CREATE POLICY "Org admins can update communications" ON "public"."hr_communications" FOR UPDATE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update compensation records" ON "public"."hr_compensation_records" FOR UPDATE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can update employees" ON "public"."employees" FOR UPDATE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update expiry records" ON "public"."hr_expiry_records" FOR UPDATE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update leaves" ON "public"."hr_leaves" FOR UPDATE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update obligations" ON "public"."hr_obligations" FOR UPDATE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -9201,7 +9693,19 @@ CREATE POLICY "Org admins can update policies" ON "public"."hr_policies" FOR UPD
 
 
 
+CREATE POLICY "Org admins can update score snapshots" ON "public"."compliance_score_snapshots" FOR UPDATE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update wellbeing initiatives" ON "public"."hr_wellbeing_initiatives" FOR UPDATE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can view billing events" ON "public"."billing_events" FOR SELECT TO "authenticated" USING (("public"."is_admin"(( SELECT "auth"."uid"() AS "uid")) OR "public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")) OR ("user_id" = ( SELECT "auth"."uid"() AS "uid"))));
+
+
+
+CREATE POLICY "Org admins can view compensation records" ON "public"."hr_compensation_records" FOR SELECT USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -9225,6 +9729,10 @@ CREATE POLICY "Org members can view cases" ON "public"."hr_cases" FOR SELECT USI
 
 
 
+CREATE POLICY "Org members can view communications" ON "public"."hr_communications" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org members can view compliance tasks" ON "public"."compliance_tasks" FOR SELECT TO "authenticated" USING (("public"."is_admin"(( SELECT "auth"."uid"() AS "uid")) OR "public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")) OR ("assigned_to" = ( SELECT "auth"."uid"() AS "uid")) OR ("created_by" = ( SELECT "auth"."uid"() AS "uid"))));
 
 
@@ -9237,7 +9745,27 @@ CREATE POLICY "Org members can view employees" ON "public"."employees" FOR SELEC
 
 
 
+CREATE POLICY "Org members can view expiry records" ON "public"."hr_expiry_records" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can view leaves" ON "public"."hr_leaves" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can view obligations" ON "public"."hr_obligations" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org members can view policies" ON "public"."hr_policies" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can view score snapshots" ON "public"."compliance_score_snapshots" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can view wellbeing initiatives" ON "public"."hr_wellbeing_initiatives" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -9548,6 +10076,9 @@ ALTER TABLE "public"."compliance_assessments" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."compliance_findings" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."compliance_score_snapshots" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."compliance_tasks" ENABLE ROW LEVEL SECURITY;
 
 
@@ -9614,17 +10145,31 @@ ALTER TABLE "public"."hr_case_notes" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."hr_cases" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."hr_communications" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."hr_compensation_records" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."hr_documents" ENABLE ROW LEVEL SECURITY;
-
-
-CREATE POLICY "hr_documents_public_read" ON "public"."hr_documents" FOR SELECT USING (true);
-
 
 
 ALTER TABLE "public"."hr_employee_notes" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."hr_expiry_records" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."hr_leaves" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."hr_obligations" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."hr_policies" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."hr_wellbeing_initiatives" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."job_attempts" ENABLE ROW LEVEL SECURITY;
@@ -9697,10 +10242,6 @@ ALTER TABLE "public"."predictive_risk_forecasts" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."profiles" ENABLE ROW LEVEL SECURITY;
-
-
-CREATE POLICY "public_read_beta_signups" ON "public"."beta_signups" FOR SELECT USING (true);
-
 
 
 ALTER TABLE "public"."queue_health_snapshots" ENABLE ROW LEVEL SECURITY;
@@ -11057,6 +11598,12 @@ GRANT ALL ON FUNCTION "public"."fail_job"("target_job_id" "uuid", "error_text" "
 
 
 
+GRANT ALL ON FUNCTION "public"."flag_guidance_chunks_on_law_change"() TO "anon";
+GRANT ALL ON FUNCTION "public"."flag_guidance_chunks_on_law_change"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."flag_guidance_chunks_on_law_change"() TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."generate_basic_risk_forecast"("target_organization_id" "uuid", "window_days" integer) FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."generate_basic_risk_forecast"("target_organization_id" "uuid", "window_days" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."generate_basic_risk_forecast"("target_organization_id" "uuid", "window_days" integer) TO "service_role";
@@ -11319,6 +11866,11 @@ GRANT ALL ON FUNCTION "public"."rls_grant_gaps"() TO "service_role";
 
 
 
+REVOKE ALL ON FUNCTION "public"."score_snapshot_status"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."score_snapshot_status"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."set_support_ticket_reference"() TO "anon";
 GRANT ALL ON FUNCTION "public"."set_support_ticket_reference"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."set_support_ticket_reference"() TO "service_role";
@@ -11417,6 +11969,11 @@ GRANT ALL ON FUNCTION "public"."trigger_law_monitor"() TO "service_role";
 
 REVOKE ALL ON FUNCTION "public"."trigger_law_update_digest"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."trigger_law_update_digest"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."trigger_score_snapshots"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."trigger_score_snapshots"() TO "service_role";
 
 
 
@@ -11599,6 +12156,12 @@ GRANT ALL ON TABLE "public"."compliance_assessments" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."compliance_score_snapshots" TO "anon";
+GRANT ALL ON TABLE "public"."compliance_score_snapshots" TO "authenticated";
+GRANT ALL ON TABLE "public"."compliance_score_snapshots" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."conversations" TO "anon";
 GRANT ALL ON TABLE "public"."conversations" TO "authenticated";
 GRANT ALL ON TABLE "public"."conversations" TO "service_role";
@@ -11691,6 +12254,18 @@ GRANT ALL ON TABLE "public"."hr_cases" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."hr_communications" TO "anon";
+GRANT ALL ON TABLE "public"."hr_communications" TO "authenticated";
+GRANT ALL ON TABLE "public"."hr_communications" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."hr_compensation_records" TO "anon";
+GRANT ALL ON TABLE "public"."hr_compensation_records" TO "authenticated";
+GRANT ALL ON TABLE "public"."hr_compensation_records" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."hr_documents" TO "anon";
 GRANT ALL ON TABLE "public"."hr_documents" TO "authenticated";
 GRANT ALL ON TABLE "public"."hr_documents" TO "service_role";
@@ -11703,9 +12278,33 @@ GRANT ALL ON TABLE "public"."hr_employee_notes" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."hr_expiry_records" TO "anon";
+GRANT ALL ON TABLE "public"."hr_expiry_records" TO "authenticated";
+GRANT ALL ON TABLE "public"."hr_expiry_records" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."hr_leaves" TO "anon";
+GRANT ALL ON TABLE "public"."hr_leaves" TO "authenticated";
+GRANT ALL ON TABLE "public"."hr_leaves" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."hr_obligations" TO "anon";
+GRANT ALL ON TABLE "public"."hr_obligations" TO "authenticated";
+GRANT ALL ON TABLE "public"."hr_obligations" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."hr_policies" TO "anon";
 GRANT ALL ON TABLE "public"."hr_policies" TO "authenticated";
 GRANT ALL ON TABLE "public"."hr_policies" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."hr_wellbeing_initiatives" TO "anon";
+GRANT ALL ON TABLE "public"."hr_wellbeing_initiatives" TO "authenticated";
+GRANT ALL ON TABLE "public"."hr_wellbeing_initiatives" TO "service_role";
 
 
 
@@ -11781,7 +12380,7 @@ GRANT ALL ON TABLE "public"."signature_audit_events" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."signatures" TO "anon";
+GRANT SELECT,REFERENCES,TRIGGER,TRUNCATE,MAINTAIN ON TABLE "public"."signatures" TO "anon";
 GRANT ALL ON TABLE "public"."signatures" TO "authenticated";
 GRANT ALL ON TABLE "public"."signatures" TO "service_role";
 

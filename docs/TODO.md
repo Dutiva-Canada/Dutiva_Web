@@ -400,10 +400,11 @@ denied; the public status page, admin reads, public signup INSERT and
 authenticated signature owners still work), and brought into version
 control as `0073_close_anon_rls_holes.sql`. The bad policies had **no
 creating migration** — out-of-band drift — which is the deeper lesson.
-Owner follow-ups: (1) **regenerate `supabase/schema.sql`** (`npm run
-db:snapshot`) — it is stale (predates 0039–0073) and did not reflect these
-policies; (2) re-run `get_advisors('security')` after applying the pending
-migration backlog. Non-blocking WARNs the linter still reports:
+Owner follow-ups: (1) **regenerate `supabase/schema.sql`** — done
+2026-08-10; the snapshot now reflects `0039–0073` and the `flag_guidance_chunks_on_law_change`,
+`score_snapshot_status`, `trigger_score_snapshots`, `compliance_score_snapshots`,
+`hr_obligations`, and related RLS policies. (2) **re-run `get_advisors('security')`**
+after applying the pending migration backlog. Non-blocking WARNs the linter still reports:
 `pg_net` in the public schema, leaked-password protection off (low
 relevance — magic-link auth), and the standard "signed-in users can execute
 SECURITY DEFINER function" list (verified benign — all 21 org-scoped ones
