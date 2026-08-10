@@ -424,24 +424,20 @@ renaming it to `Content-Security-Policy` in `vercel.json`. `*.challenges.cloudfl
 was added defensively to `img-src`, `connect-src`, and `frame-src` for
 Turnstile. See [SECURITY_HEADERS.md](SECURITY_HEADERS.md).
 
-**SEC3 — The three audit judgment-calls (2026-08-08).** _Done — with owner
-follow-ups._ (1) **`SECURITY.md`** rewritten with a real coordinated-
-disclosure policy — contact `security@dutiva.ca`, 3-business-day
-acknowledgement, safe-harbour, scope, EN/FR — plus an RFC 9116
-`public/.well-known/security.txt`. _Owner:_ ensure `security@dutiva.ca`
-routes to a monitored inbox, and refresh the `Expires` date annually.
-(2) **CAPTCHA on `create-beta-signup`** (audit M2 — the email-amplification
-vector): the Turnstile/hCaptcha gate the support intake uses is now mirrored
-on the beta path — inert until `CAPTCHA_SECRET_KEY` / `VITE_CAPTCHA_SITE_KEY`
-are set, a hard 403 once they are. _Owner:_ redeploy `create-beta-signup`
-(the server half ships with the change; set the keys to turn it on — same
-pair the contact form already uses). (3) **Supabase tokens in
-`localStorage`** (audit H2): decided **not** to move them reactively — for a
-client-only SPA no storage removes the XSS risk, and the clean fix
-(httpOnly cookies) needs a server/proxy layer this SPA lacks. The impact
-mitigations are the CSP (SEC2) and the already-strong XSS prevention; the
-analysis and the interim owner action (enable **refresh-token rotation** in
-the Supabase dashboard) are in
+**SEC3 — Done.** _Verified 2026-08-10; one mailbox owner follow-up remains._
+(1) **`SECURITY.md`** and `public/.well-known/security.txt` are in place
+(Expires 2027-08-08). _Owner:_ keep `security@dutiva.ca` routed to a
+monitored inbox and refresh `Expires` before 2027-08-08.
+(2) **CAPTCHA on `create-beta-signup`** is live: the function is deployed
+(`create-beta-signup` v16, ACTIVE), `CAPTCHA_SECRET_KEY` / `CAPTCHA_PROVIDER`
+are set in Supabase secrets, and the client side matches the
+`create-public-support-ticket` gate. A test signup without a token now returns
+`403` when the secret is set.
+(3) **Supabase tokens in `localStorage`** (audit H2): the decision not to move
+them reactively stands. The impact mitigations are the CSP (SEC2) and the
+already-strong XSS prevention. **Refresh-token rotation** is confirmed enabled
+via the Supabase Management API (`refresh_token_rotation_enabled: true`,
+`security_refresh_token_reuse_interval: 10s`, `jwt_exp: 3600s`). See
 [AUTH_MAGIC_LINK.md](AUTH_MAGIC_LINK.md#session-token-storage--the-xss-blast-radius).
 
 **OA19 — Done.** Updated the GitHub repository secret `SUPABASE_ACCESS_TOKEN`
