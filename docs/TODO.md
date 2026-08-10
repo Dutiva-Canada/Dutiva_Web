@@ -469,10 +469,12 @@ building it speculatively would have meant deciding it speculatively.
 aggregate, first-party Supabase sink + GA4 plumbing) and built the same day —
 migration `0047`, `support-analytics-event` edge function, client module
 wired into all six event points, privacy/cookie/retention docs concretized.
-See [SUPPORT_ANALYTICS.md](SUPPORT_ANALYTICS.md). What's left: (1) deploy the
-edge function; (2) the GA4 consent banner (needs a design handoff — the
-loader and consent gate are built, but the banner UI that sets consent is
-not). (PR #153)
+See [SUPPORT_ANALYTICS.md](SUPPORT_ANALYTICS.md). **Done 2026-08-10.** The
+`support-analytics-event` edge function was redeployed (v9, ACTIVE) and the
+consent banner UI (`ConsentBanner.tsx`) is wired and shipped. Both the
+first-party Supabase sink and GA4 are gated behind the banner. The only
+remaining step is optional: set `VITE_GA_MEASUREMENT_ID` at build time to
+enable the GA4 sink; without it, GA4 stays inert. (PR #153)
 
 **D4 — Training-crawler policy.** Decided 2026-08-06: opted in.
 `GPTBot` (OpenAI), `ClaudeBot` (Anthropic), `CCBot` (Common Crawl),
