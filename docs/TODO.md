@@ -401,13 +401,17 @@ authenticated signature owners still work), and brought into version
 control as `0073_close_anon_rls_holes.sql`. The bad policies had **no
 creating migration** — out-of-band drift — which is the deeper lesson.
 Owner follow-ups: (1) **regenerate `supabase/schema.sql`** — done
-2026-08-10; the snapshot now reflects `0039–0073` and the `flag_guidance_chunks_on_law_change`,
+2026-08-10; the snapshot now reflects `0039–0074` and the `flag_guidance_chunks_on_law_change`,
 `score_snapshot_status`, `trigger_score_snapshots`, `compliance_score_snapshots`,
 `hr_obligations`, and related RLS policies. (2) **re-run `get_advisors('security')`**
-after applying the pending migration backlog. Non-blocking WARNs the linter still reports:
-`pg_net` in the public schema, leaked-password protection off (low
-relevance — magic-link auth), and the standard "signed-in users can execute
-SECURITY DEFINER function" list (verified benign — all 21 org-scoped ones
+— done 2026-08-10. The run found 28 WARNs after the migration backlog; the new
+`public.flag_guidance_chunks_on_law_change()` function from `0071` was flagged as
+an `anon`-callable `SECURITY DEFINER` RPC. This was fixed by migration
+`0074_revoke_flag_guidance_public_execute.sql` (revoke client `EXECUTE`, applied
+2026-08-10). Re-run after the fix shows 26 WARNs and no `anon` flag: the
+remaining non-blocking items are `pg_net` in the public schema, leaked-password
+protection off (low relevance — magic-link auth), and 24 `authenticated`
+`SECURITY DEFINER` functions (verified benign — the org-scoped ones
 self-authorize; `claim_ai_usage` is service-role only).
 
 **SEC2 — Security headers added (`vercel.json`, 2026-08-08).** _Done —

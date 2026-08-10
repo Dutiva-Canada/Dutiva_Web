@@ -11598,8 +11598,7 @@ GRANT ALL ON FUNCTION "public"."fail_job"("target_job_id" "uuid", "error_text" "
 
 
 
-GRANT ALL ON FUNCTION "public"."flag_guidance_chunks_on_law_change"() TO "anon";
-GRANT ALL ON FUNCTION "public"."flag_guidance_chunks_on_law_change"() TO "authenticated";
+REVOKE ALL ON FUNCTION "public"."flag_guidance_chunks_on_law_change"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."flag_guidance_chunks_on_law_change"() TO "service_role";
 
 
