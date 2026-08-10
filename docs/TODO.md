@@ -617,12 +617,12 @@ unilaterally, since it means deleting files. CANONICAL_FACTS § Open items 4–5
 
 ## 4. Engineering follow-ups
 
-**EF1 — The Advisor's first real authenticated turn is still unobserved.**
-_Verify._ `advisor-chat` returns the structured engine contract and the AI usage
-guardrails are live, but neither has been exercised by a signed-in beta user —
-every session so far lacked a JWT it could create. Expect exactly one
-`ai_telemetry_events` row, `completed`, with a token count. A row stranded at
-`started` means the usage claim landed and finalize did not. (PRs #87, #90)
+**EF1 — Done.** _Verified 2026-08-10 with a temporary signed-in beta test user._
+`advisor-chat` returned `200`, the reply streamed, and `ai_telemetry_events`
+finalized to `completed` with a token count: `deepseek-3.2`, 3,059 prompt /
+457 completion / 3,516 total tokens, 3,239 ms latency, `retrieval_failed: false`,
+`retrieved_chunks: 4`. The guardrail claim/finalize lifecycle is working end to
+end. (PRs #87, #90)
 
 **EF2 — Ontario and Québec fetch/detection code is built; it has never run
 live.** _Verify, then Owner._ Built 2026-08-05, in the shape the Justice
