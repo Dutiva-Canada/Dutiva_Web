@@ -414,12 +414,15 @@ protection off (low relevance — magic-link auth), and 24 `authenticated`
 `SECURITY DEFINER` functions (verified benign — the org-scoped ones
 self-authorize; `claim_ai_usage` is service-role only).
 
-**SEC2 — Security headers added (`vercel.json`, 2026-08-08).** _Done —
-with one owner follow-up._ The site shipped with no CSP / X-Frame-Options /
-HSTS / nosniff / Referrer-Policy. Now every route carries the enforcing safe
-set plus a **Report-Only** full CSP. Owner follow-up: after a signed-in
-click-through shows no console violations, promote the CSP to enforcing per
-[SECURITY_HEADERS.md](SECURITY_HEADERS.md).
+**SEC2 — Done.** _Verified and promoted 2026-08-10._ The site shipped with
+no CSP / X-Frame-Options / HSTS / nosniff / Referrer-Policy. Every route now
+carries the enforcing safe set **plus a full, enforcing CSP** in
+`Content-Security-Policy`. A Playwright signed-in click-through (marketing
+pages, `/fr`, `/app`, Advisor, Documents, Knowledge, Support, People, Cases)
+logged **zero CSP console violations**; the report-only header was promoted by
+renaming it to `Content-Security-Policy` in `vercel.json`. `*.challenges.cloudflare.com`
+was added defensively to `img-src`, `connect-src`, and `frame-src` for
+Turnstile. See [SECURITY_HEADERS.md](SECURITY_HEADERS.md).
 
 **SEC3 — The three audit judgment-calls (2026-08-08).** _Done — with owner
 follow-ups._ (1) **`SECURITY.md`** rewritten with a real coordinated-

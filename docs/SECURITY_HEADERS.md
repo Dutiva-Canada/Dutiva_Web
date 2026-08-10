@@ -1,50 +1,46 @@
 # HTTP security headers
 
 Set in `vercel.json` on every route (`/:path*`), added 2026-08-08 after the
-security audit found none present. Two postures: an **enforcing** set that
-is zero-risk, and a **Content-Security-Policy in Report-Only** so the
-resource policy can be verified against the live app before it can block
-anything.
+security audit found none present. The full **Content-Security-Policy** is
+now enforcing; it was promoted from Report-Only on 2026-08-10 after a
+signed-in Playwright click-through of the marketing and app surfaces showed
+zero console violations.
 
 ## Enforcing now
 
 | Header | Value | Closes |
 | --- | --- | --- |
 | `X-Frame-Options` | `DENY` | Clickjacking — nothing legitimately frames `dutiva.ca` or the `/app` workspace. |
-| `Content-Security-Policy` | `frame-ancestors 'none'; object-src 'none'; base-uri 'self'` | Modern-browser clickjacking + `<object>`/`<embed>` + `<base>` hijack. Only the safe directives are enforced; resource directives live in the Report-Only policy below. |
+| `Content-Security-Policy` | `default-src 'self'; ...` (full resource policy, see below) | Modern-browser clickjacking + `<object>`/`<embed>` + `<base>` hijack, plus all resource directives. Promoted to enforcing 2026-08-10. |
 | `X-Content-Type-Options` | `nosniff` | MIME sniffing on user-influenced blobs. |
 | `Referrer-Policy` | `strict-origin-when-cross-origin` | Path/query leakage to third parties. |
 | `Strict-Transport-Security` | `max-age=63072000; includeSubDomains` | SSL-strip / downgrade. (No `preload` yet — that commits every subdomain to HTTPS permanently; add it and submit to hstspreload.org when ready.) |
 | `Permissions-Policy` | `camera=(), microphone=(), geolocation=(), browsing-topics=()` | Powerful features the app never uses; opts out of Topics. |
 
-## Report-Only, pending promotion
+## Enforcing CSP — promoted 2026-08-10
 
-`Content-Security-Policy-Report-Only` carries the full resource policy. In
-Report-Only it **never blocks** — browsers only log violations to the
-console — so it is safe to ship un-verified. The allowed origins:
+The full resource policy is now served as `Content-Security-Policy` on every
+route. It was verified with a Playwright signed-in click-through (marketing
+pages, `/fr`, `/app`, Advisor, Documents, Knowledge, Support, People, Cases)
+on 2026-08-10 and logged **zero CSP console violations**.
+
+The allowed origins:
 
 - **self** — the app's own bundle and API calls.
 - **Supabase** `khtwpxnvziiyplaflwru.supabase.co` (+ `wss:` for realtime) — REST, auth, edge functions.
 - **Google Fonts** — `fonts.googleapis.com` (stylesheet), `fonts.gstatic.com` (fonts).
 - **GA4** — `googletagmanager.com`, `google-analytics.com`, `region1.google-analytics.com` (consent-gated).
-- **CAPTCHA** — Turnstile (`challenges.cloudflare.com`) and hCaptcha (`js.hcaptcha.com`, `newassets.hcaptcha.com`, `api.hcaptcha.com`).
+- **CAPTCHA** — Turnstile (`challenges.cloudflare.com` and `*.challenges.cloudflare.com`) and hCaptcha (`js.hcaptcha.com`, `newassets.hcaptcha.com`, `api.hcaptcha.com`).
 
-`script-src` and `style-src` currently include `'unsafe-inline'` because the
+`script-src` and `style-src` still include `'unsafe-inline'` because the
 app ships inline bootstrap scripts (the fragment-forwarder in `index.html`)
-and React inline style attributes.
+and React inline style attributes. The next hardening step is to hash or
+externalize those scripts and remove `'unsafe-inline'`.
 
-### To promote to enforcing
+### Ongoing CSP hygiene
 
-1. Deploy, then do a full signed-in click-through (marketing pages, sign-in,
-   Advisor, Document Studio, support, a Stripe checkout redirect) with the
-   console open. Note every CSP violation.
-2. Add any legitimately-missing origin to the corresponding directive.
-3. To drop `'unsafe-inline'` from `script-src` (the real hardening win),
-   replace the inline `index.html` scripts with hashed or external ones, or
-   move to nonces — then remove `'unsafe-inline'` and re-test.
-4. Rename the header key `Content-Security-Policy-Report-Only` →
-   `Content-Security-Policy` (merging its directives into the enforcing
-   policy). Keep `frame-ancestors`/`object-src`/`base-uri` as they are.
-
-Until step 4, the resource policy is observed, not enforced — the enforcing
-table above is what actively protects the app.
+- Re-test after any new third-party integration, new font origin, or inline
+  script change.
+- If a new origin is needed, add it to the matching directive in
+  `vercel.json` **and** update the list above so the source and the docs do
+  not drift.
