@@ -1,4 +1,4 @@
-import { ChevronRight, FileText, MessageSquare, ShieldCheck, Sparkles, Users } from 'lucide-react'
+import { ChevronRight, FileSignature, FileText, MessageSquare, ShieldCheck, Sparkles, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { SectionIntro } from '../SectionIntro'
 import { usePublicPath } from '@/seo/usePublicPath'
@@ -18,6 +18,7 @@ const FEATURES: Feature[] = [
   { icon: ShieldCheck, tone: 'accent', title: 'landing_prod2_t', body: 'landing_prod2_p' },
   { icon: Sparkles, tone: 'gold', title: 'landing_prod3_t', body: 'landing_prod3_p' },
   { icon: MessageSquare, tone: 'accent', title: 'landing_prod4_t', body: 'landing_prod4_p' },
+  { icon: FileSignature, tone: 'gold', title: 'landing_prod5_t', body: 'landing_prod5_p' },
 ]
 
 export function Product() {

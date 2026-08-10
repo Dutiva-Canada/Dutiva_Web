@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 import type { DoclibData } from './api'
-import type { OrgProfile, WorkspaceRole } from './data'
+import type { DocRecipient, GeneratedDoc, OrgProfile, WorkspaceRole } from './data'
 
 /**
  * Feature-scoped state: the loaded catalogue, the demo "Viewing as" role
@@ -15,6 +15,16 @@ export interface DoclibContextValue {
   setRole: (role: WorkspaceRole) => void
   org: OrgProfile
   setOrg: (org: OrgProfile) => void
+  /** Send an approved document for signature, replacing any previous recipients. */
+  sendForSignature: (docId: string, recipients: DocRecipient[]) => GeneratedDoc | undefined
+  /** Record a captured signature for one recipient and update aggregate status. */
+  applySignature: (
+    envelopeId: string,
+    email: string,
+    payload: { text?: string; image?: string; signedName: string },
+  ) => GeneratedDoc | undefined
+  /** Look up a document by its signing envelope id. */
+  getDocumentForEnvelope: (envelopeId: string) => GeneratedDoc | undefined
 }
 
 export const DoclibContext = createContext<DoclibContextValue | null>(null)

@@ -17,8 +17,8 @@ export const shellMessages = defineMessages({
   shell_signin: { en: 'Sign in', fr: 'Se connecter' },
   shell_start_free: { en: 'Start free', fr: 'Commencer' },
   shell_hero_badge: {
-    en: 'Built for Canadian employment law — all provinces & federal',
-    fr: 'Conçu pour le droit du travail canadien — toutes les provinces et le fédéral',
+    en: 'Built for Canadian employment law — Ontario, Quebec & federal (more provinces to come)',
+    fr: 'Conçu pour le droit du travail canadien — Ontario, Québec et fédéral (plus de provinces à venir)',
   },
   shell_hero_title: {
     en: 'Canadian HR compliance support for documents, deadlines, and workplace decisions.',

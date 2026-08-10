@@ -60,8 +60,8 @@ export const landing = defineMessages({
     fr: ' pour les employeurs canadiens.',
   },
   landing_h_q_a: {
-    en: 'Answer any Canadian HR question',
-    fr: 'Répondez à toute question RH canadienne',
+    en: 'Answer Canadian HR questions',
+    fr: 'Répondez aux questions RH canadiennes',
   },
   landing_h_q_b: {
     en: ' with confidence.',
@@ -212,12 +212,12 @@ export const landing = defineMessages({
     fr: 'Le Conseiller pose quelques questions de précision, puis fournit un niveau de risque et un raisonnement consultable — fondés sur les normes réellement applicables.',
   },
   landing_how3_t: {
-    en: 'Draft, review, and e-sign',
-    fr: 'Rédiger, réviser et signer électroniquement',
+    en: 'Draft, review, and export',
+    fr: 'Rédiger, réviser et exporter',
   },
   landing_how3_p: {
-    en: 'Generate the relevant documents in Document Studio, review them beside the guidance that shaped them, then send for e-signature.',
-    fr: 'Générez les documents pertinents dans le Studio de documents, révisez-les à côté des conseils qui les ont façonnés, puis envoyez-les pour signature électronique.',
+    en: 'Generate the relevant documents in Document Studio, review them beside the guidance that shaped them, then save or export.',
+    fr: 'Générez les documents pertinents dans le Studio de documents, révisez-les à côté des conseils qui les ont façonnés, puis enregistrez-les ou exportez-les.',
   },
   landing_prod_badge: {
     en: 'Document Studio',
@@ -228,12 +228,12 @@ export const landing = defineMessages({
     fr: "Tout ce qu'il faut pour bien documenter vos RH.",
   },
   landing_prod_sub: {
-    en: 'Sixteen core templates, generated through guided questions and reviewed beside the guidance that shaped them.',
-    fr: 'Seize modèles essentiels, générés par des questions guidées et révisés à côté des conseils qui les ont façonnés.',
+    en: 'Fifty HR templates, generated through guided questions and reviewed beside the guidance that shaped them.',
+    fr: 'Cinquante modèles RH, générés par des questions guidées et révisés à côté des conseils qui les ont façonnés.',
   },
   landing_prod1_t: {
-    en: '16 core templates',
-    fr: '16 modèles essentiels',
+    en: '50 HR templates',
+    fr: '50 modèles RH',
   },
   landing_prod1_p: {
     en: 'Offer letters, termination letters, PIPs, and policies — generated through guided questions, not a blank-page editor.',
@@ -263,6 +263,14 @@ export const landing = defineMessages({
     en: 'Preview generated documents beside compliance guidance before saving or exporting.',
     fr: 'Prévisualisez les documents générés à côté des conseils de conformité avant de les enregistrer ou de les exporter.',
   },
+  landing_prod5_t: {
+    en: 'Embedded e-signatures',
+    fr: 'Signatures électroniques intégrées',
+  },
+  landing_prod5_p: {
+    en: 'Send documents for signature, collect drawn or typed signatures, and track status inside the same workflow.',
+    fr: 'Envoyez des documents pour signature, recueillez des signatures manuscrites ou saisies et suivez leur statut dans le même processus.',
+  },
   landing_wf_badge: {
     en: 'Guided workflows',
     fr: 'Processus guidés',
@@ -272,8 +280,8 @@ export const landing = defineMessages({
     fr: 'Des processus RH à plusieurs étapes, suivis de bout en bout.',
   },
   landing_wf_sub: {
-    en: 'Start a workflow and Advisor coordinates every step — the conversation, the documents, the risk flags — through to done.',
-    fr: "Démarrez un processus et le Conseiller en coordonne chaque étape — la conversation, les documents, les signaux de risque — jusqu'à la fin.",
+    en: 'Start a workflow and Advisor guides you through each step — the conversation, the documents, the risk flags — through to done.',
+    fr: "Démarrez un processus et le Conseiller vous guide à chaque étape — la conversation, les documents, les signaux de risque — jusqu'à la fin.",
   },
   landing_wf1_label: {
     en: 'Hiring',
@@ -372,16 +380,16 @@ export const landing = defineMessages({
     fr: "Le Conseiller s'appuie sur les dossiers et les programmes qui font fonctionner les RH au quotidien.",
   },
   landing_mod1_label: {
-    en: 'Compliance monitoring',
-    fr: 'Suivi de conformité',
+    en: 'Compliance',
+    fr: 'Conformité',
   },
   landing_mod2_label: {
     en: 'People & Case Files',
     fr: 'Personnel et dossiers',
   },
   landing_mod3_label: {
-    en: 'Knowledge Base',
-    fr: 'Base de connaissances',
+    en: 'Knowledge',
+    fr: 'Connaissances',
   },
   landing_mod4_label: {
     en: 'Compensation',
@@ -404,8 +412,8 @@ export const landing = defineMessages({
     fr: 'À venir',
   },
   landing_mod_roadmap_note: {
-    en: 'Modules marked roadmap are in design and not yet available. Everything else runs on your live workspace data today.',
-    fr: 'Les modules marqués « à venir » sont en conception et ne sont pas encore offerts. Tout le reste fonctionne dès aujourd’hui avec les données réelles de votre espace de travail.',
+    en: 'Modules marked roadmap are in design and not yet available. Everything else runs in your workspace today.',
+    fr: 'Les modules marqués « à venir » sont en conception et ne sont pas encore offerts. Tout le reste fonctionne dans votre espace de travail dès aujourd’hui.',
   },
   landing_cat_label: {
     en: 'Available template categories',
@@ -564,8 +572,8 @@ export const landing = defineMessages({
     fr: 'Milieux de travail sous réglementation fédérale',
   },
   landing_cov_rem_name: {
-    en: 'Federal remote work',
-    fr: 'Télétravail fédéral',
+    en: 'Remote work — federal',
+    fr: 'Télétravail — fédéral',
   },
   landing_cov_rem_stat: {
     en: 'For federally regulated employers',

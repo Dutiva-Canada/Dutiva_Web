@@ -66,6 +66,7 @@ function gated(view: ReactNode) {
 /* prettier-ignore */ const GenerateScreen = lazy(() => import('@/features/app/documents/screens/GenerateScreen').then((m) => ({ default: m.GenerateScreen })))
 /* prettier-ignore */ const RepositoryScreen = lazy(() => import('@/features/app/documents/screens/RepositoryScreen').then((m) => ({ default: m.RepositoryScreen })))
 /* prettier-ignore */ const DocumentDetailScreen = lazy(() => import('@/features/app/documents/screens/DocumentDetailScreen').then((m) => ({ default: m.DocumentDetailScreen })))
+/* prettier-ignore */ const SigningScreen = lazy(() => import('@/features/app/documents/screens/SigningScreen').then((m) => ({ default: m.SigningScreen })))
 
 export const appViewRoutes: RouteObject[] = [
   { path: 'home', element: <HomeView /> },
@@ -158,6 +159,7 @@ export const appViewRoutes: RouteObject[] = [
       { path: 'studio', element: <StudioScreen /> },
       { path: 'templates/:tid', element: <TemplateDetailScreen /> },
       { path: 'generate/:templateId', element: <GenerateScreen /> },
+      { path: 'sign/:envelopeId', element: gated(<SigningScreen />) },
       { path: ':docId', element: gated(<DocumentDetailScreen />) },
     ],
   },

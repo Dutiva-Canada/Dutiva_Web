@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Dispatch, KeyboardEvent, SetStateAction } from 'react'
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft, Lock, TriangleAlert } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { bi } from '@/i18n/core'
@@ -13,6 +13,7 @@ import { useToasts } from '@/features/app/toasts/toastsContext'
 import type { ToastTone } from '@/features/app/toasts/toastsContext'
 import { useDoclib } from '../doclibContext'
 import { ActBtn, DocChip, DocPaper, JurisdictionPill, Skel } from '../components'
+import { SignatureModal } from '../components/SignatureModal'
 import {
   answerLabels,
   computedTokens,
@@ -237,18 +238,22 @@ function DocumentActions({
   actions,
   t,
   showToast,
+  onSendForSignature,
 }: {
   readonly actions: DocAction[]
   readonly t: Translator
   readonly showToast: ReturnType<typeof useToasts>['showToast']
+  readonly onSendForSignature: () => void
 }) {
   if (actions.length === 0) return null
   return (
     <div className="flex shrink-0 flex-wrap gap-[8px]">
       {actions.map((action) => {
         const cfg = ACTION_CFG[action]
+        const handle =
+          action === 'send_for_signature' ? onSendForSignature : () => showToast(cfg.toast, cfg.tone)
         return (
-          <ActBtn key={action} variant={cfg.variant} onClick={() => showToast(cfg.toast, cfg.tone)}>
+          <ActBtn key={action} variant={cfg.variant} onClick={handle}>
             {t(cfg.label)}
           </ActBtn>
         )
@@ -353,10 +358,12 @@ function DocumentPreview({
 
 export function DocumentDetailScreen() {
   const { t, x, lang } = useI18n()
-  const { data, role, org } = useDoclib()
+  const { data, role, org, sendForSignature } = useDoclib()
   const { showToast } = useToasts()
+  const navigate = useNavigate()
   const { docId } = useParams()
   const [tab, setTab] = useState<TabKey>('preview')
+  const [isSignModalOpen, setIsSignModalOpen] = useState(false)
 
   if (!data) return <DetailSkeleton />
 
@@ -467,7 +474,12 @@ export function DocumentDetailScreen() {
             <JurisdictionPill code={doc.jurisdiction} />
           </div>
         </div>
-        <DocumentActions actions={actions} t={t} showToast={showToast} />
+        <DocumentActions
+          actions={actions}
+          t={t}
+          showToast={showToast}
+          onSendForSignature={() => setIsSignModalOpen(true)}
+        />
       </div>
 
       {/* ── Role banners (viewer / external get no actions) ── */}
@@ -639,6 +651,19 @@ export function DocumentDetailScreen() {
                         <div className="mt-[3px] text-[11px] text-text-faint">
                           {recipient.signedAt ? fmtDate(recipient.signedAt, lang) : '—'}
                         </div>
+                        {signature && recipient.status !== 'signed' && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              navigate(
+                                `/app/documents/sign/${signature.envelopeId}?recipient=${encodeURIComponent(recipient.email)}`,
+                              )
+                            }
+                            className="mt-2 rounded-[8px] bg-navy px-2.5 py-1 text-[11.5px] font-semibold text-white"
+                          >
+                            {t('doclib_docd_sign')}
+                          </button>
+                        )}
                       </div>
                     </div>
                   )
@@ -701,6 +726,20 @@ export function DocumentDetailScreen() {
           </div>
         </aside>
       </div>
+
+      {isSignModalOpen && (
+        <SignatureModal
+          doc={doc}
+          isOpen={isSignModalOpen}
+          onClose={() => setIsSignModalOpen(false)}
+          onSend={(recipients) => {
+            sendForSignature(doc.id, recipients)
+            setIsSignModalOpen(false)
+            showToast(doclibMessages.doclib_toast_sent, 'info')
+            setTab('recipients')
+          }}
+        />
+      )}
 
       <Disclaimer variant="block" className="mt-[20px]" />
     </div>

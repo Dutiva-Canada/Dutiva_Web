@@ -231,8 +231,8 @@ export const pricingMessages = defineMessages({
   },
   pricing_faq_billing_q: { en: 'How does billing work?', fr: 'Comment fonctionne la facturation?' },
   pricing_faq_billing_a: {
-    en: 'Paid plans are billed securely through Stripe in Canadian dollars, monthly or annually. Manage or cancel your subscription anytime.',
-    fr: 'Les forfaits payants sont facturés en toute sécurité via Stripe en dollars canadiens, mensuellement ou annuellement. Gérez ou annulez votre abonnement à tout moment.',
+    en: 'Paid plans are billed securely through Stripe in Canadian dollars, monthly. Annual billing is coming soon. Manage or cancel your subscription anytime.',
+    fr: 'Les forfaits payants sont facturés en toute sécurité via Stripe en dollars canadiens, mensuellement. La facturation annuelle arrive bientôt. Gérez ou annulez votre abonnement à tout moment.',
   },
   pricing_faq_refund_q: {
     en: 'What is your refund policy?',
@@ -247,7 +247,7 @@ export const pricingMessages = defineMessages({
     fr: 'La facturation annuelle est-elle moins chère?',
   },
   pricing_faq_annual_a: {
-    en: 'Yes. Choosing annual billing gives you two months free compared with paying month to month.',
-    fr: 'Oui. La facturation annuelle vous offre deux mois gratuits par rapport au paiement mensuel.',
+    en: 'Annual billing is coming soon — it will include two months free compared with paying month to month. Email support@dutiva.ca to be notified when it is available.',
+    fr: 'La facturation annuelle arrive bientôt — elle comprendra deux mois gratuits par rapport au paiement mensuel. Écrivez à support@dutiva.ca pour être avisé dès qu’elle est disponible.',
   },
 })

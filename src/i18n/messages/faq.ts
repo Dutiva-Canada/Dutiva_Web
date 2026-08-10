@@ -41,8 +41,8 @@ export const faqMessages = defineMessages({
     fr: 'Quelles compétences Dutiva couvre-t-il ?',
   },
   faq_a4: {
-    en: 'Ontario (Employment Standards Act, 2000), Quebec (Act respecting labour standards), Federal (Canada Labour Code, Part III), and federal remote work. Alberta and British Columbia are coming soon.',
-    fr: 'L’Ontario (Loi de 2000 sur les normes d’emploi), le Québec (Loi sur les normes du travail), le fédéral (Code canadien du travail, Partie III) et le télétravail fédéral. L’Alberta et la Colombie-Britannique suivront bientôt.',
+    en: 'Ontario (Employment Standards Act, 2000), Quebec (Act respecting labour standards), and Federal (Canada Labour Code, Part III), including federal remote work. Alberta and British Columbia are coming soon.',
+    fr: 'L’Ontario (Loi de 2000 sur les normes d’emploi), le Québec (Loi sur les normes du travail) et le fédéral (Code canadien du travail, Partie III), y compris le télétravail fédéral. L’Alberta et la Colombie-Britannique suivront bientôt.',
   },
   faq_q5: {
     en: 'Does Dutiva give legal advice?',
@@ -68,8 +68,8 @@ export const faqMessages = defineMessages({
     fr: 'Mes données servent-elles à entraîner des modèles d’IA ?',
   },
   faq_a8: {
-    en: 'No. Inputs sent to AI providers are processed transiently and are not retained to train third-party foundation models under Dutiva’s arrangement. Highly sensitive data is never sent to AI APIs.',
-    fr: 'Non. Les données envoyées aux fournisseurs d’IA sont traitées de façon transitoire et ne sont pas conservées pour entraîner des modèles de fondation tiers dans le cadre de l’entente de Dutiva. Les données hautement sensibles ne sont jamais envoyées aux API d’IA.',
+    en: 'No. Inputs sent to AI providers are processed transiently and are not retained to train third-party foundation models under Dutiva’s arrangement. Do not paste highly sensitive information — such as full SINs, medical details, or privileged legal notes — into the Advisor unless your organization has a lawful basis and a controlled workflow for that data.',
+    fr: 'Non. Les données envoyées aux fournisseurs d’IA sont traitées de façon transitoire et ne sont pas conservées pour entraîner des modèles de fondation tiers dans le cadre de l’entente de Dutiva. Ne collez pas de renseignements hautement sensibles — tels que des NAS complets, des détails médicaux ou des notes juridiques confidentielles — dans le Conseiller, sauf si votre organisation dispose d’un fondement légal et d’un processus contrôlé pour ces données.',
   },
   faq_q9: { en: 'How do I delete my data?', fr: 'Comment supprimer mes données ?' },
   faq_a9: {
@@ -79,8 +79,8 @@ export const faqMessages = defineMessages({
   faq_p_title: { en: 'Pricing & billing', fr: 'Tarifs et facturation' },
   faq_q10: { en: 'How much does Dutiva cost?', fr: 'Combien coûte Dutiva ?' },
   faq_a10: {
-    en: 'Free / Beta, Starter at $24/mo, Growth at $49/mo (most popular), and Professional at $99/mo. Prices in CAD; annual billing is available.',
-    fr: 'Gratuit / Bêta, Starter à 24 $/mois, Growth à 49 $/mois (le plus populaire) et Professional à 99 $/mois. Prix en CAD; facturation annuelle offerte.',
+    en: 'Free / Beta, Starter at $24/mo, Growth at $49/mo (most popular), and Professional at $99/mo. Prices in CAD; monthly billing is available now and annual billing is coming soon.',
+    fr: 'Gratuit / Bêta, Starter à 24 $/mois, Growth à 49 $/mois (le plus populaire) et Professional à 99 $/mois. Prix en CAD; facturation mensuelle disponible maintenant et facturation annuelle à venir.',
   },
   faq_q11: { en: 'Is there a free trial?', fr: 'Y a-t-il un essai gratuit ?' },
   /* Deviates from the prototype: beta capacity decision, 2026-08-07 — the
@@ -95,8 +95,8 @@ export const faqMessages = defineMessages({
     fr: 'Quelle est votre politique de remboursement ?',
   },
   faq_a12: {
-    en: 'New annual subscriptions include a 14-day money-back guarantee. Monthly plans are non-refundable after the billing date, apart from documented billing errors or a service outage over 24 consecutive hours. You can cancel anytime — access continues to the end of your billing period. See the Refund and Cancellation Policy for full terms.',
-    fr: 'Les nouveaux abonnements annuels comprennent une garantie de remboursement de 14 jours. Les forfaits mensuels ne sont pas remboursables après la date de facturation, sauf erreur de facturation documentée ou panne de service de plus de 24 heures consécutives. Vous pouvez annuler à tout moment — l’accès se poursuit jusqu’à la fin de votre période de facturation. Consultez la Politique de remboursement et d’annulation pour les conditions complètes.',
+    en: 'Once annual subscriptions are available, new annual subscriptions include a 14-day money-back guarantee. Monthly plans are non-refundable after the billing date, apart from documented billing errors or a service outage over 24 consecutive hours. You can cancel anytime — access continues to the end of your billing period. See the Refund and Cancellation Policy for full terms.',
+    fr: 'Une fois les abonnements annuels disponibles, les nouveaux abonnements annuels comprennent une garantie de remboursement de 14 jours. Les forfaits mensuels ne sont pas remboursables après la date de facturation, sauf erreur de facturation documentée ou panne de service de plus de 24 heures consécutives. Vous pouvez annuler à tout moment — l’accès se poursuit jusqu’à la fin de votre période de facturation. Consultez la Politique de remboursement et d’annulation pour les conditions complètes.',
   },
   faq_closing_t: { en: 'Still have questions?', fr: 'D’autres questions ?' },
   faq_closing_p: {

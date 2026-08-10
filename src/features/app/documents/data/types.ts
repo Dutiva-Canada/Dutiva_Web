@@ -218,6 +218,14 @@ export interface DocRecipient {
   order: number
   status: string
   signedAt?: string
+  viewedAt?: string
+  declinedAt?: string
+  /** Base64 PNG of a drawn signature, or rendered typed-signature image. */
+  signatureImage?: string
+  /** Plain-text name used as a typed signature, stored for audit. */
+  signatureText?: string
+  /** The name the signer entered when signing. */
+  signedName?: string
 }
 
 export interface DocVersionEntry {
