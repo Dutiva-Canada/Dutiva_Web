@@ -129,7 +129,7 @@ _Historical detail below._
 Both exist in `supabase/functions/`. Deploy from the repo root, where
 `supabase/config.toml` now pins them:
 
-```
+```bash
 npx supabase functions deploy support-analytics-event --project-ref khtwpxnvziiyplaflwru
 npx supabase functions deploy export-audit-trail --project-ref khtwpxnvziiyplaflwru
 ```
@@ -364,7 +364,7 @@ Forbidden**, confirmed via `net.http_post` → `net._http_response`. The
 deployed `isAuthorizedTrigger()` does exact-match only against the
 service-role key or `SUPABASE_SECRET_KEY` — no JWT payload decoding.
 
-#146 (Ontario/Québec API rework: `ontarioApi.ts`, `quebecCkan.ts`) shipped in
+PR #146 (Ontario/Québec API rework: `ontarioApi.ts`, `quebecCkan.ts`) shipped in
 the same deploy, as the TODO entry anticipated — whatever is in the working
 tree is what goes.
 
@@ -377,6 +377,7 @@ returns 9 columns including the new flag, and trigger
 `advisor-safety-event` were redeployed 2026-08-10.
 
 End-to-end verification with a temporary beta test user:
+
 - `advisor-safety-event` accepted the new `figure-mismatch` action and
   returned `202 {"data":{"recorded":1}}`.
 - `advisor-chat` answered an Ontario notice question ("What notice period
@@ -502,9 +503,9 @@ Proposed Beta Launch Brief privacy-claim replacement (from CANONICAL_FACTS
 > practical HR workflow support and compliance-oriented guidance; it does not
 > provide legal advice.
 
-Suggested superseded note for the other business plans in Drive: *"Superseded
+Suggested superseded note for the other business plans in Drive: _"Superseded
 by the Beta Launch Brief (2026-07-20). The Beta Launch Brief is the plan of
-record as of 2026-08-06."*
+record as of 2026-08-06."_
 
 **D6 — Is a non-figure linkable asset worth building.** Decided 2026-08-06:
 yes — a jurisdiction-scoping questionnaire. Three questions determine
@@ -695,7 +696,7 @@ that guard only once this is done. Folded into OA11.
 **EF4b — Done.** _Verified 2026-08-10._ The live `profiles_billing_period_check`
 allows `monthly` and `annual`:
 
-```
+```sql
 profiles_billing_period_check  CHECK ((billing_period = ANY (ARRAY['monthly'::text, 'annual'::text])))
 ```
 
