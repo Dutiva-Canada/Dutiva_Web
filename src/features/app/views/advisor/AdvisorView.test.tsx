@@ -5,9 +5,24 @@ import { AdvisorView } from './AdvisorView'
 import { resetAdvisorSession } from './advisorSession'
 
 describe('AdvisorView', () => {
-  /* Conversations persist in the module-level session store — reset per test. */
+  /* Conversations persist in the module-level session store — reset per test.
+     MatchMedia defaults to "no reduced motion" so the streaming tests below see
+     the thinking → streaming → done lifecycle. The signed-in block overrides to
+     reduced motion so assertions on long replies don't flake under CPU load. */
+  const noReducedMotionMatchMedia = vi.fn((query: string) => ({
+    matches: false,
+    media: query,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+    onchange: null,
+  }))
+
   beforeEach(() => {
     resetAdvisorSession()
+    vi.stubGlobal('matchMedia', noReducedMotionMatchMedia)
   })
 
   it('renders the advisor home empty state with metrics, brief and priorities', () => {
@@ -237,7 +252,24 @@ describe('AdvisorView', () => {
   })
 
   describe('signed in', () => {
+    beforeEach(() => {
+      vi.stubGlobal(
+        'matchMedia',
+        vi.fn((query: string) => ({
+          matches: query === '(prefers-reduced-motion: reduce)',
+          media: query,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+          onchange: null,
+        })),
+      )
+    })
+
     afterEach(() => {
+      vi.unstubAllGlobals()
       vi.doUnmock('@/lib/supabaseClient')
       vi.resetModules()
     })

@@ -220,6 +220,7 @@ succeeded). Retention is bounded.
 **OA7 — Done.** Supabase Auth dashboard settings for magic links. Verified
 2026-08-06 in the dashboard, all three settings in
 [AUTH_MAGIC_LINK.md](AUTH_MAGIC_LINK.md) §1–§3:
+
 - §2 **Site URL** was already `https://dutiva.ca`.
 - §3 **Magic link template** was already on
   `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=magiclink`, so the
@@ -259,6 +260,7 @@ no redeploy is required. (PRs #112, #113)
 Two real findings surfaced by Bing's own recommendations, both feeding
 [SEO_AUTHORITY_PLAYBOOK.md](SEO_AUTHORITY_PLAYBOOK.md) rather than this
 section:
+
 - _"Meta descriptions on many pages are too short."_ That is a code fix in
   the route metadata, not a dashboard action.
 - _"Your site does not have enough inbound links from high quality domains."_
@@ -293,6 +295,7 @@ day paid plans are re-enabled.
 
 **OA12 — Partially done.** D3 was decided 2026-08-06 (Google Calendar, full
 loop) and built the same day. Verified 2026-08-06 via Supabase MCP:
+
 - (2) **Done.** All three edge functions deployed: `support-agent-action`
   (v11, extended with `propose_call`), `support-confirm-call` (v1),
   `support-call-scheduler` (v1). Manual trigger of
@@ -339,6 +342,7 @@ loop) and built the same day. Verified 2026-08-06 via Supabase MCP:
 **OA13 — Done.** D1 was decided 2026-08-06 (internal-only, weekly,
 human-reviewed) and built the same day. All three deployment steps verified
 2026-08-07 via Supabase MCP:
+
 - (1) **Done.** OA1/OA2 completed — the monitor is running and Federal
   detection is confirmed working.
 - (2) **Done.** `send-law-updates` deployed and returning
@@ -349,7 +353,7 @@ human-reviewed) and built the same day. All three deployment steps verified
   `law_update_digest_status()` shows `secret_configured: true`,
   `job_scheduled: true`, `unreviewed_count: 22`.
 - Reviewing a row is direct SQL for now (`update law_updates set
-  review_status = 'reviewed' where id = '<uuid>'`) — there is no admin UI, on
+review_status = 'reviewed' where id = '<uuid>'`) — there is no admin UI, on
   purpose, for a low-volume internal pilot. See
   [LAW_CHANGE_NOTIFICATIONS.md § 7](LAW_CHANGE_NOTIFICATIONS.md).
 
@@ -437,46 +441,22 @@ analysis and the interim owner action (enable **refresh-token rotation** in
 the Supabase dashboard) are in
 [AUTH_MAGIC_LINK.md](AUTH_MAGIC_LINK.md#session-token-storage--the-xss-blast-radius).
 
-**OA19 — CI is red on every branch: the `SUPABASE_ACCESS_TOKEN` repository
-secret is not a valid personal access token.** _Owner._ Since the secrets
-were set on 2026-08-06 (f92f75cf was the first authenticated run), the
-Migration-drift CI step has failed every run on every branch with
-`401 {"message":"Format is Authorization: Bearer"}` from
-`api.supabase.com` — the Management API only accepts `sbp_…` personal
-access tokens, and the stored value isn't one (or carries stray
-characters). The in-repo request is correct (`scripts/check-migrations.mjs`
-sends `Authorization: Bearer <token>`), so nothing to change in code — and
-the step failing loudly on bad credentials is by design ("a credentials
-failure must not read as no drift"). Fix: Supabase Dashboard → Account →
-Access Tokens → generate, then GitHub → Settings → Secrets and variables →
-Actions → update `SUPABASE_ACCESS_TOKEN`, then re-run CI via
-workflow_dispatch (added for exactly this). Expect the first honest run to
-flag 0068/0069/0070 as present-but-unapplied until OA18's migration steps
-are done — that is the check working, not a regression.
+**OA19 — Done.** Updated the GitHub repository secret `SUPABASE_ACCESS_TOKEN`
+to a valid `sbp_…` Supabase personal access token. The `Migration drift` CI
+step now reaches the Supabase Management API; the first run after the fix
+(run `31421301817`) completed successfully. A `401` on bad credentials is the
+check working by design — it no longer hides drift behind a credentials
+failure.
 
-**OA18 — Score formulas v2+v3: apply the migrations, deploy the function, set
-the secret.** _Owner._ Five steps, in order, none done by the merges
-themselves: (1) apply migration `0068_score_formula_v2.sql` (adds
-`compliance_score_snapshots.formula_version`, schedules the daily 05:30 UTC
-job — until applied, the app reads snapshots through its legacy-shape
-fallback and writes retry without the version column, so labels lag); (2)
-apply migration `0069_score_formula_v3_obligations.sql` (creates
-`hr_obligations` — until applied, the obligation register reads as empty on
-every path and the score blends three components instead of four); (3)
-apply migration `0070_score_snapshot_close_retries.sql` (month-close becomes
-three attempts in the first UTC hour of the 1st, and
-`score_snapshot_status()` gains close-coverage reporting); (4) deploy the
-`record-score-snapshots` edge function (`verify_jwt = false` is already in
-`supabase/config.toml` — deploy from this repo root, remembering the
-2026-08-06 stale-CLI-project lesson); (5) create the Vault secret:
-`select vault.create_secret('<service key>', 'score_snapshot_service_key',
-'Service key used by the record-score-snapshots cron job');`. Verify with
-`select * from public.score_snapshot_status();` — expect
-`secret_configured: true`, both job flags true, and
-`orgs_with_current_month` ≥ 1 after the next 05:30 UTC run (or fire
-`select public.trigger_score_snapshots();` once to check immediately —
-pg_cron reporting success only proves the request was queued). See
-[SCORING_LOGIC.md](SCORING_LOGIC.md) §2.3/§8.
+**OA18 — Done.** The score-formula v2+v3 migrations (`0068_score_formula_v2.sql`,
+`0069_score_formula_v3_obligations.sql`, and `0070_score_snapshot_close_retries.sql`)
+were applied, the `record-score-snapshots` edge function was deployed with
+`verify_jwt = false` pinned in `supabase/config.toml`, and the
+`score_snapshot_service_key` Vault secret was created. Verification:
+`select * from public.score_snapshot_status();` shows
+`secret_configured: true`, both cron jobs scheduled, and
+`orgs_with_current_month` ≥ 1 after `public.trigger_score_snapshots()` was
+fired. See [SCORING_LOGIC.md](SCORING_LOGIC.md) §2.3/§8.
 
 ---
 
@@ -800,17 +780,14 @@ and workflow impact indicators. (PR #160)
 
 ## 5. Verification and hygiene
 
-**V1 — Migration drift is unchecked in CI, and now says so.** _Owner._ Confirmed
-2026-08-04: `gh secret list` returns empty, so neither `SUPABASE_ACCESS_TOKEN`
-nor `SUPABASE_PROJECT_REF` is set on this repository and the drift half of
-`check:migrations` has been skipping on **every** CI run — a required check
-going green on the exact meaning "drift unchecked". The repo half is closed:
-the script now raises a GitHub warning annotation and a job-summary entry when
-it skips, so the skip is visible where results are read rather than in a log
-(`announceSkippedDriftCheck`). What remains is an owner action — set both
-secrets as repository secrets and the step starts enforcing with no code
-change. Until then, whether migrations `0033`–`0041` are applied is still
-unverified.
+**V1 — Done.** `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF` are now set
+as repository secrets, so `check:migrations` compares the repo against the
+live project instead of skipping. The first full run after the secrets were
+fixed (run `31421301817`) was green. Applying the missing migrations and the
+`0073` name repair turned up more backlog than just `0068/0069/0070`; the full
+set applied was `0032`, `0039–0041`, `0043`, `0068–0072`, plus a metadata
+repair for the already-applied `0073`. `check-migrations: OK` is now the
+normal state.
 
 ---
 
@@ -820,30 +797,30 @@ Sweeping 132 PR bodies turns up items that read as open in one PR and were
 closed two PRs later. These are settled; the note is here so the next sweep
 does not resurrect them.
 
-| Item                                        | Closed by                                                                           |
-| ------------------------------------------- | ----------------------------------------------------------------------------------- |
-| EF6a — split the message catalogue by surface, and guard `t()`'s surface boundary | Catalogue source split into `workspace.ts`/`marketing.ts`/`shared.ts`; `vite.config.ts`'s `messages-workspace` group needed `includeDependenciesRecursively: false` to actually stop riding into the eager graph (671.3kB → 539.9kB, -131.4kB) — see that file's comment for the rolldown mechanism. `t()` itself is still typed `MessageKey`, not per-surface — `scripts/check-message-scopes.mjs` (`npm run check`) guards the same boundary a different way, by scanning every literal `t('key')` call against its file's surface, instead of retyping ~140 call sites for an equivalent guarantee. A *computed* key (`t(someVariable)`) is invisible to this script by construction, same as it always was — those are guarded at the data structure that carries the key (`plans.ts`, `legalHubData.ts`, etc.), which was already typed. |
-| D3 — scheduled-call booking calendar decision                                     | Decided 2026-08-06 (Google Calendar, full loop) and built the same day. **Revised 2026-08-07: calendar sync is off and staying off** — the org's `iam.disableServiceAccountKeyCreation` policy blocks the key, and weakening it was not worth one calendar invite. Propose/confirm works without it; see OA12. [SUPPORT_CALL_SCHEDULING.md](SUPPORT_CALL_SCHEDULING.md). |
-| D1 — law-change notifications' five open questions                                | Decided 2026-08-06 (internal-only, weekly, org jurisdiction wins, human review required) and built the same day — see OA13 for what's left to deploy it. [LAW_CHANGE_NOTIFICATIONS.md](LAW_CHANGE_NOTIFICATIONS.md). |
-| EF5 — `inferCheckoutPrice`'s dead branch    | Deleted; server-set metadata is the checkout path's documented single source        |
-| L1 — primary sources "unreachable"          | Not a network block — a bot filter on the fetching tool; run from a workstation     |
-| L2 — WI1 federal leaves omission            | Pregnancy loss leave confirmed and added; "placement of a child" **does not exist** |
-| L3 — WI3 Ontario minimum wage               | All four Oct-2026 special-category rates verified twice and added                   |
-| L4 — WI2 CNESST URL normalization           | SHORT form is canonical (301 trace); fixed per-URL, never by prefix                 |
-| V2 — `0021`'s "not yet applied" banner      | Both conditions had lapsed; banner rewritten with the real state                    |
-| V3 — was PR #101's crisis framing lost?     | Not lost. Every change is on `main` as `214f0eb`; verified line by line             |
-| Annual toggle advertised an unbuyable price | #96 — hidden while paid plans are disabled                                          |
-| CASL consent not recorded at signup         | #109 — `0037_beta_signups_consent_record`                                           |
-| `scan_status` documented an intention       | #115 — `support-attachment-scan` and the release rules                              |
-| Support entry-point sweep, CAPTCHA          | #115                                                                                |
-| `/blog` and `/guides` cards linked nowhere  | #113 — twelve bilingual article pages                                               |
-| French corpus body missing on 40 rows       | #99 / `0032` — `content_fr` non-null on 42/42                                       |
-| "Regenerate with `generate-doclib.mjs`"     | #128 — the generator does not run; headers now say hand-maintained                  |
-| Rings 2, 3 and 4 listed as roadmap          | #121–#131 — all four rings complete                                                 |
-| AI usage unmetered during an open beta      | #90 / #91 — guardrails live 2026-07-28                                              |
-| Client error reporting inert                | #92 — `0019` applied, `report-error` deployed (but see OA6)                         |
-| L1a — corpus tranche migration unapplied     | Applied `0042` 2026-08-05 via direct DB access; retrieval smoke test passing        |
-| L1b — four federal leaves unauthored         | Added in `0044` 2026-08-05: court/jury duty, reserve force, work-related illness/injury, maternity-related reassignment |
+| Item                                                                              | Closed by                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| EF6a — split the message catalogue by surface, and guard `t()`'s surface boundary | Catalogue source split into `workspace.ts`/`marketing.ts`/`shared.ts`; `vite.config.ts`'s `messages-workspace` group needed `includeDependenciesRecursively: false` to actually stop riding into the eager graph (671.3kB → 539.9kB, -131.4kB) — see that file's comment for the rolldown mechanism. `t()` itself is still typed `MessageKey`, not per-surface — `scripts/check-message-scopes.mjs` (`npm run check`) guards the same boundary a different way, by scanning every literal `t('key')` call against its file's surface, instead of retyping ~140 call sites for an equivalent guarantee. A _computed_ key (`t(someVariable)`) is invisible to this script by construction, same as it always was — those are guarded at the data structure that carries the key (`plans.ts`, `legalHubData.ts`, etc.), which was already typed. |
+| D3 — scheduled-call booking calendar decision                                     | Decided 2026-08-06 (Google Calendar, full loop) and built the same day. **Revised 2026-08-07: calendar sync is off and staying off** — the org's `iam.disableServiceAccountKeyCreation` policy blocks the key, and weakening it was not worth one calendar invite. Propose/confirm works without it; see OA12. [SUPPORT_CALL_SCHEDULING.md](SUPPORT_CALL_SCHEDULING.md).                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| D1 — law-change notifications' five open questions                                | Decided 2026-08-06 (internal-only, weekly, org jurisdiction wins, human review required) and built the same day — see OA13 for what's left to deploy it. [LAW_CHANGE_NOTIFICATIONS.md](LAW_CHANGE_NOTIFICATIONS.md).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| EF5 — `inferCheckoutPrice`'s dead branch                                          | Deleted; server-set metadata is the checkout path's documented single source                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| L1 — primary sources "unreachable"                                                | Not a network block — a bot filter on the fetching tool; run from a workstation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| L2 — WI1 federal leaves omission                                                  | Pregnancy loss leave confirmed and added; "placement of a child" **does not exist**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| L3 — WI3 Ontario minimum wage                                                     | All four Oct-2026 special-category rates verified twice and added                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| L4 — WI2 CNESST URL normalization                                                 | SHORT form is canonical (301 trace); fixed per-URL, never by prefix                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| V2 — `0021`'s "not yet applied" banner                                            | Both conditions had lapsed; banner rewritten with the real state                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| V3 — was PR #101's crisis framing lost?                                           | Not lost. Every change is on `main` as `214f0eb`; verified line by line                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Annual toggle advertised an unbuyable price                                       | #96 — hidden while paid plans are disabled                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| CASL consent not recorded at signup                                               | #109 — `0037_beta_signups_consent_record`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `scan_status` documented an intention                                             | #115 — `support-attachment-scan` and the release rules                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Support entry-point sweep, CAPTCHA                                                | #115                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `/blog` and `/guides` cards linked nowhere                                        | #113 — twelve bilingual article pages                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| French corpus body missing on 40 rows                                             | #99 / `0032` — `content_fr` non-null on 42/42                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| "Regenerate with `generate-doclib.mjs`"                                           | #128 — the generator does not run; headers now say hand-maintained                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Rings 2, 3 and 4 listed as roadmap                                                | #121–#131 — all four rings complete                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| AI usage unmetered during an open beta                                            | #90 / #91 — guardrails live 2026-07-28                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Client error reporting inert                                                      | #92 — `0019` applied, `report-error` deployed (but see OA6)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| L1a — corpus tranche migration unapplied                                          | Applied `0042` 2026-08-05 via direct DB access; retrieval smoke test passing                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| L1b — four federal leaves unauthored                                              | Added in `0044` 2026-08-05: court/jury duty, reserve force, work-related illness/injury, maternity-related reassignment                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 
 ---
 
