@@ -81,7 +81,7 @@ export function SignatureModal({ doc, isOpen, onClose, onSend }: SignatureModalP
       className="fixed inset-0 z-50 m-0 h-full w-full items-center justify-center bg-black/40 p-4 open:flex"
       aria-label={t('doclib_modal_title')}
     >
-      <div className="w-full max-w-[560px] rounded-2xl border border-border bg-surface p-5 shadow-lg">
+      <div className="w-full max-w-140 rounded-2xl border border-border bg-surface p-5 shadow-lg">
         <div className="mb-3.5 flex items-start justify-between gap-3">
           <div>
             <div className="text-[11px] font-bold uppercase tracking-[0.08em] text-text-muted">
@@ -95,7 +95,7 @@ export function SignatureModal({ doc, isOpen, onClose, onSend }: SignatureModalP
           <button
             type="button"
             onClick={onClose}
-            className="rounded-[8px] p-1.5 text-text-muted hover:bg-inset hover:text-text"
+            className="rounded-lg p-1.5 text-text-muted hover:bg-inset hover:text-text"
             aria-label={t('doclib_common_close')}
           >
             <X size={18} strokeWidth={2} />
@@ -132,7 +132,7 @@ export function SignatureModal({ doc, isOpen, onClose, onSend }: SignatureModalP
                     type="text"
                     value={recipient.name}
                     onChange={(e) => updateRecipient(index, { name: e.target.value })}
-                    className="w-full rounded-[9px] border border-border bg-surface px-[10px] py-[7px] text-[13px] text-text placeholder:text-text-faint"
+                    className="w-full rounded-[9px] border border-border bg-surface px-2.5 py-1.75 text-[13px] text-text placeholder:text-text-faint"
                     placeholder={t('doclib_modal_namePh')}
                   />
                 </div>
@@ -145,7 +145,7 @@ export function SignatureModal({ doc, isOpen, onClose, onSend }: SignatureModalP
                     type="email"
                     value={recipient.email}
                     onChange={(e) => updateRecipient(index, { email: e.target.value })}
-                    className="w-full rounded-[9px] border border-border bg-surface px-[10px] py-[7px] text-[13px] text-text placeholder:text-text-faint"
+                    className="w-full rounded-[9px] border border-border bg-surface px-2.5 py-1.75 text-[13px] text-text placeholder:text-text-faint"
                     placeholder={t('doclib_modal_emailPh')}
                   />
                 </div>
@@ -157,7 +157,7 @@ export function SignatureModal({ doc, isOpen, onClose, onSend }: SignatureModalP
                   <select
                     value={recipient.type}
                     onChange={(e) => updateRecipient(index, { type: e.target.value as RecipientType })}
-                    className="w-full rounded-[9px] border border-border bg-surface px-[10px] py-[7px] text-[13px] text-text"
+                    className="w-full rounded-[9px] border border-border bg-surface px-2.5 py-1.75 text-[13px] text-text"
                   >
                     {RECIPIENT_TYPES.map((type) => (
                       <option key={type} value={type}>
@@ -176,7 +176,7 @@ export function SignatureModal({ doc, isOpen, onClose, onSend }: SignatureModalP
                     min={1}
                     value={recipient.order}
                     onChange={(e) => updateRecipient(index, { order: Number(e.target.value) })}
-                    className="w-full rounded-[9px] border border-border bg-surface px-[10px] py-[7px] text-[13px] text-text"
+                    className="w-full rounded-[9px] border border-border bg-surface px-2.5 py-1.75 text-[13px] text-text"
                   />
                 </div>
               </div>

@@ -146,7 +146,7 @@ export function SignaturePad({ onChange, labels }: SignaturePadProps) {
             }
           }}
           placeholder={labels.placeholder}
-          className="w-full rounded-[10px] border border-border bg-surface px-[12px] py-[9px] text-[13px] text-text placeholder:text-text-faint"
+          className="w-full rounded-[10px] border border-border bg-surface px-3 py-2.25 text-[13px] text-text placeholder:text-text-faint"
         />
       </div>
 
@@ -154,7 +154,7 @@ export function SignaturePad({ onChange, labels }: SignaturePadProps) {
         <button
           type="button"
           onClick={() => setMode('draw')}
-          className={`rounded-[8px] px-[10px] py-[5px] text-[12px] font-semibold ${
+          className={`rounded-lg px-2.5 py-1.25 text-[12px] font-semibold ${
             mode === 'draw' ? 'bg-surface text-text shadow-sm' : 'text-text-muted hover:text-text'
           }`}
         >
@@ -163,7 +163,7 @@ export function SignaturePad({ onChange, labels }: SignaturePadProps) {
         <button
           type="button"
           onClick={() => setMode('type')}
-          className={`rounded-[8px] px-[10px] py-[5px] text-[12px] font-semibold ${
+          className={`rounded-lg px-2.5 py-1.25 text-[12px] font-semibold ${
             mode === 'type' ? 'bg-surface text-text shadow-sm' : 'text-text-muted hover:text-text'
           }`}
         >
@@ -173,7 +173,7 @@ export function SignaturePad({ onChange, labels }: SignaturePadProps) {
 
       <div
         ref={containerRef}
-        className="relative h-[140px] w-full touch-none overflow-hidden rounded-[10px] border border-border bg-inset"
+        className="relative h-35 w-full touch-none overflow-hidden rounded-[10px] border border-border bg-inset"
       >
         <canvas
           ref={canvasRef}

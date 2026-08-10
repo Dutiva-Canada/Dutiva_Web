@@ -194,7 +194,7 @@ function auditDotClass(event: AuditEventType): string {
 function ChipDot() {
   return (
     <span
-      className="mr-[5px] h-[6px] w-[6px] self-center rounded-full bg-current"
+      className="mr-1.25 h-1.5 w-1.5 self-center rounded-full bg-current"
       aria-hidden="true"
     />
   )
@@ -202,16 +202,16 @@ function ChipDot() {
 
 function DetailSkeleton() {
   return (
-    <div className="mx-auto max-w-[1200px] px-[28px] pt-[4px] pb-[64px] max-[640px]:px-[16px]">
-      <Skel className="mb-[14px] h-[15px] w-[150px]" />
-      <Skel className="mb-[10px] h-[28px] w-[440px] max-w-full" />
-      <Skel className="mb-[16px] h-[22px] w-[300px] max-w-full" />
-      <div className="flex items-start gap-[26px] max-[1023px]:flex-col">
+    <div className="mx-auto max-w-300 px-7 pt-1 pb-16 max-[640px]:px-4">
+      <Skel className="mb-3.5 h-3.75 w-37.5" />
+      <Skel className="mb-2.5 h-7 w-[440px] max-w-full" />
+      <Skel className="mb-4 h-5.5 w-[300px] max-w-full" />
+      <div className="flex items-start gap-6.5 max-[1023px]:flex-col">
         <div className="min-w-0 flex-1 max-[1023px]:w-full">
-          <Skel className="mb-[18px] h-[38px]" />
+          <Skel className="mb-4.5 h-9.5" />
           <Skel className="h-[360px]" />
         </div>
-        <Skel className="h-[420px] w-[320px] shrink-0 max-[1023px]:w-full" />
+        <Skel className="h-[420px] w-80 shrink-0 max-[1023px]:w-full" />
       </div>
     </div>
   )
@@ -247,7 +247,7 @@ function DocumentActions({
 }) {
   if (actions.length === 0) return null
   return (
-    <div className="flex shrink-0 flex-wrap gap-[8px]">
+    <div className="flex shrink-0 flex-wrap gap-2">
       {actions.map((action) => {
         const cfg = ACTION_CFG[action]
         const handle =
@@ -265,7 +265,7 @@ function DocumentActions({
 function AccessBanner({ role, t }: { readonly role: WorkspaceRole; readonly t: Translator }) {
   if (role === 'viewer') {
     return (
-      <div className="mb-[16px] flex items-center gap-[10px] rounded-[11px] border border-border bg-inset px-[14px] py-[11px] text-text-muted">
+      <div className="mb-4 flex items-center gap-2.5 rounded-[11px] border border-border bg-inset px-3.5 py-[11px] text-text-muted">
         <Lock size={16} strokeWidth={1.9} className="shrink-0" aria-hidden="true" />
         <div className="text-[12.5px]">
           <b className="text-text">{t('doclib_docd_readOnly')}</b> · {t('doclib_docd_readOnlySub')}
@@ -275,7 +275,7 @@ function AccessBanner({ role, t }: { readonly role: WorkspaceRole; readonly t: T
   }
   if (role === 'external') {
     return (
-      <div className="mb-[16px] flex items-center gap-[10px] rounded-[11px] bg-accent-soft px-[14px] py-[11px] text-accent">
+      <div className="mb-4 flex items-center gap-2.5 rounded-[11px] bg-accent-soft px-3.5 py-[11px] text-accent">
         <Lock size={16} strokeWidth={1.9} className="shrink-0" aria-hidden="true" />
         <div className="text-[12.5px] font-medium">
           {t('doclib_docd_permDenied')} · {t('doclib_docd_readOnlySub')}
@@ -302,7 +302,7 @@ function ReviewBanner({
   const toneClass = tone === 'risk' ? 'bg-risk-bg text-risk-fg' : 'bg-warn-bg text-warn-fg'
   return (
     <div
-      className={`mb-[16px] flex items-start gap-[11px] rounded-[11px] px-[14px] py-[12px] font-medium ${toneClass}`}
+      className={`mb-4 flex items-start gap-[11px] rounded-[11px] px-3.5 py-3 font-medium ${toneClass}`}
     >
       <TriangleAlert size={17} strokeWidth={2} className="mt-px shrink-0" aria-hidden="true" />
       <div className="text-[13px] leading-normal">{t(message)}</div>
@@ -442,25 +442,25 @@ export function DocumentDetailScreen() {
   ]
 
   return (
-    <div className="mx-auto max-w-[1200px] px-[28px] pt-[4px] pb-[64px] max-[640px]:px-[16px] max-[640px]:pb-[44px]">
+    <div className="mx-auto max-w-300 px-7 pt-1 pb-16 max-[640px]:px-4 max-[640px]:pb-11">
       <Link
         to="/app/documents"
-        className="mb-[14px] inline-flex items-center gap-[6px] py-[4px] text-[13px] font-semibold text-text-muted transition-colors hover:text-text"
+        className="mb-3.5 inline-flex items-center gap-1.5 py-1 text-[13px] font-semibold text-text-muted transition-colors hover:text-text"
       >
         <ChevronLeft size={15} strokeWidth={2} aria-hidden="true" />
         {t('doclib_docd_back')}
       </Link>
 
       {/* ── Header ── */}
-      <div className="mb-[16px] flex flex-wrap items-start justify-between gap-[20px]">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-5">
         <div className="min-w-0">
-          <h1 className="mb-[6px] font-display text-[23px] leading-[1.2] font-semibold tracking-[-0.015em] text-text max-[640px]:text-[20px]">
+          <h1 className="mb-1.5 font-display text-[23px] leading-[1.2] font-semibold tracking-[-0.015em] text-text max-[640px]:text-xl">
             {x(doc.title)}
           </h1>
-          <div className="mb-[10px] text-[12.5px] text-text-faint">
+          <div className="mb-2.5 text-[12.5px] text-text-faint">
             {doc.templateTid} · {doc.ref} · {template ? x(template.name) : doc.templateKey}
           </div>
-          <div className="flex flex-wrap items-center gap-[7px]">
+          <div className="flex flex-wrap items-center gap-1.75">
             <DocChip tone={statusInfo.tone}>
               <ChipDot />
               {x(statusInfo.label)}
@@ -488,12 +488,12 @@ export function DocumentDetailScreen() {
       {/* ── Review-posture flag ── */}
       <ReviewBanner reviewStatus={doc.reviewStatus} tone={reviewInfo.tone} t={t} />
 
-      <div className="flex items-start gap-[26px] max-[1023px]:flex-col">
+      <div className="flex items-start gap-6.5 max-[1023px]:flex-col">
         {/* ── Left: tabs ── */}
         <div className="min-w-0 flex-1 max-[1023px]:w-full">
           <div
             role="tablist"
-            className="mb-[18px] flex gap-[4px] overflow-x-auto border-b border-border"
+            className="mb-4.5 flex gap-1 overflow-x-auto border-b border-border"
           >
             {TABS.map(([key, msgKey]) => (
               <button
@@ -506,7 +506,7 @@ export function DocumentDetailScreen() {
                 tabIndex={tab === key ? 0 : -1}
                 onClick={() => setTab(key)}
                 onKeyDown={(event) => onTabKeyDown(event, tab, setTab)}
-                className={`-mb-px cursor-pointer border-b-2 px-[12px] py-[10px] text-[13px] font-semibold whitespace-nowrap transition-colors ${
+                className={`-mb-px cursor-pointer border-b-2 px-3 py-2.5 text-[13px] font-semibold whitespace-nowrap transition-colors ${
                   tab === key
                     ? 'border-gold-dot text-text'
                     : 'border-transparent text-text-muted hover:text-text'
@@ -537,7 +537,7 @@ export function DocumentDetailScreen() {
                 return (
                   <div
                     key={token}
-                    className="grid grid-cols-[200px_1fr] gap-[14px] border-b border-inset px-[16px] py-[11px] last:border-b-0 max-[640px]:grid-cols-1 max-[640px]:gap-[4px]"
+                    className="grid grid-cols-[200px_1fr] gap-3.5 border-b border-inset px-4 py-[11px] last:border-b-0 max-[640px]:grid-cols-1 max-[640px]:gap-1"
                   >
                     <div className="text-[12.5px] font-semibold text-text-muted">
                       {question ? x(question.label) : token.replaceAll('_', ' ')}
@@ -554,20 +554,20 @@ export function DocumentDetailScreen() {
               })}
             </div>
 
-            <div hidden={tab !== 'versions'} className="flex flex-col gap-[10px]">
+            <div hidden={tab !== 'versions'} className="flex flex-col gap-2.5">
               {versions.map((version) => (
                 <div
                   key={version.n}
-                  className="flex items-start gap-[13px] rounded-[12px] border border-border bg-surface px-[16px] py-[13px]"
+                  className="flex items-start gap-3.25 rounded-xl border border-border bg-surface px-4 py-3.25"
                 >
                   <span
-                    className="min-w-[30px] shrink-0 font-display text-[13px] font-bold text-navy"
+                    className="min-w-7.5 shrink-0 font-display text-[13px] font-bold text-navy"
                     aria-label={`${t('doclib_docd_version')} ${version.n}`}
                   >
                     v{version.n}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="mb-[3px] flex flex-wrap items-center gap-[8px]">
+                    <div className="mb-0.75 flex flex-wrap items-center gap-2">
                       <span className="text-[13px] font-semibold text-text">
                         {x(version.changeSummary)}
                       </span>
@@ -585,13 +585,13 @@ export function DocumentDetailScreen() {
 
             <div hidden={tab !== 'recipients'}>
               {signature && (
-                <div className="mb-[14px] rounded-[13px] border border-border bg-surface px-[17px] py-[15px]">
-                  <div className="mb-[6px] font-display text-[11px] font-bold tracking-[0.06em] text-text-muted uppercase">
+                <div className="mb-3.5 rounded-[13px] border border-border bg-surface px-4.25 py-3.75">
+                  <div className="mb-1.5 font-display text-[11px] font-bold tracking-[0.06em] text-text-muted uppercase">
                     {t('doclib_docd_provider')}
                   </div>
-                  <div className="flex flex-wrap items-center gap-[8px] text-[13px] text-text">
+                  <div className="flex flex-wrap items-center gap-2 text-[13px] text-text">
                     <span className="font-semibold">{signature.provider}</span>
-                    <span className="inline-flex items-center rounded-[6px] border border-border bg-inset px-[7px] py-px text-[11px] font-semibold text-text-muted">
+                    <span className="inline-flex items-center rounded-md border border-border bg-inset px-1.75 py-px text-[11px] font-semibold text-text-muted">
                       {t('doclib_docd_envelope')} {signature.envelopeId}
                     </span>
                     <DocChip tone={signatureStatusInfo[signature.status].tone}>
@@ -599,7 +599,7 @@ export function DocumentDetailScreen() {
                     </DocChip>
                   </div>
                   {(signature.sentAt || signature.viewedAt || signature.signedAt) && (
-                    <div className="mt-[7px] text-[11.5px] text-text-muted">
+                    <div className="mt-1.75 text-[11.5px] text-text-muted">
                       {[
                         signature.sentAt &&
                           `${x(signatureStatusInfo.sent.label)} ${fmtDate(signature.sentAt, lang)}`,
@@ -612,14 +612,14 @@ export function DocumentDetailScreen() {
                         .join(' · ')}
                     </div>
                   )}
-                  <div className="mt-[9px] text-[11.5px] text-text-faint">
+                  <div className="mt-2.25 text-[11.5px] text-text-faint">
                     {t('doclib_docd_providerAgnostic')}
                   </div>
                 </div>
               )}
 
               {recipients.length === 0 ? (
-                <div className="rounded-[13px] border border-dashed border-border px-[16px] py-[34px] text-center text-[13px] text-text-muted">
+                <div className="rounded-[13px] border border-dashed border-border px-4 py-8.5 text-center text-[13px] text-text-muted">
                   {t('doclib_docd_noRecipients')}
                 </div>
               ) : (
@@ -628,11 +628,11 @@ export function DocumentDetailScreen() {
                   return (
                     <div
                       key={`${recipient.order}-${recipient.email}`}
-                      className="mb-[8px] flex items-center gap-[12px] rounded-[12px] border border-border bg-surface px-[16px] py-[12px]"
+                      className="mb-2 flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3"
                     >
                       <span
                         aria-label={`${t('doclib_docd_order')} ${recipient.order}`}
-                        className="grid h-[28px] w-[28px] shrink-0 place-items-center rounded-full bg-inset text-[11px] font-bold text-text-muted"
+                        className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-inset text-[11px] font-bold text-text-muted"
                       >
                         {recipient.order}
                       </span>
@@ -648,7 +648,7 @@ export function DocumentDetailScreen() {
                         ) : (
                           <DocChip tone="neutral">{recipient.status}</DocChip>
                         )}
-                        <div className="mt-[3px] text-[11px] text-text-faint">
+                        <div className="mt-0.75 text-[11px] text-text-faint">
                           {recipient.signedAt ? fmtDate(recipient.signedAt, lang) : '—'}
                         </div>
                         {signature && recipient.status !== 'signed' && (
@@ -659,7 +659,7 @@ export function DocumentDetailScreen() {
                                 `/app/documents/sign/${signature.envelopeId}?recipient=${encodeURIComponent(recipient.email)}`,
                               )
                             }
-                            className="mt-2 rounded-[8px] bg-navy px-2.5 py-1 text-[11.5px] font-semibold text-white"
+                            className="mt-2 rounded-lg bg-navy px-2.5 py-1 text-[11.5px] font-semibold text-white"
                           >
                             {t('doclib_docd_sign')}
                           </button>
@@ -673,17 +673,17 @@ export function DocumentDetailScreen() {
 
             <div
               hidden={tab !== 'audit'}
-              className="rounded-[14px] border border-border bg-surface px-[18px] py-[6px]"
+              className="rounded-[14px] border border-border bg-surface px-4.5 py-1.5"
             >
               {audit.map((event, index) => {
                 const label = AUDIT_LABEL[event.event]
                 return (
                   <div
                     key={`${event.at}-${index}`}
-                    className="flex items-start gap-[13px] border-b border-inset py-[12px] last:border-b-0"
+                    className="flex items-start gap-3.25 border-b border-inset py-3 last:border-b-0"
                   >
                     <span
-                      className={`mt-[5px] h-[9px] w-[9px] shrink-0 rounded-full ${auditDotClass(event.event)}`}
+                      className={`mt-1.25 h-2.25 w-2.25 shrink-0 rounded-full ${auditDotClass(event.event)}`}
                       aria-hidden="true"
                     />
                     <div className="min-w-0 flex-1">
@@ -691,11 +691,11 @@ export function DocumentDetailScreen() {
                         {label ? x(label) : event.event.replaceAll('_', ' ')}
                       </div>
                       {event.meta && (
-                        <div className="mt-px text-[12px] text-text-muted">{event.meta}</div>
+                        <div className="mt-px text-xs text-text-muted">{event.meta}</div>
                       )}
                     </div>
                     <div className="shrink-0 text-right">
-                      <div className="text-[12px] text-text-muted">{event.actor}</div>
+                      <div className="text-xs text-text-muted">{event.actor}</div>
                       <div className="text-[11px] text-text-faint">{event.at}</div>
                     </div>
                   </div>
@@ -706,20 +706,20 @@ export function DocumentDetailScreen() {
         </div>
 
         {/* ── Right: metadata rail ── */}
-        <aside className="w-[320px] shrink-0 max-[1023px]:w-full min-[1024px]:sticky min-[1024px]:top-[14px]">
+        <aside className="w-80 shrink-0 max-[1023px]:w-full min-[1024px]:sticky min-[1024px]:top-[14px]">
           <div className="overflow-hidden rounded-[14px] border border-border bg-surface">
             {/* Handoff schema-speak header — literal on purpose. */}
-            <div className="border-b border-border bg-inset px-[16px] py-[12px] font-display text-[11px] font-bold tracking-[0.12em] text-text-muted uppercase">
+            <div className="border-b border-border bg-inset px-4 py-3 font-display text-[11px] font-bold tracking-[0.12em] text-text-muted uppercase">
               Details · documents
             </div>
-            <div className="px-[16px] pt-[4px] pb-[8px]">
+            <div className="px-4 pt-1 pb-2">
               {metaRows.map((row) => (
-                <div key={row.col} className="border-b border-inset py-[9px] last:border-b-0">
-                  <div className="mb-[2px] text-[11px] text-text-muted">{row.label}</div>
+                <div key={row.col} className="border-b border-inset py-2.25 last:border-b-0">
+                  <div className="mb-0.5 text-[11px] text-text-muted">{row.label}</div>
                   <div className="text-[13px] leading-[1.35] font-medium text-text">
                     {row.value}
                   </div>
-                  <div className="mt-[2px] font-mono text-[10.5px] text-text-faint">{row.col}</div>
+                  <div className="mt-0.5 font-mono text-[10.5px] text-text-faint">{row.col}</div>
                 </div>
               ))}
             </div>
@@ -741,7 +741,7 @@ export function DocumentDetailScreen() {
         />
       )}
 
-      <Disclaimer variant="block" className="mt-[20px]" />
+      <Disclaimer variant="block" className="mt-5" />
     </div>
   )
 }
