@@ -368,30 +368,25 @@ service-role key or `SUPABASE_SECRET_KEY` — no JWT payload decoding.
 the same deploy, as the TODO entry anticipated — whatever is in the working
 tree is what goes.
 
-**OA20 — Advisor grounding upgrades: apply the migrations, redeploy two
-functions.** _Owner._ The 2026-08-08 RAG hardening (plus its follow-up
-review fixes) ships in three parts. (1) Apply migrations
-`0071_corpus_source_change_flags.sql` then
-`0072_flag_trigger_idempotent_guard.sql` — 0071 adds
-`source_changed_at`/`source_change_note` to `advisor_guidance_chunks`, the
-`law_updates` trigger that flags a jurisdiction's chunks on a detected
-change, and the 9-column `match_advisor_guidance` recreate; 0072 guards
-the trigger so repeat change events cannot rewrite `updated_at` on
-already-flagged rows. (2) Redeploy `advisor-chat` (retrieval sees the
-previous user turn, distinguishes retrieval failures from zero-hits in
-telemetry (`metadata.retrieval_failed`) and in the workspace panels, and
-injects the ESA s.57 notice schedule on Ontario notice questions).
-(3) Redeploy `advisor-safety-event` — its action allowlist now accepts
-the backstop's new `figure-mismatch` action; without this redeploy the
-new gate fires client-side but is invisible in telemetry (the follow-up
-review caught the earlier claim that "the client half needs nothing" as
-false). Order: migrations before the `advisor-chat` redeploy — the old
-8-column RPC still satisfies the new code, so migration-first is the
-gap-free order. Verify: ask the Advisor an Ontario notice question with a
-stated tenure and confirm the workspace shows the schedule-grounded
-figure; then
-`select topic, source_changed_at from public.advisor_guidance_chunks where jurisdiction = 'ON';`
-after the next detected Ontario change.
+**OA20 — Done.** Migrations `0071_corpus_source_change_flags.sql` and
+`0072_flag_trigger_idempotent_guard.sql` were already applied in the
+2026-08-10 backlog. Verified: `advisor_guidance_chunks` has
+`source_changed_at`/`source_change_note`, `match_advisor_guidance`
+returns 9 columns including the new flag, and trigger
+`law_updates_flag_guidance` is enabled. `advisor-chat` and
+`advisor-safety-event` were redeployed 2026-08-10.
+
+End-to-end verification with a temporary beta test user:
+- `advisor-safety-event` accepted the new `figure-mismatch` action and
+  returned `202 {"data":{"recorded":1}}`.
+- `advisor-chat` answered an Ontario notice question ("What notice period
+  do I owe an Ontario employee with 3 years of service?") with a grounded
+  ESA s.57 ladder and an `advisor_response` workspace payload; status
+  `200`.
+- A synthetic Ontario `law_updates` `change` event was inserted and then
+  removed; the `law_updates_flag_guidance` trigger flagged 14 active
+  Ontario `advisor_guidance_chunks`, and the test flags were cleared
+  afterwards.
 
 **SEC1 — Anon RLS holes closed (migration 0073, applied to prod
 2026-08-08).** _Done — with two owner follow-ups._ A four-dimension security
