@@ -680,15 +680,15 @@ money and lose the entitlement. The function fails closed with a 503 meanwhile,
 and `PricingPage`'s annual guard turns that into an intelligible notice; remove
 that guard only once this is done. Folded into OA11.
 
-**EF4b — The live `billing_period` constraint is unknown.** _Verify._ `0013`
-declares `check (billing_period in ('monthly'))` but was never applied under its
-own name — the live `profiles` came from the predecessor repo, as
-`0024_reconcile_billing_schema.sql` records. So nobody knows what the project
-actually enforces on that column. `0043` is written defensively (drop-if-exists
-then add, 0024's pattern) and works under any of those cases, but if the live
-table carries a differently _named_ check the drop will miss it and the old one
-will still reject `'annual'`. The migration ends with the `pg_constraint` query
-to settle it. This is the same blind spot as V1.
+**EF4b — Done.** _Verified 2026-08-10._ The live `profiles_billing_period_check`
+allows `monthly` and `annual`:
+
+```
+profiles_billing_period_check  CHECK ((billing_period = ANY (ARRAY['monthly'::text, 'annual'::text])))
+```
+
+No differently-named predecessor check survived. `0043_billing_period_annual.sql`
+is applied and the column will accept `'annual'` writes.
 
 **EF6 — Done.** The entry graph was broad because three things rode it: the
 `vendor` group carried react-markdown's 157kB parser tree; `messages/index.ts`
