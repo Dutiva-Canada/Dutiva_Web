@@ -53,6 +53,8 @@ jobs:
       # service worker. Fails on any metadata/sitemap/link/build drift.
       - name: Build + SEO validation
         run: npm run build
+        env:
+          VITE_GA_MEASUREMENT_ID: ${{ vars.VITE_GA_MEASUREMENT_ID || 'G-V85ZQ75EWL' }}
 
   # ── Live-project checks. These hit the real Supabase project and only run
   # once their credentials exist as repository secrets/variables (fork PRs and
@@ -120,6 +122,8 @@ jobs:
       # The e2e server (e2e/serve-dist.mjs) serves dist/, so build it first.
       - name: Build
         run: npm run build
+        env:
+          VITE_GA_MEASUREMENT_ID: ${{ vars.VITE_GA_MEASUREMENT_ID || 'G-V85ZQ75EWL' }}
 
       - name: Run e2e smoke tests
         run: npm run test:e2e

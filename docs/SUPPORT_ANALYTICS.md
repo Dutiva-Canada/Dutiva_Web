@@ -282,10 +282,11 @@ future redeploy:
    select * from public.support_analytics_events order by occurred_at desc limit 5;
    ```
 
-6. **GA4 (optional, separate step).** The consent banner now ships, so the
-   only remaining step is to set `VITE_GA_MEASUREMENT_ID` at build time. GA4
-   still loads only for visitors who accept analytics — the consent gate is
-   structural, not optional — and with no measurement ID it stays inert.
+6. **GA4.** The consent banner now ships. Set `VITE_GA_MEASUREMENT_ID` at
+   build time (default `G-V85ZQ75EWL` in CI, local `.env`, or the deployment
+   platform). GA4 still loads only for visitors who accept analytics — the
+   consent gate is structural, not optional — and with no measurement ID it
+   stays inert.
 
 ## 6. What this does NOT do
 

@@ -8,9 +8,8 @@
  * and the Cookie Policy commits to consent controls before loading optional
  * analytics. This module honours both: without a measurement ID, nothing
  * loads; with one but without consent, nothing loads. The consent banner
- * that sets the consent state does not exist yet (needs a design handoff),
- * so GA4 is effectively inert until that ships — the plumbing is here, the
- * UI gate is not.
+ * ships in `src/features/marketing/analytics/ConsentBanner.tsx`; GA4 loads
+ * only when a visitor accepts analytics.
  *
  * When both gates pass, the GA4 script is injected into <head> and
  * `dataLayer` is initialized. Page views are tracked automatically by GA4's

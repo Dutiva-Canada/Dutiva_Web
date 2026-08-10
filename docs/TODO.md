@@ -472,9 +472,10 @@ wired into all six event points, privacy/cookie/retention docs concretized.
 See [SUPPORT_ANALYTICS.md](SUPPORT_ANALYTICS.md). **Done 2026-08-10.** The
 `support-analytics-event` edge function was redeployed (v9, ACTIVE) and the
 consent banner UI (`ConsentBanner.tsx`) is wired and shipped. Both the
-first-party Supabase sink and GA4 are gated behind the banner. The only
-remaining step is optional: set `VITE_GA_MEASUREMENT_ID` at build time to
-enable the GA4 sink; without it, GA4 stays inert. (PR #153)
+first-party Supabase sink and GA4 are gated behind the banner. The
+`VITE_GA_MEASUREMENT_ID` is set to `G-V85ZQ75EWL` for CI builds and local
+`.env`; GA4 still stays inert for visitors who decline consent. Set the same
+ID in the deployment platform (e.g., Vercel) for production. (PR #153)
 
 **D4 — Training-crawler policy.** Decided 2026-08-06: opted in.
 `GPTBot` (OpenAI), `ClaudeBot` (Anthropic), `CCBot` (Common Crawl),
