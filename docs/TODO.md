@@ -486,24 +486,10 @@ allowed with the same private-path exclusions as search crawlers.
 & AI policy updated. Reversible — move a bot back to `Disallow: /` to opt
 out of a specific provider's training. (PR #154)
 
-**D5 — Done (repo half).** Decided 2026-08-06: the Beta Launch Brief
-(2026-07-20) is the plan of record. CANONICAL_FACTS § Positioning and § Open
-items 3 updated. _Owner action remaining:_ paste the prepared wording into
-the Beta Launch Brief and mark the other business plans as superseded in
-Drive. The replacement wording lives in [CANONICAL_FACTS.md](CANONICAL_FACTS.md)
-§ Claims to stop making 1 and the superseded note is below.
-
-> **Data storage and privacy.** Dutiva stores employee and employer data in
-> a Postgres database with row-level security, not only in the browser. The
-> product was browser-only in an earlier build; the architecture has since
-> moved to a server-side model. AI usage telemetry is retained for 180 days,
-> and error reporting is first-party and privacy-scrubbed. Dutiva provides
-> practical HR workflow support and compliance-oriented guidance; it does not
-> provide legal advice.
-
-Suggested superseded note for the other business plans in Drive: _"Superseded
-by the Beta Launch Brief (2026-07-20). The Beta Launch Brief is the plan of
-record as of 2026-08-06."_
+**D5 — Done.** Decided 2026-08-06: the Beta Launch Brief (2026-07-20) is the
+plan of record. CANONICAL_FACTS § Positioning and § Open items 3 updated; the
+replacement privacy wording was pasted into the Beta Launch Brief and the other
+business plans in Drive were marked as superseded 2026-08-10. (PR #166)
 
 **D6 — Is a non-figure linkable asset worth building.** Decided 2026-08-06:
 yes — a jurisdiction-scoping questionnaire. Three questions determine
