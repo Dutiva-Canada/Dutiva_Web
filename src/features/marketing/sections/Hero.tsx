@@ -56,11 +56,11 @@ export function Hero() {
             {lt('landing_hero_disclaimer')}
           </div>
 
-          {/* Slim stat strip */}
+          {/* Slim stat strip — values from docs/CANONICAL_FACTS.md */}
           <div className="mt-7 flex flex-wrap items-center gap-7 rounded-2xl border border-border bg-bg-elevated px-6 py-4.5">
-            <HeroStat value="16" label={lt('landing_stat_templates')} />
+            <HeroStat value="50" label={lt('landing_stat_templates')} />
             <span className="w-px self-stretch bg-border" />
-            <HeroStat value="4" label={lt('landing_stat_legal')} />
+            <HeroStat value="3" label={lt('landing_stat_legal')} />
             <span className="w-px self-stretch bg-border" />
             <HeroStat value="EN/FR" label={lt('landing_stat_workflows')} />
           </div>
