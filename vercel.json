@@ -15,7 +15,6 @@
   ],
   "headers": [
     {
-      "//": "Security headers on every route. The CSP is now enforcing after a full signed-in click-through on 2026-08-10 showed zero console violations; the resource policy also covers Supabase (khtwpxnvziiyplaflwru), Google Fonts, GA4 (consent-gated), and Turnstile/hCaptcha. See docs/SECURITY_HEADERS.md.",
       "source": "/:path*",
       "headers": [
         {
