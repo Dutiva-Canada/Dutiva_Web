@@ -27,16 +27,16 @@ the app surface follows the persisted `dutiva-lang` preference. See
 
 ## Scripts
 
-| Command             | What it does                                               |
-| ------------------- | ---------------------------------------------------------- |
-| `npm run dev`       | Vite dev server                                            |
-| `npm run build`     | Typecheck + client/SSR builds + prerender + SEO validation |
-| `npm run preview`   | Serve the production build                                 |
-| `npm run typecheck` | `tsc -b` (strict)                                          |
-| `npm run lint`      | oxlint                                                     |
-| `npm run test`      | Vitest (jsdom + Testing Library)                           |
-| `npm run format`    | Prettier                                                   |
-| `npm run check`     | typecheck + lint + test                                    |
+| Command             | What it does                                                                                        |
+| ------------------- | --------------------------------------------------------------------------------------------------- |
+| `npm run dev`       | Vite dev server                                                                                     |
+| `npm run build`     | Typecheck + client/SSR builds + prerender + SEO validation                                          |
+| `npm run preview`   | Serve the production build                                                                          |
+| `npm run typecheck` | `tsc -b` (strict)                                                                                   |
+| `npm run lint`      | oxlint                                                                                              |
+| `npm run test`      | Vitest (jsdom + Testing Library)                                                                    |
+| `npm run format`    | Prettier                                                                                            |
+| `npm run check`     | typecheck + lint + test + `check:migrations` + `check:rls` + `check:facts` + `check:message-scopes` |
 
 ## Offline / PWA
 

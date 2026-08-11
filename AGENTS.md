@@ -46,14 +46,14 @@ npm run dev        # start the dev server
 
 ## Commands
 
-| Command             | What it does                                                |
-| ------------------- | ----------------------------------------------------------- |
-| `npm run typecheck` | `tsc -b` (strict)                                           |
-| `npm run lint`      | oxlint                                                      |
-| `npm run test`      | Vitest (jsdom + Testing Library)                            |
-| `npm run format`    | Prettier                                                    |
-| `npm run check`     | typecheck + lint + test — **must pass before every commit** |
-| `npm run build`     | typecheck + production build                                |
+| Command             | What it does                                                                                                                            |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run typecheck` | `tsc -b` (strict)                                                                                                                       |
+| `npm run lint`      | oxlint                                                                                                                                  |
+| `npm run test`      | Vitest (jsdom + Testing Library)                                                                                                        |
+| `npm run format`    | Prettier                                                                                                                                |
+| `npm run check`     | typecheck + lint + test + `check:migrations` + `check:rls` + `check:facts` + `check:message-scopes` — **must pass before every commit** |
+| `npm run build`     | typecheck + production build + SSR + prerender + SEO validation + entry-graph budget + service worker                                   |
 
 ## Non-negotiables
 
@@ -90,7 +90,8 @@ file. Handoffs used to build a feature belong in the repo, not just in the
 upload/chat that produced the PR: commit them under
 `docs/design-handoff-<slug>/`, following the existing examples
 (`docs/design-handoff-hr-documents-library/`,
-`docs/design-handoff-advisor-chat/`). Scan any handoff package for
+`docs/design-handoff-advisor-chat/`,
+`docs/design-handoff-analytics/`). Scan any handoff package for
 credentials/tokens before committing it.
 
 ## Before committing
@@ -101,11 +102,10 @@ both themes (light/dark) render correctly.
 
 ## Migrations ship in two halves — check both
 
-A migration merged is not a migration applied. Three features have shipped
+A migration merged is not a migration applied. Several features have shipped
 **inert** because the SQL sat in `supabase/migrations/` and never reached the
-project, and nothing in the test suite can see that: client error reporting
-(0019), `support-firstline`'s rate limit, and `advisor-safety-event`. Same for
-edge functions — merging one does not deploy it.
+project, and nothing in the test suite can see that. Same for edge functions —
+merging one does not deploy it.
 
 `npm run check` runs `check:migrations`, which enforces filename discipline
 always and, when `SUPABASE_ACCESS_TOKEN` / `SUPABASE_PROJECT_REF` are set,
