@@ -178,28 +178,28 @@ export const authMessages = defineMessages({
   auth_resend: { en: 'Resend link', fr: 'Renvoyer le lien' },
   auth_use_different_email: { en: 'Use a different email', fr: 'Utiliser une autre adresse' },
   auth_brand_badge: {
-    en: 'Built for Canadian employment law — all provinces & federal',
-    fr: 'Conçu pour le droit du travail canadien — toutes les provinces et le fédéral',
+    en: 'Built for Canadian employment law — Ontario, Quebec, and federal',
+    fr: 'Conçu pour le droit du travail canadien — Ontario, Québec et fédéral',
   },
   auth_brand_headline: {
-    en: 'Canadian HR compliance, handled.',
-    fr: 'La conformité RH canadienne, maîtrisée.',
+    en: 'Canadian HR compliance, supported.',
+    fr: 'La conformité RH canadienne, soutenue.',
   },
   auth_brand_sub: {
-    en: 'One intelligent workspace across every conversation, employee record, document, and compliance deadline.',
-    fr: 'Un espace de travail intelligent réunissant chaque conversation, dossier d’employé, document et échéance de conformité.',
+    en: 'One intelligent workspace for jurisdiction-specific conversations, employee records, documents, and compliance deadlines.',
+    fr: 'Un espace de travail intelligent pour des conversations adaptées à la compétence, des dossiers d’employés, des documents et des échéances de conformité.',
   },
   auth_brand_point_1: {
-    en: 'AI Advisor across every case, document, and deadline',
-    fr: 'Conseiller IA pour chaque dossier, document et échéance',
+    en: 'AI-guided support for cases, documents, and deadlines',
+    fr: 'Soutien guidé par l’IA pour les dossiers, documents et échéances',
   },
   auth_brand_point_2: {
-    en: 'Federal and all-province coverage, in English and French',
-    fr: 'Couverture fédérale et de toutes les provinces, en français et en anglais',
+    en: 'Ontario, Quebec, and federal context, in English and French',
+    fr: 'Contexte de l’Ontario, du Québec et du fédéral, en français et en anglais',
   },
   auth_brand_point_3: {
-    en: 'Compliance guardrails and risk flags on every answer',
-    fr: 'Garde-fous de conformité et alertes de risque sur chaque réponse',
+    en: 'Compliance guardrails and risk flags on high-stakes guidance',
+    fr: 'Garde-fous de conformité et alertes de risque pour les conseils à enjeux',
   },
   auth_brand_footer: {
     en: 'Bilingual EN / FR · Made for Canadian employers',
