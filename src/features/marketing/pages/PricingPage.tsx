@@ -1,7 +1,17 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { ArrowRight, Ban, Check, CircleCheck, Lock, Minus, ShieldCheck, Sparkles, Wallet } from 'lucide-react'
+import {
+  ArrowRight,
+  Ban,
+  Check,
+  CircleCheck,
+  Lock,
+  Minus,
+  ShieldCheck,
+  Sparkles,
+  Wallet,
+} from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { useAuth } from '@/features/app/auth/authContext'
 import { usePlan } from '@/features/app/billing/planContext'
@@ -342,7 +352,7 @@ export function PricingPage() {
     next.delete('checkout')
     next.delete('plan')
     setSearchParams(next, { replace: true })
-  }, [])
+  }, [searchParams, setSearchParams, t])
 
   async function handleCheckout(plan: PlanDefinition) {
     setNotice(null)

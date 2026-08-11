@@ -1,7 +1,8 @@
 import { render, screen, within } from '@testing-library/react'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { LangProvider } from '@/i18n/LangProvider'
-import { ChatMarkdown, hideIncompleteTable } from './ChatMarkdown'
+import { ChatMarkdown } from './ChatMarkdown'
+import { hideIncompleteTable } from './chatMarkdownUtils'
 
 beforeAll(
   () =>

@@ -58,7 +58,10 @@ if (SCAN_TOKEN === '') {
 
 function send(res, status, body) {
   const payload = JSON.stringify(body)
-  res.writeHead(status, { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) })
+  res.writeHead(status, {
+    'Content-Type': 'application/json',
+    'Content-Length': Buffer.byteLength(payload),
+  })
   res.end(payload)
 }
 
@@ -82,9 +85,17 @@ async function scanStream(body) {
   let socketError = null
 
   socket.on('data', (d) => chunks.push(d))
-  socket.on('close', () => { closed = true })
-  socket.on('error', (err) => { socketError = err; closed = true })
-  socket.on('timeout', () => { socketError = new Error('clamd timed out'); socket.destroy() })
+  socket.on('close', () => {
+    closed = true
+  })
+  socket.on('error', (err) => {
+    socketError = err
+    closed = true
+  })
+  socket.on('timeout', () => {
+    socketError = new Error('clamd timed out')
+    socket.destroy()
+  })
 
   try {
     await once(socket, 'connect')
@@ -123,7 +134,7 @@ async function scanStream(body) {
 
   if (socketError && chunks.length === 0) throw socketError
 
-  const reply = Buffer.concat(chunks).toString('utf8').replace(/\0/g, '').trim()
+  const reply = Buffer.concat(chunks).toString('utf8').split('\u0000').join('').trim()
   if (reply === '') throw new Error('clamd returned an empty reply')
 
   // `stream: OK` / `stream: <Signature> FOUND` / `… ERROR`
@@ -146,7 +157,7 @@ async function ping() {
     await once(socket, 'connect')
     socket.write('zPING\0')
     const [data] = await once(socket, 'data')
-    return data.toString('utf8').replace(/\0/g, '').trim()
+    return data.toString('utf8').split('\u0000').join('').trim()
   } finally {
     socket.destroy()
   }
@@ -182,7 +193,8 @@ async function handleScan(req, res) {
   // file server. Never set it in a deployed environment: the signed URL is the
   // one thing standing between a private bucket and the open internet.
   const httpAllowed = process.env.ALLOW_HTTP_FETCH === '1' && parsed.protocol === 'http:'
-  if (parsed.protocol !== 'https:' && !httpAllowed) return send(res, 400, { error: 'https_required' })
+  if (parsed.protocol !== 'https:' && !httpAllowed)
+    return send(res, 400, { error: 'https_required' })
   if (process.env.ALLOWED_FETCH_HOST && parsed.hostname !== process.env.ALLOWED_FETCH_HOST) {
     return send(res, 400, { error: 'host_not_allowed' })
   }
@@ -193,7 +205,10 @@ async function handleScan(req, res) {
     response = await fetch(url, { signal: AbortSignal.timeout(BUDGET_MS) })
   } catch (err) {
     // Network failure or timeout — unknown, not un-scannable.
-    return send(res, 502, { error: 'fetch_failed', detail: String(err && err.message).slice(0, 200) })
+    return send(res, 502, {
+      error: 'fetch_failed',
+      detail: String(err && err.message).slice(0, 200),
+    })
   }
   if (!response.ok || !response.body) {
     // Includes an expired signed URL (400/403). The worker will retry, and a
@@ -210,14 +225,33 @@ async function handleScan(req, res) {
       return send(res, 200, { status: 'clean' })
     }
     if (result.verdict === 'infected') {
-      console.warn(JSON.stringify({ ref: payload.reference, verdict: 'infected', signature: result.signature, ms: elapsed }))
+      console.warn(
+        JSON.stringify({
+          ref: payload.reference,
+          verdict: 'infected',
+          signature: result.signature,
+          ms: elapsed,
+        }),
+      )
       return send(res, 200, { status: 'infected', signature: result.signature })
     }
-    console.log(JSON.stringify({ ref: payload.reference, verdict: 'unsupported', reason: result.reason, ms: elapsed }))
+    console.log(
+      JSON.stringify({
+        ref: payload.reference,
+        verdict: 'unsupported',
+        reason: result.reason,
+        ms: elapsed,
+      }),
+    )
     return send(res, 200, { status: 'unsupported', reason: result.reason })
   } catch (err) {
-    console.error(JSON.stringify({ ref: payload && payload.reference, error: String(err && err.message) }))
-    return send(res, 502, { error: 'scan_failed', detail: String(err && err.message).slice(0, 200) })
+    console.error(
+      JSON.stringify({ ref: payload && payload.reference, error: String(err && err.message) }),
+    )
+    return send(res, 502, {
+      error: 'scan_failed',
+      detail: String(err && err.message).slice(0, 200),
+    })
   }
 }
 
