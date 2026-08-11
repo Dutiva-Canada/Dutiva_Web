@@ -29,7 +29,7 @@ export function SidebarSection({
           onClick={onToggle}
           aria-expanded={open}
           aria-controls={panelId}
-          className="flex w-full cursor-pointer items-center justify-between border-none bg-transparent px-[10px] pt-[14px] pb-[6px] text-left"
+          className="flex w-full cursor-pointer items-center justify-between border-none bg-transparent px-2.5 pt-3.5 pb-1.5 text-left"
         >
           <span className="text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
             {heading}
@@ -45,16 +45,19 @@ export function SidebarSection({
           />
         </button>
       )}
-      <div
-        id={expanded ? panelId : undefined}
-        className={cx(
-          'transition-[grid-template-rows,opacity] duration-150 ease-in-out motion-reduce:transition-none',
-          expanded ? 'grid' : 'block',
-          expanded && open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
-        )}
-      >
-        <div className={cx(expanded && 'overflow-hidden')}>{children}</div>
-      </div>
+      {expanded ? (
+        <div
+          id={panelId}
+          className={cx(
+            'grid transition-[grid-template-rows,opacity] duration-150 ease-in-out motion-reduce:transition-none',
+            open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+          )}
+        >
+          <div className="overflow-hidden">{children}</div>
+        </div>
+      ) : (
+        <div className="block opacity-100">{children}</div>
+      )}
     </div>
   )
 }

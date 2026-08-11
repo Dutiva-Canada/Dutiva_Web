@@ -19,7 +19,7 @@ export function SidebarCollapseButton({ expanded, onToggle }: SidebarCollapseBut
         aria-label={x(M.shell_expand_sidebar)}
         aria-expanded={false}
         className={cx(
-          'mt-auto flex w-full cursor-pointer items-center justify-center border-none bg-transparent py-[8px] text-text-3 hover:bg-inset',
+          'mt-auto flex w-full cursor-pointer items-center justify-center border-none bg-transparent py-2 text-text-3 hover:bg-inset',
         )}
       >
         <PanelLeftOpen size={18} strokeWidth={1.8} />
@@ -34,7 +34,7 @@ export function SidebarCollapseButton({ expanded, onToggle }: SidebarCollapseBut
       aria-label={x(M.shell_collapse_sidebar)}
       aria-expanded={true}
       className={cx(
-        'flex w-full cursor-pointer items-center justify-center gap-[8px] border-none bg-transparent py-[8px] text-[12px] font-medium text-text-3 hover:bg-inset',
+        'flex w-full cursor-pointer items-center justify-center gap-2 border-none bg-transparent py-2 text-[12px] font-medium text-text-3 hover:bg-inset',
       )}
     >
       <PanelLeftClose size={18} strokeWidth={1.8} />

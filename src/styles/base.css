@@ -66,6 +66,22 @@ select:focus-visible,
   outline: none;
 }
 
+/* Hide scrollbars while preserving scroll behaviour (compact rail, etc.).
+   -ms-overflow-style covers legacy Edge/IE; the standard property is
+   wrapped in @supports because it is not recognised in older WebKit /
+   Chromium builds, which fall back to the ::-webkit-scrollbar rule. */
+.no-scrollbar {
+  -ms-overflow-style: none;
+}
+@supports (scrollbar-width: none) {
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Landscape-specific adjustments for compact mode */
 @media (orientation: landscape) and (max-height: 500px) {
   .landscape-compact {

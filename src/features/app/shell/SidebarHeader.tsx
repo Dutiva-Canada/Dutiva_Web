@@ -18,12 +18,12 @@ export function SidebarHeader({ expanded, inDrawer, identity, onCloseDrawer }: S
   return (
     <div
       className={cx(
-        'flex shrink-0 items-center gap-[9px] pt-[12px] pb-[10px]',
-        expanded ? 'px-[14px]' : 'justify-center px-[8px]',
+        'flex shrink-0 items-center gap-2.25 pt-3 pb-2.5',
+        expanded ? 'px-3.5' : 'justify-center px-2',
       )}
     >
       <SidebarTooltip label={identity.companyName} show={!expanded}>
-        <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[8px] bg-navy text-[14px] font-bold text-gold-on-navy">
+        <div className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg bg-navy text-[14px] font-bold text-gold-on-navy">
           {identity.companyName.charAt(0)}
         </div>
       </SidebarTooltip>
@@ -33,7 +33,7 @@ export function SidebarHeader({ expanded, inDrawer, identity, onCloseDrawer }: S
         className={cx(
           'min-w-0 overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] duration-150 ease-in-out motion-reduce:transition-none',
           expanded
-            ? 'max-w-[180px] translate-x-0 opacity-100 delay-75'
+            ? 'max-w-45 translate-x-0 opacity-100 delay-75'
             : 'max-w-0 -translate-x-1 opacity-0',
         )}
       >
@@ -50,7 +50,7 @@ export function SidebarHeader({ expanded, inDrawer, identity, onCloseDrawer }: S
           type="button"
           onClick={onCloseDrawer}
           aria-label={x(M.shell_close_menu)}
-          className="ml-auto cursor-pointer border-none bg-transparent p-[4px]"
+          className="ml-auto cursor-pointer border-none bg-transparent p-1"
         >
           <X size={18} strokeWidth={1.8} className="text-text-3" />
         </button>

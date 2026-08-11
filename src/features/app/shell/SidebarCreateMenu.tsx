@@ -134,7 +134,7 @@ export function SidebarCreateMenu({ expanded, onNavigate }: SidebarCreateMenuPro
             aria-label={x(M.shell_create)}
             aria-expanded={open}
             aria-haspopup="menu"
-            className="flex h-[36px] w-[36px] cursor-pointer items-center justify-center rounded-[8px] bg-navy text-white hover:opacity-[.92]"
+            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-navy text-white hover:opacity-[.92]"
           >
             <Plus size={18} strokeWidth={2} />
           </button>
@@ -159,7 +159,7 @@ export function SidebarCreateMenu({ expanded, onNavigate }: SidebarCreateMenuPro
         onClick={handleToggle}
         aria-expanded={open}
         aria-haspopup="menu"
-        className="mb-[6px] flex w-full cursor-pointer items-center gap-[8px] rounded-[8px] bg-navy px-[12px] py-[9px] text-[13.5px] font-semibold text-white hover:opacity-[.92]"
+        className="mb-1.5 flex w-full cursor-pointer items-center gap-2 rounded-lg bg-navy px-3 py-2.25 text-[13.5px] font-semibold text-white hover:opacity-[.92]"
       >
         <Plus size={15} strokeWidth={2} className="shrink-0" />
         <span className="flex-1 text-left">{x(M.shell_create)}</span>
@@ -192,7 +192,7 @@ const CreateMenuPanel = forwardRef<HTMLDivElement, CreateMenuPanelProps>(functio
       ref={ref}
       role="menu"
       aria-label={x(M.shell_create)}
-      className="absolute top-full left-0 z-60 mt-[6px] w-[220px] overflow-hidden rounded-[10px] border border-border bg-surface shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
+      className="absolute top-full left-0 z-60 mt-1.5 w-55 overflow-hidden rounded-[10px] border border-border bg-surface shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
     >
       {actions.map((action) => {
         const Icon = action.icon
@@ -207,16 +207,16 @@ const CreateMenuPanel = forwardRef<HTMLDivElement, CreateMenuPanelProps>(functio
             tabIndex={-1}
             onClick={() => onAction(action)}
             className={cx(
-              'flex w-full cursor-pointer items-center justify-between gap-[10px] border-none bg-transparent px-[12px] py-[9px] text-left text-[13px]',
+              'flex w-full cursor-pointer items-center justify-between gap-2.5 border-none bg-transparent px-3 py-2.25 text-left text-[13px]',
               disabled ? 'text-text-muted' : 'text-text-2 hover:bg-inset focus:bg-inset',
             )}
           >
-            <span className="flex items-center gap-[9px]">
+            <span className="flex items-center gap-2.25">
               <Icon size={15} strokeWidth={1.8} className="shrink-0" />
               {x(action.label)}
             </span>
             {disabled && (
-              <span className="rounded-[4px] border border-border px-[5px] py-px text-[10px] text-text-faint">
+              <span className="rounded-sm border border-border px-1.25 py-px text-[10px] text-text-faint">
                 {x(M.shell_create_unavailable)}
               </span>
             )}

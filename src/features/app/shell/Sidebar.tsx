@@ -167,14 +167,14 @@ export function Sidebar({
 
   return (
     <aside aria-label={x(M.shell_primary_nav)} className={sidebarClasses(mode, drawerEntered)}>
-      <div className="flex shrink-0 flex-col px-[10px] pb-[8px] pt-[8px]">
+      <div className="flex shrink-0 flex-col px-2.5 pb-2 pt-2">
         <SidebarHeader
           expanded={expanded}
           inDrawer={mode === 'drawer'}
           identity={identity}
           onCloseDrawer={onCloseDrawer}
         />
-        <div className={cx('flex gap-[8px]', expanded ? 'flex-col' : 'flex-col items-center')}>
+        <div className={cx('flex gap-2', expanded ? 'flex-col' : 'flex-col items-center')}>
           <SidebarCreateMenu expanded={expanded} onNavigate={onCloseDrawer} />
           <SidebarSearch expanded={expanded} />
         </div>
@@ -182,13 +182,21 @@ export function Sidebar({
 
       <nav
         aria-label={x(M.shell_primary_nav)}
-        className="flex min-h-0 flex-1 flex-col overflow-y-auto px-[10px] pb-[8px]"
+        data-rail-scroll
+        className={cx(
+          'flex min-h-0 flex-1 flex-col overflow-y-auto px-2.5 pb-2',
+          !expanded && 'no-scrollbar',
+        )}
       >
         {NAV_GROUPS.map((group, i) => {
+          const isLast = i === NAV_GROUPS.length - 1
           if (group.heading === null) {
             return (
               <div key={group.items[0]?.key ?? i} className="flex flex-col">
-                {renderGroupItems(group)}
+                <div className="flex flex-col">{renderGroupItems(group)}</div>
+                {!expanded && !isLast && (
+                  <div className="my-2 border-t border-border-soft" aria-hidden="true" />
+                )}
               </div>
             )
           }
@@ -196,21 +204,25 @@ export function Sidebar({
           if (!key || !group.heading) return null
           const heading = x(group.heading)
           return (
-            <SidebarSection
-              key={key}
-              id={key}
-              heading={heading}
-              expanded={expanded}
-              open={!!effectiveSections[key]}
-              onToggle={() => toggleSection(key)}
-            >
-              {renderGroupItems(group)}
-            </SidebarSection>
+            <div key={key} className="flex flex-col">
+              <SidebarSection
+                id={key}
+                heading={heading}
+                expanded={expanded}
+                open={!!effectiveSections[key]}
+                onToggle={() => toggleSection(key)}
+              >
+                {renderGroupItems(group)}
+              </SidebarSection>
+              {!expanded && !isLast && (
+                <div className="my-2 border-t border-border-soft" aria-hidden="true" />
+              )}
+            </div>
           )
         })}
       </nav>
 
-      <div className="flex shrink-0 flex-col border-t border-border-soft px-[10px] pt-[8px] pb-[10px]">
+      <div className="flex shrink-0 flex-col border-t border-border-soft px-2.5 pt-2 pb-2.5">
         {mode !== 'drawer' && onToggleExpanded && (
           <SidebarCollapseButton expanded={expanded} onToggle={onToggleExpanded} />
         )}

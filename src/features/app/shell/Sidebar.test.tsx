@@ -213,6 +213,22 @@ describe('Sidebar', () => {
     expect(screen.getByRole('button', { name: /Create/i })).not.toHaveTextContent('Create')
   })
 
+  it('shows all section nav items in compact mode', () => {
+    renderApp(<Sidebar mode="compact" onToggleExpanded={() => {}} />, { route: '/app/home' })
+
+    const people = screen.getByRole('link', { name: 'People' })
+    const cases = screen.getByRole('link', { name: /Cases/ })
+    const compliance = screen.getByRole('link', { name: 'Compliance' })
+
+    expect(people).toBeInTheDocument()
+    expect(cases).toBeInTheDocument()
+    expect(compliance).toBeInTheDocument()
+
+    const panel = people.closest('div.block, div[class*="grid-rows"]')
+    expect(panel).toBeInTheDocument()
+    expect(panel?.className).not.toContain('opacity-0')
+  })
+
   it('drawer mode shows a close button and calls onClose on route click', async () => {
     const user = userEvent.setup()
     const onClose = vi.fn()

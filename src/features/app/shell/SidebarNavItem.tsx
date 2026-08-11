@@ -17,6 +17,15 @@ export function SidebarNavItem({ item, expanded, active, onClick }: SidebarNavIt
   const Icon = item.icon
   const label = x(item.label)
 
+  const activeClasses = active
+    ? cx(
+        'border-l-2 font-semibold',
+        expanded
+          ? 'border-accent bg-accent-soft text-accent'
+          : 'border-transparent bg-navy text-gold-on-navy',
+      )
+    : 'border-l-2 border-transparent font-medium text-text-2 hover:bg-inset hover:text-text'
+
   return (
     <SidebarTooltip label={label} show={!expanded}>
       <Link
@@ -25,20 +34,18 @@ export function SidebarNavItem({ item, expanded, active, onClick }: SidebarNavIt
         aria-label={expanded ? undefined : label}
         aria-current={active ? 'page' : undefined}
         className={cx(
-          'group my-px flex w-full items-center gap-[10px] rounded-[7px] text-[13.5px] transition-colors duration-150',
-          expanded ? 'px-[10px] py-[8px]' : 'justify-center p-[9px]',
-          active
-            ? 'border-l-2 border-accent bg-accent-soft font-semibold text-accent'
-            : 'border-l-2 border-transparent font-medium text-text-2 hover:bg-inset hover:text-text',
+          'group my-px flex w-full items-center gap-2.5 rounded-[7px] text-[13.5px] transition-colors duration-150',
+          expanded ? 'px-2.5 py-2' : 'justify-center p-2.25',
+          activeClasses,
         )}
       >
         <Icon size={16} strokeWidth={1.7} className="shrink-0" />
         <span
           aria-hidden={!expanded}
           className={cx(
-            'flex min-w-0 items-center gap-[8px] overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] duration-150 ease-in-out motion-reduce:transition-none',
+            'flex min-w-0 items-center gap-2 overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] duration-150 ease-in-out motion-reduce:transition-none',
             expanded
-              ? 'max-w-[190px] flex-1 translate-x-0 opacity-100 delay-75'
+              ? 'max-w-47.5 flex-1 translate-x-0 opacity-100 delay-75'
               : 'max-w-0 -translate-x-1 opacity-0',
           )}
         >

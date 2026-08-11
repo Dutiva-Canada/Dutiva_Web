@@ -37,7 +37,7 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
   const settingsActive = pathname.startsWith('/app/settings')
 
   return (
-    <div className="shrink-0 border-t border-border-soft px-[10px] pb-[10px]">
+    <div className="shrink-0 border-t border-border-soft px-2.5 pb-2.5">
       <SidebarTooltip label={x(M.shell_nav_settings)} show={!expanded}>
         <Link
           to="/app/settings"
@@ -45,10 +45,15 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
           aria-current={settingsActive ? 'page' : undefined}
           aria-label={expanded ? undefined : x(M.shell_nav_settings)}
           className={cx(
-            'my-px flex w-full items-center gap-[10px] rounded-[7px] text-[13.5px] transition-colors duration-150',
-            expanded ? 'px-[10px] py-[8px]' : 'justify-center p-[9px]',
+            'my-px flex w-full items-center gap-2.5 rounded-[7px] text-[13.5px] transition-colors duration-150',
+            expanded ? 'px-2.5 py-2' : 'justify-center p-2.25',
             settingsActive
-              ? 'border-l-2 border-accent bg-accent-soft font-semibold text-accent'
+              ? cx(
+                  'border-l-2 font-semibold',
+                  expanded
+                    ? 'border-accent bg-accent-soft text-accent'
+                    : 'border-transparent bg-navy text-gold-on-navy',
+                )
               : 'border-l-2 border-transparent font-medium text-text-2 hover:bg-inset hover:text-text',
           )}
         >
@@ -58,7 +63,7 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
             className={cx(
               'overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] duration-150 ease-in-out motion-reduce:transition-none',
               expanded
-                ? 'max-w-[190px] translate-x-0 opacity-100 delay-75'
+                ? 'max-w-47.5 translate-x-0 opacity-100 delay-75'
                 : 'max-w-0 -translate-x-1 opacity-0',
             )}
           >
@@ -67,7 +72,7 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
         </Link>
       </SidebarTooltip>
 
-      <div className="relative mt-[4px]">
+      <div className="relative mt-1">
         <SidebarTooltip label={identity.user.name} show={!expanded}>
           <button
             type="button"
@@ -82,12 +87,12 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
             }
             aria-expanded={profileOpen}
             className={cx(
-              'relative flex w-full cursor-pointer items-center gap-[9px] rounded-[8px] border-none text-text transition-colors duration-150',
-              expanded ? 'px-[10px] py-[7px]' : 'justify-center p-[7px]',
+              'relative flex w-full cursor-pointer items-center gap-2.25 rounded-lg border-none text-text transition-colors duration-150',
+              expanded ? 'px-2.5 py-1.75' : 'justify-center p-1.75',
               profileOpen ? 'bg-border-soft' : 'bg-transparent hover:bg-inset',
             )}
           >
-            <div className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-navy text-[11.5px] font-bold text-gold-on-navy">
+            <div className="flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full bg-navy text-[11.5px] font-bold text-gold-on-navy">
               {identity.user.initials}
             </div>
             {expanded && (
@@ -103,9 +108,9 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
           <div
             role="menu"
             aria-label={L('Account menu', 'Menu du compte')}
-            className="absolute bottom-full left-0 z-60 mb-[6px] w-[200px] overflow-hidden rounded-[11px] border border-border bg-surface shadow-[0_16px_36px_rgba(27,36,48,0.2)]"
+            className="absolute bottom-full left-0 z-60 mb-1.5 w-50 overflow-hidden rounded-[11px] border border-border bg-surface shadow-[0_16px_36px_rgba(27,36,48,0.2)]"
           >
-            <div className="border-b border-border-soft px-[14px] py-[12px]">
+            <div className="border-b border-border-soft px-3.5 py-3">
               <div className="text-[13px] font-bold text-text">{identity.user.name}</div>
               <div className="text-[11.5px] text-text-muted">{identity.user.email}</div>
             </div>
@@ -117,7 +122,7 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
                 onNavigate?.()
                 navigate('/app/settings')
               }}
-              className="block w-full cursor-pointer border-none bg-transparent px-[14px] py-[10px] text-left text-[13px] text-text-2 hover:bg-inset"
+              className="block w-full cursor-pointer border-none bg-transparent px-3.5 py-2.5 text-left text-[13px] text-text-2 hover:bg-inset"
             >
               {x(M.shell_nav_settings)}
             </button>
@@ -129,7 +134,7 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
                 onNavigate?.()
                 navigate(helpCentrePath)
               }}
-              className="block w-full cursor-pointer border-none bg-transparent px-[14px] py-[10px] text-left text-[13px] text-text-2 hover:bg-inset"
+              className="block w-full cursor-pointer border-none bg-transparent px-3.5 py-2.5 text-left text-[13px] text-text-2 hover:bg-inset"
             >
               {L('Help Centre', 'Centre d’aide')}
             </button>
@@ -141,7 +146,7 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
                 onNavigate?.()
                 navigate('/app/support')
               }}
-              className="block w-full cursor-pointer border-none bg-transparent px-[14px] py-[10px] text-left text-[13px] text-text-2 hover:bg-inset"
+              className="block w-full cursor-pointer border-none bg-transparent px-3.5 py-2.5 text-left text-[13px] text-text-2 hover:bg-inset"
             >
               {L('Contact support', 'Contacter le soutien')}
             </button>
@@ -154,7 +159,7 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
                   onNavigate?.()
                   navigate('/app/support/admin')
                 }}
-                className="block w-full cursor-pointer border-none bg-transparent px-[14px] py-[10px] text-left text-[13px] text-text-2 hover:bg-inset"
+                className="block w-full cursor-pointer border-none bg-transparent px-3.5 py-2.5 text-left text-[13px] text-text-2 hover:bg-inset"
               >
                 {L('Support dashboard', 'Tableau de bord du soutien')}
               </button>
@@ -166,7 +171,7 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
                 setProfileOpen(false)
                 navigate('/app/welcome')
               }}
-              className="block w-full cursor-pointer border-none bg-transparent px-[14px] py-[10px] text-left text-[13px] text-risk-dot hover:bg-risk-bg"
+              className="block w-full cursor-pointer border-none bg-transparent px-3.5 py-2.5 text-left text-[13px] text-risk-dot hover:bg-risk-bg"
             >
               {x(M.shell_sign_out)}
             </button>
@@ -174,32 +179,21 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
         )}
       </div>
 
-      <div
-        className={cx(
-          'mt-[8px] flex items-center gap-[7px] border-t border-border-soft px-[6px] pt-[12px] pb-[2px]',
-          expanded ? 'justify-start' : 'justify-center',
-        )}
-      >
-        <div className="flex h-[19px] w-[19px] shrink-0 items-center justify-center">
-          <img
-            src="/brand/dutiva-leaf.png"
-            alt="Dutiva"
-            className="block h-[15px] w-auto"
-            style={{ filter: 'var(--logo-glow)' }}
-          />
+      {expanded && (
+        <div className="mt-2 flex items-center justify-start gap-1.75 border-t border-border-soft px-1.5 pt-3 pb-0.5">
+          <div className="flex h-4.75 w-4.75 shrink-0 items-center justify-center">
+            <img
+              src="/brand/dutiva-leaf.png"
+              alt="Dutiva"
+              className="block h-3.75 w-auto"
+              style={{ filter: 'var(--logo-glow)' }}
+            />
+          </div>
+          <span className="max-w-37.5 translate-x-0 overflow-hidden whitespace-nowrap text-[11px] tracking-[0.01em] text-text-faint opacity-100 delay-75 transition-[max-width,opacity,transform] duration-150 ease-in-out motion-reduce:transition-none">
+            {x(M.shell_powered_by)} <span className="font-bold text-text-muted">Dutiva</span>
+          </span>
         </div>
-        <span
-          aria-hidden={!expanded}
-          className={cx(
-            'overflow-hidden whitespace-nowrap text-[11px] tracking-[0.01em] text-text-faint transition-[max-width,opacity,transform] duration-150 ease-in-out motion-reduce:transition-none',
-            expanded
-              ? 'max-w-[150px] translate-x-0 opacity-100 delay-75'
-              : 'max-w-0 -translate-x-1 opacity-0',
-          )}
-        >
-          {x(M.shell_powered_by)} <span className="font-bold text-text-muted">Dutiva</span>
-        </span>
-      </div>
+      )}
 
       {profileOpen && (
         <div
