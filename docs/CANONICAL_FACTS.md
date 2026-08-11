@@ -38,20 +38,20 @@ people who don't read the repo. Re-export it when this file changes.
 
 ## Verified against the product
 
-| Fact                  | Value                                                                          | Source of truth                                                         |
-| --------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
-| Templates shipped     | **50** — T01…T50                                                               | `src/features/app/documents/catalogue.ts`                               |
-| Jurisdictions         | **3** — ON (ESA 2000), QC (LNT), FED (Canada Labour Code Part III)             | jurisdiction codes `ON`, `QC`, `FED`                                    |
-| Pricing               | Free · Starter **$24** · Growth **$49** · Pro **$99** CAD/mo                   | `src/config/plans.ts` → `PLANS`                                         |
-| Annual billing        | 10 of 12 months charged (two months free)                                      | `ANNUAL_MONTHS_BILLED`                                                  |
-| Beta state            | Paid plans **shown but not sold**                                              | `PAID_PLANS_DISABLED_DURING_BETA`                                       |
-| Beta capacity         | **15** individuals/organizations to begin; signup stays open as a waiting list | `src/config/beta.ts` `BETA_COHORT_LIMIT`; gate in migration `0067`      |
-| Rings live            | **All four rings complete.**                                                   | `docs/FOUR_RING_FRAMEWORK.md`                                           |
+| Fact                  | Value                                                                                | Source of truth                                                         |
+| --------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| Templates shipped     | **50** — T01…T50                                                                     | `src/features/app/documents/catalogue.ts`                               |
+| Jurisdictions         | **3** — ON (ESA 2000), QC (LNT), FED (Canada Labour Code Part III)                   | jurisdiction codes `ON`, `QC`, `FED`                                    |
+| Pricing               | Free · Starter **$24** · Growth **$49** · Pro **$99** CAD/mo                         | `src/config/plans.ts` → `PLANS`                                         |
+| Annual billing        | 10 of 12 months charged (two months free)                                            | `ANNUAL_MONTHS_BILLED`                                                  |
+| Beta state            | Paid plans **shown but not sold**                                                    | `PAID_PLANS_DISABLED_DURING_BETA`                                       |
+| Beta capacity         | **15** individuals/organizations to begin; signup stays open as a waiting list       | `src/config/beta.ts` `BETA_COHORT_LIMIT`; gate in migration `0067`      |
+| Rings live            | **All four rings complete.**                                                         | `docs/FOUR_RING_FRAMEWORK.md`                                           |
 | Law-change monitoring | **Federal (FED), Ontario (ON) and Québec (QC) confirmed working** (audit 2026-08-10) | `src/features/app/guidance/monitoringCoverage.ts`                       |
-| Contact address       | **support@dutiva.ca**                                                          | the published support address; retired ones stay retired (§6, enforced) |
-| Languages             | EN + FR, both surfaces, prerendered per locale                                 | `src/i18n/` — EN unprefixed, FR under `/fr`                             |
-| Brand gold            | `#b98512 → #d4af37 → #f4c54b → #ffe37a`; on dark `#e9c877`                     | `tokens.css` `--gold-gradient`, `--gold-on-dark`                        |
-| Brand navy            | `#0d1b2a` ground, `#081019` deep                                               | `tokens.css` `--dutiva-navy`; `surfaces.css` `.surface-marketing --bg`  |
+| Contact address       | <support@dutiva.ca>                                                                  | the published support address; retired ones stay retired (§6, enforced) |
+| Languages             | EN + FR, both surfaces, prerendered per locale                                       | `src/i18n/` — EN unprefixed, FR under `/fr`                             |
+| Brand gold            | `#b98512 → #d4af37 → #f4c54b → #ffe37a`; on dark `#e9c877`                           | `tokens.css` `--gold-gradient`, `--gold-on-dark`                        |
+| Brand navy            | `#0d1b2a` ground, `#081019` deep                                                     | `tokens.css` `--dutiva-navy`; `surfaces.css` `.surface-marketing --bg`  |
 
 ## Company and legal
 
@@ -272,7 +272,7 @@ both in the same change when a source strategy lands.
 
 ### 6. Contact and brand
 
-Publish **support@dutiva.ca** only; retire `info@`, `hello@`, `DutivaCanada@`. The
+Publish <support@dutiva.ca> only; retire `info@`, `hello@`, `DutivaCanada@`. The
 accent is **gold `#d4af37`**, not amber `#E8A020` — the Drive logo kit is already
 correct, only its written description drifted.
 
