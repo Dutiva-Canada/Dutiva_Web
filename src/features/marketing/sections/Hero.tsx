@@ -51,7 +51,7 @@ export function Hero() {
             </a>
           </div>
 
-          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-border bg-bg-elevated px-3.5 py-1.75 text-xs font-medium text-text-2">
+          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-border bg-bg-elevated px-3.5 py-1.75 text-xs font-medium text-text">
             <ShieldCheck size={14} className="text-gold-strong" />
             {lt('landing_hero_disclaimer')}
           </div>
