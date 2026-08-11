@@ -106,7 +106,10 @@ if (!rawUrl || !anonKey) {
   process.exit(0)
 }
 
-const base = rawUrl.replace(/\/+$/, '')
+let base = rawUrl
+while (base.endsWith('/')) {
+  base = base.slice(0, -1)
+}
 
 /**
  * Read at most one row from a table as the anonymous role, asking PostgREST for
@@ -203,9 +206,11 @@ for (const table of SENSITIVE_TABLES) {
     continue
   }
   if (![200, 206].includes(result.status)) {
+    const bodyHint = result.body ? ` (body: ${result.body})` : ''
     problems.push(
       `${table}: unexpected status ${result.status} as anon — cannot confirm it is ` +
-        `locked down${result.body ? ` (body: ${result.body})` : ''}`,
+        'locked down' +
+        bodyHint,
     )
     continue
   }
