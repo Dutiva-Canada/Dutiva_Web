@@ -4,7 +4,8 @@ import userEvent from '@testing-library/user-event'
 import { renderApp } from '@/test/renderApp'
 import { authMessages } from '@/i18n/messages/auth'
 import { guidanceMessages } from '@/i18n/messages/guidance'
-import { GuidanceSourcesPanel, updatesAreStale } from './GuidanceSourcesPanel'
+import { GuidanceSourcesPanel } from './GuidanceSourcesPanel'
+import { updatesAreStale } from './updatesAreStale'
 import type { LawUpdate } from './api'
 
 /**
@@ -16,7 +17,9 @@ import type { LawUpdate } from './api'
 describe('GuidanceSourcesPanel', () => {
   it('shows the sign-in form when signed out', () => {
     renderApp(<GuidanceSourcesPanel />)
-    expect(screen.getByText('Sign in to see real legal guidance sources and recent law changes.')).toBeInTheDocument()
+    expect(
+      screen.getByText('Sign in to see real legal guidance sources and recent law changes.'),
+    ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Send sign-in link' })).toBeInTheDocument()
   })
 

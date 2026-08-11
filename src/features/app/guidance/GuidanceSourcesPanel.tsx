@@ -8,6 +8,7 @@ import { useAuth } from '../auth/authContext'
 import { AuthSignInForm } from '../auth/AuthSignInForm'
 import { fetchGuidanceSources, fetchRecentLawUpdates } from './api'
 import type { GuidanceSource, LawUpdate } from './api'
+import { updatesAreStale } from './updatesAreStale'
 import {
   COVERAGE_AUDITED_ON,
   COVERAGE_STATUS_LABEL,
@@ -38,25 +39,6 @@ function formatDate(iso: string, lang: 'en' | 'fr'): string {
  */
 function formatPlainDate(ymd: string, lang: 'en' | 'fr'): string {
   return formatDate(`${ymd}T12:00:00`, lang)
-}
-
-/**
- * Days without a monitor report before the panel says so. The monitor sweeps
- * daily (0035_schedule_law_monitor.sql), so a week of silence means it is not
- * running — the exact state that went unnoticed between June and July 2026.
- */
-const STALE_AFTER_DAYS = 7
-
-/** True when the newest update is old enough that it should not read as current. */
-export function updatesAreStale(updates: readonly LawUpdate[]): boolean {
-  const newest = updates.reduce<number | null>((max, u) => {
-    if (!u.detectedAt) return max
-    const t = new Date(u.detectedAt).getTime()
-    if (Number.isNaN(t)) return max
-    return max === null || t > max ? t : max
-  }, null)
-  if (newest === null) return false
-  return Date.now() - newest > STALE_AFTER_DAYS * 24 * 60 * 60 * 1000
 }
 
 /**
@@ -112,9 +94,7 @@ export function GuidanceSourcesPanel() {
           a compliance product must not let a customer infer otherwise. */}
       <section className="mt-[16px] rounded-[10px] border border-inset px-[14px] py-[12px]">
         <div className="flex flex-wrap items-baseline justify-between gap-[8px]">
-          <div className="text-[12px] font-bold text-text-3">
-            {x(M.guidance_coverage_heading)}
-          </div>
+          <div className="text-[12px] font-bold text-text-3">{x(M.guidance_coverage_heading)}</div>
           <div className="text-[11.5px] text-text-muted">
             {x(M.guidance_coverage_audited)} {formatPlainDate(COVERAGE_AUDITED_ON, lang)}
           </div>
