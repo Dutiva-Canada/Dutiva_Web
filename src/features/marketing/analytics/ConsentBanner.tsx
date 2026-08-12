@@ -60,7 +60,7 @@ export function ConsentBanner() {
       <div className="mx-auto flex max-w-[880px] flex-col gap-4 rounded-xl border border-border bg-bg p-5 shadow-lg sm:flex-row sm:items-center sm:justify-between">
         <p className="max-w-[64ch] text-sm leading-[1.6] text-text-2">
           {L(
-            'We use necessary cookies to run Dutiva, plus optional analytics to understand how the site is used. Analytics stay off until you accept.',
+            'We use necessary cookies to operate Dutiva, plus optional analytics to understand how the site is used. Analytics remain disabled until you accept.',
             'Nous utilisons des témoins nécessaires au fonctionnement de Dutiva, ainsi que des statistiques facultatives pour comprendre l’utilisation du site. Les statistiques restent désactivées tant que vous ne les acceptez pas.',
           )}{' '}
           <Link
