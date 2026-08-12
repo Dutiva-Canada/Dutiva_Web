@@ -228,8 +228,8 @@ export const landing = defineMessages({
     fr: "Tout ce qu'il faut pour bien documenter vos RH.",
   },
   landing_prod_sub: {
-    en: 'Fifty HR templates, generated through guided questions and reviewed beside the guidance that shaped them.',
-    fr: 'Cinquante modèles RH, générés par des questions guidées et révisés à côté des conseils qui les ont façonnés.',
+    en: '50 HR templates, generated through guided questions and reviewed beside the guidance that shaped them.',
+    fr: '50 modèles RH, générés par des questions guidées et révisés à côté des conseils qui les ont façonnés.',
   },
   landing_prod1_t: {
     en: '50 HR templates',
