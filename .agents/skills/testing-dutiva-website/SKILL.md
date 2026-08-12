@@ -23,7 +23,7 @@ None.
 - Install dependencies: `npm install`
 - Start the dev server: `npm run dev` (Vite; typically `http://localhost:5173/`)
 - Build command: `npm run build` (slower; runs typecheck, SSR, prerender and SEO validation)
-- Required pre-commit gate: `npm run check` (typecheck + lint + tests + facts/message-scope checks)
+- Required pre-commit gate: `npm run check` (typecheck + lint + tests + check:migrations + check:rls + check:facts + check:message-scopes)
 - Quick useful checks: `npm run typecheck`, `npm run lint`, `npm run test`
 
 ## How to test language versions
