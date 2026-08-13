@@ -10,7 +10,10 @@ import { useLanding } from '../useLanding'
 export function AdvisorDemo() {
   const { lt } = useLanding()
   return (
-    <div className="premium-card animate-fade-up overflow-hidden p-0">
+    <div
+      id="advisor"
+      className="premium-card animate-fade-up scroll-mt-20 overflow-hidden p-0"
+    >
       {/* Card header */}
       <div className="flex items-center justify-between border-b border-border bg-bg-elevated px-5 py-4">
         <div className="flex items-center gap-3">

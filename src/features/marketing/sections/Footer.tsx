@@ -18,10 +18,10 @@ type FooterLink = { key: LandingMessageKey } & (
 )
 
 const PRODUCT_LINKS: FooterLink[] = [
-  { key: 'landing_fp_advisor', hash: 'top' },
+  { key: 'landing_fp_advisor', hash: 'advisor' },
   { key: 'landing_fp_workflows', hash: 'workflows' },
   { key: 'landing_fp_templates', hash: 'product' },
-  { key: 'landing_nav_pricing', hash: 'pricing' },
+  { key: 'landing_nav_pricing', route: 'pricing' },
   { key: 'landing_fp_beta', hash: 'start' },
 ]
 
