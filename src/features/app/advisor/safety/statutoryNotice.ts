@@ -71,7 +71,7 @@ export const NOTICE_SCHEDULES: readonly StatutoryNoticeSchedule[] = [
     bands: ONTARIO_BANDS,
     note: {
       en: 'Statutory minimum notice of individual termination. Not common-law reasonable notice; verify against the ESA and confirm the employee’s exact tenure.',
-      fr: 'Préavis minimal prévu par la loi pour une cessation individuelle. Ce n’est pas le préavis raisonnable de common law; vérifiez auprès de la LNE et confirmez l’ancienneté exacte.',
+      fr: 'Préavis minimal prévu par la loi pour une cessation individuelle. Ce n’est pas le préavis raisonnable de common law ; vérifiez auprès de la LNE et confirmez l’ancienneté exacte.',
     },
   },
   {

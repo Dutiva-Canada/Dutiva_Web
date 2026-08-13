@@ -148,7 +148,7 @@ export const complianceMessages = defineMessages({
   compliance_prod_ob_due_label: { en: 'Due {date}', fr: 'Échéance : {date}' },
   compliance_prod_ob_empty: {
     en: 'No obligations yet. Track recurring statutory duties — reviews, filings, training — and the score reflects what has evidence on file.',
-    fr: 'Aucune obligation pour l’instant. Suivez les devoirs légaux récurrents — examens, dépôts, formations — et le score reflète ce qui a une preuve au dossier.',
+    fr: 'Aucune obligation pour l’instant. Suivez les obligations légales récurrentes — examens, dépôts, formations — et le score reflète ce qui a une preuve au dossier.',
   },
   compliance_prod_ob_added: { en: 'Obligation added.', fr: 'Obligation ajoutée.' },
   compliance_prod_ob_add_failed: {

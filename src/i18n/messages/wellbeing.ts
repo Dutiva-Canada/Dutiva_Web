@@ -59,7 +59,7 @@ export const wellbeingMessages = defineMessages({
      struggling. See the migration header. [FR self-authored.] */
   wellbeing_prod_loading: {
     en: 'Loading wellbeing register…',
-    fr: 'Chargement du registre de mieux-être…',
+    fr: 'Chargement du registre de bien-être…',
   },
   wellbeing_prod_count_one: { en: 'initiative', fr: 'initiative' },
   wellbeing_prod_count_many: { en: 'initiatives', fr: 'initiatives' },
@@ -108,7 +108,7 @@ export const wellbeingMessages = defineMessages({
   },
   wellbeing_prod_error: {
     en: 'Couldn’t load the wellbeing register.',
-    fr: 'Impossible de charger le registre de mieux-être.',
+    fr: 'Impossible de charger le registre de bien-être.',
   },
   wellbeing_prod_retry: { en: 'Retry', fr: 'Réessayer' },
   wellbeing_prod_empty_title: {

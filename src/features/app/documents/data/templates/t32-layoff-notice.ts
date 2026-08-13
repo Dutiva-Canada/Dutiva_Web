@@ -195,7 +195,7 @@ export const tplT32: DocTemplate = {
       },
       hint: {
         en: 'What continues can change how long the layoff may lawfully run, so state it accurately.',
-        fr: 'Ce qui se poursuit peut modifier la durée licite de la mise à pied; énoncez-le avec exactitude.',
+        fr: 'Ce qui se poursuit peut modifier la durée licite de la mise à pied ; énoncez-le avec exactitude.',
       },
     },
     {

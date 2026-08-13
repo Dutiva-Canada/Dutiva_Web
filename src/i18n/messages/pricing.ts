@@ -82,7 +82,7 @@ export const pricingMessages = defineMessages({
   },
   pricing_checkout_return_success: {
     en: "Thanks — your subscription is being set up. This can take a few seconds; refresh if your plan doesn't show as updated yet.",
-    fr: 'Merci — votre abonnement est en cours de configuration. Cela peut prendre quelques secondes; actualisez si votre forfait ne s’affiche pas encore comme mis à jour.',
+    fr: 'Merci — votre abonnement est en cours de configuration. Cela peut prendre quelques secondes ; actualisez si votre forfait ne s’affiche pas encore comme mis à jour.',
   },
   pricing_checkout_return_success_heading: {
     en: 'Payment received',
@@ -110,7 +110,7 @@ export const pricingMessages = defineMessages({
   },
   pricing_faq_legal_q: {
     en: 'Is this legal advice?',
-    fr: 'Est-ce un avis juridique?',
+    fr: 'Est-ce un avis juridique ?',
   },
   pricing_faq_legal_a: {
     en: 'No. Dutiva provides general HR compliance guidance and document templates. For specific legal situations, consult an employment lawyer.',
@@ -118,7 +118,7 @@ export const pricingMessages = defineMessages({
   },
   pricing_faq_jur_q: {
     en: 'Which jurisdictions are covered?',
-    fr: 'Quelles juridictions sont couvertes?',
+    fr: 'Quelles juridictions sont couvertes ?',
   },
   pricing_faq_jur_a: {
     en: 'Ontario, Quebec, and Federal, with Alberta and British Columbia coming soon.',
@@ -126,7 +126,7 @@ export const pricingMessages = defineMessages({
   },
   pricing_cta_title: {
     en: 'Still deciding?',
-    fr: 'Vous hésitez encore?',
+    fr: 'Vous hésitez encore ?',
   },
   pricing_cta_body: {
     en: 'Compare the plan cards above, then start free or reach out with questions.',
@@ -223,20 +223,20 @@ export const pricingMessages = defineMessages({
   /* ── Expanded FAQ ──────────────────────────────────────────────────────── */
   pricing_faq_switch_q: {
     en: 'Can I change plans later?',
-    fr: 'Puis-je changer de forfait plus tard?',
+    fr: 'Puis-je changer de forfait plus tard ?',
   },
   pricing_faq_switch_a: {
     en: 'Yes. Upgrade, downgrade, or cancel anytime from your billing settings. Downgrades and cancellations take effect at the end of your current billing period.',
     fr: 'Oui. Passez à un forfait supérieur ou inférieur, ou annulez à tout moment depuis vos paramètres de facturation. Les rétrogradations et les annulations prennent effet à la fin de votre période de facturation en cours.',
   },
-  pricing_faq_billing_q: { en: 'How does billing work?', fr: 'Comment fonctionne la facturation?' },
+  pricing_faq_billing_q: { en: 'How does billing work?', fr: 'Comment fonctionne la facturation ?' },
   pricing_faq_billing_a: {
     en: 'Paid plans are billed securely through Stripe in Canadian dollars, monthly. Annual billing is coming soon. Manage or cancel your subscription anytime.',
     fr: 'Les forfaits payants sont facturés en toute sécurité via Stripe en dollars canadiens, mensuellement. La facturation annuelle arrive bientôt. Gérez ou annulez votre abonnement à tout moment.',
   },
   pricing_faq_refund_q: {
     en: 'What is your refund policy?',
-    fr: 'Quelle est votre politique de remboursement?',
+    fr: 'Quelle est votre politique de remboursement ?',
   },
   pricing_faq_refund_a: {
     en: 'Refund eligibility depends on your plan and billing period. You can cancel anytime — your access continues until the end of your billing period. See our Refund & Cancellation Policy for the full, current terms.',
@@ -244,7 +244,7 @@ export const pricingMessages = defineMessages({
   },
   pricing_faq_annual_q: {
     en: 'Is annual billing cheaper?',
-    fr: 'La facturation annuelle est-elle moins chère?',
+    fr: 'La facturation annuelle est-elle moins chère ?',
   },
   pricing_faq_annual_a: {
     en: 'Annual billing is coming soon — it will include two months free compared with paying month to month. Email support@dutiva.ca to be notified when it is available.',

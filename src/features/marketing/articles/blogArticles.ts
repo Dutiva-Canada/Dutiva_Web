@@ -29,7 +29,7 @@ export const BLOG_ARTICLES: readonly Article[] = [
       'Normes du travail au Québec : ce qui diffère de l’Ontario',
     ),
     summary: bi(
-      'Quebec’s employment regime is not Ontario’s with different vocabulary. The differences that most often catch employers expanding into Quebec, and where to look them up.',
+      'Quebec’s employment regime is not Ontario’s with a different vocabulary. The differences that most often catch employers expanding into Quebec, and where to look them up.',
       'Le régime d’emploi québécois n’est pas celui de l’Ontario avec un autre vocabulaire. Les différences qui surprennent le plus souvent les employeurs qui s’implantent au Québec, et où les vérifier.',
     ),
   },
@@ -67,7 +67,7 @@ export const BLOG_ARTICLES: readonly Article[] = [
   },
   {
     slug: 'employment-record-keeping',
-    frSlug: 'conservation-des-dossiers-demploi',
+    frSlug: 'conservation-des-dossiers-d-emploi',
     collection: 'blog',
     topic: bi('Records', 'Dossiers'),
     readingMinutes: 4,

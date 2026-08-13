@@ -57,23 +57,23 @@ export default {
         },
         {
           "type": "li",
-          "text": "des renseignements relatifs aux utilisateurs, à l’organisation et à l’espace de travail, comme les noms, les adresses courriel professionnelles, les noms d’organisations, les rôles, la province, le territoire, le régime fédéral sélectionné, la langue, le forfait, l’état du compte et les paramètres;"
+          "text": "des renseignements relatifs aux utilisateurs, à l’organisation et à l’espace de travail, comme les noms, les adresses courriel professionnelles, les noms d’organisations, les rôles, la province, le territoire, le régime fédéral sélectionné, la langue, le forfait, l’état du compte et les paramètres ;"
         },
         {
           "type": "li",
-          "text": "le profil de l’employeur et le contexte des processus RH saisis par le client, y compris la taille de l’organisation, les faits propres au milieu de travail, les détails de rôle, le contexte des politiques, les réponses d’intégration et les renseignements utilisés dans les processus liés au cycle de vie de l’employé;"
+          "text": "le profil de l’employeur et le contexte des processus RH saisis par le client, y compris la taille de l’organisation, les faits propres au milieu de travail, les détails de rôle, le contexte des politiques, les réponses d’intégration et les renseignements utilisés dans les processus liés au cycle de vie de l’employé ;"
         },
         {
           "type": "li",
-          "text": "les renseignements documentaires, y compris les choix de modèles, les titres de documents, les données saisies dans les documents, les ébauches enregistrées, les documents générés, les notes de révision, les dossiers d’exportation, les dossiers de signature électronique et les métadonnées liées aux processus documentaires;"
+          "text": "les renseignements documentaires, y compris les choix de modèles, les titres de documents, les données saisies dans les documents, les ébauches enregistrées, les documents générés, les notes de révision, les dossiers d’exportation, les dossiers de signature électronique et les métadonnées liées aux processus documentaires ;"
         },
         {
           "type": "li",
-          "text": "les renseignements du Conseiller, y compris les requêtes, le contexte limité de conversations récentes, la province, le territoire ou le régime fédéral sélectionné, le contexte d’accompagnement récupéré et le contexte limité de l’espace de travail nécessaire pour produire une réponse utile;"
+          "text": "les renseignements du Conseiller, y compris les requêtes, le contexte limité de conversations récentes, la province, le territoire ou le régime fédéral sélectionné, le contexte d’accompagnement récupéré et le contexte limité de l’espace de travail nécessaire pour produire une réponse utile ;"
         },
         {
           "type": "li",
-          "text": "les renseignements de signature électronique, lorsque cette fonctionnalité est activée, y compris les dossiers de processus de signature, les renseignements sur les destinataires, les événements d’audit, l’état de livraison, l’état d’achèvement et les métadonnées connexes;"
+          "text": "les renseignements de signature électronique, lorsque cette fonctionnalité est activée, y compris les dossiers de processus de signature, les renseignements sur les destinataires, les événements d’audit, l’état de livraison, l’état d’achèvement et les métadonnées connexes ;"
         },
         {
           "type": "li",
@@ -149,23 +149,23 @@ export default {
         },
         {
           "type": "li",
-          "text": "le chiffrement TLS en transit et les mesures de protection de l’infrastructure gérées par les fournisseurs;"
+          "text": "le chiffrement TLS en transit et les mesures de protection de l’infrastructure gérées par les fournisseurs ;"
         },
         {
           "type": "li",
-          "text": "les contrôles d’authentification, les contrôles d’accès aux comptes, les contrôles de propriété des dossiers, la séparation des rôles de service et l’accès administratif restreint;"
+          "text": "les contrôles d’authentification, les contrôles d’accès aux comptes, les contrôles de propriété des dossiers, la séparation des rôles de service et l’accès administratif restreint ;"
         },
         {
           "type": "li",
-          "text": "la limitation du débit, les limites d’entrée, les appels aux modèles côté serveur, l’isolation des secrets d’API et les contrôles de prévention des abus;"
+          "text": "la limitation du débit, les limites d’entrée, les appels aux modèles côté serveur, l’isolation des secrets d’API et les contrôles de prévention des abus ;"
         },
         {
           "type": "li",
-          "text": "la surveillance opérationnelle, la journalisation, le triage des incidents et les dossiers de suppression orientés vers l’audit;"
+          "text": "la surveillance opérationnelle, la journalisation, le triage des incidents et les dossiers de suppression orientés vers l’audit ;"
         },
         {
           "type": "li",
-          "text": "les pratiques de développement sécurisé, la validation avant les changements en production et la révision périodique des processus pertinents pour la sécurité;"
+          "text": "les pratiques de développement sécurisé, la validation avant les changements en production et la révision périodique des processus pertinents pour la sécurité ;"
         },
         {
           "type": "li",

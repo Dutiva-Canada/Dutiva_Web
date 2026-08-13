@@ -182,7 +182,7 @@ export const tplT36: DocTemplate = {
       required: true,
       placeholder: {
         en: 'e.g. Team meetings on the 12th; questions to Dana in the meantime.',
-        fr: 'p. ex. Réunions d’équipe le 12; d’ici là, questions à Dana.',
+        fr: 'p. ex. Réunions d’équipe le 12 ; d’ici là, questions à Dana.',
       },
     },
   ],

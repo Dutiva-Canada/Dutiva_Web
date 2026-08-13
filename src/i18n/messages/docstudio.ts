@@ -102,7 +102,7 @@ export const docstudioMessages = defineMessages({
   /* Toasts */
   docstudio_toast_ready_suffix: {
     en: ' draft ready — review before sending',
-    fr: ' — ébauche prête; vérifiez avant l’envoi',
+    fr: ' — ébauche prête ; vérifiez avant l’envoi',
   },
   docstudio_toast_revised: {
     en: 'Advisor revised the draft',

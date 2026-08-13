@@ -34,7 +34,7 @@ export const guidesIndexMessages = defineMessages({
   },
   guidesIdx_toBlog_t: {
     en: 'Not sure which rules apply to you?',
-    fr: 'Vous ne savez pas quelles règles s’appliquent?',
+    fr: 'Vous ne savez pas quelles règles s’appliquent ?',
   },
   guidesIdx_toBlog_p: {
     en: 'The blog covers the obligations behind these documents — which employment regime governs your workplace, which policies you are expected to maintain, and which records you have to keep.',
@@ -46,7 +46,7 @@ export const guidesIndexMessages = defineMessages({
   },
   guidesIdx_cta_t: {
     en: 'Have a question a guide doesn’t answer?',
-    fr: 'Une question sans réponse dans nos guides?',
+    fr: 'Une question sans réponse dans nos guides ?',
   },
   guidesIdx_cta_p: {
     en: 'Ask the AI Advisor inside the workspace, or reach out directly.',

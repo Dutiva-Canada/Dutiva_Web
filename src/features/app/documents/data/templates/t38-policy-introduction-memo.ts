@@ -149,7 +149,7 @@ export const tplT38: DocTemplate = {
       },
       hint: {
         en: 'The only paragraph most people will read. "Nothing changes for most of you; this writes down what we already do" is a complete and useful answer where it is true.',
-        fr: 'Le seul paragraphe que la plupart liront. « Rien ne change pour la plupart d’entre vous; cette politique consigne ce que nous faisons déjà » est une réponse complète et utile lorsqu’elle est exacte.',
+        fr: 'Le seul paragraphe que la plupart liront. « Rien ne change pour la plupart d’entre vous ; cette politique consigne ce que nous faisons déjà » est une réponse complète et utile lorsqu’elle est exacte.',
       },
     },
     {

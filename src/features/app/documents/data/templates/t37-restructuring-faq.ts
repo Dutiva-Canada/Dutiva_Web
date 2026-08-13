@@ -123,7 +123,7 @@ export const tplT37: DocTemplate = {
       },
       label: {
         en: 'Is further change expected?',
-        fr: 'D’autres changements sont-ils prévus?',
+        fr: 'D’autres changements sont-ils prévus ?',
       },
       type: 'select',
       required: true,
@@ -221,7 +221,7 @@ export const tplT37: DocTemplate = {
       n: 1,
       heading: {
         en: 'Why did this happen?',
-        fr: 'Pourquoi cela s’est-il produit?',
+        fr: 'Pourquoi cela s’est-il produit ?',
       },
       text: {
         en: '{{reason}}',
@@ -233,7 +233,7 @@ export const tplT37: DocTemplate = {
       n: 2,
       heading: {
         en: 'Who is affected?',
-        fr: 'Qui est visé?',
+        fr: 'Qui est visé ?',
       },
       text: {
         en: 'We are not naming anyone, and we will not confirm or deny whether a particular person is affected. Everyone affected has been told individually, and telling colleagues is theirs to do, in their own words and their own time. This is not us being evasive with you — it is the same protection each of you would want if it were your situation.',
@@ -245,7 +245,7 @@ export const tplT37: DocTemplate = {
       n: 3,
       heading: {
         en: 'Is my job safe?',
-        fr: 'Mon poste est-il en sécurité?',
+        fr: 'Mon poste est-il en sécurité ?',
       },
       text: {
         en: 'If you have not been spoken to individually, your role is not affected by this decision. On whether anything further is coming: {{more_coming}}. We would rather give you an uncomfortable answer you can rely on than a reassuring one we might have to withdraw.',
@@ -257,7 +257,7 @@ export const tplT37: DocTemplate = {
       n: 4,
       heading: {
         en: 'What happens to the work?',
-        fr: 'Qu’advient-il du travail?',
+        fr: 'Qu’advient-il du travail ?',
       },
       text: {
         en: '{{workload}} If your workload becomes unmanageable, raise it early rather than absorbing it. A team that quietly absorbs the gap is how a restructuring turns into resignations six months later.',
@@ -269,7 +269,7 @@ export const tplT37: DocTemplate = {
       n: 5,
       heading: {
         en: 'What are our departing colleagues receiving?',
-        fr: 'Que reçoivent les collègues qui partent?',
+        fr: 'Que reçoivent les collègues qui partent ?',
       },
       text: {
         en: 'That is between each of them and us, and we will not discuss it — including with the best of intentions. What we can say is that everyone affected has received their entitlements in writing, and has been told where to get advice on them.',
@@ -281,7 +281,7 @@ export const tplT37: DocTemplate = {
       n: 6,
       heading: {
         en: 'Can I stay in touch with people who are leaving?',
-        fr: 'Puis-je rester en contact avec les personnes qui partent?',
+        fr: 'Puis-je rester en contact avec les personnes qui partent ?',
       },
       text: {
         en: 'Yes. They are colleagues, and nothing about this changes that. If someone asks you for a reference, give an honest one — this decision was about roles, and it says nothing about anyone’s work.',
@@ -293,7 +293,7 @@ export const tplT37: DocTemplate = {
       n: 7,
       heading: {
         en: 'Where do I go with a question or a concern?',
-        fr: 'Où adresser une question ou une préoccupation?',
+        fr: 'Où adresser une question ou une préoccupation ?',
       },
       text: {
         en: '{{contact}} Asking a question here is not held against anyone, and neither is saying that you are finding this difficult.',

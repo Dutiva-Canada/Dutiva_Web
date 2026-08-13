@@ -20,27 +20,27 @@ export default {
         },
         {
           "type": "li",
-          "text": "recueillir et conserver uniquement les renseignements raisonnablement nécessaires à des fins définies liées au produit, à la loi, à la sécurité, à la facturation, au soutien, à l’exploitation ou à la conformité;"
+          "text": "recueillir et conserver uniquement les renseignements raisonnablement nécessaires à des fins définies liées au produit, à la loi, à la sécurité, à la facturation, au soutien, à l’exploitation ou à la conformité ;"
         },
         {
           "type": "li",
-          "text": "conserver les renseignements personnels seulement aussi longtemps que nécessaire aux fins pour lesquelles ils ont été recueillis, sauf lorsqu’une période plus longue est requise ou permise par la loi;"
+          "text": "conserver les renseignements personnels seulement aussi longtemps que nécessaire aux fins pour lesquelles ils ont été recueillis, sauf lorsqu’une période plus longue est requise ou permise par la loi ;"
         },
         {
           "type": "li",
-          "text": "soutenir les processus de suppression au niveau du compte et de l’organisation lorsque ceux-ci sont disponibles et appropriés;"
+          "text": "soutenir les processus de suppression au niveau du compte et de l’organisation lorsque ceux-ci sont disponibles et appropriés ;"
         },
         {
           "type": "li",
-          "text": "supprimer, dépersonnaliser, agréger ou anonymiser les renseignements lorsqu’ils ne sont plus nécessaires sous une forme identifiable, lorsque cela est techniquement et juridiquement approprié;"
+          "text": "supprimer, dépersonnaliser, agréger ou anonymiser les renseignements lorsqu’ils ne sont plus nécessaires sous une forme identifiable, lorsque cela est techniquement et juridiquement approprié ;"
         },
         {
           "type": "li",
-          "text": "conserver les dossiers requis à des fins juridiques, fiscales, comptables, d’incident, d’audit, de différend, de sécurité, de prévention de la fraude ou de réglementation;"
+          "text": "conserver les dossiers requis à des fins juridiques, fiscales, comptables, d’incident, d’audit, de différend, de sécurité, de prévention de la fraude ou de réglementation ;"
         },
         {
           "type": "li",
-          "text": "conserver les renseignements utilisés pour prendre ou soutenir une décision concernant une personne assez longtemps pour permettre les droits d’accès, de révision ou de contestation requis par la loi, le cas échéant;"
+          "text": "conserver les renseignements utilisés pour prendre ou soutenir une décision concernant une personne assez longtemps pour permettre les droits d’accès, de révision ou de contestation requis par la loi, le cas échéant ;"
         },
         {
           "type": "li",
@@ -148,31 +148,31 @@ export default {
         },
         {
           "type": "li",
-          "text": "les dossiers de facturation, de taxes, de comptabilité, d’abonnement, de différend de paiement, de facture et de rétrofacturation;"
+          "text": "les dossiers de facturation, de taxes, de comptabilité, d’abonnement, de différend de paiement, de facture et de rétrofacturation ;"
         },
         {
           "type": "li",
-          "text": "les journaux de sécurité, les dossiers de prévention des abus, les dossiers de prévention de la fraude, les journaux d’accès et les dossiers d’enquête sur les incidents;"
+          "text": "les journaux de sécurité, les dossiers de prévention des abus, les dossiers de prévention de la fraude, les journaux d’accès et les dossiers d’enquête sur les incidents ;"
         },
         {
           "type": "li",
-          "text": "les mesures opérationnelles anonymisées ou agrégées qui ne permettent plus raisonnablement d’identifier une personne;"
+          "text": "les mesures opérationnelles anonymisées ou agrégées qui ne permettent plus raisonnablement d’identifier une personne ;"
         },
         {
           "type": "li",
-          "text": "les entrées d’audit anonymisées liées à la suppression et les dossiers de reddition de comptes limités;"
+          "text": "les entrées d’audit anonymisées liées à la suppression et les dossiers de reddition de comptes limités ;"
         },
         {
           "type": "li",
-          "text": "les dossiers nécessaires pour établir, exercer ou défendre des réclamations juridiques, résoudre des différends, appliquer les Conditions d’utilisation ou répondre à des organismes de réglementation;"
+          "text": "les dossiers nécessaires pour établir, exercer ou défendre des réclamations juridiques, résoudre des différends, appliquer les Conditions d’utilisation ou répondre à des organismes de réglementation ;"
         },
         {
           "type": "li",
-          "text": "les dossiers visés par une suspension juridique, une ordonnance judiciaire, une enquête, une demande de préservation ou une obligation obligatoire de conservation;"
+          "text": "les dossiers visés par une suspension juridique, une ordonnance judiciaire, une enquête, une demande de préservation ou une obligation obligatoire de conservation ;"
         },
         {
           "type": "li",
-          "text": "les dossiers conservés par des fournisseurs de services dans des journaux, des sauvegardes ou des systèmes opérationnels selon les contrôles de conservation applicables du fournisseur;"
+          "text": "les dossiers conservés par des fournisseurs de services dans des journaux, des sauvegardes ou des systèmes opérationnels selon les contrôles de conservation applicables du fournisseur ;"
         },
         {
           "type": "li",

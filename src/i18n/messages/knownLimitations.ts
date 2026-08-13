@@ -24,7 +24,7 @@ export const limitsMessages = defineMessages({
   },
   limits_n3: {
     en: 'Not a system of record — Dutiva structures and drafts; you remain responsible for final decisions and filings.',
-    fr: 'Pas un système officiel de dossiers — Dutiva structure et rédige; vous demeurez responsable des décisions finales et des dépôts.',
+    fr: 'Pas un système officiel de dossiers — Dutiva structure et rédige ; vous demeurez responsable des décisions finales et des dépôts.',
   },
   limits_s2: { en: 'AI limitations', fr: 'Limites de l’IA' },
   limits_a1: {

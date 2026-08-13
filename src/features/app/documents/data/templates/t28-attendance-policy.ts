@@ -54,7 +54,7 @@ export const tplT28: DocTemplate = {
   jurisdictionNotes: {
     ON: {
       en: 'Leaves under the Employment Standards Act, 2000 — sick, family responsibility, bereavement and the rest — are protected, and reprisal for taking one is prohibited. The evidence an employer may require for a statutory leave is limited and has changed in recent years; confirm what applies before asking for a note. Absence connected to a disability is a Human Rights Code matter, not a discipline matter.',
-      fr: 'Les congés prévus par la Loi de 2000 sur les normes d’emploi — maladie, obligations familiales, décès et autres — sont protégés, et les représailles pour en avoir pris un sont interdites. La preuve exigible pour un congé légal est limitée et a changé ces dernières années; vérifiez ce qui s’applique avant d’exiger un billet. Une absence liée à un handicap relève du Code des droits de la personne, non de la discipline.',
+      fr: 'Les congés prévus par la Loi de 2000 sur les normes d’emploi — maladie, obligations familiales, décès et autres — sont protégés, et les représailles pour en avoir pris un sont interdites. La preuve exigible pour un congé légal est limitée et a changé ces dernières années ; vérifiez ce qui s’applique avant d’exiger un billet. Une absence liée à un handicap relève du Code des droits de la personne, non de la discipline.',
     },
     QC: {
       en: 'The Act respecting labour standards protects absences for sickness, organ or tissue donation, accident, domestic or sexual violence, and family obligations, and bars dismissal or sanction for taking them. The Charter of human rights and freedoms governs where a disability is involved.',

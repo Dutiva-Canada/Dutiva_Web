@@ -257,7 +257,7 @@ export const tplT18: DocTemplate = {
       type: 'para',
       text: {
         en: 'Exit interview scheduled; reference contact designated.',
-        fr: 'Entrevue de départ planifiée; personne-ressource de référence désignée.',
+        fr: 'Entrevue de départ planifiée ; personne-ressource de référence désignée.',
       },
     },
     /* Added when the disclaimer guard was extended to the whole catalogue: this
@@ -314,7 +314,7 @@ export const tplT19: DocTemplate = {
     },
     QC: {
       en: 'Charte art. 10 prohibits discrimination based on disability; the same duty to accommodate to the point of undue hardship applies. Diagnosis-level medical detail is not required.',
-      fr: 'L’art. 10 de la Charte interdit la discrimination fondée sur le handicap; la même obligation d’accommodement jusqu’au point de préjudice injustifié s’applique. Un diagnostic n’est pas requis.',
+      fr: 'L’art. 10 de la Charte interdit la discrimination fondée sur le handicap ; la même obligation d’accommodement jusqu’au point de préjudice injustifié s’applique. Un diagnostic n’est pas requis.',
     },
     FED: {
       en: 'Canadian Human Rights Act duty to accommodate applies to federally regulated employers, with the same undue-hardship threshold and functional-limitations-only scope.',
@@ -439,7 +439,7 @@ export const tplT20: DocTemplate = {
     },
     QC: {
       en: 'Same functional-limitations-only scope applies under the Charte; medical detail beyond what supports the accommodation should not be requested.',
-      fr: 'La même portée limitée aux limitations fonctionnelles s’applique en vertu de la Charte; aucun renseignement médical au-delà de ce qui appuie l’accommodement ne devrait être demandé.',
+      fr: 'La même portée limitée aux limitations fonctionnelles s’applique en vertu de la Charte ; aucun renseignement médical au-delà de ce qui appuie l’accommodement ne devrait être demandé.',
     },
     FED: {
       en: 'Federally regulated employers are held to the same functional-limitations standard under the Canadian Human Rights Act.',

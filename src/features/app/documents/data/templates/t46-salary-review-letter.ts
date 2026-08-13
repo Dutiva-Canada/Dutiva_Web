@@ -226,7 +226,7 @@ export const tplT46: DocTemplate = {
       },
       hint: {
         en: 'Do not promise next year’s outcome. "If X, then an increase" is a commitment you may not be able to keep; "X is what the next review will look at" is not.',
-        fr: 'Ne promettez pas le résultat de l’an prochain. « Si X, alors une augmentation » est un engagement que vous pourriez ne pas pouvoir tenir; « X est ce que la prochaine révision examinera » ne l’est pas.',
+        fr: 'Ne promettez pas le résultat de l’an prochain. « Si X, alors une augmentation » est un engagement que vous pourriez ne pas pouvoir tenir ; « X est ce que la prochaine révision examinera » ne l’est pas.',
       },
     },
   ],
@@ -290,7 +290,7 @@ export const tplT46: DocTemplate = {
       },
       text: {
         en: 'Your role, your reporting line and every other term you work under are unchanged by this letter, and your service is continuous. This reports the outcome of a review; it does not vary your employment agreement. Where a change to your role or your terms is also happening, that is confirmed separately and in writing, and this letter is not it.',
-        fr: 'Votre poste, votre lien hiérarchique et toutes vos autres conditions de travail demeurent inchangés par la présente lettre, et votre service demeure continu. Elle rapporte le résultat d’une révision; elle ne modifie pas votre contrat de travail. Si un changement à votre poste ou à vos conditions survient également, il vous est confirmé séparément et par écrit, et ce n’est pas la présente lettre.',
+        fr: 'Votre poste, votre lien hiérarchique et toutes vos autres conditions de travail demeurent inchangés par la présente lettre, et votre service demeure continu. Elle rapporte le résultat d’une révision ; elle ne modifie pas votre contrat de travail. Si un changement à votre poste ou à vos conditions survient également, il vous est confirmé séparément et par écrit, et ce n’est pas la présente lettre.',
       },
     },
     {

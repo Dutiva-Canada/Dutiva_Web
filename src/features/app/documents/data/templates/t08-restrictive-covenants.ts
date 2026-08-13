@@ -54,7 +54,7 @@ export const tplT08: DocTemplate = {
     },
     QC: {
       en: 'The Civil Code limits non-competes to what is reasonable in time, place, and activity, and the employer bears the burden.',
-      fr: 'Le Code civil limite les non-concurrences au raisonnable en temps, lieu et activité; le fardeau incombe à l’employeur.',
+      fr: 'Le Code civil limite les non-concurrences au raisonnable en temps, lieu et activité ; le fardeau incombe à l’employeur.',
     },
     FED: {
       en: 'Provincial rules of the employee’s province generally apply to covenant enforceability.',
@@ -179,7 +179,7 @@ export const tplT08: DocTemplate = {
       type: 'clause',
       text: {
         en: 'In Ontario, employee non-compete agreements are prohibited under the ESA except in narrow cases; where prohibited, only non-solicitation applies.',
-        fr: 'En Ontario, les non-concurrences pour employés sont interdites par la LNE sauf cas restreints; là où c’est interdit, seule la non-sollicitation s’applique.',
+        fr: 'En Ontario, les non-concurrences pour employés sont interdites par la LNE sauf cas restreints ; là où c’est interdit, seule la non-sollicitation s’applique.',
       },
       n: 2,
       heading: {

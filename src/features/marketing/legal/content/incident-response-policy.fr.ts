@@ -130,19 +130,19 @@ export default {
         },
         {
           "type": "li",
-          "text": "déclarera l’atteinte au Commissariat à la protection de la vie privée du Canada dès que possible;"
+          "text": "déclarera l’atteinte au Commissariat à la protection de la vie privée du Canada dès que possible ;"
         },
         {
           "type": "li",
-          "text": "avisera les personnes touchées dès que possible, sauf interdiction par la loi;"
+          "text": "avisera les personnes touchées dès que possible, sauf interdiction par la loi ;"
         },
         {
           "type": "li",
-          "text": "avisera d’autres organisations ou institutions gouvernementales lorsque cela est approprié et susceptible de réduire ou d’atténuer le préjudice;"
+          "text": "avisera d’autres organisations ou institutions gouvernementales lorsque cela est approprié et susceptible de réduire ou d’atténuer le préjudice ;"
         },
         {
           "type": "li",
-          "text": "fournira le contenu d’avis exigé par la loi applicable et les renseignements raisonnablement utiles pour aider les personnes touchées à réduire le risque;"
+          "text": "fournira le contenu d’avis exigé par la loi applicable et les renseignements raisonnablement utiles pour aider les personnes touchées à réduire le risque ;"
         },
         {
           "type": "li",
@@ -163,23 +163,23 @@ export default {
         },
         {
           "type": "li",
-          "text": "avisera la Commission d’accès à l’information du Québec avec diligence;"
+          "text": "avisera la Commission d’accès à l’information du Québec avec diligence ;"
         },
         {
           "type": "li",
-          "text": "avisera les personnes touchées avec diligence, sauf si l’avis est susceptible d’entraver une enquête menée en vertu de la loi pour prévenir, détecter ou réprimer le crime ou les infractions aux lois;"
+          "text": "avisera les personnes touchées avec diligence, sauf si l’avis est susceptible d’entraver une enquête menée en vertu de la loi pour prévenir, détecter ou réprimer le crime ou les infractions aux lois ;"
         },
         {
           "type": "li",
-          "text": "prendra des mesures raisonnables pour diminuer le risque de préjudice et éviter que de nouveaux incidents de même nature se produisent;"
+          "text": "prendra des mesures raisonnables pour diminuer le risque de préjudice et éviter que de nouveaux incidents de même nature se produisent ;"
         },
         {
           "type": "li",
-          "text": "transmettra avec diligence à la Commission d’accès à l’information du Québec les renseignements complémentaires requis dont Dutiva prend connaissance après l’avis initial;"
+          "text": "transmettra avec diligence à la Commission d’accès à l’information du Québec les renseignements complémentaires requis dont Dutiva prend connaissance après l’avis initial ;"
         },
         {
           "type": "li",
-          "text": "inscrira l’incident au registre des incidents de confidentialité de Dutiva;"
+          "text": "inscrira l’incident au registre des incidents de confidentialité de Dutiva ;"
         },
         {
           "type": "li",
@@ -247,23 +247,23 @@ export default {
         },
         {
           "type": "li",
-          "text": "la date de découverte, la date ou la période estimée de survenance, la chronologie interne et la date à laquelle Dutiva a pris connaissance de l’incident;"
+          "text": "la date de découverte, la date ou la période estimée de survenance, la chronologie interne et la date à laquelle Dutiva a pris connaissance de l’incident ;"
         },
         {
           "type": "li",
-          "text": "les systèmes, fournisseurs, sous-traitants, clients, personnes, comptes, dossiers et catégories de données concernés;"
+          "text": "les systèmes, fournisseurs, sous-traitants, clients, personnes, comptes, dossiers et catégories de données concernés ;"
         },
         {
           "type": "li",
-          "text": "les mesures de confinement, d’éradication, de rétablissement, de surveillance et d’atténuation prises ou prévues;"
+          "text": "les mesures de confinement, d’éradication, de rétablissement, de surveillance et d’atténuation prises ou prévues ;"
         },
         {
           "type": "li",
-          "text": "l’évaluation du risque, l’analyse des seuils de confidentialité, l’analyse des avis, les avis transmis et les dépôts auprès des organismes de réglementation;"
+          "text": "l’évaluation du risque, l’analyse des seuils de confidentialité, l’analyse des avis, les avis transmis et les dépôts auprès des organismes de réglementation ;"
         },
         {
           "type": "li",
-          "text": "les communications avec les clients, les communications avec les personnes touchées, les avis publics et les consignes de soutien lorsque cela s’applique;"
+          "text": "les communications avec les clients, les communications avec les personnes touchées, les avis publics et les consignes de soutien lorsque cela s’applique ;"
         },
         {
           "type": "li",

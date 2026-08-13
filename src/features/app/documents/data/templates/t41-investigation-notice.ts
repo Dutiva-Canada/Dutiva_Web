@@ -154,7 +154,7 @@ export const tplT41: DocTemplate = {
       ],
       hint: {
         en: 'This changes how much detail belongs in the notice. A respondent needs the allegations; a witness needs the subject matter and nothing more about anyone else.',
-        fr: 'Cela détermine le niveau de détail à inclure. La personne mise en cause a besoin des allégations; un témoin a besoin de l’objet et de rien de plus sur autrui.',
+        fr: 'Cela détermine le niveau de détail à inclure. La personne mise en cause a besoin des allégations ; un témoin a besoin de l’objet et de rien de plus sur autrui.',
       },
     },
     {
@@ -348,7 +348,7 @@ export const tplT41: DocTemplate = {
       tone: 'risk',
       text: {
         en: 'This notice is procedural. It makes no finding, states no conclusion, and is not a disciplinary step — it must not be placed on anyone’s file as one. Workplace investigations carry real legal exposure and the process differs by jurisdiction and by what is alleged; take advice on the process before starting, not after.',
-        fr: 'Le présent avis est de nature procédurale. Il ne comporte aucune constatation ni conclusion et ne constitue pas une mesure disciplinaire — il ne doit être versé au dossier de personne à ce titre. Les enquêtes en milieu de travail comportent un risque juridique réel et le processus varie selon la juridiction et la nature des allégations; prenez conseil sur le processus avant de l’amorcer, et non après.',
+        fr: 'Le présent avis est de nature procédurale. Il ne comporte aucune constatation ni conclusion et ne constitue pas une mesure disciplinaire — il ne doit être versé au dossier de personne à ce titre. Les enquêtes en milieu de travail comportent un risque juridique réel et le processus varie selon la juridiction et la nature des allégations ; prenez conseil sur le processus avant de l’amorcer, et non après.',
       },
     },
     {

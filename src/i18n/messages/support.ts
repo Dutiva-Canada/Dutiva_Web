@@ -26,7 +26,7 @@ export const supportMessages = defineMessages({
   },
   support_targets_note: {
     en: 'These are initial-response targets, not guaranteed resolution times. Business days exclude weekends and Ontario statutory holidays. Priority may be reassessed after review, and privacy and security incidents may follow separate procedures. You may submit a request at any time; Dutiva does not currently offer continuously staffed 24/7 support.',
-    fr: 'Il s’agit de cibles de première réponse, et non de délais de résolution garantis. Les jours ouvrables excluent les fins de semaine et les jours fériés légaux de l’Ontario. La priorité peut être réévaluée après examen, et les incidents de confidentialité et de sécurité peuvent suivre des procédures distinctes. Vous pouvez soumettre une demande en tout temps; Dutiva n’offre pas pour le moment de soutien continu 24 heures sur 24, 7 jours sur 7.',
+    fr: 'Il s’agit de cibles de première réponse, et non de délais de résolution garantis. Les jours ouvrables excluent les fins de semaine et les jours fériés légaux de l’Ontario. La priorité peut être réévaluée après examen, et les incidents de confidentialité et de sécurité peuvent suivre des procédures distinctes. Vous pouvez soumettre une demande en tout temps ; Dutiva n’offre pas pour le moment de soutien continu 24 heures sur 24, 7 jours sur 7.',
   },
   support_diagnostic_notice: {
     en: 'To help us respond faster, this request attaches limited technical context: your account and workspace identifiers, plan, current page, app version, browser and operating system, language, and a recent non-sensitive error code. It never includes employee records, document contents, HR case details, passwords or authentication tokens. You can review and remove the optional diagnostic details before submitting.',
@@ -34,7 +34,7 @@ export const supportMessages = defineMessages({
   },
   support_ack_resolution_varies: {
     en: 'Resolution time varies with the complexity of the request. We will reply to this ticket in writing; please add any further details to the ticket rather than starting a new one.',
-    fr: 'Le délai de résolution varie selon la complexité de la demande. Nous répondrons à ce billet par écrit; veuillez ajouter tout renseignement supplémentaire au billet plutôt que d’en ouvrir un nouveau.',
+    fr: 'Le délai de résolution varie selon la complexité de la demande. Nous répondrons à ce billet par écrit ; veuillez ajouter tout renseignement supplémentaire au billet plutôt que d’en ouvrir un nouveau.',
   },
   support_ack_no_secrets: {
     en: 'Please do not send passwords, authentication codes, or confidential workplace records by email. Dutiva will provide secure instructions if we need additional information.',
@@ -59,7 +59,7 @@ export const supportMessages = defineMessages({
   },
   support_public_account_note: {
     en: 'Locked out or have a billing question? Those need a signed-in account.',
-    fr: 'Bloqué ou une question de facturation? Cela nécessite un compte connecté.',
+    fr: 'Bloqué ou une question de facturation ? Cela nécessite un compte connecté.',
   },
   support_public_account_link: { en: 'Sign in', fr: 'Se connecter' },
   support_public_success_body: {
@@ -96,11 +96,11 @@ export const supportMessages = defineMessages({
     en: 'Send us a support request and we’ll reply in writing. Check the Help Centre first — most questions are answered there.',
     fr: 'Envoyez-nous une demande de soutien et nous répondrons par écrit. Consultez d’abord le centre d’aide — la plupart des questions y trouvent réponse.',
   },
-  support_field_category: { en: 'What is this about?', fr: 'De quoi s’agit-il?' },
+  support_field_category: { en: 'What is this about?', fr: 'De quoi s’agit-il ?' },
   support_field_subject: { en: 'Subject', fr: 'Sujet' },
-  support_field_description: { en: 'How can we help?', fr: 'Comment pouvons-nous vous aider?' },
-  support_field_impact: { en: 'How much is this affecting you?', fr: 'Quelle est l’ampleur de l’impact?' },
-  support_field_urgency: { en: 'How time-sensitive is it?', fr: 'Quel est le degré d’urgence?' },
+  support_field_description: { en: 'How can we help?', fr: 'Comment pouvons-nous vous aider ?' },
+  support_field_impact: { en: 'How much is this affecting you?', fr: 'Quelle est l’ampleur de l’impact ?' },
+  support_field_urgency: { en: 'How time-sensitive is it?', fr: 'Quel est le degré d’urgence ?' },
   support_field_language: { en: 'Preferred language for our reply', fr: 'Langue préférée pour notre réponse' },
   support_field_response_method: { en: 'Preferred way to hear back', fr: 'Moyen préféré pour la réponse' },
   support_choose: { en: 'Select…', fr: 'Sélectionner…' },
@@ -108,7 +108,7 @@ export const supportMessages = defineMessages({
 
   support_cond_account_signin: {
     en: 'Can you still sign in to your account?',
-    fr: 'Pouvez-vous encore vous connecter à votre compte?',
+    fr: 'Pouvez-vous encore vous connecter à votre compte ?',
   },
   support_cond_account_yes: { en: 'Yes, I can sign in', fr: 'Oui, je peux me connecter' },
   support_cond_account_no: { en: 'No, I’m locked out', fr: 'Non, je suis bloqué' },
@@ -118,11 +118,11 @@ export const supportMessages = defineMessages({
   },
   support_cond_accessibility: {
     en: 'What communication accommodation would help?',
-    fr: 'Quelle mesure d’adaptation de communication vous aiderait?',
+    fr: 'Quelle mesure d’adaptation de communication vous aiderait ?',
   },
   support_security_warning: {
     en: 'Reporting a security concern? Give a factual description, the affected URL or feature, and safe reproduction steps. Do not access other customers’ data, disrupt the service, or include exploit details. There is no bug bounty.',
-    fr: 'Vous signalez une préoccupation de sécurité? Donnez une description factuelle, l’URL ou la fonctionnalité touchée et des étapes de reproduction sûres. N’accédez pas aux données d’autres clients, ne perturbez pas le service et n’incluez pas de détails d’exploitation. Il n’y a pas de prime aux bogues.',
+    fr: 'Vous signalez une préoccupation de sécurité ? Donnez une description factuelle, l’URL ou la fonctionnalité touchée et des étapes de reproduction sûres. N’accédez pas aux données d’autres clients, ne perturbez pas le service et n’incluez pas de détails d’exploitation. Il n’y a pas de prime aux bogues.',
   },
   support_privacy_notice: {
     en: 'Privacy requests are handled separately from ordinary support. Identity verification may be required. Do not attach identity documents here.',

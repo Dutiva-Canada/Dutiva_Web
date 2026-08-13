@@ -39,7 +39,7 @@ export const advisorCore = defineMessages({
   advisor_chart_hide_data: { en: 'Hide data', fr: 'Masquer les données' }, // [FR self-authored]
 
   advisor_retry: { en: 'Retry', fr: 'Réessayer' },
-  advisor_retry_resolved: { en: 'Here’s that, resolved.', fr: 'Voici, c’est résolu.' }, // [FR self-authored]
+  advisor_retry_resolved: { en: 'Here’s that, resolved.', fr: 'Voilà, c’est résolu.' }, // [FR self-authored]
   advisor_error_default: {
     en: 'Advisor couldn’t complete that just now — a connection issue on our end.',
     // [FR self-authored]
@@ -173,7 +173,7 @@ export const advisorCore = defineMessages({
   advisor_brief_knowledge_text: {
     en: 'Ontario notice & severance rules are your most-viewed topic — want a refresher?',
     // [FR self-authored]
-    fr: 'Les règles de préavis et d’indemnité de l’Ontario sont votre sujet le plus consulté — envie d’un rappel?',
+    fr: 'Les règles de préavis et d’indemnité de l’Ontario sont votre sujet le plus consulté — envie d’un rappel ?',
   },
   advisor_brief_settings_text: {
     en: 'Your workspace covers Ontario, BC, Quebec, Alberta, and federally regulated roles. Let me know if that changes.',

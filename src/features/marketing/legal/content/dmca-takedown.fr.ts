@@ -54,7 +54,7 @@ export default {
         },
         {
           "type": "li",
-          "text": "Identification du contenu retiré et son emlocation avant le retrait"
+          "text": "Identification du contenu retiré et son emplacement avant le retrait"
         },
         {
           "type": "li",

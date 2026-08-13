@@ -50,32 +50,32 @@ export const tplT09: DocTemplate = {
   jurisdictionNotes: {
     QC: {
       en: 'The offer must be available in French; an English version requires the employee’s express wish. LSA minimums apply.',
-      fr: 'L’offre doit être disponible en français; une version anglaise requiert la volonté expresse de l’employé. Les minimums de la LNT s’appliquent.',
+      fr: 'L’offre doit être disponible en français ; une version anglaise requiert la volonté expresse de l’employé. Les minimums de la LNT s’appliquent.',
     },
   },
   includes: [
     {
-      en: 'Poste et supérieur',
+      en: 'Position and supervisor',
       fr: 'Poste et supérieur',
     },
     {
-      en: 'Date et lieu',
+      en: 'Date and location',
       fr: 'Date et lieu',
     },
     {
-      en: 'Rémunération (LNT)',
+      en: 'Compensation (LSA)',
       fr: 'Rémunération (LNT)',
     },
     {
-      en: 'Vacances (LNT)',
+      en: 'Vacation (LSA)',
       fr: 'Vacances (LNT)',
     },
     {
-      en: 'Langue de travail',
+      en: 'Working language',
       fr: 'Langue de travail',
     },
     {
-      en: 'Acceptation',
+      en: 'Acceptance',
       fr: 'Acceptation',
     },
   ],
@@ -171,7 +171,7 @@ export const tplT09: DocTemplate = {
       type: 'clause',
       text: {
         en: 'French is the language of work. This offer is provided in French; an English version is available at your express request.',
-        fr: 'Le français est la langue de travail. La présente offre est fournie en français; une version anglaise est disponible sur demande expresse.',
+        fr: 'Le français est la langue de travail. La présente offre est fournie en français ; une version anglaise est disponible sur demande expresse.',
       },
       n: 1,
       heading: {

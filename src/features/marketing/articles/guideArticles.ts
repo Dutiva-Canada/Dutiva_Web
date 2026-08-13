@@ -14,7 +14,7 @@ import type { Article } from './articleModel'
 export const GUIDE_ARTICLES: readonly Article[] = [
   {
     slug: 'ontario-termination-notice',
-    frSlug: 'preavis-de-cessation-demploi-ontario',
+    frSlug: 'preavis-de-cessation-d-emploi-ontario',
     collection: 'guide',
     topic: bi('Termination', 'Cessation d’emploi'),
     readingMinutes: 7,
@@ -59,7 +59,7 @@ export const GUIDE_ARTICLES: readonly Article[] = [
   },
   {
     slug: 'employment-contract-clauses',
-    frSlug: 'clauses-contractuelles-demploi',
+    frSlug: 'clauses-contractuelles-d-emploi',
     collection: 'guide',
     topic: bi('Contracts', 'Contrats'),
     readingMinutes: 5,
@@ -72,7 +72,7 @@ export const GUIDE_ARTICLES: readonly Article[] = [
   },
   {
     slug: 'duty-to-accommodate',
-    frSlug: 'obligation-daccommodement',
+    frSlug: 'obligation-d-accommodement',
     collection: 'guide',
     topic: bi('Accommodation', 'Accommodement'),
     readingMinutes: 5,
@@ -85,7 +85,7 @@ export const GUIDE_ARTICLES: readonly Article[] = [
   },
   {
     slug: 'termination-documentation',
-    frSlug: 'documentation-de-cessation-demploi',
+    frSlug: 'documentation-de-cessation-d-emploi',
     collection: 'guide',
     topic: bi('Termination', 'Cessation d’emploi'),
     readingMinutes: 5,

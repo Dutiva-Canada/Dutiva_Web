@@ -14,7 +14,7 @@ export const jurisdictionToolMessages = defineMessages({
   jur_tool_eyebrow: { en: 'Free tool', fr: 'Outil gratuit' },
   jur_tool_h1: {
     en: 'Which employment standards jurisdiction applies to your employee?',
-    fr: 'Quelle juridiction en matière de normes d’emploi s’applique à votre employé?',
+    fr: 'Quelle juridiction en matière de normes d’emploi s’applique à votre employé ?',
   },
   jur_tool_intro: {
     en: 'Answer three questions to determine whether Ontario (ESA), Quebec (LNT), or federal (Canada Labour Code) employment standards likely apply. This tool names the statute and links to the official text — it does not state notice periods, thresholds, or deadlines, because those vary by fact pattern and go stale.',

@@ -85,7 +85,7 @@ export const compensationMessages = defineMessages({
   },
   comp_prod_effective_date: { en: 'Effective date', fr: 'Date d’entrée en vigueur' },
   comp_prod_note: { en: 'Note', fr: 'Note' },
-  comp_prod_vs_midpoint: { en: 'vs band midpoint', fr: 'p/r au point milieu' },
+  comp_prod_vs_midpoint: { en: 'vs band midpoint', fr: 'par rapport au point milieu' },
   comp_prod_no_midpoint: { en: 'No midpoint set', fr: 'Aucun point milieu défini' },
   comp_prod_total_payroll: { en: 'Recorded base payroll', fr: 'Masse salariale de base consignée' },
   comp_prod_below_midpoint: {

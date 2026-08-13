@@ -226,7 +226,7 @@ export const tplT35: DocTemplate = {
       },
       text: {
         en: 'Give the actual reason in two or three sentences and stop. Do not describe the decision as difficult for you, do not call it a journey, and do not say it was made after careful consideration — the room is not evaluating your process. If the reason is financial, say so plainly; a vague reason is heard as a hidden one, and what fills the gap is a rumour you will spend a month correcting.',
-        fr: 'Donnez la raison réelle en deux ou trois phrases, puis arrêtez-vous. Ne décrivez pas la décision comme difficile pour vous, n’en faites pas un « parcours » et ne dites pas qu’elle a été prise après mûre réflexion — la salle n’évalue pas votre processus. Si la raison est financière, dites-le clairement; une raison vague est perçue comme une raison cachée, et ce qui comble le vide est une rumeur que vous passerez un mois à corriger.',
+        fr: 'Donnez la raison réelle en deux ou trois phrases, puis arrêtez-vous. Ne décrivez pas la décision comme difficile pour vous, n’en faites pas un « parcours » et ne dites pas qu’elle a été prise après mûre réflexion — la salle n’évalue pas votre processus. Si la raison est financière, dites-le clairement ; une raison vague est perçue comme une raison cachée, et ce qui comble le vide est une rumeur que vous passerez un mois à corriger.',
       },
     },
     {
@@ -250,7 +250,7 @@ export const tplT35: DocTemplate = {
       },
       text: {
         en: 'Do not read a list, confirm a name, or answer "is so-and-so affected?". Say: "I am not going to name anyone. People will tell their own colleagues in their own time, and that is theirs to decide." This holds even when the answer is obvious to everyone in the room. Naming someone turns their departure into an announcement about them, and it is the part people remember years later.',
-        fr: 'Ne lisez aucune liste, ne confirmez aucun nom et ne répondez pas à « est-ce que untel est touché? ». Dites : « Je ne nommerai personne. Chacun en parlera à ses collègues au moment qui lui convient, et cela lui appartient. » Cela vaut même lorsque la réponse est évidente pour toute la salle. Nommer quelqu’un transforme son départ en une annonce à son sujet, et c’est ce dont les gens se souviennent des années plus tard.',
+        fr: 'Ne lisez aucune liste, ne confirmez aucun nom et ne répondez pas à « est-ce que untel est touché ? ». Dites : « Je ne nommerai personne. Chacun en parlera à ses collègues au moment qui lui convient, et cela lui appartient. » Cela vaut même lorsque la réponse est évidente pour toute la salle. Nommer quelqu’un transforme son départ en une annonce à son sujet, et c’est ce dont les gens se souviennent des années plus tard.',
       },
     },
     {

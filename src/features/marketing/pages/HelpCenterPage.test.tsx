@@ -51,7 +51,7 @@ describe('HelpCenterPage', () => {
     const [langToggle] = screen.getAllByRole('button', { name: /Toggle language/ })
     await user.click(langToggle as HTMLElement)
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Comment pouvons-nous vous aider?' }),
+      screen.getByRole('heading', { level: 1, name: 'Comment pouvons-nous vous aider ?' }),
     ).toBeInTheDocument()
   })
 })

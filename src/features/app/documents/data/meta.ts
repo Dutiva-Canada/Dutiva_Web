@@ -695,7 +695,7 @@ export const sizeThresholds: SizeThreshold[] = [
     at: 25,
     text: {
       en: 'Written disconnecting-from-work & electronic-monitoring policies (ON, ESA); Québec Bill 96 OQLF registration.',
-      fr: 'Politiques écrites sur la déconnexion et la surveillance électronique (ON, LNE); inscription à l’OQLF (Loi 96, QC).',
+      fr: 'Politiques écrites sur la déconnexion et la surveillance électronique (ON, LNE) ; inscription à l’OQLF (Loi 96, QC).',
     },
   },
   {

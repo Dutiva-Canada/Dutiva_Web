@@ -25,7 +25,7 @@ export default {
         },
         {
           "type": "li",
-          "text": "Confirmation d'annulation envoyée par courriel; les demandes envoyées par courriel sont traitées dans les 2 jours ouvrables"
+          "text": "Confirmation d'annulation envoyée par courriel ; les demandes envoyées par courriel sont traitées dans les 2 jours ouvrables"
         },
         {
           "type": "li",
@@ -159,7 +159,7 @@ export default {
         },
         {
           "type": "li",
-          "text": "Après 30 jours : votre espace de travail précédent n'est plus disponible pour restauration (voir la section 3); la réactivation démarre un nouvel espace de travail sans historique sur votre compte existant"
+          "text": "Après 30 jours : votre espace de travail précédent n'est plus disponible pour restauration (voir la section 3) ; la réactivation démarre un nouvel espace de travail sans historique sur votre compte existant"
         },
         {
           "type": "li",

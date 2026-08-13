@@ -216,7 +216,7 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
     path: { en: '/tools/jurisdiction-check', fr: '/fr/outils/verification-juridiction' },
     title: {
       en: 'Which employment standards jurisdiction applies? — Free tool | Dutiva',
-      fr: 'Quelle juridiction en matière de normes d’emploi s’applique? — Outil gratuit | Dutiva',
+      fr: 'Quelle juridiction en matière de normes d’emploi s’applique ? — Outil gratuit | Dutiva',
     },
     description: {
       en: 'A free tool that helps Canadian employers determine whether Ontario (ESA), Quebec (LNT), or federal (Canada Labour Code) employment standards likely apply to an employee. Three questions, no figures, links to the official statute. Bilingual EN/FR.',

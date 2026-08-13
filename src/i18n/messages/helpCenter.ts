@@ -8,7 +8,7 @@ import { defineMessages } from '../core'
  */
 export const helpCenterMessages = defineMessages({
   help_eyebrow: { en: 'Help Centre', fr: 'Centre d’aide' },
-  help_h1: { en: 'How can we help?', fr: 'Comment pouvons-nous vous aider?' },
+  help_h1: { en: 'How can we help?', fr: 'Comment pouvons-nous vous aider ?' },
   help_intro: {
     en: 'Search our guides, or browse by topic. Most questions are answered here — and you can always send a support request.',
     fr: 'Cherchez dans nos guides ou parcourez par sujet. La plupart des questions trouvent réponse ici — et vous pouvez toujours envoyer une demande de soutien.',
@@ -29,7 +29,7 @@ export const helpCenterMessages = defineMessages({
   help_related_title: { en: 'More in this topic', fr: 'Plus dans ce sujet' },
 
   /* "Was this helpful?" widget. */
-  help_feedback_question: { en: 'Was this article helpful?', fr: 'Cet article vous a-t-il été utile?' },
+  help_feedback_question: { en: 'Was this article helpful?', fr: 'Cet article vous a-t-il été utile ?' },
   help_feedback_yes: { en: 'Yes', fr: 'Oui' },
   help_feedback_no: { en: 'No', fr: 'Non' },
   help_feedback_thanks_yes: { en: 'Thanks for letting us know.', fr: 'Merci de nous l’avoir indiqué.' },
@@ -39,7 +39,7 @@ export const helpCenterMessages = defineMessages({
   },
 
   /* Closing contact escalation (shared by the index and article pages). */
-  help_contact_title: { en: 'Still need help?', fr: 'Besoin d’aide supplémentaire?' },
+  help_contact_title: { en: 'Still need help?', fr: 'Besoin d’aide supplémentaire ?' },
   help_contact_body: {
     en: 'If you can’t find what you’re looking for, send a support request and we’ll reply in writing.',
     fr: 'Si vous ne trouvez pas ce que vous cherchez, envoyez une demande de soutien et nous répondrons par écrit.',

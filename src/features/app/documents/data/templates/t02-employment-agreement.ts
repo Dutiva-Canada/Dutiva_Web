@@ -58,7 +58,7 @@ export const tplT02: DocTemplate = {
     },
     QC: {
       en: 'Québec is civil law; the Civil Code governs notice and good faith. Restrictive covenants are read narrowly.',
-      fr: 'Le Québec est de droit civil; le Code civil régit l’avis et la bonne foi. Les clauses restrictives sont interprétées restrictivement.',
+      fr: 'Le Québec est de droit civil ; le Code civil régit l’avis et la bonne foi. Les clauses restrictives sont interprétées restrictivement.',
     },
     FED: {
       en: 'Unjust-dismissal protection under CLC s. 240 may apply after 12 months of continuous service.',

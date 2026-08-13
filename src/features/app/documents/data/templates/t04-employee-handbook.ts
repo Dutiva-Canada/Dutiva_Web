@@ -54,7 +54,7 @@ export const tplT04: DocTemplate = {
     },
     QC: {
       en: 'Reference the LSA and psychological-harassment obligations; provide in French.',
-      fr: 'Référer à la LNT et aux obligations sur le harcèlement psychologique; fournir en français.',
+      fr: 'Référer à la LNT et aux obligations sur le harcèlement psychologique ; fournir en français.',
     },
     FED: {
       en: 'Reflect Canada Labour Code standards and the harassment-and-violence regulations.',

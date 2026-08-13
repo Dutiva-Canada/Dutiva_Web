@@ -46,7 +46,7 @@ export const sampleDocuments: GeneratedDoc[] = [
         n: 2,
         changeSummary: {
           en: 'Salary corrected after HR review; finalized',
-          fr: 'Salaire corrigé après révision RH; finalisé',
+          fr: 'Salaire corrigé après révision RH ; finalisé',
         },
         createdBy: 'Riley Summers',
         createdAt: '2026-06-05',
@@ -329,7 +329,7 @@ export const sampleDocuments: GeneratedDoc[] = [
         n: 2,
         changeSummary: {
           en: 'Goals sharpened; support section expanded (HR review)',
-          fr: 'Objectifs précisés; soutien élargi (révision RH)',
+          fr: 'Objectifs précisés ; soutien élargi (révision RH)',
         },
         createdBy: 'Riley Summers',
         createdAt: '2026-06-27',
@@ -591,7 +591,7 @@ export const sampleDocuments: GeneratedDoc[] = [
         n: 4,
         changeSummary: {
           en: 'Annual refresh; contacts updated',
-          fr: 'Mise à jour annuelle; contacts modifiés',
+          fr: 'Mise à jour annuelle ; contacts modifiés',
         },
         createdBy: 'Riley Summers',
         createdAt: '2026-06-16',
@@ -977,7 +977,7 @@ export const sampleDocuments: GeneratedDoc[] = [
         n: 5,
         changeSummary: {
           en: 'Annual refresh; distributed for acknowledgement',
-          fr: 'Mise à jour annuelle; distribuée pour accusé de réception',
+          fr: 'Mise à jour annuelle ; distribuée pour accusé de réception',
         },
         createdBy: 'Riley Summers',
         createdAt: '2026-05-30',

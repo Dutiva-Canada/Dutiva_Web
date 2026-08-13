@@ -44,7 +44,7 @@ export const tplT44: DocTemplate = {
   core: false,
   name: {
     en: 'Wellness action plan',
-    fr: 'Plan d’action pour le mieux-être',
+    fr: 'Plan d’action pour le bien-être',
   },
   desc: {
     en: 'An employee’s own plan for staying well at work — what helps, what the early signs are, and what they want their manager to do. Voluntary, issued blank for the employee to fill in, and no diagnosis is ever requested.',
@@ -77,7 +77,7 @@ export const tplT44: DocTemplate = {
   jurisdictionNotes: {
     ON: {
       en: 'Nothing requires an employer to offer this, and nothing lets one require it. Two cautions. What the employee writes here can amount to notice that they may need an adjustment — once you know, or ought reasonably to know, the Human Rights Code duty to accommodate has started, whatever this document is called. And where the difficulty they describe is conduct at work, the Occupational Health and Safety Act harassment duties apply and a wellness plan is not a response to them.',
-      fr: 'Rien n’oblige un employeur à offrir ce plan, et rien ne lui permet de l’imposer. Deux mises en garde. Ce que la personne y écrit peut valoir avis qu’elle pourrait avoir besoin d’un ajustement — dès que vous savez, ou devriez raisonnablement savoir, l’obligation d’accommodement du Code des droits de la personne est enclenchée, quel que soit le nom du document. Et lorsque la difficulté décrite relève de comportements au travail, les obligations de la Loi sur la santé et la sécurité au travail s’appliquent et un plan de mieux-être n’y répond pas.',
+      fr: 'Rien n’oblige un employeur à offrir ce plan, et rien ne lui permet de l’imposer. Deux mises en garde. Ce que la personne y écrit peut valoir avis qu’elle pourrait avoir besoin d’un ajustement — dès que vous savez, ou devriez raisonnablement savoir, l’obligation d’accommodement du Code des droits de la personne est enclenchée, quel que soit le nom du document. Et lorsque la difficulté décrite relève de comportements au travail, les obligations de la Loi sur la santé et la sécurité au travail s’appliquent et un plan de bien-être n’y répond pas.',
     },
     QC: {
       en: 'The same two cautions apply, through the Charter of human rights and freedoms for accommodation and the Act respecting labour standards for psychological harassment — and note that the Act obliges an employer to act on harassment once aware, so a plan describing conduct by a colleague is information you must act on rather than file. Law 25 governs the personal information collected here: collect only what is necessary, say what it will be used for, and keep it apart. The form must be available in French.',
@@ -168,7 +168,7 @@ export const tplT44: DocTemplate = {
       type: 'title',
       text: {
         en: 'Wellness action plan',
-        fr: 'Plan d’action pour le mieux-être',
+        fr: 'Plan d’action pour le bien-être',
       },
     },
     {
@@ -296,7 +296,7 @@ export const tplT44: DocTemplate = {
       tone: 'risk',
       text: {
         en: 'For the manager issuing this. Hand it over blank — do not fill any of it in on someone’s behalf, and do not ask what condition sits behind any answer. You may not require anyone to complete one, and declining must carry no consequence. When you get it back, read what it says: most of it will be ordinary preference, which is not an accommodation — but where it points to a need connected to a disability or another protected ground, the duty to accommodate has started whatever the document is called; if it describes conduct by a colleague, that is a harassment matter with its own obligations and timelines, and filing this instead of acting is the error to avoid. Treat whatever the employee chose to write as sensitive personal information, including anything about their health they volunteered without being asked.',
-        fr: 'À l’intention du gestionnaire qui le remet. Remettez-le vierge — n’en remplissez aucune partie au nom de quelqu’un et ne demandez pas quel trouble se cache derrière une réponse. Vous ne pouvez exiger de quiconque qu’il en remplisse un, et un refus ne doit entraîner aucune conséquence. À sa réception, lisez ce qui y est écrit : l’essentiel relèvera de la préférence ordinaire, ce qui n’est pas un accommodement — mais lorsqu’il révèle un besoin lié à un handicap ou à un autre motif protégé, l’obligation d’accommodement est enclenchée quel que soit le nom du document; s’il décrit les comportements d’un collègue, il s’agit d’une question de harcèlement assortie de ses propres obligations et délais, et le classer au lieu d’agir est l’erreur à éviter. Traitez tout ce que la personne a choisi d’écrire comme un renseignement personnel sensible, y compris ce qu’elle aurait volontairement révélé sur sa santé sans qu’on le lui demande.',
+        fr: 'À l’intention du gestionnaire qui le remet. Remettez-le vierge — n’en remplissez aucune partie au nom de quelqu’un et ne demandez pas quel trouble se cache derrière une réponse. Vous ne pouvez exiger de quiconque qu’il en remplisse un, et un refus ne doit entraîner aucune conséquence. À sa réception, lisez ce qui y est écrit : l’essentiel relèvera de la préférence ordinaire, ce qui n’est pas un accommodement — mais lorsqu’il révèle un besoin lié à un handicap ou à un autre motif protégé, l’obligation d’accommodement est enclenchée quel que soit le nom du document ; s’il décrit les comportements d’un collègue, il s’agit d’une question de harcèlement assortie de ses propres obligations et délais, et le classer au lieu d’agir est l’erreur à éviter. Traitez tout ce que la personne a choisi d’écrire comme un renseignement personnel sensible, y compris ce qu’elle aurait volontairement révélé sur sa santé sans qu’on le lui demande.',
       },
     },
     {

@@ -202,7 +202,7 @@ export const memoryMessages = defineMessages({
   },
   memory_mgr_review_note: {
     en: 'Advisor worked these out from context. Confirm the ones that are right; forget the ones that aren’t. Inferred memory is never treated as fact until you confirm it.',
-    fr: 'Le Conseiller les a déduites du contexte. Confirmez celles qui sont justes; oubliez les autres. Une mémoire inférée n’est jamais traitée comme un fait avant votre confirmation.',
+    fr: 'Le Conseiller les a déduites du contexte. Confirmez celles qui sont justes ; oubliez les autres. Une mémoire inférée n’est jamais traitée comme un fait avant votre confirmation.',
   },
   memory_mgr_review_now: { en: 'Review now', fr: 'Réviser maintenant' },
   memory_mgr_tab_all: { en: 'All', fr: 'Tout' },
@@ -225,7 +225,7 @@ export const memoryMessages = defineMessages({
   },
   memory_mgr_audit_seed_resume: {
     en: 'Today 09:14 — Riley resumed CASE-2026-0142; 8 memories loaded.',
-    fr: 'Aujourd’hui 09:14 — Riley a repris CASE-2026-0142; 8 mémoires chargées.',
+    fr: 'Aujourd’hui 09:14 — Riley a repris CASE-2026-0142 ; 8 mémoires chargées.',
   },
   memory_mgr_audit_seed_added: {
     en: 'Jul 5 14:52 — Advisor added “notice estimate 9–12 mo” (inferred).',

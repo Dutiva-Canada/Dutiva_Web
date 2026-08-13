@@ -59,7 +59,7 @@ export const tplT24: DocTemplate = {
     },
     FED: {
       en: 'The Canadian Human Rights Act names health, safety and cost as the factors — a named list, like Ontario’s and unlike Québec’s. Document the evidence supporting each one that you rely on; an unquantified cost figure carries little weight.',
-      fr: 'La Loi canadienne sur les droits de la personne nomme la santé, la sécurité et le coût comme facteurs — une liste énumérée, comme en Ontario et contrairement au Québec. Documentez la preuve appuyant chacun des facteurs invoqués; un montant non chiffré a peu de poids.',
+      fr: 'La Loi canadienne sur les droits de la personne nomme la santé, la sécurité et le coût comme facteurs — une liste énumérée, comme en Ontario et contrairement au Québec. Documentez la preuve appuyant chacun des facteurs invoqués ; un montant non chiffré a peu de poids.',
     },
   },
   includes: [

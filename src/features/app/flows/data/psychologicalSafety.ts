@@ -225,7 +225,7 @@ export const psychologicalSafetyFlow: Flow = {
       ),
       bi(
         'Protection from reprisal is a legal obligation, not only a cultural goal. If the honest answer here is low, treat it as a compliance finding as well as a wellbeing one.',
-        'La protection contre les représailles est une obligation légale et pas seulement un objectif culturel. Si la réponse honnête est faible, traitez-la comme un constat de conformité autant que de mieux-être.',
+        'La protection contre les représailles est une obligation légale et pas seulement un objectif culturel. Si la réponse honnête est faible, traitez-la comme un constat de conformité autant que de bien-être.',
       ),
     ),
     rate(

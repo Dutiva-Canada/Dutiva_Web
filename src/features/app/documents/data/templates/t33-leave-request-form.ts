@@ -55,7 +55,7 @@ export const tplT33: DocTemplate = {
   jurisdictionNotes: {
     ON: {
       en: 'The Employment Standards Act, 2000 sets the leaves and the notice an employee owes — which is generally as much as is reasonable in the circumstances, not a fixed period. What evidence you may require is limited and has changed in recent years; confirm the current rule for the leave in question before asking.',
-      fr: 'La Loi de 2000 sur les normes d’emploi établit les congés et le préavis que doit l’employé(e) — soit généralement ce qui est raisonnable dans les circonstances, et non un délai fixe. La preuve exigible est limitée et a changé ces dernières années; vérifiez la règle en vigueur pour le congé visé avant de la demander.',
+      fr: 'La Loi de 2000 sur les normes d’emploi établit les congés et le préavis que doit l’employé(e) — soit généralement ce qui est raisonnable dans les circonstances, et non un délai fixe. La preuve exigible est limitée et a changé ces dernières années ; vérifiez la règle en vigueur pour le congé visé avant de la demander.',
     },
     QC: {
       en: 'The Act respecting labour standards sets the leaves, including those for family or parental obligations, sickness, organ or tissue donation, accident, and domestic or sexual violence. It bars dismissal, suspension or any sanction for taking one, and the form must be available in French.',
@@ -284,7 +284,7 @@ export const tplT33: DocTemplate = {
       type: 'clause',
       text: {
         en: 'This workplace is unionized: the collective agreement may add to these entitlements or set its own notice and top-up terms, and where it does, those apply.',
-        fr: 'Ce milieu de travail est syndiqué : la convention collective peut bonifier ces droits ou fixer ses propres modalités de préavis et de complément salarial; le cas échéant, celles-ci s’appliquent.',
+        fr: 'Ce milieu de travail est syndiqué : la convention collective peut bonifier ces droits ou fixer ses propres modalités de préavis et de complément salarial ; le cas échéant, celles-ci s’appliquent.',
       },
       heading: {
         en: 'Collective agreement',

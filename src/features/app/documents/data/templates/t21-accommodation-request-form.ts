@@ -50,7 +50,7 @@ export const tplT21: DocTemplate = {
   jurisdictionNotes: {
     ON: {
       en: 'A request does not have to be in writing, or use the word "accommodation", to trigger the duty under the Human Rights Code. This form documents a request you already have — it is not a precondition to one.',
-      fr: 'Une demande n’a pas à être écrite, ni à employer le mot « accommodement », pour déclencher l’obligation prévue au Code des droits de la personne. Le présent formulaire documente une demande déjà reçue; il n’en est pas une condition préalable.',
+      fr: 'Une demande n’a pas à être écrite, ni à employer le mot « accommodement », pour déclencher l’obligation prévue au Code des droits de la personne. Le présent formulaire documente une demande déjà reçue ; il n’en est pas une condition préalable.',
     },
     QC: {
       en: 'Under the Charter of human rights and freedoms the same applies, and the form must be available in French. Where the limitation follows an employment injury, the CNESST process — not this form — drives the file.',
@@ -183,7 +183,7 @@ export const tplT21: DocTemplate = {
       type: 'clause',
       text: {
         en: 'Which parts of your job are difficult right now, and in what way? Describe the tasks or conditions, not the cause.',
-        fr: 'Quelles parties de votre travail sont difficiles en ce moment, et de quelle manière? Décrivez les tâches ou les conditions, et non la cause.',
+        fr: 'Quelles parties de votre travail sont difficiles en ce moment, et de quelle manière ? Décrivez les tâches ou les conditions, et non la cause.',
       },
       n: 1,
       heading: {
@@ -195,7 +195,7 @@ export const tplT21: DocTemplate = {
       type: 'clause',
       text: {
         en: 'What adjustment are you asking for? If you are not sure what would work, say what you have tried or what makes the task harder, and we will look at the options with you.',
-        fr: 'Quel ajustement demandez-vous? Si vous ne savez pas ce qui fonctionnerait, indiquez ce que vous avez essayé ou ce qui rend la tâche plus difficile, et nous examinerons les options avec vous.',
+        fr: 'Quel ajustement demandez-vous ? Si vous ne savez pas ce qui fonctionnerait, indiquez ce que vous avez essayé ou ce qui rend la tâche plus difficile, et nous examinerons les options avec vous.',
       },
       n: 2,
       heading: {
@@ -207,7 +207,7 @@ export const tplT21: DocTemplate = {
       type: 'clause',
       text: {
         en: 'How long do you expect to need this — ongoing, or for a period? An estimate is fine, and it can change.',
-        fr: 'Pendant combien de temps prévoyez-vous en avoir besoin — de façon continue ou pour une période? Une estimation suffit, et elle peut changer.',
+        fr: 'Pendant combien de temps prévoyez-vous en avoir besoin — de façon continue ou pour une période ? Une estimation suffit, et elle peut changer.',
       },
       n: 3,
       heading: {

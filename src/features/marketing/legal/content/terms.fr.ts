@@ -31,15 +31,15 @@ export default {
         },
         {
           "type": "li",
-          "text": "des modèles de documents RH, des ébauches générées, des processus documentaires sauvegardés, des exportations et des outils de révision dans l’espace de travail;"
+          "text": "des modèles de documents RH, des ébauches générées, des processus documentaires sauvegardés, des exportations et des outils de révision dans l’espace de travail ;"
         },
         {
           "type": "li",
-          "text": "un accompagnement RH propre à la province, au territoire ou au régime applicable, des listes de contrôle, le contexte du profil employeur et un soutien aux processus liés au cycle de vie de l’employé;"
+          "text": "un accompagnement RH propre à la province, au territoire ou au régime applicable, des listes de contrôle, le contexte du profil employeur et un soutien aux processus liés au cycle de vie de l’employé ;"
         },
         {
           "type": "li",
-          "text": "des réponses assistées par l’IA du Conseiller, un soutien à la génération de documents et un accompagnement pratique des processus;"
+          "text": "des réponses assistées par l’IA du Conseiller, un soutien à la génération de documents et un accompagnement pratique des processus ;"
         },
         {
           "type": "li",
@@ -102,27 +102,27 @@ export default {
         },
         {
           "type": "li",
-          "text": "utiliser le Service pour discriminer, harceler, exercer des représailles ou autrement contrevenir aux lois applicables en matière d’emploi, de droits de la personne, de protection des renseignements personnels, de travail, de santé et sécurité au travail ou à toute autre loi applicable;"
+          "text": "utiliser le Service pour discriminer, harceler, exercer des représailles ou autrement contrevenir aux lois applicables en matière d’emploi, de droits de la personne, de protection des renseignements personnels, de travail, de santé et sécurité au travail ou à toute autre loi applicable ;"
         },
         {
           "type": "li",
-          "text": "soumettre des numéros d’assurance sociale, des numéros de carte de paiement, des identifiants bancaires, des dossiers médicaux, des renseignements personnels sur la santé ou des dossiers d’employés hautement sensibles, sauf si le processus prend expressément en charge ces renseignements et que vous avez un fondement légal pour les fournir;"
+          "text": "soumettre des numéros d’assurance sociale, des numéros de carte de paiement, des identifiants bancaires, des dossiers médicaux, des renseignements personnels sur la santé ou des dossiers d’employés hautement sensibles, sauf si le processus prend expressément en charge ces renseignements et que vous avez un fondement légal pour les fournir ;"
         },
         {
           "type": "li",
-          "text": "faire de l’ingénierie inverse, extraire, explorer, surcharger, sonder, contourner, perturber ou tenter de neutraliser le Service, les contrôles de sécurité, les limites d’utilisation ou les contrôles d’accès;"
+          "text": "faire de l’ingénierie inverse, extraire, explorer, surcharger, sonder, contourner, perturber ou tenter de neutraliser le Service, les contrôles de sécurité, les limites d’utilisation ou les contrôles d’accès ;"
         },
         {
           "type": "li",
-          "text": "revendre, concéder en sous-licence, publier, redistribuer ou exploiter commercialement les modèles, exemples générés, processus ou contenus de la plateforme Dutiva comme produit ou service concurrent;"
+          "text": "revendre, concéder en sous-licence, publier, redistribuer ou exploiter commercialement les modèles, exemples générés, processus ou contenus de la plateforme Dutiva comme produit ou service concurrent ;"
         },
         {
           "type": "li",
-          "text": "utiliser les fonctionnalités d’IA pour générer du contenu illégal, trompeur, nuisible, discriminatoire, contrefaisant ou portant atteinte à des droits;"
+          "text": "utiliser les fonctionnalités d’IA pour générer du contenu illégal, trompeur, nuisible, discriminatoire, contrefaisant ou portant atteinte à des droits ;"
         },
         {
           "type": "li",
-          "text": "présenter faussement les résultats de Dutiva comme des conseils juridiques, des avis juridiques, un travail révisé par un avocat ou des conseils professionnels définitifs;"
+          "text": "présenter faussement les résultats de Dutiva comme des conseils juridiques, des avis juridiques, un travail révisé par un avocat ou des conseils professionnels définitifs ;"
         },
         {
           "type": "li",
@@ -164,15 +164,15 @@ export default {
         },
         {
           "type": "li",
-          "text": "les réponses générées par l’IA, les ébauches de documents et les suggestions de processus peuvent contenir des erreurs, des omissions, des renseignements désuets ou des hypothèses inappropriées;"
+          "text": "les réponses générées par l’IA, les ébauches de documents et les suggestions de processus peuvent contenir des erreurs, des omissions, des renseignements désuets ou des hypothèses inappropriées ;"
         },
         {
           "type": "li",
-          "text": "Dutiva n’est pas un cabinet d’avocats, et les résultats générés par l’IA ne constituent pas des conseils juridiques, des avis juridiques ni des services professionnels en droit du travail;"
+          "text": "Dutiva n’est pas un cabinet d’avocats, et les résultats générés par l’IA ne constituent pas des conseils juridiques, des avis juridiques ni des services professionnels en droit du travail ;"
         },
         {
           "type": "li",
-          "text": "vous êtes responsable de réviser les résultats, de confirmer les faits, d’appliquer votre contexte de travail et d’obtenir des conseils juridiques ou professionnels pour les questions à risque élevé;"
+          "text": "vous êtes responsable de réviser les résultats, de confirmer les faits, d’appliquer votre contexte de travail et d’obtenir des conseils juridiques ou professionnels pour les questions à risque élevé ;"
         },
         {
           "type": "li",

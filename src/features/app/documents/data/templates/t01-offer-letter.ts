@@ -46,11 +46,11 @@ export const tplT01: DocTemplate = {
   jurisdictionNotes: {
     ON: {
       en: 'Terms may not fall below ESA, 2000 minimums; a non-compliant termination clause can void the clause entirely.',
-      fr: 'Les conditions ne peuvent être sous les minimums de la LNE; une clause de cessation non conforme peut être invalidée.',
+      fr: 'Les conditions ne peuvent être sous les minimums de la LNE ; une clause de cessation non conforme peut être invalidée.',
     },
     QC: {
       en: 'Reflect the Act respecting labour standards; probation does not remove Civil Code notice obligations.',
-      fr: 'Refléter la Loi sur les normes du travail; la probation ne supprime pas les obligations d’avis du Code civil.',
+      fr: 'Refléter la Loi sur les normes du travail ; la probation ne supprime pas les obligations d’avis du Code civil.',
     },
     FED: {
       en: 'Federally regulated employers follow the Canada Labour Code, Part III for notice, hours, and vacation.',

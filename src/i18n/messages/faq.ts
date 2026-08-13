@@ -80,7 +80,7 @@ export const faqMessages = defineMessages({
   faq_q10: { en: 'How much does Dutiva cost?', fr: 'Combien coûte Dutiva ?' },
   faq_a10: {
     en: 'Free / Beta, Starter at $24/mo, Growth at $49/mo (most popular), and Professional at $99/mo. Prices in CAD; monthly billing is available now and annual billing is coming soon.',
-    fr: 'Gratuit / Bêta, Starter à 24 $/mois, Growth à 49 $/mois (le plus populaire) et Professional à 99 $/mois. Prix en CAD; facturation mensuelle disponible maintenant et facturation annuelle à venir.',
+    fr: 'Gratuit / Bêta, Starter à 24 $/mois, Growth à 49 $/mois (le plus populaire) et Professional à 99 $/mois. Prix en CAD ; facturation mensuelle disponible maintenant et facturation annuelle à venir.',
   },
   faq_q11: { en: 'Is there a free trial?', fr: 'Y a-t-il un essai gratuit ?' },
   /* Deviates from the prototype: beta capacity decision, 2026-08-07 — the

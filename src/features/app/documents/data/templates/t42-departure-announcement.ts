@@ -129,7 +129,7 @@ export const tplT42: DocTemplate = {
       },
       label: {
         en: 'Has the wording been agreed with them?',
-        fr: 'La formulation a-t-elle été convenue avec la personne?',
+        fr: 'La formulation a-t-elle été convenue avec la personne ?',
       },
       type: 'select',
       required: true,

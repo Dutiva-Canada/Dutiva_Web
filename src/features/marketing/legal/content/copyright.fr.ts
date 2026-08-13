@@ -13,7 +13,7 @@ export default {
       "blocks": [
         {
           "type": "p",
-          "text": "Dutiva Canada Inc. détient tous les droits de propriété intellectuelle relatifs à la plateforme Dutiva, y compris le logiciel, les designs, les logos, les textes, les graphiques et toute autre matériel."
+          "text": "Dutiva Canada Inc. détient tous les droits de propriété intellectuelle relatifs à la plateforme Dutiva, y compris le logiciel, les designs, les logos, les textes, les graphiques et tout autre matériel."
         },
         {
           "type": "li",

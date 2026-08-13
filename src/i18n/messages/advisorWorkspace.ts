@@ -112,7 +112,7 @@ export const advisorWorkspaceMessages = defineMessages({
   advws_gate_web: { en: 'Web search', fr: 'Recherche Web' },
 
   /* Chat-side response experience */
-  advws_province_q: { en: 'Which jurisdiction applies?', fr: 'Quelle compétence s’applique?' },
+  advws_province_q: { en: 'Which jurisdiction applies?', fr: 'Quelle compétence s’applique ?' },
   advws_province_on: { en: 'Ontario', fr: 'Ontario' },
   advws_province_qc: { en: 'Quebec', fr: 'Québec' },
   advws_province_fed: { en: 'Federal', fr: 'Fédéral' },

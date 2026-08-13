@@ -50,7 +50,7 @@ export const tplT06: DocTemplate = {
     },
     QC: {
       en: 'Keep records; the CNESST and tribunals expect a fair, documented process.',
-      fr: 'Conserver les dossiers; la CNESST et les tribunaux attendent un processus équitable et documenté.',
+      fr: 'Conserver les dossiers ; la CNESST et les tribunaux attendent un processus équitable et documenté.',
     },
     FED: {
       en: 'Document steps carefully — unjust-dismissal review considers the discipline record.',

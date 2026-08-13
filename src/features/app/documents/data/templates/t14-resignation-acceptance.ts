@@ -46,7 +46,7 @@ export const tplT14: DocTemplate = {
   jurisdictionNotes: {
     ON: {
       en: 'Pay all earned wages and accrued vacation by the ESA deadline; issue the ROE.',
-      fr: 'Verser tous les salaires gagnés et les vacances accumulées dans le délai LNE; émettre le relevé d’emploi.',
+      fr: 'Verser tous les salaires gagnés et les vacances accumulées dans le délai LNE ; émettre le relevé d’emploi.',
     },
     QC: {
       en: 'Provide the final pay and the relevé d’emploi promptly per LSA and federal EI rules.',

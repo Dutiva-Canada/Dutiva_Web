@@ -25,7 +25,7 @@ export const workspaceModeMessages = defineMessages({
   },
 
   /* ── Advisor home (production) ─────────────────────────────────────────── */
-  wsmode_advisor_greeting: { en: 'How can I help?', fr: 'Comment puis-je vous aider?' },
+  wsmode_advisor_greeting: { en: 'How can I help?', fr: 'Comment puis-je vous aider ?' },
   wsmode_advisor_sub: {
     en: 'Ask anything about HR compliance across Canada.',
     fr: 'Posez toute question sur la conformité RH partout au Canada.',

@@ -17,7 +17,7 @@ export const advisorViewMessages = defineMessages({
   advisorview_greeting: { en: 'Good to see you, Riley.', fr: 'Bonjour, Riley.' },
   advisorview_digest_sub: {
     en: "Here's what Advisor noticed since yesterday.",
-    fr: 'Voici ce que Conseiller a remarqué depuis hier.',
+    fr: 'Voici ce que le Conseiller a remarqué depuis hier.',
   },
   advisorview_daily_brief: { en: "Advisor's daily brief", fr: 'Bilan quotidien du Conseiller' },
   advisorview_priorities_title: { en: 'Priorities today', fr: 'Priorités du jour' },

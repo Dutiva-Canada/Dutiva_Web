@@ -50,15 +50,15 @@ export const tplT03: DocTemplate = {
   jurisdictionNotes: {
     ON: {
       en: 'Provide the greater of ESA notice/severance or common-law notice; continue benefits through the statutory notice period.',
-      fr: 'Offrir le plus élevé de l’avis/indemnité LNE ou du préavis de common law; maintenir les avantages durant l’avis légal.',
+      fr: 'Offrir le plus élevé de l’avis/indemnité LNE ou du préavis de common law ; maintenir les avantages durant l’avis légal.',
     },
     QC: {
       en: 'The Civil Code requires reasonable notice; LSA sets minimums and prohibits dismissal without good and sufficient cause after 2 years.',
-      fr: 'Le Code civil exige un avis raisonnable; la LNT fixe des minimums et interdit le congédiement sans cause juste et suffisante après 2 ans.',
+      fr: 'Le Code civil exige un avis raisonnable ; la LNT fixe des minimums et interdit le congédiement sans cause juste et suffisante après 2 ans.',
     },
     FED: {
       en: 'CLC notice (s. 230) and severance (s. 235) apply; unjust-dismissal recourse (s. 240) may apply after 12 months.',
-      fr: 'L’avis (art. 230) et l’indemnité (art. 235) du CCT s’appliquent; le recours pour congédiement injuste (art. 240) après 12 mois.',
+      fr: 'L’avis (art. 230) et l’indemnité (art. 235) du CCT s’appliquent ; le recours pour congédiement injuste (art. 240) après 12 mois.',
     },
   },
   includes: [

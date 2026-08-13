@@ -94,7 +94,7 @@ export const doclibMessages = defineMessages({
   doclib_gen_context: { en: 'Context', fr: 'Contexte' },
   doclib_gen_contextSub: {
     en: 'Who and where is this document for?',
-    fr: 'Pour qui et où ce document est-il destiné?',
+    fr: 'Pour qui et où ce document est-il destiné ?',
   },
   doclib_gen_employee: { en: 'Employee (optional)', fr: 'Employé (facultatif)' },
   doclib_gen_case: { en: 'Case file (optional)', fr: 'Dossier (facultatif)' },
@@ -271,7 +271,7 @@ export const doclibMessages = defineMessages({
   doclib_dm_uiMapping: { en: 'Where it surfaces', fr: 'Où cela apparaît' },
   doclib_dm_rlsNote: {
     en: "Every table is org-scoped. Row Level Security limits reads to the caller's organization_members row; role drives write capability.",
-    fr: 'Chaque table est cloisonnée par organisation. La sécurité au niveau des lignes limite les lectures à l’organisation de l’appelant; le rôle détermine les droits d’écriture.',
+    fr: 'Chaque table est cloisonnée par organisation. La sécurité au niveau des lignes limite les lectures à l’organisation de l’appelant ; le rôle détermine les droits d’écriture.',
   },
   doclib_dm_legend: { en: 'Grouped by domain', fr: 'Regroupé par domaine' },
   doclib_dm_capability: { en: 'Capability', fr: 'Capacité' },

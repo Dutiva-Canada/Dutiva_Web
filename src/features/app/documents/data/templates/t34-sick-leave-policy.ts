@@ -54,7 +54,7 @@ export const tplT34: DocTemplate = {
   jurisdictionNotes: {
     ON: {
       en: 'The Employment Standards Act, 2000 sets the sick-leave entitlement, and a policy may add to it but never subtract. The evidence an employer may require for it is restricted and the restriction changed in recent years — confirm the current rule before writing an evidence requirement into your policy.',
-      fr: 'La Loi de 2000 sur les normes d’emploi fixe le droit au congé de maladie; une politique peut le bonifier mais jamais le réduire. La preuve exigible est encadrée et cet encadrement a changé ces dernières années — vérifiez la règle en vigueur avant d’inscrire une exigence de preuve dans votre politique.',
+      fr: 'La Loi de 2000 sur les normes d’emploi fixe le droit au congé de maladie ; une politique peut le bonifier mais jamais le réduire. La preuve exigible est encadrée et cet encadrement a changé ces dernières années — vérifiez la règle en vigueur avant d’inscrire une exigence de preuve dans votre politique.',
     },
     QC: {
       en: 'The Act respecting labour standards sets the entitlement for absence due to sickness, and the first days of it are paid once the employee has the required service. It also bars any sanction for using it. The policy must be available in French.',

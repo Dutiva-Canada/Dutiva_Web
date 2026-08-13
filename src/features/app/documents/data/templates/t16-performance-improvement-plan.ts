@@ -46,11 +46,11 @@ export const tplT16: DocTemplate = {
   jurisdictionNotes: {
     ON: {
       en: 'Screen for an accommodation need before and during the plan; keep goals objective and documented.',
-      fr: 'Vérifier un besoin d’adaptation avant et pendant le plan; garder des objectifs objectifs et documentés.',
+      fr: 'Vérifier un besoin d’adaptation avant et pendant le plan ; garder des objectifs objectifs et documentés.',
     },
     QC: {
       en: 'Good faith and fair process are required; the plan should be realistic and supported.',
-      fr: 'La bonne foi et l’équité procédurale sont requises; le plan doit être réaliste et soutenu.',
+      fr: 'La bonne foi et l’équité procédurale sont requises ; le plan doit être réaliste et soutenu.',
     },
     FED: {
       en: 'A documented, supportive plan strengthens the record if unjust-dismissal review follows.',

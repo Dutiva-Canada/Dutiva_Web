@@ -54,7 +54,7 @@ export const tplT07: DocTemplate = {
     },
     QC: {
       en: 'Revenu Québec and the CNESST apply their own tests; a dependent contractor may gain protections.',
-      fr: 'Revenu Québec et la CNESST appliquent leurs propres tests; un entrepreneur dépendant peut obtenir des protections.',
+      fr: 'Revenu Québec et la CNESST appliquent leurs propres tests ; un entrepreneur dépendant peut obtenir des protections.',
     },
     FED: {
       en: 'Reclassification can expose the payer to source-deduction and Code liabilities.',

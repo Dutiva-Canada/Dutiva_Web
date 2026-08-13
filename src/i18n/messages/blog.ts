@@ -26,7 +26,7 @@ export const blogMessages = defineMessages({
   },
   blog_toGuides_t: {
     en: 'Looking for the document itself?',
-    fr: 'Vous cherchez plutôt le document?',
+    fr: 'Vous cherchez plutôt le document ?',
   },
   blog_toGuides_p: {
     en: 'The guides cover what sits on the other side of these obligations — the documents and decisions themselves: contracts, probation, accommodation, and termination.',

@@ -218,7 +218,7 @@ export const tplT43: DocTemplate = {
       },
       hint: {
         en: 'Commit to a time and keep it. A promised update that arrives saying nothing has changed holds an organisation together; one that never arrives is where the rumours start.',
-        fr: 'Engagez-vous sur un moment et respectez-le. Une mise à jour promise qui arrive en disant que rien n’a changé maintient la cohésion; celle qui n’arrive jamais est le point de départ des rumeurs.',
+        fr: 'Engagez-vous sur un moment et respectez-le. Une mise à jour promise qui arrive en disant que rien n’a changé maintient la cohésion ; celle qui n’arrive jamais est le point de départ des rumeurs.',
       },
     },
   ],

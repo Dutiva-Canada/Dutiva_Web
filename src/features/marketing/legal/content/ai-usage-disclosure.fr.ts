@@ -64,23 +64,23 @@ export default {
         },
         {
           "type": "li",
-          "text": "fournir des conseils juridiques, des avis juridiques ou des services professionnels en droit du travail;"
+          "text": "fournir des conseils juridiques, des avis juridiques ou des services professionnels en droit du travail ;"
         },
         {
           "type": "li",
-          "text": "créer une relation avocat-client, paralegal-client, consultant-client, fiduciaire ou toute autre relation de conseil professionnel;"
+          "text": "créer une relation avocat-client, paralegal-client, consultant-client, fiduciaire ou toute autre relation de conseil professionnel ;"
         },
         {
           "type": "li",
-          "text": "prendre des décisions finales d’emploi, de cessation d’emploi, d’accommodement, de discipline, d’embauche, de rémunération, de confidentialité, de paie, d’avantages sociaux ou de santé et sécurité au travail pour les clients;"
+          "text": "prendre des décisions finales d’emploi, de cessation d’emploi, d’accommodement, de discipline, d’embauche, de rémunération, de confidentialité, de paie, d’avantages sociaux ou de santé et sécurité au travail pour les clients ;"
         },
         {
           "type": "li",
-          "text": "garantir qu’une réponse, une liste de contrôle, une ébauche, une clause, un modèle ou un document généré respecte toutes les lois applicables, tous les contrats, toutes les politiques, toutes les conventions collectives, toutes les exigences linguistiques ou d’accessibilité, ou tous les faits propres au milieu de travail;"
+          "text": "garantir qu’une réponse, une liste de contrôle, une ébauche, une clause, un modèle ou un document généré respecte toutes les lois applicables, tous les contrats, toutes les politiques, toutes les conventions collectives, toutes les exigences linguistiques ou d’accessibilité, ou tous les faits propres au milieu de travail ;"
         },
         {
           "type": "li",
-          "text": "vérifier de façon indépendante tous les faits, dates, rôles, politiques, contrats, conventions collectives ou éléments de contexte fournis par les utilisateurs; ou"
+          "text": "vérifier de façon indépendante tous les faits, dates, rôles, politiques, contrats, conventions collectives ou éléments de contexte fournis par les utilisateurs ; ou"
         },
         {
           "type": "li",
@@ -101,23 +101,23 @@ export default {
         },
         {
           "type": "li",
-          "text": "les cessations d’emploi, les mises à pied, les congédiements déguisés, l’indemnité de cessation, les risques liés au préavis raisonnable de common law ou les risques liés au congédiement sans motif;"
+          "text": "les cessations d’emploi, les mises à pied, les congédiements déguisés, l’indemnité de cessation, les risques liés au préavis raisonnable de common law ou les risques liés au congédiement sans motif ;"
         },
         {
           "type": "li",
-          "text": "l’accommodement, l’invalidité, le harcèlement, la violence, les représailles, les droits de la personne ou les enquêtes en milieu de travail;"
+          "text": "l’accommodement, l’invalidité, le harcèlement, la violence, les représailles, les droits de la personne ou les enquêtes en milieu de travail ;"
         },
         {
           "type": "li",
-          "text": "les incidents de confidentialité, la surveillance des employés, les transferts transfrontaliers, la prise de décision automatisée ou le traitement de renseignements sensibles;"
+          "text": "les incidents de confidentialité, la surveillance des employés, les transferts transfrontaliers, la prise de décision automatisée ou le traitement de renseignements sensibles ;"
         },
         {
           "type": "li",
-          "text": "l’équité salariale, la paie, la fiscalité, les régimes de retraite, les avantages sociaux, les régimes incitatifs, la rémunération des dirigeants ou les régimes d’actionnariat;"
+          "text": "l’équité salariale, la paie, la fiscalité, les régimes de retraite, les avantages sociaux, les régimes incitatifs, la rémunération des dirigeants ou les régimes d’actionnariat ;"
         },
         {
           "type": "li",
-          "text": "les milieux syndiqués, les conventions collectives, les procédures devant les tribunaux ou conseils de relations de travail, les secteurs réglementés ou les milieux de travail sous réglementation fédérale;"
+          "text": "les milieux syndiqués, les conventions collectives, les procédures devant les tribunaux ou conseils de relations de travail, les secteurs réglementés ou les milieux de travail sous réglementation fédérale ;"
         },
         {
           "type": "li",
@@ -134,23 +134,23 @@ export default {
         },
         {
           "type": "li",
-          "text": "le texte du message ou de la requête soumis par l’utilisateur;"
+          "text": "le texte du message ou de la requête soumis par l’utilisateur ;"
         },
         {
           "type": "li",
-          "text": "un historique récent limité de conversation nécessaire au maintien du contexte;"
+          "text": "un historique récent limité de conversation nécessaire au maintien du contexte ;"
         },
         {
           "type": "li",
-          "text": "la province, le territoire ou le régime fédéral applicable sélectionné;"
+          "text": "la province, le territoire ou le régime fédéral applicable sélectionné ;"
         },
         {
           "type": "li",
-          "text": "le contexte d’accompagnement RH récupéré et les notes structurées liées au processus;"
+          "text": "le contexte d’accompagnement RH récupéré et les notes structurées liées au processus ;"
         },
         {
           "type": "li",
-          "text": "les choix de modèles de documents, les données saisies dans les documents, l’identifiant du processus actif, l’état d’une liste de contrôle ou le contexte d’une ébauche; et"
+          "text": "les choix de modèles de documents, les données saisies dans les documents, l’identifiant du processus actif, l’état d’une liste de contrôle ou le contexte d’une ébauche ; et"
         },
         {
           "type": "li",
@@ -171,23 +171,23 @@ export default {
         },
         {
           "type": "li",
-          "text": "numéros d’assurance sociale, numéros d’identification gouvernementaux, numéros de passeport, numéros de permis de conduire ou identifiants similaires;"
+          "text": "numéros d’assurance sociale, numéros d’identification gouvernementaux, numéros de passeport, numéros de permis de conduire ou identifiants similaires ;"
         },
         {
           "type": "li",
-          "text": "numéros de carte de paiement, identifiants bancaires, identifiants complets de facturation ou mots de passe de compte;"
+          "text": "numéros de carte de paiement, identifiants bancaires, identifiants complets de facturation ou mots de passe de compte ;"
         },
         {
           "type": "li",
-          "text": "dossiers médicaux, renseignements personnels sur la santé, documents relatifs à une invalidité ou dossiers d’accommodement hautement sensibles;"
+          "text": "dossiers médicaux, renseignements personnels sur la santé, documents relatifs à une invalidité ou dossiers d’accommodement hautement sensibles ;"
         },
         {
           "type": "li",
-          "text": "communications juridiques protégées, conseils juridiques privilégiés, communications de règlement ou stratégie de litige;"
+          "text": "communications juridiques protégées, conseils juridiques privilégiés, communications de règlement ou stratégie de litige ;"
         },
         {
           "type": "li",
-          "text": "dossiers de griefs syndicaux, dossiers d’enquête en milieu de travail, dossiers d’enquête sur le harcèlement ou la violence, ou dossiers de relations de travail hautement sensibles;"
+          "text": "dossiers de griefs syndicaux, dossiers d’enquête en milieu de travail, dossiers d’enquête sur le harcèlement ou la violence, ou dossiers de relations de travail hautement sensibles ;"
         },
         {
           "type": "li",
@@ -255,23 +255,23 @@ export default {
         },
         {
           "type": "li",
-          "text": "utiliser les résultats de l’IA pour discriminer, harceler, exercer des représailles, intimider, induire en erreur ou autrement violer les lois applicables en matière d’emploi, de droits de la personne, de protection des renseignements personnels, de travail, de santé et sécurité au travail, de protection des consommateurs ou toute autre loi applicable;"
+          "text": "utiliser les résultats de l’IA pour discriminer, harceler, exercer des représailles, intimider, induire en erreur ou autrement violer les lois applicables en matière d’emploi, de droits de la personne, de protection des renseignements personnels, de travail, de santé et sécurité au travail, de protection des consommateurs ou toute autre loi applicable ;"
         },
         {
           "type": "li",
-          "text": "présenter les résultats de l’IA comme des conseils juridiques, des avis juridiques, un travail révisé par un avocat ou des conseils professionnels définitifs;"
+          "text": "présenter les résultats de l’IA comme des conseils juridiques, des avis juridiques, un travail révisé par un avocat ou des conseils professionnels définitifs ;"
         },
         {
           "type": "li",
-          "text": "utiliser les résultats de l’IA sans révision appropriée dans des questions à risque élevé en matière d’emploi, de confidentialité, de santé et sécurité, de finances ou de droit;"
+          "text": "utiliser les résultats de l’IA sans révision appropriée dans des questions à risque élevé en matière d’emploi, de confidentialité, de santé et sécurité, de finances ou de droit ;"
         },
         {
           "type": "li",
-          "text": "tenter d’extraire les instructions système, les secrets de fournisseurs, les détails d’acheminement des modèles, les instructions cachées, les données d’entraînement ou les renseignements d’autres utilisateurs;"
+          "text": "tenter d’extraire les instructions système, les secrets de fournisseurs, les détails d’acheminement des modèles, les instructions cachées, les données d’entraînement ou les renseignements d’autres utilisateurs ;"
         },
         {
           "type": "li",
-          "text": "soumettre du contenu illégal, malveillant, trompeur, contrefaisant, discriminatoire ou portant atteinte à des droits; ou"
+          "text": "soumettre du contenu illégal, malveillant, trompeur, contrefaisant, discriminatoire ou portant atteinte à des droits ; ou"
         },
         {
           "type": "li",

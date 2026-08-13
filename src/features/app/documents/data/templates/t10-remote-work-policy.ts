@@ -219,7 +219,7 @@ export const tplT10: DocTemplate = {
       },
       label: {
         en: 'Home-office expenses reimbursed?',
-        fr: 'Dépenses de bureau à domicile remboursées?',
+        fr: 'Dépenses de bureau à domicile remboursées ?',
       },
       type: 'radio',
       required: true,

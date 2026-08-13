@@ -50,11 +50,11 @@ export const tplT11: DocTemplate = {
   jurisdictionNotes: {
     ON: {
       en: 'Vacation is at least 2 weeks (4%), rising to 3 weeks (6%) after 5 years; job-protected leaves are set by the ESA.',
-      fr: 'Les vacances sont d’au moins 2 semaines (4 %), portées à 3 semaines (6 %) après 5 ans; congés protégés selon la LNE.',
+      fr: 'Les vacances sont d’au moins 2 semaines (4 %), portées à 3 semaines (6 %) après 5 ans ; congés protégés selon la LNE.',
     },
     QC: {
       en: 'Annual leave and indemnity follow the LSA; company terms may exceed but not reduce them.',
-      fr: 'Le congé annuel et l’indemnité suivent la LNT; l’entreprise peut les dépasser mais non les réduire.',
+      fr: 'Le congé annuel et l’indemnité suivent la LNT ; l’entreprise peut les dépasser mais non les réduire.',
     },
     FED: {
       en: 'Federal minimums include 3 weeks after 5 years and personal/medical leave under the Code.',

@@ -207,7 +207,7 @@ export const tplT40: DocTemplate = {
       },
       label: {
         en: 'Is a fresh acknowledgement required?',
-        fr: 'Un nouvel accusé de réception est-il requis?',
+        fr: 'Un nouvel accusé de réception est-il requis ?',
       },
       type: 'select',
       required: true,
@@ -320,7 +320,7 @@ export const tplT40: DocTemplate = {
       n: 6,
       heading: {
         en: 'Do you need to sign anything?',
-        fr: 'Devez-vous signer quelque chose?',
+        fr: 'Devez-vous signer quelque chose ?',
       },
       text: {
         en: '{{reack}} Where we have asked for one, the acknowledgement below is where it goes: signing confirms you received and read this version. It is not agreement to a change in your terms, and it waives nothing you are entitled to. Where we have not, there is nothing for you to return.',

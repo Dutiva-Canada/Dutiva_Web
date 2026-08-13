@@ -37,7 +37,7 @@ export const tplT50: DocTemplate = {
   jurisdictionNotes: {
     ON: {
       en: 'Generic shell — the Advisor tailors the body; jurisdiction-specific obligations depend on the policy topic.',
-      fr: 'Modèle générique — le Conseiller adapte le corps; les obligations propres à la province dépendent du sujet de la politique.',
+      fr: 'Modèle générique — le Conseiller adapte le corps ; les obligations propres à la province dépendent du sujet de la politique.',
     },
     QC: {
       en: 'If the policy will be distributed in Quebec, draft it in French first per the Charter of the French Language.',
@@ -65,7 +65,7 @@ export const tplT50: DocTemplate = {
     {
       id: 'policy_scope',
       section: { en: 'Scope', fr: 'Portée' },
-      label: { en: 'Who does this policy apply to?', fr: 'À qui cette politique s’applique-t-elle?' },
+      label: { en: 'Who does this policy apply to?', fr: 'À qui cette politique s’applique-t-elle ?' },
       type: 'text',
       required: true,
       placeholder: { en: 'e.g. All employees and contractors', fr: 'p. ex. Tous les employés et entrepreneurs' },
