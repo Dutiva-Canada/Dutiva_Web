@@ -91,6 +91,12 @@ Editorial rule for public articles — no statutory figures, ever — is stated 
 | [SUPPORT_CALL_SCHEDULING.md](SUPPORT_CALL_SCHEDULING.md)       | Propose/confirm/remind/follow-up for scheduled calls, and the Google Calendar setup. |
 | [SUPPORT_ANALYTICS.md](SUPPORT_ANALYTICS.md)                   | Support funnel analytics: privacy model, data schema, and how to query the data.    |
 
+## Consumer product family
+
+| Document | What it settles |
+| --- | --- |
+| [consumer/README.md](consumer/README.md) | Product definition, architecture, requirements, workflows, AI safety, data governance, roadmaps, and open questions for the Canadian Life Admin / Canadian Document Generation / Personal Evidence Locker product family. |
+
 ## Design handoffs
 
 Feature work is driven by high-fidelity handoffs, committed alongside the code
