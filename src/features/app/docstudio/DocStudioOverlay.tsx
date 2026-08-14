@@ -125,7 +125,7 @@ export function DocStudioOverlay() {
         className="fixed inset-y-0 right-0 z-310 m-0 flex w-[min(560px,100%)] animate-[slideInRight_0.22s_ease] flex-col bg-surface font-sans shadow-[-20px_0_50px_rgba(0,0,0,0.2)]"
       >
         {/* Header */}
-        <div className="flex shrink-0 items-center justify-between border-b border-border-soft px-[22px] py-[18px]">
+        <div className="flex shrink-0 items-center justify-between border-b border-border-soft px-5.5 py-4.5">
           <div className="min-w-0">
             <div className="text-[11px] font-bold tracking-[.04em] text-gold-dot uppercase">
               {x(studio.category)} · {x(M.docstudio_ai_draft)}
@@ -136,12 +136,14 @@ export function DocStudioOverlay() {
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <button
+              type="button"
               onClick={toggleEditAll}
-              className="cursor-pointer rounded-lg bg-accent-soft px-[13px] py-2 font-sans text-[12.5px] font-bold text-accent"
+              className="cursor-pointer rounded-lg bg-accent-soft px-3.25 py-2 font-sans text-[12.5px] font-bold text-accent"
             >
               {studio.editingAll ? x(M.docstudio_done_editing) : x(M.docstudio_edit_draft)}
             </button>
             <button
+              type="button"
               onClick={closeDocStudio}
               aria-label={x(M.docstudio_close_aria)}
               className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-[9px] bg-inset"
@@ -153,7 +155,7 @@ export function DocStudioOverlay() {
 
         {/* AI revision note */}
         {studio.aiNote && (
-          <div className="mx-[22px] mt-[14px] flex shrink-0 items-center gap-[7px] rounded-[9px] border border-gold-border bg-gold-bg px-[13px] py-[9px] text-[12.5px] font-semibold text-gold-fg">
+          <div className="mx-5.5 mt-3.5 flex shrink-0 items-center gap-1.75 rounded-[9px] border border-gold-border bg-gold-bg px-3.25 py-2.25 text-[12.5px] font-semibold text-gold-fg">
             <Sparkle
               size={14}
               fill="currentColor"
@@ -166,7 +168,7 @@ export function DocStudioOverlay() {
         )}
 
         {/* Risk chip · jurisdiction · document details */}
-        <div className="mx-[22px] mt-[14px] shrink-0">
+        <div className="mx-5.5 mt-3.5 shrink-0">
           <div className="flex flex-wrap items-center gap-2">
             <span
               className={`${chipBase} ${studio.highRisk ? 'bg-risk-bg text-risk-fg' : 'bg-accent-soft text-accent'}`}
@@ -178,10 +180,11 @@ export function DocStudioOverlay() {
             </span>
             <span className="flex-1" />
             <button
+              type="button"
               onClick={toggleMeta}
               aria-controls="docstudio-details"
               aria-expanded={studio.metaOpen}
-              className="flex cursor-pointer items-center gap-[5px] px-[2px] py-1 font-sans text-[12px] font-semibold text-accent"
+              className="flex cursor-pointer items-center gap-1.25 px-0.5 py-1 font-sans text-[12px] font-semibold text-accent"
             >
               {x(studio.metaOpen ? M.docstudio_meta_hide : M.docstudio_meta_show)}
               <ChevronDown size={12} strokeWidth={2.2} aria-hidden="true" />
@@ -190,7 +193,7 @@ export function DocStudioOverlay() {
           {studio.metaOpen && (
             <div
               id="docstudio-details"
-              className="mt-[10px] max-h-[280px] overflow-y-auto rounded-[10px] border border-border-soft bg-surface-2 px-4 py-[6px]"
+              className="mt-2.5 max-h-70 overflow-y-auto rounded-[10px] border border-border-soft bg-surface-2 px-4 py-1.5"
             >
               {metaRows.map((row) => (
                 <div key={row.key} className="flex gap-3 border-b border-inset py-2">
@@ -200,12 +203,12 @@ export function DocStudioOverlay() {
                   <span className="text-[12.5px] leading-normal text-text-2">{row.value}</span>
                 </div>
               ))}
-              <div className="flex flex-col gap-2 pt-[10px] pb-3">
-                <div className="rounded-lg border border-(--accent-soft-border) bg-accent-soft px-3 py-[9px] text-[12px] leading-normal text-text-2">
+              <div className="flex flex-col gap-2 pt-2.5 pb-3">
+                <div className="rounded-lg border border-(--accent-soft-border) bg-accent-soft px-3 py-2.25 text-[12px] leading-normal text-text-2">
                   <span className="font-bold text-accent">{x(M.docstudio_assumptions)} · </span>
                   {x(meta.assumptions)}
                 </div>
-                <div className="rounded-lg border border-gold-border bg-gold-bg px-3 py-[9px] text-[12px] leading-normal text-gold-fg">
+                <div className="rounded-lg border border-gold-border bg-gold-bg px-3 py-2.25 text-[12px] leading-normal text-gold-fg">
                   <span className="font-bold">{x(M.docstudio_missing)} · </span>
                   {x(meta.missing)}
                 </div>
@@ -216,8 +219,8 @@ export function DocStudioOverlay() {
         </div>
 
         {/* Document preview */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-[22px] py-5">
-          <div className="flex flex-col gap-[18px] rounded-[10px] border border-border-soft bg-surface-2 px-[28px] py-[26px]">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5.5 py-5">
+          <div className="flex flex-col gap-4.5 rounded-[10px] border border-border-soft bg-surface-2 px-7 py-6.5">
             {studio.generating && (
               <output className="flex flex-col gap-3" aria-label={x(M.docstudio_generating_aria)}>
                 <div className="text-[12px] font-semibold text-text-muted">
@@ -246,14 +249,14 @@ export function DocStudioOverlay() {
                   value={pickL(section, lang)}
                   onChange={(e) => updateSection(idx, e.target.value)}
                   aria-label={`${x(M.docstudio_section_edit_aria)} ${idx + 1}`}
-                  className="min-h-[90px] w-full resize-y rounded-lg border border-(--accent-soft-border) p-[10px] font-sans text-[14px] leading-[1.65] text-text"
+                  className="min-h-22.5 w-full resize-y rounded-lg border border-(--accent-soft-border) p-2.5 font-sans text-[14px] leading-[1.65] text-text"
                 />
               ))}
           </div>
         </div>
 
         {/* Footer — revise chips, disclaimer, gate, export & signature */}
-        <div className="flex shrink-0 flex-col gap-3 border-t border-border-soft px-[22px] pt-4 pb-5">
+        <div className="flex shrink-0 flex-col gap-3 border-t border-border-soft px-5.5 pt-4 pb-5">
           {!gateOpen && (
             <div>
               <div className="mb-2 text-[11px] font-bold tracking-[.04em] text-text-muted uppercase">
@@ -261,20 +264,23 @@ export function DocStudioOverlay() {
               </div>
               <div className="flex flex-wrap gap-2">
                 <button
+                  type="button"
                   onClick={() => applyRevision('formal')}
-                  className="cursor-pointer rounded-full border border-(--accent-soft-border) bg-accent-soft px-[13px] py-[7px] font-sans text-[12.5px] font-semibold text-accent"
+                  className="cursor-pointer rounded-full border border-(--accent-soft-border) bg-accent-soft px-3.25 py-1.75 font-sans text-[12.5px] font-semibold text-accent"
                 >
                   {x(M.docstudio_revise_formal)}
                 </button>
                 <button
+                  type="button"
                   onClick={() => applyRevision('shorten')}
-                  className="cursor-pointer rounded-full border border-(--accent-soft-border) bg-accent-soft px-[13px] py-[7px] font-sans text-[12.5px] font-semibold text-accent"
+                  className="cursor-pointer rounded-full border border-(--accent-soft-border) bg-accent-soft px-3.25 py-1.75 font-sans text-[12.5px] font-semibold text-accent"
                 >
                   {x(M.docstudio_revise_shorten)}
                 </button>
                 <button
+                  type="button"
                   onClick={() => applyRevision('compassionate')}
-                  className="cursor-pointer rounded-full border border-(--accent-soft-border) bg-accent-soft px-[13px] py-[7px] font-sans text-[12.5px] font-semibold text-accent"
+                  className="cursor-pointer rounded-full border border-(--accent-soft-border) bg-accent-soft px-3.25 py-1.75 font-sans text-[12.5px] font-semibold text-accent"
                 >
                   {x(M.docstudio_revise_compassionate)}
                 </button>
@@ -290,7 +296,7 @@ export function DocStudioOverlay() {
               role="alertdialog"
               aria-label={x(M.docstudio_gate_title)}
               tabIndex={-1}
-              className="rounded-[10px] border border-gold-border bg-gold-bg px-4 py-[14px]"
+              className="rounded-[10px] border border-gold-border bg-gold-bg px-4 py-3.5"
             >
               <div className="flex items-start gap-2">
                 <TriangleAlert
@@ -310,20 +316,23 @@ export function DocStudioOverlay() {
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 <button
+                  type="button"
                   onClick={confirmGate}
-                  className="cursor-pointer rounded-[9px] bg-navy px-[14px] py-[9px] font-sans text-[12.5px] font-bold text-white"
+                  className="cursor-pointer rounded-[9px] bg-navy px-3.5 py-2.25 font-sans text-[12.5px] font-bold text-white"
                 >
                   {x(M.docstudio_gate_confirm)}
                 </button>
                 <button
+                  type="button"
                   onClick={cancelGate}
-                  className="cursor-pointer rounded-[9px] border border-border bg-surface px-[14px] py-[9px] font-sans text-[12.5px] font-semibold text-text"
+                  className="cursor-pointer rounded-[9px] border border-border bg-surface px-3.5 py-2.25 font-sans text-[12.5px] font-semibold text-text"
                 >
                   {x(M.docstudio_gate_cancel)}
                 </button>
                 <button
+                  type="button"
                   onClick={requestLegalReview}
-                  className="cursor-pointer px-[6px] py-[9px] font-sans text-[12.5px] font-semibold text-gold-fg underline"
+                  className="cursor-pointer px-1.5 py-2.25 font-sans text-[12.5px] font-semibold text-gold-fg underline"
                 >
                   {x(M.docstudio_gate_legal)}
                 </button>
@@ -336,34 +345,38 @@ export function DocStudioOverlay() {
               <PlanGate required="growth">
                 <div className="flex gap-2">
                   <button
+                    type="button"
                     onClick={() => exportDoc('PDF')}
-                    className="flex-1 cursor-pointer rounded-[9px] bg-navy p-[10px] font-sans text-[13.5px] font-bold text-white"
+                    className="flex-1 cursor-pointer rounded-[9px] bg-navy p-2.5 font-sans text-[13.5px] font-bold text-white"
                   >
                     {x(M.docstudio_export_pdf)}
                   </button>
                   <button
+                    type="button"
                     onClick={() => exportDoc('Word')}
-                    className="flex-1 cursor-pointer rounded-[9px] border border-border bg-surface p-[10px] font-sans text-[13.5px] font-semibold text-text"
+                    className="flex-1 cursor-pointer rounded-[9px] border border-border bg-surface p-2.5 font-sans text-[13.5px] font-semibold text-text"
                   >
                     {x(M.docstudio_export_word)}
                   </button>
                   <button
+                    type="button"
                     onClick={() => exportDoc('link')}
-                    className="cursor-pointer rounded-[9px] border border-border bg-surface px-[14px] py-[10px] font-sans text-[13.5px] font-semibold text-text"
+                    className="cursor-pointer rounded-[9px] border border-border bg-surface px-3.5 py-2.5 font-sans text-[13.5px] font-semibold text-text"
                   >
                     {x(M.docstudio_copy_link)}
                   </button>
                 </div>
               </PlanGate>
               {studio.signatureSent ? (
-                <output className="flex items-center gap-2 rounded-[9px] border border-ok-border bg-ok-bg px-[13px] py-[10px] text-[12.5px] font-semibold text-ok-fg">
+                <output className="flex items-center gap-2 rounded-[9px] border border-ok-border bg-ok-bg px-3.25 py-2.5 text-[12.5px] font-semibold text-ok-fg">
                   <Check size={15} strokeWidth={2} className="shrink-0" aria-hidden="true" />
                   <span>{x(M.docstudio_esign_pending)}</span>
                 </output>
               ) : (
                 <button
+                  type="button"
                   onClick={sendForSignature}
-                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[9px] border border-gold-border bg-gold-bg p-[11px] font-sans text-[13.5px] font-bold text-gold-fg"
+                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[9px] border border-gold-border bg-gold-bg p-2.75 font-sans text-[13.5px] font-bold text-gold-fg"
                 >
                   <PenTool size={15} strokeWidth={1.8} aria-hidden="true" />
                   {x(M.docstudio_esign_send)}
