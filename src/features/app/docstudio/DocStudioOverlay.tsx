@@ -216,7 +216,7 @@ export function DocStudioOverlay() {
         </div>
 
         {/* Document preview */}
-        <div className="flex-1 overflow-y-auto px-[22px] py-5">
+        <div className="min-h-0 flex-1 overflow-y-auto px-[22px] py-5">
           <div className="flex flex-col gap-[18px] rounded-[10px] border border-border-soft bg-surface-2 px-[28px] py-[26px]">
             {studio.generating && (
               <output className="flex flex-col gap-3" aria-label={x(M.docstudio_generating_aria)}>
