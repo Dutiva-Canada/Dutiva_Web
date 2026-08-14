@@ -1,0 +1,68 @@
+# The gate — deterministic, credential-free. Mirrors the GitHub Actions
+# `check` job (the required status). A credential problem in live-checks.yml
+# or a flake in e2e.yml can never abort this verification.
+#
+# Public environment values — not secrets (the GA4 measurement ID is public
+# in the HTML when loaded). Shared across steps via YAML anchors.
+variables:
+  - &ga_env
+    VITE_GA_MEASUREMENT_ID: G-V85ZQ75EWL
+
+when:
+  - event: push
+    branch: main
+  - event: pull_request
+  - event: manual
+
+steps:
+  install:
+    image: node:22
+    commands:
+      - npm ci
+
+  typecheck:
+    image: node:22
+    depends_on: [install]
+    commands:
+      - npm run typecheck
+
+  lint:
+    image: node:22
+    depends_on: [typecheck]
+    commands:
+      - npm run lint
+
+  test:
+    image: node:22
+    depends_on: [lint]
+    commands:
+      - npm run test:coverage
+
+  # Message-surface scope guard (workspace/marketing/shared) — a literal
+  # t('key') reaching outside its file's surface.
+  message-scopes:
+    image: node:22
+    depends_on: [test]
+    commands:
+      - npm run check:message-scopes
+
+  # Canonical-facts drift: the brand-palette rows of docs/CANONICAL_FACTS.md
+  # vs src/styles/. The rest of that file's code-backed rows are covered by
+  # src/canonicalFacts.test.ts in the test step; this half is separate only
+  # because Vitest runs with css:false and cannot read a stylesheet.
+  canonical-facts:
+    image: node:22
+    depends_on: [message-scopes]
+    commands:
+      - npm run check:facts
+
+  # Production build: client + SSR bundles, prerender of every public page
+  # (EN + FR), dist-level SEO crawl validation, entry-graph budget, and the
+  # service worker. Fails on any metadata/sitemap/link/build drift.
+  build:
+    image: node:22
+    depends_on: [canonical-facts]
+    environment:
+      <<: *ga_env
+    commands:
+      - npm run build
