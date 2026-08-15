@@ -44,7 +44,7 @@ function verificationTags() {
 }
 
 function escapeAttr(value) {
-  return String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+  return String(value).replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;')
 }
 
 /** Replaces the template's generic title/description with a page's head. */
@@ -52,7 +52,22 @@ function composeDocument({ htmlLang, headHtml, bodyHtml }) {
   let doc = template
   doc = doc.replace(/<html lang="[^"]*"/, `<html lang="${htmlLang}"`)
   doc = doc.replace(/<title>[\s\S]*?<\/title>\n?/, '')
-  doc = doc.replace(/[ \t]*<meta\s+name="description"[\s\S]*?\/>\n?/, '')
+  // Remove the generic <meta name="description" … /> tag (and any preceding
+  // whitespace on its line) without a regex — the linter flags any regex
+  // with a variable-length prefix as super-linear-backtracking-prone.
+  const metaStart = doc.indexOf('<meta name="description"')
+  if (metaStart !== -1) {
+    const metaEnd = doc.indexOf('/>', metaStart)
+    if (metaEnd !== -1) {
+      let lineStart = metaStart
+      while (lineStart > 0 && (doc[lineStart - 1] === ' ' || doc[lineStart - 1] === '\t')) {
+        lineStart--
+      }
+      let lineEnd = metaEnd + 2
+      if (doc[lineEnd] === '\n') lineEnd++
+      doc = doc.slice(0, lineStart) + doc.slice(lineEnd)
+    }
+  }
   const headBlock = [...verificationTags(), headHtml].filter(Boolean).join('\n    ')
   doc = doc.replace('</head>', `  ${headBlock}\n  </head>`)
   doc = doc.replace('<div id="root"></div>', `<div id="root">${bodyHtml}</div>`)

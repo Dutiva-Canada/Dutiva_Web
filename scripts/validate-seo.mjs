@@ -21,7 +21,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const dist = path.join(root, 'dist')
-const ORIGIN = (process.env.VITE_SITE_ORIGIN || 'https://dutiva.ca').replace(/\/+$/, '')
+const _rawOrigin = process.env.VITE_SITE_ORIGIN || 'https://dutiva.ca'
+const ORIGIN = _rawOrigin.endsWith('/') ? _rawOrigin.slice(0, -1) : _rawOrigin
 
 /* The route registry, read back through the same SSR bundle the prerenderer
    used. Comparing dist/ against it (rather than against a hard-coded page
@@ -182,10 +183,15 @@ for (const { route, file } of pages) {
   const h1s = [...body.matchAll(/<h1[\s>]/g)].length
   if (h1s !== 1) fail(`${route}: expected exactly one <h1>, found ${h1s}`)
   if (!/<main[\s>]/.test(body)) fail(`${route}: missing <main> landmark`)
-  const visible = body
-    .replace(/<script[\s\S]*?<\/script>/g, '')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/\s+/g, ' ')
+  const stripped = body.replace(/<script[\s\S]*?<\/script>/g, '')
+  let visible = ''
+  let inTag = false
+  for (const ch of stripped) {
+    if (ch === '<') { inTag = true; visible += ' ' }
+    else if (ch === '>') inTag = false
+    else if (!inTag) visible += ch
+  }
+  visible = visible.replace(/\s+/g, ' ')
   if (visible.length < 500) fail(`${route}: visible text too small (${visible.length} chars)`)
 }
 
@@ -273,7 +279,7 @@ if (!robotsTxt.includes(`Sitemap: ${ORIGIN}/sitemap.xml`)) {
 // bots must be present with the same private-path exclusions as search bots.
 for (const bot of ['GPTBot', 'ClaudeBot', 'CCBot', 'Amazonbot', 'Google-Extended']) {
   if (!robotsTxt.includes(`User-agent: ${bot}`)) fail(`robots.txt: missing group for training bot ${bot}`)
-  if (!new RegExp(`User-agent: ${bot}\\nDisallow: /app\\n`).test(robotsTxt)) {
+  if (!new RegExp(String.raw`User-agent: ${bot}\nDisallow: /app\n`).test(robotsTxt)) {
     fail(`robots.txt: training bot ${bot} group must repeat the /app exclusions`)
   }
 }
@@ -283,7 +289,7 @@ for (const bot of ['OAI-SearchBot', 'Claude-SearchBot', 'PerplexityBot', '*']) {
 // Search bots must repeat the private-path exclusions — a bot-specific group
 // replaces the * group entirely, so a bare group would open /app to them.
 for (const bot of ['OAI-SearchBot', 'Claude-SearchBot', 'PerplexityBot']) {
-  if (!new RegExp(`User-agent: ${bot}\\nDisallow: /app\\n`).test(robotsTxt)) {
+  if (!new RegExp(String.raw`User-agent: ${bot}\nDisallow: /app\n`).test(robotsTxt)) {
     fail(`robots.txt: ${bot} group must repeat the /app exclusions`)
   }
 }

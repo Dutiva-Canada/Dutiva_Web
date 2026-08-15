@@ -46,7 +46,7 @@ const PAGE = path.join(dist, 'index.html')
 
 /** Ceilings. Raise deliberately, with a note saying what earned the room. */
 const MAX_PRELOADS = 9 // 5 as of 2026-08-02; 7 as of 2026-08-05 (messages-workspace split added shell.ts + workspaceMode.ts as their own small preloads); 9 as of 2026-08-10 — Vercel's production build produces one more preload than local builds (likely a rolldown chunking difference), and the ceiling is raised to keep the deploy green.
-const MAX_EAGER_KB = 580 // 539.9 as of 2026-08-05, after messages-workspace stopped riding into the eager graph as a dependency of messages-marketing's chunk group (TODO.md EF6a) — was 665.1/671.3 (after splitting the editorial prose out; was 850.5 before that)
+const MAX_EAGER_KB = 580 // 539.9 as of 2026-08-05, after messages-workspace stopped riding into the eager graph as a dependency of messages-marketing's chunk group (EF6a in the open-items doc) — was 665.1/671.3 (after splitting the editorial prose out; was 850.5 before that)
 
 /**
  * Long-form prose that must stay out of the eager graph. Each of these is
@@ -54,11 +54,11 @@ const MAX_EAGER_KB = 580 // 539.9 as of 2026-08-05, after messages-workspace sto
  * record the registry reads for slugs and titles. Put the body back on that
  * record and every public page downloads the whole corpus to render a heading.
  */
-const PROSE_MODULES = [
+const PROSE_MODULES = new Set([
   'src/features/marketing/articles/blogContent.ts',
   'src/features/marketing/articles/guideContent.ts',
   'src/features/support/help/helpContent.ts',
-]
+])
 
 /**
  * Workspace modules the route table cannot avoid touching statically: the
@@ -111,11 +111,13 @@ const fixtures = []
 
 /** `../../src/a/b.ts` → `src/a/b.ts`; `…/node_modules/x/y.js` → `node_modules/x/y.js`. */
 function normalize(source) {
-  const clean = source.replace(/\\/g, '/').replace(/\?.*$/, '')
-  const nm = clean.lastIndexOf('node_modules/')
-  if (nm !== -1) return clean.slice(nm)
-  const src = clean.lastIndexOf('src/')
-  return src === -1 ? clean : clean.slice(src)
+  const clean = source.replaceAll('\\', '/')
+  const queryIdx = clean.lastIndexOf('?')
+  const pathPart = queryIdx === -1 ? clean : clean.slice(0, queryIdx)
+  const nm = pathPart.lastIndexOf('node_modules/')
+  if (nm !== -1) return pathPart.slice(nm)
+  const src = pathPart.lastIndexOf('src/')
+  return src === -1 ? pathPart : pathPart.slice(src)
 }
 
 /** `node_modules/@scope/name/x.js` → `@scope/name`; `node_modules/name/x` → `name`. */
@@ -181,7 +183,7 @@ for (const file of eager) {
       fixtures.push({ file, module })
       continue
     }
-    if (PROSE_MODULES.includes(module)) {
+    if (PROSE_MODULES.has(module)) {
       fail(
         `${file} pulls ${module} into the eager graph — that is article prose, and the only ` +
           'thing the SEO registry needs from an article is its slug. Read bodies through the ' +

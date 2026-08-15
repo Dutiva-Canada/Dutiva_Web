@@ -40,7 +40,7 @@ async function collectMaps(dir) {
     // Only a genuinely absent directory is fine. A permission/I/O error must
     // fail the build — otherwise unreadable subtrees could leave .map files
     // under dist/ and ship them, breaking the never-deploy-source-maps rule.
-    if (err && err.code === 'ENOENT') return found
+    if (err?.code === 'ENOENT') return found
     throw err
   }
   for (const entry of entries) {

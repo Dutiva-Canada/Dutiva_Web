@@ -3,7 +3,7 @@
  * establish at the type level, but at the one place that boundary doesn't
  * reach: a literal `t('some_key')` call written directly in a component.
  *
- * TODO.md EF6a's remaining "genuinely large half" was making `t()` itself
+ * The open-items doc's EF6a "genuinely large half" was making `t()` itself
  * surface-aware by threading a scope through `useI18n()` at every call site —
  * touching ~140 files that call `t()` today. This does the same job a
  * different way: rather than retype every call site, derive which message
@@ -42,7 +42,7 @@ function importedModuleNames(source) {
  * a nested `en:`/`fr:` line is indented by 4 and so never matches.
  */
 function topLevelKeys(source) {
-  return [...source.matchAll(/^ {2}([A-Za-z0-9_]+):/gm)].map((m) => m[1])
+  return [...source.matchAll(/^ {2}(\w+):/gm)].map((m) => m[1])
 }
 
 async function keysOfModule(name) {
@@ -105,7 +105,7 @@ async function collectFiles(dir) {
   return out
 }
 
-const T_CALL = /\bt\(\s*['"]([A-Za-z0-9_]+)['"]\s*\)/g
+const T_CALL = /\bt\(\s*['"](\w+)['"]\s*\)/g
 
 const violations = []
 for (const surface of SURFACES) {

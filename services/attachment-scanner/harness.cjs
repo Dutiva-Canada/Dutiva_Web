@@ -16,56 +16,67 @@ const FILE_PORT = 19000
 const APP_PORT = 18080
 const SERVER = path.join(__dirname, 'server.js')
 
-const EICAR = 'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
+const EICAR = String.raw`X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*`
 
 // What the mock clamd should answer for the next scan.
 let clamdMode = 'clean'
 // Records how the stream actually arrived, so we can assert the framing.
 let lastStream = { chunks: 0, bytes: 0, sawTerminator: false }
 
+function clamdReplyFor(mode) {
+  switch (mode) {
+    case 'infected': return 'stream: Win.Test.EICAR_HDB-1 FOUND\0'
+    case 'sizelimit': return 'INSTREAM size limit exceeded. ERROR\0'
+    case 'weird': return 'stream: something unexpected ERROR\0'
+    default: return 'stream: OK\0'
+  }
+}
+
+/** Returns true if the handshake is done (or the socket was closed), false if more data is needed. */
+function handleHandshake(socket, state) {
+  if (state.buf.subarray(0, 6).toString() === 'zPING\0'.slice(0, 6)) {
+    socket.write('PONG\0'); socket.end(); return true
+  }
+  const header = 'zINSTREAM\0'
+  if (state.buf.length < header.length) return false
+  if (state.buf.subarray(0, header.length).toString() !== header) {
+    socket.write('UNKNOWN COMMAND\0'); socket.end(); return true
+  }
+  state.started = true
+  state.buf = state.buf.subarray(header.length)
+  return true
+}
+
+function handleClamdData(socket, state, d) {
+  state.buf = Buffer.concat([state.buf, d])
+
+  if (!state.started) {
+    if (!handleHandshake(socket, state)) return
+    if (socket.destroyed) return
+  }
+
+  // Consume [4-byte BE length][payload] frames.
+  for (;;) {
+    if (state.buf.length < 4) return
+    const len = state.buf.readUInt32BE(0)
+    if (len === 0) {
+      lastStream.sawTerminator = true
+      socket.write(clamdReplyFor(clamdMode))
+      socket.end()
+      return
+    }
+    if (state.buf.length < 4 + len) return
+    lastStream.chunks += 1
+    lastStream.bytes += len
+    state.buf = state.buf.subarray(4 + len)
+  }
+}
+
 const clamd = net.createServer((socket) => {
-  let buf = Buffer.alloc(0)
-  let started = false
+  const state = { buf: Buffer.alloc(0), started: false }
   lastStream = { chunks: 0, bytes: 0, sawTerminator: false }
 
-  socket.on('data', (d) => {
-    buf = Buffer.concat([buf, d])
-
-    if (!started) {
-      if (buf.subarray(0, 6).toString() === 'zPING\0'.slice(0, 6)) {
-        socket.write('PONG\0'); socket.end(); return
-      }
-      const header = 'zINSTREAM\0'
-      if (buf.length >= header.length) {
-        if (buf.subarray(0, header.length).toString() !== header) {
-          socket.write('UNKNOWN COMMAND\0'); socket.end(); return
-        }
-        started = true
-        buf = buf.subarray(header.length)
-      } else return
-    }
-
-    // Consume [4-byte BE length][payload] frames.
-    for (;;) {
-      if (buf.length < 4) return
-      const len = buf.readUInt32BE(0)
-      if (len === 0) {
-        lastStream.sawTerminator = true
-        const reply =
-          clamdMode === 'infected' ? 'stream: Win.Test.EICAR_HDB-1 FOUND\0'
-          : clamdMode === 'sizelimit' ? 'INSTREAM size limit exceeded. ERROR\0'
-          : clamdMode === 'weird' ? 'stream: something unexpected ERROR\0'
-          : 'stream: OK\0'
-        socket.write(reply)
-        socket.end()
-        return
-      }
-      if (buf.length < 4 + len) return
-      lastStream.chunks += 1
-      lastStream.bytes += len
-      buf = buf.subarray(4 + len)
-    }
-  })
+  socket.on('data', (d) => handleClamdData(socket, state, d))
   socket.on('error', () => {})
 })
 
@@ -98,7 +109,8 @@ const post = (body, headers = {}) =>
 let failures = 0
 function check(name, cond, extra = '') {
   if (!cond) failures++
-  console.log(`${cond ? 'PASS' : 'FAIL'}  ${name}${extra ? `  — ${extra}` : ''}`)
+  const suffix = extra ? `  — ${extra}` : ''
+  console.log(`${cond ? 'PASS' : 'FAIL'}  ${name}${suffix}`)
 }
 
 async function main() {
