@@ -105,7 +105,7 @@ export function AdvisorHome({
         <div className="mb-[26px] grid grid-cols-[repeat(auto-fit,minmax(128px,1fr))] gap-[10px] text-left">
           {metrics.map((metric) => (
             <button
-              key={metric.view}
+              key={metric.labelKey}
               type="button"
               onClick={() => onMetricClick(metric.view)}
               className="cursor-pointer rounded-[12px] border border-border bg-surface p-[14px] text-left font-sans transition-[border-color,transform] duration-150 hover:-translate-y-px hover:border-(--accent-soft-border)"
