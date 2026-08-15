@@ -34,12 +34,12 @@ Sourced from `SUPPORT_CHANNELS` — never hard-code an address:
 
 | Channel | Address | Public intake | Restricted handling |
 | --- | --- | --- | --- |
-| Support | support@dutiva.ca | yes | no |
-| Billing | billing@dutiva.ca | no (prefers authenticated) | no |
-| Privacy | privacy@dutiva.ca | yes | yes |
-| Security | security@dutiva.ca | yes | yes |
-| Accessibility | accessibility@dutiva.ca | yes | yes |
-| Sales | sales@dutiva.ca | yes | no |
+| Support | <support@dutiva.ca> | yes | no |
+| Billing | <billing@dutiva.ca> | no (prefers authenticated) | no |
+| Privacy | <privacy@dutiva.ca> | yes | yes |
+| Security | <security@dutiva.ca> | yes | yes |
+| Accessibility | <accessibility@dutiva.ca> | yes | yes |
+| Sales | <sales@dutiva.ca> | yes | no |
 
 No personal founder email or phone number is exposed anywhere.
 

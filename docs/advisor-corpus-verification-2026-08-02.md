@@ -50,7 +50,7 @@ is created and does not change mid-session.
 
 Required allowlist (note the French hosts — see "Authoring requirements" below):
 
-```
+```text
 canada.ca            ontario.ca            cnesst.gouv.qc.ca
 legisquebec.gouv.qc.ca   chrc-ccdp.gc.ca   cdpdj.qc.ca
 ```

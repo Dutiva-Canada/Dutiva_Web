@@ -53,22 +53,22 @@ Derived from `ORG_DESCRIPTION` and `docs/CANONICAL_FACTS.md`. Do not improve
 these ad hoc; change `site.ts` and re-derive, or the listings drift the way
 the Drive documents did.
 
-**Short (under 100 characters), EN**
+#### Short (under 100 characters), EN
 
 > AI-assisted HR compliance software for Canadian employers.
 
-**Short, FR**
+#### Short, FR
 
 > Logiciel de conformité RH assisté par l'IA pour les employeurs canadiens.
 
-**Medium (about 250 characters), EN**
+#### Medium (about 250 characters), EN
 
 > Dutiva Canada Inc. provides AI-assisted HR compliance software for Canadian
 > employers — practical, jurisdiction-specific guidance and workplace
 > documentation across the employee lifecycle. Dutiva does not provide legal
 > advice.
 
-**Long, EN**
+#### Long, EN
 
 > Dutiva is compliance-oriented HR software built for Canadian employers, HR
 > teams, and business operators. It provides jurisdiction-specific guidance and
@@ -86,7 +86,7 @@ everywhere else.
 **Fields to leave blank.** A published business phone is an open item in
 CANONICAL_FACTS (unverified, and deliberately absent from the site). Do not
 supply one to a directory to satisfy a required field; either verify it first
-or skip the listing. Publish **support@dutiva.ca** only — `info@`, `hello@`,
+or skip the listing. Publish **<support@dutiva.ca>** only — `info@`, `hello@`,
 and `DutivaCanada@` are retired.
 
 **Address.** Ottawa for marketing and press contexts; the Toronto registered

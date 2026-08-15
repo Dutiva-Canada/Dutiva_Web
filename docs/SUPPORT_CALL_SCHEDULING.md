@@ -110,12 +110,12 @@ One query, service-role (SQL editor):
 select * from public.support_call_scheduler_status();
 ```
 
-| Column                  | Healthy value                                            |
-| ----------------------- | --------------------------------------------------------- |
-| `secret_configured`     | `true`                                                     |
-| `job_scheduled`         | `true`                                                     |
-| `awaiting_reminder`     | Confirmed calls due a reminder on the next sweep           |
-| `awaiting_followup`     | Confirmed calls due a follow-up prompt on the next sweep   |
+| Column | Healthy value |
+| --- | --- |
+| `secret_configured` | `true` |
+| `job_scheduled` | `true` |
+| `awaiting_reminder` | Confirmed calls due a reminder on the next sweep |
+| `awaiting_followup` | Confirmed calls due a follow-up prompt on the next sweep |
 
 Trigger a sweep by hand: `select public.trigger_support_call_scheduler();`
 

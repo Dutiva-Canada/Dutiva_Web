@@ -314,7 +314,7 @@ select * from public.rls_grant_gaps();
 **Zero rows is healthy.** Any row names a table whose policy calls a function
 `authenticated` cannot execute — which makes that table raise
 
-```
+```text
 ERROR: 42501: permission denied for function <name>
 ```
 

@@ -38,7 +38,7 @@ Verify afterwards:
 ## The 14 chunks
 
 | # | topic | Load-bearing figures to verify | Source |
-|---|-------|-------------------------------|--------|
+| --- | ------- | ------------------------------- | -------- |
 | 1 | `termination_notice` | Notice ladder 1–8 weeks by tenure (3 mo threshold; 8 wk max at 8+ yrs); mass-termination tiers 8/12/16 wks at 50/200/500 employees; 10% carve-out | [ontario.ca — termination](https://www.ontario.ca/document/your-guide-employment-standards-act-0/termination-employment) |
 | 2 | `severance` | 5-yr tenure + ($2.5M payroll OR 50+ severed in 6 mo); formula (wk wages × years + months/12); 26-wk max | [ontario.ca — severance pay](https://www.ontario.ca/document/your-guide-employment-standards-act-0/severance-pay) |
 | 3 | `vacation` | 2 wks / 4% under 5 yrs; 3 wks / 6% at 5+ yrs; 10-month take-by window; stub periods | [ontario.ca — vacation](https://www.ontario.ca/document/your-guide-employment-standards-act-0/vacation) |

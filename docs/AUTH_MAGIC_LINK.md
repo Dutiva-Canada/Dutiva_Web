@@ -37,7 +37,7 @@ not, Supabase silently falls back to the Site URL** — which is why a click can
 dump the user on the marketing home page, still signed out. Every origin the
 app is served from needs an entry that covers the confirm path:
 
-```
+```text
 https://dutiva.ca/**
 http://localhost:5173/**                      # local dev (vite)
 https://dutiva.vercel.app/**                  # production alias
@@ -58,7 +58,7 @@ covered.
 
 ### 2. URL Configuration → Site URL
 
-```
+```text
 https://dutiva.ca
 ```
 
@@ -106,7 +106,7 @@ stop a scanner from burning a `{{ .ConfirmationURL }}` token before the click).
 
 The browser client (`src/lib/supabaseClient.ts`) needs, at build time:
 
-```
+```text
 VITE_SUPABASE_URL=https://<project>.supabase.co
 VITE_SUPABASE_ANON_KEY=sb_publishable_…
 ```
