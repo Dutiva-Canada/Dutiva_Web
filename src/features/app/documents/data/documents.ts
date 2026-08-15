@@ -122,12 +122,15 @@ export const sampleDocuments: GeneratedDoc[] = [
     templateTid: 'T02',
     templateKey: 'employment_agreement',
     title: {
-      en: 'Employment agreement — Léa Tremblay',
-      fr: 'Contrat de travail — Léa Tremblay',
+      en: 'Employment agreement — Grace Osei',
+      fr: 'Contrat de travail — Grace Osei',
     },
-    employeeId: 'emp_lt',
-    jurisdiction: 'QC',
-    language: 'fr',
+    /* T02 is Ontario-only (see t02-employment-agreement.ts); Grace Osei
+       (emp_go) is an Ontario employee, unlike Léa Tremblay (QC) used here
+       before the template was narrowed to one jurisdiction. */
+    employeeId: 'emp_go',
+    jurisdiction: 'ON',
+    language: 'en',
     status: 'sent_for_signature',
     reviewStatus: 'approved_for_use',
     signatureStatus: 'viewed',
@@ -139,19 +142,19 @@ export const sampleDocuments: GeneratedDoc[] = [
     updatedAt: '2026-07-06',
     archived: false,
     answers: {
-      employee_name: 'Léa Tremblay',
-      position_title: 'Account manager',
+      employee_name: 'Grace Osei',
       start_date: '2026-07-14',
+      employment_type: 'full-time',
       annual_base_salary: '84,000',
       vacation_weeks: '3',
-      termination_basis: 'enhanced',
+      employee_notice_weeks: '2',
     },
     versions: [
       {
         n: 1,
         changeSummary: {
-          en: 'Generated from T02 v3',
-          fr: 'Généré à partir de T02 v3',
+          en: 'Generated from T02 v4',
+          fr: 'Généré à partir de T02 v4',
         },
         createdBy: 'Riley Summers',
         createdAt: '2026-06-28',
@@ -167,9 +170,9 @@ export const sampleDocuments: GeneratedDoc[] = [
         signedAt: '2026-07-05',
       },
       {
-        name: 'Léa Tremblay',
+        name: 'Grace Osei',
         type: 'employee',
-        email: 'l.tremblay@example.ca',
+        email: 'g.osei@example.ca',
         order: 2,
         status: 'viewed',
       },
@@ -198,7 +201,7 @@ export const sampleDocuments: GeneratedDoc[] = [
       },
       {
         event: 'signature_viewed',
-        actor: 'Léa Tremblay',
+        actor: 'Grace Osei',
         at: '2026-07-06 07:55',
       },
     ],

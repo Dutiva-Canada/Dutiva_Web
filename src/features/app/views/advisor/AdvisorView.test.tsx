@@ -73,7 +73,7 @@ describe('AdvisorView', () => {
     expect(screen.getByText('British Columbia — Employment Standards Act (BC)')).toBeInTheDocument()
 
     /* Doc-generate chips + follow-up chips from the fixture. */
-    expect(screen.getByText('Offer of employment letter')).toBeInTheDocument()
+    expect(screen.getByText('Offer of employment letter (Ontario)')).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Generate' }).length).toBeGreaterThan(0)
     expect(screen.getByRole('button', { name: 'Set probation terms' })).toBeInTheDocument()
   })

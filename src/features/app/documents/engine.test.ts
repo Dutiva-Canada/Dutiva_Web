@@ -23,17 +23,15 @@ const tpl = (tid: string): DocTemplate => {
 const org = (over: Partial<OrgProfile>): OrgProfile => ({ ...defaultOrgProfile, ...over })
 
 describe('conditional clauses (template × jurisdiction × headcount × union)', () => {
-  it('T01 injects the ON disconnecting-from-work clause only at ON with 25+ staff', () => {
+  it('T01 injects the disconnecting-from-work / electronic monitoring clause only at 25+ staff', () => {
     const t = tpl('T01')
-    const base = { unionized: false }
-    const on25 = resolveBlocks(t, { ...base, jurisdiction: 'ON', headcount: 25 })
-    const on24 = resolveBlocks(t, { ...base, jurisdiction: 'ON', headcount: 24 })
-    const qc100 = resolveBlocks(t, { ...base, jurisdiction: 'QC', headcount: 100 })
-    expect(on25).toHaveLength(t.preview.length)
-    expect(on24).toHaveLength(t.preview.length - 1)
-    expect(qc100).toHaveLength(t.preview.length - 1)
+    const base = { jurisdiction: 'ON' as const, unionized: false }
+    const at25 = resolveBlocks(t, { ...base, headcount: 25 })
+    const at24 = resolveBlocks(t, { ...base, headcount: 24 })
+    expect(at25).toHaveLength(t.preview.length)
+    expect(at24).toHaveLength(t.preview.length - 1)
     const gated = t.preview.find((b) => b.when)
-    expect(gated?.when).toEqual({ juris: 'ON', min_headcount: 25 })
+    expect(gated?.when).toEqual({ min_headcount: 25 })
   })
 
   it.each(['T03', 'T06', 'T15', 'T16'])(
@@ -92,6 +90,22 @@ describe('conditional clauses (template × jurisdiction × headcount × union)',
     expect(kinds('yes')).toContain('sig')
     expect(kinds('no')).not.toContain('ack')
     expect(kinds('no')).not.toContain('sig')
+  })
+
+  it('T02 includes Schedule B only when an enhanced termination entitlement is confirmed', () => {
+    /* The source instructs "complete this schedule only if..." — a gate, not
+       prose to render unconditionally. */
+    const t = tpl('T02')
+    const ctx = { jurisdiction: 'ON' as const, headcount: 30, unionized: false }
+    const headings = (has_enhanced_termination: string) =>
+      resolveBlocks(t, { ...ctx, answers: { has_enhanced_termination } }).map((b) => b.heading?.en)
+    expect(headings('yes')).toContain('Schedule B - Additional Contractual Termination Entitlement')
+    expect(headings('no')).not.toContain(
+      'Schedule B - Additional Contractual Termination Entitlement',
+    )
+    /* Unanswered reads as undecided — visible in the template detail preview,
+       same convention as every other answer-gated block. */
+    expect(headings('')).toContain('Schedule B - Additional Contractual Termination Entitlement')
   })
 })
 
@@ -198,7 +212,7 @@ describe('merge fields', () => {
     const empty = fillProgress(t, {})
     expect(empty.total).toBeGreaterThan(5)
     expect(empty.filled).toBe(0)
-    expect(fillProgress(t, { candidate_name: 'A' }).filled).toBe(1)
+    expect(fillProgress(t, { employee_name: 'A' }).filled).toBe(1)
   })
 })
 
