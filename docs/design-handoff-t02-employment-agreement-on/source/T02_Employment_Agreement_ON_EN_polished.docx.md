@@ -1,4 +1,4 @@
-**Employment Agreement**
+# Employment Agreement
 
 Ontario template \- employee-facing draft
 

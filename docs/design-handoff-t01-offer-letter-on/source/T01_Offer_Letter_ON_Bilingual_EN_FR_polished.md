@@ -2,7 +2,7 @@
 
 Employee-facing bilingual template | Modèle bilingue destiné à l'employé
 
-# **English Version**
+## **English Version**
 
 {{document\_date}}
 
@@ -144,7 +144,7 @@ Sincerely,
 | Required qualifications | {{required\_qualifications}} |
 | Physical, travel or other role requirements, if any | {{role\_requirements}} |
 
-# **Version française**
+## **Version française**
 
 {{document\_date}}
 
@@ -286,7 +286,7 @@ Cordialement,
 | Qualifications requises | {{required\_qualifications}} |
 | Exigences physiques, déplacements ou autres exigences liées au poste, le cas échéant | {{role\_requirements}} |
 
-# **Acceptance / Acceptation**
+## **Acceptance / Acceptation**
 
 By signing below, the Employee accepts this offer and agrees to be bound by this bilingual offer letter, Schedule A / Annexe A and the attached Employment Agreement.
 
@@ -297,4 +297,3 @@ En signant ci-dessous, l'employé accepte la présente offre et convient d'être
 | Signature: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ | Signature: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |
 | Name / Nom: {{employer\_signer\_name}} | Name / Nom: {{employee\_name}} |
 | Title / Titre: {{employer\_signer\_title}}Date: {{employer\_signature\_date}} | Title/Position / Titre/Poste: {{employee\_position}}Date: {{employee\_signature\_date}} |
-

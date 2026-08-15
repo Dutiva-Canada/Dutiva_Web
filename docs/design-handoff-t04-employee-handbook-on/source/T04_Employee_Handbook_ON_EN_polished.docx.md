@@ -1,4 +1,4 @@
-**{{employer\_legal\_name}} Employee Handbook**
+# {{employer_legal_name}} Employee Handbook
 
 Ontario template \- employee-facing draft
 
@@ -133,4 +133,3 @@ By signing the handbook acknowledgement or continuing employment after receiving
 | Signature: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ | Signature: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |
 | Name: {{employer\_signer\_name}} | Name: {{employee\_name}} |
 | Title: {{employer\_signer\_title}}   Date: {{employer\_signature\_date}} | Title/Position: {{employee\_position}}   Date: {{employee\_signature\_date}} |
-
