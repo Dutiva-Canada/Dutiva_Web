@@ -16,6 +16,7 @@ import {
 } from '@/features/support/supportAdminApi'
 import type { AdminTicketFilters, AdminTicketRow } from '@/features/support/supportAdminApi'
 import { ServiceStatusControl } from './ServiceStatusControl'
+import { CapacityAdminControl } from './CapacityAdminControl'
 
 const PRIORITIES: SupportPriority[] = ['critical', 'high', 'standard', 'low']
 
@@ -82,6 +83,7 @@ export function SupportAdminView() {
       </header>
 
       <ServiceStatusControl />
+      <CapacityAdminControl />
 
       <div className="mb-[16px] flex items-center gap-[10px]">
         <Link
