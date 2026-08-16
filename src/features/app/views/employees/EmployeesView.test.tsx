@@ -508,6 +508,7 @@ describe('EmployeeProfileProductionView for a non-admin member', () => {
             companyName: 'Acme Co.',
             user: { name: 'Vic Member', initials: 'VM', role: { en: 'HR', fr: 'RH' }, email: '' },
           },
+          companyName: 'Acme Co.',
           organizationId: 'org-1',
           memberRole: 'member',
           isOrgAdmin: false,

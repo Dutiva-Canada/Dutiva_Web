@@ -90,11 +90,34 @@ declare
   cfg public.platform_capacity_config;
   current_count integer;
   new_org public.organizations;
+  existing_membership public.organization_members;
   user_email text;
   existing_waiting uuid;
 begin
   if (select auth.uid()) is null then
     raise exception 'not authenticated';
+  end if;
+
+  -- If the caller already has an active membership, return that organization so
+  -- transient client-state loss (e.g. a failed preference save after a
+  -- successful bootstrap) cannot create a duplicate tenant.
+  select * into existing_membership
+  from public.organization_members
+  where user_id = auth.uid() and status = 'active'
+  limit 1;
+
+  if existing_membership is not null then
+    select * into new_org from public.organizations where id = existing_membership.organization_id;
+    if new_org is not null then
+      return jsonb_build_object(
+        'id', new_org.id,
+        'name', new_org.name,
+        'legal_name', new_org.legal_name,
+        'created_by', new_org.created_by,
+        'created_at', new_org.created_at,
+        'member_role', existing_membership.role
+      );
+    end if;
   end if;
 
   -- Serialize concurrent admissions on the singleton config row.
@@ -157,7 +180,8 @@ begin
     'name', new_org.name,
     'legal_name', new_org.legal_name,
     'created_by', new_org.created_by,
-    'created_at', new_org.created_at
+    'created_at', new_org.created_at,
+    'member_role', 'owner'
   );
 end;
 $$;
@@ -222,7 +246,7 @@ begin
   select count(*) into current_count from public.organizations;
   select count(*) into waitlist_count from public.organization_admission_waitlist where status = 'waiting';
 
-  if cfg.capacity_mode = 'unlimited' or not cfg.capacity_enforcement_enabled then
+  if cfg.capacity_mode = 'unlimited' then
     remaining := null;
     utilization := 0;
   else
@@ -309,12 +333,15 @@ end;
 $$;
 
 -- Permissions: authenticated users access through the RPCs; service_role
--- can still be used for admin scripts and Supabase edges.
-GRANT ALL ON TABLE "public"."platform_capacity_config" TO "authenticated";
+-- can still be used for admin scripts and Supabase edges. Waitlist reads and
+-- admin waitlist updates rely on the RLS policies above; all other table access
+-- is through SECURITY DEFINER functions.
+REVOKE ALL ON TABLE "public"."platform_capacity_config" FROM "authenticated";
+REVOKE ALL ON TABLE "public"."organization_admission_waitlist" FROM "authenticated";
+REVOKE ALL ON TABLE "public"."organization_admission_log" FROM "authenticated";
+GRANT SELECT, UPDATE ON TABLE "public"."organization_admission_waitlist" TO "authenticated";
 GRANT ALL ON TABLE "public"."platform_capacity_config" TO "service_role";
-GRANT ALL ON TABLE "public"."organization_admission_waitlist" TO "authenticated";
 GRANT ALL ON TABLE "public"."organization_admission_waitlist" TO "service_role";
-GRANT ALL ON TABLE "public"."organization_admission_log" TO "authenticated";
 GRANT ALL ON TABLE "public"."organization_admission_log" TO "service_role";
 
 REVOKE ALL ON FUNCTION "public"."create_organization"("text", "text") FROM PUBLIC;

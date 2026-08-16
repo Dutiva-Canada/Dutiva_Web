@@ -47,6 +47,7 @@ const DEMO_MODE_CTX: WorkspaceModeContextValue = {
     companyName: 'Northgate Logistics Inc.',
     user: { name: 'Riley Chen', initials: 'RC', role: { en: 'HR Manager', fr: 'Gestionnaire RH' }, email: 'riley@northgate.ca' },
   },
+  companyName: 'Northgate Logistics Inc.',
   organizationId: null,
   memberRole: null,
   isOrgAdmin: false,
