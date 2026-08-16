@@ -100,13 +100,13 @@ export async function fetchOrganizationMembership(
 }
 
 export type OrganizationAdmissionResult =
-  | { status: 'success'; organizationId: string }
+  | { status: 'success'; organizationId: string; memberRole: OrgMemberRole }
   | { status: 'capacity' }
   | { status: 'waitlist' }
   | { status: 'error' }
 
 const createOrganizationResultSchema = z.union([
-  z.object({ id: z.string() }),
+  z.object({ id: z.string(), member_role: z.string().optional() }),
   z.object({ error: z.enum(['CAPACITY_REACHED', 'WAITLIST']) }),
 ])
 
@@ -134,7 +134,11 @@ export async function bootstrapOrganization(
       if (result.error === 'WAITLIST') return { status: 'waitlist' }
       return { status: 'error' }
     }
-    return { status: 'success', organizationId: result.id }
+    return {
+      status: 'success',
+      organizationId: result.id,
+      memberRole: isOrgMemberRole(result.member_role) ? result.member_role : 'owner',
+    }
   } catch {
     return { status: 'error' }
   }

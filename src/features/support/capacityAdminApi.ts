@@ -56,9 +56,9 @@ export async function updateCapacityConfig(values: {
   if (!supabase) return false
   try {
     const { error } = await supabase.rpc('update_capacity_config', {
-      capacity_limit: values.limit,
-      capacity_enforcement_enabled: values.enforcementEnabled,
-      capacity_mode: values.mode,
+      p_capacity_limit: values.limit,
+      p_capacity_enforcement_enabled: values.enforcementEnabled,
+      p_capacity_mode: values.mode,
     })
     return !error
   } catch {

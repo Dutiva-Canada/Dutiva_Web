@@ -133,6 +133,7 @@ describe('workspaceMode api', () => {
     expect(await api.bootstrapOrganization('Acme', 'Acme Inc.')).toEqual({
       status: 'success',
       organizationId: 'org-1',
+      memberRole: 'owner',
     })
   })
 

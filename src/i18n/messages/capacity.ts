@@ -3,8 +3,8 @@ import { defineMessages } from '../core'
 /**
  * Organization capacity and admission strings.
  *
- * EN wording follows the product spec; FR is self-authored because there is no
- * design-handoff counterpart for the new capacity system.
+ * EN wording follows the product spec. There is no design-handoff counterpart
+ * for the new capacity system, so [FR self-authored] throughout.
  */
 export const capacityMessages = defineMessages({
   /* ── Settings capacity alert (user-facing) ─────────────────────────────── */

@@ -6,19 +6,23 @@ import { joinOrganizationWaitlist } from '@/features/app/workspaceMode/api'
 
 export function CapacityAlert() {
   const { x } = useI18n()
-  const { admissionStatus, clearAdmissionStatus, identity } = useWorkspaceMode()
+  const { admissionStatus, clearAdmissionStatus, companyName } = useWorkspaceMode()
   const [submitted, setSubmitted] = useState(false)
+  const [joinError, setJoinError] = useState(false)
   const [working, setWorking] = useState(false)
 
   if (admissionStatus === 'idle') return null
 
-  const requestedName = identity?.companyName ?? 'Dutiva Canada Inc.'
+  const requestedName = companyName
 
   async function handleJoin() {
     setWorking(true)
+    setJoinError(false)
     const result = await joinOrganizationWaitlist(requestedName)
     if (result === 'waiting' || result === 'already_waiting') {
       setSubmitted(true)
+    } else {
+      setJoinError(true)
     }
     setWorking(false)
   }
@@ -61,6 +65,11 @@ export function CapacityAlert() {
             {x(M.capacity_dismiss)}
           </button>
         </div>
+        {joinError && (
+          <p role="alert" className="m-0 mt-[10px] text-[13px] text-risk-fg">
+            {x(M.capacity_error_body)}
+          </p>
+        )}
       </div>
     )
   }

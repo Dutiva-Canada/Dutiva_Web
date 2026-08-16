@@ -26,6 +26,12 @@ export interface WorkspaceModeContextValue {
   /** Northgate Logistics Inc. fixture identity in demo; the admin's real profile in production. */
   identity: WorkspaceIdentity
   /**
+   * The real company name of the signed-in admin, regardless of whether the
+   * workspace is currently in demo or production mode. Used for flows such as
+   * the capacity waitlist where the production identity is not yet exposed.
+   */
+  companyName: string
+  /**
    * The admin's real organization (auto-provisioned on first switch to
    * production via the create_organization() RPC). Always null in demo mode
    * — production modules scope every real read/write to this id.

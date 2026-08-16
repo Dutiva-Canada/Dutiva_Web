@@ -92,7 +92,7 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
         if (cancelled) return
         if (result.status === 'success') {
           organizationId = result.organizationId
-          memberRole = 'owner'
+          memberRole = result.memberRole ?? 'owner'
           admissionStatus = 'idle'
         } else if (result.status === 'capacity') {
           admissionStatus = 'capacity'
@@ -144,7 +144,7 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
         const result = await bootstrapOrganization(companyName, companyName)
         if (result.status === 'success') {
           organizationId = result.organizationId
-          memberRole = 'owner'
+          memberRole = result.memberRole ?? 'owner'
           admissionStatus = 'idle'
         } else if (result.status === 'capacity') {
           admissionStatus = 'capacity'
@@ -163,7 +163,9 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
 
       const ok = await saveStoredMode(session.user.id, next)
       if (!ok) {
-        setAdmin((prev) => ({ ...prev, admissionStatus: 'error' }))
+        // The organization was already created; keep its id/role in state so a
+        // retry does not provision a duplicate tenant.
+        setAdmin((prev) => ({ ...prev, organizationId, memberRole, admissionStatus: 'error' }))
         return
       }
       setAdmin((prev) => ({
@@ -194,6 +196,7 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
       mode,
       isAdmin: admin.isAdmin,
       identity: mode === 'production' && admin.identity ? admin.identity : DEMO_IDENTITY,
+      companyName: admin.identity?.companyName ?? 'Dutiva Canada Inc.',
       organizationId: mode === 'production' ? admin.organizationId : null,
       memberRole,
       /* Mirrors RLS's is_org_admin: platform admin, or owner/admin role. */

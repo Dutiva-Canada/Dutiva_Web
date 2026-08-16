@@ -126,7 +126,10 @@ export function CapacityAdminControl() {
             type="number"
             min={0}
             value={limit}
-            onChange={(e) => setLimit(Number.parseInt(e.target.value, 10) || 0)}
+            onChange={(e) => {
+              setLimit(Number.parseInt(e.target.value, 10) || 0)
+              setSaved(false)
+            }}
             className={`${selectClass} w-[140px]`}
           />
         </label>
@@ -135,7 +138,10 @@ export function CapacityAdminControl() {
           <input
             type="checkbox"
             checked={enforcementEnabled}
-            onChange={(e) => setEnforcementEnabled(e.target.checked)}
+            onChange={(e) => {
+              setEnforcementEnabled(e.target.checked)
+              setSaved(false)
+            }}
             className="h-4 w-4 accent-navy"
           />
           {x(M.capacity_admin_enforcement)}
@@ -145,7 +151,10 @@ export function CapacityAdminControl() {
           {x(M.capacity_admin_mode)}
           <select
             value={mode}
-            onChange={(e) => setMode(e.target.value as 'unlimited' | 'capped' | 'waitlist')}
+            onChange={(e) => {
+              setMode(e.target.value as 'unlimited' | 'capped' | 'waitlist')
+              setSaved(false)
+            }}
             className={selectClass}
           >
             {MODE_ORDER.map((m) => (
