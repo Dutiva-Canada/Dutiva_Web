@@ -26,6 +26,7 @@ import {
 } from './settingsData'
 import type { ChipTone, PrefKey } from './settingsData'
 import { Card, Section, StatusChip, ToggleRow } from './settingsPrimitives'
+import { CapacityAlert } from './CapacityAlert'
 
 /**
  * Settings view — port of the prototype's largest static view
@@ -200,6 +201,7 @@ export function SettingsView() {
                 <p className="mt-[8px] text-[11.5px] leading-normal text-text-faint">
                   {x(M.settings_workspace_mode_note)}
                 </p>
+                <CapacityAlert />
               </div>
             )}
             <div>

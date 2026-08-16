@@ -36,7 +36,11 @@ describe('ModeGate', () => {
             }),
           onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
         },
-        rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
+        rpc: vi.fn((fn: string) => {
+          if (fn === 'is_admin_user') return Promise.resolve({ data: true, error: null })
+          if (fn === 'create_organization') return Promise.resolve({ data: { id: 'org-1' }, error: null })
+          return Promise.resolve({ data: null, error: null })
+        }),
         from: vi.fn((table: string) => ({
           select: () => ({
             eq: () => ({

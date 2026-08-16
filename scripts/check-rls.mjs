@@ -47,7 +47,14 @@ import { cleanSecret, describeSecret } from './lib/secrets.mjs'
  * table passes; the cost of a missing one is the incident this file exists to
  * prevent.
  */
-const SENSITIVE_TABLES = ['beta_signups', 'hr_documents', 'signatures']
+const SENSITIVE_TABLES = [
+  'beta_signups',
+  'hr_documents',
+  'signatures',
+  'platform_capacity_config',
+  'organization_admission_waitlist',
+  'organization_admission_log',
+]
 
 /**
  * A table the anonymous role is MEANT to read, with at least one row. Its only

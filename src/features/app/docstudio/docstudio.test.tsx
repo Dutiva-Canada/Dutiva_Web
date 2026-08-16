@@ -51,6 +51,8 @@ const DEMO_MODE_CTX: WorkspaceModeContextValue = {
   memberRole: null,
   isOrgAdmin: false,
   setMode: vi.fn(),
+  admissionStatus: 'idle',
+  clearAdmissionStatus: vi.fn(),
 }
 const PRO_PLAN_CTX: PlanContextValue = {
   plan: 'pro',

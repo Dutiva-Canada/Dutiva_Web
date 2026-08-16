@@ -12,7 +12,7 @@ import {
   saveStoredMode,
 } from './api'
 import { WorkspaceModeContext } from './workspaceModeContext'
-import type { WorkspaceIdentity, WorkspaceMode } from './workspaceModeContext'
+import type { AdmissionStatus, WorkspaceIdentity, WorkspaceMode } from './workspaceModeContext'
 import type { OrgMemberRole } from './roles'
 import { isAdminRole } from './roles'
 
@@ -32,6 +32,7 @@ interface AdminState {
   identity: WorkspaceIdentity | null
   organizationId: string | null
   memberRole: OrgMemberRole | null
+  admissionStatus: AdmissionStatus
 }
 
 const SIGNED_OUT_STATE: AdminState = {
@@ -40,6 +41,7 @@ const SIGNED_OUT_STATE: AdminState = {
   identity: null,
   organizationId: null,
   memberRole: null,
+  admissionStatus: 'idle',
 }
 
 /**
@@ -84,10 +86,21 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
          inserts the caller as the org's active owner. */
       let organizationId = membership?.organizationId ?? null
       let memberRole = membership?.role ?? null
+      let admissionStatus: AdmissionStatus = 'idle'
       if (storedMode === 'production' && organizationId === null) {
-        organizationId = await bootstrapOrganization(companyName, companyName)
-        if (organizationId !== null) memberRole = 'owner'
+        const result = await bootstrapOrganization(companyName, companyName)
         if (cancelled) return
+        if (result.status === 'success') {
+          organizationId = result.organizationId
+          memberRole = 'owner'
+          admissionStatus = 'idle'
+        } else if (result.status === 'capacity') {
+          admissionStatus = 'capacity'
+        } else if (result.status === 'waitlist') {
+          admissionStatus = 'waitlist'
+        } else {
+          admissionStatus = 'error'
+        }
       }
 
       const contactName = profile?.contactName ?? 'Martin Constantineau'
@@ -96,6 +109,7 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
         storedMode,
         organizationId,
         memberRole,
+        admissionStatus,
         identity: {
           companyName,
           province: profile?.province ?? 'Ontario',
@@ -119,25 +133,62 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
   const setMode = useCallback(
     async (next: WorkspaceMode) => {
       if (!admin.isAdmin || !session) return
-      const ok = await saveStoredMode(session.user.id, next)
-      if (!ok) return
       /* First switch to production provisions the real organization (the
          RPC also inserts the caller as its active owner). */
       let organizationId = admin.organizationId
       let memberRole = admin.memberRole
+      let admissionStatus: AdmissionStatus = admin.admissionStatus
+
       if (next === 'production' && organizationId === null) {
         const companyName = admin.identity?.companyName ?? 'Dutiva Canada Inc.'
-        organizationId = await bootstrapOrganization(companyName, companyName)
-        if (organizationId !== null) memberRole = 'owner'
+        const result = await bootstrapOrganization(companyName, companyName)
+        if (result.status === 'success') {
+          organizationId = result.organizationId
+          memberRole = 'owner'
+          admissionStatus = 'idle'
+        } else if (result.status === 'capacity') {
+          admissionStatus = 'capacity'
+          setAdmin((prev) => ({ ...prev, admissionStatus: 'capacity' }))
+          return
+        } else if (result.status === 'waitlist') {
+          admissionStatus = 'waitlist'
+          setAdmin((prev) => ({ ...prev, admissionStatus: 'waitlist' }))
+          return
+        } else {
+          admissionStatus = 'error'
+          setAdmin((prev) => ({ ...prev, admissionStatus: 'error' }))
+          return
+        }
       }
-      setAdmin((prev) => ({ ...prev, storedMode: next, organizationId, memberRole }))
+
+      const ok = await saveStoredMode(session.user.id, next)
+      if (!ok) {
+        setAdmin((prev) => ({ ...prev, admissionStatus: 'error' }))
+        return
+      }
+      setAdmin((prev) => ({
+        ...prev,
+        storedMode: next,
+        organizationId,
+        memberRole,
+        admissionStatus,
+      }))
     },
-    [admin.isAdmin, admin.organizationId, admin.memberRole, admin.identity, session],
+    [admin.isAdmin, admin.organizationId, admin.memberRole, admin.admissionStatus, admin.identity, session],
   )
 
+  const clearAdmissionStatus = useCallback(() => {
+    setAdmin((prev) => ({ ...prev, admissionStatus: 'idle' }))
+  }, [])
+
   const value = useMemo(() => {
+    /* Production mode is only exposed when an organization actually exists;
+       otherwise a failed/capacity-blocked bootstrap keeps the UI in demo so
+       the user sees the capacity state instead of a broken production shell. */
     const mode: WorkspaceMode =
-      admin.isAdmin && admin.storedMode === 'production' ? 'production' : 'demo'
+      admin.isAdmin && admin.storedMode === 'production' && admin.organizationId !== null
+        ? 'production'
+        : 'demo'
     const memberRole = mode === 'production' ? admin.memberRole : null
     return {
       mode,
@@ -148,8 +199,10 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
       /* Mirrors RLS's is_org_admin: platform admin, or owner/admin role. */
       isOrgAdmin: mode === 'production' && (admin.isAdmin || isAdminRole(memberRole)),
       setMode,
+      admissionStatus: admin.admissionStatus,
+      clearAdmissionStatus,
     }
-  }, [admin, setMode])
+  }, [admin, setMode, clearAdmissionStatus])
 
   return <WorkspaceModeContext.Provider value={value}>{children}</WorkspaceModeContext.Provider>
 }

@@ -120,4 +120,85 @@ describe('workspaceMode api', () => {
       expect.objectContaining({ user_id: 'u1', mode: 'production' }),
     )
   })
+
+  it('bootstrapOrganization returns success for a created organization', async () => {
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        rpc: vi.fn().mockResolvedValue({ data: { id: 'org-1' }, error: null }),
+      },
+    }))
+    vi.resetModules()
+    const api = await import('./api')
+
+    expect(await api.bootstrapOrganization('Acme', 'Acme Inc.')).toEqual({
+      status: 'success',
+      organizationId: 'org-1',
+    })
+  })
+
+  it('bootstrapOrganization returns capacity when the server reports CAPACITY_REACHED', async () => {
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        rpc: vi.fn().mockResolvedValue({ data: { error: 'CAPACITY_REACHED' }, error: null }),
+      },
+    }))
+    vi.resetModules()
+    const api = await import('./api')
+
+    expect(await api.bootstrapOrganization('Acme', 'Acme Inc.')).toEqual({
+      status: 'capacity',
+    })
+  })
+
+  it('bootstrapOrganization returns waitlist when the server reports WAITLIST', async () => {
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        rpc: vi.fn().mockResolvedValue({ data: { error: 'WAITLIST' }, error: null }),
+      },
+    }))
+    vi.resetModules()
+    const api = await import('./api')
+
+    expect(await api.bootstrapOrganization('Acme', 'Acme Inc.')).toEqual({
+      status: 'waitlist',
+    })
+  })
+
+  it('bootstrapOrganization returns error for an unexpected response', async () => {
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
+      },
+    }))
+    vi.resetModules()
+    const api = await import('./api')
+
+    expect(await api.bootstrapOrganization('Acme', 'Acme Inc.')).toEqual({
+      status: 'error',
+    })
+  })
+
+  it('joinOrganizationWaitlist returns waiting for a fresh waitlist entry', async () => {
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        rpc: vi.fn().mockResolvedValue({ data: { status: 'waiting' }, error: null }),
+      },
+    }))
+    vi.resetModules()
+    const api = await import('./api')
+
+    expect(await api.joinOrganizationWaitlist('Acme')).toBe('waiting')
+  })
+
+  it('joinOrganizationWaitlist returns already_waiting for a duplicate entry', async () => {
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        rpc: vi.fn().mockResolvedValue({ data: { status: 'already_waiting' }, error: null }),
+      },
+    }))
+    vi.resetModules()
+    const api = await import('./api')
+
+    expect(await api.joinOrganizationWaitlist('Acme')).toBe('already_waiting')
+  })
 })

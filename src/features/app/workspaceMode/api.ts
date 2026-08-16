@@ -99,24 +99,63 @@ export async function fetchOrganizationMembership(
   }
 }
 
+export type OrganizationAdmissionResult =
+  | { status: 'success'; organizationId: string }
+  | { status: 'capacity' }
+  | { status: 'waitlist' }
+  | { status: 'error' }
+
+const createOrganizationResultSchema = z.union([
+  z.object({ id: z.string() }),
+  z.object({ error: z.enum(['CAPACITY_REACHED', 'WAITLIST']) }),
+])
+
 /**
  * First-run provisioning: the create_organization() RPC inserts the org and
  * the caller as its active owner atomically (SECURITY DEFINER, backend-owned).
+ *
+ * The RPC now returns a jsonb result so the caller can distinguish success
+ * from capacity/waitlist states without parsing raw PostgreSQL exceptions.
  */
 export async function bootstrapOrganization(
   name: string,
   legalName: string,
-): Promise<string | null> {
-  if (!supabase) return null
+): Promise<OrganizationAdmissionResult> {
+  if (!supabase) return { status: 'error' }
   try {
     const { data, error } = await supabase.rpc('create_organization', {
       org_name: name,
       org_legal_name: legalName,
     })
-    if (error || !data) return null
-    return z.object({ id: z.string() }).parse(data).id
+    if (error || !data) return { status: 'error' }
+    const result = createOrganizationResultSchema.parse(data)
+    if ('error' in result) {
+      if (result.error === 'CAPACITY_REACHED') return { status: 'capacity' }
+      if (result.error === 'WAITLIST') return { status: 'waitlist' }
+      return { status: 'error' }
+    }
+    return { status: 'success', organizationId: result.id }
   } catch {
-    return null
+    return { status: 'error' }
+  }
+}
+
+export async function joinOrganizationWaitlist(
+  requestedName: string,
+): Promise<'waiting' | 'already_waiting' | 'error'> {
+  if (!supabase) return 'error'
+  try {
+    const { data, error } = await supabase.rpc('join_organization_waitlist', {
+      requested_org_name: requestedName,
+    })
+    if (error || !data) return 'error'
+    const parsed = z
+      .object({ status: z.enum(['waiting', 'already_waiting']) })
+      .safeParse(data)
+    if (!parsed.success) return 'error'
+    return parsed.data.status
+  } catch {
+    return 'error'
   }
 }
 
