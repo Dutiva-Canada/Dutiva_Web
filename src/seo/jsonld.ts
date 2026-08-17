@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 import type { Lang } from '@/i18n/core'
 import { ORG, ORG_DESCRIPTION, SITE_ORIGIN, absoluteUrl } from './site'
 

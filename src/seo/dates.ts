@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 /**
  * Converts the human-readable dates displayed in policy documents
  * ("June 1, 2026" / "1er juin 2026") to ISO 8601 for JSON-LD and the

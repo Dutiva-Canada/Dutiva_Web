@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 import { describe, expect, it } from 'vitest'
 import { BETA_COHORT_LIMIT } from '@/config/beta'
 import { ANNUAL_MONTHS_BILLED, PAID_PLANS_DISABLED_DURING_BETA, PLANS } from '@/config/plans'

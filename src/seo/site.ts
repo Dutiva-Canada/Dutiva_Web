@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 /**
  * Canonical site identity — the single source of truth for the production
  * origin and the verified organization facts used across metadata, JSON-LD,

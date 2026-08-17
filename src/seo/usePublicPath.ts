@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 import { useMemo } from 'react'
 import { useI18n } from '@/i18n/context'
 import { legalDocPath, legalRowBySlug, seoRoute } from './routes'

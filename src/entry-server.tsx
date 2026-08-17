@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 /* oxlint-disable react/only-export-components -- build-time server entry,
    not a fast-refresh module: it exports render + manifest functions. */
 import { prerender } from 'react-dom/static'

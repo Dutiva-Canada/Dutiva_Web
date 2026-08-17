@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 import { describe, expect, it } from 'vitest'
 import { render } from '@testing-library/react'
 import { LangProvider } from '@/i18n/LangProvider'

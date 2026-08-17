@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 import { describe, expect, it } from 'vitest'
 import { parseDisplayDate } from './dates'
 import { buildHead, serializeHead } from './head'

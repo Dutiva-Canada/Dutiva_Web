@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 /* oxlint-disable react/only-export-components -- HeadSinkContext is part of
    the head-management API (consumed by entry-server), not a component. */
 import { createContext, useContext, useEffect, useMemo } from 'react'

@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 import type { Lang } from '@/i18n/core'
 import { jsonLdDocument, serializeJsonLd } from './jsonld'
 import type { JsonLdNode } from './jsonld'

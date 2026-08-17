@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 import type { Bi, Lang } from '@/i18n/core'
 import { pick } from '@/i18n/core'
 import { LEGAL_HUB_GROUPS } from '@/features/marketing/legal/legalHubData'
