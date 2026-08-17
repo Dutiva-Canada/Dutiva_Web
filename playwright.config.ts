@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 import { existsSync } from 'node:fs'
 import { defineConfig, devices } from '@playwright/test'
 
