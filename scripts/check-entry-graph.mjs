@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 /**
  * Post-build budget on the **eager entry graph** — what a first-time visitor
  * to a public page downloads before anything is interactive: the entry script

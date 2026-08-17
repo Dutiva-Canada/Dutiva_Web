@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 /**
  * Build-time generation of the offline service worker (dist/sw.js).
  *

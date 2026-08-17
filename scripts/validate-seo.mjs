@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 /**
  * Post-build SEO validation — crawls the built dist/ output (not React
  * state) and fails the build on any violation. Checks, per prerendered

@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 /**
  * Guards the surface boundary `src/i18n/messages/{workspace,marketing,shared}.ts`
  * establish at the type level, but at the one place that boundary doesn't

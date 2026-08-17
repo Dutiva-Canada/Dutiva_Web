@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 /**
  * ONE-SHOT IMPORT — kept for provenance, not runnable.
  *

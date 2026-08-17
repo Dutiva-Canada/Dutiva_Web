@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 /**
  * Build-time prerendering + SEO artifact generation. Runs after the client
  * build (`vite build`) and the SSR build (`vite build --ssr`):
