@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 import { createBrowserRouter } from 'react-router-dom'
 import { routes } from './routes'
 

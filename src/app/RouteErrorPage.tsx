@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 import { useEffect, useState } from 'react'
 import { useLocation, useRouteError } from 'react-router-dom'
 import { langOfPath } from '@/seo/routes'

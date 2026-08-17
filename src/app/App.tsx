@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 import { lazy, Suspense } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import { ThemeProvider } from '@/lib/theme'

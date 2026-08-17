@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 import { Suspense, lazy } from 'react'
 import { LangProvider } from '@/i18n/LangProvider'
 import { AppProviders } from '@/features/app/AppProviders'
