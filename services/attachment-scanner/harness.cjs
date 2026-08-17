@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 /**
  * Runs the real services/attachment-scanner/server.js against a mock clamd that
  * speaks the actual INSTREAM wire protocol, plus a local file server.
