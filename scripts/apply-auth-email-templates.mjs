@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 /**
  * Applies the sign-in email templates to the live Supabase project.
  *
