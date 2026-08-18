@@ -1,3 +1,7 @@
+/*
+ *   Copyright (c) 2026 
+ *   All rights reserved.
+ */
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
@@ -25,6 +29,9 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session)
       setStatus(data.session ? 'signed-in' : 'signed-out')
+    }).catch((error) => {
+      console.error('auth: getSession failed —', error)
+      setStatus('signed-out')
     })
 
     const {
@@ -44,15 +51,22 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
     }
     let cancelled = false
     setAuthorized(null)
-    supabase.rpc('current_user_is_workspace_member').then(({ data, error }) => {
-      if (cancelled) return
-      if (error) {
-        console.error('auth: workspace membership check failed —', error)
+    supabase.rpc('current_user_is_workspace_member').then(
+      ({ data, error }) => {
+        if (cancelled) return
+        if (error) {
+          console.error('auth: workspace membership check failed —', error)
+          setAuthorized(false)
+          return
+        }
+        setAuthorized(data === true)
+      },
+      (error) => {
+        if (cancelled) return
+        console.error('auth: workspace membership check rejected —', error)
         setAuthorized(false)
-        return
-      }
-      setAuthorized(data === true)
-    })
+      },
+    )
     return () => {
       cancelled = true
     }

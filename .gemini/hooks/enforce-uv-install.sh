@@ -20,14 +20,19 @@ uv_exists && exit 0
 echo "Installing uv..." >&2
 case "$(uname -s)" in
     Darwin|Linux)
-        curl -LsSf https://astral.sh/uv/install.sh | sh || echo "Failed to install uv" >&2
+        if ! curl -LsSf https://astral.sh/uv/install.sh | sh; then
+            echo "Failed to install uv" >&2
+            exit 1
+        fi
         ;;
     MINGW*|MSYS*|CYGWIN*)
-        powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex" || echo "Failed to install uv" >&2
+        if ! powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"; then
+            echo "Failed to install uv" >&2
+            exit 1
+        fi
         ;;
     *)
         echo "Unsupported OS: $(uname -s)" >&2
+        exit 1
         ;;
 esac
-
-exit 0

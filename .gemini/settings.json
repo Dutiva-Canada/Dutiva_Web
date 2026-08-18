@@ -14,7 +14,7 @@
           {
             "name": "enforce-uv-install",
             "type": "command",
-            "command": "C:/Users/Marti/Dutiva_Web/.agents/hooks/enforce-uv-install.sh"
+            "command": "C:/Users/Marti/Dutiva_Web/.gemini/hooks/enforce-uv-install.sh"
           }
         ]
       }
@@ -26,12 +26,12 @@
           {
             "name": "enforce-uv-run",
             "type": "command",
-            "command": "uv run C:/Users/Marti/Dutiva_Web/.agents/hooks/enforce-uv-run.py"
+            "command": "uv run C:/Users/Marti/Dutiva_Web/.gemini/hooks/enforce-uv-run.py"
           },
           {
             "name": "block-dangerous-commands",
             "type": "command",
-            "command": "uv run C:/Users/Marti/Dutiva_Web/.agents/hooks/block-dangerous-commands.py"
+            "command": "uv run C:/Users/Marti/Dutiva_Web/.gemini/hooks/block-dangerous-commands.py"
           }
         ]
       }
@@ -42,7 +42,7 @@
           {
             "name": "enforce-skill-use",
             "type": "command",
-            "command": "uv run C:/Users/Marti/Dutiva_Web/.agents/hooks/enforce-skill-use.py"
+            "command": "uv run C:/Users/Marti/Dutiva_Web/.gemini/hooks/enforce-skill-use.py"
           }
         ]
       }

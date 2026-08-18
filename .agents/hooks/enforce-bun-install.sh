@@ -20,14 +20,19 @@ bun_exists && exit 0
 echo "Installing bun..." >&2
 case "$(uname -s)" in
     Darwin|Linux)
-        curl -fsSL https://bun.com/install | bash || echo "Failed to install bun" >&2
+        if ! curl -fsSL https://bun.com/install | bash; then
+            echo "Failed to install bun" >&2
+            exit 1
+        fi
         ;;
     MINGW*|MSYS*|CYGWIN*)
-        powershell -c "irm bun.sh/install.ps1|iex" || echo "Failed to install bun" >&2
+        if ! powershell -c "irm bun.sh/install.ps1|iex"; then
+            echo "Failed to install bun" >&2
+            exit 1
+        fi
         ;;
     *)
         echo "Unsupported OS: $(uname -s)" >&2
+        exit 1
         ;;
 esac
-
-exit 0

@@ -71,7 +71,7 @@ def block(icon: str, title: str, desc: str, cmd: str, tips: list[str]) -> None:
 
 
 def warn(desc: str, cmd: str) -> None:
-    print(f"⚠️  WARNING: {desc}", file=sys.stderr)
+    print(f"WARNING: {desc}", file=sys.stderr)
     print(f"Command: {cmd[:100]}", file=sys.stderr)
 
 
@@ -94,8 +94,8 @@ def main():
     if not cmd:
         return
 
-    block_catastrophic = lambda d, c: block("❌", "BLOCKED: Catastrophic command!", d, c, CATASTROPHIC_TIPS)
-    block_critical = lambda d, c: block("🛑", "BLOCKED: Critical path protection!", d, c, CRITICAL_TIPS)
+    block_catastrophic = lambda d, c: block("[X]", "BLOCKED: Catastrophic command!", d, c, CATASTROPHIC_TIPS)
+    block_critical = lambda d, c: block("[!]", "BLOCKED: Critical path protection!", d, c, CRITICAL_TIPS)
 
     check_patterns(cmd, CATASTROPHIC, block_catastrophic)
     check_patterns(cmd, CRITICAL_PATHS, block_critical)
