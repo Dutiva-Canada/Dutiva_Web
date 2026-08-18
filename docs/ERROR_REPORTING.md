@@ -14,16 +14,16 @@ privacy-as-afterthought.
 
 Exactly these fields, and nothing else, per report:
 
-| Field       | Example                          | Why it's safe |
-| ----------- | -------------------------------- | ------------- |
-| `message`   | `Cannot read properties of null` | Error text. Free-form — see residual risk below. |
-| `stack`     | minified stack, ≤ 4 KB           | Resolved with source maps kept off the public server. |
-| `route`     | `/app/cases/:id`                 | Route **pattern** — never a resolved path (see scrubbing). |
-| `release`   | commit SHA                       | Ties a trace to the exact deploy + its source maps. |
-| `locale`    | `en-CA` / `fr-CA`                | From `<html lang>`; not identifying. |
-| `kind`      | `route-boundary`                 | Which handler fired. |
-| `ua`        | `Chrome/120 macOS`               | **Coarse** UA — family + major + OS only. |
-| `env`       | `production` / `preview`         | So preview noise can be filtered from prod triage. |
+| Field | Example | Why it's safe |
+| --- | --- | --- |
+| `message` | `Cannot read properties of null` | Error text. Free-form — see residual risk below. |
+| `stack` | minified stack, ≤ 4 KB | Resolved with source maps kept off the public server. |
+| `route` | `/app/cases/:id` | Route **pattern** — never a resolved path (see scrubbing). |
+| `release` | commit SHA | Ties a trace to the exact deploy + its source maps. |
+| `locale` | `en-CA` / `fr-CA` | From `<html lang>`; not identifying. |
+| `kind` | `route-boundary` | Which handler fired. |
+| `ua` | `Chrome/120 macOS` | **Coarse** UA — family + major + OS only. |
+| `env` | `production` / `preview` | So preview noise can be filtered from prod triage. |
 
 ### What is deliberately **not** sent
 
@@ -269,12 +269,12 @@ appears, check the function logs for `report-error: missing configuration`.
 ## Files
 
 | File | Role |
-| ---- | ---- |
-| `src/lib/errorReporting/scrubRoute.ts`     | Path → route pattern (PII control) |
-| `src/lib/errorReporting/coarseUserAgent.ts`| Raw UA → coarse label |
-| `src/lib/errorReporting/reporter.ts`       | Payload, dedupe/rate-limit, transport |
-| `src/lib/errorReporting/index.ts`          | Gate + install + boundary hook |
-| `src/lib/release.ts`                       | Commit SHA (baked at build) |
-| `supabase/functions/report-error/`         | Beacon sink (service role) |
+| --- | --- |
+| `src/lib/errorReporting/scrubRoute.ts` | Path → route pattern (PII control) |
+| `src/lib/errorReporting/coarseUserAgent.ts` | Raw UA → coarse label |
+| `src/lib/errorReporting/reporter.ts` | Payload, dedupe/rate-limit, transport |
+| `src/lib/errorReporting/index.ts` | Gate + install + boundary hook |
+| `src/lib/release.ts` | Commit SHA (baked at build) |
+| `supabase/functions/report-error/` | Beacon sink (service role) |
 | `supabase/migrations/0019_client_error_reports.sql` | Table + RLS |
-| `scripts/relocate-sourcemaps.mjs`          | Move maps out of `dist/` |
+| `scripts/relocate-sourcemaps.mjs` | Move maps out of `dist/` |

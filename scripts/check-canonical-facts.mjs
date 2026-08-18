@@ -83,7 +83,17 @@ function declaredHexes(css, selector, prop) {
      declaration. */
   const code = css.replace(/\/\*[\s\S]*?\*\//g, '')
 
-  for (const [, rawSelector, body] of code.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+  /* Walk brace-delimited blocks without a capturing regex (which can
+     super-linear-backtrack on large inputs). */
+  let pos = 0
+  while (pos < code.length) {
+    const open = code.indexOf('{', pos)
+    if (open === -1) break
+    const close = code.indexOf('}', open + 1)
+    if (close === -1) break
+    const rawSelector = code.slice(pos, open)
+    const body = code.slice(open + 1, close)
+    pos = close + 1
     if (rawSelector.trim() !== selector) continue
     const declaration = body.split(';').find((entry) => entry.trim().startsWith(`${prop}:`))
     if (declaration === undefined) continue
@@ -152,8 +162,8 @@ for (const { label, sources } of BRAND_ROWS) {
      stop the palette gained but the document never learned about are equally
      wrong. Order is ignored — the document writes the gradient light-to-dark
      and adds the on-dark shade after it. */
-  const documentedSet = [...new Set(documented)].sort()
-  const declaredSet = [...new Set(declared)].sort()
+  const documentedSet = [...new Set(documented)].sort((a, b) => a.localeCompare(b))
+  const declaredSet = [...new Set(declared)].sort((a, b) => a.localeCompare(b))
 
   if (documentedSet.join(' ') !== declaredSet.join(' ')) {
     const named = sources.map(({ prop }) => prop).join(', ')

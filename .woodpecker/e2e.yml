@@ -1,0 +1,46 @@
+# End-to-end smoke tests — builds the production bundle and drives it in a
+# real Chromium behind the same routing contract Vercel serves (via
+# e2e/serve-dist.mjs), catching integration regressions the jsdom unit
+# tests structurally cannot: prerender + hydration, the /app rewrite,
+# clean-URL routing, and the analytics consent gate. Its own pipeline —
+# deterministic and credential-free like check.yml, but a browser runtime
+# that a real-Chromium flake should never be allowed to charge against the
+# gate.
+#
+# Uses node:22 (same image as check.yml) and installs Chromium + OS deps
+# via `npx playwright install --with-deps`, matching the GitHub Actions
+# approach. The playwright.config.ts falls back to Playwright's default
+# browser lookup when /opt/pw-browsers/chromium is absent.
+#
+# Public environment values — not secrets.
+variables:
+  - &ga_env
+    VITE_GA_MEASUREMENT_ID: G-V85ZQ75EWL
+
+when:
+  - event: push
+    branch: main
+  - event: pull_request
+  - event: manual
+
+steps:
+  install:
+    image: node:22
+    commands:
+      - npm ci
+
+  # The e2e server (e2e/serve-dist.mjs) serves dist/, so build it first.
+  build:
+    image: node:22
+    depends_on: [install]
+    environment:
+      <<: *ga_env
+    commands:
+      - npm run build
+
+  run-e2e:
+    image: node:22
+    depends_on: [build]
+    commands:
+      - npx playwright install --with-deps chromium
+      - npm run test:e2e

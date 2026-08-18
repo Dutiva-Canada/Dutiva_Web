@@ -98,7 +98,7 @@ function FieldLabel({
 
 function SegRow({ children }: { readonly children: ReactNode }) {
   return (
-    <div className="flex w-fit flex-wrap gap-[3px] rounded-[10px] border border-border bg-inset p-[3px]">
+    <div className="flex w-fit flex-wrap gap-0.75 rounded-[10px] border border-border bg-inset p-0.75">
       {children}
     </div>
   )
@@ -208,6 +208,13 @@ function QuestionField({
  * with every grounded verdict so the number is never mistaken for a
  * recommended amount. Common-law reasonable notice is routinely much higher.
  */
+/** Resolves the floor readout message for the verdict kind (below / meets / info). */
+function floorMessage(kind: NoticeFloorVerdict['kind']) {
+  if (kind === 'below') return doclibMessages.doclib_gen_floor_below
+  if (kind === 'meets') return doclibMessages.doclib_gen_floor_meets
+  return doclibMessages.doclib_gen_floor_info
+}
+
 function NoticeFloorNote({ verdict }: { readonly verdict: NoticeFloorVerdict }) {
   const { t, x } = useI18n()
 
@@ -221,16 +228,11 @@ function NoticeFloorNote({ verdict }: { readonly verdict: NoticeFloorVerdict }) 
 
   const weeks = String(verdict.floorWeeks)
   const below = verdict.kind === 'below'
-  const message =
-    verdict.kind === 'below'
-      ? doclibMessages.doclib_gen_floor_below
-      : verdict.kind === 'meets'
-        ? doclibMessages.doclib_gen_floor_meets
-        : doclibMessages.doclib_gen_floor_info
+  const message = floorMessage(verdict.kind)
 
   return (
     <div
-      className={`mt-1 flex items-start gap-[6px] text-[11px] ${below ? 'font-semibold text-risk-fg' : 'text-text-faint'}`}
+      className={`mt-1 flex items-start gap-1.5 text-[11px] ${below ? 'font-semibold text-risk-fg' : 'text-text-faint'}`}
       role={below ? 'alert' : undefined}
     >
       {below && (
@@ -253,7 +255,7 @@ function AutosaveIndicator({ state }: { readonly state: SaveState }) {
   const { dot, label } = saveState
   return (
     <output className="inline-flex items-center gap-1.5 text-[12px] font-medium whitespace-nowrap text-text-muted">
-      <span className={`h-[7px] w-[7px] rounded-full ${dot}`} aria-hidden="true" />
+      <span className={`h-1.75 w-1.75 rounded-full ${dot}`} aria-hidden="true" />
       {label}
     </output>
   )
@@ -435,7 +437,7 @@ function ContextStep({
             </div>
           </>
         ) : (
-          <div className="rounded-[8px] border border-(--accent-soft-border) bg-accent-soft px-3 py-2 text-[12px] text-text-muted">
+          <div className="rounded-lg border border-(--accent-soft-border) bg-accent-soft px-3 py-2 text-[12px] text-text-muted">
             {subject === 'org' ? t('doclib_gen_orgWideNote') : t('doclib_gen_extNote')}
           </div>
         )}
@@ -566,7 +568,7 @@ function ReviewStep({
             : `${progressPct}%`}
         </span>
       </div>
-      <div className="h-[8px] overflow-hidden rounded-full bg-inset" aria-hidden="true">
+      <div className="h-2 overflow-hidden rounded-full bg-inset" aria-hidden="true">
         <div
           className="h-full rounded-full bg-navy transition-[width]"
           style={{ width: `${progressPct}%` }}
@@ -594,7 +596,7 @@ function ReviewStep({
 
       {(requiresLawyerReview || review === 'hr_review_required') && (
         <div
-          className={`mt-4 rounded-[8px] border px-3 py-2 text-[12px] ${
+          className={`mt-4 rounded-lg border px-3 py-2 text-[12px] ${
             requiresLawyerReview
               ? 'border-risk-border bg-risk-bg text-risk-fg'
               : 'border-border bg-warn-bg text-warn-fg'
@@ -738,7 +740,7 @@ function GenerateWizard({
       </header>
 
       {/* Cancel · step dots · autosave */}
-      <div className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-y border-border py-[10px]">
+      <div className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-y border-border py-2.5">
         <Link
           to={STUDIO_PATH}
           className="inline-flex items-center gap-1 text-[13px] font-semibold text-text-muted hover:text-text"
@@ -757,19 +759,19 @@ function GenerateWizard({
       </div>
 
       {/* Org compliance strip (screenshot: size tier · union status · applicability) */}
-      <div className="mb-5 flex flex-wrap items-center gap-2 rounded-[12px] border border-border bg-surface px-[14px] py-[9px] max-[640px]:px-[10px]">
+      <div className="mb-5 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-surface px-3.5 py-2.25 max-[640px]:px-2.5">
         {sizeTier && (
-          <span className="inline-flex items-center rounded-full border border-border bg-inset px-[10px] py-[3px] text-[12px] font-semibold text-text-muted">
+          <span className="inline-flex items-center rounded-full border border-border bg-inset px-2.5 py-0.75 text-[12px] font-semibold text-text-muted">
             {`${x(sizeTier.label)} · ${org.headcount}`}
           </span>
         )}
-        <span className="inline-flex items-center rounded-full border border-border bg-inset px-[10px] py-[3px] text-[12px] font-semibold text-text-muted">
+        <span className="inline-flex items-center rounded-full border border-border bg-inset px-2.5 py-0.75 text-[12px] font-semibold text-text-muted">
           {org.unionized ? t('doclib_profile_union') : t('doclib_profile_nonunion')}
         </span>
         <DocChip tone={APPLIC_TONE[applic.kind]}>
           <span className="inline-flex items-center gap-1.5">
             <span
-              className="h-[6px] w-[6px] rounded-full bg-current opacity-70"
+              className="h-1.5 w-1.5 rounded-full bg-current opacity-70"
               aria-hidden="true"
             />
             {x(applic.label)}
@@ -829,7 +831,7 @@ function GenerateWizard({
 
           {wiz.step > 0 && !questionsReady && (
             <div
-              className="rounded-[10px] border border-warn-border bg-warn-bg px-[12px] py-[9px] text-[12px] text-warn-fg"
+              className="rounded-[10px] border border-warn-border bg-warn-bg px-3 py-2.25 text-[12px] text-warn-fg"
               aria-live="polite"
             >
               <span className="font-semibold">{t('doclib_gen_missing_required')}</span>{' '}
@@ -849,7 +851,7 @@ function GenerateWizard({
                 type="button"
                 disabled={(wiz.step === 0 && !contextReady) || (wiz.step === 1 && !questionsReady)}
                 onClick={() => goStep(wiz.step + 1)}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[9px] bg-navy px-[12px] py-[7px] text-[12.5px] font-semibold text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-[9px] bg-navy px-3 py-1.75 text-[12.5px] font-semibold text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
               >
                 {t('doclib_gen_next')}
               </button>
@@ -862,14 +864,14 @@ function GenerateWizard({
         </div>
 
         {/* Sticky live-preview rail */}
-        <aside className="sticky top-[16px] min-w-0 self-start max-[1023px]:static">
+        <aside className="sticky top-4 min-w-0 self-start max-[1023px]:static">
           <div className="mb-2 flex items-center justify-between gap-2">
             <h2 className="text-[12px] font-bold tracking-wider uppercase text-text-muted">
               {t('doclib_gen_livePreview')}
             </h2>
             <div className="flex items-center gap-1.5">
               <JurisdictionPill code={wiz.jurisdiction} />
-              <span className="inline-flex items-center rounded-[6px] border border-border bg-inset px-[6px] py-px text-[10.5px] font-bold tracking-[0.04em] text-text-muted">
+              <span className="inline-flex items-center rounded-md border border-border bg-inset px-1.5 py-px text-[10.5px] font-bold tracking-[0.04em] text-text-muted">
                 {wiz.language.toUpperCase()}
               </span>
             </div>
@@ -886,17 +888,17 @@ function GenerateWizard({
 function GenerateSkeleton() {
   return (
     <div>
-      <Skel className="h-[22px] w-[340px]" />
-      <Skel className="mt-2 h-[14px] w-[240px]" />
-      <div className="mt-4 flex items-center justify-between border-y border-border py-[10px]">
-        <Skel className="h-[16px] w-[70px]" />
-        <Skel className="h-[24px] w-[300px]" />
-        <Skel className="h-[16px] w-[110px]" />
+      <Skel className="h-5.5 w-85" />
+      <Skel className="mt-2 h-3.5 w-60" />
+      <div className="mt-4 flex items-center justify-between border-y border-border py-2.5">
+        <Skel className="h-4 w-17.5" />
+        <Skel className="h-6 w-75" />
+        <Skel className="h-4 w-27.5" />
       </div>
-      <Skel className="mt-4 h-[40px] w-full" />
+      <Skel className="mt-4 h-10 w-full" />
       <div className="mt-5 grid grid-cols-[minmax(0,1fr)_minmax(300px,0.72fr)] gap-6 max-[1023px]:grid-cols-1">
-        <Skel className="h-[320px]" />
-        <Skel className="h-[420px]" />
+        <Skel className="h-80" />
+        <Skel className="h-105" />
       </div>
     </div>
   )

@@ -76,24 +76,30 @@ async function write(socket, buf) {
  * Protocol: `zINSTREAM\0`, then repeating [4-byte big-endian length][bytes],
  * terminated by a zero-length chunk. clamd replies once and closes.
  */
+/** Send one chunk to clamd, split into INSTREAM frames of at most CHUNK_BYTES. */
+async function sendChunk(socket, buf, closed) {
+  for (let offset = 0; offset < buf.length; offset += CHUNK_BYTES) {
+    if (closed) break
+    const slice = buf.subarray(offset, offset + CHUNK_BYTES)
+    const header = Buffer.allocUnsafe(4)
+    header.writeUInt32BE(slice.length, 0)
+    await write(socket, header)
+    await write(socket, slice)
+  }
+}
+
 async function scanStream(body) {
   const socket = net.createConnection({ host: CLAMD_HOST, port: CLAMD_PORT })
   socket.setTimeout(BUDGET_MS)
 
   const chunks = []
-  let closed = false
-  let socketError = null
+  const state = { closed: false, socketError: null }
 
   socket.on('data', (d) => chunks.push(d))
-  socket.on('close', () => {
-    closed = true
-  })
-  socket.on('error', (err) => {
-    socketError = err
-    closed = true
-  })
+  socket.on('close', () => { state.closed = true })
+  socket.on('error', (err) => { state.socketError = err; state.closed = true })
   socket.on('timeout', () => {
-    socketError = new Error('clamd timed out')
+    state.socketError = new Error('clamd timed out')
     socket.destroy()
   })
 
@@ -105,26 +111,19 @@ async function scanStream(body) {
     for await (const chunk of body) {
       // clamd aborts the connection itself on a limit breach; stop pushing
       // into a closed socket rather than taking an EPIPE.
-      if (closed) break
+      if (state.closed) break
 
-      let buf = Buffer.from(chunk)
+      const buf = Buffer.from(chunk)
       total += buf.length
       if (total > MAX_BYTES) {
         socket.destroy()
         return { verdict: 'unsupported', reason: 'too_large' }
       }
 
-      for (let offset = 0; offset < buf.length; offset += CHUNK_BYTES) {
-        if (closed) break
-        const slice = buf.subarray(offset, offset + CHUNK_BYTES)
-        const header = Buffer.allocUnsafe(4)
-        header.writeUInt32BE(slice.length, 0)
-        await write(socket, header)
-        await write(socket, slice)
-      }
+      await sendChunk(socket, buf, state.closed)
     }
 
-    if (!closed) {
+    if (!state.closed) {
       await write(socket, Buffer.alloc(4)) // zero-length chunk = end of stream
       await once(socket, 'close')
     }
@@ -132,15 +131,15 @@ async function scanStream(body) {
     socket.destroy()
   }
 
-  if (socketError && chunks.length === 0) throw socketError
+  if (state.socketError && chunks.length === 0) throw state.socketError
 
-  const reply = Buffer.concat(chunks).toString('utf8').split('\u0000').join('').trim()
+  const reply = Buffer.concat(chunks).toString('utf8').replaceAll('\u0000', '').trim()
   if (reply === '') throw new Error('clamd returned an empty reply')
 
   // `stream: OK` / `stream: <Signature> FOUND` / `… ERROR`
   if (/\bOK$/.test(reply)) return { verdict: 'clean' }
   if (/\bFOUND$/.test(reply)) {
-    const match = reply.match(/^stream:\s*(.+?)\s+FOUND$/)
+    const match = reply.match(/^stream:\s*(\S+)\s+FOUND$/)
     return { verdict: 'infected', signature: match ? match[1] : 'unknown' }
   }
   if (/size limit exceeded/i.test(reply)) return { verdict: 'unsupported', reason: 'too_large' }
@@ -157,10 +156,47 @@ async function ping() {
     await once(socket, 'connect')
     socket.write('zPING\0')
     const [data] = await once(socket, 'data')
-    return data.toString('utf8').split('\u0000').join('').trim()
+    return data.toString('utf8').replaceAll('\u0000', '').trim()
   } finally {
     socket.destroy()
   }
+}
+
+/** Validate and parse the fetch URL. Returns { parsed, url } or an error string. */
+function validateUrl(url) {
+  if (url === '') return { error: 'url_required' }
+
+  let parsed
+  try {
+    parsed = new URL(url)
+  } catch {
+    return { error: 'invalid_url' }
+  }
+  // ALLOW_HTTP_FETCH exists so `docker run` on a laptop can point at a local
+  // file server. Never set it in a deployed environment: the signed URL is the
+  // one thing standing between a private bucket and the open internet.
+  const httpAllowed = process.env.ALLOW_HTTP_FETCH === '1' && parsed.protocol === 'http:'
+  if (parsed.protocol !== 'https:' && !httpAllowed)
+    return { error: 'https_required' }
+  if (process.env.ALLOWED_FETCH_HOST && parsed.hostname !== process.env.ALLOWED_FETCH_HOST)
+    return { error: 'host_not_allowed' }
+
+  return { parsed, url }
+}
+
+/** Send the verdict response and log it. */
+function sendVerdict(res, reference, result, elapsed) {
+  const logLine = { ref: reference, verdict: result.verdict, ms: elapsed }
+  if (result.verdict === 'clean') {
+    console.log(JSON.stringify(logLine))
+    return send(res, 200, { status: 'clean' })
+  }
+  if (result.verdict === 'infected') {
+    console.warn(JSON.stringify({ ...logLine, signature: result.signature }))
+    return send(res, 200, { status: 'infected', signature: result.signature })
+  }
+  console.log(JSON.stringify({ ...logLine, reason: result.reason }))
+  return send(res, 200, { status: 'unsupported', reason: result.reason })
 }
 
 async function handleScan(req, res) {
@@ -178,27 +214,12 @@ async function handleScan(req, res) {
   }
 
   const url = payload && typeof payload.url === 'string' ? payload.url : ''
-  if (url === '') return send(res, 400, { error: 'url_required' })
+  const validated = validateUrl(url)
+  if (validated.error) return send(res, 400, { error: validated.error })
 
   // Only ever fetch the storage host we were configured for. The URL arrives
   // from our own worker, but this endpoint is reachable from the internet, and
   // an unrestricted fetcher behind an auth token is still an SSRF primitive.
-  let parsed
-  try {
-    parsed = new URL(url)
-  } catch {
-    return send(res, 400, { error: 'invalid_url' })
-  }
-  // ALLOW_HTTP_FETCH exists so `docker run` on a laptop can point at a local
-  // file server. Never set it in a deployed environment: the signed URL is the
-  // one thing standing between a private bucket and the open internet.
-  const httpAllowed = process.env.ALLOW_HTTP_FETCH === '1' && parsed.protocol === 'http:'
-  if (parsed.protocol !== 'https:' && !httpAllowed)
-    return send(res, 400, { error: 'https_required' })
-  if (process.env.ALLOWED_FETCH_HOST && parsed.hostname !== process.env.ALLOWED_FETCH_HOST) {
-    return send(res, 400, { error: 'host_not_allowed' })
-  }
-
   const started = Date.now()
   let response
   try {
@@ -207,7 +228,7 @@ async function handleScan(req, res) {
     // Network failure or timeout — unknown, not un-scannable.
     return send(res, 502, {
       error: 'fetch_failed',
-      detail: String(err && err.message).slice(0, 200),
+      detail: String(err?.message).slice(0, 200),
     })
   }
   if (!response.ok || !response.body) {
@@ -218,39 +239,14 @@ async function handleScan(req, res) {
 
   try {
     const result = await scanStream(response.body)
-    const elapsed = Date.now() - started
-
-    if (result.verdict === 'clean') {
-      console.log(JSON.stringify({ ref: payload.reference, verdict: 'clean', ms: elapsed }))
-      return send(res, 200, { status: 'clean' })
-    }
-    if (result.verdict === 'infected') {
-      console.warn(
-        JSON.stringify({
-          ref: payload.reference,
-          verdict: 'infected',
-          signature: result.signature,
-          ms: elapsed,
-        }),
-      )
-      return send(res, 200, { status: 'infected', signature: result.signature })
-    }
-    console.log(
-      JSON.stringify({
-        ref: payload.reference,
-        verdict: 'unsupported',
-        reason: result.reason,
-        ms: elapsed,
-      }),
-    )
-    return send(res, 200, { status: 'unsupported', reason: result.reason })
+    return sendVerdict(res, payload.reference, result, Date.now() - started)
   } catch (err) {
     console.error(
-      JSON.stringify({ ref: payload && payload.reference, error: String(err && err.message) }),
+      JSON.stringify({ ref: payload?.reference, error: String(err?.message) }),
     )
     return send(res, 502, {
       error: 'scan_failed',
-      detail: String(err && err.message).slice(0, 200),
+      detail: String(err?.message).slice(0, 200),
     })
   }
 }
@@ -259,7 +255,7 @@ const server = http.createServer((req, res) => {
   if (req.method === 'GET' && req.url === '/health') {
     ping()
       .then((pong) => send(res, pong === 'PONG' ? 200 : 503, { ok: pong === 'PONG', clamd: pong }))
-      .catch((err) => send(res, 503, { ok: false, error: String(err && err.message) }))
+      .catch((err) => send(res, 503, { ok: false, error: String(err?.message) }))
     return
   }
   if (req.method !== 'POST' || req.url !== '/scan') return send(res, 404, { error: 'not_found' })

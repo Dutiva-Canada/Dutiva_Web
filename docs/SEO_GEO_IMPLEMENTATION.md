@@ -178,7 +178,7 @@ injected as meta tags by the prerender script — no tokens live in the repo.
 
 ## How to…
 
-**Add a public page**
+### Add a public page
 
 1. Add an entry to `SEO_ROUTES` in `src/seo/routes.ts` (both pathnames,
    bilingual title + description).

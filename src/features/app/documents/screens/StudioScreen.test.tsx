@@ -23,7 +23,7 @@ describe('StudioScreen', () => {
     renderStudio()
 
     /* Data loads async from fixtures — wait for the first card. */
-    expect(await screen.findByText('Offer of employment letter')).toBeInTheDocument()
+    expect(await screen.findByText('Offer of employment letter (Ontario)')).toBeInTheDocument()
     /* Spot-check across categories: hiring / agreements / termination. */
     expect(screen.getByText('Confidentiality agreement')).toBeInTheDocument()
     expect(screen.getByText('Group termination notice')).toBeInTheDocument()
@@ -45,13 +45,13 @@ describe('StudioScreen', () => {
 
   it('search narrows the grid to offer templates and updates the count', async () => {
     renderStudio()
-    await screen.findByText('Offer of employment letter')
+    await screen.findByText('Offer of employment letter (Ontario)')
 
     fireEvent.change(screen.getByPlaceholderText(`Search ${CATALOGUE_SIZE} templates…`), {
       target: { value: 'offer' },
     })
 
-    expect(screen.getByText('Offer of employment letter')).toBeInTheDocument()
+    expect(screen.getByText('Offer of employment letter (Ontario)')).toBeInTheDocument()
     expect(screen.getByText('Québec offer letter')).toBeInTheDocument()
     expect(screen.queryByText('Confidentiality agreement')).not.toBeInTheDocument()
 

@@ -25,17 +25,17 @@ review, not just writing").
 
 ## 1. Headline numbers
 
-| #   | Bucket                                                        | Items  | Languages              | Source volume (words)¹ | Reviewer needed                          |
-| --- | ------------------------------------------------------------- | ------ | ---------------------- | ---------------------- | ----------------------------------------- |
-| 1   | Public legal pages (`dutiva.ca/legal/*`)                       | **26** | EN + FR = **52 files** | ~33,000 EN + ~39,000 FR | Lawyer (privacy / commercial / tech)      |
-| 2   | Templates flagged `lawyer_review_recommended`                  | **12** | bilingual per template | ~21,000                | Employment lawyer                         |
-| 3   | Templates flagged `hr_review_required` or `not_reviewed`       | **38** | bilingual per template | ~67,000                | HR professional (CHRP/CRHA); lawyer spot-checks |
-| 4   | Notice-bands review pack (QC + FED statutory tables)           | **1**  | EN (statutes quoted bilingually) | ~4,500       | Employment lawyer — pack is built for a ~1-hour sign-off |
-| 5   | Advisor grounding corpus rows (`advisor_guidance_chunks`)      | **42** | EN + FR per row        | —                      | Employment lawyer or supervised paralegal |
-| 6   | Public articles (`/blog` 6 + `/guides` 6)                      | **12** | EN + FR = 24 pages     | ~27,000                | Editorial legal pass (deferrable)         |
-| 7   | In-app reference guides (`/app/knowledge/*`)                   | **8**  | bilingual              | ~23,000                | Editorial legal pass (deferrable)         |
-| 8   | In-app flows & checklists (`/app/workflows/*`)                 | **4**  | bilingual              | ~11,000                | Editorial legal pass (deferrable)         |
-| 9   | Small compliance copy (CASL consent string, signup emails, FAQ, known-limitations page, jurisdiction tool) | ~6 surfaces | bilingual | ~5,000 | Quick lawyer pass alongside bucket 1 |
+| # | Bucket | Items | Languages | Source volume (words)¹ | Reviewer needed |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Public legal pages (`dutiva.ca/legal/*`) | **26** | EN + FR = **52 files** | ~33,000 EN + ~39,000 FR | Lawyer (privacy / commercial / tech) |
+| 2 | Templates flagged `lawyer_review_recommended` | **12** | bilingual per template | ~21,000 | Employment lawyer |
+| 3 | Templates flagged `hr_review_required` or `not_reviewed` | **38** | bilingual per template | ~67,000 | HR professional (CHRP/CRHA); lawyer spot-checks |
+| 4 | Notice-bands review pack (QC + FED statutory tables) | **1** | EN (statutes quoted bilingually) | ~4,500 | Employment lawyer — pack is built for a ~1-hour sign-off |
+| 5 | Advisor grounding corpus rows (`advisor_guidance_chunks`) | **42** | EN + FR per row | — | Employment lawyer or supervised paralegal |
+| 6 | Public articles (`/blog` 6 + `/guides` 6) | **12** | EN + FR = 24 pages | ~27,000 | Editorial legal pass (deferrable) |
+| 7 | In-app reference guides (`/app/knowledge/*`) | **8** | bilingual | ~23,000 | Editorial legal pass (deferrable) |
+| 8 | In-app flows & checklists (`/app/workflows/*`) | **4** | bilingual | ~11,000 | Editorial legal pass (deferrable) |
+| 9 | Small compliance copy (CASL consent string, signup emails, FAQ, known-limitations page, jurisdiction tool) | ~6 surfaces | bilingual | ~5,000 | Quick lawyer pass alongside bucket 1 |
 
 ¹ Word counts are of the source files (TypeScript string content plus a
 10–20% markup overhead), measured 2026-08-07. They are sizing aids for

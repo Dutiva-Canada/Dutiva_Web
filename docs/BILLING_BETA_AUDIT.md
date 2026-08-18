@@ -54,7 +54,7 @@ support functions and others, but not these two.
 
 Every checkout attempt therefore resolves to a `FunctionsHttpError`, is caught
 at `:327`, and the customer sees _"Could not start checkout. Please try again or
-contact support@dutiva.ca."_ There is no way to reach Stripe from the site.
+contact <support@dutiva.ca>."_ There is no way to reach Stripe from the site.
 
 Fix: `supabase functions deploy create-checkout-session create-portal-session`,
 then set `STRIPE_SECRET_KEY`, `STRIPE_PRICE_{STARTER,GROWTH,PRO}_MONTHLY` and

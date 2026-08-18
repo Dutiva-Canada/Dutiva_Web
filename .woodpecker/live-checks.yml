@@ -1,0 +1,58 @@
+# Live-project checks — hit the real Supabase project. Only run once their
+# credentials exist as Woodpecker secrets (fork PRs and unconfigured repos
+# skip cleanly rather than failing). Isolated in its own pipeline so a
+# credential problem fails only here, never the gate in check.yml.
+#
+# Required Woodpecker secrets (set in repo settings → Secrets):
+#   SUPABASE_ACCESS_TOKEN  — service-role token for the Management API
+#   SUPABASE_PROJECT_REF   — project ref (khtwpxnvziiyplaflwru)
+#
+# Public environment values — not secrets (the anon key is publishable).
+# Shared across steps via YAML anchors.
+variables:
+  - &supabase_public_env
+    SUPABASE_URL: https://khtwpxnvziiyplaflwru.supabase.co
+    SUPABASE_ANON_KEY: sb_publishable_4cpptaftDcwRSI0K2KuBjA_0vJcC0-S
+
+when:
+  - event: push
+    branch: main
+  - event: pull_request
+  - event: manual
+
+steps:
+  install:
+    image: node:22
+    commands:
+      - npm ci
+
+  # Migration integrity + drift: every local migration compared against
+  # supabase_migrations.schema_migrations, in both directions (repo-not-
+  # applied, and applied-with-no-file). Filename discipline always runs;
+  # the drift half needs SUPABASE_ACCESS_TOKEN + SUPABASE_PROJECT_REF.
+  migration-drift:
+    image: node:22
+    depends_on: [install]
+    environment:
+      <<: *supabase_public_env
+      SUPABASE_ACCESS_TOKEN:
+        from_secret: SUPABASE_ACCESS_TOKEN
+      SUPABASE_PROJECT_REF:
+        from_secret: SUPABASE_PROJECT_REF
+    commands:
+      - npm run check:migrations
+
+  # RLS regression guard: as the anon role, confirm the sensitive tables
+  # (beta_signups, hr_documents, signatures) return no rows and a known
+  # public table does — catching the out-of-band world-open policies the
+  # 2026-08-08 audit found (migration 0073). Runs even when migration-drift
+  # fails above, so each live check reports independently.
+  rls-regression:
+    image: node:22
+    depends_on: [migration-drift]
+    when:
+      - status: [success, failure]
+    environment:
+      <<: *supabase_public_env
+    commands:
+      - npm run check:rls

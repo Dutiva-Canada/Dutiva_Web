@@ -20,7 +20,7 @@ describe('TemplateDetailScreen', () => {
     renderDetail('T01')
 
     /* Data loads async from fixtures — first assertion awaits the header. */
-    expect(await screen.findByText('Offer of employment letter')).toBeInTheDocument()
+    expect(await screen.findByText('Offer of employment letter (Ontario)')).toBeInTheDocument()
 
     /* Header chips + risk. */
     expect(screen.getByText('T01')).toBeInTheDocument()
@@ -30,12 +30,12 @@ describe('TemplateDetailScreen', () => {
     expect(
       screen.getByText('Employment Standards Act, 2000 — minimum standards'),
     ).toBeInTheDocument()
-    expect(screen.getByText('Position & reporting')).toBeInTheDocument()
+    expect(screen.getByText('Role, start date & reporting')).toBeInTheDocument()
 
     /* Per-jurisdiction legal notes. */
     expect(
       screen.getByText(
-        'Terms may not fall below ESA, 2000 minimums; a non-compliant termination clause can void the clause entirely.',
+        'Written for Ontario employers. ESA, 2000 minimum standards cannot be contracted out of; a non-compliant termination clause can void the clause entirely (Waksdale v. Swegon, 2020 ONCA 391).',
       ),
     ).toBeInTheDocument()
 
@@ -55,7 +55,7 @@ describe('TemplateDetailScreen', () => {
 
     /* Skeleton first (data loading), then <Navigate> leaves the route empty. */
     await waitFor(() => expect(container.querySelector('.animate-pulse')).toBeNull())
-    expect(screen.queryByText('Offer of employment letter')).toBeNull()
+    expect(screen.queryByText('Offer of employment letter (Ontario)')).toBeNull()
     expect(screen.queryByRole('heading', { level: 1 })).toBeNull()
   })
 

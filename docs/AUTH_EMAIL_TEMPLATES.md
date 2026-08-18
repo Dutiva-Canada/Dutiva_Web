@@ -74,6 +74,8 @@ the markup here is the same content, for pasting into the dashboard instead.
 > the PATCH: if a name is wrong, it exits non-zero and says so rather than
 > reporting success. If that happens, use the dashboard route below.
 
+---
+
 > **Note.** `{{ .Token }}` (the 6-digit code) and `{{ .TokenHash }}` (used in
 > the link) are two representations of the *same* one-time credential —
 > spending either spends both. That is safe now only because the link no longer

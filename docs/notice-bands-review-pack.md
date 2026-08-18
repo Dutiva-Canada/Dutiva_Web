@@ -214,6 +214,8 @@ rights under other Acts, and the Act that matters is the Civil Code:
 > particular, the nature of the employment, the specific circumstances in which
 > it is carried on and the duration of the period of work."
 
+---
+
 > **CCQ 2092:** "The employee **may not renounce** his right to obtain an
 > indemnity for any injury he suffers where insufficient notice of termination is
 > given…"
@@ -532,7 +534,7 @@ failure mode.
 
 **Date:** ______________________
 
-#### Québec (LNT s. 82)
+### Québec (LNT s. 82)
 
 - [ ] **Yes** — populate `QUEBEC_BANDS` as proposed in §1.4.
 - [ ] **No** — leave `bands: null`. Reason: ______________________
@@ -543,7 +545,7 @@ art. 2091 floor-vs-entitlement problem (§1.6a), which is the reason a technical
 correct table may still be the wrong thing to ship**; and the s. 3(6) senior-manager
 exclusion (§1.6b).
 
-#### Federal (CLC s. 230)
+### Federal (CLC s. 230)
 
 - [ ] **Yes** — populate `FEDERAL_BANDS` as proposed in §2.2.
 - [ ] **No** — leave `bands: null`. Reason: ______________________
@@ -553,7 +555,7 @@ _Confirm you have considered:_ that s. 235 severance is cumulative and uncapped
 termination from "adds" to "displaces" (§2.3c)** — if yes, attach a monitoring
 commitment, because that change will land silently.
 
-#### Ontario severance (ESA s. 64) — L7
+### Ontario severance (ESA s. 64) — L7
 
 - [ ] **A** — collect payroll and compute
 - [ ] **B** — collect payroll, gate eligibility only _(recommended)_

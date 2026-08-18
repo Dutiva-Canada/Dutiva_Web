@@ -1,5 +1,5 @@
 ﻿import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { act, fireEvent, screen, within } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
 import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
 import { CaseDetailView } from './CaseDetailView'
@@ -90,9 +90,7 @@ describe('CaseDetailView', () => {
         CASE1,
       )
 
-      act(() => {
-        fireEvent.click(screen.getByRole('button', { name: 'Ask Advisor' }))
-      })
+      fireEvent.click(screen.getByRole('button', { name: 'Ask Advisor' }))
 
       const dialog = screen.getByRole('dialog', { name: 'Ask Advisor' })
       expect(dialog).toBeInTheDocument()

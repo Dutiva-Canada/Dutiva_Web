@@ -102,10 +102,10 @@ async function authConfig(method, body) {
   })
   const text = await response.text()
   if (!response.ok) {
-    /* The same malformed-token symptom the CI drift check hits (docs/TODO.md
-       OA19). cleanSecret already removed the recoverable paste errors, so a 401
-       here means the token itself is wrong — say so with the shape, not the
-       value. */
+    /* The same malformed-token symptom the CI drift check hits
+       (see the open-items doc, item OA19). cleanSecret already removed the
+       recoverable paste errors, so a 401 here means the token itself is
+       wrong — say so with the shape, not the value. */
     if (response.status === 401 || response.status === 403) {
       throw new Error(
         `${method} config/auth → ${response.status} ${text.slice(0, 200)}\n` +
@@ -127,10 +127,11 @@ const before = await authConfig('GET').catch((error) => {
   process.exit(1)
 })
 
-const describe = (value) =>
-  typeof value === 'string' && value.length > 0
-    ? `${value.includes('{{ .Token }}') ? 'has a code' : 'NO code'}, ${value.length} chars`
-    : '(empty — Supabase default)'
+const describe = (value) => {
+  if (typeof value !== 'string' || value.length === 0) return '(empty — Supabase default)'
+  const codeStatus = value.includes('{{ .Token }}') ? 'has a code' : 'NO code'
+  return `${codeStatus}, ${value.length} chars`
+}
 
 console.log('Current templates:')
 for (const field of MUST_CONTAIN_TOKEN) console.log(`  ${field}: ${describe(before[field])}`)

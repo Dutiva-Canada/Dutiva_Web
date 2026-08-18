@@ -50,7 +50,7 @@ Every ID in TODO.md, and where it goes.
 
 Paste this above every task prompt.
 
-```
+```text
 You are working in the Dutiva Web repository (dutiva.ca marketing site + the
 AI-Advisor product workspace). React 19, TypeScript strict, Vite, Tailwind v4,
 react-router v7, Supabase.
@@ -114,7 +114,7 @@ described, say so in the PR rather than padding it.
 
 ---
 
-# Wave 1 — ready now
+## Wave 1 — ready now
 
 No decision, no credential, no owner action in the way.
 
@@ -122,7 +122,7 @@ No decision, no credential, no owner action in the way.
 
 **Closes L1, L2, L3, L4.** Do this one first: L3 has a dated expiry.
 
-```
+```text
 The Advisor's grounding corpus (public.advisor_guidance_chunks, 42 rows) has
 three verification work items that have been blocked since 2026-08-02 because
 the session that raised them could not reach any official government host —
@@ -199,7 +199,7 @@ close only for the work items you actually verified.
 
 **Closes EF2, and the build half of OA2.**
 
-```
+```text
 Law-change monitoring covers Federal only. Ontario and Québec are unmonitorable
 for a sourcing reason, not a code reason: Ontario's source loads statute text in
 the browser, so a fetch returns a shell; Québec's refuses automated requests,
@@ -246,7 +246,7 @@ the Knowledge panel signed out.
 
 **Closes L8.**
 
-```
+```text
 docs/CANONICAL_FACTS.md marks four company facts as unverified: the
 incorporation date, the trademark status, and the business phone number. Each
 traces to a single internal document and has never been checked against a
@@ -284,7 +284,7 @@ registration, a LinkedIn page, or any aggregator.
 **Closes L6 and L7 to the point a qualified reviewer can act.** Devin does not
 flip the code here; that boundary is the item.
 
-```
+```text
 src/features/app/advisor/safety/statutoryNotice.ts holds NOTICE_SCHEDULES, the
 lookup table the Advisor and Document Studio read so that a notice figure comes
 from a table rather than from a model's memory. Ontario is populated from ESA
@@ -332,7 +332,7 @@ the next person to open the file finds it. No behaviour change, no test change.
 **Closes EF6a.** The largest remaining engineering item, and the one with the
 clearest spec.
 
-```
+```text
 The i18n catalogue is one 232kB chunk, fully eager on every page including
 marketing landings. Usage splits cleanly — of the 42 modules under
 src/i18n/messages/, roughly 27 are read only by the workspace, 10 only by
@@ -387,7 +387,7 @@ so in the PR and leave EF6a open with the narrowed scope.
 
 **Closes EF4 and EF5.**
 
-```
+```text
 Two billing items, both currently invisible because
 PAID_PLANS_DISABLED_DURING_BETA is true in src/config/plans.ts and nothing on
 /pricing is purchasable. Both become blocking the day paid plans are
@@ -429,7 +429,7 @@ that list is what makes OA11 actionable when the beta ends.
 
 **Closes V2, V3, and the repo half of V1.**
 
-```
+```text
 Three small independent items. One PR is fine; they are all repo hygiene.
 
 V2 — supabase/migrations/0021_drop_doclib_demo_schema.sql carries a
@@ -470,7 +470,7 @@ way the live comparison itself remains an owner action.
 
 ---
 
-# Wave 2 — decision first, then build
+## Wave 2 — decision first, then build
 
 Each prompt opens with a decision block. Fill it in, delete the alternatives,
 then hand the whole thing over. The recommendation is a starting point, not a
@@ -481,7 +481,7 @@ constraint.
 **Closes D4, D7, EF10.** Each is minutes of work behind a call only the owner
 can make.
 
-```
+```text
 DECISION BLOCK — fill in before starting.
 
 (a) Training-crawler policy. scripts/prerender.mjs emits Disallow: / for GPTBot
@@ -530,7 +530,7 @@ Delete the closed entries from docs/TODO.md — D4, D7 and EF10 all go.
 
 **Closes D1.**
 
-```
+```text
 DECISION BLOCK — five questions, all five needed before any code.
 docs/LAW_CHANGE_NOTIFICATIONS.md § 4 is the brief; read it before answering.
 
@@ -579,7 +579,7 @@ that is a finding to report, not a gap to route around.
 
 **Closes EF3.**
 
-```
+```text
 DECISION BLOCK.
 
 Migration 0033_export_audit.sql enables RLS on public.export_events with no
@@ -619,7 +619,7 @@ does not yet.
 
 **Closes EF8.**
 
-```
+```text
 DECISION BLOCK.
 
 /app is gated by invite, not by plan (src/features/app/auth/
@@ -663,7 +663,7 @@ that gates it.
 
 **Closes EF7.**
 
-```
+```text
 DECISION BLOCK.
 
 src/data/documents.ts still exists alongside the doclib catalogue and holds
@@ -702,7 +702,7 @@ rather than forcing the deletion — a documented fallback beats a broken view.
 
 **Closes D3.**
 
-```
+```text
 DECISION BLOCK.
 
 The intake forms already offer a scheduled call and support triage can move a
@@ -738,7 +738,7 @@ since that is the question the privacy policy will have to answer next.
 
 **Closes D2.**
 
-```
+```text
 DECISION BLOCK — the privacy model comes first, and it is the whole item.
 
 recordHelpfulness is the single seam a sink would hook. Nothing is transmitted
@@ -768,13 +768,13 @@ still a collection, and the policy is a public document that has to be true.
 
 ---
 
-# Owner only
+## Owner only
 
 Nothing here can be delegated to a coding agent. Each needs a secret, a
 dashboard, a filing, a human reviewer or a vendor. Grouped by what unblocks
 them.
 
-**One SQL statement or one dashboard visit**
+### One SQL statement or one dashboard visit
 
 - **OA1** — set `law_monitor_service_key` in Vault. The nightly sweep currently
   finds no key, logs a warning and returns, so monitoring is a deliberate
@@ -785,7 +785,7 @@ them.
   `unverified` to active; the test asserting the all-unconfirmed state fails and
   tells you where.
 
-**Secrets, in sets that must be set together**
+### Secrets, in sets that must be set together
 
 - **OA3** — support email: verify a Resend domain, set `RESEND_API_KEY`,
   `SUPPORT_EMAIL_FROM`, `SUPPORT_NOTIFY_SECRET`, schedule `support-notify`, and
@@ -808,7 +808,7 @@ them.
   invisible. Becomes blocking the day plans re-enable — DP-6's PR will list
   exactly what to create. [BILLING_BETA_AUDIT.md](BILLING_BETA_AUDIT.md).
 
-**Needs a credential this repo does not hold**
+### Needs a credential this repo does not hold
 
 - **OA10** — `npm run db:snapshot` needs the database password. Until
   `supabase/schema.sql` exists, a reviewer cannot see the real RLS policies or
@@ -821,7 +821,7 @@ them.
   exactly one `ai_telemetry_events` row, `completed`, with a token count. A row
   stranded at `started` means the usage claim landed and finalize did not.
 
-**Outside the repo entirely**
+### Outside the repo entirely
 
 - **OA8** — verify Search Console and Bing Webmaster Tools, set
   `GOOGLE_SITE_VERIFICATION` / `BING_SITE_VERIFICATION`, submit the sitemap,

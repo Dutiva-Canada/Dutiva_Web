@@ -32,7 +32,7 @@ public **AI & Technology Policy** / **AI Usage Disclosure**
 ## 1. The map — every AI touchpoint
 
 | Touchpoint | Mechanism | LLM? | Why (or why not) | Source of truth |
-|---|---|:---:|---|---|
+| --- | --- | :---: | --- | --- |
 | **Advisor chat** | Generative completion, server-side, model routed via DB | **Yes** | Open-ended, bilingual, jurisdiction-aware HR dialogue — open vocabulary; nothing deterministic can answer it | `supabase/functions/advisor-chat/index.ts` |
 | **Memory fact extraction** | Per-turn NL → structured facts, `Inferred` until confirmed | **Yes** | Messy prose → structure is the canonical LLM job; governance around it is deterministic | Engineering Roadmap §5; `Advisor Memory.dc.html` |
 | **Support first-line (in-app)** | Grounded short answer from Help Centre excerpts | **Yes\*** | A convenience *on top of* retrieval; heavily fenced (auth, metered usage §7, HUMAN_ONLY refusal, grounded-only) — not irreducible | `supabase/functions/support-firstline/index.ts` |
@@ -56,6 +56,7 @@ These are the uses where **no better alternative exists** — remove the model a
 the capability is gone.
 
 ### 2.1 The conversational Advisor
+
 Employers type open-vocabulary questions ("do I have to pay out banked vacation
 if I let someone go for cause after 7 years in Quebec?"). The set of possible
 questions is unbounded, so no decision tree or keyword router can answer them.
@@ -71,6 +72,7 @@ The generative model is essential here and nowhere else at this level.
   guardrail's ledger (§7).
 
 ### 2.2 Natural-language → structured fact extraction (memory)
+
 Turning "we let Marc go on the 5th, he'd been here about 7 years" into sourced,
 structured facts is the textbook task an LLM does better than anything else. The
 *extraction* is generative; **everything around it is deterministic**: two states
@@ -153,12 +155,13 @@ never loosen.
 > gating: the engine remains the primary control ("the client gates too").
 
 ### 5.1 Crisis intercept — pre-classifier, fail-safe-on
+
 `detectCrisisSignal(userText)` (a maintained, bilingual phrase set in
 `crisisSignals.ts`) is OR'd with the engine's `isCrisis` in `safetyBackstop.ts`.
 The union wins; the model can escalate to crisis but can never clear a crisis the
 rule detected.
 
-```
+```text
 isCrisis_final = detectCrisisSignal(userText) OR engine.isCrisis
 // if isCrisis_final → maintained resources only; every gate OFF (allowedSurfaces);
 // A model that fails to flag crisis cannot suppress the intercept.
@@ -171,9 +174,10 @@ supportive/crisis. False positives are acceptable here (worst case: a support
 resource is shown unnecessarily); false negatives are not.
 
 ### 5.2 Jurisdiction / statutory-figure gate — post-filter, fail-safe-closed
+
 Three deterministic rules, independent of the model:
 
-```
+```text
 // 1. Gate: citations withheld until jurisdiction is confirmed (safetyBackstop.ts).
 if jurisdiction.status NOT in {known, assumed, not_applicable}
    AND mentionsStatutoryFigure(reply):        // weeks/months, days, $, %
@@ -202,6 +206,7 @@ Part III s.230) are intentionally `null` pending qualified legal review**
 not the chat path — the RAG review caught the gap and closed it.
 
 ### 5.3 Why this shape
+
 - **Cheap & auditable** — phrase-set + regex + a table lookup, no extra model call.
 - **Monotonic** — the backstop can only tighten (raise crisis, withhold a figure);
   it can never open a gate the contract closed. Proven by the pass-through test.
@@ -209,6 +214,7 @@ not the chat path — the RAG review caught the gap and closed it.
   (`*.test.ts` beside each file), same discipline as `triage.ts`.
 
 ### 5.4 Observability
+
 When a gate fires, `chatApi.ts` records it fire-and-forget via the
 `advisor-safety-event` edge function — one `ai_telemetry_events` row per gated
 turn with `operation = 'safety_backstop'` and the fired actions in `metadata`
@@ -261,7 +267,7 @@ enforcement is `claim_ai_usage()` in
    created.
 
 | Ceiling | Default | Scope | Guards against |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Burst | 10 / 5 min (Advisor), 6 / 5 min (support helper) | per user, per surface | runaway retry loops, scripted hammering |
 | Daily requests | 120 / rolling 24h | per user, **shared across both AI surfaces** | one account's sustained cost |
 | Daily tokens | 250,000 / rolling 24h | per user, shared | long threads, which request count alone does not bound |
@@ -315,7 +321,7 @@ the counts need, and the functions now write the canonical `failed` rather than
 ## 8. Current LLM surface (summary)
 
 | Route key | Function | Provider / model | Guardrails |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `advisor_chat` | `advisor-chat` | DigitalOcean Gradient AI · `mistral-3-14B` | Server-side secret, invite-only auth, history-bounded, telemetry-logged, **beta usage guardrails (§7)** |
 | `advisor_chat` (reused) | `support-firstline` | same route | Auth + **beta usage guardrails (§7, shared budget)**, HUMAN_ONLY refusal, grounded-only prompt, advisory-only UI |
 

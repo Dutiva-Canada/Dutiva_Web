@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { fireEvent, screen } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
 import { DoclibProvider } from '../DoclibProvider'
-import { fillProgress } from '../engine'
+import { fillProgress, templateTokens } from '../engine'
 import { templateByTid } from '../data'
 import { GenerateScreen } from './GenerateScreen'
 
@@ -51,11 +51,13 @@ describe('GenerateScreen', () => {
     renderWizard('tpl_t01')
 
     /* Data loads async from fixtures — first assertion must await. */
-    expect(await screen.findByText('Generate · Offer of employment letter')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Generate · Offer of employment letter (Ontario)'),
+    ).toBeInTheDocument()
     expect(screen.getByText('Who and where is this document for?')).toBeInTheDocument()
 
     /* Org compliance strip (default profile: 42 employees, non-union, ON).
-       T01 carries an ON 25+ headcount clause gate → 'Required for you'. */
+       T01 carries a 25+ headcount clause gate → 'Required for you'. */
     expect(screen.getByText('Small employer · 42')).toBeInTheDocument()
     expect(screen.getByText('Non-union')).toBeInTheDocument()
     expect(screen.getByText('Required for you')).toBeInTheDocument()
@@ -64,8 +66,9 @@ describe('GenerateScreen', () => {
     expect(screen.getByRole('combobox', { name: 'Employee record (optional)' })).toBeInTheDocument()
     expect(screen.getByRole('combobox', { name: 'Case file (optional)' })).toBeInTheDocument()
 
-    /* Jurisdiction segments limited to the template's list + doc language. */
-    for (const code of ['ON', 'QC', 'FED', 'EN', 'FR']) {
+    /* T01 is Ontario-only, so the jurisdiction segment is a single, fixed ON
+       button (still + doc language). */
+    for (const code of ['ON', 'EN', 'FR']) {
       expect(screen.getByRole('button', { name: code })).toBeInTheDocument()
     }
     expect(screen.getByRole('button', { name: 'ON' })).toHaveAttribute('aria-pressed', 'true')
@@ -73,20 +76,17 @@ describe('GenerateScreen', () => {
 
   it('advances to guided questions and autosaves a typed answer (unsaved → saving → saved)', async () => {
     renderWizard('tpl_t01')
-    await screen.findByText('Generate · Offer of employment letter')
+    await screen.findByText('Generate · Offer of employment letter (Ontario)')
 
-    /* Switch jurisdiction, then advance — question sections appear. */
-    fireEvent.click(screen.getByRole('button', { name: 'QC' }))
-    expect(screen.getByRole('button', { name: 'QC' })).toHaveAttribute('aria-pressed', 'true')
     fireEvent.click(screen.getByRole('button', { name: 'Next' }))
 
-    expect(screen.getByText('Candidate')).toBeInTheDocument()
-    expect(screen.getByText('Role')).toBeInTheDocument()
-    expect(screen.getByText('Compensation')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Employee' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Role' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Compensation' })).toBeInTheDocument()
 
     /* Typing flips the autosave indicator through its simulated cycle. */
     expect(screen.getByRole('status')).toHaveTextContent('All changes saved')
-    fireEvent.change(screen.getByPlaceholderText('e.g. Gabriel Dubois'), {
+    fireEvent.change(screen.getByLabelText(/^Employee full name/), {
       target: { value: 'Gabriel Dubois' },
     })
     expect(screen.getByRole('status')).toHaveTextContent('Unsaved changes')
@@ -99,7 +99,7 @@ describe('GenerateScreen', () => {
        regardless, so a document could be saved with its required merge fields
        blank and render as unfilled placeholders in the customer's copy. */
     renderWizard('tpl_t01')
-    await screen.findByText('Generate · Offer of employment letter')
+    await screen.findByText('Generate · Offer of employment letter (Ontario)')
     fireEvent.click(screen.getByRole('button', { name: 'Next' }))
 
     const next = () => screen.getByRole('button', { name: 'Next' })
@@ -112,7 +112,7 @@ describe('GenerateScreen', () => {
 
   it('shows fill progress and risk/review posture on the review step', async () => {
     renderWizard('tpl_t01')
-    await screen.findByText('Generate · Offer of employment letter')
+    await screen.findByText('Generate · Offer of employment letter (Ontario)')
 
     fireEvent.click(screen.getByRole('button', { name: 'Next' }))
     const filled = fillRequired('tpl_t01')
@@ -129,6 +129,134 @@ describe('GenerateScreen', () => {
     expect(
       screen.getByText('HR review is required before this document is used.'),
     ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Save to repository' })).toBeInTheDocument()
+  })
+
+  it('renders the context step for T02 (Ontario-only, employee-subject)', async () => {
+    renderWizard('tpl_t02')
+
+    expect(await screen.findByText('Generate · Employment agreement (Ontario)')).toBeInTheDocument()
+
+    /* Employee-subject template: employee link is required. */
+    const next = screen.getByRole('button', { name: 'Next' })
+    expect(next).toBeDisabled()
+    expect(screen.getByRole('combobox', { name: 'Employee' })).toBeInTheDocument()
+
+    /* T02 is Ontario-only, so the jurisdiction segment is a single, fixed ON
+       button (still + doc language). */
+    for (const code of ['ON', 'EN', 'FR']) {
+      expect(screen.getByRole('button', { name: code })).toBeInTheDocument()
+    }
+    expect(screen.getByRole('button', { name: 'ON' })).toHaveAttribute('aria-pressed', 'true')
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Employee' }), {
+      target: { value: 'emp_go' },
+    })
+    expect(next).toBeEnabled()
+  })
+
+  it('advances to T02 guided questions, gated by the required employee link', async () => {
+    renderWizard('tpl_t02')
+    await screen.findByText('Generate · Employment agreement (Ontario)')
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Employee' }), {
+      target: { value: 'emp_go' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+
+    expect(screen.getByRole('heading', { name: 'Employee' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Compensation' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Termination' })).toBeInTheDocument()
+
+    /* employee_name is prefilled once from the chosen employee. */
+    expect(screen.getByLabelText(/^Employee full name/)).toHaveValue('Grace Osei')
+  })
+
+  it('will not advance past T02 questions until every required one is answered', async () => {
+    renderWizard('tpl_t02')
+    await screen.findByText('Generate · Employment agreement (Ontario)')
+    fireEvent.change(screen.getByRole('combobox', { name: 'Employee' }), {
+      target: { value: 'emp_go' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+
+    const next = () => screen.getByRole('button', { name: 'Next' })
+    expect(next()).toBeDisabled()
+
+    fillRequired('tpl_t02')
+    expect(next()).toBeEnabled()
+  })
+
+  it('shows fill progress and risk/review posture on the T02 review step', async () => {
+    renderWizard('tpl_t02')
+    await screen.findByText('Generate · Employment agreement (Ontario)')
+    fireEvent.change(screen.getByRole('combobox', { name: 'Employee' }), {
+      target: { value: 'emp_go' },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+    fillRequired('tpl_t02')
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+
+    const t02 = templateByTid.get('T02')
+    if (!t02) throw new Error('fixture template T02 missing')
+    /* fillRequired answers every required question, but the fill-progress
+       metric counts merge tokens actually embedded in the document text —
+       narrower than "required," since a few required T02 questions (the
+       enhanced-termination toggle, the signer name/title) drive branching or
+       the signature block rather than appearing as a literal {{token}}. */
+    const tokens = templateTokens(t02)
+    const filledTokenCount = t02.questions.filter((q) => q.required && tokens.includes(q.id)).length
+    const { total } = fillProgress(t02, {})
+    expect(screen.getByText(`${filledTokenCount}/${total}`)).toBeInTheDocument()
+    expect(screen.getByText('fields filled')).toBeInTheDocument()
+
+    expect(screen.getByText('Medium risk')).toBeInTheDocument()
+    expect(screen.getByText('HR review required')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Save to repository' })).toBeInTheDocument()
+  })
+
+  it('renders the context step for T04 (Ontario-only, org-wide subject)', async () => {
+    renderWizard('tpl_t04')
+
+    expect(await screen.findByText('Generate · Employee handbook (Ontario)')).toBeInTheDocument()
+
+    /* Org-wide document: no employee/case pickers, just the org-scope note.
+       Next is not gated on an employee link, so it's enabled immediately. */
+    expect(
+      screen.getByText(
+        'Organization-wide document — it applies to the whole workplace, not one employee.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: 'Employee' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled()
+
+    /* T04 is Ontario-only, so the jurisdiction segment is a single, fixed ON
+       button (still + doc language). */
+    for (const code of ['ON', 'EN', 'FR']) {
+      expect(screen.getByRole('button', { name: code })).toBeInTheDocument()
+    }
+    expect(screen.getByRole('button', { name: 'ON' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('will not advance past T04 questions until every required one is answered, then shows fill progress', async () => {
+    renderWizard('tpl_t04')
+    await screen.findByText('Generate · Employee handbook (Ontario)')
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+
+    const next = () => screen.getByRole('button', { name: 'Next' })
+    expect(next()).toBeDisabled()
+
+    const filled = fillRequired('tpl_t04')
+    expect(next()).toBeEnabled()
+    fireEvent.click(next())
+
+    const t04 = templateByTid.get('T04')
+    if (!t04) throw new Error('fixture template T04 missing')
+    const { total } = fillProgress(t04, {})
+    expect(screen.getByText(`${filled}/${total}`)).toBeInTheDocument()
+    expect(screen.getByText('fields filled')).toBeInTheDocument()
+    expect(screen.getByText('Low risk')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Save to repository' })).toBeInTheDocument()
   })
 

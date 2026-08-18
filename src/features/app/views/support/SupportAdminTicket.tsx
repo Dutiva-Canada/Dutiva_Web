@@ -31,8 +31,34 @@ function formatDateTime(iso: string, lang: 'en' | 'fr'): string {
   })
 }
 
-const selectClass = 'rounded-[8px] border border-border bg-surface px-[10px] py-[7px] text-[13px] text-text'
-const inputClass = 'rounded-[8px] border border-border bg-surface px-[10px] py-[7px] text-[13px] text-text'
+/** One-line call status: confirmed (with time) or proposed. */
+function callStatusLine(
+  call: AdminScheduledCall,
+  x: LangContextValue['x'],
+  lang: 'en' | 'fr',
+): string {
+  if (call.status === 'confirmed') {
+    const when = call.confirmedStart ? formatDateTime(call.confirmedStart, lang) : ''
+    return `${x(M.support_admin_call_status_confirmed)}: ${when}`
+  }
+  return x(M.support_admin_call_status_proposed)
+}
+
+/** Tailwind class for a message bubble: internal (gold), agent (bordered), or customer (inset). */
+function messageBubbleClass(m: AdminMessage): string {
+  const base =
+    'rounded-xl px-4 py-2.75 text-[14px] leading-normal whitespace-pre-wrap'
+  if (m.isInternal) {
+    return `${base} border border-gold-border bg-gold-bg text-gold-fg`
+  }
+  if (m.authorRole === 'agent') {
+    return `${base} rounded-tl-0.75 border border-border bg-surface text-text`
+  }
+  return `${base} rounded-br-0.75 bg-inset text-text`
+}
+
+const selectClass = 'rounded-lg border border-border bg-surface px-2.5 py-1.75 text-[13px] text-text'
+const inputClass = 'rounded-lg border border-border bg-surface px-2.5 py-1.75 text-[13px] text-text'
 
 /** Admin panel to propose up to 3 call times, or view what was proposed/confirmed. */
 function ProposeCallPanel({
@@ -89,26 +115,24 @@ function ProposeCallPanel({
   if (call === 'loading') return null
 
   return (
-    <div className="mb-[20px] rounded-[12px] border border-border bg-inset px-[16px] py-[14px]">
-      <h2 className="m-0 mb-[4px] text-[14px] font-semibold text-text">{x(M.support_admin_call_heading)}</h2>
-      <p className="m-0 mb-[10px] text-[12.5px] text-text-muted">{x(M.support_admin_call_intro)}</p>
+    <div className="mb-5 rounded-xl border border-border bg-inset px-4 py-3.5">
+      <h2 className="m-0 mb-1 text-[14px] font-semibold text-text">{x(M.support_admin_call_heading)}</h2>
+      <p className="m-0 mb-2.5 text-[12.5px] text-text-muted">{x(M.support_admin_call_intro)}</p>
 
       {call && (
         <>
-          <p className="m-0 mb-[4px] text-[12.5px] font-semibold text-text-2">
-            {call.status === 'confirmed'
-              ? `${x(M.support_admin_call_status_confirmed)}: ${call.confirmedStart ? formatDateTime(call.confirmedStart, lang) : ''}`
-              : x(M.support_admin_call_status_proposed)}
+          <p className="m-0 mb-1 text-[12.5px] font-semibold text-text-2">
+            {callStatusLine(call, x, lang)}
           </p>
           {call.status === 'confirmed' && !call.meetLink && (
-            <p className="m-0 mb-[10px] text-[12px] text-gold-fg">{x(M.support_admin_call_calendar_skipped)}</p>
+            <p className="m-0 mb-2.5 text-[12px] text-gold-fg">{x(M.support_admin_call_calendar_skipped)}</p>
           )}
         </>
       )}
 
-      <div className="flex flex-col gap-[8px]">
+      <div className="flex flex-col gap-2">
         {slots.map((value, i) => (
-          <div key={i} className="flex items-center gap-[8px]">
+          <div key={`slot-${i}`} className="flex items-center gap-2">
             <input
               type="datetime-local"
               aria-label={`${x(M.support_admin_call_slot)} ${i + 1}`}
@@ -121,7 +145,7 @@ function ProposeCallPanel({
                 type="button"
                 aria-label={x(M.support_admin_call_remove_slot)}
                 onClick={() => setSlots((s) => s.filter((_, j) => j !== i))}
-                className="cursor-pointer rounded-[6px] border border-border bg-surface p-[5px] text-text-muted"
+                className="cursor-pointer rounded-md border border-border bg-surface p-1.25 text-text-muted"
               >
                 <X size={13} strokeWidth={2} aria-hidden="true" />
               </button>
@@ -132,14 +156,14 @@ function ProposeCallPanel({
           <button
             type="button"
             onClick={() => setSlots((s) => [...s, ''])}
-            className="inline-flex w-fit cursor-pointer items-center gap-[5px] rounded-[6px] border border-border bg-surface px-[9px] py-[5px] text-[12px] font-semibold text-text-2"
+            className="inline-flex w-fit cursor-pointer items-center gap-1.25 rounded-md border border-border bg-surface px-2.25 py-1.25 text-[12px] font-semibold text-text-2"
           >
             <Plus size={13} strokeWidth={2} aria-hidden="true" />
             {x(M.support_admin_call_add_slot)}
           </button>
         )}
 
-        <label className="mt-[4px] flex items-center gap-[8px] text-[12.5px] font-semibold text-text-2">
+        <label className="mt-1 flex items-center gap-2 text-[12.5px] font-semibold text-text-2">
           {x(M.support_admin_call_duration_label)}
           <input
             type="number"
@@ -147,7 +171,7 @@ function ProposeCallPanel({
             max={120}
             value={duration}
             onChange={(e) => setDuration(Number(e.target.value) || 30)}
-            className={`${inputClass} w-[70px]`}
+            className={`${inputClass} w-17.5`}
           />
         </label>
 
@@ -162,7 +186,7 @@ function ProposeCallPanel({
             type="button"
             disabled={busy}
             onClick={() => void submit()}
-            className="cursor-pointer rounded-[9px] border-none bg-navy px-[16px] py-[8px] text-[13px] font-semibold text-white disabled:opacity-60"
+            className="cursor-pointer rounded-[9px] border-none bg-navy px-4 py-2 text-[13px] font-semibold text-white disabled:opacity-60"
           >
             {x(M.support_admin_call_submit)}
           </button>
@@ -223,8 +247,8 @@ export function SupportAdminTicket() {
 
   if (admin === false) {
     return (
-      <div className="mx-auto max-w-[820px] px-[28px] pt-[24px]">
-        <p className="m-0 rounded-[12px] border border-border bg-inset px-[16px] py-[12px] text-[14px] text-text-2">
+      <div className="mx-auto max-w-205 px-7 pt-6">
+        <p className="m-0 rounded-xl border border-border bg-inset px-4 py-3 text-[14px] text-text-2">
           {x(M.support_admin_denied)}
         </p>
       </div>
@@ -235,33 +259,33 @@ export function SupportAdminTicket() {
     m.authorRole === 'agent' ? x(M.support_author_dutiva) : L('Customer', 'Client')
 
   return (
-    <div className="mx-auto max-w-[860px] px-[28px] pt-[8px] pb-[64px] max-[640px]:px-[16px]">
+    <div className="mx-auto max-w-215 px-7 pt-2 pb-16 max-[640px]:px-4">
       <Link
         to="/app/support/admin"
-        className="mb-[16px] inline-flex items-center gap-[6px] py-[4px] text-[13px] font-semibold text-text-muted hover:text-text"
+        className="mb-4 inline-flex items-center gap-1.5 py-1 text-[13px] font-semibold text-text-muted hover:text-text"
       >
         <ChevronLeft size={15} strokeWidth={2} aria-hidden="true" />
         {x(M.support_admin_title)}
       </Link>
 
       {ticket === null && (
-        <p className="m-0 text-[14px] text-text-3" role="status">
+        <output className="m-0 text-[14px] text-text-3">
           {x(M.support_requests_loading)}
-        </p>
+        </output>
       )}
       {ticket === 'missing' && <p className="m-0 text-[14px] text-text-3">{x(M.support_ticket_not_found)}</p>}
 
       {ticket && ticket !== 'missing' && (
         <>
-          <header className="mb-[16px]">
-            <h1 className="m-0 mb-[6px] font-display text-[22px] font-semibold tracking-[-0.015em] text-text">
+          <header className="mb-4">
+            <h1 className="m-0 mb-1.5 font-display text-[22px] font-semibold tracking-[-0.015em] text-text">
               {ticket.subject}
             </h1>
             <p className="m-0 text-[12.5px] text-text-muted">
               {ticket.publicReference} · {x(supportCategory(ticket.category).label)} ·{' '}
               {ticket.requesterEmail ?? '—'}
               {ticket.restricted && (
-                <span className="ml-[6px] rounded-[4px] bg-risk-bg px-[5px] py-px text-[10.5px] font-semibold text-risk-fg">
+                <span className="ml-1.5 rounded-1 bg-risk-bg px-1.25 py-px text-[10.5px] font-semibold text-risk-fg">
                   {x(M.support_admin_restricted_badge)}
                 </span>
               )}
@@ -269,8 +293,8 @@ export function SupportAdminTicket() {
           </header>
 
           {/* Operator controls */}
-          <div className="mb-[20px] flex flex-wrap items-center gap-[16px] rounded-[12px] border border-border bg-inset px-[16px] py-[12px]">
-            <label className="flex items-center gap-[8px] text-[12.5px] font-semibold text-text-2">
+          <div className="mb-5 flex flex-wrap items-center gap-4 rounded-xl border border-border bg-inset px-4 py-3">
+            <label className="flex items-center gap-2 text-[12.5px] font-semibold text-text-2">
               {x(M.support_admin_set_status)}
               <select
                 className={selectClass}
@@ -285,7 +309,7 @@ export function SupportAdminTicket() {
                 ))}
               </select>
             </label>
-            <label className="flex items-center gap-[8px] text-[12.5px] font-semibold text-text-2">
+            <label className="flex items-center gap-2 text-[12.5px] font-semibold text-text-2">
               {x(M.support_admin_set_priority)}
               <select
                 className={selectClass}
@@ -304,28 +328,20 @@ export function SupportAdminTicket() {
           </div>
 
           {actionError && (
-            <p role="alert" className="m-0 mb-[14px] rounded-[10px] border border-risk-border bg-risk-bg px-[14px] py-[10px] text-[13px] text-risk-fg">
+            <p role="alert" className="m-0 mb-3.5 rounded-[10px] border border-risk-border bg-risk-bg px-3.5 py-2.5 text-[13px] text-risk-fg">
               {x(M.support_admin_action_error)}
             </p>
           )}
 
           <ProposeCallPanel ticketId={ticket.id} onProposed={() => void load()} />
 
-          <ol className="m-0 mb-[22px] flex list-none flex-col gap-[10px] p-0">
+          <ol className="m-0 mb-5.5 flex list-none flex-col gap-2.5 p-0">
             {ticket.messages.map((m) => (
               <li key={m.id}>
-                <div
-                  className={
-                    m.isInternal
-                      ? 'rounded-[12px] border border-gold-border bg-gold-bg px-[16px] py-[11px] text-[14px] leading-[1.5] whitespace-pre-wrap text-gold-fg'
-                      : m.authorRole === 'agent'
-                        ? 'rounded-[12px] rounded-tl-[3px] border border-border bg-surface px-[16px] py-[11px] text-[14px] leading-[1.5] whitespace-pre-wrap text-text'
-                        : 'rounded-[12px] rounded-br-[3px] bg-inset px-[16px] py-[11px] text-[14px] leading-[1.5] whitespace-pre-wrap text-text'
-                  }
-                >
+                <div className={messageBubbleClass(m)}>
                   {m.body}
                 </div>
-                <span className="mt-[3px] block text-[11px] text-text-faint">
+                <span className="mt-0.75 block text-[11px] text-text-faint">
                   {m.isInternal ? x(M.support_admin_internal_badge) : authorLabel(m)} ·{' '}
                   {formatDateTime(m.createdAt, lang)}
                 </span>
@@ -336,7 +352,7 @@ export function SupportAdminTicket() {
           <SupportAttachments ticketId={ticket.id} canUpload={ticket.status !== 'closed'} />
 
           {/* Reply (customer-visible) */}
-          <div className="mb-[16px] flex flex-col gap-[8px]">
+          <div className="mb-4 flex flex-col gap-2">
             <label htmlFor="admin-reply" className="text-[13px] font-semibold text-text-2">
               {x(M.support_admin_reply_label)}
             </label>
@@ -345,14 +361,14 @@ export function SupportAdminTicket() {
               value={reply}
               onChange={(e) => setReply(e.target.value)}
               maxLength={20000}
-              className="min-h-[90px] w-full resize-y rounded-[9px] border border-border bg-surface px-[12px] py-[10px] text-[14px] text-text"
+              className="min-h-22.5 w-full resize-y rounded-[9px] border border-border bg-surface px-3 py-2.5 text-[14px] text-text"
             />
             <div>
               <button
                 type="button"
                 disabled={busy || !reply.trim()}
                 onClick={() => void act({ action: 'reply', body: reply.trim() }, () => setReply(''))}
-                className="cursor-pointer rounded-[9px] border-none bg-navy px-[18px] py-[9px] text-[13.5px] font-semibold text-white disabled:opacity-60"
+                className="cursor-pointer rounded-[9px] border-none bg-navy px-4.5 py-2.25 text-[13.5px] font-semibold text-white disabled:opacity-60"
               >
                 {x(M.support_admin_reply_send)}
               </button>
@@ -360,7 +376,7 @@ export function SupportAdminTicket() {
           </div>
 
           {/* Internal note */}
-          <div className="flex flex-col gap-[8px]">
+          <div className="flex flex-col gap-2">
             <label htmlFor="admin-note" className="text-[13px] font-semibold text-text-2">
               {x(M.support_admin_note_label)}
             </label>
@@ -369,14 +385,14 @@ export function SupportAdminTicket() {
               value={note}
               onChange={(e) => setNote(e.target.value)}
               maxLength={20000}
-              className="min-h-[70px] w-full resize-y rounded-[9px] border border-gold-border bg-gold-bg px-[12px] py-[10px] text-[14px] text-gold-fg"
+              className="min-h-17.5 w-full resize-y rounded-[9px] border border-gold-border bg-gold-bg px-3 py-2.5 text-[14px] text-gold-fg"
             />
             <div>
               <button
                 type="button"
                 disabled={busy || !note.trim()}
                 onClick={() => void act({ action: 'note', body: note.trim() }, () => setNote(''))}
-                className="cursor-pointer rounded-[9px] border border-border bg-surface px-[18px] py-[9px] text-[13.5px] font-semibold text-text-2 disabled:opacity-60"
+                className="cursor-pointer rounded-[9px] border border-border bg-surface px-4.5 py-2.25 text-[13.5px] font-semibold text-text-2 disabled:opacity-60"
               >
                 {x(M.support_admin_note_send)}
               </button>

@@ -56,7 +56,7 @@ a law-change email lawful, and they lead to different products:
 notice to an existing customer about the service they already pay for is
 arguably not a CEM at all; CASL also excludes messages that provide factual
 information about the ongoing use or purchase of a subscription. On this
-reading a bare "the Ontario ESA was amended on <date>; here is the section and
+reading a bare "the Ontario ESA was amended on `<date>`; here is the section and
 the official source" is a service message.
 
 **Path B — a commercial message requiring consent.** The moment the email

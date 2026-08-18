@@ -404,8 +404,8 @@ any RSS feed (none exists for this purpose).
   active corpus chunk in that jurisdiction: the chunk keeps retrieving, but
   its citation demotes to needs-review and the Advisor warns that a law
   behind a cited source changed. Granularity is deliberately the
-  jurisdiction — the monitor knows *that* a law changed, not which corpus
+  jurisdiction — the monitor knows _that_ a law changed, not which corpus
   topic the amendment touches, so it over-flags and errs safe. A human
   clears the flag on re-verification
-  (`docs/advisor-corpus-review-pack-ontario.md`). The corpus *content* still
+  (`docs/advisor-corpus-review-pack-ontario.md`). The corpus _content_ still
   updates only through reviewed amendment tranches, never automatically.

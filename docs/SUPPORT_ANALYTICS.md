@@ -95,7 +95,7 @@ visitor accepts through the consent banner.
 
 ## 3. Architecture
 
-```
+```text
 Client (browser)
   ├─ trackEvent() ──→ hasAnalyticsConsent()? ──→ queue (max 10 events or 2s debounce)
   │                     (no consent → no-op, no visitor id)
@@ -278,6 +278,7 @@ future redeploy:
 
 5. **Verify after deploy.** Open a Help Centre article in production, vote,
    and check:
+
    ```sql
    select * from public.support_analytics_events order by occurred_at desc limit 5;
    ```
