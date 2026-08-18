@@ -21,7 +21,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "C:/Users/Marti/Dutiva_Web/.agents/hooks/enforce-uv-install.sh"
+            "command": "$CLAUDE_PROJECT_DIR/.agents/hooks/enforce-uv-install.sh"
           }
         ]
       }
@@ -32,11 +32,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run C:/Users/Marti/Dutiva_Web/.agents/hooks/enforce-uv-run.py"
+            "command": "uv run $CLAUDE_PROJECT_DIR/.agents/hooks/enforce-uv-run.py"
           },
           {
             "type": "command",
-            "command": "uv run C:/Users/Marti/Dutiva_Web/.agents/hooks/block-dangerous-commands.py"
+            "command": "uv run $CLAUDE_PROJECT_DIR/.agents/hooks/block-dangerous-commands.py"
           }
         ]
       }
@@ -47,7 +47,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run C:/Users/Marti/Dutiva_Web/.agents/hooks/enforce-skill-use.py"
+            "command": "uv run $CLAUDE_PROJECT_DIR/.agents/hooks/enforce-skill-use.py"
           }
         ]
       }
