@@ -57,6 +57,9 @@ const ROUTE_PATTERNS: readonly string[] = [
   '/fr/aide/:slug',
   '/fr/contact',
   '/fr/etat',
+  // Public external signing (token in path — scrub to pattern)
+  '/sign/:token',
+  '/fr/sign/:token',
   // App surface — entry + shell
   '/app/welcome',
   '/app/auth/confirm',

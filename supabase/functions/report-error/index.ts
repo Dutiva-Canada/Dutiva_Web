@@ -54,6 +54,7 @@ const KNOWN_ROUTES = new Set<string>([
   '/fr/guides', '/fr/guides/utilisation-des-modeles', '/fr/limites-connues',
   '/fr/juridique', '/fr/juridique/:slug', '/fr/aide', '/fr/aide/:slug',
   '/fr/contact', '/fr/etat',
+  '/sign/:token', '/fr/sign/:token',
   '/app/welcome', '/app/auth/confirm', '/app', '/app/home', '/app/advisor',
   '/app/workflows', '/app/cases', '/app/cases/:id', '/app/employees',
   '/app/employees/:id', '/app/compliance', '/app/policies', '/app/templates',

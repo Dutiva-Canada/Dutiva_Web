@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ExternalLink, LifeBuoy, ShieldCheck } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -12,6 +12,10 @@ import { formatStampTime, readExportAudit } from '@/lib/exportProtection'
 import { common } from '@/i18n/messages/common'
 import { settingsMessages as M } from '@/i18n/messages/settings'
 import { exportProtectionMessages as XP } from '@/i18n/messages/exportProtection'
+import {
+  getSigningReminderDays,
+  setSigningReminderDays,
+} from '@/features/app/documents/signingReminderSettingsApi'
 import {
   aiToggles,
   auditEvents,
@@ -48,13 +52,45 @@ export function SettingsView() {
   const helpCentrePath = lang === 'fr' ? '/fr/aide' : '/help'
   const { theme, setTheme } = useTheme()
   const { showToast } = useToasts()
-  const { mode: workspaceMode, isAdmin, identity, setMode: setWorkspaceMode } = useWorkspaceMode()
+  const { mode: workspaceMode, isAdmin, identity, organizationId, setMode: setWorkspaceMode } =
+    useWorkspaceMode()
 
   const [prefs, setPrefs] = useState<Record<PrefKey, boolean>>(initialPrefs)
   const [integrationError, setIntegrationError] = useState(true)
   /* Device-local export audit trail (src/lib/exportProtection) — read once
      per mount; the workspace-wide copy lives in export_events server-side. */
   const [exportTrail] = useState(() => readExportAudit().slice(0, 8))
+  const [reminderDays, setReminderDays] = useState(3)
+  const [reminderSaving, setReminderSaving] = useState(false)
+
+  useEffect(() => {
+    if (workspaceMode !== 'production' || !organizationId || !isAdmin) return
+    let cancelled = false
+    void getSigningReminderDays(organizationId)
+      .then((days) => {
+        if (!cancelled) setReminderDays(days)
+      })
+      .catch(() => {
+        /* keep default */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [workspaceMode, organizationId, isAdmin])
+
+  const saveReminderDays = async (raw: number) => {
+    if (!organizationId || reminderSaving) return
+    setReminderSaving(true)
+    try {
+      const saved = await setSigningReminderDays(organizationId, raw)
+      setReminderDays(saved)
+      showToast(M.settings_signing_reminder_saved, 'ok')
+    } catch {
+      showToast(M.settings_signing_reminder_failed, 'info')
+    } finally {
+      setReminderSaving(false)
+    }
+  }
 
   const toggleSetting = (key: PrefKey) => {
     setPrefs((s) => ({ ...s, [key]: !s[key] }))
@@ -202,6 +238,30 @@ export function SettingsView() {
                   {x(M.settings_workspace_mode_note)}
                 </p>
                 <CapacityAlert />
+                {workspaceMode === 'production' && organizationId && (
+                  <div className="mt-[14px]">
+                    <label
+                      htmlFor="signing-reminder-days"
+                      className="text-[12px] text-text-muted"
+                    >
+                      {x(M.settings_signing_reminder_days)}
+                    </label>
+                    <input
+                      id="signing-reminder-days"
+                      type="number"
+                      min={1}
+                      max={14}
+                      value={reminderDays}
+                      disabled={reminderSaving}
+                      onChange={(e) => setReminderDays(Number(e.target.value) || 1)}
+                      onBlur={() => void saveReminderDays(reminderDays)}
+                      className="mt-[6px] w-[88px] rounded-[8px] border border-border bg-bg px-[10px] py-[7px] text-[13.5px] text-text"
+                    />
+                    <p className="mt-[6px] text-[11.5px] leading-normal text-text-faint">
+                      {x(M.settings_signing_reminder_days_note)}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
             <div>

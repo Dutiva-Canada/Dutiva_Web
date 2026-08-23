@@ -50,6 +50,23 @@ export const settingsMessages = defineMessages({
     en: 'Demo shows Northgate Logistics Inc. sample data for training and walkthroughs. Production is your real, empty Dutiva workspace — visible only to you.',
     fr: 'Le mode Démo affiche les données d’exemple de Northgate Logistics Inc. pour la formation et les démonstrations. Le mode Production est votre espace de travail Dutiva réel et vide — visible pour vous seul.',
   },
+  /* Signing reminder cadence — [FR self-authored] */
+  settings_signing_reminder_days: {
+    en: 'Signing reminder interval (days)',
+    fr: 'Intervalle de rappel de signature (jours)',
+  },
+  settings_signing_reminder_days_note: {
+    en: 'How long after the invite (or last reminder) before Dutiva emails the current signer again. Between 1 and 14 days.',
+    fr: 'Délai après l’invitation (ou le dernier rappel) avant que Dutiva renvoie un courriel au signataire en cours. Entre 1 et 14 jours.',
+  },
+  settings_signing_reminder_saved: {
+    en: 'Reminder interval saved',
+    fr: 'Intervalle de rappel enregistré',
+  },
+  settings_signing_reminder_failed: {
+    en: 'Could not save reminder interval',
+    fr: 'Impossible d’enregistrer l’intervalle de rappel',
+  },
 
   /* ── Users & team ───────────────────────────────────────────────────────── */
   settings_team: { en: 'Users & team', fr: 'Équipe et utilisateurs' },

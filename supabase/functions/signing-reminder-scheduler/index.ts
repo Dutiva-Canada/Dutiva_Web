@@ -4,8 +4,9 @@ import { sendInviteToRecipient, type Lang } from '../_shared/signingInvite.ts'
 
 /**
  * Cron sweep for stale Dutiva Signature invites — emails a reminder to turn-
- * holders whose initial invite is 3+ days old. Scheduled every 6 hours by
- * trigger_signing_reminder_scheduler() (migration 0083).
+ * holders whose invite is older than the org's signing_reminder_days (default 3).
+ * Scheduled every 6 hours by trigger_signing_reminder_scheduler() (migration 0083;
+ * interval configurable per org in migration 0085).
  */
 
 const corsHeaders = {

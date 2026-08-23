@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Bell, Search, Sparkle } from 'lucide-react'
 import type { Bi } from '@/i18n/core'
 import { bi } from '@/i18n/core'
@@ -15,18 +15,24 @@ import { workspaceModeMessages as WM } from '@/i18n/messages/workspaceMode'
 import { AuthMenuButton } from '@/features/app/auth/AuthMenuButton'
 import { LangToggle, ThemeToggle } from './ShellControls'
 import { cx } from './cx'
+import {
+  listWorkspaceNotifications,
+  markAllWorkspaceNotificationsRead,
+  markWorkspaceNotificationRead,
+  relativeTimeLabel,
+  type WorkspaceNotification,
+} from './workspaceNotificationsApi'
 
 /* Sample notifications — prototype `buildNotifications()` (FR from `frDict()`;
-   '2 days ago' FR follows the prototype's 'Il y a N jours' pattern). Move to
-   '@/data' once the data fixtures land. */
-interface NotificationItem {
+   '2 days ago' FR follows the prototype's 'Il y a N jours' pattern). */
+interface DemoNotificationItem {
   id: string
   text: Bi
   time: Bi
   unread: boolean
 }
 
-const SAMPLE_NOTIFICATIONS: NotificationItem[] = [
+const SAMPLE_NOTIFICATIONS: DemoNotificationItem[] = [
   {
     id: 'n1',
     text: bi(
@@ -72,15 +78,72 @@ export function Topbar({ title }: { readonly title: string }) {
   const { openSearch } = useSearch()
   const askAdvisor = useAskAdvisorBriefing()
   const { pathname } = useLocation()
+  const navigate = useNavigate()
 
   const { mode } = useWorkspaceMode()
   const [demoNotifications, setDemoNotifications] = useState(SAMPLE_NOTIFICATIONS)
+  const [prodNotifications, setProdNotifications] = useState<WorkspaceNotification[]>([])
   const [notifOpen, setNotifOpen] = useState(false)
-  /* The sample notifications are demo fixtures — production starts with none. */
-  const notifications = mode === 'production' ? [] : demoNotifications
+
+  useEffect(() => {
+    if (mode !== 'production') return
+    let cancelled = false
+    void listWorkspaceNotifications()
+      .then((rows) => {
+        if (!cancelled) setProdNotifications(rows)
+      })
+      .catch(() => {
+        if (!cancelled) setProdNotifications([])
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [mode, notifOpen])
+
+  const demoItems = demoNotifications.map((n) => ({
+    id: n.id,
+    text: n.text,
+    time: n.time,
+    unread: n.unread,
+    href: null as string | null,
+  }))
+  const prodItems = prodNotifications.map((n) => ({
+    id: n.id,
+    text: n.body ?? n.title,
+    time: relativeTimeLabel(n.createdAt),
+    unread: n.unread,
+    href: n.href,
+  }))
+  const notifications = mode === 'production' ? prodItems : demoItems
   const hasUnread = notifications.some((n) => n.unread)
-  const markAllRead = () =>
+
+  const markAllRead = () => {
+    if (mode === 'production') {
+      setProdNotifications((list) => list.map((n) => ({ ...n, unread: false })))
+      void markAllWorkspaceNotificationsRead().catch(() => {
+        /* best-effort */
+      })
+      return
+    }
     setDemoNotifications((list) => list.map((n) => ({ ...n, unread: false })))
+  }
+
+  const openItem = (id: string, href: string | null) => {
+    if (mode === 'production') {
+      setProdNotifications((list) =>
+        list.map((n) => (n.id === id ? { ...n, unread: false } : n)),
+      )
+      void markWorkspaceNotificationRead(id).catch(() => {
+        /* best-effort */
+      })
+    } else {
+      setDemoNotifications((list) =>
+        list.map((n) => (n.id === id ? { ...n, unread: false } : n)),
+      )
+    }
+    setNotifOpen(false)
+    if (href) navigate(href)
+  }
 
   /* The prototype hides "Ask Advisor" on the Advisor view itself. */
   const showAskAdvisor = !pathname.startsWith('/app/advisor')
@@ -155,10 +218,12 @@ export function Topbar({ title }: { readonly title: string }) {
                     </div>
                   )}
                   {notifications.map((n) => (
-                    <div
+                    <button
                       key={n.id}
+                      type="button"
+                      onClick={() => openItem(n.id, n.href)}
                       className={cx(
-                        'flex gap-[10px] border-b border-inset px-[14px] py-[11px]',
+                        'flex w-full cursor-pointer gap-[10px] border-0 border-b border-inset px-[14px] py-[11px] text-left',
                         n.unread ? 'bg-surface-2' : 'bg-surface',
                       )}
                     >
@@ -172,7 +237,7 @@ export function Topbar({ title }: { readonly title: string }) {
                         <div className="text-[13px] leading-[1.4] text-text">{x(n.text)}</div>
                         <div className="mt-[2px] text-[11.5px] text-text-muted">{x(n.time)}</div>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </dialog>

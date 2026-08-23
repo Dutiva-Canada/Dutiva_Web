@@ -4,6 +4,7 @@ import { Disclaimer } from '@/components/Disclaimer'
 import { useI18n } from '@/i18n/context'
 import { pick } from '@/i18n/core'
 import { doclibMessages as M } from '@/i18n/messages/doclib'
+import { Seo } from '@/seo/Seo'
 import { DocPaper } from '../components'
 import { SignaturePad, type SignatureValue } from '../components/SignaturePad'
 import {
@@ -22,7 +23,24 @@ import { DUTIVA_SIGNING_CONSENT_VERSION } from '../signingConsent'
  */
 export function ExternalSigningView() {
   const { token } = useParams<{ token: string }>()
-  const { t, x } = useI18n()
+  const { t, x, lang } = useI18n()
+  const signPath = lang === 'fr' ? `/fr/sign/${token ?? ''}` : `/sign/${token ?? ''}`
+  const seo = (
+    <Seo
+      page={{
+        title: {
+          en: 'Sign document | Dutiva Signature',
+          fr: 'Signer le document | Dutiva Signature',
+        },
+        description: {
+          en: 'Private signing link. Do not share this URL publicly.',
+          fr: 'Lien de signature privé. Ne partagez pas cette URL publiquement.',
+        },
+        path: { en: signPath, fr: signPath },
+        indexable: false,
+      }}
+    />
+  )
 
   const [pkg, setPkg] = useState<ExternalSigningPackage | null | undefined>(undefined)
   const [loadFailed, setLoadFailed] = useState(false)
@@ -71,41 +89,53 @@ export function ExternalSigningView() {
 
   if (pkg === undefined) {
     return (
-      <div className="surface-app min-h-screen bg-bg px-6 py-16 text-center font-sans text-text-muted">
-        {t('doclib_common_loading')}
-      </div>
+      <>
+        {seo}
+        <div className="surface-app min-h-screen bg-bg px-6 py-16 text-center font-sans text-text-muted">
+          {t('doclib_common_loading')}
+        </div>
+      </>
     )
   }
 
   if (loadFailed || !pkg || !token) {
     return (
-      <div className="surface-app min-h-screen bg-bg px-6 py-16 text-center font-sans text-text">
-        <h1 className="mb-2 font-display text-[20px] font-semibold text-text">
-          {t('doclib_sign_notFound')}
-        </h1>
-        <p className="text-[13px] text-text-muted">{x(M.doclib_external_invalid_link)}</p>
-      </div>
+      <>
+        {seo}
+        <div className="surface-app min-h-screen bg-bg px-6 py-16 text-center font-sans text-text">
+          <h1 className="mb-2 font-display text-[20px] font-semibold text-text">
+            {t('doclib_sign_notFound')}
+          </h1>
+          <p className="text-[13px] text-text-muted">{x(M.doclib_external_invalid_link)}</p>
+        </div>
+      </>
     )
   }
 
   if (completed || pkg.recipient.status === 'signed') {
     return (
-      <div className="surface-app min-h-screen bg-bg px-6 py-16 text-center font-sans text-text">
-        <h1 className="mb-2 font-display text-[20px] font-semibold text-text">
-          {x(M.doclib_external_signed_title)}
-        </h1>
-        <p className="text-[13px] text-text-muted">{x(M.doclib_external_signed_body)}</p>
-      </div>
+      <>
+        {seo}
+        <div className="surface-app min-h-screen bg-bg px-6 py-16 text-center font-sans text-text">
+          <h1 className="mb-2 font-display text-[20px] font-semibold text-text">
+            {x(M.doclib_external_signed_title)}
+          </h1>
+          <p className="text-[13px] text-text-muted">{x(M.doclib_external_signed_body)}</p>
+        </div>
+      </>
     )
   }
 
   if (pkg.recipient.status === 'declined') {
     return (
-      <div className="surface-app min-h-screen bg-bg px-6 py-16 text-center font-sans text-text">
-        <h1 className="mb-2 font-display text-[20px] font-semibold text-text">
-          {x(M.doclib_sign_declined)}
-        </h1>
-      </div>
+      <>
+        {seo}
+        <div className="surface-app min-h-screen bg-bg px-6 py-16 text-center font-sans text-text">
+          <h1 className="mb-2 font-display text-[20px] font-semibold text-text">
+            {x(M.doclib_sign_declined)}
+          </h1>
+        </div>
+      </>
     )
   }
 
@@ -139,6 +169,8 @@ export function ExternalSigningView() {
   }
 
   return (
+    <>
+      {seo}
     <div className="surface-app min-h-screen bg-bg font-sans text-text">
       <div className="mx-auto max-w-300 px-7 pt-8 pb-16 max-[640px]:px-4">
         <div className="mb-4.5">
@@ -231,5 +263,6 @@ export function ExternalSigningView() {
         </div>
       </div>
     </div>
+    </>
   )
 }
