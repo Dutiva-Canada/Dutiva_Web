@@ -4,12 +4,20 @@ import { ChevronLeft } from 'lucide-react'
 import { Disclaimer } from '@/components/Disclaimer'
 import { useI18n } from '@/i18n/context'
 import { useToasts } from '@/features/app/toasts/toastsContext'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useDoclib } from '../doclibContext'
 import { DocPaper } from '../components'
 import { SignaturePad, type SignatureValue } from '../components/SignaturePad'
 import { answerLabels, computedTokens, resolveBlocks } from '../engine'
+import { SigningProductionView } from './SigningProductionView'
 
 export function SigningScreen() {
+  const { mode } = useWorkspaceMode()
+  if (mode === 'production') return <SigningProductionView />
+  return <SigningDemoScreen />
+}
+
+function SigningDemoScreen() {
   const { envelopeId } = useParams<{ envelopeId: string }>()
   const [searchParams] = useSearchParams()
   const { t } = useI18n()

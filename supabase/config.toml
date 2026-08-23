@@ -70,3 +70,9 @@ verify_jwt = false
 
 [functions.record-score-snapshots]
 verify_jwt = false
+
+[functions.send-signing-invite]
+verify_jwt = false
+
+[functions.signing-reminder-scheduler]
+verify_jwt = false

@@ -46,6 +46,7 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const AppWelcome = lazy(() => import('./appSurface').then((m) => ({ default: m.AppWelcome })))
 /* prettier-ignore */ const AppAuthConfirm = lazy(() => import('./appSurface').then((m) => ({ default: m.AppAuthConfirm })))
 /* prettier-ignore */ const Workspace = lazy(() => import('./appSurface').then((m) => ({ default: m.Workspace })))
+/* prettier-ignore */ const ExternalSigningView = lazy(() => import('@/features/app/documents/screens/ExternalSigningView').then((m) => ({ default: m.ExternalSigningView })))
 
 /**
  * Layout wrapper for the public marketing surface: the URL decides the
@@ -132,6 +133,8 @@ function NotFoundRoute() {
  *   /app/<view>            the 16 workspace views
  *   /app/cases/:caseId     case detail
  *   /app/employees/:employeeId  employee profile
+ *   /sign/:token               external Dutiva Signature (no login)
+   /fr/sign/:token           external signing (French UI)
  *   *                      404 (noindex)
  */
 export const routes: RouteObject[] = [
@@ -163,6 +166,26 @@ function routeTree(): RouteObject[] {
         <Suspense fallback={null}>
           <AppAuthConfirm />
         </Suspense>
+      ),
+    },
+    {
+      path: '/sign/:token',
+      element: (
+        <ForcedLangProvider lang="en">
+          <Suspense fallback={null}>
+            <ExternalSigningView />
+          </Suspense>
+        </ForcedLangProvider>
+      ),
+    },
+    {
+      path: '/fr/sign/:token',
+      element: (
+        <ForcedLangProvider lang="fr">
+          <Suspense fallback={null}>
+            <ExternalSigningView />
+          </Suspense>
+        </ForcedLangProvider>
       ),
     },
     {

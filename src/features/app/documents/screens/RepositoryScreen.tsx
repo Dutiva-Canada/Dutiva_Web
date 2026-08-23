@@ -5,9 +5,11 @@ import { Archive, FileText, Lock, Search } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
 import type { WorkspaceMessageKey } from '@/i18n/messages'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useDoclib } from '../doclibContext'
 import { can } from '../engine'
 import { DocChip, JurisdictionPill, Skel } from '../components'
+import { RepositoryProductionView } from './RepositoryProductionView'
 import {
   documentStatusInfo,
   reviewStatusInfo,
@@ -93,6 +95,12 @@ function matchesFilters(doc: GeneratedDoc, filters: RepoFilters, query: string, 
 }
 
 export function RepositoryScreen() {
+  const { mode } = useWorkspaceMode()
+  if (mode === 'production') return <RepositoryProductionView />
+  return <RepositoryDemoScreen />
+}
+
+function RepositoryDemoScreen() {
   const { t, x, L } = useI18n()
   const { data, role } = useDoclib()
   const [query, setQuery] = useState('')

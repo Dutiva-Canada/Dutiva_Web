@@ -3,6 +3,7 @@ import { UserRound } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { isDoclibStudioPath } from '@/features/app/shell/navConfig'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { DoclibProvider } from './DoclibProvider'
 import { useDoclib } from './doclibContext'
 import { workspaceRoles } from './data'
@@ -56,7 +57,8 @@ function DocumentsTabs() {
 /**
  * Shared frame for every /app/documents route: mounts the feature provider
  * and the "Viewing as" bar — the prototype's permission-demo control (kept
- * per the handoff; real auth is out of scope for the demo phase).
+ * per the handoff; real auth is out of scope for the demo phase). Hidden in
+ * production: org membership role from useWorkspaceMode() is the real gate.
  */
 function ViewingAsBar() {
   const { t, x } = useI18n()
@@ -83,6 +85,17 @@ function ViewingAsBar() {
   )
 }
 
+function DocumentsChrome() {
+  const { mode } = useWorkspaceMode()
+  return (
+    <>
+      <DocumentsTabs />
+      {mode === 'demo' && <ViewingAsBar />}
+      <Outlet />
+    </>
+  )
+}
+
 export function DocumentsLayout() {
   return (
     <DoclibProvider>
@@ -92,9 +105,7 @@ export function DocumentsLayout() {
           screens' equivalent. min-h-0 lets it shrink so overflow can engage. */}
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto max-w-[1240px]">
-          <DocumentsTabs />
-          <ViewingAsBar />
-          <Outlet />
+          <DocumentsChrome />
         </div>
       </div>
     </DoclibProvider>
