@@ -39,6 +39,8 @@ const recipients: ProductionDocumentRecipient[] = [
     inviteDeliveryStatus: null,
     inviteDeliveryDetail: null,
     inviteDeliveryUpdatedAt: null,
+    tokenExpiresAt: null,
+    tokenRevokedAt: null,
   },
   {
     id: 'r2',
@@ -57,6 +59,8 @@ const recipients: ProductionDocumentRecipient[] = [
     inviteDeliveryStatus: null,
     inviteDeliveryDetail: null,
     inviteDeliveryUpdatedAt: null,
+    tokenExpiresAt: null,
+    tokenRevokedAt: null,
   },
 ]
 

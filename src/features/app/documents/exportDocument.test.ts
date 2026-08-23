@@ -75,6 +75,8 @@ const signedDetail: ProductionDocumentDetail = {
       inviteDeliveryStatus: null,
       inviteDeliveryDetail: null,
       inviteDeliveryUpdatedAt: null,
+      tokenExpiresAt: null,
+      tokenRevokedAt: null,
     },
   ],
   signature: {
