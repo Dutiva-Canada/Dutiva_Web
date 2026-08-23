@@ -1,0 +1,48 @@
+# End-to-end authenticated critical path — signed-in admin → Production mode →
+# Employees create. Isolated from hermetic e2e.yml so missing auth secrets
+# never charge against the credential-free gate.
+#
+# Required Woodpecker secret:
+#   SUPABASE_SERVICE_ROLE_KEY — service role for seed + session mint
+#
+# Public env (anon key is publishable). Build must see VITE_* so the SPA
+# bundle talks to Supabase (Vite inlines at build time).
+
+variables:
+  - &supabase_vite_env
+    VITE_SUPABASE_URL: https://khtwpxnvziiyplaflwru.supabase.co
+    VITE_SUPABASE_ANON_KEY: sb_publishable_4cpptaftDcwRSI0K2KuBjA_0vJcC0-S
+    SUPABASE_URL: https://khtwpxnvziiyplaflwru.supabase.co
+    SUPABASE_ANON_KEY: sb_publishable_4cpptaftDcwRSI0K2KuBjA_0vJcC0-S
+
+when:
+  - event: push
+    branch: main
+  - event: pull_request
+  - event: manual
+
+steps:
+  install:
+    image: node:22
+    commands:
+      - npm ci
+
+  build:
+    image: node:22
+    depends_on: [install]
+    environment:
+      <<: *supabase_vite_env
+      VITE_GA_MEASUREMENT_ID: G-V85ZQ75EWL
+    commands:
+      - npm run build
+
+  run-e2e-auth:
+    image: node:22
+    depends_on: [build]
+    environment:
+      <<: *supabase_vite_env
+      SUPABASE_SERVICE_ROLE_KEY:
+        from_secret: SUPABASE_SERVICE_ROLE_KEY
+    commands:
+      - npx playwright install --with-deps chromium
+      - npm run test:e2e:auth

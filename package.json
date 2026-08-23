@@ -16,6 +16,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "test:e2e:auth": "node e2e/auth/run-or-skip.mjs",
     "check:migrations": "node scripts/check-migrations.mjs",
     "check:rls": "node scripts/check-rls.mjs",
     "auth:email-templates": "node scripts/apply-auth-email-templates.mjs",

@@ -100,6 +100,11 @@ const BARRED_PACKAGES = [
     why: 'only the app surface and /pricing talk to Supabase, both lazily',
   },
   {
+    match: (pkg) => pkg === 'pdf-lib' || pkg.startsWith('@pdf-lib/') || pkg === 'pako',
+    what: 'the pdf-lib export tree',
+    why: 'only signedDocumentPdf (lazy documents surface) builds PDFs',
+  },
+  {
     match: (pkg) => /^(recharts|victory-vendor|d3-)/.test(pkg),
     what: 'the charting tree',
     why: 'it serves one thing — a ```chart block in an Advisor reply',

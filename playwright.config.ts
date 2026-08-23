@@ -25,6 +25,8 @@ const baseURL = `http://127.0.0.1:${PORT}`
 
 export default defineConfig({
   testDir: './e2e',
+  /* Auth critical-path lives under e2e/auth/ and uses playwright.auth.config.ts. */
+  testIgnore: ['**/auth/**'],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
