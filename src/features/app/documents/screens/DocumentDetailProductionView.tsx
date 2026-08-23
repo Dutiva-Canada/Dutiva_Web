@@ -285,9 +285,7 @@ export function DocumentDetailProductionView() {
       }
       showToast(M.doclib_toast_exported, 'ok')
       await load()
-      if (organizationId) {
-        setStoredExports(await listDocumentExports(organizationId, detail.id))
-      }
+      setStoredExports(await listDocumentExports(organizationId, detail.id))
     } catch {
       showToast(M.doclib_prod_export_failed, 'info')
     } finally {
