@@ -111,6 +111,8 @@ describe('signatureApi', () => {
         inviteDeliveryStatus: null,
         inviteDeliveryDetail: null,
         inviteDeliveryUpdatedAt: null,
+        tokenExpiresAt: null,
+        tokenRevokedAt: null,
       },
       {
         id: '2',
@@ -129,6 +131,8 @@ describe('signatureApi', () => {
         inviteDeliveryStatus: null,
         inviteDeliveryDetail: null,
         inviteDeliveryUpdatedAt: null,
+        tokenExpiresAt: null,
+        tokenRevokedAt: null,
       },
     ])
     expect(turn?.email).toBe('b@x.com')

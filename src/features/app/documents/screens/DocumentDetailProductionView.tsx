@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ChevronLeft, Copy, Mail } from 'lucide-react'
+import { ChevronLeft, Copy, Mail, RefreshCw } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { bi } from '@/i18n/core'
 import type { Lang } from '@/i18n/core'
@@ -34,6 +34,7 @@ import { createDocumentExportDownloadUrl, listDocumentExports } from '../exportS
 import type { StoredDocumentExport } from '../exportStorageApi'
 import { copyExternalSigningLink } from '../signingUrls'
 import { sendSigningInviteEmail } from '../signingInviteApi'
+import { reissueSigningToken } from '../signingTokenApi'
 import {
   currentSigningTurn,
   sendDocumentForSignature,
@@ -41,6 +42,7 @@ import {
   voidDocumentSignature,
 } from '../signatureApi'
 import type { InviteDeliveryStatus, ProductionDocumentRecipient } from '../signatureQueries'
+import { countUndeliveredInvites, isSigningTokenExpired } from '../signatureQueries'
 
 /**
  * Document detail in production mode — preview from frozen content_json,
@@ -152,6 +154,7 @@ export function DocumentDetailProductionView() {
   const [downloadingExportId, setDownloadingExportId] = useState<string | null>(null)
   const [emailingRecipientId, setEmailingRecipientId] = useState<string | null>(null)
   const [emailingAll, setEmailingAll] = useState(false)
+  const [reissuingRecipientId, setReissuingRecipientId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     if (!organizationId || !docId) return
@@ -223,6 +226,7 @@ export function DocumentDetailProductionView() {
   const reviewInfo = reviewStatusInfo[detail.reviewStatus]
   const signature = detail.signature
   const recipients = [...detail.recipients].sort((a, b) => a.order - b.order)
+  const undeliveredInviteCount = countUndeliveredInvites(recipients)
   const turn = currentSigningTurn(recipients)
   const completion = signature
     ? buildSigningCompletionRecord(detail, signature, recipients)
@@ -281,9 +285,7 @@ export function DocumentDetailProductionView() {
       }
       showToast(M.doclib_toast_exported, 'ok')
       await load()
-      if (organizationId) {
-        setStoredExports(await listDocumentExports(organizationId, detail.id))
-      }
+      setStoredExports(await listDocumentExports(organizationId, detail.id))
     } catch {
       showToast(M.doclib_prod_export_failed, 'info')
     } finally {
@@ -356,6 +358,20 @@ export function DocumentDetailProductionView() {
     } finally {
       setEmailingRecipientId(null)
       setEmailingAll(false)
+    }
+  }
+
+  const onReissueSigningLink = async (recipientId: string) => {
+    if (!organizationId || reissuingRecipientId) return
+    setReissuingRecipientId(recipientId)
+    try {
+      await reissueSigningToken(recipientId)
+      showToast(M.doclib_external_reissue_done, 'ok')
+      await load()
+    } catch {
+      showToast(M.doclib_external_reissue_failed, 'info')
+    } finally {
+      setReissuingRecipientId(null)
     }
   }
 
@@ -536,6 +552,14 @@ export function DocumentDetailProductionView() {
 
       {tab === 'recipients' && (
         <div>
+          {undeliveredInviteCount > 0 && (
+            <div className="mb-3.5 rounded-[13px] border border-risk-border bg-risk-bg px-4 py-3 text-[13px] text-risk-fg">
+              {x(M.doclib_prod_invite_bounced_banner).replaceAll(
+                '{count}',
+                String(undeliveredInviteCount),
+              )}
+            </div>
+          )}
           {signature && (
             <div className="mb-3.5 rounded-[13px] border border-border bg-surface px-4.25 py-3.75">
               <div className="mb-1.5 font-display text-[11px] font-bold tracking-[0.06em] text-text-muted uppercase">
@@ -660,6 +684,9 @@ export function DocumentDetailProductionView() {
                             recipient.inviteDeliveryStatus === 'complained') && (
                             <span className="block text-risk-fg">{recipient.inviteDeliveryDetail}</span>
                           )}
+                        {isSigningTokenExpired(recipient) && (
+                          <span className="block text-risk-fg">{x(M.doclib_external_link_expired)}</span>
+                        )}
                       </div>
                     )}
                   </div>
@@ -712,6 +739,17 @@ export function DocumentDetailProductionView() {
                           >
                             <Mail size={12} strokeWidth={2} aria-hidden="true" />
                             {x(M.doclib_external_email_link)}
+                          </button>
+                        )}
+                        {isOrgAdmin && (
+                          <button
+                            type="button"
+                            onClick={() => void onReissueSigningLink(recipient.id)}
+                            disabled={!!reissuingRecipientId}
+                            className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface px-2.5 py-1 text-[11.5px] font-semibold text-text hover:bg-inset disabled:opacity-50"
+                          >
+                            <RefreshCw size={12} strokeWidth={2} aria-hidden="true" />
+                            {x(M.doclib_external_reissue_link)}
                           </button>
                         )}
                       </div>

@@ -23,6 +23,12 @@ webhooks land on `hr_document_recipients.invite_delivery_*` (migration `0082`).
 Turn-aware invites email only the current signer; partial completion auto-emails
 the next signer (migration `0083`). Stale invites get reminder emails every
 6 hours via `signing-reminder-scheduler`. French documents use `/fr/sign/:token`.
+Org admins are emailed on envelope completion or decline (`notify-signing-status`,
+migration `0084`); admins can refresh expired signing links from the detail view.
+Migration `0085` hardens public `/sign/:token` (noindex headers + Seo, per-IP and
+per-token RPC rate limits), makes the reminder cadence configurable per org
+(`organizations.signing_reminder_days`, 1–14), and writes in-app admin
+notifications (`hr_workspace_notifications`) into the workspace bell.
 No third-party e-sign vendor is required.
 
 The full design handoff this was transcribed from — README, prototype HTML,
@@ -38,7 +44,7 @@ so it's reproducible for contributors instead of living only on one machine.
 
 The tenant + its compliance profile (size, union, sector) that drives conditional obligations.
 
-- **Fields:** `id`, `name`, `employee_count`, `size_tier`, `unionized`, `sector`, `federally_regulated`, `primary_jurisdiction`, `created_at`
+- **Fields:** `id`, `name`, `employee_count`, `size_tier`, `unionized`, `sector`, `federally_regulated`, `primary_jurisdiction`, `created_at`; production also stores `signing_reminder_days` (1–14, default 3; migration `0085`)
 - **Relations:** has many organization_members, employees, documents, templates
 - **Surfaces in UI:** Workspace switcher
 
@@ -167,7 +173,7 @@ Append-only log of every meaningful action.
 
 ## Audit event catalogue
 
-`template_opened`, `generation_started`, `draft_saved`, `document_created`, `document_updated`, `version_created`, `review_requested`, `review_approved`, `review_rejected`, `sent_for_signature`, `signing_invite_sent`, `signing_invite_reminded`, `signature_viewed`, `signature_applied`, `signature_declined`, `signature_completed`, `document_exported`, `document_archived`, `document_restored`, `document_voided`, `permission_changed`, `comment_added`
+`template_opened`, `generation_started`, `draft_saved`, `document_created`, `document_updated`, `version_created`, `review_requested`, `review_approved`, `review_rejected`, `sent_for_signature`, `signing_invite_sent`, `signing_invite_reminded`, `signing_link_reissued`, `signing_admin_notified`, `signature_viewed`, `signature_applied`, `signature_declined`, `signature_completed`, `document_exported`, `document_archived`, `document_restored`, `document_voided`, `permission_changed`, `comment_added`
 
 `document_audit_events` is append-only: no UPDATE/DELETE is granted on it, even
 to service roles.

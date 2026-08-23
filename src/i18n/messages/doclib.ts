@@ -515,6 +515,26 @@ export const doclibMessages = defineMessages({
     en: 'Last emailed',
     fr: 'Dernier courriel',
   },
+  doclib_prod_invite_bounced_banner: {
+    en: '{count} signing invite(s) bounced or were marked as spam. Update the email address or refresh the link.',
+    fr: '{count} invitation(s) de signature ont été rejetées ou signalées comme indésirables. Corrigez l’adresse ou renouvelez le lien.',
+  },
+  doclib_external_reissue_link: {
+    en: 'Refresh link',
+    fr: 'Renouveler le lien',
+  },
+  doclib_external_reissue_done: {
+    en: 'Signing link refreshed',
+    fr: 'Lien de signature renouvelé',
+  },
+  doclib_external_reissue_failed: {
+    en: 'Could not refresh the signing link',
+    fr: 'Impossible de renouveler le lien de signature',
+  },
+  doclib_external_link_expired: {
+    en: 'Signing link expired — refresh before sharing',
+    fr: 'Lien de signature expiré — renouvelez-le avant de le partager',
+  },
   doclib_external_intro: {
     en: 'Review this document and sign electronically. No Dutiva account is required.',
     fr: 'Passez ce document en revue et signez électroniquement. Aucun compte Dutiva requis.',
