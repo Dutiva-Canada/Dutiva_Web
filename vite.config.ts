@@ -241,14 +241,19 @@ export default defineConfig(({ command }) => {
                  renders. In vendor it rode the eager entry graph, so every
                  marketing visitor downloaded a Markdown parser to read a
                  landing page. It is computed rather than listed because the
-                 tree is 99 packages deep. */
+                 tree is 99 packages deep.
+
+                 pdf-lib (+ @pdf-lib/* + pako) is excluded the same way:
+                 ~500kB+ raw for watermarked signed-PDF export, reached only
+                 from the lazy documents surface (`signedDocumentPdf.ts`). In
+                 vendor it rode every marketing page's modulepreload set. */
               {
                 name: 'vendor',
                 test: new RegExp(
-                  `node_modules[\\\\/](?!@supabase[\\\\/])(?!${MARKDOWN_TREE}[\\\\/])` +
+                  `node_modules[\\\\/](?!@supabase[\\\\/])(?!@pdf-lib[\\\\/])(?!${MARKDOWN_TREE}[\\\\/])` +
                     `(?!(?:recharts|victory-vendor|d3-[a-z-]+|internmap|@reduxjs[\\\\/]toolkit` +
                     `|react-redux|reselect|immer|use-sync-external-store|es-toolkit` +
-                    `|decimal\\.js-light|eventemitter3)[\\\\/])`,
+                    `|decimal\\.js-light|eventemitter3|pdf-lib|pako)[\\\\/])`,
                 ),
               },
             ],
