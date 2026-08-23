@@ -2,13 +2,17 @@ import { useMemo, useState } from 'react'
 import { X } from 'lucide-react'
 import { bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
-import type { DocRecipient, GeneratedDoc, RecipientType } from '../data'
+import { doclibMessages as M } from '@/i18n/messages/doclib'
+import type { DocRecipient, RecipientType } from '../data'
 
 interface SignatureModalProps {
-  readonly doc: GeneratedDoc
+  readonly docRef: string
+  readonly initialRecipients?: DocRecipient[]
   readonly isOpen: boolean
+  /** Production mode — offer to email `/sign/:token` links when the envelope is sent. */
+  readonly offerEmailInvites?: boolean
   readonly onClose: () => void
-  readonly onSend: (recipients: DocRecipient[]) => void
+  readonly onSend: (recipients: DocRecipient[], options?: { emailInvites: boolean }) => void
 }
 
 const RECIPIENT_TYPES: RecipientType[] = ['employer', 'employee', 'manager', 'hr', 'external']
@@ -31,11 +35,21 @@ function emptyRecipient(order: number): DocRecipient {
   }
 }
 
-export function SignatureModal({ doc, isOpen, onClose, onSend }: SignatureModalProps) {
+export function SignatureModal({
+  docRef,
+  initialRecipients,
+  isOpen,
+  offerEmailInvites = false,
+  onClose,
+  onSend,
+}: SignatureModalProps) {
   const { t, x } = useI18n()
   const [recipients, setRecipients] = useState<DocRecipient[]>(() =>
-    doc.recipients.length > 0 ? doc.recipients : [emptyRecipient(1)],
+    initialRecipients && initialRecipients.length > 0
+      ? initialRecipients
+      : [emptyRecipient(1)],
   )
+  const [emailInvites, setEmailInvites] = useState(true)
 
   const canSend = useMemo(
     () => recipients.every((r) => r.name.trim() !== '' && r.email.trim() !== '' && r.email.includes('@')),
@@ -72,7 +86,7 @@ export function SignatureModal({ doc, isOpen, onClose, onSend }: SignatureModalP
 
   const handleSend = () => {
     if (!canSend) return
-    onSend(recipients)
+    onSend(recipients, offerEmailInvites ? { emailInvites } : undefined)
   }
 
   return (
@@ -85,7 +99,7 @@ export function SignatureModal({ doc, isOpen, onClose, onSend }: SignatureModalP
         <div className="mb-3.5 flex items-start justify-between gap-3">
           <div>
             <div className="text-[11px] font-bold uppercase tracking-[0.08em] text-text-muted">
-              {doc.ref}
+              {docRef}
             </div>
             <h2 className="font-display text-[18px] font-semibold tracking-[-0.01em] text-text">
               {t('doclib_modal_title')}
@@ -191,6 +205,23 @@ export function SignatureModal({ doc, isOpen, onClose, onSend }: SignatureModalP
         >
           {t('doclib_modal_add')}
         </button>
+
+        {offerEmailInvites && (
+          <label className="mt-4 flex items-start gap-2 rounded-xl border border-border bg-inset px-3.5 py-3 text-[12.5px] text-text-muted">
+            <input
+              type="checkbox"
+              checked={emailInvites}
+              onChange={(e) => setEmailInvites(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span>
+              <span className="block font-semibold text-text">{x(M.doclib_modal_email_invites)}</span>
+              <span className="mt-0.5 block text-[11.5px] text-text-faint">
+                {x(M.doclib_modal_email_invites_hint)}
+              </span>
+            </span>
+          </label>
+        )}
 
         <div className="mt-5 flex items-center justify-end gap-2">
           <button

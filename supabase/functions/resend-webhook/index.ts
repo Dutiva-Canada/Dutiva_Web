@@ -143,15 +143,28 @@ Deno.serve(async (req: Request) => {
   const detail =
     typeof event.data?.bounce?.message === 'string' ? event.data.bounce.message.slice(0, 500) : null
 
-  const { error } = await admin
+  const updatedAt = new Date().toISOString()
+  const deliveryPatch = {
+    delivery_status: deliveryStatus,
+    delivery_detail: detail,
+    delivery_updated_at: updatedAt,
+  }
+
+  const { error: supportError } = await admin
     .from('support_notifications')
-    .update({
-      delivery_status: deliveryStatus,
-      delivery_detail: detail,
-      delivery_updated_at: new Date().toISOString(),
-    })
+    .update(deliveryPatch)
     .eq('provider_message_id', emailId)
-  if (error) return json({ error: error.message }, 500)
+  if (supportError) return json({ error: supportError.message }, 500)
+
+  const { error: inviteError } = await admin
+    .from('hr_document_recipients')
+    .update({
+      invite_delivery_status: deliveryStatus,
+      invite_delivery_detail: detail,
+      invite_delivery_updated_at: updatedAt,
+    })
+    .eq('invite_provider_message_id', emailId)
+  if (inviteError) return json({ error: inviteError.message }, 500)
 
   return json({ data: { email_id: emailId, delivery_status: deliveryStatus } })
 })

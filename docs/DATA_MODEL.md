@@ -3,9 +3,27 @@
 Transcribed from the handoff's "Data Model & Handoff" screen (the authoritative
 starting spec). The prototype shipped this as an in-app dev view; per the handoff
 README it is deliberately NOT a product route — it lives here as engineering
-documentation instead. The live demo schema is `doclib` in the Dutiva Supabase
-project (see `supabase/migrations/`); ids are semantic text slugs for the demo
-seed (production would use uuids).
+documentation instead.
+
+**Demo vs production.** The live demo catalogue and sample repository are
+**bundled fixtures** under `src/features/app/documents/data/` (the old anon-
+readable `doclib` schema was dropped in migration `0021`). Production
+repository persistence is **`public.hr_generated_documents`** (plus
+`hr_document_versions` and `hr_document_audit_events`) from migration
+`0076` — org-scoped RLS, catalogue tids as strings, frozen content snapshots
+on versions. **Dutiva Signature** (migrations `0077`–`0078`) is the proprietary
+in-app workflow — consent, signing order, content fingerprint, audit trail,
+completion records, and per-recipient external signing tokens (migration `0080`).
+Signed PDF export (migration `0079`, table
+`hr_document_exports`; Storage persistence migration `0081`) records each download
+and links to `export_events` when the export-protection pipeline wrote a server
+row. Org admins can email per-recipient `/sign/:token` links via the
+`send-signing-invite` edge function (Resend); delivery verdicts from Resend
+webhooks land on `hr_document_recipients.invite_delivery_*` (migration `0082`).
+Turn-aware invites email only the current signer; partial completion auto-emails
+the next signer (migration `0083`). Stale invites get reminder emails every
+6 hours via `signing-reminder-scheduler`. French documents use `/fr/sign/:token`.
+No third-party e-sign vendor is required.
 
 The full design handoff this was transcribed from — README, prototype HTML,
 `dutiva-data.js`, and reference screenshots — is committed at
@@ -108,7 +126,7 @@ Every generated/revised version with the answers and rendered content.
 
 Signers/reviewers, supporting multiple parties and signing order.
 
-- **Fields:** `id`, `document_id`, `recipient_type (employee|manager|hr|external)`, `name`, `email`, `signing_order`, `status`, `signed_at`
+- **Fields:** `id`, `document_id`, `recipient_type (employee|manager|hr|external)`, `name`, `email`, `signing_order`, `status`, `signed_at`, `last_invite_sent_at`, `last_reminder_sent_at`, `invite_provider_message_id`, `invite_delivery_status`, `invite_delivery_detail`, `invite_delivery_updated_at`
 - **Relations:** → documents
 - **Surfaces in UI:** Recipients & signatures tab
 
@@ -149,7 +167,7 @@ Append-only log of every meaningful action.
 
 ## Audit event catalogue
 
-`template_opened`, `generation_started`, `draft_saved`, `document_created`, `document_updated`, `version_created`, `review_requested`, `review_approved`, `review_rejected`, `sent_for_signature`, `signature_viewed`, `signature_completed`, `document_exported`, `document_archived`, `document_restored`, `permission_changed`, `comment_added`
+`template_opened`, `generation_started`, `draft_saved`, `document_created`, `document_updated`, `version_created`, `review_requested`, `review_approved`, `review_rejected`, `sent_for_signature`, `signing_invite_sent`, `signing_invite_reminded`, `signature_viewed`, `signature_applied`, `signature_declined`, `signature_completed`, `document_exported`, `document_archived`, `document_restored`, `document_voided`, `permission_changed`, `comment_added`
 
 `document_audit_events` is append-only: no UPDATE/DELETE is granted on it, even
 to service roles.

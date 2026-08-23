@@ -58,6 +58,12 @@ const SENSITIVE_TABLES = [
   'platform_capacity_config',
   'organization_admission_waitlist',
   'organization_admission_log',
+  'hr_generated_documents',
+  'hr_document_versions',
+  'hr_document_audit_events',
+  'hr_document_signatures',
+  'hr_document_recipients',
+  'hr_document_exports',
 ]
 
 /**

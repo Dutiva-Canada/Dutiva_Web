@@ -18,11 +18,13 @@ import { ModeGate } from '@/features/app/workspaceMode/ModeGate'
  * gated() wraps a fixture-driven view in ModeGate: demo renders it as-is,
  * production renders the shared empty state. Ungated on purpose: home and
  * advisor (own production variants), knowledge (generic HR-law reference +
- * the real guidance panel), settings (hosts the toggle), and the Document
- * Studio screens (the template catalog is real product content — only the
- * fixture repository is gated). Remove a view's gate when it gains real
- * persistence — communications, compensation and wellbeing came off this way
- * (migrations 0039–0041) and now dispatch on mode themselves.
+ * the real guidance panel), settings (hosts the toggle), Document Studio
+ * screens (real catalogue), and the document repository + detail (real
+ * persistence via hr_generated_documents — migration 0076). Signing and the
+ * legacy hr-library gallery remain gated until they gain real backends.
+ * Remove a view's gate when it gains real persistence — communications,
+ * compensation and wellbeing came off this way (migrations 0039–0041) and
+ * now dispatch on mode themselves.
  */
 function gated(view: ReactNode) {
   return <ModeGate>{view}</ModeGate>
@@ -157,14 +159,15 @@ export const appViewRoutes: RouteObject[] = [
     path: 'documents',
     element: <DocumentsLayout />,
     children: [
-      { index: true, element: gated(<RepositoryScreen />) },
+      /* Repository, detail, and signing handle both modes themselves. */
+      { index: true, element: <RepositoryScreen /> },
       /* Templates tab — the legacy template gallery, nested under HR Studio */
       { path: 'hr-library', element: gated(<TemplatesView />) },
       { path: 'studio', element: <StudioScreen /> },
       { path: 'templates/:tid', element: <TemplateDetailScreen /> },
       { path: 'generate/:templateId', element: <GenerateScreen /> },
-      { path: 'sign/:envelopeId', element: gated(<SigningScreen />) },
-      { path: ':docId', element: gated(<DocumentDetailScreen />) },
+      { path: 'sign/:envelopeId', element: <SigningScreen /> },
+      { path: ':docId', element: <DocumentDetailScreen /> },
     ],
   },
 ]

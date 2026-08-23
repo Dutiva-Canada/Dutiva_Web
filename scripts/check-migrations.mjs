@@ -95,6 +95,10 @@ const REPO_HISTORY_BEGINS_AT = 'doclib_schema'
 const ACCEPTED_UNTRACKED = new Map([
   ['doclib_seed_window_open', 'the applied half of the split pair for 0002_doclib_seed.sql'],
   ['doclib_seed_window_close', 'the applied half of the split pair for 0002_doclib_seed.sql'],
+  [
+    'hr_signing_reminder_schedule_part2',
+    'intermediate MCP apply slice of 0083_hr_signing_reminder_schedule.sql; live schema matches the repo file',
+  ],
 ])
 
 const problems = []

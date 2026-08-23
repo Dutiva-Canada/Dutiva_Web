@@ -82,7 +82,7 @@ stays client-rendered and noindex.
 | `/app/wellbeing`                                                                                                                                                                                                                                                                                | Wellbeing register                                                                                                     |
 | `/app/planning` · `/app/planning/tasks` · `/app/planning/calendar`                                                                                                                                                                                                                              | Planning section — Tasks + Calendar as sub-tabs                                                                        |
 | `/app/settings` · `/app/settings/memory` · `/app/settings/memory/people/:personId` · `/app/settings/memory/cases/:caseId` · `/app/settings/memory/conversations/:threadId`                                                                                                                      | Settings — General settings + Advisor Memory as sub-tabs                                                               |
-| `/app/documents` · `/app/documents/hr-library` · `/app/documents/studio` · `/app/documents/templates/:tid` · `/app/documents/generate/:templateId` · `/app/documents/sign/:envelopeId` · `/app/documents/:docId`                                                                                | HR Documents Library — Repository, HR Library, Studio, template detail, generate wizard, signing page, document detail |
+| `/app/documents` · `/app/documents/hr-library` · `/app/documents/studio` · `/app/documents/templates/:tid` · `/app/documents/generate/:templateId` · `/app/documents/sign/:envelopeId` · `/app/documents/:docId` · `/sign/:token` · `/fr/sign/:token`                                                                                | HR Documents Library — Repository, HR Library, Studio, template detail, generate wizard, in-workspace signing, external token signing (EN/FR UI), document detail |
 
 Canonical redirects: `/app/reports` → `/app/analytics`; `/app/templates` →
 `/app/documents/hr-library`; `/app/tasks` → `/app/planning/tasks`;
@@ -164,8 +164,13 @@ and the shell surfaces are mode-aware (topbar notifications, sidebar nav
 badges, the global search corpus, Settings' Northgate-only sections, the
 Advisor's fixture threads and home widgets). Deliberately ungated:
 Advisor chat (real backend), Knowledge (generic HR-law reference + the
-real guidance panel), Settings, and the Document Studio catalog screens
-(real product templates — only the fixture repository is gated).
+real guidance panel), Settings, Document Studio catalog screens
+(real product templates), and the document repository + detail
+(`hr_generated_documents`, migration 0076; signing via
+`hr_document_signatures` / `hr_document_recipients`, migrations 0077–0078;
+signed PDF export via `hr_document_exports`, migration 0079;
+external signing tokens via migration 0080; persisted PDFs in Storage via 0081).
+The legacy HR Library gallery remains gated.
 
 Wiring a module to real persistence is follow-up work, one module per PR:
 remove the view's `gated(…)` wrapper in `appViews.tsx` and make the view
@@ -230,6 +235,11 @@ After Phase 14, **Communications (migration 0040), Compensation
 (migration 0039), and Wellbeing (migration 0041)** were ungated and now
 dispatch on mode themselves, following the same shape: per-tenant tables,
 `productionApi.ts` boundaries, and separate production view components.
+**Documents repository (migration 0076)** followed the same pattern:
+`hr_generated_documents` + versions + audit; Generate persists in
+production; repository, detail, and signing dispatch on mode and are
+ungated (signing envelopes: migration 0077, `dutiva_embedded` adapter).
+The legacy HR Library gallery remains ModeGate-empty.
 The **Support hub** is a real, ungated feature (migrations 0014–0016 plus
 `create-support-ticket`) that creates support tickets without an account
 and surfaces a founder/operator admin dashboard. Production mode itself

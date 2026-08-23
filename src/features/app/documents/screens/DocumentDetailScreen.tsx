@@ -11,7 +11,9 @@ import { dotToneClass } from '@/components/chips'
 import { Disclaimer } from '@/components/Disclaimer'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import type { ToastTone } from '@/features/app/toasts/toastsContext'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useDoclib } from '../doclibContext'
+import { DocumentDetailProductionView } from './DocumentDetailProductionView'
 import { ActBtn, DocChip, DocPaper, JurisdictionPill, Skel } from '../components'
 import { SignatureModal } from '../components/SignatureModal'
 import {
@@ -357,6 +359,12 @@ function DocumentPreview({
 }
 
 export function DocumentDetailScreen() {
+  const { mode } = useWorkspaceMode()
+  if (mode === 'production') return <DocumentDetailProductionView />
+  return <DocumentDetailDemoScreen />
+}
+
+function DocumentDetailDemoScreen() {
   const { t, x, lang } = useI18n()
   const { data, role, org, sendForSignature } = useDoclib()
   const { showToast } = useToasts()
@@ -729,7 +737,8 @@ export function DocumentDetailScreen() {
 
       {isSignModalOpen && (
         <SignatureModal
-          doc={doc}
+          docRef={doc.ref}
+          initialRecipients={doc.recipients}
           isOpen={isSignModalOpen}
           onClose={() => setIsSignModalOpen(false)}
           onSend={(recipients) => {

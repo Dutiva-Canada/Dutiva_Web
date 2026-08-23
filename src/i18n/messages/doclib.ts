@@ -238,8 +238,8 @@ export const doclibMessages = defineMessages({
   doclib_docd_envelope: { en: 'Envelope', fr: 'Enveloppe' },
   doclib_docd_sign: { en: 'Sign', fr: 'Signer' },
   doclib_docd_providerAgnostic: {
-    en: 'Provider-agnostic — connects to any e-signature vendor.',
-    fr: 'Indépendant du fournisseur — se connecte à tout service de signature.',
+    en: 'Dutiva Signature — proprietary in-app workflow with consent and audit records.',
+    fr: 'Signature Dutiva — flux propriétaire intégré avec consentement et registres d’audit.',
   },
   doclib_docd_noRecipients: {
     en: 'No recipients yet. Send for signature to add them.',
@@ -357,6 +357,14 @@ export const doclibMessages = defineMessages({
   doclib_modal_emailPh: { en: 'name@company.ca', fr: 'nom@entreprise.ca' },
   doclib_modal_add: { en: '+ Add recipient', fr: '+ Ajouter un destinataire' },
   doclib_modal_remove: { en: 'Remove', fr: 'Retirer' },
+  doclib_modal_email_invites: {
+    en: 'Email signing links to recipients',
+    fr: 'Envoyer les liens de signature par courriel',
+  },
+  doclib_modal_email_invites_hint: {
+    en: 'Each person receives a personal link to /sign — no Dutiva account required.',
+    fr: 'Chaque personne reçoit un lien personnel vers /sign — aucun compte Dutiva requis.',
+  },
   doclib_sign_title: { en: 'Sign document', fr: 'Signer le document' },
   doclib_sign_subtitle: { en: 'Review the document, then sign below.', fr: 'Révisez le document, puis signez ci-dessous.' },
   doclib_sign_select: { en: 'Select a recipient to sign:', fr: 'Choisissez un destinataire à signer :' },
@@ -370,6 +378,205 @@ export const doclibMessages = defineMessages({
     en: 'By signing, you confirm that you have read and agree to this document.',
     fr: 'En signant, vous confirmez avoir lu et accepté ce document.',
   },
+  doclib_sign_consent: {
+    en: 'I agree to sign this document electronically using Dutiva Signature and understand this creates a signing record tied to my account.',
+    fr: 'J’accepte de signer ce document électroniquement au moyen de la Signature Dutiva et je comprends qu’un registre de signature sera associé à mon compte.',
+  },
+  doclib_sign_legalNotice: {
+    en: 'Dutiva provides workflow support for electronic signatures. Whether an electronic signature is appropriate for your document, jurisdiction, and purpose is your responsibility to confirm.',
+    fr: 'Dutiva offre un soutien de flux pour les signatures électroniques. Il vous appartient de confirmer si une signature électronique convient à votre document, juridiction et objectif.',
+  },
+  doclib_sign_dutivaNote: {
+    en: 'Dutiva Signature — review the frozen document, then sign in order when it is your turn.',
+    fr: 'Signature Dutiva — révisez le document figé, puis signez lorsque c’est votre tour.',
+  },
+  doclib_sign_decline: { en: 'Decline to sign', fr: 'Refuser de signer' },
+  doclib_sign_declined: { en: 'Signature declined', fr: 'Signature refusée' },
+  doclib_sign_waitingTurn: {
+    en: 'Waiting for an earlier signer in the sequence.',
+    fr: 'En attente d’un signataire précédent dans la séquence.',
+  },
+  doclib_sign_wrongAccount: {
+    en: 'This envelope is not assigned to your account',
+    fr: 'Cette enveloppe n’est pas assignée à votre compte',
+  },
+  doclib_sign_wrongAccountBody: {
+    en: 'Sign in with the email address listed as a recipient, or ask an admin to re-send the envelope with the correct address.',
+    fr: 'Connectez-vous avec l’adresse courriel indiquée comme destinataire, ou demandez à un administrateur de renvoyer l’enveloppe à la bonne adresse.',
+  },
   doclib_sign_notFound: { en: 'Signature link not found or expired.', fr: 'Lien de signature introuvable ou expiré.' },
   doclib_sign_back: { en: 'Back to Documents', fr: 'Retour aux documents' },
+
+  /* Production repository (migration 0076) — [FR self-authored] */
+  doclib_prod_loading: { en: 'Loading documents…', fr: 'Chargement des documents…' },
+  doclib_prod_count_one: { en: 'document', fr: 'document' },
+  doclib_prod_count_many: { en: 'documents', fr: 'documents' },
+  doclib_prod_searchPh: { en: 'Search documents…', fr: 'Rechercher des documents…' },
+  doclib_prod_status_all: { en: 'All statuses', fr: 'Tous les statuts' },
+  doclib_prod_status_draft: { en: 'Draft', fr: 'Brouillon' },
+  doclib_prod_status_approved: { en: 'Approved', fr: 'Approuvé' },
+  doclib_prod_status_archived: { en: 'Archived', fr: 'Archivé' },
+  doclib_prod_empty_title: { en: 'No documents yet', fr: 'Aucun document pour l’instant' },
+  doclib_prod_empty_body: {
+    en: 'Create a document from Document Studio. Saved drafts appear here for your organization.',
+    fr: 'Créez un document depuis le Studio de documents. Les brouillons enregistrés apparaissent ici pour votre organisation.',
+  },
+  doclib_prod_go_studio: { en: 'Open Document Studio', fr: 'Ouvrir le Studio de documents' },
+  doclib_prod_error: {
+    en: 'Could not load documents. Check your connection and try again.',
+    fr: 'Impossible de charger les documents. Vérifiez votre connexion et réessayez.',
+  },
+  doclib_prod_retry: { en: 'Retry', fr: 'Réessayer' },
+  doclib_prod_col_ref: { en: 'Ref', fr: 'Réf.' },
+  doclib_prod_col_title: { en: 'Title', fr: 'Titre' },
+  doclib_prod_col_template: { en: 'Template', fr: 'Modèle' },
+  doclib_prod_col_status: { en: 'Status', fr: 'Statut' },
+  doclib_prod_col_updated: { en: 'Updated', fr: 'Mis à jour' },
+  doclib_prod_no_match: {
+    en: 'No documents match these filters.',
+    fr: 'Aucun document ne correspond à ces filtres.',
+  },
+  doclib_prod_detail_loading: { en: 'Loading document…', fr: 'Chargement du document…' },
+  doclib_prod_detail_missing: {
+    en: 'This document was not found in your organization.',
+    fr: 'Ce document est introuvable dans votre organisation.',
+  },
+  doclib_prod_back: { en: 'Back to repository', fr: 'Retour au dépôt' },
+  doclib_prod_archive: { en: 'Archive', fr: 'Archiver' },
+  doclib_prod_archived: { en: 'Document archived', fr: 'Document archivé' },
+  doclib_prod_archive_failed: {
+    en: 'Could not archive this document.',
+    fr: 'Impossible d’archiver ce document.',
+  },
+  doclib_prod_tab_preview: { en: 'Preview', fr: 'Aperçu' },
+  doclib_prod_tab_fields: { en: 'Fields', fr: 'Champs' },
+  doclib_prod_tab_versions: { en: 'Versions', fr: 'Versions' },
+  doclib_prod_tab_audit: { en: 'Audit trail', fr: 'Journal d’audit' },
+  doclib_prod_field: { en: 'Field', fr: 'Champ' },
+  doclib_prod_value: { en: 'Value', fr: 'Valeur' },
+  doclib_prod_not_filled: { en: 'Not filled', fr: 'Non rempli' },
+  doclib_prod_version: { en: 'Version', fr: 'Version' },
+  doclib_prod_current: { en: 'Current', fr: 'Actuelle' },
+  doclib_prod_status_sent: { en: 'Sent for signature', fr: 'Envoyé pour signature' },
+  doclib_prod_status_partial: { en: 'Partially signed', fr: 'Partiellement signé' },
+  doclib_prod_status_signed: { en: 'Signed', fr: 'Signé' },
+  doclib_prod_status_voided: { en: 'Voided', fr: 'Annulé' },
+  doclib_prod_status_exported: { en: 'Exported', fr: 'Exporté' },
+  doclib_prod_export_failed: {
+    en: 'Could not export this document.',
+    fr: 'Impossible d’exporter ce document.',
+  },
+  doclib_prod_stored_exports: { en: 'Stored exports', fr: 'Exports enregistrés' },
+  doclib_prod_download_export: { en: 'Download PDF', fr: 'Télécharger le PDF' },
+  doclib_external_copy_link: { en: 'Copy signing link', fr: 'Copier le lien de signature' },
+  doclib_external_email_link: { en: 'Email signing link', fr: 'Envoyer le lien par courriel' },
+  doclib_external_email_all: {
+    en: 'Email current signer',
+    fr: 'Envoyer au signataire actuel',
+  },
+  doclib_external_email_sent: {
+    en: 'Signing invite emailed',
+    fr: 'Invitation de signature envoyée',
+  },
+  doclib_external_email_failed: {
+    en: 'Could not email the signing link.',
+    fr: 'Impossible d’envoyer le lien de signature par courriel.',
+  },
+  doclib_external_email_no_provider: {
+    en: 'Email delivery is not configured on this workspace yet.',
+    fr: 'L’envoi de courriels n’est pas encore configuré pour cet espace de travail.',
+  },
+  doclib_external_link_copied: { en: 'Signing link copied', fr: 'Lien de signature copié' },
+  doclib_external_link_copy_failed: {
+    en: 'Could not copy the signing link.',
+    fr: 'Impossible de copier le lien de signature.',
+  },
+  doclib_invite_delivery_sent: {
+    en: 'Invite sent',
+    fr: 'Invitation envoyée',
+  },
+  doclib_invite_delivery_delivered: {
+    en: 'Invite delivered',
+    fr: 'Invitation livrée',
+  },
+  doclib_invite_delivery_bounced: {
+    en: 'Invite bounced',
+    fr: 'Invitation rejetée',
+  },
+  doclib_invite_delivery_complained: {
+    en: 'Invite marked as spam',
+    fr: 'Invitation signalée comme indésirable',
+  },
+  doclib_invite_delivery_delayed: {
+    en: 'Invite delayed',
+    fr: 'Invitation retardée',
+  },
+  doclib_invite_last_sent: {
+    en: 'Last emailed',
+    fr: 'Dernier courriel',
+  },
+  doclib_external_intro: {
+    en: 'Review this document and sign electronically. No Dutiva account is required.',
+    fr: 'Passez ce document en revue et signez électroniquement. Aucun compte Dutiva requis.',
+  },
+  doclib_external_invalid_link: {
+    en: 'This signing link is invalid, expired, or has been revoked.',
+    fr: 'Ce lien de signature est invalide, expiré ou a été révoqué.',
+  },
+  doclib_external_signed_title: { en: 'Signature recorded', fr: 'Signature enregistrée' },
+  doclib_external_signed_body: {
+    en: 'Thank you — your signature has been captured. You may close this page.',
+    fr: 'Merci — votre signature a été enregistrée. Vous pouvez fermer cette page.',
+  },
+  doclib_prod_dutiva_signing_note: {
+    en: 'Dutiva Signature — proprietary in-app workflow with consent, signing order, and an audit trail. Signers open the envelope inside the workspace (no third-party e-sign vendor).',
+    fr: 'Signature Dutiva — flux propriétaire intégré avec consentement, ordre de signature et journal d’audit. Les signataires ouvrent l’enveloppe dans l’espace de travail (aucun fournisseur externe).',
+  },
+  doclib_prod_approve: { en: 'Approve for signing', fr: 'Approuver pour signature' },
+  doclib_prod_approved: { en: 'Document approved', fr: 'Document approuvé' },
+  doclib_prod_approve_failed: {
+    en: 'Could not approve this document.',
+    fr: 'Impossible d’approuver ce document.',
+  },
+  doclib_prod_void_sign: { en: 'Void envelope', fr: 'Annuler l’enveloppe' },
+  doclib_prod_voided: { en: 'Signature envelope voided', fr: 'Enveloppe de signature annulée' },
+  doclib_prod_void_failed: {
+    en: 'Could not void this envelope.',
+    fr: 'Impossible d’annuler cette enveloppe.',
+  },
+  doclib_prod_needs_approval: {
+    en: 'Approve this document before sending it for Dutiva Signature.',
+    fr: 'Approuvez ce document avant de l’envoyer pour signature Dutiva.',
+  },
+  doclib_prod_completion_title: { en: 'Completion record', fr: 'Registre de complétion' },
+  doclib_prod_download_completion: { en: 'Download record', fr: 'Télécharger le registre' },
+  doclib_prod_content_hash: { en: 'Content fingerprint', fr: 'Empreinte du contenu' },
+  doclib_prod_send_sign: { en: 'Send for signature', fr: 'Envoyer pour signature' },
+  doclib_prod_send_sign_failed: {
+    en: 'Could not create the signature envelope.',
+    fr: 'Impossible de créer l’enveloppe de signature.',
+  },
+  doclib_prod_sent_sign: { en: 'Sent for signature', fr: 'Envoyé pour signature' },
+  doclib_prod_sent_sign_emailed: {
+    en: 'Sent for signature — signing invites emailed',
+    fr: 'Envoyé pour signature — invitations envoyées par courriel',
+  },
+  doclib_prod_sent_sign_email_failed: {
+    en: 'Sent for signature, but signing invites could not be emailed.',
+    fr: 'Envoyé pour signature, mais les invitations n’ont pas pu être envoyées par courriel.',
+  },
+  doclib_prod_tab_recipients: { en: 'Recipients & signatures', fr: 'Destinataires et signatures' },
+  doclib_prod_no_recipients: {
+    en: 'No recipients yet. Send for signature to add signers.',
+    fr: 'Aucun destinataire pour l’instant. Envoyez pour signature pour ajouter des signataires.',
+  },
+  doclib_prod_create_failed: {
+    en: 'Could not save this document. Try again.',
+    fr: 'Impossible d’enregistrer ce document. Réessayez.',
+  },
+  doclib_prod_create_denied: {
+    en: 'Only organization admins can save documents to the repository.',
+    fr: 'Seuls les administrateurs de l’organisation peuvent enregistrer des documents au dépôt.',
+  },
+  doclib_prod_saving: { en: 'Saving…', fr: 'Enregistrement…' },
 })

@@ -4,9 +4,14 @@ import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { AlertTriangle, ChevronLeft } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
+import { bi } from '@/i18n/core'
 import { doclibMessages } from '@/i18n/messages/doclib'
 import { useToasts } from '@/features/app/toasts/toastsContext'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { listEmployees } from '@/features/app/views/employees/productionApi'
+import { listCases } from '@/features/app/views/cases/productionApi'
 import { useDoclib } from '../doclibContext'
+import { createDocument } from '../productionApi'
 import {
   answerLabels,
   applicability,
@@ -622,6 +627,13 @@ function GenerateWizard({
   const { org, role } = useDoclib()
   const { showToast } = useToasts()
   const navigate = useNavigate()
+  const {
+    mode: workspaceMode,
+    organizationId,
+    isOrgAdmin,
+    identity,
+  } = useWorkspaceMode()
+  const [saving, setSaving] = useState(false)
 
   const [wiz, setWiz] = useState<WizardState>(() =>
     initialWizardState(template, org.primaryJurisdiction, lang),
@@ -717,6 +729,10 @@ function GenerateWizard({
   )
 
   const saveToRepository = () => {
+    if (workspaceMode === 'production') {
+      void saveProductionDocument()
+      return
+    }
     if (!can(role, 'generate')) {
       showToast(doclibMessages.doclib_toast_denied, 'info')
       return
@@ -725,6 +741,41 @@ function GenerateWizard({
        the repository without persisting anything. */
     showToast(doclibMessages.doclib_toast_created, 'ok')
     navigate(REPOSITORY_PATH)
+  }
+
+  const saveProductionDocument = async () => {
+    if (!organizationId || !isOrgAdmin) {
+      showToast(doclibMessages.doclib_prod_create_denied, 'info')
+      return
+    }
+    if (saving) return
+    setSaving(true)
+    try {
+      const created = await createDocument(organizationId, {
+        title: bi(
+          `${template.name.en} — ${template.tid}`,
+          `${template.name.fr} — ${template.tid}`,
+        ),
+        templateTid: template.tid,
+        templateKey: template.key,
+        templateVersion: template.version,
+        employeeId: wiz.employeeId,
+        caseId: wiz.caseId,
+        jurisdiction: wiz.jurisdiction,
+        language: wiz.language,
+        reviewStatus: template.review,
+        risk: template.risk,
+        answers: wiz.answers,
+        content: { blocks, values },
+        actorLabel: identity.user.name || identity.user.email || 'Admin',
+      })
+      showToast(doclibMessages.doclib_toast_created, 'ok')
+      navigate(`/app/documents/${created.id}`)
+    } catch {
+      showToast(doclibMessages.doclib_prod_create_failed, 'info')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const subtitle = wizardSubtitle(wiz.step, t)
@@ -856,8 +907,12 @@ function GenerateWizard({
                 {t('doclib_gen_next')}
               </button>
             ) : (
-              <ActBtn variant="primary" onClick={saveToRepository} disabled={!questionsReady}>
-                {t('doclib_gen_createDoc')}
+              <ActBtn
+                variant="primary"
+                onClick={saveToRepository}
+                disabled={!questionsReady || saving}
+              >
+                {saving ? t('doclib_prod_saving') : t('doclib_gen_createDoc')}
               </ActBtn>
             )}
           </div>
@@ -905,26 +960,103 @@ function GenerateSkeleton() {
 }
 
 /**
+ * Map employees.province strings to Document Studio jurisdictions.
+ * Production roster stores province names; the wizard needs ON|QC|FED.
+ */
+function provinceToJurisdiction(province: string): Jurisdiction {
+  const normalized = province.trim().toLowerCase()
+  if (
+    normalized === 'qc' ||
+    normalized === 'quebec' ||
+    normalized === 'québec' ||
+    normalized.startsWith('québec') ||
+    normalized.startsWith('quebec')
+  ) {
+    return 'QC'
+  }
+  if (
+    normalized === 'fed' ||
+    normalized === 'federal' ||
+    normalized.includes('federally')
+  ) {
+    return 'FED'
+  }
+  return 'ON'
+}
+
+/**
  * Generate wizard — /app/documents/generate/:templateId. Three steps
  * (context → guided questions → review & risk) with a sticky live preview
  * rendered through the shared engine + DocPaper. Demo posture: answers are
- * local component state only; nothing is persisted.
+ * local component state only; nothing is persisted. Production persists via
+ * createDocument (migration 0076) and navigates to the new detail route.
  */
 export function GenerateScreen() {
   const { templateId } = useParams()
   const { data } = useDoclib()
+  const { mode, organizationId } = useWorkspaceMode()
+  const [prodEmployees, setProdEmployees] = useState<DocEmployee[] | null>(null)
+  const [prodCases, setProdCases] = useState<DocCase[] | null>(null)
+
+  useEffect(() => {
+    if (mode !== 'production' || !organizationId) {
+      setProdEmployees(null)
+      setProdCases(null)
+      return
+    }
+    let cancelled = false
+    void (async () => {
+      try {
+        const [emps, cases] = await Promise.all([
+          listEmployees(organizationId),
+          listCases(organizationId),
+        ])
+        if (cancelled) return
+        setProdEmployees(
+          emps.map((e) => ({
+            id: e.id,
+            name: e.name,
+            jurisdiction: provinceToJurisdiction(e.province),
+          })),
+        )
+        setProdCases(
+          cases.map((c) => ({
+            id: c.id,
+            title: bi(c.title, c.title),
+            employeeId: c.employeeId ?? '',
+            jurisdiction: provinceToJurisdiction(c.province),
+            risk: 'medium' as const,
+          })),
+        )
+      } catch {
+        if (!cancelled) {
+          setProdEmployees([])
+          setProdCases([])
+        }
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [mode, organizationId])
 
   if (!data) return <GenerateSkeleton />
+  if (mode === 'production' && organizationId && (prodEmployees === null || prodCases === null)) {
+    return <GenerateSkeleton />
+  }
 
   const template = data.templates.find((candidate) => candidate.id === templateId)
   if (!template) return <Navigate to={STUDIO_PATH} replace />
+
+  const employees = mode === 'production' ? (prodEmployees ?? []) : data.employees
+  const cases = mode === 'production' ? (prodCases ?? []) : data.cases
 
   return (
     <GenerateWizard
       key={template.id}
       template={template}
-      employees={data.employees}
-      cases={data.cases}
+      employees={employees}
+      cases={cases}
     />
   )
 }
