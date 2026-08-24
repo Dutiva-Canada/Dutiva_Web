@@ -35,8 +35,19 @@ the app surface follows the persisted `dutiva-lang` preference. See
 | `npm run typecheck` | `tsc -b` (strict)                                                                                   |
 | `npm run lint`      | oxlint                                                                                              |
 | `npm run test`      | Vitest (jsdom + Testing Library)                                                                    |
+| `npm run test:e2e`  | Playwright smoke on `dist/` (hermetic — no Supabase; see [e2e/README.md](e2e/README.md))            |
+| `npm run test:e2e:auth` | Playwright production CRUD matrix (Supabase env required; skips cleanly when unset)            |
 | `npm run format`    | Prettier                                                                                            |
 | `npm run check`     | typecheck + lint + test + `check:migrations` + `check:rls` + `check:facts` + `check:message-scopes` |
+
+## End-to-end tests
+
+Two Playwright suites run against the production build — see [e2e/README.md](e2e/README.md).
+
+- **`npm run test:e2e`** — hermetic smoke (routing, hydration, consent, CSP). No credentials.
+- **`npm run test:e2e:auth`** — signed-in admin production CRUD matrix (employees, cases, tasks, communications, memory). Requires Supabase env at build time plus `SUPABASE_SERVICE_ROLE_KEY`; exits 0 and skips when unset.
+
+Woodpecker: `.woodpecker/e2e.yml` (hermetic) and `.woodpecker/e2e-auth.yml` (auth).
 
 ## Offline / PWA
 

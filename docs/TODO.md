@@ -430,7 +430,9 @@ pages, `/fr`, `/app`, Advisor, Documents, Knowledge, Support, People, Cases)
 logged **zero CSP console violations**; the report-only header was promoted by
 renaming it to `Content-Security-Policy` in `vercel.json`. `*.challenges.cloudflare.com`
 was added defensively to `img-src`, `connect-src`, and `frame-src` for
-Turnstile. See [SECURITY_HEADERS.md](SECURITY_HEADERS.md).
+Turnstile. **2026-08-23 follow-up:** `'unsafe-inline'` removed from both
+`script-src` (bootstraps externalized) and `style-src` (React inline styles
+refactored); regressions guarded by `e2e/csp.spec.ts`. See [SECURITY_HEADERS.md](SECURITY_HEADERS.md).
 
 **SEC3 — Done.** _Verified 2026-08-10; one mailbox owner follow-up remains._
 (1) **`SECURITY.md`** and `public/.well-known/security.txt` are in place

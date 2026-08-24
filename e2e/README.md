@@ -5,14 +5,24 @@ Vercel routing over `dist/`).
 
 ## Hermetic smoke (`npm run test:e2e`)
 
-Credential-free. Asserts prerender/hydration, consent, and the `/app` SPA
-rewrite. Driven by [`playwright.config.ts`](../playwright.config.ts). Does
+Credential-free. Asserts prerender/hydration, consent, the `/app` SPA rewrite,
+and CSP regressions (`e2e/csp.spec.ts` — script + style violations on load).
+Driven by [`playwright.config.ts`](../playwright.config.ts). Does
 **not** talk to Supabase (build without `VITE_SUPABASE_*`).
 
 ```bash
 npm run build
 npm run test:e2e
 ```
+
+| Spec | What it asserts |
+| --- | --- |
+| [`marketing.spec.ts`](marketing.spec.ts) | Prerender + hydration on `/` and `/fr`; consent gate |
+| [`app.spec.ts`](app.spec.ts) | `/app` SPA rewrite |
+| [`csp.spec.ts`](csp.spec.ts) | No CSP script/style console violations on load |
+| [`auth-forwarder.spec.ts`](auth-forwarder.spec.ts) | Magic-link tokens on `/` forward to `/app/auth/confirm` |
+
+Woodpecker: [`.woodpecker/e2e.yml`](../.woodpecker/e2e.yml).
 
 ## Authenticated critical path (`npm run test:e2e:auth`)
 

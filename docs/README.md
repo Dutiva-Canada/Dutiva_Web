@@ -86,6 +86,13 @@ Editorial rule for public articles — no statutory figures, ever — is stated 
 | [SEO_AUTHORITY_PLAYBOOK.md](SEO_AUTHORITY_PLAYBOOK.md) | The off-site half: listings, associations, citations, and what is deliberately barred. |
 | [DEV_ANNOTATIONS.md](DEV_ANNOTATIONS.md) | The in-app annotation overlay for AI-assisted editing. Dev and preview only. |
 
+## Testing
+
+| Document | What it settles |
+| --- | --- |
+| [../e2e/README.md](../e2e/README.md) | Playwright suites: hermetic smoke (`npm run test:e2e`) and authenticated production CRUD (`npm run test:e2e:auth`), env vars, Woodpecker wiring, and the module-by-module matrix in `e2e/auth/critical-path.spec.ts`. |
+| [visual-qa-2026-08-23.md](visual-qa-2026-08-23.md) | Browser + Vitest + E2E pass matrix for the end-to-end polish pass (PRs #201–#203); what still needs a signed-in manual spot-check. |
+
 ## Support
 
 | Document | What it settles |

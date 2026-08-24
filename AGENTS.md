@@ -51,6 +51,8 @@ npm run dev        # start the dev server
 | `npm run typecheck` | `tsc -b` (strict)                                                                                                                       |
 | `npm run lint`      | oxlint                                                                                                                                  |
 | `npm run test`      | Vitest (jsdom + Testing Library)                                                                                                        |
+| `npm run test:e2e`  | Playwright hermetic smoke on `dist/` ([e2e/README.md](e2e/README.md)) — no Supabase                                                   |
+| `npm run test:e2e:auth` | Playwright production CRUD matrix — requires Supabase build env + service role; skips when unset                                  |
 | `npm run format`    | Prettier                                                                                                                                |
 | `npm run check`     | typecheck + lint + test + `check:migrations` + `check:rls` + `check:facts` + `check:message-scopes` — **must pass before every commit** |
 | `npm run build`     | typecheck + production build + SSR + prerender + SEO validation + entry-graph budget + service worker                                   |

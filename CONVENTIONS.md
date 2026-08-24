@@ -319,6 +319,9 @@ component / `t('disclaimer')`.
 
 - `npm run check` (typecheck + lint + tests) must pass before every commit.
 - Colocate tests as `*.test.ts(x)` next to the unit under test.
+- **E2E:** hermetic smoke via `npm run test:e2e` (CSP + routing + hydration);
+  authenticated production CRUD via `npm run test:e2e:auth` when Supabase env
+  is set — see [e2e/README.md](e2e/README.md) for the module matrix.
 - Prefer semantic tokens and shared primitives over copy-pasted styles; keep
   components small and per-view folders self-contained.
 

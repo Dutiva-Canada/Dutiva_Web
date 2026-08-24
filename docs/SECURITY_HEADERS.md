@@ -41,6 +41,9 @@ script for React Router static hydration data (`__staticRouterHydrationData`).
 
 ### Ongoing CSP hygiene
 
+- Hermetic regression: `e2e/csp.spec.ts` (via `npm run test:e2e`) fails on
+  `script-src` or `style-src` console violations on marketing load and `/app`
+  welcome — run after any inline-script or inline-style change.
 - Re-test after any new third-party integration, new font origin, or inline
   script change.
 - If a new origin is needed, add it to the matching directive in
