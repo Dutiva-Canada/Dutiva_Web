@@ -296,9 +296,22 @@ export const memoryMessages = defineMessages({
     fr: 'Aucun fait de mémoire pour cette conversation pour l’instant.',
   },
   memory_prod_narrative_note: {
-    en: 'Case timelines and chat-recall transcripts stay in demo for now. Production shows governed facts only.',
-    fr: 'Les chronologies de dossier et les transcriptions de rappel de conversation restent en démo pour l’instant. La production affiche uniquement les faits gouvernés.',
+    en: 'Case timelines stay in demo for now. Production shows governed facts only.',
+    fr: 'Les chronologies de dossier restent en démo pour l’instant. La production affiche uniquement les faits gouvernés.',
   },
+  memory_prod_transcript_note: {
+    en: 'When this thread id matches one of your Advisor conversations, the transcript appears below. Gold in-answer memory highlights stay demo-only.',
+    fr: 'Lorsque cet identifiant correspond à une de vos conversations avec le Conseiller, la transcription apparaît ci-dessous. Les surlignages or de mémoire dans les réponses restent en démo.',
+  },
+  memory_prod_transcript_title: {
+    en: 'Conversation transcript',
+    fr: 'Transcription de la conversation',
+  },
+  memory_prod_thread_facts: {
+    en: 'Memory facts for this conversation',
+    fr: 'Faits de mémoire pour cette conversation',
+  },
+  memory_prod_open_advisor: { en: 'Open Advisor', fr: 'Ouvrir le Conseiller' },
   memory_prod_audit_empty: {
     en: 'No audit entries yet.',
     fr: 'Aucune entrée d’audit pour l’instant.',

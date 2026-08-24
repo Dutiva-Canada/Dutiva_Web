@@ -90,17 +90,21 @@ export interface AdvisorChatResult {
 export async function sendAdvisorMessage(
   message: string,
   conversationId: string | null,
+  organizationId: string | null = null,
 ): Promise<AdvisorChatResult> {
   if (!supabase) {
     throw new Error('Real AI Advisor replies are not configured in this environment.')
   }
   /* The edge function stamps the current date/time into the system prompt so
      the model knows morning from evening — that only works in the user's own
-     timezone, which the server can't infer. */
+     timezone, which the server can't infer. organization_id unlocks confirmed
+     org memory injection (hr_advisor_memory_facts) when production mode has
+     provisioned a tenant. */
   const { data, error } = await supabase.functions.invoke('advisor-chat', {
     body: {
       message,
       conversation_id: conversationId,
+      organization_id: organizationId,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     },
   })

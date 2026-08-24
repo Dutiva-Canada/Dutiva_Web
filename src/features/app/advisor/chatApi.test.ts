@@ -38,6 +38,7 @@ describe('sendAdvisorMessage', () => {
       body: {
         message: 'What is ESA notice?',
         conversation_id: 'conv-0',
+        organization_id: null,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
     })
@@ -45,6 +46,23 @@ describe('sendAdvisorMessage', () => {
       reply: 'Here is some guidance.',
       conversationId: 'conv-1',
       response: null,
+    })
+  })
+
+  it('forwards organization_id so the edge function can inject org memory', async () => {
+    const invoke = vi.fn().mockResolvedValue({
+      data: { data: { reply: 'ok', conversation_id: 'conv-org' } },
+      error: null,
+    })
+    const { sendAdvisorMessage } = await loadChatApiWithFakeInvoke(invoke)
+
+    await sendAdvisorMessage('Any update on Jordan?', 'conv-0', 'org-1')
+
+    expect(invoke).toHaveBeenCalledWith('advisor-chat', {
+      body: expect.objectContaining({
+        organization_id: 'org-1',
+        conversation_id: 'conv-0',
+      }),
     })
   })
 

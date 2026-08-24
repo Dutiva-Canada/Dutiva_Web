@@ -243,8 +243,10 @@ ungated (signing envelopes: migration 0077, `dutiva_embedded` adapter).
 The legacy HR Library gallery remains ModeGate-empty.
 **Advisor Memory (migration 0086)** followed next: `hr_advisor_memory_facts`
 + `hr_advisor_memory_audit`; manager / person / case / thread views dispatch
-on mode and are ungated. Case timelines and chat-recall transcripts remain
-demo-only narratives for a later slice.
+on mode and are ungated. Confirmed non-sensitive facts are injected into
+`advisor-chat` when `organization_id` is present. Case timelines remain
+demo-only; production chat-recall shows the caller's own `conversations`
+transcript when the thread id matches.
 The **Support hub** is a real, ungated feature (migrations 0014–0016 plus
 `create-support-ticket`) that creates support tickets without an account
 and surfaces a founder/operator admin dashboard. Production mode itself
