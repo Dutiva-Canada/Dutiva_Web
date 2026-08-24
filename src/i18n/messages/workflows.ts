@@ -11,6 +11,10 @@ export const workflowsMessages = defineMessages({
     en: 'End-to-end HR outcomes — Advisor coordinates the steps, documents, records, and compliance impact.',
     fr: 'Des résultats RH de bout en bout — le Conseiller coordonne les étapes, les documents, les dossiers et l’impact sur la conformité.',
   },
+  workflows_prod_intro: {
+    en: 'The in-flight list, termination map, and start-a-workflow catalogue are Northgate demo fixtures — switch to Demo in Settings to explore them. Guided processes above are the live workflows in your production workspace.',
+    fr: 'La liste en cours, la carte de cessation et le catalogue de démarrage sont des données d’exemple Northgate — passez en mode Démo dans les paramètres pour les explorer. Les processus guidés ci-dessus sont les flux actifs dans votre espace de production.', // [FR self-authored]
+  },
   workflows_inflight_title: { en: 'In flight', fr: 'En cours' },
   workflows_start_title: { en: 'Start a workflow', fr: 'Démarrer un processus' },
   workflows_next: { en: 'Next', fr: 'Prochaine étape' },

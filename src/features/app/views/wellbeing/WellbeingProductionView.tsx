@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { SubmitEvent } from 'react'
-import { HeartHandshake, Plus, Shield, Trash2 } from 'lucide-react'
+import { CheckCircle, HeartHandshake, Pencil, Plus, Shield, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { wellbeingMessages as M } from '@/i18n/messages/wellbeing'
 import { statusChipClass } from '@/components/chips'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { ModuleEmptyBlock } from '@/features/app/workspaceMode/ModuleEmptyBlock'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import {
   PRODUCTION_INITIATIVE_KINDS,
@@ -15,6 +16,7 @@ import {
   overdueReviews,
   removeInitiative,
   setInitiativeStatus,
+  updateInitiative,
 } from './productionApi'
 import type {
   ProductionInitiative,
@@ -77,6 +79,17 @@ const EMPTY_FORM = {
 /** Today as YYYY-MM-DD (local) — the cutoff an overdue review is measured against. */
 const today = (): string => new Date().toISOString().slice(0, 10)
 
+function initiativeToForm(row: ProductionInitiative) {
+  return {
+    name: row.name,
+    kind: row.kind,
+    status: row.status,
+    owner: row.owner ?? '',
+    reviewDate: row.reviewDate ?? '',
+    note: row.note ?? '',
+  }
+}
+
 export function WellbeingProductionView() {
   const { x } = useI18n()
   const { showToast } = useToasts()
@@ -85,6 +98,8 @@ export function WellbeingProductionView() {
   const [rows, setRows] = useState<ProductionInitiative[] | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
 
@@ -107,21 +122,43 @@ export function WellbeingProductionView() {
     return <ProductionEmptyState title={x(M.wellbeing_prod_empty_title)} />
   }
 
+  const closeForm = () => {
+    setFormOpen(false)
+    setEditingId(null)
+    setForm(EMPTY_FORM)
+  }
+
   const onSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
     if (!form.name.trim() || saving) return
     setSaving(true)
     try {
-      const added = await addInitiative(organizationId, { ...form, name: form.name.trim() })
-      setRows((prev) => [...(prev ?? []), added].sort((a, b) => a.name.localeCompare(b.name)))
-      setForm(EMPTY_FORM)
-      setFormOpen(false)
-      showToast(M.wellbeing_prod_added, 'ok')
+      if (editingId) {
+        const updated = await updateInitiative(editingId, { ...form, name: form.name.trim() })
+        setRows((prev) =>
+          (prev ?? [])
+            .map((r) => (r.id === editingId ? updated : r))
+            .sort((a, b) => a.name.localeCompare(b.name)),
+        )
+        showToast(M.wellbeing_prod_updated, 'ok')
+      } else {
+        const added = await addInitiative(organizationId, { ...form, name: form.name.trim() })
+        setRows((prev) => [...(prev ?? []), added].sort((a, b) => a.name.localeCompare(b.name)))
+        showToast(M.wellbeing_prod_added, 'ok')
+      }
+      closeForm()
     } catch {
-      showToast(M.wellbeing_prod_add_failed, 'info')
+      showToast(editingId ? M.wellbeing_prod_update_failed : M.wellbeing_prod_add_failed, 'info')
     } finally {
       setSaving(false)
     }
+  }
+
+  const onEdit = (row: ProductionInitiative) => {
+    setPendingDeleteId(null)
+    setEditingId(row.id)
+    setForm(initiativeToForm(row))
+    setFormOpen(true)
   }
 
   const onStatusChange = async (row: ProductionInitiative, status: ProductionInitiativeStatus) => {
@@ -134,10 +171,29 @@ export function WellbeingProductionView() {
     }
   }
 
+  const onMarkReviewed = async (row: ProductionInitiative) => {
+    const reviewDate = today()
+    try {
+      const updated = await updateInitiative(row.id, {
+        name: row.name,
+        kind: row.kind,
+        status: row.status,
+        owner: row.owner ?? '',
+        reviewDate,
+        note: row.note ?? '',
+      })
+      setRows((prev) => (prev ?? []).map((r) => (r.id === row.id ? updated : r)))
+      showToast(M.wellbeing_prod_updated, 'ok')
+    } catch {
+      showToast(M.wellbeing_prod_update_failed, 'info')
+    }
+  }
+
   const onRemove = async (row: ProductionInitiative) => {
     try {
       await removeInitiative(row.id)
       setRows((prev) => (prev ?? []).filter((r) => r.id !== row.id))
+      setPendingDeleteId(null)
       showToast(M.wellbeing_prod_removed, 'ok')
     } catch {
       showToast(M.wellbeing_prod_remove_failed, 'info')
@@ -174,7 +230,11 @@ export function WellbeingProductionView() {
           {!formOpen && (
             <button
               type="button"
-              onClick={() => setFormOpen(true)}
+              onClick={() => {
+                setEditingId(null)
+                setForm(EMPTY_FORM)
+                setFormOpen(true)
+              }}
               className="flex cursor-pointer items-center gap-[7px] rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
             >
               <Plus size={14} strokeWidth={2} aria-hidden="true" />
@@ -316,10 +376,7 @@ export function WellbeingProductionView() {
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setFormOpen(false)
-                  setForm(EMPTY_FORM)
-                }}
+                onClick={closeForm}
                 className="cursor-pointer rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text"
               >
                 {x(M.wellbeing_prod_cancel)}
@@ -329,20 +386,11 @@ export function WellbeingProductionView() {
         )}
 
         {rows !== null && count === 0 && !loadFailed && !formOpen && (
-          <div className="rounded-[12px] border border-border bg-surface px-[24px] py-[40px] text-center">
-            <div className="mx-auto mb-[14px] flex h-[44px] w-[44px] items-center justify-center rounded-[12px] bg-inset">
-              <HeartHandshake
-                size={20}
-                strokeWidth={1.7}
-                className="text-text-muted"
-                aria-hidden="true"
-              />
-            </div>
-            <div className="mb-[6px] text-[15px] font-semibold text-text">
-              {x(M.wellbeing_prod_empty_title)}
-            </div>
-            <p className="m-0 text-[13px] text-text-muted">{x(M.wellbeing_prod_empty_body)}</p>
-          </div>
+          <ModuleEmptyBlock
+            icon={HeartHandshake}
+            title={x(M.wellbeing_prod_empty_title)}
+            body={x(M.wellbeing_prod_empty_body)}
+          />
         )}
 
         {count > 0 && (
@@ -384,18 +432,70 @@ export function WellbeingProductionView() {
                     </option>
                   ))}
                 </select>
-                <button
-                  type="button"
-                  onClick={() => void onRemove(row)}
-                  aria-label={`${x(M.wellbeing_prod_remove)} — ${row.name}`}
-                  className="cursor-pointer border-none bg-transparent p-[6px] text-text-muted hover:text-risk-fg"
-                >
-                  <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
-                </button>
+                {overdueIds.has(row.id) && (
+                  <button
+                    type="button"
+                    onClick={() => void onMarkReviewed(row)}
+                    className="flex cursor-pointer items-center gap-[5px] rounded-[8px] border-none bg-accent-soft px-[10px] py-[6px] font-sans text-[12px] font-bold text-accent"
+                  >
+                    <CheckCircle size={13} strokeWidth={1.7} aria-hidden="true" />
+                    {x(M.wellbeing_prod_mark_reviewed)}
+                  </button>
+                )}
+                {pendingDeleteId === row.id ? (
+                  <div className="flex w-full flex-wrap items-center gap-[10px] rounded-[8px] bg-inset px-[12px] py-[10px]">
+                    <span className="text-[12.5px] text-text-2">
+                      {x(M.wellbeing_prod_delete_confirm)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setPendingDeleteId(null)}
+                      className="cursor-pointer rounded-[8px] border border-border bg-surface px-[12px] py-[6px] font-sans text-[12px] font-semibold text-text"
+                    >
+                      {x(M.wellbeing_prod_delete_cancel)}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void onRemove(row)}
+                      className="cursor-pointer rounded-[8px] border-none bg-risk-dot px-[12px] py-[6px] font-sans text-[12px] font-semibold text-white"
+                    >
+                      {x(M.wellbeing_prod_confirm_delete)}
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => onEdit(row)}
+                      aria-label={`${x(M.wellbeing_prod_edit)} — ${row.name}`}
+                      className="flex cursor-pointer items-center gap-[5px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-semibold text-text-2"
+                    >
+                      <Pencil size={13} strokeWidth={1.7} aria-hidden="true" />
+                      {x(M.wellbeing_prod_edit)}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPendingDeleteId(row.id)}
+                      aria-label={`${x(M.wellbeing_prod_remove)} — ${row.name}`}
+                      className="cursor-pointer border-none bg-transparent p-[6px] text-text-muted hover:text-risk-fg"
+                    >
+                      <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
+                    </button>
+                  </>
+                )}
               </div>
             ))}
           </div>
         )}
+
+        <section className="mt-[22px] rounded-[12px] border border-border bg-surface px-[18px] py-[16px]">
+          <h2 className="m-0 text-[14px] font-semibold text-text">
+            {x(M.wellbeing_prod_signals_title)}
+          </h2>
+          <p className="mb-0 mt-[8px] text-[13px] leading-[1.55] text-text-muted">
+            {x(M.wellbeing_prod_signals_empty)}
+          </p>
+        </section>
 
         <div className="mt-[14px] flex items-start gap-[7px] text-[11px] leading-normal text-text-faint">
           <Shield size={12} strokeWidth={1.8} className="mt-px shrink-0" aria-hidden="true" />

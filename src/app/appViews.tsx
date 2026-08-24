@@ -5,10 +5,8 @@
 /* oxlint-disable react/only-export-components -- route table, not a component
    module: the lazy() wrappers here don't participate in fast refresh. */
 import { lazy } from 'react'
-import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import type { RouteObject } from 'react-router-dom'
-import { ModeGate } from '@/features/app/workspaceMode/ModeGate'
 
 /**
  * Child routes rendered inside the AppShell outlet. Each view is lazy-loaded
@@ -22,14 +20,11 @@ import { ModeGate } from '@/features/app/workspaceMode/ModeGate'
  * screens (real catalogue), the document repository + detail (real
  * persistence via hr_generated_documents — migration 0076), and Advisor
  * Memory (hr_advisor_memory_facts — migration 0086; views dispatch on mode).
- * Signing and the legacy hr-library gallery remain gated until they gain
- * real backends. Remove a view's gate when it gains real persistence —
+ * Signing remains gated until it gains real persistence. The legacy hr-library
+ * gallery redirects to Document Studio in production (see HrLibraryRoute).
  * communications, compensation and wellbeing came off this way
  * (migrations 0039–0041) and now dispatch on mode themselves.
  */
-function gated(view: ReactNode) {
-  return <ModeGate>{view}</ModeGate>
-}
 /* prettier-ignore */ const HomeView = lazy(() => import('@/features/app/views/home/HomeView').then((m) => ({ default: m.HomeView })))
 /* prettier-ignore */ const AdvisorView = lazy(() => import('@/features/app/views/advisor/AdvisorView').then((m) => ({ default: m.AdvisorView })))
 /* prettier-ignore */ const WorkflowsView = lazy(() => import('@/features/app/views/workflows/WorkflowsView').then((m) => ({ default: m.WorkflowsView })))
@@ -40,7 +35,7 @@ function gated(view: ReactNode) {
 /* prettier-ignore */ const EmployeeProfileView = lazy(() => import('@/features/app/views/employees/EmployeeProfileView').then((m) => ({ default: m.EmployeeProfileView })))
 /* prettier-ignore */ const ComplianceView = lazy(() => import('@/features/app/views/compliance/ComplianceView').then((m) => ({ default: m.ComplianceView })))
 /* prettier-ignore */ const PoliciesView = lazy(() => import('@/features/app/views/policies/PoliciesView').then((m) => ({ default: m.PoliciesView })))
-/* prettier-ignore */ const TemplatesView = lazy(() => import('@/features/app/views/templates/TemplatesView').then((m) => ({ default: m.TemplatesView })))
+/* prettier-ignore */ const HrLibraryRoute = lazy(() => import('@/features/app/documents/HrLibraryRoute').then((m) => ({ default: m.HrLibraryRoute })))
 /* prettier-ignore */ const AnalyticsView = lazy(() => import('@/features/app/views/analytics/AnalyticsView').then((m) => ({ default: m.AnalyticsView })))
 /* prettier-ignore */ const KnowledgeView = lazy(() => import('@/features/app/views/knowledge/KnowledgeView').then((m) => ({ default: m.KnowledgeView })))
 /* prettier-ignore */ const GuideView = lazy(() => import('@/features/app/reference/GuideView').then((m) => ({ default: m.GuideView })))
@@ -164,8 +159,8 @@ export const appViewRoutes: RouteObject[] = [
     children: [
       /* Repository, detail, and signing handle both modes themselves. */
       { index: true, element: <RepositoryScreen /> },
-      /* Templates tab — the legacy template gallery, nested under HR Studio */
-      { path: 'hr-library', element: gated(<TemplatesView />) },
+      /* Templates tab — legacy gallery in demo; production redirects to Studio */
+      { path: 'hr-library', element: <HrLibraryRoute /> },
       { path: 'studio', element: <StudioScreen /> },
       { path: 'templates/:tid', element: <TemplateDetailScreen /> },
       { path: 'generate/:templateId', element: <GenerateScreen /> },

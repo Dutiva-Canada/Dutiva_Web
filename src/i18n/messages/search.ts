@@ -56,4 +56,14 @@ export const searchMessages = defineMessages({
     en: 'Try a name, case, document, task, policy, or obligation.',
     fr: 'Essayez un nom, un dossier, un document, une tâche, une politique ou une obligation.',
   },
+
+  search_loading: { en: 'Loading workspace records…', fr: 'Chargement des dossiers…' },
+  search_no_org: {
+    en: 'Sign in and open a production workspace to search your records.',
+    fr: 'Connectez-vous et ouvrez un espace de production pour rechercher vos dossiers.',
+  },
+  search_load_failed: {
+    en: 'Could not load search index. Try again in a moment.',
+    fr: 'Impossible de charger l’index. Réessayez dans un instant.',
+  },
 })

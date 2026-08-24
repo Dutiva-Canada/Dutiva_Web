@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { SubmitEvent } from 'react'
-import { Banknote, Lock, Plus, Trash2 } from 'lucide-react'
+import { Banknote, Lock, Pencil, Plus, Trash2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { compensationMessages as M } from '@/i18n/messages/compensation'
+import { money } from '@/lib/money'
 import { statusChipClass } from '@/components/chips'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { ModuleEmptyBlock } from '@/features/app/workspaceMode/ModuleEmptyBlock'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import { listEmployees } from '@/features/app/views/employees/productionApi'
 import type { ProductionEmployee } from '@/features/app/views/employees/productionApi'
@@ -14,6 +17,7 @@ import {
   deltaFromMidpoint,
   listCompensationRecords,
   removeCompensationRecord,
+  updateCompensationRecord,
 } from './productionApi'
 import type { ProductionCompensationRecord } from './productionApi'
 
@@ -46,6 +50,17 @@ const EMPTY_FORM = {
   note: '',
 }
 
+function recordToForm(record: ProductionCompensationRecord) {
+  return {
+    employeeId: record.employeeId,
+    baseSalary: String(record.baseSalary),
+    band: record.band ?? '',
+    bandMidpoint: record.bandMidpoint !== null ? String(record.bandMidpoint) : '',
+    effectiveDate: record.effectiveDate ?? '',
+    note: record.note ?? '',
+  }
+}
+
 export function CompensationProductionView() {
   const { x } = useI18n()
   const { showToast } = useToasts()
@@ -55,6 +70,8 @@ export function CompensationProductionView() {
   const [people, setPeople] = useState<ProductionEmployee[]>([])
   const [loadFailed, setLoadFailed] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
 
@@ -82,28 +99,54 @@ export function CompensationProductionView() {
     return <ProductionEmptyState title={x(M.comp_prod_empty_title)} />
   }
 
+  const closeForm = () => {
+    setFormOpen(false)
+    setEditingId(null)
+    setForm(EMPTY_FORM)
+  }
+
   const onSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
     const salary = Number(form.baseSalary)
-    if (!form.employeeId || !Number.isFinite(salary) || salary < 0 || saving) return
+    if (!Number.isFinite(salary) || salary < 0 || saving) return
+    if (!editingId && !form.employeeId) return
     setSaving(true)
     try {
-      const added = await addCompensationRecord(organizationId, { ...form, baseSalary: salary })
-      setRows((prev) => [...(prev ?? []), added])
-      setForm(EMPTY_FORM)
-      setFormOpen(false)
-      showToast(M.comp_prod_added, 'ok')
+      if (editingId) {
+        const updated = await updateCompensationRecord(editingId, {
+          baseSalary: salary,
+          band: form.band,
+          bandMidpoint: form.bandMidpoint,
+          effectiveDate: form.effectiveDate,
+          note: form.note,
+        })
+        setRows((prev) => (prev ?? []).map((r) => (r.id === editingId ? updated : r)))
+        showToast(M.comp_prod_updated, 'ok')
+      } else {
+        const added = await addCompensationRecord(organizationId, { ...form, baseSalary: salary })
+        setRows((prev) => [...(prev ?? []), added])
+        showToast(M.comp_prod_added, 'ok')
+      }
+      closeForm()
     } catch {
-      showToast(M.comp_prod_add_failed, 'info')
+      showToast(editingId ? M.comp_prod_update_failed : M.comp_prod_add_failed, 'info')
     } finally {
       setSaving(false)
     }
+  }
+
+  const onEdit = (record: ProductionCompensationRecord) => {
+    setPendingDeleteId(null)
+    setEditingId(record.id)
+    setForm(recordToForm(record))
+    setFormOpen(true)
   }
 
   const onRemove = async (record: ProductionCompensationRecord) => {
     try {
       await removeCompensationRecord(record.id)
       setRows((prev) => (prev ?? []).filter((r) => r.id !== record.id))
+      setPendingDeleteId(null)
       showToast(M.comp_prod_removed, 'ok')
     } catch {
       showToast(M.comp_prod_remove_failed, 'info')
@@ -112,8 +155,6 @@ export function CompensationProductionView() {
 
   const list = rows ?? []
   const totalPayroll = list.reduce((sum, r) => sum + r.baseSalary, 0)
-  /* Only records with a midpoint can be below one — a record without a
-     midpoint is not "at" it, so it is excluded rather than counted as 0. */
   const belowMidpoint = list.filter((r) => {
     const delta = deltaFromMidpoint(r)
     return delta !== null && delta < 0
@@ -121,10 +162,9 @@ export function CompensationProductionView() {
   const count = list.length
   const countLabel = `${count} ${x(count === 1 ? M.comp_prod_count_one : M.comp_prod_count_many)}`
 
-  /* One record per employee (unique constraint), so people already recorded
-     drop out of the picker rather than failing on insert. */
   const recorded = new Set(list.map((r) => r.employeeId))
   const selectable = people.filter((p) => !recorded.has(p.id))
+  const editingRecord = editingId ? list.find((r) => r.id === editingId) : undefined
 
   return (
     <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
@@ -148,7 +188,11 @@ export function CompensationProductionView() {
           {!formOpen && (
             <button
               type="button"
-              onClick={() => setFormOpen(true)}
+              onClick={() => {
+                setEditingId(null)
+                setForm(EMPTY_FORM)
+                setFormOpen(true)
+              }}
               disabled={selectable.length === 0}
               className="flex cursor-pointer items-center gap-[7px] rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -177,7 +221,6 @@ export function CompensationProductionView() {
           </div>
         )}
 
-        {/* Stat tiles — both are sums of what the employer entered. */}
         {count > 0 && (
           <div className="mb-[22px] flex flex-wrap gap-[14px]">
             <div className="min-w-[150px] flex-1 rounded-[12px] border border-border bg-surface p-[16px]">
@@ -209,25 +252,34 @@ export function CompensationProductionView() {
             className="mb-[18px] rounded-[12px] border border-border bg-surface px-[20px] py-[18px]"
           >
             <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <label htmlFor="comp-employee" className={labelClass}>
-                  {x(M.comp_prod_employee)}
-                </label>
-                <select
-                  id="comp-employee"
-                  required
-                  value={form.employeeId}
-                  onChange={(e) => setForm((f) => ({ ...f, employeeId: e.target.value }))}
-                  className={inputClass}
-                >
-                  <option value="">—</option>
-                  {selectable.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {editingId && editingRecord ? (
+                <div className="sm:col-span-2">
+                  <div className={labelClass}>{x(M.comp_prod_employee)}</div>
+                  <div className="text-[13.5px] font-semibold text-text">
+                    {editingRecord.employeeName}
+                  </div>
+                </div>
+              ) : (
+                <div className="sm:col-span-2">
+                  <label htmlFor="comp-employee" className={labelClass}>
+                    {x(M.comp_prod_employee)}
+                  </label>
+                  <select
+                    id="comp-employee"
+                    required
+                    value={form.employeeId}
+                    onChange={(e) => setForm((f) => ({ ...f, employeeId: e.target.value }))}
+                    className={inputClass}
+                  >
+                    <option value="">—</option>
+                    {selectable.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div>
                 <label htmlFor="comp-salary" className={labelClass}>
                   {x(M.comp_prod_base_salary)}
@@ -302,10 +354,7 @@ export function CompensationProductionView() {
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setFormOpen(false)
-                  setForm(EMPTY_FORM)
-                }}
+                onClick={closeForm}
                 className="cursor-pointer rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text"
               >
                 {x(M.comp_prod_cancel)}
@@ -315,59 +364,101 @@ export function CompensationProductionView() {
         )}
 
         {rows !== null && count === 0 && !loadFailed && !formOpen && (
-          <div className="rounded-[12px] border border-border bg-surface px-[24px] py-[40px] text-center">
-            <div className="mx-auto mb-[14px] flex h-[44px] w-[44px] items-center justify-center rounded-[12px] bg-inset">
-              <Banknote
-                size={20}
-                strokeWidth={1.7}
-                className="text-text-muted"
-                aria-hidden="true"
-              />
-            </div>
-            <div className="mb-[6px] text-[15px] font-semibold text-text">
-              {x(M.comp_prod_empty_title)}
-            </div>
-            <p className="m-0 text-[13px] text-text-muted">{x(M.comp_prod_empty_body)}</p>
-          </div>
+          <ModuleEmptyBlock
+            icon={Banknote}
+            title={x(M.comp_prod_empty_title)}
+            body={x(M.comp_prod_empty_body)}
+          />
         )}
 
         {count > 0 && (
           <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
+            <div className="hidden border-b border-inset px-[18px] py-[10px] text-[11px] font-semibold uppercase tracking-[0.04em] text-text-faint sm:grid sm:grid-cols-[minmax(180px,1fr)_minmax(100px,auto)_minmax(100px,auto)_minmax(120px,auto)_auto] sm:gap-[12px]">
+              <span>{x(M.comp_prod_employee)}</span>
+              <span>{x(M.comp_prod_vs_midpoint)}</span>
+              <span title={x(M.comp_prod_market_unavailable)}>{x(M.comp_prod_market_column)}</span>
+              <span />
+              <span />
+            </div>
             {list.map((record) => {
               const delta = deltaFromMidpoint(record)
               return (
                 <div
                   key={record.id}
-                  className="flex flex-wrap items-center gap-[12px] border-t border-inset px-[18px] py-[13px] first:border-t-0"
+                  className="border-t border-inset px-[18px] py-[13px] first:border-t-0 sm:grid sm:grid-cols-[minmax(180px,1fr)_minmax(100px,auto)_minmax(120px,auto)_minmax(120px,auto)_auto] sm:items-center sm:gap-[12px]"
                 >
-                  <div className="min-w-0 flex-1 basis-[220px]">
-                    <div className="truncate text-[13.5px] font-semibold text-text">
+                  <div className="min-w-0">
+                    <Link
+                      to={`/app/employees/${record.employeeId}`}
+                      className="truncate text-[13.5px] font-semibold text-accent no-underline hover:underline"
+                    >
                       {record.employeeName}
-                    </div>
+                    </Link>
                     <div className="mt-[2px] text-[12px] text-text-muted">
                       {record.band ? `${record.band} · ` : ''}
-                      {record.baseSalary.toLocaleString()}
+                      {x(money(record.baseSalary))}
                       {record.effectiveDate ? ` · ${record.effectiveDate}` : ''}
                     </div>
                   </div>
-                  {delta === null ? (
-                    <span className="text-[12px] text-text-faint">
-                      {x(M.comp_prod_no_midpoint)}
-                    </span>
-                  ) : (
-                    <span className={statusChipClass(delta < 0 ? 'warning' : 'success')}>
-                      {delta >= 0 ? '+' : ''}
-                      {delta}% {x(M.comp_prod_vs_midpoint)}
-                    </span>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => void onRemove(record)}
-                    aria-label={`${x(M.comp_prod_remove)} — ${record.employeeName}`}
-                    className="cursor-pointer border-none bg-transparent p-[6px] text-text-muted hover:text-risk-fg"
+                  <div className="mt-[8px] sm:mt-0">
+                    {delta === null ? (
+                      <span className="text-[12px] text-text-faint">
+                        {x(M.comp_prod_no_midpoint)}
+                      </span>
+                    ) : (
+                      <span className={statusChipClass(delta < 0 ? 'warning' : 'success')}>
+                        {delta >= 0 ? '+' : ''}
+                        {delta}% {x(M.comp_prod_vs_midpoint)}
+                      </span>
+                    )}
+                  </div>
+                  <div
+                    className="mt-[8px] text-[12px] text-text-faint sm:mt-0"
+                    title={x(M.comp_prod_market_unavailable)}
                   >
-                    <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
-                  </button>
+                    —
+                  </div>
+                  {pendingDeleteId === record.id ? (
+                    <div className="col-span-full mt-[10px] flex flex-wrap items-center gap-[10px] rounded-[8px] bg-inset px-[12px] py-[10px] sm:col-span-4">
+                      <span className="text-[12.5px] text-text-2">
+                        {x(M.comp_prod_delete_confirm)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setPendingDeleteId(null)}
+                        className="cursor-pointer rounded-[8px] border border-border bg-surface px-[12px] py-[6px] font-sans text-[12px] font-semibold text-text"
+                      >
+                        {x(M.comp_prod_delete_cancel)}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void onRemove(record)}
+                        className="cursor-pointer rounded-[8px] border-none bg-risk-dot px-[12px] py-[6px] font-sans text-[12px] font-semibold text-white"
+                      >
+                        {x(M.comp_prod_confirm_delete)}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="mt-[8px] flex items-center justify-end gap-[4px] sm:col-span-2 sm:mt-0">
+                      <button
+                        type="button"
+                        onClick={() => onEdit(record)}
+                        aria-label={`${x(M.comp_prod_edit)} — ${record.employeeName}`}
+                        className="flex cursor-pointer items-center gap-[5px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-semibold text-text-2"
+                      >
+                        <Pencil size={13} strokeWidth={1.7} aria-hidden="true" />
+                        {x(M.comp_prod_edit)}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPendingDeleteId(record.id)}
+                        aria-label={`${x(M.comp_prod_remove)} — ${record.employeeName}`}
+                        className="cursor-pointer border-none bg-transparent p-[6px] text-text-muted hover:text-risk-fg"
+                      >
+                        <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               )
             })}

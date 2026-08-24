@@ -129,4 +129,21 @@ export const compensationMessages = defineMessages({
     en: 'Comparisons use the band midpoint you enter. Dutiva does not supply market salary data.',
     fr: 'Les comparaisons utilisent le point milieu que vous saisissez. Dutiva ne fournit pas de données salariales de marché.',
   },
+  comp_prod_edit: { en: 'Edit', fr: 'Modifier' },
+  comp_prod_updated: { en: 'Record updated', fr: 'Dossier mis à jour' },
+  comp_prod_update_failed: {
+    en: 'Couldn’t update the record.',
+    fr: 'Impossible de mettre à jour le dossier.',
+  },
+  comp_prod_delete_confirm: {
+    en: 'Remove this compensation record?',
+    fr: 'Retirer ce dossier de rémunération?',
+  },
+  comp_prod_delete_cancel: { en: 'Cancel', fr: 'Annuler' },
+  comp_prod_confirm_delete: { en: 'Remove', fr: 'Retirer' },
+  comp_prod_market_column: { en: 'Market comparison', fr: 'Comparaison au marché' },
+  comp_prod_market_unavailable: {
+    en: 'Dutiva does not supply market salary data.',
+    fr: 'Dutiva ne fournit pas de données salariales de marché.',
+  },
 })

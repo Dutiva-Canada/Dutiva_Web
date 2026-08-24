@@ -27,6 +27,15 @@ export interface ProductionCompensationRecord {
   note: string | null
 }
 
+export interface UpdateCompensationRecord {
+  baseSalary: number
+  band: string
+  /** Empty string when the employer has no band midpoint to compare against. */
+  bandMidpoint: string
+  effectiveDate: string
+  note: string
+}
+
 export interface NewCompensationRecord {
   employeeId: string
   baseSalary: number
@@ -111,6 +120,28 @@ export async function addCompensationRecord(
       effective_date: fields.effectiveDate || null,
       note: fields.note.trim() || null,
     })
+    .select(SELECT_COLUMNS)
+    .single()
+  if (error) throw error
+  return toRecord(rowSchema.parse(data))
+}
+
+export async function updateCompensationRecord(
+  id: string,
+  fields: UpdateCompensationRecord,
+): Promise<ProductionCompensationRecord> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { data, error } = await supabase
+    .from('hr_compensation_records')
+    .update({
+      base_salary: fields.baseSalary,
+      band: fields.band.trim() || null,
+      band_midpoint: fields.bandMidpoint.trim() ? Number(fields.bandMidpoint) : null,
+      effective_date: fields.effectiveDate || null,
+      note: fields.note.trim() || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
     .select(SELECT_COLUMNS)
     .single()
   if (error) throw error

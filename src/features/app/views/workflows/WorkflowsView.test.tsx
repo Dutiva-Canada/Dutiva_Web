@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi, afterEach } from 'vitest'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useLocation } from 'react-router-dom'
 import { renderApp } from '@/test/renderApp'
+import { mockProductionWorkspace } from '@/test/productionWorkspace'
 import { flows } from '@/features/app/flows/data'
 import { WorkflowsView } from './WorkflowsView'
 
@@ -143,5 +144,27 @@ describe('WorkflowsView', () => {
     } finally {
       window.localStorage.removeItem('dutiva-lang')
     }
+  })
+})
+
+describe('WorkflowsView in production mode', () => {
+  afterEach(() => {
+    vi.doUnmock('@/lib/supabaseClient')
+    vi.resetModules()
+  })
+
+  it('shows guided processes and the prod intro, hiding demo fixtures', async () => {
+    mockProductionWorkspace({ tables: {} })
+    vi.resetModules()
+    const { renderApp: renderFresh } = await import('@/test/renderApp')
+    const { WorkflowsView: View } = await import('./WorkflowsView')
+
+    renderFresh(<View />, { route: '/app/workflows', path: '/app/workflows' })
+
+    expect(await screen.findByText(`Guided processes · ${flows.length}`)).toBeInTheDocument()
+    expect(await screen.findByText(/Northgate demo fixtures/)).toBeInTheDocument()
+    expect(screen.queryByText(/In flight/)).not.toBeInTheDocument()
+    expect(screen.queryByText('Termination — Jordan Mensah')).not.toBeInTheDocument()
+    expect(screen.queryByText('Start a workflow')).not.toBeInTheDocument()
   })
 })

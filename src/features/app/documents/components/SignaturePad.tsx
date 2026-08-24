@@ -25,11 +25,12 @@ function setupCanvas(canvas: HTMLCanvasElement, container: HTMLElement) {
   canvas.height = Math.max(1, Math.floor(height * dpr))
   const ctx = canvas.getContext('2d')
   if (!ctx) return null
+  const stroke = getComputedStyle(container).getPropertyValue('--text').trim() || '#111827'
   ctx.scale(dpr, dpr)
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
   ctx.lineWidth = 2
-  ctx.strokeStyle = '#111827'
+  ctx.strokeStyle = stroke
   return ctx
 }
 
@@ -63,8 +64,10 @@ export function SignaturePad({ onChange, labels }: SignaturePadProps) {
     const { width, height } = container.getBoundingClientRect()
     ctx.clearRect(0, 0, width, height)
     if (!signedName.trim()) return
+    const fill =
+      getComputedStyle(container).getPropertyValue('--text').trim() || '#111827'
     ctx.font = '32px cursive, Georgia, serif'
-    ctx.fillStyle = '#111827'
+    ctx.fillStyle = fill
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     ctx.fillText(signedName.trim(), width / 2, height / 2)

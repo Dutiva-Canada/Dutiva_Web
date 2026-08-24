@@ -143,6 +143,12 @@ export function WorkflowsView() {
             this page, and the only section a production workspace renders. */}
         <GuidedProcesses />
 
+        {!showFixtures && (
+          <p className="mb-[24px] max-w-[620px] text-[13px] leading-[1.6] text-text-muted">
+            {x(M.workflows_prod_intro)}
+          </p>
+        )}
+
         {showFixtures && (
           <>
             {/* In-flight rows */}

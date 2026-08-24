@@ -176,7 +176,7 @@ describe('CommunicationsView in production mode', () => {
     expect(screen.getByText('1 message')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Team restructuring announcement/ })).toHaveAttribute(
       'href',
-      '/app/documents/templates/T36',
+      '/app/documents/generate/T36',
     )
   })
 
@@ -191,7 +191,7 @@ describe('CommunicationsView in production mode', () => {
     renderFresh(<View />, { route: '/app/communications', path: '/app/communications' })
     await screen.findByText('Restructuring announcement')
 
-    for (const dim of [/^Tone/, /^Legal/, /^Clarity/, /^Policy/]) {
+    for (const dim of [/^Tone ·/, /^Legal ·/, /^Clarity ·/, /^Policy ·/]) {
       expect(screen.queryByText(dim)).not.toBeInTheDocument()
     }
   })
@@ -242,5 +242,19 @@ describe('CommunicationsView in production mode', () => {
       }),
     )
     await waitFor(() => expect(screen.getByText('Office closure')).toBeInTheDocument())
+  })
+
+  it('shows the disabled Advisor review rail with honest copy', async () => {
+    mockComms([ROW])
+    const { renderApp: renderFresh } = await import('@/test/renderApp')
+    const { CommunicationsView: View } = await import('./CommunicationsView')
+
+    renderFresh(<View />, { route: '/app/communications', path: '/app/communications' })
+    await screen.findByText('Restructuring announcement')
+
+    expect(screen.getByText('Advisor review')).toBeInTheDocument()
+    expect(
+      screen.getByText(/Nothing here is scored until then\./),
+    ).toBeInTheDocument()
   })
 })

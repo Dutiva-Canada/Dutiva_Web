@@ -1,14 +1,18 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useLocation } from 'react-router-dom'
+import { bi } from '@/i18n/core'
 import { LangProvider } from '@/i18n/LangProvider'
 import { AuthProvider } from '@/features/app/auth/AuthProvider'
 import { WorkspaceModeProvider } from '@/features/app/workspaceMode/WorkspaceModeProvider'
+import { mockProductionWorkspace } from '@/test/productionWorkspace'
+import { searchMessages as M } from '@/i18n/messages/search'
 import { SearchProvider } from './SearchProvider'
 import { useSearch } from './searchContext'
 import { SearchOverlay } from './SearchOverlay'
 import { filterSearchEntries, searchEntries } from './searchCorpus'
+import type { SearchEntry } from './searchCorpus'
 
 function OpenTrigger() {
   const { openSearch } = useSearch()
@@ -198,5 +202,81 @@ describe('SearchOverlay', () => {
     expect(
       screen.getByText('Try a name, case, document, task, policy, or obligation.'),
     ).toBeInTheDocument()
+  })
+})
+
+describe('SearchOverlay in production mode', () => {
+  const PROD_ENTRIES: SearchEntry[] = [
+    {
+      id: 'emp-e1',
+      kind: 'person',
+      kindLabel: M.search_kind_person,
+      title: bi('Alex Chen', 'Alex Chen'),
+      sub: bi('HR Manager · ON', 'Gestionnaire RH · ON'),
+      restricted: false,
+      match: bi('Alex Chen HR Manager', 'Alex Chen Gestionnaire RH'),
+      nav: { kind: 'employee', employeeId: 'e1' },
+    },
+  ]
+
+  afterEach(() => {
+    vi.doUnmock('@/lib/supabaseClient')
+    vi.doUnmock('./searchProductionCorpus')
+    vi.resetModules()
+  })
+
+  async function renderProductionHarness() {
+    vi.doMock('./searchProductionCorpus', async (importOriginal) => {
+      const actual = await importOriginal<typeof import('./searchProductionCorpus')>()
+      return {
+        ...actual,
+        buildProductionSearchEntries: vi.fn(async () => PROD_ENTRIES),
+      }
+    })
+    mockProductionWorkspace({ tables: {} })
+    vi.resetModules()
+
+    const { LangProvider: Lang } = await import('@/i18n/LangProvider')
+    const { AuthProvider: Auth } = await import('@/features/app/auth/AuthProvider')
+    const { WorkspaceModeProvider: Wsm } = await import(
+      '@/features/app/workspaceMode/WorkspaceModeProvider'
+    )
+    const { SearchProvider: Search } = await import('./SearchProvider')
+    const { useSearch } = await import('./searchContext')
+    const { SearchOverlay: Overlay } = await import('./SearchOverlay')
+
+    function ProductionOpenTrigger() {
+      const { openSearch } = useSearch()
+      return (
+        <button type="button" onClick={openSearch}>
+          open-search
+        </button>
+      )
+    }
+
+    return render(
+      <Lang>
+        <Auth>
+          <Wsm>
+            <Search>
+              <MemoryRouter initialEntries={['/app/home']}>
+                <ProductionOpenTrigger />
+                <Overlay />
+              </MemoryRouter>
+            </Search>
+          </Wsm>
+        </Auth>
+      </Lang>,
+    )
+  }
+
+  it('searches the production corpus instead of Northgate fixtures', async () => {
+    const user = userEvent.setup()
+    await renderProductionHarness()
+    await user.click(screen.getByRole('button', { name: 'open-search' }))
+
+    expect(await screen.findByText('Alex Chen')).toBeInTheDocument()
+    expect(screen.queryByText('Jordan Mensah')).not.toBeInTheDocument()
+    expect(screen.queryByText('Terminating Jordan Mensah — Ontario')).not.toBeInTheDocument()
   })
 })

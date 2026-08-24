@@ -211,4 +211,5 @@ export const authMessages = defineMessages({
     fr: 'Votre système d’exploitation IA pour la conformité RH canadienne.',
   },
   auth_enter_workspace: { en: 'Enter workspace', fr: 'Accéder à l’espace de travail' },
+  auth_legal_link: { en: 'Legal', fr: 'Juridique' },
 })
