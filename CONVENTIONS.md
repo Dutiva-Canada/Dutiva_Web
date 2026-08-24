@@ -244,9 +244,12 @@ The legacy HR Library gallery remains ModeGate-empty.
 **Advisor Memory (migration 0086)** followed next: `hr_advisor_memory_facts`
 + `hr_advisor_memory_audit`; manager / person / case / thread views dispatch
 on mode and are ungated. Confirmed non-sensitive facts are injected into
-`advisor-chat` when `organization_id` is present. Case timelines remain
-demo-only; production chat-recall shows the caller's own `conversations`
-transcript when the thread id matches.
+`advisor-chat` when `organization_id` is present; inferred candidates can be
+auto-extracted from a stripped `dutiva-memory` fence on replies. Case resume
+narratives and timeline events live in migration **0087**
+(`hr_advisor_case_narratives` / `hr_advisor_case_timeline_events`); production
+chat-recall shows the caller's own `conversations` transcript when the thread
+id matches.
 The **Support hub** is a real, ungated feature (migrations 0014–0016 plus
 `create-support-ticket`) that creates support tickets without an account
 and surfaces a founder/operator admin dashboard. Production mode itself

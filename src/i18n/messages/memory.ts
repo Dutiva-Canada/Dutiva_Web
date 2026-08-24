@@ -299,6 +299,40 @@ export const memoryMessages = defineMessages({
     en: 'Case timelines stay in demo for now. Production shows governed facts only.',
     fr: 'Les chronologies de dossier restent en démo pour l’instant. La production affiche uniquement les faits gouvernés.',
   },
+  memory_prod_narrative_empty: {
+    en: 'No resume summary yet. Add one to capture what Advisor should remember about this case between sessions.',
+    fr: 'Aucun résumé de reprise pour l’instant. Ajoutez-en un pour consigner ce que le Conseiller doit retenir entre les séances.',
+  },
+  memory_prod_timeline_empty: {
+    en: 'No timeline events yet.',
+    fr: 'Aucun événement de chronologie pour l’instant.',
+  },
+  memory_prod_edit_narrative: {
+    en: 'Edit resume summary',
+    fr: 'Modifier le résumé de reprise',
+  },
+  memory_prod_save_narrative: {
+    en: 'Save resume summary',
+    fr: 'Enregistrer le résumé de reprise',
+  },
+  memory_prod_narrative_saved: {
+    en: 'Case resume summary saved.',
+    fr: 'Résumé de reprise du dossier enregistré.',
+  },
+  memory_prod_summary_en: { en: 'Summary (English)', fr: 'Résumé (anglais)' },
+  memory_prod_summary_fr: { en: 'Summary (French)', fr: 'Résumé (français)' },
+  memory_prod_resume_since_en: {
+    en: 'What changed since last session',
+    fr: 'Ce qui a changé depuis la dernière séance',
+  },
+  memory_prod_changed_lines: {
+    en: 'What changed (one line per item)',
+    fr: 'Ce qui a changé (une ligne par élément)',
+  },
+  memory_prod_next_steps_lines: {
+    en: 'Next steps (one line per item)',
+    fr: 'Prochaines étapes (une ligne par élément)',
+  },
   memory_prod_transcript_note: {
     en: 'When this thread id matches one of your Advisor conversations, the transcript appears below. Gold in-answer memory highlights stay demo-only.',
     fr: 'Lorsque cet identifiant correspond à une de vos conversations avec le Conseiller, la transcription apparaît ci-dessous. Les surlignages or de mémoire dans les réponses restent en démo.',
