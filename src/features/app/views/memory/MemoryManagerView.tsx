@@ -29,6 +29,7 @@ import {
 import { cases, employees, memoryThreads } from '@/data'
 import type { MemoryFact, MemoryScope } from '@/data'
 import { MemoryFactRow } from './MemoryFactRow'
+import { MemoryManagerProductionView } from './MemoryManagerProductionView'
 import { useMemoryStore } from './memoryStore'
 
 /**
@@ -36,6 +37,8 @@ import { useMemoryStore } from './memoryStore'
  * review banner, filter tabs with live counts, memory search, the governed
  * rows with scope tags, and the governance rail (retention, lawful basis,
  * audit log, export / forget-everything).
+ *
+ * Production mode uses MemoryManagerProductionView (hr_advisor_memory_facts).
  */
 
 type ManagerFilter = 'all' | 'people' | 'cases' | 'threads' | 'review'
@@ -47,6 +50,12 @@ const FILTER_SCOPE: Partial<Record<ManagerFilter, MemoryScope>> = {
 }
 
 export function MemoryManagerView() {
+  const { mode: workspaceMode } = useWorkspaceMode()
+  if (workspaceMode === 'production') return <MemoryManagerProductionView />
+  return <MemoryManagerDemoView />
+}
+
+function MemoryManagerDemoView() {
   const { x, lang } = useI18n()
   const { showToast } = useToasts()
   const { session } = useAuth()

@@ -6,8 +6,10 @@ import { memoryMessages as M } from '@/i18n/messages/memory'
 import { Disclaimer } from '@/components/Disclaimer'
 import { statusChipClass } from '@/components/chips'
 import type { ChipTone } from '@/components/chips'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { cases, employees, memoryCases, memoryPeople } from '@/data'
 import type { MemoryFact } from '@/data'
+import { CaseMemoryProductionView } from './CaseMemoryProductionView'
 import { memoryCaseContent } from './memoryCaseContent'
 import type { MemoryCaseChip } from './memoryCaseContent'
 import { KnowFact } from './KnowFact'
@@ -19,6 +21,8 @@ import { useMemoryStore } from './memoryStore'
  * you left off" resume banner, the running case-memory summary with what
  * changed while away, the held facts, the session timeline with dashed gaps,
  * and the "What I know" rail with the memory ≠ this-turn's-analysis note.
+ *
+ * Production mode lists governed case facts only (no fixture timelines).
  */
 
 const CHIP_TONE: Record<MemoryCaseChip['tone'], ChipTone> = {
@@ -29,6 +33,12 @@ const CHIP_TONE: Record<MemoryCaseChip['tone'], ChipTone> = {
 }
 
 export function CaseMemoryView() {
+  const { mode: workspaceMode } = useWorkspaceMode()
+  if (workspaceMode === 'production') return <CaseMemoryProductionView />
+  return <CaseMemoryDemoView />
+}
+
+function CaseMemoryDemoView() {
   const { x, lang } = useI18n()
   const navigate = useNavigate()
   const { caseId } = useParams()

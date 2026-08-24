@@ -164,7 +164,8 @@ and the shell surfaces are mode-aware (topbar notifications, sidebar nav
 badges, the global search corpus, Settings' Northgate-only sections, the
 Advisor's fixture threads and home widgets). Deliberately ungated:
 Advisor chat (real backend), Knowledge (generic HR-law reference + the
-real guidance panel), Settings, Document Studio catalog screens
+real guidance panel), Settings, Advisor Memory (`hr_advisor_memory_facts`,
+migration 0086 — views dispatch on mode), Document Studio catalog screens
 (real product templates), and the document repository + detail
 (`hr_generated_documents`, migration 0076; signing via
 `hr_document_signatures` / `hr_document_recipients`, migrations 0077–0078;
@@ -240,6 +241,10 @@ dispatch on mode themselves, following the same shape: per-tenant tables,
 production; repository, detail, and signing dispatch on mode and are
 ungated (signing envelopes: migration 0077, `dutiva_embedded` adapter).
 The legacy HR Library gallery remains ModeGate-empty.
+**Advisor Memory (migration 0086)** followed next: `hr_advisor_memory_facts`
++ `hr_advisor_memory_audit`; manager / person / case / thread views dispatch
+on mode and are ungated. Case timelines and chat-recall transcripts remain
+demo-only narratives for a later slice.
 The **Support hub** is a real, ungated feature (migrations 0014–0016 plus
 `create-support-ticket`) that creates support tickets without an account
 and surfaces a founder/operator admin dashboard. Production mode itself

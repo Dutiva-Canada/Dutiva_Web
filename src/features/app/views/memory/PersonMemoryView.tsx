@@ -6,10 +6,12 @@ import { memoryMessages as M } from '@/i18n/messages/memory'
 import { Disclaimer } from '@/components/Disclaimer'
 import { statusChipClass } from '@/components/chips'
 import type { ChipTone } from '@/components/chips'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { employees, memoryPeople } from '@/data'
 import type { MemoryPersonChip } from '@/data'
 import { CATEGORY_LABELS, PERSON_CATEGORY_ORDER } from './memoryModel'
 import { MemoryFactRow } from './MemoryFactRow'
+import { PersonMemoryProductionView } from './PersonMemoryProductionView'
 import { useMemoryStore } from './memoryStore'
 
 /**
@@ -17,6 +19,8 @@ import { useMemoryStore } from './memoryStore'
  * (initials tile, name, status chips, Ask Advisor / Open case), the "What
  * Advisor remembers" intro, memory grouped by category, and the governance
  * rail (confidence legend, who-can-see, retention, lawful basis).
+ *
+ * Production mode uses PersonMemoryProductionView (real employees + facts).
  */
 
 const CHIP_TONE: Record<MemoryPersonChip['tone'], ChipTone> = {
@@ -27,6 +31,12 @@ const CHIP_TONE: Record<MemoryPersonChip['tone'], ChipTone> = {
 }
 
 export function PersonMemoryView() {
+  const { mode: workspaceMode } = useWorkspaceMode()
+  if (workspaceMode === 'production') return <PersonMemoryProductionView />
+  return <PersonMemoryDemoView />
+}
+
+function PersonMemoryDemoView() {
   const { x, lang } = useI18n()
   const navigate = useNavigate()
   const { personId } = useParams()
