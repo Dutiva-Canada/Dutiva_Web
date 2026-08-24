@@ -199,7 +199,7 @@ export function Topbar({ title }: { readonly title: string }) {
               <dialog
                 open
                 aria-label={x(M.shell_notifications)}
-                className="absolute top-[38px] right-0 left-auto z-200 m-0 w-[min(340px,calc(100vw-24px))] animate-[fadeInUp_.15s_ease] overflow-hidden rounded-[12px] border border-border bg-surface shadow-[0_16px_40px_rgba(27,36,48,0.18)]"
+                className="absolute top-[38px] right-0 left-auto z-200 m-0 w-[min(340px,calc(100vw-24px))] animate-[fadeInUp_.15s_ease] overflow-hidden rounded-[12px] border border-border bg-surface shadow-popover"
               >
                 <div className="flex items-center justify-between border-b border-border-soft px-[14px] py-[12px]">
                   <span className="text-[13.5px] font-bold">{x(M.shell_notifications)}</span>

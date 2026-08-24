@@ -9,6 +9,7 @@ import { referenceGuides } from '@/features/app/reference/data'
 import { knowledgeItems } from '@/data'
 import { useRail } from '@/features/app/rail/railContext'
 import { GuidanceSourcesPanel } from '@/features/app/guidance/GuidanceSourcesPanel'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Knowledge Base — the HR library article list (App v2.dc.html markup lines
@@ -45,8 +46,7 @@ export function KnowledgeView() {
   )
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto max-w-[760px]">
+    <AppPage width="comfort">
         <input
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
@@ -108,7 +108,6 @@ export function KnowledgeView() {
           ))}
         </div>
         <GuidanceSourcesPanel />
-      </div>
-    </div>
+    </AppPage>
   )
 }

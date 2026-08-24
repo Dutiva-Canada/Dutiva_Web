@@ -15,6 +15,7 @@ import {
   setTaskDone,
 } from './productionApi'
 import type { ProductionTask, ProductionTaskPriority } from './productionApi'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Tasks in production mode — the checklist on the backend's own
@@ -117,8 +118,7 @@ export function TasksProductionView() {
   const openCount = rows?.filter((t) => !t.done).length ?? 0
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto max-w-[760px]">
+    <AppPage width="comfort">
         <div className="mb-[18px] flex flex-wrap items-center justify-between gap-[16px]">
           <div className="text-[13px] text-text-muted">
             {rows === null ? x(M.tasks_prod_loading) : `${openCount} ${x(M.tasks_prod_count_open)}`}
@@ -284,7 +284,6 @@ export function TasksProductionView() {
             ))}
           </div>
         )}
-      </div>
-    </div>
+    </AppPage>
   )
 }

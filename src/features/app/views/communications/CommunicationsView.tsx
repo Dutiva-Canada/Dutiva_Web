@@ -10,6 +10,7 @@ import { useRail } from '@/features/app/rail/railContext'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { communicationsMessages as M } from '@/i18n/messages/communications'
+import { AppPage, AppPageLead } from '@/features/app/shell/AppPage'
 import { CommunicationsProductionView } from './CommunicationsProductionView'
 
 /**
@@ -121,9 +122,8 @@ function CommunicationsDemoView() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto max-w-[820px]">
-        <div className="mb-[18px] text-[13px] text-text-muted">{x(M.comms_subtitle)}</div>
+    <AppPage width="comfort">
+        <AppPageLead>{x(M.comms_subtitle)}</AppPageLead>
         <div className="flex flex-col gap-[12px]">
           {items.map(({ comm, detail }) => {
             const status0 = comm.status.en
@@ -212,7 +212,6 @@ function CommunicationsDemoView() {
             )
           })}
         </div>
-      </div>
-    </div>
+    </AppPage>
   )
 }

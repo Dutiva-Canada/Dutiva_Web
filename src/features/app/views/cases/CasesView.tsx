@@ -11,6 +11,7 @@ import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeCont
 import { barToneClass, listCases, addCreatedCase } from './caseModel'
 import type { WorkspaceCase } from './caseModel'
 import { CasesProductionView } from './CasesProductionView'
+import { AppPage } from '@/features/app/shell/AppPage'
 import { NewCaseModal } from './NewCaseModal'
 
 /**
@@ -48,8 +49,7 @@ function CasesDemoView() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto max-w-[820px]">
+    <AppPage width="comfort">
         <div className="mb-[18px] flex items-center justify-between gap-[12px]">
           <div className="text-[13px] text-text-muted">
             {`${openCount} ${x(M.cases_open_of)} ${allCases.length} ${x(M.cases_word)}`}
@@ -107,11 +107,10 @@ function CasesDemoView() {
             )
           })}
         </div>
-      </div>
 
       {newCaseOpen && (
         <NewCaseModal onClose={() => setNewCaseOpen(false)} onCreate={handleCreate} />
       )}
-    </div>
+    </AppPage>
   )
 }

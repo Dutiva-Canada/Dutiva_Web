@@ -17,6 +17,7 @@ import {
   updateCaseStatus,
 } from './productionApi'
 import type { ProductionCase, ProductionCaseNote, ProductionCaseStatus } from './productionApi'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Case detail in production mode — the real working record for one
@@ -126,8 +127,7 @@ export function CaseDetailProductionView() {
     : []
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto max-w-[760px]">
+    <AppPage width="comfort">
         <Link
           to="/app/cases"
           className="mb-[16px] inline-flex items-center gap-[6px] text-[13px] font-semibold text-text-muted hover:text-text"
@@ -244,7 +244,6 @@ export function CaseDetailProductionView() {
             </form>
           </>
         )}
-      </div>
-    </div>
+    </AppPage>
   )
 }

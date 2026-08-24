@@ -174,7 +174,7 @@ export function AppShell() {
             <div
               onClick={() => setDrawerOpen(false)}
               className={cx(
-                'fixed inset-0 z-60 bg-[rgba(20,25,32,0.4)] transition-opacity duration-220 ease-in-out',
+                'fixed inset-0 z-60 bg-overlay-scrim transition-opacity duration-220 ease-in-out',
                 drawerEntered ? 'opacity-100' : 'opacity-0',
               )}
               aria-hidden="true"

@@ -211,6 +211,16 @@
     #081018 100%
   );
   --entry-brand-glow: radial-gradient(circle, var(--dutiva-gold) 0%, transparent 70%);
+
+  /* Overlay scrims + elevation (workspace chrome — popovers, drawers, modals) */
+  --overlay-scrim: rgba(20, 25, 32, 0.4);
+  --overlay-scrim-soft: rgba(20, 25, 32, 0.28);
+  --overlay-scrim-mid: rgba(20, 25, 32, 0.35);
+  --shadow-popover: 0 16px 40px rgba(27, 36, 48, 0.18);
+  --shadow-modal: 0 12px 40px rgba(0, 0, 0, 0.38);
+  --shadow-float: 0 10px 30px -16px rgba(27, 36, 48, 0.18);
+  --shadow-menu: 0 12px 32px rgba(0, 0, 0, 0.18);
+  --shadow-search: 0 30px 70px rgba(0, 0, 0, 0.3);
 }
 
 /* ── App surface — dark — verbatim from App v2.dc.html ──────────────────────── */
@@ -266,6 +276,15 @@
     #081018 100%
   );
   --entry-brand-glow: radial-gradient(circle, var(--dutiva-gold) 0%, transparent 70%);
+
+  --overlay-scrim: rgba(8, 10, 16, 0.55);
+  --overlay-scrim-soft: rgba(8, 10, 16, 0.4);
+  --overlay-scrim-mid: rgba(8, 10, 16, 0.48);
+  --shadow-popover: 0 16px 40px rgba(0, 0, 0, 0.45);
+  --shadow-modal: 0 12px 40px rgba(0, 0, 0, 0.55);
+  --shadow-float: 0 10px 30px -12px rgba(0, 0, 0, 0.5);
+  --shadow-menu: 0 12px 32px rgba(0, 0, 0, 0.45);
+  --shadow-search: 0 30px 70px rgba(0, 0, 0, 0.55);
 }
 
 .logo-glow {

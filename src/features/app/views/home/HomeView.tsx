@@ -13,6 +13,7 @@ import { HomeWorkflowsMobileList, HomeWorkflowsRailCard } from './HomeWorkflowsC
 import { HomeProductionView } from './HomeProductionView'
 import type { AdvisorStartFlowNavState } from '@/features/app/views/advisor/advisorNav'
 import { useHomeActions } from './useHomeActions'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Home — Command Centre (prototype `App v2.dc.html` markup 335–547,
@@ -46,8 +47,7 @@ export function HomeView() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto pt-[18px] pr-[14px] pb-[96px] pl-[14px] sm:pt-[26px] sm:pr-[32px] sm:pb-[60px] sm:pl-[32px]">
-      <div className="mx-auto max-w-[1120px]">
+    <AppPage width="wide" responsivePad>
         {/* Header */}
         <div className="mb-[16px]">
           <div className="mb-[6px] text-[10.5px] font-bold tracking-[0.09em] text-gold-dot uppercase">
@@ -87,7 +87,6 @@ export function HomeView() {
           />
           <Disclaimer className="mt-[8px] text-center" />
         </div>
-      </div>
-    </div>
+    </AppPage>
   )
 }

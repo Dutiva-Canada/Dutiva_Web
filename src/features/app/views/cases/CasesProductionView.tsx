@@ -20,6 +20,7 @@ import {
   updateCaseStatus,
 } from './productionApi'
 import type { ProductionCase, ProductionCaseStatus, ProductionCaseType } from './productionApi'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Case Files in production mode — real persistence on public.hr_cases
@@ -139,8 +140,7 @@ export function CasesProductionView() {
   const countLabel = `${count} ${x(count === 1 ? M.cases_prod_count_one : M.cases_prod_count_many)}`
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto max-w-[820px]">
+    <AppPage width="comfort">
         <div className="mb-[18px] flex flex-wrap items-center justify-between gap-[16px]">
           <div className="text-[13px] text-text-muted">
             {rows === null ? x(M.cases_prod_loading) : countLabel}
@@ -346,7 +346,6 @@ export function CasesProductionView() {
             ))}
           </div>
         )}
-      </div>
-    </div>
+    </AppPage>
   )
 }

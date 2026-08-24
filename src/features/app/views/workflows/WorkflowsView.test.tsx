@@ -52,7 +52,11 @@ describe('WorkflowsView', () => {
   it('renders the header, in-flight rows, flagship map, and catalog', () => {
     renderWorkflows()
 
-    expect(screen.getByRole('heading', { name: 'Workflows' })).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'End-to-end HR outcomes — Advisor coordinates the steps, documents, records, and compliance impact.',
+      ),
+    ).toBeInTheDocument()
     expect(screen.getByText(/In flight/)).toBeInTheDocument()
 
     /* In-flight rows: person · province lines, progress + meta labels. */
@@ -134,7 +138,11 @@ describe('WorkflowsView', () => {
     window.localStorage.setItem('dutiva-lang', 'fr')
     try {
       renderWorkflows()
-      expect(screen.getByRole('heading', { name: 'Processus' })).toBeInTheDocument()
+      expect(
+        screen.getByText(
+          'Des résultats RH de bout en bout — le Conseiller coordonne les étapes, les documents, les dossiers et l’impact sur la conformité.',
+        ),
+      ).toBeInTheDocument()
       expect(screen.getByText('Cessation d’emploi — Jordan Mensah')).toBeInTheDocument()
       expect(screen.getByText('Étape 4/9')).toBeInTheDocument()
       /* FR '2 doc. sur 4' doubles as wf1's docs label and the map's partial chip. */

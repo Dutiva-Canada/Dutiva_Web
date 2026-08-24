@@ -8,6 +8,7 @@ import { statusChipClass } from '@/components/chips'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { HomeProductionEmptyState } from './HomeProductionEmptyState'
 import { useHomeProductionStats } from './useHomeProductionStats'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Home in production mode — the real command centre. A brand-new workspace
@@ -31,8 +32,7 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
 
   if (loadFailed) {
     return (
-      <div className="flex-1 overflow-y-auto px-[14px] pt-[18px] pb-[96px] sm:px-[32px] sm:pt-[26px] sm:pb-[60px]">
-        <div className="mx-auto max-w-[640px] pt-[48px]">
+      <AppPage width="default" responsivePad>
           <div className="mb-[24px] flex items-center justify-between gap-[12px] rounded-[11px] border border-risk-border bg-risk-bg px-[16px] py-[12px]">
             <span className="text-[13px] text-risk-fg">{x(M.home_prod_error)}</span>
             <button
@@ -49,8 +49,7 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
             onSend={onSend}
           />
           <Disclaimer className="mt-[8px] text-center" />
-        </div>
-      </div>
+      </AppPage>
     )
   }
 
@@ -65,8 +64,7 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-[14px] pt-[18px] pb-[96px] sm:px-[32px] sm:pt-[26px] sm:pb-[60px]">
-      <div className="mx-auto max-w-[900px]">
+    <AppPage width="default" responsivePad>
         {/* Header */}
         <div className="mb-[18px]">
           <div className="mb-[6px] text-[10.5px] font-bold tracking-[0.09em] text-gold-dot uppercase">
@@ -149,7 +147,7 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
 
         {/* Composer */}
         <div className="mx-auto mt-[26px] max-w-[760px]">
-          <div className="rounded-[14px] shadow-[0_10px_30px_-16px_rgba(27,36,48,0.18)]">
+          <div className="rounded-[14px] shadow-float">
             <ChatComposer
               variant="chat"
               placeholder={x(M.home_composer_placeholder)}
@@ -158,7 +156,6 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
           </div>
           <Disclaimer className="mt-[8px] text-center" />
         </div>
-      </div>
-    </div>
+    </AppPage>
   )
 }

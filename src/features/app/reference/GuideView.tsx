@@ -10,6 +10,7 @@ import { flowBySlug } from '@/features/app/flows/data'
 import { guideBySlug } from './data'
 import { groupGuideBlocks } from './guideModel'
 import type { GuideSection, ReferenceGuide } from './guideModel'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Renders an in-product reference guide (docs/FOUR_RING_FRAMEWORK.md).
@@ -29,18 +30,16 @@ export function GuideView() {
 
   if (!guide) {
     return (
-      <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-        <div className="mx-auto max-w-[720px]">
-          <p className="text-[14px] text-text-2">{x(M.reference_not_found)}</p>
-          <BackLink />
-        </div>
-      </div>
+      <AppPage width="narrow">
+        <p className="text-[14px] text-text-2">{x(M.reference_not_found)}</p>
+        <BackLink />
+      </AppPage>
     )
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <article className="mx-auto max-w-[720px]">
+    <AppPage width="narrow">
+      <article>
         <BackLink />
         <div className="mt-[14px] text-[11.5px] font-bold tracking-[0.04em] text-gold-dot uppercase">
           {x(guide.tag)}
@@ -62,7 +61,7 @@ export function GuideView() {
 
         <Disclaimer variant="block" className="mt-[22px]" />
       </article>
-    </div>
+    </AppPage>
   )
 }
 

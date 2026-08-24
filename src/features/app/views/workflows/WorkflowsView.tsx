@@ -12,6 +12,7 @@ import { flows } from '@/features/app/flows/data'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import type { AdvisorStartFlowNavState } from '@/features/app/views/advisor/advisorNav'
 import { chipToneClass, statusChipClass } from '@/components/chips'
+import { AppPage, AppPageLead } from '@/features/app/shell/AppPage'
 import { inFlightWorkflows, terminationStages, workflowCatalog } from './workflowsData'
 import type { TerminationStageState, WorkflowChipTone, WorkflowNav } from './workflowsData'
 
@@ -83,7 +84,7 @@ function GuidedProcesses() {
           <Link
             key={flow.slug}
             to={`/app/workflows/${flow.slug}`}
-            className="flex flex-col gap-[5px] rounded-[12px] border border-border bg-surface px-[16px] py-[14px]"
+            className="flex flex-col gap-[5px] rounded-[12px] border border-border bg-surface px-[16px] py-[14px] transition-[border-color,background-color] hover:border-(--accent-soft-border) hover:bg-inset focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           >
             <span className="flex items-center gap-[8px]">
               <Route
@@ -130,15 +131,8 @@ export function WorkflowsView() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto max-w-[900px]">
-        {/* Header */}
-        <div className="mb-[20px]">
-          <h1 className="mb-[5px] font-display text-[21px] font-semibold text-text">
-            {x(M.workflows_title)}
-          </h1>
-          <p className="max-w-[620px] text-[13.5px] text-text-muted">{x(M.workflows_sub)}</p>
-        </div>
+    <AppPage width="default">
+      <AppPageLead>{x(M.workflows_sub)}</AppPageLead>
 
         {/* Guided processes — real content, unlike everything below it on
             this page, and the only section a production workspace renders. */}
@@ -339,7 +333,6 @@ export function WorkflowsView() {
         )}
 
         <Disclaimer className="mt-[18px]" />
-      </div>
-    </div>
+    </AppPage>
   )
 }

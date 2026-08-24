@@ -9,6 +9,7 @@ import type { Employee } from '@/data'
 import { employeesMessages as M } from '@/i18n/messages/employees'
 import { statusChipClass } from '@/components/chips'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { AppPage } from '@/features/app/shell/AppPage'
 import { EmployeesProductionView } from './EmployeesProductionView'
 import { OrgChart } from './OrgChart'
 import { useAskAdvisorAboutEmployee } from './useAskAdvisorAboutEmployee'
@@ -64,8 +65,7 @@ function EmployeesDemoView() {
     }`
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto max-w-[900px]">
+    <AppPage width="default">
         <div className="mb-[18px] flex flex-wrap items-center justify-between gap-[16px]">
           <div
             role="tablist"
@@ -231,7 +231,6 @@ function EmployeesDemoView() {
         )}
 
         {mode === 'org' && <OrgChart />}
-      </div>
-    </div>
+    </AppPage>
   )
 }

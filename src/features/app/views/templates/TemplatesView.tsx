@@ -6,6 +6,7 @@ import { templatesMessages as M } from '@/i18n/messages/templates'
 import { documentTemplates } from '@/data'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
 import type { TemplatesSearchNavState } from '@/features/app/search/searchCorpus'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Templates — the Document Studio template gallery (App v2.dc.html markup
@@ -40,8 +41,8 @@ export function TemplatesView() {
   }, [location.pathname, location.state, navigate, openDocFromLibrary])
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <section aria-label={x(M.templates_gallery_aria)} className="mx-auto max-w-[900px]">
+    <AppPage width="default">
+      <section aria-label={x(M.templates_gallery_aria)}>
         <h1 className="sr-only">{x(M.templates_gallery_aria)}</h1>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-[14px]">
           {documentTemplates.map((doc) => (
@@ -69,6 +70,6 @@ export function TemplatesView() {
           ))}
         </div>
       </section>
-    </div>
+    </AppPage>
   )
 }

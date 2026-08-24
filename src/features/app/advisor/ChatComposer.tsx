@@ -34,7 +34,7 @@ interface VariantStyle {
 const VARIANTS: Record<'home' | 'chat' | 'rail', VariantStyle> = {
   home: {
     container:
-      'flex items-end gap-[10px] rounded-[16px] border border-border bg-surface p-[8px] pl-[18px] shadow-[0_10px_30px_-14px_rgba(27,36,48,0.18)]',
+      'flex items-end gap-[10px] rounded-[16px] border border-border bg-surface p-[8px] pl-[18px] shadow-float',
     textarea: 'max-h-[140px] py-[9px] text-[15px]',
     button: 'h-[36px] w-[36px] rounded-[10px]',
     icon: 15,

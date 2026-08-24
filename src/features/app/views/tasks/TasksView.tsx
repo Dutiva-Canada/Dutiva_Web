@@ -10,6 +10,7 @@ import { statusChipClass } from '@/components/chips'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { TasksProductionView } from './TasksProductionView'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Tasks view — the Advisor-generated checklist (prototype `buildTasksView()`
@@ -53,8 +54,7 @@ function TasksDemoView() {
   const openCount = tasks.filter((task) => !isDone(task)).length
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto max-w-[760px]">
+    <AppPage width="comfort">
         <div className="mb-[18px] text-[13px] text-text-muted">
           {openCount} {x(M.tasks_open_label)}
         </div>
@@ -140,7 +140,6 @@ function TasksDemoView() {
             <div className="mt-[4px] text-[13px]">{x(M.tasks_empty_sub)}</div>
           </div>
         )}
-      </div>
-    </div>
+    </AppPage>
   )
 }

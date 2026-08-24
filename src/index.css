@@ -64,6 +64,16 @@
   --color-support-text: var(--support-text);
   --color-cite-bg: var(--cite-bg);
 
+  --color-overlay-scrim: var(--overlay-scrim);
+  --color-overlay-scrim-soft: var(--overlay-scrim-soft);
+  --color-overlay-scrim-mid: var(--overlay-scrim-mid);
+
+  --shadow-popover: var(--shadow-popover);
+  --shadow-modal: var(--shadow-modal);
+  --shadow-float: var(--shadow-float);
+  --shadow-menu: var(--shadow-menu);
+  --shadow-search: var(--shadow-search);
+
   /* Marketing-surface vocabulary (design-system ramp) */
   --color-bg-elevated: var(--bg-elevated);
   --color-bg-soft: var(--bg-soft);

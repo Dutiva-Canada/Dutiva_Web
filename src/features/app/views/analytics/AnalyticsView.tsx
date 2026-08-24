@@ -48,6 +48,7 @@ import {
 } from './aggregation'
 import { attentionChipLabel, attentionSecondary } from './attentionLabels'
 import { fill, formatDayISO, formatPct, formatSignedDecimal, intlLocale } from './format'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Analytics (formerly Reports) — the workspace dashboard. Phase 1: the
@@ -215,8 +216,7 @@ function AnalyticsDemoView() {
   const turnoverDelta = turnover.ratePct - turnover.priorRatePct
 
   return (
-    <div className="flex-1 overflow-y-auto px-[14px] pt-[18px] pb-[96px] sm:px-[32px] sm:pt-[26px] sm:pb-[60px]">
-      <div className="mx-auto max-w-[900px]">
+    <AppPage width="default" responsivePad>
         <div className="mb-[14px] text-[13px] text-text-muted">{x(M.analytics_subtitle)}</div>
 
         <div className="grid grid-cols-1 gap-[14px] min-[900px]:grid-cols-2 min-[900px]:gap-[16px]">
@@ -417,7 +417,6 @@ function AnalyticsDemoView() {
             />
           </AnalyticsCard>
         </div>
-      </div>
-    </div>
+    </AppPage>
   )
 }

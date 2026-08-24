@@ -192,7 +192,7 @@ const CreateMenuPanel = forwardRef<HTMLDivElement, CreateMenuPanelProps>(functio
       ref={ref}
       role="menu"
       aria-label={x(M.shell_create)}
-      className="absolute top-full left-0 z-60 mt-1.5 w-55 overflow-hidden rounded-[10px] border border-border bg-surface shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
+      className="absolute top-full left-0 z-60 mt-1.5 w-55 overflow-hidden rounded-[10px] border border-border bg-surface shadow-menu"
     >
       {actions.map((action) => {
         const Icon = action.icon

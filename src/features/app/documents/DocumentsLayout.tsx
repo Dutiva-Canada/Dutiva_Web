@@ -4,6 +4,7 @@ import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { isDoclibStudioPath } from '@/features/app/shell/navConfig'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { AppPage } from '@/features/app/shell/AppPage'
 import { DoclibProvider } from './DoclibProvider'
 import { useDoclib } from './doclibContext'
 import { workspaceRoles } from './data'
@@ -102,15 +103,11 @@ function DocumentsChrome() {
 export function DocumentsLayout() {
   return (
     <DoclibProvider>
-      {/* The shell's flex column doesn't scroll itself (AppShell.tsx) — every
-          top-level view supplies its own flex-1 overflow-y-auto scroll
-          container (see e.g. PoliciesView); this layout is the doclib
-          screens' equivalent. min-h-0 lets it shrink so overflow can engage. */}
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-[1240px]">
-          <DocumentsChrome />
-        </div>
-      </div>
+      {/* Shared scroll chrome so tabs and Studio content share one left edge.
+          width=studio (1240) matches the catalogue layout budget. */}
+      <AppPage width="studio">
+        <DocumentsChrome />
+      </AppPage>
     </DoclibProvider>
   )
 }

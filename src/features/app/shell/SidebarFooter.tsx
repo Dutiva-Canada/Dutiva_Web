@@ -108,7 +108,7 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
           <div
             role="menu"
             aria-label={L('Account menu', 'Menu du compte')}
-            className="absolute bottom-full left-0 z-60 mb-1.5 w-50 overflow-hidden rounded-[11px] border border-border bg-surface shadow-[0_16px_36px_rgba(27,36,48,0.2)]"
+            className="absolute bottom-full left-0 z-60 mb-1.5 w-50 overflow-hidden rounded-[11px] border border-border bg-surface shadow-popover"
           >
             <div className="border-b border-border-soft px-3.5 py-3">
               <div className="text-[13px] font-bold text-text">{identity.user.name}</div>

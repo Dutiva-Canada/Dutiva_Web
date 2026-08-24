@@ -21,7 +21,8 @@ import type { DocChipTone } from '../data'
  * rendered preview and the Generate CTA.
  */
 
-const PAGE_PAD = 'px-[28px] pt-1 pb-[64px] max-[640px]:px-[16px]'
+/* Horizontal pad lives on DocumentsLayout / AppPage; keep vertical spacing only. */
+const PAGE_PAD = 'pt-1 pb-[64px]'
 
 /** Applicability verdict → chip tone (prototype `applicability()` tones). */
 const APPLIC_TONE: Record<ApplicabilityKind, DocChipTone> = {

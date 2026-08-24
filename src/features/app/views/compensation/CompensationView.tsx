@@ -12,6 +12,7 @@ import { usePayRail } from '@/features/app/rail/useEntityRails'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { compensationMessages as M } from '@/i18n/messages/compensation'
 import { CompensationProductionView } from './CompensationProductionView'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Compensation view — restricted-module banner, payroll stat tiles, the
@@ -98,8 +99,7 @@ function CompensationDemoView() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto max-w-[920px]">
+    <AppPage width="default">
         {/* Restricted-module banner. */}
         <div className="mb-[18px] flex items-start gap-[8px] rounded-[10px] border border-gold-border bg-gold-bg px-[14px] py-[11px]">
           <Lock
@@ -294,7 +294,6 @@ function CompensationDemoView() {
         </div>
 
         <div className="mt-[14px] text-[11px] text-text-faint">{x(M.comp_separation_note)}</div>
-      </div>
-    </div>
+    </AppPage>
   )
 }

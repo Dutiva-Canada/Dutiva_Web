@@ -42,7 +42,7 @@ export function EmployeeDrawer({ employee, onClose }: EmployeeDrawerProps) {
         type="button"
         onClick={onClose}
         aria-label={x(M.employees_drawer_close)}
-        className="fixed inset-0 z-285 cursor-default border-none bg-[rgba(20,25,32,0.28)]"
+        className="fixed inset-0 z-285 cursor-default border-none bg-overlay-scrim-soft"
       />
       <dialog
         open

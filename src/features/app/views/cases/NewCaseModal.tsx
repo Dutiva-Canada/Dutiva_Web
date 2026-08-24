@@ -68,12 +68,12 @@ export function NewCaseModal({ onClose, onCreate }: Readonly<NewCaseModalProps>)
       <div
         onClick={onClose}
         aria-hidden="true"
-        className="fixed inset-0 z-300 bg-[rgba(20,25,32,0.35)]"
+        className="fixed inset-0 z-300 bg-overlay-scrim-mid"
       />
       <dialog
         open
         aria-label={x(M.cases_nc_heading)}
-        className="fixed top-1/2 left-1/2 z-310 max-h-[calc(100vh-48px)] w-[min(480px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[16px] border border-border bg-surface px-[24px] py-[22px] font-sans shadow-[0_12px_40px_rgba(0,0,0,0.38)]"
+        className="fixed top-1/2 left-1/2 z-310 max-h-[calc(100vh-48px)] w-[min(480px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[16px] border border-border bg-surface px-[24px] py-[22px] font-sans shadow-modal"
       >
         <div className="mb-[4px] flex items-center justify-between gap-[12px]">
           <div className="font-display text-[18px] font-semibold text-text">

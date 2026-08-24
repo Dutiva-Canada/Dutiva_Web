@@ -206,13 +206,13 @@ function SearchDialog() {
         type="button"
         onClick={closeSearch}
         aria-label={x(M.search_dialog_label)}
-        className="fixed inset-0 z-350 cursor-default border-none bg-[rgba(20,25,32,0.4)]"
+        className="fixed inset-0 z-350 cursor-default border-none bg-overlay-scrim"
       />
       <dialog
         open
         aria-modal="true"
         aria-label={x(M.search_dialog_label)}
-        className="fixed top-[12vh] right-0 left-0 z-350 m-auto flex max-h-[66vh] w-[min(560px,92vw)] animate-[fadeInUp_.15s_ease] flex-col overflow-hidden rounded-[14px] bg-surface font-sans shadow-[0_30px_70px_rgba(0,0,0,0.3)]"
+        className="fixed top-[12vh] right-0 left-0 z-350 m-auto flex max-h-[66vh] w-[min(560px,92vw)] animate-[fadeInUp_.15s_ease] flex-col overflow-hidden rounded-[14px] bg-surface font-sans shadow-search"
       >
         <div className="flex items-center gap-[12px] border-b border-border-soft px-[18px] py-[16px]">
           <Search

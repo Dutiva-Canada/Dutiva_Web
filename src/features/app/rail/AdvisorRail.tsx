@@ -53,7 +53,7 @@ export function AdvisorRail() {
       <div
         onClick={closeRail}
         aria-hidden="true"
-        className="fixed inset-0 z-295 bg-[rgba(20,25,32,0.28)]"
+        className="fixed inset-0 z-295 bg-overlay-scrim-soft"
       />
       <dialog
         open

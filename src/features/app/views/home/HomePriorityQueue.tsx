@@ -44,9 +44,7 @@ export function HomeActNowSection({ onAction }: { readonly onAction: (action: Ho
                 <span className="text-[13.5px] font-semibold text-text">{x(p.title)}</span>
               </div>
               <div className="mt-[3px] text-[12px] text-text-muted">{x(p.meta)}</div>
-              <div className="mt-[9px] rounded-[8px] bg-inset px-[12px] py-[10px] text-[12.5px] leading-[1.55] text-text-3">
-                {x(p.why)}
-              </div>
+              <div className="mt-[9px] text-[12.5px] leading-[1.55] text-text-3">{x(p.why)}</div>
               <div className="mt-[10px] flex items-center gap-[10px]">
                 <button
                   type="button"

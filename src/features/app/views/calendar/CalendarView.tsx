@@ -9,6 +9,7 @@ import { useRail } from '@/features/app/rail/railContext'
 import type { RailContextValue } from '@/features/app/rail/railContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { CalendarProductionView } from './CalendarProductionView'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Calendar view — the July 2026 month grid with event chips plus the
@@ -149,8 +150,7 @@ function CalendarDemoView() {
   const { x } = useI18n()
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto max-w-[900px]">
+    <AppPage width="default">
         <div className="mb-[18px] flex items-baseline justify-between">
           <div className="font-display text-[22px] font-semibold text-text">
             {x(calendarMonth.monthLabel)}
@@ -180,7 +180,6 @@ function CalendarDemoView() {
             ))}
           </div>
         </div>
-      </div>
-    </div>
+    </AppPage>
   )
 }

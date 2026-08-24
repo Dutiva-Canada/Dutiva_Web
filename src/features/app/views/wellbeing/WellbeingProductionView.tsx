@@ -23,6 +23,7 @@ import type {
   ProductionInitiativeKind,
   ProductionInitiativeStatus,
 } from './productionApi'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Wellbeing in production mode — real persistence on
@@ -209,8 +210,7 @@ export function WellbeingProductionView() {
   const countLabel = `${count} ${x(count === 1 ? M.wellbeing_prod_count_one : M.wellbeing_prod_count_many)}`
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto max-w-[820px]">
+    <AppPage width="comfort">
         <div className="mb-[18px] flex items-start gap-[8px] rounded-[10px] border border-gold-border bg-gold-bg px-[14px] py-[11px]">
           <Shield
             size={14}
@@ -501,7 +501,6 @@ export function WellbeingProductionView() {
           <Shield size={12} strokeWidth={1.8} className="mt-px shrink-0" aria-hidden="true" />
           <span>{x(M.wellbeing_prod_accommodation_note)}</span>
         </div>
-      </div>
-    </div>
+    </AppPage>
   )
 }

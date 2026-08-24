@@ -44,6 +44,7 @@ import {
   CaseOverviewTab,
   CaseRiskTab,
 } from './caseDetailTabs'
+import { AppPage } from '@/features/app/shell/AppPage'
 import type {
   CaseActivityEntry,
   CaseApprovalState,
@@ -320,8 +321,7 @@ function CaseDetail({ caze }: Readonly<{ caze: WorkspaceCase }>) {
   ]
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[24px] pb-[60px]">
-      <div className="mx-auto max-w-[900px]">
+    <AppPage width="default">
         <button
           type="button"
           onClick={() => navigate('/app/cases')}
@@ -415,8 +415,7 @@ function CaseDetail({ caze }: Readonly<{ caze: WorkspaceCase }>) {
             onAddNote={addNote}
           />
         )}
-      </div>
-    </div>
+    </AppPage>
   )
 }
 
@@ -424,8 +423,7 @@ function CaseDetail({ caze }: Readonly<{ caze: WorkspaceCase }>) {
 function CaseNotFound() {
   const { x } = useI18n()
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[24px] pb-[60px]">
-      <div className="mx-auto max-w-[900px]">
+    <AppPage width="default">
         <Link
           to="/app/cases"
           className="mb-[16px] flex w-fit items-center gap-[6px] text-[13px] font-semibold text-text-muted no-underline"
@@ -447,7 +445,6 @@ function CaseNotFound() {
             {x(M.cases_all_cases)}
           </Link>
         </div>
-      </div>
-    </div>
+    </AppPage>
   )
 }

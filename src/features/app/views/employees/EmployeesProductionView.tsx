@@ -11,6 +11,7 @@ import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeCont
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import { EMPLOYMENT_PROVINCES, addEmployee, listEmployees, removeEmployee } from './productionApi'
 import type { ProductionEmployee, ProductionEmployeeStatus } from './productionApi'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Employees roster in production mode — the first module on real
@@ -108,8 +109,7 @@ export function EmployeesProductionView() {
   const countLabel = `${count} ${x(count === 1 ? M.employees_prod_count_one : M.employees_prod_count_many)}`
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto max-w-[900px]">
+    <AppPage width="default">
         <div className="mb-[18px] flex flex-wrap items-center justify-between gap-[16px]">
           <div className="text-[13px] text-text-muted">
             {rows === null ? x(M.employees_prod_loading) : countLabel}
@@ -277,7 +277,6 @@ export function EmployeesProductionView() {
             ))}
           </div>
         )}
-      </div>
-    </div>
+    </AppPage>
   )
 }

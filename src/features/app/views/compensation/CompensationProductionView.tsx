@@ -20,6 +20,7 @@ import {
   updateCompensationRecord,
 } from './productionApi'
 import type { ProductionCompensationRecord } from './productionApi'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Compensation in production mode — real persistence on
@@ -167,8 +168,7 @@ export function CompensationProductionView() {
   const editingRecord = editingId ? list.find((r) => r.id === editingId) : undefined
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto max-w-[920px]">
+    <AppPage width="default">
         <div className="mb-[18px] flex items-start gap-[8px] rounded-[10px] border border-gold-border bg-gold-bg px-[14px] py-[11px]">
           <Lock
             size={14}
@@ -466,7 +466,6 @@ export function CompensationProductionView() {
         )}
 
         <div className="mt-[14px] text-[11px] text-text-faint">{x(M.comp_prod_market_note)}</div>
-      </div>
-    </div>
+    </AppPage>
   )
 }

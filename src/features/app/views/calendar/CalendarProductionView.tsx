@@ -9,6 +9,7 @@ import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeCont
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import { listCases } from '@/features/app/views/cases/productionApi'
 import { listTasks } from '@/features/app/views/tasks/productionApi'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Calendar in production mode — the demo's month grid, rebuilt over the
@@ -147,8 +148,7 @@ export function CalendarProductionView() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto max-w-[900px]">
+    <AppPage width="default">
         <div className="mb-[4px] flex items-center justify-between gap-[12px]">
           <div className="font-display text-[22px] font-semibold text-text capitalize">
             {monthLabel}
@@ -265,7 +265,6 @@ export function CalendarProductionView() {
             ))}
           </div>
         </div>
-      </div>
-    </div>
+    </AppPage>
   )
 }

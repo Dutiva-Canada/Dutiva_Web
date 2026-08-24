@@ -15,6 +15,7 @@ import {
   setPolicyStatus,
 } from './productionApi'
 import type { ProductionPolicy, ProductionPolicyStatus } from './productionApi'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Policy register in production mode — real persistence on
@@ -126,8 +127,7 @@ export function PoliciesProductionView() {
   const countLabel = `${count} ${x(count === 1 ? M.policies_prod_count_one : M.policies_prod_count_many)}`
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto max-w-[760px]">
+    <AppPage width="comfort">
         <div className="mb-[18px] flex flex-wrap items-center justify-between gap-[16px]">
           <div className="text-[13px] text-text-muted">
             {rows === null ? x(M.policies_prod_loading) : countLabel}
@@ -293,7 +293,6 @@ export function PoliciesProductionView() {
             ))}
           </div>
         )}
-      </div>
-    </div>
+    </AppPage>
   )
 }

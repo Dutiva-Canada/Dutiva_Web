@@ -224,7 +224,7 @@ function TemplateCard({
 /** Loading layout: header lines + profile bar + toolbar + six card shimmers. */
 function StudioSkeleton() {
   return (
-    <div className="px-[28px] pb-16 max-[640px]:px-[16px]">
+    <div className="pb-16">
       <Skel className="mb-3 h-4 w-[200px]" />
       <Skel className="mb-[22px] h-[30px] w-[340px] max-w-full" />
       <Skel className="mb-5 h-[56px] w-full" />
@@ -282,37 +282,30 @@ export function StudioScreen() {
   }
 
   return (
-    <div className="px-[28px] pb-16 max-[640px]:px-[16px]">
-      {/* ── Header ── */}
-      <div className="mb-[18px] flex flex-wrap items-start justify-between gap-5">
+    <div className="pb-16">
+      {/* ── Header — topbar owns the route title; lead with eyebrow + subtitle ── */}
+      <div className="mb-[18px] flex flex-wrap items-end justify-between gap-5">
         <div className="min-w-0">
           <div className="mb-[7px] font-display text-[11px] font-bold tracking-[0.16em] text-gold-fg uppercase">
             {t('doclib_studio_eyebrow')}
           </div>
-          <h1 className="mb-[6px] font-display text-[26px] font-semibold tracking-[-0.02em] text-text max-[640px]:text-[22px]">
-            {t('doclib_studio_title')}
-          </h1>
           <p className="max-w-[60ch] text-[14px] leading-[1.55] text-text-muted">
             {t('doclib_studio_subtitle')}
           </p>
         </div>
-        <div className="flex shrink-0 gap-[10px]">
-          <div className="rounded-[12px] border border-border bg-surface px-4 py-[10px] text-center">
-            <div className="font-display text-[22px] leading-none font-bold text-gold-fg">
+        <div className="flex shrink-0 items-baseline gap-[18px] text-[12.5px] text-text-muted">
+          <span>
+            <span className="font-display text-[20px] font-bold text-gold-fg">
               {data.templates.length}
-            </div>
-            <div className="mt-[3px] text-[10.5px] whitespace-nowrap text-text-muted">
-              {t('doclib_studio_results')}
-            </div>
-          </div>
-          <div className="rounded-[12px] border border-border bg-surface px-4 py-[10px] text-center">
-            <div className="font-display text-[22px] leading-none font-bold text-navy">
+            </span>{' '}
+            {t('doclib_studio_results')}
+          </span>
+          <span>
+            <span className="font-display text-[20px] font-bold text-navy">
               {jurisdictionInfo.length}
-            </div>
-            <div className="mt-[3px] text-[10.5px] whitespace-nowrap text-text-muted">
-              {t('doclib_studio_jurisdictions')}
-            </div>
-          </div>
+            </span>{' '}
+            {t('doclib_studio_jurisdictions')}
+          </span>
         </div>
       </div>
 

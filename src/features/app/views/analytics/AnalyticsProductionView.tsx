@@ -68,6 +68,7 @@ import {
 } from './aggregation'
 import { attentionChipLabel, attentionSecondary } from './attentionLabels'
 import { fill, formatDayISO, formatPct, formatSignedDecimal, intlLocale } from './format'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Analytics in production mode. The monthly snapshot table
@@ -291,8 +292,7 @@ export function AnalyticsProductionView() {
     0
   if (coreReady && !hasAnyData) {
     return (
-      <div className="flex-1 overflow-y-auto px-[14px] pt-[18px] pb-[96px] sm:px-[32px] sm:pt-[26px] sm:pb-[60px]">
-        <div className="mx-auto max-w-[900px]">
+      <AppPage width="default" responsivePad>
           <div className="rounded-[12px] border border-border bg-surface px-[24px] py-[40px] text-center">
             <div className="mx-auto mb-[14px] flex h-[44px] w-[44px] items-center justify-center rounded-[12px] bg-inset">
               <ChartNoAxesColumn
@@ -307,8 +307,7 @@ export function AnalyticsProductionView() {
             </div>
             <p className="m-0 text-[13px] text-text-muted">{x(M.analytics_prod_empty_body)}</p>
           </div>
-        </div>
-      </div>
+      </AppPage>
     )
   }
 
@@ -504,8 +503,7 @@ export function AnalyticsProductionView() {
     analyticsCardVisible(card, memberRole, isOrgAdmin)
 
   return (
-    <div className="flex-1 overflow-y-auto px-[14px] pt-[18px] pb-[96px] sm:px-[32px] sm:pt-[26px] sm:pb-[60px]">
-      <div className="mx-auto max-w-[900px]">
+    <AppPage width="default" responsivePad>
         <div className="mb-[14px] text-[13px] text-text-muted">{x(M.analytics_live_note)}</div>
 
         <div className="grid grid-cols-1 gap-[14px] min-[900px]:grid-cols-2 min-[900px]:gap-[16px]">
@@ -831,7 +829,6 @@ export function AnalyticsProductionView() {
             </CardData>
           </AnalyticsCard>
         </div>
-      </div>
-    </div>
+    </AppPage>
   )
 }

@@ -113,7 +113,7 @@ export function DocStudioOverlay() {
         type="button"
         onClick={closeDocStudio}
         aria-label={x(M.docstudio_close_aria)}
-        className="fixed inset-0 z-300 cursor-default border-none bg-[rgba(20,25,32,0.35)]"
+        className="fixed inset-0 z-300 cursor-default border-none bg-overlay-scrim-mid"
       />
       <dialog
         ref={dialogRef}

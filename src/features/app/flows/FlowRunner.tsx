@@ -23,6 +23,7 @@ import {
 import type { FlowRun } from './flowEngine'
 import { isFormula, isResult } from './flowModel'
 import type { Flow } from './flowModel'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Runs a guided flow — the surface Ring 2's decision-tree tools needed
@@ -53,8 +54,7 @@ export function FlowRunner() {
 function FlowMissing() {
   const { x } = useI18n()
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto max-w-[720px]">
+    <AppPage width="narrow">
         <p className="text-[14px] text-text-2">{x(M.flows_not_found)}</p>
         <Link
           to="/app/workflows"
@@ -63,8 +63,7 @@ function FlowMissing() {
           <ArrowLeft size={14} strokeWidth={2} aria-hidden="true" />
           {x(M.flows_back_to_workflows)}
         </Link>
-      </div>
-    </div>
+    </AppPage>
   )
 }
 
@@ -77,8 +76,7 @@ function FlowBody({ flow }: { readonly flow: Flow }) {
   const pct = Math.round(progress(flow, run) * 100)
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto max-w-[720px]">
+    <AppPage width="narrow">
         <Link
           to="/app/workflows"
           className="mb-[14px] inline-flex items-center gap-[6px] text-[12.5px] font-semibold text-text-muted"
@@ -151,7 +149,7 @@ function FlowBody({ flow }: { readonly flow: Flow }) {
                   key={option.id}
                   type="button"
                   onClick={() => setRun(advance(flow, run, option.id))}
-                  className="flex cursor-pointer items-start gap-[10px] rounded-[11px] border border-border bg-bg-soft px-[15px] py-[13px] text-left font-sans"
+                  className="flex cursor-pointer items-start gap-[10px] rounded-[11px] border border-border bg-bg-soft px-[15px] py-[13px] text-left font-sans transition-[border-color,background-color] hover:border-(--accent-soft-border) hover:bg-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                 >
                   <ChevronRight
                     size={15}
@@ -225,8 +223,7 @@ function FlowBody({ flow }: { readonly flow: Flow }) {
         {done && <PathTaken flow={flow} run={run} />}
 
         <Disclaimer variant="block" className="mt-[18px]" />
-      </div>
-    </div>
+    </AppPage>
   )
 }
 

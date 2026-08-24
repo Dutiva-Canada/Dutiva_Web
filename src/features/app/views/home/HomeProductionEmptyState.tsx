@@ -4,6 +4,7 @@ import { Disclaimer } from '@/components/Disclaimer'
 import { ChatComposer } from '@/features/app/advisor/ChatComposer'
 import { homeMessages as M } from '@/i18n/messages/home'
 import type { WorkspaceIdentity } from '@/features/app/workspaceMode/workspaceModeContext'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Home in production mode — the app's "reset stage": no Northgate Logistics
@@ -21,8 +22,7 @@ export function HomeProductionEmptyState({
   const { x } = useI18n()
 
   return (
-    <div className="flex-1 overflow-y-auto px-[14px] pt-[18px] pb-[96px] sm:px-[32px] sm:pt-[26px] sm:pb-[60px]">
-      <div className="mx-auto max-w-[640px] pt-[48px] text-center">
+    <AppPage width="narrow" responsivePad innerClassName="pt-[48px] text-center">
         <div className="mx-auto mb-[16px] flex h-[44px] w-[44px] items-center justify-center rounded-[12px] bg-accent-soft">
           <Sparkles size={20} strokeWidth={1.7} className="text-accent" aria-hidden="true" />
         </div>
@@ -36,7 +36,7 @@ export function HomeProductionEmptyState({
           {x(M.home_production_body)}
         </p>
 
-        <div className="rounded-[14px] shadow-[0_10px_30px_-16px_rgba(27,36,48,0.18)]">
+        <div className="rounded-[14px] shadow-float">
           <ChatComposer
             variant="chat"
             placeholder={x(M.home_composer_placeholder)}
@@ -45,7 +45,6 @@ export function HomeProductionEmptyState({
           />
         </div>
         <Disclaimer className="mt-[8px] text-center" />
-      </div>
-    </div>
+    </AppPage>
   )
 }

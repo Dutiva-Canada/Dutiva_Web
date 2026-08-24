@@ -7,6 +7,7 @@ import { useWellbeingRail } from '@/features/app/rail/useEntityRails'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { wellbeingMessages as M } from '@/i18n/messages/wellbeing'
 import { WellbeingProductionView } from './WellbeingProductionView'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Wellbeing & support view — support signals with explicitly non-diagnostic
@@ -48,8 +49,7 @@ function WellbeingDemoView() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto max-w-[820px]">
+    <AppPage width="comfort">
         {/* Usage-limits banner. */}
         <div className="mb-[18px] flex items-start gap-[8px] rounded-[10px] border border-gold-border bg-gold-bg px-[14px] py-[11px]">
           <Shield
@@ -140,7 +140,6 @@ function WellbeingDemoView() {
           <Shield size={12} strokeWidth={1.8} className="mt-px shrink-0" aria-hidden="true" />
           <span>{x(M.wellbeing_audit_note)}</span>
         </div>
-      </div>
-    </div>
+    </AppPage>
   )
 }

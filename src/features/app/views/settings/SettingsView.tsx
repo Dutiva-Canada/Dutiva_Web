@@ -31,6 +31,7 @@ import {
 import type { ChipTone, PrefKey } from './settingsData'
 import { Card, Section, StatusChip, ToggleRow } from './settingsPrimitives'
 import { CapacityAlert } from './CapacityAlert'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Settings view — port of the prototype's largest static view
@@ -125,8 +126,7 @@ export function SettingsView() {
   ]
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto flex max-w-[700px] flex-col gap-[26px]">
+    <AppPage width="narrow" innerClassName="flex flex-col gap-[26px]">
         {/* Appearance + Language */}
         <div className="flex flex-wrap gap-[16px]">
           <div className="min-w-[220px] flex-1">
@@ -557,7 +557,6 @@ export function SettingsView() {
             </div>
           </Card>
         </Section>
-      </div>
-    </div>
+    </AppPage>
   )
 }

@@ -27,6 +27,7 @@ import {
   EmployeeTimelineTab,
   EmployeeWellbeingTab,
 } from './employeeProfileTabs'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Employee profile hub — the prototype's `isProfileView` markup (App
@@ -185,8 +186,7 @@ function EmployeeProfileDemoView() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[24px] pb-[60px]">
-      <div className="mx-auto max-w-[920px]">
+    <AppPage width="default">
         <button
           type="button"
           onClick={() => navigate('/app/employees')}
@@ -307,7 +307,6 @@ function EmployeeProfileDemoView() {
           <Shield size={12} strokeWidth={1.8} className="mt-px shrink-0" aria-hidden="true" />
           <span>{x(M.employees_audit_foot)}</span>
         </div>
-      </div>
-    </div>
+    </AppPage>
   )
 }

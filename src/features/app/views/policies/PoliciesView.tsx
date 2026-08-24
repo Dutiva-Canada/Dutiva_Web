@@ -9,6 +9,7 @@ import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { policiesMessages as M } from '@/i18n/messages/policies'
 import { PoliciesProductionView } from './PoliciesProductionView'
+import { AppPage, AppPageLead } from '@/features/app/shell/AppPage'
 
 const lcFirst = (s: string): string => (s.length > 0 ? s.charAt(0).toLowerCase() + s.slice(1) : s)
 
@@ -69,9 +70,8 @@ function PoliciesDemoView() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto max-w-[820px]">
-        <div className="mb-[18px] text-[13px] text-text-muted">{x(M.policies_subtitle)}</div>
+    <AppPage width="comfort">
+        <AppPageLead>{x(M.policies_subtitle)}</AppPageLead>
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {policies.map((p) => (
             <div
@@ -97,7 +97,6 @@ function PoliciesDemoView() {
             </div>
           ))}
         </div>
-      </div>
-    </div>
+    </AppPage>
   )
 }

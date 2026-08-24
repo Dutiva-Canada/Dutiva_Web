@@ -21,6 +21,7 @@ import { complianceMessages as M } from '@/i18n/messages/compliance'
 import { common } from '@/i18n/messages/common'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { ComplianceProductionView } from './ComplianceProductionView'
+import { AppPage } from '@/features/app/shell/AppPage'
 
 /** Category bar/score colours (prototype `scoreColor` / `fillStyle`). */
 const barFillClasses: Record<Tone, string> = {
@@ -145,8 +146,7 @@ function ComplianceDemoView() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
-      <div className="mx-auto max-w-[900px]">
+    <AppPage width="default">
         {/* Jurisdiction filter */}
         <div
           role="tablist"
@@ -355,7 +355,6 @@ function ComplianceDemoView() {
             ))}
           </div>
         </div>
-      </div>
-    </div>
+    </AppPage>
   )
 }
