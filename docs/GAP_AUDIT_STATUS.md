@@ -47,8 +47,8 @@ human or platform action** (not closable by engineering alone).
 
 | Status | Detail |
 | --- | --- |
-| **Complete this pass** | Unit: AppShell, AdvisorView copy/export, colocated gap tests (PR #203). Production Memory manager empty state test. E2E: magic-link forwarder (`e2e/auth-forwarder.spec.ts`); production documents empty + cases CRUD (`e2e/auth/critical-path.spec.ts`); CSP script regression (`e2e/csp.spec.ts`). |
-| **Remaining** | Full production CRUD matrix for tasks/memory/comms modules; inbox magic-link click (auth suite mints OTP server-side by design). |
+| **Complete this pass** | Unit: AppShell, AdvisorView copy/export, colocated gap tests (PR #203). Production Memory manager empty state test. E2E: magic-link forwarder (`e2e/auth-forwarder.spec.ts`); production documents empty + employees/cases/tasks/comms/memory CRUD (`e2e/auth/critical-path.spec.ts`); CSP script regression (`e2e/csp.spec.ts`). |
+| **Remaining** | Inbox magic-link click (auth suite mints OTP server-side by design). |
 
 ## Not in this engineering scope (audit rows 1–3, Brand/SEO)
 

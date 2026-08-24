@@ -16,9 +16,34 @@ npm run test:e2e
 
 ## Authenticated critical path (`npm run test:e2e:auth`)
 
-Signed-in admin → Settings **Production** → Employees empty → add one
-employee → assert → remove. Driven by
+Signed-in admin → Settings **Production** → production-mode CRUD across core
+HR modules. Spec:
+[`e2e/auth/critical-path.spec.ts`](auth/critical-path.spec.ts). Config:
 [`playwright.auth.config.ts`](../playwright.auth.config.ts).
+
+Session comes from `globalSetup` (`e2e/auth/global-setup.ts`) — OTP is minted
+server-side; no inbox / magic-link click.
+
+### CRUD matrix (`critical-path.spec.ts`)
+
+Eight tests, one worker (`fullyParallel: false`). Each test enables Production
+mode, exercises one module, and tears down created rows where applicable.
+
+| Module | Route | Operations exercised | Setup / teardown |
+| --- | --- | --- | --- |
+| Employees | `/app/employees` | empty → create → list count → remove | — |
+| Cases | `/app/cases` | empty → create → list count → remove | — |
+| Tasks | `/app/planning/tasks` | empty → create → toggle done → remove | — |
+| Communications | `/app/communications` | empty → log → edit title → mark sent → confirm remove | — |
+| Memory manager | `/app/settings/memory` | add person-scoped fact → correct → forget | create employee first; remove employee after |
+| Case memory | `/app/settings/memory/cases/:id` | edit resume summary (English) | create case first; remove case after |
+| Documents | `/app/documents` | honest empty state only (no CRUD yet) | — |
+| Search | `/app/home` | `Ctrl+K` opens overlay | — |
+
+Shared helpers in the spec: `enableProductionMode`, `createEmployee`,
+`removeEmployee`, `createCase`, `removeCase`. Selectors use English i18n
+strings and ARIA labels from production views (`Add task`, `Log a message`,
+`Add memory fact`, `Edit — {title}`, etc.).
 
 Requires a **Supabase-aware** production build and a service-role key for
 seed + session mint (no inbox):
