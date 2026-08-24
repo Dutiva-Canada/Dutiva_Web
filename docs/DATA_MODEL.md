@@ -72,6 +72,28 @@ The workforce roster.
 - **Relations:** has many documents; has many employee_cases
 - **Surfaces in UI:** Generation context, repository filter
 
+### `hr_advisor_memory_facts` (records, RLS — migration `0086`)
+
+Org-scoped Advisor Memory facts (one row = one governed fact). Distinct from
+legacy `advisor_memories` (preference / context blobs). Soft-forget via
+`forgotten_at`. Org members read; org admins write.
+
+- **Fields:** `id`, `organization_id`, `scope` (person|case|thread), `entity_id`,
+  `category`, `statement_en`/`statement_fr`, `confidence`, `source_type` /
+  `source_detail_*`, `learned_at`, `confirmed_at`, `visibility`, `sensitive`,
+  `forgotten_at`, `created_by`/`updated_by`, timestamps
+- **Relations:** → organizations; audited by `hr_advisor_memory_audit`
+- **Surfaces in UI:** Settings → Advisor Memory (manager, person, case, thread)
+
+### `hr_advisor_memory_audit` (audit, RLS — migration `0086`)
+
+Append-only log of create / confirm / correct / forget on memory facts.
+
+- **Fields:** `id`, `organization_id`, `fact_id`, `actor_user_id`, `action`,
+  `statement_en`/`statement_fr` (prior snapshot), `created_at`
+- **Relations:** → `hr_advisor_memory_facts`
+- **Surfaces in UI:** Memory manager audit rail (production)
+
 ### `employee_cases` (records, RLS)
 
 A case file (termination, accommodation…) grouping related documents.

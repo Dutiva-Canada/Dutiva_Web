@@ -253,4 +253,61 @@ export const memoryMessages = defineMessages({
     en: 'Bulk erasure runs through the governance backend — forget individual memories here.',
     fr: 'L’effacement en bloc passe par le système de gouvernance — oubliez les mémoires individuellement ici.',
   },
+
+  /* Production mode (migration 0086) — [FR self-authored] */
+  memory_prod_empty_title: {
+    en: 'No Advisor memory yet',
+    fr: 'Aucune mémoire du Conseiller pour l’instant',
+  },
+  memory_prod_empty_body: {
+    en: 'Confirmed and inferred facts for people, cases, and conversations will appear here. Add a fact manually, or confirm ones Advisor records later.',
+    fr: 'Les faits confirmés et inférés pour les personnes, dossiers et conversations apparaîtront ici. Ajoutez un fait manuellement, ou confirmez ceux que le Conseiller enregistrera plus tard.',
+  },
+  memory_prod_load_failed: {
+    en: 'Could not load memory. Try again.',
+    fr: 'Impossible de charger la mémoire. Réessayez.',
+  },
+  memory_prod_action_failed: {
+    en: 'Could not update that memory.',
+    fr: 'Impossible de mettre à jour cette mémoire.',
+  },
+  memory_prod_added: { en: 'Memory fact added.', fr: 'Fait de mémoire ajouté.' },
+  memory_prod_add: { en: 'Add memory fact', fr: 'Ajouter un fait de mémoire' },
+  memory_prod_statement_en: { en: 'Statement (English)', fr: 'Énoncé (anglais)' },
+  memory_prod_statement_fr: { en: 'Statement (French)', fr: 'Énoncé (français)' },
+  memory_prod_category: { en: 'Category', fr: 'Catégorie' },
+  memory_prod_person: { en: 'Person', fr: 'Personne' },
+  memory_prod_select_person: { en: 'Select a person…', fr: 'Sélectionner une personne…' },
+  memory_prod_save_fact: { en: 'Save fact', fr: 'Enregistrer le fait' },
+  memory_prod_no_people: {
+    en: 'Add employees first — person memory links to your roster.',
+    fr: 'Ajoutez d’abord des employés — la mémoire des personnes est liée au registre.',
+  },
+  memory_prod_person_empty: {
+    en: 'No memory facts for this person yet.',
+    fr: 'Aucun fait de mémoire pour cette personne pour l’instant.',
+  },
+  memory_prod_case_empty: {
+    en: 'No memory facts for this case yet.',
+    fr: 'Aucun fait de mémoire pour ce dossier pour l’instant.',
+  },
+  memory_prod_thread_empty: {
+    en: 'No memory facts for this conversation yet.',
+    fr: 'Aucun fait de mémoire pour cette conversation pour l’instant.',
+  },
+  memory_prod_narrative_note: {
+    en: 'Case timelines and chat-recall transcripts stay in demo for now. Production shows governed facts only.',
+    fr: 'Les chronologies de dossier et les transcriptions de rappel de conversation restent en démo pour l’instant. La production affiche uniquement les faits gouvernés.',
+  },
+  memory_prod_audit_empty: {
+    en: 'No audit entries yet.',
+    fr: 'Aucune entrée d’audit pour l’instant.',
+  },
+  memory_prod_cat_employment: { en: 'Employment', fr: 'Emploi' },
+  memory_prod_cat_compensation: { en: 'Compensation', fr: 'Rémunération' },
+  memory_prod_cat_matter: { en: 'Current matter', fr: 'Affaire en cours' },
+  memory_prod_cat_record: { en: 'Record', fr: 'Dossier' },
+  memory_prod_cat_note: { en: 'Note', fr: 'Note' },
+  memory_prod_cat_case: { en: 'Case', fr: 'Dossier' },
+  memory_prod_cat_conversation: { en: 'Conversation', fr: 'Conversation' },
 })

@@ -20,9 +20,19 @@ export interface MemoryFactRowProps {
   readonly fact: MemoryFact
   /** Manager rows show which scope the fact lives in. */
   readonly scopeTag?: { icon: LucideIcon; label: Bi | string }
+  /** Production mode passes persistence callbacks; demo defaults to memoryStore. */
+  readonly onConfirm?: (id: string) => void
+  readonly onCorrect?: (id: string, statement: string) => void
+  readonly onForget?: (id: string) => void
 }
 
-export function MemoryFactRow({ fact, scopeTag }: MemoryFactRowProps) {
+export function MemoryFactRow({
+  fact,
+  scopeTag,
+  onConfirm,
+  onCorrect,
+  onForget,
+}: MemoryFactRowProps) {
   const { x, lang } = useI18n()
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
@@ -34,12 +44,16 @@ export function MemoryFactRow({ fact, scopeTag }: MemoryFactRowProps) {
   const VisibilityIcon = visibility.icon
   const ScopeIcon = scopeTag?.icon
 
+  const confirm = onConfirm ?? memoryActions.confirm
+  const correct = onCorrect ?? memoryActions.correct
+  const forget = onForget ?? memoryActions.forget
+
   const startEdit = () => {
     setDraft(pickL(fact.statement, lang))
     setEditing(true)
   }
   const save = () => {
-    memoryActions.correct(fact.id, draft)
+    correct(fact.id, draft)
     setEditing(false)
   }
 
@@ -129,7 +143,7 @@ export function MemoryFactRow({ fact, scopeTag }: MemoryFactRowProps) {
             {fact.confidence === 'inferred' && (
               <button
                 type="button"
-                onClick={() => memoryActions.confirm(fact.id)}
+                onClick={() => confirm(fact.id)}
                 className="flex cursor-pointer items-center gap-[5px] rounded-[7px] border-none bg-ok-bg px-[11px] py-[5px] font-sans text-[12px] font-bold text-ok-fg"
               >
                 <Check size={13} strokeWidth={2.2} aria-hidden="true" />
@@ -146,7 +160,7 @@ export function MemoryFactRow({ fact, scopeTag }: MemoryFactRowProps) {
             </button>
             <button
               type="button"
-              onClick={() => memoryActions.forget(fact.id)}
+              onClick={() => forget(fact.id)}
               className="flex cursor-pointer items-center gap-[5px] rounded-[7px] border border-risk-border bg-surface px-[10px] py-[5px] font-sans text-[12px] font-semibold text-risk-dot"
             >
               <Trash2 size={13} strokeWidth={1.7} aria-hidden="true" />

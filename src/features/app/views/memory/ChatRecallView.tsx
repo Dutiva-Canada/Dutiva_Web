@@ -7,8 +7,10 @@ import { memoryMessages as M } from '@/i18n/messages/memory'
 import { Disclaimer } from '@/components/Disclaimer'
 import { ChatComposer } from '@/features/app/advisor/ChatComposer'
 import { advisorViewMessages } from '@/i18n/messages/advisorView'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { employees, memoryThreads } from '@/data'
 import type { MemoryFact } from '@/data'
+import { ChatRecallProductionView } from './ChatRecallProductionView'
 import { CONFIDENCE_META, SOURCE_META } from './memoryModel'
 import { KnowFact } from './KnowFact'
 import { useMemoryStore } from './memoryStore'
@@ -19,6 +21,8 @@ import { useMemoryStore } from './memoryStore'
  * the provenance), the "Memory used in this answer" accordion with per-fact
  * Correct actions, and the "What I know" rail — recall is always sourced and
  * correctable. Sending here continues the conversation in the Advisor view.
+ *
+ * Production mode lists thread-scoped facts only (no RECALL_TURNS transcript).
  */
 
 interface RecallSegment {
@@ -110,6 +114,12 @@ const RECALL_TURNS: RecallTurn[] = [
 ]
 
 export function ChatRecallView() {
+  const { mode: workspaceMode } = useWorkspaceMode()
+  if (workspaceMode === 'production') return <ChatRecallProductionView />
+  return <ChatRecallDemoView />
+}
+
+function ChatRecallDemoView() {
   const { x, lang } = useI18n()
   const navigate = useNavigate()
   const { threadId } = useParams()

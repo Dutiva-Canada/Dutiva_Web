@@ -19,12 +19,13 @@ import { ModeGate } from '@/features/app/workspaceMode/ModeGate'
  * production renders the shared empty state. Ungated on purpose: home and
  * advisor (own production variants), knowledge (generic HR-law reference +
  * the real guidance panel), settings (hosts the toggle), Document Studio
- * screens (real catalogue), and the document repository + detail (real
- * persistence via hr_generated_documents — migration 0076). Signing and the
- * legacy hr-library gallery remain gated until they gain real backends.
- * Remove a view's gate when it gains real persistence — communications,
- * compensation and wellbeing came off this way (migrations 0039–0041) and
- * now dispatch on mode themselves.
+ * screens (real catalogue), the document repository + detail (real
+ * persistence via hr_generated_documents — migration 0076), and Advisor
+ * Memory (hr_advisor_memory_facts — migration 0086; views dispatch on mode).
+ * Signing and the legacy hr-library gallery remain gated until they gain
+ * real backends. Remove a view's gate when it gains real persistence —
+ * communications, compensation and wellbeing came off this way
+ * (migrations 0039–0041) and now dispatch on mode themselves.
  */
 function gated(view: ReactNode) {
   return <ModeGate>{view}</ModeGate>
@@ -143,9 +144,11 @@ export const appViewRoutes: RouteObject[] = [
     element: <SettingsLayout />,
     children: [
       { index: true, element: <SettingsView /> },
+      /* Advisor Memory handles both modes itself (hr_advisor_memory_facts +
+         audit, migration 0086). Demo keeps fixtures + memoryStore. */
       {
         path: 'memory',
-        element: gated(<MemoryLayout />),
+        element: <MemoryLayout />,
         children: [
           { index: true, element: <MemoryManagerView /> },
           { path: 'people/:personId', element: <PersonMemoryView /> },
