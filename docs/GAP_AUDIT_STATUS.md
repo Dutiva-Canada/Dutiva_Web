@@ -40,15 +40,15 @@ human or platform action** (not closable by engineering alone).
 | Status | Detail |
 | --- | --- |
 | **Complete** | `GenerateScreen.tsx` split into `generateScreen/` (shell ~108 lines). |
-| **Complete this pass** | `AdvisorView` pure helpers → `advisorViewHelpers.ts` (+ colocated tests); marketing article bodies split into `guideContent/` and `blogContent/` (6 slugs each). |
-| **Remaining** | `AdvisorView.tsx` still ~900 lines (state/effects/handlers) — hook extraction is a follow-up PR. `style-src 'unsafe-inline'` requires inline-style refactor across ~25 components. |
+| **Complete this pass** | `AdvisorView` pure helpers → `advisorViewHelpers.ts` (+ colocated tests); marketing article bodies split into `guideContent/` and `blogContent/` (6 slugs each). Hooks extracted: `useAdvisorThreadSession`, `useAdvisorProductionThreads`, `useAdvisorMessageActions`. |
+| **Remaining** | `AdvisorView.tsx` still orchestrates flows/scenarios/real-backend send paths (~750 lines). `style-src 'unsafe-inline'` requires inline-style refactor across ~25 components. |
 
 ## Testing
 
 | Status | Detail |
 | --- | --- |
-| **Complete this pass** | Unit: AppShell, AdvisorView copy/export, colocated gap tests (PR #203). Production Memory manager empty state test. E2E: magic-link forwarder (`e2e/auth-forwarder.spec.ts`); production documents empty (`e2e/auth/critical-path.spec.ts`). |
-| **Remaining** | Full production CRUD matrix across all modules; CSP console regression in Playwright; inbox magic-link click (auth suite mints OTP server-side by design). |
+| **Complete this pass** | Unit: AppShell, AdvisorView copy/export, colocated gap tests (PR #203). Production Memory manager empty state test. E2E: magic-link forwarder (`e2e/auth-forwarder.spec.ts`); production documents empty + cases CRUD (`e2e/auth/critical-path.spec.ts`); CSP script regression (`e2e/csp.spec.ts`). |
+| **Remaining** | Full production CRUD matrix for tasks/memory/comms modules; inbox magic-link click (auth suite mints OTP server-side by design). |
 
 ## Not in this engineering scope (audit rows 1–3, Brand/SEO)
 

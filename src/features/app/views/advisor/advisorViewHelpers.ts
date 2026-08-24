@@ -7,6 +7,8 @@ import type { WorkspaceMode } from '@/features/app/workspaceMode/workspaceModeCo
 import { chats } from '@/data'
 import type { JurisdictionPillTone } from './ChatPane'
 import type { WorkspaceState } from './ComplianceWorkspace'
+import type { ThreadGroup } from './ThreadList'
+import type { SessionChat } from './advisorSession'
 import { routeFlowKeyFromText } from './advisorFlows'
 import type { FlowKeyOrFallback, MessageExtras } from './advisorFlows'
 import type { AdvisorStartFlowNavState } from './advisorNav'
@@ -181,4 +183,54 @@ export function scenarioExtras(turn: ScenarioTurn): MessageExtras {
   if (turn.provincePrompt === true) extras.provincePrompt = true
   if (turn.response.memory != null) extras.memory = turn.response.memory
   return extras
+}
+
+export interface AdvisorThreadListEntry {
+  id: string
+  title: Bi
+  pinned: boolean
+  bucket: string
+}
+
+/** Flat thread index for the sidebar — demo fixtures or production conversations. */
+export function buildAdvisorThreadEntries(
+  workspaceMode: WorkspaceMode,
+  sessionChats: SessionChat[],
+  prodThreads: ProductionConversation[],
+): AdvisorThreadListEntry[] {
+  const sessionIds = new Set(sessionChats.map((c) => c.id))
+  return [
+    ...sessionChats.map((c) => ({ id: c.id, title: c.title, pinned: c.pinned, bucket: c.bucket })),
+    ...(workspaceMode === 'production'
+      ? prodThreads
+          .filter((t) => !sessionIds.has(t.id))
+          .map((t) => ({
+            id: t.id,
+            title: conversationTitle(t.messages),
+            pinned: false,
+            bucket: bucketFromUpdatedAt(t.updatedAt),
+          }))
+      : [
+          ...scenarioThreads.map((t) => ({
+            id: t.id,
+            title: t.scenario.title,
+            pinned: t.scenario.pinned,
+            bucket: t.scenario.pinned ? 'pinned' : 'today',
+          })),
+          ...chats.map((c) => ({ id: c.id, title: c.title, pinned: c.pinned, bucket: c.bucket })),
+        ]),
+  ]
+}
+
+/** Group flat thread entries into Pinned / Today / Week / Older buckets. */
+export function buildAdvisorThreadGroups(
+  allThreads: AdvisorThreadListEntry[],
+  groupLabels: { pinned: Bi; today: Bi; week: Bi; older: Bi },
+): ThreadGroup[] {
+  return [
+    { label: groupLabels.pinned, items: allThreads.filter((t) => t.pinned) },
+    { label: groupLabels.today, items: allThreads.filter((t) => t.bucket === 'today') },
+    { label: groupLabels.week, items: allThreads.filter((t) => t.bucket === 'week') },
+    { label: groupLabels.older, items: allThreads.filter((t) => t.bucket === 'older') },
+  ].filter((g) => g.items.length > 0)
 }

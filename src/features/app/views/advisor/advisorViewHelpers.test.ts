@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest'
+import { bi } from '@/i18n/core'
 import {
+  buildAdvisorThreadEntries,
+  buildAdvisorThreadGroups,
   bucketFromUpdatedAt,
   isBackendConversationId,
   readNavChatId,
   resolveStartFlowKey,
 } from './advisorViewHelpers'
+import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 
 describe('advisorViewHelpers', () => {
   it('buckets updatedAt into today, week, or older', () => {
@@ -34,5 +38,27 @@ describe('advisorViewHelpers', () => {
     expect(
       resolveStartFlowKey({ prompt: 'hello', flowKey: 'termination' }, 'signed-out'),
     ).toBe('termination')
+  })
+
+  it('buildAdvisorThreadGroups omits empty buckets', () => {
+    const entries = buildAdvisorThreadEntries('demo', [], [])
+    const groups = buildAdvisorThreadGroups(entries, {
+      pinned: M.advisorview_group_pinned,
+      today: M.advisorview_group_today,
+      week: M.advisorview_group_week,
+      older: M.advisorview_group_older,
+    })
+    expect(groups.length).toBeGreaterThan(0)
+    expect(groups.every((g) => g.items.length > 0)).toBe(true)
+  })
+
+  it('buildAdvisorThreadEntries includes session chats in production mode', () => {
+    const title = bi('Draft thread', 'Fil de brouillon')
+    const entries = buildAdvisorThreadEntries(
+      'production',
+      [{ id: 'session-1', title, pinned: false, bucket: 'today', flowKey: 'fallback' }],
+      [],
+    )
+    expect(entries.some((e) => e.id === 'session-1')).toBe(true)
   })
 })
