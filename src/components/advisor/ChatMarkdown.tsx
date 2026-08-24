@@ -154,6 +154,13 @@ function MdRow({ children }: { children?: ReactNode }) {
   )
 }
 
+function cellAlignClass(style?: { textAlign?: string }, cell: 'th' | 'td' = 'td'): string {
+  const align = style?.textAlign
+  if (align === 'center') return cell === 'th' ? 'cm-th-center' : 'cm-td-center'
+  if (align === 'right') return cell === 'th' ? 'cm-th-right' : 'cm-td-right'
+  return ''
+}
+
 const components: Components = {
   h1: ({ children }) => <h3 className="cm-h cm-h1">{children}</h3>,
   h2: ({ children }) => <h4 className="cm-h cm-h2">{children}</h4>,
@@ -206,14 +213,13 @@ const components: Components = {
   tbody: ({ children }) => <tbody>{children}</tbody>,
   tr: MdRow,
   th: ({ children, style }) => (
-    <th className="cm-th" style={style} scope="col">
+    <th className={cx('cm-th', cellAlignClass(style, 'th'))} scope="col">
       <Highlighted>{children}</Highlighted>
     </th>
   ),
   td: ({ children, style, ...rest }) => (
     <td
-      className="cm-td"
-      style={style}
+      className={cx('cm-td', cellAlignClass(style, 'td'))}
       data-label={(rest as { 'data-label'?: string })['data-label']}
     >
       <Highlighted>{children}</Highlighted>

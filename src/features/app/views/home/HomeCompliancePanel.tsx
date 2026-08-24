@@ -1,4 +1,5 @@
 import { ArrowRight } from 'lucide-react'
+import { ProgressFill } from '@/components/ProgressFill'
 import { useI18n } from '@/i18n/context'
 import { homeMessages as M } from '@/i18n/messages/home'
 import { complianceCategories, complianceScore } from '@/data'
@@ -65,9 +66,9 @@ export function HomeCompliancePanel({
               <span className={`font-bold ${categoryScoreClass(cat.tone)}`}>{cat.score}</span>
             </div>
             <div className="h-[6px] overflow-hidden rounded-full bg-inset">
-              <div
-                className={`h-full rounded-full ${categoryFillClass(cat.tone)}`}
-                style={{ width: `${cat.score}%` }}
+              <ProgressFill
+                pct={cat.score}
+                className={`h-full w-full rounded-full ${categoryFillClass(cat.tone).replace('bg-', 'text-')}`}
               />
             </div>
           </div>

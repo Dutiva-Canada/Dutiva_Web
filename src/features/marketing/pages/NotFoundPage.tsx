@@ -5,8 +5,6 @@ import { Seo } from '@/seo/Seo'
 import { usePublicPath } from '@/seo/usePublicPath'
 import { MarketingPageShell } from './MarketingPage'
 
-const PILL_STYLE = { minHeight: 44, padding: '0 20px' } as const
-
 /**
  * Bilingual 404 page. Served with a real 404 status by the static host for
  * unknown URLs (dist/404.html, see scripts/prerender.mjs) and rendered by
@@ -43,23 +41,23 @@ export function NotFoundPage() {
           aria-label={L('Suggested pages', 'Pages suggérées')}
           className="mt-8 flex flex-wrap justify-center gap-3"
         >
-          <Link to={home()} className="gold-button" style={PILL_STYLE}>
+          <Link to={home()} className="gold-button pill-button">
             {L('Go to the homepage', 'Aller à la page d’accueil')}
             <ArrowRight size={15} />
           </Link>
-          <Link to={p('help')} className="ghost-button" style={PILL_STYLE}>
+          <Link to={p('help')} className="ghost-button pill-button">
             {L('Help Centre', 'Centre d’aide')}
           </Link>
-          <Link to={p('guides')} className="ghost-button" style={PILL_STYLE}>
+          <Link to={p('guides')} className="ghost-button pill-button">
             {L('Browse the guides', 'Consulter les guides')}
           </Link>
-          <Link to={p('faq')} className="ghost-button" style={PILL_STYLE}>
+          <Link to={p('faq')} className="ghost-button pill-button">
             FAQ
           </Link>
-          <Link to={p('contact')} className="ghost-button" style={PILL_STYLE}>
+          <Link to={p('contact')} className="ghost-button pill-button">
             {L('Contact support', 'Contacter le soutien')}
           </Link>
-          <Link to={p('legal')} className="ghost-button" style={PILL_STYLE}>
+          <Link to={p('legal')} className="ghost-button pill-button">
             {L('Legal & compliance documents', 'Documents juridiques et de conformité')}
           </Link>
         </nav>

@@ -85,6 +85,66 @@ body.dutiva-surface {
   border-color: var(--border);
 }
 
+/* ── Marketing / support CTA sizing (replaces inline style on gold/ghost buttons) */
+.gold-button-lg,
+.ghost-button-lg {
+  min-height: 48px;
+  padding-inline: 22px;
+  font-size: 0.9375rem;
+}
+.gold-button-md,
+.ghost-button-md {
+  min-height: 36px;
+  font-size: 0.8125rem;
+}
+.gold-button-block,
+.ghost-button-block {
+  width: 100%;
+  min-height: 48px;
+}
+.gold-button-consent {
+  min-height: 40px;
+  padding-inline: 20px;
+  font-size: 0.875rem;
+}
+.pill-button {
+  min-height: 44px;
+  padding-inline: 20px;
+}
+
+/* Service-status level dots (StatusPage + admin control) */
+.status-dot {
+  display: inline-block;
+  height: 8px;
+  width: 8px;
+  flex-shrink: 0;
+  border-radius: 9999px;
+}
+.status-dot-operational {
+  background-color: #16a34a;
+}
+.status-dot-maintenance {
+  background-color: #2563eb;
+}
+.status-dot-degraded {
+  background-color: #d97706;
+}
+.status-dot-outage {
+  background-color: #dc2626;
+}
+.status-icon-operational {
+  color: #16a34a;
+}
+.status-icon-maintenance {
+  color: #2563eb;
+}
+.status-icon-degraded {
+  color: #d97706;
+}
+.status-icon-outage {
+  color: #dc2626;
+}
+
 /* ── Buttons ─────────────────────────────────────────────────────────────────*/
 .gold-button {
   display: inline-flex;

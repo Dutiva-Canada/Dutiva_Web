@@ -128,8 +128,7 @@ export function Pricing() {
               </ul>
               <a
                 href="#start"
-                className={plan.popular ? 'gold-button' : 'ghost-button'}
-                style={{ width: '100%' }}
+                className={`${plan.popular ? 'gold-button' : 'ghost-button'} w-full`}
               >
                 {purchasable ? lt(plan.cta) : t('pricing_cta_beta_only')}
               </a>

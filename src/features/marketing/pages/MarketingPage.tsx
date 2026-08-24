@@ -155,7 +155,6 @@ interface PageCtaProps {
 
 /** Closing call-to-action band shared by every marketing subpage. */
 export function PageCta({ title, body, action, to, href }: PageCtaProps) {
-  const buttonStyle = { minHeight: 48, padding: '0 24px', fontSize: '0.9375rem' } as const
   return (
     <section className="mx-auto max-w-[1200px] px-6 pt-8 pb-[72px]">
       <div className="premium-card p-[clamp(28px,4vw,56px)] text-center">
@@ -165,12 +164,12 @@ export function PageCta({ title, body, action, to, href }: PageCtaProps) {
         <p className="mx-auto mt-3.5 max-w-[52ch] text-base leading-[1.6] text-text-2">{body}</p>
         <div className="mt-6 flex justify-center">
           {to ? (
-            <Link to={to} className="gold-button" style={buttonStyle}>
+            <Link to={to} className="gold-button gold-button-lg px-6">
               {action}
               <ArrowRight size={16} />
             </Link>
           ) : (
-            <a href={href} className="gold-button" style={buttonStyle}>
+            <a href={href} className="gold-button gold-button-lg px-6">
               {action}
               <ArrowRight size={16} />
             </a>

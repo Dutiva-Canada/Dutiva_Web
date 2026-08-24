@@ -4,41 +4,35 @@
  * reads identically in both themes; the wordmark is text — never redrawn.
  */
 
-interface LeafTileProps {
-  /** Tile edge in px (prototype: 46 header · 38 drawer · 40 footer). */
-  readonly size: number
-  /** Tile corner radius in px (13 · 11 · 11). */
-  readonly radius: number
-  /** Rendered leaf height in px (32 · 26 · 28). */
-  readonly leafHeight: number
-  /** Header tile carries a drop shadow; the drawer/footer tiles do not. */
-  readonly shadow?: boolean
+type LeafTileVariant = 'header' | 'drawer' | 'footer'
+
+const LEAF_TILE_CLASS: Record<LeafTileVariant, string> = {
+  header: 'leaf-tile leaf-tile-header',
+  drawer: 'leaf-tile leaf-tile-drawer',
+  footer: 'leaf-tile leaf-tile-footer',
 }
 
-export function LeafTile({ size, radius, leafHeight, shadow = false }: LeafTileProps) {
+const LEAF_IMG_CLASS: Record<LeafTileVariant, string> = {
+  header: 'leaf-img-header',
+  drawer: 'leaf-img-drawer',
+  footer: 'leaf-img-footer',
+}
+
+interface LeafTileProps {
+  readonly variant: LeafTileVariant
+}
+
+export function LeafTile({ variant }: LeafTileProps) {
   return (
-    <span
-      className="grid place-items-center border border-(--gold-border-soft)"
-      style={{
-        width: size,
-        height: size,
-        borderRadius: radius,
-        background: 'linear-gradient(160deg, var(--dutiva-white), #eef0f6)',
-        boxShadow: shadow ? '0 4px 14px rgba(0,0,0,0.35)' : undefined,
-      }}
-    >
-      <img
-        src="/brand/dutiva-leaf.png"
-        alt="Dutiva"
-        style={{ display: 'block', height: leafHeight, width: 'auto' }}
-      />
+    <span className={LEAF_TILE_CLASS[variant]}>
+      <img src="/brand/dutiva-leaf.png" alt="Dutiva" className={LEAF_IMG_CLASS[variant]} />
     </span>
   )
 }
 
-export function Wordmark({ fontSize = '1.15rem' }: { readonly fontSize?: string }) {
+export function Wordmark({ size = 'lg' }: { readonly size?: 'lg' | 'drawer' }) {
   return (
-    <span className="font-display font-bold text-text" style={{ fontSize }}>
+    <span className={`font-display font-bold text-text ${size === 'drawer' ? 'wordmark-drawer' : 'wordmark-lg'}`}>
       Duti<span className="text-gold-strong">va</span>
     </span>
   )

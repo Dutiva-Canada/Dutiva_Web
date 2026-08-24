@@ -230,15 +230,8 @@ export function BetaSignup() {
 
               <button
                 type="submit"
-                className="gold-button"
+                className={`gold-button gold-button-lg self-start ${status === 'sending' ? 'opacity-60' : ''}`}
                 disabled={status === 'sending'}
-                style={{
-                  minHeight: 48,
-                  padding: '0 22px',
-                  fontSize: '0.9375rem',
-                  alignSelf: 'flex-start',
-                  ...(status === 'sending' ? { opacity: 0.6 } : null),
-                }}
               >
                 {status === 'sending' ? (
                   lt('landing_cta_sending')
@@ -252,11 +245,7 @@ export function BetaSignup() {
               <div
                 role="status"
                 aria-live="polite"
-                className="text-[0.8125rem] leading-normal"
-                style={{
-                  display: message ? 'block' : 'none',
-                  color: message?.isError ? 'var(--danger)' : 'var(--text-2)',
-                }}
+                className={`text-[0.8125rem] leading-normal ${message ? 'block' : 'hidden'} ${message?.isError ? 'text-danger' : 'text-text-2'}`}
               >
                 {message ? lt(message.key) : null}
               </div>

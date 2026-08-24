@@ -1,3 +1,4 @@
+import { ProgressFill } from '@/components/ProgressFill'
 import { useI18n } from '@/i18n/context'
 import { DocChip, JurisdictionPill, SegButton } from '../../components'
 import { reviewStatusInfo, riskLevelInfo } from '../../data'
@@ -239,10 +240,7 @@ export function ReviewStep({
         </span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-inset" aria-hidden="true">
-        <div
-          className="h-full rounded-full bg-navy transition-[width]"
-          style={{ width: `${progressPct}%` }}
-        />
+        <ProgressFill pct={progressPct} className="h-full w-full rounded-full text-navy" />
       </div>
 
       {/* Risk & review posture + context summary */}

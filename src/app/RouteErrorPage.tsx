@@ -8,8 +8,6 @@ import { langOfPath } from '@/seo/routes'
 import { reportRouteError } from '@/lib/errorReporting'
 import { supportChannel } from '@/config/support'
 
-const PILL_STYLE = { minHeight: 44, padding: '0 20px' } as const
-
 const SUPPORT_EMAIL = supportChannel('support').email
 
 function messageOf(error: unknown): string {
@@ -87,28 +85,25 @@ export function RouteErrorPage() {
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <button
             type="button"
-            className="gold-button"
-            style={PILL_STYLE}
+            className="gold-button pill-button"
             onClick={() => window.location.reload()}
           >
             {L('Reload the page', 'Recharger la page')}
           </button>
           <button
             type="button"
-            className="ghost-button"
-            style={PILL_STYLE}
+            className="ghost-button pill-button"
             disabled={clearing}
             onClick={() => void clearOfflineCache()}
           >
             {L('Clear the offline cache', 'Vider la cache hors ligne')}
           </button>
-          <a href={lang === 'fr' ? '/fr' : '/'} className="ghost-button" style={PILL_STYLE}>
+          <a href={lang === 'fr' ? '/fr' : '/'} className="ghost-button pill-button">
             {L('Go to the homepage', 'Aller à la page d’accueil')}
           </a>
           <a
             href={lang === 'fr' ? '/fr/contact' : '/contact'}
-            className="ghost-button"
-            style={PILL_STYLE}
+            className="ghost-button pill-button"
           >
             {L('Contact support', 'Contacter le soutien')}
           </a>

@@ -1,4 +1,5 @@
 import { TriangleAlert } from 'lucide-react'
+import { ProgressFill } from '@/components/ProgressFill'
 import { useI18n } from '@/i18n/context'
 import { analyticsMessages as M } from '@/i18n/messages/analytics'
 import { sourceChipClass } from '@/components/chips'
@@ -51,9 +52,9 @@ export function ScoreBreakdownMeters({ rows }: { readonly rows: readonly Breakdo
             aria-label={`${row.label}: ${row.valueText}`}
             className="h-[8px] overflow-hidden rounded-[100px] bg-inset"
           >
-            <div
-              className="h-full rounded-[100px] bg-chart-mark"
-              style={{ width: `${Math.min(100, Math.max(0, row.pct))}%` }}
+            <ProgressFill
+              pct={Math.min(100, Math.max(0, row.pct))}
+              className="h-full w-full rounded-[100px] text-chart-mark"
             />
           </div>
         </div>

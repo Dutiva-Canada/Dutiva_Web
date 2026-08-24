@@ -30,6 +30,7 @@
  */
 
 import { useMemo, useState } from 'react'
+import { chartPlotHeightClass, hbarPlotHeightClass } from '@/lib/chartPlotHeight'
 import {
   Area,
   AreaChart,
@@ -80,7 +81,6 @@ const SERIES_VARS = [
 
 const AXIS = 'var(--cm-chart-axis)'
 const GRID = 'var(--cm-chart-grid)'
-const INK = 'var(--cm-chart-ink)'
 const MUTED = 'var(--cm-chart-muted)'
 const SURFACE = 'var(--cm-chart-surface)'
 
@@ -138,11 +138,10 @@ function ChartTooltip({
   return (
     <div className="cm-chart-tip">
       <div className="cm-chart-tip-label">{String(label ?? '')}</div>
-      {payload.map((entry) => (
+      {payload.map((entry, index) => (
         <div className="cm-chart-tip-row" key={entry.dataKey ?? entry.name}>
           <span
-            className="cm-chart-swatch"
-            style={{ background: entry.color }}
+            className={`cm-chart-swatch cm-chart-swatch-${(index % 5) + 1}`}
             aria-hidden="true"
           />
           <span className="cm-chart-tip-name">{entry.name}</span>
@@ -191,14 +190,7 @@ export function ChatChart({ source }: { readonly source: string }) {
     />
   )
   const legend = multi ? (
-    <Legend
-      verticalAlign="top"
-      align="left"
-      height={28}
-      iconType="circle"
-      iconSize={8}
-      wrapperStyle={{ fontSize: 12, color: MUTED, paddingBottom: 4 }}
-    />
+    <Legend verticalAlign="top" align="left" height={28} iconType="circle" iconSize={8} />
   ) : null
 
   let chart = null
@@ -264,7 +256,7 @@ export function ChatChart({ source }: { readonly source: string }) {
                 dataKey={s.key}
                 position={horizontal ? 'right' : 'top'}
                 formatter={format}
-                style={{ fill: INK, fontSize: 12, fontWeight: 600 }}
+                className="fill-text text-xs font-semibold"
               />
             )}
           </Bar>
@@ -304,13 +296,7 @@ export function ChatChart({ source }: { readonly source: string }) {
     chart = (
       <PieChart margin={{ top: 4, right: 4, bottom: 4, left: 4 }}>
         {tooltip}
-        <Legend
-          verticalAlign="bottom"
-          align="center"
-          iconType="circle"
-          iconSize={8}
-          wrapperStyle={{ fontSize: 12, color: MUTED }}
-        />
+        <Legend verticalAlign="bottom" align="center" iconType="circle" iconSize={8} />
         <Pie
           data={data}
           dataKey={valueKey}
@@ -330,13 +316,14 @@ export function ChatChart({ source }: { readonly source: string }) {
     )
   }
 
-  const height = type === 'hbar' ? Math.max(160, data.length * 44 + 48) : 260
+  const plotHeightClass =
+    type === 'hbar' ? hbarPlotHeightClass(data.length) : chartPlotHeightClass(260)
 
   return (
     <figure className="cm-chart">
       {spec.title && <figcaption className="cm-chart-title">{spec.title}</figcaption>}
 
-      <div className="cm-chart-plot" style={{ height }}>
+      <div className={`cm-chart-plot ${plotHeightClass}`}>
         <ResponsiveContainer width="100%" height="100%">
           {chart}
         </ResponsiveContainer>

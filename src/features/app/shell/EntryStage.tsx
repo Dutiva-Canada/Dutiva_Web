@@ -28,8 +28,7 @@ function AppWordmark() {
       <img
         src="/brand/dutiva-leaf.png"
         alt=""
-        className="block h-6.5 w-auto"
-        style={{ filter: 'var(--logo-glow)' }}
+        className="block h-6.5 w-auto logo-glow"
       />
       <span className="font-display text-[17px] font-bold tracking-[-0.01em]">
         Duti<span className="text-gold-dot">va</span>
@@ -50,22 +49,16 @@ function BrandRail() {
 
   return (
     <aside
-      className="relative hidden w-[45%] max-w-150 shrink-0 flex-col justify-between overflow-hidden px-13 py-11 lg:flex"
-      style={{
-        background:
-          'radial-gradient(130% 120% at 12% 8%, #1b3350 0%, var(--dutiva-navy) 46%, #081018 100%)',
-      }}
+      className="entry-brand-rail relative hidden w-[45%] max-w-150 shrink-0 flex-col justify-between overflow-hidden px-13 py-11 lg:flex"
     >
       {/* Gold glow accents */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-32.5 -right-30 h-85 w-85 rounded-full opacity-[0.18]"
-        style={{ background: 'radial-gradient(circle, var(--dutiva-gold) 0%, transparent 70%)' }}
+        className="entry-brand-glow-tr pointer-events-none absolute -top-32.5 -right-30 h-85 w-85 rounded-full opacity-[0.18]"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-37.5 -left-27.5 h-80 w-80 rounded-full opacity-[0.12]"
-        style={{ background: 'radial-gradient(circle, var(--dutiva-gold) 0%, transparent 70%)' }}
+        className="entry-brand-glow-bl pointer-events-none absolute -bottom-37.5 -left-27.5 h-80 w-80 rounded-full opacity-[0.12]"
       />
 
       <Link
@@ -76,11 +69,10 @@ function BrandRail() {
         <img
           src="/brand/dutiva-leaf.png"
           alt=""
-          className="block h-7 w-auto"
-          style={{ filter: 'drop-shadow(0 0 6px rgba(var(--dutiva-gold-rgb),0.35))' }}
+          className="entry-brand-leaf-glow block h-7 w-auto"
         />
         <span className="font-display text-[18px] font-bold tracking-[-0.01em] text-white">
-          Duti<span style={{ color: 'var(--dutiva-gold)' }}>va</span>
+          Duti<span className="text-gold-on-dark">va</span>
         </span>
       </Link>
 

@@ -32,8 +32,8 @@ human or platform action** (not closable by engineering alone).
 
 | Status | Detail |
 | --- | --- |
-| **Complete this pass** | `script-src 'unsafe-inline'` removed; bootstraps externalized to `/bootstrap-auth.js` and `/bootstrap-theme.js`. |
-| **Remaining** | `style-src 'unsafe-inline'` still required for React inline styles — documented in [SECURITY_HEADERS.md](SECURITY_HEADERS.md). Removing it needs inline-style refactor or nonce middleware. |
+| **Complete this pass** | `script-src 'unsafe-inline'` removed; bootstraps externalized to `/bootstrap-auth.js` and `/bootstrap-theme.js`. `style-src 'unsafe-inline'` removed — inline styles refactored to CSS classes, SVG progress fills, and preset Tailwind heights. |
+| **Remaining** | Re-test after any new third-party widget; hCaptcha may still inject its own styles from allowed origins. |
 
 ## Maintainability (large files)
 
@@ -41,7 +41,7 @@ human or platform action** (not closable by engineering alone).
 | --- | --- |
 | **Complete** | `GenerateScreen.tsx` split into `generateScreen/` (shell ~108 lines). |
 | **Complete this pass** | `AdvisorView` pure helpers → `advisorViewHelpers.ts` (+ colocated tests); marketing article bodies split into `guideContent/` and `blogContent/` (6 slugs each). Hooks extracted: `useAdvisorThreadSession`, `useAdvisorProductionThreads`, `useAdvisorMessageActions`. |
-| **Remaining** | `AdvisorView.tsx` still orchestrates flows/scenarios/real-backend send paths (~750 lines). `style-src 'unsafe-inline'` requires inline-style refactor across ~25 components. |
+| **Remaining** | `AdvisorView.tsx` still orchestrates flows/scenarios/real-backend send paths (~750 lines). |
 
 ## Testing
 

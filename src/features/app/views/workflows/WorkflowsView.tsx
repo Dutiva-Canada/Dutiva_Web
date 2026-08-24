@@ -1,4 +1,5 @@
-﻿import { useState } from 'react'
+﻿import { ProgressFill } from '@/components/ProgressFill'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Calendar, Check, File, Route, Share2, Star, User } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -173,9 +174,9 @@ export function WorkflowsView() {
                     <div className="min-w-[160px] flex-[1_1_160px]">
                       <div className="flex items-center gap-[8px]">
                         <div className="h-[6px] flex-1 overflow-hidden rounded-[100px] bg-inset">
-                          <div
-                            className="h-full rounded-[100px] bg-navy"
-                            style={{ width: `${Math.round((w.step / w.of) * 100)}%` }}
+                          <ProgressFill
+                            pct={Math.round((w.step / w.of) * 100)}
+                            className="h-full w-full rounded-[100px] text-navy"
                           />
                         </div>
                         <span className="text-[11px] font-bold whitespace-nowrap text-text-3">

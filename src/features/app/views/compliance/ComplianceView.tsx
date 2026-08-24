@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Shield } from 'lucide-react'
+import { ProgressFill } from '@/components/ProgressFill'
 import { useI18n } from '@/i18n/context'
 import { bi } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
@@ -267,9 +268,9 @@ function ComplianceDemoView() {
                   {x(cat.label)}
                 </div>
                 <div className="h-[6px] flex-1 overflow-hidden rounded-[100px] bg-inset">
-                  <div
-                    className={`h-full rounded-[100px] ${barFillClasses[cat.tone]}`}
-                    style={{ width: `${cat.score}%` }}
+                  <ProgressFill
+                    pct={cat.score}
+                    className={`h-full w-full rounded-[100px] ${barFillClasses[cat.tone].replace('bg-', 'text-')}`}
                   />
                 </div>
                 <div

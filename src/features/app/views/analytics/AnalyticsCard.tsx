@@ -38,6 +38,8 @@ export function AnalyticsCard({
   )
 }
 
+const SKELETON_WIDTH = ['w-full', 'w-[88%]', 'w-[76%]', 'w-[64%]', 'w-[52%]'] as const
+
 /** Loading skeleton — quiet inset blocks; announced as busy for AT. */
 export function CardSkeleton({ lines = 3 }: { readonly lines?: number }) {
   const { x } = useI18n()
@@ -46,8 +48,7 @@ export function CardSkeleton({ lines = 3 }: { readonly lines?: number }) {
       {Array.from({ length: lines }, (_, i) => (
         <div
           key={i}
-          className="h-[14px] animate-pulse rounded-[6px] bg-inset"
-          style={{ width: `${100 - i * 12}%` }}
+          className={`h-[14px] animate-pulse rounded-[6px] bg-inset ${SKELETON_WIDTH[i % SKELETON_WIDTH.length]}`}
           aria-hidden="true"
         />
       ))}

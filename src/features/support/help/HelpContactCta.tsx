@@ -27,8 +27,7 @@ export function HelpContactCta() {
         <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
           <Link
             to={contactPath}
-            className="gold-button"
-            style={{ minHeight: 46, padding: '0 22px', fontSize: '0.9375rem' }}
+            className="gold-button gold-button-lg"
           >
             {t('help_contact_action')}
             <ArrowRight size={16} />

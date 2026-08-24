@@ -81,8 +81,7 @@ export function ConsentBanner() {
           <button
             type="button"
             onClick={() => choose(true)}
-            className="gold-button"
-            style={{ minHeight: 40, padding: '0 20px', fontSize: '0.875rem' }}
+            className="gold-button gold-button-consent"
           >
             {L('Accept', 'Accepter')}
           </button>

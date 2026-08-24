@@ -1,3 +1,4 @@
+import { ProgressFill } from '@/components/ProgressFill'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AlertTriangle, ArrowLeft, ChevronRight, Circle, FileText, RotateCcw } from 'lucide-react'
@@ -98,7 +99,7 @@ function FlowBody({ flow }: { readonly flow: Flow }) {
           aria-valuemax={100}
           className="mt-[18px] h-[5px] w-full overflow-hidden rounded-full bg-inset"
         >
-          <div className="h-full rounded-full bg-accent" style={{ width: `${pct}%` }} />
+          <ProgressFill pct={pct} className="h-full w-full rounded-full text-accent" />
         </div>
 
         <div className="mt-[20px] rounded-[14px] border border-border bg-surface px-[22px] py-[20px]">
@@ -279,10 +280,7 @@ function ScoredResult({ flow, run }: { readonly flow: Flow; readonly run: FlowRu
                     aria-hidden="true"
                     className="h-[6px] w-[90px] shrink-0 overflow-hidden rounded-full bg-inset"
                   >
-                    <span
-                      className="block h-full rounded-full bg-navy"
-                      style={{ width: `${pct}%` }}
-                    />
+                    <ProgressFill pct={pct} className="block h-full w-full rounded-full text-navy" />
                   </span>
                   <span className="w-[38px] shrink-0 text-right text-[12px] font-semibold text-text-3">
                     {pct}%

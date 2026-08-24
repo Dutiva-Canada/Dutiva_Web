@@ -121,7 +121,7 @@ export function Header() {
       <header className="sticky top-0 z-30 border-b border-border bg-(--topbar-bg) pt-[env(safe-area-inset-top)] backdrop-blur-[18px]">
         <div className="mx-auto flex max-w-300 items-center justify-between gap-4 px-6 py-3">
           <a href={home('top')} className="flex items-center gap-2.5">
-            <LeafTile size={46} radius={13} leafHeight={32} shadow />
+            <LeafTile variant="header" />
             <span className="leading-none">
               <span className="block">
                 <Wordmark />
@@ -146,26 +146,17 @@ export function Header() {
             <LangToggle className={CTRL} iconSize={15} />
             <button
               type="button"
-              className={CTRL}
-              style={{ padding: 0, minWidth: 36 }}
+              className={`${CTRL} p-0 min-w-9`}
               aria-label={t('theme_toggle_aria')}
               onClick={toggleTheme}
             >
               <ThemeIcon size={15} />
             </button>
-            <Link
-              to="/app/welcome"
-              className="ghost-button"
-              style={{ minHeight: 36, fontSize: '0.8125rem' }}
-            >
+            <Link to="/app/welcome" className="ghost-button ghost-button-md">
               <LogIn size={15} />
               {lt('landing_signin')}
             </Link>
-            <Link
-              to="/app/welcome"
-              className="gold-button"
-              style={{ minHeight: 36, fontSize: '0.8125rem' }}
-            >
+            <Link to="/app/welcome" className="gold-button gold-button-md">
               {lt('landing_start_free')}
               <ArrowRight size={14} />
             </Link>
@@ -221,13 +212,12 @@ export function Header() {
         >
           <div className="mb-3 flex items-center justify-between">
             <span className="flex items-center gap-2.5">
-              <LeafTile size={38} radius={11} leafHeight={26} />
-              <Wordmark fontSize="1.05rem" />
+              <LeafTile variant="drawer" />
+              <Wordmark size="drawer" />
             </span>
             <button
               type="button"
-              className={PILL}
-              style={{ minWidth: 40, height: 40, padding: 0 }}
+              className={`${PILL} h-10 min-w-10 p-0`}
               aria-label={L('Close menu', 'Fermer le menu')}
               onClick={closeMenu}
             >
@@ -247,21 +237,11 @@ export function Header() {
             ))}
           </nav>
           <div className="mt-auto flex flex-col gap-2.5 pt-5">
-            <Link
-              to="/app/welcome"
-              className="ghost-button"
-              style={{ width: '100%', minHeight: 48 }}
-              onClick={closeMenu}
-            >
+            <Link to="/app/welcome" className="ghost-button ghost-button-block" onClick={closeMenu}>
               <LogIn size={16} />
               {lt('landing_signin')}
             </Link>
-            <Link
-              to="/app/welcome"
-              className="gold-button"
-              style={{ width: '100%', minHeight: 48 }}
-              onClick={closeMenu}
-            >
+            <Link to="/app/welcome" className="gold-button gold-button-block" onClick={closeMenu}>
               {lt('landing_start_free')}
               <ArrowRight size={16} />
             </Link>

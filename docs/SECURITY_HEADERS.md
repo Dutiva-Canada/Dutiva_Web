@@ -34,9 +34,10 @@ The allowed origins:
 
 `script-src` no longer includes `'unsafe-inline'` (2026-08-23): bootstrap
 scripts moved to `/bootstrap-auth.js` and `/bootstrap-theme.js`. `style-src`
-still includes `'unsafe-inline'` because React inline `style={{…}}` attributes
-are used across the app; removing it requires a broader refactor or nonce
-middleware.
+no longer includes `'unsafe-inline'` (2026-08-23): React inline `style={{…}}`
+attributes were replaced with Tailwind utilities, SVG geometry (`ProgressFill`),
+and colocated CSS classes. Prerendered marketing pages allow one hashed inline
+script for React Router static hydration data (`__staticRouterHydrationData`).
 
 ### Ongoing CSP hygiene
 

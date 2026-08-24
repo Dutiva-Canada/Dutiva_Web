@@ -429,6 +429,39 @@
   /* Recharts measures its parent; keep it from collapsing mid-layout. */
   min-width: 0;
 }
+.cm-chart .recharts-legend-wrapper {
+  font-size: 12px;
+  color: var(--cm-muted);
+  padding-bottom: 4px;
+}
+.cm-chart .recharts-label-list text {
+  fill: var(--cm-chart-ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+.cm-chart-swatch-1 {
+  background: var(--cm-chart-1);
+}
+.cm-chart-swatch-2 {
+  background: var(--cm-chart-2);
+}
+.cm-chart-swatch-3 {
+  background: var(--cm-chart-3);
+}
+.cm-chart-swatch-4 {
+  background: var(--cm-chart-4);
+}
+.cm-chart-swatch-5 {
+  background: var(--cm-chart-5);
+}
+.cm-th-center,
+.cm-td-center {
+  text-align: center;
+}
+.cm-th-right,
+.cm-td-right {
+  text-align: right;
+}
 .cm-chart-note {
   margin: 0;
   font-size: 0.85em;

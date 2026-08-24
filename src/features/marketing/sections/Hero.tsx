@@ -36,16 +36,14 @@ export function Hero() {
           <div className="mt-7 flex flex-wrap gap-3">
             <Link
               to="/app/welcome"
-              className="gold-button"
-              style={{ padding: '0 24px', minHeight: 48, fontSize: '0.9375rem' }}
+              className="gold-button gold-button-lg px-6"
             >
               {lt('landing_cta_nocard')}
               <ArrowRight size={16} />
             </Link>
             <a
               href="#how"
-              className="ghost-button"
-              style={{ padding: '0 22px', minHeight: 48, fontSize: '0.9375rem' }}
+              className="ghost-button ghost-button-lg px-[22px]"
             >
               {lt('landing_cta_seehow')}
             </a>
