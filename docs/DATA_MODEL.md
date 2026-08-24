@@ -94,6 +94,22 @@ Append-only log of create / confirm / correct / forget on memory facts.
 - **Relations:** → `hr_advisor_memory_facts`
 - **Surfaces in UI:** Memory manager audit rail (production)
 
+### `hr_advisor_case_narratives` (records, RLS — migration `0087`)
+
+One resume summary per case (running summary, what changed, next steps).
+
+- **Fields:** `organization_id`, `case_id`, `summary_*`, `resume_since_*`,
+  `changed`/`next_steps` jsonb arrays, `last_activity_at`
+- **Surfaces in UI:** Settings → Memory → Case
+
+### `hr_advisor_case_timeline_events` (records, RLS — migration `0087`)
+
+Append-only case Memory timeline (manual, notes, system, chat, status, memory).
+
+- **Fields:** `organization_id`, `case_id`, `occurred_at`, session labels,
+  `body_*`, `source`
+- **Surfaces in UI:** Case Memory timeline
+
 ### `employee_cases` (records, RLS)
 
 A case file (termination, accommodation…) grouping related documents.

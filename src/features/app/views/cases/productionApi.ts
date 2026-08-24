@@ -97,7 +97,22 @@ export async function addCase(organizationId: string, fields: NewCase): Promise<
     .select(SELECT_COLUMNS)
     .single()
   if (error) throw error
-  return toCase(rowSchema.parse(data))
+  const created = toCase(rowSchema.parse(data))
+  /* Best-effort Memory timeline seed — never fail case creation on it. */
+  try {
+    const { addCaseTimelineEvent } = await import('@/features/app/views/memory/caseNarrativeApi')
+    await addCaseTimelineEvent(organizationId, created.id, {
+      bodyEn: `Case opened: ${created.title}`,
+      bodyFr: `Dossier ouvert : ${created.title}`,
+      sessionLabelEn: 'Case opened',
+      sessionLabelFr: 'Dossier ouvert',
+      source: 'system',
+      occurredAt: created.createdAt,
+    })
+  } catch {
+    /* timeline is additive */
+  }
+  return created
 }
 
 export async function updateCaseStatus(id: string, status: ProductionCaseStatus): Promise<void> {
@@ -169,6 +184,20 @@ export async function addCaseNote(
     .single()
   if (error) throw error
   const row = noteRowSchema.parse(data)
+  /* Mirror the note onto the Memory case timeline (0087). */
+  try {
+    const { addCaseTimelineEvent } = await import('@/features/app/views/memory/caseNarrativeApi')
+    await addCaseTimelineEvent(organizationId, caseId, {
+      bodyEn: row.body,
+      bodyFr: row.body,
+      sessionLabelEn: 'Case note',
+      sessionLabelFr: 'Note de dossier',
+      source: 'note',
+      occurredAt: row.created_at,
+    })
+  } catch {
+    /* timeline is additive */
+  }
   return { id: row.id, body: row.body, createdAt: row.created_at }
 }
 

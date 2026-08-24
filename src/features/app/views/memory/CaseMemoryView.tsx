@@ -22,7 +22,8 @@ import { useMemoryStore } from './memoryStore'
  * changed while away, the held facts, the session timeline with dashed gaps,
  * and the "What I know" rail with the memory ≠ this-turn's-analysis note.
  *
- * Production mode lists governed case facts only (no fixture timelines).
+ * Production mode uses CaseMemoryProductionView (persisted narratives +
+ * timeline from migration 0087, plus governed facts).
  */
 
 const CHIP_TONE: Record<MemoryCaseChip['tone'], ChipTone> = {

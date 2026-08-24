@@ -9,6 +9,11 @@ import {
 } from './memoryFacts.ts'
 import type { MemoryFactForPrompt } from './memoryFacts.ts'
 import {
+  memoryExtractionPromptAppendix,
+  parseMemoryExtract,
+} from './memoryExtract.ts'
+import type { ExtractedMemoryCandidate } from './memoryExtract.ts'
+import {
   advisorChatPolicy,
   claimAiUsage,
   finalizeAiUsage,
@@ -280,6 +285,81 @@ async function loadOrgMemoryFacts(
   } catch (error) {
     console.error('advisor-chat: memory facts load failed —', error)
     return []
+  }
+}
+
+/**
+ * Persist inferred candidates from a dutiva-memory fence. Dedupes exact
+ * statement_en matches for the same org+scope+entity. Failures are logged
+ * and swallowed — extraction must never fail the user-visible reply.
+ */
+async function persistExtractedFacts(
+  adminClient: SupabaseClient,
+  organizationId: string,
+  conversationId: string,
+  actorUserId: string,
+  candidates: readonly ExtractedMemoryCandidate[],
+): Promise<void> {
+  if (candidates.length === 0) return
+  try {
+    const { data: existing, error: readError } = await adminClient
+      .from('hr_advisor_memory_facts')
+      .select('statement_en, scope, entity_id')
+      .eq('organization_id', organizationId)
+      .is('forgotten_at', null)
+      .limit(200)
+    if (readError) {
+      console.error('advisor-chat: extract dedupe read failed —', readError.message)
+      return
+    }
+    const seen = new Set(
+      ((existing ?? []) as Array<{ statement_en: string; scope: string; entity_id: string }>).map(
+        (r) => `${r.scope}:${r.entity_id}:${r.statement_en.trim().toLowerCase()}`,
+      ),
+    )
+    const now = new Date().toISOString()
+    for (const c of candidates) {
+      const key = `${c.scope}:${c.entityId}:${c.statementEn.trim().toLowerCase()}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      const { data: inserted, error: insertError } = await adminClient
+        .from('hr_advisor_memory_facts')
+        .insert({
+          organization_id: organizationId,
+          scope: c.scope,
+          entity_id: c.entityId || conversationId,
+          category: c.category,
+          statement_en: c.statementEn,
+          statement_fr: c.statementFr || c.statementEn,
+          confidence: 'inferred',
+          source_type: 'chat',
+          source_detail_en: 'Extracted from Advisor conversation',
+          source_detail_fr: 'Extrait d’une conversation avec le Conseiller',
+          learned_at: now,
+          confirmed_at: null,
+          visibility: c.sensitive ? 'restricted' : 'hr',
+          sensitive: c.sensitive,
+          created_by: actorUserId,
+          updated_by: actorUserId,
+        })
+        .select('id, statement_en, statement_fr')
+        .single()
+      if (insertError || !inserted) {
+        console.error('advisor-chat: extract insert failed —', insertError?.message)
+        continue
+      }
+      const row = inserted as { id: string; statement_en: string; statement_fr: string }
+      await adminClient.from('hr_advisor_memory_audit').insert({
+        organization_id: organizationId,
+        fact_id: row.id,
+        actor_user_id: actorUserId,
+        action: 'create',
+        statement_en: row.statement_en,
+        statement_fr: row.statement_fr,
+      })
+    }
+  } catch (error) {
+    console.error('advisor-chat: extract persist failed —', error)
   }
 }
 
@@ -564,10 +644,12 @@ Deno.serve(async (req: Request) => {
     await loadOrgMemoryFacts(authenticated.adminClient, request.organizationId),
     conversation.id,
   )
+  const extractionAppendix = request.organizationId ? memoryExtractionPromptAppendix() : ''
   const guidance =
     guidanceBlock(guidanceChunks) +
     noticeScheduleBlock(request.message, detectJurisdictions(request.message)) +
-    memoryBlock(memoryFacts)
+    memoryBlock(memoryFacts) +
+    extractionAppendix
 
   const completionResult = await requestCompletion(
     authenticated.adminClient,
@@ -581,7 +663,20 @@ Deno.serve(async (req: Request) => {
   )
   if (completionResult instanceof Response) return completionResult
 
-  const reply = completionResult.completion.choices?.[0]?.message?.content ?? ''
+  const rawReply = completionResult.completion.choices?.[0]?.message?.content ?? ''
+  const extracted = request.organizationId
+    ? parseMemoryExtract(rawReply, conversation.id)
+    : { cleanReply: rawReply, candidates: [] as ExtractedMemoryCandidate[] }
+  const reply = extracted.cleanReply
+  if (request.organizationId && extracted.candidates.length > 0) {
+    await persistExtractedFacts(
+      authenticated.adminClient,
+      request.organizationId,
+      conversation.id,
+      authenticated.user.id,
+      extracted.candidates,
+    )
+  }
   const nextMessages = [...fullHistory, userMessage, { role: 'assistant' as const, content: reply }]
   /* Close the claim before persisting the turn: the tokens are already spent
      upstream, so they must be recorded even if the conversation write fails. */
