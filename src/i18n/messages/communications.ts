@@ -117,4 +117,21 @@ export const communicationsMessages = defineMessages({
     en: 'This is a record of what you sent. Dutiva does not deliver messages — marking one sent logs that you did.',
     fr: 'Il s’agit d’un registre de ce que vous avez envoyé. Dutiva ne diffuse pas les messages — les marquer comme envoyés consigne que vous l’avez fait.',
   },
+  comms_prod_edit: { en: 'Edit', fr: 'Modifier' },
+  comms_prod_updated: { en: 'Message updated', fr: 'Message mis à jour' },
+  comms_prod_update_failed: {
+    en: 'Couldn’t update the message.',
+    fr: 'Impossible de mettre à jour le message.',
+  },
+  comms_prod_delete_confirm: {
+    en: 'Remove this message from the log?',
+    fr: 'Retirer ce message du registre?',
+  },
+  comms_prod_delete_cancel: { en: 'Cancel', fr: 'Annuler' },
+  comms_prod_confirm_delete: { en: 'Remove', fr: 'Retirer' },
+  comms_prod_review_rail_title: { en: 'Advisor review', fr: 'Examen du Conseiller' },
+  comms_prod_review_rail_body: {
+    en: 'Tone, legal, clarity, and policy checks return when an Advisor pass over a draft actually exists. Nothing here is scored until then.',
+    fr: 'Les vérifications de ton, juridiques, de clarté et de politiques reviendront lorsqu’un passage du Conseiller sur un brouillon existera réellement. Rien n’est évalué ici d’ici là.',
+  },
 })

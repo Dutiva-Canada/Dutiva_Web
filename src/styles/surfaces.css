@@ -159,6 +159,9 @@
   --surface-2: #f6f8fc;
   --border: #d8dcea;
   --border-soft: #e6e9f2;
+  /* Toast pill fill — pinned to the dark-ramp ink in both themes so white
+     text stays legible (light --ink is too pale for a toast background). */
+  --toast-bg: #2a313d;
   --ink: #c4c9d9;
   --text: #0c1020;
   --text-2: #424d66;
@@ -212,6 +215,7 @@
   --surface-2: #151922;
   --border: #222838;
   --border-soft: #1a1f2c;
+  --toast-bg: #2a313d;
   --ink: #2a313d;
   --text: #f0f2f8;
   --text-2: #c3c9d3;

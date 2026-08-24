@@ -36,6 +36,7 @@
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-border-soft: var(--border-soft);
+  --color-toast-bg: var(--toast-bg);
   --color-ink: var(--ink);
   --color-text-muted: var(--text-muted);
   --color-text-faint: var(--text-faint);

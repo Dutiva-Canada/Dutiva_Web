@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { SubmitEvent } from 'react'
-import { Link as LinkIcon, Plus, Send, Trash2 } from 'lucide-react'
+import { Link as LinkIcon, Pencil, Plus, Send, Sparkle, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { communicationsMessages as M } from '@/i18n/messages/communications'
 import { statusChipClass } from '@/components/chips'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { ModuleEmptyBlock } from '@/features/app/workspaceMode/ModuleEmptyBlock'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import { docTemplates, templateByTid } from '@/features/app/documents/data'
 import {
@@ -16,6 +17,7 @@ import {
   listCommunications,
   markCommunicationSent,
   removeCommunication,
+  updateCommunication,
 } from './productionApi'
 import type {
   ProductionCommunication,
@@ -81,6 +83,18 @@ const today = (): string => new Date().toISOString().slice(0, 10)
 /** Ring 3's category is where a communications draft comes from. */
 const commsTemplates = docTemplates.filter((t) => t.category === 'communications')
 
+function commToForm(comm: ProductionCommunication) {
+  return {
+    title: comm.title,
+    audience: comm.audience ?? '',
+    channel: comm.channel,
+    status: comm.status,
+    scheduledFor: comm.scheduledFor ?? '',
+    templateTid: comm.templateTid ?? '',
+    note: comm.note ?? '',
+  }
+}
+
 export function CommunicationsProductionView() {
   const { x, lang } = useI18n()
   const { showToast } = useToasts()
@@ -89,6 +103,8 @@ export function CommunicationsProductionView() {
   const [rows, setRows] = useState<ProductionCommunication[] | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
 
@@ -111,21 +127,42 @@ export function CommunicationsProductionView() {
     return <ProductionEmptyState title={x(M.comms_prod_empty_title)} />
   }
 
+  const closeForm = () => {
+    setFormOpen(false)
+    setEditingId(null)
+    setForm(EMPTY_FORM)
+  }
+
   const onSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
     if (!form.title.trim() || saving) return
     setSaving(true)
     try {
-      const added = await addCommunication(organizationId, { ...form, title: form.title.trim() })
-      setRows((prev) => [added, ...(prev ?? [])])
-      setForm(EMPTY_FORM)
-      setFormOpen(false)
-      showToast(M.comms_prod_added, 'ok')
+      if (editingId) {
+        const updated = await updateCommunication(editingId, {
+          ...form,
+          title: form.title.trim(),
+        })
+        setRows((prev) => (prev ?? []).map((r) => (r.id === editingId ? updated : r)))
+        showToast(M.comms_prod_updated, 'ok')
+      } else {
+        const added = await addCommunication(organizationId, { ...form, title: form.title.trim() })
+        setRows((prev) => [added, ...(prev ?? [])])
+        showToast(M.comms_prod_added, 'ok')
+      }
+      closeForm()
     } catch {
-      showToast(M.comms_prod_add_failed, 'info')
+      showToast(editingId ? M.comms_prod_update_failed : M.comms_prod_add_failed, 'info')
     } finally {
       setSaving(false)
     }
+  }
+
+  const onEdit = (comm: ProductionCommunication) => {
+    setPendingDeleteId(null)
+    setEditingId(comm.id)
+    setForm(commToForm(comm))
+    setFormOpen(true)
   }
 
   const onMarkSent = async (comm: ProductionCommunication) => {
@@ -145,6 +182,7 @@ export function CommunicationsProductionView() {
     try {
       await removeCommunication(comm.id)
       setRows((prev) => (prev ?? []).filter((r) => r.id !== comm.id))
+      setPendingDeleteId(null)
       showToast(M.comms_prod_removed, 'ok')
     } catch {
       showToast(M.comms_prod_remove_failed, 'info')
@@ -165,7 +203,11 @@ export function CommunicationsProductionView() {
           {!formOpen && (
             <button
               type="button"
-              onClick={() => setFormOpen(true)}
+              onClick={() => {
+                setEditingId(null)
+                setForm(EMPTY_FORM)
+                setFormOpen(true)
+              }}
               className="flex cursor-pointer items-center gap-[7px] rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
             >
               <Plus size={14} strokeWidth={2} aria-hidden="true" />
@@ -312,10 +354,7 @@ export function CommunicationsProductionView() {
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setFormOpen(false)
-                  setForm(EMPTY_FORM)
-                }}
+                onClick={closeForm}
                 className="cursor-pointer rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text"
               >
                 {x(M.comms_prod_cancel)}
@@ -325,15 +364,11 @@ export function CommunicationsProductionView() {
         )}
 
         {rows !== null && count === 0 && !loadFailed && !formOpen && (
-          <div className="rounded-[12px] border border-border bg-surface px-[24px] py-[40px] text-center">
-            <div className="mx-auto mb-[14px] flex h-[44px] w-[44px] items-center justify-center rounded-[12px] bg-inset">
-              <Send size={20} strokeWidth={1.7} className="text-text-muted" aria-hidden="true" />
-            </div>
-            <div className="mb-[6px] text-[15px] font-semibold text-text">
-              {x(M.comms_prod_empty_title)}
-            </div>
-            <p className="m-0 text-[13px] text-text-muted">{x(M.comms_prod_empty_body)}</p>
-          </div>
+          <ModuleEmptyBlock
+            icon={Send}
+            title={x(M.comms_prod_empty_title)}
+            body={x(M.comms_prod_empty_body)}
+          />
         )}
 
         {count > 0 && (
@@ -364,7 +399,7 @@ export function CommunicationsProductionView() {
 
                   {template && (
                     <Link
-                      to={`/app/documents/templates/${template.tid}`}
+                      to={`/app/documents/generate/${template.tid}`}
                       className="flex items-center gap-[6px] text-[12px] text-accent no-underline"
                     >
                       <LinkIcon
@@ -381,25 +416,56 @@ export function CommunicationsProductionView() {
                     <div className="text-[12.5px] leading-normal text-text-3">{comm.note}</div>
                   )}
 
-                  <div className="flex flex-wrap gap-[8px]">
-                    {comm.status !== 'sent' && (
+                  {pendingDeleteId === comm.id ? (
+                    <div className="flex flex-wrap items-center gap-[10px] rounded-[8px] bg-inset px-[12px] py-[10px]">
+                      <span className="text-[12.5px] text-text-2">
+                        {x(M.comms_prod_delete_confirm)}
+                      </span>
                       <button
                         type="button"
-                        onClick={() => void onMarkSent(comm)}
-                        className="cursor-pointer rounded-[8px] border-none bg-accent-soft px-[13px] py-[7px] font-sans text-[12.5px] font-bold text-accent"
+                        onClick={() => setPendingDeleteId(null)}
+                        className="cursor-pointer rounded-[8px] border border-border bg-surface px-[12px] py-[6px] font-sans text-[12px] font-semibold text-text"
                       >
-                        {x(M.comms_prod_mark_sent)}
+                        {x(M.comms_prod_delete_cancel)}
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => void onRemove(comm)}
-                      aria-label={`${x(M.comms_prod_remove)} — ${comm.title}`}
-                      className="cursor-pointer border-none bg-transparent p-[6px] text-text-muted hover:text-risk-fg"
-                    >
-                      <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
-                    </button>
-                  </div>
+                      <button
+                        type="button"
+                        onClick={() => void onRemove(comm)}
+                        className="cursor-pointer rounded-[8px] border-none bg-risk-dot px-[12px] py-[6px] font-sans text-[12px] font-semibold text-white"
+                      >
+                        {x(M.comms_prod_confirm_delete)}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-[8px]">
+                      {comm.status !== 'sent' && (
+                        <button
+                          type="button"
+                          onClick={() => void onMarkSent(comm)}
+                          className="cursor-pointer rounded-[8px] border-none bg-accent-soft px-[13px] py-[7px] font-sans text-[12.5px] font-bold text-accent"
+                        >
+                          {x(M.comms_prod_mark_sent)}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => onEdit(comm)}
+                        aria-label={`${x(M.comms_prod_edit)} — ${comm.title}`}
+                        className="flex cursor-pointer items-center gap-[5px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-semibold text-text-2"
+                      >
+                        <Pencil size={13} strokeWidth={1.7} aria-hidden="true" />
+                        {x(M.comms_prod_edit)}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPendingDeleteId(comm.id)}
+                        aria-label={`${x(M.comms_prod_remove)} — ${comm.title}`}
+                        className="cursor-pointer border-none bg-transparent p-[6px] text-text-muted hover:text-risk-fg"
+                      >
+                        <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               )
             })}
@@ -409,6 +475,21 @@ export function CommunicationsProductionView() {
         <div className="mt-[14px] text-[11px] leading-normal text-text-faint">
           {x(M.comms_prod_record_note)}
         </div>
+
+        <details className="group mt-[18px] rounded-[12px] border border-border bg-inset opacity-70">
+          <summary className="flex cursor-not-allowed list-none items-center gap-[8px] px-[16px] py-[12px] font-sans text-[13px] font-semibold text-text-muted [&::-webkit-details-marker]:hidden">
+            <Sparkle
+              size={14}
+              className="shrink-0 text-text-faint"
+              strokeWidth={1.7}
+              aria-hidden="true"
+            />
+            {x(M.comms_prod_review_rail_title)}
+          </summary>
+          <p className="m-0 border-t border-border px-[16px] py-[12px] text-[12px] leading-normal text-text-faint">
+            {x(M.comms_prod_review_rail_body)}
+          </p>
+        </details>
       </div>
     </div>
   )

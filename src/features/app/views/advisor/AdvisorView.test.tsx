@@ -433,4 +433,58 @@ describe('AdvisorView', () => {
       expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
     })
   })
+
+  describe('production mode', () => {
+    afterEach(() => {
+      vi.doUnmock('@/features/app/views/memory/conversationsApi')
+      vi.doUnmock('@/lib/supabaseClient')
+      vi.resetModules()
+    })
+
+    it('selects a production conversation from search nav chatId', async () => {
+      const convId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+      vi.doMock('@/features/app/views/memory/conversationsApi', () => ({
+        listOwnConversations: vi.fn().mockResolvedValue([
+          {
+            id: convId,
+            messages: [{ role: 'user', content: 'Hello prod' }],
+            updatedAt: '2026-08-23T12:00:00Z',
+          },
+        ]),
+        getOwnConversation: vi.fn().mockResolvedValue({
+          id: convId,
+          messages: [
+            { role: 'user', content: 'Hello prod' },
+            { role: 'assistant', content: 'Prod reply from backend' },
+          ],
+          updatedAt: '2026-08-23T12:00:00Z',
+        }),
+      }))
+
+      const { listChain, mockProductionWorkspace } = await import('@/test/productionWorkspace')
+      mockProductionWorkspace({
+        tables: {
+          employees: () => ({ select: () => listChain([]) }),
+          hr_cases: () => ({ select: () => listChain([]) }),
+          compliance_tasks: () => ({ select: () => listChain([]) }),
+          compliance_findings: () => ({ select: () => listChain([]) }),
+          hr_policies: () => ({ select: () => listChain([]) }),
+        },
+      })
+      vi.resetModules()
+
+      const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+      const { AdvisorView: AdvisorViewFresh } = await import('./AdvisorView')
+      const { resetAdvisorSession: resetAdvisorSessionFresh } = await import('./advisorSession')
+      resetAdvisorSessionFresh()
+
+      renderAppFresh(<AdvisorViewFresh />, {
+        route: '/app/advisor',
+        state: { chatId: convId },
+      })
+
+      expect(await screen.findByText('Hello prod')).toBeInTheDocument()
+      expect(await screen.findByText('Prod reply from backend')).toBeInTheDocument()
+    })
+  })
 })

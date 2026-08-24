@@ -141,7 +141,7 @@ function EnterWorkspaceCard() {
 }
 
 function FormColumn({ children }: { readonly children: ReactNode }) {
-  const { L, lang } = useI18n()
+  const { x, lang } = useI18n()
   const legalPath = lang === 'fr' ? '/fr/juridique' : '/legal'
 
   return (
@@ -170,7 +170,7 @@ function FormColumn({ children }: { readonly children: ReactNode }) {
         <p className="m-0 text-[11.5px] text-text-faint">
           © Dutiva Canada Inc. ·{' '}
           <Link to={legalPath} className="hover:text-text-muted">
-            {L('Legal', 'Juridique')}
+            {x(M.auth_legal_link)}
           </Link>
         </p>
       </div>

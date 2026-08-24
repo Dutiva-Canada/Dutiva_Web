@@ -49,6 +49,7 @@ export type SearchNav =
   | { kind: 'case'; caseId: string }
   | { kind: 'chat'; chatId: string }
   | { kind: 'document'; docKey: string }
+  | { kind: 'generatedDocument'; docId: string }
   | { kind: 'view'; view: 'communications' | 'tasks' | 'compliance' | 'policies' | 'knowledge' }
 
 /** Router `location.state` for chat results (prototype `selectChat(c.id)`). */
@@ -232,6 +233,18 @@ const TAB_KINDS: Record<Exclude<SearchTabKey, 'all'>, SearchEntryKind> = {
   knowledge: 'knowledge',
 }
 
+export function filterSearchEntriesFrom(
+  entries: readonly SearchEntry[],
+  tab: SearchTabKey,
+  query: string,
+  lang: Lang,
+): SearchEntry[] {
+  const q = query.toLowerCase()
+  const scoped = tab === 'all' ? entries : entries.filter((e) => e.kind === TAB_KINDS[tab])
+  if (!q) return [...scoped]
+  return scoped.filter((e) => pick(e.match, lang).toLowerCase().includes(q))
+}
+
 /**
  * Prototype filter semantics: an empty query passes everything; otherwise a
  * case-insensitive substring match. The prototype matches its (EN) state
@@ -239,9 +252,5 @@ const TAB_KINDS: Record<Exclude<SearchTabKey, 'all'>, SearchEntryKind> = {
  * language so FR users can search FR titles (names/ids are in both).
  */
 export function filterSearchEntries(tab: SearchTabKey, query: string, lang: Lang): SearchEntry[] {
-  const q = query.toLowerCase()
-  const scoped =
-    tab === 'all' ? searchEntries : searchEntries.filter((e) => e.kind === TAB_KINDS[tab])
-  if (!q) return [...scoped]
-  return scoped.filter((e) => pick(e.match, lang).toLowerCase().includes(q))
+  return filterSearchEntriesFrom(searchEntries, tab, query, lang)
 }

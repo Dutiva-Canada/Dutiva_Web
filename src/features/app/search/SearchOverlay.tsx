@@ -6,13 +6,22 @@ import { searchMessages as M } from '@/i18n/messages/search'
 import { useEscapeToClose } from '@/lib/escapeStack'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useSearch } from './searchContext'
-import { filterSearchEntries, pinnedChatEntries, searchTabs } from './searchCorpus'
+import {
+  filterSearchEntries,
+  filterSearchEntriesFrom,
+  pinnedChatEntries,
+  searchTabs,
+} from './searchCorpus'
 import type {
   AdvisorSearchNavState,
   SearchEntry,
   SearchTabKey,
   TemplatesSearchNavState,
 } from './searchCorpus'
+import {
+  buildProductionSearchEntries,
+  pinnedProductionChats,
+} from './searchProductionCorpus'
 
 /**
  * Global search overlay (⌘K / topbar search) — App v2 `buildSearchView()` +
@@ -30,6 +39,8 @@ function SearchDialog() {
   const { x, lang } = useI18n()
   const { closeSearch } = useSearch()
   const navigate = useNavigate()
+  const { mode, organizationId } = useWorkspaceMode()
+  const production = mode === 'production'
 
   /* Escape closes only this overlay (the topmost) — see lib/escapeStack. */
   useEscapeToClose(true, closeSearch)
@@ -37,20 +48,74 @@ function SearchDialog() {
   const [query, setQuery] = useState('')
   const [tab, setTab] = useState<SearchTabKey>('all')
   const [rawActiveIdx, setRawActiveIdx] = useState(0)
+  const [productionEntries, setProductionEntries] = useState<SearchEntry[] | null>(null)
+  const [productionLoading, setProductionLoading] = useState(false)
+  const [productionLoadFailed, setProductionLoadFailed] = useState(false)
 
-  /* The corpus is built from the demo fixtures — in production mode the
-     workspace is empty, so search over it is too. */
-  const { mode } = useWorkspaceMode()
-  const production = mode === 'production'
-  const results = useMemo(
-    () => (production ? [] : filterSearchEntries(tab, query, lang)),
-    [production, tab, query, lang],
-  )
+  useEffect(() => {
+    if (!production) return
+    if (!organizationId) {
+      setProductionEntries([])
+      setProductionLoading(false)
+      setProductionLoadFailed(false)
+      return
+    }
+    let cancelled = false
+    setProductionLoading(true)
+    setProductionLoadFailed(false)
+    void buildProductionSearchEntries(organizationId)
+      .then((entries) => {
+        if (cancelled) return
+        setProductionEntries(entries)
+        setProductionLoading(false)
+      })
+      .catch(() => {
+        if (cancelled) return
+        setProductionEntries(null)
+        setProductionLoading(false)
+        setProductionLoadFailed(true)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [production, organizationId])
+
+  const results = useMemo(() => {
+    if (production) {
+      if (productionLoading || productionLoadFailed || productionEntries === null) return []
+      return filterSearchEntriesFrom(productionEntries, tab, query, lang)
+    }
+    return filterSearchEntries(tab, query, lang)
+  }, [
+    production,
+    productionLoading,
+    productionLoadFailed,
+    productionEntries,
+    tab,
+    query,
+    lang,
+  ])
+
   /* Prototype clamps the active row against the current result count. */
   const activeIdx = Math.min(rawActiveIdx, Math.max(results.length - 1, 0))
 
-  const showRecent = !query && !production
-  const noResults = !!query && results.length === 0
+  const pinnedEntries = useMemo(() => {
+    if (production) {
+      if (!productionEntries?.length) return []
+      return pinnedProductionChats(productionEntries)
+    }
+    return pinnedChatEntries
+  }, [production, productionEntries])
+
+  const showRecent = !query && pinnedEntries.length > 0 && !productionLoading
+  const noResults = !!query && results.length === 0 && !productionLoading
+  const showProductionEmpty =
+    production &&
+    !productionLoading &&
+    !productionLoadFailed &&
+    !query &&
+    results.length === 0 &&
+    (organizationId === null || productionEntries?.length === 0)
 
   /* Focus the input on open; restore focus to the trigger on close
      (prototype `openSearch()` stores `_lastFocused`, `restoreFocus()`). */
@@ -81,18 +146,25 @@ function SearchDialog() {
           })
           break
         case 'document':
-          /* Navigate to the HR Library tab; TemplatesView reads location.state.docKey
-             on mount and opens the overlay immediately (prototype openDocFromLibrary). */
-          navigate('/app/documents/hr-library', {
-            state: { docKey: nav.docKey } satisfies TemplatesSearchNavState,
-          })
+          if (production) {
+            navigate(`/app/documents/generate/${nav.docKey}`)
+          } else {
+            /* Navigate to the HR Library tab; TemplatesView reads location.state.docKey
+               on mount and opens the overlay immediately (prototype openDocFromLibrary). */
+            navigate('/app/documents/hr-library', {
+              state: { docKey: nav.docKey } satisfies TemplatesSearchNavState,
+            })
+          }
+          break
+        case 'generatedDocument':
+          navigate(`/app/documents/${nav.docId}`)
           break
         case 'view':
           navigate(`/app/${nav.view}`)
           break
       }
     },
-    [closeSearch, navigate],
+    [closeSearch, navigate, production],
   )
 
   /* Prototype `onKeyDown` (App v2.dc.html, 2764–2778): arrows move the
@@ -185,12 +257,30 @@ function SearchDialog() {
         </div>
 
         <div className="flex-1 overflow-y-auto px-[10px] pt-[12px] pb-[16px]">
+          {productionLoading && (
+            <div className="px-[16px] py-[34px] text-center text-[13.5px] text-text-muted">
+              {x(M.search_loading)}
+            </div>
+          )}
+
+          {productionLoadFailed && (
+            <div className="px-[16px] py-[34px] text-center text-[13.5px] text-text-muted">
+              {x(M.search_load_failed)}
+            </div>
+          )}
+
+          {production && organizationId === null && !productionLoading && (
+            <div className="px-[16px] py-[34px] text-center text-[13.5px] text-text-muted">
+              {x(M.search_no_org)}
+            </div>
+          )}
+
           {showRecent && (
             <>
               <div className="px-[10px] pt-[8px] pb-[4px] text-[11px] font-bold tracking-[.04em] text-text-muted uppercase">
                 {x(M.search_pinned)}
               </div>
-              {pinnedChatEntries.map((r) => (
+              {pinnedEntries.map((r) => (
                 <button
                   key={`pinned-${r.id}`}
                   type="button"
@@ -206,11 +296,18 @@ function SearchDialog() {
             </>
           )}
 
-          {!(production && !query) && (
+          {!productionLoading && !productionLoadFailed && !(showProductionEmpty && !query) && (
             <div className="px-[10px] pt-[10px] pb-[4px] text-[11px] font-bold tracking-[.04em] text-text-muted uppercase">
               {x(M.search_results)}
             </div>
           )}
+
+          {showProductionEmpty && !query && (
+            <div className="px-[16px] py-[24px] text-center text-[13px] text-text-muted">
+              {organizationId === null ? x(M.search_no_org) : x(M.search_no_results_hint)}
+            </div>
+          )}
+
           {results.map((r, i) => (
             <button
               key={r.id}

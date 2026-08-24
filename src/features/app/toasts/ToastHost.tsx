@@ -20,12 +20,12 @@ export function ToastHost() {
     <div className="pointer-events-none fixed right-[20px] bottom-[20px] z-400 flex max-w-[340px] flex-col gap-[8px]">
       {/* Deliberate deviation: the prototype fills with var(--ink), which is
           #c4c9d9 in the light theme — white text at ~1.65:1. The pill is
-          pinned to the dark-theme ink (#2a313d) in both themes: identical to
-          the dark reference, legible in light. */}
+          pinned to --toast-bg (#2a313d) in both themes: identical to the
+          dark reference, legible in light. */}
       {toasts.map((toast) => (
         <output
           key={toast.id}
-          className="flex animate-[toastIn_.2s_ease] items-center gap-[10px] rounded-[10px] bg-[#2a313d] px-[16px] py-[12px] text-[13.5px] font-medium text-white shadow-[0_12px_30px_rgba(0,0,0,0.25)]"
+          className="flex animate-[toastIn_.2s_ease] items-center gap-[10px] rounded-[10px] bg-toast-bg px-[16px] py-[12px] text-[13.5px] font-medium text-white shadow-[0_12px_30px_rgba(0,0,0,0.25)]"
         >
           {pickL(toast.message, lang)}
         </output>

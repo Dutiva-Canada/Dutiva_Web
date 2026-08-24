@@ -36,6 +36,20 @@ export const advisorViewMessages = defineMessages({
     en: 'Ask Advisor anything about your team…',
     fr: 'Demandez au Conseiller à propos de votre équipe…',
   },
+
+  /* Production-mode starter prompts (shown below the home composer). */
+  advisorview_prod_prompt_policy: {
+    en: 'Which policies in my workspace need attention?',
+    fr: 'Quelles politiques de mon espace de travail demandent de l’attention ?',
+  },
+  advisorview_prod_prompt_probation: {
+    en: 'What should I include in a probation review?',
+    fr: 'Que devrais-je inclure dans une évaluation de probation ?',
+  },
+  advisorview_prod_prompt_comms: {
+    en: 'Help me draft a sensitive employee communication.',
+    fr: 'Aidez-moi à rédiger une communication sensible à un employé.',
+  },
   advisorview_composer_msg: { en: 'Message Advisor…', fr: 'Écrire au Conseiller…' },
 
   /* ── Thread list ────────────────────────────────────────────────────────── */
@@ -47,6 +61,8 @@ export const advisorViewMessages = defineMessages({
   advisorview_group_older: { en: 'Older', fr: 'Plus anciennes' },
 
   /* ── Transcript chrome ──────────────────────────────────────────────────── */
+  advisorview_copy: { en: 'Copy', fr: 'Copier' },
+  advisorview_export: { en: 'Export', fr: 'Exporter' },
   advisorview_generate: { en: 'Generate', fr: 'Générer' }, // [FR self-authored]
 
   /* Escalation toast (prototype `handleFollowup` → pushToast). */

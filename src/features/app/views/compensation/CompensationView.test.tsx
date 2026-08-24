@@ -200,7 +200,7 @@ describe('CompensationView in production mode', () => {
     renderFresh(<View />, { route: '/app/compensation', path: '/app/compensation' })
 
     expect(await screen.findByText('No midpoint set')).toBeInTheDocument()
-    expect(screen.queryByText(/vs band midpoint/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/% vs band midpoint/)).not.toBeInTheDocument()
     /* And it is not counted as below midpoint either. */
     expect(screen.getByText('Below their band midpoint').previousSibling).toHaveTextContent('0')
   })
@@ -244,5 +244,20 @@ describe('CompensationView in production mode', () => {
       }),
     )
     await waitFor(() => expect(screen.getByText('Ravi Prasad')).toBeInTheDocument())
+  })
+
+  it('shows the market comparison column as unavailable', async () => {
+    mockComp([RECORD], ROSTER)
+    const { renderApp: renderFresh } = await import('@/test/renderApp')
+    const { CompensationView: View } = await import('./CompensationView')
+
+    renderFresh(<View />, { route: '/app/compensation', path: '/app/compensation' })
+    await screen.findByText('Dana Okonjo')
+
+    expect(screen.getByText('Market comparison')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Dana Okonjo' })).toHaveAttribute(
+      'href',
+      '/app/employees/emp-1',
+    )
   })
 })

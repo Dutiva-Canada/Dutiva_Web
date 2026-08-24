@@ -47,6 +47,16 @@ export interface ProductionCommunication {
   note: string | null
 }
 
+export interface UpdateCommunication {
+  title: string
+  audience: string
+  channel: ProductionCommunicationChannel
+  status: ProductionCommunicationStatus
+  scheduledFor: string
+  templateTid: string
+  note: string
+}
+
 export interface NewCommunication {
   title: string
   audience: string
@@ -135,6 +145,30 @@ export async function markCommunicationSent(id: string, sentOn: string): Promise
     .update({ status: 'sent', sent_on: sentOn, updated_at: new Date().toISOString() })
     .eq('id', id)
   if (error) throw error
+}
+
+export async function updateCommunication(
+  id: string,
+  fields: UpdateCommunication,
+): Promise<ProductionCommunication> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { data, error } = await supabase
+    .from('hr_communications')
+    .update({
+      title: fields.title,
+      audience: fields.audience.trim() || null,
+      channel: fields.channel,
+      status: fields.status,
+      scheduled_for: fields.scheduledFor || null,
+      template_tid: fields.templateTid || null,
+      note: fields.note.trim() || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select(SELECT_COLUMNS)
+    .single()
+  if (error) throw error
+  return toCommunication(rowSchema.parse(data))
 }
 
 export async function removeCommunication(id: string): Promise<void> {

@@ -227,4 +227,18 @@ describe('WellbeingView in production mode', () => {
       expect(update).toHaveBeenCalledWith(expect.objectContaining({ status: 'paused' })),
     )
   })
+
+  it('shows the support signals section with an honest empty state', async () => {
+    mockWellbeing([ROW])
+    const { renderApp: renderFresh } = await import('@/test/renderApp')
+    const { WellbeingView: View } = await import('./WellbeingView')
+
+    renderFresh(<View />, { route: '/app/wellbeing', path: '/app/wellbeing' })
+    await screen.findByText('Employee assistance programme')
+
+    expect(screen.getByText('Support signals')).toBeInTheDocument()
+    expect(
+      screen.getByText(/Dutiva detects no signals about individuals\./),
+    ).toBeInTheDocument()
+  })
 })

@@ -1,15 +1,18 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { CircleHelp, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import { pick } from '@/i18n/core'
+import { pick, pickL } from '@/i18n/core'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
+import { homeMessages as HM } from '@/i18n/messages/home'
 import { workspaceModeMessages as WM } from '@/i18n/messages/workspaceMode'
 import { ChatComposer } from '@/features/app/advisor/ChatComposer'
-import { SuggestionChipGrid } from '@/features/app/advisor/SuggestionChips'
+import { SuggestionChipGrid, SuggestionChips } from '@/features/app/advisor/SuggestionChips'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { dotToneClass, statusChipClass } from '@/components/chips'
 import { homePriorities, severityLabels } from '@/features/app/views/home/homeData'
 import type { HomeAction } from '@/features/app/views/home/homeData'
+import { useHomeProductionStats } from '@/features/app/views/home/useHomeProductionStats'
 import { scenarioSuggestions } from './advisorScenarios'
 import type { ScenarioId } from './advisorScenarios'
 import { buildDailyBrief, buildHomeMetrics } from './advisorHomeData'
@@ -42,6 +45,12 @@ const metricLabelKeys = {
   signals: M.advisorview_metric_signals,
 } as const
 
+const productionPrompts = [
+  M.advisorview_prod_prompt_policy,
+  M.advisorview_prod_prompt_probation,
+  M.advisorview_prod_prompt_comms,
+] as const
+
 export interface AdvisorHomeProps {
   /** Free-form send from the home composer (routes a response mode). */
   readonly onSend: (text: string) => void
@@ -60,13 +69,17 @@ export function AdvisorHome({
 }: AdvisorHomeProps) {
   const { x, lang } = useI18n()
   const { mode } = useWorkspaceMode()
+  const { loading, stats, dueItems, totalRecords } = useHomeProductionStats()
   const [whyOpen, setWhyOpen] = useState<Record<string, boolean>>({})
   const metrics = useMemo(() => buildHomeMetrics(), [])
   const brief = useMemo(() => buildDailyBrief(), [])
 
-  /* Production: no Northgate metrics/brief/priorities and no demo scenario
-     chips — just the greeting and the (real-backend) composer. */
+  /* Production: live stat row + due-soon strip when the workspace has records;
+     otherwise the reset-stage sub copy and starter prompt chips. */
   if (mode === 'production') {
+    const subCopy =
+      !loading && totalRecords === 0 ? x(HM.home_production_body) : x(WM.wsmode_advisor_sub)
+
     return (
       <div className="flex min-h-0 flex-1 flex-col items-center justify-start overflow-y-auto px-6 pt-[10vh] pb-10">
         <div className="w-full max-w-170 text-center">
@@ -76,12 +89,61 @@ export function AdvisorHome({
           <h1 className="m-0 mb-1.5 font-display text-[27px] font-semibold text-text">
             {x(WM.wsmode_advisor_greeting)}
           </h1>
-          <p className="m-0 mb-5.5 text-[14.5px] text-text-muted">{x(WM.wsmode_advisor_sub)}</p>
+          <p className="m-0 mb-5.5 text-[14.5px] leading-[1.55] text-text-muted">{subCopy}</p>
+
+          {!loading && totalRecords > 0 && (
+            <>
+              <div className="mb-4 flex flex-wrap justify-center gap-2.5 text-left">
+                {stats.map((stat) => (
+                  <Link
+                    key={stat.label.en}
+                    to={stat.to}
+                    className="min-w-[120px] flex-1 rounded-xl border border-border bg-surface px-3.5 py-3 transition-[border-color,transform] duration-150 hover:-translate-y-px hover:border-(--accent-soft-border)"
+                  >
+                    <div className="font-display text-[24px] font-semibold leading-none text-text">
+                      {stat.value}
+                    </div>
+                    <div className="mt-1 text-[11.5px] text-text-muted">{x(stat.label)}</div>
+                  </Link>
+                ))}
+              </div>
+
+              {dueItems.length > 0 && (
+                <div className="mb-5 overflow-hidden rounded-xl border border-border bg-surface text-left">
+                  {dueItems.map((item) => (
+                    <Link
+                      key={item.key}
+                      to={item.to}
+                      className="flex items-center gap-2.5 border-t border-inset px-3.5 py-2.75 first:border-t-0 hover:bg-inset"
+                    >
+                      <span className={statusChipClass(item.overdue ? 'risk' : 'info')}>
+                        {item.overdue ? x(HM.home_prod_overdue) : x(item.kind)}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-[13px] font-semibold text-text">
+                        {item.title}
+                      </span>
+                      <span className="shrink-0 text-[11.5px] text-text-muted">{item.dueDate}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
           <div className="text-left">
             <ChatComposer
               variant="home"
               placeholder={x(M.advisorview_composer_home)}
               onSend={onSend}
+            />
+          </div>
+
+          <div className="mt-4 flex justify-center">
+            <SuggestionChips
+              chips={productionPrompts.map((prompt) => ({
+                label: prompt,
+                onClick: () => onSend(pickL(prompt, lang)),
+              }))}
             />
           </div>
         </div>

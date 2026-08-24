@@ -12,6 +12,7 @@ export const workspaceModeMessages = defineMessages({
     en: 'Nothing here yet — your real workspace starts empty. Records you create will live here.',
     fr: 'Rien ici pour l’instant — votre espace de travail réel commence vide. Les enregistrements que vous créerez apparaîtront ici.',
   },
+  wsmode_empty_why: { en: 'Why is this empty?', fr: 'Pourquoi est-ce vide ?' },
   wsmode_empty_hint: {
     en: 'To explore this view with sample data, switch to Demo in Settings.',
     fr: 'Pour explorer cette vue avec des données d’exemple, passez en mode Démo dans les paramètres.',

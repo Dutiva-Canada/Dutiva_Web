@@ -2,6 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { bi, pick } from '@/i18n/core'
 import type { Bi, LText } from '@/i18n/core'
+import {
+  getOwnConversation,
+  listOwnConversations,
+} from '@/features/app/views/memory/conversationsApi'
+import type { ProductionConversation } from '@/features/app/views/memory/conversationsApi'
 import { useI18n } from '@/i18n/context'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 import { exportProtectionMessages as XP } from '@/i18n/messages/exportProtection'
@@ -201,16 +206,56 @@ function scenarioForResponseState(
   return state?.scenarioId == null ? undefined : advisorScenarios[state.scenarioId]
 }
 
-function resolveInitialActiveChatId(locationState: unknown): string | null {
+function isBackendConversationId(id: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+}
+
+function bucketFromUpdatedAt(updatedAt: string): 'today' | 'week' | 'older' {
+  const updated = new Date(updatedAt)
+  const now = new Date()
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const startOfWeek = new Date(startOfToday)
+  startOfWeek.setDate(startOfWeek.getDate() - 7)
+  if (updated >= startOfToday) return 'today'
+  if (updated >= startOfWeek) return 'week'
+  return 'older'
+}
+
+function conversationTitle(messages: { role: string; content: string }[]): Bi {
+  const firstUser = messages.find((m) => m.role === 'user')?.content?.trim()
+  if (!firstUser) return bi('Advisor conversation', 'Conversation du Conseiller')
+  const clipped = firstUser.length > 72 ? `${firstUser.slice(0, 69)}…` : firstUser
+  return bi(clipped, clipped)
+}
+
+function productionTranscript(conv: ProductionConversation): ChatMessage[] {
+  return conv.messages
+    .filter((m) => m.role === 'user' || m.role === 'assistant')
+    .map((m, i) => ({
+      id: `prod-${conv.id}-${i}`,
+      author: m.role === 'user' ? ('user' as const) : ('assistant' as const),
+      text: m.content,
+      status: 'done' as const,
+    }))
+}
+
+function resolveInitialActiveChatId(
+  locationState: unknown,
+  workspaceMode: ReturnType<typeof useWorkspaceMode>['mode'],
+): string | null {
   const navId = readNavChatId(locationState)
-  if (navId !== null && chats.some((chat) => chat.id === navId)) return navId
+  if (navId !== null) {
+    if (workspaceMode === 'production') return navId
+    if (chats.some((chat) => chat.id === navId)) return navId
+  }
 
   const resumed = advisorSession.activeChatId
   if (resumed === null) return null
   const canResume =
     chats.some((chat) => chat.id === resumed) ||
     advisorSession.chats.some((chat) => chat.id === resumed) ||
-    scenarioForThread(resumed) !== undefined
+    scenarioForThread(resumed) !== undefined ||
+    (workspaceMode === 'production' && isBackendConversationId(resumed))
   return canResume ? resumed : null
 }
 
@@ -239,6 +284,10 @@ export function AdvisorView() {
      changes. Scripted flows/quick-forms/follow-ups never touch this. */
   const conversationIdRef = useRef<string | null>(null)
   const [sendingReal, setSendingReal] = useState(false)
+  const [prodThreads, setProdThreads] = useState<ProductionConversation[]>([])
+  const [prodThreadsLoaded, setProdThreadsLoaded] = useState(false)
+  const pendingNavChatIdRef = useRef<string | null>(null)
+  const activeChatIdRef = useRef<string | null>(null)
 
   /* Session-scoped state lives in the advisorSession module store so
      conversations survive navigating away and back (prototype app-level
@@ -347,12 +396,69 @@ export function AdvisorView() {
   /* No explicit navigation target — resume the thread that was open when
      the view last unmounted (prototype app-level activeChatId). */
   const [activeChatId, setActiveChatId] = useState<string | null>(() =>
-    resolveInitialActiveChatId(location.state),
+    resolveInitialActiveChatId(location.state, workspaceMode),
   )
   const updateActiveChatId = (id: string | null) => {
     advisorSession.activeChatId = id
+    activeChatIdRef.current = id
     setActiveChatId(id)
     setWorkspaceOpen(false)
+  }
+
+  activeChatIdRef.current = activeChatId
+
+  useEffect(() => {
+    if (workspaceMode !== 'production') {
+      setProdThreads([])
+      setProdThreadsLoaded(false)
+      return
+    }
+    setProdThreadsLoaded(false)
+    void listOwnConversations(50)
+      .then(setProdThreads)
+      .catch(() => setProdThreads([]))
+      .finally(() => setProdThreadsLoaded(true))
+  }, [workspaceMode])
+
+  const migrateThreadId = (oldId: string, newId: string) => {
+    if (oldId === newId) return
+    updateSessionChats((prev) => {
+      const seen = new Set<string>()
+      return prev
+        .map((c) => (c.id === oldId ? { ...c, id: newId } : c))
+        .filter((c) => {
+          if (seen.has(c.id)) return false
+          seen.add(c.id)
+          return true
+        })
+    })
+    const stashed = transcripts.current.get(oldId)
+    if (stashed) {
+      transcripts.current.set(newId, stashed)
+      transcripts.current.delete(oldId)
+    }
+    setResponseState((prev) => {
+      const moved = prev[oldId]
+      if (moved === undefined) return prev
+      const { [oldId]: _removed, ...rest } = prev
+      const next = { ...rest, [newId]: moved }
+      advisorSession.responseState = next
+      return next
+    })
+    if (activeChatIdRef.current === oldId) updateActiveChatId(newId)
+    conversationIdRef.current = newId
+    setProdThreads((prev) => {
+      if (prev.some((t) => t.id === newId)) return prev
+      return [{ id: newId, messages: [], updatedAt: new Date().toISOString() }, ...prev]
+    })
+  }
+
+  const bindBackendConversationId = (threadId: string | null, backendId: string) => {
+    if (threadId !== null && threadId.startsWith('session-') && backendId !== threadId) {
+      migrateThreadId(threadId, backendId)
+      return
+    }
+    conversationIdRef.current = backendId
   }
 
   const initialMessages = useRef<ChatMessage[] | null>(null)
@@ -459,15 +565,51 @@ export function AdvisorView() {
   /* ---------------------------------------------------- thread navigation */
 
   const selectChat = (chatId: string) => {
-    if (chatId === activeChatId) return
     const scenario = scenarioForThread(chatId)
+    const isProdConversation =
+      workspaceMode === 'production' &&
+      (prodThreads.some((t) => t.id === chatId) || isBackendConversationId(chatId))
     const exists =
       chats.some((c) => c.id === chatId) ||
       sessionChats.some((c) => c.id === chatId) ||
-      scenario !== undefined
+      scenario !== undefined ||
+      isProdConversation
     if (!exists) return
+
+    const hydrateProdThread = () => {
+      conversationIdRef.current = chatId
+      const stashed = transcripts.current.get(chatId)
+      if (stashed) {
+        engine.reset(stashed)
+        return
+      }
+      engine.reset([])
+      void getOwnConversation(chatId)
+        .then((conv) => {
+          if (conv === null || activeChatIdRef.current !== chatId) return
+          const messages = productionTranscript(conv)
+          transcripts.current.set(chatId, messages)
+          engine.reset(messages)
+        })
+        .catch(() => {
+          if (activeChatIdRef.current !== chatId) return
+          engine.reset([])
+        })
+    }
+
+    if (chatId === activeChatId) {
+      if (isProdConversation && !transcripts.current.has(chatId)) hydrateProdThread()
+      return
+    }
+
     stashActive()
     updateActiveChatId(chatId)
+
+    if (isProdConversation) {
+      hydrateProdThread()
+      return
+    }
+
     conversationIdRef.current = null
     const stashed = transcripts.current.get(chatId)
     if (scenario && !stashed) {
@@ -497,8 +639,19 @@ export function AdvisorView() {
   /* Search overlay navigation: /app/advisor with { chatId } router state. */
   useEffect(() => {
     const chatId = readNavChatId(location.state)
-    if (chatId !== null) selectChatRef.current(chatId)
-  }, [location.state])
+    if (chatId === null) return
+    navigate(location.pathname, { replace: true, state: null })
+    pendingNavChatIdRef.current = chatId
+    selectChatRef.current(chatId)
+  }, [location.state, location.pathname, navigate])
+
+  useEffect(() => {
+    if (workspaceMode !== 'production' || !prodThreadsLoaded) return
+    const pending = pendingNavChatIdRef.current
+    if (pending === null) return
+    selectChatRef.current(pending)
+    pendingNavChatIdRef.current = null
+  }, [workspaceMode, prodThreadsLoaded, prodThreads])
 
   /* Home / Workflows navigation contracts: { prompt, flowKey? } starts a
      fresh flow (explicit key wins — the EN-keyword router is only for
@@ -646,9 +799,11 @@ export function AdvisorView() {
         setSendingReal(true)
         void sendAdvisorMessage(userTextString, conversationIdRef.current, organizationId)
           .then((result) => {
-            conversationIdRef.current = result.conversationId
+            bindBackendConversationId(id, result.conversationId)
+            const stateChatId =
+              id.startsWith('session-') && result.conversationId !== id ? result.conversationId : id
             const turnId = pushAdvisor({ text: result.reply || genericAck })
-            patchResponseState(id, { response: result.response })
+            patchResponseState(stateChatId, { response: result.response })
             if (result.response?.memory != null) {
               updateExtras((prev) => ({
                 ...prev,
@@ -709,9 +864,13 @@ export function AdvisorView() {
     setSendingReal(true)
     void sendAdvisorMessage(text, conversationIdRef.current, organizationId)
       .then((result) => {
-        conversationIdRef.current = result.conversationId
+        bindBackendConversationId(chatId, result.conversationId)
+        const stateChatId =
+          chatId !== null && chatId.startsWith('session-') && result.conversationId !== chatId
+            ? result.conversationId
+            : chatId
         const turnId = pushAdvisor({ text: result.reply || genericAck })
-        if (chatId !== null) patchResponseState(chatId, { response: result.response })
+        if (stateChatId !== null) patchResponseState(stateChatId, { response: result.response })
         if (result.response?.memory != null) {
           updateExtras((prev) => ({
             ...prev,
@@ -831,8 +990,16 @@ export function AdvisorView() {
   const activeSession =
     activeChatId !== null ? sessionChats.find((c) => c.id === activeChatId) : undefined
   const activeScenarioThread = scenarioForThread(activeChatId)
+  const sessionIds = new Set(sessionChats.map((c) => c.id))
   const hasActiveChat =
-    activeFixture !== undefined || activeSession !== undefined || activeScenarioThread !== undefined
+    activeChatId !== null &&
+    (activeFixture !== undefined ||
+      activeSession !== undefined ||
+      activeScenarioThread !== undefined ||
+      prodThreads.some((t) => t.id === activeChatId) ||
+      sessionChats.some((c) => c.id === activeChatId) ||
+      isBackendConversationId(activeChatId) ||
+      transcripts.current.has(activeChatId))
   const activeFlowKey: FlowKeyOrFallback =
     activeFixture?.flowKey ?? activeSession?.flowKey ?? 'fallback'
 
@@ -867,7 +1034,14 @@ export function AdvisorView() {
   const allThreads: { id: string; title: Bi; pinned: boolean; bucket: string }[] = [
     ...sessionChats.map((c) => ({ id: c.id, title: c.title, pinned: c.pinned, bucket: c.bucket })),
     ...(workspaceMode === 'production'
-      ? []
+      ? prodThreads
+          .filter((t) => !sessionIds.has(t.id))
+          .map((t) => ({
+            id: t.id,
+            title: conversationTitle(t.messages),
+            pinned: false,
+            bucket: bucketFromUpdatedAt(t.updatedAt),
+          }))
       : [
           ...scenarioThreads.map((t) => ({
             id: t.id,

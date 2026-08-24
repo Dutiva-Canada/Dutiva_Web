@@ -1,21 +1,13 @@
-import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BookOpen } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import type { Bi } from '@/i18n/core'
 import { Disclaimer } from '@/components/Disclaimer'
 import { homeMessages as M } from '@/i18n/messages/home'
 import { ChatComposer } from '@/features/app/advisor/ChatComposer'
 import { statusChipClass } from '@/components/chips'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
-import { listEmployees } from '@/features/app/views/employees/productionApi'
-import { listCases } from '@/features/app/views/cases/productionApi'
-import type { ProductionCase } from '@/features/app/views/cases/productionApi'
-import { listTasks } from '@/features/app/views/tasks/productionApi'
-import type { ProductionTask } from '@/features/app/views/tasks/productionApi'
-import { listFindings } from '@/features/app/views/compliance/productionApi'
-import { listPolicies } from '@/features/app/views/policies/productionApi'
 import { HomeProductionEmptyState } from './HomeProductionEmptyState'
+import { useHomeProductionStats } from './useHomeProductionStats'
 
 /**
  * Home in production mode — the real command centre. A brand-new workspace
@@ -26,60 +18,10 @@ import { HomeProductionEmptyState } from './HomeProductionEmptyState'
  * modules' own productionApi boundaries, like Reports.
  */
 
-interface HomeData {
-  employees: number
-  cases: ProductionCase[]
-  tasks: ProductionTask[]
-  openFindings: number
-  policiesNeedingAttention: number
-}
-
-interface DueItem {
-  key: string
-  kind: Bi
-  title: string
-  dueDate: string
-  to: string
-  overdue: boolean
-}
-
-/** Today as YYYY-MM-DD — due dates are date-only strings, comparable lexically. */
-const today = (): string => new Date().toISOString().slice(0, 10)
-
 export function HomeProductionView({ onSend }: { readonly onSend: (text: string) => void }) {
   const { x } = useI18n()
   const { identity, organizationId } = useWorkspaceMode()
-
-  const [data, setData] = useState<HomeData | null>(null)
-  const [loadFailed, setLoadFailed] = useState(false)
-
-  const load = useCallback(async () => {
-    if (!organizationId) return
-    setLoadFailed(false)
-    try {
-      const [employees, cases, tasks, findings, policies] = await Promise.all([
-        listEmployees(organizationId),
-        listCases(organizationId),
-        listTasks(organizationId),
-        listFindings(organizationId),
-        listPolicies(organizationId),
-      ])
-      setData({
-        employees: employees.length,
-        cases,
-        tasks,
-        openFindings: findings.filter((f) => !f.resolved).length,
-        policiesNeedingAttention: policies.filter((p) => p.status !== 'up_to_date').length,
-      })
-    } catch {
-      setData(null)
-      setLoadFailed(true)
-    }
-  }, [organizationId])
-
-  useEffect(() => {
-    void load()
-  }, [load])
+  const { data, loadFailed, reload, stats, dueItems, totalRecords } = useHomeProductionStats()
 
   /* No org yet (bootstrap pending/failed) or still loading — the welcome
      state stays useful and never flashes an error at the front door. */
@@ -95,7 +37,7 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
             <span className="text-[13px] text-risk-fg">{x(M.home_prod_error)}</span>
             <button
               type="button"
-              onClick={() => void load()}
+              onClick={() => void reload()}
               className="cursor-pointer rounded-[8px] border-none bg-surface px-[12px] py-[6px] font-sans text-[12px] font-bold text-text"
             >
               {x(M.home_prod_retry)}
@@ -118,51 +60,9 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
     return <HomeProductionEmptyState identity={identity} onSend={onSend} />
   }
 
-  const totalRecords =
-    data.employees +
-    data.cases.length +
-    data.tasks.length +
-    data.openFindings +
-    data.policiesNeedingAttention
   if (totalRecords === 0) {
     return <HomeProductionEmptyState identity={identity} onSend={onSend} />
   }
-
-  const openCases = data.cases.filter((c) => c.status !== 'resolved')
-  const openTasks = data.tasks.filter((t) => !t.done)
-
-  const stats: { value: number; label: Bi; to: string }[] = [
-    { value: data.employees, label: M.home_prod_stat_employees, to: '/app/employees' },
-    { value: openCases.length, label: M.home_prod_stat_open_cases, to: '/app/cases' },
-    { value: openTasks.length, label: M.home_prod_stat_open_tasks, to: '/app/tasks' },
-    { value: data.openFindings, label: M.home_prod_stat_open_findings, to: '/app/compliance' },
-  ]
-
-  const now = today()
-  const dueItems: DueItem[] = [
-    ...openCases
-      .filter((c) => c.dueDate !== null)
-      .map((c) => ({
-        key: `case-${c.id}`,
-        kind: M.home_prod_kind_case,
-        title: c.title,
-        dueDate: c.dueDate ?? '',
-        to: '/app/cases',
-        overdue: (c.dueDate ?? '') < now,
-      })),
-    ...openTasks
-      .filter((t) => t.dueDate !== null)
-      .map((t) => ({
-        key: `task-${t.id}`,
-        kind: M.home_prod_kind_task,
-        title: t.title,
-        dueDate: t.dueDate ?? '',
-        to: '/app/tasks',
-        overdue: (t.dueDate ?? '') < now,
-      })),
-  ]
-    .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
-    .slice(0, 5)
 
   return (
     <div className="flex-1 overflow-y-auto px-[14px] pt-[18px] pb-[96px] sm:px-[32px] sm:pt-[26px] sm:pb-[60px]">

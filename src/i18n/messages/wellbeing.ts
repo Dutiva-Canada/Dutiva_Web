@@ -129,4 +129,22 @@ export const wellbeingMessages = defineMessages({
     en: 'Support for a named person belongs in a case, where there is a request and the employee takes part.',
     fr: 'Le soutien à une personne nommée relève d’un dossier, où il y a une demande et où l’employé(e) participe.',
   },
+  wellbeing_prod_edit: { en: 'Edit', fr: 'Modifier' },
+  wellbeing_prod_updated: { en: 'Initiative updated', fr: 'Initiative mise à jour' },
+  wellbeing_prod_update_failed: {
+    en: 'Couldn’t update the initiative.',
+    fr: 'Impossible de mettre à jour l’initiative.',
+  },
+  wellbeing_prod_delete_confirm: {
+    en: 'Remove this initiative from the register?',
+    fr: 'Retirer cette initiative du registre?',
+  },
+  wellbeing_prod_delete_cancel: { en: 'Cancel', fr: 'Annuler' },
+  wellbeing_prod_confirm_delete: { en: 'Remove', fr: 'Retirer' },
+  wellbeing_prod_mark_reviewed: { en: 'Mark reviewed', fr: 'Marquer comme révisée' },
+  wellbeing_prod_signals_title: { en: 'Support signals', fr: 'Signaux de soutien' },
+  wellbeing_prod_signals_empty: {
+    en: 'Dutiva detects no signals about individuals. Per-person support belongs in a case, where there is a request and the employee takes part.',
+    fr: 'Dutiva ne détecte aucun signal concernant des personnes. Le soutien individuel relève d’un dossier, où il y a une demande et où l’employé(e) participe.',
+  },
 })

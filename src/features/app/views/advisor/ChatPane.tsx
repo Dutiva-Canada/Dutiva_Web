@@ -301,7 +301,7 @@ function AdvisorTurn({
                       className="flex cursor-pointer items-center gap-[5px] border-none bg-transparent p-0 text-[11.5px] font-semibold text-text-faint hover:text-text-muted"
                     >
                       <Copy size={12} strokeWidth={2} />
-                      {x({ en: 'Copy', fr: 'Copier' })}
+                      {x(M.advisorview_copy)}
                     </button>
                     <button
                       type="button"
@@ -309,7 +309,7 @@ function AdvisorTurn({
                       className="flex cursor-pointer items-center gap-[5px] border-none bg-transparent p-0 text-[11.5px] font-semibold text-text-faint hover:text-text-muted"
                     >
                       <Download size={12} strokeWidth={2} />
-                      {x({ en: 'Export', fr: 'Exporter' })}
+                      {x(M.advisorview_export)}
                     </button>
                   </div>
                 )}

@@ -17,9 +17,12 @@ import type { WorkspaceRole } from './data'
 function DocumentsTabs() {
   const { x } = useI18n()
   const { pathname } = useLocation()
-  const hrLibrary = pathname.startsWith('/app/documents/hr-library')
-  const studio = isDoclibStudioPath(pathname)
-  const library = !hrLibrary && !studio
+  const { mode } = useWorkspaceMode()
+  const production = mode === 'production'
+  const templatesPath = production ? '/app/documents/studio' : '/app/documents/hr-library'
+  const hrLibrary = !production && pathname.startsWith('/app/documents/hr-library')
+  const studio = isDoclibStudioPath(pathname) || (production && pathname.startsWith('/app/documents/studio'))
+  const library = !hrLibrary && !studio && !pathname.startsWith('/app/documents/studio')
   const linkClass = (active: boolean) =>
     `shrink-0 rounded-none border-b-2 px-[14px] py-[9px] font-sans text-[13px] font-semibold whitespace-nowrap ${
       active ? 'border-navy text-text' : 'border-transparent text-text-muted'
@@ -30,9 +33,9 @@ function DocumentsTabs() {
       className="mb-[16px] flex gap-[2px] overflow-x-auto border-b border-border"
     >
       <Link
-        to="/app/documents/hr-library"
-        aria-current={hrLibrary ? 'page' : undefined}
-        className={linkClass(hrLibrary)}
+        to={templatesPath}
+        aria-current={hrLibrary || (production && studio) ? 'page' : undefined}
+        className={linkClass(hrLibrary || (production && studio))}
       >
         {x(M.shell_hr_studio_templates)}
       </Link>

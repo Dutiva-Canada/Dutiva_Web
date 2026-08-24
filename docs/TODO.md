@@ -20,6 +20,12 @@ marked _unverified here_ — this session had no database or dashboard access, s
 "the code is inert until a secret is set" is checkable and "the secret is not
 set" is not.
 
+**Eng polish (2026-08-23) — closed.** Cross-cutting shell polish is done:
+production-mode empty-state / Workflows / Search i18n, advisor Copy/Export
+messages, toast/signature/auth token cleanup, and production-mode tests for
+Workflows and Search. Owner gates (OA*, L5 corpus review, residency) are
+unchanged.
+
 ## Status vocabulary
 
 | Status       | Meaning                                                                         |

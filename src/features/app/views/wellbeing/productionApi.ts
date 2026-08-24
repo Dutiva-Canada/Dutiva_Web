@@ -50,6 +50,15 @@ export interface ProductionInitiative {
   note: string | null
 }
 
+export interface UpdateInitiative {
+  name: string
+  kind: ProductionInitiativeKind
+  status: ProductionInitiativeStatus
+  owner: string
+  reviewDate: string
+  note: string
+}
+
 export interface NewInitiative {
   name: string
   kind: ProductionInitiativeKind
@@ -126,6 +135,29 @@ export async function setInitiativeStatus(
     .update({ status, updated_at: new Date().toISOString() })
     .eq('id', id)
   if (error) throw error
+}
+
+export async function updateInitiative(
+  id: string,
+  fields: UpdateInitiative,
+): Promise<ProductionInitiative> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { data, error } = await supabase
+    .from('hr_wellbeing_initiatives')
+    .update({
+      name: fields.name,
+      kind: fields.kind,
+      status: fields.status,
+      owner: fields.owner.trim() || null,
+      review_date: fields.reviewDate || null,
+      note: fields.note.trim() || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select(SELECT_COLUMNS)
+    .single()
+  if (error) throw error
+  return toInitiative(rowSchema.parse(data))
 }
 
 export async function removeInitiative(id: string): Promise<void> {
