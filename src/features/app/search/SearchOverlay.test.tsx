@@ -72,6 +72,7 @@ describe('searchCorpus', () => {
         'compliance',
         'policy',
         'knowledge',
+        'workflow',
       ]),
     )
   })

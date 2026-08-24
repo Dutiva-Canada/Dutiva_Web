@@ -79,10 +79,20 @@ export const homeMessages = defineMessages({
     fr: 'Votre espace de travail est prêt.',
   },
   home_production_body: {
-    en: 'This is your real, empty Dutiva workspace — no cases, tasks, or alerts yet. Ask the Advisor anything to get started, or switch back to Demo in Settings for a walkthrough with sample data.',
-    fr: 'Voici votre espace de travail Dutiva réel et vide — aucun dossier, aucune tâche, aucune alerte pour l’instant. Posez une question au Conseiller pour commencer, ou repassez en mode Démo dans les paramètres pour une visite guidée avec des données d’exemple.',
+    en: 'This is your real, empty Dutiva workspace — no cases, tasks, or alerts yet. Add people, draft in Studio, run a guided process, or ask the Advisor. Switch back to Demo in Settings for a walkthrough with sample data.',
+    fr: 'Voici votre espace de travail Dutiva réel et vide — aucun dossier, aucune tâche, aucune alerte pour l’instant. Ajoutez des personnes, rédigez dans le Studio, lancez un processus guidé, ou posez une question au Conseiller. Repassez en mode Démo dans les paramètres pour une visite guidée avec des données d’exemple.', // [FR self-authored]
   },
   home_production_workspace_label: { en: 'Workspace', fr: 'Espace de travail' },
+  home_production_cta_employees: { en: 'Add employees', fr: 'Ajouter des employés' }, // [FR self-authored]
+  home_production_cta_studio: { en: 'Open Studio', fr: 'Ouvrir le Studio' }, // [FR self-authored]
+  home_production_cta_workflows: {
+    en: 'Guided processes',
+    fr: 'Processus guidés', // [FR self-authored]
+  },
+  home_production_pinned_label: {
+    en: 'Start with a calculator or guide',
+    fr: 'Commencer par un calculateur ou un guide', // [FR self-authored]
+  },
 
   /* ── Production command centre (live counts once the workspace has data —
      no design-handoff counterpart; [FR self-authored] throughout) ────────── */

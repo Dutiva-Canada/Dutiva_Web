@@ -4,7 +4,6 @@ import { Disclaimer } from '@/components/Disclaimer'
 import { homeMessages as M } from '@/i18n/messages/home'
 import { ChatComposer } from '@/features/app/advisor/ChatComposer'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
-import { PlanGate } from '@/features/app/billing/PlanGate'
 import { HomeBriefHero } from './HomeBriefHero'
 import { HomeCompliancePanel } from './HomeCompliancePanel'
 import { HomeActNowSection, HomeThisWeekSection, HomeWatchingSection } from './HomePriorityQueue'
@@ -38,12 +37,11 @@ export function HomeView() {
     navigate('/app/advisor', { state: { prompt: text } satisfies AdvisorStartFlowNavState })
   }
 
+  /* Production Home is not PlanGated: welcome / first steps and live counts
+     must stay reachable on free plans. Paid widgets elsewhere keep their own
+     gates. */
   if (mode === 'production') {
-    return (
-      <PlanGate required="growth">
-        <HomeProductionView onSend={sendToAdvisor} />
-      </PlanGate>
-    )
+    return <HomeProductionView onSend={sendToAdvisor} />
   }
 
   return (

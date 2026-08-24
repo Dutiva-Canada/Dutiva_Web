@@ -142,6 +142,7 @@ export interface WorkflowCatalogItem {
 /** Catalogue tile key → guided flow slug, where the flow exists. */
 const CATALOG_FLOW_SLUGS: Record<string, string> = {
   accommodation: 'duty-to-accommodate',
+  leave: 'leave-of-absence',
 }
 
 /** Prototype tile key → startFlow key (leave/investigation/promotion → 'fallback'). */

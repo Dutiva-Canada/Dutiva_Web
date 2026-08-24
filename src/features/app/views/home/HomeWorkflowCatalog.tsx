@@ -5,8 +5,9 @@ import type { HomeAction } from './homeData'
 
 /**
  * WorkflowLauncher — the "Start a workflow" tile grid at the bottom of the
- * priority column (prototype Home markup lines 476–488). Each tile starts a
- * fresh Advisor conversation with the workflow's opening prompt.
+ * priority column (prototype Home markup lines 476–488). Tiles with a guided
+ * flow open that runner; the rest start an Advisor conversation with the
+ * workflow's opening prompt.
  */
 export function HomeWorkflowCatalog({ onAction }: { readonly onAction: (action: HomeAction) => void }) {
   const { x } = useI18n()
@@ -23,7 +24,9 @@ export function HomeWorkflowCatalog({ onAction }: { readonly onAction: (action: 
               key={entry.key}
               type="button"
               onClick={() =>
-                onAction({ kind: 'flow', prompt: entry.query, flowKey: entry.flowKey })
+                entry.flowSlug !== undefined
+                  ? onAction({ kind: 'route', to: `/app/workflows/${entry.flowSlug}` })
+                  : onAction({ kind: 'flow', prompt: entry.query, flowKey: entry.flowKey })
               }
               className="flex cursor-pointer flex-col items-start gap-[8px] rounded-[11px] border border-border bg-surface p-[12px] text-left font-sans transition-[border-color,transform] duration-150 hover:-translate-y-px hover:border-(--accent-soft-border)"
             >

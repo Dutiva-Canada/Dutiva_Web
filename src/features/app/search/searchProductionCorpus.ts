@@ -13,6 +13,7 @@ import { listOwnConversations } from '@/features/app/views/memory/conversationsA
 import { listPolicies } from '@/features/app/views/policies/productionApi'
 import { listTasks } from '@/features/app/views/tasks/productionApi'
 import { searchMessages as M } from '@/i18n/messages/search'
+import { flowSearchEntries } from './searchCorpus'
 import type { SearchEntry } from './searchCorpus'
 
 const DOT = ' · '
@@ -192,6 +193,7 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     ...complianceEntries,
     ...policyEntries,
     ...knowledgeEntries,
+    ...flowSearchEntries,
   ]
 }
 

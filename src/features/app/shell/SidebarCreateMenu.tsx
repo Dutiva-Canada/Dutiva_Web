@@ -39,9 +39,24 @@ function useCreateActions(): CreateAction[] {
       icon: Folder,
       href: '/app/cases',
     },
-    { key: 'workflow', label: M.shell_create_workflow, icon: Waypoints, disabled: true },
-    { key: 'employee', label: M.shell_create_employee, icon: Users, disabled: true },
-    { key: 'communication', label: M.shell_create_communication, icon: Send, disabled: true },
+    {
+      key: 'workflow',
+      label: M.shell_create_workflow,
+      icon: Waypoints,
+      href: '/app/workflows',
+    },
+    {
+      key: 'employee',
+      label: M.shell_create_employee,
+      icon: Users,
+      href: '/app/employees',
+    },
+    {
+      key: 'communication',
+      label: M.shell_create_communication,
+      icon: Send,
+      href: '/app/communications',
+    },
   ]
 }
 

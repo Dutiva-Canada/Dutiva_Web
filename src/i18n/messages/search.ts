@@ -40,6 +40,7 @@ export const searchMessages = defineMessages({
   search_kind_compliance: { en: 'Compliance', fr: 'Conformité' },
   search_kind_policy: { en: 'Policy', fr: 'Politique' },
   search_kind_knowledge: { en: 'Knowledge', fr: 'Savoir' },
+  search_kind_workflow: { en: 'Workflow', fr: 'Processus' }, // [FR self-authored]
 
   /* Restricted lock badge (sensitive cases, high-risk documents). */
   search_restricted: { en: 'Restricted', fr: 'Restreint' },

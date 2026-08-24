@@ -185,4 +185,26 @@ export const advisorCore = defineMessages({
     // [FR self-authored — kept identical to shell_rail_fallback_text]
     fr: 'Demandez-moi ce que vous voulez — je peux puiser du contexte partout dans votre espace de travail.',
   },
+  /* Production Ask Advisor — no Northgate fixture cards; point at real entry
+     points instead. [FR self-authored] */
+  advisor_brief_prod_text: {
+    en: 'Ask anything about HR compliance. Or jump into a guided process or Document Studio — those don’t need sample data.',
+    fr: 'Posez toute question sur la conformité RH. Ou lancez un processus guidé ou le Studio de documents — ceux-ci n’exigent pas de données d’exemple.',
+  },
+  advisor_brief_prod_card_title: {
+    en: 'Start without sample data',
+    fr: 'Commencer sans données d’exemple',
+  },
+  advisor_brief_prod_card_body: {
+    en: 'Guided processes and Studio work in an empty production workspace. Fixture case briefs only appear in Demo.',
+    fr: 'Les processus guidés et le Studio fonctionnent dans un espace de production vide. Les résumés de dossiers d’exemple n’apparaissent qu’en mode Démo.',
+  },
+  advisor_action_start_process: {
+    en: 'Guided processes',
+    fr: 'Processus guidés',
+  },
+  advisor_action_open_studio: {
+    en: 'Open Studio',
+    fr: 'Ouvrir le Studio',
+  },
 })

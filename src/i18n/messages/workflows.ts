@@ -8,12 +8,12 @@
 export const workflowsMessages = defineMessages({
   workflows_title: { en: 'Workflows', fr: 'Processus' },
   workflows_sub: {
-    en: 'End-to-end HR outcomes — Advisor coordinates the steps, documents, records, and compliance impact.',
-    fr: 'Des résultats RH de bout en bout — le Conseiller coordonne les étapes, les documents, les dossiers et l’impact sur la conformité.',
+    en: 'Three ways to move work: Ask the Advisor for judgment calls, run a guided process or calculator here, or draft the letter in Document Studio.',
+    fr: 'Trois façons d’avancer : demandez au Conseiller pour le jugement, lancez un processus guidé ou un calculateur ici, ou rédigez la lettre dans le Studio de documents.', // [FR self-authored]
   },
   workflows_prod_intro: {
-    en: 'The in-flight list, termination map, and start-a-workflow catalogue are Northgate demo fixtures — switch to Demo in Settings to explore them. Guided processes above are the live workflows in your production workspace.',
-    fr: 'La liste en cours, la carte de cessation et le catalogue de démarrage sont des données d’exemple Northgate — passez en mode Démo dans les paramètres pour les explorer. Les processus guidés ci-dessus sont les flux actifs dans votre espace de production.', // [FR self-authored]
+    en: 'Calculators and process guides above are live in production. The in-flight list, termination map, and start-a-workflow catalogue are Northgate demo fixtures — switch to Demo in Settings to explore them.',
+    fr: 'Les calculateurs et guides ci-dessus sont actifs en production. La liste en cours, la carte de cessation et le catalogue de démarrage sont des données d’exemple Northgate — passez en mode Démo dans les paramètres pour les explorer.', // [FR self-authored]
   },
   workflows_inflight_title: { en: 'In flight', fr: 'En cours' },
   workflows_start_title: { en: 'Start a workflow', fr: 'Démarrer un processus' },

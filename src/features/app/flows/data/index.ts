@@ -38,3 +38,19 @@ export const flows: Flow[] = [
 ]
 
 export const flowBySlug = new Map(flows.map((f) => [f.slug, f]))
+
+/** EF11 entitlement gates / amount tools — shown as "Calculators" on Workflows. */
+const CALCULATOR_SLUGS = new Set([
+  'statutory-notice-ontario',
+  'statutory-notice-quebec',
+  'statutory-notice-federal',
+  'severance-eligibility-ontario',
+  'severance-amount-ontario',
+])
+
+export function isCalculatorFlow(flow: Flow): boolean {
+  return CALCULATOR_SLUGS.has(flow.slug)
+}
+
+export const calculatorFlows = flows.filter(isCalculatorFlow)
+export const guideFlows = flows.filter((f) => !isCalculatorFlow(f))

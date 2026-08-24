@@ -18,6 +18,12 @@ export const workspaceModeMessages = defineMessages({
     fr: 'Pour explorer cette vue avec des données d’exemple, passez en mode Démo dans les paramètres.',
   },
   wsmode_empty_settings_link: { en: 'Open Settings', fr: 'Ouvrir les paramètres' },
+  wsmode_empty_cta_employees: { en: 'Add employees', fr: 'Ajouter des employés' }, // [FR self-authored]
+  wsmode_empty_cta_studio: { en: 'Open Studio', fr: 'Ouvrir le Studio' }, // [FR self-authored]
+  wsmode_empty_cta_workflows: {
+    en: 'Guided processes',
+    fr: 'Processus guidés', // [FR self-authored]
+  },
 
   /* ── Topbar notifications ──────────────────────────────────────────────── */
   wsmode_notifications_empty: {

@@ -14,6 +14,16 @@ export const flowsMessages = defineMessages({
     en: 'Step-by-step processes and entitlement gates that end in a document — not just advice. Calculator-style tools stay inside the workspace; they are not public marketing pages.',
     fr: 'Des processus étape par étape et des filtres d’admissibilité qui aboutissent à un document — pas de simples conseils. Les outils de type calculateur restent dans l’espace de travail; ce ne sont pas des pages marketing publiques.',
   },
+  flows_section_calculators: { en: 'Calculators', fr: 'Calculateurs' }, // [FR self-authored]
+  flows_section_calculators_intro: {
+    en: 'Entitlement gates and amount estimates for notice and severance. Figures stay inside the workspace — never on public marketing pages.',
+    fr: 'Filtres d’admissibilité et estimations pour le préavis et l’indemnité. Les chiffres restent dans l’espace de travail — jamais sur les pages marketing publiques.', // [FR self-authored]
+  },
+  flows_section_guides: { en: 'Process guides', fr: 'Guides de processus' }, // [FR self-authored]
+  flows_section_guides_intro: {
+    en: 'Checklists and decision trees that walk a situation and hand off to a document in Studio.',
+    fr: 'Listes de contrôle et arbres de décision qui balisent une situation et renvoient vers un document dans le Studio.', // [FR self-authored]
+  },
   flows_minutes: { en: 'min', fr: 'min' },
   flows_start: { en: 'Start', fr: 'Commencer' },
   flows_continue: { en: 'Continue', fr: 'Continuer' },
@@ -25,7 +35,12 @@ export const flowsMessages = defineMessages({
   },
   flows_back: { en: 'Back', fr: 'Retour' },
   flows_restart: { en: 'Start over', fr: 'Recommencer' },
+  flows_restart_confirm: {
+    en: 'Start this process over? Your answers so far will be cleared.',
+    fr: 'Recommencer ce processus? Vos réponses jusqu’ici seront effacées.', // [FR self-authored]
+  },
   flows_step_of: { en: 'Step', fr: 'Étape' },
+  flows_step_of_sep: { en: 'of', fr: 'sur' }, // [FR self-authored]
   flows_progress_aria: { en: 'Progress through this process', fr: 'Progression dans ce processus' },
   flows_watch_for: { en: 'Watch for', fr: 'À surveiller' },
   flows_your_path: { en: 'The path you took', fr: 'Le chemin parcouru' },
@@ -33,7 +48,19 @@ export const flowsMessages = defineMessages({
     en: 'Document this in Document Studio',
     fr: 'Documentez-le dans le Studio de documents',
   },
-  flows_open_template: { en: 'Open', fr: 'Ouvrir' },
+  flows_open_template: { en: 'Generate', fr: 'Générer' }, // [FR self-authored]
+  flows_pin_notice_on: {
+    en: 'Ontario statutory notice',
+    fr: 'Préavis légal de l’Ontario', // [FR self-authored]
+  },
+  flows_pin_severance: {
+    en: 'Ontario severance eligibility',
+    fr: 'Admissibilité à l’indemnité (Ontario)', // [FR self-authored]
+  },
+  flows_pin_accommodate: {
+    en: 'Duty to accommodate',
+    fr: 'Obligation d’adaptation', // [FR self-authored]
+  },
   flows_no_document: {
     en: 'No document to open',
     fr: 'Aucun document à ouvrir',

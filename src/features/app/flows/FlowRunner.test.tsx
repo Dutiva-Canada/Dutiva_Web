@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderApp } from '@/test/renderApp'
@@ -44,7 +44,7 @@ describe('FlowRunner', () => {
     expect(screen.getByRole('heading', { level: 2, name: 'ESA floor: 3 weeks' })).toBeVisible()
     expect(screen.getByRole('link', { name: /Termination letter/ })).toHaveAttribute(
       'href',
-      '/app/documents/templates/T03',
+      '/app/documents/generate/tpl_t03',
     )
   })
 
@@ -95,11 +95,11 @@ describe('FlowRunner', () => {
        the file. */
     expect(screen.getByRole('link', { name: /Accommodation request response/ })).toHaveAttribute(
       'href',
-      '/app/documents/templates/T22',
+      '/app/documents/generate/tpl_t22',
     )
     expect(screen.getByRole('link', { name: /Accommodation plan/ })).toHaveAttribute(
       'href',
-      '/app/documents/templates/T23',
+      '/app/documents/generate/tpl_t23',
     )
   })
 
@@ -142,12 +142,26 @@ describe('FlowRunner', () => {
 
   it('restarts to the first step', async () => {
     const user = userEvent.setup()
+    vi.stubGlobal('confirm', () => true)
     renderFlow()
     await user.click(screen.getByRole('button', { name: /Someone has asked for a change/ }))
     await user.click(screen.getByRole('button', { name: 'Start over' }))
     expect(
       screen.getByRole('heading', { level: 2, name: 'What has happened so far?' }),
     ).toBeVisible()
+    vi.unstubAllGlobals()
+  })
+
+  it('keeps progress when restart is cancelled', async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal('confirm', () => false)
+    renderFlow()
+    await user.click(screen.getByRole('button', { name: /Someone has asked for a change/ }))
+    await user.click(screen.getByRole('button', { name: 'Start over' }))
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Gather what you are entitled to' }),
+    ).toBeVisible()
+    vi.unstubAllGlobals()
   })
 
   it('tells the user when the slug is not a flow', () => {
@@ -166,7 +180,7 @@ describe('FlowRunner', () => {
     expect(screen.getByRole('heading', { level: 2, name: 'ESA floor: 2 weeks' })).toBeVisible()
     expect(screen.getByRole('link', { name: /Termination letter/i })).toHaveAttribute(
       'href',
-      '/app/documents/templates/T03',
+      '/app/documents/generate/tpl_t03',
     )
   })
 
@@ -242,7 +256,7 @@ describe('FlowRunner — a scored assessment', () => {
     expect(t13).toBeDefined()
     expect(screen.getByRole('link', { name: new RegExp(t13!.name.en) })).toHaveAttribute(
       'href',
-      '/app/documents/templates/T13',
+      `/app/documents/generate/${t13!.id}`,
     )
   })
 

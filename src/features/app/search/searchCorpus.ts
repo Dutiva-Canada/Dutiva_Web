@@ -13,6 +13,7 @@ import {
   tasks,
 } from '@/data'
 import { allTemplates } from '@/features/app/documents/catalogue'
+import { flows } from '@/features/app/flows/data'
 
 /**
  * Global-search corpus — typed transcription of the prototype's
@@ -38,7 +39,16 @@ export const searchTabs: ReadonlyArray<{ key: SearchTabKey; label: Bi }> = [
 /* ---------------------------------------------------------------- entries */
 
 export type SearchEntryKind =
-  'person' | 'case' | 'chat' | 'document' | 'comms' | 'task' | 'compliance' | 'policy' | 'knowledge'
+  | 'person'
+  | 'case'
+  | 'chat'
+  | 'document'
+  | 'comms'
+  | 'task'
+  | 'compliance'
+  | 'policy'
+  | 'knowledge'
+  | 'workflow'
 
 /**
  * Where a result navigates. The overlay resolves these to react-router
@@ -50,6 +60,7 @@ export type SearchNav =
   | { kind: 'chat'; chatId: string }
   | { kind: 'document'; docKey: string }
   | { kind: 'generatedDocument'; docId: string }
+  | { kind: 'workflow'; flowSlug: string }
   | { kind: 'view'; view: 'communications' | 'tasks' | 'compliance' | 'policies' | 'knowledge' }
 
 /** Router `location.state` for chat results (prototype `selectChat(c.id)`). */
@@ -197,6 +208,18 @@ const knowledgeEntries: SearchEntry[] = knowledgeItems.map((k) => ({
   nav: { kind: 'view', view: 'knowledge' },
 }))
 
+/** Guided flows + calculators — real in both demo and production. */
+export const flowSearchEntries: readonly SearchEntry[] = flows.map((f) => ({
+  id: `flow-${f.slug}`,
+  kind: 'workflow',
+  kindLabel: M.search_kind_workflow,
+  title: f.title,
+  sub: f.summary,
+  restricted: false,
+  match: joinBi([f.title, f.summary]),
+  nav: { kind: 'workflow', flowSlug: f.slug },
+}))
+
 /** Full corpus in the prototype's All-tab order. */
 export const searchEntries: readonly SearchEntry[] = [
   ...personEntries,
@@ -208,6 +231,7 @@ export const searchEntries: readonly SearchEntry[] = [
   ...complianceEntries,
   ...policyEntries,
   ...knowledgeEntries,
+  ...flowSearchEntries,
 ]
 
 /** Pinned conversations shown while the query is empty (gold kind label). */

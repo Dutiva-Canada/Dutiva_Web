@@ -159,6 +159,9 @@ function SearchDialog() {
         case 'generatedDocument':
           navigate(`/app/documents/${nav.docId}`)
           break
+        case 'workflow':
+          navigate(`/app/workflows/${nav.flowSlug}`)
+          break
         case 'view':
           navigate(`/app/${nav.view}`)
           break

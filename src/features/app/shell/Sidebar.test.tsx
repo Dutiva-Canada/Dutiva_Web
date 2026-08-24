@@ -144,7 +144,7 @@ describe('Sidebar', () => {
     expect(recordsToggle).toHaveAttribute('aria-expanded', 'true')
   })
 
-  it('renders the Create menu with functional and disabled items', async () => {
+  it('renders the Create menu with functional items including guided processes', async () => {
     const user = userEvent.setup()
     renderApp(<Sidebar mode="expanded" />, { route: '/app/home' })
 
@@ -166,9 +166,18 @@ describe('Sidebar', () => {
       'aria-disabled',
       'true',
     )
-
-    const workflowItem = within(menu).getByRole('menuitem', { name: /Workflow/i })
-    expect(workflowItem).toHaveAttribute('aria-disabled', 'true')
+    expect(within(menu).getByRole('menuitem', { name: /Workflow/i })).not.toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+    expect(within(menu).getByRole('menuitem', { name: /Employee record/i })).not.toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+    expect(within(menu).getByRole('menuitem', { name: /Communication/i })).not.toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
   })
 
   it('supports keyboard operation inside the Create menu', async () => {
@@ -195,9 +204,9 @@ describe('Sidebar', () => {
   it('renders semantic badge variants and accessible descriptions', () => {
     renderApp(<Sidebar mode="expanded" />, { route: '/app/home' })
 
-    const workflowsLink = screen.getByRole('link', { name: /Workflows/ })
-    const badge = within(workflowsLink).getByText('3')
-    expect(badge).toHaveAttribute('aria-label', '3 active workflows')
+    const casesLink = screen.getByRole('link', { name: /Cases/ })
+    const badge = within(casesLink).getByText('3')
+    expect(badge).toHaveAttribute('aria-label', '3 open cases requiring review')
   })
 
   it('switches between expanded and compact modes', () => {

@@ -28,16 +28,24 @@ function renderWorkflows() {
 }
 
 describe('WorkflowsView', () => {
-  it('lists every guided flow and links each to its runner', () => {
+  it('lists calculators and process guides and links each to its runner', () => {
     renderWorkflows()
-    /* Derived, not hardcoded: adding a flow is not a reason to edit this. */
-    expect(screen.getByText(`Guided processes · ${flows.length}`)).toBeInTheDocument()
+    expect(screen.getByText(/Calculators ·/)).toBeInTheDocument()
+    expect(screen.getByText(/Process guides ·/)).toBeInTheDocument()
     for (const flow of flows) {
       expect(
         screen.getByRole('link', { name: new RegExp(flow.summary.en.slice(0, 40), 's') }),
         flow.slug,
       ).toHaveAttribute('href', `/app/workflows/${flow.slug}`)
     }
+  })
+
+  it('routes the leave catalogue tile to the flow, not the Advisor', async () => {
+    const user = userEvent.setup()
+    renderWorkflows()
+    const tile = screen.getByRole('button', { name: /^Leave/ })
+    await user.click(tile)
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/app/workflows/leave-of-absence')
   })
 
   it('routes the accommodation catalogue tile to the flow, not the Advisor', async () => {
@@ -54,7 +62,7 @@ describe('WorkflowsView', () => {
 
     expect(
       screen.getByText(
-        'End-to-end HR outcomes — Advisor coordinates the steps, documents, records, and compliance impact.',
+        'Three ways to move work: Ask the Advisor for judgment calls, run a guided process or calculator here, or draft the letter in Document Studio.',
       ),
     ).toBeInTheDocument()
     expect(screen.getByText(/In flight/)).toBeInTheDocument()
@@ -140,7 +148,7 @@ describe('WorkflowsView', () => {
       renderWorkflows()
       expect(
         screen.getByText(
-          'Des résultats RH de bout en bout — le Conseiller coordonne les étapes, les documents, les dossiers et l’impact sur la conformité.',
+          'Trois façons d’avancer : demandez au Conseiller pour le jugement, lancez un processus guidé ou un calculateur ici, ou rédigez la lettre dans le Studio de documents.',
         ),
       ).toBeInTheDocument()
       expect(screen.getByText('Cessation d’emploi — Jordan Mensah')).toBeInTheDocument()
@@ -169,7 +177,8 @@ describe('WorkflowsView in production mode', () => {
 
     renderFresh(<View />, { route: '/app/workflows', path: '/app/workflows' })
 
-    expect(await screen.findByText(`Guided processes · ${flows.length}`)).toBeInTheDocument()
+    expect(await screen.findByText(/Calculators ·/)).toBeInTheDocument()
+    expect(await screen.findByText(/Process guides ·/)).toBeInTheDocument()
     expect(await screen.findByText(/Northgate demo fixtures/)).toBeInTheDocument()
     expect(screen.queryByText(/In flight/)).not.toBeInTheDocument()
     expect(screen.queryByText('Termination — Jordan Mensah')).not.toBeInTheDocument()

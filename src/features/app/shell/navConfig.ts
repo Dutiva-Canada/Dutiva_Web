@@ -44,11 +44,11 @@ export interface NavGroup {
   items: NavItem[]
 }
 
-/* Badge counts — derivations verbatim from the prototype's renderVals()
-   (line ~5150): cases = non-Resolved, wellbeing = employees whose sentiment
-   is trending down (<55). Workflow runs and the compliance count are literals
-   in the prototype too. */
-const WORKFLOWS_BADGE = '3'
+/* Badge counts — derivations from the prototype's renderVals() (line ~5150):
+   cases = non-Resolved, wellbeing = employees whose sentiment is trending
+   down (<55). Compliance is a literal in the prototype. Workflows has no
+   live count in either mode (guided processes are a catalogue, not a queue),
+   so it ships without a badge rather than a misleading "3". */
 const CASES_BADGE = String(cases.filter((c) => c.status.en !== 'Resolved').length)
 const COMPLIANCE_BADGE = '3'
 const WELLBEING_BADGE = String(
@@ -66,7 +66,6 @@ export const NAV_GROUPS: NavGroup[] = [
         to: '/app/workflows',
         icon: Waypoints,
         label: M.shell_nav_workflows,
-        badge: { value: WORKFLOWS_BADGE, tone: 'gold' },
       },
       /* Memory is now a sub-tab inside Settings */
     ],

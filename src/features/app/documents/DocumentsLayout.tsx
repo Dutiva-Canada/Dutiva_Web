@@ -11,32 +11,59 @@ import { workspaceRoles } from './data'
 import type { WorkspaceRole } from './data'
 
 /**
- * Three-tab switcher: HR Library | Document Library | Document Studio.
- * These are distinct routes, not panels of one page, so this is a nav
- * landmark with `aria-current` rather than WAI-ARIA tab semantics.
+ * Tab switcher for /app/documents/*.
+ *
+ * Demo: Templates (legacy HR Library) | Library | Studio — three real
+ * destinations. Production: Studio | Library only — the Templates tab used
+ * to redirect to Studio, so two tabs pointed at one place.
  */
 function DocumentsTabs() {
   const { x } = useI18n()
   const { pathname } = useLocation()
   const { mode } = useWorkspaceMode()
   const production = mode === 'production'
-  const templatesPath = production ? '/app/documents/studio' : '/app/documents/hr-library'
+  const studio =
+    isDoclibStudioPath(pathname) || pathname.startsWith('/app/documents/studio')
   const hrLibrary = !production && pathname.startsWith('/app/documents/hr-library')
-  const studio = isDoclibStudioPath(pathname) || (production && pathname.startsWith('/app/documents/studio'))
-  const library = !hrLibrary && !studio && !pathname.startsWith('/app/documents/studio')
+  const library = !hrLibrary && !studio
   const linkClass = (active: boolean) =>
     `shrink-0 rounded-none border-b-2 px-[14px] py-[9px] font-sans text-[13px] font-semibold whitespace-nowrap ${
       active ? 'border-navy text-text' : 'border-transparent text-text-muted'
     }`
+
+  if (production) {
+    return (
+      <nav
+        aria-label={x(M.shell_nav_library)}
+        className="mb-[16px] flex gap-[2px] overflow-x-auto border-b border-border"
+      >
+        <Link
+          to="/app/documents/studio"
+          aria-current={studio ? 'page' : undefined}
+          className={linkClass(studio)}
+        >
+          {x(M.shell_hr_studio_studio)}
+        </Link>
+        <Link
+          to="/app/documents"
+          aria-current={library ? 'page' : undefined}
+          className={linkClass(library)}
+        >
+          {x(M.shell_hr_studio_library)}
+        </Link>
+      </nav>
+    )
+  }
+
   return (
     <nav
       aria-label={x(M.shell_nav_library)}
       className="mb-[16px] flex gap-[2px] overflow-x-auto border-b border-border"
     >
       <Link
-        to={templatesPath}
-        aria-current={hrLibrary || (production && studio) ? 'page' : undefined}
-        className={linkClass(hrLibrary || (production && studio))}
+        to="/app/documents/hr-library"
+        aria-current={hrLibrary ? 'page' : undefined}
+        className={linkClass(hrLibrary)}
       >
         {x(M.shell_hr_studio_templates)}
       </Link>

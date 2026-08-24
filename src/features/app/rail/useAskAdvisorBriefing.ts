@@ -5,6 +5,7 @@ import { advisorCore as M } from '@/i18n/messages/advisorCore'
 import type { AdvisorTurnSpec } from '@/features/app/advisor/types'
 import { cases } from '@/data'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useRail } from './railContext'
 
 /**
@@ -13,6 +14,10 @@ import { useRail } from './railContext'
  * returned function with the active view key; the rail opens with that view's
  * canned Advisor summary and tone cards, whose actions really navigate
  * (chat ids resolve to case routes via the `cases` fixtures' `chatId`).
+ *
+ * In production mode the Northgate fixture briefings are skipped — an empty
+ * org must not see sample case CTAs. The rail opens a generic prompt with
+ * links to live surfaces (Workflows, Studio).
  */
 
 /** Resolve a prototype chat id ('c1' …) to its case-detail route. */
@@ -36,6 +41,7 @@ export function useAskAdvisorBriefing(): (viewKey: string) => void {
   const { openRail, closeRail } = useRail()
   const navigate = useNavigate()
   const { openDocFromLibrary } = useDocStudio()
+  const { mode } = useWorkspaceMode()
 
   return useCallback(
     (viewKey: string) => {
@@ -47,6 +53,31 @@ export function useAskAdvisorBriefing(): (viewKey: string) => void {
       const openDoc = (docKey: string) => () => {
         closeRail()
         openDocFromLibrary(docKey)
+      }
+
+      if (mode === 'production') {
+        openRail(M.advisor_brief_title_fallback, {
+          text: M.advisor_brief_prod_text,
+          cards: [
+            {
+              tone: 'suggestion',
+              title: M.advisor_brief_prod_card_title,
+              body: M.advisor_brief_prod_card_body,
+              actions: [
+                {
+                  label: M.advisor_action_start_process,
+                  primary: true,
+                  onClick: go('/app/workflows'),
+                },
+                {
+                  label: M.advisor_action_open_studio,
+                  onClick: go('/app/documents/studio'),
+                },
+              ],
+            },
+          ],
+        })
+        return
       }
 
       const byView: Record<string, Briefing> = {
@@ -196,6 +227,6 @@ export function useAskAdvisorBriefing(): (viewKey: string) => void {
       }
       openRail(content.title, content.spec)
     },
-    [openRail, closeRail, navigate, openDocFromLibrary],
+    [openRail, closeRail, navigate, openDocFromLibrary, mode],
   )
 }

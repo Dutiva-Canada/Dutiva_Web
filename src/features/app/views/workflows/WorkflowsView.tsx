@@ -8,7 +8,8 @@ import { Disclaimer } from '@/components/Disclaimer'
 import type { Bi } from '@/i18n/core'
 import { workflowsMessages as M } from '@/i18n/messages/workflows'
 import { flowsMessages as F } from '@/i18n/messages/flows'
-import { flows } from '@/features/app/flows/data'
+import { calculatorFlows, guideFlows } from '@/features/app/flows/data'
+import type { Flow } from '@/features/app/flows/flowModel'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import type { AdvisorStartFlowNavState } from '@/features/app/views/advisor/advisorNav'
 import { chipToneClass, statusChipClass } from '@/components/chips'
@@ -66,42 +67,67 @@ function StageMarker({ n, state }: { readonly n: number; readonly state: Termina
 
 /**
  * The guided flows the product actually ships (`src/features/app/flows/`).
- * Everything else on this view is fixture content ported from the prototype;
- * these run.
+ * Calculators (EF11 entitlement gates) and process guides are listed separately
+ * so discovery matches how people look for them. Everything else on this view
+ * is fixture content ported from the prototype; these run.
  */
+function FlowCardGrid({ items }: { readonly items: readonly Flow[] }) {
+  const { x } = useI18n()
+  return (
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-[10px]">
+      {items.map((flow) => (
+        <Link
+          key={flow.slug}
+          to={`/app/workflows/${flow.slug}`}
+          className="flex flex-col gap-[5px] rounded-[12px] border border-border bg-surface px-[16px] py-[14px] transition-[border-color,background-color] hover:border-(--accent-soft-border) hover:bg-inset focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+        >
+          <span className="flex items-center gap-[8px]">
+            <Route
+              size={14}
+              strokeWidth={1.9}
+              className="shrink-0 text-gold-fg"
+              aria-hidden="true"
+            />
+            <span className="text-[13.5px] font-semibold text-text">{x(flow.title)}</span>
+          </span>
+          <span className="text-[12.5px] leading-[1.5] text-text-muted">{x(flow.summary)}</span>
+          <span className="mt-[3px] text-[11.5px] font-semibold text-accent">
+            {x(F.flows_start)} · {flow.estMinutes} {x(F.flows_minutes)}
+          </span>
+        </Link>
+      ))}
+    </div>
+  )
+}
+
 function GuidedProcesses() {
   const { x } = useI18n()
-  if (flows.length === 0) return null
+  if (calculatorFlows.length === 0 && guideFlows.length === 0) return null
 
   return (
-    <div className="mb-[24px]">
-      <div className="mb-[8px] text-[11px] font-bold tracking-wider text-text-muted uppercase">
-        {x(F.flows_section_label)} · {flows.length}
-      </div>
-      <p className="mb-[10px] text-[12.5px] text-text-muted">{x(F.flows_section_intro)}</p>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-[10px]">
-        {flows.map((flow) => (
-          <Link
-            key={flow.slug}
-            to={`/app/workflows/${flow.slug}`}
-            className="flex flex-col gap-[5px] rounded-[12px] border border-border bg-surface px-[16px] py-[14px] transition-[border-color,background-color] hover:border-(--accent-soft-border) hover:bg-inset focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
-            <span className="flex items-center gap-[8px]">
-              <Route
-                size={14}
-                strokeWidth={1.9}
-                className="shrink-0 text-gold-fg"
-                aria-hidden="true"
-              />
-              <span className="text-[13.5px] font-semibold text-text">{x(flow.title)}</span>
-            </span>
-            <span className="text-[12.5px] leading-[1.5] text-text-muted">{x(flow.summary)}</span>
-            <span className="mt-[3px] text-[11.5px] font-semibold text-accent">
-              {x(F.flows_start)} · {flow.estMinutes} {x(F.flows_minutes)}
-            </span>
-          </Link>
-        ))}
-      </div>
+    <div className="mb-[24px] flex flex-col gap-[22px]">
+      {calculatorFlows.length > 0 && (
+        <div>
+          <div className="mb-[8px] text-[11px] font-bold tracking-wider text-text-muted uppercase">
+            {x(F.flows_section_calculators)} · {calculatorFlows.length}
+          </div>
+          <p className="mb-[10px] text-[12.5px] text-text-muted">
+            {x(F.flows_section_calculators_intro)}
+          </p>
+          <FlowCardGrid items={calculatorFlows} />
+        </div>
+      )}
+      {guideFlows.length > 0 && (
+        <div>
+          <div className="mb-[8px] text-[11px] font-bold tracking-wider text-text-muted uppercase">
+            {x(F.flows_section_guides)} · {guideFlows.length}
+          </div>
+          <p className="mb-[10px] text-[12.5px] text-text-muted">
+            {x(F.flows_section_guides_intro)}
+          </p>
+          <FlowCardGrid items={guideFlows} />
+        </div>
+      )}
     </div>
   )
 }

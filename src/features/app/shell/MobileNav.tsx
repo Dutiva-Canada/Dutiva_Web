@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Briefcase, House, ListChecks, Menu, Search, Sparkle } from 'lucide-react'
+import { Briefcase, FileStack, House, Menu, Search, Sparkle } from 'lucide-react'
 import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
@@ -13,7 +13,7 @@ import { isNavActive } from './navConfig'
 /**
  * Mobile (<768px) chrome — App v2 `showMobileTopbar` bar and the bottom
  * compact nav (`isMobileFrame` footer): Home · Case Files · Ask (raised navy
- * sparkle) · Tasks · More.
+ * sparkle) · Documents · More.
  */
 
 export function MobileTopbar({
@@ -131,10 +131,10 @@ export function MobileNav({
         <span className="text-[10px] font-semibold text-accent">{x(M.shell_tab_ask)}</span>
       </Link>
       <MobileTab
-        to="/app/tasks"
-        icon={<ListChecks size={21} strokeWidth={1.8} />}
-        label={M.shell_nav_tasks}
-        active={isNavActive('/app/tasks', pathname)}
+        to="/app/documents/studio"
+        icon={<FileStack size={21} strokeWidth={1.8} />}
+        label={M.shell_nav_library}
+        active={pathname.startsWith('/app/documents')}
       />
       <button
         type="button"

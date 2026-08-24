@@ -1,5 +1,5 @@
 import { ProgressFill } from '@/components/ProgressFill'
-import { useState, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AlertTriangle, ArrowLeft, ChevronRight, Circle, FileText, RotateCcw } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -16,6 +16,7 @@ import {
   flowRecord,
   inputValues,
   isComplete,
+  longestPath,
   progress,
   scoreRun,
   startRun,
@@ -70,10 +71,22 @@ function FlowMissing() {
 function FlowBody({ flow }: { readonly flow: Flow }) {
   const { x } = useI18n()
   const [run, setRun] = useState<FlowRun>(() => startRun(flow))
+  const stepHeadingRef = useRef<HTMLHeadingElement>(null)
 
   const step = currentStep(flow, run)
   const done = isComplete(flow, run)
   const pct = Math.round(progress(flow, run) * 100)
+  const totalSteps = longestPath(flow)
+  const currentStepNum = Math.min(run.path.length, totalSteps)
+
+  useEffect(() => {
+    stepHeadingRef.current?.focus()
+  }, [step.id])
+
+  const restart = () => {
+    if (run.path.length > 1 && !window.confirm(x(M.flows_restart_confirm))) return
+    setRun(startRun(flow))
+  }
 
   return (
     <AppPage width="narrow">
@@ -90,19 +103,28 @@ function FlowBody({ flow }: { readonly flow: Flow }) {
         </h1>
         <p className="mt-[6px] text-[13px] leading-[1.55] text-text-2">{x(flow.summary)}</p>
 
-        <div
-          role="progressbar"
-          aria-label={x(M.flows_progress_aria)}
-          aria-valuenow={pct}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          className="mt-[18px] h-[5px] w-full overflow-hidden rounded-full bg-inset"
-        >
-          <ProgressFill pct={pct} className="h-full w-full rounded-full text-accent" />
+        <div className="mt-[18px] flex items-center gap-[12px]">
+          <div
+            role="progressbar"
+            aria-label={x(M.flows_progress_aria)}
+            aria-valuenow={pct}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            className="h-[5px] min-w-0 flex-1 overflow-hidden rounded-full bg-inset"
+          >
+            <ProgressFill pct={pct} className="h-full w-full rounded-full text-accent" />
+          </div>
+          <span className="shrink-0 text-[11.5px] font-semibold whitespace-nowrap text-text-muted">
+            {x(M.flows_step_of)} {currentStepNum} {x(M.flows_step_of_sep)} {totalSteps}
+          </span>
         </div>
 
         <div className="mt-[20px] rounded-[14px] border border-border bg-surface px-[22px] py-[20px]">
-          <h2 className="font-display text-[17px] leading-[1.35] font-bold text-text">
+          <h2
+            ref={stepHeadingRef}
+            tabIndex={-1}
+            className="font-display text-[17px] leading-[1.35] font-bold text-text outline-none"
+          >
             {x(step.title)}
           </h2>
           <p className="mt-[8px] text-[13.5px] leading-[1.6] text-text-2">{x(step.body)}</p>
@@ -212,7 +234,7 @@ function FlowBody({ flow }: { readonly flow: Flow }) {
           )}
           <button
             type="button"
-            onClick={() => setRun(startRun(flow))}
+            onClick={restart}
             className="inline-flex cursor-pointer items-center gap-[6px] rounded-[8px] border border-border bg-surface px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-text-muted"
           >
             <RotateCcw size={13} strokeWidth={2} aria-hidden="true" />
@@ -309,6 +331,7 @@ function ScoredResult({ flow, run }: { readonly flow: Flow; readonly run: FlowRu
  * The documents a finished run hands off to — what actually goes on the file.
  * Reads them off the outcome, or off the band a scored run landed in, since
  * what to do next depends on the score rather than on reaching the end.
+ * Links open Generate (not template detail) so the handoff starts drafting.
  */
 function OutcomeActions({ flow, run }: { readonly flow: Flow; readonly run: FlowRun }) {
   const { x } = useI18n()
@@ -347,7 +370,7 @@ function OutcomeActions({ flow, run }: { readonly flow: Flow; readonly run: Flow
           return (
             <Link
               key={tid}
-              to={`/app/documents/templates/${template.tid}`}
+              to={`/app/documents/generate/${template.id}`}
               className="flex items-center gap-[10px] rounded-[10px] border border-border bg-bg-soft px-[14px] py-[11px]"
             >
               <FileText
@@ -411,6 +434,7 @@ function FlowInputForm({
   readonly onSubmit: (value: number) => void
 }) {
   const { x } = useI18n()
+  const errorId = useId()
   const [raw, setRaw] = useState('')
   const [invalid, setInvalid] = useState(false)
 
@@ -445,13 +469,16 @@ function FlowInputForm({
             }}
             placeholder={x(M.flows_input_placeholder)}
             aria-invalid={invalid}
+            aria-describedby={invalid ? errorId : undefined}
             className="w-[140px] rounded-[9px] border border-border bg-bg-soft px-[12px] py-[9px] font-sans text-[13.5px] text-text"
           />
           <span className="text-[12.5px] text-text-muted">{unit}</span>
         </span>
       </label>
       {invalid && (
-        <p className="text-[12.5px] leading-[1.5] text-risk-fg">{x(M.flows_input_invalid)}</p>
+        <p id={errorId} className="text-[12.5px] leading-[1.5] text-risk-fg">
+          {x(M.flows_input_invalid)}
+        </p>
       )}
       <button
         type="submit"
