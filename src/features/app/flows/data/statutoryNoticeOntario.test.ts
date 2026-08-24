@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { lookupStatutoryNoticeWeeks } from '@/features/app/advisor/safety/statutoryNotice'
-import { NOTICE_TENURE_BANDS, statutoryNoticeOntarioFlow } from './statutoryNoticeOntario'
+import {
+  NOTICE_TENURE_BANDS,
+  ontarioFloorStepId,
+  statutoryNoticeOntarioFlow,
+} from './statutoryNoticeOntario'
+import { statutoryNoticeQuebecFlow } from './statutoryNoticeQuebec'
+import { statutoryNoticeFederalFlow } from './statutoryNoticeFederal'
 import { severanceEligibilityOntarioFlow } from './severanceEligibilityOntario'
 import { isOutcome } from '../flowModel'
 
@@ -8,6 +14,14 @@ describe('statutoryNoticeOntarioFlow', () => {
   it('registers every tenure band against the grounded ESA s.57 lookup', () => {
     for (const band of NOTICE_TENURE_BANDS) {
       expect(lookupStatutoryNoticeWeeks('ON', band.completedMonths)).toBe(band.weeks)
+    }
+  })
+
+  it('maps typed completed months to the same floor outcomes as the lookup', () => {
+    for (const months of [0, 2, 3, 12, 40, 84, 96, 400]) {
+      const weeks = lookupStatutoryNoticeWeeks('ON', months)
+      expect(weeks).not.toBeNull()
+      expect(ontarioFloorStepId(months)).toBe(`floor_${weeks}`)
     }
   })
 
@@ -25,6 +39,35 @@ describe('statutoryNoticeOntarioFlow', () => {
     for (const step of statutoryNoticeOntarioFlow.steps) {
       if (!isOutcome(step)) continue
       expect(step.documents).toEqual(['T03'])
+    }
+  })
+})
+
+describe('QC/FED hedge notice flows', () => {
+  const weekFigure = /\b\d+\s*weeks?\b|\b\d+\s*semaines?\b/i
+
+  it.each([
+    ['Québec', statutoryNoticeQuebecFlow],
+    ['Federal', statutoryNoticeFederalFlow],
+  ] as const)('%s never states a week figure', (_label, flow) => {
+    for (const step of flow.steps) {
+      expect(step.title.en, step.id).not.toMatch(weekFigure)
+      expect(step.body.en, step.id).not.toMatch(weekFigure)
+      if (step.caution) expect(step.caution.en, step.id).not.toMatch(weekFigure)
+      if (step.kind === 'task') {
+        for (const point of step.points) {
+          expect(point.en, step.id).not.toMatch(weekFigure)
+        }
+      }
+    }
+  })
+
+  it('hands endings that draft a letter off to T03', () => {
+    for (const flow of [statutoryNoticeQuebecFlow, statutoryNoticeFederalFlow]) {
+      for (const step of flow.steps) {
+        if (!isOutcome(step)) continue
+        expect(step.documents).toEqual(['T03'])
+      }
     }
   })
 })

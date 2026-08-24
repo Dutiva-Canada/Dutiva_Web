@@ -35,6 +35,19 @@ describe('FlowRunner', () => {
     ).toBeVisible()
   })
 
+  it('looks up Ontario ESA floor weeks from typed completed months', async () => {
+    const user = userEvent.setup()
+    renderFlow('statutory-notice-ontario')
+    await user.click(screen.getByRole('button', { name: /Enter completed months/ }))
+    await user.type(screen.getByRole('spinbutton'), '36')
+    await user.click(screen.getByRole('button', { name: 'Look up' }))
+    expect(screen.getByRole('heading', { level: 2, name: 'ESA floor: 3 weeks' })).toBeVisible()
+    expect(screen.getByRole('link', { name: /Termination letter/ })).toHaveAttribute(
+      'href',
+      '/app/documents/templates/T03',
+    )
+  })
+
   it('returns to a clean choice when stepping back', async () => {
     const user = userEvent.setup()
     renderFlow()
@@ -133,6 +146,7 @@ describe('FlowRunner', () => {
     expect(
       screen.getByRole('heading', { level: 1, name: /Ontario statutory notice/ }),
     ).toBeVisible()
+    await user.click(screen.getByRole('button', { name: /Pick a completed-tenure band/ }))
     await user.click(screen.getByRole('button', { name: /1 year to under 3 years/ }))
     expect(screen.getByRole('heading', { level: 2, name: 'ESA floor: 2 weeks' })).toBeVisible()
     expect(screen.getByRole('link', { name: /Termination letter/i })).toHaveAttribute(

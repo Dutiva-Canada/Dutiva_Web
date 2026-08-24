@@ -47,6 +47,12 @@ export const isComplete = (flow: Flow, run: FlowRun): boolean => isTerminal(curr
  */
 export function nextStepId(step: FlowStep, optionId?: string): FlowStepId | null | undefined {
   if (step.kind === 'task') return step.to
+  if (step.kind === 'input') {
+    if (optionId === undefined) return undefined
+    const value = Number(optionId)
+    if (!Number.isFinite(value) || value < 0 || !Number.isInteger(value)) return undefined
+    return step.resolve(value)
+  }
   if (isTerminal(step)) return null
   const option = step.options.find((o) => o.id === optionId)
   return option ? option.to : undefined
@@ -134,6 +140,7 @@ export function longestPath(flow: Flow): number {
 export function outgoing(step: FlowStep): (FlowStepId | null)[] {
   if (step.kind === 'choice') return step.options.map((o) => o.to)
   if (step.kind === 'task') return [step.to]
+  if (step.kind === 'input') return [...step.destinations]
   return []
 }
 
@@ -171,6 +178,18 @@ export interface FlowRecord {
 export function flowRecord(flow: Flow, run: FlowRun): FlowRecord {
   const entries: FlowRecordEntry[] = run.path.map((answer) => {
     const step = stepById(flow, answer.step)
+    if (step.kind === 'input' && answer.option !== undefined) {
+      return {
+        step,
+        chosen: {
+          id: answer.option,
+          label: {
+            en: `${answer.option} ${step.unit.en}`,
+            fr: `${answer.option} ${step.unit.fr}`,
+          },
+        },
+      }
+    }
     if (step.kind !== 'choice' || answer.option === undefined) return { step }
     const option = step.options.find((o) => o.id === answer.option)
     return option ? { step, chosen: { id: option.id, label: option.label } } : { step }

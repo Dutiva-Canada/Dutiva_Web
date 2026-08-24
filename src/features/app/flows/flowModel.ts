@@ -12,12 +12,14 @@ import type { Jurisdiction } from '@/features/app/documents/data/types'
  * gates a block on jurisdiction, headcount and union — never on an answer —
  * so branching had nowhere to live.
  *
- * A flow is a graph of steps. Three shapes fall out of the same structure,
- * which is why this is one engine rather than three:
+ * A flow is a graph of steps. Several shapes fall out of the same structure,
+ * which is why this is one engine rather than several:
  *
  *   - a **checklist** is a chain of `task` steps with one exit each;
  *   - a **decision tree** is `choice` steps whose options name the next step;
- *   - a **guided worksheet** mixes the two and ends at an `outcome`;
+ *   - a **numeric input** is an `input` step that routes from a typed integer
+ *     (e.g. completed months of tenure) via `resolve`;
+ *   - a **guided worksheet** mixes the above and ends at an `outcome`;
  *   - a **scored assessment** is `choice` steps whose options carry a `value`
  *     and share a destination, ending at a `result` that bands the total.
  *
@@ -93,6 +95,21 @@ export interface FlowTaskStep extends FlowStepBase {
   to: FlowStepId | null
 }
 
+/**
+ * A step that collects a non-negative integer (e.g. completed months of
+ * tenure) and routes to a destination via `resolve`. `destinations` lists
+ * every id `resolve` may return so graph checks stay honest.
+ */
+export interface FlowInputStep extends FlowStepBase {
+  kind: 'input'
+  label: Bi
+  /** Unit shown beside the field — "completed months", etc. */
+  unit: Bi
+  /** Every id `resolve` may return — listed so graph checks stay honest. */
+  destinations: readonly FlowStepId[]
+  resolve: (value: number) => FlowStepId
+}
+
 /** A terminal step reached by branching. Where the path led. */
 export interface FlowOutcomeStep extends FlowStepBase {
   kind: 'outcome'
@@ -148,7 +165,12 @@ export interface FlowResultStep extends FlowStepBase {
   bands: FlowBand[]
 }
 
-export type FlowStep = FlowChoiceStep | FlowTaskStep | FlowOutcomeStep | FlowResultStep
+export type FlowStep =
+  | FlowChoiceStep
+  | FlowTaskStep
+  | FlowInputStep
+  | FlowOutcomeStep
+  | FlowResultStep
 
 export interface Flow {
   /** Stable URL slug — `/app/workflows/<slug>`. */

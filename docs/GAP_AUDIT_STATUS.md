@@ -57,4 +57,4 @@ human or platform action** (not closable by engineering alone).
 | L5 Advisor corpus human review | Qualified reviewer |
 | OA9 DO residency confirmation | Owner / legal |
 | Stripe secrets + annual prices | OA11 / ops |
-| EF11 Workspace entitlement calculators | Partial — ON notice + severance gate flows; remainder in TODO.md |
+| EF11 Workspace entitlement calculators | Mostly built — ON notice (+ typed months), QC/FED hedges, severance gate, ROE + layoff trackers; Option A + numeric QC/FED ladders deferred |

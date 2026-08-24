@@ -12,6 +12,7 @@
 | Document Studio (`statutoryFloor.ts` → `GenerateScreen`) | Shows `doclib_gen_floor_unavailable` — no “below minimum” alert; user must confirm against the statute |
 | Advisor chat | No QC/FED notice injection in the prompt; cross-check returns `unverifiable` (never flags a mismatch from a table we do not ship) |
 | Template jurisdiction notes (T03, etc.) | Qualitative statute pointers only — no numeric notice ladder outside Ontario |
+| Workflows (`statutory-notice-quebec`, `statutory-notice-federal`) | Hedge-only guided flows — process shape + primary-source pointers; never emit week figures |
 
 This is the correct fail-safe for a compliance product: **hedge and point at primary sources** rather than emit unreviewed statutory figures.
 

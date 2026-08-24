@@ -171,17 +171,21 @@ producing a document would be the wrong instruction.
 Nothing is persisted. A run is a thinking tool; the record it produces is
 meant to be carried into the template the outcome names.
 
-**Entitlement calculators (EF11)** use the same engine. Two Ontario tools
-ship as decision trees on `/app/workflows/`:
+**Entitlement calculators (EF11)** use the same engine. Workspace tools on
+`/app/workflows/`:
 
 | Tool | Route | State |
 | --- | --- | --- |
-| Ontario statutory notice (ESA s. 57 floor) | `/app/workflows/statutory-notice-ontario` | **Built** — band → floor weeks; T03 handoff |
-| Ontario ESA severance eligibility | `/app/workflows/severance-eligibility-ontario` | **Built** — Option B gate only; no amount; T03 handoff |
+| Ontario statutory notice (ESA s. 57 floor) | `/app/workflows/statutory-notice-ontario` | **Built** — band or typed months → floor weeks; T03 |
+| Québec termination notice (hedge) | `/app/workflows/statutory-notice-quebec` | **Built** — no week figures while L6 keeps `bands: null`; T03 |
+| Federal termination notice (hedge) | `/app/workflows/statutory-notice-federal` | **Built** — no week figures; T03 |
+| Ontario ESA severance eligibility | `/app/workflows/severance-eligibility-ontario` | **Built** — Option B gate only; no amount; T03 |
+| ROE filing checklist | `/app/workflows/roe-filing-checklist` | **Built** — process shape; employer records deadline; T29 |
+| Temporary layoff awareness | `/app/workflows/temporary-layoff-awareness` | **Built** — contract + statute-cap shape; T32 |
 
-QC/FED notice bands, severance Option A (compute amount), and deadline
-trackers remain open in TODO.md EF11. These must not be published as
-figure-emitting `/tools/*` marketing pages.
+Severance Option A (compute amount) and numeric QC/FED ladders remain open
+in TODO.md EF11 until payroll data / L6 sign-off. These must not be published
+as figure-emitting `/tools/*` marketing pages.
 
 **Every step shows in every jurisdiction.** The model briefly carried an
 `only` field to restrict a step to one, and it was removed: a run has no

@@ -87,6 +87,37 @@ describe('flow engine', () => {
     expect(isComplete(fixture, run)).toBe(true)
   })
 
+  it('advances an input step from a typed non-negative integer', () => {
+    const withInput: Flow = {
+      ...fixture,
+      slug: 'fixture-input',
+      start: 'months',
+      steps: [
+        {
+          id: 'months',
+          kind: 'input',
+          title: bi('Months', 'Mois'),
+          body: bi('Enter months.', 'Entrez les mois.'),
+          label: bi('Completed months', 'Mois complétés'),
+          unit: bi('months', 'mois'),
+          destinations: ['endRight', 'endLeft'],
+          resolve: (n) => (n < 12 ? 'endRight' : 'endLeft'),
+        },
+        ...fixture.steps.filter((s) => s.kind === 'outcome'),
+      ],
+    }
+    const short = advance(withInput, startRun(withInput), '3')
+    expect(currentStep(withInput, short).id).toBe('endRight')
+    expect(flowRecord(withInput, short).entries[0]?.chosen?.label.en).toBe('3 months')
+
+    const long = advance(withInput, startRun(withInput), '36')
+    expect(currentStep(withInput, long).id).toBe('endLeft')
+
+    const bad = advance(withInput, startRun(withInput), '-1')
+    expect(currentStep(withInput, bad).id).toBe('months')
+    expect(nextStepId(withInput.steps[0]!, '1.5')).toBeUndefined()
+  })
+
   it('records the chosen option on the step it was chosen at', () => {
     const run = advance(fixture, startRun(fixture), 'left')
     expect(run.path[0]).toEqual({ step: 'ask', option: 'left' })
@@ -445,6 +476,9 @@ describe.each(flows.map((f) => [f.slug, f] as const))('flow: %s', (_slug, flow) 
       if (step.kind === 'task') {
         step.points.forEach((p, i) => strings.push([`${step.id}.points[${i}]`, p]))
       }
+      if (step.kind === 'input') {
+        strings.push([`${step.id}.label`, step.label], [`${step.id}.unit`, step.unit])
+      }
       if (step.kind === 'choice') {
         /* The factor heading is user-facing — it labels a row of the result
            breakdown — so it belongs in the same net as the rest. */
@@ -558,6 +592,18 @@ describe.each(flows.map((f) => [f.slug, f] as const))('flow: %s', (_slug, flow) 
       ).toBe(true)
       for (const percent of [0, 1, 39, 40, 69, 70, 100]) {
         expect(bandFor(step, percent), `${step.id} at ${percent}%`).not.toBeNull()
+      }
+    }
+  })
+
+  it('keeps input resolve destinations honest', () => {
+    /* `outgoing` trusts `destinations`; if `resolve` can land elsewhere the
+       graph checks would lie about reachability. */
+    for (const step of flow.steps) {
+      if (step.kind !== 'input') continue
+      for (let n = 0; n <= 200; n++) {
+        const dest = step.resolve(n)
+        expect(step.destinations, `${step.id} resolve(${n}) → ${dest}`).toContain(dest)
       }
     }
   })

@@ -1,5 +1,5 @@
 import { ProgressFill } from '@/components/ProgressFill'
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AlertTriangle, ArrowLeft, ChevronRight, Circle, FileText, RotateCcw } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -171,6 +171,15 @@ function FlowBody({ flow }: { readonly flow: Flow }) {
                 </button>
               ))}
             </div>
+          )}
+
+          {step.kind === 'input' && (
+            <FlowInputForm
+              key={step.id}
+              label={x(step.label)}
+              unit={x(step.unit)}
+              onSubmit={(value) => setRun(advance(flow, run, String(value)))}
+            />
           )}
 
           {step.kind === 'task' && (
@@ -381,5 +390,69 @@ function PathTaken({ flow, run }: { readonly flow: Flow; readonly run: FlowRun }
         ))}
       </ol>
     </div>
+  )
+}
+
+/**
+ * Collects a non-negative integer for an `input` step. The value is passed to
+ * `advance` as a string so the engine can reuse the option-id path.
+ */
+function FlowInputForm({
+  label,
+  unit,
+  onSubmit,
+}: {
+  readonly label: string
+  readonly unit: string
+  readonly onSubmit: (value: number) => void
+}) {
+  const { x } = useI18n()
+  const [raw, setRaw] = useState('')
+  const [invalid, setInvalid] = useState(false)
+
+  const submit = (event: FormEvent) => {
+    event.preventDefault()
+    const trimmed = raw.trim()
+    const value = Number(trimmed)
+    if (trimmed === '' || !Number.isInteger(value) || value < 0) {
+      setInvalid(true)
+      return
+    }
+    setInvalid(false)
+    onSubmit(value)
+  }
+
+  return (
+    <form onSubmit={submit} className="mt-[16px] flex flex-col gap-[10px]">
+      <label className="flex flex-col gap-[6px]">
+        <span className="text-[12.5px] font-semibold text-text">{label}</span>
+        <span className="flex items-center gap-[8px]">
+          <input
+            type="number"
+            inputMode="numeric"
+            min={0}
+            step={1}
+            value={raw}
+            onChange={(e) => {
+              setRaw(e.target.value)
+              setInvalid(false)
+            }}
+            placeholder={x(M.flows_input_placeholder)}
+            aria-invalid={invalid}
+            className="w-[140px] rounded-[9px] border border-border bg-bg-soft px-[12px] py-[9px] font-sans text-[13.5px] text-text"
+          />
+          <span className="text-[12.5px] text-text-muted">{unit}</span>
+        </span>
+      </label>
+      {invalid && (
+        <p className="text-[12.5px] leading-[1.5] text-risk-fg">{x(M.flows_input_invalid)}</p>
+      )}
+      <button
+        type="submit"
+        className="w-fit cursor-pointer rounded-[9px] border-none bg-navy px-[16px] py-[9px] font-sans text-[13px] font-bold text-white"
+      >
+        {x(M.flows_input_submit)}
+      </button>
+    </form>
   )
 }

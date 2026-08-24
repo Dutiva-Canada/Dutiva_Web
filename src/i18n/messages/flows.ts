@@ -17,6 +17,12 @@ export const flowsMessages = defineMessages({
   flows_minutes: { en: 'min', fr: 'min' },
   flows_start: { en: 'Start', fr: 'Commencer' },
   flows_continue: { en: 'Continue', fr: 'Continuer' },
+  flows_input_submit: { en: 'Look up', fr: 'Repérer' },
+  flows_input_placeholder: { en: 'e.g. 36', fr: 'ex. 36' },
+  flows_input_invalid: {
+    en: 'Enter a whole number of completed units (0 or more).',
+    fr: 'Entrez un nombre entier d’unités complétées (0 ou plus).',
+  },
   flows_back: { en: 'Back', fr: 'Retour' },
   flows_restart: { en: 'Start over', fr: 'Recommencer' },
   flows_step_of: { en: 'Step', fr: 'Étape' },
