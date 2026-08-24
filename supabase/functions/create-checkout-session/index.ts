@@ -158,7 +158,7 @@ Deno.serve(async (req: Request) => {
       .upsert({ id: user.id, account_email: user.email, stripe_customer_id: customerId })
   }
 
-  const siteUrl = Deno.env.get('SITE_URL') ?? 'https://www.dutiva.ca'
+  const siteUrl = Deno.env.get('SITE_URL') ?? 'https://dutiva.ca'
   const session = await stripePost(
     '/checkout/sessions',
     {
