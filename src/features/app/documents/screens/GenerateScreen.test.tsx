@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { fireEvent, screen } from '@testing-library/react'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import { renderApp } from '@/test/renderApp'
 import { DoclibProvider } from '../DoclibProvider'
 import { fillProgress, templateTokens } from '../engine'
@@ -8,12 +9,28 @@ import { GenerateScreen } from './GenerateScreen'
 
 const PATH = '/app/documents/generate/:templateId'
 
+function LocationProbe() {
+  const location = useLocation()
+  return <span data-testid="pathname">{location.pathname}</span>
+}
+
 const renderWizard = (templateId: string) =>
   renderApp(
-    <DoclibProvider>
-      <GenerateScreen />
-    </DoclibProvider>,
-    { route: `/app/documents/generate/${templateId}`, path: PATH },
+    <Routes>
+      <Route
+        path={PATH}
+        element={
+          <>
+            <DoclibProvider>
+              <GenerateScreen />
+            </DoclibProvider>
+            <LocationProbe />
+          </>
+        }
+      />
+      <Route path="/app/documents" element={<div>Repository landing</div>} />
+    </Routes>,
+    { route: `/app/documents/generate/${templateId}`, path: '*' },
   )
 
 /**
@@ -130,6 +147,27 @@ describe('GenerateScreen', () => {
       screen.getByText('HR review is required before this document is used.'),
     ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Save to repository' })).toBeInTheDocument()
+  })
+
+  it('shows resolved merge text in the live preview after answers are filled', async () => {
+    renderWizard('tpl_t01')
+    await screen.findByText('Generate · Offer of employment letter (Ontario)')
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+    fireEvent.change(screen.getByLabelText(/^Employee full name/), {
+      target: { value: 'Gabriel Dubois' },
+    })
+    expect(screen.getByText('Gabriel Dubois')).toBeInTheDocument()
+    expect(screen.queryByText('{{employee_name}}')).not.toBeInTheDocument()
+  })
+
+  it('returns to the repository after Save to repository in demo mode', async () => {
+    renderWizard('tpl_t01')
+    await screen.findByText('Generate · Offer of employment letter (Ontario)')
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+    fillRequired('tpl_t01')
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save to repository' }))
+    expect(await screen.findByText('Repository landing')).toBeInTheDocument()
   })
 
   it('renders the context step for T02 (Ontario-only, employee-subject)', async () => {
