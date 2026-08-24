@@ -319,6 +319,7 @@ describe('AdvisorView', () => {
         body: {
           message: 'I need to terminate an employee',
           conversation_id: null,
+          organization_id: null,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
       })

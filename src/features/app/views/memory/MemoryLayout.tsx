@@ -13,6 +13,7 @@ import type { ProductionEmployee } from '@/features/app/views/employees/producti
 import { listCases } from '@/features/app/views/cases/productionApi'
 import type { ProductionCase } from '@/features/app/views/cases/productionApi'
 import { listFacts } from './productionApi'
+import { listOwnConversations } from './conversationsApi'
 import { useMemoryStore } from './memoryStore'
 
 /**
@@ -193,34 +194,41 @@ function MemoryLayoutProduction() {
   const { organizationId } = useWorkspaceMode()
   const [employeesProd, setEmployeesProd] = useState<ProductionEmployee[]>([])
   const [casesProd, setCasesProd] = useState<ProductionCase[]>([])
-  const [threadIds, setThreadIds] = useState<string[]>([])
+  const [threadNav, setThreadNav] = useState<{ id: string; label: string }[]>([])
   const [reviewCount, setReviewCount] = useState(0)
 
   const load = useCallback(async () => {
     if (!organizationId) {
       setEmployeesProd([])
       setCasesProd([])
-      setThreadIds([])
+      setThreadNav([])
       setReviewCount(0)
       return
     }
     try {
-      const [emps, cases, facts] = await Promise.all([
+      const [emps, cases, facts, conversations] = await Promise.all([
         listEmployees(organizationId),
         listCases(organizationId),
         listFacts(organizationId),
+        listOwnConversations(12).catch(() => []),
       ])
       setEmployeesProd(emps)
       setCasesProd(cases)
       setReviewCount(facts.filter((f) => f.confidence === 'inferred').length)
-      const threads = [
-        ...new Set(facts.filter((f) => f.scope === 'thread').map((f) => f.entityId)),
-      ]
-      setThreadIds(threads)
+      const fromFacts = facts.filter((f) => f.scope === 'thread').map((f) => f.entityId)
+      const fromConvos = conversations.map((c) => c.id)
+      const ids = [...new Set([...fromConvos, ...fromFacts])]
+      setThreadNav(
+        ids.map((id) => {
+          const conv = conversations.find((c) => c.id === id)
+          const preview = conv?.messages.find((m) => m.role === 'user')?.content?.slice(0, 40)
+          return { id, label: preview && preview.length > 0 ? preview : id.slice(0, 8) }
+        }),
+      )
     } catch {
       setEmployeesProd([])
       setCasesProd([])
-      setThreadIds([])
+      setThreadNav([])
       setReviewCount(0)
     }
   }, [organizationId])
@@ -265,11 +273,11 @@ function MemoryLayoutProduction() {
     },
     {
       label: M.memory_nav_conversations,
-      items: threadIds.map((id) => ({
-        key: `thread-${id}`,
-        to: `/app/settings/memory/conversations/${id}`,
+      items: threadNav.map((t) => ({
+        key: `thread-${t.id}`,
+        to: `/app/settings/memory/conversations/${t.id}`,
         icon: MessageCircle,
-        label: id,
+        label: t.label,
       })),
     },
   ]

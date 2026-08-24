@@ -4,6 +4,11 @@ import { buildAdvisorResponse, detectJurisdictions } from './responsePayload.ts'
 import { noticeScheduleBlock } from './noticeSchedule.ts'
 import { buildRetrievalQuery } from './retrievalQuery.ts'
 import {
+  memoryBlock,
+  selectMemoryFactsForPrompt,
+} from './memoryFacts.ts'
+import type { MemoryFactForPrompt } from './memoryFacts.ts'
+import {
   advisorChatPolicy,
   claimAiUsage,
   finalizeAiUsage,
@@ -221,6 +226,61 @@ function guidanceBlock(chunks: GuidanceChunk[]): string {
     'not cover it, follow the statutory-precision rules above.\n' +
     items
   )
+}
+
+/**
+ * Load confirmed org memory for prompt injection. Failures return [] — memory
+ * must never take the Advisor down (same posture as corpus retrieval).
+ */
+async function loadOrgMemoryFacts(
+  adminClient: SupabaseClient,
+  organizationId: string | null,
+): Promise<MemoryFactForPrompt[]> {
+  if (!organizationId) return []
+  try {
+    const { data, error } = await adminClient
+      .from('hr_advisor_memory_facts')
+      .select(
+        'id, scope, entity_id, category, statement_en, statement_fr, source_type, visibility, sensitive, confidence',
+      )
+      .eq('organization_id', organizationId)
+      .eq('confidence', 'confirmed')
+      .eq('sensitive', false)
+      .is('forgotten_at', null)
+      .order('learned_at', { ascending: false })
+      .limit(40)
+    if (error) {
+      console.error('advisor-chat: memory facts load failed —', error.message)
+      return []
+    }
+    const rows = (data ?? []) as Array<{
+      id: string
+      scope: MemoryFactForPrompt['scope']
+      entity_id: string
+      category: string
+      statement_en: string
+      statement_fr: string
+      source_type: string
+      visibility: MemoryFactForPrompt['visibility']
+      sensitive: boolean
+      confidence: MemoryFactForPrompt['confidence']
+    }>
+    return rows.map((r) => ({
+      id: r.id,
+      scope: r.scope,
+      entityId: r.entity_id,
+      category: r.category,
+      statementEn: r.statement_en,
+      statementFr: r.statement_fr,
+      sourceType: r.source_type,
+      visibility: r.visibility,
+      sensitive: r.sensitive,
+      confidence: r.confidence,
+    }))
+  } catch (error) {
+    console.error('advisor-chat: memory facts load failed —', error)
+    return []
+  }
 }
 
 function serverConfig(): ServerConfig | Response {
@@ -497,10 +557,17 @@ Deno.serve(async (req: Request) => {
   /* Grounding: retrieved corpus entries, plus the encoded statutory notice
      schedule when the turn is recognizably an Ontario notice question — so
      the one figure the product has a table for is looked up, not generated
-     (§5.2's grounding half, finally wired into the chat path). */
+     (§5.2's grounding half, finally wired into the chat path). Confirmed
+     org memory (hr_advisor_memory_facts) is appended separately — workplace
+     context, never statute. */
+  const memoryFacts = selectMemoryFactsForPrompt(
+    await loadOrgMemoryFacts(authenticated.adminClient, request.organizationId),
+    conversation.id,
+  )
   const guidance =
     guidanceBlock(guidanceChunks) +
-    noticeScheduleBlock(request.message, detectJurisdictions(request.message))
+    noticeScheduleBlock(request.message, detectJurisdictions(request.message)) +
+    memoryBlock(memoryFacts)
 
   const completionResult = await requestCompletion(
     authenticated.adminClient,

@@ -232,7 +232,7 @@ export function AdvisorView() {
   const auth = useAuth()
   const { status: authStatus } = auth
   const workspaceModeCtx = useWorkspaceMode()
-  const { mode: workspaceMode } = workspaceModeCtx
+  const { mode: workspaceMode, organizationId } = workspaceModeCtx
   /* Real-backend conversation id for the active thread's free-form messages
      (see sendInThread) — reset alongside the engine whenever the thread
      changes. Scripted flows/quick-forms/follow-ups never touch this. */
@@ -643,7 +643,7 @@ export function AdvisorView() {
       if (authStatus === 'signed-in') {
         const userTextString = typeof userText === 'string' ? userText : userText.en
         setSendingReal(true)
-        void sendAdvisorMessage(userTextString, conversationIdRef.current)
+        void sendAdvisorMessage(userTextString, conversationIdRef.current, organizationId)
           .then((result) => {
             conversationIdRef.current = result.conversationId
             pushAdvisor({ text: result.reply || genericAck })
@@ -700,7 +700,7 @@ export function AdvisorView() {
       return
     }
     setSendingReal(true)
-    void sendAdvisorMessage(text, conversationIdRef.current)
+    void sendAdvisorMessage(text, conversationIdRef.current, organizationId)
       .then((result) => {
         conversationIdRef.current = result.conversationId
         pushAdvisor({ text: result.reply || genericAck })
