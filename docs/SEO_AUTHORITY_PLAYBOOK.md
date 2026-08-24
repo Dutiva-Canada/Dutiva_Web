@@ -152,14 +152,20 @@ Attribute as **Martin Constantineau, Founder & CEO**, always in full.
 
 ## What is deliberately not on this list
 
-**A termination-notice calculator.** An earlier version of this advice
+**A public termination-notice calculator.** An earlier version of this advice
 proposed one as a linkable asset. It is barred: publishing notice periods
 would violate the editorial rule in `articleModel.ts`, which is enforced at
 build time by `articles.test.ts` and exists precisely because a wrong
 statutory figure on an answer-engine-indexed page gets quoted onward without
-the disclaimer beside it. Any linkable tool has to work without publishing
-figures — a decision checklist or a jurisdiction-scoping questionnaire would
-qualify; a calculator would not.
+the disclaimer beside it. Any **public** linkable tool has to work without
+publishing figures — a decision checklist or a jurisdiction-scoping
+questionnaire would qualify; a figure-emitting calculator would not.
+
+**Workspace entitlement calculators — future (TODO.md EF11).** Interactive
+notice / eligibility / deadline calculators belong in the signed-in `/app`
+workspace, behind the standing disclaimer, grounded on the same tables the
+Advisor and Document Studio already use. That work is deferred; do not
+satisfy EF11 by putting figures on `/tools/*` marketing routes.
 
 **A jurisdiction-scoping questionnaire — built (D6, 2026-08-06).** Three
 questions determine whether Ontario (ESA), Quebec (LNT), or federal (Canada

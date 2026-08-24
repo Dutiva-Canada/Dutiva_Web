@@ -506,9 +506,10 @@ whether Ontario (ESA), Quebec (LNT), or federal (Canada Labour Code)
 employment standards likely apply. No statutory figures (notice periods,
 thresholds, deadlines) — names the statute and links to the official text.
 Live at `/tools/jurisdiction-check` (EN) and `/fr/outils/verification-juridiction`
-(FR), prerendered and in the sitemap. The termination-notice calculator
-remains ruled out (publishing notice periods violates the editorial rule in
-`articleModel.ts`). (PR #156)
+(FR), prerendered and in the sitemap. A **public** termination-notice
+calculator remains ruled out (publishing notice periods violates the
+editorial rule in `articleModel.ts`). Workspace calculators are deferred
+separately as EF11. (PR #156)
 
 **D8 — Score formula v3: task provenance and the obligations component.**
 Decided 2026-08-08 (owner: "go ahead with v3") and built the same day.
@@ -758,6 +759,40 @@ the external mobile nav handoff that supposedly specified a star is no
 longer accessible, so the inconsistency could not be verified as
 intentional. `Star` remains in use for pinned threads (matching the handoff)
 and workflow impact indicators. (PR #160)
+
+**EF11 — Workspace entitlement calculators (future).** _Build — deferred._
+Ship interactive calculators **inside the signed-in `/app` workspace** (not
+as public marketing pages). The jurisdiction-scoping questionnaire at
+`/tools/jurisdiction-check` stays the only public interactive tool; a
+**public** termination-notice calculator that publishes statutory figures
+remains barred (D6 / [SEO_AUTHORITY_PLAYBOOK.md](SEO_AUTHORITY_PLAYBOOK.md)
+§ "What is deliberately not on this list"; `articleModel.ts`).
+
+Already in place as building blocks (reuse; do not re-invent):
+
+- Ontario ESA s.57 notice bands —
+  `src/features/app/advisor/safety/statutoryNotice.ts`
+- Document Studio notice-floor check (advise, never autofill) —
+  `src/features/app/documents/statutoryFloor.ts`
+- Advisor reply cross-check —
+  `src/features/app/advisor/safety/statutoryCrossCheck.ts`
+
+Candidate first calculators (product can reorder):
+
+1. **Statutory notice weeks (workspace)** — tenure → floor weeks for ON;
+   QC/FED only after L6 populates `NOTICE_SCHEDULES` bands.
+2. **Severance eligibility gate (Ontario)** — payroll / headcount tests
+   before any dollar math (see [notice-bands-review-pack.md](notice-bands-review-pack.md)
+   §3 options A–C; prefer gate-only until legal signs figures).
+3. **Deadline / milestone trackers** — ROE timing, temporary-layoff caps,
+   leave return windows — dates and shape of the rule, with primary-source
+   links; no invented thresholds.
+
+Non-negotiables when this is built: bilingual `{en,fr}`; standing
+`Disclaimer` near every result; grounded tables only (null schedule → hedge,
+never invent); floors are floors not common-law advice; do not upgrade hedges
+into claims. Prefer a dedicated `/app/...` surface or a Workflows-adjacent
+tool card over a marketing `/tools/*` route that emits figures.
 
 ---
 

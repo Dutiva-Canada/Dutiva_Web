@@ -43,6 +43,7 @@ Every ID in TODO.md, and where it goes.
 | OA1, OA3–OA11                       | [Owner only](#owner-only) | Secret, dashboard, filing or vendor        |
 | L5, L9, EF1, D5, D6, V1 (live half) | [Owner only](#owner-only) |                                            |
 | EF6, EF6b, EF9                      | —                         | Already done; TODO keeps them as markers   |
+| EF11                                | —                         | Deferred future build (workspace calculators); see TODO.md |
 
 ---
 
@@ -817,5 +818,6 @@ them.
   Brief (see CANONICAL_FACTS § Claims to stop making 1).
 - **D6** — ~~whether a non-figure linkable asset is worth building.~~ Decided
   2026-08-06: built a jurisdiction-scoping questionnaire at
-  `/tools/jurisdiction-check`. The termination-notice calculator remains
-  ruled out (publishing notice periods violates the editorial rule).
+  `/tools/jurisdiction-check`. The **public** termination-notice calculator
+  remains ruled out (publishing notice periods violates the editorial rule).
+  Workspace entitlement calculators are deferred as **EF11** in TODO.md.
