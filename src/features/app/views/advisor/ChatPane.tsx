@@ -290,6 +290,7 @@ function AdvisorTurn({
                     text={message.text}
                     status={message.status}
                     streamedLen={message.streamedLen}
+                    memory={extras?.memory}
                   />
                 </ChatBubble>
                 {done && (

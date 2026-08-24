@@ -18,18 +18,11 @@ import { memoryMessages as M } from '@/i18n/messages/memory'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useAuth } from '@/features/app/auth/authContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
-import {
-  authorizeExport,
-  encodeInvisibleTag,
-  exportDenialMessage,
-  exportFilename,
-  triggerDownload,
-  watermarkNotice,
-} from '@/lib/exportProtection'
 import { cases, employees, memoryThreads } from '@/data'
 import type { MemoryFact, MemoryScope } from '@/data'
 import { MemoryFactRow } from './MemoryFactRow'
 import { MemoryManagerProductionView } from './MemoryManagerProductionView'
+import { exportMemoryRecord } from './exportMemoryRecord'
 import { useMemoryStore } from './memoryStore'
 
 /**
@@ -119,38 +112,17 @@ function MemoryManagerDemoView() {
      itself (the JSON equivalent of the document watermark; the invisible tag
      rides inside the notice string, where it survives re-serialization). */
   const exportRecord = async () => {
-    const content = JSON.stringify(facts, null, 2)
-    const title = pick(M.memory_mgr_export_title, lang)
-    const decision = await authorizeExport({
-      surface: 'memory',
-      kind: 'json',
-      title,
-      content,
+    const result = await exportMemoryRecord({
+      facts,
       lang,
       actorLabel: `${identity.user.name} (${identity.user.email})`,
       workspaceLabel: identity.companyName,
       session,
     })
-    if (!decision.allowed) {
-      showToast(exportDenialMessage(decision), 'info')
+    if (!result.ok) {
+      showToast(result.denial, 'info')
       return
     }
-    const { stamp } = decision
-    const payload = {
-      _export: {
-        export_id: stamp.exportId,
-        exported_by: stamp.actorLabel,
-        workspace: stamp.workspaceLabel,
-        exported_at: stamp.exportedAt.toISOString(),
-        content_sha256: decision.contentSha256,
-        notice: pick(watermarkNotice(stamp), lang) + encodeInvisibleTag(stamp.exportId),
-      },
-      facts,
-    }
-    triggerDownload(
-      exportFilename(title, 'json', stamp.exportedAt),
-      new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }),
-    )
     showToast(M.memory_mgr_export_toast, 'ok')
   }
 

@@ -6,6 +6,9 @@
  * Those candidates are stored as inferred facts (never auto-confirmed) and
  * stripped from the user-visible reply.
  *
+ * If the model omits the fence, `fallbackExtractFromTurn` can still queue
+ * inferred thread facts from clear user statements (heuristic, capped).
+ *
  * Pure and dependency-free so vitest can cover it without Deno.
  */
 
@@ -41,6 +44,9 @@ const SCOPES = new Set(['person', 'case', 'thread'])
 
 /** Max candidates accepted from one reply. */
 export const MEMORY_EXTRACT_CAP = 3
+
+/** Max candidates from the no-fence heuristic. */
+export const MEMORY_FALLBACK_CAP = 2
 
 export interface ParsedMemoryExtract {
   /** Reply with the dutiva-memory fence removed. */
@@ -107,6 +113,79 @@ export function parseMemoryExtract(
   return { cleanReply, candidates }
 }
 
+const DURABLE_CUE =
+  /\b(prefers?|prefer to|started|hired on|hired in|reports to|tenure|years?(?:\s+of)?\s+service|open matter|graduated return|works remotely|remote[- ]first|accommodation(?:\s+plan)?)\b/i
+const DURABLE_CUE_FR =
+  /\b(préfère|a commencé|embauché|relève de|ans de service|télétravail|plan d['’]accommodement)\b/i
+const SENSITIVE_CUE =
+  /\b(salary|wage|compensation|pay rate|diagnosis|medical|health|disability|salaire|rémunération|diagnostic|médical)\b/i
+const QUESTION_LEAD =
+  /^(what|how|when|where|why|who|is|are|can|should|do|does|did|could|would|quel|quelle|quels|quelles|comment|pourquoi|est-ce|puis-je)\b/i
+const STATUTE_CUE =
+  /\b(ESA|LNE|PIPEDA|Bardal|s\.\s*\d+|art\.\s*\d+|weeks?'?\s+notice|statutory)\b/i
+const ACK_IN_REPLY =
+  /\b(i'?ll (?:keep|remember|note)|noted|got it|i will remember|je (?:vais|viendrai) (?:retenir|noter)|c['’]est noté)\b/i
+
+/**
+ * When the model omitted the dutiva-memory fence, queue up to
+ * MEMORY_FALLBACK_CAP inferred thread facts from durable user statements.
+ * Never invents legal conclusions; marks compensation/health as sensitive.
+ */
+export function fallbackExtractFromTurn(
+  userMessage: string,
+  cleanReply: string,
+  conversationId: string,
+): ExtractedMemoryCandidate[] {
+  const user = userMessage.trim()
+  if (user.length < 12) return []
+  if (STATUTE_CUE.test(user)) return []
+
+  const sentences = user
+    .split(/(?<=[.!?])\s+|\n+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length >= 12)
+
+  const candidates: ExtractedMemoryCandidate[] = []
+  for (const sentence of sentences) {
+    if (candidates.length >= MEMORY_FALLBACK_CAP) break
+    if (sentence.endsWith('?') && QUESTION_LEAD.test(sentence)) continue
+    if (QUESTION_LEAD.test(sentence) && sentence.endsWith('?')) continue
+    if (!(DURABLE_CUE.test(sentence) || DURABLE_CUE_FR.test(sentence))) continue
+    /* Prefer turns where the model acknowledged retention, but still accept
+       a clear preference/tenure statement standing alone. */
+    const acknowledged = ACK_IN_REPLY.test(cleanReply)
+    if (
+      !acknowledged &&
+      !/\b(prefers?|reports to|started|hired|préfère|a commencé)\b/i.test(sentence)
+    ) {
+      continue
+    }
+    candidates.push({
+      scope: 'thread',
+      entityId: conversationId,
+      category: SENSITIVE_CUE.test(sentence) ? 'compensation' : 'note',
+      statementEn: sentence.slice(0, 280),
+      statementFr: sentence.slice(0, 280),
+      sensitive: SENSITIVE_CUE.test(sentence),
+    })
+  }
+  return candidates
+}
+
+/** Fence parse first; heuristic only when the fence yielded nothing. */
+export function extractMemoryCandidates(
+  reply: string,
+  userMessage: string,
+  conversationId: string,
+): ParsedMemoryExtract {
+  const parsed = parseMemoryExtract(reply, conversationId)
+  if (parsed.candidates.length > 0) return parsed
+  return {
+    cleanReply: parsed.cleanReply,
+    candidates: fallbackExtractFromTurn(userMessage, parsed.cleanReply, conversationId),
+  }
+}
+
 /** Prompt appendix when org memory extraction is enabled for the turn. */
 export function memoryExtractionPromptAppendix(): string {
   return (
@@ -120,7 +199,8 @@ export function memoryExtractionPromptAppendix(): string {
     '```\n' +
     'Rules: 0–3 objects; inferred candidates only (never invent); no statutory figures or ' +
     'legal conclusions; mark compensation/health as sensitive:true; omit the fence entirely ' +
-    'when there is nothing durable to remember. The fence is stripped before the user sees ' +
-    'the reply.'
+    'when there is nothing durable to remember. If you omit the fence, clear durable user ' +
+    'statements may still be queued as inferred for human review. The fence is stripped ' +
+    'before the user sees the reply.'
   )
 }

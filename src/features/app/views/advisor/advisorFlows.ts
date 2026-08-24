@@ -1,6 +1,7 @@
 import { bi } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import type { ChatFlowKey } from '@/data'
+import type { MemoryUsedRead } from '@/features/app/advisor/contract'
 import type { ScenarioBanner } from './advisorScenarios'
 
 /**
@@ -237,6 +238,8 @@ export interface MessageExtras {
   banner?: ScenarioBanner
   /** Render the ask-for-province chips under this turn. */
   provincePrompt?: boolean
+  /** Org memory used this turn — gold in-answer highlights in StreamedText. */
+  memory?: MemoryUsedRead | null
 }
 
 /**
