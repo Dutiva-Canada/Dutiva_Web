@@ -1,5 +1,5 @@
-import { BLOG_SECTIONS } from './blogContent'
-import { GUIDE_SECTIONS } from './guideContent'
+import { BLOG_SECTIONS } from './blogContent/index'
+import { GUIDE_SECTIONS } from './guideContent/index'
 import type { ArticleCollection, ArticleSection } from './articleModel'
 
 /**
@@ -27,5 +27,5 @@ export function articleSections(
   return pool[slug] ?? []
 }
 
-export { BLOG_SECTIONS } from './blogContent'
-export { GUIDE_SECTIONS } from './guideContent'
+export { BLOG_SECTIONS } from './blogContent/index'
+export { GUIDE_SECTIONS } from './guideContent/index'

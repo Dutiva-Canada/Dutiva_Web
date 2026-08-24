@@ -39,8 +39,9 @@ human or platform action** (not closable by engineering alone).
 
 | Status | Detail |
 | --- | --- |
-| **Complete this pass** | `GenerateScreen.tsx` split into `generateScreen/` (wizard UI, steps, `GenerateWizard`; shell ~108 lines). |
-| **Remaining** | `AdvisorView.tsx` (~1,165 lines) — helpers/hooks extraction recommended in a follow-up PR. Marketing `guideContent.ts` / `blogContent.ts` per-slug split is mechanical but deferred (zero behavior change). |
+| **Complete** | `GenerateScreen.tsx` split into `generateScreen/` (shell ~108 lines). |
+| **Complete this pass** | `AdvisorView` pure helpers → `advisorViewHelpers.ts` (+ colocated tests); marketing article bodies split into `guideContent/` and `blogContent/` (6 slugs each). |
+| **Remaining** | `AdvisorView.tsx` still ~900 lines (state/effects/handlers) — hook extraction is a follow-up PR. `style-src 'unsafe-inline'` requires inline-style refactor across ~25 components. |
 
 ## Testing
 
