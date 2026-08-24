@@ -553,11 +553,14 @@ owner/reviewer act, not an agent one.
 **L6 — Québec and Federal notice bands: deferred — hard hedges remain.**
 _Decision (2026-08-23)._ Qualified legal sign-off has not been obtained.
 `NOTICE_SCHEDULES` keeps `bands: null` for QC and FED; Document Studio and
-Advisor continue to hedge. The research pack is complete
+Advisor continue to hedge. Hedge-only QC/FED *workflows* ship under EF11
+(`/app/workflows/statutory-notice-quebec|federal`) — they do not populate
+bands. The research pack is complete
 ([notice-bands-review-pack.md](notice-bands-review-pack.md)); the interim
 product decision is recorded in
 [notice-bands-decision.md](notice-bands-decision.md). Population waits on
-§4 sign-off with an explicit **Yes** — not engineering time.
+§4 sign-off with an explicit **Yes** — not engineering time. EF11 eng-only
+scope is otherwise closed (TODO.md EF11).
 
 Two findings in it decide the question and were not visible from the code:
 
