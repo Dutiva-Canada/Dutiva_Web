@@ -41,6 +41,10 @@ import remarkGfm from 'remark-gfm'
 
 import { useI18n } from '@/i18n/context'
 import { advisorCore } from '@/i18n/messages/advisorCore'
+import {
+  highlightReactNodes,
+  type MemoryHighlightPhrase,
+} from '@/features/app/advisor/memoryHighlights'
 import { hideIncompleteTable } from './chatMarkdownUtils'
 import './chat-markdown.css'
 
@@ -87,6 +91,12 @@ function headerLabels(table?: HastNode): string[] {
 }
 
 const HeaderContext = createContext<readonly string[]>([])
+const MemoryHighlightContext = createContext<readonly MemoryHighlightPhrase[]>([])
+
+function Highlighted({ children }: { children?: ReactNode }) {
+  const phrases = useContext(MemoryHighlightContext)
+  return <>{highlightReactNodes(children, phrases)}</>
+}
 
 function cx(...parts: Array<string | undefined | false>): string {
   return parts.filter(Boolean).join(' ')
@@ -152,14 +162,26 @@ const components: Components = {
   h5: ({ children }) => <h6 className="cm-h cm-h4">{children}</h6>,
   h6: ({ children }) => <h6 className="cm-h cm-h4">{children}</h6>,
 
-  p: ({ children }) => <p className="cm-p">{children}</p>,
+  p: ({ children }) => (
+    <p className="cm-p">
+      <Highlighted>{children}</Highlighted>
+    </p>
+  ),
   // `className` is passed through so remark-gfm's task-list classes survive.
   ul: ({ children, className }) => <ul className={cx('cm-ul', className)}>{children}</ul>,
   ol: ({ children, className }) => <ol className={cx('cm-ol', className)}>{children}</ol>,
-  li: ({ children, className }) => <li className={cx('cm-li', className)}>{children}</li>,
+  li: ({ children, className }) => (
+    <li className={cx('cm-li', className)}>
+      <Highlighted>{children}</Highlighted>
+    </li>
+  ),
   hr: () => <hr className="cm-hr" />,
 
-  blockquote: ({ children }) => <blockquote className="cm-quote">{children}</blockquote>,
+  blockquote: ({ children }) => (
+    <blockquote className="cm-quote">
+      <Highlighted>{children}</Highlighted>
+    </blockquote>
+  ),
 
   a: ({ href, children }) => (
     <a className="cm-a" href={href} target="_blank" rel="noopener noreferrer nofollow">
@@ -185,7 +207,7 @@ const components: Components = {
   tr: MdRow,
   th: ({ children, style }) => (
     <th className="cm-th" style={style} scope="col">
-      {children}
+      <Highlighted>{children}</Highlighted>
     </th>
   ),
   td: ({ children, style, ...rest }) => (
@@ -194,7 +216,7 @@ const components: Components = {
       style={style}
       data-label={(rest as { 'data-label'?: string })['data-label']}
     >
-      {children}
+      <Highlighted>{children}</Highlighted>
     </td>
   ),
 
@@ -233,19 +255,28 @@ export interface ChatMarkdownProps {
   /** True while the reply is still arriving — suppresses half-built tables. */
   readonly streaming?: boolean
   readonly className?: string
+  /** Org memory phrases to gold-underline in prose (not code). */
+  readonly memoryHighlights?: readonly MemoryHighlightPhrase[]
 }
 
-export function ChatMarkdown({ children, streaming = false, className }: ChatMarkdownProps) {
+export function ChatMarkdown({
+  children,
+  streaming = false,
+  className,
+  memoryHighlights = [],
+}: ChatMarkdownProps) {
   const source = useMemo(
     () => (streaming ? hideIncompleteTable(children) : children),
     [children, streaming],
   )
 
   return (
-    <div className={className ? `cm-root ${className}` : 'cm-root'}>
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
-        {source}
-      </ReactMarkdown>
-    </div>
+    <MemoryHighlightContext.Provider value={memoryHighlights}>
+      <div className={className ? `cm-root ${className}` : 'cm-root'}>
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+          {source}
+        </ReactMarkdown>
+      </div>
+    </MemoryHighlightContext.Provider>
   )
 }

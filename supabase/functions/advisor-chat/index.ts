@@ -10,7 +10,7 @@ import {
 import type { MemoryFactForPrompt } from './memoryFacts.ts'
 import {
   memoryExtractionPromptAppendix,
-  parseMemoryExtract,
+  extractMemoryCandidates,
 } from './memoryExtract.ts'
 import type { ExtractedMemoryCandidate } from './memoryExtract.ts'
 import {
@@ -665,7 +665,7 @@ Deno.serve(async (req: Request) => {
 
   const rawReply = completionResult.completion.choices?.[0]?.message?.content ?? ''
   const extracted = request.organizationId
-    ? parseMemoryExtract(rawReply, conversation.id)
+    ? extractMemoryCandidates(rawReply, request.message, conversation.id)
     : { cleanReply: rawReply, candidates: [] as ExtractedMemoryCandidate[] }
   const reply = extracted.cleanReply
   if (request.organizationId && extracted.candidates.length > 0) {

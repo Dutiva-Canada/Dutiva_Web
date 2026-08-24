@@ -220,6 +220,7 @@ function scenarioExtras(turn: ScenarioTurn): MessageExtras {
   if ((turn.docs?.length ?? 0) > 0 && turn.response.route.documentsAllowed) extras.docs = turn.docs
   if ((turn.followups?.length ?? 0) > 0) extras.followups = turn.followups
   if (turn.provincePrompt === true) extras.provincePrompt = true
+  if (turn.response.memory != null) extras.memory = turn.response.memory
   return extras
 }
 
@@ -646,8 +647,14 @@ export function AdvisorView() {
         void sendAdvisorMessage(userTextString, conversationIdRef.current, organizationId)
           .then((result) => {
             conversationIdRef.current = result.conversationId
-            pushAdvisor({ text: result.reply || genericAck })
+            const turnId = pushAdvisor({ text: result.reply || genericAck })
             patchResponseState(id, { response: result.response })
+            if (result.response?.memory != null) {
+              updateExtras((prev) => ({
+                ...prev,
+                [turnId]: { ...prev[turnId], memory: result.response!.memory },
+              }))
+            }
           })
           .catch(handleRealChatFailure)
           .finally(() => setSendingReal(false))
@@ -703,8 +710,14 @@ export function AdvisorView() {
     void sendAdvisorMessage(text, conversationIdRef.current, organizationId)
       .then((result) => {
         conversationIdRef.current = result.conversationId
-        pushAdvisor({ text: result.reply || genericAck })
+        const turnId = pushAdvisor({ text: result.reply || genericAck })
         if (chatId !== null) patchResponseState(chatId, { response: result.response })
+        if (result.response?.memory != null) {
+          updateExtras((prev) => ({
+            ...prev,
+            [turnId]: { ...prev[turnId], memory: result.response!.memory },
+          }))
+        }
       })
       .catch(handleRealChatFailure)
       .finally(() => setSendingReal(false))

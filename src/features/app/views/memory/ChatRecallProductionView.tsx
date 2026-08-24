@@ -2,11 +2,16 @@ import { useCallback, useEffect, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Info, MessageCircle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import { pickL } from '@/i18n/core'
 import { memoryMessages as M } from '@/i18n/messages/memory'
 import { Disclaimer } from '@/components/Disclaimer'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
+import {
+  phrasesFromMemoryUsed,
+  segmentTextByMemoryPhrases,
+} from '@/features/app/advisor/memoryHighlights'
 import type { MemoryFact } from '@/data'
 import { MemoryFactRow } from './MemoryFactRow'
 import { getOwnConversation } from './conversationsApi'
@@ -16,11 +21,11 @@ import { confirmFact, correctFact, forgetFact, listFactsByEntity } from './produ
 /**
  * Conversation / thread memory in production — governed facts plus the
  * caller's own Advisor transcript from `conversations` when the thread id
- * matches. Demo gold-highlight RECALL_TURNS stay demo-only.
+ * matches. Assistant turns gold-underline phrases that match thread facts.
  */
 
 export function ChatRecallProductionView() {
-  const { x } = useI18n()
+  const { x, lang } = useI18n()
   const navigate = useNavigate()
   const { threadId } = useParams()
   const { showToast } = useToasts()
@@ -89,6 +94,15 @@ export function ChatRecallProductionView() {
   }
 
   const visibleTurns = turns.filter((t) => t.role === 'user' || t.role === 'assistant')
+  const highlightPhrases = phrasesFromMemoryUsed(
+    {
+      items: facts.map((f) => ({
+        factId: f.id,
+        label: f.statement,
+      })),
+    },
+    lang,
+  )
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
@@ -136,18 +150,39 @@ export function ChatRecallProductionView() {
               {x(M.memory_prod_transcript_title)}
             </div>
             <div className="flex flex-col gap-[10px] px-[14px] py-[12px]">
-              {visibleTurns.map((turn, i) => (
-                <div
-                  key={`${turn.role}-${i}`}
-                  className={`max-w-[92%] rounded-[12px] px-[12px] py-[9px] text-[13px] leading-normal ${
-                    turn.role === 'user'
-                      ? 'self-end bg-navy text-white'
-                      : 'self-start bg-inset text-text'
-                  }`}
-                >
-                  {turn.content}
-                </div>
-              ))}
+              {visibleTurns.map((turn, i) => {
+                if (turn.role === 'user') {
+                  return (
+                    <div
+                      key={`${turn.role}-${i}`}
+                      className="max-w-[92%] self-end rounded-[12px] bg-navy px-[12px] py-[9px] text-[13px] leading-normal text-white"
+                    >
+                      {turn.content}
+                    </div>
+                  )
+                }
+                const segments = segmentTextByMemoryPhrases(turn.content, highlightPhrases)
+                return (
+                  <div
+                    key={`${turn.role}-${i}`}
+                    className="max-w-[92%] self-start rounded-[12px] bg-inset px-[12px] py-[9px] text-[13px] leading-normal text-text"
+                  >
+                    {segments.map((seg, j) =>
+                      seg.factId === undefined ? (
+                        <span key={j}>{seg.text}</span>
+                      ) : (
+                        <span
+                          key={j}
+                          title={seg.title ?? pickL(facts.find((f) => f.id === seg.factId)?.statement ?? { en: seg.text, fr: seg.text }, lang)}
+                          className="cursor-help rounded-[3px] border-b-[1.5px] border-gold-dot bg-gold-bg px-[3px] py-px font-semibold text-gold-fg"
+                        >
+                          {seg.text}
+                        </span>
+                      ),
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}

@@ -145,6 +145,29 @@ const s1: AdvisorScenario = {
           bi('Severance · ESA threshold', 'Indemnité · seuil LNE'),
         ],
       },
+      memory: {
+        items: [
+          {
+            factId: 'demo-tenure',
+            label: bi("7 years' service", '7 ans de service'),
+          },
+          {
+            factId: 'demo-clause',
+            label: bi(
+              'no enforceable termination clause',
+              'clause de cessation exécutoire',
+            ),
+          },
+          {
+            factId: 'demo-notice',
+            label: bi('9–12 months', '9 à 12 mois'),
+          },
+        ],
+        note: bi(
+          'Demo memory — not a statutory source. Confirm or correct in Settings → Memory.',
+          'Mémoire démo — pas une source législative. Confirmez ou corrigez dans Réglages → Mémoire.',
+        ),
+      },
       webSearch: null,
       confidence: {
         label: bi('Moderate', 'Modérée'),

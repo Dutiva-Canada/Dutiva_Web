@@ -2,6 +2,8 @@ import { useI18n } from '@/i18n/context'
 import { pickL } from '@/i18n/core'
 import type { LText } from '@/i18n/core'
 import { ChatMarkdown } from '@/components/advisor/ChatMarkdown'
+import type { MemoryUsedRead } from './contract'
+import { phrasesFromMemoryUsed } from './memoryHighlights'
 import type { MessageStatus } from './types'
 
 /**
@@ -18,6 +20,9 @@ import type { MessageStatus } from './types'
  * `.cm-streaming` places it inline after the last block (chat-markdown.css)
  * instead of on a line of its own.
  *
+ * When the turn used org memory, matching phrases are gold-underlined after
+ * streaming completes (Advisor Memory chat-recall pattern).
+ *
  * Only assistant text goes through here. User messages stay plain text, so
  * nothing a user types is ever parsed as Markdown.
  */
@@ -25,15 +30,23 @@ export interface StreamedTextProps {
   readonly text: LText
   readonly status?: MessageStatus
   readonly streamedLen?: number
+  /** Confirmed memory injected this turn — drives gold in-answer highlights. */
+  readonly memory?: MemoryUsedRead | null
 }
 
-export function StreamedText({ text, status, streamedLen }: StreamedTextProps) {
+export function StreamedText({ text, status, streamedLen, memory }: StreamedTextProps) {
   const { lang } = useI18n()
   const full = pickL(text, lang)
   const streaming = status === 'streaming'
   const shown = streaming ? full.slice(0, streamedLen ?? 0) : full
+  const memoryHighlights =
+    !streaming && memory != null ? phrasesFromMemoryUsed(memory, lang) : []
   return (
-    <ChatMarkdown streaming={streaming} className={streaming ? 'cm-streaming' : undefined}>
+    <ChatMarkdown
+      streaming={streaming}
+      className={streaming ? 'cm-streaming' : undefined}
+      memoryHighlights={memoryHighlights}
+    >
       {shown}
     </ChatMarkdown>
   )

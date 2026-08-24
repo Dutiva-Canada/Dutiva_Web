@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import type { SubmitEvent } from 'react'
 import {
   Briefcase,
+  Clock,
+  FileText,
   History,
   Lightbulb,
   MessageCircle,
@@ -17,6 +19,7 @@ import type { Bi } from '@/i18n/core'
 import { memoryMessages as M } from '@/i18n/messages/memory'
 import { Disclaimer } from '@/components/Disclaimer'
 import { useToasts } from '@/features/app/toasts/toastsContext'
+import { useAuth } from '@/features/app/auth/authContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import { listEmployees } from '@/features/app/views/employees/productionApi'
@@ -25,6 +28,7 @@ import { listCases } from '@/features/app/views/cases/productionApi'
 import type { ProductionCase } from '@/features/app/views/cases/productionApi'
 import type { MemoryCategory, MemoryFact, MemoryScope } from '@/data'
 import { MemoryFactRow } from './MemoryFactRow'
+import { exportMemoryRecord } from './exportMemoryRecord'
 import {
   confirmFact,
   correctFact,
@@ -76,7 +80,8 @@ const labelClass = 'mb-[4px] block text-[12px] font-semibold text-text-3'
 export function MemoryManagerProductionView() {
   const { x, lang } = useI18n()
   const { showToast } = useToasts()
-  const { organizationId, isOrgAdmin } = useWorkspaceMode()
+  const { session } = useAuth()
+  const { organizationId, isOrgAdmin, identity } = useWorkspaceMode()
 
   const [facts, setFacts] = useState<MemoryFact[] | null>(null)
   const [audit, setAudit] = useState<ProductionMemoryAuditEntry[]>([])
@@ -234,6 +239,22 @@ export function MemoryManagerProductionView() {
     } finally {
       setForgetting(false)
     }
+  }
+
+  const exportRecord = async () => {
+    const result = await exportMemoryRecord({
+      facts: rows,
+      audit,
+      lang,
+      actorLabel: `${identity.user.name} (${identity.user.email})`,
+      workspaceLabel: identity.companyName,
+      session,
+    })
+    if (!result.ok) {
+      showToast(result.denial, 'info')
+      return
+    }
+    showToast(M.memory_mgr_export_toast, 'ok')
   }
 
   const onSubmit = async (e: SubmitEvent) => {
@@ -478,6 +499,21 @@ export function MemoryManagerProductionView() {
           </div>
 
           <aside className="flex w-full flex-none flex-col gap-[14px] lg:w-[316px]">
+            <div className="rounded-[13px] border border-border-soft bg-surface px-[15px] py-[14px]">
+              <div className="mb-[9px] flex items-center gap-[7px]">
+                <Clock size={14} strokeWidth={1.7} className="text-text-muted" aria-hidden="true" />
+                <div className="text-[12.5px] font-bold text-text">
+                  {x(M.memory_mgr_retention_title)}
+                </div>
+              </div>
+              <ul className="m-0 list-disc pl-[16px] text-[11.5px] leading-[1.65] text-text-muted">
+                <li>{x(M.memory_rail_retention_employment)}</li>
+                <li>{x(M.memory_rail_retention_case)}</li>
+                <li>{x(M.memory_rail_retention_thread)}</li>
+                <li>{x(M.memory_rail_retention_wellbeing)}</li>
+              </ul>
+            </div>
+
             <div className="rounded-[13px] border border-support-border bg-support-bg px-[15px] py-[14px]">
               <div className="mb-[8px] flex items-center gap-[7px]">
                 <ShieldCheck
@@ -520,6 +556,17 @@ export function MemoryManagerProductionView() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            <div className="flex flex-col gap-[8px]">
+              <button
+                type="button"
+                onClick={() => void exportRecord()}
+                className="flex cursor-pointer items-center justify-center gap-[7px] rounded-[10px] border border-border bg-surface p-[10px] font-sans text-[12.5px] font-bold text-text-2"
+              >
+                <FileText size={14} strokeWidth={1.7} aria-hidden="true" />
+                {x(M.memory_mgr_export)}
+              </button>
             </div>
 
             {isOrgAdmin && (
