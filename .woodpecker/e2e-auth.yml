@@ -1,6 +1,7 @@
 # End-to-end authenticated critical path — signed-in admin → Production mode →
-# Employees create. Isolated from hermetic e2e.yml so missing auth secrets
-# never charge against the credential-free gate.
+# production CRUD matrix (employees, cases, tasks, communications, memory).
+# Isolated from hermetic e2e.yml so missing auth secrets never charge against
+# the credential-free gate.
 #
 # Required Woodpecker secret:
 #   SUPABASE_SERVICE_ROLE_KEY — service role for seed + session mint

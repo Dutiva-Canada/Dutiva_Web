@@ -36,6 +36,22 @@ export const STATUS_LEVEL_COLOR: Record<ServiceStatusLevel, string> = {
   outage: '#dc2626',
 }
 
+/** CSP-safe status dot classes (pair with `.status-dot`). */
+export const STATUS_DOT_CLASS: Record<ServiceStatusLevel, string> = {
+  operational: 'status-dot-operational',
+  maintenance: 'status-dot-maintenance',
+  degraded: 'status-dot-degraded',
+  outage: 'status-dot-outage',
+}
+
+/** CSP-safe lucide icon tint classes. */
+export const STATUS_ICON_CLASS: Record<ServiceStatusLevel, string> = {
+  operational: 'status-icon-operational',
+  maintenance: 'status-icon-maintenance',
+  degraded: 'status-icon-degraded',
+  outage: 'status-icon-outage',
+}
+
 /** Severity order for rolling up an overall status (higher = worse). */
 const STATUS_SEVERITY: Record<ServiceStatusLevel, number> = {
   operational: 0,

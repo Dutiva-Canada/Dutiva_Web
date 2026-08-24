@@ -12,6 +12,7 @@ import {
   X,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { ProgressFill } from '@/components/ProgressFill'
 import { useI18n } from '@/i18n/context'
 import { keyOfL, pickL } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
@@ -221,15 +222,15 @@ function LockedState() {
 
 function RunningState() {
   const { x } = useI18n()
+  const pulseDelay = ['pulse-dot-delay-0', 'pulse-dot-delay-1', 'pulse-dot-delay-2'] as const
   return (
     <div className="p-[18px]">
       <div className="mb-[14px] flex items-center gap-[8px] text-[12px] text-text-muted">
         <span className="flex gap-[3px]" aria-hidden="true">
-          {[0, 1, 2].map((i) => (
+          {pulseDelay.map((delayClass) => (
             <span
-              key={i}
-              className="h-[5px] w-[5px] rounded-full bg-gold-dot motion-safe:animate-[pulseDot_1.1s_ease-in-out_infinite]"
-              style={{ animationDelay: `${i * 0.15}s` }}
+              key={delayClass}
+              className={`h-[5px] w-[5px] rounded-full bg-gold-dot motion-safe:animate-[pulseDot_1.1s_ease-in-out_infinite] ${delayClass}`}
             />
           ))}
         </span>
@@ -550,9 +551,9 @@ function ReadyState({ response, provincePrompt, onPickProvince, onToggleWeb }: R
             </span>
           </div>
           <div className="h-[6px] overflow-hidden rounded-[100px] bg-inset">
-            <div
-              className={`h-full rounded-[100px] ${comp.bar}`}
-              style={{ width: `${response.confidence.pct}%` }}
+            <ProgressFill
+              pct={response.confidence.pct}
+              className={`h-full w-full rounded-[100px] ${comp.bar.replace('bg-', 'text-')}`}
             />
           </div>
           {response.confidence.note !== undefined && (
@@ -660,7 +661,10 @@ function RiskMeter({
         <span className={`font-bold ${meter.text}`}>{levelLabel}</span>
       </div>
       <div className="h-[7px] overflow-hidden rounded-[100px] bg-inset">
-        <div className={`h-full rounded-[100px] ${meter.bar}`} style={{ width: `${meter.pct}%` }} />
+        <ProgressFill
+          pct={meter.pct}
+          className={`h-full w-full rounded-[100px] ${meter.bar.replace('bg-', 'text-')}`}
+        />
       </div>
     </div>
   )

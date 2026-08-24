@@ -7,7 +7,8 @@ import { seoRoute } from '@/seo/routes'
 import { supportMessages as M } from '@/i18n/messages/support'
 import {
   SERVICE_COMPONENTS,
-  STATUS_LEVEL_COLOR,
+  STATUS_DOT_CLASS,
+  STATUS_ICON_CLASS,
   STATUS_LEVEL_LABELS,
   getServiceStatus,
   overallStatus,
@@ -50,9 +51,9 @@ export function StatusPage() {
           role="status"
         >
           {allOk ? (
-            <CheckCircle2 size={22} aria-hidden="true" style={{ color: STATUS_LEVEL_COLOR.operational }} />
+            <CheckCircle2 size={22} aria-hidden="true" className={STATUS_ICON_CLASS.operational} />
           ) : (
-            <TriangleAlert size={22} aria-hidden="true" style={{ color: STATUS_LEVEL_COLOR[overall] }} />
+            <TriangleAlert size={22} aria-hidden="true" className={STATUS_ICON_CLASS[overall]} />
           )}
           <span className="text-[1.0625rem] font-semibold text-text">
             {x(allOk ? M.status_all_operational : M.status_some_issues)}
@@ -70,11 +71,7 @@ export function StatusPage() {
                   {componentLabel(row.component)}
                 </span>
                 <span className="inline-flex items-center gap-2 text-[0.8125rem] font-medium text-text-2">
-                  <span
-                    aria-hidden="true"
-                    className="h-2.5 w-2.5 flex-none rounded-full"
-                    style={{ backgroundColor: STATUS_LEVEL_COLOR[row.status] }}
-                  />
+                  <span aria-hidden="true" className={`status-dot ${STATUS_DOT_CLASS[row.status]}`} />
                   {x(STATUS_LEVEL_LABELS[row.status])}
                 </span>
               </div>

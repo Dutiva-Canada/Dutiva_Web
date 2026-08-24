@@ -23,8 +23,8 @@ export interface DoclibData {
   documents: GeneratedDoc[]
   employees: DocEmployee[]
   cases: DocCase[]
-  /** Which source served the data — always the bundled fixtures now. */
-  source: 'fixtures'
+  /** Which source served the data — fixtures for demo, catalogue-only shell in production. */
+  source: 'fixtures' | 'catalogue'
 }
 
 const FIXTURES: DoclibData = {
@@ -36,7 +36,18 @@ const FIXTURES: DoclibData = {
   source: 'fixtures',
 }
 
+/** Production shell — template catalogue only; no Northgate sample rows. */
+const PRODUCTION_CATALOGUE: DoclibData = {
+  templates: allTemplates,
+  categories: templateCategories,
+  documents: [],
+  employees: [],
+  cases: [],
+  source: 'catalogue',
+}
+
 let cache: Promise<DoclibData> | null = null
+let productionCache: Promise<DoclibData> | null = null
 
 /** Load the demo document library (bundled fixtures), resolved once per session. */
 export function loadDoclibData(): Promise<DoclibData> {
@@ -44,7 +55,14 @@ export function loadDoclibData(): Promise<DoclibData> {
   return cache
 }
 
+/** Load the production catalogue shell (templates only — no demo documents/people). */
+export function loadProductionDoclibCatalogue(): Promise<DoclibData> {
+  productionCache ??= Promise.resolve(PRODUCTION_CATALOGUE)
+  return productionCache
+}
+
 /** Test hook. */
 export function resetDoclibCache(): void {
   cache = null
+  productionCache = null
 }

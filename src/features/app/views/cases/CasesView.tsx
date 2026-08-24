@@ -6,6 +6,7 @@ import { pickL } from '@/i18n/core'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { casesMessages as M } from '@/i18n/messages/cases'
 import { statusChipClass } from '@/components/chips'
+import { ProgressFill } from '@/components/ProgressFill'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { barToneClass, listCases, addCreatedCase } from './caseModel'
 import type { WorkspaceCase } from './caseModel'
@@ -96,9 +97,9 @@ function CasesDemoView() {
                     </span>
                   </div>
                   <div className="h-[6px] overflow-hidden rounded-[100px] bg-inset">
-                    <div
-                      className={`h-[6px] rounded-[100px] ${barToneClass(c.tone)}`}
-                      style={{ width: `${pct}%` }}
+                    <ProgressFill
+                      pct={pct}
+                      className={`h-full w-full rounded-[100px] ${barToneClass(c.tone).replace('bg-', 'text-')}`}
                     />
                   </div>
                 </div>

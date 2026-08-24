@@ -46,6 +46,9 @@ govern what the product is allowed to assert.
 | [LAW_MONITORING.md](LAW_MONITORING.md) | How law-change monitoring works, the 2026-07-30 coverage audit, and why sweeping a page is not detecting an amendment on it. |
 | [LAW_CHANGE_NOTIFICATIONS.md](LAW_CHANGE_NOTIFICATIONS.md) | Internal-only weekly digest: decided and built 2026-08-06. Nothing sends until the owner deploy steps (§7 / TODO.md OA13) are done. |
 | [advisor-corpus-review-pack-ontario.md](advisor-corpus-review-pack-ontario.md) | The first human-review pass, prepared: all 14 Ontario chunks with figures to verify, priority order, and per-chunk sign-off SQL. Review itself is a human act (TODO L5). |
+| [notice-bands-review-pack.md](notice-bands-review-pack.md) | QC/FED statutory notice band research pack for qualified legal sign-off (TODO L6). |
+| [notice-bands-decision.md](notice-bands-decision.md) | Interim product decision to keep QC/FED at `bands: null` and hard UI hedges until sign-off. |
+| [GAP_AUDIT_STATUS.md](GAP_AUDIT_STATUS.md) | Engineering completion status for the cross-cutting gap audit (legal, product, architecture, security, maintainability, testing). |
 | [advisor-guidance-corpus-2026-07-26.md](advisor-guidance-corpus-2026-07-26.md) | Grounding corpus seed — ON/QC/FED termination notice. Machine-curated, pending human review. |
 | [advisor-guidance-corpus-2026-07-27.md](advisor-guidance-corpus-2026-07-27.md) | Second tranche — leaves, public holidays, hours of work, accommodation. |
 | [advisor-guidance-corpus-2026-07-29.md](advisor-guidance-corpus-2026-07-29.md) | Third tranche — pay & deductions, records retention, layoffs & recall, constructive dismissal, workplace injury. |
@@ -82,6 +85,13 @@ Editorial rule for public articles — no statutory figures, ever — is stated 
 | [SEO_ROUTE_MATRIX.md](SEO_ROUTE_MATRIX.md) | Every route, classified. Derived from the router. |
 | [SEO_AUTHORITY_PLAYBOOK.md](SEO_AUTHORITY_PLAYBOOK.md) | The off-site half: listings, associations, citations, and what is deliberately barred. |
 | [DEV_ANNOTATIONS.md](DEV_ANNOTATIONS.md) | The in-app annotation overlay for AI-assisted editing. Dev and preview only. |
+
+## Testing
+
+| Document | What it settles |
+| --- | --- |
+| [../e2e/README.md](../e2e/README.md) | Playwright suites: hermetic smoke (`npm run test:e2e`) and authenticated production CRUD (`npm run test:e2e:auth`), env vars, Woodpecker wiring, and the module-by-module matrix in `e2e/auth/critical-path.spec.ts`. |
+| [visual-qa-2026-08-23.md](visual-qa-2026-08-23.md) | Browser + Vitest + E2E pass matrix for the end-to-end polish pass (PRs #201–#203); what still needs a signed-in manual spot-check. |
 
 ## Support
 

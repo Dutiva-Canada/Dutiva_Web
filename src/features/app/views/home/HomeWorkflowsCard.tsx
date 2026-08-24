@@ -1,3 +1,4 @@
+import { ProgressFill } from '@/components/ProgressFill'
 import { useI18n } from '@/i18n/context'
 import { homeMessages as M } from '@/i18n/messages/home'
 import { statusChipBaseClass, chipToneClass } from '@/components/chips'
@@ -44,9 +45,9 @@ function WorkflowProgress({
   return (
     <div className={`flex items-center gap-[8px] ${gapTop}`}>
       <div className="h-[6px] flex-1 overflow-hidden rounded-full bg-inset">
-        <div
-          className="h-full rounded-full bg-navy"
-          style={{ width: `${Math.round((w.step / w.of) * 100)}%` }}
+        <ProgressFill
+          pct={Math.round((w.step / w.of) * 100)}
+          className="h-full w-full rounded-full text-navy"
         />
       </div>
       <span className="text-[11px] font-bold whitespace-nowrap text-text-3">{x(w.stepLabel)}</span>

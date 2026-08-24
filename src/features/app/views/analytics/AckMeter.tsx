@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { CheckCircle2, Send } from 'lucide-react'
+import { ProgressFill } from '@/components/ProgressFill'
 import { useI18n } from '@/i18n/context'
 import { analyticsMessages as M } from '@/i18n/messages/analytics'
 import type { AckProgress } from './aggregation'
@@ -40,7 +41,7 @@ export function AckMeter({
         aria-label={fill(x(M.analytics_ack_meter_aria), { signed: ack.signed, total: ack.total })}
         className="h-[10px] overflow-hidden rounded-[100px] bg-inset"
       >
-        <div className="h-full rounded-[100px] bg-chart-mark" style={{ width: `${ack.pct}%` }} />
+        <ProgressFill pct={ack.pct} className="h-full w-full rounded-[100px] text-chart-mark" />
       </div>
       {suggestion !== null ? (
         nudgeHref ? (

@@ -32,13 +32,18 @@ The allowed origins:
 - **GA4** — `googletagmanager.com`, `google-analytics.com`, `region1.google-analytics.com` (consent-gated).
 - **CAPTCHA** — Turnstile (`challenges.cloudflare.com` and `*.challenges.cloudflare.com`) and hCaptcha (`js.hcaptcha.com`, `newassets.hcaptcha.com`, `api.hcaptcha.com`).
 
-`script-src` and `style-src` still include `'unsafe-inline'` because the
-app ships inline bootstrap scripts (the fragment-forwarder in `index.html`)
-and React inline style attributes. The next hardening step is to hash or
-externalize those scripts and remove `'unsafe-inline'`.
+`script-src` no longer includes `'unsafe-inline'` (2026-08-23): bootstrap
+scripts moved to `/bootstrap-auth.js` and `/bootstrap-theme.js`. `style-src`
+no longer includes `'unsafe-inline'` (2026-08-23): React inline `style={{…}}`
+attributes were replaced with Tailwind utilities, SVG geometry (`ProgressFill`),
+and colocated CSS classes. Prerendered marketing pages allow one hashed inline
+script for React Router static hydration data (`__staticRouterHydrationData`).
 
 ### Ongoing CSP hygiene
 
+- Hermetic regression: `e2e/csp.spec.ts` (via `npm run test:e2e`) fails on
+  `script-src` or `style-src` console violations on marketing load and `/app`
+  welcome — run after any inline-script or inline-style change.
 - Re-test after any new third-party integration, new font origin, or inline
   script change.
 - If a new origin is needed, add it to the matching directive in

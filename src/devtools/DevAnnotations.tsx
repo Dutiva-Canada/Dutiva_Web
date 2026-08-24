@@ -30,11 +30,9 @@ const STYLE = `
 .ddv-root { position: fixed; inset: 0; z-index: ${Z}; pointer-events: none;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #e6edf3; }
 .ddv-root * { box-sizing: border-box; }
-.ddv-hl { position: fixed; z-index: ${Z}; pointer-events: none; border: 2px solid #6ea8fe;
-  background: rgba(110,168,254,.14); border-radius: 3px; transition: all .04s linear; }
-.ddv-hl-label { position: absolute; top: -22px; left: -2px; white-space: nowrap;
-  background: #1f6feb; color: #fff; font-size: 11px; line-height: 1; padding: 4px 6px;
-  border-radius: 4px; font-family: ui-monospace, monospace; }
+.ddv-hl-svg { position: fixed; inset: 0; z-index: ${Z}; pointer-events: none; width: 100%; height: 100%; }
+.ddv-hl-rect { fill: rgba(110,168,254,.14); stroke: #6ea8fe; stroke-width: 2; }
+.ddv-hl-label-svg { fill: #fff; font-size: 11px; font-family: ui-monospace, monospace; }
 .ddv-banner { position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
   pointer-events: none; background: #1f6feb; color: #fff; font-size: 12px; font-weight: 600;
   padding: 7px 12px; border-radius: 100px; box-shadow: 0 4px 14px rgba(0,0,0,.35); }
@@ -243,17 +241,31 @@ export default function DevAnnotations() {
   const overlay = (
     <div ref={rootRef} className="ddv-root" data-dev-annotations="">
       {highlight && (
-        <div
-          className="ddv-hl"
-          style={{
-            top: highlight.rect.top,
-            left: highlight.rect.left,
-            width: highlight.rect.width,
-            height: highlight.rect.height,
-          }}
-        >
-          <span className="ddv-hl-label">{highlight.label}</span>
-        </div>
+        <svg className="ddv-hl-svg" aria-hidden="true">
+          <rect
+            x={highlight.rect.left - 2}
+            y={highlight.rect.top - 2}
+            width={highlight.rect.width + 4}
+            height={highlight.rect.height + 4}
+            rx={3}
+            className="ddv-hl-rect"
+          />
+          <rect
+            x={highlight.rect.left - 2}
+            y={highlight.rect.top - 24}
+            width={Math.max(highlight.label.length * 7 + 12, 40)}
+            height={18}
+            rx={4}
+            fill="#1f6feb"
+          />
+          <text
+            x={highlight.rect.left + 4}
+            y={highlight.rect.top - 11}
+            className="ddv-hl-label-svg"
+          >
+            {highlight.label}
+          </text>
+        </svg>
       )}
 
       {annotating && (

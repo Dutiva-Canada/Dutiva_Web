@@ -3,7 +3,7 @@ import { useI18n } from '@/i18n/context'
 import { supportMessages as M } from '@/i18n/messages/support'
 import {
   SERVICE_COMPONENTS,
-  STATUS_LEVEL_COLOR,
+  STATUS_DOT_CLASS,
   STATUS_LEVEL_LABELS,
   getServiceStatus,
   setServiceStatus,
@@ -59,11 +59,7 @@ export function ServiceStatusControl() {
         {rows.map((row) => (
           <div key={row.component} className="flex flex-wrap items-center gap-[8px]">
             <span className="flex w-[120px] flex-none items-center gap-[7px] text-[13px] text-text">
-              <span
-                aria-hidden="true"
-                className="h-2.5 w-2.5 flex-none rounded-full"
-                style={{ backgroundColor: STATUS_LEVEL_COLOR[row.status] }}
-              />
+              <span aria-hidden="true" className={`status-dot ${STATUS_DOT_CLASS[row.status]}`} />
               {label(row.component)}
             </span>
             <select

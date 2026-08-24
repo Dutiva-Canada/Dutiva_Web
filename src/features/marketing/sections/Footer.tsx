@@ -97,7 +97,7 @@ export function Footer() {
       <div className="mx-auto flex max-w-[1200px] flex-wrap gap-8 px-6 py-12">
         <div className="min-w-[220px] flex-1 basis-[260px]">
           <div className="flex items-center gap-2.5">
-            <LeafTile size={40} radius={11} leafHeight={28} />
+            <LeafTile variant="footer" />
             <Wordmark />
           </div>
           <p className="mt-3 max-w-[42ch] text-sm leading-[1.6] text-text-2">

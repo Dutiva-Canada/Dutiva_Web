@@ -187,13 +187,7 @@ function CaseMemoryDemoView() {
                 entry.kind === 'gap' ? (
                   <div key={`${entry.kind}-${entry.label.en}`} className="flex items-center gap-[12px] py-[6px] pl-px">
                     <div className="flex w-[11px] justify-center">
-                      <div
-                        className="h-[22px] w-[2px]"
-                        style={{
-                          background:
-                            'repeating-linear-gradient(var(--ink) 0 3px, transparent 3px 7px)',
-                        }}
-                      />
+                      <div className="memory-timeline-gap-line h-[22px] w-[2px]" />
                     </div>
                     <span className="text-[11.5px] font-semibold text-text-faint">
                       {pick(entry.label, lang)}

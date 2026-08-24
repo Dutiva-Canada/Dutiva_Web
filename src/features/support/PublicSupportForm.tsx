@@ -396,8 +396,7 @@ export function PublicSupportForm({ initialTopic }: { readonly initialTopic?: Su
         <button
           type="submit"
           disabled={submitting}
-          className="gold-button disabled:opacity-60"
-          style={{ minHeight: 46, padding: '0 22px', fontSize: '0.9375rem' }}
+          className="gold-button gold-button-lg disabled:opacity-60"
         >
           {submitting ? x(M.support_submitting) : x(M.support_submit)}
         </button>

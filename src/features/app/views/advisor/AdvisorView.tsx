@@ -1,15 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { bi, pick } from '@/i18n/core'
-import type { Bi, LText } from '@/i18n/core'
-import {
-  getOwnConversation,
-  listOwnConversations,
-} from '@/features/app/views/memory/conversationsApi'
-import type { ProductionConversation } from '@/features/app/views/memory/conversationsApi'
-import { useI18n } from '@/i18n/context'
+import { bi } from '@/i18n/core'
+import type { LText } from '@/i18n/core'
+import { getOwnConversation } from '@/features/app/views/memory/conversationsApi'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
-import { exportProtectionMessages as XP } from '@/i18n/messages/exportProtection'
 import { useAdvisorEngine } from '@/features/app/advisor/useAdvisorEngine'
 import type { AdvisorTurnSpec, ChatMessage, ToneCardData } from '@/features/app/advisor/types'
 import { useAuth } from '@/features/app/auth/authContext'
@@ -22,11 +16,6 @@ import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import {
-  authorizeExport,
-  encodeInvisibleTag,
-  exportDenialMessage,
-} from '@/lib/exportProtection'
-import {
   chats,
   followupFallbackText,
   followupReplies,
@@ -38,9 +27,7 @@ import { AdvisorHome } from './AdvisorHome'
 import { ChatPane } from './ChatPane'
 import type { JurisdictionPillTone } from './ChatPane'
 import { ComplianceWorkspace } from './ComplianceWorkspace'
-import type { WorkspaceState } from './ComplianceWorkspace'
 import { ThreadList } from './ThreadList'
-import type { ThreadGroup } from './ThreadList'
 import {
   estimatorFollowup,
   fallbackChips,
@@ -49,24 +36,43 @@ import {
   flowTitles,
   freshQuickForm,
   genericAck,
-  routeFlowKeyFromText,
   terminationAssessment,
   terminationIntro,
 } from './advisorFlows'
 import {
-  advisorScenarioList,
   advisorScenarios,
   routeScenarioFromText,
   scenarioAck,
   scenarioAckSignedOut,
 } from './advisorScenarios'
-import type { AdvisorScenario, ScenarioId, ScenarioTurn } from './advisorScenarios'
+import type { ScenarioId, ScenarioTurn } from './advisorScenarios'
 import { readNavNewChat, readNavStartFlow } from './advisorNav'
-import type { AdvisorStartFlowNavState } from './advisorNav'
 import { advisorSession } from './advisorSession'
-import type { SessionChat, ThreadResponseState } from './advisorSession'
 import type { FlowKeyOrFallback, MessageExtras, SuggestChipSpec } from './advisorFlows'
 import type { HomeAction } from '@/features/app/views/home/homeData'
+import {
+  buildAdvisorThreadEntries,
+  buildAdvisorThreadGroups,
+  freshResponseState,
+  isBackendConversationId,
+  productionTranscript,
+  readNavChatId,
+  resolveJurisdictionTone,
+  resolveScenarioTurn,
+  resolveStartFlowKey,
+  resolveWorkspaceState,
+  scenarioExtras,
+  scenarioForResponseState,
+  scenarioForThread,
+  seedExtras,
+  seedId,
+  settle,
+  supportiveCrisisResponse,
+  supportiveJurisdictionLine,
+} from './advisorViewHelpers'
+import { useAdvisorMessageActions } from './useAdvisorMessageActions'
+import { useAdvisorProductionThreads } from './useAdvisorProductionThreads'
+import { useAdvisorThreadSession } from './useAdvisorThreadSession'
 
 /**
  * Advisor view — the full-page AI chat (prototype `isAdvisorView`):
@@ -85,254 +91,53 @@ import type { HomeAction } from '@/features/app/views/home/homeData'
  * thread on mount / on search navigation.
  */
 
-/**
- * Engine message-id prefix. `pushUser`/`pushAdvisor` mirror the engine's
- * sequential id scheme (`${idPrefix}-${n}`, one increment per created
- * message) so per-message extras (docs / follow-ups / quick form) can be
- * keyed by id before the state update lands.
- */
-const ENGINE_PREFIX = 'advmsg'
-
-const seedId = (chatId: string, messageId: string) => `seed-${chatId}-${messageId}`
-
-/** Doc/follow-up chips on the seeded transcripts, keyed by seed message id. */
-const seedExtras: Record<string, MessageExtras> = {}
-for (const chat of chats) {
-  for (const m of chat.messages) {
-    if ((m.docs?.length ?? 0) > 0 || (m.followups?.length ?? 0) > 0) {
-      seedExtras[seedId(chat.id, m.id)] = { docs: m.docs, followups: m.followups }
-    }
-  }
-}
-
-/**
- * The six demo response-mode threads (Advisor chat handoff scenarios) —
- * always listed; their transcript + workspace payload seed on first select.
- */
-const scenarioThreadId = (id: ScenarioId) => `scn-${id}`
-
-const scenarioThreads = advisorScenarioList.map((scenario) => ({
-  id: scenarioThreadId(scenario.id),
-  scenario,
-}))
-
-function scenarioForThread(chatId: string | null): AdvisorScenario | undefined {
-  return scenarioThreads.find((t) => t.id === chatId)?.scenario
-}
-
-const freshResponseState = (scenarioId: ScenarioId | null): ThreadResponseState => ({
-  scenarioId,
-  provinceResolved: false,
-  webOn: true,
-  response: null,
-})
-
-/* Maintained supportive workspace payload for crisis turns — the s5 wellbeing
-   scenario's (support notice on, every gate off), reused so the crisis
-   framing stays single-sourced rather than duplicated. Same for the pill
-   line ("Supportive — not a compliance matter"). */
-const supportiveCrisisResponse = advisorScenarios.s5.turn.response
-const supportiveJurisdictionLine = advisorScenarios.s5.turn.jurisdictionLine
-
-/** Freeze in-flight turns when a thread is stashed (switching threads). */
-function settle(messages: ChatMessage[]): ChatMessage[] {
-  return messages.map((m) =>
-    m.status === 'thinking' || m.status === 'streaming'
-      ? { ...m, status: 'done' as const, streaming: false, streamedLen: undefined }
-      : m,
-  )
-}
-
-function readNavChatId(state: unknown): string | null {
-  if (state !== null && typeof state === 'object' && 'chatId' in state) {
-    const value = (state as { chatId?: unknown }).chatId
-    if (typeof value === 'string') return value
-  }
-  return null
-}
-
-function resolveStartFlowKey(
-  start: AdvisorStartFlowNavState,
-  authStatus: ReturnType<typeof useAuth>['status'],
-): FlowKeyOrFallback {
-  if (start.flowKey) return start.flowKey
-  if (authStatus === 'signed-in') return 'fallback'
-  return routeFlowKeyFromText(typeof start.prompt === 'string' ? start.prompt : start.prompt.en)
-}
-
-function resolveScenarioTurn(
-  scenario: AdvisorScenario | undefined,
-  state: ThreadResponseState | undefined,
-): ScenarioTurn | undefined {
-  if (!scenario) return undefined
-  if (scenario.resolved && state?.provinceResolved === true) return scenario.resolved
-  if (scenario.webOff && state?.webOn === false) return scenario.webOff
-  return scenario.turn
-}
-
-function resolveJurisdictionTone(turn: ScenarioTurn | undefined): JurisdictionPillTone {
-  if (!turn) return 'gold'
-  if (turn.response.route.responseMode === 'supportive') return 'support'
-  return turn.response.jurisdiction.status === 'unknown' ? 'warn' : 'gold'
-}
-
-function resolveWorkspaceState(
-  authStatus: ReturnType<typeof useAuth>['status'],
-  busy: boolean,
-  activeResponse: ThreadResponseState['response'] | undefined,
-  currentScenarioTurn: ScenarioTurn | undefined,
-): WorkspaceState {
-  if (authStatus !== 'signed-in') return { kind: 'locked' }
-  /* AGENT.md §8: while a supportive payload governs the thread (crisis
-     intercept, s5 wellbeing scenario), the workspace holds the support
-     notice — never the HR "routing · retrieving" running state. */
-  if (activeResponse?.supportNotice === true) {
-    return { kind: 'ready', response: activeResponse, provincePrompt: false }
-  }
-  if (busy) return { kind: 'running' }
-  if (activeResponse !== null && activeResponse !== undefined) {
-    return {
-      kind: 'ready',
-      response: activeResponse,
-      provincePrompt: currentScenarioTurn?.provincePrompt === true,
-    }
-  }
-  return { kind: 'idle' }
-}
-
-function scenarioForResponseState(
-  state: ThreadResponseState | undefined,
-): AdvisorScenario | undefined {
-  return state?.scenarioId == null ? undefined : advisorScenarios[state.scenarioId]
-}
-
-function isBackendConversationId(id: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
-}
-
-function bucketFromUpdatedAt(updatedAt: string): 'today' | 'week' | 'older' {
-  const updated = new Date(updatedAt)
-  const now = new Date()
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const startOfWeek = new Date(startOfToday)
-  startOfWeek.setDate(startOfWeek.getDate() - 7)
-  if (updated >= startOfToday) return 'today'
-  if (updated >= startOfWeek) return 'week'
-  return 'older'
-}
-
-function conversationTitle(messages: { role: string; content: string }[]): Bi {
-  const firstUser = messages.find((m) => m.role === 'user')?.content?.trim()
-  if (!firstUser) return bi('Advisor conversation', 'Conversation du Conseiller')
-  const clipped = firstUser.length > 72 ? `${firstUser.slice(0, 69)}…` : firstUser
-  return bi(clipped, clipped)
-}
-
-function productionTranscript(conv: ProductionConversation): ChatMessage[] {
-  return conv.messages
-    .filter((m) => m.role === 'user' || m.role === 'assistant')
-    .map((m, i) => ({
-      id: `prod-${conv.id}-${i}`,
-      author: m.role === 'user' ? ('user' as const) : ('assistant' as const),
-      text: m.content,
-      status: 'done' as const,
-    }))
-}
-
-function resolveInitialActiveChatId(
-  locationState: unknown,
-  workspaceMode: ReturnType<typeof useWorkspaceMode>['mode'],
-): string | null {
-  const navId = readNavChatId(locationState)
-  if (navId !== null) {
-    if (workspaceMode === 'production') return navId
-    if (chats.some((chat) => chat.id === navId)) return navId
-  }
-
-  const resumed = advisorSession.activeChatId
-  if (resumed === null) return null
-  const canResume =
-    chats.some((chat) => chat.id === resumed) ||
-    advisorSession.chats.some((chat) => chat.id === resumed) ||
-    scenarioForThread(resumed) !== undefined ||
-    (workspaceMode === 'production' && isBackendConversationId(resumed))
-  return canResume ? resumed : null
-}
-
-function scenarioExtras(turn: ScenarioTurn): MessageExtras {
-  const extras: MessageExtras = {}
-  if (turn.banner) extras.banner = turn.banner
-  if ((turn.docs?.length ?? 0) > 0 && turn.response.route.documentsAllowed) extras.docs = turn.docs
-  if ((turn.followups?.length ?? 0) > 0) extras.followups = turn.followups
-  if (turn.provincePrompt === true) extras.provincePrompt = true
-  if (turn.response.memory != null) extras.memory = turn.response.memory
-  return extras
-}
-
 export function AdvisorView() {
   const navigate = useNavigate()
   const location = useLocation()
   const { showToast } = useToasts()
   const { openDocStudio } = useDocStudio()
-  const { lang } = useI18n()
   const auth = useAuth()
   const { status: authStatus } = auth
   const workspaceModeCtx = useWorkspaceMode()
   const { mode: workspaceMode, organizationId } = workspaceModeCtx
-  /* Real-backend conversation id for the active thread's free-form messages
-     (see sendInThread) — reset alongside the engine whenever the thread
-     changes. Scripted flows/quick-forms/follow-ups never touch this. */
-  const conversationIdRef = useRef<string | null>(null)
   const [sendingReal, setSendingReal] = useState(false)
-  const [prodThreads, setProdThreads] = useState<ProductionConversation[]>([])
-  const [prodThreadsLoaded, setProdThreadsLoaded] = useState(false)
-  const pendingNavChatIdRef = useRef<string | null>(null)
-  const activeChatIdRef = useRef<string | null>(null)
-
-  /* Session-scoped state lives in the advisorSession module store so
-     conversations survive navigating away and back (prototype app-level
-     state); the local useState mirrors it for rendering. */
-  const [sessionChats, setSessionChats] = useState<SessionChat[]>(() => advisorSession.chats)
-  const updateSessionChats = (updater: (prev: SessionChat[]) => SessionChat[]) => {
-    setSessionChats((prev) => {
-      const next = updater(prev)
-      advisorSession.chats = next
-      return next
-    })
-  }
-  const [extras, setExtras] = useState<Record<string, MessageExtras>>(() => advisorSession.extras)
-  const updateExtras = (
-    updater: (prev: Record<string, MessageExtras>) => Record<string, MessageExtras>,
-  ) => {
-    setExtras((prev) => {
-      const next = updater(prev)
-      advisorSession.extras = next
-      return next
-    })
-  }
-  /* Per-thread response-experience state (scenario, province, web toggle,
-     latest structured payload) — mirrors advisorSession like extras. */
-  const [responseState, setResponseState] = useState<Record<string, ThreadResponseState>>(
-    () => advisorSession.responseState,
-  )
-  const patchResponseState = (chatId: string, patch: Partial<ThreadResponseState>) => {
-    setResponseState((prev) => {
-      const current = prev[chatId] ?? freshResponseState(null)
-      const next = { ...prev, [chatId]: { ...current, ...patch } }
-      advisorSession.responseState = next
-      return next
-    })
-  }
+  const {
+    sessionChats,
+    updateSessionChats,
+    extras,
+    updateExtras,
+    responseState,
+    setResponseState,
+    patchResponseState,
+    activeChatId,
+    updateActiveChatId: setActiveChatIdBase,
+    activeChatIdRef,
+    transcripts,
+    enginePrefix,
+  } = useAdvisorThreadSession(location.state, workspaceMode)
+  const selectChatRef = useRef<(chatId: string) => void>(() => {})
   /* Compliance Workspace as a sheet below the xl breakpoint. */
   const [workspaceOpen, setWorkspaceOpen] = useState(false)
-  const transcripts = useRef(advisorSession.transcripts)
+  const updateActiveChatId = (id: string | null) => {
+    setActiveChatIdBase(id)
+    setWorkspaceOpen(false)
+  }
+  const {
+    prodThreads,
+    conversationIdRef,
+    pendingNavChatIdRef,
+    bindBackendConversationId,
+  } = useAdvisorProductionThreads({
+    workspaceMode,
+    activeChatIdRef,
+    updateActiveChatId,
+    updateSessionChats,
+    transcripts,
+    setResponseState,
+    selectChatRef,
+  })
+  const { handleCopyMessage, handleExportMessage } = useAdvisorMessageActions()
   const nextEngineId = useRef(1)
-  /* Per-mount engine prefix — restored transcript ids never collide with the
-     freshly-mounted engine's sequence. */
-  const enginePrefixRef = useRef<string | null>(null)
-  enginePrefixRef.current ??= `${ENGINE_PREFIX}m${advisorSession.mountSeq++}`
-  const enginePrefix = enginePrefixRef.current
-  const selectChatRef = useRef<(chatId: string) => void>(() => {})
   const startFlowRef = useRef<(flowKey: FlowKeyOrFallback, userText: LText) => void>(() => {})
   const newConversationRef = useRef<() => void>(() => {})
   /* Last-handled router state (by identity) — guards StrictMode double-runs
@@ -392,74 +197,6 @@ export function AdvisorView() {
   }
 
   /* --------------------------------------------------------------- engine */
-
-  /* No explicit navigation target — resume the thread that was open when
-     the view last unmounted (prototype app-level activeChatId). */
-  const [activeChatId, setActiveChatId] = useState<string | null>(() =>
-    resolveInitialActiveChatId(location.state, workspaceMode),
-  )
-  const updateActiveChatId = (id: string | null) => {
-    advisorSession.activeChatId = id
-    activeChatIdRef.current = id
-    setActiveChatId(id)
-    setWorkspaceOpen(false)
-  }
-
-  activeChatIdRef.current = activeChatId
-
-  useEffect(() => {
-    if (workspaceMode !== 'production') {
-      setProdThreads([])
-      setProdThreadsLoaded(false)
-      return
-    }
-    setProdThreadsLoaded(false)
-    void listOwnConversations(50)
-      .then(setProdThreads)
-      .catch(() => setProdThreads([]))
-      .finally(() => setProdThreadsLoaded(true))
-  }, [workspaceMode])
-
-  const migrateThreadId = (oldId: string, newId: string) => {
-    if (oldId === newId) return
-    updateSessionChats((prev) => {
-      const seen = new Set<string>()
-      return prev
-        .map((c) => (c.id === oldId ? { ...c, id: newId } : c))
-        .filter((c) => {
-          if (seen.has(c.id)) return false
-          seen.add(c.id)
-          return true
-        })
-    })
-    const stashed = transcripts.current.get(oldId)
-    if (stashed) {
-      transcripts.current.set(newId, stashed)
-      transcripts.current.delete(oldId)
-    }
-    setResponseState((prev) => {
-      const moved = prev[oldId]
-      if (moved === undefined) return prev
-      const { [oldId]: _removed, ...rest } = prev
-      const next = { ...rest, [newId]: moved }
-      advisorSession.responseState = next
-      return next
-    })
-    if (activeChatIdRef.current === oldId) updateActiveChatId(newId)
-    conversationIdRef.current = newId
-    setProdThreads((prev) => {
-      if (prev.some((t) => t.id === newId)) return prev
-      return [{ id: newId, messages: [], updatedAt: new Date().toISOString() }, ...prev]
-    })
-  }
-
-  const bindBackendConversationId = (threadId: string | null, backendId: string) => {
-    if (threadId !== null && threadId.startsWith('session-') && backendId !== threadId) {
-      migrateThreadId(threadId, backendId)
-      return
-    }
-    conversationIdRef.current = backendId
-  }
 
   const initialMessages = useRef<ChatMessage[] | null>(null)
   initialMessages.current ??=
@@ -644,14 +381,6 @@ export function AdvisorView() {
     pendingNavChatIdRef.current = chatId
     selectChatRef.current(chatId)
   }, [location.state, location.pathname, navigate])
-
-  useEffect(() => {
-    if (workspaceMode !== 'production' || !prodThreadsLoaded) return
-    const pending = pendingNavChatIdRef.current
-    if (pending === null) return
-    selectChatRef.current(pending)
-    pendingNavChatIdRef.current = null
-  }, [workspaceMode, prodThreadsLoaded, prodThreads])
 
   /* Home / Workflows navigation contracts: { prompt, flowKey? } starts a
      fresh flow (explicit key wins — the EN-keyword router is only for
@@ -990,7 +719,6 @@ export function AdvisorView() {
   const activeSession =
     activeChatId !== null ? sessionChats.find((c) => c.id === activeChatId) : undefined
   const activeScenarioThread = scenarioForThread(activeChatId)
-  const sessionIds = new Set(sessionChats.map((c) => c.id))
   const hasActiveChat =
     activeChatId !== null &&
     (activeFixture !== undefined ||
@@ -1031,83 +759,18 @@ export function AdvisorView() {
      chat also shows in its recency bucket). In production mode only the
      real conversations started this session appear — the demo scenario and
      Northgate fixture threads are demo-only. */
-  const allThreads: { id: string; title: Bi; pinned: boolean; bucket: string }[] = [
-    ...sessionChats.map((c) => ({ id: c.id, title: c.title, pinned: c.pinned, bucket: c.bucket })),
-    ...(workspaceMode === 'production'
-      ? prodThreads
-          .filter((t) => !sessionIds.has(t.id))
-          .map((t) => ({
-            id: t.id,
-            title: conversationTitle(t.messages),
-            pinned: false,
-            bucket: bucketFromUpdatedAt(t.updatedAt),
-          }))
-      : [
-          ...scenarioThreads.map((t) => ({
-            id: t.id,
-            title: t.scenario.title,
-            pinned: t.scenario.pinned,
-            bucket: t.scenario.pinned ? 'pinned' : 'today',
-          })),
-          ...chats.map((c) => ({ id: c.id, title: c.title, pinned: c.pinned, bucket: c.bucket })),
-        ]),
-  ]
-  const groups: ThreadGroup[] = [
-    { label: M.advisorview_group_pinned, items: allThreads.filter((t) => t.pinned) },
-    { label: M.advisorview_group_today, items: allThreads.filter((t) => t.bucket === 'today') },
-    { label: M.advisorview_group_week, items: allThreads.filter((t) => t.bucket === 'week') },
-    { label: M.advisorview_group_older, items: allThreads.filter((t) => t.bucket === 'older') },
-  ].filter((g) => g.items.length > 0)
+  const allThreads = buildAdvisorThreadEntries(workspaceMode, sessionChats, prodThreads)
+  const groups = buildAdvisorThreadGroups(allThreads, {
+    pinned: M.advisorview_group_pinned,
+    today: M.advisorview_group_today,
+    week: M.advisorview_group_week,
+    older: M.advisorview_group_older,
+  })
 
   const getExtras = (messageId: string): MessageExtras | undefined =>
     extras[messageId] ?? seedExtras[messageId]
 
   const onSuggestChip = (chip: SuggestChipSpec) => startFlow(chip.flowKey, chip.label)
-
-  const handleCopyMessage = useCallback(
-    async (text: string) => {
-      /* EF3: run the Copy button through the same export pipeline as Document
-         Studio, so every copied message carries an invisible zero-width tag
-         that resolves back to an export_events row. Surface='advisor',
-         kind='text'. A velocity denial shows the same retry toast as a
-         refused document export. */
-      const identity = workspaceModeCtx?.identity
-      const actorLabel = identity
-        ? `${identity.user.name} (${identity.user.email})`
-        : pick(XP.exportprot_demo_actor, lang)
-      const workspaceLabel = identity?.companyName ?? pick(XP.exportprot_demo_workspace, lang)
-
-      const decision = await authorizeExport({
-        surface: 'advisor',
-        kind: 'text',
-        title: pick(M.advisorview_chat_copy_title, lang),
-        content: text,
-        lang,
-        actorLabel,
-        workspaceLabel,
-        session: auth?.session ?? null,
-      })
-      if (!decision.allowed) {
-        showToast(exportDenialMessage(decision), 'info')
-        return
-      }
-
-      const tagged = text + encodeInvisibleTag(decision.stamp.exportId)
-      navigator.clipboard.writeText(tagged).then(
-        () => showToast({ en: 'Copied to clipboard', fr: 'Copié dans le presse-papiers' }, 'ok'),
-        () => showToast({ en: 'Could not copy', fr: 'Impossible de copier' }, 'info'),
-      )
-    },
-    [showToast, workspaceModeCtx, auth, lang],
-  )
-
-  const handleExportMessage = useCallback(
-    (text: string) => {
-      openDocStudio('T10', { initialContent: text })
-      showToast({ en: 'Drafting document...', fr: 'Rédaction du document...' }, 'ok')
-    },
-    [openDocStudio, showToast],
-  )
 
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden">

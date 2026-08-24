@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, screen } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
 import { PersonMemoryView } from './PersonMemoryView'
@@ -148,5 +148,32 @@ describe('Advisor Memory surfaces', () => {
       fireEvent.click(screen.getAllByRole('button', { name: 'Confirm' })[0]!)
       expect(screen.getByText(/Today — Riley confirmed/)).toBeInTheDocument()
     })
+  })
+})
+
+describe('Advisor Memory in production mode', () => {
+  it('MemoryManagerProductionView shows the org empty state when no facts exist', async () => {
+    const { mockProductionWorkspace, listChain } = await import('@/test/productionWorkspace')
+    mockProductionWorkspace({
+      tables: {
+        hr_advisor_memory_facts: () => ({ select: () => ({ eq: () => listChain([]) }) }),
+        hr_advisor_memory_audit: () => ({ select: () => ({ eq: () => listChain([]) }) }),
+        employees: () => ({ select: () => ({ eq: () => listChain([]) }) }),
+        hr_cases: () => ({ select: () => ({ eq: () => listChain([]) }) }),
+      },
+    })
+    vi.resetModules()
+
+    const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+    const { MemoryManagerView: MemoryManagerViewFresh } = await import('./MemoryManagerView')
+
+    renderAppFresh(<MemoryManagerViewFresh />, { route: '/app/settings/memory' })
+
+    expect(
+      await screen.findByText(/Confirmed and inferred facts for people, cases, and conversations/i),
+    ).toBeInTheDocument()
+
+    vi.doUnmock('@/lib/supabaseClient')
+    vi.resetModules()
   })
 })

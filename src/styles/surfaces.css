@@ -202,6 +202,15 @@
   --focus: #2563eb;
   --sel: #e6dcbb;
   --logo-glow: none;
+
+  /* Entry-stage brand rail (always dark navy — not theme-flipped) */
+  --entry-brand-bg: radial-gradient(
+    130% 120% at 12% 8%,
+    #1b3350 0%,
+    var(--dutiva-navy) 46%,
+    #081018 100%
+  );
+  --entry-brand-glow: radial-gradient(circle, var(--dutiva-gold) 0%, transparent 70%);
 }
 
 /* ── App surface — dark — verbatim from App v2.dc.html ──────────────────────── */
@@ -248,8 +257,77 @@
   --cite-bg: rgba(255, 255, 255, 0.06);
   --focus: #7fb0f0;
   --sel: #20344f;
-  --logo-glow: drop-shadow(0 0 1px rgba(255, 255, 255, 0.55))
-    drop-shadow(0 0 5px rgba(255, 255, 255, 0.16));
+  --logo-glow: drop-shadow(0 0 1px rgba(255, 255, 255, 0.55));
+
+  --entry-brand-bg: radial-gradient(
+    130% 120% at 12% 8%,
+    #1b3350 0%,
+    var(--dutiva-navy) 46%,
+    #081018 100%
+  );
+  --entry-brand-glow: radial-gradient(circle, var(--dutiva-gold) 0%, transparent 70%);
+}
+
+.logo-glow {
+  filter: var(--logo-glow);
+}
+.entry-brand-rail {
+  background: var(--entry-brand-bg);
+}
+.entry-brand-glow-tr {
+  background: var(--entry-brand-glow);
+}
+.entry-brand-glow-bl {
+  background: var(--entry-brand-glow);
+}
+.entry-brand-leaf-glow {
+  filter: drop-shadow(0 0 6px rgba(var(--dutiva-gold-rgb), 0.35));
+}
+.memory-timeline-gap-line {
+  background: repeating-linear-gradient(var(--ink) 0 3px, transparent 3px 7px);
+}
+.leaf-tile {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--gold-border-soft);
+  background: linear-gradient(160deg, var(--dutiva-white), #eef0f6);
+}
+.leaf-tile-header {
+  height: 46px;
+  width: 46px;
+  border-radius: 13px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+.leaf-tile-drawer {
+  height: 38px;
+  width: 38px;
+  border-radius: 11px;
+}
+.leaf-tile-footer {
+  height: 40px;
+  width: 40px;
+  border-radius: 11px;
+}
+.leaf-img-header {
+  display: block;
+  height: 32px;
+  width: auto;
+}
+.leaf-img-drawer {
+  display: block;
+  height: 26px;
+  width: auto;
+}
+.leaf-img-footer {
+  display: block;
+  height: 28px;
+  width: auto;
+}
+.wordmark-lg {
+  font-size: 1.15rem;
+}
+.wordmark-drawer {
+  font-size: 1.05rem;
 }
 
 .surface-app ::selection {

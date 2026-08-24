@@ -1,5 +1,6 @@
 import { useId } from 'react'
 import { Bar, BarChart, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { jurisdictionBarsHeightClass } from '@/lib/chartPlotHeight'
 import { useI18n } from '@/i18n/context'
 import { analyticsMessages as M } from '@/i18n/messages/analytics'
 
@@ -43,7 +44,6 @@ export function JurisdictionBars({ rows }: { readonly rows: readonly Jurisdictio
   const summary = rows.map((r) => `${r.label} ${r.value}`).join(', ')
   /* Room to the right of the longest bar for its outside value label. */
   const labelGutter = Math.min(72, Math.max(...rows.map((r) => String(r.value).length)) * 7.5 + 16)
-  const height = rows.length * 38 + 12
 
   return (
     <>
@@ -51,8 +51,7 @@ export function JurisdictionBars({ rows }: { readonly rows: readonly Jurisdictio
         role="img"
         aria-label={x(M.analytics_headcount_chart_aria).replace('{points}', summary)}
         aria-describedby={tableId}
-        style={{ height }}
-        className="w-full"
+        className={`w-full ${jurisdictionBarsHeightClass(rows.length)}`}
       >
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
@@ -84,8 +83,7 @@ export function JurisdictionBars({ rows }: { readonly rows: readonly Jurisdictio
               <LabelList
                 dataKey="value"
                 position="right"
-                className="fill-text"
-                style={{ fontSize: 12, fontWeight: 600 }}
+                className="fill-text text-xs font-semibold"
               />
             </Bar>
           </BarChart>

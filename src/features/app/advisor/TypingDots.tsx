@@ -9,7 +9,7 @@ export interface TypingDotsProps {
   readonly size?: 'md' | 'sm'
 }
 
-const DELAYS = [0, 0.15, 0.3]
+const DELAY_CLASS = ['pulse-dot-delay-0', 'pulse-dot-delay-1', 'pulse-dot-delay-2'] as const
 
 export function TypingDots({ label, size = 'md' }: TypingDotsProps) {
   const container =
@@ -20,11 +20,10 @@ export function TypingDots({ label, size = 'md' }: TypingDotsProps) {
   return (
     <div className={container}>
       <span className="flex gap-[3px]">
-        {DELAYS.map((delay) => (
+        {DELAY_CLASS.map((delayClass) => (
           <span
-            key={delay}
-            className={`inline-block rounded-full bg-text-faint ${dot} animate-[pulseDot_1.1s_ease-in-out_infinite]`}
-            style={{ animationDelay: `${delay}s` }}
+            key={delayClass}
+            className={`inline-block rounded-full bg-text-faint ${dot} animate-[pulseDot_1.1s_ease-in-out_infinite] ${delayClass}`}
           />
         ))}
       </span>

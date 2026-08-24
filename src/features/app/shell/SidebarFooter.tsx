@@ -185,8 +185,7 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
             <img
               src="/brand/dutiva-leaf.png"
               alt="Dutiva"
-              className="block h-3.75 w-auto"
-              style={{ filter: 'var(--logo-glow)' }}
+              className="logo-glow block h-3.75 w-auto"
             />
           </div>
           <span className="max-w-37.5 translate-x-0 overflow-hidden whitespace-nowrap text-[11px] tracking-[0.01em] text-text-faint opacity-100 delay-75 transition-[max-width,opacity,transform] duration-150 ease-in-out motion-reduce:transition-none">
