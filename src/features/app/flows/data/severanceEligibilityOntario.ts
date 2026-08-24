@@ -129,10 +129,10 @@ export const severanceEligibilityOntarioFlow: Flow = {
       id: 'out_may_qualify',
       kind: 'outcome',
       tone: 'caution',
-      title: bi('ESA severance may apply — amount not calculated', 'L’indemnité LNE peut s’appliquer — montant non calculé'),
+      title: bi('ESA severance may apply — compute the amount next', 'L’indemnité LNE peut s’appliquer — calculez le montant ensuite'),
       body: bi(
-        'On the answers given, both eligibility gates appear met and no exclusion was asserted. Treat ESA severance as potentially owed. This tool does not compute weeks or dollars — the guide formula (regular weekly wages × completed years with a partial-year proration, capped at 26 weeks) must be worked by someone who has verified payroll and tenure against the statute. Document the termination carefully and obtain advice before stating a figure to the employee.',
-        'Selon les réponses données, les deux conditions d’admissibilité semblent remplies et aucune exclusion n’a été alléguée. Traitez l’indemnité de cessation de la LNE comme potentiellement due. Cet outil ne calcule ni semaines ni dollars — la formule du guide (salaire hebdomadaire régulier × années complétées avec prorata de l’année partielle, plafonnée à 26 semaines) doit être établie par quelqu’un qui a vérifié la masse salariale et l’ancienneté par rapport à la loi. Documentez soigneusement la cessation et obtenez un avis avant d’énoncer un chiffre à l’employé.',
+        'On the answers given, both eligibility gates appear met and no exclusion was asserted. Treat ESA severance as potentially owed. Open the Ontario ESA severance amount workflow to apply the guide formula (regular weekly wages × completed years with a partial-year proration, capped at 26 weeks) using verified payroll figures. Document the termination carefully and obtain advice before stating a figure to the employee.',
+        'Selon les réponses données, les deux conditions d’admissibilité semblent remplies et aucune exclusion n’a été alléguée. Traitez l’indemnité de cessation de la LNE comme potentiellement due. Ouvrez le processus de montant d’indemnité LNE de l’Ontario pour appliquer la formule du guide (salaire hebdomadaire régulier × années complétées avec prorata de l’année partielle, plafonnée à 26 semaines) à partir de chiffres de paie vérifiés. Documentez soigneusement la cessation et obtenez un avis avant d’énoncer un chiffre à l’employé.',
       ),
       documents: ['T03'],
     },

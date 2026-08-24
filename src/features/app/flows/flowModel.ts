@@ -96,18 +96,43 @@ export interface FlowTaskStep extends FlowStepBase {
 }
 
 /**
- * A step that collects a non-negative integer (e.g. completed months of
- * tenure) and routes to a destination via `resolve`. `destinations` lists
- * every id `resolve` may return so graph checks stay honest.
+ * A step that collects a non-negative number (e.g. completed months, or
+ * weekly wages) and routes to a destination via `resolve`. `destinations`
+ * lists every id `resolve` may return so graph checks stay honest.
  */
 export interface FlowInputStep extends FlowStepBase {
   kind: 'input'
   label: Bi
-  /** Unit shown beside the field — "completed months", etc. */
+  /** Unit shown beside the field — "completed months", "CAD / week", etc. */
   unit: Bi
-  /** Every id `resolve` may return — listed so graph checks stay honest. */
+  /**
+   * `integer` (default) rejects fractional values. `decimal` allows any
+   * finite non-negative number — used for money inputs.
+   */
+  numberKind?: 'integer' | 'decimal'
   destinations: readonly FlowStepId[]
   resolve: (value: number) => FlowStepId
+}
+
+/** One labelled figure a formula ending shows (weeks, dollars, etc.). */
+export interface FlowFormulaLine {
+  label: Bi
+  value: Bi
+}
+
+/**
+ * A terminal step reached by feeding prior `input` answers into a formula.
+ * Static `title` / `body` stay bilingual hedges; live figures come from
+ * `evaluate` so copy cannot invent a statutory ladder in the step list.
+ */
+export interface FlowFormulaStep extends FlowStepBase {
+  kind: 'formula'
+  tone: 'ok' | 'caution'
+  documents?: string[]
+  noDocument?: Bi
+  /** Prior `input` step ids this formula reads. */
+  inputs: readonly FlowStepId[]
+  evaluate: (getInput: (stepId: string) => number | undefined) => FlowFormulaLine[] | null
 }
 
 /** A terminal step reached by branching. Where the path led. */
@@ -170,6 +195,7 @@ export type FlowStep =
   | FlowTaskStep
   | FlowInputStep
   | FlowOutcomeStep
+  | FlowFormulaStep
   | FlowResultStep
 
 export interface Flow {
@@ -189,11 +215,15 @@ export interface Flow {
 
 export const isOutcome = (step: FlowStep): step is FlowOutcomeStep => step.kind === 'outcome'
 
+export const isFormula = (step: FlowStep): step is FlowFormulaStep => step.kind === 'formula'
+
 export const isResult = (step: FlowStep): step is FlowResultStep => step.kind === 'result'
 
 /** Reaching either kind ends the run. */
-export const isTerminal = (step: FlowStep): step is FlowOutcomeStep | FlowResultStep =>
-  isOutcome(step) || isResult(step)
+export const isTerminal = (
+  step: FlowStep,
+): step is FlowOutcomeStep | FlowFormulaStep | FlowResultStep =>
+  isOutcome(step) || isFormula(step) || isResult(step)
 
 /**
  * A rated question: every option carries a value **and** they all lead to the

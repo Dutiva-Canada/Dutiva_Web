@@ -20,8 +20,8 @@ export const flowsMessages = defineMessages({
   flows_input_submit: { en: 'Look up', fr: 'Repérer' },
   flows_input_placeholder: { en: 'e.g. 36', fr: 'ex. 36' },
   flows_input_invalid: {
-    en: 'Enter a whole number of completed units (0 or more).',
-    fr: 'Entrez un nombre entier d’unités complétées (0 ou plus).',
+    en: 'Enter a valid non-negative number.',
+    fr: 'Entrez un nombre valide non négatif.',
   },
   flows_back: { en: 'Back', fr: 'Retour' },
   flows_restart: { en: 'Start over', fr: 'Recommencer' },

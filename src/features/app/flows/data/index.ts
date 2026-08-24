@@ -1,9 +1,11 @@
 import type { Flow } from '../flowModel'
 import { dutyToAccommodateFlow } from './dutyToAccommodate'
 import { leaveOfAbsenceFlow } from './leaveOfAbsence'
+import { leaveReturnTrackerFlow } from './leaveReturnTracker'
 import { mentalHealthResponseFlow } from './mentalHealthResponse'
 import { psychologicalSafetyFlow } from './psychologicalSafety'
 import { roeFilingChecklistFlow } from './roeFilingChecklist'
+import { severanceAmountOntarioFlow } from './severanceAmountOntario'
 import { severanceEligibilityOntarioFlow } from './severanceEligibilityOntario'
 import { statutoryNoticeFederalFlow } from './statutoryNoticeFederal'
 import { statutoryNoticeOntarioFlow } from './statutoryNoticeOntario'
@@ -25,8 +27,10 @@ export const flows: Flow[] = [
   statutoryNoticeQuebecFlow,
   statutoryNoticeFederalFlow,
   severanceEligibilityOntarioFlow,
+  severanceAmountOntarioFlow,
   roeFilingChecklistFlow,
   temporaryLayoffAwarenessFlow,
+  leaveReturnTrackerFlow,
   dutyToAccommodateFlow,
   psychologicalSafetyFlow,
   leaveOfAbsenceFlow,

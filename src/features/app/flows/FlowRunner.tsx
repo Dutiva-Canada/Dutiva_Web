@@ -14,13 +14,14 @@ import {
   bandFor,
   currentStep,
   flowRecord,
+  inputValues,
   isComplete,
   progress,
   scoreRun,
   startRun,
 } from './flowEngine'
 import type { FlowRun } from './flowEngine'
-import { isResult } from './flowModel'
+import { isFormula, isResult } from './flowModel'
 import type { Flow } from './flowModel'
 
 /**
@@ -178,6 +179,7 @@ function FlowBody({ flow }: { readonly flow: Flow }) {
               key={step.id}
               label={x(step.label)}
               unit={x(step.unit)}
+              numberKind={step.numberKind ?? 'integer'}
               onSubmit={(value) => setRun(advance(flow, run, String(value)))}
             />
           )}
@@ -191,6 +193,8 @@ function FlowBody({ flow }: { readonly flow: Flow }) {
               {x(M.flows_continue)}
             </button>
           )}
+
+          {isFormula(step) && <FormulaResult flow={flow} run={run} />}
 
           {isResult(step) && <ScoredResult flow={flow} run={run} />}
 
@@ -314,14 +318,15 @@ function OutcomeActions({ flow, run }: { readonly flow: Flow; readonly run: Flow
   const step = currentStep(flow, run)
   const tids = isResult(step)
     ? (bandFor(step, scoreRun(flow, run).percent)?.documents ?? [])
-    : step.kind === 'outcome'
+    : step.kind === 'outcome' || step.kind === 'formula'
       ? (step.documents ?? [])
       : []
 
   /* An ending that deliberately produces no document says so, rather than
      rendering nothing — the absence is the instruction. */
   if (tids.length === 0) {
-    const reason = step.kind === 'outcome' ? step.noDocument : undefined
+    const reason =
+      step.kind === 'outcome' || step.kind === 'formula' ? step.noDocument : undefined
     if (!reason) return null
     return (
       <div className="mt-[18px] border-t border-inset pt-[16px]">
@@ -400,10 +405,12 @@ function PathTaken({ flow, run }: { readonly flow: Flow; readonly run: FlowRun }
 function FlowInputForm({
   label,
   unit,
+  numberKind,
   onSubmit,
 }: {
   readonly label: string
   readonly unit: string
+  readonly numberKind: 'integer' | 'decimal'
   readonly onSubmit: (value: number) => void
 }) {
   const { x } = useI18n()
@@ -412,9 +419,11 @@ function FlowInputForm({
 
   const submit = (event: FormEvent) => {
     event.preventDefault()
-    const trimmed = raw.trim()
+    const trimmed = raw.trim().replace(',', '.')
     const value = Number(trimmed)
-    if (trimmed === '' || !Number.isInteger(value) || value < 0) {
+    const okInteger = numberKind === 'integer' && Number.isInteger(value) && value >= 0
+    const okDecimal = numberKind === 'decimal' && Number.isFinite(value) && value >= 0
+    if (trimmed === '' || !(okInteger || okDecimal)) {
       setInvalid(true)
       return
     }
@@ -429,9 +438,9 @@ function FlowInputForm({
         <span className="flex items-center gap-[8px]">
           <input
             type="number"
-            inputMode="numeric"
+            inputMode="decimal"
             min={0}
-            step={1}
+            step={numberKind === 'decimal' ? '0.01' : 1}
             value={raw}
             onChange={(e) => {
               setRaw(e.target.value)
@@ -454,5 +463,26 @@ function FlowInputForm({
         {x(M.flows_input_submit)}
       </button>
     </form>
+  )
+}
+
+function FormulaResult({ flow, run }: { readonly flow: Flow; readonly run: FlowRun }) {
+  const { x } = useI18n()
+  const step = currentStep(flow, run)
+  if (!isFormula(step)) return null
+
+  const values = inputValues(flow, run)
+  const lines = step.evaluate((id) => values.get(id))
+  if (!lines || lines.length === 0) return null
+
+  return (
+    <div className="mt-[16px] flex flex-col gap-[10px] rounded-[12px] border border-gold-border bg-gold-bg px-[16px] py-[14px]">
+      {lines.map((line) => (
+        <div key={line.label.en} className="flex flex-wrap items-baseline justify-between gap-[8px]">
+          <span className="text-[12.5px] font-semibold text-gold-fg">{x(line.label)}</span>
+          <span className="font-display text-[18px] font-bold text-text">{x(line.value)}</span>
+        </div>
+      ))}
+    </div>
   )
 }

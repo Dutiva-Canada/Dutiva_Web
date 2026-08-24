@@ -48,6 +48,21 @@ describe('FlowRunner', () => {
     )
   })
 
+  it('estimates ESA severance amount from tenure and weekly wages', async () => {
+    const user = userEvent.setup()
+    renderFlow('severance-amount-ontario')
+    await user.click(screen.getByRole('button', { name: /eligibility confirmed/ }))
+    await user.type(screen.getByRole('spinbutton'), '5')
+    await user.click(screen.getByRole('button', { name: 'Look up' }))
+    await user.type(screen.getByRole('spinbutton'), '6')
+    await user.click(screen.getByRole('button', { name: 'Look up' }))
+    await user.type(screen.getByRole('spinbutton'), '1000')
+    await user.click(screen.getByRole('button', { name: 'Look up' }))
+    expect(screen.getByRole('heading', { level: 2, name: 'ESA severance estimate' })).toBeVisible()
+    expect(screen.getByText(/5\.5 weeks/)).toBeVisible()
+    expect(screen.getByText(/5[, ]?500/)).toBeVisible()
+  })
+
   it('returns to a clean choice when stepping back', async () => {
     const user = userEvent.setup()
     renderFlow()
@@ -162,7 +177,7 @@ describe('FlowRunner', () => {
     await user.click(screen.getByRole('button', { name: /global payroll is at least/ }))
     await user.click(screen.getByRole('button', { name: /No exclusion appears/ }))
     expect(
-      screen.getByRole('heading', { level: 2, name: /may apply — amount not calculated/ }),
+      screen.getByRole('heading', { level: 2, name: /may apply — compute the amount next/ }),
     ).toBeVisible()
   })
 })

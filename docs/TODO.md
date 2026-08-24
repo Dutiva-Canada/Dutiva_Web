@@ -760,7 +760,7 @@ longer accessible, so the inconsistency could not be verified as
 intentional. `Star` remains in use for pinned threads (matching the handoff)
 and workflow impact indicators. (PR #160)
 
-**EF11 — Workspace entitlement calculators.** _Mostly built 2026-08-24._
+**EF11 — Workspace entitlement calculators.** _Built 2026-08-24 (L6 ladders still deferred)._
 Interactive entitlement tools live as guided flows under `/app/workflows/`
 (not as public marketing pages). A **public** termination-notice calculator
 that publishes statutory figures remains barred (D6 /
@@ -770,28 +770,26 @@ that publishes statutory figures remains barred (D6 /
 
 | Flow | Route | What it does |
 | --- | --- | --- |
-| Ontario statutory notice (ESA floor) | `/app/workflows/statutory-notice-ontario` | Tenure band **or** typed completed months → ESA s. 57 floor weeks; hands off to T03 |
+| Ontario statutory notice (ESA floor) | `/app/workflows/statutory-notice-ontario` | Tenure band **or** typed completed months → ESA s. 57 floor weeks; T03 |
 | Québec termination notice (hedge) | `/app/workflows/statutory-notice-quebec` | Process shape + LNT / CCQ pointers; **no week figures** while L6 keeps `bands: null`; T03 |
 | Federal termination notice (hedge) | `/app/workflows/statutory-notice-federal` | Process shape + CLC Part III pointers; **no week figures**; T03 |
-| Ontario ESA severance eligibility | `/app/workflows/severance-eligibility-ontario` | Option B gate (5 years + payroll / mass-closure + exclusions); **never computes an amount**; T03 |
-| ROE filing checklist | `/app/workflows/roe-filing-checklist` | Interruption → gather → file; employer records deadline (no invented day counts); T29 |
-| Temporary layoff awareness | `/app/workflows/temporary-layoff-awareness` | Contract + statute-cap shape by jurisdiction; no hardcoded duration weeks; T32 |
+| Ontario ESA severance eligibility | `/app/workflows/severance-eligibility-ontario` | Option B gate; points at amount workflow when gates met; T03 |
+| Ontario ESA severance amount | `/app/workflows/severance-amount-ontario` | Option A formula from user-entered tenure + weekly wages (26-week cap); T03 |
+| ROE filing checklist | `/app/workflows/roe-filing-checklist` | Interruption → gather → file; employer records deadline; T29 |
+| Temporary layoff awareness | `/app/workflows/temporary-layoff-awareness` | Contract + statute-cap shape; T32 |
+| Leave return tracker | `/app/workflows/leave-return-tracker` | Return prep / restore / contested path; no invented leave lengths; T27 |
 
-Building blocks reused: `statutoryNotice.ts` lookup (asserted in
-`statutoryNoticeOntario.test.ts`), FlowRunner `input` step kind, Document
-Studio handoffs, standing Disclaimer.
+Building blocks: `statutoryNotice.ts` lookup, `ontarioEsaSeverance.ts` formula,
+FlowRunner `input` + `formula` step kinds, Document Studio handoffs, Disclaimer.
 
-**Still deferred**
+**Still deferred (needs human / product data)**
 
-1. **Severance amount calculator (Option A)** — until organization-level
-   payroll and a reliable mass-termination count exist; see
-   [notice-bands-review-pack.md](notice-bands-review-pack.md) §3.
-2. **QC / FED numeric notice ladders** — populate `NOTICE_SCHEDULES` only
-   after L6 qualified sign-off
-   ([notice-bands-decision.md](notice-bands-decision.md)). Hedge flows stay
-   until then.
-3. **Leave-return milestone tracker** — covered in part by the leave-of-
-   absence flow; a dedicated return-window tool remains optional.
+1. **QC / FED numeric notice ladders** — populate `NOTICE_SCHEDULES` only after
+   L6 qualified sign-off ([notice-bands-decision.md](notice-bands-decision.md)).
+2. **Org-stored payroll + mass-termination count** — Option A currently uses
+   self-reported eligibility confirmation and wages; wiring organization
+   settings + a product-tracked closure count remains future work (review pack
+   §3).
 
 Non-negotiables unchanged: bilingual `{en,fr}`; standing `Disclaimer` on the
 runner; grounded tables only; floors are floors not common-law advice; do not

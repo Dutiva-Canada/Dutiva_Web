@@ -179,13 +179,15 @@ meant to be carried into the template the outcome names.
 | Ontario statutory notice (ESA s. 57 floor) | `/app/workflows/statutory-notice-ontario` | **Built** — band or typed months → floor weeks; T03 |
 | Québec termination notice (hedge) | `/app/workflows/statutory-notice-quebec` | **Built** — no week figures while L6 keeps `bands: null`; T03 |
 | Federal termination notice (hedge) | `/app/workflows/statutory-notice-federal` | **Built** — no week figures; T03 |
-| Ontario ESA severance eligibility | `/app/workflows/severance-eligibility-ontario` | **Built** — Option B gate only; no amount; T03 |
-| ROE filing checklist | `/app/workflows/roe-filing-checklist` | **Built** — process shape; employer records deadline; T29 |
+| Ontario ESA severance eligibility | `/app/workflows/severance-eligibility-ontario` | **Built** — Option B gate; T03 |
+| Ontario ESA severance amount | `/app/workflows/severance-amount-ontario` | **Built** — Option A formula from user inputs; T03 |
+| ROE filing checklist | `/app/workflows/roe-filing-checklist` | **Built** — process shape; T29 |
 | Temporary layoff awareness | `/app/workflows/temporary-layoff-awareness` | **Built** — contract + statute-cap shape; T32 |
+| Leave return tracker | `/app/workflows/leave-return-tracker` | **Built** — return milestones; T27 |
 
-Severance Option A (compute amount) and numeric QC/FED ladders remain open
-in TODO.md EF11 until payroll data / L6 sign-off. These must not be published
-as figure-emitting `/tools/*` marketing pages.
+Numeric QC/FED ladders remain open until L6 sign-off. Org-stored payroll /
+mass-termination counts for auto-eligibility remain future work. These must
+not be published as figure-emitting `/tools/*` marketing pages.
 
 **Every step shows in every jurisdiction.** The model briefly carried an
 `only` field to restrict a step to one, and it was removed: a run has no

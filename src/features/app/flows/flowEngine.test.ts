@@ -493,6 +493,9 @@ describe.each(flows.map((f) => [f.slug, f] as const))('flow: %s', (_slug, flow) 
            as the documents it stands in for. */
         strings.push([`${step.id}.noDocument`, step.noDocument])
       }
+      if (step.kind === 'formula' && step.noDocument) {
+        strings.push([`${step.id}.noDocument`, step.noDocument])
+      }
       if (isResult(step)) {
         /* A band is what a scored run actually reads at the end — the step's
            own body is the preamble. An untranslated band would ship English
@@ -529,7 +532,7 @@ describe.each(flows.map((f) => [f.slug, f] as const))('flow: %s', (_slug, flow) 
        cannot lead with a document prompt without asking for the record it
        just said not to create. */
     for (const step of flow.steps) {
-      if (step.kind === 'outcome') {
+      if (step.kind === 'outcome' || step.kind === 'formula') {
         const named = (step.documents?.length ?? 0) > 0
         expect(
           named !== Boolean(step.noDocument),
@@ -604,6 +607,17 @@ describe.each(flows.map((f) => [f.slug, f] as const))('flow: %s', (_slug, flow) 
       for (let n = 0; n <= 200; n++) {
         const dest = step.resolve(n)
         expect(step.destinations, `${step.id} resolve(${n}) → ${dest}`).toContain(dest)
+      }
+    }
+  })
+
+  it('names every input a formula reads', () => {
+    for (const step of flow.steps) {
+      if (step.kind !== 'formula') continue
+      for (const id of step.inputs) {
+        const source = flow.steps.find((s) => s.id === id)
+        expect(source, `${step.id} reads missing input ${id}`).toBeDefined()
+        expect(source?.kind, `${step.id} reads non-input ${id}`).toBe('input')
       }
     }
   })

@@ -50,7 +50,9 @@ export function nextStepId(step: FlowStep, optionId?: string): FlowStepId | null
   if (step.kind === 'input') {
     if (optionId === undefined) return undefined
     const value = Number(optionId)
-    if (!Number.isFinite(value) || value < 0 || !Number.isInteger(value)) return undefined
+    if (!Number.isFinite(value) || value < 0) return undefined
+    const kind = step.numberKind ?? 'integer'
+    if (kind === 'integer' && !Number.isInteger(value)) return undefined
     return step.resolve(value)
   }
   if (isTerminal(step)) return null
@@ -196,6 +198,18 @@ export function flowRecord(flow: Flow, run: FlowRun): FlowRecord {
   })
   const last = entries.at(-1)?.step
   return { entries, outcome: last && isTerminal(last) ? last : null }
+}
+
+/** Numbers collected on `input` steps along the path, keyed by step id. */
+export function inputValues(flow: Flow, run: FlowRun): Map<string, number> {
+  const values = new Map<string, number>()
+  for (const answer of run.path) {
+    const step = stepById(flow, answer.step)
+    if (step.kind !== 'input' || answer.option === undefined) continue
+    const value = Number(answer.option)
+    if (Number.isFinite(value)) values.set(step.id, value)
+  }
+  return values
 }
 
 /* ── Scoring ─────────────────────────────────────────────────────────────── */
