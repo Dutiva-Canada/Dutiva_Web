@@ -76,7 +76,7 @@ Deno.serve(async (req: Request) => {
     return json({ error: 'No active subscription found.' }, 404)
   }
 
-  const siteUrl = Deno.env.get('SITE_URL') ?? 'https://www.dutiva.ca'
+  const siteUrl = Deno.env.get('SITE_URL') ?? 'https://dutiva.ca'
   const portalSession = await stripePost(
     '/billing_portal/sessions',
     { customer: profile.stripe_customer_id as string, return_url: `${siteUrl}/pricing` },

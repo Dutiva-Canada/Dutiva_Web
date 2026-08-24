@@ -242,7 +242,9 @@ current constraint converts B3 from a wrong-plan bug into a silent-failure bug.
 
 ## Remaining work
 
-Steps 1–3 are done (see the status note at the top). What is left:
+Steps 1–3 are done (see the status note at the top). What is left is **founder
+configuration**, tracked in order in [STRIPE_GO_LIVE.md](STRIPE_GO_LIVE.md).
+Summary:
 
 ### Set the Stripe secrets on the Supabase project
 
@@ -250,15 +252,20 @@ The three functions are deployed but fail closed until these exist as function
 secrets (Supabase dashboard → Edge Functions → Secrets, or
 `supabase secrets set`). Until then `create-checkout-session` answers 503
 `Payments not configured.` and the pricing page shows its generic error.
+**Do not flip `PAID_PLANS_DISABLED_DURING_BETA` until the go-live smoke test
+passes.**
 
 | Secret                         | Used by           | Note                                                                                   |
 | ------------------------------ | ----------------- | -------------------------------------------------------------------------------------- |
-| `STRIPE_SECRET_KEY`            | checkout, portal  |                                                                                        |
+| `STRIPE_SECRET_KEY`            | checkout, portal  | test key first, then live                                                              |
 | `STRIPE_WEBHOOK_SECRET`        | webhook           | the `whsec_…` for the endpoint below                                                   |
 | `STRIPE_PRICE_STARTER_MONTHLY` | checkout, webhook |                                                                                        |
 | `STRIPE_PRICE_GROWTH_MONTHLY`  | checkout, webhook |                                                                                        |
 | `STRIPE_PRICE_PRO_MONTHLY`     | checkout, webhook |                                                                                        |
-| `SITE_URL`                     | checkout, portal  | set to `https://dutiva.ca` — the default is the host `vercel.json` redirects away from |
+| `STRIPE_PRICE_STARTER_ANNUAL`  | checkout, webhook | optional for monthly-only first ship; required before un-hiding the annual toggle      |
+| `STRIPE_PRICE_GROWTH_ANNUAL`   | checkout, webhook | same                                                                                   |
+| `STRIPE_PRICE_PRO_ANNUAL`      | checkout, webhook | same                                                                                   |
+| `SITE_URL`                     | checkout, portal  | set to `https://dutiva.ca` — apex only (not `www`; vercel.json redirects www away)   |
 
 Point the Stripe webhook endpoint at
 `https://khtwpxnvziiyplaflwru.supabase.co/functions/v1/stripe-webhook` and
@@ -269,7 +276,8 @@ which is what lets Stripe reach it.
 
 Verify with a Stripe test-mode purchase: `profiles` should end up with the
 right `plan`, `subscription_status: active`, and a `stripe_subscription_id`,
-and `stripe_webhook_events` should gain one row per delivery.
+and `stripe_webhook_events` should gain one row per delivery. Then eng flips
+the beta flag per [STRIPE_GO_LIVE.md](STRIPE_GO_LIVE.md) §5.
 
 ## B2 resolved — sign-in opens to the beta list
 
@@ -415,15 +423,10 @@ live Supabase project `khtwpxnvziiyplaflwru` to assess current state:
   `event_type`, `received_at`).
 - 3 profiles exist, 0 have a `stripe_customer_id` — consistent with no real
   Stripe purchases having occurred.
-- **Cannot directly diff the deployed function source** via the available
-  tooling. The audit's "Remaining work" section records that the webhook was
-  deployed from `main` as step 3. The schema's alignment with the repo's
-  expectations (particularly the `pro` plan in the constraint and the
-  existence of `stripe_webhook_events`) is strong evidence the redeployment
-  happened, but the source diff remains unverified. **Owner should confirm
-  the deployed version matches `main`** (Supabase dashboard → Edge Functions
-  → stripe-webhook → source, or `supabase functions download stripe-webhook`
-  and diff).
+- **Resolved 2026-08-23 (OA11 eng prep):** live `stripe-webhook` was still on
+  a monthly-only revision; redeployed from repo to **v20** (annual price env
+  keys + `billing_period`). `create-checkout-session` redeployed to **v14**
+  (annual period + apex `SITE_URL` default). See [STRIPE_GO_LIVE.md](STRIPE_GO_LIVE.md) §3.
 
 ### S2 — Webhook idempotency
 

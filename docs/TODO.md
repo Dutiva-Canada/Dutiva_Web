@@ -285,13 +285,14 @@ that `supabase/migrations/` alone can't reproduce. A reviewer can now see
 the real RLS policies and function bodies in a diff.
 [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md). (PR #74)
 
-**OA11 — Stripe secrets and webhook endpoint.** _Owner, deferred._ The six
-secrets and the webhook subscription in
-[BILLING_BETA_AUDIT.md § Remaining work](BILLING_BETA_AUDIT.md). Deferred rather
-than urgent: `PAID_PLANS_DISABLED_DURING_BETA` is `true` in
-`src/config/plans.ts`, so nothing on `/pricing` is purchasable and
-`create-checkout-session` failing closed is invisible. This becomes blocking the
-day paid plans are re-enabled.
+**OA11 — Stripe secrets and webhook endpoint.** _Eng prep done 2026-08-23;
+Stripe Dashboard deferred._ Checkout / portal / webhook match repo (annual
+wiring + apex `SITE_URL`); paid CTAs stay off
+(`PAID_PLANS_DISABLED_DURING_BETA` remains `true`). Founder still needs to
+run [STRIPE_GO_LIVE.md](STRIPE_GO_LIVE.md) when ready (products/prices,
+secrets, webhook, test-mode smoke) — **not blocking other eng work**. Flag
+flip is a separate eng PR after that smoke test (§5). Prior notes:
+[BILLING_BETA_AUDIT.md § Remaining work](BILLING_BETA_AUDIT.md).
 
 **OA12 — Partially done.** D3 was decided 2026-08-06 (Google Calendar, full
 loop) and built the same day. Verified 2026-08-06 via Supabase MCP:

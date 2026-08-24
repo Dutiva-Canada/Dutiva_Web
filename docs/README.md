@@ -71,6 +71,7 @@ Editorial rule for public articles — no statutory figures, ever — is stated 
 | [DATA_MODEL.md](DATA_MODEL.md) | HR Documents Library data model, transcribed from the handoff. |
 | [AUTH_MAGIC_LINK.md](AUTH_MAGIC_LINK.md) | Magic-link sign-in and the Supabase configuration it needs. |
 | [BILLING_BETA_AUDIT.md](BILLING_BETA_AUDIT.md) | Stripe billing and beta-signup audit, with remediation status. |
+| [STRIPE_GO_LIVE.md](STRIPE_GO_LIVE.md) | Founder checklist to enable paid plans (OA11) — secrets, webhook, smoke test, then flip the flag. |
 | [OFFLINE_PWA.md](OFFLINE_PWA.md) | Service worker, offline behaviour, and how to test it. |
 
 ## Web surface
