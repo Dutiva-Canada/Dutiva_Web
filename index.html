@@ -8,35 +8,7 @@
          values instead of 0 on notched iOS devices; the mobile bottom nav pads
          itself with the bottom inset. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <script>
-      // Magic-link safety net. The sign-in email is meant to land on the app's
-      // confirm route (/app/auth/confirm), which exchanges the token for a
-      // session — see src/features/app/auth/AuthConfirm.tsx. If a Supabase auth
-      // redirect instead lands anywhere on the public site (most often the site
-      // root, because Supabase falls back to the "Site URL" when the confirm
-      // URL isn't in the Redirect-URLs allow-list, or because an implicit-flow
-      // token arrived in the URL fragment), nothing here consumes it and the
-      // user is left on the marketing page, still signed out. Forward any such
-      // landing — query string and fragment intact — to the confirm route.
-      // A no-op for normal navigation. See docs/AUTH_MAGIC_LINK.md.
-      ;(function () {
-        try {
-          if (window.location.pathname.indexOf('/app') === 0) return
-          var search = window.location.search || ''
-          var hash = window.location.hash || ''
-          var params = new URLSearchParams(search)
-          var isAuthRedirect =
-            params.has('token_hash') /* verifyOtp magic link */ ||
-            params.has('error_code') /* GoTrue error redirect */ ||
-            /[#&](access_token|refresh_token|error|error_code)=/.test(hash) /* implicit flow */
-          if (isAuthRedirect) {
-            window.location.replace('/app/auth/confirm' + search + hash)
-          }
-        } catch {
-          /* Never let the safety net block first paint. */
-        }
-      })()
-    </script>
+    <script src="/bootstrap-auth.js"></script>
     <link rel="manifest" href="/site.webmanifest" />
     <!-- Safari tints its status/toolbar area with this. A single static value
          painted dark chrome around light pages, so scope the pair to the OS
@@ -51,13 +23,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      rel="preload"
-      as="style"
+      rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800;900&display=swap"
-      onload="
-        this.onload = null
-        this.rel = 'stylesheet'
-      "
     />
     <noscript>
       <link
@@ -66,45 +33,7 @@
       />
     </noscript>
     <title>Dutiva — HR compliance for Canadian employers</title>
-    <script>
-      // Apply persisted theme + the route's language before first paint to
-      // avoid a flash. Public URLs are language-scoped (/fr… → fr-CA,
-      // everything else → en-CA); only the /app surface follows the
-      // persisted preference. Prerendered pages ship the same value baked
-      // into <html lang>, so this recomputes — never contradicts — it.
-      ;(function () {
-        var storage = null
-        try {
-          storage = window.localStorage
-        } catch {
-          /* private mode — defaults below */
-        }
-        var theme = storage && storage.getItem('dutiva-theme')
-        if (theme !== 'light' && theme !== 'dark') {
-          theme =
-            window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-              ? 'dark'
-              : 'light'
-        }
-        document.documentElement.dataset.theme = theme
-        // Keep Safari's chrome tint on the theme we actually resolved — the
-        // media-scoped tags above only know the OS preference.
-        var chrome = theme === 'dark' ? '#081019' : '#f3f5fa'
-        var tints = document.querySelectorAll('meta[name="theme-color"]')
-        for (var i = 0; i < tints.length; i++) {
-          tints[i].setAttribute('content', chrome)
-        }
-        var path = window.location.pathname
-        var lang = 'en-CA'
-        if (path === '/fr' || path.indexOf('/fr/') === 0) {
-          lang = 'fr-CA'
-        } else if (path.indexOf('/app') === 0) {
-          var stored = storage && storage.getItem('dutiva-lang')
-          if (stored === 'fr') lang = 'fr-CA'
-        }
-        document.documentElement.lang = lang
-      })()
-    </script>
+    <script src="/bootstrap-theme.js"></script>
   </head>
   <body>
     <div id="root"></div>

@@ -547,15 +547,14 @@ first: it expires Oct 1, 2026), and the per-chunk sign-off SQL, which also
 clears the 0071 source-change flag. Working through it is deliberately an
 owner/reviewer act, not an agent one.
 
-**L6 — Québec and Federal notice bands: the pack is built, awaiting a
-signature.** _Blocked (qualified legal review) — but the research is done._
-`NOTICE_SCHEDULES` still has `bands: null` for QC and FED, and stays that way
-until a qualified reviewer signs off;
-[notice-bands-review-pack.md](notice-bands-review-pack.md) is what makes that a
-one-hour reading job rather than a research project. It carries LNT s. 82 and
-CLC s. 230(1.1) quoted verbatim in both languages, the proposed band arrays in
-the file's exact shape with step-by-step derivations, every carve-out a flat
-table cannot express, and a sign-off block.
+**L6 — Québec and Federal notice bands: deferred — hard hedges remain.**
+_Decision (2026-08-23)._ Qualified legal sign-off has not been obtained.
+`NOTICE_SCHEDULES` keeps `bands: null` for QC and FED; Document Studio and
+Advisor continue to hedge. The research pack is complete
+([notice-bands-review-pack.md](notice-bands-review-pack.md)); the interim
+product decision is recorded in
+[notice-bands-decision.md](notice-bands-decision.md). Population waits on
+§4 sign-off with an explicit **Yes** — not engineering time.
 
 Two findings in it decide the question and were not visible from the code:
 

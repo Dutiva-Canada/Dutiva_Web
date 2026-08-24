@@ -32,10 +32,11 @@ The allowed origins:
 - **GA4** — `googletagmanager.com`, `google-analytics.com`, `region1.google-analytics.com` (consent-gated).
 - **CAPTCHA** — Turnstile (`challenges.cloudflare.com` and `*.challenges.cloudflare.com`) and hCaptcha (`js.hcaptcha.com`, `newassets.hcaptcha.com`, `api.hcaptcha.com`).
 
-`script-src` and `style-src` still include `'unsafe-inline'` because the
-app ships inline bootstrap scripts (the fragment-forwarder in `index.html`)
-and React inline style attributes. The next hardening step is to hash or
-externalize those scripts and remove `'unsafe-inline'`.
+`script-src` no longer includes `'unsafe-inline'` (2026-08-23): bootstrap
+scripts moved to `/bootstrap-auth.js` and `/bootstrap-theme.js`. `style-src`
+still includes `'unsafe-inline'` because React inline `style={{…}}` attributes
+are used across the app; removing it requires a broader refactor or nonce
+middleware.
 
 ### Ongoing CSP hygiene
 

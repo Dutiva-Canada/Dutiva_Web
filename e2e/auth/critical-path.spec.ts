@@ -60,4 +60,18 @@ test.describe('auth + workspace mode + employees CRUD', () => {
     await page.keyboard.press('Control+k')
     await expect(page.getByRole('dialog', { name: 'Search' })).toBeVisible({ timeout: 10_000 })
   })
+
+  test('production documents repository shows honest empty state', async ({ page }) => {
+    await page.goto('/app/settings')
+    const productionTab = page.getByRole('tab', { name: 'Production' })
+    await expect(productionTab).toBeVisible({ timeout: 30_000 })
+    await productionTab.click()
+    await expect(productionTab).toHaveAttribute('aria-selected', 'true')
+
+    await page.goto('/app/documents')
+    await expect(page).not.toHaveURL(/\/app\/welcome/)
+    await expect(page.getByText('No documents yet')).toBeVisible({
+      timeout: 30_000,
+    })
+  })
 })

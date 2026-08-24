@@ -156,13 +156,15 @@ is safe to read from any view without a route guard or breaking tests
 
 Phase 1 wired the toggle itself (Settings → Workspace, admin-only), the
 shell identity (`Sidebar.tsx`), and Home's tailored empty state
-(`HomeProductionEmptyState.tsx`). Phase 2 made production a true reset
-stage everywhere: fixture-driven views are wrapped in `ModeGate` at the
-route table (`src/app/appViews.tsx`) — demo renders them unchanged,
-production renders the shared `ProductionEmptyState` titled by module —
-and the shell surfaces are mode-aware (topbar notifications, sidebar nav
-badges, the global search corpus, Settings' Northgate-only sections, the
-Advisor's fixture threads and home widgets). Deliberately ungated:
+(`HomeProductionEmptyState.tsx`). **Phase 2 onward replaced route-level
+`ModeGate` with view-level dispatch:** each module's `*View.tsx` switches
+on `useWorkspaceMode()` — demo keeps Northgate fixtures; production renders
+a `*ProductionView.tsx` backed by `productionApi.ts` (or an honest empty
+state when the org has no rows). `ModeGate.tsx` remains in the repo for
+tests and legacy docs but is **not wired to any route** in `appViews.tsx`.
+Shell surfaces are mode-aware (topbar notifications, sidebar nav badges,
+the global search corpus, Settings' Northgate-only sections, the Advisor's
+fixture threads and home widgets). Deliberately ungated:
 Advisor chat (real backend), Knowledge (generic HR-law reference + the
 real guidance panel), Settings, Advisor Memory (`hr_advisor_memory_facts`,
 migration 0086 — views dispatch on mode), Document Studio catalog screens
@@ -171,13 +173,14 @@ migration 0086 — views dispatch on mode), Document Studio catalog screens
 `hr_document_signatures` / `hr_document_recipients`, migrations 0077–0078;
 signed PDF export via `hr_document_exports`, migration 0079;
 external signing tokens via migration 0080; persisted PDFs in Storage via 0081).
-The legacy HR Library gallery remains gated.
+The legacy HR Library gallery is demo-only; production redirects to Studio
+(`HrLibraryRoute` → `/app/documents/studio`).
 
-Wiring a module to real persistence is follow-up work, one module per PR:
-remove the view's `gated(…)` wrapper in `appViews.tsx` and make the view
-itself handle both modes (fixtures in demo, real data + its own empty
-state in production). Don't thread mode conditionals through a view that
-is still fully fixture-driven — the route-level gate already covers it.
+Wiring a module to real persistence follows the Employees reference shape
+(one module per PR): add org-scoped tables + RLS, a zod-validated
+`productionApi.ts`, a `*ProductionView.tsx`, and mode dispatch in the view
+shell — don't thread production conditionals through a view that is still
+fully fixture-driven without a production counterpart.
 
 **Employees is the reference implementation** (Phase 3): the context
 exposes `organizationId` (auto-provisioned via the backend's
@@ -240,7 +243,9 @@ dispatch on mode themselves, following the same shape: per-tenant tables,
 `hr_generated_documents` + versions + audit; Generate persists in
 production; repository, detail, and signing dispatch on mode and are
 ungated (signing envelopes: migration 0077, `dutiva_embedded` adapter).
-The legacy HR Library gallery remains ModeGate-empty.
+In production, `DoclibProvider` loads the template catalogue only (no
+Northgate sample documents/people); Studio org profile follows the signed-in
+admin's company name and province.
 **Advisor Memory (migration 0086)** followed next: `hr_advisor_memory_facts`
 + `hr_advisor_memory_audit`; manager / person / case / thread views dispatch
 on mode and are ungated. Confirmed non-sensitive facts are injected into

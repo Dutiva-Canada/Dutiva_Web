@@ -16,18 +16,9 @@ import type { Jurisdiction } from '@/features/app/documents/data/types'
  *   Advisor must hedge and point to the primary source rather than emit a
  *   figure. Not legal advice; verify against the statute before relying on it.
  *
- *   The research for that review is done and waiting on a signature:
- *   **`docs/notice-bands-review-pack.md`** carries LNT s.82 and CLC s.230(1.1)
- *   quoted verbatim in both languages, proposed band arrays in this file's
- *   exact shape with their derivations, every carve-out a flat table cannot
- *   express, and a sign-off block. Read it before touching the two `null`s.
- *   Two findings there decide the question and are not visible from this file:
- *   Québec's s.82 band is only a *floor* because CCQ art. 2091 reasonable
- *   notice sits on top of it and is non-renounceable (art. 2092), so a
- *   technically correct QC table can still be misleading; and the federal
- *   picture is due to change under 2018, c. 27, ss. 479–484, enacted but not
- *   yet in force, which would make group termination *displace* this band
- *   table rather than add to it.
+ *   **Interim decision (2026-08-23):** QC and FED remain `null` until a
+ *   qualified reviewer signs `docs/notice-bands-review-pack.md` §4. Until then,
+ *   hard UI hedges stay in force — see `docs/notice-bands-decision.md`.
  * - **Fail-safe.** An unknown/negative tenure or an unpopulated schedule yields
  *   `null`, never a guessed number.
  */

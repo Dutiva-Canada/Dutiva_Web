@@ -537,23 +537,12 @@ failure mode.
 ### Québec (LNT s. 82)
 
 - [ ] **Yes** — populate `QUEBEC_BANDS` as proposed in §1.4.
-- [ ] **No** — leave `bands: null`. Reason: ______________________
-
-_Confirm you have considered:_ the 5-year and 10-year boundary ambiguity (§1.5)
-and whether resting on CNESST's non-binding resolution is acceptable; **the CCQ
-art. 2091 floor-vs-entitlement problem (§1.6a), which is the reason a technically
-correct table may still be the wrong thing to ship**; and the s. 3(6) senior-manager
-exclusion (§1.6b).
+- [x] **No** — leave `bands: null`. Reason: **Interim product decision (2026-08-23)** — CCQ art. 2091 reasonable notice makes a flat band table misleading; qualified legal reviewer has not signed. Hard UI hedges remain — see [notice-bands-decision.md](notice-bands-decision.md).
 
 ### Federal (CLC s. 230)
 
 - [ ] **Yes** — populate `FEDERAL_BANDS` as proposed in §2.2.
-- [ ] **No** — leave `bands: null`. Reason: ______________________
-
-_Confirm you have considered:_ that s. 235 severance is cumulative and uncapped
-(§2.3b); and **the not-yet-in-force 2018, c. 27 amendments that would flip group
-termination from "adds" to "displaces" (§2.3c)** — if yes, attach a monitoring
-commitment, because that change will land silently.
+- [x] **No** — leave `bands: null`. Reason: **Interim product decision (2026-08-23)** — s. 235 severance and pending 2018 c. 27 proclamation; qualified legal reviewer has not signed. Hard UI hedges remain — see [notice-bands-decision.md](notice-bands-decision.md).
 
 ### Ontario severance (ESA s. 64) — L7
 

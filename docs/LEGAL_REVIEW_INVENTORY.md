@@ -140,12 +140,10 @@ ON, QC and FED variants — three jurisdictions, not one document each.
 - **[notice-bands-review-pack.md](notice-bands-review-pack.md)** — already
   built as a self-contained sign-off package for a qualified reviewer: LNT
   s. 82 and CLC s. 230(1.1) quoted verbatim in both languages, proposed band
-  arrays with derivations, the carve-outs, and a sign-off block. TODO.md L6
-  calls it "a one-hour reading job rather than a research project", and L7's
-  ESA severance options (§3 of the pack) ride along in the same read. This is
-  the cheapest lawyer engagement in the whole inventory and it unblocks
-  shipped functionality (`NOTICE_SCHEDULES` QC/FED stay `bands: null` until a
-  reviewer signs).
+  arrays with derivations, the carve-outs, and a sign-off block. **Interim
+  product decision (2026-08-23):** keep QC/FED at `bands: null` until sign-off —
+  see [notice-bands-decision.md](notice-bands-decision.md). TODO.md L6 tracks
+  this. L7's ESA severance options (§3 of the pack) ride along in the same read.
 - **42 corpus rows** in `advisor_guidance_chunks` — statutory figures with
   official source URLs and retrieval dates, all `review_status:
   machine_curated`, none ever flipped to `reviewed` (TODO.md L5). The review

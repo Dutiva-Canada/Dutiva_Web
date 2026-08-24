@@ -1,12 +1,25 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { loadDoclibData } from './api'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import type { WorkspaceIdentity } from '@/features/app/workspaceMode/workspaceModeContext'
+import { loadDoclibData, loadProductionDoclibCatalogue } from './api'
 import type { DoclibData } from './api'
 import { defaultOrgProfile } from './data'
-import type { DocRecipient, DocStatus, GeneratedDoc, OrgProfile, SignatureStatus, WorkspaceRole } from './data'
+import type { DocRecipient, DocStatus, GeneratedDoc, Jurisdiction, OrgProfile, SignatureStatus, WorkspaceRole } from './data'
 import { DoclibContext } from './doclibContext'
 
 const ROLE_KEY = 'dutiva-doclib-role'
+
+function orgProfileForIdentity(identity: WorkspaceIdentity): OrgProfile {
+  const province = identity.province?.trim().toUpperCase()
+  const primaryJurisdiction: Jurisdiction =
+    province === 'QC' || province === 'QUÉBEC' || province === 'QUEBEC' ? 'QC' : 'ON'
+  return {
+    ...defaultOrgProfile,
+    name: identity.companyName,
+    primaryJurisdiction,
+  }
+}
 
 function initialRole(): WorkspaceRole {
   try {
@@ -53,6 +66,7 @@ function nowIso(): string {
 }
 
 export function DoclibProvider({ children }: { readonly children: ReactNode }) {
+  const { mode, identity } = useWorkspaceMode()
   const [data, setData] = useState<DoclibData | null>(null)
   const dataRef = useRef(data)
   dataRef.current = data
@@ -62,13 +76,19 @@ export function DoclibProvider({ children }: { readonly children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false
-    void loadDoclibData().then((loaded) => {
-      if (!cancelled) setData(clone(loaded))
+    setData(null)
+    const loader = mode === 'production' ? loadProductionDoclibCatalogue : loadDoclibData
+    void loader().then((loaded) => {
+      if (!cancelled) setData(mode === 'production' ? loaded : clone(loaded))
     })
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [mode])
+
+  useEffect(() => {
+    setOrg(mode === 'production' ? orgProfileForIdentity(identity) : defaultOrgProfile)
+  }, [mode, identity])
 
   const sendForSignature = useCallback((docId: string, recipients: DocRecipient[]) => {
     const ts = nowIso()
