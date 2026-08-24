@@ -83,11 +83,11 @@ software" or "compliance software" over "legal services" — the latter
 misrepresents the product and cuts against the boundary the site maintains
 everywhere else.
 
-**Fields to leave blank.** A published business phone is an open item in
-CANONICAL_FACTS (unverified, and deliberately absent from the site). Do not
-supply one to a directory to satisfy a required field; either verify it first
-or skip the listing. Publish **<support@dutiva.ca>** only — `info@`, `hello@`,
-and `DutivaCanada@` are retired.
+**Phone.** 1 (800) 349-0297 is the confirmed business number
+(CANONICAL_FACTS, founder 2026-08-23). Use it on directory listings that
+require a phone. The marketing site still publishes **<support@dutiva.ca>**
+only — `info@`, `hello@`, and `DutivaCanada@` are retired — unless a product
+decision later adds the number to public copy.
 
 **Address.** Ottawa for marketing and press contexts; the Toronto registered
 office for legal and corporate contexts. Pick per the directory's purpose and
@@ -201,8 +201,9 @@ movement in months, not weeks.
 1. Verify Search Console and Bing Webmaster Tools, submit the sitemap, and
    request indexing for the expanded articles. Nothing else here is
    measurable first.
-2. Resolve the business phone in CANONICAL_FACTS before any listing that
-   requires one.
+2. ~~Resolve the business phone in CANONICAL_FACTS before any listing that
+   requires one.~~ **Done 2026-08-23.** 1 (800) 349-0297 confirmed by the
+   founder. Listings that require a phone may use it.
 3. ~~Decide whether a non-figure linkable tool is worth building, given the
    editorial constraint above.~~ **Decided 2026-08-06 (D6): built.** A
    jurisdiction-scoping questionnaire is live at

@@ -57,4 +57,3 @@ human or platform action** (not closable by engineering alone).
 | L5 Advisor corpus human review | Qualified reviewer |
 | OA9 DO residency confirmation | Owner / legal |
 | Stripe secrets + annual prices | OA11 / ops |
-| CIPO trademark / phone verification | Owner |

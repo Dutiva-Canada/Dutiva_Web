@@ -55,10 +55,9 @@ people who don't read the repo. Re-export it when this file changes.
 
 ## Company and legal
 
-Confirmed by the founder, July 2026. The three rows that were **unverified** were
-checked against the actual registries on **2026-08-04** — see the provenance notes
-below the table, which carry the identifiers that let anyone re-check each in one
-lookup.
+Confirmed by the founder, July 2026. Registry rows were checked against
+Corporations Canada and CIPO on **2026-08-04**. The business phone and the
+CIPO pre-assessment objection were confirmed by the founder on **2026-08-23**.
 
 | Fact              | Value                                                                 | Confidence                                      |
 | ----------------- | --------------------------------------------------------------------- | ----------------------------------------------- |
@@ -68,7 +67,7 @@ lookup.
 | Founder           | Martin Constantineau, Founder & CEO — always full name                | confirmed — sole director of record             |
 | Incorporation     | Federal (CBCA), 27 March 2026 — corporation no. **1780679-5**, Active | confirmed — Certificate of Incorporation        |
 | Trademark         | CIPO **application** no. **2465617**, classes 009/035/041/042/044     | confirmed — application, **not** a registration |
-| Business phone    | 1 (800) 349-0297                                                      | **unverified** — no public source attributes it |
+| Business phone    | 1 (800) 349-0297                                                      | confirmed — founder, 2026-08-23                 |
 
 **Incorporation — confirmed.** Corporations Canada's Federal Corporation Search
 records a _Certificate of Incorporation_ dated **2026-03-27**, which confirms the
@@ -92,29 +91,24 @@ imply otherwise. The recorded classes **009/035/041/042/044 match CIPO exactly**
 (CIPO displays them unpadded as 9, 35, 41, 42, 44). Dutiva Canada Inc. holds
 exactly one trademark record — there is no separate logo or design-mark filing.
 
-> **Not previously recorded anywhere, and worth knowing:** CIPO's Action History
-> shows a **Pre-Assessment Letter sent 2026-04-09 with the comment "Goods or
-> Services Not Acceptable."** As of the last action on the file, the goods and
-> services wording has been objected to and the application is not clean. That
-> does not change what may be claimed today — an application is an application
-> either way — but it is a live prosecution issue with a response deadline, and
-> nothing in this repo or the business plan mentions it.
+> CIPO's Action History recorded a **Pre-Assessment Letter sent 2026-04-09**
+> ("Goods or Services Not Acceptable"). **The founder confirmed 2026-08-23 that
+> this objection has been addressed.** That closes the live-deadline item (TODO
+> L8b). It does **not** turn the filing into a registration — public copy must
+> still treat 2465617 as an application until CIPO issues a registration number.
 
 A sweep for confusingly similar third-party marks found no conflict that is both
 close in sound or appearance **and** in an overlapping field. A copy audit of the
 working tree found no overclaim: there is no `®` character anywhere in the repo
 (ts/tsx/md/json) and no "registered trademark" / "marque déposée" in shipped copy.
 
-**Business phone — still unverified, and probably unverifiable.** No public
-authoritative source lists 1 (800) 349-0297, and no source of any kind attributes
-it to Dutiva; dutiva.ca publishes no phone number at all, and the Corporations
-Canada record has no telephone field. Searched 2026-08-04: the number itself in
-three formats, `site:dutiva.ca` for it, a general Dutiva-contact search, and the
-live contact page. A toll-free number is registered to a carrier rather than
-published in a public registry, so this may not be confirmable from outside — the
-founder is the authority on whether it is provisioned and answered. It remains
-blocking for any directory listing that requires a phone number
-(SEO playbook item 2).
+**Business phone — confirmed by the founder, 2026-08-23.** 1 (800) 349-0297 is
+Dutiva's business number: provisioned and answered. Corporations Canada has no
+telephone field, and dutiva.ca does not currently publish the number (support
+stays at <support@dutiva.ca>). Directory listings that require a phone may now
+use this number (SEO playbook item 2). Do not add it to public marketing copy
+in this repo unless a product decision says so — confirmation is not a
+publication mandate.
 
 ## Launch status
 
@@ -297,7 +291,10 @@ penalties to $10M. Follow the Beta Launch Brief on this.
 
 ## Open items
 
-1. Confirm incorporation date, trademark status and business phone against filings.
+1. ~~Confirm incorporation date, trademark status and business phone against filings.~~
+   **Done.** Registries 2026-08-04; CIPO pre-assessment objection addressed and
+   business phone confirmed by the founder 2026-08-23. Still an application, not
+   a registration.
 2. Resolve the DigitalOcean residency ticket; update "Claims to stop making" §2.
 3. ~~Decide the plan of record — two business plans are live, neither marked superseded.~~
    **Done 2026-08-10 (D5).** The Beta Launch Brief (2026-07-20) is the plan

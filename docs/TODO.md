@@ -593,28 +593,6 @@ app, and `/print`, a version-pinned URL and an XML `Accept` header all return
 the same shell. The substance came from ontario.ca's official ESA guide and
 needs checking against the statute. (This independently confirms EF2.) (PR #110)
 
-**L8a — The business phone is still unverified, and may be unverifiable.**
-_Owner._ Incorporation and trademark were checked against the registries on
-2026-08-04 and are now confirmed in
-[CANONICAL_FACTS.md](CANONICAL_FACTS.md) with the identifiers that let anyone
-re-check them (corporation no. 1780679-5; CIPO application no. 2465617). The
-phone number is the one that did not resolve: no public authoritative source
-lists 1 (800) 349-0297 and none attributes it to Dutiva, dutiva.ca publishes no
-phone number, and the Corporations Canada record has no telephone field. A
-toll-free number is registered to a carrier rather than a public registry, so
-this may not be confirmable from outside — the founder is the authority on
-whether it is provisioned and answered. Still blocking any directory listing
-that requires a phone number (SEO playbook item 2).
-
-**L8b — The trademark application has an open CIPO objection.** _Owner._ Not
-previously recorded anywhere. CIPO's Action History on application 2465617 shows
-a **Pre-Assessment Letter sent 2026-04-09, "Goods or Services Not Acceptable"** —
-so as of the last action on the file the goods and services wording has been
-objected to. This does not change what may be claimed today (an application is
-an application either way, and the repo's copy is clean — no `®`, no "registered
-trademark" anywhere), but it is a live prosecution matter with a response
-deadline that nothing in this repo or the business plan mentions.
-
 **L9 — Drive template hygiene.** T01, T02 and T04 went to `Legal Review` as
 `_polished` drafts in June 2026 and never returned to the `ON/EN` folder, which
 is now missing them; and every template in the HR tree exists twice from two
@@ -827,6 +805,7 @@ does not resurrect them.
 | L1a — corpus tranche migration unapplied                                          | Applied `0042` 2026-08-05 via direct DB access; retrieval smoke test passing                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | L1b — four federal leaves unauthored                                              | Added in `0044` 2026-08-05: court/jury duty, reserve force, work-related illness/injury, maternity-related reassignment                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | Advisor Memory persistence (facts, audit, chat injection, case narratives)        | #196–#199 — `hr_advisor_memory_facts` / audit (`0086`), case narratives + timeline (`0087`), production Memory surfaces, `advisor-chat` injects confirmed facts and auto-extracts inferred candidates (fence + heuristic fallback); workspace shows “Memory used”; gold in-answer highlights; PIPEDA export + retention rail. Remaining: L5 corpus review, OA9 residency.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| L8a / L8b — business phone + CIPO objection                                       | Founder 2026-08-23 — phone confirmed; CIPO pre-assessment objection addressed. Application 2465617 is still not a registration.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
 ---
 

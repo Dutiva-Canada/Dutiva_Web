@@ -28,7 +28,7 @@ Every ID in TODO.md, and where it goes.
 | ----------------------------------- | ------------------------- | ------------------------------------------ |
 | L1, L2, L3, L4                      | **DP-1**                  | Time-sensitive — L3 goes stale 2026-10-01  |
 | EF2, OA2 (build half)               | **DP-2**                  |                                            |
-| L8                                  | **DP-3**                  |                                            |
+| L8                                  | **closed**                | Founder 2026-08-23; DP-3 retired           |
 | L6, L7                              | **DP-4**                  | Research pack only; a human flips the code |
 | EF6a                                | **DP-5**                  |                                            |
 | EF4, EF5                            | **DP-6**                  |                                            |
@@ -242,42 +242,14 @@ wording to make the gap smaller — that wording is load-bearing and appears on
 the Knowledge panel signed out.
 ```
 
-## DP-3 — Verify the four unverified canonical facts
+## DP-3 — ~~Verify the four unverified canonical facts~~ (closed)
 
-**Closes L8.**
-
-```text
-docs/CANONICAL_FACTS.md marks four company facts as unverified: the
-incorporation date, the trademark status, and the business phone number. Each
-traces to a single internal document and has never been checked against a
-filing. The file records them as unverified rather than asserting them, which
-is correct — your job is to either confirm them from a public authoritative
-source or confirm that they cannot be confirmed.
-
-Sources to use, in order of authority:
-- Corporations Canada's Federal Corporation Search, and the Ontario Business
-  Registry, for the legal name, corporation number, incorporation date and
-  status. Capture the exact registry field names, not a paraphrase.
-- CIPO's Canadian Trademarks Database for the trademark: application or
-  registration number, filing date, current status, the goods and services
-  claimed, and the exact wording of the mark. "Trademark status" is a term of
-  art — a filed application is not a registered mark, and the distinction is
-  the whole point of this item.
-- For the phone number, confirm what is publicly listed and whether it is
-  reachable; SEO playbook item 2 blocks a directory listing on having one.
-
-Update docs/CANONICAL_FACTS.md for each fact: the confirmed value, the source
-URL, the date you fetched it, and the registry identifier that lets the next
-person re-check it in one lookup. If a fact turns out to be wrong, correcting
-it is the point — check whether the wrong value appears anywhere in the code or
-in public copy, and fix those in the same PR (npm run check:facts and
-src/canonicalFacts.test.ts enforce the code-backed half).
-
-If a search returns nothing, say that it returned nothing and leave the fact
-marked unverified with a note recording what you searched, so the next session
-does not repeat it. Do not infer an incorporation date from a domain
-registration, a LinkedIn page, or any aggregator.
-```
+**Closed L8 (2026-08-04 registries + founder 2026-08-23).** Incorporation and
+trademark filing confirmed against Corporations Canada / CIPO. Business phone
+1 (800) 349-0297 confirmed by the founder. CIPO pre-assessment objection on
+application 2465617 addressed; the mark is still an application, not a
+registration. See [CANONICAL_FACTS.md](CANONICAL_FACTS.md). Do not re-run this
+prompt.
 
 ## DP-4 — Build the legal-review pack for QC and FED notice bands
 
