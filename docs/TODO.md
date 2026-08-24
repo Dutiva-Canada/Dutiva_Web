@@ -760,11 +760,16 @@ longer accessible, so the inconsistency could not be verified as
 intentional. `Star` remains in use for pinned threads (matching the handoff)
 and workflow impact indicators. (PR #160)
 
-**EF11 — Workspace entitlement calculators.** _Built 2026-08-24 (L6 ladders still deferred)._
+**EF11 — Workspace entitlement calculators.** _Engineering complete 2026-08-24._
 Interactive entitlement tools live as guided flows under `/app/workflows/`
 (not as public marketing pages). A **public** termination-notice calculator
 that publishes statutory figures remains barred (D6 /
 [SEO_AUTHORITY_PLAYBOOK.md](SEO_AUTHORITY_PLAYBOOK.md)).
+
+**Engineering status:** **Done for eng-only work.** Every calculator / tracker
+EF11 scoped that can ship without qualified legal sign-off or new org data
+model is built and on `main`. Do not treat the items below as a backlog for
+unattended eng sprints — they are explicitly blocked.
 
 **Shipped**
 
@@ -782,14 +787,15 @@ that publishes statutory figures remains barred (D6 /
 Building blocks: `statutoryNotice.ts` lookup, `ontarioEsaSeverance.ts` formula,
 FlowRunner `input` + `formula` step kinds, Document Studio handoffs, Disclaimer.
 
-**Still deferred (needs human / product data)**
+**Blocked — not eng-completable alone**
 
-1. **QC / FED numeric notice ladders** — populate `NOTICE_SCHEDULES` only after
-   L6 qualified sign-off ([notice-bands-decision.md](notice-bands-decision.md)).
-2. **Org-stored payroll + mass-termination count** — Option A currently uses
-   self-reported eligibility confirmation and wages; wiring organization
-   settings + a product-tracked closure count remains future work (review pack
-   §3).
+| Item | Blocker | Unblock |
+| --- | --- | --- |
+| **QC / FED numeric notice ladders** (`NOTICE_SCHEDULES` bands) | L6 — interim decision keeps `bands: null` ([notice-bands-decision.md](notice-bands-decision.md)); research pack is ready but unsigned | Qualified legal reviewer marks **Yes** on pack §4; eng populates tables + tests in the same PR |
+| **Org-stored global payroll + mass-termination count** | Product / data — Option A amount flow uses self-reported eligibility confirmation and wages today; auto-filling the $2.5M / 50-employee gates needs org settings + a termination ledger the product does not yet own (review pack §3) | Product decision to add org payroll field and how to count closures; then eng wires eligibility to those sources |
+
+Hedge QC/FED notice flows stay the correct fail-safe until ladders are signed.
+Do not “finish” L6 by inventing week figures in workflows or on `/tools/*`.
 
 Non-negotiables unchanged: bilingual `{en,fr}`; standing `Disclaimer` on the
 runner; grounded tables only; floors are floors not common-law advice; do not

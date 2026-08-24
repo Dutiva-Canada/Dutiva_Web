@@ -33,6 +33,8 @@ The research pack is complete ([notice-bands-review-pack.md](notice-bands-review
 
 When a qualified reviewer completes §4 of the pack with **Yes**, engineering may populate `statutoryNotice.ts`, extend `noticeSchedule.ts`, and add regression tests in the same PR as the sign-off record.
 
+**EF11 note (2026-08-24):** Hedge-only Québec/Federal *workflows* already ship under `/app/workflows/` (`statutory-notice-quebec`, `statutory-notice-federal`). They are not a substitute for populating `NOTICE_SCHEDULES`. Eng-only EF11 work is otherwise complete — see [TODO.md](TODO.md) EF11.
+
 ## Code pointers
 
 - `src/features/app/advisor/safety/statutoryNotice.ts` — `NOTICE_SCHEDULES`

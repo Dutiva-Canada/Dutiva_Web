@@ -57,4 +57,4 @@ human or platform action** (not closable by engineering alone).
 | L5 Advisor corpus human review | Qualified reviewer |
 | OA9 DO residency confirmation | Owner / legal |
 | Stripe secrets + annual prices | OA11 / ops |
-| EF11 Workspace entitlement calculators | Built — amount + leave-return shipped; numeric QC/FED ladders + org payroll wiring deferred |
+| EF11 Workspace entitlement calculators | **Eng complete** — remaining = L6 sign-off (QC/FED bands) + product decision on org payroll / mass-termination count (TODO.md EF11) |

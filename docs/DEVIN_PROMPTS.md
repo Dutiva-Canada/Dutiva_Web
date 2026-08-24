@@ -43,7 +43,7 @@ Every ID in TODO.md, and where it goes.
 | OA1, OA3–OA11                       | [Owner only](#owner-only) | Secret, dashboard, filing or vendor        |
 | L5, L9, EF1, D5, D6, V1 (live half) | [Owner only](#owner-only) |                                            |
 | EF6, EF6b, EF9                      | —                         | Already done; TODO keeps them as markers   |
-| EF11                                | —                         | Built — Option A amount + leave-return shipped; numeric QC/FED deferred |
+| EF11                                | —                         | Eng complete — L6 bands + org payroll wiring blocked (see TODO.md) |
 
 ---
 
@@ -820,7 +820,8 @@ them.
   2026-08-06: built a jurisdiction-scoping questionnaire at
   `/tools/jurisdiction-check`. The **public** termination-notice calculator
   remains ruled out (publishing notice periods violates the editorial rule).
-  Workspace entitlement calculators (EF11): Ontario notice (band or typed
-  months), QC/FED hedge flows, severance eligibility + amount, ROE / layoff /
-  leave-return trackers are built under `/app/workflows/`; numeric QC/FED
-  ladders remain deferred on L6 in TODO.md.
+  Workspace entitlement calculators (EF11): eng-only scope is **complete** under
+  `/app/workflows/` (Ontario notice + severance gate/amount, QC/FED hedges,
+  ROE / layoff / leave-return trackers). Remaining blockers are L6 sign-off for
+  numeric QC/FED ladders and a product decision on org payroll / mass-
+  termination counts — see TODO.md EF11 “Blocked” table. Do not invent bands.

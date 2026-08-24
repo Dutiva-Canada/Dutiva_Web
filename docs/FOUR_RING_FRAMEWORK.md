@@ -186,8 +186,9 @@ meant to be carried into the template the outcome names.
 | Leave return tracker | `/app/workflows/leave-return-tracker` | **Built** — return milestones; T27 |
 
 Numeric QC/FED ladders remain open until L6 sign-off. Org-stored payroll /
-mass-termination counts for auto-eligibility remain future work. These must
-not be published as figure-emitting `/tools/*` marketing pages.
+mass-termination counts for auto-eligibility remain a product/data follow-on.
+**EF11 eng-only scope is closed** — see TODO.md EF11 “Blocked” table. These
+must not be published as figure-emitting `/tools/*` marketing pages.
 
 **Every step shows in every jurisdiction.** The model briefly carried an
 `only` field to restrict a step to one, and it was removed: a run has no

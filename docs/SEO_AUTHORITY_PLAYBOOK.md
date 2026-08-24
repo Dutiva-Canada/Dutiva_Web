@@ -161,12 +161,12 @@ the disclaimer beside it. Any **public** linkable tool has to work without
 publishing figures — a decision checklist or a jurisdiction-scoping
 questionnaire would qualify; a figure-emitting calculator would not.
 
-**Workspace entitlement calculators — built (TODO.md EF11, 2026-08-24).**
+**Workspace entitlement calculators — eng complete (TODO.md EF11, 2026-08-24).**
 Ontario notice, severance eligibility + amount, QC/FED hedge notice flows,
 ROE / layoff / leave-return trackers ship under `/app/workflows/`. Public
-figure-emitting calculators on `/tools/*` remain barred. Numeric QC/FED
-ladders stay deferred on L6 — do not satisfy them by putting figures on
-`/tools/*` marketing routes.
+figure-emitting calculators on `/tools/*` remain barred. Remaining EF11 items
+need L6 sign-off or a product data decision — not unattended eng (see TODO.md
+EF11 “Blocked” table).
 
 **A jurisdiction-scoping questionnaire — built (D6, 2026-08-06).** Three
 questions determine whether Ontario (ESA), Quebec (LNT), or federal (Canada
