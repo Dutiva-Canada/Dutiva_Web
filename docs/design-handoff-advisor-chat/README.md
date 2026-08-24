@@ -5,7 +5,7 @@ This package covers the **Advisor chat** for Dutiva (Canadian HR-compliance plat
 
 Three prototypes, one behavior spec, one production roadmap, and annotated screenshots. A developer who wasn't in the design conversation should be able to build from this folder alone.
 
-> **Status (2026-08-07): built.** The chat, Compliance Workspace, and Memory surfaces are implemented in this repository, with the engine running as the `advisor-chat` Supabase Edge Function. This folder remains the design source of truth for layout, behavior, and the Advisor's communication contract (`AGENT.md` is still normative). See "Where this landed" for the code map and "Open gates" for what is still outstanding.
+> **Status (2026-08-23): built, memory persisted in production.** The chat, Compliance Workspace, and Memory surfaces are implemented in this repository, with the engine running as the `advisor-chat` Supabase Edge Function. Demo mode still uses session fixtures; production mode persists facts, audit, and case narratives. This folder remains the design source of truth for layout, behavior, and the Advisor's communication contract (`AGENT.md` is still normative). See "Where this landed" for the code map and "Open gates" for what is still outstanding.
 
 ---
 
@@ -27,7 +27,7 @@ The UI binds to the design-system tokens (below); the behavior follows the respo
 | Response contract (roadmap P0) | `src/features/app/advisor/contract.ts` (zod), built server-side by `supabase/functions/advisor-chat/responsePayload.ts` and validated against the client schema in its tests |
 | Engine | `supabase/functions/advisor-chat/index.ts` — model-route lookup, corpus retrieval, turn persistence to `conversations`, telemetry, beta usage guardrails |
 | `AGENT.md` safety rules | `src/features/app/advisor/safety/` — deterministic client-side backstop (crisis intercept, statutory-figure and jurisdiction gates) that can only tighten the engine's gates; events logged via the `advisor-safety-event` function |
-| Advisor Memory (`/app/memory`, + people / cases / conversations) | `src/features/app/views/memory/` — Confirm / Correct / Forget with a session audit log, backed by the session-scoped `memoryStore.ts` (**not yet persisted**) |
+| Advisor Memory (`/app/memory`, + people / cases / conversations) | **Demo:** `memoryStore.ts` (session). **Production:** `hr_advisor_memory_facts` + audit (`0086`), case narratives/timeline (`0087`), Confirm / Correct / Forget (+ bulk forget for a person), chat injection + auto-extract via `advisor-chat`, Compliance Workspace “Memory used” section. See `productionApi.ts` / `caseNarrativeApi.ts`. |
 | Demonstrated modes (signed-out preview + demos) | `src/features/app/views/advisor/advisorScenarios.ts` — kept faithful to the prototype scenarios |
 | Bilingual strings | `src/i18n/messages/advisorView.ts`, with `{ en, fr }` pairs enforced by the contract |
 
@@ -129,11 +129,11 @@ The prototypes inline the **`.surface-app`** ramp. The live tokens are in `src/s
 - `prototypes/support.js` — the prototype runtime (co-located so the `.dc.html` files open directly in a browser). Not part of the product; ignore when implementing.
 - `screenshots/01`–`11` — annotated states referenced above.
 
-## Open gates flagged in the handoff — status as of 2026-08-07
+## Open gates flagged in the handoff — status as of 2026-08-23
 1. **Legal content validation** — **still open; highest risk.** The guidance corpus is real (`advisor_guidance_chunks`, snapshots in `docs/advisor-guidance-corpus-*.md`) but every row is `review_status: machine_curated`, pending counsel/SME sign-off (TODO.md L5). Until a human flips a row to `reviewed`, the engine honestly badges its legal basis "needs review" rather than "valid".
 2. **Eval suite for safety-critical rules** — **partially closed.** The rules are now deterministic code with regression tests (`src/features/app/advisor/safety/` — crisis intercept incl. drift test, statutory-figure and jurisdiction gates; `responsePayload.test.ts` server-side). A labeled eval set grading model prose against `AGENT.md` is still open.
 3. **FR parity** — **closed.** Real EN/FR i18n (`src/i18n/`), `{en,fr}` pairs enforced by the zod contract, French corpus bodies on all rows (TODO.md resolved ledger). Keep verifying both languages on every user-facing change (AGENTS.md).
-4. **Privacy/governance enforcement** — **still open.** Memory is session-scoped and unpersisted (`memoryStore.ts`), so retention, visibility scopes, a durable audit log, and access/correction/erasure (PIPEDA · Law 25) are not yet real. The data-residency confirmation with the inference provider is also outstanding (`docs/do-residency-confirmation-request.md`, TODO.md OA9) and blocks the PIPEDA wording.
-5. **Machine-readable contract + non-happy-path** — **closed.** `src/features/app/advisor/contract.ts` (zod) is the formal contract, validated on both sides; error, engine-unavailable, malformed-payload (degrade to prose — never render an unvalidated workspace), and usage-limit (429 scopes) states are implemented in `chatApi.ts` / `useAdvisorEngine.ts`.
+4. **Privacy/governance enforcement** — **partially closed.** Production Memory persists facts + durable audit (`0086`), case narratives/timeline (`0087`), Confirm / Correct / Forget (including bulk forget for a person), and injects confirmed non-sensitive facts into `advisor-chat`. Demo remains session-scoped. Still open: fuller PIPEDA export UX parity, gold in-answer memory highlights, and inference-provider residency confirmation (`docs/do-residency-confirmation-request.md`, TODO.md OA9) that blocks final PIPEDA wording.
+5. **Machine-readable contract + non-happy-path** — **closed.** `src/features/app/advisor/contract.ts` (zod) is the formal contract, validated on both sides; error, engine-unavailable, malformed-payload (degrade to prose — never render an unvalidated workspace), and usage-limit (429 scopes) states are implemented in `chatApi.ts` / `useAdvisorEngine.ts`. Optional `memory` on the workspace payload surfaces facts used this turn.
 
 > Dutiva provides practical HR workflow support and compliance-oriented guidance. It does not provide legal advice.

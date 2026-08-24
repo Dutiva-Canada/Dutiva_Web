@@ -253,6 +253,22 @@ export const memoryMessages = defineMessages({
     en: 'Bulk erasure runs through the governance backend — forget individual memories here.',
     fr: 'L’effacement en bloc passe par le système de gouvernance — oubliez les mémoires individuellement ici.',
   },
+  memory_prod_forget_person_hint: {
+    en: 'Soft-forgets every active memory fact for that person and writes an audit entry for each. Source records (People, Cases) are unchanged.',
+    fr: 'Oublie en douceur chaque fait de mémoire actif pour cette personne et écrit une entrée d’audit pour chacun. Les dossiers sources (Personnel, Dossiers) restent inchangés.',
+  }, // FR self-authored
+  memory_prod_forget_person_select: {
+    en: 'Select a person…',
+    fr: 'Sélectionnez une personne…',
+  }, // FR self-authored
+  memory_prod_forget_person_confirm: {
+    en: 'Forget all memory for this person? This cannot be undone from the UI.',
+    fr: 'Oublier toute la mémoire pour cette personne? Impossible d’annuler depuis l’interface.',
+  }, // FR self-authored
+  memory_prod_forget_person_none: {
+    en: 'No person-scoped memories to erase.',
+    fr: 'Aucune mémoire liée à une personne à effacer.',
+  }, // FR self-authored
 
   /* Production mode (migration 0086) — [FR self-authored] */
   memory_prod_empty_title: {
@@ -296,9 +312,9 @@ export const memoryMessages = defineMessages({
     fr: 'Aucun fait de mémoire pour cette conversation pour l’instant.',
   },
   memory_prod_narrative_note: {
-    en: 'Case timelines stay in demo for now. Production shows governed facts only.',
-    fr: 'Les chronologies de dossier restent en démo pour l’instant. La production affiche uniquement les faits gouvernés.',
-  },
+    en: 'Resume summary and timeline below are org-scoped and auditable. Facts for this case appear in the list.',
+    fr: 'Le résumé de reprise et la chronologie ci-dessous sont liés à l’organisation et auditables. Les faits de ce dossier apparaissent dans la liste.',
+  }, // FR self-authored
   memory_prod_narrative_empty: {
     en: 'No resume summary yet. Add one to capture what Advisor should remember about this case between sessions.',
     fr: 'Aucun résumé de reprise pour l’instant. Ajoutez-en un pour consigner ce que le Conseiller doit retenir entre les séances.',

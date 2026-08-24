@@ -47,6 +47,7 @@ export const advisorWorkspaceMessages = defineMessages({
   advws_risk_safety: { en: 'Personal safety', fr: 'Sécurité personnelle' },
   advws_sec_legal: { en: 'Legal basis', fr: 'Fondement juridique' },
   advws_sec_retrieval: { en: 'Retrieved guidance', fr: 'Conseils récupérés' },
+  advws_sec_memory: { en: 'Memory used in this answer', fr: 'Mémoire utilisée dans cette réponse' },
   advws_sec_web: { en: 'Live web sources', fr: 'Sources Web en direct' },
   advws_sec_confidence: { en: 'Confidence', fr: 'Confiance' },
   advws_sec_warnings: { en: 'Quality warnings', fr: 'Avertissements de qualité' },

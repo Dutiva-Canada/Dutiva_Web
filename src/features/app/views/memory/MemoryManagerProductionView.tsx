@@ -8,6 +8,7 @@ import {
   Plus,
   Search,
   ShieldCheck,
+  Trash2,
   UserRound,
 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -29,6 +30,7 @@ import {
   correctFact,
   createFact,
   forgetFact,
+  forgetFactsForEntity,
   listAudit,
   listFacts,
 } from './productionApi'
@@ -91,6 +93,8 @@ export function MemoryManagerProductionView() {
     statementEn: '',
     statementFr: '',
   })
+  const [forgetPersonId, setForgetPersonId] = useState('')
+  const [forgetting, setForgetting] = useState(false)
 
   const load = useCallback(async () => {
     if (!organizationId) return
@@ -197,6 +201,38 @@ export function MemoryManagerProductionView() {
       setAudit(await listAudit(organizationId))
     } catch {
       showToast(M.memory_prod_action_failed, 'info')
+    }
+  }
+
+  const personIdsWithFacts = [
+    ...new Set(rows.filter((f) => f.scope === 'person').map((f) => f.entityId)),
+  ]
+  const peopleWithFacts = employees.filter((e) => personIdsWithFacts.includes(e.id))
+
+  const onBulkForgetPerson = async () => {
+    if (!forgetPersonId || forgetting || !isOrgAdmin) return
+    if (!window.confirm(pick(M.memory_prod_forget_person_confirm, lang))) return
+    const targetId = forgetPersonId
+    const name = employees.find((e) => e.id === targetId)?.name ?? targetId
+    setForgetting(true)
+    try {
+      const n = await forgetFactsForEntity(organizationId, 'person', targetId)
+      setFacts((prev) =>
+        (prev ?? []).filter((f) => !(f.scope === 'person' && f.entityId === targetId)),
+      )
+      setAudit(await listAudit(organizationId))
+      setForgetPersonId('')
+      showToast(
+        {
+          en: `Forgot ${n} memor${n === 1 ? 'y' : 'ies'} for ${name}.`,
+          fr: `${n} mémoire${n === 1 ? '' : 's'} oubliée${n === 1 ? '' : 's'} pour ${name}.`,
+        },
+        'ok',
+      )
+    } catch {
+      showToast(M.memory_prod_action_failed, 'info')
+    } finally {
+      setForgetting(false)
     }
   }
 
@@ -485,6 +521,53 @@ export function MemoryManagerProductionView() {
                 ))}
               </div>
             </div>
+
+            {isOrgAdmin && (
+              <div className="rounded-[13px] border border-risk-border bg-surface px-[15px] py-[14px]">
+                <div className="mb-[8px] flex items-center gap-[7px]">
+                  <Trash2
+                    size={14}
+                    strokeWidth={1.7}
+                    className="text-risk-dot"
+                    aria-hidden="true"
+                  />
+                  <div className="text-[12.5px] font-bold text-risk-dot">
+                    {x(M.memory_mgr_forget_person)}
+                  </div>
+                </div>
+                <div className="mb-[10px] text-[11.5px] leading-[1.55] text-text-muted">
+                  {x(M.memory_prod_forget_person_hint)}
+                </div>
+                {peopleWithFacts.length === 0 ? (
+                  <div className="text-[12px] text-text-faint">{x(M.memory_prod_forget_person_none)}</div>
+                ) : (
+                  <div className="flex flex-col gap-[8px]">
+                    <select
+                      value={forgetPersonId}
+                      onChange={(e) => setForgetPersonId(e.target.value)}
+                      className={inputClass}
+                      aria-label={x(M.memory_mgr_forget_person)}
+                    >
+                      <option value="">{x(M.memory_prod_forget_person_select)}</option>
+                      {peopleWithFacts.map((e) => (
+                        <option key={e.id} value={e.id}>
+                          {e.name}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      disabled={!forgetPersonId || forgetting}
+                      onClick={() => void onBulkForgetPerson()}
+                      className="flex cursor-pointer items-center justify-center gap-[7px] rounded-[10px] border border-risk-border bg-surface p-[10px] font-sans text-[12.5px] font-bold text-risk-dot disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <Trash2 size={14} strokeWidth={1.7} aria-hidden="true" />
+                      {x(M.memory_mgr_forget_person)}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </aside>
         </div>
       </div>

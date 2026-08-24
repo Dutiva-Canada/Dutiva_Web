@@ -54,6 +54,11 @@ export interface AdvisorResponsePayload {
   supportNotice: boolean
   legalBasis: { items: { label: Bi; valid: boolean }[]; withheldReason?: Bi }
   retrieval: { items: Bi[]; note?: Bi; withheldReason?: Bi }
+  /** Org memory facts injected this turn (null/omit when none). */
+  memory?: {
+    items: { label: Bi; factId?: string }[]
+    note?: Bi
+  } | null
   webSearch: null
   confidence: { label: Bi; pct: number; note?: Bi } | null
   warnings: Bi[]
@@ -272,6 +277,8 @@ export interface BuildInput {
   /** True when retrieval errored (vs a genuine zero-hit) — the user is told
    *  "retrieval was unavailable", never "nothing matched". */
   retrievalFailed?: boolean
+  /** Confirmed org memory facts injected into the system prompt this turn. */
+  memoryFacts?: readonly { id: string; statementEn: string; statementFr: string }[]
 }
 
 export function buildAdvisorResponse(input: BuildInput): AdvisorResponsePayload {
@@ -327,6 +334,7 @@ export function buildAdvisorResponse(input: BuildInput): AdvisorResponsePayload 
           'La recherche documentaire est désactivée en mode soutien.',
         ),
       },
+      memory: null,
       webSearch: null,
       confidence: null,
       warnings: [],
@@ -525,6 +533,19 @@ export function buildAdvisorResponse(input: BuildInput): AdvisorResponsePayload 
                 'Rien dans le corpus répertorié ne correspond à cette question.',
               ),
         },
+    memory:
+      (input.memoryFacts?.length ?? 0) > 0
+        ? {
+            items: (input.memoryFacts ?? []).slice(0, 8).map((f) => ({
+              label: bi(f.statementEn, f.statementFr || f.statementEn),
+              factId: f.id,
+            })),
+            note: bi(
+              'Organization memory (confirmed facts) — not a statutory source. Review or correct in Settings → Memory.',
+              'Mémoire de l’organisation (faits confirmés) — pas une source législative. Réviser ou corriger dans Réglages → Mémoire.',
+            ),
+          }
+        : null,
     webSearch: null,
     confidence: { label: confidenceLabel, pct: confidencePct },
     warnings,

@@ -370,3 +370,47 @@ export async function forgetFact(organizationId: string, factId: string): Promis
     statementFr: prior.statement_fr,
   })
 }
+
+/**
+ * Soft-forget every active fact for a person (PIPEDA / Law 25 erasure of
+ * that person's memory record). Audits each row. Returns how many were forgotten.
+ */
+export async function forgetFactsForEntity(
+  organizationId: string,
+  scope: MemoryScope,
+  entityId: string,
+): Promise<number> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const actorUserId = await requireUserId()
+  const { data: existing, error: readError } = await supabase
+    .from('hr_advisor_memory_facts')
+    .select(SELECT_COLUMNS)
+    .eq('organization_id', organizationId)
+    .eq('scope', scope)
+    .eq('entity_id', entityId)
+    .is('forgotten_at', null)
+  if (readError) throw readError
+  const rows = z.array(factRowSchema).parse(existing ?? [])
+  const now = new Date().toISOString()
+  for (const prior of rows) {
+    const { error } = await supabase
+      .from('hr_advisor_memory_facts')
+      .update({
+        forgotten_at: now,
+        updated_by: actorUserId,
+        updated_at: now,
+      })
+      .eq('id', prior.id)
+      .eq('organization_id', organizationId)
+    if (error) throw error
+    await insertAudit({
+      organizationId,
+      factId: prior.id,
+      actorUserId,
+      action: 'forget',
+      statementEn: prior.statement_en,
+      statementFr: prior.statement_fr,
+    })
+  }
+  return rows.length
+}
