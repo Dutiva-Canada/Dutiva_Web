@@ -161,11 +161,12 @@ the disclaimer beside it. Any **public** linkable tool has to work without
 publishing figures — a decision checklist or a jurisdiction-scoping
 questionnaire would qualify; a figure-emitting calculator would not.
 
-**Workspace entitlement calculators — future (TODO.md EF11).** Interactive
-notice / eligibility / deadline calculators belong in the signed-in `/app`
-workspace, behind the standing disclaimer, grounded on the same tables the
-Advisor and Document Studio already use. That work is deferred; do not
-satisfy EF11 by putting figures on `/tools/*` marketing routes.
+**Workspace entitlement calculators — partial (TODO.md EF11, 2026-08-24).**
+Two Ontario flows ship under `/app/workflows/`: statutory notice floor
+(`statutory-notice-ontario`) and ESA severance eligibility gate
+(`severance-eligibility-ontario`, Option B — no amount). Remaining: QC/FED
+notice after L6, severance Option A, deadline trackers. Do not satisfy the
+remainder by putting figures on `/tools/*` marketing routes.
 
 **A jurisdiction-scoping questionnaire — built (D6, 2026-08-06).** Three
 questions determine whether Ontario (ESA), Quebec (LNT), or federal (Canada

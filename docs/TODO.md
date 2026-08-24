@@ -760,39 +760,41 @@ longer accessible, so the inconsistency could not be verified as
 intentional. `Star` remains in use for pinned threads (matching the handoff)
 and workflow impact indicators. (PR #160)
 
-**EF11 — Workspace entitlement calculators (future).** _Build — deferred._
-Ship interactive calculators **inside the signed-in `/app` workspace** (not
-as public marketing pages). The jurisdiction-scoping questionnaire at
-`/tools/jurisdiction-check` stays the only public interactive tool; a
-**public** termination-notice calculator that publishes statutory figures
-remains barred (D6 / [SEO_AUTHORITY_PLAYBOOK.md](SEO_AUTHORITY_PLAYBOOK.md)
-§ "What is deliberately not on this list"; `articleModel.ts`).
+**EF11 — Workspace entitlement calculators.** _Partially built 2026-08-24._
+Interactive entitlement tools live as guided flows under `/app/workflows/`
+(not as public marketing pages). A **public** termination-notice calculator
+that publishes statutory figures remains barred (D6 /
+[SEO_AUTHORITY_PLAYBOOK.md](SEO_AUTHORITY_PLAYBOOK.md)).
 
-Already in place as building blocks (reuse; do not re-invent):
+**Shipped**
 
-- Ontario ESA s.57 notice bands —
-  `src/features/app/advisor/safety/statutoryNotice.ts`
-- Document Studio notice-floor check (advise, never autofill) —
-  `src/features/app/documents/statutoryFloor.ts`
-- Advisor reply cross-check —
-  `src/features/app/advisor/safety/statutoryCrossCheck.ts`
+| Flow | Route | What it does |
+| --- | --- | --- |
+| Ontario statutory notice (ESA floor) | `/app/workflows/statutory-notice-ontario` | Tenure band → ESA s. 57 floor weeks; hands off to T03 |
+| Ontario ESA severance eligibility | `/app/workflows/severance-eligibility-ontario` | Option B gate (5 years + payroll / mass-closure + exclusions); **never computes an amount**; hands off to T03 |
 
-Candidate first calculators (product can reorder):
+Building blocks reused: `statutoryNotice.ts` lookup (asserted in
+`statutoryNoticeOntario.test.ts`), Document Studio T03 handoff, FlowRunner
+Disclaimer.
 
-1. **Statutory notice weeks (workspace)** — tenure → floor weeks for ON;
-   QC/FED only after L6 populates `NOTICE_SCHEDULES` bands.
-2. **Severance eligibility gate (Ontario)** — payroll / headcount tests
-   before any dollar math (see [notice-bands-review-pack.md](notice-bands-review-pack.md)
-   §3 options A–C; prefer gate-only until legal signs figures).
+**Still to build (product can reorder)**
+
+1. **QC / FED statutory notice flows** — only after L6 populates
+   `NOTICE_SCHEDULES` bands (or an explicit decision that those jurisdictions
+   stay hedge-only).
+2. **Severance amount calculator (Option A)** — deferred until organization-
+   level payroll and a reliable mass-termination count exist; see
+   [notice-bands-review-pack.md](notice-bands-review-pack.md) §3.
 3. **Deadline / milestone trackers** — ROE timing, temporary-layoff caps,
-   leave return windows — dates and shape of the rule, with primary-source
-   links; no invented thresholds.
+   leave-return windows — date/shape of the rule with primary-source links;
+   no invented thresholds.
+4. **Optional free-form tenure input** — today’s notice flow uses band
+   choices so it fits FlowRunner; a typed months field would need a small
+   calculator surface beside the flow engine.
 
-Non-negotiables when this is built: bilingual `{en,fr}`; standing
-`Disclaimer` near every result; grounded tables only (null schedule → hedge,
-never invent); floors are floors not common-law advice; do not upgrade hedges
-into claims. Prefer a dedicated `/app/...` surface or a Workflows-adjacent
-tool card over a marketing `/tools/*` route that emits figures.
+Non-negotiables unchanged: bilingual `{en,fr}`; standing `Disclaimer` on the
+runner; grounded tables only; floors are floors not common-law advice; do not
+put figure-emitting tools on `/tools/*`.
 
 ---
 

@@ -126,6 +126,31 @@ describe('FlowRunner', () => {
     renderFlow('not-a-flow')
     expect(screen.getByText('That process does not exist.')).toBeVisible()
   })
+
+  it('ends at the ESA floor for a mid tenure band', async () => {
+    const user = userEvent.setup()
+    renderFlow('statutory-notice-ontario')
+    expect(
+      screen.getByRole('heading', { level: 1, name: /Ontario statutory notice/ }),
+    ).toBeVisible()
+    await user.click(screen.getByRole('button', { name: /1 year to under 3 years/ }))
+    expect(screen.getByRole('heading', { level: 2, name: 'ESA floor: 2 weeks' })).toBeVisible()
+    expect(screen.getByRole('link', { name: /Termination letter/i })).toHaveAttribute(
+      'href',
+      '/app/documents/templates/T03',
+    )
+  })
+
+  it('gates ESA severance without stating an amount', async () => {
+    const user = userEvent.setup()
+    renderFlow('severance-eligibility-ontario')
+    await user.click(screen.getByRole('button', { name: /Yes — five or more/ }))
+    await user.click(screen.getByRole('button', { name: /global payroll is at least/ }))
+    await user.click(screen.getByRole('button', { name: /No exclusion appears/ }))
+    expect(
+      screen.getByRole('heading', { level: 2, name: /may apply — amount not calculated/ }),
+    ).toBeVisible()
+  })
 })
 
 describe('FlowRunner — a scored assessment', () => {

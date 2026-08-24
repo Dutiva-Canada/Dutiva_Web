@@ -43,7 +43,7 @@ Every ID in TODO.md, and where it goes.
 | OA1, OA3–OA11                       | [Owner only](#owner-only) | Secret, dashboard, filing or vendor        |
 | L5, L9, EF1, D5, D6, V1 (live half) | [Owner only](#owner-only) |                                            |
 | EF6, EF6b, EF9                      | —                         | Already done; TODO keeps them as markers   |
-| EF11                                | —                         | Deferred future build (workspace calculators); see TODO.md |
+| EF11                                | —                         | Partial — ON notice + severance gate flows shipped; see TODO.md |
 
 ---
 
@@ -820,4 +820,6 @@ them.
   2026-08-06: built a jurisdiction-scoping questionnaire at
   `/tools/jurisdiction-check`. The **public** termination-notice calculator
   remains ruled out (publishing notice periods violates the editorial rule).
-  Workspace entitlement calculators are deferred as **EF11** in TODO.md.
+  Workspace entitlement calculators (EF11): Ontario statutory-notice and
+  severance-eligibility flows are built under `/app/workflows/`; QC/FED notice,
+  severance amount (Option A), and deadline trackers remain open in TODO.md.

@@ -171,6 +171,18 @@ producing a document would be the wrong instruction.
 Nothing is persisted. A run is a thinking tool; the record it produces is
 meant to be carried into the template the outcome names.
 
+**Entitlement calculators (EF11)** use the same engine. Two Ontario tools
+ship as decision trees on `/app/workflows/`:
+
+| Tool | Route | State |
+| --- | --- | --- |
+| Ontario statutory notice (ESA s. 57 floor) | `/app/workflows/statutory-notice-ontario` | **Built** — band → floor weeks; T03 handoff |
+| Ontario ESA severance eligibility | `/app/workflows/severance-eligibility-ontario` | **Built** — Option B gate only; no amount; T03 handoff |
+
+QC/FED notice bands, severance Option A (compute amount), and deadline
+trackers remain open in TODO.md EF11. These must not be published as
+figure-emitting `/tools/*` marketing pages.
+
 **Every step shows in every jurisdiction.** The model briefly carried an
 `only` field to restrict a step to one, and it was removed: a run has no
 jurisdiction to gate on, because the runner never asks for one, so the gate
