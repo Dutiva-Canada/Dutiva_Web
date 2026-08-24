@@ -112,6 +112,17 @@ export const retrievalReadSchema = z.object({
 })
 export type RetrievalRead = z.infer<typeof retrievalReadSchema>
 
+/** Org memory facts injected into this turn (not statute). Optional for older payloads. */
+export const memoryUsedItemSchema = z.object({
+  label: lTextSchema,
+  factId: z.string().optional(),
+})
+export const memoryUsedReadSchema = z.object({
+  items: z.array(memoryUsedItemSchema),
+  note: lTextSchema.optional(),
+})
+export type MemoryUsedRead = z.infer<typeof memoryUsedReadSchema>
+
 export const webSourceSchema = z.object({
   domain: z.string(),
   authority: webAuthoritySchema,
@@ -144,6 +155,8 @@ export const advisorResponseSchema = z.object({
   supportNotice: z.boolean(),
   legalBasis: legalBasisReadSchema,
   retrieval: retrievalReadSchema,
+  /** Confirmed org memory used this turn — optional so pre-memory engines still validate. */
+  memory: memoryUsedReadSchema.nullable().optional(),
   webSearch: webSearchReadSchema.nullable(),
   confidence: confidenceReadSchema.nullable(),
   /** Conflict / withheld notices surfaced to the operator. */

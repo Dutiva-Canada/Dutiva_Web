@@ -705,6 +705,11 @@ Deno.serve(async (req: Request) => {
       reply,
       chunks: guidanceChunks,
       retrievalFailed: retrieval.failed,
+      memoryFacts: memoryFacts.map((f) => ({
+        id: f.id,
+        statementEn: f.statementEn,
+        statementFr: f.statementFr,
+      })),
     })
   } catch (error) {
     console.error('advisor-chat: response payload build failed', error)

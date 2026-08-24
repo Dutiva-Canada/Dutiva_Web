@@ -191,6 +191,33 @@ describe('memory productionApi', () => {
     expect(insert).toHaveBeenCalledWith(expect.objectContaining({ action: 'forget' }))
   })
 
+  it('forgetFactsForEntity soft-forgets every active fact for that entity', async () => {
+    const fact2 = { ...FACT_ROW, id: 'fact-2', statement_en: 'Role: Analyst' }
+    const is = vi.fn().mockReturnValue(listChain([FACT_ROW, fact2]))
+    const eqEntity = vi.fn().mockReturnValue({ is })
+    const eqScope = vi.fn().mockReturnValue({ eq: eqEntity })
+    const eqOrg = vi.fn().mockReturnValue({ eq: eqScope })
+    const select = vi.fn().mockReturnValue({ eq: eqOrg })
+
+    const eqOrgUpdate = vi.fn().mockResolvedValue({ error: null })
+    const eqIdUpdate = vi.fn().mockReturnValue({ eq: eqOrgUpdate })
+    const update = vi.fn().mockReturnValue({ eq: eqIdUpdate })
+    const insert = vi.fn().mockResolvedValue({ error: null })
+
+    mockClient((table) => {
+      if (table === 'hr_advisor_memory_audit') return { insert }
+      return { select, update }
+    })
+    vi.resetModules()
+    const api = await import('./productionApi')
+
+    const n = await api.forgetFactsForEntity('org-1', 'person', 'emp-1')
+    expect(n).toBe(2)
+    expect(update).toHaveBeenCalledTimes(2)
+    expect(insert).toHaveBeenCalledTimes(2)
+    expect(insert).toHaveBeenCalledWith(expect.objectContaining({ action: 'forget', fact_id: 'fact-1' }))
+  })
+
   it('createFact inserts a confirmed manual fact and audits create', async () => {
     const created = {
       ...FACT_ROW,

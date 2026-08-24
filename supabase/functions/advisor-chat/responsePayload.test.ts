@@ -272,3 +272,36 @@ describe('buildAdvisorResponse — confidence', () => {
     expect(grounded.confidence?.pct).toBeLessThanOrEqual(88)
   })
 })
+
+describe('buildAdvisorResponse — memory used', () => {
+  it('surfaces injected org memory facts on the payload', () => {
+    const res = parsed(
+      buildAdvisorResponse({
+        message: 'Ontario notice for Jordan?',
+        reply: 'Confirm tenure and the contract clause first.',
+        chunks: [reviewedChunk],
+        memoryFacts: [
+          {
+            id: 'fact-1',
+            statementEn: 'Started March 2018',
+            statementFr: 'Début en mars 2018',
+          },
+        ],
+      }),
+    )
+    expect(res.memory?.items).toHaveLength(1)
+    expect(res.memory?.items[0]?.factId).toBe('fact-1')
+    expect(res.memory?.items[0]?.label.en).toContain('March 2018')
+  })
+
+  it('omits memory when none were injected', () => {
+    const res = parsed(
+      buildAdvisorResponse({
+        message: 'Ontario vacation?',
+        reply: 'Two weeks.',
+        chunks: [reviewedChunk],
+      }),
+    )
+    expect(res.memory).toBeNull()
+  })
+})

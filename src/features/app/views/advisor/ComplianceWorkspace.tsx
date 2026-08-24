@@ -454,6 +454,28 @@ function ReadyState({ response, provincePrompt, onPickProvince, onToggleWeb }: R
         )}
       </Card>
 
+      {/* Organization memory used this turn */}
+      {response.memory != null && response.memory.items.length > 0 && (
+        <Card>
+          <div className="mb-[9px] text-[12.5px] font-bold text-text">{x(M.advws_sec_memory)}</div>
+          <ul className="m-0 list-none space-y-[7px] p-0">
+            {response.memory.items.map((item) => (
+              <li
+                key={item.factId ?? keyOfL(item.label)}
+                className="rounded-[8px] border border-gold-border bg-gold-bg px-[10px] py-[8px] text-[12px] leading-normal text-text-2"
+              >
+                {pickL(item.label, lang)}
+              </li>
+            ))}
+          </ul>
+          {response.memory.note !== undefined && (
+            <div className="mt-[8px] text-[11px] leading-normal text-text-faint">
+              {pickL(response.memory.note, lang)}
+            </div>
+          )}
+        </Card>
+      )}
+
       {/* Live web sources */}
       {response.webSearch !== null && (
         <Card>
