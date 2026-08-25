@@ -7,8 +7,8 @@ export const changelogMessages = defineMessages({
     fr: 'Ce que nous avons livré.',
   },
   changelog_intro: {
-    en: 'Dated product updates from Dutiva — what changed, when, and why it matters for Canadian HR compliance workflows.',
-    fr: 'Mises à jour datées du produit Dutiva — ce qui a changé, quand, et pourquoi cela compte pour les processus de conformité RH au Canada.',
+    en: 'Dated product updates from Dutiva — what changed, when, and why it matters for Canadian HR compliance workflows and self-serve access.',
+    fr: 'Mises à jour datées du produit Dutiva — ce qui a changé, quand, et pourquoi cela compte pour la conformité RH et l’accès en libre-service au Canada.',
   },
   changelog_byline: {
     en: 'Updates from Martin Constantineau, Founder & CEO',

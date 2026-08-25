@@ -20,6 +20,11 @@ export const templatesPreviewMessages = defineMessages({
     en: 'A growing library of employer-side templates — offers, agreements, policies, discipline, and termination — each jurisdiction-aware for Ontario, Quebec, and Federal workplaces.',
     fr: 'Une bibliothèque grandissante de modèles pour employeurs — offres, ententes, politiques, discipline et cessation — chacun adapté aux règles de l’Ontario, du Québec et du régime fédéral.',
   },
+  /* SEO meta only — page hero keeps the longer tplPreview_intro. */
+  tplPreview_meta_description: {
+    en: 'Browse jurisdiction-aware HR templates for Ontario, Quebec, and federal workplaces — hiring, policies, discipline, and termination from Dutiva.',
+    fr: 'Parcourez les modèles RH adaptés à l’Ontario, au Québec et au fédéral — embauche, politiques, discipline et cessation d’emploi avec Dutiva.',
+  },
   tplPreview_count: {
     en: 'templates',
     fr: 'modèles',

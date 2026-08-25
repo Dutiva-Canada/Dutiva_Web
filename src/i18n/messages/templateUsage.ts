@@ -13,6 +13,11 @@ export const tmplGuideMessages = defineMessages({
     en: 'Dutiva’s 16 core templates are generated through guided questions and reviewed beside the compliance guidance that shaped them. Here’s how to get the most out of them.',
     fr: 'Les 16 modèles essentiels de Dutiva sont générés par des questions guidées et révisés à côté des conseils de conformité qui les ont façonnés. Voici comment en tirer le meilleur parti.',
   },
+  /* SEO meta only — page hero keeps the longer tmplGuide_intro. */
+  tmplGuide_meta_description: {
+    en: 'How Dutiva HR templates work — guided questions, compliance context, and review-ready documents for Ontario, Quebec, and federal workplaces.',
+    fr: 'Comment fonctionnent les modèles RH Dutiva — questions guidées, contexte de conformité et documents prêts à réviser pour l’ON, le QC et le fédéral.',
+  },
   tmplGuide_s1: { en: 'How generation works', fr: 'Comment fonctionne la génération' },
   tmplGuide_st1t: { en: 'Pick a template', fr: 'Choisissez un modèle' },
   tmplGuide_st1p: {

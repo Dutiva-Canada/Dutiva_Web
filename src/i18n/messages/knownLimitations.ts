@@ -13,6 +13,11 @@ export const limitsMessages = defineMessages({
     en: 'Dutiva is built to be useful and honest about what it can’t do. These are the current limitations to keep in mind when using Advisor and generated documents.',
     fr: 'Dutiva est conçu pour être utile et honnête sur ce qu’il ne peut pas faire. Voici les limites actuelles à garder à l’esprit lorsque vous utilisez le Conseiller et les documents générés.',
   },
+  /* SEO meta only — page hero keeps the longer limits_intro. */
+  limits_meta_description: {
+    en: 'What Dutiva cannot do — current limitations of the AI Advisor and generated HR documents, stated plainly for Canadian employers using the product.',
+    fr: 'Ce que Dutiva ne peut pas faire — limites actuelles du Conseiller IA et des documents RH générés, énoncées clairement pour les employeurs canadiens.',
+  },
   limits_s1: { en: 'What Dutiva is not', fr: 'Ce que Dutiva n’est pas' },
   limits_n1: {
     en: 'Not legal advice — Dutiva provides HR workflow support and compliance-oriented guidance, not legal, tax, medical, or financial advice.',

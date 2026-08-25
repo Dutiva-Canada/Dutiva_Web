@@ -11,12 +11,12 @@ Classifications: `PUBLIC_INDEXABLE` · `PUBLIC_NOINDEX` ·
 `AUTHENTICATION_NOINDEX` · `PRIVATE_APPLICATION_NOINDEX` ·
 `ADMIN_INTERNAL_NOINDEX` · `API_NON_DOCUMENT` · `REDIRECT` · `NOT_FOUND`.
 
-## Public marketing surface — PUBLIC_INDEXABLE (130 URLs)
+## Public marketing surface — PUBLIC_INDEXABLE (134 URLs)
 
 Prerendered, self-canonical, reciprocal en-CA/fr-CA/x-default hreflang, in
 sitemap.xml. Purpose/intent notes double as the content matrix.
 
-65 pages × 2 locales: 15 static routes, the 26 policy documents, the 12 Help
+67 pages × 2 locales: 17 static routes, the 26 policy documents, the 13 Help
 Centre articles, and the 12 editorial articles (6 guides + 6 blog posts).
 `scripts/validate-seo.mjs` compares `dist/` against the route registry entry
 by entry, so this count cannot drift from the build.
@@ -37,16 +37,17 @@ by entry, so this count cannot drift from the build.
 | `/legal`                 | `/fr/juridique`                      | Index of the 26 policy documents                                              | CollectionPage                           | —                           |
 | `/legal/:slug` (×26)     | `/fr/juridique/:frSlug` (×26)        | One policy document; visible last-updated/effective dates                     | WebPage w/ dates + BreadcrumbList        | —                           |
 | `/help`                  | `/fr/aide`                           | Help Centre index; articles grouped by category                               | CollectionPage                           | Contact support             |
-| `/help/:slug` (×12)      | `/fr/aide/:frSlug` (×12)             | One self-service help article; related articles in the same category          | WebPage + BreadcrumbList (visible trail) | Contact support             |
+| `/help/:slug` (×13)      | `/fr/aide/:frSlug` (×13)             | One self-service help article; related articles in the same category          | WebPage + BreadcrumbList (visible trail) | Contact support             |
 | `/contact`               | `/fr/contact`                        | Account-free support request form (product, privacy, security, accessibility) | WebPage                                  | Submit request              |
 | `/status`                | `/fr/etat`                           | Self-reported service status: platform, Advisor, documents, support           | WebPage                                  | Contact support             |
 | `/changelog`             | `/fr/journal-des-modifications`      | Dated public product updates; founder byline; sitemap lastmod from entries   | WebPage                                  | Start free / read changelog |
 | `/vs/hrdownloads`        | `/fr/vs/hrdownloads`                 | Dutiva vs HRdownloads — pricing, risk flags, bilingual, statutes, self-serve | FAQPage (visible Q&A on page)            | Start free                  |
 | `/vs/sixfifty`           | `/fr/vs/sixfifty`                    | Dutiva vs SixFifty — same comparison dimensions for Canadian employers       | FAQPage (visible Q&A on page)            | Start free                  |
+| `/tools/jurisdiction-check` | `/fr/outils/verification-juridiction` | Free scoping tool: Ontario vs Quebec vs federal employment standards        | WebPage                                  | Try Dutiva free             |
 
 The 26 policy slugs and their French equivalents live in
 `src/features/marketing/legal/legalHubData.ts` (`slug` / `frSlug` per row);
-the 12 Help Centre articles live in
+the 13 Help Centre articles live in
 `src/features/support/help/helpCenterData.ts` (`slug` / `frSlug` per article);
 the 12 editorial articles live in `src/features/marketing/articles/`
 (`guideArticles.ts` and `blogArticles.ts`).

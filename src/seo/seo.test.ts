@@ -87,15 +87,15 @@ describe('SEO route registry', () => {
     }
   })
 
-  it('keeps homepage, about, and blog meta descriptions within the SERP display limit', () => {
-    /* Google typically truncates around 155 characters (audit D5.1). Other
-       routes may still exceed that; this guard covers the pages the audit
-       flagged. */
-    for (const id of ['home', 'about', 'blog'] as const) {
-      const route = SEO_ROUTES.find((r) => r.id === id)
-      expect(route).toBeDefined()
+  it('keeps every static route meta description within the SERP display band (120–155 chars)', () => {
+    /* Bing flagged many descriptions as too short; Google truncates around 155
+       (audit D5.1). Static routes use dedicated *_meta_description keys where
+       the visible page intro is longer. */
+    for (const route of SEO_ROUTES) {
       for (const lang of ['en', 'fr'] as const) {
-        expect(route!.description[lang].length).toBeLessThanOrEqual(155)
+        const len = route.description[lang].length
+        expect(len, `${route.id} ${lang}`).toBeGreaterThanOrEqual(120)
+        expect(len, `${route.id} ${lang}`).toBeLessThanOrEqual(155)
       }
     }
   })
