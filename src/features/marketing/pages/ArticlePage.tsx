@@ -33,7 +33,9 @@ export function ArticlePage({ collection }: { readonly collection: ArticleCollec
   const { p } = usePublicPath()
   const article = articleBySlug(collection, slug ?? '', pathLang)
   const indexRoute = seoRoute(collection === 'guide' ? 'guides' : 'blog')
-  const indexPath = indexRoute.path[lang]
+  /* Index links and 404 redirects follow the URL locale (pathLang), not the
+     UI preference — same source as articleBySlug / canonical slug checks. */
+  const indexPath = indexRoute.path[pathLang]
 
   if (!article) return <Navigate to={indexPath} replace />
 

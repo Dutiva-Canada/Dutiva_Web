@@ -48,7 +48,9 @@ export function HelpArticlePage() {
     if (articleSlug) trackEvent({ event_type: 'help_article_view', article_slug: articleSlug, locale: lang })
   }, [articleSlug, lang])
 
-  if (!article) return <Navigate to={seoRoute('help').path[lang]} replace />
+  const helpIndex = seoRoute('help').path[pathLang]
+
+  if (!article) return <Navigate to={helpIndex} replace />
 
   const expectedSlug = pathLang === 'fr' ? article.frSlug : article.slug
   if ((slug ?? '') !== expectedSlug) {
@@ -57,7 +59,6 @@ export function HelpArticlePage() {
 
   const category = helpCategory(article.category)
   const related = helpArticlesByCategory(article.category).filter((a) => a.slug !== article.slug)
-  const helpIndex = seoRoute('help').path[lang]
 
   return (
     <MarketingPageShell>

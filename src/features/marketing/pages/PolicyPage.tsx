@@ -44,7 +44,9 @@ export function PolicyPage() {
       : (legalRowBySlug(slug ?? '') ?? legalRowByFrSlug(slug ?? ''))
   const doc = row ? policyDoc(row.slug) : undefined
 
-  if (!row || !doc) return <Navigate to={seoRoute('legal').path[lang]} replace />
+  const legalIndex = seoRoute('legal').path[pathLang]
+
+  if (!row || !doc) return <Navigate to={legalIndex} replace />
 
   const expectedSlug = pathLang === 'fr' ? row.frSlug : row.slug
   if ((slug ?? '') !== expectedSlug) {
