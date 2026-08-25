@@ -90,11 +90,12 @@ export async function sendDocumentForSignature(
   const contentHash = await hashDocumentContent(current.content)
 
   const provider = getSignatureProvider(providerId)
-  const ordered: EnvelopeRecipientInput[] = recipients.map((r, i) => ({
+  const sorted = [...recipients].sort((a, b) => (a.order || 0) - (b.order || 0))
+  const ordered: EnvelopeRecipientInput[] = sorted.map((r, i) => ({
     name: r.name.trim(),
     email: r.email.trim(),
     type: r.type,
-    order: r.order || i + 1,
+    order: i + 1,
   }))
 
   const envelope = await provider.createEnvelope({
@@ -105,54 +106,76 @@ export async function sendDocumentForSignature(
 
   const now = new Date().toISOString()
 
-  const { data: sigData, error: sigError } = await supabase
-    .from('hr_document_signatures')
-    .insert({
+  let signature: ProductionDocumentSignature | undefined
+  try {
+    const { data: sigData, error: sigError } = await supabase
+      .from('hr_document_signatures')
+      .insert({
+        organization_id: organizationId,
+        document_id: documentId,
+        provider: envelope.provider,
+        external_envelope_id: envelope.externalEnvelopeId,
+        status: envelope.initialStatus,
+        sent_at: now,
+        content_hash: contentHash,
+      })
+      .select(SIGNATURE_SELECT)
+      .single()
+    if (sigError) throw sigError
+    const created = toSignature(signatureRowSchema.parse(sigData))
+    signature = created
+
+    const recipientRows = ordered.map((r) => ({
       organization_id: organizationId,
       document_id: documentId,
-      provider: envelope.provider,
-      external_envelope_id: envelope.externalEnvelopeId,
-      status: envelope.initialStatus,
-      sent_at: now,
-      content_hash: contentHash,
+      signature_id: created.id,
+      recipient_type: r.type,
+      name: r.name,
+      email: r.email,
+      signing_order: r.order,
+      status: 'pending',
+    }))
+    const { error: recError } = await supabase.from('hr_document_recipients').insert(recipientRows)
+    if (recError) throw recError
+
+    const { error: docError } = await supabase
+      .from('hr_generated_documents')
+      .update({
+        status: 'sent_for_signature',
+        signature_status: 'sent',
+        updated_at: now,
+      })
+      .eq('id', documentId)
+      .eq('organization_id', organizationId)
+    if (docError) throw docError
+
+    const { error: auditError } = await supabase.from('hr_document_audit_events').insert({
+      organization_id: organizationId,
+      document_id: documentId,
+      event_type: 'sent_for_signature',
+      actor_label: actorLabel,
+      meta: `${envelope.externalEnvelopeId} · hash ${contentHash.slice(0, 12)}`,
     })
-    .select(SIGNATURE_SELECT)
-    .single()
-  if (sigError) throw sigError
-  const signature = toSignature(signatureRowSchema.parse(sigData))
+    if (auditError) throw auditError
+  } catch (error) {
+    if (signature) {
+      await supabase
+        .from('hr_document_recipients')
+        .delete()
+        .eq('signature_id', signature.id)
+        .eq('organization_id', organizationId)
+      await supabase
+        .from('hr_document_signatures')
+        .delete()
+        .eq('id', signature.id)
+        .eq('organization_id', organizationId)
+    }
+    throw error
+  }
 
-  const recipientRows = ordered.map((r) => ({
-    organization_id: organizationId,
-    document_id: documentId,
-    signature_id: signature.id,
-    recipient_type: r.type,
-    name: r.name,
-    email: r.email,
-    signing_order: r.order,
-    status: 'pending',
-  }))
-  const { error: recError } = await supabase.from('hr_document_recipients').insert(recipientRows)
-  if (recError) throw recError
-
-  const { error: docError } = await supabase
-    .from('hr_generated_documents')
-    .update({
-      status: 'sent_for_signature',
-      signature_status: 'sent',
-      updated_at: now,
-    })
-    .eq('id', documentId)
-    .eq('organization_id', organizationId)
-  if (docError) throw docError
-
-  const { error: auditError } = await supabase.from('hr_document_audit_events').insert({
-    organization_id: organizationId,
-    document_id: documentId,
-    event_type: 'sent_for_signature',
-    actor_label: actorLabel,
-    meta: `${envelope.externalEnvelopeId} · hash ${contentHash.slice(0, 12)}`,
-  })
-  if (auditError) throw auditError
+  if (!signature) {
+    throw new Error('Could not create signature envelope')
+  }
 
   return signature
 }

@@ -57,6 +57,8 @@ export function SigningProductionView() {
     void load()
   }, [load])
 
+  const userEmail = identity.user.email.toLowerCase()
+
   useEffect(() => {
     if (!envelopeId || !pkg) return
     void recordDocumentSignatureView(envelopeId).catch(() => {
@@ -64,7 +66,15 @@ export function SigningProductionView() {
     })
   }, [envelopeId, pkg?.signature.id])
 
-  const userEmail = identity.user.email.toLowerCase()
+  /* Refresh while waiting for an earlier signer so turn state stays current. */
+  useEffect(() => {
+    if (!pkg || recipientCanSignNow(pkg.recipients, userEmail)) return
+    const id = window.setInterval(() => {
+      void load()
+    }, 15_000)
+    return () => window.clearInterval(id)
+  }, [pkg, userEmail, load])
+
   const turn = useMemo(
     () => (pkg ? currentSigningTurn(pkg.recipients) : null),
     [pkg],
@@ -74,6 +84,14 @@ export function SigningProductionView() {
     () =>
       pkg?.recipients.filter(
         (r) => r.status !== 'signed' && r.status !== 'declined' && r.email.toLowerCase() === userEmail,
+      ) ?? [],
+    [pkg, userEmail],
+  )
+
+  const signedRecipientsForUser = useMemo(
+    () =>
+      pkg?.recipients.filter(
+        (r) => r.status === 'signed' && r.email.toLowerCase() === userEmail,
       ) ?? [],
     [pkg, userEmail],
   )
@@ -126,13 +144,39 @@ export function SigningProductionView() {
     )
   }
 
-  if (pendingRecipients.length === 0 && pkg.detail.signatureStatus !== 'signed') {
+  if (
+    pendingRecipients.length === 0 &&
+    signedRecipientsForUser.length === 0 &&
+    pkg.detail.signatureStatus !== 'signed'
+  ) {
     return (
       <div className="mx-auto max-w-170 px-6 py-16 text-center">
         <h1 className="mb-2 font-display text-[20px] font-semibold text-text">
           {x(M.doclib_sign_wrongAccount)}
         </h1>
         <p className="text-[13px] text-text-muted">{x(M.doclib_sign_wrongAccountBody)}</p>
+        <button
+          type="button"
+          onClick={() => navigate(`/app/documents/${pkg.detail.id}`)}
+          className="mt-4 rounded-[9px] bg-navy px-3.5 py-2 text-[12.5px] font-semibold text-white"
+        >
+          {x(M.doclib_prod_back)}
+        </button>
+      </div>
+    )
+  }
+
+  if (
+    pendingRecipients.length === 0 &&
+    signedRecipientsForUser.length > 0 &&
+    pkg.detail.signatureStatus !== 'signed'
+  ) {
+    return (
+      <div className="mx-auto max-w-170 px-6 py-16 text-center">
+        <h1 className="mb-2 font-display text-[20px] font-semibold text-text">
+          {x(M.doclib_sign_alreadySigned_title)}
+        </h1>
+        <p className="text-[13px] text-text-muted">{x(M.doclib_sign_alreadySigned_body)}</p>
         <button
           type="button"
           onClick={() => navigate(`/app/documents/${pkg.detail.id}`)}

@@ -48,7 +48,10 @@ export function ExternalSigningView() {
   const [declining, setDeclining] = useState(false)
   const [consentChecked, setConsentChecked] = useState(false)
   const [signature, setSignature] = useState<SignatureValue | undefined>()
-  const [completed, setCompleted] = useState(false)
+  const [completedStatus, setCompletedStatus] = useState<'signed' | 'partially_signed' | null>(
+    null,
+  )
+  const [signError, setSignError] = useState(false)
 
   const load = useCallback(async () => {
     if (!token) return
@@ -74,7 +77,7 @@ export function ExternalSigningView() {
 
   const canSign = pkg ? externalRecipientCanSignNow(pkg) : false
   const turnRecipient = useMemo(() => {
-    if (!pkg?.turnOrder) return null
+    if (pkg?.turnOrder == null) return null
     return pkg.recipients.find((r) => r.order === pkg.turnOrder) ?? null
   }, [pkg])
 
@@ -86,6 +89,16 @@ export function ExternalSigningView() {
       lang: pkg.document.language,
     }
   }, [pkg])
+
+  /* Refresh while waiting for an earlier signer so the page picks up turn changes. */
+  useEffect(() => {
+    if (!pkg || canSign || completedStatus !== null) return
+    if (pkg.recipient.status === 'signed' || pkg.recipient.status === 'declined') return
+    const id = window.setInterval(() => {
+      void load()
+    }, 15_000)
+    return () => window.clearInterval(id)
+  }, [pkg, canSign, completedStatus, load])
 
   if (pkg === undefined) {
     return (
@@ -112,15 +125,27 @@ export function ExternalSigningView() {
     )
   }
 
-  if (completed || pkg.recipient.status === 'signed') {
+  if (completedStatus !== null || pkg.recipient.status === 'signed') {
+    const docFullySigned = pkg.document.signatureStatus === 'signed'
+    const partial = completedStatus === 'partially_signed' || !docFullySigned
     return (
       <>
         {seo}
         <div className="surface-app min-h-screen bg-bg px-6 py-16 text-center font-sans text-text">
           <h1 className="mb-2 font-display text-[20px] font-semibold text-text">
-            {x(M.doclib_external_signed_title)}
+            {x(
+              !partial
+                ? M.doclib_external_signed_title
+                : M.doclib_external_signed_partial_title,
+            )}
           </h1>
-          <p className="text-[13px] text-text-muted">{x(M.doclib_external_signed_body)}</p>
+          <p className="text-[13px] text-text-muted">
+            {x(
+              !partial
+                ? M.doclib_external_signed_body
+                : M.doclib_external_signed_partial_body,
+            )}
+          </p>
         </div>
       </>
     )
@@ -142,14 +167,19 @@ export function ExternalSigningView() {
   const handleSign = async () => {
     if (!token || !canSign || !signature || !consentChecked || signing) return
     setSigning(true)
+    setSignError(false)
     try {
-      await applyExternalSignature(token, {
-        image: signature.image,
-        signedName: signature.signedName,
-      }, DUTIVA_SIGNING_CONSENT_VERSION)
-      setCompleted(true)
+      const result = await applyExternalSignature(
+        token,
+        {
+          image: signature.image,
+          signedName: signature.signedName,
+        },
+        DUTIVA_SIGNING_CONSENT_VERSION,
+      )
+      setCompletedStatus(result.signatureStatus === 'signed' ? 'signed' : 'partially_signed')
     } catch {
-      setLoadFailed(true)
+      setSignError(true)
     } finally {
       setSigning(false)
     }
@@ -158,11 +188,12 @@ export function ExternalSigningView() {
   const handleDecline = async () => {
     if (!token || !canSign || declining) return
     setDeclining(true)
+    setSignError(false)
     try {
       await declineExternalSignature(token)
       await load()
     } catch {
-      setLoadFailed(true)
+      setSignError(true)
     } finally {
       setDeclining(false)
     }
@@ -186,6 +217,12 @@ export function ExternalSigningView() {
         {turnRecipient && !canSign && (
           <div className="mb-4 rounded-xl border border-border bg-inset px-4 py-3 text-[13px] text-text-muted">
             {x(M.doclib_sign_waitingTurn)} {turnRecipient.name} ({turnRecipient.email})
+          </div>
+        )}
+
+        {signError && (
+          <div className="mb-4 rounded-xl border border-risk-border bg-risk-bg px-4 py-3 text-[13px] text-risk-fg">
+            {x(M.doclib_external_sign_failed)}
           </div>
         )}
 

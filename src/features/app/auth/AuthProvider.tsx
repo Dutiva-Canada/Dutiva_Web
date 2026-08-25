@@ -26,17 +26,25 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
   useEffect(() => {
     if (!supabase) return
 
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
-      setStatus(data.session ? 'signed-in' : 'signed-out')
-    }).catch((error) => {
-      console.error('auth: getSession failed —', error)
-      setStatus('signed-out')
-    })
+    let fromAuthListener = false
+
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (fromAuthListener) return
+        setSession(data.session)
+        setStatus(data.session ? 'signed-in' : 'signed-out')
+      })
+      .catch((error) => {
+        if (fromAuthListener) return
+        console.error('auth: getSession failed —', error)
+        setStatus('signed-out')
+      })
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      fromAuthListener = true
       setSession(nextSession)
       setStatus(nextSession ? 'signed-in' : 'signed-out')
     })

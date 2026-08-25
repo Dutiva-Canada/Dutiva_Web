@@ -11,6 +11,7 @@ import {
   fetchStoredMode,
   saveStoredMode,
 } from './api'
+import { resetAdvisorSession } from '@/features/app/views/advisor/advisorSession'
 import { WorkspaceModeContext } from './workspaceModeContext'
 import type { AdmissionStatus, WorkspaceIdentity, WorkspaceMode } from './workspaceModeContext'
 import type { OrgMemberRole } from './roles'
@@ -133,6 +134,7 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
   const setMode = useCallback(
     async (next: WorkspaceMode) => {
       if (!admin.isAdmin || !session) return
+      const userId = session.user.id
       /* First switch to production provisions the real organization (the
          RPC also inserts the caller as its active owner). */
       let organizationId = admin.organizationId
@@ -142,6 +144,7 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
       if (next === 'production' && organizationId === null) {
         const companyName = admin.identity?.companyName ?? 'Dutiva Canada Inc.'
         const result = await bootstrapOrganization(companyName, companyName)
+        if (!session) return
         if (result.status === 'success') {
           organizationId = result.organizationId
           memberRole = result.memberRole ?? 'owner'
@@ -161,13 +164,15 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
         }
       }
 
-      const ok = await saveStoredMode(session.user.id, next)
+      const ok = await saveStoredMode(userId, next)
+      if (!session) return
       if (!ok) {
         // The organization was already created; keep its id/role in state so a
         // retry does not provision a duplicate tenant.
         setAdmin((prev) => ({ ...prev, organizationId, memberRole, admissionStatus: 'error' }))
         return
       }
+      resetAdvisorSession()
       setAdmin((prev) => ({
         ...prev,
         storedMode: next,

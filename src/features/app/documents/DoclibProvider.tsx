@@ -103,11 +103,13 @@ export function DoclibProvider({ children }: { readonly children: ReactNode }) {
     const doc = next.documents[index]
     if (!doc) return undefined
 
-    const ordered = recipients.map((r, i) => ({
-      ...r,
-      order: i + 1,
-      status: r.status === 'signed' ? r.status : 'pending',
-    }))
+    const ordered = [...recipients]
+      .sort((a, b) => a.order - b.order)
+      .map((r, i) => ({
+        ...r,
+        order: i + 1,
+        status: r.status === 'signed' ? r.status : 'pending',
+      }))
 
     const updated: GeneratedDoc = {
       ...doc,

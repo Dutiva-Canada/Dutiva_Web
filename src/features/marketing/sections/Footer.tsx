@@ -112,7 +112,7 @@ export function Footer() {
             <span>·</span>
             <span>{lt('landing_trust_pipeda')}</span>
             <span>·</span>
-            <span>EN/FR</span>
+            <span>{lt('landing_trust_bilingual')}</span>
           </div>
           <a
             href="mailto:support@dutiva.ca"

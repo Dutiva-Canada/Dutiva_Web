@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { X } from 'lucide-react'
 import { bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
@@ -50,6 +50,16 @@ export function SignatureModal({
       : [emptyRecipient(1)],
   )
   const [emailInvites, setEmailInvites] = useState(true)
+
+  useEffect(() => {
+    if (!isOpen) return
+    setRecipients(
+      initialRecipients && initialRecipients.length > 0
+        ? initialRecipients
+        : [emptyRecipient(1)],
+    )
+    setEmailInvites(true)
+  }, [isOpen, initialRecipients])
 
   const canSend = useMemo(
     () => recipients.every((r) => r.name.trim() !== '' && r.email.trim() !== '' && r.email.includes('@')),

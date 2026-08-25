@@ -140,6 +140,15 @@ await writeFile(
   )
 }
 
+{
+  const { html, head } = await renderPage('/fr/__not-found__')
+  await mkdir(path.join(dist, 'fr'), { recursive: true })
+  await writeFile(
+    path.join(dist, 'fr', '404.html'),
+    composeDocument({ htmlLang: 'fr-CA', headHtml: serializeHead(head), bodyHtml: html }),
+  )
+}
+
 /* ------------------------------------------------------------------ */
 /* 4. sitemap.xml                                                      */
 /* ------------------------------------------------------------------ */

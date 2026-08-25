@@ -52,7 +52,7 @@ export function NotFoundPage() {
             {L('Browse the guides', 'Consulter les guides')}
           </Link>
           <Link to={p('faq')} className="ghost-button pill-button">
-            FAQ
+            {L('FAQ', 'FAQ')}
           </Link>
           <Link to={p('contact')} className="ghost-button pill-button">
             {L('Contact support', 'Contacter le soutien')}

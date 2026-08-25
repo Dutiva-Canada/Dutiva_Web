@@ -404,6 +404,14 @@ export const doclibMessages = defineMessages({
     en: 'Sign in with the email address listed as a recipient, or ask an admin to re-send the envelope with the correct address.',
     fr: 'Connectez-vous avec l’adresse courriel indiquée comme destinataire, ou demandez à un administrateur de renvoyer l’enveloppe à la bonne adresse.',
   },
+  doclib_sign_alreadySigned_title: {
+    en: 'You already signed this envelope',
+    fr: 'Vous avez déjà signé cette enveloppe',
+  },
+  doclib_sign_alreadySigned_body: {
+    en: 'Your signature is recorded. You can close this page or return to the document while other signers complete theirs.',
+    fr: 'Votre signature est enregistrée. Vous pouvez fermer cette page ou retourner au document pendant que les autres signataires complètent la leur.',
+  },
   doclib_sign_notFound: { en: 'Signature link not found or expired.', fr: 'Lien de signature introuvable ou expiré.' },
   doclib_sign_back: { en: 'Back to Documents', fr: 'Retour aux documents' },
 
@@ -547,6 +555,18 @@ export const doclibMessages = defineMessages({
   doclib_external_signed_body: {
     en: 'Thank you — your signature has been captured. You may close this page.',
     fr: 'Merci — votre signature a été enregistrée. Vous pouvez fermer cette page.',
+  },
+  doclib_external_signed_partial_title: {
+    en: 'Your signature is recorded',
+    fr: 'Votre signature est enregistrée',
+  },
+  doclib_external_signed_partial_body: {
+    en: 'Thank you — your part is complete. Other signers still need to sign before the document is fully executed. You may close this page.',
+    fr: 'Merci — votre partie est complète. D’autres signataires doivent encore signer avant que le document soit entièrement exécuté. Vous pouvez fermer cette page.',
+  },
+  doclib_external_sign_failed: {
+    en: 'Could not record your signature. Check your connection and try again.',
+    fr: 'Impossible d’enregistrer votre signature. Vérifiez votre connexion et réessayez.',
   },
   doclib_prod_dutiva_signing_note: {
     en: 'Dutiva Signature — proprietary in-app workflow with consent, signing order, and an audit trail. Signers open the envelope inside the workspace (no third-party e-sign vendor).',
