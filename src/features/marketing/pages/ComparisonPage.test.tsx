@@ -29,7 +29,10 @@ describe('ComparisonPage', () => {
     expect(
       screen.getByRole('heading', { level: 1, name: page.h1.en }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('columnheader', { name: 'SixFifty' })).toBeInTheDocument()
-    expect(screen.getByText(/US federal, state, and local employment law only/)).toBeInTheDocument()
+    const main = within(screen.getByRole('main'))
+    expect(main.getByRole('columnheader', { name: 'SixFifty' })).toBeInTheDocument()
+    expect(main.getByRole('row', { name: /Pricing transparency/ }).textContent).toMatch(
+      /\$75\/mo billed annually/,
+    )
   })
 })
