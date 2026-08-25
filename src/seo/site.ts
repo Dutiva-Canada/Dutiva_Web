@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2026 
+ *   Copyright (c) 2026
  *   All rights reserved.
  */
 /**
@@ -26,8 +26,10 @@ export function absoluteUrl(pathname: string): string {
 
 /**
  * Verified organization facts only (see docs/SEO_GEO_IMPLEMENTATION.md).
- * Do not add addresses, founding dates, social profiles, ratings, or other
- * properties here unless they are real, public, and visible on the site.
+ * Do not add addresses, founding dates, ratings, or other properties here
+ * unless they are real, public, and visible on the site. Social profiles
+ * belong only when published on the site (currently the founder's LinkedIn
+ * on `FOUNDER`).
  */
 export const ORG = {
   /** Registered legal name. */
@@ -42,6 +44,17 @@ export const ORG = {
   logoPath: '/brand/dutiva-leaf.png',
   logoWidth: 1275,
   logoHeight: 1275,
+} as const
+
+/**
+ * Founder identity published on `/` and `/about` (and in JSON-LD). Name,
+ * title, LinkedIn, and photo path are never re-typed in components.
+ */
+export const FOUNDER = {
+  name: 'Martin Constantineau',
+  jobTitle: { en: 'Founder & CEO', fr: 'Fondateur et chef de la direction' },
+  linkedinUrl: 'https://www.linkedin.com/in/martinconstantineau/',
+  photoPath: '/brand/martin-constantineau.jpg',
 } as const
 
 /** One-sentence positioning, kept consistent across pages, schema, and llms.txt. */

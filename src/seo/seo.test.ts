@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2026 
+ *   Copyright (c) 2026
  *   All rights reserved.
  */
 import { describe, expect, it } from 'vitest'
@@ -10,6 +10,7 @@ import {
   faqPageEntities,
   jsonLdDocument,
   organizationNode,
+  personNode,
   serializeJsonLd,
   webApplicationNode,
   webPageNode,
@@ -25,7 +26,7 @@ import {
 } from './routes'
 import { HELP_ARTICLES } from '@/features/support/help/helpCenterData'
 import { ALL_ARTICLES, BLOG_ARTICLES, GUIDE_ARTICLES } from '@/features/marketing/articles'
-import { ORG, SITE_ORIGIN, absoluteUrl } from './site'
+import { FOUNDER, ORG, SITE_ORIGIN, absoluteUrl } from './site'
 
 describe('SEO route registry', () => {
   const pages = allPublicPages()
@@ -193,11 +194,26 @@ describe('JSON-LD builders', () => {
     expect(org.legalName).toBe('Dutiva Canada Inc.')
     expect(org.name).toBe('Dutiva')
     expect(org.email).toBe(ORG.supportEmail)
-    // No invented facts.
+    expect(org.founder).toEqual({ '@id': `${SITE_ORIGIN}/#founder` })
+    // No invented facts. Organization does not carry sameAs (the Person node does).
     expect(org).not.toHaveProperty('address')
     expect(org).not.toHaveProperty('foundingDate')
     expect(org).not.toHaveProperty('sameAs')
     expect(org).not.toHaveProperty('aggregateRating')
+  })
+
+  it('describes the named founder with LinkedIn sameAs and an on-origin photo', () => {
+    const person = personNode('en')
+    expect(person).toMatchObject({
+      '@type': 'Person',
+      '@id': `${SITE_ORIGIN}/#founder`,
+      name: FOUNDER.name,
+      jobTitle: FOUNDER.jobTitle.en,
+      image: `${SITE_ORIGIN}${FOUNDER.photoPath}`,
+      sameAs: [FOUNDER.linkedinUrl],
+      worksFor: { '@id': `${SITE_ORIGIN}/#organization` },
+    })
+    expect(personNode('fr').jobTitle).toBe(FOUNDER.jobTitle.fr)
   })
 
   it('links WebSite and WebApplication to the organization', () => {

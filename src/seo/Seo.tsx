@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2026 
+ *   Copyright (c) 2026
  *   All rights reserved.
  */
 /* oxlint-disable react/only-export-components -- HeadSinkContext is part of
@@ -14,6 +14,7 @@ import {
   breadcrumbNode,
   faqPageEntities,
   organizationNode,
+  personNode,
   webPageNode,
   webSiteNode,
 } from './jsonld'
@@ -87,7 +88,7 @@ export function Seo(props: SeoProps) {
         hasBreadcrumb: !!breadcrumb,
       })
       if (faq) pageNode.mainEntity = faqPageEntities(faq)
-      jsonLd = [organizationNode(lang), webSiteNode(lang), pageNode]
+      jsonLd = [organizationNode(lang), personNode(lang), webSiteNode(lang), pageNode]
       if (breadcrumb) jsonLd.push(breadcrumbNode(path[lang], breadcrumb))
       if (extraNodes) jsonLd.push(...extraNodes)
     }

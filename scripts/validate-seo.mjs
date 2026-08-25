@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2026 
+ *   Copyright (c) 2026
  *   All rights reserved.
  */
 /**
@@ -27,6 +27,13 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const dist = path.join(root, 'dist')
 const _rawOrigin = process.env.VITE_SITE_ORIGIN || 'https://dutiva.ca'
 const ORIGIN = _rawOrigin.endsWith('/') ? _rawOrigin.slice(0, -1) : _rawOrigin
+
+/** JSON-LD URLs must be on the canonical origin, schema.org, or a social
+ *  profile that is published on the site (currently the founder's LinkedIn). */
+function isAllowedJsonLdUrl(url, origin) {
+  if (url.startsWith(origin) || url.startsWith('https://schema.org')) return true
+  return url.startsWith('https://www.linkedin.com/') || url.startsWith('https://linkedin.com/')
+}
 
 /* The route registry, read back through the same SSR bundle the prerenderer
    used. Comparing dist/ against it (rather than against a hard-coded page
@@ -174,7 +181,7 @@ for (const { route, file } of pages) {
         const flat = JSON.stringify(parsed)
         if (PLACEHOLDER.test(flat)) fail(`${route}: placeholder value in JSON-LD`)
         for (const url of flat.matchAll(/"(https?:\/\/[^"]+)"/g)) {
-          if (!url[1].startsWith(ORIGIN) && !url[1].startsWith('https://schema.org')) {
+          if (!isAllowedJsonLdUrl(url[1], ORIGIN)) {
             fail(`${route}: JSON-LD URL off canonical origin: ${url[1]}`)
           }
         }
@@ -191,8 +198,10 @@ for (const { route, file } of pages) {
   let visible = ''
   let inTag = false
   for (const ch of stripped) {
-    if (ch === '<') { inTag = true; visible += ' ' }
-    else if (ch === '>') inTag = false
+    if (ch === '<') {
+      inTag = true
+      visible += ' '
+    } else if (ch === '>') inTag = false
     else if (!inTag) visible += ch
   }
   visible = visible.replace(/\s+/g, ' ')
@@ -282,7 +291,8 @@ if (!robotsTxt.includes(`Sitemap: ${ORIGIN}/sitemap.xml`)) {
 // Training crawlers (decided 2026-08-06, D4): opted in. All listed training
 // bots must be present with the same private-path exclusions as search bots.
 for (const bot of ['GPTBot', 'ClaudeBot', 'CCBot', 'Amazonbot', 'Google-Extended']) {
-  if (!robotsTxt.includes(`User-agent: ${bot}`)) fail(`robots.txt: missing group for training bot ${bot}`)
+  if (!robotsTxt.includes(`User-agent: ${bot}`))
+    fail(`robots.txt: missing group for training bot ${bot}`)
   if (!new RegExp(String.raw`User-agent: ${bot}\nDisallow: /app\n`).test(robotsTxt)) {
     fail(`robots.txt: training bot ${bot} group must repeat the /app exclusions`)
   }

@@ -452,17 +452,17 @@ export const landing = defineMessages({
     fr: 'Pourquoi Dutiva',
   },
   landing_why_title_a: {
-    en: 'Built by an HR operator ',
-    fr: 'Conçu par un professionnel RH ',
-  },
+    en: 'Founded by Martin Constantineau ',
+    fr: 'Fondée par Martin Constantineau ',
+  }, // [FR self-authored]
   landing_why_title_b: {
     en: 'who has done the work.',
     fr: 'qui a fait le travail.',
   },
   landing_why_p: {
-    en: 'Dutiva was built by a Canadian HR professional who has prepared Records of Employment, drafted termination letters, and worked across federal and provincial employment standards. Dutiva is HR compliance and documentation software — not a payroll provider. It names the statute, not just the province — and speaks French as fluently as English.',
-    fr: 'Dutiva a été conçu par un professionnel canadien des RH qui a préparé des relevés d’emploi, rédigé des lettres de cessation d’emploi et travaillé avec les normes du travail fédérales et provinciales. Dutiva est un logiciel de conformité et de documentation RH — et non un fournisseur de paie. Il nomme la loi, pas seulement la province — et parle français aussi couramment que l’anglais.',
-  },
+    en: 'Dutiva was founded by Martin Constantineau, whose work in Canadian HR includes staffing and resourcing at the Canada Revenue Agency and HR and payroll coordination for a national internship program at Mitacs. Dutiva is HR compliance and documentation software — not a payroll provider. It names the statute, not just the province — and speaks French as fluently as English.',
+    fr: 'Dutiva a été fondée par Martin Constantineau, dont le parcours en RH au Canada comprend du recrutement et de la dotation à l’Agence du revenu du Canada, ainsi que la coordination RH et de la paie pour un programme national de stages chez Mitacs. Dutiva est un logiciel de conformité et de documentation RH — et non un fournisseur de paie. Il nomme la loi, pas seulement la province — et parle français aussi couramment que l’anglais.',
+  }, // [FR self-authored]
   landing_why_foot: {
     en: 'Built in Ottawa, Canada · Grounded in real HR operations, not generic research.',
     fr: 'Conçu à Ottawa, au Canada · Ancré dans de véritables opérations RH, pas dans des recherches génériques.',
