@@ -36,6 +36,7 @@ const GROUPS: { titleKey: MarketingMessageKey; items: { q: MarketingMessageKey; 
       { q: 'faq_q10', a: 'faq_a10' },
       { q: 'faq_q11', a: 'faq_a11' },
       { q: 'faq_q12', a: 'faq_a12' },
+      { q: 'faq_q14', a: 'faq_a14' },
     ],
   },
 ]

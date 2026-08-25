@@ -10,6 +10,7 @@ import { Workflows } from './sections/Workflows'
 import { Product } from './sections/Product'
 import { Modules } from './sections/Modules'
 import { WhyDutiva } from './sections/WhyDutiva'
+import { TestimonialWall } from './sections/TestimonialWall'
 import { Coverage } from './sections/Coverage'
 import { Pricing } from './sections/Pricing'
 import { Guides } from './sections/Guides'
@@ -20,7 +21,7 @@ import { Footer } from './sections/Footer'
  * Marketing landing page (dutiva.ca) — ported from
  * `Landing Page (redesign) v2.dc.html`. Section order mirrors the prototype:
  * hero → trust strip → how → workflows → Document Studio → one workspace →
- * why Dutiva → coverage → pricing → guides → beta signup → footer.
+ * why Dutiva → beta testimonials (when published) → coverage → pricing → guides → beta signup → footer.
  */
 export function LandingPage() {
   const { lang } = useI18n()
@@ -36,6 +37,7 @@ export function LandingPage() {
         <Product />
         <Modules />
         <WhyDutiva />
+        <TestimonialWall />
         <Coverage />
         <Pricing />
         <Guides />

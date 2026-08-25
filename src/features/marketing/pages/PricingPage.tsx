@@ -34,6 +34,7 @@ import { usePublicPath } from '@/seo/usePublicPath'
 import { webApplicationNode } from '@/seo/jsonld'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
 import { ReviewTrustSignals } from '../ReviewTrustSignals'
+import { TestimonialWall } from '../sections/TestimonialWall'
 
 /** Full-width band with no heading — for the admin-bypass banner and checkout notice. */
 function Band({ children }: { readonly children: ReactNode }) {
@@ -300,6 +301,7 @@ const FAQ_ITEMS: { q: MarketingMessageKey; a: MarketingMessageKey }[] = [
   { q: 'pricing_faq_annual_q', a: 'pricing_faq_annual_a' },
   { q: 'pricing_faq_switch_q', a: 'pricing_faq_switch_a' },
   { q: 'pricing_faq_refund_q', a: 'pricing_faq_refund_a' },
+  { q: 'pricing_faq_multiclient_q', a: 'pricing_faq_multiclient_a' },
 ]
 
 /**
@@ -575,6 +577,8 @@ export function PricingPage() {
           {t('pricing_compare_note')}
         </p>
       </PageSection>
+
+      <TestimonialWall />
 
       {/* ── FAQ ────────────────────────────────────────────────────────────── */}
       <PageSection title={t('pricing_faq_title')}>

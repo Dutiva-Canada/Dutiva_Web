@@ -37,6 +37,8 @@ const RESOURCE_LINKS: FooterLink[] = [
   { key: 'landing_fr_blog', route: 'blog' },
   { key: 'landing_fr_status', route: 'status' },
   { key: 'landing_fr_changelog', route: 'changelog' },
+  { key: 'landing_foot_vs_hrdownloads', route: 'vsHrdownloads' },
+  { key: 'landing_foot_vs_sixfifty', route: 'vsSixfifty' },
 ]
 
 const COMPANY_LINKS: FooterLink[] = [

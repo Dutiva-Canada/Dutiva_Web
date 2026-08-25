@@ -9,6 +9,7 @@ import { limitsMessages } from './knownLimitations'
 import { legalHubMessages } from './legalHub'
 import { jurisdictionToolMessages } from './jurisdictionTool'
 import { changelogMessages } from './changelog'
+import { comparisonMessages } from './comparison'
 import { sharedMessages } from './shared'
 
 /**
@@ -30,6 +31,7 @@ export const marketingMessages = {
   ...legalHubMessages,
   ...jurisdictionToolMessages,
   ...changelogMessages,
+  ...comparisonMessages,
   ...sharedMessages,
 } as const
 

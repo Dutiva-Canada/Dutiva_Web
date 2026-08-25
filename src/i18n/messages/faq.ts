@@ -98,6 +98,14 @@ export const faqMessages = defineMessages({
     en: 'Once annual subscriptions are available, new annual subscriptions include a 14-day money-back guarantee. Monthly plans are non-refundable after the billing date, apart from documented billing errors or a service outage over 24 consecutive hours. You can cancel anytime — access continues to the end of your billing period. See the Refund and Cancellation Policy for full terms.',
     fr: 'Une fois les abonnements annuels disponibles, les nouveaux abonnements annuels comprennent une garantie de remboursement de 14 jours. Les forfaits mensuels ne sont pas remboursables après la date de facturation, sauf erreur de facturation documentée ou panne de service de plus de 24 heures consécutives. Vous pouvez annuler à tout moment — l’accès se poursuit jusqu’à la fin de votre période de facturation. Consultez la Politique de remboursement et d’annulation pour les conditions complètes.',
   },
+  faq_q14: {
+    en: 'Can I use one subscription for multiple clients?',
+    fr: 'Puis-je utiliser un abonnement pour plusieurs clients ?',
+  },
+  faq_a14: {
+    en: 'Each Dutiva account is for one organization. HR consultants managing multiple clients should contact us about consultant pricing and multi-account options.',
+    fr: 'Chaque compte Dutiva est destiné à une organisation. Les conseillers RH qui gèrent plusieurs clients devraient nous contacter pour les tarifs conseillers et les options multi-comptes.',
+  },
   faq_closing_t: { en: 'Still have questions?', fr: 'D’autres questions ?' },
   faq_closing_p: {
     en: "Email our team and we'll help you get set up.",
