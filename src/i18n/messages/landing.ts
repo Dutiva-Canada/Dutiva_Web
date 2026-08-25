@@ -95,6 +95,11 @@ export const landing = defineMessages({
     en: 'Practical HR workflow support & compliance-oriented guidance. Not legal, tax, medical, or financial advice.',
     fr: 'Soutien pratique aux processus RH et conseils axés sur la conformité. Ne constitue pas un avis juridique, fiscal, médical ou financier.',
   },
+  /* Scope pre-qualification below the hero CTAs (audit D2.B). [FR self-authored] */
+  landing_hero_scope: {
+    en: 'Not for US employers. Not a payroll processor. Not an enterprise HRIS replacement.',
+    fr: 'Pas pour les employeurs américains. Pas un processeur de paie. Pas un remplacement de SIRH d’entreprise.',
+  },
   landing_stat_templates: {
     en: 'Templates',
     fr: 'Modèles',
@@ -784,6 +789,12 @@ export const landing = defineMessages({
   landing_cta_capacity: {
     en: `The beta is limited to ${BETA_COHORT_LIMIT} individuals and organizations to begin — once those spots are taken, new signups join the waiting list.`,
     fr: `La bêta est limitée à ${BETA_COHORT_LIMIT} personnes et organisations pour commencer — une fois ces places prises, les nouvelles inscriptions rejoignent la liste d’attente.`,
+  },
+  /* Spot counter above the beta form. {taken}/{limit} replaced at render.
+     [FR self-authored] */
+  landing_cta_spots: {
+    en: '{taken} of {limit} beta spots taken',
+    fr: '{taken} sur {limit} places bêta prises',
   },
   landing_cta_email_ph: {
     en: 'you@company.ca',

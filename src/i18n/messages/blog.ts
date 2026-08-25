@@ -24,6 +24,17 @@ export const blogMessages = defineMessages({
     en: 'Which employment regime governs you, which policies you are expected to maintain, and which records you have to keep — the obligations that sit behind every HR document you produce.',
     fr: 'Quel régime d’emploi vous régit, quelles politiques vous devez tenir à jour et quels dossiers vous devez conserver — les obligations qui sous-tendent chaque document RH que vous produisez.',
   },
+  /* SEO meta only — kept ≤155 chars so SERP snippets are not truncated.
+     Page hero keeps the longer blog_intro. [FR self-authored] */
+  blog_meta_description: {
+    en: 'Employment regimes, required policies, and record-keeping obligations for Canadian employers — practical HR compliance orientation from Dutiva.',
+    fr: 'Régimes d’emploi, politiques exigées et conservation des dossiers pour employeurs canadiens — orientation conformité RH par Dutiva.',
+  },
+  /* Visible on blog cards and article pages. {date} is month-year. [FR self-authored] */
+  blog_published: {
+    en: 'Published {date}',
+    fr: 'Publié en {date}',
+  },
   blog_toGuides_t: {
     en: 'Looking for the document itself?',
     fr: 'Vous cherchez plutôt le document ?',

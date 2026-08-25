@@ -151,12 +151,13 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
   })
 
   it('states the beta cohort capacity, in every copy of the number', () => {
-    /* The capacity lives in three places that cannot import each other:
+    /* The capacity lives in places that cannot import each other:
        BETA_COHORT_LIMIT (which the marketing copy interpolates, so the copy
-       itself cannot drift), the SQL gate that enforces admission, and the
-       signup endpoint that reports whether the cohort is full. A mismatch
-       means the site promises one number and the gate enforces another —
-       exactly the defect class this file exists to prevent. */
+       itself cannot drift), the SQL gate that enforces admission, the
+       signup endpoint that reports whether the cohort is full, and the
+       public cohort-status read that powers the landing spot counter. A
+       mismatch means the site promises one number and the gate enforces
+       another — exactly the defect class this file exists to prevent. */
     expect(boldNumbers(row('Beta capacity'))).toContain(BETA_COHORT_LIMIT)
 
     const gate = raw(
@@ -178,6 +179,16 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
       'create-beta-signup/index.ts',
     )
     expect(signup).toContain(`const BETA_COHORT_LIMIT = ${BETA_COHORT_LIMIT}`)
+
+    const cohortStatus = raw(
+      import.meta.glob('../supabase/functions/beta-cohort-status/index.ts', {
+        query: '?raw',
+        import: 'default',
+        eager: true,
+      }),
+      'beta-cohort-status/index.ts',
+    )
+    expect(cohortStatus).toContain(`const BETA_COHORT_LIMIT = ${BETA_COHORT_LIMIT}`)
   })
 
   it('states the law-monitoring claim the coverage data actually supports', () => {

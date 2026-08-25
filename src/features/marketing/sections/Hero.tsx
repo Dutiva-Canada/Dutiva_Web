@@ -56,6 +56,10 @@ export function Hero() {
             {lt('landing_hero_disclaimer')}
           </div>
 
+          <p className="mt-3 max-w-[48ch] text-xs leading-normal text-text-3">
+            {lt('landing_hero_scope')}
+          </p>
+
           {/* Slim stat strip — values from docs/CANONICAL_FACTS.md */}
           <div className="mt-7 flex flex-wrap items-center gap-7 rounded-2xl border border-border bg-bg-elevated px-6 py-4.5">
             <HeroStat value={templateCount} label={lt('landing_stat_templates')} />
