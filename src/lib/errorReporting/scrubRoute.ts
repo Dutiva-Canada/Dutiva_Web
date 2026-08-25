@@ -41,6 +41,9 @@ const ROUTE_PATTERNS: readonly string[] = [
   '/help/:slug',
   '/contact',
   '/status',
+  '/tools/jurisdiction-check',
+  '/blog/:slug',
+  '/guides/:slug',
   // Public marketing — French (localized slugs)
   '/fr',
   '/fr/a-propos',
@@ -57,6 +60,9 @@ const ROUTE_PATTERNS: readonly string[] = [
   '/fr/aide/:slug',
   '/fr/contact',
   '/fr/etat',
+  '/fr/outils/verification-juridiction',
+  '/fr/blogue/:slug',
+  '/fr/guides/:slug',
   // Public external signing (token in path — scrub to pattern)
   '/sign/:token',
   '/fr/sign/:token',

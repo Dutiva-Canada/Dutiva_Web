@@ -144,7 +144,7 @@ export function BetaSignup() {
             <form onSubmit={handleSubmit} className="flex flex-col gap-3" noValidate>
               {/* Honeypot: off-screen, not announced, never tab-focusable. */}
               <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden">
-                <label htmlFor="beta-fax">Do not fill this field</label>
+                <label htmlFor="beta-fax">{lt('landing_beta_honeypot')}</label>
                 <input
                   id="beta-fax"
                   type="text"

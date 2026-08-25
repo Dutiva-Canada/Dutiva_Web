@@ -1,8 +1,8 @@
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useLocation, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Info } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { Seo } from '@/seo/Seo'
-import { articleDescription, articleTitle, seoRoute } from '@/seo/routes'
+import { articleDescription, articleTitle, langOfPath, seoRoute } from '@/seo/routes'
 import { usePublicPath } from '@/seo/usePublicPath'
 import {
   articleBySlug,
@@ -27,13 +27,20 @@ import { Breadcrumbs, MarketingPageShell } from './MarketingPage'
  */
 export function ArticlePage({ collection }: { readonly collection: ArticleCollection }) {
   const { slug } = useParams()
+  const { pathname } = useLocation()
   const { t, x, lang } = useI18n()
+  const pathLang = langOfPath(pathname)
   const { p } = usePublicPath()
-  const article = articleBySlug(collection, slug ?? '', lang)
+  const article = articleBySlug(collection, slug ?? '', pathLang)
   const indexRoute = seoRoute(collection === 'guide' ? 'guides' : 'blog')
   const indexPath = indexRoute.path[lang]
 
   if (!article) return <Navigate to={indexPath} replace />
+
+  const expectedSlug = pathLang === 'fr' ? article.frSlug : article.slug
+  if ((slug ?? '') !== expectedSlug) {
+    return <Navigate to={articlePath(article, pathLang)} replace />
+  }
 
   const related = relatedArticles(article)
   const indexName = x(

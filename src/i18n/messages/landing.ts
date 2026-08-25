@@ -107,6 +107,14 @@ export const landing = defineMessages({
     en: 'Workflows',
     fr: 'Processus',
   },
+  landing_stat_bilingual: {
+    en: 'Bilingual',
+    fr: 'Bilingue',
+  },
+  landing_beta_honeypot: {
+    en: 'Do not fill this field',
+    fr: 'Ne pas remplir ce champ',
+  },
   landing_hero_check1: {
     en: 'Ask compliance-oriented HR questions with jurisdiction-specific context',
     fr: 'Posez des questions RH axées sur la conformité, avec un contexte propre à la compétence applicable',

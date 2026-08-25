@@ -1,5 +1,5 @@
 import { Suspense, use } from 'react'
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useLocation, useParams } from 'react-router-dom'
 import { ArrowLeft, Info } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { Seo } from '@/seo/Seo'
@@ -10,6 +10,7 @@ import {
   legalDocTitle,
   legalRowByFrSlug,
   legalRowBySlug,
+  langOfPath,
   seoRoute,
 } from '@/seo/routes'
 import type { LegalHubRow } from '../legal/legalHubData'
@@ -31,18 +32,24 @@ import { MarketingPageShell } from './MarketingPage'
  */
 export function PolicyPage() {
   const { slug } = useParams()
+  const { pathname } = useLocation()
   const { lang } = useI18n()
-  /* The active locale's slug space first, then the other locale's as a
-     fallback: a cross-locale URL still resolves (its canonical tag points at
-     the properly localized URL), and in-place language toggles outside the
-     URL-scoped public shell (tests) keep the document. */
+  const pathLang = langOfPath(pathname)
+  /* The URL locale's slug space first, then the other locale's as a
+     fallback so a mistyped cross-locale slug still resolves before we
+     canonicalize it. */
   const row =
-    lang === 'fr'
+    pathLang === 'fr'
       ? (legalRowByFrSlug(slug ?? '') ?? legalRowBySlug(slug ?? ''))
       : (legalRowBySlug(slug ?? '') ?? legalRowByFrSlug(slug ?? ''))
   const doc = row ? policyDoc(row.slug) : undefined
 
   if (!row || !doc) return <Navigate to={seoRoute('legal').path[lang]} replace />
+
+  const expectedSlug = pathLang === 'fr' ? row.frSlug : row.slug
+  if ((slug ?? '') !== expectedSlug) {
+    return <Navigate to={legalDocPath(row, pathLang)} replace />
+  }
 
   return (
     <MarketingPageShell>

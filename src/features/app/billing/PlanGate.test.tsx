@@ -38,7 +38,7 @@ const PROD_MODE: WorkspaceModeContextValue = {
 function makePlanCtx(overrides: Partial<PlanContextValue> = {}): PlanContextValue {
   return {
     plan: 'free',
-    subscriptionStatus: 'inactive',
+    subscriptionStatus: 'active',
     stripeCustomerId: null,
     isAdmin: false,
     loading: false,
@@ -88,6 +88,12 @@ describe('PlanGate', () => {
     renderGate(makePlanCtx({ plan: 'free' }), PROD_MODE, 'growth')
     expect(screen.queryByTestId('content')).not.toBeInTheDocument()
     /* The upgrade nudge links to /pricing with the required plan. */
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/pricing?upgrade=growth')
+  })
+
+  it('renders the upgrade nudge when subscription is past due despite a paid plan', () => {
+    renderGate(makePlanCtx({ plan: 'pro', subscriptionStatus: 'past_due' }), PROD_MODE, 'growth')
+    expect(screen.queryByTestId('content')).not.toBeInTheDocument()
     expect(screen.getByRole('link')).toHaveAttribute('href', '/pricing?upgrade=growth')
   })
 

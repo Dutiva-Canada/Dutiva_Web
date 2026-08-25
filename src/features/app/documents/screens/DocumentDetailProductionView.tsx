@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft, Copy, Mail, RefreshCw } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import { bi } from '@/i18n/core'
+import { bi, pick } from '@/i18n/core'
 import type { Lang } from '@/i18n/core'
 import { doclibMessages as M } from '@/i18n/messages/doclib'
 import { Disclaimer } from '@/components/Disclaimer'
@@ -27,11 +27,13 @@ import type { ProductionDocumentDetail, ProductionDocumentStatus } from '../prod
 import { DOCUMENT_AUDIT_LABEL } from '../auditLabels'
 import {
   buildSigningCompletionRecord,
+  completionRecordText,
   downloadCompletionRecord,
 } from '../completionRecord'
 import { exportSignedDocumentPdf } from '../exportDocument'
 import { createDocumentExportDownloadUrl, listDocumentExports } from '../exportStorageApi'
 import type { StoredDocumentExport } from '../exportStorageApi'
+import { authorizeExport, exportDenialMessage } from '@/lib/exportProtection/authorize'
 import { copyExternalSigningLink } from '../signingUrls'
 import { sendSigningInviteEmail } from '../signingInviteApi'
 import { reissueSigningToken } from '../signingTokenApi'
@@ -243,6 +245,7 @@ export function DocumentDetailProductionView() {
     detail.signatureStatus !== 'voided' &&
     detail.status !== 'archived'
   const canExport =
+    isOrgAdmin &&
     detail.signatureStatus === 'signed' &&
     detail.status !== 'archived' &&
     detail.status !== 'voided'
@@ -376,9 +379,25 @@ export function DocumentDetailProductionView() {
   }
 
   const onDownloadStoredExport = async (row: StoredDocumentExport) => {
-    if (downloadingExportId) return
+    if (downloadingExportId || !organizationId) return
     setDownloadingExportId(row.id)
     try {
+      const actorLabel = identity.user.name || identity.user.email || 'Admin'
+      const title = pick(detail.title, lang)
+      const decision = await authorizeExport({
+        surface: 'doclib',
+        kind: 'pdf',
+        title,
+        content: row.fileSha256 ?? row.storagePath,
+        lang,
+        actorLabel,
+        workspaceLabel: companyName,
+        session,
+      })
+      if (!decision.allowed) {
+        showToast(exportDenialMessage(decision), 'info')
+        return
+      }
       const url = await createDocumentExportDownloadUrl(row.storagePath)
       window.open(url, '_blank', 'noopener,noreferrer')
     } catch {
@@ -386,6 +405,27 @@ export function DocumentDetailProductionView() {
     } finally {
       setDownloadingExportId(null)
     }
+  }
+
+  const onDownloadCompletionRecord = async () => {
+    if (!completion) return
+    const actorLabel = identity.user.name || identity.user.email || 'Admin'
+    const text = completionRecordText(completion, lang)
+    const decision = await authorizeExport({
+      surface: 'doclib',
+      kind: 'text',
+      title: pick(completion.title, lang),
+      content: text,
+      lang,
+      actorLabel,
+      workspaceLabel: companyName,
+      session,
+    })
+    if (!decision.allowed) {
+      showToast(exportDenialMessage(decision), 'info')
+      return
+    }
+    downloadCompletionRecord(completion, lang)
   }
 
   const onSendForSignature = async (
@@ -612,7 +652,7 @@ export function DocumentDetailProductionView() {
               </p>
               <button
                 type="button"
-                onClick={() => downloadCompletionRecord(completion, lang)}
+                onClick={() => void onDownloadCompletionRecord()}
                 className="mt-3 rounded-[9px] bg-navy px-3 py-1.75 text-[12px] font-semibold text-white"
               >
                 {x(M.doclib_prod_download_completion)}

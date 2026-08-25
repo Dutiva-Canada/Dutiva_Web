@@ -367,6 +367,7 @@ export function DocStudioOverlay() {
                   </button>
                 </div>
               </PlanGate>
+              <PlanGate required="growth">
               {studio.signatureSent ? (
                 <output className="flex items-center gap-2 rounded-[9px] border border-ok-border bg-ok-bg px-3.25 py-2.5 text-[12.5px] font-semibold text-ok-fg">
                   <Check size={15} strokeWidth={2} className="shrink-0" aria-hidden="true" />
@@ -382,6 +383,7 @@ export function DocStudioOverlay() {
                   {x(M.docstudio_esign_send)}
                 </button>
               )}
+              </PlanGate>
             </>
           )}
         </div>

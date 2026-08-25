@@ -153,9 +153,13 @@ Deno.serve(async (req: Request) => {
       stripeKey,
     )
     customerId = customer.id
-    await adminClient
+    const { error: upsertError } = await adminClient
       .from('profiles')
       .upsert({ id: user.id, account_email: user.email, stripe_customer_id: customerId })
+    if (upsertError) {
+      console.error('[create-checkout-session] profile upsert failed:', upsertError.message)
+      return json({ error: 'Could not save billing profile.' }, 500)
+    }
   }
 
   const siteUrl = Deno.env.get('SITE_URL') ?? 'https://dutiva.ca'

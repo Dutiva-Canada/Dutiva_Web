@@ -11,7 +11,7 @@ describe('AboutPage', () => {
       screen.getByRole('heading', { level: 1, name: 'HR compliance infrastructure, built in Canada.' }),
     ).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 2, name: 'Our mission' })).toBeInTheDocument()
-    expect(screen.getByText('Bilingual EN/FR')).toBeInTheDocument()
+    expect(screen.getAllByText('Bilingual EN/FR').length).toBeGreaterThan(0)
     // Header carries its own "Start free" links — scope the CTA check to <main>.
     expect(
       within(screen.getByRole('main')).getByRole('link', { name: /Start free/ }),

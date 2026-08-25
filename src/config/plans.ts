@@ -121,3 +121,20 @@ export function normalizePlanId(value?: string | null): PlanId {
 export function hasPlanAccess(currentPlan: PlanId, requiredPlan: PlanId): boolean {
   return PLAN_RANK[currentPlan] >= PLAN_RANK[requiredPlan]
 }
+
+/** Stripe subscription statuses that keep paid entitlements active. */
+const ACTIVE_SUBSCRIPTION_STATUSES = new Set(['active', 'trialing'])
+
+/** True when a paid profile row should receive gated features. */
+export function hasActiveSubscription(subscriptionStatus: string): boolean {
+  return ACTIVE_SUBSCRIPTION_STATUSES.has(subscriptionStatus)
+}
+
+/** Plan tier plus an active subscription — used by PlanGate in production mode. */
+export function hasPaidPlanAccess(
+  currentPlan: PlanId,
+  requiredPlan: PlanId,
+  subscriptionStatus: string,
+): boolean {
+  return hasPlanAccess(currentPlan, requiredPlan) && hasActiveSubscription(subscriptionStatus)
+}

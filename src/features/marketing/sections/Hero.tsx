@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, CircleCheck, ShieldCheck } from 'lucide-react'
+import { allTemplates } from '@/features/app/documents/catalogue'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
 import { AdvisorDemo } from './AdvisorDemo'
@@ -18,6 +19,7 @@ const CHECK_KEYS: LandingMessageKey[] = [
  */
 export function Hero() {
   const { lt } = useLanding()
+  const templateCount = String(allTemplates.length)
   return (
     <section id="top" className="mx-auto max-w-300 scroll-mt-20 px-6 pt-18 pb-10">
       <div className="grid grid-cols-[repeat(auto-fit,minmax(360px,1fr))] items-center gap-12">
@@ -56,11 +58,11 @@ export function Hero() {
 
           {/* Slim stat strip — values from docs/CANONICAL_FACTS.md */}
           <div className="mt-7 flex flex-wrap items-center gap-7 rounded-2xl border border-border bg-bg-elevated px-6 py-4.5">
-            <HeroStat value="50" label={lt('landing_stat_templates')} />
+            <HeroStat value={templateCount} label={lt('landing_stat_templates')} />
             <span className="w-px self-stretch bg-border" />
             <HeroStat value="3" label={lt('landing_stat_legal')} />
             <span className="w-px self-stretch bg-border" />
-            <HeroStat value="EN/FR" label={lt('landing_stat_workflows')} />
+            <HeroStat value="EN/FR" label={lt('landing_stat_bilingual')} />
           </div>
 
           <div className="mt-5 grid gap-2.5 text-[0.9375rem] text-text-2">

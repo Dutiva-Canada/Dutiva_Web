@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useLocation, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Info } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { Seo } from '@/seo/Seo'
@@ -9,6 +9,7 @@ import {
   helpDocDescription,
   helpDocPath,
   helpDocTitle,
+  langOfPath,
   seoRoute,
 } from '@/seo/routes'
 import {
@@ -34,9 +35,11 @@ import { MarketingPageShell } from './MarketingPage'
  */
 export function HelpArticlePage() {
   const { slug } = useParams()
+  const { pathname } = useLocation()
   const { t, x, lang } = useI18n()
+  const pathLang = langOfPath(pathname)
   const article =
-    lang === 'fr'
+    pathLang === 'fr'
       ? (helpArticleByFrSlug(slug ?? '') ?? helpArticleBySlug(slug ?? ''))
       : (helpArticleBySlug(slug ?? '') ?? helpArticleByFrSlug(slug ?? ''))
 
@@ -46,6 +49,11 @@ export function HelpArticlePage() {
   }, [articleSlug, lang])
 
   if (!article) return <Navigate to={seoRoute('help').path[lang]} replace />
+
+  const expectedSlug = pathLang === 'fr' ? article.frSlug : article.slug
+  if ((slug ?? '') !== expectedSlug) {
+    return <Navigate to={helpDocPath(article, pathLang)} replace />
+  }
 
   const category = helpCategory(article.category)
   const related = helpArticlesByCategory(article.category).filter((a) => a.slug !== article.slug)

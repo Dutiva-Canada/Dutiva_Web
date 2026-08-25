@@ -134,7 +134,7 @@ Deno.serve(async (req: Request) => {
       if (dedupError.code === '23505') {
         return json({ received: true, duplicate: true })
       }
-      console.warn('[stripe-webhook] dedup insert failed, continuing:', dedupError.message)
+      return fail('Could not record webhook dedup claim.')
     }
   }
 
@@ -172,43 +172,46 @@ Deno.serve(async (req: Request) => {
     const sub = event.data.object
     const { customerId, updates } = getSubscriptionProfileUpdate(sub, priceLookup)
 
-    if (customerId) {
-      const result = await applyProfileUpdate(
-        supabase.from('profiles').update(updates).eq('stripe_customer_id', customerId),
-        `subscription update for customer ${customerId}`,
-      )
-      if (!result.ok) return fail('Could not apply subscription to profile.')
+    if (!customerId) {
+      return fail('Subscription event missing customer id.')
     }
+    const result = await applyProfileUpdate(
+      supabase.from('profiles').update(updates).eq('stripe_customer_id', customerId),
+      `subscription update for customer ${customerId}`,
+    )
+    if (!result.ok) return fail('Could not apply subscription to profile.')
   }
 
   if (event.type === 'invoice.payment_failed') {
     const invoice = event.data.object
     const customerId = stringId(invoice.customer)
-    if (customerId) {
-      const result = await applyProfileUpdate(
-        supabase
-          .from('profiles')
-          .update({ subscription_status: 'past_due' })
-          .eq('stripe_customer_id', customerId),
-        `past_due flag for customer ${customerId}`,
-      )
-      if (!result.ok) return fail('Could not flag the profile past due.')
+    if (!customerId) {
+      return fail('Payment failed event missing customer id.')
     }
+    const result = await applyProfileUpdate(
+      supabase
+        .from('profiles')
+        .update({ subscription_status: 'past_due' })
+        .eq('stripe_customer_id', customerId),
+      `past_due flag for customer ${customerId}`,
+    )
+    if (!result.ok) return fail('Could not flag the profile past due.')
   }
 
   if (event.type === 'customer.subscription.deleted') {
     const sub = event.data.object
     const customerId = stringId(sub.customer)
-    if (customerId) {
-      const result = await applyProfileUpdate(
-        supabase
-          .from('profiles')
-          .update({ plan: 'free', subscription_status: 'canceled' })
-          .eq('stripe_customer_id', customerId),
-        `cancellation for customer ${customerId}`,
-      )
-      if (!result.ok) return fail('Could not apply the cancellation.')
+    if (!customerId) {
+      return fail('Subscription deletion missing customer id.')
     }
+    const result = await applyProfileUpdate(
+      supabase
+        .from('profiles')
+        .update({ plan: 'free', subscription_status: 'canceled' })
+        .eq('stripe_customer_id', customerId),
+      `cancellation for customer ${customerId}`,
+    )
+    if (!result.ok) return fail('Could not apply the cancellation.')
   }
 
   return json({ received: true })

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PLANS, getPlanById, hasPlanAccess, normalizePlanId } from './plans'
+import { PLANS, getPlanById, hasPaidPlanAccess, hasPlanAccess, normalizePlanId } from './plans'
 
 describe('plans config', () => {
   it('defines exactly the four landing-page tiers, in ascending price order', () => {
@@ -26,5 +26,11 @@ describe('plans config', () => {
     expect(hasPlanAccess('pro', 'starter')).toBe(true)
     expect(hasPlanAccess('free', 'starter')).toBe(false)
     expect(hasPlanAccess('growth', 'growth')).toBe(true)
+  })
+
+  it('requires an active subscription for paid plan access', () => {
+    expect(hasPaidPlanAccess('pro', 'growth', 'active')).toBe(true)
+    expect(hasPaidPlanAccess('pro', 'growth', 'past_due')).toBe(false)
+    expect(hasPaidPlanAccess('pro', 'growth', 'canceled')).toBe(false)
   })
 })

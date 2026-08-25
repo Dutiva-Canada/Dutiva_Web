@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, Lock } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import { getPlanById, hasPlanAccess } from '@/config/plans'
+import { getPlanById, hasPaidPlanAccess } from '@/config/plans'
 import type { PlanId } from '@/config/plans'
 import { usePlan } from './planContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
@@ -29,12 +29,12 @@ export function PlanGate({
   readonly required: PlanId
   readonly children: React.ReactNode
 }) {
-  const { plan, isAdmin, loading } = usePlan()
+  const { plan, subscriptionStatus, isAdmin, loading } = usePlan()
   const { mode } = useWorkspaceMode()
 
   if (loading) return null
   if (mode === 'demo') return <>{children}</>
-  if (isAdmin || hasPlanAccess(plan, required)) return <>{children}</>
+  if (isAdmin || hasPaidPlanAccess(plan, required, subscriptionStatus)) return <>{children}</>
   return <UpgradeNudge required={required} />
 }
 

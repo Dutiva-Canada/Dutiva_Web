@@ -60,14 +60,19 @@ export function PlanProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    supabase
-      .from('profiles')
-      .select('plan, subscription_status, stripe_customer_id')
-      .eq('id', session.user.id)
-      .maybeSingle()
-      .then(({ data, error }) => {
+    const client = supabase
+    const userId = session.user.id
+
+    async function loadPlan() {
+      try {
+        const { data, error } = await client
+          .from('profiles')
+          .select('plan, subscription_status, stripe_customer_id')
+          .eq('id', userId)
+          .maybeSingle()
         if (cancelled) return
         if (error) {
+          console.error('plan: profile read failed —', error)
           setState({
             plan: 'free',
             subscriptionStatus: 'inactive',
@@ -82,7 +87,19 @@ export function PlanProvider({ children }: { children: ReactNode }) {
           stripeCustomerId: data?.stripe_customer_id ?? null,
           loading: false,
         })
-      })
+      } catch (error) {
+        if (cancelled) return
+        console.error('plan: profile read rejected —', error)
+        setState({
+          plan: 'free',
+          subscriptionStatus: 'inactive',
+          stripeCustomerId: null,
+          loading: false,
+        })
+      }
+    }
+
+    void loadPlan()
 
     return () => {
       cancelled = true
