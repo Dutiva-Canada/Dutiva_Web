@@ -4,6 +4,7 @@ import { useI18n } from '@/i18n/context'
 import { Seo } from '@/seo/Seo'
 import { usePublicPath } from '@/seo/usePublicPath'
 import { BLOG_ARTICLES, articlePath } from '../articles'
+import { ArticlePublishedLabel } from '../articles/ArticlePublishedLabel'
 import { MarketingPageShell, PageAside, PageCta, PageHero } from './MarketingPage'
 
 /**
@@ -31,7 +32,12 @@ export function BlogIndexPage() {
           {BLOG_ARTICLES.map((post) => (
             <article key={post.slug} className="premium-card-soft group p-[22px]">
               <div className="text-xs font-medium text-gold-strong">
-                {x(post.topic)} ·{' '}
+                <ArticlePublishedLabel
+                  iso={post.updated}
+                  lang={lang}
+                  template={t('blog_published')}
+                />{' '}
+                · {x(post.topic)} ·{' '}
                 {x({
                   en: `${post.readingMinutes} min read`,
                   fr: `${post.readingMinutes} min de lecture`,

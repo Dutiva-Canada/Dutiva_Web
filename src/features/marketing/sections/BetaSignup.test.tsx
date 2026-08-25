@@ -4,10 +4,14 @@ import userEvent from '@testing-library/user-event'
 import { renderApp } from '@/test/renderApp'
 
 const createBetaSignup = vi.hoisted(() => vi.fn())
+const getBetaCohortStatus = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ taken: 3, limit: 15 }),
+)
 vi.mock('../betaSignupApi', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../betaSignupApi')>()
   return { ...actual, createBetaSignup }
 })
+vi.mock('../betaCohortApi', () => ({ getBetaCohortStatus }))
 
 import { BetaSignup } from './BetaSignup'
 import { BetaSignupError } from '../betaSignupApi'
@@ -24,6 +28,7 @@ describe('BetaSignup', () => {
   it('rejects an invalid email before calling the server', async () => {
     const user = userEvent.setup()
     createBetaSignup.mockReset()
+    getBetaCohortStatus.mockResolvedValue({ taken: 3, limit: 15 })
     render()
     await user.type(screen.getByLabelText('Work email'), 'not-an-email')
     await user.click(screen.getByRole('checkbox'))
@@ -36,6 +41,7 @@ describe('BetaSignup', () => {
   it('requires express consent before calling the server (CASL)', async () => {
     const user = userEvent.setup()
     createBetaSignup.mockReset()
+    getBetaCohortStatus.mockResolvedValue({ taken: 3, limit: 15 })
     render()
     await user.type(screen.getByLabelText('Work email'), 'owner@example.ca')
     await user.click(screen.getByRole('button', { name: /Start free/ }))
@@ -50,6 +56,7 @@ describe('BetaSignup', () => {
     const user = userEvent.setup()
     createBetaSignup.mockReset()
     createBetaSignup.mockResolvedValue({ waitlisted: false })
+    getBetaCohortStatus.mockResolvedValue({ taken: 3, limit: 15 })
     render()
     await user.type(screen.getByLabelText('Work email'), 'owner@example.ca')
     await user.type(screen.getByLabelText('Company (optional)'), 'Example Inc.')
@@ -68,12 +75,14 @@ describe('BetaSignup', () => {
       }),
     )
     expect(await screen.findByText("You're on the list.")).toBeInTheDocument()
+    expect(await screen.findByText('4 of 15 beta spots taken')).toBeInTheDocument()
   })
 
   it('confirms a waiting-list signup as waiting, not as admitted', async () => {
     const user = userEvent.setup()
     createBetaSignup.mockReset()
     createBetaSignup.mockResolvedValue({ waitlisted: true })
+    getBetaCohortStatus.mockResolvedValue({ taken: 15, limit: 15 })
     render()
     await user.type(screen.getByLabelText('Work email'), 'owner@example.ca')
     await user.click(screen.getByRole('checkbox'))
@@ -86,16 +95,19 @@ describe('BetaSignup', () => {
     expect(screen.queryByText(/beta access/)).toBeNull()
   })
 
-  it('states the cohort capacity next to the form', () => {
+  it('states the cohort capacity next to the form', async () => {
     createBetaSignup.mockReset()
+    getBetaCohortStatus.mockResolvedValue({ taken: 3, limit: 15 })
     render()
     expect(screen.getByText(/limited to 15 individuals and organizations/)).toBeInTheDocument()
+    expect(await screen.findByText('3 of 15 beta spots taken')).toBeInTheDocument()
   })
 
   it('surfaces the rate-limit message and stays on the form', async () => {
     const user = userEvent.setup()
     createBetaSignup.mockReset()
     createBetaSignup.mockRejectedValue(new BetaSignupError('rate_limited'))
+    getBetaCohortStatus.mockResolvedValue({ taken: 3, limit: 15 })
     render()
     await user.type(screen.getByLabelText('Work email'), 'owner@example.ca')
     await user.click(screen.getByRole('checkbox'))
@@ -109,6 +121,7 @@ describe('BetaSignup', () => {
     const user = userEvent.setup()
     createBetaSignup.mockReset()
     createBetaSignup.mockRejectedValue(new BetaSignupError('error'))
+    getBetaCohortStatus.mockResolvedValue({ taken: 3, limit: 15 })
     render()
     await user.type(screen.getByLabelText('Work email'), 'owner@example.ca')
     await user.click(screen.getByRole('checkbox'))

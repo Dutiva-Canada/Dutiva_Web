@@ -9,10 +9,11 @@
  * workspace.
  *
  * Enforcement lives server-side in `current_user_is_workspace_member()`
- * (migration `0067_beta_cohort_capacity.sql`), and the signup endpoint
+ * (migration `0067_beta_cohort_capacity.sql`), the signup endpoint
  * (`supabase/functions/create-beta-signup`) reports whether the cohort is
- * full so the form can answer honestly. Those two carry their own copy of
- * the number — SQL and Deno can't import this module — and
+ * full so the form can answer honestly, and `beta-cohort-status` exposes
+ * the aggregate seat count for the landing counter. Those carry their own
+ * copy of the number — SQL and Deno can't import this module — and
  * `src/canonicalFacts.test.ts` fails the build if any copy drifts from this
  * one, or from the `docs/CANONICAL_FACTS.md` row that records it.
  */

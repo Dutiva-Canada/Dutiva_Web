@@ -35,6 +35,9 @@ verify_jwt = false
 [functions.create-beta-signup]
 verify_jwt = false
 
+[functions.beta-cohort-status]
+verify_jwt = false
+
 [functions.report-error]
 verify_jwt = false
 

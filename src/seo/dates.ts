@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2026 
+ *   Copyright (c) 2026
  *   All rights reserved.
  */
 /**
@@ -9,6 +9,8 @@
  * omits the date rather than guessing. These dates come from the content
  * files themselves, so they only change when the documents change.
  */
+
+import type { Lang } from '@/i18n/core'
 
 const FR_MONTHS: Record<string, number> = {
   janvier: 1,
@@ -45,4 +47,23 @@ export function parseDisplayDate(value: string | undefined): string | undefined 
   const parsed = new Date(value)
   if (Number.isNaN(parsed.getTime())) return undefined
   return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}`
+}
+
+/**
+ * Month-year label for blog cards and article pages (e.g. "August 2026" /
+ * "août 2026"). Parses YYYY-MM-DD in UTC so the calendar month matches the
+ * authored `updated` / sitemap lastmod without local timezone drift.
+ */
+export function formatArticleMonthYear(iso: string, lang: Lang): string {
+  const match = /^(\d{4})-(\d{2})(?:-\d{2})?$/.exec(iso.trim())
+  if (!match) return iso
+  const year = Number(match[1])
+  const month = Number(match[2])
+  if (month < 1 || month > 12) return iso
+  const date = new Date(Date.UTC(year, month - 1, 1))
+  return new Intl.DateTimeFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(date)
 }

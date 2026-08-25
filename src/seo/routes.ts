@@ -72,8 +72,8 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       fr: 'Dutiva — Logiciel de conformité RH pour les employeurs canadiens',
     },
     description: {
-      en: 'Dutiva helps Canadian employers manage HR compliance — documents, deadlines, and workplace decisions — with practical, AI-assisted guidance for Ontario, Quebec, and federally regulated workplaces. Bilingual EN/FR.',
-      fr: 'Dutiva aide les employeurs canadiens à gérer la conformité RH — documents, échéances et décisions en milieu de travail — avec un accompagnement pratique assisté par l’IA pour l’Ontario, le Québec et le régime fédéral. Bilingue FR/EN.',
+      en: 'Dutiva helps Canadian employers manage HR compliance — documents, deadlines, and decisions — with AI-assisted guidance for ON, QC, and federal workplaces.',
+      fr: 'Dutiva aide les employeurs canadiens à gérer la conformité RH — documents, échéances et décisions — avec accompagnement IA pour l’ON, le QC et le fédéral.',
     },
     indexable: true,
   },
@@ -85,8 +85,8 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       fr: 'À propos de Dutiva — Infrastructure de conformité RH conçue au Canada',
     },
     description: {
-      en: 'Dutiva Canada Inc. builds foundational HR infrastructure for Canadian employers — AI-assisted, compliance-oriented, and bilingual. Learn about the mission and the team behind Dutiva.',
-      fr: 'Dutiva Canada Inc. conçoit une infrastructure RH fondamentale pour les employeurs canadiens — assistée par l’IA, axée sur la conformité et bilingue. Découvrez la mission derrière Dutiva.',
+      en: 'Dutiva Canada Inc. builds HR compliance infrastructure for Canadian employers — AI-assisted, bilingual, and built in Canada. Meet the founder.',
+      fr: 'Dutiva Canada Inc. conçoit une infrastructure de conformité RH pour les employeurs canadiens — IA, bilingue, conçue au Canada. Rencontrez le fondateur.',
     },
     indexable: true,
   },
@@ -107,7 +107,7 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       en: 'Blog — HR compliance in practice | Dutiva',
       fr: 'Blogue — La conformité RH en pratique | Dutiva',
     },
-    description: t('blog_intro'),
+    description: t('blog_meta_description'),
     indexable: true,
   },
   {

@@ -21,6 +21,7 @@ describe('BlogIndexPage', () => {
     }
     // Header carries its own "Start free" links — scope the CTA check to <main>.
     expect(main.getByRole('link', { name: /Start free/ })).toHaveAttribute('href', '/app/welcome')
+    expect(main.getAllByText(/Published August 2026/).length).toBe(BLOG_ARTICLES.length)
   })
 
   it('lists no topic that belongs to the guides collection', () => {

@@ -11,6 +11,7 @@ import {
   relatedArticles,
 } from '@/features/marketing/articles'
 import type { ArticleCollection } from '@/features/marketing/articles'
+import { ArticlePublishedLabel } from '@/features/marketing/articles/ArticlePublishedLabel'
 /* The prose, kept out of `articles/index` so the router does not carry it —
    see articles/content.ts. This route is lazy, so it lands in this chunk. */
 import { articleSections } from '@/features/marketing/articles/content'
@@ -84,6 +85,16 @@ export function ArticlePage({ collection }: { readonly collection: ArticleCollec
         </Link>
 
         <p className="mt-6 text-xs font-semibold tracking-[0.14em] text-text-3 uppercase">
+          {collection === 'blog' && (
+            <>
+              <ArticlePublishedLabel
+                iso={article.updated}
+                lang={lang}
+                template={t('blog_published')}
+              />{' '}
+              ·{' '}
+            </>
+          )}
           {x(article.topic)} ·{' '}
           {x({
             en: `${article.readingMinutes} min read`,

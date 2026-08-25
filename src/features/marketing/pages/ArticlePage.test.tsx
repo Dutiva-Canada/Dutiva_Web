@@ -39,6 +39,28 @@ describe('ArticlePage', () => {
     const main = within(screen.getByRole('main'))
     expect(main.getByRole('heading', { level: 1, name: post.title.fr })).toBeInTheDocument()
     expect(main.getByText(post.summary.fr)).toBeInTheDocument()
+    expect(main.getByText(/Publié en/)).toBeInTheDocument()
+  })
+
+  it('shows a published date on blog articles and not on guides', () => {
+    const post = firstPost!
+    const blog = renderApp(<BlogArticlePage />, {
+      route: articlePath(post, 'en'),
+      path: '/blog/:slug',
+    })
+    expect(
+      within(blog.getByRole('main')).getByText(/Published August 2026/),
+    ).toBeInTheDocument()
+    blog.unmount()
+
+    const guide = firstGuide!
+    const guideView = renderApp(<GuideArticlePage />, {
+      route: articlePath(guide, 'en'),
+      path: '/guides/:slug',
+    })
+    expect(
+      within(guideView.getByRole('main')).queryByText(/Published/),
+    ).not.toBeInTheDocument()
   })
 
   it('resolves a slug from the other locale rather than dropping the page', () => {

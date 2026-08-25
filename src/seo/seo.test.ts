@@ -87,6 +87,19 @@ describe('SEO route registry', () => {
     }
   })
 
+  it('keeps homepage, about, and blog meta descriptions within the SERP display limit', () => {
+    /* Google typically truncates around 155 characters (audit D5.1). Other
+       routes may still exceed that; this guard covers the pages the audit
+       flagged. */
+    for (const id of ['home', 'about', 'blog'] as const) {
+      const route = SEO_ROUTES.find((r) => r.id === id)
+      expect(route).toBeDefined()
+      for (const lang of ['en', 'fr'] as const) {
+        expect(route!.description[lang].length).toBeLessThanOrEqual(155)
+      }
+    }
+  })
+
   it('keeps legal slugs unique in both slug spaces', () => {
     expect(new Set(LEGAL_ROWS.map((r) => r.slug)).size).toBe(26)
     expect(new Set(LEGAL_ROWS.map((r) => r.frSlug)).size).toBe(26)
