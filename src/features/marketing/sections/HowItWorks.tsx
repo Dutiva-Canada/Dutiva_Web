@@ -1,4 +1,4 @@
-import { ClipboardCheck, MessageSquare, Sparkles } from 'lucide-react'
+import { ClipboardCheck, MessageSquare, ShieldCheck, Sparkles } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { SectionIntro } from '../SectionIntro'
 import { useLanding } from '../useLanding'
@@ -55,6 +55,10 @@ export function HowItWorks() {
           </div>
         ))}
       </div>
+      <p className="mt-6 flex items-start gap-3 rounded-2xl border border-border bg-bg-elevated px-5 py-4 text-[0.9375rem] leading-[1.55] text-text-2">
+        <ShieldCheck size={18} className="mt-0.5 flex-none text-gold-strong" aria-hidden="true" />
+        {lt('landing_how_risk_callout')}
+      </p>
     </section>
   )
 }

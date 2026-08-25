@@ -268,6 +268,8 @@ await writeFile(
     line('knownLimitations'),
     line('blog'),
     line('changelog'),
+    line('vsHrdownloads'),
+    line('vsSixfifty'),
     '',
     '## Legal & trust',
     line('about'),

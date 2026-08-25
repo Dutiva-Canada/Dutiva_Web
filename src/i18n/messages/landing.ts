@@ -72,8 +72,8 @@ export const landing = defineMessages({
     fr: 'Une infrastructure RH fondamentale pour les employeurs canadiens',
   },
   landing_sub_dir_rest: {
-    en: '. Dutiva helps Canadian employers manage HR compliance across the employee lifecycle — from onboarding and documentation to retention, workplace management, and offboarding — through practical, jurisdiction-specific guidance.',
-    fr: ". Dutiva aide les employeurs canadiens à gérer la conformité RH tout au long du cycle de vie de l'employé — de l'embauche et de la documentation au maintien en poste, à la gestion du milieu de travail et à la cessation d'emploi — grâce à des conseils pratiques et adaptés à la compétence applicable.",
+    en: '. Dutiva helps Canadian employers manage HR compliance across the employee lifecycle — from onboarding and documentation to retention, workplace management, and offboarding — through practical, jurisdiction-specific guidance. Dutiva names the actual statute — Employment Standards Act, Quebec Labour Standards, Canada Labour Code — not just the province.',
+    fr: ". Dutiva aide les employeurs canadiens à gérer la conformité RH tout au long du cycle de vie de l'employé — de l'embauche et de la documentation au maintien en poste, à la gestion du milieu de travail et à la cessation d'emploi — grâce à des conseils pratiques et adaptés à la compétence applicable. Dutiva nomme la loi applicable — Loi de 2000 sur les normes d'emploi, Loi sur les normes du travail, Code canadien du travail — pas seulement la province.",
   },
   landing_sub_inf: {
     en: 'Jurisdiction-aware HR guidance and review-ready documents across the full employee lifecycle — grounded in the actual employment standards, in English or French.',
@@ -231,6 +231,12 @@ export const landing = defineMessages({
   landing_how3_p: {
     en: 'Generate the relevant documents in Document Studio, review them beside the guidance that shaped them, then save or export.',
     fr: 'Générez les documents pertinents dans le Studio de documents, révisez-les à côté des conseils qui les ont façonnés, puis enregistrez-les ou exportez-les.',
+  },
+  /* Below the 3-step grid — risk flagging differentiator (D1.5). Hedged: no
+     unverifiable "only" superlative. [FR self-authored] */
+  landing_how_risk_callout: {
+    en: 'Dutiva flags the risk level of your decision before you act — so you know when to escalate to legal counsel instead of guessing.',
+    fr: 'Dutiva signale le niveau de risque de votre décision avant que vous agissiez — pour savoir quand escalader vers un conseiller juridique au lieu de deviner.',
   },
   landing_prod_badge: {
     en: 'Document Studio',
@@ -471,6 +477,19 @@ export const landing = defineMessages({
   landing_why_foot: {
     en: 'Built in Ottawa, Canada · Grounded in real HR operations, not generic research.',
     fr: 'Conçu à Ottawa, au Canada · Ancré dans de véritables opérations RH, pas dans des recherches génériques.',
+  },
+  /* Testimonial wall — renders only when testimonialEntries has published rows. */
+  landing_testimonials_badge: {
+    en: 'Beta feedback',
+    fr: 'Retour bêta',
+  },
+  landing_testimonials_title: {
+    en: 'What early users are saying',
+    fr: 'Ce que disent les premiers utilisateurs',
+  },
+  landing_testimonials_sub: {
+    en: 'Named beta participants sharing one outcome from their first workflows.',
+    fr: 'Participants bêta identifiés partageant un résultat de leurs premiers processus.',
   },
   landing_why1_t: {
     en: 'Names the statute',
@@ -878,6 +897,14 @@ export const landing = defineMessages({
   landing_fr_changelog: {
     en: 'Changelog',
     fr: 'Journal des modifications',
+  },
+  landing_foot_vs_hrdownloads: {
+    en: 'Dutiva vs HRdownloads',
+    fr: 'Dutiva vs HRdownloads',
+  },
+  landing_foot_vs_sixfifty: {
+    en: 'Dutiva vs SixFifty',
+    fr: 'Dutiva vs SixFifty',
   },
   /* Shown in the footer until G2/Capterra profile URLs are configured.
      [FR self-authored] */

@@ -250,4 +250,12 @@ export const pricingMessages = defineMessages({
     en: 'Annual billing is coming soon — it will include two months free compared with paying month to month. Email support@dutiva.ca to be notified when it is available.',
     fr: 'La facturation annuelle arrive bientôt — elle comprendra deux mois gratuits par rapport au paiement mensuel. Écrivez à support@dutiva.ca pour être avisé dès qu’elle est disponible.',
   },
+  pricing_faq_multiclient_q: {
+    en: 'Can I use one subscription for multiple clients?',
+    fr: 'Puis-je utiliser un abonnement pour plusieurs clients ?',
+  },
+  pricing_faq_multiclient_a: {
+    en: 'Each Dutiva account is for one organization. HR consultants managing multiple clients should contact us about consultant pricing and multi-account options.',
+    fr: 'Chaque compte Dutiva est destiné à une organisation. Les conseillers RH qui gèrent plusieurs clients devraient nous contacter pour les tarifs conseillers et les options multi-comptes.',
+  },
 })

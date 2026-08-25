@@ -45,6 +45,8 @@ export type SeoRouteId =
   | 'contact'
   | 'status'
   | 'changelog'
+  | 'vsHrdownloads'
+  | 'vsSixfifty'
   | 'jurisdictionTool'
 
 export interface SeoRoute {
@@ -224,6 +226,32 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       fr: 'Journal des modifications — mises à jour | Dutiva',
     },
     description: t('changelog_intro'),
+    indexable: true,
+  },
+  {
+    id: 'vsHrdownloads',
+    path: { en: '/vs/hrdownloads', fr: '/fr/vs/hrdownloads' },
+    title: {
+      en: 'Dutiva vs HRdownloads: Canadian HR compliance comparison',
+      fr: 'Dutiva vs HRdownloads : comparaison de conformité RH au Canada',
+    },
+    description: {
+      en: 'Compare Dutiva and HRdownloads on pricing transparency, AI risk flagging, bilingual EN/FR, statute-level specificity, and self-serve access for Canadian HR compliance.',
+      fr: 'Comparez Dutiva et HRdownloads sur la transparence tarifaire, le signalement des risques par l’IA, le bilinguisme EN/FR, la précision au niveau de la loi et l’accès en libre-service pour la conformité RH au Canada.',
+    },
+    indexable: true,
+  },
+  {
+    id: 'vsSixfifty',
+    path: { en: '/vs/sixfifty', fr: '/fr/vs/sixfifty' },
+    title: {
+      en: 'Dutiva vs SixFifty: employment law document platform comparison',
+      fr: 'Dutiva vs SixFifty : comparaison de plateformes de documents en droit du travail',
+    },
+    description: {
+      en: 'Compare Dutiva and SixFifty on pricing transparency, AI risk flagging, bilingual EN/FR, Canadian statute specificity, and self-serve access.',
+      fr: 'Comparez Dutiva et SixFifty sur la transparence tarifaire, le signalement des risques par l’IA, le bilinguisme EN/FR, la précision des lois canadiennes et l’accès en libre-service.',
+    },
     indexable: true,
   },
   {

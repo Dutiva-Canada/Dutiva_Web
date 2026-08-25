@@ -33,6 +33,8 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const ContactPage = lazy(() => import('@/features/marketing/pages/ContactPage').then((m) => ({ default: m.ContactPage })))
 /* prettier-ignore */ const StatusPage = lazy(() => import('@/features/marketing/pages/StatusPage').then((m) => ({ default: m.StatusPage })))
 /* prettier-ignore */ const ChangelogPage = lazy(() => import('@/features/marketing/pages/ChangelogPage').then((m) => ({ default: m.ChangelogPage })))
+/* prettier-ignore */ const VsHrdownloadsPage = lazy(() => import('@/features/marketing/pages/ComparisonPage').then((m) => ({ default: m.VsHrdownloadsPage })))
+/* prettier-ignore */ const VsSixfiftyPage = lazy(() => import('@/features/marketing/pages/ComparisonPage').then((m) => ({ default: m.VsSixfiftyPage })))
 /* prettier-ignore */ const JurisdictionToolPage = lazy(() => import('@/features/marketing/pages/JurisdictionToolPage').then((m) => ({ default: m.JurisdictionToolPage })))
 /* prettier-ignore */ const PricingShell = lazy(() => import('@/features/marketing/pages/PricingShell').then((m) => ({ default: m.PricingShell })))
 /* prettier-ignore */ const TemplatesPage = lazy(() => import('@/features/marketing/pages/TemplatesPage').then((m) => ({ default: m.TemplatesPage })))
@@ -101,6 +103,8 @@ function publicRoutes(lang: Lang): RouteObject {
       { path: p('contact'), element: <ContactPage /> },
       { path: p('status'), element: <StatusPage /> },
       { path: p('changelog'), element: <ChangelogPage /> },
+      { path: p('vsHrdownloads'), element: <VsHrdownloadsPage /> },
+      { path: p('vsSixfifty'), element: <VsSixfiftyPage /> },
       { path: p('jurisdictionTool'), element: <JurisdictionToolPage /> },
     ],
   }
@@ -124,7 +128,7 @@ function NotFoundRoute() {
  * Route map (see CONVENTIONS.md):
  *   /  /about /faq /blog /pricing /templates /guides
  *   /guides/template-usage /known-limitations /legal /legal/:slug
- *   /help /help/:slug /contact /status /changelog   public marketing surface (English)
+ *   /help /help/:slug /contact /status /changelog /vs/hrdownloads /vs/sixfifty   public marketing surface (English)
  *   /fr /fr/a-propos …     the same pages in French (localized slugs,
  *                          see src/seo/routes.ts)
  *   /app/welcome           app entry stage — sign-in gate (invite-only)

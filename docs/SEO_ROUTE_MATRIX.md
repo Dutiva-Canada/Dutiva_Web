@@ -11,12 +11,12 @@ Classifications: `PUBLIC_INDEXABLE` · `PUBLIC_NOINDEX` ·
 `AUTHENTICATION_NOINDEX` · `PRIVATE_APPLICATION_NOINDEX` ·
 `ADMIN_INTERNAL_NOINDEX` · `API_NON_DOCUMENT` · `REDIRECT` · `NOT_FOUND`.
 
-## Public marketing surface — PUBLIC_INDEXABLE (126 URLs)
+## Public marketing surface — PUBLIC_INDEXABLE (130 URLs)
 
 Prerendered, self-canonical, reciprocal en-CA/fr-CA/x-default hreflang, in
 sitemap.xml. Purpose/intent notes double as the content matrix.
 
-63 pages × 2 locales: 13 static routes, the 26 policy documents, the 12 Help
+65 pages × 2 locales: 15 static routes, the 26 policy documents, the 12 Help
 Centre articles, and the 12 editorial articles (6 guides + 6 blog posts).
 `scripts/validate-seo.mjs` compares `dist/` against the route registry entry
 by entry, so this count cannot drift from the build.
@@ -25,7 +25,7 @@ by entry, so this count cannot drift from the build.
 | ------------------------ | ------------------------------------ | ----------------------------------------------------------------------------- | ---------------------------------------- | --------------------------- |
 | `/`                      | `/fr`                                | What Dutiva is: AI-assisted HR compliance software for Canadian employers     | WebPage + WebApplication                 | Start free → `/app/welcome` |
 | `/about`                 | `/fr/a-propos`                       | Who builds Dutiva; mission; built in Canada                                   | AboutPage                                | Start free                  |
-| `/faq`                   | `/fr/faq`                            | Common questions: legal-advice limits, jurisdictions, data, pricing           | FAQPage (12 visible Q&A)                 | Contact support             |
+| `/faq`                   | `/fr/faq`                            | Common questions: legal-advice limits, jurisdictions, data, pricing           | FAQPage (13 visible Q&A)                 | Contact support             |
 | `/blog`                  | `/fr/blogue`                         | HR-compliance-in-practice article listing                                     | CollectionPage                           | Start free                  |
 | `/blog/:slug` (×6)       | `/fr/blogue/:frSlug` (×6)            | One blog article — jurisdiction scope, policies, records, leaves, harassment  | WebPage + BreadcrumbList (visible trail) | Start free                  |
 | `/pricing`               | `/fr/tarifs`                         | Plans + visible CAD prices; Stripe checkout                                   | WebPage + WebApplication w/ Offers       | Checkout / start free       |
@@ -41,6 +41,8 @@ by entry, so this count cannot drift from the build.
 | `/contact`               | `/fr/contact`                        | Account-free support request form (product, privacy, security, accessibility) | WebPage                                  | Submit request              |
 | `/status`                | `/fr/etat`                           | Self-reported service status: platform, Advisor, documents, support           | WebPage                                  | Contact support             |
 | `/changelog`             | `/fr/journal-des-modifications`      | Dated public product updates; founder byline; sitemap lastmod from entries   | WebPage                                  | Start free / read changelog |
+| `/vs/hrdownloads`        | `/fr/vs/hrdownloads`                 | Dutiva vs HRdownloads — pricing, risk flags, bilingual, statutes, self-serve | FAQPage (visible Q&A on page)            | Start free                  |
+| `/vs/sixfifty`           | `/fr/vs/sixfifty`                    | Dutiva vs SixFifty — same comparison dimensions for Canadian employers       | FAQPage (visible Q&A on page)            | Start free                  |
 
 The 26 policy slugs and their French equivalents live in
 `src/features/marketing/legal/legalHubData.ts` (`slug` / `frSlug` per row);

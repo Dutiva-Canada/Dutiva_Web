@@ -27,10 +27,11 @@ describe('FaqPage', () => {
     ).toBeInTheDocument()
     // Payroll-scope disambiguation renders under the General group.
     expect(main.getByText('Does Dutiva run payroll?')).toBeInTheDocument()
+    expect(main.getByText('Can I use one subscription for multiple clients?')).toBeInTheDocument()
     expect(
       main.getByText(/Dutiva is HR compliance and documentation software — not a payroll provider/),
     ).toBeInTheDocument()
-    expect(container.querySelectorAll('details')).toHaveLength(13)
+    expect(container.querySelectorAll('details')).toHaveLength(14)
     expect(main.getByRole('link', { name: /Contact support/ })).toHaveAttribute(
       'href',
       'mailto:support@dutiva.ca',

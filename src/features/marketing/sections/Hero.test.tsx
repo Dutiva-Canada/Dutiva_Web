@@ -10,9 +10,9 @@ describe('Hero', () => {
     expect(screen.getByText(landing.landing_hero_scope.en)).toBeInTheDocument()
   })
 
-  it('ships bilingual scope copy', () => {
-    expect(landing.landing_hero_scope.fr).toMatch(/employeurs américains/)
-    expect(landing.landing_hero_scope.fr).toMatch(/processeur de paie/)
-    expect(landing.landing_hero_scope.fr).toMatch(/SIRH/)
+  it('names statutes in the hero subhead copy', () => {
+    expect(landing.landing_sub_dir_rest.en).toMatch(/Employment Standards Act/)
+    expect(landing.landing_sub_dir_rest.en).toMatch(/Canada Labour Code/)
+    expect(landing.landing_sub_dir_rest.en).toMatch(/not just the province/)
   })
 })
