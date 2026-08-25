@@ -28,6 +28,11 @@ export const guidesIndexMessages = defineMessages({
     en: 'Plain-language explainers on the documents and decisions Canadian employers have to get right — contracts, probation, accommodation, termination — written to complement the AI Advisor and document templates, not replace legal counsel.',
     fr: 'Des explications en langage clair sur les documents et les décisions que les employeurs canadiens doivent réussir — contrats, probation, accommodement, cessation d’emploi — pensées pour compléter le Conseiller IA et les modèles de documents, sans remplacer un avocat.',
   },
+  /* SEO meta only — page hero keeps the longer guidesIdx_intro. */
+  guidesIdx_meta_description: {
+    en: 'Practical HR guides for Canadian employers — contracts, probation, accommodation, and termination, written to complement Dutiva templates and AI guidance.',
+    fr: 'Guides RH pratiques pour employeurs canadiens — contrats, probation, accommodement et cessation, pour compléter les modèles et le Conseiller IA de Dutiva.',
+  },
   guidesIdx_section_title: {
     en: 'All guides',
     fr: 'Tous les guides',

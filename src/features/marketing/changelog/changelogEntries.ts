@@ -19,6 +19,28 @@ export const CHANGELOG_ENTRIES: readonly ChangelogEntry[] = [
   {
     date: '2026-08-25',
     title: bi(
+      'Competitor comparison pages and SEO polish',
+      'Pages de comparaison concurrentielle et améliorations SEO',
+    ),
+    body: bi(
+      'New /vs/hrdownloads and /vs/sixfifty pages compare Dutiva with Citation Canada and SixFifty on pricing transparency, AI risk flagging, bilingual support, and statute-level specificity — with competitor pricing sourced from their live pages.',
+      'Nouvelles pages /vs/hrdownloads et /vs/sixfifty comparant Dutiva à Citation Canada et SixFifty sur la transparence tarifaire, le signalement des risques par l’IA, le bilinguisme et la précision au niveau de la loi — avec tarifs concurrents tirés de leurs pages en ligne.',
+    ),
+  },
+  {
+    date: '2026-08-25',
+    title: bi(
+      'Leaf-on-white app icon and improved search snippets',
+      'Icône feuille sur fond blanc et extraits de recherche améliorés',
+    ),
+    body: bi(
+      'The browser favicon now matches the header leaf tile. Meta descriptions across pricing, templates, guides, and other key pages were tuned for search-result display length.',
+      'Le favicon du navigateur correspond maintenant à la tuile feuille de l’en-tête. Les méta-descriptions des pages clés (tarifs, modèles, guides, etc.) ont été ajustées pour l’affichage dans les résultats de recherche.',
+    ),
+  },
+  {
+    date: '2026-08-25',
+    title: bi(
       'Founder identity on the homepage and About page',
       'Identité du fondateur sur l’accueil et la page À propos',
     ),

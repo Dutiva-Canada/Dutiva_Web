@@ -120,10 +120,7 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       en: 'Pricing — plans for Canadian employers | Dutiva',
       fr: 'Tarifs — forfaits pour les employeurs canadiens | Dutiva',
     },
-    description: {
-      en: 'Dutiva plans in Canadian dollars — Free/Beta, Starter, Growth, and Professional. Monthly or annual billing, no long-term contracts, no setup fees, and cancel anytime.',
-      fr: 'Les forfaits Dutiva en dollars canadiens — Gratuit/Bêta, Starter, Growth et Professional. Facturation mensuelle ou annuelle, aucun contrat à long terme, aucuns frais d’installation, et annulation en tout temps.',
-    },
+    description: t('pricing_meta_description'),
     indexable: true,
   },
   {
@@ -133,7 +130,7 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       en: 'HR document templates for Canadian employers | Dutiva',
       fr: 'Modèles de documents RH pour employeurs canadiens | Dutiva',
     },
-    description: t('tplPreview_intro'),
+    description: t('tplPreview_meta_description'),
     indexable: true,
   },
   {
@@ -143,7 +140,7 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       en: 'Guides — practical HR guidance for Canadian employers | Dutiva',
       fr: 'Guides — conseils RH pratiques pour les employeurs canadiens | Dutiva',
     },
-    description: t('guidesIdx_intro'),
+    description: t('guidesIdx_meta_description'),
     indexable: true,
   },
   {
@@ -153,7 +150,7 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       en: 'How to use Dutiva’s HR document templates',
       fr: 'Comment utiliser les modèles de documents RH de Dutiva',
     },
-    description: t('tmplGuide_intro'),
+    description: t('tmplGuide_meta_description'),
     indexable: true,
   },
   {
@@ -163,7 +160,7 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       en: 'Known limitations of Dutiva',
       fr: 'Limites connues de Dutiva',
     },
-    description: t('limits_intro'),
+    description: t('limits_meta_description'),
     indexable: true,
   },
   {
@@ -174,8 +171,8 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       fr: 'Documents juridiques et de conformité | Dutiva',
     },
     description: {
-      en: 'Every policy governing your use of Dutiva — privacy, terms of service, Canadian compliance frameworks (PIPEDA, Quebec Law 25, CASL), AI governance, data handling, and security.',
-      fr: 'Toutes les politiques régissant votre utilisation de Dutiva — confidentialité, conditions d’utilisation, cadres de conformité canadiens (LPRPDE, Loi 25 du Québec, LCAP), gouvernance de l’IA, données et sécurité.',
+      en: 'Privacy, terms, PIPEDA, Quebec Law 25, CASL, AI governance, data handling, and security — the official policy documents governing your use of Dutiva.',
+      fr: 'Confidentialité, conditions, LPRPDE, Loi 25, LCAP, IA, données et sécurité — documents officiels régissant votre utilisation de Dutiva.',
     },
     indexable: true,
   },
@@ -187,8 +184,8 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       fr: 'Centre d’aide — guides et soutien pour Dutiva',
     },
     description: {
-      en: 'Self-service help for Dutiva: signing in, generating HR documents, using the AI Advisor, billing, privacy and security, and how digital-first support works. Bilingual EN/FR.',
-      fr: 'Aide en libre-service pour Dutiva : connexion, génération de documents RH, utilisation du Conseiller IA, facturation, confidentialité et sécurité, et fonctionnement du soutien d’abord numérique. Bilingue FR/EN.',
+      en: 'Self-service Help Centre for Dutiva — sign-in, HR documents, AI Advisor, billing, privacy, security, and how digital-first support works. Bilingual EN/FR.',
+      fr: 'Centre d’aide Dutiva — connexion, documents RH, Conseiller IA, facturation, confidentialité, sécurité et soutien numérique. Bilingue FR/EN.',
     },
     indexable: true,
   },
@@ -200,8 +197,8 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       fr: 'Contacter le soutien Dutiva',
     },
     description: {
-      en: 'Send Dutiva a support request without an account — product questions, privacy requests, security reports, and accessibility feedback. We reply in writing. Bilingual EN/FR.',
-      fr: 'Envoyez une demande de soutien à Dutiva sans compte — questions sur le produit, demandes de confidentialité, signalements de sécurité et rétroaction sur l’accessibilité. Nous répondons par écrit. Bilingue FR/EN.',
+      en: 'Send Dutiva a support request without an account — product questions, privacy requests, security reports, and accessibility feedback. We reply in writing.',
+      fr: 'Envoyez une demande de soutien à Dutiva sans compte — questions produit, confidentialité, sécurité et accessibilité. Nous répondons par écrit.',
     },
     indexable: true,
   },
@@ -236,8 +233,8 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       fr: 'Dutiva vs HRdownloads : comparaison de conformité RH au Canada',
     },
     description: {
-      en: 'Compare Dutiva and Citation Canada (formerly HRdownloads) on pricing transparency, AI risk flagging, bilingual EN/FR, statute-level specificity, and self-serve access.',
-      fr: 'Comparez Dutiva et Citation Canada (anciennement HRdownloads) sur la transparence tarifaire, le signalement des risques par l’IA, le bilinguisme EN/FR, la précision au niveau de la loi et l’accès en libre-service.',
+      en: 'Compare Dutiva and Citation Canada (HRdownloads) on pricing transparency, AI risk flags, bilingual EN/FR, statute specificity, and self-serve access.',
+      fr: 'Comparez Dutiva et Citation Canada (HRdownloads) sur tarifs, signalement des risques IA, bilinguisme EN/FR, précision au niveau de la loi et libre-service.',
     },
     indexable: true,
   },
@@ -249,8 +246,8 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       fr: 'Dutiva vs SixFifty : comparaison de plateformes de documents en droit du travail',
     },
     description: {
-      en: 'Compare Dutiva and SixFifty for Canadian employers — US-only employment law scope vs Canadian statute-level guidance, pricing transparency, and self-serve access.',
-      fr: 'Comparez Dutiva et SixFifty pour les employeurs canadiens — portée américaine seulement vs conseils canadiens au niveau de la loi, transparence tarifaire et accès en libre-service.',
+      en: 'Compare Dutiva and SixFifty for Canadian employers — US-only scope vs Canadian statute guidance, pricing transparency, and self-serve access.',
+      fr: 'Comparez Dutiva et SixFifty pour employeurs canadiens — portée américaine vs conseils canadiens au niveau de la loi, tarifs et libre-service.',
     },
     indexable: true,
   },
@@ -261,10 +258,7 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       en: 'Which employment standards jurisdiction applies? — Free tool | Dutiva',
       fr: 'Quelle juridiction en matière de normes d’emploi s’applique ? — Outil gratuit | Dutiva',
     },
-    description: {
-      en: 'A free tool that helps Canadian employers determine whether Ontario (ESA), Quebec (LNT), or federal (Canada Labour Code) employment standards likely apply to an employee. Three questions, no figures, links to the official statute. Bilingual EN/FR.',
-      fr: 'Un outil gratuit qui aide les employeurs canadiens à déterminer si les normes d’emploi de l’Ontario (LNE), du Québec (LNT) ou du fédéral (Code canadien du travail) s’appliquent probablement à un employé. Trois questions, aucun chiffre, liens vers la loi officielle. Bilingue FR/EN.',
-    },
+    description: t('jur_tool_meta_description'),
     indexable: true,
   },
 ] as const

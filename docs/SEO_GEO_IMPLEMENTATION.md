@@ -174,10 +174,14 @@ is allowlisted for `sameAs`) and placeholder values.
 
 ## Analytics & verification
 
-There is no analytics provider today, and this work deliberately does not
-add one. Search-engine ownership verification is env-backed:
+Google Analytics 4 loads only after cookie consent (`src/features/marketing/analytics/ga4.ts`, `ConsentBanner.tsx`). Set `VITE_GA_MEASUREMENT_ID` in the Vercel project for production measurement.
+
+Search-engine ownership verification is env-backed:
 `GOOGLE_SITE_VERIFICATION` / `BING_SITE_VERIFICATION` set at build time are
 injected as meta tags by the prerender script — no tokens live in the repo.
+Both Google Search Console and Bing Webmaster Tools were verified by other
+methods (see `docs/TODO.md` OA8); the env vars are optional unless a property
+needs re-verifying.
 
 ## How to…
 

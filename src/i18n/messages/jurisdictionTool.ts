@@ -20,6 +20,11 @@ export const jurisdictionToolMessages = defineMessages({
     en: 'Answer three questions to determine whether Ontario (ESA), Quebec (LNT), or federal (Canada Labour Code) employment standards likely apply. This tool names the statute and links to the official text — it does not state notice periods, thresholds, or deadlines, because those vary by fact pattern and go stale.',
     fr: 'Répondez à trois questions pour déterminer si les normes d’emploi de l’Ontario (LNE), du Québec (LNT) ou du fédéral (Code canadien du travail) s’appliquent probablement. Cet outil nomme la loi et renvoie au texte officiel — il n’indique pas les préavis, les seuils ni les échéances, car ceux-ci varient selon la situation et deviennent rapidement obsolètes.',
   },
+  /* SEO meta only — page hero keeps the longer jur_tool_intro. */
+  jur_tool_meta_description: {
+    en: 'Free tool: determine whether Ontario, Quebec, or federal employment standards apply. Three questions, links to official statutes, no statutory figures.',
+    fr: 'Outil gratuit : déterminez si les normes d’emploi ON, QC ou fédéral s’appliquent. Trois questions, liens vers les lois officielles, sans chiffres.',
+  },
   jur_tool_step: { en: 'Question', fr: 'Question' },
   jur_tool_of: { en: 'of', fr: 'sur' },
   jur_tool_reset: { en: 'Start over', fr: 'Recommencer' },

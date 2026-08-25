@@ -20,6 +20,11 @@ export const pricingMessages = defineMessages({
     en: 'No long-term contracts and no setup fees. Cancel anytime — your plan stays active until the end of your billing period. Prices in CAD.',
     fr: 'Aucun contrat à long terme ni frais d’installation. Annulez à tout moment — votre forfait reste actif jusqu’à la fin de votre période de facturation. Prix en CAD.',
   },
+  /* SEO meta only — kept 120–155 chars so SERP snippets are not truncated. */
+  pricing_meta_description: {
+    en: 'Public CAD plans for Canadian employers — Free/Beta, Starter, Growth, and Professional. Monthly or annual billing, no setup fees, cancel anytime.',
+    fr: 'Forfaits publics en CAD pour employeurs canadiens — Gratuit/Bêta, Starter, Growth et Professional. Mensuel ou annuel, annulation en tout temps.',
+  },
   pricing_mo: {
     en: '/mo',
     fr: '/mois',
