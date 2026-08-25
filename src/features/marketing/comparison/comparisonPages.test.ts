@@ -13,9 +13,17 @@ describe('comparisonPages', () => {
     expect(statute?.competitor.en).toMatch(/no Canadian/)
   })
 
-  it('states Citation Canada quote-only pricing without inventing plan prices', () => {
+  it('describes Citation Canada interactive pricing without inventing plan prices', () => {
     const pricing = COMPARISON_PAGES.hrdownloads.dimensions.find((d) => d.id === 'pricing')
-    expect(pricing?.competitor.en).toMatch(/Custom quote required/)
+    expect(pricing?.competitor.en).toMatch(/Interactive starting prices/)
+    expect(pricing?.competitor.en).toMatch(/Get a quote/)
     expect(pricing?.competitor.en).not.toMatch(/\$\d+/)
+  })
+
+  it('cites SixFifty published starting prices from their pricing page', () => {
+    const pricing = COMPARISON_PAGES.sixfifty.dimensions.find((d) => d.id === 'pricing')
+    expect(pricing?.competitor.en).toMatch(/\$75\/mo/)
+    expect(pricing?.competitor.en).toMatch(/\$5,000\/yr/)
+    expect(pricing?.competitor.en).toMatch(/Book a demo/)
   })
 })

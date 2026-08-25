@@ -86,8 +86,8 @@ const CITATION_CANADA_DIMENSIONS: readonly ComparisonDimension[] = [
   dimension(
     'pricing',
     bi(
-      'Custom quote required — citationcanada.com/pricing shows placeholder tiers, not public plan prices. Quotes are in CAD after a demo.',
-      'Soumission personnalisée requise — citationcanada.com/tarifs affiche des paliers fictifs, pas de tarifs publics. Les soumissions sont en CAD après une démo.',
+      'Interactive starting prices on citationcanada.com/pricing — Essentials, Plus, and Expert tiers update by employee count, in CAD and billed annually — but every plan still ends in Get a quote, not self-serve checkout.',
+      'Prix de départ interactifs sur citationcanada.com/tarifs — les paliers Essentials, Plus et Expert varient selon l’effectif, en CAD et facturés annuellement — mais chaque forfait se termine par Obtenir une soumission, pas un paiement en libre-service.',
     ),
   ),
   dimension(
@@ -124,8 +124,8 @@ const SIXFIFTY_DIMENSIONS: readonly ComparisonDimension[] = [
   dimension(
     'pricing',
     bi(
-      'Contact for a custom quote — sixfifty.com/pricing does not publish plan prices; third-party listings vary widely.',
-      'Contactez pour une soumission — sixfifty.com/pricing ne publie pas de tarifs; les annuaires tiers varient beaucoup.',
+      'Starting prices on sixfifty.com/pricing — in-house Employment suite from $75/mo billed annually (varies by employee count); consultant licenses from $5,000/yr — but purchase still goes through Book a demo / custom quote, not self-serve signup.',
+      'Prix de départ sur sixfifty.com/pricing — suite Employment interne à partir de 75 $/mois facturés annuellement (varie selon l’effectif); licences conseillers à partir de 5 000 $/an — mais l’achat passe encore par Réserver une démo / soumission personnalisée, pas une inscription en libre-service.',
     ),
   ),
   dimension(
@@ -199,6 +199,16 @@ export const COMPARISON_PAGES: Record<ComparisonCompetitorId, ComparisonPageConf
       },
       {
         question: bi(
+          'How does Dutiva pricing compare with Citation Canada?',
+          'Comment les tarifs de Dutiva se comparent-ils à Citation Canada ?',
+        ),
+        answer: bi(
+          'Dutiva lists plan prices directly on dutiva.ca/pricing and you can start free without a quote. Citation Canada’s pricing page shows starting prices once you pick headcount and a tier (HR, Safety, or bundled) — still in CAD, billed annually — but purchase goes through Get a quote and a demo, not instant self-serve signup.',
+          'Dutiva affiche ses forfaits directement sur dutiva.ca/tarifs et vous pouvez commencer gratuitement sans soumission. La page tarifs de Citation Canada affiche des prix de départ une fois l’effectif et le palier choisis (RH, SST ou combiné) — toujours en CAD, facturés annuellement — mais l’achat passe par Obtenir une soumission et une démo, pas une inscription instantanée en libre-service.',
+        ),
+      },
+      {
+        question: bi(
           'Can I try Dutiva without a sales call?',
           'Puis-je essayer Dutiva sans appel commercial ?',
         ),
@@ -253,8 +263,8 @@ export const COMPARISON_PAGES: Record<ComparisonCompetitorId, ComparisonPageConf
           'Quelle est la transparence tarifaire de Dutiva comparée à SixFifty ?',
         ),
         answer: bi(
-          'Dutiva publishes CAD plan prices on dutiva.ca/pricing. SixFifty requires a custom quote — their pricing page does not list public plan prices.',
-          'Dutiva publie les tarifs en CAD sur dutiva.ca/tarifs. SixFifty exige une soumission personnalisée — leur page tarifs ne liste pas de prix publics.',
+          'Dutiva publishes CAD plan prices on dutiva.ca/pricing and you can start free without a demo. SixFifty’s pricing page lists starting points — in-house Employment suite from $75/mo billed annually (varies by employee count) and consultant licenses from $5,000/yr — but purchase still flows through Book a demo / custom quote.',
+          'Dutiva publie ses tarifs en CAD sur dutiva.ca/tarifs et vous pouvez commencer gratuitement sans démo. La page tarifs de SixFifty indique des prix de départ — suite Employment interne à partir de 75 $/mois facturés annuellement (varie selon l’effectif) et licences conseillers à partir de 5 000 $/an — mais l’achat passe encore par Réserver une démo / soumission personnalisée.',
         ),
       },
     ],
