@@ -1,65 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1024 1024" width="1024" height="1024" role="img" aria-labelledby="title desc">
   <title id="title">Dutiva app icon</title>
-  <desc id="desc">Navy rounded-square icon with a white capital D, gold maple leaf, and gold curved checkmark.</desc>
+  <desc id="desc">White rounded-square tile with the Dutiva maple leaf mark.</desc>
 
   <defs>
-    <linearGradient id="navyBg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#061B3A"></stop>
-      <stop offset="0.45" stop-color="#02142D"></stop>
-      <stop offset="1" stop-color="#000A18"></stop>
+    <linearGradient id="tileBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#EEF0F6" />
     </linearGradient>
-
-    <radialGradient id="bgHighlight" cx="34%" cy="24%" r="72%">
-      <stop offset="0" stop-color="#0D3568" stop-opacity="0.62"></stop>
-      <stop offset="0.48" stop-color="#061B3A" stop-opacity="0.28"></stop>
-      <stop offset="1" stop-color="#000A18" stop-opacity="0"></stop>
-    </radialGradient>
-
-    <linearGradient id="whiteD" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FFFFFF"></stop>
-      <stop offset="0.58" stop-color="#F6F6F2"></stop>
-      <stop offset="1" stop-color="#E7E4DA"></stop>
-    </linearGradient>
-
-    <linearGradient id="gold" x1="0.12" y1="0.05" x2="0.88" y2="1">
-      <stop offset="0" stop-color="#FFE37A"></stop>
-      <stop offset="0.28" stop-color="#F4C54B"></stop>
-      <stop offset="0.56" stop-color="#D4AF37"></stop>
-      <stop offset="0.78" stop-color="#B98512"></stop>
-      <stop offset="1" stop-color="#FFE89C"></stop>
-    </linearGradient>
-
-    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="10" stdDeviation="18" flood-color="#000000" flood-opacity="0.28"></feDropShadow>
-    </filter>
-
-    <filter id="leafShadow" x="-40%" y="-40%" width="180%" height="180%">
-      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#000000" flood-opacity="0.28"></feDropShadow>
-    </filter>
 
     <clipPath id="iconClip">
-      <rect x="12" y="12" width="1000" height="1000" rx="205" ry="205"></rect>
+      <rect x="12" y="12" width="1000" height="1000" rx="205" ry="205" />
     </clipPath>
   </defs>
 
   <g clip-path="url(#iconClip)">
-    <rect x="12" y="12" width="1000" height="1000" rx="205" ry="205" fill="url(#navyBg)"></rect>
-    <rect x="12" y="12" width="1000" height="1000" rx="205" ry="205" fill="url(#bgHighlight)"></rect>
-
-    <path d="M481.28 774.77 L537.04 774.77 Q631.10 774.77 674.65 712.45 Q718.21 650.14 718.21 514.34 Q718.21 379.47 674.78 317.41 Q631.48 255.23 537.04 255.23 L481.28 255.23 L481.28 774.77 Z M250.00 825.00 L250.00 774.77 L326.71 774.77 L326.71 255.23 L250.00 255.23 L250.00 205.00 L557.60 205.00 Q718.98 205.00 804.43 284.73 Q890.00 364.45 890.00 514.34 Q890.00 665.15 804.30 745.14 Q718.60 825.00 557.60 825.00 L250.00 825.00 Z" fill="url(#whiteD)" fill-rule="evenodd" filter="url(#softShadow)"></path>
-
-    <g filter="url(#leafShadow)">
-      <path id="maple-leaf" d="&#xA;        M414 314&#xA;        L461 425&#xA;        L530 387&#xA;        L512 578&#xA;        C551 539 594 513 642 501&#xA;        C674 493 702 494 728 500&#xA;        C660 538 603 598 554 678&#xA;        C515 742 497 782 456 808&#xA;        C418 831 361 825 318 811&#xA;        L319 748&#xA;        L147 611&#xA;        L196 596&#xA;        L158 482&#xA;        L244 519&#xA;        L258 475&#xA;        L336 552&#xA;        L304 384&#xA;        L365 421&#xA;        Z" fill="url(#gold)"></path>
-
-      <path d="&#xA;        M414 314 L461 425 L530 387 L512 578&#xA;        C477 652 439 729 392 781&#xA;        C367 808 339 818 318 811&#xA;        L319 748 L147 611 L196 596 L158 482 L244 519 L258 475 L336 552 L304 384 L365 421 Z" fill="#C89417" opacity="0.18"></path>
-    </g>
-
-    <g filter="url(#leafShadow)">
-      <path d="&#xA;        M260 880&#xA;        C352 858 413 806 458 727&#xA;        C497 659 529 594 587 549&#xA;        C627 518 675 497 728 500&#xA;        C633 552 579 626 536 724&#xA;        C490 830 405 890 260 880&#xA;        Z" fill="url(#gold)"></path>
-
-      <path d="&#xA;        M436 744&#xA;        C484 649 535 579 606 535&#xA;        C552 584 511 650 471 737&#xA;        C443 797 384 840 292 862&#xA;        C358 834 405 804 436 744&#xA;        Z" fill="#03142D" opacity="0.92"></path>
-    </g>
+    <rect x="12" y="12" width="1000" height="1000" rx="205" ry="205" fill="url(#tileBg)" />
+    <image href="dutiva-leaf.png" x="195" y="195" width="634" height="634" />
   </g>
 
-  <rect x="12" y="12" width="1000" height="1000" rx="205" ry="205" fill="none" stroke="#061A35" stroke-opacity="0.35" stroke-width="2"></rect>
+  <rect x="12" y="12" width="1000" height="1000" rx="205" ry="205" fill="none" stroke="#B48C3C" stroke-opacity="0.16" stroke-width="2" />
 </svg>

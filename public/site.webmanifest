@@ -6,7 +6,7 @@
   "scope": "/",
   "lang": "en-CA",
   "display": "standalone",
-  "background_color": "#080a0f",
+  "background_color": "#ffffff",
   "theme_color": "#080a0f",
   "icons": [
     {
@@ -16,9 +16,22 @@
       "purpose": "any"
     },
     {
-      "src": "/brand/dutiva-leaf.png",
-      "sizes": "1275x1275",
-      "type": "image/png"
+      "src": "/brand/icon-app-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/icon-app-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
