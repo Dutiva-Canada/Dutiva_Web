@@ -77,6 +77,18 @@ export const aboutMessages = defineMessages({
     fr: 'Dutiva est conçu à Ottawa et pensé pour les employeurs canadiens dès le départ — bilingue EN/FR, conforme à la LPRPDE et attentif à la Loi 25 du Québec.',
   },
   about_pill_bilingual: { en: 'Bilingual EN/FR', fr: 'Bilingue EN/FR' },
+  about_changelog_t: {
+    en: 'See what shipped recently',
+    fr: 'Voir les livraisons récentes',
+  },
+  about_changelog_p: {
+    en: 'The changelog lists dated product updates — what changed and when.',
+    fr: 'Le journal des modifications répertorie les mises à jour datées — ce qui a changé et quand.',
+  },
+  about_changelog_link: {
+    en: 'Read the changelog',
+    fr: 'Lire le journal des modifications',
+  },
   about_cta_t: {
     en: 'Start building a cleaner HR foundation.',
     fr: 'Bâtissez une base RH plus solide.',

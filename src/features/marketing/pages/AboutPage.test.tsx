@@ -30,6 +30,9 @@ describe('AboutPage', () => {
     expect(
       within(screen.getByRole('main')).getByRole('link', { name: /Start free/ }),
     ).toHaveAttribute('href', '/app/welcome')
+    expect(
+      within(screen.getByRole('main')).getByRole('link', { name: /Read the changelog/ }),
+    ).toHaveAttribute('href', '/changelog')
   })
 
   it('re-localizes to French via the header language toggle', async () => {

@@ -44,6 +44,7 @@ export type SeoRouteId =
   | 'help'
   | 'contact'
   | 'status'
+  | 'changelog'
   | 'jurisdictionTool'
 
 export interface SeoRoute {
@@ -213,6 +214,16 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       en: 'The current status of Dutiva’s services — platform, AI Advisor, HR documents, and support. Self-reported by the Dutiva team. Bilingual EN/FR.',
       fr: 'L’état actuel des services de Dutiva — plateforme, Conseiller IA, documents RH et soutien. Signalé par l’équipe de Dutiva. Bilingue FR/EN.',
     },
+    indexable: true,
+  },
+  {
+    id: 'changelog',
+    path: { en: '/changelog', fr: '/fr/journal-des-modifications' },
+    title: {
+      en: 'Changelog — product updates | Dutiva',
+      fr: 'Journal des modifications — mises à jour | Dutiva',
+    },
+    description: t('changelog_intro'),
     indexable: true,
   },
   {

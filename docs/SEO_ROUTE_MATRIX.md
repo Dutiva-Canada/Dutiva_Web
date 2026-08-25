@@ -40,6 +40,7 @@ by entry, so this count cannot drift from the build.
 | `/help/:slug` (×12)      | `/fr/aide/:frSlug` (×12)             | One self-service help article; related articles in the same category          | WebPage + BreadcrumbList (visible trail) | Contact support             |
 | `/contact`               | `/fr/contact`                        | Account-free support request form (product, privacy, security, accessibility) | WebPage                                  | Submit request              |
 | `/status`                | `/fr/etat`                           | Self-reported service status: platform, Advisor, documents, support           | WebPage                                  | Contact support             |
+| `/changelog`             | `/fr/journal-des-modifications`      | Dated public product updates; founder byline; sitemap lastmod from entries   | WebPage                                  | Start free / read changelog |
 
 The 26 policy slugs and their French equivalents live in
 `src/features/marketing/legal/legalHubData.ts` (`slug` / `frSlug` per row);

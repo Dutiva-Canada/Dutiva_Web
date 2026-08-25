@@ -33,6 +33,7 @@ import { Seo } from '@/seo/Seo'
 import { usePublicPath } from '@/seo/usePublicPath'
 import { webApplicationNode } from '@/seo/jsonld'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
+import { ReviewTrustSignals } from '../ReviewTrustSignals'
 
 /** Full-width band with no heading — for the admin-bypass banner and checkout notice. */
 function Band({ children }: { readonly children: ReactNode }) {
@@ -554,6 +555,10 @@ export function PricingPage() {
 
       <div className="pt-8">
         <TrustBand />
+      </div>
+
+      <div className="mx-auto max-w-[1200px] px-6 pt-6">
+        <ReviewTrustSignals />
       </div>
 
       <Band>

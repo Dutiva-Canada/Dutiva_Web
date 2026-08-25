@@ -6,6 +6,8 @@ import { LeafTile, Wordmark } from '../Brand'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
 import { openCookiePreferences } from '../analytics/cookiePreferences'
+import { activeReviewDirectories } from '@/config/reviewDirectories'
+import { ReviewDirectoryLinks } from '../ReviewDirectoryLinks'
 
 /**
  * Footer link targets, resolved per locale at render time (usePublicPath):
@@ -34,6 +36,7 @@ const RESOURCE_LINKS: FooterLink[] = [
   { key: 'landing_fr_limits', route: 'knownLimitations' },
   { key: 'landing_fr_blog', route: 'blog' },
   { key: 'landing_fr_status', route: 'status' },
+  { key: 'landing_fr_changelog', route: 'changelog' },
 ]
 
 const COMPANY_LINKS: FooterLink[] = [
@@ -120,6 +123,12 @@ export function Footer() {
           >
             support@dutiva.ca
           </a>
+          <ReviewDirectoryLinks className="mt-3 grid gap-2" />
+          {activeReviewDirectories().length === 0 && (
+            <p className="mt-2 max-w-[42ch] text-xs leading-[1.55] text-text-3">
+              {lt('landing_foot_review_invite')}
+            </p>
+          )}
         </div>
 
         <div className="grid flex-3 basis-[480px] grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-8">
