@@ -267,6 +267,7 @@ await writeFile(
     line('faq'),
     line('knownLimitations'),
     line('blog'),
+    line('changelog'),
     '',
     '## Legal & trust',
     line('about'),

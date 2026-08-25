@@ -10,6 +10,7 @@ import { routes } from '@/app/routes'
 import type { Lang } from '@/i18n/core'
 import { HTML_LANG } from '@/i18n/lang'
 import { loadPolicyEdition, policyDoc } from '@/features/marketing/legal/policyContent'
+import { latestChangelogDate } from '@/features/marketing/changelog/changelogEntries'
 import { ALL_ARTICLES } from '@/features/marketing/articles'
 import { HeadSinkContext } from '@/seo/Seo'
 import type { HeadSink } from '@/seo/Seo'
@@ -128,6 +129,7 @@ async function lastmodFor(key: string, lang: Lang): Promise<string | undefined> 
   if (articleMatch) {
     return ALL_ARTICLES.find((a) => a.slug === articleMatch[1])?.updated
   }
+  if (key === 'changelog') return latestChangelogDate()
   return undefined
 }
 

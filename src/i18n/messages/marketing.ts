@@ -8,6 +8,7 @@ import { tmplGuideMessages } from './templateUsage'
 import { limitsMessages } from './knownLimitations'
 import { legalHubMessages } from './legalHub'
 import { jurisdictionToolMessages } from './jurisdictionTool'
+import { changelogMessages } from './changelog'
 import { sharedMessages } from './shared'
 
 /**
@@ -28,6 +29,7 @@ export const marketingMessages = {
   ...limitsMessages,
   ...legalHubMessages,
   ...jurisdictionToolMessages,
+  ...changelogMessages,
   ...sharedMessages,
 } as const
 

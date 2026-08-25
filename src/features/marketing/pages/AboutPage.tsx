@@ -5,7 +5,8 @@ import type { MarketingMessageKey } from '@/i18n/messages'
 import { Seo } from '@/seo/Seo'
 import { FOUNDER, ORG } from '@/seo/site'
 import { FounderIdentity } from '../FounderIdentity'
-import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
+import { MarketingPageShell, PageAside, PageCta, PageHero, PageSection } from './MarketingPage'
+import { usePublicPath } from '@/seo/usePublicPath'
 
 const VALUES: { icon: LucideIcon; titleKey: MarketingMessageKey; bodyKey: MarketingMessageKey }[] =
   [
@@ -18,6 +19,7 @@ const VALUES: { icon: LucideIcon; titleKey: MarketingMessageKey; bodyKey: Market
 /** /about — company story, values, built-in-Canada band (about_* strings). */
 export function AboutPage() {
   const { t, lang } = useI18n()
+  const { p } = usePublicPath()
   return (
     <MarketingPageShell>
       <Seo route="about" pageType="AboutPage" />
@@ -84,6 +86,13 @@ export function AboutPage() {
           <span className="dutiva-pill">{t('about_pill_bilingual')}</span>
         </div>
       </PageSection>
+
+      <PageAside
+        title={t('about_changelog_t')}
+        body={t('about_changelog_p')}
+        action={t('about_changelog_link')}
+        to={p('changelog')}
+      />
 
       <PageCta
         title={t('about_cta_t')}

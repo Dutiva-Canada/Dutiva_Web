@@ -875,6 +875,16 @@ export const landing = defineMessages({
     en: 'Service status',
     fr: 'État des services',
   },
+  landing_fr_changelog: {
+    en: 'Changelog',
+    fr: 'Journal des modifications',
+  },
+  /* Shown in the footer until G2/Capterra profile URLs are configured.
+     [FR self-authored] */
+  landing_foot_review_invite: {
+    en: 'Beta participant? Once our G2 and Capterra profiles are live, review links will appear here.',
+    fr: 'Participant à la bêta? Une fois nos profils G2 et Capterra en ligne, les liens d’évaluation apparaîtront ici.',
+  },
   landing_fr_tmplusage: {
     en: 'Template Usage',
     fr: 'Utilisation des modèles',
