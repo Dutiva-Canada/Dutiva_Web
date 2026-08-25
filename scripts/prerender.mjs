@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2026 
+ *   Copyright (c) 2026
  *   All rights reserved.
  */
 /**
@@ -31,8 +31,15 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const dist = path.join(root, 'dist')
 const entryUrl = pathToFileURL(path.join(root, 'dist-ssr', 'entry-server.js')).href
 
-const { renderPage, buildPrerenderManifest, serializeHead, SITE_ORIGIN, ORG, ORG_DESCRIPTION } =
-  await import(entryUrl)
+const {
+  renderPage,
+  buildPrerenderManifest,
+  serializeHead,
+  SITE_ORIGIN,
+  ORG,
+  ORG_DESCRIPTION,
+  FOUNDER,
+} = await import(entryUrl)
 
 const template = await readFile(path.join(dist, 'index.html'), 'utf8')
 
@@ -246,6 +253,7 @@ await writeFile(
       `${SITE_ORIGIN}/fr).`,
     '- Dutiva provides practical HR workflow support and compliance-oriented guidance. It does not provide legal advice.',
     '- Dutiva is HR compliance and documentation software. It is not a payroll provider or payroll processor: it does not run payroll, remit source deductions, or issue pay.',
+    `- Founder: ${FOUNDER.name}, ${FOUNDER.jobTitle.en}.`,
     `- The authenticated application (${SITE_ORIGIN}/app) is private customer workspace content and is not part of the public documentation.`,
     '',
     '## Product',

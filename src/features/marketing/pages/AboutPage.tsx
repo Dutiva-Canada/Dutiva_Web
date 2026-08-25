@@ -3,18 +3,21 @@ import type { LucideIcon } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { MarketingMessageKey } from '@/i18n/messages'
 import { Seo } from '@/seo/Seo'
+import { FOUNDER, ORG } from '@/seo/site'
+import { FounderIdentity } from '../FounderIdentity'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
 
-const VALUES: { icon: LucideIcon; titleKey: MarketingMessageKey; bodyKey: MarketingMessageKey }[] = [
-  { icon: Scale, titleKey: 'about_v1t', bodyKey: 'about_v1p' },
-  { icon: HeartHandshake, titleKey: 'about_v2t', bodyKey: 'about_v2p' },
-  { icon: ShieldCheck, titleKey: 'about_v3t', bodyKey: 'about_v3p' },
-  { icon: Leaf, titleKey: 'about_v4t', bodyKey: 'about_v4p' },
-]
+const VALUES: { icon: LucideIcon; titleKey: MarketingMessageKey; bodyKey: MarketingMessageKey }[] =
+  [
+    { icon: Scale, titleKey: 'about_v1t', bodyKey: 'about_v1p' },
+    { icon: HeartHandshake, titleKey: 'about_v2t', bodyKey: 'about_v2p' },
+    { icon: ShieldCheck, titleKey: 'about_v3t', bodyKey: 'about_v3p' },
+    { icon: Leaf, titleKey: 'about_v4t', bodyKey: 'about_v4p' },
+  ]
 
 /** /about — company story, values, built-in-Canada band (about_* strings). */
 export function AboutPage() {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   return (
     <MarketingPageShell>
       <Seo route="about" pageType="AboutPage" />
@@ -30,10 +33,30 @@ export function AboutPage() {
 
       <PageSection title={t('about_s2')}>
         <div className="premium-card-soft p-[clamp(22px,3vw,32px)]">
-          <p className="max-w-[70ch] text-base leading-[1.65] text-text-2">{t('about_why')}</p>
-          <div className="mt-4 inline-flex items-center gap-2 text-sm text-text-3">
-            <MapPin size={14} className="flex-none text-gold-strong" />
-            {t('about_why_foot')}
+          <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-start">
+            <div>
+              <p className="max-w-[70ch] text-base leading-[1.65] text-text-2">
+                {t('about_why_p1')}
+              </p>
+              <p className="mt-4 max-w-[70ch] text-base leading-[1.65] font-medium text-text">
+                {t('about_why_p2')}
+              </p>
+              <p className="mt-4 max-w-[70ch] text-base leading-[1.65] text-text-2">
+                {t('about_why_p3')}
+              </p>
+              <p className="mt-4 max-w-[70ch] text-base leading-[1.65] text-text-2">
+                {t('about_why_p4')}
+              </p>
+              <p className="mt-6 text-base font-semibold text-text">— {FOUNDER.name}</p>
+              <p className="mt-0.5 text-sm text-text-3">
+                {FOUNDER.jobTitle[lang]}, {ORG.legalName}
+              </p>
+              <div className="mt-4 inline-flex items-center gap-2 text-sm text-text-3">
+                <MapPin size={14} className="flex-none text-gold-strong" />
+                {t('about_why_foot')}
+              </div>
+            </div>
+            <FounderIdentity size="about" />
           </div>
         </div>
       </PageSection>

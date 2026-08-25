@@ -8,9 +8,23 @@ describe('AboutPage', () => {
   it('renders hero, sections, and CTA in English', () => {
     renderApp(<AboutPage />, { route: '/about', path: '/about' })
     expect(
-      screen.getByRole('heading', { level: 1, name: 'HR compliance infrastructure, built in Canada.' }),
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'HR compliance infrastructure, built in Canada.',
+      }),
     ).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 2, name: 'Our mission' })).toBeInTheDocument()
+    expect(screen.getAllByText('Martin Constantineau').length).toBeGreaterThan(0)
+    const linkedin = within(screen.getByRole('main')).getByRole('link', {
+      name: 'View Martin on LinkedIn',
+    })
+    expect(linkedin).toHaveAttribute('href', 'https://www.linkedin.com/in/martinconstantineau/')
+    expect(linkedin).toHaveAttribute('target', '_blank')
+    expect(linkedin).toHaveAttribute('rel', 'noopener noreferrer')
+    expect(screen.getByAltText('Martin Constantineau, Founder and CEO of Dutiva')).toHaveAttribute(
+      'src',
+      '/brand/martin-constantineau.jpg',
+    )
     expect(screen.getAllByText('Bilingual EN/FR').length).toBeGreaterThan(0)
     // Header carries its own "Start free" links — scope the CTA check to <main>.
     expect(
@@ -31,5 +45,10 @@ describe('AboutPage', () => {
       }),
     ).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 2, name: 'Notre mission' })).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('main')).getByRole('link', {
+        name: 'Voir le profil LinkedIn de Martin',
+      }),
+    ).toBeInTheDocument()
   })
 })

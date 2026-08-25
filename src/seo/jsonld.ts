@@ -1,9 +1,9 @@
 /*
- *   Copyright (c) 2026 
+ *   Copyright (c) 2026
  *   All rights reserved.
  */
 import type { Lang } from '@/i18n/core'
-import { ORG, ORG_DESCRIPTION, SITE_ORIGIN, absoluteUrl } from './site'
+import { FOUNDER, ORG, ORG_DESCRIPTION, SITE_ORIGIN, absoluteUrl } from './site'
 
 /**
  * JSON-LD (schema.org) builders. Every node lives in one `@graph` per page
@@ -11,13 +11,14 @@ import { ORG, ORG_DESCRIPTION, SITE_ORIGIN, absoluteUrl } from './site'
  * describe the same Dutiva entity instead of minting disconnected ones.
  *
  * Rules (docs/SEO_GEO_IMPLEMENTATION.md): only verified, visible facts.
- * No ratings, reviews, awards, addresses, founding dates, or social
- * profiles — none of those are published site facts today.
+ * No ratings, reviews, awards, addresses, or founding dates. Social
+ * profiles only when published on the site (currently the founder's LinkedIn).
  */
 
 export type JsonLdNode = Record<string, unknown>
 
 export const ORG_ID = `${SITE_ORIGIN}/#organization`
+export const FOUNDER_ID = `${SITE_ORIGIN}/#founder`
 export const WEBSITE_ID = `${SITE_ORIGIN}/#website`
 export const SOFTWARE_ID = `${SITE_ORIGIN}/#software`
 
@@ -40,6 +41,21 @@ export function organizationNode(lang: Lang): JsonLdNode {
     },
     areaServed: { '@type': 'Country', name: 'Canada' },
     knowsLanguage: ['en-CA', 'fr-CA'],
+    founder: { '@id': FOUNDER_ID },
+  }
+}
+
+/** Person node for the named founder. Must ship in the same `@graph` as
+ *  `organizationNode` so `founder` is not a dangling `@id`. */
+export function personNode(lang: Lang): JsonLdNode {
+  return {
+    '@type': 'Person',
+    '@id': FOUNDER_ID,
+    name: FOUNDER.name,
+    jobTitle: FOUNDER.jobTitle[lang],
+    image: absoluteUrl(FOUNDER.photoPath),
+    sameAs: [FOUNDER.linkedinUrl],
+    worksFor: { '@id': ORG_ID },
   }
 }
 

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2026 
+ *   Copyright (c) 2026
  *   All rights reserved.
  */
 /* oxlint-disable react/only-export-components -- build-time server entry,
@@ -17,7 +17,7 @@ import { parseDisplayDate } from '@/seo/dates'
 import { serializeHead } from '@/seo/head'
 import type { HeadData } from '@/seo/head'
 import { allPublicPages, langOfPath } from '@/seo/routes'
-import { ORG, ORG_DESCRIPTION, SITE_ORIGIN } from '@/seo/site'
+import { ORG, ORG_DESCRIPTION, SITE_ORIGIN, FOUNDER } from '@/seo/site'
 import { ThemeProvider } from '@/lib/theme'
 
 /**
@@ -31,7 +31,7 @@ import { ThemeProvider } from '@/lib/theme'
  * browser.
  */
 
-export { serializeHead, HTML_LANG, SITE_ORIGIN, ORG, ORG_DESCRIPTION }
+export { serializeHead, HTML_LANG, SITE_ORIGIN, ORG, ORG_DESCRIPTION, FOUNDER }
 
 export interface RenderedPage {
   html: string
