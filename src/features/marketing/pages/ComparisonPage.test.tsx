@@ -13,7 +13,8 @@ describe('ComparisonPage', () => {
     ).toBeInTheDocument()
     const main = within(screen.getByRole('main'))
     expect(main.getByRole('columnheader', { name: 'Dutiva' })).toBeInTheDocument()
-    expect(main.getByRole('columnheader', { name: 'HRdownloads' })).toBeInTheDocument()
+    expect(main.getByRole('columnheader', { name: 'Citation Canada (HRdownloads)' })).toBeInTheDocument()
+    expect(main.getByText(/Citation Canada \(formerly HRdownloads\)/)).toBeInTheDocument()
     expect(main.getByText('Pricing transparency')).toBeInTheDocument()
     expect(main.getByText('AI risk flagging')).toBeInTheDocument()
     for (const item of page.faq) {
@@ -29,5 +30,6 @@ describe('ComparisonPage', () => {
       screen.getByRole('heading', { level: 1, name: page.h1.en }),
     ).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: 'SixFifty' })).toBeInTheDocument()
+    expect(screen.getByText(/US federal, state, and local employment law only/)).toBeInTheDocument()
   })
 })
