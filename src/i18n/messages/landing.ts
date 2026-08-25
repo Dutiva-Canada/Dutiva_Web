@@ -899,8 +899,8 @@ export const landing = defineMessages({
     fr: 'Journal des modifications',
   },
   landing_foot_vs_hrdownloads: {
-    en: 'Dutiva vs HRdownloads',
-    fr: 'Dutiva vs HRdownloads',
+    en: 'Dutiva vs Citation Canada',
+    fr: 'Dutiva vs Citation Canada',
   },
   landing_foot_vs_sixfifty: {
     en: 'Dutiva vs SixFifty',

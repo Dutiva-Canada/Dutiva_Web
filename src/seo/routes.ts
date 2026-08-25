@@ -236,8 +236,8 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       fr: 'Dutiva vs HRdownloads : comparaison de conformité RH au Canada',
     },
     description: {
-      en: 'Compare Dutiva and HRdownloads on pricing transparency, AI risk flagging, bilingual EN/FR, statute-level specificity, and self-serve access for Canadian HR compliance.',
-      fr: 'Comparez Dutiva et HRdownloads sur la transparence tarifaire, le signalement des risques par l’IA, le bilinguisme EN/FR, la précision au niveau de la loi et l’accès en libre-service pour la conformité RH au Canada.',
+      en: 'Compare Dutiva and Citation Canada (formerly HRdownloads) on pricing transparency, AI risk flagging, bilingual EN/FR, statute-level specificity, and self-serve access.',
+      fr: 'Comparez Dutiva et Citation Canada (anciennement HRdownloads) sur la transparence tarifaire, le signalement des risques par l’IA, le bilinguisme EN/FR, la précision au niveau de la loi et l’accès en libre-service.',
     },
     indexable: true,
   },
@@ -249,8 +249,8 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       fr: 'Dutiva vs SixFifty : comparaison de plateformes de documents en droit du travail',
     },
     description: {
-      en: 'Compare Dutiva and SixFifty on pricing transparency, AI risk flagging, bilingual EN/FR, Canadian statute specificity, and self-serve access.',
-      fr: 'Comparez Dutiva et SixFifty sur la transparence tarifaire, le signalement des risques par l’IA, le bilinguisme EN/FR, la précision des lois canadiennes et l’accès en libre-service.',
+      en: 'Compare Dutiva and SixFifty for Canadian employers — US-only employment law scope vs Canadian statute-level guidance, pricing transparency, and self-serve access.',
+      fr: 'Comparez Dutiva et SixFifty pour les employeurs canadiens — portée américaine seulement vs conseils canadiens au niveau de la loi, transparence tarifaire et accès en libre-service.',
     },
     indexable: true,
   },
