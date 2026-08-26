@@ -100,6 +100,7 @@ export function useAdvisorProductionThreads({
 
   return {
     prodThreads,
+    setProdThreads,
     prodThreadsLoaded,
     conversationIdRef,
     pendingNavChatIdRef,

@@ -50,4 +50,18 @@ describe('memory conversationsApi', () => {
     expect(limit).toHaveBeenCalledWith(5)
     expect(rows[0]?.id).toBe('c2')
   })
+
+  it('deleteOwnConversation deletes by id', async () => {
+    const eq = vi.fn().mockResolvedValue({ error: null })
+    const del = vi.fn().mockReturnValue({ eq })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: { from: vi.fn().mockReturnValue({ delete: del }) },
+    }))
+    vi.resetModules()
+    const api = await import('./conversationsApi')
+
+    await api.deleteOwnConversation('c1')
+    expect(del).toHaveBeenCalled()
+    expect(eq).toHaveBeenCalledWith('id', 'c1')
+  })
 })

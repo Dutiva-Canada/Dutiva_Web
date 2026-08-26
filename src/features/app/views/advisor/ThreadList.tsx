@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, MessageCircle, Plus, Star } from 'lucide-react'
+import { ChevronDown, MessageCircle, Plus, Star, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
@@ -14,6 +14,8 @@ import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
  * mirrors the sidebar's `newChatBtnStyle`.
  *
  * Older is soft-collapsed by default so long histories don’t dominate.
+ * Deletable threads (session + production) get a trash control; demo fixtures
+ * stay read-only.
  */
 
 export interface ThreadListItem {
@@ -36,9 +38,19 @@ export interface ThreadListProps {
   readonly activeChatId: string | null
   readonly onSelect: (chatId: string) => void
   readonly onNewConversation: () => void
+  /** When set, deletable rows show a trash control. */
+  readonly onDelete?: (chatId: string) => void
+  readonly canDelete?: (chatId: string) => boolean
 }
 
-export function ThreadList({ groups, activeChatId, onSelect, onNewConversation }: ThreadListProps) {
+export function ThreadList({
+  groups,
+  activeChatId,
+  onSelect,
+  onNewConversation,
+  onDelete,
+  canDelete,
+}: ThreadListProps) {
   const { x } = useI18n()
   const [olderOpen, setOlderOpen] = useState(false)
 
@@ -98,37 +110,57 @@ export function ThreadList({ groups, activeChatId, onSelect, onNewConversation }
                 : group.items
               ).map((chat) => {
                 const active = chat.id === activeChatId
+                const deletable = onDelete != null && (canDelete?.(chat.id) ?? true)
                 return (
-                  <button
+                  <div
                     key={chat.id}
-                    type="button"
-                    onClick={() => onSelect(chat.id)}
-                    aria-current={active ? 'true' : undefined}
-                    className={`flex w-full cursor-pointer items-center gap-[8px] rounded-[7px] border-none px-[10px] py-[7px] text-left font-sans text-[13px] ${
-                      active
-                        ? 'bg-accent-soft font-semibold text-accent'
-                        : 'bg-transparent font-normal text-text-2'
+                    className={`group/thread flex w-full items-center gap-[4px] rounded-[7px] ${
+                      active ? 'bg-accent-soft' : 'bg-transparent hover:bg-inset'
                     }`}
                   >
-                    <MessageCircle
-                      size={14}
-                      strokeWidth={1.7}
-                      className="shrink-0 opacity-70"
-                      aria-hidden="true"
-                    />
-                    <span className="flex-1 overflow-hidden text-left text-ellipsis whitespace-nowrap">
-                      {x(chat.title)}
-                    </span>
-                    {chat.pinned && (
-                      <Star
-                        size={12}
-                        strokeWidth={0}
-                        fill="currentColor"
-                        className="shrink-0 opacity-55"
+                    <button
+                      type="button"
+                      onClick={() => onSelect(chat.id)}
+                      aria-current={active ? 'true' : undefined}
+                      className={`flex min-w-0 flex-1 cursor-pointer items-center gap-[8px] border-none bg-transparent px-[10px] py-[7px] text-left font-sans text-[13px] ${
+                        active
+                          ? 'font-semibold text-accent'
+                          : 'font-normal text-text-2'
+                      }`}
+                    >
+                      <MessageCircle
+                        size={14}
+                        strokeWidth={1.7}
+                        className="shrink-0 opacity-70"
                         aria-hidden="true"
                       />
+                      <span className="flex-1 overflow-hidden text-left text-ellipsis whitespace-nowrap">
+                        {x(chat.title)}
+                      </span>
+                      {chat.pinned && (
+                        <Star
+                          size={12}
+                          strokeWidth={0}
+                          fill="currentColor"
+                          className="shrink-0 opacity-55"
+                          aria-hidden="true"
+                        />
+                      )}
+                    </button>
+                    {deletable && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onDelete(chat.id)
+                        }}
+                        aria-label={`${x(M.advisorview_delete_conversation)} — ${x(chat.title)}`}
+                        className="mr-[6px] flex h-[26px] w-[26px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border-none bg-transparent text-text-muted opacity-0 group-hover/thread:opacity-100 focus-visible:opacity-100 hover:bg-risk-bg hover:text-risk-fg"
+                      >
+                        <Trash2 size={13} strokeWidth={1.8} aria-hidden="true" />
+                      </button>
                     )}
-                  </button>
+                  </div>
                 )
               })}
             {collapsed && !activeInOlder && (

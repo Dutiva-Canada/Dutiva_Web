@@ -62,3 +62,10 @@ export async function listOwnConversations(limit = 20): Promise<ProductionConver
       updatedAt: row.updated_at,
     }))
 }
+
+/** Permanently delete one of the caller's Advisor conversations (RLS: own rows). */
+export async function deleteOwnConversation(id: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { error } = await supabase.from('conversations').delete().eq('id', id)
+  if (error) throw error
+}
