@@ -28,11 +28,18 @@ const dist = path.join(root, 'dist')
 const _rawOrigin = process.env.VITE_SITE_ORIGIN || 'https://dutiva.ca'
 const ORIGIN = _rawOrigin.endsWith('/') ? _rawOrigin.slice(0, -1) : _rawOrigin
 
-/** JSON-LD URLs must be on the canonical origin, schema.org, or a social
- *  profile that is published on the site (currently the founder's LinkedIn). */
+/** JSON-LD URLs must be on the canonical origin, schema.org, or a profile
+ *  that is published on the site (LinkedIn, Facebook, Google Maps). */
 function isAllowedJsonLdUrl(url, origin) {
   if (url.startsWith(origin) || url.startsWith('https://schema.org')) return true
-  return url.startsWith('https://www.linkedin.com/') || url.startsWith('https://linkedin.com/')
+  return (
+    url.startsWith('https://www.linkedin.com/') ||
+    url.startsWith('https://linkedin.com/') ||
+    url.startsWith('https://www.facebook.com/') ||
+    url.startsWith('https://facebook.com/') ||
+    url.startsWith('https://www.google.com/maps') ||
+    url.startsWith('https://maps.google.com/')
+  )
 }
 
 /* The route registry, read back through the same SSR bundle the prerenderer

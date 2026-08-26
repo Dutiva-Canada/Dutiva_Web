@@ -36,11 +36,12 @@ search engines and answer engines both read. None requires anyone's approval.
 
 | Listing                 | Notes                                                                                      |
 | ----------------------- | ------------------------------------------------------------------------------------------ |
-| Google Business Profile | Use the Ottawa operating city. Verification is by mail or phone — start early, it is slow. |
-| Bing Places             | Feeds Bing, and Bing grounds several answer engines including Copilot.                     |
+| Google Business Profile | Live as [Dutiva Canada on Google Maps](https://www.google.com/maps/place/Dutiva+Canada/@62.6573279,-95.989235,3z/data=!4m6!3m5!1s0x2a5e3459b7326817:0xa17a1965e7a339a8!8m2!3d62.6573279!4d-95.989235!16s%2Fg%2F11z30dv_k7) — wired into Organization `sameAs` and `/about`. |
+| Bing Places             | Claimed. Still needs the **public** Bing Maps / Places URL before it can go in `sameAs`.   |
 | LinkedIn company page   | Live at https://www.linkedin.com/company/dutiva-canada — wired into Organization `sameAs` and `/about`. |
+| Facebook company page   | Live at https://www.facebook.com/dutivacanada — wired into Organization `sameAs` and `/about`. |
 | Crunchbase              | Frequently cited by AI answers when asked what a company is.                               |
-| Apple Business Connect  | Low effort, feeds Apple Maps and Siri.                                                     |
+| Apple Business Connect  | Claimed. Still needs the **public** Apple Maps place URL before it can go in `sameAs`.     |
 
 Use the **exact positioning line** from `src/seo/site.ts` (`ORG_DESCRIPTION`)
 so every listing agrees with the site and with the JSON-LD. Consistency across
@@ -236,8 +237,8 @@ landing URL + `utm_*` into the opportunity notes.
 1. Confirm `www.dutiva.ca` → `https://dutiva.ca` 308 after the next production
    deploy (Vercel Domains: www assigned, not primary without redirect). Then
    prefer the apex property in Bing Webmaster Tools.
-2. Create remaining Tier-1 owned listings (GBP, Bing Places, Crunchbase,
-   Apple Business Connect) using the ready-to-paste copy above. Company
-   LinkedIn is live at `https://www.linkedin.com/company/dutiva-canada` and
-   already wired into Organization `sameAs` + `/about`.
+2. Add the public Bing Places and Apple Maps URLs to Organization `sameAs`
+   (and `/about`) once they can be opened without signing in. Crunchbase is
+   still unclaimed. Company LinkedIn, Facebook, and Google Maps are already
+   wired.
 3. Run the quarterly four-engine probe and store scores outside the repo.

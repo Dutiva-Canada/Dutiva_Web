@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderApp } from '@/test/renderApp'
+import { ORG } from '@/seo/site'
 import { AboutPage } from './AboutPage'
 
 describe('AboutPage', () => {
@@ -29,9 +30,21 @@ describe('AboutPage', () => {
     const companyLinkedin = within(screen.getByRole('main')).getByRole('link', {
       name: 'Dutiva on LinkedIn',
     })
-    expect(companyLinkedin).toHaveAttribute('href', 'https://www.linkedin.com/company/dutiva-canada')
+    expect(companyLinkedin).toHaveAttribute('href', ORG.linkedinUrl)
     expect(companyLinkedin).toHaveAttribute('target', '_blank')
     expect(companyLinkedin).toHaveAttribute('rel', 'noopener noreferrer')
+    const googleMaps = within(screen.getByRole('main')).getByRole('link', {
+      name: 'Dutiva on Google Maps',
+    })
+    expect(googleMaps).toHaveAttribute('href', ORG.googleMapsUrl)
+    expect(googleMaps).toHaveAttribute('target', '_blank')
+    expect(googleMaps).toHaveAttribute('rel', 'noopener noreferrer')
+    const facebook = within(screen.getByRole('main')).getByRole('link', {
+      name: 'Dutiva on Facebook',
+    })
+    expect(facebook).toHaveAttribute('href', ORG.facebookUrl)
+    expect(facebook).toHaveAttribute('target', '_blank')
+    expect(facebook).toHaveAttribute('rel', 'noopener noreferrer')
     // Header carries its own "Start free" links — scope the CTA check to <main>.
     expect(
       within(screen.getByRole('main')).getByRole('link', { name: /Start free/ }),
@@ -63,6 +76,16 @@ describe('AboutPage', () => {
       within(screen.getByRole('main')).getByRole('link', {
         name: 'Dutiva sur LinkedIn',
       }),
-    ).toHaveAttribute('href', 'https://www.linkedin.com/company/dutiva-canada')
+    ).toHaveAttribute('href', ORG.linkedinUrl)
+    expect(
+      within(screen.getByRole('main')).getByRole('link', {
+        name: 'Dutiva sur Google Maps',
+      }),
+    ).toHaveAttribute('href', ORG.googleMapsUrl)
+    expect(
+      within(screen.getByRole('main')).getByRole('link', {
+        name: 'Dutiva sur Facebook',
+      }),
+    ).toHaveAttribute('href', ORG.facebookUrl)
   })
 })

@@ -28,8 +28,8 @@ export function absoluteUrl(pathname: string): string {
  * Verified organization facts only (see docs/SEO_GEO_IMPLEMENTATION.md).
  * Do not add addresses, founding dates, ratings, or other properties here
  * unless they are real, public, and visible on the site. Social profiles
- * belong only when published on the site (`ORG.linkedinUrl` and
- * `FOUNDER.linkedinUrl`).
+ * belong only when published on the site (`ORG.linkedinUrl`,
+ * `ORG.facebookUrl`, `ORG.googleMapsUrl`, and `FOUNDER.linkedinUrl`).
  */
 export const ORG = {
   /** Registered legal name. */
@@ -42,11 +42,22 @@ export const ORG = {
   legalEmail: 'legal@dutiva.ca',
   /** Company LinkedIn — published on `/about`; feeds Organization `sameAs`. */
   linkedinUrl: 'https://www.linkedin.com/company/dutiva-canada',
+  /** Company Facebook — published on `/about`; feeds Organization `sameAs`. */
+  facebookUrl: 'https://www.facebook.com/dutivacanada',
+  /**
+   * Public Google Maps listing (Google Business Profile). Knowledge-graph
+   * id `/g/11z30dv_k7`. Tracking params stripped. Published on `/about`.
+   */
+  googleMapsUrl:
+    'https://www.google.com/maps/place/Dutiva+Canada/@62.6573279,-95.989235,3z/data=!4m6!3m5!1s0x2a5e3459b7326817:0xa17a1965e7a339a8!8m2!3d62.6573279!4d-95.989235!16s%2Fg%2F11z30dv_k7',
   /** Brand mark shipped in /public — also used as the JSON-LD logo. */
   logoPath: '/brand/dutiva-leaf.png',
   logoWidth: 1275,
   logoHeight: 1275,
 } as const
+
+/** Organization `sameAs` — only profiles that are linked from `/about`. */
+export const ORG_SAME_AS: readonly string[] = [ORG.linkedinUrl, ORG.facebookUrl, ORG.googleMapsUrl]
 
 /**
  * Founder identity published on `/` and `/about` (and in JSON-LD). Name,
