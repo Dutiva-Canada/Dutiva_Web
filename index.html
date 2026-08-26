@@ -2,9 +2,12 @@
 <html lang="en-CA" data-theme="light">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/brand/icon-app-512.png" />
+    <!-- PNG/ICO only: the SVG tile's nested leaf PNG is ignored in favicons. -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/brand/icon-app-32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/brand/icon-app-48.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/brand/icon-app-192.png" />
-    <link rel="icon" type="image/svg+xml" href="/brand/icon-app.svg" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/brand/icon-app-512.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/brand/apple-touch-icon.png" />
     <!-- viewport-fit=cover is what makes env(safe-area-inset-*) resolve to real
          values instead of 0 on notched iOS devices; the mobile bottom nav pads
