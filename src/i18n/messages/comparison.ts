@@ -8,8 +8,8 @@ export const comparisonMessages = defineMessages({
   comparison_faq_title: { en: 'Common questions', fr: 'Questions fréquentes' },
   comparison_cta_t: { en: 'Try Dutiva on your next HR decision', fr: 'Essayez Dutiva pour votre prochaine décision RH' },
   comparison_cta_p: {
-    en: 'Start free — no credit card. Open the Advisor and generate a document in minutes.',
-    fr: 'Commencez gratuitement — sans carte de crédit. Ouvrez le Conseiller et générez un document en quelques minutes.',
+    en: 'Pick a plan and check out yourself — no sales call. A waitlist is available if you’d rather not pay yet.',
+    fr: 'Choisissez un forfait et payez vous-même — sans appel commercial. Une liste d’attente est disponible si vous préférez ne pas payer pour l’instant.',
   },
-  comparison_cta_btn: { en: 'Start free', fr: 'Commencer' },
+  comparison_cta_btn: { en: 'See plans', fr: 'Voir les forfaits' },
 })

@@ -28,7 +28,7 @@ describe('GuidesIndexPage', () => {
       ).toHaveAttribute('href', articlePath(guide, 'en'))
     }
 
-    expect(main.getByRole('link', { name: /Start free/ })).toHaveAttribute('href', '/app/welcome')
+    expect(main.getByRole('link', { name: /See plans/ })).toHaveAttribute('href', '/pricing')
   })
 
   it('still links the template-usage how-to, which is not part of the collection', () => {

@@ -70,15 +70,28 @@ export function getPlanById(id?: string | null): PlanDefinition | undefined {
 }
 
 /**
- * True while the site is in beta (see docs/BILLING_BETA_AUDIT.md, B2) —
- * paid plans are shown on /pricing but disabled with a "coming soon" state
- * rather than sold, regardless of whether their Stripe price/secret is
- * actually wired up server-side. Flip to `false` (or delete this flag and
- * its one call site, `isPurchasable`) once paid signup opens.
+ * True while checkout is held closed. Currently `false`: monthly paid plans
+ * are the public path in (support membership). The 15-person free cohort
+ * stays a waitlist. Flip back only if checkout must be taken down.
  */
-export const PAID_PLANS_DISABLED_DURING_BETA = true
+export const PAID_PLANS_DISABLED_DURING_BETA = false
 
-/** False for a paid plan while `PAID_PLANS_DISABLED_DURING_BETA` is set; the free plan is always "purchasable" (it just enters the app). */
+/**
+ * When false, PlanGate does not block product features — every admitted
+ * account (waitlist cohort and paid) gets the full product. Paying buys
+ * support, not extra modules. Flip to `true` only when per-plan limits are
+ * actually enforced and advertised.
+ */
+export const PLAN_FEATURE_GATES_ENABLED = false
+
+/**
+ * Annual Stripe prices are not live yet. Keep the /pricing annual toggle
+ * hidden independently of checkout, so we never quote a yearly total nobody
+ * can buy. Flip after STRIPE_PRICE_*_ANNUAL secrets exist.
+ */
+export const ANNUAL_BILLING_AVAILABLE = false
+
+/** False for a paid plan while `PAID_PLANS_DISABLED_DURING_BETA` is set; the free plan is always "purchasable" (it joins the waitlist). */
 export function isPurchasable(plan: PlanDefinition): boolean {
   return plan.monthlyPrice === 0 || !PAID_PLANS_DISABLED_DURING_BETA
 }

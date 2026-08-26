@@ -23,9 +23,9 @@ describe('TemplateUsagePage', () => {
     const main = screen.getByRole('main')
     expect(within(main).getByText('Pick a template')).toBeInTheDocument()
     // Header carries its own CTA links — scope the CTA check to <main>.
-    expect(within(main).getByRole('link', { name: /Open Document Studio/ })).toHaveAttribute(
+    expect(within(main).getByRole('link', { name: /See plans/ })).toHaveAttribute(
       'href',
-      '/app/welcome',
+      '/pricing',
     )
   })
 

@@ -49,10 +49,9 @@ function renderPage() {
 }
 
 describe('PricingPage — annual checkout guard', () => {
-  /* Skipped while PAID_PLANS_DISABLED_DURING_BETA (src/config/plans.ts) is on:
-     the Growth button is disabled and reads "Available after beta" before
-     annual billing even enters the picture, so this scenario is unreachable
-     via the UI. Re-enable once paid plans go live post-beta. */
+  /* Annual billing stays hidden until STRIPE_PRICE_*_ANNUAL secrets exist.
+     The skipped test below covers the coming-soon notice if someone un-hides
+     the toggle before those prices exist. */
   it.skip('blocks paid annual checkout with a coming-soon notice and never calls checkout', async () => {
     const user = userEvent.setup()
     renderPage()
@@ -62,13 +61,9 @@ describe('PricingPage — annual checkout guard', () => {
     expect(invoke).not.toHaveBeenCalled()
   })
 
-  it('shows paid plans as disabled "Available after beta" instead of an active checkout CTA', () => {
+  it('shows paid-plan checkout CTAs instead of coming-soon', () => {
     renderPage()
-    const buttons = screen.getAllByRole('button', { name: /Available after beta/i })
-    expect(buttons.length).toBeGreaterThan(0)
-    for (const button of buttons) {
-      expect(button).toBeDisabled()
-    }
-    expect(invoke).not.toHaveBeenCalled()
+    expect(screen.queryByRole('button', { name: /Available after beta/i })).toBeNull()
+    expect(screen.getByRole('button', { name: /Upgrade to Growth/i })).toBeEnabled()
   })
 })

@@ -7,6 +7,7 @@ import { authMessages as M } from '@/i18n/messages/auth'
 import { usePublicPath } from '@/seo/usePublicPath'
 import { supabase } from '@/lib/supabaseClient'
 import { useAuth } from '@/features/app/auth/authContext'
+import { peekPendingCheckout } from '@/features/app/billing/pendingCheckout'
 import { AuthPanel } from '@/features/app/auth/AuthPanel'
 import { LangToggle, ThemeToggle } from './ShellControls'
 
@@ -187,6 +188,7 @@ function FormColumn({ children }: { readonly children: ReactNode }) {
 export function EntryStage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { p } = usePublicPath()
   const { status, authorized: membership } = useAuth()
 
   const gated = !!supabase
@@ -201,6 +203,12 @@ export function EntryStage() {
     const from = (location.state as EntryLocationState | null)?.from
     navigate(from?.pathname ?? '/app/home', { replace: true })
   }, [authorized, location.state, navigate])
+
+  useEffect(() => {
+    if (status !== 'signed-in' || membership !== false) return
+    if (!peekPendingCheckout()) return
+    navigate(p('pricing'), { replace: true })
+  }, [status, membership, navigate, p])
 
   return (
     <div className="surface-app min-h-screen bg-bg font-sans text-text">

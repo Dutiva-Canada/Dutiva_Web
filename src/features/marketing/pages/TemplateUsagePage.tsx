@@ -102,7 +102,7 @@ export function TemplateUsagePage() {
         title={t('tmplGuide_cta_t')}
         body={t('tmplGuide_cta_p')}
         action={t('tmplGuide_cta_btn')}
-        to="/app/welcome"
+        to={p('pricing')}
       />
     </MarketingPageShell>
   )

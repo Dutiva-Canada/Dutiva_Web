@@ -74,8 +74,8 @@ export const tmplGuideMessages = defineMessages({
   },
   tmplGuide_cta_t: { en: 'Generate your first document.', fr: 'Générez votre premier document.' },
   tmplGuide_cta_p: {
-    en: 'Open Document Studio and put a template to work.',
-    fr: 'Ouvrez le Studio de documents et mettez un modèle à profit.',
+    en: 'Pick a plan to open Document Studio and put a template to work.',
+    fr: 'Choisissez un forfait pour ouvrir le Studio de documents et mettre un modèle à profit.',
   },
-  tmplGuide_cta_btn: { en: 'Open Document Studio', fr: 'Ouvrir le Studio de documents' },
+  tmplGuide_cta_btn: { en: 'See plans', fr: 'Voir les forfaits' },
 })

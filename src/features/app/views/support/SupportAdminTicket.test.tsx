@@ -34,6 +34,7 @@ const ticket = {
   publicReference: 'DUT-2026-000009',
   subject: 'Security concern',
   requesterEmail: 'user@acme.test',
+  requesterPlan: null,
   category: 'security',
   status: 'new' as const,
   priority: 'high' as const,

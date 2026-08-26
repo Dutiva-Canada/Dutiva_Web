@@ -19,8 +19,8 @@ describe('BlogIndexPage', () => {
         articlePath(post, 'en'),
       )
     }
-    // Header carries its own "Start free" links — scope the CTA check to <main>.
-    expect(main.getByRole('link', { name: /Start free/ })).toHaveAttribute('href', '/app/welcome')
+    // Header carries its own "See plans" links — scope the CTA check to <main>.
+    expect(main.getByRole('link', { name: /See plans/ })).toHaveAttribute('href', '/pricing')
     expect(main.getAllByText(/Published August 2026/).length).toBe(BLOG_ARTICLES.length)
   })
 

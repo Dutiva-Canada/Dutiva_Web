@@ -51,5 +51,5 @@ export const jurisdictionToolMessages = defineMessages({
     en: 'Once you know the jurisdiction, Dutiva generates jurisdiction-specific HR documents, tracks deadlines, and provides AI-assisted guidance — all within the correct legal framework for your province.',
     fr: 'Une fois la juridiction connue, Dutiva génère des documents RH propres à la juridiction, suit les échéances et offre un accompagnement assisté par l’IA — le tout dans le cadre juridique correct pour votre province.',
   },
-  jur_tool_cta_btn: { en: 'Try Dutiva free', fr: 'Essayer Dutiva gratuitement' },
+  jur_tool_cta_btn: { en: 'See plans', fr: 'Voir les forfaits' },
 })

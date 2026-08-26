@@ -17,6 +17,17 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: readonly ChangelogEntry[] = [
   {
+    date: '2026-08-26',
+    title: bi(
+      'Paid plans open — waitlist stays for free seats',
+      'Forfaits payants ouverts — la liste d’attente reste pour les places gratuites',
+    ),
+    body: bi(
+      'Paid plans are open. Paying skips the waitlist and includes founder-led support. A waitlist of 15 free seats remains if you’d rather not pay yet. The full product stays open for every admitted account.',
+      'Les forfaits payants sont ouverts. Payer saute la liste d’attente et comprend un soutien mené par le fondateur. Une liste d’attente de 15 places gratuites reste si vous préférez ne pas payer pour l’instant. Le produit complet reste ouvert pour chaque compte admis.',
+    ),
+  },
+  {
     date: '2026-08-25',
     title: bi(
       'Competitor comparison pages and SEO polish',

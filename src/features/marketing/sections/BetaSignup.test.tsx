@@ -32,7 +32,7 @@ describe('BetaSignup', () => {
     render()
     await user.type(screen.getByLabelText('Work email'), 'not-an-email')
     await user.click(screen.getByRole('checkbox'))
-    await user.click(screen.getByRole('button', { name: /Start free/ }))
+    await user.click(screen.getByRole('button', { name: /Join the waitlist/ }))
 
     expect(screen.getByText('Please enter a valid work email address.')).toBeInTheDocument()
     expect(createBetaSignup).not.toHaveBeenCalled()
@@ -44,7 +44,7 @@ describe('BetaSignup', () => {
     getBetaCohortStatus.mockResolvedValue({ taken: 3, limit: 15 })
     render()
     await user.type(screen.getByLabelText('Work email'), 'owner@example.ca')
-    await user.click(screen.getByRole('button', { name: /Start free/ }))
+    await user.click(screen.getByRole('button', { name: /Join the waitlist/ }))
 
     expect(
       screen.getByText('Please confirm you agree to receive product updates.'),
@@ -62,7 +62,7 @@ describe('BetaSignup', () => {
     await user.type(screen.getByLabelText('Company (optional)'), 'Example Inc.')
     await user.selectOptions(screen.getByLabelText('Province / jurisdiction (optional)'), 'qc')
     await user.click(screen.getByRole('checkbox'))
-    await user.click(screen.getByRole('button', { name: /Start free/ }))
+    await user.click(screen.getByRole('button', { name: /Join the waitlist/ }))
 
     expect(createBetaSignup).toHaveBeenCalledOnce()
     expect(createBetaSignup).toHaveBeenCalledWith(
@@ -75,7 +75,7 @@ describe('BetaSignup', () => {
       }),
     )
     expect(await screen.findByText("You're on the list.")).toBeInTheDocument()
-    expect(await screen.findByText('4 of 15 spots currently taken')).toBeInTheDocument()
+    expect(screen.queryByText(/spots currently taken/)).toBeNull()
   })
 
   it('confirms a waiting-list signup as waiting, not as admitted', async () => {
@@ -86,7 +86,7 @@ describe('BetaSignup', () => {
     render()
     await user.type(screen.getByLabelText('Work email'), 'owner@example.ca')
     await user.click(screen.getByRole('checkbox'))
-    await user.click(screen.getByRole('button', { name: /Start free/ }))
+    await user.click(screen.getByRole('button', { name: /Join the waitlist/ }))
 
     expect(await screen.findByText("You're on the waiting list.")).toBeInTheDocument()
     /* The admitted-cohort promise ("we'll email your beta access") must not
@@ -95,12 +95,13 @@ describe('BetaSignup', () => {
     expect(screen.queryByText(/beta access/)).toBeNull()
   })
 
-  it('states the cohort capacity next to the form', async () => {
+  it('states waitlist capacity next to the form without a public spot counter', () => {
     createBetaSignup.mockReset()
     getBetaCohortStatus.mockResolvedValue({ taken: 3, limit: 15 })
     render()
-    expect(screen.getByText(/cohort of 15 Canadian HR leaders/)).toBeInTheDocument()
-    expect(await screen.findByText('3 of 15 spots currently taken')).toBeInTheDocument()
+    expect(screen.getByText(/waitlist has 15 free seats/)).toBeInTheDocument()
+    expect(screen.queryByText(/spots currently taken/)).toBeNull()
+    expect(screen.queryByText(/cohort of 15/)).toBeNull()
   })
 
   it('surfaces the rate-limit message and stays on the form', async () => {
@@ -111,7 +112,7 @@ describe('BetaSignup', () => {
     render()
     await user.type(screen.getByLabelText('Work email'), 'owner@example.ca')
     await user.click(screen.getByRole('checkbox'))
-    await user.click(screen.getByRole('button', { name: /Start free/ }))
+    await user.click(screen.getByRole('button', { name: /Join the waitlist/ }))
 
     expect(await screen.findByText(/Too many attempts in a short time/)).toBeInTheDocument()
     expect(screen.getByLabelText('Work email')).toBeInTheDocument()
@@ -125,7 +126,7 @@ describe('BetaSignup', () => {
     render()
     await user.type(screen.getByLabelText('Work email'), 'owner@example.ca')
     await user.click(screen.getByRole('checkbox'))
-    await user.click(screen.getByRole('button', { name: /Start free/ }))
+    await user.click(screen.getByRole('button', { name: /Join the waitlist/ }))
 
     expect(await screen.findByText(/Could not record your signup/)).toBeInTheDocument()
     expect(screen.queryByText("You're on the list.")).toBeNull()

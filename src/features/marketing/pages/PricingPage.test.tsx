@@ -6,7 +6,7 @@ import { LangProvider } from '@/i18n/LangProvider'
 import { ThemeProvider } from '@/lib/theme'
 import { AuthProvider } from '@/features/app/auth/AuthProvider'
 import { PlanProvider } from '@/features/app/billing/PlanProvider'
-import { PAID_PLANS_DISABLED_DURING_BETA } from '@/config/plans'
+import { ANNUAL_BILLING_AVAILABLE } from '@/config/plans'
 import { PricingPage } from './PricingPage'
 
 /**
@@ -45,21 +45,18 @@ describe('PricingPage', () => {
 
     /* Each tier name now appears in both the plan card and the comparison
        table header, so assert presence rather than a single occurrence. */
-    for (const name of ['Free / Beta', 'Starter', 'Growth', 'Professional']) {
+    for (const name of ['Free', 'Starter', 'Growth', 'Professional']) {
       expect(screen.getAllByText(name).length).toBeGreaterThan(0)
     }
-    /* Paid plans are beta-disabled (PAID_PLANS_DISABLED_DURING_BETA), so every
-       paid tier (Starter, Growth, Pro) shows "Coming soon" instead of Growth's
-       usual "Most popular" badge. */
-    expect(screen.getAllByText('Coming soon').length).toBe(3)
-    expect(screen.queryByText('Most popular')).toBeNull()
+    expect(screen.getByText('Most popular')).toBeInTheDocument()
+    expect(screen.queryByText('Coming soon')).toBeNull()
   })
 
-  /* The billing toggle is hidden while PAID_PLANS_DISABLED_DURING_BETA is on
+  /* The billing toggle is hidden until ANNUAL_BILLING_AVAILABLE is on
      (no path should advertise a price nobody can buy). The annual-price
      calculation (annualPerMonth / annualTotal) is still unit-tested in
      plans.test.ts — this test only covers the toggle interaction itself. */
-  it.skipIf(PAID_PLANS_DISABLED_DURING_BETA)(
+  it.skipIf(!ANNUAL_BILLING_AVAILABLE)(
     'switches plan prices when toggling to annual billing',
     async () => {
       const user = userEvent.setup()
@@ -71,19 +68,17 @@ describe('PricingPage', () => {
     },
   )
 
-  it('hides the annual billing toggle while paid plans are beta-disabled', () => {
-    if (!PAID_PLANS_DISABLED_DURING_BETA) return
+  it('hides the annual billing toggle until annual Stripe prices exist', () => {
     renderPricing()
     expect(screen.queryByRole('button', { name: /Annual/i })).toBeNull()
-    // Only monthly prices are shown — Growth at $49.
     expect(screen.getByText('$49')).toBeInTheDocument()
   })
 
   it('renders the feature comparison table', () => {
     renderPricing()
-    expect(screen.getByText('AI Advisor')).toBeInTheDocument()
-    expect(screen.getByText('Advisor access')).toBeInTheDocument()
-    expect(screen.getByText('Save & export documents')).toBeInTheDocument()
+    expect(screen.getByText('Access')).toBeInTheDocument()
+    expect(screen.getAllByText('Skip the waitlist').length).toBeGreaterThan(0)
+    expect(screen.getByText('Initial reply (business days)')).toBeInTheDocument()
   })
 
   it('shows the not-legal-advice disclaimer', () => {
@@ -104,15 +99,10 @@ describe('PricingPage', () => {
     ).toBeInTheDocument()
   })
 
-  it('shows paid plans as disabled "Available after beta" while beta plan disabling is on', () => {
+  it('shows paid plans as checkout CTAs, not coming-soon', () => {
     renderPricing()
-    const betaCtas = screen.getAllByRole('button', { name: /Available after beta/i })
-    expect(betaCtas.length).toBeGreaterThan(0)
-    for (const button of betaCtas) {
-      expect(button).toBeDisabled()
-    }
-    expect(screen.queryByRole('button', { name: /Sign in to continue/ })).toBeNull()
-    expect(screen.queryByRole('button', { name: /Upgrade to Growth/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Available after beta/i })).toBeNull()
+    expect(screen.getAllByRole('button', { name: /Sign in to continue/ }).length).toBeGreaterThan(0)
   })
 
   it('shows a success card with plan name and workspace link for a Stripe return', () => {

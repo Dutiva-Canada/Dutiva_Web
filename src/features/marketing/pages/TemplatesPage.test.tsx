@@ -20,8 +20,8 @@ describe('TemplatesPage', () => {
     }
 
     expect(
-      within(screen.getByRole('main')).getByRole('link', { name: /Start free/ }),
-    ).toHaveAttribute('href', '/app/welcome')
+      within(screen.getByRole('main')).getByRole('link', { name: /See plans/ }),
+    ).toHaveAttribute('href', '/pricing')
   })
 
   it('re-localizes template copy to French via the header language toggle', async () => {

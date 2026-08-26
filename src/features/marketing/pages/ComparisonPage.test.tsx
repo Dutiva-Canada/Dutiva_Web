@@ -20,7 +20,7 @@ describe('ComparisonPage', () => {
     for (const item of page.faq) {
       expect(main.getByText(item.question.en)).toBeInTheDocument()
     }
-    expect(main.getByRole('link', { name: 'Start free' })).toHaveAttribute('href', '/app/welcome')
+    expect(main.getByRole('link', { name: 'See plans' })).toHaveAttribute('href', '/pricing')
   })
 
   it('renders SixFifty comparison page', () => {

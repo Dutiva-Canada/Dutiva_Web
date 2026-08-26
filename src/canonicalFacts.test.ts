@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import { BETA_COHORT_LIMIT } from '@/config/beta'
-import { ANNUAL_MONTHS_BILLED, PAID_PLANS_DISABLED_DURING_BETA, PLANS } from '@/config/plans'
+import { ANNUAL_MONTHS_BILLED, PAID_PLANS_DISABLED_DURING_BETA, PLAN_FEATURE_GATES_ENABLED, PLANS } from '@/config/plans'
 import { allTemplates } from '@/features/app/documents/catalogue'
 import {
   COVERAGE_AUDITED_ON,
@@ -141,13 +141,15 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
     expect(row('Annual billing')).toContain(`${ANNUAL_MONTHS_BILLED} of 12`)
   })
 
-  it('describes the beta paid-plan state the flag actually produces', () => {
-    /* The doc's phrasing is "shown but not sold". If the flag flips, that
-       sentence — and the "Launch status" section that hangs off it — becomes
-       false, so the launch language has to be revisited in the same change. */
+  it('describes the beta paid-plan state the flags actually produce', () => {
+    /* Paid plans are sold; product gates stay off. If either flag flips, the
+       Beta state row and Launch status section have to be revisited. */
     const beta = row('Beta state').toLowerCase()
-    expect(PAID_PLANS_DISABLED_DURING_BETA).toBe(true)
-    expect(beta).toContain('not sold')
+    expect(PAID_PLANS_DISABLED_DURING_BETA).toBe(false)
+    expect(PLAN_FEATURE_GATES_ENABLED).toBe(false)
+    expect(beta).toContain('sold')
+    expect(beta).not.toContain('not sold')
+    expect(beta).toContain('waitlist')
   })
 
   it('states the beta cohort capacity, in every copy of the number', () => {
@@ -155,7 +157,7 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
        BETA_COHORT_LIMIT (which the marketing copy interpolates, so the copy
        itself cannot drift), the SQL gate that enforces admission, the
        signup endpoint that reports whether the cohort is full, and the
-       public cohort-status read that powers the landing spot counter. A
+       public waitlist copy. A
        mismatch means the site promises one number and the gate enforces
        another — exactly the defect class this file exists to prevent. */
     expect(boldNumbers(row('Beta capacity'))).toContain(BETA_COHORT_LIMIT)
@@ -169,6 +171,17 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
       '0067_beta_cohort_capacity.sql',
     )
     expect(gate).toContain(`limit ${BETA_COHORT_LIMIT}`)
+
+    const paidGate = raw(
+      import.meta.glob('../supabase/migrations/0089_paid_subscribers_are_workspace_members.sql', {
+        query: '?raw',
+        import: 'default',
+        eager: true,
+      }),
+      '0089_paid_subscribers_are_workspace_members.sql',
+    )
+    expect(paidGate).toContain(`limit ${BETA_COHORT_LIMIT}`)
+    expect(paidGate).toContain("plan in ('starter', 'growth', 'pro')")
 
     const signup = raw(
       import.meta.glob('../supabase/functions/create-beta-signup/index.ts', {

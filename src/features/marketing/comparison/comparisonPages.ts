@@ -36,8 +36,8 @@ export interface ComparisonPageConfig {
 }
 
 const DUTIVA_PRICING = bi(
-  'Public CAD pricing on dutiva.ca/pricing — Free/Beta, Starter ($24/mo), Growth ($49/mo), and Professional ($99/mo).',
-  'Tarifs publics en CAD sur dutiva.ca/tarifs — Gratuit/Bêta, Starter (24 $/mois), Growth (49 $/mois) et Professional (99 $/mois).',
+  'Public CAD pricing on dutiva.ca/pricing — Free waitlist, Starter ($24/mo), Growth ($49/mo), and Professional ($99/mo).',
+  'Tarifs publics en CAD sur dutiva.ca/tarifs — liste d’attente gratuite, Starter (24 $/mois), Growth (49 $/mois) et Professional (99 $/mois).',
 )
 
 const DUTIVA_RISK = bi(
@@ -56,8 +56,8 @@ const DUTIVA_STATUTE = bi(
 )
 
 const DUTIVA_SELF_SERVE = bi(
-  'Open the Advisor and generate documents from dutiva.ca/app/welcome without a sales call.',
-  'Ouvrez le Conseiller et générez des documents depuis dutiva.ca/app/welcome sans appel commercial.',
+  'Pick a plan and check out on dutiva.ca/pricing — no sales call.',
+  'Choisissez un forfait et payez sur dutiva.ca/tarifs — sans appel commercial.',
 )
 
 const DIMENSION_LABELS = {
@@ -203,8 +203,8 @@ export const COMPARISON_PAGES: Record<ComparisonCompetitorId, ComparisonPageConf
           'Comment les tarifs de Dutiva se comparent-ils à Citation Canada ?',
         ),
         answer: bi(
-          'Dutiva lists plan prices directly on dutiva.ca/pricing and you can start free without a quote. Citation Canada’s pricing page shows starting prices once you pick headcount and a tier (HR, Safety, or bundled) — still in CAD, billed annually — but purchase goes through Get a quote and a demo, not instant self-serve signup.',
-          'Dutiva affiche ses forfaits directement sur dutiva.ca/tarifs et vous pouvez commencer gratuitement sans soumission. La page tarifs de Citation Canada affiche des prix de départ une fois l’effectif et le palier choisis (RH, SST ou combiné) — toujours en CAD, facturés annuellement — mais l’achat passe par Obtenir une soumission et une démo, pas une inscription instantanée en libre-service.',
+          'Dutiva lists plan prices directly on dutiva.ca/pricing and you can check out yourself. Citation Canada’s pricing page shows starting prices once you pick headcount and a tier (HR, Safety, or bundled) — still in CAD, billed annually — but purchase goes through Get a quote and a demo, not instant self-serve signup.',
+          'Dutiva affiche ses forfaits directement sur dutiva.ca/tarifs et vous pouvez payer vous-même. La page tarifs de Citation Canada affiche des prix de départ une fois l’effectif et le palier choisis (RH, SST ou combiné) — toujours en CAD, facturés annuellement — mais l’achat passe par Obtenir une soumission et une démo, pas une inscription instantanée en libre-service.',
         ),
       },
       {
@@ -213,8 +213,8 @@ export const COMPARISON_PAGES: Record<ComparisonCompetitorId, ComparisonPageConf
           'Puis-je essayer Dutiva sans appel commercial ?',
         ),
         answer: bi(
-          'Yes — start free at dutiva.ca/app/welcome, open the Advisor, and generate a document. Citation Canada does not offer a free trial; their site directs you to a demo and customized quote.',
-          'Oui — commencez gratuitement sur dutiva.ca/app/welcome, ouvrez le Conseiller et générez un document. Citation Canada n’offre pas d’essai gratuit; leur site vous oriente vers une démo et une soumission personnalisée.',
+          'Yes — pick a plan at dutiva.ca/pricing and check out yourself. Citation Canada does not offer a free trial; their site directs you to a demo and customized quote.',
+          'Oui — choisissez un forfait sur dutiva.ca/tarifs et payez vous-même. Citation Canada n’offre pas d’essai gratuit; leur site vous oriente vers une démo et une soumission personnalisée.',
         ),
       },
     ],
@@ -263,8 +263,8 @@ export const COMPARISON_PAGES: Record<ComparisonCompetitorId, ComparisonPageConf
           'Quelle est la transparence tarifaire de Dutiva comparée à SixFifty ?',
         ),
         answer: bi(
-          'Dutiva publishes CAD plan prices on dutiva.ca/pricing and you can start free without a demo. SixFifty’s pricing page lists starting points — in-house Employment suite from $75/mo billed annually (varies by employee count) and consultant licenses from $5,000/yr — but purchase still flows through Book a demo / custom quote.',
-          'Dutiva publie ses tarifs en CAD sur dutiva.ca/tarifs et vous pouvez commencer gratuitement sans démo. La page tarifs de SixFifty indique des prix de départ — suite Employment interne à partir de 75 $/mois facturés annuellement (varie selon l’effectif) et licences conseillers à partir de 5 000 $/an — mais l’achat passe encore par Réserver une démo / soumission personnalisée.',
+          'Dutiva publishes CAD plan prices on dutiva.ca/pricing and you can check out yourself. SixFifty’s pricing page lists starting points — in-house Employment suite from $75/mo billed annually (varies by employee count) and consultant licenses from $5,000/yr — but purchase still flows through Book a demo / custom quote.',
+          'Dutiva publie ses tarifs en CAD sur dutiva.ca/tarifs et vous pouvez payer vous-même. La page tarifs de SixFifty indique des prix de départ — suite Employment interne à partir de 75 $/mois facturés annuellement (varie selon l’effectif) et licences conseillers à partir de 5 000 $/an — mais l’achat passe encore par Réserver une démo / soumission personnalisée.',
         ),
       },
     ],

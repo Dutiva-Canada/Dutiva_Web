@@ -34,7 +34,7 @@ const primaryBtnClass =
  */
 export function AuthPanel() {
   const { x, L, lang } = useI18n()
-  const { legalDoc } = usePublicPath()
+  const { legalDoc, p } = usePublicPath()
   const { status, session, signInWithEmail, verifyEmailCode, signOut } = useAuth()
   const [mode, setMode] = useState<Mode>('signin')
   const [name, setName] = useState('')
@@ -124,6 +124,12 @@ export function AuthPanel() {
             <p className="m-0 text-[13px] leading-[1.5] text-text-muted">
               {x(M.auth_not_authorized)}
             </p>
+            <Link
+              to={p('pricing')}
+              className={`${primaryBtnClass} mt-[4px] no-underline`}
+            >
+              {x(M.auth_choose_plan)}
+            </Link>
             <button
               type="button"
               onClick={() => void signOut()}

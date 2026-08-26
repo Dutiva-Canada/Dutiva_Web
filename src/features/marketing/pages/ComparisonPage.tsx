@@ -5,6 +5,7 @@ import {
   type ComparisonCompetitorId,
 } from '../comparison/comparisonPages'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
+import { usePublicPath } from '@/seo/usePublicPath'
 
 interface ComparisonPageProps {
   readonly competitorId: ComparisonCompetitorId
@@ -13,6 +14,7 @@ interface ComparisonPageProps {
 /** Shared layout for /vs/hrdownloads and /vs/sixfifty. */
 export function ComparisonPage({ competitorId }: ComparisonPageProps) {
   const { t, x } = useI18n()
+  const { p } = usePublicPath()
   const page = comparisonPage(competitorId)
   const faqEntries = page.faq.map((item) => ({
     question: x(item.question),
@@ -71,7 +73,7 @@ export function ComparisonPage({ competitorId }: ComparisonPageProps) {
         title={t('comparison_cta_t')}
         body={t('comparison_cta_p')}
         action={t('comparison_cta_btn')}
-        to="/app/welcome"
+        to={p('pricing')}
       />
     </MarketingPageShell>
   )

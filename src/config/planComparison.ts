@@ -5,7 +5,7 @@ import type { PlanId } from './plans'
  * A comparison cell:
  *   - `true`  → included (rendered as a check),
  *   - `false` → not included (rendered as a dash),
- *   - a `MarketingMessageKey` → a short qualifier ("Core", "Priority", "1 document", …).
+ *   - a `MarketingMessageKey` → a short qualifier ("1 business day", …).
  */
 export type ComparisonCell = boolean | MarketingMessageKey
 
@@ -20,70 +20,31 @@ export interface ComparisonGroup {
 }
 
 /**
- * Feature-by-feature plan comparison, grounded in the four tiers' headline
- * features (src/config/plans.ts + the landing_* copy). Qualitative by design —
- * exact limits are being finalized during beta (surfaced under the table via
- * pricing_compare_note), so values stay directional rather than numeric.
+ * Feature-by-feature plan comparison for the quiet-beta period: every admitted
+ * account gets the full product. Paying skips the waitlist and buys support.
+ * Restore per-plan product limits here only when PLAN_FEATURE_GATES_ENABLED
+ * is on and those limits are actually enforced.
  */
 export const PLAN_COMPARISON: ComparisonGroup[] = [
-  {
-    headingKey: 'pricing_grp_advisor',
-    rows: [
-      {
-        labelKey: 'pricing_row_advisor_access',
-        cells: {
-          free: 'pricing_v_limited',
-          starter: 'pricing_v_core',
-          growth: 'pricing_v_expanded',
-          pro: 'pricing_v_higher',
-        },
-      },
-      {
-        labelKey: 'pricing_row_ask',
-        cells: { free: true, starter: true, growth: true, pro: true },
-      },
-      {
-        labelKey: 'pricing_row_riskflags',
-        cells: { free: true, starter: true, growth: true, pro: 'pricing_v_priority' },
-      },
-      {
-        labelKey: 'pricing_row_jurisdiction',
-        cells: { free: true, starter: true, growth: true, pro: true },
-      },
-    ],
-  },
-  {
-    headingKey: 'pricing_grp_documents',
-    rows: [
-      {
-        labelKey: 'pricing_row_docgen',
-        cells: { free: 'pricing_v_one', starter: 'pricing_v_limited', growth: true, pro: true },
-      },
-      {
-        labelKey: 'pricing_row_templates',
-        cells: {
-          free: 'pricing_v_basic',
-          starter: 'pricing_v_core',
-          growth: 'pricing_v_core',
-          pro: 'pricing_v_full',
-        },
-      },
-      {
-        labelKey: 'pricing_row_export',
-        cells: { free: false, starter: false, growth: true, pro: true },
-      },
-      {
-        labelKey: 'pricing_row_advworkflows',
-        cells: { free: false, starter: false, growth: false, pro: true },
-      },
-    ],
-  },
   {
     headingKey: 'pricing_grp_workspace',
     rows: [
       {
-        labelKey: 'pricing_row_preview',
-        cells: { free: false, starter: false, growth: true, pro: true },
+        labelKey: 'pricing_row_full_product',
+        cells: { free: 'pricing_v_when_admitted', starter: true, growth: true, pro: true },
+      },
+      {
+        labelKey: 'pricing_row_skip_waitlist',
+        cells: { free: false, starter: true, growth: true, pro: true },
+      },
+    ],
+  },
+  {
+    headingKey: 'pricing_grp_support',
+    rows: [
+      {
+        labelKey: 'pricing_row_help_centre',
+        cells: { free: true, starter: true, growth: true, pro: true },
       },
       {
         labelKey: 'pricing_row_support',
@@ -91,8 +52,25 @@ export const PLAN_COMPARISON: ComparisonGroup[] = [
           free: 'pricing_v_email',
           starter: 'pricing_v_email',
           growth: 'pricing_v_email',
-          pro: 'pricing_v_priority',
+          pro: 'pricing_v_email',
         },
+      },
+      {
+        labelKey: 'pricing_row_initial_reply',
+        cells: {
+          free: 'pricing_v_2_days',
+          starter: 'pricing_v_2_days',
+          growth: 'pricing_v_1_day',
+          pro: 'pricing_v_1_day',
+        },
+      },
+      {
+        labelKey: 'pricing_row_walkthrough',
+        cells: { free: false, starter: false, growth: true, pro: true },
+      },
+      {
+        labelKey: 'pricing_row_onboarding_call',
+        cells: { free: false, starter: false, growth: false, pro: true },
       },
     ],
   },

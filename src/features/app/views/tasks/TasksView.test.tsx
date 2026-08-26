@@ -223,7 +223,7 @@ describe('TasksView in production mode', () => {
 
     expect(await screen.findByText('No tasks yet')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Add task' }))
+    fireEvent.click(screen.getAllByRole('button', { name: 'Add task' })[0]!)
     fireEvent.change(screen.getByLabelText('Task'), {
       target: { value: 'Draft vacation policy' },
     })

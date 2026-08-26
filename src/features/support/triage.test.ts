@@ -6,7 +6,9 @@ import {
   MAX_CUSTOMER_PRIORITY,
   ontarioStatutoryHolidays,
   responseTargetFor,
+  applyPaidSupportFloor,
   suggestPriority,
+  supportQueueRank,
 } from './triage'
 import type { TriageInput } from './triage'
 
@@ -114,6 +116,34 @@ describe('initialResponseDueDate', () => {
   it('moves a critical target submitted on a weekend to the next business day', () => {
     // Saturday 2026-07-04 -> Monday 2026-07-06
     expect(initialResponseDueDate(utc(2026, 7, 4), 'critical')).toEqual(utc(2026, 7, 6))
+  })
+})
+
+describe('applyPaidSupportFloor', () => {
+  it('floors Growth and Pro product tickets at high', () => {
+    expect(applyPaidSupportFloor('low', 'growth', 'product_question')).toBe('high')
+    expect(applyPaidSupportFloor('standard', 'pro', 'technical')).toBe('high')
+  })
+
+  it('leaves Starter and free at the suggested priority', () => {
+    expect(applyPaidSupportFloor('low', 'starter', 'product_question')).toBe('low')
+    expect(applyPaidSupportFloor('standard', 'free', 'technical')).toBe('standard')
+    expect(applyPaidSupportFloor('low', null, 'other')).toBe('low')
+  })
+
+  it('does not change restricted categories', () => {
+    expect(applyPaidSupportFloor('standard', 'pro', 'privacy')).toBe('standard')
+    expect(applyPaidSupportFloor('low', 'growth', 'complaint')).toBe('low')
+    expect(applyPaidSupportFloor('high', 'pro', 'security')).toBe('high')
+  })
+})
+
+describe('supportQueueRank', () => {
+  it('puts paid plans ahead of free and unknown', () => {
+    expect(supportQueueRank('pro')).toBeLessThan(supportQueueRank('growth'))
+    expect(supportQueueRank('growth')).toBeLessThan(supportQueueRank('starter'))
+    expect(supportQueueRank('starter')).toBeLessThan(supportQueueRank('free'))
+    expect(supportQueueRank('free')).toBe(supportQueueRank(null))
   })
 })
 

@@ -69,7 +69,7 @@ describe('ModeGate', () => {
     /* Empty state, titled with the module's own label. */
     expect(await screen.findByText('Production workspace')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Cases' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Open Settings' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Want sample data? Open Demo in Settings' })).toBeInTheDocument()
     expect(screen.queryByTestId('fixture-view')).not.toBeInTheDocument()
   })
 })
