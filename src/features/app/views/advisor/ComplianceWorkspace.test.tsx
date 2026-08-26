@@ -122,4 +122,23 @@ describe('ComplianceWorkspace', () => {
     expect(screen.queryByText('ESA s.57 — Notice of termination')).not.toBeInTheDocument()
     expect(screen.queryByText('Termination · ON')).not.toBeInTheDocument()
   })
+
+  it('idle with starters: Getting-started prompts on empty home', () => {
+    renderWorkspace({
+      state: { kind: 'idle' },
+      showIdleStarters: true,
+      onIdleSend: noop,
+      onIdleNavigate: noop,
+    })
+    expect(screen.getByText('Nothing here yet')).toBeInTheDocument()
+    expect(screen.getByText('Go to People')).toBeInTheDocument()
+    expect(screen.getByText(/Start with a question/)).toBeInTheDocument()
+  })
+
+  it('idle without starters: quiet empty state for an active thread', () => {
+    renderWorkspace({ state: { kind: 'idle' }, showIdleStarters: false })
+    expect(screen.getByText('Nothing here yet')).toBeInTheDocument()
+    expect(screen.queryByText('Go to People')).not.toBeInTheDocument()
+    expect(screen.getByText(/Ask a follow-up to refresh/)).toBeInTheDocument()
+  })
 })

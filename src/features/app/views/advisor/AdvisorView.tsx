@@ -885,6 +885,7 @@ export function AdvisorView() {
             onToggleWeb={activeScenario?.webOff ? toggleWeb : undefined}
             onIdleSend={idleSend}
             onIdleNavigate={(to) => navigate(to)}
+            showIdleStarters={engine.messages.length === 0}
             mobileOpen={workspaceOpen}
             onCloseMobile={() => setWorkspaceOpen(false)}
           />
@@ -909,6 +910,7 @@ export function AdvisorView() {
             state={authStatus === 'signed-in' ? { kind: 'idle' } : { kind: 'locked' }}
             onIdleSend={idleSend}
             onIdleNavigate={(to) => navigate(to)}
+            showIdleStarters
             mobileOpen={false}
             onCloseMobile={() => {}}
           />
