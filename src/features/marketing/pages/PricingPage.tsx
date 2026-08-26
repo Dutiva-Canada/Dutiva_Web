@@ -309,14 +309,13 @@ const FAQ_ITEMS: { q: MarketingMessageKey; a: MarketingMessageKey }[] = [
  * and the header nav link to. Monthly/annual toggle drives the displayed
  * price and is carried into checkout; the feature table sits below the cards.
  * Checkout goes through the `create-checkout-session` Supabase function; an
- * internal Dutiva account bypasses it (adminAccess.ts) and sees a confirmation
- * banner instead of a Stripe redirect.
+ * internal Dutiva account bypasses it (adminAccess.ts) without a public banner.
  */
 export function PricingPage() {
   const { t, lang } = useI18n()
   const { p } = usePublicPath()
   const { status } = useAuth()
-  const { isAdmin, plan: currentPlan, stripeCustomerId, loading: planLoading } = usePlan()
+  const { isAdmin, plan: currentPlan, stripeCustomerId } = usePlan()
   const [period, setPeriod] = useState<BillingPeriod>('monthly')
   /* While paid plans are disabled during the beta, the annual toggle is hidden
      (no path should advertise a price nobody can buy). Force monthly so the
@@ -449,20 +448,6 @@ export function PricingPage() {
     <MarketingPageShell>
       <Seo route="pricing" extraNodes={[webApplicationNode(lang, offers)]} />
       <PageHero eyebrow={t('pricing_eyebrow')} title={t('pricing_h1')} intro={t('pricing_intro')} />
-
-      {isAdmin && !planLoading ? (
-        <Band>
-          <div className="premium-card-soft flex flex-wrap items-center gap-4 border-gold-border p-5">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-subtle text-gold-strong">
-              <ShieldCheck size={18} />
-            </span>
-            <div>
-              <div className="badge">{t('pricing_admin_badge')}</div>
-              <p className="mt-1.5 text-sm leading-6 text-text-2">{t('pricing_admin_detail')}</p>
-            </div>
-          </div>
-        </Band>
-      ) : null}
 
       {notice ? (
         <Band>

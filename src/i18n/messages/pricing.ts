@@ -29,14 +29,6 @@ export const pricingMessages = defineMessages({
     en: '/mo',
     fr: '/mois',
   },
-  pricing_admin_badge: {
-    en: 'Internal Dutiva account',
-    fr: 'Compte interne Dutiva',
-  },
-  pricing_admin_detail: {
-    en: 'Your @dutiva.ca account has full plan access already — billing is bypassed automatically, on every plan.',
-    fr: 'Votre compte @dutiva.ca dispose déjà d’un accès complet — la facturation est automatiquement contournée, peu importe le forfait.',
-  },
   pricing_current_plan: {
     en: 'Your plan',
     fr: 'Votre forfait',
