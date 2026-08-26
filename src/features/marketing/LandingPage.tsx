@@ -19,9 +19,10 @@ import { Footer } from './sections/Footer'
 
 /**
  * Marketing landing page (dutiva.ca) — ported from
- * `Landing Page (redesign) v2.dc.html`. Section order mirrors the prototype:
- * hero → trust strip → how → workflows → Document Studio → one workspace →
- * why Dutiva → beta testimonials (when published) → coverage → pricing → guides → beta signup → footer.
+ * `Landing Page (redesign) v2.dc.html`. Section order: hero → trust → how →
+ * workflows → why Dutiva (human element early) → Document Studio → one
+ * workspace → beta testimonials (when published) → coverage → pricing →
+ * guides → beta signup → footer.
  */
 export function LandingPage() {
   const { lang } = useI18n()
@@ -34,9 +35,9 @@ export function LandingPage() {
         <TrustStrip />
         <HowItWorks />
         <Workflows />
+        <WhyDutiva />
         <Product />
         <Modules />
-        <WhyDutiva />
         <TestimonialWall />
         <Coverage />
         <Pricing />
