@@ -1,0 +1,39 @@
+---
+description: Natural, human user-facing copy — apply whenever writing or editing prose
+alwaysApply: true
+---
+
+# Natural language copy
+
+When writing or editing **any** user-facing prose (marketing, UI, emails in
+copy, FAQ, changelog, Advisor chrome, FR pairs), follow
+`docs/NATURAL_LANGUAGE_COPY.md`.
+
+## Before you ship a string
+
+1. **Intent** — What should the reader do or understand?
+2. **Audience** — Canadian employer / HR lead / consultant, busy, not a lawyer.
+3. **Density** — Say only what this surface needs; cut restatement.
+4. **Hedges** — Never upgrade “compliance-oriented”, “PIPEDA-conscious”,
+   “monitored”, etc. into stronger claims. EN and FR must match hedge strength
+   (`Conscient de la LPRPDE`, never `Conforme à la LPRPDE`).
+5. **Revise** — Draft → strip AI tells → prefer concrete verbs and the next
+   action.
+
+## Ban these tells
+
+- Filler: “It is important to note”, “Additionally”, “While X specializes…”
+- Absolutes you can’t prove: “Everything you need”, “Every Canadian HR document”
+- Platform metaphor: “AI operating system”, “intelligence layer”
+- Engineer UI: “engine”, “structured output”, “route gates” in product chrome
+- Generic companion: “Ask me anything”
+- Abstract slogans: “Foundational infrastructure”, “cleaner HR foundation”
+- “It’s not just X — it’s Y” / “not only… but also” as default rhythm
+
+## Prefer
+
+- Name the object and the next action
+- Contractions in product UI where a human would
+- Short sentence. Then a longer one.
+- Same facts as `docs/CANONICAL_FACTS.md`
+- Standing disclaimer via `Disclaimer` — never rewrite for “smoothness”
