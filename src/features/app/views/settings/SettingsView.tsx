@@ -8,6 +8,7 @@ import type { Bi } from '@/i18n/core'
 import { useTheme } from '@/lib/themeContext'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { seoRoute } from '@/seo/routes'
 import { formatStampTime, readExportAudit } from '@/lib/exportProtection'
 import { common } from '@/i18n/messages/common'
 import { settingsMessages as M } from '@/i18n/messages/settings'
@@ -61,7 +62,7 @@ export function SettingsView() {
   const { status: authStatus } = useAuth()
   /* The Help Centre lives on the public marketing surface, so it opens in a new
      tab rather than navigating the workspace away from itself. */
-  const helpCentrePath = lang === 'fr' ? '/fr/aide' : '/help'
+  const helpCentrePath = seoRoute('help').path[lang]
   const { theme, setTheme } = useTheme()
   const { showToast } = useToasts()
   const {

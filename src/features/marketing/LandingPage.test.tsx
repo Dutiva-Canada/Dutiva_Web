@@ -27,4 +27,13 @@ describe('LandingPage', () => {
       ).toBeInTheDocument()
     }
   })
+
+  it('sends header and footer Guides to the guides index, not a homepage hash', () => {
+    renderApp(<LandingPage />, { route: '/', path: '/' })
+    const links = screen.getAllByRole('link', { name: 'Guides' })
+    expect(links.length).toBeGreaterThanOrEqual(2)
+    for (const link of links) {
+      expect(link).toHaveAttribute('href', '/guides')
+    }
+  })
 })

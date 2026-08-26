@@ -84,7 +84,7 @@ export function useHomeProductionStats() {
     return [
       { value: data.employees, label: M.home_prod_stat_employees, to: '/app/employees' },
       { value: openCases.length, label: M.home_prod_stat_open_cases, to: '/app/cases' },
-      { value: openTasks.length, label: M.home_prod_stat_open_tasks, to: '/app/tasks' },
+      { value: openTasks.length, label: M.home_prod_stat_open_tasks, to: '/app/planning/tasks' },
       { value: data.openFindings, label: M.home_prod_stat_open_findings, to: '/app/compliance' },
     ]
   }, [data])
@@ -112,7 +112,7 @@ export function useHomeProductionStats() {
           kind: M.home_prod_kind_task,
           title: t.title,
           dueDate: t.dueDate ?? '',
-          to: '/app/tasks',
+          to: '/app/planning/tasks',
           overdue: (t.dueDate ?? '') < now,
         })),
     ]

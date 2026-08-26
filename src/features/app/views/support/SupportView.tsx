@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
+import { legalDocPath, legalRowBySlug, seoRoute } from '@/seo/routes'
 import { supportMessages as M } from '@/i18n/messages/support'
 import { RESPONSE_TARGETS, SUPPORT_CHANNELS } from '@/config/support'
 import { SupportRequestForm } from '@/features/support/SupportRequestForm'
@@ -13,7 +14,11 @@ const PRIORITY_ORDER = ['critical', 'high', 'standard', 'low'] as const
  * published response targets. Real feature, so it's ungated.
  */
 export function SupportView() {
-  const { x, L } = useI18n()
+  const { x, L, lang } = useI18n()
+  const supportPolicy = legalRowBySlug('support-policy')
+  const supportPolicyPath = supportPolicy
+    ? legalDocPath(supportPolicy, lang)
+    : seoRoute('legal').path[lang]
 
   return (
     <div className="mx-auto max-w-[1100px] px-[28px] pt-[8px] pb-[64px] max-[640px]:px-[16px]">
@@ -65,7 +70,7 @@ export function SupportView() {
               ))}
             </ul>
             <p className="m-0 mt-[12px] text-[12px] text-text-faint">
-              <Link to="/legal/support-policy" className="underline">
+              <Link to={supportPolicyPath} className="underline">
                 {L('Support policy', 'Politique de soutien')}
               </Link>
             </p>

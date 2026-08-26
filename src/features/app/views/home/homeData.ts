@@ -240,7 +240,7 @@ export const homeMetricChips: HomeMetricChip[] = [
     delta: bi(`of ${openTaskCount} open`, `sur ${openTaskCount} ouvertes`),
     valueClass: 'text-gold-dot',
     deltaClass: 'text-warn-fg',
-    action: { kind: 'route', to: '/app/tasks' },
+    action: { kind: 'route', to: '/app/planning/tasks' },
   },
   {
     value: '3',

@@ -5,6 +5,7 @@ import { ArrowLeft, Loader2, MailCheck } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { authMessages as M } from '@/i18n/messages/auth'
 import { usePublicPath } from '@/seo/usePublicPath'
+import { helpArticleBySlug, helpDocPath, seoRoute } from '@/seo/routes'
 import { supportChannel } from '@/config/support'
 import { useAuth } from './authContext'
 
@@ -48,7 +49,8 @@ export function AuthPanel() {
       "use a different email" can return to the form without a provider reset. */
   const [sentTo, setSentTo] = useState<string | undefined>()
 
-  const helpPath = lang === 'fr' ? '/fr/aide/se-connecter' : '/help/signing-in'
+  const signingIn = helpArticleBySlug('signing-in')
+  const helpPath = signingIn ? helpDocPath(signingIn, lang) : seoRoute('help').path[lang]
   const signedInEmail = session?.user.email
 
   const send = (targetEmail: string, withName: boolean) => {

@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Settings } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
+import { seoRoute } from '@/seo/routes'
 import { isCurrentUserAdmin } from '@/features/support/supportAdminApi'
 import type { WorkspaceIdentity } from '@/features/app/workspaceMode/workspaceModeContext'
 import { SidebarTooltip } from './SidebarTooltip'
@@ -18,7 +19,7 @@ interface SidebarFooterProps {
 export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterProps) {
   const { x, L, lang } = useI18n()
   const navigate = useNavigate()
-  const helpCentrePath = lang === 'fr' ? '/fr/aide' : '/help'
+  const helpCentrePath = seoRoute('help').path[lang]
   const { pathname } = useLocation()
   const [profileOpen, setProfileOpen] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)

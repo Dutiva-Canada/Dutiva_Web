@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, Lock } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import { seoRoute } from '@/seo/routes'
 import { PLAN_FEATURE_GATES_ENABLED, getPlanById, hasPaidPlanAccess } from '@/config/plans'
 import type { PlanId } from '@/config/plans'
 import { usePlan } from './planContext'
@@ -39,7 +40,7 @@ export function PlanGate({
 }
 
 function UpgradeNudge({ required }: { readonly required: PlanId }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const requiredPlan = getPlanById(required)
 
   return (
@@ -51,7 +52,7 @@ function UpgradeNudge({ required }: { readonly required: PlanId }) {
         <p className="text-sm leading-[1.55] text-text-2">{t(requiredPlan.descKey)}</p>
       ) : null}
       <Link
-        to={`/pricing?upgrade=${required}`}
+        to={`${seoRoute('pricing').path[lang]}?upgrade=${required}`}
         className="inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
       >
         {t('landing_price_compare')}

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { ForcedLangProvider } from '@/i18n/ForcedLangProvider'
 import { LangProvider } from '@/i18n/LangProvider'
 import { ThemeProvider } from '@/lib/theme'
 import { PlanContext } from './planContext'
@@ -120,6 +121,27 @@ describe('PlanGate', () => {
     renderGate(makePlanCtx({ plan: 'pro', subscriptionStatus: 'past_due' }), PROD_MODE, 'growth')
     expect(screen.queryByTestId('content')).not.toBeInTheDocument()
     expect(screen.getByRole('link')).toHaveAttribute('href', '/pricing?upgrade=growth')
+  })
+
+  it('localizes the upgrade nudge to the French pricing page', () => {
+    PLAN_FEATURE_GATES_ENABLED.value = true
+    render(
+      <ThemeProvider>
+        <MemoryRouter>
+          <ForcedLangProvider lang="fr">
+            <WorkspaceModeContext.Provider value={PROD_MODE}>
+              <PlanContext.Provider value={makePlanCtx({ plan: 'free' })}>
+                <PlanGate required="growth">
+                  <div data-testid="content">Premium content</div>
+                </PlanGate>
+              </PlanContext.Provider>
+            </WorkspaceModeContext.Provider>
+          </ForcedLangProvider>
+        </MemoryRouter>
+      </ThemeProvider>,
+    )
+    expect(screen.queryByTestId('content')).not.toBeInTheDocument()
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/fr/tarifs?upgrade=growth')
   })
 
   it('renders children when isAdmin is true, even on a free plan in production', () => {

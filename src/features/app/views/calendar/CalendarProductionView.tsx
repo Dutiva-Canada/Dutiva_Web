@@ -100,7 +100,7 @@ export function CalendarProductionView() {
             title: t.title,
             date: t.dueDate ?? '',
             tone: 'warning' as const,
-            to: '/app/tasks',
+            to: '/app/planning/tasks',
           })),
       ])
     } catch {

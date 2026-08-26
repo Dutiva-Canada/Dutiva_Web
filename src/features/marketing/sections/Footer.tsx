@@ -27,7 +27,7 @@ const PRODUCT_LINKS: FooterLink[] = [
 ]
 
 const RESOURCE_LINKS: FooterLink[] = [
-  { key: 'landing_nav_guides', hash: 'guides' },
+  { key: 'landing_nav_guides', route: 'guides' },
   { key: 'landing_fr_help', route: 'help' },
   { key: 'landing_fr_faq', route: 'faq' },
   { key: 'landing_fr_blog', route: 'blog' },
