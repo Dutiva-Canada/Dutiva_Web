@@ -19,13 +19,15 @@ interface CreateAction {
 }
 
 function useCreateActions(): CreateAction[] {
+  /* Order matches empty-workspace first steps (person → Studio → guided
+     process), then case / conversation / communication. Employee and Case
+     use ?new=1 so the create form opens — same contract as Home checklist. */
   return [
     {
-      key: 'conversation',
-      label: M.shell_create_conversation,
-      icon: MessageCircle,
-      href: '/app/advisor',
-      state: { newConversation: true },
+      key: 'employee',
+      label: M.shell_create_employee,
+      icon: Users,
+      href: '/app/employees?new=1',
     },
     {
       key: 'document',
@@ -34,22 +36,23 @@ function useCreateActions(): CreateAction[] {
       href: '/app/documents/studio',
     },
     {
-      key: 'case',
-      label: M.shell_create_case,
-      icon: Folder,
-      href: '/app/cases',
-    },
-    {
       key: 'workflow',
       label: M.shell_create_workflow,
       icon: Waypoints,
       href: '/app/workflows',
     },
     {
-      key: 'employee',
-      label: M.shell_create_employee,
-      icon: Users,
-      href: '/app/employees',
+      key: 'case',
+      label: M.shell_create_case,
+      icon: Folder,
+      href: '/app/cases?new=1',
+    },
+    {
+      key: 'conversation',
+      label: M.shell_create_conversation,
+      icon: MessageCircle,
+      href: '/app/advisor',
+      state: { newConversation: true },
     },
     {
       key: 'communication',

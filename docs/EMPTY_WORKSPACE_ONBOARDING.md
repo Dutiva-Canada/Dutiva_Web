@@ -81,6 +81,7 @@ Copy lives in `src/i18n/messages/home.ts` and `workspaceMode.ts`.
 ## Empty → create
 
 - Home step 1 → `/app/employees?new=1`
+- Sidebar Create → Employee / Case → same `?new=1` contract
 - Employees / Cases / Tasks: `useOpenCreateFormFromQuery` opens the form and
   strips `new` (replace)
 - In-list empty cards: primary button opens the same form

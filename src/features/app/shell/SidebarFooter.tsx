@@ -6,6 +6,7 @@ import { shellMessages as M } from '@/i18n/messages/shell'
 import { isCurrentUserAdmin } from '@/features/support/supportAdminApi'
 import type { WorkspaceIdentity } from '@/features/app/workspaceMode/workspaceModeContext'
 import { SidebarTooltip } from './SidebarTooltip'
+import { navItemActiveClasses } from './SidebarNavItem'
 import { cx } from './cx'
 
 interface SidebarFooterProps {
@@ -35,9 +36,10 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
   }, [])
 
   const settingsActive = pathname.startsWith('/app/settings')
+  const displayName = identity.user.name.trim() || identity.user.email
 
   return (
-    <div className="shrink-0 border-t border-border-soft px-2.5 pb-2.5">
+    <div className="shrink-0">
       <SidebarTooltip label={x(M.shell_nav_settings)} show={!expanded}>
         <Link
           to="/app/settings"
@@ -47,14 +49,7 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
           className={cx(
             'my-px flex w-full items-center gap-2.5 rounded-[7px] text-[13.5px] transition-colors duration-150',
             expanded ? 'px-2.5 py-2' : 'justify-center p-2.25',
-            settingsActive
-              ? cx(
-                  'border-l-2 font-semibold',
-                  expanded
-                    ? 'border-accent bg-accent-soft text-accent'
-                    : 'border-transparent bg-navy text-gold-on-navy',
-                )
-              : 'border-l-2 border-transparent font-medium text-text-2 hover:bg-inset hover:text-text',
+            navItemActiveClasses(settingsActive),
           )}
         >
           <Settings size={16} strokeWidth={1.7} className="shrink-0" />
@@ -73,17 +68,15 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
       </SidebarTooltip>
 
       <div className="relative mt-1">
-        <SidebarTooltip label={identity.user.name} show={!expanded}>
+        <SidebarTooltip label={displayName} show={!expanded}>
           <button
             type="button"
             onClick={() => setProfileOpen((open) => !open)}
+            title={identity.user.email || undefined}
             aria-label={
               expanded
                 ? undefined
-                : L(
-                    `Account menu for ${identity.user.name}`,
-                    `Menu du compte de ${identity.user.name}`,
-                  )
+                : L(`Account menu for ${displayName}`, `Menu du compte de ${displayName}`)
             }
             aria-expanded={profileOpen}
             className={cx(
@@ -97,8 +90,8 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
             </div>
             {expanded && (
               <div className="min-w-0 text-left">
-                <div className="truncate text-[13px] font-semibold">{identity.user.name}</div>
-                <div className="text-[11px] text-text-muted">{x(identity.user.role)}</div>
+                <div className="truncate text-[13px] font-semibold">{displayName}</div>
+                <div className="truncate text-[11px] text-text-muted">{x(identity.user.role)}</div>
               </div>
             )}
           </button>
@@ -111,8 +104,10 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
             className="absolute bottom-full left-0 z-60 mb-1.5 w-50 overflow-hidden rounded-[11px] border border-border bg-surface shadow-popover"
           >
             <div className="border-b border-border-soft px-3.5 py-3">
-              <div className="text-[13px] font-bold text-text">{identity.user.name}</div>
-              <div className="text-[11.5px] text-text-muted">{identity.user.email}</div>
+              <div className="text-[13px] font-bold text-text">{displayName}</div>
+              {identity.user.email ? (
+                <div className="break-all text-[11.5px] text-text-muted">{identity.user.email}</div>
+              ) : null}
             </div>
             <button
               type="button"

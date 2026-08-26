@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
+import { ListChecks } from 'lucide-react'
 import { readPref, writePref } from '@/lib/prefs'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
@@ -15,6 +16,7 @@ import { SidebarHeader } from './SidebarHeader'
 import { SidebarNavItem } from './SidebarNavItem'
 import { SidebarSearch } from './SidebarSearch'
 import { SidebarSection } from './SidebarSection'
+import { useProductionWorkspaceEmpty } from './useProductionWorkspaceEmpty'
 
 export type SidebarMode = 'expanded' | 'compact' | 'drawer'
 
@@ -31,18 +33,24 @@ const DEFAULT_SECTIONS: Record<SectionKey, boolean> = {
   records: true,
   programs: true,
 }
+/** Empty production: keep Records open, collapse Programs until the user opens them. */
+const EMPTY_DEFAULT_SECTIONS: Record<SectionKey, boolean> = {
+  records: true,
+  programs: false,
+}
 
 const EXPANDED_WIDTH = 'w-[292px]'
 const COMPACT_WIDTH = 'w-[64px]'
 
-function readSectionPrefs(): Record<SectionKey, boolean> {
+function readSectionPrefs(emptyWorkspace: boolean): Record<SectionKey, boolean> {
+  const defaults = emptyWorkspace ? EMPTY_DEFAULT_SECTIONS : DEFAULT_SECTIONS
   try {
     const raw = readPref(SECTION_PREFS_KEY, '')
-    if (!raw) return DEFAULT_SECTIONS
+    if (!raw) return defaults
     const parsed = JSON.parse(raw) as Partial<Record<SectionKey, boolean>>
-    return { ...DEFAULT_SECTIONS, ...parsed }
+    return { ...defaults, ...parsed }
   } catch {
-    return DEFAULT_SECTIONS
+    return defaults
   }
 }
 
@@ -103,10 +111,21 @@ export function Sidebar({
   const { pathname } = useLocation()
   const { identity, mode: workspaceMode } = useWorkspaceMode()
   const productionBadges = useProductionNavBadges()
+  const workspaceEmpty = useProductionWorkspaceEmpty()
   const expanded = mode === 'expanded' || mode === 'drawer'
 
-  const [sections, setSections] = useState<Record<SectionKey, boolean>>(readSectionPrefs)
+  const [sections, setSections] = useState<Record<SectionKey, boolean>>(() =>
+    readSectionPrefs(false),
+  )
   const activeGroup = useMemo(() => activeGroupIndex(pathname), [pathname])
+
+  /* Once we know the workspace is empty and the user has never stored section
+     prefs, collapse Programs so the rail fits without a heavy scroll. */
+  useEffect(() => {
+    if (!workspaceEmpty) return
+    if (readPref(SECTION_PREFS_KEY, '')) return
+    setSections(EMPTY_DEFAULT_SECTIONS)
+  }, [workspaceEmpty])
 
   const toggleSection = useCallback((key: SectionKey) => {
     setSections((prev) => {
@@ -178,6 +197,28 @@ export function Sidebar({
           <SidebarCreateMenu expanded={expanded} onNavigate={onCloseDrawer} />
           <SidebarSearch expanded={expanded} />
         </div>
+        {expanded && workspaceEmpty && (
+          <Link
+            to="/app/home"
+            onClick={onCloseDrawer}
+            className="mt-2 flex items-start gap-2 rounded-[9px] border border-border-soft bg-surface px-2.5 py-2 text-left hover:border-(--accent-soft-border)"
+          >
+            <ListChecks
+              size={15}
+              strokeWidth={1.8}
+              className="mt-px shrink-0 text-accent"
+              aria-hidden="true"
+            />
+            <span className="min-w-0">
+              <span className="block text-[12.5px] font-semibold text-text">
+                {x(M.shell_getting_started)}
+              </span>
+              <span className="mt-0.5 block text-[11px] leading-[1.35] text-text-muted">
+                {x(M.shell_getting_started_hint)}
+              </span>
+            </span>
+          </Link>
+        )}
       </div>
 
       <nav
@@ -185,11 +226,22 @@ export function Sidebar({
         data-rail-scroll
         className={cx(
           'flex min-h-0 flex-1 flex-col overflow-y-auto px-2.5 pb-2',
-          !expanded && 'no-scrollbar',
+          expanded ? 'rail-scroll' : 'no-scrollbar',
         )}
       >
         {NAV_GROUPS.map((group, i) => {
           const isLast = i === NAV_GROUPS.length - 1
+          const key = group.heading ? SECTION_KEYS[i - 1] : null
+          /* Compact + empty: hide Programs icons so the rail stays scannable;
+             expanded still shows the collapsed section heading. */
+          if (
+            !expanded &&
+            workspaceEmpty &&
+            key === 'programs' &&
+            !effectiveSections.programs
+          ) {
+            return null
+          }
           if (group.heading === null) {
             return (
               <div key={group.items[0]?.key ?? i} className="flex flex-col">
@@ -200,7 +252,6 @@ export function Sidebar({
               </div>
             )
           }
-          const key = SECTION_KEYS[i - 1]
           if (!key || !group.heading) return null
           const heading = x(group.heading)
           return (
