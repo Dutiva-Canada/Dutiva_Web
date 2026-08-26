@@ -155,7 +155,11 @@ export function ThreadList({
                           onDelete(chat.id)
                         }}
                         aria-label={`${x(M.advisorview_delete_conversation)} — ${x(chat.title)}`}
-                        className="mr-[6px] flex h-[26px] w-[26px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border-none bg-transparent text-text-muted opacity-0 group-hover/thread:opacity-100 focus-visible:opacity-100 hover:bg-risk-bg hover:text-risk-fg"
+                        className={`mr-[6px] flex h-[26px] w-[26px] shrink-0 cursor-pointer items-center justify-center rounded-[6px] border-none bg-transparent text-text-muted hover:bg-risk-bg hover:text-risk-fg ${
+                          active
+                            ? 'opacity-100'
+                            : 'opacity-55 group-hover/thread:opacity-100 focus-visible:opacity-100'
+                        }`}
                       >
                         <Trash2 size={13} strokeWidth={1.8} aria-hidden="true" />
                       </button>
