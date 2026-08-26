@@ -139,9 +139,62 @@ export function bucketFromUpdatedAt(updatedAt: string): 'today' | 'week' | 'olde
 
 export function conversationTitle(messages: { role: string; content: string }[]): Bi {
   const firstUser = messages.find((m) => m.role === 'user')?.content?.trim()
-  if (!firstUser) return bi('Advisor conversation', 'Conversation du Conseiller')
+  if (!firstUser || isGreetingOnly(firstUser)) {
+    return bi('Advisor conversation', 'Conversation du Conseiller')
+  }
   const clipped = firstUser.length > 72 ? `${firstUser.slice(0, 69)}…` : firstUser
   return bi(clipped, clipped)
+}
+
+/** One-message greeting threads — hide from the list until there’s substance. */
+export function isFluffThread(messages: { role: string; content: string }[]): boolean {
+  const users = messages.filter((m) => m.role === 'user')
+  if (users.length === 0) return true
+  if (users.length === 1 && isGreetingOnly(users[0]?.content?.trim() ?? '')) return true
+  return false
+}
+
+const GREETING_ONLY =
+  /^(hi|hello|hey|bonjour|salut|bonsoir|good\s*(morning|afternoon|evening)|thanks|thank you|merci|ok|okay|test|yo)[.!?…]*$/i
+
+export function isGreetingOnly(text: string): boolean {
+  return text.length > 0 && GREETING_ONLY.test(text)
+}
+
+/**
+ * When the user asks Advisor to do operational HR work (add people, etc.) and
+ * the reply explains it can’t, surface next-step nav chips into People/Studio.
+ */
+export function operationalNextStepChips(
+  userText: string,
+  replyText: string,
+): { label: Bi; to: string }[] {
+  const u = userText.toLowerCase()
+  const r = replyText.toLowerCase()
+  const aboutPeople =
+    /\b(add|create|import|upload|entrer|ajouter)\b[\s\S]{0,40}\b(employee|employees|people|roster|staff|employé|employés|personnel)\b/.test(
+      u,
+    ) ||
+    /\b(employee|employees|people|roster|staff|employé|employés)\b[\s\S]{0,40}\b(add|create|import|upload|ajouter)\b/.test(
+      u,
+    )
+  const capabilityLimit =
+    /guid(ance|e) tool|not an? operational|can'?t add|cannot add|doesn'?t (create|add)|won'?t (create|add)|i (can'?t|cannot) (add|create)|outil de conseil|pas un système (rh )?opérationnel|ne (peux|peut) pas (ajouter|créer)/i.test(
+      r,
+    )
+  if (!aboutPeople && !(capabilityLimit && /\b(employee|people|roster|workspace|employé|personnel)\b/i.test(r))) {
+    return []
+  }
+  return [
+    {
+      label: bi('Go to People', 'Aller à Personnel'),
+      to: '/app/employees?new=1',
+    },
+    {
+      label: bi('Open Studio', 'Ouvrir le Studio'),
+      to: '/app/documents/studio',
+    },
+  ]
 }
 
 export function productionTranscript(conv: ProductionConversation): ChatMessage[] {
@@ -197,6 +250,7 @@ export function buildAdvisorThreadEntries(
   workspaceMode: WorkspaceMode,
   sessionChats: SessionChat[],
   prodThreads: ProductionConversation[],
+  activeChatId: string | null = null,
 ): AdvisorThreadListEntry[] {
   const sessionIds = new Set(sessionChats.map((c) => c.id))
   return [
@@ -204,6 +258,7 @@ export function buildAdvisorThreadEntries(
     ...(workspaceMode === 'production'
       ? prodThreads
           .filter((t) => !sessionIds.has(t.id))
+          .filter((t) => t.id === activeChatId || !isFluffThread(t.messages))
           .map((t) => ({
             id: t.id,
             title: conversationTitle(t.messages),
@@ -227,10 +282,11 @@ export function buildAdvisorThreadGroups(
   allThreads: AdvisorThreadListEntry[],
   groupLabels: { pinned: Bi; today: Bi; week: Bi; older: Bi },
 ): ThreadGroup[] {
-  return [
-    { label: groupLabels.pinned, items: allThreads.filter((t) => t.pinned) },
-    { label: groupLabels.today, items: allThreads.filter((t) => t.bucket === 'today') },
-    { label: groupLabels.week, items: allThreads.filter((t) => t.bucket === 'week') },
-    { label: groupLabels.older, items: allThreads.filter((t) => t.bucket === 'older') },
-  ].filter((g) => g.items.length > 0)
+  const groups: ThreadGroup[] = [
+    { key: 'pinned', label: groupLabels.pinned, items: allThreads.filter((t) => t.pinned) },
+    { key: 'today', label: groupLabels.today, items: allThreads.filter((t) => t.bucket === 'today') },
+    { key: 'week', label: groupLabels.week, items: allThreads.filter((t) => t.bucket === 'week') },
+    { key: 'older', label: groupLabels.older, items: allThreads.filter((t) => t.bucket === 'older') },
+  ]
+  return groups.filter((g) => g.items.length > 0)
 }

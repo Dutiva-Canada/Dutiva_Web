@@ -1,4 +1,5 @@
-import { MessageCircle, Plus, Star } from 'lucide-react'
+import { useState } from 'react'
+import { ChevronDown, MessageCircle, Plus, Star } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
@@ -11,6 +12,8 @@ import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
  * 13px thread rows with the chat-bubble glyph, accent-soft active state, and
  * the filled star on pinned threads. The navy 'New conversation' button
  * mirrors the sidebar's `newChatBtnStyle`.
+ *
+ * Older is soft-collapsed by default so long histories don’t dominate.
  */
 
 export interface ThreadListItem {
@@ -19,7 +22,10 @@ export interface ThreadListItem {
   pinned: boolean
 }
 
+export type ThreadGroupKey = 'pinned' | 'today' | 'week' | 'older'
+
 export interface ThreadGroup {
+  key: ThreadGroupKey
   /** Group heading (advisorViewMessages key value). */
   label: Bi
   items: ThreadListItem[]
@@ -34,6 +40,8 @@ export interface ThreadListProps {
 
 export function ThreadList({ groups, activeChatId, onSelect, onNewConversation }: ThreadListProps) {
   const { x } = useI18n()
+  const [olderOpen, setOlderOpen] = useState(false)
+
   return (
     <nav
       aria-label={x(M.advisorview_threads_aria)}
@@ -48,48 +56,93 @@ export function ThreadList({ groups, activeChatId, onSelect, onNewConversation }
         <span>{x(M.advisorview_new_conversation)}</span>
       </button>
 
-      {groups.map((group) => (
-        <div key={group.label.en}>
-          <div className="px-[10px] pt-[14px] pb-[6px] text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
-            {x(group.label)}
-          </div>
-          {group.items.map((chat) => {
-            const active = chat.id === activeChatId
-            return (
+      {groups.map((group) => {
+        const isOlder = group.key === 'older'
+        const collapsed = isOlder && !olderOpen
+        const activeInOlder =
+          isOlder && group.items.some((chat) => chat.id === activeChatId)
+        const showItems = !collapsed || activeInOlder
+
+        return (
+          <div key={group.key}>
+            {isOlder ? (
               <button
-                key={chat.id}
                 type="button"
-                onClick={() => onSelect(chat.id)}
-                aria-current={active ? 'true' : undefined}
-                className={`flex w-full cursor-pointer items-center gap-[8px] rounded-[7px] border-none px-[10px] py-[7px] text-left font-sans text-[13px] ${
-                  active
-                    ? 'bg-accent-soft font-semibold text-accent'
-                    : 'bg-transparent font-normal text-text-2'
-                }`}
+                onClick={() => setOlderOpen((open) => !open)}
+                aria-expanded={olderOpen || activeInOlder}
+                className="flex w-full cursor-pointer items-center justify-between border-none bg-transparent px-[10px] pt-[14px] pb-[6px] text-left"
               >
-                <MessageCircle
+                <span className="text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
+                  {x(group.label)}
+                  <span className="ml-[6px] font-normal normal-case tracking-normal">
+                    ({group.items.length})
+                  </span>
+                </span>
+                <ChevronDown
                   size={14}
-                  strokeWidth={1.7}
-                  className="shrink-0 opacity-70"
+                  strokeWidth={1.8}
+                  className={`shrink-0 text-text-muted transition-transform duration-150 ${
+                    olderOpen || activeInOlder ? 'rotate-180' : 'rotate-0'
+                  }`}
                   aria-hidden="true"
                 />
-                <span className="flex-1 overflow-hidden text-left text-ellipsis whitespace-nowrap">
-                  {x(chat.title)}
-                </span>
-                {chat.pinned && (
-                  <Star
-                    size={12}
-                    strokeWidth={0}
-                    fill="currentColor"
-                    className="shrink-0 opacity-55"
-                    aria-hidden="true"
-                  />
-                )}
               </button>
-            )
-          })}
-        </div>
-      ))}
+            ) : (
+              <div className="px-[10px] pt-[14px] pb-[6px] text-[11px] font-semibold tracking-[0.04em] text-text-muted uppercase">
+                {x(group.label)}
+              </div>
+            )}
+            {showItems &&
+              (collapsed && activeInOlder
+                ? group.items.filter((chat) => chat.id === activeChatId)
+                : group.items
+              ).map((chat) => {
+                const active = chat.id === activeChatId
+                return (
+                  <button
+                    key={chat.id}
+                    type="button"
+                    onClick={() => onSelect(chat.id)}
+                    aria-current={active ? 'true' : undefined}
+                    className={`flex w-full cursor-pointer items-center gap-[8px] rounded-[7px] border-none px-[10px] py-[7px] text-left font-sans text-[13px] ${
+                      active
+                        ? 'bg-accent-soft font-semibold text-accent'
+                        : 'bg-transparent font-normal text-text-2'
+                    }`}
+                  >
+                    <MessageCircle
+                      size={14}
+                      strokeWidth={1.7}
+                      className="shrink-0 opacity-70"
+                      aria-hidden="true"
+                    />
+                    <span className="flex-1 overflow-hidden text-left text-ellipsis whitespace-nowrap">
+                      {x(chat.title)}
+                    </span>
+                    {chat.pinned && (
+                      <Star
+                        size={12}
+                        strokeWidth={0}
+                        fill="currentColor"
+                        className="shrink-0 opacity-55"
+                        aria-hidden="true"
+                      />
+                    )}
+                  </button>
+                )
+              })}
+            {collapsed && !activeInOlder && (
+              <button
+                type="button"
+                onClick={() => setOlderOpen(true)}
+                className="mb-[4px] w-full cursor-pointer border-none bg-transparent px-[10px] py-[6px] text-left text-[12px] font-semibold text-accent"
+              >
+                {x(M.advisorview_show_older)}
+              </button>
+            )}
+          </div>
+        )
+      })}
     </nav>
   )
 }

@@ -234,6 +234,8 @@ export interface MessageExtras {
   /** Follow-up chip labels — EN strings keyed into `followupReplies`. */
   followups?: string[]
   suggestChips?: SuggestChipSpec[]
+  /** Navigate-out chips when Advisor can’t do operational work in-chat. */
+  navChips?: { label: Bi; to: string }[]
   quickForm?: QuickFormState
   banner?: ScenarioBanner
   /** Render the ask-for-province chips under this turn. */
