@@ -471,8 +471,8 @@ export const landing = defineMessages({
     fr: 'qui a fait le travail.',
   },
   landing_why_p: {
-    en: 'Dutiva was founded by Martin Constantineau, whose work in Canadian HR includes staffing and resourcing at the Canada Revenue Agency and HR and payroll coordination for a national internship program at Mitacs. Dutiva is HR compliance and documentation software — not a payroll provider. It names the statute, not just the province.',
-    fr: 'Dutiva a été fondée par Martin Constantineau, dont le parcours en RH au Canada comprend du recrutement et de la dotation à l’Agence du revenu du Canada, ainsi que la coordination RH et de la paie pour un programme national de stages chez Mitacs. Dutiva est un logiciel de conformité et de documentation RH — et non un fournisseur de paie. Il nomme la loi, pas seulement la province.',
+    en: 'Dutiva was established by Martin Constantineau, who has extensive experience in Canadian human resources. His background includes staffing and resourcing at the Canada Revenue Agency, and managing HR and payroll for a national internship program at Mitacs. Dutiva is HR compliance and documentation software — not a payroll provider. It names the applicable statutes, not just the province.',
+    fr: 'Dutiva a été établie par Martin Constantineau, qui possède une vaste expérience en ressources humaines au Canada. Son parcours comprend le recrutement et la dotation à l’Agence du revenu du Canada, ainsi que la gestion des RH et de la paie pour un programme national de stages chez Mitacs. Dutiva est un logiciel de conformité et de documentation RH — et non un fournisseur de paie. Il nomme les lois applicables, pas seulement la province.',
   }, // [FR self-authored]
   landing_why_foot: {
     en: 'Built in Ottawa, Canada · Grounded in real HR operations, not generic research.',
