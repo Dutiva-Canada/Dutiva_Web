@@ -55,15 +55,15 @@ describe('usageLimitReply', () => {
 
   it('says the rest of the product still works — the point of the beta', () => {
     const reply = usageLimitReply(new AdvisorUsageLimitError('burst', 300))
-    expect(reply.en).toContain('Every other part of Dutiva stays open')
-    expect(reply.fr).toContain('Tout le reste de Dutiva demeure accessible')
+    expect(reply.en).toContain('Everything else in Dutiva still works')
+    expect(reply.fr).toContain('Tout le reste de Dutiva fonctionne encore')
   })
 
   it('does not blame the user for a beta-wide ceiling', () => {
     const mine = usageLimitReply(new AdvisorUsageLimitError('daily_tokens', 600))
     const platform = usageLimitReply(new AdvisorUsageLimitError('platform_daily', 600))
-    expect(mine.en).toContain("You've reached")
+    expect(mine.en).toContain("You've hit")
     expect(platform.en).toContain('beta-wide')
-    expect(platform.en).not.toContain("You've reached")
+    expect(platform.en).not.toContain("You've hit")
   })
 })

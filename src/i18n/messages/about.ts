@@ -9,12 +9,12 @@ import { defineMessages } from '../core'
 export const aboutMessages = defineMessages({
   about_eyebrow: { en: 'About us', fr: 'À propos' },
   about_h1: {
-    en: 'HR compliance infrastructure, built in Canada.',
-    fr: 'Une infrastructure de conformité RH, conçue au Canada.',
+    en: 'HR compliance software, built in Canada.',
+    fr: 'Un logiciel de conformité RH, conçu au Canada.',
   },
   about_intro: {
-    en: 'Dutiva is foundational HR infrastructure for Canadian employers — AI-assisted, compliance-oriented, and bilingual. It helps small and mid-sized Canadian businesses turn HR documentation from guesswork into structured, reviewable workflows.',
-    fr: 'Dutiva est une infrastructure RH fondamentale pour les employeurs canadiens — assistée par l’IA, axée sur la conformité et bilingue. Elle aide les PME canadiennes à transformer la documentation RH, des approximations vers des processus structurés et révisables.',
+    en: 'Dutiva is AI-assisted, compliance-oriented, and bilingual HR software for Canadian employers — jurisdiction-aware guidance and review-ready documents for small and mid-sized businesses.',
+    fr: 'Dutiva est un logiciel RH assisté par l’IA, axé sur la conformité et bilingue pour les employeurs canadiens — des conseils adaptés à la compétence et des documents prêts à réviser pour les PME.',
   },
   about_s1: { en: 'Our mission', fr: 'Notre mission' },
   about_mission: {
@@ -64,17 +64,17 @@ export const aboutMessages = defineMessages({
   about_v3t: { en: 'Trust & security', fr: 'Confiance et sécurité' },
   about_v3p: {
     en: 'PIPEDA-conscious and Quebec Law 25-aware, with data minimization built in.',
-    fr: 'Conforme à la LPRPDE et tient compte de la Loi 25 du Québec, avec une minimisation des données intégrée.',
+    fr: 'Conscient de la LPRPDE et tient compte de la Loi 25 du Québec, avec une minimisation des données intégrée.',
   },
   about_v4t: { en: 'Proudly Canadian', fr: 'Fièrement canadien' },
   about_v4p: {
-    en: 'Purpose-built for Canadian employment standards — not retrofitted from U.S. software.',
-    fr: 'Conçu spécifiquement pour les normes du travail canadiennes — pas adapté d’un logiciel américain.',
+    en: 'Bilingual EN/FR, with named statutes for Ontario, Quebec, and federal workplaces.',
+    fr: 'Bilingue EN/FR, avec des lois nommées pour l’Ontario, le Québec et les milieux de travail fédéraux.',
   },
   about_s4: { en: 'Built in Canada', fr: 'Conçu au Canada' },
   about_built: {
-    en: 'Dutiva is built in Ottawa and designed for Canadian employers from the ground up — bilingual EN/FR, PIPEDA-conscious, and Quebec Law 25-aware.',
-    fr: 'Dutiva est conçu à Ottawa et pensé pour les employeurs canadiens dès le départ — bilingue EN/FR, conforme à la LPRPDE et attentif à la Loi 25 du Québec.',
+    en: 'Dutiva is built in Ottawa for Canadian employers — bilingual EN/FR, PIPEDA-conscious, and Quebec Law 25-aware.',
+    fr: 'Dutiva est conçu à Ottawa pour les employeurs canadiens — bilingue EN/FR, conscient de la LPRPDE et attentif à la Loi 25 du Québec.',
   },
   about_pill_bilingual: { en: 'Bilingual EN/FR', fr: 'Bilingue EN/FR' },
   about_changelog_t: {
@@ -90,12 +90,12 @@ export const aboutMessages = defineMessages({
     fr: 'Lire le journal des modifications',
   },
   about_cta_t: {
-    en: 'Start building a cleaner HR foundation.',
-    fr: 'Bâtissez une base RH plus solide.',
+    en: 'Join the beta free — no credit card.',
+    fr: 'Rejoignez la bêta gratuitement — sans carte de crédit.',
   },
   about_cta_p: {
-    en: 'Join the beta free — no credit card required.',
-    fr: 'Rejoignez la version bêta gratuitement — sans carte de crédit.',
+    en: 'Open Advisor, generate a document, and try the workflow.',
+    fr: 'Ouvrez le Conseiller, générez un document et essayez le processus.',
   },
   about_cta_btn: { en: 'Start free', fr: 'Commencer' },
 })

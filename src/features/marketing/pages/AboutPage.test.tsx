@@ -10,7 +10,7 @@ describe('AboutPage', () => {
     expect(
       screen.getByRole('heading', {
         level: 1,
-        name: 'HR compliance infrastructure, built in Canada.',
+        name: 'HR compliance software, built in Canada.',
       }),
     ).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 2, name: 'Our mission' })).toBeInTheDocument()
@@ -44,7 +44,7 @@ describe('AboutPage', () => {
     expect(
       screen.getByRole('heading', {
         level: 1,
-        name: 'Une infrastructure de conformité RH, conçue au Canada.',
+        name: 'Un logiciel de conformité RH, conçu au Canada.',
       }),
     ).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 2, name: 'Notre mission' })).toBeInTheDocument()

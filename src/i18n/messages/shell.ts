@@ -25,8 +25,8 @@ export const shellMessages = defineMessages({
     fr: 'Soutien à la conformité RH canadienne pour les documents, les échéances et les décisions en milieu de travail.',
   },
   shell_hero_sub: {
-    en: "Advisor is the AI operating system for Canadian HR — one intelligence layer across every conversation, employee record, document, and compliance deadline. Ask a question or open a file; either way, you're talking to the same advisor.",
-    fr: "Conseiller est le système d'exploitation IA pour les RH canadiennes — une seule couche d'intelligence pour chaque conversation, dossier d'employé, document et échéance de conformité. Posez une question ou ouvrez un fichier : dans les deux cas, vous parlez au même conseiller.",
+    en: "Ask about a case, person, or deadline — Advisor keeps the same context across chat and your records.",
+    fr: "Posez une question sur un dossier, une personne ou une échéance — le Conseiller garde le même contexte entre le clavardage et vos dossiers.",
   },
   shell_cta_primary: { en: 'See Advisor in action', fr: 'Voir Conseiller à l’œuvre' },
   shell_cta_secondary: { en: 'Talk to sales', fr: 'Parler aux ventes' },
@@ -166,9 +166,9 @@ export const shellMessages = defineMessages({
   shell_notifications: { en: 'Notifications', fr: 'Notifications' },
   shell_mark_all_read: { en: 'Mark all read', fr: 'Tout marquer comme lu' },
   shell_rail_fallback_text: {
-    en: 'Ask me anything — I can pull in context from anywhere in your workspace.',
+    en: 'Ask about a person, case, policy, or deadline.',
     // [FR self-authored]
-    fr: 'Demandez-moi ce que vous voulez — je peux puiser du contexte partout dans votre espace de travail.',
+    fr: 'Posez une question sur une personne, un dossier, une politique ou une échéance.',
   },
 
   /* ── Mobile chrome (buildI18n tab_*) ────────────────────────────────────── */

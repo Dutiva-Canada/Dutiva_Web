@@ -39,7 +39,7 @@ export const advisorCore = defineMessages({
   advisor_chart_hide_data: { en: 'Hide data', fr: 'Masquer les données' }, // [FR self-authored]
 
   advisor_retry: { en: 'Retry', fr: 'Réessayer' },
-  advisor_retry_resolved: { en: 'Here’s that, resolved.', fr: 'Voilà, c’est résolu.' }, // [FR self-authored]
+  advisor_retry_resolved: { en: 'Fixed — try again.', fr: 'Corrigé — réessayez.' }, // [FR self-authored]
   advisor_error_default: {
     en: 'Advisor couldn’t complete that just now — a connection issue on our end.',
     // [FR self-authored]
@@ -181,9 +181,9 @@ export const advisorCore = defineMessages({
     fr: 'Votre espace de travail couvre l’Ontario, la C.-B., le Québec, l’Alberta et les rôles sous réglementation fédérale. Dites-moi si cela change.',
   },
   advisor_brief_fallback_text: {
-    en: 'Ask me anything — I can pull in context from anywhere in your workspace.',
+    en: 'Ask about a person, case, policy, or deadline.',
     // [FR self-authored — kept identical to shell_rail_fallback_text]
-    fr: 'Demandez-moi ce que vous voulez — je peux puiser du contexte partout dans votre espace de travail.',
+    fr: 'Posez une question sur une personne, un dossier, une politique ou une échéance.',
   },
   /* Production Ask Advisor — no Northgate fixture cards; point at real entry
      points instead. [FR self-authored] */

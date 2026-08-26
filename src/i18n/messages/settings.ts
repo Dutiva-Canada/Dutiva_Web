@@ -22,8 +22,8 @@ export const settingsMessages = defineMessages({
   /* ── Data & privacy (buildI18n str.privacy / str.privacy_note) ─────────── */
   settings_privacy: { en: 'Data & privacy', fr: 'Données et confidentialité' },
   settings_privacy_note: {
-    en: 'Your data is stored in Canada. Dutiva is PIPEDA-conscious and Quebec Law 25-aware — you control retention and export.',
-    fr: 'Vos données sont hébergées au Canada. Dutiva respecte la LPRPDE et tient compte de la Loi 25 du Québec — vous contrôlez la conservation et l’exportation.',
+    en: 'Your data is stored in Canada. You control retention and export. Dutiva is PIPEDA-conscious and Quebec Law 25-aware.',
+    fr: 'Vos données sont hébergées au Canada. Vous contrôlez la conservation et l’exportation. Dutiva est conscient de la LPRPDE et tient compte de la Loi 25 du Québec.',
   },
 
   /* ── Workspace (lbl.workspaceLabel / company / provincesOfOp) ──────────── */

@@ -9,8 +9,8 @@ import { defineMessages } from '../core'
 export const advisorWorkspaceMessages = defineMessages({
   advws_title: { en: 'Compliance workspace', fr: 'Espace de conformité' },
   advws_subtitle: {
-    en: 'Structured output from the advisor engine — shown only where the route gates allow.',
-    fr: 'Sortie structurée du moteur du Conseiller — affichée seulement là où les portes de routage le permettent.',
+    en: 'Jurisdiction, risk, and sources for this answer — when the route supports them.',
+    fr: 'Compétence, risque et sources pour cette réponse — lorsque le routage les prend en charge.',
   },
   advws_open_workspace: { en: 'Workspace', fr: 'Espace' },
   advws_close_workspace: { en: 'Close workspace', fr: 'Fermer l’espace' },
@@ -18,25 +18,25 @@ export const advisorWorkspaceMessages = defineMessages({
   /* Signed-out lock */
   advws_locked_title: { en: 'Preview mode', fr: 'Mode aperçu' },
   advws_locked_body: {
-    en: 'Signed out, the Advisor shows a scripted reply only. Sign in to run the live compliance engine — jurisdiction-aware guidance, risk, citations and sources populate here.',
-    fr: 'Hors session, le Conseiller n’affiche qu’une réponse scénarisée. Connectez-vous pour lancer le moteur de conformité — les conseils selon la compétence, le risque, les citations et les sources s’afficheront ici.',
+    en: 'Signed out, Advisor shows a scripted reply only. Sign in for live jurisdiction, risk, citations, and sources here.',
+    fr: 'Hors session, le Conseiller n’affiche qu’une réponse scénarisée. Connectez-vous pour la compétence, le risque, les citations et les sources en direct ici.',
   },
-  advws_locked_cta: { en: 'Sign in to run the engine', fr: 'Se connecter pour lancer le moteur' },
+  advws_locked_cta: { en: 'Sign in for live answers', fr: 'Se connecter pour les réponses en direct' },
 
   /* Running skeleton */
   advws_running: {
-    en: 'Routing · retrieving guidance · validating…',
-    fr: 'Routage · récupération des conseils · validation…',
+    en: 'Checking jurisdiction · retrieving guidance · validating…',
+    fr: 'Vérification de la compétence · récupération des conseils · validation…',
   },
 
   /* Idle (no structured output yet — non-happy-path state owned by the app) */
   advws_idle_title: {
-    en: 'No structured output yet',
-    fr: 'Aucune sortie structurée pour l’instant',
+    en: 'Nothing here yet',
+    fr: 'Rien ici pour l’instant',
   },
   advws_idle_body: {
-    en: 'Ask the Advisor a compliance question and the engine’s structured read — jurisdiction, risk, legal basis and sources — appears here.',
-    fr: 'Posez une question de conformité au Conseiller et la lecture structurée du moteur — compétence, risque, fondement juridique et sources — s’affichera ici.',
+    en: 'Ask a compliance question — jurisdiction, risk, legal basis, and sources show up here.',
+    fr: 'Posez une question de conformité — la compétence, le risque, le fondement juridique et les sources s’affichent ici.',
   },
 
   /* Section titles */
@@ -51,7 +51,7 @@ export const advisorWorkspaceMessages = defineMessages({
   advws_sec_web: { en: 'Live web sources', fr: 'Sources Web en direct' },
   advws_sec_confidence: { en: 'Confidence', fr: 'Confiance' },
   advws_sec_warnings: { en: 'Quality warnings', fr: 'Avertissements de qualité' },
-  advws_sec_gates: { en: 'Route rendering gates', fr: 'Portes d’affichage du routage' },
+  advws_sec_gates: { en: 'What this answer can show', fr: 'Ce que cette réponse peut afficher' },
 
   /* Response modes (mode chip + surface note) */
   advws_mode_hr: { en: 'HR compliance advisor', fr: 'Conseiller en conformité RH' },
@@ -87,8 +87,8 @@ export const advisorWorkspaceMessages = defineMessages({
     fr: 'Mode soutien — espace intentionnellement désactivé',
   },
   advws_support_body: {
-    en: 'This routed to supportive triage. No HR retrieval, legal basis, citations or documents are produced — the engine keeps the response human and gates every structured surface.',
-    fr: 'Cette demande a été routée vers le triage de soutien. Aucune récupération RH, fondement juridique, citation ni document n’est produit — le moteur garde la réponse humaine et ferme toutes les surfaces structurées.',
+    en: 'This went to supportive triage — no HR retrieval, citations, or documents. Chat only.',
+    fr: 'Cette demande est passée en triage de soutien — pas de récupération RH, de citations ni de documents. Clavardage seulement.',
   },
 
   /* Web sources */

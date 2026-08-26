@@ -54,8 +54,8 @@ export const authMessages = defineMessages({
     fr: 'Compte',
   },
   auth_menu_description: {
-    en: 'Sign in to unlock real AI Advisor replies and live legal sources.',
-    fr: 'Connectez-vous pour activer les réponses réelles de l’Advisor IA et les sources juridiques en direct.',
+    en: 'Sign in for live Advisor answers and legal sources.',
+    fr: 'Connectez-vous pour les réponses en direct du Conseiller et les sources juridiques.',
   },
   auth_entry_description: {
     en: 'This workspace is invite-only. Enter your email and we’ll send a sign-in link.',
@@ -186,8 +186,8 @@ export const authMessages = defineMessages({
     fr: 'La conformité RH canadienne, soutenue.',
   },
   auth_brand_sub: {
-    en: 'One intelligent workspace for jurisdiction-specific conversations, employee records, documents, and compliance deadlines.',
-    fr: 'Un espace de travail intelligent pour des conversations adaptées à la compétence, des dossiers d’employés, des documents et des échéances de conformité.',
+    en: 'Jurisdiction-aware guidance, people records, documents, and deadlines — in one place.',
+    fr: 'Conseils adaptés à la compétence, dossiers de personnes, documents et échéances — au même endroit.',
   },
   auth_brand_point_1: {
     en: 'AI-guided support for cases, documents, and deadlines',
@@ -207,8 +207,8 @@ export const authMessages = defineMessages({
   },
   auth_welcome_title: { en: 'Welcome to Dutiva', fr: 'Bienvenue chez Dutiva' },
   auth_welcome_sub: {
-    en: 'Your AI operating system for Canadian HR compliance.',
-    fr: 'Votre système d’exploitation IA pour la conformité RH canadienne.',
+    en: 'Your workspace for Canadian HR compliance work.',
+    fr: 'Votre espace de travail pour la conformité RH canadienne.',
   },
   auth_enter_workspace: { en: 'Enter workspace', fr: 'Accéder à l’espace de travail' },
   auth_legal_link: { en: 'Legal', fr: 'Juridique' },

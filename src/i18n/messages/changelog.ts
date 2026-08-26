@@ -7,8 +7,13 @@ export const changelogMessages = defineMessages({
     fr: 'Ce que nous avons livré.',
   },
   changelog_intro: {
-    en: 'Dated product updates from Dutiva — what changed, when, and why it matters for Canadian HR compliance workflows and self-serve access.',
-    fr: 'Mises à jour datées du produit Dutiva — ce qui a changé, quand, et pourquoi cela compte pour la conformité RH et l’accès en libre-service au Canada.',
+    en: 'Dated product updates from Dutiva — what changed and when.',
+    fr: 'Mises à jour datées du produit Dutiva — ce qui a changé et quand.',
+  },
+  /* SEO meta only — page hero keeps the shorter changelog_intro. */
+  changelog_meta_description: {
+    en: 'Dated product updates from Dutiva — what changed, when, and how it affects Canadian HR compliance workflows on the platform.',
+    fr: 'Mises à jour datées du produit Dutiva — ce qui a changé, quand, et l’effet sur les processus de conformité RH au Canada.',
   },
   changelog_byline: {
     en: 'Updates from Martin Constantineau, Founder & CEO',

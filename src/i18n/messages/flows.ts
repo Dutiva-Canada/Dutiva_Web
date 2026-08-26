@@ -11,8 +11,8 @@ import { defineMessages } from '../core'
 export const flowsMessages = defineMessages({
   flows_section_label: { en: 'Guided processes', fr: 'Processus guidés' },
   flows_section_intro: {
-    en: 'Step-by-step processes and entitlement gates that end in a document — not just advice. Calculator-style tools stay inside the workspace; they are not public marketing pages.',
-    fr: 'Des processus étape par étape et des filtres d’admissibilité qui aboutissent à un document — pas de simples conseils. Les outils de type calculateur restent dans l’espace de travail; ce ne sont pas des pages marketing publiques.',
+    en: 'Step-by-step processes that end in a document — not just advice.',
+    fr: 'Des processus étape par étape qui aboutissent à un document — pas de simples conseils.',
   },
   flows_section_calculators: { en: 'Calculators', fr: 'Calculateurs' }, // [FR self-authored]
   flows_section_calculators_intro: {
