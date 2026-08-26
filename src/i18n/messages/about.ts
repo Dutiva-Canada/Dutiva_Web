@@ -27,16 +27,16 @@ export const aboutMessages = defineMessages({
     fr: 'Dutiva est née d’un constat simple : gérer les RH de façon responsable au Canada peut se compliquer très vite. Les employeurs doivent composer avec les normes du travail, les politiques internes, la documentation et des obligations propres à chaque compétence — souvent sans équipe RH ni service juridique interne.',
   }, // [FR self-authored]
   about_why_p2: {
-    en: 'I founded Dutiva to make that process more practical.',
-    fr: 'J’ai fondé Dutiva pour rendre ce processus plus pratique.',
+    en: 'I established Dutiva to make that process more practical.',
+    fr: 'J’ai établi Dutiva pour rendre ce processus plus pratique.',
   }, // [FR self-authored]
   about_why_p3: {
-    en: 'I’m Martin Constantineau, Founder and CEO of Dutiva Canada Inc. My background is in Canadian HR operations — staffing and resourcing at the Canada Revenue Agency, and HR and payroll coordination for a national internship program at Mitacs. I trained in Human Resources Management at Algonquin College, and I work in English and French.',
-    fr: 'Je suis Martin Constantineau, fondateur et chef de la direction de Dutiva Canada Inc. Mon parcours se situe dans les opérations RH canadiennes — le recrutement et la dotation à l’Agence du revenu du Canada, et la coordination RH et de la paie pour un programme national de stages chez Mitacs. J’ai suivi une formation en gestion des ressources humaines au Collège Algonquin, et je travaille en français et en anglais.',
+    en: 'I’m Martin Constantineau, Founder and CEO of Dutiva Canada Inc. I have extensive experience in Canadian human resources — staffing and resourcing at the Canada Revenue Agency, and managing HR and payroll for a national internship program at Mitacs. I trained in Human Resources Management at Algonquin College, and I work in English and French.',
+    fr: 'Je suis Martin Constantineau, fondateur et chef de la direction de Dutiva Canada Inc. Je possède une vaste expérience en ressources humaines au Canada — le recrutement et la dotation à l’Agence du revenu du Canada, ainsi que la gestion des RH et de la paie pour un programme national de stages chez Mitacs. J’ai suivi une formation en gestion des ressources humaines au Collège Algonquin, et je travaille en français et en anglais.',
   }, // [FR self-authored]
   about_why_p4: {
-    en: 'Dutiva is HR compliance and documentation software — not a payroll provider, and not a replacement for human judgment. It names the statute, not just the province; it is bilingual; and it is meant to help employers know when professional or legal advice may be appropriate.',
-    fr: 'Dutiva est un logiciel de conformité et de documentation RH — et non un fournisseur de paie, ni un substitut au jugement humain. Il nomme la loi, pas seulement la province; il est bilingue; et il vise à aider les employeurs à reconnaître le moment où un avis professionnel ou juridique peut s’imposer.',
+    en: 'Dutiva is HR compliance and documentation software — not a payroll provider, and not a replacement for human judgment. It names the applicable statutes, not just the province; it is bilingual; and it is meant to help employers know when professional or legal advice may be appropriate.',
+    fr: 'Dutiva est un logiciel de conformité et de documentation RH — et non un fournisseur de paie, ni un substitut au jugement humain. Il nomme les lois applicables, pas seulement la province; il est bilingue; et il vise à aider les employeurs à reconnaître le moment où un avis professionnel ou juridique peut s’imposer.',
   }, // [FR self-authored]
   about_founder_alt: {
     en: 'Martin Constantineau, Founder and CEO of Dutiva',
