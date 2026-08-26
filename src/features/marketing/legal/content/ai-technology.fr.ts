@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   title: 'Politique relative à l’IA et aux technologies',
-  lastUpdated: '15 juillet 2026',
+  lastUpdated: '26 août 2026',
   effectiveDate: '1er juin 2026',
   callout: [
     'Juridique | Dernière mise à jour : 15 juillet 2026',
@@ -28,7 +28,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Le Conseiller Dutiva fonctionne au moyen de la fonction en périphérie côté serveur advisor-chat de Dutiva. La configuration de production actuelle achemine les messages du Conseiller vers DigitalOcean Gradient AI et utilise un modèle Mistral (mistral-3-14B) pour générer les réponses.',
+          text: 'Le Conseiller Dutiva fonctionne au moyen de la fonction en périphérie côté serveur advisor-chat de Dutiva. La configuration de production actuelle achemine les messages du Conseiller vers DigitalOcean Gradient AI et utilise DeepSeek 3.2 (`deepseek-3.2`) pour générer les réponses. Le fournisseur et le modèle sont résolus au moment de la requête à partir de la table d’acheminement de Dutiva et peuvent changer sans déploiement logiciel.',
         },
         {
           type: 'p',

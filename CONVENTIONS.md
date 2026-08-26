@@ -285,14 +285,15 @@ follow-up work, not done here.
   (Auth + Plan only — not the full `AppProviders` bundle).
 - `src/features/app/billing/PlanGate.tsx` — reusable gate for a future paid
   view; not applied anywhere yet.
-- `supabase/functions/{create-checkout-session,create-portal-session,stripe-webhook}` —
+- `supabase/functions/{create-checkout-session,create-portal-session,create-advisor-pack-checkout,stripe-webhook}` —
   real Stripe calls via raw `fetch` (no `stripe` npm dependency, matches
-  `advisor-chat`'s Deno.serve + bearer-JWT pattern). Write to `public.profiles`
-  (migration `0013_add_billing_profiles.sql`). All three respond
-  `503`/"not configured" until `STRIPE_SECRET_KEY` etc. are set as function
-  secrets — see `.env.example`. An admin/internal account short-circuits
-  checkout and portal with a `bypass: true` response instead of ever calling
-  Stripe.
+  `advisor-chat`'s Deno.serve + bearer-JWT pattern). Plan checkout writes to
+  `public.profiles` (migration `0013_add_billing_profiles.sql`). Pack checkout
+  credits `ai_advisor_credits` (migration `0091_advisor_usage_credits.sql`) and
+  does **not** change `profiles.plan`. All four respond `503`/"not configured"
+  until `STRIPE_SECRET_KEY` etc. are set as function secrets — see
+  `.env.example`. An admin/internal account short-circuits checkout, packs, and
+  portal with a `bypass: true` response instead of ever calling Stripe.
 
 ## Icons & assets
 

@@ -19,8 +19,8 @@ Drive documents they replaced did:
 - **Templates shipped**, **Jurisdictions**, **Pricing**, **Annual billing**,
   **Beta state**, **Beta capacity** (the doc row, the SQL gate and the edge
   function all carrying the same number), **Law-change monitoring** (both
-  the audit date and the "not confirmed working" claim itself) —
-  `src/canonicalFacts.test.ts`.
+  the audit date and the "not confirmed working" claim itself),
+  **Advisor replies** — `src/canonicalFacts.test.ts`.
 - **Brand gold**, **Brand navy** — `scripts/check-canonical-facts.mjs`
   (`npm run check:facts`), separate because their values live in CSS that
   Vitest cannot read.
@@ -50,6 +50,7 @@ people who don't read the repo. Re-export it when this file changes.
 | Law-change monitoring | **Federal (FED), Ontario (ON) and Québec (QC) confirmed working** (audit 2026-08-10) | `src/features/app/guidance/monitoringCoverage.ts`                       |
 | Contact address       | <support@dutiva.ca>                                                                  | the published support address; retired ones stay retired (§6, enforced) |
 | Languages             | EN + FR, both surfaces, prerendered per locale                                       | `src/i18n/` — EN unprefixed, FR under `/fr`                             |
+| Advisor replies       | **80** included / calendar month UTC. Optional packs: **50** for **$5** CAD, **200** for **$15** CAD. Not a plan feature. Opt-in overage $0.12 CAD/reply, cap **500**/month, paid subscription only. | `src/config/advisorUsage.ts`                                            |
 | Brand gold            | `#b98512 → #d4af37 → #f4c54b → #ffe37a`; on dark `#e9c877`                           | `tokens.css` `--gold-gradient`, `--gold-on-dark`                        |
 | Brand navy            | `#0d1b2a` ground, `#081019` deep                                                     | `tokens.css` `--dutiva-navy`; `surfaces.css` `.surface-marketing --bg`  |
 
@@ -116,8 +117,10 @@ May 2026 and September 2026 have both been published as launch dates and both ha
 passed. **Do not publish a new calendar date.** Paid plans are sold: a visitor can
 check out on `/pricing`. The 15-person free cohort remains a waitlist. Product
 feature gates stay off (`PLAN_FEATURE_GATES_ENABLED`) — paying buys support, not
-extra modules. That stays true until those flags change, at which point this
-section has to be revisited in the same change.
+extra modules. Optional prepaid Advisor reply packs (and opt-in metered overage
+on a paid subscription) are an AI add-on, not a plan feature. That stays true
+until those flags change, at which point this section has to be revisited in
+the same change.
 
 ## Claims to stop making
 

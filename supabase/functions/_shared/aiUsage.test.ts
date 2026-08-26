@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
   AI_USAGE_LIMIT_CODE,
+  COMMERCIAL_OPERATIONS,
   METERED_OPERATIONS,
   advisorChatPolicy,
   claimAiUsage,
@@ -37,6 +38,14 @@ describe('decisionFromRpc', () => {
     expect(decisionFromRpc({ allowed: true, claim_id: 'claim-1' })).toEqual({
       kind: 'allowed',
       claimId: 'claim-1',
+    })
+  })
+
+  it('carries the commercial source when the RPC names one', () => {
+    expect(decisionFromRpc({ allowed: true, claim_id: 'claim-2', commercial: 'pack' })).toEqual({
+      kind: 'allowed',
+      claimId: 'claim-2',
+      commercialSource: 'pack',
     })
   })
 
@@ -96,7 +105,7 @@ describe('claimAiUsage', () => {
       userId: 'user-1',
       organizationId: null,
       provider: 'digitalocean',
-      model: 'mistral-3-14B',
+      model: 'deepseek-3.2',
     })
 
     expect(decision).toEqual({ kind: 'allowed', claimId: 'claim-9' })
@@ -107,13 +116,16 @@ describe('claimAiUsage', () => {
       p_operation: 'chat',
       p_organization_id: null,
       p_provider: 'digitalocean',
-      p_model: 'mistral-3-14B',
+      p_model: 'deepseek-3.2',
       p_burst_limit: policy.burstLimit,
       p_burst_window_seconds: policy.burstWindowSeconds,
       p_daily_request_limit: policy.dailyRequestLimit,
       p_daily_token_limit: policy.dailyTokenLimit,
       p_platform_daily_limit: policy.platformDailyLimit,
       p_metered_operations: METERED_OPERATIONS,
+      p_monthly_chat_limit: 80,
+      p_commercial_operations: ['chat'],
+      p_overage_monthly_cap: 0,
     })
   })
 
@@ -163,6 +175,11 @@ describe('the beta policies', () => {
     /* safety_backstop records that a deterministic gate fired — being kept
        safe must never spend a user's AI budget. */
     expect(METERED_OPERATIONS).not.toContain('safety_backstop')
+  })
+
+  it('does not sell the support helper as a pack SKU', () => {
+    expect(COMMERCIAL_OPERATIONS).toEqual(['chat'])
+    expect(COMMERCIAL_OPERATIONS).not.toContain('support_firstline')
   })
 })
 
@@ -271,5 +288,17 @@ describe('usageLimitBody', () => {
     })
     expect(mine.error).toContain('You have reached')
     expect(platform.error).toContain('beta-wide')
+  })
+
+  it('names a prepaid pack on a commercial denial — not a wait', () => {
+    const body = usageLimitBody({
+      kind: 'denied',
+      scope: 'commercial',
+      limit: 80,
+      used: 80,
+      retryAfterSeconds: 86_400,
+    })
+    expect(body.error).toContain('prepaid pack')
+    expect(body.scope).toBe('commercial')
   })
 })

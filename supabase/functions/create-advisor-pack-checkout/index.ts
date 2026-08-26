@@ -4,23 +4,21 @@ import { bypassesPaywall } from '../_shared/adminAccess.ts'
 import { readStripeSecretKey, stripeSecretDiagnostic } from '../_shared/stripeSecret.ts'
 
 /**
- * Starts a Stripe Checkout subscription session for the signed-in account.
- * Ported from the production dutiva-website repo's create-checkout-session
- * function, narrowed to this repo's three paid plans (starter/growth/pro —
- * see src/config/plans.ts) and adapted to the bearer-JWT + service-role
- * pattern the other dutiva-* functions use (see advisor-chat).
+ * One-time Stripe Checkout for prepaid Advisor reply packs.
  *
- * An internal Dutiva account (../_shared/adminAccess.ts, mirroring
- * src/lib/billing/adminAccess.ts since Deno functions can't import from
- * src/) never reaches Stripe — it gets a `bypass: true` response instead,
- * which is the actual "automatically bypass the paywall" behavior
- * PlanProvider also implements client-side.
+ * Internal @dutiva.ca accounts skip payment (founder testing must not buy
+ * fake packs). Everyone else pays; this does not change `profiles.plan`.
  */
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
+const PACK_ENV: Record<50 | 200, string> = {
+  50: 'STRIPE_PRICE_ADVISOR_PACK_50',
+  200: 'STRIPE_PRICE_ADVISOR_PACK_200',
 }
 
 function json(body: unknown, status = 200) {
@@ -30,44 +28,9 @@ function json(body: unknown, status = 200) {
   })
 }
 
-const ALLOWED_PLANS = ['starter', 'growth', 'pro'] as const
-type PlanId = (typeof ALLOWED_PLANS)[number]
-
-/**
- * Mirrors `BillingPeriod` in src/config/plans.ts. Deno functions cannot import
- * from src/, so this is a deliberate duplicate — keep the two in step.
- */
-const ALLOWED_PERIODS = ['monthly', 'annual'] as const
-type BillingPeriod = (typeof ALLOWED_PERIODS)[number]
-
-const PRICE_ENV_KEYS: Record<BillingPeriod, Record<PlanId, string>> = {
-  monthly: {
-    starter: 'STRIPE_PRICE_STARTER_MONTHLY',
-    growth: 'STRIPE_PRICE_GROWTH_MONTHLY',
-    pro: 'STRIPE_PRICE_PRO_MONTHLY',
-  },
-  annual: {
-    starter: 'STRIPE_PRICE_STARTER_ANNUAL',
-    growth: 'STRIPE_PRICE_GROWTH_ANNUAL',
-    pro: 'STRIPE_PRICE_PRO_ANNUAL',
-  },
-}
-
-function normalizePlan(value: unknown): PlanId | null {
-  const plan = String(value ?? '').toLowerCase()
-  return (ALLOWED_PLANS as readonly string[]).includes(plan) ? (plan as PlanId) : null
-}
-
-/**
- * Absent or unrecognized reads as `monthly`, which is what every caller sent
- * before the annual path existed. Failing closed to the cheaper interval is the
- * safe direction: the alternative would bill a year up front on a typo.
- */
-function normalizePeriod(value: unknown): BillingPeriod {
-  const period = String(value ?? '').toLowerCase()
-  return (ALLOWED_PERIODS as readonly string[]).includes(period)
-    ? (period as BillingPeriod)
-    : 'monthly'
+function normalizePack(value: unknown): 50 | 200 | null {
+  const n = Number(value)
+  return n === 50 || n === 200 ? n : null
 }
 
 async function stripePost(path: string, params: Record<string, string>, secretKey: string) {
@@ -91,7 +54,7 @@ Deno.serve(async (req: Request) => {
   const stripeKey = readStripeSecretKey(rawStripeKey)
   if (!stripeKey) {
     console.error(
-      '[create-checkout-session] stripe secret unusable',
+      '[create-advisor-pack-checkout] stripe secret unusable',
       stripeSecretDiagnostic(rawStripeKey),
     )
     return json({ error: 'Payments not configured.' }, 503)
@@ -120,33 +83,23 @@ Deno.serve(async (req: Request) => {
   if (bypassesPaywall(user.email)) {
     return json({
       bypass: true,
-      message: 'Internal Dutiva access already includes full plan access — no checkout needed.',
+      message: 'Internal Dutiva accounts skip Advisor reply packs.',
     })
   }
 
-  let body: { plan?: string; billingPeriod?: string; period?: string }
+  let body: { pack?: unknown }
   try {
     body = await req.json()
   } catch {
     return json({ error: 'Invalid body.' }, 400)
   }
 
-  const plan = normalizePlan(body.plan)
-  if (!plan) return json({ error: 'Invalid plan.' }, 400)
-  /* `billingPeriod` is the key PricingPage.tsx already sends; `period` is
-     accepted as an alias so a caller using the shorter name is not silently
-     billed monthly. Anything else falls back to monthly — see normalizePeriod. */
-  const period = normalizePeriod(body.billingPeriod ?? body.period)
+  const pack = normalizePack(body.pack)
+  if (!pack) return json({ error: 'Invalid pack.' }, 400)
 
-  const priceId = (Deno.env.get(PRICE_ENV_KEYS[period][plan]) ?? '')
-    .trim()
-    .replace(/^["']|["']$/g, '')
-  /* 503 rather than a fallback to the monthly price: silently billing a
-     different interval than the customer chose is worse than not starting the
-     checkout at all. Until the annual price IDs exist in Stripe, an annual
-     request fails loudly and visibly. */
+  const priceId = (Deno.env.get(PACK_ENV[pack]) ?? '').trim().replace(/^["']|["']$/g, '')
   if (!priceId.startsWith('price_')) {
-    return json({ error: `Missing Stripe price ID for the ${period} ${plan} plan.` }, 503)
+    return json({ error: `Missing Stripe price ID for the ${pack}-reply pack.` }, 503)
   }
 
   const { data: profile } = await adminClient
@@ -166,7 +119,7 @@ Deno.serve(async (req: Request) => {
       )
     } catch (err) {
       console.error(
-        '[create-checkout-session] stripe customer request failed:',
+        '[create-advisor-pack-checkout] stripe customer request failed:',
         err instanceof Error ? err.message : 'unknown',
       )
       return json({ error: 'Could not start checkout.' }, 502)
@@ -174,7 +127,7 @@ Deno.serve(async (req: Request) => {
     customerId = customer.id
     if (!customerId) {
       console.error(
-        '[create-checkout-session] stripe customer missing id:',
+        '[create-advisor-pack-checkout] stripe customer missing id:',
         customer.error?.message ?? 'no error body',
       )
       return json({ error: 'Could not start checkout.' }, 502)
@@ -183,7 +136,7 @@ Deno.serve(async (req: Request) => {
       .from('profiles')
       .upsert({ id: user.id, account_email: user.email, stripe_customer_id: customerId })
     if (upsertError) {
-      console.error('[create-checkout-session] profile upsert failed:', upsertError.message)
+      console.error('[create-advisor-pack-checkout] profile upsert failed:', upsertError.message)
       return json({ error: 'Could not save billing profile.' }, 500)
     }
   }
@@ -195,23 +148,21 @@ Deno.serve(async (req: Request) => {
       '/checkout/sessions',
       {
         customer: customerId as string,
-        mode: 'subscription',
+        mode: 'payment',
         'line_items[0][price]': priceId,
         'line_items[0][quantity]': '1',
-        success_url: `${siteUrl}/pricing?checkout=success&plan=${plan}`,
-        cancel_url: `${siteUrl}/pricing?checkout=cancelled`,
+        success_url: `${siteUrl}/app/advisor?pack=success`,
+        cancel_url: `${siteUrl}/app/advisor?pack=cancelled`,
+        'metadata[kind]': 'advisor_pack',
+        'metadata[pack]': String(pack),
         'metadata[user_id]': user.id,
-        'metadata[plan]': plan,
-        'metadata[billing_interval]': period,
-        'subscription_data[metadata][user_id]': user.id,
-        'subscription_data[metadata][plan]': plan,
-        'subscription_data[metadata][billing_interval]': period,
+        client_reference_id: user.id,
       },
       stripeKey,
     )
   } catch (err) {
     console.error(
-      '[create-checkout-session] stripe session request failed:',
+      '[create-advisor-pack-checkout] stripe session request failed:',
       err instanceof Error ? err.message : 'unknown',
     )
     return json({ error: 'Could not start checkout.' }, 502)
@@ -219,7 +170,7 @@ Deno.serve(async (req: Request) => {
 
   if (!session.url) {
     console.error(
-      '[create-checkout-session] stripe session missing url:',
+      '[create-advisor-pack-checkout] stripe session missing url:',
       session.error?.message ?? 'no error body',
     )
     return json({ error: 'Could not start checkout.' }, 502)

@@ -66,7 +66,7 @@ The generative model is essential here and nowhere else at this level.
 
 - Served **server-side only** so provider secrets never reach the browser.
 - Model is **not hard-coded** — resolved at request time from `ai_model_routes` /
-  `ai_model_providers` (currently `mistral-3-14B` via DigitalOcean Gradient AI,
+  `ai_model_providers` (currently `deepseek-3.2` via DigitalOcean Gradient AI,
   `route_key = advisor_chat`), so provider/model can change without a deploy.
 - Every call is logged to `ai_telemetry_events` (provider, model, tokens,
   latency, status) — never message bodies or PII. The row is claimed *before*
@@ -275,8 +275,19 @@ enforcement is `claim_ai_usage()` in
 | Daily tokens | 250,000 / rolling 24h | per user, shared | long threads, which request count alone does not bound |
 | Platform daily | 2,000 / rolling 24h | whole project | a beta-wide cost surprise, whatever its shape |
 
+Those four ceilings are **abuse rails**. They are never for sale. A 429 from
+burst / daily / platform stays a wait, not a buy path.
+
+A separate **commercial included** budget applies to Advisor `chat` only
+(80 replies / calendar month UTC, same for every admitted account —
+`src/config/advisorUsage.ts`). After that, prepaid packs (50 / $5 CAD,
+200 / $15 CAD) and, for an active paid subscription that opted in, metered
+overage ($0.12 CAD / reply, cap 500 / month). `support_firstline` stays on
+abuse rails. Paying for a plan still buys support, not extra modules; packs
+are an optional AI add-on.
+
 Every value is env-overridable (`AI_DAILY_REQUEST_LIMIT`, `AI_BURST_LIMIT_CHAT`,
-…), so tuning the beta is a secret change rather than a deploy. The daily
+`AI_MONTHLY_CHAT_LIMIT`, …), so tuning is a secret change rather than a deploy. The daily
 budget is deliberately **one budget per person, not one per surface** — both
 functions bill to the same provider account, so per-surface budgets would just
 sum. `safety_backstop` events are excluded from every count: being kept safe by
@@ -324,7 +335,7 @@ the counts need, and the functions now write the canonical `failed` rather than
 
 | Route key | Function | Provider / model | Guardrails |
 | --- | --- | --- | --- |
-| `advisor_chat` | `advisor-chat` | DigitalOcean Gradient AI · `mistral-3-14B` | Server-side secret, invite-only auth, history-bounded, telemetry-logged, **beta usage guardrails (§7)** |
+| `advisor_chat` | `advisor-chat` | DigitalOcean Gradient AI · `deepseek-3.2` | Server-side secret, invite-only auth, history-bounded, telemetry-logged, **usage guardrails (§7)** |
 | `advisor_chat` (reused) | `support-firstline` | same route | Auth + **beta usage guardrails (§7, shared budget)**, HUMAN_ONLY refusal, grounded-only prompt, advisory-only UI |
 
 Everything else in the product is retrieval, templates, rules, or algorithms.

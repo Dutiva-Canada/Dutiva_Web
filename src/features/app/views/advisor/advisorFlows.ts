@@ -242,6 +242,8 @@ export interface MessageExtras {
   provincePrompt?: boolean
   /** Org memory used this turn — gold in-answer highlights in StreamedText. */
   memory?: MemoryUsedRead | null
+  /** Commercial 429: offer prepaid reply packs under this turn. */
+  advisorPackOffer?: boolean
 }
 
 /**

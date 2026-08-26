@@ -2,6 +2,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { getCheckoutProfilePatch, getSubscriptionProfileUpdate, stringId } from './billing-event.ts'
 import type { BillingPeriod, PriceLookup } from './billing-event.ts'
+import { advisorPackGrantFromSession } from './advisorPack.ts'
 import { verifyStripeSignature } from './verify-signature.ts'
 
 /**
@@ -152,6 +153,24 @@ Deno.serve(async (req: Request) => {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object
+    const packGrant = advisorPackGrantFromSession(session as Record<string, unknown>)
+    if (packGrant) {
+      const { data, error } = await supabase.rpc('grant_ai_advisor_pack', {
+        p_user_id: packGrant.userId,
+        p_pack_size: packGrant.packSize,
+        p_stripe_checkout_id: packGrant.checkoutSessionId,
+      })
+      if (error) {
+        console.error('[stripe-webhook] grant_ai_advisor_pack failed:', error.message)
+        return fail('Could not credit Advisor pack.')
+      }
+      const verdict = data as { granted?: boolean; reason?: string } | null
+      if (verdict?.granted === true || verdict?.reason === 'duplicate') {
+        return json({ received: true, pack: true })
+      }
+      return fail('Could not credit Advisor pack.')
+    }
+
     const { userId, email, updates } = getCheckoutProfilePatch(session)
 
     if (!updates.stripe_customer_id) {

@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   title: 'AI & Technology Policy',
-  lastUpdated: 'July 15, 2026',
+  lastUpdated: 'August 26, 2026',
   effectiveDate: 'June 1, 2026',
   callout: [
     'This Policy explains the technology used to operate Dutiva, including the current Advisor model flow, technology providers, data-handling boundaries, retrieval controls, and safeguards around AI-assisted HR workflows.',
@@ -27,7 +27,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Dutiva Advisor is served through Dutiva’s server-side advisor-chat edge function. The current production configuration routes Advisor messages to DigitalOcean Gradient AI and uses a Mistral model (mistral-3-14B) to generate responses.',
+          text: 'Dutiva Advisor is served through Dutiva’s server-side advisor-chat edge function. The current production configuration routes Advisor messages to DigitalOcean Gradient AI and uses DeepSeek 3.2 (`deepseek-3.2`) to generate responses. The provider and model are resolved at request time from Dutiva’s routing table and can change without a software deploy.',
         },
         {
           type: 'p',

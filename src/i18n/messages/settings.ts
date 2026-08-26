@@ -140,6 +140,22 @@ export const settingsMessages = defineMessages({
     en: 'Statute and section references shown on jurisdiction-specific guidance',
     fr: 'Références aux lois et articles affichées sur les conseils propres à la compétence',
   },
+  settings_toggle_overage: {
+    en: 'Bill extra Advisor replies this month',
+    fr: 'Facturer les réponses du Conseiller en trop ce mois-ci', // [FR self-authored]
+  },
+  settings_toggle_overage_sub: {
+    en: 'After this month’s {included} included replies and any unused pack balance, extra replies are ${price} CAD each, up to {cap}. Only bills if you have an active paid plan. Waitlist accounts are never invoiced. Packs are optional and not a plan feature.',
+    fr: 'Après les {included} réponses incluses ce mois-ci et tout solde de forfait inutilisé, les réponses supplémentaires coûtent {price} $ CA chacune, jusqu’à {cap}. La facturation ne s’applique que si vous avez un forfait payant actif. Les comptes en liste d’attente ne reçoivent jamais de facture. Les forfaits de réponses sont facultatifs et ne sont pas une fonction d’abonnement.', // [FR self-authored]
+  },
+  settings_overage_saved: {
+    en: 'Advisor overage setting saved.',
+    fr: 'Réglage des réponses en trop enregistré.', // [FR self-authored]
+  },
+  settings_overage_failed: {
+    en: 'Couldn’t save that setting. Try again.',
+    fr: 'Impossible d’enregistrer ce réglage. Réessayez.', // [FR self-authored]
+  },
   settings_disclaimer_label: { en: 'Legal disclaimer', fr: 'Avis juridique' },
   settings_disclaimer_note: {
     en: 'Shown in Advisor, Document Studio, and every high-risk workflow. Wording is fixed at the workspace level.',

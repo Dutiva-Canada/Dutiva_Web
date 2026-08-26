@@ -3,15 +3,9 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import { buildAdvisorResponse, detectJurisdictions } from './responsePayload.ts'
 import { noticeScheduleBlock } from './noticeSchedule.ts'
 import { buildRetrievalQuery } from './retrievalQuery.ts'
-import {
-  memoryBlock,
-  selectMemoryFactsForPrompt,
-} from './memoryFacts.ts'
+import { memoryBlock, selectMemoryFactsForPrompt } from './memoryFacts.ts'
 import type { MemoryFactForPrompt } from './memoryFacts.ts'
-import {
-  memoryExtractionPromptAppendix,
-  extractMemoryCandidates,
-} from './memoryExtract.ts'
+import { memoryExtractionPromptAppendix, extractMemoryCandidates } from './memoryExtract.ts'
 import type { ExtractedMemoryCandidate } from './memoryExtract.ts'
 import {
   advisorChatPolicy,
@@ -19,6 +13,8 @@ import {
   finalizeAiUsage,
   usageLimitBody,
 } from '../_shared/aiUsage.ts'
+import { reportAdvisorOverageMeter } from '../_shared/advisorOverageMeter.ts'
+import { readStripeSecretKey } from '../_shared/stripeSecret.ts'
 
 /**
  * Real AI Advisor replies. Looks up the active `advisor_chat` route in
@@ -562,6 +558,7 @@ async function recordCompletion(
   completion: Completion,
   latencyMs: number,
   retrieval: RetrievalResult,
+  commercialSource?: string,
 ) {
   const usage = completion.usage ?? {}
   await finalizeAiUsage(adminClient, claimId, {
@@ -572,8 +569,38 @@ async function recordCompletion(
     totalTokens: usage.total_tokens ?? null,
     /* retrieval_failed distinguishes an infrastructure failure from a
        genuine no-match — `retrieved_chunks: 0` alone cannot. */
-    metadata: { retrieved_chunks: retrieval.chunks.length, retrieval_failed: retrieval.failed },
+    metadata: {
+      retrieved_chunks: retrieval.chunks.length,
+      retrieval_failed: retrieval.failed,
+      ...(commercialSource ? { commercial: commercialSource } : {}),
+    },
   })
+}
+
+async function reportOverageIfNeeded(
+  adminClient: SupabaseClient,
+  userId: string,
+  commercialSource: string | undefined,
+) {
+  if (commercialSource !== 'overage') return
+  const eventName = (Deno.env.get('STRIPE_ADVISOR_METER_EVENT_NAME') ?? '').trim()
+  const secret = readStripeSecretKey(Deno.env.get('STRIPE_SECRET_KEY'))
+  if (!eventName || !secret) {
+    console.error('advisor-chat: overage claimed but meter is not configured')
+    return
+  }
+  const { data } = await adminClient
+    .from('profiles')
+    .select('stripe_customer_id')
+    .eq('id', userId)
+    .maybeSingle()
+  const customerId = typeof data?.stripe_customer_id === 'string' ? data.stripe_customer_id : ''
+  const result = await reportAdvisorOverageMeter({
+    stripeCustomerId: customerId,
+    secretKey: secret,
+    eventName,
+  })
+  if (!result.ok) console.error('advisor-chat: overage meter failed', result.reason)
 }
 
 Deno.serve(async (req: Request) => {
@@ -691,6 +718,12 @@ Deno.serve(async (req: Request) => {
     completionResult.completion,
     completionResult.latencyMs,
     retrieval,
+    decision.commercialSource,
+  )
+  await reportOverageIfNeeded(
+    authenticated.adminClient,
+    authenticated.user.id,
+    decision.commercialSource,
   )
 
   /* The structured contract the Compliance Workspace renders — computed

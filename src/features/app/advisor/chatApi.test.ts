@@ -245,7 +245,7 @@ describe('sendAdvisorMessage — beta usage limit', () => {
     await expect(sendAdvisorMessage('hi', null)).rejects.toBeInstanceOf(AdvisorUsageLimitError)
   })
 
-  it('keeps the platform-wide scope distinct from the caller’s own', async () => {
+    it('keeps the platform-wide scope distinct from the caller’s own', async () => {
     const invoke = vi.fn().mockResolvedValue({
       data: null,
       error: httpError(429, {
@@ -258,6 +258,21 @@ describe('sendAdvisorMessage — beta usage limit', () => {
     await expect(sendAdvisorMessage('hi', null)).rejects.toMatchObject({
       scope: 'platform_daily',
       retryAfterSeconds: 3600,
+    })
+  })
+
+  it('keeps a commercial limit distinct from a wait-style ceiling', async () => {
+    const invoke = vi.fn().mockResolvedValue({
+      data: null,
+      error: httpError(429, {
+        code: 'ai_usage_limit',
+        scope: 'commercial',
+        retry_after_seconds: 86_400,
+      }),
+    })
+    const { sendAdvisorMessage } = await loadChatApiWithFakeInvoke(invoke)
+    await expect(sendAdvisorMessage('hi', null)).rejects.toMatchObject({
+      scope: 'commercial',
     })
   })
 

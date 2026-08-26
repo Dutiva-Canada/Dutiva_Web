@@ -12,6 +12,13 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import type { AdvisorPackSize } from '@/config/advisorUsage'
+import {
+  ADVISOR_PACK_50_PRICE_CAD,
+  ADVISOR_PACK_50_REPLIES,
+  ADVISOR_PACK_200_PRICE_CAD,
+  ADVISOR_PACK_200_REPLIES,
+} from '@/config/advisorUsage'
 import { Disclaimer } from '@/components/Disclaimer'
 import { keyOfL, pickL } from '@/i18n/core'
 import type { Bi, LText } from '@/i18n/core'
@@ -61,6 +68,9 @@ export interface ChatPaneProps {
   readonly onPickProvince?: (province: Bi) => void
   /** Opens the Compliance Workspace sheet below the xl breakpoint. */
   readonly onOpenWorkspace?: () => void
+  /** Commercial 429: start prepaid pack Checkout. */
+  readonly onBuyAdvisorPack?: (pack: AdvisorPackSize) => void
+  readonly buyingAdvisorPack?: AdvisorPackSize | null
   /** Pill tint: warn while jurisdiction is unknown, support in supportive mode. */
   readonly jurisdictionTone?: JurisdictionPillTone
 }
@@ -90,6 +100,46 @@ function docTitle(templateKey: string): LText {
   return resolveDocTitle(templateKey)
 }
 
+function packBuyLabel(count: number, price: number, lang: 'en' | 'fr'): string {
+  const template = pickL(M.advisorview_pack_buy, lang)
+  return template.replace('{count}', String(count)).replace('{price}', String(price))
+}
+
+function AdvisorPackOffer({
+  buying,
+  onBuy,
+}: {
+  readonly buying: AdvisorPackSize | null
+  readonly onBuy: (pack: AdvisorPackSize) => void
+}) {
+  const { x, lang } = useI18n()
+  const busy = buying !== null
+  return (
+    <div className="flex max-w-[520px] flex-col gap-[10px] rounded-[12px] border border-border bg-surface px-[14px] py-[12px]">
+      <div className="text-[13px] font-semibold text-text">{x(M.advisorview_pack_buy_heading)}</div>
+      <div className="flex flex-wrap gap-[8px]">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => onBuy(ADVISOR_PACK_50_REPLIES)}
+          className="cursor-pointer rounded-[7px] border border-border bg-accent-soft px-[13px] py-[7px] font-sans text-[12.5px] font-semibold text-accent disabled:cursor-wait disabled:opacity-60"
+        >
+          {packBuyLabel(ADVISOR_PACK_50_REPLIES, ADVISOR_PACK_50_PRICE_CAD, lang)}
+        </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => onBuy(ADVISOR_PACK_200_REPLIES)}
+          className="cursor-pointer rounded-[7px] border border-border bg-accent-soft px-[13px] py-[7px] font-sans text-[12.5px] font-semibold text-accent disabled:cursor-wait disabled:opacity-60"
+        >
+          {packBuyLabel(ADVISOR_PACK_200_REPLIES, ADVISOR_PACK_200_PRICE_CAD, lang)}
+        </button>
+      </div>
+      <Disclaimer variant="block" />
+    </div>
+  )
+}
+
 export function ChatPane({
   messages,
   busy,
@@ -106,6 +156,8 @@ export function ChatPane({
   onExportMessage,
   onPickProvince,
   onOpenWorkspace,
+  onBuyAdvisorPack,
+  buyingAdvisorPack = null,
   jurisdictionTone = 'gold',
 }: ChatPaneProps) {
   const { x, lang } = useI18n()
@@ -158,6 +210,8 @@ export function ChatPane({
                 onCopyMessage={onCopyMessage}
                 onExportMessage={onExportMessage}
                 onPickProvince={onPickProvince}
+                onBuyAdvisorPack={onBuyAdvisorPack}
+                buyingAdvisorPack={buyingAdvisorPack}
               />
             ),
           )}
@@ -220,6 +274,8 @@ interface AdvisorTurnProps {
   readonly onCopyMessage: (text: string) => void
   readonly onExportMessage: (text: string) => void
   readonly onPickProvince?: (province: Bi) => void
+  readonly onBuyAdvisorPack?: (pack: AdvisorPackSize) => void
+  readonly buyingAdvisorPack?: AdvisorPackSize | null
 }
 
 function AdvisorTurn({
@@ -234,6 +290,8 @@ function AdvisorTurn({
   onCopyMessage,
   onExportMessage,
   onPickProvince,
+  onBuyAdvisorPack,
+  buyingAdvisorPack = null,
 }: AdvisorTurnProps) {
   const { x, lang } = useI18n()
   const navigate = useNavigate()
@@ -400,6 +458,10 @@ function AdvisorTurn({
                   onClick: () => navigate(chip.to),
                 }))}
               />
+            )}
+
+            {done && extras?.advisorPackOffer && onBuyAdvisorPack && (
+              <AdvisorPackOffer buying={buyingAdvisorPack} onBuy={onBuyAdvisorPack} />
             )}
           </>
         )}

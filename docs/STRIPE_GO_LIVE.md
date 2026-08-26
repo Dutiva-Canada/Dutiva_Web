@@ -41,7 +41,10 @@ Dashboard → Project Settings → Edge Functions → Secrets, or
 | `STRIPE_PRICE_STARTER_ANNUAL` | checkout, webhook | Optional for a **monthly-only** first ship; **required** before un-hiding the annual toggle on `/pricing` |
 | `STRIPE_PRICE_GROWTH_ANNUAL` | checkout, webhook | same |
 | `STRIPE_PRICE_PRO_ANNUAL` | checkout, webhook | same |
-| `SITE_URL` | checkout, portal | **`https://dutiva.ca`** (apex — not `www`) |
+| `STRIPE_PRICE_ADVISOR_PACK_50` | pack checkout, webhook | One-time **$5 CAD** / 50 replies. Create Product “Advisor replies (50)”. |
+| `STRIPE_PRICE_ADVISOR_PACK_200` | pack checkout, webhook | One-time **$15 CAD** / 200 replies. Create Product “Advisor replies (200)”. |
+| `STRIPE_ADVISOR_METER_EVENT_NAME` | advisor-chat | Stripe Billing Meter event name for opt-in overage. Unset = overage denied. |
+| `SITE_URL` | checkout, portal, pack checkout | **`https://dutiva.ca`** (apex — not `www`) |
 
 Until `STRIPE_SECRET_KEY` (and the price id for the clicked plan) are set,
 `create-checkout-session` answers `503 Payments not configured.`
@@ -106,6 +109,14 @@ Expect after a successful test purchase:
 - at least one new row in `public.stripe_webhook_events`
 - `current_user_is_workspace_member()` is true for that user (paid-profile
   path from migration `0089_paid_subscribers_are_workspace_members`)
+
+Expect after a successful pack purchase:
+
+- a row in `public.ai_advisor_credits` for that `user_id` with `remaining_replies` 50 or 200
+- `stripe_checkout_id` unique — replaying the webhook must not double-credit
+- `profiles.plan` **unchanged**
+
+Internal `@dutiva.ca` accounts skip pack payment.
 
 ## 5. After smoke (annual, later)
 

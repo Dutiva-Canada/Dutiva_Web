@@ -13,6 +13,8 @@ import type { AdvisorTurnSpec, ChatMessage, ToneCardData } from '@/features/app/
 import { useAuth } from '@/features/app/auth/authContext'
 import { AdvisorUsageLimitError, sendAdvisorMessage } from '@/features/app/advisor/chatApi'
 import { usageLimitReply } from '@/features/app/advisor/usageLimit'
+import { startAdvisorPackCheckout } from '@/features/app/advisor/packCheckout'
+import type { AdvisorPackSize } from '@/config/advisorUsage'
 import { detectCrisisSignal } from '@/features/app/advisor/safety'
 import { reportSafetyEvent } from '@/features/app/advisor/safetyTelemetry'
 import { usePayRail, useWellbeingRail } from '@/features/app/rail/useEntityRails'
@@ -108,6 +110,7 @@ export function AdvisorView() {
   const workspaceModeCtx = useWorkspaceMode()
   const { mode: workspaceMode, organizationId } = workspaceModeCtx
   const [sendingReal, setSendingReal] = useState(false)
+  const [buyingAdvisorPack, setBuyingAdvisorPack] = useState<AdvisorPackSize | null>(null)
   const {
     sessionChats,
     updateSessionChats,
@@ -536,14 +539,17 @@ export function AdvisorView() {
   /**
    * Shared failure handling for the two real-backend send paths.
    *
-   * A beta usage limit is not an outage: it answers as an ordinary Advisor
-   * turn explaining when the Advisor frees up and that the rest of the product
-   * is unaffected. The red error turn is reserved for things that are actually
-   * broken — its Retry button would only earn a second refusal here.
+   * A usage limit is not an outage: it answers as an ordinary Advisor turn.
+   * Commercial limits offer prepaid packs. Abuse rails (burst/daily/platform)
+   * stay wait-only. The red error turn is reserved for things that are
+   * actually broken — its Retry button would only earn a second refusal here.
    */
   const handleRealChatFailure = (error: unknown) => {
     if (error instanceof AdvisorUsageLimitError) {
-      pushAdvisor({ text: usageLimitReply(error) })
+      const turnId = pushAdvisor({ text: usageLimitReply(error) })
+      if (error.scope === 'commercial') {
+        updateExtras((prev) => ({ ...prev, [turnId]: { advisorPackOffer: true } }))
+      }
       return
     }
     console.error('advisor: real chat request failed', error)
@@ -555,6 +561,26 @@ export function AdvisorView() {
     })
   }
 
+  const handleBuyAdvisorPack = (pack: AdvisorPackSize) => {
+    if (buyingAdvisorPack) return
+    setBuyingAdvisorPack(pack)
+    void startAdvisorPackCheckout(pack)
+      .then((result) => {
+        if (result.kind === 'bypass') {
+          showToast(M.advisorview_pack_internal_skip, 'info')
+          return
+        }
+        window.location.assign(result.url)
+      })
+      .catch((error) => {
+        console.error('advisor: pack checkout failed', error)
+        showToast(M.advisorview_pack_checkout_failed, 'info')
+      })
+      .finally(() => {
+        setBuyingAdvisorPack(null)
+      })
+  }
+
   const startFlow = (flowKey: FlowKeyOrFallback, userText: LText) => {
     stashActive()
     const id = `session-${advisorSession.nextChatSeq++}`
@@ -563,10 +589,7 @@ export function AdvisorView() {
       flowKey === 'fallback'
         ? conversationTitle([{ role: 'user', content: userTextString }])
         : flowTitles[flowKey]
-    updateSessionChats((prev) => [
-      { id, title, pinned: false, bucket: 'today', flowKey },
-      ...prev,
-    ])
+    updateSessionChats((prev) => [{ id, title, pinned: false, bucket: 'today', flowKey }, ...prev])
     updateActiveChatId(id)
     conversationIdRef.current = null
     engine.reset([])
@@ -918,6 +941,8 @@ export function AdvisorView() {
             onExportMessage={handleExportMessage}
             onPickProvince={pickProvince}
             onOpenWorkspace={() => setWorkspaceOpen(true)}
+            onBuyAdvisorPack={handleBuyAdvisorPack}
+            buyingAdvisorPack={buyingAdvisorPack}
           />
           <ComplianceWorkspace
             state={workspaceState}

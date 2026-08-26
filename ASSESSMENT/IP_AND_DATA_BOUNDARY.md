@@ -66,7 +66,7 @@ Public law is the **input**. Dutiva's proprietary work is the **selection, norma
 
 Dutiva uses remote AI APIs (DigitalOcean Gradient AI for the Advisor, Hugging Face for law monitoring). The repository does not contain model weights, but it does contain the prompts and integration code. Before any public release:
 
-- Review the provider terms for the current model (`mistral-3-14B` via DigitalOcean Gradient AI, `mistralai/Mistral-7B-Instruct-v0.3` via Hugging Face).
+- Review the provider terms for the current Advisor model (`deepseek-3.2` via DigitalOcean Gradient AI) and the law-monitor model (`mistralai/Mistral-7B-Instruct-v0.3` via Hugging Face).
 - Confirm that publishing client/edge-function source that constructs prompts does not violate provider terms.
 - **LEGAL REVIEW REQUIRED** for AI provider commercial-use and data-retention terms.
 - On-device or customer-LAN completion is not a current path. If it is ever

@@ -432,6 +432,55 @@ describe('AdvisorView', () => {
       ).not.toBeInTheDocument()
       expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
     })
+
+    it('offers prepaid reply packs on a commercial limit, not Retry', async () => {
+      const fakeSession = { user: { id: 'u1' } }
+      const invoke = vi.fn().mockResolvedValue({
+        data: null,
+        error: Object.assign(new Error('Edge Function returned a non-2xx status code'), {
+          context: {
+            status: 429,
+            json: () =>
+              Promise.resolve({
+                code: 'ai_usage_limit',
+                scope: 'commercial',
+                retry_after_seconds: 86_400,
+              }),
+          },
+        }),
+      })
+      vi.doMock('@/lib/supabaseClient', () => ({
+        supabase: {
+          auth: {
+            getSession: () => Promise.resolve({ data: { session: fakeSession } }),
+            onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+          },
+          rpc: vi.fn(() => Promise.resolve({ data: true, error: null })),
+          from: mockFrom(),
+          functions: { invoke },
+        },
+      }))
+      vi.resetModules()
+
+      const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+      const { AdvisorView: AdvisorViewFresh } = await import('./AdvisorView')
+      const { resetAdvisorSession: resetAdvisorSessionFresh } = await import('./advisorSession')
+      resetAdvisorSessionFresh()
+
+      renderAppFresh(<AdvisorViewFresh />, { route: '/app/advisor' })
+
+      const composer = await screen.findByPlaceholderText('Ask Advisor anything about your team…')
+      fireEvent.change(composer, { target: { value: 'What notice does a 3-year employee get?' } })
+      fireEvent.keyDown(composer, { key: 'Enter' })
+
+      expect(
+        await screen.findByText(/80 included Advisor replies/, {}, { timeout: 8000 }),
+      ).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /50 replies/ })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /200 replies/ })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
+      expect(screen.queryByText(/beta Advisor limit/)).not.toBeInTheDocument()
+    })
   })
 
   describe('production mode', () => {

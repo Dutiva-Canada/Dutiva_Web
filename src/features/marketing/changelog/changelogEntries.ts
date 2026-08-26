@@ -19,6 +19,17 @@ export const CHANGELOG_ENTRIES: readonly ChangelogEntry[] = [
   {
     date: '2026-08-26',
     title: bi(
+      'Optional Advisor reply packs when you pass the included monthly amount',
+      'Forfaits facultatifs de réponses du Conseiller une fois le volume mensuel inclus dépassé',
+    ),
+    body: bi(
+      'Every admitted account has the same included Advisor replies each month. If you use them, you can buy a prepaid pack. Packs are not a plan feature — paying for a plan still buys founder-led support, not extra modules. Unused pack replies are not a cash refund.',
+      'Chaque compte admis a le même nombre de réponses du Conseiller incluses chaque mois. Si vous les utilisez, vous pouvez acheter un forfait prépayé. Les forfaits ne sont pas une fonction d’abonnement — payer un forfait achète encore du soutien mené par le fondateur, pas des modules supplémentaires. Les réponses de forfait inutilisées ne sont pas remboursées en argent.',
+    ),
+  },
+  {
+    date: '2026-08-26',
+    title: bi(
       'Paid plans open — waitlist stays for free seats',
       'Forfaits payants ouverts — la liste d’attente reste pour les places gratuites',
     ),

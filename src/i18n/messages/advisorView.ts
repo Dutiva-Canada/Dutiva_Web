@@ -119,6 +119,27 @@ export const advisorViewMessages = defineMessages({
   advisorview_usage_wait_hour: { en: 'an hour', fr: 'une heure' }, // [FR self-authored]
   advisorview_usage_wait_hours: { en: '{count} hours', fr: '{count} heures' }, // [FR self-authored]
 
+  advisorview_usage_limit_commercial: {
+    en: "You've used this month's {included} included Advisor replies. Packs of {pack50} are ${price50} CAD, or {pack200} for ${price200} CAD. Packs are not a plan feature — paying for a plan still buys support, not extra modules.",
+    fr: 'Vous avez utilisé les {included} réponses du Conseiller incluses ce mois-ci. Un forfait de {pack50} réponses coûte {price50} $ CA, ou {pack200} pour {price200} $ CA. Ces forfaits ne sont pas une fonction d’abonnement — payer un forfait achète du soutien, pas des modules supplémentaires.', // [FR self-authored]
+  },
+  advisorview_pack_buy_heading: {
+    en: 'Buy more Advisor replies',
+    fr: 'Acheter plus de réponses du Conseiller', // [FR self-authored]
+  },
+  advisorview_pack_buy: {
+    en: '{count} replies — ${price} CAD',
+    fr: '{count} réponses — {price} $ CA', // [FR self-authored]
+  },
+  advisorview_pack_internal_skip: {
+    en: 'Internal Dutiva accounts skip Advisor reply packs.',
+    fr: 'Les comptes internes Dutiva n’achètent pas de forfaits de réponses.', // [FR self-authored]
+  },
+  advisorview_pack_checkout_failed: {
+    en: 'Could not start pack checkout. Try again, or email support@dutiva.ca.',
+    fr: 'Impossible de démarrer le paiement du forfait. Réessayez, ou écrivez à support@dutiva.ca.', // [FR self-authored]
+  },
+
   /* Crisis intercept (AGENT.md §8) — deterministic, maintained copy shown
      instead of any model reply when the crisis pre-classifier fires. The
      9-8-8 sentence is the handoff's verbatim resource: maintained from

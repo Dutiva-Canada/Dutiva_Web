@@ -1,12 +1,18 @@
 /**
- * Beta usage guardrails for the generative AI surface — the policy half of
- * `claim_ai_usage` (supabase/migrations/0027_ai_usage_guardrails.sql).
+ * Usage guardrails for the generative AI surface — the policy half of
+ * `claim_ai_usage` (0027 abuse rails + 0091 commercial included/packs/overage).
  *
- * During the beta every feature is open to everyone on the beta list and no
- * plan is sold, so the AI API is the only surface that turns a signed-in user
- * into an upstream bill. These are the ceilings that keep "open beta" from
- * meaning "unmetered". They are generous by design: a guardrail that a real
- * HR workday can hit is a product defect, not a saving.
+ * Two layers, kept separate on purpose:
+ *
+ *   * Abuse rails (burst / daily request / daily tokens / platform) — never
+ *     for sale. A 429 here is a wait, not a buy path.
+ *   * Commercial included — monthly Advisor-reply budget on operation `chat`
+ *     only. Exhausted included + empty pack credits (+ no opted-in overage)
+ *     is `scope = 'commercial'`, which the Advisor answers with a pack CTA.
+ *
+ * Numbers here are env fallbacks. The product catalogue lives in
+ * `src/config/advisorUsage.ts` (Deno cannot import `src/`); keep the two in
+ * step — `canonicalFacts.test.ts` greps these fallbacks.
  *
  * Shape of the mechanism (limits here, enforcement in SQL — same split as
  * report-error / ingest_client_error_report):
@@ -38,8 +44,17 @@ export type MeteredOperation = 'chat' | 'support_firstline'
  */
 export const METERED_OPERATIONS: MeteredOperation[] = ['chat', 'support_firstline']
 
+/**
+ * Operations that draw on the monthly included budget and pack credits.
+ * Support first-line stays on abuse rails only — it is not a pack SKU.
+ */
+export const COMMERCIAL_OPERATIONS: MeteredOperation[] = ['chat']
+
+export type CommercialSource = 'included' | 'pack' | 'overage'
+
 /** Which ceiling refused the call. Mirrors the RPC's `scope` values. */
-export type UsageScope = 'burst' | 'daily' | 'daily_tokens' | 'platform_daily' | 'unauthenticated'
+export type UsageScope =
+  'burst' | 'daily' | 'daily_tokens' | 'platform_daily' | 'commercial' | 'unauthenticated'
 
 export interface UsagePolicy {
   operation: MeteredOperation
@@ -80,6 +95,32 @@ function sharedCeilings() {
 }
 
 /**
+ * Monthly included Advisor replies. Fallback must match
+ * `ADVISOR_MONTHLY_INCLUDED` in src/config/advisorUsage.ts.
+ */
+export function monthlyChatLimit(): number {
+  return envInt('AI_MONTHLY_CHAT_LIMIT', 80)
+}
+
+function envFlag(name: string): boolean {
+  const raw =
+    typeof Deno !== 'undefined' && typeof Deno.env?.get === 'function'
+      ? Deno.env.get(name)
+      : undefined
+  return Boolean(raw && raw.trim())
+}
+
+/**
+ * Hard cap on extra billed replies this calendar month. Zero when the Stripe
+ * meter event name is unset — packs still work; waitlist accounts cannot be
+ * invoiced by accident. Fallback 500 must match `ADVISOR_OVERAGE_MONTHLY_CAP`.
+ */
+export function overageMonthlyCap(): number {
+  if (!envFlag('STRIPE_ADVISOR_METER_EVENT_NAME')) return 0
+  return envInt('AI_OVERAGE_MONTHLY_CAP', 500)
+}
+
+/**
  * Burst is per-operation (the RPC's burst count filters by operation) and
  * exists for a different threat than the daily budget: a retry loop or a
  * script, which shows up as ten calls in a minute rather than many over a day.
@@ -103,7 +144,7 @@ export function supportFirstLinePolicy(): UsagePolicy {
 }
 
 export type UsageDecision =
-  | { kind: 'allowed'; claimId: string }
+  | { kind: 'allowed'; claimId: string; commercialSource?: CommercialSource }
   | {
       kind: 'denied'
       scope: UsageScope
@@ -151,9 +192,17 @@ export function decisionFromRpc(payload: unknown): UsageDecision {
   }
   const verdict = payload as Record<string, unknown>
   if (verdict.allowed === true) {
-    return typeof verdict.claim_id === 'string' && verdict.claim_id.length > 0
-      ? { kind: 'allowed', claimId: verdict.claim_id }
-      : { kind: 'unavailable', reason: 'guardrail allowed the call without a claim' }
+    if (typeof verdict.claim_id !== 'string' || verdict.claim_id.length === 0) {
+      return { kind: 'unavailable', reason: 'guardrail allowed the call without a claim' }
+    }
+    const commercial = verdict.commercial
+    const commercialSource: CommercialSource | undefined =
+      commercial === 'included' || commercial === 'pack' || commercial === 'overage'
+        ? commercial
+        : undefined
+    return commercialSource
+      ? { kind: 'allowed', claimId: verdict.claim_id, commercialSource }
+      : { kind: 'allowed', claimId: verdict.claim_id }
   }
   if (verdict.allowed !== false) {
     return { kind: 'unavailable', reason: 'malformed guardrail verdict' }
@@ -192,6 +241,9 @@ export async function claimAiUsage(
       p_daily_token_limit: policy.dailyTokenLimit,
       p_platform_daily_limit: policy.platformDailyLimit,
       p_metered_operations: METERED_OPERATIONS,
+      p_monthly_chat_limit: monthlyChatLimit(),
+      p_commercial_operations: COMMERCIAL_OPERATIONS,
+      p_overage_monthly_cap: overageMonthlyCap(),
     })
     if (error) return { kind: 'unavailable', reason: error.message }
     return decisionFromRpc(data)
@@ -252,11 +304,14 @@ export const AI_USAGE_LIMIT_CODE = 'ai_usage_limit'
  * worded for a developer reading a log, and as a safe last resort.
  */
 export function usageLimitBody(decision: Extract<UsageDecision, { kind: 'denied' }>) {
+  const error =
+    decision.scope === 'platform_daily'
+      ? 'Dutiva has reached its beta-wide AI usage ceiling for today. Please try again later.'
+      : decision.scope === 'commercial'
+        ? 'You have used this month’s included Advisor replies. Buy a prepaid pack to continue.'
+        : 'You have reached the beta usage limit for Dutiva AI. Please try again later.'
   return {
-    error:
-      decision.scope === 'platform_daily'
-        ? 'Dutiva has reached its beta-wide AI usage ceiling for today. Please try again later.'
-        : 'You have reached the beta usage limit for Dutiva AI. Please try again later.',
+    error,
     code: AI_USAGE_LIMIT_CODE,
     scope: decision.scope,
     retry_after_seconds: decision.retryAfterSeconds,

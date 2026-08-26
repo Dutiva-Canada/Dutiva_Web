@@ -204,7 +204,10 @@ export const pricingMessages = defineMessages({
     en: 'Yes. Upgrade, downgrade, or cancel anytime from your billing settings. Downgrades and cancellations take effect at the end of your current billing period.',
     fr: 'Oui. Passez à un forfait supérieur ou inférieur, ou annulez à tout moment depuis vos paramètres de facturation. Les rétrogradations et les annulations prennent effet à la fin de votre période de facturation en cours.',
   },
-  pricing_faq_billing_q: { en: 'How does billing work?', fr: 'Comment fonctionne la facturation ?' },
+  pricing_faq_billing_q: {
+    en: 'How does billing work?',
+    fr: 'Comment fonctionne la facturation ?',
+  },
   pricing_faq_billing_a: {
     en: 'Paid plans are billed securely through Stripe in Canadian dollars, monthly. Annual billing is coming soon. Manage or cancel your subscription anytime.',
     fr: 'Les forfaits payants sont facturés en toute sécurité via Stripe en dollars canadiens, mensuellement. La facturation annuelle arrive bientôt. Gérez ou annulez votre abonnement à tout moment.',
@@ -232,5 +235,13 @@ export const pricingMessages = defineMessages({
   pricing_faq_multiclient_a: {
     en: 'Each Dutiva account is for one organization. HR consultants managing multiple clients should contact us about consultant pricing and multi-account options.',
     fr: 'Chaque compte Dutiva est destiné à une organisation. Les conseillers RH qui gèrent plusieurs clients devraient nous contacter pour les tarifs conseillers et les options multi-comptes.',
+  },
+  pricing_faq_packs_q: {
+    en: 'Are extra Advisor replies part of a paid plan?',
+    fr: 'Les réponses supplémentaires du Conseiller font-elles partie d’un forfait payant ?', // [FR self-authored]
+  },
+  pricing_faq_packs_a: {
+    en: 'No. Every admitted account has the same included Advisor replies each month. Prepaid packs are optional if you go past that — they are not a plan feature. Paying for a plan still buys founder-led support, not extra modules. On a paid subscription you can also opt in, in Settings, to bill extra replies at month end.',
+    fr: 'Non. Chaque compte admis a le même nombre de réponses du Conseiller incluses chaque mois. Les forfaits prépayés sont facultatifs si vous dépassez ce plafond — ce n’est pas une fonction d’abonnement. Payer un forfait achète encore du soutien mené par le fondateur, pas des modules supplémentaires. Avec un abonnement payant, vous pouvez aussi activer, dans les paramètres, la facturation des réponses en trop en fin de mois.', // [FR self-authored]
   },
 })

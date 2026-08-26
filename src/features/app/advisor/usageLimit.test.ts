@@ -66,4 +66,16 @@ describe('usageLimitReply', () => {
     expect(platform.en).toContain('beta-wide')
     expect(platform.en).not.toContain("You've hit")
   })
+
+  it('names the included amount and pack prices on a commercial limit', () => {
+    const reply = usageLimitReply(new AdvisorUsageLimitError('commercial', 86_400))
+    expect(reply.en).toContain('80 included')
+    expect(reply.en).toContain('$5')
+    expect(reply.en).toContain('$15')
+    expect(reply.en).toContain('not a plan feature')
+    expect(reply.en).not.toContain('unlimited')
+    expect(reply.fr).toContain('80')
+    expect(reply.fr).toContain('5 $')
+    expect(reply.en).not.toContain('{included}')
+  })
 })

@@ -1,10 +1,23 @@
 /*
- *   Copyright (c) 2026 
+ *   Copyright (c) 2026
  *   All rights reserved.
  */
 import { describe, expect, it } from 'vitest'
 import { BETA_COHORT_LIMIT } from '@/config/beta'
-import { ANNUAL_MONTHS_BILLED, PAID_PLANS_DISABLED_DURING_BETA, PLAN_FEATURE_GATES_ENABLED, PLANS } from '@/config/plans'
+import {
+  ADVISOR_MONTHLY_INCLUDED,
+  ADVISOR_OVERAGE_MONTHLY_CAP,
+  ADVISOR_PACK_50_PRICE_CAD,
+  ADVISOR_PACK_50_REPLIES,
+  ADVISOR_PACK_200_PRICE_CAD,
+  ADVISOR_PACK_200_REPLIES,
+} from '@/config/advisorUsage'
+import {
+  ANNUAL_MONTHS_BILLED,
+  PAID_PLANS_DISABLED_DURING_BETA,
+  PLAN_FEATURE_GATES_ENABLED,
+  PLANS,
+} from '@/config/plans'
 import { allTemplates } from '@/features/app/documents/catalogue'
 import {
   COVERAGE_AUDITED_ON,
@@ -150,6 +163,32 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
     expect(beta).toContain('sold')
     expect(beta).not.toContain('not sold')
     expect(beta).toContain('waitlist')
+  })
+
+  it('states the Advisor included amount and pack SKUs', () => {
+    const replies = row('Advisor replies')
+    expect(boldNumbers(replies).sort()).toEqual(
+      [
+        ADVISOR_MONTHLY_INCLUDED,
+        ADVISOR_PACK_50_REPLIES,
+        ADVISOR_PACK_50_PRICE_CAD,
+        ADVISOR_PACK_200_REPLIES,
+        ADVISOR_PACK_200_PRICE_CAD,
+        ADVISOR_OVERAGE_MONTHLY_CAP,
+      ].sort(),
+    )
+    expect(replies.toLowerCase()).toContain('not a plan feature')
+
+    const aiUsage = raw(
+      import.meta.glob('../supabase/functions/_shared/aiUsage.ts', {
+        query: '?raw',
+        import: 'default',
+        eager: true,
+      }),
+      'aiUsage.ts',
+    )
+    expect(aiUsage).toContain(`envInt('AI_MONTHLY_CHAT_LIMIT', ${ADVISOR_MONTHLY_INCLUDED})`)
+    expect(aiUsage).toContain(`envInt('AI_OVERAGE_MONTHLY_CAP', ${ADVISOR_OVERAGE_MONTHLY_CAP})`)
   })
 
   it('states the beta cohort capacity, in every copy of the number', () => {

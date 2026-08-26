@@ -30,7 +30,7 @@ import { reportSafetyEvent } from './safetyTelemetry'
  */
 
 /** Which ceiling refused the turn; mirrors the edge function's `scope`. */
-export type AdvisorUsageScope = 'burst' | 'daily' | 'daily_tokens' | 'platform_daily'
+export type AdvisorUsageScope = 'burst' | 'daily' | 'daily_tokens' | 'platform_daily' | 'commercial'
 
 export class AdvisorUsageLimitError extends Error {
   constructor(
@@ -43,7 +43,13 @@ export class AdvisorUsageLimitError extends Error {
   }
 }
 
-const USAGE_SCOPES: AdvisorUsageScope[] = ['burst', 'daily', 'daily_tokens', 'platform_daily']
+const USAGE_SCOPES: AdvisorUsageScope[] = [
+  'burst',
+  'daily',
+  'daily_tokens',
+  'platform_daily',
+  'commercial',
+]
 
 /**
  * supabase-js surfaces a non-2xx as a `FunctionsHttpError` carrying the raw

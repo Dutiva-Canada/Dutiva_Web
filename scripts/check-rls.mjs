@@ -64,6 +64,8 @@ const SENSITIVE_TABLES = [
   'hr_document_signatures',
   'hr_document_recipients',
   'hr_document_exports',
+  'ai_advisor_credits',
+  'ai_advisor_overage_months',
 ]
 
 /**

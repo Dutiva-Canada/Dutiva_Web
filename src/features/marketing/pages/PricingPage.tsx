@@ -304,6 +304,7 @@ const FAQ_ITEMS: { q: MarketingMessageKey; a: MarketingMessageKey }[] = [
   { q: 'pricing_faq_switch_q', a: 'pricing_faq_switch_a' },
   { q: 'pricing_faq_refund_q', a: 'pricing_faq_refund_a' },
   { q: 'pricing_faq_multiclient_q', a: 'pricing_faq_multiclient_a' },
+  { q: 'pricing_faq_packs_q', a: 'pricing_faq_packs_a' },
 ]
 
 /**
@@ -331,6 +332,12 @@ export function PricingPage() {
     planId?: string | null
   } | null>(null)
   const [searchParams, setSearchParams] = useSearchParams()
+  const noticeRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!notice) return
+    noticeRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
+  }, [notice])
 
   /* create-checkout-session's success_url/cancel_url land back here with
      ?checkout=success|cancelled (see supabase/functions/create-checkout-session).
@@ -476,6 +483,7 @@ export function PricingPage() {
 
       {notice ? (
         <Band>
+          <div ref={noticeRef}>
           {notice.tone === 'success' && notice.planId ? (
             <div
               role="status"
@@ -505,16 +513,17 @@ export function PricingPage() {
             </div>
           ) : (
             <div
-              role="status"
+              role={notice.tone === 'error' ? 'alert' : 'status'}
               className={
                 notice.tone === 'success'
                   ? 'rounded-xl border border-gold-border bg-gold-subtle px-4 py-3 text-sm text-gold-strong'
-                  : 'rounded-xl border border-border bg-bg-elevated px-4 py-3 text-sm text-text'
+                  : 'rounded-xl border border-risk-border bg-risk-bg px-4 py-3 text-sm text-risk-fg'
               }
             >
               {notice.text}
             </div>
           )}
+          </div>
         </Band>
       ) : null}
 

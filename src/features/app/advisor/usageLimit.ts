@@ -1,5 +1,12 @@
 import { bi } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
+import {
+  ADVISOR_MONTHLY_INCLUDED,
+  ADVISOR_PACK_50_PRICE_CAD,
+  ADVISOR_PACK_50_REPLIES,
+  ADVISOR_PACK_200_PRICE_CAD,
+  ADVISOR_PACK_200_REPLIES,
+} from '@/config/advisorUsage'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 import { AdvisorUsageLimitError } from './chatApi'
 
@@ -19,6 +26,14 @@ const HOUR = 60 * MINUTE
 
 function fill(template: string, token: string, value: string): string {
   return template.replace(token, value)
+}
+
+function fillMany(template: string, vars: Record<string, string>): string {
+  let out = template
+  for (const [token, value] of Object.entries(vars)) {
+    out = out.replaceAll(token, value)
+  }
+  return out
 }
 
 /** "a minute" / "20 minutes" / "an hour" / "3 hours", bilingual. */
@@ -51,6 +66,19 @@ export function usageWaitPhrase(seconds: number): Bi {
  * false.
  */
 export function usageLimitReply(error: AdvisorUsageLimitError): Bi {
+  if (error.scope === 'commercial') {
+    const vars = {
+      '{included}': String(ADVISOR_MONTHLY_INCLUDED),
+      '{pack50}': String(ADVISOR_PACK_50_REPLIES),
+      '{price50}': String(ADVISOR_PACK_50_PRICE_CAD),
+      '{pack200}': String(ADVISOR_PACK_200_REPLIES),
+      '{price200}': String(ADVISOR_PACK_200_PRICE_CAD),
+    }
+    return bi(
+      fillMany(M.advisorview_usage_limit_commercial.en, vars),
+      fillMany(M.advisorview_usage_limit_commercial.fr, vars),
+    )
+  }
   const wait = usageWaitPhrase(error.retryAfterSeconds)
   const template =
     error.scope === 'platform_daily'
