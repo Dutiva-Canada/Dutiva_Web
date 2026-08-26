@@ -2,8 +2,14 @@
   "trailingSlash": false,
   "redirects": [
     {
+      "source": "/",
+      "has": [{ "type": "host", "value": "(?<host>www\\.dutiva\\.ca)" }],
+      "destination": "https://dutiva.ca/",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "www.dutiva.ca" }],
+      "has": [{ "type": "host", "value": "(?<host>www\\.dutiva\\.ca)" }],
       "destination": "https://dutiva.ca/:path*",
       "permanent": true
     }

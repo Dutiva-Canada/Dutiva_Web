@@ -51,7 +51,12 @@ export function buildHead(input: HeadInput): HeadData {
 
   const tags: HeadTag[] = [
     meta('description', description),
-    meta('robots', indexable ? 'index, follow, max-image-preview:large' : 'noindex, nofollow'),
+    meta(
+      'robots',
+      indexable
+        ? 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'
+        : 'noindex, nofollow',
+    ),
   ]
 
   /* noindex pages (404, app shell) get title + description + robots only —

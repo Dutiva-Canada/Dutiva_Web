@@ -185,6 +185,28 @@ for (const { route, file } of pages) {
             fail(`${route}: JSON-LD URL off canonical origin: ${url[1]}`)
           }
         }
+        const graph = Array.isArray(parsed['@graph']) ? parsed['@graph'] : []
+        const types = new Set(
+          graph.flatMap((n) => (Array.isArray(n['@type']) ? n['@type'] : [n['@type']])),
+        )
+        const isEditorialArticle =
+          /^\/guides\/(?!template-usage$)[^/]+$/.test(route) ||
+          /^\/blog\/[^/]+$/.test(route) ||
+          /^\/fr\/guides\/(?!utilisation-des-modeles$)[^/]+$/.test(route) ||
+          /^\/fr\/blogue\/[^/]+$/.test(route)
+        if (isEditorialArticle) {
+          if (!types.has('Article')) fail(`${route}: editorial page missing Article JSON-LD`)
+          const article = graph.find((n) => n['@type'] === 'Article')
+          if (!article?.datePublished || !article?.dateModified) {
+            fail(`${route}: Article JSON-LD missing datePublished/dateModified`)
+          }
+        }
+        if (
+          route === '/guides/template-usage' ||
+          route === '/fr/guides/utilisation-des-modeles'
+        ) {
+          if (!types.has('HowTo')) fail(`${route}: template-usage missing HowTo JSON-LD`)
+        }
       } catch (e) {
         fail(`${route}: JSON-LD does not parse (${e.message})`)
       }
@@ -288,27 +310,54 @@ const robotsTxt = await readFile(path.join(dist, 'robots.txt'), 'utf8')
 if (!robotsTxt.includes(`Sitemap: ${ORIGIN}/sitemap.xml`)) {
   fail('robots.txt: missing production sitemap reference')
 }
+if (!robotsTxt.includes('Content-Signal: search=yes, ai-input=yes, ai-train=yes')) {
+  fail('robots.txt: missing Content-Signal opt-in (search / ai-input / ai-train)')
+}
 // Training crawlers (decided 2026-08-06, D4): opted in. All listed training
-// bots must be present with the same private-path exclusions as search bots.
+// bots must be present with Content-Signal + the same private-path exclusions.
 for (const bot of ['GPTBot', 'ClaudeBot', 'CCBot', 'Amazonbot', 'Google-Extended']) {
   if (!robotsTxt.includes(`User-agent: ${bot}`))
     fail(`robots.txt: missing group for training bot ${bot}`)
-  if (!new RegExp(String.raw`User-agent: ${bot}\nDisallow: /app\n`).test(robotsTxt)) {
-    fail(`robots.txt: training bot ${bot} group must repeat the /app exclusions`)
+  if (
+    !new RegExp(
+      String.raw`User-agent: ${bot}\nContent-Signal: search=yes, ai-input=yes, ai-train=yes\nDisallow: /app\n`,
+    ).test(robotsTxt)
+  ) {
+    fail(`robots.txt: training bot ${bot} group must repeat Content-Signal + /app exclusions`)
   }
 }
-for (const bot of ['OAI-SearchBot', 'Claude-SearchBot', 'PerplexityBot', '*']) {
+const searchAndFetchBots = [
+  'OAI-SearchBot',
+  'ChatGPT-User',
+  'Claude-SearchBot',
+  'Claude-User',
+  'PerplexityBot',
+  'Perplexity-User',
+  'Googlebot',
+  'bingbot',
+  'Applebot-Extended',
+  'meta-externalagent',
+  '*',
+]
+for (const bot of searchAndFetchBots) {
   if (!robotsTxt.includes(`User-agent: ${bot}`)) fail(`robots.txt: missing group for ${bot}`)
 }
-// Search bots must repeat the private-path exclusions — a bot-specific group
-// replaces the * group entirely, so a bare group would open /app to them.
-for (const bot of ['OAI-SearchBot', 'Claude-SearchBot', 'PerplexityBot']) {
-  if (!new RegExp(String.raw`User-agent: ${bot}\nDisallow: /app\n`).test(robotsTxt)) {
-    fail(`robots.txt: ${bot} group must repeat the /app exclusions`)
+// Named groups replace * entirely, so each must repeat Content-Signal + /app.
+for (const bot of searchAndFetchBots.filter((b) => b !== '*')) {
+  if (
+    !new RegExp(
+      String.raw`User-agent: ${bot}\nContent-Signal: search=yes, ai-input=yes, ai-train=yes\nDisallow: /app\n`,
+    ).test(robotsTxt)
+  ) {
+    fail(`robots.txt: ${bot} group must repeat Content-Signal + /app exclusions`)
   }
 }
-if (!/User-agent: \*\nDisallow: \/app\n/.test(robotsTxt)) {
-  fail('robots.txt: general group must disallow /app')
+if (
+  !/User-agent: \*\nContent-Signal: search=yes, ai-input=yes, ai-train=yes\nDisallow: \/app\n/.test(
+    robotsTxt,
+  )
+) {
+  fail('robots.txt: general group must declare Content-Signal and disallow /app')
 }
 
 /* ---------- llms.txt ---------- */

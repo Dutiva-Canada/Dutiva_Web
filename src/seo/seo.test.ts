@@ -6,8 +6,10 @@ import { describe, expect, it } from 'vitest'
 import { parseDisplayDate } from './dates'
 import { buildHead, serializeHead } from './head'
 import {
+  articleNode,
   breadcrumbNode,
   faqPageEntities,
+  howToNode,
   jsonLdDocument,
   organizationNode,
   personNode,
@@ -208,14 +210,14 @@ describe('JSON-LD builders', () => {
     expect(org.name).toBe('Dutiva')
     expect(org.email).toBe(ORG.supportEmail)
     expect(org.founder).toEqual({ '@id': `${SITE_ORIGIN}/#founder` })
-    // No invented facts. Organization does not carry sameAs (the Person node does).
+    expect(org.sameAs).toEqual([ORG.linkedinUrl])
+    // No invented facts.
     expect(org).not.toHaveProperty('address')
     expect(org).not.toHaveProperty('foundingDate')
-    expect(org).not.toHaveProperty('sameAs')
     expect(org).not.toHaveProperty('aggregateRating')
   })
 
-  it('describes the named founder with LinkedIn sameAs and an on-origin photo', () => {
+  it('describes the named founder with LinkedIn sameAs, alumniOf, and an on-origin photo', () => {
     const person = personNode('en')
     expect(person).toMatchObject({
       '@type': 'Person',
@@ -224,9 +226,14 @@ describe('JSON-LD builders', () => {
       jobTitle: FOUNDER.jobTitle.en,
       image: `${SITE_ORIGIN}${FOUNDER.photoPath}`,
       sameAs: [FOUNDER.linkedinUrl],
+      alumniOf: { '@type': 'CollegeOrUniversity', name: FOUNDER.alumniOf.en },
       worksFor: { '@id': `${SITE_ORIGIN}/#organization` },
     })
     expect(personNode('fr').jobTitle).toBe(FOUNDER.jobTitle.fr)
+    expect(personNode('fr').alumniOf).toEqual({
+      '@type': 'CollegeOrUniversity',
+      name: FOUNDER.alumniOf.fr,
+    })
   })
 
   it('links WebSite and WebApplication to the organization', () => {
@@ -282,6 +289,54 @@ describe('JSON-LD builders', () => {
       inLanguage: 'fr-CA',
       datePublished: '2026-06-01',
     })
+  })
+
+  it('builds Article nodes authored by the founder with real dates', () => {
+    const node = articleNode({
+      lang: 'en',
+      path: '/blog/quebec-employment-standards',
+      headline: 'Quebec employment standards',
+      description: 'What differs from Ontario.',
+      datePublished: '2026-08-01',
+      dateModified: '2026-08-01',
+    })
+    expect(node).toMatchObject({
+      '@type': 'Article',
+      '@id': `${SITE_ORIGIN}/blog/quebec-employment-standards#article`,
+      author: { '@id': `${SITE_ORIGIN}/#founder` },
+      publisher: { '@id': `${SITE_ORIGIN}/#organization` },
+      datePublished: '2026-08-01',
+      dateModified: '2026-08-01',
+      mainEntityOfPage: { '@id': `${SITE_ORIGIN}/blog/quebec-employment-standards#webpage` },
+    })
+  })
+
+  it('builds HowTo nodes from visible steps', () => {
+    const node = howToNode({
+      lang: 'en',
+      path: '/guides/template-usage',
+      name: 'How to use Dutiva templates.',
+      description: 'Guided generation.',
+      steps: [
+        { name: 'Pick a template', text: 'Choose from the catalogue.' },
+        { name: 'Answer guided questions', text: 'Jurisdiction and situation.' },
+      ],
+    })
+    expect(node['@type']).toBe('HowTo')
+    expect(node.step).toEqual([
+      {
+        '@type': 'HowToStep',
+        position: 1,
+        name: 'Pick a template',
+        text: 'Choose from the catalogue.',
+      },
+      {
+        '@type': 'HowToStep',
+        position: 2,
+        name: 'Answer guided questions',
+        text: 'Jurisdiction and situation.',
+      },
+    ])
   })
 })
 

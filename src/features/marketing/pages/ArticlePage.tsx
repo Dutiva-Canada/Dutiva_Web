@@ -2,6 +2,7 @@ import { Link, Navigate, useLocation, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Info } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { Seo } from '@/seo/Seo'
+import { articleNode } from '@/seo/jsonld'
 import { articleDescription, articleTitle, langOfPath, seoRoute } from '@/seo/routes'
 import { usePublicPath } from '@/seo/usePublicPath'
 import {
@@ -71,7 +72,19 @@ export function ArticlePage({ collection }: { readonly collection: ArticleCollec
           path: { en: articlePath(article, 'en'), fr: articlePath(article, 'fr') },
           indexable: true,
         }}
+        datePublished={article.updated}
+        dateModified={article.updated}
         breadcrumb={trail}
+        extraNodes={[
+          articleNode({
+            lang,
+            path: articlePath(article, lang),
+            headline: articleTitle(article, lang),
+            description: articleDescription(article, lang),
+            datePublished: article.updated,
+            dateModified: article.updated,
+          }),
+        ]}
       />
       <Breadcrumbs items={trail} />
 

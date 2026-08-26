@@ -28,8 +28,8 @@ export function absoluteUrl(pathname: string): string {
  * Verified organization facts only (see docs/SEO_GEO_IMPLEMENTATION.md).
  * Do not add addresses, founding dates, ratings, or other properties here
  * unless they are real, public, and visible on the site. Social profiles
- * belong only when published on the site (currently the founder's LinkedIn
- * on `FOUNDER`).
+ * belong only when published on the site (`ORG.linkedinUrl` and
+ * `FOUNDER.linkedinUrl`).
  */
 export const ORG = {
   /** Registered legal name. */
@@ -40,6 +40,8 @@ export const ORG = {
   supportEmail: 'support@dutiva.ca',
   /** Public legal contact, visible on /legal. */
   legalEmail: 'legal@dutiva.ca',
+  /** Company LinkedIn — published on `/about`; feeds Organization `sameAs`. */
+  linkedinUrl: 'https://www.linkedin.com/company/dutiva-canada',
   /** Brand mark shipped in /public — also used as the JSON-LD logo. */
   logoPath: '/brand/dutiva-leaf.png',
   logoWidth: 1275,
@@ -55,6 +57,11 @@ export const FOUNDER = {
   jobTitle: { en: 'Founder & CEO', fr: 'Fondateur et chef de la direction' },
   linkedinUrl: 'https://www.linkedin.com/in/martinconstantineau/',
   photoPath: '/brand/martin-constantineau.jpg',
+  /**
+   * Education published on `/about` — only institutions named on the page.
+   * Used as Person `alumniOf` in JSON-LD; do not invent credentials.
+   */
+  alumniOf: { en: 'Algonquin College', fr: 'Collège Algonquin' },
 } as const
 
 /** One-sentence positioning, kept consistent across pages, schema, and llms.txt. */

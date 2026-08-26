@@ -71,8 +71,8 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
     id: 'home',
     path: { en: '/', fr: '/fr' },
     title: {
-      en: 'Dutiva — HR compliance software for Canadian employers',
-      fr: 'Dutiva — Logiciel de conformité RH pour les employeurs canadiens',
+      en: 'Dutiva — Canadian HR compliance for documents, deadlines, and workplace decisions',
+      fr: 'Dutiva — Soutien à la conformité RH canadienne pour les documents, échéances et décisions',
     },
     description: {
       en: 'Dutiva helps Canadian employers manage HR compliance — documents, deadlines, and decisions — with AI-assisted guidance for ON, QC, and federal workplaces.',
@@ -147,8 +147,8 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
     id: 'templateUsage',
     path: { en: '/guides/template-usage', fr: '/fr/guides/utilisation-des-modeles' },
     title: {
-      en: 'How to use Dutiva’s HR document templates',
-      fr: 'Comment utiliser les modèles de documents RH de Dutiva',
+      en: 'How to use Dutiva templates.',
+      fr: 'Comment utiliser les modèles Dutiva.',
     },
     description: t('tmplGuide_meta_description'),
     indexable: true,

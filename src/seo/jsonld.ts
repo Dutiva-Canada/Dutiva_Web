@@ -12,7 +12,8 @@ import { FOUNDER, ORG, ORG_DESCRIPTION, SITE_ORIGIN, absoluteUrl } from './site'
  *
  * Rules (docs/SEO_GEO_IMPLEMENTATION.md): only verified, visible facts.
  * No ratings, reviews, awards, addresses, or founding dates. Social
- * profiles only when published on the site (currently the founder's LinkedIn).
+ * profiles only when published on the site (founder LinkedIn on Person;
+ * company LinkedIn on Organization).
  */
 
 export type JsonLdNode = Record<string, unknown>
@@ -39,6 +40,7 @@ export function organizationNode(lang: Lang): JsonLdNode {
       width: ORG.logoWidth,
       height: ORG.logoHeight,
     },
+    sameAs: [ORG.linkedinUrl],
     areaServed: { '@type': 'Country', name: 'Canada' },
     knowsLanguage: ['en-CA', 'fr-CA'],
     founder: { '@id': FOUNDER_ID },
@@ -55,6 +57,10 @@ export function personNode(lang: Lang): JsonLdNode {
     jobTitle: FOUNDER.jobTitle[lang],
     image: absoluteUrl(FOUNDER.photoPath),
     sameAs: [FOUNDER.linkedinUrl],
+    alumniOf: {
+      '@type': 'CollegeOrUniversity',
+      name: FOUNDER.alumniOf[lang],
+    },
     worksFor: { '@id': ORG_ID },
   }
 }
@@ -170,6 +176,73 @@ export function faqPageEntities(entries: FaqEntry[]): JsonLdNode[] {
     name: entry.question,
     acceptedAnswer: { '@type': 'Answer', text: entry.answer },
   }))
+}
+
+export interface ArticleNodeInput {
+  lang: Lang
+  path: string
+  headline: string
+  description: string
+  /** Real content dates only (ISO 8601). Never the build date. */
+  datePublished: string
+  dateModified: string
+}
+
+/**
+ * Editorial Article node for `/guides/:slug` and `/blog/:slug`. Author is the
+ * founder Person `@id` already in the same `@graph`. Dates must match the
+ * article's authored `updated` field (and any visible date on the page).
+ */
+export function articleNode(input: ArticleNodeInput): JsonLdNode {
+  const url = absoluteUrl(input.path)
+  return {
+    '@type': 'Article',
+    '@id': `${url}#article`,
+    headline: input.headline,
+    description: input.description,
+    datePublished: input.datePublished,
+    dateModified: input.dateModified,
+    inLanguage: LOCALE_TAG[input.lang],
+    author: { '@id': FOUNDER_ID },
+    publisher: { '@id': ORG_ID },
+    isPartOf: { '@id': WEBSITE_ID },
+    mainEntityOfPage: { '@id': `${url}#webpage` },
+  }
+}
+
+export interface HowToStepInput {
+  name: string
+  text: string
+}
+
+export interface HowToNodeInput {
+  lang: Lang
+  path: string
+  name: string
+  description: string
+  /** Ordered steps that are visibly rendered on the page. */
+  steps: HowToStepInput[]
+}
+
+/**
+ * HowTo node for pages that show an ordered procedure (e.g. template-usage).
+ * Steps must come from the same catalogue the page renders.
+ */
+export function howToNode(input: HowToNodeInput): JsonLdNode {
+  const url = absoluteUrl(input.path)
+  return {
+    '@type': 'HowTo',
+    '@id': `${url}#howto`,
+    name: input.name,
+    description: input.description,
+    inLanguage: LOCALE_TAG[input.lang],
+    step: input.steps.map((step, index) => ({
+      '@type': 'HowToStep',
+      position: index + 1,
+      name: step.name,
+      text: step.text,
+    })),
+  }
 }
 
 /** Wraps graph nodes into a single serializable JSON-LD document. */
