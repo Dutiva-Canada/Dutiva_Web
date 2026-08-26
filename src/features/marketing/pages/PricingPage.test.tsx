@@ -39,7 +39,7 @@ describe('PricingPage', () => {
     expect(
       screen.getByRole('heading', {
         level: 1,
-        name: 'Start structured. Upgrade as your HR workflow grows.',
+        name: 'Pick a plan that fits today. Upgrade when your HR work grows.',
       }),
     ).toBeInTheDocument()
 
@@ -99,7 +99,7 @@ describe('PricingPage', () => {
     expect(
       screen.getByRole('heading', {
         level: 1,
-        name: 'Commencez de façon structurée. Évoluez à mesure que vos RH grandissent.',
+        name: 'Choisissez un forfait qui convient aujourd’hui. Évoluez quand vos RH grandissent.',
       }),
     ).toBeInTheDocument()
   })

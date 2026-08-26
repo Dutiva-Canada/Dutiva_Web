@@ -411,7 +411,7 @@ describe('AnalyticsView in production mode', () => {
     renderAppFresh(<AnalyticsViewFresh />, { route: '/app/analytics', path: '/app/analytics' })
 
     expect(
-      await screen.findByText('Computed live from your workspace records.'),
+      await screen.findByText('From your workspace records.'),
     ).toBeInTheDocument()
 
     /* Components: policies 1/2 = 50, provenanced tasks 1/1 = 100,
@@ -488,7 +488,7 @@ describe('AnalyticsView in production mode', () => {
     renderAppFresh(<AnalyticsViewFresh />, { route: '/app/analytics', path: '/app/analytics' })
 
     expect(
-      await screen.findByText('Computed live from your workspace records.'),
+      await screen.findByText('From your workspace records.'),
     ).toBeInTheDocument()
 
     /* Policies 100 + tasks 100 + findings 1/9 weight (11) blend to 70 —
@@ -551,7 +551,7 @@ describe('AnalyticsView in production mode', () => {
     renderAppFresh(<AnalyticsViewFresh />, { route: '/app/analytics', path: '/app/analytics' })
 
     expect(
-      await screen.findByText('Computed live from your workspace records.'),
+      await screen.findByText('From your workspace records.'),
     ).toBeInTheDocument()
 
     /* Attention: both dated rows are overdue; the case (2020-01-01) sorts
@@ -698,7 +698,7 @@ describe('AnalyticsView in production mode', () => {
     renderAppFresh(<AnalyticsViewFresh />, { route: '/app/analytics', path: '/app/analytics' })
 
     expect(
-      await screen.findByText('Computed live from your workspace records.'),
+      await screen.findByText('From your workspace records.'),
     ).toBeInTheDocument()
 
     /* A · Certifications: 1 expired + 1 inside 30 days, list one tap away. */

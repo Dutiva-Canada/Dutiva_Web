@@ -131,7 +131,7 @@ export const communicationsMessages = defineMessages({
   comms_prod_confirm_delete: { en: 'Remove', fr: 'Retirer' },
   comms_prod_review_rail_title: { en: 'Advisor review', fr: 'Examen du Conseiller' },
   comms_prod_review_rail_body: {
-    en: 'Tone, legal, clarity, and policy checks return when an Advisor pass over a draft actually exists. Nothing here is scored until then.',
-    fr: 'Les vérifications de ton, juridiques, de clarté et de politiques reviendront lorsqu’un passage du Conseiller sur un brouillon existera réellement. Rien n’est évalué ici d’ici là.',
+    en: 'Tone, legal, clarity, and policy checks appear when Advisor has reviewed a draft.',
+    fr: 'Les vérifications de ton, juridiques, de clarté et de politiques apparaissent lorsque le Conseiller a examiné un brouillon.',
   },
 })

@@ -84,12 +84,12 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
     id: 'about',
     path: { en: '/about', fr: '/fr/a-propos' },
     title: {
-      en: 'About Dutiva — HR compliance infrastructure, built in Canada',
-      fr: 'À propos de Dutiva — Infrastructure de conformité RH conçue au Canada',
+      en: 'About Dutiva — HR compliance software, built in Canada',
+      fr: 'À propos de Dutiva — Logiciel de conformité RH conçu au Canada',
     },
     description: {
-      en: 'Dutiva Canada Inc. builds HR compliance infrastructure for Canadian employers — AI-assisted, bilingual, and built in Canada. Meet the founder.',
-      fr: 'Dutiva Canada Inc. conçoit une infrastructure de conformité RH pour les employeurs canadiens — IA, bilingue, conçue au Canada. Rencontrez le fondateur.',
+      en: 'Dutiva Canada Inc. builds HR compliance software for Canadian employers — AI-assisted, bilingual, and built in Canada. Meet the founder.',
+      fr: 'Dutiva Canada Inc. conçoit un logiciel de conformité RH pour les employeurs canadiens — IA, bilingue, conçu au Canada. Rencontrez le fondateur.',
     },
     indexable: true,
   },
@@ -222,7 +222,7 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       en: 'Changelog — product updates | Dutiva',
       fr: 'Journal des modifications — mises à jour | Dutiva',
     },
-    description: t('changelog_intro'),
+    description: t('changelog_meta_description'),
     indexable: true,
   },
   {

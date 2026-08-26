@@ -421,9 +421,9 @@ describe('AdvisorView', () => {
       /* The reply streams in, so wait on the tail of the sentence — the
          reassurance that the rest of the product still works. */
       expect(
-        await screen.findByText(/Every other part of Dutiva stays open/, {}, { timeout: 8000 }),
+        await screen.findByText(/Everything else in Dutiva still works/, {}, { timeout: 8000 }),
       ).toBeInTheDocument()
-      expect(screen.getByText(/beta usage limit for the AI Advisor/)).toBeInTheDocument()
+      expect(screen.getByText(/beta Advisor limit/)).toBeInTheDocument()
       expect(screen.getByText(/about 2 hours/)).toBeInTheDocument()
       /* Metered is not broken: no outage copy, and no Retry button that would
          only earn a second refusal. */

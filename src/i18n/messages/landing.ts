@@ -52,12 +52,12 @@ export const landing = defineMessages({
     fr: 'pour les documents, les échéances et les décisions en milieu de travail.',
   },
   landing_h_inf_a: {
-    en: 'Foundational HR infrastructure',
-    fr: 'Une infrastructure RH fondamentale',
+    en: 'Canadian HR compliance support',
+    fr: 'Soutien à la conformité RH canadienne',
   },
   landing_h_inf_b: {
-    en: ' for Canadian employers.',
-    fr: ' pour les employeurs canadiens.',
+    en: ' for employers who need it.',
+    fr: ' pour les employeurs qui en ont besoin.',
   },
   landing_h_q_a: {
     en: 'Answer Canadian HR questions',
@@ -68,12 +68,12 @@ export const landing = defineMessages({
     fr: ' en toute confiance.',
   },
   landing_sub_dir_strong: {
-    en: 'Foundational HR infrastructure for Canadian employers',
-    fr: 'Une infrastructure RH fondamentale pour les employeurs canadiens',
+    en: 'Canadian HR compliance support for employers',
+    fr: 'Soutien à la conformité RH canadienne pour les employeurs',
   },
   landing_sub_dir_rest: {
-    en: '. Dutiva helps Canadian employers manage HR compliance across the employee lifecycle — from onboarding and documentation to retention, workplace management, and offboarding — through practical, jurisdiction-specific guidance. Dutiva names the actual statute — Employment Standards Act, Quebec Labour Standards, Canada Labour Code — not just the province.',
-    fr: ". Dutiva aide les employeurs canadiens à gérer la conformité RH tout au long du cycle de vie de l'employé — de l'embauche et de la documentation au maintien en poste, à la gestion du milieu de travail et à la cessation d'emploi — grâce à des conseils pratiques et adaptés à la compétence applicable. Dutiva nomme la loi applicable — Loi de 2000 sur les normes d'emploi, Loi sur les normes du travail, Code canadien du travail — pas seulement la province.",
+    en: '. Practical guidance across the employee lifecycle — from hiring through offboarding. Names the statute — Employment Standards Act, Quebec Labour Standards, Canada Labour Code — not just the province.',
+    fr: ". Des conseils pratiques tout au long du cycle de vie de l'employé — de l'embauche à la cessation. Nomme la loi — Loi sur les normes d'emploi, Loi sur les normes du travail, Code canadien du travail — pas seulement la province.",
   },
   landing_sub_inf: {
     en: 'Jurisdiction-aware HR guidance and review-ready documents across the full employee lifecycle — grounded in the actual employment standards, in English or French.',
@@ -186,7 +186,7 @@ export const landing = defineMessages({
   },
   landing_trust_pipeda: {
     en: 'PIPEDA-conscious',
-    fr: 'Conforme à la LPRPDE',
+    fr: 'Conscient de la LPRPDE',
   },
   landing_trust_law25: {
     en: 'Quebec Law 25-aware',
@@ -243,8 +243,8 @@ export const landing = defineMessages({
     fr: 'Studio de documents',
   },
   landing_prod_title: {
-    en: 'Everything you need to document HR properly.',
-    fr: "Tout ce qu'il faut pour bien documenter vos RH.",
+    en: 'HR documents drafted through guided questions — ready to review.',
+    fr: 'Des documents RH rédigés par questions guidées — prêts à réviser.',
   },
   landing_prod_sub: {
     en: '50 HR templates, generated through guided questions and reviewed beside the guidance that shaped them.',
@@ -471,8 +471,8 @@ export const landing = defineMessages({
     fr: 'qui a fait le travail.',
   },
   landing_why_p: {
-    en: 'Dutiva was founded by Martin Constantineau, whose work in Canadian HR includes staffing and resourcing at the Canada Revenue Agency and HR and payroll coordination for a national internship program at Mitacs. Dutiva is HR compliance and documentation software — not a payroll provider. It names the statute, not just the province — and speaks French as fluently as English.',
-    fr: 'Dutiva a été fondée par Martin Constantineau, dont le parcours en RH au Canada comprend du recrutement et de la dotation à l’Agence du revenu du Canada, ainsi que la coordination RH et de la paie pour un programme national de stages chez Mitacs. Dutiva est un logiciel de conformité et de documentation RH — et non un fournisseur de paie. Il nomme la loi, pas seulement la province — et parle français aussi couramment que l’anglais.',
+    en: 'Dutiva was founded by Martin Constantineau, whose work in Canadian HR includes staffing and resourcing at the Canada Revenue Agency and HR and payroll coordination for a national internship program at Mitacs. Dutiva is HR compliance and documentation software — not a payroll provider. It names the statute, not just the province.',
+    fr: 'Dutiva a été fondée par Martin Constantineau, dont le parcours en RH au Canada comprend du recrutement et de la dotation à l’Agence du revenu du Canada, ainsi que la coordination RH et de la paie pour un programme national de stages chez Mitacs. Dutiva est un logiciel de conformité et de documentation RH — et non un fournisseur de paie. Il nomme la loi, pas seulement la province.',
   }, // [FR self-authored]
   landing_why_foot: {
     en: 'Built in Ottawa, Canada · Grounded in real HR operations, not generic research.',
@@ -513,7 +513,7 @@ export const landing = defineMessages({
   },
   landing_why3_p: {
     en: 'PIPEDA-conscious and Quebec Law 25-aware, with escalation cues on high-risk guidance.',
-    fr: "Conforme à la LPRPDE et tient compte de la Loi 25 du Québec, avec des indications d'escalade sur les conseils à risque élevé.",
+    fr: "Conscient de la LPRPDE et tient compte de la Loi 25 du Québec, avec des indications d'escalade sur les conseils à risque élevé.",
   },
   landing_cov_badge: {
     en: 'Canadian coverage',
@@ -524,8 +524,8 @@ export const landing = defineMessages({
     fr: 'Conçu pour les flux de conformité RH canadiens.',
   },
   landing_cov_sub: {
-    en: 'Dutiva is purpose-built for Canadian employment standards workflows — not retrofitted from U.S. software.',
-    fr: "Dutiva est conçu spécifiquement pour les flux liés aux normes du travail canadiennes — pas adapté d'un logiciel américain.",
+    en: 'Bilingual EN/FR, with named statutes for Ontario, Quebec, and federal workplaces.',
+    fr: 'Bilingue EN/FR, avec des lois nommées pour l’Ontario, le Québec et les milieux de travail fédéraux.',
   },
   landing_cov_on_name: {
     en: 'Ontario',
@@ -604,12 +604,12 @@ export const landing = defineMessages({
     fr: 'Milieux de travail sous réglementation fédérale',
   },
   landing_cov_rem_name: {
-    en: 'Remote work — federal',
-    fr: 'Télétravail — fédéral',
+    en: 'Federal remote work',
+    fr: 'Télétravail fédéral',
   },
   landing_cov_rem_stat: {
-    en: 'For federally regulated employers',
-    fr: 'Pour les employeurs sous réglementation fédérale',
+    en: 'A FED scenario — not a fourth jurisdiction',
+    fr: 'Un scénario FED — pas une quatrième compétence',
   },
   landing_cov_rem_1: {
     en: 'Remote work policy templates',
@@ -636,8 +636,8 @@ export const landing = defineMessages({
     fr: 'Tarifs',
   },
   landing_price_title: {
-    en: 'Start structured. Upgrade as your HR workflow grows.',
-    fr: 'Commencez de façon structurée. Évoluez à mesure que vos RH grandissent.',
+    en: 'Pick a plan that fits today. Upgrade when your HR work grows.',
+    fr: 'Choisissez un forfait qui convient aujourd’hui. Évoluez quand vos RH grandissent.',
   },
   landing_price_sub: {
     en: 'No long-term contracts. No setup fees. Cancel anytime. Prices in CAD.',
@@ -791,16 +791,16 @@ export const landing = defineMessages({
     fr: 'Blogue : ce qui s’applique à votre entreprise',
   },
   landing_cta_badge: {
-    en: 'Start structured',
-    fr: 'Commencez de façon structurée',
+    en: 'Join the beta',
+    fr: 'Rejoindre la bêta',
   },
   landing_cta_title: {
     en: 'Create your first review-ready HR document in minutes.',
     fr: 'Créez votre premier document RH prêt à réviser en quelques minutes.',
   },
   landing_cta_p: {
-    en: 'Join the beta free — no credit card. Open the Advisor, generate a document, and start building a cleaner HR foundation for your business.',
-    fr: 'Rejoignez la version bêta gratuitement — sans carte de crédit. Ouvrez le Conseiller, générez un document et bâtissez une base RH plus solide pour votre entreprise.',
+    en: 'Join the beta free — no credit card. Open Advisor, generate a document, and try the workflow.',
+    fr: 'Rejoignez la version bêta gratuitement — sans carte de crédit. Ouvrez le Conseiller, générez un document et essayez le processus.',
   },
   /* Postdates the design handoff: beta capacity decision, 2026-08-07. The
      number is interpolated from BETA_COHORT_LIMIT so this copy cannot drift
@@ -851,8 +851,8 @@ export const landing = defineMessages({
     fr: `Les ${BETA_COHORT_LIMIT} premières places de la bêta sont prises. Nous vous écrirons dès qu’une place se libère.`,
   },
   landing_foot_desc: {
-    en: 'Foundational HR infrastructure for Canadian employers, built for compliance-oriented guidance, workplace documentation, onboarding, employee support, and the full employee lifecycle.',
-    fr: "Infrastructure RH fondamentale pour les employeurs canadiens, conçue pour des conseils axés sur la conformité, la documentation en milieu de travail, l'intégration, le soutien aux employés et l'ensemble du cycle de vie de l'employé.",
+    en: 'HR compliance software for Canadian employers — jurisdiction-aware guidance and review-ready documents across the employee lifecycle.',
+    fr: "Logiciel de conformité RH pour les employeurs canadiens — conseils adaptés à la compétence et documents prêts à réviser tout au long du cycle de vie de l'employé.",
   },
   landing_foot_product: {
     en: 'Product',

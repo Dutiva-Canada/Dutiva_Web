@@ -189,8 +189,8 @@ export const memoryMessages = defineMessages({
 
   /* Memory manager */
   memory_mgr_sub: {
-    en: 'Everything Advisor remembers — reviewable and governed',
-    fr: 'Tout ce que le Conseiller retient — révisable et encadré',
+    en: 'What Advisor remembers — review and correct it here.',
+    fr: 'Ce que le Conseiller retient — révisez et corrigez-le ici.',
   },
   memory_mgr_review_waiting_one: {
     en: 'inferred memory is waiting for review',

@@ -13,8 +13,8 @@ export const pricingMessages = defineMessages({
     fr: 'Tarifs',
   },
   pricing_h1: {
-    en: 'Start structured. Upgrade as your HR workflow grows.',
-    fr: 'Commencez de façon structurée. Évoluez à mesure que vos RH grandissent.',
+    en: 'Pick a plan that fits today. Upgrade when your HR work grows.',
+    fr: 'Choisissez un forfait qui convient aujourd’hui. Évoluez quand vos RH grandissent.',
   },
   pricing_intro: {
     en: 'No long-term contracts and no setup fees. Cancel anytime — your plan stays active until the end of your billing period. Prices in CAD.',
@@ -177,8 +177,8 @@ export const pricingMessages = defineMessages({
      metered is AI usage (supabase/functions/_shared/aiUsage.ts) — because it
      is the one thing that costs per request. */
   pricing_compare_note: {
-    en: 'During the beta every feature below is open to all beta accounts, and per-plan limits are still being finalized. AI Advisor usage carries fair-use limits so the service stays fast and available for everyone — ordinary day-to-day use will not reach them. Reach out if you need specifics for your team.',
-    fr: 'Pendant la bêta, toutes les fonctionnalités ci-dessous sont accessibles à tous les comptes bêta, et les limites par forfait restent à finaliser. L’utilisation de l’Advisor IA est soumise à des limites d’usage raisonnable afin que le service demeure rapide et disponible pour tous — un usage quotidien normal ne les atteindra pas. Écrivez-nous si vous avez besoin de précisions pour votre équipe.', // [FR self-authored]
+    en: 'During the beta, every feature below is open to all accounts. Per-plan limits are still being finalized; Advisor usage has fair-use caps so the service stays fast.',
+    fr: 'Pendant la bêta, toutes les fonctionnalités ci-dessous sont ouvertes à tous les comptes. Les limites par forfait restent à finaliser; l’usage du Conseiller a des plafonds raisonnables pour garder le service rapide.', // [FR self-authored]
   },
   pricing_grp_advisor: { en: 'AI Advisor', fr: 'Conseiller IA' },
   pricing_grp_documents: { en: 'HR documents', fr: 'Documents RH' },

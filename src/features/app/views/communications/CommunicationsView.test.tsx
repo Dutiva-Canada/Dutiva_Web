@@ -254,7 +254,7 @@ describe('CommunicationsView in production mode', () => {
 
     expect(screen.getByText('Advisor review')).toBeInTheDocument()
     expect(
-      screen.getByText(/Nothing here is scored until then\./),
+      screen.getByText(/Tone, legal, clarity, and policy checks appear when Advisor has reviewed a draft\./),
     ).toBeInTheDocument()
   })
 })

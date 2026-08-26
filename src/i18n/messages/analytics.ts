@@ -239,8 +239,8 @@ export const analyticsMessages = defineMessages({
 
   /* ── Production mode ───────────────────────────────────────────────────── */
   analytics_live_note: {
-    en: 'Computed live from your workspace records.',
-    fr: 'Calculé en direct à partir des enregistrements de votre espace de travail.',
+    en: 'From your workspace records.',
+    fr: 'À partir des dossiers de votre espace de travail.',
   },
   analytics_prod_empty_title: {
     en: 'Nothing to report yet',

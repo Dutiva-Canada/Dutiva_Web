@@ -20,7 +20,7 @@ describe('AuthMenuButton', () => {
     const dialog = screen.getByRole('dialog', { name: 'Account' })
     expect(dialog).toBeInTheDocument()
     expect(
-      screen.getByText('Sign in to unlock real AI Advisor replies and live legal sources.'),
+      screen.getByText('Sign in for live Advisor answers and legal sources.'),
     ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Send sign-in link' })).toBeInTheDocument()
   })

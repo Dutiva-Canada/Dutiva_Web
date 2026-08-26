@@ -17,7 +17,7 @@ const head = () => document.head
 describe('<Seo>', () => {
   it('applies title, description, robots, canonical, and hreflang to document.head', () => {
     renderSeo(<Seo route="about" />)
-    expect(document.title).toBe('About Dutiva — HR compliance infrastructure, built in Canada')
+    expect(document.title).toBe('About Dutiva — HR compliance software, built in Canada')
     expect(head().querySelector('meta[name="description"]')?.getAttribute('content')).toContain(
       'Dutiva Canada Inc.',
     )

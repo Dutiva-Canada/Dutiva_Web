@@ -32,8 +32,8 @@ export const faqMessages = defineMessages({
   },
   faq_q13: { en: 'Does Dutiva run payroll?', fr: 'Dutiva gère-t-il la paie ?' },
   faq_a13: {
-    en: 'No. Dutiva is HR compliance and documentation software — not a payroll provider. It does not process payroll, run pay cycles, remit source deductions, or issue pay. Dutiva helps Canadian employers with jurisdiction-aware HR guidance and review-ready documents across the employee lifecycle.',
-    fr: 'Non. Dutiva est un logiciel de conformité et de documentation RH — et non un fournisseur de paie. Il ne traite pas la paie, n’effectue pas de cycles de paie, ne verse pas les retenues à la source et n’émet pas la paie. Dutiva aide les employeurs canadiens grâce à des conseils RH adaptés à la compétence applicable et à des documents prêts à réviser tout au long du cycle de vie de l’employé.',
+    en: 'No. Dutiva is HR compliance and documentation software — not a payroll provider. It does not process payroll, run pay cycles, remit source deductions, or issue pay.',
+    fr: 'Non. Dutiva est un logiciel de conformité et de documentation RH — et non un fournisseur de paie. Il ne traite pas la paie, n’effectue pas de cycles de paie, ne verse pas les retenues à la source et n’émet pas la paie.',
   },
   faq_c_title: { en: 'Compliance & coverage', fr: 'Conformité et couverture' },
   faq_q4: {
@@ -61,7 +61,7 @@ export const faqMessages = defineMessages({
   faq_q7: { en: 'Where is my data processed?', fr: 'Où mes données sont-elles traitées ?' },
   faq_a7: {
     en: 'Dutiva is PIPEDA-conscious and Quebec Law 25-aware. Some processing occurs outside Canada with appropriate safeguards — see the Cross-Border Data Transfer Disclosure.',
-    fr: 'Dutiva est conforme à la LPRPDE et tient compte de la Loi 25 du Québec. Certains traitements ont lieu à l’extérieur du Canada avec des mesures de protection appropriées — consultez la Divulgation sur le transfert transfrontalier de données.',
+    fr: 'Dutiva est conscient de la LPRPDE et tient compte de la Loi 25 du Québec. Certains traitements ont lieu à l’extérieur du Canada avec des mesures de protection appropriées — consultez la Divulgation sur le transfert transfrontalier de données.',
   },
   faq_q8: {
     en: 'Is my data used to train AI models?',
@@ -95,8 +95,8 @@ export const faqMessages = defineMessages({
     fr: 'Quelle est votre politique de remboursement ?',
   },
   faq_a12: {
-    en: 'Once annual subscriptions are available, new annual subscriptions include a 14-day money-back guarantee. Monthly plans are non-refundable after the billing date, apart from documented billing errors or a service outage over 24 consecutive hours. You can cancel anytime — access continues to the end of your billing period. See the Refund and Cancellation Policy for full terms.',
-    fr: 'Une fois les abonnements annuels disponibles, les nouveaux abonnements annuels comprennent une garantie de remboursement de 14 jours. Les forfaits mensuels ne sont pas remboursables après la date de facturation, sauf erreur de facturation documentée ou panne de service de plus de 24 heures consécutives. Vous pouvez annuler à tout moment — l’accès se poursuit jusqu’à la fin de votre période de facturation. Consultez la Politique de remboursement et d’annulation pour les conditions complètes.',
+    en: 'Refund eligibility depends on your plan and billing period. You can cancel anytime — access continues until the end of your billing period. See the Refund and Cancellation Policy for the full, current terms.',
+    fr: 'L’admissibilité au remboursement dépend de votre forfait et de votre période de facturation. Vous pouvez annuler à tout moment — l’accès se poursuit jusqu’à la fin de votre période de facturation. Consultez la Politique de remboursement et d’annulation pour les conditions complètes et à jour.',
   },
   faq_q14: {
     en: 'Can I use one subscription for multiple clients?',

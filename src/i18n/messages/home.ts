@@ -98,8 +98,8 @@ export const homeMessages = defineMessages({
      no design-handoff counterpart; [FR self-authored] throughout) ────────── */
   home_prod_greeting: { en: 'Welcome back.', fr: 'Bon retour.' },
   home_prod_sub: {
-    en: 'Your workspace, computed live from your real records.',
-    fr: 'Votre espace de travail, calculé en direct à partir de vos enregistrements réels.',
+    en: 'Live from your records.',
+    fr: 'En direct à partir de vos dossiers.',
   },
   home_prod_loading: { en: 'Loading…', fr: 'Chargement…' },
   home_prod_error: {

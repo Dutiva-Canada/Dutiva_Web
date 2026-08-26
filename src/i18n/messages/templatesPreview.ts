@@ -13,8 +13,8 @@ export const templatesPreviewMessages = defineMessages({
     fr: 'Modèles de documents',
   },
   tplPreview_h1: {
-    en: 'Every Canadian HR document, ready to generate.',
-    fr: 'Chaque document RH canadien, prêt à générer.',
+    en: 'Canadian HR templates, ready to generate.',
+    fr: 'Des modèles RH canadiens, prêts à générer.',
   },
   tplPreview_intro: {
     en: 'A growing library of employer-side templates — offers, agreements, policies, discipline, and termination — each jurisdiction-aware for Ontario, Quebec, and Federal workplaces.',

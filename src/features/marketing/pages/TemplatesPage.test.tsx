@@ -11,7 +11,7 @@ describe('TemplatesPage', () => {
     expect(
       screen.getByRole('heading', {
         level: 1,
-        name: 'Every Canadian HR document, ready to generate.',
+        name: 'Canadian HR templates, ready to generate.',
       }),
     ).toBeInTheDocument()
 
