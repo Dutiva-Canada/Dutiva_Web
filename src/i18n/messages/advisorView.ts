@@ -63,6 +63,22 @@ export const advisorViewMessages = defineMessages({
     en: 'Show older conversations',
     fr: 'Afficher les conversations plus anciennes',
   }, // [FR self-authored]
+  advisorview_delete_conversation: {
+    en: 'Delete conversation',
+    fr: 'Supprimer la conversation',
+  }, // [FR self-authored]
+  advisorview_delete_confirm: {
+    en: 'Delete this conversation permanently? This can’t be undone.',
+    fr: 'Supprimer cette conversation définitivement ? Cette action est irréversible.',
+  }, // [FR self-authored]
+  advisorview_delete_ok: {
+    en: 'Conversation deleted',
+    fr: 'Conversation supprimée',
+  }, // [FR self-authored]
+  advisorview_delete_failed: {
+    en: 'Couldn’t delete that conversation. Try again.',
+    fr: 'Impossible de supprimer cette conversation. Réessayez.',
+  }, // [FR self-authored]
 
   /* ── Transcript chrome ──────────────────────────────────────────────────── */
   advisorview_copy: { en: 'Copy', fr: 'Copier' },

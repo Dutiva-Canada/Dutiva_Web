@@ -2,7 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { bi } from '@/i18n/core'
 import type { LText } from '@/i18n/core'
-import { getOwnConversation } from '@/features/app/views/memory/conversationsApi'
+import { useI18n } from '@/i18n/context'
+import {
+  deleteOwnConversation,
+  getOwnConversation,
+} from '@/features/app/views/memory/conversationsApi'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 import { useAdvisorEngine } from '@/features/app/advisor/useAdvisorEngine'
 import type { AdvisorTurnSpec, ChatMessage, ToneCardData } from '@/features/app/advisor/types'
@@ -96,6 +100,7 @@ import { useAdvisorThreadSession } from './useAdvisorThreadSession'
 export function AdvisorView() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { x } = useI18n()
   const { showToast } = useToasts()
   const { openDocStudio } = useDocStudio()
   const auth = useAuth()
@@ -126,6 +131,7 @@ export function AdvisorView() {
   }
   const {
     prodThreads,
+    setProdThreads,
     conversationIdRef,
     pendingNavChatIdRef,
     bindBackendConversationId,
@@ -374,6 +380,50 @@ export function AdvisorView() {
     engine.reset([])
   }
   newConversationRef.current = newConversation
+
+  const canDeleteThread = (chatId: string): boolean => {
+    if (chatId.startsWith('session-')) return true
+    return workspaceMode === 'production' && isBackendConversationId(chatId)
+  }
+
+  const deleteConversation = (chatId: string) => {
+    if (!canDeleteThread(chatId)) return
+    if (!window.confirm(x(M.advisorview_delete_confirm))) return
+
+    const finishLocal = () => {
+      const stashed = transcripts.current.get(chatId) ?? []
+      updateSessionChats((prev) => prev.filter((c) => c.id !== chatId))
+      setProdThreads((prev) => prev.filter((t) => t.id !== chatId))
+      transcripts.current.delete(chatId)
+      updateExtras((prev) => {
+        const next = { ...prev }
+        for (const msg of stashed) delete next[msg.id]
+        return next
+      })
+      setResponseState((prev) => {
+        const { [chatId]: _removed, ...rest } = prev
+        advisorSession.responseState = rest
+        return rest
+      })
+      if (activeChatIdRef.current === chatId) {
+        updateActiveChatId(null)
+        conversationIdRef.current = null
+        engine.reset([])
+      } else if (conversationIdRef.current === chatId) {
+        conversationIdRef.current = null
+      }
+      showToast(M.advisorview_delete_ok, 'ok')
+    }
+
+    if (chatId.startsWith('session-')) {
+      finishLocal()
+      return
+    }
+
+    void deleteOwnConversation(chatId)
+      .then(finishLocal)
+      .catch(() => showToast(M.advisorview_delete_failed, 'info'))
+  }
 
   /* Search overlay navigation: /app/advisor with { chatId } router state. */
   useEffect(() => {
@@ -806,6 +856,8 @@ export function AdvisorView() {
         activeChatId={activeChatId}
         onSelect={selectChat}
         onNewConversation={newConversation}
+        onDelete={deleteConversation}
+        canDelete={canDeleteThread}
       />
       {hasActiveChat ? (
         <>
