@@ -21,7 +21,12 @@ export function WhyDutiva() {
             {lt('landing_why_title_a')}
             <span className="gradient-text">{lt('landing_why_title_b')}</span>
           </h2>
-          <p className="mt-4 text-base leading-[1.65] text-text-2">{lt('landing_why_p')}</p>
+          <blockquote className="mt-5 border-l-2 border-gold-strong pl-4">
+            <p className="text-base leading-[1.65] text-text-2 italic">{lt('landing_why_p')}</p>
+            <footer className="mt-3 text-sm font-semibold not-italic text-text">
+              — {lt('landing_why_attribution')}
+            </footer>
+          </blockquote>
           <p className="mt-3 text-sm text-text-3">{lt('landing_why_foot')}</p>
           <FounderIdentity size="compact" />
         </div>

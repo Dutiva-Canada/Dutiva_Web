@@ -9,10 +9,13 @@ describe('WhyDutiva', () => {
     renderApp(<WhyDutiva />, { route: '/', path: '/' })
 
     const heading = screen.getByRole('heading', { level: 2 })
-    expect(heading).toHaveTextContent('Founded by Martin Constantineau')
+    expect(heading).toHaveTextContent('Built by someone')
     expect(heading).toHaveTextContent('who has done the work.')
     expect(heading).not.toHaveTextContent('HR operator')
     expect(heading).not.toHaveTextContent('HR professional')
+
+    expect(screen.getByText(/I built Dutiva so you don’t have to guess/)).toBeInTheDocument()
+    expect(screen.getByText(/— Martin Constantineau, Founder & CEO/)).toBeInTheDocument()
 
     expect(screen.getByText(FOUNDER.name)).toBeInTheDocument()
     const linkedin = screen.getByRole('link', { name: 'View Martin on LinkedIn' })

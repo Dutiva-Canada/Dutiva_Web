@@ -123,7 +123,7 @@ export function Footer() {
             href="mailto:support@dutiva.ca"
             className="mt-3.5 inline-block text-sm font-medium text-text-2 transition-opacity hover:opacity-80"
           >
-            support@dutiva.ca
+            {lt('landing_foot_support')}
           </a>
           <ReviewDirectoryLinks className="mt-3 grid gap-2" />
           {activeReviewDirectories().length === 0 && (

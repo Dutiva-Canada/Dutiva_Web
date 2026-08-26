@@ -68,12 +68,12 @@ export const landing = defineMessages({
     fr: ' en toute confiance.',
   },
   landing_sub_dir_strong: {
-    en: 'Canadian HR compliance support for employers',
-    fr: 'Soutien à la conformité RH canadienne pour les employeurs',
+    en: 'Stop losing sleep over changing labour laws.',
+    fr: 'Arrêtez de perdre le sommeil à cause des normes du travail qui changent.',
   },
   landing_sub_dir_rest: {
-    en: '. Practical guidance across the employee lifecycle — from hiring through offboarding. Names the statute — Employment Standards Act, Quebec Labour Standards, Canada Labour Code — not just the province.',
-    fr: ". Des conseils pratiques tout au long du cycle de vie de l'employé — de l'embauche à la cessation. Nomme la loi — Loi sur les normes d'emploi, Loi sur les normes du travail, Code canadien du travail — pas seulement la province.",
+    en: ' We guide you from a blank page to a review-ready document, safely. Practical guidance across the employee lifecycle — grounded in the exact statutes that apply to your workplace.',
+    fr: ' Nous vous guidons d’une page blanche à un document prêt à réviser, en toute sécurité. Des conseils pratiques tout au long du cycle de vie de l’employé — ancrés dans les lois exactes qui s’appliquent à votre milieu de travail.',
   },
   landing_sub_inf: {
     en: 'Jurisdiction-aware HR guidance and review-ready documents across the full employee lifecycle — grounded in the actual employment standards, in English or French.',
@@ -205,8 +205,8 @@ export const landing = defineMessages({
     fr: 'De la question au document prêt à réviser en trois étapes.',
   },
   landing_how_sub: {
-    en: 'No blank page, no guesswork. Dutiva structures the work and shows you what to verify before anything leaves your hands.',
-    fr: 'Pas de page blanche, pas de suppositions. Dutiva structure le travail et vous indique quoi vérifier avant que quoi que ce soit ne quitte vos mains.',
+    en: 'Compliance is stressful. Dutiva structures the work and shows you exactly what to verify before anything leaves your hands — so you never have to guess.',
+    fr: 'La conformité est stressante. Dutiva structure le travail et vous montre exactement quoi vérifier avant que quoi que ce soit ne quitte vos mains — pour que vous n’ayez plus à deviner.',
   },
   landing_how1_t: {
     en: 'Ask, with jurisdiction',
@@ -463,16 +463,20 @@ export const landing = defineMessages({
     fr: 'Pourquoi Dutiva',
   },
   landing_why_title_a: {
-    en: 'Founded by Martin Constantineau ',
-    fr: 'Fondée par Martin Constantineau ',
+    en: 'Built by someone ',
+    fr: 'Conçue par quelqu’un ',
   }, // [FR self-authored]
   landing_why_title_b: {
     en: 'who has done the work.',
     fr: 'qui a fait le travail.',
   },
   landing_why_p: {
-    en: 'Dutiva was established by Martin Constantineau, who has extensive experience in Canadian human resources. His background includes staffing and resourcing at the Canada Revenue Agency, and managing HR and payroll for a national internship program at Mitacs. Dutiva is HR compliance and documentation software — not a payroll provider. It names the applicable statutes, not just the province.',
-    fr: 'Dutiva a été établie par Martin Constantineau, qui possède une vaste expérience en ressources humaines au Canada. Son parcours comprend le recrutement et la dotation à l’Agence du revenu du Canada, ainsi que la gestion des RH et de la paie pour un programme national de stages chez Mitacs. Dutiva est un logiciel de conformité et de documentation RH — et non un fournisseur de paie. Il nomme les lois applicables, pas seulement la province.',
+    en: 'I spent years managing HR and payroll in Canada, constantly worrying if our termination letters or policies were up to date. I built Dutiva so you don’t have to guess. We’re real Canadian operators building the tool we wished we had.',
+    fr: 'J’ai passé des années à gérer les RH et la paie au Canada, en me demandant constamment si nos lettres de cessation ou nos politiques étaient à jour. J’ai conçu Dutiva pour que vous n’ayez plus à deviner. Nous sommes de véritables opérateurs canadiens qui bâtissent l’outil que nous aurions voulu avoir.',
+  }, // [FR self-authored]
+  landing_why_attribution: {
+    en: 'Martin Constantineau, Founder & CEO',
+    fr: 'Martin Constantineau, fondateur et chef de la direction',
   }, // [FR self-authored]
   landing_why_foot: {
     en: 'Built in Ottawa, Canada · Grounded in real HR operations, not generic research.',
@@ -806,14 +810,14 @@ export const landing = defineMessages({
      number is interpolated from BETA_COHORT_LIMIT so this copy cannot drift
      from the gate that enforces it. [FR self-authored] */
   landing_cta_capacity: {
-    en: `The beta is limited to ${BETA_COHORT_LIMIT} individuals and organizations to begin — once those spots are taken, new signups join the waiting list.`,
-    fr: `La bêta est limitée à ${BETA_COHORT_LIMIT} personnes et organisations pour commencer — une fois ces places prises, les nouvelles inscriptions rejoignent la liste d’attente.`,
+    en: `Join a dedicated cohort of ${BETA_COHORT_LIMIT} Canadian HR leaders shaping the future of compliance.`,
+    fr: `Rejoignez une cohorte dédiée de ${BETA_COHORT_LIMIT} leaders RH canadiens qui façonnent l’avenir de la conformité.`,
   },
   /* Spot counter above the beta form. {taken}/{limit} replaced at render.
      [FR self-authored] */
   landing_cta_spots: {
-    en: '{taken} of {limit} beta spots taken',
-    fr: '{taken} sur {limit} places bêta prises',
+    en: '{taken} of {limit} spots currently taken',
+    fr: '{taken} sur {limit} places actuellement prises',
   },
   landing_cta_email_ph: {
     en: 'you@company.ca',
@@ -854,6 +858,10 @@ export const landing = defineMessages({
     en: 'HR compliance software for Canadian employers — jurisdiction-aware guidance and review-ready documents across the employee lifecycle.',
     fr: "Logiciel de conformité RH pour les employeurs canadiens — conseils adaptés à la compétence et documents prêts à réviser tout au long du cycle de vie de l'employé.",
   },
+  landing_foot_support: {
+    en: 'Stuck on a workflow? Reach our support team: support@dutiva.ca',
+    fr: 'Bloqué sur un processus ? Écrivez à notre équipe de soutien : support@dutiva.ca',
+  }, // [FR self-authored] — warm CTA; support is digital-first, not billed as “HR specialists”
   landing_foot_product: {
     en: 'Product',
     fr: 'Produit',

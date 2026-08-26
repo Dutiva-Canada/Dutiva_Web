@@ -75,7 +75,7 @@ describe('BetaSignup', () => {
       }),
     )
     expect(await screen.findByText("You're on the list.")).toBeInTheDocument()
-    expect(await screen.findByText('4 of 15 beta spots taken')).toBeInTheDocument()
+    expect(await screen.findByText('4 of 15 spots currently taken')).toBeInTheDocument()
   })
 
   it('confirms a waiting-list signup as waiting, not as admitted', async () => {
@@ -99,8 +99,8 @@ describe('BetaSignup', () => {
     createBetaSignup.mockReset()
     getBetaCohortStatus.mockResolvedValue({ taken: 3, limit: 15 })
     render()
-    expect(screen.getByText(/limited to 15 individuals and organizations/)).toBeInTheDocument()
-    expect(await screen.findByText('3 of 15 beta spots taken')).toBeInTheDocument()
+    expect(screen.getByText(/cohort of 15 Canadian HR leaders/)).toBeInTheDocument()
+    expect(await screen.findByText('3 of 15 spots currently taken')).toBeInTheDocument()
   })
 
   it('surfaces the rate-limit message and stays on the form', async () => {
