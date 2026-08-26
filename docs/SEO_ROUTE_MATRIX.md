@@ -23,7 +23,7 @@ by entry, so this count cannot drift from the build.
 
 | EN path                  | FR path                              | Purpose / primary intent                                                      | Schema                                   | Conversion                  |
 | ------------------------ | ------------------------------------ | ----------------------------------------------------------------------------- | ---------------------------------------- | --------------------------- |
-| `/`                      | `/fr`                                | What Dutiva is: AI-assisted HR compliance software for Canadian employers     | WebPage + WebApplication                 | Start free → `/app/welcome` |
+| `/`                      | `/fr`                                | What Dutiva is: AI-assisted HR compliance software for Canadian employers     | FAQPage (4 visible Q&A) + WebApplication | Start free → `/app/welcome` |
 | `/about`                 | `/fr/a-propos`                       | Who builds Dutiva; mission; built in Canada                                   | AboutPage                                | Start free                  |
 | `/faq`                   | `/fr/faq`                            | Common questions: legal-advice limits, jurisdictions, data, pricing           | FAQPage (13 visible Q&A)                 | Contact support             |
 | `/blog`                  | `/fr/blogue`                         | HR-compliance-in-practice article listing                                     | CollectionPage                           | Start free                  |

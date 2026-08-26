@@ -1,11 +1,13 @@
 import { useI18n } from '@/i18n/context'
 import { Seo } from '@/seo/Seo'
 import { webApplicationNode } from '@/seo/jsonld'
+import { homeFaqEntries } from './homeFaq'
 import './landing.css'
 import { Header } from './sections/Header'
 import { Hero } from './sections/Hero'
 import { TrustStrip } from './sections/TrustStrip'
 import { HowItWorks } from './sections/HowItWorks'
+import { HomeFaq } from './sections/HomeFaq'
 import { Workflows } from './sections/Workflows'
 import { Product } from './sections/Product'
 import { Modules } from './sections/Modules'
@@ -20,20 +22,21 @@ import { Footer } from './sections/Footer'
 /**
  * Marketing landing page (dutiva.ca) — ported from
  * `Landing Page (redesign) v2.dc.html`. Section order: hero → trust → how →
- * workflows → why Dutiva (human element early) → Document Studio → one
- * workspace → beta testimonials (when published) → coverage → pricing →
- * guides → beta signup → footer.
+ * common questions → workflows → why Dutiva (human element early) →
+ * Document Studio → one workspace → beta testimonials (when published) →
+ * coverage → pricing → guides → beta signup → footer.
  */
 export function LandingPage() {
   const { lang } = useI18n()
   return (
     <div className="surface-marketing dutiva-surface min-h-screen text-text">
-      <Seo route="home" extraNodes={[webApplicationNode(lang)]} />
+      <Seo route="home" faq={homeFaqEntries(lang)} extraNodes={[webApplicationNode(lang)]} />
       <Header />
       <main id="main-content" tabIndex={-1}>
         <Hero />
         <TrustStrip />
         <HowItWorks />
+        <HomeFaq />
         <Workflows />
         <WhyDutiva />
         <Product />

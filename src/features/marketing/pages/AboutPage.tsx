@@ -1,4 +1,4 @@
-import { HeartHandshake, Leaf, Linkedin, MapPin, Scale, ShieldCheck } from 'lucide-react'
+import { Facebook, HeartHandshake, Leaf, Linkedin, MapPin, MapPinned, Scale, ShieldCheck } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { MarketingMessageKey } from '@/i18n/messages'
@@ -15,6 +15,16 @@ const VALUES: { icon: LucideIcon; titleKey: MarketingMessageKey; bodyKey: Market
     { icon: ShieldCheck, titleKey: 'about_v3t', bodyKey: 'about_v3p' },
     { icon: Leaf, titleKey: 'about_v4t', bodyKey: 'about_v4p' },
   ]
+
+const COMPANY_PROFILES: {
+  href: string
+  icon: LucideIcon
+  labelKey: MarketingMessageKey
+}[] = [
+  { href: ORG.linkedinUrl, icon: Linkedin, labelKey: 'about_company_linkedin' },
+  { href: ORG.facebookUrl, icon: Facebook, labelKey: 'about_company_facebook' },
+  { href: ORG.googleMapsUrl, icon: MapPinned, labelKey: 'about_company_google' },
+]
 
 /** /about — company story, values, built-in-Canada band (about_* strings). */
 export function AboutPage() {
@@ -85,15 +95,18 @@ export function AboutPage() {
           </p>
           <div className="flex flex-wrap items-center gap-3">
             <span className="dutiva-pill">{t('about_pill_bilingual')}</span>
-            <a
-              href={ORG.linkedinUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
-            >
-              <Linkedin size={16} className="flex-none" aria-hidden="true" />
-              {t('about_company_linkedin')}
-            </a>
+            {COMPANY_PROFILES.map((profile) => (
+              <a
+                key={profile.href}
+                href={profile.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+              >
+                <profile.icon size={16} className="flex-none" aria-hidden="true" />
+                {t(profile.labelKey)}
+              </a>
+            ))}
           </div>
         </div>
       </PageSection>

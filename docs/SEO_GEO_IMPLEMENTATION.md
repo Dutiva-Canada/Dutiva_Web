@@ -143,7 +143,7 @@ a page node:
 
 | Page                                                | Node types                                                                                       |
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| Home                                                | `WebPage` + `SoftwareApplication`/`WebApplication`                                               |
+| Home                                                | `FAQPage` (four visible buyer-question blocks) + `SoftwareApplication`/`WebApplication`          |
 | Pricing                                             | `WebPage` + `WebApplication` with `Offer`s mirroring the visible CAD plan cards                  |
 | About                                               | `AboutPage`                                                                                      |
 | FAQ                                                 | `FAQPage` with `mainEntity` built from the _same_ GROUPS constant the page renders               |
@@ -156,11 +156,15 @@ a page node:
 
 Hard rules: only verified, visible facts — no ratings, reviews, awards,
 addresses, founding dates, or invented pricing. Social profiles (`sameAs`)
-only when published on the site: the founder's LinkedIn on Person, and the
-company LinkedIn (`https://www.linkedin.com/company/dutiva-canada`) on
-Organization (linked from `/about`). Offers exist only on the pricing page
+only when published on the site: the founder's LinkedIn on Person, and on
+Organization the company LinkedIn
+(`https://www.linkedin.com/company/dutiva-canada`), Facebook
+(`https://www.facebook.com/dutivacanada`), and the Google Maps listing
+(linked from `/about`). Do not add Bing Places, Apple Maps, Wikipedia, or
+Wikidata until those pages exist *and* are linked from the site. Offers exist only on the pricing page
 because prices are visibly rendered there. `validate-seo.mjs` parses every
-block and rejects off-origin URLs (LinkedIn is allowlisted for `sameAs`) and
+block and rejects off-origin URLs (LinkedIn, Facebook, and Google Maps are
+allowlisted for `sameAs`) and
 placeholder values.
 
 Indexable pages also emit

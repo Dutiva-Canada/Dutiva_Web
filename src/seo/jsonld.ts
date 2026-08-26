@@ -3,7 +3,7 @@
  *   All rights reserved.
  */
 import type { Lang } from '@/i18n/core'
-import { FOUNDER, ORG, ORG_DESCRIPTION, SITE_ORIGIN, absoluteUrl } from './site'
+import { FOUNDER, ORG, ORG_DESCRIPTION, ORG_SAME_AS, SITE_ORIGIN, absoluteUrl } from './site'
 
 /**
  * JSON-LD (schema.org) builders. Every node lives in one `@graph` per page
@@ -13,7 +13,7 @@ import { FOUNDER, ORG, ORG_DESCRIPTION, SITE_ORIGIN, absoluteUrl } from './site'
  * Rules (docs/SEO_GEO_IMPLEMENTATION.md): only verified, visible facts.
  * No ratings, reviews, awards, addresses, or founding dates. Social
  * profiles only when published on the site (founder LinkedIn on Person;
- * company LinkedIn on Organization).
+ * company LinkedIn, Facebook, and Google Maps on Organization).
  */
 
 export type JsonLdNode = Record<string, unknown>
@@ -40,7 +40,7 @@ export function organizationNode(lang: Lang): JsonLdNode {
       width: ORG.logoWidth,
       height: ORG.logoHeight,
     },
-    sameAs: [ORG.linkedinUrl],
+    sameAs: [...ORG_SAME_AS],
     areaServed: { '@type': 'Country', name: 'Canada' },
     knowsLanguage: ['en-CA', 'fr-CA'],
     founder: { '@id': FOUNDER_ID },
