@@ -72,26 +72,52 @@ export const homeMessages = defineMessages({
     fr: 'Demandez au Conseiller à propos de votre équipe…',
   },
 
-  /* ── Production-mode empty state (admin-only; not in the design handoff —
-     new for the production-readiness work) — [FR self-authored] ─────────── */
+  /* ── Production-mode empty state — first-run checklist
+     (docs/EMPTY_WORKSPACE_ONBOARDING.md). [FR self-authored] ─────────────── */
   home_production_title: {
     en: 'Your workspace is ready.',
     fr: 'Votre espace de travail est prêt.',
   },
   home_production_body: {
-    en: 'This is your real, empty Dutiva workspace — no cases, tasks, or alerts yet. Add people, draft in Studio, run a guided process, or ask the Advisor. Switch back to Demo in Settings for a walkthrough with sample data.',
-    fr: 'Voici votre espace de travail Dutiva réel et vide — aucun dossier, aucune tâche, aucune alerte pour l’instant. Ajoutez des personnes, rédigez dans le Studio, lancez un processus guidé, ou posez une question au Conseiller. Repassez en mode Démo dans les paramètres pour une visite guidée avec des données d’exemple.', // [FR self-authored]
+    en: 'Nothing here yet — that’s expected. Start with a person, a document, or a guided process. Or ask the Advisor.',
+    fr: 'Rien ici pour l’instant — c’est normal. Commencez par une personne, un document ou un processus guidé. Ou posez une question au Conseiller.', // [FR self-authored]
   },
   home_production_workspace_label: { en: 'Workspace', fr: 'Espace de travail' },
-  home_production_cta_employees: { en: 'Add employees', fr: 'Ajouter des employés' }, // [FR self-authored]
-  home_production_cta_studio: { en: 'Open Studio', fr: 'Ouvrir le Studio' }, // [FR self-authored]
-  home_production_cta_workflows: {
-    en: 'Guided processes',
-    fr: 'Processus guidés', // [FR self-authored]
+  home_production_checklist_label: {
+    en: 'Three useful first steps',
+    fr: 'Trois premiers pas utiles', // [FR self-authored]
+  },
+  home_production_step_person: {
+    en: 'Add a person',
+    fr: 'Ajouter une personne', // [FR self-authored]
+  },
+  home_production_step_person_hint: {
+    en: 'Name, role, and location for your first employee',
+    fr: 'Nom, rôle et lieu pour votre premier employé', // [FR self-authored]
+  },
+  home_production_step_studio: {
+    en: 'Draft in Studio',
+    fr: 'Rédiger dans le Studio', // [FR self-authored]
+  },
+  home_production_step_studio_hint: {
+    en: 'Start from a Canadian HR template',
+    fr: 'Partez d’un modèle RH canadien', // [FR self-authored]
+  },
+  home_production_step_workflow: {
+    en: 'Run a guided process',
+    fr: 'Lancer un processus guidé', // [FR self-authored]
+  },
+  home_production_step_workflow_hint: {
+    en: 'Notice, severance, or accommodation — Ontario pinned below',
+    fr: 'Préavis, indemnité de départ ou accommodement — Ontario ci-dessous', // [FR self-authored]
+  },
+  home_production_demo_link: {
+    en: 'Want a walkthrough with sample data? Open Demo in Settings',
+    fr: 'Vous voulez une visite avec des données d’exemple ? Ouvrez la Démo dans les paramètres', // [FR self-authored]
   },
   home_production_pinned_label: {
-    en: 'Start with a calculator or guide',
-    fr: 'Commencer par un calculateur ou un guide', // [FR self-authored]
+    en: 'Or jump into a calculator',
+    fr: 'Ou ouvrez un calculateur', // [FR self-authored]
   },
 
   /* ── Production command centre (live counts once the workspace has data —

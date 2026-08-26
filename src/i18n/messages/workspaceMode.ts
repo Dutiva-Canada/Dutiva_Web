@@ -14,10 +14,13 @@ export const workspaceModeMessages = defineMessages({
   },
   wsmode_empty_why: { en: 'Why is this empty?', fr: 'Pourquoi est-ce vide ?' },
   wsmode_empty_hint: {
-    en: 'To explore this view with sample data, switch to Demo in Settings.',
-    fr: 'Pour explorer cette vue avec des données d’exemple, passez en mode Démo dans les paramètres.',
+    en: 'Start from Home — add a person, open Studio, or run a guided process.',
+    fr: 'Commencez depuis l’accueil — ajoutez une personne, ouvrez le Studio ou lancez un processus guidé.', // [FR self-authored]
   },
-  wsmode_empty_settings_link: { en: 'Open Settings', fr: 'Ouvrir les paramètres' },
+  wsmode_empty_settings_link: {
+    en: 'Want sample data? Open Demo in Settings',
+    fr: 'Vous voulez des données d’exemple ? Ouvrez la Démo dans les paramètres', // [FR self-authored]
+  },
   wsmode_empty_cta_employees: { en: 'Add employees', fr: 'Ajouter des employés' }, // [FR self-authored]
   wsmode_empty_cta_studio: { en: 'Open Studio', fr: 'Ouvrir le Studio' }, // [FR self-authored]
   wsmode_empty_cta_workflows: {

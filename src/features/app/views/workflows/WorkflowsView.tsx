@@ -1,9 +1,10 @@
 ﻿import { ProgressFill } from '@/components/ProgressFill'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Calendar, Check, File, Route, Share2, Star, User } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { markEmptyWorkspaceWorkflowVisited } from '@/features/app/workspaceMode/emptyWorkspaceOnboarding'
 import { Disclaimer } from '@/components/Disclaimer'
 import type { Bi } from '@/i18n/core'
 import { workflowsMessages as M } from '@/i18n/messages/workflows'
@@ -135,9 +136,13 @@ function GuidedProcesses() {
 export function WorkflowsView() {
   const { x } = useI18n()
   const navigate = useNavigate()
-  const { mode } = useWorkspaceMode()
+  const { mode, organizationId } = useWorkspaceMode()
   /* Prototype initial state: `wfMapOpen: true` (App v2.dc.html 2409). */
   const [mapOpen, setMapOpen] = useState(true)
+
+  useEffect(() => {
+    if (mode === 'production') markEmptyWorkspaceWorkflowVisited(organizationId)
+  }, [mode, organizationId])
 
   /* This view is no longer route-gated: the guided processes are real and a
      production workspace should reach them. Everything below them is

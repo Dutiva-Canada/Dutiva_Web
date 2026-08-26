@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Building2, Info, Scale, Search, SearchX } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { markEmptyWorkspaceStudioVisited } from '@/features/app/workspaceMode/emptyWorkspaceOnboarding'
 import { useDoclib } from '../doclibContext'
 import { applicability } from '../engine'
 import type { ApplicabilityKind } from '../engine'
@@ -246,11 +248,16 @@ function StudioSkeleton() {
  */
 export function StudioScreen() {
   const { t, x } = useI18n()
+  const { mode, organizationId } = useWorkspaceMode()
   const { data, org, setOrg } = useDoclib()
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<TemplateCategoryId | 'all'>('all')
   const [jurisdiction, setJurisdiction] = useState<Jurisdiction | 'all'>('all')
   const [risk, setRisk] = useState<DocRiskLevel | 'all'>('all')
+
+  useEffect(() => {
+    if (mode === 'production') markEmptyWorkspaceStudioVisited(organizationId)
+  }, [mode, organizationId])
 
   if (!data) return <StudioSkeleton />
 

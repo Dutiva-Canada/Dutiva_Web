@@ -27,7 +27,9 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
   /* No org yet (bootstrap pending/failed) or still loading — the welcome
      state stays useful and never flashes an error at the front door. */
   if (!organizationId || (data === null && !loadFailed)) {
-    return <HomeProductionEmptyState identity={identity} onSend={onSend} />
+    return (
+      <HomeProductionEmptyState identity={identity} onSend={onSend} employeeCount={0} />
+    )
   }
 
   if (loadFailed) {
@@ -56,11 +58,19 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
   /* Unreachable (loadFailed and data===null are mutually exclusive above),
      but TypeScript can't correlate the two guards. */
   if (data === null) {
-    return <HomeProductionEmptyState identity={identity} onSend={onSend} />
+    return (
+      <HomeProductionEmptyState identity={identity} onSend={onSend} employeeCount={0} />
+    )
   }
 
   if (totalRecords === 0) {
-    return <HomeProductionEmptyState identity={identity} onSend={onSend} />
+    return (
+      <HomeProductionEmptyState
+        identity={identity}
+        onSend={onSend}
+        employeeCount={data.employees}
+      />
+    )
   }
 
   return (

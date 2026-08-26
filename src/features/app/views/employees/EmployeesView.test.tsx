@@ -228,7 +228,7 @@ describe('EmployeesView in production mode', () => {
 
     expect(await screen.findByText('No employees yet')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Add employee' }))
+    fireEvent.click(screen.getAllByRole('button', { name: 'Add employee' })[0]!)
     fireEvent.change(screen.getByLabelText('Full name'), { target: { value: 'Ana Souza' } })
     fireEvent.change(screen.getByLabelText('Job title'), { target: { value: 'Coordinator' } })
     fireEvent.click(screen.getByRole('button', { name: 'Save employee' }))

@@ -162,7 +162,13 @@ describe('HomeView in production mode', () => {
 
     expect(await screen.findByText('Your workspace is ready.')).toBeInTheDocument()
     expect(screen.getByText(/Dutiva Canada Inc\./)).toBeInTheDocument()
+    expect(screen.getByText('Three useful first steps')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Add a person/ })).toHaveAttribute(
+      'href',
+      '/app/employees?new=1',
+    )
     expect(screen.queryByText('Good to see you, Riley.')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Switch back to Demo/)).not.toBeInTheDocument()
   })
 })
 

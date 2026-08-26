@@ -36,7 +36,7 @@ export function ProductionEmptyState({ title }: { readonly title: string }) {
           </p>
         </div>
         <div className="mb-[14px] flex flex-wrap justify-center gap-[10px]">
-          <Link to="/app/employees" className={linkClass}>
+          <Link to="/app/employees?new=1" className={linkClass}>
             <Users size={14} strokeWidth={1.9} aria-hidden="true" />
             {x(M.wsmode_empty_cta_employees)}
           </Link>
