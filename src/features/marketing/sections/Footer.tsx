@@ -6,7 +6,6 @@ import { LeafTile, Wordmark } from '../Brand'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
 import { openCookiePreferences } from '../analytics/cookiePreferences'
-import { activeReviewDirectories } from '@/config/reviewDirectories'
 import { ReviewDirectoryLinks } from '../ReviewDirectoryLinks'
 
 /**
@@ -29,23 +28,19 @@ const PRODUCT_LINKS: FooterLink[] = [
 
 const RESOURCE_LINKS: FooterLink[] = [
   { key: 'landing_nav_guides', hash: 'guides' },
-  { key: 'landing_fr_getstarted', hash: 'how' },
   { key: 'landing_fr_help', route: 'help' },
   { key: 'landing_fr_faq', route: 'faq' },
-  { key: 'landing_fr_tmplusage', route: 'templateUsage' },
-  { key: 'landing_fr_limits', route: 'knownLimitations' },
   { key: 'landing_fr_blog', route: 'blog' },
   { key: 'landing_fr_status', route: 'status' },
   { key: 'landing_fr_changelog', route: 'changelog' },
-  { key: 'landing_foot_vs_hrdownloads', route: 'vsHrdownloads' },
-  { key: 'landing_foot_vs_sixfifty', route: 'vsSixfifty' },
 ]
 
 const COMPANY_LINKS: FooterLink[] = [
   { key: 'landing_fc_about', route: 'about' },
   { key: 'landing_fc_contact', route: 'contact' },
+  { key: 'landing_foot_vs_hrdownloads', route: 'vsHrdownloads' },
+  { key: 'landing_foot_vs_sixfifty', route: 'vsSixfifty' },
   { key: 'landing_fc_openapp', to: '/app/welcome' },
-  { key: 'landing_signin', to: '/app/welcome' },
 ]
 
 /* The five most-visited policies (content migration); the rest live behind
@@ -119,18 +114,16 @@ export function Footer() {
             <span>·</span>
             <span>{lt('landing_trust_bilingual')}</span>
           </div>
-          <a
-            href="mailto:support@dutiva.ca"
-            className="mt-3.5 inline-block text-sm font-medium text-text-2 transition-opacity hover:opacity-80"
-          >
-            {lt('landing_foot_support')}
-          </a>
+          <p className="mt-3.5 max-w-[42ch] text-sm text-text-2">
+            {lt('landing_foot_support_prompt')}{' '}
+            <a
+              href="mailto:support@dutiva.ca"
+              className="font-medium text-gold-strong transition-opacity hover:opacity-80"
+            >
+              {lt('landing_foot_support_email')}
+            </a>
+          </p>
           <ReviewDirectoryLinks className="mt-3 grid gap-2" />
-          {activeReviewDirectories().length === 0 && (
-            <p className="mt-2 max-w-[42ch] text-xs leading-[1.55] text-text-3">
-              {lt('landing_foot_review_invite')}
-            </p>
-          )}
         </div>
 
         <div className="grid flex-3 basis-[480px] grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-8">

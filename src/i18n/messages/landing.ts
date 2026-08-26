@@ -855,13 +855,17 @@ export const landing = defineMessages({
     fr: `Les ${BETA_COHORT_LIMIT} premières places de la bêta sont prises. Nous vous écrirons dès qu’une place se libère.`,
   },
   landing_foot_desc: {
-    en: 'HR compliance software for Canadian employers — jurisdiction-aware guidance and review-ready documents across the employee lifecycle.',
-    fr: "Logiciel de conformité RH pour les employeurs canadiens — conseils adaptés à la compétence et documents prêts à réviser tout au long du cycle de vie de l'employé.",
+    en: 'Practical HR compliance support for Canadian employers — guidance and review-ready documents when the work gets complicated.',
+    fr: 'Soutien pratique à la conformité RH pour les employeurs canadiens — conseils et documents prêts à réviser quand le travail se complique.',
   },
-  landing_foot_support: {
-    en: 'Stuck on a workflow? Reach our support team: support@dutiva.ca',
-    fr: 'Bloqué sur un processus ? Écrivez à notre équipe de soutien : support@dutiva.ca',
-  }, // [FR self-authored] — warm CTA; support is digital-first, not billed as “HR specialists”
+  landing_foot_support_prompt: {
+    en: 'Stuck on a workflow?',
+    fr: 'Bloqué sur un processus ?',
+  }, // [FR self-authored]
+  landing_foot_support_email: {
+    en: 'support@dutiva.ca',
+    fr: 'support@dutiva.ca',
+  },
   landing_foot_product: {
     en: 'Product',
     fr: 'Produit',
@@ -913,12 +917,6 @@ export const landing = defineMessages({
   landing_foot_vs_sixfifty: {
     en: 'Dutiva vs SixFifty',
     fr: 'Dutiva vs SixFifty',
-  },
-  /* Shown in the footer until G2/Capterra profile URLs are configured.
-     [FR self-authored] */
-  landing_foot_review_invite: {
-    en: 'Beta participant? Once our G2 and Capterra profiles are live, review links will appear here.',
-    fr: 'Participant à la bêta? Une fois nos profils G2 et Capterra en ligne, les liens d’évaluation apparaîtront ici.',
   },
   landing_fr_tmplusage: {
     en: 'Template Usage',
