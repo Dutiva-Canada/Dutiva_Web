@@ -13,6 +13,7 @@ to run it), [AGENTS.md](../AGENTS.md) (AI coding agents start here),
 | Document | What it settles |
 | --- | --- |
 | [CANONICAL_FACTS.md](CANONICAL_FACTS.md) | **Source of record for every load-bearing fact** — counts, pricing, jurisdictions, company details, and the claims that must not be made. Read before writing any customer-facing or investor-facing number. |
+| [NATURAL_LANGUAGE_COPY.md](NATURAL_LANGUAGE_COPY.md) | **How we write** — natural, human prose for marketing and app UI; AI-tell ban list; draft → revise checklist. Does not override CANONICAL_FACTS on claims. |
 
 Its rule — _where this file disagrees with the code, the code wins_ — is
 enforced by `npm run check`, in two halves: `src/canonicalFacts.test.ts` for

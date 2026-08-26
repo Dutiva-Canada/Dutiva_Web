@@ -31,6 +31,15 @@ Two standing rules that follow from it:
   "compliant"; "monitored" is not "covered". Where the product states a
   limitation, that wording is deliberate.
 
+## Voice and natural language
+
+**[docs/NATURAL_LANGUAGE_COPY.md](docs/NATURAL_LANGUAGE_COPY.md)** is the source
+of record for *how* we write user-facing prose (marketing, UI, FAQ, changelog,
+Advisor chrome). Model communication — intent, audience, density, rhythm,
+revision — not robotic “correct” English. Never upgrade hedges; never invent
+claims. Cursor loads a short always-on summary from
+`.cursor/rules/natural-language-copy.mdc`.
+
 ## Project
 
 Dutiva Web — a Canadian HR-compliance platform (dutiva.ca marketing site +
