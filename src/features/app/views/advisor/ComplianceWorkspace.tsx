@@ -55,6 +55,10 @@ export interface ComplianceWorkspaceProps {
   readonly onPickProvince?: (province: Bi) => void
   /** Web-search toggle (current-info turns — present whenever webSearch ≠ null). */
   readonly onToggleWeb?: () => void
+  /** Idle-state starters: send a prompt into the composer / thread. */
+  readonly onIdleSend?: (text: string) => void
+  /** Idle-state starters: navigate into the product (People, Studio). */
+  readonly onIdleNavigate?: (to: string) => void
   /** Mobile sheet open state + close (ChatPane header pill owns opening). */
   readonly mobileOpen: boolean
   readonly onCloseMobile: () => void
@@ -133,6 +137,8 @@ export function ComplianceWorkspace({
   state,
   onPickProvince,
   onToggleWeb,
+  onIdleSend,
+  onIdleNavigate,
   mobileOpen,
   onCloseMobile,
 }: ComplianceWorkspaceProps) {
@@ -161,7 +167,7 @@ export function ComplianceWorkspace({
 
       {state.kind === 'locked' && <LockedState />}
       {state.kind === 'running' && <RunningState />}
-      {state.kind === 'idle' && <IdleState />}
+      {state.kind === 'idle' && <IdleState onSend={onIdleSend} onNavigate={onIdleNavigate} />}
       {state.kind === 'ready' && (
         <ReadyState
           response={state.response}
@@ -243,8 +249,35 @@ function RunningState() {
   )
 }
 
-function IdleState() {
+function IdleState({
+  onSend,
+  onNavigate,
+}: {
+  readonly onSend?: (text: string) => void
+  readonly onNavigate?: (to: string) => void
+}) {
   const { x } = useI18n()
+  const starters = [
+    {
+      key: 'people',
+      title: M.advws_idle_prompt_people,
+      hint: M.advws_idle_prompt_people_hint,
+      onClick: () => onNavigate?.('/app/employees?new=1'),
+    },
+    {
+      key: 'notice',
+      title: M.advws_idle_prompt_notice,
+      hint: M.advws_idle_prompt_notice_hint,
+      onClick: () => onSend?.(x(M.advws_idle_send_notice)),
+    },
+    {
+      key: 'accommodate',
+      title: M.advws_idle_prompt_accommodate,
+      hint: M.advws_idle_prompt_accommodate_hint,
+      onClick: () => onSend?.(x(M.advws_idle_send_accommodate)),
+    },
+  ]
+
   return (
     <div className="p-[18px]">
       <div className="rounded-[14px] border border-dashed border-border bg-surface px-[18px] py-[22px] text-center">
@@ -254,6 +287,21 @@ function IdleState() {
         <div className="mb-[5px] text-[14px] font-bold text-text">{x(M.advws_idle_title)}</div>
         <div className="text-[12.5px] leading-[1.55] text-text-muted">{x(M.advws_idle_body)}</div>
       </div>
+      {(onSend || onNavigate) && (
+        <div className="mt-[12px] flex flex-col gap-[8px]">
+          {starters.map((starter) => (
+            <button
+              key={starter.key}
+              type="button"
+              onClick={starter.onClick}
+              className="cursor-pointer rounded-[10px] border border-border bg-surface px-[12px] py-[10px] text-left hover:border-(--accent-soft-border)"
+            >
+              <div className="text-[12.5px] font-semibold text-text">{x(starter.title)}</div>
+              <div className="mt-[2px] text-[11.5px] text-text-muted">{x(starter.hint)}</div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

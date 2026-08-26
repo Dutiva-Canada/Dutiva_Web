@@ -113,6 +113,7 @@ export function Sidebar({
   const productionBadges = useProductionNavBadges()
   const workspaceEmpty = useProductionWorkspaceEmpty()
   const expanded = mode === 'expanded' || mode === 'drawer'
+  const onHome = pathname === '/app/home' || pathname.startsWith('/app/home/')
 
   const [sections, setSections] = useState<Record<SectionKey, boolean>>(() =>
     readSectionPrefs(false),
@@ -197,7 +198,7 @@ export function Sidebar({
           <SidebarCreateMenu expanded={expanded} onNavigate={onCloseDrawer} />
           <SidebarSearch expanded={expanded} />
         </div>
-        {expanded && workspaceEmpty && (
+        {expanded && workspaceEmpty && onHome && (
           <Link
             to="/app/home"
             onClick={onCloseDrawer}

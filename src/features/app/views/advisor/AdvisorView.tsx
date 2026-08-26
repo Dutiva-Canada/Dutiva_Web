@@ -53,8 +53,10 @@ import type { HomeAction } from '@/features/app/views/home/homeData'
 import {
   buildAdvisorThreadEntries,
   buildAdvisorThreadGroups,
+  conversationTitle,
   freshResponseState,
   isBackendConversationId,
+  operationalNextStepChips,
   productionTranscript,
   readNavChatId,
   resolveJurisdictionTone,
@@ -490,8 +492,13 @@ export function AdvisorView() {
   const startFlow = (flowKey: FlowKeyOrFallback, userText: LText) => {
     stashActive()
     const id = `session-${advisorSession.nextChatSeq++}`
+    const userTextString = typeof userText === 'string' ? userText : userText.en
+    const title =
+      flowKey === 'fallback'
+        ? conversationTitle([{ role: 'user', content: userTextString }])
+        : flowTitles[flowKey]
     updateSessionChats((prev) => [
-      { id, title: flowTitles[flowKey], pinned: false, bucket: 'today', flowKey },
+      { id, title, pinned: false, bucket: 'today', flowKey },
       ...prev,
     ])
     updateActiveChatId(id)
@@ -524,21 +531,25 @@ export function AdvisorView() {
          direction" chips — same pattern as sendInThread. Signed out (or on
          failure): the original scripted fallback, unchanged. */
       if (authStatus === 'signed-in') {
-        const userTextString = typeof userText === 'string' ? userText : userText.en
         setSendingReal(true)
         void sendAdvisorMessage(userTextString, conversationIdRef.current, organizationId)
           .then((result) => {
             bindBackendConversationId(id, result.conversationId)
             const stateChatId =
               id.startsWith('session-') && result.conversationId !== id ? result.conversationId : id
-            const turnId = pushAdvisor({ text: result.reply || genericAck })
+            const reply = result.reply || genericAck
+            const turnId = pushAdvisor({ text: reply })
             patchResponseState(stateChatId, { response: result.response })
-            if (result.response?.memory != null) {
-              updateExtras((prev) => ({
-                ...prev,
-                [turnId]: { ...prev[turnId], memory: result.response!.memory },
-              }))
-            }
+            const replyText = typeof reply === 'string' ? reply : reply.en
+            const navChips = operationalNextStepChips(userTextString, replyText)
+            updateExtras((prev) => ({
+              ...prev,
+              [turnId]: {
+                ...prev[turnId],
+                ...(result.response?.memory != null ? { memory: result.response.memory } : {}),
+                ...(navChips.length > 0 ? { navChips } : {}),
+              },
+            }))
           })
           .catch(handleRealChatFailure)
           .finally(() => setSendingReal(false))
@@ -598,14 +609,19 @@ export function AdvisorView() {
           chatId !== null && chatId.startsWith('session-') && result.conversationId !== chatId
             ? result.conversationId
             : chatId
-        const turnId = pushAdvisor({ text: result.reply || genericAck })
+        const replyPayload = result.reply || genericAck
+        const turnId = pushAdvisor({ text: replyPayload })
         if (stateChatId !== null) patchResponseState(stateChatId, { response: result.response })
-        if (result.response?.memory != null) {
-          updateExtras((prev) => ({
-            ...prev,
-            [turnId]: { ...prev[turnId], memory: result.response!.memory },
-          }))
-        }
+        const replyText = typeof replyPayload === 'string' ? replyPayload : replyPayload.en
+        const navChips = operationalNextStepChips(text, replyText)
+        updateExtras((prev) => ({
+          ...prev,
+          [turnId]: {
+            ...prev[turnId],
+            ...(result.response?.memory != null ? { memory: result.response.memory } : {}),
+            ...(navChips.length > 0 ? { navChips } : {}),
+          },
+        }))
       })
       .catch(handleRealChatFailure)
       .finally(() => setSendingReal(false))
@@ -759,7 +775,12 @@ export function AdvisorView() {
      chat also shows in its recency bucket). In production mode only the
      real conversations started this session appear — the demo scenario and
      Northgate fixture threads are demo-only. */
-  const allThreads = buildAdvisorThreadEntries(workspaceMode, sessionChats, prodThreads)
+  const allThreads = buildAdvisorThreadEntries(
+    workspaceMode,
+    sessionChats,
+    prodThreads,
+    activeChatId,
+  )
   const groups = buildAdvisorThreadGroups(allThreads, {
     pinned: M.advisorview_group_pinned,
     today: M.advisorview_group_today,
@@ -771,6 +792,12 @@ export function AdvisorView() {
     extras[messageId] ?? seedExtras[messageId]
 
   const onSuggestChip = (chip: SuggestChipSpec) => startFlow(chip.flowKey, chip.label)
+
+  const idleSend = (prompt: string) => {
+    if (startCrisisThread(prompt)) return
+    if (authStatus === 'signed-in') startFlow('fallback', prompt)
+    else startScenario(routeScenarioFromText(prompt), prompt)
+  }
 
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden">
@@ -804,23 +831,36 @@ export function AdvisorView() {
             state={workspaceState}
             onPickProvince={pickProvince}
             onToggleWeb={activeScenario?.webOff ? toggleWeb : undefined}
+            onIdleSend={idleSend}
+            onIdleNavigate={(to) => navigate(to)}
             mobileOpen={workspaceOpen}
             onCloseMobile={() => setWorkspaceOpen(false)}
           />
         </>
       ) : (
-        <AdvisorHome
-          onSend={(text) => {
-            /* Crisis first — regardless of auth state, before flow or
-               scenario routing (AGENT.md §8). */
-            if (startCrisisThread(text)) return
-            if (authStatus === 'signed-in') startFlow('fallback', text)
-            else startScenario(routeScenarioFromText(text), text)
-          }}
-          onScenario={(scenarioId) => startScenario(scenarioId)}
-          onPriorityAction={runPriorityAction}
-          onMetricClick={(view) => navigate(`/app/${view}`)}
-        />
+        <>
+          <AdvisorHome
+            onSend={(text) => {
+              /* Crisis first — regardless of auth state, before flow or
+                 scenario routing (AGENT.md §8). */
+              if (startCrisisThread(text)) return
+              if (authStatus === 'signed-in') startFlow('fallback', text)
+              else startScenario(routeScenarioFromText(text), text)
+            }}
+            onScenario={(scenarioId) => startScenario(scenarioId)}
+            onPriorityAction={runPriorityAction}
+            onMetricClick={(view) => navigate(`/app/${view}`)}
+          />
+          {/* Keep the third column present on home so opening a thread doesn’t
+              jump the layout; idle starters mirror the empty workspace. */}
+          <ComplianceWorkspace
+            state={authStatus === 'signed-in' ? { kind: 'idle' } : { kind: 'locked' }}
+            onIdleSend={idleSend}
+            onIdleNavigate={(to) => navigate(to)}
+            mobileOpen={false}
+            onCloseMobile={() => {}}
+          />
+        </>
       )}
     </div>
   )

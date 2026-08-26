@@ -35,9 +35,41 @@ export const advisorWorkspaceMessages = defineMessages({
     fr: 'Rien ici pour l’instant',
   },
   advws_idle_body: {
-    en: 'Ask a compliance question — jurisdiction, risk, legal basis, and sources show up here.',
-    fr: 'Posez une question de conformité — la compétence, le risque, le fondement juridique et les sources s’affichent ici.',
+    en: 'Start with a question — jurisdiction, risk, and sources show up here when the route supports them.',
+    fr: 'Commencez par une question — la compétence, le risque et les sources s’affichent ici lorsque le routage les prend en charge.',
   },
+  advws_idle_prompt_people: {
+    en: 'Go to People',
+    fr: 'Aller à Personnel',
+  }, // [FR self-authored]
+  advws_idle_prompt_people_hint: {
+    en: 'Add your first employee record',
+    fr: 'Ajouter votre premier dossier d’employé',
+  }, // [FR self-authored]
+  advws_idle_prompt_notice: {
+    en: 'Ontario statutory notice',
+    fr: 'Préavis légal en Ontario',
+  }, // [FR self-authored]
+  advws_idle_prompt_notice_hint: {
+    en: 'Ask how notice works for a dismissal',
+    fr: 'Demander comment fonctionne le préavis',
+  }, // [FR self-authored]
+  advws_idle_prompt_accommodate: {
+    en: 'Duty to accommodate',
+    fr: 'Obligation d’accommodement',
+  }, // [FR self-authored]
+  advws_idle_prompt_accommodate_hint: {
+    en: 'Ask about medical accommodation steps',
+    fr: 'Demander les étapes d’accommodement médical',
+  }, // [FR self-authored]
+  advws_idle_send_notice: {
+    en: 'How does statutory notice work for dismissing an employee in Ontario?',
+    fr: 'Comment fonctionne le préavis légal pour congédier un employé en Ontario ?',
+  }, // [FR self-authored]
+  advws_idle_send_accommodate: {
+    en: 'What are the first steps for a medical accommodation request in Ontario?',
+    fr: 'Quelles sont les premières étapes d’une demande d’accommodement médical en Ontario ?',
+  }, // [FR self-authored]
 
   /* Section titles */
   advws_sec_mode: { en: 'Response mode', fr: 'Mode de réponse' },

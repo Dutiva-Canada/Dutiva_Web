@@ -59,6 +59,10 @@ export const advisorViewMessages = defineMessages({
   advisorview_group_today: { en: 'Today', fr: 'Aujourd’hui' },
   advisorview_group_week: { en: 'Previous 7 days', fr: '7 derniers jours' },
   advisorview_group_older: { en: 'Older', fr: 'Plus anciennes' },
+  advisorview_show_older: {
+    en: 'Show older conversations',
+    fr: 'Afficher les conversations plus anciennes',
+  }, // [FR self-authored]
 
   /* ── Transcript chrome ──────────────────────────────────────────────────── */
   advisorview_copy: { en: 'Copy', fr: 'Copier' },

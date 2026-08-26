@@ -1,4 +1,5 @@
 ﻿import { useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Copy,
   Download,
@@ -235,6 +236,7 @@ function AdvisorTurn({
   onPickProvince,
 }: AdvisorTurnProps) {
   const { x, lang } = useI18n()
+  const navigate = useNavigate()
   const status = message.status ?? 'done'
   const showBubble = status === 'streaming' || status === 'done'
   const done = status === 'done'
@@ -244,6 +246,7 @@ function AdvisorTurn({
   const docs = extras?.docs ?? []
   const followups = extras?.followups ?? []
   const suggestChips = extras?.suggestChips ?? []
+  const navChips = extras?.navChips ?? []
   const quickForm = extras?.quickForm
   const banner = extras?.banner
   const provincePrompt = extras?.provincePrompt === true
@@ -385,6 +388,16 @@ function AdvisorTurn({
                 chips={followups.map((labelEn) => ({
                   label: followupLabel(labelEn),
                   onClick: () => onFollowup(labelEn),
+                }))}
+              />
+            )}
+
+            {done && navChips.length > 0 && (
+              <SuggestionChips
+                variant="suggest"
+                chips={navChips.map((chip) => ({
+                  label: chip.label,
+                  onClick: () => navigate(chip.to),
                 }))}
               />
             )}

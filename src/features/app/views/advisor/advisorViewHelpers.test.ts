@@ -4,7 +4,10 @@ import {
   buildAdvisorThreadEntries,
   buildAdvisorThreadGroups,
   bucketFromUpdatedAt,
+  conversationTitle,
   isBackendConversationId,
+  isFluffThread,
+  operationalNextStepChips,
   readNavChatId,
   resolveStartFlowKey,
 } from './advisorViewHelpers'
@@ -40,7 +43,7 @@ describe('advisorViewHelpers', () => {
     ).toBe('termination')
   })
 
-  it('buildAdvisorThreadGroups omits empty buckets', () => {
+  it('buildAdvisorThreadGroups omits empty buckets and tags keys', () => {
     const entries = buildAdvisorThreadEntries('demo', [], [])
     const groups = buildAdvisorThreadGroups(entries, {
       pinned: M.advisorview_group_pinned,
@@ -50,6 +53,36 @@ describe('advisorViewHelpers', () => {
     })
     expect(groups.length).toBeGreaterThan(0)
     expect(groups.every((g) => g.items.length > 0)).toBe(true)
+    expect(groups.every((g) => ['pinned', 'today', 'week', 'older'].includes(g.key))).toBe(true)
+  })
+
+  it('conversationTitle replaces greetings with a stable label', () => {
+    expect(conversationTitle([{ role: 'user', content: 'Hello' }]).en).toBe('Advisor conversation')
+    expect(isFluffThread([{ role: 'user', content: 'hey' }])).toBe(true)
+    expect(
+      isFluffThread([
+        { role: 'user', content: 'hey' },
+        { role: 'user', content: 'Can you add employees?' },
+      ]),
+    ).toBe(false)
+    expect(
+      operationalNextStepChips(
+        'Can you add employees for me?',
+        "I'm a guidance tool, not an operational HR system — I can't add employees.",
+      ).map((c) => c.to),
+    ).toEqual(['/app/employees?new=1', '/app/documents/studio'])
+  })
+
+  it('hides fluff production threads unless active', () => {
+    const fluff = {
+      id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+      updatedAt: new Date().toISOString(),
+      messages: [{ role: 'user' as const, content: 'Hello' }],
+    }
+    const hidden = buildAdvisorThreadEntries('production', [], [fluff], null)
+    expect(hidden.some((e) => e.id === fluff.id)).toBe(false)
+    const kept = buildAdvisorThreadEntries('production', [], [fluff], fluff.id)
+    expect(kept.some((e) => e.id === fluff.id)).toBe(true)
   })
 
   it('buildAdvisorThreadEntries includes session chats in production mode', () => {
