@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useLocation } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { renderApp } from '@/test/renderApp'
 import { Sidebar } from './Sidebar'
@@ -61,7 +62,7 @@ describe('Sidebar', () => {
       'href',
       '/app/compliance',
     )
-    expect(within(nav).getByRole('link', { name: 'Workforce Planning' })).toHaveAttribute(
+    expect(within(nav).getByRole('link', { name: 'Planning' })).toHaveAttribute(
       'href',
       '/app/planning/tasks',
     )
@@ -153,6 +154,10 @@ describe('Sidebar', () => {
 
     await user.click(createButton)
     const menu = screen.getByRole('menu', { name: /Create/i })
+    const items = within(menu).getAllByRole('menuitem')
+    expect(items[0]).toHaveTextContent(/Employee record/i)
+    expect(items[1]).toHaveTextContent(/Document/i)
+    expect(items[2]).toHaveTextContent(/Workflow/i)
 
     expect(within(menu).getByRole('menuitem', { name: /Conversation/i })).not.toHaveAttribute(
       'aria-disabled',
@@ -178,6 +183,31 @@ describe('Sidebar', () => {
       'aria-disabled',
       'true',
     )
+  })
+
+  it('opens Employee create via ?new=1 from the Create menu', async () => {
+    function LocationProbe() {
+      const location = useLocation()
+      return (
+        <div data-testid="location">
+          {location.pathname}
+          {location.search}
+        </div>
+      )
+    }
+    const user = userEvent.setup()
+    renderApp(
+      <>
+        <Sidebar mode="expanded" />
+        <LocationProbe />
+      </>,
+      { route: '/app/home' },
+    )
+
+    await user.click(screen.getByRole('button', { name: /Create/i }))
+    await user.click(screen.getByRole('menuitem', { name: /Employee record/i }))
+
+    expect(screen.getByTestId('location')).toHaveTextContent('/app/employees?new=1')
   })
 
   it('supports keyboard operation inside the Create menu', async () => {
@@ -227,7 +257,7 @@ describe('Sidebar', () => {
 
     const people = screen.getByRole('link', { name: 'People' })
     const cases = screen.getByRole('link', { name: /Cases/ })
-    const compliance = screen.getByRole('link', { name: 'Compliance' })
+    const compliance = screen.getByRole('link', { name: /Compliance/ })
 
     expect(people).toBeInTheDocument()
     expect(cases).toBeInTheDocument()
@@ -236,6 +266,15 @@ describe('Sidebar', () => {
     const panel = people.closest('div.block, div[class*="grid-rows"]')
     expect(panel).toBeInTheDocument()
     expect(panel?.className).not.toContain('opacity-0')
+  })
+
+  it('uses accent active styling in compact mode', () => {
+    renderApp(<Sidebar mode="compact" onToggleExpanded={() => {}} />, { route: '/app/settings' })
+
+    const settings = screen.getByRole('link', { name: /Settings/ })
+    expect(settings).toHaveAttribute('aria-current', 'page')
+    expect(settings.className).toMatch(/bg-accent-soft/)
+    expect(settings.className).not.toMatch(/bg-navy/)
   })
 
   it('drawer mode shows a close button and calls onClose on route click', async () => {

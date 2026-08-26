@@ -12,34 +12,41 @@ interface SidebarNavItemProps {
   readonly onClick?: () => void
 }
 
+/** Shared active chrome — accent rail in both expanded and compact widths. */
+export function navItemActiveClasses(active: boolean): string {
+  return active
+    ? 'border-l-2 border-accent bg-accent-soft font-semibold text-accent'
+    : 'border-l-2 border-transparent font-medium text-text-2 hover:bg-inset hover:text-text'
+}
+
 export function SidebarNavItem({ item, expanded, active, onClick }: SidebarNavItemProps) {
   const { x } = useI18n()
   const Icon = item.icon
   const label = x(item.label)
-
-  const activeClasses = active
-    ? cx(
-        'border-l-2 font-semibold',
-        expanded
-          ? 'border-accent bg-accent-soft text-accent'
-          : 'border-transparent bg-navy text-gold-on-navy',
-      )
-    : 'border-l-2 border-transparent font-medium text-text-2 hover:bg-inset hover:text-text'
+  const badgeValue = item.badge?.value
+  const compactAria =
+    !expanded && badgeValue ? `${label} (${badgeValue})` : expanded ? undefined : label
 
   return (
     <SidebarTooltip label={label} show={!expanded}>
       <Link
         to={item.to}
         onClick={onClick}
-        aria-label={expanded ? undefined : label}
+        aria-label={compactAria}
         aria-current={active ? 'page' : undefined}
         className={cx(
-          'group my-px flex w-full items-center gap-2.5 rounded-[7px] text-[13.5px] transition-colors duration-150',
+          'group relative my-px flex w-full items-center gap-2.5 rounded-[7px] text-[13.5px] transition-colors duration-150',
           expanded ? 'px-2.5 py-2' : 'justify-center p-2.25',
-          activeClasses,
+          navItemActiveClasses(active),
         )}
       >
         <Icon size={16} strokeWidth={1.7} className="shrink-0" />
+        {!expanded && badgeValue && (
+          <span
+            className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-accent"
+            aria-hidden="true"
+          />
+        )}
         <span
           aria-hidden={!expanded}
           className={cx(
@@ -49,9 +56,9 @@ export function SidebarNavItem({ item, expanded, active, onClick }: SidebarNavIt
               : 'max-w-0 -translate-x-1 opacity-0',
           )}
         >
-          <span className={item.badge ? 'flex-1 text-left' : undefined}>{label}</span>
-          {item.badge?.value && (
-            <SidebarBadge itemKey={item.key} value={item.badge.value} tone={item.badge.tone} />
+          <span className={badgeValue ? 'flex-1 text-left' : undefined}>{label}</span>
+          {badgeValue && (
+            <SidebarBadge itemKey={item.key} value={badgeValue} tone={item.badge!.tone} />
           )}
         </span>
       </Link>

@@ -120,8 +120,17 @@ export const shellMessages = defineMessages({
   shell_nav_wellbeing: { en: 'Wellbeing', fr: 'Bien-être' },
   shell_nav_tasks: { en: 'Tasks', fr: 'Tâches' },
   shell_nav_calendar: { en: 'Calendar', fr: 'Calendrier' },
-  /* Planning section (Tasks + Calendar merged into one nav entry) */
-  shell_nav_planning: { en: 'Workforce Planning', fr: 'Planification des effectifs' }, // [FR self-authored]
+  /* Planning section (Tasks + Calendar merged into one nav entry) — short
+     rail label; page chrome can still say more where space allows. */
+  shell_nav_planning: { en: 'Planning', fr: 'Planification' }, // [FR self-authored]
+  shell_getting_started: {
+    en: 'Getting started',
+    fr: 'Premiers pas',
+  }, // [FR self-authored] — empty production rail cue → Home checklist
+  shell_getting_started_hint: {
+    en: 'Three useful first steps on Home',
+    fr: 'Trois premiers pas utiles sur l’accueil',
+  }, // [FR self-authored]
   /* Settings section tab labels (General + Memory) */
   shell_settings_general: { en: 'General', fr: 'Général' }, // [FR self-authored]
   shell_nav_analytics: { en: 'Analytics', fr: 'Analytique' },
