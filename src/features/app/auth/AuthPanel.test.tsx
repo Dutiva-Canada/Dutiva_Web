@@ -141,6 +141,7 @@ describe('AuthPanel', () => {
 
     expect(screen.getByText('someone@example.com')).toBeInTheDocument()
     expect(screen.getByText(/available on that account/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Choose a plan' })).toHaveAttribute('href', '/pricing')
 
     await user.click(screen.getByRole('button', { name: 'Sign out' }))
     expect(signOut).toHaveBeenCalled()

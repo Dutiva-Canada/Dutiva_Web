@@ -246,7 +246,7 @@ describe('CasesView in production mode', () => {
 
     expect(await screen.findByText('No cases yet')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'New case' }))
+    fireEvent.click(screen.getAllByRole('button', { name: 'New case' })[0]!)
     fireEvent.change(screen.getByLabelText('Case title'), {
       target: { value: 'Onboarding — first hire' },
     })

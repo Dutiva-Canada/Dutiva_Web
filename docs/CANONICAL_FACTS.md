@@ -44,7 +44,7 @@ people who don't read the repo. Re-export it when this file changes.
 | Jurisdictions         | **3** — ON (ESA 2000), QC (LNT), FED (Canada Labour Code Part III)                   | jurisdiction codes `ON`, `QC`, `FED`                                    |
 | Pricing               | Free · Starter **$24** · Growth **$49** · Pro **$99** CAD/mo                         | `src/config/plans.ts` → `PLANS`                                         |
 | Annual billing        | 10 of 12 months charged (two months free)                                            | `ANNUAL_MONTHS_BILLED`                                                  |
-| Beta state            | Paid plans **shown but not sold**                                                    | `PAID_PLANS_DISABLED_DURING_BETA`                                       |
+| Beta state            | Paid plans **sold** (support membership; product open to all admitted accounts). Free cohort of **15** remains waitlisted | `PAID_PLANS_DISABLED_DURING_BETA` + `PLAN_FEATURE_GATES_ENABLED` |
 | Beta capacity         | **15** individuals/organizations to begin; signup stays open as a waiting list       | `src/config/beta.ts` `BETA_COHORT_LIMIT`; gate in migration `0067`      |
 | Rings live            | **All four rings complete.**                                                         | `docs/FOUR_RING_FRAMEWORK.md`                                           |
 | Law-change monitoring | **Federal (FED), Ontario (ON) and Québec (QC) confirmed working** (audit 2026-08-10) | `src/features/app/guidance/monitoringCoverage.ts`                       |
@@ -113,10 +113,11 @@ publication mandate.
 ## Launch status
 
 May 2026 and September 2026 have both been published as launch dates and both have
-passed. **Do not publish a new calendar date.** Tie the language to product state:
-Dutiva is _in beta, and launches when paid plans open_. That stays true until
-`PAID_PLANS_DISABLED_DURING_BETA` is flipped, at which point it becomes true in the
-other direction by itself.
+passed. **Do not publish a new calendar date.** Paid plans are sold: a visitor can
+check out on `/pricing`. The 15-person free cohort remains a waitlist. Product
+feature gates stay off (`PLAN_FEATURE_GATES_ENABLED`) — paying buys support, not
+extra modules. That stays true until those flags change, at which point this
+section has to be revisited in the same change.
 
 ## Claims to stop making
 

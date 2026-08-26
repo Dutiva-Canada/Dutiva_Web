@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Info, RotateCcw, ExternalLink, MapPin } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { Seo } from '@/seo/Seo'
+import { usePublicPath } from '@/seo/usePublicPath'
 import { MarketingPageShell, PageHero, PageCta } from './MarketingPage'
 import {
   visibleQuestions,
@@ -24,6 +25,7 @@ import type { Answers, QuestionId } from '../tools/jurisdictionLogic'
  */
 export function JurisdictionToolPage() {
   const { t, x } = useI18n()
+  const { p } = usePublicPath()
   const [answers, setAnswers] = useState<Answers>({})
 
   const visible = visibleQuestions(answers)
@@ -181,7 +183,7 @@ export function JurisdictionToolPage() {
         title={t('jur_tool_cta_title')}
         body={t('jur_tool_cta_body')}
         action={t('jur_tool_cta_btn')}
-        to="/app/welcome"
+        to={p('pricing')}
       />
     </MarketingPageShell>
   )

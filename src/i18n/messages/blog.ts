@@ -52,5 +52,5 @@ export const blogMessages = defineMessages({
     en: 'Open Dutiva and turn these obligations into review-ready documents for Ontario, Quebec, and the federal regime.',
     fr: 'Ouvrez Dutiva et transformez ces obligations en documents prêts à réviser pour l’Ontario, le Québec et le régime fédéral.',
   },
-  blog_cta_btn: { en: 'Start free', fr: 'Commencer' },
+  blog_cta_btn: { en: 'See plans', fr: 'Voir les forfaits' },
 })

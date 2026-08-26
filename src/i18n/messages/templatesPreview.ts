@@ -42,7 +42,7 @@ export const templatesPreviewMessages = defineMessages({
     fr: 'Connectez-vous pour ouvrir le Studio de documents et démarrer à partir de n’importe quel modèle ci-dessus.',
   },
   tplPreview_cta_btn: {
-    en: 'Start free',
-    fr: 'Commencer',
+    en: 'See plans',
+    fr: 'Voir les forfaits',
   },
 })

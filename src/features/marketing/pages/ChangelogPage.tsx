@@ -1,5 +1,6 @@
 import { useI18n } from '@/i18n/context'
 import { Seo } from '@/seo/Seo'
+import { usePublicPath } from '@/seo/usePublicPath'
 import { formatArticleMonthYear } from '@/seo/dates'
 import { CHANGELOG_ENTRIES } from '../changelog/changelogEntries'
 import { MarketingPageShell, PageCta, PageHero } from './MarketingPage'
@@ -7,6 +8,7 @@ import { MarketingPageShell, PageCta, PageHero } from './MarketingPage'
 /** /changelog — dated public product updates (changelogEntries data). */
 export function ChangelogPage() {
   const { t, x, lang } = useI18n()
+  const { p } = usePublicPath()
   return (
     <MarketingPageShell>
       <Seo route="changelog" />
@@ -34,7 +36,7 @@ export function ChangelogPage() {
         title={t('changelog_cta_t')}
         body={t('changelog_cta_p')}
         action={t('changelog_cta_btn')}
-        to="/app/welcome"
+        to={p('pricing')}
       />
     </MarketingPageShell>
   )

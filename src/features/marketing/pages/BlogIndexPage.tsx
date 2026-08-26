@@ -76,7 +76,7 @@ export function BlogIndexPage() {
         title={t('blog_cta_t')}
         body={t('blog_cta_p')}
         action={t('blog_cta_btn')}
-        to="/app/welcome"
+        to={p('pricing')}
       />
     </MarketingPageShell>
   )

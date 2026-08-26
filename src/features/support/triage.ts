@@ -47,6 +47,40 @@ export interface TriageInput {
   urgency: SupportUrgency
 }
 
+/** Categories whose handling must not change because someone paid. */
+const RESTRICTED_FROM_PAID_FLOOR: ReadonlySet<SupportCategory> = new Set([
+  'privacy',
+  'security',
+  'accessibility',
+  'complaint',
+])
+
+export type RequesterPlan = 'free' | 'starter' | 'growth' | 'pro' | null
+
+/** Queue rank: paid first (Pro, Growth, Starter), then free/unknown. */
+export function supportQueueRank(plan: RequesterPlan): number {
+  if (plan === 'pro') return 0
+  if (plan === 'growth') return 1
+  if (plan === 'starter') return 2
+  return 3
+}
+
+/**
+ * Growth and Pro product tickets floor at `high` (1-business-day initial
+ * reply). Privacy/security/accessibility/complaint keep their existing
+ * suggestPriority result — paying does not change restricted handling.
+ */
+export function applyPaidSupportFloor(
+  priority: SupportPriority,
+  plan: RequesterPlan,
+  category: SupportCategory,
+): SupportPriority {
+  if (plan !== 'growth' && plan !== 'pro') return priority
+  if (RESTRICTED_FROM_PAID_FLOOR.has(category)) return priority
+  if (PRIORITY_RANK[priority] >= PRIORITY_RANK.high) return priority
+  return 'high'
+}
+
 /**
  * Suggested initial priority from category + impact + urgency. Deliberately
  * capped at `high`; `critical` is a human triage decision, not selectable from

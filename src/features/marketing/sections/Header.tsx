@@ -99,7 +99,7 @@ function LangToggle({ className, iconSize }: { className: string; iconSize: numb
 
 export function Header() {
   const { lt, t, L } = useLanding()
-  const { home } = usePublicPath()
+  const { home, p } = usePublicPath()
   const { theme, toggleTheme } = useTheme()
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -156,7 +156,7 @@ export function Header() {
               <LogIn size={15} />
               {lt('landing_signin')}
             </Link>
-            <Link to="/app/welcome" className="gold-button gold-button-md">
+            <Link to={p('pricing')} className="gold-button gold-button-md">
               {lt('landing_start_free')}
               <ArrowRight size={14} />
             </Link>
@@ -241,7 +241,7 @@ export function Header() {
               <LogIn size={16} />
               {lt('landing_signin')}
             </Link>
-            <Link to="/app/welcome" className="gold-button gold-button-block" onClick={closeMenu}>
+            <Link to={p('pricing')} className="gold-button gold-button-block" onClick={closeMenu}>
               {lt('landing_start_free')}
               <ArrowRight size={16} />
             </Link>

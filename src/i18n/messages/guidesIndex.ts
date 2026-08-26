@@ -58,7 +58,7 @@ export const guidesIndexMessages = defineMessages({
     fr: 'Posez la question au Conseiller IA dans l’espace de travail, ou contactez-nous directement.',
   },
   guidesIdx_cta_btn: {
-    en: 'Start free',
-    fr: 'Commencer',
+    en: 'See plans',
+    fr: 'Voir les forfaits',
   },
 })

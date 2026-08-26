@@ -22,8 +22,8 @@ export const pricingMessages = defineMessages({
   },
   /* SEO meta only — kept 120–155 chars so SERP snippets are not truncated. */
   pricing_meta_description: {
-    en: 'Public CAD plans for Canadian employers — Free/Beta, Starter, Growth, and Professional. Monthly or annual billing, no setup fees, cancel anytime.',
-    fr: 'Forfaits publics en CAD pour employeurs canadiens — Gratuit/Bêta, Starter, Growth et Professional. Mensuel ou annuel, annulation en tout temps.',
+    en: 'Public CAD plans for Canadian employers — Free waitlist, Starter, Growth, and Professional. Monthly billing, no setup fees, cancel anytime.',
+    fr: 'Forfaits publics en CAD pour employeurs canadiens — liste d’attente, Starter, Growth et Professional. Facturation mensuelle, annulation en tout temps.',
   },
   pricing_mo: {
     en: '/mo',
@@ -98,8 +98,8 @@ export const pricingMessages = defineMessages({
     fr: 'Comparez ce que chaque forfait comprend.',
   },
   pricing_compare_sub: {
-    en: 'Choose a plan below. Paid plans are billed securely through Stripe.',
-    fr: 'Choisissez un forfait ci-dessous. Les forfaits payants sont facturés en toute sécurité via Stripe.',
+    en: 'Paid plans skip the waitlist and include founder-led support. Billed securely through Stripe.',
+    fr: 'Les forfaits payants sautent la liste d’attente et comprennent un soutien mené par le fondateur. Facturés en toute sécurité via Stripe.', // [FR self-authored]
   },
   pricing_faq_title: {
     en: 'Common questions',
@@ -126,8 +126,8 @@ export const pricingMessages = defineMessages({
     fr: 'Vous hésitez encore ?',
   },
   pricing_cta_body: {
-    en: 'Compare the plan cards above, then start free or reach out with questions.',
-    fr: 'Comparez les forfaits ci-dessus, puis commencez gratuitement ou posez-nous vos questions.',
+    en: 'Pick a paid plan to start today, or join the waitlist if you’d rather not pay yet.',
+    fr: 'Choisissez un forfait payant pour commencer aujourd’hui, ou joignez-vous à la liste d’attente si vous préférez ne pas payer pour l’instant.', // [FR self-authored]
   },
   pricing_cta_ask: {
     en: 'Ask a question',
@@ -164,58 +164,36 @@ export const pricingMessages = defineMessages({
   pricing_feature_col: { en: 'Features', fr: 'Fonctionnalités' },
   pricing_included: { en: 'Included', fr: 'Inclus' },
   pricing_not_included: { en: 'Not included', fr: 'Non inclus' },
-  /* States the actual beta arrangement rather than deferring it: every feature
-     in the table is open to every beta account, and the single thing that is
-     metered is AI usage (supabase/functions/_shared/aiUsage.ts) — because it
-     is the one thing that costs per request. */
   pricing_compare_note: {
-    en: 'During the beta, every feature below is open to all accounts. Per-plan limits are still being finalized; Advisor usage has fair-use caps so the service stays fast.',
-    fr: 'Pendant la bêta, toutes les fonctionnalités ci-dessous sont ouvertes à tous les comptes. Les limites par forfait restent à finaliser; l’usage du Conseiller a des plafonds raisonnables pour garder le service rapide.', // [FR self-authored]
+    en: 'Every admitted account gets the full product. Paying skips the waitlist and buys faster founder-led support. Advisor usage has fair-use caps so the service stays fast. Initial-reply times are targets, not resolution promises.',
+    fr: 'Chaque compte admis a le produit complet. Payer saute la liste d’attente et achète un soutien plus rapide mené par le fondateur. L’usage du Conseiller a des plafonds raisonnables pour garder le service rapide. Les délais de première réponse sont des cibles, pas des promesses de résolution.', // [FR self-authored]
   },
-  pricing_grp_advisor: { en: 'AI Advisor', fr: 'Conseiller IA' },
-  pricing_grp_documents: { en: 'HR documents', fr: 'Documents RH' },
-  pricing_grp_workspace: { en: 'Workspace & support', fr: 'Espace de travail et soutien' },
+  pricing_grp_workspace: { en: 'Access', fr: 'Accès' },
+  pricing_grp_support: { en: 'Support', fr: 'Soutien' },
   pricing_grp_billing: { en: 'Billing & terms', fr: 'Facturation et conditions' },
 
-  pricing_row_advisor_access: { en: 'Advisor access', fr: 'Accès au Conseiller' },
-  pricing_row_ask: { en: 'Ask-anything HR guidance', fr: 'Conseils RH sur demande' },
-  pricing_row_riskflags: {
-    en: 'Compliance risk flags',
-    fr: 'Alertes de risque de conformité',
-  },
-  pricing_row_jurisdiction: {
-    en: 'Coverage — ON · QC · Federal',
-    fr: 'Couverture — ON · QC · fédéral',
-  },
-  pricing_row_docgen: { en: 'Generate HR documents', fr: 'Génération de documents RH' },
-  pricing_row_templates: {
-    en: 'Canadian HR template library',
-    fr: 'Bibliothèque de modèles RH canadiens',
-  },
-  pricing_row_export: {
-    en: 'Save & export documents',
-    fr: 'Sauvegarde et exportation des documents',
-  },
-  pricing_row_advworkflows: {
-    en: 'Advanced document workflows',
-    fr: 'Processus documentaires avancés',
-  },
-  pricing_row_preview: {
-    en: 'Workspace preview & guidance',
-    fr: 'Aperçu et conseils dans l’espace de travail',
-  },
+  pricing_row_full_product: { en: 'Full product', fr: 'Produit complet' },
+  pricing_row_skip_waitlist: { en: 'Skip the waitlist', fr: 'Sauter la liste d’attente' },
+  pricing_row_help_centre: { en: 'Help Centre', fr: 'Centre d’aide' },
   pricing_row_support: { en: 'Support', fr: 'Soutien' },
+  pricing_row_initial_reply: {
+    en: 'Initial reply (business days)',
+    fr: 'Première réponse (jours ouvrables)',
+  },
+  pricing_row_walkthrough: {
+    en: 'Onboarding walkthrough on request',
+    fr: 'Visite d’accueil sur demande',
+  },
+  pricing_row_onboarding_call: {
+    en: 'Scheduled onboarding call',
+    fr: 'Appel d’accueil planifié',
+  },
   pricing_row_contract: { en: 'No long-term contract', fr: 'Aucun contrat à long terme' },
 
-  pricing_v_limited: { en: 'Limited', fr: 'Limité' },
-  pricing_v_core: { en: 'Core', fr: 'Essentiel' },
-  pricing_v_expanded: { en: 'Expanded', fr: 'Étendu' },
-  pricing_v_higher: { en: 'Higher limits', fr: 'Limites élevées' },
-  pricing_v_basic: { en: 'Basic', fr: 'De base' },
-  pricing_v_full: { en: 'Full library', fr: 'Bibliothèque complète' },
-  pricing_v_one: { en: '1 document', fr: '1 document' },
-  pricing_v_priority: { en: 'Priority', fr: 'Prioritaire' },
+  pricing_v_when_admitted: { en: 'Once a seat opens', fr: 'Dès qu’une place se libère' },
   pricing_v_email: { en: 'Email', fr: 'Courriel' },
+  pricing_v_2_days: { en: '2 days', fr: '2 jours' },
+  pricing_v_1_day: { en: '1 day', fr: '1 jour' },
 
   /* ── Expanded FAQ ──────────────────────────────────────────────────────── */
   pricing_faq_switch_q: {

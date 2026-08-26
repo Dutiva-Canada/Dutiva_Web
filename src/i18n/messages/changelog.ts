@@ -27,5 +27,5 @@ export const changelogMessages = defineMessages({
     en: 'Open the Advisor and generate a document to see how Dutiva works in practice.',
     fr: 'Ouvrez le Conseiller et générez un document pour voir comment Dutiva fonctionne en pratique.',
   },
-  changelog_cta_btn: { en: 'Start free', fr: 'Commencer' },
+  changelog_cta_btn: { en: 'See plans', fr: 'Voir les forfaits' },
 })

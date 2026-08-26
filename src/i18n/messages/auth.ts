@@ -61,13 +61,16 @@ export const authMessages = defineMessages({
     en: 'This workspace is invite-only. Enter your email and we’ll send a sign-in link.',
     fr: 'Cet espace de travail est sur invitation seulement. Entrez votre courriel et nous vous enverrons un lien de connexion.',
   },
-  /* Shown to any signed-in account the workspace gate refuses — which now
-     includes beta signups past the first BETA_COHORT_LIMIT (waiting list),
-     so the message says what waiting means without asserting anything about
-     this particular address's signup state. */
+  /* Shown to any signed-in account the workspace gate refuses — waitlisted
+     past the first BETA_COHORT_LIMIT, or not yet paid. Paying is the public
+     path in; the waitlist stays available. */
   auth_not_authorized: {
-    en: `This workspace isn’t available on that account. Beta access is limited to the first ${BETA_COHORT_LIMIT} signups — if you’re on the waiting list, we’ll email you when a spot opens.`,
-    fr: `Cet espace de travail n’est pas accessible avec ce compte. L’accès à la bêta est limité aux ${BETA_COHORT_LIMIT} premières inscriptions — si vous êtes sur la liste d’attente, nous vous écrirons dès qu’une place se libère.`,
+    en: `This workspace isn’t available on that account yet. A paid plan starts immediately. The waitlist has ${BETA_COHORT_LIMIT} free seats to begin — we’ll email you if you’re on it and a seat opens.`,
+    fr: `Cet espace de travail n’est pas encore accessible avec ce compte. Un forfait payant donne accès tout de suite. La liste d’attente compte ${BETA_COHORT_LIMIT} places gratuites pour commencer — nous vous écrirons si vous y êtes et qu’une place se libère.`, // [FR self-authored]
+  },
+  auth_choose_plan: {
+    en: 'Choose a plan',
+    fr: 'Choisir un forfait',
   },
   auth_confirm_verifying: {
     en: 'Signing you in…',

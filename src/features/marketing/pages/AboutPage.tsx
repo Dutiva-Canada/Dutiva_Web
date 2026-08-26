@@ -122,7 +122,7 @@ export function AboutPage() {
         title={t('about_cta_t')}
         body={t('about_cta_p')}
         action={t('about_cta_btn')}
-        to="/app/welcome"
+        to={p('pricing')}
       />
     </MarketingPageShell>
   )

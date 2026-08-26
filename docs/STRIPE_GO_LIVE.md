@@ -1,15 +1,13 @@
 # Stripe go-live (OA11) — founder checklist
 
-**Status (2026-08-23):** Engineering prep is **complete**. Stripe Dashboard
-work (products/prices, Edge Function secrets, webhook subscription, test-mode
-smoke) is **deferred** — do it when ready to open paid signup; until then keep
-`PAID_PLANS_DISABLED_DURING_BETA` as `true`. Do not flip the flag until §4
-passes.
+**Status (2026-08-26):** Checkout is **publicly offered**.
+`PAID_PLANS_DISABLED_DURING_BETA` is `false`, so `/pricing` shows live monthly
+CTAs. Annual billing stays hidden (`ANNUAL_BILLING_AVAILABLE = false`) until
+the annual price IDs exist.
 
-Paid plans are **shown but not sold** while that flag is on. The checkout,
-portal, and webhook edge functions are deployed and ready; they fail closed
-with 503 until the secrets below exist. This document is the ordered founder
-path to re-enable purchases.
+**Stripe Dashboard work is still required.** Until Edge Function secrets are
+set, `create-checkout-session` answers `503 Payments not configured.` Live
+“Start Growth” buttons will fail for customers until §1–§4 pass.
 
 Do **not** paste live secrets into chat, PRs, or the repo.
 
@@ -25,7 +23,8 @@ From `src/config/plans.ts` (`ANNUAL_MONTHS_BILLED = 10` — two months free):
 
 Create Stripe **Products** + **Prices** in **test mode first**, then repeat in
 live mode when ready. Annual prices must be **yearly recurring** charging the
-annual total above (not 12× monthly).
+annual total above (not 12× monthly). Monthly-only is enough for the first
+public sell.
 
 ## 1. Supabase Edge Function secrets
 
@@ -90,15 +89,13 @@ Required behaviour on the live project:
   `monthly`.
 - Default `SITE_URL` fallback is `https://dutiva.ca`.
 
+After merge, also redeploy `create-support-ticket` and
+`create-public-support-ticket` so new tickets snapshot `requester_plan`.
+
 ## 4. Smoke test (Stripe test mode)
 
-With `PAID_PLANS_DISABLED_DURING_BETA` still **true**, checkout CTAs stay
-disabled on the marketing site. To exercise Stripe before flipping the flag,
-either:
-
-- temporarily flip the flag on a **preview** deployment only, or
-- invoke `create-checkout-session` with a signed-in non-`@dutiva.ca` test user
-  JWT (internal `@dutiva.ca` accounts bypass Stripe entirely).
+Click a paid CTA on `/pricing` (or a preview) with a signed-in non-`@dutiva.ca`
+test user. Internal `@dutiva.ca` accounts bypass Stripe entirely.
 
 Expect after a successful test purchase:
 
@@ -107,20 +104,20 @@ Expect after a successful test purchase:
 - `profiles.stripe_subscription_id` set
 - `profiles.billing_period` = `monthly` or `annual` as purchased
 - at least one new row in `public.stripe_webhook_events`
+- `current_user_is_workspace_member()` is true for that user (paid-profile
+  path from migration `0089_paid_subscribers_are_workspace_members`)
 
-## 5. Eng PR to open paid signup (after §4)
+## 5. After smoke (annual, later)
 
-Only then:
-
-1. Set `PAID_PLANS_DISABLED_DURING_BETA = false` in `src/config/plans.ts`.
-2. Update `docs/CANONICAL_FACTS.md` beta-state row and
-   `src/canonicalFacts.test.ts`.
-3. Remove the PricingPage annual “not configured” client guard **only if**
+1. Set `ANNUAL_BILLING_AVAILABLE = true` in `src/config/plans.ts` **only if**
    all three `STRIPE_PRICE_*_ANNUAL` secrets are set.
-4. Mark **OA11** done in `docs/TODO.md`.
+2. Mark **OA11** done in `docs/TODO.md`.
+
+`PLAN_FEATURE_GATES_ENABLED` stays `false` until product limits are actually
+enforced. Paying buys support membership, not extra modules.
 
 ## Related
 
 - [BILLING_BETA_AUDIT.md](BILLING_BETA_AUDIT.md) — audit history and remaining secrets table
 - [TODO.md](TODO.md) — OA11 status
-- `src/config/plans.ts` — catalogue + flag
+- `src/config/plans.ts` — catalogue + flags

@@ -79,16 +79,16 @@ export const faqMessages = defineMessages({
   faq_p_title: { en: 'Pricing & billing', fr: 'Tarifs et facturation' },
   faq_q10: { en: 'How much does Dutiva cost?', fr: 'Combien coûte Dutiva ?' },
   faq_a10: {
-    en: 'Free / Beta, Starter at $24/mo, Growth at $49/mo (most popular), and Professional at $99/mo. Prices in CAD; monthly billing is available now and annual billing is coming soon.',
-    fr: 'Gratuit / Bêta, Starter à 24 $/mois, Growth à 49 $/mois (le plus populaire) et Professional à 99 $/mois. Prix en CAD ; facturation mensuelle disponible maintenant et facturation annuelle à venir.',
+    en: 'Free is a waitlist. Starter is $24/mo, Growth $49/mo (most popular), and Professional $99/mo. Prices in CAD; monthly billing is available now and annual billing is coming soon.',
+    fr: 'Le gratuit est une liste d’attente. Starter à 24 $/mois, Growth à 49 $/mois (le plus populaire) et Professional à 99 $/mois. Prix en CAD ; facturation mensuelle disponible maintenant et facturation annuelle à venir.',
   },
   faq_q11: { en: 'Is there a free trial?', fr: 'Y a-t-il un essai gratuit ?' },
   /* Deviates from the prototype: beta capacity decision, 2026-08-07 — the
      answer now states the cohort limit. Number interpolated from
      BETA_COHORT_LIMIT. [FR self-authored] */
   faq_a11: {
-    en: `Yes — join the beta free, no credit card required. The beta accepts ${BETA_COHORT_LIMIT} individuals and organizations to begin; once those spots are taken, new signups join the waiting list and we email them as spots open. Open the Advisor and generate a document to see how it works.`,
-    fr: `Oui — rejoignez la version bêta gratuitement, sans carte de crédit. La bêta accepte ${BETA_COHORT_LIMIT} personnes et organisations pour commencer; une fois ces places prises, les nouvelles inscriptions rejoignent la liste d’attente et nous leur écrivons dès que des places se libèrent. Ouvrez le Conseiller et générez un document pour voir comment ça fonctionne.`,
+    en: `A paid plan is the open path in — pick one on the pricing page and check out. If you’d rather not pay yet, a waitlist of ${BETA_COHORT_LIMIT} free seats is available; once those are taken, new signups stay on the list and we email them as seats open.`,
+    fr: `Un forfait payant est la voie d’accès ouverte — choisissez-en un sur la page des tarifs et payez. Si vous préférez ne pas payer pour l’instant, une liste d’attente de ${BETA_COHORT_LIMIT} places gratuites est disponible; une fois ces places prises, les nouvelles inscriptions restent sur la liste et nous leur écrivons dès qu’une place se libère.`,
   },
   faq_q12: {
     en: 'What is your refund policy?',

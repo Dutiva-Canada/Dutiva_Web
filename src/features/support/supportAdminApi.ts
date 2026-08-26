@@ -5,6 +5,7 @@ import type {
   SupportPriority,
   SupportStatus,
 } from '@/config/support'
+import { supportQueueRank, type RequesterPlan } from './triage'
 
 /**
  * Admin/operator support API. Reads go through the session client — RLS
@@ -20,6 +21,7 @@ export interface AdminTicketRow {
   publicReference: string
   subject: string
   requesterEmail: string | null
+  requesterPlan: RequesterPlan
   category: SupportCategory
   status: SupportStatus
   priority: SupportPriority
@@ -58,6 +60,7 @@ const rowSchema = z.object({
   public_reference: z.string(),
   subject: z.string(),
   requester_email: z.string().nullable(),
+  requester_plan: z.string().nullable().optional(),
   category: z.string(),
   status: z.string(),
   priority: z.string(),
@@ -76,7 +79,13 @@ const messageSchema = z.object({
 })
 
 const LIST_COLUMNS =
-  'id, public_reference, subject, requester_email, category, status, priority, restricted, language, created_at, first_response_at'
+  'id, public_reference, subject, requester_email, requester_plan, category, status, priority, restricted, language, created_at, first_response_at'
+
+function toRequesterPlan(value: string | null | undefined): RequesterPlan {
+  return value === 'free' || value === 'starter' || value === 'growth' || value === 'pro'
+    ? value
+    : null
+}
 
 function toRow(r: z.infer<typeof rowSchema>): AdminTicketRow {
   return {
@@ -84,6 +93,7 @@ function toRow(r: z.infer<typeof rowSchema>): AdminTicketRow {
     publicReference: r.public_reference,
     subject: r.subject,
     requesterEmail: r.requester_email,
+    requesterPlan: toRequesterPlan(r.requester_plan),
     category: r.category as SupportCategory,
     status: r.status as SupportStatus,
     priority: r.priority as SupportPriority,
@@ -126,7 +136,15 @@ export async function adminListTickets(filters: AdminTicketFilters = {}): Promis
   }
   const { data, error } = await query.order('created_at', { ascending: false }).limit(200)
   if (error) throw error
-  return z.array(rowSchema).parse(data ?? []).map(toRow)
+  return z
+    .array(rowSchema)
+    .parse(data ?? [])
+    .map(toRow)
+    .sort((a, b) => {
+      const rank = supportQueueRank(a.requesterPlan) - supportQueueRank(b.requesterPlan)
+      if (rank !== 0) return rank
+      return b.createdAt.localeCompare(a.createdAt)
+    })
 }
 
 export async function adminGetTicket(id: string): Promise<AdminTicket | null> {

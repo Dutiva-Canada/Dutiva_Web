@@ -87,7 +87,7 @@ export function GuidesIndexPage() {
         title={t('guidesIdx_cta_t')}
         body={t('guidesIdx_cta_p')}
         action={t('guidesIdx_cta_btn')}
-        to="/app/welcome"
+        to={p('pricing')}
       />
     </MarketingPageShell>
   )

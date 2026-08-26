@@ -4,6 +4,7 @@ import { templateCategories } from '@/features/app/documents/data'
 import { allTemplates } from '@/features/app/documents/catalogue'
 import type { DocRiskLevel, Jurisdiction } from '@/features/app/documents/data'
 import { Seo } from '@/seo/Seo'
+import { usePublicPath } from '@/seo/usePublicPath'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
 
 const RISK_CLASS: Record<DocRiskLevel, string> = {
@@ -27,6 +28,7 @@ const JURISDICTION_LABEL: Record<Jurisdiction, string> = {
  */
 export function TemplatesPage() {
   const { t, x, lang } = useI18n()
+  const { p } = usePublicPath()
   const riskLabel: Record<DocRiskLevel, string> = {
     low: lang === 'fr' ? 'Risque faible' : 'Low risk',
     medium: lang === 'fr' ? 'Risque moyen' : 'Medium risk',
@@ -94,7 +96,7 @@ export function TemplatesPage() {
         title={t('tplPreview_cta_t')}
         body={t('tplPreview_cta_p')}
         action={t('tplPreview_cta_btn')}
-        to="/app/welcome"
+        to={p('pricing')}
       />
     </MarketingPageShell>
   )

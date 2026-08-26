@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, Lock } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import { getPlanById, hasPaidPlanAccess } from '@/config/plans'
+import { PLAN_FEATURE_GATES_ENABLED, getPlanById, hasPaidPlanAccess } from '@/config/plans'
 import type { PlanId } from '@/config/plans'
 import { usePlan } from './planContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
@@ -16,11 +16,10 @@ import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeCont
  * see the full product. Plan gates only enforce in production mode, where
  * the signed-in admin's real plan from `profiles` determines access.
  *
- * While `PAID_PLANS_DISABLED_DURING_BETA` is true, every signed-in beta
- * user resolves to `free` (the webhook never grants a paid plan), so gates
- * will show the upgrade nudge in production mode — the gates exist and are
- * wired, but don't block until the owner flips the flag and Stripe
- * checkout goes live. See EF8 in docs/TODO.md.
+ * Product feature gates stay off while `PLAN_FEATURE_GATES_ENABLED` is false
+ * — paying currently buys support, not extra modules. Flip that flag only
+ * when per-plan limits are enforced and advertised. Demo mode always
+ * bypasses: the marketing surface shows the full product.
  */
 export function PlanGate({
   required,
@@ -34,6 +33,7 @@ export function PlanGate({
 
   if (loading) return null
   if (mode === 'demo') return <>{children}</>
+  if (!PLAN_FEATURE_GATES_ENABLED) return <>{children}</>
   if (isAdmin || hasPaidPlanAccess(plan, required, subscriptionStatus)) return <>{children}</>
   return <UpgradeNudge required={required} />
 }

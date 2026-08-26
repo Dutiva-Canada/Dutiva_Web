@@ -45,10 +45,10 @@ describe('AboutPage', () => {
     expect(facebook).toHaveAttribute('href', ORG.facebookUrl)
     expect(facebook).toHaveAttribute('target', '_blank')
     expect(facebook).toHaveAttribute('rel', 'noopener noreferrer')
-    // Header carries its own "Start free" links — scope the CTA check to <main>.
+    // Header carries its own "See plans" links — scope the CTA check to <main>.
     expect(
-      within(screen.getByRole('main')).getByRole('link', { name: /Start free/ }),
-    ).toHaveAttribute('href', '/app/welcome')
+      within(screen.getByRole('main')).getByRole('link', { name: /See plans/ }),
+    ).toHaveAttribute('href', '/pricing')
     expect(
       within(screen.getByRole('main')).getByRole('link', { name: /Read the changelog/ }),
     ).toHaveAttribute('href', '/changelog')

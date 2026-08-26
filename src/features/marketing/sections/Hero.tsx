@@ -3,6 +3,7 @@ import { ArrowRight, CircleCheck, ShieldCheck } from 'lucide-react'
 import { allTemplates } from '@/features/app/documents/catalogue'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
+import { usePublicPath } from '@/seo/usePublicPath'
 import { AdvisorDemo } from './AdvisorDemo'
 
 const CHECK_KEYS: LandingMessageKey[] = [
@@ -19,6 +20,7 @@ const CHECK_KEYS: LandingMessageKey[] = [
  */
 export function Hero() {
   const { lt } = useLanding()
+  const { p } = usePublicPath()
   const templateCount = String(allTemplates.length)
   return (
     <section id="top" className="mx-auto max-w-300 scroll-mt-20 px-6 pt-18 pb-10">
@@ -37,7 +39,7 @@ export function Hero() {
 
           <div className="mt-7 flex flex-wrap gap-3">
             <Link
-              to="/app/welcome"
+              to={p('pricing')}
               className="gold-button gold-button-lg px-6"
             >
               {lt('landing_cta_nocard')}

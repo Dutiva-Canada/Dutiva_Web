@@ -59,6 +59,22 @@ const RESPONSE_METHODS = ['email', 'scheduled_call'] as const
 const LANGUAGES = ['en', 'fr'] as const
 
 const PRIORITIES = ['low', 'standard', 'high', 'critical'] as const
+const PAID_FLOOR_PLANS = new Set(['growth', 'pro'])
+const RESTRICTED_FROM_PAID_FLOOR = new Set<Category>([
+  'privacy', 'security', 'accessibility', 'complaint',
+])
+
+function applyPaidSupportFloor(priority: string, plan: string | null, category: Category): string {
+  if (!plan || !PAID_FLOOR_PLANS.has(plan)) return priority
+  if (RESTRICTED_FROM_PAID_FLOOR.has(category)) return priority
+  if (priority === 'high' || priority === 'critical') return priority
+  return 'high'
+}
+
+function normalizePlan(value: unknown): string | null {
+  const plan = String(value ?? '').toLowerCase()
+  return plan === 'free' || plan === 'starter' || plan === 'growth' || plan === 'pro' ? plan : null
+}
 
 /** Server-side priority — capped at 'high'; 'critical' is a human triage call. */
 function suggestPriority(category: Category, impact: Impact, urgency: Urgency): string {
@@ -261,7 +277,17 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  const priority = suggestPriority(category, impact, urgency)
+  const suggested = suggestPriority(category, impact, urgency)
+  let requesterPlan: string | null = null
+  if (email) {
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('plan')
+      .ilike('account_email', email)
+      .maybeSingle()
+    requesterPlan = normalizePlan(profile?.plan)
+  }
+  const priority = applyPaidSupportFloor(suggested, requesterPlan, category)
   const restricted = RESTRICTED_CATEGORIES.has(category)
 
   const { data: ticket, error: insertError } = await admin
@@ -281,6 +307,7 @@ Deno.serve(async (req: Request) => {
       priority,
       restricted,
       status: 'new',
+      requester_plan: requesterPlan,
     })
     .select('id, public_reference')
     .single()

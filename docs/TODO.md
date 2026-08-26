@@ -291,14 +291,13 @@ that `supabase/migrations/` alone can't reproduce. A reviewer can now see
 the real RLS policies and function bodies in a diff.
 [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md). (PR #74)
 
-**OA11 — Stripe secrets and webhook endpoint.** _Eng prep done 2026-08-23;
-Stripe Dashboard deferred._ Checkout / portal / webhook match repo (annual
-wiring + apex `SITE_URL`); paid CTAs stay off
-(`PAID_PLANS_DISABLED_DURING_BETA` remains `true`). Founder still needs to
-run [STRIPE_GO_LIVE.md](STRIPE_GO_LIVE.md) when ready (products/prices,
-secrets, webhook, test-mode smoke) — **not blocking other eng work**. Flag
-flip is a separate eng PR after that smoke test (§5). Prior notes:
-[BILLING_BETA_AUDIT.md § Remaining work](BILLING_BETA_AUDIT.md).
+**OA11 — Stripe secrets and webhook endpoint.** _Checkout CTAs are live
+(2026-08-26); Stripe Dashboard still deferred._
+`PAID_PLANS_DISABLED_DURING_BETA` is `false` — monthly paid CTAs on `/pricing`
+are the public path in. Until secrets exist, checkout 503s. Founder still needs
+to run [STRIPE_GO_LIVE.md](STRIPE_GO_LIVE.md) (products/prices, secrets,
+webhook, test-mode smoke). Annual stays hidden (`ANNUAL_BILLING_AVAILABLE`).
+Prior notes: [BILLING_BETA_AUDIT.md § Remaining work](BILLING_BETA_AUDIT.md).
 
 **OA12 — Partially done.** D3 was decided 2026-08-06 (Google Calendar, full
 loop) and built the same day. Verified 2026-08-06 via Supabase MCP:
@@ -738,12 +737,11 @@ product). Production mode enforces the plan check, with an upgrade nudge
 linking to `/pricing?upgrade={required}` when access is denied. Internal
 `@dutiva.ca` accounts always bypass via `isAdmin`.
 
-`PAID_PLANS_DISABLED_DURING_BETA` remains `true` — the gates exist and are
-wired, but every signed-in beta user resolves to `free` (the webhook never
-grants a paid plan), so gates show the upgrade nudge in production mode
-without blocking anything in demo mode. The owner action to start selling
-is: flip the flag to `false`, apply migration 0043, and create the annual
-Stripe price objects (EF8a below). (PR #161)
+`PLAN_FEATURE_GATES_ENABLED` remains `false` — the gates exist and are
+wired, but product limits are not enforced. Paying buys support membership
+(skip waitlist + founder-led reply targets), not extra modules. The owner
+action to start gating features is: flip that flag to `true` only once the
+limits in `PLAN_COMPARISON` are actually enforced. (PR #161)
 
 **EF9 — Ring 2 Pillar B's two design-blocked tools are built; the pattern is
 not.** The duty-to-accommodate workflow and the functional-limitations guide

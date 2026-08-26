@@ -127,7 +127,7 @@ export function Pricing() {
                 ))}
               </ul>
               <a
-                href="#start"
+                href={plan.price === null ? '#start' : p('pricing')}
                 className={`${plan.popular ? 'gold-button' : 'ghost-button'} w-full`}
               >
                 {purchasable ? lt(plan.cta) : t('pricing_cta_beta_only')}

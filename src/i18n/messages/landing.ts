@@ -36,8 +36,8 @@ export const landing = defineMessages({
     fr: 'Se connecter',
   },
   landing_start_free: {
-    en: 'Start free',
-    fr: 'Commencer',
+    en: 'See plans',
+    fr: 'Voir les forfaits',
   },
   landing_hero_badge: {
     en: 'AI-powered · Human support when needed · Canadian · Compliance-oriented',
@@ -84,8 +84,8 @@ export const landing = defineMessages({
     fr: 'Dutiva offre aux employeurs canadiens des conseils RH adaptés à la compétence et des documents prêts à réviser — ancrés dans les normes du travail applicables, en français ou en anglais.',
   },
   landing_cta_nocard: {
-    en: 'Start free — no card',
-    fr: 'Commencer — sans carte',
+    en: 'See plans',
+    fr: 'Voir les forfaits',
   },
   landing_cta_seehow: {
     en: 'See how it works',
@@ -274,8 +274,8 @@ export const landing = defineMessages({
     fr: 'Comment puis-je commencer avec Dutiva ?',
   },
   landing_faq4_a: {
-    en: `Create a free account, with no credit card, and open Advisor or pick a document template. Choose Ontario, Quebec, or federal, answer the prompts, and generate a review-ready draft. The beta currently accepts ${BETA_COHORT_LIMIT} individuals and organizations to begin; once those spots are taken, new signups join the waiting list. Start with one real workplace question to see how it works.`,
-    fr: `Créez un compte gratuit, sans carte de crédit, et ouvrez le Conseiller ou choisissez un modèle de document. Choisissez l’Ontario, le Québec ou le fédéral, répondez aux questions, et générez une ébauche prête à réviser. La bêta accepte actuellement ${BETA_COHORT_LIMIT} personnes et organisations pour commencer; une fois ces places prises, les nouvelles inscriptions rejoignent la liste d’attente. Commencez par une vraie question de milieu de travail pour voir le processus.`,
+    en: 'Pick a plan at dutiva.ca/pricing to start today — paying skips the waitlist and includes founder-led support. If you’d rather not pay yet, leave your email on the waitlist of 15 free seats and we’ll write when one opens. The full product is open to every admitted account. Dutiva provides compliance-oriented support. It does not provide legal advice.',
+    fr: 'Choisissez un forfait sur dutiva.ca/tarifs pour commencer aujourd’hui — payer saute la liste d’attente et comprend un soutien mené par le fondateur. Si vous préférez ne pas payer pour l’instant, laissez votre courriel sur la liste d’attente de 15 places gratuites et nous vous écrirons dès qu’une place se libère. Le produit complet est ouvert à chaque compte admis. Dutiva offre un soutien axé sur la conformité. Il ne fournit pas de conseils juridiques.',
   },
   landing_faq_more: {
     en: 'More questions on the FAQ',
@@ -695,52 +695,52 @@ export const landing = defineMessages({
     fr: '/mois',
   },
   landing_free_name: {
-    en: 'Free / Beta',
-    fr: 'Gratuit / Bêta',
+    en: 'Free',
+    fr: 'Gratuit',
   },
   landing_free_amt: {
     en: 'Free',
     fr: 'Gratuit',
   },
   landing_free_desc: {
-    en: 'For individuals exploring Canadian HR compliance tools.',
-    fr: 'Pour les personnes qui explorent les outils de conformité RH canadiens.',
+    en: 'Waitlist — we’ll email you when a free seat opens.',
+    fr: 'Liste d’attente — nous vous écrirons dès qu’une place gratuite se libère.',
   },
   landing_free_f1: {
-    en: 'Limited Advisor access',
-    fr: 'Accès limité au Conseiller',
+    en: 'Full product once a seat opens',
+    fr: 'Produit complet dès qu’une place se libère',
   },
   landing_free_f2: {
-    en: 'One document generation',
-    fr: 'Une génération de document',
+    en: 'Help Centre and email',
+    fr: 'Centre d’aide et courriel',
   },
   landing_free_f3: {
-    en: 'Basic Canadian HR templates',
-    fr: 'Modèles RH canadiens de base',
+    en: 'Standard queue (2 business days)',
+    fr: 'File standard (2 jours ouvrables)',
   },
   landing_free_cta: {
-    en: 'Get started',
-    fr: 'Commencer',
+    en: 'Join the waitlist',
+    fr: 'Joindre la liste d’attente',
   },
   landing_starter_name: {
     en: 'Starter',
     fr: 'Starter',
   },
   landing_starter_desc: {
-    en: 'For small teams setting up a structured HR workflow.',
-    fr: 'Pour les petites équipes qui structurent leur processus RH.',
+    en: 'Skip the waitlist. Full product, email support.',
+    fr: 'Sautez la liste d’attente. Produit complet, soutien par courriel.',
   },
   landing_starter_f1: {
-    en: 'Core Advisor access',
-    fr: 'Accès de base au Conseiller',
+    en: 'Skip the waitlist',
+    fr: 'Sauter la liste d’attente',
   },
   landing_starter_f2: {
-    en: 'Limited document generation',
-    fr: 'Génération de documents limitée',
+    en: 'Full product',
+    fr: 'Produit complet',
   },
   landing_starter_f3: {
-    en: 'Core Canadian HR templates',
-    fr: 'Modèles RH canadiens essentiels',
+    en: 'Email support — paid tickets first',
+    fr: 'Soutien par courriel — billets payants en premier',
   },
   landing_starter_cta: {
     en: 'Start Starter',
@@ -755,20 +755,20 @@ export const landing = defineMessages({
     fr: 'Le plus populaire',
   },
   landing_growth_desc: {
-    en: 'For small businesses managing recurring HR workflows.',
-    fr: 'Pour les PME qui gèrent des processus RH récurrents.',
+    en: 'Faster replies and an onboarding walkthrough on request.',
+    fr: 'Réponses plus rapides et une visite d’accueil sur demande.',
   },
   landing_growth_f1: {
-    en: 'Expanded Advisor usage',
-    fr: 'Utilisation étendue du Conseiller',
+    en: 'Skip the waitlist',
+    fr: 'Sauter la liste d’attente',
   },
   landing_growth_f2: {
-    en: 'Save & export HR documents',
-    fr: 'Sauvegarde et exportation des documents RH',
+    en: 'Initial reply within 1 business day',
+    fr: 'Première réponse en 1 jour ouvrable',
   },
   landing_growth_f3: {
-    en: 'Workspace preview & guidance',
-    fr: "Aperçu et conseils dans l'espace de travail",
+    en: 'Onboarding walkthrough on request',
+    fr: 'Visite d’accueil sur demande',
   },
   landing_growth_cta: {
     en: 'Upgrade to Growth',
@@ -779,20 +779,20 @@ export const landing = defineMessages({
     fr: 'Professional',
   },
   landing_pro_desc: {
-    en: 'For businesses needing deeper guidance and higher limits.',
-    fr: 'Pour les entreprises nécessitant des conseils approfondis et des limites plus élevées.',
+    en: 'Same as Growth, plus a scheduled onboarding call.',
+    fr: 'Comme Growth, plus un appel d’accueil planifié.',
   },
   landing_pro_f1: {
-    en: 'Higher Advisor limits',
-    fr: 'Limites plus élevées du Conseiller',
+    en: 'Skip the waitlist',
+    fr: 'Sauter la liste d’attente',
   },
   landing_pro_f2: {
-    en: 'Advanced document workflows',
-    fr: 'Processus documentaires avancés',
+    en: 'Initial reply within 1 business day',
+    fr: 'Première réponse en 1 jour ouvrable',
   },
   landing_pro_f3: {
-    en: 'Priority compliance guidance',
-    fr: 'Conseils de conformité prioritaires',
+    en: 'Scheduled onboarding call',
+    fr: 'Appel d’accueil planifié',
   },
   landing_pro_cta: {
     en: 'Upgrade to Professional',
@@ -838,23 +838,23 @@ export const landing = defineMessages({
     fr: 'Blogue : ce qui s’applique à votre entreprise',
   },
   landing_cta_badge: {
-    en: 'Join the beta',
-    fr: 'Rejoindre la bêta',
+    en: 'Prefer not to pay yet?',
+    fr: 'Vous préférez ne pas payer pour l’instant ?',
   },
   landing_cta_title: {
-    en: 'Create your first review-ready HR document in minutes.',
-    fr: 'Créez votre premier document RH prêt à réviser en quelques minutes.',
+    en: 'Join the waitlist for a free seat.',
+    fr: 'Joignez-vous à la liste d’attente pour une place gratuite.',
   },
   landing_cta_p: {
-    en: 'Join the beta free — no credit card. Open Advisor, generate a document, and try the workflow.',
-    fr: 'Rejoignez la version bêta gratuitement — sans carte de crédit. Ouvrez le Conseiller, générez un document et essayez le processus.',
+    en: 'A paid plan starts today. If you’d rather wait, leave your email — we’ll write when a free seat opens.',
+    fr: 'Un forfait payant commence aujourd’hui. Si vous préférez attendre, laissez votre courriel — nous vous écrirons dès qu’une place gratuite se libère.',
   },
   /* Postdates the design handoff: beta capacity decision, 2026-08-07. The
      number is interpolated from BETA_COHORT_LIMIT so this copy cannot drift
      from the gate that enforces it. [FR self-authored] */
   landing_cta_capacity: {
-    en: `Join a dedicated cohort of ${BETA_COHORT_LIMIT} Canadian HR leaders shaping the future of compliance.`,
-    fr: `Rejoignez une cohorte dédiée de ${BETA_COHORT_LIMIT} leaders RH canadiens qui façonnent l’avenir de la conformité.`,
+    en: `The waitlist has ${BETA_COHORT_LIMIT} free seats to begin. Later signups stay on the list until a seat opens.`,
+    fr: `La liste d’attente compte ${BETA_COHORT_LIMIT} places gratuites pour commencer. Les inscriptions suivantes restent sur la liste jusqu’à ce qu’une place se libère.`,
   },
   /* Spot counter above the beta form. {taken}/{limit} replaced at render.
      [FR self-authored] */
@@ -867,8 +867,8 @@ export const landing = defineMessages({
     fr: 'vous@entreprise.ca',
   },
   landing_cta_btn: {
-    en: 'Start free',
-    fr: 'Commencer',
+    en: 'Join the waitlist',
+    fr: 'Joindre la liste d’attente',
   },
   landing_cta_disclaimer: {
     en: 'Practical HR workflow support & compliance-oriented guidance. It does not provide legal, tax, medical, or financial advice.',
@@ -883,8 +883,8 @@ export const landing = defineMessages({
     fr: 'Vous êtes inscrit.',
   },
   landing_cta_done_p: {
-    en: "We'll email your beta access to get started.",
-    fr: 'Nous vous enverrons votre accès bêta par courriel.',
+    en: "We'll email you when your seat is ready.",
+    fr: 'Nous vous écrirons lorsque votre place sera prête.',
   },
   /* Postdates the design handoff: shown instead of landing_cta_done_* when
      the server reports the first cohort is already full, so a visitor who
@@ -894,8 +894,8 @@ export const landing = defineMessages({
     fr: 'Vous êtes sur la liste d’attente.',
   },
   landing_cta_wait_p: {
-    en: `The first ${BETA_COHORT_LIMIT} beta spots are taken. We'll email you as soon as a spot opens up.`,
-    fr: `Les ${BETA_COHORT_LIMIT} premières places de la bêta sont prises. Nous vous écrirons dès qu’une place se libère.`,
+    en: `The first ${BETA_COHORT_LIMIT} free seats are taken. We'll email you as soon as one opens.`,
+    fr: `Les ${BETA_COHORT_LIMIT} premières places gratuites sont prises. Nous vous écrirons dès qu’une place se libère.`,
   },
   landing_foot_desc: {
     en: 'Practical HR compliance support for Canadian employers — guidance and review-ready documents when the work gets complicated.',
@@ -926,8 +926,8 @@ export const landing = defineMessages({
     fr: 'Studio de documents',
   },
   landing_fp_beta: {
-    en: 'Beta access',
-    fr: 'Accès bêta',
+    en: 'Waitlist',
+    fr: 'Liste d’attente',
   },
   landing_foot_resources: {
     en: 'Resources',

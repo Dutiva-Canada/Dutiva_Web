@@ -102,12 +102,12 @@ export const aboutMessages = defineMessages({
     fr: 'Lire le journal des modifications',
   },
   about_cta_t: {
-    en: 'Join the beta free — no credit card.',
-    fr: 'Rejoignez la bêta gratuitement — sans carte de crédit.',
+    en: 'See plans — start today, or join the waitlist.',
+    fr: 'Voir les forfaits — commencez aujourd’hui, ou joignez-vous à la liste d’attente.',
   },
   about_cta_p: {
-    en: 'Open Advisor, generate a document, and try the workflow.',
-    fr: 'Ouvrez le Conseiller, générez un document et essayez le processus.',
+    en: 'A paid plan skips the waitlist and includes founder-led support.',
+    fr: 'Un forfait payant saute la liste d’attente et comprend un soutien mené par le fondateur.',
   },
-  about_cta_btn: { en: 'Start free', fr: 'Commencer' },
+  about_cta_btn: { en: 'See plans', fr: 'Voir les forfaits' },
 })

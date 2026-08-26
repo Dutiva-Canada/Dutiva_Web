@@ -7,11 +7,26 @@ import { PlanContext } from './planContext'
 import type { PlanContextValue } from './planContext'
 import { WorkspaceModeContext } from '@/features/app/workspaceMode/workspaceModeContext'
 import type { WorkspaceModeContextValue } from '@/features/app/workspaceMode/workspaceModeContext'
+
+const { PLAN_FEATURE_GATES_ENABLED } = vi.hoisted(() => ({
+  PLAN_FEATURE_GATES_ENABLED: { value: false },
+}))
+
+vi.mock('@/config/plans', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/config/plans')>()
+  return {
+    ...actual,
+    get PLAN_FEATURE_GATES_ENABLED() {
+      return PLAN_FEATURE_GATES_ENABLED.value
+    },
+  }
+})
+
 import { PlanGate } from './PlanGate'
 
-/* PlanGate has two bypass paths — admin and demo mode — and one enforcement
-   path: production mode with a plan below `required`. These tests cover all
-   three, plus the loading state. The contexts are mocked directly so the
+/* PlanGate has two bypass paths — admin and demo mode — plus the
+   PLAN_FEATURE_GATES_ENABLED off switch. Enforcement is production mode
+   with gates on and a plan below `required`. Contexts are mocked so the
    test doesn't need Supabase or a real session. */
 
 const DEMO_MODE: WorkspaceModeContextValue = {
@@ -70,39 +85,51 @@ function renderGate(
 
 describe('PlanGate', () => {
   it('renders children in demo mode regardless of plan', () => {
+    PLAN_FEATURE_GATES_ENABLED.value = true
     renderGate(makePlanCtx({ plan: 'free' }), DEMO_MODE)
     expect(screen.getByTestId('content')).toBeInTheDocument()
   })
 
+  it('renders children in production when feature gates are off, even on a free plan', () => {
+    PLAN_FEATURE_GATES_ENABLED.value = false
+    renderGate(makePlanCtx({ plan: 'free' }), PROD_MODE, 'growth')
+    expect(screen.getByTestId('content')).toBeInTheDocument()
+  })
+
   it('renders children in production mode when plan meets the requirement', () => {
+    PLAN_FEATURE_GATES_ENABLED.value = true
     renderGate(makePlanCtx({ plan: 'growth' }), PROD_MODE, 'growth')
     expect(screen.getByTestId('content')).toBeInTheDocument()
   })
 
   it('renders children in production mode when plan exceeds the requirement', () => {
+    PLAN_FEATURE_GATES_ENABLED.value = true
     renderGate(makePlanCtx({ plan: 'pro' }), PROD_MODE, 'growth')
     expect(screen.getByTestId('content')).toBeInTheDocument()
   })
 
-  it('renders the upgrade nudge in production mode when plan is below required', () => {
+  it('renders the upgrade nudge in production mode when gates are on and plan is below required', () => {
+    PLAN_FEATURE_GATES_ENABLED.value = true
     renderGate(makePlanCtx({ plan: 'free' }), PROD_MODE, 'growth')
     expect(screen.queryByTestId('content')).not.toBeInTheDocument()
-    /* The upgrade nudge links to /pricing with the required plan. */
     expect(screen.getByRole('link')).toHaveAttribute('href', '/pricing?upgrade=growth')
   })
 
   it('renders the upgrade nudge when subscription is past due despite a paid plan', () => {
+    PLAN_FEATURE_GATES_ENABLED.value = true
     renderGate(makePlanCtx({ plan: 'pro', subscriptionStatus: 'past_due' }), PROD_MODE, 'growth')
     expect(screen.queryByTestId('content')).not.toBeInTheDocument()
     expect(screen.getByRole('link')).toHaveAttribute('href', '/pricing?upgrade=growth')
   })
 
   it('renders children when isAdmin is true, even on a free plan in production', () => {
+    PLAN_FEATURE_GATES_ENABLED.value = true
     renderGate(makePlanCtx({ plan: 'free', isAdmin: true }), PROD_MODE, 'pro')
     expect(screen.getByTestId('content')).toBeInTheDocument()
   })
 
   it('renders nothing while loading', () => {
+    PLAN_FEATURE_GATES_ENABLED.value = true
     renderGate(makePlanCtx({ loading: true }), PROD_MODE)
     expect(screen.queryByTestId('content')).not.toBeInTheDocument()
     expect(screen.queryByRole('link')).not.toBeInTheDocument()

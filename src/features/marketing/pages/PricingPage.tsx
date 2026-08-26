@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import {
@@ -15,8 +15,10 @@ import {
 import { useI18n } from '@/i18n/context'
 import { useAuth } from '@/features/app/auth/authContext'
 import { usePlan } from '@/features/app/billing/planContext'
+import { setPendingCheckout, takePendingCheckout } from '@/features/app/billing/pendingCheckout'
 import { supabase } from '@/lib/supabaseClient'
 import {
+  ANNUAL_BILLING_AVAILABLE,
   PAID_PLANS_DISABLED_DURING_BETA,
   PLANS,
   annualPerMonth,
@@ -313,14 +315,14 @@ const FAQ_ITEMS: { q: MarketingMessageKey; a: MarketingMessageKey }[] = [
  */
 export function PricingPage() {
   const { t, lang } = useI18n()
-  const { p } = usePublicPath()
+  const { p, home } = usePublicPath()
   const { status } = useAuth()
   const { isAdmin, plan: currentPlan, stripeCustomerId } = usePlan()
   const [period, setPeriod] = useState<BillingPeriod>('monthly')
-  /* While paid plans are disabled during the beta, the annual toggle is hidden
-     (no path should advertise a price nobody can buy). Force monthly so the
-     rest of the page stays consistent even if state somehow drifts. */
-  const effectivePeriod: BillingPeriod = PAID_PLANS_DISABLED_DURING_BETA ? 'monthly' : period
+  /* Annual prices are not in Stripe yet. Hide the toggle independently of
+     whether monthly checkout is open, so we never quote a yearly total
+     nobody can buy. */
+  const effectivePeriod: BillingPeriod = ANNUAL_BILLING_AVAILABLE ? period : 'monthly'
   const [checkoutPlanId, setCheckoutPlanId] = useState<string | null>(null)
   const [portalLoading, setPortalLoading] = useState(false)
   const [notice, setNotice] = useState<{
@@ -356,10 +358,33 @@ export function PricingPage() {
     setSearchParams(next, { replace: true })
   }, [searchParams, setSearchParams, t])
 
+  const resumeCheckout = useRef(false)
+
+  /* After magic-link from a paid CTA, finish checkout instead of leaving
+     the visitor on the waitlist screen. */
+  useEffect(() => {
+    if (resumeCheckout.current) return
+    if (status !== 'signed-in') return
+    if (PAID_PLANS_DISABLED_DURING_BETA) return
+    const planId = takePendingCheckout()
+    const pending = getPlanById(planId)
+    if (!pending || !isPurchasable(pending) || pending.monthlyPrice === 0) return
+    resumeCheckout.current = true
+    void handleCheckout(pending)
+    // handleCheckout is recreated each render; we only resume once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status])
+
   async function handleCheckout(plan: PlanDefinition) {
     setNotice(null)
 
-    if (plan.id === 'free' || status !== 'signed-in') {
+    if (plan.id === 'free') {
+      window.location.href = home('start')
+      return
+    }
+
+    if (status !== 'signed-in') {
+      setPendingCheckout(plan.id)
       window.location.href = '/app/welcome'
       return
     }
@@ -523,7 +548,7 @@ export function PricingPage() {
 
       {/* ── Plans (billing toggle + cards) ─────────────────────────────────── */}
       <section className="mx-auto max-w-[1200px] px-6 pt-4 pb-2">
-        {!PAID_PLANS_DISABLED_DURING_BETA && (
+        {!ANNUAL_BILLING_AVAILABLE ? null : (
           <BillingToggle period={effectivePeriod} onChange={setPeriod} />
         )}
         <div className="mt-8 grid items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -581,7 +606,7 @@ export function PricingPage() {
         title={t('pricing_cta_title')}
         body={t('pricing_cta_body')}
         action={t('landing_free_cta')}
-        to="/app/welcome"
+        href={home('start')}
       />
       {/* A pricing question is a sales enquiry, so it goes to the ticketed
           intake pre-set to that topic rather than a raw mailto — the sender
