@@ -38,6 +38,10 @@ export const advisorWorkspaceMessages = defineMessages({
     en: 'Start with a question — jurisdiction, risk, and sources show up here when the route supports them.',
     fr: 'Commencez par une question — la compétence, le risque et les sources s’affichent ici lorsque le routage les prend en charge.',
   },
+  advws_idle_thread_body: {
+    en: 'Jurisdiction, risk, and sources appear here after a live answer that includes them. Ask a follow-up to refresh.',
+    fr: 'La compétence, le risque et les sources s’affichent ici après une réponse en direct qui les inclut. Posez une question de suivi pour actualiser.',
+  }, // [FR self-authored]
   advws_idle_prompt_people: {
     en: 'Go to People',
     fr: 'Aller à Personnel',

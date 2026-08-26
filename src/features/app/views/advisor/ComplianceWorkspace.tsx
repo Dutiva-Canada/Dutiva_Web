@@ -59,6 +59,12 @@ export interface ComplianceWorkspaceProps {
   readonly onIdleSend?: (text: string) => void
   /** Idle-state starters: navigate into the product (People, Studio). */
   readonly onIdleNavigate?: (to: string) => void
+  /**
+   * When true (Advisor home / empty thread), idle shows Getting-started
+   * prompts. When false (active thread with messages but no structured
+   * payload yet), idle stays a quiet empty state — no starter cards.
+   */
+  readonly showIdleStarters?: boolean
   /** Mobile sheet open state + close (ChatPane header pill owns opening). */
   readonly mobileOpen: boolean
   readonly onCloseMobile: () => void
@@ -139,6 +145,7 @@ export function ComplianceWorkspace({
   onToggleWeb,
   onIdleSend,
   onIdleNavigate,
+  showIdleStarters = true,
   mobileOpen,
   onCloseMobile,
 }: ComplianceWorkspaceProps) {
@@ -167,7 +174,13 @@ export function ComplianceWorkspace({
 
       {state.kind === 'locked' && <LockedState />}
       {state.kind === 'running' && <RunningState />}
-      {state.kind === 'idle' && <IdleState onSend={onIdleSend} onNavigate={onIdleNavigate} />}
+      {state.kind === 'idle' && (
+        <IdleState
+          onSend={onIdleSend}
+          onNavigate={onIdleNavigate}
+          showStarters={showIdleStarters}
+        />
+      )}
       {state.kind === 'ready' && (
         <ReadyState
           response={state.response}
@@ -252,9 +265,11 @@ function RunningState() {
 function IdleState({
   onSend,
   onNavigate,
+  showStarters,
 }: {
   readonly onSend?: (text: string) => void
   readonly onNavigate?: (to: string) => void
+  readonly showStarters: boolean
 }) {
   const { x } = useI18n()
   const starters = [
@@ -285,9 +300,11 @@ function IdleState({
           <Sparkle size={18} className="fill-gold-on-navy" strokeWidth={0} aria-hidden="true" />
         </div>
         <div className="mb-[5px] text-[14px] font-bold text-text">{x(M.advws_idle_title)}</div>
-        <div className="text-[12.5px] leading-[1.55] text-text-muted">{x(M.advws_idle_body)}</div>
+        <div className="text-[12.5px] leading-[1.55] text-text-muted">
+          {x(showStarters ? M.advws_idle_body : M.advws_idle_thread_body)}
+        </div>
       </div>
-      {(onSend || onNavigate) && (
+      {showStarters && (onSend || onNavigate) && (
         <div className="mt-[12px] flex flex-col gap-[8px]">
           {starters.map((starter) => (
             <button
