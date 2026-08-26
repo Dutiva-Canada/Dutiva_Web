@@ -22,10 +22,12 @@ the same discipline instead of reaching for an LLM by reflex.
 
 Read alongside: [`design-handoff-advisor-chat/AGENT.md`](design-handoff-advisor-chat/AGENT.md)
 (how the Advisor communicates), the Engineering Roadmap prototype
-(`design-handoff-advisor-chat/prototypes/Engineering Roadmap.dc.html`), and the
+(`design-handoff-advisor-chat/prototypes/Engineering Roadmap.dc.html`), the
 public **AI & Technology Policy** / **AI Usage Disclosure**
 (`src/features/marketing/legal/content/ai-technology.en.ts`,
-`ai-usage-disclosure.en.ts`).
+`ai-usage-disclosure.en.ts`), and [`LOCAL_INFERENCE.md`](LOCAL_INFERENCE.md)
+(undecided: on-device / LAN inference vs Gradient, including cost — not a
+shipped path).
 
 ---
 
@@ -328,3 +330,7 @@ the counts need, and the functions now write the canonical `failed` rather than
 Everything else in the product is retrieval, templates, rules, or algorithms.
 That is the intended steady state: a small, well-fenced generative core, and a
 large deterministic surround.
+
+On-device or customer-LAN completion is **not** a current route. If that
+changes, it is an owner decision recorded in
+[`LOCAL_INFERENCE.md`](LOCAL_INFERENCE.md), not an implicit extra provider.

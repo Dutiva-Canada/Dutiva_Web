@@ -64,3 +64,6 @@ Thank you,
 - If DO will not confirm in writing: options are (a) Dedicated Inference TOR1 (guaranteed, higher
   fixed cost), or (b) revise the legal docs' location language to match what DO will actually
   commit to. Decision is Martin's; no legal-doc changes have been made.
+- On-device / customer-LAN inference is a **separate** product question (privacy SKU, not
+  residency of Gradient). Cost, fit, and phasing: [LOCAL_INFERENCE.md](LOCAL_INFERENCE.md).
+  Dedicated TOR1 is still Dutiva-operated cloud; do not describe it as local.

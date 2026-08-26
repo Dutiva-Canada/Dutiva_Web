@@ -473,6 +473,15 @@ fired. See [SCORING_LOGIC.md](SCORING_LOGIC.md) §2.3/§8.
 These are not backlog items. Each one was deliberately left to the owner because
 building it speculatively would have meant deciding it speculatively.
 
+**D9 — Local / on-device Advisor inference.** Undecided 2026-08-26.
+Can customers run a local model without a manual download, and without the
+cloud? Physics: no to both at once; yes to hiding acquisition. Default until
+decided: keep Gradient serverless; do not build WebGPU or a Local Runtime as
+the Advisor. DigitalOcean Dedicated TOR1 is the residency move (OA9), not
+on-device. Short-term cheapest path is serverless; local only pays as a
+priced privacy SKU or at very high volume. Full record:
+[LOCAL_INFERENCE.md](LOCAL_INFERENCE.md).
+
 **D2 — Support analytics: the privacy model comes first.** Decided
 2026-08-06 (full support funnel, workspace-scoped, 90-day raw / forever
 aggregate, first-party Supabase sink + GA4 plumbing) and built the same day —

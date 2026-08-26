@@ -69,6 +69,11 @@ Dutiva uses remote AI APIs (DigitalOcean Gradient AI for the Advisor, Hugging Fa
 - Review the provider terms for the current model (`mistral-3-14B` via DigitalOcean Gradient AI, `mistralai/Mistral-7B-Instruct-v0.3` via Hugging Face).
 - Confirm that publishing client/edge-function source that constructs prompts does not violate provider terms.
 - **LEGAL REVIEW REQUIRED** for AI provider commercial-use and data-retention terms.
+- On-device or customer-LAN completion is not a current path. If it is ever
+  offered, the corpus, prompts, and retrieval strategy remain proprietary —
+  see [`docs/LOCAL_INFERENCE.md`](../docs/LOCAL_INFERENCE.md). Do not treat
+  “local inference” as a reason to ship `advisor_guidance_chunks` to the
+  browser.
 
 ---
 

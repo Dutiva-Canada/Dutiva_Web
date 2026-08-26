@@ -44,6 +44,7 @@ govern what the product is allowed to assert.
 | --- | --- |
 | [FOUR_RING_FRAMEWORK.md](FOUR_RING_FRAMEWORK.md) | Product scope as four rings, and tool by tool what is actually built. Supersedes the April 2026 Drive framework, whose jurisdiction, pricing and launch claims are corrected there. |
 | [AI_USAGE_STRATEGY.md](AI_USAGE_STRATEGY.md) | Where an LLM is used and where it deliberately is not — "the LLM proposes, deterministic code disposes". Statutory clauses, notice math and crisis text are never model-authored. |
+| [LOCAL_INFERENCE.md](LOCAL_INFERENCE.md) | **Undecided.** On-device / LAN / OS-model Advisor vs DigitalOcean Gradient: physics, product fit, TOR1 Dedicated, and short- vs long-term cost. Do not ship from this doc until the owner decides. |
 | [SCORING_LOGIC.md](SCORING_LOGIC.md) | How every score is computed: the compliance score (formula v3 — severity-weighted, critical-capped, obligations, versioned), flow scoring, Advisor risk/confidence, Analytics rules. |
 | [LAW_MONITORING.md](LAW_MONITORING.md) | How law-change monitoring works, the 2026-07-30 coverage audit, and why sweeping a page is not detecting an amendment on it. |
 | [LAW_CHANGE_NOTIFICATIONS.md](LAW_CHANGE_NOTIFICATIONS.md) | Internal-only weekly digest: decided and built 2026-08-06. Nothing sends until the owner deploy steps (§7 / TODO.md OA13) are done. |
@@ -66,7 +67,7 @@ Editorial rule for public articles — no statutory figures, ever — is stated 
 | [SECURITY_HEADERS.md](SECURITY_HEADERS.md) | HTTP security headers in `vercel.json`: the enforcing set, the Report-Only CSP, and how to promote it. |
 | [ERROR_REPORTING.md](ERROR_REPORTING.md) | First-party crash reporting, the privacy scrubbing rules, and source-map handling. |
 | [EXPORT_PROTECTION.md](EXPORT_PROTECTION.md) | Watermarking, fingerprinting, velocity limits, audit trail, and the runbook for tracing a leak. |
-| [do-residency-confirmation-request.md](do-residency-confirmation-request.md) | Open data-residency question with the inference provider. Blocks the PIPEDA claim in CANONICAL_FACTS §2. |
+| [do-residency-confirmation-request.md](do-residency-confirmation-request.md) | Open data-residency question with the inference provider. Blocks the PIPEDA claim in CANONICAL_FACTS §2. Canadian pinning is Dedicated TOR1 or a written serverless guarantee — not on-device inference ([LOCAL_INFERENCE.md](LOCAL_INFERENCE.md)). |
 
 ## Data and platform
 
