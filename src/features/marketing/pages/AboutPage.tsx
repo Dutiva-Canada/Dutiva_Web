@@ -1,4 +1,4 @@
-import { HeartHandshake, Leaf, MapPin, Scale, ShieldCheck } from 'lucide-react'
+import { HeartHandshake, Leaf, Linkedin, MapPin, Scale, ShieldCheck } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { MarketingMessageKey } from '@/i18n/messages'
@@ -83,7 +83,18 @@ export function AboutPage() {
           <p className="min-w-[260px] flex-1 text-base leading-[1.6] text-text-2">
             {t('about_built')}
           </p>
-          <span className="dutiva-pill">{t('about_pill_bilingual')}</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="dutiva-pill">{t('about_pill_bilingual')}</span>
+            <a
+              href={ORG.linkedinUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+            >
+              <Linkedin size={16} className="flex-none" aria-hidden="true" />
+              {t('about_company_linkedin')}
+            </a>
+          </div>
         </div>
       </PageSection>
 

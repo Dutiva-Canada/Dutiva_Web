@@ -3,6 +3,8 @@ import type { LucideIcon } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { MarketingMessageKey } from '@/i18n/messages'
 import { Seo } from '@/seo/Seo'
+import { howToNode } from '@/seo/jsonld'
+import { seoRoute } from '@/seo/routes'
 import { usePublicPath } from '@/seo/usePublicPath'
 import { Breadcrumbs, MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
 
@@ -23,17 +25,28 @@ const PRACTICES: MarketingMessageKey[] = ['tmplGuide_bp1', 'tmplGuide_bp2', 'tmp
 
 /** /guides/template-usage — how template generation works (tmplGuide_* strings). */
 export function TemplateUsagePage() {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const { p, home } = usePublicPath()
+  const route = seoRoute('templateUsage')
   /* Shared by the visible trail and the BreadcrumbList JSON-LD. */
   const trail = [
     { name: 'Dutiva', path: home() },
     { name: 'Guides', path: p('guides') },
     { name: t('tmplGuide_h1') },
   ]
+  const howTo = howToNode({
+    lang,
+    path: route.path[lang],
+    name: t('tmplGuide_h1'),
+    description: t('tmplGuide_meta_description'),
+    steps: STEPS.map((step) => ({
+      name: t(step.titleKey),
+      text: t(step.bodyKey),
+    })),
+  })
   return (
     <MarketingPageShell>
-      <Seo route="templateUsage" breadcrumb={trail} />
+      <Seo route="templateUsage" breadcrumb={trail} extraNodes={[howTo]} />
       <Breadcrumbs items={trail} />
       <PageHero
         eyebrow={t('tmplGuide_eyebrow')}

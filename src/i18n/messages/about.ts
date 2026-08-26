@@ -46,6 +46,10 @@ export const aboutMessages = defineMessages({
     en: 'View Martin on LinkedIn',
     fr: 'Voir le profil LinkedIn de Martin',
   }, // [FR self-authored]
+  about_company_linkedin: {
+    en: 'Dutiva on LinkedIn',
+    fr: 'Dutiva sur LinkedIn',
+  }, // [FR self-authored]
   about_why_foot: {
     en: 'Built in Ottawa, Canada · Grounded in real HR operations, not generic research.',
     fr: 'Conçu à Ottawa, au Canada · Ancré dans de véritables opérations RH, pas dans des recherches génériques.',

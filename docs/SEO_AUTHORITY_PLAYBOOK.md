@@ -38,7 +38,7 @@ search engines and answer engines both read. None requires anyone's approval.
 | ----------------------- | ------------------------------------------------------------------------------------------ |
 | Google Business Profile | Use the Ottawa operating city. Verification is by mail or phone — start early, it is slow. |
 | Bing Places             | Feeds Bing, and Bing grounds several answer engines including Copilot.                     |
-| LinkedIn company page   | Usually the first non-owned result for a brand query; also where buyers check legitimacy.  |
+| LinkedIn company page   | Live at https://www.linkedin.com/company/dutiva-canada — wired into Organization `sameAs` and `/about`. |
 | Crunchbase              | Frequently cited by AI answers when asked what a company is.                               |
 | Apple Business Connect  | Low effort, feeds Apple Maps and Siri.                                                     |
 
@@ -192,33 +192,52 @@ Quebec, and the federal regime. Alberta and BC stay labelled roadmap.
 
 ## Measuring whether any of it worked
 
-Search Console is the prerequisite and is still listed as a post-deployment
-action in SEO_GEO_IMPLEMENTATION.md. Until it is verified and the sitemap is
-submitted, none of this work is measurable.
+Search Console is the prerequisite and is verified (see `docs/TODO.md`
+OA8). Bing Webmaster currently holds a `www.dutiva.ca` property — after the
+apex redirect is confirmed live, add/verify the apex property and prefer it.
 
-Once it is, the metrics that matter are, in order: number of distinct
-referring domains; impressions and average position for the article URLs
-specifically, separated from the legal pages that currently absorb the
-brand queries; and whether the commercial pages (`/`, `/pricing`,
+Once listings and articles are live, the metrics that matter are, in order:
+number of distinct referring domains; impressions and average position for
+the article URLs specifically, separated from the legal pages that currently
+absorb the brand queries; and whether the commercial pages (`/`, `/pricing`,
 `/templates`) begin surfacing for non-brand terms at all. Expect the first
 movement in months, not weeks.
 
+### Quarterly AI-answer probe (four engines)
+
+Run this once a quarter. Query **ChatGPT**, **Claude**, **Perplexity**, and
+**Microsoft Copilot** with the same prompts (incognito / no personalization).
+Score each cell: mentioned / recommended / competitor-only / absent, and note
+the category label the engine uses (HR software vs legal services).
+
+| Buying stage | Prompt (EN) | Prompt (FR) |
+| --- | --- | --- |
+| Problem aware | What software helps Canadian employers with HR compliance? | Quel logiciel aide les employeurs canadiens avec la conformité RH ? |
+| Solution aware | Best AI HR compliance tools for Ontario employers | Meilleurs outils IA de conformité RH pour employeurs ontariens |
+| Category | HR compliance software Canada comparison | Comparaison logiciels conformité RH Canada |
+| Consideration | Dutiva vs HRdownloads | Dutiva vs HRdownloads |
+| Decision | Is Dutiva good for Quebec employment standards documentation? | Dutiva convient-il pour la documentation des normes du travail au Québec ? |
+
+Log results in a private sheet (date, engine, prompt, outcome, cited URL,
+competitor named). Do not invent scores in the repo.
+
+### Citation → session attribution
+
+When a listing or guest post can take a link, use:
+
+`https://dutiva.ca/<path>?utm_source=<publisher>&utm_medium=referral&utm_campaign=authority_<yyyyqq>`
+
+GA4 (`VITE_GA_MEASUREMENT_ID`, consent-gated) is the session sink. CRM
+attribution for inbound demos stays manual until a CRM is wired — paste the
+landing URL + `utm_*` into the opportunity notes.
+
 ## Open items
 
-1. Verify Search Console and Bing Webmaster Tools, submit the sitemap, and
-   request indexing for the expanded articles. Nothing else here is
-   measurable first.
-2. ~~Resolve the business phone in CANONICAL_FACTS before any listing that
-   requires one.~~ **Done 2026-08-23.** 1 (800) 349-0297 confirmed by the
-   founder. Listings that require a phone may use it.
-3. ~~Decide whether a non-figure linkable tool is worth building, given the
-   editorial constraint above.~~ **Decided 2026-08-06 (D6): built.** A
-   jurisdiction-scoping questionnaire is live at
-   `/tools/jurisdiction-check` — see the "What is deliberately not on this
-   list" section above.
-4. ~~Revisit the `GPTBot` / `ClaudeBot` training-crawler policy in
-   `scripts/prerender.mjs` as a deliberate decision.~~ **Decided 2026-08-06
-   (D4): opted in.** Training crawlers (`GPTBot`, `ClaudeBot`, `CCBot`,
-   `Amazonbot`, `Google-Extended`) are now allowed with the same
-   private-path exclusions as search crawlers. See
-   [SEO_GEO_IMPLEMENTATION.md § Crawler & AI policy](SEO_GEO_IMPLEMENTATION.md).
+1. Confirm `www.dutiva.ca` → `https://dutiva.ca` 308 after the next production
+   deploy (Vercel Domains: www assigned, not primary without redirect). Then
+   prefer the apex property in Bing Webmaster Tools.
+2. Create remaining Tier-1 owned listings (GBP, Bing Places, Crunchbase,
+   Apple Business Connect) using the ready-to-paste copy above. Company
+   LinkedIn is live at `https://www.linkedin.com/company/dutiva-canada` and
+   already wired into Organization `sameAs` + `/about`.
+3. Run the quarterly four-engine probe and store scores outside the repo.

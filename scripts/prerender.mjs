@@ -194,18 +194,37 @@ ${sitemapUrls}
 
 /* Crawler policy (docs/SEO_GEO_IMPLEMENTATION.md):
    - Search discovery is welcome, including AI *search* crawlers that cite
-     sources (OAI-SearchBot, Claude-SearchBot, PerplexityBot).
+     sources (OAI-SearchBot, Claude-SearchBot, PerplexityBot) and the fetch
+     user-agents used when an answer engine opens a page on a user's behalf
+     (ChatGPT-User, Claude-User, Perplexity-User).
+   - Classic search crawlers (Googlebot, bingbot) and adjacent agents
+     (Applebot-Extended, meta-externalagent) get the same private-path
+     exclusions via named groups so a future * change cannot quietly open /app.
    - Foundation-model *training* crawlers are opted in (decided 2026-08-06,
      D4): GPTBot (OpenAI), ClaudeBot (Anthropic), CCBot (Common Crawl),
      Amazonbot (Amazon), Google-Extended (Google Gemini/Vertex). All get the
      same private-path exclusions as everyone else. This is a deliberate,
      reversible policy choice — to opt out, move a bot back to a Disallow: /
      block.
+   - Content-Signal declares post-fetch usage preferences (search / ai-input /
+     ai-train). Matches the D4 training opt-in: all three are yes.
    - Private app surfaces are excluded for every crawler. robots.txt is not
      a security boundary: /app is also noindex and behind authentication. */
 const PRIVATE_PATHS = ['/app', '/app/', '/app.html', '/404.html']
 const disallowBlock = PRIVATE_PATHS.map((p) => `Disallow: ${p}`).join('\n')
-const searchBots = ['OAI-SearchBot', 'Claude-SearchBot', 'PerplexityBot']
+/* Preference line for every group — crawlers that ignore unknown directives
+   still honour Disallow; those that understand Content-Signal see the policy. */
+const CONTENT_SIGNAL = 'Content-Signal: search=yes, ai-input=yes, ai-train=yes'
+const groupBlock = (bot) => [`User-agent: ${bot}`, CONTENT_SIGNAL, disallowBlock, '']
+const searchBots = [
+  'OAI-SearchBot',
+  'ChatGPT-User',
+  'Claude-SearchBot',
+  'Claude-User',
+  'PerplexityBot',
+  'Perplexity-User',
+]
+const classicBots = ['Googlebot', 'bingbot', 'Applebot-Extended', 'meta-externalagent']
 const trainingBots = ['GPTBot', 'ClaudeBot', 'CCBot', 'Amazonbot', 'Google-Extended']
 
 await writeFile(
@@ -213,16 +232,20 @@ await writeFile(
   [
     '# Dutiva crawler policy — see docs/SEO_GEO_IMPLEMENTATION.md',
     '# Generated at build time from the public route registry.',
+    '#',
+    '# Content signals (search / ai-input / ai-train): preference for how',
+    '# fetched content may be used after access. Not an access-control gate.',
     '',
-    'User-agent: *',
-    disallowBlock,
-    '',
+    ...groupBlock('*'),
     '# AI search/retrieval crawlers (answer engines that cite sources):',
     '# welcome, with the same private-path exclusions as everyone else.',
-    ...searchBots.flatMap((bot) => [`User-agent: ${bot}`, disallowBlock, '']),
+    ...searchBots.flatMap(groupBlock),
+    '# Classic search and adjacent agents — named so * policy changes cannot',
+    '# quietly open /app to them.',
+    ...classicBots.flatMap(groupBlock),
     '# Foundation-model TRAINING crawlers: opted in (decided 2026-08-06, D4).',
     '# All get the same private-path exclusions as everyone else.',
-    ...trainingBots.flatMap((bot) => [`User-agent: ${bot}`, disallowBlock, '']),
+    ...trainingBots.flatMap(groupBlock),
     `Sitemap: ${SITE_ORIGIN}/sitemap.xml`,
     '',
   ].join('\n'),

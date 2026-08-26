@@ -26,6 +26,12 @@ describe('AboutPage', () => {
       '/brand/martin-constantineau.jpg',
     )
     expect(screen.getAllByText('Bilingual EN/FR').length).toBeGreaterThan(0)
+    const companyLinkedin = within(screen.getByRole('main')).getByRole('link', {
+      name: 'Dutiva on LinkedIn',
+    })
+    expect(companyLinkedin).toHaveAttribute('href', 'https://www.linkedin.com/company/dutiva-canada')
+    expect(companyLinkedin).toHaveAttribute('target', '_blank')
+    expect(companyLinkedin).toHaveAttribute('rel', 'noopener noreferrer')
     // Header carries its own "Start free" links — scope the CTA check to <main>.
     expect(
       within(screen.getByRole('main')).getByRole('link', { name: /Start free/ }),
@@ -53,5 +59,10 @@ describe('AboutPage', () => {
         name: 'Voir le profil LinkedIn de Martin',
       }),
     ).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('main')).getByRole('link', {
+        name: 'Dutiva sur LinkedIn',
+      }),
+    ).toHaveAttribute('href', 'https://www.linkedin.com/company/dutiva-canada')
   })
 })
