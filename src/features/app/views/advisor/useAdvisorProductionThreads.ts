@@ -78,7 +78,15 @@ export function useAdvisorProductionThreads({
     conversationIdRef.current = newId
     setProdThreads((prev) => {
       if (prev.some((t) => t.id === newId)) return prev
-      return [{ id: newId, messages: [], updatedAt: new Date().toISOString() }, ...prev]
+      return [
+        {
+          id: newId,
+          messages: [],
+          updatedAt: new Date().toISOString(),
+          lastAdvisorResponse: null,
+        },
+        ...prev,
+      ]
     })
   }
 

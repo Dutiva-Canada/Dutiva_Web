@@ -78,6 +78,7 @@ describe('advisorViewHelpers', () => {
       id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
       updatedAt: new Date().toISOString(),
       messages: [{ role: 'user' as const, content: 'Hello' }],
+      lastAdvisorResponse: null,
     }
     const hidden = buildAdvisorThreadEntries('production', [], [fluff], null)
     expect(hidden.some((e) => e.id === fluff.id)).toBe(false)

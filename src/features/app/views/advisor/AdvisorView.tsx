@@ -323,9 +323,24 @@ export function AdvisorView() {
 
     const hydrateProdThread = () => {
       conversationIdRef.current = chatId
+      const restoreWorkspace = (
+        response: NonNullable<(typeof prodThreads)[number]['lastAdvisorResponse']> | null,
+      ) => {
+        if (response != null) patchResponseState(chatId, { response })
+      }
       const stashed = transcripts.current.get(chatId)
       if (stashed) {
         engine.reset(stashed)
+        const fromList = prodThreads.find((t) => t.id === chatId)?.lastAdvisorResponse
+        if (fromList != null) restoreWorkspace(fromList)
+        else if (responseState[chatId]?.response == null) {
+          void getOwnConversation(chatId)
+            .then((conv) => {
+              if (conv === null || activeChatIdRef.current !== chatId) return
+              restoreWorkspace(conv.lastAdvisorResponse)
+            })
+            .catch(() => {})
+        }
         return
       }
       engine.reset([])
@@ -335,6 +350,7 @@ export function AdvisorView() {
           const messages = productionTranscript(conv)
           transcripts.current.set(chatId, messages)
           engine.reset(messages)
+          restoreWorkspace(conv.lastAdvisorResponse)
         })
         .catch(() => {
           if (activeChatIdRef.current !== chatId) return
@@ -590,6 +606,17 @@ export function AdvisorView() {
             const reply = result.reply || genericAck
             const turnId = pushAdvisor({ text: reply })
             patchResponseState(stateChatId, { response: result.response })
+            setProdThreads((prev) =>
+              prev.map((t) =>
+                t.id === stateChatId || t.id === result.conversationId
+                  ? {
+                      ...t,
+                      lastAdvisorResponse: result.response,
+                      updatedAt: new Date().toISOString(),
+                    }
+                  : t,
+              ),
+            )
             const replyText = typeof reply === 'string' ? reply : reply.en
             const navChips = operationalNextStepChips(userTextString, replyText)
             updateExtras((prev) => ({
@@ -661,7 +688,20 @@ export function AdvisorView() {
             : chatId
         const replyPayload = result.reply || genericAck
         const turnId = pushAdvisor({ text: replyPayload })
-        if (stateChatId !== null) patchResponseState(stateChatId, { response: result.response })
+        if (stateChatId !== null) {
+          patchResponseState(stateChatId, { response: result.response })
+          setProdThreads((prev) =>
+            prev.map((t) =>
+              t.id === stateChatId || t.id === result.conversationId
+                ? {
+                    ...t,
+                    lastAdvisorResponse: result.response,
+                    updatedAt: new Date().toISOString(),
+                  }
+                : t,
+            ),
+          )
+        }
         const replyText = typeof replyPayload === 'string' ? replyPayload : replyPayload.en
         const navChips = operationalNextStepChips(text, replyText)
         updateExtras((prev) => ({

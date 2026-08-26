@@ -540,10 +540,15 @@ async function saveConversation(
   adminClient: SupabaseClient,
   conversation: Conversation,
   messages: ChatMessage[],
+  lastAdvisorResponse: unknown | null = null,
 ): Promise<Response | null> {
   const { error } = await adminClient
     .from('conversations')
-    .update({ messages, updated_at: new Date().toISOString() })
+    .update({
+      messages,
+      last_advisor_response: lastAdvisorResponse,
+      updated_at: new Date().toISOString(),
+    })
     .eq('id', conversation.id)
   return error ? json({ error: error.message }, 500) : null
 }
@@ -687,18 +692,13 @@ Deno.serve(async (req: Request) => {
     completionResult.latencyMs,
     retrieval,
   )
-  const updateResponse = await saveConversation(
-    authenticated.adminClient,
-    conversation,
-    nextMessages,
-  )
-  if (updateResponse) return updateResponse
 
   /* The structured contract the Compliance Workspace renders — computed
      deterministically from the message, the retrieved chunks and the reply
      (responsePayload.ts); the model is never asked for it. Never let a
-     payload failure cost the user their reply. */
-  let advisorResponse: unknown = undefined
+     payload failure cost the user their reply. Persisted on the conversation
+     so reopen can restore the right panel (UI only — next turn still rebuilds). */
+  let advisorResponse: unknown = null
   try {
     advisorResponse = buildAdvisorResponse({
       message: request.message,
@@ -714,6 +714,14 @@ Deno.serve(async (req: Request) => {
   } catch (error) {
     console.error('advisor-chat: response payload build failed', error)
   }
+
+  const updateResponse = await saveConversation(
+    authenticated.adminClient,
+    conversation,
+    nextMessages,
+    advisorResponse,
+  )
+  if (updateResponse) return updateResponse
 
   return json({
     data: { reply, conversation_id: conversation.id, advisor_response: advisorResponse },
