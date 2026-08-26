@@ -27,6 +27,7 @@ cannot read. Adding a code-backed fact means adding its check.
 | --- | --- |
 | [TODO.md](TODO.md) | Every open item, swept from the "still staged" / "not done" notes in PRs #1–#132 and the docs below. Separates owner actions (a secret, a filing) from decisions, blockers and build work. |
 | [DEVIN_PROMPTS.md](DEVIN_PROMPTS.md) | The delegable half of `TODO.md`, written as fourteen self-contained agent prompts — plus the owner actions that no agent can close, and why. |
+| [EMPTY_WORKSPACE_ONBOARDING.md](EMPTY_WORKSPACE_ONBOARDING.md) | First-run guidance for empty production workspaces: Home checklist + empty→create; what is in/out of v1; proposed EN/FR copy. |
 | [LEGAL_REVIEW_INVENTORY.md](LEGAL_REVIEW_INVENTORY.md) | Every document a legal reviewer must see, counted and sized per bucket — the RFQ-ready inventory for quoting lawyer / HR-consultant review, with sequencing. |
 
 Each PR here records what it did not do. `TODO.md` is where those notes

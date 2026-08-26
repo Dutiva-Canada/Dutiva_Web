@@ -9,6 +9,7 @@ import { statusChipClass } from '@/components/chips'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
+import { useOpenCreateFormFromQuery } from '@/features/app/workspaceMode/useOpenCreateFormFromQuery'
 import { EMPLOYMENT_PROVINCES, addEmployee, listEmployees, removeEmployee } from './productionApi'
 import type { ProductionEmployee, ProductionEmployeeStatus } from './productionApi'
 import { AppPage } from '@/features/app/shell/AppPage'
@@ -53,7 +54,7 @@ export function EmployeesProductionView() {
 
   const [rows, setRows] = useState<ProductionEmployee[] | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
-  const [formOpen, setFormOpen] = useState(false)
+  const { formOpen, setFormOpen } = useOpenCreateFormFromQuery(isOrgAdmin)
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
 
@@ -240,7 +241,19 @@ export function EmployeesProductionView() {
             <div className="mb-[6px] text-[15px] font-semibold text-text">
               {x(M.employees_prod_empty_title)}
             </div>
-            <p className="m-0 text-[13px] text-text-muted">{x(M.employees_prod_empty_body)}</p>
+            <p className="m-0 mb-[16px] text-[13px] text-text-muted">
+              {x(M.employees_prod_empty_body)}
+            </p>
+            {isOrgAdmin && (
+              <button
+                type="button"
+                onClick={() => setFormOpen(true)}
+                className="inline-flex cursor-pointer items-center gap-[7px] rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
+              >
+                <Plus size={14} strokeWidth={2} aria-hidden="true" />
+                {x(M.employees_prod_add)}
+              </button>
+            )}
           </div>
         )}
 

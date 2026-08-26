@@ -25,6 +25,8 @@ import type { FlowRun } from './flowEngine'
 import { isFormula, isResult } from './flowModel'
 import type { Flow } from './flowModel'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { markEmptyWorkspaceWorkflowVisited } from '@/features/app/workspaceMode/emptyWorkspaceOnboarding'
 
 /**
  * Runs a guided flow — the surface Ring 2's decision-tree tools needed
@@ -70,6 +72,7 @@ function FlowMissing() {
 
 function FlowBody({ flow }: { readonly flow: Flow }) {
   const { x } = useI18n()
+  const { mode, organizationId } = useWorkspaceMode()
   const [run, setRun] = useState<FlowRun>(() => startRun(flow))
   const stepHeadingRef = useRef<HTMLHeadingElement>(null)
 
@@ -78,6 +81,10 @@ function FlowBody({ flow }: { readonly flow: Flow }) {
   const pct = Math.round(progress(flow, run) * 100)
   const totalSteps = longestPath(flow)
   const currentStepNum = Math.min(run.path.length, totalSteps)
+
+  useEffect(() => {
+    if (mode === 'production') markEmptyWorkspaceWorkflowVisited(organizationId)
+  }, [mode, organizationId])
 
   useEffect(() => {
     stepHeadingRef.current?.focus()
