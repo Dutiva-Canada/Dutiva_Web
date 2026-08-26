@@ -449,6 +449,7 @@ describe('AdvisorView', () => {
             id: convId,
             messages: [{ role: 'user', content: 'Hello prod' }],
             updatedAt: '2026-08-23T12:00:00Z',
+            lastAdvisorResponse: null,
           },
         ]),
         getOwnConversation: vi.fn().mockResolvedValue({
@@ -458,7 +459,9 @@ describe('AdvisorView', () => {
             { role: 'assistant', content: 'Prod reply from backend' },
           ],
           updatedAt: '2026-08-23T12:00:00Z',
+          lastAdvisorResponse: null,
         }),
+        deleteOwnConversation: vi.fn(),
       }))
 
       const { listChain, mockProductionWorkspace } = await import('@/test/productionWorkspace')
