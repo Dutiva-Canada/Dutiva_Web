@@ -1,6 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { bypassesPaywall } from '../_shared/adminAccess.ts'
+import { readStripeSecretKey } from '../_shared/stripeSecret.ts'
 
 /**
  * Starts a Stripe Checkout subscription session for the signed-in account.
@@ -79,14 +80,14 @@ async function stripePost(path: string, params: Record<string, string>, secretKe
     },
     body,
   })
-  return res.json()
+  return res.json() as Promise<{ id?: string; url?: string; error?: { message?: string } }>
 }
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
-  const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
+  const stripeKey = readStripeSecretKey(Deno.env.get('STRIPE_SECRET_KEY'))
   if (!stripeKey) return json({ error: 'Payments not configured.' }, 503)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -130,12 +131,14 @@ Deno.serve(async (req: Request) => {
      billed monthly. Anything else falls back to monthly — see normalizePeriod. */
   const period = normalizePeriod(body.billingPeriod ?? body.period)
 
-  const priceId = Deno.env.get(PRICE_ENV_KEYS[period][plan])
+  const priceId = (Deno.env.get(PRICE_ENV_KEYS[period][plan]) ?? '')
+    .trim()
+    .replace(/^["']|["']$/g, '')
   /* 503 rather than a fallback to the monthly price: silently billing a
      different interval than the customer chose is worse than not starting the
      checkout at all. Until the annual price IDs exist in Stripe, an annual
      request fails loudly and visibly. */
-  if (!priceId) {
+  if (!priceId.startsWith('price_')) {
     return json({ error: `Missing Stripe price ID for the ${period} ${plan} plan.` }, 503)
   }
 
@@ -147,12 +150,28 @@ Deno.serve(async (req: Request) => {
 
   let customerId = profile?.stripe_customer_id as string | undefined
   if (!customerId) {
-    const customer = await stripePost(
-      '/customers',
-      { email: user.email ?? '', 'metadata[user_id]': user.id },
-      stripeKey,
-    )
+    let customer: { id?: string; error?: { message?: string } }
+    try {
+      customer = await stripePost(
+        '/customers',
+        { email: user.email ?? '', 'metadata[user_id]': user.id },
+        stripeKey,
+      )
+    } catch (err) {
+      console.error(
+        '[create-checkout-session] stripe customer request failed:',
+        err instanceof Error ? err.message : 'unknown',
+      )
+      return json({ error: 'Could not start checkout.' }, 502)
+    }
     customerId = customer.id
+    if (!customerId) {
+      console.error(
+        '[create-checkout-session] stripe customer missing id:',
+        customer.error?.message ?? 'no error body',
+      )
+      return json({ error: 'Could not start checkout.' }, 502)
+    }
     const { error: upsertError } = await adminClient
       .from('profiles')
       .upsert({ id: user.id, account_email: user.email, stripe_customer_id: customerId })
@@ -163,26 +182,41 @@ Deno.serve(async (req: Request) => {
   }
 
   const siteUrl = Deno.env.get('SITE_URL') ?? 'https://dutiva.ca'
-  const session = await stripePost(
-    '/checkout/sessions',
-    {
-      customer: customerId as string,
-      mode: 'subscription',
-      'line_items[0][price]': priceId,
-      'line_items[0][quantity]': '1',
-      success_url: `${siteUrl}/pricing?checkout=success&plan=${plan}`,
-      cancel_url: `${siteUrl}/pricing?checkout=cancelled`,
-      'metadata[user_id]': user.id,
-      'metadata[plan]': plan,
-      'metadata[billing_interval]': period,
-      'subscription_data[metadata][user_id]': user.id,
-      'subscription_data[metadata][plan]': plan,
-      'subscription_data[metadata][billing_interval]': period,
-    },
-    stripeKey,
-  )
+  let session: { url?: string; error?: { message?: string } }
+  try {
+    session = await stripePost(
+      '/checkout/sessions',
+      {
+        customer: customerId as string,
+        mode: 'subscription',
+        'line_items[0][price]': priceId,
+        'line_items[0][quantity]': '1',
+        success_url: `${siteUrl}/pricing?checkout=success&plan=${plan}`,
+        cancel_url: `${siteUrl}/pricing?checkout=cancelled`,
+        'metadata[user_id]': user.id,
+        'metadata[plan]': plan,
+        'metadata[billing_interval]': period,
+        'subscription_data[metadata][user_id]': user.id,
+        'subscription_data[metadata][plan]': plan,
+        'subscription_data[metadata][billing_interval]': period,
+      },
+      stripeKey,
+    )
+  } catch (err) {
+    console.error(
+      '[create-checkout-session] stripe session request failed:',
+      err instanceof Error ? err.message : 'unknown',
+    )
+    return json({ error: 'Could not start checkout.' }, 502)
+  }
 
-  if (!session.url) return json({ error: 'Could not start checkout.' }, 502)
+  if (!session.url) {
+    console.error(
+      '[create-checkout-session] stripe session missing url:',
+      session.error?.message ?? 'no error body',
+    )
+    return json({ error: 'Could not start checkout.' }, 502)
+  }
 
   return json({ url: session.url })
 })

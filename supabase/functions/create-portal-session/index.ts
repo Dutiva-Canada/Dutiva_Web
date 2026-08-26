@@ -1,6 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { bypassesPaywall } from '../_shared/adminAccess.ts'
+import { readStripeSecretKey } from '../_shared/stripeSecret.ts'
 
 /**
  * Opens a Stripe billing portal session for the signed-in account's Stripe
@@ -39,7 +40,7 @@ Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
-  const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
+  const stripeKey = readStripeSecretKey(Deno.env.get('STRIPE_SECRET_KEY'))
   if (!stripeKey) return json({ error: 'Billing portal is temporarily unavailable.' }, 503)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
