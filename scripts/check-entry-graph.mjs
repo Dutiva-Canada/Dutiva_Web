@@ -50,7 +50,7 @@ const PAGE = path.join(dist, 'index.html')
 
 /** Ceilings. Raise deliberately, with a note saying what earned the room. */
 const MAX_PRELOADS = 9 // 5 as of 2026-08-02; 7 as of 2026-08-05 (messages-workspace split added shell.ts + workspaceMode.ts as their own small preloads); 9 as of 2026-08-10 — Vercel's production build produces one more preload than local builds (likely a rolldown chunking difference), and the ceiling is raised to keep the deploy green.
-const MAX_EAGER_KB = 580 // 539.9 as of 2026-08-05, after messages-workspace stopped riding into the eager graph as a dependency of messages-marketing's chunk group (EF6a in the open-items doc) — was 665.1/671.3 (after splitting the editorial prose out; was 850.5 before that)
+const MAX_EAGER_KB = 585 // 539.9 as of 2026-08-05 … was 850.5 before that); 580 as of 2026-08-10 for Vercel preload variance; 585 as of 2026-08-27 — Vercel prod build landed ~581kB after brand pipeline + nav prefetch (PR #247), ~6kB above local
 
 /**
  * Long-form prose that must stay out of the eager graph. Each of these is
