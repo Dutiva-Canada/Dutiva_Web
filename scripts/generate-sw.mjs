@@ -84,7 +84,6 @@ const CACHE_VERSION = '${version}'
 const PRECACHE = 'dutiva-precache-' + CACHE_VERSION
 const RUNTIME = 'dutiva-runtime-' + CACHE_VERSION
 const PAGES = 'dutiva-pages-' + CACHE_VERSION
-const FONTS = 'dutiva-fonts-' + CACHE_VERSION
 const PRECACHE_URLS = ${JSON.stringify(precache)}
 
 /* Install: fill the precache so a single online visit makes the whole app
@@ -137,26 +136,6 @@ function cacheFirst(request) {
   })
 }
 
-/* Return the cached copy immediately and refresh it in the background. Used
-   for Google Fonts so the type renders offline after the first online load. */
-function staleWhileRevalidate(request, cacheName) {
-  return caches.open(cacheName).then(function (cache) {
-    return cache.match(request).then(function (cached) {
-      var network = fetch(request)
-        .then(function (response) {
-          if (response && (response.ok || response.type === 'opaque')) {
-            cache.put(request, response.clone())
-          }
-          return response
-        })
-        .catch(function () {
-          return cached
-        })
-      return cached || network
-    })
-  })
-}
-
 /* Which shell to fall back to for an uncached offline navigation: the private
    workspace shell for /app/*, the marketing home for everything else. Both
    boot the SPA, which then renders the requested route client-side. */
@@ -197,17 +176,12 @@ self.addEventListener('fetch', function (event) {
   if (request.method !== 'GET') return
   var url = new URL(request.url)
 
-  /* Google Fonts stylesheet + font files (cross-origin). */
-  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
-    event.respondWith(staleWhileRevalidate(request, FONTS))
-    return
-  }
-
-  /* Leave all other cross-origin traffic to the network — real backend data
+  /* Leave all cross-origin traffic to the network — real backend data
      must never be served stale from a cache. This also covers the client
      error-reporting beacon (a cross-origin POST to the Supabase edge function),
      which is therefore never intercepted or cached; the method guard above
-     already excludes it as a non-GET request. */
+     already excludes it as a non-GET request. Self-hosted fonts ride the
+     same-origin hashed assets path below (precache / cache-first). */
   if (url.origin !== self.location.origin) return
 
   /* Never intercept the worker's own script; the browser revalidates it. */

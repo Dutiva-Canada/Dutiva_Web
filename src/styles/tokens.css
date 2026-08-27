@@ -31,9 +31,14 @@
   --gold-on-dark: #e9c877;
 
   /* ── Families ────────────────────────────────────────────────────────────── */
-  --font-display: 'Montserrat', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Variable faces from src/styles/fonts.css (self-hosted); keep static names as
+     fallbacks for any environment that still exposes a non-variable cut. */
+  --font-display:
+    'Montserrat Variable', 'Montserrat', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+    sans-serif;
   --font-sans:
-    'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
   --font-serif: ui-serif, Georgia, 'Times New Roman', serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --font-brand: var(--font-display);

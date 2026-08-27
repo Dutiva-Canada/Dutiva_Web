@@ -54,6 +54,14 @@ describe('TrustedSite main code', () => {
     expect(csp).toContain('https://www.trustedsite.com')
     expect(csp).toContain('https://s3-us-west-2.amazonaws.com')
     expect(csp).not.toMatch(/style-src[^;]*'unsafe-inline'/)
+    expect(csp).not.toContain('fonts.googleapis.com')
+    expect(csp).not.toContain('fonts.gstatic.com')
+    expect(csp).toMatch(/font-src 'self'/)
+  })
+
+  it('does not load fonts from Google on the marketing HTML template', () => {
+    expect(html).not.toContain('fonts.googleapis.com')
+    expect(html).not.toContain('fonts.gstatic.com')
   })
 
   it('keeps the e2e static server CSP in lockstep with vercel.json', () => {
