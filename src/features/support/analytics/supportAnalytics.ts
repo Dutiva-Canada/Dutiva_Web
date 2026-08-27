@@ -35,6 +35,7 @@ export type AnalyticsEventType =
   | 'help_article_view'
   | 'ticket_submitted'
   | 'ticket_status_changed'
+  | 'web_vital'
 
 export interface AnalyticsEventInput {
   event_type: AnalyticsEventType
@@ -47,6 +48,10 @@ export interface AnalyticsEventInput {
   ticket_category?: string | null
   ticket_source?: string | null
   locale?: 'en' | 'fr' | null
+  web_vital_name?: 'LCP' | 'INP' | 'CLS' | 'TTFB' | 'FCP' | null
+  web_vital_value?: number | null
+  web_vital_rating?: 'good' | 'needs-improvement' | 'poor' | null
+  page_path?: string | null
 }
 
 /** Region the analytics function is pinned to — must match the DB region (ca-central-1). */

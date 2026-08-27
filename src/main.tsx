@@ -9,6 +9,7 @@ import { App } from './app/App'
 import { registerServiceWorker } from './lib/registerServiceWorker'
 import { installErrorReporting, reportRecoverableError } from '@/lib/errorReporting'
 import { installAnalyticsFlush } from '@/features/support/analytics/supportAnalytics'
+import { installWebVitalsReporting } from '@/lib/webVitals'
 
 /* Install global error/rejection reporting before the app renders so early
    crashes are captured too. Inert in dev, tests, and non-production/preview
@@ -18,6 +19,7 @@ installErrorReporting()
 /* Install the analytics page-unload flush so queued events are sent before
    the user navigates away. Same inert-unless-configured discipline. */
 installAnalyticsFlush()
+installWebVitalsReporting()
 
 const rootEl = document.getElementById('root')!
 const app = (

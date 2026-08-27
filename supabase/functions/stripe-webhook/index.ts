@@ -1,5 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import type { SupabaseClient } from 'npm:@supabase/supabase-js@2'
+import type { Database } from '../_shared/database.types.ts'
 import { getCheckoutProfilePatch, getSubscriptionProfileUpdate, stringId } from './billing-event.ts'
 import type { BillingPeriod, PriceLookup } from './billing-event.ts'
 import { advisorPackGrantFromSession } from './advisorPack.ts'
@@ -67,8 +69,7 @@ async function applyProfileUpdate(
 }
 
 async function updateProfileByIdOrEmail(
-  // deno-lint-ignore no-explicit-any
-  supabase: any,
+  supabase: SupabaseClient<Database>,
   userId: string | null,
   email: string | null,
   updates: Record<string, unknown>,
@@ -123,7 +124,7 @@ Deno.serve(async (req: Request) => {
   if (!valid) return json({ error: 'Invalid signature.' }, 400)
 
   const event = JSON.parse(body)
-  const supabase = createClient(supabaseUrl, supabaseKey)
+  const supabase = createClient<Database>(supabaseUrl, supabaseKey)
   const priceLookup = buildPriceLookup()
 
   if (event.id) {

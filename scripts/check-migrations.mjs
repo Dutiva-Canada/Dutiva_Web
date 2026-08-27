@@ -44,20 +44,17 @@ import { appendFile, readdir } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { ACCESS_TOKEN_HELP, cleanSecret, describeSecret } from './lib/secrets.mjs'
+import {
+  ACCEPTED_DUPLICATE_SEQUENCES,
+  acceptedDuplicateSequenceNumbers,
+} from './migration-ledger.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const migrationsDir = path.join(root, 'supabase', 'migrations')
 
 const FILENAME_RE = /^(\d{4})_([a-z0-9_]+)\.sql$/
 
-/**
- * Sequence numbers that are knowingly duplicated because BOTH files are
- * already applied on the live project. Renaming an applied migration is worse
- * than the duplicate: `supabase db push` keys on the filename, so a rename
- * reads as a brand-new migration and re-runs it. Left as history, guarded so
- * no NEW collision can be added silently.
- */
-const ACCEPTED_DUPLICATES = new Set(['0024'])
+const ACCEPTED_DUPLICATES = acceptedDuplicateSequenceNumbers()
 
 /**
  * Slugs present in the repo that are deliberately not applied under their own
@@ -130,12 +127,30 @@ for (const file of files) {
   localSlugs.set(slug, file)
 }
 
+for (const [sequence, ledger] of ACCEPTED_DUPLICATE_SEQUENCES) {
+  for (const file of ledger.files) {
+    if (!files.includes(file)) {
+      problems.push(`${file}: listed in migration ledger for ${sequence} but missing from supabase/migrations`)
+    }
+  }
+}
+
 for (const [sequence, owners] of bySequence) {
   if (owners.length > 1 && !ACCEPTED_DUPLICATES.has(sequence)) {
     problems.push(
       `${sequence}: sequence number used by ${owners.length} files (${owners.join(', ')}) — ` +
-        'pick the next free number, or add it to ACCEPTED_DUPLICATES if both are already applied',
+        'pick the next free number, or document it in scripts/migration-ledger.mjs if both are already applied',
     )
+  }
+  const ledger = ACCEPTED_DUPLICATE_SEQUENCES.get(sequence)
+  if (ledger && owners.length > 1) {
+    const expected = [...ledger.files].sort()
+    const actual = [...owners].sort()
+    if (expected.join('|') !== actual.join('|')) {
+      problems.push(
+        `${sequence}: accepted duplicate file set drift — expected ${expected.join(', ')}, got ${actual.join(', ')}`,
+      )
+    }
   }
 }
 

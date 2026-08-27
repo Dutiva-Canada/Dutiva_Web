@@ -6,6 +6,9 @@
 -- is a no-op against that table, so the two things it was meant to guarantee
 -- never landed. This migration lands them against the schema that exists.
 --
+-- Ledger: shares sequence 0024 with 0024_match_advisor_guidance_review_topic.sql
+-- (both applied on live — do not renumber). See docs/MIGRATION_LEDGER.md.
+--
 -- Everything here is additive and idempotent: no column is dropped, no plan
 -- value is removed, no existing row is rewritten.
 

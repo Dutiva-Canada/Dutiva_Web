@@ -18,6 +18,7 @@ export type AnalyticsEventType =
   | 'help_article_view'
   | 'ticket_submitted'
   | 'ticket_status_changed'
+  | 'web_vital'
 
 export const ANALYTICS_EVENT_TYPES: readonly AnalyticsEventType[] = [
   'helpfulness_vote',
@@ -25,6 +26,17 @@ export const ANALYTICS_EVENT_TYPES: readonly AnalyticsEventType[] = [
   'help_article_view',
   'ticket_submitted',
   'ticket_status_changed',
+  'web_vital',
+]
+
+export type WebVitalName = 'LCP' | 'INP' | 'CLS' | 'TTFB' | 'FCP'
+export type WebVitalRating = 'good' | 'needs-improvement' | 'poor'
+
+export const WEB_VITAL_NAMES: readonly WebVitalName[] = ['LCP', 'INP', 'CLS', 'TTFB', 'FCP']
+export const WEB_VITAL_RATINGS: readonly WebVitalRating[] = [
+  'good',
+  'needs-improvement',
+  'poor',
 ]
 
 /** Max length for search_query — prevents a pathological query from bloating the row. */
@@ -32,6 +44,9 @@ export const MAX_SEARCH_QUERY_LENGTH = 200
 
 /** Max length for anonymous_visitor_id — a UUID is 36 chars, so 64 is generous. */
 export const MAX_VISITOR_ID_LENGTH = 64
+
+/** Max length for page_path on web_vital events. */
+export const MAX_PAGE_PATH_LENGTH = 200
 
 export interface AnalyticsEvent {
   event_type: AnalyticsEventType
@@ -45,6 +60,10 @@ export interface AnalyticsEvent {
   ticket_category?: string | null
   ticket_source?: string | null
   locale?: 'en' | 'fr' | null
+  web_vital_name?: WebVitalName | null
+  web_vital_value?: number | null
+  web_vital_rating?: WebVitalRating | null
+  page_path?: string | null
 }
 
 export interface ParsedEvent extends AnalyticsEvent {
@@ -65,6 +84,14 @@ function isLocale(value: unknown): value is 'en' | 'fr' {
 
 function isVoteValue(value: unknown): value is 'yes' | 'no' {
   return value === 'yes' || value === 'no'
+}
+
+function isWebVitalName(value: unknown): value is WebVitalName {
+  return isString(value) && (WEB_VITAL_NAMES as readonly string[]).includes(value)
+}
+
+function isWebVitalRating(value: unknown): value is WebVitalRating {
+  return isString(value) && (WEB_VITAL_RATINGS as readonly string[]).includes(value)
 }
 
 function truncate(value: string, max: number): string {
@@ -152,6 +179,26 @@ export function parseEvent(input: unknown, now: Date = new Date()): ParsedEvent 
     event.locale = raw.locale
   }
 
+  if (raw.web_vital_name !== undefined && raw.web_vital_name !== null) {
+    if (!isWebVitalName(raw.web_vital_name)) return null
+    event.web_vital_name = raw.web_vital_name
+  }
+
+  if (raw.web_vital_value !== undefined && raw.web_vital_value !== null) {
+    if (typeof raw.web_vital_value !== 'number' || !Number.isFinite(raw.web_vital_value)) return null
+    event.web_vital_value = raw.web_vital_value
+  }
+
+  if (raw.web_vital_rating !== undefined && raw.web_vital_rating !== null) {
+    if (!isWebVitalRating(raw.web_vital_rating)) return null
+    event.web_vital_rating = raw.web_vital_rating
+  }
+
+  if (raw.page_path !== undefined && raw.page_path !== null) {
+    if (!isString(raw.page_path)) return null
+    event.page_path = truncate(raw.page_path, MAX_PAGE_PATH_LENGTH)
+  }
+
   // Per-event-type required fields
   switch (event.event_type) {
     case 'helpfulness_vote':
@@ -172,6 +219,11 @@ export function parseEvent(input: unknown, now: Date = new Date()): ParsedEvent 
     case 'ticket_status_changed':
       if (!event.ticket_reference) return null
       if (!event.ticket_category) return null
+      break
+    case 'web_vital':
+      if (!event.web_vital_name) return null
+      if (event.web_vital_value === undefined || event.web_vital_value === null) return null
+      if (!event.page_path) return null
       break
   }
 

@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { bi } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import { supabase } from '@/lib/supabaseClient'
+import type { Json } from '@/lib/supabase/types'
 
 /**
  * Case Memory narratives + timeline (migration 0087). Complements
@@ -127,8 +128,8 @@ export async function upsertCaseNarrative(
         summary_fr: fields.summaryFr.trim() || fields.summaryEn.trim(),
         resume_since_en: fields.resumeSinceEn.trim(),
         resume_since_fr: fields.resumeSinceFr.trim() || fields.resumeSinceEn.trim(),
-        changed: fields.changed,
-        next_steps: fields.nextSteps,
+        changed: fields.changed as unknown as Json,
+        next_steps: fields.nextSteps as unknown as Json,
         last_activity_at: now,
         updated_at: now,
       },

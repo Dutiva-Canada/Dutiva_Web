@@ -122,6 +122,10 @@ Deno.serve(async (req: Request) => {
       ticket_category: e.ticket_category ?? null,
       ticket_source: e.ticket_source ?? null,
       locale: e.locale ?? null,
+      web_vital_name: e.web_vital_name ?? null,
+      web_vital_value: e.web_vital_value ?? null,
+      web_vital_rating: e.web_vital_rating ?? null,
+      page_path: e.page_path ?? null,
       occurred_at: e.occurred_at,
     }))
 

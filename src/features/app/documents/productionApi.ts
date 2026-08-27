@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { supabase } from '@/lib/supabaseClient'
+import type { Json } from '@/lib/supabase/types'
 import type { Bi } from '@/i18n/core'
 import { bi } from '@/i18n/core'
 import type {
@@ -351,8 +352,8 @@ export async function createDocument(
     version_number: 1,
     change_summary_en: 'Initial version',
     change_summary_fr: 'Version initiale',
-    content_json: contentJson,
-    answers_json: fields.answers,
+    content_json: contentJson as unknown as Json,
+    answers_json: fields.answers as Json,
   })
   if (versionError) throw versionError
 

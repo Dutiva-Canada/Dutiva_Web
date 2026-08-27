@@ -74,6 +74,7 @@ Editorial rule for public articles — no statutory figures, ever — is stated 
 | Document | What it settles |
 | --- | --- |
 | [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) | How the live Supabase schema is tracked against the repo. |
+| [MIGRATION_LEDGER.md](MIGRATION_LEDGER.md) | Known migration filename exceptions (e.g. applied duplicate `0024`). |
 | [DATA_MODEL.md](DATA_MODEL.md) | HR Documents Library data model, transcribed from the handoff. |
 | [AUTH_MAGIC_LINK.md](AUTH_MAGIC_LINK.md) | Magic-link sign-in and the Supabase configuration it needs. |
 | [BILLING_BETA_AUDIT.md](BILLING_BETA_AUDIT.md) | Stripe billing and beta-signup audit, with remediation status. |

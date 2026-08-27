@@ -159,8 +159,8 @@ export async function applyExternalSignature(
   const { data, error } = await supabase.rpc('apply_hr_document_signature_by_token', {
     p_token: token,
     p_signed_name: payload.signedName,
-    p_signature_image: payload.image ?? null,
-    p_signature_text: payload.text ?? null,
+    p_signature_image: payload.image,
+    p_signature_text: payload.text,
     p_consent_version: consentVersion,
   })
   if (error) throw error
@@ -178,7 +178,7 @@ export async function declineExternalSignature(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase.rpc('decline_hr_document_signature_by_token', {
     p_token: token,
-    p_reason: reason ?? null,
+    p_reason: reason,
   })
   if (error) throw error
   const parsed = rpcResultSchema.parse(data)

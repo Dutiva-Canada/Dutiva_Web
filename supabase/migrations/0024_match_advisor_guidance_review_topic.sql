@@ -5,6 +5,9 @@
 --                     rows surface as needs-review instead of implying vetted
 --                     authority.
 -- Postgres cannot change a function's OUT columns in place, so drop first.
+--
+-- Ledger: shares sequence 0024 with 0024_reconcile_billing_schema.sql
+-- (both applied on live — do not renumber). See docs/MIGRATION_LEDGER.md.
 
 drop function if exists public.match_advisor_guidance(text, int);
 

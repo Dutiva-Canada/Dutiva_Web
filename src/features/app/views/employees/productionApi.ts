@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { supabase } from '@/lib/supabaseClient'
+import type { TablesUpdate } from '@/lib/supabase/types'
 import { fetchAllPages } from '@/lib/supabasePagination'
 import type { Bi } from '@/i18n/core'
 import { bi } from '@/i18n/core'
@@ -157,7 +158,7 @@ export async function updateEmployeeDates(
   dates: { probationEndDate?: string | null; terminationDate?: string | null },
 ): Promise<void> {
   if (!supabase) throw new Error('Supabase is not configured')
-  const patch: Record<string, string | null> = { updated_at: new Date().toISOString() }
+  const patch: TablesUpdate<'employees'> = { updated_at: new Date().toISOString() }
   if ('probationEndDate' in dates) patch.probation_end_date = dates.probationEndDate ?? null
   if ('terminationDate' in dates) patch.termination_date = dates.terminationDate ?? null
   const { error } = await supabase.from('employees').update(patch).eq('id', id)

@@ -156,4 +156,33 @@ describe('parseEvent', () => {
     expect(result?.anonymous_visitor_id).toBeUndefined()
     expect(result?.locale).toBeUndefined()
   })
+
+  it('parses a web_vital event', () => {
+    const result = parseEvent(
+      {
+        event_type: 'web_vital',
+        web_vital_name: 'LCP',
+        web_vital_value: 2100,
+        web_vital_rating: 'good',
+        page_path: '/fr/guides',
+        locale: 'fr',
+      },
+      NOW,
+    )
+    expect(result).toEqual({
+      event_type: 'web_vital',
+      web_vital_name: 'LCP',
+      web_vital_value: 2100,
+      web_vital_rating: 'good',
+      page_path: '/fr/guides',
+      locale: 'fr',
+      occurred_at: '2026-08-06T12:00:00.000Z',
+    })
+  })
+
+  it('rejects web_vital without required metric fields', () => {
+    expect(
+      parseEvent({ event_type: 'web_vital', web_vital_name: 'LCP', page_path: '/' }, NOW),
+    ).toBeNull()
+  })
 })

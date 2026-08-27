@@ -64,6 +64,7 @@ npm run dev        # start the dev server
 | `npm run test:e2e:auth` | Playwright production CRUD matrix — requires Supabase build env + service role; skips when unset                                  |
 | `npm run format`    | Prettier                                                                                                                                |
 | `npm run check`     | typecheck + lint + test + `check:migrations` + `check:rls` + `check:facts` + `check:message-scopes` — **must pass before every commit** |
+| `npm run db:types`  | Regenerate `src/lib/supabase/database.types.ts` and the edge-function copy from the linked Supabase project |
 | `npm run build`     | typecheck + production build + SSR + prerender + SEO validation + entry-graph budget + service worker                                   |
 
 ## Non-negotiables

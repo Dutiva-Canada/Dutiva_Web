@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { supabase } from '@/lib/supabaseClient'
+import type { TablesUpdate } from '@/lib/supabase/types'
 import { fetchAllPages } from '@/lib/supabasePagination'
 
 /**
@@ -94,7 +95,7 @@ export async function setPolicyStatus(
   reviewedOn?: string,
 ): Promise<void> {
   if (!supabase) throw new Error('Supabase is not configured')
-  const patch: Record<string, string> = { status, updated_at: new Date().toISOString() }
+  const patch: TablesUpdate<'hr_policies'> = { status, updated_at: new Date().toISOString() }
   if (status === 'up_to_date' && reviewedOn) patch.last_reviewed = reviewedOn
   const { error } = await supabase.from('hr_policies').update(patch).eq('id', id)
   if (error) throw error
