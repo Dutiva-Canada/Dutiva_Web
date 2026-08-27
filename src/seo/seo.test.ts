@@ -89,6 +89,12 @@ describe('SEO route registry', () => {
     }
   })
 
+  it('gives static-route updated dates ISO form when present', () => {
+    for (const route of SEO_ROUTES) {
+      if (route.updated) expect(route.updated, route.id).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    }
+  })
+
   it('keeps every static route meta description within the SERP display band (120–155 chars)', () => {
     /* Bing flagged many descriptions as too short; Google truncates around 155
        (audit D5.1). Static routes use dedicated *_meta_description keys where
@@ -211,9 +217,14 @@ describe('JSON-LD builders', () => {
     expect(org.email).toBe(ORG.supportEmail)
     expect(org.founder).toEqual({ '@id': `${SITE_ORIGIN}/#founder` })
     expect(org.sameAs).toEqual([ORG.linkedinUrl, ORG.facebookUrl, ORG.googleMapsUrl])
+    expect(org.foundingDate).toBe(ORG.foundingDate)
+    expect(org.identifier).toEqual({
+      '@type': 'PropertyValue',
+      name: 'Corporations Canada corporation number',
+      value: ORG.corporationNumber,
+    })
     // No invented facts.
     expect(org).not.toHaveProperty('address')
-    expect(org).not.toHaveProperty('foundingDate')
     expect(org).not.toHaveProperty('aggregateRating')
   })
 

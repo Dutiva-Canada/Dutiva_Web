@@ -83,6 +83,29 @@ export const aboutMessages = defineMessages({
     en: 'Bilingual EN/FR, with named statutes for Ontario, Quebec, and federal workplaces.',
     fr: 'Bilingue EN/FR, avec des lois nommées pour l’Ontario, le Québec et les milieux de travail fédéraux.',
   },
+  about_s_facts: { en: 'Company facts', fr: 'Fiche de l’entreprise' },
+  about_fact_legal: { en: 'Legal name', fr: 'Dénomination sociale' },
+  about_fact_number: { en: 'Corporation number', fr: 'Numéro de société' },
+  about_fact_incorporated: { en: 'Incorporated', fr: 'Constitution' },
+  about_fact_incorporated_v: {
+    en: '27 March 2026, Canada Business Corporations Act',
+    fr: '27 mars 2026, Loi canadienne sur les sociétés par actions',
+  }, // [FR self-authored]
+  about_fact_status: { en: 'Status', fr: 'État' },
+  about_fact_status_v: { en: 'Active', fr: 'Active' },
+  about_fact_founder: { en: 'Founder & CEO', fr: 'Fondateur et chef de la direction' },
+  about_fact_city: { en: 'Operating city', fr: 'Ville d’exploitation' },
+  about_fact_city_v: { en: 'Ottawa, Ontario', fr: 'Ottawa (Ontario)' },
+  about_fact_office: { en: 'Registered office', fr: 'Siège social' },
+  about_fact_office_v: {
+    en: '2967 Dundas St. W., Suite 1485, Toronto, ON M6P 1Z2',
+    fr: '2967, rue Dundas Ouest, bureau 1485, Toronto (Ontario) M6P 1Z2',
+  }, // [FR self-authored]
+  about_fact_support: { en: 'Support', fr: 'Soutien' },
+  about_facts_note: {
+    en: 'These facts match the Corporations Canada record. Dutiva does not invent customer reviews, and it does not provide legal advice.',
+    fr: 'Ces faits correspondent au dossier de Corporations Canada. Dutiva n’invente pas d’avis clients, et ne fournit pas de conseils juridiques.',
+  }, // [FR self-authored]
   about_s4: { en: 'Built in Canada', fr: 'Conçu au Canada' },
   about_built: {
     en: 'Dutiva is built in Ottawa for Canadian employers — bilingual EN/FR, PIPEDA-conscious, and Quebec Law 25-aware.',

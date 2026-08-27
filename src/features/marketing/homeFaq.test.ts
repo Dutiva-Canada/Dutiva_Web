@@ -24,7 +24,15 @@ describe('homeFaq', () => {
 
   it('returns one entry per visible pair', () => {
     expect(homeFaqEntries('en')).toHaveLength(HOME_FAQ_ITEMS.length)
-    expect(homeFaqEntries('en')[0]?.question).toBe(landing.landing_faq1_q.en)
-    expect(homeFaqEntries('fr')[0]?.question).toBe(landing.landing_faq1_q.fr)
+    expect(homeFaqEntries('en')[0]!.question).toBe(landing.landing_faq1_q.en)
+    expect(homeFaqEntries('fr')[0]!.question).toBe(landing.landing_faq1_q.fr)
+  })
+
+  it('covers the buyer prompts engines keep missing', () => {
+    const questions = HOME_FAQ_ITEMS.map((item) => landing[item.q].en)
+    expect(questions).toContain('What does Dutiva actually do?')
+    expect(questions).toContain('How do I get started with Dutiva?')
+    expect(questions).toContain('Is Dutiva reputable?')
+    expect(questions).toContain('How do I contact Dutiva support?')
   })
 })

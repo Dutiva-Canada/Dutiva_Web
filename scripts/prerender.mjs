@@ -39,6 +39,7 @@ const {
   ORG,
   ORG_DESCRIPTION,
   FOUNDER,
+  llmQuestionsMarkdown,
 } = await import(entryUrl)
 
 const template = await readFile(path.join(dist, 'index.html'), 'utf8')
@@ -278,6 +279,10 @@ await writeFile(
     '- Dutiva is HR compliance and documentation software. It is not a payroll provider or payroll processor: it does not run payroll, remit source deductions, or issue pay.',
     `- Founder: ${FOUNDER.name}, ${FOUNDER.jobTitle.en}.`,
     `- The authenticated application (${SITE_ORIGIN}/app) is private customer workspace content and is not part of the public documentation.`,
+    '',
+    '## Common questions',
+    '',
+    llmQuestionsMarkdown(),
     '',
     '## Product',
     line('home'),

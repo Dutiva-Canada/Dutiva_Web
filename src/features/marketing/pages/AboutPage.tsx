@@ -1,4 +1,13 @@
-import { Facebook, HeartHandshake, Leaf, Linkedin, MapPin, MapPinned, Scale, ShieldCheck } from 'lucide-react'
+import {
+  Facebook,
+  HeartHandshake,
+  Leaf,
+  Linkedin,
+  MapPin,
+  MapPinned,
+  Scale,
+  ShieldCheck,
+} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { MarketingMessageKey } from '@/i18n/messages'
@@ -84,6 +93,35 @@ export function AboutPage() {
               <p className="mt-1.5 text-sm leading-[1.55] text-text-2">{t(value.bodyKey)}</p>
             </div>
           ))}
+        </div>
+      </PageSection>
+
+      <PageSection title={t('about_s_facts')}>
+        <div className="premium-card-soft p-[clamp(22px,3vw,32px)]">
+          <dl className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+            {(
+              [
+                ['about_fact_legal', ORG.legalName],
+                ['about_fact_number', ORG.corporationNumber],
+                ['about_fact_incorporated', t('about_fact_incorporated_v')],
+                ['about_fact_status', t('about_fact_status_v')],
+                ['about_fact_founder', FOUNDER.name],
+                ['about_fact_city', t('about_fact_city_v')],
+                ['about_fact_office', t('about_fact_office_v')],
+                ['about_fact_support', ORG.supportEmail],
+              ] as const
+            ).map(([labelKey, value]) => (
+              <div key={labelKey}>
+                <dt className="text-xs font-semibold tracking-[0.14em] text-text-3 uppercase">
+                  {t(labelKey)}
+                </dt>
+                <dd className="mt-1 text-sm leading-[1.55] text-text">{value}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="mt-6 max-w-[70ch] text-sm leading-[1.6] text-text-2">
+            {t('about_facts_note')}
+          </p>
         </div>
       </PageSection>
 

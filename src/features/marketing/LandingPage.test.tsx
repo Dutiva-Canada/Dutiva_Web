@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { screen } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
 import { landing } from '@/i18n/messages/landing'
+import { GUIDE_ARTICLES } from './articles'
 import { LandingPage } from './LandingPage'
 import { HOME_FAQ_ITEMS } from './homeFaq'
 
@@ -25,6 +26,24 @@ describe('LandingPage', () => {
       expect(
         screen.getByRole('heading', { level: 2, name: landing[item.q].en }),
       ).toBeInTheDocument()
+    }
+  })
+
+  it('emits a Home breadcrumb and Article nodes for the visible guide cards', () => {
+    renderApp(<LandingPage />, { route: '/', path: '/' })
+
+    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toHaveTextContent('Home')
+
+    const script = document.head.querySelector('script[type="application/ld+json"]')
+    const graph = (JSON.parse(script!.textContent ?? '') as { '@graph': Record<string, unknown>[] })[
+      '@graph'
+    ]
+    expect(graph.some((node) => node['@type'] === 'BreadcrumbList')).toBe(true)
+    const articles = graph.filter((node) => node['@type'] === 'Article')
+    expect(articles).toHaveLength(GUIDE_ARTICLES.length)
+    for (const guide of GUIDE_ARTICLES) {
+      expect(articles.some((node) => node.headline === guide.title.en)).toBe(true)
+      expect(screen.getByText(guide.title.en)).toBeInTheDocument()
     }
   })
 

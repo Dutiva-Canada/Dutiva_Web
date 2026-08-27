@@ -1,7 +1,11 @@
 import { useI18n } from '@/i18n/context'
 import { Seo } from '@/seo/Seo'
-import { webApplicationNode } from '@/seo/jsonld'
+import { articleNode, webApplicationNode } from '@/seo/jsonld'
+import { maxIsoDate } from '@/seo/dates'
+import { GUIDE_ARTICLES, articlePath } from './articles'
+import { latestChangelogDate } from './changelog/changelogEntries'
 import { homeFaqEntries } from './homeFaq'
+import { Breadcrumbs } from './pages/MarketingPage'
 import './landing.css'
 import { Header } from './sections/Header'
 import { Hero } from './sections/Hero'
@@ -27,12 +31,33 @@ import { Footer } from './sections/Footer'
  * coverage → pricing → guides → beta signup → footer.
  */
 export function LandingPage() {
-  const { lang } = useI18n()
+  const { lang, x, L } = useI18n()
+  const homeTrail = [{ name: L('Home', 'Accueil') }]
+  const guideArticles = GUIDE_ARTICLES.map((guide) =>
+    articleNode({
+      lang,
+      path: articlePath(guide, lang),
+      headline: x(guide.title),
+      description: x(guide.summary),
+      datePublished: guide.updated,
+      dateModified: guide.updated,
+    }),
+  )
   return (
     <div className="surface-marketing dutiva-surface min-h-screen text-text">
-      <Seo route="home" faq={homeFaqEntries(lang)} extraNodes={[webApplicationNode(lang)]} />
+      <Seo
+        route="home"
+        faq={homeFaqEntries(lang)}
+        breadcrumb={homeTrail}
+        dateModified={maxIsoDate([
+          latestChangelogDate(),
+          ...GUIDE_ARTICLES.map((guide) => guide.updated),
+        ])}
+        extraNodes={[webApplicationNode(lang), ...guideArticles]}
+      />
       <Header />
       <main id="main-content" tabIndex={-1}>
+        <Breadcrumbs items={homeTrail} className="pt-4" />
         <Hero />
         <TrustStrip />
         <HowItWorks />

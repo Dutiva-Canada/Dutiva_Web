@@ -40,12 +40,18 @@ export interface BreadcrumbTrailItem {
  * Visible breadcrumb trail for nested public pages, mirrored as
  * BreadcrumbList JSON-LD via <Seo breadcrumb={…}> with the same items.
  */
-export function Breadcrumbs({ items }: { readonly items: BreadcrumbTrailItem[] }) {
+export function Breadcrumbs({
+  items,
+  className,
+}: {
+  readonly items: BreadcrumbTrailItem[]
+  readonly className?: string
+}) {
   const { L } = useI18n()
   return (
     <nav
       aria-label={L('Breadcrumb', 'Fil d’Ariane')}
-      className="mx-auto flex max-w-[840px] flex-wrap items-center justify-center gap-1.5 px-6 pt-8 text-[0.8125rem] text-text-3"
+      className={`mx-auto flex max-w-[840px] flex-wrap items-center justify-center gap-1.5 px-6 text-[0.8125rem] text-text-3 ${className ?? 'pt-8'}`}
     >
       {items.map((item, index) => (
         <Fragment key={item.name}>

@@ -1,11 +1,23 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, CreditCard, FileText, LifeBuoy, Rocket, Search, ShieldCheck, Sparkles, X } from 'lucide-react'
+import {
+  ArrowRight,
+  CreditCard,
+  FileText,
+  LifeBuoy,
+  Rocket,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  X,
+} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { Seo } from '@/seo/Seo'
 import { helpDocPath } from '@/seo/routes'
+import { maxIsoDate } from '@/seo/dates'
 import {
+  HELP_ARTICLES,
   HELP_CATEGORIES,
   helpArticlesByCategory,
 } from '@/features/support/help/helpCenterData'
@@ -48,7 +60,11 @@ export function HelpCenterPage() {
 
   return (
     <MarketingPageShell>
-      <Seo route="help" pageType="CollectionPage" />
+      <Seo
+        route="help"
+        pageType="CollectionPage"
+        dateModified={maxIsoDate(HELP_ARTICLES.map((article) => article.updated))}
+      />
       <PageHero eyebrow={t('help_eyebrow')} title={t('help_h1')} intro={t('help_intro')} />
 
       <div role="search" className="mx-auto max-w-[640px] px-6">
@@ -139,7 +155,9 @@ function BrowseByTopic() {
           const articles = helpArticlesByCategory(category.id)
           if (articles.length === 0) return null
           const Icon = CATEGORY_ICONS[category.icon]
-          return <CategoryGroup key={category.id} icon={Icon} category={category} articles={articles} />
+          return (
+            <CategoryGroup key={category.id} icon={Icon} category={category} articles={articles} />
+          )
         })}
       </div>
     </section>
@@ -193,9 +211,7 @@ function HelpArticleCard({
     >
       <div>
         <div className="text-[0.9375rem] font-semibold text-text">{x(article.title)}</div>
-        {!compact && (
-          <p className="mt-1 text-sm leading-[1.5] text-text-2">{x(article.summary)}</p>
-        )}
+        {!compact && <p className="mt-1 text-sm leading-[1.5] text-text-2">{x(article.summary)}</p>}
       </div>
       <ArrowRight
         size={15}

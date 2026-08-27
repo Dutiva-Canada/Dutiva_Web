@@ -208,10 +208,7 @@ for (const { route, file } of pages) {
             fail(`${route}: Article JSON-LD missing datePublished/dateModified`)
           }
         }
-        if (
-          route === '/guides/template-usage' ||
-          route === '/fr/guides/utilisation-des-modeles'
-        ) {
+        if (route === '/guides/template-usage' || route === '/fr/guides/utilisation-des-modeles') {
           if (!types.has('HowTo')) fail(`${route}: template-usage missing HowTo JSON-LD`)
         }
       } catch (e) {
@@ -304,9 +301,12 @@ for (const entry of manifest) {
    the sitemap-namespace children of <url> as an ordered sequence, so a
    lastmod trailing the xhtml:link alternates trips strict validators. */
 for (const [, block] of sitemap.matchAll(/<url>([\s\S]*?)<\/url>/g)) {
+  const loc = /<loc>([^<]+)<\/loc>/.exec(block)?.[1]
+  if (!/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/.test(block)) {
+    fail(`sitemap.xml: ${loc} is missing an ISO <lastmod>`)
+  }
   const order = [...block.matchAll(/<(lastmod|xhtml:link)\b/g)].map((m) => m[1])
   if (order.indexOf('lastmod') > order.indexOf('xhtml:link') && order.includes('lastmod')) {
-    const loc = /<loc>([^<]+)<\/loc>/.exec(block)?.[1]
     fail(`sitemap.xml: ${loc} has <lastmod> after the hreflang alternates`)
   }
 }

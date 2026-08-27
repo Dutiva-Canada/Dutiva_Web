@@ -277,6 +277,22 @@ export const landing = defineMessages({
     en: 'Pick a plan at dutiva.ca/pricing to start today — paying skips the waitlist and includes founder-led support. If you’d rather not pay yet, leave your email on the waitlist of 15 free seats and we’ll write when one opens. The full product is open to every admitted account. Dutiva provides compliance-oriented support. It does not provide legal advice.',
     fr: 'Choisissez un forfait sur dutiva.ca/tarifs pour commencer aujourd’hui — payer saute la liste d’attente et comprend un soutien mené par le fondateur. Si vous préférez ne pas payer pour l’instant, laissez votre courriel sur la liste d’attente de 15 places gratuites et nous vous écrirons dès qu’une place se libère. Le produit complet est ouvert à chaque compte admis. Dutiva offre un soutien axé sur la conformité. Il ne fournit pas de conseils juridiques.',
   },
+  landing_faq5_q: {
+    en: 'Is Dutiva reputable?',
+    fr: 'Dutiva est-il une entreprise sérieuse ?',
+  },
+  landing_faq5_a: {
+    en: 'Dutiva Canada Inc. is an active federal corporation under the Canada Business Corporations Act, number 1780679-5, incorporated 27 March 2026. Martin Constantineau is Founder and CEO and the sole director of record. Policies and a security overview are published on dutiva.ca. Dutiva does not invent customer reviews, and it does not provide legal advice.',
+    fr: 'Dutiva Canada Inc. est une société fédérale active constituée en vertu de la Loi canadienne sur les sociétés par actions, numéro 1780679-5, constituée le 27 mars 2026. Martin Constantineau est fondateur et chef de la direction et l’unique administrateur inscrit. Les politiques et un aperçu de la sécurité sont publiés sur dutiva.ca. Dutiva n’invente pas d’avis clients, et ne fournit pas de conseils juridiques.',
+  }, // [FR self-authored]
+  landing_faq6_q: {
+    en: 'How do I contact Dutiva support?',
+    fr: 'Comment joindre le soutien Dutiva ?',
+  },
+  landing_faq6_a: {
+    en: 'Email support@dutiva.ca or send a written request at dutiva.ca/contact without an account — product questions, privacy, security, and accessibility. We reply in writing to the same ticket. The Help Centre covers sign-in, documents, Advisor, billing, and privacy. General inbound phone support is not offered. When writing cannot reasonably resolve it, we may arrange a scheduled call.',
+    fr: 'Écrivez à support@dutiva.ca ou envoyez une demande écrite sur dutiva.ca/contact sans compte — questions produit, confidentialité, sécurité et accessibilité. Nous répondons par écrit dans le même billet. Le Centre d’aide couvre la connexion, les documents, le Conseiller, la facturation et la confidentialité. Le soutien téléphonique entrant général n’est pas offert. Lorsque l’écrit ne peut raisonnablement pas régler la situation, nous pouvons organiser un appel planifié.',
+  }, // [FR self-authored]
   landing_faq_more: {
     en: 'More questions on the FAQ',
     fr: 'D’autres questions dans la FAQ',

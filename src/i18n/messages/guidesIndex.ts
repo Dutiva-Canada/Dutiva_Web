@@ -25,8 +25,8 @@ export const guidesIndexMessages = defineMessages({
     fr: 'Des repères pour les documents que vous devez réussir.',
   },
   guidesIdx_intro: {
-    en: 'Plain-language explainers on the documents and decisions Canadian employers have to get right — contracts, probation, accommodation, termination — written to complement the AI Advisor and document templates, not replace legal counsel.',
-    fr: 'Des explications en langage clair sur les documents et les décisions que les employeurs canadiens doivent réussir — contrats, probation, accommodement, cessation d’emploi — pensées pour compléter le Conseiller IA et les modèles de documents, sans remplacer un avocat.',
+    en: 'Plain-language guides to help Canadian employers understand and comply with employment law — contracts, probation, accommodation, termination, and more — designed to complement our AI Advisor and document templates. If you have any doubts or concerns, legal counsel should always be your first port of call.',
+    fr: 'Des guides en langage clair pour aider les employeurs canadiens à comprendre le droit du travail et à s’y conformer — contrats, probation, accommodement, cessation d’emploi, et plus encore — conçus pour compléter notre Conseiller IA et nos modèles de documents. En cas de doute ou d’inquiétude, un avocat devrait toujours être votre premier recours.', // [FR self-authored]
   },
   /* SEO meta only — page hero keeps the longer guidesIdx_intro. */
   guidesIdx_meta_description: {

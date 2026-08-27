@@ -54,6 +54,17 @@ export const ORG = {
   logoPath: '/brand/dutiva-leaf.png',
   logoWidth: 1275,
   logoHeight: 1275,
+  /**
+   * CBCA corporation number — published on `/about` (Corporations Canada).
+   * JSON-LD `identifier` follows this value; do not add it here unless it
+   * stays visible on the page.
+   */
+  corporationNumber: '1780679-5',
+  /**
+   * Certificate of Incorporation date (ISO) — published on `/about`.
+   * JSON-LD `foundingDate` follows this value.
+   */
+  foundingDate: '2026-03-27',
 } as const
 
 /** Organization `sameAs` — only profiles that are linked from `/about`. */

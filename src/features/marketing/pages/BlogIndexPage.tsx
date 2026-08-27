@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { Seo } from '@/seo/Seo'
+import { maxIsoDate } from '@/seo/dates'
 import { usePublicPath } from '@/seo/usePublicPath'
 import { BLOG_ARTICLES, articlePath } from '../articles'
 import { ArticlePublishedLabel } from '../articles/ArticlePublishedLabel'
@@ -24,7 +25,11 @@ export function BlogIndexPage() {
   const { p } = usePublicPath()
   return (
     <MarketingPageShell>
-      <Seo route="blog" pageType="CollectionPage" />
+      <Seo
+        route="blog"
+        pageType="CollectionPage"
+        dateModified={maxIsoDate(BLOG_ARTICLES.map((post) => post.updated))}
+      />
       <PageHero eyebrow={t('blog_eyebrow')} title={t('blog_h1')} intro={t('blog_intro')} />
 
       <section className="mx-auto max-w-[1200px] px-6 py-8">
