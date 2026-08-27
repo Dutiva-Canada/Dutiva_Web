@@ -17,6 +17,17 @@ export interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: readonly ChangelogEntry[] = [
   {
+    date: '2026-08-27',
+    title: bi(
+      'Public demo — explore the workspace without signing in',
+      'Démo publique — explorez l’espace de travail sans connexion',
+    ),
+    body: bi(
+      'Visit dutiva.ca/demo for a read-only preview of the Northgate Logistics sample workspace: guided tour stops, landing-page mini-simulations, and the full Advisor and Documents experience. We tightened the layout so the tour bar, thread list, and compliance panel share space more comfortably, and document labels render correctly in English and French.',
+      'Visitez dutiva.ca/demo pour un aperçu lecture seule de l’espace d’exemple Northgate Logistics : arrêts de visite guidée, mini-simulations depuis l’accueil, et l’expérience complète Conseiller et Documents. Nous avons resserré la mise en page pour que la barre de visite, la liste de fils et le volet conformité partagent l’espace plus confortablement, et les libellés Documents s’affichent correctement en anglais et en français.',
+    ),
+  },
+  {
     date: '2026-08-26',
     title: bi(
       'Optional Advisor reply packs when you pass the included monthly amount',
