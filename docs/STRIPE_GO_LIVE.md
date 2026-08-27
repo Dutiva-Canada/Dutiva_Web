@@ -1,15 +1,44 @@
 # Stripe go-live (OA11) — founder checklist
 
-**Status (2026-08-26):** Checkout is **publicly offered**.
-`PAID_PLANS_DISABLED_DURING_BETA` is `false`, so `/pricing` shows live monthly
-CTAs. Annual billing stays hidden (`ANNUAL_BILLING_AVAILABLE = false`) until
-the annual price IDs exist.
-
-**Stripe Dashboard work is still required.** Until Edge Function secrets are
-set, `create-checkout-session` answers `503 Payments not configured.` Live
-“Start Growth” buttons will fail for customers until §1–§4 pass.
+**Status (2026-08-27): OA11 closed.** Monthly paid checkout is configured and
+live. Founder confirmed Stripe products/prices, Supabase Edge Function secrets,
+and the webhook subscription (see [Completion record](#completion-record-2026-08-27)
+below). `/pricing` shows monthly CTAs (`PAID_PLANS_DISABLED_DURING_BETA =
+false`). Annual billing stays hidden (`ANNUAL_BILLING_AVAILABLE = false`) until
+the annual price secrets exist and eng flips the flag (EF4a).
 
 Do **not** paste live secrets into chat, PRs, or the repo.
+
+## Completion record (2026-08-27)
+
+Owner confirmed the following are in place on the live Supabase project
+(`khtwpxnvziiyplaflwru`):
+
+| Step | Status |
+| --- | --- |
+| Stripe Products + monthly Prices (Starter / Growth / Pro, CAD) | Done |
+| Supabase secrets: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_*_MONTHLY`, `SITE_URL` | Done |
+| Webhook → `…/functions/v1/stripe-webhook` with subscription events | Done |
+| Edge functions match `main` (annual wiring, apex `SITE_URL` default) | Done (v23 / v28 / v21 as of 2026-08-27) |
+| `PAID_PLANS_DISABLED_DURING_BETA = false` | Done (2026-08-26) |
+
+**Optional follow-ons** (documented separately — not required to close OA11):
+
+- **Annual** — create yearly Prices + `STRIPE_PRICE_*_ANNUAL` secrets, then set
+  `ANNUAL_BILLING_AVAILABLE = true` ([EF4a in TODO.md](TODO.md)).
+- **Advisor packs** — `STRIPE_PRICE_ADVISOR_PACK_50` / `_200` for one-time pack
+  checkout (`create-advisor-pack-checkout`).
+- **Advisor overage meter** — `STRIPE_ADVISOR_METER_EVENT_NAME` for opt-in
+  usage billing beyond included replies.
+- **Plan feature gates** — `PLAN_FEATURE_GATES_ENABLED` stays `false`; paying
+  buys support membership, not extra modules, until limits are enforced.
+
+**Smoke verification** (run after any secret or webhook change): signed-in
+non-`@dutiva.ca` user completes a test checkout → `profiles.plan` and
+`subscription_status: active` update, row in `stripe_webhook_events`. See §4.
+
+The checklist sections below remain the reference for re-verification or
+onboarding a second operator.
 
 ## Pricing numbers (must match the catalogue)
 
@@ -122,7 +151,7 @@ Internal `@dutiva.ca` accounts skip pack payment.
 
 1. Set `ANNUAL_BILLING_AVAILABLE = true` in `src/config/plans.ts` **only if**
    all three `STRIPE_PRICE_*_ANNUAL` secrets are set.
-2. Mark **OA11** done in `docs/TODO.md`.
+2. Record annual go-live in [TODO.md](TODO.md) EF4a.
 
 `PLAN_FEATURE_GATES_ENABLED` stays `false` until product limits are actually
 enforced. Paying buys support membership, not extra modules.

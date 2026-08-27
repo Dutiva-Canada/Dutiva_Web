@@ -87,7 +87,8 @@ export const PLAN_FEATURE_GATES_ENABLED = false
 /**
  * Annual Stripe prices are not live yet. Keep the /pricing annual toggle
  * hidden independently of checkout, so we never quote a yearly total nobody
- * can buy. Flip after STRIPE_PRICE_*_ANNUAL secrets exist.
+ * can buy. Flip after STRIPE_PRICE_*_ANNUAL secrets exist and annual is ready
+ * to sell (EF4a; OA11 closed 2026-08-27).
  */
 export const ANNUAL_BILLING_AVAILABLE = false
 

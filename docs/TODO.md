@@ -290,13 +290,20 @@ that `supabase/migrations/` alone can't reproduce. A reviewer can now see
 the real RLS policies and function bodies in a diff.
 [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md). (PR #74)
 
-**OA11 — Stripe secrets and webhook endpoint.** _Checkout CTAs are live
-(2026-08-26); Stripe Dashboard still deferred._
-`PAID_PLANS_DISABLED_DURING_BETA` is `false` — monthly paid CTAs on `/pricing`
-are the public path in. Until secrets exist, checkout 503s. Founder still needs
-to run [STRIPE_GO_LIVE.md](STRIPE_GO_LIVE.md) (products/prices, secrets,
-webhook, test-mode smoke). Annual stays hidden (`ANNUAL_BILLING_AVAILABLE`).
-Prior notes: [BILLING_BETA_AUDIT.md § Remaining work](BILLING_BETA_AUDIT.md).
+**OA11 — Done (owner config, 2026-08-27).** Monthly paid checkout is live.
+Founder confirmed Stripe products/prices, Supabase Edge Function secrets
+(`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, the three
+`STRIPE_PRICE_*_MONTHLY` ids, `SITE_URL`), and the webhook endpoint
+subscription per [STRIPE_GO_LIVE.md](STRIPE_GO_LIVE.md). Eng prep was verified
+2026-08-23 (annual wiring + apex `SITE_URL` default); live functions as of
+2026-08-27: `create-checkout-session` v23, `create-portal-session` v21,
+`stripe-webhook` v28, `create-advisor-pack-checkout` v1.
+`PAID_PLANS_DISABLED_DURING_BETA` is `false` — `/pricing` CTAs are the public
+path in. **Optional follow-ons (not part of OA11 close):** annual billing
+(`ANNUAL_BILLING_AVAILABLE`, EF4a); advisor pack price secrets if pack checkout
+should sell; `STRIPE_ADVISOR_METER_EVENT_NAME` for opt-in Advisor overage;
+`PLAN_FEATURE_GATES_ENABLED` stays `false` until per-plan limits are enforced.
+Prior audit: [BILLING_BETA_AUDIT.md](BILLING_BETA_AUDIT.md).
 
 **OA12 — Partially done.** D3 was decided 2026-08-06 (Google Calendar, full
 loop) and built the same day. Verified 2026-08-06 via Supabase MCP:
@@ -663,18 +670,16 @@ not an admin RLS policy. The table never becomes client-readable, even if
 `is_admin()` is compromised — the edge function is the only read path.
 [EXPORT_PROTECTION.md](EXPORT_PROTECTION.md). (PR #158)
 
-**EF4a — Annual billing needs its Stripe objects and migration 0043.** _Owner._
+**EF4a — Annual billing (optional; not blocking OA11).** _Owner, when ready._
 The code half is done: `create-checkout-session` resolves
 `STRIPE_PRICE_*_ANNUAL`, the webhook's price lookup maps the annual ids, and
 `getCheckoutProfilePatch` records the real interval instead of hardcoding
-`monthly`. Three things outside this repo remain, and annual checkout does not
-work until all three land: create the annual Price objects in Stripe (yearly
-recurring, charging `ANNUAL_MONTHS_BILLED` = 10 months' worth), set the three
-env vars, and **apply migration `0043`** — without it
-`profiles.billing_period` may still reject `'annual'`, which would take the
-money and lose the entitlement. The function fails closed with a 503 meanwhile,
-and `PricingPage`'s annual guard turns that into an intelligible notice; remove
-that guard only once this is done. Folded into OA11.
+`monthly`. Migration `0043` is applied (EF4b) — `profiles.billing_period`
+accepts `'annual'`. To sell yearly: create the three annual Price objects in
+Stripe (yearly recurring, charging `ANNUAL_MONTHS_BILLED` = 10 months' worth),
+set `STRIPE_PRICE_*_ANNUAL` secrets, then flip
+`ANNUAL_BILLING_AVAILABLE = true` in `src/config/plans.ts`. Until then the
+/pricing annual toggle stays hidden.
 
 **EF4b — Done.** _Verified 2026-08-10._ The live `profiles_billing_period_check`
 allows `monthly` and `annual`:
