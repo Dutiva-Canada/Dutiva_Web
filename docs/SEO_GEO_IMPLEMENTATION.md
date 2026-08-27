@@ -160,11 +160,12 @@ allowed because they are published on `/about`. Social profiles (`sameAs`)
 only when published on the site: the founder's LinkedIn on Person, and on
 Organization the company LinkedIn
 (`https://www.linkedin.com/company/dutiva-canada`), Facebook
-(`https://www.facebook.com/dutivacanada`), and the Google Maps listing
+(`https://www.facebook.com/dutivacanada`), Reddit
+(`https://www.reddit.com/user/Dutiva`), and the Google Maps listing
 (linked from `/about`). Do not add Bing Places, Apple Maps, Wikipedia, or
 Wikidata until those pages exist _and_ are linked from the site. Offers exist only on the pricing page
 because prices are visibly rendered there. `validate-seo.mjs` parses every
-block and rejects off-origin URLs (LinkedIn, Facebook, and Google Maps are
+block and rejects off-origin URLs (LinkedIn, Facebook, Reddit, and Google Maps are
 allowlisted for `sameAs`) and
 placeholder values.
 

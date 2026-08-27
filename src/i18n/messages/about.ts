@@ -58,6 +58,10 @@ export const aboutMessages = defineMessages({
     en: 'Dutiva on Facebook',
     fr: 'Dutiva sur Facebook',
   }, // [FR self-authored]
+  about_company_reddit: {
+    en: 'Dutiva on Reddit',
+    fr: 'Dutiva sur Reddit',
+  }, // [FR self-authored]
   about_why_foot: {
     en: 'Built in Ottawa, Canada · Grounded in real HR operations, not generic research.',
     fr: 'Conçu à Ottawa, au Canada · Ancré dans de véritables opérations RH, pas dans des recherches génériques.',

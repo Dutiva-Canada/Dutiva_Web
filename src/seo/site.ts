@@ -29,7 +29,8 @@ export function absoluteUrl(pathname: string): string {
  * Do not add addresses, founding dates, ratings, or other properties here
  * unless they are real, public, and visible on the site. Social profiles
  * belong only when published on the site (`ORG.linkedinUrl`,
- * `ORG.facebookUrl`, `ORG.googleMapsUrl`, and `FOUNDER.linkedinUrl`).
+ * `ORG.facebookUrl`, `ORG.redditUrl`, `ORG.googleMapsUrl`, and
+ * `FOUNDER.linkedinUrl`).
  */
 export const ORG = {
   /** Registered legal name. */
@@ -44,6 +45,8 @@ export const ORG = {
   linkedinUrl: 'https://www.linkedin.com/company/dutiva-canada',
   /** Company Facebook — published on `/about`; feeds Organization `sameAs`. */
   facebookUrl: 'https://www.facebook.com/dutivacanada',
+  /** Company Reddit — published on `/about`; feeds Organization `sameAs`. */
+  redditUrl: 'https://www.reddit.com/user/Dutiva',
   /**
    * Public Google Maps listing (Google Business Profile). Knowledge-graph
    * id `/g/11z30dv_k7`. Tracking params stripped. Published on `/about`.
@@ -68,7 +71,12 @@ export const ORG = {
 } as const
 
 /** Organization `sameAs` — only profiles that are linked from `/about`. */
-export const ORG_SAME_AS: readonly string[] = [ORG.linkedinUrl, ORG.facebookUrl, ORG.googleMapsUrl]
+export const ORG_SAME_AS: readonly string[] = [
+  ORG.linkedinUrl,
+  ORG.facebookUrl,
+  ORG.redditUrl,
+  ORG.googleMapsUrl,
+]
 
 /**
  * Founder identity published on `/` and `/about` (and in JSON-LD). Name,
