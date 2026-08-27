@@ -8,9 +8,16 @@ import { documentTemplatesByKey } from '@/data/documents'
 import { useI18n } from '@/i18n/context'
 import { LANDING_ADVISOR_SCENARIO_IDS } from '../demos/landingAdvisorScenarios'
 import { useLanding } from '../useLanding'
+import type { LandingMessageKey } from '../useLanding'
 import { usePublicPath } from '@/seo/usePublicPath'
 
 type ComplianceLevel = 'low' | 'medium' | 'high'
+
+const RISK_LABEL: Record<ComplianceLevel, LandingMessageKey> = {
+  low: 'landing_adv_risk_low',
+  medium: 'landing_adv_risk_medium',
+  high: 'landing_adv_risk_high',
+}
 
 const RISK_BADGE_CLASS: Record<ComplianceLevel, string> = {
   low: 'border-ok-border bg-ok-bg text-ok-fg',
@@ -115,7 +122,7 @@ function ScenarioTranscript({ scenario }: { readonly scenario: AdvisorScenario }
             className={`mb-2 inline-flex items-center gap-1.5 rounded-full border px-2.25 py-0.75 text-[0.6875rem] font-bold tracking-[0.06em] uppercase ${RISK_BADGE_CLASS[compliance]}`}
           >
             <span className={`h-1.5 w-1.5 rounded-full bg-current`} />
-            {`${t(compliance === 'high' ? 'advws_risk_high' : compliance === 'medium' ? 'advws_risk_medium' : 'advws_risk_low')} ${t('landing_adv_risk_suffix')}`}
+            {lt(RISK_LABEL[compliance])}
           </div>
         )}
         <p className="m-0 whitespace-pre-line text-[0.9375rem] leading-[1.55] text-text">{x(turn.reply)}</p>

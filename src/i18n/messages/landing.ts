@@ -160,6 +160,18 @@ export const landing = defineMessages({
     en: 'risk',
     fr: 'risque',
   },
+  landing_adv_risk_low: {
+    en: 'Low risk',
+    fr: 'Risque faible',
+  },
+  landing_adv_risk_medium: {
+    en: 'Medium risk',
+    fr: 'Risque moyen',
+  },
+  landing_adv_risk_high: {
+    en: 'High risk',
+    fr: 'Risque élevé',
+  },
   landing_adv_source_prefix: {
     en: 'Source:',
     fr: 'Source :',
@@ -167,10 +179,6 @@ export const landing = defineMessages({
   landing_adv_user_q: {
     en: 'What should I prepare before terminating an employee in Ontario?',
     fr: "Que dois-je préparer avant de mettre fin à l'emploi d'un salarié en Ontario ?",
-  },
-  landing_adv_risk: {
-    en: 'Medium risk',
-    fr: 'Risque moyen',
   },
   landing_adv_answer: {
     en: 'Dutiva can help you identify the applicable Ontario employment standards, prepare a termination checklist, and flag issues that may need legal review. Complex or high-risk situations should be reviewed with qualified counsel.',

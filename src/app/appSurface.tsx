@@ -79,13 +79,13 @@ export function PublicDemoWorkspace({ root = '/demo' }: { readonly root?: '/demo
   const lang: Lang = root === '/fr/demo' ? 'fr' : 'en'
   return (
     <ForcedLangProvider lang={lang}>
-      <AppProviders>
-        <PublicDemoProvider root={root}>
+      <PublicDemoProvider root={root}>
+        <AppProviders>
           <Suspense fallback={null}>
             <AppShell />
           </Suspense>
-        </PublicDemoProvider>
-      </AppProviders>
+        </AppProviders>
+      </PublicDemoProvider>
     </ForcedLangProvider>
   )
 }
