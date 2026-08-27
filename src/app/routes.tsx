@@ -207,11 +207,9 @@ function routeTree(): RouteObject[] {
     {
       path: '/fr/demo',
       element: (
-        <ForcedLangProvider lang="fr">
-          <Suspense fallback={null}>
-            <PublicDemoWorkspace root="/fr/demo" />
-          </Suspense>
-        </ForcedLangProvider>
+        <Suspense fallback={null}>
+          <PublicDemoWorkspace root="/fr/demo" />
+        </Suspense>
       ),
       children: [
         { index: true, element: <Navigate to="/fr/demo/home" replace /> },
