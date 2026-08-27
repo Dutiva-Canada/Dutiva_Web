@@ -108,6 +108,16 @@ describe('SEO route registry', () => {
     }
   })
 
+  it('keeps every public page meta description within the SERP display band (120–155 chars)', () => {
+    for (const page of pages) {
+      for (const lang of ['en', 'fr'] as const) {
+        const len = page.description[lang].length
+        expect(len, `${page.key} ${lang}`).toBeGreaterThanOrEqual(120)
+        expect(len, `${page.key} ${lang}`).toBeLessThanOrEqual(155)
+      }
+    }
+  })
+
   it('keeps legal slugs unique in both slug spaces', () => {
     expect(new Set(LEGAL_ROWS.map((r) => r.slug)).size).toBe(26)
     expect(new Set(LEGAL_ROWS.map((r) => r.frSlug)).size).toBe(26)

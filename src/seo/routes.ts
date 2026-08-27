@@ -11,6 +11,7 @@ import type { HelpArticle } from '@/features/support/help/helpCenterData'
 import { ALL_ARTICLES, articlePath } from '@/features/marketing/articles'
 import type { Article } from '@/features/marketing/articles'
 import { marketingMessages } from '@/i18n/messages/marketing'
+import { formatMetaDescription } from './metaDescription'
 
 /**
  * The typed SEO route registry — the single source of truth for every public
@@ -323,10 +324,13 @@ export function legalDocTitle(row: LegalHubRow, lang: Lang): string {
 }
 
 export function legalDocDescription(row: LegalHubRow, lang: Lang): string {
+  const title = legalDocTitle(row, lang)
   const desc = pick(marketingMessages[row.descKey], lang)
-  return lang === 'fr'
-    ? `${desc} — document officiel de Dutiva Canada Inc.`
-    : `${desc} — official Dutiva Canada Inc. policy document.`
+  const suffix =
+    lang === 'fr'
+      ? ' Document officiel Dutiva Canada Inc.'
+      : ' Official Dutiva Canada Inc. policy document.'
+  return formatMetaDescription(`${title}: ${desc}`, lang, suffix)
 }
 
 /* ------------------------------------------------------------------ */
@@ -351,7 +355,7 @@ export function helpDocTitle(article: HelpArticle, lang: Lang): string {
 }
 
 export function helpDocDescription(article: HelpArticle, lang: Lang): string {
-  return pick(article.summary, lang)
+  return formatMetaDescription(pick(article.summary, lang), lang)
 }
 
 /* ------------------------------------------------------------------ */
@@ -363,7 +367,7 @@ export function articleTitle(article: Article, lang: Lang): string {
 }
 
 export function articleDescription(article: Article, lang: Lang): string {
-  return pick(article.summary, lang)
+  return formatMetaDescription(pick(article.summary, lang), lang)
 }
 
 /* ------------------------------------------------------------------ */
