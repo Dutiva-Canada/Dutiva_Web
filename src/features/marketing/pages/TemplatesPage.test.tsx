@@ -3,10 +3,11 @@ import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderApp } from '@/test/renderApp'
 import { allTemplates } from '@/features/app/documents/catalogue'
+import { FEATURED_TEMPLATE_TIDS } from '@/features/marketing/demos/templatePreviewModel'
 import { TemplatesPage } from './TemplatesPage'
 
 describe('TemplatesPage', () => {
-  it('renders the hero, every catalogue template, and the CTA in English', () => {
+  it('renders sample outputs, the hero, every catalogue template, and the CTA in English', () => {
     renderApp(<TemplatesPage />, { route: '/templates', path: '/templates' })
     expect(
       screen.getByRole('heading', {
@@ -15,8 +16,15 @@ describe('TemplatesPage', () => {
       }),
     ).toBeInTheDocument()
 
+    expect(screen.getByRole('heading', { level: 2, name: 'Sample outputs' })).toBeInTheDocument()
+    for (const tid of FEATURED_TEMPLATE_TIDS) {
+      const tpl = allTemplates.find((candidate) => candidate.tid === tid)
+      expect(tpl).toBeDefined()
+      expect(screen.getAllByText(tpl!.name.en).length).toBeGreaterThanOrEqual(1)
+    }
+
     for (const tpl of allTemplates) {
-      expect(screen.getByText(tpl.name.en)).toBeInTheDocument()
+      expect(screen.getAllByText(tpl.name.en).length).toBeGreaterThanOrEqual(1)
     }
 
     expect(
@@ -32,6 +40,6 @@ describe('TemplatesPage', () => {
 
     const firstTemplate = allTemplates[0]
     expect(firstTemplate).toBeDefined()
-    expect(screen.getByText(firstTemplate!.name.fr)).toBeInTheDocument()
+    expect(screen.getAllByText(firstTemplate!.name.fr).length).toBeGreaterThanOrEqual(1)
   })
 })

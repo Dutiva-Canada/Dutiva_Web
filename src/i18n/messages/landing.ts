@@ -144,6 +144,26 @@ export const landing = defineMessages({
     en: 'Live',
     fr: 'En direct',
   },
+  landing_adv_preview: {
+    en: 'Sample preview',
+    fr: 'Aperçu type',
+  },
+  landing_adv_preview_note: {
+    en: 'Sample scenarios only — sign in for live jurisdiction, risk, and document generation.',
+    fr: 'Scénarios types seulement — connectez-vous pour la compétence, le risque et la génération de documents en direct.',
+  },
+  landing_adv_scenarios_label: {
+    en: 'Advisor sample scenarios',
+    fr: 'Scénarios types du Conseiller',
+  },
+  landing_adv_risk_suffix: {
+    en: 'risk',
+    fr: 'risque',
+  },
+  landing_adv_source_prefix: {
+    en: 'Source:',
+    fr: 'Source :',
+  },
   landing_adv_user_q: {
     en: 'What should I prepare before terminating an employee in Ontario?',
     fr: "Que dois-je préparer avant de mettre fin à l'emploi d'un salarié en Ontario ?",
@@ -516,6 +536,30 @@ export const landing = defineMessages({
   landing_cat_browse: {
     en: 'Browse all templates',
     fr: 'Parcourir tous les modèles',
+  },
+  landing_studio_demo_title: {
+    en: 'See a document take shape',
+    fr: 'Voir un document se construire',
+  },
+  landing_studio_demo_intro: {
+    en: 'Answer a few guided questions — Dutiva assembles jurisdiction-aware clauses into a draft you can review before sending.',
+    fr: 'Répondez à quelques questions guidées — Dutiva assemble des clauses adaptées à la compétence dans une ébauche que vous pouvez réviser avant l’envoi.',
+  },
+  landing_studio_demo_wizard: {
+    en: 'Guided questions',
+    fr: 'Questions guidées',
+  },
+  landing_studio_demo_step: {
+    en: 'Step',
+    fr: 'Étape',
+  },
+  landing_studio_demo_output: {
+    en: 'Draft preview',
+    fr: 'Aperçu de l’ébauche',
+  },
+  landing_studio_demo_note: {
+    en: 'Sample output from the Ontario offer-letter template — not a live generation.',
+    fr: 'Exemple tiré du modèle de lettre d’offre pour l’Ontario — pas une génération en direct.',
   },
   landing_why_badge: {
     en: 'Why Dutiva',
