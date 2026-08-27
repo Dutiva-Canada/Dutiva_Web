@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { screen } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import { screen, within } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
 import { landing } from '@/i18n/messages/landing'
 import { GUIDE_ARTICLES } from './articles'
@@ -53,6 +53,47 @@ describe('LandingPage', () => {
     expect(links.length).toBeGreaterThanOrEqual(2)
     for (const link of links) {
       expect(link).toHaveAttribute('href', '/guides')
+    }
+  })
+
+  it('points header nav at landing sections, /pricing, /guides, and sign-in', () => {
+    renderApp(<LandingPage />, { route: '/', path: '/' })
+    const nav = document.querySelector('header nav')
+    expect(nav).not.toBeNull()
+    const href = (name: string) =>
+      within(nav!).getByRole('link', { name }).getAttribute('href')
+
+    expect(href('How it works')).toBe('/#how')
+    expect(href('Workflows')).toBe('/#workflows')
+    expect(href('Document Studio')).toBe('/#product')
+    expect(href('Coverage')).toBe('/#coverage')
+    expect(href('Pricing')).toBe('/pricing')
+    expect(href('Guides')).toBe('/guides')
+
+    const header = document.querySelector('header')!
+    expect(within(header).getByRole('link', { name: 'Sign in' })).toHaveAttribute(
+      'href',
+      '/app/welcome',
+    )
+    expect(within(header).getByRole('link', { name: 'See plans' })).toHaveAttribute(
+      'href',
+      '/pricing',
+    )
+  })
+
+  it('scrolls the hash target into view when the landing page mounts with a hash', () => {
+    const spy = vi.fn()
+    Object.defineProperty(Element.prototype, 'scrollIntoView', {
+      configurable: true,
+      writable: true,
+      value: spy,
+    })
+    try {
+      renderApp(<LandingPage />, { route: '/#product', path: '/' })
+      expect(document.getElementById('product')).not.toBeNull()
+      expect(spy).toHaveBeenCalled()
+    } finally {
+      Reflect.deleteProperty(Element.prototype, 'scrollIntoView')
     }
   })
 })
