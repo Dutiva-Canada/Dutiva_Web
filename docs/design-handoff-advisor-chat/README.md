@@ -119,7 +119,8 @@ The prototypes inline the **`.surface-app`** ramp. The live tokens are in `src/s
 ## Assets
 - **Icons:** lucide (`lucide-react`) throughout — the prototypes inline equivalent SVG paths so they survive re-renders; the app uses `lucide-react`. No emoji.
 - **Brand mark:** the geometric maple-leaf tile + Montserrat "Duti**va**" wordmark — use the brand components (`LeafTile` and `Wordmark` in `src/features/marketing/Brand.tsx`; assets in `public/brand/`), never redraw. The prototypes use a placeholder monogram tile.
-- **Fonts:** Montserrat + Inter (Google Fonts) — loaded by the preconnect + stylesheet links in the root `index.html`.
+- **Fonts:** Montserrat Variable + Inter Variable — self-hosted latin/latin-ext
+  cuts via `src/styles/fonts.css` (see root `index.html` — no Google Fonts).
 
 ## Files
 - `AGENT.md` — **normative communication spec for the Advisor** (identity, response modes, jurisdiction discipline, answer structure, hedging, escalation, disclaimer contract, supportive mode, citations, memory-in-answer, bilingual, hard don'ts). Pair with an eval suite.

@@ -41,9 +41,9 @@ using the existing `public/site.webmanifest`.
   and any **production-mode** data (real cases/employees from Supabase). Those
   calls go to `*.supabase.co`; the worker deliberately never caches backend
   data, so it fails cleanly offline rather than serving stale records.
-- **Fonts:** Inter/Montserrat load from Google Fonts and are runtime-cached
-  after the first online load, so they render offline on subsequent visits. On
-  the very first offline load they fall back to system fonts (cosmetic only).
+- **Fonts:** Inter Variable + Montserrat Variable are self-hosted same-origin
+  woff2 files under `/assets/` (latin + latin-ext). They ride the hashed-asset
+  precache, so they render offline after the first online visit.
 
 ## How it works
 
@@ -60,8 +60,8 @@ using the existing `public/site.webmanifest`.
     always get fresh, per-route prerendered HTML; offline falls back to the
     cached page, then to the SPA shell (which re-renders the route
     client-side). This is what keeps the service worker from ever hurting SEO.
-  - Hashed assets / brand images → **cache-first** (they're immutable).
-  - Google Fonts → **stale-while-revalidate**.
+  - Hashed assets / brand images → **cache-first** (they're immutable; includes
+    self-hosted Inter/Montserrat woff2).
   - Cross-origin backend traffic (Supabase) → **not intercepted**.
 
 ### Updates / avoiding stale content

@@ -117,6 +117,35 @@ function walkAst(node: any, visit: (n: any) => void): void {
   }
 }
 
+/**
+ * After the build emits hashed Montserrat latin woff2, inject a `<link
+ * rel="preload">` into every HTML entry so the hero H1 (font-display) can
+ * start downloading in parallel with CSS instead of waiting for @font-face
+ * discovery. Dev skips this — CSS url() resolution is enough locally.
+ */
+function preloadLcpFont(): Plugin {
+  const MARK = 'montserrat-latin-wght-normal'
+  return {
+    name: 'dutiva-preload-lcp-font',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, ctx) {
+        if (!ctx.bundle) return html
+        const asset = Object.values(ctx.bundle).find(
+          (item) =>
+            item.type === 'asset' &&
+            typeof item.fileName === 'string' &&
+            item.fileName.includes(MARK) &&
+            item.fileName.endsWith('.woff2'),
+        )
+        if (!asset || asset.type !== 'asset') return html
+        const tag = `    <link rel="preload" href="/${asset.fileName}" as="font" type="font/woff2" crossorigin />\n`
+        return html.replace('</head>', `${tag}</head>`)
+      },
+    },
+  }
+}
+
 /* The markdown renderer's dependency tree, as a regex alternation for the
    vendor group's test below. Computed once at config load. */
 const MARKDOWN_TREE = packageAlternation(
@@ -135,7 +164,12 @@ export default defineConfig(({ command }) => {
     !process.env.VITEST && (command === 'serve' || process.env.VERCEL_ENV === 'preview')
 
   return {
-    plugins: [...(stampSource ? [devSourceLocation()] : []), react(), tailwindcss()],
+    plugins: [
+      ...(stampSource ? [devSourceLocation()] : []),
+      react(),
+      tailwindcss(),
+      preloadLcpFont(),
+    ],
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
