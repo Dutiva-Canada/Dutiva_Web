@@ -18,7 +18,7 @@ human or platform action** (not closable by engineering alone).
 | --- | --- |
 | **Complete in code** | Repository, generate, detail, signing, and all four Memory surfaces dispatch on `useWorkspaceMode()` with `*ProductionView` + migrations 0076–0087. |
 | **Completed this pass** | `DoclibProvider` loads catalogue-only shell in production (no Northgate sample rows); Studio org profile follows signed-in admin identity. |
-| **Blocked** | Deployed migrations + edge functions on the live project (Woodpecker `check:migrations` gates drift; auth E2E runs when `SUPABASE_SERVICE_ROLE_KEY` is set). Production workspace still admin-only toggle. Stripe monetization (OA11). |
+| **Blocked** | Deployed migrations + edge functions on the live project (Woodpecker `check:migrations` gates drift; auth E2E runs when `SUPABASE_SERVICE_ROLE_KEY` is set). Production workspace still admin-only toggle. |
 
 ## Architecture (dual demo/production surface)
 
@@ -56,5 +56,5 @@ human or platform action** (not closable by engineering alone).
 | --- | --- |
 | L5 Advisor corpus human review | Qualified reviewer |
 | OA9 DO residency confirmation | Owner / legal |
-| Stripe secrets + annual prices | OA11 / ops |
+| Annual Stripe prices + `ANNUAL_BILLING_AVAILABLE` | Owner / ops (EF4a; optional) |
 | EF11 Workspace entitlement calculators | **Eng complete** — remaining = L6 sign-off (QC/FED bands) + product decision on org payroll / mass-termination count (TODO.md EF11) |

@@ -1,15 +1,12 @@
 # Stripe billing & beta-signup audit
 
-> **Status (2026-07-28, after remediation).** Items 1–3 of "Suggested order of
-> work" have been done: the beta form now posts to `create-beta-signup`,
-> migration `0024` reconciled the live billing schema, and all three Stripe
-> functions are deployed. `?checkout=success`/`cancelled` are now handled, and
-> the paywall-bypass check was de-duplicated. **B2 (invite-only sign-in) is
-> resolved** — sign-in now admits the admin account or anyone on the beta
-> list; see "B2 resolved" below. **Checkout still needs its Stripe secrets set
-> on the Supabase project before a payment can complete** — see "Remaining
-> work" at the bottom. The findings below are kept as written, as the record
-> of what was found.
+> **Status (2026-08-27).** Items 1–3 of "Suggested order of work" have been
+> done: the beta form now posts to `create-beta-signup`, migration `0024`
+> reconciled the live billing schema, and all three Stripe functions are
+> deployed. **B2 (invite-only sign-in) is resolved.** **OA11 (Stripe secrets +
+> webhook) is closed** — owner confirmed dashboard configuration 2026-08-27;
+> see [STRIPE_GO_LIVE.md § Completion record](STRIPE_GO_LIVE.md). The findings
+> below are kept as written, as the record of what was found.
 
 **Date:** 2026-07-27
 **Scope:** the paid-signup path (`/pricing` → Stripe Checkout → entitlement) and
@@ -242,7 +239,12 @@ current constraint converts B3 from a wrong-plan bug into a silent-failure bug.
 
 ## Remaining work
 
-Steps 1–3 are done (see the status note at the top). What is left is **founder
+**Resolved 2026-08-27 (OA11).** Founder configuration is complete — see
+[STRIPE_GO_LIVE.md § Completion record](STRIPE_GO_LIVE.md). The checklist
+below is retained for re-verification. Optional follow-ons: annual prices
+(EF4a), advisor pack secrets, advisor overage meter.
+
+Steps 1–3 are done (see the status note at the top). What was left was **founder
 configuration**, tracked in order in [STRIPE_GO_LIVE.md](STRIPE_GO_LIVE.md).
 Summary:
 

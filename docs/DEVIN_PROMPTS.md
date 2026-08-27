@@ -776,10 +776,10 @@ them.
   confirm the hourly `purge-client-error-data` job exists — the migration
   deliberately does not schedule it, so retention is unbounded until someone
   does. [ERROR_REPORTING.md](ERROR_REPORTING.md).
-- **OA11** — the six Stripe secrets and the webhook subscription. Deferred, not
-  urgent: paid plans are disabled so `create-checkout-session` failing closed is
-  invisible. Becomes blocking the day plans re-enable — DP-6's PR will list
-  exactly what to create. [BILLING_BETA_AUDIT.md](BILLING_BETA_AUDIT.md).
+- **OA11** — ~~the six Stripe secrets and the webhook subscription~~ **Done
+  (2026-08-27).** See [STRIPE_GO_LIVE.md § Completion record](STRIPE_GO_LIVE.md).
+  Optional follow-ons: annual prices (EF4a), advisor pack secrets, overage meter.
+  [BILLING_BETA_AUDIT.md](BILLING_BETA_AUDIT.md).
 
 ### Needs a credential this repo does not hold
 

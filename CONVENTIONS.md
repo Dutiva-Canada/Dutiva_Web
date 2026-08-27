@@ -292,9 +292,10 @@ follow-up work, not done here.
   `public.profiles` (migration `0013_add_billing_profiles.sql`). Pack checkout
   credits `ai_advisor_credits` (migration `0091_advisor_usage_credits.sql`) and
   does **not** change `profiles.plan`. All four respond `503`/"not configured"
-  until `STRIPE_SECRET_KEY` etc. are set as function secrets — see
-  `.env.example`. An admin/internal account short-circuits checkout, packs, and
-  portal with a `bypass: true` response instead of ever calling Stripe.
+  when secrets are missing (OA11 closed 2026-08-27 — secrets are set on the
+  live project; see [STRIPE_GO_LIVE.md](docs/STRIPE_GO_LIVE.md)). An
+  admin/internal account short-circuits checkout, packs, and portal with a
+  `bypass: true` response instead of ever calling Stripe.
 
 ## Icons & assets
 
