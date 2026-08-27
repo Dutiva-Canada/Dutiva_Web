@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { ArrowUp, ClipboardCheck, FileText, Sparkles } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ArrowUp, ChevronRight, ClipboardCheck, FileText, Sparkles } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { advisorScenarios } from '@/features/app/views/advisor/advisorScenarios'
 import type { AdvisorScenario, ScenarioId } from '@/features/app/views/advisor/advisorScenarios'
@@ -7,6 +8,7 @@ import { documentTemplatesByKey } from '@/data/documents'
 import { useI18n } from '@/i18n/context'
 import { LANDING_ADVISOR_SCENARIO_IDS } from '../demos/landingAdvisorScenarios'
 import { useLanding } from '../useLanding'
+import { usePublicPath } from '@/seo/usePublicPath'
 
 type ComplianceLevel = 'low' | 'medium' | 'high'
 
@@ -22,6 +24,7 @@ const RISK_BADGE_CLASS: Record<ComplianceLevel, string> = {
  */
 export function AdvisorDemo() {
   const { lt } = useLanding()
+  const { p } = usePublicPath()
   const { x } = useI18n()
   const [activeId, setActiveId] = useState<ScenarioId>(LANDING_ADVISOR_SCENARIO_IDS[0]!)
   const scenario = advisorScenarios[activeId]
@@ -74,6 +77,16 @@ export function AdvisorDemo() {
       </div>
 
       <ScenarioTranscript scenario={scenario} />
+
+      <div className="border-t border-border bg-bg-elevated px-5 py-3">
+        <Link
+          to={`${p('demoWorkspace')}/advisor`}
+          className="inline-flex items-center gap-1 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+        >
+          {lt('landing_try_demo')}
+          <ChevronRight size={14} aria-hidden="true" />
+        </Link>
+      </div>
     </div>
   )
 }

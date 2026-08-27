@@ -9,6 +9,7 @@ import { AuthMenuButton } from '@/features/app/auth/AuthMenuButton'
 import { ThemeToggle } from './ShellControls'
 import { cx } from './cx'
 import { isNavActive } from './navConfig'
+import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 
 /**
  * Mobile (<768px) chrome — App v2 `showMobileTopbar` bar and the bottom
@@ -98,6 +99,11 @@ export function MobileNav({
 }) {
   const { x } = useI18n()
   const { pathname } = useLocation()
+  const { root } = useWorkspaceRoot()
+  const home = workspacePath(root, 'home')
+  const cases = workspacePath(root, 'cases')
+  const advisor = workspacePath(root, 'advisor')
+  const documents = workspacePath(root, 'documents/studio')
   /* The bottom pad carries the safe-area inset so the tabs clear the home
      indicator once Safari's toolbar auto-hides on scroll. Resolves to the plain
      5px on devices without an inset — and needs viewport-fit=cover in
@@ -108,19 +114,19 @@ export function MobileNav({
       className="relative z-50 flex shrink-0 items-end justify-around border-t border-border bg-surface px-[4px] pb-[calc(5px_+_env(safe-area-inset-bottom))] transition-transform duration-300 ease-out transform-gpu"
     >
       <MobileTab
-        to="/app/home"
+        to={home}
         icon={<House size={21} strokeWidth={1.8} />}
         label={M.shell_tab_home}
-        active={isNavActive('/app/home', pathname)}
+        active={isNavActive(home, pathname)}
       />
       <MobileTab
-        to="/app/cases"
+        to={cases}
         icon={<Briefcase size={21} strokeWidth={1.8} />}
         label={M.shell_nav_cases}
-        active={isNavActive('/app/cases', pathname)}
+        active={isNavActive(cases, pathname)}
       />
       <Link
-        to="/app/advisor"
+        to={advisor}
         state={{ newConversation: true }}
         aria-label={x(M.shell_ask_advisor)}
         className="flex flex-none flex-col items-center gap-[3px] px-[4px]"
@@ -131,10 +137,10 @@ export function MobileNav({
         <span className="text-[10px] font-semibold text-accent">{x(M.shell_tab_ask)}</span>
       </Link>
       <MobileTab
-        to="/app/documents/studio"
+        to={documents}
         icon={<FileStack size={21} strokeWidth={1.8} />}
         label={M.shell_nav_library}
-        active={pathname.startsWith('/app/documents')}
+        active={pathname.startsWith(`${root}/documents`)}
       />
       <button
         type="button"

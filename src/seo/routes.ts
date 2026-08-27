@@ -48,6 +48,7 @@ export type SeoRouteId =
   | 'vsHrdownloads'
   | 'vsSixfifty'
   | 'jurisdictionTool'
+  | 'demoWorkspace'
 
 export interface SeoRoute {
   id: SeoRouteId
@@ -279,6 +280,14 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
     description: t('jur_tool_meta_description'),
     indexable: true,
     updated: '2026-08-26',
+  },
+  {
+    id: 'demoWorkspace',
+    path: { en: '/demo', fr: '/fr/demo' },
+    title: t('landing_demo_seo_title'),
+    description: t('landing_demo_seo_description'),
+    indexable: true,
+    updated: '2026-08-27',
   },
 ] as const
 

@@ -5,6 +5,7 @@ import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { useWorkspaceContext } from '@/features/app/workspaceContext/workspaceContextStore'
 import type { WorkspaceEntityType } from '@/features/app/workspaceContext/workspaceContextStore'
+import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 
 const ENTITY_LABELS: Record<WorkspaceEntityType, Bi> = {
   employee: M.shell_ctx_employee,
@@ -25,6 +26,7 @@ const ENTITY_LABELS: Record<WorkspaceEntityType, Bi> = {
 export function WorkspaceContextBanner() {
   const { x } = useI18n()
   const navigate = useNavigate()
+  const { root } = useWorkspaceRoot()
   const { context, clearContext, removeContextMeta } = useWorkspaceContext()
 
   if (!context) return null
@@ -63,7 +65,7 @@ export function WorkspaceContextBanner() {
         {context.empId !== undefined && (
           <button
             type="button"
-            onClick={() => navigate(`/app/employees/${context.empId}`)}
+            onClick={() => navigate(workspacePath(root, `employees/${context.empId}`))}
             className="hidden cursor-pointer rounded-[7px] border border-gold-border bg-transparent px-[11px] py-[5px] font-sans text-[12px] font-semibold text-gold-fg md:block"
           >
             {x(M.shell_open_record)}

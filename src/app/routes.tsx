@@ -11,7 +11,7 @@ import { ForcedLangProvider } from '@/i18n/ForcedLangProvider'
 import type { Lang } from '@/i18n/core'
 import { langOfPath, seoRoute } from '@/seo/routes'
 import type { SeoRouteId } from '@/seo/routes'
-import { appViewRoutes } from './appViews'
+import { appViewRoutes, demoViewRoutes, frDemoViewRoutes } from './appViews'
 import { RouteErrorPage } from './RouteErrorPage'
 
 /* Route-level code splitting: marketing visitors never download the app
@@ -49,6 +49,7 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const AppWelcome = lazy(() => import('./appSurface').then((m) => ({ default: m.AppWelcome })))
 /* prettier-ignore */ const AppAuthConfirm = lazy(() => import('./appSurface').then((m) => ({ default: m.AppAuthConfirm })))
 /* prettier-ignore */ const Workspace = lazy(() => import('./appSurface').then((m) => ({ default: m.Workspace })))
+/* prettier-ignore */ const PublicDemoWorkspace = lazy(() => import('./appSurface').then((m) => ({ default: m.PublicDemoWorkspace })))
 /* prettier-ignore */ const ExternalSigningView = lazy(() => import('@/features/app/documents/screens/ExternalSigningView').then((m) => ({ default: m.ExternalSigningView })))
 
 /**
@@ -193,6 +194,29 @@ function routeTree(): RouteObject[] {
           </Suspense>
         </ForcedLangProvider>
       ),
+    },
+    {
+      path: '/demo',
+      element: (
+        <Suspense fallback={null}>
+          <PublicDemoWorkspace root="/demo" />
+        </Suspense>
+      ),
+      children: [{ index: true, element: <Navigate to="/demo/home" replace /> }, ...demoViewRoutes],
+    },
+    {
+      path: '/fr/demo',
+      element: (
+        <ForcedLangProvider lang="fr">
+          <Suspense fallback={null}>
+            <PublicDemoWorkspace root="/fr/demo" />
+          </Suspense>
+        </ForcedLangProvider>
+      ),
+      children: [
+        { index: true, element: <Navigate to="/fr/demo/home" replace /> },
+        ...frDemoViewRoutes,
+      ],
     },
     {
       path: '/app',

@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
 import { usePayRail, useWellbeingRail } from '@/features/app/rail/useEntityRails'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import type { AdvisorStartFlowNavState } from '@/features/app/views/advisor/advisorNav'
 import type { HomeAction } from './homeData'
 
@@ -13,7 +13,7 @@ import type { HomeAction } from './homeData'
  * `buildHomeView()`.
  */
 export function useHomeActions(): (action: HomeAction) => void {
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const { openDocStudio } = useDocStudio()
   const openPayRail = usePayRail()
   const openWellbeingRail = useWellbeingRail()

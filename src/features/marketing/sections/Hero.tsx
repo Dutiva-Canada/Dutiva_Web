@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, CircleCheck, ShieldCheck } from 'lucide-react'
+import { ArrowRight, CircleCheck, LayoutGrid, ShieldCheck } from 'lucide-react'
 import { allTemplates } from '@/features/app/documents/catalogue'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
@@ -51,6 +51,13 @@ export function Hero() {
             >
               {lt('landing_cta_seehow')}
             </a>
+            <Link
+              to={`${p('demoWorkspace')}/home`}
+              className="ghost-button ghost-button-lg inline-flex items-center gap-2 px-[22px]"
+            >
+              <LayoutGrid size={16} aria-hidden="true" />
+              {lt('landing_try_demo')}
+            </Link>
           </div>
 
           <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-border bg-bg-elevated px-3.5 py-1.75 text-xs font-medium text-text">

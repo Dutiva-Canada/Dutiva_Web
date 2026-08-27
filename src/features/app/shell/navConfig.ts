@@ -19,6 +19,7 @@ import { bi } from '@/i18n/core'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { cases, employeeDetails, employees } from '@/data'
 import { VIEW_LABELS, isDoclibStudioPath } from './navLabels'
+import { workspaceSegments } from '@/features/app/workspaceRoot/workspaceRootContext'
 
 /**
  * Sidebar navigation model — order, grouping, icons and badges verbatim from
@@ -55,43 +56,41 @@ const WELLBEING_BADGE = String(
   Object.values(employeeDetails).filter((d) => d.sentiment < 55).length,
 )
 
-export const NAV_GROUPS: NavGroup[] = [
+export function getNavGroups(root: string): NavGroup[] {
+  const p = (suffix: string) => `${root}/${suffix}`
+  return [
   {
     heading: null,
     items: [
-      { key: 'home', to: '/app/home', icon: House, label: M.shell_nav_home },
-      { key: 'advisor', to: '/app/advisor', icon: MessageCircle, label: M.shell_nav_advisor_home },
+      { key: 'home', to: p('home'), icon: House, label: M.shell_nav_home },
+      { key: 'advisor', to: p('advisor'), icon: MessageCircle, label: M.shell_nav_advisor_home },
       {
         key: 'workflows',
-        to: '/app/workflows',
+        to: p('workflows'),
         icon: Waypoints,
         label: M.shell_nav_workflows,
       },
-      /* Memory is now a sub-tab inside Settings */
     ],
   },
   {
     heading: M.shell_sec_records,
     items: [
-      { key: 'employees', to: '/app/employees', icon: Users, label: M.shell_nav_people },
+      { key: 'employees', to: p('employees'), icon: Users, label: M.shell_nav_people },
       {
         key: 'cases',
-        to: '/app/cases',
+        to: p('cases'),
         icon: Folder,
         label: M.shell_nav_cases,
         badge: { value: CASES_BADGE, tone: 'neutral' },
       },
-      /* Unified HR Library — HR Library, Document Library, and Document Studio
-         are all tabs inside DocumentsLayout. Landing on hr-library (first tab)
-         is the default; isActive covers every /app/documents/* subroute. */
       {
         key: 'documents',
-        to: '/app/documents/hr-library',
+        to: p('documents/hr-library'),
         icon: FileStack,
         label: M.shell_nav_library,
-        isActive: (pathname) => pathname.startsWith('/app/documents'),
+        isActive: (pathname) => pathname.startsWith(`${root}/documents`),
       },
-      { key: 'knowledge', to: '/app/knowledge', icon: Book, label: M.shell_nav_knowledge },
+      { key: 'knowledge', to: p('knowledge'), icon: Book, label: M.shell_nav_knowledge },
     ],
   },
   {
@@ -99,55 +98,76 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       {
         key: 'compliance',
-        to: '/app/compliance',
+        to: p('compliance'),
         icon: ShieldCheck,
         label: M.shell_nav_compliance,
         badge: { value: COMPLIANCE_BADGE, tone: 'warn' },
       },
       {
         key: 'compensation',
-        to: '/app/compensation',
+        to: p('compensation'),
         icon: DollarSign,
         label: M.shell_nav_compensation,
       },
       {
         key: 'communications',
-        to: '/app/communications',
+        to: p('communications'),
         icon: Send,
         label: M.shell_nav_communications,
       },
       {
         key: 'wellbeing',
-        to: '/app/wellbeing',
+        to: p('wellbeing'),
         icon: Activity,
         label: M.shell_nav_wellbeing,
         badge: { value: WELLBEING_BADGE, tone: 'warn' },
       },
-      /* Tasks and Calendar are now sub-tabs inside Planning */
       {
         key: 'planning',
-        to: '/app/planning/tasks',
+        to: p('planning/tasks'),
         icon: CalendarCheck,
         label: M.shell_nav_planning,
-        isActive: (pathname) => pathname.startsWith('/app/planning'),
+        isActive: (pathname) => pathname.startsWith(`${root}/planning`),
       },
     ],
   },
-  /* Analytics is a top-level item, not a section: it was the only child of
-     the prototype's 'Insights' heading, which shipped default-collapsed and
-     hid the destination — so the heading is gone and the item promoted. */
   {
     heading: null,
     items: [
       {
         key: 'analytics',
-        to: '/app/analytics',
+        to: p('analytics'),
         icon: ChartNoAxesColumn,
         label: M.shell_nav_analytics,
       },
     ],
   },
 ]
+}
+
+export const NAV_GROUPS: NavGroup[] = getNavGroups('/app')
+
+/** Curated sidebar for the indexable public demo — no settings or support admin. */
+export const PUBLIC_DEMO_NAV_KEYS = new Set([
+  'home',
+  'advisor',
+  'workflows',
+  'employees',
+  'cases',
+  'documents',
+  'knowledge',
+  'compliance',
+  'analytics',
+])
+
+export function getPublicDemoNavGroups(root: string): NavGroup[] {
+  return getNavGroups(root)
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => PUBLIC_DEMO_NAV_KEYS.has(item.key)),
+    }))
+    .filter((group) => group.items.length > 0)
+}
 
 /* The pure route vocabulary lives in navLabels.ts and is re-exported here so
    call sites keep one import. ModeGate imports it from there directly, not
@@ -155,22 +175,20 @@ export const NAV_GROUPS: NavGroup[] = [
 export { VIEW_LABELS, isDoclibStudioPath, isNavActive, moduleLabelFor } from './navLabels'
 
 export function viewLabelFor(pathname: string): Bi {
-  const parts = pathname.replace(/^\/app\/?/, '').split('/')
+  const parts = workspaceSegments(pathname)
   const segment = parts[0] ?? ''
-  /* The prototype titles the employee-profile route with the person's name
-     (`viewLabels.profile = profileEmp.name`). */
   if (segment === 'employees' && parts[1]) {
     const emp = employees.find((e) => e.id === parts[1])
     if (emp) return bi(emp.name, emp.name)
   }
   if (segment === 'documents') {
-    if (pathname.startsWith('/app/documents/hr-library')) return M.shell_hr_studio_templates
+    if (pathname.includes('/documents/hr-library')) return M.shell_hr_studio_templates
     return isDoclibStudioPath(pathname) ? M.shell_hr_studio_studio : M.shell_hr_studio_library
   }
   if (segment === 'planning') {
-    return pathname.startsWith('/app/planning/calendar') ? M.shell_nav_calendar : M.shell_nav_tasks
+    return pathname.includes('/planning/calendar') ? M.shell_nav_calendar : M.shell_nav_tasks
   }
-  if (segment === 'settings' && pathname.startsWith('/app/settings/memory')) {
+  if (segment === 'settings' && pathname.includes('/settings/memory')) {
     return M.shell_v_settings
   }
   return VIEW_LABELS[segment] ?? M.shell_v_home
