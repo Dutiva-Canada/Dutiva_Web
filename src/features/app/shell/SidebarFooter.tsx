@@ -10,6 +10,7 @@ import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootCont
 import { SidebarTooltip } from './SidebarTooltip'
 import { navItemActiveClasses } from './SidebarNavItem'
 import { cx } from './cx'
+import { usePrefetchIntent } from './viewPrefetch'
 
 interface SidebarFooterProps {
   readonly expanded: boolean
@@ -39,6 +40,7 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
   }, [])
 
   const settingsActive = pathname.startsWith(`${root}/settings`)
+  const settingsPrefetch = usePrefetchIntent('settings')
   const displayName = identity.user.name.trim() || identity.user.email
 
   if (isPublicDemo) {
@@ -92,6 +94,7 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
         <Link
           to="/app/settings"
           onClick={onNavigate}
+          {...settingsPrefetch}
           aria-current={settingsActive ? 'page' : undefined}
           aria-label={expanded ? undefined : x(M.shell_nav_settings)}
           className={cx(

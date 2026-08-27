@@ -22,7 +22,9 @@
     "auth:email-templates": "node scripts/apply-auth-email-templates.mjs",
     "check:facts": "node scripts/check-canonical-facts.mjs",
     "check:message-scopes": "node scripts/check-message-scopes.mjs",
-    "check": "npm run typecheck && npm run lint && npm run test && npm run check:migrations && npm run check:rls && npm run check:facts && npm run check:message-scopes",
+    "check:brand-assets": "node scripts/check-brand-assets.mjs",
+    "optimize:brand": "node scripts/optimize-brand-assets.mjs",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run check:migrations && npm run check:rls && npm run check:facts && npm run check:message-scopes && npm run check:brand-assets",
     "db:types": "node scripts/generate-db-types.mjs",
     "db:snapshot": "supabase db dump -f supabase/schema.sql"
   },
@@ -58,6 +60,7 @@
     "magic-string": "^0.30.21",
     "oxlint": "^1.71.0",
     "prettier": "^3.9.4",
+    "sharp": "^0.34.5",
     "typescript": "~6.0.2",
     "vite": "^8.1.1",
     "vitest": "^4.1.10"

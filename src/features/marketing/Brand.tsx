@@ -4,6 +4,8 @@
  * reads identically in both themes; the wordmark is text — never redrawn.
  */
 
+import { MarketingRaster } from './MarketingRaster'
+
 type LeafTileVariant = 'header' | 'drawer' | 'footer'
 
 const LEAF_TILE_CLASS: Record<LeafTileVariant, string> = {
@@ -25,7 +27,13 @@ interface LeafTileProps {
 export function LeafTile({ variant }: LeafTileProps) {
   return (
     <span className={LEAF_TILE_CLASS[variant]}>
-      <img src="/brand/dutiva-leaf.png" alt="Dutiva" className={LEAF_IMG_CLASS[variant]} />
+      <MarketingRaster
+        src="/brand/dutiva-leaf.png"
+        alt="Dutiva"
+        className={LEAF_IMG_CLASS[variant]}
+        loading={variant === 'header' ? 'eager' : 'lazy'}
+        fetchPriority={variant === 'header' ? 'high' : undefined}
+      />
     </span>
   )
 }

@@ -1,6 +1,7 @@
 import { Linkedin } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { FOUNDER } from '@/seo/site'
+import { MarketingRaster } from './MarketingRaster'
 
 const PHOTO_PX = { compact: 168, about: 240 } as const
 
@@ -19,7 +20,7 @@ export function FounderIdentity({ size }: { readonly size: 'compact' | 'about' }
         compact ? 'mt-6 flex items-center gap-4' : 'flex w-[240px] flex-col items-start gap-4'
       }
     >
-      <img
+      <MarketingRaster
         src={FOUNDER.photoPath}
         alt={t('about_founder_alt')}
         width={px}

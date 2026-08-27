@@ -10,6 +10,7 @@ import { ThemeToggle } from './ShellControls'
 import { cx } from './cx'
 import { isNavActive } from './navConfig'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
+import { usePrefetchIntent } from './viewPrefetch'
 
 /**
  * Mobile (<768px) chrome — App v2 `showMobileTopbar` bar and the bottom
@@ -67,18 +68,22 @@ function MobileTab({
   icon,
   label,
   active,
+  prefetchKey,
 }: {
   readonly to: string
   readonly icon: ReactNode
   readonly label: Bi
   readonly active: boolean
+  readonly prefetchKey?: string
 }) {
   const { x } = useI18n()
+  const prefetch = usePrefetchIntent(prefetchKey)
   return (
     <Link
       to={to}
       aria-label={x(label)}
       aria-current={active ? 'page' : undefined}
+      {...prefetch}
       className={cx(
         'relative flex flex-1 flex-col items-center gap-[3px] pt-[7px] pb-[6px] text-[10px] font-semibold',
         active ? 'text-accent' : 'text-text-muted',
@@ -104,6 +109,7 @@ export function MobileNav({
   const cases = workspacePath(root, 'cases')
   const advisor = workspacePath(root, 'advisor')
   const documents = workspacePath(root, 'documents/studio')
+  const advisorPrefetch = usePrefetchIntent('advisor')
   /* The bottom pad carries the safe-area inset so the tabs clear the home
      indicator once Safari's toolbar auto-hides on scroll. Resolves to the plain
      5px on devices without an inset — and needs viewport-fit=cover in
@@ -118,17 +124,20 @@ export function MobileNav({
         icon={<House size={21} strokeWidth={1.8} />}
         label={M.shell_tab_home}
         active={isNavActive(home, pathname)}
+        prefetchKey="home"
       />
       <MobileTab
         to={cases}
         icon={<Briefcase size={21} strokeWidth={1.8} />}
         label={M.shell_nav_cases}
         active={isNavActive(cases, pathname)}
+        prefetchKey="cases"
       />
       <Link
         to={advisor}
         state={{ newConversation: true }}
         aria-label={x(M.shell_ask_advisor)}
+        {...advisorPrefetch}
         className="flex flex-none flex-col items-center gap-[3px] px-[4px]"
       >
         <span className="mt-[-16px] flex h-[50px] w-[50px] items-center justify-center rounded-full border-[3px] border-surface bg-navy shadow-[0_6px_18px_-4px_rgba(31,58,95,0.5)]">
@@ -141,6 +150,7 @@ export function MobileNav({
         icon={<FileStack size={21} strokeWidth={1.8} />}
         label={M.shell_nav_library}
         active={pathname.startsWith(`${root}/documents`)}
+        prefetchKey="documents"
       />
       <button
         type="button"
