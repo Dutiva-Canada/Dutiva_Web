@@ -70,26 +70,42 @@ function composeDocument({ htmlLang, headHtml, bodyHtml }) {
   let doc = template
   doc = doc.replace(/<html lang="[^"]*"/, `<html lang="${htmlLang}"`)
   doc = doc.replace(/<title>[\s\S]*?<\/title>\n?/, '')
-  // Remove the generic <meta name="description" … /> tag (and any preceding
-  // whitespace on its line) without a regex — the linter flags any regex
-  // with a variable-length prefix as super-linear-backtracking-prone.
-  const metaStart = doc.indexOf('<meta name="description"')
-  if (metaStart !== -1) {
-    const metaEnd = doc.indexOf('/>', metaStart)
-    if (metaEnd !== -1) {
-      let lineStart = metaStart
-      while (lineStart > 0 && (doc[lineStart - 1] === ' ' || doc[lineStart - 1] === '\t')) {
-        lineStart--
-      }
-      let lineEnd = metaEnd + 2
-      if (doc[lineEnd] === '\n') lineEnd++
-      doc = doc.slice(0, lineStart) + doc.slice(lineEnd)
-    }
-  }
+  doc = removeTemplateMetaDescription(doc)
   const headBlock = [...verificationTags(), headHtml].filter(Boolean).join('\n    ')
   doc = doc.replace('</head>', `  ${headBlock}\n  </head>`)
   doc = doc.replace('<div id="root"></div>', `<div id="root">${bodyHtml}</div>`)
   return doc
+}
+
+/**
+ * Drop the shell template's fallback `<meta name="description">` so the
+ * page-specific head is the only one. Handles both single-line and
+ * pretty-printed tags (`<meta` / `name="description"` on separate lines) —
+ * the prior `indexOf('<meta name="description"')` miss left duplicates live.
+ */
+function removeTemplateMetaDescription(doc) {
+  let searchFrom = 0
+  while (true) {
+    const attrAt = doc.indexOf('name="description"', searchFrom)
+    if (attrAt === -1) return doc
+    const tagStart = doc.lastIndexOf('<meta', attrAt)
+    if (tagStart === -1 || tagStart < searchFrom) {
+      searchFrom = attrAt + 1
+      continue
+    }
+    const between = doc.slice(tagStart + '<meta'.length, attrAt)
+    if (between.includes('>')) {
+      searchFrom = attrAt + 1
+      continue
+    }
+    const tagEnd = doc.indexOf('>', attrAt)
+    if (tagEnd === -1) return doc
+    let from = tagStart
+    while (from > 0 && (doc[from - 1] === ' ' || doc[from - 1] === '\t')) from--
+    let to = tagEnd + 1
+    if (doc[to] === '\n') to++
+    return doc.slice(0, from) + doc.slice(to)
+  }
 }
 
 function outputPathFor(pathname) {

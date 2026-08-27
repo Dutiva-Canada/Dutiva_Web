@@ -93,6 +93,26 @@ const one = (doc, re, what, route) => {
   return matches[0]
 }
 
+/** Meta tags may be pretty-printed across lines; slice each `<meta…>` then test. */
+function metaTagsNamed(head, name) {
+  const out = []
+  let i = 0
+  while (true) {
+    const start = head.indexOf('<meta', i)
+    if (start === -1) break
+    const end = head.indexOf('>', start)
+    if (end === -1) break
+    const tag = head.slice(start, end + 1)
+    if (new RegExp(`\\bname\\s*=\\s*["']${name}["']`, 'i').test(tag)) out.push(tag)
+    i = end + 1
+  }
+  return out
+}
+
+function metaDescriptionContent(tag) {
+  return /content\s*=\s*"([^"]*)"/i.exec(tag)?.[1] ?? /content\s*=\s*'([^']*)'/i.exec(tag)?.[1]
+}
+
 const PLACEHOLDER = /undefined|\[object Object\]|NaN|TODO|Lorem ipsum/
 const seenTitles = new Map()
 const seenCanonicals = new Map()
@@ -112,12 +132,11 @@ for (const { route, file } of pages) {
     seenTitles.set(title, route)
   }
 
-  const description = one(
-    head,
-    /<meta name="description" content="([^"]*)"/g,
-    'meta description',
-    route,
-  )?.[1]
+  const descriptionTags = metaTagsNamed(head, 'description')
+  if (descriptionTags.length !== 1) {
+    fail(`${route}: expected exactly one meta description, found ${descriptionTags.length}`)
+  }
+  const description = descriptionTags.length === 1 ? metaDescriptionContent(descriptionTags[0]) : undefined
   if (description !== undefined && description.trim().length < 40) {
     fail(`${route}: description too short`)
   }
