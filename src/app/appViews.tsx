@@ -7,6 +7,22 @@
 import { lazy } from 'react'
 import { Navigate } from 'react-router-dom'
 import type { RouteObject } from 'react-router-dom'
+import {
+  preloadAdvisorView,
+  preloadAnalyticsView,
+  preloadCasesView,
+  preloadCommunicationsView,
+  preloadComplianceView,
+  preloadCompensationView,
+  preloadDocumentsView,
+  preloadEmployeesView,
+  preloadHomeView,
+  preloadKnowledgeView,
+  preloadPlanningView,
+  preloadSettingsView,
+  preloadWellbeingView,
+  preloadWorkflowsView,
+} from './viewPreloads'
 
 /**
  * Child routes rendered inside the AppShell outlet. Each view is lazy-loaded
@@ -25,23 +41,25 @@ import type { RouteObject } from 'react-router-dom'
  * communications, compensation and wellbeing came off this way
  * (migrations 0039–0041) and now dispatch on mode themselves.
  */
-/* prettier-ignore */ const HomeView = lazy(() => import('@/features/app/views/home/HomeView').then((m) => ({ default: m.HomeView })))
-/* prettier-ignore */ const AdvisorView = lazy(() => import('@/features/app/views/advisor/AdvisorView').then((m) => ({ default: m.AdvisorView })))
-/* prettier-ignore */ const WorkflowsView = lazy(() => import('@/features/app/views/workflows/WorkflowsView').then((m) => ({ default: m.WorkflowsView })))
+/* prettier-ignore */ const HomeView = lazy(preloadHomeView)
+/* prettier-ignore */ const AdvisorView = lazy(preloadAdvisorView)
+/* prettier-ignore */ const WorkflowsView = lazy(preloadWorkflowsView)
 /* prettier-ignore */ const FlowRunner = lazy(() => import('@/features/app/flows/FlowRunner').then((m) => ({ default: m.FlowRunner })))
-/* prettier-ignore */ const CasesView = lazy(() => import('@/features/app/views/cases/CasesView').then((m) => ({ default: m.CasesView })))
+/* prettier-ignore */ const CasesView = lazy(preloadCasesView)
 /* prettier-ignore */ const CaseDetailView = lazy(() => import('@/features/app/views/cases/CaseDetailView').then((m) => ({ default: m.CaseDetailView })))
-/* prettier-ignore */ const EmployeesView = lazy(() => import('@/features/app/views/employees/EmployeesView').then((m) => ({ default: m.EmployeesView })))
+/* prettier-ignore */ const EmployeesView = lazy(preloadEmployeesView)
 /* prettier-ignore */ const EmployeeProfileView = lazy(() => import('@/features/app/views/employees/EmployeeProfileView').then((m) => ({ default: m.EmployeeProfileView })))
-/* prettier-ignore */ const ComplianceView = lazy(() => import('@/features/app/views/compliance/ComplianceView').then((m) => ({ default: m.ComplianceView })))
+/* prettier-ignore */ const ComplianceView = lazy(preloadComplianceView)
 /* prettier-ignore */ const PoliciesView = lazy(() => import('@/features/app/views/policies/PoliciesView').then((m) => ({ default: m.PoliciesView })))
-/* prettier-ignore */ const HrLibraryRoute = lazy(() => import('@/features/app/documents/HrLibraryRoute').then((m) => ({ default: m.HrLibraryRoute })))
-/* prettier-ignore */ const AnalyticsView = lazy(() => import('@/features/app/views/analytics/AnalyticsView').then((m) => ({ default: m.AnalyticsView })))
-/* prettier-ignore */ const KnowledgeView = lazy(() => import('@/features/app/views/knowledge/KnowledgeView').then((m) => ({ default: m.KnowledgeView })))
+/* prettier-ignore */ const HrLibraryRoute = lazy(() =>
+  preloadDocumentsView().then((mods) => ({ default: mods[1].HrLibraryRoute })),
+)
+/* prettier-ignore */ const AnalyticsView = lazy(preloadAnalyticsView)
+/* prettier-ignore */ const KnowledgeView = lazy(preloadKnowledgeView)
 /* prettier-ignore */ const GuideView = lazy(() => import('@/features/app/reference/GuideView').then((m) => ({ default: m.GuideView })))
-/* prettier-ignore */ const CommunicationsView = lazy(() => import('@/features/app/views/communications/CommunicationsView').then((m) => ({ default: m.CommunicationsView })))
-/* prettier-ignore */ const CompensationView = lazy(() => import('@/features/app/views/compensation/CompensationView').then((m) => ({ default: m.CompensationView })))
-/* prettier-ignore */ const WellbeingView = lazy(() => import('@/features/app/views/wellbeing/WellbeingView').then((m) => ({ default: m.WellbeingView })))
+/* prettier-ignore */ const CommunicationsView = lazy(preloadCommunicationsView)
+/* prettier-ignore */ const CompensationView = lazy(preloadCompensationView)
+/* prettier-ignore */ const WellbeingView = lazy(preloadWellbeingView)
 /* prettier-ignore */ const SupportView = lazy(() => import('@/features/app/views/support/SupportView').then((m) => ({ default: m.SupportView })))
 /* prettier-ignore */ const SupportRequestsList = lazy(() => import('@/features/app/views/support/SupportRequestsList').then((m) => ({ default: m.SupportRequestsList })))
 /* prettier-ignore */ const SupportTicketDetail = lazy(() => import('@/features/app/views/support/SupportTicketDetail').then((m) => ({ default: m.SupportTicketDetail })))
@@ -49,12 +67,20 @@ import type { RouteObject } from 'react-router-dom'
 /* prettier-ignore */ const SupportAdminTicket = lazy(() => import('@/features/app/views/support/SupportAdminTicket').then((m) => ({ default: m.SupportAdminTicket })))
 /* prettier-ignore */ const ExportAuditView = lazy(() => import('@/features/app/views/support/ExportAuditView').then((m) => ({ default: m.ExportAuditView })))
 /* Planning section (Tasks + Calendar as sub-tabs) */
-/* prettier-ignore */ const PlanningLayout = lazy(() => import('@/features/app/views/planning/PlanningLayout').then((m) => ({ default: m.PlanningLayout })))
-/* prettier-ignore */ const TasksView = lazy(() => import('@/features/app/views/tasks/TasksView').then((m) => ({ default: m.TasksView })))
+/* prettier-ignore */ const PlanningLayout = lazy(() =>
+  preloadPlanningView().then((mods) => ({ default: mods[0].PlanningLayout })),
+)
+/* prettier-ignore */ const TasksView = lazy(() =>
+  preloadPlanningView().then((mods) => ({ default: mods[1].TasksView })),
+)
 /* prettier-ignore */ const CalendarView = lazy(() => import('@/features/app/views/calendar/CalendarView').then((m) => ({ default: m.CalendarView })))
 /* Settings section (General + Memory as sub-tabs) */
-/* prettier-ignore */ const SettingsLayout = lazy(() => import('@/features/app/views/settings/SettingsLayout').then((m) => ({ default: m.SettingsLayout })))
-/* prettier-ignore */ const SettingsView = lazy(() => import('@/features/app/views/settings/SettingsView').then((m) => ({ default: m.SettingsView })))
+/* prettier-ignore */ const SettingsLayout = lazy(() =>
+  preloadSettingsView().then((mods) => ({ default: mods[0].SettingsLayout })),
+)
+/* prettier-ignore */ const SettingsView = lazy(() =>
+  preloadSettingsView().then((mods) => ({ default: mods[1].SettingsView })),
+)
 /* Advisor Memory (person / case / chat recall / manager) — nested under Settings */
 /* prettier-ignore */ const MemoryLayout = lazy(() => import('@/features/app/views/memory/MemoryLayout').then((m) => ({ default: m.MemoryLayout })))
 /* prettier-ignore */ const MemoryManagerView = lazy(() => import('@/features/app/views/memory/MemoryManagerView').then((m) => ({ default: m.MemoryManagerView })))
@@ -62,7 +88,9 @@ import type { RouteObject } from 'react-router-dom'
 /* prettier-ignore */ const CaseMemoryView = lazy(() => import('@/features/app/views/memory/CaseMemoryView').then((m) => ({ default: m.CaseMemoryView })))
 /* prettier-ignore */ const ChatRecallView = lazy(() => import('@/features/app/views/memory/ChatRecallView').then((m) => ({ default: m.ChatRecallView })))
 /* HR Documents Library (Document Studio + Repository) */
-/* prettier-ignore */ const DocumentsLayout = lazy(() => import('@/features/app/documents/DocumentsLayout').then((m) => ({ default: m.DocumentsLayout })))
+/* prettier-ignore */ const DocumentsLayout = lazy(() =>
+  preloadDocumentsView().then((mods) => ({ default: mods[0].DocumentsLayout })),
+)
 /* prettier-ignore */ const StudioScreen = lazy(() => import('@/features/app/documents/screens/StudioScreen').then((m) => ({ default: m.StudioScreen })))
 /* prettier-ignore */ const TemplateDetailScreen = lazy(() => import('@/features/app/documents/screens/TemplateDetailScreen').then((m) => ({ default: m.TemplateDetailScreen })))
 /* prettier-ignore */ const GenerateScreen = lazy(() => import('@/features/app/documents/screens/GenerateScreen').then((m) => ({ default: m.GenerateScreen })))

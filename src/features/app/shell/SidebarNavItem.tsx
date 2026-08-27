@@ -4,6 +4,7 @@ import type { NavItem } from './navConfig'
 import { cx } from './cx'
 import { SidebarBadge } from './SidebarBadge'
 import { SidebarTooltip } from './SidebarTooltip'
+import { usePrefetchIntent } from './viewPrefetch'
 
 interface SidebarNavItemProps {
   readonly item: NavItem
@@ -21,6 +22,7 @@ export function navItemActiveClasses(active: boolean): string {
 
 export function SidebarNavItem({ item, expanded, active, onClick }: SidebarNavItemProps) {
   const { x } = useI18n()
+  const prefetch = usePrefetchIntent(item.key)
   const Icon = item.icon
   const label = x(item.label)
   const badgeValue = item.badge?.value
@@ -32,6 +34,7 @@ export function SidebarNavItem({ item, expanded, active, onClick }: SidebarNavIt
       <Link
         to={item.to}
         onClick={onClick}
+        {...prefetch}
         aria-label={compactAria}
         aria-current={active ? 'page' : undefined}
         className={cx(

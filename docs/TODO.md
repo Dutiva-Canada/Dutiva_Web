@@ -342,7 +342,9 @@ loop) and built the same day. Verified 2026-08-06 via Supabase MCP:
   `dutiva-calendar@…iam.gserviceaccount.com` service account, both created
   2026-08-07 and now doing nothing. Neither has a key and neither holds any
   role, so they are inert — but an idle service account is still an identity,
-  and deleting the project removes both.
+  and deleting the project removes both. Owner runbook:
+  [oa12-gcp-calendar-cleanup.md](oa12-gcp-calendar-cleanup.md) (requires
+  GCP Console access; `gcloud` not available in dev).
 
 **OA13 — Done.** D1 was decided 2026-08-06 (internal-only, weekly,
 human-reviewed) and built the same day. All three deployment steps verified
