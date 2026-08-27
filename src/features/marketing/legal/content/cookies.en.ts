@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   title: 'Cookie Policy',
-  lastUpdated: 'July 15, 2026',
+  lastUpdated: 'August 26, 2026',
   effectiveDate: 'June 1, 2026',
   callout: [
     'Legal\nCookie Policy',
@@ -36,6 +36,10 @@ export default {
         {
           type: 'li',
           text: 'Security and reliability: Infrastructure providers may use operational cookies, logs, and request metadata to route traffic, prevent abuse, maintain availability, and protect the service.',
+        },
+        {
+          type: 'li',
+          text: 'Public-site security trustmark: the marketing site loads TrustedSite (Halo Security) so visitors can see website security-scan status. That script may set cookies or similar storage on TrustedSite\'s domain. It is not loaded in the signed-in workspace and is not used for advertising.',
         },
         {
           type: 'li',
@@ -116,7 +120,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Our service providers may use cookies, browser storage, or similar technologies for operational purposes, including authentication, payment checkout, fraud prevention, hosting, performance, AI inference support, and network security. These providers may include Supabase, Vercel, Stripe, Cloudflare, DigitalOcean Gradient AI, and Google Analytics if analytics are enabled.',
+          text: 'Our service providers may use cookies, browser storage, or similar technologies for operational purposes, including authentication, payment checkout, fraud prevention, hosting, performance, AI inference support, network security, and the public-site TrustedSite trustmark. These providers may include Supabase, Vercel, Stripe, Cloudflare, DigitalOcean Gradient AI, TrustedSite, and Google Analytics if analytics are enabled.',
         },
         {
           type: 'p',

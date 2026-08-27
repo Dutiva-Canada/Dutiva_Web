@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   title: 'Politique relative aux témoins',
-  lastUpdated: '15 juillet 2026',
+  lastUpdated: '26 août 2026',
   effectiveDate: '1er juin 2026',
   callout: [
     'Légal\nPolitique relative aux témoins',
@@ -36,6 +36,11 @@ export default {
         {
           type: 'li',
           text: 'Sécurité et fiabilité : les fournisseurs d’infrastructure peuvent utiliser des témoins opérationnels, des journaux et des métadonnées de requête pour acheminer le trafic, prévenir les abus, maintenir la disponibilité et protéger le service.',
+        },
+        {
+          type: 'li',
+          // [FR self-authored]
+          text: 'Sceau de sécurité du site public : le site marketing charge TrustedSite (Halo Security) pour que les visiteurs puissent voir l’état du balayage de sécurité du site. Ce script peut déposer des témoins ou un stockage similaire sur le domaine de TrustedSite. Il n’est pas chargé dans l’espace de travail authentifié et n’est pas utilisé à des fins publicitaires.',
         },
         {
           type: 'li',
@@ -117,7 +122,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Nos fournisseurs de services peuvent utiliser des témoins, du stockage dans le navigateur ou des technologies similaires à des fins opérationnelles, notamment pour l’authentification, le paiement, la prévention de la fraude, l’hébergement, la performance, le soutien à l’inférence par IA et la sécurité du réseau. Ces fournisseurs peuvent comprendre Supabase, Vercel, Stripe, Cloudflare, DigitalOcean Gradient AI et Google Analytics si les outils d’analyse sont activés.',
+          text: 'Nos fournisseurs de services peuvent utiliser des témoins, du stockage dans le navigateur ou des technologies similaires à des fins opérationnelles, notamment pour l’authentification, le paiement, la prévention de la fraude, l’hébergement, la performance, le soutien à l’inférence par IA, la sécurité du réseau et le sceau TrustedSite du site public. Ces fournisseurs peuvent comprendre Supabase, Vercel, Stripe, Cloudflare, DigitalOcean Gradient AI, TrustedSite et Google Analytics si les outils d’analyse sont activés.',
         },
         {
           type: 'p',

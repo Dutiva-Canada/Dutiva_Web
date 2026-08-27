@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   title: 'Politique de confidentialité',
-  lastUpdated: '15 juillet 2026',
+  lastUpdated: '26 août 2026',
   effectiveDate: '2 juin 2026',
   callout: [
     'Dutiva Canada Inc. (« Dutiva », « nous », « notre » ou « nos ») fournit un logiciel de conformité RH destiné aux employeurs, aux professionnels des RH et aux responsables d’entreprise au Canada. La présente Politique de confidentialité explique comment nous recueillons, utilisons, communiquons, conservons et protégeons les renseignements personnels lorsque vous utilisez Dutiva, y compris notre site Web, notre application, le Conseiller, les processus documentaires, l’accès bêta, le soutien et les services connexes.',
@@ -138,6 +138,11 @@ export default {
         {
           type: 'li',
           text: 'Google Analytics, s’il est activé : analytique du produit ou du site Web. L’application actuelle ne charge ce service que lorsqu’un identifiant de mesure est configuré et que l’utilisateur a accordé son consentement par l’intermédiaire de la bannière de consentement.',
+        },
+        {
+          type: 'li',
+          // [FR self-authored]
+          text: 'TrustedSite (Halo Security) : sceau de balayage de sécurité du site public. Le site marketing charge leur script pour que les visiteurs puissent voir l’état du balayage. Il peut recevoir l’adresse IP du visiteur et des signaux du navigateur ou de l’appareil. Il n’est pas chargé dans l’espace de travail authentifié et n’est pas utilisé à des fins publicitaires.',
         },
         {
           type: 'li',

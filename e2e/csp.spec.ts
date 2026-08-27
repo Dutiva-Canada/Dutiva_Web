@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
+import { blockTrustedSite } from './block-trustedsite'
 
 /**
  * CSP regression — inline script bootstraps were externalized; these smoke
@@ -26,6 +27,10 @@ function attachCspListeners(page: Page) {
 }
 
 test.describe('content security policy', () => {
+  test.beforeEach(async ({ page }) => {
+    await blockTrustedSite(page)
+  })
+
   test('marketing home loads without CSP violations before analytics consent', async ({ page }) => {
     const { cspViolations, pageErrors } = attachCspListeners(page)
 

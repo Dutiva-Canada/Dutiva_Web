@@ -1,10 +1,14 @@
 import { test, expect } from '@playwright/test'
+import { blockTrustedSite } from './block-trustedsite'
 
 /**
  * index.html forwards Supabase auth redirects that land on the marketing root
  * to /app/auth/confirm — see public/bootstrap-auth.js and docs/AUTH_MAGIC_LINK.md.
  */
 test.describe('magic-link forwarder', () => {
+  test.beforeEach(async ({ page }) => {
+    await blockTrustedSite(page)
+  })
   test('redirects token_hash query params from / to the app confirm route', async ({
     page,
   }) => {

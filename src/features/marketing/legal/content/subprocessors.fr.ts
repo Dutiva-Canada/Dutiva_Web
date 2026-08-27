@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   "title": "Liste des sous-traitants",
-  "lastUpdated": "15 juillet 2026",
+  "lastUpdated": "26 août 2026",
   "effectiveDate": "1 juin 2026",
   "callout": [
     "Dutiva Canada Inc. (« Dutiva ») fait appel à des fournisseurs de services tiers (« sous-traitants ») pour exploiter et améliorer la plateforme. Cette page répertorie les sous-traitants que nous utilisons actuellement, leur rôle, l'emplacement de leurs opérations de traitement des données et les catégories de données auxquelles ils peuvent avoir accès. Cette liste est mise à jour lorsque nous ajoutons ou modifions des sous-traitants."
@@ -76,6 +76,11 @@ export default {
         {
           "type": "p",
           "text": "Pour protéger les formulaires publics (comme l'inscription à la version bêta et les demandes d'assistance) contre le pourriel et les abus automatisés, Dutiva peut faire appel à un fournisseur de CAPTCHA / de protection contre les robots : Cloudflare, Inc. (Cloudflare Turnstile) par défaut, ou Intuition Machines, Inc. (hCaptcha) lorsqu'il est configuré. Lorsqu'elle est activée, cette protection évalue des signaux techniques du navigateur de la personne — dont l'adresse IP et des signaux d'interaction — afin de distinguer les humains des clients automatisés. Elle n'est engagée que sur les formulaires publics de soumission et uniquement lorsque les clés de protection contre les robots sont configurées. Cloudflare peut également fournir des services de DNS, de sécurité réseau et de disponibilité le cas échéant. Lieu de traitement : États-Unis et réseau périphérique mondial."
+        },
+        {
+          "type": "p",
+          // [FR self-authored]
+          "text": "TrustedSite (Halo Security) — Rôle : sceau de balayage de sécurité du site public. Données traitées : adresse IP du visiteur et signaux du navigateur ou de l'appareil lorsque le script du sceau se charge sur les pages marketing. L'espace de travail authentifié ne charge pas ce script. Lieu de traitement : États-Unis."
         }
       ]
     },

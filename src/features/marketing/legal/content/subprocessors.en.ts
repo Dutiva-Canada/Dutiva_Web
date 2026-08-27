@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   "title": "Subprocessor List",
-  "lastUpdated": "July 15, 2026",
+  "lastUpdated": "August 26, 2026",
   "effectiveDate": "June 1, 2026",
   "callout": [
     "Dutiva Canada Inc. (\"Dutiva\") uses third-party service providers (\"subprocessors\") to operate and improve the platform. This page lists the subprocessors we currently use, their purpose, the location of their data processing operations, and the categories of data they may access. This list is updated when we add or change subprocessors."
@@ -76,6 +76,10 @@ export default {
         {
           "type": "p",
           "text": "To protect public forms (such as beta-signup and support requests) from spam and automated abuse, Dutiva may use a CAPTCHA / bot-protection provider: Cloudflare, Inc. (Cloudflare Turnstile) by default, or Intuition Machines, Inc. (hCaptcha) where configured. When enabled, the provider evaluates technical signals from the visitor's browser — including IP address and interaction signals — to distinguish humans from automated clients. This protection is engaged only on public submission forms and only when bot-protection keys are configured. Cloudflare may also provide DNS, network-security, and availability services where used. Processing location: United States and global edge network."
+        },
+        {
+          "type": "p",
+          "text": "TrustedSite (Halo Security) — Purpose: public-website security-scan trustmark. Data processed: visitor IP address and browser or device signals when the trustmark script loads on marketing pages. The signed-in workspace does not load this script. Processing location: United States."
         }
       ]
     },

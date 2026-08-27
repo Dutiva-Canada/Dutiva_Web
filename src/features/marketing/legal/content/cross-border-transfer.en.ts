@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   "title": "Cross-Border Data Transfer Disclosure",
-  "lastUpdated": "July 15, 2026",
+  "lastUpdated": "August 26, 2026",
   "effectiveDate": "June 1, 2026",
   "callout": [
     "Dutiva Canada Inc. operates a platform that relies on third-party cloud infrastructure and services, most of which are based in the United States. This disclosure explains which personal information is transferred outside Canada, why, what safeguards apply, and what rights you have in connection with those transfers."
@@ -30,6 +30,10 @@ export default {
         {
           "type": "li",
           "text": "Error telemetry (coarse error message, route pattern, release identifier, coarse browser and operating-system family; no user, session, or authentication identifiers and no input content): stored by Supabase Inc. (United States) in Dutiva's own error-reporting table. Dutiva does not use a third-party error-tracking service."
+        },
+        {
+          "type": "li",
+          "text": "Public-website security-scan signals (visitor IP address and browser or device signals on marketing pages): processed by TrustedSite / Halo Security (United States) when the trustmark script loads. The signed-in workspace does not load this script."
         }
       ]
     },

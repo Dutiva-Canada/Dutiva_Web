@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   title: 'Privacy Policy',
-  lastUpdated: 'July 15, 2026',
+  lastUpdated: 'August 26, 2026',
   effectiveDate: 'June 2, 2026',
   callout: [
     'Dutiva Canada Inc. ("Dutiva," "we," "us," or "our") provides HR compliance software for Canadian employers, HR professionals, and business operators. This Privacy Policy explains how we collect, use, disclose, retain, and protect personal information when you use Dutiva, including our website, application, Advisor, document workflows, beta access, support, and related services.',
@@ -138,6 +138,10 @@ export default {
         {
           type: 'li',
           text: 'Google Analytics, if enabled: product or website analytics. The current application only loads this service when a measurement ID is configured and the user has granted consent through the consent banner.',
+        },
+        {
+          type: 'li',
+          text: 'TrustedSite (Halo Security): public-website security-scan trustmark. The marketing site loads their script so visitors can see scan status. It may receive the visitor\'s IP address and browser or device signals. It is not loaded in the signed-in workspace and is not used for advertising.',
         },
         {
           type: 'li',

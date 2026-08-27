@@ -31,6 +31,7 @@ The allowed origins:
 - **Google Fonts** — `fonts.googleapis.com` (stylesheet), `fonts.gstatic.com` (fonts).
 - **GA4** — `googletagmanager.com`, `google-analytics.com`, `region1.google-analytics.com` (consent-gated).
 - **CAPTCHA** — Turnstile (`challenges.cloudflare.com` and `*.challenges.cloudflare.com`) and hCaptcha (`js.hcaptcha.com`, `newassets.hcaptcha.com`, `api.hcaptcha.com`).
+- **TrustedSite** — `cdn.ywxi.net` (script, style, images), `www.trustedsite.com` (frame + connect), `s3-us-west-2.amazonaws.com` (connect). Public marketing HTML only; stripped from `app.html`. `style-src` does **not** add `'unsafe-inline'` for this vendor.
 
 `script-src` no longer includes `'unsafe-inline'` (2026-08-23): bootstrap
 scripts moved to `/bootstrap-auth.js` and `/bootstrap-theme.js`. `style-src`
