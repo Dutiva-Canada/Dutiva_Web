@@ -4,7 +4,10 @@ import type { MarketingMessageKey } from '@/i18n/messages'
 import { Seo } from '@/seo/Seo'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
 
-const GROUPS: { titleKey: MarketingMessageKey; items: { q: MarketingMessageKey; a: MarketingMessageKey }[] }[] = [
+const GROUPS: {
+  titleKey: MarketingMessageKey
+  items: { q: MarketingMessageKey; a: MarketingMessageKey }[]
+}[] = [
   {
     titleKey: 'faq_g_title',
     items: [
@@ -37,6 +40,17 @@ const GROUPS: { titleKey: MarketingMessageKey; items: { q: MarketingMessageKey; 
       { q: 'faq_q11', a: 'faq_a11' },
       { q: 'faq_q12', a: 'faq_a12' },
       { q: 'faq_q14', a: 'faq_a14' },
+    ],
+  },
+  {
+    titleKey: 'faq_choose_title',
+    items: [
+      { q: 'landing_faq1_q', a: 'landing_faq1_a' },
+      { q: 'faq_q15', a: 'faq_a15' },
+      { q: 'faq_q16', a: 'faq_a16' },
+      { q: 'landing_faq5_q', a: 'landing_faq5_a' },
+      { q: 'landing_faq4_q', a: 'landing_faq4_a' },
+      { q: 'landing_faq6_q', a: 'landing_faq6_a' },
     ],
   },
 ]

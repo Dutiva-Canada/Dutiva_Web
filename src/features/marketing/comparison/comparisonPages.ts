@@ -60,6 +60,17 @@ const DUTIVA_SELF_SERVE = bi(
   'Choisissez un forfait et payez sur dutiva.ca/tarifs — sans appel commercial.',
 )
 
+const VS_MARKET_FAQ: ComparisonFaqItem = {
+  question: bi(
+    'How does Dutiva compare with larger HR compliance libraries?',
+    'Comment Dutiva se compare-t-il aux plus grandes bibliothèques de conformité RH ?',
+  ),
+  answer: bi(
+    'Dutiva publishes named comparisons with Citation Canada (HRdownloads) and SixFifty — public CAD pricing, bilingual EN/FR, statute-level guidance, and self-serve checkout. Larger vendors may have broader template libraries or a longer market presence; compare those published pages rather than a generic “market leader” label. Dutiva does not provide legal advice.',
+    'Dutiva publie des comparaisons nommées avec Citation Canada (HRdownloads) et SixFifty — tarifs publics en CAD, bilinguisme EN/FR, conseils au niveau de la loi et paiement en libre-service. Les plus grands fournisseurs peuvent avoir des bibliothèques de modèles plus vastes ou une présence plus ancienne sur le marché; comparez ces pages publiées plutôt qu’une étiquette générique de « chef de file ». Dutiva ne fournit pas de conseils juridiques.',
+  ),
+}
+
 const DIMENSION_LABELS = {
   pricing: bi('Pricing transparency', 'Transparence tarifaire'),
   risk: bi('AI risk flagging', 'Signalement des risques par l’IA'),
@@ -68,10 +79,7 @@ const DIMENSION_LABELS = {
   selfServe: bi('Self-serve access', 'Accès en libre-service'),
 } as const
 
-function dimension(
-  id: keyof typeof DIMENSION_LABELS,
-  competitor: Bi,
-): ComparisonDimension {
+function dimension(id: keyof typeof DIMENSION_LABELS, competitor: Bi): ComparisonDimension {
   const dutivaById = {
     pricing: DUTIVA_PRICING,
     risk: DUTIVA_RISK,
@@ -217,6 +225,7 @@ export const COMPARISON_PAGES: Record<ComparisonCompetitorId, ComparisonPageConf
           'Oui — choisissez un forfait sur dutiva.ca/tarifs et payez vous-même. Citation Canada n’offre pas d’essai gratuit; leur site vous oriente vers une démo et une soumission personnalisée.',
         ),
       },
+      VS_MARKET_FAQ,
     ],
   },
   sixfifty: {
@@ -267,6 +276,7 @@ export const COMPARISON_PAGES: Record<ComparisonCompetitorId, ComparisonPageConf
           'Dutiva publie ses tarifs en CAD sur dutiva.ca/tarifs et vous pouvez payer vous-même. La page tarifs de SixFifty indique des prix de départ — suite Employment interne à partir de 75 $/mois facturés annuellement (varie selon l’effectif) et licences conseillers à partir de 5 000 $/an — mais l’achat passe encore par Réserver une démo / soumission personnalisée.',
         ),
       },
+      VS_MARKET_FAQ,
     ],
   },
 }

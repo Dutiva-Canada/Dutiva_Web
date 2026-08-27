@@ -3,7 +3,9 @@ import { COMPARISON_PAGES } from './comparisonPages'
 
 describe('comparisonPages', () => {
   it('names the Citation Canada rebrand on the HRdownloads page', () => {
-    expect(COMPARISON_PAGES.hrdownloads.intro.en).toMatch(/Citation Canada \(formerly HRdownloads\)/)
+    expect(COMPARISON_PAGES.hrdownloads.intro.en).toMatch(
+      /Citation Canada \(formerly HRdownloads\)/,
+    )
     expect(COMPARISON_PAGES.hrdownloads.competitorNote.en).toMatch(/rebranded from HRdownloads/)
   })
 
@@ -25,5 +27,18 @@ describe('comparisonPages', () => {
     expect(pricing?.competitor.en).toMatch(/\$75\/mo/)
     expect(pricing?.competitor.en).toMatch(/\$5,000\/yr/)
     expect(pricing?.competitor.en).toMatch(/Book a demo/)
+  })
+
+  it('answers generic “vs the market” queries without naming an unverified leader', () => {
+    for (const page of Object.values(COMPARISON_PAGES)) {
+      expect(
+        page.faq.some((item) => item.question.en.includes('larger HR compliance libraries')),
+      ).toBe(true)
+      const market = page.faq.find((item) =>
+        item.question.en.includes('larger HR compliance libraries'),
+      )
+      expect(market?.answer.en).toMatch(/generic “market leader”/)
+      expect(market?.answer.en).not.toMatch(/most trusted/i)
+    }
   })
 })

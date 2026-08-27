@@ -9,12 +9,9 @@ import { StaticRouterProvider, createStaticHandler, createStaticRouter } from 'r
 import { routes } from '@/app/routes'
 import type { Lang } from '@/i18n/core'
 import { HTML_LANG } from '@/i18n/lang'
-import { loadPolicyEdition, policyDoc } from '@/features/marketing/legal/policyContent'
-import { latestChangelogDate } from '@/features/marketing/changelog/changelogEntries'
-import { ALL_ARTICLES } from '@/features/marketing/articles'
 import { HeadSinkContext } from '@/seo/Seo'
 import type { HeadSink } from '@/seo/Seo'
-import { parseDisplayDate } from '@/seo/dates'
+import { lastmodFor } from '@/seo/lastmod'
 import { serializeHead } from '@/seo/head'
 import type { HeadData } from '@/seo/head'
 import { allPublicPages, langOfPath } from '@/seo/routes'
@@ -33,6 +30,7 @@ import { ThemeProvider } from '@/lib/theme'
  */
 
 export { serializeHead, HTML_LANG, SITE_ORIGIN, ORG, ORG_DESCRIPTION, FOUNDER }
+export { llmQuestionsMarkdown } from '@/seo/llmQuestions'
 
 export interface RenderedPage {
   html: string
@@ -82,7 +80,7 @@ export interface ManifestEntry {
   alternates: { en: string; fr: string }
   title: string
   description: string
-  /** ISO 8601, only where the content carries a real date (policy docs). */
+  /** ISO 8601, only where the content carries a real authored date. */
   lastmod?: string
 }
 
@@ -108,29 +106,6 @@ export async function buildPrerenderManifest(): Promise<ManifestEntry[]> {
     }
   }
   return entries
-}
-
-/** Pages that carry a real, authored date supply a sitemap lastmod; the rest
-    carry none, because a lastmod that moves on every build teaches crawlers to
-    ignore it. Two sources qualify: policy documents display a "Last updated"
-    date (reused here, parsed to ISO), and editorial articles declare `updated`
-    on the article record. Everything else is undefined by design. */
-async function lastmodFor(key: string, lang: Lang): Promise<string | undefined> {
-  if (key.startsWith('legalDoc:')) {
-    const doc = policyDoc(key.slice('legalDoc:'.length))
-    if (!doc) return undefined
-    const resolved = await loadPolicyEdition(doc, lang)
-    return resolved ? parseDisplayDate(resolved.edition.lastUpdated) : undefined
-  }
-  /* `guideDoc:<slug>` / `blogDoc:<slug>` — minted in allPublicPages(). Both
-     locales share one date: the article is authored bilingually in a single
-     record, so an EN/FR split would be fictional. */
-  const articleMatch = key.match(/^(?:guide|blog)Doc:(.+)$/)
-  if (articleMatch) {
-    return ALL_ARTICLES.find((a) => a.slug === articleMatch[1])?.updated
-  }
-  if (key === 'changelog') return latestChangelogDate()
-  return undefined
 }
 
 export { langOfPath }

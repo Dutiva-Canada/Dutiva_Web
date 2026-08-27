@@ -45,7 +45,8 @@ export function HelpArticlePage() {
 
   const articleSlug = article?.slug ?? null
   useEffect(() => {
-    if (articleSlug) trackEvent({ event_type: 'help_article_view', article_slug: articleSlug, locale: lang })
+    if (articleSlug)
+      trackEvent({ event_type: 'help_article_view', article_slug: articleSlug, locale: lang })
   }, [articleSlug, lang])
 
   const helpIndex = seoRoute('help').path[pathLang]
@@ -76,6 +77,8 @@ export function HelpArticlePage() {
             path: { en: helpDocPath(article, 'en'), fr: helpDocPath(article, 'fr') },
             indexable: true,
           }}
+          datePublished={article.updated}
+          dateModified={article.updated}
           breadcrumb={[
             { name: 'Dutiva', path: lang === 'fr' ? '/fr' : '/' },
             { name: x({ en: 'Help Centre', fr: 'Centre d’aide' }), path: helpIndex },

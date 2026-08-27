@@ -141,27 +141,28 @@ areaServed Canada, `founder` pointing at the Person `@id`), `Person`
 `alumniOf` as published on `/about`, on-origin photo), and `WebSite`, plus
 a page node:
 
-| Page                                                | Node types                                                                                       |
-| --------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| Home                                                | `FAQPage` (four visible buyer-question blocks) + `SoftwareApplication`/`WebApplication`          |
-| Pricing                                             | `WebPage` + `WebApplication` with `Offer`s mirroring the visible CAD plan cards                  |
-| About                                               | `AboutPage`                                                                                      |
-| FAQ                                                 | `FAQPage` with `mainEntity` built from the _same_ GROUPS constant the page renders               |
-| Blog / Guides / Templates / Legal hub / Help Centre | `CollectionPage`                                                                                 |
-| Policy documents                                    | `WebPage` with real `datePublished`/`dateModified` (from the displayed dates) + `BreadcrumbList` |
-| Help Centre articles                                | `WebPage` + `BreadcrumbList` (visible trail)                                                     |
-| Guide / blog articles                               | `WebPage` + `Article` (author = founder, dates from `updated`) + `BreadcrumbList`                |
-| Guides → Template usage                             | `WebPage` + `HowTo` (three visible generation steps) + `BreadcrumbList`                          |
-| Known limitations / Contact / Status                | `WebPage`                                                                                        |
+| Page                                                | Node types                                                                                                                                                                                     |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Home                                                | `FAQPage` (six visible buyer-question blocks) + `SoftwareApplication`/`WebApplication` + `BreadcrumbList` (visible Home crumb) + `Article` nodes for the six guide cards in the Guides section |
+| Pricing                                             | `WebPage` + `WebApplication` with `Offer`s mirroring the visible CAD plan cards                                                                                                                |
+| About                                               | `AboutPage` + visible company facts (corporation number, incorporation date) that feed Organization `foundingDate` / `identifier`                                                              |
+| FAQ                                                 | `FAQPage` with `mainEntity` built from the _same_ GROUPS constant the page renders                                                                                                             |
+| Blog / Guides / Templates / Legal hub / Help Centre | `CollectionPage`                                                                                                                                                                               |
+| Policy documents                                    | `WebPage` with real `datePublished`/`dateModified` (from the displayed dates) + `BreadcrumbList`                                                                                               |
+| Help Centre articles                                | `WebPage` + `BreadcrumbList` (visible trail)                                                                                                                                                   |
+| Guide / blog articles                               | `WebPage` + `Article` (author = founder, dates from `updated`) + `BreadcrumbList`                                                                                                              |
+| Guides → Template usage                             | `WebPage` + `HowTo` (three visible generation steps) + `BreadcrumbList`                                                                                                                        |
+| Known limitations / Contact / Status                | `WebPage`                                                                                                                                                                                      |
 
 Hard rules: only verified, visible facts — no ratings, reviews, awards,
-addresses, founding dates, or invented pricing. Social profiles (`sameAs`)
+addresses, or invented pricing. Founding date and corporation number are
+allowed because they are published on `/about`. Social profiles (`sameAs`)
 only when published on the site: the founder's LinkedIn on Person, and on
 Organization the company LinkedIn
 (`https://www.linkedin.com/company/dutiva-canada`), Facebook
 (`https://www.facebook.com/dutivacanada`), and the Google Maps listing
 (linked from `/about`). Do not add Bing Places, Apple Maps, Wikipedia, or
-Wikidata until those pages exist *and* are linked from the site. Offers exist only on the pricing page
+Wikidata until those pages exist _and_ are linked from the site. Offers exist only on the pricing page
 because prices are visibly rendered there. `validate-seo.mjs` parses every
 block and rejects off-origin URLs (LinkedIn, Facebook, and Google Maps are
 allowlisted for `sameAs`) and
@@ -173,14 +174,19 @@ Indexable pages also emit
 ## Sitemap & llms.txt
 
 - `sitemap.xml`: every indexable URL (both locales) with reciprocal
-  `xhtml:link` alternates; `lastmod` **only** where a real authored date
-  exists — policy documents (parsed from their displayed "Last updated"
-  dates) and editorial articles (the `updated` field on the article record).
-  Never the build date, and never on pages that carry no verified date: a
-  `lastmod` that moves on every build teaches crawlers to ignore it.
-  Both locales of an article share one date, because the article is authored
-  bilingually in a single record and an EN/FR split would be fictional.
-  Deterministic.
+  `xhtml:link` alternates; `lastmod` on every URL from a real authored date
+  — never the build date. A lastmod that moves on every build teaches
+  crawlers to ignore it.
+  Sources, in order: policy documents (parsed from their displayed "Last
+  updated" dates); editorial and Help Centre articles (`updated` on the
+  record); collection indexes (`/guides`, `/blog`, `/help`, `/legal`) using
+  the newest child date; `/changelog` and `/` from the latest changelog date
+  (home also considers guide card dates); remaining static marketing pages
+  from optional `updated` on the SEO route, set to when the page copy last
+  changed. Both locales of an article share one date, because the article is
+  authored bilingually in a single record and an EN/FR split would be
+  fictional. Deterministic. `validate-seo.mjs` fails the build if any
+  sitemap URL is missing `<lastmod>`.
   Element order inside `<url>` is `loc` → `lastmod` → the `xhtml:link`
   alternates: the sitemaps.org 0.9 schema declares the sitemap-namespace
   children as an ordered sequence, so a `lastmod` trailing the extension
@@ -190,6 +196,10 @@ Indexable pages also emit
   limitation, major public pages, and a statement that `/app` is private.
   It is a supplemental navigation aid, not a ranking mechanism, and there is
   no `llms-full.txt` (the public corpus is not large enough to warrant one).
+  A **Common questions** section repeats the visible homepage/FAQ answers for
+  the buyer prompts answer engines keep missing (what Dutiva does, how to
+  choose a provider, before committing, reputation facts, getting started,
+  contacting support).
 
 ## Analytics & verification
 
@@ -207,7 +217,9 @@ needs re-verifying.
 ### Add a public page
 
 1. Add an entry to `SEO_ROUTES` in `src/seo/routes.ts` (both pathnames,
-   bilingual title + description).
+   bilingual title + description). Set `updated` to the ISO date the page
+   copy last changed so the sitemap carries `lastmod` — omit it only when
+   lastmod is derived from child records (see `src/seo/lastmod.ts`).
 2. Add the route element in `publicRoutes()` in `src/app/routes.tsx`.
 3. Render `<Seo route="…" />` once at the top of the page component (plus
    `pageType`, `breadcrumb`, `faq`, or `extraNodes` as appropriate).

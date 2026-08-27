@@ -2,7 +2,7 @@ import { useI18n } from '@/i18n/context'
 import { Seo } from '@/seo/Seo'
 import { usePublicPath } from '@/seo/usePublicPath'
 import { formatArticleMonthYear } from '@/seo/dates'
-import { CHANGELOG_ENTRIES } from '../changelog/changelogEntries'
+import { CHANGELOG_ENTRIES, latestChangelogDate } from '../changelog/changelogEntries'
 import { MarketingPageShell, PageCta, PageHero } from './MarketingPage'
 
 /** /changelog — dated public product updates (changelogEntries data). */
@@ -11,8 +11,12 @@ export function ChangelogPage() {
   const { p } = usePublicPath()
   return (
     <MarketingPageShell>
-      <Seo route="changelog" />
-      <PageHero eyebrow={t('changelog_eyebrow')} title={t('changelog_h1')} intro={t('changelog_intro')} />
+      <Seo route="changelog" dateModified={latestChangelogDate()} />
+      <PageHero
+        eyebrow={t('changelog_eyebrow')}
+        title={t('changelog_h1')}
+        intro={t('changelog_intro')}
+      />
 
       <section className="mx-auto max-w-[760px] px-6 py-2 pb-10">
         <p className="text-sm font-medium text-text-3">{t('changelog_byline')}</p>

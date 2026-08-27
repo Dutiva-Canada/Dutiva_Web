@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, BookOpen } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { Seo } from '@/seo/Seo'
+import { maxIsoDate } from '@/seo/dates'
 import { usePublicPath } from '@/seo/usePublicPath'
 import { GUIDE_ARTICLES, articlePath } from '../articles'
 import { MarketingPageShell, PageAside, PageCta, PageHero, PageSection } from './MarketingPage'
@@ -24,7 +25,11 @@ export function GuidesIndexPage() {
 
   return (
     <MarketingPageShell>
-      <Seo route="guides" pageType="CollectionPage" />
+      <Seo
+        route="guides"
+        pageType="CollectionPage"
+        dateModified={maxIsoDate(GUIDE_ARTICLES.map((guide) => guide.updated))}
+      />
       <PageHero
         eyebrow={t('guidesIdx_eyebrow')}
         title={t('guidesIdx_h1')}

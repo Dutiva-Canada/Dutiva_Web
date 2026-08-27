@@ -34,14 +34,14 @@ person, ordered so the cheapest, highest-certainty items come first.
 These are free, fully within your control, and each produces a citation that
 search engines and answer engines both read. None requires anyone's approval.
 
-| Listing                 | Notes                                                                                      |
-| ----------------------- | ------------------------------------------------------------------------------------------ |
+| Listing                 | Notes                                                                                                                                                                                                                                                                       |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Google Business Profile | Live as [Dutiva Canada on Google Maps](https://www.google.com/maps/place/Dutiva+Canada/@62.6573279,-95.989235,3z/data=!4m6!3m5!1s0x2a5e3459b7326817:0xa17a1965e7a339a8!8m2!3d62.6573279!4d-95.989235!16s%2Fg%2F11z30dv_k7) — wired into Organization `sameAs` and `/about`. |
-| Bing Places             | Claimed. Still needs the **public** Bing Maps / Places URL before it can go in `sameAs`.   |
-| LinkedIn company page   | Live at https://www.linkedin.com/company/dutiva-canada — wired into Organization `sameAs` and `/about`. |
-| Facebook company page   | Live at https://www.facebook.com/dutivacanada — wired into Organization `sameAs` and `/about`. |
-| Crunchbase              | Frequently cited by AI answers when asked what a company is.                               |
-| Apple Business Connect  | Claimed. Still needs the **public** Apple Maps place URL before it can go in `sameAs`.     |
+| Bing Places             | Claimed. Still needs the **public** Bing Maps / Places URL before it can go in `sameAs`.                                                                                                                                                                                    |
+| LinkedIn company page   | Live at https://www.linkedin.com/company/dutiva-canada — wired into Organization `sameAs` and `/about`.                                                                                                                                                                     |
+| Facebook company page   | Live at https://www.facebook.com/dutivacanada — wired into Organization `sameAs` and `/about`.                                                                                                                                                                              |
+| Crunchbase              | Frequently cited by AI answers when asked what a company is.                                                                                                                                                                                                                |
+| Apple Business Connect  | Claimed. Still needs the **public** Apple Maps place URL before it can go in `sameAs`.                                                                                                                                                                                      |
 
 Use the **exact positioning line** from `src/seo/site.ts` (`ORG_DESCRIPTION`)
 so every listing agrees with the site and with the JSON-LD. Consistency across
@@ -211,16 +211,22 @@ Run this once a quarter. Query **ChatGPT**, **Claude**, **Perplexity**, and
 Score each cell: mentioned / recommended / competitor-only / absent, and note
 the category label the engine uses (HR software vs legal services).
 
-| Buying stage | Prompt (EN) | Prompt (FR) |
-| --- | --- | --- |
-| Problem aware | What software helps Canadian employers with HR compliance? | Quel logiciel aide les employeurs canadiens avec la conformité RH ? |
-| Solution aware | Best AI HR compliance tools for Ontario employers | Meilleurs outils IA de conformité RH pour employeurs ontariens |
-| Category | HR compliance software Canada comparison | Comparaison logiciels conformité RH Canada |
-| Consideration | Dutiva vs HRdownloads | Dutiva vs HRdownloads |
-| Decision | Is Dutiva good for Quebec employment standards documentation? | Dutiva convient-il pour la documentation des normes du travail au Québec ? |
+| Buying stage   | Prompt (EN)                                                   | Prompt (FR)                                                                |
+| -------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Problem aware  | What software helps Canadian employers with HR compliance?    | Quel logiciel aide les employeurs canadiens avec la conformité RH ?        |
+| Solution aware | Best AI HR compliance tools for Ontario employers             | Meilleurs outils IA de conformité RH pour employeurs ontariens             |
+| Category       | HR compliance software Canada comparison                      | Comparaison logiciels conformité RH Canada                                 |
+| Consideration  | Dutiva vs HRdownloads                                         | Dutiva vs HRdownloads                                                      |
+| Decision       | Is Dutiva good for Quebec employment standards documentation? | Dutiva convient-il pour la documentation des normes du travail au Québec ? |
 
 Log results in a private sheet (date, engine, prompt, outcome, cited URL,
 competitor named). Do not invent scores in the repo.
+
+On-site, the homepage FAQ, `/faq` “Choosing and getting started” group,
+`/about` company facts, the `/vs/*` “larger libraries” FAQ, and the
+`llms.txt` Common questions section are written to match those buyer
+prompts. Wikipedia, Trustpilot, Reddit, and news citations remain
+outreach — see Tier 3 and Tier 4 above.
 
 ### Citation → session attribution
 

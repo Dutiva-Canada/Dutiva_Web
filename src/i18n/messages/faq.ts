@@ -106,6 +106,23 @@ export const faqMessages = defineMessages({
     en: 'Each Dutiva account is for one organization. HR consultants managing multiple clients should contact us about consultant pricing and multi-account options.',
     fr: 'Chaque compte Dutiva est destiné à une organisation. Les conseillers RH qui gèrent plusieurs clients devraient nous contacter pour les tarifs conseillers et les options multi-comptes.',
   },
+  faq_choose_title: { en: 'Choosing and getting started', fr: 'Choisir et commencer' },
+  faq_q15: {
+    en: 'How do I choose an HR compliance provider in this space?',
+    fr: 'Comment choisir un fournisseur de conformité RH dans ce domaine ?',
+  },
+  faq_a15: {
+    en: 'Look at whether prices are public, whether the product names the statute that applies — Ontario’s Employment Standards Act, 2000, Quebec’s Act respecting labour standards, or the Canada Labour Code, Part III — rather than only the province, whether it ships in English and French, whether it states it is not legal advice, and whether you can start without a sales call. Dutiva publishes those answers on the pricing page, known limitations, and the HRdownloads and SixFifty comparisons.',
+    fr: 'Vérifiez si les tarifs sont publics, si le produit nomme la loi qui s’applique — la Loi de 2000 sur les normes d’emploi de l’Ontario, la Loi sur les normes du travail du Québec, ou le Code canadien du travail, Partie III — plutôt que seulement la province, s’il est offert en français et en anglais, s’il indique qu’il ne s’agit pas d’un avis juridique, et si vous pouvez commencer sans appel commercial. Dutiva publie ces réponses sur la page des tarifs, les limites connues, et les comparaisons HRdownloads et SixFifty.',
+  }, // [FR self-authored]
+  faq_q16: {
+    en: 'What should I know before committing to Dutiva?',
+    fr: 'Que devrais-je savoir avant de m’engager avec Dutiva ?',
+  },
+  faq_a16: {
+    en: `Dutiva currently covers Ontario, Quebec, and federally regulated workplaces. Alberta and British Columbia are not covered yet. It is compliance-oriented software, not legal advice, and Advisor can be wrong — verify citations before you rely on them. Paid plans skip the waitlist; free seats are a waitlist of ${BETA_COHORT_LIMIT}. Read known limitations and the legal documents before you check out.`,
+    fr: `Dutiva couvre actuellement l’Ontario, le Québec et les milieux de travail sous réglementation fédérale. L’Alberta et la Colombie-Britannique ne sont pas encore couvertes. C’est un logiciel axé sur la conformité, pas un avis juridique, et le Conseiller peut se tromper — vérifiez les citations avant de vous y fier. Les forfaits payants sautent la liste d’attente; les places gratuites sont une liste d’attente de ${BETA_COHORT_LIMIT}. Lisez les limites connues et les documents juridiques avant de payer.`,
+  }, // [FR self-authored]
   faq_closing_t: { en: 'Still have questions?', fr: 'D’autres questions ?' },
   faq_closing_p: {
     en: "Email our team and we'll help you get set up.",

@@ -18,6 +18,9 @@ describe('GuidesIndexPage', () => {
         name: 'Guidance for the documents you have to get right.',
       }),
     ).toBeInTheDocument()
+    expect(
+      screen.getByText(/legal counsel should always be your first port of call/),
+    ).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 2, name: 'All guides' })).toBeInTheDocument()
 
     const main = within(screen.getByRole('main'))

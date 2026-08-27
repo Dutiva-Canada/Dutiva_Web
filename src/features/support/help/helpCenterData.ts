@@ -112,6 +112,12 @@ export interface HelpArticle {
   /** `/fr/aide/<frSlug>` — localized French slug; unique across both spaces. */
   frSlug: string
   category: HelpCategoryId
+  /**
+   * ISO date (YYYY-MM-DD) the article's substance last changed. Feeds
+   * sitemap `lastmod`. Bump only on material edits — same rule as editorial
+   * articles.
+   */
+  updated: string
   title: Bi
   /** One-line blurb shown on cards and used in search + the SEO description. */
   summary: Bi
@@ -125,6 +131,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     slug: 'signing-in',
     frSlug: 'se-connecter',
     category: 'getting_started',
+    updated: '2026-08-08',
     title: bi('Signing in with a magic link', 'Se connecter avec un lien magique'),
     summary: bi(
       'Dutiva sends a one-time sign-in link to your email — no password to remember.',
@@ -139,6 +146,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     slug: 'switching-language',
     frSlug: 'changer-de-langue',
     category: 'getting_started',
+    updated: '2026-07-16',
     title: bi('Switching between English and French', 'Passer de l’anglais au français'),
     summary: bi(
       'Dutiva is fully bilingual — switch the interface language at any time.',
@@ -154,6 +162,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     slug: 'generate-a-document',
     frSlug: 'generer-un-document',
     category: 'documents',
+    updated: '2026-07-16',
     title: bi('Generating a document from a template', 'Générer un document à partir d’un modèle'),
     summary: bi(
       'Start from a Canadian HR template, answer a few prompts, and generate a draft.',
@@ -168,6 +177,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     slug: 'how-templates-work',
     frSlug: 'fonctionnement-des-modeles',
     category: 'documents',
+    updated: '2026-07-16',
     title: bi('How Dutiva’s HR templates work', 'Comment fonctionnent les modèles RH de Dutiva'),
     summary: bi(
       'Templates are practical starting points tailored to Canadian jurisdictions — not legal advice.',
@@ -183,6 +193,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     slug: 'using-the-advisor',
     frSlug: 'utiliser-le-conseiller',
     category: 'advisor',
+    updated: '2026-07-16',
     title: bi(
       'Getting useful answers from the AI Advisor',
       'Obtenir des réponses utiles du Conseiller IA',
@@ -200,6 +211,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     slug: 'advisor-limits-and-review',
     frSlug: 'limites-du-conseiller',
     category: 'advisor',
+    updated: '2026-07-16',
     title: bi(
       'Why the Advisor asks you to get human review',
       'Pourquoi le Conseiller vous invite à obtenir une révision humaine',
@@ -218,6 +230,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     slug: 'plans-and-invoices',
     frSlug: 'forfaits-et-factures',
     category: 'account_billing',
+    updated: '2026-07-16',
     title: bi('Managing your plan and invoices', 'Gérer votre forfait et vos factures'),
     summary: bi(
       'View your plan, update payment details, and find invoices from the billing portal.',
@@ -232,6 +245,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     slug: 'recover-account-access',
     frSlug: 'recuperer-l-acces-au-compte',
     category: 'account_billing',
+    updated: '2026-07-16',
     title: bi('Recovering access to your account', 'Récupérer l’accès à votre compte'),
     summary: bi(
       'Locked out? Request a new sign-in link, or contact support if your email has changed.',
@@ -247,6 +261,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     slug: 'how-your-data-is-protected',
     frSlug: 'protection-de-vos-donnees',
     category: 'privacy_security',
+    updated: '2026-07-16',
     title: bi('How your data is protected', 'Comment vos données sont protégées'),
     summary: bi(
       'Data is encrypted in transit and at rest, with database-level access controls.',
@@ -261,6 +276,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     slug: 'making-a-privacy-request',
     frSlug: 'faire-une-demande-de-confidentialite',
     category: 'privacy_security',
+    updated: '2026-07-16',
     title: bi('Making a privacy request', 'Faire une demande de confidentialité'),
     summary: bi(
       'Access, correction, and deletion requests under PIPEDA and Quebec Law 25 go to privacy@dutiva.ca.',
@@ -276,6 +292,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     slug: 'how-support-works',
     frSlug: 'fonctionnement-du-soutien',
     category: 'support_contact',
+    updated: '2026-08-26',
     title: bi('How Dutiva support works', 'Comment fonctionne le soutien Dutiva'),
     summary: bi(
       'Support is digital-first: self-service, then written requests, with calls arranged only when needed.',
@@ -290,6 +307,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     slug: 'writing-a-good-request',
     frSlug: 'rediger-une-bonne-demande',
     category: 'support_contact',
+    updated: '2026-07-16',
     title: bi('What to include in a support request', 'Quoi inclure dans une demande de soutien'),
     summary: bi(
       'A clear subject, what you expected versus what happened, and no unnecessary sensitive data.',

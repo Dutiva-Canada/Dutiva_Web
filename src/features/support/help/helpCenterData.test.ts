@@ -50,6 +50,12 @@ describe('help centre data integrity', () => {
     }
   })
 
+  it('gives every article an ISO updated date', () => {
+    for (const article of HELP_ARTICLES) {
+      expect(article.updated, article.slug).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    }
+  })
+
   it('helpCategory resolves known ids and throws on unknown', () => {
     expect(helpCategory('getting_started').id).toBe('getting_started')
     expect(() => helpCategory('nope' as HelpCategoryId)).toThrow()

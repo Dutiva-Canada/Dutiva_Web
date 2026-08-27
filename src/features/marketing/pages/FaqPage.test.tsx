@@ -16,6 +16,9 @@ describe('FaqPage', () => {
     ).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 2, name: 'Data & security' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 2, name: 'Pricing & billing' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Choosing and getting started' }),
+    ).toBeInTheDocument()
     // The Footer repeats the legal-advice disclaimer — scope content to <main>.
     const main = within(screen.getByRole('main'))
     expect(main.getByText('Is Dutiva a law firm?')).toBeInTheDocument()
@@ -29,9 +32,16 @@ describe('FaqPage', () => {
     expect(main.getByText('Does Dutiva run payroll?')).toBeInTheDocument()
     expect(main.getByText('Can I use one subscription for multiple clients?')).toBeInTheDocument()
     expect(
+      main.getByText('How do I choose an HR compliance provider in this space?'),
+    ).toBeInTheDocument()
+    expect(main.getByText('What should I know before committing to Dutiva?')).toBeInTheDocument()
+    expect(main.getByText('Is Dutiva reputable?')).toBeInTheDocument()
+    expect(main.getByText('How do I get started with Dutiva?')).toBeInTheDocument()
+    expect(main.getByText('How do I contact Dutiva support?')).toBeInTheDocument()
+    expect(
       main.getByText(/Dutiva is HR compliance and documentation software — not a payroll provider/),
     ).toBeInTheDocument()
-    expect(container.querySelectorAll('details')).toHaveLength(14)
+    expect(container.querySelectorAll('details')).toHaveLength(20)
     expect(main.getByRole('link', { name: /Contact support/ })).toHaveAttribute(
       'href',
       'mailto:support@dutiva.ca',

@@ -52,6 +52,9 @@ describe('AboutPage', () => {
     expect(
       within(screen.getByRole('main')).getByRole('link', { name: /Read the changelog/ }),
     ).toHaveAttribute('href', '/changelog')
+    expect(screen.getByRole('heading', { level: 2, name: 'Company facts' })).toBeInTheDocument()
+    expect(screen.getByText(ORG.corporationNumber)).toBeInTheDocument()
+    expect(screen.getByText(ORG.legalName)).toBeInTheDocument()
   })
 
   it('re-localizes to French via the header language toggle', async () => {

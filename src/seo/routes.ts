@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2026 
+ *   Copyright (c) 2026
  *   All rights reserved.
  */
 import type { Bi, Lang } from '@/i18n/core'
@@ -57,6 +57,13 @@ export interface SeoRoute {
   description: Bi
   /** `false` → noindex + excluded from sitemap/llms.txt. */
   indexable: boolean
+  /**
+   * ISO date (YYYY-MM-DD) the page copy last changed. Feeds sitemap `lastmod`
+   * and WebPage `dateModified`. Omit when lastmod is derived from child
+   * records (home, guides, blog, legal, help, changelog) — see `lastmod.ts`.
+   * Bump only when the substance changes, never to today's build date.
+   */
+  updated?: string
 }
 
 /** Bilingual page copy reused from the message catalogue, keeping metadata
@@ -92,6 +99,7 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       fr: 'Dutiva Canada Inc. conçoit un logiciel de conformité RH pour les employeurs canadiens — IA, bilingue, conçu au Canada. Rencontrez le fondateur.',
     },
     indexable: true,
+    updated: '2026-08-26',
   },
   {
     id: 'faq',
@@ -102,6 +110,7 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
     },
     description: t('faq_intro'),
     indexable: true,
+    updated: '2026-08-26',
   },
   {
     id: 'blog',
@@ -122,6 +131,7 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
     },
     description: t('pricing_meta_description'),
     indexable: true,
+    updated: '2026-08-26',
   },
   {
     id: 'templates',
@@ -132,6 +142,7 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
     },
     description: t('tplPreview_meta_description'),
     indexable: true,
+    updated: '2026-08-26',
   },
   {
     id: 'guides',
@@ -152,6 +163,7 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
     },
     description: t('tmplGuide_meta_description'),
     indexable: true,
+    updated: '2026-08-26',
   },
   {
     id: 'knownLimitations',
@@ -162,6 +174,7 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
     },
     description: t('limits_meta_description'),
     indexable: true,
+    updated: '2026-08-05',
   },
   {
     id: 'legal',
@@ -201,6 +214,7 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       fr: 'Envoyez une demande de soutien à Dutiva sans compte — questions produit, confidentialité, sécurité et accessibilité. Nous répondons par écrit.',
     },
     indexable: true,
+    updated: '2026-07-16',
   },
   {
     id: 'status',
@@ -214,6 +228,8 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       fr: 'L’état actuel des services de Dutiva — plateforme, Conseiller IA, documents RH et soutien. Signalé par l’équipe de Dutiva. Bilingue FR/EN.',
     },
     indexable: true,
+    /* Page chrome, not live incident timestamps — those are empty at prerender. */
+    updated: '2026-07-16',
   },
   {
     id: 'changelog',
@@ -237,6 +253,7 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       fr: 'Comparez Dutiva et Citation Canada (HRdownloads) sur tarifs, signalement des risques IA, bilinguisme EN/FR, précision au niveau de la loi et libre-service.',
     },
     indexable: true,
+    updated: '2026-08-26',
   },
   {
     id: 'vsSixfifty',
@@ -250,6 +267,7 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
       fr: 'Comparez Dutiva et SixFifty pour employeurs canadiens — portée américaine vs conseils canadiens au niveau de la loi, tarifs et libre-service.',
     },
     indexable: true,
+    updated: '2026-08-26',
   },
   {
     id: 'jurisdictionTool',
@@ -260,6 +278,7 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
     },
     description: t('jur_tool_meta_description'),
     indexable: true,
+    updated: '2026-08-26',
   },
 ] as const
 

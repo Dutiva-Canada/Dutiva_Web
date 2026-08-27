@@ -35,8 +35,8 @@ const pad = (n: number) => String(n).padStart(2, '0')
 export function parseDisplayDate(value: string | undefined): string | undefined {
   if (!value) return undefined
 
-  // French-Canadian form: "1er juin 2026" / "15 décembre 2025".
-  const fr = /^(\d{1,2})(?:er)?\s+([a-zA-Zà-ÿÀ-Ÿ]+)\s+(\d{4})$/.exec(value.trim())
+  // French-Canadian form: "1er juin 2026" / "15 décembre 2025" / "le 1er juin 2026".
+  const fr = /^(?:le\s+)?(\d{1,2})(?:er)?\s+([a-zA-Zà-ÿÀ-Ÿ]+)\s+(\d{4})$/.exec(value.trim())
   if (fr) {
     const month = FR_MONTHS[fr[2]!.toLowerCase()]
     if (month) return `${fr[3]}-${pad(month)}-${pad(Number(fr[1]))}`
@@ -47,6 +47,16 @@ export function parseDisplayDate(value: string | undefined): string | undefined 
   const parsed = new Date(value)
   if (Number.isNaN(parsed.getTime())) return undefined
   return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}`
+}
+
+/**
+ * Latest YYYY-MM-DD among defined values. ISO dates sort lexicographically,
+ * so string max is calendar max. Undefined when nothing qualifies.
+ */
+export function maxIsoDate(dates: readonly (string | undefined)[]): string | undefined {
+  const defined = dates.filter((d): d is string => Boolean(d))
+  if (defined.length === 0) return undefined
+  return defined.reduce((latest, next) => (next > latest ? next : latest))
 }
 
 /**

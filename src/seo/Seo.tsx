@@ -72,7 +72,10 @@ export function Seo(props: SeoProps) {
   const title = pick(source.title, lang)
   const description = pick(source.description, lang)
   const { path, indexable } = source
-  const { pageType, datePublished, dateModified, breadcrumb, faq, extraNodes } = props
+  const routeUpdated = props.route ? seoRoute(props.route).updated : undefined
+  const datePublished = props.datePublished ?? routeUpdated
+  const dateModified = props.dateModified ?? routeUpdated
+  const { pageType, breadcrumb, faq, extraNodes } = props
 
   const head = useMemo(() => {
     let jsonLd: JsonLdNode[] | undefined

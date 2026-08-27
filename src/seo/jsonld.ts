@@ -11,9 +11,10 @@ import { FOUNDER, ORG, ORG_DESCRIPTION, ORG_SAME_AS, SITE_ORIGIN, absoluteUrl } 
  * describe the same Dutiva entity instead of minting disconnected ones.
  *
  * Rules (docs/SEO_GEO_IMPLEMENTATION.md): only verified, visible facts.
- * No ratings, reviews, awards, addresses, or founding dates. Social
- * profiles only when published on the site (founder LinkedIn on Person;
- * company LinkedIn, Facebook, and Google Maps on Organization).
+ * No ratings, reviews, awards, or addresses. Founding date and corporation
+ * number are published on `/about`. Social profiles only when published on
+ * the site (founder LinkedIn on Person; company LinkedIn, Facebook, and
+ * Google Maps on Organization).
  */
 
 export type JsonLdNode = Record<string, unknown>
@@ -44,6 +45,15 @@ export function organizationNode(lang: Lang): JsonLdNode {
     areaServed: { '@type': 'Country', name: 'Canada' },
     knowsLanguage: ['en-CA', 'fr-CA'],
     founder: { '@id': FOUNDER_ID },
+    foundingDate: ORG.foundingDate,
+    identifier: {
+      '@type': 'PropertyValue',
+      name:
+        lang === 'fr'
+          ? 'Numéro de société (Corporations Canada)'
+          : 'Corporations Canada corporation number',
+      value: ORG.corporationNumber,
+    },
   }
 }
 
