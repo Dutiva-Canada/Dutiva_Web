@@ -18,6 +18,7 @@ import { keyOfL, pickL } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import { advisorWorkspaceMessages as M } from '@/i18n/messages/advisorWorkspace'
 import { AuthSignInForm } from '@/features/app/auth/AuthSignInForm'
+import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { PROVINCE_CHIPS } from './advisorScenarios'
 import { allowedSurfaces } from '@/features/app/advisor/contract'
 import type {
@@ -150,6 +151,10 @@ export function ComplianceWorkspace({
   onCloseMobile,
 }: ComplianceWorkspaceProps) {
   const { x } = useI18n()
+  const { isPublicDemo } = useWorkspaceRoot()
+
+  /* Public demo: banner already explains read-only — skip the 384px sign-in panel. */
+  if (isPublicDemo && state.kind === 'locked') return null
 
   const aside = (
     <>

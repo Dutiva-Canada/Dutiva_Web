@@ -41,6 +41,7 @@ export interface ThreadListProps {
   /** When set, deletable rows show a trash control. */
   readonly onDelete?: (chatId: string) => void
   readonly canDelete?: (chatId: string) => boolean
+  readonly hideNewConversation?: boolean
 }
 
 export function ThreadList({
@@ -50,6 +51,7 @@ export function ThreadList({
   onNewConversation,
   onDelete,
   canDelete,
+  hideNewConversation = false,
 }: ThreadListProps) {
   const { x } = useI18n()
   const [olderOpen, setOlderOpen] = useState(false)
@@ -59,14 +61,16 @@ export function ThreadList({
       aria-label={x(M.advisorview_threads_aria)}
       className="hidden w-[248px] shrink-0 flex-col overflow-y-auto border-r border-border-soft px-[10px] pt-[12px] pb-[12px] md:flex"
     >
-      <button
-        type="button"
-        onClick={onNewConversation}
-        className="mb-[6px] flex w-full cursor-pointer items-center gap-[8px] rounded-[8px] border-none bg-navy px-[12px] py-[9px] text-[13.5px] font-semibold text-white"
-      >
-        <Plus size={15} strokeWidth={2} aria-hidden="true" />
-        <span>{x(M.advisorview_new_conversation)}</span>
-      </button>
+      {!hideNewConversation ? (
+        <button
+          type="button"
+          onClick={onNewConversation}
+          className="mb-[6px] flex w-full cursor-pointer items-center gap-[8px] rounded-[8px] border-none bg-navy px-[12px] py-[9px] text-[13.5px] font-semibold text-white"
+        >
+          <Plus size={15} strokeWidth={2} aria-hidden="true" />
+          <span>{x(M.advisorview_new_conversation)}</span>
+        </button>
+      ) : null}
 
       {groups.map((group) => {
         const isOlder = group.key === 'older'

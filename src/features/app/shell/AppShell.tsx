@@ -113,6 +113,11 @@ export function AppShell() {
 
   const { mode: workspaceMode } = useWorkspaceMode()
   const { isPublicDemo } = useWorkspaceRoot()
+
+  useEffect(() => {
+    if (isPublicDemo) setSidebarExpanded(false)
+  }, [isPublicDemo])
+
   const title = x(
     workspaceMode === 'production' ? moduleLabelFor(pathname) : viewLabelFor(pathname),
   )

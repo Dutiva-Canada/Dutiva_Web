@@ -73,6 +73,7 @@ import {
   scenarioExtras,
   scenarioForResponseState,
   scenarioForThread,
+  scenarioThreadId,
   seedExtras,
   seedId,
   settle,
@@ -393,6 +394,14 @@ export function AdvisorView() {
     engine.reset(stashed ?? seedFor(chatId))
   }
   selectChatRef.current = selectChat
+
+  const publicDemoBooted = useRef(false)
+  useEffect(() => {
+    if (!isPublicDemo || publicDemoBooted.current || activeChatId !== null) return
+    if (!location.pathname.endsWith('/advisor')) return
+    publicDemoBooted.current = true
+    selectChatRef.current(scenarioThreadId('s1'))
+  }, [isPublicDemo, activeChatId, location.pathname])
 
   const newConversation = () => {
     stashActive()
@@ -923,6 +932,7 @@ export function AdvisorView() {
         onNewConversation={newConversation}
         onDelete={deleteConversation}
         canDelete={canDeleteThread}
+        hideNewConversation={isPublicDemo}
       />
       {hasActiveChat ? (
         <>
