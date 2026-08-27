@@ -4,6 +4,8 @@
  */
 import { Suspense, lazy } from 'react'
 import { LangProvider } from '@/i18n/LangProvider'
+import { ForcedLangProvider } from '@/i18n/ForcedLangProvider'
+import type { Lang } from '@/i18n/core'
 import { AppProviders } from '@/features/app/AppProviders'
 import { PublicDemoProvider } from '@/features/app/workspaceRoot/PublicDemoProvider'
 
@@ -74,8 +76,9 @@ export function Workspace() {
 
 /** /demo — public read-only Northgate preview with guided tour rail. */
 export function PublicDemoWorkspace({ root = '/demo' }: { readonly root?: '/demo' | '/fr/demo' }) {
+  const lang: Lang = root === '/fr/demo' ? 'fr' : 'en'
   return (
-    <LangProvider>
+    <ForcedLangProvider lang={lang}>
       <AppProviders>
         <PublicDemoProvider root={root}>
           <Suspense fallback={null}>
@@ -83,6 +86,6 @@ export function PublicDemoWorkspace({ root = '/demo' }: { readonly root?: '/demo
           </Suspense>
         </PublicDemoProvider>
       </AppProviders>
-    </LangProvider>
+    </ForcedLangProvider>
   )
 }
