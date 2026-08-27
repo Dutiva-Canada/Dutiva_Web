@@ -305,6 +305,13 @@ should sell; `STRIPE_ADVISOR_METER_EVENT_NAME` for opt-in Advisor overage;
 `PLAN_FEATURE_GATES_ENABLED` stays `false` until per-plan limits are enforced.
 Prior audit: [BILLING_BETA_AUDIT.md](BILLING_BETA_AUDIT.md).
 
+**Vercel production (`dutiva-website`).** Project `dutiva-canada/dutiva-website`;
+production aliases `dutiva.ca`, `www.dutiva.ca`. Deploys from `main` via Git
+integration. Verified 2026-08-27 after PRs #247–#248: brand WebP assets,
+`/brand/*` immutable cache headers, workspace nav prefetch, OA11 docs. Entry-graph
+budget raised to 585kB raw — Vercel's rolldown output runs ~6kB heavier than
+local for the same commit (`scripts/check-entry-graph.mjs`).
+
 **OA12 — Partially done.** D3 was decided 2026-08-06 (Google Calendar, full
 loop) and built the same day. Verified 2026-08-06 via Supabase MCP:
 
