@@ -9,6 +9,7 @@ import { createBetaSignup, BetaSignupError } from '../betaSignupApi'
 import type { BetaProvince } from '../betaSignupApi'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
+import { BetaSpotCounter } from './BetaSpotCounter'
 
 /** Same validation shape as the prototype's beta-form handler (linear-time). */
 function isValidEmail(value: string): boolean {
@@ -57,6 +58,8 @@ export function BetaSignup() {
      dev/tests and until the operator sets VITE_CAPTCHA_SITE_KEY. */
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [captchaReset, setCaptchaReset] = useState(0)
+  /** Optimistic bump after a successful admitted signup — counter also refetches on mount. */
+  const [extraTaken, setExtraTaken] = useState(0)
   const captchaRequired = isCaptchaConfigured()
 
   const errorKeyForCode = (code: string): LandingMessageKey => {
@@ -96,6 +99,7 @@ export function BetaSignup() {
       if (result.waitlisted) {
         setStatus('waitlisted')
       } else {
+        setExtraTaken((n) => n + 1)
         setStatus('done')
       }
     } catch (error) {
@@ -128,6 +132,7 @@ export function BetaSignup() {
         </div>
 
         <div>
+          <BetaSpotCounter extraTaken={extraTaken} />
           {status === 'done' || status === 'waitlisted' ? (
             <div className="flex items-center gap-3 rounded-[14px] border border-(--gold-border-soft) bg-gold-subtle px-5 py-4.5">
               {status === 'waitlisted' ? (

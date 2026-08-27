@@ -75,7 +75,7 @@ describe('BetaSignup', () => {
       }),
     )
     expect(await screen.findByText("You're on the list.")).toBeInTheDocument()
-    expect(screen.queryByText(/spots currently taken/)).toBeNull()
+    expect(screen.getByText('4 of 15 spots currently taken')).toBeInTheDocument()
   })
 
   it('confirms a waiting-list signup as waiting, not as admitted', async () => {
@@ -95,13 +95,27 @@ describe('BetaSignup', () => {
     expect(screen.queryByText(/beta access/)).toBeNull()
   })
 
-  it('states waitlist capacity next to the form without a public spot counter', () => {
+  it('shows the live spot counter and bumps it after an admitted signup', async () => {
+    const user = userEvent.setup()
+    createBetaSignup.mockReset()
+    createBetaSignup.mockResolvedValue({ waitlisted: false })
+    getBetaCohortStatus.mockResolvedValue({ taken: 3, limit: 15 })
+    render()
+    expect(await screen.findByText('3 of 15 spots currently taken')).toBeInTheDocument()
+
+    await user.type(screen.getByLabelText('Work email'), 'owner@example.ca')
+    await user.click(screen.getByRole('checkbox'))
+    await user.click(screen.getByRole('button', { name: /Join the waitlist/ }))
+
+    expect(await screen.findByText("You're on the list.")).toBeInTheDocument()
+    expect(screen.getByText('4 of 15 spots currently taken')).toBeInTheDocument()
+  })
+
+  it('states waitlist capacity next to the form', () => {
     createBetaSignup.mockReset()
     getBetaCohortStatus.mockResolvedValue({ taken: 3, limit: 15 })
     render()
     expect(screen.getByText(/waitlist has 15 free seats/)).toBeInTheDocument()
-    expect(screen.queryByText(/spots currently taken/)).toBeNull()
-    expect(screen.queryByText(/cohort of 15/)).toBeNull()
   })
 
   it('surfaces the rate-limit message and stays on the form', async () => {

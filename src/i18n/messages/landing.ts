@@ -469,6 +469,38 @@ export const landing = defineMessages({
     en: 'Legal review requested',
     fr: 'Examen juridique demandé',
   },
+  landing_wf_ex2_name: {
+    en: 'Accommodation',
+    fr: 'Accommodement',
+  },
+  landing_wf_ex2_risk: {
+    en: 'Medium risk',
+    fr: 'Risque moyen',
+  },
+  landing_wf_ex2_meta: {
+    en: 'British Columbia · Modified duties · Doctor’s note on file',
+    fr: 'Colombie-Britannique · Tâches modifiées · Billet médical au dossier',
+  },
+  landing_wf_ex2_step: {
+    en: 'Step 2 of 5',
+    fr: 'Étape 2 sur 5',
+  },
+  landing_wf_ex2_next_label: {
+    en: 'Next:',
+    fr: 'Prochaine étape :',
+  },
+  landing_wf_ex2_next: {
+    en: 'Document functional limitations',
+    fr: 'Documenter les limitations fonctionnelles',
+  },
+  landing_try_samples: {
+    en: 'See sample document outputs',
+    fr: 'Voir des exemples de documents',
+  },
+  landing_try_jurisdiction: {
+    en: 'Try the jurisdiction tool',
+    fr: 'Essayer l’outil de compétence',
+  },
   landing_mod_badge: {
     en: 'One workspace',
     fr: 'Un seul espace de travail',
@@ -560,6 +592,10 @@ export const landing = defineMessages({
   landing_studio_demo_note: {
     en: 'Sample output from the Ontario offer-letter template — not a live generation.',
     fr: 'Exemple tiré du modèle de lettre d’offre pour l’Ontario — pas une génération en direct.',
+  },
+  landing_studio_demo_samples_link: {
+    en: 'Browse all sample outputs',
+    fr: 'Parcourir tous les exemples',
   },
   landing_why_badge: {
     en: 'Why Dutiva',
