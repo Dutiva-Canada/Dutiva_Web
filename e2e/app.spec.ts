@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { blockTrustedSite } from './block-trustedsite'
 
 /**
  * The /app surface is a client-rendered SPA shell: dist/app.html ships an empty
@@ -9,6 +10,9 @@ import { test, expect } from '@playwright/test'
  */
 
 test.describe('app surface', () => {
+  test.beforeEach(async ({ page }) => {
+    await blockTrustedSite(page)
+  })
   test('rewrites /app/* to the SPA shell and boots the client app', async ({ page }) => {
     const response = await page.goto('/app/welcome')
 

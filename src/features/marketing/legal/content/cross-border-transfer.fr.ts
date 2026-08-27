@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   "title": "Divulgation sur les transferts de données transfrontaliers",
-  "lastUpdated": "15 juillet 2026",
+  "lastUpdated": "26 août 2026",
   "effectiveDate": "1 juin 2026",
   "callout": [
     "Cette divulgation informe les utilisateurs canadiens des transferts transfrontaliers de données personnelles effectués par Dutiva Canada Inc., conformément à la Loi sur la protection des renseignements personnels et les documents électroniques (LPRPDE/PIPEDA) et à la Loi 25 du Québec."
@@ -26,6 +26,11 @@ export default {
         {
           "type": "li",
           "text": "Stripe : traitement des paiements, localisé aux États-Unis"
+        },
+        {
+          "type": "li",
+          // [FR self-authored]
+          "text": "TrustedSite (Halo Security) : signaux de balayage de sécurité du site public (adresse IP du visiteur et signaux du navigateur ou de l'appareil sur les pages marketing), localisé aux États-Unis. L'espace de travail authentifié ne charge pas ce script."
         }
       ]
     },

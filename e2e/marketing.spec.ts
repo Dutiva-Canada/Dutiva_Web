@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { blockTrustedSite } from './block-trustedsite'
 
 /**
  * Public marketing surface — the prerendered pages every visitor hits first.
@@ -8,6 +9,9 @@ import { test, expect } from '@playwright/test'
  */
 
 test.describe('marketing surface', () => {
+  test.beforeEach(async ({ page }) => {
+    await blockTrustedSite(page)
+  })
   test('home page loads, hydrates, and gates analytics behind the consent banner', async ({
     page,
   }) => {
