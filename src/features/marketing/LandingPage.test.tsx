@@ -29,10 +29,10 @@ describe('LandingPage', () => {
     }
   })
 
-  it('emits a Home breadcrumb and Article nodes for the visible guide cards', () => {
+  it('emits BreadcrumbList JSON-LD and Article nodes for the visible guide cards', () => {
     renderApp(<LandingPage />, { route: '/', path: '/' })
 
-    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toHaveTextContent('Home')
+    expect(screen.queryByRole('navigation', { name: 'Breadcrumb' })).not.toBeInTheDocument()
 
     const script = document.head.querySelector('script[type="application/ld+json"]')
     const graph = (JSON.parse(script!.textContent ?? '') as { '@graph': Record<string, unknown>[] })[
