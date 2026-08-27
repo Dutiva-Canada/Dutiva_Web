@@ -13,8 +13,8 @@ import { FOUNDER, ORG, ORG_DESCRIPTION, ORG_SAME_AS, SITE_ORIGIN, absoluteUrl } 
  * Rules (docs/SEO_GEO_IMPLEMENTATION.md): only verified, visible facts.
  * No ratings, reviews, awards, or addresses. Founding date and corporation
  * number are published on `/about`. Social profiles only when published on
- * the site (founder LinkedIn on Person; company LinkedIn, Facebook, and
- * Google Maps on Organization).
+ * the site (founder LinkedIn on Person; company LinkedIn, Facebook, Reddit,
+ * and Google Maps on Organization).
  */
 
 export type JsonLdNode = Record<string, unknown>

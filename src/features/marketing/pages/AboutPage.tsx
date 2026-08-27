@@ -5,6 +5,7 @@ import {
   Linkedin,
   MapPin,
   MapPinned,
+  MessagesSquare,
   Scale,
   ShieldCheck,
 } from 'lucide-react'
@@ -32,6 +33,7 @@ const COMPANY_PROFILES: {
 }[] = [
   { href: ORG.linkedinUrl, icon: Linkedin, labelKey: 'about_company_linkedin' },
   { href: ORG.facebookUrl, icon: Facebook, labelKey: 'about_company_facebook' },
+  { href: ORG.redditUrl, icon: MessagesSquare, labelKey: 'about_company_reddit' },
   { href: ORG.googleMapsUrl, icon: MapPinned, labelKey: 'about_company_google' },
 ]
 

@@ -216,7 +216,12 @@ describe('JSON-LD builders', () => {
     expect(org.name).toBe('Dutiva')
     expect(org.email).toBe(ORG.supportEmail)
     expect(org.founder).toEqual({ '@id': `${SITE_ORIGIN}/#founder` })
-    expect(org.sameAs).toEqual([ORG.linkedinUrl, ORG.facebookUrl, ORG.googleMapsUrl])
+    expect(org.sameAs).toEqual([
+      ORG.linkedinUrl,
+      ORG.facebookUrl,
+      ORG.redditUrl,
+      ORG.googleMapsUrl,
+    ])
     expect(org.foundingDate).toBe(ORG.foundingDate)
     expect(org.identifier).toEqual({
       '@type': 'PropertyValue',

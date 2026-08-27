@@ -45,6 +45,12 @@ describe('AboutPage', () => {
     expect(facebook).toHaveAttribute('href', ORG.facebookUrl)
     expect(facebook).toHaveAttribute('target', '_blank')
     expect(facebook).toHaveAttribute('rel', 'noopener noreferrer')
+    const reddit = within(screen.getByRole('main')).getByRole('link', {
+      name: 'Dutiva on Reddit',
+    })
+    expect(reddit).toHaveAttribute('href', ORG.redditUrl)
+    expect(reddit).toHaveAttribute('target', '_blank')
+    expect(reddit).toHaveAttribute('rel', 'noopener noreferrer')
     // Header carries its own "See plans" links — scope the CTA check to <main>.
     expect(
       within(screen.getByRole('main')).getByRole('link', { name: /See plans/ }),
@@ -90,5 +96,10 @@ describe('AboutPage', () => {
         name: 'Dutiva sur Facebook',
       }),
     ).toHaveAttribute('href', ORG.facebookUrl)
+    expect(
+      within(screen.getByRole('main')).getByRole('link', {
+        name: 'Dutiva sur Reddit',
+      }),
+    ).toHaveAttribute('href', ORG.redditUrl)
   })
 })

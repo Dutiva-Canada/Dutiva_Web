@@ -29,7 +29,7 @@ const _rawOrigin = process.env.VITE_SITE_ORIGIN || 'https://dutiva.ca'
 const ORIGIN = _rawOrigin.endsWith('/') ? _rawOrigin.slice(0, -1) : _rawOrigin
 
 /** JSON-LD URLs must be on the canonical origin, schema.org, or a profile
- *  that is published on the site (LinkedIn, Facebook, Google Maps). */
+ *  that is published on the site (LinkedIn, Facebook, Reddit, Google Maps). */
 function isAllowedJsonLdUrl(url, origin) {
   if (url.startsWith(origin) || url.startsWith('https://schema.org')) return true
   return (
@@ -37,6 +37,8 @@ function isAllowedJsonLdUrl(url, origin) {
     url.startsWith('https://linkedin.com/') ||
     url.startsWith('https://www.facebook.com/') ||
     url.startsWith('https://facebook.com/') ||
+    url.startsWith('https://www.reddit.com/') ||
+    url.startsWith('https://reddit.com/') ||
     url.startsWith('https://www.google.com/maps') ||
     url.startsWith('https://maps.google.com/')
   )
