@@ -115,17 +115,22 @@ contested than the equivalent in English.
 
 ## Tier 3 — Software review directories
 
-G2, Capterra, GetApp, Software Advice, and TrustRadius rank extremely well for
+G2, Capterra, GetApp, Software Advice, TrustRadius, and Trustpilot rank well for
 comparison and alternatives queries, and answer engines lean on them heavily.
 
-**The honest constraint:** these are review-driven, and paid plans are shown
-but not sold during beta (`PAID_PLANS_DISABLED_DURING_BETA`). A profile with
-no reviews ranks poorly and converts worse. Create the profiles now so they
-are indexed and claimed, then pursue reviews once there are paying customers
-with something real to say. **Never** solicit or write reviews from people who
-have not used the product — fabricated social proof is both a policy violation
-on every one of these platforms and squarely against the "no fabricated
-metrics" rule in CANONICAL_FACTS.
+| Directory  | Status                                                                                                                                                          |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Trustpilot | Live at https://www.trustpilot.com/review/dutiva.ca — wired into `src/config/reviewDirectories.ts` (footer / trust strip / pricing). No rating badge until real reviews. |
+| G2         | Profile submitted / claimed — set `reviewUrl` when the **public** product page is live.                                                                         |
+| Capterra   | Not claimed.                                                                                                                                                    |
+
+**The honest constraint:** these are review-driven. A profile with no reviews
+ranks poorly and converts worse. Keep profiles claimed and indexed, then pursue
+reviews once there are paying customers with something real to say. **Never**
+solicit or write reviews from people who have not used the product —
+fabricated social proof is both a policy violation on every one of these
+platforms and squarely against the "no fabricated metrics" rule in
+CANONICAL_FACTS.
 
 ## Tier 4 — Earned coverage and guest contributions
 
@@ -225,8 +230,9 @@ competitor named). Do not invent scores in the repo.
 On-site, the homepage FAQ, `/faq` “Choosing and getting started” group,
 `/about` company facts, the `/vs/*` “larger libraries” FAQ, and the
 `llms.txt` Common questions section are written to match those buyer
-prompts. Wikipedia, Trustpilot, Reddit, and news citations remain
-outreach — see Tier 3 and Tier 4 above.
+prompts. Wikipedia, Reddit, and news citations remain outreach — see Tier 3
+and Tier 4 above. Trustpilot is claimed; G2 still needs a public product URL
+before the marketing site can link it.
 
 ### Citation → session attribution
 

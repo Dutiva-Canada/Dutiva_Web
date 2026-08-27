@@ -12,7 +12,7 @@ import type { Bi } from '@/i18n/core'
  * the homepage trust strip and pricing page once count >= {@link REVIEW_BADGE_MIN_COUNT}.
  */
 export interface ReviewDirectory {
-  id: 'g2' | 'capterra' | 'productHunt'
+  id: 'trustpilot' | 'g2' | 'capterra' | 'productHunt'
   label: Bi
   /** Public profile or review submission URL — null hides the link. */
   reviewUrl: string | null
@@ -30,6 +30,12 @@ export const REVIEW_BADGE_MIN_COUNT = 5
 export const REVIEW_DISPLAYED_COUNT = 0
 
 export const REVIEW_DIRECTORIES: readonly ReviewDirectory[] = [
+  {
+    id: 'trustpilot',
+    label: bi('Review us on Trustpilot', 'Évaluez-nous sur Trustpilot'),
+    reviewUrl: 'https://www.trustpilot.com/review/dutiva.ca',
+    ratingBadge: null,
+  },
   {
     id: 'g2',
     label: bi('Review us on G2', 'Évaluez-nous sur G2'),
