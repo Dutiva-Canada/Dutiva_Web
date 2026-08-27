@@ -12,6 +12,31 @@ import type { LucideIcon } from 'lucide-react'
 import { SectionIntro } from '../SectionIntro'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
+import { WorkflowExampleCard } from './WorkflowExampleCard'
+import type { WorkflowExampleCardProps } from './WorkflowExampleCard'
+
+const WORKFLOW_EXAMPLES: WorkflowExampleCardProps[] = [
+  {
+    nameKey: 'landing_wf_ex_name',
+    riskKey: 'landing_wf_ex_risk',
+    riskTone: 'high',
+    metaKey: 'landing_wf_ex_meta',
+    stepKey: 'landing_wf_ex_step',
+    nextLabelKey: 'landing_wf_ex_next_label',
+    nextKey: 'landing_wf_ex_next',
+    progressPct: 57,
+  },
+  {
+    nameKey: 'landing_wf_ex2_name',
+    riskKey: 'landing_wf_ex2_risk',
+    riskTone: 'medium',
+    metaKey: 'landing_wf_ex2_meta',
+    stepKey: 'landing_wf_ex2_step',
+    nextLabelKey: 'landing_wf_ex2_next_label',
+    nextKey: 'landing_wf_ex2_next',
+    progressPct: 40,
+  },
+]
 
 interface Tile {
   icon: LucideIcon
@@ -49,28 +74,10 @@ export function Workflows() {
         ))}
       </div>
 
-      {/* Example workflow card */}
-      <div className="mt-4 max-w-[560px] rounded-2xl border border-border bg-bg-elevated px-[22px] py-5">
-        <div className="mb-2.5 flex flex-wrap items-center gap-2.5">
-          <span className="font-semibold text-text">{lt('landing_wf_ex_name')}</span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-risk-border bg-risk-bg px-2.5 py-[3px] text-[0.6875rem] font-bold tracking-wider uppercase text-risk-fg">
-            <span className="h-1.5 w-1.5 rounded-full bg-risk-fg" />
-            {lt('landing_wf_ex_risk')}
-          </span>
-        </div>
-        <div className="mb-3 text-[0.8125rem] text-text-2">{lt('landing_wf_ex_meta')}</div>
-        <div className="flex items-center gap-2.5">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-bg-soft">
-            <div className="h-full w-[57%] rounded-full bg-risk-fg" />
-          </div>
-          <span className="text-xs font-bold whitespace-nowrap text-text-3">
-            {lt('landing_wf_ex_step')}
-          </span>
-        </div>
-        <div className="mt-2.5 text-[0.8125rem] text-text-3">
-          <span className="font-semibold text-text-2">{lt('landing_wf_ex_next_label')}</span>{' '}
-          {lt('landing_wf_ex_next')}
-        </div>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        {WORKFLOW_EXAMPLES.map((example) => (
+          <WorkflowExampleCard key={example.nameKey} {...example} />
+        ))}
       </div>
     </section>
   )

@@ -3,6 +3,7 @@ import type { LucideIcon } from 'lucide-react'
 import { SectionIntro } from '../SectionIntro'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
+import { MarketingTryLinks } from './MarketingTryLinks'
 
 interface Step {
   num: string
@@ -59,6 +60,7 @@ export function HowItWorks() {
         <ShieldCheck size={18} className="mt-0.5 flex-none text-gold-strong" aria-hidden="true" />
         {lt('landing_how_risk_callout')}
       </p>
+      <MarketingTryLinks className="mt-5" />
     </section>
   )
 }

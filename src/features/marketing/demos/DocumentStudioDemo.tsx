@@ -1,6 +1,8 @@
+import { Link } from 'react-router-dom'
 import { CircleCheck } from 'lucide-react'
 import { DocPaper } from '@/features/app/documents/components'
 import { useI18n } from '@/i18n/context'
+import { usePublicPath } from '@/seo/usePublicPath'
 import {
   buildTemplatePreview,
   demoMergeFieldAnswers,
@@ -15,6 +17,7 @@ const WIZARD_QUESTION_IDS = ['employee_name', 'job_title', 'start_date'] as cons
 export function DocumentStudioDemo() {
   const { lt } = useLanding()
   const { x, lang } = useI18n()
+  const { p } = usePublicPath()
   const preview = buildTemplatePreview(STUDIO_DEMO_TID, lang)
   const template = templateByTid(STUDIO_DEMO_TID)
   if (!preview || !template) return null
@@ -68,7 +71,15 @@ export function DocumentStudioDemo() {
         </div>
       </div>
 
-      <p className="mt-3 text-[11px] leading-normal text-text-faint">{lt('landing_studio_demo_note')}</p>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+        <p className="m-0 text-[11px] leading-normal text-text-faint">{lt('landing_studio_demo_note')}</p>
+        <Link
+          to={p('templates')}
+          className="text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+        >
+          {lt('landing_studio_demo_samples_link')}
+        </Link>
+      </div>
     </div>
   )
 }
