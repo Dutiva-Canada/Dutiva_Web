@@ -137,10 +137,13 @@ function cacheFirst(request) {
 }
 
 /* Which shell to fall back to for an uncached offline navigation: the private
-   workspace shell for /app/*, the marketing home for everything else. Both
-   boot the SPA, which then renders the requested route client-side. */
+   workspace shell for /app/* and demo subpaths (/demo/home, …), the marketing
+   home for everything else. Both boot the SPA, which then renders the requested
+   route client-side. */
 function shellFor(pathname) {
-  return pathname.indexOf('/app') === 0 ? '/app.html' : '/'
+  if (pathname.indexOf('/app') === 0) return '/app.html'
+  if (pathname.startsWith('/demo/') || pathname.startsWith('/fr/demo/')) return '/app.html'
+  return '/'
 }
 
 /* Network-first so online visitors and crawlers always get fresh, per-route

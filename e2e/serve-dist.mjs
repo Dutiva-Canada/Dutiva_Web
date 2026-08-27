@@ -6,6 +6,7 @@
  *
  * The routing contract it mirrors:
  *   - /app and /app/*  → app.html          (the client-rendered SPA shell)
+ *   - /demo/* and /fr/demo/* (subpaths)   → app.html ( /demo roots stay prerendered )
  *   - trailingSlash:false clean URLs        (/about → dist/about/index.html)
  *   - real files served directly            (/assets/*, /robots.txt, /sw.js)
  *   - anything unmatched → 404.html with a 404 status
@@ -58,6 +59,11 @@ async function isFile(path) {
 async function resolve(pathname) {
   // /app and /app/* are rewritten to the SPA shell (vercel.json rewrites).
   if (pathname === '/app' || pathname.startsWith('/app/')) {
+    return { file: join(DIST, 'app.html'), status: 200 }
+  }
+
+  // /demo/home, /fr/demo/advisor, … — subpaths only; /demo itself is prerendered.
+  if (pathname.startsWith('/demo/') || pathname.startsWith('/fr/demo/')) {
     return { file: join(DIST, 'app.html'), status: 200 }
   }
 
