@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { screen } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
+import { PublicDemoProvider } from '@/features/app/workspaceRoot/PublicDemoProvider'
 import { advisorScenarios } from './advisorScenarios'
 import { ComplianceWorkspace } from './ComplianceWorkspace'
 import type { AdvisorResponse } from '@/features/app/advisor/contract'
@@ -25,6 +26,16 @@ describe('ComplianceWorkspace', () => {
     expect(screen.getByText('Preview mode')).toBeInTheDocument()
     expect(screen.getByRole('textbox')).toBeInTheDocument()
     expect(screen.queryByText('Risk read')).not.toBeInTheDocument()
+  })
+
+  it('locked on public demo: panel omitted (banner covers read-only)', () => {
+    renderApp(
+      <PublicDemoProvider root="/demo">
+        <ComplianceWorkspace state={{ kind: 'locked' }} mobileOpen={false} onCloseMobile={noop} />
+      </PublicDemoProvider>,
+      { route: '/demo/advisor' },
+    )
+    expect(screen.queryByText('Preview mode')).not.toBeInTheDocument()
   })
 
   it('running: shows the routing skeleton, no payload blocks', () => {

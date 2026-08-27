@@ -4,7 +4,7 @@
  */
 import { Suspense, lazy } from 'react'
 import { LangProvider } from '@/i18n/LangProvider'
-import { ForcedLangProvider } from '@/i18n/ForcedLangProvider'
+import { ForcedWorkspaceLangProvider } from '@/i18n/ForcedWorkspaceLangProvider'
 import type { Lang } from '@/i18n/core'
 import { AppProviders } from '@/features/app/AppProviders'
 import { PublicDemoProvider } from '@/features/app/workspaceRoot/PublicDemoProvider'
@@ -78,7 +78,7 @@ export function Workspace() {
 export function PublicDemoWorkspace({ root = '/demo' }: { readonly root?: '/demo' | '/fr/demo' }) {
   const lang: Lang = root === '/fr/demo' ? 'fr' : 'en'
   return (
-    <ForcedLangProvider lang={lang}>
+    <ForcedWorkspaceLangProvider lang={lang}>
       <PublicDemoProvider root={root}>
         <AppProviders>
           <Suspense fallback={null}>
@@ -86,6 +86,6 @@ export function PublicDemoWorkspace({ root = '/demo' }: { readonly root?: '/demo
           </Suspense>
         </AppProviders>
       </PublicDemoProvider>
-    </ForcedLangProvider>
+    </ForcedWorkspaceLangProvider>
   )
 }

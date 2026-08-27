@@ -10,7 +10,7 @@ export function PublicDemoBanner() {
   if (!isPublicDemo) return null
 
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b border-border bg-bg-soft px-4 py-2 text-xs text-text-2 lg:px-6">
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 border-b border-border bg-bg-soft px-4 py-1.5 text-[11px] leading-snug text-text-2 lg:px-6">
       <Info size={14} className="shrink-0 text-gold-strong" aria-hidden="true" />
       <span>{x(M.demo_banner_text)}</span>
       <Link to="/app/welcome" className="font-semibold text-gold-strong transition-opacity hover:opacity-80">

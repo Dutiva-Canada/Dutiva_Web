@@ -6,7 +6,6 @@ import { templatesMessages as M } from '@/i18n/messages/templates'
 import { documentTemplates } from '@/data'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
 import type { TemplatesSearchNavState } from '@/features/app/search/searchCorpus'
-import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Templates — the Document Studio template gallery (App v2.dc.html markup
@@ -41,17 +40,16 @@ export function TemplatesView() {
   }, [location.pathname, location.state, navigate, openDocFromLibrary])
 
   return (
-    <AppPage width="default">
-      <section aria-label={x(M.templates_gallery_aria)}>
-        <h1 className="sr-only">{x(M.templates_gallery_aria)}</h1>
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-[14px]">
-          {documentTemplates.map((doc) => (
-            <button
-              key={doc.key}
-              type="button"
-              onClick={() => openDocFromLibrary(doc.key)}
-              className="flex cursor-pointer flex-col gap-[16px] rounded-[12px] border border-border bg-surface p-[16px] text-left font-sans"
-            >
+    <section aria-label={x(M.templates_gallery_aria)}>
+      <h1 className="sr-only">{x(M.templates_gallery_aria)}</h1>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-[18px]">
+        {documentTemplates.map((doc) => (
+          <button
+            key={doc.key}
+            type="button"
+            onClick={() => openDocFromLibrary(doc.key)}
+            className="flex cursor-pointer flex-col gap-[14px] rounded-[12px] border border-border bg-surface p-[18px] text-left font-sans transition-[border-color,transform] duration-150 hover:-translate-y-px hover:border-(--accent-soft-border)"
+          >
               <div className="flex h-[32px] w-[32px] items-center justify-center rounded-[8px] bg-inset">
                 <FileText
                   size={15}
@@ -68,8 +66,7 @@ export function TemplatesView() {
               </div>
             </button>
           ))}
-        </div>
-      </section>
-    </AppPage>
+      </div>
+    </section>
   )
 }

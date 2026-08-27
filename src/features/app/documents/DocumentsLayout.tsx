@@ -4,6 +4,7 @@ import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { isDoclibStudioPath } from '@/features/app/shell/navConfig'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { useWorkspaceRoot, workspacePath, workspaceSegments } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { AppPage } from '@/features/app/shell/AppPage'
 import { DoclibProvider } from './DoclibProvider'
 import { useDoclib } from './doclibContext'
@@ -20,12 +21,13 @@ import type { WorkspaceRole } from './data'
 function DocumentsTabs() {
   const { x } = useI18n()
   const { pathname } = useLocation()
+  const { root } = useWorkspaceRoot()
   const { mode } = useWorkspaceMode()
   const production = mode === 'production'
-  const studio =
-    isDoclibStudioPath(pathname) || pathname.startsWith('/app/documents/studio')
-  const hrLibrary = !production && pathname.startsWith('/app/documents/hr-library')
-  const library = !hrLibrary && !studio
+  const segments = workspaceSegments(pathname)
+  const studio = isDoclibStudioPath(pathname)
+  const hrLibrary = !production && segments[0] === 'documents' && segments[1] === 'hr-library'
+  const library = segments[0] === 'documents' && !hrLibrary && !studio
   const linkClass = (active: boolean) =>
     `shrink-0 rounded-none border-b-2 px-[14px] py-[9px] font-sans text-[13px] font-semibold whitespace-nowrap ${
       active ? 'border-navy text-text' : 'border-transparent text-text-muted'
@@ -38,14 +40,14 @@ function DocumentsTabs() {
         className="mb-[16px] flex gap-[2px] overflow-x-auto border-b border-border"
       >
         <Link
-          to="/app/documents/studio"
+          to={workspacePath(root, 'documents/studio')}
           aria-current={studio ? 'page' : undefined}
           className={linkClass(studio)}
         >
           {x(M.shell_hr_studio_studio)}
         </Link>
         <Link
-          to="/app/documents"
+          to={workspacePath(root, 'documents')}
           aria-current={library ? 'page' : undefined}
           className={linkClass(library)}
         >
@@ -61,21 +63,21 @@ function DocumentsTabs() {
       className="mb-[16px] flex gap-[2px] overflow-x-auto border-b border-border"
     >
       <Link
-        to="/app/documents/hr-library"
+        to={workspacePath(root, 'documents/hr-library')}
         aria-current={hrLibrary ? 'page' : undefined}
         className={linkClass(hrLibrary)}
       >
         {x(M.shell_hr_studio_templates)}
       </Link>
       <Link
-        to="/app/documents"
+        to={workspacePath(root, 'documents')}
         aria-current={library ? 'page' : undefined}
         className={linkClass(library)}
       >
         {x(M.shell_hr_studio_library)}
       </Link>
       <Link
-        to="/app/documents/studio"
+        to={workspacePath(root, 'documents/studio')}
         aria-current={studio ? 'page' : undefined}
         className={linkClass(studio)}
       >
