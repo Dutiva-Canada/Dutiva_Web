@@ -5,6 +5,7 @@ import { maxIsoDate } from '@/seo/dates'
 import { GUIDE_ARTICLES, articlePath } from './articles'
 import { latestChangelogDate } from './changelog/changelogEntries'
 import { homeFaqEntries } from './homeFaq'
+import { useScrollToHash } from './useScrollToHash'
 import './landing.css'
 import { Header } from './sections/Header'
 import { Hero } from './sections/Hero'
@@ -31,6 +32,7 @@ import { Footer } from './sections/Footer'
  */
 export function LandingPage() {
   const { lang, x, L } = useI18n()
+  useScrollToHash()
   /* BreadcrumbList JSON-LD for search; the homepage has no trail to draw. */
   const homeTrail = [{ name: L('Home', 'Accueil') }]
   const guideArticles = GUIDE_ARTICLES.map((guide) =>
