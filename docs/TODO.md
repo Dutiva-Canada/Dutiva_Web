@@ -276,13 +276,12 @@ Optional tidy: Bing holds sitemaps for both `dutiva.ca` and `www.dutiva.ca`
 while `vercel.json` 301s www → apex. Harmless — both report Success — but the
 www entry is redundant.
 
-**OA9 — Send the DigitalOcean residency ticket.** _Owner._ The ticket is
-drafted and unsent in
+**OA9 — DigitalOcean residency ticket sent.** Ticket **#12739848** submitted
+2026-08-27 (Agentic Inference Cloud → Inference → Serverless Inference). Awaiting
+written reply — track in
 [do-residency-confirmation-request.md](do-residency-confirmation-request.md).
-Five public legal documents state the Advisor's processing location as Toronto;
-that claim rests on a July 2026 confirmation covering the _previous_ model, and
-the production route moved to `deepseek-3.2` on 2026-07-26. Resolving it unblocks
-the PIPEDA wording in CANONICAL_FACTS §2. (PR #103)
+DO's answer unblocks the PIPEDA wording in CANONICAL_FACTS §2 and any legal-doc
+updates. (PR #103)
 
 **OA10 — Done.** `supabase/schema.sql` committed 2026-08-07 via
 `npx supabase db dump`. 6,469 lines covering 124 tables, 218 RLS policies,
