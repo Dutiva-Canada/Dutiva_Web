@@ -11,6 +11,7 @@ import {
   railViewKeyFromPathname,
 } from '@/features/app/rail/useAskAdvisorBriefing'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { workspaceModeMessages as WM } from '@/i18n/messages/workspaceMode'
 import { AuthMenuButton } from '@/features/app/auth/AuthMenuButton'
 import { LangToggle, ThemeToggle } from './ShellControls'
@@ -79,6 +80,7 @@ export function Topbar({ title }: { readonly title: string }) {
   const askAdvisor = useAskAdvisorBriefing()
   const { pathname } = useLocation()
   const navigate = useNavigate()
+  const { root } = useWorkspaceRoot()
 
   const { mode } = useWorkspaceMode()
   const [demoNotifications, setDemoNotifications] = useState(SAMPLE_NOTIFICATIONS)
@@ -146,7 +148,7 @@ export function Topbar({ title }: { readonly title: string }) {
   }
 
   /* The prototype hides "Ask Advisor" on the Advisor view itself. */
-  const showAskAdvisor = !pathname.startsWith('/app/advisor')
+  const showAskAdvisor = !pathname.startsWith(`${root}/advisor`)
 
   return (
     <div className="flex h-[60px] shrink-0 items-center justify-between border-b border-border bg-bg px-[22px]">

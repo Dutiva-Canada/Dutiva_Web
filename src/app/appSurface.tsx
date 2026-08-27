@@ -5,6 +5,7 @@
 import { Suspense, lazy } from 'react'
 import { LangProvider } from '@/i18n/LangProvider'
 import { AppProviders } from '@/features/app/AppProviders'
+import { PublicDemoProvider } from '@/features/app/workspaceRoot/PublicDemoProvider'
 
 /**
  * Lazily composed /app route elements. The provider stack (Auth → Supabase
@@ -66,6 +67,21 @@ export function Workspace() {
             <AppShell />
           </RequireAdminSession>
         </Suspense>
+      </AppProviders>
+    </LangProvider>
+  )
+}
+
+/** /demo — public read-only Northgate preview with guided tour rail. */
+export function PublicDemoWorkspace({ root = '/demo' }: { readonly root?: '/demo' | '/fr/demo' }) {
+  return (
+    <LangProvider>
+      <AppProviders>
+        <PublicDemoProvider root={root}>
+          <Suspense fallback={null}>
+            <AppShell />
+          </Suspense>
+        </PublicDemoProvider>
       </AppProviders>
     </LangProvider>
   )

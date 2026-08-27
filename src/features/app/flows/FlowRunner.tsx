@@ -26,6 +26,7 @@ import { isFormula, isResult } from './flowModel'
 import type { Flow } from './flowModel'
 import { AppPage } from '@/features/app/shell/AppPage'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { markEmptyWorkspaceWorkflowVisited } from '@/features/app/workspaceMode/emptyWorkspaceOnboarding'
 
 /**
@@ -56,11 +57,12 @@ export function FlowRunner() {
 
 function FlowMissing() {
   const { x } = useI18n()
+  const { root } = useWorkspaceRoot()
   return (
     <AppPage width="narrow">
         <p className="text-[14px] text-text-2">{x(M.flows_not_found)}</p>
         <Link
-          to="/app/workflows"
+          to={workspacePath(root, 'workflows')}
           className="mt-[12px] inline-flex items-center gap-[6px] text-[13px] font-semibold text-accent"
         >
           <ArrowLeft size={14} strokeWidth={2} aria-hidden="true" />
@@ -72,6 +74,7 @@ function FlowMissing() {
 
 function FlowBody({ flow }: { readonly flow: Flow }) {
   const { x } = useI18n()
+  const { root } = useWorkspaceRoot()
   const { mode, organizationId } = useWorkspaceMode()
   const [run, setRun] = useState<FlowRun>(() => startRun(flow))
   const stepHeadingRef = useRef<HTMLHeadingElement>(null)
@@ -98,7 +101,7 @@ function FlowBody({ flow }: { readonly flow: Flow }) {
   return (
     <AppPage width="narrow">
         <Link
-          to="/app/workflows"
+          to={workspacePath(root, 'workflows')}
           className="mb-[14px] inline-flex items-center gap-[6px] text-[12.5px] font-semibold text-text-muted"
         >
           <ArrowLeft size={13} strokeWidth={2} aria-hidden="true" />

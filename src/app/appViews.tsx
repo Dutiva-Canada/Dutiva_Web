@@ -70,77 +70,50 @@ import type { RouteObject } from 'react-router-dom'
 /* prettier-ignore */ const DocumentDetailScreen = lazy(() => import('@/features/app/documents/screens/DocumentDetailScreen').then((m) => ({ default: m.DocumentDetailScreen })))
 /* prettier-ignore */ const SigningScreen = lazy(() => import('@/features/app/documents/screens/SigningScreen').then((m) => ({ default: m.SigningScreen })))
 
-export const appViewRoutes: RouteObject[] = [
+function createAppViewRoutes(root: string): RouteObject[] {
+  const r = (path: string) => `${root}/${path}`
+  return [
   { path: 'home', element: <HomeView /> },
   { path: 'advisor', element: <AdvisorView /> },
-  /* Workflows handles both modes itself: the guided-flow list is real
-     content and shows in production, while the prototype's in-flight rows,
-     termination map and Advisor catalogue are demo-only. */
   { path: 'workflows', element: <WorkflowsView /> },
   { path: 'workflows/:slug', element: <FlowRunner /> },
-  /* Cases list + detail handle both modes themselves (real persistence
-     in production, including the hr_case_notes thread on the detail). */
   { path: 'cases', element: <CasesView /> },
   { path: 'cases/:caseId', element: <CaseDetailView /> },
-  /* Employees list + profile handle both modes themselves (real
-     persistence in production, including the hr_employee_notes thread). */
   { path: 'employees', element: <EmployeesView /> },
   { path: 'employees/:employeeId', element: <EmployeeProfileView /> },
-  /* Compliance handles both modes itself (real persistence in production). */
   { path: 'compliance', element: <ComplianceView /> },
-  /* Policies handles both modes itself (real persistence in production). */
   { path: 'policies', element: <PoliciesView /> },
-  /* /app/templates is now the Templates tab inside HR Studio (DocumentsLayout) */
-  { path: 'templates', element: <Navigate to="/app/documents/hr-library" replace /> },
-  /* Analytics handles both modes itself (live aggregation in production).
-     The destination has one name everywhere now; /app/reports redirects. */
+  { path: 'templates', element: <Navigate to={r('documents/hr-library')} replace /> },
   { path: 'analytics', element: <AnalyticsView /> },
-  { path: 'reports', element: <Navigate to="/app/analytics" replace /> },
+  { path: 'reports', element: <Navigate to={r('analytics')} replace /> },
   { path: 'knowledge', element: <KnowledgeView /> },
-  /* Reference guides are real content — ungated, like the Knowledge index. */
   { path: 'knowledge/:slug', element: <GuideView /> },
-  /* Support hub — real feature (request form → create-support-ticket), ungated. */
   { path: 'support', element: <SupportView /> },
   { path: 'support/requests', element: <SupportRequestsList /> },
   { path: 'support/requests/:ticketId', element: <SupportTicketDetail /> },
-  /* Founder/operator dashboard — admin-gated in the views + the edge function. */
   { path: 'support/admin', element: <SupportAdminView /> },
-  /* Export audit trail — admin-gated in the view + the edge function.
-     Ranked above support/admin/:ticketId by React Router's static-segment
-     precedence, so the static path keeps its dedicated view. */
   { path: 'support/admin/exports', element: <ExportAuditView /> },
   { path: 'support/admin/:ticketId', element: <SupportAdminTicket /> },
-  /* Communications, Compensation and Wellbeing each handle both modes
-     themselves (real persistence in production — migrations 0040, 0039,
-     0041). Their production views are deliberately narrower than the demo:
-     no Advisor review chips, no market salary benchmark, and no per-person
-     wellbeing signals, because the product performs none of those. */
   { path: 'communications', element: <CommunicationsView /> },
   { path: 'compensation', element: <CompensationView /> },
   { path: 'wellbeing', element: <WellbeingView /> },
-  /* /app/tasks and /app/calendar redirect to their Planning sub-routes */
-  { path: 'tasks', element: <Navigate to="/app/planning/tasks" replace /> },
-  { path: 'calendar', element: <Navigate to="/app/planning/calendar" replace /> },
-  /* /app/memory redirects to its new home under Settings */
-  { path: 'memory', element: <Navigate to="/app/settings/memory" replace /> },
-  /* Planning — Tasks and Calendar as sub-tabs */
+  { path: 'tasks', element: <Navigate to={r('planning/tasks')} replace /> },
+  { path: 'calendar', element: <Navigate to={r('planning/calendar')} replace /> },
+  { path: 'memory', element: <Navigate to={r('settings/memory')} replace /> },
   {
     path: 'planning',
     element: <PlanningLayout />,
     children: [
-      { index: true, element: <Navigate to="/app/planning/tasks" replace /> },
+      { index: true, element: <Navigate to={r('planning/tasks')} replace /> },
       { path: 'tasks', element: <TasksView /> },
       { path: 'calendar', element: <CalendarView /> },
     ],
   },
-  /* Settings — General settings and Memory as sub-tabs */
   {
     path: 'settings',
     element: <SettingsLayout />,
     children: [
       { index: true, element: <SettingsView /> },
-      /* Advisor Memory handles both modes itself (hr_advisor_memory_facts +
-         audit, migration 0086). Demo keeps fixtures + memoryStore. */
       {
         path: 'memory',
         element: <MemoryLayout />,
@@ -157,9 +130,7 @@ export const appViewRoutes: RouteObject[] = [
     path: 'documents',
     element: <DocumentsLayout />,
     children: [
-      /* Repository, detail, and signing handle both modes themselves. */
       { index: true, element: <RepositoryScreen /> },
-      /* Templates tab — legacy gallery in demo; production redirects to Studio */
       { path: 'hr-library', element: <HrLibraryRoute /> },
       { path: 'studio', element: <StudioScreen /> },
       { path: 'templates/:tid', element: <TemplateDetailScreen /> },
@@ -169,3 +140,8 @@ export const appViewRoutes: RouteObject[] = [
     ],
   },
 ]
+}
+
+export const appViewRoutes = createAppViewRoutes('/app')
+export const demoViewRoutes = createAppViewRoutes('/demo')
+export const frDemoViewRoutes = createAppViewRoutes('/fr/demo')

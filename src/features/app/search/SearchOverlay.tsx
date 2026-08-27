@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Lock, Search } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { searchMessages as M } from '@/i18n/messages/search'
 import { useEscapeToClose } from '@/lib/escapeStack'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { useSearch } from './searchContext'
 import {
   filterSearchEntries,
@@ -38,7 +38,7 @@ export function SearchOverlay() {
 function SearchDialog() {
   const { x, lang } = useI18n()
   const { closeSearch } = useSearch()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const { mode, organizationId } = useWorkspaceMode()
   const production = mode === 'production'
 

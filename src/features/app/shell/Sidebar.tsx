@@ -7,7 +7,8 @@ import { shellMessages as M } from '@/i18n/messages/shell'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useProductionNavBadges } from '@/features/app/workspaceMode/useProductionNavBadges'
 import type { NavGroup, NavItem } from './navConfig'
-import { NAV_GROUPS, isNavActive } from './navConfig'
+import { getNavGroups, getPublicDemoNavGroups, isNavActive } from './navConfig'
+import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { cx } from './cx'
 import { SidebarCollapseButton } from './SidebarCollapseButton'
 import { SidebarCreateMenu } from './SidebarCreateMenu'
@@ -62,9 +63,9 @@ function writeSectionPrefs(state: Record<SectionKey, boolean>): void {
   }
 }
 
-function activeGroupIndex(pathname: string): number | null {
-  for (let i = 0; i < NAV_GROUPS.length; i += 1) {
-    const group = NAV_GROUPS[i]
+function activeGroupIndex(pathname: string, groups: NavGroup[]): number | null {
+  for (let i = 0; i < groups.length; i += 1) {
+    const group = groups[i]
     if (!group?.heading) continue
     for (const item of group.items) {
       if (item.isActive ? item.isActive(pathname) : isNavActive(item.to, pathname)) {
@@ -109,16 +110,21 @@ export function Sidebar({
 }: SidebarProps) {
   const { x } = useI18n()
   const { pathname } = useLocation()
+  const { root, isPublicDemo, readOnly } = useWorkspaceRoot()
   const { identity, mode: workspaceMode } = useWorkspaceMode()
+  const navGroups = useMemo(
+    () => (isPublicDemo ? getPublicDemoNavGroups(root) : getNavGroups(root)),
+    [isPublicDemo, root],
+  )
   const productionBadges = useProductionNavBadges()
   const workspaceEmpty = useProductionWorkspaceEmpty()
   const expanded = mode === 'expanded' || mode === 'drawer'
-  const onHome = pathname === '/app/home' || pathname.startsWith('/app/home/')
+  const onHome = pathname === `${root}/home` || pathname.startsWith(`${root}/home/`)
 
   const [sections, setSections] = useState<Record<SectionKey, boolean>>(() =>
     readSectionPrefs(false),
   )
-  const activeGroup = useMemo(() => activeGroupIndex(pathname), [pathname])
+  const activeGroup = useMemo(() => activeGroupIndex(pathname, navGroups), [pathname, navGroups])
 
   /* Once we know the workspace is empty and the user has never stored section
      prefs, collapse Programs so the rail fits without a heavy scroll. */
@@ -195,12 +201,12 @@ export function Sidebar({
           onCloseDrawer={onCloseDrawer}
         />
         <div className={cx('flex gap-2', expanded ? 'flex-col' : 'flex-col items-center')}>
-          <SidebarCreateMenu expanded={expanded} onNavigate={onCloseDrawer} />
+          {!readOnly ? <SidebarCreateMenu expanded={expanded} onNavigate={onCloseDrawer} /> : null}
           <SidebarSearch expanded={expanded} />
         </div>
-        {expanded && workspaceEmpty && onHome && (
+        {expanded && workspaceEmpty && onHome && !isPublicDemo && (
           <Link
-            to="/app/home"
+            to={`${root}/home`}
             onClick={onCloseDrawer}
             className="mt-2 flex items-start gap-2 rounded-[9px] border border-border-soft bg-surface px-2.5 py-2 text-left hover:border-(--accent-soft-border)"
           >
@@ -230,8 +236,8 @@ export function Sidebar({
           expanded ? 'rail-scroll' : 'no-scrollbar',
         )}
       >
-        {NAV_GROUPS.map((group, i) => {
-          const isLast = i === NAV_GROUPS.length - 1
+        {navGroups.map((group, i) => {
+          const isLast = i === navGroups.length - 1
           const key = group.heading ? SECTION_KEYS[i - 1] : null
           /* Compact + empty: hide Programs icons so the rail stays scannable;
              expanded still shows the collapsed section heading. */

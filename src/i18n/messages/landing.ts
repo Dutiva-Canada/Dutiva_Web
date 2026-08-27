@@ -501,6 +501,18 @@ export const landing = defineMessages({
     en: 'Try the jurisdiction tool',
     fr: 'Essayer l’outil de compétence',
   },
+  landing_try_demo: {
+    en: 'Try the demo workspace',
+    fr: 'Essayer l’espace démo',
+  },
+  landing_demo_seo_title: {
+    en: 'Try Dutiva — read-only demo workspace | Dutiva',
+    fr: 'Essayer Dutiva — espace démo en lecture seule | Dutiva',
+  },
+  landing_demo_seo_description: {
+    en: 'Explore Advisor, Document Studio, guided workflows, and HR cases with Northgate sample data in a read-only preview — no sign-in required.',
+    fr: 'Parcourez le Conseiller, le Studio de documents, les processus et dossiers RH avec les données types Northgate — aperçu en lecture seule, sans connexion.',
+  },
   landing_mod_badge: {
     en: 'One workspace',
     fr: 'Un seul espace de travail',
@@ -592,6 +604,10 @@ export const landing = defineMessages({
   landing_studio_demo_note: {
     en: 'Sample output from the Ontario offer-letter template — not a live generation.',
     fr: 'Exemple tiré du modèle de lettre d’offre pour l’Ontario — pas une génération en direct.',
+  },
+  landing_studio_demo_open: {
+    en: 'Open Document Studio in the demo',
+    fr: 'Ouvrir le Studio de documents dans la démo',
   },
   landing_studio_demo_samples_link: {
     en: 'Browse all sample outputs',

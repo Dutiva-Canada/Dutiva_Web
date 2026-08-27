@@ -74,8 +74,14 @@ export function DocumentStudioDemo() {
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
         <p className="m-0 text-[11px] leading-normal text-text-faint">{lt('landing_studio_demo_note')}</p>
         <Link
-          to={p('templates')}
+          to={`${p('demoWorkspace')}/documents/studio`}
           className="text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+        >
+          {lt('landing_studio_demo_open')}
+        </Link>
+        <Link
+          to={p('templates')}
+          className="text-sm font-semibold text-text-2 transition-opacity hover:text-gold-strong hover:opacity-80"
         >
           {lt('landing_studio_demo_samples_link')}
         </Link>

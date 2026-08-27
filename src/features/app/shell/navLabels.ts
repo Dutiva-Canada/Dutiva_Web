@@ -1,6 +1,11 @@
 import type { Bi } from '@/i18n/core'
 import { shellMessages as M } from '@/i18n/messages/shell'
 
+/** Strip `/app`, `/demo`, or `/fr/demo` prefix for segment parsing. */
+function workspaceSegments(pathname: string): string[] {
+  return pathname.replace(/^\/(?:app|demo|fr\/demo)\/?/, '').split('/').filter(Boolean)
+}
+
 /**
  * The route vocabulary of the workspace: which `/app/<segment>` maps to which
  * heading, and the two path predicates that go with it. Pure — a route string
@@ -47,7 +52,7 @@ export function isNavActive(to: string, pathname: string): boolean {
 const DOCLIB_STUDIO_SUBPATHS = new Set(['studio', 'templates', 'generate'])
 
 export function isDoclibStudioPath(pathname: string): boolean {
-  const parts = pathname.replace(/^\/app\/?/, '').split('/')
+  const parts = workspaceSegments(pathname)
   return parts[0] === 'documents' && DOCLIB_STUDIO_SUBPATHS.has(parts[1] ?? '')
 }
 
@@ -57,7 +62,7 @@ export function isDoclibStudioPath(pathname: string): boolean {
  * surfacing a fixture person's name would itself be a demo-data leak.
  */
 export function moduleLabelFor(pathname: string): Bi {
-  const segment = pathname.replace(/^\/app\/?/, '').split('/')[0] ?? ''
+  const segment = workspaceSegments(pathname)[0] ?? ''
   if (segment === 'documents') return M.shell_nav_library
   if (segment === 'planning') return M.shell_nav_planning
   return VIEW_LABELS[segment] ?? M.shell_v_home

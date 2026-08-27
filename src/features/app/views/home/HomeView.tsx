@@ -1,4 +1,4 @@
-﻿import { useNavigate } from 'react-router-dom'
+﻿import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { useI18n } from '@/i18n/context'
 import { Disclaimer } from '@/components/Disclaimer'
 import { homeMessages as M } from '@/i18n/messages/home'
@@ -28,7 +28,7 @@ import { AppPage } from '@/features/app/shell/AppPage'
  */
 export function HomeView() {
   const { x } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const runAction = useHomeActions()
   const { mode } = useWorkspaceMode()
 

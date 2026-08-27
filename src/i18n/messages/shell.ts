@@ -236,4 +236,30 @@ export const shellMessages = defineMessages({
     en: 'I’ll connect tasks, documents, and compliance across the file.',
     fr: 'Je relierai les tâches, les documents et la conformité dans tout le dossier.',
   },
+
+  /* Public demo workspace (/demo) */
+  demo_banner_text: {
+    en: 'Sample data · read-only preview. Sign in to save records and generate live documents.',
+    fr: 'Données types · aperçu en lecture seule. Connectez-vous pour enregistrer des dossiers et générer des documents en direct.',
+  },
+  demo_banner_cta: {
+    en: 'Sign in',
+    fr: 'Se connecter',
+  },
+  demo_tour_label: {
+    en: 'Product tour',
+    fr: 'Visite du produit',
+  },
+  demo_tour_eyebrow: {
+    en: 'Guided tour — click a stop to explore',
+    fr: 'Visite guidée — cliquez sur une étape pour explorer',
+  },
+  demo_tour_step: {
+    en: 'Stop',
+    fr: 'Étape',
+  },
+  demo_tour_signin: {
+    en: 'Sign in for your workspace',
+    fr: 'Connectez-vous pour votre espace',
+  },
 })

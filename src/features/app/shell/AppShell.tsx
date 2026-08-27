@@ -9,12 +9,16 @@ import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
 import { DocStudioOverlay } from '@/features/app/docstudio/DocStudioOverlay'
 import { ToastHost } from '@/features/app/toasts/ToastHost'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
+import { Seo } from '@/seo/Seo'
 import { Sidebar } from './Sidebar'
 import { cx } from './cx'
 import { Topbar } from './Topbar'
 import { MobileNav, MobileTopbar } from './MobileNav'
-import { ModuleContextBanner } from './ModuleContextBanner'
+import { DemoTourRail } from '@/features/app/demo/DemoTourRail'
+import { PublicDemoBanner } from '@/features/app/demo/PublicDemoBanner'
 import { WorkspaceContextBanner } from './WorkspaceContextBanner'
+import { ModuleContextBanner } from './ModuleContextBanner'
 import { moduleLabelFor, viewLabelFor } from './navConfig'
 
 /**
@@ -108,6 +112,7 @@ export function AppShell() {
   )
 
   const { mode: workspaceMode } = useWorkspaceMode()
+  const { isPublicDemo } = useWorkspaceRoot()
   const title = x(
     workspaceMode === 'production' ? moduleLabelFor(pathname) : viewLabelFor(pathname),
   )
@@ -154,6 +159,7 @@ export function AppShell() {
         !isMobile && 'pb-[env(safe-area-inset-bottom)]',
       )}
     >
+      {isPublicDemo ? <Seo route="demoWorkspace" pageType="WebPage" /> : null}
       {isMobile && (
         <MobileTopbar
           title={title}
@@ -161,6 +167,9 @@ export function AppShell() {
           triggerRef={drawerTriggerRef}
         />
       )}
+
+      <PublicDemoBanner />
+      <DemoTourRail />
 
       <div className="relative flex min-h-0 flex-1">
         {!isMobile && (

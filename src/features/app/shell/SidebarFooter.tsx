@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Settings } from 'lucide-react'
+import { LogIn, Settings } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { seoRoute } from '@/seo/routes'
 import { isCurrentUserAdmin } from '@/features/support/supportAdminApi'
 import type { WorkspaceIdentity } from '@/features/app/workspaceMode/workspaceModeContext'
+import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { SidebarTooltip } from './SidebarTooltip'
 import { navItemActiveClasses } from './SidebarNavItem'
 import { cx } from './cx'
@@ -19,6 +20,7 @@ interface SidebarFooterProps {
 export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterProps) {
   const { x, L, lang } = useI18n()
   const navigate = useNavigate()
+  const { root, isPublicDemo } = useWorkspaceRoot()
   const helpCentrePath = seoRoute('help').path[lang]
   const { pathname } = useLocation()
   const [profileOpen, setProfileOpen] = useState(false)
@@ -36,8 +38,53 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
     }
   }, [])
 
-  const settingsActive = pathname.startsWith('/app/settings')
+  const settingsActive = pathname.startsWith(`${root}/settings`)
   const displayName = identity.user.name.trim() || identity.user.email
+
+  if (isPublicDemo) {
+    return (
+      <div className="shrink-0">
+        <SidebarTooltip label={x(M.demo_tour_signin)} show={!expanded}>
+          <Link
+            to="/app/welcome"
+            onClick={onNavigate}
+            className={cx(
+              'my-px flex w-full items-center gap-2.5 rounded-[7px] text-[13.5px] font-semibold text-gold-strong transition-colors duration-150 hover:bg-inset',
+              expanded ? 'px-2.5 py-2' : 'justify-center p-2.25',
+            )}
+          >
+            <LogIn size={16} strokeWidth={1.7} className="shrink-0" />
+            <span
+              aria-hidden={!expanded}
+              className={cx(
+                'overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] duration-150 ease-in-out motion-reduce:transition-none',
+                expanded
+                  ? 'max-w-47.5 translate-x-0 opacity-100 delay-75'
+                  : 'max-w-0 -translate-x-1 opacity-0',
+              )}
+            >
+              {x(M.demo_tour_signin)}
+            </span>
+          </Link>
+        </SidebarTooltip>
+
+        {expanded && (
+          <div className="mt-2 flex items-center justify-start gap-1.75 border-t border-border-soft px-1.5 pt-3 pb-0.5">
+            <div className="flex h-4.75 w-4.75 shrink-0 items-center justify-center">
+              <img
+                src="/brand/dutiva-leaf.png"
+                alt="Dutiva"
+                className="logo-glow block h-3.75 w-auto"
+              />
+            </div>
+            <span className="max-w-37.5 translate-x-0 overflow-hidden whitespace-nowrap text-[11px] tracking-[0.01em] text-text-faint opacity-100 delay-75 transition-[max-width,opacity,transform] duration-150 ease-in-out motion-reduce:transition-none">
+              {x(M.shell_powered_by)} <span className="font-bold text-text-muted">Dutiva</span>
+            </span>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="shrink-0">

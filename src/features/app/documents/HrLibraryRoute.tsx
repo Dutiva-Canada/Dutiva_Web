@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { TemplatesView } from '@/features/app/views/templates/TemplatesView'
 
 /**
@@ -8,8 +9,9 @@ import { TemplatesView } from '@/features/app/views/templates/TemplatesView'
  */
 export function HrLibraryRoute() {
   const { mode } = useWorkspaceMode()
+  const { root } = useWorkspaceRoot()
   if (mode === 'production') {
-    return <Navigate to="/app/documents/studio" replace />
+    return <Navigate to={workspacePath(root, 'documents/studio')} replace />
   }
   return <TemplatesView />
 }
