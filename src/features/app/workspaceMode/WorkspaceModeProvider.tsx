@@ -12,6 +12,7 @@ import {
   saveStoredMode,
 } from './api'
 import { resetAdvisorSession } from '@/features/app/views/advisor/advisorSession'
+import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { WorkspaceModeContext } from './workspaceModeContext'
 import type { AdmissionStatus, WorkspaceIdentity, WorkspaceMode } from './workspaceModeContext'
 import type { OrgMemberRole } from './roles'
@@ -54,6 +55,7 @@ const SIGNED_OUT_STATE: AdminState = {
  */
 export function WorkspaceModeProvider({ children }: { readonly children: ReactNode }) {
   const { status, session } = useAuth()
+  const { isPublicDemo } = useWorkspaceRoot()
   const [admin, setAdmin] = useState<AdminState>(SIGNED_OUT_STATE)
 
   useEffect(() => {
@@ -189,6 +191,20 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
   }, [])
 
   const value = useMemo(() => {
+    if (isPublicDemo) {
+      return {
+        mode: 'demo' as const,
+        isAdmin: false,
+        identity: DEMO_IDENTITY,
+        companyName: WORKSPACE_NAME,
+        organizationId: null,
+        memberRole: null,
+        isOrgAdmin: false,
+        setMode: async () => {},
+        admissionStatus: 'idle' as const,
+        clearAdmissionStatus: () => {},
+      }
+    }
     /* Production mode is only exposed when an organization actually exists;
        otherwise a failed/capacity-blocked bootstrap keeps the UI in demo so
        the user sees the capacity state instead of a broken production shell. */
@@ -210,7 +226,7 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
       admissionStatus: admin.admissionStatus,
       clearAdmissionStatus,
     }
-  }, [admin, setMode, clearAdmissionStatus])
+  }, [admin, setMode, clearAdmissionStatus, isPublicDemo])
 
   return <WorkspaceModeContext.Provider value={value}>{children}</WorkspaceModeContext.Provider>
 }

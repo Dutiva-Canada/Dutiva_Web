@@ -21,6 +21,7 @@ import { usePayRail, useWellbeingRail } from '@/features/app/rail/useEntityRails
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import {
   chats,
   followupFallbackText,
@@ -109,6 +110,7 @@ export function AdvisorView() {
   const { status: authStatus } = auth
   const workspaceModeCtx = useWorkspaceMode()
   const { mode: workspaceMode, organizationId } = workspaceModeCtx
+  const { isPublicDemo } = useWorkspaceRoot()
   const [sendingReal, setSendingReal] = useState(false)
   const [buyingAdvisorPack, setBuyingAdvisorPack] = useState<AdvisorPackSize | null>(null)
   const {
@@ -972,7 +974,9 @@ export function AdvisorView() {
           {/* Keep the third column present on home so opening a thread doesn’t
               jump the layout; idle starters mirror the empty workspace. */}
           <ComplianceWorkspace
-            state={authStatus === 'signed-in' ? { kind: 'idle' } : { kind: 'locked' }}
+            state={
+              authStatus === 'signed-in' && !isPublicDemo ? { kind: 'idle' } : { kind: 'locked' }
+            }
             onIdleSend={idleSend}
             onIdleNavigate={(to) => navigate(to)}
             showIdleStarters
