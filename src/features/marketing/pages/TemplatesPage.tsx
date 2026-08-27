@@ -3,6 +3,8 @@ import { useI18n } from '@/i18n/context'
 import { templateCategories } from '@/features/app/documents/data'
 import { allTemplates } from '@/features/app/documents/catalogue'
 import type { DocRiskLevel, Jurisdiction } from '@/features/app/documents/data'
+import { FEATURED_TEMPLATE_TIDS } from '@/features/marketing/demos/templatePreviewModel'
+import { TemplateSamplePanel } from '@/features/marketing/demos/TemplateSamplePanel'
 import { Seo } from '@/seo/Seo'
 import { usePublicPath } from '@/seo/usePublicPath'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
@@ -43,6 +45,17 @@ export function TemplatesPage() {
         title={t('tplPreview_h1')}
         intro={t('tplPreview_intro')}
       />
+
+      <PageSection title={t('tplPreview_samples_title')}>
+        <p className="mb-6 max-w-2xl text-sm leading-6 text-text-2">{t('tplPreview_samples_intro')}</p>
+        <div className="grid gap-6 lg:grid-cols-3">
+          {FEATURED_TEMPLATE_TIDS.map((tid) => (
+            <div key={tid} className="premium-card-soft p-5">
+              <TemplateSamplePanel tid={tid} maxHeightClass="max-h-[360px]" />
+            </div>
+          ))}
+        </div>
+      </PageSection>
 
       <PageSection title={`${allTemplates.length} ${t('tplPreview_count')}`}>
         <div className="space-y-10">

@@ -58,7 +58,7 @@ describe('LandingPage', () => {
 
   it('points header nav at landing sections, /pricing, /guides, and sign-in', () => {
     renderApp(<LandingPage />, { route: '/', path: '/' })
-    const nav = document.querySelector('header nav')
+    const nav = document.querySelector('header nav') as HTMLElement | null
     expect(nav).not.toBeNull()
     const href = (name: string) =>
       within(nav!).getByRole('link', { name }).getAttribute('href')

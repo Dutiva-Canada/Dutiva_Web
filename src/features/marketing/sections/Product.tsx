@@ -5,6 +5,7 @@ import { usePublicPath } from '@/seo/usePublicPath'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
 import { IconChip } from './IconChip'
+import { DocumentStudioDemo } from '../demos/DocumentStudioDemo'
 
 interface Feature {
   icon: LucideIcon
@@ -66,6 +67,8 @@ export function Product() {
           </a>
         </div>
       </div>
+
+      <DocumentStudioDemo />
     </section>
   )
 }
