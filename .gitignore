@@ -29,6 +29,9 @@ coverage
 .env.*
 !.env.example
 
+# Ad-hoc local scripts (e.g. one-off scans) — never commit
+.tmp-*
+
 .vercel
 
 # Client source maps, relocated out of dist/ by scripts/relocate-sourcemaps.mjs.
