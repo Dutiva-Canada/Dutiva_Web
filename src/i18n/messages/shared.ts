@@ -1,5 +1,5 @@
 import { common } from './common'
-import { landing } from './landing'
+import { landing } from './landing/index'
 import { supportMessages } from './support'
 import { helpCenterMessages } from './helpCenter'
 

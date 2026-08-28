@@ -35,7 +35,7 @@ const messagesDir = path.join(root, 'src/i18n/messages')
 
 /** `import { fooMessages } from './bar'` → `bar`, for every relative import in a file. */
 function importedModuleNames(source) {
-  return [...source.matchAll(/import\s*\{[^}]+\}\s*from\s*'\.\/(\w+)'/g)].map((m) => m[1])
+  return [...source.matchAll(/import\s*\{[^}]+\}\s*from\s*'\.\/([^']+)'/g)].map((m) => m[1])
 }
 
 /**
@@ -46,10 +46,25 @@ function importedModuleNames(source) {
  * a nested `en:`/`fr:` line is indented by 4 and so never matches.
  */
 function topLevelKeys(source) {
-  return [...source.matchAll(/^ {2}(\w+):/gm)].map((m) => m[1])
+  const indented = [...source.matchAll(/^ {2}(\w+):/gm)].map((m) => m[1])
+  if (indented.length > 0) return indented
+  // Section modules under landing/ — keys sit flush inside defineMessages({ ... }).
+  return [...source.matchAll(/^(\w+): \{/gm)].map((m) => m[1])
+}
+
+async function keysOfLandingSections() {
+  const dir = path.join(messagesDir, 'landing')
+  const keys = []
+  for (const entry of await readdir(dir)) {
+    if (!entry.endsWith('.ts') || entry === 'index.ts') continue
+    const source = await readFile(path.join(dir, entry), 'utf8')
+    keys.push(...topLevelKeys(source))
+  }
+  return keys
 }
 
 async function keysOfModule(name) {
+  if (name === 'landing/index' || name === 'landing') return keysOfLandingSections()
   const source = await readFile(path.join(messagesDir, `${name}.ts`), 'utf8')
   return topLevelKeys(source)
 }

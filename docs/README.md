@@ -79,6 +79,7 @@ Editorial rule for public articles — no statutory figures, ever — is stated 
 | [AUTH_MAGIC_LINK.md](AUTH_MAGIC_LINK.md) | Magic-link sign-in and the Supabase configuration it needs. |
 | [BILLING_BETA_AUDIT.md](BILLING_BETA_AUDIT.md) | Stripe billing and beta-signup audit, with remediation status. |
 | [STRIPE_GO_LIVE.md](STRIPE_GO_LIVE.md) | Stripe go-live checklist and OA11 completion record (closed 2026-08-27). |
+| [MAINTAINABILITY.md](MAINTAINABILITY.md) | Long-term codebase health: patterns, hotspots, template review cadence, CI. |
 | [OFFLINE_PWA.md](OFFLINE_PWA.md) | Service worker, offline behaviour, and how to test it. |
 
 ## Web surface
