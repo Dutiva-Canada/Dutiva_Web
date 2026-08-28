@@ -9,8 +9,10 @@ import {
   formatDateAnswer,
   gatePasses,
   mergeSegments,
+  parseClauseBulletLines,
   parseClauseFieldLines,
   resolveBlocks,
+  splitClauseSignOff,
   templateTokens,
 } from './engine'
 import { defaultOrgProfile, sampleDocuments, templateByTid } from './data'
@@ -297,5 +299,29 @@ describe('parseClauseFieldLines', () => {
         'Your position will be {{position_title}}, reporting to {{manager_name}}.',
       ),
     ).toBeNull()
+  })
+})
+
+describe('parseClauseBulletLines', () => {
+  it('splits intro prose from bullet items', () => {
+    expect(
+      parseClauseBulletLines('This offer is conditional on:\n* first item\n* second item'),
+    ).toEqual({
+      intro: 'This offer is conditional on:',
+      items: ['first item', 'second item'],
+      outro: '',
+    })
+  })
+})
+
+describe('splitClauseSignOff', () => {
+  it('splits the closing block from clause body', () => {
+    expect(
+      splitClauseSignOff('Please sign by Friday.\nSincerely,\n{{employer_signer_name}}'),
+    ).toEqual({
+      body: 'Please sign by Friday.',
+      closing: 'Sincerely,',
+      lines: ['{{employer_signer_name}}'],
+    })
   })
 })

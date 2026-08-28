@@ -5,6 +5,7 @@ import { useI18n } from '@/i18n/context'
 import { usePublicPath } from '@/seo/usePublicPath'
 import {
   buildTemplatePreview,
+  compactDocPaperProps,
   demoAnswerDisplay,
   templateByTid,
 } from '../demos/templatePreviewModel'
@@ -21,6 +22,8 @@ export function DocumentStudioDemo() {
   const preview = buildTemplatePreview(STUDIO_DEMO_TID, lang)
   const template = templateByTid(STUDIO_DEMO_TID)
   if (!preview || !template) return null
+
+  const docPreview = compactDocPaperProps(preview, lang)
 
   const wizardSteps = WIZARD_QUESTION_IDS.map((id) => template.questions.find((q) => q.id === id)).filter(
     (question): question is NonNullable<typeof question> => question !== undefined,
@@ -61,15 +64,19 @@ export function DocumentStudioDemo() {
         </div>
 
         <div>
-          <div className="mb-2 text-[11px] font-bold tracking-[0.14em] text-text-muted uppercase">
-            {lt('landing_studio_demo_output')}
+          <div className="mb-2 flex flex-wrap items-center gap-2 text-[11px] font-bold tracking-[0.14em] text-text-muted uppercase">
+            <span>{lt('landing_studio_demo_output')}</span>
+            {docPreview.showBilingualBadge && (
+              <span className="rounded-full border border-border bg-inset px-2 py-0.5 text-[10px] font-semibold tracking-[0.08em] text-text-faint normal-case">
+                {lt('landing_studio_demo_bilingual_badge')}
+              </span>
+            )}
           </div>
           <DocPaper
             blocks={preview.blocks}
-            values={preview.values}
-            valuesByLang={preview.valuesByLang}
-            bilingual={preview.bilingual}
-            docLang={lang}
+            values={docPreview.values}
+            bilingual={docPreview.bilingual}
+            docLang={docPreview.docLang}
             className="max-h-[480px] overflow-y-auto"
           />
         </div>

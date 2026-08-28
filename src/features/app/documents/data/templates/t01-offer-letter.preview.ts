@@ -11,13 +11,6 @@ export const t01OfferLetterPreview: PreviewBlock[] = [
       },
     },
     {
-      type: 'meta',
-      text: {
-        en: '{{org}} · Ontario',
-        fr: '{{org}} · Ontario',
-      },
-    },
-    {
       type: 'letterhead',
       text: {
         en: '{{org}}\n{{employer_business_name}}\n{{employer_address}}',
@@ -38,8 +31,22 @@ export const t01OfferLetterPreview: PreviewBlock[] = [
     {
       type: 'para',
       text: {
-        en: '**Re:** Offer of Employment - {{position_title}}\n\nDear {{employee_first_name}},\n\nWe are pleased to offer you employment with {{org}} (the "Company") in the position of {{position_title}}. This letter summarizes the individualized business terms of the offer. The attached Employment Agreement contains the complete legal terms of your employment and must be signed before employment begins.\n\nThis bilingual document is provided in English and French. Both versions are intended to be consistent. If there is any discrepancy between the English and French versions, the English version prevails to the extent permitted by applicable law, unless the Company expressly agrees otherwise in writing.',
-        fr: '**Objet :** Offre d\'emploi - {{position_title}}\n\nBonjour {{employee_first_name}},\n\nNous avons le plaisir de vous offrir un emploi auprès de {{org}} (la "Société") au poste de {{position_title}}. La présente lettre résume les conditions d\'affaires propres à cette offre. Le contrat de travail ci-joint contient les conditions juridiques complètes de votre emploi et doit être signé avant le début de votre emploi.\n\nLe présent document bilingue est fourni en anglais et en français. Les deux versions sont censées être cohérentes. En cas de divergence entre les versions anglaise et française, la version anglaise prévaut dans la mesure permise par la loi applicable, sauf accord écrit contraire exprès de la Société.',
+        en: '**Re:** Offer of Employment - {{position_title}}',
+        fr: '**Objet :** Offre d\'emploi - {{position_title}}',
+      },
+    },
+    {
+      type: 'para',
+      text: {
+        en: 'Dear {{employee_first_name}},',
+        fr: 'Bonjour {{employee_first_name}},',
+      },
+    },
+    {
+      type: 'para',
+      text: {
+        en: 'We are pleased to offer you employment with {{org}} (the "Company") in the position of {{position_title}}. This letter summarizes the individualized business terms of the offer. The attached Employment Agreement contains the complete legal terms of your employment and must be signed before employment begins.\n\nThis bilingual document is provided in English and French. Both versions are intended to be consistent. If there is any discrepancy between the English and French versions, the English version prevails to the extent permitted by applicable law, unless the Company expressly agrees otherwise in writing.',
+        fr: 'Nous avons le plaisir de vous offrir un emploi auprès de {{org}} (la "Société") au poste de {{position_title}}. La présente lettre résume les conditions d\'affaires propres à cette offre. Le contrat de travail ci-joint contient les conditions juridiques complètes de votre emploi et doit être signé avant le début de votre emploi.\n\nLe présent document bilingue est fourni en anglais et en français. Les deux versions sont censées être cohérentes. En cas de divergence entre les versions anglaise et française, la version anglaise prévaut dans la mesure permise par la loi applicable, sauf accord écrit contraire exprès de la Société.',
       },
     },
     {

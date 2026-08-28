@@ -109,6 +109,55 @@ export function parseClauseFieldLines(text: string): {
   }
 }
 
+/** Bullet lines in clause copy (`* item`), e.g. T01 §13 conditions. */
+export function parseClauseBulletLines(text: string): {
+  intro: string
+  items: string[]
+  outro: string
+} | null {
+  const lines = text.split('\n')
+  const items: string[] = []
+  let bulletStart = -1
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i] ?? ''
+    if (line.startsWith('* ')) {
+      if (bulletStart === -1) bulletStart = i
+      items.push(line.slice(2).trim())
+      continue
+    }
+    if (items.length > 0) {
+      return {
+        intro: lines.slice(0, bulletStart).join('\n'),
+        items,
+        outro: lines.slice(i).join('\n'),
+      }
+    }
+  }
+
+  if (items.length === 0) return null
+  return {
+    intro: lines.slice(0, bulletStart).join('\n'),
+    items,
+    outro: '',
+  }
+}
+
+/** Letter closing block after `Sincerely,` / `Cordialement,` (T01 §15). */
+export function splitClauseSignOff(text: string): {
+  body: string
+  closing: string
+  lines: string[]
+} | null {
+  const match = text.match(/\n(Sincerely,|Cordialement,)\n/)
+  if (!match || match.index === undefined || !match[1]) return null
+  const body = text.slice(0, match.index)
+  const tail = text.slice(match.index + 1).trim()
+  const tailLines = tail.split('\n')
+  const closing = tailLines[0] ?? ''
+  return { body, closing, lines: tailLines.slice(1) }
+}
+
 /* ── Merge fields ────────────────────────────────────────────────────────── */
 
 export interface MergeSegment {

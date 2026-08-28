@@ -1,8 +1,8 @@
-import type { ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
 import { chipToneClasses, statusChipBaseClass } from '@/components/chips'
-import { mergeSegments, parseClauseFieldLines, splitBilingualBody } from './engine'
+import { mergeSegments, parseClauseBulletLines, parseClauseFieldLines, splitBilingualBody, splitClauseSignOff } from './engine'
 import type { MergeSegment } from './engine'
 import type { DocChipTone, Jurisdiction, PreviewBlock } from './data'
 
@@ -135,15 +135,70 @@ export function StepDots({
 /* ── Rendered document "paper" ───────────────────────────────────────────── */
 
 const INLINE_BOLD_PATTERN = /(\*\*[^*]+\*\*)/g
+const INLINE_ITALIC_PATTERN = /(\*[^*\n]+\*)/g
 
 /** Handoff letter blocks use `**Re:**` / `**Objet :**` — render as bold, not raw markdown. */
 function renderInlineTemplateText(text: string): ReactNode {
   return text.split(INLINE_BOLD_PATTERN).map((part, index) => {
     if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
-      return <strong key={index}>{part.slice(2, -2)}</strong>
+      return <strong key={`b-${index}`}>{part.slice(2, -2)}</strong>
     }
-    return part
+    return part.split(INLINE_ITALIC_PATTERN).map((segment, subIndex) => {
+      if (segment.startsWith('*') && segment.endsWith('*') && segment.length > 2 && !segment.startsWith('**')) {
+        return <em key={`i-${index}-${subIndex}`}>{segment.slice(1, -1)}</em>
+      }
+      return segment
+    })
   })
+}
+
+function ProseParagraphs({
+  text,
+  values,
+  className,
+}: {
+  readonly text: string
+  readonly values: Record<string, string>
+  readonly className?: string
+}) {
+  const paragraphs = text.split(/\n\n+/).filter((part) => part.trim())
+  if (paragraphs.length <= 1) {
+    return (
+      <p className={className}>
+        <MergeText text={text} values={values} preline />
+      </p>
+    )
+  }
+  return (
+    <>
+      {paragraphs.map((paragraph, index) => (
+        <p key={index} className={className ?? (index > 0 ? 'mt-2' : undefined)}>
+          <MergeText text={paragraph} values={values} preline />
+        </p>
+      ))}
+    </>
+  )
+}
+
+function ClauseSignOff({
+  closing,
+  lines,
+  values,
+}: {
+  readonly closing: string
+  readonly lines: string[]
+  readonly values: Record<string, string>
+}) {
+  return (
+    <div className="mt-6">
+      <p>{closing}</p>
+      {lines.map((line, index) => (
+        <p key={index} className={index === 0 ? 'mt-8' : 'mt-0.5'}>
+          <MergeText text={line} values={values} />
+        </p>
+      ))}
+    </div>
+  )
 }
 
 function MergeSegmentSpan({ segment }: { readonly segment: MergeSegment }) {
@@ -222,38 +277,54 @@ function ClauseBody({
   readonly text: string
   readonly values: Record<string, string>
 }) {
-  const parsed = parseClauseFieldLines(text)
-  if (!parsed) {
+  const signOff = splitClauseSignOff(text)
+  const core = signOff?.body ?? text
+  const fields = parseClauseFieldLines(core)
+  const bullets = fields ? null : parseClauseBulletLines(core)
+
+  if (fields) {
+    const { intro, fields: rows, outro } = fields
     return (
-      <p className="mt-0.5">
-        <MergeText text={text} values={values} preline />
-      </p>
+      <div className="mt-0.5">
+        {intro.trim() && <ProseParagraphs text={intro} values={values} />}
+        <dl className="mt-2 grid grid-cols-[max-content_minmax(0,1fr)] gap-x-3 gap-y-1.5 text-[12px]">
+          {rows.map((field) => (
+            <div key={field.label} className="contents">
+              <dt className="font-semibold text-text">{field.label}</dt>
+              <dd className="m-0">
+                <MergeText text={field.value} values={values} />
+              </dd>
+            </div>
+          ))}
+        </dl>
+        {outro.trim() && <ProseParagraphs text={outro} values={values} className="mt-2" />}
+        {signOff && <ClauseSignOff closing={signOff.closing} lines={signOff.lines} values={values} />}
+      </div>
     )
   }
 
-  const { intro, fields, outro } = parsed
+  if (bullets) {
+    const { intro, items, outro } = bullets
+    return (
+      <div className="mt-0.5">
+        {intro.trim() && <ProseParagraphs text={intro} values={values} />}
+        <ul className="mt-2 list-disc space-y-1.5 pl-5">
+          {items.map((item) => (
+            <li key={item}>
+              <MergeText text={item} values={values} />
+            </li>
+          ))}
+        </ul>
+        {outro.trim() && <ProseParagraphs text={outro} values={values} className="mt-2" />}
+        {signOff && <ClauseSignOff closing={signOff.closing} lines={signOff.lines} values={values} />}
+      </div>
+    )
+  }
+
   return (
     <div className="mt-0.5">
-      {intro.trim() && (
-        <p>
-          <MergeText text={intro} values={values} preline />
-        </p>
-      )}
-      <dl className="mt-2 grid grid-cols-[max-content_minmax(0,1fr)] gap-x-3 gap-y-1.5 text-[12px]">
-        {fields.map((field) => (
-          <div key={field.label} className="contents">
-            <dt className="font-semibold text-text">{field.label}</dt>
-            <dd className="m-0">
-              <MergeText text={field.value} values={values} />
-            </dd>
-          </div>
-        ))}
-      </dl>
-      {outro.trim() && (
-        <p className="mt-2">
-          <MergeText text={outro} values={values} preline />
-        </p>
-      )}
+      <ProseParagraphs text={core} values={values} />
+      {signOff && <ClauseSignOff closing={signOff.closing} lines={signOff.lines} values={values} />}
     </div>
   )
 }
@@ -273,11 +344,13 @@ function DocPaperBody({
   readonly lang: 'en' | 'fr'
 }) {
   const d = (value: Bi): string => value[lang]
+  const firstClauseIndex = blocks.findIndex((block) => block.type === 'clause')
   return (
     <>
-      {blocks.map((block) => {
+      {blocks.map((block, index) => {
         const text = blockText(block, lang)
         const key = blockKey(block, lang)
+        const isFirstClause = block.type === 'clause' && index === firstClauseIndex
         switch (block.type) {
           case 'title':
             return (
@@ -315,7 +388,10 @@ function DocPaperBody({
             )
           case 'clause':
             return (
-              <div key={key} className="mt-3">
+              <div
+                key={key}
+                className={isFirstClause ? 'mt-6 border-t border-border pt-5' : 'mt-3'}
+              >
                 {block.heading && (
                   <div className="text-[12px] font-bold">
                     {block.n !== undefined ? `${block.n}. ` : ''}
@@ -421,12 +497,18 @@ export function DocPaper({
 }) {
   const { lang: uiLang } = useI18n()
   const lang = docLang ?? uiLang
+  const paperRef = useRef<HTMLDivElement>(null)
   const paperClass = `rounded-[12px] border border-border bg-surface p-[clamp(18px,2.5vw,28px)] font-serif text-[12.5px] leading-[1.7] text-text shadow-sm ${className ?? ''}`
+
+  useEffect(() => {
+    if (!paperRef.current) return
+    paperRef.current.scrollTop = 0
+  }, [blocks, values, valuesByLang, bilingual, lang])
 
   if (bilingual && valuesByLang) {
     const { body, tail } = splitBilingualBody(blocks)
     return (
-      <div className={paperClass}>
+      <div ref={paperRef} className={paperClass}>
         <DocPaperBody blocks={body} values={valuesByLang.en} lang="en" />
         <div
           className="mt-8 mb-4 border-t border-border pt-6 text-center font-display text-[13px] font-bold tracking-[-0.01em]"
@@ -441,7 +523,7 @@ export function DocPaper({
   }
 
   return (
-    <div className={paperClass}>
+    <div ref={paperRef} className={paperClass}>
       <DocPaperBody blocks={blocks} values={values} lang={lang} />
     </div>
   )

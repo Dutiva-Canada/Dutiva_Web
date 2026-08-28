@@ -77,6 +77,19 @@ export function buildTemplatePreview(tid: string, lang: Lang) {
   return { template, blocks, values, valuesByLang, bilingual: template.delivery === 'bilingual' }
 }
 
+/** Compact marketing previews show one language; export still ships both for bilingual templates. */
+export function compactDocPaperProps(
+  preview: NonNullable<ReturnType<typeof buildTemplatePreview>>,
+  lang: Lang,
+) {
+  return {
+    values: preview.valuesByLang?.[lang] ?? preview.values,
+    bilingual: false as const,
+    docLang: lang,
+    showBilingualBadge: preview.bilingual === true,
+  }
+}
+
 /** Resolved demo answer for a wizard field — dates and selects match document output. */
 export function demoAnswerDisplay(tid: string, fieldId: string, lang: Lang): string | undefined {
   const template = templateByTid(tid)
