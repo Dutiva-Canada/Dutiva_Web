@@ -63,7 +63,7 @@ npm run dev        # start the dev server
 | `npm run test:e2e`  | Playwright hermetic smoke on `dist/` ([e2e/README.md](e2e/README.md)) — no Supabase                                                   |
 | `npm run test:e2e:auth` | Playwright production CRUD matrix — requires Supabase build env + service role; skips when unset                                  |
 | `npm run format`    | Prettier                                                                                                                                |
-| `npm run check`     | typecheck + lint + test + `check:migrations` + `check:rls` + `check:facts` + `check:message-scopes` — **must pass before every commit** |
+| `npm run check`     | typecheck + lint + test + `check:migrations` + `check:rls` + `check:facts` + `check:message-scopes` + `check:brand-assets` + `check:architecture` — **must pass before every commit** |
 | `npm run db:types`  | Regenerate `src/lib/supabase/database.types.ts` and the edge-function copy from the linked Supabase project |
 | `npm run build`     | typecheck + production build + SSR + prerender + SEO validation + entry-graph budget + service worker                                   |
 
@@ -88,10 +88,18 @@ npm run dev        # start the dev server
   via the shared `Disclaimer` component, never re-typed.
 - **Workspace mode.** The app defaults to a demo experience (Northgate
   Logistics Inc. fixtures) for everyone; a signed-in admin can switch to a
-  real, empty "production" workspace via `useWorkspaceMode()`. See
-  CONVENTIONS.md's Workspace mode section before wiring a module's fixtures
-  to real persistence — the pattern (and the module-by-module rollout it's
-  part of) is already established.
+  real, empty "production" workspace via `useWorkspaceMode()`. Demo UI lives
+  in `*DemoView.tsx` (or `*DemoFixtures.tsx` for single-view modules) —
+  never inline in `*View.tsx`. See CONVENTIONS.md's Workspace mode section
+  and [docs/MAINTAINABILITY.md](docs/MAINTAINABILITY.md) before wiring
+  fixtures to real persistence.
+
+## Maintainability
+
+**[docs/MAINTAINABILITY.md](docs/MAINTAINABILITY.md)** records the demo/production
+file-split program, `check:architecture` guards, Advisor extraction modules,
+and template review cadence. Read it before adding a workspace view or growing
+a file past the 800-line budget.
 
 ## Design handoffs
 
