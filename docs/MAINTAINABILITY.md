@@ -95,6 +95,14 @@ field (`approved_for_use`, `hr_review_required`, `not_reviewed`).
 
 See `docs/FOUR_RING_FRAMEWORK.md` for review rings.
 
+**Large template files:** when a hand-maintained template exceeds the 800-line architecture
+budget, split wizard `questions` and `preview` blocks into sibling modules (see
+`t01-offer-letter.questions.ts` / `t01-offer-letter.preview.ts`). Regenerate with
+`node scripts/split-t01-offer-letter.mjs` only if the monolith is restored.
+
+**Stage 9 (T01 template split):** `t01-offer-letter.ts` metadata shell + questions + preview
+modules — clears the last `check:architecture` size warning without changing generated output.
+
 ## CI pipelines
 
 | Pipeline | What it gates |
