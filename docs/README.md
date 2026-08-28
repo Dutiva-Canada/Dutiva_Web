@@ -8,6 +8,15 @@ Repo-root entry points: [README.md](../README.md) (what the project is and how
 to run it), [AGENTS.md](../AGENTS.md) (AI coding agents start here),
 [CONVENTIONS.md](../CONVENTIONS.md) (full engineering conventions).
 
+## Platform wiki (architecture map)
+
+| Document | What it settles |
+| --- | --- |
+| [wiki/README.md](wiki/README.md) | **In-repo mirror** of the [GitHub wiki](https://github.com/Dutiva-Canada/Dutiva_Web/wiki) — how to sync, and how this folder relates to `docs/`. |
+| [wiki/Home.md](wiki/Home.md) | Platform overview: three surfaces, tech stack, module index. Start here for the big picture. |
+
+The wiki is copied from `Dutiva_Web.wiki` via `npm run wiki:sync`. Edit the GitHub wiki (or this mirror and `npm run wiki:sync -- --push`), then sync into the main repo when publishing.
+
 ## Start here
 
 | Document | What it settles |
