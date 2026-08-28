@@ -1,5 +1,5 @@
 import type { Lang } from '@/i18n/core'
-import { mergeSegments, splitBilingualBody } from './engine'
+import { mergeSegments, splitBilingualBody, splitProseParagraphs } from './engine'
 import type { PreviewBlock } from './data'
 import type { ProductionDocumentRecipient } from './signatureQueries'
 
@@ -16,6 +16,16 @@ function resolveMergeText(text: string, values: Record<string, string>): string 
 
 function blockCopy(block: PreviewBlock, lang: Lang): string {
   return block.text?.[lang] ?? ''
+}
+
+function pushResolvedProseParagraphs(
+  paragraphs: string[],
+  text: string,
+  values: Record<string, string>,
+): void {
+  for (const part of splitProseParagraphs(resolveMergeText(text, values))) {
+    if (part.trim()) paragraphs.push(part)
+  }
 }
 
 /**
@@ -76,15 +86,17 @@ export function blocksToPlainTextExport(
       case 'address':
       case 'para':
       case 'ack': {
-        const text = resolveMergeText(blockCopy(block, lang), values)
-        if (text.trim()) paragraphs.push(text)
+        pushResolvedProseParagraphs(paragraphs, blockCopy(block, lang), values)
         break
       }
       case 'clause': {
         const heading = block.heading ? block.heading[lang] : ''
         const prefix = block.n !== undefined ? `${block.n}. ${heading}` : heading
-        const body = resolveMergeText(blockCopy(block, lang), values)
-        paragraphs.push(prefix ? `${prefix}\n${body}` : body)
+        const parts = splitProseParagraphs(resolveMergeText(blockCopy(block, lang), values))
+        if (parts.length === 0) break
+        if (prefix) paragraphs.push(`${prefix}\n${parts[0]}`)
+        else paragraphs.push(parts[0]!)
+        for (const part of parts.slice(1)) paragraphs.push(part)
         break
       }
       case 'fill': {
@@ -98,7 +110,10 @@ export function blocksToPlainTextExport(
       }
       case 'note': {
         const label = block.tone === 'risk' ? (lang === 'fr' ? 'Avis' : 'Notice') : lang === 'fr' ? 'Note' : 'Note'
-        paragraphs.push(`${label}: ${resolveMergeText(blockCopy(block, lang), values)}`)
+        const parts = splitProseParagraphs(resolveMergeText(blockCopy(block, lang), values))
+        if (parts.length === 0) break
+        paragraphs.push(`${label}: ${parts[0]}`)
+        for (const part of parts.slice(1)) paragraphs.push(part)
         break
       }
       case 'sig': {
@@ -126,8 +141,7 @@ export function blocksToPlainTextExport(
         break
       }
       default: {
-        const text = resolveMergeText(blockCopy(block, lang), values)
-        if (text.trim()) paragraphs.push(text)
+        pushResolvedProseParagraphs(paragraphs, blockCopy(block, lang), values)
       }
     }
   }

@@ -123,4 +123,23 @@ describe('DocPaper letter formatting', () => {
     expect(screen.getByText('Sincerely,')).toBeInTheDocument()
     expect(screen.getByText('Martin Constantineau')).toBeInTheDocument()
   })
+
+  it('splits single-newline clause paragraphs with spacing', () => {
+    const blocks: PreviewBlock[] = [
+      {
+        type: 'clause',
+        n: 2,
+        heading: { en: 'Role, start date and reporting', fr: '…' },
+        text: {
+          en: 'Your position will be {{position_title}}.\nA description of your key responsibilities is attached as Schedule A.',
+          fr: '…',
+        },
+      },
+    ]
+
+    const { container } = renderPaper(blocks, { position_title: 'Operations Coordinator' })
+
+    expect(container.querySelectorAll('p')).toHaveLength(2)
+    expect(container.querySelector('.space-y-2\\.5')).not.toBeNull()
+  })
 })

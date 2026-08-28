@@ -13,6 +13,7 @@ import {
   parseClauseFieldLines,
   resolveBlocks,
   splitClauseSignOff,
+  splitProseParagraphs,
   templateTokens,
 } from './engine'
 import { defaultOrgProfile, sampleDocuments, templateByTid } from './data'
@@ -311,6 +312,24 @@ describe('parseClauseBulletLines', () => {
       items: ['first item', 'second item'],
       outro: '',
     })
+  })
+})
+
+describe('splitProseParagraphs', () => {
+  it('splits on blank lines first', () => {
+    expect(splitProseParagraphs('First paragraph.\n\nSecond paragraph.')).toEqual([
+      'First paragraph.',
+      'Second paragraph.',
+    ])
+  })
+
+  it('splits single-newline clause paragraphs', () => {
+    expect(splitProseParagraphs('Line one.\nLine two.')).toEqual(['Line one.', 'Line two.'])
+  })
+
+  it('keeps bullet copy intact', () => {
+    const text = 'Conditional on:\n* first\n* second'
+    expect(splitProseParagraphs(text)).toEqual([text])
   })
 })
 
