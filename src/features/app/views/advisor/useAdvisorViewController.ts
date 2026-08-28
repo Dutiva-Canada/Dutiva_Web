@@ -15,8 +15,7 @@ import { AdvisorUsageLimitError, sendAdvisorMessage } from '@/features/app/advis
 import { usageLimitReply } from '@/features/app/advisor/usageLimit'
 import { startAdvisorPackCheckout } from '@/features/app/advisor/packCheckout'
 import type { AdvisorPackSize } from '@/config/advisorUsage'
-import { detectCrisisSignal } from '@/features/app/advisor/safety'
-import { reportSafetyEvent } from '@/features/app/advisor/safetyTelemetry'
+import { createAdvisorCrisisHandlers } from './advisorCrisisHandlers'
 import { usePayRail, useWellbeingRail } from '@/features/app/rail/useEntityRails'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
@@ -73,7 +72,6 @@ import {
   seedExtras,
   seedId,
   settle,
-  supportiveCrisisResponse,
   supportiveJurisdictionLine,
 } from './advisorViewHelpers'
 import { useAdvisorMessageActions } from './useAdvisorMessageActions'
@@ -475,61 +473,19 @@ export function useAdvisorViewController() {
     }
   }, [location.state, location.pathname, navigate, authStatus])
 
+  const { interceptCrisis, startCrisisThread } = createAdvisorCrisisHandlers({
+    pushUser,
+    pushAdvisor,
+    patchResponseState,
+    updateSessionChats,
+    updateActiveChatId,
+    setResponseState,
+    engineReset: (messages) => engine.reset(messages),
+    stashActive,
+    conversationIdRef,
+  })
+
   /* ----------------------------------------------------------- chat flows */
-
-  /* Crisis intercept (AGENT.md §8, AI_USAGE_STRATEGY §5.1): deterministic and
-     BEFORE any model call or flow routing, on every free-text entry point. A
-     crisis message never reaches the LLM, never starts an HR workflow, and
-     always gets the maintained resource — fail-safe regardless of auth state.
-     Returns true when it fired (callers stop the turn). */
-  const interceptCrisis = (raw: string, chatId: string | null): boolean => {
-    if (!detectCrisisSignal(raw)) return false
-    /* Fresh-turn contract: replace any prior structured payload with the
-       maintained supportive one, so no compliance scaffolding (risk meters,
-       legal basis, stale scenario reads) sits beside the crisis reply. */
-    if (chatId !== null) patchResponseState(chatId, { response: supportiveCrisisResponse })
-    pushAdvisor({ text: M.advisorview_crisis_support })
-    void reportSafetyEvent({
-      conversationId: conversationIdRef.current,
-      actions: ['crisis-intercept'],
-    })
-    return true
-  }
-
-  /* Home-composer crisis: start a dedicated support thread — support title,
-     the supportive workspace payload, the maintained 9-8-8 reply — instead of
-     any flow or scenario routing. Returns false when there is no crisis
-     signal (caller proceeds normally). */
-  const startCrisisThread = (text: string): boolean => {
-    if (!detectCrisisSignal(text)) return false
-    stashActive()
-    const id = `session-${advisorSession.nextChatSeq++}`
-    updateSessionChats((prev) => [
-      {
-        id,
-        title: M.advisorview_crisis_thread_title,
-        pinned: false,
-        bucket: 'today',
-        flowKey: 'fallback',
-      },
-      ...prev,
-    ])
-    updateActiveChatId(id)
-    conversationIdRef.current = null
-    setResponseState((prev) => {
-      const next = {
-        ...prev,
-        [id]: { ...freshResponseState(null), response: supportiveCrisisResponse },
-      }
-      advisorSession.responseState = next
-      return next
-    })
-    engine.reset([])
-    pushUser(text)
-    pushAdvisor({ text: M.advisorview_crisis_support })
-    void reportSafetyEvent({ conversationId: null, actions: ['crisis-intercept'] })
-    return true
-  }
 
   /**
    * Shared failure handling for the two real-backend send paths.

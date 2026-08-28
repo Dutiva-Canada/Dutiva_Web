@@ -56,12 +56,24 @@ steps:
     commands:
       - npm run check:facts
 
+  architecture:
+    image: node:22
+    depends_on: [canonical-facts]
+    commands:
+      - npm run check:architecture
+
+  brand-assets:
+    image: node:22
+    depends_on: [architecture]
+    commands:
+      - npm run check:brand-assets
+
   # Production build: client + SSR bundles, prerender of every public page
   # (EN + FR), dist-level SEO crawl validation, entry-graph budget, and the
   # service worker. Fails on any metadata/sitemap/link/build drift.
   build:
     image: node:22
-    depends_on: [canonical-facts]
+    depends_on: [brand-assets]
     environment:
       <<: *ga_env
     commands:

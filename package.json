@@ -23,8 +23,9 @@
     "check:facts": "node scripts/check-canonical-facts.mjs",
     "check:message-scopes": "node scripts/check-message-scopes.mjs",
     "check:brand-assets": "node scripts/check-brand-assets.mjs",
+    "check:architecture": "node scripts/check-architecture.mjs",
     "optimize:brand": "node scripts/optimize-brand-assets.mjs",
-    "check": "npm run typecheck && npm run lint && npm run test && npm run check:migrations && npm run check:rls && npm run check:facts && npm run check:message-scopes && npm run check:brand-assets",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run check:migrations && npm run check:rls && npm run check:facts && npm run check:message-scopes && npm run check:brand-assets && npm run check:architecture",
     "db:types": "node scripts/generate-db-types.mjs",
     "db:snapshot": "supabase db dump -f supabase/schema.sql"
   },

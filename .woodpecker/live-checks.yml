@@ -1,7 +1,6 @@
-# Live-project checks — hit the real Supabase project. Only run once their
-# credentials exist as Woodpecker secrets (fork PRs and unconfigured repos
-# skip cleanly rather than failing). Isolated in its own pipeline so a
-# credential problem fails only here, never the gate in check.yml.
+# Live-project checks — hit the real Supabase project. Required for a fully
+# green main branch once Woodpecker secrets are configured (see MAINTAINABILITY.md).
+# Isolated from check.yml so a credential gap fails here, not the typecheck gate.
 #
 # Required Woodpecker secrets (set in repo settings → Secrets):
 #   SUPABASE_ACCESS_TOKEN  — service-role token for the Management API
