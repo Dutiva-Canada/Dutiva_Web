@@ -42,7 +42,7 @@ human or platform action** (not closable by engineering alone).
 | **Complete** | `GenerateScreen.tsx` split into `generateScreen/` (shell ~108 lines). |
 | **Complete** | Maintainability program (PRs #250–#258): landing i18n sections; workspace `*DemoView` splits; Advisor controller decomposition; `check:architecture` guards; T01 template modules. See `docs/MAINTAINABILITY.md`. |
 | **Complete** | `useAdvisorViewController.ts` orchestration only (~463 lines); behaviour in focused modules under `views/advisor/`. |
-| **Remaining** | Stage 2 fixture collapse per module when production-default (deferred). `SettingsView.tsx` (~636 lines) is settings chrome, not a demo/production seam. |
+| **Remaining** | `SettingsView.tsx` demo fixtures moved to `SettingsDemoFixtures.tsx` (~500 lines shell). Stage 2 fixture collapse per module when production-default (deferred). |
 
 ## Testing
 

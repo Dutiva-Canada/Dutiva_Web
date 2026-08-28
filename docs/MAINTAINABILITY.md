@@ -84,6 +84,8 @@ one module per PR, with tests.
 counterpart keeps demo UI in `*DemoView.tsx` (thin `*View.tsx` dispatch only). Regenerate
 with `node scripts/extract-demo-view.mjs <ComponentName>` when adding a new inline demo.
 **Workflows** uses `WorkflowsDemoFixtures.tsx` instead (single view, `showFixtures` gate).
+**Settings** uses `SettingsDemoFixtures.tsx` for Northgate team, integrations, and audit log
+(demo workspace only; gated by `workspaceMode !== 'production'` in `SettingsView.tsx`).
 `check:architecture` fails if a `*View.tsx` embeds `function *DemoView` inline.
 Demo/onboarding surfaces (`/demo`, public tour, marketing simulations) are unchanged.
 
