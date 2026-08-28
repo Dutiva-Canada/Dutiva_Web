@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Brain, Briefcase, MessageCircle, ShieldCheck, UserRound } from 'lucide-react'
+import { Brain, Briefcase, ChevronDown, List, MessageCircle, ShieldCheck, UserRound, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import { memoryMessages as M } from '@/i18n/messages/memory'
+import { shellMessages as SM } from '@/i18n/messages/shell'
 import { employees, memoryCases, memoryPeople, memoryThreads } from '@/data'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { listEmployees } from '@/features/app/views/employees/productionApi'
@@ -15,6 +16,7 @@ import type { ProductionCase } from '@/features/app/views/cases/productionApi'
 import { listFacts } from './productionApi'
 import { listOwnConversations } from './conversationsApi'
 import { useMemoryStore } from './memoryStore'
+import { useMdUp } from '@/lib/useMediaQuery'
 
 /**
  * Advisor Memory shell (`Advisor Memory.dc.html`): the 252px memory nav
@@ -42,95 +44,202 @@ export function MemoryLayout() {
   return <MemoryLayoutDemo />
 }
 
-function MemoryNav({
+function isNavActive(pathname: string, to: string): boolean {
+  return to === '/app/settings/memory' ? pathname === to : pathname.startsWith(to)
+}
+
+function activeNavLabel(
+  groups: { label: Bi; items: NavEntry[] }[],
+  pathname: string,
+  lang: 'en' | 'fr',
+): string {
+  for (const group of groups) {
+    for (const item of group.items) {
+      if (isNavActive(pathname, item.to)) {
+        return typeof item.label === 'string' ? item.label : pick(item.label, lang)
+      }
+    }
+  }
+  return pick(M.memory_nav_manager, lang)
+}
+
+function MemoryNavPanel({
   groups,
+  onNavigate,
 }: {
   groups: { label: Bi; items: NavEntry[] }[]
+  onNavigate?: (to: string) => void
 }) {
   const { x, lang } = useI18n()
   const navigate = useNavigate()
   const { pathname } = useLocation()
 
-  return (
-    <div className="flex min-h-0 flex-1 overflow-hidden">
-      <nav
-        aria-label={x(M.memory_nav_aria)}
-        className="hidden w-[252px] shrink-0 flex-col overflow-y-auto border-r border-border-soft bg-surface-2 px-[12px] pt-[16px] pb-[20px] md:flex"
-      >
-        <div className="flex items-center gap-[8px] px-[8px] pt-[2px] pb-[12px]">
-          <Brain size={18} strokeWidth={1.7} className="text-gold-fg" aria-hidden="true" />
-          <span className="font-display text-[15px] font-semibold text-text">
-            {x(M.memory_title)}
-          </span>
-        </div>
+  const go = (to: string) => {
+    navigate(to)
+    onNavigate?.(to)
+  }
 
-        {groups.map((group) => (
-          <div key={group.label.en}>
-            <div className="px-[8px] pt-[12px] pb-[5px] text-[10.5px] font-bold tracking-[0.07em] text-text-faint uppercase">
-              {pick(group.label, lang)}
-            </div>
-            {group.items.map((item) => {
-              const active =
-                item.to === '/app/settings/memory' ? pathname === item.to : pathname.startsWith(item.to)
-              const Icon = item.icon
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => navigate(item.to)}
-                  aria-current={active ? 'page' : undefined}
-                  className={`my-px flex w-full cursor-pointer items-center gap-[9px] rounded-[9px] px-[10px] py-[8px] text-left font-sans text-[13px] ${
-                    active
-                      ? 'border border-border-soft bg-surface font-semibold text-text shadow-sm'
-                      : 'border border-transparent bg-transparent font-medium text-text-2'
-                  }`}
-                >
-                  <Icon
-                    size={16}
-                    strokeWidth={1.7}
-                    className="shrink-0 opacity-85"
-                    aria-hidden="true"
-                  />
-                  <span className="min-w-0 flex-1">
-                    <span className="block overflow-hidden text-ellipsis whitespace-nowrap">
-                      {typeof item.label === 'string' ? item.label : pick(item.label, lang)}
-                    </span>
-                    {item.sub && (
-                      <span className="block overflow-hidden text-[11px] font-normal text-ellipsis whitespace-nowrap text-text-faint">
-                        {pick(item.sub, lang)}
-                      </span>
-                    )}
+  return (
+    <>
+      <div className="flex items-center gap-[8px] px-[8px] pt-[2px] pb-[12px]">
+        <Brain size={18} strokeWidth={1.7} className="text-gold-fg" aria-hidden="true" />
+        <span className="font-display text-[15px] font-semibold text-text">
+          {x(M.memory_title)}
+        </span>
+      </div>
+
+      {groups.map((group) => (
+        <div key={group.label.en}>
+          <div className="px-[8px] pt-[12px] pb-[5px] text-[10.5px] font-bold tracking-[0.07em] text-text-faint uppercase">
+            {pick(group.label, lang)}
+          </div>
+          {group.items.map((item) => {
+            const active = isNavActive(pathname, item.to)
+            const Icon = item.icon
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => go(item.to)}
+                aria-current={active ? 'page' : undefined}
+                className={`my-px flex w-full cursor-pointer items-center gap-[9px] rounded-[9px] px-[10px] py-[8px] text-left font-sans text-[13px] ${
+                  active
+                    ? 'border border-border-soft bg-surface font-semibold text-text shadow-sm'
+                    : 'border border-transparent bg-transparent font-medium text-text-2'
+                }`}
+              >
+                <Icon
+                  size={16}
+                  strokeWidth={1.7}
+                  className="shrink-0 opacity-85"
+                  aria-hidden="true"
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="block overflow-hidden text-ellipsis whitespace-nowrap">
+                    {typeof item.label === 'string' ? item.label : pick(item.label, lang)}
                   </span>
-                  {item.badge && (
-                    <span
-                      className={`flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-[100px] px-[5px] text-[10.5px] font-extrabold ${
-                        item.badge.tone === 'risk'
-                          ? 'bg-risk-bg text-risk-fg'
-                          : 'bg-gold-bg text-gold-fg'
-                      }`}
-                    >
-                      {item.badge.value}
+                  {item.sub && (
+                    <span className="block overflow-hidden text-[11px] font-normal text-ellipsis whitespace-nowrap text-text-faint">
+                      {pick(item.sub, lang)}
                     </span>
                   )}
-                </button>
-              )
-            })}
-          </div>
-        ))}
-
-        <div className="flex-1" />
-        <div className="mt-[16px] rounded-[11px] border border-border-soft bg-surface px-[12px] py-[11px]">
-          <div className="mb-[5px] flex items-center gap-[7px]">
-            <ShieldCheck size={15} strokeWidth={1.7} className="text-gold-fg" aria-hidden="true" />
-            <span className="text-[11.5px] font-bold text-text">{x(M.memory_state_on_title)}</span>
-          </div>
-          <div className="text-[11px] leading-normal text-text-faint">
-            {x(M.memory_state_on_note)}
-          </div>
+                </span>
+                {item.badge && (
+                  <span
+                    className={`flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-[100px] px-[5px] text-[10.5px] font-extrabold ${
+                      item.badge.tone === 'risk'
+                        ? 'bg-risk-bg text-risk-fg'
+                        : 'bg-gold-bg text-gold-fg'
+                    }`}
+                  >
+                    {item.badge.value}
+                  </span>
+                )}
+              </button>
+            )
+          })}
         </div>
-      </nav>
+      ))}
 
-      <Outlet />
+      <div className="flex-1" />
+      <div className="mt-[16px] rounded-[11px] border border-border-soft bg-surface px-[12px] py-[11px]">
+        <div className="mb-[5px] flex items-center gap-[7px]">
+          <ShieldCheck size={15} strokeWidth={1.7} className="text-gold-fg" aria-hidden="true" />
+          <span className="text-[11.5px] font-bold text-text">{x(M.memory_state_on_title)}</span>
+        </div>
+        <div className="text-[11px] leading-normal text-text-faint">
+          {x(M.memory_state_on_note)}
+        </div>
+      </div>
+    </>
+  )
+}
+
+function MemoryMobileNavAccess({
+  groups,
+}: {
+  groups: { label: Bi; items: NavEntry[] }[]
+}) {
+  const { x, lang } = useI18n()
+  const { pathname } = useLocation()
+  const mdUp = useMdUp()
+  const [open, setOpen] = useState(false)
+  const currentLabel = activeNavLabel(groups, pathname, lang)
+
+  if (mdUp) return null
+
+  return (
+    <>
+      <div className="shrink-0 border-b border-border-soft bg-surface px-[12px] py-[8px] md:hidden">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label={x(M.memory_open_nav)}
+          className="flex min-h-[44px] w-full cursor-pointer items-center gap-[8px] rounded-[8px] border border-border-soft bg-surface-2 px-[12px] py-[8px] text-left font-sans text-[13px] font-semibold text-text"
+        >
+          <List size={16} strokeWidth={1.8} className="shrink-0 text-text-muted" aria-hidden="true" />
+          <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+            {currentLabel}
+          </span>
+          <ChevronDown size={14} strokeWidth={1.8} className="shrink-0 text-text-muted" aria-hidden="true" />
+        </button>
+      </div>
+
+      {open ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={x(M.memory_nav_aria)}
+          className="fixed inset-0 z-80 flex flex-col bg-surface-2 md:hidden"
+        >
+          <div className="flex shrink-0 items-center justify-between border-b border-border-soft px-[14px] py-[10px]">
+            <h2 className="m-0 font-display text-[16px] font-semibold text-text">
+              {x(M.memory_title)}
+            </h2>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label={x(SM.shell_close_menu)}
+              className="flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-[8px] border-none bg-inset text-text-2"
+            >
+              <X size={18} strokeWidth={2} aria-hidden="true" />
+            </button>
+          </div>
+          <nav
+            aria-label={x(M.memory_nav_aria)}
+            className="flex min-h-0 flex-1 flex-col overflow-y-auto px-[12px] pt-[16px] pb-[max(20px,env(safe-area-inset-bottom))]"
+          >
+            <MemoryNavPanel groups={groups} onNavigate={() => setOpen(false)} />
+          </nav>
+        </div>
+      ) : null}
+    </>
+  )
+}
+
+function MemoryNav({
+  groups,
+}: {
+  groups: { label: Bi; items: NavEntry[] }[]
+}) {
+  const { x } = useI18n()
+  const mdUp = useMdUp()
+
+  return (
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden md:flex-row">
+      <MemoryMobileNavAccess groups={groups} />
+      {mdUp ? (
+        <nav
+          aria-label={x(M.memory_nav_aria)}
+          className="flex w-[252px] shrink-0 flex-col overflow-y-auto border-r border-border-soft bg-surface-2 px-[12px] pt-[16px] pb-[20px]"
+        >
+          <MemoryNavPanel groups={groups} />
+        </nav>
+      ) : null}
+
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <Outlet />
+      </div>
     </div>
   )
 }

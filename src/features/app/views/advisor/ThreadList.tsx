@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import { ChevronDown, MessageCircle, Plus, Star, Trash2 } from 'lucide-react'
+import { ChevronDown, List, MessageCircle, Plus, Star, Trash2, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
+import { shellMessages as SM } from '@/i18n/messages/shell'
+import { useMdUp } from '@/lib/useMediaQuery'
 
 /**
  * Advisor thread list — the prototype shows these chat groups in the sidebar
@@ -16,6 +18,9 @@ import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
  * Older is soft-collapsed by default so long histories don’t dominate.
  * Deletable threads (session + production) get a trash control; demo fixtures
  * stay read-only.
+ *
+ * Below md, the list moves into a full-screen sheet opened from
+ * `ThreadListMobileAccess`.
  */
 
 export interface ThreadListItem {
@@ -44,7 +49,16 @@ export interface ThreadListProps {
   readonly hideNewConversation?: boolean
 }
 
-export function ThreadList({
+function activeThreadTitle(groups: ThreadGroup[], activeChatId: string | null): Bi | null {
+  if (activeChatId === null) return null
+  for (const group of groups) {
+    const match = group.items.find((item) => item.id === activeChatId)
+    if (match) return match.title
+  }
+  return null
+}
+
+function ThreadListPanel({
   groups,
   activeChatId,
   onSelect,
@@ -57,10 +71,7 @@ export function ThreadList({
   const [olderOpen, setOlderOpen] = useState(false)
 
   return (
-    <nav
-      aria-label={x(M.advisorview_threads_aria)}
-      className="hidden w-[248px] shrink-0 flex-col overflow-y-auto border-r border-border-soft px-[10px] pt-[12px] pb-[12px] md:flex"
-    >
+    <>
       {!hideNewConversation ? (
         <button
           type="button"
@@ -183,6 +194,100 @@ export function ThreadList({
           </div>
         )
       })}
+    </>
+  )
+}
+
+/** Desktop thread column (hidden below md). */
+export function ThreadList(props: ThreadListProps) {
+  const { x } = useI18n()
+  const mdUp = useMdUp()
+  if (!mdUp) return null
+
+  return (
+    <nav
+      aria-label={x(M.advisorview_threads_aria)}
+      className="hidden w-[248px] shrink-0 flex-col overflow-y-auto border-r border-border-soft px-[10px] pt-[12px] pb-[12px] md:flex"
+    >
+      <ThreadListPanel {...props} />
     </nav>
+  )
+}
+
+/** Mobile bar + full-screen sheet for thread switching. */
+export function ThreadListMobileAccess(props: ThreadListProps) {
+  const { x } = useI18n()
+  const mdUp = useMdUp()
+  const [open, setOpen] = useState(false)
+  const activeTitle = activeThreadTitle(props.groups, props.activeChatId)
+
+  if (mdUp) return null
+
+  const handleSelect = (chatId: string) => {
+    props.onSelect(chatId)
+    setOpen(false)
+  }
+
+  const handleNew = () => {
+    props.onNewConversation()
+    setOpen(false)
+  }
+
+  return (
+    <>
+      <div className="flex shrink-0 items-center gap-[8px] border-b border-border-soft bg-surface px-[12px] py-[8px] md:hidden">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label={x(M.advisorview_open_threads)}
+          className="flex min-h-[44px] min-w-0 flex-1 cursor-pointer items-center gap-[8px] rounded-[8px] border border-border-soft bg-surface-2 px-[12px] py-[8px] text-left font-sans text-[13px] font-semibold text-text"
+        >
+          <List size={16} strokeWidth={1.8} className="shrink-0 text-text-muted" aria-hidden="true" />
+          <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+            {activeTitle ? x(activeTitle) : x(M.advisorview_threads_aria)}
+          </span>
+          <ChevronDown size={14} strokeWidth={1.8} className="shrink-0 text-text-muted" aria-hidden="true" />
+        </button>
+        {!props.hideNewConversation ? (
+          <button
+            type="button"
+            onClick={handleNew}
+            aria-label={x(M.advisorview_new_conversation)}
+            className="flex min-h-[44px] min-w-[44px] shrink-0 cursor-pointer items-center justify-center rounded-[8px] border-none bg-navy text-white"
+          >
+            <Plus size={18} strokeWidth={2} aria-hidden="true" />
+          </button>
+        ) : null}
+      </div>
+
+      {open ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={x(M.advisorview_threads_aria)}
+          className="fixed inset-0 z-80 flex flex-col bg-surface md:hidden"
+        >
+          <div className="flex shrink-0 items-center justify-between border-b border-border-soft px-[14px] py-[10px]">
+            <h2 className="m-0 font-display text-[16px] font-semibold text-text">
+              {x(M.advisorview_threads_aria)}
+            </h2>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label={x(SM.shell_close_menu)}
+              className="flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-[8px] border-none bg-inset text-text-2"
+            >
+              <X size={18} strokeWidth={2} aria-hidden="true" />
+            </button>
+          </div>
+          <nav
+            aria-label={x(M.advisorview_threads_aria)}
+            className="flex min-h-0 flex-1 flex-col overflow-y-auto px-[10px] pt-[12px] pb-[max(12px,env(safe-area-inset-bottom))]"
+          >
+            <ThreadListPanel {...props} onSelect={handleSelect} onNewConversation={handleNew} />
+          </nav>
+        </div>
+      ) : null}
+    </>
   )
 }

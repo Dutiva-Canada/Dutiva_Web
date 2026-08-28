@@ -55,6 +55,10 @@ export const advisorViewMessages = defineMessages({
   /* ── Thread list ────────────────────────────────────────────────────────── */
   advisorview_new_conversation: { en: 'New conversation', fr: 'Nouvelle conversation' },
   advisorview_threads_aria: { en: 'Conversations', fr: 'Conversations' }, // [FR self-authored]
+  advisorview_open_threads: {
+    en: 'Open conversations',
+    fr: 'Ouvrir les conversations',
+  }, // [FR self-authored]
   advisorview_group_pinned: { en: 'Pinned', fr: 'Épinglé' },
   advisorview_group_today: { en: 'Today', fr: 'Aujourd’hui' },
   advisorview_group_week: { en: 'Previous 7 days', fr: '7 derniers jours' },

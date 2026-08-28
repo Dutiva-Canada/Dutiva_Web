@@ -4,6 +4,7 @@ import { FileText, Search } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { doclibMessages as M } from '@/i18n/messages/doclib'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { useMdUp } from '@/lib/useMediaQuery'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import { DocChip, JurisdictionPill } from '../components'
 import { templateByTid } from '../data'
@@ -65,6 +66,7 @@ function formatUpdated(iso: string, lang: 'en' | 'fr'): string {
 export function RepositoryProductionView() {
   const { x, lang } = useI18n()
   const { organizationId } = useWorkspaceMode()
+  const mdUp = useMdUp()
 
   const [rows, setRows] = useState<ProductionDocument[] | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
@@ -186,54 +188,99 @@ export function RepositoryProductionView() {
         <p className="py-8 text-center text-[13px] text-text-muted">{x(M.doclib_prod_no_match)}</p>
       )}
 
-      {visible.length > 0 && (
-        <div className="overflow-x-auto rounded-[12px] border border-border">
-          <table className="w-full min-w-[640px] border-collapse text-[13px]">
-            <thead className="bg-inset">
-              <tr>
-                <th className={TH_CLASS}>{x(M.doclib_prod_col_ref)}</th>
-                <th className={TH_CLASS}>{x(M.doclib_prod_col_title)}</th>
-                <th className={TH_CLASS}>{x(M.doclib_prod_col_template)}</th>
-                <th className={TH_CLASS}>{x(M.doclib_prod_col_status)}</th>
-                <th className={TH_CLASS}>{x(M.doclib_prod_col_updated)}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visible.map((doc) => {
-                const template = templateByTid.get(doc.templateTid)
-                return (
-                  <tr key={doc.id} className="border-t border-border hover:bg-inset/60">
-                    <td className={`${TD_CLASS} font-mono text-[12px] text-text-muted`}>
-                      <Link to={`/app/documents/${doc.id}`} className="text-text hover:underline">
-                        {doc.ref}
-                      </Link>
-                    </td>
-                    <td className={TD_CLASS}>
-                      <Link
-                        to={`/app/documents/${doc.id}`}
-                        className="font-semibold text-text hover:underline"
-                      >
-                        {x(doc.title)}
-                      </Link>
-                      <div className="mt-0.5">
-                        <JurisdictionPill code={doc.jurisdiction} />
-                      </div>
-                    </td>
-                    <td className={`${TD_CLASS} text-text-muted`}>
-                      {template ? x(template.name) : doc.templateTid}
-                    </td>
-                    <td className={TD_CLASS}>
-                      <DocChip tone={STATUS_TONE[doc.status]}>{x(STATUS_LABEL[doc.status])}</DocChip>
-                    </td>
-                    <td className={`${TD_CLASS} text-text-muted`}>
-                      {formatUpdated(doc.updatedAt, lang)}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+      {visible.length > 0 && mdUp && (
+          <div className="overflow-x-auto rounded-[12px] border border-border">
+            <table className="w-full min-w-[640px] border-collapse text-[13px]">
+              <thead className="bg-inset">
+                <tr>
+                  <th className={TH_CLASS}>{x(M.doclib_prod_col_ref)}</th>
+                  <th className={TH_CLASS}>{x(M.doclib_prod_col_title)}</th>
+                  <th className={TH_CLASS}>{x(M.doclib_prod_col_template)}</th>
+                  <th className={TH_CLASS}>{x(M.doclib_prod_col_status)}</th>
+                  <th className={TH_CLASS}>{x(M.doclib_prod_col_updated)}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visible.map((doc) => {
+                  const template = templateByTid.get(doc.templateTid)
+                  return (
+                    <tr key={doc.id} className="border-t border-border hover:bg-inset/60">
+                      <td className={`${TD_CLASS} font-mono text-[12px] text-text-muted`}>
+                        <Link to={`/app/documents/${doc.id}`} className="text-text hover:underline">
+                          {doc.ref}
+                        </Link>
+                      </td>
+                      <td className={TD_CLASS}>
+                        <Link
+                          to={`/app/documents/${doc.id}`}
+                          className="font-semibold text-text hover:underline"
+                        >
+                          {x(doc.title)}
+                        </Link>
+                        <div className="mt-0.5">
+                          <JurisdictionPill code={doc.jurisdiction} />
+                        </div>
+                      </td>
+                      <td className={`${TD_CLASS} text-text-muted`}>
+                        {template ? x(template.name) : doc.templateTid}
+                      </td>
+                      <td className={TD_CLASS}>
+                        <DocChip tone={STATUS_TONE[doc.status]}>{x(STATUS_LABEL[doc.status])}</DocChip>
+                      </td>
+                      <td className={`${TD_CLASS} text-text-muted`}>
+                        {formatUpdated(doc.updatedAt, lang)}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+      )}
+
+      {visible.length > 0 && !mdUp && (
+          <div className="flex flex-col gap-[10px]">
+            {visible.map((doc) => {
+              const template = templateByTid.get(doc.templateTid)
+              return (
+                <Link
+                  key={doc.id}
+                  to={`/app/documents/${doc.id}`}
+                  className="block rounded-[12px] border border-border bg-surface p-[14px]"
+                >
+                  <div className="text-[13.5px] font-semibold text-text">{x(doc.title)}</div>
+                  <div className="mt-[2px] font-mono text-[11px] text-text-faint">{doc.ref}</div>
+                  <dl className="mt-3 flex flex-col gap-[8px] text-[12px]">
+                    <div className="flex items-center justify-between gap-3">
+                      <dt className="text-[11px] font-bold tracking-[0.03em] text-text-muted uppercase">
+                        {x(M.doclib_prod_col_template)}
+                      </dt>
+                      <dd className="m-0 min-w-0 text-right text-text-2">
+                        {template ? x(template.name) : doc.templateTid}
+                      </dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <dt className="text-[11px] font-bold tracking-[0.03em] text-text-muted uppercase">
+                        {x(M.doclib_prod_col_status)}
+                      </dt>
+                      <dd className="m-0">
+                        <DocChip tone={STATUS_TONE[doc.status]}>{x(STATUS_LABEL[doc.status])}</DocChip>
+                      </dd>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <dt className="shrink-0 text-[11px] font-bold tracking-[0.03em] text-text-muted uppercase">
+                        {x(M.doclib_prod_col_updated)}
+                      </dt>
+                      <dd className="m-0 text-text-muted">{formatUpdated(doc.updatedAt, lang)}</dd>
+                    </div>
+                  </dl>
+                  <div className="mt-2">
+                    <JurisdictionPill code={doc.jurisdiction} />
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
       )}
     </div>
   )

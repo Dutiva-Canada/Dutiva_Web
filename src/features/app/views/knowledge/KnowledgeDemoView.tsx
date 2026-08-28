@@ -33,7 +33,7 @@ export function KnowledgeDemoView() {
   )
 
   return (
-    <AppPage width="comfort">
+    <AppPage width="comfort" responsivePad>
       <input
         value={filter}
         onChange={(e) => setFilter(e.target.value)}

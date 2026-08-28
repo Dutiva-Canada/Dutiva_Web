@@ -31,6 +31,7 @@ import { Card, Section, StatusChip, ToggleRow, ToggleSwitch } from './settingsPr
 import { CapacityAlert } from './CapacityAlert'
 import { SettingsDemoFixtures } from './SettingsDemoFixtures'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { useMdUp } from '@/lib/useMediaQuery'
 import { useAuth } from '@/features/app/auth/authContext'
 import {
   getAdvisorOverageOptIn,
@@ -63,6 +64,7 @@ export function SettingsView() {
   const helpCentrePath = seoRoute('help').path[lang]
   const { theme, setTheme } = useTheme()
   const { showToast } = useToasts()
+  const mdUp = useMdUp()
   const {
     mode: workspaceMode,
     isAdmin,
@@ -156,7 +158,7 @@ export function SettingsView() {
       : provinces.map((prov) => x(prov))
 
   return (
-    <AppPage width="narrow" innerClassName="flex flex-col gap-[26px]">
+    <AppPage width="narrow" responsivePad innerClassName="flex flex-col gap-[26px]">
       {/* Appearance + Language */}
       <div className="flex flex-wrap gap-[16px]">
         <div className="min-w-[220px] flex-1">
@@ -380,29 +382,60 @@ export function SettingsView() {
       {/* Roles & permissions */}
       <Section label={x(M.settings_roles)}>
         <Card>
-          <div className="overflow-x-auto">
-            <div className="min-w-[540px]">
-              <div className="grid grid-cols-[1.4fr_1fr_1fr_1.1fr_1fr] gap-[8px] bg-inset px-[18px] py-[10px] text-[10.5px] font-bold tracking-[0.03em] text-text-muted uppercase">
-                <div>{x(M.settings_col_role)}</div>
-                <div>{x(M.settings_col_records)}</div>
-                <div>{x(M.settings_col_comp)}</div>
-                <div>{x(M.settings_col_cases)}</div>
-                <div>{x(M.settings_col_signals)}</div>
+          {mdUp ? (
+            <div className="overflow-x-auto">
+              <div className="min-w-[540px]">
+                <div className="grid grid-cols-[1.4fr_1fr_1fr_1.1fr_1fr] gap-[8px] bg-inset px-[18px] py-[10px] text-[10.5px] font-bold tracking-[0.03em] text-text-muted uppercase">
+                  <div>{x(M.settings_col_role)}</div>
+                  <div>{x(M.settings_col_records)}</div>
+                  <div>{x(M.settings_col_comp)}</div>
+                  <div>{x(M.settings_col_cases)}</div>
+                  <div>{x(M.settings_col_signals)}</div>
+                </div>
+                {roleRows.map((ro) => (
+                  <div
+                    key={ro.role.en}
+                    className="grid grid-cols-[1.4fr_1fr_1fr_1.1fr_1fr] items-center gap-[8px] border-t border-inset px-[18px] py-[11px] text-[12.5px]"
+                  >
+                    <div className="font-semibold text-text">{x(ro.role)}</div>
+                    <div className="text-text-2">{x(ro.a)}</div>
+                    <div className="text-text-2">{x(ro.b)}</div>
+                    <div className="text-text-2">{x(ro.c)}</div>
+                    <div className="text-text-2">{x(ro.d)}</div>
+                  </div>
+                ))}
               </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-[10px]">
               {roleRows.map((ro) => (
                 <div
                   key={ro.role.en}
-                  className="grid grid-cols-[1.4fr_1fr_1fr_1.1fr_1fr] items-center gap-[8px] border-t border-inset px-[18px] py-[11px] text-[12.5px]"
+                  className="rounded-[11px] border border-inset px-[14px] py-[12px]"
                 >
-                  <div className="font-semibold text-text">{x(ro.role)}</div>
-                  <div className="text-text-2">{x(ro.a)}</div>
-                  <div className="text-text-2">{x(ro.b)}</div>
-                  <div className="text-text-2">{x(ro.c)}</div>
-                  <div className="text-text-2">{x(ro.d)}</div>
+                  <div className="text-[13.5px] font-semibold text-text">{x(ro.role)}</div>
+                  <dl className="mt-[8px] grid grid-cols-1 gap-y-[6px] text-[12px]">
+                    <div className="flex items-baseline justify-between gap-[12px]">
+                      <dt className="text-text-muted">{x(M.settings_col_records)}</dt>
+                      <dd className="m-0 text-right text-text-2">{x(ro.a)}</dd>
+                    </div>
+                    <div className="flex items-baseline justify-between gap-[12px]">
+                      <dt className="text-text-muted">{x(M.settings_col_comp)}</dt>
+                      <dd className="m-0 text-right text-text-2">{x(ro.b)}</dd>
+                    </div>
+                    <div className="flex items-baseline justify-between gap-[12px]">
+                      <dt className="text-text-muted">{x(M.settings_col_cases)}</dt>
+                      <dd className="m-0 text-right text-text-2">{x(ro.c)}</dd>
+                    </div>
+                    <div className="flex items-baseline justify-between gap-[12px]">
+                      <dt className="text-text-muted">{x(M.settings_col_signals)}</dt>
+                      <dd className="m-0 text-right text-text-2">{x(ro.d)}</dd>
+                    </div>
+                  </dl>
                 </div>
               ))}
             </div>
-          </div>
+          )}
           <div className="border-t border-inset px-[18px] py-[10px] text-[11px] text-text-faint">
             {x(M.settings_roles_note)}
           </div>

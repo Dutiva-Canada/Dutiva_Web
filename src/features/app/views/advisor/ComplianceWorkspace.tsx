@@ -40,7 +40,7 @@ import type {
  *
  * Four states: locked (signed out — preview mode), running (routing
  * skeleton), ready (populated payload), idle (thread with no engine turn).
- * Below the xl breakpoint the panel becomes a full-screen sheet toggled from
+ * Below the lg breakpoint the panel becomes a full-screen sheet toggled from
  * the chat header (prototype `dv-ws dv-open`).
  */
 
@@ -168,7 +168,7 @@ export function ComplianceWorkspace({
               type="button"
               onClick={onCloseMobile}
               aria-label={x(M.advws_close_workspace)}
-              className="ml-auto flex cursor-pointer items-center rounded-[8px] border-none bg-inset p-[5px] text-text-2 xl:hidden"
+              className="ml-auto flex cursor-pointer items-center rounded-[8px] border-none bg-inset p-[5px] text-text-2 lg:hidden"
             >
               <X size={18} strokeWidth={2} aria-hidden="true" />
             </button>
@@ -202,7 +202,7 @@ export function ComplianceWorkspace({
       {/* Desktop panel */}
       <aside
         aria-label={x(M.advws_title)}
-        className="hidden w-[384px] shrink-0 overflow-y-auto border-l border-border bg-surface-2 xl:block"
+        className="hidden w-[384px] shrink-0 overflow-y-auto border-l border-border bg-surface-2 lg:block"
       >
         {aside}
       </aside>
@@ -210,7 +210,7 @@ export function ComplianceWorkspace({
       {mobileOpen && (
         <aside
           aria-label={x(M.advws_title)}
-          className="fixed inset-0 z-80 overflow-y-auto bg-surface-2 xl:hidden"
+          className="fixed inset-0 z-80 overflow-y-auto bg-surface-2 lg:hidden"
         >
           {aside}
         </aside>

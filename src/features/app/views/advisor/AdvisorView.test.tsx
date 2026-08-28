@@ -10,7 +10,7 @@ describe('AdvisorView', () => {
      the thinking → streaming → done lifecycle. The signed-in block overrides to
      reduced motion so assertions on long replies don't flake under CPU load. */
   const noReducedMotionMatchMedia = vi.fn((query: string) => ({
-    matches: false,
+    matches: query.includes('min-width:'),
     media: query,
     addListener: vi.fn(),
     removeListener: vi.fn(),
@@ -256,7 +256,8 @@ describe('AdvisorView', () => {
       vi.stubGlobal(
         'matchMedia',
         vi.fn((query: string) => ({
-          matches: query === '(prefers-reduced-motion: reduce)',
+          matches:
+            query.includes('min-width:') || query === '(prefers-reduced-motion: reduce)',
           media: query,
           addListener: vi.fn(),
           removeListener: vi.fn(),

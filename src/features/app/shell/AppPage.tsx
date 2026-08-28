@@ -17,7 +17,7 @@ const WIDTH_CLASS: Record<AppPageWidth, string> = {
   studio: 'max-w-[1240px]',
 }
 
-const PAD_STANDARD = 'px-[32px] pt-[28px] pb-[60px] max-[640px]:px-[16px]'
+const PAD_STANDARD = 'px-[14px] pt-[22px] pb-[60px] sm:px-[32px] sm:pt-[28px]'
 /** Home-style pad — tighter on phones, room for the mobile composer. */
 const PAD_RESPONSIVE = 'px-[14px] pt-[18px] pb-[96px] sm:px-[32px] sm:pt-[26px] sm:pb-[60px]'
 

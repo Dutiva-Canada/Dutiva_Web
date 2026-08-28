@@ -8,6 +8,10 @@ import { defineMessages } from '../core'
 export const memoryMessages = defineMessages({
   memory_title: { en: 'Advisor memory', fr: 'Mémoire du Conseiller' },
   memory_nav_aria: { en: 'Memory navigation', fr: 'Navigation de la mémoire' },
+  memory_open_nav: {
+    en: 'Open memory navigation',
+    fr: 'Ouvrir la navigation mémoire',
+  }, // [FR self-authored]
   memory_nav_memory: { en: 'Memory', fr: 'Mémoire' },
   memory_nav_manager: { en: 'Memory manager', fr: 'Gestionnaire de mémoire' },
   memory_nav_manager_sub: { en: 'Review · edit · forget', fr: 'Réviser · corriger · oublier' },

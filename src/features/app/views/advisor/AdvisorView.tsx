@@ -1,7 +1,7 @@
 import { AdvisorHome } from './AdvisorHome'
 import { ChatPane } from './ChatPane'
 import { ComplianceWorkspace } from './ComplianceWorkspace'
-import { ThreadList } from './ThreadList'
+import { ThreadList, ThreadListMobileAccess } from './ThreadList'
 import { useAdvisorViewController } from './useAdvisorViewController'
 
 /**
@@ -52,17 +52,20 @@ export function AdvisorView() {
     runPriorityAction,
   } = useAdvisorViewController()
 
+  const threadListProps = {
+    groups,
+    activeChatId,
+    onSelect: selectChat,
+    onNewConversation: newConversation,
+    onDelete: deleteConversation,
+    canDelete: canDeleteThread,
+    hideNewConversation: isPublicDemo,
+  } as const
+
   return (
-    <div className="flex min-h-0 flex-1 overflow-hidden">
-      <ThreadList
-        groups={groups}
-        activeChatId={activeChatId}
-        onSelect={selectChat}
-        onNewConversation={newConversation}
-        onDelete={deleteConversation}
-        canDelete={canDeleteThread}
-        hideNewConversation={isPublicDemo}
-      />
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
+      <ThreadListMobileAccess {...threadListProps} />
+      <ThreadList {...threadListProps} />
       {hasActiveChat ? (
         <>
           <ChatPane
