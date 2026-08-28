@@ -6,12 +6,13 @@ import { useI18n } from '@/i18n/context'
 import { createAdvisorCrisisHandlers } from './advisorCrisisHandlers'
 import { createAdvisorScenarioHandlers } from './advisorScenarioHandlers'
 import { createAdvisorThreadNavigation } from './advisorThreadNavigation'
+import { createRealChatFailureHandler } from './advisorProductionChat'
+import { createAdvisorFlowHandlers } from './advisorFlowHandlers'
+import { createAdvisorChatSendHandlers } from './advisorChatSendHandlers'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 import { useAdvisorEngine } from '@/features/app/advisor/useAdvisorEngine'
 import type { AdvisorTurnSpec, ChatMessage, ToneCardData } from '@/features/app/advisor/types'
 import { useAuth } from '@/features/app/auth/authContext'
-import { AdvisorUsageLimitError, sendAdvisorMessage } from '@/features/app/advisor/chatApi'
-import { usageLimitReply } from '@/features/app/advisor/usageLimit'
 import { startAdvisorPackCheckout } from '@/features/app/advisor/packCheckout'
 import type { AdvisorPackSize } from '@/config/advisorUsage'
 import { usePayRail, useWellbeingRail } from '@/features/app/rail/useEntityRails'
@@ -21,40 +22,24 @@ import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeCont
 import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import {
   chats,
-  followupFallbackText,
-  followupReplies,
-  lightFlowFallbackText,
-  lightFlows,
 } from '@/data'
 import type { FixtureAction, FixtureToneCard } from '@/data'
 import type { JurisdictionPillTone } from './ChatPane'
 import {
-  estimatorFollowup,
-  fallbackChips,
-  fallbackIntro,
   flowJurisdictions,
-  flowTitles,
-  freshQuickForm,
-  genericAck,
   terminationAssessment,
-  terminationIntro,
 } from './advisorFlows'
 import {
   routeScenarioFromText,
-  scenarioAck,
-  scenarioAckSignedOut,
 } from './advisorScenarios'
 import type { ScenarioId } from './advisorScenarios'
 import { readNavNewChat, readNavStartFlow } from './advisorNav'
-import { advisorSession } from './advisorSession'
 import type { FlowKeyOrFallback, MessageExtras, SuggestChipSpec } from './advisorFlows'
 import type { HomeAction } from '@/features/app/views/home/homeData'
 import {
   buildAdvisorThreadEntries,
   buildAdvisorThreadGroups,
-  conversationTitle,
   isBackendConversationId,
-  operationalNextStepChips,
   readNavChatId,
   resolveJurisdictionTone,
   resolveScenarioTurn,
@@ -330,32 +315,49 @@ export function useAdvisorViewController() {
     conversationIdRef,
   })
 
-  /* ----------------------------------------------------------- chat flows */
+  const handleRealChatFailure = createRealChatFailureHandler({ pushAdvisor, updateExtras })
 
-  /**
-   * Shared failure handling for the two real-backend send paths.
-   *
-   * A usage limit is not an outage: it answers as an ordinary Advisor turn.
-   * Commercial limits offer prepaid packs. Abuse rails (burst/daily/platform)
-   * stay wait-only. The red error turn is reserved for things that are
-   * actually broken — its Retry button would only earn a second refusal here.
-   */
-  const handleRealChatFailure = (error: unknown) => {
-    if (error instanceof AdvisorUsageLimitError) {
-      const turnId = pushAdvisor({ text: usageLimitReply(error) })
-      if (error.scope === 'commercial') {
-        updateExtras((prev) => ({ ...prev, [turnId]: { advisorPackOffer: true } }))
-      }
-      return
-    }
-    console.error('advisor: real chat request failed', error)
-    pushAdvisor({
-      text: '',
-      isError: true,
-      errorText: M.advisorview_real_chat_error,
-      retryText: M.advisorview_real_chat_retry_prompt,
-    })
-  }
+  const { startFlow } = createAdvisorFlowHandlers({
+    authStatus,
+    organizationId,
+    pushUser,
+    pushAdvisor,
+    updateSessionChats,
+    updateActiveChatId,
+    updateExtras,
+    patchResponseState,
+    setProdThreads,
+    bindBackendConversationId,
+    engineReset: () => engine.reset([]),
+    stashActive,
+    conversationIdRef,
+    interceptCrisis,
+    toToneCard,
+    setSendingReal,
+    handleRealChatFailure,
+  })
+  startFlowRef.current = startFlow
+
+  const { sendInThread, handleFollowup } = createAdvisorChatSendHandlers({
+    authStatus,
+    organizationId,
+    getActiveChatId: () => activeChatId,
+    getResponseState: () => responseState,
+    pushUser,
+    pushAdvisor,
+    patchResponseState,
+    setProdThreads,
+    updateExtras,
+    bindBackendConversationId,
+    conversationIdRef,
+    interceptCrisis,
+    toToneCard,
+    setSendingReal,
+    handleRealChatFailure,
+    showToast,
+  })
+
+  /* ----------------------------------------------------------- chat flows */
 
   const handleBuyAdvisorPack = (pack: AdvisorPackSize) => {
     if (buyingAdvisorPack) return
@@ -375,192 +377,6 @@ export function useAdvisorViewController() {
       .finally(() => {
         setBuyingAdvisorPack(null)
       })
-  }
-
-  const startFlow = (flowKey: FlowKeyOrFallback, userText: LText) => {
-    stashActive()
-    const id = `session-${advisorSession.nextChatSeq++}`
-    const userTextString = typeof userText === 'string' ? userText : userText.en
-    const title =
-      flowKey === 'fallback'
-        ? conversationTitle([{ role: 'user', content: userTextString }])
-        : flowTitles[flowKey]
-    updateSessionChats((prev) => [{ id, title, pinned: false, bucket: 'today', flowKey }, ...prev])
-    updateActiveChatId(id)
-    conversationIdRef.current = null
-    engine.reset([])
-    pushUser(userText)
-
-    /* Before flow routing: a crisis phrase containing a flow keyword (e.g.
-       "terminate") must not launch the termination quick-form. The thread
-       sheds its flow framing too — it is a support thread now. */
-    const raw = typeof userText === 'string' ? userText : `${userText.en}\n${userText.fr}`
-    if (interceptCrisis(raw, id)) {
-      updateSessionChats((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, title: M.advisorview_crisis_thread_title } : c)),
-      )
-      return
-    }
-
-    if (flowKey === 'termination') {
-      const turnId = pushAdvisor({
-        text: terminationIntro.text,
-        reasoning: terminationIntro.reasoning,
-      })
-      updateExtras((prev) => ({ ...prev, [turnId]: { quickForm: freshQuickForm() } }))
-      return
-    }
-    if (flowKey === 'fallback') {
-      /* Free text that matched no known flow keyword. Signed in: ask the
-         real backend instead of the scripted "point you in the right
-         direction" chips — same pattern as sendInThread. Signed out (or on
-         failure): the original scripted fallback, unchanged. */
-      if (authStatus === 'signed-in') {
-        setSendingReal(true)
-        void sendAdvisorMessage(userTextString, conversationIdRef.current, organizationId)
-          .then((result) => {
-            bindBackendConversationId(id, result.conversationId)
-            const stateChatId =
-              id.startsWith('session-') && result.conversationId !== id ? result.conversationId : id
-            const reply = result.reply || genericAck
-            const turnId = pushAdvisor({ text: reply })
-            patchResponseState(stateChatId, { response: result.response })
-            setProdThreads((prev) =>
-              prev.map((t) =>
-                t.id === stateChatId || t.id === result.conversationId
-                  ? {
-                      ...t,
-                      lastAdvisorResponse: result.response,
-                      updatedAt: new Date().toISOString(),
-                    }
-                  : t,
-              ),
-            )
-            const replyText = typeof reply === 'string' ? reply : reply.en
-            const navChips = operationalNextStepChips(userTextString, replyText)
-            updateExtras((prev) => ({
-              ...prev,
-              [turnId]: {
-                ...prev[turnId],
-                ...(result.response?.memory != null ? { memory: result.response.memory } : {}),
-                ...(navChips.length > 0 ? { navChips } : {}),
-              },
-            }))
-          })
-          .catch(handleRealChatFailure)
-          .finally(() => setSendingReal(false))
-        return
-      }
-      const turnId = pushAdvisor({ text: fallbackIntro })
-      updateExtras((prev) => ({ ...prev, [turnId]: { suggestChips: fallbackChips } }))
-      return
-    }
-    const flow = lightFlows[flowKey]
-    if (!flow) {
-      pushAdvisor({ text: lightFlowFallbackText })
-      return
-    }
-    const turnId = pushAdvisor({
-      text: flow.text,
-      reasoning: flow.reasoning,
-      cards: flow.cards?.map(toToneCard),
-    })
-    if ((flow.docs?.length ?? 0) > 0 || (flow.followups?.length ?? 0) > 0) {
-      updateExtras((prev) => ({
-        ...prev,
-        [turnId]: { docs: flow.docs, followups: flow.followups },
-      }))
-    }
-  }
-  startFlowRef.current = startFlow
-
-  /**
-   * Free-form send inside an active thread (prototype `sendComposer`).
-   * Demo scenario threads keep the prototype's scripted acknowledgements.
-   * Signed in elsewhere: routes to the real advisor-chat backend (see
-   * chatApi.ts); a structured payload on the result replaces the thread's
-   * workspace payload — and its absence clears it (fresh turn context).
-   * Otherwise (or on failure): the prototype's canned acknowledgement.
-   */
-  const sendInThread = (text: string) => {
-    const chatId = activeChatId
-    pushUser(text)
-    /* Before the scenario/auth branches — scripted threads must not answer a
-       crisis message with a canned acknowledgement either. */
-    if (interceptCrisis(text, chatId)) return
-    const isScenarioThread = chatId !== null && responseState[chatId]?.scenarioId != null
-    if (isScenarioThread) {
-      pushAdvisor({ text: authStatus === 'signed-in' ? scenarioAck : scenarioAckSignedOut })
-      return
-    }
-    if (authStatus !== 'signed-in') {
-      pushAdvisor({ text: genericAck })
-      return
-    }
-    setSendingReal(true)
-    void sendAdvisorMessage(text, conversationIdRef.current, organizationId)
-      .then((result) => {
-        bindBackendConversationId(chatId, result.conversationId)
-        const stateChatId =
-          chatId !== null && chatId.startsWith('session-') && result.conversationId !== chatId
-            ? result.conversationId
-            : chatId
-        const replyPayload = result.reply || genericAck
-        const turnId = pushAdvisor({ text: replyPayload })
-        if (stateChatId !== null) {
-          patchResponseState(stateChatId, { response: result.response })
-          setProdThreads((prev) =>
-            prev.map((t) =>
-              t.id === stateChatId || t.id === result.conversationId
-                ? {
-                    ...t,
-                    lastAdvisorResponse: result.response,
-                    updatedAt: new Date().toISOString(),
-                  }
-                : t,
-            ),
-          )
-        }
-        const replyText = typeof replyPayload === 'string' ? replyPayload : replyPayload.en
-        const navChips = operationalNextStepChips(text, replyText)
-        updateExtras((prev) => ({
-          ...prev,
-          [turnId]: {
-            ...prev[turnId],
-            ...(result.response?.memory != null ? { memory: result.response.memory } : {}),
-            ...(navChips.length > 0 ? { navChips } : {}),
-          },
-        }))
-      })
-      .catch(handleRealChatFailure)
-      .finally(() => setSendingReal(false))
-  }
-
-  /** Follow-up chip click (prototype `handleFollowup`). */
-  const handleFollowup = (labelEn: string) => {
-    if (labelEn === estimatorFollowup.labelEn) {
-      pushAdvisor({
-        text: '',
-        isError: true,
-        errorText: estimatorFollowup.errorText,
-        retryText: estimatorFollowup.retryText,
-      })
-      return
-    }
-    const reply = followupReplies[labelEn]
-    if (!reply) {
-      pushAdvisor({ text: followupFallbackText })
-      return
-    }
-    const turnId = pushAdvisor({
-      text: reply.text,
-      reasoning: reply.reasoning,
-      cards: reply.cards?.map(toToneCard),
-    })
-    if ((reply.docs?.length ?? 0) > 0) {
-      updateExtras((prev) => ({ ...prev, [turnId]: { docs: reply.docs } }))
-    }
-    if (reply.isEscalation === true) showToast(M.advisorview_toast_counsel, 'ok')
   }
 
   /* ------------------------------------------------------------ quick form */
