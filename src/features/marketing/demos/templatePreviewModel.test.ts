@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { buildTemplatePreview, templateByTid } from './templatePreviewModel'
+import { mergeSegments } from '@/features/app/documents/engine'
+import { buildTemplatePreview, demoAnswerDisplay, templateByTid } from './templatePreviewModel'
 
 describe('templatePreviewModel', () => {
   it('resolves preview blocks for featured templates', () => {
@@ -11,5 +12,18 @@ describe('templatePreviewModel', () => {
       expect(preview!.blocks.length).toBeGreaterThan(0)
       expect(preview!.values.employee_name).toBe('Jordan Mensah')
     }
+  })
+
+  it('formats T01 demo dates and vacation weeks like the live wizard', () => {
+    expect(demoAnswerDisplay('T01', 'start_date', 'en')).toBe('September 15, 2026')
+    expect(demoAnswerDisplay('T01', 'vacation_weeks', 'en')).toBe('3 weeks')
+    const preview = buildTemplatePreview('T01', 'en')
+    const roleClause = preview!.blocks.find((block) => block.heading?.en === 'Role, start date and reporting')
+    const body = mergeSegments(roleClause?.text?.en ?? '', preview!.values)
+      .map((segment) => segment.text)
+      .join('')
+    expect(body).toContain('September 15, 2026')
+    expect(body).toContain('Director of Operations')
+    expect(body).not.toContain('2026-09-15')
   })
 })

@@ -84,9 +84,25 @@ export function computedTokens(
   }
 }
 
+const ISO_DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/
+
+/** Long-form calendar date for merge fields — matches `today` in the wizard. */
+export function formatDateAnswer(iso: string, lang: Lang): string {
+  const trimmed = iso.trim()
+  if (!ISO_DATE_RE.test(trimmed)) return iso
+  const date = new Date(`${trimmed}T12:00:00`)
+  if (Number.isNaN(date.getTime())) return iso
+  return date.toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+}
+
 /**
- * Wizard answers with every `select` answer replaced by that option's label in
- * the document's language.
+ * Wizard answers with every `select`/`radio` answer replaced by that option's
+ * label in the document's language, and every `date` answer rendered in long
+ * form instead of raw ISO.
  *
  * A select stores `option.value`, and `mergeSegments` inserts whatever it is
  * given verbatim — so without this, a merged select renders its stored value
@@ -94,6 +110,9 @@ export function computedTokens(
  * internal key (`no_plans`), and even where it is prose it is one language's
  * prose, so a French document renders "2 weeks" where the option's own French
  * label says "2 semaines".
+ *
+ * Date inputs store `YYYY-MM-DD`; without formatting, a start date reads
+ * `2026-09-15` beside a letter date of "August 27, 2026".
  *
  * Both were live before Ring 3 — T01, T08, T10, T11, T16, T22 and T23 all
  * merge a select — which is why this is fixed here rather than worked around
@@ -107,9 +126,13 @@ export function answerLabels(
 ): Record<string, string> {
   const resolved: Record<string, string> = { ...answers }
   for (const question of template.questions) {
-    if (!question.options) continue
     const answer = answers[question.id]
-    if (answer === undefined) continue
+    if (answer === undefined || answer === '') continue
+    if (question.type === 'date') {
+      resolved[question.id] = formatDateAnswer(answer, lang)
+      continue
+    }
+    if (!question.options) continue
     const option = question.options.find((o) => o.value === answer)
     if (option) resolved[question.id] = pick(option.label, lang)
   }
