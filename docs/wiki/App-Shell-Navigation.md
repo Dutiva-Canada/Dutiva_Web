@@ -23,6 +23,7 @@ The following files were used as context for generating this wiki page:
 - [src/features/app/shell/SidebarSection.tsx](src/features/app/shell/SidebarSection.tsx)
 - [src/features/app/shell/SidebarTooltip.tsx](src/features/app/shell/SidebarTooltip.tsx)
 - [src/features/app/shell/Topbar.tsx](src/features/app/shell/Topbar.tsx)
+- [src/lib/keyboardShortcut.ts](src/lib/keyboardShortcut.ts)
 - [src/features/app/shell/WorkspaceContextBanner.tsx](src/features/app/shell/WorkspaceContextBanner.tsx)
 - [src/features/app/shell/navConfig.ts](src/features/app/shell/navConfig.ts)
 - [src/features/app/views/memory/MemoryFactRow.tsx](src/features/app/views/memory/MemoryFactRow.tsx)
@@ -88,8 +89,8 @@ The `useLayoutMode` hook returns one of three modes based on CSS media queries:
 
 | LayoutMode | Breakpoint | Sidebar | Topbar | Bottom Nav |
 |------------|-----------|---------|--------|------------|
-| `desktop`  | ≥ 1024px  | expanded or compact (user toggle) | `Topbar` | — |
-| `tablet`   | 768–1023px | compact (always) | `Topbar` | — |
+| `desktop`  | ≥ 1024px  | expanded or compact (user toggle) | `Topbar` + sidebar toggle | — |
+| `tablet`   | 768–1023px | compact by default; same expand toggle + `localStorage` as desktop ([#280](https://github.com/Dutiva-Canada/Dutiva_Web/pull/280)) | `Topbar` + sidebar toggle | — |
 | `mobile`   | < 768px   | drawer (slide-in) | `MobileTopbar` | `MobileNav` |
 
 The `currentLayoutMode()` function uses `window.matchMedia` queries, and `useLayoutMode` listens for `change` events on both media queries to re-evaluate on resize/rotation.
@@ -103,16 +104,20 @@ The `AppShell` combines `LayoutMode` with a persisted user preference to produce
 ```
 sidebarMode = 'compact'                       // default
 if (isMobile)         sidebarMode = 'drawer'
-else if (desktop && sidebarExpanded) sidebarMode = 'expanded'
+else if (sidebarExpanded) sidebarMode = 'expanded'
 ```
 
-The expanded preference is stored under `dutiva.sidebar.expanded.v1` via `readPref`/`writePref` from `@/lib/prefs`.
+The expanded preference is stored under `dutiva.sidebar.expanded.v1` via `readPref`/`writePref` from `@/lib/prefs`. Toggle via footer `SidebarCollapseButton`, **topbar** `PanelLeftOpen`/`PanelLeftClose` button, or **`Ctrl+\` / `⌘\`** (desktop and tablet only).
+
+Rail width animates with `transition-[width] duration-200`; nav label opacity/transform uses matched expand/collapse timing ([#280](https://github.com/Dutiva-Canada/Dutiva_Web/pull/280)).
 
 [src/features/app/shell/AppShell.tsx:29-44](), [src/features/app/shell/AppShell.tsx:123-125]()
 
 ### Drawer Transition
 
 On mobile, the sidebar opens as a drawer with a scrim overlay. `useDrawerTransition` manages a two-phase mount/enter state machine to enable CSS-driven slide-in/out animations (220ms duration). The drawer is wrapped in a `<dialog>` element with `aria-modal="true"` and supports `Escape` dismissal via `useEscapeToClose` from the shared escape stack.
+
+Opening the drawer moves focus to the header close button (44px target). Closing restores focus to whichever control opened it — topbar hamburger or bottom **More** tab ([#280](https://github.com/Dutiva-Canada/Dutiva_Web/pull/280)).
 
 [src/features/app/shell/AppShell.tsx:46-68](), [src/features/app/shell/AppShell.tsx:172-195]()
 
@@ -166,9 +171,9 @@ The `Sidebar` component (`src/features/app/shell/Sidebar.tsx`) accepts a `Sideba
 
 [src/features/app/shell/SidebarHeader.tsx:1-60]()
 
-### SidebarSearch (⌘K)
+### SidebarSearch (⌘K / Ctrl+K)
 
-`SidebarSearch` renders a search trigger that calls `openSearch()` from the `SearchContext`. In expanded mode, it shows a full-width button with "Search" label and a `⌘K` shortcut hint. In compact mode, it renders as an icon-only button with a tooltip.
+`SidebarSearch` renders a search trigger that calls `openSearch()` from the `SearchContext`. In expanded mode, it shows a full-width button with "Search" label and a platform-aware shortcut hint via `searchShortcutLabel()` from `@/lib/keyboardShortcut` (`⌘K` on Apple, `CtrlK` on Windows/Linux). In compact mode, it renders as an icon-only button with a tooltip.
 
 The `SearchProvider` registers a global `keydown` listener that opens the search overlay on `⌘K` / `Ctrl+K`.
 
@@ -188,6 +193,8 @@ The `SearchProvider` registers a global `keydown` listener that opens the search
 | Communication | `communication` | — | Disabled |
 
 Disabled items show an "Unavailable" badge and have `aria-disabled="true"` with a shared `aria-describedby` pointing to a hidden description. The menu supports full keyboard navigation: `ArrowUp`/`ArrowDown` for item focus, `Escape` to close with focus return to the trigger button.
+
+In **compact** sidebar mode, the panel anchors to `left-full ml-2` beside the 64px rail so the menu is not clipped off-screen ([#280](https://github.com/Dutiva-Canada/Dutiva_Web/pull/280)).
 
 [src/features/app/shell/SidebarCreateMenu.tsx:9-46](), [src/features/app/shell/SidebarCreateMenu.tsx:73-102]()
 
@@ -407,9 +414,9 @@ Sources: [src/features/app/shell/SidebarFooter.tsx:1-186](), [src/features/suppo
 
 ## SidebarCollapseButton
 
-Available only on desktop (not in drawer mode), `SidebarCollapseButton` toggles between expanded and compact sidebar. It renders `PanelLeftClose` (when expanded) or `PanelLeftOpen` (when compact), with bilingual aria labels `shell_collapse_sidebar` / `shell_expand_sidebar`.
+Available on desktop and tablet (not in drawer mode), `SidebarCollapseButton` toggles between expanded and compact sidebar. It renders `PanelLeftClose` (when expanded) or `PanelLeftOpen` (when compact), with bilingual aria labels `shell_collapse_sidebar` / `shell_expand_sidebar`. The same toggle is duplicated in `Topbar` for discoverability.
 
-[src/features/app/shell/SidebarCollapseButton.tsx:1-44]()
+[src/features/app/shell/SidebarCollapseButton.tsx:1-44](), [src/features/app/shell/Topbar.tsx]()
 
 ## Topbar
 
@@ -417,6 +424,7 @@ The `Topbar` component renders on desktop and tablet layouts (≥ 768px). It occ
 
 | Element | Description |
 |---------|-------------|
+| Sidebar toggle | `PanelLeftOpen` / `PanelLeftClose` — same preference as footer collapse button ([#280](https://github.com/Dutiva-Canada/Dutiva_Web/pull/280)) |
 | Route title | `<h1>` displaying the current view/module label |
 | "Ask Advisor" button | Gold-bordered button opening the contextual `AdvisorRail` (hidden on `/app/advisor`) |
 | `LangToggle` | EN/FR segmented pill |

@@ -20,7 +20,8 @@ The following files were used as context for generating this wiki page:
 - [src/features/marketing/sections/Guides.tsx](src/features/marketing/sections/Guides.tsx)
 - [src/features/marketing/sections/Hero.tsx](src/features/marketing/sections/Hero.tsx)
 - [src/features/marketing/sections/HowItWorks.tsx](src/features/marketing/sections/HowItWorks.tsx)
-- [src/features/marketing/sections/IconChip.tsx](src/features/marketing/sections/IconChip.tsx)
+- [src/features/marketing/sections/LandingDemoPath.tsx](src/features/marketing/sections/LandingDemoPath.tsx)
+- [src/features/marketing/sections/WorkspaceModuleDemos.tsx](src/features/marketing/sections/WorkspaceModuleDemos.tsx)
 - [src/i18n/messages/faq.ts](src/i18n/messages/faq.ts)
 - [src/i18n/messages/landing.ts](src/i18n/messages/landing.ts)
 - [supabase/functions/create-beta-signup/index.ts](supabase/functions/create-beta-signup/index.ts)
@@ -81,7 +82,15 @@ Sources: [src/app/routes.tsx:71-99]()
 
 ## Landing Page, Pricing & Beta Signup
 
-The `LandingPage` component composes sections in a fixed sequence: `Hero` → `TrustStrip` → `HowItWorks` → `Workflows` → `Product` → `Modules` → `WhyDutiva` → `Coverage` → `Pricing` → `Guides` → `BetaSignup` → `Footer`. The hero embeds a static `AdvisorDemo` mock with links into `/demo/advisor`; `DocumentStudioDemo` and other mini-simulations route into the public demo workspace. Copy comes from the `landing` i18n message module via `useLanding()`.
+The `LandingPage` component composes sections in a fixed sequence: `Hero` → `TrustStrip` → `HowItWorks` → `HomeFaq` → `Workflows` → `WhyDutiva` → `Product` → **`WorkspaceModuleDemos`** (`#workspace`) → `TestimonialWall` → `Coverage` → `Pricing` → `Guides` → `BetaSignup` → `Footer`.
+
+The unified **`#workspace`** section ([#279](https://github.com/Dutiva-Canada/Dutiva_Web/pull/279), [#280](https://github.com/Dutiva-Canada/Dutiva_Web/pull/280)) combines:
+- Three static preview cards (Analytics, Cases, Communications) with Northgate fixture slices from `workspaceDemoFixtures.ts` — marketing-owned, no `@/data` import
+- A horizontal **guided tour** pill row (`LandingDemoPath`) mirroring `DEMO_TOUR_STOPS` on `/demo`
+- **Module chips** linking into `/demo/{module}` — Analytics and Communications highlighted in gold
+- Canonical CTA copy: **"Open in demo"** / **"Ouvrir dans la démo"** (`landing_open_in_demo`) site-wide
+
+The hero embeds a static `AdvisorDemo` mock; `DocumentStudioDemo` and workspace previews route into the public demo workspace. Copy comes from the `landing` i18n message module via `useLanding()`.
 
 Sources: [src/features/marketing/LandingPage.tsx:25-47](), [src/features/marketing/useLanding.ts:27-32]()
 
@@ -104,6 +113,8 @@ Marketing pages use shared responsive utilities in `src/features/marketing/landi
 - **Cookie banner** — opaque marketing surface tokens (`surface-marketing` / `bg-bg-elevated` via `surfaces.css` overlay aliases, [#274](https://github.com/Dutiva-Canada/Dutiva_Web/pull/274)); full-width accept/decline on narrow screens; `body.consent-banner-open` bottom padding
 - **`/templates` samples** — click-to-reveal cards open a portaled, centered modal (not inline expansion); safe-area insets on the dialog; modal backdrop and panel use the same opaque marketing tokens ([#272](https://github.com/Dutiva-Canada/Dutiva_Web/pull/272)–[#273](https://github.com/Dutiva-Canada/Dutiva_Web/pull/273), [#274](https://github.com/Dutiva-Canada/Dutiva_Web/pull/274))
 - **Advisor / Document Studio demos** — truncated chips, stacked footers, hidden non-essential badges on the smallest breakpoints
+- **`#workspace` preview grid** — 1 column on phone, 2 on tablet (`md`), 3 on desktop (`xl`); attention rows stack vertically on narrow viewports; 44px tap targets on demo links ([#279](https://github.com/Dutiva-Canada/Dutiva_Web/pull/279))
+- **Beta signup** — late-page "Open in demo" link for scrollers who skip the hero ([#280](https://github.com/Dutiva-Canada/Dutiva_Web/pull/280))
 
 Sources: [src/features/marketing/landing.css](), [src/features/marketing/demos/TemplateSamplePanel.tsx](), [src/features/marketing/analytics/ConsentBanner.tsx](), [src/features/marketing/sections/Hero.tsx]()
 
