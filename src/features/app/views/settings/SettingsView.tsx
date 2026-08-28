@@ -4,7 +4,6 @@ import { ExternalLink, LifeBuoy, ShieldCheck } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { supportChannel } from '@/config/support'
 import { pickL } from '@/i18n/core'
-import type { Bi } from '@/i18n/core'
 import { useTheme } from '@/lib/themeContext'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
@@ -19,7 +18,6 @@ import {
 } from '@/features/app/documents/signingReminderSettingsApi'
 import {
   aiToggles,
-  auditEvents,
   initialPrefs,
   notificationToggles,
   provinces,
@@ -27,11 +25,11 @@ import {
   roleRows,
   securityRows,
   segClass,
-  team,
 } from './settingsData'
-import type { ChipTone, PrefKey } from './settingsData'
+import type { PrefKey } from './settingsData'
 import { Card, Section, StatusChip, ToggleRow, ToggleSwitch } from './settingsPrimitives'
 import { CapacityAlert } from './CapacityAlert'
+import { SettingsDemoFixtures } from './SettingsDemoFixtures'
 import { AppPage } from '@/features/app/shell/AppPage'
 import { useAuth } from '@/features/app/auth/authContext'
 import {
@@ -74,7 +72,6 @@ export function SettingsView() {
   } = useWorkspaceMode()
 
   const [prefs, setPrefs] = useState<Record<PrefKey, boolean>>(initialPrefs)
-  const [integrationError, setIntegrationError] = useState(true)
   /* Device-local export audit trail (src/lib/exportProtection) — read once
      per mount; the workspace-wide copy lives in export_events server-side. */
   const [exportTrail] = useState(() => readExportAudit().slice(0, 8))
@@ -151,33 +148,12 @@ export function SettingsView() {
     .replaceAll('{price}', String(ADVISOR_OVERAGE_PER_REPLY_CAD))
     .replaceAll('{cap}', String(ADVISOR_OVERAGE_MONTHLY_CAP))
 
-  const retryIntegration = () => {
-    setIntegrationError(false)
-    showToast(M.settings_toast_reconnected, 'ok')
-  }
-
   /* Production shows the real profile's single operating region; demo keeps
      the Northgate fixture chips. */
   const provinceChips: string[] =
     workspaceMode === 'production'
       ? [identity.province ?? 'Ontario']
       : provinces.map((prov) => x(prov))
-
-  const integrations: { t: Bi; status: Bi; tone: ChipTone; error: boolean }[] = [
-    { t: M.settings_int_esign, status: M.settings_int_connected_f, tone: 'success', error: false },
-    {
-      t: M.settings_int_payroll,
-      status: M.settings_int_connected_m,
-      tone: 'success',
-      error: false,
-    },
-    {
-      t: M.settings_int_calendar,
-      status: integrationError ? M.settings_int_error : M.settings_int_connected_f,
-      tone: integrationError ? 'risk' : 'success',
-      error: integrationError,
-    },
-  ]
 
   return (
     <AppPage width="narrow" innerClassName="flex flex-col gap-[26px]">
@@ -345,27 +321,7 @@ export function SettingsView() {
         </div>
       </Section>
 
-      {/* Users & team — fixture people; production has no team records yet. */}
-      {workspaceMode !== 'production' && (
-        <Section label={x(M.settings_team)}>
-          <Card>
-            {team.map((m) => (
-              <div
-                key={m.initials}
-                className="flex items-center gap-[12px] border-t border-inset px-[18px] py-[13px]"
-              >
-                <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-accent-soft text-[12px] font-bold text-accent">
-                  {m.initials}
-                </div>
-                <div>
-                  <div className="text-[13.5px] font-semibold text-text">{pickL(m.name, lang)}</div>
-                  <div className="text-[12px] text-text-muted">{x(m.role)}</div>
-                </div>
-              </div>
-            ))}
-          </Card>
-        </Section>
-      )}
+      {workspaceMode !== 'production' && <SettingsDemoFixtures />}
 
       {/* Notifications */}
       <Section label={x(M.settings_notifications)}>
@@ -486,45 +442,6 @@ export function SettingsView() {
         </Card>
       </Section>
 
-      {/* Integrations & billing — fixture connections/plan; production has
-            no real integrations wired yet. */}
-      {workspaceMode !== 'production' && (
-        <Section label={x(M.settings_integrations)}>
-          <Card>
-            {integrations.map((ig) => (
-              <div
-                key={ig.t.en}
-                className="flex items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[12px]"
-              >
-                <div className="text-[13px] font-semibold text-text">{x(ig.t)}</div>
-                <div className="flex items-center gap-[8px]">
-                  <StatusChip tone={ig.tone}>{x(ig.status)}</StatusChip>
-                  {ig.error && (
-                    <button
-                      type="button"
-                      onClick={retryIntegration}
-                      className="cursor-pointer rounded-[8px] border-none bg-accent-soft px-[12px] py-[6px] font-sans text-[12px] font-bold text-accent"
-                    >
-                      {x(M.settings_int_retry)}
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-            <div className="flex items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[12px]">
-              <div className="text-[13px] font-semibold text-text">{x(M.settings_billing)}</div>
-              <button
-                type="button"
-                onClick={() => showToast(M.settings_toast_billing, 'ok')}
-                className="cursor-pointer rounded-[8px] border border-border bg-surface px-[12px] py-[6px] font-sans text-[12px] font-bold text-text"
-              >
-                {x(M.settings_billing_btn)}
-              </button>
-            </div>
-          </Card>
-        </Section>
-      )}
-
       {/* Export activity — the real device-local export trail, both modes
             (unlike the fixture audit log below: these are actual events). */}
       <Section label={x(XP.exportprot_audit_section)}>
@@ -554,29 +471,6 @@ export function SettingsView() {
           </div>
         </Card>
       </Section>
-
-      {/* Audit log — fixture events; production starts with an empty log. */}
-      {workspaceMode !== 'production' && (
-        <Section label={x(M.settings_audit)}>
-          <Card>
-            {auditEvents.map((ev) => (
-              <div
-                key={ev.text.en}
-                className="flex items-start gap-[12px] border-t border-inset px-[18px] py-[11px]"
-              >
-                <StatusChip tone={ev.tone}>{x(ev.kind)}</StatusChip>
-                <div className="min-w-0 flex-1 text-[12.5px] leading-normal text-text-2">
-                  {x(ev.text)}
-                </div>
-                <span className="shrink-0 text-[11.5px] text-text-faint">{x(ev.when)}</span>
-              </div>
-            ))}
-            <div className="border-t border-inset px-[18px] py-[10px] text-[11px] text-text-faint">
-              {x(M.settings_audit_note)}
-            </div>
-          </Card>
-        </Section>
-      )}
 
       {/* Help & support — the account surface had no support entry point at
             all, so the only in-app route to a ticket was the sidebar profile
