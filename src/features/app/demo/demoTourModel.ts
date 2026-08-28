@@ -55,4 +55,22 @@ export const DEMO_TOUR_STOPS: readonly DemoTourStop[] = [
       'Ouvrez un dossier de cessation avec notes, documents et contexte du Conseiller.',
     ),
   },
+  {
+    id: 'analytics',
+    pathSuffix: 'analytics',
+    title: bi('Analytics', 'Analytique'),
+    blurb: bi(
+      'Compliance score, trend, and a queue of what needs attention.',
+      'Score de conformité, tendance et file de ce qui demande attention.',
+    ),
+  },
+  {
+    id: 'communications',
+    pathSuffix: 'communications',
+    title: bi('Communications', 'Communications'),
+    blurb: bi(
+      'Review a draft before send — tone, clarity, and policy alignment.',
+      'Révisez une ébauche avant l’envoi — ton, clarté et cohérence avec les politiques.',
+    ),
+  },
 ]
