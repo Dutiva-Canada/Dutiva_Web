@@ -55,9 +55,9 @@ export function ConsentBanner() {
     <div
       role="region"
       aria-label={L('Cookie consent', 'Consentement aux témoins')}
-      className="fixed inset-x-0 bottom-0 z-50 px-4 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))]"
+      className="surface-marketing dutiva-surface fixed inset-x-0 bottom-0 z-50 px-4 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))]"
     >
-      <div className="mx-auto flex max-w-[880px] flex-col gap-4 rounded-xl border border-border bg-bg p-5 shadow-lg sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex max-w-[880px] flex-col gap-4 rounded-xl border border-border bg-bg-elevated p-5 shadow-modal sm:flex-row sm:items-center sm:justify-between">
         <p className="max-w-[64ch] text-sm leading-[1.6] text-text-2">
           {L(
             'We use necessary cookies to operate Dutiva, plus optional analytics to understand how the site is used. Analytics remain disabled until you accept.',
