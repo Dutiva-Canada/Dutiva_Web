@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { readFileSync } from 'node:fs'
 import { renderSupportEmail } from './templates'
 import type { EmailContext, NotificationKind } from './templates'
+
+function raw(glob: Record<string, string>, suffix: string): string {
+  const hit = Object.entries(glob).find(([path]) => path.endsWith(suffix))
+  if (!hit) throw new Error(`${suffix} not found`)
+  return hit[1]
+}
 
 const ctx = (overrides: Partial<EmailContext> = {}): EmailContext => ({
   language: 'en',
@@ -126,9 +131,13 @@ describe('renderSupportEmail', () => {
   })
 
   it('keeps the edge worker mirror aware of beta notification kinds', () => {
-    const edgeWorker = readFileSync(
-      new URL('../../../../supabase/functions/support-notify/index.ts', import.meta.url),
-      'utf8',
+    const edgeWorker = raw(
+      import.meta.glob('../../../../supabase/functions/support-notify/index.ts', {
+        query: '?raw',
+        import: 'default',
+        eager: true,
+      }),
+      'support-notify/index.ts',
     )
     expect(edgeWorker).toContain("case 'beta_signup'")
     expect(edgeWorker).toContain("case 'beta_confirmation'")
