@@ -32,19 +32,19 @@ function TemplateSamplePreviewModal({
   }, [])
 
   return createPortal(
-    <>
+    <div className="surface-marketing dutiva-surface text-text fixed inset-0 z-300">
       <div
         onClick={onClose}
         aria-hidden="true"
-        className="fixed inset-0 z-300 bg-overlay-scrim-mid"
+        className="absolute inset-0 bg-overlay-scrim-mid"
       />
       <div
         role="dialog"
         aria-modal="true"
         aria-label={templateName}
-        className="fixed inset-0 z-310 flex items-center justify-center p-4 pointer-events-none"
+        className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none"
       >
-        <div className="pointer-events-auto flex max-h-[min(88vh,920px)] w-[min(720px,100%)] flex-col overflow-hidden rounded-[16px] border border-border bg-surface font-sans shadow-modal">
+        <div className="pointer-events-auto flex max-h-[min(88vh,920px)] w-[min(720px,100%)] flex-col overflow-hidden rounded-[16px] border border-border bg-bg-elevated shadow-modal">
           <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
             <div className="min-w-0">
               <h2 className="font-display text-[18px] font-semibold tracking-[-0.01em] text-text">
@@ -71,7 +71,7 @@ function TemplateSamplePreviewModal({
           </div>
         </div>
       </div>
-    </>,
+    </div>,
     document.body,
   )
 }
