@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom'
-import { ChevronRight, TriangleAlert } from 'lucide-react'
+import { ChevronRight, TriangleAlert, Activity, Banknote, BarChart3, BookOpen, Send, ShieldCheck, Users } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { statusChipClass } from '@/components/chips'
 import { ScoreHero } from '@/features/app/views/analytics/ScoreHero'
 import { SectionIntro } from '../SectionIntro'
 import { useLanding } from '../useLanding'
+import type { LandingMessageKey } from '../useLanding'
 import { usePublicPath } from '@/seo/usePublicPath'
 import { useI18n } from '@/i18n/context'
 import {
@@ -12,17 +14,35 @@ import {
   landingCommPreview,
   landingScorePreview,
 } from '../demos/workspaceDemoModel'
+import { IconChip } from './IconChip'
+import { LandingDemoPath } from './LandingDemoPath'
 
 const ATTENTION_CHIP_TONE = { overdue: 'risk', due_soon: 'warning', upcoming: 'neutral' } as const
 
 const COMM_DIMS = ['tone', 'legal', 'clarity', 'policy'] as const
 
-/** Static workspace module frames on the landing page — fixture data, links to `/demo`. */
+const MODULES: {
+  icon: LucideIcon
+  label: LandingMessageKey
+  demoPath: string
+  highlighted?: true
+}[] = [
+  { icon: ShieldCheck, label: 'landing_mod1_label', demoPath: 'compliance' },
+  { icon: Users, label: 'landing_mod2_label', demoPath: 'employees' },
+  { icon: BookOpen, label: 'landing_mod3_label', demoPath: 'knowledge' },
+  { icon: Banknote, label: 'landing_mod4_label', demoPath: 'compensation' },
+  { icon: Send, label: 'landing_mod5_label', demoPath: 'communications', highlighted: true },
+  { icon: Activity, label: 'landing_mod6_label', demoPath: 'wellbeing' },
+  { icon: BarChart3, label: 'landing_mod7_label', demoPath: 'analytics', highlighted: true },
+]
+
+/** Unified workspace section — preview cards, tour path, and module chips. */
 export function WorkspaceModuleDemos() {
   const { lt } = useLanding()
   const { x } = useI18n()
   const { p } = usePublicPath()
   const demoRoot = p('demoWorkspace')
+  const openLabel = lt('landing_open_in_demo')
 
   const { score, delta } = landingScorePreview()
   const attention = landingAttentionPreview()
@@ -38,7 +58,7 @@ export function WorkspaceModuleDemos() {
 
   return (
     <section
-      id="workspace-demos"
+      id="workspace"
       className="mx-auto max-w-300 scroll-mt-20 px-4 py-12 sm:px-6 sm:py-16"
     >
       <SectionIntro
@@ -47,7 +67,9 @@ export function WorkspaceModuleDemos() {
         sub={lt('landing_ws_demo_sub')}
       />
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <LandingDemoPath />
+
+      <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {/* Analytics */}
         <article className="premium-card-soft flex min-w-0 flex-col p-4 sm:p-5">
           <h3 className="text-base font-semibold text-text">{lt('landing_ws_demo_analytics_title')}</h3>
@@ -78,7 +100,7 @@ export function WorkspaceModuleDemos() {
               ))}
             </ul>
           </div>
-          <DemoFooter to={`${demoRoot}/analytics`} label={lt('landing_ws_demo_open')} />
+          <DemoFooter to={`${demoRoot}/analytics`} label={openLabel} />
         </article>
 
         {/* Cases */}
@@ -96,7 +118,7 @@ export function WorkspaceModuleDemos() {
               {x(caseFile.nextStep)}
             </p>
           </div>
-          <DemoFooter to={`${demoRoot}/cases/${caseFile.id}`} label={lt('landing_ws_demo_open')} />
+          <DemoFooter to={`${demoRoot}/cases/${caseFile.id}`} label={openLabel} />
         </article>
 
         {/* Communications */}
@@ -119,11 +141,7 @@ export function WorkspaceModuleDemos() {
                   return (
                     <li
                       key={dim}
-                      className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${
-                        passed
-                          ? 'border-ok-border bg-ok-bg text-ok-fg'
-                          : 'border-warn-border bg-warn-bg text-warn-fg'
-                      }`}
+                      className={`${statusChipClass(passed ? 'success' : 'warning')} shrink-0`}
                     >
                       {dimLabels[dim]} ·{' '}
                       {passed ? lt('landing_ws_demo_comms_pass') : lt('landing_ws_demo_comms_flag')}
@@ -133,11 +151,26 @@ export function WorkspaceModuleDemos() {
               </ul>
             </div>
           </div>
-          <DemoFooter to={`${demoRoot}/communications`} label={lt('landing_ws_demo_open')} />
+          <DemoFooter to={`${demoRoot}/communications`} label={openLabel} />
         </article>
       </div>
 
       <p className="mt-4 text-xs leading-normal text-text-faint">{lt('landing_ws_demo_preview_note')}</p>
+
+      <div className="mt-10 rounded-[22px] border border-border bg-bg-elevated p-4 sm:p-7">
+        <h3 className="m-0 text-base font-semibold text-text">{lt('landing_ws_demo_modules_heading')}</h3>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {MODULES.map((mod) => (
+            <IconChip
+              key={mod.label}
+              icon={mod.icon}
+              label={lt(mod.label)}
+              to={`${demoRoot}/${mod.demoPath}`}
+              highlighted={mod.highlighted}
+            />
+          ))}
+        </div>
+      </div>
     </section>
   )
 }

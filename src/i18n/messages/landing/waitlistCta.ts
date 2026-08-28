@@ -14,6 +14,10 @@ landing_cta_p: {
     en: 'A paid plan starts today. If you’d rather wait, leave your email — we’ll write when a free seat opens.',
     fr: 'Un forfait payant commence aujourd’hui. Si vous préférez attendre, laissez votre courriel — nous vous écrirons dès qu’une place gratuite se libère.',
   },
+  landing_cta_explore_demo: {
+    en: 'Explore the demo first — no sign-in required.',
+    fr: 'Explorez la démo d’abord — sans connexion.',
+  },
 /* Postdates the design handoff: beta capacity decision, 2026-08-07. The
      number is interpolated from BETA_COHORT_LIMIT so this copy cannot drift
      from the gate that enforces it. [FR self-authored] */

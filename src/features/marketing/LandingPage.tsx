@@ -15,7 +15,6 @@ import { HomeFaq } from './sections/HomeFaq'
 import { Workflows } from './sections/Workflows'
 import { Product } from './sections/Product'
 import { WorkspaceModuleDemos } from './sections/WorkspaceModuleDemos'
-import { Modules } from './sections/Modules'
 import { WhyDutiva } from './sections/WhyDutiva'
 import { TestimonialWall } from './sections/TestimonialWall'
 import { Coverage } from './sections/Coverage'
@@ -68,7 +67,6 @@ export function LandingPage() {
         <WhyDutiva />
         <Product />
         <WorkspaceModuleDemos />
-        <Modules />
         <TestimonialWall />
         <Coverage />
         <Pricing />

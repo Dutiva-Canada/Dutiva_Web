@@ -15,16 +15,21 @@ export function IconChip({
   icon: Icon,
   label,
   note,
+  highlighted,
   to,
 }: {
   readonly icon: LucideIcon
   readonly label: string
   readonly note?: string
   readonly to?: string
+  readonly highlighted?: boolean
 }) {
   const baseClass =
-    'inline-flex items-center gap-1.5 rounded-[10px] border border-border bg-bg-soft px-3 py-2.5 text-sm font-medium text-text-2 transition-colors'
-  const linkClass = `${baseClass} min-h-11 hover:border-gold-border/60 hover:text-text active:opacity-90`
+    'inline-flex items-center gap-1.5 rounded-[10px] border px-3 py-2.5 text-sm font-medium transition-colors'
+  const toneClass = highlighted
+    ? 'border-gold-border bg-gold-subtle text-gold-strong'
+    : 'border-border bg-bg-soft text-text-2'
+  const linkClass = `${baseClass} ${toneClass} min-h-11 hover:border-gold-border/60 hover:text-text active:opacity-90`
   const content = (
     <>
       <Icon size={14} aria-hidden="true" />
@@ -45,5 +50,5 @@ export function IconChip({
     )
   }
 
-  return <span className={baseClass}>{content}</span>
+  return <span className={`${baseClass} ${toneClass}`}>{content}</span>
 }

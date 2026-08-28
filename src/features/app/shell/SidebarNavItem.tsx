@@ -55,8 +55,8 @@ export function SidebarNavItem({ item, expanded, active, onClick }: SidebarNavIt
           className={cx(
             'flex min-w-0 items-center gap-2 overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] duration-150 ease-in-out motion-reduce:transition-none',
             expanded
-              ? 'max-w-47.5 flex-1 translate-x-0 opacity-100 delay-75'
-              : 'max-w-0 -translate-x-1 opacity-0',
+              ? 'max-w-47.5 flex-1 translate-x-0 opacity-100 delay-100 duration-150'
+              : 'max-w-0 -translate-x-1 opacity-0 delay-0 duration-100',
           )}
         >
           <span className={badgeValue ? 'flex-1 text-left' : undefined}>{label}</span>

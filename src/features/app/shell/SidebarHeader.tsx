@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
@@ -10,9 +11,23 @@ interface SidebarHeaderProps {
   readonly inDrawer: boolean
   readonly identity: WorkspaceIdentity
   readonly onCloseDrawer?: () => void
+  readonly focusCloseOnMount?: boolean
 }
 
-export function SidebarHeader({ expanded, inDrawer, identity, onCloseDrawer }: SidebarHeaderProps) {
+export function SidebarHeader({
+  expanded,
+  inDrawer,
+  identity,
+  onCloseDrawer,
+  focusCloseOnMount = false,
+}: SidebarHeaderProps) {
+  const closeRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (focusCloseOnMount && inDrawer) {
+      closeRef.current?.focus()
+    }
+  }, [focusCloseOnMount, inDrawer])
   const { x } = useI18n()
 
   return (
@@ -33,8 +48,8 @@ export function SidebarHeader({ expanded, inDrawer, identity, onCloseDrawer }: S
         className={cx(
           'min-w-0 overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform] duration-150 ease-in-out motion-reduce:transition-none',
           expanded
-            ? 'max-w-45 translate-x-0 opacity-100 delay-75'
-            : 'max-w-0 -translate-x-1 opacity-0',
+            ? 'max-w-45 translate-x-0 opacity-100 delay-100 duration-150'
+            : 'max-w-0 -translate-x-1 opacity-0 delay-0 duration-100',
         )}
       >
         <div
@@ -47,10 +62,11 @@ export function SidebarHeader({ expanded, inDrawer, identity, onCloseDrawer }: S
       </div>
       {inDrawer && (
         <button
+          ref={closeRef}
           type="button"
           onClick={onCloseDrawer}
           aria-label={x(M.shell_close_menu)}
-          className="ml-auto cursor-pointer border-none bg-transparent p-1"
+          className="ml-auto flex min-h-11 min-w-11 cursor-pointer items-center justify-center border-none bg-transparent"
         >
           <X size={18} strokeWidth={1.8} className="text-text-3" />
         </button>

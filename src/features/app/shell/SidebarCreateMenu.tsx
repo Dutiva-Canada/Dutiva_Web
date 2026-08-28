@@ -163,6 +163,7 @@ export function SidebarCreateMenu({ expanded, onNavigate }: SidebarCreateMenuPro
             actions={actions}
             unavailableDescId={unavailableDescId}
             onAction={handleAction}
+            compact
           />
         )}
       </div>
@@ -198,10 +199,11 @@ interface CreateMenuPanelProps {
   actions: CreateAction[]
   unavailableDescId: string
   onAction: (action: CreateAction) => void
+  compact?: boolean
 }
 
 const CreateMenuPanel = forwardRef<HTMLDivElement, CreateMenuPanelProps>(function CreateMenuPanel(
-  { actions, unavailableDescId, onAction },
+  { actions, unavailableDescId, onAction, compact = false },
   ref,
 ) {
   const { x } = useI18n()
@@ -210,7 +212,10 @@ const CreateMenuPanel = forwardRef<HTMLDivElement, CreateMenuPanelProps>(functio
       ref={ref}
       role="menu"
       aria-label={x(M.shell_create)}
-      className="absolute top-full left-0 z-60 mt-1.5 w-55 overflow-hidden rounded-[10px] border border-border bg-surface shadow-menu"
+      className={cx(
+        'absolute z-60 w-55 overflow-hidden rounded-[10px] border border-border bg-surface shadow-menu',
+        compact ? 'top-0 left-full ml-2' : 'top-full left-0 mt-1.5',
+      )}
     >
       {actions.map((action) => {
         const Icon = action.icon

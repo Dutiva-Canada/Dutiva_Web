@@ -56,7 +56,7 @@ export function Hero() {
               className="ghost-button ghost-button-lg inline-flex items-center gap-2 px-[22px]"
             >
               <LayoutGrid size={16} aria-hidden="true" />
-              {lt('landing_try_demo')}
+              {lt('landing_open_in_demo')}
             </Link>
           </div>
 

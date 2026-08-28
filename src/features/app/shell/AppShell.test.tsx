@@ -78,19 +78,22 @@ describe('AppShell', () => {
 
     expect(screen.getByRole('button', { name: /Create/i })).toHaveTextContent('Create')
 
-    await user.click(screen.getByRole('button', { name: 'Collapse sidebar' }))
+    await user.click(screen.getAllByRole('button', { name: 'Collapse sidebar' })[0]!)
 
     expect(localStorage.getItem(SIDEBAR_EXPANDED_KEY)).toBe('false')
     expect(screen.getByRole('button', { name: /Create/i })).not.toHaveTextContent('Create')
   })
 
-  it('uses compact sidebar on tablet without a collapse toggle', () => {
+  it('allows sidebar expand on tablet with persisted preference', async () => {
+    localStorage.setItem(SIDEBAR_EXPANDED_KEY, 'false')
     stubLayoutMode('tablet')
+    const user = userEvent.setup()
     renderShell('/app/home')
 
-    expect(screen.getByRole('navigation', { name: 'Primary navigation' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Collapse sidebar/i })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Create/i })).not.toHaveTextContent('Create')
+    expect(screen.getAllByRole('button', { name: /Expand sidebar/i })[0]).toBeInTheDocument()
+    await user.click(screen.getAllByRole('button', { name: 'Expand sidebar' })[0]!)
+    expect(localStorage.getItem(SIDEBAR_EXPANDED_KEY)).toBe('true')
+    expect(screen.getByRole('button', { name: /Create/i })).toHaveTextContent('Create')
   })
 
   it('opens and closes the mobile drawer around primary navigation', () => {
