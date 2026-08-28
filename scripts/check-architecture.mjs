@@ -95,6 +95,16 @@ for (const file of files) {
     errors.push(`${r}: move demo UI to *DemoView.tsx (or WorkflowsDemoFixtures.tsx)`)
   }
 
+  if (
+    r.startsWith('src/features/app/views/') &&
+    r.endsWith('View.tsx') &&
+    !r.endsWith('DemoView.tsx') &&
+    !r.endsWith('ProductionView.tsx') &&
+    hasValueDataImport(content)
+  ) {
+    errors.push(`${r}: *View.tsx shells must not import @/data — use *DemoView.tsx`)
+  }
+
   const lines = content.split('\n').length
   if (lines > MAX_SOURCE_LINES && !SIZE_ALLOWLIST.has(r)) {
     warnings.push(`${r}: ${lines} lines (>${MAX_SOURCE_LINES}) — consider splitting`)

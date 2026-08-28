@@ -78,6 +78,10 @@ module with both `*DemoView.tsx` and `*ProductionView.tsx`:
 - `*View.tsx` dispatch shells and `*ProductionView.tsx` files must not value-import `@/data`.
 - inline `function *DemoView` in `*View.tsx` remains forbidden (stage 6).
 
+**Stage 8 (demo-only view shells):** Knowledge and Templates now follow the same split —
+fixture UI in `*DemoView.tsx`, thin `*View.tsx` re-export. `check:architecture` also fails when
+any `*View.tsx` shell (not `*DemoView` / `*ProductionView`) value-imports `@/data`.
+
 ## Document template corpus
 
 50 templates under `src/features/app/documents/data/templates/`. Each has a `review`
