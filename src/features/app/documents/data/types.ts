@@ -80,7 +80,16 @@ export type QuestionType = 'text' | 'textarea' | 'date' | 'number' | 'select' | 
  * answer, so the form could not actually be completed.
  */
 export type PreviewBlockType =
-  'title' | 'meta' | 'para' | 'clause' | 'sig' | 'ack' | 'note' | 'fill'
+  | 'title'
+  | 'meta'
+  | 'letterhead'
+  | 'address'
+  | 'para'
+  | 'clause'
+  | 'sig'
+  | 'ack'
+  | 'note'
+  | 'fill'
 
 /** Chip tones used by the doclib status maps (superset of the app ramp). */
 export type DocChipTone = 'ok' | 'warn' | 'risk' | 'info' | 'neutral' | 'gold'
@@ -163,6 +172,10 @@ export interface PreviewBlock {
   tone?: 'info' | 'risk'
   /** Ruled lines to leave for a handwritten answer (type 'fill' only). */
   lines?: number
+  /** Horizontal alignment for letter-style blocks (para / letterhead). */
+  align?: 'left' | 'right'
+  /** Optional date line rendered opposite letterhead copy (letterhead only). */
+  dateText?: Bi
   when?: ClauseGate
 }
 

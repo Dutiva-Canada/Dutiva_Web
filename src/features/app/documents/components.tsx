@@ -190,6 +190,36 @@ function blockKey(block: PreviewBlock, lang?: 'en' | 'fr'): string {
   return lang ? `${lang}-${block.type}-${content}` : `${block.type}-${content}`
 }
 
+function LetterheadBody({
+  text,
+  values,
+}: {
+  readonly text: string
+  readonly values: Record<string, string>
+}) {
+  const newline = text.indexOf('\n')
+  if (newline === -1) {
+    return (
+      <div className="font-semibold">
+        <MergeText text={text} values={values} />
+      </div>
+    )
+  }
+  return (
+    <>
+      <div className="font-semibold">
+        <MergeText text={text.slice(0, newline)} values={values} />
+      </div>
+      <MergeText text={text.slice(newline + 1)} values={values} preline />
+    </>
+  )
+}
+
+function paraClassName(block: PreviewBlock): string {
+  if (block.align === 'right') return 'mb-4 mt-2 text-right'
+  return 'mt-3'
+}
+
 function DocPaperBody({
   blocks,
   values,
@@ -220,6 +250,25 @@ function DocPaperBody({
               <div key={key} className="mb-4 text-center text-[11px] text-text-faint">
                 <MergeText text={text} values={values} />
               </div>
+            )
+          case 'letterhead':
+            return (
+              <div key={key} className="mb-4 flex items-start justify-between gap-6">
+                <div className="min-w-0">
+                  <LetterheadBody text={text} values={values} />
+                </div>
+                {block.dateText && (
+                  <div className="shrink-0 text-right">
+                    <MergeText text={block.dateText[lang]} values={values} />
+                  </div>
+                )}
+              </div>
+            )
+          case 'address':
+            return (
+              <address key={key} className="mb-4 mt-0 block not-italic">
+                <MergeText text={text} values={values} preline />
+              </address>
             )
           case 'clause':
             return (
@@ -291,7 +340,7 @@ function DocPaperBody({
             )
           default:
             return (
-              <p key={key} className="mt-3">
+              <p key={key} className={paraClassName(block)}>
                 <MergeText text={text} values={values} preline />
               </p>
             )
