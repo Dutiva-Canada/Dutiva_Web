@@ -70,6 +70,14 @@ Demo/onboarding surfaces (`/demo`, public tour, marketing simulations) are uncha
 **Stage 2 (fixture collapse):** deferred — remove `src/data` consumers only when a module
 is production-default for all users with no demo-only UX (one module per PR).
 
+**Stage 7 (dispatch regression guards):** `check:architecture` enforces the split for any
+module with both `*DemoView.tsx` and `*ProductionView.tsx`:
+
+- the `*View.tsx` shell calls `useWorkspaceMode()`, renders both surfaces, and stays under
+  45 lines (except `HomeView.tsx`, which wires Advisor navigation).
+- `*View.tsx` dispatch shells and `*ProductionView.tsx` files must not value-import `@/data`.
+- inline `function *DemoView` in `*View.tsx` remains forbidden (stage 6).
+
 ## Document template corpus
 
 50 templates under `src/features/app/documents/data/templates/`. Each has a `review`
