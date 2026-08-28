@@ -61,6 +61,10 @@ landing_studio_demo_output: {
     en: 'Draft preview',
     fr: 'Aperçu de l’ébauche',
   },
+landing_studio_demo_bilingual_badge: {
+    en: 'EN + FR deliverable · English shown',
+    fr: 'Livrable EN + FR · français affiché',
+  },
 landing_studio_demo_note: {
     en: 'Sample output from the Ontario offer-letter template — not a live generation.',
     fr: 'Exemple tiré du modèle de lettre d’offre pour l’Ontario — pas une génération en direct.',

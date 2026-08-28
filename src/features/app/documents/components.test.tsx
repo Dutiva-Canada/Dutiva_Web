@@ -36,7 +36,21 @@ describe('DocPaper letter formatting', () => {
       {
         type: 'para',
         text: {
-          en: '**Re:** Offer of Employment - {{position_title}}\n\nDear {{employee_first_name}},\n\nWe are pleased to offer you employment in the position of {{position_title}}.',
+          en: '**Re:** Offer of Employment - {{position_title}}',
+          fr: '…',
+        },
+      },
+      {
+        type: 'para',
+        text: {
+          en: 'Dear {{employee_first_name}},',
+          fr: '…',
+        },
+      },
+      {
+        type: 'para',
+        text: {
+          en: 'We are pleased to offer you employment in the position of {{position_title}}.',
           fr: '…',
         },
       },
@@ -58,7 +72,8 @@ describe('DocPaper letter formatting', () => {
     expect(screen.getByText('August 27, 2026').closest('div')?.className).toContain('text-right')
     expect(container.querySelector('address')).not.toBeNull()
     expect(screen.getByText('Re:')).toBeInTheDocument()
-    expect(container.textContent).toMatch(/Dear\s+Jordan,\s+We are pleased to offer you employment/)
+    expect(container.textContent).toMatch(/Dear\s+Jordan,/)
+    expect(screen.getByText(/We are pleased to offer you employment/)).toBeInTheDocument()
     expect(container.textContent).not.toMatch(/Jordan ,/)
     expect(container.textContent).not.toMatch(/Coordinator \./)
   })
@@ -84,5 +99,28 @@ describe('DocPaper letter formatting', () => {
     expect(container.querySelector('dl')).not.toBeNull()
     expect(screen.getByText('Legal name')).toBeInTheDocument()
     expect(screen.getByText('Northgate Logistics Inc.')).toBeInTheDocument()
+  })
+
+  it('renders clause bullet lists and sign-off blocks', () => {
+    const blocks: PreviewBlock[] = [
+      {
+        type: 'clause',
+        n: 13,
+        heading: { en: 'Conditions of this offer', fr: '…' },
+        text: {
+          en: 'This offer is conditional on:\n* your legal authorization to work in Canada;\n* your signing the Employment Agreement.\n\nWe look forward to working with you.\nSincerely,\n{{employer_signer_name}}\n{{employer_signer_title}}',
+          fr: '…',
+        },
+      },
+    ]
+
+    const { container } = renderPaper(blocks, {
+      employer_signer_name: 'Martin Constantineau',
+      employer_signer_title: 'Director of Human Resources',
+    })
+
+    expect(container.querySelector('ul li')).not.toBeNull()
+    expect(screen.getByText('Sincerely,')).toBeInTheDocument()
+    expect(screen.getByText('Martin Constantineau')).toBeInTheDocument()
   })
 })
