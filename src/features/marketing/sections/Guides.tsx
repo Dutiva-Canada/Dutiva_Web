@@ -11,7 +11,7 @@ export function Guides() {
   const { x, lang } = useI18n()
   const { p } = usePublicPath()
   return (
-    <section id="guides" className="mx-auto max-w-300 scroll-mt-20 px-6 py-16">
+    <section id="guides" className="mx-auto max-w-300 scroll-mt-20 px-4 py-12 sm:px-6 sm:py-16">
       <SectionIntro
         badge={lt('landing_guides_badge')}
         title={lt('landing_guides_title')}
@@ -20,7 +20,7 @@ export function Guides() {
       {/* Cards link to the guide itself. The teaser copy is the article's own
           title/summary from the article registry, so the landing page, the
           /guides index, and the article can never drift apart. */}
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
+      <div className="marketing-auto-grid gap-4">
         {GUIDE_ARTICLES.map((guide) => (
           <Link
             key={guide.slug}

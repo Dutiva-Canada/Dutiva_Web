@@ -17,7 +17,7 @@ export function FounderIdentity({ size }: { readonly size: 'compact' | 'about' }
   return (
     <div
       className={
-        compact ? 'mt-6 flex items-center gap-4' : 'flex w-[240px] flex-col items-start gap-4'
+        compact ? 'mt-6 flex flex-col items-start gap-4 min-[480px]:flex-row min-[480px]:items-center' : 'flex w-[240px] flex-col items-start gap-4'
       }
     >
       <MarketingRaster
@@ -25,7 +25,7 @@ export function FounderIdentity({ size }: { readonly size: 'compact' | 'about' }
         alt={t('about_founder_alt')}
         width={px}
         height={px}
-        className={`rounded-2xl border border-border object-cover ${compact ? 'size-[168px]' : 'size-[240px]'}`}
+        className={`rounded-2xl border border-border object-cover ${compact ? 'size-36 min-[480px]:size-[168px]' : 'size-[240px]'}`}
       />
       <div className="min-w-0">
         <div className="font-semibold text-text">{FOUNDER.name}</div>

@@ -23,8 +23,8 @@ export function Hero() {
   const { p } = usePublicPath()
   const templateCount = String(allTemplates.length)
   return (
-    <section id="top" className="mx-auto max-w-300 scroll-mt-20 px-6 pt-18 pb-10">
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(360px,1fr))] items-center gap-12">
+    <section id="top" className="mx-auto max-w-300 scroll-mt-20 px-4 pt-14 pb-8 sm:px-6 sm:pt-18 sm:pb-10">
+      <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-12">
         {/* Left */}
         <div className="animate-fade-up">
           <span className="badge">{lt('landing_hero_badge')}</span>
@@ -70,11 +70,11 @@ export function Hero() {
           </p>
 
           {/* Slim stat strip — values from docs/CANONICAL_FACTS.md */}
-          <div className="mt-7 flex flex-wrap items-center gap-7 rounded-2xl border border-border bg-bg-elevated px-6 py-4.5">
+          <div className="mt-7 grid grid-cols-3 gap-4 rounded-2xl border border-border bg-bg-elevated px-4 py-4 sm:flex sm:flex-wrap sm:items-center sm:gap-7 sm:px-6 sm:py-4.5">
             <HeroStat value={templateCount} label={lt('landing_stat_templates')} />
-            <span className="w-px self-stretch bg-border" />
+            <span className="hidden w-px self-stretch bg-border sm:block" aria-hidden="true" />
             <HeroStat value="3" label={lt('landing_stat_legal')} />
-            <span className="w-px self-stretch bg-border" />
+            <span className="hidden w-px self-stretch bg-border sm:block" aria-hidden="true" />
             <HeroStat value="EN/FR" label={lt('landing_stat_bilingual')} />
           </div>
 

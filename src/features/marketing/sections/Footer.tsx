@@ -94,8 +94,8 @@ export function Footer() {
           computed width at in-between viewport sizes, overflowing text into the
           neighboring column. Splitting them lets the whole link-column group
           wrap onto its own row instead. */}
-      <div className="mx-auto flex max-w-[1200px] flex-wrap gap-8 px-6 py-12">
-        <div className="min-w-[220px] flex-1 basis-[260px]">
+      <div className="mx-auto flex max-w-[1200px] flex-wrap gap-8 px-4 py-10 sm:px-6 sm:py-12">
+        <div className="min-w-0 flex-1 basis-[220px]">
           <div className="flex items-center gap-2.5">
             <LeafTile variant="footer" />
             <Wordmark />
@@ -126,7 +126,7 @@ export function Footer() {
           <ReviewDirectoryLinks className="mt-3 grid gap-2" />
         </div>
 
-        <div className="grid flex-3 basis-[480px] grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-8">
+        <div className="marketing-auto-grid marketing-auto-grid--140 min-w-0 flex-3 basis-full gap-8 sm:basis-[480px]">
           <div>
             <FooterHeading>{lt('landing_foot_product')}</FooterHeading>
             {renderLinks(PRODUCT_LINKS)}
@@ -166,7 +166,7 @@ export function Footer() {
         {/* Last row on the page, so it pays the bottom inset — body can't:
             padding there would push the app's 100dvh frame past the viewport
             and leave the workspace scrolling. */}
-        <div className="mx-auto max-w-[1200px] px-6 py-4 pb-[calc(1rem_+_env(safe-area-inset-bottom))] text-xs text-text-3">
+        <div className="mx-auto max-w-[1200px] px-4 py-4 pb-[calc(1rem_+_env(safe-area-inset-bottom))] text-xs text-text-3 sm:px-6">
           {lt('landing_foot_copyright')}
         </div>
       </div>

@@ -85,7 +85,7 @@ export function AboutPage() {
       </PageSection>
 
       <PageSection title={t('about_s3')}>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
+        <div className="marketing-auto-grid marketing-auto-grid--220 gap-4">
           {VALUES.map((value) => (
             <div key={value.titleKey} className="premium-card-soft p-[22px]">
               <value.icon size={18} className="text-gold-strong" />

@@ -26,13 +26,13 @@ export function Product() {
   const { lt } = useLanding()
   const { p } = usePublicPath()
   return (
-    <section id="product" className="mx-auto max-w-300 scroll-mt-20 px-6 py-16">
+    <section id="product" className="mx-auto max-w-300 scroll-mt-20 px-4 py-12 sm:px-6 sm:py-16">
       <SectionIntro
         badge={lt('landing_prod_badge')}
         title={lt('landing_prod_title')}
         sub={lt('landing_prod_sub')}
       />
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
+      <div className="marketing-auto-grid marketing-auto-grid--240 gap-4">
         {FEATURES.map((feature) => (
           <div key={feature.title} className="premium-card-soft p-6">
             <span

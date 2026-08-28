@@ -21,7 +21,7 @@ export function LegalHubPage() {
 
       {LEGAL_HUB_GROUPS.map((group) => (
         <PageSection key={group.titleKey} title={t(group.titleKey)}>
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
+          <div className="marketing-auto-grid gap-4">
             {group.rows.map((row: LegalHubRow) => (
               <Link
                 key={row.slug}

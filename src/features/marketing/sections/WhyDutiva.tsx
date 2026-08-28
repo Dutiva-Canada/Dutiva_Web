@@ -13,8 +13,8 @@ const POINTS: { icon: LucideIcon; title: LandingMessageKey; body: LandingMessage
 export function WhyDutiva() {
   const { lt } = useLanding()
   return (
-    <section className="mx-auto max-w-[1200px] px-6 pt-6 pb-10">
-      <div className="premium-card grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] items-start gap-10 p-[clamp(28px,4vw,56px)]">
+    <section className="mx-auto max-w-[1200px] px-4 pt-6 pb-10 sm:px-6">
+      <div className="premium-card marketing-auto-grid marketing-auto-grid--300 items-start gap-8 p-[clamp(20px,4vw,56px)] sm:gap-10">
         <div>
           <span className="badge">{lt('landing_why_badge')}</span>
           <h2 className="mt-4 font-display text-[clamp(1.75rem,3vw,2.5rem)] leading-[1.1] font-semibold tracking-[-0.02em] text-text">

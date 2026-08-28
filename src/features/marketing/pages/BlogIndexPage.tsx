@@ -33,7 +33,7 @@ export function BlogIndexPage() {
       <PageHero eyebrow={t('blog_eyebrow')} title={t('blog_h1')} intro={t('blog_intro')} />
 
       <section className="mx-auto max-w-[1200px] px-6 py-8">
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
+        <div className="marketing-auto-grid gap-4">
           {BLOG_ARTICLES.map((post) => (
             <article key={post.slug} className="premium-card-soft group p-[22px]">
               <div className="text-xs font-medium text-gold-strong">
