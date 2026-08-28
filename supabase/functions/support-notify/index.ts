@@ -25,7 +25,8 @@ import { resendSend } from '../_shared/resendSend.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-notify-secret',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type, x-notify-secret',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 function json(body: unknown, status = 200) {
@@ -86,10 +87,22 @@ const DISCLAIMER = {
 }
 
 type NotificationKind =
-  | 'ticket_received' | 'agent_reply' | 'info_requested' | 'resolved' | 'closed'
-  | 'call_proposed' | 'call_confirmed' | 'call_reminder' | 'call_followup_needed'
-  | 'privacy_ack' | 'accessibility_ack'
-  | 'security_ack' | 'complaint_ack' | 'operator_alert'
+  | 'ticket_received'
+  | 'agent_reply'
+  | 'info_requested'
+  | 'resolved'
+  | 'closed'
+  | 'call_proposed'
+  | 'call_confirmed'
+  | 'call_reminder'
+  | 'call_followup_needed'
+  | 'privacy_ack'
+  | 'accessibility_ack'
+  | 'security_ack'
+  | 'complaint_ack'
+  | 'operator_alert'
+  | 'beta_signup'
+  | 'beta_confirmation'
 
 interface EmailContext {
   language: Lang
@@ -98,6 +111,8 @@ interface EmailContext {
   categoryLabel: string
   responseTargetLabel?: string
   priorityLabel?: string
+  sourceLabel?: string
+  provinceLabel?: string
 }
 
 interface RenderedEmail {
@@ -128,10 +143,18 @@ function renderNotificationEmail(kind: NotificationKind, ctx: EmailContext): Ren
   switch (kind) {
     case 'ticket_received': {
       const target = ctx.responseTargetLabel
-        ? L(lang, `Our initial-response target for this request is ${ctx.responseTargetLabel}.`, `Notre cible de première réponse pour cette demande est ${ctx.responseTargetLabel}.`)
+        ? L(
+            lang,
+            `Our initial-response target for this request is ${ctx.responseTargetLabel}.`,
+            `Notre cible de première réponse pour cette demande est ${ctx.responseTargetLabel}.`,
+          )
         : ''
       return compose(L(lang, `Request ${reference} received`, `Demande ${reference} reçue`), [
-        L(lang, 'Thank you — we’ve received your support request.', 'Merci — nous avons reçu votre demande de soutien.'),
+        L(
+          lang,
+          'Thank you — we’ve received your support request.',
+          'Merci — nous avons reçu votre demande de soutien.',
+        ),
         `${refLine}\n${catLine}`,
         [target, resolutionVaries].filter(Boolean).join(' '),
         noSecrets,
@@ -139,91 +162,262 @@ function renderNotificationEmail(kind: NotificationKind, ctx: EmailContext): Ren
       ])
     }
     case 'agent_reply':
-      return compose(L(lang, `Update on request ${reference}`, `Mise à jour sur la demande ${reference}`), [
-        L(lang, 'There’s a new reply on your support request.', 'Il y a une nouvelle réponse à votre demande de soutien.'),
-        refLine,
-        viewLine,
-        noSecrets,
-      ])
+      return compose(
+        L(lang, `Update on request ${reference}`, `Mise à jour sur la demande ${reference}`),
+        [
+          L(
+            lang,
+            'There’s a new reply on your support request.',
+            'Il y a une nouvelle réponse à votre demande de soutien.',
+          ),
+          refLine,
+          viewLine,
+          noSecrets,
+        ],
+      )
     case 'info_requested':
-      return compose(L(lang, `More information needed for ${reference}`, `Renseignements requis pour ${reference}`), [
-        L(lang, 'We need a little more information to continue with your request.', 'Nous avons besoin de renseignements supplémentaires pour poursuivre votre demande.'),
-        refLine,
-        viewLine,
-        noSecrets,
-      ])
+      return compose(
+        L(
+          lang,
+          `More information needed for ${reference}`,
+          `Renseignements requis pour ${reference}`,
+        ),
+        [
+          L(
+            lang,
+            'We need a little more information to continue with your request.',
+            'Nous avons besoin de renseignements supplémentaires pour poursuivre votre demande.',
+          ),
+          refLine,
+          viewLine,
+          noSecrets,
+        ],
+      )
     case 'resolved':
       return compose(L(lang, `Request ${reference} resolved`, `Demande ${reference} réglée`), [
-        L(lang, 'We’ve marked your request as resolved.', 'Nous avons marqué votre demande comme réglée.'),
+        L(
+          lang,
+          'We’ve marked your request as resolved.',
+          'Nous avons marqué votre demande comme réglée.',
+        ),
         refLine,
-        L(lang, 'If this isn’t fully resolved, reply on the ticket to reopen it.', 'Si ce n’est pas entièrement réglé, répondez au billet pour le rouvrir.'),
+        L(
+          lang,
+          'If this isn’t fully resolved, reply on the ticket to reopen it.',
+          'Si ce n’est pas entièrement réglé, répondez au billet pour le rouvrir.',
+        ),
         viewLine,
       ])
     case 'closed':
       return compose(L(lang, `Request ${reference} closed`, `Demande ${reference} fermée`), [
-        L(lang, 'Your request has been closed. Thank you for contacting Dutiva support.', 'Votre demande a été fermée. Merci d’avoir communiqué avec le soutien Dutiva.'),
+        L(
+          lang,
+          'Your request has been closed. Thank you for contacting Dutiva support.',
+          'Votre demande a été fermée. Merci d’avoir communiqué avec le soutien Dutiva.',
+        ),
         refLine,
-        L(lang, 'If you need more help, start a new request from the app.', 'Si vous avez besoin d’aide, créez une nouvelle demande dans l’application.'),
+        L(
+          lang,
+          'If you need more help, start a new request from the app.',
+          'Si vous avez besoin d’aide, créez une nouvelle demande dans l’application.',
+        ),
       ])
     case 'call_proposed':
-      return compose(L(lang, `A call about request ${reference}`, `Un appel concernant la demande ${reference}`), [
-        L(lang, CALL_NOT_GUARANTEED.en, CALL_NOT_GUARANTEED.fr),
-        refLine,
-        L(lang, 'Open the ticket to see the proposed times and confirm what works.', 'Ouvrez le billet pour voir les plages proposées et confirmer ce qui vous convient.'),
-        viewLine,
-      ])
+      return compose(
+        L(lang, `A call about request ${reference}`, `Un appel concernant la demande ${reference}`),
+        [
+          L(lang, CALL_NOT_GUARANTEED.en, CALL_NOT_GUARANTEED.fr),
+          refLine,
+          L(
+            lang,
+            'Open the ticket to see the proposed times and confirm what works.',
+            'Ouvrez le billet pour voir les plages proposées et confirmer ce qui vous convient.',
+          ),
+          viewLine,
+        ],
+      )
     case 'call_confirmed':
-      return compose(L(lang, `Scheduled call for ${reference}`, `Appel planifié pour ${reference}`), [
-        L(lang, 'Your call is confirmed. The appointment details are on the ticket.', 'Votre appel est confirmé. Les détails du rendez-vous se trouvent dans le billet.'),
-        refLine,
-        L(lang, 'A written summary will be added to the ticket afterward.', 'Un résumé écrit sera ajouté au billet par la suite.'),
-        viewLine,
-      ])
+      return compose(
+        L(lang, `Scheduled call for ${reference}`, `Appel planifié pour ${reference}`),
+        [
+          L(
+            lang,
+            'Your call is confirmed. The appointment details are on the ticket.',
+            'Votre appel est confirmé. Les détails du rendez-vous se trouvent dans le billet.',
+          ),
+          refLine,
+          L(
+            lang,
+            'A written summary will be added to the ticket afterward.',
+            'Un résumé écrit sera ajouté au billet par la suite.',
+          ),
+          viewLine,
+        ],
+      )
     case 'call_reminder':
-      return compose(L(lang, `Reminder: upcoming call for ${reference}`, `Rappel : appel à venir pour ${reference}`), [
-        L(lang, 'This is a reminder of your upcoming scheduled call.', 'Ceci est un rappel de votre appel planifié à venir.'),
-        refLine,
-        L(lang, 'The date, time and any video link are on the ticket.', 'La date, l’heure et le lien vidéo, le cas échéant, se trouvent dans le billet.'),
-        viewLine,
-      ])
+      return compose(
+        L(
+          lang,
+          `Reminder: upcoming call for ${reference}`,
+          `Rappel : appel à venir pour ${reference}`,
+        ),
+        [
+          L(
+            lang,
+            'This is a reminder of your upcoming scheduled call.',
+            'Ceci est un rappel de votre appel planifié à venir.',
+          ),
+          refLine,
+          L(
+            lang,
+            'The date, time and any video link are on the ticket.',
+            'La date, l’heure et le lien vidéo, le cas échéant, se trouvent dans le billet.',
+          ),
+          viewLine,
+        ],
+      )
     case 'call_followup_needed':
       return compose(L(lang, `Follow-up needed: ${reference}`, `Suivi requis : ${reference}`), [
-        L(lang, 'A scheduled call for this ticket has ended. Add a written summary and update the ticket status.', 'Un appel planifié pour ce billet est terminé. Ajoutez un résumé écrit et mettez à jour le statut du billet.'),
+        L(
+          lang,
+          'A scheduled call for this ticket has ended. Add a written summary and update the ticket status.',
+          'Un appel planifié pour ce billet est terminé. Ajoutez un résumé écrit et mettez à jour le statut du billet.',
+        ),
         refLine,
         viewLine,
       ])
     case 'privacy_ack':
-      return compose(L(lang, `Privacy request ${reference} received`, `Demande de confidentialité ${reference} reçue`), [
-        L(lang, 'We’ve received your privacy request. Privacy requests are handled separately from ordinary support.', 'Nous avons reçu votre demande de confidentialité. Les demandes de confidentialité sont traitées séparément du soutien ordinaire.'),
-        refLine,
-        L(lang, 'Identity verification may be required. Please do not send identity documents by ordinary email.', 'Une vérification d’identité peut être exigée. Veuillez ne pas envoyer de pièces d’identité par courriel ordinaire.'),
-        viewLine,
-      ])
+      return compose(
+        L(
+          lang,
+          `Privacy request ${reference} received`,
+          `Demande de confidentialité ${reference} reçue`,
+        ),
+        [
+          L(
+            lang,
+            'We’ve received your privacy request. Privacy requests are handled separately from ordinary support.',
+            'Nous avons reçu votre demande de confidentialité. Les demandes de confidentialité sont traitées séparément du soutien ordinaire.',
+          ),
+          refLine,
+          L(
+            lang,
+            'Identity verification may be required. Please do not send identity documents by ordinary email.',
+            'Une vérification d’identité peut être exigée. Veuillez ne pas envoyer de pièces d’identité par courriel ordinaire.',
+          ),
+          viewLine,
+        ],
+      )
     case 'accessibility_ack':
-      return compose(L(lang, `Accessibility feedback ${reference} received`, `Rétroaction sur l’accessibilité ${reference} reçue`), [
-        L(lang, 'Thank you — we’ve received your accessibility feedback.', 'Merci — nous avons reçu votre rétroaction sur l’accessibilité.'),
-        refLine,
-        L(lang, 'You may request an alternative communication method, including a telephone or video appointment, as an accommodation.', 'Vous pouvez demander une autre méthode de communication, y compris un rendez-vous téléphonique ou vidéo, à titre de mesure d’adaptation.'),
-        viewLine,
-      ])
+      return compose(
+        L(
+          lang,
+          `Accessibility feedback ${reference} received`,
+          `Rétroaction sur l’accessibilité ${reference} reçue`,
+        ),
+        [
+          L(
+            lang,
+            'Thank you — we’ve received your accessibility feedback.',
+            'Merci — nous avons reçu votre rétroaction sur l’accessibilité.',
+          ),
+          refLine,
+          L(
+            lang,
+            'You may request an alternative communication method, including a telephone or video appointment, as an accommodation.',
+            'Vous pouvez demander une autre méthode de communication, y compris un rendez-vous téléphonique ou vidéo, à titre de mesure d’adaptation.',
+          ),
+          viewLine,
+        ],
+      )
     case 'security_ack':
-      return compose(L(lang, `Security report ${reference} received`, `Signalement de sécurité ${reference} reçu`), [
-        L(lang, 'Thank you for your report. It is handled with restricted visibility.', 'Merci pour votre signalement. Il est traité avec une visibilité restreinte.'),
-        refLine,
-        L(lang, 'Please do not access other customers’ data or disrupt the service while we investigate. There is no bug bounty.', 'Veuillez ne pas accéder aux données d’autres clients ni perturber le service pendant notre enquête. Il n’y a pas de prime aux bogues.'),
-        viewLine,
-      ])
+      return compose(
+        L(
+          lang,
+          `Security report ${reference} received`,
+          `Signalement de sécurité ${reference} reçu`,
+        ),
+        [
+          L(
+            lang,
+            'Thank you for your report. It is handled with restricted visibility.',
+            'Merci pour votre signalement. Il est traité avec une visibilité restreinte.',
+          ),
+          refLine,
+          L(
+            lang,
+            'Please do not access other customers’ data or disrupt the service while we investigate. There is no bug bounty.',
+            'Veuillez ne pas accéder aux données d’autres clients ni perturber le service pendant notre enquête. Il n’y a pas de prime aux bogues.',
+          ),
+          viewLine,
+        ],
+      )
     case 'complaint_ack':
-      return compose(L(lang, `Your concern ${reference} received`, `Votre préoccupation ${reference} reçue`), [
-        L(lang, 'We’ve received your concern and are reviewing it separately from routine product support.', 'Nous avons reçu votre préoccupation et l’examinons séparément du soutien ordinaire.'),
-        refLine,
-        viewLine,
-      ])
+      return compose(
+        L(lang, `Your concern ${reference} received`, `Votre préoccupation ${reference} reçue`),
+        [
+          L(
+            lang,
+            'We’ve received your concern and are reviewing it separately from routine product support.',
+            'Nous avons reçu votre préoccupation et l’examinons séparément du soutien ordinaire.',
+          ),
+          refLine,
+          viewLine,
+        ],
+      )
     case 'operator_alert':
       return {
-        subject: `${brand} — ${L(lang, `New ${ctx.priorityLabel ?? ''} ticket ${reference}`, `Nouveau billet ${ctx.priorityLabel ?? ''} ${reference}`)}`.replace(/\s+/g, ' ').trim(),
+        subject:
+          `${brand} — ${L(lang, `New ${ctx.priorityLabel ?? ''} ticket ${reference}`, `Nouveau billet ${ctx.priorityLabel ?? ''} ${reference}`)}`
+            .replace(/\s+/g, ' ')
+            .trim(),
         text: [`${refLine}\n${catLine}`, viewLine].join('\n\n'),
       }
+    case 'beta_signup': {
+      const details = [
+        ctx.sourceLabel ? L(lang, `Source: ${ctx.sourceLabel}`, `Source : ${ctx.sourceLabel}`) : '',
+        ctx.provinceLabel
+          ? L(lang, `Jurisdiction: ${ctx.provinceLabel}`, `Territoire : ${ctx.provinceLabel}`)
+          : '',
+      ].filter(Boolean)
+      return {
+        subject: `${brand} — ${L(lang, 'New beta signup', 'Nouvelle inscription à la bêta')}`,
+        text: [
+          L(
+            lang,
+            'A new beta signup was recorded.',
+            'Une nouvelle inscription à la bêta a été enregistrée.',
+          ),
+          details.join('\n'),
+          L(
+            lang,
+            `Open the operator workspace: ${ticketUrl}`,
+            `Ouvrez l’espace opérateur : ${ticketUrl}`,
+          ),
+        ]
+          .filter(Boolean)
+          .join('\n\n'),
+      }
+    }
+    case 'beta_confirmation':
+      return compose(L(lang, 'Beta signup received', 'Inscription à la bêta reçue'), [
+        /* [FR self-authored] Beta signup notification copy has no prototype source. */
+        L(
+          lang,
+          'Thank you — your beta signup was recorded.',
+          'Merci — votre inscription à la bêta est enregistrée.',
+        ),
+        L(
+          lang,
+          "If a spot is available, we'll email access details. If the first cohort is full, you're on the waiting list.",
+          'S’il reste une place, nous vous enverrons les détails d’accès par courriel. Si la première cohorte est complète, vous êtes sur la liste d’attente.',
+        ),
+        L(
+          lang,
+          'Questions? Reply to this email or contact support@dutiva.ca.',
+          'Des questions? Répondez à ce courriel ou écrivez à support@dutiva.ca.',
+        ),
+      ])
   }
 }
 
@@ -234,16 +428,37 @@ interface NotificationRow {
   audience: 'customer' | 'operator'
   recipient: string
   language: Lang
-  payload: { reference?: string; category?: string; priority?: string }
+  payload: {
+    reference?: string
+    category?: string
+    priority?: string
+    province?: string
+    source?: string
+  }
   attempts: number
+}
+
+const SOURCE_LABELS: Record<string, { en: string; fr: string }> = {
+  landing: { en: 'Landing page', fr: 'Page d’accueil' },
+  beta_page: { en: 'Beta page', fr: 'Page bêta' },
+  campaign: { en: 'Campaign', fr: 'Campagne' },
+}
+
+const PROVINCE_LABELS: Record<string, { en: string; fr: string }> = {
+  on: { en: 'Ontario', fr: 'Ontario' },
+  qc: { en: 'Quebec', fr: 'Québec' },
+  fed: { en: 'Federal / Canada-wide', fr: 'Fédéral / pancanadien' },
+  other: { en: 'Other / not specified', fr: 'Autre / non précisé' },
 }
 
 function buildContext(row: NotificationRow, appUrl: string): EmailContext {
   const lang: Lang = row.language === 'fr' ? 'fr' : 'en'
   const category = row.payload.category ?? 'other'
   const priority = row.payload.priority
-  const ticketPath =
-    row.audience === 'operator'
+  const isBetaSignup = row.kind === 'beta_signup' || row.kind === 'beta_confirmation'
+  const ticketPath = isBetaSignup
+    ? '/app/support/admin'
+    : row.audience === 'operator'
       ? `/app/support/admin/${row.ticket_id ?? ''}`
       : `/app/support/requests/${row.ticket_id ?? ''}`
   return {
@@ -253,6 +468,12 @@ function buildContext(row: NotificationRow, appUrl: string): EmailContext {
     categoryLabel: CATEGORY_LABELS[category]?.[lang] ?? category,
     responseTargetLabel: priority ? RESPONSE_TARGET_LABELS[priority]?.[lang] : undefined,
     priorityLabel: priority ? PRIORITY_LABELS[priority]?.[lang] : undefined,
+    sourceLabel: row.payload.source
+      ? (SOURCE_LABELS[row.payload.source]?.[lang] ?? row.payload.source)
+      : undefined,
+    provinceLabel: row.payload.province
+      ? (PROVINCE_LABELS[row.payload.province]?.[lang] ?? row.payload.province)
+      : undefined,
   }
 }
 
@@ -275,8 +496,7 @@ Deno.serve(async (req: Request) => {
   // `RESEND_API_KEY` is the name actually set on the project and says what it is;
   // `SUPPORT_EMAIL_PROVIDER_API_KEY` stays supported as the provider-agnostic
   // fallback so swapping providers doesn't force a secret rename.
-  const apiKey =
-    Deno.env.get('RESEND_API_KEY') ?? Deno.env.get('SUPPORT_EMAIL_PROVIDER_API_KEY')
+  const apiKey = Deno.env.get('RESEND_API_KEY') ?? Deno.env.get('SUPPORT_EMAIL_PROVIDER_API_KEY')
   const from = Deno.env.get('SUPPORT_EMAIL_FROM') ?? 'Dutiva Support <support@dutiva.ca>'
 
   // Fail closed: never expose an unauthenticated send endpoint. If a provider is
@@ -299,7 +519,9 @@ Deno.serve(async (req: Request) => {
   // No provider configured → leave everything pending (do not drop). Wiring the
   // key later flushes the backlog.
   if (!apiKey) {
-    console.info(`[support-notify] no provider configured; ${pending.length} pending left untouched`)
+    console.info(
+      `[support-notify] no provider configured; ${pending.length} pending left untouched`,
+    )
     return json({ processed: 0, pending: pending.length, note: 'no_provider' })
   }
 
