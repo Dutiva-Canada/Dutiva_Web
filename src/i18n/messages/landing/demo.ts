@@ -18,7 +18,7 @@ landing_demo_seo_title: {
     fr: 'Essayer Dutiva — espace démo en lecture seule | Dutiva',
   },
 landing_demo_seo_description: {
-    en: 'Explore Advisor, Document Studio, guided workflows, and HR cases with Northgate sample data in a read-only preview — no sign-in required.',
-    fr: 'Parcourez le Conseiller, le Studio de documents, les processus et dossiers RH avec les données types Northgate — aperçu en lecture seule, sans connexion.',
+    en: 'Explore Advisor, Document Studio, analytics, communications, workflows, and HR cases — Northgate sample data, read-only, no sign-in.',
+    fr: 'Parcourez le Conseiller, le Studio, l’analytique, les communications, les processus et dossiers — données Northgate, lecture seule.',
   },
 })

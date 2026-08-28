@@ -74,6 +74,14 @@
 .marketing-auto-grid--140 {
   grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr));
 }
+.marketing-auto-grid--280 {
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+}
+
+/* Landing workspace preview — scale the analytics score on narrow viewports. */
+.landing-score-hero .font-display {
+  font-size: clamp(2rem, 10vw, 2.875rem);
+}
 
 /* Keep fixed consent chrome from covering the last lines of page content. */
 @media (max-width: 640px) {

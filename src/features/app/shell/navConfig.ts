@@ -157,6 +157,9 @@ export const PUBLIC_DEMO_NAV_KEYS = new Set([
   'documents',
   'knowledge',
   'compliance',
+  'communications',
+  'compensation',
+  'wellbeing',
   'analytics',
 ])
 

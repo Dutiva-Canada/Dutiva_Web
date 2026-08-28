@@ -16,6 +16,7 @@ import { landingTrust } from './trust'
 import { landingWaitlistCta } from './waitlistCta'
 import { landingWhyDutiva } from './whyDutiva'
 import { landingWorkflows } from './workflows'
+import { landingWorkspaceDemos } from './workspaceDemos'
 
 /** Landing page messages — split by section for maintainability. */
 export const landing = {
@@ -37,4 +38,5 @@ export const landing = {
   ...landingWaitlistCta,
   ...landingWhyDutiva,
   ...landingWorkflows,
+  ...landingWorkspaceDemos,
 } as const

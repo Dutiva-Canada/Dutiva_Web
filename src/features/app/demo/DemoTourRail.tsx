@@ -49,7 +49,7 @@ export function DemoTourRail() {
                 <Link
                   to={to}
                   aria-current={selected ? 'step' : undefined}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  className={`inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold transition-colors ${
                     selected
                       ? 'border-gold-border bg-gold-subtle text-gold-strong'
                       : 'border-border bg-bg-soft text-text-2 hover:border-gold-border/60 hover:text-text'
