@@ -502,7 +502,7 @@ const s5: AdvisorScenario = {
     ),
     banner: {
       tone: 'support',
-      title: bi('Support resource. ', 'Ressource de soutien. '),
+      title: bi('Support resource', 'Ressource de soutien'),
       text: bi(
         '9-8-8 Suicide Crisis Helpline — call or text, 24/7. Maintained from public sources, never generated.',
         '9-8-8 Ligne d’aide en cas de crise de suicide — appel ou texto, 24/7. Tenue à jour à partir de sources publiques, jamais générée.',
