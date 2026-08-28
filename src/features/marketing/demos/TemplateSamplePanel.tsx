@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { DocPaper } from '@/features/app/documents/components'
@@ -22,49 +23,56 @@ function TemplateSamplePreviewModal({
   useEscapeToClose(true, onClose)
   useEffect(() => {
     restoreRef.current = document.activeElement
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
     return () => {
+      document.body.style.overflow = prevOverflow
       if (restoreRef.current instanceof HTMLElement) restoreRef.current.focus()
     }
   }, [])
 
-  return (
+  return createPortal(
     <>
       <div
         onClick={onClose}
         aria-hidden="true"
         className="fixed inset-0 z-300 bg-overlay-scrim-mid"
       />
-      <dialog
-        open
+      <div
+        role="dialog"
+        aria-modal="true"
         aria-label={templateName}
-        className="fixed top-1/2 left-1/2 z-310 flex max-h-[min(88vh,920px)] w-[min(720px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[16px] border border-border bg-surface font-sans shadow-modal"
+        className="fixed inset-0 z-310 flex items-center justify-center p-4 pointer-events-none"
       >
-        <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
-          <div className="min-w-0">
-            <h2 className="font-display text-[18px] font-semibold tracking-[-0.01em] text-text">
-              {templateName}
-            </h2>
-            <p className="mt-1 text-[12px] leading-normal text-text-faint">{t('tplPreview_sample_note')}</p>
+        <div className="pointer-events-auto flex max-h-[min(88vh,920px)] w-[min(720px,100%)] flex-col overflow-hidden rounded-[16px] border border-border bg-surface font-sans shadow-modal">
+          <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
+            <div className="min-w-0">
+              <h2 className="font-display text-[18px] font-semibold tracking-[-0.01em] text-text">
+                {templateName}
+              </h2>
+              <p className="mt-1 text-[12px] leading-normal text-text-faint">{t('tplPreview_sample_note')}</p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="shrink-0 rounded-lg border border-border bg-bg-elevated p-2 text-text-muted transition-colors hover:text-text"
+              aria-label={t('tplPreview_close_sample')}
+            >
+              <X size={16} aria-hidden="true" />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="shrink-0 rounded-lg border border-border bg-bg-elevated p-2 text-text-muted transition-colors hover:text-text"
-            aria-label={t('tplPreview_close_sample')}
-          >
-            <X size={16} aria-hidden="true" />
-          </button>
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+            <DocPaper
+              blocks={blocks}
+              values={docPreview.values}
+              bilingual={docPreview.bilingual}
+              docLang={docPreview.docLang}
+            />
+          </div>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-          <DocPaper
-            blocks={blocks}
-            values={docPreview.values}
-            bilingual={docPreview.bilingual}
-            docLang={docPreview.docLang}
-          />
-        </div>
-      </dialog>
-    </>
+      </div>
+    </>,
+    document.body,
   )
 }
 
