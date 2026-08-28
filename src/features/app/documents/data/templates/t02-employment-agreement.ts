@@ -33,10 +33,10 @@ export const tplT02: DocTemplate = {
   risk: 'medium',
   review: 'hr_review_required',
   requiresLawyerReview: false,
-  version: 'v4',
-  versionNumber: 4,
+  version: 'v5',
+  versionNumber: 5,
   effectiveDate: '2026-04-10',
-  updatedAt: '2026-08-14',
+  updatedAt: '2026-08-27',
   estMinutes: 15,
   usageCount: 74,
   statutory: [
@@ -55,8 +55,8 @@ export const tplT02: DocTemplate = {
   ],
   jurisdictionNotes: {
     ON: {
-      en: 'Written for Ontario employers. Non-compete clauses entered into on or after October 25, 2021 are generally prohibited and void under the ESA, subject only to narrow statutory exceptions.',
-      fr: 'Rédigé pour les employeurs de l’Ontario. Les ententes de non-concurrence conclues à compter du 25 octobre 2021 sont généralement interdites et nulles en vertu de la LNE, sous réserve d’exceptions légales limitées.',
+      en: 'Written for Ontario employers. Section 11 ties each without-cause entitlement to the ESA minimum (notice, severance, benefits, wages and vacation pay) and limits for-cause without notice to the ESA wilful-misconduct standard — a structure Ontario courts upheld in Baker v. Van Dolder\'s Home Team Inc., 2026 ONCA (Aug 6, 2026). Non-compete clauses entered into on or after October 25, 2021 are generally prohibited and void under the ESA, subject only to narrow statutory exceptions. Have counsel review before use.',
+      fr: 'Rédigé pour les employeurs de l’Ontario. La section 11 rattache chaque droit en cas de cessation sans motif au minimum de la LNE (préavis, indemnité de départ, avantages, salaires et indemnité de vacances) et limite la cessation sans préavis au motif d’inconduite délibérée au sens de la LNE — structure que les tribunaux ontariens ont confirmée dans Baker c. Van Dolder\'s Home Team Inc., 2026 ONCA (6 août 2026). Les ententes de non-concurrence conclues à compter du 25 octobre 2021 sont généralement interdites et nulles en vertu de la LNE, sous réserve d’exceptions légales limitées. Faites réviser par un conseiller avant utilisation.', // [FR self-authored]
     },
   },
   includes: [

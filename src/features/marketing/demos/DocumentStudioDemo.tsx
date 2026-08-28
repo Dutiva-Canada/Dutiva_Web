@@ -67,6 +67,8 @@ export function DocumentStudioDemo() {
           <DocPaper
             blocks={preview.blocks}
             values={preview.values}
+            valuesByLang={preview.valuesByLang}
+            bilingual={preview.bilingual}
             docLang={lang}
             className="max-h-[420px] overflow-y-auto"
           />

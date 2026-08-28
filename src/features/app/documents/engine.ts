@@ -84,6 +84,59 @@ export function computedTokens(
   }
 }
 
+/** Long-form "today" string for merge fields in the given document language. */
+export function formatTodayLabel(lang: Lang, at: Date = new Date()): string {
+  return at.toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+}
+
+/** Wizard answers + computed tokens, ready for mergeSegments / DocPaper. */
+export function mergeFieldValues(
+  template: DocTemplate,
+  answers: Record<string, string>,
+  jurisdiction: Jurisdiction,
+  lang: Lang,
+  today?: string,
+): Record<string, string> {
+  const todayString = today ?? formatTodayLabel(lang)
+  return {
+    ...computedTokens(jurisdiction, lang, todayString),
+    ...answerLabels(template, answers, lang),
+  }
+}
+
+/** EN + FR merge values for templates that deliver both languages in one file. */
+export function bilingualMergeValues(
+  template: DocTemplate,
+  answers: Record<string, string>,
+  jurisdiction: Jurisdiction,
+  at: Date = new Date(),
+): { en: Record<string, string>; fr: Record<string, string> } {
+  return {
+    en: mergeFieldValues(template, answers, jurisdiction, 'en', formatTodayLabel('en', at)),
+    fr: mergeFieldValues(template, answers, jurisdiction, 'fr', formatTodayLabel('fr', at)),
+  }
+}
+
+export function isBilingualDelivery(template: DocTemplate): boolean {
+  return template.delivery === 'bilingual'
+}
+
+/** Body copy repeats per language; signature and disclaimer blocks render once at the end. */
+export function splitBilingualBody(blocks: PreviewBlock[]): {
+  body: PreviewBlock[]
+  tail: PreviewBlock[]
+} {
+  const tailTypes = new Set<PreviewBlock['type']>(['sig', 'note'])
+  return {
+    body: blocks.filter((block) => !tailTypes.has(block.type)),
+    tail: blocks.filter((block) => tailTypes.has(block.type)),
+  }
+}
+
 const ISO_DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/
 
 /** Long-form calendar date for merge fields — matches `today` in the wizard. */

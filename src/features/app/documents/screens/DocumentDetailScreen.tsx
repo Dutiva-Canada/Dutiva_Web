@@ -17,9 +17,10 @@ import { DocumentDetailProductionView } from './DocumentDetailProductionView'
 import { ActBtn, DocChip, DocPaper, JurisdictionPill, Skel } from '../components'
 import { SignatureModal } from '../components/SignatureModal'
 import {
-  answerLabels,
-  computedTokens,
+  bilingualMergeValues,
   docActionsFor,
+  isBilingualDelivery,
+  mergeFieldValues,
   resolveBlocks,
   templateTokens,
 } from '../engine'
@@ -318,7 +319,13 @@ function previewData(
   doc: GeneratedDoc,
   template: DocTemplate | undefined,
   org: OrgProfile,
-): { blocks: PreviewBlock[]; values: Record<string, string>; tokens: string[] } {
+): {
+  blocks: PreviewBlock[]
+  values: Record<string, string>
+  valuesByLang?: { en: Record<string, string>; fr: Record<string, string> }
+  bilingual: boolean
+  tokens: string[]
+} {
   const blocks = template
     ? resolveBlocks(template, {
         jurisdiction: doc.jurisdiction,
@@ -327,12 +334,20 @@ function previewData(
         answers: doc.answers,
       })
     : []
+  const bilingual = template ? isBilingualDelivery(template) : false
+  const valuesByLang =
+    bilingual && template
+      ? bilingualMergeValues(template, doc.answers, doc.jurisdiction)
+      : undefined
   return {
     blocks,
-    values: {
-      ...computedTokens(doc.jurisdiction, doc.language, fmtDate(doc.updatedAt, doc.language)),
-      ...(template ? answerLabels(template, doc.answers, doc.language) : doc.answers),
-    },
+    values:
+      valuesByLang?.en ??
+      (template
+        ? mergeFieldValues(template, doc.answers, doc.jurisdiction, doc.language)
+        : doc.answers),
+    valuesByLang,
+    bilingual,
     tokens: template ? templateTokens(template) : Object.keys(doc.answers),
   }
 }
@@ -342,18 +357,28 @@ function DocumentPreview({
   template,
   blocks,
   values,
+  valuesByLang,
+  bilingual,
   docLang,
 }: {
   readonly active: boolean
   readonly template: DocTemplate | undefined
   readonly blocks: PreviewBlock[]
   readonly values: Record<string, string>
+  readonly valuesByLang?: { en: Record<string, string>; fr: Record<string, string> }
+  readonly bilingual: boolean
   readonly docLang: 'en' | 'fr'
 }) {
   if (!active || !template) return null
   return (
     <div className="max-h-[70vh] overflow-y-auto rounded-[14px]">
-      <DocPaper blocks={blocks} values={values} docLang={docLang} />
+      <DocPaper
+        blocks={blocks}
+        values={values}
+        valuesByLang={valuesByLang}
+        bilingual={bilingual}
+        docLang={docLang}
+      />
     </div>
   )
 }
@@ -389,7 +414,7 @@ function DocumentDetailDemoScreen() {
 
   /* Preview: conditional clauses resolved against the live org profile; merge
      values = computed tokens under the wizard answers. */
-  const { blocks, values, tokens } = previewData(doc, template, org)
+  const { blocks, values, valuesByLang, bilingual, tokens } = previewData(doc, template, org)
   const versions = [...doc.versions].sort((a, b) => b.n - a.n)
   const recipients = [...doc.recipients].sort((a, b) => a.order - b.order)
   const audit = [...doc.audit].reverse()
@@ -531,6 +556,8 @@ function DocumentDetailDemoScreen() {
               template={template}
               blocks={blocks}
               values={values}
+              valuesByLang={valuesByLang}
+              bilingual={bilingual}
               docLang={doc.language}
             />
 

@@ -18,6 +18,8 @@ describe('templatePreviewModel', () => {
     expect(demoAnswerDisplay('T01', 'start_date', 'en')).toBe('September 15, 2026')
     expect(demoAnswerDisplay('T01', 'vacation_weeks', 'en')).toBe('3 weeks')
     const preview = buildTemplatePreview('T01', 'en')
+    expect(preview!.bilingual).toBe(true)
+    expect(preview!.valuesByLang?.fr.start_date).toMatch(/15 septembre 2026/)
     const roleClause = preview!.blocks.find((block) => block.heading?.en === 'Role, start date and reporting')
     const body = mergeSegments(roleClause?.text?.en ?? '', preview!.values)
       .map((segment) => segment.text)

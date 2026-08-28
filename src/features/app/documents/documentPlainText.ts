@@ -1,5 +1,5 @@
 import type { Lang } from '@/i18n/core'
-import { mergeSegments } from './engine'
+import { mergeSegments, splitBilingualBody } from './engine'
 import type { PreviewBlock } from './data'
 import type { ProductionDocumentRecipient } from './signatureQueries'
 
@@ -40,7 +40,25 @@ export function blocksToPlainTextExport(
   values: Record<string, string>,
   lang: Lang,
   recipients?: ProductionDocumentRecipient[],
+  options?: {
+    bilingual?: boolean
+    valuesByLang?: { en: Record<string, string>; fr: Record<string, string> }
+  },
 ): PlainTextExport {
+  if (options?.bilingual && options.valuesByLang) {
+    const { body, tail } = splitBilingualBody(blocks)
+    const en = blocksToPlainTextExport(body, options.valuesByLang.en, 'en', recipients)
+    const fr = blocksToPlainTextExport(body, options.valuesByLang.fr, 'fr', recipients)
+    const tailPart =
+      tail.length > 0
+        ? blocksToPlainTextExport(tail, options.valuesByLang.en, 'en', recipients)
+        : { paragraphs: [], signatureImages: [] as PlainTextExport['signatureImages'] }
+    return {
+      paragraphs: [...en.paragraphs, 'Version française', ...fr.paragraphs, ...tailPart.paragraphs],
+      signatureImages: [...en.signatureImages, ...fr.signatureImages, ...tailPart.signatureImages],
+    }
+  }
+
   const paragraphs: string[] = []
   const signatureImages: PlainTextExport['signatureImages'] = []
 

@@ -8,7 +8,7 @@ import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeCont
 import { useDoclib } from '../doclibContext'
 import { DocPaper } from '../components'
 import { SignaturePad, type SignatureValue } from '../components/SignaturePad'
-import { answerLabels, computedTokens, resolveBlocks } from '../engine'
+import { bilingualMergeValues, isBilingualDelivery, mergeFieldValues, resolveBlocks } from '../engine'
 import { SigningProductionView } from './SigningProductionView'
 
 export function SigningScreen() {
@@ -62,11 +62,14 @@ function SigningDemoScreen() {
       unionized: org.unionized,
       answers: doc.answers,
     })
-    const values = {
-      ...computedTokens(doc.jurisdiction, doc.language, doc.updatedAt.slice(0, 10)),
-      ...answerLabels(template, doc.answers, doc.language),
-    }
-    return { blocks, values }
+    const bilingual = isBilingualDelivery(template)
+    const valuesByLang = bilingual
+      ? bilingualMergeValues(template, doc.answers, doc.jurisdiction)
+      : undefined
+    const values =
+      valuesByLang?.en ??
+      mergeFieldValues(template, doc.answers, doc.jurisdiction, doc.language)
+    return { blocks, values, valuesByLang, bilingual }
   }, [doc, template, org])
 
   if (!data) {
@@ -160,6 +163,8 @@ function SigningDemoScreen() {
               <DocPaper
                 blocks={blocksAndValues.blocks}
                 values={blocksAndValues.values}
+                valuesByLang={blocksAndValues.valuesByLang}
+                bilingual={blocksAndValues.bilingual}
                 docLang={doc.language}
               />
             </div>

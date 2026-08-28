@@ -193,6 +193,12 @@ export interface DocTemplate {
   preview: PreviewBlock[]
   subject: TemplateSubject
   /**
+   * When `bilingual`, the generated document stacks English and French body
+   * copy in one deliverable (T01). Wizard answers are shared; merge fields are
+   * localized per language at render time.
+   */
+  delivery?: 'bilingual'
+  /**
    * Full-length formatted body ({{token}} merge convention). EN-only in the
    * handoff sample content; the bilingual `preview` blocks are the localized
    * rendering path.

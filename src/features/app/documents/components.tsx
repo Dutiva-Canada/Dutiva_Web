@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
 import { chipToneClasses, statusChipBaseClass } from '@/components/chips'
-import { mergeSegments } from './engine'
+import { mergeSegments, splitBilingualBody } from './engine'
 import type { MergeSegment } from './engine'
 import type { DocChipTone, Jurisdiction, PreviewBlock } from './data'
 
@@ -165,53 +165,31 @@ function blockText(block: PreviewBlock, lang: 'en' | 'fr'): string {
   return block.text[lang]
 }
 
-function blockKey(block: PreviewBlock): string {
+function blockKey(block: PreviewBlock, lang?: 'en' | 'fr'): string {
   const content =
     block.n ??
     block.heading?.en ??
     block.text?.en ??
     block.roles?.map((role) => role.en).join('-') ??
     ''
-  return `${block.type}-${content}`
+  return lang ? `${lang}-${block.type}-${content}` : `${block.type}-${content}`
 }
 
-/**
- * The rendered document. `blocks` should already be conditional-clause
- * resolved (engine.resolveBlocks); `values` = wizard answers merged over the
- * computed tokens (engine.computedTokens). Every preview surface (template
- * detail, wizard live preview, document detail) renders through this.
- */
-export function DocPaper({
+function DocPaperBody({
   blocks,
   values,
-  className,
-  docLang,
+  lang,
 }: {
   readonly blocks: PreviewBlock[]
   readonly values: Record<string, string>
-  readonly className?: string
-  /**
-   * The language the *document* is written in, which is not the UI locale —
-   * a workspace in English can generate a French letter. Pass it wherever a
-   * document has one, so block copy and merged answers agree; omit it on the
-   * template detail preview, which has no document and follows the UI.
-   */
-  readonly docLang?: 'en' | 'fr'
+  readonly lang: 'en' | 'fr'
 }) {
-  const { lang: uiLang } = useI18n()
-  const lang = docLang ?? uiLang
-  /* Everything inside the paper is the document, so it all follows the
-     document's language — headings and signature roles included. Resolving
-     those through the UI's `x()` was how a French document came to render
-     French paragraphs under English headings. */
   const d = (value: Bi): string => value[lang]
   return (
-    <div
-      className={`rounded-[12px] border border-border bg-surface p-[clamp(18px,2.5vw,28px)] font-serif text-[12.5px] leading-[1.7] text-text shadow-sm ${className ?? ''}`}
-    >
+    <>
       {blocks.map((block) => {
         const text = blockText(block, lang)
-        const key = blockKey(block)
+        const key = blockKey(block, lang)
         switch (block.type) {
           case 'title':
             return (
@@ -243,9 +221,6 @@ export function DocPaper({
               </div>
             )
           case 'fill':
-            /* A prompt for the reader to answer by hand. The ruled lines are
-               the point — without them this is prose the reader cannot
-               respond to. */
             return (
               <div key={key} className="mt-3">
                 {block.heading && (
@@ -307,6 +282,62 @@ export function DocPaper({
             )
         }
       })}
+    </>
+  )
+}
+
+/**
+ * The rendered document. `blocks` should already be conditional-clause
+ * resolved (engine.resolveBlocks); `values` = wizard answers merged over the
+ * computed tokens (engine.computedTokens). Every preview surface (template
+ * detail, wizard live preview, document detail) renders through this.
+ */
+export function DocPaper({
+  blocks,
+  values,
+  valuesByLang,
+  bilingual,
+  className,
+  docLang,
+}: {
+  readonly blocks: PreviewBlock[]
+  readonly values: Record<string, string>
+  readonly className?: string
+  /** When set with `bilingual`, renders EN then FR in one deliverable (T01). */
+  readonly valuesByLang?: { en: Record<string, string>; fr: Record<string, string> }
+  readonly bilingual?: boolean
+  /**
+   * The language the *document* is written in, which is not the UI locale —
+   * a workspace in English can generate a French letter. Pass it wherever a
+   * document has one, so block copy and merged answers agree; omit it on the
+   * template detail preview, which has no document and follows the UI.
+   */
+  readonly docLang?: 'en' | 'fr'
+}) {
+  const { lang: uiLang } = useI18n()
+  const lang = docLang ?? uiLang
+  const paperClass = `rounded-[12px] border border-border bg-surface p-[clamp(18px,2.5vw,28px)] font-serif text-[12.5px] leading-[1.7] text-text shadow-sm ${className ?? ''}`
+
+  if (bilingual && valuesByLang) {
+    const { body, tail } = splitBilingualBody(blocks)
+    return (
+      <div className={paperClass}>
+        <DocPaperBody blocks={body} values={valuesByLang.en} lang="en" />
+        <div
+          className="mt-8 mb-4 border-t border-border pt-6 text-center font-display text-[13px] font-bold tracking-[-0.01em]"
+          aria-hidden="true"
+        >
+          Version française
+        </div>
+        <DocPaperBody blocks={body} values={valuesByLang.fr} lang="fr" />
+        {tail.length > 0 && <DocPaperBody blocks={tail} values={valuesByLang.en} lang="en" />}
+      </div>
+    )
+  }
+
+  return (
+    <div className={paperClass}>
+      <DocPaperBody blocks={blocks} values={values} lang={lang} />
     </div>
   )
 }

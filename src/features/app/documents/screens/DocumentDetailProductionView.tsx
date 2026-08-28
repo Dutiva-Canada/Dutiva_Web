@@ -23,6 +23,7 @@ import {
   type StatusInfo,
 } from '../data'
 import { archiveDocument, approveDocument, getDocument } from '../productionApi'
+import { bilingualMergeValues, isBilingualDelivery } from '../engine'
 import type { ProductionDocumentDetail, ProductionDocumentStatus } from '../productionApi'
 import { DOCUMENT_AUDIT_LABEL } from '../auditLabels'
 import {
@@ -224,6 +225,11 @@ export function DocumentDetailProductionView() {
 
   const template = templateByTid.get(detail.templateTid)
   const current = detail.versions.find((v) => v.versionNumber === detail.currentVersion)
+  const bilingual = template ? isBilingualDelivery(template) : false
+  const valuesByLang =
+    bilingual && template
+      ? bilingualMergeValues(template, detail.answers, detail.jurisdiction)
+      : undefined
   const riskInfo = riskLevelInfo[detail.risk]
   const reviewInfo = reviewStatusInfo[detail.reviewStatus]
   const signature = detail.signature
@@ -561,7 +567,9 @@ export function DocumentDetailProductionView() {
       {tab === 'preview' && current && (
         <DocPaper
           blocks={current.content.blocks}
-          values={current.content.values}
+          values={valuesByLang?.en ?? current.content.values}
+          valuesByLang={valuesByLang}
+          bilingual={bilingual}
           docLang={detail.language}
         />
       )}
