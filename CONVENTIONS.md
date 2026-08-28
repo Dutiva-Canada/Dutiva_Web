@@ -185,6 +185,19 @@ Wiring a module to real persistence follows the Employees reference shape
 shell — don't thread production conditionals through a view that is still
 fully fixture-driven without a production counterpart.
 
+**View file layout (enforced by `npm run check:architecture`):**
+
+| File | Role |
+| --- | --- |
+| `FooView.tsx` | Thin shell: `useWorkspaceMode()` → `FooDemoView` or `FooProductionView` |
+| `FooDemoView.tsx` | Northgate fixtures — demo workspace and `/demo` only |
+| `FooProductionView.tsx` | Real persistence via `productionApi.ts` (no `@/data` value imports) |
+| `FooDemoFixtures.tsx` | Optional: demo blocks inside a single view (`Workflows`, `Settings`) |
+
+Regenerate a demo split with `node scripts/extract-demo-view.mjs <ComponentName>`.
+Do **not** delete demo fixtures until a module is production-default for all
+users with no demo-only UX. Full program notes: [docs/MAINTAINABILITY.md](MAINTAINABILITY.md).
+
 **Employees is the reference implementation** (Phase 3): the context
 exposes `organizationId` (auto-provisioned via the backend's
 `create_organization()` RPC on the admin's first switch to production),
