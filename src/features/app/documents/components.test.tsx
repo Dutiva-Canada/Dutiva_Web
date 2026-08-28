@@ -62,4 +62,27 @@ describe('DocPaper letter formatting', () => {
     expect(container.textContent).not.toMatch(/Jordan ,/)
     expect(container.textContent).not.toMatch(/Coordinator \./)
   })
+
+  it('renders clause label/value lines as a definition list', () => {
+    const blocks: PreviewBlock[] = [
+      {
+        type: 'clause',
+        n: 1,
+        heading: { en: 'Employer information', fr: '…' },
+        text: {
+          en: "The following information is included.\nLegal name: {{org}}\nEmployer telephone: {{employer_phone}}",
+          fr: '…',
+        },
+      },
+    ]
+
+    const { container } = renderPaper(blocks, {
+      org: 'Northgate Logistics Inc.',
+      employer_phone: '(905) 555-0142',
+    })
+
+    expect(container.querySelector('dl')).not.toBeNull()
+    expect(screen.getByText('Legal name')).toBeInTheDocument()
+    expect(screen.getByText('Northgate Logistics Inc.')).toBeInTheDocument()
+  })
 })

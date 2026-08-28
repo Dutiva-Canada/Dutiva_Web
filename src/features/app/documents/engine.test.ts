@@ -9,6 +9,7 @@ import {
   formatDateAnswer,
   gatePasses,
   mergeSegments,
+  parseClauseFieldLines,
   resolveBlocks,
   templateTokens,
 } from './engine'
@@ -272,5 +273,29 @@ describe('role & status action gating', () => {
     expect(can('manager', 'export')).toBe(true)
     expect(can('manager', 'edit')).toBe(false)
     expect(can('manager', 'approve_review')).toBe(false)
+  })
+})
+
+describe('parseClauseFieldLines', () => {
+  it('splits intro prose from label/value rows', () => {
+    const parsed = parseClauseFieldLines(
+      "The following information is included.\nLegal name: {{org}}\nEmployer telephone: {{employer_phone}}",
+    )
+    expect(parsed).toEqual({
+      intro: 'The following information is included.',
+      fields: [
+        { label: 'Legal name', value: '{{org}}' },
+        { label: 'Employer telephone', value: '{{employer_phone}}' },
+      ],
+      outro: '',
+    })
+  })
+
+  it('returns null for ordinary clause prose', () => {
+    expect(
+      parseClauseFieldLines(
+        'Your position will be {{position_title}}, reporting to {{manager_name}}.',
+      ),
+    ).toBeNull()
   })
 })

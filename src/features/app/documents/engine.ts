@@ -59,6 +59,56 @@ export function resolveBlocks(template: DocTemplate, ctx: ClauseContext): Previe
   return template.preview.filter((block) => gatePasses(block.when, ctx))
 }
 
+/** Label/value lines in clause copy (e.g. T01 §1 employer table). */
+export interface ClauseFieldLine {
+  label: string
+  value: string
+}
+
+const CLAUSE_FIELD_LINE_RE = /^([^:\n]{1,48}):\s*(.+)$/
+
+/**
+ * Split clause body into intro prose, a run of `Label: value` lines, and any
+ * trailing prose. Returns null when the copy is ordinary paragraph text.
+ */
+export function parseClauseFieldLines(text: string): {
+  intro: string
+  fields: ClauseFieldLine[]
+  outro: string
+} | null {
+  const lines = text.split('\n')
+  const fields: ClauseFieldLine[] = []
+  let fieldStart = -1
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i] ?? ''
+    const match = line.match(CLAUSE_FIELD_LINE_RE)
+    const label = match?.[1]?.trim() ?? ''
+    const value = match?.[2]?.trim() ?? ''
+    const isField = label.length > 0 && value.length > 0 && !label.includes('.')
+
+    if (isField) {
+      if (fieldStart === -1) fieldStart = i
+      fields.push({ label, value })
+      continue
+    }
+    if (fields.length > 0) {
+      return {
+        intro: lines.slice(0, fieldStart).join('\n'),
+        fields,
+        outro: lines.slice(i).join('\n'),
+      }
+    }
+  }
+
+  if (fields.length === 0) return null
+  return {
+    intro: lines.slice(0, fieldStart).join('\n'),
+    fields,
+    outro: '',
+  }
+}
+
 /* ── Merge fields ────────────────────────────────────────────────────────── */
 
 export interface MergeSegment {

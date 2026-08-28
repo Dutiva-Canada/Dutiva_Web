@@ -70,7 +70,7 @@ export function DocumentStudioDemo() {
             valuesByLang={preview.valuesByLang}
             bilingual={preview.bilingual}
             docLang={lang}
-            className="max-h-[420px] overflow-y-auto"
+            className="max-h-[480px] overflow-y-auto"
           />
         </div>
       </div>
