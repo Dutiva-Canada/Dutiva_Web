@@ -41,3 +41,44 @@
     scroll-behavior: smooth;
   }
 }
+
+/* ── Mobile layout utilities (marketing surface) ─────────────────────────── */
+
+/* Auto-fit grids whose min track would clip on 320px phones when paired with
+   html { overflow-x: clip }. Cap each floor at 100% of the container. */
+.marketing-auto-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+}
+.marketing-auto-grid--360 {
+  grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
+}
+.marketing-auto-grid--300 {
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+}
+.marketing-auto-grid--260 {
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+}
+.marketing-auto-grid--240 {
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+}
+.marketing-auto-grid--230 {
+  grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
+}
+.marketing-auto-grid--220 {
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+}
+.marketing-auto-grid--150 {
+  grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+}
+.marketing-auto-grid--140 {
+  grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr));
+}
+
+/* Keep fixed consent chrome from covering the last lines of page content. */
+@media (max-width: 640px) {
+  body.consent-banner-open .surface-marketing main,
+  body.consent-banner-open .surface-marketing footer {
+    padding-bottom: 11rem;
+  }
+}

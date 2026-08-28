@@ -37,7 +37,7 @@ export function GuidesIndexPage() {
       />
 
       <PageSection title={t('guidesIdx_section_title')}>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
+        <div className="marketing-auto-grid gap-4">
           {GUIDE_ARTICLES.map((guide) => (
             <Link
               key={guide.slug}

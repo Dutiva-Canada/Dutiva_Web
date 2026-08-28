@@ -66,7 +66,7 @@ export function Pricing() {
   const { lt, t } = useLanding()
   const { p } = usePublicPath()
   return (
-    <section id="pricing" className="mx-auto max-w-[1200px] scroll-mt-[80px] px-6 py-16">
+    <section id="pricing" className="mx-auto max-w-[1200px] scroll-mt-[80px] px-4 py-12 sm:px-6 sm:py-16">
       <SectionIntro
         badge={lt('landing_price_badge')}
         title={lt('landing_price_title')}
@@ -77,7 +77,7 @@ export function Pricing() {
           {t('pricing_beta_banner')}
         </p>
       ) : null}
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(230px,1fr))] gap-4">
+      <div className="marketing-auto-grid marketing-auto-grid--230 gap-4">
         {PLANS.map((plan) => {
           const purchasable = isPurchasable(plan)
           return (

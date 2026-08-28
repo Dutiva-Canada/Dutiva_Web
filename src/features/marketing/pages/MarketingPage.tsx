@@ -51,7 +51,7 @@ export function Breadcrumbs({
   return (
     <nav
       aria-label={L('Breadcrumb', 'Fil d’Ariane')}
-      className={`mx-auto flex max-w-[840px] flex-wrap items-center justify-center gap-1.5 px-6 text-[0.8125rem] text-text-3 ${className ?? 'pt-8'}`}
+      className={`mx-auto flex max-w-[840px] flex-wrap items-center justify-center gap-1.5 px-4 text-[0.8125rem] text-text-3 sm:px-6 ${className ?? 'pt-8'}`}
     >
       {items.map((item, index) => (
         <Fragment key={item.name}>
@@ -82,7 +82,7 @@ export function PageHero({
   readonly intro: string
 }) {
   return (
-    <section className="mx-auto max-w-[840px] px-6 pt-16 pb-6 text-center">
+    <section className="mx-auto max-w-[840px] px-4 pt-12 pb-6 text-center sm:px-6 sm:pt-16">
       <span className="badge">{eyebrow}</span>
       <h1 className="mt-5 font-display text-[clamp(2.125rem,4vw,3.25rem)] leading-[1.08] font-semibold tracking-[-0.02em] text-text">
         {title}
@@ -101,7 +101,7 @@ export function PageSection({
   readonly children: ReactNode
 }) {
   return (
-    <section className="mx-auto max-w-[960px] px-6 py-8">
+    <section className="mx-auto max-w-[960px] px-4 py-8 sm:px-6">
       <h2 className="mb-5 font-display text-[clamp(1.5rem,2.4vw,2rem)] font-semibold tracking-[-0.02em] text-text">
         {title}
       </h2>
@@ -131,7 +131,7 @@ export function PageAside({
   readonly to: string
 }) {
   return (
-    <section className="mx-auto max-w-[1200px] px-6 pt-2">
+    <section className="mx-auto max-w-[1200px] px-4 pt-2 sm:px-6">
       <div className="rounded-xl border border-border bg-bg px-[18px] py-5">
         <h2 className="font-display text-[1.0625rem] font-semibold tracking-[-0.01em] text-text">
           {title}
@@ -162,7 +162,7 @@ interface PageCtaProps {
 /** Closing call-to-action band shared by every marketing subpage. */
 export function PageCta({ title, body, action, to, href }: PageCtaProps) {
   return (
-    <section className="mx-auto max-w-[1200px] px-6 pt-8 pb-[72px]">
+    <section className="mx-auto max-w-[1200px] px-4 pt-8 pb-16 sm:px-6 sm:pb-[72px]">
       <div className="premium-card p-[clamp(28px,4vw,56px)] text-center">
         <h2 className="font-display text-[clamp(1.75rem,3vw,2.5rem)] leading-[1.1] font-semibold tracking-[-0.02em] text-text">
           {title}

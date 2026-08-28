@@ -30,7 +30,7 @@ export function DocumentStudioDemo() {
   )
 
   return (
-    <div className="mt-10 rounded-[22px] border border-border bg-bg-elevated p-6">
+    <div className="mt-10 rounded-[22px] border border-border bg-bg-elevated p-4 sm:p-6">
       <div className="mb-5">
         <div className="text-sm font-semibold text-text">{lt('landing_studio_demo_title')}</div>
         <p className="mt-1.5 text-sm leading-[1.55] text-text-2">{lt('landing_studio_demo_intro')}</p>
@@ -38,7 +38,7 @@ export function DocumentStudioDemo() {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
         <div className="rounded-xl border border-border bg-bg-soft p-4">
-          <div className="mb-3 text-[11px] font-bold tracking-[0.14em] text-text-muted uppercase">
+          <div className="mb-3 text-xs font-bold tracking-[0.14em] text-text-muted uppercase">
             {lt('landing_studio_demo_wizard')}
           </div>
           <ol className="grid gap-3">
@@ -47,7 +47,7 @@ export function DocumentStudioDemo() {
                 key={question.id}
                 className="rounded-lg border border-border bg-bg-elevated px-3.5 py-3"
               >
-                <div className="mb-1 flex items-center gap-2 text-[11px] font-semibold tracking-[0.06em] text-text-3 uppercase">
+                <div className="mb-1 flex flex-wrap items-center gap-2 text-xs font-semibold tracking-[0.06em] text-text-3 uppercase">
                   <CircleCheck size={12} className="text-ok-fg" aria-hidden="true" />
                   {lt('landing_studio_demo_step')} {index + 1}
                   <span className="font-normal normal-case tracking-normal text-text-faint">
@@ -64,10 +64,10 @@ export function DocumentStudioDemo() {
         </div>
 
         <div>
-          <div className="mb-2 flex flex-wrap items-center gap-2 text-[11px] font-bold tracking-[0.14em] text-text-muted uppercase">
+          <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-bold tracking-[0.14em] text-text-muted uppercase">
             <span>{lt('landing_studio_demo_output')}</span>
             {docPreview.showBilingualBadge && (
-              <span className="rounded-full border border-border bg-inset px-2 py-0.5 text-[10px] font-semibold tracking-[0.08em] text-text-faint normal-case">
+              <span className="rounded-full border border-border bg-inset px-2 py-0.5 text-xs font-semibold tracking-[0.08em] text-text-faint normal-case">
                 {lt('landing_studio_demo_bilingual_badge')}
               </span>
             )}
@@ -82,8 +82,9 @@ export function DocumentStudioDemo() {
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-        <p className="m-0 text-[11px] leading-normal text-text-faint">{lt('landing_studio_demo_note')}</p>
+      <div className="mt-3 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <p className="m-0 text-xs leading-normal text-text-faint">{lt('landing_studio_demo_note')}</p>
+        <div className="flex flex-wrap gap-4">
         <Link
           to={`${p('demoWorkspace')}/documents/studio`}
           className="text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
@@ -96,6 +97,7 @@ export function DocumentStudioDemo() {
         >
           {lt('landing_studio_demo_samples_link')}
         </Link>
+        </div>
       </div>
     </div>
   )

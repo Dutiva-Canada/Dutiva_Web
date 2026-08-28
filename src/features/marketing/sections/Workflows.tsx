@@ -58,13 +58,13 @@ const TILES: Tile[] = [
 export function Workflows() {
   const { lt } = useLanding()
   return (
-    <section id="workflows" className="mx-auto max-w-[1200px] scroll-mt-[80px] px-6 py-16">
+    <section id="workflows" className="mx-auto max-w-[1200px] scroll-mt-[80px] px-4 py-12 sm:px-6 sm:py-16">
       <SectionIntro
         badge={lt('landing_wf_badge')}
         title={lt('landing_wf_title')}
         sub={lt('landing_wf_sub')}
       />
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2.5">
+      <div className="marketing-auto-grid marketing-auto-grid--150 gap-2.5">
         {TILES.map((tile) => (
           <div key={tile.label} className="rounded-xl border border-border bg-bg-elevated p-4">
             <tile.icon size={18} className="text-gold-strong" />

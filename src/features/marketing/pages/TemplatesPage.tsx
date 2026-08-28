@@ -69,18 +69,18 @@ export function TemplatesPage() {
                 <div key={category.id}>
                   <div className="mb-1 text-base font-semibold text-text">{x(category.name)}</div>
                   <p className="mb-4 text-sm leading-6 text-text-2">{x(category.desc)}</p>
-                  <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-4">
+                  <div className="marketing-auto-grid marketing-auto-grid--260 gap-4">
                     {templates.map((tpl) => (
                       <div key={tpl.id} className="premium-card-soft p-5">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-start gap-2.5">
+                        <div className="flex min-w-0 items-start justify-between gap-3">
+                          <div className="flex min-w-0 items-start gap-2.5">
                             <FileText size={16} className="mt-0.5 flex-none text-gold-strong" />
-                            <div className="text-[0.9375rem] font-semibold text-text">
+                            <div className="min-w-0 text-[0.9375rem] font-semibold text-text">
                               {x(tpl.name)}
                             </div>
                           </div>
                           <span
-                            className={`shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-semibold whitespace-nowrap ${RISK_CLASS[tpl.risk]}`}
+                            className={`shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${RISK_CLASS[tpl.risk]}`}
                           >
                             {riskLabel[tpl.risk]}
                           </span>

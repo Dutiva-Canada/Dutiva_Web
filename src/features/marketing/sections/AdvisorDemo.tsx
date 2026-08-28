@@ -38,8 +38,8 @@ export function AdvisorDemo() {
 
   return (
     <div id="advisor" className="premium-card animate-fade-up scroll-mt-20 overflow-hidden p-0">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-bg-elevated px-5 py-4">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-bg-elevated px-4 py-4 sm:px-5">
+        <div className="flex min-w-0 items-center gap-3">
           <span className="grid h-10 w-10 place-items-center rounded-xl bg-navy text-gold">
             <Sparkles size={19} />
           </span>
@@ -48,12 +48,12 @@ export function AdvisorDemo() {
             <span className="block text-[0.8125rem] text-text-2">{x(scenario.turn.jurisdictionLine)}</span>
           </span>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-bg-soft px-2.5 py-1 text-xs font-semibold text-text-2">
+        <span className="hidden shrink-0 items-center gap-1.5 rounded-full border border-border bg-bg-soft px-2.5 py-1 text-xs font-semibold text-text-2 sm:inline-flex">
           {lt('landing_adv_preview')}
         </span>
       </div>
 
-      <div className="border-b border-border bg-bg-elevated px-5 py-3">
+      <div className="border-b border-border bg-bg-elevated px-4 py-3 sm:px-5">
         <div
           className="flex flex-wrap gap-2"
           role="tablist"
@@ -68,7 +68,7 @@ export function AdvisorDemo() {
                 type="button"
                 role="tab"
                 aria-selected={selected}
-                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                className={`min-h-11 rounded-full border px-3.5 py-2 text-xs font-semibold transition-colors ${
                   selected
                     ? 'border-gold-border bg-gold-subtle text-gold-strong'
                     : 'border-border bg-bg-soft text-text-2 hover:text-text'
@@ -80,7 +80,7 @@ export function AdvisorDemo() {
             )
           })}
         </div>
-        <p className="mt-2 text-[11px] leading-normal text-text-faint">{lt('landing_adv_preview_note')}</p>
+        <p className="mt-2 text-xs leading-normal text-text-faint">{lt('landing_adv_preview_note')}</p>
       </div>
 
       <ScenarioTranscript scenario={scenario} />
@@ -106,7 +106,7 @@ function ScenarioTranscript({ scenario }: { readonly scenario: AdvisorScenario }
   const sourceItem = turn.response.legalBasis.items.find((item) => item.valid)
 
   return (
-    <div className="grid gap-3.5 bg-bg-soft p-5">
+    <div className="grid gap-3.5 bg-bg-soft p-4 sm:p-5">
       <div className="ml-auto max-w-[86%] rounded-[16px_16px_3px_16px] bg-navy px-4 py-2.75 text-[0.9375rem] leading-[1.55] text-white">
         {x(scenario.user)}
       </div>
@@ -178,11 +178,11 @@ function DocChip({
   readonly action: string
 }) {
   return (
-    <span className="flex items-center gap-2 rounded-[10px] border border-border bg-bg-elevated py-1.75 pr-2 pl-2.25 text-[0.8125rem]">
+    <span className="flex min-w-0 max-w-full items-center gap-2 rounded-[10px] border border-border bg-bg-elevated py-1.75 pr-2 pl-2.25 text-[0.8125rem]">
       <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-bg-soft">
         <Icon size={12} className="text-text-3" />
       </span>
-      <span className="font-semibold text-text">{label}</span>
+      <span className="min-w-0 truncate font-semibold text-text">{label}</span>
       <span className="rounded-md bg-gold-subtle px-2.25 py-1 text-xs font-bold text-gold-strong">
         {action}
       </span>

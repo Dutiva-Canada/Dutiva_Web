@@ -28,13 +28,13 @@ const STEPS: Step[] = [
 export function HowItWorks() {
   const { lt } = useLanding()
   return (
-    <section id="how" className="mx-auto max-w-[1200px] scroll-mt-[80px] px-6 py-16">
+    <section id="how" className="mx-auto max-w-[1200px] scroll-mt-[80px] px-4 py-12 sm:px-6 sm:py-16">
       <SectionIntro
         badge={lt('landing_how_badge')}
         title={lt('landing_how_title')}
         sub={lt('landing_how_sub')}
       />
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-4">
+      <div className="marketing-auto-grid marketing-auto-grid--260 gap-4">
         {STEPS.map((step) => (
           <div key={step.num} className="premium-card-soft p-7">
             <div className="mb-4 flex items-center gap-3">

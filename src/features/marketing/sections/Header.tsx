@@ -62,7 +62,7 @@ const CTRL =
 
 /* Large mobile pill (lang · theme · hamburger) — prototype `.hdr-pill`. */
 const PILL =
-  'inline-flex h-[46px] min-w-[46px] cursor-pointer items-center justify-center gap-[7px] rounded-2xl border border-control-border bg-bg-elevated px-4 font-sans text-[0.9375rem] font-semibold text-text transition-[border-color,background-color,transform] duration-[160ms] ease-in-out hover:border-gold-border hover:bg-[rgba(255,255,255,0.05)] active:translate-y-px motion-reduce:transition-none'
+  'inline-flex h-11 min-w-11 cursor-pointer items-center justify-center gap-[7px] rounded-2xl border border-control-border bg-bg-elevated px-3.5 font-sans text-[0.9375rem] font-semibold text-text transition-[border-color,background-color,transform] duration-[160ms] ease-in-out hover:border-gold-border hover:bg-[rgba(255,255,255,0.05)] active:translate-y-px motion-reduce:transition-none sm:h-[46px] sm:min-w-[46px] sm:px-4'
 
 /**
  * Language toggle. On the public surface (URL-scoped language) it renders a
@@ -119,14 +119,14 @@ export function Header() {
           rather than leaving the content to slide beneath it; 0 in ordinary
           Safari, which already reserves that space. */}
       <header className="sticky top-0 z-30 border-b border-border bg-(--topbar-bg) pt-[env(safe-area-inset-top)] backdrop-blur-[18px]">
-        <div className="mx-auto flex max-w-300 items-center justify-between gap-4 px-6 py-3">
+        <div className="mx-auto flex max-w-300 items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-6">
           <a href={home('top')} className="flex items-center gap-2.5">
             <LeafTile variant="header" />
             <span className="leading-none">
               <span className="block">
                 <Wordmark />
               </span>
-              <span className="mt-0.75 block font-display text-[0.5rem] font-semibold tracking-[0.36em] text-text-3">
+              <span className="mt-0.5 block text-[0.625rem] font-semibold tracking-[0.28em] text-text-3 sm:tracking-[0.36em]">
                 CANADA
               </span>
             </span>

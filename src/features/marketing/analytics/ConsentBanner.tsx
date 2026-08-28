@@ -43,6 +43,15 @@ export function ConsentBanner() {
     return () => window.removeEventListener(COOKIE_PREFERENCES_EVENT, reopen)
   }, [])
 
+  useEffect(() => {
+    if (!visible) {
+      document.body.classList.remove('consent-banner-open')
+      return
+    }
+    document.body.classList.add('consent-banner-open')
+    return () => document.body.classList.remove('consent-banner-open')
+  }, [visible])
+
   if (!visible) return null
 
   const choose = (granted: boolean) => {
@@ -57,7 +66,7 @@ export function ConsentBanner() {
       aria-label={L('Cookie consent', 'Consentement aux témoins')}
       className="surface-marketing dutiva-surface fixed inset-x-0 bottom-0 z-50 px-4 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))]"
     >
-      <div className="mx-auto flex max-w-[880px] flex-col gap-4 rounded-xl border border-border bg-bg-elevated p-5 shadow-modal sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex max-w-[880px] flex-col gap-4 rounded-xl border border-border bg-bg-elevated p-4 shadow-modal sm:flex-row sm:items-center sm:justify-between sm:p-5">
         <p className="max-w-[64ch] text-sm leading-[1.6] text-text-2">
           {L(
             'We use necessary cookies to operate Dutiva, plus optional analytics to understand how the site is used. Analytics remain disabled until you accept.',
@@ -70,18 +79,18 @@ export function ConsentBanner() {
             {L('Cookie Policy', 'Politique relative aux témoins')}
           </Link>
         </p>
-        <div className="flex flex-none gap-2.5">
+        <div className="flex w-full flex-col gap-2.5 sm:w-auto sm:flex-row sm:flex-none">
           <button
             type="button"
             onClick={() => choose(false)}
-            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text transition-opacity hover:opacity-80"
+            className="ghost-button ghost-button-md min-h-11 w-full sm:w-auto"
           >
             {L('Decline', 'Refuser')}
           </button>
           <button
             type="button"
             onClick={() => choose(true)}
-            className="gold-button gold-button-consent"
+            className="gold-button gold-button-consent min-h-11 w-full sm:w-auto"
           >
             {L('Accept', 'Accepter')}
           </button>

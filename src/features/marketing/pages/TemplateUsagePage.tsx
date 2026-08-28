@@ -55,7 +55,7 @@ export function TemplateUsagePage() {
       />
 
       <PageSection title={t('tmplGuide_s1')}>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
+        <div className="marketing-auto-grid marketing-auto-grid--240 gap-4">
           {STEPS.map((step, index) => (
             <div key={step.titleKey} className="premium-card-soft p-[22px]">
               {/* bg-gold-subtle: the marketing surface's gold wash (--gold-bg is app-surface only). */}
@@ -72,7 +72,7 @@ export function TemplateUsagePage() {
       </PageSection>
 
       <PageSection title={t('tmplGuide_s2')}>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
+        <div className="marketing-auto-grid marketing-auto-grid--240 gap-4">
           {CATEGORIES.map((category) => (
             <div key={category.titleKey} className="premium-card-soft p-[22px]">
               <category.icon size={18} className="text-gold-strong" />

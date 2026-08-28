@@ -32,7 +32,7 @@ function TemplateSamplePreviewModal({
   }, [])
 
   return createPortal(
-    <div className="surface-marketing dutiva-surface text-text fixed inset-0 z-300">
+    <div className="surface-marketing dutiva-surface text-text fixed inset-0 z-300 pt-[env(safe-area-inset-top)]">
       <div
         onClick={onClose}
         aria-hidden="true"
@@ -42,7 +42,7 @@ function TemplateSamplePreviewModal({
         role="dialog"
         aria-modal="true"
         aria-label={templateName}
-        className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none"
+        className="absolute inset-0 flex items-center justify-center p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 pointer-events-none sm:p-4"
       >
         <div className="pointer-events-auto flex max-h-[min(88vh,920px)] w-[min(720px,100%)] flex-col overflow-hidden rounded-[16px] border border-border bg-bg-elevated shadow-modal">
           <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
@@ -55,7 +55,7 @@ function TemplateSamplePreviewModal({
             <button
               type="button"
               onClick={onClose}
-              className="shrink-0 rounded-lg border border-border bg-bg-elevated p-2 text-text-muted transition-colors hover:text-text"
+              className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg border border-border bg-bg-elevated p-2 text-text-muted transition-colors hover:text-text"
               aria-label={t('tplPreview_close_sample')}
             >
               <X size={16} aria-hidden="true" />
@@ -100,7 +100,7 @@ export function TemplateSamplePanel({
 
       <button
         type="button"
-        className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg-elevated px-3 py-2 text-sm font-semibold text-text transition-colors hover:border-gold-border hover:text-gold-strong"
+        className="mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-bg-elevated px-3.5 py-2.5 text-sm font-semibold text-text transition-colors hover:border-gold-border hover:text-gold-strong"
         aria-haspopup="dialog"
         onClick={() => setOpen(true)}
       >

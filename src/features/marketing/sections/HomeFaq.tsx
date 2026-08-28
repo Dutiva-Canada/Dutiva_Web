@@ -16,7 +16,7 @@ export function HomeFaq() {
     <section
       id="questions"
       aria-label={lt('landing_faq_badge')}
-      className="mx-auto max-w-[840px] scroll-mt-[80px] px-6 py-16"
+      className="mx-auto max-w-[840px] scroll-mt-[80px] px-4 py-12 sm:px-6 sm:py-16"
     >
       <span className="badge">{lt('landing_faq_badge')}</span>
       <div className="mt-6 grid gap-8">

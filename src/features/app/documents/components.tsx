@@ -445,7 +445,7 @@ function DocPaperBody({
             return (
               <div
                 key={key}
-                className="mt-8 grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-8"
+                className="mt-8 grid grid-cols-1 gap-8 max-sm:grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(min(180px,100%),1fr))]"
               >
                 {(block.roles ?? []).map((role) => (
                   <div key={role.en}>
