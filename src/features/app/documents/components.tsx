@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
 import { chipToneClasses, statusChipBaseClass } from '@/components/chips'
-import { mergeSegments, splitBilingualBody } from './engine'
+import { mergeSegments, parseClauseFieldLines, splitBilingualBody } from './engine'
 import type { MergeSegment } from './engine'
 import type { DocChipTone, Jurisdiction, PreviewBlock } from './data'
 
@@ -215,6 +215,49 @@ function LetterheadBody({
   )
 }
 
+function ClauseBody({
+  text,
+  values,
+}: {
+  readonly text: string
+  readonly values: Record<string, string>
+}) {
+  const parsed = parseClauseFieldLines(text)
+  if (!parsed) {
+    return (
+      <p className="mt-0.5">
+        <MergeText text={text} values={values} preline />
+      </p>
+    )
+  }
+
+  const { intro, fields, outro } = parsed
+  return (
+    <div className="mt-0.5">
+      {intro.trim() && (
+        <p>
+          <MergeText text={intro} values={values} preline />
+        </p>
+      )}
+      <dl className="mt-2 grid grid-cols-[max-content_minmax(0,1fr)] gap-x-3 gap-y-1.5 text-[12px]">
+        {fields.map((field) => (
+          <div key={field.label} className="contents">
+            <dt className="font-semibold text-text">{field.label}</dt>
+            <dd className="m-0">
+              <MergeText text={field.value} values={values} />
+            </dd>
+          </div>
+        ))}
+      </dl>
+      {outro.trim() && (
+        <p className="mt-2">
+          <MergeText text={outro} values={values} preline />
+        </p>
+      )}
+    </div>
+  )
+}
+
 function paraClassName(block: PreviewBlock): string {
   if (block.align === 'right') return 'mb-4 mt-2 text-right'
   return 'mt-3'
@@ -279,9 +322,7 @@ function DocPaperBody({
                     {d(block.heading)}
                   </div>
                 )}
-                <p className="mt-0.5">
-                  <MergeText text={text} values={values} preline />
-                </p>
+                <ClauseBody text={text} values={values} />
               </div>
             )
           case 'fill':
