@@ -3,10 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { bi } from '@/i18n/core'
 import type { LText } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
-import {
-  deleteOwnConversation,
-  getOwnConversation,
-} from '@/features/app/views/memory/conversationsApi'
+import { createAdvisorCrisisHandlers } from './advisorCrisisHandlers'
+import { createAdvisorScenarioHandlers } from './advisorScenarioHandlers'
+import { createAdvisorThreadNavigation } from './advisorThreadNavigation'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 import { useAdvisorEngine } from '@/features/app/advisor/useAdvisorEngine'
 import type { AdvisorTurnSpec, ChatMessage, ToneCardData } from '@/features/app/advisor/types'
@@ -15,7 +14,6 @@ import { AdvisorUsageLimitError, sendAdvisorMessage } from '@/features/app/advis
 import { usageLimitReply } from '@/features/app/advisor/usageLimit'
 import { startAdvisorPackCheckout } from '@/features/app/advisor/packCheckout'
 import type { AdvisorPackSize } from '@/config/advisorUsage'
-import { createAdvisorCrisisHandlers } from './advisorCrisisHandlers'
 import { usePayRail, useWellbeingRail } from '@/features/app/rail/useEntityRails'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
@@ -42,12 +40,11 @@ import {
   terminationIntro,
 } from './advisorFlows'
 import {
-  advisorScenarios,
   routeScenarioFromText,
   scenarioAck,
   scenarioAckSignedOut,
 } from './advisorScenarios'
-import type { ScenarioId, ScenarioTurn } from './advisorScenarios'
+import type { ScenarioId } from './advisorScenarios'
 import { readNavNewChat, readNavStartFlow } from './advisorNav'
 import { advisorSession } from './advisorSession'
 import type { FlowKeyOrFallback, MessageExtras, SuggestChipSpec } from './advisorFlows'
@@ -56,16 +53,13 @@ import {
   buildAdvisorThreadEntries,
   buildAdvisorThreadGroups,
   conversationTitle,
-  freshResponseState,
   isBackendConversationId,
   operationalNextStepChips,
-  productionTranscript,
   readNavChatId,
   resolveJurisdictionTone,
   resolveScenarioTurn,
   resolveStartFlowKey,
   resolveWorkspaceState,
-  scenarioExtras,
   scenarioForResponseState,
   scenarioForThread,
   scenarioThreadId,
@@ -226,155 +220,56 @@ export function useAdvisorViewController() {
 
   /* ------------------------------------------------- response experience */
 
-  /**
-   * Append one scenario advisor turn: streams the reply, attaches its chat
-   * extras (banner / gated docs / follow-ups / province prompt), and replaces
-   * the thread's structured payload — a fresh turn context every time, per
-   * the response contract.
-   */
-  const pushScenarioTurn = (chatId: string, turn: ScenarioTurn) => {
-    const turnId = pushAdvisor({ text: turn.reply })
-    /* Obey the gates, always — document chips only render when the route
-       allows documents (handoff rule 3). */
-    const messageExtras = scenarioExtras(turn)
-    if (Object.keys(messageExtras).length > 0) {
-      updateExtras((prev) => ({ ...prev, [turnId]: messageExtras }))
-    }
-    patchResponseState(chatId, { response: turn.response })
-  }
-
-  /** Start one of the six demo response-mode conversations. */
-  const startScenario = (scenarioId: ScenarioId, userText?: LText) => {
-    const scenario = advisorScenarios[scenarioId]
-    stashActive()
-    const id = `session-${advisorSession.nextChatSeq++}`
-    updateSessionChats((prev) => [
-      {
-        id,
-        title: scenario.title,
-        pinned: false,
-        bucket: 'today',
-        flowKey: 'fallback',
-        scenarioId,
-      },
-      ...prev,
-    ])
-    updateActiveChatId(id)
-    conversationIdRef.current = null
-    setResponseState((prev) => {
-      const next = { ...prev, [id]: freshResponseState(scenarioId) }
-      advisorSession.responseState = next
-      return next
+  const { pushScenarioTurn, startScenario, pickProvince, toggleWeb } =
+    createAdvisorScenarioHandlers({
+      pushUser,
+      pushAdvisor,
+      updateExtras,
+      patchResponseState,
+      updateSessionChats,
+      updateActiveChatId,
+      setResponseState,
+      engineReset: (messages) => engine.reset(messages),
+      stashActive,
+      conversationIdRef,
+      getActiveChatId: () => activeChatId,
+      getResponseState: () => responseState,
     })
-    engine.reset([])
-    pushUser(userText ?? scenario.user)
-    pushScenarioTurn(id, scenario.turn)
-  }
-
-  /** Province chip pick on a jurisdiction-unknown turn (prototype `pickProvince`). */
-  const pickProvince = (province: LText) => {
-    const chatId = activeChatId
-    if (chatId === null) return
-    const state = responseState[chatId]
-    const scenario = scenarioForResponseState(state)
-    if (!state || !scenario?.resolved || state.provinceResolved) return
-    pushUser('', [province])
-    patchResponseState(chatId, { provinceResolved: true })
-    pushScenarioTurn(chatId, scenario.resolved)
-  }
-
-  /** Web-search toggle on a current-info turn (prototype `toggleWeb`). */
-  const toggleWeb = () => {
-    const chatId = activeChatId
-    if (chatId === null) return
-    const state = responseState[chatId]
-    const scenario = scenarioForResponseState(state)
-    if (!state || !scenario?.webOff) return
-    const webOn = !state.webOn
-    patchResponseState(chatId, { webOn })
-    pushScenarioTurn(chatId, webOn ? scenario.turn : scenario.webOff)
-  }
 
   /* ---------------------------------------------------- thread navigation */
 
-  const selectChat = (chatId: string) => {
-    const scenario = scenarioForThread(chatId)
-    const isProdConversation =
-      workspaceMode === 'production' &&
-      (prodThreads.some((t) => t.id === chatId) || isBackendConversationId(chatId))
-    const exists =
-      chats.some((c) => c.id === chatId) ||
-      sessionChats.some((c) => c.id === chatId) ||
-      scenario !== undefined ||
-      isProdConversation
-    if (!exists) return
-
-    const hydrateProdThread = () => {
-      conversationIdRef.current = chatId
-      const restoreWorkspace = (
-        response: NonNullable<(typeof prodThreads)[number]['lastAdvisorResponse']> | null,
-      ) => {
-        if (response != null) patchResponseState(chatId, { response })
-      }
-      const stashed = transcripts.current.get(chatId)
-      if (stashed) {
-        engine.reset(stashed)
-        const fromList = prodThreads.find((t) => t.id === chatId)?.lastAdvisorResponse
-        if (fromList != null) restoreWorkspace(fromList)
-        else if (responseState[chatId]?.response == null) {
-          void getOwnConversation(chatId)
-            .then((conv) => {
-              if (conv === null || activeChatIdRef.current !== chatId) return
-              restoreWorkspace(conv.lastAdvisorResponse)
-            })
-            .catch(() => {})
-        }
-        return
-      }
-      engine.reset([])
-      void getOwnConversation(chatId)
-        .then((conv) => {
-          if (conv === null || activeChatIdRef.current !== chatId) return
-          const messages = productionTranscript(conv)
-          transcripts.current.set(chatId, messages)
-          engine.reset(messages)
-          restoreWorkspace(conv.lastAdvisorResponse)
-        })
-        .catch(() => {
-          if (activeChatIdRef.current !== chatId) return
-          engine.reset([])
-        })
-    }
-
-    if (chatId === activeChatId) {
-      if (isProdConversation && !transcripts.current.has(chatId)) hydrateProdThread()
-      return
-    }
-
-    stashActive()
-    updateActiveChatId(chatId)
-
-    if (isProdConversation) {
-      hydrateProdThread()
-      return
-    }
-
-    conversationIdRef.current = null
-    const stashed = transcripts.current.get(chatId)
-    if (scenario && !stashed) {
-      /* First visit to a demo thread — seed and stream it. */
-      setResponseState((prev) => {
-        const next = { ...prev, [chatId]: freshResponseState(scenario.id) }
-        advisorSession.responseState = next
-        return next
-      })
-      engine.reset([])
-      pushUser(scenario.user)
-      pushScenarioTurn(chatId, scenario.turn)
-      return
-    }
-    engine.reset(stashed ?? seedFor(chatId))
-  }
+  const {
+    selectChat,
+    newConversation,
+    canDeleteThread,
+    deleteConversation: deleteConversationCore,
+  } = createAdvisorThreadNavigation({
+    workspaceMode,
+    prodThreads,
+    setProdThreads,
+    sessionChats,
+    updateSessionChats,
+    updateActiveChatId,
+    activeChatId,
+    activeChatIdRef,
+    conversationIdRef,
+    transcripts,
+    responseState,
+    setResponseState,
+    patchResponseState,
+    engineReset: (messages) => engine.reset(messages),
+    pushUser,
+    pushScenarioTurn,
+    seedFor,
+    stashActive,
+    updateExtras,
+    showToast,
+    confirmDelete: (message) => window.confirm(x(message)),
+    deleteOkToast: M.advisorview_delete_ok,
+    deleteFailedToast: M.advisorview_delete_failed,
+  })
+  const deleteConversation = (chatId: string) =>
+    deleteConversationCore(chatId, M.advisorview_delete_confirm)
   selectChatRef.current = selectChat
 
   const publicDemoBooted = useRef(false)
@@ -385,57 +280,7 @@ export function useAdvisorViewController() {
     selectChatRef.current(scenarioThreadId('s1'))
   }, [isPublicDemo, activeChatId, location.pathname])
 
-  const newConversation = () => {
-    stashActive()
-    updateActiveChatId(null)
-    conversationIdRef.current = null
-    engine.reset([])
-  }
   newConversationRef.current = newConversation
-
-  const canDeleteThread = (chatId: string): boolean => {
-    if (chatId.startsWith('session-')) return true
-    return workspaceMode === 'production' && isBackendConversationId(chatId)
-  }
-
-  const deleteConversation = (chatId: string) => {
-    if (!canDeleteThread(chatId)) return
-    if (!window.confirm(x(M.advisorview_delete_confirm))) return
-
-    const finishLocal = () => {
-      const stashed = transcripts.current.get(chatId) ?? []
-      updateSessionChats((prev) => prev.filter((c) => c.id !== chatId))
-      setProdThreads((prev) => prev.filter((t) => t.id !== chatId))
-      transcripts.current.delete(chatId)
-      updateExtras((prev) => {
-        const next = { ...prev }
-        for (const msg of stashed) delete next[msg.id]
-        return next
-      })
-      setResponseState((prev) => {
-        const { [chatId]: _removed, ...rest } = prev
-        advisorSession.responseState = rest
-        return rest
-      })
-      if (activeChatIdRef.current === chatId) {
-        updateActiveChatId(null)
-        conversationIdRef.current = null
-        engine.reset([])
-      } else if (conversationIdRef.current === chatId) {
-        conversationIdRef.current = null
-      }
-      showToast(M.advisorview_delete_ok, 'ok')
-    }
-
-    if (chatId.startsWith('session-')) {
-      finishLocal()
-      return
-    }
-
-    void deleteOwnConversation(chatId)
-      .then(finishLocal)
-      .catch(() => showToast(M.advisorview_delete_failed, 'info'))
-  }
 
   /* Search overlay navigation: /app/advisor with { chatId } router state. */
   useEffect(() => {

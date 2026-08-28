@@ -31,6 +31,8 @@ and workspace state. Sub-hooks already extracted:
 - `useAdvisorProductionThreads`
 - `useAdvisorMessageActions`
 - `advisorCrisisHandlers.ts` — crisis intercept + dedicated support thread (AGENT.md §8)
+- `advisorScenarioHandlers.ts` — demo scenario turns (province pick, web toggle)
+- `advisorThreadNavigation.ts` — thread select, new chat, delete
 
 When adding behaviour, prefer a **new focused hook** over growing the controller.
 Helpers belong in `advisorViewHelpers.ts`; demo scenario data stays in `advisorScenarios.ts`.
@@ -50,6 +52,10 @@ Many modules use `*View` + `*ProductionView` with `useWorkspaceMode()` dispatch.
 **Collapse policy:** when a module is live for all signed-in users with no demo-only UX,
 remove the fixture branch in the `*View` wrapper and delete unused `src/data` consumers —
 one module per PR, with tests.
+
+**Stage 1 (file split, no behaviour change):** live modules with both surfaces now keep demo
+UI in `*DemoView.tsx` (Communications, Compensation, Wellbeing). Demo/onboarding surfaces
+(`/demo`, public tour, marketing simulations) are unchanged — only the file boundary moved.
 
 ## Document template corpus
 
