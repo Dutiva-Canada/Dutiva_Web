@@ -276,12 +276,15 @@ Optional tidy: Bing holds sitemaps for both `dutiva.ca` and `www.dutiva.ca`
 while `vercel.json` 301s www → apex. Harmless — both report Success — but the
 www entry is redundant.
 
-**OA9 — DigitalOcean residency ticket sent.** Ticket **#12739848** submitted
-2026-08-27 (Agentic Inference Cloud → Inference → Serverless Inference). Awaiting
-written reply — track in
-[do-residency-confirmation-request.md](do-residency-confirmation-request.md).
-DO's answer unblocks the PIPEDA wording in CANONICAL_FACTS §2 and any legal-doc
-updates. (PR #103)
+**OA9 — Done (reply received 2026-08-27).** Ticket **#12739848** — Miguel Palma,
+DigitalOcean AI/ML Support. **Outcome:** serverless `deepseek-3.2` may process in
+**Canada, the US, or the Netherlands** (proximity + capacity); **no region pin** on
+serverless; **failover to US/NL** when TOR1 is unavailable. **Dedicated Inference
+TOR1** is required for Canada-only processing. Pricing not quoted — Control Panel /
+Customer Success. Filed:
+[do-residency-confirmation-response-2026-08-27.md](do-residency-confirmation-response-2026-08-27.md).
+Subprocessors EN/FR updated; CANONICAL_FACTS §2 updated. **Owner follow-on:** evaluate
+Dedicated TOR1 vs stay on serverless (`docs/LOCAL_INFERENCE.md`). (PR #103)
 
 **OA10 — Done.** `supabase/schema.sql` committed 2026-08-07 via
 `npx supabase db dump`. 6,469 lines covering 124 tables, 218 RLS policies,

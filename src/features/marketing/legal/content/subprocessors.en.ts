@@ -26,7 +26,7 @@ export default {
       "blocks": [
         {
           "type": "p",
-          "text": "DigitalOcean Gradient AI — Purpose: AI model routing and inference services powering Dutiva Advisor responses and document generation. Data processed: Advisor message text, jurisdiction context, selected template inputs, retrieved guidance context. Processing location: Toronto, Canada. Data submitted for inference is subject to the provider's data processing terms and is not used to train third-party foundation models under Dutiva's arrangement."
+          "text": "DigitalOcean Gradient AI — Purpose: AI model routing and inference services powering Dutiva Advisor responses and document generation. Data processed: Advisor message text, jurisdiction context, selected template inputs, retrieved guidance context. Processing location: Canada, the United States, or the Netherlands (serverless inference; the provider routes each request to the nearest available region and does not offer region selection on serverless). Data submitted for inference is subject to the provider's data processing terms and is not used to train third-party foundation models under Dutiva's arrangement."
         }
       ]
     },

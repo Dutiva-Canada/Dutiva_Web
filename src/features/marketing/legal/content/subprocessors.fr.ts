@@ -26,7 +26,7 @@ export default {
       "blocks": [
         {
           "type": "p",
-          "text": "DigitalOcean Gradient AI — Rôle : services d'acheminement et d'inférence de modèles d'IA alimentant les réponses du Conseiller Dutiva et la génération de documents. Données traitées : texte des messages du Conseiller, contexte de juridiction, saisies de modèles sélectionnés, contexte d'orientation récupéré. Lieu de traitement : Toronto, Canada. Les données soumises pour inférence sont assujetties aux conditions de traitement des données du fournisseur et ne sont pas utilisées pour entraîner des modèles de fondation de tiers dans le cadre de l'entente de Dutiva."
+          "text": "DigitalOcean Gradient AI — Rôle : services d'acheminement et d'inférence de modèles d'IA alimentant les réponses du Conseiller Dutiva et la génération de documents. Données traitées : texte des messages du Conseiller, contexte de juridiction, saisies de modèles sélectionnés, contexte d'orientation récupéré. Lieu de traitement : Canada, États-Unis ou Pays-Bas (inférence sans serveur; le fournisseur achemine chaque requête vers la région disponible la plus proche et n'offre pas de sélection de région en mode sans serveur). Les données soumises pour inférence sont assujetties aux conditions de traitement des données du fournisseur et ne sont pas utilisées pour entraîner des modèles de fondation de tiers dans le cadre de l'entente de Dutiva."
         }
       ]
     },
