@@ -35,8 +35,17 @@ const MAX_SOURCE_LINES = 800
 /** *View.tsx shells must not embed demo implementations inline. */
 const INLINE_DEMO_VIEW = /(?:export\s+)?function\s+\w*DemoView\s*\(/
 
+/** Dispatch shells with both *DemoView and *ProductionView siblings. */
+const DISPATCH_SHELL_MAX_LINES = 45
+const DISPATCH_SHELL_ALLOWLIST = new Set(['src/features/app/views/home/HomeView.tsx'])
+
 const errors = []
 const warnings = []
+
+function hasValueDataImport(content) {
+  const withoutTypeImports = content.replace(/^\s*import\s+type\s+.+$/gm, '')
+  return /from\s+['"]@\/data(?:\/|['"])/.test(withoutTypeImports)
+}
 
 async function walk(dir, acc = []) {
   for (const name of await readdir(dir)) {
@@ -57,10 +66,13 @@ function rel(file) {
 }
 
 const files = await walk(src)
+const fileSet = new Set(files.map((f) => rel(f)))
+const contentByRel = new Map()
 
 for (const file of files) {
   const content = await readFile(file, 'utf8')
   const r = rel(file)
+  contentByRel.set(r, content)
 
   if (r.startsWith('src/features/marketing/') && MARKETING_DATA_IMPORT.test(content)) {
     const allowed = MARKETING_DATA_ALLOW.test(content) && !/from ['"]@\/data['"]/.test(content)
@@ -86,6 +98,43 @@ for (const file of files) {
   const lines = content.split('\n').length
   if (lines > MAX_SOURCE_LINES && !SIZE_ALLOWLIST.has(r)) {
     warnings.push(`${r}: ${lines} lines (>${MAX_SOURCE_LINES}) — consider splitting`)
+  }
+}
+
+for (const r of contentByRel.keys()) {
+  if (!r.startsWith('src/features/app/views/') || !r.endsWith('View.tsx')) continue
+  if (r.endsWith('DemoView.tsx') || r.endsWith('ProductionView.tsx')) continue
+
+  const dir = path.posix.dirname(r)
+  const base = path.basename(r, 'View.tsx')
+  const demoRel = `${dir}/${base}DemoView.tsx`
+  const prodRel = `${dir}/${base}ProductionView.tsx`
+  if (!fileSet.has(demoRel) || !fileSet.has(prodRel)) continue
+
+  const content = contentByRel.get(r)
+  const lines = content.split('\n').length
+
+  if (!content.includes('useWorkspaceMode')) {
+    errors.push(`${r}: workspace dispatch must call useWorkspaceMode()`)
+  }
+  if (!content.includes('DemoView') || !content.includes('ProductionView')) {
+    errors.push(`${r}: workspace dispatch must render *DemoView and *ProductionView`)
+  }
+  if (hasValueDataImport(content)) {
+    errors.push(`${r}: workspace dispatch shells must not import @/data — use *DemoView.tsx`)
+  }
+  if (!DISPATCH_SHELL_ALLOWLIST.has(r) && lines > DISPATCH_SHELL_MAX_LINES) {
+    errors.push(
+      `${r}: ${lines} lines — workspace dispatch shells stay under ${DISPATCH_SHELL_MAX_LINES} (move logic to *DemoView / *ProductionView)`,
+    )
+  }
+}
+
+for (const r of contentByRel.keys()) {
+  if (!r.endsWith('ProductionView.tsx')) continue
+  const content = contentByRel.get(r)
+  if (hasValueDataImport(content)) {
+    errors.push(`${r}: production views must not import demo fixtures from @/data`)
   }
 }
 
