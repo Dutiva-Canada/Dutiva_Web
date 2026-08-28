@@ -371,15 +371,13 @@ function DocPaperBody({
             )
           case 'letterhead':
             return (
-              <div key={key} className="mb-4 flex items-start justify-between gap-6">
-                <div className="min-w-0">
-                  <LetterheadBody text={text} values={values} />
-                </div>
+              <div key={key} className="mb-4">
                 {block.dateText && (
-                  <div className="shrink-0 text-right">
+                  <div className="mb-2 text-right">
                     <MergeText text={block.dateText[lang]} values={values} />
                   </div>
                 )}
+                <LetterheadBody text={text} values={values} />
               </div>
             )
           case 'address':

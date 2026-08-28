@@ -28,4 +28,16 @@ describe('templatePreviewModel', () => {
     expect(body).toContain('Director of Operations')
     expect(body).not.toContain('2026-09-15')
   })
+
+  it('fills T03 termination demo values without doubled placeholder words', () => {
+    const preview = buildTemplatePreview('T03', 'en')
+    const opening = preview!.blocks.find((block) => block.type === 'para')?.text?.en ?? ''
+    const body = mergeSegments(opening, preview!.values)
+      .map((segment) => segment.text)
+      .join('')
+    expect(body).toContain('October 3, 2026')
+    expect(body).toContain('after 6 years of service')
+    expect(body).not.toMatch(/effective effective/i)
+    expect(body).not.toMatch(/years years/i)
+  })
 })
