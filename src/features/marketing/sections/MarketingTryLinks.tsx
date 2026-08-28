@@ -19,7 +19,7 @@ export function MarketingTryLinks({ className }: { readonly className?: string }
       </Link>
       <Link to={p('demoWorkspace')} className={linkClass}>
         <LayoutGrid size={15} className="text-gold-strong" aria-hidden="true" />
-        {lt('landing_try_demo')}
+        {lt('landing_open_in_demo')}
         <ChevronRight size={14} className="text-text-3" aria-hidden="true" />
       </Link>
       <Link to={p('jurisdictionTool')} className={linkClass}>

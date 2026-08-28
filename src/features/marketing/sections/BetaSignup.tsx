@@ -45,7 +45,7 @@ type Status = 'idle' | 'sending' | 'done' | 'waitlisted'
  */
 export function BetaSignup() {
   const { lt, lang } = useLanding()
-  const { legalDoc } = usePublicPath()
+  const { legalDoc, p } = usePublicPath()
   const [email, setEmail] = useState('')
   const [company, setCompany] = useState('')
   const [province, setProvince] = useState<BetaProvince | ''>('')
@@ -126,6 +126,13 @@ export function BetaSignup() {
           <p className="mt-3.5 max-w-[44ch] text-base leading-[1.6] text-text-2">
             {lt('landing_cta_p')}
           </p>
+          <Link
+            to={p('demoWorkspace')}
+            className="mt-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+          >
+            {lt('landing_open_in_demo')}
+            <span className="font-normal text-text-3">— {lt('landing_cta_explore_demo')}</span>
+          </Link>
           <p className="mt-3 max-w-[46ch] text-[0.8125rem] leading-normal text-text-2">
             {lt('landing_cta_capacity')}
           </p>

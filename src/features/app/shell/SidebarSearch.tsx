@@ -2,6 +2,7 @@ import { Search } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { useSearch } from '@/features/app/search/searchContext'
+import { searchShortcutLabel } from '@/lib/keyboardShortcut'
 import { SidebarTooltip } from './SidebarTooltip'
 
 interface SidebarSearchProps {
@@ -11,14 +12,15 @@ interface SidebarSearchProps {
 export function SidebarSearch({ expanded }: SidebarSearchProps) {
   const { x } = useI18n()
   const { openSearch } = useSearch()
+  const shortcut = searchShortcutLabel()
 
   if (!expanded) {
     return (
-      <SidebarTooltip label={`${x(M.shell_search)} (⌘K)`} show>
+      <SidebarTooltip label={`${x(M.shell_search)} (${shortcut})`} show>
         <button
           type="button"
           onClick={openSearch}
-          aria-label={`${x(M.shell_search)} (⌘K)`}
+          aria-label={`${x(M.shell_search)} (${shortcut})`}
           className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-border bg-transparent text-text-3 hover:bg-inset"
         >
           <Search size={16} strokeWidth={1.8} />
@@ -37,7 +39,7 @@ export function SidebarSearch({ expanded }: SidebarSearchProps) {
       <span className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden whitespace-nowrap">
         <span className="flex-1 text-left">{x(M.shell_search)}</span>
         <span className="hidden rounded-sm border border-border px-1.25 py-px text-[11px] text-text-faint sm:inline">
-          ⌘K
+          {shortcut}
         </span>
       </span>
     </button>

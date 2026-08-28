@@ -10,8 +10,8 @@ landing_try_jurisdiction: {
     fr: 'Essayer l’outil de compétence',
   },
 landing_try_demo: {
-    en: 'Try the demo workspace',
-    fr: 'Essayer l’espace démo',
+    en: 'Open in demo',
+    fr: 'Ouvrir dans la démo',
   },
 landing_demo_seo_title: {
     en: 'Try Dutiva — read-only demo workspace | Dutiva',

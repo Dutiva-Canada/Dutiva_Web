@@ -98,9 +98,11 @@ function MobileTab({
 export function MobileNav({
   drawerOpen,
   onOpenDrawer,
+  moreTriggerRef,
 }: {
   readonly drawerOpen: boolean
   readonly onOpenDrawer: () => void
+  readonly moreTriggerRef?: React.RefObject<HTMLButtonElement | null>
 }) {
   const { x } = useI18n()
   const { pathname } = useLocation()
@@ -153,6 +155,7 @@ export function MobileNav({
         prefetchKey="documents"
       />
       <button
+        ref={moreTriggerRef}
         type="button"
         onClick={onOpenDrawer}
         aria-label={x(M.shell_tab_more)}

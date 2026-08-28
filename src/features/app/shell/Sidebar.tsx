@@ -85,6 +85,8 @@ function sidebarClasses(mode: SidebarMode, drawerEntered: boolean) {
   return cx(
     'flex h-full shrink-0 flex-col border-r border-border bg-inset',
     expanded ? EXPANDED_WIDTH : COMPACT_WIDTH,
+    mode !== 'drawer' &&
+      'transition-[width] duration-200 ease-in-out motion-reduce:transition-none',
     mode === 'compact' && 'relative z-1',
     /* The drawer is viewport-positioned, so it escapes the safe-area padding
        body and AppShell apply to the in-flow tree and has to pay its own
@@ -100,6 +102,7 @@ interface SidebarProps {
   readonly onCloseDrawer?: () => void
   readonly drawerEntered?: boolean
   readonly onToggleExpanded?: () => void
+  readonly focusDrawerClose?: boolean
 }
 
 export function Sidebar({
@@ -107,6 +110,7 @@ export function Sidebar({
   onCloseDrawer,
   drawerEntered = true,
   onToggleExpanded,
+  focusDrawerClose = false,
 }: SidebarProps) {
   const { x } = useI18n()
   const { pathname } = useLocation()
@@ -192,13 +196,14 @@ export function Sidebar({
     })
 
   return (
-    <aside aria-label={x(M.shell_primary_nav)} className={sidebarClasses(mode, drawerEntered)}>
+    <aside className={sidebarClasses(mode, drawerEntered)}>
       <div className="flex shrink-0 flex-col px-2.5 pb-2 pt-2">
         <SidebarHeader
           expanded={expanded}
           inDrawer={mode === 'drawer'}
           identity={identity}
           onCloseDrawer={onCloseDrawer}
+          focusCloseOnMount={focusDrawerClose}
         />
         <div className={cx('flex gap-2', expanded ? 'flex-col' : 'flex-col items-center')}>
           {!readOnly ? <SidebarCreateMenu expanded={expanded} onNavigate={onCloseDrawer} /> : null}

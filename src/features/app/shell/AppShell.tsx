@@ -25,7 +25,7 @@ import { moduleLabelFor, viewLabelFor } from './navConfig'
  * Workspace shell — App v2 app frame.
  *
  * - desktop ≥1024px — expanded or compact sidebar, user toggled, persisted.
- * - tablet 768–1023px — compact sidebar.
+ * - tablet 768–1023px — compact by default; same toggle + persistence as desktop.
  * - mobile <768px — hamburger topbar, slide-in drawer + scrim, bottom tab nav.
  */
 type LayoutMode = 'desktop' | 'tablet' | 'mobile'
@@ -91,7 +91,9 @@ export function AppShell() {
   const { pathname } = useLocation()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [sidebarExpanded, setSidebarExpanded] = useState(readExpandedPref)
-  const drawerTriggerRef = useRef<HTMLButtonElement>(null)
+  const drawerTopbarTriggerRef = useRef<HTMLButtonElement>(null)
+  const drawerMoreTriggerRef = useRef<HTMLButtonElement>(null)
+  const drawerTriggerSource = useRef<'topbar' | 'more'>('topbar')
 
   useEffect(() => {
     setDrawerOpen(false)
@@ -100,10 +102,19 @@ export function AppShell() {
   const previousDrawerOpen = useRef(drawerOpen)
   useEffect(() => {
     if (previousDrawerOpen.current && !drawerOpen) {
-      drawerTriggerRef.current?.focus()
+      const ref =
+        drawerTriggerSource.current === 'more'
+          ? drawerMoreTriggerRef
+          : drawerTopbarTriggerRef
+      ref.current?.focus()
     }
     previousDrawerOpen.current = drawerOpen
   }, [drawerOpen])
+
+  const openDrawerFrom = useCallback((source: 'topbar' | 'more') => {
+    drawerTriggerSource.current = source
+    setDrawerOpen(true)
+  }, [])
 
   const isMobile = layout === 'mobile'
   useEscapeToClose(isMobile && drawerOpen, () => setDrawerOpen(false))
@@ -130,9 +141,21 @@ export function AppShell() {
     })
   }, [])
 
+  useEffect(() => {
+    if (isMobile) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === '\\') {
+        e.preventDefault()
+        toggleSidebarExpanded()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [isMobile, toggleSidebarExpanded])
+
   let sidebarMode: 'drawer' | 'compact' | 'expanded' = 'compact'
   if (isMobile) sidebarMode = 'drawer'
-  else if (layout !== 'tablet' && sidebarExpanded) sidebarMode = 'expanded'
+  else if (sidebarExpanded) sidebarMode = 'expanded'
 
   /* h-dvh, not h-screen: iOS Safari resolves 100vh against the *large*
      viewport — the page as it would be with the browser chrome retracted — so a
@@ -168,8 +191,8 @@ export function AppShell() {
       {isMobile && (
         <MobileTopbar
           title={title}
-          onOpenDrawer={() => setDrawerOpen(true)}
-          triggerRef={drawerTriggerRef}
+          onOpenDrawer={() => openDrawerFrom('topbar')}
+          triggerRef={drawerTopbarTriggerRef}
         />
       )}
 
@@ -180,7 +203,7 @@ export function AppShell() {
         {!isMobile && (
           <Sidebar
             mode={sidebarMode}
-            onToggleExpanded={layout === 'desktop' ? toggleSidebarExpanded : undefined}
+            onToggleExpanded={toggleSidebarExpanded}
           />
         )}
         {isMobile && drawerMounted && (
@@ -203,6 +226,7 @@ export function AppShell() {
                 mode="drawer"
                 onCloseDrawer={() => setDrawerOpen(false)}
                 drawerEntered={drawerEntered}
+                focusDrawerClose={drawerEntered}
               />
             </dialog>
           </>
@@ -213,7 +237,13 @@ export function AppShell() {
             in normal flow. Reserving 60px here too left a dead band of
             unusable background above it on every app screen. */}
         <main className="relative flex min-w-0 flex-1 flex-col bg-bg">
-          {!isMobile && <Topbar title={title} />}
+          {!isMobile && (
+            <Topbar
+              title={title}
+              sidebarExpanded={sidebarExpanded}
+              onToggleSidebar={toggleSidebarExpanded}
+            />
+          )}
           <WorkspaceContextBanner />
           <ModuleContextBanner />
           <div className="relative flex min-h-0 flex-1 flex-col">
@@ -224,7 +254,13 @@ export function AppShell() {
         </main>
       </div>
 
-      {isMobile && <MobileNav drawerOpen={drawerOpen} onOpenDrawer={() => setDrawerOpen(true)} />}
+      {isMobile && (
+        <MobileNav
+          drawerOpen={drawerOpen}
+          onOpenDrawer={() => openDrawerFrom('more')}
+          moreTriggerRef={drawerMoreTriggerRef}
+        />
+      )}
 
       <SearchOverlay />
       <AdvisorRail />

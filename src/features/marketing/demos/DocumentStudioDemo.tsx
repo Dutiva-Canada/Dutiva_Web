@@ -89,7 +89,7 @@ export function DocumentStudioDemo() {
           to={`${p('demoWorkspace')}/documents/studio`}
           className="text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
         >
-          {lt('landing_studio_demo_open')}
+          {lt('landing_open_in_demo')}
         </Link>
         <Link
           to={p('templates')}

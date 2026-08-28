@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Bell, Search, Sparkle } from 'lucide-react'
+import { Bell, PanelLeftClose, PanelLeftOpen, Search, Sparkle } from 'lucide-react'
 import type { Bi } from '@/i18n/core'
 import { bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
@@ -74,7 +74,15 @@ const SAMPLE_NOTIFICATIONS: DemoNotificationItem[] = [
  * (opens the contextual rail), EN/FR pill, theme toggle, global search
  * trigger, notifications popover.
  */
-export function Topbar({ title }: { readonly title: string }) {
+export function Topbar({
+  title,
+  sidebarExpanded,
+  onToggleSidebar,
+}: {
+  readonly title: string
+  readonly sidebarExpanded?: boolean
+  readonly onToggleSidebar?: () => void
+}) {
   const { x } = useI18n()
   const { openSearch } = useSearch()
   const askAdvisor = useAskAdvisorBriefing()
@@ -152,7 +160,24 @@ export function Topbar({ title }: { readonly title: string }) {
 
   return (
     <div className="flex h-[60px] shrink-0 items-center justify-between border-b border-border bg-bg px-[22px]">
-      <h1 className="m-0 font-display text-[18px] font-semibold text-text">{title}</h1>
+      <div className="flex min-w-0 items-center gap-2">
+        {onToggleSidebar ? (
+          <button
+            type="button"
+            onClick={onToggleSidebar}
+            aria-label={x(sidebarExpanded ? M.shell_collapse_sidebar : M.shell_expand_sidebar)}
+            aria-expanded={sidebarExpanded}
+            className="flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent text-text-3 hover:bg-inset"
+          >
+            {sidebarExpanded ? (
+              <PanelLeftClose size={18} strokeWidth={1.8} />
+            ) : (
+              <PanelLeftOpen size={18} strokeWidth={1.8} />
+            )}
+          </button>
+        ) : null}
+        <h1 className="m-0 truncate font-display text-[18px] font-semibold text-text">{title}</h1>
+      </div>
       <div className="flex items-center gap-[14px]">
         {showAskAdvisor && (
           <button

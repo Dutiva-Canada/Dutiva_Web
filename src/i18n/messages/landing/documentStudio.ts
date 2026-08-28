@@ -70,8 +70,8 @@ landing_studio_demo_note: {
     fr: 'Exemple tiré du modèle de lettre d’offre pour l’Ontario — pas une génération en direct.',
   },
 landing_studio_demo_open: {
-    en: 'Open Document Studio in the demo',
-    fr: 'Ouvrir le Studio de documents dans la démo',
+    en: 'Open in demo',
+    fr: 'Ouvrir dans la démo',
   },
 landing_studio_demo_samples_link: {
     en: 'Browse all sample outputs',

@@ -41,6 +41,18 @@ export const landingWorkspaceDemos = defineMessages({
     en: 'Open in demo',
     fr: 'Ouvrir dans la démo',
   },
+  landing_open_in_demo: {
+    en: 'Open in demo',
+    fr: 'Ouvrir dans la démo',
+  },
+  landing_ws_demo_path_label: {
+    en: 'Guided tour — pick a stop',
+    fr: 'Visite guidée — choisissez une étape',
+  },
+  landing_ws_demo_modules_heading: {
+    en: 'All modules in the demo',
+    fr: 'Tous les modules dans la démo',
+  },
   landing_ws_demo_preview_note: {
     en: 'Illustrative sample — not your organization’s data.',
     fr: 'Exemple illustratif — pas les données de votre organisation.',

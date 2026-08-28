@@ -262,4 +262,16 @@ export const shellMessages = defineMessages({
     en: 'Sign in for your workspace',
     fr: 'Connectez-vous pour votre espace',
   },
+  demo_tour_all_stops: {
+    en: 'All stops',
+    fr: 'Toutes les étapes',
+  },
+  demo_tour_hide_stops: {
+    en: 'Hide stops',
+    fr: 'Masquer les étapes',
+  },
+  demo_tour_next: {
+    en: 'Next',
+    fr: 'Suivant',
+  },
 })

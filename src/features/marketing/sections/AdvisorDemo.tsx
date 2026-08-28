@@ -90,7 +90,7 @@ export function AdvisorDemo() {
           to={`${p('demoWorkspace')}/advisor`}
           className="inline-flex items-center gap-1 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
         >
-          {lt('landing_try_demo')}
+          {lt('landing_open_in_demo')}
           <ChevronRight size={14} aria-hidden="true" />
         </Link>
       </div>
