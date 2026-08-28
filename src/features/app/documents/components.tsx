@@ -134,8 +134,20 @@ export function StepDots({
 
 /* ── Rendered document "paper" ───────────────────────────────────────────── */
 
+const INLINE_BOLD_PATTERN = /(\*\*[^*]+\*\*)/g
+
+/** Handoff letter blocks use `**Re:**` / `**Objet :**` — render as bold, not raw markdown. */
+function renderInlineTemplateText(text: string): ReactNode {
+  return text.split(INLINE_BOLD_PATTERN).map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>
+    }
+    return part
+  })
+}
+
 function MergeSegmentSpan({ segment }: { readonly segment: MergeSegment }) {
-  if (segment.kind === 'text') return <span>{segment.text}</span>
+  if (segment.kind === 'text') return <>{renderInlineTemplateText(segment.text)}</>
 
   const className =
     segment.kind === 'filled'
@@ -147,16 +159,19 @@ function MergeSegmentSpan({ segment }: { readonly segment: MergeSegment }) {
 function MergeText({
   text,
   values,
+  preline = false,
 }: {
   readonly text: string
   readonly values: Record<string, string>
+  /** Preserve `\n` line breaks from template copy (letter blocks, clause lists). */
+  readonly preline?: boolean
 }) {
   return (
-    <>
+    <span className={preline ? 'whitespace-pre-line' : undefined}>
       {mergeSegments(text, values).map((segment) => (
         <MergeSegmentSpan key={segment.id} segment={segment} />
       ))}
-    </>
+    </span>
   )
 }
 
@@ -216,7 +231,7 @@ function DocPaperBody({
                   </div>
                 )}
                 <p className="mt-0.5">
-                  <MergeText text={text} values={values} />
+                  <MergeText text={text} values={values} preline />
                 </p>
               </div>
             )
@@ -231,7 +246,7 @@ function DocPaperBody({
                 )}
                 {text && (
                   <p className="mt-0.5 text-[11.5px] text-text-muted italic">
-                    <MergeText text={text} values={values} />
+                    <MergeText text={text} values={values} preline />
                   </p>
                 )}
                 <div className="mt-2 flex flex-col gap-[14px]" aria-hidden="true">
@@ -244,7 +259,7 @@ function DocPaperBody({
           case 'ack':
             return (
               <p key={key} className="mt-4 italic">
-                <MergeText text={text} values={values} />
+                <MergeText text={text} values={values} preline />
               </p>
             )
           case 'note':
@@ -257,7 +272,7 @@ function DocPaperBody({
                     : 'border-(--accent-soft-border) bg-accent-soft text-text-muted'
                 }`}
               >
-                <MergeText text={text} values={values} />
+                <MergeText text={text} values={values} preline />
               </div>
             )
           case 'sig':
@@ -277,7 +292,7 @@ function DocPaperBody({
           default:
             return (
               <p key={key} className="mt-3">
-                <MergeText text={text} values={values} />
+                <MergeText text={text} values={values} preline />
               </p>
             )
         }
