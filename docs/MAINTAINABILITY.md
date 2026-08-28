@@ -58,9 +58,10 @@ Many modules use `*View` + `*ProductionView` with `useWorkspaceMode()` dispatch.
 remove the fixture branch in the `*View` wrapper and delete unused `src/data` consumers —
 one module per PR, with tests.
 
-**Stage 1 (file split, no behaviour change):** live modules with both surfaces now keep demo
-UI in `*DemoView.tsx` (Communications, Compensation, Wellbeing, Cases, Employees, Tasks, Policies, Home). Demo/onboarding surfaces
-(`/demo`, public tour, marketing simulations) are unchanged — only the file boundary moved.
+**Stage 1 (file split, no behaviour change):** every workspace module with a production
+counterpart keeps demo UI in `*DemoView.tsx` (thin `*View.tsx` dispatch only). Regenerate
+with `node scripts/extract-demo-view.mjs <ComponentName>` when adding a new inline demo.
+Demo/onboarding surfaces (`/demo`, public tour, marketing simulations) are unchanged.
 
 ## Document template corpus
 
