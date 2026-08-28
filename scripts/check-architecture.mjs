@@ -148,6 +148,20 @@ for (const r of contentByRel.keys()) {
   }
 }
 
+for (const r of contentByRel.keys()) {
+  if (!r.startsWith('src/features/app/views/') || !r.endsWith('ProductionView.tsx')) continue
+  const dir = path.posix.dirname(r)
+  const base = path.basename(r, 'ProductionView.tsx')
+  const demoRel = `${dir}/${base}DemoView.tsx`
+  const viewRel = `${dir}/${base}View.tsx`
+  if (!fileSet.has(demoRel)) {
+    errors.push(`${r}: missing paired ${demoRel}`)
+  }
+  if (!fileSet.has(viewRel)) {
+    errors.push(`${r}: missing dispatch shell ${viewRel}`)
+  }
+}
+
 if (warnings.length > 0) {
   console.warn('check-architecture: warnings')
   for (const w of warnings) console.warn(`  ${w}`)

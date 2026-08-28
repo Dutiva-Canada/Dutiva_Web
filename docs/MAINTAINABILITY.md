@@ -11,6 +11,26 @@ and periodic owner tasks.
 - **Custom CI guards:** migrations, RLS, facts, brand assets, entry-graph budget, architecture (`check:architecture`)
 - **Lazy workspace routes:** `viewPreloads.ts` shared by routes and nav prefetch
 
+## Maintainability program (stages 1–9, complete)
+
+Structural work shipped in PRs #250–#258. `npm run check:architecture` now enforces:
+
+| Guard | What it catches |
+| --- | --- |
+| Marketing `@/data` | Demo HR fixtures in the public marketing bundle |
+| `landing.ts` monolith | Recreated single-file landing i18n |
+| Inline `*DemoView` | Demo UI embedded in a `*View.tsx` shell |
+| `@/data` in view shells | Fixture imports outside `*DemoView.tsx` |
+| Dispatch pairing | Thin `useWorkspaceMode()` shells when both `*DemoView` and `*ProductionView` exist |
+| Production pairing | Every `*ProductionView.tsx` has `*DemoView.tsx` + `*View.tsx` siblings |
+| File size (>800 lines) | Hotspots outside the allowlist |
+
+**Deferred:** stage 2 fixture collapse — one module per PR, only when production-default with no
+demo-only UX. `/demo`, onboarding, and Northgate fixtures stay until then.
+
+Helper scripts: `scripts/extract-demo-view.mjs`, `scripts/split-t01-offer-letter.mjs`,
+`scripts/split-landing-messages.mjs`.
+
 ## Landing page i18n
 
 Landing copy lives in **section modules** under `src/i18n/messages/landing/` (hero, pricing, FAQ, etc.).
@@ -102,6 +122,9 @@ budget, split wizard `questions` and `preview` blocks into sibling modules (see
 
 **Stage 9 (T01 template split):** `t01-offer-letter.ts` metadata shell + questions + preview
 modules — clears the last `check:architecture` size warning without changing generated output.
+
+**Stage 10 (pairing completeness):** every `*ProductionView.tsx` under `src/features/app/views/`
+must have matching `*DemoView.tsx` and `*View.tsx` siblings — closes the maintainability program.
 
 ## CI pipelines
 
