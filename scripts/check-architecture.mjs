@@ -26,12 +26,14 @@ const SIZE_ALLOWLIST = new Set([
   'src/data/chats.ts',
   'src/data/employees.ts',
   'src/features/app/views/advisor/advisorScenarios.ts',
-  'src/features/app/views/advisor/useAdvisorViewController.ts',
   'src/features/app/views/analytics/AnalyticsProductionView.tsx',
   'src/features/app/documents/screens/DocumentDetailProductionView.tsx',
 ])
 
 const MAX_SOURCE_LINES = 800
+
+/** *View.tsx shells must not embed demo implementations inline. */
+const INLINE_DEMO_VIEW = /(?:export\s+)?function\s+\w*DemoView\s*\(/
 
 const errors = []
 const warnings = []
@@ -69,6 +71,16 @@ for (const file of files) {
 
   if (r === 'src/i18n/messages/landing.ts') {
     errors.push('landing.ts monolith restored — use src/i18n/messages/landing/ section modules')
+  }
+
+  if (
+    r.startsWith('src/features/app/views/') &&
+    r.endsWith('View.tsx') &&
+    !r.endsWith('DemoView.tsx') &&
+    !r.endsWith('ProductionView.tsx') &&
+    INLINE_DEMO_VIEW.test(content)
+  ) {
+    errors.push(`${r}: move demo UI to *DemoView.tsx (or WorkflowsDemoFixtures.tsx)`)
   }
 
   const lines = content.split('\n').length
