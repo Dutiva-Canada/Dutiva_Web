@@ -6,6 +6,7 @@ import {
   computedTokens,
   docActionsFor,
   fillProgress,
+  formatDateAnswer,
   gatePasses,
   mergeSegments,
   resolveBlocks,
@@ -157,6 +158,27 @@ describe('merge fields', () => {
       'Loi sur les normes du travail (LNT)',
     )
     expect(computedTokens('ON', 'en', '2026-07-10').jurisdiction).toBe('Ontario')
+  })
+
+  it('formats date answers in long form for the document language', () => {
+    expect(formatDateAnswer('2026-09-15', 'en')).toBe('September 15, 2026')
+    expect(formatDateAnswer('2026-09-15', 'fr')).toMatch(/15 septembre 2026/)
+    expect(answerLabels(tpl('T01'), { start_date: '2026-09-15' }, 'en').start_date).toBe(
+      'September 15, 2026',
+    )
+  })
+
+  it('merges vacation weeks as the option label without duplicating the unit word', () => {
+    const resolved = answerLabels(tpl('T01'), { vacation_weeks: '3' }, 'en').vacation_weeks
+    expect(resolved).toBe('3 weeks')
+    const text = mergeSegments(
+      'You will receive {{vacation_weeks}} of paid vacation per year.',
+      { vacation_weeks: resolved! },
+    )
+      .map((segment) => segment.text)
+      .join('')
+    expect(text).toBe('You will receive 3 weeks of paid vacation per year.')
+    expect(text).not.toMatch(/weeks weeks/)
   })
 
   it('merges a select as its label in the document language, not its stored value', () => {

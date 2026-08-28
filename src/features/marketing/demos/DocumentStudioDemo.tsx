@@ -5,13 +5,13 @@ import { useI18n } from '@/i18n/context'
 import { usePublicPath } from '@/seo/usePublicPath'
 import {
   buildTemplatePreview,
-  demoMergeFieldAnswers,
+  demoAnswerDisplay,
   templateByTid,
 } from '../demos/templatePreviewModel'
 import { useLanding } from '../useLanding'
 
 const STUDIO_DEMO_TID = 'T01'
-const WIZARD_QUESTION_IDS = ['employee_name', 'job_title', 'start_date'] as const
+const WIZARD_QUESTION_IDS = ['employee_name', 'position_title', 'start_date'] as const
 
 /** Static Document Studio frame on the landing `#product` section. */
 export function DocumentStudioDemo() {
@@ -52,7 +52,9 @@ export function DocumentStudioDemo() {
                   </span>
                 </div>
                 <div className="text-sm font-semibold text-text">{x(question.label)}</div>
-                <div className="mt-1 text-sm text-text-2">{demoMergeFieldAnswers[question.id] ?? '—'}</div>
+                <div className="mt-1 text-sm text-text-2">
+                  {demoAnswerDisplay(STUDIO_DEMO_TID, question.id, lang) ?? '—'}
+                </div>
               </li>
             ))}
           </ol>

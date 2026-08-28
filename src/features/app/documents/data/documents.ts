@@ -507,7 +507,7 @@ export const sampleDocuments: GeneratedDoc[] = [
       start_date: '2026-07-28',
       work_location: 'Remote (federal)',
       annual_salary: '112,000',
-      vacation_weeks: '3 weeks',
+      vacation_weeks: '3',
       probation: '6-month',
     },
     versions: [
@@ -853,7 +853,7 @@ export const sampleDocuments: GeneratedDoc[] = [
       start_date: '2026-07-01',
       work_location: 'Ottawa, ON',
       annual_salary: '48,000',
-      vacation_weeks: '2 weeks',
+      vacation_weeks: '2',
       probation: '3-month',
     },
     versions: [
