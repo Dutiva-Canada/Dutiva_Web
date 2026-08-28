@@ -158,6 +158,25 @@ export function splitClauseSignOff(text: string): {
   return { body, closing, lines: tailLines.slice(1) }
 }
 
+/**
+ * Split template prose on blank lines, then on single newlines when each line
+ * is a paragraph (not bullets). Used by DocPaper and plain-text export.
+ */
+export function splitProseParagraphs(text: string): string[] {
+  const trimmed = text.trim()
+  if (!trimmed) return []
+
+  const byDouble = trimmed.split(/\n\n+/).filter((part) => part.trim())
+  if (byDouble.length > 1) return byDouble
+
+  const bySingle = trimmed.split('\n').filter((line) => line.trim())
+  if (bySingle.length > 1 && !bySingle.some((line) => line.startsWith('* '))) {
+    return bySingle
+  }
+
+  return [trimmed]
+}
+
 /* ── Merge fields ────────────────────────────────────────────────────────── */
 
 export interface MergeSegment {

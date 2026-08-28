@@ -2,7 +2,7 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
 import { chipToneClasses, statusChipBaseClass } from '@/components/chips'
-import { mergeSegments, parseClauseBulletLines, parseClauseFieldLines, splitBilingualBody, splitClauseSignOff } from './engine'
+import { mergeSegments, parseClauseBulletLines, parseClauseFieldLines, splitBilingualBody, splitClauseSignOff, splitProseParagraphs } from './engine'
 import type { MergeSegment } from './engine'
 import type { DocChipTone, Jurisdiction, PreviewBlock } from './data'
 
@@ -134,6 +134,8 @@ export function StepDots({
 
 /* ── Rendered document "paper" ───────────────────────────────────────────── */
 
+const PROSE_PARAGRAPH_GAP = 'space-y-2.5'
+
 const INLINE_BOLD_PATTERN = /(\*\*[^*]+\*\*)/g
 const INLINE_ITALIC_PATTERN = /(\*[^*\n]+\*)/g
 
@@ -161,7 +163,7 @@ function ProseParagraphs({
   readonly values: Record<string, string>
   readonly className?: string
 }) {
-  const paragraphs = text.split(/\n\n+/).filter((part) => part.trim())
+  const paragraphs = splitProseParagraphs(text)
   if (paragraphs.length <= 1) {
     return (
       <p className={className}>
@@ -170,13 +172,13 @@ function ProseParagraphs({
     )
   }
   return (
-    <>
+    <div className={`${PROSE_PARAGRAPH_GAP} ${className ?? ''}`}>
       {paragraphs.map((paragraph, index) => (
-        <p key={index} className={className ?? (index > 0 ? 'mt-2' : undefined)}>
-          <MergeText text={paragraph} values={values} preline />
+        <p key={index}>
+          <MergeText text={paragraph} values={values} />
         </p>
       ))}
-    </>
+    </div>
   )
 }
 
@@ -390,7 +392,7 @@ function DocPaperBody({
             return (
               <div
                 key={key}
-                className={isFirstClause ? 'mt-6 border-t border-border pt-5' : 'mt-3'}
+                className={isFirstClause ? 'mt-6 border-t border-border pt-5' : 'mt-4'}
               >
                 {block.heading && (
                   <div className="text-[12px] font-bold">
@@ -411,9 +413,9 @@ function DocPaperBody({
                   </div>
                 )}
                 {text && (
-                  <p className="mt-0.5 text-[11.5px] text-text-muted italic">
-                    <MergeText text={text} values={values} preline />
-                  </p>
+                  <div className="mt-0.5 text-[11.5px] text-text-muted italic">
+                    <ProseParagraphs text={text} values={values} />
+                  </div>
                 )}
                 <div className="mt-2 flex flex-col gap-[14px]" aria-hidden="true">
                   {Array.from({ length: block.lines ?? 3 }, (_, i) => (
@@ -424,9 +426,9 @@ function DocPaperBody({
             )
           case 'ack':
             return (
-              <p key={key} className="mt-4 italic">
-                <MergeText text={text} values={values} preline />
-              </p>
+              <div key={key} className="mt-4 italic">
+                <ProseParagraphs text={text} values={values} />
+              </div>
             )
           case 'note':
             return (
@@ -438,7 +440,7 @@ function DocPaperBody({
                     : 'border-(--accent-soft-border) bg-accent-soft text-text-muted'
                 }`}
               >
-                <MergeText text={text} values={values} preline />
+                <ProseParagraphs text={text} values={values} />
               </div>
             )
           case 'sig':
@@ -457,9 +459,9 @@ function DocPaperBody({
             )
           default:
             return (
-              <p key={key} className={paraClassName(block)}>
-                <MergeText text={text} values={values} preline />
-              </p>
+              <div key={key} className={paraClassName(block)}>
+                <ProseParagraphs text={text} values={values} />
+              </div>
             )
         }
       })}
