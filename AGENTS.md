@@ -4,7 +4,9 @@ Instructions for AI coding agents working in this repository (Claude Code,
 Codex, Cursor, Copilot, etc.). See [CONVENTIONS.md](CONVENTIONS.md) for the
 full engineering conventions this file summarizes — read it before making any
 non-trivial change, and [docs/README.md](docs/README.md) for the documentation
-index.
+index. For the broad platform architecture map, see [docs/wiki/Home.md](docs/wiki/Home.md)
+(in-repo mirror of the [GitHub wiki](https://github.com/Dutiva-Canada/Dutiva_Web/wiki);
+sync with `npm run wiki:sync`).
 
 ## Facts come from one place
 
