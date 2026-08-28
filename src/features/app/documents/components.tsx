@@ -151,8 +151,8 @@ function MergeSegmentSpan({ segment }: { readonly segment: MergeSegment }) {
 
   const className =
     segment.kind === 'filled'
-      ? 'rounded-[3px] bg-accent-soft px-[3px] font-medium text-text'
-      : 'rounded-[3px] bg-warn-bg px-[3px] text-warn-fg'
+      ? 'box-decoration-clone rounded-[2px] bg-accent-soft py-px font-medium text-text'
+      : 'box-decoration-clone rounded-[2px] bg-warn-bg py-px text-warn-fg'
   return <span className={className}>{segment.text}</span>
 }
 

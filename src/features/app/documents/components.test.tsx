@@ -18,7 +18,7 @@ describe('DocPaper letter formatting', () => {
       {
         type: 'para',
         text: {
-          en: '{{today}}\n\n{{employee_name}}\n\n**Re:** Offer of Employment - {{position_title}}\n\nDear {{employee_first_name}},\n\nWe are pleased to offer you employment.',
+          en: '{{today}}\n\n{{employee_name}}\n\n**Re:** Offer of Employment - {{position_title}}\n\nDear {{employee_first_name}},\n\nWe are pleased to offer you employment in the position of {{position_title}}.',
           fr: '…',
         },
       },
@@ -35,5 +35,7 @@ describe('DocPaper letter formatting', () => {
     expect(screen.getByText('Re:').tagName).toBe('STRONG')
     expect(container.textContent).toContain('August 27, 2026\n\nJordan Mensah')
     expect(container.textContent).toMatch(/Dear\s+Jordan,\s+We are pleased to offer you employment/)
+    expect(container.textContent).not.toMatch(/Jordan ,/)
+    expect(container.textContent).not.toMatch(/Coordinator \./)
   })
 })
