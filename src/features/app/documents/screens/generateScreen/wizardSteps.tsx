@@ -25,6 +25,7 @@ export function ContextStep({
   caseId,
   jurisdiction,
   language,
+  bilingualDelivery,
   employees,
   employeeCases,
   employeeRequired,
@@ -41,6 +42,7 @@ export function ContextStep({
   readonly caseId?: string
   readonly jurisdiction: Jurisdiction
   readonly language: WizardState['language']
+  readonly bilingualDelivery?: boolean
   readonly employees: DocEmployee[]
   readonly employeeCases: DocCase[]
   readonly employeeRequired: boolean
@@ -134,17 +136,23 @@ export function ContextStep({
           <FieldLabel requiredTitle={t('doclib_gen_required')}>
             {t('doclib_gen_language')}
           </FieldLabel>
-          <SegRow>
-            {(['en', 'fr'] as const).map((docLang) => (
-              <SegButton
-                key={docLang}
-                active={language === docLang}
-                onClick={() => onLanguageChange(docLang)}
-              >
-                {docLang.toUpperCase()}
-              </SegButton>
-            ))}
-          </SegRow>
+          {bilingualDelivery ? (
+            <div className="rounded-lg border border-(--accent-soft-border) bg-accent-soft px-3 py-2 text-[12px] text-text-muted">
+              {t('doclib_gen_bilingual_delivery')}
+            </div>
+          ) : (
+            <SegRow>
+              {(['en', 'fr'] as const).map((docLang) => (
+                <SegButton
+                  key={docLang}
+                  active={language === docLang}
+                  onClick={() => onLanguageChange(docLang)}
+                >
+                  {docLang.toUpperCase()}
+                </SegButton>
+              ))}
+            </SegRow>
+          )}
         </div>
       </div>
     </section>

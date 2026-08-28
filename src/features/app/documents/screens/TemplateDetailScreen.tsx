@@ -7,7 +7,7 @@ import { Disclaimer } from '@/components/Disclaimer'
 import { dotToneClass } from '@/components/chips'
 import type { ChipTone } from '@/components/chips'
 import { useDoclib } from '../doclibContext'
-import { applicability, computedTokens, resolveBlocks } from '../engine'
+import { applicability, bilingualMergeValues, computedTokens, isBilingualDelivery, resolveBlocks } from '../engine'
 import type { ApplicabilityKind } from '../engine'
 import { DocChip, DocPaper, JurisdictionPill, Skel } from '../components'
 import { jurisdictionInfo, reviewStatusInfo, riskLevelInfo, sectors, sizeTiers } from '../data'
@@ -165,11 +165,17 @@ export function TemplateDetailScreen() {
     headcount: org.headcount,
     unionized: org.unionized,
   })
-  const values = computedTokens(
-    org.primaryJurisdiction,
-    lang,
-    new Date().toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA'),
-  )
+  const bilingual = isBilingualDelivery(template)
+  const valuesByLang = bilingual
+    ? bilingualMergeValues(template, {}, org.primaryJurisdiction)
+    : undefined
+  const values =
+    valuesByLang?.en ??
+    computedTokens(
+      org.primaryJurisdiction,
+      lang,
+      new Date().toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA'),
+    )
 
   const jNotes = template.jurisdictions.flatMap((code) => {
     const note = template.jurisdictionNotes[code]
@@ -332,7 +338,13 @@ export function TemplateDetailScreen() {
             est={template.estMinutes}
             className="mb-[10px]"
           />
-          <DocPaper blocks={blocks} values={values} className="max-h-[56vh] overflow-y-auto" />
+          <DocPaper
+            blocks={blocks}
+            values={values}
+            valuesByLang={valuesByLang}
+            bilingual={bilingual}
+            className="max-h-[56vh] overflow-y-auto"
+          />
           <p className="mt-2 text-[11px] leading-normal text-text-faint">
             {t('doclib_detail_mergeNote')}
           </p>

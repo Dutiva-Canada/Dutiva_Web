@@ -9,11 +9,13 @@ import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeCont
 import { useDoclib } from '../../doclibContext'
 import { createDocument } from '../../productionApi'
 import {
-  answerLabels,
   applicability,
+  bilingualMergeValues,
   can,
-  computedTokens,
   fillProgress,
+  formatTodayLabel,
+  isBilingualDelivery,
+  mergeFieldValues,
   resolveBlocks,
 } from '../../engine'
 import type { ApplicabilityKind } from '../../engine'
@@ -128,21 +130,20 @@ export function GenerateWizard({
      wizard answers. Caveat: DocPaper renders block copy in the UI language, so
      the document-language toggle only affects the computed tokens (today /
      jurisdiction / statute wording) — acceptable for the demo. */
-  const todayString = useMemo(
+  const bilingual = isBilingualDelivery(template)
+  const todayString = useMemo(() => formatTodayLabel(wiz.language), [wiz.language])
+  const valuesByLang = useMemo(
     () =>
-      new Date().toLocaleDateString(wiz.language === 'fr' ? 'fr-CA' : 'en-CA', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }),
-    [wiz.language],
+      bilingual
+        ? bilingualMergeValues(template, wiz.answers, wiz.jurisdiction)
+        : undefined,
+    [bilingual, template, wiz.answers, wiz.jurisdiction],
   )
   const values = useMemo(
-    () => ({
-      ...computedTokens(wiz.jurisdiction, wiz.language, todayString),
-      ...answerLabels(template, wiz.answers, wiz.language),
-    }),
-    [template, wiz.jurisdiction, wiz.language, todayString, wiz.answers],
+    () =>
+      valuesByLang?.en ??
+      mergeFieldValues(template, wiz.answers, wiz.jurisdiction, wiz.language, todayString),
+    [template, wiz.jurisdiction, wiz.language, todayString, wiz.answers, valuesByLang],
   )
 
   const progress = fillProgress(template, wiz.answers)
@@ -267,6 +268,7 @@ export function GenerateWizard({
               caseId={wiz.caseId}
               jurisdiction={wiz.jurisdiction}
               language={wiz.language}
+              bilingualDelivery={bilingual}
               employees={employees}
               employeeCases={employeeCases}
               employeeRequired={employeeRequired}
@@ -353,11 +355,17 @@ export function GenerateWizard({
             <div className="flex items-center gap-1.5">
               <JurisdictionPill code={wiz.jurisdiction} />
               <span className="inline-flex items-center rounded-md border border-border bg-inset px-1.5 py-px text-[10.5px] font-bold tracking-[0.04em] text-text-muted">
-                {wiz.language.toUpperCase()}
+                {bilingual ? 'EN + FR' : wiz.language.toUpperCase()}
               </span>
             </div>
           </div>
-          <DocPaper blocks={blocks} values={values} docLang={wiz.language} />
+          <DocPaper
+            blocks={blocks}
+            values={values}
+            valuesByLang={valuesByLang}
+            bilingual={bilingual}
+            docLang={wiz.language}
+          />
           <p className="mt-2 text-[11px] text-text-faint">{t('doclib_disc_short')}</p>
         </aside>
       </div>

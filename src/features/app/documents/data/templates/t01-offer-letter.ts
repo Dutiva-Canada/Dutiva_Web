@@ -83,5 +83,6 @@ export const tplT01: DocTemplate = {
   ],
   questions: t01OfferLetterQuestions,
   preview: t01OfferLetterPreview,
+  delivery: 'bilingual',
   subject: 'candidate',
 }

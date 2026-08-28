@@ -1,6 +1,6 @@
 import { allTemplates } from '@/features/app/documents/catalogue'
 import type { DocTemplate } from '@/features/app/documents/data'
-import { answerLabels, computedTokens, resolveBlocks } from '@/features/app/documents/engine'
+import { answerLabels, bilingualMergeValues, computedTokens, resolveBlocks } from '@/features/app/documents/engine'
 import type { Lang } from '@/i18n/core'
 import { MARKETING_DEMO_ORG } from './demoOrgContext'
 
@@ -66,11 +66,15 @@ export function buildTemplatePreview(tid: string, lang: Lang) {
     month: 'long',
     day: 'numeric',
   })
-  const values = {
+  const valuesByLang =
+    template.delivery === 'bilingual'
+      ? bilingualMergeValues(template, demoMergeFieldAnswers, MARKETING_DEMO_ORG.jurisdiction)
+      : undefined
+  const values = valuesByLang?.en ?? {
     ...computedTokens(MARKETING_DEMO_ORG.jurisdiction, lang, today),
     ...answerLabels(template, demoMergeFieldAnswers, lang),
   }
-  return { template, blocks, values }
+  return { template, blocks, values, valuesByLang, bilingual: template.delivery === 'bilingual' }
 }
 
 /** Resolved demo answer for a wizard field — dates and selects match document output. */

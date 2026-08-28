@@ -100,6 +100,10 @@ export const doclibMessages = defineMessages({
   doclib_gen_case: { en: 'Case file (optional)', fr: 'Dossier (facultatif)' },
   doclib_gen_jurisdiction: { en: 'Jurisdiction', fr: 'Juridiction' },
   doclib_gen_language: { en: 'Document language', fr: 'Langue du document' },
+  doclib_gen_bilingual_delivery: {
+    en: 'Delivered in English and French in one document.',
+    fr: 'Livré en anglais et en français dans un seul document.', // [FR self-authored]
+  },
   doclib_gen_none: { en: 'None', fr: 'Aucun' },
   doclib_gen_next: { en: 'Next', fr: 'Suivant' },
   doclib_gen_back: { en: 'Back', fr: 'Précédent' },

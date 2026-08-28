@@ -14,7 +14,7 @@ export function TemplateSamplePanel({
   const { x, lang, t } = useI18n()
   const preview = buildTemplatePreview(tid, lang)
   if (!preview) return null
-  const { template, blocks, values } = preview
+  const { template, blocks, values, valuesByLang, bilingual } = preview
   return (
     <div className={className}>
       <div className="mb-2 text-sm font-semibold text-text">{x(template.name)}</div>
@@ -22,6 +22,8 @@ export function TemplateSamplePanel({
       <DocPaper
         blocks={blocks}
         values={values}
+        valuesByLang={valuesByLang}
+        bilingual={bilingual}
         docLang={lang}
         className={`${maxHeightClass} overflow-y-auto`}
       />

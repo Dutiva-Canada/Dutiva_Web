@@ -83,12 +83,13 @@ describe('GenerateScreen', () => {
     expect(screen.getByRole('combobox', { name: 'Employee record (optional)' })).toBeInTheDocument()
     expect(screen.getByRole('combobox', { name: 'Case file (optional)' })).toBeInTheDocument()
 
-    /* T01 is Ontario-only, so the jurisdiction segment is a single, fixed ON
-       button (still + doc language). */
-    for (const code of ['ON', 'EN', 'FR']) {
-      expect(screen.getByRole('button', { name: code })).toBeInTheDocument()
-    }
+    /* T01 is Ontario-only and bilingual — fixed ON jurisdiction, no EN/FR toggle. */
+    expect(screen.getByRole('button', { name: 'ON' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'ON' })).toHaveAttribute('aria-pressed', 'true')
+    expect(
+      screen.getByText('Delivered in English and French in one document.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'EN' })).not.toBeInTheDocument()
   })
 
   it('advances to guided questions and autosaves a typed answer (unsaved → saving → saved)', async () => {
@@ -156,7 +157,8 @@ describe('GenerateScreen', () => {
     fireEvent.change(screen.getByLabelText(/^Employee full name/), {
       target: { value: 'Gabriel Dubois' },
     })
-    expect(screen.getByText('Gabriel Dubois')).toBeInTheDocument()
+    expect(screen.getAllByText('Gabriel Dubois').length).toBeGreaterThan(0)
+    expect(screen.getByText('Version française')).toBeInTheDocument()
     expect(screen.queryByText('{{employee_name}}')).not.toBeInTheDocument()
   })
 
