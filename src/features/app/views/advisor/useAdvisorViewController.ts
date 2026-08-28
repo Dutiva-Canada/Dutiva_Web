@@ -10,6 +10,8 @@ import { createAdvisorFlowHandlers } from './advisorFlowHandlers'
 import { createAdvisorChatSendHandlers } from './advisorChatSendHandlers'
 import { createAdvisorQuickFormHandlers } from './advisorQuickFormHandlers'
 import { createAdvisorPriorityActionRunner } from './advisorPriorityActions'
+import { createAdvisorComposerHandlers } from './advisorComposerHandlers'
+import { computeAdvisorViewPresentation } from './advisorViewPresentation'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 import { useAdvisorEngine } from '@/features/app/advisor/useAdvisorEngine'
 import type { AdvisorTurnSpec, ChatMessage, ToneCardData } from '@/features/app/advisor/types'
@@ -21,36 +23,18 @@ import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
-import {
-  chats,
-} from '@/data'
+import { chats } from '@/data'
 import type { FixtureAction, FixtureToneCard } from '@/data'
-import type { JurisdictionPillTone } from './ChatPane'
-import {
-  flowJurisdictions,
-} from './advisorFlows'
-import {
-  routeScenarioFromText,
-} from './advisorScenarios'
-import type { ScenarioId } from './advisorScenarios'
+import type { FlowKeyOrFallback } from './advisorFlows'
+import type { MessageExtras } from './advisorFlows'
 import { readNavNewChat, readNavStartFlow } from './advisorNav'
-import type { FlowKeyOrFallback, MessageExtras, SuggestChipSpec } from './advisorFlows'
 import {
-  buildAdvisorThreadEntries,
-  buildAdvisorThreadGroups,
-  isBackendConversationId,
   readNavChatId,
-  resolveJurisdictionTone,
-  resolveScenarioTurn,
   resolveStartFlowKey,
-  resolveWorkspaceState,
-  scenarioForResponseState,
-  scenarioForThread,
   scenarioThreadId,
   seedExtras,
   seedId,
   settle,
-  supportiveJurisdictionLine,
 } from './advisorViewHelpers'
 import { useAdvisorMessageActions } from './useAdvisorMessageActions'
 import { useAdvisorProductionThreads } from './useAdvisorProductionThreads'
@@ -404,79 +388,40 @@ export function useAdvisorViewController() {
 
   /* -------------------------------------------------------------- render */
 
-  const activeFixture = activeChatId !== null ? chats.find((c) => c.id === activeChatId) : undefined
-  const activeSession =
-    activeChatId !== null ? sessionChats.find((c) => c.id === activeChatId) : undefined
-  const activeScenarioThread = scenarioForThread(activeChatId)
-  const hasActiveChat =
-    activeChatId !== null &&
-    (activeFixture !== undefined ||
-      activeSession !== undefined ||
-      activeScenarioThread !== undefined ||
-      prodThreads.some((t) => t.id === activeChatId) ||
-      sessionChats.some((c) => c.id === activeChatId) ||
-      isBackendConversationId(activeChatId) ||
-      transcripts.current.has(activeChatId))
-  const activeFlowKey: FlowKeyOrFallback =
-    activeFixture?.flowKey ?? activeSession?.flowKey ?? 'fallback'
-
-  /* Response-experience state of the active thread: which scenario turn is
-     current (jurisdiction resolved / web toggled) drives the jurisdiction
-     pill and the workspace payload. */
-  const activeResponseState = activeChatId !== null ? responseState[activeChatId] : undefined
-  const activeScenario = scenarioForResponseState(activeResponseState)
-  const currentScenarioTurn = resolveScenarioTurn(activeScenario, activeResponseState)
-  /* Support mode wins the pill (AGENT.md §8): a crisis-patched supportive
-     payload must not leave compliance framing ("Ontario — ESA, 2000",
-     "Confirm jurisdiction before use") pinned over the crisis reply. */
-  const supportModeActive = activeResponseState?.response?.supportNotice === true
-  const jurisdictionLine = supportModeActive
-    ? (supportiveJurisdictionLine ?? flowJurisdictions[activeFlowKey])
-    : (currentScenarioTurn?.jurisdictionLine ?? flowJurisdictions[activeFlowKey])
-  const jurisdictionTone: JurisdictionPillTone = supportModeActive
-    ? 'support'
-    : resolveJurisdictionTone(currentScenarioTurn)
-  const workspaceState = resolveWorkspaceState(
-    authStatus,
-    engine.busy || sendingReal,
-    activeResponseState?.response,
-    currentScenarioTurn,
-  )
-
-  /* Scenario threads group like the handoff prototype: s1 under Pinned only,
-     the rest under Today. Fixture chats keep the App v2 grouping (a pinned
-     chat also shows in its recency bucket). In production mode only the
-     real conversations started this session appear — the demo scenario and
-     Northgate fixture threads are demo-only. */
-  const allThreads = buildAdvisorThreadEntries(
-    workspaceMode,
+  const {
+    groups,
+    hasActiveChat,
+    jurisdictionLine,
+    jurisdictionTone,
+    workspaceState,
+    activeScenario,
+  } = computeAdvisorViewPresentation({
+    activeChatId,
     sessionChats,
     prodThreads,
-    activeChatId,
-  )
-  const groups = buildAdvisorThreadGroups(allThreads, {
-    pinned: M.advisorview_group_pinned,
-    today: M.advisorview_group_today,
-    week: M.advisorview_group_week,
-    older: M.advisorview_group_older,
+    transcripts: transcripts.current,
+    responseState,
+    workspaceMode,
+    authStatus,
+    engineBusy: engine.busy,
+    sendingReal,
+    groupLabels: {
+      pinned: M.advisorview_group_pinned,
+      today: M.advisorview_group_today,
+      week: M.advisorview_group_week,
+      older: M.advisorview_group_older,
+    },
   })
 
   const getExtras = (messageId: string): MessageExtras | undefined =>
     extras[messageId] ?? seedExtras[messageId]
 
-  const onSuggestChip = (chip: SuggestChipSpec) => startFlow(chip.flowKey, chip.label)
-
-  const idleSend = (prompt: string) => {
-    if (startCrisisThread(prompt)) return
-    if (authStatus === 'signed-in') startFlow('fallback', prompt)
-    else startScenario(routeScenarioFromText(prompt), prompt)
-  }
-
-  const homeSend = (text: string) => {
-    if (startCrisisThread(text)) return
-    if (authStatus === 'signed-in') startFlow('fallback', text)
-    else startScenario(routeScenarioFromText(text), text)
-  }
+  const { idleSend, homeSend, onSuggestChip } = createAdvisorComposerHandlers({
+    authStatus,
+    startCrisisThread,
+    startFlow,
+    startScenario,
+  })
 
   return {
     groups,

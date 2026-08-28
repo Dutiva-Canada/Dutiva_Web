@@ -38,6 +38,8 @@ and workspace state. Sub-hooks already extracted:
 - `advisorChatSendHandlers.ts` — in-thread send + follow-up chips
 - `advisorQuickFormHandlers.ts` — termination quick-form field edits + submit
 - `advisorPriorityActions.ts` — Home command-centre action routing inside Advisor
+- `advisorViewPresentation.ts` — thread groups, jurisdiction pill, workspace payload
+- `advisorComposerHandlers.ts` — idle/home composer sends and suggest-chip routing
 
 When adding behaviour, prefer a **new focused hook** over growing the controller.
 Helpers belong in `advisorViewHelpers.ts`; demo scenario data stays in `advisorScenarios.ts`.
@@ -61,7 +63,12 @@ one module per PR, with tests.
 **Stage 1 (file split, no behaviour change):** every workspace module with a production
 counterpart keeps demo UI in `*DemoView.tsx` (thin `*View.tsx` dispatch only). Regenerate
 with `node scripts/extract-demo-view.mjs <ComponentName>` when adding a new inline demo.
+**Workflows** uses `WorkflowsDemoFixtures.tsx` instead (single view, `showFixtures` gate).
+`check:architecture` fails if a `*View.tsx` embeds `function *DemoView` inline.
 Demo/onboarding surfaces (`/demo`, public tour, marketing simulations) are unchanged.
+
+**Stage 2 (fixture collapse):** deferred — remove `src/data` consumers only when a module
+is production-default for all users with no demo-only UX (one module per PR).
 
 ## Document template corpus
 
