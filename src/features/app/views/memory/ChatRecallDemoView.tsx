@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
-import { Brain, History, Info, Sparkle } from 'lucide-react'
+import { Brain, History, Info, Sparkle, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { bi, pick, pickL } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import { memoryMessages as M } from '@/i18n/messages/memory'
+import { shellMessages as SM } from '@/i18n/messages/shell'
 import { Disclaimer } from '@/components/Disclaimer'
 import { ChatComposer } from '@/features/app/advisor/ChatComposer'
 import { advisorViewMessages } from '@/i18n/messages/advisorView'
@@ -12,6 +14,7 @@ import type { MemoryFact } from '@/data'
 import { CONFIDENCE_META, SOURCE_META } from './memoryModel'
 import { KnowFact } from './KnowFact'
 import { useMemoryStore } from './memoryStore'
+import { useLgUp } from '@/lib/useMediaQuery'
 
 /**
  * Chat recall (`Advisor Memory.dc.html` CHAT surface): the "Resumed from…"
@@ -117,6 +120,8 @@ export function ChatRecallDemoView() {
   const navigate = useNavigate()
   const { threadId } = useParams()
   const { facts } = useMemoryStore()
+  const [knowRailOpen, setKnowRailOpen] = useState(false)
+  const lgUp = useLgUp()
 
   const thread = memoryThreads.find((t) => t.id === threadId)
   if (!thread) return <Navigate to="/app/settings/memory" replace />
@@ -132,18 +137,69 @@ export function ChatRecallDemoView() {
   /* Continue the conversation in the real chat surface. */
   const continueInAdvisor = () => navigate('/app/advisor', { state: { chatId: thread.id } })
 
+  const knowRail = (
+    <>
+      <div className="mb-[14px] overflow-hidden rounded-[14px] border border-border-soft bg-surface">
+        <div className="flex items-center gap-[9px] border-b border-inset px-[15px] py-[13px]">
+          <Brain size={16} strokeWidth={1.7} className="text-gold-fg" aria-hidden="true" />
+          <div>
+            <div className="text-[12.5px] font-bold text-text">{x(M.memory_know_title)}</div>
+            <div className="text-[11px] text-text-faint">{x(M.memory_know_sub_chat)}</div>
+          </div>
+        </div>
+        <div className="px-[15px] py-[13px]">
+          <div className="mb-[9px] text-[10.5px] font-bold tracking-wider text-gold-fg uppercase">
+            {employee?.name ?? thread.personId}
+          </div>
+          {knowPerson.map((fact) => (
+            <KnowFact key={fact.id} fact={fact} />
+          ))}
+        </div>
+        <div className="border-t border-inset px-[15px] py-[13px]">
+          <div className="mb-[9px] text-[10.5px] font-bold tracking-wider text-gold-fg uppercase">
+            {x(M.memory_know_this_conversation)}
+          </div>
+          {knowThread.map((fact) => (
+            <KnowFact key={fact.id} fact={fact} />
+          ))}
+        </div>
+      </div>
+      <div className="rounded-[13px] border border-support-border bg-support-bg px-[14px] py-[12px]">
+        <div className="mb-[6px] flex items-center gap-[7px]">
+          <Info size={13} strokeWidth={1.7} className="text-support-fg" aria-hidden="true" />
+          <div className="text-[12px] font-bold text-support-fg">
+            {x(M.memory_chat_recall_sourced_title)}
+          </div>
+        </div>
+        <div className="text-[11.5px] leading-[1.55] text-support-text">
+          {x(M.memory_chat_recall_sourced_note)}
+        </div>
+      </div>
+    </>
+  )
+
   return (
     <div className="flex min-h-0 flex-1">
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Jurisdiction context line */}
-        <div className="flex shrink-0 items-center justify-center border-b border-border-soft px-[14px] py-[8px]">
+        <div className="flex shrink-0 items-center justify-center gap-[8px] border-b border-border-soft px-[14px] py-[8px]">
           <span className="rounded-[100px] border border-gold-border bg-gold-bg px-[11px] py-[3px] text-[11.5px] font-semibold text-gold-fg">
             {lang === 'fr' ? 'Ontario — LNE, 2000' : 'Ontario — ESA, 2000'}
           </span>
+          {!lgUp ? (
+            <button
+              type="button"
+              onClick={() => setKnowRailOpen(true)}
+              className="flex min-h-[32px] cursor-pointer items-center gap-[6px] rounded-[100px] border border-border bg-surface px-[11px] py-[4px] text-[11.5px] font-semibold text-text-2"
+            >
+              <Brain size={13} strokeWidth={1.7} className="text-gold-fg" aria-hidden="true" />
+              {x(M.memory_know_title)}
+            </button>
+          ) : null}
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <div className="mx-auto flex max-w-[760px] flex-col gap-[20px] px-[24px] pt-[24px] pb-[16px]">
+          <div className="mx-auto flex max-w-[760px] flex-col gap-[20px] px-[16px] pt-[20px] pb-[16px] sm:px-[24px] sm:pt-[24px]">
             {RECALL_TURNS.map((turn) => {
               if (turn.kind === 'system') {
                 return (
@@ -279,7 +335,7 @@ export function ChatRecallDemoView() {
         </div>
 
         {/* Composer — continues the thread in the Advisor view */}
-        <div className="shrink-0 border-t border-border bg-bg px-[24px] pt-[14px] pb-[16px]">
+        <div className="shrink-0 border-t border-border bg-bg px-[16px] pt-[14px] pb-[16px] sm:px-[24px]">
           <div className="mx-auto max-w-[760px]">
             <ChatComposer
               variant="chat"
@@ -292,44 +348,36 @@ export function ChatRecallDemoView() {
       </div>
 
       {/* What-I-know rail */}
-      <aside className="hidden w-[320px] shrink-0 overflow-y-auto border-l border-border bg-surface-2 p-[16px] xl:block">
-        <div className="mb-[14px] overflow-hidden rounded-[14px] border border-border-soft bg-surface">
-          <div className="flex items-center gap-[9px] border-b border-inset px-[15px] py-[13px]">
-            <Brain size={16} strokeWidth={1.7} className="text-gold-fg" aria-hidden="true" />
-            <div>
-              <div className="text-[12.5px] font-bold text-text">{x(M.memory_know_title)}</div>
-              <div className="text-[11px] text-text-faint">{x(M.memory_know_sub_chat)}</div>
-            </div>
+      {lgUp ? (
+        <aside
+          aria-label={x(M.memory_know_title)}
+          className="w-[320px] shrink-0 overflow-y-auto border-l border-border bg-surface-2 p-[16px]"
+        >
+          {knowRail}
+        </aside>
+      ) : null}
+
+      {!lgUp && knowRailOpen ? (
+        <aside
+          aria-label={x(M.memory_know_title)}
+          className="fixed inset-0 z-80 overflow-y-auto bg-surface-2 p-[16px]"
+        >
+          <div className="mb-[12px] flex items-center justify-between">
+            <h2 className="m-0 font-display text-[16px] font-semibold text-text">
+              {x(M.memory_know_title)}
+            </h2>
+            <button
+              type="button"
+              onClick={() => setKnowRailOpen(false)}
+              aria-label={x(SM.shell_close_menu)}
+              className="flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-[8px] border-none bg-inset text-text-2"
+            >
+              <X size={18} strokeWidth={2} aria-hidden="true" />
+            </button>
           </div>
-          <div className="px-[15px] py-[13px]">
-            <div className="mb-[9px] text-[10.5px] font-bold tracking-wider text-gold-fg uppercase">
-              {employee?.name ?? thread.personId}
-            </div>
-            {knowPerson.map((fact) => (
-              <KnowFact key={fact.id} fact={fact} />
-            ))}
-          </div>
-          <div className="border-t border-inset px-[15px] py-[13px]">
-            <div className="mb-[9px] text-[10.5px] font-bold tracking-wider text-gold-fg uppercase">
-              {x(M.memory_know_this_conversation)}
-            </div>
-            {knowThread.map((fact) => (
-              <KnowFact key={fact.id} fact={fact} />
-            ))}
-          </div>
-        </div>
-        <div className="rounded-[13px] border border-support-border bg-support-bg px-[14px] py-[12px]">
-          <div className="mb-[6px] flex items-center gap-[7px]">
-            <Info size={13} strokeWidth={1.7} className="text-support-fg" aria-hidden="true" />
-            <div className="text-[12px] font-bold text-support-fg">
-              {x(M.memory_chat_recall_sourced_title)}
-            </div>
-          </div>
-          <div className="text-[11.5px] leading-[1.55] text-support-text">
-            {x(M.memory_chat_recall_sourced_note)}
-          </div>
-        </div>
-      </aside>
+          {knowRail}
+        </aside>
+      ) : null}
     </div>
   )
 }

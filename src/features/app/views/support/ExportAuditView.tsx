@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useI18n } from '@/i18n/context'
+import { useMdUp } from '@/lib/useMediaQuery'
 import { supportMessages as M } from '@/i18n/messages/support'
 import { isCurrentUserAdmin } from '@/features/support/supportAdminApi'
 import {
@@ -42,6 +43,7 @@ function shortId(id: string): string {
  */
 export function ExportAuditView() {
   const { x, lang } = useI18n()
+  const mdUp = useMdUp()
   const [admin, setAdmin] = useState<boolean | null>(null)
   const [filters, setFilters] = useState<ExportAuditFilters>({})
   const [page, setPage] = useState(1)
@@ -205,37 +207,77 @@ export function ExportAuditView() {
           {x(M.export_audit_empty)}
         </p>
       )}
-      {rows && rows.length > 0 && (
-        <div className="overflow-x-auto rounded-[12px] border border-border">
-          <table className="w-full border-collapse text-[12.5px]">
-            <thead>
-              <tr className="border-b border-border bg-inset text-left">
-                <th className="px-[12px] py-[8px] font-semibold text-text-muted">{x(M.export_audit_col_id)}</th>
-                <th className="px-[12px] py-[8px] font-semibold text-text-muted">{x(M.export_audit_col_surface)}</th>
-                <th className="px-[12px] py-[8px] font-semibold text-text-muted">{x(M.export_audit_col_kind)}</th>
-                <th className="px-[12px] py-[8px] font-semibold text-text-muted">{x(M.export_audit_col_title)}</th>
-                <th className="px-[12px] py-[8px] font-semibold text-text-muted">{x(M.export_audit_col_user)}</th>
-                <th className="px-[12px] py-[8px] font-semibold text-text-muted">{x(M.export_audit_col_chars)}</th>
-                <th className="px-[12px] py-[8px] font-semibold text-text-muted">{x(M.export_audit_col_created)}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.id} className="border-b border-border last:border-b-0">
-                  <td className="px-[12px] py-[8px] font-mono text-text-2" title={row.id}>{shortId(row.id)}</td>
-                  <td className="px-[12px] py-[8px] text-text-2">{row.surface}</td>
-                  <td className="px-[12px] py-[8px] text-text-2">{row.kind}</td>
-                  <td className="px-[12px] py-[8px] text-text-2">{row.title || '—'}</td>
-                  <td className="px-[12px] py-[8px] font-mono text-text-muted" title={row.user_id ?? ''}>
-                    {row.user_id ? shortId(row.user_id) : '—'}
-                  </td>
-                  <td className="px-[12px] py-[8px] text-text-muted">{row.content_chars.toLocaleString()}</td>
-                  <td className="px-[12px] py-[8px] text-text-muted">{formatDateTime(row.created_at, lang)}</td>
+      {rows && rows.length > 0 && mdUp && (
+          <div className="overflow-x-auto rounded-[12px] border border-border">
+            <table className="w-full border-collapse text-[12.5px]">
+              <thead>
+                <tr className="border-b border-border bg-inset text-left">
+                  <th className="px-[12px] py-[8px] font-semibold text-text-muted">{x(M.export_audit_col_id)}</th>
+                  <th className="px-[12px] py-[8px] font-semibold text-text-muted">{x(M.export_audit_col_surface)}</th>
+                  <th className="px-[12px] py-[8px] font-semibold text-text-muted">{x(M.export_audit_col_kind)}</th>
+                  <th className="px-[12px] py-[8px] font-semibold text-text-muted">{x(M.export_audit_col_title)}</th>
+                  <th className="px-[12px] py-[8px] font-semibold text-text-muted">{x(M.export_audit_col_user)}</th>
+                  <th className="px-[12px] py-[8px] font-semibold text-text-muted">{x(M.export_audit_col_chars)}</th>
+                  <th className="px-[12px] py-[8px] font-semibold text-text-muted">{x(M.export_audit_col_created)}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr key={row.id} className="border-b border-border last:border-b-0">
+                    <td className="px-[12px] py-[8px] font-mono text-text-2" title={row.id}>{shortId(row.id)}</td>
+                    <td className="px-[12px] py-[8px] text-text-2">{row.surface}</td>
+                    <td className="px-[12px] py-[8px] text-text-2">{row.kind}</td>
+                    <td className="px-[12px] py-[8px] text-text-2">{row.title || '—'}</td>
+                    <td className="px-[12px] py-[8px] font-mono text-text-muted" title={row.user_id ?? ''}>
+                      {row.user_id ? shortId(row.user_id) : '—'}
+                    </td>
+                    <td className="px-[12px] py-[8px] text-text-muted">{row.content_chars.toLocaleString()}</td>
+                    <td className="px-[12px] py-[8px] text-text-muted">{formatDateTime(row.created_at, lang)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+      )}
+
+      {rows && rows.length > 0 && !mdUp && (
+          <div className="flex flex-col gap-[10px]">
+            {rows.map((row) => (
+              <div
+                key={row.id}
+                className="rounded-[12px] border border-border bg-surface px-[14px] py-[12px]"
+              >
+                <div className="font-mono text-[12px] text-text-muted" title={row.id}>
+                  {shortId(row.id)}
+                </div>
+                <div className="mt-1 text-[13.5px] font-semibold text-text">{row.title || '—'}</div>
+                <dl className="mt-3 grid grid-cols-1 gap-y-[6px] text-[12px]">
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-text-muted">{x(M.export_audit_col_surface)}</dt>
+                    <dd className="m-0 text-text-2">{row.surface}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-text-muted">{x(M.export_audit_col_kind)}</dt>
+                    <dd className="m-0 text-text-2">{row.kind}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-text-muted">{x(M.export_audit_col_user)}</dt>
+                    <dd className="m-0 font-mono text-text-muted">
+                      {row.user_id ? shortId(row.user_id) : '—'}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-text-muted">{x(M.export_audit_col_chars)}</dt>
+                    <dd className="m-0 text-text-muted">{row.content_chars.toLocaleString()}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-text-muted">{x(M.export_audit_col_created)}</dt>
+                    <dd className="m-0 text-text-muted">{formatDateTime(row.created_at, lang)}</dd>
+                  </div>
+                </dl>
+              </div>
+            ))}
+          </div>
       )}
 
       {/* Pagination */}

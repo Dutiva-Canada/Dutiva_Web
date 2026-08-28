@@ -10,6 +10,19 @@ import { resetMemoryStore } from './memoryStore'
 describe('Advisor Memory surfaces', () => {
   beforeEach(() => {
     resetMemoryStore()
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({
+        matches: query.includes('min-width:'),
+        media: query,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+        onchange: null,
+      })),
+    )
   })
 
   describe('PersonMemoryView', () => {

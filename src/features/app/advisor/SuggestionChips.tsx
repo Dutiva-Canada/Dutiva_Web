@@ -48,7 +48,7 @@ export function SuggestionChipGrid({ chips }: { readonly chips: readonly Suggest
   const { lang } = useI18n()
   if (chips.length === 0) return null
   return (
-    <div className="grid grid-cols-2 gap-[10px] text-left">
+    <div className="grid grid-cols-1 gap-[10px] text-left sm:grid-cols-2">
       {chips.map((chip) => (
         <button
           key={keyOfL(chip.label)}

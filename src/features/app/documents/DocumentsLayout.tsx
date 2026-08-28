@@ -134,7 +134,7 @@ export function DocumentsLayout() {
     <DoclibProvider>
       {/* Shared scroll chrome so tabs and Studio content share one left edge.
           width=studio (1240) matches the catalogue layout budget. */}
-      <AppPage width="studio">
+      <AppPage width="studio" responsivePad>
         <DocumentsChrome />
       </AppPage>
     </DoclibProvider>

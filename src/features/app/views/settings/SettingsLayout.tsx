@@ -21,7 +21,7 @@ function SettingsTabs() {
   return (
     <nav
       aria-label={x(M.shell_nav_settings)}
-      className="shrink-0 flex gap-[2px] overflow-x-auto border-b border-border px-[32px]"
+      className="shrink-0 flex gap-[2px] overflow-x-auto border-b border-border px-[16px] sm:px-[24px] md:px-[32px]"
     >
       <Link
         to="/app/settings"
