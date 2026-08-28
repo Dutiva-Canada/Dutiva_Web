@@ -193,9 +193,9 @@ These need a professional but are outside the review-the-repo scope:
    2026-04-09 ("Goods or Services Not Acceptable") **has been addressed**
    (founder, 2026-08-23; CANONICAL_FACTS § Company and legal; TODO.md L8b).
    The mark remains an application, not a registration. No `®` in public copy.
-2. **The DigitalOcean residency ticket (TODO.md OA9)** — drafted, unsent.
-   Its answer settles the wording of the five bucket-1 documents above and
-   the PIPEDA claim in CANONICAL_FACTS §2. Send it first; it costs nothing.
+2. **The DigitalOcean residency ticket (TODO.md OA9)** — **closed 2026-08-27**
+   (ticket #12739848). Serverless is not Toronto-only; subprocessors updated.
+   Owner decision: Dedicated TOR1 or accept cross-border serverless disclosure.
 3. **Drive hygiene (TODO.md L9)** — T01/T02/T04 have sat in the Drive
    `Legal Review` folder as `_polished` drafts since June 2026, and the Drive
    HR template tree exists in duplicate. The repo (`catalogue.ts` and the
@@ -207,7 +207,8 @@ These need a professional but are outside the review-the-repo scope:
 
 A defensible sequence, cheapest-first within each dependency:
 
-1. Send the residency ticket (free; unblocks five documents' final wording).
+1. ~~Send the residency ticket (free; unblocks five documents' final wording).~~
+   **Done 2026-08-27** — subprocessors updated; owner evaluates Dedicated TOR1.
 2. Employment lawyer signs the notice-bands pack (~1–2 hours; unblocks
    shipped product behaviour).
 3. Same or second lawyer verifies the 42 corpus rows against the citation

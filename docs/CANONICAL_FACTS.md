@@ -141,11 +141,15 @@ first-party privacy-scrubbed error reporting (`docs/ERROR_REPORTING.md`).
 
 ### 2. "PIPEDA-compliant by design"
 
-Don't assert compliance as settled. Data residency for AI inference was still being
-confirmed with the provider as of 2026-07-26 — see
-`docs/do-residency-confirmation-request.md`, which notes the serverless endpoint has
-no region selector and that failover outside Canada is unconfirmed. Describe the work,
-not the outcome, until that resolves.
+Don't assert compliance as settled. DigitalOcean confirmed in writing
+(2026-08-27, ticket #12739848) that **serverless** Gradient inference for
+`deepseek-3.2` may run in **Canada, the United States, or the Netherlands**
+(routed by proximity and capacity; failover outside Canada when TOR1 is
+unavailable). Serverless cannot be pinned to a country or datacenter.
+**Dedicated Inference in TOR1** is the provider's path to Canada-only
+processing. Describe subprocessors and cross-border processing accurately;
+do not claim Toronto-only inference or settled PIPEDA compliance while on
+serverless. See `docs/do-residency-confirmation-response-2026-08-27.md`.
 
 ### 3. Counts
 
@@ -299,7 +303,11 @@ penalties to $10M. Follow the Beta Launch Brief on this.
    **Done.** Registries 2026-08-04; CIPO pre-assessment objection addressed and
    business phone confirmed by the founder 2026-08-23. Still an application, not
    a registration.
-2. Resolve the DigitalOcean residency ticket; update "Claims to stop making" §2.
+2. ~~Resolve the DigitalOcean residency ticket; update "Claims to stop making" §2.~~
+   **Done 2026-08-27** — reply in
+   `docs/do-residency-confirmation-response-2026-08-27.md`; subprocessors EN/FR
+   updated. **Owner:** evaluate Dedicated Inference TOR1 for `deepseek-3.2` or
+   accept serverless with cross-border disclosure (`docs/LOCAL_INFERENCE.md`).
 3. ~~Decide the plan of record — two business plans are live, neither marked superseded.~~
    **Done 2026-08-10 (D5).** The Beta Launch Brief (2026-07-20) is the plan
    of record. The replacement privacy wording from §"Claims to stop making" 1

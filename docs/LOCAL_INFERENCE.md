@@ -252,10 +252,12 @@ building.
 
 Cheapest *and* highest-quality path:
 
-1. Stay on Gradient serverless `deepseek-3.2`.
-2. Close OA9. If serverless will not pin TOR1 in writing, treat Dedicated
-   TOR1 as a **residency** purchase, not a savings purchase — or change
-   public location language to match what DO will sign (owner/legal).
+1. Stay on Gradient serverless `deepseek-3.2` **only if** subprocessors'
+   cross-border disclosure (CA / US / NL) is acceptable to counsel.
+2. ~~Close OA9.~~ **Done 2026-08-27** — DO confirmed serverless will **not**
+   pin TOR1; failover to US/NL. Dedicated TOR1 is the **residency** path, not
+   a savings purchase. See
+   [do-residency-confirmation-response-2026-08-27.md](do-residency-confirmation-response-2026-08-27.md).
 3. Tune COGS without new architecture: prompt caching if the route
    supports it; keep history at 20; do not put embeddings/RAG on Gradient
    Knowledge Bases unless you have a reason (Dutiva already retrieves in

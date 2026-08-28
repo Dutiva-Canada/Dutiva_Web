@@ -1,6 +1,7 @@
 # DigitalOcean support ticket — data-residency confirmation for Gradient serverless inference
 
-**Status:** Sent 2026-08-27 — ticket **#12739848**. Awaiting written reply from DigitalOcean.
+**Status:** **Closed 2026-08-27** — ticket **#12739848**. Written reply filed in
+[do-residency-confirmation-response-2026-08-27.md](do-residency-confirmation-response-2026-08-27.md).
 
 **Why:** Five public legal documents state the Advisor's AI processing location as Toronto,
 Canada. That claim rested on a July 2026 confirmation for the _previous_ model
@@ -84,18 +85,19 @@ support@dutiva.ca · 1 (800) 349-0297
 | Sent date | 2026-08-27 |
 | Ticket ID | [#12739848](https://cloudsupport.digitalocean.com) |
 | Topic | Agentic Inference Cloud → Inference → Serverless Inference |
-| DO reply date | _fill when received_ |
-| Outcome | _pending_ — Toronto confirmed for `deepseek-3.2` / pinning available / Dedicated TOR1 quote / docs need revision |
+| DO reply date | 2026-08-27 |
+| Outcome | **Serverless not pinable** — processing in CA, US, or NL; likely TOR1 for Toronto callers; failover to US/NL. **Dedicated TOR1** required for Canada-only. Pricing via Control Panel / Customer Success. Subprocessors updated; production routing unchanged until owner chooses Dedicated. |
 
 ---
 
 ## Internal note (do not paste into ticket)
 
-- Five public legal documents (ai-technology, privacy, cookies, data-processing-agreement,
-  subprocessors) state the Advisor's AI processing location as **Toronto, Canada**. That
-  claim is load-bearing: Toronto-in-Canada means no PIPEDA cross-border transfer;
-  outside-Quebec means a Law-25 out-of-Quebec communication for QC residents (already
-  disclosed).
+- The subprocessors list stated the Advisor's AI processing location as
+  **Toronto, Canada** — **revised 2026-08-27** to CA / US / NL per ticket
+  #12739848. That claim was load-bearing: Toronto-in-Canada would mean no
+  PIPEDA cross-border transfer for inference alone; serverless routing outside
+  Canada requires the disclosed cross-border language (Law 25 out-of-Quebec
+  communication for QC residents remains in other legal pages).
 - DO's public docs (checked 2026-07-26): serverless inference is a single global endpoint
   with no published region guarantee; the availability table lists TOR1 for Dedicated
   Inference/BYOM only; their data-privacy page states DO-hosted model inference happens on
