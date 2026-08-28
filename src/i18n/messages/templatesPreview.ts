@@ -57,9 +57,9 @@ export const templatesPreviewMessages = defineMessages({
     en: 'Preview sample',
     fr: 'Aperçu du modèle',
   },
-  tplPreview_hide_sample: {
-    en: 'Hide preview',
-    fr: 'Masquer l’aperçu',
+  tplPreview_close_sample: {
+    en: 'Close preview',
+    fr: 'Fermer l’aperçu',
   },
   tplPreview_sample_note: {
     en: 'Sample preview with demo answers — sign in to generate your own.',

@@ -51,7 +51,7 @@ export function TemplatesPage() {
         <div className="grid gap-6 lg:grid-cols-3">
           {FEATURED_TEMPLATE_TIDS.map((tid) => (
             <div key={tid} className="premium-card-soft p-5">
-              <TemplateSamplePanel tid={tid} maxHeightClass="max-h-[360px]" />
+              <TemplateSamplePanel tid={tid} />
             </div>
           ))}
         </div>
