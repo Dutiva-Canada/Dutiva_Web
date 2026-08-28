@@ -5,6 +5,7 @@ import {
   normalizeBillingPeriod,
   normalizePlan,
   normalizeSubscriptionStatus,
+  planSignupPayloadFromProfileUpdate,
   stringId,
 } from './billing-event'
 
@@ -118,6 +119,31 @@ describe('stripe webhook billing event helpers', () => {
     expect(patch.userId).toBeNull()
     expect(patch.email).toBe('buyer@example.com')
     expect(patch.updates.plan).toBe('pro')
+  })
+
+  it('builds paid plan signup notification payloads only for recognized paid plans', () => {
+    expect(
+      planSignupPayloadFromProfileUpdate({
+        plan: 'growth',
+        subscription_status: 'active',
+        billing_period: 'annual',
+      }),
+    ).toEqual({ plan: 'growth', billing_period: 'annual', source: 'stripe_checkout' })
+
+    expect(
+      planSignupPayloadFromProfileUpdate({
+        plan: 'free',
+        subscription_status: 'active',
+        billing_period: 'monthly',
+      }),
+    ).toBeNull()
+
+    expect(
+      planSignupPayloadFromProfileUpdate({
+        subscription_status: 'active',
+        billing_period: 'monthly',
+      }),
+    ).toBeNull()
   })
 
   it('updates subscription events from price id, keeping the reported status', () => {

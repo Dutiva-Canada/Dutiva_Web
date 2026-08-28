@@ -35,11 +35,18 @@ const ALL_KINDS: NotificationKind[] = [
   'operator_alert',
   'beta_signup',
   'beta_confirmation',
+  'account_signup',
+  'plan_signup',
 ]
 
-const TICKET_KINDS = ALL_KINDS.filter(
-  (kind) => kind !== 'beta_signup' && kind !== 'beta_confirmation',
-)
+const SIGNUP_KINDS: NotificationKind[] = [
+  'beta_signup',
+  'beta_confirmation',
+  'account_signup',
+  'plan_signup',
+]
+
+const TICKET_KINDS = ALL_KINDS.filter((kind) => !SIGNUP_KINDS.includes(kind))
 
 describe('renderSupportEmail', () => {
   it('renders every kind in EN and FR with a branded subject', () => {
@@ -130,7 +137,39 @@ describe('renderSupportEmail', () => {
     expect(r.text).toContain('Dutiva offre un soutien pratique')
   })
 
-  it('keeps the edge worker mirror aware of beta notification kinds', () => {
+  it('renders free account and paid plan signup operator alerts', () => {
+    const account = renderSupportEmail(
+      'account_signup',
+      ctx({
+        reference: '',
+        ticketUrl: 'https://dutiva.ca/app/support/admin',
+        planLabel: 'Free',
+        sourceLabel: 'Account signup',
+      }),
+    )
+    expect(account.subject).toBe('Dutiva Support — New account signup')
+    expect(account.text).toContain('A new Dutiva account was created.')
+    expect(account.text).toContain('Plan: Free')
+    expect(account.text).toContain('Source: Account signup')
+
+    const plan = renderSupportEmail(
+      'plan_signup',
+      ctx({
+        reference: '',
+        ticketUrl: 'https://dutiva.ca/app/support/admin',
+        planLabel: 'Growth',
+        billingPeriodLabel: 'Annual',
+        sourceLabel: 'Stripe Checkout',
+      }),
+    )
+    expect(plan.subject).toBe('Dutiva Support — New paid plan signup')
+    expect(plan.text).toContain('A paid plan checkout was completed.')
+    expect(plan.text).toContain('Plan: Growth')
+    expect(plan.text).toContain('Billing period: Annual')
+    expect(plan.text).toContain('Source: Stripe Checkout')
+  })
+
+  it('keeps the edge worker mirror aware of signup notification kinds', () => {
     const edgeWorker = raw(
       import.meta.glob('../../../../supabase/functions/support-notify/index.ts', {
         query: '?raw',
@@ -141,7 +180,11 @@ describe('renderSupportEmail', () => {
     )
     expect(edgeWorker).toContain("case 'beta_signup'")
     expect(edgeWorker).toContain("case 'beta_confirmation'")
+    expect(edgeWorker).toContain("case 'account_signup'")
+    expect(edgeWorker).toContain("case 'plan_signup'")
     expect(edgeWorker).toContain('SOURCE_LABELS')
     expect(edgeWorker).toContain('PROVINCE_LABELS')
+    expect(edgeWorker).toContain('PLAN_LABELS')
+    expect(edgeWorker).toContain('BILLING_PERIOD_LABELS')
   })
 })

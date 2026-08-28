@@ -103,6 +103,8 @@ type NotificationKind =
   | 'operator_alert'
   | 'beta_signup'
   | 'beta_confirmation'
+  | 'account_signup'
+  | 'plan_signup'
 
 interface EmailContext {
   language: Lang
@@ -113,6 +115,8 @@ interface EmailContext {
   priorityLabel?: string
   sourceLabel?: string
   provinceLabel?: string
+  planLabel?: string
+  billingPeriodLabel?: string
 }
 
 interface RenderedEmail {
@@ -418,6 +422,57 @@ function renderNotificationEmail(kind: NotificationKind, ctx: EmailContext): Ren
           'Des questions? Répondez à ce courriel ou écrivez à support@dutiva.ca.',
         ),
       ])
+    case 'account_signup': {
+      const details = [
+        ctx.planLabel ? L(lang, `Plan: ${ctx.planLabel}`, `Forfait : ${ctx.planLabel}`) : '',
+        ctx.sourceLabel ? L(lang, `Source: ${ctx.sourceLabel}`, `Source : ${ctx.sourceLabel}`) : '',
+      ].filter(Boolean)
+      return {
+        subject: `${brand} — ${L(lang, 'New account signup', 'Nouvelle inscription de compte')}`,
+        text: [
+          L(lang, 'A new Dutiva account was created.', 'Un nouveau compte Dutiva a été créé.'),
+          details.join('\n'),
+          L(
+            lang,
+            `Open the operator workspace: ${ticketUrl}`,
+            `Ouvrez l’espace opérateur : ${ticketUrl}`,
+          ),
+        ]
+          .filter(Boolean)
+          .join('\n\n'),
+      }
+    }
+    case 'plan_signup': {
+      const details = [
+        ctx.planLabel ? L(lang, `Plan: ${ctx.planLabel}`, `Forfait : ${ctx.planLabel}`) : '',
+        ctx.billingPeriodLabel
+          ? L(
+              lang,
+              `Billing period: ${ctx.billingPeriodLabel}`,
+              `Période de facturation : ${ctx.billingPeriodLabel}`,
+            )
+          : '',
+        ctx.sourceLabel ? L(lang, `Source: ${ctx.sourceLabel}`, `Source : ${ctx.sourceLabel}`) : '',
+      ].filter(Boolean)
+      return {
+        subject: `${brand} — ${L(lang, 'New paid plan signup', 'Nouvelle inscription à un forfait payant')}`,
+        text: [
+          L(
+            lang,
+            'A paid plan checkout was completed.',
+            'Un passage à la caisse pour un forfait payant est terminé.',
+          ),
+          details.join('\n'),
+          L(
+            lang,
+            `Open the operator workspace: ${ticketUrl}`,
+            `Ouvrez l’espace opérateur : ${ticketUrl}`,
+          ),
+        ]
+          .filter(Boolean)
+          .join('\n\n'),
+      }
+    }
   }
 }
 
@@ -434,14 +489,30 @@ interface NotificationRow {
     priority?: string
     province?: string
     source?: string
+    plan?: string
+    billing_period?: string
   }
   attempts: number
 }
 
 const SOURCE_LABELS: Record<string, { en: string; fr: string }> = {
+  auth: { en: 'Account signup', fr: 'Inscription de compte' },
+  stripe_checkout: { en: 'Stripe Checkout', fr: 'Paiement Stripe' },
   landing: { en: 'Landing page', fr: 'Page d’accueil' },
   beta_page: { en: 'Beta page', fr: 'Page bêta' },
   campaign: { en: 'Campaign', fr: 'Campagne' },
+}
+
+const PLAN_LABELS: Record<string, { en: string; fr: string }> = {
+  free: { en: 'Free', fr: 'Gratuit' },
+  starter: { en: 'Starter', fr: 'Démarrage' },
+  growth: { en: 'Growth', fr: 'Croissance' },
+  pro: { en: 'Pro', fr: 'Pro' },
+}
+
+const BILLING_PERIOD_LABELS: Record<string, { en: string; fr: string }> = {
+  monthly: { en: 'Monthly', fr: 'Mensuel' },
+  annual: { en: 'Annual', fr: 'Annuel' },
 }
 
 const PROVINCE_LABELS: Record<string, { en: string; fr: string }> = {
@@ -455,8 +526,13 @@ function buildContext(row: NotificationRow, appUrl: string): EmailContext {
   const lang: Lang = row.language === 'fr' ? 'fr' : 'en'
   const category = row.payload.category ?? 'other'
   const priority = row.payload.priority
-  const isBetaSignup = row.kind === 'beta_signup' || row.kind === 'beta_confirmation'
-  const ticketPath = isBetaSignup
+  const isSignupAlert = [
+    'beta_signup',
+    'beta_confirmation',
+    'account_signup',
+    'plan_signup',
+  ].includes(row.kind)
+  const ticketPath = isSignupAlert
     ? '/app/support/admin'
     : row.audience === 'operator'
       ? `/app/support/admin/${row.ticket_id ?? ''}`
@@ -473,6 +549,12 @@ function buildContext(row: NotificationRow, appUrl: string): EmailContext {
       : undefined,
     provinceLabel: row.payload.province
       ? (PROVINCE_LABELS[row.payload.province]?.[lang] ?? row.payload.province)
+      : undefined,
+    planLabel: row.payload.plan
+      ? (PLAN_LABELS[row.payload.plan]?.[lang] ?? row.payload.plan)
+      : undefined,
+    billingPeriodLabel: row.payload.billing_period
+      ? (BILLING_PERIOD_LABELS[row.payload.billing_period]?.[lang] ?? row.payload.billing_period)
       : undefined,
   }
 }

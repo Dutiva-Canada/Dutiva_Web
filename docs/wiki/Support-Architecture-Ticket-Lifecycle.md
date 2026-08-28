@@ -651,11 +651,11 @@ Sources: [src/features/support/analytics/supportAnalytics.ts:1-137]()
 
 ## Email Template System
 
-The `renderSupportEmail()` function in `src/features/support/email/templates.ts` is the tested source of truth for all 16 notification email templates. The `support-notify` edge function mirrors this as `renderNotificationEmail()`.
+The `renderSupportEmail()` function in `src/features/support/email/templates.ts` is the tested source of truth for all 18 notification email templates. The `support-notify` edge function mirrors this as `renderNotificationEmail()`.
 
 Templates follow strict rules:
 - Support-ticket subjects carry **only** the public reference — never description or PII — [src/features/support/email/templates.ts:8-9]()
-- Beta signup alert subjects name the event only, with signup details kept out of the outbox subject.
+- Signup alert subjects name the event only, with customer details kept out of the outbox subject.
 - Customer ticket bodies link to the authenticated ticket URL; beta signup alerts link to the operator workspace — [src/features/support/email/templates.ts:36-37]()
 - Customer-facing templates include the legal disclaimer; ticket acknowledgements also include the sensitive-info warning — [src/features/support/email/templates.ts:56-69]()
 - Category-aware acknowledgements exist for privacy, security, accessibility, and complaint — [src/features/support/email/templates.ts:95-120]()

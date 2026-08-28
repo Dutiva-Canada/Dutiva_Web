@@ -23,6 +23,11 @@ export type CheckoutProfilePatch = {
 }
 
 export type PriceLookup = Record<string, { plan: string; billingPeriod: BillingPeriod }>
+export type PlanSignupNotificationPayload = {
+  plan: string
+  billing_period: BillingPeriod
+  source: 'stripe_checkout'
+}
 
 const ALLOWED_PLANS = new Set(['starter', 'growth', 'pro'])
 const ALLOWED_PERIODS = new Set<string>(['monthly', 'annual'])
@@ -131,6 +136,15 @@ export function getCheckoutProfilePatch(session: Record<string, unknown>): Check
       stripe_subscription_id: stringId(session.subscription),
     },
   }
+}
+
+export function planSignupPayloadFromProfileUpdate(
+  updates: ProfileUpdate,
+): PlanSignupNotificationPayload | null {
+  const plan = normalizePlan(updates.plan)
+  if (!plan) return null
+  const billingPeriod = normalizeBillingPeriod(updates.billing_period) ?? 'monthly'
+  return { plan, billing_period: billingPeriod, source: 'stripe_checkout' }
 }
 
 export function getSubscriptionProfileUpdate(

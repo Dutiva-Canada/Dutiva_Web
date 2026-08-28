@@ -31,6 +31,8 @@ export type NotificationKind =
   | 'operator_alert'
   | 'beta_signup'
   | 'beta_confirmation'
+  | 'account_signup'
+  | 'plan_signup'
 
 export interface EmailContext {
   language: Lang
@@ -47,6 +49,10 @@ export interface EmailContext {
   sourceLabel?: string
   /** Localized jurisdiction label — beta_signup only. */
   provinceLabel?: string
+  /** Localized plan label — signup operator alerts only. */
+  planLabel?: string
+  /** Localized billing period label — plan_signup only. */
+  billingPeriodLabel?: string
 }
 
 export interface RenderedEmail {
@@ -359,5 +365,60 @@ export function renderSupportEmail(kind: NotificationKind, ctx: EmailContext): R
           'Des questions? Répondez à ce courriel ou écrivez à support@dutiva.ca.',
         ),
       ])
+    case 'account_signup': {
+      const details = [
+        ctx.planLabel ? pick(lang, `Plan: ${ctx.planLabel}`, `Forfait : ${ctx.planLabel}`) : '',
+        ctx.sourceLabel
+          ? pick(lang, `Source: ${ctx.sourceLabel}`, `Source : ${ctx.sourceLabel}`)
+          : '',
+      ].filter(Boolean)
+      return {
+        subject: `${BRAND(lang)} — ${pick(lang, 'New account signup', 'Nouvelle inscription de compte')}`,
+        text: [
+          pick(lang, 'A new Dutiva account was created.', 'Un nouveau compte Dutiva a été créé.'),
+          details.join('\n'),
+          pick(
+            lang,
+            `Open the operator workspace: ${ticketUrl}`,
+            `Ouvrez l’espace opérateur : ${ticketUrl}`,
+          ),
+        ]
+          .filter(Boolean)
+          .join('\n\n'),
+      }
+    }
+    case 'plan_signup': {
+      const details = [
+        ctx.planLabel ? pick(lang, `Plan: ${ctx.planLabel}`, `Forfait : ${ctx.planLabel}`) : '',
+        ctx.billingPeriodLabel
+          ? pick(
+              lang,
+              `Billing period: ${ctx.billingPeriodLabel}`,
+              `Période de facturation : ${ctx.billingPeriodLabel}`,
+            )
+          : '',
+        ctx.sourceLabel
+          ? pick(lang, `Source: ${ctx.sourceLabel}`, `Source : ${ctx.sourceLabel}`)
+          : '',
+      ].filter(Boolean)
+      return {
+        subject: `${BRAND(lang)} — ${pick(lang, 'New paid plan signup', 'Nouvelle inscription à un forfait payant')}`,
+        text: [
+          pick(
+            lang,
+            'A paid plan checkout was completed.',
+            'Un passage à la caisse pour un forfait payant est terminé.',
+          ),
+          details.join('\n'),
+          pick(
+            lang,
+            `Open the operator workspace: ${ticketUrl}`,
+            `Ouvrez l’espace opérateur : ${ticketUrl}`,
+          ),
+        ]
+          .filter(Boolean)
+          .join('\n\n'),
+      }
+    }
   }
 }

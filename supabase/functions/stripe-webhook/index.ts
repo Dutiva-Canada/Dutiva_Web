@@ -2,8 +2,13 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import type { Database } from '../_shared/database.types.ts'
-import { getCheckoutProfilePatch, getSubscriptionProfileUpdate, stringId } from './billing-event.ts'
-import type { BillingPeriod, PriceLookup } from './billing-event.ts'
+import {
+  getCheckoutProfilePatch,
+  getSubscriptionProfileUpdate,
+  planSignupPayloadFromProfileUpdate,
+  stringId,
+} from './billing-event.ts'
+import type { BillingPeriod, PriceLookup, ProfileUpdate } from './billing-event.ts'
 import { advisorPackGrantFromSession } from './advisorPack.ts'
 import { verifyStripeSignature } from './verify-signature.ts'
 
@@ -31,6 +36,8 @@ const PRICE_ENV_KEYS: Record<string, { plan: string; billingPeriod: BillingPerio
   STRIPE_PRICE_GROWTH_ANNUAL: { plan: 'growth', billingPeriod: 'annual' },
   STRIPE_PRICE_PRO_ANNUAL: { plan: 'pro', billingPeriod: 'annual' },
 }
+
+const OPERATOR_EMAIL = Deno.env.get('SUPPORT_OPERATOR_EMAIL') ?? 'support@dutiva.ca'
 
 function json(body: Record<string, unknown>, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -104,6 +111,26 @@ async function updateProfileByIdOrEmail(
     supabase.from('profiles').update(updates).eq('id', data.id),
     `profile update for ${email}`,
   )
+}
+
+async function enqueuePlanSignupNotification(
+  supabase: SupabaseClient<Database>,
+  updates: ProfileUpdate,
+): Promise<void> {
+  const payload = planSignupPayloadFromProfileUpdate(updates)
+  if (!payload) return
+
+  const { error } = await supabase.from('support_notifications').insert({
+    ticket_id: null,
+    kind: 'plan_signup',
+    audience: 'operator',
+    recipient: OPERATOR_EMAIL,
+    language: 'en',
+    payload,
+  })
+  if (error) {
+    console.error('[stripe-webhook] could not enqueue plan signup alert:', error.message)
+  }
 }
 
 Deno.serve(async (req: Request) => {
@@ -183,6 +210,7 @@ Deno.serve(async (req: Request) => {
 
     const result = await updateProfileByIdOrEmail(supabase, userId, email, updates)
     if (!result.ok) return fail('Could not apply checkout to profile.')
+    await enqueuePlanSignupNotification(supabase, updates)
   }
 
   if (
