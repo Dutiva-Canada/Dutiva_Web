@@ -36,6 +36,8 @@ and workspace state. Sub-hooks already extracted:
 - `advisorProductionChat.ts` — shared real-backend result + failure handling
 - `advisorFlowHandlers.ts` — demo flow starts (termination, light flows, fallback)
 - `advisorChatSendHandlers.ts` — in-thread send + follow-up chips
+- `advisorQuickFormHandlers.ts` — termination quick-form field edits + submit
+- `advisorPriorityActions.ts` — Home command-centre action routing inside Advisor
 
 When adding behaviour, prefer a **new focused hook** over growing the controller.
 Helpers belong in `advisorViewHelpers.ts`; demo scenario data stays in `advisorScenarios.ts`.
@@ -57,7 +59,7 @@ remove the fixture branch in the `*View` wrapper and delete unused `src/data` co
 one module per PR, with tests.
 
 **Stage 1 (file split, no behaviour change):** live modules with both surfaces now keep demo
-UI in `*DemoView.tsx` (Communications, Compensation, Wellbeing, Cases, Employees). Demo/onboarding surfaces
+UI in `*DemoView.tsx` (Communications, Compensation, Wellbeing, Cases, Employees, Tasks, Policies, Home). Demo/onboarding surfaces
 (`/demo`, public tour, marketing simulations) are unchanged — only the file boundary moved.
 
 ## Document template corpus
