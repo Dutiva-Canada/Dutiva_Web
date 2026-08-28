@@ -50,8 +50,16 @@ export const templatesPreviewMessages = defineMessages({
     fr: 'Exemples de sortie',
   },
   tplPreview_samples_intro: {
-    en: 'Three templates with rendered previews — the same clause engine Document Studio uses after you sign in.',
-    fr: 'Trois modèles avec aperçus rendus — le même moteur de clauses que le Studio de documents utilise après connexion.',
+    en: 'Pick a template to see a rendered preview — the same output Document Studio generates after you sign in.',
+    fr: 'Choisissez un modèle pour voir un aperçu rendu — la même sortie que le Studio de documents génère après connexion.',
+  },
+  tplPreview_show_sample: {
+    en: 'Preview sample',
+    fr: 'Aperçu du modèle',
+  },
+  tplPreview_hide_sample: {
+    en: 'Hide preview',
+    fr: 'Masquer l’aperçu',
   },
   tplPreview_sample_note: {
     en: 'Sample preview with demo answers — sign in to generate your own.',
