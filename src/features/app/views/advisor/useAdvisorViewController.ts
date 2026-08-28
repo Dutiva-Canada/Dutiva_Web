@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { bi } from '@/i18n/core'
 import type { LText } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { createAdvisorCrisisHandlers } from './advisorCrisisHandlers'
@@ -9,6 +8,8 @@ import { createAdvisorThreadNavigation } from './advisorThreadNavigation'
 import { createRealChatFailureHandler } from './advisorProductionChat'
 import { createAdvisorFlowHandlers } from './advisorFlowHandlers'
 import { createAdvisorChatSendHandlers } from './advisorChatSendHandlers'
+import { createAdvisorQuickFormHandlers } from './advisorQuickFormHandlers'
+import { createAdvisorPriorityActionRunner } from './advisorPriorityActions'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 import { useAdvisorEngine } from '@/features/app/advisor/useAdvisorEngine'
 import type { AdvisorTurnSpec, ChatMessage, ToneCardData } from '@/features/app/advisor/types'
@@ -27,7 +28,6 @@ import type { FixtureAction, FixtureToneCard } from '@/data'
 import type { JurisdictionPillTone } from './ChatPane'
 import {
   flowJurisdictions,
-  terminationAssessment,
 } from './advisorFlows'
 import {
   routeScenarioFromText,
@@ -35,7 +35,6 @@ import {
 import type { ScenarioId } from './advisorScenarios'
 import { readNavNewChat, readNavStartFlow } from './advisorNav'
 import type { FlowKeyOrFallback, MessageExtras, SuggestChipSpec } from './advisorFlows'
-import type { HomeAction } from '@/features/app/views/home/homeData'
 import {
   buildAdvisorThreadEntries,
   buildAdvisorThreadGroups,
@@ -381,78 +380,27 @@ export function useAdvisorViewController() {
 
   /* ------------------------------------------------------------ quick form */
 
-  const changeQuickField = (messageId: string, fieldIndex: number, valueEn: string) => {
-    updateExtras((prev) => {
-      const entry = prev[messageId]
-      const form = entry?.quickForm
-      if (!entry || !form) return prev
-      return {
-        ...prev,
-        [messageId]: {
-          ...entry,
-          quickForm: {
-            ...form,
-            fields: form.fields.map((f, i) => (i === fieldIndex ? { ...f, value: valueEn } : f)),
-          },
-        },
-      }
-    })
-  }
-
-  const submitQuickForm = (messageId: string) => {
-    const form = extras[messageId]?.quickForm
-    if (!form || form.submitted) return
-    updateExtras((prev) => {
-      const entry = prev[messageId]
-      const current = entry?.quickForm
-      if (!entry || !current) return prev
-      return { ...prev, [messageId]: { ...entry, quickForm: { ...current, submitted: true } } }
-    })
-    const values = form.fields.map(
-      (f) => f.options.find((o) => o.en === f.value) ?? bi(f.value, f.value),
-    )
-    pushUser('', values)
-    const turnId = pushAdvisor({
-      text: terminationAssessment.text,
-      reasoning: terminationAssessment.reasoning,
-      cards: terminationAssessment.cards.map(toToneCard),
-    })
-    updateExtras((prev) => ({
-      ...prev,
-      [turnId]: { docs: terminationAssessment.docs, followups: terminationAssessment.followups },
-    }))
-  }
+  const { changeQuickField, submitQuickForm } = createAdvisorQuickFormHandlers({
+    extras,
+    updateExtras,
+    pushUser,
+    pushAdvisor,
+    toToneCard,
+  })
 
   /* ------------------------------------------------- home priority rails */
 
-  /* Shared askAboutComp / askAboutWellbeing ports (rail/useEntityRails). */
   const openCompRail = usePayRail()
   const openWellbeingRail = useWellbeingRail()
 
-  /* Resolve the canonical HomeAction (home/homeData) inside the Advisor:
-     'chat'/'flow' use the in-view thread machinery instead of navigating. */
-  const runPriorityAction = (action: HomeAction) => {
-    switch (action.kind) {
-      case 'route':
-        navigate(action.to)
-        break
-      case 'chat':
-        selectChatRef.current(action.chatId)
-        break
-      case 'doc':
-        openDocStudio(action.templateKey)
-        break
-      case 'flow':
-        startFlowRef.current(action.flowKey, action.prompt)
-        break
-      case 'comp-rail':
-        openCompRail(action.employeeId)
-        break
-      case 'wellbeing-rail':
-        openWellbeingRail(action.employeeId)
-        break
-    }
-  }
+  const runPriorityAction = createAdvisorPriorityActionRunner({
+    navigate,
+    selectChat: (chatId) => selectChatRef.current(chatId),
+    startFlow: (flowKey, userText) => startFlowRef.current(flowKey, userText),
+    openDocStudio,
+    openCompRail,
+    openWellbeingRail,
+  })
 
   /* -------------------------------------------------------------- render */
 
