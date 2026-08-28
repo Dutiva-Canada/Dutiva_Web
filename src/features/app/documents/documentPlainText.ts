@@ -64,8 +64,16 @@ export function blocksToPlainTextExport(
 
   for (const block of blocks) {
     switch (block.type) {
+      case 'letterhead': {
+        const body = resolveMergeText(blockCopy(block, lang), values)
+        const date = block.dateText ? resolveMergeText(block.dateText[lang], values) : ''
+        const combined = [body, date].filter((part) => part.trim()).join('\n\n')
+        if (combined.trim()) paragraphs.push(combined)
+        break
+      }
       case 'title':
       case 'meta':
+      case 'address':
       case 'para':
       case 'ack': {
         const text = resolveMergeText(blockCopy(block, lang), values)
