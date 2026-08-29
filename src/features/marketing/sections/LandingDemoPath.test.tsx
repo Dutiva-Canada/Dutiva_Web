@@ -16,8 +16,8 @@ describe('LandingDemoPath', () => {
     const dialog = screen.getByRole('dialog', { name: /Dutiva Advisor|Conseiller Dutiva/i })
     expect(dialog).toBeInTheDocument()
     expect(screen.getByText(/Browse sample threads|Parcourez des fils types/i)).toBeInTheDocument()
-    expect(screen.getByText(/Northgate Logistics/)).toBeInTheDocument()
-    expect(screen.getByText(advisorScenarios.s1.user.en)).toBeInTheDocument()
+    expect(await screen.findByText(/Northgate Logistics/)).toBeInTheDocument()
+    expect(await screen.findByText(advisorScenarios.s1.user.en)).toBeInTheDocument()
 
     await user.click(screen.getByRole('tab', { name: advisorScenarios.s3.title.en }))
     expect(screen.getByText(advisorScenarios.s3.user.en)).toBeInTheDocument()
@@ -30,8 +30,10 @@ describe('LandingDemoPath', () => {
       'href',
       '/demo/cases',
     )
-    await user.click(screen.getByRole('button', { name: /Performance — Devon Clarke|Rendement — Devon Clarke/i }))
-    expect(screen.getByText(/Attendance-related PIP|PAR lié à l’assiduité/i)).toBeInTheDocument()
+    await user.click(
+      await screen.findByRole('button', { name: /Performance — Devon Clarke|Rendement — Devon Clarke/i }),
+    )
+    expect(await screen.findByText(/Attendance-related PIP|PAR lié à l’assiduité/i)).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /Close preview|Fermer l’aperçu/i }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
