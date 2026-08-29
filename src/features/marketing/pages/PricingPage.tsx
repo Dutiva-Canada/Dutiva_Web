@@ -142,6 +142,9 @@ function PriceCard({
 
       <div className="mt-4 text-lg font-semibold text-text">{t(plan.nameKey)}</div>
       <p className="mt-2 text-sm leading-6 text-text-2">{t(plan.descKey)}</p>
+      {plan.noteKey ? (
+        <p className="mt-2 text-xs leading-5 text-text-3">{t(plan.noteKey)}</p>
+      ) : null}
 
       <div className="mt-6 flex items-end gap-2">
         <div
@@ -484,45 +487,45 @@ export function PricingPage() {
       {notice ? (
         <Band>
           <div ref={noticeRef}>
-          {notice.tone === 'success' && notice.planId ? (
-            <div
-              role="status"
-              className="premium-card-soft flex flex-wrap items-center gap-4 border-gold-border p-5"
-            >
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-subtle text-gold-strong">
-                <CircleCheck size={18} />
-              </span>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-text">
-                    {t('pricing_checkout_return_success_heading')}
-                  </span>
-                  {getPlanById(notice.planId) && (
-                    <span className="badge">{t(getPlanById(notice.planId)!.nameKey)}</span>
-                  )}
-                </div>
-                <p className="mt-1.5 text-sm leading-6 text-text-2">{notice.text}</p>
-              </div>
-              <Link
-                to="/app/welcome"
-                className="gold-button inline-flex items-center gap-2 px-5 py-3 text-sm"
+            {notice.tone === 'success' && notice.planId ? (
+              <div
+                role="status"
+                className="premium-card-soft flex flex-wrap items-center gap-4 border-gold-border p-5"
               >
-                {t('pricing_checkout_return_go')}
-                <ArrowRight size={16} className="shrink-0" />
-              </Link>
-            </div>
-          ) : (
-            <div
-              role={notice.tone === 'error' ? 'alert' : 'status'}
-              className={
-                notice.tone === 'success'
-                  ? 'rounded-xl border border-gold-border bg-gold-subtle px-4 py-3 text-sm text-gold-strong'
-                  : 'rounded-xl border border-risk-border bg-risk-bg px-4 py-3 text-sm text-risk-fg'
-              }
-            >
-              {notice.text}
-            </div>
-          )}
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-subtle text-gold-strong">
+                  <CircleCheck size={18} />
+                </span>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-text">
+                      {t('pricing_checkout_return_success_heading')}
+                    </span>
+                    {getPlanById(notice.planId) && (
+                      <span className="badge">{t(getPlanById(notice.planId)!.nameKey)}</span>
+                    )}
+                  </div>
+                  <p className="mt-1.5 text-sm leading-6 text-text-2">{notice.text}</p>
+                </div>
+                <Link
+                  to="/app/welcome"
+                  className="gold-button inline-flex items-center gap-2 px-5 py-3 text-sm"
+                >
+                  {t('pricing_checkout_return_go')}
+                  <ArrowRight size={16} className="shrink-0" />
+                </Link>
+              </div>
+            ) : (
+              <div
+                role={notice.tone === 'error' ? 'alert' : 'status'}
+                className={
+                  notice.tone === 'success'
+                    ? 'rounded-xl border border-gold-border bg-gold-subtle px-4 py-3 text-sm text-gold-strong'
+                    : 'rounded-xl border border-risk-border bg-risk-bg px-4 py-3 text-sm text-risk-fg'
+                }
+              >
+                {notice.text}
+              </div>
+            )}
           </div>
         </Band>
       ) : null}

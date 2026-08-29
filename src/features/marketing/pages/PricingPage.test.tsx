@@ -48,6 +48,9 @@ describe('PricingPage', () => {
     for (const name of ['Free', 'Starter', 'Growth', 'Professional']) {
       expect(screen.getAllByText(name).length).toBeGreaterThan(0)
     }
+    expect(
+      screen.getByText('Free access lasts 3 months. It may be extended after that.'),
+    ).toBeInTheDocument()
     expect(screen.getByText('Most popular')).toBeInTheDocument()
     expect(screen.queryByText('Coming soon')).toBeNull()
   })
@@ -96,6 +99,9 @@ describe('PricingPage', () => {
         level: 1,
         name: 'Choisissez un forfait qui convient aujourd’hui. Évoluez quand vos RH grandissent.',
       }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('L’accès gratuit dure 3 mois. Il pourrait être prolongé par la suite.'),
     ).toBeInTheDocument()
   })
 

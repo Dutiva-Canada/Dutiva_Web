@@ -10,6 +10,7 @@ interface Plan {
   /** Monthly price in CAD; null renders the localized "Free" amount. */
   price: string | null
   desc: LandingMessageKey
+  note?: LandingMessageKey
   features: LandingMessageKey[]
   cta: LandingMessageKey
   /** Growth is the highlighted "most popular" plan. */
@@ -31,6 +32,7 @@ const PLANS: Plan[] = [
     name: 'landing_free_name',
     price: null,
     desc: 'landing_free_desc',
+    note: 'landing_free_note',
     features: ['landing_free_f1', 'landing_free_f2', 'landing_free_f3'],
     cta: 'landing_free_cta',
   },
@@ -66,7 +68,10 @@ export function Pricing() {
   const { lt, t } = useLanding()
   const { p } = usePublicPath()
   return (
-    <section id="pricing" className="mx-auto max-w-[1200px] scroll-mt-[80px] px-4 py-12 sm:px-6 sm:py-16">
+    <section
+      id="pricing"
+      className="mx-auto max-w-[1200px] scroll-mt-[80px] px-4 py-12 sm:px-6 sm:py-16"
+    >
       <SectionIntro
         badge={lt('landing_price_badge')}
         title={lt('landing_price_title')}
@@ -118,6 +123,9 @@ export function Pricing() {
                 )}
               </div>
               <p className="mb-5 text-sm text-text-2">{lt(plan.desc)}</p>
+              {plan.note ? (
+                <p className="-mt-3 mb-5 text-xs leading-5 text-text-3">{lt(plan.note)}</p>
+              ) : null}
               <ul className="m-0 mb-6 grid flex-1 list-none gap-2 p-0">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex gap-2 text-sm text-text-2">

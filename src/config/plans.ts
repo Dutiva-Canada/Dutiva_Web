@@ -2,12 +2,16 @@ import type { SharedMessageKey } from '@/i18n/messages'
 
 export type PlanId = 'free' | 'starter' | 'growth' | 'pro'
 
+/** Free waitlist seats receive product access for this many months once admitted. */
+export const FREE_PLAN_ACCESS_MONTHS = 3
+
 export interface PlanDefinition {
   id: PlanId
   /** Monthly price in CAD; 0 for the free plan. */
   monthlyPrice: number
   nameKey: SharedMessageKey
   descKey: SharedMessageKey
+  noteKey?: SharedMessageKey
   featureKeys: SharedMessageKey[]
   ctaKey: SharedMessageKey
   popular?: boolean
@@ -31,6 +35,7 @@ export const PLANS: PlanDefinition[] = [
     monthlyPrice: 0,
     nameKey: 'landing_free_name',
     descKey: 'landing_free_desc',
+    noteKey: 'landing_free_note',
     featureKeys: ['landing_free_f1', 'landing_free_f2', 'landing_free_f3'],
     ctaKey: 'landing_free_cta',
     stripePriceEnvVar: null,
