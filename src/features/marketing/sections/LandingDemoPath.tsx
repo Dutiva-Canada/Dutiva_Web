@@ -1,12 +1,15 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { ChevronRight, X } from 'lucide-react'
 import { DEMO_TOUR_STOPS, type DemoTourStop } from '@/features/app/demo/demoTourModel'
 import { useEscapeToClose } from '@/lib/escapeStack'
-import { TourStopPreviewBody } from '../demos/TourStopPreviewBody'
 import { useLanding } from '../useLanding'
 import { usePublicPath } from '@/seo/usePublicPath'
+
+const TourStopPreviewBody = lazy(() =>
+  import('../demos/TourStopPreviewBody').then((m) => ({ default: m.TourStopPreviewBody })),
+)
 
 /** Horizontal tour pills on the landing page — preview, then the public demo. */
 export function LandingDemoPath() {
@@ -139,7 +142,9 @@ function TourStopPreviewDialog({
             })}
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5">
-            <TourStopPreviewBody key={stop.id} stop={stop} />
+            <Suspense fallback={<div className="min-h-[240px] rounded-[14px] border border-border bg-bg-soft" />}>
+              <TourStopPreviewBody key={stop.id} stop={stop} />
+            </Suspense>
             <p className="mt-3 m-0 text-xs leading-normal text-text-faint">
               {lt('landing_ws_demo_try')} {lt('landing_ws_demo_preview_note')}
             </p>
