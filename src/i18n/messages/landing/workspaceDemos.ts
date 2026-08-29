@@ -49,6 +49,15 @@ export const landingWorkspaceDemos = defineMessages({
     en: 'Guided tour — pick a stop',
     fr: 'Visite guidée — choisissez une étape',
   },
+  /* Preview dialog for a tour stop before leaving the landing page. [FR self-authored] */
+  landing_ws_demo_see_more: {
+    en: 'See more in the demo',
+    fr: 'Voir plus dans la démo',
+  },
+  landing_ws_demo_close_preview: {
+    en: 'Close preview',
+    fr: 'Fermer l’aperçu',
+  },
   landing_ws_demo_modules_heading: {
     en: 'All modules in the demo',
     fr: 'Tous les modules dans la démo',
