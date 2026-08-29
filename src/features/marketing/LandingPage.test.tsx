@@ -12,9 +12,9 @@ describe('LandingPage', () => {
 
     const script = document.head.querySelector('script[type="application/ld+json"]')
     expect(script).not.toBeNull()
-    const graph = (JSON.parse(script!.textContent ?? '') as { '@graph': Record<string, unknown>[] })[
-      '@graph'
-    ]
+    const graph = (
+      JSON.parse(script!.textContent ?? '') as { '@graph': Record<string, unknown>[] }
+    )['@graph']
     const page = graph.find((node) => node['@type'] === 'FAQPage') as {
       mainEntity: { name: string; acceptedAnswer: { text: string } }[]
     }
@@ -35,9 +35,9 @@ describe('LandingPage', () => {
     expect(screen.queryByRole('navigation', { name: 'Breadcrumb' })).not.toBeInTheDocument()
 
     const script = document.head.querySelector('script[type="application/ld+json"]')
-    const graph = (JSON.parse(script!.textContent ?? '') as { '@graph': Record<string, unknown>[] })[
-      '@graph'
-    ]
+    const graph = (
+      JSON.parse(script!.textContent ?? '') as { '@graph': Record<string, unknown>[] }
+    )['@graph']
     expect(graph.some((node) => node['@type'] === 'BreadcrumbList')).toBe(true)
     const articles = graph.filter((node) => node['@type'] === 'Article')
     expect(articles).toHaveLength(GUIDE_ARTICLES.length)
@@ -60,8 +60,7 @@ describe('LandingPage', () => {
     renderApp(<LandingPage />, { route: '/', path: '/' })
     const nav = document.querySelector('header nav') as HTMLElement | null
     expect(nav).not.toBeNull()
-    const href = (name: string) =>
-      within(nav!).getByRole('link', { name }).getAttribute('href')
+    const href = (name: string) => within(nav!).getByRole('link', { name }).getAttribute('href')
 
     expect(href('How it works')).toBe('/#how')
     expect(href('Workflows')).toBe('/#workflows')
@@ -79,6 +78,13 @@ describe('LandingPage', () => {
       'href',
       '/pricing',
     )
+  })
+
+  it('shows the Free plan access duration on the homepage pricing card', () => {
+    renderApp(<LandingPage />, { route: '/', path: '/' })
+    expect(
+      screen.getByText('Free access lasts 3 months. It may be extended after that.'),
+    ).toBeInTheDocument()
   })
 
   it('scrolls the hash target into view when the landing page mounts with a hash', () => {

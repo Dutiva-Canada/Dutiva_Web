@@ -14,6 +14,7 @@ import {
 } from '@/config/advisorUsage'
 import {
   ANNUAL_MONTHS_BILLED,
+  FREE_PLAN_ACCESS_MONTHS,
   PAID_PLANS_DISABLED_DURING_BETA,
   PLAN_FEATURE_GATES_ENABLED,
   PLANS,
@@ -140,12 +141,14 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
   })
 
   it('states every paid plan price, and no price that is not a plan', () => {
+    const pricing = row('Pricing')
     const paid = PLANS.filter((plan) => plan.monthlyPrice > 0).map((plan) => plan.monthlyPrice)
 
     /* Bidirectional: the doc's set of bolded dollar figures must be exactly
        the set of paid monthly prices — catches both a plan the doc forgot and
        a price the code no longer charges. */
-    expect(boldNumbers(row('Pricing')).sort()).toEqual([...paid].sort())
+    expect(boldNumbers(pricing).sort()).toEqual([...paid].sort())
+    expect(pricing).toContain(`${FREE_PLAN_ACCESS_MONTHS}-month access`)
   })
 
   it('states the annual billing ratio', () => {
