@@ -15,7 +15,7 @@ import type { LandingMessageKey } from '../useLanding'
 import { WorkflowExampleCard } from './WorkflowExampleCard'
 import type { WorkflowExampleCardProps } from './WorkflowExampleCard'
 
-const WORKFLOW_EXAMPLES: WorkflowExampleCardProps[] = [
+export const LANDING_WORKFLOW_EXAMPLES: WorkflowExampleCardProps[] = [
   {
     nameKey: 'landing_wf_ex_name',
     riskKey: 'landing_wf_ex_risk',
@@ -44,7 +44,7 @@ interface Tile {
   sub: LandingMessageKey
 }
 
-const TILES: Tile[] = [
+export const LANDING_WORKFLOW_TILES: Tile[] = [
   { icon: UserPlus, label: 'landing_wf1_label', sub: 'landing_wf1_sub' },
   { icon: UserMinus, label: 'landing_wf2_label', sub: 'landing_wf2_sub' },
   { icon: Accessibility, label: 'landing_wf3_label', sub: 'landing_wf3_sub' },
@@ -65,7 +65,7 @@ export function Workflows() {
         sub={lt('landing_wf_sub')}
       />
       <div className="marketing-auto-grid marketing-auto-grid--150 gap-2.5">
-        {TILES.map((tile) => (
+        {LANDING_WORKFLOW_TILES.map((tile) => (
           <div key={tile.label} className="rounded-xl border border-border bg-bg-elevated p-4">
             <tile.icon size={18} className="text-gold-strong" />
             <div className="mt-2.5 text-[0.8125rem] font-semibold text-text">{lt(tile.label)}</div>
@@ -75,7 +75,7 @@ export function Workflows() {
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        {WORKFLOW_EXAMPLES.map((example) => (
+        {LANDING_WORKFLOW_EXAMPLES.map((example) => (
           <WorkflowExampleCard key={example.nameKey} {...example} />
         ))}
       </div>

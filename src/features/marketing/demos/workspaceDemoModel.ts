@@ -1,10 +1,18 @@
 import { LANDING_WORKSPACE_FIXTURES } from './workspaceDemoFixtures'
 import type { ScoreDelta } from '@/features/app/views/analytics/aggregation'
 
-export const LANDING_CASE_ID = LANDING_WORKSPACE_FIXTURES.case.id
+export const LANDING_CASE_ID = LANDING_WORKSPACE_FIXTURES.cases[0]!.id
 
 export function landingCasePreview() {
-  return LANDING_WORKSPACE_FIXTURES.case
+  return LANDING_WORKSPACE_FIXTURES.cases[0]!
+}
+
+export function landingCasesPreview() {
+  return LANDING_WORKSPACE_FIXTURES.cases
+}
+
+export function landingHomePreview() {
+  return LANDING_WORKSPACE_FIXTURES.home
 }
 
 export function landingCommPreview() {
