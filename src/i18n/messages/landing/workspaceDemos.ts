@@ -58,6 +58,46 @@ export const landingWorkspaceDemos = defineMessages({
     en: 'Close preview',
     fr: 'Fermer l’aperçu',
   },
+  landing_ws_demo_try: {
+    en: 'Click around this sample.',
+    fr: 'Cliquez dans cet exemple.',
+  },
+  landing_ws_demo_selected: {
+    en: 'Selected',
+    fr: 'Sélection',
+  },
+  landing_ws_demo_stops_label: {
+    en: 'Tour stops',
+    fr: 'Étapes de la visite',
+  },
+  landing_ws_demo_studio_templates: {
+    en: 'Sample templates',
+    fr: 'Modèles types',
+  },
+  landing_ws_demo_workflow_open: {
+    en: 'The full checklist and risk flags are in the demo.',
+    fr: 'La liste complète et les signaux de risque sont dans la démo.',
+  },
+  landing_ws_demo_case_overview: {
+    en: 'Overview',
+    fr: 'Aperçu',
+  },
+  landing_ws_demo_case_docs: {
+    en: 'Documents',
+    fr: 'Documents',
+  },
+  landing_ws_demo_case_tabs: {
+    en: 'Case sections',
+    fr: 'Sections du dossier',
+  },
+  landing_ws_demo_comms_tap: {
+    en: 'Pick a dimension to see why it passed or needs review.',
+    fr: 'Choisissez une dimension pour voir pourquoi elle passe ou demande une révision.',
+  },
+  landing_ws_demo_advisor_doc_hint: {
+    en: 'In the demo, this opens Document Studio with the suggested template.',
+    fr: 'Dans la démo, ceci ouvre le Studio de documents avec le modèle suggéré.',
+  },
   landing_ws_demo_modules_heading: {
     en: 'All modules in the demo',
     fr: 'Tous les modules dans la démo',
