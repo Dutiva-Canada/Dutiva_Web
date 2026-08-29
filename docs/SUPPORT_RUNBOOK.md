@@ -146,6 +146,15 @@ To turn it on:
      -H 'apikey: <publishable-key>' -H 'x-notify-secret: <secret>' -d '{}'
    ```
 
+**Signup alerts** (`beta_signup`, `beta_confirmation`, `account_signup`,
+`plan_signup`) share this outbox. Migration `0093_all_plan_signup_notifications`
+widens the kind CHECK and extends `handle_new_user()` so a free/auth signup
+enqueues `account_signup`. `create-beta-signup` already enqueues the beta pair;
+`stripe-webhook` enqueues `plan_signup` after a successful
+`checkout.session.completed` profile write. If an old worker marked a signup
+kind `failed` because it lacked those templates, re-queue only those rows
+(`status='pending'`, `attempts=0`) after deploying the current `support-notify`.
+
 **Monitoring:** rows stuck `pending` with a rising `attempts`/`last_error` mean a
 provider problem (bad key, unverified domain); a row hits `failed` after 5
 attempts. Query `support_notifications` (admin-read) to inspect. Re-queue a

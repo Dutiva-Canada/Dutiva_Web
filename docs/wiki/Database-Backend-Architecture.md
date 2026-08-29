@@ -209,7 +209,7 @@ Sources: [src/lib/supabaseClient.ts:1-17](), [supabase/migrations/0050_grant_rls
 
 ## Migrations & Integrity Guards
 
-The migration history comprises **74 numbered files** under `supabase/migrations/` (`0001_` through `0074_`) plus 7 archived legacy migrations. The CI pipeline includes two database-level integrity checks that run against the live project:
+The migration history comprises **94 numbered files** under `supabase/migrations/` (`0001_` through `0093_`) plus 6 archived legacy migrations. The CI pipeline includes two database-level integrity checks that run against the live project:
 
 - **`scripts/check-migrations.mjs`** — validates filename discipline and detects forward/reverse drift between the repo and the deployed project.
 - **`scripts/check-rls.mjs`** — runtime RLS regression probing with positive and negative controls.

@@ -248,6 +248,7 @@ Sources: [src/features/app/auth/AuthConfirm.tsx:1-178](), [docs/AUTH_EMAIL_TEMPL
 `AuthPanel` at [src/features/app/auth/AuthPanel.tsx:35-341]() is the dedicated sign-in / sign-up card rendered on `/app/welcome` by `EntryStage`. It has:
 
 - **Sign in / Sign up toggle** — both tabs use the same `signInWithOtp` call. The sign-up tab additionally captures a `full_name` carried as user metadata.
+- **Account signup alert** — after Supabase creates the `auth.users` row, `handle_new_user()` (migration 0093) inserts `profiles` and enqueues an operator `account_signup` notification (`plan: free`, `source: auth`). The address is the outbox `recipient`, not the payload.
 - **"Check your inbox" state** — after link dispatch, shows the 6-digit code entry form as the primary path.
 - **"Not authorized" state** — when a session exists but `authorized` is false, shows the `auth_not_authorized` message (referencing `BETA_COHORT_LIMIT`).
 

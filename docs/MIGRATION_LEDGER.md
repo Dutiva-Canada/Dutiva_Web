@@ -18,7 +18,7 @@ share the sequence prefix but have distinct slugs in
 **Do not renumber either file.** Supabase keys applied migrations on the slug; a
 rename would look like a new migration and could re-run destructive DDL.
 
-New migrations must use the next free sequence (`0092` at time of writing).
+New migrations must use the next free sequence (`0094` at time of writing).
 
 ## Related accepted exceptions
 

@@ -37,4 +37,4 @@ Set `WIKI_REPO` if your wiki clone is not at `../Dutiva_Web-wiki`.
 
 This folder’s **`README.md`** is repo-only (not copied to GitHub wiki). All other `*.md` files mirror the wiki one-to-one.
 
-**Last synced from wiki commit:** `54debdd` (2026-08-28 — through PR #277).
+**Last synced from wiki commit:** `05d6143` (2026-08-29 — live signup notifications, 18 kinds, migration 0093).

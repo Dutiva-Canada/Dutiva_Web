@@ -253,31 +253,38 @@ flowchart TD
     D -->|"ok"| F{"event.type?"}
     F -->|"checkout.session.completed"| G["getCheckoutProfilePatch()"]
     G --> H["updateProfileByIdOrEmail()"]
+    H --> M1{"Write OK?"}
+    M1 -->|"No"| N["fail(): DELETE dedup row, return 500"]
+    M1 -->|"Yes"| P["enqueuePlanSignupNotification()"]
+    P --> O["200 { received: true }"]
     F -->|"customer.subscription.created/updated"| I["getSubscriptionProfileUpdate(priceLookup)"]
     I --> J["UPDATE profiles WHERE stripe_customer_id"]
     F -->|"invoice.payment_failed"| K["UPDATE profiles SET status='past_due'"]
     F -->|"customer.subscription.deleted"| L["UPDATE profiles SET plan='free', status='canceled'"]
-    H --> M{"Write OK?"}
-    J --> M
+    J --> M{"Write OK?"}
     K --> M
     L --> M
-    M -->|"No"| N["fail(): DELETE dedup row, return 500"]
-    M -->|"Yes"| O["200 { received: true }"]
+    M -->|"No"| N
+    M -->|"Yes"| O
 ```
 
-Sources: [supabase/functions/stripe-webhook/index.ts:1-215](), [supabase/functions/stripe-webhook/verify-signature.ts:1-86]()
+Sources: [supabase/functions/stripe-webhook/index.ts:1-267](), [supabase/functions/stripe-webhook/verify-signature.ts:1-86]()
 
 ### Handled Stripe Events
 
 | Event | Handler | Profile Update |
 |---|---|---|
-| `checkout.session.completed` | `getCheckoutProfilePatch()` | `plan`, `subscription_status='active'`, `billing_period`, `stripe_customer_id`, `stripe_subscription_id` |
+| `checkout.session.completed` | `getCheckoutProfilePatch()` then `enqueuePlanSignupNotification()` | `plan`, `subscription_status='active'`, `billing_period`, `stripe_customer_id`, `stripe_subscription_id`; operator `plan_signup` outbox row |
 | `customer.subscription.created` | `getSubscriptionProfileUpdate()` | `plan` (from price lookup), `subscription_status`, `billing_period`, `stripe_subscription_id` |
 | `customer.subscription.updated` | `getSubscriptionProfileUpdate()` | Same as above — handles plan changes and status transitions |
 | `invoice.payment_failed` | Inline | `subscription_status='past_due'` |
 | `customer.subscription.deleted` | Inline | `plan='free'`, `subscription_status='canceled'` |
 
-Sources: [supabase/functions/stripe-webhook/index.ts:153-213]()
+Sources: [supabase/functions/stripe-webhook/index.ts:153-231]()
+
+When the profile write succeeds, `enqueuePlanSignupNotification()` inserts a `plan_signup` row on `support_notifications` (operator audience). The payload is `{ plan, billing_period, source: 'stripe_checkout' }` and never includes the customer email — that stays on `profiles`. A notify insert failure is logged and does not fail the Stripe delivery, so entitlement is not rolled back for a mail outbox miss. Advisor-pack checkouts return before this path.
+
+Sources: [supabase/functions/stripe-webhook/index.ts:116-134](), [supabase/functions/stripe-webhook/index.ts:211-213](), [supabase/functions/stripe-webhook/billing-event.ts:26-30]()
 
 ## Billing Event Helpers (`billing-event.ts`)
 

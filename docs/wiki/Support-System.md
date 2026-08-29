@@ -208,7 +208,7 @@ The support system uses an **outbox pattern** for email notifications. When a ti
 
 Delivery tracking is handled by the `resend-webhook` edge function, which verifies Svix signatures and records delivery/bounce status against outbox rows. The webhook fails closed — without `RESEND_WEBHOOK_SECRET` configured, it returns 503 and never accepts unsigned events.
 
-The notification system supports 18 email kinds including `ticket_received`, `agent_reply`, `call_proposed`, `call_confirmed`, `privacy_ack`, `security_ack`, `operator_alert`, `beta_signup`, `beta_confirmation`, `account_signup`, and `plan_signup`.
+The notification system supports 18 email kinds including `ticket_received`, `agent_reply`, `call_proposed`, `call_confirmed`, `privacy_ack`, `security_ack`, `operator_alert`, `beta_signup`, `beta_confirmation`, `account_signup`, and `plan_signup`. Signup kinds are produced by `create-beta-signup`, `handle_new_user()` (migration 0093), and `stripe-webhook`; `support-notify` drains the outbox.
 
 For details, see [Attachment Scanner, Help Centre & Notifications](#6.2).
 

@@ -42,13 +42,14 @@ The following files were used as context for generating this wiki page:
 - [supabase/migrations/0060_revoke_anon_execute_workspace_member_check.sql](supabase/migrations/0060_revoke_anon_execute_workspace_member_check.sql)
 - [supabase/migrations/0061_support_analytics_status_fix.sql](supabase/migrations/0061_support_analytics_status_fix.sql)
 - [supabase/migrations/0074_revoke_flag_guidance_public_execute.sql](supabase/migrations/0074_revoke_flag_guidance_public_execute.sql)
+- [supabase/migrations/0093_all_plan_signup_notifications.sql](supabase/migrations/0093_all_plan_signup_notifications.sql)
 - [supabase/schema.sql](supabase/schema.sql)
 
 </details>
 
 
 
-The Dutiva platform stores all workspace state in a single Supabase-managed PostgreSQL database. The full schema snapshot lives in `supabase/schema.sql`, while incremental changes are tracked by 74 numbered migrations under `supabase/migrations/` and 6 archived legacy migrations under `supabase/legacy-migrations/`. This page documents the schema design conventions, table taxonomy, key functions, RLS security model, migration lifecycle, and drift-detection tooling.
+The Dutiva platform stores all workspace state in a single Supabase-managed PostgreSQL database. The full schema snapshot lives in `supabase/schema.sql`, while incremental changes are tracked by 94 numbered migration files under `supabase/migrations/` (sequence through `0093`) and 6 archived legacy migrations under `supabase/legacy-migrations/`. This page documents the schema design conventions, table taxonomy, key functions, RLS security model, migration lifecycle, and drift-detection tooling.
 
 ## Schema Overview
 
@@ -275,8 +276,9 @@ Status and type columns use CHECK constraints rather than Postgres ENUM types. T
 | `profiles` | `plan` | `free`, `starter`, `growth`, `pro` |
 | `law_updates` | `event_type` | `change`, `redirect`, `broken`, `first_seen` |
 | `ai_telemetry_events` | `status` | `started`, `completed`, `failed`, `cancelled` |
+| `support_notifications` | `kind` | Ticket/call/ack kinds plus `beta_signup`, `beta_confirmation`, `account_signup`, `plan_signup` (0093) |
 
-Sources: [supabase/schema.sql:125-128](), [supabase/schema.sql:545-547](), [supabase/schema.sql:584-587](), [supabase/schema.sql:665-669](), [supabase/schema.sql:740-742](), [supabase/migrations/0014_support_system.sql:44-48](), [supabase/migrations/0027_ai_usage_guardrails.sql:40-64]()
+Sources: [supabase/schema.sql:125-128](), [supabase/schema.sql:545-547](), [supabase/schema.sql:584-587](), [supabase/schema.sql:665-669](), [supabase/schema.sql:740-742](), [supabase/migrations/0014_support_system.sql:44-48](), [supabase/migrations/0027_ai_usage_guardrails.sql:40-64](), [supabase/migrations/0093_all_plan_signup_notifications.sql:8-18]()
 
 ## RLS Security Model
 
@@ -478,9 +480,9 @@ The schema uses triggers for three purposes:
 
 **Profile billing protection** — `pin_profile_billing_columns` prevents authenticated users from directly modifying billing columns (`plan`, `subscription_status`, `stripe_customer_id`, `stripe_subscription_id`, `billing_period`) on their own profile row; only `service_role` writes can update these.
 
-**Auth user creation** — `on_auth_user_created` fires `AFTER INSERT` on `auth.users`, calling `handle_new_user()` to auto-create a `profiles` row.
+**Auth user creation** — `on_auth_user_created` fires `AFTER INSERT` on `auth.users`, calling `handle_new_user()` to auto-create a `profiles` row and enqueue an operator `account_signup` row on `support_notifications` (migration 0093). A failure to enqueue is swallowed with a warning so profile creation still succeeds.
 
-Sources: [supabase/legacy-migrations/202604070001_initial_schema.sql:70-86](), [supabase/migrations/0014_support_system.sql:147-165](), [supabase/migrations/0071_corpus_source_change_flags.sql:44-89](), [supabase/migrations/0059_advisor_guidance_chunks_touch_updated_at.sql:17-29]()
+Sources: [supabase/legacy-migrations/202604070001_initial_schema.sql:70-86](), [supabase/migrations/0014_support_system.sql:147-165](), [supabase/migrations/0071_corpus_source_change_flags.sql:44-89](), [supabase/migrations/0059_advisor_guidance_chunks_touch_updated_at.sql:17-29](), [supabase/migrations/0093_all_plan_signup_notifications.sql:20-61]()
 
 ## Migration System
 
@@ -558,6 +560,12 @@ Sources: [supabase/legacy-migrations/README.md:1-52](), [supabase/legacy-migrati
 Several migrations were applied directly to the live project without committing files, then recovered from `supabase_migrations.schema_migrations`. These are marked `ALREADY APPLIED` in their headers and were surfaced by the reverse drift check.
 
 Sources: [supabase/migrations/0055_beta_signups.sql:1-11](), [supabase/migrations/0057_beta_signup_confirmation.sql:1-9](), [supabase/migrations/0059_advisor_guidance_chunks_touch_updated_at.sql:1-13]()
+
+### Signup notification vocabulary (0093)
+
+Migration `0093_all_plan_signup_notifications` widens `support_notifications_kind_check` with `account_signup` and `plan_signup` (keeping the existing ticket, call, ack, and beta kinds) and replaces `handle_new_user()` so auth signups enqueue an operator alert. Applied on the live project as slug `all_plan_signup_notifications` (version `20260829014442`).
+
+Sources: [supabase/migrations/0093_all_plan_signup_notifications.sql:1-61]()
 
 ## Drift Detection & CI Guards
 

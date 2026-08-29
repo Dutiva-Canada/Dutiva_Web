@@ -319,12 +319,12 @@ Notifications are decoupled from ticket creation via an **outbox table** (`suppo
 
 | Column | Type | Purpose |
 | --- | --- | --- |
-| `kind` | text (CHECK) | Notification type (14 kinds) |
+| `kind` | text (CHECK) | Notification type (18 kinds) |
 | `audience` | text | `customer` or `operator` |
 | `recipient` | text | Email address |
 | `language` | text | `en` or `fr` |
 | `status` | text | `pending` → `sent` / `failed` / `skipped` |
-| `payload` | jsonb | Non-sensitive only: `{ reference, category, priority? }` |
+| `payload` | jsonb | Non-sensitive only: ticket `{ reference, category, priority? }`; signup alerts add `source` / `plan` / `billing_period` / `province` and omit the address |
 | `attempts` | integer | Retry counter |
 | `provider_message_id` | text | Resend ID for delivery tracking |
 
@@ -359,9 +359,11 @@ Key design decisions:
 - **Template rendering**: `renderNotificationEmail()` mirrors the client-side `renderSupportEmail()` from `src/features/support/email/templates.ts` — [supabase/functions/support-notify/index.ts:109-227]()
 - **Delivery tracking**: `provider_message_id` is stored so the `resend-webhook` function can correlate delivery/bounce events — [supabase/functions/support-notify/index.ts:325]()
 
-The 14 notification kinds span the full ticket lifecycle:
+The 18 notification kinds span the ticket lifecycle plus signup alerts:
 
-`ticket_received`, `agent_reply`, `info_requested`, `resolved`, `closed`, `call_proposed`, `call_confirmed`, `call_reminder`, `call_followup_needed`, `privacy_ack`, `accessibility_ack`, `security_ack`, `complaint_ack`, `operator_alert`
+`ticket_received`, `agent_reply`, `info_requested`, `resolved`, `closed`, `call_proposed`, `call_confirmed`, `call_reminder`, `call_followup_needed`, `privacy_ack`, `accessibility_ack`, `security_ack`, `complaint_ack`, `operator_alert`, `beta_signup`, `beta_confirmation`, `account_signup`, `plan_signup`
+
+Signup producers: `create-beta-signup` (`beta_signup` + `beta_confirmation`), `handle_new_user()` after `auth.users` insert (`account_signup`, migration 0093), and `stripe-webhook` after paid `checkout.session.completed` (`plan_signup`).
 
 Sources: [supabase/functions/support-notify/index.ts:1-345](), [supabase/migrations/0015_support_notifications.sql:1-45](), [src/features/support/email/templates.ts:17-31](), [src/features/support/email/notifications.ts:21-58]()
 

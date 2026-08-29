@@ -155,19 +155,23 @@ hard-coded — deletion/anonymization workflows are a Phase 2 edge-function job.
 
 ## Email & notifications
 
-Notifications use an **outbox**: the edge functions enqueue a row into
-`support_notifications` on each event (customer acknowledgement + operator alert
-on ticket creation; a customer notification on an agent reply). A **future send
-worker** drains `pending` rows, renders the template, sends via the configured
-provider, and marks them `sent`/`failed`. Decoupling this way means a missing
-email provider never blocks ticket creation, and the outbox stores **nothing
-sensitive** — only the public reference and category (never the body or PII).
+Notifications use an **outbox**: producers enqueue a row into
+`support_notifications` on each event (ticket acknowledgements and operator
+alerts; beta waitlist alerts; auth account signup; paid checkout). The
+`support-notify` worker drains `pending` rows, renders the template, sends via
+the configured provider, and marks them `sent`/`failed`. Decoupling this way
+means a missing email provider never blocks the originating write, and ticket
+outbox payloads store **nothing sensitive** — only the public reference and
+category (never the body or PII). Signup alerts similarly omit the address from
+the payload: it is the `recipient` column.
 
 - Templates: [`src/features/support/email/templates.ts`](../src/features/support/email/templates.ts)
-  — 11 bilingual customer templates + an operator alert, pure and unit-tested.
-  **Rules enforced:** subjects carry only the reference (never body/PII); bodies
-  link back to the authenticated ticket (a secure link) and reuse the approved
-  no-secrets / resolution-varies copy.
+  — 18 bilingual kinds (ticket lifecycle, call scheduling, category acks,
+  operator alert, plus `beta_signup`, `beta_confirmation`, `account_signup`,
+  and `plan_signup`), pure and unit-tested. **Rules enforced:** ticket subjects
+  carry only the reference (never body/PII); signup subjects name the event
+  only; ticket bodies link back to the authenticated ticket and reuse the
+  approved no-secrets / resolution-varies copy.
 - Rules: [`notifications.ts`](../src/features/support/email/notifications.ts) —
   `acknowledgementKind` (category → ack), `operatorChannel` (immediate for
   security or high/critical, else digest), and the reminder-rule catalogue for

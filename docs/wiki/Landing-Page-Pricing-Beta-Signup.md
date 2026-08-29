@@ -408,7 +408,7 @@ The function processes requests through a strict ordered pipeline:
 
 9. **Intake recording** — Writes IP/email hashes to `beta_signup_intake` after acceptance. [supabase/functions/create-beta-signup/index.ts:292]()
 
-10. **Notifications** — For new signups only, enqueues two rows in `support_notifications`: an operator alert (`kind: 'beta_signup'`) and a visitor confirmation email (`kind: 'beta_confirmation'`). [supabase/functions/create-beta-signup/index.ts:303-326]()
+10. **Notifications** — For new signups only, enqueues two rows in `support_notifications`: an operator alert (`kind: 'beta_signup'`) and a visitor confirmation email (`kind: 'beta_confirmation'`). `support-notify` renders both kinds (templates from PRs #281/#282). [supabase/functions/create-beta-signup/index.ts:303-326]()
 
 Sources: [supabase/functions/create-beta-signup/index.ts:1-329]()
 

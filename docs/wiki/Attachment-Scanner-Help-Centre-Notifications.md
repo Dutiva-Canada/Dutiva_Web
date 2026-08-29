@@ -259,7 +259,7 @@ For each row it:
 
 ### Notification Kinds
 
-The `renderNotificationEmail()` function handles 14 notification kinds:
+The `renderNotificationEmail()` function handles 18 notification kinds:
 
 | Kind | Audience | Purpose |
 |---|---|---|
@@ -277,6 +277,10 @@ The `renderNotificationEmail()` function handles 14 notification kinds:
 | `security_ack` | customer | Security report acknowledged |
 | `complaint_ack` | customer | Complaint acknowledged |
 | `operator_alert` | operator | New ticket alert for operators |
+| `beta_signup` | operator | New beta waitlist signup |
+| `beta_confirmation` | customer | Visitor confirmation of a beta signup |
+| `account_signup` | operator | New auth/free account (`handle_new_user`) |
+| `plan_signup` | operator | Paid checkout completed (`stripe-webhook`) |
 
 [supabase/functions/support-notify/index.ts:88-91](), [supabase/functions/support-notify/index.ts:109-228]()
 
@@ -606,7 +610,7 @@ flowchart TB
     end
     subgraph NotifyWorker["support-notify"]
         SNW["Edge function\n(outbox drain)"]
-        RNE["renderNotificationEmail()\n(14 kinds, bilingual)"]
+        RNE["renderNotificationEmail()\n(18 kinds, bilingual)"]
         RS["resendSend.ts\n(Resend API wrapper)"]
     end
     subgraph WebhookHandler["resend-webhook"]
