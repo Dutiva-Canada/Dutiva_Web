@@ -50,7 +50,7 @@ const PAGE = path.join(dist, 'index.html')
 
 /** Ceilings. Raise deliberately, with a note saying what earned the room. */
 const MAX_PRELOADS = 9 // 5 as of 2026-08-02; 7 as of 2026-08-05 (messages-workspace split added shell.ts + workspaceMode.ts as their own small preloads); 9 as of 2026-08-10 — Vercel's production build produces one more preload than local builds (likely a rolldown chunking difference), and the ceiling is raised to keep the deploy green.
-const MAX_EAGER_KB = 585 // 539.9 as of 2026-08-05 … was 850.5 before that); 580 as of 2026-08-10 for Vercel preload variance; 585 as of 2026-08-27 — Vercel prod build landed ~581kB after brand pipeline + nav prefetch (PR #247), ~6kB above local
+const MAX_EAGER_KB = 590 // 539.9 as of 2026-08-05 … was 850.5 before that); 580 as of 2026-08-10 for Vercel preload variance; 585 as of 2026-08-27 — Vercel prod build landed ~581kB after brand pipeline + nav prefetch (PR #247), ~6kB above local; 590 as of 2026-08-29 — illustrated tour-stop previews (PR #284) measure 585.9kB on Vercel. Lazy + modulepreload filter did not drop that chunk from the eager set under rolldown.
 
 /**
  * Long-form prose that must stay out of the eager graph. Each of these is
