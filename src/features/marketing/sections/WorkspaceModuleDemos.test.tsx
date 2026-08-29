@@ -15,10 +15,7 @@ describe('WorkspaceModuleDemos', () => {
       .getAllByRole('link', { name: /Open in demo|Ouvrir dans la démo/i })
       .find((el) => el.getAttribute('href') === '/demo/analytics')
     expect(analyticsLink).toBeTruthy()
-    expect(screen.getByRole('link', { name: /Dutiva Advisor|Conseiller Dutiva/i })).toHaveAttribute(
-      'href',
-      '/demo/advisor',
-    )
+    expect(screen.getByRole('button', { name: /Dutiva Advisor|Conseiller Dutiva/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /All modules in the demo|Tous les modules/i })).toBeInTheDocument()
   })
 })
