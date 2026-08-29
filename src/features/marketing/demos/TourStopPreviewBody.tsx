@@ -25,11 +25,10 @@ import {
 } from './templatePreviewModel'
 import {
   landingAttentionPreview,
-  landingCasesPreview,
   landingCommPreview,
-  landingHomePreview,
   landingScorePreview,
 } from './workspaceDemoModel'
+import { TOUR_STOP_FIXTURES } from './tourStopDemoFixtures'
 import { WorkflowExampleCard } from '../sections/WorkflowExampleCard'
 import {
   LANDING_WORKFLOW_EXAMPLES,
@@ -88,8 +87,8 @@ function TourProductFrame({
   readonly icon: LucideIcon
   readonly children: React.ReactNode
 }) {
-  const home = landingHomePreview()
   const { x } = useI18n()
+  const org = TOUR_STOP_FIXTURES.home.org
   return (
     <div className="overflow-hidden rounded-[14px] border border-border bg-bg-soft shadow-[0_16px_40px_-24px_rgba(0,0,0,0.55)]">
       <div className="flex items-center gap-2 border-b border-border bg-navy px-3 py-2">
@@ -97,7 +96,7 @@ function TourProductFrame({
           <Icon size={13} aria-hidden="true" />
         </span>
         <span className="min-w-0 truncate text-[11px] font-semibold tracking-[0.04em] text-gold">
-          {x(home.org)} · {title}
+          {x(org)} · {title}
         </span>
       </div>
       <div className="flex min-h-[240px]">
@@ -142,7 +141,7 @@ function StopPreview({ stopId }: { readonly stopId: string }) {
 
 function HomeTourPreview() {
   const { lt, x } = useLanding()
-  const home = landingHomePreview()
+  const home = TOUR_STOP_FIXTURES.home
   const [activeId, setActiveId] = useState<string>(home.metrics[0]!.id)
   const active = home.metrics.find((row) => row.id === activeId) ?? home.metrics[0]!
 
@@ -293,7 +292,7 @@ function WorkflowsTourPreview() {
 
 function CasesTourPreview() {
   const { lt, x } = useLanding()
-  const cases = landingCasesPreview()
+  const cases = TOUR_STOP_FIXTURES.cases
   const [caseId, setCaseId] = useState<string>(cases[0]!.id)
   const [tab, setTab] = useState<(typeof CASE_TABS)[number]>('overview')
   const file = cases.find((item) => item.id === caseId) ?? cases[0]!
@@ -371,6 +370,8 @@ function AnalyticsTourPreview() {
   const attention = landingAttentionPreview()
   const [activeId, setActiveId] = useState<string>(attention[0]!.id)
   const active = attention.find((row) => row.id === activeId) ?? attention[0]!
+  const activeDetail =
+    TOUR_STOP_FIXTURES.attentionDetail[active.id as keyof typeof TOUR_STOP_FIXTURES.attentionDetail]
 
   return (
     <div className="p-3 sm:p-4">
@@ -409,7 +410,7 @@ function AnalyticsTourPreview() {
           )
         })}
       </ul>
-      <p className="mt-3 m-0 text-xs leading-normal text-text-2">{x(active.detail)}</p>
+      <p className="mt-3 m-0 text-xs leading-normal text-text-2">{x(activeDetail)}</p>
     </div>
   )
 }
@@ -459,7 +460,7 @@ function CommsTourPreview() {
             })}
           </ul>
           {dim ? (
-            <p className="mt-3 m-0 text-xs leading-normal text-text-2">{x(comm.reviewNotes[dim])}</p>
+            <p className="mt-3 m-0 text-xs leading-normal text-text-2">{x(TOUR_STOP_FIXTURES.reviewNotes[dim])}</p>
           ) : (
             <p className="mt-3 m-0 text-xs leading-normal text-text-3">{lt('landing_ws_demo_comms_tap')}</p>
           )}

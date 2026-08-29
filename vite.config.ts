@@ -197,6 +197,15 @@ export default defineConfig(({ command }) => {
          symbolicate error-report stack traces; scripts/relocate-sourcemaps.mjs
          then moves them out of dist/ so they are never publicly served. */
       sourcemap: 'hidden',
+      /* Tour-stop previews are `lazy()` from the landing path. Without this
+         filter Vite still modulepreloads that chunk on every public page, so
+         the "lazy" split never leaves the eager graph. */
+      modulePreload: {
+        resolveDependencies: (_filename, deps) =>
+          deps.filter(
+            (dep) => !dep.includes('tour-stop-preview') && !dep.includes('TourStopPreviewBody'),
+          ),
+      },
       rolldownOptions: {
         output: {
           /* Splits third-party deps (react, react-router-dom, lucide-react, …)
@@ -207,6 +216,11 @@ export default defineConfig(({ command }) => {
              or preload it. */
           codeSplitting: {
             groups: [
+              {
+                name: 'tour-stop-preview',
+                test: /[\\/]src[\\/]features[\\/]marketing[\\/]demos[\\/](TourStopPreviewBody\.tsx|tourStopDemoFixtures\.ts)$/,
+                includeDependenciesRecursively: false,
+              },
               /* The i18n catalogue splits along the same boundary
                  src/i18n/messages/{marketing,workspace,shared}.ts enforce at
                  the type level (TODO.md EF6a): ForcedLangProvider (every
