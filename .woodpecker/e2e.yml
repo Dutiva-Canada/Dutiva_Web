@@ -16,6 +16,7 @@
 variables:
   - &ga_env
     VITE_GA_MEASUREMENT_ID: G-V85ZQ75EWL
+    VITE_GTM_CONTAINER_ID: GTM-P3C7386R
 
 when:
   - event: push

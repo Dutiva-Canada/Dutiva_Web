@@ -66,7 +66,7 @@ export default {
         },
         {
           "type": "p",
-          "text": "Optional third-party website analytics: Google Analytics 4 (Google LLC — United States). Where used, GA4 loads only when a measurement ID is configured and the visitor has granted consent through the consent banner, with IP anonymization enabled. Where no measurement ID is configured, no website-analytics data is sent to Google."
+          "text": "Optional third-party website analytics: Google Tag Manager and Google Analytics 4 (Google LLC — United States). Where used, they load only after the visitor has granted consent through the consent banner. Tag Manager is the loader; GA4 may fire from that container, or from a measurement ID with IP anonymization enabled when Tag Manager is not configured."
         }
       ]
     },

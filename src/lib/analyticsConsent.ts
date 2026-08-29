@@ -3,8 +3,9 @@
  * every analytics path that must not run without permission.
  *
  * Two consumers gate on it:
- *   - Google Analytics 4 (src/features/marketing/analytics/ga4.ts): an optional
- *     third-party tag, loaded only with a configured measurement ID AND consent.
+ *   - Google Tag Manager / GA4 (src/features/marketing/analytics/gtm.ts,
+ *     ga4.ts): optional third-party tags, loaded only when configured AND
+ *     the visitor has consented.
  *   - First-party support analytics (src/features/support/analytics/
  *     supportAnalytics.ts): Help-Centre and support-funnel events that carry a
  *     daily-rotated visitor identifier. Because that identifier profiles a

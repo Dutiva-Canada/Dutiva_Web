@@ -66,7 +66,7 @@ export default {
         },
         {
           "type": "p",
-          "text": "Analytique web tierce facultative : Google Analytics 4 (Google LLC — États-Unis). Le cas échéant, GA4 ne se charge que lorsqu'un identifiant de mesure est configuré et que la personne a donné son consentement au moyen de la bannière de consentement, avec l'anonymisation de l'adresse IP activée. Lorsqu'aucun identifiant de mesure n'est configuré, aucune donnée d'analytique web n'est envoyée à Google."
+          "text": "Analytique web tierce facultative : Google Tag Manager et Google Analytics 4 (Google LLC — États-Unis). Le cas échéant, ils ne se chargent qu'après que la personne a donné son consentement au moyen de la bannière de consentement. Tag Manager est le chargeur ; GA4 peut se déclencher depuis ce conteneur, ou depuis un identifiant de mesure avec l'anonymisation de l'adresse IP activée lorsque Tag Manager n'est pas configuré."
         }
       ]
     },

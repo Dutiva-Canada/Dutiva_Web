@@ -113,7 +113,8 @@ Client (browser)
   │                                          ↓ daily rollup (01:00 UTC, pg_cron)
   │                                  support_analytics_daily (aggregate, forever)
   │
-  └─ loadGa4() ──→ gated on VITE_GA_MEASUREMENT_ID + hasAnalyticsConsent()
+  └─ loadConsentedTags() ──→ GTM (`VITE_GTM_CONTAINER_ID`) or GA4 (`VITE_GA_MEASUREMENT_ID`)
+                     + hasAnalyticsConsent()
                      (loads only after the visitor accepts)
 ```
 
@@ -167,9 +168,13 @@ Client (browser)
   surface (`PublicShell` in `src/app/routes.tsx`), lazily so the GA4/consent
   machinery stays out of the eager marketing chunk. Reopened from the footer's
   "Cookie preferences" control via `cookiePreferences.ts`.
+- **`src/features/marketing/analytics/gtm.ts`**: Tag Manager loader. Gated on
+  `VITE_GTM_CONTAINER_ID` and `hasAnalyticsConsent()`. Injects `gtm.js` and
+  the `ns.html` iframe after consent. When configured, it is preferred over
+  the direct GA4 gtag loader.
 - **`src/features/marketing/analytics/ga4.ts`**: GA4 loader. Gated on both
-  `VITE_GA_MEASUREMENT_ID` and `hasAnalyticsConsent()`. Inert until both
-  pass; the banner calls it on Accept and on mount for a returning consenter.
+  `VITE_GA_MEASUREMENT_ID` and `hasAnalyticsConsent()`. Used when Tag Manager
+  is not configured.
 
 ### Wiring points
 
@@ -283,11 +288,13 @@ future redeploy:
    select * from public.support_analytics_events order by occurred_at desc limit 5;
    ```
 
-6. **GA4.** The consent banner now ships. Set `VITE_GA_MEASUREMENT_ID` at
-   build time (default `G-V85ZQ75EWL` in CI, local `.env`, or the deployment
-   platform). GA4 still loads only for visitors who accept analytics — the
-   consent gate is structural, not optional — and with no measurement ID it
-   stays inert.
+6. **Tag Manager / GA4.** The consent banner now ships. Set
+   `VITE_GTM_CONTAINER_ID` at build time (CI uses `GTM-P3C7386R`) so GTM
+   loads after Accept. Put GA4 inside that container rather than also
+   setting `VITE_GA_MEASUREMENT_ID`, or the two loaders will compete —
+   GTM wins when both are set. Direct gtag still works if only a
+   measurement ID is present. Either path loads only for visitors who
+   accept analytics; with neither ID the Google loaders stay inert.
 
 ## 6. What this does NOT do
 

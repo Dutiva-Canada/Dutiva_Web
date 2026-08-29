@@ -34,6 +34,7 @@ steps:
     environment:
       <<: *supabase_vite_env
       VITE_GA_MEASUREMENT_ID: G-V85ZQ75EWL
+      VITE_GTM_CONTAINER_ID: GTM-P3C7386R
     commands:
       - npm run build
 

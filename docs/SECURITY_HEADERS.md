@@ -29,7 +29,7 @@ The allowed origins:
 - **self** — the app's own bundle and API calls.
 - **Supabase** `khtwpxnvziiyplaflwru.supabase.co` (+ `wss:` for realtime) — REST, auth, edge functions.
 - **Self-hosted fonts** — Inter Variable + Montserrat Variable from same-origin `/assets/*.woff2` (`font-src 'self'` only).
-- **GA4** — `googletagmanager.com`, `google-analytics.com`, `region1.google-analytics.com` (consent-gated).
+- **GA4 / Tag Manager** — `googletagmanager.com`, `google-analytics.com`, `region1.google-analytics.com` (consent-gated). GTM also needs `frame-src` and `connect-src` for `www.googletagmanager.com`.
 - **CAPTCHA** — Turnstile (`challenges.cloudflare.com` and `*.challenges.cloudflare.com`) and hCaptcha (`js.hcaptcha.com`, `newassets.hcaptcha.com`, `api.hcaptcha.com`).
 - **TrustedSite** — `cdn.ywxi.net` (script, style, images), `www.trustedsite.com` (frame + connect), `s3-us-west-2.amazonaws.com` (connect). Public marketing HTML only; stripped from `app.html`. `style-src` does **not** add `'unsafe-inline'` for this vendor.
 

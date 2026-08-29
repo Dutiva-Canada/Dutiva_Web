@@ -161,7 +161,8 @@ cp .env.example .env
 |----------|--------|----------|------------------------------|
 | `VITE_SUPABASE_URL` | `VITE_` | No | `supabaseClient` returns `null`; app serves bundled fixtures |
 | `VITE_SUPABASE_ANON_KEY` | `VITE_` | No | Same as above |
-| `VITE_GA_MEASUREMENT_ID` | `VITE_` | No | GA4 loader is inert, no script loaded |
+| `VITE_GTM_CONTAINER_ID` | `VITE_` | No | Tag Manager loader is inert, no Google script loaded |
+| `VITE_GA_MEASUREMENT_ID` | `VITE_` | No | Direct GA4 loader is inert (used only when GTM is unset) |
 | `VITE_SITE_ORIGIN` | `VITE_` | No | Defaults to `https://dutiva.ca` |
 | `GOOGLE_SITE_VERIFICATION` | — | No | No verification meta tag injected |
 | `BING_SITE_VERIFICATION` | — | No | No verification meta tag injected |
@@ -224,7 +225,7 @@ if (isVercelPreview()) return children   // line 39
 
 [src/features/app/auth/RequireAdminSession.tsx:37-39]()
 
-**`ga4.ts`** — the GA4 loader checks `VITE_GA_MEASUREMENT_ID` and returns `false` (no script injected) when unconfigured:
+**`gtm.ts` / `ga4.ts`** — Tag Manager is preferred when `VITE_GTM_CONTAINER_ID` is set. The direct GA4 loader checks `VITE_GA_MEASUREMENT_ID` and returns `false` (no script injected) when unconfigured:
 
 ```typescript
 // src/features/marketing/analytics/ga4.ts

@@ -36,7 +36,7 @@ test.describe('content security policy', () => {
 
     await page.goto('/')
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-    /* Consent banner proves hydration; do not accept — GA4 only loads after opt-in. */
+    /* Consent banner proves hydration; do not accept — GTM/GA4 only loads after opt-in. */
     await expect(page.getByRole('button', { name: 'Accept' })).toBeVisible()
 
     expect(cspViolations, `CSP violations: ${cspViolations.join('; ')}`).toEqual([])

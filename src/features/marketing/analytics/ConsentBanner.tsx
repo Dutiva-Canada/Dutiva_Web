@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { usePublicPath } from '@/seo/usePublicPath'
 import { hasAnalyticsConsent, hasConsentResponse, setAnalyticsConsent } from '@/lib/analyticsConsent'
-import { loadGa4 } from './ga4'
+import { loadConsentedTags } from './gtm'
 import { COOKIE_PREFERENCES_EVENT } from './cookiePreferences'
 
 /**
@@ -19,10 +19,10 @@ import { COOKIE_PREFERENCES_EVENT } from './cookiePreferences'
  * Renders nothing until it has mounted on the client, so the prerendered HTML
  * (scripts/prerender.mjs, where there is no window and no stored choice) and
  * the first client render agree — no hydration mismatch — and the banner then
- * appears only for visitors who still owe a choice. Accepting loads GA4
- * immediately when a measurement ID is configured, so the decision takes hold
- * without a page reload; first-party support analytics simply reads the stored
- * consent on its next event.
+ * appears only for visitors who still owe a choice. Accepting loads GTM
+ * (or GA4 when no container ID is set) immediately when configured, so the
+ * decision takes hold without a page reload; first-party support analytics
+ * simply reads the stored consent on its next event.
  */
 export function ConsentBanner() {
   const { L } = useI18n()
@@ -34,8 +34,8 @@ export function ConsentBanner() {
       // First visit: the banner owes the visitor a choice.
       setVisible(true)
     } else if (hasAnalyticsConsent()) {
-      // Returning visitor who already accepted — start GA4 without a reload.
-      loadGa4()
+      // Returning visitor who already accepted — start consented tags without a reload.
+      loadConsentedTags()
     }
 
     const reopen = () => setVisible(true)
@@ -56,7 +56,7 @@ export function ConsentBanner() {
 
   const choose = (granted: boolean) => {
     setAnalyticsConsent(granted)
-    if (granted) loadGa4()
+    if (granted) loadConsentedTags()
     setVisible(false)
   }
 

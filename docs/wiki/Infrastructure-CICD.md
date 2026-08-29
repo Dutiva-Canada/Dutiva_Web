@@ -208,22 +208,22 @@ Sources: [src/data/data.test.ts:1-60](), [src/data/types.ts](), [src/data/index.
 | **Vercel** | Static hosting, CDN, SPA routing | Edge (global CDN) | `vercel.json`, `VERCEL_ENV` baked at build time |
 | **Resend** | Transactional email (support notifications, law update digests) | — | Vault secret via edge functions |
 | **Stripe** | Billing (disabled during beta via `PAID_PLANS_DISABLED_DURING_BETA`) | — | `create-checkout-session`, `stripe-webhook` |
-| **Google Analytics 4** | Marketing page analytics | — | `VITE_GA_MEASUREMENT_ID`, consent-gated via `loadGa4()` |
+| **Google Tag Manager / GA4** | Marketing page analytics | — | `VITE_GTM_CONTAINER_ID` (preferred) or `VITE_GA_MEASUREMENT_ID`, consent-gated via `loadConsentedTags()` |
 | **Cloudflare Turnstile / hCaptcha** | CAPTCHA on public forms | — | CSP allowlisted in `vercel.json` |
 | **ClamAV attachment-scanner** | Malware scanning for support ticket attachments | DigitalOcean Toronto (PIPEDA) | `services/attachment-scanner/`, `do-app.yaml` |
 | **HuggingFace** | Change summarization for law monitor | — | Edge function `monitor-law-changes` |
 | **DeepSeek** | LLM for advisor chat | — | Edge function `advisor-chat` |
 
-All analytics (both GA4 and the first-party Supabase support analytics sink) are gated behind explicit visitor consent via `hasAnalyticsConsent()`, honoring Quebec Law 25 § 8.1 off-by-default requirements.
+All analytics (GTM/GA4 and the first-party Supabase support analytics sink) are gated behind explicit visitor consent via `hasAnalyticsConsent()`, honoring Quebec Law 25 § 8.1 off-by-default requirements.
 
-Sources: [.github/workflows/ci.yml:16-19](), [vercel.json:20-21](), [src/features/marketing/analytics/ga4.ts:22-55](), [services/attachment-scanner/do-app.yaml](), [vite.config.ts:141-154]()
+Sources: [.github/workflows/ci.yml:16-19](), [vercel.json:20-21](), [src/features/marketing/analytics/gtm.ts](), [services/attachment-scanner/do-app.yaml](), [vite.config.ts:141-154]()
 
 ## Configured-or-Inert Pattern
 
 A cross-cutting design principle governs every external integration: **features activate only when their credentials are present**, and are silently inert otherwise. This pattern appears throughout the infrastructure:
 
 - **Error reporting**: inert unless `VERCEL_ENV` is `production`/`preview` and `VITE_SUPABASE_URL` is set [src/lib/errorReporting/index.ts:30-34]()
-- **GA4**: inert without `VITE_GA_MEASUREMENT_ID` + consent [src/features/marketing/analytics/ga4.ts:22-34]()
+- **GTM / GA4**: inert without `VITE_GTM_CONTAINER_ID` or `VITE_GA_MEASUREMENT_ID` + consent [src/features/marketing/analytics/gtm.ts]()
 - **CI live-checks**: skip cleanly with a loud warning when `SUPABASE_ACCESS_TOKEN` is absent [scripts/check-migrations.mjs:156-173](), [scripts/check-rls.mjs:68-86]()
 - **Build-time verification tags**: injected only when `GOOGLE_SITE_VERIFICATION` / `BING_SITE_VERIFICATION` env vars are set [scripts/prerender.mjs:37-44]()
 

@@ -137,7 +137,7 @@ export default {
         },
         {
           type: 'li',
-          text: 'Google Analytics, if enabled: product or website analytics. The current application only loads this service when a measurement ID is configured and the user has granted consent through the consent banner.',
+          text: 'Google Tag Manager and Google Analytics, if enabled: product or website analytics. The current application only loads these services when they are configured and the user has granted consent through the consent banner.',
         },
         {
           type: 'li',

@@ -73,11 +73,11 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Dutiva uses two kinds of analytics: first-party support analytics and optional third-party website analytics (Google Analytics 4). Both are optional and off by default — nothing is collected until you accept analytics through the consent banner, and you can change your choice at any time from the "Cookie preferences" link in the footer. First-party support analytics (Help Centre searches, article views, helpfulness votes, and support ticket events) are sent to a Dutiva-operated edge function in Canada and do not use third-party cookies. These events carry a daily-rotated anonymous visitor identifier for Help Centre activity or the workspace (organization) identifier for authenticated ticket events, never an individual user identifier. Raw event data is retained for 90 days; daily aggregates are retained indefinitely.',
+          text: 'Dutiva uses two kinds of analytics: first-party support analytics and optional third-party website analytics (Google Tag Manager / Google Analytics 4). Both are optional and off by default — nothing is collected until you accept analytics through the consent banner, and you can change your choice at any time from the "Cookie preferences" link in the footer. First-party support analytics (Help Centre searches, article views, helpfulness votes, and support ticket events) are sent to a Dutiva-operated edge function in Canada and do not use third-party cookies. These events carry a daily-rotated anonymous visitor identifier for Help Centre activity or the workspace (organization) identifier for authenticated ticket events, never an individual user identifier. Raw event data is retained for 90 days; daily aggregates are retained indefinitely.',
         },
         {
           type: 'p',
-          text: 'Google Analytics 4, if enabled, loads only when a measurement ID is configured and the user has granted consent through the consent banner. Where analytics or similar optional technologies require consent, notice, or preference controls under applicable law, Dutiva will provide appropriate controls before using those technologies for that purpose.',
+          text: 'Google Tag Manager, if enabled, loads only when a container ID is configured and the user has granted consent through the consent banner. Google Analytics 4 may then fire from that container, or load on its own when a measurement ID is configured and Tag Manager is not. Where analytics or similar optional technologies require consent, notice, or preference controls under applicable law, Dutiva will provide appropriate controls before using those technologies for that purpose.',
         },
         {
           type: 'li',
@@ -120,7 +120,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Our service providers may use cookies, browser storage, or similar technologies for operational purposes, including authentication, payment checkout, fraud prevention, hosting, performance, AI inference support, network security, and the public-site TrustedSite trustmark. These providers may include Supabase, Vercel, Stripe, Cloudflare, DigitalOcean Gradient AI, TrustedSite, and Google Analytics if analytics are enabled.',
+          text: 'Our service providers may use cookies, browser storage, or similar technologies for operational purposes, including authentication, payment checkout, fraud prevention, hosting, performance, AI inference support, network security, and the public-site TrustedSite trustmark. These providers may include Supabase, Vercel, Stripe, Cloudflare, DigitalOcean Gradient AI, TrustedSite, and Google Tag Manager or Google Analytics if analytics are enabled.',
         },
         {
           type: 'p',

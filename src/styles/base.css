@@ -103,6 +103,12 @@ select:focus-visible,
   background: transparent;
 }
 
+iframe.gtm-ns {
+  display: none;
+  visibility: hidden;
+  border: 0;
+}
+
 /* Landscape-specific adjustments for compact mode */
 @media (orientation: landscape) and (max-height: 500px) {
   .landscape-compact {

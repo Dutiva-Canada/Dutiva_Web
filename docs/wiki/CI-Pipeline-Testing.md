@@ -41,7 +41,8 @@ Three public (non-secret) environment variables are set at workflow level [.gith
 |---|---|---|
 | `SUPABASE_URL` | `https://khtwpxnvziiyplaflwru.supabase.co` | Project endpoint for live checks |
 | `SUPABASE_ANON_KEY` | `sb_publishable_…` | Publishable anon key for RLS probing |
-| `VITE_GA_MEASUREMENT_ID` | `G-V85ZQ75EWL` | GA4 measurement ID (public in HTML) |
+| `VITE_GA_MEASUREMENT_ID` | `G-V85ZQ75EWL` | Direct GA4 measurement ID (public; unused when GTM is set) |
+| `VITE_GTM_CONTAINER_ID` | `GTM-P3C7386R` | Tag Manager container ID (public in HTML after consent) |
 
 Sources: [.github/workflows/ci.yml:1-19]()
 

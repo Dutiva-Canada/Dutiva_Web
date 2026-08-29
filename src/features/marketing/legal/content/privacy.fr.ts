@@ -137,7 +137,8 @@ export default {
         },
         {
           type: 'li',
-          text: 'Google Analytics, s’il est activé : analytique du produit ou du site Web. L’application actuelle ne charge ce service que lorsqu’un identifiant de mesure est configuré et que l’utilisateur a accordé son consentement par l’intermédiaire de la bannière de consentement.',
+          /* [FR self-authored] */
+          text: 'Google Tag Manager et Google Analytics, s’ils sont activés : analytique du produit ou du site Web. L’application actuelle ne charge ces services que lorsqu’ils sont configurés et que l’utilisateur a accordé son consentement par l’intermédiaire de la bannière de consentement.',
         },
         {
           type: 'li',
