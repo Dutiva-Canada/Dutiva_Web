@@ -106,8 +106,8 @@ export const employeeDocuments: ExpiryRecord[] = [
 ]
 
 /* ── Service milestones ending within 30 days ────────────────────────────
-   Priya's Jul 25 milestone comes from the calendar fixture
-   (cal-priya-probation); her review task exists — the reminder is on the
+   Priya's Jul 25 start date comes from the calendar fixture
+   (cal-priya-start); her review task exists — the reminder is on the
    calendar. Jasleen's doesn't yet, which is exactly what the card flags. */
 export const serviceMilestones: ServiceMilestoneRecord[] = [
   {

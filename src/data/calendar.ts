@@ -14,7 +14,7 @@ export const calendarMonth: CalendarMonth = {
   todayDay: 11,
 }
 
-/** The demo diorama's fixed "today" (YYYY-MM-DD), derived from the calendar grid. */
+/** The demo scenario's fixed "today" (YYYY-MM-DD), derived from the calendar grid. */
 export const demoTodayISO = `${calendarMonth.year}-${String(calendarMonth.monthIndex + 1).padStart(
   2,
   '0',
@@ -22,13 +22,10 @@ export const demoTodayISO = `${calendarMonth.year}-${String(calendarMonth.monthI
 
 export const calendarEvents: CalendarEvent[] = [
   {
-    id: 'cal-priya-probation',
+    id: 'cal-priya-start',
     day: 25,
     dateLabel: bi('Jul 25', '25 juil.'),
-    label: bi(
-      '3-month service milestone — Priya Nair',
-      'Jalon de trois mois de service — Priya Nair',
-    ),
+    label: bi('Start date — Priya Nair', 'Entrée en fonction — Priya Nair'),
     tone: 'info',
   },
   {
