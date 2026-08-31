@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { demoTodayISO } from './calendar'
-import { assertSeedMemoryFactSemantics, memoryThreads, seedMemoryFacts } from './memories'
+import {
+  assertSeedMemoryFactSemantics,
+  assertSeedMemoryThreadSemantics,
+  memoryThreads,
+  seedMemoryFacts,
+} from './memories'
 import { isCanonicalMemoryDate, MEMORY_DATE_YEAR_MAX, MEMORY_DATE_YEAR_MIN } from './memoryDates'
 
 describe('isCanonicalMemoryDate', () => {
@@ -14,6 +19,7 @@ describe('isCanonicalMemoryDate', () => {
     expect(isCanonicalMemoryDate(`${MEMORY_DATE_YEAR_MIN}-01-01`)).toBe(true)
     expect(isCanonicalMemoryDate(`${MEMORY_DATE_YEAR_MAX}-12-31`)).toBe(true)
     expect(isCanonicalMemoryDate(`${MEMORY_DATE_YEAR_MIN - 1}-12-31`)).toBe(false)
+    expect(isCanonicalMemoryDate(`${MEMORY_DATE_YEAR_MAX + 1}-01-01`)).toBe(false)
   })
 
   it('rejects invalid format strings', () => {
@@ -141,6 +147,55 @@ describe('seedMemoryFacts', () => {
     expect(() => assertSeedMemoryFactSemantics(bad)).toThrow(/canonical YYYY-MM-DD date/)
   })
 
+  it('rejects malformed effectiveAt values in semantic validation', () => {
+    const bad = seedMemoryFacts.map((f) =>
+      f.id === 'p1' ? { ...f, effectiveAt: '2026-02-30' } : f,
+    )
+    expect(() => assertSeedMemoryFactSemantics(bad)).toThrow(/canonical YYYY-MM-DD date/)
+  })
+
+  it('rejects malformed confirmation dates in semantic validation', () => {
+    const bad = seedMemoryFacts.map((f) =>
+      f.id === 'p4' && f.confirmation
+        ? {
+            ...f,
+            confirmation: {
+              ...f.confirmation,
+              at: '2026-04-31',
+            },
+          }
+        : f,
+    )
+    expect(() => assertSeedMemoryFactSemantics(bad)).toThrow(/canonical YYYY-MM-DD date/)
+  })
+
+  it('rejects confirmation dates before the fact was learned', () => {
+    const bad = seedMemoryFacts.map((f) =>
+      f.id === 'p4' && f.confirmation
+        ? {
+            ...f,
+            learnedAt: '2026-07-05',
+            confirmation: {
+              ...f.confirmation,
+              at: '2026-07-04',
+            },
+          }
+        : f,
+    )
+    expect(() => assertSeedMemoryFactSemantics(bad)).toThrow(
+      /confirmation cannot precede when the fact was learned/,
+    )
+  })
+
+  it('rejects confirmed facts without confirmation provenance', () => {
+    const bad = seedMemoryFacts.map((f) =>
+      f.id === 'p4' ? { ...f, confirmation: null } : f,
+    ) as typeof seedMemoryFacts
+    expect(() => assertSeedMemoryFactSemantics(bad)).toThrow(
+      /confirmed facts must include confirmation provenance/,
+    )
+  })
+
   it('does not confirm counsel review with a later date than its source supports', () => {
     const c2 = seedMemoryFacts.find((f) => f.id === 'c2')!
     expect(c2.statement.en).not.toMatch(/still outstanding/i)
@@ -223,5 +278,12 @@ describe('memoryThreads', () => {
     expect(memoryThreads[0]?.resumedAt).toBe(demoTodayISO)
     expect(isCanonicalMemoryDate(memoryThreads[0]!.resumedAt)).toBe(true)
     expect(memoryThreads[0]).not.toHaveProperty('navSub')
+  })
+
+  it('rejects malformed resumedAt values in semantic validation', () => {
+    const bad = memoryThreads.map((t) =>
+      t.id === memoryThreads[0]!.id ? { ...t, resumedAt: '2026-04-31' } : t,
+    )
+    expect(() => assertSeedMemoryThreadSemantics(bad)).toThrow(/canonical YYYY-MM-DD date/)
   })
 })

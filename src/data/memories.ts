@@ -537,7 +537,8 @@ function assertCanonicalDate(factId: string, field: string, value: string): void
   }
 }
 
-function assertSeedMemoryThreadSemantics(threads: readonly MemoryThread[]): void {
+/** Seed threads must store resumedAt as a canonical YYYY-MM-DD date. */
+export function assertSeedMemoryThreadSemantics(threads: readonly MemoryThread[]): void {
   for (const thread of threads) {
     if (!isCanonicalMemoryDate(thread.resumedAt)) {
       throw new Error(
