@@ -101,8 +101,8 @@ export function RouteErrorPage() {
         </div>
         <p className="mx-auto mt-8 max-w-[52ch] text-sm text-text-3">
           {L(
-            'The error has been recorded for troubleshooting.',
-            'L’erreur a été enregistrée à des fins de dépannage.',
+            'Error details may be used for troubleshooting.',
+            'Les détails de l’erreur peuvent être utilisés à des fins de dépannage.',
           )}
         </p>
         <p className="mx-auto mt-2 max-w-[52ch] text-sm text-text-3">

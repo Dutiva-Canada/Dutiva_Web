@@ -40,7 +40,7 @@ describe('RouteErrorPage', () => {
     expect(screen.getByRole('heading', { name: /could not be displayed/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /reload the page/i })).toBeInTheDocument()
     /* Diagnostics go to telemetry, not the visitor-facing page. */
-    expect(screen.getByText(/error has been recorded for troubleshooting/i)).toBeInTheDocument()
+    expect(screen.getByText(/error details may be used for troubleshooting/i)).toBeInTheDocument()
     expect(screen.queryByText(/useTheme must be used within a ThemeProvider/)).not.toBeInTheDocument()
   })
 
