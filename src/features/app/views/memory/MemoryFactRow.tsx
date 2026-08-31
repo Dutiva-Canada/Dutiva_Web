@@ -129,8 +129,8 @@ export function MemoryFactRow({
             <span className="inline-flex items-center gap-[5px] text-[11.5px] text-text-faint">
               <Clock size={13} strokeWidth={1.7} className="opacity-70" aria-hidden="true" />
               {x(M.memory_learned)} {formatMemoryDate(fact.learnedAt, lang, dateReference)} ·{' '}
-              {fact.confirmedAt !== null
-                ? `${x(M.memory_confirmed_on)} ${formatMemoryDate(fact.confirmedAt, lang, dateReference)}`
+              {fact.confirmation !== null
+                ? `${x(M.memory_confirmed_on)} ${formatMemoryDate(fact.confirmation.at, lang, dateReference)}`
                 : x(M.memory_not_confirmed)}
             </span>
             <span
