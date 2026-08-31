@@ -152,6 +152,22 @@ only with a comment explaining why splitting is deferred.
 Keys marked `[FR self-authored]` need human review before treating FR as production-grade.
 Do not machine-translate over handoff strings silently.
 
+## Fixture jurisdiction field naming (deferred)
+
+`Employee` uses **`jurisdiction`** for employment-regulation scope. Three demo fixture types
+still use the prototype field name **`province`**:
+
+| Type              | Module            | Consumers (non-exhaustive)                          |
+| ----------------- | ----------------- | --------------------------------------------------- |
+| `CaseFile`        | `src/data/cases.ts` | Cases demo view, memory, home priorities          |
+| `ComplianceItem`  | `src/data/compliance.ts` | Compliance demo view, home priorities        |
+| `Communication`   | `src/data/communications.ts` | Communications demo view, Advisor rails    |
+
+`Task` already uses **`jur`**. Do **not** rename `.province` in tests alone — that hides a
+real type/fixture drift. When this debt is paid down, migrate **types → fixtures → demo
+consumers → tests** in one focused pass (same pattern as the employee `jurisdiction`
+normalization).
+
 ## Related
 
 - [CONVENTIONS.md](../CONVENTIONS.md) — engineering rules

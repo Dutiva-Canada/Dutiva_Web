@@ -168,6 +168,7 @@ export interface CaseFile {
   typeLabel: Bi
   empId: string
   empName: string
+  /** Prototype geography label — rename to `jurisdiction` with fixtures/consumers/tests together. */
   province: Bi
   status: Bi
   tone: Tone
@@ -246,6 +247,7 @@ export interface ComplianceItem {
   tone: Tone
   title: Bi
   detail: Bi
+  /** Prototype geography label — rename to `jurisdiction` with fixtures/consumers/tests together. */
   province: Bi
   /** Scheduled date (YYYY-MM-DD) when the item is a dated follow-up, not a standing risk. */
   dueISO?: string
@@ -384,6 +386,7 @@ export interface Communication {
   id: string
   title: Bi
   audience: Bi
+  /** Prototype geography label — rename to `jurisdiction` with fixtures/consumers/tests together. */
   province: Bi
   status: Bi
   tone: Tone

@@ -170,6 +170,11 @@ describe('cross-references resolve', () => {
     }
   })
 
+  /* Fixture normalization — `Employee.jurisdiction` is the employment-regulation model.
+     Communication, ComplianceItem, and CaseFile still expose `province` from the
+     prototype; tests below intentionally use `.province` until those types migrate
+     together with fixtures, consumers, and assertions. See MAINTAINABILITY.md. */
+
   it('keeps Amara-linked fixtures on Ontario, not stale British Columbia metadata', () => {
     const amaraTask = tasks.find((t) => t.id === 'tk5')
     const amaraComm = communications.find((c) => c.id === 'cm6')
