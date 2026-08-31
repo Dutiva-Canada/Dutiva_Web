@@ -295,18 +295,12 @@ const s3: AdvisorScenario = {
       'What counts as undue hardship?',
       'Set a functional-review date',
     ],
-    jurisdictionLine: bi(
-      'Ontario — Human Rights Code',
-      'Ontario — Code des droits de la personne',
-    ),
+    jurisdictionLine: bi('Ontario — Human Rights Code', 'Ontario — Code des droits de la personne'),
     response: {
       route: { responseMode: 'hr', ...HYBRID_GATES },
       jurisdiction: {
         status: 'known',
-        value: bi(
-          'Ontario · Human Rights Code',
-          'Ontario · Code des droits de la personne',
-        ),
+        value: bi('Ontario · Human Rights Code', 'Ontario · Code des droits de la personne'),
         note: bi(
           'Duty to accommodate to undue hardship.',
           'Obligation d’accommodement jusqu’à la contrainte excessive.',

@@ -10,7 +10,10 @@ import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import { useOpenCreateFormFromQuery } from '@/features/app/workspaceMode/useOpenCreateFormFromQuery'
-import { EMPLOYMENT_JURISDICTIONS, listEmployees } from '@/features/app/views/employees/productionApi'
+import {
+  EMPLOYMENT_JURISDICTIONS,
+  listEmployees,
+} from '@/features/app/views/employees/productionApi'
 import type { ProductionEmployee } from '@/features/app/views/employees/productionApi'
 import {
   PRODUCTION_CASE_STATUSES,

@@ -407,7 +407,10 @@ export function AnalyticsProductionView() {
 
   const headcountCounts = new Map<string, number>()
   for (const employee of activeEmployees) {
-    headcountCounts.set(employee.jurisdiction, (headcountCounts.get(employee.jurisdiction) ?? 0) + 1)
+    headcountCounts.set(
+      employee.jurisdiction,
+      (headcountCounts.get(employee.jurisdiction) ?? 0) + 1,
+    )
   }
   const headcountRows = [...headcountCounts.entries()]
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))

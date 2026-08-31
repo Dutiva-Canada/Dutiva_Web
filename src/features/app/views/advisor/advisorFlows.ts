@@ -86,10 +86,7 @@ export const flowJurisdictions: Record<FlowKeyOrFallback, Bi> = {
     'Ontario — ESA, 2000 + Human Rights Code',
     'Ontario — LNE, 2000 + Code des droits de la personne',
   ),
-  accommodation: bi(
-    'Ontario — Human Rights Code',
-    'Ontario — Code des droits de la personne',
-  ),
+  accommodation: bi('Ontario — Human Rights Code', 'Ontario — Code des droits de la personne'),
   policy: bi('Multi-province', 'Multiprovincial'),
   fallback: bi('Confirm jurisdiction before use', 'Confirmer la compétence avant utilisation'),
 }
