@@ -3,7 +3,14 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft, Lock, Shield, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
-import { cases, complianceItems, employees, employeeDetails, supportSignals } from '@/data'
+import {
+  cases,
+  complianceItems,
+  employees,
+  employeeDetails,
+  lineManagerLabel,
+  supportSignals,
+} from '@/data'
 import type { ComplianceItem, TimelineEvent } from '@/data'
 import { useRail } from '@/features/app/rail/railContext'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
@@ -132,7 +139,7 @@ export function EmployeeProfileDemoView() {
     { k: x(M.employees_rr_location), v: `${x(emp.jurisdiction)} · ${x(statute)}` },
     { k: x(M.employees_rr_type), v: x(M.employees_rr_type_value) },
     { k: x(M.employees_rr_department), v: x(emp.dept) },
-    { k: x(M.employees_manager_label), v: det.manager },
+    { k: x(M.employees_manager_label), v: lineManagerLabel(emp.id) },
     { k: x(M.employees_rr_start), v: `${det.startDate} · ${x(emp.tenure)}` },
     { k: x(M.employees_rr_band), v: det.band },
   ]
@@ -208,7 +215,7 @@ export function EmployeeProfileDemoView() {
             <span className="text-[12px] text-text-muted">
               {x(emp.tenure)} · {x(M.employees_manager_label)}
               {colon}
-              {det.manager} · {x(M.employees_since_label)} {det.startDate}
+              {lineManagerLabel(emp.id)} · {x(M.employees_since_label)} {det.startDate}
             </span>
           </div>
         </div>

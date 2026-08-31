@@ -12,7 +12,9 @@ import {
   complianceItems,
   employeeDetails,
   employees,
+  lineManagerLabel,
   tasks,
+  UNKNOWN_LINE_MANAGER,
 } from '@/data'
 import type { ComplianceItem, Task } from '@/data'
 import { useRail } from '@/features/app/rail/railContext'
@@ -197,7 +199,7 @@ function CaseDetail({ caze }: Readonly<{ caze: WorkspaceCase }>) {
   }
 
   /* ── People involved ────────────────────────────────────────────────────── */
-  const manager = det?.manager ?? 'Riley Summers'
+  const manager = emp ? lineManagerLabel(emp.id) : UNKNOWN_LINE_MANAGER
   const people: CasePerson[] = [
     {
       name: caze.empName,

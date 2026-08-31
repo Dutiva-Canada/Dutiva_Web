@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Lock, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { bi } from '@/i18n/core'
-import { compChanges, compEquityCard, employeeDetails, employees } from '@/data'
+import { compChanges, compPositioningCard, employeeDetails, employees } from '@/data'
 import type { Employee } from '@/data'
 import { statusChipClass } from '@/components/chips'
 import { money } from '@/lib/money'
@@ -138,9 +138,9 @@ export function CompensationDemoView() {
             </div>
           ))}
           <div className="rounded-[12px] border border-gold-border bg-gold-bg px-[17px] py-[15px]">
-            <div className="text-[13px] font-bold text-gold-fg">{x(compEquityCard.title)}</div>
+            <div className="text-[13px] font-bold text-gold-fg">{x(compPositioningCard.title)}</div>
             <div className="mt-[5px] text-[12.5px] leading-[1.55] text-gold-fg">
-              {x(compEquityCard.body)}
+              {x(compPositioningCard.body)}
             </div>
           </div>
         </div>

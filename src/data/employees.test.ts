@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import {
-  compEquityCard,
+  compPositioningCard,
+  directManagerFor,
   employeeDetails,
   employees,
+  lineManagerLabel,
+  orgRootReportIds,
   orgStructure,
+  reportsToOrgRoot,
   supportSignals,
+  UNKNOWN_LINE_MANAGER,
 } from './employees'
 import { employeeDocuments } from './workforce'
 import { documentTemplates } from './documents'
@@ -84,10 +89,10 @@ describe('employees fixtures', () => {
   })
 
   it('frames the compensation advisory card as market positioning, not statutory pay equity', () => {
-    expect(compEquityCard.title.en).toContain('compensation positioning')
-    expect(compEquityCard.body.en).toContain('market midpoint')
-    expect(compEquityCard.body.en).not.toMatch(/pay-equity compliance/i)
-    expect(compEquityCard.body.fr).not.toMatch(/équité salariale/i)
+    expect(compPositioningCard.title.en).toContain('compensation positioning')
+    expect(compPositioningCard.body.en).toContain('market midpoint')
+    expect(compPositioningCard.body.en).not.toMatch(/pay-equity compliance/i)
+    expect(compPositioningCard.body.fr).not.toMatch(/équité salariale/i)
   })
 
   it('uses Ontario licenciement terminology for Jordan termination events', () => {
@@ -131,9 +136,71 @@ describe('employees fixtures', () => {
     expect(priyaDetail?.salary).toBeNull()
     expect(priyaDetail?.market).toBeNull()
     expect(priyaDetail?.sentiment).toBeNull()
-    expect(priyaDetail?.manager).toBe('—')
     expect(priyaDetail?.band).toBe('—')
     expect(priyaDetail?.startDate).toBe('—')
+  })
+
+  it('keeps the direct-report graph internally consistent', () => {
+    const byId = new Map(employees.map((e) => [e.id, e]))
+    const reportAssignments = new Map<string, string>()
+    const allReportIds = new Set<string>()
+
+    for (const branch of orgStructure) {
+      expect(byId.has(branch.managerId), `manager ${branch.managerId}`).toBe(true)
+      expect(branch.reportIds.includes(branch.managerId), `${branch.managerId} self-report`).toBe(
+        false,
+      )
+      for (const reportId of branch.reportIds) {
+        expect(byId.has(reportId), `report ${reportId}`).toBe(true)
+        expect(reportAssignments.has(reportId), `${reportId} in multiple branches`).toBe(false)
+        reportAssignments.set(reportId, branch.managerId)
+        allReportIds.add(reportId)
+      }
+    }
+
+    for (const rootReportId of orgRootReportIds) {
+      expect(byId.has(rootReportId), `orgRoot report ${rootReportId}`).toBe(true)
+      expect(
+        allReportIds.has(rootReportId),
+        `${rootReportId} is both branch manager and report`,
+      ).toBe(false)
+    }
+  })
+
+  it('derives line managers from orgStructure rather than duplicated detail fields', () => {
+    expect(directManagerFor('e6')?.id).toBe('e9')
+    expect(lineManagerLabel('e6')).toBe('Fatima Haddad')
+
+    expect(directManagerFor('e11')?.id).toBe('e7')
+    expect(lineManagerLabel('e11')).toBe('Liam Fraser')
+
+    expect(directManagerFor('e5')?.id).toBe('e1')
+    expect(lineManagerLabel('e5')).toBe('Jordan Mensah')
+  })
+
+  it('allows cross-functional reporting without matching branch dept labels', () => {
+    const priya = employee('e2')
+    const revenueBranch = orgStructure.find((b) => b.managerId === 'e7')
+
+    expect(priya.dept.en).toBe('Strategy')
+    expect(revenueBranch?.dept.en).toBe('Revenue')
+    expect(revenueBranch?.reportIds).toContain('e2')
+    expect(directManagerFor('e2')?.id).toBe('e7')
+    expect(lineManagerLabel('e2')).toBe('Liam Fraser')
+  })
+
+  it('returns unknown line manager when no orgStructure or orgRoot edge exists', () => {
+    expect(directManagerFor('e99')).toBeNull()
+    expect(lineManagerLabel('e99')).toBe(UNKNOWN_LINE_MANAGER)
+    expect(reportsToOrgRoot('e99')).toBe(false)
+  })
+
+  it('derives branch-manager lines to orgRoot without fabricating an Employee row for Riley', () => {
+    expect(directManagerFor('e1')).toBeNull()
+    expect(reportsToOrgRoot('e1')).toBe(true)
+    expect(lineManagerLabel('e1')).toBe('Riley Summers')
+    expect(lineManagerLabel('e7')).toBe('Riley Summers')
+    expect(lineManagerLabel('e9')).toBe('Riley Summers')
   })
 
   it('aligns Priya offer-letter document metadata with Ontario jurisdiction', () => {

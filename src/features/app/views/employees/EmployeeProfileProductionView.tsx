@@ -29,6 +29,7 @@ import {
   removeExpiryRecord,
   updateEmployeeDates,
   updateEmployeeStatus,
+  productionLineManagerLabel,
 } from './productionApi'
 import type {
   ExpiryRecordKind,
@@ -282,6 +283,7 @@ export function EmployeeProfileProductionView() {
     ? [
         { label: M.employees_prod_detail_title, value: employee.title },
         { label: M.employees_prod_detail_email, value: employee.email },
+        { label: M.employees_manager_label, value: productionLineManagerLabel(employee) },
         { label: M.employees_prod_detail_jurisdiction, value: employee.jurisdiction },
         { label: M.employees_prod_detail_start, value: employee.startDate },
       ]
@@ -352,16 +354,16 @@ export function EmployeeProfileProductionView() {
               )}
             </div>
             <div className="grid grid-cols-2 gap-[12px] sm:grid-cols-4">
-              {facts
-                .filter((f) => f.value)
-                .map((f) => (
-                  <div key={f.label.en}>
-                    <div className="text-[11px] font-bold tracking-[0.04em] text-text-muted uppercase">
-                      {x(f.label)}
-                    </div>
-                    <div className="mt-[2px] text-[13px] font-semibold text-text">{f.value}</div>
+              {facts.map((f) => (
+                <div key={f.label.en}>
+                  <div className="text-[11px] font-bold tracking-[0.04em] text-text-muted uppercase">
+                    {x(f.label)}
                   </div>
-                ))}
+                  <div className="mt-[2px] text-[13px] font-semibold text-text">
+                    {f.value ?? '—'}
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Key dates — probation end (+ its review task) and, once the

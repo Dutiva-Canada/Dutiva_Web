@@ -28,6 +28,9 @@ export interface ProductionEmployee {
   probationEndDate: string | null
   /** Date employment ended; null for pre-0066 terminations. */
   terminationDate: string | null
+  /** Direct line manager when set on the employee row; null when unset or unreadable. */
+  managerId: string | null
+  managerName: string | null
 }
 
 export interface NewEmployee {
@@ -50,10 +53,12 @@ const rowSchema = z.object({
      tests keep parsing; the live SELECT always includes them. */
   probation_end_date: z.string().nullable().optional(),
   termination_date: z.string().nullable().optional(),
+  manager_id: z.string().nullable().optional(),
+  manager: z.object({ name: z.string() }).nullable().optional(),
 })
 
 const SELECT_COLUMNS =
-  'id, name, title, email, jurisdiction, start_date, status, probation_end_date, termination_date'
+  'id, name, title, email, jurisdiction, start_date, status, probation_end_date, termination_date, manager_id, manager:employees!employees_manager_id_fkey ( name )'
 
 function toEmployee(row: z.infer<typeof rowSchema>): ProductionEmployee {
   return {
@@ -66,7 +71,17 @@ function toEmployee(row: z.infer<typeof rowSchema>): ProductionEmployee {
     status: row.status,
     probationEndDate: row.probation_end_date ?? null,
     terminationDate: row.termination_date ?? null,
+    managerId: row.manager_id ?? null,
+    managerName: row.manager?.name ?? null,
   }
+}
+
+/** Display label for production line manager — unknown when manager_id is unset. */
+export function productionLineManagerLabel(
+  employee: Pick<ProductionEmployee, 'managerName'>,
+): string {
+  const name = employee.managerName?.trim()
+  return name ? name : '—'
 }
 
 export async function listEmployees(organizationId: string): Promise<ProductionEmployee[]> {

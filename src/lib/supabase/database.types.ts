@@ -2144,6 +2144,7 @@ export type Database = {
           email: string | null
           id: string
           jurisdiction: string
+          manager_id: string | null
           name: string
           organization_id: string
           probation_end_date: string | null
@@ -2159,6 +2160,7 @@ export type Database = {
           email?: string | null
           id?: string
           jurisdiction?: string
+          manager_id?: string | null
           name: string
           organization_id: string
           probation_end_date?: string | null
@@ -2174,6 +2176,7 @@ export type Database = {
           email?: string | null
           id?: string
           jurisdiction?: string
+          manager_id?: string | null
           name?: string
           organization_id?: string
           probation_end_date?: string | null
@@ -2184,6 +2187,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: 'employees_manager_id_fkey'
+            columns: ['manager_id']
+            isOneToOne: false
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
+          },
           {
             foreignKeyName: 'employees_organization_id_fkey'
             columns: ['organization_id']

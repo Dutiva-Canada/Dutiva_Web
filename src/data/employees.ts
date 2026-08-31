@@ -259,7 +259,6 @@ const detailDefaults = {
   band: '—',
   market: null,
   equity: '—',
-  manager: '—',
   startDate: '—',
   sentiment: null,
   timeline: [],
@@ -289,7 +288,6 @@ export const employeeDetails: Record<string, EmployeeDetail> = {
     band: 'M3',
     market: 121000,
     equity: '0.00%',
-    manager: 'Riley Summers',
     startDate: 'Mar 2018',
     sentiment: 62,
     timeline: [
@@ -380,7 +378,6 @@ export const employeeDetails: Record<string, EmployeeDetail> = {
     band: 'IC2',
     market: 56000,
     equity: '—',
-    manager: 'Jordan Mensah',
     startDate: 'Oct 2024',
     sentiment: 58,
     timeline: [
@@ -444,7 +441,6 @@ export const employeeDetails: Record<string, EmployeeDetail> = {
     band: 'IC4',
     market: 104000,
     equity: '0.00%',
-    manager: 'Riley Summers',
     startDate: 'Jan 2024',
     sentiment: 71,
     timeline: [
@@ -507,7 +503,6 @@ export const employeeDetails: Record<string, EmployeeDetail> = {
     band: 'IC3',
     market: 68000,
     equity: '—',
-    manager: 'Jordan Mensah',
     startDate: 'Aug 2023',
     sentiment: 74,
     timeline: [
@@ -524,7 +519,6 @@ export const employeeDetails: Record<string, EmployeeDetail> = {
     band: 'IC3',
     market: 79000,
     equity: '—',
-    manager: 'Marcus Bell',
     startDate: 'Apr 2025',
     sentiment: 44,
     timeline: [
@@ -550,7 +544,7 @@ export const employeeDetails: Record<string, EmployeeDetail> = {
 
 /* -------------------------------------------------------------- org graph */
 
-/** Workspace root (prototype `buildOrgGraph().root`). */
+/** Workspace root (prototype `buildOrgGraph().root`). Not an Employee row — see orgRootReportIds. */
 export const orgRoot = {
   name: 'Riley Summers',
   initials: 'RS',
@@ -558,15 +552,46 @@ export const orgRoot = {
 }
 
 /**
+ * Branch managers with a direct reporting line to orgRoot. Riley is the org-chart
+ * root only; line-manager display uses orgRoot.name for these ids.
+ */
+export const orgRootReportIds: readonly string[] = ['e1', 'e7', 'e9']
+
+/**
  * Direct-reporting branches under the workspace root. `dept` labels the
  * manager's organizational area on the org chart; each report's functional
  * `Employee.dept` may differ (e.g. Strategy under Revenue, Engineering under People).
+ * Line-manager display is derived from this graph — see `directManagerFor` / `lineManagerLabel`.
  */
 export const orgStructure: OrgBranch[] = [
   { managerId: 'e1', dept: bi('Operations', 'Opérations'), reportIds: ['e5', 'e10', 'e12', 'e3'] },
   { managerId: 'e9', dept: bi('People', 'Personnel'), reportIds: ['e8', 'e6'] },
   { managerId: 'e7', dept: bi('Revenue', 'Revenus'), reportIds: ['e4', 'e11', 'e2'] },
 ]
+
+/** Profile placeholder when orgStructure has no direct-report edge for this person. */
+export const UNKNOWN_LINE_MANAGER = '—'
+
+const employeeById = new Map(employees.map((employee) => [employee.id, employee]))
+
+/** Direct line manager Employee from orgStructure; null for orgRoot reports or unknown edges. */
+export function directManagerFor(employeeId: string): Employee | null {
+  const branch = orgStructure.find((b) => b.reportIds.includes(employeeId))
+  if (!branch) return null
+  return employeeById.get(branch.managerId) ?? null
+}
+
+export function reportsToOrgRoot(employeeId: string): boolean {
+  return orgRootReportIds.includes(employeeId)
+}
+
+/** Display name for profile/case surfaces — orgRoot.name, Employee.name, or unknown. */
+export function lineManagerLabel(employeeId: string): string {
+  const manager = directManagerFor(employeeId)
+  if (manager) return manager.name
+  if (reportsToOrgRoot(employeeId)) return orgRoot.name
+  return UNKNOWN_LINE_MANAGER
+}
 
 /* ------------------------------------------------- compensation sub-data */
 
@@ -610,7 +635,7 @@ export const compChanges: CompChange[] = [
 ]
 
 /** Compensation-positioning advisory card shown on the Compensation view. */
-export const compEquityCard = {
+export const compPositioningCard = {
   title: bi(
     'Potential compensation positioning issue — review recommended',
     'Enjeu potentiel de positionnement salarial — examen recommandé',

@@ -16,6 +16,8 @@ describe('employees productionApi', () => {
     jurisdiction: 'Ontario',
     start_date: '2026-07-02',
     status: 'active',
+    manager_id: 'emp-2',
+    manager: { name: 'Jordan Mensah' },
   }
 
   it('listEmployees returns parsed, camel-cased rows scoped to the org', async () => {
@@ -41,8 +43,20 @@ describe('employees productionApi', () => {
         status: 'active',
         probationEndDate: null,
         terminationDate: null,
+        managerId: 'emp-2',
+        managerName: 'Jordan Mensah',
       },
     ])
+  })
+
+  it('productionLineManagerLabel returns unknown when manager is unset', async () => {
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: { from: vi.fn() },
+    }))
+    vi.resetModules()
+    const api = await import('./productionApi')
+    expect(api.productionLineManagerLabel({ managerName: null })).toBe('—')
+    expect(api.productionLineManagerLabel({ managerName: 'Jordan Mensah' })).toBe('Jordan Mensah')
   })
 
   it('listEmployees throws (not silently empties) when the read fails', async () => {

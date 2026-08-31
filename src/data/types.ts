@@ -105,7 +105,6 @@ export interface EmployeeDetail {
   /** Null when no market comparator is on file. */
   market: number | null
   equity: string
-  manager: string
   startDate: string
   /** Null when no wellbeing signal score exists. */
   sentiment: number | null
@@ -117,7 +116,7 @@ export interface EmployeeDetail {
   leave: LeaveRecord[]
 }
 
-/** One reporting branch of the org graph (prototype `buildOrgGraph()`). */
+/** One reporting branch of the org graph (prototype `buildOrgGraph()`). Matrix reporting — the same report appearing under multiple managers — is not modeled. */
 export interface OrgBranch {
   managerId: string
   /** Organizational area for this manager's branch — shown on the manager card, not each report's functional department. */
