@@ -15,7 +15,7 @@ import type {
   TimelineKind,
 } from '@/data'
 import { employeesMessages as M } from '@/i18n/messages/employees'
-import { money } from '@/lib/money'
+import { moneyOrUnset } from '@/lib/money'
 import { sensitiveCaseTypes } from '@/features/app/views/cases/caseModel'
 import { dotToneClass, sourceChipClass, statusChipClass } from '@/components/chips'
 import type { ChipTone } from '@/components/chips'
@@ -133,7 +133,7 @@ export function EmployeeOverviewTab({
         <div className="min-w-[150px] flex-1 rounded-[12px] border border-border bg-surface p-[15px]">
           <div className="text-[12px] text-text-muted">{x(M.employees_base_salary)}</div>
           <div className="mt-[3px] font-display text-[20px] font-semibold text-text">
-            {x(money(det.salary))}
+            {x(moneyOrUnset(det.salary))}
           </div>
         </div>
         <div className="min-w-[150px] flex-1 rounded-[12px] border border-border bg-surface p-[15px]">
@@ -295,7 +295,7 @@ export function EmployeeCompensationTab({
   marketDeltaLabel,
 }: Readonly<{
   det: EmployeeDetail
-  marketDelta: number
+  marketDelta: number | null
   marketDeltaLabel: string
 }>) {
   const { x } = useI18n()
@@ -306,7 +306,7 @@ export function EmployeeCompensationTab({
         <div className="min-w-[150px] flex-1 rounded-[12px] border border-border bg-surface p-[16px]">
           <div className="text-[12px] text-text-muted">{x(M.employees_base_salary)}</div>
           <div className="mt-[3px] font-display text-[22px] font-semibold text-text">
-            {x(money(det.salary))}
+            {x(moneyOrUnset(det.salary))}
           </div>
           <div className="mt-[2px] text-[12px] text-text-muted">
             {x(M.employees_band_label)} {det.band}
@@ -315,13 +315,15 @@ export function EmployeeCompensationTab({
         <div className="min-w-[150px] flex-1 rounded-[12px] border border-border bg-surface p-[16px]">
           <div className="text-[12px] text-text-muted">{x(M.employees_market_midpoint)}</div>
           <div className="mt-[3px] font-display text-[22px] font-semibold text-text">
-            {x(money(det.market))}
+            {x(moneyOrUnset(det.market))}
           </div>
-          <div className="mt-[6px]">
-            <span className={statusChipClass(marketDelta < -4 ? 'warning' : 'success')}>
-              {marketDeltaLabel}
-            </span>
-          </div>
+          {marketDelta != null ? (
+            <div className="mt-[6px]">
+              <span className={statusChipClass(marketDelta < -4 ? 'warning' : 'success')}>
+                {marketDeltaLabel}
+              </span>
+            </div>
+          ) : null}
         </div>
       </div>
       <div className="flex items-start gap-[8px] rounded-[12px] border border-(--accent-soft-border) bg-accent-soft px-[16px] py-[14px]">
@@ -332,7 +334,7 @@ export function EmployeeCompensationTab({
           aria-hidden="true"
         />
         <span className="text-[13px] leading-[1.55] text-text-2">
-          {x(M.employees_pay_equity_note)}
+          {x(M.employees_comp_market_note)}
         </span>
       </div>
     </div>

@@ -40,7 +40,7 @@ import { JurisdictionBars } from './JurisdictionBars'
 import { LeaveList } from './LeaveList'
 import type { LeaveDisplayRow } from './LeaveList'
 import { OpenCaseRows } from './OpenCaseRows'
-import { ProbationList } from './ProbationList'
+import { ServiceMilestoneList } from './ServiceMilestoneList'
 import { ScoreBreakdownMeters } from './ScoreBreakdownMeters'
 import { ScoreHero } from './ScoreHero'
 import { StatTile } from './StatTile'
@@ -419,10 +419,10 @@ export function AnalyticsProductionView() {
     todayISO,
   )
 
-  /* ── Probation periods ending within 30 days ───────────────────────────── */
+  /* ── Service milestones due within 30 days ─────────────────────────────── */
   const taskRows = rowsOf(tasks.state)
   const anyProbationDates = rowsOf(employees.state).some((e) => e.probationEndDate !== null)
-  const probationRows = rowsOf(employees.state)
+  const serviceMilestoneRows = rowsOf(employees.state)
     .filter((e) => e.status !== 'terminated' && e.probationEndDate !== null)
     .map((e) => ({ employee: e, daysLeft: daysBetweenISO(todayISO, e.probationEndDate!) }))
     .filter(({ daysLeft }) => daysLeft >= 0 && daysLeft <= 30)
@@ -693,21 +693,21 @@ export function AnalyticsProductionView() {
           </CardData>
         </AnalyticsCard>
 
-        {/* C · Probation periods ending — employees.probation_end_date,
+        {/* C · Service milestones due — employees.probation_end_date,
               with the review-task linkage checked exactly (task metadata). */}
         <AnalyticsCard
-          title={x(M.analytics_probation_title)}
-          subtitle={x(M.analytics_probation_sub)}
+          title={x(M.analytics_service_milestone_title)}
+          subtitle={x(M.analytics_service_milestone_sub)}
           hidden={!show('probation')}
         >
           <CardData deps={[employees, tasks]} skeletonLines={3}>
             {() =>
               !anyProbationDates ? (
-                <CardEmpty text={x(M.analytics_probation_prod_empty)} />
-              ) : probationRows.length === 0 ? (
-                <CardEmpty text={x(M.analytics_probation_empty)} />
+                <CardEmpty text={x(M.analytics_service_milestone_prod_empty)} />
+              ) : serviceMilestoneRows.length === 0 ? (
+                <CardEmpty text={x(M.analytics_service_milestone_empty)} />
               ) : (
-                <ProbationList rows={probationRows} />
+                <ServiceMilestoneList rows={serviceMilestoneRows} />
               )
             }
           </CardData>

@@ -26,7 +26,7 @@ export function EmployeesDemoView() {
       !q ||
       e.name.toLowerCase().includes(q) ||
       pick(e.role, lang).toLowerCase().includes(q) ||
-      pick(e.province, lang).toLowerCase().includes(q),
+      pick(e.jurisdiction, lang).toLowerCase().includes(q),
   )
 
   const openProfile = (e: Employee) => navigate(`/app/employees/${e.id}`)
@@ -119,7 +119,7 @@ export function EmployeesDemoView() {
                     <div className="overflow-hidden text-[13px] text-ellipsis whitespace-nowrap text-text-2">
                       {x(e.role)}
                     </div>
-                    <div className="text-[13px] text-text-2">{x(e.province)}</div>
+                    <div className="text-[13px] text-text-2">{x(e.jurisdiction)}</div>
                     <div>
                       <span className={statusChipClass(e.tone)}>{x(e.status)}</span>
                     </div>
@@ -172,7 +172,7 @@ export function EmployeesDemoView() {
                     <div className="flex flex-wrap items-center gap-[8px]">
                       <span className={statusChipClass(e.tone)}>{x(e.status)}</span>
                       <span className="text-[12px] text-text-muted">
-                        {x(e.province)} · {x(e.tenure)}
+                        {x(e.jurisdiction)} · {x(e.tenure)}
                       </span>
                     </div>
                   </div>

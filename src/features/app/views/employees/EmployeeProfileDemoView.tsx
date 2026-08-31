@@ -109,22 +109,27 @@ export function EmployeeProfileDemoView() {
   const det = emp ? employeeDetails[emp.id] : undefined
   if (!emp || !det) return null
 
-  const statute = STATUTES[emp.province.en] ?? M.employees_statute_fallback
+  const statute = STATUTES[emp.jurisdiction.en] ?? M.employees_statute_fallback
   const wbSignals = supportSignals.filter((sg) => sg.employeeId === emp.id)
   const empCases = cases.filter((c) => c.empId === emp.id)
   const firstName = emp.name.split(' ')[0] ?? emp.name
   const relatedCompliance = complianceItems.filter(
     (ci) => ci.title.en.includes(firstName) || ci.title.en.includes(emp.name),
   )
-  const marketDelta = Math.round(((det.salary - det.market) / det.market) * 100)
+  const marketDelta =
+    det.salary != null && det.market != null
+      ? Math.round(((det.salary - det.market) / det.market) * 100)
+      : null
   const marketDeltaLabel =
-    (marketDelta >= 0 ? '+' : '') + marketDelta + x(M.employees_vs_market_suffix)
+    marketDelta != null
+      ? (marketDelta >= 0 ? '+' : '') + marketDelta + x(M.employees_vs_market_suffix)
+      : '—'
 
   /* FR typography puts a space before the colon in the header meta line. */
   const colon = lang === 'fr' ? ' : ' : ': '
 
   const recordRows: Array<{ k: string; v: string }> = [
-    { k: x(M.employees_rr_location), v: `${x(emp.province)} · ${x(statute)}` },
+    { k: x(M.employees_rr_location), v: `${x(emp.jurisdiction)} · ${x(statute)}` },
     { k: x(M.employees_rr_type), v: x(M.employees_rr_type_value) },
     { k: x(M.employees_rr_department), v: x(emp.dept) },
     { k: x(M.employees_manager_label), v: det.manager },
@@ -196,7 +201,7 @@ export function EmployeeProfileDemoView() {
         <div className="min-w-[200px] flex-1">
           <div className="font-display text-[23px] font-semibold text-text">{emp.name}</div>
           <div className="mt-[2px] text-[13.5px] text-text-3">
-            {x(emp.role)} · {x(emp.dept)} · {x(emp.province)}
+            {x(emp.role)} · {x(emp.dept)} · {x(emp.jurisdiction)}
           </div>
           <div className="mt-[10px] flex flex-wrap items-center gap-[8px]">
             <span className={statusChipClass(emp.tone)}>{x(emp.status)}</span>

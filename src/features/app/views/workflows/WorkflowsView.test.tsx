@@ -69,7 +69,7 @@ describe('WorkflowsView', () => {
 
     /* In-flight rows: person · province lines, progress + meta labels. */
     expect(screen.getByText('Jordan Mensah · Ontario')).toBeInTheDocument()
-    expect(screen.getByText('Amara Okafor · British Columbia')).toBeInTheDocument()
+    expect(screen.getByText('Amara Okafor · Ontario')).toBeInTheDocument()
     expect(screen.getByText('Step 4/9')).toBeInTheDocument()
     expect(screen.getByText('2 of 4 docs')).toBeInTheDocument()
     expect(screen.getByText('+2 score on close')).toBeInTheDocument()

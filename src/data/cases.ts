@@ -88,7 +88,7 @@ export const cases: CaseFile[] = [
     typeLabel: bi('Accommodation', 'Accommodement'),
     empId: 'e6',
     empName: 'Amara Okafor',
-    province: bi('British Columbia', 'Colombie-Britannique'),
+    province: bi('Ontario', 'Ontario'),
     status: bi('In progress', 'En cours'),
     tone: 'warning',
     opened: 'Feb 2026',

@@ -1,5 +1,5 @@
 import { bi } from '@/i18n/core'
-import type { ExpiryRecord, LeaveOverviewRecord, ProbationEndRecord } from './types'
+import type { ExpiryRecord, LeaveOverviewRecord, ServiceMilestoneRecord } from './types'
 
 /**
  * Workforce records behind the Analytics Phase 2 cards: certifications &
@@ -92,7 +92,7 @@ export const employeeDocuments: ExpiryRecord[] = [
     employeeId: 'e6',
     employeeName: 'Amara Okafor',
     name: bi('Permanent resident card', 'Carte de résidente permanente'),
-    jurisdiction: bi('British Columbia', 'Colombie-Britannique'),
+    jurisdiction: bi('Ontario', 'Ontario'),
     expiryISO: '2026-08-25',
   },
   {
@@ -105,18 +105,18 @@ export const employeeDocuments: ExpiryRecord[] = [
   },
 ]
 
-/* ── Probation periods ending within 30 days ─────────────────────────────
-   Priya's Jul 8 end date comes from the calendar fixture
+/* ── Service milestones ending within 30 days ────────────────────────────
+   Priya's Jul 25 milestone comes from the calendar fixture
    (cal-priya-probation); her review task exists — the reminder is on the
    calendar. Jasleen's doesn't yet, which is exactly what the card flags. */
-export const probationEnds: ProbationEndRecord[] = [
+export const serviceMilestones: ServiceMilestoneRecord[] = [
   {
     id: 'prob-priya',
     employeeId: 'e2',
     employeeName: 'Priya Nair',
     role: bi('Senior Analyst', 'Analyste principale'),
-    jurisdiction: bi('British Columbia', 'Colombie-Britannique'),
-    endISO: '2026-07-08',
+    jurisdiction: bi('Ontario', 'Ontario'),
+    endISO: '2026-07-25',
     reviewTaskCreated: true,
   },
   {
@@ -138,6 +138,9 @@ export const probationEnds: ProbationEndRecord[] = [
     reviewTaskCreated: true,
   },
 ]
+
+/** @deprecated Use {@link serviceMilestones}. */
+export const probationEnds = serviceMilestones
 
 /* ── Leave overview (status only — no balances, no medical detail) ───────
    Amara is the roster's one active leave-adjacent arrangement (modified

@@ -116,9 +116,9 @@ const personEntries: SearchEntry[] = employees.map((e) => ({
   kind: 'person',
   kindLabel: M.search_kind_person,
   title: neutral(e.name),
-  sub: joinBi([e.role, e.province]),
+  sub: joinBi([e.role, e.jurisdiction]),
   restricted: false,
-  match: joinBi([neutral(e.name), e.role, e.province]),
+  match: joinBi([neutral(e.name), e.role, e.jurisdiction]),
   nav: { kind: 'employee', employeeId: e.id },
 }))
 

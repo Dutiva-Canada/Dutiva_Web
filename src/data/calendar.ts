@@ -23,9 +23,12 @@ export const demoTodayISO = `${calendarMonth.year}-${String(calendarMonth.monthI
 export const calendarEvents: CalendarEvent[] = [
   {
     id: 'cal-priya-probation',
-    day: 8,
-    dateLabel: bi('Jul 8', '8 juil.'),
-    label: bi('Probation ends — Priya Nair', 'Fin de probation — Priya Nair'),
+    day: 25,
+    dateLabel: bi('Jul 25', '25 juil.'),
+    label: bi(
+      '3-month service milestone — Priya Nair',
+      'Jalon de trois mois de service — Priya Nair',
+    ),
     tone: 'info',
   },
   {
@@ -34,7 +37,7 @@ export const calendarEvents: CalendarEvent[] = [
     dateLabel: bi('Jul 10', '10 juil.'),
     label: bi(
       'Counsel response due — Termination case',
-      'Réponse du conseiller attendue — dossier de cessation d’emploi',
+      'Réponse du conseiller attendue — dossier de licenciement',
     ),
     tone: 'warning',
   },

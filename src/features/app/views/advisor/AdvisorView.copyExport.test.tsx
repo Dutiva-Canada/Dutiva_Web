@@ -70,7 +70,7 @@ describe('AdvisorView copy/export actions', () => {
 
   it('runs Copy through authorizeExport and writes a tagged clipboard payload', async () => {
     openOfferLetterThread()
-    expect(await screen.findByText('BC-specific note')).toBeInTheDocument()
+    expect(await screen.findByText('Ontario-specific note')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Copy' }))
 
@@ -97,7 +97,7 @@ describe('AdvisorView copy/export actions', () => {
     })
 
     openOfferLetterThread()
-    expect(await screen.findByText('BC-specific note')).toBeInTheDocument()
+    expect(await screen.findByText('Ontario-specific note')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Copy' }))
 
@@ -107,7 +107,7 @@ describe('AdvisorView copy/export actions', () => {
 
   it('opens Doc Studio on Export with the advisor message as initial content', async () => {
     openOfferLetterThread()
-    expect(await screen.findByText('BC-specific note')).toBeInTheDocument()
+    expect(await screen.findByText('Ontario-specific note')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Export' }))
 

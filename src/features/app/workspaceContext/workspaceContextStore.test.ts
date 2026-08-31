@@ -20,7 +20,7 @@ describe('contextFromEmployee', () => {
   it('chains meta as province · role · status when no topic is passed', () => {
     const ctx = contextFromEmployee(emp)
     expect(ctx.meta).toHaveLength(3)
-    expect(ctx.meta[0]).toEqual(emp.province)
+    expect(ctx.meta[0]).toEqual(emp.jurisdiction)
     expect(ctx.meta[1]).toEqual(emp.role)
     expect(ctx.meta[2]).toEqual(emp.status)
   })

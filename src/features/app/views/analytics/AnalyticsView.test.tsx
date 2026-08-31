@@ -66,9 +66,9 @@ describe('AnalyticsView (demo)', () => {
     expect(within(rows[1]!).getByText(/Marketing consent records/)).toBeInTheDocument()
     expect(within(rows[1]!).getByText('Overdue')).toBeInTheDocument()
 
-    /* Soonest due: the Remote Work Policy review (Jul 17 — 12 days out). */
+    /* Soonest due: the Remote Work Policy review (Jul 17 — 6 days out). */
     expect(within(rows[2]!).getByText(/Remote Work Policy/)).toBeInTheDocument()
-    expect(within(rows[2]!).getByText('Due in 12 days')).toBeInTheDocument()
+    expect(within(rows[2]!).getByText('Due in 6 days')).toBeInTheDocument()
 
     /* Affected count + jurisdiction as the secondary line (AODA hires). */
     expect(card.getByText('3 employees · Ontario')).toBeInTheDocument()
@@ -118,20 +118,21 @@ describe('AnalyticsView (demo)', () => {
     expect(within(rows[1]!).getByText('Noah Bergeron · Manitoba')).toBeInTheDocument()
   })
 
-  it('lists probation ends within 30 days and flags the missing review task', () => {
+  it('lists service milestones within 30 days and flags the missing review task', () => {
     renderApp(<AnalyticsView />, { route: '/app/analytics' })
-    const card = within(screen.getByRole('region', { name: 'Probation periods ending' }))
+    const card = within(screen.getByRole('region', { name: 'Service milestones due' }))
 
     const rows = card.getAllByRole('listitem')
     expect(rows).toHaveLength(3)
 
-    /* Soonest first: Priya (Jul 8 — 3 days out), review task in place. */
-    expect(within(rows[0]!).getByText('Priya Nair')).toBeInTheDocument()
-    expect(within(rows[0]!).getByText('3 days left')).toBeInTheDocument()
-    expect(within(rows[0]!).queryByText('No review task yet')).not.toBeInTheDocument()
+    /* Soonest first: Jasleen (Jul 21 — 10 days out), no review task yet. */
+    expect(within(rows[0]!).getByText('Jasleen Kaur')).toBeInTheDocument()
+    expect(within(rows[0]!).getByText('10 days left')).toBeInTheDocument()
+    expect(within(rows[0]!).getByText('No review task yet')).toBeInTheDocument()
 
-    /* Jasleen has no review task — the row says so. */
-    expect(within(rows[1]!).getByText('Jasleen Kaur')).toBeInTheDocument()
+    /* Priya next (Jul 25 — 14 days out), review task in place. */
+    expect(within(rows[1]!).getByText('Priya Nair')).toBeInTheDocument()
+    expect(within(rows[1]!).getByText('14 days left')).toBeInTheDocument()
     expect(card.getAllByText('No review task yet')).toHaveLength(1)
   })
 
@@ -193,18 +194,18 @@ describe('AnalyticsView (demo)', () => {
     renderApp(<AnalyticsView />, { route: '/app/analytics' })
     const card = within(screen.getByRole('region', { name: 'Open cases' }))
 
-    /* Three open (case4 resolved); ages 0/15/145 days on July 5 → avg 53. */
+    /* Three open (case4 resolved); ages 9/21/151 days on July 11 → avg 60. */
     expect(card.getByText('Open now')).toBeInTheDocument()
     expect(card.getByText('3')).toBeInTheDocument()
     expect(card.getByText('Avg. age (days)')).toBeInTheDocument()
-    expect(card.getByText('53')).toBeInTheDocument()
+    expect(card.getByText('60')).toBeInTheDocument()
     expect(card.getByText('Oldest (days)')).toBeInTheDocument()
-    expect(card.getByText('145')).toBeInTheDocument()
+    expect(card.getByText('151')).toBeInTheDocument()
 
     /* Oldest first, linking through to the case record. */
     const rows = card.getAllByRole('listitem')
     expect(within(rows[0]!).getByRole('link')).toHaveAttribute('href', '/app/cases/case3')
-    expect(within(rows[0]!).getByText('145 days')).toBeInTheDocument()
+    expect(within(rows[0]!).getByText('151 days')).toBeInTheDocument()
     expect(within(rows[2]!).getByRole('link')).toHaveAttribute('href', '/app/cases/case1')
   })
 
@@ -243,7 +244,7 @@ describe('AnalyticsView (demo)', () => {
 
     /* Phase 2 cards, localized. */
     expect(screen.getByRole('region', { name: 'Attestations et formations' })).toBeInTheDocument()
-    expect(screen.getByRole('region', { name: 'Fins de probation' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Jalons de service à venir' })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Expirations de documents' })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Aperçu des congés' })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Effectif et roulement' })).toBeInTheDocument()
@@ -616,7 +617,7 @@ describe('AnalyticsView in production mode', () => {
       screen.getByText('Certification records aren’t tracked in this workspace yet.'),
     ).toBeInTheDocument()
     expect(
-      screen.getByText('Probation dates aren’t tracked in this workspace yet.'),
+      screen.getByText('Service milestone dates aren’t tracked in this workspace yet.'),
     ).toBeInTheDocument()
     expect(
       screen.getByText('Employee document expiries aren’t tracked in this workspace yet.'),
@@ -742,7 +743,7 @@ describe('AnalyticsView in production mode', () => {
 
     /* C · Probation: e5 (3 days, linked review task) then e1 (10 days, no
        task — flagged); e2 is outside the 30-day window. */
-    const probation = within(screen.getByRole('region', { name: 'Probation periods ending' }))
+    const probation = within(screen.getByRole('region', { name: 'Service milestones due' }))
     const probationRows = await probation.findAllByRole('listitem')
     expect(probationRows).toHaveLength(2)
     expect(within(probationRows[0]!).getByText('Employee e5')).toBeInTheDocument()

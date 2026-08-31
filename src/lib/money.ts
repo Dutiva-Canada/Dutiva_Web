@@ -11,3 +11,9 @@ export function money(amount: number): Bi {
   const grouped = amount.toLocaleString('en-US')
   return bi(`$${grouped}`, `${grouped.replaceAll(',', ' ')} $`)
 }
+
+/** Currency chip when compensation is not on file. */
+export function moneyOrUnset(amount: number | null): Bi {
+  if (amount === null) return bi('—', '—')
+  return money(amount)
+}

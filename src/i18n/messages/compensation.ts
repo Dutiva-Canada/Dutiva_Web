@@ -45,17 +45,22 @@ export const compensationMessages = defineMessages({
     fr: 'Voici où en est ce changement et ce qu’il lui faut pour avancer.',
   },
   comp_change_review_suffix: {
-    en: 'Legal/pay-equity review may be required if a gap is confirmed.',
-    fr: 'Une révision juridique ou d’équité salariale peut être requise si un écart est confirmé.',
+    en: 'HR/Finance review is recommended before any change is approved.',
+    fr: 'Un examen RH/Finances est recommandé avant d’approuver tout changement.',
   },
 
   /* Per-employee pay rail (prototype `askAboutComp`). */
   comp_rail_title_suffix: { en: ' — pay', fr: ' — rémunération' }, // [FR self-authored]
   comp_below_title: { en: 'Below market midpoint', fr: 'Sous le point milieu du marché' },
   comp_within_title: { en: 'Within market band', fr: 'Dans la fourchette du marché' }, // [FR self-authored]
+  comp_market_review_citation: {
+    en: 'Internal compensation band framework',
+    fr: 'Cadre interne d’échelons salariales',
+  },
+  /** @deprecated Use comp_market_review_citation. */
   comp_pay_equity_citation: {
-    en: 'Pay Equity Act (federal / ON)',
-    fr: 'Loi sur l’équité salariale (fédéral / Ont.)', // [FR self-authored]
+    en: 'Internal compensation band framework',
+    fr: 'Cadre interne d’échelons salariales',
   },
   comp_open_comp_tab: { en: 'Open compensation tab', fr: 'Ouvrir l’onglet Rémunération' },
   comp_context_topic: { en: 'Compensation review', fr: 'Examen de la rémunération' }, // [FR self-authored]

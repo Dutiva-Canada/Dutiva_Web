@@ -21,9 +21,7 @@ describe('EmployeeProfileView', () => {
     expect(screen.getByText('Jordan Mensah')).toBeInTheDocument()
     expect(screen.getByText('Senior Operations Manager · Operations · Ontario')).toBeInTheDocument()
     expect(screen.getByText('Offboarding')).toBeInTheDocument()
-    expect(
-      screen.getByText(/7\.2 yrs · Manager: Riley Summers · Since Apr 2019/),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/8 yrs · Manager: Riley Summers · Since Mar 2018/)).toBeInTheDocument()
 
     /* Overview: insight, record rows (jurisdiction + statute), risk card, tiles. */
     expect(screen.getByText(/Jordan's termination is in progress/)).toBeInTheDocument()
@@ -52,14 +50,14 @@ describe('EmployeeProfileView', () => {
     expect(screen.getByText('Taken')).toBeInTheDocument()
   })
 
-  it('switches to the compensation tab: salary, market delta and pay-equity note', () => {
+  it('switches to the compensation tab: salary, market delta and compensation note', () => {
     renderProfile()
     fireEvent.click(screen.getByRole('tab', { name: 'Compensation' }))
 
     expect(screen.getByText('$118,000')).toBeInTheDocument()
     expect(screen.getByText('$121,000')).toBeInTheDocument()
     expect(screen.getByText('-2% vs market')).toBeInTheDocument()
-    expect(screen.getByText(/Pay-equity obligations apply/)).toBeInTheDocument()
+    expect(screen.getByText(/Market midpoint comparisons are one input/)).toBeInTheDocument()
   })
 
   it('shows linked cases with the restricted badge', () => {

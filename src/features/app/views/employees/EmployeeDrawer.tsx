@@ -64,7 +64,7 @@ export function EmployeeDrawer({ employee, onClose }: EmployeeDrawerProps) {
           </div>
           <div className="font-display text-[19px] font-semibold text-text">{employee.name}</div>
           <div className="mt-[2px] text-[13px] text-text-3">
-            {x(employee.role)} · {x(employee.province)}
+            {x(employee.role)} · {x(employee.jurisdiction)}
           </div>
           <div className="mt-[10px] flex gap-[8px]">
             <span className={statusChipClass(employee.tone)}>{x(employee.status)}</span>

@@ -41,7 +41,7 @@ export function PersonMemoryDemoView() {
   if (!person || !employee) return <Navigate to="/app/settings/memory" replace />
 
   const first = pick(person.firstName, lang)
-  const meta = [employee.role, employee.dept, employee.province, employee.tenure]
+  const meta = [employee.role, employee.dept, employee.jurisdiction, employee.tenure]
     .map((part) => pick(part, lang))
     .join(' · ')
 

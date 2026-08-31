@@ -45,6 +45,6 @@ export function contextFromEmployee(
     entityType,
     empId: emp.id,
     initials: emp.initials,
-    meta: [emp.province, emp.role, topic ?? emp.status],
+    meta: [emp.jurisdiction, emp.role, topic ?? emp.status],
   }
 }

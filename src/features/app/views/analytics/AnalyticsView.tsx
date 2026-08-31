@@ -7,7 +7,7 @@ import { AnalyticsProductionView } from './AnalyticsProductionView'
  * compliance score (trend + breakdown + per-jurisdiction scores), the
  * needs-attention queue, headcount by jurisdiction, open-case aging and
  * policy acknowledgments. Phase 2 adds certifications & training expiring,
- * probation ends, document expiries, the leave overview and the headcount
+ * service milestones, document expiries, the leave overview and the headcount
  * & turnover trend.
  *
  * Demo mode renders the Northgate diorama below — every number computed

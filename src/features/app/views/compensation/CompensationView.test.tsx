@@ -39,8 +39,8 @@ describe('CompensationView', () => {
 
     expect(screen.getByText(/Restricted module — visible to Owner\/Admin/)).toBeInTheDocument()
 
-    /* Stat tiles: $915K total base payroll · 1 below midpoint · 12 people. */
-    expect(screen.getByText('$915K')).toBeInTheDocument()
+    /* Stat tiles: $411K total base payroll · 2 below midpoint · 12 people. */
+    expect(screen.getByText('$411K')).toBeInTheDocument()
     expect(screen.getByText('Annual base payroll')).toBeInTheDocument()
     expect(screen.getByText('Below market midpoint')).toBeInTheDocument()
     expect(screen.getByText('12')).toBeInTheDocument()
@@ -52,7 +52,7 @@ describe('CompensationView', () => {
 
     /* Pay-band equity advisory card. */
     expect(
-      screen.getByText('Potential internal equity issue — review recommended'),
+      screen.getByText('Potential compensation positioning issue — review recommended'),
     ).toBeInTheDocument()
 
     /* Overview rows (rendered for both the mobile list and the table). */
@@ -62,7 +62,7 @@ describe('CompensationView', () => {
     expect(screen.getAllByText('-10%').length).toBeGreaterThan(0)
   })
 
-  it('opens the change-review rail with status, note, and pay-equity citation', () => {
+  it('opens the change-review rail with status, note, and market-review citation', () => {
     vi.useFakeTimers()
     renderView()
 
@@ -80,10 +80,10 @@ describe('CompensationView', () => {
     })
     expect(
       screen.getByText(
-        /Requires HR\/Finance approval before the Aug 25 payroll cut-off\. Legal\/pay-equity review may be required if a gap is confirmed\./,
+        /Requires HR\/Finance approval before the Aug 25 payroll cut-off\. HR\/Finance review is recommended before any change is approved\./,
       ),
     ).toBeInTheDocument()
-    expect(screen.getByText('Pay Equity Act (federal / ON)')).toBeInTheDocument()
+    expect(screen.getByText('Internal compensation band framework')).toBeInTheDocument()
   })
 
   it('navigates to the employee compensation tab when a row is opened', () => {
