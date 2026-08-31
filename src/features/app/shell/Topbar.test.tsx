@@ -25,7 +25,7 @@ describe('Topbar', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Notifications' }))
     expect(screen.getByRole('dialog', { name: 'Notifications' })).toBeInTheDocument()
     expect(
-      screen.getByText('Compliance: Remote Work Policy is overdue for review'),
+      screen.getByText('Compliance: Remote Work Policy review due soon'),
     ).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Mark all read' }))
