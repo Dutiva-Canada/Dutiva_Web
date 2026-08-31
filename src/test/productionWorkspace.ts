@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2026 
+ *   Copyright (c) 2026
  *   All rights reserved.
  */
 import { vi } from 'vitest'
@@ -38,10 +38,8 @@ export function listChain(
   const chain: Record<string, unknown> = {
     order: () => chain,
     range: () => Promise.resolve(result),
-    then: (
-      resolve: (value: typeof result) => unknown,
-      reject?: (reason: unknown) => unknown,
-    ) => Promise.resolve(result).then(resolve, reject),
+    then: (resolve: (value: typeof result) => unknown, reject?: (reason: unknown) => unknown) =>
+      Promise.resolve(result).then(resolve, reject),
   }
   return chain
 }

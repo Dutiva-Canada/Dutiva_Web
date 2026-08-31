@@ -108,7 +108,10 @@ export const statutoryNoticeOntarioFlow: Flow = {
     {
       id: 'tenure',
       kind: 'choice',
-      title: bi('How much service has the employee completed?', 'Quelle ancienneté l’employé a-t-il complétée?'),
+      title: bi(
+        'How much service has the employee completed?',
+        'Quelle ancienneté l’employé a-t-il complétée?',
+      ),
       body: bi(
         'Choose the band that matches completed service. Do not round up into the next band.',
         'Choisissez la tranche qui correspond au service complété. N’arrondissez pas à la hausse vers la tranche suivante.',
@@ -253,7 +256,10 @@ export const statutoryNoticeOntarioFlow: Flow = {
       id: 'floor_8',
       kind: 'outcome',
       tone: 'ok',
-      title: bi('ESA floor: 8 weeks (statutory maximum)', 'Plancher LNE : 8 semaines (maximum légal)'),
+      title: bi(
+        'ESA floor: 8 weeks (statutory maximum)',
+        'Plancher LNE : 8 semaines (maximum légal)',
+      ),
       body: bi(
         'For eight or more completed years, the ESA s. 57 statutory floor is 8 weeks of notice (or pay in lieu) — the ESA individual-termination maximum. Common-law reasonable notice can still be substantially higher. Verify tenure and the statute before issuing a letter.',
         'Pour huit années complétées ou plus, le plancher légal de l’art. 57 de la LNE est de 8 semaines de préavis (ou d’indemnité) — le maximum LNE pour une cessation individuelle. Le préavis raisonnable de common law peut encore être nettement plus élevé. Vérifiez l’ancienneté et la loi avant d’émettre une lettre.',

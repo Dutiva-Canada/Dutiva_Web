@@ -43,7 +43,11 @@ export function renderSigningStatusEmail(ctx: SigningStatusEmailContext): {
         ),
         docLine,
         ctx.signerSummary,
-        pick(lang, `Open the document in Dutiva:\n${ctx.documentUrl}`, `Ouvrir le document dans Dutiva :\n${ctx.documentUrl}`),
+        pick(
+          lang,
+          `Open the document in Dutiva:\n${ctx.documentUrl}`,
+          `Ouvrir le document dans Dutiva :\n${ctx.documentUrl}`,
+        ),
         pick(lang, `— ${brand}`, `— ${brand}`),
       ]
         .filter(Boolean)
@@ -66,7 +70,11 @@ export function renderSigningStatusEmail(ctx: SigningStatusEmailContext): {
       ),
       docLine,
       ctx.signerSummary,
-      pick(lang, `Review the envelope in Dutiva:\n${ctx.documentUrl}`, `Passer l’enveloppe en revue dans Dutiva :\n${ctx.documentUrl}`),
+      pick(
+        lang,
+        `Review the envelope in Dutiva:\n${ctx.documentUrl}`,
+        `Passer l’enveloppe en revue dans Dutiva :\n${ctx.documentUrl}`,
+      ),
       pick(lang, `— ${brand}`, `— ${brand}`),
     ]
       .filter(Boolean)

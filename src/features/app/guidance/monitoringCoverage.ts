@@ -73,7 +73,7 @@ export const MONITORING_COVERAGE: readonly JurisdictionCoverage[] = [
     status: 'active',
     detail: {
       en: 'Sourced from the federal government’s own published legislation data, which states when each Act was last amended. The first completed sweep on 2026-08-06 confirmed both federal pages are fetched and baselined.',
-      fr: "Provient des données législatives publiées par le gouvernement fédéral, qui indiquent la date de la dernière modification de chaque loi. La première vérification complète le 2026-08-06 a confirmé que les deux pages fédérales sont récupérées et référencées.",
+      fr: 'Provient des données législatives publiées par le gouvernement fédéral, qui indiquent la date de la dernière modification de chaque loi. La première vérification complète le 2026-08-06 a confirmé que les deux pages fédérales sont récupérées et référencées.',
     },
   },
 ]

@@ -25,8 +25,8 @@ export const shellMessages = defineMessages({
     fr: 'Soutien à la conformité RH canadienne pour les documents, les échéances et les décisions en milieu de travail.',
   },
   shell_hero_sub: {
-    en: "Ask about a case, person, or deadline — Advisor keeps the same context across chat and your records.",
-    fr: "Posez une question sur un dossier, une personne ou une échéance — le Conseiller garde le même contexte entre le clavardage et vos dossiers.",
+    en: 'Ask about a case, person, or deadline — Advisor keeps the same context across chat and your records.',
+    fr: 'Posez une question sur un dossier, une personne ou une échéance — le Conseiller garde le même contexte entre le clavardage et vos dossiers.',
   },
   shell_cta_primary: { en: 'See Advisor in action', fr: 'Voir Conseiller à l’œuvre' },
   shell_cta_secondary: { en: 'Talk to sales', fr: 'Parler aux ventes' },

@@ -111,185 +111,185 @@ export function EmployeesProductionView() {
 
   return (
     <AppPage width="default">
-        <div className="mb-[18px] flex flex-wrap items-center justify-between gap-[16px]">
-          <div className="text-[13px] text-text-muted">
-            {rows === null ? x(M.employees_prod_loading) : countLabel}
+      <div className="mb-[18px] flex flex-wrap items-center justify-between gap-[16px]">
+        <div className="text-[13px] text-text-muted">
+          {rows === null ? x(M.employees_prod_loading) : countLabel}
+        </div>
+        {!formOpen && isOrgAdmin && (
+          <button
+            type="button"
+            onClick={() => setFormOpen(true)}
+            className="flex cursor-pointer items-center gap-[7px] rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
+          >
+            <Plus size={14} strokeWidth={2} aria-hidden="true" />
+            {x(M.employees_prod_add)}
+          </button>
+        )}
+      </div>
+
+      {loadFailed && (
+        <div className="mb-[14px] flex items-center justify-between gap-[12px] rounded-[11px] border border-risk-border bg-risk-bg px-[16px] py-[12px]">
+          <span className="text-[13px] text-risk-fg">{x(M.employees_prod_error)}</span>
+          <button
+            type="button"
+            onClick={() => void load()}
+            className="cursor-pointer rounded-[8px] border-none bg-surface px-[12px] py-[6px] font-sans text-[12px] font-bold text-text"
+          >
+            {x(M.employees_prod_retry)}
+          </button>
+        </div>
+      )}
+
+      {formOpen && (
+        <form
+          onSubmit={(e) => void onSubmit(e)}
+          className="mb-[18px] rounded-[12px] border border-border bg-surface px-[20px] py-[18px]"
+        >
+          <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
+            <div>
+              <label htmlFor="emp-name" className={labelClass}>
+                {x(M.employees_prod_name)}
+              </label>
+              <input
+                id="emp-name"
+                required
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="emp-title" className={labelClass}>
+                {x(M.employees_prod_title)}
+              </label>
+              <input
+                id="emp-title"
+                value={form.title}
+                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="emp-email" className={labelClass}>
+                {x(M.employees_prod_email)}
+              </label>
+              <input
+                id="emp-email"
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="emp-province" className={labelClass}>
+                {x(M.employees_prod_province)}
+              </label>
+              <select
+                id="emp-province"
+                value={form.province}
+                onChange={(e) => setForm((f) => ({ ...f, province: e.target.value }))}
+                className={inputClass}
+              >
+                {EMPLOYMENT_PROVINCES.map((prov) => (
+                  <option key={prov.en} value={prov.en}>
+                    {pick(prov, lang)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="emp-start" className={labelClass}>
+                {x(M.employees_prod_start_date)}
+              </label>
+              <input
+                id="emp-start"
+                type="date"
+                value={form.startDate}
+                onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
+                className={inputClass}
+              />
+            </div>
           </div>
-          {!formOpen && isOrgAdmin && (
+          <div className="mt-[16px] flex gap-[8px]">
+            <button
+              type="submit"
+              disabled={saving}
+              className="cursor-pointer rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white disabled:opacity-60"
+            >
+              {x(M.employees_prod_save)}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setFormOpen(false)
+                setForm(EMPTY_FORM)
+              }}
+              className="cursor-pointer rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text"
+            >
+              {x(M.employees_prod_cancel)}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {rows !== null && rows.length === 0 && !loadFailed && !formOpen && (
+        <div className="rounded-[12px] border border-border bg-surface px-[24px] py-[40px] text-center">
+          <div className="mx-auto mb-[14px] flex h-[44px] w-[44px] items-center justify-center rounded-[12px] bg-inset">
+            <Users size={20} strokeWidth={1.7} className="text-text-muted" aria-hidden="true" />
+          </div>
+          <div className="mb-[6px] text-[15px] font-semibold text-text">
+            {x(M.employees_prod_empty_title)}
+          </div>
+          <p className="m-0 mb-[16px] text-[13px] text-text-muted">
+            {x(M.employees_prod_empty_body)}
+          </p>
+          {isOrgAdmin && (
             <button
               type="button"
               onClick={() => setFormOpen(true)}
-              className="flex cursor-pointer items-center gap-[7px] rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
+              className="inline-flex cursor-pointer items-center gap-[7px] rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
             >
               <Plus size={14} strokeWidth={2} aria-hidden="true" />
               {x(M.employees_prod_add)}
             </button>
           )}
         </div>
+      )}
 
-        {loadFailed && (
-          <div className="mb-[14px] flex items-center justify-between gap-[12px] rounded-[11px] border border-risk-border bg-risk-bg px-[16px] py-[12px]">
-            <span className="text-[13px] text-risk-fg">{x(M.employees_prod_error)}</span>
-            <button
-              type="button"
-              onClick={() => void load()}
-              className="cursor-pointer rounded-[8px] border-none bg-surface px-[12px] py-[6px] font-sans text-[12px] font-bold text-text"
+      {rows !== null && rows.length > 0 && (
+        <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
+          {rows.map((emp) => (
+            <div
+              key={emp.id}
+              className="flex items-center gap-[12px] border-t border-inset px-[18px] py-[13px] first:border-t-0"
             >
-              {x(M.employees_prod_retry)}
-            </button>
-          </div>
-        )}
-
-        {formOpen && (
-          <form
-            onSubmit={(e) => void onSubmit(e)}
-            className="mb-[18px] rounded-[12px] border border-border bg-surface px-[20px] py-[18px]"
-          >
-            <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
-              <div>
-                <label htmlFor="emp-name" className={labelClass}>
-                  {x(M.employees_prod_name)}
-                </label>
-                <input
-                  id="emp-name"
-                  required
-                  value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  className={inputClass}
-                />
+              <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-accent-soft text-[12px] font-bold text-accent">
+                {initialsOf(emp.name)}
               </div>
-              <div>
-                <label htmlFor="emp-title" className={labelClass}>
-                  {x(M.employees_prod_title)}
-                </label>
-                <input
-                  id="emp-title"
-                  value={form.title}
-                  onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label htmlFor="emp-email" className={labelClass}>
-                  {x(M.employees_prod_email)}
-                </label>
-                <input
-                  id="emp-email"
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label htmlFor="emp-province" className={labelClass}>
-                  {x(M.employees_prod_province)}
-                </label>
-                <select
-                  id="emp-province"
-                  value={form.province}
-                  onChange={(e) => setForm((f) => ({ ...f, province: e.target.value }))}
-                  className={inputClass}
-                >
-                  {EMPLOYMENT_PROVINCES.map((prov) => (
-                    <option key={prov.en} value={prov.en}>
-                      {pick(prov, lang)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="emp-start" className={labelClass}>
-                  {x(M.employees_prod_start_date)}
-                </label>
-                <input
-                  id="emp-start"
-                  type="date"
-                  value={form.startDate}
-                  onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
-                  className={inputClass}
-                />
-              </div>
-            </div>
-            <div className="mt-[16px] flex gap-[8px]">
-              <button
-                type="submit"
-                disabled={saving}
-                className="cursor-pointer rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white disabled:opacity-60"
-              >
-                {x(M.employees_prod_save)}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setFormOpen(false)
-                  setForm(EMPTY_FORM)
-                }}
-                className="cursor-pointer rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text"
-              >
-                {x(M.employees_prod_cancel)}
-              </button>
-            </div>
-          </form>
-        )}
-
-        {rows !== null && rows.length === 0 && !loadFailed && !formOpen && (
-          <div className="rounded-[12px] border border-border bg-surface px-[24px] py-[40px] text-center">
-            <div className="mx-auto mb-[14px] flex h-[44px] w-[44px] items-center justify-center rounded-[12px] bg-inset">
-              <Users size={20} strokeWidth={1.7} className="text-text-muted" aria-hidden="true" />
-            </div>
-            <div className="mb-[6px] text-[15px] font-semibold text-text">
-              {x(M.employees_prod_empty_title)}
-            </div>
-            <p className="m-0 mb-[16px] text-[13px] text-text-muted">
-              {x(M.employees_prod_empty_body)}
-            </p>
-            {isOrgAdmin && (
-              <button
-                type="button"
-                onClick={() => setFormOpen(true)}
-                className="inline-flex cursor-pointer items-center gap-[7px] rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
-              >
-                <Plus size={14} strokeWidth={2} aria-hidden="true" />
-                {x(M.employees_prod_add)}
-              </button>
-            )}
-          </div>
-        )}
-
-        {rows !== null && rows.length > 0 && (
-          <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
-            {rows.map((emp) => (
-              <div
-                key={emp.id}
-                className="flex items-center gap-[12px] border-t border-inset px-[18px] py-[13px] first:border-t-0"
-              >
-                <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-accent-soft text-[12px] font-bold text-accent">
-                  {initialsOf(emp.name)}
+              <Link to={`/app/employees/${emp.id}`} className="min-w-0 flex-1 hover:opacity-80">
+                <div className="truncate text-[13.5px] font-semibold text-text">{emp.name}</div>
+                <div className="truncate text-[12px] text-text-muted">
+                  {[emp.title, emp.province].filter(Boolean).join(' · ')}
                 </div>
-                <Link to={`/app/employees/${emp.id}`} className="min-w-0 flex-1 hover:opacity-80">
-                  <div className="truncate text-[13.5px] font-semibold text-text">{emp.name}</div>
-                  <div className="truncate text-[12px] text-text-muted">
-                    {[emp.title, emp.province].filter(Boolean).join(' · ')}
-                  </div>
-                </Link>
-                <span className={statusChipClass(STATUS_TONE[emp.status])}>
-                  {x(STATUS_LABEL[emp.status])}
-                </span>
-                {isOrgAdmin && (
-                  <button
-                    type="button"
-                    onClick={() => void onRemove(emp)}
-                    aria-label={`${x(M.employees_prod_remove)} — ${emp.name}`}
-                    className="cursor-pointer border-none bg-transparent p-[6px] text-text-muted hover:text-risk-fg"
-                  >
-                    <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+              </Link>
+              <span className={statusChipClass(STATUS_TONE[emp.status])}>
+                {x(STATUS_LABEL[emp.status])}
+              </span>
+              {isOrgAdmin && (
+                <button
+                  type="button"
+                  onClick={() => void onRemove(emp)}
+                  aria-label={`${x(M.employees_prod_remove)} — ${emp.name}`}
+                  className="cursor-pointer border-none bg-transparent p-[6px] text-text-muted hover:text-risk-fg"
+                >
+                  <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </AppPage>
   )
 }

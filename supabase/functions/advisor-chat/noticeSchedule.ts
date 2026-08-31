@@ -66,10 +66,7 @@ const NOTICE_TERMS: readonly string[] = [
 
 /** True when the message is plausibly about termination notice. */
 export function isNoticeQuestion(message: string): boolean {
-  const normalized = message
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
+  const normalized = message.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
   return NOTICE_TERMS.some((t) => normalized.includes(t))
 }
 

@@ -33,11 +33,7 @@ function TemplateSamplePreviewModal({
 
   return createPortal(
     <div className="surface-marketing dutiva-surface text-text fixed inset-0 z-300 pt-[env(safe-area-inset-top)]">
-      <div
-        onClick={onClose}
-        aria-hidden="true"
-        className="absolute inset-0 bg-overlay-scrim-mid"
-      />
+      <div onClick={onClose} aria-hidden="true" className="absolute inset-0 bg-overlay-scrim-mid" />
       <div
         role="dialog"
         aria-modal="true"
@@ -50,7 +46,9 @@ function TemplateSamplePreviewModal({
               <h2 className="font-display text-[18px] font-semibold tracking-[-0.01em] text-text">
                 {templateName}
               </h2>
-              <p className="mt-1 text-[12px] leading-normal text-text-faint">{t('tplPreview_sample_note')}</p>
+              <p className="mt-1 text-[12px] leading-normal text-text-faint">
+                {t('tplPreview_sample_note')}
+              </p>
             </div>
             <button
               type="button"

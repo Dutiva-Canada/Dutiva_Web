@@ -78,15 +78,15 @@ support@dutiva.ca · 1 (800) 349-0297
 
 ## Tracking
 
-| Field | Value |
-| --- | --- |
-| Prepared | 2026-07-26 |
-| Finalized for send | 2026-08-27 |
-| Sent date | 2026-08-27 |
-| Ticket ID | [#12739848](https://cloudsupport.digitalocean.com) |
-| Topic | Agentic Inference Cloud → Inference → Serverless Inference |
-| DO reply date | 2026-08-27 |
-| Outcome | **Serverless not pinable** — processing in CA, US, or NL; likely TOR1 for Toronto callers; failover to US/NL. **Dedicated TOR1** required for Canada-only. Pricing via Control Panel / Customer Success. Subprocessors updated; production routing unchanged until owner chooses Dedicated. |
+| Field              | Value                                                                                                                                                                                                                                                                                       |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Prepared           | 2026-07-26                                                                                                                                                                                                                                                                                  |
+| Finalized for send | 2026-08-27                                                                                                                                                                                                                                                                                  |
+| Sent date          | 2026-08-27                                                                                                                                                                                                                                                                                  |
+| Ticket ID          | [#12739848](https://cloudsupport.digitalocean.com)                                                                                                                                                                                                                                          |
+| Topic              | Agentic Inference Cloud → Inference → Serverless Inference                                                                                                                                                                                                                                  |
+| DO reply date      | 2026-08-27                                                                                                                                                                                                                                                                                  |
+| Outcome            | **Serverless not pinable** — processing in CA, US, or NL; likely TOR1 for Toronto callers; failover to US/NL. **Dedicated TOR1** required for Canada-only. Pricing via Control Panel / Customer Success. Subprocessors updated; production routing unchanged until owner chooses Dedicated. |
 
 ---
 

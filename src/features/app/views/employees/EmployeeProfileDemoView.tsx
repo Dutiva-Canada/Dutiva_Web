@@ -179,126 +179,126 @@ export function EmployeeProfileDemoView() {
 
   return (
     <AppPage width="default">
+      <button
+        type="button"
+        onClick={() => navigate('/app/employees')}
+        className="mb-[16px] flex cursor-pointer items-center gap-[6px] border-none bg-transparent p-0 font-sans text-[13px] font-semibold text-text-muted"
+      >
+        <ChevronLeft size={15} strokeWidth={2} aria-hidden="true" />
+        {x(M.employees_back_all_people)}
+      </button>
+
+      {/* Identity header */}
+      <div className="mb-[6px] flex flex-wrap items-start gap-[16px]">
+        <div className="flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-full bg-navy text-[19px] font-bold text-gold-on-navy">
+          {emp.initials}
+        </div>
+        <div className="min-w-[200px] flex-1">
+          <div className="font-display text-[23px] font-semibold text-text">{emp.name}</div>
+          <div className="mt-[2px] text-[13.5px] text-text-3">
+            {x(emp.role)} · {x(emp.dept)} · {x(emp.province)}
+          </div>
+          <div className="mt-[10px] flex flex-wrap items-center gap-[8px]">
+            <span className={statusChipClass(emp.tone)}>{x(emp.status)}</span>
+            <span className="text-[12px] text-text-muted">
+              {x(emp.tenure)} · {x(M.employees_manager_label)}
+              {colon}
+              {det.manager} · {x(M.employees_since_label)} {det.startDate}
+            </span>
+          </div>
+        </div>
         <button
           type="button"
-          onClick={() => navigate('/app/employees')}
-          className="mb-[16px] flex cursor-pointer items-center gap-[6px] border-none bg-transparent p-0 font-sans text-[13px] font-semibold text-text-muted"
+          onClick={() => askAdvisor(emp)}
+          className="flex shrink-0 cursor-pointer items-center gap-[7px] rounded-[9px] border border-gold-border bg-gold-bg px-[15px] py-[9px] font-sans text-[13px] font-bold text-gold-fg"
         >
-          <ChevronLeft size={15} strokeWidth={2} aria-hidden="true" />
-          {x(M.employees_back_all_people)}
+          <Sparkle size={14} fill="currentColor" strokeWidth={0} aria-hidden="true" />
+          {x(M.employees_ask_advisor)}
         </button>
+      </div>
 
-        {/* Identity header */}
-        <div className="mb-[6px] flex flex-wrap items-start gap-[16px]">
-          <div className="flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-full bg-navy text-[19px] font-bold text-gold-on-navy">
-            {emp.initials}
-          </div>
-          <div className="min-w-[200px] flex-1">
-            <div className="font-display text-[23px] font-semibold text-text">{emp.name}</div>
-            <div className="mt-[2px] text-[13.5px] text-text-3">
-              {x(emp.role)} · {x(emp.dept)} · {x(emp.province)}
-            </div>
-            <div className="mt-[10px] flex flex-wrap items-center gap-[8px]">
-              <span className={statusChipClass(emp.tone)}>{x(emp.status)}</span>
-              <span className="text-[12px] text-text-muted">
-                {x(emp.tenure)} · {x(M.employees_manager_label)}
-                {colon}
-                {det.manager} · {x(M.employees_since_label)} {det.startDate}
-              </span>
-            </div>
-          </div>
+      {/* Tab strip */}
+      <div
+        role="tablist"
+        aria-label={x(M.employees_profile_tabs_aria)}
+        className="mt-[18px] mb-[22px] flex gap-[2px] overflow-x-auto border-b border-border"
+      >
+        {PROFILE_TABS.map((t) => (
           <button
+            key={t.key}
             type="button"
-            onClick={() => askAdvisor(emp)}
-            className="flex shrink-0 cursor-pointer items-center gap-[7px] rounded-[9px] border border-gold-border bg-gold-bg px-[15px] py-[9px] font-sans text-[13px] font-bold text-gold-fg"
+            role="tab"
+            aria-selected={tab === t.key}
+            onClick={() => setTab(t.key)}
+            className={`cursor-pointer border-0 border-b-2 bg-transparent px-[14px] py-[9px] font-sans text-[13px] font-semibold whitespace-nowrap ${
+              tab === t.key ? 'border-b-navy text-text' : 'border-b-transparent text-text-muted'
+            }`}
           >
-            <Sparkle size={14} fill="currentColor" strokeWidth={0} aria-hidden="true" />
-            {x(M.employees_ask_advisor)}
+            <span className="inline-flex items-center gap-[5px]">
+              {x(t.label)}
+              {t.locked && (
+                <Lock size={11} strokeWidth={2} className="opacity-70" aria-hidden="true" />
+              )}
+            </span>
           </button>
-        </div>
+        ))}
+      </div>
 
-        {/* Tab strip */}
-        <div
-          role="tablist"
-          aria-label={x(M.employees_profile_tabs_aria)}
-          className="mt-[18px] mb-[22px] flex gap-[2px] overflow-x-auto border-b border-border"
-        >
-          {PROFILE_TABS.map((t) => (
-            <button
-              key={t.key}
-              type="button"
-              role="tab"
-              aria-selected={tab === t.key}
-              onClick={() => setTab(t.key)}
-              className={`cursor-pointer border-0 border-b-2 bg-transparent px-[14px] py-[9px] font-sans text-[13px] font-semibold whitespace-nowrap ${
-                tab === t.key ? 'border-b-navy text-text' : 'border-b-transparent text-text-muted'
-              }`}
-            >
-              <span className="inline-flex items-center gap-[5px]">
-                {x(t.label)}
-                {t.locked && (
-                  <Lock size={11} strokeWidth={2} className="opacity-70" aria-hidden="true" />
-                )}
-              </span>
-            </button>
-          ))}
-        </div>
+      {/* ── Overview ─────────────────────────────────────────────────── */}
+      {tab === 'overview' && (
+        <EmployeeOverviewTab
+          emp={emp}
+          det={det}
+          recordRows={recordRows}
+          wbSignalCount={wbSignals.length}
+          openCaseCount={empCases.length}
+          onOpenAdvisorChat={openAdvisorChat}
+        />
+      )}
 
-        {/* ── Overview ─────────────────────────────────────────────────── */}
-        {tab === 'overview' && (
-          <EmployeeOverviewTab
-            emp={emp}
-            det={det}
-            recordRows={recordRows}
-            wbSignalCount={wbSignals.length}
-            openCaseCount={empCases.length}
-            onOpenAdvisorChat={openAdvisorChat}
-          />
-        )}
+      {/* ── Timeline ─────────────────────────────────────────────────── */}
+      {tab === 'timeline' && (
+        <EmployeeTimelineTab timeline={det.timeline} eventAction={eventAction} />
+      )}
 
-        {/* ── Timeline ─────────────────────────────────────────────────── */}
-        {tab === 'timeline' && (
-          <EmployeeTimelineTab timeline={det.timeline} eventAction={eventAction} />
-        )}
+      {/* ── Documents ────────────────────────────────────────────────── */}
+      {tab === 'documents' && det.docs.length > 0 && (
+        <EmployeeDocumentsTab docs={det.docs} onOpenDoc={openDocFromLibrary} />
+      )}
 
-        {/* ── Documents ────────────────────────────────────────────────── */}
-        {tab === 'documents' && det.docs.length > 0 && (
-          <EmployeeDocumentsTab docs={det.docs} onOpenDoc={openDocFromLibrary} />
-        )}
+      {/* ── Leave & accommodation ────────────────────────────────────── */}
+      {tab === 'leave' && <EmployeeLeaveTab leave={det.leave} />}
 
-        {/* ── Leave & accommodation ────────────────────────────────────── */}
-        {tab === 'leave' && <EmployeeLeaveTab leave={det.leave} />}
+      {/* ── Compensation ─────────────────────────────────────────────── */}
+      {tab === 'compensation' && (
+        <EmployeeCompensationTab
+          det={det}
+          marketDelta={marketDelta}
+          marketDeltaLabel={marketDeltaLabel}
+        />
+      )}
 
-        {/* ── Compensation ─────────────────────────────────────────────── */}
-        {tab === 'compensation' && (
-          <EmployeeCompensationTab
-            det={det}
-            marketDelta={marketDelta}
-            marketDeltaLabel={marketDeltaLabel}
-          />
-        )}
+      {/* ── Wellbeing ────────────────────────────────────────────────── */}
+      {tab === 'wellbeing' && <EmployeeWellbeingTab wbSignals={wbSignals} />}
 
-        {/* ── Wellbeing ────────────────────────────────────────────────── */}
-        {tab === 'wellbeing' && <EmployeeWellbeingTab wbSignals={wbSignals} />}
+      {/* ── Compliance ───────────────────────────────────────────────── */}
+      {tab === 'compliance' && relatedCompliance.length > 0 && (
+        <EmployeeComplianceTab items={relatedCompliance} onResolve={resolveWithAdvisor} />
+      )}
 
-        {/* ── Compliance ───────────────────────────────────────────────── */}
-        {tab === 'compliance' && relatedCompliance.length > 0 && (
-          <EmployeeComplianceTab items={relatedCompliance} onResolve={resolveWithAdvisor} />
-        )}
+      {/* ── Cases ────────────────────────────────────────────────────── */}
+      {tab === 'cases' && empCases.length > 0 && (
+        <EmployeeCasesTab
+          empCases={empCases}
+          onOpenCase={(caseId) => navigate(`/app/cases/${caseId}`)}
+        />
+      )}
 
-        {/* ── Cases ────────────────────────────────────────────────────── */}
-        {tab === 'cases' && empCases.length > 0 && (
-          <EmployeeCasesTab
-            empCases={empCases}
-            onOpenCase={(caseId) => navigate(`/app/cases/${caseId}`)}
-          />
-        )}
-
-        {/* Audit footnote */}
-        <div className="mt-[22px] flex items-start gap-[7px] text-[11px] leading-normal text-text-faint">
-          <Shield size={12} strokeWidth={1.8} className="mt-px shrink-0" aria-hidden="true" />
-          <span>{x(M.employees_audit_foot)}</span>
-        </div>
+      {/* Audit footnote */}
+      <div className="mt-[22px] flex items-start gap-[7px] text-[11px] leading-normal text-text-faint">
+        <Shield size={12} strokeWidth={1.8} className="mt-px shrink-0" aria-hidden="true" />
+        <span>{x(M.employees_audit_foot)}</span>
+      </div>
     </AppPage>
   )
 }

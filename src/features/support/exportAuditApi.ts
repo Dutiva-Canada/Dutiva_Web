@@ -51,14 +51,11 @@ export interface ExportAuditLookup {
 }
 
 /** Resolve a single export id to its audit row (the forensic use case). */
-export async function lookupExport(
-  exportId: string,
-): Promise<ExportEventRow | null> {
+export async function lookupExport(exportId: string): Promise<ExportEventRow | null> {
   if (!supabase) return null
-  const { data, error } = await supabase.functions.invoke<ExportAuditLookup>(
-    'export-audit-trail',
-    { body: { exportId } },
-  )
+  const { data, error } = await supabase.functions.invoke<ExportAuditLookup>('export-audit-trail', {
+    body: { exportId },
+  })
   if (error || !data?.row) return null
   return data.row
 }
@@ -72,14 +69,11 @@ export async function listExportEvents(
   if (!supabase) {
     return { rows: [], total: 0, page, perPage, totalPages: 0 }
   }
-  const { data, error } = await supabase.functions.invoke<ExportAuditPage>(
-    'export-audit-trail',
-    { body: { ...filters, page, perPage } },
-  )
+  const { data, error } = await supabase.functions.invoke<ExportAuditPage>('export-audit-trail', {
+    body: { ...filters, page, perPage },
+  })
   if (error || !data) {
-    throw new Error(
-      `export-audit-trail: ${error?.message ?? 'no data returned'}`,
-    )
+    throw new Error(`export-audit-trail: ${error?.message ?? 'no data returned'}`)
   }
   return data
 }

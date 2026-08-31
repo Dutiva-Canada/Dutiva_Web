@@ -75,24 +75,21 @@ export function SigningProductionView() {
     return () => window.clearInterval(id)
   }, [pkg, userEmail, load])
 
-  const turn = useMemo(
-    () => (pkg ? currentSigningTurn(pkg.recipients) : null),
-    [pkg],
-  )
+  const turn = useMemo(() => (pkg ? currentSigningTurn(pkg.recipients) : null), [pkg])
 
   const pendingRecipients = useMemo(
     () =>
       pkg?.recipients.filter(
-        (r) => r.status !== 'signed' && r.status !== 'declined' && r.email.toLowerCase() === userEmail,
+        (r) =>
+          r.status !== 'signed' && r.status !== 'declined' && r.email.toLowerCase() === userEmail,
       ) ?? [],
     [pkg, userEmail],
   )
 
   const signedRecipientsForUser = useMemo(
     () =>
-      pkg?.recipients.filter(
-        (r) => r.status === 'signed' && r.email.toLowerCase() === userEmail,
-      ) ?? [],
+      pkg?.recipients.filter((r) => r.status === 'signed' && r.email.toLowerCase() === userEmail) ??
+      [],
     [pkg, userEmail],
   )
 
@@ -116,7 +113,11 @@ export function SigningProductionView() {
     if (!pkg) return null
     const current = pkg.detail.versions.find((v) => v.versionNumber === pkg.detail.currentVersion)
     if (!current) return null
-    return { blocks: current.content.blocks, values: current.content.values, lang: pkg.detail.language }
+    return {
+      blocks: current.content.blocks,
+      values: current.content.values,
+      lang: pkg.detail.language,
+    }
   }, [pkg])
 
   if (!organizationId) {
@@ -192,10 +193,14 @@ export function SigningProductionView() {
     if (!envelopeId || !canSignSelected || !signature || !consentChecked || signing) return
     setSigning(true)
     try {
-      const result = await applyDocumentSignature(envelopeId, {
-        image: signature.image,
-        signedName: signature.signedName,
-      }, DUTIVA_SIGNING_CONSENT_VERSION)
+      const result = await applyDocumentSignature(
+        envelopeId,
+        {
+          image: signature.image,
+          signedName: signature.signedName,
+        },
+        DUTIVA_SIGNING_CONSENT_VERSION,
+      )
       showToast(
         result.signatureStatus === 'signed' ? M.doclib_prod_status_signed : M.doclib_prod_sent_sign,
         result.signatureStatus === 'signed' ? 'ok' : 'info',

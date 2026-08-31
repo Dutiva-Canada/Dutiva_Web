@@ -13,9 +13,7 @@ export function WorkspaceContextProvider({ children }: { readonly children: Reac
   const clearContext = useCallback(() => setContext(null), [])
 
   const removeContextMeta = useCallback((index: number) => {
-    setContext((prev) =>
-      prev ? { ...prev, meta: prev.meta.filter((_, i) => i !== index) } : prev,
-    )
+    setContext((prev) => (prev ? { ...prev, meta: prev.meta.filter((_, i) => i !== index) } : prev))
   }, [])
 
   const value = useMemo(

@@ -24,8 +24,6 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-
-
 The Document Management System is Dutiva's subsystem for authoring, generating, signing, and exporting HR documents. It combines a **template catalogue** of 50+ bilingual, jurisdiction-aware templates with a **wizard-driven generation flow**, an **embedded e-signature workflow**, and an **export protection subsystem** that fingerprints and watermarks every artifact leaving the platform. The code lives primarily under `src/features/app/documents/` with export protection in `src/lib/exportProtection/`.
 
 ## System Architecture
@@ -99,15 +97,15 @@ Sources: [src/features/app/documents/DocumentsLayout.tsx:1-95](), [src/features/
 
 All document routes are nested under `/app/documents` within a shared `DocumentsLayout`. This layout mounts the `DoclibProvider` (the feature-scoped state provider) and renders three navigation tabs — HR Library, Documents, and Document Studio — followed by a "Viewing as" role selector for the demo permission model.
 
-| Route | Screen | Purpose |
-|---|---|---|
-| `/app/documents/hr-library` | `TemplatesView` | Public template catalogue (read-only browsing) |
-| `/app/documents/studio` | `StudioScreen` | Template library with org-profile applicability engine |
-| `/app/documents/studio/templates/:tid` | `TemplateDetailScreen` | Single template detail + sample preview |
-| `/app/documents/studio/generate/:tid` | `GenerateScreen` | Wizard-driven document generation |
-| `/app/documents` | `RepositoryScreen` | Generated document register (8-column filterable table) |
-| `/app/documents/:docId` | `DocumentDetailScreen` | Document detail with status chips, 5 tabs, actions |
-| `/app/documents/sign/:envelopeId` | `SigningScreen` | E-signature capture for a specific envelope |
+| Route                                  | Screen                 | Purpose                                                 |
+| -------------------------------------- | ---------------------- | ------------------------------------------------------- |
+| `/app/documents/hr-library`            | `TemplatesView`        | Public template catalogue (read-only browsing)          |
+| `/app/documents/studio`                | `StudioScreen`         | Template library with org-profile applicability engine  |
+| `/app/documents/studio/templates/:tid` | `TemplateDetailScreen` | Single template detail + sample preview                 |
+| `/app/documents/studio/generate/:tid`  | `GenerateScreen`       | Wizard-driven document generation                       |
+| `/app/documents`                       | `RepositoryScreen`     | Generated document register (8-column filterable table) |
+| `/app/documents/:docId`                | `DocumentDetailScreen` | Document detail with status chips, 5 tabs, actions      |
+| `/app/documents/sign/:envelopeId`      | `SigningScreen`        | E-signature capture for a specific envelope             |
 
 The Document Studio screens are **ungated** — the template catalogue is real product content available in both demo and production modes. Only the fixture repository data is demo-scoped.
 
@@ -148,11 +146,11 @@ Sources: [src/features/app/documents/screens/RepositoryProductionView.tsx](), [s
 
 `DoclibProvider` is the feature-scoped React context provider that wraps all document routes. It loads the demo catalogue via `loadDoclibData()` (bundled fixtures, resolved once per session), manages the "Viewing as" role (persisted to `sessionStorage` under key `dutiva-doclib-role`), and exposes mutable operations for the e-signature flow:
 
-| Context method | Purpose |
-|---|---|
-| `sendForSignature(docId, recipients)` | Creates a signature envelope (`ENV-*` id), sets document status to `sent_for_signature` |
+| Context method                               | Purpose                                                                                 |
+| -------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `sendForSignature(docId, recipients)`        | Creates a signature envelope (`ENV-*` id), sets document status to `sent_for_signature` |
 | `applySignature(envelopeId, email, payload)` | Records one recipient's signature, updates aggregate status (partially_signed → signed) |
-| `getDocumentForEnvelope(envelopeId)` | Looks up a document by its envelope id for the signing screen |
+| `getDocumentForEnvelope(envelopeId)`         | Looks up a document by its envelope id for the signing screen                           |
 
 The context type `DoclibContextValue` is defined in `doclibContext.ts` and consumed via the `useDoclib()` hook. The data layer (`api.ts`) always serves bundled fixtures — the earlier Supabase `doclib_*` views were dropped in migration `0021_drop_doclib_demo_schema.sql`.
 
@@ -212,15 +210,15 @@ flowchart LR
     STAMP --> AUDIT["appendExportAudit()\n(localAudit.ts)"]
 ```
 
-| Layer | Module | Mechanism |
-|---|---|---|
-| Invisible fingerprint | `fingerprint.ts` | Zero-width characters (ZWNJ/ZWSP) encoding the export UUID between WORD JOINER sentinels; survives copy-paste |
-| Visible watermark | `watermark.ts` | Identity line + confidentiality notice appended to every export |
-| Content hash | `fingerprint.ts` | SHA-256 via WebCrypto (FNV-1a fallback), stored in the audit row |
-| Local velocity guard | `localAudit.ts` | Sliding-window rate limits: 12/5min burst, 100/day; localStorage ring buffer (`dutiva-export-audit`) |
-| Server guard | `authorize.ts` → `record-export` edge function | Atomic `claim_export_slot` with server-side ceilings; 429 refusal is final |
-| PDF metadata | `textPdf.ts` | Export id in PDF Info dictionary; dependency-free raw PDF writer (Helvetica + WinAnsi) |
-| Word metadata | `wordDoc.ts` | `<meta name="dutiva-export-id">` + HTML comment in Word HTML `.doc` format |
+| Layer                 | Module                                         | Mechanism                                                                                                     |
+| --------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Invisible fingerprint | `fingerprint.ts`                               | Zero-width characters (ZWNJ/ZWSP) encoding the export UUID between WORD JOINER sentinels; survives copy-paste |
+| Visible watermark     | `watermark.ts`                                 | Identity line + confidentiality notice appended to every export                                               |
+| Content hash          | `fingerprint.ts`                               | SHA-256 via WebCrypto (FNV-1a fallback), stored in the audit row                                              |
+| Local velocity guard  | `localAudit.ts`                                | Sliding-window rate limits: 12/5min burst, 100/day; localStorage ring buffer (`dutiva-export-audit`)          |
+| Server guard          | `authorize.ts` → `record-export` edge function | Atomic `claim_export_slot` with server-side ceilings; 429 refusal is final                                    |
+| PDF metadata          | `textPdf.ts`                                   | Export id in PDF Info dictionary; dependency-free raw PDF writer (Helvetica + WinAnsi)                        |
+| Word metadata         | `wordDoc.ts`                                   | `<meta name="dutiva-export-id">` + HTML comment in Word HTML `.doc` format                                    |
 
 The system is deliberately **fail-open for offline use**: if the server is unreachable, the export proceeds with a locally-minted id and the full watermark — only the server audit row is lost, and this is flagged via `recordedRemotely: false`.
 
@@ -287,14 +285,14 @@ classDiagram
 
 Key enumerations:
 
-| Type | Values |
-|---|---|
-| `DocStatus` | `draft`, `in_review`, `needs_revision`, `approved`, `sent_for_signature`, `partially_signed`, `signed`, `exported`, `archived`, `voided`, `deleted` |
-| `Jurisdiction` | `ON`, `QC`, `FED` |
-| `DocRiskLevel` | `low`, `medium`, `high` |
-| `WorkspaceRole` | `owner`, `hr`, `manager`, `viewer`, `external` |
-| `TemplateCategoryId` | `hiring`, `changes`, `agreements`, `policies`, `discipline`, `termination`, `accommodation`, `wellbeing`, `compensation`, `communications` |
-| `PreviewBlockType` | `title`, `meta`, `para`, `clause`, `sig`, `ack`, `note`, `fill` |
+| Type                 | Values                                                                                                                                              |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DocStatus`          | `draft`, `in_review`, `needs_revision`, `approved`, `sent_for_signature`, `partially_signed`, `signed`, `exported`, `archived`, `voided`, `deleted` |
+| `Jurisdiction`       | `ON`, `QC`, `FED`                                                                                                                                   |
+| `DocRiskLevel`       | `low`, `medium`, `high`                                                                                                                             |
+| `WorkspaceRole`      | `owner`, `hr`, `manager`, `viewer`, `external`                                                                                                      |
+| `TemplateCategoryId` | `hiring`, `changes`, `agreements`, `policies`, `discipline`, `termination`, `accommodation`, `wellbeing`, `compensation`, `communications`          |
+| `PreviewBlockType`   | `title`, `meta`, `para`, `clause`, `sig`, `ack`, `note`, `fill`                                                                                     |
 
 Sources: [src/features/app/documents/data/types.ts:1-280](), [src/features/app/documents/data/meta.ts:56-210]()
 

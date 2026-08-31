@@ -12,12 +12,12 @@ tables that exist in production**.
 after these ran — see **OA10** in [../../docs/TODO.md](../../docs/TODO.md). A
 check against the live database on 2026-08-06 found:
 
-| Table | `create table` in `supabase/migrations/`? | Live? |
-| --- | --- | --- |
-| `profiles` | yes — `0013_add_billing_profiles.sql` | yes |
-| `documents` | **no** | yes |
-| `signatures` | **no** | yes |
-| `conversations` | **no** | yes |
+| Table           | `create table` in `supabase/migrations/`? | Live? |
+| --------------- | ----------------------------------------- | ----- |
+| `profiles`      | yes — `0013_add_billing_profiles.sql`     | yes   |
+| `documents`     | **no**                                    | yes   |
+| `signatures`    | **no**                                    | yes   |
+| `conversations` | **no**                                    | yes   |
 
 So for three live tables, the column definitions, constraints, and RLS policies
 existed nowhere in version control. That is the gap OA10 describes — "a reviewer

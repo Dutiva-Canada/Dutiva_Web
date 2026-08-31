@@ -53,9 +53,9 @@ See also `architecture/knowledge-architecture.md`. The hierarchy, from most to l
 
 `SOURCE-REQ-008`: Statute names SHALL be presented in the official language of the jurisdiction's legal tradition:
 
-- Ontario English text: *Employment Standards Act, 2000*, S.O. 2000, c. 41.
-- Québec French text: *Loi sur les normes du travail*, RLRQ c. N-1.1.
-- Federal bilingual: Canada Labour Code, Part III / *Code canadien du travail, partie III*.
+- Ontario English text: _Employment Standards Act, 2000_, S.O. 2000, c. 41.
+- Québec French text: _Loi sur les normes du travail_, RLRQ c. N-1.1.
+- Federal bilingual: Canada Labour Code, Part III / _Code canadien du travail, partie III_.
 
 `SOURCE-REQ-009`: Citations in French SHALL use French legal citation conventions.
 

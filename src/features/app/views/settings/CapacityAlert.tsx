@@ -38,8 +38,12 @@ export function CapacityAlert() {
         className="mt-[16px] rounded-[12px] border border-border bg-inset px-[16px] py-[14px]"
         role="status"
       >
-        <h3 className="m-0 text-[14px] font-semibold text-text-2">{x(M.capacity_waitlist_title)}</h3>
-        <p className="mt-[6px] text-[13px] leading-[1.5] text-text-3">{x(M.capacity_waitlist_body)}</p>
+        <h3 className="m-0 text-[14px] font-semibold text-text-2">
+          {x(M.capacity_waitlist_title)}
+        </h3>
+        <p className="mt-[6px] text-[13px] leading-[1.5] text-text-3">
+          {x(M.capacity_waitlist_body)}
+        </p>
         <div className="mt-[12px]">
           <button type="button" className={secondaryClass} onClick={clearAdmissionStatus}>
             {x(M.capacity_dismiss)}
@@ -55,8 +59,12 @@ export function CapacityAlert() {
         className="mt-[16px] rounded-[12px] border border-risk-border bg-risk-bg px-[16px] py-[14px]"
         role="alert"
       >
-        <h3 className="m-0 text-[14px] font-semibold text-risk-fg">{x(M.capacity_reached_title)}</h3>
-        <p className="mt-[6px] text-[13px] leading-[1.5] text-text-3">{x(M.capacity_reached_body)}</p>
+        <h3 className="m-0 text-[14px] font-semibold text-risk-fg">
+          {x(M.capacity_reached_title)}
+        </h3>
+        <p className="mt-[6px] text-[13px] leading-[1.5] text-text-3">
+          {x(M.capacity_reached_body)}
+        </p>
         <div className="mt-[12px] flex gap-[10px]">
           <button type="button" className={primaryClass} onClick={handleJoin} disabled={working}>
             {x(M.capacity_join_waitlist)}

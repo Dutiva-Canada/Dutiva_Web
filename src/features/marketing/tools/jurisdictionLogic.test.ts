@@ -64,23 +64,34 @@ describe('jurisdictionLogic', () => {
 
   describe('determineJurisdiction', () => {
     it('returns FED for a federally regulated employer regardless of province', () => {
-      expect(determineJurisdiction({ employerType: 'federal', workProvince: 'ON' })?.jurisdiction).toBe('FED')
-      expect(determineJurisdiction({ employerType: 'federal', workProvince: 'QC' })?.jurisdiction).toBe('FED')
-      expect(determineJurisdiction({ employerType: 'federal', workProvince: 'other' })?.jurisdiction).toBe('FED')
+      expect(
+        determineJurisdiction({ employerType: 'federal', workProvince: 'ON' })?.jurisdiction,
+      ).toBe('FED')
+      expect(
+        determineJurisdiction({ employerType: 'federal', workProvince: 'QC' })?.jurisdiction,
+      ).toBe('FED')
+      expect(
+        determineJurisdiction({ employerType: 'federal', workProvince: 'other' })?.jurisdiction,
+      ).toBe('FED')
     })
 
     it('returns ON for a provincial employer in Ontario', () => {
-      expect(determineJurisdiction({ employerType: 'provincial', workProvince: 'ON' })?.jurisdiction).toBe('ON')
+      expect(
+        determineJurisdiction({ employerType: 'provincial', workProvince: 'ON' })?.jurisdiction,
+      ).toBe('ON')
     })
 
     it('returns QC for a provincial employer in Quebec', () => {
       expect(
-        determineJurisdiction({ employerType: 'provincial', workProvince: 'QC', qcLanguage: 'yes' })?.jurisdiction,
+        determineJurisdiction({ employerType: 'provincial', workProvince: 'QC', qcLanguage: 'yes' })
+          ?.jurisdiction,
       ).toBe('QC')
     })
 
     it('returns null for a provincial employer in another province', () => {
-      expect(determineJurisdiction({ employerType: 'provincial', workProvince: 'other' })).toBeNull()
+      expect(
+        determineJurisdiction({ employerType: 'provincial', workProvince: 'other' }),
+      ).toBeNull()
     })
 
     it('returns null for incomplete answers', () => {
@@ -100,7 +111,9 @@ describe('jurisdictionLogic', () => {
     it('returns true for FED, ON, QC', () => {
       expect(isSupported({ employerType: 'federal', workProvince: 'ON' })).toBe(true)
       expect(isSupported({ employerType: 'provincial', workProvince: 'ON' })).toBe(true)
-      expect(isSupported({ employerType: 'provincial', workProvince: 'QC', qcLanguage: 'yes' })).toBe(true)
+      expect(
+        isSupported({ employerType: 'provincial', workProvince: 'QC', qcLanguage: 'yes' }),
+      ).toBe(true)
     })
 
     it('returns false for other provinces', () => {

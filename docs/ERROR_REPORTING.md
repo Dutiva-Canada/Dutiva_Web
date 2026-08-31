@@ -14,16 +14,16 @@ privacy-as-afterthought.
 
 Exactly these fields, and nothing else, per report:
 
-| Field | Example | Why it's safe |
-| --- | --- | --- |
-| `message` | `Cannot read properties of null` | Error text. Free-form — see residual risk below. |
-| `stack` | minified stack, ≤ 4 KB | Resolved with source maps kept off the public server. |
-| `route` | `/app/cases/:id` | Route **pattern** — never a resolved path (see scrubbing). |
-| `release` | commit SHA | Ties a trace to the exact deploy + its source maps. |
-| `locale` | `en-CA` / `fr-CA` | From `<html lang>`; not identifying. |
-| `kind` | `route-boundary` | Which handler fired. |
-| `ua` | `Chrome/120 macOS` | **Coarse** UA — family + major + OS only. |
-| `env` | `production` / `preview` | So preview noise can be filtered from prod triage. |
+| Field     | Example                          | Why it's safe                                              |
+| --------- | -------------------------------- | ---------------------------------------------------------- |
+| `message` | `Cannot read properties of null` | Error text. Free-form — see residual risk below.           |
+| `stack`   | minified stack, ≤ 4 KB           | Resolved with source maps kept off the public server.      |
+| `route`   | `/app/cases/:id`                 | Route **pattern** — never a resolved path (see scrubbing). |
+| `release` | commit SHA                       | Ties a trace to the exact deploy + its source maps.        |
+| `locale`  | `en-CA` / `fr-CA`                | From `<html lang>`; not identifying.                       |
+| `kind`    | `route-boundary`                 | Which handler fired.                                       |
+| `ua`      | `Chrome/120 macOS`               | **Coarse** UA — family + major + OS only.                  |
+| `env`     | `production` / `preview`         | So preview noise can be filtered from prod triage.         |
 
 ### What is deliberately **not** sent
 
@@ -36,7 +36,7 @@ Exactly these fields, and nothing else, per report:
 - **No persistent per-user / install id.** We considered a random install id for
   grouping and rejected it: dedupe is done in-memory client-side, and grouping is
   done server-side on `route` + `message` + stack. A persisted id in
-  `localStorage` would be a *new identifier* we'd have to justify under Law 25 for
+  `localStorage` would be a _new identifier_ we'd have to justify under Law 25 for
   no benefit, so it isn't collected.
 - **No full user-agent string is retained.** The raw UA is a high-entropy
   fingerprinting vector, so the value **stored in a report row** is reduced to
@@ -75,8 +75,8 @@ content-hashed asset names a stack needs for symbolication; known
 identifier-bearing throws are also fixed at the source (e.g. doclib no longer
 puts document/template ids in its message); both fields are length-capped
 (client + DB); a **90-day retention** bounds how long anything lingers; nothing
-else is attached; and the standing guideline is *don't embed PII in thrown error
-messages.* Redaction is a safety net, not a guarantee — free text can't be fully
+else is attached; and the standing guideline is _don't embed PII in thrown error
+messages._ Redaction is a safety net, not a guarantee — free text can't be fully
 scrubbed without destroying its usefulness.
 
 ## Where the data lives (residency)
@@ -94,14 +94,14 @@ US or EU. Keeping reports inside Supabase adds zero new processors.
 
 **Edge Function region — a separate control.** The project region pins the
 **database**, but Supabase Edge Functions run at the edge **nearest the caller**
-by default, so the function's *execution* (and its platform logs) can happen
+by default, so the function's _execution_ (and its platform logs) can happen
 outside Canada even with the DB in `ca-central-1`. The reporter therefore pins
 the invocation with `?forceFunctionRegion=ca-central-1` (`REPORTING_REGION` in
 `src/lib/errorReporting/index.ts`). Verify it in production via the response's
 `x-sb-edge-region` header, and keep `REPORTING_REGION` aligned with the DB region
 if the project ever moves. (The HTTP transport still traverses the caller's
 network path like any web request; this control governs where the function
-*processes and logs* the payload.)
+_processes and logs_ the payload.)
 
 ## How it runs (and when it doesn't)
 
@@ -131,7 +131,7 @@ risk below applies the same to both). The only cost is noise, mitigated by the
   own — most commonly a hydration mismatch on the prerendered public pages,
   where React discards the mismatched subtree and re-renders client-side
   rather than crashing. The visitor never sees a broken page, but without this
-  hook production had zero visibility into *where* it happened (the minified
+  hook production had zero visibility into _where_ it happened (the minified
   message alone gives no clue, and the fallback path — an uncaught `error`
   event — reported it as an undifferentiated `window-error` with no component
   stack). `kind: 'recoverable-error'`; `stack` has `errorInfo.componentStack`
@@ -174,7 +174,7 @@ on a retained report row:
 - **The HMAC governs only our table, not the platform logs.** The raw client IP
   is in the HTTP request, so Supabase's Edge/network invocation logs retain it as
   request metadata independently of what we store — the same transport-metadata
-  caveat as the user-agent. "Used only to rate-limit" describes *our* use; it does
+  caveat as the user-agent. "Used only to rate-limit" describes _our_ use; it does
   not erase the platform log. Verify Supabase's log **region**, **retention**, and
   any **log drains** for the project, and disclose them as part of the residency
   posture.
@@ -187,11 +187,11 @@ therefore target a **90-day** bound, enforced by two mechanisms with different
 guarantees:
 
 - **Opportunistic (best-effort):** the ingest RPC deletes past-window rows on a
-  small sample of calls. This needs no scheduler but only runs *under traffic* —
+  small sample of calls. This needs no scheduler but only runs _under traffic_ —
   it cannot bound retention on a quiet endpoint.
 - **Scheduled (the real guarantee — REQUIRED):** `purge_client_error_data()` must
   be scheduled at least hourly (pg_cron or an external scheduler) as a verified
-  deploy step (see the migration's DEPLOY note and *Deploying the endpoint*
+  deploy step (see the migration's DEPLOY note and _Deploying the endpoint_
   below). **Until it is provisioned and verified, retention is best-effort only**
   and old rows can persist — do not treat 90 days as guaranteed before then.
 
@@ -202,12 +202,12 @@ Minified stacks are useless, so `build.sourcemap` is `'hidden'`:
 - `'hidden'` emits `.map` files but **omits the `sourceMappingURL` comment**, so
   browsers and crawlers never auto-fetch them.
 - `scripts/relocate-sourcemaps.mjs` then **moves every `dist/**/*.map` out of
-  `dist/`** into a git-ignored `sourcemaps/<sha>/` — *before* the service worker
+  `dist/`** into a git-ignored `sourcemaps/<sha>/` — _before_ the service worker
   precaches assets and before `dist/` is deployed — so the maps are **never
   publicly served**.
 - **Archival is a required deploy step, not automatic.** `sourcemaps/<sha>/` is a
   local build directory; the deploy build (Vercel) discards everything outside
-  the deployed output, and the GitHub CI build produces *different* bundles
+  the deployed output, and the GitHub CI build produces _different_ bundles
   (no `__RELEASE_SHA__`, so different hashes), so neither preserves the deployed
   release's maps on its own. To symbolicate production traces, the **deploy
   pipeline must upload `sourcemaps/<sha>/` to private storage keyed by the
@@ -253,7 +253,7 @@ appears, check the function logs for `report-error: missing configuration`.
   auth header.
 - **Required:** set `ERROR_REPORT_SALT` (or `SUPPORT_NOTIFY_SECRET`) — the pepper
   for the rate-limit IP HMAC. The function fails closed without it.
-- **Required — schedule retention and verify it.** The migration does *not*
+- **Required — schedule retention and verify it.** The migration does _not_
   schedule the purge itself (so it neither silently no-ops nor hard-fails a
   replay). Provision one of, then confirm it exists:
   - pg_cron: `create extension if not exists pg_cron;` then
@@ -264,17 +264,18 @@ appears, check the function logs for `report-error: missing configuration`.
 
   Until this is done, retention is best-effort (RPC-only) and unbounded on a quiet
   endpoint.
+
 - Reports land in `public.client_error_reports`; reads are admin-only (RLS).
 
 ## Files
 
-| File | Role |
-| --- | --- |
-| `src/lib/errorReporting/scrubRoute.ts` | Path → route pattern (PII control) |
-| `src/lib/errorReporting/coarseUserAgent.ts` | Raw UA → coarse label |
-| `src/lib/errorReporting/reporter.ts` | Payload, dedupe/rate-limit, transport |
-| `src/lib/errorReporting/index.ts` | Gate + install + boundary hook |
-| `src/lib/release.ts` | Commit SHA (baked at build) |
-| `supabase/functions/report-error/` | Beacon sink (service role) |
-| `supabase/migrations/0019_client_error_reports.sql` | Table + RLS |
-| `scripts/relocate-sourcemaps.mjs` | Move maps out of `dist/` |
+| File                                                | Role                                  |
+| --------------------------------------------------- | ------------------------------------- |
+| `src/lib/errorReporting/scrubRoute.ts`              | Path → route pattern (PII control)    |
+| `src/lib/errorReporting/coarseUserAgent.ts`         | Raw UA → coarse label                 |
+| `src/lib/errorReporting/reporter.ts`                | Payload, dedupe/rate-limit, transport |
+| `src/lib/errorReporting/index.ts`                   | Gate + install + boundary hook        |
+| `src/lib/release.ts`                                | Commit SHA (baked at build)           |
+| `supabase/functions/report-error/`                  | Beacon sink (service role)            |
+| `supabase/migrations/0019_client_error_reports.sql` | Table + RLS                           |
+| `scripts/relocate-sourcemaps.mjs`                   | Move maps out of `dist/`              |

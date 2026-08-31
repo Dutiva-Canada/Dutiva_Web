@@ -24,7 +24,11 @@ function SeverityChip({ priority }: { readonly priority: HomePriority }) {
   )
 }
 
-export function HomeActNowSection({ onAction }: { readonly onAction: (action: HomeAction) => void }) {
+export function HomeActNowSection({
+  onAction,
+}: {
+  readonly onAction: (action: HomeAction) => void
+}) {
   const { x } = useI18n()
   return (
     <div>
@@ -74,7 +78,11 @@ export function HomeActNowSection({ onAction }: { readonly onAction: (action: Ho
   )
 }
 
-export function HomeThisWeekSection({ onAction }: { readonly onAction: (action: HomeAction) => void }) {
+export function HomeThisWeekSection({
+  onAction,
+}: {
+  readonly onAction: (action: HomeAction) => void
+}) {
   const { x } = useI18n()
   return (
     <div>
@@ -118,7 +126,11 @@ export function HomeThisWeekSection({ onAction }: { readonly onAction: (action: 
   )
 }
 
-export function HomeWatchingSection({ onAction }: { readonly onAction: (action: HomeAction) => void }) {
+export function HomeWatchingSection({
+  onAction,
+}: {
+  readonly onAction: (action: HomeAction) => void
+}) {
   const { x } = useI18n()
   return (
     <div>

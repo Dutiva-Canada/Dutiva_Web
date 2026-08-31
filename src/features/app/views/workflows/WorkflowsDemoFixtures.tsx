@@ -144,7 +144,9 @@ export function WorkflowsDemoFixtures() {
             <div className="text-[10.5px] font-bold tracking-[.06em] text-gold-dot uppercase">
               {x(M.workflows_flagship_eyebrow)}
             </div>
-            <div className="mt-px text-[14.5px] font-bold text-text">{x(M.workflows_flagship_title)}</div>
+            <div className="mt-px text-[14.5px] font-bold text-text">
+              {x(M.workflows_flagship_title)}
+            </div>
             <div className="mt-px text-[11.5px] text-text-muted">{x(M.workflows_flagship_sub)}</div>
           </div>
           <button
@@ -175,7 +177,9 @@ export function WorkflowsDemoFixtures() {
                         {x(chip.label)}
                       </span>
                     </div>
-                    <div className="mt-[2px] text-[12px] leading-normal text-text-3">{x(st.sub)}</div>
+                    <div className="mt-[2px] text-[12px] leading-normal text-text-3">
+                      {x(st.sub)}
+                    </div>
                   </div>
                 </div>
               )

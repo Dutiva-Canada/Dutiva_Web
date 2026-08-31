@@ -21,7 +21,10 @@ export const advisorWorkspaceMessages = defineMessages({
     en: 'Signed out, Advisor shows a scripted reply only. Sign in for live jurisdiction, risk, citations, and sources here.',
     fr: 'Hors session, le Conseiller n’affiche qu’une réponse scénarisée. Connectez-vous pour la compétence, le risque, les citations et les sources en direct ici.',
   },
-  advws_locked_cta: { en: 'Sign in for live answers', fr: 'Se connecter pour les réponses en direct' },
+  advws_locked_cta: {
+    en: 'Sign in for live answers',
+    fr: 'Se connecter pour les réponses en direct',
+  },
 
   /* Running skeleton */
   advws_running: {

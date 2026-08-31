@@ -138,15 +138,15 @@ This document lists longer-term opportunities for the consumer product family. N
 
 ## Risks to monitor
 
-| Opportunity | Risk |
-|---|---|
-| Estate, immigration, tax, health domains | High regulated-professional exposure; requires careful scope boundaries. |
-| Municipality coverage | Fragmented sources, rapid changes, many edge cases. |
-| E-signing / certified delivery | Vendor lock-in, legal validity questions across jurisdictions. |
-| Professional-review marketplace | Potential to be seen as referral fee / unauthorized practice; requires legal review. |
-| Government account linking | OAuth scope, privacy terms, data-residency, and reliability risks. |
-| AI predictive assistance | Could feel intrusive or create liability if recommendations are wrong. |
-| Enterprise white-label | Brand dilution and boundary confusion with professional services. |
+| Opportunity                              | Risk                                                                                 |
+| ---------------------------------------- | ------------------------------------------------------------------------------------ |
+| Estate, immigration, tax, health domains | High regulated-professional exposure; requires careful scope boundaries.             |
+| Municipality coverage                    | Fragmented sources, rapid changes, many edge cases.                                  |
+| E-signing / certified delivery           | Vendor lock-in, legal validity questions across jurisdictions.                       |
+| Professional-review marketplace          | Potential to be seen as referral fee / unauthorized practice; requires legal review. |
+| Government account linking               | OAuth scope, privacy terms, data-residency, and reliability risks.                   |
+| AI predictive assistance                 | Could feel intrusive or create liability if recommendations are wrong.               |
+| Enterprise white-label                   | Brand dilution and boundary confusion with professional services.                    |
 
 ---
 

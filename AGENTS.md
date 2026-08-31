@@ -36,7 +36,7 @@ Two standing rules that follow from it:
 ## Voice and natural language
 
 **[docs/NATURAL_LANGUAGE_COPY.md](docs/NATURAL_LANGUAGE_COPY.md)** is the source
-of record for *how* we write user-facing prose (marketing, UI, FAQ, changelog,
+of record for _how_ we write user-facing prose (marketing, UI, FAQ, changelog,
 Advisor chrome). Model communication — intent, audience, density, rhythm,
 revision — not robotic “correct” English. Never upgrade hedges; never invent
 claims. Cursor loads a short always-on summary from
@@ -57,17 +57,17 @@ npm run dev        # start the dev server
 
 ## Commands
 
-| Command             | What it does                                                                                                                            |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run typecheck` | `tsc -b` (strict)                                                                                                                       |
-| `npm run lint`      | oxlint                                                                                                                                  |
-| `npm run test`      | Vitest (jsdom + Testing Library)                                                                                                        |
-| `npm run test:e2e`  | Playwright hermetic smoke on `dist/` ([e2e/README.md](e2e/README.md)) — no Supabase                                                   |
-| `npm run test:e2e:auth` | Playwright production CRUD matrix — requires Supabase build env + service role; skips when unset                                  |
-| `npm run format`    | Prettier                                                                                                                                |
-| `npm run check`     | typecheck + lint + test + `check:migrations` + `check:rls` + `check:facts` + `check:message-scopes` + `check:brand-assets` + `check:architecture` — **must pass before every commit** |
-| `npm run db:types`  | Regenerate `src/lib/supabase/database.types.ts` and the edge-function copy from the linked Supabase project |
-| `npm run build`     | typecheck + production build + SSR + prerender + SEO validation + entry-graph budget + service worker                                   |
+| Command                 | What it does                                                                                                                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run typecheck`     | `tsc -b` (strict)                                                                                                                                                                     |
+| `npm run lint`          | oxlint                                                                                                                                                                                |
+| `npm run test`          | Vitest (jsdom + Testing Library)                                                                                                                                                      |
+| `npm run test:e2e`      | Playwright hermetic smoke on `dist/` ([e2e/README.md](e2e/README.md)) — no Supabase                                                                                                   |
+| `npm run test:e2e:auth` | Playwright production CRUD matrix — requires Supabase build env + service role; skips when unset                                                                                      |
+| `npm run format`        | Prettier                                                                                                                                                                              |
+| `npm run check`         | typecheck + lint + test + `check:migrations` + `check:rls` + `check:facts` + `check:message-scopes` + `check:brand-assets` + `check:architecture` — **must pass before every commit** |
+| `npm run db:types`      | Regenerate `src/lib/supabase/database.types.ts` and the edge-function copy from the linked Supabase project                                                                           |
+| `npm run build`         | typecheck + production build + SSR + prerender + SEO validation + entry-graph budget + service worker                                                                                 |
 
 ## Non-negotiables
 

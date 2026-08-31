@@ -237,8 +237,6 @@ describe('WellbeingView in production mode', () => {
     await screen.findByText('Employee assistance programme')
 
     expect(screen.getByText('Support signals')).toBeInTheDocument()
-    expect(
-      screen.getByText(/Dutiva detects no signals about individuals\./),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/Dutiva detects no signals about individuals\./)).toBeInTheDocument()
   })
 })

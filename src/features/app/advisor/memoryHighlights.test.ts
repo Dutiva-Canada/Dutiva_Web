@@ -3,9 +3,11 @@ import { phrasesFromMemoryUsed, segmentTextByMemoryPhrases } from './memoryHighl
 
 describe('segmentTextByMemoryPhrases', () => {
   it('returns plain text when no phrases match', () => {
-    expect(segmentTextByMemoryPhrases('Hello there', [{ id: '1', phrase: 'started March 2018', title: 't' }])).toEqual([
-      { text: 'Hello there' },
-    ])
+    expect(
+      segmentTextByMemoryPhrases('Hello there', [
+        { id: '1', phrase: 'started March 2018', title: 't' },
+      ]),
+    ).toEqual([{ text: 'Hello there' }])
   })
 
   it('highlights the longest matching phrase first', () => {

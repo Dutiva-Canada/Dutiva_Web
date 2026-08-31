@@ -51,7 +51,10 @@ const demoBlock = content
   .replace(`function ${name}DemoView`, `export function ${name}DemoView`)
 
 const demoImports = beforeView
-  .replace(/import \{ useWorkspaceMode \} from '@\/features\/app\/workspaceMode\/workspaceModeContext'\n/g, '')
+  .replace(
+    /import \{ useWorkspaceMode \} from '@\/features\/app\/workspaceMode\/workspaceModeContext'\n/g,
+    '',
+  )
   .replace(
     new RegExp(`import \\{ ${name}ProductionView \\} from '\\.\\/${name}ProductionView'\\n`, 'g'),
     '',
@@ -61,7 +64,10 @@ const docMatch = beforeView.match(/\/\*\*[\s\S]*?\*\//)
 const doc = docMatch ? `${docMatch[0]}\n\n` : ''
 
 const demoPath = path.join(dir, `${name}DemoView.tsx`)
-writeFileSync(demoPath, `${demoImports}/** Northgate fixtures — demo workspace and public \`/demo\` only. */\n${demoBlock}`)
+writeFileSync(
+  demoPath,
+  `${demoImports}/** Northgate fixtures — demo workspace and public \`/demo\` only. */\n${demoBlock}`,
+)
 
 const viewContent = `import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { ${name}DemoView } from './${name}DemoView'

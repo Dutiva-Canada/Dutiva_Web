@@ -7,12 +7,12 @@
 
 **Do not populate** `NOTICE_SCHEDULES` for Québec or Federal in code. Keep `bands: null` and the existing **hard UI hedges**:
 
-| Surface | Hedge when `bands: null` |
-| --- | --- |
-| Document Studio (`statutoryFloor.ts` → `GenerateScreen`) | Shows `doclib_gen_floor_unavailable` — no “below minimum” alert; user must confirm against the statute |
-| Advisor chat | No QC/FED notice injection in the prompt; cross-check returns `unverifiable` (never flags a mismatch from a table we do not ship) |
-| Template jurisdiction notes (T03, etc.) | Qualitative statute pointers only — no numeric notice ladder outside Ontario |
-| Workflows (`statutory-notice-quebec`, `statutory-notice-federal`) | Hedge-only guided flows — process shape + primary-source pointers; never emit week figures |
+| Surface                                                           | Hedge when `bands: null`                                                                                                          |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Document Studio (`statutoryFloor.ts` → `GenerateScreen`)          | Shows `doclib_gen_floor_unavailable` — no “below minimum” alert; user must confirm against the statute                            |
+| Advisor chat                                                      | No QC/FED notice injection in the prompt; cross-check returns `unverifiable` (never flags a mismatch from a table we do not ship) |
+| Template jurisdiction notes (T03, etc.)                           | Qualitative statute pointers only — no numeric notice ladder outside Ontario                                                      |
+| Workflows (`statutory-notice-quebec`, `statutory-notice-federal`) | Hedge-only guided flows — process shape + primary-source pointers; never emit week figures                                        |
 
 This is the correct fail-safe for a compliance product: **hedge and point at primary sources** rather than emit unreviewed statutory figures.
 
@@ -20,20 +20,20 @@ This is the correct fail-safe for a compliance product: **hedge and point at pri
 
 The research pack is complete ([notice-bands-review-pack.md](notice-bands-review-pack.md)). Population awaits **qualified legal sign-off**, not engineering time. Two blockers documented in the pack:
 
-1. **Québec:** LNT s. 82 bands are a *floor* only; CCQ art. 2091 reasonable notice sits above them. A flat `{ minMonths, weeks }` table can mislead even when technically derived from s. 82.
+1. **Québec:** LNT s. 82 bands are a _floor_ only; CCQ art. 2091 reasonable notice sits above them. A flat `{ minMonths, weeks }` table can mislead even when technically derived from s. 82.
 2. **Federal:** CLC s. 230(1.1) bands do not capture s. 235 severance; 2018, c. 27 group-termination amendments (enacted, not in force) would displace the individual band table when proclaimed.
 
 ## Sign-off state (interim)
 
-| Jurisdiction | Populate bands? | Reason |
-| --- | --- | --- |
-| Québec | **No** (deferred) | CCQ art. 2091 floor problem + s. 82 boundary ambiguity; qualified reviewer not yet signed |
-| Federal | **No** (deferred) | Severance cumulative with notice; pending 2018 c. 27 proclamation; qualified reviewer not yet signed |
-| Ontario severance (L7) | **Option C** (unchanged) | Severance stays a flag — does not fit `NOTICE_SCHEDULES` shape |
+| Jurisdiction           | Populate bands?          | Reason                                                                                               |
+| ---------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------- |
+| Québec                 | **No** (deferred)        | CCQ art. 2091 floor problem + s. 82 boundary ambiguity; qualified reviewer not yet signed            |
+| Federal                | **No** (deferred)        | Severance cumulative with notice; pending 2018 c. 27 proclamation; qualified reviewer not yet signed |
+| Ontario severance (L7) | **Option C** (unchanged) | Severance stays a flag — does not fit `NOTICE_SCHEDULES` shape                                       |
 
 When a qualified reviewer completes §4 of the pack with **Yes**, engineering may populate `statutoryNotice.ts`, extend `noticeSchedule.ts`, and add regression tests in the same PR as the sign-off record.
 
-**EF11 note (2026-08-24):** Hedge-only Québec/Federal *workflows* already ship under `/app/workflows/` (`statutory-notice-quebec`, `statutory-notice-federal`). They are not a substitute for populating `NOTICE_SCHEDULES`. Eng-only EF11 work is otherwise complete — see [TODO.md](TODO.md) EF11.
+**EF11 note (2026-08-24):** Hedge-only Québec/Federal _workflows_ already ship under `/app/workflows/` (`statutory-notice-quebec`, `statutory-notice-federal`). They are not a substitute for populating `NOTICE_SCHEDULES`. Eng-only EF11 work is otherwise complete — see [TODO.md](TODO.md) EF11.
 
 ## Code pointers
 

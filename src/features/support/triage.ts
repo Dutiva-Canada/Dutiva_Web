@@ -1,7 +1,4 @@
-import {
-  RESPONSE_TARGETS,
-  SUPPORT_HOURS,
-} from '@/config/support'
+import { RESPONSE_TARGETS, SUPPORT_HOURS } from '@/config/support'
 import type {
   ResponseTarget,
   SupportCategory,

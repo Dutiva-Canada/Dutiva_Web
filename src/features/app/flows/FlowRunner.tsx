@@ -60,14 +60,14 @@ function FlowMissing() {
   const { root } = useWorkspaceRoot()
   return (
     <AppPage width="narrow">
-        <p className="text-[14px] text-text-2">{x(M.flows_not_found)}</p>
-        <Link
-          to={workspacePath(root, 'workflows')}
-          className="mt-[12px] inline-flex items-center gap-[6px] text-[13px] font-semibold text-accent"
-        >
-          <ArrowLeft size={14} strokeWidth={2} aria-hidden="true" />
-          {x(M.flows_back_to_workflows)}
-        </Link>
+      <p className="text-[14px] text-text-2">{x(M.flows_not_found)}</p>
+      <Link
+        to={workspacePath(root, 'workflows')}
+        className="mt-[12px] inline-flex items-center gap-[6px] text-[13px] font-semibold text-accent"
+      >
+        <ArrowLeft size={14} strokeWidth={2} aria-hidden="true" />
+        {x(M.flows_back_to_workflows)}
+      </Link>
     </AppPage>
   )
 }
@@ -100,161 +100,161 @@ function FlowBody({ flow }: { readonly flow: Flow }) {
 
   return (
     <AppPage width="narrow">
-        <Link
-          to={workspacePath(root, 'workflows')}
-          className="mb-[14px] inline-flex items-center gap-[6px] text-[12.5px] font-semibold text-text-muted"
+      <Link
+        to={workspacePath(root, 'workflows')}
+        className="mb-[14px] inline-flex items-center gap-[6px] text-[12.5px] font-semibold text-text-muted"
+      >
+        <ArrowLeft size={13} strokeWidth={2} aria-hidden="true" />
+        {x(M.flows_back_to_workflows)}
+      </Link>
+
+      <h1 className="font-display text-[22px] leading-[1.3] font-bold text-text">
+        {x(flow.title)}
+      </h1>
+      <p className="mt-[6px] text-[13px] leading-[1.55] text-text-2">{x(flow.summary)}</p>
+
+      <div className="mt-[18px] flex items-center gap-[12px]">
+        <div
+          role="progressbar"
+          aria-label={x(M.flows_progress_aria)}
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          className="h-[5px] min-w-0 flex-1 overflow-hidden rounded-full bg-inset"
         >
-          <ArrowLeft size={13} strokeWidth={2} aria-hidden="true" />
-          {x(M.flows_back_to_workflows)}
-        </Link>
-
-        <h1 className="font-display text-[22px] leading-[1.3] font-bold text-text">
-          {x(flow.title)}
-        </h1>
-        <p className="mt-[6px] text-[13px] leading-[1.55] text-text-2">{x(flow.summary)}</p>
-
-        <div className="mt-[18px] flex items-center gap-[12px]">
-          <div
-            role="progressbar"
-            aria-label={x(M.flows_progress_aria)}
-            aria-valuenow={pct}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            className="h-[5px] min-w-0 flex-1 overflow-hidden rounded-full bg-inset"
-          >
-            <ProgressFill pct={pct} className="h-full w-full rounded-full text-accent" />
-          </div>
-          <span className="shrink-0 text-[11.5px] font-semibold whitespace-nowrap text-text-muted">
-            {x(M.flows_step_of)} {currentStepNum} {x(M.flows_step_of_sep)} {totalSteps}
-          </span>
+          <ProgressFill pct={pct} className="h-full w-full rounded-full text-accent" />
         </div>
+        <span className="shrink-0 text-[11.5px] font-semibold whitespace-nowrap text-text-muted">
+          {x(M.flows_step_of)} {currentStepNum} {x(M.flows_step_of_sep)} {totalSteps}
+        </span>
+      </div>
 
-        <div className="mt-[20px] rounded-[14px] border border-border bg-surface px-[22px] py-[20px]">
-          <h2
-            ref={stepHeadingRef}
-            tabIndex={-1}
-            className="font-display text-[17px] leading-[1.35] font-bold text-text outline-none"
-          >
-            {x(step.title)}
-          </h2>
-          <p className="mt-[8px] text-[13.5px] leading-[1.6] text-text-2">{x(step.body)}</p>
+      <div className="mt-[20px] rounded-[14px] border border-border bg-surface px-[22px] py-[20px]">
+        <h2
+          ref={stepHeadingRef}
+          tabIndex={-1}
+          className="font-display text-[17px] leading-[1.35] font-bold text-text outline-none"
+        >
+          {x(step.title)}
+        </h2>
+        <p className="mt-[8px] text-[13.5px] leading-[1.6] text-text-2">{x(step.body)}</p>
 
-          {step.kind === 'task' && (
-            <ul className="mt-[14px] flex flex-col gap-[8px]">
-              {step.points.map((point, i) => (
-                <li
-                  key={i}
-                  className="flex items-start gap-[9px] text-[13px] leading-[1.55] text-text-2"
-                >
-                  <Circle
-                    size={6}
-                    strokeWidth={0}
-                    fill="currentColor"
-                    className="mt-[7px] shrink-0 text-gold-dot"
-                    aria-hidden="true"
-                  />
-                  <span>{x(point)}</span>
-                </li>
-              ))}
-            </ul>
-          )}
+        {step.kind === 'task' && (
+          <ul className="mt-[14px] flex flex-col gap-[8px]">
+            {step.points.map((point, i) => (
+              <li
+                key={i}
+                className="flex items-start gap-[9px] text-[13px] leading-[1.55] text-text-2"
+              >
+                <Circle
+                  size={6}
+                  strokeWidth={0}
+                  fill="currentColor"
+                  className="mt-[7px] shrink-0 text-gold-dot"
+                  aria-hidden="true"
+                />
+                <span>{x(point)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
 
-          {step.caution !== undefined && (
-            <div className="mt-[14px] flex items-start gap-[8px] rounded-[10px] border border-gold-border bg-gold-bg px-[13px] py-[10px]">
-              <AlertTriangle
-                size={14}
-                strokeWidth={1.9}
-                className="mt-px shrink-0 text-gold-fg"
-                aria-hidden="true"
-              />
-              <div className="text-[12.5px] leading-[1.55] text-gold-fg">
-                <span className="font-bold">{x(M.flows_watch_for)}: </span>
-                {x(step.caution)}
-              </div>
-            </div>
-          )}
-
-          {step.kind === 'choice' && (
-            <div className="mt-[16px] flex flex-col gap-[9px]">
-              {step.options.map((option) => (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => setRun(advance(flow, run, option.id))}
-                  className="flex cursor-pointer items-start gap-[10px] rounded-[11px] border border-border bg-bg-soft px-[15px] py-[13px] text-left font-sans transition-[border-color,background-color] hover:border-(--accent-soft-border) hover:bg-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-                >
-                  <ChevronRight
-                    size={15}
-                    strokeWidth={2.1}
-                    className="mt-[2px] shrink-0 text-accent"
-                    aria-hidden="true"
-                  />
-                  <span className="min-w-0">
-                    <span className="block text-[13.5px] font-semibold text-text">
-                      {x(option.label)}
-                    </span>
-                    {option.detail !== undefined && (
-                      <span className="mt-[3px] block text-[12.5px] leading-[1.5] text-text-muted">
-                        {x(option.detail)}
-                      </span>
-                    )}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {step.kind === 'input' && (
-            <FlowInputForm
-              key={step.id}
-              label={x(step.label)}
-              unit={x(step.unit)}
-              numberKind={step.numberKind ?? 'integer'}
-              onSubmit={(value) => setRun(advance(flow, run, String(value)))}
+        {step.caution !== undefined && (
+          <div className="mt-[14px] flex items-start gap-[8px] rounded-[10px] border border-gold-border bg-gold-bg px-[13px] py-[10px]">
+            <AlertTriangle
+              size={14}
+              strokeWidth={1.9}
+              className="mt-px shrink-0 text-gold-fg"
+              aria-hidden="true"
             />
-          )}
+            <div className="text-[12.5px] leading-[1.55] text-gold-fg">
+              <span className="font-bold">{x(M.flows_watch_for)}: </span>
+              {x(step.caution)}
+            </div>
+          </div>
+        )}
 
-          {step.kind === 'task' && (
-            <button
-              type="button"
-              onClick={() => setRun(advance(flow, run))}
-              className="mt-[16px] cursor-pointer rounded-[9px] border-none bg-navy px-[16px] py-[9px] font-sans text-[13px] font-bold text-white"
-            >
-              {x(M.flows_continue)}
-            </button>
-          )}
+        {step.kind === 'choice' && (
+          <div className="mt-[16px] flex flex-col gap-[9px]">
+            {step.options.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => setRun(advance(flow, run, option.id))}
+                className="flex cursor-pointer items-start gap-[10px] rounded-[11px] border border-border bg-bg-soft px-[15px] py-[13px] text-left font-sans transition-[border-color,background-color] hover:border-(--accent-soft-border) hover:bg-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+              >
+                <ChevronRight
+                  size={15}
+                  strokeWidth={2.1}
+                  className="mt-[2px] shrink-0 text-accent"
+                  aria-hidden="true"
+                />
+                <span className="min-w-0">
+                  <span className="block text-[13.5px] font-semibold text-text">
+                    {x(option.label)}
+                  </span>
+                  {option.detail !== undefined && (
+                    <span className="mt-[3px] block text-[12.5px] leading-[1.5] text-text-muted">
+                      {x(option.detail)}
+                    </span>
+                  )}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
 
-          {isFormula(step) && <FormulaResult flow={flow} run={run} />}
+        {step.kind === 'input' && (
+          <FlowInputForm
+            key={step.id}
+            label={x(step.label)}
+            unit={x(step.unit)}
+            numberKind={step.numberKind ?? 'integer'}
+            onSubmit={(value) => setRun(advance(flow, run, String(value)))}
+          />
+        )}
 
-          {isResult(step) && <ScoredResult flow={flow} run={run} />}
-
-          {done && <OutcomeActions flow={flow} run={run} />}
-        </div>
-
-        <div className="mt-[14px] flex flex-wrap items-center gap-[10px]">
-          {run.path.length > 1 && (
-            <button
-              type="button"
-              onClick={() => setRun(back(run))}
-              className="inline-flex cursor-pointer items-center gap-[6px] rounded-[8px] border border-border bg-surface px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-text"
-            >
-              <ArrowLeft size={13} strokeWidth={2} aria-hidden="true" />
-              {x(M.flows_back)}
-            </button>
-          )}
+        {step.kind === 'task' && (
           <button
             type="button"
-            onClick={restart}
-            className="inline-flex cursor-pointer items-center gap-[6px] rounded-[8px] border border-border bg-surface px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-text-muted"
+            onClick={() => setRun(advance(flow, run))}
+            className="mt-[16px] cursor-pointer rounded-[9px] border-none bg-navy px-[16px] py-[9px] font-sans text-[13px] font-bold text-white"
           >
-            <RotateCcw size={13} strokeWidth={2} aria-hidden="true" />
-            {x(M.flows_restart)}
+            {x(M.flows_continue)}
           </button>
-        </div>
+        )}
 
-        {done && <PathTaken flow={flow} run={run} />}
+        {isFormula(step) && <FormulaResult flow={flow} run={run} />}
 
-        <Disclaimer variant="block" className="mt-[18px]" />
+        {isResult(step) && <ScoredResult flow={flow} run={run} />}
+
+        {done && <OutcomeActions flow={flow} run={run} />}
+      </div>
+
+      <div className="mt-[14px] flex flex-wrap items-center gap-[10px]">
+        {run.path.length > 1 && (
+          <button
+            type="button"
+            onClick={() => setRun(back(run))}
+            className="inline-flex cursor-pointer items-center gap-[6px] rounded-[8px] border border-border bg-surface px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-text"
+          >
+            <ArrowLeft size={13} strokeWidth={2} aria-hidden="true" />
+            {x(M.flows_back)}
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={restart}
+          className="inline-flex cursor-pointer items-center gap-[6px] rounded-[8px] border border-border bg-surface px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-text-muted"
+        >
+          <RotateCcw size={13} strokeWidth={2} aria-hidden="true" />
+          {x(M.flows_restart)}
+        </button>
+      </div>
+
+      {done && <PathTaken flow={flow} run={run} />}
+
+      <Disclaimer variant="block" className="mt-[18px]" />
     </AppPage>
   )
 }
@@ -322,7 +322,10 @@ function ScoredResult({ flow, run }: { readonly flow: Flow; readonly run: FlowRu
                     aria-hidden="true"
                     className="h-[6px] w-[90px] shrink-0 overflow-hidden rounded-full bg-inset"
                   >
-                    <ProgressFill pct={pct} className="block h-full w-full rounded-full text-navy" />
+                    <ProgressFill
+                      pct={pct}
+                      className="block h-full w-full rounded-full text-navy"
+                    />
                   </span>
                   <span className="w-[38px] shrink-0 text-right text-[12px] font-semibold text-text-3">
                     {pct}%
@@ -355,8 +358,7 @@ function OutcomeActions({ flow, run }: { readonly flow: Flow; readonly run: Flow
   /* An ending that deliberately produces no document says so, rather than
      rendering nothing — the absence is the instruction. */
   if (tids.length === 0) {
-    const reason =
-      step.kind === 'outcome' || step.kind === 'formula' ? step.noDocument : undefined
+    const reason = step.kind === 'outcome' || step.kind === 'formula' ? step.noDocument : undefined
     if (!reason) return null
     return (
       <div className="mt-[18px] border-t border-inset pt-[16px]">
@@ -512,7 +514,10 @@ function FormulaResult({ flow, run }: { readonly flow: Flow; readonly run: FlowR
   return (
     <div className="mt-[16px] flex flex-col gap-[10px] rounded-[12px] border border-gold-border bg-gold-bg px-[16px] py-[14px]">
       {lines.map((line) => (
-        <div key={line.label.en} className="flex flex-wrap items-baseline justify-between gap-[8px]">
+        <div
+          key={line.label.en}
+          className="flex flex-wrap items-baseline justify-between gap-[8px]"
+        >
           <span className="text-[12.5px] font-semibold text-gold-fg">{x(line.label)}</span>
           <span className="font-display text-[18px] font-bold text-text">{x(line.value)}</span>
         </div>

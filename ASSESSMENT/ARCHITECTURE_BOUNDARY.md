@@ -43,21 +43,21 @@ C:\Users\Marti\Dutiva_Web
 
 ### 2.1 Generic infrastructure (strong open-source candidates)
 
-| Module | Purpose | Dependencies | Dependents | Proprietary content? |
-|---|---|---|---|---|
-| `src/i18n/core.ts` | `Bi`, `defineMessages`, `pick`, language providers | None | Every feature | No |
-| `src/i18n/context.ts`, `LangProvider.tsx`, `ForcedLangProvider.tsx` | React language context and URL/lang preference wiring | `core.ts` | `src/app/*`, `src/features/*` | No |
-| `src/styles/*` | Tailwind v4 design tokens, surfaces, patterns, animations | None | Build + all components | Brand colors are public facts; brand assets are trademark-controlled |
-| `src/components/Disclaimer.tsx` | Generic "not legal advice" callout component | `lucide-react`, i18n | Many app/marketing views | No (component is generic; copy is product-specific) |
-| `src/components/chips.ts` | Tone/status chip CSS classes | Tailwind tokens | Many views | No |
-| `src/lib/theme.tsx` | Theme provider and `data-theme` persistence | None | App shell | No |
-| `src/lib/prefs.ts` | Local-storage preference helpers | None | Theme, lang, etc. | No |
-| `src/lib/money.ts` | Currency formatting | None | Pricing, analytics | No |
-| `src/lib/supabaseClient.ts` | Optional Supabase browser client wrapper | `@supabase/supabase-js` | Features that talk to Supabase | No (config comes from env) |
-| `src/lib/registerServiceWorker.ts` | PWA service-worker registration | None | App entry | No |
-| `src/lib/errorReporting/*` | Privacy-scrubbed crash reporter | i18n, deploy/release | App | Mechanism is generic; allow-list values are site-specific |
-| `src/lib/exportProtection/*` | Watermark/fingerprint/velocity/audit mechanism | i18n | Document Studio, Advisor copy | Mechanism is generic; watermark text and limits are product-specific |
-| `src/seo/*` | Route registry, `<head>`, JSON-LD, sitemap helpers | i18n, marketing content | Router, build scripts | Generic tooling; route copy is product-specific |
+| Module                                                              | Purpose                                                   | Dependencies            | Dependents                     | Proprietary content?                                                 |
+| ------------------------------------------------------------------- | --------------------------------------------------------- | ----------------------- | ------------------------------ | -------------------------------------------------------------------- |
+| `src/i18n/core.ts`                                                  | `Bi`, `defineMessages`, `pick`, language providers        | None                    | Every feature                  | No                                                                   |
+| `src/i18n/context.ts`, `LangProvider.tsx`, `ForcedLangProvider.tsx` | React language context and URL/lang preference wiring     | `core.ts`               | `src/app/*`, `src/features/*`  | No                                                                   |
+| `src/styles/*`                                                      | Tailwind v4 design tokens, surfaces, patterns, animations | None                    | Build + all components         | Brand colors are public facts; brand assets are trademark-controlled |
+| `src/components/Disclaimer.tsx`                                     | Generic "not legal advice" callout component              | `lucide-react`, i18n    | Many app/marketing views       | No (component is generic; copy is product-specific)                  |
+| `src/components/chips.ts`                                           | Tone/status chip CSS classes                              | Tailwind tokens         | Many views                     | No                                                                   |
+| `src/lib/theme.tsx`                                                 | Theme provider and `data-theme` persistence               | None                    | App shell                      | No                                                                   |
+| `src/lib/prefs.ts`                                                  | Local-storage preference helpers                          | None                    | Theme, lang, etc.              | No                                                                   |
+| `src/lib/money.ts`                                                  | Currency formatting                                       | None                    | Pricing, analytics             | No                                                                   |
+| `src/lib/supabaseClient.ts`                                         | Optional Supabase browser client wrapper                  | `@supabase/supabase-js` | Features that talk to Supabase | No (config comes from env)                                           |
+| `src/lib/registerServiceWorker.ts`                                  | PWA service-worker registration                           | None                    | App entry                      | No                                                                   |
+| `src/lib/errorReporting/*`                                          | Privacy-scrubbed crash reporter                           | i18n, deploy/release    | App                            | Mechanism is generic; allow-list values are site-specific            |
+| `src/lib/exportProtection/*`                                        | Watermark/fingerprint/velocity/audit mechanism            | i18n                    | Document Studio, Advisor copy  | Mechanism is generic; watermark text and limits are product-specific |
+| `src/seo/*`                                                         | Route registry, `<head>`, JSON-LD, sitemap helpers        | i18n, marketing content | Router, build scripts          | Generic tooling; route copy is product-specific                      |
 
 **Observation:** These modules are genuinely reusable. The main coupling risk is that some contain hardcoded Dutiva defaults (e.g., `src/seo/site.ts` hardcodes `legalName: 'Dutiva Canada Inc.'`, `supportEmail: 'support@dutiva.ca'`). Those defaults must be made configurable before the modules are published.
 
@@ -73,72 +73,72 @@ C:\Users\Marti\Dutiva_Web
 
 ### 2.3 Workspace features (proprietary)
 
-| Module | Purpose | Why proprietary |
-|---|---|---|
-| `src/features/app/advisor/*` | AI Advisor UI, chat API client, safety backstop client | Embeds the Advisor response contract, safety logic, and chat UX tied to proprietary backend |
-| `src/features/app/documents/*` | Document Studio, template catalogue, generation wizard, repository | Contains 50 curated templates and statutory meta-data |
-| `src/features/app/views/analytics/*` | Analytics dashboard and score formula | Compliance score v3 is proprietary methodology |
-| `src/features/app/views/{cases,employees,compliance,policies,planning,communications,compensation,wellbeing}/*` | Domain registers | Specific to Dutiva's HR/compliance data model |
-| `src/features/app/flows/*` | Guided flow runner + flow content | Mental-health/accommodation/leave flows are domain-specific |
-| `src/features/app/reference/data/*` | Knowledge guides | Educational content authored by Dutiva |
-| `src/features/app/guidance/*` | Guidance API and law-monitoring coverage | Jurisdiction coverage claims and audit dates |
-| `src/features/app/shell/*` | Workspace shell, nav, workspace mode | Tightly coupled to Dutiva routes, demo identity, and workspace model |
-| `src/features/app/auth/*` | Magic-link auth and invite-only gate | Admin/beta list logic is Dutiva-specific |
-| `src/features/app/billing/*` | Stripe plan gates | Dutiva pricing and billing model |
+| Module                                                                                                          | Purpose                                                            | Why proprietary                                                                             |
+| --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| `src/features/app/advisor/*`                                                                                    | AI Advisor UI, chat API client, safety backstop client             | Embeds the Advisor response contract, safety logic, and chat UX tied to proprietary backend |
+| `src/features/app/documents/*`                                                                                  | Document Studio, template catalogue, generation wizard, repository | Contains 50 curated templates and statutory meta-data                                       |
+| `src/features/app/views/analytics/*`                                                                            | Analytics dashboard and score formula                              | Compliance score v3 is proprietary methodology                                              |
+| `src/features/app/views/{cases,employees,compliance,policies,planning,communications,compensation,wellbeing}/*` | Domain registers                                                   | Specific to Dutiva's HR/compliance data model                                               |
+| `src/features/app/flows/*`                                                                                      | Guided flow runner + flow content                                  | Mental-health/accommodation/leave flows are domain-specific                                 |
+| `src/features/app/reference/data/*`                                                                             | Knowledge guides                                                   | Educational content authored by Dutiva                                                      |
+| `src/features/app/guidance/*`                                                                                   | Guidance API and law-monitoring coverage                           | Jurisdiction coverage claims and audit dates                                                |
+| `src/features/app/shell/*`                                                                                      | Workspace shell, nav, workspace mode                               | Tightly coupled to Dutiva routes, demo identity, and workspace model                        |
+| `src/features/app/auth/*`                                                                                       | Magic-link auth and invite-only gate                               | Admin/beta list logic is Dutiva-specific                                                    |
+| `src/features/app/billing/*`                                                                                    | Stripe plan gates                                                  | Dutiva pricing and billing model                                                            |
 
 ### 2.4 Marketing surface (mixed)
 
-| Module | Status | Notes |
-|---|---|---|
-| `src/features/marketing/LandingPage.tsx`, `sections/*` | Publicly served, not open-source licensed | Contains Dutiva copy and claims |
-| `src/features/marketing/pages/*` | Publicly served, not open-source licensed | Pricing, FAQ, legal hub, etc. |
-| `src/features/marketing/articles/articleModel.ts` | Generic article model (open candidate) | The model is generic; the article content is not |
-| `src/features/marketing/legal/content/*` | Proprietary | Dutiva's legal policies and disclaimers |
-| `src/features/marketing/analytics/*` | Open candidate (mechanism) | GA4 consent loader is generic; measurement ID is Dutiva-specific |
+| Module                                                 | Status                                    | Notes                                                            |
+| ------------------------------------------------------ | ----------------------------------------- | ---------------------------------------------------------------- |
+| `src/features/marketing/LandingPage.tsx`, `sections/*` | Publicly served, not open-source licensed | Contains Dutiva copy and claims                                  |
+| `src/features/marketing/pages/*`                       | Publicly served, not open-source licensed | Pricing, FAQ, legal hub, etc.                                    |
+| `src/features/marketing/articles/articleModel.ts`      | Generic article model (open candidate)    | The model is generic; the article content is not                 |
+| `src/features/marketing/legal/content/*`               | Proprietary                               | Dutiva's legal policies and disclaimers                          |
+| `src/features/marketing/analytics/*`                   | Open candidate (mechanism)                | GA4 consent loader is generic; measurement ID is Dutiva-specific |
 
 ### 2.5 Support system (generic plumbing, proprietary content)
 
-| Module | Status | Notes |
-|---|---|---|
-| `src/features/support/supportApi.ts`, `publicSupportApi.ts`, `attachmentsApi.ts` | Generic | HTTP/Supabase API wrappers |
-| `src/features/support/email/*` | Generic mechanism | Resend wrapper; content/templates are Dutiva-specific |
-| `src/features/support/help/*` | Proprietary content | Help Centre articles and search ranking |
-| `src/features/support/triage.ts` | Mixed | Priority arithmetic is generic; categories/impact/urgency definitions are Dutiva-specific |
-| `supabase/functions/support-*/` | Generic plumbing | Ticket CRUD, outbox, attachment scan, call scheduling; categories and operator workflow are Dutiva-specific |
+| Module                                                                           | Status              | Notes                                                                                                       |
+| -------------------------------------------------------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `src/features/support/supportApi.ts`, `publicSupportApi.ts`, `attachmentsApi.ts` | Generic             | HTTP/Supabase API wrappers                                                                                  |
+| `src/features/support/email/*`                                                   | Generic mechanism   | Resend wrapper; content/templates are Dutiva-specific                                                       |
+| `src/features/support/help/*`                                                    | Proprietary content | Help Centre articles and search ranking                                                                     |
+| `src/features/support/triage.ts`                                                 | Mixed               | Priority arithmetic is generic; categories/impact/urgency definitions are Dutiva-specific                   |
+| `supabase/functions/support-*/`                                                  | Generic plumbing    | Ticket CRUD, outbox, attachment scan, call scheduling; categories and operator workflow are Dutiva-specific |
 
 ### 2.6 Supabase edge functions
 
-| Function | Status | Notes |
-|---|---|---|
-| `advisor-chat` | Proprietary | System prompt, model routing, RAG, response payload |
-| `advisor-safety-event` | Proprietary | Telemetry for the safety backstop |
-| `monitor-law-changes` | Proprietary | Law-change monitoring strategy and AI summarization |
-| `send-law-updates` | Proprietary | Digest delivery of law changes |
-| `record-score-snapshots` | Proprietary | Compliance score formula v3 |
-| `record-export` / `export-audit-trail` | Proprietary product feature | Export authorization and audit viewer |
-| `create-checkout-session` / `create-portal-session` / `stripe-webhook` | Proprietary commercial layer | Stripe billing integration |
-| `create-beta-signup` | Proprietary | Beta admission logic tied to Dutiva cohort |
-| `create-support-ticket` / `create-public-support-ticket` / `support-agent-action` / `support-confirm-call` / `support-firstline` / `support-notify` | Mixed | Generic plumbing; Dutiva categories, triage, Help Centre content |
-| `support-attachment-scan` | Generic mechanism | Malware-scan sidecar integration |
-| `support-call-scheduler` | Generic mechanism | Cron scheduler for reminders |
-| `support-analytics-event` | Generic mechanism | Analytics event sink |
-| `report-error` | Generic mechanism | Privacy-scrubbed error telemetry |
-| `resend-webhook` | Generic mechanism | Email delivery webhook verification |
-| `set-service-status` | Generic mechanism | Status board updates |
+| Function                                                                                                                                            | Status                       | Notes                                                            |
+| --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ---------------------------------------------------------------- |
+| `advisor-chat`                                                                                                                                      | Proprietary                  | System prompt, model routing, RAG, response payload              |
+| `advisor-safety-event`                                                                                                                              | Proprietary                  | Telemetry for the safety backstop                                |
+| `monitor-law-changes`                                                                                                                               | Proprietary                  | Law-change monitoring strategy and AI summarization              |
+| `send-law-updates`                                                                                                                                  | Proprietary                  | Digest delivery of law changes                                   |
+| `record-score-snapshots`                                                                                                                            | Proprietary                  | Compliance score formula v3                                      |
+| `record-export` / `export-audit-trail`                                                                                                              | Proprietary product feature  | Export authorization and audit viewer                            |
+| `create-checkout-session` / `create-portal-session` / `stripe-webhook`                                                                              | Proprietary commercial layer | Stripe billing integration                                       |
+| `create-beta-signup`                                                                                                                                | Proprietary                  | Beta admission logic tied to Dutiva cohort                       |
+| `create-support-ticket` / `create-public-support-ticket` / `support-agent-action` / `support-confirm-call` / `support-firstline` / `support-notify` | Mixed                        | Generic plumbing; Dutiva categories, triage, Help Centre content |
+| `support-attachment-scan`                                                                                                                           | Generic mechanism            | Malware-scan sidecar integration                                 |
+| `support-call-scheduler`                                                                                                                            | Generic mechanism            | Cron scheduler for reminders                                     |
+| `support-analytics-event`                                                                                                                           | Generic mechanism            | Analytics event sink                                             |
+| `report-error`                                                                                                                                      | Generic mechanism            | Privacy-scrubbed error telemetry                                 |
+| `resend-webhook`                                                                                                                                    | Generic mechanism            | Email delivery webhook verification                              |
+| `set-service-status`                                                                                                                                | Generic mechanism            | Status board updates                                             |
 
 ### 2.7 Shared Supabase modules
 
-| Module | Status | Notes |
-|---|---|---|
-| `_shared/aiUsage.ts` | Generic mechanism | AI rate-limit guardrails; values should be env-driven before release |
-| `_shared/exportGuard.ts` | Generic mechanism | Export velocity limits; values should be env-driven |
-| `_shared/adminAccess.ts` | Proprietary | Hardcoded internal admin email |
-| `_shared/googleCalendar.ts` | Generic mechanism | JWT-bearer Google Calendar client |
-| `_shared/resendSend.ts` | Generic mechanism | Resend email wrapper |
-| `_shared/scheduledCalls.ts` | Mixed | Scheduling logic is generic; Dutiva call cadence is not |
-| `_shared/supportAnalytics.ts` | Mixed | Validation is generic; metrics schema is Dutiva-specific |
-| `_shared/lawUpdateDigest.ts` / `lawUpdateRelevance.ts` | Proprietary | Law-update filtering and digest logic |
-| `_shared/caslConsent.ts` | Generic mechanism | CASL consent recording |
+| Module                                                 | Status            | Notes                                                                |
+| ------------------------------------------------------ | ----------------- | -------------------------------------------------------------------- |
+| `_shared/aiUsage.ts`                                   | Generic mechanism | AI rate-limit guardrails; values should be env-driven before release |
+| `_shared/exportGuard.ts`                               | Generic mechanism | Export velocity limits; values should be env-driven                  |
+| `_shared/adminAccess.ts`                               | Proprietary       | Hardcoded internal admin email                                       |
+| `_shared/googleCalendar.ts`                            | Generic mechanism | JWT-bearer Google Calendar client                                    |
+| `_shared/resendSend.ts`                                | Generic mechanism | Resend email wrapper                                                 |
+| `_shared/scheduledCalls.ts`                            | Mixed             | Scheduling logic is generic; Dutiva call cadence is not              |
+| `_shared/supportAnalytics.ts`                          | Mixed             | Validation is generic; metrics schema is Dutiva-specific             |
+| `_shared/lawUpdateDigest.ts` / `lawUpdateRelevance.ts` | Proprietary       | Law-update filtering and digest logic                                |
+| `_shared/caslConsent.ts`                               | Generic mechanism | CASL consent recording                                               |
 
 ---
 
@@ -216,11 +216,13 @@ packages/                # New private packages during preparation
 ```
 
 **Why multi-repo for the eventual public boundary:**
+
 - Strong IP boundary and independent licensing.
 - External contributors can work on generic packages without access to proprietary repos.
 - Clearer public/private separation and release management.
 
 **Why monorepo during preparation:**
+
 - Easier refactoring and type sharing while the boundaries are still being drawn.
 - `npm run check` and existing CI continue to work.
 - Lower synchronization overhead during the cleanup phase.
@@ -247,16 +249,16 @@ packages/                # New private packages during preparation
 
 ## 6. Migration complexity
 
-| Boundary change | Complexity | Risk |
-|---|---|---|
-| Extract `src/i18n/core` | Low | Breaking change to import paths; easily aliased |
-| Extract `src/styles` + generic components | Low-Medium | Tailwind v4 setup must move with tokens; vite config references tokens |
-| Extract generic `src/lib` utilities | Low | Some modules read `import.meta.env`; need config injection |
-| Env-ify Dutiva defaults in `src/seo/site.ts`, `adminAccess.ts`, rate limits | Low | Straightforward replacements |
-| Split document engine from templates | Medium | Template rendering and ClauseGate logic is embedded in document screens |
-| Split workflow engine from flow data | Medium | Flow runner and data are coupled in `flowModel.ts` and screens |
-| Split support plumbing from content | Low-Medium | Help Centre content and triage categories are separate files already |
-| Move engines to `dutiva-shared-core` | Medium | Requires build/publish pipeline and integration tests |
+| Boundary change                                                             | Complexity | Risk                                                                    |
+| --------------------------------------------------------------------------- | ---------- | ----------------------------------------------------------------------- |
+| Extract `src/i18n/core`                                                     | Low        | Breaking change to import paths; easily aliased                         |
+| Extract `src/styles` + generic components                                   | Low-Medium | Tailwind v4 setup must move with tokens; vite config references tokens  |
+| Extract generic `src/lib` utilities                                         | Low        | Some modules read `import.meta.env`; need config injection              |
+| Env-ify Dutiva defaults in `src/seo/site.ts`, `adminAccess.ts`, rate limits | Low        | Straightforward replacements                                            |
+| Split document engine from templates                                        | Medium     | Template rendering and ClauseGate logic is embedded in document screens |
+| Split workflow engine from flow data                                        | Medium     | Flow runner and data are coupled in `flowModel.ts` and screens          |
+| Split support plumbing from content                                         | Low-Medium | Help Centre content and triage categories are separate files already    |
+| Move engines to `dutiva-shared-core`                                        | Medium     | Requires build/publish pipeline and integration tests                   |
 
 ---
 

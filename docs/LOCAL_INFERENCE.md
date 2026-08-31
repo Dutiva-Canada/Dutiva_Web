@@ -8,7 +8,7 @@ investor materials as a shipped capability.
 **Recommended default until a decision says otherwise:** keep DigitalOcean
 Gradient serverless (`deepseek-3.2`) as the Advisor completion path. Do not
 build in-browser WebGPU, an OS-model desktop shell, or a Dutiva Local Runtime
-as the default Advisor. If the live issue is *where DigitalOcean runs*, that
+as the default Advisor. If the live issue is _where DigitalOcean runs_, that
 is OA9 (residency), not local inference.
 
 Read alongside:
@@ -35,13 +35,13 @@ without using the cloud?
 
 **Short answers**
 
-| Question | Answer |
-| --- | --- |
-| Zero bytes on their machine **and** no cloud? | **No.** Physics. |
-| Invisible acquisition (no Ollama, no GGUF hunt)? | **Yes.** Browser cache, OS-shipped model, installer, or LAN appliance. |
-| Compatible with DigitalOcean Gradient? | **Complementary, not integrated.** Gradient cannot run on-device. Dedicated Inference TOR1 is still Dutiva-operated cloud. |
-| Replace today’s Advisor with on-device inference? | **Not as the default.** Quality, grounding, metering, and bilingual HR bar do not survive a 1–4B browser model. |
-| Implementable in this repo if we later choose to? | **Yes in layers** — see §8. A provider swap is days. A Local Runtime is a product line. |
+| Question                                          | Answer                                                                                                                     |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Zero bytes on their machine **and** no cloud?     | **No.** Physics.                                                                                                           |
+| Invisible acquisition (no Ollama, no GGUF hunt)?  | **Yes.** Browser cache, OS-shipped model, installer, or LAN appliance.                                                     |
+| Compatible with DigitalOcean Gradient?            | **Complementary, not integrated.** Gradient cannot run on-device. Dedicated Inference TOR1 is still Dutiva-operated cloud. |
+| Replace today’s Advisor with on-device inference? | **Not as the default.** Quality, grounding, metering, and bilingual HR bar do not survive a 1–4B browser model.            |
+| Implementable in this repo if we later choose to? | **Yes in layers** — see §8. A provider swap is days. A Local Runtime is a product line.                                    |
 
 ---
 
@@ -49,12 +49,12 @@ without using the cloud?
 
 Inference runs where the weights are. There is no fifth location.
 
-| Location | Customer “downloads a model”? | Prompt leaves their premises? | Who pays the GPU? |
-| --- | --- | --- | --- |
-| A. Customer device (browser, OS, helper) | Automatic or OS-managed, still bytes on disk/VRAM | No (unless you also call Dutiva) | Customer electricity / NPU |
-| B. Customer LAN / appliance | IT installs once for the org | No external cloud | Customer (or a GPU they rent) |
-| C. Dutiva server (Gradient, Dedicated, Droplet) | No | Yes — Dutiva’s provider | Dutiva |
-| D. Third-party API | No | Yes | Dutiva |
+| Location                                        | Customer “downloads a model”?                     | Prompt leaves their premises?    | Who pays the GPU?             |
+| ----------------------------------------------- | ------------------------------------------------- | -------------------------------- | ----------------------------- |
+| A. Customer device (browser, OS, helper)        | Automatic or OS-managed, still bytes on disk/VRAM | No (unless you also call Dutiva) | Customer electricity / NPU    |
+| B. Customer LAN / appliance                     | IT installs once for the org                      | No external cloud                | Customer (or a GPU they rent) |
+| C. Dutiva server (Gradient, Dedicated, Droplet) | No                                                | Yes — Dutiva’s provider          | Dutiva                        |
+| D. Third-party API                              | No                                                | Yes                              | Dutiva                        |
 
 “The browser cached it” is still A. “Apple/Windows already had a model” is
 still A. “Dedicated Inference in TOR1” is still C.
@@ -66,7 +66,7 @@ still A. “Dedicated Inference in TOR1” is still C.
 Advisor is not a chat widget. A turn currently does all of the following:
 
 1. Authenticate the user (Supabase JWT).
-2. **Claim** commercial + abuse usage (`claim_ai_usage`) *before* the model
+2. **Claim** commercial + abuse usage (`claim_ai_usage`) _before_ the model
    call — 80 included replies / calendar month UTC, then packs, then optional
    overage. Abuse rails (burst, 120 req/day, 250k tokens/day, platform 2,000)
    are never for sale. See `src/config/advisorUsage.ts` and
@@ -92,19 +92,19 @@ you invent a new trust model. Do not assume packs/overage keep working.
 
 ## 4. Options (capability vs Dutiva fit)
 
-| Option | Manual download? | Leaves device? | Call from dutiva.ca? | Fit as **the** Advisor | Notes |
-| --- | --- | --- | --- | --- | --- |
-| Browser WebGPU (WebLLM, Transformers.js, ONNX Runtime Web) | No — first visit still fetches 0.5–5 GB, then IndexedDB/Cache API | No after cache | Yes | **Prototype / non-legal draft only** | Practical ceiling ~1–4B on ordinary laptops; 7–8B needs high-end VRAM. WebGPU is uneven on locked-down corporate browsers and iOS. |
-| OS model (Apple Foundation Models ~3B; Windows AI / Phi Silica → Aion Instruct from 2026-11-24 retail) | Usually no; OS distributes | On-device yes. Apple **Private Cloud Compute is still Apple’s cloud** | **No** — needs a signed native or Electron/Tauri shell | Future provider inside a desktop runtime | Hardware-gated (Apple Intelligence devices; Copilot+ NPU or listed GPUs). Too small to own statute-aware bilingual dialogue. |
-| Dutiva Local Runtime (installer + localhost OpenAI API) | One component, not “a GGUF” | No | Web app talks to localhost or via `advisor-chat` | **Best true-local SKU**, later | New product: updates, GPU detect, support. |
-| Customer LAN GPU / appliance | IT once | No external cloud | Yes if they expose OpenAI-compatible HTTPS your Edge Function can reach (or a browser talks to LAN) | Best for larger employers | Same contract as Gradient: `/chat/completions`. |
-| Gradient **serverless** (current) | No | Yes | Yes | **Correct default** | Pay per token. No public region selector. Prepaid balance on DigitalOcean. |
-| Gradient **Dedicated Inference TOR1** | No | Yes — pinable to Toronto | Yes — swap `base_url` | Right next step if the goal is **Canada**, not on-device | Billed per GPU-hour whether traffic is 1 or 10,000 rpm. |
-| GPU Droplet TOR1 + vLLM | No | Yes | Yes | DIY Dedicated | You operate the box. Still Dutiva cloud. |
+| Option                                                                                                 | Manual download?                                                  | Leaves device?                                                        | Call from dutiva.ca?                                                                                | Fit as **the** Advisor                                   | Notes                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Browser WebGPU (WebLLM, Transformers.js, ONNX Runtime Web)                                             | No — first visit still fetches 0.5–5 GB, then IndexedDB/Cache API | No after cache                                                        | Yes                                                                                                 | **Prototype / non-legal draft only**                     | Practical ceiling ~1–4B on ordinary laptops; 7–8B needs high-end VRAM. WebGPU is uneven on locked-down corporate browsers and iOS. |
+| OS model (Apple Foundation Models ~3B; Windows AI / Phi Silica → Aion Instruct from 2026-11-24 retail) | Usually no; OS distributes                                        | On-device yes. Apple **Private Cloud Compute is still Apple’s cloud** | **No** — needs a signed native or Electron/Tauri shell                                              | Future provider inside a desktop runtime                 | Hardware-gated (Apple Intelligence devices; Copilot+ NPU or listed GPUs). Too small to own statute-aware bilingual dialogue.       |
+| Dutiva Local Runtime (installer + localhost OpenAI API)                                                | One component, not “a GGUF”                                       | No                                                                    | Web app talks to localhost or via `advisor-chat`                                                    | **Best true-local SKU**, later                           | New product: updates, GPU detect, support.                                                                                         |
+| Customer LAN GPU / appliance                                                                           | IT once                                                           | No external cloud                                                     | Yes if they expose OpenAI-compatible HTTPS your Edge Function can reach (or a browser talks to LAN) | Best for larger employers                                | Same contract as Gradient: `/chat/completions`.                                                                                    |
+| Gradient **serverless** (current)                                                                      | No                                                                | Yes                                                                   | Yes                                                                                                 | **Correct default**                                      | Pay per token. No public region selector. Prepaid balance on DigitalOcean.                                                         |
+| Gradient **Dedicated Inference TOR1**                                                                  | No                                                                | Yes — pinable to Toronto                                              | Yes — swap `base_url`                                                                               | Right next step if the goal is **Canada**, not on-device | Billed per GPU-hour whether traffic is 1 or 10,000 rpm.                                                                            |
+| GPU Droplet TOR1 + vLLM                                                                                | No                                                                | Yes                                                                   | Yes                                                                                                 | DIY Dedicated                                            | You operate the box. Still Dutiva cloud.                                                                                           |
 
 DigitalOcean does **not** stream weights into the browser, wrap Apple/Windows
-on-device APIs, or offer “Gradient but local.” BYOM is for loading *your*
-weights onto *their* reserved GPU.
+on-device APIs, or offer “Gradient but local.” BYOM is for loading _your_
+weights onto _their_ reserved GPU.
 
 ---
 
@@ -114,16 +114,16 @@ What you have now is already the DO-native architecture: server-side secret,
 OpenAI-compatible client, route table so the model can change without a
 deploy.
 
-| Need | DO product | Local? |
-| --- | --- | --- |
-| Keep shipping Advisor on the web | Serverless Gradient, `deepseek-3.2` | No |
-| Written Canadian processing | Ask OA9; if serverless will not pin, Dedicated TOR1 (public availability also lists NYC2, ATL1, RIC1 for Dedicated/BYOM) | No |
-| Custom / fine-tuned weights | Dedicated + BYOM (~USD $5/mo weight storage plus GPU-hours) | No |
-| Tenant uses their own GPU | Not a DO feature — point `ai_model_providers.base_url` at them | Their LAN |
-| On-device inference | None | — |
+| Need                             | DO product                                                                                                               | Local?    |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | --------- |
+| Keep shipping Advisor on the web | Serverless Gradient, `deepseek-3.2`                                                                                      | No        |
+| Written Canadian processing      | Ask OA9; if serverless will not pin, Dedicated TOR1 (public availability also lists NYC2, ATL1, RIC1 for Dedicated/BYOM) | No        |
+| Custom / fine-tuned weights      | Dedicated + BYOM (~USD $5/mo weight storage plus GPU-hours)                                                              | No        |
+| Tenant uses their own GPU        | Not a DO feature — point `ai_model_providers.base_url` at them                                                           | Their LAN |
+| On-device inference              | None                                                                                                                     | —         |
 
 **Do not** describe Dedicated TOR1 as “local” or “on-device.” It is
-Dutiva-operated cloud in Toronto. That can still be the right privacy *and*
+Dutiva-operated cloud in Toronto. That can still be the right privacy _and_
 cost move (see §6.3) without pretending the laptop ran the model.
 
 ---
@@ -141,11 +141,11 @@ rate.
 
 Public DigitalOcean Inference pricing, last checked **2026-08-24**:
 
-| Model (serverless) | Input / 1M tokens | Output / 1M tokens | Cache read / 1M |
-| --- | --- | --- | --- |
-| **DeepSeek V3.2** (`deepseek-3.2`, production) | USD $0.25 | USD $0.80 | USD $0.075 |
-| Ministral 3 14B Instruct (prior Advisor model) | USD $0.20 | USD $0.20 | — |
-| DeepSeek V4 Flash (cheaper, **not evaluated** for this product) | USD $0.068 | USD $0.168 | USD $0.017 |
+| Model (serverless)                                              | Input / 1M tokens | Output / 1M tokens | Cache read / 1M |
+| --------------------------------------------------------------- | ----------------- | ------------------ | --------------- |
+| **DeepSeek V3.2** (`deepseek-3.2`, production)                  | USD $0.25         | USD $0.80          | USD $0.075      |
+| Ministral 3 14B Instruct (prior Advisor model)                  | USD $0.20         | USD $0.20          | —               |
+| DeepSeek V4 Flash (cheaper, **not evaluated** for this product) | USD $0.068        | USD $0.168         | USD $0.017      |
 
 We do not have a live p50 token count in this document. Engineering bounds
 for a planning estimate:
@@ -167,11 +167,11 @@ spend decision): 4,000 input + 500 output tokens, no cache hit.
 
 Sensitivity (same rates):
 
-| Turn shape | Input / output | USD / turn |
-| --- | --- | --- |
-| Light | 2,000 / 300 | $0.00074 |
-| Planning | 4,000 / 500 | $0.00140 |
-| Heavy thread | 8,000 / 800 | $0.00264 |
+| Turn shape   | Input / output | USD / turn |
+| ------------ | -------------- | ---------- |
+| Light        | 2,000 / 300    | $0.00074   |
+| Planning     | 4,000 / 500    | $0.00140   |
+| Heavy thread | 8,000 / 800    | $0.00264   |
 
 At the planning turn, **80 included replies** cost Dutiva about
 **USD $0.11 / user / month** if every user maxes the included budget.
@@ -180,14 +180,14 @@ Starter plan at **$24 CAD/mo**.
 
 ### 6.2 Revenue vs inference COGS (why local does not “save the business” at current scale)
 
-| Commercial object | Customer pays | Approx. Dutiva GPU COGS (planning turn) |
-| --- | --- | --- |
-| Included 80 / month | Bundled in Free waitlist or paid support membership | ~USD $0.11 if fully used |
-| Pack 50 | **$5 CAD** ($0.10 CAD / reply) | ~USD $0.07 for 50 turns |
-| Pack 200 | **$15 CAD** ($0.075 CAD / reply) | ~USD $0.28 for 200 turns |
-| Overage | **$0.12 CAD / reply**, cap 500, paid + opt-in | ~USD $0.0014 / reply |
+| Commercial object   | Customer pays                                       | Approx. Dutiva GPU COGS (planning turn) |
+| ------------------- | --------------------------------------------------- | --------------------------------------- |
+| Included 80 / month | Bundled in Free waitlist or paid support membership | ~USD $0.11 if fully used                |
+| Pack 50             | **$5 CAD** ($0.10 CAD / reply)                      | ~USD $0.07 for 50 turns                 |
+| Pack 200            | **$15 CAD** ($0.075 CAD / reply)                    | ~USD $0.28 for 200 turns                |
+| Overage             | **$0.12 CAD / reply**, cap 500, paid + opt-in       | ~USD $0.0014 / reply                    |
 
-Pack and overage gross margin on *inference* is extremely high. The 80
+Pack and overage gross margin on _inference_ is extremely high. The 80
 included replies are a product cost, not a GPU crisis. Abuse rails exist so
 one account cannot turn “included” into an unbounded Gradient bill
 (120 req / 250k tokens / day, platform 2,000).
@@ -198,28 +198,28 @@ GPUs that sit idle. The expensive line items at this stage of the company
 are founder time, support, legal review of the corpus, and a mistaken
 Dedicated reservation — not `$0.0014` turns.
 
-### 6.3 Dedicated Inference — when the cloud *does* get expensive
+### 6.3 Dedicated Inference — when the cloud _does_ get expensive
 
 Dedicated is billed **per GPU-hour whether or not anyone is chatting**.
 DigitalOcean list prices (2026-08-24):
 
-| GPU | USD / hour | ≈ USD / 730-hour month if left on |
-| --- | --- | --- |
-| AMD MI300X (1×) | $2.59 | $1,890 |
-| NVIDIA H100 (1×) | $4.41 | $3,219 |
-| NVIDIA H200 (1×) | $4.47 | $3,263 |
-| NVIDIA H100 (8×) | $30.32 | $22,134 |
+| GPU              | USD / hour | ≈ USD / 730-hour month if left on |
+| ---------------- | ---------- | --------------------------------- |
+| AMD MI300X (1×)  | $2.59      | $1,890                            |
+| NVIDIA H100 (1×) | $4.41      | $3,219                            |
+| NVIDIA H200 (1×) | $4.47      | $3,263                            |
+| NVIDIA H100 (8×) | $30.32     | $22,134                           |
 
 Break-even vs serverless at **$0.0014 / turn**:
 
 | Dedicated SKU | Idle monthly | Turns / month before serverless would have cost the same |
-| --- | --- | --- |
-| MI300X 1× | ~$1,890 | ~1.35 million |
-| H100 1× | ~$3,219 | ~2.3 million |
+| ------------- | ------------ | -------------------------------------------------------- |
+| MI300X 1×     | ~$1,890      | ~1.35 million                                            |
+| H100 1×       | ~$3,219      | ~2.3 million                                             |
 
 Even if real turns are 3× more expensive than the planning estimate
 (~$0.004), an always-on H100 still needs on the order of **~800k turns /
-month** to match serverless on *raw GPU spend*. That is far above a small
+month** to match serverless on _raw GPU spend_. That is far above a small
 Canadian HR SaaS’s near-term Advisor volume.
 
 **Buy Dedicated when** you need a **contractual TOR1 pin** (OA9 fails for
@@ -232,16 +232,16 @@ That is a cash-ops detail, not a reason to reserve a GPU.
 
 ### 6.4 On-device / local — Dutiva’s bill vs the real bill
 
-| Path | Dutiva GPU COGS | What you actually pay |
-| --- | --- | --- |
+| Path              | Dutiva GPU COGS                            | What you actually pay                                                                                                                                                                        |
+| ----------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | WebGPU in the SPA | ~$0 / turn after you stop calling Gradient | CDN/bandwidth for first-load weights; weeks of engineering; QA on hardware you do not control; support when Chrome evicts IndexedDB; **quality/liability** if a 2B model invents ESA figures |
-| OS models | $0 | Native/Electron product; store/signing; hardware matrix; still a small model |
-| Local Runtime | $0 for those tenants | Installer, auto-update, GPU/NPU matrix, “it doesn’t start on this laptop,” macOS notarization, Windows SmartScreen. This dominates GPU savings at Dutiva’s scale |
-| Customer LAN | $0 | Sales + implementation. Price it as an **enterprise SKU**, not as a discount on Starter |
+| OS models         | $0                                         | Native/Electron product; store/signing; hardware matrix; still a small model                                                                                                                 |
+| Local Runtime     | $0 for those tenants                       | Installer, auto-update, GPU/NPU matrix, “it doesn’t start on this laptop,” macOS notarization, Windows SmartScreen. This dominates GPU savings at Dutiva’s scale                             |
+| Customer LAN      | $0                                         | Sales + implementation. Price it as an **enterprise SKU**, not as a discount on Starter                                                                                                      |
 
 Local also **destroys the current pack story** unless you replace it:
 credits assume Dutiva paid Gradient. If inference is free for you,
-either (a) still charge packs as a convenience/quality add-on for *cloud*
+either (a) still charge packs as a convenience/quality add-on for _cloud_
 Advisor, (b) sell a higher-priced “on-prem inference” membership, or
 (c) give local users cloud fallback metered as today. Decide that before
 building.
@@ -250,7 +250,7 @@ building.
 
 **Short term (now → first few hundred paying orgs)**
 
-Cheapest *and* highest-quality path:
+Cheapest _and_ highest-quality path:
 
 1. Stay on Gradient serverless `deepseek-3.2` **only if** subprocessors'
    cross-border disclosure (CA / US / NL) is acceptable to counsel.
@@ -261,7 +261,7 @@ Cheapest *and* highest-quality path:
 3. Tune COGS without new architecture: prompt caching if the route
    supports it; keep history at 20; do not put embeddings/RAG on Gradient
    Knowledge Bases unless you have a reason (Dutiva already retrieves in
-   Postgres). Optionally evaluate a cheaper *evaluated* model for
+   Postgres). Optionally evaluate a cheaper _evaluated_ model for
    `support-firstline` only — never silently cheapen Advisor legal
    dialogue.
 4. Use telemetry (`prompt_tokens`, `completion_tokens`) to replace the
@@ -278,7 +278,7 @@ true:
 - A customer will **pay extra** for “case facts inferred on our hardware”
   (privacy SKU). The GPU savings accrue to them; Dutiva’s win is price and
   differentiation, not COGS.
-- Cloud volume is high enough that **Dedicated idle < serverless**, *and*
+- Cloud volume is high enough that **Dedicated idle < serverless**, _and_
   you want TOR1 isolation anyway.
 - You are losing deals because prompts leave the customer network, and the
   alternative is no deal.
@@ -307,15 +307,15 @@ completion only changes **where that one prompt is decoded**.
 If the pitch is “sensitive employee facts never sit on Dutiva’s inference
 GPU,” you do not have to move the whole product off the cloud.
 
-| Stays on Dutiva (and usually DigitalOcean) | Can stay on customer hardware |
-| --- | --- |
-| Auth, org, Stripe, packs for *cloud* turns | Names, tenure, wages, case narrative in the user message |
-| Curated guidance retrieval (or chunk ids) | Completion against retrieved text + local facts |
-| Templates, ClauseGate, notice math, citation table | Optional embeddings of the employer’s own PDFs |
-| Crisis resources verbatim, statutory-figure detector | GPU / NPU / Apple FM / Windows AI |
+| Stays on Dutiva (and usually DigitalOcean)           | Can stay on customer hardware                            |
+| ---------------------------------------------------- | -------------------------------------------------------- |
+| Auth, org, Stripe, packs for _cloud_ turns           | Names, tenure, wages, case narrative in the user message |
+| Curated guidance retrieval (or chunk ids)            | Completion against retrieved text + local facts          |
+| Templates, ClauseGate, notice math, citation table   | Optional embeddings of the employer’s own PDFs           |
+| Crisis resources verbatim, statutory-figure detector | GPU / NPU / Apple FM / Windows AI                        |
 
-Honest line if shipped: *sensitive case facts can be inferred on your
-hardware.* Not “PIPEDA-compliant because local.” Not “no download.” Not
+Honest line if shipped: _sensitive case facts can be inferred on your
+hardware._ Not “PIPEDA-compliant because local.” Not “no download.” Not
 “DigitalOcean local mode.”
 
 Two implementation shapes:
@@ -334,13 +334,13 @@ Two implementation shapes:
 Nothing below is scheduled. Effort is order-of-magnitude for a solo
 founder-plus-agents shop.
 
-| Phase | Work | Effort | Spend | Do when |
-| --- | --- | --- | --- | --- |
-| **0** | Keep Gradient. Send OA9. Measure real $/turn from telemetry. | Hours | Current serverless | Default |
-| **1** | Dedicated TOR1 **or** rewrite public Toronto language | Days (provider row + secrets + legal copy) | GPU-hours or legal time | Residency, not savings |
-| **2** | Tenant-scoped `ai_model_providers` row → customer OpenAI-compatible URL | Days–weeks + enterprise support | Sales, not GPUs | A paying customer has a GPU and a contract |
-| **3** | Dutiva Local Runtime (localhost `/v1/chat/completions`) with Gradient fallback | A product line (months, then forever) | Support >> GPU | Recurring demand for (a) in §7 |
-| **4** | OS models / WebGPU as extra providers inside that runtime | Extra matrix | QA | Only after 3 exists; never as the web Advisor |
+| Phase | Work                                                                           | Effort                                     | Spend                   | Do when                                       |
+| ----- | ------------------------------------------------------------------------------ | ------------------------------------------ | ----------------------- | --------------------------------------------- |
+| **0** | Keep Gradient. Send OA9. Measure real $/turn from telemetry.                   | Hours                                      | Current serverless      | Default                                       |
+| **1** | Dedicated TOR1 **or** rewrite public Toronto language                          | Days (provider row + secrets + legal copy) | GPU-hours or legal time | Residency, not savings                        |
+| **2** | Tenant-scoped `ai_model_providers` row → customer OpenAI-compatible URL        | Days–weeks + enterprise support            | Sales, not GPUs         | A paying customer has a GPU and a contract    |
+| **3** | Dutiva Local Runtime (localhost `/v1/chat/completions`) with Gradient fallback | A product line (months, then forever)      | Support >> GPU          | Recurring demand for (a) in §7                |
+| **4** | OS models / WebGPU as extra providers inside that runtime                      | Extra matrix                               | QA                      | Only after 3 exists; never as the web Advisor |
 
 The route table is the extension point. Do not fork `advisor-chat` into a
 second product to try WebGPU.

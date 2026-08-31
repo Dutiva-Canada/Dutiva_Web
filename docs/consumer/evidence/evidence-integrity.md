@@ -35,22 +35,22 @@ The Personal Evidence Locker must preserve the trustworthiness of user evidence.
 
 `INT-REQ-006`: Every evidence item SHALL store the following metadata:
 
-| Field | Purpose |
-|---|---|
-| `id` | Stable item identifier |
-| `user_id` | Owner |
-| `original_file_id` | Reference to stored original |
-| `original_filename` | Name at time of upload |
-| `mime_type` | Detected or declared content type |
-| `file_size` | Size in bytes |
-| `original_hash` | SHA-256 hash of the original file |
-| `source_type` | upload, capture, import, manual_entry |
-| `capture_method` | camera, scanner, file_picker, email_import, etc. |
-| `captured_at` | Best-known date/time the record depicts |
-| `uploaded_at` | Ingestion timestamp |
-| `provenance` | Free-text or structured source note |
-| `sensitivity` | normal, sensitive, highly_sensitive |
-| `status` | active, deleted_pending, purged |
+| Field               | Purpose                                          |
+| ------------------- | ------------------------------------------------ |
+| `id`                | Stable item identifier                           |
+| `user_id`           | Owner                                            |
+| `original_file_id`  | Reference to stored original                     |
+| `original_filename` | Name at time of upload                           |
+| `mime_type`         | Detected or declared content type                |
+| `file_size`         | Size in bytes                                    |
+| `original_hash`     | SHA-256 hash of the original file                |
+| `source_type`       | upload, capture, import, manual_entry            |
+| `capture_method`    | camera, scanner, file_picker, email_import, etc. |
+| `captured_at`       | Best-known date/time the record depicts          |
+| `uploaded_at`       | Ingestion timestamp                              |
+| `provenance`        | Free-text or structured source note              |
+| `sensitivity`       | normal, sensitive, highly_sensitive              |
+| `status`            | active, deleted_pending, purged                  |
 
 `INT-REQ-007`: Metadata SHALL be stored in a durable, access-controlled database.
 

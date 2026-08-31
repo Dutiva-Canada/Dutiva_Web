@@ -72,9 +72,8 @@ describe('toSupportedJurisdiction', () => {
        function and the client cannot share a module — so if one gains a
        jurisdiction and the other does not, the product would notify about a
        jurisdiction it does not display, or vice versa. */
-    const { MONITOR_JURISDICTION_NAMES, CUSTOMER_FACING_EVENT_TYPE } = await import(
-      '@/features/app/guidance/monitoringCoverage'
-    )
+    const { MONITOR_JURISDICTION_NAMES, CUSTOMER_FACING_EVENT_TYPE } =
+      await import('@/features/app/guidance/monitoringCoverage')
     for (const name of MONITOR_JURISDICTION_NAMES) {
       expect(toSupportedJurisdiction(name)).not.toBeNull()
     }

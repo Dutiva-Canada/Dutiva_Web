@@ -196,300 +196,295 @@ export function CommunicationsProductionView() {
 
   return (
     <AppPage width="comfort">
-        <div className="mb-[18px] flex flex-wrap items-center justify-between gap-[16px]">
-          <div className="text-[13px] text-text-muted">
-            {rows === null ? x(M.comms_prod_loading) : countLabel}
-          </div>
-          {!formOpen && (
-            <button
-              type="button"
-              onClick={() => {
-                setEditingId(null)
-                setForm(EMPTY_FORM)
-                setFormOpen(true)
-              }}
-              className="flex cursor-pointer items-center gap-[7px] rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
-            >
-              <Plus size={14} strokeWidth={2} aria-hidden="true" />
-              {x(M.comms_prod_add)}
-            </button>
-          )}
+      <div className="mb-[18px] flex flex-wrap items-center justify-between gap-[16px]">
+        <div className="text-[13px] text-text-muted">
+          {rows === null ? x(M.comms_prod_loading) : countLabel}
         </div>
-
-        {loadFailed && (
-          <div className="mb-[14px] flex items-center justify-between gap-[12px] rounded-[11px] border border-risk-border bg-risk-bg px-[16px] py-[12px]">
-            <span className="text-[13px] text-risk-fg">{x(M.comms_prod_error)}</span>
-            <button
-              type="button"
-              onClick={() => void load()}
-              className="cursor-pointer rounded-[8px] border-none bg-surface px-[12px] py-[6px] font-sans text-[12px] font-bold text-text"
-            >
-              {x(M.comms_prod_retry)}
-            </button>
-          </div>
-        )}
-
-        {formOpen && (
-          <form
-            onSubmit={(e) => void onSubmit(e)}
-            className="mb-[18px] rounded-[12px] border border-border bg-surface px-[20px] py-[18px]"
+        {!formOpen && (
+          <button
+            type="button"
+            onClick={() => {
+              setEditingId(null)
+              setForm(EMPTY_FORM)
+              setFormOpen(true)
+            }}
+            className="flex cursor-pointer items-center gap-[7px] rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
           >
-            <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <label htmlFor="comm-title" className={labelClass}>
-                  {x(M.comms_prod_title)}
-                </label>
-                <input
-                  id="comm-title"
-                  required
-                  value={form.title}
-                  onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label htmlFor="comm-audience" className={labelClass}>
-                  {x(M.comms_prod_audience)}
-                </label>
-                <input
-                  id="comm-audience"
-                  value={form.audience}
-                  onChange={(e) => setForm((f) => ({ ...f, audience: e.target.value }))}
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label htmlFor="comm-channel" className={labelClass}>
-                  {x(M.comms_prod_channel)}
-                </label>
-                <select
-                  id="comm-channel"
-                  value={form.channel}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      channel: e.target.value as ProductionCommunicationChannel,
-                    }))
-                  }
-                  className={inputClass}
-                >
-                  {PRODUCTION_COMMUNICATION_CHANNELS.map((c) => (
-                    <option key={c} value={c}>
-                      {x(CHANNEL_LABEL[c])}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="comm-status" className={labelClass}>
-                  {x(M.comms_prod_status)}
-                </label>
-                <select
-                  id="comm-status"
-                  value={form.status}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      status: e.target.value as ProductionCommunicationStatus,
-                    }))
-                  }
-                  className={inputClass}
-                >
-                  {PRODUCTION_COMMUNICATION_STATUSES.map((s) => (
-                    <option key={s} value={s}>
-                      {x(STATUS_LABEL[s])}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="comm-scheduled" className={labelClass}>
-                  {x(M.comms_prod_scheduled_for)}
-                </label>
-                <input
-                  id="comm-scheduled"
-                  type="date"
-                  value={form.scheduledFor}
-                  onChange={(e) => setForm((f) => ({ ...f, scheduledFor: e.target.value }))}
-                  className={inputClass}
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <label htmlFor="comm-template" className={labelClass}>
-                  {x(M.comms_prod_template)}
-                </label>
-                <select
-                  id="comm-template"
-                  value={form.templateTid}
-                  onChange={(e) => setForm((f) => ({ ...f, templateTid: e.target.value }))}
-                  className={inputClass}
-                >
-                  <option value="">{x(M.comms_prod_template_none)}</option>
-                  {commsTemplates.map((t) => (
-                    <option key={t.tid} value={t.tid}>
-                      {t.name[lang]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="sm:col-span-2">
-                <label htmlFor="comm-note" className={labelClass}>
-                  {x(M.comms_prod_note)}
-                </label>
-                <input
-                  id="comm-note"
-                  value={form.note}
-                  onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
-                  className={inputClass}
-                />
-              </div>
-            </div>
-            <div className="mt-[16px] flex gap-[8px]">
-              <button
-                type="submit"
-                disabled={saving}
-                className="cursor-pointer rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white disabled:opacity-60"
-              >
-                {x(M.comms_prod_save)}
-              </button>
-              <button
-                type="button"
-                onClick={closeForm}
-                className="cursor-pointer rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text"
-              >
-                {x(M.comms_prod_cancel)}
-              </button>
-            </div>
-          </form>
+            <Plus size={14} strokeWidth={2} aria-hidden="true" />
+            {x(M.comms_prod_add)}
+          </button>
         )}
+      </div>
 
-        {rows !== null && count === 0 && !loadFailed && !formOpen && (
-          <ModuleEmptyBlock
-            icon={Send}
-            title={x(M.comms_prod_empty_title)}
-            body={x(M.comms_prod_empty_body)}
-          />
-        )}
-
-        {count > 0 && (
-          <div className="flex flex-col gap-[12px]">
-            {list.map((comm) => {
-              const template = comm.templateTid ? templateByTid.get(comm.templateTid) : undefined
-              return (
-                <div
-                  key={comm.id}
-                  className="flex flex-col gap-[10px] rounded-[12px] border border-border bg-surface px-[18px] py-[16px]"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-[12px]">
-                    <div className="min-w-0">
-                      <div className="text-[14.5px] font-semibold text-text">{comm.title}</div>
-                      <div className="mt-[3px] text-[12px] text-text-muted">
-                        {comm.audience ? `${comm.audience} · ` : ''}
-                        {x(CHANNEL_LABEL[comm.channel])}
-                        {comm.sentOn ? ` · ${x(M.comms_prod_sent_prefix)}${comm.sentOn}` : ''}
-                        {!comm.sentOn && comm.scheduledFor
-                          ? ` · ${x(M.comms_prod_scheduled_prefix)}${comm.scheduledFor}`
-                          : ''}
-                      </div>
-                    </div>
-                    <span className={statusChipClass(STATUS_TONE[comm.status])}>
-                      {x(STATUS_LABEL[comm.status])}
-                    </span>
-                  </div>
-
-                  {template && (
-                    <Link
-                      to={`/app/documents/generate/${template.tid}`}
-                      className="flex items-center gap-[6px] text-[12px] text-accent no-underline"
-                    >
-                      <LinkIcon
-                        size={12}
-                        strokeWidth={1.8}
-                        className="shrink-0"
-                        aria-hidden="true"
-                      />
-                      {template.name[lang]}
-                    </Link>
-                  )}
-
-                  {comm.note && (
-                    <div className="text-[12.5px] leading-normal text-text-3">{comm.note}</div>
-                  )}
-
-                  {pendingDeleteId === comm.id ? (
-                    <div className="flex flex-wrap items-center gap-[10px] rounded-[8px] bg-inset px-[12px] py-[10px]">
-                      <span className="text-[12.5px] text-text-2">
-                        {x(M.comms_prod_delete_confirm)}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setPendingDeleteId(null)}
-                        className="cursor-pointer rounded-[8px] border border-border bg-surface px-[12px] py-[6px] font-sans text-[12px] font-semibold text-text"
-                      >
-                        {x(M.comms_prod_delete_cancel)}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => void onRemove(comm)}
-                        className="cursor-pointer rounded-[8px] border-none bg-risk-dot px-[12px] py-[6px] font-sans text-[12px] font-semibold text-white"
-                      >
-                        {x(M.comms_prod_confirm_delete)}
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-[8px]">
-                      {comm.status !== 'sent' && (
-                        <button
-                          type="button"
-                          onClick={() => void onMarkSent(comm)}
-                          className="cursor-pointer rounded-[8px] border-none bg-accent-soft px-[13px] py-[7px] font-sans text-[12.5px] font-bold text-accent"
-                        >
-                          {x(M.comms_prod_mark_sent)}
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => onEdit(comm)}
-                        aria-label={`${x(M.comms_prod_edit)} — ${comm.title}`}
-                        className="flex cursor-pointer items-center gap-[5px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-semibold text-text-2"
-                      >
-                        <Pencil size={13} strokeWidth={1.7} aria-hidden="true" />
-                        {x(M.comms_prod_edit)}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPendingDeleteId(comm.id)}
-                        aria-label={`${x(M.comms_prod_remove)} — ${comm.title}`}
-                        className="cursor-pointer border-none bg-transparent p-[6px] text-text-muted hover:text-risk-fg"
-                      >
-                        <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
-
-        <div className="mt-[14px] text-[11px] leading-normal text-text-faint">
-          {x(M.comms_prod_record_note)}
+      {loadFailed && (
+        <div className="mb-[14px] flex items-center justify-between gap-[12px] rounded-[11px] border border-risk-border bg-risk-bg px-[16px] py-[12px]">
+          <span className="text-[13px] text-risk-fg">{x(M.comms_prod_error)}</span>
+          <button
+            type="button"
+            onClick={() => void load()}
+            className="cursor-pointer rounded-[8px] border-none bg-surface px-[12px] py-[6px] font-sans text-[12px] font-bold text-text"
+          >
+            {x(M.comms_prod_retry)}
+          </button>
         </div>
+      )}
 
-        <details className="group mt-[18px] rounded-[12px] border border-border bg-inset opacity-70">
-          <summary className="flex cursor-not-allowed list-none items-center gap-[8px] px-[16px] py-[12px] font-sans text-[13px] font-semibold text-text-muted [&::-webkit-details-marker]:hidden">
-            <Sparkle
-              size={14}
-              className="shrink-0 text-text-faint"
-              strokeWidth={1.7}
-              aria-hidden="true"
-            />
-            {x(M.comms_prod_review_rail_title)}
-          </summary>
-          <p className="m-0 border-t border-border px-[16px] py-[12px] text-[12px] leading-normal text-text-faint">
-            {x(M.comms_prod_review_rail_body)}
-          </p>
-        </details>
+      {formOpen && (
+        <form
+          onSubmit={(e) => void onSubmit(e)}
+          className="mb-[18px] rounded-[12px] border border-border bg-surface px-[20px] py-[18px]"
+        >
+          <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label htmlFor="comm-title" className={labelClass}>
+                {x(M.comms_prod_title)}
+              </label>
+              <input
+                id="comm-title"
+                required
+                value={form.title}
+                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="comm-audience" className={labelClass}>
+                {x(M.comms_prod_audience)}
+              </label>
+              <input
+                id="comm-audience"
+                value={form.audience}
+                onChange={(e) => setForm((f) => ({ ...f, audience: e.target.value }))}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="comm-channel" className={labelClass}>
+                {x(M.comms_prod_channel)}
+              </label>
+              <select
+                id="comm-channel"
+                value={form.channel}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    channel: e.target.value as ProductionCommunicationChannel,
+                  }))
+                }
+                className={inputClass}
+              >
+                {PRODUCTION_COMMUNICATION_CHANNELS.map((c) => (
+                  <option key={c} value={c}>
+                    {x(CHANNEL_LABEL[c])}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="comm-status" className={labelClass}>
+                {x(M.comms_prod_status)}
+              </label>
+              <select
+                id="comm-status"
+                value={form.status}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    status: e.target.value as ProductionCommunicationStatus,
+                  }))
+                }
+                className={inputClass}
+              >
+                {PRODUCTION_COMMUNICATION_STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {x(STATUS_LABEL[s])}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="comm-scheduled" className={labelClass}>
+                {x(M.comms_prod_scheduled_for)}
+              </label>
+              <input
+                id="comm-scheduled"
+                type="date"
+                value={form.scheduledFor}
+                onChange={(e) => setForm((f) => ({ ...f, scheduledFor: e.target.value }))}
+                className={inputClass}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label htmlFor="comm-template" className={labelClass}>
+                {x(M.comms_prod_template)}
+              </label>
+              <select
+                id="comm-template"
+                value={form.templateTid}
+                onChange={(e) => setForm((f) => ({ ...f, templateTid: e.target.value }))}
+                className={inputClass}
+              >
+                <option value="">{x(M.comms_prod_template_none)}</option>
+                {commsTemplates.map((t) => (
+                  <option key={t.tid} value={t.tid}>
+                    {t.name[lang]}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="sm:col-span-2">
+              <label htmlFor="comm-note" className={labelClass}>
+                {x(M.comms_prod_note)}
+              </label>
+              <input
+                id="comm-note"
+                value={form.note}
+                onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
+                className={inputClass}
+              />
+            </div>
+          </div>
+          <div className="mt-[16px] flex gap-[8px]">
+            <button
+              type="submit"
+              disabled={saving}
+              className="cursor-pointer rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white disabled:opacity-60"
+            >
+              {x(M.comms_prod_save)}
+            </button>
+            <button
+              type="button"
+              onClick={closeForm}
+              className="cursor-pointer rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text"
+            >
+              {x(M.comms_prod_cancel)}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {rows !== null && count === 0 && !loadFailed && !formOpen && (
+        <ModuleEmptyBlock
+          icon={Send}
+          title={x(M.comms_prod_empty_title)}
+          body={x(M.comms_prod_empty_body)}
+        />
+      )}
+
+      {count > 0 && (
+        <div className="flex flex-col gap-[12px]">
+          {list.map((comm) => {
+            const template = comm.templateTid ? templateByTid.get(comm.templateTid) : undefined
+            return (
+              <div
+                key={comm.id}
+                className="flex flex-col gap-[10px] rounded-[12px] border border-border bg-surface px-[18px] py-[16px]"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-[12px]">
+                  <div className="min-w-0">
+                    <div className="text-[14.5px] font-semibold text-text">{comm.title}</div>
+                    <div className="mt-[3px] text-[12px] text-text-muted">
+                      {comm.audience ? `${comm.audience} · ` : ''}
+                      {x(CHANNEL_LABEL[comm.channel])}
+                      {comm.sentOn ? ` · ${x(M.comms_prod_sent_prefix)}${comm.sentOn}` : ''}
+                      {!comm.sentOn && comm.scheduledFor
+                        ? ` · ${x(M.comms_prod_scheduled_prefix)}${comm.scheduledFor}`
+                        : ''}
+                    </div>
+                  </div>
+                  <span className={statusChipClass(STATUS_TONE[comm.status])}>
+                    {x(STATUS_LABEL[comm.status])}
+                  </span>
+                </div>
+
+                {template && (
+                  <Link
+                    to={`/app/documents/generate/${template.tid}`}
+                    className="flex items-center gap-[6px] text-[12px] text-accent no-underline"
+                  >
+                    <LinkIcon size={12} strokeWidth={1.8} className="shrink-0" aria-hidden="true" />
+                    {template.name[lang]}
+                  </Link>
+                )}
+
+                {comm.note && (
+                  <div className="text-[12.5px] leading-normal text-text-3">{comm.note}</div>
+                )}
+
+                {pendingDeleteId === comm.id ? (
+                  <div className="flex flex-wrap items-center gap-[10px] rounded-[8px] bg-inset px-[12px] py-[10px]">
+                    <span className="text-[12.5px] text-text-2">
+                      {x(M.comms_prod_delete_confirm)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setPendingDeleteId(null)}
+                      className="cursor-pointer rounded-[8px] border border-border bg-surface px-[12px] py-[6px] font-sans text-[12px] font-semibold text-text"
+                    >
+                      {x(M.comms_prod_delete_cancel)}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void onRemove(comm)}
+                      className="cursor-pointer rounded-[8px] border-none bg-risk-dot px-[12px] py-[6px] font-sans text-[12px] font-semibold text-white"
+                    >
+                      {x(M.comms_prod_confirm_delete)}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-[8px]">
+                    {comm.status !== 'sent' && (
+                      <button
+                        type="button"
+                        onClick={() => void onMarkSent(comm)}
+                        className="cursor-pointer rounded-[8px] border-none bg-accent-soft px-[13px] py-[7px] font-sans text-[12.5px] font-bold text-accent"
+                      >
+                        {x(M.comms_prod_mark_sent)}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => onEdit(comm)}
+                      aria-label={`${x(M.comms_prod_edit)} — ${comm.title}`}
+                      className="flex cursor-pointer items-center gap-[5px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-semibold text-text-2"
+                    >
+                      <Pencil size={13} strokeWidth={1.7} aria-hidden="true" />
+                      {x(M.comms_prod_edit)}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPendingDeleteId(comm.id)}
+                      aria-label={`${x(M.comms_prod_remove)} — ${comm.title}`}
+                      className="cursor-pointer border-none bg-transparent p-[6px] text-text-muted hover:text-risk-fg"
+                    >
+                      <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      <div className="mt-[14px] text-[11px] leading-normal text-text-faint">
+        {x(M.comms_prod_record_note)}
+      </div>
+
+      <details className="group mt-[18px] rounded-[12px] border border-border bg-inset opacity-70">
+        <summary className="flex cursor-not-allowed list-none items-center gap-[8px] px-[16px] py-[12px] font-sans text-[13px] font-semibold text-text-muted [&::-webkit-details-marker]:hidden">
+          <Sparkle
+            size={14}
+            className="shrink-0 text-text-faint"
+            strokeWidth={1.7}
+            aria-hidden="true"
+          />
+          {x(M.comms_prod_review_rail_title)}
+        </summary>
+        <p className="m-0 border-t border-border px-[16px] py-[12px] text-[12px] leading-normal text-text-faint">
+          {x(M.comms_prod_review_rail_body)}
+        </p>
+      </details>
     </AppPage>
   )
 }

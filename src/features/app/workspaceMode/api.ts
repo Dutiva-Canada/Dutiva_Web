@@ -153,9 +153,7 @@ export async function joinOrganizationWaitlist(
       requested_org_name: requestedName,
     })
     if (error || !data) return 'error'
-    const parsed = z
-      .object({ status: z.enum(['waiting', 'already_waiting']) })
-      .safeParse(data)
+    const parsed = z.object({ status: z.enum(['waiting', 'already_waiting']) }).safeParse(data)
     if (!parsed.success) return 'error'
     return parsed.data.status
   } catch {

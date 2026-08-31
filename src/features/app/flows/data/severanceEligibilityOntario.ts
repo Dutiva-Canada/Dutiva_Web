@@ -21,7 +21,10 @@ export const severanceEligibilityOntarioFlow: Flow = {
   ring: 1,
   jurisdictions: ['ON'],
   estMinutes: 4,
-  title: bi('Ontario ESA severance eligibility', 'Admissibilité à l’indemnité de cessation (LNE Ontario)'),
+  title: bi(
+    'Ontario ESA severance eligibility',
+    'Admissibilité à l’indemnité de cessation (LNE Ontario)',
+  ),
   summary: bi(
     'Check whether ESA severance may apply — five years’ service plus payroll or mass-closure tests. Does not compute an amount.',
     'Vérifiez si l’indemnité de cessation de la LNE peut s’appliquer — cinq ans de service plus les tests de masse salariale ou de fermeture. Ne calcule pas de montant.',
@@ -31,7 +34,10 @@ export const severanceEligibilityOntarioFlow: Flow = {
     {
       id: 'tenure',
       kind: 'choice',
-      title: bi('Has the employee completed five or more years with this employer?', 'L’employé a-t-il complété cinq ans ou plus chez cet employeur?'),
+      title: bi(
+        'Has the employee completed five or more years with this employer?',
+        'L’employé a-t-il complété cinq ans ou plus chez cet employeur?',
+      ),
       body: bi(
         'ESA severance (distinct from termination notice) generally requires five or more years of employment with the employer. This is the first gate — both gates must be met.',
         'L’indemnité de cessation de la LNE (distincte du préavis) exige généralement cinq ans ou plus d’emploi chez l’employeur. C’est la première condition — les deux conditions doivent être remplies.',
@@ -61,7 +67,10 @@ export const severanceEligibilityOntarioFlow: Flow = {
     {
       id: 'employer',
       kind: 'choice',
-      title: bi('Does either employer condition apply?', 'L’une des conditions liées à l’employeur s’applique-t-elle?'),
+      title: bi(
+        'Does either employer condition apply?',
+        'L’une des conditions liées à l’employeur s’applique-t-elle?',
+      ),
       body: bi(
         'Alongside five years’ service, ESA severance generally also requires one of: the employer’s global payroll is at least $2.5 million, or the employer severed 50 or more employees in a six-month period because all or part of the business permanently closed.',
         'En plus des cinq ans de service, l’indemnité de cessation de la LNE exige généralement aussi l’une des conditions suivantes : la masse salariale mondiale de l’employeur est d’au moins 2,5 millions de dollars, ou l’employeur a mis fin à l’emploi de 50 employés ou plus en six mois parce que tout ou partie de l’entreprise a fermé de façon permanente.',
@@ -102,7 +111,10 @@ export const severanceEligibilityOntarioFlow: Flow = {
     {
       id: 'exclusions',
       kind: 'choice',
-      title: bi('Does an ESA exclusion likely apply?', 'Une exclusion de la LNE s’applique-t-elle probablement?'),
+      title: bi(
+        'Does an ESA exclusion likely apply?',
+        'Une exclusion de la LNE s’applique-t-elle probablement?',
+      ),
       body: bi(
         'Even when the two gates are met, ESA severance can be excluded — for example refusing reasonable alternative employment, retiring on a full pension, certain construction or on-site building-maintenance roles, wilful misconduct, or where performance of the contract becomes impossible. Confirm the current statute list before relying on an exclusion.',
         'Même lorsque les deux conditions sont remplies, l’indemnité de cessation de la LNE peut être exclue — par exemple refus d’un autre emploi raisonnable, retraite avec pension complète, certains rôles en construction ou d’entretien d’immeubles sur place, inconduite délibérée, ou impossibilité d’exécuter le contrat. Confirmez la liste actuelle dans la loi avant de vous fier à une exclusion.',
@@ -129,7 +141,10 @@ export const severanceEligibilityOntarioFlow: Flow = {
       id: 'out_may_qualify',
       kind: 'outcome',
       tone: 'caution',
-      title: bi('ESA severance may apply — compute the amount next', 'L’indemnité LNE peut s’appliquer — calculez le montant ensuite'),
+      title: bi(
+        'ESA severance may apply — compute the amount next',
+        'L’indemnité LNE peut s’appliquer — calculez le montant ensuite',
+      ),
       body: bi(
         'On the answers given, both eligibility gates appear met and no exclusion was asserted. Treat ESA severance as potentially owed. Open the Ontario ESA severance amount workflow to apply the guide formula (regular weekly wages × completed years with a partial-year proration, capped at 26 weeks) using verified payroll figures. Document the termination carefully and obtain advice before stating a figure to the employee.',
         'Selon les réponses données, les deux conditions d’admissibilité semblent remplies et aucune exclusion n’a été alléguée. Traitez l’indemnité de cessation de la LNE comme potentiellement due. Ouvrez le processus de montant d’indemnité LNE de l’Ontario pour appliquer la formule du guide (salaire hebdomadaire régulier × années complétées avec prorata de l’année partielle, plafonnée à 26 semaines) à partir de chiffres de paie vérifiés. Documentez soigneusement la cessation et obtenez un avis avant d’énoncer un chiffre à l’employé.',
@@ -140,7 +155,10 @@ export const severanceEligibilityOntarioFlow: Flow = {
       id: 'out_tenure',
       kind: 'outcome',
       tone: 'ok',
-      title: bi('ESA severance gate not met on tenure', 'Condition d’ancienneté de l’indemnité LNE non remplie'),
+      title: bi(
+        'ESA severance gate not met on tenure',
+        'Condition d’ancienneté de l’indemnité LNE non remplie',
+      ),
       body: bi(
         'With under five completed years of employment with this employer, the first ESA severance gate is generally not met. Termination notice (ESA s. 57) is a separate question — run the Ontario statutory notice workflow if you need the notice floor. Contractual or common-law amounts may still apply.',
         'Avec moins de cinq années d’emploi complétées chez cet employeur, la première condition d’indemnité de cessation de la LNE n’est généralement pas remplie. Le préavis (art. 57 de la LNE) est une question distincte — utilisez le processus de préavis légal de l’Ontario si vous avez besoin du plancher de préavis. Des montants contractuels ou de common law peuvent tout de même s’appliquer.',
@@ -151,7 +169,10 @@ export const severanceEligibilityOntarioFlow: Flow = {
       id: 'out_employer',
       kind: 'outcome',
       tone: 'ok',
-      title: bi('ESA severance gate not met on employer conditions', 'Conditions liées à l’employeur non remplies'),
+      title: bi(
+        'ESA severance gate not met on employer conditions',
+        'Conditions liées à l’employeur non remplies',
+      ),
       body: bi(
         'Five years’ service alone is not enough. On the answers given, neither the $2.5 million global payroll test nor the 50-employee permanent-closure test applies, so ESA severance generally does not. Re-check payroll facts before treating that as final. Notice obligations remain a separate analysis.',
         'Cinq ans de service ne suffisent pas à eux seuls. Selon les réponses données, ni le test de masse salariale mondiale de 2,5 M$ ni celui des 50 employés lors d’une fermeture permanente ne s’applique, de sorte que l’indemnité de cessation de la LNE ne s’applique généralement pas. Revérifiez les faits de masse salariale avant de traiter cela comme définitif. Les obligations de préavis restent une analyse distincte.',
@@ -173,7 +194,10 @@ export const severanceEligibilityOntarioFlow: Flow = {
       id: 'out_unclear',
       kind: 'outcome',
       tone: 'caution',
-      title: bi('Not enough to decide — confirm facts', 'Pas assez pour décider — confirmez les faits'),
+      title: bi(
+        'Not enough to decide — confirm facts',
+        'Pas assez pour décider — confirmez les faits',
+      ),
       body: bi(
         'One or more answers were uncertain. Do not tell the employee that ESA severance is or is not owed until tenure, payroll or mass-closure facts, and any exclusion are confirmed against the ESA. Use Document Studio for the letter once counsel or payroll has the numbers.',
         'Une ou plusieurs réponses étaient incertaines. Ne dites pas à l’employé que l’indemnité de cessation de la LNE est due ou non tant que l’ancienneté, la masse salariale ou les faits de fermeture collective, et toute exclusion, n’ont pas été confirmés par rapport à la LNE. Utilisez le Studio de documents pour la lettre une fois que le conseiller ou la paie a les chiffres.',

@@ -21,7 +21,12 @@ export function HelpfulnessWidget({ slug }: { readonly slug: string }) {
 
   function choose(value: Helpfulness) {
     setVote(recordHelpfulness(slug, value))
-    trackEvent({ event_type: 'helpfulness_vote', article_slug: slug, vote_value: value, locale: lang })
+    trackEvent({
+      event_type: 'helpfulness_vote',
+      article_slug: slug,
+      vote_value: value,
+      locale: lang,
+    })
   }
 
   const buttonClass =
@@ -47,7 +52,11 @@ export function HelpfulnessWidget({ slug }: { readonly slug: string }) {
         </div>
       )}
       <p aria-live="polite" className="text-sm text-text-2">
-        {vote === null ? '' : vote === 'yes' ? t('help_feedback_thanks_yes') : t('help_feedback_thanks_no')}
+        {vote === null
+          ? ''
+          : vote === 'yes'
+            ? t('help_feedback_thanks_yes')
+            : t('help_feedback_thanks_no')}
       </p>
     </div>
   )

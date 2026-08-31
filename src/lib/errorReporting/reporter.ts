@@ -17,10 +17,7 @@ import { coarseUserAgent } from './coarseUserAgent'
 import { scrubRoutePattern } from './scrubRoute'
 
 export type ReportKind =
-  | 'route-boundary'
-  | 'window-error'
-  | 'unhandled-rejection'
-  | 'recoverable-error'
+  'route-boundary' | 'window-error' | 'unhandled-rejection' | 'recoverable-error'
 
 export interface ReportInput {
   /** The thrown value (Error, string, rejection reason, …). */

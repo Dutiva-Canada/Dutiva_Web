@@ -33,11 +33,7 @@ export type WebVitalName = 'LCP' | 'INP' | 'CLS' | 'TTFB' | 'FCP'
 export type WebVitalRating = 'good' | 'needs-improvement' | 'poor'
 
 export const WEB_VITAL_NAMES: readonly WebVitalName[] = ['LCP', 'INP', 'CLS', 'TTFB', 'FCP']
-export const WEB_VITAL_RATINGS: readonly WebVitalRating[] = [
-  'good',
-  'needs-improvement',
-  'poor',
-]
+export const WEB_VITAL_RATINGS: readonly WebVitalRating[] = ['good', 'needs-improvement', 'poor']
 
 /** Max length for search_query — prevents a pathological query from bloating the row. */
 export const MAX_SEARCH_QUERY_LENGTH = 200
@@ -145,7 +141,12 @@ export function parseEvent(input: unknown, now: Date = new Date()): ParsedEvent 
 
   // search_result_count: optional, must be a non-negative integer
   if (raw.search_result_count !== undefined && raw.search_result_count !== null) {
-    if (typeof raw.search_result_count !== 'number' || !Number.isInteger(raw.search_result_count) || raw.search_result_count < 0) return null
+    if (
+      typeof raw.search_result_count !== 'number' ||
+      !Number.isInteger(raw.search_result_count) ||
+      raw.search_result_count < 0
+    )
+      return null
     event.search_result_count = raw.search_result_count
   }
 
@@ -185,7 +186,8 @@ export function parseEvent(input: unknown, now: Date = new Date()): ParsedEvent 
   }
 
   if (raw.web_vital_value !== undefined && raw.web_vital_value !== null) {
-    if (typeof raw.web_vital_value !== 'number' || !Number.isFinite(raw.web_vital_value)) return null
+    if (typeof raw.web_vital_value !== 'number' || !Number.isFinite(raw.web_vital_value))
+      return null
     event.web_vital_value = raw.web_vital_value
   }
 

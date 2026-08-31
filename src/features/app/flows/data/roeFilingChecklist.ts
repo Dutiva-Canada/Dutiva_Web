@@ -26,7 +26,10 @@ export const roeFilingChecklistFlow: Flow = {
     {
       id: 'trigger',
       kind: 'choice',
-      title: bi('Has earnings been interrupted so an ROE is required?', 'Les gains ont-ils été interrompus de façon à exiger un REE?'),
+      title: bi(
+        'Has earnings been interrupted so an ROE is required?',
+        'Les gains ont-ils été interrompus de façon à exiger un REE?',
+      ),
       body: bi(
         'An ROE is a federal Employment Insurance Act obligation for every employer when there is an interruption of earnings. Provincial employment standards do not replace it.',
         'Le REE est une obligation fédérale de la Loi sur l’assurance-emploi pour tout employeur lorsqu’il y a interruption de rémunération. Les normes d’emploi provinciales ne le remplacent pas.',
@@ -38,7 +41,10 @@ export const roeFilingChecklistFlow: Flow = {
       options: [
         {
           id: 'yes',
-          label: bi('Yes — interruption of earnings / separation in progress', 'Oui — interruption de rémunération / départ en cours'),
+          label: bi(
+            'Yes — interruption of earnings / separation in progress',
+            'Oui — interruption de rémunération / départ en cours',
+          ),
           to: 'gather',
         },
         {
@@ -56,7 +62,10 @@ export const roeFilingChecklistFlow: Flow = {
     {
       id: 'gather',
       kind: 'task',
-      title: bi('Gather pay and reason-code facts first', 'Rassemblez d’abord paie et faits du code de raison'),
+      title: bi(
+        'Gather pay and reason-code facts first',
+        'Rassemblez d’abord paie et faits du code de raison',
+      ),
       body: bi(
         'Wrong inputs make a wrong ROE. Finish final pay and vacation figures before you file.',
         'De mauvaises entrées produisent un mauvais REE. Terminez la paie finale et les vacances avant de déposer.',
@@ -80,7 +89,10 @@ export const roeFilingChecklistFlow: Flow = {
     {
       id: 'file',
       kind: 'task',
-      title: bi('File, then keep the preparation record', 'Déposez, puis conservez le dossier de préparation'),
+      title: bi(
+        'File, then keep the preparation record',
+        'Déposez, puis conservez le dossier de préparation',
+      ),
       body: bi(
         'The ROE itself goes to Service Canada. Your internal preparation guide is not the ROE.',
         'Le REE lui-même va à Service Canada. Votre guide de préparation interne n’est pas le REE.',
@@ -112,7 +124,10 @@ export const roeFilingChecklistFlow: Flow = {
       id: 'not_yet',
       kind: 'outcome',
       tone: 'caution',
-      title: bi('No ROE yet — wait for an interruption of earnings', 'Pas de REE encore — attendre une interruption de rémunération'),
+      title: bi(
+        'No ROE yet — wait for an interruption of earnings',
+        'Pas de REE encore — attendre une interruption de rémunération',
+      ),
       body: bi(
         'If earnings have not been interrupted, filing an ROE is usually premature. Revisit this checklist when a separation, leave, or other interruption is actually underway.',
         'Si la rémunération n’a pas été interrompue, déposer un REE est généralement prématuré. Revenez à cette liste lorsqu’une cessation, un congé ou une autre interruption est réellement en cours.',
@@ -126,7 +141,10 @@ export const roeFilingChecklistFlow: Flow = {
       id: 'unsure',
       kind: 'outcome',
       tone: 'caution',
-      title: bi('Confirm the interruption with Service Canada guidance', 'Confirmez l’interruption avec les consignes de Service Canada'),
+      title: bi(
+        'Confirm the interruption with Service Canada guidance',
+        'Confirmez l’interruption avec les consignes de Service Canada',
+      ),
       body: bi(
         'Whether an ROE is required turns on the Employment Insurance Act rules for interruption of earnings — not on provincial notice alone. Check current Service Canada employer guidance or payroll counsel before filing or skipping.',
         'L’obligation de REE dépend des règles de la Loi sur l’assurance-emploi sur l’interruption de rémunération — pas du seul préavis provincial. Vérifiez les consignes employeur actuelles de Service Canada ou un conseiller en paie avant de déposer ou d’omettre.',

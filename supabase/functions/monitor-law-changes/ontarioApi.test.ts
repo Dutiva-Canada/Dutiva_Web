@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { assessOntarioActVersions, looksLikeCurrencyDate, ontarioFingerprintPayload } from './ontarioApi'
+import {
+  assessOntarioActVersions,
+  looksLikeCurrencyDate,
+  ontarioFingerprintPayload,
+} from './ontarioApi'
 
 /**
  * A trimmed but real-shaped response, verified against a live fetch of
@@ -88,7 +92,10 @@ describe('assessOntarioActVersions', () => {
   })
 
   it('treats a zero-version result as an outage, not "no change"', () => {
-    const verdict = assessOntarioActVersions(JSON.stringify(versionsEnvelope([])), 'Employment Standards Act')
+    const verdict = assessOntarioActVersions(
+      JSON.stringify(versionsEnvelope([])),
+      'Employment Standards Act',
+    )
     expect(verdict.ok).toBe(false)
     if (verdict.ok) throw new Error('expected refusal')
     expect(verdict.reason).toBe('no-versions')
@@ -102,7 +109,17 @@ describe('assessOntarioActVersions', () => {
       aggregations: {
         all: {
           versions: {
-            hits: { hits: [{ _source: { act: { en: 'Employment Standards Act, 2000' }, state: { en: 'current' }, version: 0 } }] },
+            hits: {
+              hits: [
+                {
+                  _source: {
+                    act: { en: 'Employment Standards Act, 2000' },
+                    state: { en: 'current' },
+                    version: 0,
+                  },
+                },
+              ],
+            },
           },
         },
       },
@@ -153,8 +170,12 @@ describe('ontarioFingerprintPayload', () => {
     if (!before.ok) throw new Error('expected acceptance')
 
     const withNewVersion = JSON.parse(ESA_RESPONSE)
-    withNewVersion.aggregations.all.versions.hits.hits.hits[0]._source.dateFrom.en = '2027-01-01T05:00:00.000Z'
-    const after = assessOntarioActVersions(JSON.stringify(withNewVersion), 'Employment Standards Act')
+    withNewVersion.aggregations.all.versions.hits.hits.hits[0]._source.dateFrom.en =
+      '2027-01-01T05:00:00.000Z'
+    const after = assessOntarioActVersions(
+      JSON.stringify(withNewVersion),
+      'Employment Standards Act',
+    )
     if (!after.ok) throw new Error('expected acceptance')
 
     expect(ontarioFingerprintPayload(before.facts)).not.toBe(ontarioFingerprintPayload(after.facts))

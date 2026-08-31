@@ -66,12 +66,7 @@ const recipients: ProductionDocumentRecipient[] = [
 
 describe('blocksToPlainText', () => {
   it('merges field values and substitutes signed names in signature blocks', () => {
-    const paragraphs = blocksToPlainText(
-      blocks,
-      { employee_name: 'Alex Chen' },
-      'en',
-      recipients,
-    )
+    const paragraphs = blocksToPlainText(blocks, { employee_name: 'Alex Chen' }, 'en', recipients)
 
     expect(paragraphs[0]).toBe('Termination notice')
     expect(paragraphs[1]).toBe('Dear Alex Chen,')

@@ -55,7 +55,9 @@ describe('MONITORING_COVERAGE', () => {
        act-versions API for Ontario and Données Québec's CKAN dataset for
        Québec, so all three supported jurisdictions are now active. */
     expect(noSupportedJurisdictionCovered()).toBe(false)
-    const active = MONITORING_COVERAGE.filter((c) => c.status === 'active').map((c) => c.jurisdiction)
+    const active = MONITORING_COVERAGE.filter((c) => c.status === 'active').map(
+      (c) => c.jurisdiction,
+    )
     expect(active).toEqual(['ON', 'QC', 'FED'])
   })
 })

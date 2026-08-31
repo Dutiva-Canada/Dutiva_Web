@@ -50,8 +50,6 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-
-
 This page covers the `docs/` documentation system that governs the Dutiva codebase: the central `docs/README.md` index, 30+ strategy and reference documents, the `AGENTS.md` coding-agent instructions, and `TODO.md` as the master operational index. The documentation layer is not passive — it is enforced by CI drift guards that fail `npm run check` when prose and code disagree.
 
 ## Documentation Hierarchy & Precedence
@@ -105,15 +103,15 @@ Sources: [docs/README.md:1-108](), [docs/CANONICAL_FACTS.md:1-15]()
 
 `docs/README.md` is the entry point for anyone navigating the documentation. It organizes all documents into seven sections, each presented as a table mapping document name to what it settles.
 
-| Section | Documents | Purpose |
-|---------|-----------|---------|
-| Start here | `CANONICAL_FACTS.md` | Source of record for load-bearing facts |
-| What is still open | `TODO.md`, `DEVIN_PROMPTS.md`, `LEGAL_REVIEW_INVENTORY.md` | Open work and delegation |
-| What is true | `FOUR_RING_FRAMEWORK.md`, `AI_USAGE_STRATEGY.md`, `SCORING_LOGIC.md`, `LAW_MONITORING.md`, `LAW_CHANGE_NOTIFICATIONS.md`, corpus docs | Product truth assertions |
-| Privacy, security, data | `SECURITY_HEADERS.md`, `ERROR_REPORTING.md`, `EXPORT_PROTECTION.md`, `do-residency-confirmation-request.md` | Security and privacy posture |
-| Data and platform | `DATABASE_SCHEMA.md`, `DATA_MODEL.md`, `AUTH_MAGIC_LINK.md`, `BILLING_BETA_AUDIT.md`, `OFFLINE_PWA.md` | Backend and platform config |
-| Web surface | `SEO_GEO_IMPLEMENTATION.md`, `SEO_ROUTE_MATRIX.md`, `SEO_AUTHORITY_PLAYBOOK.md`, `DEV_ANNOTATIONS.md` | Marketing site SEO and tooling |
-| Support | `SUPPORT_ARCHITECTURE.md`, `SUPPORT_RUNBOOK.md`, `SUPPORT_CALL_SCHEDULING.md`, `SUPPORT_ANALYTICS.md` | Support system operations |
+| Section                 | Documents                                                                                                                             | Purpose                                 |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| Start here              | `CANONICAL_FACTS.md`                                                                                                                  | Source of record for load-bearing facts |
+| What is still open      | `TODO.md`, `DEVIN_PROMPTS.md`, `LEGAL_REVIEW_INVENTORY.md`                                                                            | Open work and delegation                |
+| What is true            | `FOUR_RING_FRAMEWORK.md`, `AI_USAGE_STRATEGY.md`, `SCORING_LOGIC.md`, `LAW_MONITORING.md`, `LAW_CHANGE_NOTIFICATIONS.md`, corpus docs | Product truth assertions                |
+| Privacy, security, data | `SECURITY_HEADERS.md`, `ERROR_REPORTING.md`, `EXPORT_PROTECTION.md`, `do-residency-confirmation-request.md`                           | Security and privacy posture            |
+| Data and platform       | `DATABASE_SCHEMA.md`, `DATA_MODEL.md`, `AUTH_MAGIC_LINK.md`, `BILLING_BETA_AUDIT.md`, `OFFLINE_PWA.md`                                | Backend and platform config             |
+| Web surface             | `SEO_GEO_IMPLEMENTATION.md`, `SEO_ROUTE_MATRIX.md`, `SEO_AUTHORITY_PLAYBOOK.md`, `DEV_ANNOTATIONS.md`                                 | Marketing site SEO and tooling          |
+| Support                 | `SUPPORT_ARCHITECTURE.md`, `SUPPORT_RUNBOOK.md`, `SUPPORT_CALL_SCHEDULING.md`, `SUPPORT_ANALYTICS.md`                                 | Support system operations               |
 
 The index also cross-references three repo-root entry points: `README.md`, `AGENTS.md`, and `CONVENTIONS.md`.
 
@@ -125,18 +123,18 @@ Sources: [docs/README.md:1-108]()
 
 ### Verified facts table
 
-| Fact | Value | Source of truth |
-|------|-------|-----------------|
-| Templates shipped | **50** (T01–T50) | `src/features/app/documents/catalogue.ts` |
-| Jurisdictions | **3** — ON, QC, FED | Jurisdiction codes in code |
-| Pricing | Free / $24 / $49 / $99 CAD/mo | `src/config/plans.ts` → `PLANS` |
-| Annual billing | 10 of 12 months (`ANNUAL_MONTHS_BILLED`) | `src/config/plans.ts` |
-| Beta state | Paid plans shown but not sold | `PAID_PLANS_DISABLED_DURING_BETA` |
-| Beta capacity | 15 seats | `src/config/beta.ts` `BETA_COHORT_LIMIT` |
-| Rings live | All four complete | `docs/FOUR_RING_FRAMEWORK.md` |
-| Law monitoring | FED, ON, QC confirmed working | `src/features/app/guidance/monitoringCoverage.ts` |
-| Brand gold | `#b98512 → #d4af37 → #f4c54b → #ffe37a` | `tokens.css` `--gold-gradient` |
-| Brand navy | `#0d1b2a` ground, `#081019` deep | `tokens.css` `--dutiva-navy` |
+| Fact              | Value                                    | Source of truth                                   |
+| ----------------- | ---------------------------------------- | ------------------------------------------------- |
+| Templates shipped | **50** (T01–T50)                         | `src/features/app/documents/catalogue.ts`         |
+| Jurisdictions     | **3** — ON, QC, FED                      | Jurisdiction codes in code                        |
+| Pricing           | Free / $24 / $49 / $99 CAD/mo            | `src/config/plans.ts` → `PLANS`                   |
+| Annual billing    | 10 of 12 months (`ANNUAL_MONTHS_BILLED`) | `src/config/plans.ts`                             |
+| Beta state        | Paid plans shown but not sold            | `PAID_PLANS_DISABLED_DURING_BETA`                 |
+| Beta capacity     | 15 seats                                 | `src/config/beta.ts` `BETA_COHORT_LIMIT`          |
+| Rings live        | All four complete                        | `docs/FOUR_RING_FRAMEWORK.md`                     |
+| Law monitoring    | FED, ON, QC confirmed working            | `src/features/app/guidance/monitoringCoverage.ts` |
+| Brand gold        | `#b98512 → #d4af37 → #f4c54b → #ffe37a`  | `tokens.css` `--gold-gradient`                    |
+| Brand navy        | `#0d1b2a` ground, `#081019` deep         | `tokens.css` `--dutiva-navy`                      |
 
 Sources: [docs/CANONICAL_FACTS.md:40-55]()
 
@@ -178,15 +176,15 @@ Sources: [src/canonicalFacts.test.ts:1-107](), [scripts/check-canonical-facts.mj
 
 `AGENTS.md` is the entry point for AI coding agents (Claude Code, Codex, Cursor, Copilot). It summarizes `CONVENTIONS.md` and establishes seven non-negotiable rules:
 
-| Rule | Summary |
-|------|---------|
+| Rule                 | Summary                                                        |
+| -------------------- | -------------------------------------------------------------- |
 | Bilingual everything | Every string ships as `{ en, fr }` via `Bi` / `defineMessages` |
-| Design tokens | No hardcoded hex; use `var(--token)` |
-| lucide-react only | No emoji anywhere |
-| Data fixtures | Views import from `src/data/`, never inline entities |
-| Colocated tests | `*.test.ts(x)` next to the unit |
-| Legal disclaimer | Via shared `Disclaimer` component, never re-typed |
-| Workspace mode | Default demo; production via `useWorkspaceMode()` |
+| Design tokens        | No hardcoded hex; use `var(--token)`                           |
+| lucide-react only    | No emoji anywhere                                              |
+| Data fixtures        | Views import from `src/data/`, never inline entities           |
+| Colocated tests      | `*.test.ts(x)` next to the unit                                |
+| Legal disclaimer     | Via shared `Disclaimer` component, never re-typed              |
+| Workspace mode       | Default demo; production via `useWorkspaceMode()`              |
 
 The `npm run check` command gate is the enforcement mechanism: `typecheck + lint + test + check:migrations + check:rls + check:facts + check:message-scopes` must pass before every commit.
 
@@ -198,15 +196,16 @@ Sources: [AGENTS.md:1-115]()
 
 `TODO.md` is the running inventory of every open item, swept from PRs #1–#132 and subsequent work. It uses a five-status vocabulary:
 
-| Status | Meaning |
-|--------|---------|
-| **Owner** | Built and merged; needs a secret, account, or dashboard action |
-| **Decision** | Blocked on a product/policy call |
-| **Blocked** | Blocked by external dependency |
-| **Build** | Ready to implement |
-| **Verify** | Believed true but unconfirmed |
+| Status       | Meaning                                                        |
+| ------------ | -------------------------------------------------------------- |
+| **Owner**    | Built and merged; needs a secret, account, or dashboard action |
+| **Decision** | Blocked on a product/policy call                               |
+| **Blocked**  | Blocked by external dependency                                 |
+| **Build**    | Ready to implement                                             |
+| **Verify**   | Believed true but unconfirmed                                  |
 
 The file is organized into sections:
+
 1. **Owner actions** (OA1–OA17) — code that is merged but inert until credentials are configured. Many are now marked **Done** with detailed verification records.
 2. **Legal / content** (L1–L9) — corpus verification, review packs, statutory figure work.
 3. **Edge functions** (EF1–EF10) — deployment and configuration gaps.
@@ -221,9 +220,9 @@ Sources: [docs/TODO.md:1-50]()
 
 `DEVIN_PROMPTS.md` converts every open `TODO.md` item into ready-to-paste prompts for the Devin coding agent. It contains 14 task prompts organized in two waves:
 
-| Wave | Prompts | Characteristic |
-|------|---------|----------------|
-| Wave 1 | DP-1 through DP-7 | No decision/credential needed; touch disjoint files |
+| Wave   | Prompts            | Characteristic                                      |
+| ------ | ------------------ | --------------------------------------------------- |
+| Wave 1 | DP-1 through DP-7  | No decision/credential needed; touch disjoint files |
 | Wave 2 | DP-8 through DP-14 | Each has a decision block that must be filled first |
 
 Each prompt is paired with a **standing brief** (at [docs/DEVIN_PROMPTS.md:53-113]()) that carries repo non-negotiables: the `CANONICAL_FACTS.md` precedence rule, the statutory-figure prohibition, the bilingual requirement, the quality gate (`npm run check`), and explicit statements of what an agent cannot do (apply migrations, access production secrets, read the live Supabase project).
@@ -238,15 +237,15 @@ Sources: [docs/DEVIN_PROMPTS.md:1-50]()
 
 Establishes the core design principle: _"The LLM proposes, deterministic code disposes."_ Maps every AI touchpoint to its mechanism:
 
-| Touchpoint | LLM? | Source of truth |
-|------------|------|-----------------|
-| Advisor chat | Yes | `supabase/functions/advisor-chat/index.ts` |
-| Memory fact extraction | Yes | Engineering Roadmap §5 |
-| Support first-line | Yes* | `supabase/functions/support-firstline/index.ts` |
-| Document generation | **No** — `{{merge}}` tokens + `ClauseGate` | `src/features/app/documents/data/types.ts` |
-| Legal-basis citations | **No** — vetted rows | `src/features/app/guidance/api.ts` |
-| Crisis resources | **No** — verbatim maintained list | `AGENT.md` §8 |
-| Triage / priority | **No** — deterministic arithmetic | `src/features/support/triage.ts` |
+| Touchpoint             | LLM?                                       | Source of truth                                 |
+| ---------------------- | ------------------------------------------ | ----------------------------------------------- |
+| Advisor chat           | Yes                                        | `supabase/functions/advisor-chat/index.ts`      |
+| Memory fact extraction | Yes                                        | Engineering Roadmap §5                          |
+| Support first-line     | Yes*                                       | `supabase/functions/support-firstline/index.ts` |
+| Document generation    | **No** — `{{merge}}` tokens + `ClauseGate` | `src/features/app/documents/data/types.ts`      |
+| Legal-basis citations  | **No** — vetted rows                       | `src/features/app/guidance/api.ts`              |
+| Crisis resources       | **No** — verbatim maintained list          | `AGENT.md` §8                                   |
+| Triage / priority      | **No** — deterministic arithmetic          | `src/features/support/triage.ts`                |
 
 The "irreducible LLM core" is the conversational Advisor (open-vocabulary HR questions) and memory fact extraction (NL → structured facts). Everything else is deliberately deterministic.
 
@@ -268,12 +267,12 @@ Sources: [docs/SCORING_LOGIC.md:1-135](), [src/features/app/views/analytics/aggr
 
 Records the Four Ring product scope and, tool by tool, what is actually built:
 
-| Ring | Pillar | Status |
-|------|--------|--------|
-| 1 | HR Compliance Core | Complete — 46 templates in catalogue |
-| 2 | Workplace Wellness | Complete — accommodation, leave, mental health, psychological safety |
-| 3 | Internal Communications | Complete — 9 templates T35–T43 |
-| 4 | Compensation & Financial Literacy | Complete — 2 templates + 2 reference guides |
+| Ring | Pillar                            | Status                                                               |
+| ---- | --------------------------------- | -------------------------------------------------------------------- |
+| 1    | HR Compliance Core                | Complete — 46 templates in catalogue                                 |
+| 2    | Workplace Wellness                | Complete — accommodation, leave, mental health, psychological safety |
+| 3    | Internal Communications           | Complete — 9 templates T35–T43                                       |
+| 4    | Compensation & Financial Literacy | Complete — 2 templates + 2 reference guides                          |
 
 A critical warning at [docs/FOUR_RING_FRAMEWORK.md:59-69](): _"Every ring has a module whose name matches it, and none of those modules is the ring."_ The `/app/communications`, `/app/compensation`, and `/app/wellbeing` modules are org-scoped registers, not the rings themselves. The rings are templates, guides, and flows.
 
@@ -283,16 +282,16 @@ Sources: [docs/FOUR_RING_FRAMEWORK.md:1-100]()
 
 RFQ-ready inventory for quoting legal review. Headlines at [docs/LEGAL_REVIEW_INVENTORY.md:28-38]():
 
-| Bucket | Items | Reviewer |
-|--------|-------|----------|
-| Public legal pages | 26 (× EN + FR = 52 files) | Lawyer |
-| Templates `lawyer_review_recommended` | 12 | Employment lawyer |
-| Templates `hr_review_required` / `not_reviewed` | 38 | HR professional |
-| Notice-bands review pack | 1 | Employment lawyer |
-| Advisor grounding corpus | 42 rows | Lawyer / paralegal |
-| Public articles | 12 (× 2 locales) | Editorial legal pass |
-| In-app reference guides | 8 | Editorial legal pass |
-| In-app flows & checklists | 4 | Editorial legal pass |
+| Bucket                                          | Items                     | Reviewer             |
+| ----------------------------------------------- | ------------------------- | -------------------- |
+| Public legal pages                              | 26 (× EN + FR = 52 files) | Lawyer               |
+| Templates `lawyer_review_recommended`           | 12                        | Employment lawyer    |
+| Templates `hr_review_required` / `not_reviewed` | 38                        | HR professional      |
+| Notice-bands review pack                        | 1                         | Employment lawyer    |
+| Advisor grounding corpus                        | 42 rows                   | Lawyer / paralegal   |
+| Public articles                                 | 12 (× 2 locales)          | Editorial legal pass |
+| In-app reference guides                         | 8                         | Editorial legal pass |
+| In-app flows & checklists                       | 4                         | Editorial legal pass |
 
 **Total: 143 discrete items. None has counsel sign-off today.**
 
@@ -302,12 +301,12 @@ Sources: [docs/LEGAL_REVIEW_INVENTORY.md:1-111]()
 
 **`SECURITY_HEADERS.md`** documents the HTTP headers enforced via `vercel.json`:
 
-| Header | Value | Purpose |
-|--------|-------|---------|
-| `X-Frame-Options` | `DENY` | Anti-clickjacking |
-| `Content-Security-Policy` | Full resource policy (enforcing since 2026-08-10) | Resource loading control |
-| `Strict-Transport-Security` | `max-age=63072000; includeSubDomains` | SSL-strip prevention |
-| `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` | Feature opt-out |
+| Header                      | Value                                             | Purpose                  |
+| --------------------------- | ------------------------------------------------- | ------------------------ |
+| `X-Frame-Options`           | `DENY`                                            | Anti-clickjacking        |
+| `Content-Security-Policy`   | Full resource policy (enforcing since 2026-08-10) | Resource loading control |
+| `Strict-Transport-Security` | `max-age=63072000; includeSubDomains`             | SSL-strip prevention     |
+| `Permissions-Policy`        | `camera=(), microphone=(), geolocation=()`        | Feature opt-out          |
 
 Sources: [docs/SECURITY_HEADERS.md:1-47]()
 
@@ -414,15 +413,15 @@ Sources: [docs/README.md:1-108](), [AGENTS.md:1-10](), [src/canonicalFacts.test.
 
 The `docs/` folder contains several advisor guidance corpus documents and review packs:
 
-| Document | Content | Status |
-|----------|---------|--------|
-| `advisor-guidance-corpus-2026-07-26.md` | Grounding corpus seed — ON/QC/FED termination notice | Machine-curated, pending human review |
-| `advisor-guidance-corpus-2026-07-27.md` | Leaves, public holidays, hours of work, accommodation | Machine-curated, pending human review |
+| Document                                | Content                                                              | Status                                |
+| --------------------------------------- | -------------------------------------------------------------------- | ------------------------------------- |
+| `advisor-guidance-corpus-2026-07-26.md` | Grounding corpus seed — ON/QC/FED termination notice                 | Machine-curated, pending human review |
+| `advisor-guidance-corpus-2026-07-27.md` | Leaves, public holidays, hours of work, accommodation                | Machine-curated, pending human review |
 | `advisor-guidance-corpus-2026-07-29.md` | Pay & deductions, records retention, layoffs, constructive dismissal | Machine-curated, pending human review |
-| `advisor-guidance-corpus-2026-08-04.md` | Additional tranche | Machine-curated, pending human review |
-| `advisor-corpus-review-pack-ontario.md` | 14 Ontario chunks with figures to verify, sign-off SQL | Prepared for human review |
-| `notice-bands-review-pack.md` | QC and FED statutory notice bands with full verbatim statute text | Prepared for lawyer sign-off |
-| `do-residency-confirmation-request.md` | Draft support ticket for DigitalOcean data-residency confirmation | Blocks PIPEDA claims in 5 legal pages |
+| `advisor-guidance-corpus-2026-08-04.md` | Additional tranche                                                   | Machine-curated, pending human review |
+| `advisor-corpus-review-pack-ontario.md` | 14 Ontario chunks with figures to verify, sign-off SQL               | Prepared for human review             |
+| `notice-bands-review-pack.md`           | QC and FED statutory notice bands with full verbatim statute text    | Prepared for lawyer sign-off          |
+| `do-residency-confirmation-request.md`  | Draft support ticket for DigitalOcean data-residency confirmation    | Blocks PIPEDA claims in 5 legal pages |
 
 The review pack at `advisor-corpus-review-pack-ontario.md` provides per-chunk sign-off SQL templates that a reviewer executes to move rows from `machine_curated` to `reviewed` status in `advisor_guidance_chunks`.
 
@@ -432,26 +431,26 @@ Sources: [docs/README.md:48-52](), [docs/notice-bands-review-pack.md:1-30](), [d
 
 The `docs/` folder contains 34 markdown documents plus 3 design handoff subdirectories:
 
-| Category | Files |
-|----------|-------|
-| Index | `README.md` |
-| Governance | `CANONICAL_FACTS.md` |
-| Operations | `TODO.md`, `DEVIN_PROMPTS.md` |
-| Product scope | `FOUR_RING_FRAMEWORK.md`, `LEGAL_REVIEW_INVENTORY.md` |
-| AI strategy | `AI_USAGE_STRATEGY.md` |
-| Scoring | `SCORING_LOGIC.md` |
-| Auth | `AUTH_MAGIC_LINK.md`, `AUTH_EMAIL_TEMPLATES.md` |
-| Data | `DATA_MODEL.md`, `DATABASE_SCHEMA.md` |
-| Billing | `BILLING_BETA_AUDIT.md` |
-| Security | `SECURITY_HEADERS.md`, `ERROR_REPORTING.md`, `EXPORT_PROTECTION.md` |
-| SEO | `SEO_GEO_IMPLEMENTATION.md`, `SEO_ROUTE_MATRIX.md`, `SEO_AUTHORITY_PLAYBOOK.md` |
-| Law monitoring | `LAW_MONITORING.md`, `LAW_CHANGE_NOTIFICATIONS.md` |
-| Support | `SUPPORT_ARCHITECTURE.md`, `SUPPORT_RUNBOOK.md`, `SUPPORT_CALL_SCHEDULING.md`, `SUPPORT_ANALYTICS.md` |
-| Infrastructure | `OFFLINE_PWA.md`, `DEV_ANNOTATIONS.md` |
-| Corpus | `advisor-guidance-corpus-2026-07-26.md`, `advisor-guidance-corpus-2026-07-27.md`, `advisor-guidance-corpus-2026-07-29.md`, `advisor-guidance-corpus-2026-08-04.md` |
-| Review packs | `advisor-corpus-review-pack-ontario.md`, `advisor-corpus-verification-2026-08-02.md`, `notice-bands-review-pack.md` |
-| Vendor | `do-residency-confirmation-request.md` |
-| Design handoffs | `design-handoff-advisor-chat/`, `design-handoff-hr-documents-library/`, `design-handoff-analytics/` |
+| Category        | Files                                                                                                                                                              |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Index           | `README.md`                                                                                                                                                        |
+| Governance      | `CANONICAL_FACTS.md`                                                                                                                                               |
+| Operations      | `TODO.md`, `DEVIN_PROMPTS.md`                                                                                                                                      |
+| Product scope   | `FOUR_RING_FRAMEWORK.md`, `LEGAL_REVIEW_INVENTORY.md`                                                                                                              |
+| AI strategy     | `AI_USAGE_STRATEGY.md`                                                                                                                                             |
+| Scoring         | `SCORING_LOGIC.md`                                                                                                                                                 |
+| Auth            | `AUTH_MAGIC_LINK.md`, `AUTH_EMAIL_TEMPLATES.md`                                                                                                                    |
+| Data            | `DATA_MODEL.md`, `DATABASE_SCHEMA.md`                                                                                                                              |
+| Billing         | `BILLING_BETA_AUDIT.md`                                                                                                                                            |
+| Security        | `SECURITY_HEADERS.md`, `ERROR_REPORTING.md`, `EXPORT_PROTECTION.md`                                                                                                |
+| SEO             | `SEO_GEO_IMPLEMENTATION.md`, `SEO_ROUTE_MATRIX.md`, `SEO_AUTHORITY_PLAYBOOK.md`                                                                                    |
+| Law monitoring  | `LAW_MONITORING.md`, `LAW_CHANGE_NOTIFICATIONS.md`                                                                                                                 |
+| Support         | `SUPPORT_ARCHITECTURE.md`, `SUPPORT_RUNBOOK.md`, `SUPPORT_CALL_SCHEDULING.md`, `SUPPORT_ANALYTICS.md`                                                              |
+| Infrastructure  | `OFFLINE_PWA.md`, `DEV_ANNOTATIONS.md`                                                                                                                             |
+| Corpus          | `advisor-guidance-corpus-2026-07-26.md`, `advisor-guidance-corpus-2026-07-27.md`, `advisor-guidance-corpus-2026-07-29.md`, `advisor-guidance-corpus-2026-08-04.md` |
+| Review packs    | `advisor-corpus-review-pack-ontario.md`, `advisor-corpus-verification-2026-08-02.md`, `notice-bands-review-pack.md`                                                |
+| Vendor          | `do-residency-confirmation-request.md`                                                                                                                             |
+| Design handoffs | `design-handoff-advisor-chat/`, `design-handoff-hr-documents-library/`, `design-handoff-analytics/`                                                                |
 
 Sources: [docs/README.md:1-108]()
 

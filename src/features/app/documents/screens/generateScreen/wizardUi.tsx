@@ -327,11 +327,7 @@ export function provinceToJurisdiction(province: string): Jurisdiction {
   ) {
     return 'QC'
   }
-  if (
-    normalized === 'fed' ||
-    normalized === 'federal' ||
-    normalized.includes('federally')
-  ) {
+  if (normalized === 'fed' || normalized === 'federal' || normalized.includes('federally')) {
     return 'FED'
   }
   return 'ON'

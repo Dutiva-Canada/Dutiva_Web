@@ -27,8 +27,7 @@ function json(body: unknown, status = 200) {
   })
 }
 
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 function isAuthorizedInternal(req: Request): boolean {
   const sharedSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? ''
@@ -65,9 +64,7 @@ Deno.serve(async (req: Request) => {
   const organizationId = typeof body.organization_id === 'string' ? body.organization_id : ''
   const documentId = typeof body.document_id === 'string' ? body.document_id : ''
   const recipientId =
-    typeof body.recipient_id === 'string' && body.recipient_id.length > 0
-      ? body.recipient_id
-      : null
+    typeof body.recipient_id === 'string' && body.recipient_id.length > 0 ? body.recipient_id : null
   const reminder = body.reminder === true
   const autoAfterSignature = body.auto_after_signature === true
   const internalRequest = autoAfterSignature || reminder || body.internal === true
@@ -113,8 +110,7 @@ Deno.serve(async (req: Request) => {
     if (!body.actor_label && user.email) actorLabel = user.email
   }
 
-  const apiKey =
-    Deno.env.get('RESEND_API_KEY') ?? Deno.env.get('SUPPORT_EMAIL_PROVIDER_API_KEY')
+  const apiKey = Deno.env.get('RESEND_API_KEY') ?? Deno.env.get('SUPPORT_EMAIL_PROVIDER_API_KEY')
   if (!apiKey) {
     return json({ error: 'Email provider is not configured', code: 'no_provider' }, 503)
   }
@@ -179,9 +175,7 @@ Deno.serve(async (req: Request) => {
   const emailLang: Lang = requestedLang ?? docLang
 
   const documentTitle =
-    emailLang === 'fr'
-      ? String(doc.title_fr || doc.title_en)
-      : String(doc.title_en || doc.title_fr)
+    emailLang === 'fr' ? String(doc.title_fr || doc.title_en) : String(doc.title_en || doc.title_fr)
   const organizationName = String(org.name ?? 'Organization')
 
   const sent: Array<{ recipient_id: string; email: string }> = []

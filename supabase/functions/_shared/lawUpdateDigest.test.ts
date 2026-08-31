@@ -54,7 +54,9 @@ describe('selectDigestableUpdates', () => {
   })
 
   it('excludes an unreviewed (machine_curated) row', () => {
-    expect(selectDigestableUpdates([row({ reviewStatus: 'machine_curated' })], new Set(), GO_LIVE)).toEqual([])
+    expect(
+      selectDigestableUpdates([row({ reviewStatus: 'machine_curated' })], new Set(), GO_LIVE),
+    ).toEqual([])
   })
 
   it('excludes a row already recorded as sent to this recipient', () => {

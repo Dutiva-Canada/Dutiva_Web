@@ -38,10 +38,7 @@ export function readEmptyWorkspaceProgress(
   }
 }
 
-function writeProgress(
-  organizationId: string,
-  next: EmptyWorkspaceSessionProgress,
-): void {
+function writeProgress(organizationId: string, next: EmptyWorkspaceSessionProgress): void {
   if (typeof sessionStorage === 'undefined') return
   try {
     sessionStorage.setItem(storageKey(organizationId), JSON.stringify(next))

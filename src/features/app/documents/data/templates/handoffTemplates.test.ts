@@ -109,7 +109,10 @@ describe.each(TIDS)('%s (handoff)', (tid) => {
       for (const block of blocks) {
         const text = block.text?.en
         if (text === undefined) continue
-        const filled = { ...answers, ...computedTokens(jurisdiction as Jurisdiction, 'en', '2026-08-01') }
+        const filled = {
+          ...answers,
+          ...computedTokens(jurisdiction as Jurisdiction, 'en', '2026-08-01'),
+        }
         const unfilled = mergeSegments(text, filled).filter((s) => s.kind === 'unfilled')
         expect(unfilled, `${tid} ${jurisdiction}`).toEqual([])
       }

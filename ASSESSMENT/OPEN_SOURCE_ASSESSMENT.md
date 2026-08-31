@@ -35,8 +35,8 @@ Generic, non-domain modules that would be useful to other projects and carry no 
 - `src/styles/*` design-token and surface system (with Dutiva brand values made configurable).
 - Generic UI primitives in `src/components` (`Disclaimer.tsx` as a generic component, `chips.ts`, etc.).
 - Cross-cutting utilities in `src/lib`: theme, prefs, money, Supabase client wrapper, service-worker registration.
-- Privacy-first error-reporting *mechanism* (`src/lib/errorReporting/*`) without route allow-list values.
-- Export-guardrail *mechanism* (`src/lib/exportProtection/*`) without Dutiva watermarks or configured limits.
+- Privacy-first error-reporting _mechanism_ (`src/lib/errorReporting/*`) without route allow-list values.
+- Export-guardrail _mechanism_ (`src/lib/exportProtection/*`) without Dutiva watermarks or configured limits.
 - SEO route-registry and prerender helpers (`src/seo/*`) without Dutiva copy.
 
 ### Proprietary
@@ -67,23 +67,23 @@ Modules that embody Dutiva's product, Canadian HR expertise, or commercial layer
 
 ## Competitive Moat Matrix
 
-| Component | Open Potential | Competitive Risk | IP Sensitivity | Security Risk | Community Value | Recommendation |
-|---|---:|---:|---:|---:|---:|---|
-| Bilingual i18n framework (`src/i18n`) | 5 | 1 | 1 | 1 | 4 | Open |
-| Tailwind token / surface system (`src/styles`) | 5 | 1 | 1 | 1 | 4 | Open |
-| Generic UI primitives (`src/components`) | 4 | 1 | 1 | 1 | 3 | Open |
-| Error reporting pipeline (`src/lib/errorReporting`) | 4 | 1 | 2 | 2 | 4 | Open |
-| Export guardrail mechanism (`src/lib/exportProtection`) | 4 | 2 | 3 | 2 | 3 | Open-core (generic mechanism only) |
-| Support ticketing/email/outbox plumbing | 4 | 2 | 2 | 2 | 4 | Open-core (generic plumbing only) |
-| Document generation engine | 3 | 3 | 3 | 2 | 3 | Dutiva-controlled shared core |
-| Workflow engine | 3 | 3 | 3 | 2 | 3 | Dutiva-controlled shared core |
-| Tenant / RLS scaffolding | 3 | 2 | 2 | 3 | 3 | Dutiva-controlled shared core |
-| Advisor chat + prompts | 1 | 5 | 5 | 4 | 2 | Proprietary |
-| Safety backstop / statutory tables | 1 | 5 | 5 | 3 | 2 | Proprietary |
-| 50 document templates | 1 | 5 | 5 | 2 | 2 | Proprietary |
-| Compliance scoring formula | 1 | 5 | 5 | 2 | 2 | Proprietary |
-| Law monitoring / corpus curation | 1 | 4 | 5 | 3 | 2 | Proprietary |
-| Marketing site + legal policies | 2 | 3 | 4 | 2 | 3 | Publicly served but not open-source licensed |
+| Component                                               | Open Potential | Competitive Risk | IP Sensitivity | Security Risk | Community Value | Recommendation                               |
+| ------------------------------------------------------- | -------------: | ---------------: | -------------: | ------------: | --------------: | -------------------------------------------- |
+| Bilingual i18n framework (`src/i18n`)                   |              5 |                1 |              1 |             1 |               4 | Open                                         |
+| Tailwind token / surface system (`src/styles`)          |              5 |                1 |              1 |             1 |               4 | Open                                         |
+| Generic UI primitives (`src/components`)                |              4 |                1 |              1 |             1 |               3 | Open                                         |
+| Error reporting pipeline (`src/lib/errorReporting`)     |              4 |                1 |              2 |             2 |               4 | Open                                         |
+| Export guardrail mechanism (`src/lib/exportProtection`) |              4 |                2 |              3 |             2 |               3 | Open-core (generic mechanism only)           |
+| Support ticketing/email/outbox plumbing                 |              4 |                2 |              2 |             2 |               4 | Open-core (generic plumbing only)            |
+| Document generation engine                              |              3 |                3 |              3 |             2 |               3 | Dutiva-controlled shared core                |
+| Workflow engine                                         |              3 |                3 |              3 |             2 |               3 | Dutiva-controlled shared core                |
+| Tenant / RLS scaffolding                                |              3 |                2 |              2 |             3 |               3 | Dutiva-controlled shared core                |
+| Advisor chat + prompts                                  |              1 |                5 |              5 |             4 |               2 | Proprietary                                  |
+| Safety backstop / statutory tables                      |              1 |                5 |              5 |             3 |               2 | Proprietary                                  |
+| 50 document templates                                   |              1 |                5 |              5 |             2 |               2 | Proprietary                                  |
+| Compliance scoring formula                              |              1 |                5 |              5 |             2 |               2 | Proprietary                                  |
+| Law monitoring / corpus curation                        |              1 |                4 |              5 |             3 |               2 | Proprietary                                  |
+| Marketing site + legal policies                         |              2 |                3 |              4 |             2 |               3 | Publicly served but not open-source licensed |
 
 Scoring legend: 1 = low, 5 = high.
 
@@ -91,30 +91,30 @@ Scoring legend: 1 = low, 5 = high.
 
 ## Risk Matrix
 
-| Risk Category | Level | Notes |
-|---|---|---|
-| IP risk | High | The Advisor, scoring formula, templates, and curated corpus are the core moat. Any leak materially weakens Dutiva. |
-| Competitive risk | High | A competitor with the full source could replicate the Canadian HR compliance surface quickly. |
-| Security risk | Medium | No secrets in source, but RLS/rate-limit logic would be fully inspectable; sensitive values must be env-driven before release. |
-| Licensing risk | Medium | AGPLv3 is recommended but must be reconciled with Apache-2.0 dev dependencies and MPL-2.0 transitive build tooling. **Legal review required.** |
-| Compliance risk | High | Public code could be treated as legal authority; any statutory figure in source becomes a liability. The product already gates figures carefully. |
-| Operational risk | Medium | Splitting packages adds build/test/maintenance overhead; current monorepo tooling supports it. |
+| Risk Category    | Level  | Notes                                                                                                                                             |
+| ---------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| IP risk          | High   | The Advisor, scoring formula, templates, and curated corpus are the core moat. Any leak materially weakens Dutiva.                                |
+| Competitive risk | High   | A competitor with the full source could replicate the Canadian HR compliance surface quickly.                                                     |
+| Security risk    | Medium | No secrets in source, but RLS/rate-limit logic would be fully inspectable; sensitive values must be env-driven before release.                    |
+| Licensing risk   | Medium | AGPLv3 is recommended but must be reconciled with Apache-2.0 dev dependencies and MPL-2.0 transitive build tooling. **Legal review required.**    |
+| Compliance risk  | High   | Public code could be treated as legal authority; any statutory figure in source becomes a liability. The product already gates figures carefully. |
+| Operational risk | Medium | Splitting packages adds build/test/maintenance overhead; current monorepo tooling supports it.                                                    |
 
 ---
 
 ## Business Impact
 
-| Factor | Impact |
-|---|---|
-| Customer trust | Publishing generic privacy/error-handling infrastructure and a transparent licensing model can increase trust without exposing the compliance engine. |
-| Developer adoption | A clean `dutiva-ui`/`dutiva-i18n` package may attract React/Tailwind developers; the moat remains in the proprietary content layer. |
+| Factor                         | Impact                                                                                                                                                                         |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Customer trust                 | Publishing generic privacy/error-handling infrastructure and a transparent licensing model can increase trust without exposing the compliance engine.                          |
+| Developer adoption             | A clean `dutiva-ui`/`dutiva-i18n` package may attract React/Tailwind developers; the moat remains in the proprietary content layer.                                            |
 | Sales / enterprise procurement | AGPLv3 may alarm enterprise buyers if they mistake it for applying to the whole Dutiva SaaS; messaging must separate "open UI/i18n tooling" from "proprietary Dutiva service." |
-| Competitive differentiation | Keeping the Advisor, scoring, templates, and corpus closed preserves differentiation. |
-| Community / ecosystem | Open generic packages can grow an ecosystem around Dutiva's UI/i18n patterns without giving away compliance IP. |
-| Integrations | Open generic infra lowers friction for integrations; proprietary APIs remain commercial. |
-| Hiring | Public generic tooling can improve engineering brand. |
-| Fundraising / valuation | Open-core with a closed moat is generally viewed favorably by investors, provided the IP boundary is defensible. |
-| Vendor lock-in | Open generic tooling reduces lock-in for routine frontend concerns while keeping compliance intelligence in Dutiva's SaaS. |
+| Competitive differentiation    | Keeping the Advisor, scoring, templates, and corpus closed preserves differentiation.                                                                                          |
+| Community / ecosystem          | Open generic packages can grow an ecosystem around Dutiva's UI/i18n patterns without giving away compliance IP.                                                                |
+| Integrations                   | Open generic infra lowers friction for integrations; proprietary APIs remain commercial.                                                                                       |
+| Hiring                         | Public generic tooling can improve engineering brand.                                                                                                                          |
+| Fundraising / valuation        | Open-core with a closed moat is generally viewed favorably by investors, provided the IP boundary is defensible.                                                               |
+| Vendor lock-in                 | Open generic tooling reduces lock-in for routine frontend concerns while keeping compliance intelligence in Dutiva's SaaS.                                                     |
 
 ---
 
@@ -157,31 +157,37 @@ Scoring legend: 1 = low, 5 = high.
 **Phase 0 — Assessment (this work):** Document boundaries, risks, and license strategy. No code changes.
 
 **Phase 1 — Internal cleanup:**
+
 - Env-ify site config, admin email, rate-limit defaults.
 - Replace hardcoded fixture organization identity with a configurable demo-org constant.
 - Add secret-scanning to pre-commit hooks.
 - Audit and, if necessary, rewrite git history.
 
 **Phase 2 — Package separation (still private):**
+
 - Extract `src/i18n/core` → `packages/dutiva-i18n`.
 - Extract `src/styles` + generic components → `packages/dutiva-ui`.
 - Extract generic `src/lib/*` → `packages/dutiva-infra`.
 - Keep document/workflow/support engines in a private `packages/dutiva-shared-core`.
 
 **Phase 3 — Security/IP cleanup:**
+
 - Legal review of AGPLv3, trademarks, dependency compatibility, model/provider terms.
 - Final history scrub and secret rotation.
 
 **Phase 4 — License preparation:**
+
 - Add AGPLv3 `LICENSE` files to open packages only.
 - Add `LICENSE` and trademark policy to each package.
 - Update package metadata and READMEs.
 
 **Phase 5 — Private validation:**
+
 - Publish packages to a private GitHub/npm registry.
 - Run integration tests against the main Dutiva Web application.
 
 **Phase 6 — Public release (requires explicit executive/legal sign-off):**
+
 - Flip visibility of the selected repositories.
 - Announce with clear messaging separating open tooling from proprietary Dutiva services.
 

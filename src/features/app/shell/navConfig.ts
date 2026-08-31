@@ -59,90 +59,90 @@ const WELLBEING_BADGE = String(
 export function getNavGroups(root: string): NavGroup[] {
   const p = (suffix: string) => `${root}/${suffix}`
   return [
-  {
-    heading: null,
-    items: [
-      { key: 'home', to: p('home'), icon: House, label: M.shell_nav_home },
-      { key: 'advisor', to: p('advisor'), icon: MessageCircle, label: M.shell_nav_advisor_home },
-      {
-        key: 'workflows',
-        to: p('workflows'),
-        icon: Waypoints,
-        label: M.shell_nav_workflows,
-      },
-    ],
-  },
-  {
-    heading: M.shell_sec_records,
-    items: [
-      { key: 'employees', to: p('employees'), icon: Users, label: M.shell_nav_people },
-      {
-        key: 'cases',
-        to: p('cases'),
-        icon: Folder,
-        label: M.shell_nav_cases,
-        badge: { value: CASES_BADGE, tone: 'neutral' },
-      },
-      {
-        key: 'documents',
-        to: p('documents/hr-library'),
-        icon: FileStack,
-        label: M.shell_nav_library,
-        isActive: (pathname) => pathname.startsWith(`${root}/documents`),
-      },
-      { key: 'knowledge', to: p('knowledge'), icon: Book, label: M.shell_nav_knowledge },
-    ],
-  },
-  {
-    heading: M.shell_sec_programs,
-    items: [
-      {
-        key: 'compliance',
-        to: p('compliance'),
-        icon: ShieldCheck,
-        label: M.shell_nav_compliance,
-        badge: { value: COMPLIANCE_BADGE, tone: 'warn' },
-      },
-      {
-        key: 'compensation',
-        to: p('compensation'),
-        icon: DollarSign,
-        label: M.shell_nav_compensation,
-      },
-      {
-        key: 'communications',
-        to: p('communications'),
-        icon: Send,
-        label: M.shell_nav_communications,
-      },
-      {
-        key: 'wellbeing',
-        to: p('wellbeing'),
-        icon: Activity,
-        label: M.shell_nav_wellbeing,
-        badge: { value: WELLBEING_BADGE, tone: 'warn' },
-      },
-      {
-        key: 'planning',
-        to: p('planning/tasks'),
-        icon: CalendarCheck,
-        label: M.shell_nav_planning,
-        isActive: (pathname) => pathname.startsWith(`${root}/planning`),
-      },
-    ],
-  },
-  {
-    heading: null,
-    items: [
-      {
-        key: 'analytics',
-        to: p('analytics'),
-        icon: ChartNoAxesColumn,
-        label: M.shell_nav_analytics,
-      },
-    ],
-  },
-]
+    {
+      heading: null,
+      items: [
+        { key: 'home', to: p('home'), icon: House, label: M.shell_nav_home },
+        { key: 'advisor', to: p('advisor'), icon: MessageCircle, label: M.shell_nav_advisor_home },
+        {
+          key: 'workflows',
+          to: p('workflows'),
+          icon: Waypoints,
+          label: M.shell_nav_workflows,
+        },
+      ],
+    },
+    {
+      heading: M.shell_sec_records,
+      items: [
+        { key: 'employees', to: p('employees'), icon: Users, label: M.shell_nav_people },
+        {
+          key: 'cases',
+          to: p('cases'),
+          icon: Folder,
+          label: M.shell_nav_cases,
+          badge: { value: CASES_BADGE, tone: 'neutral' },
+        },
+        {
+          key: 'documents',
+          to: p('documents/hr-library'),
+          icon: FileStack,
+          label: M.shell_nav_library,
+          isActive: (pathname) => pathname.startsWith(`${root}/documents`),
+        },
+        { key: 'knowledge', to: p('knowledge'), icon: Book, label: M.shell_nav_knowledge },
+      ],
+    },
+    {
+      heading: M.shell_sec_programs,
+      items: [
+        {
+          key: 'compliance',
+          to: p('compliance'),
+          icon: ShieldCheck,
+          label: M.shell_nav_compliance,
+          badge: { value: COMPLIANCE_BADGE, tone: 'warn' },
+        },
+        {
+          key: 'compensation',
+          to: p('compensation'),
+          icon: DollarSign,
+          label: M.shell_nav_compensation,
+        },
+        {
+          key: 'communications',
+          to: p('communications'),
+          icon: Send,
+          label: M.shell_nav_communications,
+        },
+        {
+          key: 'wellbeing',
+          to: p('wellbeing'),
+          icon: Activity,
+          label: M.shell_nav_wellbeing,
+          badge: { value: WELLBEING_BADGE, tone: 'warn' },
+        },
+        {
+          key: 'planning',
+          to: p('planning/tasks'),
+          icon: CalendarCheck,
+          label: M.shell_nav_planning,
+          isActive: (pathname) => pathname.startsWith(`${root}/planning`),
+        },
+      ],
+    },
+    {
+      heading: null,
+      items: [
+        {
+          key: 'analytics',
+          to: p('analytics'),
+          icon: ChartNoAxesColumn,
+          label: M.shell_nav_analytics,
+        },
+      ],
+    },
+  ]
 }
 
 export const NAV_GROUPS: NavGroup[] = getNavGroups('/app')

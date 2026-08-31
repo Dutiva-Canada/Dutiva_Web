@@ -81,6 +81,7 @@ export function rowsNeedingReminder(rows: SchedulerRow[], now: Date): SchedulerR
 export function rowsNeedingFollowup(rows: SchedulerRow[], now: Date): SchedulerRow[] {
   const cutoff = new Date(now.getTime() - FOLLOWUP_GRACE_HOURS * 60 * 60 * 1000)
   return rows.filter(
-    (r) => r.confirmedEnd !== null && r.followupFlaggedAt === null && new Date(r.confirmedEnd) <= cutoff,
+    (r) =>
+      r.confirmedEnd !== null && r.followupFlaggedAt === null && new Date(r.confirmedEnd) <= cutoff,
   )
 }

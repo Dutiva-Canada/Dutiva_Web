@@ -26,7 +26,10 @@ export const temporaryLayoffAwarenessFlow: Flow = {
     {
       id: 'jurisdiction',
       kind: 'choice',
-      title: bi('Which employment standards statute covers this role?', 'Quelle loi sur les normes d’emploi couvre ce poste?'),
+      title: bi(
+        'Which employment standards statute covers this role?',
+        'Quelle loi sur les normes d’emploi couvre ce poste?',
+      ),
       body: bi(
         'Temporary layoff rules and duration caps differ by jurisdiction. Name the statute before you set an end date.',
         'Les règles de mise à pied temporaire et les plafonds de durée diffèrent selon la compétence. Nommez la loi avant de fixer une date de fin.',
@@ -38,17 +41,26 @@ export const temporaryLayoffAwarenessFlow: Flow = {
       options: [
         {
           id: 'on',
-          label: bi('Ontario — Employment Standards Act, 2000', 'Ontario — Loi de 2000 sur les normes d’emploi'),
+          label: bi(
+            'Ontario — Employment Standards Act, 2000',
+            'Ontario — Loi de 2000 sur les normes d’emploi',
+          ),
           to: 'contract_on',
         },
         {
           id: 'qc',
-          label: bi('Québec — Act respecting labour standards', 'Québec — Loi sur les normes du travail'),
+          label: bi(
+            'Québec — Act respecting labour standards',
+            'Québec — Loi sur les normes du travail',
+          ),
           to: 'contract_qc',
         },
         {
           id: 'fed',
-          label: bi('Federal — Canada Labour Code Part III', 'Fédéral — Code canadien du travail, Partie III'),
+          label: bi(
+            'Federal — Canada Labour Code Part III',
+            'Fédéral — Code canadien du travail, Partie III',
+          ),
           to: 'contract_fed',
         },
       ],
@@ -56,7 +68,10 @@ export const temporaryLayoffAwarenessFlow: Flow = {
     {
       id: 'contract_on',
       kind: 'task',
-      title: bi('Ontario — contract first, then the ESA cap', 'Ontario — le contrat d’abord, puis le plafond LNE'),
+      title: bi(
+        'Ontario — contract first, then the ESA cap',
+        'Ontario — le contrat d’abord, puis le plafond LNE',
+      ),
       body: bi(
         'Confirm you may impose a temporary layoff at all, then confirm how long the ESA currently allows before it becomes a termination.',
         'Confirmez que vous pouvez imposer une mise à pied temporaire, puis confirmez combien de temps la LNE permet actuellement avant qu’elle ne devienne une cessation.',
@@ -80,7 +95,10 @@ export const temporaryLayoffAwarenessFlow: Flow = {
     {
       id: 'contract_qc',
       kind: 'task',
-      title: bi('Québec — contract, LNT duration, and good faith', 'Québec — contrat, durée LNT et bonne foi'),
+      title: bi(
+        'Québec — contract, LNT duration, and good faith',
+        'Québec — contrat, durée LNT et bonne foi',
+      ),
       body: bi(
         'Confirm authority to lay off, then confirm when a layoff triggers termination notice under the LNT.',
         'Confirmez le pouvoir de mise à pied, puis confirmez quand une mise à pied déclenche le préavis de cessation sous la LNT.',
@@ -100,7 +118,10 @@ export const temporaryLayoffAwarenessFlow: Flow = {
     {
       id: 'contract_fed',
       kind: 'task',
-      title: bi('Federal — Part III conditions for a non-termination layoff', 'Fédéral — conditions de la Partie III pour une mise à pied non constitutive de cessation'),
+      title: bi(
+        'Federal — Part III conditions for a non-termination layoff',
+        'Fédéral — conditions de la Partie III pour une mise à pied non constitutive de cessation',
+      ),
       body: bi(
         'Confirm authority to lay off, then confirm when Part III still treats the layoff as not a termination.',
         'Confirmez le pouvoir de mise à pied, puis confirmez quand la Partie III traite encore la mise à pied comme non constitutive de cessation.',
@@ -120,7 +141,10 @@ export const temporaryLayoffAwarenessFlow: Flow = {
     {
       id: 'issue',
       kind: 'task',
-      title: bi('Set recall, benefits, and selection on the record', 'Consigner rappel, avantages et sélection'),
+      title: bi(
+        'Set recall, benefits, and selection on the record',
+        'Consigner rappel, avantages et sélection',
+      ),
       body: bi(
         'What continues during the layoff belongs in the notice — ambiguity becomes a dispute.',
         'Ce qui se poursuit pendant la mise à pied appartient à l’avis — l’ambiguïté devient un litige.',

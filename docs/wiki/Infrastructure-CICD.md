@@ -22,8 +22,6 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-
-
 Dutiva's infrastructure spans a **Vite + React 19** client build, a **Supabase** backend (edge functions, Postgres, auth), **Vercel** static/SPA hosting, and a suite of custom build scripts that enforce correctness invariants at every stage. The CI pipeline runs on **GitHub Actions** with three isolated jobs that separate deterministic checks from credentialed live-project probes and browser-driven e2e tests.
 
 This page provides a high-level map of how code moves from source to production and how operational integrity is maintained. Each subsystem is covered in depth by a child page linked below.
@@ -72,11 +70,11 @@ Sources: [.github/workflows/ci.yml:1-130](), [package.json:8-9](), [vercel.json:
 
 The CI workflow in `.github/workflows/ci.yml` triggers on pull requests, pushes to `main`, and manual `workflow_dispatch` events. It defines three independent jobs:
 
-| Job | Purpose | Credentials needed | Failure impact |
-|---|---|---|---|
-| `check` | Merge gate: typecheck, lint, `test:coverage`, message scopes, canonical facts, full `build` (includes SEO validation + entry-graph budget + SW generation) | None | Blocks merge |
-| `live-checks` | Migration drift (`check-migrations.mjs`) and RLS regression (`check-rls.mjs`) against the live Supabase project | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF` | Reports independently; never blocks `check` |
-| `e2e` | Playwright browser smoke tests against the built `dist/` served by `serve-dist.mjs` | None | Independent; browser flakes never block the gate |
+| Job           | Purpose                                                                                                                                                    | Credentials needed                              | Failure impact                                   |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------ |
+| `check`       | Merge gate: typecheck, lint, `test:coverage`, message scopes, canonical facts, full `build` (includes SEO validation + entry-graph budget + SW generation) | None                                            | Blocks merge                                     |
+| `live-checks` | Migration drift (`check-migrations.mjs`) and RLS regression (`check-rls.mjs`) against the live Supabase project                                            | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF` | Reports independently; never blocks `check`      |
+| `e2e`         | Playwright browser smoke tests against the built `dist/` served by `serve-dist.mjs`                                                                        | None                                            | Independent; browser flakes never block the gate |
 
 The `check` job was deliberately isolated as the required status check after an incident (documented in `docs/TODO.md` OA19) where a broken `SUPABASE_ACCESS_TOKEN` caused two days of unverified builds to merge green. The `live-checks` job uses a "loud skipping" pattern — when credentials are absent, it exits 0 but writes a `::warning` annotation and a `GITHUB_STEP_SUMMARY` entry so a green result is never mistaken for a verified one.
 
@@ -113,18 +111,18 @@ Sources: [package.json:8-9](), [scripts/relocate-sourcemaps.mjs:1-65](), [script
 
 The scripts under `scripts/` fall into two categories: **build-chain steps** (run as part of `npm run build`) and **standalone checks** (run independently in CI or via `npm run check`).
 
-| Script | Category | What it guards |
-|---|---|---|
-| `relocate-sourcemaps.mjs` | Build chain | Source maps never deployed publicly |
-| `prerender.mjs` | Build chain | Every public page has crawlable HTML + sitemap + robots.txt + llms.txt |
-| `validate-seo.mjs` | Build chain | Per-page metadata, hreflang reciprocity, sitemap consistency |
-| `check-entry-graph.mjs` | Build chain | Eager bundle budget (≤580 KB, ≤9 preloads) |
-| `generate-sw.mjs` | Build chain | Service worker with deterministic precache manifest |
-| `check-migrations.mjs` | Standalone (CI) | Filename discipline + drift against live Supabase |
-| `check-rls.mjs` | Standalone (CI) | RLS regression — anonymous reads of sensitive tables |
-| `check-canonical-facts.mjs` | Standalone (CI) | Brand palette drift between docs and CSS |
-| `check-message-scopes.mjs` | Standalone (CI) | i18n surface boundary (workspace/marketing/shared) |
-| `apply-auth-email-templates.mjs` | Manual | Pushes sign-in email templates to Supabase project config |
+| Script                           | Category        | What it guards                                                         |
+| -------------------------------- | --------------- | ---------------------------------------------------------------------- |
+| `relocate-sourcemaps.mjs`        | Build chain     | Source maps never deployed publicly                                    |
+| `prerender.mjs`                  | Build chain     | Every public page has crawlable HTML + sitemap + robots.txt + llms.txt |
+| `validate-seo.mjs`               | Build chain     | Per-page metadata, hreflang reciprocity, sitemap consistency           |
+| `check-entry-graph.mjs`          | Build chain     | Eager bundle budget (≤580 KB, ≤9 preloads)                             |
+| `generate-sw.mjs`                | Build chain     | Service worker with deterministic precache manifest                    |
+| `check-migrations.mjs`           | Standalone (CI) | Filename discipline + drift against live Supabase                      |
+| `check-rls.mjs`                  | Standalone (CI) | RLS regression — anonymous reads of sensitive tables                   |
+| `check-canonical-facts.mjs`      | Standalone (CI) | Brand palette drift between docs and CSS                               |
+| `check-message-scopes.mjs`       | Standalone (CI) | i18n surface boundary (workspace/marketing/shared)                     |
+| `apply-auth-email-templates.mjs` | Manual          | Pushes sign-in email templates to Supabase project config              |
 
 For details, see [Build Scripts & Integrity Guards](#11.2).
 
@@ -202,17 +200,17 @@ Sources: [src/data/data.test.ts:1-60](), [src/data/types.ts](), [src/data/index.
 
 ## External Services
 
-| Service | Role | Region / Residency | Configuration |
-|---|---|---|---|
-| **Supabase** | Database, auth, edge functions, vault secrets | `ca-central-1` | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` |
-| **Vercel** | Static hosting, CDN, SPA routing | Edge (global CDN) | `vercel.json`, `VERCEL_ENV` baked at build time |
-| **Resend** | Transactional email (support notifications, law update digests) | — | Vault secret via edge functions |
-| **Stripe** | Billing (disabled during beta via `PAID_PLANS_DISABLED_DURING_BETA`) | — | `create-checkout-session`, `stripe-webhook` |
-| **Google Tag Manager / GA4** | Marketing page analytics | — | `VITE_GTM_CONTAINER_ID` (preferred) or `VITE_GA_MEASUREMENT_ID`, consent-gated via `loadConsentedTags()` |
-| **Cloudflare Turnstile / hCaptcha** | CAPTCHA on public forms | — | CSP allowlisted in `vercel.json` |
-| **ClamAV attachment-scanner** | Malware scanning for support ticket attachments | DigitalOcean Toronto (PIPEDA) | `services/attachment-scanner/`, `do-app.yaml` |
-| **HuggingFace** | Change summarization for law monitor | — | Edge function `monitor-law-changes` |
-| **DeepSeek** | LLM for advisor chat | — | Edge function `advisor-chat` |
+| Service                             | Role                                                                 | Region / Residency            | Configuration                                                                                            |
+| ----------------------------------- | -------------------------------------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------- |
+| **Supabase**                        | Database, auth, edge functions, vault secrets                        | `ca-central-1`                | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`                                                            |
+| **Vercel**                          | Static hosting, CDN, SPA routing                                     | Edge (global CDN)             | `vercel.json`, `VERCEL_ENV` baked at build time                                                          |
+| **Resend**                          | Transactional email (support notifications, law update digests)      | —                             | Vault secret via edge functions                                                                          |
+| **Stripe**                          | Billing (disabled during beta via `PAID_PLANS_DISABLED_DURING_BETA`) | —                             | `create-checkout-session`, `stripe-webhook`                                                              |
+| **Google Tag Manager / GA4**        | Marketing page analytics                                             | —                             | `VITE_GTM_CONTAINER_ID` (preferred) or `VITE_GA_MEASUREMENT_ID`, consent-gated via `loadConsentedTags()` |
+| **Cloudflare Turnstile / hCaptcha** | CAPTCHA on public forms                                              | —                             | CSP allowlisted in `vercel.json`                                                                         |
+| **ClamAV attachment-scanner**       | Malware scanning for support ticket attachments                      | DigitalOcean Toronto (PIPEDA) | `services/attachment-scanner/`, `do-app.yaml`                                                            |
+| **HuggingFace**                     | Change summarization for law monitor                                 | —                             | Edge function `monitor-law-changes`                                                                      |
+| **DeepSeek**                        | LLM for advisor chat                                                 | —                             | Edge function `advisor-chat`                                                                             |
 
 All analytics (GTM/GA4 and the first-party Supabase support analytics sink) are gated behind explicit visitor consent via `hasAnalyticsConsent()`, honoring Quebec Law 25 § 8.1 off-by-default requirements.
 

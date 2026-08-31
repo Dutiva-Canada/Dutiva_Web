@@ -24,25 +24,25 @@ the described change.
 
 Every ID in TODO.md, and where it goes.
 
-| Item                                | Prompt                    | Note                                       |
-| ----------------------------------- | ------------------------- | ------------------------------------------ |
-| L1, L2, L3, L4                      | **DP-1**                  | Time-sensitive — L3 goes stale 2026-10-01  |
-| EF2, OA2 (build half)               | **DP-2**                  |                                            |
-| L8                                  | **closed**                | Founder 2026-08-23; DP-3 retired           |
-| L6, L7                              | **DP-4**                  | Research pack only; a human flips the code |
-| EF6a                                | **DP-5**                  |                                            |
-| EF4, EF5                            | **DP-6**                  |                                            |
-| V1 (repo half), V2, V3              | **DP-7**                  |                                            |
-| D4, D7, EF10                        | **DP-8**                  | Decision block                             |
-| D1                                  | **DP-9**                  | Decision block — five questions            |
-| EF3                                 | **DP-10**                 | Decision block — RLS posture               |
-| EF8                                 | **DP-11**                 | Decision block — what a plan gates         |
-| EF7                                 | **DP-12**                 | Decision block — author or drop five       |
-| D3                                  | **DP-13**                 | Decision block — calendar vendor           |
-| D2                                  | **DP-14**                 | Decision block — privacy model             |
-| OA1, OA3–OA11                       | [Owner only](#owner-only) | Secret, dashboard, filing or vendor        |
-| L5, L9, EF1, D5, D6, V1 (live half) | [Owner only](#owner-only) |                                            |
-| EF6, EF6b, EF9                      | —                         | Already done; TODO keeps them as markers   |
+| Item                                | Prompt                    | Note                                                               |
+| ----------------------------------- | ------------------------- | ------------------------------------------------------------------ |
+| L1, L2, L3, L4                      | **DP-1**                  | Time-sensitive — L3 goes stale 2026-10-01                          |
+| EF2, OA2 (build half)               | **DP-2**                  |                                                                    |
+| L8                                  | **closed**                | Founder 2026-08-23; DP-3 retired                                   |
+| L6, L7                              | **DP-4**                  | Research pack only; a human flips the code                         |
+| EF6a                                | **DP-5**                  |                                                                    |
+| EF4, EF5                            | **DP-6**                  |                                                                    |
+| V1 (repo half), V2, V3              | **DP-7**                  |                                                                    |
+| D4, D7, EF10                        | **DP-8**                  | Decision block                                                     |
+| D1                                  | **DP-9**                  | Decision block — five questions                                    |
+| EF3                                 | **DP-10**                 | Decision block — RLS posture                                       |
+| EF8                                 | **DP-11**                 | Decision block — what a plan gates                                 |
+| EF7                                 | **DP-12**                 | Decision block — author or drop five                               |
+| D3                                  | **DP-13**                 | Decision block — calendar vendor                                   |
+| D2                                  | **DP-14**                 | Decision block — privacy model                                     |
+| OA1, OA3–OA11                       | [Owner only](#owner-only) | Secret, dashboard, filing or vendor                                |
+| L5, L9, EF1, D5, D6, V1 (live half) | [Owner only](#owner-only) |                                                                    |
+| EF6, EF6b, EF9                      | —                         | Already done; TODO keeps them as markers                           |
 | EF11                                | —                         | Eng complete — L6 bands + org payroll wiring blocked (see TODO.md) |
 
 ---

@@ -32,10 +32,9 @@ export async function getBetaCohortStatus(): Promise<BetaCohortStatus> {
   if (!supabase) return fallback()
 
   try {
-    const { data, error } = await supabase.functions.invoke<CohortResponse>(
-      'beta-cohort-status',
-      { method: 'GET' },
-    )
+    const { data, error } = await supabase.functions.invoke<CohortResponse>('beta-cohort-status', {
+      method: 'GET',
+    })
     if (error || !data || typeof data.taken !== 'number') return fallback()
     return {
       taken: Math.max(0, Math.floor(data.taken)),

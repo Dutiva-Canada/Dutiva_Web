@@ -4,7 +4,14 @@ import type { SupportCategory } from '@/config/support'
 
 describe('requiresHumanFirstLine', () => {
   it('always escalates the sensitive categories', () => {
-    for (const c of ['privacy', 'security', 'accessibility', 'complaint', 'billing', 'account_access'] as SupportCategory[]) {
+    for (const c of [
+      'privacy',
+      'security',
+      'accessibility',
+      'complaint',
+      'billing',
+      'account_access',
+    ] as SupportCategory[]) {
       expect(requiresHumanFirstLine(c), c).toBe(true)
     }
   })
@@ -29,7 +36,10 @@ describe('suggestFirstLine', () => {
   })
 
   it('returns nothing until the query is long enough', () => {
-    expect(suggestFirstLine('ab', 'product_question', 'en')).toEqual({ escalate: false, articles: [] })
+    expect(suggestFirstLine('ab', 'product_question', 'en')).toEqual({
+      escalate: false,
+      articles: [],
+    })
   })
 
   it('caps the number of suggestions', () => {

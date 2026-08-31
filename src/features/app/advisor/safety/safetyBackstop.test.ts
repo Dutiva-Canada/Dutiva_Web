@@ -126,7 +126,9 @@ describe('applySafetyBackstop — notice-figure cross-check (§5.2b)', () => {
     const { response, actions } = applySafetyBackstop({
       userMessage: 'Terminating an employee with 4 years of service in Ontario.',
       reply: 'The ESA requires 6 weeks of notice.',
-      response: baseResponse({ jurisdiction: { status: 'known', value: 'Ontario · Provincially regulated' } }),
+      response: baseResponse({
+        jurisdiction: { status: 'known', value: 'Ontario · Provincially regulated' },
+      }),
     })
     expect(actions).toContain('figure-mismatch')
     expect(response.route.legalBasisAllowed).toBe(false)

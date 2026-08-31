@@ -211,296 +211,290 @@ export function WellbeingProductionView() {
 
   return (
     <AppPage width="comfort">
-        <div className="mb-[18px] flex items-start gap-[8px] rounded-[10px] border border-gold-border bg-gold-bg px-[14px] py-[11px]">
-          <Shield
-            size={14}
-            strokeWidth={1.8}
-            className="mt-px shrink-0 text-gold-fg"
-            aria-hidden="true"
-          />
-          <span className="text-[12.5px] leading-[1.55] font-semibold text-gold-fg">
-            {x(M.wellbeing_prod_banner)}
-          </span>
+      <div className="mb-[18px] flex items-start gap-[8px] rounded-[10px] border border-gold-border bg-gold-bg px-[14px] py-[11px]">
+        <Shield
+          size={14}
+          strokeWidth={1.8}
+          className="mt-px shrink-0 text-gold-fg"
+          aria-hidden="true"
+        />
+        <span className="text-[12.5px] leading-[1.55] font-semibold text-gold-fg">
+          {x(M.wellbeing_prod_banner)}
+        </span>
+      </div>
+
+      <div className="mb-[18px] flex flex-wrap items-center justify-between gap-[16px]">
+        <div className="text-[13px] text-text-muted">
+          {rows === null ? x(M.wellbeing_prod_loading) : countLabel}
         </div>
-
-        <div className="mb-[18px] flex flex-wrap items-center justify-between gap-[16px]">
-          <div className="text-[13px] text-text-muted">
-            {rows === null ? x(M.wellbeing_prod_loading) : countLabel}
-          </div>
-          {!formOpen && (
-            <button
-              type="button"
-              onClick={() => {
-                setEditingId(null)
-                setForm(EMPTY_FORM)
-                setFormOpen(true)
-              }}
-              className="flex cursor-pointer items-center gap-[7px] rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
-            >
-              <Plus size={14} strokeWidth={2} aria-hidden="true" />
-              {x(M.wellbeing_prod_add)}
-            </button>
-          )}
-        </div>
-
-        {loadFailed && (
-          <div className="mb-[14px] flex items-center justify-between gap-[12px] rounded-[11px] border border-risk-border bg-risk-bg px-[16px] py-[12px]">
-            <span className="text-[13px] text-risk-fg">{x(M.wellbeing_prod_error)}</span>
-            <button
-              type="button"
-              onClick={() => void load()}
-              className="cursor-pointer rounded-[8px] border-none bg-surface px-[12px] py-[6px] font-sans text-[12px] font-bold text-text"
-            >
-              {x(M.wellbeing_prod_retry)}
-            </button>
-          </div>
-        )}
-
-        {count > 0 && (
-          <div className="mb-[22px] flex flex-wrap gap-[14px]">
-            <div className="min-w-[150px] flex-1 rounded-[12px] border border-border bg-surface p-[16px]">
-              <div className="font-display text-[26px] font-bold text-text">{activeCount}</div>
-              <div className="mt-[2px] text-[12.5px] text-text-muted">
-                {x(M.wellbeing_prod_active_label)}
-              </div>
-            </div>
-            <div className="min-w-[150px] flex-1 rounded-[12px] border border-border bg-surface p-[16px]">
-              <div className="font-display text-[26px] font-bold text-gold-dot">
-                {overdue.length}
-              </div>
-              <div className="mt-[2px] text-[12.5px] text-text-muted">
-                {x(M.wellbeing_prod_overdue_label)}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {formOpen && (
-          <form
-            onSubmit={(e) => void onSubmit(e)}
-            className="mb-[18px] rounded-[12px] border border-border bg-surface px-[20px] py-[18px]"
+        {!formOpen && (
+          <button
+            type="button"
+            onClick={() => {
+              setEditingId(null)
+              setForm(EMPTY_FORM)
+              setFormOpen(true)
+            }}
+            className="flex cursor-pointer items-center gap-[7px] rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
           >
-            <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <label htmlFor="wb-name" className={labelClass}>
-                  {x(M.wellbeing_prod_name)}
-                </label>
-                <input
-                  id="wb-name"
-                  required
-                  value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label htmlFor="wb-kind" className={labelClass}>
-                  {x(M.wellbeing_prod_kind)}
-                </label>
-                <select
-                  id="wb-kind"
-                  value={form.kind}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, kind: e.target.value as ProductionInitiativeKind }))
-                  }
-                  className={inputClass}
-                >
-                  {PRODUCTION_INITIATIVE_KINDS.map((k) => (
-                    <option key={k} value={k}>
-                      {x(KIND_LABEL[k])}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="wb-status" className={labelClass}>
-                  {x(M.wellbeing_prod_status)}
-                </label>
-                <select
-                  id="wb-status"
-                  value={form.status}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, status: e.target.value as ProductionInitiativeStatus }))
-                  }
-                  className={inputClass}
-                >
-                  {PRODUCTION_INITIATIVE_STATUSES.map((s) => (
-                    <option key={s} value={s}>
-                      {x(STATUS_LABEL[s])}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="wb-owner" className={labelClass}>
-                  {x(M.wellbeing_prod_owner)}
-                </label>
-                <input
-                  id="wb-owner"
-                  value={form.owner}
-                  onChange={(e) => setForm((f) => ({ ...f, owner: e.target.value }))}
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label htmlFor="wb-review" className={labelClass}>
-                  {x(M.wellbeing_prod_review_date)}
-                </label>
-                <input
-                  id="wb-review"
-                  type="date"
-                  value={form.reviewDate}
-                  onChange={(e) => setForm((f) => ({ ...f, reviewDate: e.target.value }))}
-                  className={inputClass}
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <label htmlFor="wb-note" className={labelClass}>
-                  {x(M.wellbeing_prod_note)}
-                </label>
-                <input
-                  id="wb-note"
-                  value={form.note}
-                  onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
-                  className={inputClass}
-                />
-              </div>
-            </div>
-            <div className="mt-[16px] flex gap-[8px]">
-              <button
-                type="submit"
-                disabled={saving}
-                className="cursor-pointer rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white disabled:opacity-60"
-              >
-                {x(M.wellbeing_prod_save)}
-              </button>
-              <button
-                type="button"
-                onClick={closeForm}
-                className="cursor-pointer rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text"
-              >
-                {x(M.wellbeing_prod_cancel)}
-              </button>
-            </div>
-          </form>
+            <Plus size={14} strokeWidth={2} aria-hidden="true" />
+            {x(M.wellbeing_prod_add)}
+          </button>
         )}
+      </div>
 
-        {rows !== null && count === 0 && !loadFailed && !formOpen && (
-          <ModuleEmptyBlock
-            icon={HeartHandshake}
-            title={x(M.wellbeing_prod_empty_title)}
-            body={x(M.wellbeing_prod_empty_body)}
-          />
-        )}
+      {loadFailed && (
+        <div className="mb-[14px] flex items-center justify-between gap-[12px] rounded-[11px] border border-risk-border bg-risk-bg px-[16px] py-[12px]">
+          <span className="text-[13px] text-risk-fg">{x(M.wellbeing_prod_error)}</span>
+          <button
+            type="button"
+            onClick={() => void load()}
+            className="cursor-pointer rounded-[8px] border-none bg-surface px-[12px] py-[6px] font-sans text-[12px] font-bold text-text"
+          >
+            {x(M.wellbeing_prod_retry)}
+          </button>
+        </div>
+      )}
 
-        {count > 0 && (
-          <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
-            {list.map((row) => (
-              <div
-                key={row.id}
-                className="flex flex-wrap items-center gap-[12px] border-t border-inset px-[18px] py-[13px] first:border-t-0"
+      {count > 0 && (
+        <div className="mb-[22px] flex flex-wrap gap-[14px]">
+          <div className="min-w-[150px] flex-1 rounded-[12px] border border-border bg-surface p-[16px]">
+            <div className="font-display text-[26px] font-bold text-text">{activeCount}</div>
+            <div className="mt-[2px] text-[12.5px] text-text-muted">
+              {x(M.wellbeing_prod_active_label)}
+            </div>
+          </div>
+          <div className="min-w-[150px] flex-1 rounded-[12px] border border-border bg-surface p-[16px]">
+            <div className="font-display text-[26px] font-bold text-gold-dot">{overdue.length}</div>
+            <div className="mt-[2px] text-[12.5px] text-text-muted">
+              {x(M.wellbeing_prod_overdue_label)}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {formOpen && (
+        <form
+          onSubmit={(e) => void onSubmit(e)}
+          className="mb-[18px] rounded-[12px] border border-border bg-surface px-[20px] py-[18px]"
+        >
+          <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label htmlFor="wb-name" className={labelClass}>
+                {x(M.wellbeing_prod_name)}
+              </label>
+              <input
+                id="wb-name"
+                required
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="wb-kind" className={labelClass}>
+                {x(M.wellbeing_prod_kind)}
+              </label>
+              <select
+                id="wb-kind"
+                value={form.kind}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, kind: e.target.value as ProductionInitiativeKind }))
+                }
+                className={inputClass}
               >
-                <div className="min-w-0 flex-1 basis-[220px]">
-                  <div className="truncate text-[13.5px] font-semibold text-text">{row.name}</div>
-                  <div className="mt-[2px] text-[12px] text-text-muted">
-                    {x(KIND_LABEL[row.kind])}
-                    {row.owner ? ` · ${row.owner}` : ''}
-                    {row.reviewDate
-                      ? ` · ${x(M.wellbeing_prod_review_prefix)}${row.reviewDate}`
-                      : ''}
-                  </div>
+                {PRODUCTION_INITIATIVE_KINDS.map((k) => (
+                  <option key={k} value={k}>
+                    {x(KIND_LABEL[k])}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="wb-status" className={labelClass}>
+                {x(M.wellbeing_prod_status)}
+              </label>
+              <select
+                id="wb-status"
+                value={form.status}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, status: e.target.value as ProductionInitiativeStatus }))
+                }
+                className={inputClass}
+              >
+                {PRODUCTION_INITIATIVE_STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {x(STATUS_LABEL[s])}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="wb-owner" className={labelClass}>
+                {x(M.wellbeing_prod_owner)}
+              </label>
+              <input
+                id="wb-owner"
+                value={form.owner}
+                onChange={(e) => setForm((f) => ({ ...f, owner: e.target.value }))}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="wb-review" className={labelClass}>
+                {x(M.wellbeing_prod_review_date)}
+              </label>
+              <input
+                id="wb-review"
+                type="date"
+                value={form.reviewDate}
+                onChange={(e) => setForm((f) => ({ ...f, reviewDate: e.target.value }))}
+                className={inputClass}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label htmlFor="wb-note" className={labelClass}>
+                {x(M.wellbeing_prod_note)}
+              </label>
+              <input
+                id="wb-note"
+                value={form.note}
+                onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
+                className={inputClass}
+              />
+            </div>
+          </div>
+          <div className="mt-[16px] flex gap-[8px]">
+            <button
+              type="submit"
+              disabled={saving}
+              className="cursor-pointer rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white disabled:opacity-60"
+            >
+              {x(M.wellbeing_prod_save)}
+            </button>
+            <button
+              type="button"
+              onClick={closeForm}
+              className="cursor-pointer rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text"
+            >
+              {x(M.wellbeing_prod_cancel)}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {rows !== null && count === 0 && !loadFailed && !formOpen && (
+        <ModuleEmptyBlock
+          icon={HeartHandshake}
+          title={x(M.wellbeing_prod_empty_title)}
+          body={x(M.wellbeing_prod_empty_body)}
+        />
+      )}
+
+      {count > 0 && (
+        <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
+          {list.map((row) => (
+            <div
+              key={row.id}
+              className="flex flex-wrap items-center gap-[12px] border-t border-inset px-[18px] py-[13px] first:border-t-0"
+            >
+              <div className="min-w-0 flex-1 basis-[220px]">
+                <div className="truncate text-[13.5px] font-semibold text-text">{row.name}</div>
+                <div className="mt-[2px] text-[12px] text-text-muted">
+                  {x(KIND_LABEL[row.kind])}
+                  {row.owner ? ` · ${row.owner}` : ''}
+                  {row.reviewDate ? ` · ${x(M.wellbeing_prod_review_prefix)}${row.reviewDate}` : ''}
                 </div>
-                {overdueIds.has(row.id) && (
-                  <span className={statusChipClass('risk')}>
-                    {x(M.wellbeing_prod_overdue_chip)}
-                  </span>
-                )}
-                <span className={statusChipClass(STATUS_TONE[row.status])}>
-                  {x(STATUS_LABEL[row.status])}
-                </span>
-                <select
-                  value={row.status}
-                  onChange={(e) =>
-                    void onStatusChange(row, e.target.value as ProductionInitiativeStatus)
-                  }
-                  aria-label={`${x(M.wellbeing_prod_status_aria)} — ${row.name}`}
-                  className="cursor-pointer rounded-[8px] border border-border bg-surface px-[8px] py-[5px] font-sans text-[12px] text-text"
+              </div>
+              {overdueIds.has(row.id) && (
+                <span className={statusChipClass('risk')}>{x(M.wellbeing_prod_overdue_chip)}</span>
+              )}
+              <span className={statusChipClass(STATUS_TONE[row.status])}>
+                {x(STATUS_LABEL[row.status])}
+              </span>
+              <select
+                value={row.status}
+                onChange={(e) =>
+                  void onStatusChange(row, e.target.value as ProductionInitiativeStatus)
+                }
+                aria-label={`${x(M.wellbeing_prod_status_aria)} — ${row.name}`}
+                className="cursor-pointer rounded-[8px] border border-border bg-surface px-[8px] py-[5px] font-sans text-[12px] text-text"
+              >
+                {PRODUCTION_INITIATIVE_STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {x(STATUS_LABEL[s])}
+                  </option>
+                ))}
+              </select>
+              {overdueIds.has(row.id) && (
+                <button
+                  type="button"
+                  onClick={() => void onMarkReviewed(row)}
+                  className="flex cursor-pointer items-center gap-[5px] rounded-[8px] border-none bg-accent-soft px-[10px] py-[6px] font-sans text-[12px] font-bold text-accent"
                 >
-                  {PRODUCTION_INITIATIVE_STATUSES.map((s) => (
-                    <option key={s} value={s}>
-                      {x(STATUS_LABEL[s])}
-                    </option>
-                  ))}
-                </select>
-                {overdueIds.has(row.id) && (
+                  <CheckCircle size={13} strokeWidth={1.7} aria-hidden="true" />
+                  {x(M.wellbeing_prod_mark_reviewed)}
+                </button>
+              )}
+              {pendingDeleteId === row.id ? (
+                <div className="flex w-full flex-wrap items-center gap-[10px] rounded-[8px] bg-inset px-[12px] py-[10px]">
+                  <span className="text-[12.5px] text-text-2">
+                    {x(M.wellbeing_prod_delete_confirm)}
+                  </span>
                   <button
                     type="button"
-                    onClick={() => void onMarkReviewed(row)}
-                    className="flex cursor-pointer items-center gap-[5px] rounded-[8px] border-none bg-accent-soft px-[10px] py-[6px] font-sans text-[12px] font-bold text-accent"
+                    onClick={() => setPendingDeleteId(null)}
+                    className="cursor-pointer rounded-[8px] border border-border bg-surface px-[12px] py-[6px] font-sans text-[12px] font-semibold text-text"
                   >
-                    <CheckCircle size={13} strokeWidth={1.7} aria-hidden="true" />
-                    {x(M.wellbeing_prod_mark_reviewed)}
+                    {x(M.wellbeing_prod_delete_cancel)}
                   </button>
-                )}
-                {pendingDeleteId === row.id ? (
-                  <div className="flex w-full flex-wrap items-center gap-[10px] rounded-[8px] bg-inset px-[12px] py-[10px]">
-                    <span className="text-[12.5px] text-text-2">
-                      {x(M.wellbeing_prod_delete_confirm)}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setPendingDeleteId(null)}
-                      className="cursor-pointer rounded-[8px] border border-border bg-surface px-[12px] py-[6px] font-sans text-[12px] font-semibold text-text"
-                    >
-                      {x(M.wellbeing_prod_delete_cancel)}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void onRemove(row)}
-                      className="cursor-pointer rounded-[8px] border-none bg-risk-dot px-[12px] py-[6px] font-sans text-[12px] font-semibold text-white"
-                    >
-                      {x(M.wellbeing_prod_confirm_delete)}
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => onEdit(row)}
-                      aria-label={`${x(M.wellbeing_prod_edit)} — ${row.name}`}
-                      className="flex cursor-pointer items-center gap-[5px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-semibold text-text-2"
-                    >
-                      <Pencil size={13} strokeWidth={1.7} aria-hidden="true" />
-                      {x(M.wellbeing_prod_edit)}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPendingDeleteId(row.id)}
-                      aria-label={`${x(M.wellbeing_prod_remove)} — ${row.name}`}
-                      className="cursor-pointer border-none bg-transparent p-[6px] text-text-muted hover:text-risk-fg"
-                    >
-                      <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
-                    </button>
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        <section className="mt-[22px] rounded-[12px] border border-border bg-surface px-[18px] py-[16px]">
-          <h2 className="m-0 text-[14px] font-semibold text-text">
-            {x(M.wellbeing_prod_signals_title)}
-          </h2>
-          <p className="mb-0 mt-[8px] text-[13px] leading-[1.55] text-text-muted">
-            {x(M.wellbeing_prod_signals_empty)}
-          </p>
-        </section>
-
-        <div className="mt-[14px] flex items-start gap-[7px] text-[11px] leading-normal text-text-faint">
-          <Shield size={12} strokeWidth={1.8} className="mt-px shrink-0" aria-hidden="true" />
-          <span>{x(M.wellbeing_prod_accommodation_note)}</span>
+                  <button
+                    type="button"
+                    onClick={() => void onRemove(row)}
+                    className="cursor-pointer rounded-[8px] border-none bg-risk-dot px-[12px] py-[6px] font-sans text-[12px] font-semibold text-white"
+                  >
+                    {x(M.wellbeing_prod_confirm_delete)}
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => onEdit(row)}
+                    aria-label={`${x(M.wellbeing_prod_edit)} — ${row.name}`}
+                    className="flex cursor-pointer items-center gap-[5px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-semibold text-text-2"
+                  >
+                    <Pencil size={13} strokeWidth={1.7} aria-hidden="true" />
+                    {x(M.wellbeing_prod_edit)}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPendingDeleteId(row.id)}
+                    aria-label={`${x(M.wellbeing_prod_remove)} — ${row.name}`}
+                    className="cursor-pointer border-none bg-transparent p-[6px] text-text-muted hover:text-risk-fg"
+                  >
+                    <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
+                  </button>
+                </>
+              )}
+            </div>
+          ))}
         </div>
+      )}
+
+      <section className="mt-[22px] rounded-[12px] border border-border bg-surface px-[18px] py-[16px]">
+        <h2 className="m-0 text-[14px] font-semibold text-text">
+          {x(M.wellbeing_prod_signals_title)}
+        </h2>
+        <p className="mb-0 mt-[8px] text-[13px] leading-[1.55] text-text-muted">
+          {x(M.wellbeing_prod_signals_empty)}
+        </p>
+      </section>
+
+      <div className="mt-[14px] flex items-start gap-[7px] text-[11px] leading-normal text-text-faint">
+        <Shield size={12} strokeWidth={1.8} className="mt-px shrink-0" aria-hidden="true" />
+        <span>{x(M.wellbeing_prod_accommodation_note)}</span>
+      </div>
     </AppPage>
   )
 }

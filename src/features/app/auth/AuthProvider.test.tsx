@@ -490,9 +490,7 @@ describe('AuthProvider', () => {
           <button
             onClick={() =>
               /* Spaces as a mail client renders them — stripped before sending. */
-              void verifyEmailCode('owner@example.ca', '123 456').then((e) =>
-                setResult(e ?? 'ok'),
-              )
+              void verifyEmailCode('owner@example.ca', '123 456').then((e) => setResult(e ?? 'ok'))
             }
           >
             verify
@@ -547,7 +545,11 @@ describe('AuthProvider', () => {
       return (
         <div>
           <span data-testid="result">{result}</span>
-          <button onClick={() => void verifyEmailCode('o@e.ca', '000000').then((e) => setResult(e ?? 'ok'))}>
+          <button
+            onClick={() =>
+              void verifyEmailCode('o@e.ca', '000000').then((e) => setResult(e ?? 'ok'))
+            }
+          >
             verify
           </button>
         </div>

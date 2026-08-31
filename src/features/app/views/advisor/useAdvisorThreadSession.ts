@@ -3,11 +3,7 @@ import type { WorkspaceMode } from '@/features/app/workspaceMode/workspaceModeCo
 import type { MessageExtras } from './advisorFlows'
 import { advisorSession } from './advisorSession'
 import type { SessionChat, ThreadResponseState } from './advisorSession'
-import {
-  ENGINE_PREFIX,
-  freshResponseState,
-  resolveInitialActiveChatId,
-} from './advisorViewHelpers'
+import { ENGINE_PREFIX, freshResponseState, resolveInitialActiveChatId } from './advisorViewHelpers'
 
 /**
  * Session-scoped Advisor thread state mirrored into advisorSession for

@@ -86,8 +86,7 @@ function ThreadListPanel({
       {groups.map((group) => {
         const isOlder = group.key === 'older'
         const collapsed = isOlder && !olderOpen
-        const activeInOlder =
-          isOlder && group.items.some((chat) => chat.id === activeChatId)
+        const activeInOlder = isOlder && group.items.some((chat) => chat.id === activeChatId)
         const showItems = !collapsed || activeInOlder
 
         return (
@@ -138,9 +137,7 @@ function ThreadListPanel({
                       onClick={() => onSelect(chat.id)}
                       aria-current={active ? 'true' : undefined}
                       className={`flex min-w-0 flex-1 cursor-pointer items-center gap-[8px] border-none bg-transparent px-[10px] py-[7px] text-left font-sans text-[13px] ${
-                        active
-                          ? 'font-semibold text-accent'
-                          : 'font-normal text-text-2'
+                        active ? 'font-semibold text-accent' : 'font-normal text-text-2'
                       }`}
                     >
                       <MessageCircle
@@ -242,11 +239,21 @@ export function ThreadListMobileAccess(props: ThreadListProps) {
           aria-label={x(M.advisorview_open_threads)}
           className="flex min-h-[44px] min-w-0 flex-1 cursor-pointer items-center gap-[8px] rounded-[8px] border border-border-soft bg-surface-2 px-[12px] py-[8px] text-left font-sans text-[13px] font-semibold text-text"
         >
-          <List size={16} strokeWidth={1.8} className="shrink-0 text-text-muted" aria-hidden="true" />
+          <List
+            size={16}
+            strokeWidth={1.8}
+            className="shrink-0 text-text-muted"
+            aria-hidden="true"
+          />
           <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
             {activeTitle ? x(activeTitle) : x(M.advisorview_threads_aria)}
           </span>
-          <ChevronDown size={14} strokeWidth={1.8} className="shrink-0 text-text-muted" aria-hidden="true" />
+          <ChevronDown
+            size={14}
+            strokeWidth={1.8}
+            className="shrink-0 text-text-muted"
+            aria-hidden="true"
+          />
         </button>
         {!props.hideNewConversation ? (
           <button

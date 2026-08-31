@@ -29,7 +29,9 @@ export function AdvisorDemo() {
           </span>
           <span>
             <span className="block font-semibold text-text">{lt('landing_adv_name')}</span>
-            <span className="block text-[0.8125rem] text-text-2">{x(scenario.turn.jurisdictionLine)}</span>
+            <span className="block text-[0.8125rem] text-text-2">
+              {x(scenario.turn.jurisdictionLine)}
+            </span>
           </span>
         </div>
         <span className="hidden shrink-0 items-center gap-1.5 rounded-full border border-border bg-bg-soft px-2.5 py-1 text-xs font-semibold text-text-2 sm:inline-flex">

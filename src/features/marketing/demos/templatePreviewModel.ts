@@ -1,6 +1,11 @@
 import { allTemplates } from '@/features/app/documents/catalogue'
 import type { DocTemplate } from '@/features/app/documents/data'
-import { answerLabels, bilingualMergeValues, computedTokens, resolveBlocks } from '@/features/app/documents/engine'
+import {
+  answerLabels,
+  bilingualMergeValues,
+  computedTokens,
+  resolveBlocks,
+} from '@/features/app/documents/engine'
 import type { Lang } from '@/i18n/core'
 import { MARKETING_DEMO_ORG } from './demoOrgContext'
 

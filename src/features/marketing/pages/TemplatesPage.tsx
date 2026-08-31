@@ -47,7 +47,9 @@ export function TemplatesPage() {
       />
 
       <PageSection title={t('tplPreview_samples_title')}>
-        <p className="mb-6 max-w-2xl text-sm leading-6 text-text-2">{t('tplPreview_samples_intro')}</p>
+        <p className="mb-6 max-w-2xl text-sm leading-6 text-text-2">
+          {t('tplPreview_samples_intro')}
+        </p>
         <div className="grid gap-6 lg:grid-cols-3">
           {FEATURED_TEMPLATE_TIDS.map((tid) => (
             <div key={tid} className="premium-card-soft p-5">

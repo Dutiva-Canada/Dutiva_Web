@@ -83,14 +83,18 @@ function ScheduledCallPanel({ ticketId }: { readonly ticketId: string }) {
           <ul className="m-0 flex list-none flex-col gap-2 p-0">
             {call.proposedSlots.map((slot, i) => (
               <li key={slot.start} className="flex flex-wrap items-center gap-2.5">
-                <span className="text-[13.5px] font-medium text-text">{formatDateTime(slot.start, lang)}</span>
+                <span className="text-[13.5px] font-medium text-text">
+                  {formatDateTime(slot.start, lang)}
+                </span>
                 <button
                   type="button"
                   disabled={confirming !== null}
                   onClick={() => void confirm(i)}
                   className="cursor-pointer rounded-lg border-none bg-navy px-3.5 py-1.5 text-[12.5px] font-semibold text-white disabled:opacity-60"
                 >
-                  {confirming === i ? x(M.support_call_confirming) : x(M.support_call_confirm_button)}
+                  {confirming === i
+                    ? x(M.support_call_confirming)
+                    : x(M.support_call_confirm_button)}
                 </button>
               </li>
             ))}
@@ -108,7 +112,9 @@ function ScheduledCallPanel({ ticketId }: { readonly ticketId: string }) {
           <p className="m-0 mb-1 text-[14px] font-semibold text-text">
             {x(M.support_call_confirmed_heading)}
           </p>
-          <p className="m-0 text-[13.5px] text-text-2">{formatDateTime(call.confirmedStart, lang)}</p>
+          <p className="m-0 text-[13.5px] text-text-2">
+            {formatDateTime(call.confirmedStart, lang)}
+          </p>
           {call.meetLink && (
             <a
               href={call.meetLink}
@@ -161,7 +167,10 @@ export function SupportTicketDetail() {
     try {
       const message: SupportMessageView = await replyToSupportTicket(ticketId, reply.trim())
       setReply('')
-      setState({ kind: 'ready', ticket: { ...state.ticket, messages: [...state.ticket.messages, message] } })
+      setState({
+        kind: 'ready',
+        ticket: { ...state.ticket, messages: [...state.ticket.messages, message] },
+      })
     } catch (error) {
       console.error('support: reply failed', error)
       setReplyError(x(M.support_reply_error))
@@ -183,12 +192,13 @@ export function SupportTicketDetail() {
       </Link>
 
       {state.kind === 'loading' && (
-        <output className="m-0 text-[14px] text-text-3">
-          {x(M.support_requests_loading)}
-        </output>
+        <output className="m-0 text-[14px] text-text-3">{x(M.support_requests_loading)}</output>
       )}
       {state.kind === 'error' && (
-        <p className="m-0 rounded-xl border border-risk-border bg-risk-bg px-4 py-3 text-[14px] text-risk-fg" role="alert">
+        <p
+          className="m-0 rounded-xl border border-risk-border bg-risk-bg px-4 py-3 text-[14px] text-risk-fg"
+          role="alert"
+        >
           {x(M.support_requests_error)}
         </p>
       )}
@@ -235,7 +245,10 @@ export function SupportTicketDetail() {
             })}
           </ol>
 
-          <SupportAttachments ticketId={state.ticket.id} canUpload={state.ticket.status !== 'closed'} />
+          <SupportAttachments
+            ticketId={state.ticket.id}
+            canUpload={state.ticket.status !== 'closed'}
+          />
 
           {state.ticket.status === 'closed' ? (
             <p className="m-0 rounded-xl border border-border bg-inset px-4 py-3 text-[13px] text-text-2">

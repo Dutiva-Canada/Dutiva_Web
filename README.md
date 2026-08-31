@@ -27,18 +27,18 @@ the app surface follows the persisted `dutiva-lang` preference. See
 
 ## Scripts
 
-| Command             | What it does                                                                                        |
-| ------------------- | --------------------------------------------------------------------------------------------------- |
-| `npm run dev`       | Vite dev server                                                                                     |
-| `npm run build`     | Typecheck + client/SSR builds + prerender + SEO validation                                          |
-| `npm run preview`   | Serve the production build                                                                          |
-| `npm run typecheck` | `tsc -b` (strict)                                                                                   |
-| `npm run lint`      | oxlint                                                                                              |
-| `npm run test`      | Vitest (jsdom + Testing Library)                                                                    |
-| `npm run test:e2e`  | Playwright smoke on `dist/` (hermetic — no Supabase; see [e2e/README.md](e2e/README.md))            |
-| `npm run test:e2e:auth` | Playwright production CRUD matrix (Supabase env required; skips cleanly when unset)            |
-| `npm run format`    | Prettier                                                                                            |
-| `npm run check`     | typecheck + lint + test + `check:migrations` + `check:rls` + `check:facts` + `check:message-scopes` |
+| Command                 | What it does                                                                                        |
+| ----------------------- | --------------------------------------------------------------------------------------------------- |
+| `npm run dev`           | Vite dev server                                                                                     |
+| `npm run build`         | Typecheck + client/SSR builds + prerender + SEO validation                                          |
+| `npm run preview`       | Serve the production build                                                                          |
+| `npm run typecheck`     | `tsc -b` (strict)                                                                                   |
+| `npm run lint`          | oxlint                                                                                              |
+| `npm run test`          | Vitest (jsdom + Testing Library)                                                                    |
+| `npm run test:e2e`      | Playwright smoke on `dist/` (hermetic — no Supabase; see [e2e/README.md](e2e/README.md))            |
+| `npm run test:e2e:auth` | Playwright production CRUD matrix (Supabase env required; skips cleanly when unset)                 |
+| `npm run format`        | Prettier                                                                                            |
+| `npm run check`         | typecheck + lint + test + `check:migrations` + `check:rls` + `check:facts` + `check:message-scopes` |
 
 ## End-to-end tests
 

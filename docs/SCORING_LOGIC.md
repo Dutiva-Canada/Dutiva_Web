@@ -105,7 +105,7 @@ history).
    below any healthy reading) — a strong average must not hide a
    critical exposure. The card prints why ("Capped at 69 while a
    critical finding is open…"); resolving or dismissing the finding
-   lifts it. The cap never *raises* a lower score — a blend already at
+   lifts it. The cap never _raises_ a lower score — a blend already at
    or below 69 passes through unchanged, with no "capped" note.
 
 Worked example: 3/4 policies current (75), 8 completed of 10 provenanced
@@ -126,7 +126,7 @@ demo's jurisdiction breakdown apply.
 
 ### 2.3 History — snapshots
 
-The score is a function of *current* rows, so last quarter's score is
+The score is a function of _current_ rows, so last quarter's score is
 gone unless it was written down at the time. That is the reason
 `public.compliance_score_snapshots` exists (migrations 0062/0063/0068):
 one row per organization per month with the blended score, the
@@ -276,8 +276,8 @@ turnover denominator — lives in `AnalyticsView.tsx` /
   headcount series (snapshots plus the live current month), falling
   back to the live headcount when no history exists; the prior window
   averages all snapshot headcounts inside its 12 months. Returns `null`
-  when the denominator is missing or zero: *no rate is better than a
-  fictional one*.
+  when the denominator is missing or zero: _no rate is better than a
+  fictional one_.
 - **Acknowledgment progress** (`ackProgress`): signed/total with
   clamping, rounded percent, 0 when the denominator is 0. In production
   the acknowledgments card is an honest empty state — no tracking data
@@ -330,7 +330,7 @@ pieces are restated here).
   one). It defaults to `unknown` and is never assumed.
 - **The legal-basis gate is fail-safe-closed**: citations render only
   when jurisdiction is confirmed AND curated corpus chunks actually
-  grounded the turn. A citation is marked *valid* only once its chunk
+  grounded the turn. A citation is marked _valid_ only once its chunk
   is human-reviewed; machine-curated rows honestly read as "needs
   review".
 - **Confidence is a formula, not a feeling**:
@@ -435,9 +435,9 @@ code; go there for the mechanism.
   `src/config/support.ts`).
 - **Document studio** — applicability precedence (collective agreement
   > template size trigger > clause-level headcount gates > default)
-  with legal-facing thresholds at 25 and 50 headcount, flagged in code
-  as pending counsel verification; and the generate wizard's
-  fill-progress meter (`documents/engine.ts`, `documents/data/meta.ts`).
+  > with legal-facing thresholds at 25 and 50 headcount, flagged in code
+  > as pending counsel verification; and the generate wizard's
+  > fill-progress meter (`documents/engine.ts`, `documents/data/meta.ts`).
 - **Billing** — annual price = 10 of 12 months billed; the yearly total
   is derived from the already-rounded per-month figure so the two
   displayed numbers always reconcile; plan gating is ordinal with

@@ -11,9 +11,14 @@ import { TemplatesView } from './TemplatesView'
 
 describe('TemplatesView', () => {
   it('renders one gallery tile per fixture template with title and category', () => {
-    renderApp(<TemplatesView />, { route: '/app/documents/hr-library', path: '/app/documents/hr-library' })
+    renderApp(<TemplatesView />, {
+      route: '/app/documents/hr-library',
+      path: '/app/documents/hr-library',
+    })
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Document templates' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Document templates' }),
+    ).toBeInTheDocument()
     expect(screen.getAllByRole('button')).toHaveLength(documentTemplates.length)
     expect(screen.getByText('Termination Letter')).toBeInTheDocument()
     /* Category sub-lines — three Offboarding templates in the fixtures. */
@@ -44,7 +49,9 @@ describe('TemplatesView', () => {
       <ThemeProvider>
         <LangProvider>
           <MemoryRouter
-            initialEntries={[{ pathname: '/app/documents/hr-library', state: { docKey: 'Offer Letter' } }]}
+            initialEntries={[
+              { pathname: '/app/documents/hr-library', state: { docKey: 'Offer Letter' } },
+            ]}
           >
             <AppProviders>
               <Routes>

@@ -135,7 +135,7 @@
 
 `AI-REQ-034`: French legal terminology SHALL be Québec-appropriate and reviewed; the AI SHALL NOT rely solely on machine translation for legal concepts.
 
-`AI-REQ-035`: Jurisdiction and statute names SHALL be exact in both languages (e.g., *Employment Standards Act, 2000* in English for Ontario; *Loi sur les normes du travail* in French for Québec).
+`AI-REQ-035`: Jurisdiction and statute names SHALL be exact in both languages (e.g., _Employment Standards Act, 2000_ in English for Ontario; _Loi sur les normes du travail_ in French for Québec).
 
 ---
 

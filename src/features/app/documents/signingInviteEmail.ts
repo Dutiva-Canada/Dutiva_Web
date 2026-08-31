@@ -34,11 +34,7 @@ export interface RenderedSigningInviteEmail {
 const pick = (lang: Lang, en: string, fr: string): string => (lang === 'fr' ? fr : en)
 
 /** Build a locale-prefixed external signing URL. Mirrors _shared/signingInvite.ts. */
-export function buildExternalSigningUrl(
-  siteUrl: string,
-  token: string,
-  language: Lang,
-): string {
+export function buildExternalSigningUrl(siteUrl: string, token: string, language: Lang): string {
   const base = siteUrl.replace(/\/+$/, '')
   const prefix = language === 'fr' ? '/fr' : ''
   return `${base}${prefix}/sign/${token}`
@@ -54,11 +50,7 @@ export function renderSigningInviteEmail(
 ): RenderedSigningInviteEmail {
   const lang = ctx.language
   const brand = pick(lang, 'Dutiva Signature', 'Signature Dutiva')
-  const greeting = pick(
-    lang,
-    `Hello ${ctx.recipientName},`,
-    `Bonjour ${ctx.recipientName},`,
-  )
+  const greeting = pick(lang, `Hello ${ctx.recipientName},`, `Bonjour ${ctx.recipientName},`)
   const intro = ctx.reminder
     ? pick(
         lang,
@@ -66,16 +58,16 @@ export function renderSigningInviteEmail(
         `Rappel : veuillez signer le document suivant de ${ctx.organizationName} :`,
       )
     : ctx.actorLabel
-    ? pick(
-        lang,
-        `${ctx.actorLabel} at ${ctx.organizationName} has asked you to review and electronically sign the following document:`,
-        `${ctx.actorLabel} de ${ctx.organizationName} vous demande de passer en revue et de signer électroniquement le document suivant :`,
-      )
-    : pick(
-        lang,
-        `${ctx.organizationName} has asked you to review and electronically sign the following document:`,
-        `${ctx.organizationName} vous demande de passer en revue et de signer électroniquement le document suivant :`,
-      )
+      ? pick(
+          lang,
+          `${ctx.actorLabel} at ${ctx.organizationName} has asked you to review and electronically sign the following document:`,
+          `${ctx.actorLabel} de ${ctx.organizationName} vous demande de passer en revue et de signer électroniquement le document suivant :`,
+        )
+      : pick(
+          lang,
+          `${ctx.organizationName} has asked you to review and electronically sign the following document:`,
+          `${ctx.organizationName} vous demande de passer en revue et de signer électroniquement le document suivant :`,
+        )
   const docLine = `${ctx.documentTitle}\n${pick(lang, 'Reference', 'Référence')}: ${ctx.documentRef}`
   const cta = pick(
     lang,

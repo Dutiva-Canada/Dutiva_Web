@@ -34,7 +34,12 @@ describe('StatusPage', () => {
   it('surfaces a live incident and rolls the banner up to affected', async () => {
     getServiceStatus.mockResolvedValue([
       ...allOperational.slice(0, 1),
-      { component: 'advisor', status: 'degraded', message: 'Slower than usual while we investigate.', updatedAt: '' },
+      {
+        component: 'advisor',
+        status: 'degraded',
+        message: 'Slower than usual while we investigate.',
+        updatedAt: '',
+      },
       ...allOperational.slice(2),
     ])
     renderApp(<StatusPage />, { route: '/status', path: '/status' })

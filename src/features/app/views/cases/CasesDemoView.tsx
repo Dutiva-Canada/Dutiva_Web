@@ -61,7 +61,9 @@ export function CasesDemoView() {
             >
               <div className="flex flex-wrap items-center justify-between gap-[12px]">
                 <div className="min-w-0">
-                  <div className="text-[14.5px] font-semibold text-text">{pickL(c.title, lang)}</div>
+                  <div className="text-[14.5px] font-semibold text-text">
+                    {pickL(c.title, lang)}
+                  </div>
                   <div className="mt-[2px] text-[12px] text-text-muted">
                     {x(c.typeLabel)} · {x(c.province)} · {x(M.cases_owner)} {c.owner} ·{' '}
                     {x(M.cases_opened)} {c.opened}

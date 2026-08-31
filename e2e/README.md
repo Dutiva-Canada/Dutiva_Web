@@ -15,11 +15,11 @@ npm run build
 npm run test:e2e
 ```
 
-| Spec | What it asserts |
-| --- | --- |
-| [`marketing.spec.ts`](marketing.spec.ts) | Prerender + hydration on `/` and `/fr`; consent gate |
-| [`app.spec.ts`](app.spec.ts) | `/app` SPA rewrite |
-| [`csp.spec.ts`](csp.spec.ts) | No CSP script/style console violations on load |
+| Spec                                               | What it asserts                                         |
+| -------------------------------------------------- | ------------------------------------------------------- |
+| [`marketing.spec.ts`](marketing.spec.ts)           | Prerender + hydration on `/` and `/fr`; consent gate    |
+| [`app.spec.ts`](app.spec.ts)                       | `/app` SPA rewrite                                      |
+| [`csp.spec.ts`](csp.spec.ts)                       | No CSP script/style console violations on load          |
 | [`auth-forwarder.spec.ts`](auth-forwarder.spec.ts) | Magic-link tokens on `/` forward to `/app/auth/confirm` |
 
 Woodpecker: [`.woodpecker/e2e.yml`](../.woodpecker/e2e.yml).
@@ -39,16 +39,16 @@ server-side; no inbox / magic-link click.
 Eight tests, one worker (`fullyParallel: false`). Each test enables Production
 mode, exercises one module, and tears down created rows where applicable.
 
-| Module | Route | Operations exercised | Setup / teardown |
-| --- | --- | --- | --- |
-| Employees | `/app/employees` | empty → create → list count → remove | — |
-| Cases | `/app/cases` | empty → create → list count → remove | — |
-| Tasks | `/app/planning/tasks` | empty → create → toggle done → remove | — |
-| Communications | `/app/communications` | empty → log → edit title → mark sent → confirm remove | — |
-| Memory manager | `/app/settings/memory` | add person-scoped fact → correct → forget | create employee first; remove employee after |
-| Case memory | `/app/settings/memory/cases/:id` | edit resume summary (English) | create case first; remove case after |
-| Documents | `/app/documents` | honest empty state only (no CRUD yet) | — |
-| Search | `/app/home` | `Ctrl+K` opens overlay | — |
+| Module         | Route                            | Operations exercised                                  | Setup / teardown                             |
+| -------------- | -------------------------------- | ----------------------------------------------------- | -------------------------------------------- |
+| Employees      | `/app/employees`                 | empty → create → list count → remove                  | —                                            |
+| Cases          | `/app/cases`                     | empty → create → list count → remove                  | —                                            |
+| Tasks          | `/app/planning/tasks`            | empty → create → toggle done → remove                 | —                                            |
+| Communications | `/app/communications`            | empty → log → edit title → mark sent → confirm remove | —                                            |
+| Memory manager | `/app/settings/memory`           | add person-scoped fact → correct → forget             | create employee first; remove employee after |
+| Case memory    | `/app/settings/memory/cases/:id` | edit resume summary (English)                         | create case first; remove case after         |
+| Documents      | `/app/documents`                 | honest empty state only (no CRUD yet)                 | —                                            |
+| Search         | `/app/home`                      | `Ctrl+K` opens overlay                                | —                                            |
 
 Shared helpers in the spec: `enableProductionMode`, `createEmployee`,
 `removeEmployee`, `createCase`, `removeCase`. Selectors use English i18n
@@ -58,12 +58,12 @@ strings and ARIA labels from production views (`Add task`, `Log a message`,
 Requires a **Supabase-aware** production build and a service-role key for
 seed + session mint (no inbox):
 
-| Variable | Purpose |
-| --- | --- |
-| `VITE_SUPABASE_URL` / `SUPABASE_URL` | Project URL |
-| `VITE_SUPABASE_ANON_KEY` / `SUPABASE_ANON_KEY` | Publishable anon key (must be present at **build** time) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Seed `admin_users` + `admin_beta_access`, mint OTP session |
-| `E2E_ADMIN_EMAIL` | Optional; default `e2e-playwright@dutiva.ca` |
+| Variable                                       | Purpose                                                    |
+| ---------------------------------------------- | ---------------------------------------------------------- |
+| `VITE_SUPABASE_URL` / `SUPABASE_URL`           | Project URL                                                |
+| `VITE_SUPABASE_ANON_KEY` / `SUPABASE_ANON_KEY` | Publishable anon key (must be present at **build** time)   |
+| `SUPABASE_SERVICE_ROLE_KEY`                    | Seed `admin_users` + `admin_beta_access`, mint OTP session |
+| `E2E_ADMIN_EMAIL`                              | Optional; default `e2e-playwright@dutiva.ca`               |
 
 ```bash
 # Build with Vite Supabase env so the SPA client is not null

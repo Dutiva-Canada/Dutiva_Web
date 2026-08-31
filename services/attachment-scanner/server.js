@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2026 
+ *   Copyright (c) 2026
  *   All rights reserved.
  */
 'use strict'
@@ -100,8 +100,13 @@ async function scanStream(body) {
   const state = { closed: false, socketError: null }
 
   socket.on('data', (d) => chunks.push(d))
-  socket.on('close', () => { state.closed = true })
-  socket.on('error', (err) => { state.socketError = err; state.closed = true })
+  socket.on('close', () => {
+    state.closed = true
+  })
+  socket.on('error', (err) => {
+    state.socketError = err
+    state.closed = true
+  })
   socket.on('timeout', () => {
     state.socketError = new Error('clamd timed out')
     socket.destroy()
@@ -180,8 +185,7 @@ function validateUrl(url) {
   // file server. Never set it in a deployed environment: the signed URL is the
   // one thing standing between a private bucket and the open internet.
   const httpAllowed = process.env.ALLOW_HTTP_FETCH === '1' && parsed.protocol === 'http:'
-  if (parsed.protocol !== 'https:' && !httpAllowed)
-    return { error: 'https_required' }
+  if (parsed.protocol !== 'https:' && !httpAllowed) return { error: 'https_required' }
   if (process.env.ALLOWED_FETCH_HOST && parsed.hostname !== process.env.ALLOWED_FETCH_HOST)
     return { error: 'host_not_allowed' }
 
@@ -245,9 +249,7 @@ async function handleScan(req, res) {
     const result = await scanStream(response.body)
     return sendVerdict(res, payload.reference, result, Date.now() - started)
   } catch (err) {
-    console.error(
-      JSON.stringify({ ref: payload?.reference, error: String(err?.message) }),
-    )
+    console.error(JSON.stringify({ ref: payload?.reference, error: String(err?.message) }))
     return send(res, 502, {
       error: 'scan_failed',
       detail: String(err?.message).slice(0, 200),

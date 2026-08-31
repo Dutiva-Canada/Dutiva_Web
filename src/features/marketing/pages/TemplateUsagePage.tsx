@@ -14,14 +14,23 @@ const STEPS: { titleKey: MarketingMessageKey; bodyKey: MarketingMessageKey }[] =
   { titleKey: 'tmplGuide_st3t', bodyKey: 'tmplGuide_st3p' },
 ]
 
-const CATEGORIES: { icon: LucideIcon; titleKey: MarketingMessageKey; bodyKey: MarketingMessageKey }[] = [
+const CATEGORIES: {
+  icon: LucideIcon
+  titleKey: MarketingMessageKey
+  bodyKey: MarketingMessageKey
+}[] = [
   { icon: UserPlus, titleKey: 'tmplGuide_c1t', bodyKey: 'tmplGuide_c1p' },
   { icon: ScrollText, titleKey: 'tmplGuide_c2t', bodyKey: 'tmplGuide_c2p' },
   { icon: FileWarning, titleKey: 'tmplGuide_c3t', bodyKey: 'tmplGuide_c3p' },
   { icon: FileX, titleKey: 'tmplGuide_c4t', bodyKey: 'tmplGuide_c4p' },
 ]
 
-const PRACTICES: MarketingMessageKey[] = ['tmplGuide_bp1', 'tmplGuide_bp2', 'tmplGuide_bp3', 'tmplGuide_bp4']
+const PRACTICES: MarketingMessageKey[] = [
+  'tmplGuide_bp1',
+  'tmplGuide_bp2',
+  'tmplGuide_bp3',
+  'tmplGuide_bp4',
+]
 
 /** /guides/template-usage — how template generation works (tmplGuide_* strings). */
 export function TemplateUsagePage() {

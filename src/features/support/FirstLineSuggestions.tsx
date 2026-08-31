@@ -117,7 +117,9 @@ export function FirstLineSuggestions({
               <p className="m-0 mb-[4px] text-[11px] font-semibold tracking-[0.04em] text-text-3 uppercase">
                 {x(M.support_firstline_answer_label)}
               </p>
-              <p className="m-0 text-[13px] leading-[1.55] whitespace-pre-wrap text-text">{answer}</p>
+              <p className="m-0 text-[13px] leading-[1.55] whitespace-pre-wrap text-text">
+                {answer}
+              </p>
               <p className="m-0 mt-[8px] border-t border-border pt-[6px] text-[11.5px] leading-[1.45] text-text-3">
                 {x(M.support_firstline_disclaimer)}
               </p>

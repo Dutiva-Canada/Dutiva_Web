@@ -1,6 +1,10 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { MAX_DURATION_MINUTES, MIN_DURATION_MINUTES, parseProposedSlots } from '../_shared/scheduledCalls.ts'
+import {
+  MAX_DURATION_MINUTES,
+  MIN_DURATION_MINUTES,
+  parseProposedSlots,
+} from '../_shared/scheduledCalls.ts'
 
 /**
  * Admin/operator actions on a support ticket: reply (customer-visible), add an
@@ -25,8 +29,14 @@ function json(body: unknown, status = 200) {
 }
 
 const STATUSES = [
-  'new', 'triaged', 'in_progress', 'waiting_on_customer', 'waiting_on_dutiva',
-  'scheduled_call', 'resolved', 'closed',
+  'new',
+  'triaged',
+  'in_progress',
+  'waiting_on_customer',
+  'waiting_on_dutiva',
+  'scheduled_call',
+  'resolved',
+  'closed',
 ] as const
 const PRIORITIES = ['critical', 'high', 'standard', 'low'] as const
 const ACTIONS = ['reply', 'note', 'status', 'priority', 'propose_call'] as const
@@ -156,7 +166,12 @@ Deno.serve(async (req: Request) => {
       durationMinutes < MIN_DURATION_MINUTES ||
       durationMinutes > MAX_DURATION_MINUTES
     ) {
-      return json({ error: `duration_minutes must be between ${MIN_DURATION_MINUTES} and ${MAX_DURATION_MINUTES}` }, 422)
+      return json(
+        {
+          error: `duration_minutes must be between ${MIN_DURATION_MINUTES} and ${MAX_DURATION_MINUTES}`,
+        },
+        422,
+      )
     }
 
     const { error: scheduleError } = await admin.from('support_scheduled_calls').upsert(

@@ -37,10 +37,16 @@ async function optimizeRaster(fileName) {
     await sharp(input)
       .png({ quality: 82, compressionLevel: 9, palette: fileName.startsWith('dutiva-leaf') })
       .toFile(input + '.tmp')
-    await sharp(input + '.tmp').webp({ quality: 82 }).toFile(webpOut)
+    await sharp(input + '.tmp')
+      .webp({ quality: 82 })
+      .toFile(webpOut)
   } else if (ext === '.jpg' || ext === '.jpeg') {
-    await sharp(input).jpeg({ quality: 82, mozjpeg: true }).toFile(input + '.tmp')
-    await sharp(input + '.tmp').webp({ quality: 82 }).toFile(webpOut)
+    await sharp(input)
+      .jpeg({ quality: 82, mozjpeg: true })
+      .toFile(input + '.tmp')
+    await sharp(input + '.tmp')
+      .webp({ quality: 82 })
+      .toFile(webpOut)
   } else {
     return
   }
@@ -49,7 +55,9 @@ async function optimizeRaster(fileName) {
   await rename(input + '.tmp', input)
   const before = (await stat(input)).size
   const afterWebp = (await stat(webpOut)).size
-  console.log(`optimize-brand: ${fileName} → ${base}.webp (${afterWebp} B webp, ${before} B ${ext.slice(1)})`)
+  console.log(
+    `optimize-brand: ${fileName} → ${base}.webp (${afterWebp} B webp, ${before} B ${ext.slice(1)})`,
+  )
 }
 
 const entries = await readdir(brandDir)

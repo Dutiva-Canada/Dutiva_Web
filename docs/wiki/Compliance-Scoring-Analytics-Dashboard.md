@@ -38,8 +38,6 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-
-
 This page documents the compliance score formula (v3), the `aggregation.ts` pure-functions library, the `AnalyticsProductionView` dashboard, the `record-score-snapshots` edge function, and the demo/production data paths. The compliance score is the central metric Dutiva surfaces to HR teams — a 0–100 blend of four compliance components, capped when a critical finding is open.
 
 ## Compliance Score Formula v3
@@ -50,11 +48,11 @@ The score formula is versioned via the `SCORE_FORMULA_VERSION` constant (current
 
 ### Formula Version History
 
-| Version | Migration | Changes |
-|---------|-----------|---------|
-| v1 | 0062 | Unweighted done/total ratios for three components (policies, tasks, findings), no ceiling |
-| v2 | 0068 | Severity-weighted findings, cancelled tasks excluded, open-critical ceiling of 69 |
-| v3 | 0069 | Obligations as fourth component, tasks scoped to provenanced rows only |
+| Version | Migration | Changes                                                                                   |
+| ------- | --------- | ----------------------------------------------------------------------------------------- |
+| v1      | 0062      | Unweighted done/total ratios for three components (policies, tasks, findings), no ceiling |
+| v2      | 0068      | Severity-weighted findings, cancelled tasks excluded, open-critical ceiling of 69         |
+| v3      | 0069      | Obligations as fourth component, tasks scoped to provenanced rows only                    |
 
 Sources: [src/features/app/views/analytics/aggregation.ts:271-284](), [supabase/migrations/0068_score_formula_v2.sql:1-11](), [supabase/migrations/0069_score_formula_v3_obligations.sql:1-17]()
 
@@ -62,12 +60,12 @@ Sources: [src/features/app/views/analytics/aggregation.ts:271-284](), [supabase/
 
 The score is composed of four independently computed components. Each yields a rounded 0–100 percentage, or `null` when no rows exist for that component.
 
-| Component | Table | "Done" condition | "Total" scope | Weighting |
-|-----------|-------|-----------------|---------------|-----------|
-| **Policies** | `hr_policies` | `status = 'up_to_date'` | All policies | Raw ratio |
-| **Tasks** | `compliance_tasks` | `status = 'completed'` | Provenanced, non-cancelled tasks only | Raw ratio |
-| **Findings** | `compliance_findings` | `status = 'resolved'` or `'dismissed'` | All findings | Severity-weighted |
-| **Obligations** | `hr_obligations` | `status = 'ok'` | All obligations | Raw ratio |
+| Component       | Table                 | "Done" condition                       | "Total" scope                         | Weighting         |
+| --------------- | --------------------- | -------------------------------------- | ------------------------------------- | ----------------- |
+| **Policies**    | `hr_policies`         | `status = 'up_to_date'`                | All policies                          | Raw ratio         |
+| **Tasks**       | `compliance_tasks`    | `status = 'completed'`                 | Provenanced, non-cancelled tasks only | Raw ratio         |
+| **Findings**    | `compliance_findings` | `status = 'resolved'` or `'dismissed'` | All findings                          | Severity-weighted |
+| **Obligations** | `hr_obligations`      | `status = 'ok'`                        | All obligations                       | Raw ratio         |
 
 Sources: [src/features/app/views/analytics/AnalyticsProductionView.tsx:181-208](), [supabase/functions/record-score-snapshots/scoring.ts:111-141]()
 
@@ -92,13 +90,13 @@ Sources: [src/features/app/views/analytics/aggregation.ts:286-296](), [supabase/
 
 The findings component uses `weightedComponent` instead of `scoreComponent`. The severity weights are frozen per formula version:
 
-| Severity | Weight |
-|----------|--------|
-| `info` | 1 |
-| `low` | 2 |
-| `medium` | 3 |
-| `high` | 5 |
-| `critical` | 8 |
+| Severity   | Weight |
+| ---------- | ------ |
+| `info`     | 1      |
+| `low`      | 2      |
+| `medium`   | 3      |
+| `high`     | 5      |
+| `critical` | 8      |
 
 The `pct` is computed as `weightedDone / weightedTotal`, so a critical exposure moves the score more than an informational note. The meter text displayed to the user still shows raw counts (e.g. "1 of 2") via `done`/`total`.
 
@@ -116,7 +114,7 @@ Sources: [src/features/app/views/analytics/aggregation.ts:303-309](), [src/featu
 
 [src/features/app/views/analytics/aggregation.ts:363-367]()
 
-**The critical ceiling** (`CRITICAL_SCORE_CEILING = 69`): while any open finding has `severity = 'critical'`, the blended score is capped at 69. This prevents a strong average from hiding a critical exposure. The cap never *raises* a score already at or below 69 — in that case `capped` is `false` and no explanatory note is shown.
+**The critical ceiling** (`CRITICAL_SCORE_CEILING = 69`): while any open finding has `severity = 'critical'`, the blended score is capped at 69. This prevents a strong average from hiding a critical exposure. The cap never _raises_ a score already at or below 69 — in that case `capped` is `false` and no explanatory note is shown.
 
 [src/features/app/views/analytics/aggregation.ts:316-384]()
 
@@ -173,27 +171,27 @@ All numeric computation for the Analytics dashboard lives in `aggregation.ts`. T
 
 ### Function Inventory
 
-| Function | Purpose | Returns |
-|----------|---------|---------|
-| `daysBetweenISO(from, to)` | Whole-day count between two ISO dates | `number` (negative when `to` is earlier) |
-| `monthStartISO(todayISO)` | First-of-month (YYYY-MM-01) | `string` |
-| `addDaysISO(iso, days)` | Date shift by whole days | `string` |
-| `formatMonthISO(monthISO, locale, style?)` | Localized month name | `string` |
-| `rankAttention(items, todayISO, dueSoonDays?)` | Sort + classify compliance items | `RankedAttention<T>[]` |
-| `windowAxis(values, opts?)` | Data-windowed axis for charts | `AxisWindow` |
-| `windowScoreAxis(values, pad?)` | 0–100 clamped variant | `AxisWindow` |
-| `scoreDelta(history)` | Current vs oldest point in window | `ScoreDelta \| null` |
-| `caseAging(openCases, todayISO)` | Open-case age stats | `CaseAging<T> \| null` |
-| `expiryBuckets(records, todayISO)` | Bucket records into expired/30/60/90 | `ExpiryBuckets<T>` |
-| `flattenBuckets(buckets)` | Flat soonest-first list from buckets | `T[]` |
-| `ackProgress(signed, total)` | Policy acknowledgment meter | `AckProgress` |
-| `turnoverRatePct(termISOs, windowEndISO, avgHeadcount)` | Rolling 12-month turnover % | `number \| null` |
-| `meanInWindow(points, start, end)` | Average of month-series in window | `number \| null` |
-| `isProvenancedTask(category, linkedKind)` | v3 task scoping filter | `boolean` |
-| `scoreComponent(key, done, total)` | Raw-ratio component | `ScoreComponent` |
-| `weightedComponent(key, items)` | Severity-weighted component | `ScoreComponent` |
-| `blendScore(components)` | Unweighted mean of present components | `number \| null` |
-| `applyCriticalCeiling(score, openCriticalCount)` | Cap at 69 with open critical | `CeilingResult` |
+| Function                                                | Purpose                               | Returns                                  |
+| ------------------------------------------------------- | ------------------------------------- | ---------------------------------------- |
+| `daysBetweenISO(from, to)`                              | Whole-day count between two ISO dates | `number` (negative when `to` is earlier) |
+| `monthStartISO(todayISO)`                               | First-of-month (YYYY-MM-01)           | `string`                                 |
+| `addDaysISO(iso, days)`                                 | Date shift by whole days              | `string`                                 |
+| `formatMonthISO(monthISO, locale, style?)`              | Localized month name                  | `string`                                 |
+| `rankAttention(items, todayISO, dueSoonDays?)`          | Sort + classify compliance items      | `RankedAttention<T>[]`                   |
+| `windowAxis(values, opts?)`                             | Data-windowed axis for charts         | `AxisWindow`                             |
+| `windowScoreAxis(values, pad?)`                         | 0–100 clamped variant                 | `AxisWindow`                             |
+| `scoreDelta(history)`                                   | Current vs oldest point in window     | `ScoreDelta \| null`                     |
+| `caseAging(openCases, todayISO)`                        | Open-case age stats                   | `CaseAging<T> \| null`                   |
+| `expiryBuckets(records, todayISO)`                      | Bucket records into expired/30/60/90  | `ExpiryBuckets<T>`                       |
+| `flattenBuckets(buckets)`                               | Flat soonest-first list from buckets  | `T[]`                                    |
+| `ackProgress(signed, total)`                            | Policy acknowledgment meter           | `AckProgress`                            |
+| `turnoverRatePct(termISOs, windowEndISO, avgHeadcount)` | Rolling 12-month turnover %           | `number \| null`                         |
+| `meanInWindow(points, start, end)`                      | Average of month-series in window     | `number \| null`                         |
+| `isProvenancedTask(category, linkedKind)`               | v3 task scoping filter                | `boolean`                                |
+| `scoreComponent(key, done, total)`                      | Raw-ratio component                   | `ScoreComponent`                         |
+| `weightedComponent(key, items)`                         | Severity-weighted component           | `ScoreComponent`                         |
+| `blendScore(components)`                                | Unweighted mean of present components | `number \| null`                         |
+| `applyCriticalCeiling(score, openCriticalCount)`        | Cap at 69 with open critical          | `CeilingResult`                          |
 
 Sources: [src/features/app/views/analytics/aggregation.ts:11-384]()
 
@@ -201,11 +199,11 @@ Sources: [src/features/app/views/analytics/aggregation.ts:11-384]()
 
 `rankAttention` sorts dated items ascending by `dueISO` (overdue first, most overdue at top, then soonest-due) and classifies each into one of three statuses:
 
-| Status | Condition |
-|--------|-----------|
-| `overdue` | `daysUntilDue < 0` |
+| Status     | Condition                         |
+| ---------- | --------------------------------- |
+| `overdue`  | `daysUntilDue < 0`                |
 | `due_soon` | `0 ≤ daysUntilDue ≤ 14` (default) |
-| `upcoming` | `daysUntilDue > 14` |
+| `upcoming` | `daysUntilDue > 14`               |
 
 Ties break on `id` for a stable order. Due-today is classified as `due_soon`, not overdue.
 
@@ -217,10 +215,10 @@ Sources: [src/features/app/views/analytics/aggregation.ts:46-73](), [src/feature
 
 `expiryBuckets` distributes date-bearing records (certifications, documents) into four temporal buckets, each sorted soonest-first:
 
-| Bucket | Range |
-|--------|-------|
-| `expired` | `days < 0` |
-| `within30` | `0 ≤ days ≤ 30` |
+| Bucket     | Range            |
+| ---------- | ---------------- |
+| `expired`  | `days < 0`       |
+| `within30` | `0 ≤ days ≤ 30`  |
 | `within60` | `31 ≤ days ≤ 60` |
 | `within90` | `61 ≤ days ≤ 90` |
 
@@ -316,18 +314,18 @@ Sources: [src/features/app/views/analytics/AnalyticsProductionView.tsx:164-172](
 
 ### Dashboard Card Inventory
 
-| Card | Key | Dependencies | Primary aggregation |
-|------|-----|-------------|---------------------|
-| Compliance Score | `score` | policies, tasks, findings, obligations, snapshots | `blendScore` + `applyCriticalCeiling` |
-| Needs Attention | `attention` | tasks, hrCases, obligations | `rankAttention`, capped at 5 |
-| Headcount by Jurisdiction | `headcount` | employees | Province grouping |
-| Open Cases | `cases` | hrCases | `caseAging` |
-| Policy Acknowledgments | `acks` | (none — empty state, no data source yet) | — |
-| Certifications & Training | `certifications` | expiryRecords | `expiryBuckets` (kind = `'certification'`) |
-| Probation Periods | `probation` | employees, tasks | Filter within 30 days, `hasProbationReviewTask` |
-| Document Expiries | `documents` | expiryRecords | `expiryBuckets` (kind = `'document'`) |
-| Leave Overview | `leave` | employees, leaves | Sort by return date, imminent ≤ 14 days |
-| Headcount & Turnover | `trend` | employees, snapshots | `turnoverRatePct`, `TrendLineChart` |
+| Card                      | Key              | Dependencies                                      | Primary aggregation                             |
+| ------------------------- | ---------------- | ------------------------------------------------- | ----------------------------------------------- |
+| Compliance Score          | `score`          | policies, tasks, findings, obligations, snapshots | `blendScore` + `applyCriticalCeiling`           |
+| Needs Attention           | `attention`      | tasks, hrCases, obligations                       | `rankAttention`, capped at 5                    |
+| Headcount by Jurisdiction | `headcount`      | employees                                         | Province grouping                               |
+| Open Cases                | `cases`          | hrCases                                           | `caseAging`                                     |
+| Policy Acknowledgments    | `acks`           | (none — empty state, no data source yet)          | —                                               |
+| Certifications & Training | `certifications` | expiryRecords                                     | `expiryBuckets` (kind = `'certification'`)      |
+| Probation Periods         | `probation`      | employees, tasks                                  | Filter within 30 days, `hasProbationReviewTask` |
+| Document Expiries         | `documents`      | expiryRecords                                     | `expiryBuckets` (kind = `'document'`)           |
+| Leave Overview            | `leave`          | employees, leaves                                 | Sort by return date, imminent ≤ 14 days         |
+| Headcount & Turnover      | `trend`          | employees, snapshots                              | `turnoverRatePct`, `TrendLineChart`             |
 
 Sources: [src/features/app/views/analytics/AnalyticsProductionView.tsx:510-833](), [src/features/app/views/analytics/cardVisibility.ts:17-28]()
 
@@ -372,13 +370,13 @@ Sources: [src/features/app/views/analytics/AnalyticsProductionView.tsx:228-246](
 
 The `compliance_score_snapshots` table stores one row per organization per month. The schema was built across four migrations:
 
-| Migration | Content |
-|-----------|---------|
-| 0062 | Table creation: `id`, `organization_id`, `month` (with `date_trunc` CHECK), `score` (0–100), `components` (jsonb), `created_at`, `updated_at`. Unique on `(organization_id, month)`. RLS: org members read, org admins write. |
-| 0063 | Added `headcount` column (nullable integer, ≥ 0). |
-| 0068 | Added `formula_version` column (integer, default 1). Created `trigger_score_snapshots()` function, `score_snapshot_status()` diagnostic, daily cron at 05:30 UTC. |
-| 0069 | Created `hr_obligations` table, updated formula comment to v3, added month-close cron at 00:05 UTC on the 1st. |
-| 0070 | Hardened month-close to three retries (`5,25,45 0 1 * *`), enhanced `score_snapshot_status()` with close coverage tracking. |
+| Migration | Content                                                                                                                                                                                                                       |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0062      | Table creation: `id`, `organization_id`, `month` (with `date_trunc` CHECK), `score` (0–100), `components` (jsonb), `created_at`, `updated_at`. Unique on `(organization_id, month)`. RLS: org members read, org admins write. |
+| 0063      | Added `headcount` column (nullable integer, ≥ 0).                                                                                                                                                                             |
+| 0068      | Added `formula_version` column (integer, default 1). Created `trigger_score_snapshots()` function, `score_snapshot_status()` diagnostic, daily cron at 05:30 UTC.                                                             |
+| 0069      | Created `hr_obligations` table, updated formula comment to v3, added month-close cron at 00:05 UTC on the 1st.                                                                                                                |
+| 0070      | Hardened month-close to three retries (`5,25,45 0 1 * *`), enhanced `score_snapshot_status()` with close coverage tracking.                                                                                                   |
 
 Sources: [supabase/migrations/0062_add_compliance_score_snapshots.sql:1-51](), [supabase/migrations/0063_add_headcount_to_score_snapshots.sql:1-16](), [supabase/migrations/0068_score_formula_v2.sql:1-139](), [supabase/migrations/0069_score_formula_v3_obligations.sql:1-112](), [supabase/migrations/0070_score_snapshot_close_retries.sql:1-79]()
 
@@ -390,12 +388,12 @@ The `record-score-snapshots` edge function is a scheduled Deno function that ups
 
 ### Two Schedules
 
-| Schedule | Cron Expression | Behavior |
-|----------|----------------|----------|
-| `record-score-snapshots-daily` | `30 5 * * *` | Upserts current month for all orgs |
-| `record-score-snapshots-month-close` | `5,25,45 0 1 * *` | Three idempotent attempts during the first UTC hour of the 1st; also upserts the *previous* month to freeze it near the boundary |
+| Schedule                             | Cron Expression   | Behavior                                                                                                                         |
+| ------------------------------------ | ----------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `record-score-snapshots-daily`       | `30 5 * * *`      | Upserts current month for all orgs                                                                                               |
+| `record-score-snapshots-month-close` | `5,25,45 0 1 * *` | Three idempotent attempts during the first UTC hour of the 1st; also upserts the _previous_ month to freeze it near the boundary |
 
-The month-close logic: if the UTC date is the 1st and the UTC hour is 0, the edge function writes *both* the previous month and the current month. Outside that hour, the previous month is never touched — a manual fire cannot rewrite a frozen month.
+The month-close logic: if the UTC date is the 1st and the UTC hour is 0, the edge function writes _both_ the previous month and the current month. Outside that hour, the previous month is never touched — a manual fire cannot rewrite a frozen month.
 
 [supabase/functions/record-score-snapshots/index.ts:109-118]()
 
@@ -444,15 +442,15 @@ The `optionalTable` flag allows `hr_obligations` reads to degrade gracefully to 
 
 `score_snapshot_status()` is a `SECURITY DEFINER` function callable only by `service_role`. It reports:
 
-| Column | Purpose |
-|--------|---------|
-| `secret_configured` | Whether the vault secret `score_snapshot_service_key` is set |
-| `daily_job_scheduled` | Whether the daily cron job is active |
-| `close_job_scheduled` | Whether the month-close cron job is active |
-| `organizations_total` | Total org count |
-| `orgs_with_current_month` | Orgs with a current-month snapshot row |
+| Column                        | Purpose                                                                                         |
+| ----------------------------- | ----------------------------------------------------------------------------------------------- |
+| `secret_configured`           | Whether the vault secret `score_snapshot_service_key` is set                                    |
+| `daily_job_scheduled`         | Whether the daily cron job is active                                                            |
+| `close_job_scheduled`         | Whether the month-close cron job is active                                                      |
+| `organizations_total`         | Total org count                                                                                 |
+| `orgs_with_current_month`     | Orgs with a current-month snapshot row                                                          |
 | `orgs_with_closed_prev_month` | Orgs whose previous-month row was actually written by a close run (updated_at ≥ month boundary) |
-| `last_write_at` | Most recent write timestamp |
+| `last_write_at`               | Most recent write timestamp                                                                     |
 
 [supabase/migrations/0070_score_snapshot_close_retries.sql:44-79]()
 
@@ -468,14 +466,14 @@ Sources: [supabase/functions/record-score-snapshots/index.ts:46-91](), [supabase
 
 The demo renders the Northgate Logistics diorama. Key fixtures:
 
-| Fixture | File | Value |
-|---------|------|-------|
-| `complianceScore` | `src/data/compliance.ts` | 82 (constant) |
-| `scoreHistory` | `src/data/analytics.ts` | 74 → 76 → 79 → 78 → 81 → 82 |
-| `demoTodayISO` | `src/data/analytics.ts` | `2026-07-05` (derived from calendar fixture) |
-| `headcountByJurisdiction` | `src/data/analytics.ts` | ON 34, BC 21, QC 12, AB 9, Federal 6 (total 82) |
-| `jurisdictionScores` | `src/data/analytics.ts` | ON 83, BC 86, QC 71, AB 88, Federal 75 |
-| `complianceCategories` | `src/data/compliance.ts` | Five categories from 61–96 |
+| Fixture                   | File                     | Value                                           |
+| ------------------------- | ------------------------ | ----------------------------------------------- |
+| `complianceScore`         | `src/data/compliance.ts` | 82 (constant)                                   |
+| `scoreHistory`            | `src/data/analytics.ts`  | 74 → 76 → 79 → 78 → 81 → 82                     |
+| `demoTodayISO`            | `src/data/analytics.ts`  | `2026-07-05` (derived from calendar fixture)    |
+| `headcountByJurisdiction` | `src/data/analytics.ts`  | ON 34, BC 21, QC 12, AB 9, Federal 6 (total 82) |
+| `jurisdictionScores`      | `src/data/analytics.ts`  | ON 83, BC 86, QC 71, AB 88, Federal 75          |
+| `complianceCategories`    | `src/data/compliance.ts` | Five categories from 61–96                      |
 
 The demo's last `scoreHistory` point imports `complianceScore` so the overall score on Analytics, Home, and Advisor can never disagree.
 
@@ -493,6 +491,7 @@ Production mode fetches live data from each module's `productionApi` boundary. T
 [src/features/app/views/analytics/AnalyticsProductionView.tsx:248-252]()
 
 **Key production-only features:**
+
 - Formula version note on trend charts crossing formula boundaries ([src/features/app/views/analytics/AnalyticsProductionView.tsx:256-265]())
 - Phase 2 cards that say "not tracked in this workspace yet" instead of hiding ([src/features/app/views/analytics/AnalyticsProductionView.tsx:664-668]())
 - Bare fallback rows for employees whose roster status is `on_leave` but have no leave record yet ([src/features/app/views/analytics/AnalyticsProductionView.tsx:437-474]())
@@ -530,9 +529,9 @@ Sources: [src/features/app/views/analytics/AnalyticsView.tsx:69-73](), [src/data
 
 The scoring logic exists in two copies that cannot share an import (the client runs in a browser via Vite; the edge function runs in Deno):
 
-| Copy | File | Runtime |
-|------|------|---------|
-| Client | `src/features/app/views/analytics/aggregation.ts` | Browser (Vite/React) |
+| Copy   | File                                                   | Runtime              |
+| ------ | ------------------------------------------------------ | -------------------- |
+| Client | `src/features/app/views/analytics/aggregation.ts`      | Browser (Vite/React) |
 | Server | `supabase/functions/record-score-snapshots/scoring.ts` | Deno (edge function) |
 
 The drift test in `scoring.test.ts` imports **both** copies and asserts bitwise equality across a matrix of scenarios:
@@ -554,10 +553,10 @@ Sources: [supabase/functions/record-score-snapshots/scoring.test.ts:1-106](), [s
 
 The analytics `productionApi.ts` exposes two functions:
 
-| Function | Behavior |
-|----------|----------|
-| `listScoreSnapshots(organizationId)` | Reads `compliance_score_snapshots` ordered by month. Falls back to a legacy query (without `formula_version`) if migration 0068 hasn't been applied yet. Returns `ScoreSnapshot[]`. |
-| `recordScoreSnapshot(organizationId, monthISO, score, components, headcount)` | Upserts the current month's row. Includes a legacy fallback if `formula_version` column doesn't exist. Fire-and-forget from the view — callers catch and drop errors. |
+| Function                                                                      | Behavior                                                                                                                                                                            |
+| ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `listScoreSnapshots(organizationId)`                                          | Reads `compliance_score_snapshots` ordered by month. Falls back to a legacy query (without `formula_version`) if migration 0068 hasn't been applied yet. Returns `ScoreSnapshot[]`. |
+| `recordScoreSnapshot(organizationId, monthISO, score, components, headcount)` | Upserts the current month's row. Includes a legacy fallback if `formula_version` column doesn't exist. Fire-and-forget from the view — callers catch and drop errors.               |
 
 Both functions use Zod validation on the response rows. `listScoreSnapshots` handles PostgreSQL error `42703` (unknown column) to support the pre-0068 schema, and `recordScoreSnapshot` handles `PGRST204` for the same reason.
 
@@ -575,26 +574,27 @@ Sources: [src/features/app/views/analytics/productionApi.ts:1-127]()
 
 Covers all pure functions with edge-case scenarios:
 
-| Test suite | Key assertions |
-|------------|---------------|
-| `daysBetweenISO` | Cross-month, cross-year, negative, February |
-| `rankAttention` | Sort order, status bucketing, due-today = `due_soon`, tie-breaking |
-| `windowScoreAxis` | Narrow/wide ranges, clamping, flat data, empty data |
-| `expiryBuckets` | Exact boundary bucketing (0/30/60/90 days), sort order, demo fixture verification |
-| `scoreDelta` | Sorting, declines, minimum 2 points required |
-| `caseAging` | Average/oldest computation, sort order, future clamp |
-| `ackProgress` | Complete/empty campaigns, clamping |
-| `turnoverRatePct` | Boundary precision, rounding, null denominator |
-| `meanInWindow` | In-window averaging, empty window |
-| `score components + blend` | Per-component pct, null for empty, blend excluding null |
-| `weightedComponent` | Severity weighting vs raw counts, null for empty |
-| `applyCriticalCeiling` | Capping, no-cap, never-raises-below-69, null passthrough |
+| Test suite                 | Key assertions                                                                    |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| `daysBetweenISO`           | Cross-month, cross-year, negative, February                                       |
+| `rankAttention`            | Sort order, status bucketing, due-today = `due_soon`, tie-breaking                |
+| `windowScoreAxis`          | Narrow/wide ranges, clamping, flat data, empty data                               |
+| `expiryBuckets`            | Exact boundary bucketing (0/30/60/90 days), sort order, demo fixture verification |
+| `scoreDelta`               | Sorting, declines, minimum 2 points required                                      |
+| `caseAging`                | Average/oldest computation, sort order, future clamp                              |
+| `ackProgress`              | Complete/empty campaigns, clamping                                                |
+| `turnoverRatePct`          | Boundary precision, rounding, null denominator                                    |
+| `meanInWindow`             | In-window averaging, empty window                                                 |
+| `score components + blend` | Per-component pct, null for empty, blend excluding null                           |
+| `weightedComponent`        | Severity weighting vs raw counts, null for empty                                  |
+| `applyCriticalCeiling`     | Capping, no-cap, never-raises-below-69, null passthrough                          |
 
 [src/features/app/views/analytics/aggregation.test.ts:1-415]()
 
 ### Integration Tests (`AnalyticsView.test.tsx`)
 
 Tests the full demo view rendering:
+
 - Score hero with delta (+8 vs February) and trend data
 - Category breakdown with lowest flag
 - Attention queue ordering (overdue first → soonest)

@@ -30,19 +30,23 @@ describe('parseServiceAccountKey', () => {
 
 describe('buildJwtClaims', () => {
   it('names the calendar events scope and the Google token endpoint as audience', () => {
-    const { claims } = buildJwtClaims('svc@project.iam.gserviceaccount.com', 'https://www.googleapis.com/auth/calendar.events', 1_700_000_000)
+    const { claims } = buildJwtClaims(
+      'svc@project.iam.gserviceaccount.com',
+      'https://www.googleapis.com/auth/calendar.events',
+      1_700_000_000,
+    )
     expect(claims.iss).toBe('svc@project.iam.gserviceaccount.com')
     expect(claims.scope).toBe('https://www.googleapis.com/auth/calendar.events')
     expect(claims.aud).toBe('https://oauth2.googleapis.com/token')
   })
 
-  it('expires exactly one hour after issuance — Google\'s own cap for this grant', () => {
+  it("expires exactly one hour after issuance — Google's own cap for this grant", () => {
     const { claims } = buildJwtClaims('svc@project.iam.gserviceaccount.com', 'scope', 1_700_000_000)
     expect(claims.iat).toBe(1_700_000_000)
     expect(claims.exp).toBe(1_700_003_600)
   })
 
-  it('uses RS256, the only algorithm Google\'s JWT-bearer grant accepts', () => {
+  it("uses RS256, the only algorithm Google's JWT-bearer grant accepts", () => {
     const { header } = buildJwtClaims('svc@project.iam.gserviceaccount.com', 'scope', 0)
     expect(header).toEqual({ alg: 'RS256', typ: 'JWT' })
   })

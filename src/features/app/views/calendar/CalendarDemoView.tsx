@@ -143,35 +143,33 @@ export function CalendarDemoView() {
 
   return (
     <AppPage width="default">
-        <div className="mb-[18px] flex items-baseline justify-between">
-          <div className="font-display text-[22px] font-semibold text-text">
-            {x(calendarMonth.monthLabel)}
-          </div>
+      <div className="mb-[18px] flex items-baseline justify-between">
+        <div className="font-display text-[22px] font-semibold text-text">
+          {x(calendarMonth.monthLabel)}
         </div>
+      </div>
 
-        {/* Month grid — desktop/tablet only (prototype isDesktopOrTabletFrame). */}
-        <div className="hidden md:block">
-          <div className="mb-[6px] grid grid-cols-7 gap-[8px]">
-            {dayLabels.map((label) => (
-              <DayLabel key={label.en} label={label} />
-            ))}
-          </div>
-          {weeks.map((week) => (
-            <WeekRow key={week.map((c) => c.id).join('-')} week={week} />
+      {/* Month grid — desktop/tablet only (prototype isDesktopOrTabletFrame). */}
+      <div className="hidden md:block">
+        <div className="mb-[6px] grid grid-cols-7 gap-[8px]">
+          {dayLabels.map((label) => (
+            <DayLabel key={label.en} label={label} />
           ))}
         </div>
+        {weeks.map((week) => (
+          <WeekRow key={week.map((c) => c.id).join('-')} week={week} />
+        ))}
+      </div>
 
-        {/* Upcoming list */}
-        <div className="mt-[24px]">
-          <div className="mb-[10px] text-[13px] font-bold text-text-3">
-            {x(M.calendar_upcoming)}
-          </div>
-          <div className="flex flex-col gap-[8px]">
-            {calendarEvents.map((ev) => (
-              <UpcomingEvent key={ev.id} ev={ev} />
-            ))}
-          </div>
+      {/* Upcoming list */}
+      <div className="mt-[24px]">
+        <div className="mb-[10px] text-[13px] font-bold text-text-3">{x(M.calendar_upcoming)}</div>
+        <div className="flex flex-col gap-[8px]">
+          {calendarEvents.map((ev) => (
+            <UpcomingEvent key={ev.id} ev={ev} />
+          ))}
         </div>
+      </div>
     </AppPage>
   )
 }

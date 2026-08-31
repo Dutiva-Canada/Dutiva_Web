@@ -1,10 +1,6 @@
 import { z } from 'zod'
 import { supabase } from '@/lib/supabaseClient'
-import type {
-  SupportCategory,
-  SupportPriority,
-  SupportStatus,
-} from '@/config/support'
+import type { SupportCategory, SupportPriority, SupportStatus } from '@/config/support'
 import { supportQueueRank, type RequesterPlan } from './triage'
 
 /**
@@ -123,7 +119,9 @@ export async function isCurrentUserAdmin(): Promise<boolean> {
   return !error && data === true
 }
 
-export async function adminListTickets(filters: AdminTicketFilters = {}): Promise<AdminTicketRow[]> {
+export async function adminListTickets(
+  filters: AdminTicketFilters = {},
+): Promise<AdminTicketRow[]> {
   if (!supabase) return []
   let query = supabase.from('support_tickets').select(LIST_COLUMNS)
   if (filters.status && filters.status !== 'all') query = query.eq('status', filters.status)
@@ -171,7 +169,10 @@ export async function adminGetTicket(id: string): Promise<AdminTicket | null> {
     impact: (detail.impact as string | null) ?? null,
     urgency: (detail.urgency as string | null) ?? null,
     preferredResponseMethod: String(detail.preferred_response_method ?? 'email'),
-    messages: z.array(messageSchema).parse(messages ?? []).map(toMessage),
+    messages: z
+      .array(messageSchema)
+      .parse(messages ?? [])
+      .map(toMessage),
   }
 }
 
@@ -226,7 +227,9 @@ export async function adminGetScheduledCall(ticketId: string): Promise<AdminSche
   if (!supabase) return null
   const { data, error } = await supabase
     .from('support_scheduled_calls')
-    .select('id, proposed_slots, duration_minutes, status, confirmed_start, confirmed_end, meet_link')
+    .select(
+      'id, proposed_slots, duration_minutes, status, confirmed_start, confirmed_end, meet_link',
+    )
     .eq('ticket_id', ticketId)
     .maybeSingle()
   if (error) throw error

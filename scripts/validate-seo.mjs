@@ -138,7 +138,8 @@ for (const { route, file } of pages) {
   if (descriptionTags.length !== 1) {
     fail(`${route}: expected exactly one meta description, found ${descriptionTags.length}`)
   }
-  const description = descriptionTags.length === 1 ? metaDescriptionContent(descriptionTags[0]) : undefined
+  const description =
+    descriptionTags.length === 1 ? metaDescriptionContent(descriptionTags[0]) : undefined
   if (description !== undefined && description.trim().length < 40) {
     fail(`${route}: description too short`)
   }

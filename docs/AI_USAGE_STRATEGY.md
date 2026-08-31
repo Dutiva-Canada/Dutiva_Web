@@ -10,14 +10,14 @@ single design principle:
 
 Put differently: **the LLM proposes, deterministic code disposes.** A generative
 model is the right tool for understanding and producing prose in an open
-vocabulary. It is the *wrong* tool for authoring a statutory clause, computing a
+vocabulary. It is the _wrong_ tool for authoring a statutory clause, computing a
 notice period, scoring a support ticket, or deciding whether a safety gate
 fires — those must be exact, reproducible, testable, and auditable, which a
 model is not.
 
 This is not aspirational; it is how the code is already built. The sections
 below map every AI touchpoint to its actual mechanism, cite the file that
-implements it, and record *why* the choice was made — so future features inherit
+implements it, and record _why_ the choice was made — so future features inherit
 the same discipline instead of reaching for an LLM by reflex.
 
 Read alongside: [`design-handoff-advisor-chat/AGENT.md`](design-handoff-advisor-chat/AGENT.md)
@@ -33,22 +33,22 @@ shipped path).
 
 ## 1. The map — every AI touchpoint
 
-| Touchpoint | Mechanism | LLM? | Why (or why not) | Source of truth |
-| --- | --- | :---: | --- | --- |
-| **Advisor chat** | Generative completion, server-side, model routed via DB | **Yes** | Open-ended, bilingual, jurisdiction-aware HR dialogue — open vocabulary; nothing deterministic can answer it | `supabase/functions/advisor-chat/index.ts` |
-| **Memory fact extraction** | Per-turn NL → structured facts, `Inferred` until confirmed | **Yes** | Messy prose → structure is the canonical LLM job; governance around it is deterministic | Engineering Roadmap §5; `Advisor Memory.dc.html` |
-| **Support first-line (in-app)** | Grounded short answer from Help Centre excerpts | **Yes\*** | A convenience *on top of* retrieval; heavily fenced (auth, metered usage §7, HUMAN_ONLY refusal, grounded-only) — not irreducible | `supabase/functions/support-firstline/index.ts` |
-| **Advisor routing / mode** | Intent → mode + gates | **Hybrid** | Model classifies; **gates, jurisdiction default, crisis intercept are enforced as a deterministic contract** | `AGENT.md` §2; Roadmap "Response contract" |
-| **Document generation** | `{{merge}}` tokens + `ClauseGate` conditional clauses | **No** | Legal docs must be exact, reproducible, versioned, auditable — never model-authored | `src/features/app/documents/data/types.ts` |
-| **Legal-basis citations** | Vetted rows, marked `Valid` / `Needs-review` | **No** | Prevents hallucinated statutes; retrieval grounds, humans vet | `AGENT.md` §9; `src/features/app/guidance/api.ts` |
-| **Guidance retrieval (RAG)** | Query over `guidance_sources` / `law_updates` | **No** | Retrieval is search, not generation — it is the *reason* the Advisor can avoid inventing law | `src/features/app/guidance/api.ts` |
-| **Support triage / priority** | `category + impact + urgency → priority`, capped at `high` | **No** | A policy decision, deterministically testable; `critical` is a human call | `src/features/support/triage.ts` |
-| **Public first-line deflection** | Help-Centre lexical search only | **No** | Unauthenticated intake + generated compliance answer = cost/abuse/accuracy risk | `src/features/support/firstLineAssist.ts` |
-| **Notice / due-date math** | Business-day + Ontario stat-holiday algorithms | **No** | Arithmetic and calendars are solved; a model only adds error | `src/features/support/triage.ts` |
-| **Crisis resources** | Maintained list, verbatim | **No** | Safety-critical text (9-8-8) must be exact — never generated | `AGENT.md` §8 |
-| **Workspace search** | Lexical match over `{en, fr}` fields | **No** | Bounded corpus; no model needed | `src/features/app/search/searchCorpus.ts` |
+| Touchpoint                       | Mechanism                                                  |    LLM?    | Why (or why not)                                                                                                                  | Source of truth                                   |
+| -------------------------------- | ---------------------------------------------------------- | :--------: | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| **Advisor chat**                 | Generative completion, server-side, model routed via DB    |  **Yes**   | Open-ended, bilingual, jurisdiction-aware HR dialogue — open vocabulary; nothing deterministic can answer it                      | `supabase/functions/advisor-chat/index.ts`        |
+| **Memory fact extraction**       | Per-turn NL → structured facts, `Inferred` until confirmed |  **Yes**   | Messy prose → structure is the canonical LLM job; governance around it is deterministic                                           | Engineering Roadmap §5; `Advisor Memory.dc.html`  |
+| **Support first-line (in-app)**  | Grounded short answer from Help Centre excerpts            | **Yes\***  | A convenience _on top of_ retrieval; heavily fenced (auth, metered usage §7, HUMAN_ONLY refusal, grounded-only) — not irreducible | `supabase/functions/support-firstline/index.ts`   |
+| **Advisor routing / mode**       | Intent → mode + gates                                      | **Hybrid** | Model classifies; **gates, jurisdiction default, crisis intercept are enforced as a deterministic contract**                      | `AGENT.md` §2; Roadmap "Response contract"        |
+| **Document generation**          | `{{merge}}` tokens + `ClauseGate` conditional clauses      |   **No**   | Legal docs must be exact, reproducible, versioned, auditable — never model-authored                                               | `src/features/app/documents/data/types.ts`        |
+| **Legal-basis citations**        | Vetted rows, marked `Valid` / `Needs-review`               |   **No**   | Prevents hallucinated statutes; retrieval grounds, humans vet                                                                     | `AGENT.md` §9; `src/features/app/guidance/api.ts` |
+| **Guidance retrieval (RAG)**     | Query over `guidance_sources` / `law_updates`              |   **No**   | Retrieval is search, not generation — it is the _reason_ the Advisor can avoid inventing law                                      | `src/features/app/guidance/api.ts`                |
+| **Support triage / priority**    | `category + impact + urgency → priority`, capped at `high` |   **No**   | A policy decision, deterministically testable; `critical` is a human call                                                         | `src/features/support/triage.ts`                  |
+| **Public first-line deflection** | Help-Centre lexical search only                            |   **No**   | Unauthenticated intake + generated compliance answer = cost/abuse/accuracy risk                                                   | `src/features/support/firstLineAssist.ts`         |
+| **Notice / due-date math**       | Business-day + Ontario stat-holiday algorithms             |   **No**   | Arithmetic and calendars are solved; a model only adds error                                                                      | `src/features/support/triage.ts`                  |
+| **Crisis resources**             | Maintained list, verbatim                                  |   **No**   | Safety-critical text (9-8-8) must be exact — never generated                                                                      | `AGENT.md` §8                                     |
+| **Workspace search**             | Lexical match over `{en, fr}` fields                       |   **No**   | Bounded corpus; no model needed                                                                                                   | `src/features/app/search/searchCorpus.ts`         |
 
-\* *"Yes\*" = uses the LLM but could be removed without losing a core capability.*
+\* _"Yes\*" = uses the LLM but could be removed without losing a core capability._
 
 ---
 
@@ -69,7 +69,7 @@ The generative model is essential here and nowhere else at this level.
   `ai_model_providers` (currently `deepseek-3.2` via DigitalOcean Gradient AI,
   `route_key = advisor_chat`), so provider/model can change without a deploy.
 - Every call is logged to `ai_telemetry_events` (provider, model, tokens,
-  latency, status) — never message bodies or PII. The row is claimed *before*
+  latency, status) — never message bodies or PII. The row is claimed _before_
   the model call and stamped when it resolves, so it doubles as the beta usage
   guardrail's ledger (§7).
 
@@ -77,7 +77,7 @@ The generative model is essential here and nowhere else at this level.
 
 Turning "we let Marc go on the 5th, he'd been here about 7 years" into sourced,
 structured facts is the textbook task an LLM does better than anything else. The
-*extraction* is generative; **everything around it is deterministic**: two states
+_extraction_ is generative; **everything around it is deterministic**: two states
 only (`Confirmed` vs `Inferred`), inferred is never treated as fact until a human
 confirms, every fact carries provenance + confidence + visibility + a retention
 TTL, and forget/erase honour PIPEDA / Québec Law 25.
@@ -88,7 +88,7 @@ TTL, and forget/erase honour PIPEDA / Québec Law 25.
 
 ---
 
-## 3. Deterministic by design — and why an LLM would be *worse*
+## 3. Deterministic by design — and why an LLM would be _worse_
 
 Each of these could naïvely be "done with AI". Each is deliberately not, because
 a model would make it less correct, not more.
@@ -102,19 +102,19 @@ a model would make it less correct, not more.
   document needs.
 - **Citations & statutory grounding.** Legal basis is served from vetted rows
   marked `Valid` / `Needs-review`, never presented from the model's parametric
-  memory. Statute *names* already live in a structured table
-  (`documents/data/meta.ts` → `JurisdictionInfo.statute`, e.g. *Employment
-  Standards Act, 2000*). This is precisely the mechanism that stops the
+  memory. Statute _names_ already live in a structured table
+  (`documents/data/meta.ts` → `JurisdictionInfo.statute`, e.g. _Employment
+  Standards Act, 2000_). This is precisely the mechanism that stops the
   hallucinated-citation failure mode your own Known Limitations page warns about.
 - **Triage & priority.** `suggestPriority()` is pure `category + impact +
-  urgency` arithmetic, clamped so customer input can never exceed `high`;
+urgency` arithmetic, clamped so customer input can never exceed `high`;
   `critical` is a human triage decision. No side effects, no `Date.now()` in the
   core — every branch is deterministically testable.
 - **Calendars & deadlines.** Ontario statutory holidays (incl. Good Friday via
   the Gregorian computus) and business-day math are algorithms. A model here
   would only introduce error.
-- **Public support deflection.** `firstLineAssist.ts` is retrieval-only *by
-  design* — the intake is unauthenticated, and a generated compliance "answer"
+- **Public support deflection.** `firstLineAssist.ts` is retrieval-only _by
+  design_ — the intake is unauthenticated, and a generated compliance "answer"
   there carries cost, abuse, and accuracy risk. The generative tier
   (`support-firstline`) lives strictly **behind auth + rate limits**.
 - **Crisis resources.** Maintained from public sources and emitted verbatim.
@@ -147,7 +147,7 @@ model classification. §5 closes that gap for the two highest-stakes routes.
 
 Goal: no single LLM misclassification can (a) drop the crisis intercept, or (b)
 leak statutory figures before jurisdiction is confirmed. The pattern is a cheap,
-auditable rule layer that runs around the model and can only ever *tighten*,
+auditable rule layer that runs around the model and can only ever _tighten_,
 never loosen.
 
 > **Status: implemented.** `src/features/app/advisor/safety/` — a pure,
@@ -196,7 +196,7 @@ if jurisdiction.status NOT in {known, assumed, not_applicable}
 //    with both numbers. QC/FED bands are null → 'unverifiable', never a guess.
 ```
 
-**Honest limitations.** Rules 1 and 3 inspect the model's *prose*, and a client
+**Honest limitations.** Rules 1 and 3 inspect the model's _prose_, and a client
 cannot un-say prose — they gate the structured legal-basis surface off and put
 an accurate warning in front of the operator ("verify any figure in the reply"),
 rather than rewriting the sentence; a figure the model states can still be
@@ -226,7 +226,7 @@ Telemetry is best-effort: a logging failure never blocks or breaks a reply.
 
 ---
 
-## 6. The gate test — for every *new* AI feature
+## 6. The gate test — for every _new_ AI feature
 
 Before adding an LLM to any feature, it must pass all five:
 
@@ -268,12 +268,12 @@ enforcement is `claim_ai_usage()` in
    outcome. One row per call, and the token ceiling reads the rows the claims
    created.
 
-| Ceiling | Default | Scope | Guards against |
-| --- | --- | --- | --- |
-| Burst | 10 / 5 min (Advisor), 6 / 5 min (support helper) | per user, per surface | runaway retry loops, scripted hammering |
-| Daily requests | 120 / rolling 24h | per user, **shared across both AI surfaces** | one account's sustained cost |
-| Daily tokens | 250,000 / rolling 24h | per user, shared | long threads, which request count alone does not bound |
-| Platform daily | 2,000 / rolling 24h | whole project | a beta-wide cost surprise, whatever its shape |
+| Ceiling        | Default                                          | Scope                                        | Guards against                                         |
+| -------------- | ------------------------------------------------ | -------------------------------------------- | ------------------------------------------------------ |
+| Burst          | 10 / 5 min (Advisor), 6 / 5 min (support helper) | per user, per surface                        | runaway retry loops, scripted hammering                |
+| Daily requests | 120 / rolling 24h                                | per user, **shared across both AI surfaces** | one account's sustained cost                           |
+| Daily tokens   | 250,000 / rolling 24h                            | per user, shared                             | long threads, which request count alone does not bound |
+| Platform daily | 2,000 / rolling 24h                              | whole project                                | a beta-wide cost surprise, whatever its shape          |
 
 Those four ceilings are **abuse rails**. They are never for sale. A 429 from
 burst / daily / platform stays a wait, not a buy path.
@@ -333,10 +333,10 @@ the counts need, and the functions now write the canonical `failed` rather than
 
 ## 8. Current LLM surface (summary)
 
-| Route key | Function | Provider / model | Guardrails |
-| --- | --- | --- | --- |
-| `advisor_chat` | `advisor-chat` | DigitalOcean Gradient AI · `deepseek-3.2` | Server-side secret, invite-only auth, history-bounded, telemetry-logged, **usage guardrails (§7)** |
-| `advisor_chat` (reused) | `support-firstline` | same route | Auth + **beta usage guardrails (§7, shared budget)**, HUMAN_ONLY refusal, grounded-only prompt, advisory-only UI |
+| Route key               | Function            | Provider / model                          | Guardrails                                                                                                       |
+| ----------------------- | ------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `advisor_chat`          | `advisor-chat`      | DigitalOcean Gradient AI · `deepseek-3.2` | Server-side secret, invite-only auth, history-bounded, telemetry-logged, **usage guardrails (§7)**               |
+| `advisor_chat` (reused) | `support-firstline` | same route                                | Auth + **beta usage guardrails (§7, shared budget)**, HUMAN_ONLY refusal, grounded-only prompt, advisory-only UI |
 
 Everything else in the product is retrieval, templates, rules, or algorithms.
 That is the intended steady state: a small, well-fenced generative core, and a

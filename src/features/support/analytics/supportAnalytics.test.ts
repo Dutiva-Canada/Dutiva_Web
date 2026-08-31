@@ -18,7 +18,9 @@ vi.mock('@/lib/release', () => ({
 const originalFetch = globalThis.fetch
 
 function mockFetchOk() {
-  globalThis.fetch = vi.fn().mockResolvedValue(new Response('{"data":{"inserted":1}}', { status: 200 }))
+  globalThis.fetch = vi
+    .fn()
+    .mockResolvedValue(new Response('{"data":{"inserted":1}}', { status: 200 }))
 }
 
 function mockFetchFail() {

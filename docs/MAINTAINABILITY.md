@@ -15,15 +15,15 @@ and periodic owner tasks.
 
 Structural work shipped in PRs #250–#258. `npm run check:architecture` now enforces:
 
-| Guard | What it catches |
-| --- | --- |
-| Marketing `@/data` | Demo HR fixtures in the public marketing bundle |
-| `landing.ts` monolith | Recreated single-file landing i18n |
-| Inline `*DemoView` | Demo UI embedded in a `*View.tsx` shell |
-| `@/data` in view shells | Fixture imports outside `*DemoView.tsx` |
-| Dispatch pairing | Thin `useWorkspaceMode()` shells when both `*DemoView` and `*ProductionView` exist |
-| Production pairing | Every `*ProductionView.tsx` has `*DemoView.tsx` + `*View.tsx` siblings |
-| File size (>800 lines) | Hotspots outside the allowlist |
+| Guard                   | What it catches                                                                    |
+| ----------------------- | ---------------------------------------------------------------------------------- |
+| Marketing `@/data`      | Demo HR fixtures in the public marketing bundle                                    |
+| `landing.ts` monolith   | Recreated single-file landing i18n                                                 |
+| Inline `*DemoView`      | Demo UI embedded in a `*View.tsx` shell                                            |
+| `@/data` in view shells | Fixture imports outside `*DemoView.tsx`                                            |
+| Dispatch pairing        | Thin `useWorkspaceMode()` shells when both `*DemoView` and `*ProductionView` exist |
+| Production pairing      | Every `*ProductionView.tsx` has `*DemoView.tsx` + `*View.tsx` siblings             |
+| File size (>800 lines)  | Hotspots outside the allowlist                                                     |
 
 **Deferred:** stage 2 fixture collapse — one module per PR, only when production-default with no
 demo-only UX. `/demo`, onboarding, and Northgate fixtures stay until then.
@@ -69,12 +69,12 @@ Helpers belong in `advisorViewHelpers.ts`; demo scenario data stays in `advisorS
 Many modules use `*View` + `*ProductionView` with `useWorkspaceMode()` dispatch.
 **Do not delete demo fixtures** until the module is product-default for all users.
 
-| Module | Production persistence | Notes |
-| --- | --- | --- |
-| Documents (repository, generate, detail) | Yes (0076+) | Demo gallery redirects in production |
-| Advisor Memory | Yes (0086+) | Four production surfaces |
-| Communications, Compensation, Wellbeing | Yes (0039–0041) | Self-dispatch on mode |
-| Cases, Employees, Tasks, … | Partial / fixture | Check view before collapsing demo |
+| Module                                   | Production persistence | Notes                                |
+| ---------------------------------------- | ---------------------- | ------------------------------------ |
+| Documents (repository, generate, detail) | Yes (0076+)            | Demo gallery redirects in production |
+| Advisor Memory                           | Yes (0086+)            | Four production surfaces             |
+| Communications, Compensation, Wellbeing  | Yes (0039–0041)        | Self-dispatch on mode                |
+| Cases, Employees, Tasks, …               | Partial / fixture      | Check view before collapsing demo    |
 
 **Collapse policy:** when a module is live for all signed-in users with no demo-only UX,
 remove the fixture branch in the `*View` wrapper and delete unused `src/data` consumers —
@@ -130,11 +130,11 @@ must have matching `*DemoView.tsx` and `*View.tsx` siblings — closes the maint
 
 ## CI pipelines
 
-| Pipeline | What it gates |
-| --- | --- |
-| `.woodpecker/check.yml` | typecheck, lint, test:coverage, message-scopes, facts, **architecture**, **brand-assets**, **full build** |
-| `.woodpecker/live-checks.yml` | migration drift + RLS (needs Supabase secrets) |
-| `.woodpecker/e2e.yml` | Playwright smoke on `dist/` |
+| Pipeline                      | What it gates                                                                                             |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `.woodpecker/check.yml`       | typecheck, lint, test:coverage, message-scopes, facts, **architecture**, **brand-assets**, **full build** |
+| `.woodpecker/live-checks.yml` | migration drift + RLS (needs Supabase secrets)                                                            |
+| `.woodpecker/e2e.yml`         | Playwright smoke on `dist/`                                                                               |
 
 **Live checks:** configure `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF` in Woodpecker
 so green CI implies live DB parity, not just local green.

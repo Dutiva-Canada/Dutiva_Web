@@ -40,7 +40,9 @@ describe('ComplianceWorkspace', () => {
 
   it('running: shows the routing skeleton, no payload blocks', () => {
     renderWorkspace({ state: { kind: 'running' } })
-    expect(screen.getByText('Checking jurisdiction · retrieving guidance · validating…')).toBeInTheDocument()
+    expect(
+      screen.getByText('Checking jurisdiction · retrieving guidance · validating…'),
+    ).toBeInTheDocument()
     expect(screen.queryByText('Risk read')).not.toBeInTheDocument()
   })
 

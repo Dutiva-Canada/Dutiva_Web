@@ -39,8 +39,7 @@ export function StreamedText({ text, status, streamedLen, memory }: StreamedText
   const full = pickL(text, lang)
   const streaming = status === 'streaming'
   const shown = streaming ? full.slice(0, streamedLen ?? 0) : full
-  const memoryHighlights =
-    !streaming && memory != null ? phrasesFromMemoryUsed(memory, lang) : []
+  const memoryHighlights = !streaming && memory != null ? phrasesFromMemoryUsed(memory, lang) : []
   return (
     <ChatMarkdown
       streaming={streaming}

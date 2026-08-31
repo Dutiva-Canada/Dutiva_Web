@@ -21,7 +21,7 @@ people, cases, or documents. That honesty is correct. Without a clear next
 action, it also feels like a blank product.
 
 Demo remains useful for walkthroughs. It must not be the primary answer to
-“where do I begin with *my* workplace?”
+“where do I begin with _my_ workplace?”
 
 ---
 
@@ -54,23 +54,23 @@ Demo remains useful for walkthroughs. It must not be the primary answer to
 
 ### Out (later)
 
-| Item | Why later |
-| --- | --- |
-| Open production mode to beta members | Access policy / capacity; tracked in gap audit. |
+| Item                                         | Why later                                             |
+| -------------------------------------------- | ----------------------------------------------------- |
+| Open production mode to beta members         | Access policy / capacity; tracked in gap audit.       |
 | Org mini-setup after `bootstrapOrganization` | Confirm company name / province / city — separate PR. |
-| Sample-data import into production | Conflicts with principle 1. |
-| Full product tour / coach marks | Noise for v1. |
-| Help Centre “Your empty workspace” article | Follow-up after this ships. |
+| Sample-data import into production           | Conflicts with principle 1.                           |
+| Full product tour / coach marks              | Noise for v1.                                         |
+| Help Centre “Your empty workspace” article   | Follow-up after this ships.                           |
 
 ---
 
 ## Progress rules (v1 — no new table)
 
-| Step | Done when |
-| --- | --- |
-| Add a person | Org has ≥ 1 employee (usually graduates Home off empty state) |
-| Draft in Studio | Session visit to Document Studio (`sessionStorage`, org-scoped) |
-| Run a guided process | Session visit to Workflows catalog **or** any flow runner |
+| Step                 | Done when                                                       |
+| -------------------- | --------------------------------------------------------------- |
+| Add a person         | Org has ≥ 1 employee (usually graduates Home off empty state)   |
+| Draft in Studio      | Session visit to Document Studio (`sessionStorage`, org-scoped) |
+| Run a guided process | Session visit to Workflows catalog **or** any flow runner       |
 
 Empty Home hides once `totalRecords > 0`. Checklist is not dismissible in v1.
 
@@ -90,13 +90,13 @@ Copy lives in `src/i18n/messages/home.ts` and `workspaceMode.ts`.
 
 ## Implementation map
 
-| Piece | Path |
-| --- | --- |
-| Session progress | `emptyWorkspaceOnboarding.ts` |
-| `?new=1` hook | `useOpenCreateFormFromQuery.ts` |
-| Home empty | `HomeProductionEmptyState.tsx` |
-| Mark Studio | `StudioScreen.tsx` (production) |
-| Mark workflows | `WorkflowsView.tsx`, `FlowRunner.tsx` (production) |
+| Piece            | Path                                               |
+| ---------------- | -------------------------------------------------- |
+| Session progress | `emptyWorkspaceOnboarding.ts`                      |
+| `?new=1` hook    | `useOpenCreateFormFromQuery.ts`                    |
+| Home empty       | `HomeProductionEmptyState.tsx`                     |
+| Mark Studio      | `StudioScreen.tsx` (production)                    |
+| Mark workflows   | `WorkflowsView.tsx`, `FlowRunner.tsx` (production) |
 
 ---
 

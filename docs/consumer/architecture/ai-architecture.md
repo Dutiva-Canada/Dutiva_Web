@@ -14,12 +14,12 @@ This mirrors Dutiva's AI usage strategy (`docs/AI_USAGE_STRATEGY.md`) but applie
 
 These are the consumer-product capabilities that cannot be built without a generative model:
 
-| Use case | Why an LLM is needed | What is deterministic around it |
-|---|---|---|
-| **Situation understanding** | Users describe situations in open-ended prose. The set of possible inputs is unbounded. | Classification into canonical `LifeEvent`s, jurisdiction prompts, confidence scoring. |
-| **Memory / fact extraction** | Turning free-text descriptions into structured facts (dates, parties, amounts) is a canonical LLM task. | Facts are `Inferred` until user confirms; provenance and confidence are mandatory. |
-| **Evidence summarization / extraction** | Documents are unstructured; users need help identifying dates, parties, obligations, contradictions. | Extracted claims are stored as `EvidenceInterpretation`, never as primary evidence. |
-| **Natural-language answers** | Explaining next steps in plain language, in the user's chosen language. | Citations, figures, and deadlines are drawn from deterministic rules; the LLM does not author them. |
+| Use case                                | Why an LLM is needed                                                                                    | What is deterministic around it                                                                     |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| **Situation understanding**             | Users describe situations in open-ended prose. The set of possible inputs is unbounded.                 | Classification into canonical `LifeEvent`s, jurisdiction prompts, confidence scoring.               |
+| **Memory / fact extraction**            | Turning free-text descriptions into structured facts (dates, parties, amounts) is a canonical LLM task. | Facts are `Inferred` until user confirms; provenance and confidence are mandatory.                  |
+| **Evidence summarization / extraction** | Documents are unstructured; users need help identifying dates, parties, obligations, contradictions.    | Extracted claims are stored as `EvidenceInterpretation`, never as primary evidence.                 |
+| **Natural-language answers**            | Explaining next steps in plain language, in the user's chosen language.                                 | Citations, figures, and deadlines are drawn from deterministic rules; the LLM does not author them. |
 
 ---
 
@@ -27,14 +27,14 @@ These are the consumer-product capabilities that cannot be built without a gener
 
 These MUST remain deterministic, never generative:
 
-| Capability | Why deterministic | Risk if LLM-authored |
-|---|---|---|
-| Document assembly | Merge tokens + `ClauseGate` conditions produce identical, reproducible output. | Unreproducible legal documents, unfilled placeholders, incorrect clauses. |
-| Statutory figures and deadlines | Arithmetic, calendars, and statute tables are auditable. | Hallucinated deadlines or dollar amounts. |
-| Jurisdiction-specific clauses | Conditions are explicit and testable. | Wrong-province clauses inserted silently. |
-| Citation / legal basis | Only vetted knowledge items marked `valid` are used. | Fabricated statutes or sections. |
-| Crisis / escalation detection | Phrase sets and rules fire on the safe side. | A missed crisis or an unflagged high-risk matter. |
-| Routing / mode classification | Model classifies; rules enforce the consequences. | A misclassified turn leading to wrong UI surfaces. |
+| Capability                      | Why deterministic                                                              | Risk if LLM-authored                                                      |
+| ------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| Document assembly               | Merge tokens + `ClauseGate` conditions produce identical, reproducible output. | Unreproducible legal documents, unfilled placeholders, incorrect clauses. |
+| Statutory figures and deadlines | Arithmetic, calendars, and statute tables are auditable.                       | Hallucinated deadlines or dollar amounts.                                 |
+| Jurisdiction-specific clauses   | Conditions are explicit and testable.                                          | Wrong-province clauses inserted silently.                                 |
+| Citation / legal basis          | Only vetted knowledge items marked `valid` are used.                           | Fabricated statutes or sections.                                          |
+| Crisis / escalation detection   | Phrase sets and rules fire on the safe side.                                   | A missed crisis or an unflagged high-risk matter.                         |
+| Routing / mode classification   | Model classifies; rules enforce the consequences.                              | A misclassified turn leading to wrong UI surfaces.                        |
 
 ---
 

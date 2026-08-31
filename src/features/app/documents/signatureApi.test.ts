@@ -85,7 +85,15 @@ describe('signatureApi', () => {
       api.sendDocumentForSignature(
         'org-1',
         'doc-1',
-        [{ name: 'Alex', email: 'alex@example.com', type: 'employee', order: 1, status: 'pending' }],
+        [
+          {
+            name: 'Alex',
+            email: 'alex@example.com',
+            type: 'employee',
+            order: 1,
+            status: 'pending',
+          },
+        ],
         'Admin',
       ),
     ).rejects.toThrow(/approved/)

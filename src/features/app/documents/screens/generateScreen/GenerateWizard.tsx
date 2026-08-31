@@ -55,12 +55,7 @@ export function GenerateWizard({
   const { org, role } = useDoclib()
   const { showToast } = useToasts()
   const navigate = useNavigate()
-  const {
-    mode: workspaceMode,
-    organizationId,
-    isOrgAdmin,
-    identity,
-  } = useWorkspaceMode()
+  const { mode: workspaceMode, organizationId, isOrgAdmin, identity } = useWorkspaceMode()
   const [saving, setSaving] = useState(false)
 
   const [wiz, setWiz] = useState<WizardState>(() =>
@@ -133,10 +128,7 @@ export function GenerateWizard({
   const bilingual = isBilingualDelivery(template)
   const todayString = useMemo(() => formatTodayLabel(wiz.language), [wiz.language])
   const valuesByLang = useMemo(
-    () =>
-      bilingual
-        ? bilingualMergeValues(template, wiz.answers, wiz.jurisdiction)
-        : undefined,
+    () => (bilingual ? bilingualMergeValues(template, wiz.answers, wiz.jurisdiction) : undefined),
     [bilingual, template, wiz.answers, wiz.jurisdiction],
   )
   const values = useMemo(
@@ -179,10 +171,7 @@ export function GenerateWizard({
     setSaving(true)
     try {
       const created = await createDocument(organizationId, {
-        title: bi(
-          `${template.name.en} — ${template.tid}`,
-          `${template.name.fr} — ${template.tid}`,
-        ),
+        title: bi(`${template.name.en} — ${template.tid}`, `${template.name.fr} — ${template.tid}`),
         templateTid: template.tid,
         templateKey: template.key,
         templateVersion: template.version,
@@ -248,10 +237,7 @@ export function GenerateWizard({
         </span>
         <DocChip tone={APPLIC_TONE[applic.kind]}>
           <span className="inline-flex items-center gap-1.5">
-            <span
-              className="h-1.5 w-1.5 rounded-full bg-current opacity-70"
-              aria-hidden="true"
-            />
+            <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" aria-hidden="true" />
             {x(applic.label)}
           </span>
         </DocChip>

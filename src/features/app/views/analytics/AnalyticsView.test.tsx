@@ -396,9 +396,39 @@ describe('AnalyticsView in production mode', () => {
         },
       ],
       hr_obligations: [
-        { id: 'ob1', title: 'Vacation reconciliation', area: null, jurisdiction: null, due_on: null, recurrence: null, owner_name: null, status: 'ok', evidence: null },
-        { id: 'ob2', title: 'OHSA program review', area: null, jurisdiction: null, due_on: null, recurrence: null, owner_name: null, status: 'ok', evidence: null },
-        { id: 'ob3', title: 'CASL consent audit', area: null, jurisdiction: null, due_on: null, recurrence: null, owner_name: null, status: 'needs_evidence', evidence: null },
+        {
+          id: 'ob1',
+          title: 'Vacation reconciliation',
+          area: null,
+          jurisdiction: null,
+          due_on: null,
+          recurrence: null,
+          owner_name: null,
+          status: 'ok',
+          evidence: null,
+        },
+        {
+          id: 'ob2',
+          title: 'OHSA program review',
+          area: null,
+          jurisdiction: null,
+          due_on: null,
+          recurrence: null,
+          owner_name: null,
+          status: 'ok',
+          evidence: null,
+        },
+        {
+          id: 'ob3',
+          title: 'CASL consent audit',
+          area: null,
+          jurisdiction: null,
+          due_on: null,
+          recurrence: null,
+          owner_name: null,
+          status: 'needs_evidence',
+          evidence: null,
+        },
       ],
       compliance_score_snapshots: [
         { month: '2026-05-01', score: 40, headcount: null, formula_version: 1 },
@@ -410,9 +440,7 @@ describe('AnalyticsView in production mode', () => {
 
     renderAppFresh(<AnalyticsViewFresh />, { route: '/app/analytics', path: '/app/analytics' })
 
-    expect(
-      await screen.findByText('From your workspace records.'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('From your workspace records.')).toBeInTheDocument()
 
     /* Components: policies 1/2 = 50, provenanced tasks 1/1 = 100,
        findings 0/5 weight = 0, obligations 2/3 = 67 → round(217/4) = 54. */
@@ -487,9 +515,7 @@ describe('AnalyticsView in production mode', () => {
 
     renderAppFresh(<AnalyticsViewFresh />, { route: '/app/analytics', path: '/app/analytics' })
 
-    expect(
-      await screen.findByText('From your workspace records.'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('From your workspace records.')).toBeInTheDocument()
 
     /* Policies 100 + tasks 100 + findings 1/9 weight (11) blend to 70 —
        above the ceiling, so the open critical caps it at 69, with the
@@ -550,9 +576,7 @@ describe('AnalyticsView in production mode', () => {
 
     renderAppFresh(<AnalyticsViewFresh />, { route: '/app/analytics', path: '/app/analytics' })
 
-    expect(
-      await screen.findByText('From your workspace records.'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('From your workspace records.')).toBeInTheDocument()
 
     /* Attention: both dated rows are overdue; the case (2020-01-01) sorts
        ahead of the task (2020-06-30). */
@@ -610,7 +634,9 @@ describe('AnalyticsView in production mode', () => {
        and turnover states its missing prerequisite. */
     const trend = within(screen.getByRole('region', { name: 'Headcount & turnover' }))
     expect(
-      await trend.findByText('Headcount history starts here — this month is your first data point.'),
+      await trend.findByText(
+        'Headcount history starts here — this month is your first data point.',
+      ),
     ).toBeInTheDocument()
     expect(
       trend.getByText('Turnover needs termination history, which isn’t tracked yet.'),
@@ -697,9 +723,7 @@ describe('AnalyticsView in production mode', () => {
 
     renderAppFresh(<AnalyticsViewFresh />, { route: '/app/analytics', path: '/app/analytics' })
 
-    expect(
-      await screen.findByText('From your workspace records.'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('From your workspace records.')).toBeInTheDocument()
 
     /* A · Certifications: 1 expired + 1 inside 30 days, list one tap away. */
     const certs = within(await screen.findByRole('region', { name: 'Certifications & training' }))

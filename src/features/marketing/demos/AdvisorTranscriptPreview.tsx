@@ -47,7 +47,13 @@ export function AdvisorTranscriptPreview({
 
   return (
     <div>
-      <div className={compact ? 'border-b border-border px-3 py-2.5' : 'border-b border-border px-4 py-3 sm:px-5'}>
+      <div
+        className={
+          compact
+            ? 'border-b border-border px-3 py-2.5'
+            : 'border-b border-border px-4 py-3 sm:px-5'
+        }
+      >
         <div
           className="flex flex-wrap gap-2"
           role="tablist"
@@ -75,10 +81,17 @@ export function AdvisorTranscriptPreview({
           })}
         </div>
         {compact ? null : (
-          <p className="mt-2 text-xs leading-normal text-text-faint">{lt('landing_adv_preview_note')}</p>
+          <p className="mt-2 text-xs leading-normal text-text-faint">
+            {lt('landing_adv_preview_note')}
+          </p>
         )}
       </div>
-      <ScenarioTranscript key={activeId} scenario={scenario} compact={compact} interactive={interactive} />
+      <ScenarioTranscript
+        key={activeId}
+        scenario={scenario}
+        compact={compact}
+        interactive={interactive}
+      />
     </div>
   )
 }
@@ -119,7 +132,9 @@ function ScenarioTranscript({
             {lt(RISK_LABEL[compliance])}
           </div>
         )}
-        <p className="m-0 whitespace-pre-line text-[0.9375rem] leading-[1.55] text-text">{x(turn.reply)}</p>
+        <p className="m-0 whitespace-pre-line text-[0.9375rem] leading-[1.55] text-text">
+          {x(turn.reply)}
+        </p>
         {turn.banner?.tone === 'support' ? (
           <p className="mt-2 text-xs leading-normal text-text-2">{x(turn.banner.text)}</p>
         ) : null}
@@ -153,7 +168,9 @@ function ScenarioTranscript({
         </div>
       ) : null}
       {interactive && pickedDoc ? (
-        <p className="m-0 text-xs leading-normal text-text-2">{lt('landing_ws_demo_advisor_doc_hint')}</p>
+        <p className="m-0 text-xs leading-normal text-text-2">
+          {lt('landing_ws_demo_advisor_doc_hint')}
+        </p>
       ) : null}
 
       <div className="flex items-end gap-2.5 rounded-[14px] border border-border bg-bg-elevated p-2 pl-4 shadow-[0_10px_30px_-16px_rgba(0,0,0,0.35)]">
@@ -201,7 +218,12 @@ function DocChip({
     return <span className={className}>{inner}</span>
   }
   return (
-    <button type="button" className={`${className} cursor-pointer`} onClick={onPick} aria-pressed={pressed}>
+    <button
+      type="button"
+      className={`${className} cursor-pointer`}
+      onClick={onPick}
+      aria-pressed={pressed}
+    >
       {inner}
     </button>
   )

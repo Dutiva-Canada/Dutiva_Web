@@ -48,7 +48,7 @@ describe('registerServiceWorker', () => {
 
 describe('reloadOnWorkerTakeover', () => {
   it('reloads once when a replacement worker takes control of a marketing tab', () => {
-    const container = fakeContainer({ /* a worker already controlled this load */ })
+    const container = fakeContainer({/* a worker already controlled this load */})
     const reload = vi.fn()
 
     reloadOnWorkerTakeover(asContainer(container), { pathname: '/', reload })

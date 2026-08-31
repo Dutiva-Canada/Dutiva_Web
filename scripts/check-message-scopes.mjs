@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2026 
+ *   Copyright (c) 2026
  *   All rights reserved.
  */
 /**
@@ -117,7 +117,11 @@ async function collectFiles(dir) {
     const full = path.join(dir, entry.name)
     if (entry.isDirectory()) {
       out.push(...(await collectFiles(full)))
-    } else if (/\.tsx?$/.test(entry.name) && !entry.name.endsWith('.test.ts') && !entry.name.endsWith('.test.tsx')) {
+    } else if (
+      /\.tsx?$/.test(entry.name) &&
+      !entry.name.endsWith('.test.ts') &&
+      !entry.name.endsWith('.test.tsx')
+    ) {
       out.push(full)
     }
   }

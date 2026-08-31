@@ -51,7 +51,10 @@ export const tplT50: DocTemplate = {
   includes: [
     { en: 'Purpose and scope', fr: 'Objet et portée' },
     { en: 'Who this policy applies to', fr: 'Personnes visées par cette politique' },
-    { en: 'Policy detail (Advisor-tailored)', fr: 'Détail de la politique (adapté par le Conseiller)' },
+    {
+      en: 'Policy detail (Advisor-tailored)',
+      fr: 'Détail de la politique (adapté par le Conseiller)',
+    },
   ],
   questions: [
     {
@@ -60,20 +63,32 @@ export const tplT50: DocTemplate = {
       label: { en: 'Policy title', fr: 'Titre de la politique' },
       type: 'text',
       required: true,
-      placeholder: { en: 'e.g. Social Media Policy', fr: 'p. ex. Politique sur les médias sociaux' },
+      placeholder: {
+        en: 'e.g. Social Media Policy',
+        fr: 'p. ex. Politique sur les médias sociaux',
+      },
     },
     {
       id: 'policy_scope',
       section: { en: 'Scope', fr: 'Portée' },
-      label: { en: 'Who does this policy apply to?', fr: 'À qui cette politique s’applique-t-elle ?' },
+      label: {
+        en: 'Who does this policy apply to?',
+        fr: 'À qui cette politique s’applique-t-elle ?',
+      },
       type: 'text',
       required: true,
-      placeholder: { en: 'e.g. All employees and contractors', fr: 'p. ex. Tous les employés et entrepreneurs' },
+      placeholder: {
+        en: 'e.g. All employees and contractors',
+        fr: 'p. ex. Tous les employés et entrepreneurs',
+      },
     },
     {
       id: 'policy_detail',
       section: { en: 'Detail', fr: 'Détail' },
-      label: { en: 'Describe what this policy should cover', fr: 'Décrivez ce que cette politique doit couvrir' },
+      label: {
+        en: 'Describe what this policy should cover',
+        fr: 'Décrivez ce que cette politique doit couvrir',
+      },
       type: 'textarea',
       required: true,
       placeholder: {
@@ -85,7 +100,10 @@ export const tplT50: DocTemplate = {
   preview: [
     {
       type: 'title',
-      text: { en: 'Company Policy — {{policy_title}}', fr: 'Politique de l’entreprise — {{policy_title}}' },
+      text: {
+        en: 'Company Policy — {{policy_title}}',
+        fr: 'Politique de l’entreprise — {{policy_title}}',
+      },
     },
     {
       type: 'meta',

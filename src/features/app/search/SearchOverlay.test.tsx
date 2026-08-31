@@ -239,9 +239,8 @@ describe('SearchOverlay in production mode', () => {
 
     const { LangProvider: Lang } = await import('@/i18n/LangProvider')
     const { AuthProvider: Auth } = await import('@/features/app/auth/AuthProvider')
-    const { WorkspaceModeProvider: Wsm } = await import(
-      '@/features/app/workspaceMode/WorkspaceModeProvider'
-    )
+    const { WorkspaceModeProvider: Wsm } =
+      await import('@/features/app/workspaceMode/WorkspaceModeProvider')
     const { SearchProvider: Search } = await import('./SearchProvider')
     const { useSearch } = await import('./searchContext')
     const { SearchOverlay: Overlay } = await import('./SearchOverlay')

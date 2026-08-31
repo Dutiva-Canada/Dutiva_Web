@@ -5,7 +5,11 @@ import { useDoclib } from './doclibContext'
 import { DoclibProvider } from './DoclibProvider'
 import type { DocRecipient } from './data'
 
-function TestHarness({ onDoclib }: { readonly onDoclib: (value: ReturnType<typeof useDoclib>) => void }) {
+function TestHarness({
+  onDoclib,
+}: {
+  readonly onDoclib: (value: ReturnType<typeof useDoclib>) => void
+}) {
   const value = useDoclib()
   onDoclib(value)
   return <div data-testid="loaded">{value.data ? 'loaded' : 'loading'}</div>
@@ -15,7 +19,11 @@ function setup() {
   let captured: ReturnType<typeof useDoclib> | undefined
   renderApp(
     <DoclibProvider>
-      <TestHarness onDoclib={(value) => { captured = value }} />
+      <TestHarness
+        onDoclib={(value) => {
+          captured = value
+        }}
+      />
     </DoclibProvider>,
     { route: '/app/documents', path: '/app/documents' },
   )

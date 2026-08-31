@@ -79,12 +79,18 @@ export const TOUR_STOP_FIXTURES = {
     },
   ],
   reviewNotes: {
-    tone: bi('Direct and professional — no change suggested.', 'Direct et professionnel — aucun changement suggéré.'),
+    tone: bi(
+      'Direct and professional — no change suggested.',
+      'Direct et professionnel — aucun changement suggéré.',
+    ),
     legal: bi(
       'RTO cadence can be a change to terms of employment in some provinces.',
       'La cadence de retour au bureau peut modifier les conditions d’emploi dans certaines provinces.',
     ),
-    clarity: bi('The ask and the date are easy to follow.', 'La demande et la date sont faciles à suivre.'),
+    clarity: bi(
+      'The ask and the date are easy to follow.',
+      'La demande et la date sont faciles à suivre.',
+    ),
     policy: bi(
       'The draft does not point at the hybrid-work policy on file.',
       'L’ébauche ne renvoie pas à la politique de travail hybride au dossier.',

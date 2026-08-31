@@ -9,12 +9,7 @@ import type { Employee } from '@/data'
  * …" banner under the topbar that persists across views until cleared.
  */
 export type WorkspaceEntityType =
-  | 'employee'
-  | 'document'
-  | 'compliance'
-  | 'compensation'
-  | 'wellbeing'
-  | 'case'
+  'employee' | 'document' | 'compliance' | 'compensation' | 'wellbeing' | 'case'
 
 export interface WorkspaceContextState {
   subject: string

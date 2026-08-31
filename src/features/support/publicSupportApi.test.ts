@@ -22,7 +22,10 @@ describe('createPublicSupportTicket', () => {
   beforeEach(() => invoke.mockReset())
 
   it('shapes the payload and maps the honeypot to contact_fax', async () => {
-    invoke.mockResolvedValue({ data: { data: { public_reference: 'DUT-2026-000009' } }, error: null })
+    invoke.mockResolvedValue({
+      data: { data: { public_reference: 'DUT-2026-000009' } },
+      error: null,
+    })
     const ref = await createPublicSupportTicket({ ...baseInput, honeypot: '' })
     expect(ref).toBe('DUT-2026-000009')
     const [fn, opts] = invoke.mock.calls[0] as [string, { body: Record<string, unknown> }]
@@ -43,7 +46,9 @@ describe('createPublicSupportTicket', () => {
 
   it('maps HTTP 429 to a rate_limited error', async () => {
     invoke.mockResolvedValue({ data: null, error: { message: 'x', context: { status: 429 } } })
-    await expect(createPublicSupportTicket(baseInput)).rejects.toMatchObject({ code: 'rate_limited' })
+    await expect(createPublicSupportTicket(baseInput)).rejects.toMatchObject({
+      code: 'rate_limited',
+    })
   })
 
   it('maps HTTP 422 to a validation error', async () => {

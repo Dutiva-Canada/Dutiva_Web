@@ -17,7 +17,10 @@ export const statutoryNoticeFederalFlow: Flow = {
   ring: 1,
   jurisdictions: ['FED'],
   estMinutes: 4,
-  title: bi('Federal termination notice (confirm against statute)', 'Préavis de cessation fédéral (confirmer dans la loi)'),
+  title: bi(
+    'Federal termination notice (confirm against statute)',
+    'Préavis de cessation fédéral (confirmer dans la loi)',
+  ),
   summary: bi(
     'Walk the Canada Labour Code Part III notice path without quoting week figures. Confirm against primary sources — notice and severance are separate.',
     'Parcourez le chemin du préavis de la Partie III du Code canadien du travail sans citer de semaines. Confirmez dans les sources officielles — préavis et indemnité de départ sont distincts.',
@@ -27,7 +30,10 @@ export const statutoryNoticeFederalFlow: Flow = {
     {
       id: 'scope',
       kind: 'choice',
-      title: bi('Is this employee federally regulated?', 'Cet employé est-il de compétence fédérale?'),
+      title: bi(
+        'Is this employee federally regulated?',
+        'Cet employé est-il de compétence fédérale?',
+      ),
       body: bi(
         'Banks, interprovincial transportation, telecom, and other federally regulated employers use the Canada Labour Code, Part III — not provincial ESA/LNT ladders.',
         'Les banques, le transport interprovincial, les télécoms et d’autres employeurs de compétence fédérale utilisent le Code canadien du travail, Partie III — pas les échelles provinciales LNE/LNT.',
@@ -39,12 +45,18 @@ export const statutoryNoticeFederalFlow: Flow = {
       options: [
         {
           id: 'clc',
-          label: bi('Yes — Canada Labour Code Part III', 'Oui — Code canadien du travail, Partie III'),
+          label: bi(
+            'Yes — Canada Labour Code Part III',
+            'Oui — Code canadien du travail, Partie III',
+          ),
           to: 'statutes',
         },
         {
           id: 'provincial',
-          label: bi('No — provincial standards (e.g. Ontario or Québec)', 'Non — normes provinciales (p. ex. Ontario ou Québec)'),
+          label: bi(
+            'No — provincial standards (e.g. Ontario or Québec)',
+            'Non — normes provinciales (p. ex. Ontario ou Québec)',
+          ),
           to: 'wrong_jurisdiction',
         },
         {
@@ -57,7 +69,10 @@ export const statutoryNoticeFederalFlow: Flow = {
     {
       id: 'statutes',
       kind: 'task',
-      title: bi('Confirm notice and severance separately', 'Confirmez préavis et indemnité séparément'),
+      title: bi(
+        'Confirm notice and severance separately',
+        'Confirmez préavis et indemnité séparément',
+      ),
       body: bi(
         'Federal individual termination has more than one money layer. Read the current Code text — do not pull weeks from this product.',
         'La cessation individuelle fédérale a plus d’une couche monétaire. Lisez le texte actuel du Code — ne tirez pas de semaines de ce produit.',
@@ -86,7 +101,10 @@ export const statutoryNoticeFederalFlow: Flow = {
       id: 'done',
       kind: 'outcome',
       tone: 'caution',
-      title: bi('Confirm Part III entitlements, then draft', 'Confirmez les droits de la Partie III, puis rédigez'),
+      title: bi(
+        'Confirm Part III entitlements, then draft',
+        'Confirmez les droits de la Partie III, puis rédigez',
+      ),
       body: bi(
         'You have the process shape: confirm federal coverage, read current Part III notice for tenure, check severance separately, then draft. Document Studio will not inject a federal week figure — enter what you confirmed from primary sources into the letter.',
         'Vous avez la forme du processus : confirmer la couverture fédérale, lire le préavis actuel de la Partie III selon l’ancienneté, vérifier l’indemnité séparément, puis rédiger. Le Studio de documents n’injectera pas de semaines fédérales — inscrivez ce que vous avez confirmé dans les sources officielles.',
@@ -97,7 +115,10 @@ export const statutoryNoticeFederalFlow: Flow = {
       id: 'wrong_jurisdiction',
       kind: 'outcome',
       tone: 'caution',
-      title: bi('Use the matching provincial workflow', 'Utilisez le processus provincial correspondant'),
+      title: bi(
+        'Use the matching provincial workflow',
+        'Utilisez le processus provincial correspondant',
+      ),
       body: bi(
         'Provincial employees are not under CLC Part III individual notice. Open the Ontario or Québec notice workflow for that statute, or confirm the provincial act yourself before drafting.',
         'Les employés provinciaux ne relèvent pas du préavis individuel de la Partie III du CCT. Ouvrez le processus de préavis ontarien ou québécois pour cette loi, ou confirmez vous-même la loi provinciale avant de rédiger.',
@@ -108,7 +129,10 @@ export const statutoryNoticeFederalFlow: Flow = {
       id: 'unclear',
       kind: 'outcome',
       tone: 'caution',
-      title: bi('Settle jurisdiction before notice weeks', 'Trancher la compétence avant les semaines de préavis'),
+      title: bi(
+        'Settle jurisdiction before notice weeks',
+        'Trancher la compétence avant les semaines de préavis',
+      ),
       body: bi(
         'Jurisdiction decides which statute applies. Use the jurisdiction checker or counsel before treating any notice period as the floor. Do not invent a federal week figure from this product.',
         'La compétence décide quelle loi s’applique. Utilisez le vérificateur de compétence ou un conseiller avant de traiter une période de préavis comme plancher. N’inventez pas de semaines fédérales à partir de ce produit.',

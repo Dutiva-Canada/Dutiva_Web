@@ -7,7 +7,16 @@ const createSupportTicket = vi.hoisted(() => vi.fn())
 vi.mock('./supportApi', () => ({ createSupportTicket }))
 
 vi.mock('@/features/app/workspaceMode/workspaceModeContext', () => ({
-  useWorkspaceMode: () => ({ organizationId: null, mode: 'demo', isAdmin: false, identity: { companyName: 'Test', user: { name: 'Test', initials: 'T', role: { en: '', fr: '' }, email: '' } }, setMode: vi.fn() }),
+  useWorkspaceMode: () => ({
+    organizationId: null,
+    mode: 'demo',
+    isAdmin: false,
+    identity: {
+      companyName: 'Test',
+      user: { name: 'Test', initials: 'T', role: { en: '', fr: '' }, email: '' },
+    },
+    setMode: vi.fn(),
+  }),
 }))
 
 import { SupportRequestForm } from './SupportRequestForm'

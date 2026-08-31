@@ -164,5 +164,10 @@ export function ontarioFingerprintPayload(facts: OntarioActFacts): string {
  */
 export function looksLikeCurrencyDate(text: string): boolean {
   const trimmed = text.trim()
-  return trimmed.length > 0 && trimmed.length < 100 && !trimmed.startsWith('{') && !trimmed.startsWith('<')
+  return (
+    trimmed.length > 0 &&
+    trimmed.length < 100 &&
+    !trimmed.startsWith('{') &&
+    !trimmed.startsWith('<')
+  )
 }

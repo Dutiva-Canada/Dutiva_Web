@@ -18,10 +18,7 @@ import type {
   SearchTabKey,
   TemplatesSearchNavState,
 } from './searchCorpus'
-import {
-  buildProductionSearchEntries,
-  pinnedProductionChats,
-} from './searchProductionCorpus'
+import { buildProductionSearchEntries, pinnedProductionChats } from './searchProductionCorpus'
 
 /**
  * Global search overlay (⌘K / topbar search) — App v2 `buildSearchView()` +
@@ -86,15 +83,7 @@ function SearchDialog() {
       return filterSearchEntriesFrom(productionEntries, tab, query, lang)
     }
     return filterSearchEntries(tab, query, lang)
-  }, [
-    production,
-    productionLoading,
-    productionLoadFailed,
-    productionEntries,
-    tab,
-    query,
-    lang,
-  ])
+  }, [production, productionLoading, productionLoadFailed, productionEntries, tab, query, lang])
 
   /* Prototype clamps the active row against the current result count. */
   const activeIdx = Math.min(rawActiveIdx, Math.max(results.length - 1, 0))

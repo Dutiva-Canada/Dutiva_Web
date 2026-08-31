@@ -1,12 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import {
-  MEMORY_PROMPT_FACT_CAP,
-  memoryBlock,
-  selectMemoryFactsForPrompt,
-} from './memoryFacts'
+import { MEMORY_PROMPT_FACT_CAP, memoryBlock, selectMemoryFactsForPrompt } from './memoryFacts'
 import type { MemoryFactForPrompt } from './memoryFacts'
 
-function fact(partial: Partial<MemoryFactForPrompt> & Pick<MemoryFactForPrompt, 'id'>): MemoryFactForPrompt {
+function fact(
+  partial: Partial<MemoryFactForPrompt> & Pick<MemoryFactForPrompt, 'id'>,
+): MemoryFactForPrompt {
   return {
     scope: 'person',
     entityId: 'emp-1',

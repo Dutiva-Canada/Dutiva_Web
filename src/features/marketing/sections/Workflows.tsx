@@ -58,7 +58,10 @@ export const LANDING_WORKFLOW_TILES: Tile[] = [
 export function Workflows() {
   const { lt } = useLanding()
   return (
-    <section id="workflows" className="mx-auto max-w-[1200px] scroll-mt-[80px] px-4 py-12 sm:px-6 sm:py-16">
+    <section
+      id="workflows"
+      className="mx-auto max-w-[1200px] scroll-mt-[80px] px-4 py-12 sm:px-6 sm:py-16"
+    >
       <SectionIntro
         badge={lt('landing_wf_badge')}
         title={lt('landing_wf_title')}

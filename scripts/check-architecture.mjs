@@ -77,7 +77,9 @@ for (const file of files) {
   if (r.startsWith('src/features/marketing/') && MARKETING_DATA_IMPORT.test(content)) {
     const allowed = MARKETING_DATA_ALLOW.test(content) && !/from ['"]@\/data['"]/.test(content)
     if (!allowed) {
-      errors.push(`${r}: marketing code must not import @/data (use doclib catalogue or marketing/)`)
+      errors.push(
+        `${r}: marketing code must not import @/data (use doclib catalogue or marketing/)`,
+      )
     }
   }
 

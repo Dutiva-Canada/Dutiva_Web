@@ -66,8 +66,7 @@ export function completionRecordText(record: SigningCompletionRecord, lang: 'en'
           '',
           'Signataires :',
           ...record.signers.map(
-            (s) =>
-              `${s.order}. ${s.signedName ?? s.name} <${s.email}> — ${s.signedAt}`,
+            (s) => `${s.order}. ${s.signedName ?? s.name} <${s.email}> — ${s.signedAt}`,
           ),
           '',
           'Ce registre atteste des signatures capturées dans Dutiva. Il ne constitue pas un avis juridique sur la validité d’une signature électronique dans votre contexte.',
@@ -83,8 +82,7 @@ export function completionRecordText(record: SigningCompletionRecord, lang: 'en'
           '',
           'Signers:',
           ...record.signers.map(
-            (s) =>
-              `${s.order}. ${s.signedName ?? s.name} <${s.email}> — ${s.signedAt}`,
+            (s) => `${s.order}. ${s.signedName ?? s.name} <${s.email}> — ${s.signedAt}`,
           ),
           '',
           'This record attests to signatures captured in Dutiva. It is not legal advice on whether an electronic signature is sufficient for your circumstances.',

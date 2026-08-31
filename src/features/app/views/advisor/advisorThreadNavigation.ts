@@ -38,9 +38,7 @@ interface ThreadNavigationOptions {
   transcripts: RefObject<Map<string, ChatMessage[]>>
   responseState: Record<string, ThreadResponseState>
   setResponseState: (
-    updater: (
-      prev: Record<string, ThreadResponseState>,
-    ) => Record<string, ThreadResponseState>,
+    updater: (prev: Record<string, ThreadResponseState>) => Record<string, ThreadResponseState>,
   ) => void
   patchResponseState: (chatId: string, patch: Partial<ThreadResponseState>) => void
   engineReset: (messages: ChatMessage[]) => void
@@ -48,7 +46,9 @@ interface ThreadNavigationOptions {
   pushScenarioTurn: (chatId: string, turn: ScenarioTurn) => void
   seedFor: (chatId: string) => ChatMessage[]
   stashActive: () => void
-  updateExtras: (updater: (prev: Record<string, MessageExtras>) => Record<string, MessageExtras>) => void
+  updateExtras: (
+    updater: (prev: Record<string, MessageExtras>) => Record<string, MessageExtras>,
+  ) => void
   showToast: (message: Bi, tone: 'ok' | 'info') => void
   confirmDelete: (message: Bi) => boolean
   deleteOkToast: Bi

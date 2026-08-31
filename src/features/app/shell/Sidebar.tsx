@@ -246,12 +246,7 @@ export function Sidebar({
           const key = group.heading ? SECTION_KEYS[i - 1] : null
           /* Compact + empty: hide Programs icons so the rail stays scannable;
              expanded still shows the collapsed section heading. */
-          if (
-            !expanded &&
-            workspaceEmpty &&
-            key === 'programs' &&
-            !effectiveSections.programs
-          ) {
+          if (!expanded && workspaceEmpty && key === 'programs' && !effectiveSections.programs) {
             return null
           }
           if (group.heading === null) {

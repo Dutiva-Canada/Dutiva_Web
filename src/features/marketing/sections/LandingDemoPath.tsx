@@ -40,7 +40,9 @@ export function LandingDemoPath() {
                     : 'border-border bg-bg-soft text-text-2 hover:border-gold-border/60 hover:text-text'
                 }`}
               >
-                <span className="text-[10px] font-bold tracking-[0.06em] text-text-faint">{index + 1}</span>
+                <span className="text-[10px] font-bold tracking-[0.06em] text-text-faint">
+                  {index + 1}
+                </span>
                 {x(stop.title)}
               </button>
             </li>
@@ -87,11 +89,7 @@ function TourStopPreviewDialog({
 
   return createPortal(
     <div className="surface-marketing dutiva-surface text-text fixed inset-0 z-300 pt-[env(safe-area-inset-top)]">
-      <div
-        onClick={onClose}
-        aria-hidden="true"
-        className="absolute inset-0 bg-overlay-scrim-mid"
-      />
+      <div onClick={onClose} aria-hidden="true" className="absolute inset-0 bg-overlay-scrim-mid" />
       <div
         role="dialog"
         aria-modal="true"
@@ -101,7 +99,10 @@ function TourStopPreviewDialog({
         <div className="pointer-events-auto flex max-h-[min(92vh,860px)] w-[min(880px,100%)] flex-col overflow-hidden rounded-[16px] border border-border bg-bg-elevated shadow-modal">
           <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3 sm:px-5 sm:py-4">
             <div className="min-w-0">
-              <h2 id={titleId} className="font-display text-[18px] font-semibold tracking-[-0.01em] text-text">
+              <h2
+                id={titleId}
+                className="font-display text-[18px] font-semibold tracking-[-0.01em] text-text"
+              >
                 {x(stop.title)}
               </h2>
               <p className="mt-1 m-0 text-sm leading-[1.45] text-text-2">{x(stop.blurb)}</p>
@@ -135,14 +136,20 @@ function TourStopPreviewDialog({
                       : 'border-border bg-bg-soft text-text-2 hover:text-text'
                   }`}
                 >
-                  <span className="text-[10px] font-bold tracking-[0.06em] text-text-faint">{index + 1}</span>
+                  <span className="text-[10px] font-bold tracking-[0.06em] text-text-faint">
+                    {index + 1}
+                  </span>
                   {x(item.title)}
                 </button>
               )
             })}
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5">
-            <Suspense fallback={<div className="min-h-[240px] rounded-[14px] border border-border bg-bg-soft" />}>
+            <Suspense
+              fallback={
+                <div className="min-h-[240px] rounded-[14px] border border-border bg-bg-soft" />
+              }
+            >
               <TourStopPreviewBody key={stop.id} stop={stop} />
             </Suspense>
             <p className="mt-3 m-0 text-xs leading-normal text-text-faint">

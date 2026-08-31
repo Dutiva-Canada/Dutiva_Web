@@ -16,7 +16,7 @@ call](SUPPORT_RUNBOOK.md)).
    moves the ticket to `scheduled_call`, and queues a `call_proposed`
    notification to the customer.
 2. **Confirm.** The customer opens their own ticket (`/app/support/requests/
-   :id`) and picks one of the proposed times. This calls
+:id`) and picks one of the proposed times. This calls
    `support-confirm-call` (checks the caller is the ticket's own requester —
    a scheduled call is a personal appointment, not something a workspace
    peer can pick on someone else's behalf), which:
@@ -110,11 +110,11 @@ One query, service-role (SQL editor):
 select * from public.support_call_scheduler_status();
 ```
 
-| Column | Healthy value |
-| --- | --- |
-| `secret_configured` | `true` |
-| `job_scheduled` | `true` |
-| `awaiting_reminder` | Confirmed calls due a reminder on the next sweep |
+| Column              | Healthy value                                            |
+| ------------------- | -------------------------------------------------------- |
+| `secret_configured` | `true`                                                   |
+| `job_scheduled`     | `true`                                                   |
+| `awaiting_reminder` | Confirmed calls due a reminder on the next sweep         |
 | `awaiting_followup` | Confirmed calls due a follow-up prompt on the next sweep |
 
 Trigger a sweep by hand: `select public.trigger_support_call_scheduler();`

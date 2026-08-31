@@ -25,17 +25,17 @@ review, not just writing").
 
 ## 1. Headline numbers
 
-| # | Bucket | Items | Languages | Source volume (words)¹ | Reviewer needed |
-| --- | --- | --- | --- | --- | --- |
-| 1 | Public legal pages (`dutiva.ca/legal/*`) | **26** | EN + FR = **52 files** | ~33,000 EN + ~39,000 FR | Lawyer (privacy / commercial / tech) |
-| 2 | Templates flagged `lawyer_review_recommended` | **12** | bilingual per template | ~21,000 | Employment lawyer |
-| 3 | Templates flagged `hr_review_required` or `not_reviewed` | **38** | bilingual per template | ~67,000 | HR professional (CHRP/CRHA); lawyer spot-checks |
-| 4 | Notice-bands review pack (QC + FED statutory tables) | **1** | EN (statutes quoted bilingually) | ~4,500 | Employment lawyer — pack is built for a ~1-hour sign-off |
-| 5 | Advisor grounding corpus rows (`advisor_guidance_chunks`) | **42** | EN + FR per row | — | Employment lawyer or supervised paralegal |
-| 6 | Public articles (`/blog` 6 + `/guides` 6) | **12** | EN + FR = 24 pages | ~27,000 | Editorial legal pass (deferrable) |
-| 7 | In-app reference guides (`/app/knowledge/*`) | **8** | bilingual | ~23,000 | Editorial legal pass (deferrable) |
-| 8 | In-app flows & checklists (`/app/workflows/*`) | **4** | bilingual | ~11,000 | Editorial legal pass (deferrable) |
-| 9 | Small compliance copy (CASL consent string, signup emails, FAQ, known-limitations page, jurisdiction tool) | ~6 surfaces | bilingual | ~5,000 | Quick lawyer pass alongside bucket 1 |
+| #   | Bucket                                                                                                     | Items       | Languages                        | Source volume (words)¹  | Reviewer needed                                          |
+| --- | ---------------------------------------------------------------------------------------------------------- | ----------- | -------------------------------- | ----------------------- | -------------------------------------------------------- |
+| 1   | Public legal pages (`dutiva.ca/legal/*`)                                                                   | **26**      | EN + FR = **52 files**           | ~33,000 EN + ~39,000 FR | Lawyer (privacy / commercial / tech)                     |
+| 2   | Templates flagged `lawyer_review_recommended`                                                              | **12**      | bilingual per template           | ~21,000                 | Employment lawyer                                        |
+| 3   | Templates flagged `hr_review_required` or `not_reviewed`                                                   | **38**      | bilingual per template           | ~67,000                 | HR professional (CHRP/CRHA); lawyer spot-checks          |
+| 4   | Notice-bands review pack (QC + FED statutory tables)                                                       | **1**       | EN (statutes quoted bilingually) | ~4,500                  | Employment lawyer — pack is built for a ~1-hour sign-off |
+| 5   | Advisor grounding corpus rows (`advisor_guidance_chunks`)                                                  | **42**      | EN + FR per row                  | —                       | Employment lawyer or supervised paralegal                |
+| 6   | Public articles (`/blog` 6 + `/guides` 6)                                                                  | **12**      | EN + FR = 24 pages               | ~27,000                 | Editorial legal pass (deferrable)                        |
+| 7   | In-app reference guides (`/app/knowledge/*`)                                                               | **8**       | bilingual                        | ~23,000                 | Editorial legal pass (deferrable)                        |
+| 8   | In-app flows & checklists (`/app/workflows/*`)                                                             | **4**       | bilingual                        | ~11,000                 | Editorial legal pass (deferrable)                        |
+| 9   | Small compliance copy (CASL consent string, signup emails, FAQ, known-limitations page, jurisdiction tool) | ~6 surfaces | bilingual                        | ~5,000                  | Quick lawyer pass alongside bucket 1                     |
 
 ¹ Word counts are of the source files (TypeScript string content plus a
 10–20% markup overhead), measured 2026-08-07. They are sizing aids for
@@ -61,14 +61,14 @@ files), registered in `legalHubData.ts`, served at `/legal/<slug>` and
 dutiva.ca**, not the TypeScript — the prose is identical and the pages are
 what a court or regulator would read.
 
-| Hub section | Documents |
-| ----------- | --------- |
-| Core (5) | terms · privacy · disclaimer · cookies · accessibility |
-| Privacy & compliance (4) | pipeda-compliance · quebec-law-25 · casl-compliance · cross-border-transfer |
-| AI transparency (4) | ai-technology · ai-usage-disclosure · ai-risk-disclosure · human-review-escalation |
-| Data handling (6) | data-processing-agreement · data-retention · data-deletion · incident-response-policy · security · subprocessors |
-| Commercial (3) | subscription-agreement · refund-policy · support-policy |
-| IP & acceptable use (4) | acceptable-use · copyright · trademark-policy · dmca-takedown |
+| Hub section              | Documents                                                                                                        |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| Core (5)                 | terms · privacy · disclaimer · cookies · accessibility                                                           |
+| Privacy & compliance (4) | pipeda-compliance · quebec-law-25 · casl-compliance · cross-border-transfer                                      |
+| AI transparency (4)      | ai-technology · ai-usage-disclosure · ai-risk-disclosure · human-review-escalation                               |
+| Data handling (6)        | data-processing-agreement · data-retention · data-deletion · incident-response-policy · security · subprocessors |
+| Commercial (3)           | subscription-agreement · refund-policy · support-policy                                                          |
+| IP & acceptable use (4)  | acceptable-use · copyright · trademark-policy · dmca-takedown                                                    |
 
 Two things a reviewer must know going in:
 
@@ -94,20 +94,20 @@ is bilingual and ships with the standing disclaimer; none is
 documents where a customer acting on a bad clause gets sued or breaches a
 statute:
 
-| tid | Template | Why it is in this tier |
-| --- | -------- | ---------------------- |
-| T03 | Termination letter | wrongful dismissal exposure |
-| T07 | Contractor agreement | misclassification exposure |
-| T08 | Restrictive covenants | enforceability turns on drafting |
-| T15 | Group termination notice | statutory mass-termination duties |
-| T17 | Full & final release | releases are classic counsel documents |
-| T19 | Accommodation documentation | human-rights process record |
-| T20 | Medical information request letter | privacy + human-rights limits |
-| T22 | Accommodation response | refusals invite complaints |
-| T24 | Undue hardship assessment | statutory test differs by jurisdiction |
-| T31 | Investigation report | procedural-fairness record |
-| T32 | Layoff notice | deemed-termination traps |
-| T41 | Investigation notice | procedural fairness; only `high`-risk Ring 3 doc |
+| tid | Template                           | Why it is in this tier                           |
+| --- | ---------------------------------- | ------------------------------------------------ |
+| T03 | Termination letter                 | wrongful dismissal exposure                      |
+| T07 | Contractor agreement               | misclassification exposure                       |
+| T08 | Restrictive covenants              | enforceability turns on drafting                 |
+| T15 | Group termination notice           | statutory mass-termination duties                |
+| T17 | Full & final release               | releases are classic counsel documents           |
+| T19 | Accommodation documentation        | human-rights process record                      |
+| T20 | Medical information request letter | privacy + human-rights limits                    |
+| T22 | Accommodation response             | refusals invite complaints                       |
+| T24 | Undue hardship assessment          | statutory test differs by jurisdiction           |
+| T31 | Investigation report               | procedural-fairness record                       |
+| T32 | Layoff notice                      | deemed-termination traps                         |
+| T41 | Investigation notice               | procedural fairness; only `high`-risk Ring 3 doc |
 
 **36 flagged `hr_review_required` + 2 `not_reviewed` (T47 candidate
 rejection letter, T49 onboarding package).** Full roster: T01 offer letter,
@@ -146,7 +146,7 @@ ON, QC and FED variants — three jurisdictions, not one document each.
   this. L7's ESA severance options (§3 of the pack) ride along in the same read.
 - **42 corpus rows** in `advisor_guidance_chunks` — statutory figures with
   official source URLs and retrieval dates, all `review_status:
-  machine_curated`, none ever flipped to `reviewed` (TODO.md L5). The review
+machine_curated`, none ever flipped to `reviewed` (TODO.md L5). The review
   aids already exist and make this fast: the four corpus snapshot docs
   (2026-07-26 / 07-27 / 07-29 / 08-04) and
   [advisor-corpus-verification-2026-08-02.md](advisor-corpus-verification-2026-08-02.md)

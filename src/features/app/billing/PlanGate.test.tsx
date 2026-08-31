@@ -35,7 +35,12 @@ const DEMO_MODE: WorkspaceModeContextValue = {
   isAdmin: false,
   identity: {
     companyName: 'Northgate Logistics Inc.',
-    user: { name: 'Riley Chen', initials: 'RC', role: { en: 'HR Manager', fr: 'Gestionnaire RH' }, email: 'riley@northgate.ca' },
+    user: {
+      name: 'Riley Chen',
+      initials: 'RC',
+      role: { en: 'HR Manager', fr: 'Gestionnaire RH' },
+      email: 'riley@northgate.ca',
+    },
   },
   companyName: 'Northgate Logistics Inc.',
   organizationId: null,

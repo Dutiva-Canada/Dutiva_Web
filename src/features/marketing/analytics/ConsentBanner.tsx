@@ -2,7 +2,11 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { usePublicPath } from '@/seo/usePublicPath'
-import { hasAnalyticsConsent, hasConsentResponse, setAnalyticsConsent } from '@/lib/analyticsConsent'
+import {
+  hasAnalyticsConsent,
+  hasConsentResponse,
+  setAnalyticsConsent,
+} from '@/lib/analyticsConsent'
 import { loadConsentedTags } from './gtm'
 import { COOKIE_PREFERENCES_EVENT } from './cookiePreferences'
 

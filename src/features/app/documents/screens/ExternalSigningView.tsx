@@ -48,9 +48,7 @@ export function ExternalSigningView() {
   const [declining, setDeclining] = useState(false)
   const [consentChecked, setConsentChecked] = useState(false)
   const [signature, setSignature] = useState<SignatureValue | undefined>()
-  const [completedStatus, setCompletedStatus] = useState<'signed' | 'partially_signed' | null>(
-    null,
-  )
+  const [completedStatus, setCompletedStatus] = useState<'signed' | 'partially_signed' | null>(null)
   const [signError, setSignError] = useState(false)
 
   const load = useCallback(async () => {
@@ -133,18 +131,10 @@ export function ExternalSigningView() {
         {seo}
         <div className="surface-app min-h-screen bg-bg px-6 py-16 text-center font-sans text-text">
           <h1 className="mb-2 font-display text-[20px] font-semibold text-text">
-            {x(
-              !partial
-                ? M.doclib_external_signed_title
-                : M.doclib_external_signed_partial_title,
-            )}
+            {x(!partial ? M.doclib_external_signed_title : M.doclib_external_signed_partial_title)}
           </h1>
           <p className="text-[13px] text-text-muted">
-            {x(
-              !partial
-                ? M.doclib_external_signed_body
-                : M.doclib_external_signed_partial_body,
-            )}
+            {x(!partial ? M.doclib_external_signed_body : M.doclib_external_signed_partial_body)}
           </p>
         </div>
       </>
@@ -202,104 +192,110 @@ export function ExternalSigningView() {
   return (
     <>
       {seo}
-    <div className="surface-app min-h-screen bg-bg font-sans text-text">
-      <div className="mx-auto max-w-300 px-7 pt-8 pb-16 max-[640px]:px-4">
-        <div className="mb-4.5">
-          <div className="mb-1 text-[11px] font-bold uppercase tracking-[0.08em] text-text-muted">
-            {pkg.document.ref}
-          </div>
-          <h1 className="font-display text-[23px] font-semibold leading-[1.2] tracking-[-0.015em] text-text">
-            {pick(pkg.document.title, pkg.document.language)}
-          </h1>
-          <p className="mt-1 text-[13px] text-text-faint">{x(M.doclib_external_intro)}</p>
-        </div>
-
-        {turnRecipient && !canSign && (
-          <div className="mb-4 rounded-xl border border-border bg-inset px-4 py-3 text-[13px] text-text-muted">
-            {x(M.doclib_sign_waitingTurn)} {turnRecipient.name} ({turnRecipient.email})
-          </div>
-        )}
-
-        {signError && (
-          <div className="mb-4 rounded-xl border border-risk-border bg-risk-bg px-4 py-3 text-[13px] text-risk-fg">
-            {x(M.doclib_external_sign_failed)}
-          </div>
-        )}
-
-        <div className="flex flex-col gap-6.5 lg:flex-row">
-          <div className="min-w-0 flex-1">
-            {preview && (
-              <div className="max-h-[70vh] overflow-y-auto rounded-[14px] border border-border bg-surface">
-                <DocPaper blocks={preview.blocks} values={preview.values} docLang={preview.lang} />
-              </div>
-            )}
+      <div className="surface-app min-h-screen bg-bg font-sans text-text">
+        <div className="mx-auto max-w-300 px-7 pt-8 pb-16 max-[640px]:px-4">
+          <div className="mb-4.5">
+            <div className="mb-1 text-[11px] font-bold uppercase tracking-[0.08em] text-text-muted">
+              {pkg.document.ref}
+            </div>
+            <h1 className="font-display text-[23px] font-semibold leading-[1.2] tracking-[-0.015em] text-text">
+              {pick(pkg.document.title, pkg.document.language)}
+            </h1>
+            <p className="mt-1 text-[13px] text-text-faint">{x(M.doclib_external_intro)}</p>
           </div>
 
-          <aside className="w-full shrink-0 lg:w-90">
-            <div className="sticky top-[14px] rounded-[14px] border border-border bg-surface p-5">
-              <h2 className="mb-1 font-display text-[16px] font-semibold text-text">
-                {t('doclib_sign_title')}
-              </h2>
+          {turnRecipient && !canSign && (
+            <div className="mb-4 rounded-xl border border-border bg-inset px-4 py-3 text-[13px] text-text-muted">
+              {x(M.doclib_sign_waitingTurn)} {turnRecipient.name} ({turnRecipient.email})
+            </div>
+          )}
 
-              {!canSign ? (
-                <div className="text-[13px] text-text-muted">
-                  {turnRecipient ? x(M.doclib_sign_waitingTurn) : t('doclib_sign_notFound')}
-                </div>
-              ) : (
-                <>
-                  <div className="mb-4 text-[12.5px] text-text-faint">
-                    {pkg.recipient.name} · {pkg.recipient.email}
-                  </div>
+          {signError && (
+            <div className="mb-4 rounded-xl border border-risk-border bg-risk-bg px-4 py-3 text-[13px] text-risk-fg">
+              {x(M.doclib_external_sign_failed)}
+            </div>
+          )}
 
-                  <SignaturePad
-                    labels={{
-                      name: t('doclib_sign_name'),
-                      draw: t('doclib_sign_draw'),
-                      type: t('doclib_sign_type'),
-                      clear: t('doclib_sign_clear'),
-                      placeholder: t('doclib_sign_namePh'),
-                    }}
-                    onChange={setSignature}
+          <div className="flex flex-col gap-6.5 lg:flex-row">
+            <div className="min-w-0 flex-1">
+              {preview && (
+                <div className="max-h-[70vh] overflow-y-auto rounded-[14px] border border-border bg-surface">
+                  <DocPaper
+                    blocks={preview.blocks}
+                    values={preview.values}
+                    docLang={preview.lang}
                   />
-
-                  <label className="mt-4 flex items-start gap-2 text-[12px] text-text-muted">
-                    <input
-                      type="checkbox"
-                      checked={consentChecked}
-                      onChange={(e) => setConsentChecked(e.target.checked)}
-                      className="mt-0.5"
-                    />
-                    <span>{x(M.doclib_sign_consent)}</span>
-                  </label>
-
-                  <p className="mt-3 text-[11.5px] text-text-faint">{x(M.doclib_sign_legalNotice)}</p>
-
-                  <button
-                    type="button"
-                    onClick={() => void handleSign()}
-                    disabled={!signature || !consentChecked || signing}
-                    className="mt-4 w-full rounded-[9px] bg-navy px-3.5 py-2 text-[12.5px] font-semibold text-white opacity-100 transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {t('doclib_sign_done')}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => void handleDecline()}
-                    disabled={declining}
-                    className="mt-2 w-full rounded-[9px] border border-border bg-surface px-3.5 py-2 text-[12.5px] font-semibold text-text hover:bg-inset disabled:opacity-50"
-                  >
-                    {x(M.doclib_sign_decline)}
-                  </button>
-                </>
+                </div>
               )}
             </div>
 
-            <Disclaimer variant="block" className="mt-4" />
-          </aside>
+            <aside className="w-full shrink-0 lg:w-90">
+              <div className="sticky top-[14px] rounded-[14px] border border-border bg-surface p-5">
+                <h2 className="mb-1 font-display text-[16px] font-semibold text-text">
+                  {t('doclib_sign_title')}
+                </h2>
+
+                {!canSign ? (
+                  <div className="text-[13px] text-text-muted">
+                    {turnRecipient ? x(M.doclib_sign_waitingTurn) : t('doclib_sign_notFound')}
+                  </div>
+                ) : (
+                  <>
+                    <div className="mb-4 text-[12.5px] text-text-faint">
+                      {pkg.recipient.name} · {pkg.recipient.email}
+                    </div>
+
+                    <SignaturePad
+                      labels={{
+                        name: t('doclib_sign_name'),
+                        draw: t('doclib_sign_draw'),
+                        type: t('doclib_sign_type'),
+                        clear: t('doclib_sign_clear'),
+                        placeholder: t('doclib_sign_namePh'),
+                      }}
+                      onChange={setSignature}
+                    />
+
+                    <label className="mt-4 flex items-start gap-2 text-[12px] text-text-muted">
+                      <input
+                        type="checkbox"
+                        checked={consentChecked}
+                        onChange={(e) => setConsentChecked(e.target.checked)}
+                        className="mt-0.5"
+                      />
+                      <span>{x(M.doclib_sign_consent)}</span>
+                    </label>
+
+                    <p className="mt-3 text-[11.5px] text-text-faint">
+                      {x(M.doclib_sign_legalNotice)}
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={() => void handleSign()}
+                      disabled={!signature || !consentChecked || signing}
+                      className="mt-4 w-full rounded-[9px] bg-navy px-3.5 py-2 text-[12.5px] font-semibold text-white opacity-100 transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {t('doclib_sign_done')}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => void handleDecline()}
+                      disabled={declining}
+                      className="mt-2 w-full rounded-[9px] border border-border bg-surface px-3.5 py-2 text-[12.5px] font-semibold text-text hover:bg-inset disabled:opacity-50"
+                    >
+                      {x(M.doclib_sign_decline)}
+                    </button>
+                  </>
+                )}
+              </div>
+
+              <Disclaimer variant="block" className="mt-4" />
+            </aside>
+          </div>
         </div>
       </div>
-    </div>
     </>
   )
 }

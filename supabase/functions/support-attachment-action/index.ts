@@ -54,8 +54,13 @@ function canRelease(
 }
 const MAX_SIZE = 26214400 // 25 MB (matches the bucket limit)
 const ALLOWED_MIME = new Set([
-  'image/png', 'image/jpeg', 'image/gif', 'image/webp',
-  'application/pdf', 'text/plain', 'text/csv',
+  'image/png',
+  'image/jpeg',
+  'image/gif',
+  'image/webp',
+  'application/pdf',
+  'text/plain',
+  'text/csv',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 ])
@@ -211,7 +216,8 @@ Deno.serve(async (req: Request) => {
       .createSignedUrl(attachment.storage_path, SIGNED_URL_TTL, {
         download: attachment.file_name,
       })
-    if (signError || !signed) return json({ error: signError?.message ?? 'Could not sign URL' }, 500)
+    if (signError || !signed)
+      return json({ error: signError?.message ?? 'Could not sign URL' }, 500)
     return json({ data: { url: signed.signedUrl } })
   }
 

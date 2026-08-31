@@ -28,8 +28,6 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-
-
 The Dutiva workspace uses a **passwordless magic-link** authentication flow built on Supabase OTP. There are no passwords anywhere in the system. Authentication is provided by `AuthProvider`, consumed via the `useAuth()` hook, and enforced by `RequireAdminSession`. Workspace membership authorization is resolved server-side by the `current_user_is_workspace_member()` Postgres RPC, which implements beta cohort admission logic capped at `BETA_COHORT_LIMIT` (15) signups.
 
 ## Architecture Overview
@@ -104,12 +102,12 @@ Defined in `authContext.ts`, the `AuthStatus` type is a four-value union represe
 export type AuthStatus = 'loading' | 'signed-out' | 'sent-link' | 'signed-in'
 ```
 
-| Status | Meaning | Trigger |
-|--------|---------|---------|
-| `loading` | Initial state; Supabase `getSession()` in flight | Component mount (when `supabase` is non-null) |
-| `signed-out` | No active session; or Supabase unconfigured | `getSession()` returns null, `onAuthStateChange` fires `SIGNED_OUT`, or `supabase` is null |
-| `sent-link` | Magic link email dispatched successfully | `signInWithOtp` resolves without error |
-| `signed-in` | Active Supabase session present | `getSession()` returns session, or `onAuthStateChange` fires with a session |
+| Status       | Meaning                                          | Trigger                                                                                    |
+| ------------ | ------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| `loading`    | Initial state; Supabase `getSession()` in flight | Component mount (when `supabase` is non-null)                                              |
+| `signed-out` | No active session; or Supabase unconfigured      | `getSession()` returns null, `onAuthStateChange` fires `SIGNED_OUT`, or `supabase` is null |
+| `sent-link`  | Magic link email dispatched successfully         | `signInWithOtp` resolves without error                                                     |
+| `signed-in`  | Active Supabase session present                  | `getSession()` returns session, or `onAuthStateChange` fires with a session                |
 
 Sources: [src/features/app/auth/authContext.ts:14]()
 
@@ -117,14 +115,14 @@ Sources: [src/features/app/auth/authContext.ts:14]()
 
 The context exposes six fields:
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `status` | `AuthStatus` | Current lifecycle state |
-| `session` | `Session \| null` | Raw Supabase session (JWT, user info) |
-| `authorized` | `boolean \| null` | Workspace membership result; `null` while check is in flight or when signed out |
-| `signInWithEmail` | `(email, opts?) => Promise<string \| undefined>` | Sends magic link; returns error message or `undefined` on success |
-| `verifyEmailCode` | `(email, code) => Promise<string \| undefined>` | Verifies 6-digit code; returns error message or `undefined` |
-| `signOut` | `() => Promise<void>` | Ends the session |
+| Field             | Type                                             | Purpose                                                                         |
+| ----------------- | ------------------------------------------------ | ------------------------------------------------------------------------------- |
+| `status`          | `AuthStatus`                                     | Current lifecycle state                                                         |
+| `session`         | `Session \| null`                                | Raw Supabase session (JWT, user info)                                           |
+| `authorized`      | `boolean \| null`                                | Workspace membership result; `null` while check is in flight or when signed out |
+| `signInWithEmail` | `(email, opts?) => Promise<string \| undefined>` | Sends magic link; returns error message or `undefined` on success               |
+| `verifyEmailCode` | `(email, code) => Promise<string \| undefined>`  | Verifies 6-digit code; returns error message or `undefined`                     |
+| `signOut`         | `() => Promise<void>`                            | Ends the session                                                                |
 
 The `useAuth()` hook consumes this context and throws if used outside `AuthProvider`.
 
@@ -155,6 +153,7 @@ Sources: [src/features/app/AppProviders.tsx:25-43]()
 ### Session Bootstrap
 
 On mount, the provider:
+
 1. Calls `supabase.auth.getSession()` to check for an existing session (e.g. from `localStorage`)
 2. Subscribes to `supabase.auth.onAuthStateChange()` for real-time session updates
 3. Sets `status` to `'signed-in'` or `'signed-out'` based on the result
@@ -166,11 +165,13 @@ Sources: [src/features/app/auth/AuthProvider.tsx:22-38]()
 ### Magic Link Dispatch (`signInWithEmail`)
 
 The `signInWithEmail` callback calls `supabase.auth.signInWithOtp()` with:
+
 - The user's email
 - `emailRedirectTo` set to `${window.location.origin}/app/auth/confirm`
 - Optional `data: { full_name: name }` when the sign-up tab provides a display name
 
 Key design decisions:
+
 - **No client-side eligibility check** — the link is sent to any syntactically valid address. Checking membership before sending would create an oracle for beta-list membership.
 - **Bilingual error handling** — Supabase's raw English `error.message` is never surfaced. Instead, the error is logged and a localized `auth_generic_error` message is returned.
 - On success, `status` transitions to `'sent-link'`.
@@ -200,7 +201,10 @@ A second `useEffect` fires when `status` becomes `'signed-in'`. It calls the `cu
 ```typescript
 supabase.rpc('current_user_is_workspace_member').then(({ data, error }) => {
   if (cancelled) return
-  if (error) { setAuthorized(false); return }
+  if (error) {
+    setAuthorized(false)
+    return
+  }
   setAuthorized(data === true)
 })
 ```
@@ -275,8 +279,11 @@ The magic link template:
 ```html
 <p>Your sign-in code:</p>
 <p style="font-size:28px;font-weight:700;letter-spacing:6px;">{{ .Token }}</p>
-<p>Or <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=magiclink">
-  sign in on this device</a>.</p>
+<p>
+  Or
+  <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=magiclink"> sign in on this device</a
+  >.
+</p>
 ```
 
 `{{ .Token }}` and `{{ .TokenHash }}` are two representations of the same one-time credential — spending either spends both. The code is presented first because it is the robust path.
@@ -287,13 +294,13 @@ Sources: [scripts/apply-auth-email-templates.mjs:47-65](), [docs/AUTH_EMAIL_TEMP
 
 `RequireAdminSession` at [src/features/app/auth/RequireAdminSession.tsx:33-53]() wraps all `/app` routes and enforces the invite-only workspace boundary.
 
-| Condition | Behavior |
-|-----------|----------|
-| `supabase` is null | Pass through (local dev/tests) |
-| `isVercelPreview()` is true | Pass through (internal preview deployments) |
-| `status === 'loading'` or `authorized === null` | Render blank div (avoid flash) |
-| `status === 'signed-in' && authorized === true` | Render children |
-| All other cases | `<Navigate to="/app/welcome">` with `state.from` for return |
+| Condition                                       | Behavior                                                    |
+| ----------------------------------------------- | ----------------------------------------------------------- |
+| `supabase` is null                              | Pass through (local dev/tests)                              |
+| `isVercelPreview()` is true                     | Pass through (internal preview deployments)                 |
+| `status === 'loading'` or `authorized === null` | Render blank div (avoid flash)                              |
+| `status === 'signed-in' && authorized === true` | Render children                                             |
+| All other cases                                 | `<Navigate to="/app/welcome">` with `state.from` for return |
 
 `isVercelPreview()` returns true only when `VERCEL_ENV === 'preview'`, which is baked in at build time. Production always enforces the gate.
 
@@ -347,11 +354,11 @@ sequenceDiagram
 
 The function grants access if the caller's email matches any of three sources:
 
-| Source | Condition | Purpose |
-|--------|-----------|---------|
-| Hardcoded admin | `lower(email) = 'martin.constantineau@dutiva.ca'` | Founder/admin always admitted |
-| `beta_signups` | First 15 rows (by `created_at ASC, id ASC`) where `status NOT IN ('declined', 'bounced')` | Self-serve beta cohort, capacity-capped |
-| `admin_beta_access` | `status IN ('invited', 'active')` | Manual operator invites, unlimited |
+| Source              | Condition                                                                                 | Purpose                                 |
+| ------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------- |
+| Hardcoded admin     | `lower(email) = 'martin.constantineau@dutiva.ca'`                                         | Founder/admin always admitted           |
+| `beta_signups`      | First 15 rows (by `created_at ASC, id ASC`) where `status NOT IN ('declined', 'bounced')` | Self-serve beta cohort, capacity-capped |
+| `admin_beta_access` | `status IN ('invited', 'active')`                                                         | Manual operator invites, unlimited      |
 
 The `LIMIT 15` on `beta_signups` matches `BETA_COHORT_LIMIT` in `src/config/beta.ts` and `create-beta-signup/index.ts`. Drift between these three copies is caught by `canonicalFacts.test.ts`.
 
@@ -363,11 +370,11 @@ Sources: [supabase/migrations/0067_beta_cohort_capacity.sql:1-69](), [supabase/m
 
 The same `current_user_is_workspace_member()` function gates RLS policies on sensitive tables:
 
-| Table | Policy |
-|-------|--------|
+| Table              | Policy                     |
+| ------------------ | -------------------------- |
 | `guidance_sources` | Read active public sources |
-| `guidance_chunks` | Read guidance chunks |
-| `law_updates` | Read law updates |
+| `guidance_chunks`  | Read guidance chunks       |
+| `law_updates`      | Read law updates           |
 
 Edge functions (`advisor-chat`, `advisor-safety-event`) also call this function server-side via their own JWT client.
 
@@ -393,6 +400,7 @@ flowchart LR
 ```
 
 The `create-beta-signup` edge function (`verify_jwt: false`, public) enforces:
+
 - **Honeypot** (`contact_fax` field) — bots fill it, real users don't see it
 - **CAPTCHA** — Turnstile/hCaptcha, active once `CAPTCHA_SECRET_KEY` is set
 - **Rate limits** — per-IP (5/hour) and per-email (3/hour) via `beta_signup_intake` table storing only salted hashes
@@ -407,11 +415,11 @@ Sources: [src/features/marketing/betaSignupApi.ts:1-101](), [supabase/functions/
 
 Separate from workspace membership, `adminAccess.ts` determines billing bypass:
 
-| Function | Logic |
-|----------|-------|
-| `isAdminEmail(email)` | Matches explicit list (`martin.constantineau@dutiva.ca`) |
-| `isInternalDutivaAccount(email)` | Any `@dutiva.ca` address |
-| `bypassesPaywall(email)` | Either of the above |
+| Function                         | Logic                                                    |
+| -------------------------------- | -------------------------------------------------------- |
+| `isAdminEmail(email)`            | Matches explicit list (`martin.constantineau@dutiva.ca`) |
+| `isInternalDutivaAccount(email)` | Any `@dutiva.ca` address                                 |
+| `bypassesPaywall(email)`         | Either of the above                                      |
 
 This is intentionally separate from `current_user_is_workspace_member()` — billing bypass is for `@dutiva.ca` staff only, while workspace access includes beta signups and manual invites.
 

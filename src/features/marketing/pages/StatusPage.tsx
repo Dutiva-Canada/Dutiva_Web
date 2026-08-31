@@ -20,7 +20,12 @@ import { MarketingPageShell, PageHero } from './MarketingPage'
 export function StatusPage() {
   const { x, lang } = useI18n()
   const [rows, setRows] = useState<ServiceStatusRow[]>(() =>
-    SERVICE_COMPONENTS.map((c) => ({ component: c.id, status: 'operational', message: null, updatedAt: '' })),
+    SERVICE_COMPONENTS.map((c) => ({
+      component: c.id,
+      status: 'operational',
+      message: null,
+      updatedAt: '',
+    })),
   )
 
   useEffect(() => {
@@ -71,7 +76,10 @@ export function StatusPage() {
                   {componentLabel(row.component)}
                 </span>
                 <span className="inline-flex items-center gap-2 text-[0.8125rem] font-medium text-text-2">
-                  <span aria-hidden="true" className={`status-dot ${STATUS_DOT_CLASS[row.status]}`} />
+                  <span
+                    aria-hidden="true"
+                    className={`status-dot ${STATUS_DOT_CLASS[row.status]}`}
+                  />
                   {x(STATUS_LEVEL_LABELS[row.status])}
                 </span>
               </div>
@@ -83,7 +91,10 @@ export function StatusPage() {
         </ul>
 
         <p className="mt-8 text-center text-sm text-text-3">
-          <Link to={seoRoute('contact').path[lang]} className="font-semibold text-gold-strong hover:opacity-80">
+          <Link
+            to={seoRoute('contact').path[lang]}
+            className="font-semibold text-gold-strong hover:opacity-80"
+          >
             {x(M.support_contact_h1)}
           </Link>
         </p>

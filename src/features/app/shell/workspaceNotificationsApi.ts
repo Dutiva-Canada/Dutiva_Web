@@ -51,9 +51,7 @@ export function relativeTimeLabel(iso: string, now = Date.now()): Bi {
   return formatRelativeTime(iso, now)
 }
 
-export async function listWorkspaceNotifications(
-  limit = 30,
-): Promise<WorkspaceNotification[]> {
+export async function listWorkspaceNotifications(limit = 30): Promise<WorkspaceNotification[]> {
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('hr_workspace_notifications')

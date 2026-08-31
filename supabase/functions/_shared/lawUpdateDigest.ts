@@ -23,7 +23,9 @@ import type { SupportedJurisdiction } from './lawUpdateRelevance.ts'
  * jurisdiction name — unsupported means "not ours to talk about", not
  * "unknown, pass it through".
  */
-export function parseSupportedJurisdiction(value: string | null | undefined): SupportedJurisdiction | null {
+export function parseSupportedJurisdiction(
+  value: string | null | undefined,
+): SupportedJurisdiction | null {
   if (typeof value !== 'string') return null
   const upper = value.trim().toUpperCase()
   return upper === 'ON' || upper === 'QC' || upper === 'FED' ? upper : null

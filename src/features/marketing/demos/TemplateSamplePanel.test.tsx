@@ -21,7 +21,9 @@ describe('TemplateSamplePanel', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /Preview sample/i }))
-    expect(screen.getByRole('dialog', { name: 'Termination letter (without cause)' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('dialog', { name: 'Termination letter (without cause)' }),
+    ).toBeInTheDocument()
     expect(screen.getByText('Termination of Employment')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /Close preview/i }))
@@ -30,7 +32,9 @@ describe('TemplateSamplePanel', () => {
 
   it('can start open for tests', () => {
     renderPanel('T01', true)
-    expect(screen.getByRole('dialog', { name: 'Offer of employment letter (Ontario)' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('dialog', { name: 'Offer of employment letter (Ontario)' }),
+    ).toBeInTheDocument()
     expect(screen.getByText('Offer of Employment')).toBeInTheDocument()
   })
 })

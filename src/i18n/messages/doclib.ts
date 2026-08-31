@@ -370,8 +370,14 @@ export const doclibMessages = defineMessages({
     fr: 'Chaque personne reçoit un lien personnel vers /sign — aucun compte Dutiva requis.',
   },
   doclib_sign_title: { en: 'Sign document', fr: 'Signer le document' },
-  doclib_sign_subtitle: { en: 'Review the document, then sign below.', fr: 'Révisez le document, puis signez ci-dessous.' },
-  doclib_sign_select: { en: 'Select a recipient to sign:', fr: 'Choisissez un destinataire à signer :' },
+  doclib_sign_subtitle: {
+    en: 'Review the document, then sign below.',
+    fr: 'Révisez le document, puis signez ci-dessous.',
+  },
+  doclib_sign_select: {
+    en: 'Select a recipient to sign:',
+    fr: 'Choisissez un destinataire à signer :',
+  },
   doclib_sign_name: { en: 'Signer’s full name', fr: 'Nom complet du signataire' },
   doclib_sign_namePh: { en: 'Type your full name', fr: 'Saisissez votre nom complet' },
   doclib_sign_draw: { en: 'Draw', fr: 'Dessiner' },
@@ -416,7 +422,10 @@ export const doclibMessages = defineMessages({
     en: 'Your signature is recorded. You can close this page or return to the document while other signers complete theirs.',
     fr: 'Votre signature est enregistrée. Vous pouvez fermer cette page ou retourner au document pendant que les autres signataires complètent la leur.',
   },
-  doclib_sign_notFound: { en: 'Signature link not found or expired.', fr: 'Lien de signature introuvable ou expiré.' },
+  doclib_sign_notFound: {
+    en: 'Signature link not found or expired.',
+    fr: 'Lien de signature introuvable ou expiré.',
+  },
   doclib_sign_back: { en: 'Back to Documents', fr: 'Retour aux documents' },
 
   /* Production repository (migration 0076) — [FR self-authored] */

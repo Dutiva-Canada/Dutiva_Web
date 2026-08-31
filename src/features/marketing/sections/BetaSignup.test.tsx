@@ -4,9 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { renderApp } from '@/test/renderApp'
 
 const createBetaSignup = vi.hoisted(() => vi.fn())
-const getBetaCohortStatus = vi.hoisted(() =>
-  vi.fn().mockResolvedValue({ taken: 3, limit: 15 }),
-)
+const getBetaCohortStatus = vi.hoisted(() => vi.fn().mockResolvedValue({ taken: 3, limit: 15 }))
 vi.mock('../betaSignupApi', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../betaSignupApi')>()
   return { ...actual, createBetaSignup }

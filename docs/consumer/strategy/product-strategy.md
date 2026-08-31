@@ -16,10 +16,10 @@ Help individual Canadians understand and manage personal administrative obligati
 
 Three options are documented in full in `decisions/architecture-decisions.md`:
 
-| Option | Short description | Provisional assessment |
-|---|---|---|
-| **A — Independent products** | Separate brands, repositories, backends. | Cleanest liability and brand separation; highest cost. |
-| **B — Consumer platform with modules** | Shared auth, storage, and billing. | Best long-term flywheel; requires strong product boundaries. |
+| Option                                             | Short description                                                     | Provisional assessment                                                       |
+| -------------------------------------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| **A — Independent products**                       | Separate brands, repositories, backends.                              | Cleanest liability and brand separation; highest cost.                       |
+| **B — Consumer platform with modules**             | Shared auth, storage, and billing.                                    | Best long-term flywheel; requires strong product boundaries.                 |
 | **C — Life Admin as core, others as capabilities** | Document generation and evidence locker support the primary workflow. | Best MVP narrative; risk that document/evidence features feel under-powered. |
 
 The documentation does **not** make a final choice. It provides the analysis needed to decide once legal, brand, and engineering constraints are known.
@@ -56,11 +56,11 @@ The documentation does **not** make a final choice. It provides the analysis nee
 
 ## Risk summary
 
-| Risk | Mitigation direction |
-|---|---|
-| Legal information goes stale | Source hierarchy, review dates, drift detection, no statutory figures in editorial content. |
-| AI hallucination of laws/deadlines | Deterministic rules for facts, LLM only for natural language, safety backstop. |
-| Consumer confuses guidance with legal advice | Clear disclaimers, tier classification, escalation to professionals. |
-| Sensitive document breach | Encryption, least privilege, audit, no PII in telemetry, data residency. |
-| Jurisdiction error | Default unknown, explicit confirmation, no national assumption. |
-| Feature creep | Phased MVP with explicit exclusions. |
+| Risk                                         | Mitigation direction                                                                        |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Legal information goes stale                 | Source hierarchy, review dates, drift detection, no statutory figures in editorial content. |
+| AI hallucination of laws/deadlines           | Deterministic rules for facts, LLM only for natural language, safety backstop.              |
+| Consumer confuses guidance with legal advice | Clear disclaimers, tier classification, escalation to professionals.                        |
+| Sensitive document breach                    | Encryption, least privilege, audit, no PII in telemetry, data residency.                    |
+| Jurisdiction error                           | Default unknown, explicit confirmation, no national assumption.                             |
+| Feature creep                                | Phased MVP with explicit exclusions.                                                        |

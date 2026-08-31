@@ -18,13 +18,16 @@ describe('parseEvent', () => {
   })
 
   it('parses a helpfulness_vote event', () => {
-    const result = parseEvent({
-      event_type: 'helpfulness_vote',
-      article_slug: 'resetting-your-password',
-      vote_value: 'yes',
-      anonymous_visitor_id: 'abc-123',
-      locale: 'en',
-    }, NOW)
+    const result = parseEvent(
+      {
+        event_type: 'helpfulness_vote',
+        article_slug: 'resetting-your-password',
+        vote_value: 'yes',
+        anonymous_visitor_id: 'abc-123',
+        locale: 'en',
+      },
+      NOW,
+    )
     expect(result).toEqual({
       event_type: 'helpfulness_vote',
       article_slug: 'resetting-your-password',
@@ -41,17 +44,22 @@ describe('parseEvent', () => {
   })
 
   it('rejects helpfulness_vote with invalid vote_value', () => {
-    expect(parseEvent({ event_type: 'helpfulness_vote', article_slug: 'x', vote_value: 'maybe' }, NOW)).toBeNull()
+    expect(
+      parseEvent({ event_type: 'helpfulness_vote', article_slug: 'x', vote_value: 'maybe' }, NOW),
+    ).toBeNull()
   })
 
   it('parses a help_search event', () => {
-    const result = parseEvent({
-      event_type: 'help_search',
-      search_query: 'password reset',
-      search_result_count: 3,
-      anonymous_visitor_id: 'abc-123',
-      locale: 'fr',
-    }, NOW)
+    const result = parseEvent(
+      {
+        event_type: 'help_search',
+        search_query: 'password reset',
+        search_result_count: 3,
+        anonymous_visitor_id: 'abc-123',
+        locale: 'fr',
+      },
+      NOW,
+    )
     expect(result).toEqual({
       event_type: 'help_search',
       search_query: 'password reset',
@@ -74,20 +82,27 @@ describe('parseEvent', () => {
   })
 
   it('rejects negative search_result_count', () => {
-    expect(parseEvent({ event_type: 'help_search', search_query: 'x', search_result_count: -1 }, NOW)).toBeNull()
+    expect(
+      parseEvent({ event_type: 'help_search', search_query: 'x', search_result_count: -1 }, NOW),
+    ).toBeNull()
   })
 
   it('rejects non-integer search_result_count', () => {
-    expect(parseEvent({ event_type: 'help_search', search_query: 'x', search_result_count: 1.5 }, NOW)).toBeNull()
+    expect(
+      parseEvent({ event_type: 'help_search', search_query: 'x', search_result_count: 1.5 }, NOW),
+    ).toBeNull()
   })
 
   it('parses a help_article_view event', () => {
-    const result = parseEvent({
-      event_type: 'help_article_view',
-      article_slug: 'getting-started',
-      anonymous_visitor_id: 'abc-123',
-      locale: 'en',
-    }, NOW)
+    const result = parseEvent(
+      {
+        event_type: 'help_article_view',
+        article_slug: 'getting-started',
+        anonymous_visitor_id: 'abc-123',
+        locale: 'en',
+      },
+      NOW,
+    )
     expect(result?.article_slug).toBe('getting-started')
   })
 
@@ -96,14 +111,17 @@ describe('parseEvent', () => {
   })
 
   it('parses a ticket_submitted event with workspace_id', () => {
-    const result = parseEvent({
-      event_type: 'ticket_submitted',
-      workspace_id: 'org-uuid-123',
-      ticket_reference: 'SUP-00042',
-      ticket_category: 'technical',
-      ticket_source: 'app_form',
-      locale: 'en',
-    }, NOW)
+    const result = parseEvent(
+      {
+        event_type: 'ticket_submitted',
+        workspace_id: 'org-uuid-123',
+        ticket_reference: 'SUP-00042',
+        ticket_category: 'technical',
+        ticket_source: 'app_form',
+        locale: 'en',
+      },
+      NOW,
+    )
     expect(result).toEqual({
       event_type: 'ticket_submitted',
       workspace_id: 'org-uuid-123',
@@ -116,38 +134,55 @@ describe('parseEvent', () => {
   })
 
   it('rejects ticket_submitted missing required fields', () => {
-    expect(parseEvent({ event_type: 'ticket_submitted', ticket_reference: 'SUP-001' }, NOW)).toBeNull()
-    expect(parseEvent({ event_type: 'ticket_submitted', ticket_reference: 'SUP-001', ticket_category: 'x' }, NOW)).toBeNull()
+    expect(
+      parseEvent({ event_type: 'ticket_submitted', ticket_reference: 'SUP-001' }, NOW),
+    ).toBeNull()
+    expect(
+      parseEvent(
+        { event_type: 'ticket_submitted', ticket_reference: 'SUP-001', ticket_category: 'x' },
+        NOW,
+      ),
+    ).toBeNull()
   })
 
   it('parses a ticket_status_changed event', () => {
-    const result = parseEvent({
-      event_type: 'ticket_status_changed',
-      ticket_reference: 'SUP-00042',
-      ticket_category: 'technical',
-      ticket_source: 'resolved',
-      workspace_id: 'org-uuid-123',
-    }, NOW)
+    const result = parseEvent(
+      {
+        event_type: 'ticket_status_changed',
+        ticket_reference: 'SUP-00042',
+        ticket_category: 'technical',
+        ticket_source: 'resolved',
+        workspace_id: 'org-uuid-123',
+      },
+      NOW,
+    )
     expect(result?.ticket_source).toBe('resolved')
   })
 
   it('truncates a long anonymous_visitor_id', () => {
     const longId = 'x'.repeat(MAX_VISITOR_ID_LENGTH + 20)
-    const result = parseEvent({
-      event_type: 'help_article_view',
-      article_slug: 'x',
-      anonymous_visitor_id: longId,
-    }, NOW)
+    const result = parseEvent(
+      {
+        event_type: 'help_article_view',
+        article_slug: 'x',
+        anonymous_visitor_id: longId,
+      },
+      NOW,
+    )
     expect(result?.anonymous_visitor_id?.length).toBe(MAX_VISITOR_ID_LENGTH)
   })
 
   it('rejects invalid locale', () => {
-    expect(parseEvent({ event_type: 'help_article_view', article_slug: 'x', locale: 'de' }, NOW)).toBeNull()
+    expect(
+      parseEvent({ event_type: 'help_article_view', article_slug: 'x', locale: 'de' }, NOW),
+    ).toBeNull()
   })
 
   it('rejects wrong-typed fields', () => {
     expect(parseEvent({ event_type: 'help_article_view', article_slug: 42 }, NOW)).toBeNull()
-    expect(parseEvent({ event_type: 'help_article_view', article_slug: 'x', workspace_id: 42 }, NOW)).toBeNull()
+    expect(
+      parseEvent({ event_type: 'help_article_view', article_slug: 'x', workspace_id: 42 }, NOW),
+    ).toBeNull()
   })
 
   it('allows all optional fields to be absent', () => {

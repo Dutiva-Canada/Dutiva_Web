@@ -85,7 +85,7 @@ describe('DocPaper letter formatting', () => {
         n: 1,
         heading: { en: 'Employer information', fr: '…' },
         text: {
-          en: "The following information is included.\nLegal name: {{org}}\nEmployer telephone: {{employer_phone}}",
+          en: 'The following information is included.\nLegal name: {{org}}\nEmployer telephone: {{employer_phone}}',
           fr: '…',
         },
       },

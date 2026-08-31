@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2026 
+ *   Copyright (c) 2026
  *   All rights reserved.
  */
 /**
@@ -29,22 +29,30 @@ let lastStream = { chunks: 0, bytes: 0, sawTerminator: false }
 
 function clamdReplyFor(mode) {
   switch (mode) {
-    case 'infected': return 'stream: Win.Test.EICAR_HDB-1 FOUND\0'
-    case 'sizelimit': return 'INSTREAM size limit exceeded. ERROR\0'
-    case 'weird': return 'stream: something unexpected ERROR\0'
-    default: return 'stream: OK\0'
+    case 'infected':
+      return 'stream: Win.Test.EICAR_HDB-1 FOUND\0'
+    case 'sizelimit':
+      return 'INSTREAM size limit exceeded. ERROR\0'
+    case 'weird':
+      return 'stream: something unexpected ERROR\0'
+    default:
+      return 'stream: OK\0'
   }
 }
 
 /** Returns true if the handshake is done (or the socket was closed), false if more data is needed. */
 function handleHandshake(socket, state) {
   if (state.buf.subarray(0, 6).toString() === 'zPING\0'.slice(0, 6)) {
-    socket.write('PONG\0'); socket.end(); return true
+    socket.write('PONG\0')
+    socket.end()
+    return true
   }
   const header = 'zINSTREAM\0'
   if (state.buf.length < header.length) return false
   if (state.buf.subarray(0, header.length).toString() !== header) {
-    socket.write('UNKNOWN COMMAND\0'); socket.end(); return true
+    socket.write('UNKNOWN COMMAND\0')
+    socket.end()
+    return true
   }
   state.started = true
   state.buf = state.buf.subarray(header.length)
@@ -85,22 +93,35 @@ const clamd = net.createServer((socket) => {
 })
 
 const files = http.createServer((req, res) => {
-  if (req.url === '/eicar.txt') { res.writeHead(200, { 'Content-Type': 'text/plain' }); res.end(EICAR) }
-  else if (req.url === '/clean.txt') { res.writeHead(200, { 'Content-Type': 'text/plain' }); res.end('a perfectly ordinary file') }
-  else if (req.url === '/big.bin') { res.writeHead(200); res.end(Buffer.alloc(1024 * 512, 7)) }
-  else if (req.url === '/huge.bin') {
+  if (req.url === '/eicar.txt') {
+    res.writeHead(200, { 'Content-Type': 'text/plain' })
+    res.end(EICAR)
+  } else if (req.url === '/clean.txt') {
+    res.writeHead(200, { 'Content-Type': 'text/plain' })
+    res.end('a perfectly ordinary file')
+  } else if (req.url === '/big.bin') {
+    res.writeHead(200)
+    res.end(Buffer.alloc(1024 * 512, 7))
+  } else if (req.url === '/huge.bin') {
     // 27 MiB — over the 26214400 cap server.js enforces itself.
     res.writeHead(200)
     const chunk = Buffer.alloc(1024 * 1024, 3)
     let sent = 0
     const pump = () => {
-      while (sent < 27) { sent++; if (!res.write(chunk)) return res.once('drain', pump) }
+      while (sent < 27) {
+        sent++
+        if (!res.write(chunk)) return res.once('drain', pump)
+      }
       res.end()
     }
     pump()
+  } else if (req.url === '/gone') {
+    res.writeHead(403)
+    res.end('expired')
+  } else {
+    res.writeHead(404)
+    res.end('nope')
   }
-  else if (req.url === '/gone') { res.writeHead(403); res.end('expired') }
-  else { res.writeHead(404); res.end('nope') }
 })
 
 const post = (body, headers = {}) =>
@@ -138,14 +159,22 @@ async function main() {
 
   // wait for listen
   for (let i = 0; i < 50; i++) {
-    try { await fetch(`http://127.0.0.1:${APP_PORT}/health`); break } catch { await new Promise((r) => setTimeout(r, 100)) }
+    try {
+      await fetch(`http://127.0.0.1:${APP_PORT}/health`)
+      break
+    } catch {
+      await new Promise((r) => setTimeout(r, 100))
+    }
   }
 
   const url = (p) => `http://127.0.0.1:${FILE_PORT}${p}`
 
   // 1. health
   const h = await fetch(`http://127.0.0.1:${APP_PORT}/health`)
-  check('GET /health returns 200 with clamd PONG', h.status === 200 && (await h.json()).clamd === 'PONG')
+  check(
+    'GET /health returns 200 with clamd PONG',
+    h.status === 200 && (await h.json()).clamd === 'PONG',
+  )
 
   // 2. auth
   const noAuth = await post({ url: url('/clean.txt') }, { Authorization: 'Bearer wrong' })
@@ -155,28 +184,51 @@ async function main() {
   clamdMode = 'clean'
   let r = await post({ url: url('/clean.txt'), reference: 'r1' })
   let body = await r.json()
-  check('clean file -> 200 {"status":"clean"}', r.status === 200 && body.status === 'clean', JSON.stringify(body))
-  check('INSTREAM framed correctly (chunks>0, terminator seen)', lastStream.chunks > 0 && lastStream.sawTerminator,
-    `chunks=${lastStream.chunks} bytes=${lastStream.bytes} term=${lastStream.sawTerminator}`)
-  check('all bytes reached clamd', lastStream.bytes === Buffer.byteLength('a perfectly ordinary file'), `${lastStream.bytes} bytes`)
+  check(
+    'clean file -> 200 {"status":"clean"}',
+    r.status === 200 && body.status === 'clean',
+    JSON.stringify(body),
+  )
+  check(
+    'INSTREAM framed correctly (chunks>0, terminator seen)',
+    lastStream.chunks > 0 && lastStream.sawTerminator,
+    `chunks=${lastStream.chunks} bytes=${lastStream.bytes} term=${lastStream.sawTerminator}`,
+  )
+  check(
+    'all bytes reached clamd',
+    lastStream.bytes === Buffer.byteLength('a perfectly ordinary file'),
+    `${lastStream.bytes} bytes`,
+  )
 
   // 4. infected
   clamdMode = 'infected'
   r = await post({ url: url('/eicar.txt'), reference: 'r2' })
   body = await r.json()
-  check('infected -> 200 {"status":"infected", signature}', r.status === 200 && body.status === 'infected' && body.signature === 'Win.Test.EICAR_HDB-1', JSON.stringify(body))
+  check(
+    'infected -> 200 {"status":"infected", signature}',
+    r.status === 200 && body.status === 'infected' && body.signature === 'Win.Test.EICAR_HDB-1',
+    JSON.stringify(body),
+  )
 
   // 5. clamd size limit -> settled unsupported
   clamdMode = 'sizelimit'
   r = await post({ url: url('/big.bin'), reference: 'r3' })
   body = await r.json()
-  check('clamd size limit -> 200 {"status":"unsupported","reason":"too_large"}', r.status === 200 && body.status === 'unsupported' && body.reason === 'too_large', JSON.stringify(body))
+  check(
+    'clamd size limit -> 200 {"status":"unsupported","reason":"too_large"}',
+    r.status === 200 && body.status === 'unsupported' && body.reason === 'too_large',
+    JSON.stringify(body),
+  )
 
   // 6. unrecognised clamd ERROR -> 502 (retryable), never a 200 verdict
   clamdMode = 'weird'
   r = await post({ url: url('/clean.txt'), reference: 'r4' })
   body = await r.json()
-  check('unknown clamd ERROR -> 502, not a verdict', r.status === 502, `${r.status} ${JSON.stringify(body)}`)
+  check(
+    'unknown clamd ERROR -> 502, not a verdict',
+    r.status === 502,
+    `${r.status} ${JSON.stringify(body)}`,
+  )
 
   // 6b. Oversize is capped by server.js itself, BEFORE clamd sees it. clamd is
   // told to answer "clean" here on purpose: if the cap ever stops working, this
@@ -184,21 +236,35 @@ async function main() {
   clamdMode = 'clean'
   r = await post({ url: url('/huge.bin'), reference: 'r3b' })
   body = await r.json()
-  check('27 MiB file -> 200 unsupported/too_large (never clean)',
-    r.status === 200 && body.status === 'unsupported' && body.reason === 'too_large', JSON.stringify(body))
-  check('oversize stream cut off at the cap, not fully relayed',
-    lastStream.bytes <= 26214400 && !lastStream.sawTerminator, `relayed=${lastStream.bytes} term=${lastStream.sawTerminator}`)
+  check(
+    '27 MiB file -> 200 unsupported/too_large (never clean)',
+    r.status === 200 && body.status === 'unsupported' && body.reason === 'too_large',
+    JSON.stringify(body),
+  )
+  check(
+    'oversize stream cut off at the cap, not fully relayed',
+    lastStream.bytes <= 26214400 && !lastStream.sawTerminator,
+    `relayed=${lastStream.bytes} term=${lastStream.sawTerminator}`,
+  )
 
   // 7. origin failure (expired signed URL) -> 502 retryable
   clamdMode = 'clean'
   r = await post({ url: url('/gone'), reference: 'r5' })
   body = await r.json()
-  check('origin 403 (expired URL) -> 502 retryable', r.status === 502 && body.detail === 'origin_http_403', JSON.stringify(body))
+  check(
+    'origin 403 (expired URL) -> 502 retryable',
+    r.status === 502 && body.detail === 'origin_http_403',
+    JSON.stringify(body),
+  )
 
   // 8. URL validation
   r = await post({ url: 'https://evil.example.com/x', reference: 'r6' })
   body = await r.json()
-  check('host outside ALLOWED_FETCH_HOST -> 400', r.status === 400 && body.error === 'host_not_allowed', JSON.stringify(body))
+  check(
+    'host outside ALLOWED_FETCH_HOST -> 400',
+    r.status === 400 && body.error === 'host_not_allowed',
+    JSON.stringify(body),
+  )
 
   r = await post({ reference: 'r7' })
   check('missing url -> 400', r.status === 400)
@@ -208,9 +274,13 @@ async function main() {
   check('GET /scan -> 404', g.status === 404)
 
   child.kill()
-  clamd.close(); files.close()
+  clamd.close()
+  files.close()
   console.log(`\n${failures === 0 ? 'ALL PASS' : failures + ' FAILURE(S)'}`)
   process.exit(failures === 0 ? 0 : 1)
 }
 
-main().catch((e) => { console.error(e); process.exit(1) })
+main().catch((e) => {
+  console.error(e)
+  process.exit(1)
+})

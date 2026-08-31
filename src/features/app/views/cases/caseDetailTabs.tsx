@@ -169,7 +169,10 @@ export function CaseOverviewTab({
               {x(M.cases_timeline)}
             </div>
             {timeline.map((ev) => (
-              <div key={`${ev.date}-${ev.kind}`} className="flex gap-[12px] border-t border-inset py-[11px]">
+              <div
+                key={`${ev.date}-${ev.kind}`}
+                className="flex gap-[12px] border-t border-inset py-[11px]"
+              >
                 <div
                   className={`mt-[4px] h-[9px] w-[9px] shrink-0 rounded-full ${timelineDotClass(ev.kind, ev.tone)}`}
                 />
@@ -410,7 +413,10 @@ export function CaseActivityTab({ activity }: Readonly<{ activity: CaseActivityE
   return (
     <div className={`${cardClass} max-w-[640px] px-[18px] py-[8px]`}>
       {activity.map((a) => (
-        <div key={`${a.actor}-${keyOfL(a.time)}`} className="flex gap-[12px] border-t border-inset py-[13px]">
+        <div
+          key={`${a.actor}-${keyOfL(a.time)}`}
+          className="flex gap-[12px] border-t border-inset py-[13px]"
+        >
           <div
             className={`mt-[5px] h-[8px] w-[8px] shrink-0 rounded-full ${activityDotClass(a.tone)}`}
           />

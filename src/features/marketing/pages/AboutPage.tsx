@@ -119,7 +119,10 @@ export function AboutPage() {
                 </dt>
                 <dd className="mt-1 text-sm leading-[1.55] text-text">
                   {labelKey === 'about_fact_support' ? (
-                    <a href={`mailto:${value}`} className="font-medium text-gold-strong hover:opacity-80">
+                    <a
+                      href={`mailto:${value}`}
+                      className="font-medium text-gold-strong hover:opacity-80"
+                    >
                       {value}
                     </a>
                   ) : (

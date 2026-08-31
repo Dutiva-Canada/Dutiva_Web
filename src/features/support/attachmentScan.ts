@@ -33,12 +33,33 @@ export const SCAN_MAX_ATTEMPTS = 5
 /** Rows drained per worker run — bounds a run against the function timeout. */
 export const SCAN_BATCH_SIZE = 25
 
-const CLEAN_WORDS = new Set(['clean', 'ok', 'no_threats', 'no-threats', 'negative', 'pass', 'passed'])
+const CLEAN_WORDS = new Set([
+  'clean',
+  'ok',
+  'no_threats',
+  'no-threats',
+  'negative',
+  'pass',
+  'passed',
+])
 const FLAGGED_WORDS = new Set([
-  'infected', 'malicious', 'found', 'positive', 'flagged', 'threat', 'virus', 'fail', 'failed',
+  'infected',
+  'malicious',
+  'found',
+  'positive',
+  'flagged',
+  'threat',
+  'virus',
+  'fail',
+  'failed',
 ])
 const SKIPPED_WORDS = new Set([
-  'unsupported', 'too_large', 'too-large', 'skipped', 'encrypted', 'unscannable',
+  'unsupported',
+  'too_large',
+  'too-large',
+  'skipped',
+  'encrypted',
+  'unscannable',
 ])
 
 function fromWord(value: string): ScanVerdict {

@@ -40,16 +40,16 @@ It turns a user's real-world administrative situation into a structured, actiona
 
 The product should be designed to handle these categories. The list is not exhaustive.
 
-| Category | Examples |
-| --- | --- |
-| Employment | Starting a job, losing a job, resigning, changing roles, workplace accommodation, discrimination or harassment concern, record requests. |
-| Housing | Renting a home, ending a tenancy, landlord disputes, repair requests, moving between provinces, buying a home. |
-| Consumer | Making a complaint, requesting a refund, warranty claim, cancelling a service, escalation to regulator. |
-| Government / administrative | Receiving government correspondence, applying for benefits, information requests, address changes, name changes. |
-| Family / personal | Getting married, separating, having a child, handling the death of a family member, estate administration basics. |
-| Business / side work | Starting a side business, closing a business, contractor status, HST/GST basics, business registration. |
-| Insurance / benefits | Managing insurance claims, policy renewals, benefit disputes. |
-| Documents and records | Organizing important personal documents, understanding retention obligations, responding to record requests. |
+| Category                    | Examples                                                                                                                                 |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Employment                  | Starting a job, losing a job, resigning, changing roles, workplace accommodation, discrimination or harassment concern, record requests. |
+| Housing                     | Renting a home, ending a tenancy, landlord disputes, repair requests, moving between provinces, buying a home.                           |
+| Consumer                    | Making a complaint, requesting a refund, warranty claim, cancelling a service, escalation to regulator.                                  |
+| Government / administrative | Receiving government correspondence, applying for benefits, information requests, address changes, name changes.                         |
+| Family / personal           | Getting married, separating, having a child, handling the death of a family member, estate administration basics.                        |
+| Business / side work        | Starting a side business, closing a business, contractor status, HST/GST basics, business registration.                                  |
+| Insurance / benefits        | Managing insurance claims, policy renewals, benefit disputes.                                                                            |
+| Documents and records       | Organizing important personal documents, understanding retention obligations, responding to record requests.                             |
 
 ---
 
@@ -57,13 +57,13 @@ The product should be designed to handle these categories. The list is not exhau
 
 Every answer or workflow step must be classified into one of five tiers. The UI must make the tier visible to the user.
 
-| Tier | Description | Example |
-| --- | --- | --- |
-| **1. General information** | Factual, non-legal description of how something works. | "A notice of termination is a written statement that an employer is ending employment." |
-| **2. Administrative guidance** | Practical steps a person can take to handle an administrative matter. | "Keep a copy of your termination letter, record your last day, and ask for your Record of Employment." |
-| **3. Legal information** | What a statute or regulation says, sourced and jurisdiction-scoped. | "In Ontario, the *Employment Standards Act, 2000* requires written notice of termination in most cases." |
-| **4. Regulated professional advice** | A recommendation that must come from a lawyer, accountant, consultant, or other regulated professional. | "If you believe you were dismissed for cause improperly, consider speaking with an employment lawyer." |
-| **5. Escalation / crisis** | Requires immediate help or a regulated professional; product stops giving guidance and provides resources. | "If you are unsafe, contact 9-1-1." |
+| Tier                                 | Description                                                                                                | Example                                                                                                  |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| **1. General information**           | Factual, non-legal description of how something works.                                                     | "A notice of termination is a written statement that an employer is ending employment."                  |
+| **2. Administrative guidance**       | Practical steps a person can take to handle an administrative matter.                                      | "Keep a copy of your termination letter, record your last day, and ask for your Record of Employment."   |
+| **3. Legal information**             | What a statute or regulation says, sourced and jurisdiction-scoped.                                        | "In Ontario, the _Employment Standards Act, 2000_ requires written notice of termination in most cases." |
+| **4. Regulated professional advice** | A recommendation that must come from a lawyer, accountant, consultant, or other regulated professional.    | "If you believe you were dismissed for cause improperly, consider speaking with an employment lawyer."   |
+| **5. Escalation / crisis**           | Requires immediate help or a regulated professional; product stops giving guidance and provides resources. | "If you are unsafe, contact 9-1-1."                                                                      |
 
 `CLA-REQ-001`: The system SHALL classify every substantive guidance output into one of the five tiers and display the classification clearly.
 
@@ -75,7 +75,7 @@ Every answer or workflow step must be classified into one of five tiers. The UI 
 
 `CLA-REQ-003`: If jurisdiction cannot be determined, the system SHALL present only jurisdiction-neutral guidance and ask the user to confirm the province/territory or federal scope.
 
-`CLA-REQ-004`: The system SHALL name the relevant statute or agency (e.g., *Employment Standards Act, 2000*; *Loi sur les normes du travail*; Canada Labour Code, Part III) and SHALL NOT refer vaguely to "the law" or "the rules."
+`CLA-REQ-004`: The system SHALL name the relevant statute or agency (e.g., _Employment Standards Act, 2000_; _Loi sur les normes du travail_; Canada Labour Code, Part III) and SHALL NOT refer vaguely to "the law" or "the rules."
 
 `CLA-REQ-005`: For any situation that may involve both provincial and federal jurisdiction, the system SHALL help the user identify which applies and flag uncertainty.
 

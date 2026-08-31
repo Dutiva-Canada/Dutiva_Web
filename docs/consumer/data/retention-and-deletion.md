@@ -19,22 +19,22 @@ This document defines conceptual data-retention and deletion requirements. It ba
 
 These are conceptual defaults. Final periods require legal/privacy review and may differ by jurisdiction or business model.
 
-| Data type | Active retention | After deletion request | Notes |
-|---|---|---|---|
-| User account & profile | Account lifetime | Soft delete 30 days, then permanent deletion unless legally required. | Users can recover within soft-delete window. |
-| Situations, cases, tasks | Account lifetime + export opportunity | Soft delete 30 days, then purge. | |
-| Evidence originals | Account lifetime | Soft delete 30 days, then secure deletion from object store and backups. | Legal holds may extend. |
-| Evidence metadata | Account lifetime | Same as originals. | |
-| AI interpretations | Account lifetime | Same as related evidence/case. | May be deleted with the case or separately. |
-| Generated documents | Account lifetime | Soft delete 30 days, then purge. | Users should export before deletion. |
-| Document versions | Account lifetime | Same as generated documents. | |
-| Shared data / invitations | Until revoked or account deletion. | Revoked immediately; records retained in audit log. | |
-| Support tickets | Account lifetime + 2 years | Anonymized after 2 years unless legally required. | |
-| Audit logs | Account lifetime + 1–7 years depending on event | Anonymized; retained for security/fraud/legal compliance. | |
-| AI telemetry | 90 days operational + 1 year anonymized aggregate | Anonymized; no PII. | |
-| Export logs / fingerprints | Account lifetime + 2 years | Anonymized; retained for abuse/leak tracing. | |
-| Payment/billing records | Account lifetime + 7 years (legal requirement) | Retained as required by law. | |
-| Public reference data | Indefinite (Dutiva-owned) | Not user data; retained as product knowledge. | |
+| Data type                  | Active retention                                  | After deletion request                                                   | Notes                                        |
+| -------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------- |
+| User account & profile     | Account lifetime                                  | Soft delete 30 days, then permanent deletion unless legally required.    | Users can recover within soft-delete window. |
+| Situations, cases, tasks   | Account lifetime + export opportunity             | Soft delete 30 days, then purge.                                         |                                              |
+| Evidence originals         | Account lifetime                                  | Soft delete 30 days, then secure deletion from object store and backups. | Legal holds may extend.                      |
+| Evidence metadata          | Account lifetime                                  | Same as originals.                                                       |                                              |
+| AI interpretations         | Account lifetime                                  | Same as related evidence/case.                                           | May be deleted with the case or separately.  |
+| Generated documents        | Account lifetime                                  | Soft delete 30 days, then purge.                                         | Users should export before deletion.         |
+| Document versions          | Account lifetime                                  | Same as generated documents.                                             |                                              |
+| Shared data / invitations  | Until revoked or account deletion.                | Revoked immediately; records retained in audit log.                      |                                              |
+| Support tickets            | Account lifetime + 2 years                        | Anonymized after 2 years unless legally required.                        |                                              |
+| Audit logs                 | Account lifetime + 1–7 years depending on event   | Anonymized; retained for security/fraud/legal compliance.                |                                              |
+| AI telemetry               | 90 days operational + 1 year anonymized aggregate | Anonymized; no PII.                                                      |                                              |
+| Export logs / fingerprints | Account lifetime + 2 years                        | Anonymized; retained for abuse/leak tracing.                             |                                              |
+| Payment/billing records    | Account lifetime + 7 years (legal requirement)    | Retained as required by law.                                             |                                              |
+| Public reference data      | Indefinite (Dutiva-owned)                         | Not user data; retained as product knowledge.                            |                                              |
 
 ---
 

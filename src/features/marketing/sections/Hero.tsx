@@ -23,7 +23,10 @@ export function Hero() {
   const { p } = usePublicPath()
   const templateCount = String(allTemplates.length)
   return (
-    <section id="top" className="mx-auto max-w-300 scroll-mt-20 px-4 pt-14 pb-8 sm:px-6 sm:pt-18 sm:pb-10">
+    <section
+      id="top"
+      className="mx-auto max-w-300 scroll-mt-20 px-4 pt-14 pb-8 sm:px-6 sm:pt-18 sm:pb-10"
+    >
       <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-12">
         {/* Left */}
         <div className="animate-fade-up">
@@ -38,17 +41,11 @@ export function Hero() {
           </p>
 
           <div className="mt-7 flex flex-wrap gap-3">
-            <Link
-              to={p('pricing')}
-              className="gold-button gold-button-lg px-6"
-            >
+            <Link to={p('pricing')} className="gold-button gold-button-lg px-6">
               {lt('landing_cta_nocard')}
               <ArrowRight size={16} />
             </Link>
-            <a
-              href="#how"
-              className="ghost-button ghost-button-lg px-[22px]"
-            >
+            <a href="#how" className="ghost-button ghost-button-lg px-[22px]">
               {lt('landing_cta_seehow')}
             </a>
             <Link

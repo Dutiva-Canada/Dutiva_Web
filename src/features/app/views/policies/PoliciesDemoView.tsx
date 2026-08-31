@@ -59,7 +59,9 @@ export function PoliciesDemoView() {
           >
             <div className="min-w-0">
               <div className="text-[14px] font-semibold text-text">{x(p.title)}</div>
-              <div className="mt-[2px] text-[12px] text-text-muted">{x(lastReviewed(p.updated))}</div>
+              <div className="mt-[2px] text-[12px] text-text-muted">
+                {x(lastReviewed(p.updated))}
+              </div>
             </div>
             <div className="flex shrink-0 items-center gap-[10px]">
               <span className={statusChipClass(p.tone)}>{x(p.status)}</span>

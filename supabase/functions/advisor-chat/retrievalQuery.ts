@@ -24,10 +24,7 @@ export interface HistoryMessage {
   content: string
 }
 
-export function buildRetrievalQuery(
-  history: readonly HistoryMessage[],
-  message: string,
-): string {
+export function buildRetrievalQuery(history: readonly HistoryMessage[], message: string): string {
   const previousUserTurn = [...history].reverse().find((m) => m.role === 'user')
   if (!previousUserTurn || previousUserTurn.content.trim() === '') return message
   return `${previousUserTurn.content.slice(0, MAX_CONTEXT_CHARS)}\n${message}`

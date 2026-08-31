@@ -41,7 +41,9 @@ describe('assessLegislationText', () => {
   })
 
   it("rejects Cloudflare's challenge interstitial", () => {
-    const verdict = assessLegislationText('Just a moment... Enable JavaScript and cookies to continue')
+    const verdict = assessLegislationText(
+      'Just a moment... Enable JavaScript and cookies to continue',
+    )
     expect(verdict.ok).toBe(false)
     if (verdict.ok) throw new Error('expected rejection')
     expect(verdict.reason).toBe('block-page')

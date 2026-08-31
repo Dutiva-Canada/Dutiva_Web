@@ -10,10 +10,10 @@ Both files below are **already applied** on project `khtwpxnvziiyplaflwru`. They
 share the sequence prefix but have distinct slugs in
 `supabase_migrations.schema_migrations`:
 
-| File | Slug | Purpose |
-| --- | --- | --- |
-| `0024_reconcile_billing_schema.sql` | `reconcile_billing_schema` | Billing webhook idempotency table, `profiles.plan` constraint for starter/growth/pro |
-| `0024_match_advisor_guidance_review_topic.sql` | `match_advisor_guidance_review_topic` | Advisor retrieval RPC adds `topic` and `review_status` columns |
+| File                                           | Slug                                  | Purpose                                                                              |
+| ---------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------ |
+| `0024_reconcile_billing_schema.sql`            | `reconcile_billing_schema`            | Billing webhook idempotency table, `profiles.plan` constraint for starter/growth/pro |
+| `0024_match_advisor_guidance_review_topic.sql` | `match_advisor_guidance_review_topic` | Advisor retrieval RPC adds `topic` and `review_status` columns                       |
 
 **Do not renumber either file.** Supabase keys applied migrations on the slug; a
 rename would look like a new migration and could re-run destructive DDL.

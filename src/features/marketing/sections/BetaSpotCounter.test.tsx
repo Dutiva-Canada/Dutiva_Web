@@ -2,9 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { screen } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
 
-const getBetaCohortStatus = vi.hoisted(() =>
-  vi.fn().mockResolvedValue({ taken: 3, limit: 15 }),
-)
+const getBetaCohortStatus = vi.hoisted(() => vi.fn().mockResolvedValue({ taken: 3, limit: 15 }))
 vi.mock('../betaCohortApi', () => ({ getBetaCohortStatus }))
 
 import { BetaSpotCounter } from './BetaSpotCounter'

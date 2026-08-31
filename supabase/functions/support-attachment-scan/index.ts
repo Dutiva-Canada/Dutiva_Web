@@ -31,7 +31,8 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-scan-secret',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type, x-scan-secret',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 function json(body: unknown, status = 200) {
@@ -53,12 +54,33 @@ const SCAN_BATCH_SIZE = 25
 
 type ScanVerdict = 'clean' | 'flagged' | 'skipped' | 'unknown'
 
-const CLEAN_WORDS = new Set(['clean', 'ok', 'no_threats', 'no-threats', 'negative', 'pass', 'passed'])
+const CLEAN_WORDS = new Set([
+  'clean',
+  'ok',
+  'no_threats',
+  'no-threats',
+  'negative',
+  'pass',
+  'passed',
+])
 const FLAGGED_WORDS = new Set([
-  'infected', 'malicious', 'found', 'positive', 'flagged', 'threat', 'virus', 'fail', 'failed',
+  'infected',
+  'malicious',
+  'found',
+  'positive',
+  'flagged',
+  'threat',
+  'virus',
+  'fail',
+  'failed',
 ])
 const SKIPPED_WORDS = new Set([
-  'unsupported', 'too_large', 'too-large', 'skipped', 'encrypted', 'unscannable',
+  'unsupported',
+  'too_large',
+  'too-large',
+  'skipped',
+  'encrypted',
+  'unscannable',
 ])
 
 function fromWord(value: string): ScanVerdict {
@@ -201,7 +223,8 @@ Deno.serve(async (req: Request) => {
           detail = `http_${response.status}`
         }
       } catch (error) {
-        detail = error instanceof Error && error.name === 'AbortError' ? 'timeout' : 'scanner_unreachable'
+        detail =
+          error instanceof Error && error.name === 'AbortError' ? 'timeout' : 'scanner_unreachable'
       }
     }
 
@@ -218,7 +241,10 @@ Deno.serve(async (req: Request) => {
       })
       .eq('id', row.id)
     if (updateError) {
-      console.error('attachment scan: could not record verdict', { id: row.id, error: updateError.message })
+      console.error('attachment scan: could not record verdict', {
+        id: row.id,
+        error: updateError.message,
+      })
       continue
     }
 
@@ -238,7 +264,11 @@ Deno.serve(async (req: Request) => {
       })
     }
     if (status === 'flagged') {
-      console.error('attachment scan: malware detected', { id: row.id, ticket: row.ticket_id, detail })
+      console.error('attachment scan: malware detected', {
+        id: row.id,
+        ticket: row.ticket_id,
+        detail,
+      })
     }
   }
 

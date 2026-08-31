@@ -26,60 +26,60 @@ This document defines the categories of consumer document templates. The exact c
 
 Documents an employee or former employee might need.
 
-| Template | Purpose | Typical risk | Notes |
-|---|---|---|---|
-| Resignation letter | Notify employer of resignation. | low | |
-| Record of Employment request | Ask employer for ROE. | low | |
-| Accommodation request | Request workplace accommodation. | medium | May involve health information; privacy warnings. |
-| Pay / records request | Request pay statements, hours, or employment records. | low | |
-| Reference request | Request a reference from a former employer. | low | |
-| Response to performance concern | Reply to a performance warning. | medium | May suggest professional review if discipline is alleged. |
+| Template                        | Purpose                                               | Typical risk | Notes                                                     |
+| ------------------------------- | ----------------------------------------------------- | ------------ | --------------------------------------------------------- |
+| Resignation letter              | Notify employer of resignation.                       | low          |                                                           |
+| Record of Employment request    | Ask employer for ROE.                                 | low          |                                                           |
+| Accommodation request           | Request workplace accommodation.                      | medium       | May involve health information; privacy warnings.         |
+| Pay / records request           | Request pay statements, hours, or employment records. | low          |                                                           |
+| Reference request               | Request a reference from a former employer.           | low          |                                                           |
+| Response to performance concern | Reply to a performance warning.                       | medium       | May suggest professional review if discipline is alleged. |
 
 ### Housing
 
 Documents a tenant or landlord might need. The product is tenant-first, but landlord-to-tenant documents are included where routine and low-risk.
 
-| Template | Purpose | Typical risk | Notes |
-|---|---|---|---|
-| Repair request | Ask landlord to make repairs. | low | Jurisdiction-specific repair obligations. |
-| Move-out inspection request | Request a move-out inspection. | low | |
-| Notice-related correspondence | Respond to or give notices required by local law. | medium | Notices can have legal effect; flagged. |
-| Dispute documentation letter | Document a problem in writing. | low/medium | |
-| Roommate / sublet request | Request landlord consent. | medium | Varies by lease and jurisdiction. |
+| Template                      | Purpose                                           | Typical risk | Notes                                     |
+| ----------------------------- | ------------------------------------------------- | ------------ | ----------------------------------------- |
+| Repair request                | Ask landlord to make repairs.                     | low          | Jurisdiction-specific repair obligations. |
+| Move-out inspection request   | Request a move-out inspection.                    | low          |                                           |
+| Notice-related correspondence | Respond to or give notices required by local law. | medium       | Notices can have legal effect; flagged.   |
+| Dispute documentation letter  | Document a problem in writing.                    | low/medium   |                                           |
+| Roommate / sublet request     | Request landlord consent.                         | medium       | Varies by lease and jurisdiction.         |
 
 ### Consumer
 
 Documents a consumer might send to a business or regulator.
 
-| Template | Purpose | Typical risk | Notes |
-|---|---|---|---|
-| Complaint letter | Complain about a product or service. | low/medium | |
-| Refund request | Request a refund. | low | |
-| Warranty claim | Claim under warranty. | low | |
-| Cancellation request | Cancel a service or subscription. | low | |
-| Escalation to ombudsman / regulator | Escalate unresolved complaint. | medium | Identify correct regulator (provincial vs federal). |
+| Template                            | Purpose                              | Typical risk | Notes                                               |
+| ----------------------------------- | ------------------------------------ | ------------ | --------------------------------------------------- |
+| Complaint letter                    | Complain about a product or service. | low/medium   |                                                     |
+| Refund request                      | Request a refund.                    | low          |                                                     |
+| Warranty claim                      | Claim under warranty.                | low          |                                                     |
+| Cancellation request                | Cancel a service or subscription.    | low          |                                                     |
+| Escalation to ombudsman / regulator | Escalate unresolved complaint.       | medium       | Identify correct regulator (provincial vs federal). |
 
 ### Government / Administrative
 
 Correspondence with government agencies or for administrative processes.
 
-| Template | Purpose | Typical risk | Notes |
-|---|---|---|---|
-| Information request | Request information from a government agency. | low | |
-| Supporting statement | Provide a statement in support of an application or appeal. | medium | Does not replace formal application. |
-| Formal administrative correspondence | Routine correspondence with a government body. | low/medium | |
-| Address / status change notification | Notify an agency of a change. | low | |
+| Template                             | Purpose                                                     | Typical risk | Notes                                |
+| ------------------------------------ | ----------------------------------------------------------- | ------------ | ------------------------------------ |
+| Information request                  | Request information from a government agency.               | low          |                                      |
+| Supporting statement                 | Provide a statement in support of an application or appeal. | medium       | Does not replace formal application. |
+| Formal administrative correspondence | Routine correspondence with a government body.              | low/medium   |                                      |
+| Address / status change notification | Notify an agency of a change.                               | low          |                                      |
 
 ### Personal
 
 Routine personal administrative documents.
 
-| Template | Purpose | Typical risk | Notes |
-|---|---|---|---|
-| Authorization letter | Authorize someone to act on the user's behalf for a limited purpose. | medium | Power-of-attorney documents are prohibited; this is narrow. |
-| Records request | Request personal records from an organization. | low | |
-| Personal declaration | A simple, factual written statement. | medium | Must not be notarized; not a sworn statement. |
-| Name / address notification | Notify an organization of a name or address change. | low | |
+| Template                    | Purpose                                                              | Typical risk | Notes                                                       |
+| --------------------------- | -------------------------------------------------------------------- | ------------ | ----------------------------------------------------------- |
+| Authorization letter        | Authorize someone to act on the user's behalf for a limited purpose. | medium       | Power-of-attorney documents are prohibited; this is narrow. |
+| Records request             | Request personal records from an organization.                       | low          |                                                             |
+| Personal declaration        | A simple, factual written statement.                                 | medium       | Must not be notarized; not a sworn statement.               |
+| Name / address notification | Notify an organization of a name or address change.                  | low          |                                                             |
 
 ---
 
@@ -113,12 +113,12 @@ Routine personal administrative documents.
 
 ## Review status
 
-| Status | Meaning |
-|---|---|
-| `not_reviewed` | Template has not been reviewed. Not offered to users unless in a closed beta with explicit warnings. |
-| `hr_review_required` | Reviewed by a non-lawyer subject-matter expert (consumer/tenant/employment advocate). Suitable for low-risk templates. |
-| `lawyer_review_recommended` | A lawyer should review before users rely on it for high-stakes matters. |
-| `approved_for_use` | Reviewed and approved for the declared jurisdictions and effective date. |
+| Status                      | Meaning                                                                                                                |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `not_reviewed`              | Template has not been reviewed. Not offered to users unless in a closed beta with explicit warnings.                   |
+| `hr_review_required`        | Reviewed by a non-lawyer subject-matter expert (consumer/tenant/employment advocate). Suitable for low-risk templates. |
+| `lawyer_review_recommended` | A lawyer should review before users rely on it for high-stakes matters.                                                |
+| `approved_for_use`          | Reviewed and approved for the declared jurisdictions and effective date.                                               |
 
 `DTAX-REQ-010`: The review status SHALL be visible to users before they begin the wizard.
 

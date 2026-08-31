@@ -121,9 +121,7 @@ function parsePackage(raw: unknown): ExternalSigningPackage | null {
   }
 }
 
-export function externalRecipientCanSignNow(
-  pkg: ExternalSigningPackage,
-): boolean {
+export function externalRecipientCanSignNow(pkg: ExternalSigningPackage): boolean {
   if (pkg.recipient.status === 'signed' || pkg.recipient.status === 'declined') {
     return false
   }

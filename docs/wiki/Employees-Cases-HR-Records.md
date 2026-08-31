@@ -43,20 +43,18 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-
-
 This page covers the two core HR record-keeping modules — **Employees** and **Cases** — and the data boundary layer that connects them to production persistence. Both modules follow the platform's dual-mode architecture: a fixture-driven **demo mode** renders rich prototype data for Northgate scenarios, while **production mode** reads/writes real Supabase tables behind RLS-scoped APIs.
 
 ## Routing & Mode Dispatch
 
 Both modules register route entries in `appViews.tsx` without a `gated()` wrapper — they dispatch on workspace mode internally.
 
-| Route | Lazy component | Comment |
-|---|---|---|
-| `/app/employees` | `EmployeesView` | [src/app/appViews.tsx:85]() |
+| Route                        | Lazy component        | Comment                     |
+| ---------------------------- | --------------------- | --------------------------- |
+| `/app/employees`             | `EmployeesView`       | [src/app/appViews.tsx:85]() |
 | `/app/employees/:employeeId` | `EmployeeProfileView` | [src/app/appViews.tsx:86]() |
-| `/app/cases` | `CasesView` | [src/app/appViews.tsx:81]() |
-| `/app/cases/:caseId` | `CaseDetailView` | [src/app/appViews.tsx:82]() |
+| `/app/cases`                 | `CasesView`           | [src/app/appViews.tsx:81]() |
+| `/app/cases/:caseId`         | `CaseDetailView`      | [src/app/appViews.tsx:82]() |
 
 Each top-level component checks `useWorkspaceMode().mode` and renders either the demo or production variant:
 
@@ -103,6 +101,7 @@ Sources: [src/features/app/views/employees/EmployeesView.tsx:27-31](), [src/feat
 `EmployeesDemoView` renders the Northgate fixture employees from `@/data` as a roster with a People/Org-chart segmented control. [src/features/app/views/employees/EmployeesView.tsx:33-37]()
 
 Key features:
+
 - **Segmented control**: `list` mode shows the table roster; `org` mode renders `OrgChart`. [src/features/app/views/employees/EmployeesView.tsx:37]()
 - **Filter**: case-insensitive substring match on name, role, or province (localized). [src/features/app/views/employees/EmployeesView.tsx:43-50]()
 - **Roster table** (desktop) and **stacked cards** (phone) — both in the DOM, toggled via CSS. [src/features/app/views/employees/EmployeesView.tsx:114-115]()
@@ -116,6 +115,7 @@ Sources: [src/features/app/views/employees/EmployeesView.tsx:33-108]()
 `EmployeesProductionView` renders the real `public.employees` table via `productionApi.ts`. [src/features/app/views/employees/EmployeesProductionView.tsx:48]()
 
 Features:
+
 - **Employee list** with status chips (active / on_leave / terminated). [src/features/app/views/employees/EmployeesProductionView.tsx:22-26]()
 - **Add employee form** (admin-gated) with name, title, email, province (13 Canadian provinces/territories), and start date fields. [src/features/app/views/employees/EmployeesProductionView.tsx:142-232]()
 - **Remove employee** (admin-gated). [src/features/app/views/employees/EmployeesProductionView.tsx:97-105]()
@@ -151,16 +151,16 @@ Sources: [src/features/app/views/employees/EmployeeDrawer.tsx:1-117]()
 
 The employee profile hub has eight tabs, three of which are role-restricted (marked `locked`).
 
-| Tab | Component | Locked |
-|---|---|---|
-| overview | `EmployeeOverviewTab` | No |
-| timeline | `EmployeeTimelineTab` | No |
-| documents | `EmployeeDocumentsTab` | No |
-| leave | `EmployeeLeaveTab` | Yes |
-| compensation | `EmployeeCompensationTab` | Yes |
-| wellbeing | `EmployeeWellbeingTab` | Yes |
-| compliance | `EmployeeComplianceTab` | No |
-| cases | `EmployeeCasesTab` | No |
+| Tab          | Component                 | Locked |
+| ------------ | ------------------------- | ------ |
+| overview     | `EmployeeOverviewTab`     | No     |
+| timeline     | `EmployeeTimelineTab`     | No     |
+| documents    | `EmployeeDocumentsTab`    | No     |
+| leave        | `EmployeeLeaveTab`        | Yes    |
+| compensation | `EmployeeCompensationTab` | Yes    |
+| wellbeing    | `EmployeeWellbeingTab`    | Yes    |
+| compliance   | `EmployeeComplianceTab`   | No     |
+| cases        | `EmployeeCasesTab`        | No     |
 
 Tab definitions at [src/features/app/views/employees/EmployeeProfileView.tsx:50-59](). Tab bodies are pure renderers in `employeeProfileTabs.tsx`. [src/features/app/views/employees/employeeProfileTabs.tsx:1-29]()
 
@@ -175,12 +175,15 @@ Sources: [src/features/app/views/employees/EmployeeProfileView.tsx:40-59](), [sr
 The production profile renders a single `public.employees` row with several sub-records loaded in parallel. [src/features/app/views/employees/EmployeeProfileProductionView.tsx:91]()
 
 Parallel load on mount via `Promise.all`:
+
 ```
 [employee, notes, cases, expiryRecords, leaves, tasks]
 ```
+
 [src/features/app/views/employees/EmployeeProfileProductionView.tsx:124-132]()
 
 Sections:
+
 - **Facts header** with initials avatar, name, title, province, start date. [src/features/app/views/employees/EmployeeProfileProductionView.tsx:91-95]()
 - **Status select** — three-way (active / on_leave / terminated) with `updateEmployeeStatus`. [src/features/app/views/employees/EmployeeProfileProductionView.tsx:157-166]()
 - **Lifecycle dates** — probation end date (with linked review task via `addProbationReviewTask`) and termination date via `updateEmployeeDates`. [src/features/app/views/employees/EmployeeProfileProductionView.tsx:168-178]()
@@ -227,13 +230,13 @@ Sources: [src/features/app/views/cases/CasesProductionView.tsx:62-352]()
 
 `CaseDetailDemoView` renders a rich case workspace with five tabs:
 
-| Tab key | Component | Content |
-|---|---|---|
+| Tab key    | Component         | Content                                                                                                                                           |
+| ---------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `overview` | `CaseOverviewTab` | Summary, Advisor recommendation, risk assessment, workflow steps, timeline, people involved, approvals, linked tasks, documents, compliance flags |
-| `risk` | `CaseRiskTab` | Six-axis risk review (coverage, notice, documentation, consistency, retaliation, cost/timeline) |
-| `legal` | `CaseLegalTab` | Legal review record (counsel, scope, retention, outcome) |
-| `activity` | `CaseActivityTab` | Composed activity feed |
-| `notes` | `CaseNotesTab` | Private notes composer with ⌘↵ save shortcut |
+| `risk`     | `CaseRiskTab`     | Six-axis risk review (coverage, notice, documentation, consistency, retaliation, cost/timeline)                                                   |
+| `legal`    | `CaseLegalTab`    | Legal review record (counsel, scope, retention, outcome)                                                                                          |
+| `activity` | `CaseActivityTab` | Composed activity feed                                                                                                                            |
+| `notes`    | `CaseNotesTab`    | Private notes composer with ⌘↵ save shortcut                                                                                                      |
 
 Tab bodies are pure renderers in `caseDetailTabs.tsx`. [src/features/app/views/cases/caseDetailTabs.tsx:28]()
 
@@ -258,6 +261,7 @@ Sources: [src/features/app/views/cases/CaseDetailProductionView.tsx:48-250]()
 The demo-mode intake modal for creating cases. [src/features/app/views/cases/NewCaseModal.tsx:30]()
 
 Fields:
+
 - **Case type** — 12 options from `newCaseTypes` in `caseModel.ts`. [src/features/app/views/cases/caseModel.ts:153-172]()
 - **Employee** — from fixture list, or "No specific employee" for workplace-wide cases. [src/features/app/views/cases/NewCaseModal.tsx:124-136]()
 - **Jurisdiction** — 5 options (Ontario, Quebec, BC, Alberta, Federal). [src/features/app/views/cases/caseModel.ts:175-181]()
@@ -273,20 +277,20 @@ Sources: [src/features/app/views/cases/NewCaseModal.tsx:30-204](), [src/features
 
 The view-model layer for the case workspace. Key exports:
 
-| Export | Purpose |
-|---|---|
-| `WorkspaceCase` | Interface consumed by all case views |
-| `isFixtureCaseType(type)` | Guards the four fixture types vs. the 12 intake types |
-| `barToneClass(tone)` | Progress-bar CSS class per tone |
-| `activityDotClass(tone)` | Activity-feed dot CSS class |
-| `riskLevelTone(level)` | Maps `RiskLevel` → `Tone` |
-| `timelineDotClass(kind, tone)` | Timeline dot CSS based on event kind and tone |
-| `pendingRisk` / `pendingRecommendation` / `pendingRiskAxes` | Fallback states for non-fixture case types |
-| `newCaseTypes` | 12 bilingual case type options |
-| `newCaseJurisdictions` | 5 bilingual jurisdiction options |
-| `sensitiveCaseTypes` | Case types requiring restricted access |
-| `buildCreatedCase(input)` | Constructs intake-stage `WorkspaceCase` |
-| `listCases()` / `findCase(id)` / `addCreatedCase(c)` | In-memory store (session-scoped) merging created cases with fixtures |
+| Export                                                      | Purpose                                                              |
+| ----------------------------------------------------------- | -------------------------------------------------------------------- |
+| `WorkspaceCase`                                             | Interface consumed by all case views                                 |
+| `isFixtureCaseType(type)`                                   | Guards the four fixture types vs. the 12 intake types                |
+| `barToneClass(tone)`                                        | Progress-bar CSS class per tone                                      |
+| `activityDotClass(tone)`                                    | Activity-feed dot CSS class                                          |
+| `riskLevelTone(level)`                                      | Maps `RiskLevel` → `Tone`                                            |
+| `timelineDotClass(kind, tone)`                              | Timeline dot CSS based on event kind and tone                        |
+| `pendingRisk` / `pendingRecommendation` / `pendingRiskAxes` | Fallback states for non-fixture case types                           |
+| `newCaseTypes`                                              | 12 bilingual case type options                                       |
+| `newCaseJurisdictions`                                      | 5 bilingual jurisdiction options                                     |
+| `sensitiveCaseTypes`                                        | Case types requiring restricted access                               |
+| `buildCreatedCase(input)`                                   | Constructs intake-stage `WorkspaceCase`                              |
+| `listCases()` / `findCase(id)` / `addCreatedCase(c)`        | In-memory store (session-scoped) merging created cases with fixtures |
 
 Sources: [src/features/app/views/cases/caseModel.ts:1-287]()
 
@@ -409,22 +413,22 @@ Located at `src/features/app/views/employees/productionApi.ts`. Reads/writes `pu
 
 **Functions:**
 
-| Function | Table | Operation |
-|---|---|---|
-| `listEmployees(orgId)` | `employees` | SELECT with `fetchAllPages`, ordered by name [src/features/app/views/employees/productionApi.ts:70-83]() |
-| `addEmployee(orgId, fields)` | `employees` | INSERT, returns created row [src/features/app/views/employees/productionApi.ts:85-104]() |
-| `removeEmployee(id)` | `employees` | DELETE by id [src/features/app/views/employees/productionApi.ts:106-110]() |
-| `getEmployee(id)` | `employees` | SELECT single, returns null if missing [src/features/app/views/employees/productionApi.ts:127-137]() |
-| `updateEmployeeStatus(id, status)` | `employees` | UPDATE status + updated_at [src/features/app/views/employees/productionApi.ts:139-149]() |
-| `updateEmployeeDates(id, dates)` | `employees` | UPDATE probation_end_date and/or termination_date [src/features/app/views/employees/productionApi.ts:155-165]() |
-| `listEmployeeNotes(employeeId)` | `hr_employee_notes` | SELECT ordered by created_at [src/features/app/views/employees/productionApi.ts:357-369]() |
-| `addEmployeeNote(orgId, empId, body)` | `hr_employee_notes` | INSERT [src/features/app/views/employees/productionApi.ts:371-385]() |
-| `listExpiryRecords(orgId)` / `listEmployeeExpiryRecords(empId)` | `hr_expiry_records` | SELECT with joined employee name [src/features/app/views/employees/productionApi.ts:206-228]() |
-| `addExpiryRecord(orgId, empId, fields)` | `hr_expiry_records` | INSERT [src/features/app/views/employees/productionApi.ts:230-249]() |
-| `removeExpiryRecord(id)` | `hr_expiry_records` | DELETE [src/features/app/views/employees/productionApi.ts:251-255]() |
-| `listLeaves(orgId)` / `listEmployeeLeaves(empId)` | `hr_leaves` | SELECT with joined employee name [src/features/app/views/employees/productionApi.ts:298-318]() |
-| `addLeave(orgId, empId, fields)` | `hr_leaves` | INSERT [src/features/app/views/employees/productionApi.ts:320-345]() |
-| `endLeave(id, endedOn)` | `hr_leaves` | UPDATE ended_on [src/features/app/views/employees/productionApi.ts:348-355]() |
+| Function                                                        | Table               | Operation                                                                                                       |
+| --------------------------------------------------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `listEmployees(orgId)`                                          | `employees`         | SELECT with `fetchAllPages`, ordered by name [src/features/app/views/employees/productionApi.ts:70-83]()        |
+| `addEmployee(orgId, fields)`                                    | `employees`         | INSERT, returns created row [src/features/app/views/employees/productionApi.ts:85-104]()                        |
+| `removeEmployee(id)`                                            | `employees`         | DELETE by id [src/features/app/views/employees/productionApi.ts:106-110]()                                      |
+| `getEmployee(id)`                                               | `employees`         | SELECT single, returns null if missing [src/features/app/views/employees/productionApi.ts:127-137]()            |
+| `updateEmployeeStatus(id, status)`                              | `employees`         | UPDATE status + updated_at [src/features/app/views/employees/productionApi.ts:139-149]()                        |
+| `updateEmployeeDates(id, dates)`                                | `employees`         | UPDATE probation_end_date and/or termination_date [src/features/app/views/employees/productionApi.ts:155-165]() |
+| `listEmployeeNotes(employeeId)`                                 | `hr_employee_notes` | SELECT ordered by created_at [src/features/app/views/employees/productionApi.ts:357-369]()                      |
+| `addEmployeeNote(orgId, empId, body)`                           | `hr_employee_notes` | INSERT [src/features/app/views/employees/productionApi.ts:371-385]()                                            |
+| `listExpiryRecords(orgId)` / `listEmployeeExpiryRecords(empId)` | `hr_expiry_records` | SELECT with joined employee name [src/features/app/views/employees/productionApi.ts:206-228]()                  |
+| `addExpiryRecord(orgId, empId, fields)`                         | `hr_expiry_records` | INSERT [src/features/app/views/employees/productionApi.ts:230-249]()                                            |
+| `removeExpiryRecord(id)`                                        | `hr_expiry_records` | DELETE [src/features/app/views/employees/productionApi.ts:251-255]()                                            |
+| `listLeaves(orgId)` / `listEmployeeLeaves(empId)`               | `hr_leaves`         | SELECT with joined employee name [src/features/app/views/employees/productionApi.ts:298-318]()                  |
+| `addLeave(orgId, empId, fields)`                                | `hr_leaves`         | INSERT [src/features/app/views/employees/productionApi.ts:320-345]()                                            |
+| `endLeave(id, endedOn)`                                         | `hr_leaves`         | UPDATE ended_on [src/features/app/views/employees/productionApi.ts:348-355]()                                   |
 
 The file also exports `EMPLOYMENT_PROVINCES` — 13 bilingual Canadian province/territory options. [src/features/app/views/employees/productionApi.ts:391-405]()
 
@@ -443,16 +447,16 @@ Located at `src/features/app/views/cases/productionApi.ts`. Reads/writes `public
 
 **Functions:**
 
-| Function | Table | Operation |
-|---|---|---|
-| `listCases(orgId)` | `hr_cases` | SELECT ordered by created_at desc [src/features/app/views/cases/productionApi.ts:74-83]() |
-| `addCase(orgId, fields)` | `hr_cases` | INSERT, returns created row [src/features/app/views/cases/productionApi.ts:85-101]() |
-| `updateCaseStatus(id, status)` | `hr_cases` | UPDATE status + updated_at [src/features/app/views/cases/productionApi.ts:103-110]() |
-| `removeCase(id)` | `hr_cases` | DELETE [src/features/app/views/cases/productionApi.ts:112-116]() |
-| `getCase(id)` | `hr_cases` | SELECT single, returns null if missing [src/features/app/views/cases/productionApi.ts:133-143]() |
-| `listCaseNotes(caseId)` | `hr_case_notes` | SELECT ordered by created_at [src/features/app/views/cases/productionApi.ts:145-157]() |
-| `addCaseNote(orgId, caseId, body)` | `hr_case_notes` | INSERT [src/features/app/views/cases/productionApi.ts:159-173]() |
-| `countOpenCases(orgId)` | `hr_cases` | HEAD count excluding resolved [src/features/app/views/cases/productionApi.ts:176-185]() |
+| Function                           | Table           | Operation                                                                                        |
+| ---------------------------------- | --------------- | ------------------------------------------------------------------------------------------------ |
+| `listCases(orgId)`                 | `hr_cases`      | SELECT ordered by created_at desc [src/features/app/views/cases/productionApi.ts:74-83]()        |
+| `addCase(orgId, fields)`           | `hr_cases`      | INSERT, returns created row [src/features/app/views/cases/productionApi.ts:85-101]()             |
+| `updateCaseStatus(id, status)`     | `hr_cases`      | UPDATE status + updated_at [src/features/app/views/cases/productionApi.ts:103-110]()             |
+| `removeCase(id)`                   | `hr_cases`      | DELETE [src/features/app/views/cases/productionApi.ts:112-116]()                                 |
+| `getCase(id)`                      | `hr_cases`      | SELECT single, returns null if missing [src/features/app/views/cases/productionApi.ts:133-143]() |
+| `listCaseNotes(caseId)`            | `hr_case_notes` | SELECT ordered by created_at [src/features/app/views/cases/productionApi.ts:145-157]()           |
+| `addCaseNote(orgId, caseId, body)` | `hr_case_notes` | INSERT [src/features/app/views/cases/productionApi.ts:159-173]()                                 |
+| `countOpenCases(orgId)`            | `hr_cases`      | HEAD count excluding resolved [src/features/app/views/cases/productionApi.ts:176-185]()          |
 
 Sources: [src/features/app/views/cases/productionApi.ts:1-185]()
 
@@ -543,14 +547,14 @@ erDiagram
 
 ### Migration History
 
-| Migration | Table | Purpose |
-|---|---|---|
-| `0006_add_employees.sql` | `employees` | Employee roster [supabase/migrations/0006_add_employees.sql:1-49]() |
-| `0007_add_hr_cases.sql` | `hr_cases` | Case files, FK to employees with SET NULL on delete [supabase/migrations/0007_add_hr_cases.sql:1-45]() |
-| `0009_add_hr_case_notes.sql` | `hr_case_notes` | Case notes thread, cascades with case [supabase/migrations/0009_add_hr_case_notes.sql:1-33]() |
-| `0010_add_hr_employee_notes.sql` | `hr_employee_notes` | Employee notes thread, cascades with employee [supabase/migrations/0010_add_hr_employee_notes.sql:1-29]() |
-| `0064_add_hr_expiry_records.sql` | `hr_expiry_records` | Certifications & dated documents [supabase/migrations/0064_add_hr_expiry_records.sql:1-49]() |
-| `0065_add_hr_leaves.sql` | `hr_leaves` | Leave records (status-only, never medical detail) [supabase/migrations/0065_add_hr_leaves.sql:1-47]() |
+| Migration                               | Table               | Purpose                                                                                                                     |
+| --------------------------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `0006_add_employees.sql`                | `employees`         | Employee roster [supabase/migrations/0006_add_employees.sql:1-49]()                                                         |
+| `0007_add_hr_cases.sql`                 | `hr_cases`          | Case files, FK to employees with SET NULL on delete [supabase/migrations/0007_add_hr_cases.sql:1-45]()                      |
+| `0009_add_hr_case_notes.sql`            | `hr_case_notes`     | Case notes thread, cascades with case [supabase/migrations/0009_add_hr_case_notes.sql:1-33]()                               |
+| `0010_add_hr_employee_notes.sql`        | `hr_employee_notes` | Employee notes thread, cascades with employee [supabase/migrations/0010_add_hr_employee_notes.sql:1-29]()                   |
+| `0064_add_hr_expiry_records.sql`        | `hr_expiry_records` | Certifications & dated documents [supabase/migrations/0064_add_hr_expiry_records.sql:1-49]()                                |
+| `0065_add_hr_leaves.sql`                | `hr_leaves`         | Leave records (status-only, never medical detail) [supabase/migrations/0065_add_hr_leaves.sql:1-47]()                       |
 | `0066_add_employee_lifecycle_dates.sql` | `employees` (ALTER) | Adds `probation_end_date` and `termination_date` columns [supabase/migrations/0066_add_employee_lifecycle_dates.sql:1-18]() |
 
 ### RLS Pattern
@@ -568,6 +572,7 @@ WITH CHECK (public.is_org_admin(organization_id, (select auth.uid())))
 `hr_case_notes` denormalizes `organization_id` from the parent case to avoid joins in RLS policies, a pattern documented in migration 0009. [supabase/migrations/0009_add_hr_case_notes.sql:6-8]()
 
 Key design decisions:
+
 - `hr_cases.employee_id` is **SET NULL** on employee deletion — a case file may outlive the employment record. [supabase/migrations/0007_add_hr_cases.sql:15]()
 - `hr_case_notes` and `hr_employee_notes` **CASCADE** on parent deletion. [supabase/migrations/0009_add_hr_case_notes.sql:12]()
 - `hr_leaves.leave_type` is unconstrained text — leave taxonomies vary by jurisdiction. [supabase/migrations/0065_add_hr_leaves.sql:7-8]()
@@ -583,6 +588,7 @@ Sources: [supabase/migrations/0006_add_employees.sql:1-49](), [supabase/migratio
 Defined in `src/i18n/messages/employees.ts` with the `employees_*` prefix. [src/i18n/messages/employees.ts:13]()
 
 Coverage spans:
+
 - **Roster** — tab labels, filter placeholder, column headers, status labels, sample count
 - **Org chart** — manager/report stat labels, Advisor watch eyebrow
 - **Quick drawer** — close, Ask Advisor CTA
@@ -596,6 +602,7 @@ Sources: [src/i18n/messages/employees.ts:1-167]()
 Defined in `src/i18n/messages/cases.ts` with the `cases_*` prefix. [src/i18n/messages/cases.ts:15]()
 
 Coverage spans:
+
 - **List** — open count, New case button, owner/opened labels, progress bar
 - **Detail chrome** — all 5 tab labels, risk assessment, workflow, timeline, people involved
 - **Approvals** — target labels, request/requested states
@@ -667,6 +674,7 @@ flowchart TD
 ```
 
 Key cross-references:
+
 - `EmployeeProfileProductionView` imports `listCases` from the cases productionApi to show open cases for the employee. [src/features/app/views/employees/EmployeeProfileProductionView.tsx:12]()
 - `EmployeeProfileProductionView` imports `addProbationReviewTask` and `hasProbationReviewTask` from the tasks productionApi to create linked review tasks. [src/features/app/views/employees/EmployeeProfileProductionView.tsx:15-18]()
 - `CasesProductionView` imports `listEmployees` from the employees productionApi for the employee picker and name resolution. [src/features/app/views/cases/CasesProductionView.tsx:12-13]()
@@ -684,12 +692,14 @@ Sources: [src/features/app/views/employees/EmployeeProfileProductionView.tsx:12-
 `EmployeesView.test.tsx` validates both modes:
 
 **Demo mode tests:**
+
 - Roster renders fixture rows with names, roles, status chips, and "Showing 12 of 82" sample count. [src/features/app/views/employees/EmployeesView.test.tsx:20-29]()
 - Filter matches by name/role/province and the empty-state clear button works. [src/features/app/views/employees/EmployeesView.test.tsx:31-44]()
 - Org chart tab renders stats and the reporting-line watch note. [src/features/app/views/employees/EmployeesView.test.tsx:46-63]()
 - Ask Advisor opens the rail with the employee insight and risk card. [src/features/app/views/employees/EmployeesView.test.tsx:73-93]()
 
 **Production mode tests:**
+
 - Render employees from a mocked `supabase.from('employees')` chain. [src/features/app/views/employees/EmployeesView.test.tsx:97-104]()
 - Add employee via the inline form. [src/features/app/views/employees/EmployeesView.test.tsx:106-122]()
 
@@ -716,6 +726,7 @@ Props: `tone`, `title` (LText), `body` (LText), and optional `actions` array of 
 ### Chip Utilities
 
 Both modules use shared chip class helpers from `@/components/chips`:
+
 - `statusChipClass(tone)` — for status badges (e.g., Active, Offboarding, Open, Resolved)
 - `sourceChipClass(tone)` — for source/category chips (e.g., timeline source labels, org chart department)
 - `dotToneClass(tone)` — for small status dots
@@ -726,36 +737,36 @@ Sources: [src/features/app/views/employees/RiskFlagCard.tsx:1-59](), [src/featur
 
 ## File Inventory
 
-| Path | Purpose |
-|---|---|
-| `src/features/app/views/employees/EmployeesView.tsx` | Employees list (mode dispatch) |
-| `src/features/app/views/employees/EmployeesProductionView.tsx` | Production employees roster |
-| `src/features/app/views/employees/EmployeeProfileView.tsx` | Employee profile (mode dispatch + demo) |
-| `src/features/app/views/employees/EmployeeProfileProductionView.tsx` | Production employee profile |
-| `src/features/app/views/employees/employeeProfileTabs.tsx` | 8 profile tab renderers |
-| `src/features/app/views/employees/OrgChart.tsx` | Org chart mode |
-| `src/features/app/views/employees/EmployeeDrawer.tsx` | Quick-peek drawer |
-| `src/features/app/views/employees/useAskAdvisorAboutEmployee.ts` | Ask Advisor hook |
-| `src/features/app/views/employees/RiskFlagCard.tsx` | Risk flag card component |
-| `src/features/app/views/employees/productionApi.ts` | Employees/notes/expiry/leaves API |
-| `src/features/app/views/employees/productionApi.test.ts` | API unit tests |
-| `src/features/app/views/employees/EmployeesView.test.tsx` | View integration tests |
-| `src/features/app/views/cases/CasesView.tsx` | Cases list (mode dispatch) |
-| `src/features/app/views/cases/CasesProductionView.tsx` | Production cases list |
-| `src/features/app/views/cases/CaseDetailView.tsx` | Case detail (mode dispatch + demo) |
-| `src/features/app/views/cases/CaseDetailProductionView.tsx` | Production case detail |
-| `src/features/app/views/cases/caseDetailTabs.tsx` | 5 case-detail tab renderers |
-| `src/features/app/views/cases/caseModel.ts` | Case view model + new-case builder |
-| `src/features/app/views/cases/NewCaseModal.tsx` | New case intake modal |
-| `src/features/app/views/cases/productionApi.ts` | Cases/notes API |
-| `src/i18n/messages/employees.ts` | Employees i18n messages |
-| `src/i18n/messages/cases.ts` | Cases i18n messages |
-| `supabase/migrations/0006_add_employees.sql` | employees table |
-| `supabase/migrations/0007_add_hr_cases.sql` | hr_cases table |
-| `supabase/migrations/0009_add_hr_case_notes.sql` | hr_case_notes table |
-| `supabase/migrations/0010_add_hr_employee_notes.sql` | hr_employee_notes table |
-| `supabase/migrations/0064_add_hr_expiry_records.sql` | hr_expiry_records table |
-| `supabase/migrations/0065_add_hr_leaves.sql` | hr_leaves table |
-| `supabase/migrations/0066_add_employee_lifecycle_dates.sql` | lifecycle date columns |
+| Path                                                                 | Purpose                                 |
+| -------------------------------------------------------------------- | --------------------------------------- |
+| `src/features/app/views/employees/EmployeesView.tsx`                 | Employees list (mode dispatch)          |
+| `src/features/app/views/employees/EmployeesProductionView.tsx`       | Production employees roster             |
+| `src/features/app/views/employees/EmployeeProfileView.tsx`           | Employee profile (mode dispatch + demo) |
+| `src/features/app/views/employees/EmployeeProfileProductionView.tsx` | Production employee profile             |
+| `src/features/app/views/employees/employeeProfileTabs.tsx`           | 8 profile tab renderers                 |
+| `src/features/app/views/employees/OrgChart.tsx`                      | Org chart mode                          |
+| `src/features/app/views/employees/EmployeeDrawer.tsx`                | Quick-peek drawer                       |
+| `src/features/app/views/employees/useAskAdvisorAboutEmployee.ts`     | Ask Advisor hook                        |
+| `src/features/app/views/employees/RiskFlagCard.tsx`                  | Risk flag card component                |
+| `src/features/app/views/employees/productionApi.ts`                  | Employees/notes/expiry/leaves API       |
+| `src/features/app/views/employees/productionApi.test.ts`             | API unit tests                          |
+| `src/features/app/views/employees/EmployeesView.test.tsx`            | View integration tests                  |
+| `src/features/app/views/cases/CasesView.tsx`                         | Cases list (mode dispatch)              |
+| `src/features/app/views/cases/CasesProductionView.tsx`               | Production cases list                   |
+| `src/features/app/views/cases/CaseDetailView.tsx`                    | Case detail (mode dispatch + demo)      |
+| `src/features/app/views/cases/CaseDetailProductionView.tsx`          | Production case detail                  |
+| `src/features/app/views/cases/caseDetailTabs.tsx`                    | 5 case-detail tab renderers             |
+| `src/features/app/views/cases/caseModel.ts`                          | Case view model + new-case builder      |
+| `src/features/app/views/cases/NewCaseModal.tsx`                      | New case intake modal                   |
+| `src/features/app/views/cases/productionApi.ts`                      | Cases/notes API                         |
+| `src/i18n/messages/employees.ts`                                     | Employees i18n messages                 |
+| `src/i18n/messages/cases.ts`                                         | Cases i18n messages                     |
+| `supabase/migrations/0006_add_employees.sql`                         | employees table                         |
+| `supabase/migrations/0007_add_hr_cases.sql`                          | hr_cases table                          |
+| `supabase/migrations/0009_add_hr_case_notes.sql`                     | hr_case_notes table                     |
+| `supabase/migrations/0010_add_hr_employee_notes.sql`                 | hr_employee_notes table                 |
+| `supabase/migrations/0064_add_hr_expiry_records.sql`                 | hr_expiry_records table                 |
+| `supabase/migrations/0065_add_hr_leaves.sql`                         | hr_leaves table                         |
+| `supabase/migrations/0066_add_employee_lifecycle_dates.sql`          | lifecycle date columns                  |
 
 ---

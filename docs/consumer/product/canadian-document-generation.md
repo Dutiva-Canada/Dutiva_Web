@@ -78,20 +78,20 @@ Categories are illustrative. The exact catalogue will be defined in `documents/d
 
 `CDG-REQ-001`: Every document template SHALL have the following metadata:
 
-| Field | Description |
-| --- | --- |
-| `id` | Stable identifier |
-| `category` | Document category |
-| `name` | Bilingual display name (`{ en, fr }`) |
-| `description` | Bilingual short description of purpose and limits |
-| `jurisdictions_supported` | List of province/territory/federal codes the template supports |
-| `risk_level` | `low`, `medium`, `high` |
-| `review_status` | `not_reviewed`, `hr_review_required`, `lawyer_review_recommended`, `approved_for_use` (or consumer-equivalent states) |
-| `version` | Template version |
-| `effective_date` | When this version became effective |
-| `deprecated_at` | Optional deprecation date |
-| `statutory_references` | Sourced references used in the template |
-| `disclaimer` | Bilingual disclaimer text, injected into every output |
+| Field                     | Description                                                                                                           |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `id`                      | Stable identifier                                                                                                     |
+| `category`                | Document category                                                                                                     |
+| `name`                    | Bilingual display name (`{ en, fr }`)                                                                                 |
+| `description`             | Bilingual short description of purpose and limits                                                                     |
+| `jurisdictions_supported` | List of province/territory/federal codes the template supports                                                        |
+| `risk_level`              | `low`, `medium`, `high`                                                                                               |
+| `review_status`           | `not_reviewed`, `hr_review_required`, `lawyer_review_recommended`, `approved_for_use` (or consumer-equivalent states) |
+| `version`                 | Template version                                                                                                      |
+| `effective_date`          | When this version became effective                                                                                    |
+| `deprecated_at`           | Optional deprecation date                                                                                             |
+| `statutory_references`    | Sourced references used in the template                                                                               |
+| `disclaimer`              | Bilingual disclaimer text, injected into every output                                                                 |
 
 `CDG-REQ-002`: Template content SHALL be expressed as an ordered list of **preview blocks** (title, paragraph, clause, note, signature, fill area) with optional `ClauseGate` conditions.
 

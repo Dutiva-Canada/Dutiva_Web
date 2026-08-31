@@ -9,7 +9,6 @@ const emp = (() => {
 })()
 
 describe('contextFromEmployee', () => {
-
   it('builds subject, initials, and employee entity type', () => {
     const ctx = contextFromEmployee(emp)
     expect(ctx.subject).toBe(emp.name)

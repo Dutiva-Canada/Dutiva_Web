@@ -9,9 +9,7 @@ export function SupportSectionNav({ active }: { readonly active: 'new' | 'reques
   const tabClass = (isActive: boolean) =>
     cx(
       '-mb-px border-b-2 px-[4px] py-[10px] text-[14px] font-semibold whitespace-nowrap transition-colors',
-      isActive
-        ? 'border-gold-dot text-text'
-        : 'border-transparent text-text-muted hover:text-text',
+      isActive ? 'border-gold-dot text-text' : 'border-transparent text-text-muted hover:text-text',
     )
 
   return (

@@ -41,7 +41,10 @@ const REGIONS: Region[] = [
 export function Coverage() {
   const { lt } = useLanding()
   return (
-    <section id="coverage" className="mx-auto max-w-[1200px] scroll-mt-[80px] px-4 py-12 sm:px-6 sm:py-16">
+    <section
+      id="coverage"
+      className="mx-auto max-w-[1200px] scroll-mt-[80px] px-4 py-12 sm:px-6 sm:py-16"
+    >
       <SectionIntro
         badge={lt('landing_cov_badge')}
         title={lt('landing_cov_title')}

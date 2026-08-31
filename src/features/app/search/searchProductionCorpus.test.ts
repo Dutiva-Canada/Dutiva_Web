@@ -3,7 +3,17 @@ import { buildProductionSearchEntries, pinnedProductionChats } from './searchPro
 
 vi.mock('@/features/app/views/employees/productionApi', () => ({
   listEmployees: vi.fn(async () => [
-    { id: 'e1', name: 'Alex Chen', title: 'HR Manager', province: 'ON', email: null, startDate: null, status: 'active', probationEndDate: null, terminationDate: null },
+    {
+      id: 'e1',
+      name: 'Alex Chen',
+      title: 'HR Manager',
+      province: 'ON',
+      email: null,
+      startDate: null,
+      status: 'active',
+      probationEndDate: null,
+      terminationDate: null,
+    },
   ]),
 }))
 
@@ -66,13 +76,31 @@ vi.mock('@/features/app/views/communications/productionApi', () => ({
 
 vi.mock('@/features/app/views/tasks/productionApi', () => ({
   listTasks: vi.fn(async () => [
-    { id: 't1', title: 'Review policy', priority: 'medium', status: 'open', done: false, category: 'general', dueDate: '2026-09-15', linkedEmployeeId: null, linkedKind: null },
+    {
+      id: 't1',
+      title: 'Review policy',
+      priority: 'medium',
+      status: 'open',
+      done: false,
+      category: 'general',
+      dueDate: '2026-09-15',
+      linkedEmployeeId: null,
+      linkedKind: null,
+    },
   ]),
 }))
 
 vi.mock('@/features/app/views/compliance/productionApi', () => ({
   listFindings: vi.fn(async () => [
-    { id: 'f1', title: 'Missing policy review', description: null, recommendation: null, severity: 'medium', status: 'open', resolved: false },
+    {
+      id: 'f1',
+      title: 'Missing policy review',
+      description: null,
+      recommendation: null,
+      severity: 'medium',
+      status: 'open',
+      resolved: false,
+    },
   ]),
 }))
 

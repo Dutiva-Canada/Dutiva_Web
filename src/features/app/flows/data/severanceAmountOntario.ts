@@ -35,7 +35,10 @@ function severanceLines(getInput: (id: string) => number | undefined): FlowFormu
       value: bi(formatWeeks(weeks, 'en'), formatWeeks(weeks, 'fr')),
     },
     {
-      label: bi('Estimated amount (regular weekly wages × weeks)', 'Montant estimé (salaire hebdomadaire régulier × semaines)'),
+      label: bi(
+        'Estimated amount (regular weekly wages × weeks)',
+        'Montant estimé (salaire hebdomadaire régulier × semaines)',
+      ),
       value: bi(formatCad(amount, 'en'), formatCad(amount, 'fr')),
     },
   ]
@@ -56,7 +59,10 @@ export const severanceAmountOntarioFlow: Flow = {
     {
       id: 'eligible',
       kind: 'choice',
-      title: bi('Have you confirmed ESA severance likely applies?', 'Avez-vous confirmé que l’indemnité LNE s’applique probablement?'),
+      title: bi(
+        'Have you confirmed ESA severance likely applies?',
+        'Avez-vous confirmé que l’indemnité LNE s’applique probablement?',
+      ),
       body: bi(
         'This calculator assumes both gates are met (five or more years with this employer, plus global payroll of at least $2.5 million or the 50-employee permanent-closure test) and that no ESA exclusion applies. Use the eligibility workflow if you have not checked.',
         'Ce calculateur suppose que les deux conditions sont remplies (cinq ans ou plus chez cet employeur, plus masse salariale mondiale d’au moins 2,5 M$ ou le test des 50 employés lors d’une fermeture permanente) et qu’aucune exclusion de la LNE ne s’applique. Utilisez le processus d’admissibilité si vous n’avez pas vérifié.',
@@ -68,12 +74,18 @@ export const severanceAmountOntarioFlow: Flow = {
       options: [
         {
           id: 'yes',
-          label: bi('Yes — eligibility confirmed; continue to amount', 'Oui — admissibilité confirmée; passer au montant'),
+          label: bi(
+            'Yes — eligibility confirmed; continue to amount',
+            'Oui — admissibilité confirmée; passer au montant',
+          ),
           to: 'years',
         },
         {
           id: 'no',
-          label: bi('Not yet — open eligibility first', 'Pas encore — ouvrir d’abord l’admissibilité'),
+          label: bi(
+            'Not yet — open eligibility first',
+            'Pas encore — ouvrir d’abord l’admissibilité',
+          ),
           to: 'need_eligibility',
         },
       ],
@@ -94,7 +106,10 @@ export const severanceAmountOntarioFlow: Flow = {
     {
       id: 'months',
       kind: 'input',
-      title: bi('Completed months in the incomplete final year', 'Mois complétés dans l’année finale incomplète'),
+      title: bi(
+        'Completed months in the incomplete final year',
+        'Mois complétés dans l’année finale incomplète',
+      ),
       body: bi(
         'If the final year is incomplete, enter how many whole months were completed in that year (0 through 11). Enter 0 if tenure ends on an exact year boundary.',
         'Si l’année finale est incomplète, entrez combien de mois entiers ont été complétés dans cette année (0 à 11). Entrez 0 si l’ancienneté se termine pile sur une année.',
@@ -108,7 +123,10 @@ export const severanceAmountOntarioFlow: Flow = {
       id: 'wages',
       kind: 'input',
       numberKind: 'decimal',
-      title: bi('Regular wages for a regular work week', 'Salaire régulier pour une semaine de travail régulière'),
+      title: bi(
+        'Regular wages for a regular work week',
+        'Salaire régulier pour une semaine de travail régulière',
+      ),
       body: bi(
         'Use the employee’s regular weekly wages in Canadian dollars — the same concept the ESA guide uses for the severance formula. Confirm from payroll; do not guess.',
         'Utilisez le salaire hebdomadaire régulier de l’employé en dollars canadiens — le même concept que le guide de la LNE pour la formule d’indemnité. Confirmez auprès de la paie; ne devinez pas.',
@@ -149,7 +167,10 @@ export const severanceAmountOntarioFlow: Flow = {
       id: 'need_eligibility',
       kind: 'outcome',
       tone: 'caution',
-      title: bi('Confirm eligibility before computing an amount', 'Confirmez l’admissibilité avant de calculer un montant'),
+      title: bi(
+        'Confirm eligibility before computing an amount',
+        'Confirmez l’admissibilité avant de calculer un montant',
+      ),
       body: bi(
         'Open the Ontario ESA severance eligibility workflow first. Computing dollars before the gates are checked invites paying (or refusing) the wrong entitlement.',
         'Ouvrez d’abord le processus d’admissibilité à l’indemnité de cessation de la LNE de l’Ontario. Calculer des dollars avant de vérifier les conditions invite à verser (ou refuser) la mauvaise prestation.',

@@ -182,7 +182,10 @@ export function operationalNextStepChips(
     /guid(ance|e) tool|not an? operational|can'?t add|cannot add|doesn'?t (create|add)|won'?t (create|add)|i (can'?t|cannot) (add|create)|outil de conseil|pas un système (rh )?opérationnel|ne (peux|peut) pas (ajouter|créer)/i.test(
       r,
     )
-  if (!aboutPeople && !(capabilityLimit && /\b(employee|people|roster|workspace|employé|personnel)\b/i.test(r))) {
+  if (
+    !aboutPeople &&
+    !(capabilityLimit && /\b(employee|people|roster|workspace|employé|personnel)\b/i.test(r))
+  ) {
     return []
   }
   return [
@@ -284,9 +287,17 @@ export function buildAdvisorThreadGroups(
 ): ThreadGroup[] {
   const groups: ThreadGroup[] = [
     { key: 'pinned', label: groupLabels.pinned, items: allThreads.filter((t) => t.pinned) },
-    { key: 'today', label: groupLabels.today, items: allThreads.filter((t) => t.bucket === 'today') },
+    {
+      key: 'today',
+      label: groupLabels.today,
+      items: allThreads.filter((t) => t.bucket === 'today'),
+    },
     { key: 'week', label: groupLabels.week, items: allThreads.filter((t) => t.bucket === 'week') },
-    { key: 'older', label: groupLabels.older, items: allThreads.filter((t) => t.bucket === 'older') },
+    {
+      key: 'older',
+      label: groupLabels.older,
+      items: allThreads.filter((t) => t.bucket === 'older'),
+    },
   ]
   return groups.filter((g) => g.items.length > 0)
 }

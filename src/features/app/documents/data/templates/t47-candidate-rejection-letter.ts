@@ -69,7 +69,10 @@ export const tplT47: DocTemplate = {
     {
       id: 'keep_on_file',
       section: { en: 'Resume retention', fr: 'Conservation du CV' },
-      label: { en: 'Keep resume on file for future opportunities?', fr: 'Conserver le CV pour de futures occasions ?' },
+      label: {
+        en: 'Keep resume on file for future opportunities?',
+        fr: 'Conserver le CV pour de futures occasions ?',
+      },
       type: 'radio',
       required: true,
       options: [

@@ -16,19 +16,24 @@ scanning](../../docs/SUPPORT_RUNBOOK.md).
 `Authorization: Bearer $SCAN_TOKEN`:
 
 ```json
-{ "url": "<5-minute signed URL>", "file_name": "notice.pdf",
-  "mime_type": "application/pdf", "size_bytes": 18422, "reference": "<uuid>" }
+{
+  "url": "<5-minute signed URL>",
+  "file_name": "notice.pdf",
+  "mime_type": "application/pdf",
+  "size_bytes": 18422,
+  "reference": "<uuid>"
+}
 ```
 
 We answer in the shape [`attachmentScan.ts`](../../src/features/support/attachmentScan.ts)
 holds us to — that module is the tested source of truth, not this README:
 
-| Response | Worker records |
-| --- | --- |
-| `200 {"status":"clean"}` | `clean` — downloads released |
-| `200 {"status":"infected","signature":"…"}` | `flagged` — downloads refused permanently |
-| `200 {"status":"unsupported","reason":"…"}` | `skipped` — never established as safe |
-| any non-2xx | `pending`, retried up to 5 times, then `skipped` |
+| Response                                    | Worker records                                   |
+| ------------------------------------------- | ------------------------------------------------ |
+| `200 {"status":"clean"}`                    | `clean` — downloads released                     |
+| `200 {"status":"infected","signature":"…"}` | `flagged` — downloads refused permanently        |
+| `200 {"status":"unsupported","reason":"…"}` | `skipped` — never established as safe            |
+| any non-2xx                                 | `pending`, retried up to 5 times, then `skipped` |
 
 **The 200-vs-502 split is the design.** `unsupported` is settled: retrying will
 not change it. A 502 means "we don't know yet". So an expired signed URL, a
@@ -72,13 +77,13 @@ signatures), daily.cvd (355,598) and bytecode.cvd (80) at build time; clamd
 loaded them and the entrypoint held the endpoint back until PING answered.
 Driven from inside the container against the live daemon:
 
-| Case | Result |
-| --- | --- |
-| `GET /health` | `{"ok":true,"clamd":"PONG"}` |
-| EICAR test file | `200 {"status":"infected","signature":"Eicar-Test-Signature"}` |
-| ordinary text file | `200 {"status":"clean"}` |
-| origin returns 404 | `502` — retryable, not a verdict |
-| wrong bearer token | `401` |
+| Case               | Result                                                         |
+| ------------------ | -------------------------------------------------------------- |
+| `GET /health`      | `{"ok":true,"clamd":"PONG"}`                                   |
+| EICAR test file    | `200 {"status":"infected","signature":"Eicar-Test-Signature"}` |
+| ordinary text file | `200 {"status":"clean"}`                                       |
+| origin returns 404 | `502` — retryable, not a verdict                               |
+| wrong bearer token | `401`                                                          |
 
 Two notes from that run. **`podman build` reports success even when `freshclam`
 fails** — the first cut of this Dockerfile set `LogFile` in `freshclam.conf`
@@ -164,7 +169,7 @@ npx supabase secrets set SUPPORT_ATTACHMENT_SCAN_URL=https://<your-app>/scan SUP
 > **Setting the URL arms the download gate, not just the worker.**
 > `support-attachment-action` refuses to sign a download for anything not
 > `clean` the moment scanning is enabled. Verify the endpoint with curl
-> *before* setting the secret. Right now `support_attachments` is empty, so
+> _before_ setting the secret. Right now `support_attachments` is empty, so
 > there is no backlog to lock out — that makes this the cheapest moment to
 > turn it on.
 

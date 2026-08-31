@@ -22,7 +22,8 @@ describe.each(referenceGuides.map((g) => [g.slug, g] as const))(
           ['fr', note.fr],
         ] as const) {
           const figure = editorialFigureIn(text)
-          if (figure) offenders.push(`jurisdictionNotes.${code} (${lang}) — "${figure}" in: ${text}`)
+          if (figure)
+            offenders.push(`jurisdictionNotes.${code} (${lang}) — "${figure}" in: ${text}`)
         }
       }
       expect(offenders).toEqual([])

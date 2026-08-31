@@ -25,15 +25,17 @@ export function DocumentStudioDemo() {
 
   const docPreview = compactDocPaperProps(preview, lang)
 
-  const wizardSteps = WIZARD_QUESTION_IDS.map((id) => template.questions.find((q) => q.id === id)).filter(
-    (question): question is NonNullable<typeof question> => question !== undefined,
-  )
+  const wizardSteps = WIZARD_QUESTION_IDS.map((id) =>
+    template.questions.find((q) => q.id === id),
+  ).filter((question): question is NonNullable<typeof question> => question !== undefined)
 
   return (
     <div className="mt-10 rounded-[22px] border border-border bg-bg-elevated p-4 sm:p-6">
       <div className="mb-5">
         <div className="text-sm font-semibold text-text">{lt('landing_studio_demo_title')}</div>
-        <p className="mt-1.5 text-sm leading-[1.55] text-text-2">{lt('landing_studio_demo_intro')}</p>
+        <p className="mt-1.5 text-sm leading-[1.55] text-text-2">
+          {lt('landing_studio_demo_intro')}
+        </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
@@ -83,20 +85,22 @@ export function DocumentStudioDemo() {
       </div>
 
       <div className="mt-3 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-        <p className="m-0 text-xs leading-normal text-text-faint">{lt('landing_studio_demo_note')}</p>
+        <p className="m-0 text-xs leading-normal text-text-faint">
+          {lt('landing_studio_demo_note')}
+        </p>
         <div className="flex flex-wrap gap-4">
-        <Link
-          to={`${p('demoWorkspace')}/documents/studio`}
-          className="text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
-        >
-          {lt('landing_open_in_demo')}
-        </Link>
-        <Link
-          to={p('templates')}
-          className="text-sm font-semibold text-text-2 transition-opacity hover:text-gold-strong hover:opacity-80"
-        >
-          {lt('landing_studio_demo_samples_link')}
-        </Link>
+          <Link
+            to={`${p('demoWorkspace')}/documents/studio`}
+            className="text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+          >
+            {lt('landing_open_in_demo')}
+          </Link>
+          <Link
+            to={p('templates')}
+            className="text-sm font-semibold text-text-2 transition-opacity hover:text-gold-strong hover:opacity-80"
+          >
+            {lt('landing_studio_demo_samples_link')}
+          </Link>
         </div>
       </div>
     </div>

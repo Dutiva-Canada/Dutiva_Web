@@ -4,7 +4,11 @@ import { ChevronRight } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { DEMO_TOUR_STOPS } from './demoTourModel'
-import { useWorkspaceRoot, workspacePath, workspaceSegments } from '@/features/app/workspaceRoot/workspaceRootContext'
+import {
+  useWorkspaceRoot,
+  workspacePath,
+  workspaceSegments,
+} from '@/features/app/workspaceRoot/workspaceRootContext'
 
 function useCompactTour(): boolean {
   const [compact, setCompact] = useState(false)
@@ -116,7 +120,11 @@ export function DemoTourRail() {
                 const selected = stop.id === activeStop.id
                 return (
                   <li key={stop.id} className="shrink-0">
-                    <Link to={to} aria-current={selected ? 'step' : undefined} className={pillClass(selected)}>
+                    <Link
+                      to={to}
+                      aria-current={selected ? 'step' : undefined}
+                      className={pillClass(selected)}
+                    >
                       <span className="text-[10px] font-bold tracking-[0.06em] text-text-faint">
                         {index + 1}
                       </span>

@@ -1,267 +1,981 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="./support.js"></script>
-</head>
-<body>
-<x-dc>
-<helmet>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
-<style>
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0}
-  body{font-family:'Inter',system-ui,sans-serif;background:#e7eaf2;color:#0c1020;-webkit-font-smoothing:antialiased}
-  a{color:#8a6a12;text-decoration:none}
-  @media print{body{background:#fff}.doc{box-shadow:none!important;margin:0!important}}
-</style>
-</helmet>
-<div style="display:flex;justify-content:center;padding:32px 16px">
-<div class="doc" style="width:100%;max-width:860px;background:#ffffff;border:1px solid #d8dcea;border-radius:14px;box-shadow:0 12px 40px rgba(20,28,45,.08);overflow:hidden">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="./support.js"></script>
+  </head>
+  <body>
+    <x-dc>
+      <helmet>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap"
+          rel="stylesheet"
+        />
+        <style>
+          * {
+            box-sizing: border-box;
+          }
+          html,
+          body {
+            margin: 0;
+            padding: 0;
+          }
+          body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #e7eaf2;
+            color: #0c1020;
+            -webkit-font-smoothing: antialiased;
+          }
+          a {
+            color: #8a6a12;
+            text-decoration: none;
+          }
+          @media print {
+            body {
+              background: #fff;
+            }
+            .doc {
+              box-shadow: none !important;
+              margin: 0 !important;
+            }
+          }
+        </style>
+      </helmet>
+      <div style="display: flex; justify-content: center; padding: 32px 16px">
+        <div
+          class="doc"
+          style="
+            width: 100%;
+            max-width: 860px;
+            background: #ffffff;
+            border: 1px solid #d8dcea;
+            border-radius: 14px;
+            box-shadow: 0 12px 40px rgba(20, 28, 45, 0.08);
+            overflow: hidden;
+          "
+        >
+          <!-- Cover band -->
+          <div
+            style="
+              background: linear-gradient(160deg, #132437 0%, #0d1b2a 100%);
+              color: #fff;
+              padding: 34px 40px 30px;
+            "
+          >
+            <div style="display: flex; align-items: center; gap: 9px; margin-bottom: 18px">
+              <div
+                style="
+                  width: 26px;
+                  height: 26px;
+                  border-radius: 7px;
+                  background: #1f3a5f;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                "
+              >
+                <span
+                  style="
+                    color: #f2d9a8;
+                    font-weight: 800;
+                    font-family: 'Montserrat';
+                    font-size: 13px;
+                  "
+                  >D</span
+                >
+              </div>
+              <span
+                style="
+                  font-family: 'Montserrat';
+                  font-weight: 700;
+                  font-size: 15px;
+                  letter-spacing: 0.01em;
+                "
+                >Duti<span style="color: #d4af37">va</span></span
+              >
+              <span
+                style="
+                  margin-left: auto;
+                  font-size: 10.5px;
+                  font-weight: 700;
+                  letter-spacing: 0.14em;
+                  text-transform: uppercase;
+                  color: #c9b06a;
+                "
+                >Engineering handoff</span
+              >
+            </div>
+            <div
+              style="
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.16em;
+                text-transform: uppercase;
+                color: #c9b06a;
+                margin-bottom: 10px;
+              "
+            >
+              Production roadmap · v2 · adds Advisor memory
+            </div>
+            <h1
+              style="
+                margin: 0 0 10px;
+                font-family: 'Montserrat';
+                font-size: 30px;
+                font-weight: 800;
+                line-height: 1.12;
+                letter-spacing: -0.02em;
+              "
+            >
+              Advisor response experience — road to production
+            </h1>
+            <p
+              style="margin: 0; font-size: 14px; line-height: 1.6; color: #c3ccdb; max-width: 640px"
+            >
+              Turns the prototype (this repo's
+              <strong style="color: #e7ecf4">Advisor Response Experience.dc.html</strong>) into a
+              shipped feature backed by
+              <strong style="color: #e7ecf4">dutiva-advisor-engine</strong>. Written for a coding
+              agent: every workstream names the source files, the contract, and its acceptance
+              criteria. This revision adds the
+              <strong style="color: #e7ecf4">Advisor memory</strong> layer — persistent context
+              across people, conversations and cases — prototyped in
+              <strong style="color: #e7ecf4">Advisor Memory.dc.html</strong>.
+            </p>
+          </div>
 
-  <!-- Cover band -->
-  <div style="background:linear-gradient(160deg,#132437 0%,#0d1b2a 100%);color:#fff;padding:34px 40px 30px">
-    <div style="display:flex;align-items:center;gap:9px;margin-bottom:18px">
-      <div style="width:26px;height:26px;border-radius:7px;background:#1f3a5f;display:flex;align-items:center;justify-content:center"><span style="color:#F2D9A8;font-weight:800;font-family:'Montserrat';font-size:13px">D</span></div>
-      <span style="font-family:'Montserrat';font-weight:700;font-size:15px;letter-spacing:.01em">Duti<span style="color:#d4af37">va</span></span>
-      <span style="margin-left:auto;font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#c9b06a">Engineering handoff</span>
-    </div>
-    <div style="font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#c9b06a;margin-bottom:10px">Production roadmap · v2 · adds Advisor memory</div>
-    <h1 style="margin:0 0 10px;font-family:'Montserrat';font-size:30px;font-weight:800;line-height:1.12;letter-spacing:-.02em">Advisor response experience — road to production</h1>
-    <p style="margin:0;font-size:14px;line-height:1.6;color:#c3ccdb;max-width:640px">Turns the prototype (this repo's <strong style="color:#e7ecf4">Advisor Response Experience.dc.html</strong>) into a shipped feature backed by <strong style="color:#e7ecf4">dutiva-advisor-engine</strong>. Written for a coding agent: every workstream names the source files, the contract, and its acceptance criteria. This revision adds the <strong style="color:#e7ecf4">Advisor memory</strong> layer — persistent context across people, conversations and cases — prototyped in <strong style="color:#e7ecf4">Advisor Memory.dc.html</strong>.</p>
-  </div>
+          <div style="padding: 32px 40px 44px">
+            <!-- 0 · Context -->
+            <div style="margin-bottom: 30px">
+              <div
+                style="
+                  font-size: 10.5px;
+                  font-weight: 800;
+                  letter-spacing: 0.14em;
+                  text-transform: uppercase;
+                  color: #a87f2e;
+                  margin-bottom: 8px;
+                "
+              >
+                01 · System context
+              </div>
+              <p style="margin: 0 0 12px; font-size: 13.5px; line-height: 1.65; color: #424d66">
+                Two services. The <strong>consuming app</strong> (<code
+                  style="background: #eef1f8; padding: 1px 5px; border-radius: 4px; font-size: 12px"
+                  >Dutiva--Redesign-</code
+                >, React 19 + Vite + Tailwind v4) owns the chat UI, the Compliance Workspace, thread
+                state and i18n. The <strong>engine</strong> (<code
+                  style="background: #eef1f8; padding: 1px 5px; border-radius: 4px; font-size: 12px"
+                  >dutiva-advisor-engine</code
+                >, Express + Qwen) owns routing, retrieval, validation and the response contract.
+                They talk over one HTTP call.
+              </p>
+              <div
+                style="
+                  display: flex;
+                  flex-wrap: wrap;
+                  gap: 8px;
+                  align-items: stretch;
+                  margin-top: 14px;
+                "
+              >
+                <div
+                  style="
+                    flex: 1;
+                    min-width: 200px;
+                    border: 1px solid #d8dcea;
+                    border-radius: 10px;
+                    padding: 13px 14px;
+                    background: #f6f8fc;
+                  "
+                >
+                  <div
+                    style="font-size: 12.5px; font-weight: 700; color: #0c1020; margin-bottom: 4px"
+                  >
+                    Consuming app renders
+                  </div>
+                  <div style="font-size: 12px; line-height: 1.55; color: #565f78">
+                    <code style="font-size: 11.5px">conversationalResponse</code> in chat ·
+                    <code style="font-size: 11.5px">workspace</code> payload in the panel · gated on
+                    <code style="font-size: 11.5px">route.*Allowed</code>.
+                  </div>
+                </div>
+                <div
+                  style="
+                    flex: none;
+                    display: flex;
+                    align-items: center;
+                    color: #a87f2e;
+                    font-weight: 800;
+                    font-size: 18px;
+                  "
+                >
+                  →
+                </div>
+                <div
+                  style="
+                    flex: 1;
+                    min-width: 200px;
+                    border: 1px solid #d8dcea;
+                    border-radius: 10px;
+                    padding: 13px 14px;
+                    background: #f6f8fc;
+                  "
+                >
+                  <div
+                    style="font-size: 12.5px; font-weight: 700; color: #0c1020; margin-bottom: 4px"
+                  >
+                    Engine returns
+                  </div>
+                  <div style="font-size: 12px; line-height: 1.55; color: #565f78">
+                    <code style="font-size: 11.5px">POST /api/advisor/respond</code> → route ·
+                    jurisdiction · risk · professionalReview · workspace · webSearch · quality ·
+                    isCrisis.
+                  </div>
+                </div>
+              </div>
+            </div>
 
-  <div style="padding:32px 40px 44px">
+            <!-- Principles -->
+            <div
+              style="
+                margin-bottom: 30px;
+                border-left: 3px solid #d4af37;
+                padding: 4px 0 4px 16px;
+                background: linear-gradient(90deg, rgba(212, 175, 55, 0.07), transparent);
+              "
+            >
+              <div
+                style="
+                  font-size: 10.5px;
+                  font-weight: 800;
+                  letter-spacing: 0.14em;
+                  text-transform: uppercase;
+                  color: #a87f2e;
+                  margin-bottom: 8px;
+                "
+              >
+                Non-negotiable principles
+              </div>
+              <ul
+                style="
+                  margin: 0;
+                  padding-left: 18px;
+                  font-size: 13px;
+                  line-height: 1.7;
+                  color: #424d66;
+                "
+              >
+                <li>
+                  <strong>Obey the gates.</strong> Never render workspace / legal basis / retrieval
+                  / documents / web results when the matching
+                  <code style="font-size: 11.5px">route.*Allowed</code> is false. Build a fresh
+                  context per turn — never carry a prior turn's structured data forward.
+                </li>
+                <li>
+                  <strong>Jurisdiction is never assumed.</strong> Province defaults to
+                  <code style="font-size: 11.5px">null</code>; surface the collect-jurisdiction
+                  prompt when status is <code style="font-size: 11.5px">unknown</code>; show
+                  conflict warnings.
+                </li>
+                <li>
+                  <strong>Disclaimer always ships</strong> near Advisor output, generated docs and
+                  CTAs. Not legal advice.
+                </li>
+                <li>
+                  <strong>Bilingual EN/FR</strong> parity is enforced by the type system — every
+                  user string is a <code style="font-size: 11.5px">{ en, fr }</code> pair.
+                </li>
+                <li>
+                  <strong>Crisis intercepts everything.</strong>
+                  <code style="font-size: 11.5px">isCrisis</code> surfaces maintained resources; no
+                  HR content, gates all off, cannot be overridden by mode.
+                </li>
+              </ul>
+            </div>
 
-    <!-- 0 · Context -->
-    <div style="margin-bottom:30px">
-      <div style="font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#a87f2e;margin-bottom:8px">01 · System context</div>
-      <p style="margin:0 0 12px;font-size:13.5px;line-height:1.65;color:#424d66">Two services. The <strong>consuming app</strong> (<code style="background:#eef1f8;padding:1px 5px;border-radius:4px;font-size:12px">Dutiva--Redesign-</code>, React 19 + Vite + Tailwind v4) owns the chat UI, the Compliance Workspace, thread state and i18n. The <strong>engine</strong> (<code style="background:#eef1f8;padding:1px 5px;border-radius:4px;font-size:12px">dutiva-advisor-engine</code>, Express + Qwen) owns routing, retrieval, validation and the response contract. They talk over one HTTP call.</p>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin-top:14px">
-        <div style="flex:1;min-width:200px;border:1px solid #d8dcea;border-radius:10px;padding:13px 14px;background:#f6f8fc">
-          <div style="font-size:12.5px;font-weight:700;color:#0c1020;margin-bottom:4px">Consuming app renders</div>
-          <div style="font-size:12px;line-height:1.55;color:#565f78"><code style="font-size:11.5px">conversationalResponse</code> in chat · <code style="font-size:11.5px">workspace</code> payload in the panel · gated on <code style="font-size:11.5px">route.*Allowed</code>.</div>
+            <!-- Phases -->
+            <div
+              style="
+                font-size: 10.5px;
+                font-weight: 800;
+                letter-spacing: 0.14em;
+                text-transform: uppercase;
+                color: #a87f2e;
+                margin-bottom: 14px;
+              "
+            >
+              02 · Phased delivery
+            </div>
+            <div>{{ phases }}</div>
+
+            <!-- Workstreams -->
+            <div
+              style="
+                font-size: 10.5px;
+                font-weight: 800;
+                letter-spacing: 0.14em;
+                text-transform: uppercase;
+                color: #a87f2e;
+                margin: 36px 0 12px;
+              "
+            >
+              03 · Workstreams
+            </div>
+            <div>{{ workstreams }}</div>
+
+            <!-- Contract -->
+            <div
+              style="
+                font-size: 10.5px;
+                font-weight: 800;
+                letter-spacing: 0.14em;
+                text-transform: uppercase;
+                color: #a87f2e;
+                margin: 36px 0 12px;
+              "
+            >
+              04 · Response contract (quick reference)
+            </div>
+            <div
+              style="
+                border: 1px solid #d8dcea;
+                border-radius: 10px;
+                overflow: hidden;
+                font-size: 12.5px;
+              "
+            >
+              <div>{{ contract }}</div>
+            </div>
+
+            <!-- 05 · Advisor memory -->
+            <div
+              style="
+                font-size: 10.5px;
+                font-weight: 800;
+                letter-spacing: 0.14em;
+                text-transform: uppercase;
+                color: #a87f2e;
+                margin: 36px 0 12px;
+              "
+            >
+              05 · Advisor memory
+            </div>
+            <p style="margin: 0 0 14px; font-size: 13.5px; line-height: 1.65; color: #424d66">
+              A durable memory layer so the Advisor carries context between sessions — about a
+              <strong>person</strong>, a <strong>conversation thread</strong>, and a
+              <strong>case</strong>. Prototyped in
+              <code
+                style="background: #eef1f8; padding: 1px 5px; border-radius: 4px; font-size: 12px"
+                >Advisor Memory.dc.html</code
+              >: a person profile panel, case memory + timeline, inline chat recall with sources,
+              the workspace “What I know” section, and a governed memory manager.
+            </p>
+
+            <div
+              style="
+                margin-bottom: 16px;
+                border-left: 3px solid #d4af37;
+                padding: 4px 0 4px 16px;
+                background: linear-gradient(90deg, rgba(212, 175, 55, 0.07), transparent);
+              "
+            >
+              <div
+                style="
+                  font-size: 10.5px;
+                  font-weight: 800;
+                  letter-spacing: 0.14em;
+                  text-transform: uppercase;
+                  color: #a87f2e;
+                  margin-bottom: 6px;
+                "
+              >
+                Memory ≠ carried-forward turn state
+              </div>
+              <p style="margin: 0; font-size: 13px; line-height: 1.65; color: #424d66">
+                Memory is a <strong>facts-and-context layer</strong>, retrieved and injected into
+                the prompt as inputs. It never carries a prior turn’s structured output forward —
+                <code style="font-size: 11.5px">route</code>,
+                <code style="font-size: 11.5px">risk</code>, legal basis, citations, gates and
+                <code style="font-size: 11.5px">isCrisis</code> are still computed
+                <strong>fresh every turn</strong> (Principle 1 holds). Memory feeds the turn; it
+                never replays a past decision.
+              </p>
+            </div>
+
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px">
+              <div
+                style="
+                  flex: 1;
+                  min-width: 185px;
+                  border: 1px solid #d8dcea;
+                  border-radius: 10px;
+                  padding: 13px 14px;
+                  background: #f6f8fc;
+                "
+              >
+                <div
+                  style="font-size: 12.5px; font-weight: 700; color: #0c1020; margin-bottom: 4px"
+                >
+                  Person memory
+                </div>
+                <div style="font-size: 12px; line-height: 1.5; color: #565f78">
+                  Facts about an employee/candidate, carried into every case and chat about them.
+                  Scope <code style="font-size: 11px">person:{id}</code>.
+                </div>
+              </div>
+              <div
+                style="
+                  flex: 1;
+                  min-width: 185px;
+                  border: 1px solid #d8dcea;
+                  border-radius: 10px;
+                  padding: 13px 14px;
+                  background: #f6f8fc;
+                "
+              >
+                <div
+                  style="font-size: 12.5px; font-weight: 700; color: #0c1020; margin-bottom: 4px"
+                >
+                  Thread memory
+                </div>
+                <div style="font-size: 12px; line-height: 1.5; color: #565f78">
+                  What was said earlier in one conversation, so follow-ups resolve against it. Scope
+                  <code style="font-size: 11px">thread:{id}</code>.
+                </div>
+              </div>
+              <div
+                style="
+                  flex: 1;
+                  min-width: 185px;
+                  border: 1px solid #d8dcea;
+                  border-radius: 10px;
+                  padding: 13px 14px;
+                  background: #f6f8fc;
+                "
+              >
+                <div
+                  style="font-size: 12.5px; font-weight: 700; color: #0c1020; margin-bottom: 4px"
+                >
+                  Case memory
+                </div>
+                <div style="font-size: 12px; line-height: 1.5; color: #565f78">
+                  A case’s summary, decisions and open threads — persisted across the many sessions
+                  it takes to resolve. Scope <code style="font-size: 11px">case:{id}</code>.
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 18px">
+              <div style="flex: 1; min-width: 250px">
+                <div
+                  style="
+                    font-size: 10.5px;
+                    font-weight: 800;
+                    letter-spacing: 0.14em;
+                    text-transform: uppercase;
+                    color: #a87f2e;
+                    margin-bottom: 9px;
+                  "
+                >
+                  Capture &amp; confidence
+                </div>
+                <ul
+                  style="
+                    margin: 0;
+                    padding-left: 17px;
+                    font-size: 12.5px;
+                    line-height: 1.65;
+                    color: #424d66;
+                  "
+                >
+                  <li>
+                    Advisor extracts candidate facts per turn — automatically, each linked to its
+                    turn or document.
+                  </li>
+                  <li>
+                    Two states only: <strong>Confirmed</strong> (authoritative source) vs
+                    <strong>Inferred</strong> (Advisor-derived).
+                  </li>
+                  <li>
+                    Inferred is never treated as fact until a human confirms; confirming promotes
+                    it.
+                  </li>
+                  <li>Correct/forget any time — first-class actions, not buried admin.</li>
+                </ul>
+              </div>
+              <div style="flex: 1; min-width: 250px">
+                <div
+                  style="
+                    font-size: 10.5px;
+                    font-weight: 800;
+                    letter-spacing: 0.14em;
+                    text-transform: uppercase;
+                    color: #a87f2e;
+                    margin-bottom: 9px;
+                  "
+                >
+                  Governance (non-negotiable)
+                </div>
+                <ul
+                  style="
+                    margin: 0;
+                    padding-left: 17px;
+                    font-size: 12.5px;
+                    line-height: 1.65;
+                    color: #424d66;
+                  "
+                >
+                  <li>Provenance on every fact: source, learned + last-confirmed dates.</li>
+                  <li>Visibility scope: HR team / case + counsel / restricted (comp, health).</li>
+                  <li>
+                    Retention TTLs by scope; wellbeing &amp; personal notes auto-forget at 12
+                    months.
+                  </li>
+                  <li>
+                    PIPEDA · Québec Law 25: access, correction &amp; erasure; forget honours those
+                    requests (source untouched).
+                  </li>
+                  <li>Every add / edit / forget is audit-logged with who + when.</li>
+                </ul>
+              </div>
+            </div>
+
+            <div
+              style="
+                font-size: 10.5px;
+                font-weight: 800;
+                letter-spacing: 0.14em;
+                text-transform: uppercase;
+                color: #a87f2e;
+                margin: 22px 0 12px;
+              "
+            >
+              Memory workstreams
+            </div>
+            <div
+              style="
+                border: 1px solid #e6e9f2;
+                border-radius: 10px;
+                padding: 12px 14px;
+                margin-bottom: 9px;
+                background: #fff;
+              "
+            >
+              <div
+                style="
+                  display: flex;
+                  flex-wrap: wrap;
+                  align-items: baseline;
+                  gap: 8px;
+                  margin-bottom: 5px;
+                "
+              >
+                <span style="font-size: 13px; font-weight: 700; color: #0c1020"
+                  >Memory store &amp; schema</span
+                ><span
+                  style="
+                    font-size: 11px;
+                    color: #7d8596;
+                    font-family: ui-monospace, Menlo, monospace;
+                  "
+                  >data/* · supabase/</span
+                >
+              </div>
+              <div style="font-size: 12.5px; line-height: 1.55; color: #424d66; margin-bottom: 5px">
+                Entity/thread/case-scoped records, each with confidence, provenance, visibility and
+                a retention TTL. One row = one fact.
+              </div>
+              <div
+                style="
+                  font-size: 11.5px;
+                  line-height: 1.5;
+                  color: #2f6a4f;
+                  background: #e7f1ec;
+                  border: 1px solid #b7d9c7;
+                  border-radius: 7px;
+                  padding: 5px 9px;
+                "
+              >
+                ✓ A memory carries source, confidence, scope, visibility and timestamps; a TTL sweep
+                forgets expired items.
+              </div>
+            </div>
+            <div
+              style="
+                border: 1px solid #e6e9f2;
+                border-radius: 10px;
+                padding: 12px 14px;
+                margin-bottom: 9px;
+                background: #fff;
+              "
+            >
+              <div
+                style="
+                  display: flex;
+                  flex-wrap: wrap;
+                  align-items: baseline;
+                  gap: 8px;
+                  margin-bottom: 5px;
+                "
+              >
+                <span style="font-size: 13px; font-weight: 700; color: #0c1020"
+                  >Extraction pipeline</span
+                ><span
+                  style="
+                    font-size: 11px;
+                    color: #7d8596;
+                    font-family: ui-monospace, Menlo, monospace;
+                  "
+                  >dutiva-advisor-engine</span
+                >
+              </div>
+              <div style="font-size: 12.5px; line-height: 1.55; color: #424d66; margin-bottom: 5px">
+                Per-turn candidate extraction → inferred memories linked to their turn; dedupe/merge
+                against existing; redact PII before any persistence.
+              </div>
+              <div
+                style="
+                  font-size: 11.5px;
+                  line-height: 1.5;
+                  color: #2f6a4f;
+                  background: #e7f1ec;
+                  border: 1px solid #b7d9c7;
+                  border-radius: 7px;
+                  padding: 5px 9px;
+                "
+              >
+                ✓ An answer yields inferred candidates tied to their source; high-sensitivity facts
+                stay inferred until confirmed.
+              </div>
+            </div>
+            <div
+              style="
+                border: 1px solid #e6e9f2;
+                border-radius: 10px;
+                padding: 12px 14px;
+                margin-bottom: 9px;
+                background: #fff;
+              "
+            >
+              <div
+                style="
+                  display: flex;
+                  flex-wrap: wrap;
+                  align-items: baseline;
+                  gap: 8px;
+                  margin-bottom: 5px;
+                "
+              >
+                <span style="font-size: 13px; font-weight: 700; color: #0c1020"
+                  >Retrieval &amp; injection</span
+                ><span
+                  style="
+                    font-size: 11px;
+                    color: #7d8596;
+                    font-family: ui-monospace, Menlo, monospace;
+                  "
+                  >engine · advisor/chatApi.ts</span
+                >
+              </div>
+              <div style="font-size: 12.5px; line-height: 1.55; color: #424d66; margin-bottom: 5px">
+                Scope- and permission-filter memory for the active person/thread/case, budget
+                tokens, and surface recalled facts as sourced references.
+              </div>
+              <div
+                style="
+                  font-size: 11.5px;
+                  line-height: 1.5;
+                  color: #2f6a4f;
+                  background: #e7f1ec;
+                  border: 1px solid #b7d9c7;
+                  border-radius: 7px;
+                  padding: 5px 9px;
+                "
+              >
+                ✓ Recalled facts render with a source; out-of-scope or over-permission memory is
+                never injected.
+              </div>
+            </div>
+            <div
+              style="
+                border: 1px solid #e6e9f2;
+                border-radius: 10px;
+                padding: 12px 14px;
+                margin-bottom: 9px;
+                background: #fff;
+              "
+            >
+              <div
+                style="
+                  display: flex;
+                  flex-wrap: wrap;
+                  align-items: baseline;
+                  gap: 8px;
+                  margin-bottom: 5px;
+                "
+              >
+                <span style="font-size: 13px; font-weight: 700; color: #0c1020"
+                  >Governance &amp; rights</span
+                ><span
+                  style="
+                    font-size: 11px;
+                    color: #7d8596;
+                    font-family: ui-monospace, Menlo, monospace;
+                  "
+                  >data/* · app</span
+                >
+              </div>
+              <div style="font-size: 12.5px; line-height: 1.55; color: #424d66; margin-bottom: 5px">
+                Edit/forget writes an audit entry; forget removes from retrieval only;
+                access/correction/erasure flows; comp &amp; health access-controlled.
+              </div>
+              <div
+                style="
+                  font-size: 11.5px;
+                  line-height: 1.5;
+                  color: #2f6a4f;
+                  background: #e7f1ec;
+                  border: 1px solid #b7d9c7;
+                  border-radius: 7px;
+                  padding: 5px 9px;
+                "
+              >
+                ✓ Forget → the fact stops being retrieved, its source stays intact, and an audit
+                entry is written.
+              </div>
+            </div>
+            <div
+              style="
+                border: 1px solid #e6e9f2;
+                border-radius: 10px;
+                padding: 12px 14px;
+                margin-bottom: 9px;
+                background: #fff;
+              "
+            >
+              <div
+                style="
+                  display: flex;
+                  flex-wrap: wrap;
+                  align-items: baseline;
+                  gap: 8px;
+                  margin-bottom: 5px;
+                "
+              >
+                <span style="font-size: 13px; font-weight: 700; color: #0c1020"
+                  >Memory surfaces</span
+                ><span
+                  style="
+                    font-size: 11px;
+                    color: #7d8596;
+                    font-family: ui-monospace, Menlo, monospace;
+                  "
+                  >Dutiva--Redesign-</span
+                >
+              </div>
+              <div style="font-size: 12.5px; line-height: 1.55; color: #424d66; margin-bottom: 5px">
+                Person panel, case memory + timeline, inline recall chips, workspace “What I know”,
+                and the memory manager (review queue, filters, edit/forget).
+              </div>
+              <div
+                style="
+                  font-size: 11.5px;
+                  line-height: 1.5;
+                  color: #2f6a4f;
+                  background: #e7f1ec;
+                  border: 1px solid #b7d9c7;
+                  border-radius: 7px;
+                  padding: 5px 9px;
+                "
+              >
+                ✓ Every surface reads one store; a confirm/forget updates all of them.
+              </div>
+            </div>
+
+            <!-- Testing + risks -->
+            <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 34px">
+              <div style="flex: 1; min-width: 250px">
+                <div
+                  style="
+                    font-size: 10.5px;
+                    font-weight: 800;
+                    letter-spacing: 0.14em;
+                    text-transform: uppercase;
+                    color: #a87f2e;
+                    margin-bottom: 10px;
+                  "
+                >
+                  06 · Quality gate
+                </div>
+                <ul
+                  style="
+                    margin: 0;
+                    padding-left: 17px;
+                    font-size: 12.5px;
+                    line-height: 1.65;
+                    color: #424d66;
+                  "
+                >
+                  <li>
+                    Engine <code style="font-size: 11px">evals/</code> regression suite green
+                    (routing + screenshot cases).
+                  </li>
+                  <li>
+                    App <code style="font-size: 11px">npm run check</code> (tsc strict + oxlint +
+                    vitest) on every commit.
+                  </li>
+                  <li>
+                    Contract tests assert gate → UI: a false gate must never paint its section.
+                  </li>
+                  <li>Bilingual snapshot: EN & FR render for every route.</li>
+                  <li>a11y: focus-visible, ≥44px hit targets, aria-live on streamed replies.</li>
+                </ul>
+              </div>
+              <div style="flex: 1; min-width: 250px">
+                <div
+                  style="
+                    font-size: 10.5px;
+                    font-weight: 800;
+                    letter-spacing: 0.14em;
+                    text-transform: uppercase;
+                    color: #a87f2e;
+                    margin-bottom: 10px;
+                  "
+                >
+                  07 · Observability &amp; risk
+                </div>
+                <ul
+                  style="
+                    margin: 0;
+                    padding-left: 17px;
+                    font-size: 12.5px;
+                    line-height: 1.65;
+                    color: #424d66;
+                  "
+                >
+                  <li>
+                    Log <code style="font-size: 11px">route.intent</code>, latency, gate decisions,
+                    quality warnings — never PII or message bodies.
+                  </li>
+                  <li>
+                    Web search is off by default; PII is redacted before any query leaves the
+                    engine.
+                  </li>
+                  <li>
+                    Rate-limit + 30s timeout already in the engine; add a client fallback turn.
+                  </li>
+                  <li>
+                    <strong>Risk:</strong> FR guidance corpus is not production-validated — keep FR
+                    gated to routing/LLM until reviewed.
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div
+              style="
+                margin-top: 34px;
+                border-top: 1px solid #e6e9f2;
+                padding-top: 14px;
+                font-size: 11px;
+                line-height: 1.5;
+                color: #7d8596;
+              "
+            >
+              Dutiva provides practical HR workflow support and compliance-oriented guidance. It
+              does not provide legal advice. · Source of truth:
+              <code style="font-size: 10.5px">Dutiva--Redesign-</code> +
+              <code style="font-size: 10.5px">dutiva-advisor-engine</code>.
+            </div>
+          </div>
         </div>
-        <div style="flex:none;display:flex;align-items:center;color:#a87f2e;font-weight:800;font-size:18px">→</div>
-        <div style="flex:1;min-width:200px;border:1px solid #d8dcea;border-radius:10px;padding:13px 14px;background:#f6f8fc">
-          <div style="font-size:12.5px;font-weight:700;color:#0c1020;margin-bottom:4px">Engine returns</div>
-          <div style="font-size:12px;line-height:1.55;color:#565f78"><code style="font-size:11.5px">POST /api/advisor/respond</code> → route · jurisdiction · risk · professionalReview · workspace · webSearch · quality · isCrisis.</div>
-        </div>
       </div>
-    </div>
+    </x-dc>
+    <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":920,"height":1400}}'>
+      class Component extends DCLogic {
+        renderVals() {
+          const phase = (n, tag, title, goal, items, tone) => {
+            const c = tone === 'now' ? { bg: '#e7f1ec', bd: '#b7d9c7', fg: '#2f6a4f' }
+              : tone === 'next' ? { bg: 'rgba(212,175,55,.1)', bd: 'rgba(212,175,55,.28)', fg: '#8a6a12' }
+              : { bg: '#eef1f8', bd: '#d8dcea', fg: '#565f78' }
+            return React.createElement('div', { style: { display: 'flex', gap: '14px', marginBottom: '14px', alignItems: 'flex-start' } },
+              React.createElement('div', { style: { flex: 'none', width: '52px', textAlign: 'center' } },
+                React.createElement('div', { style: { fontFamily: 'Montserrat', fontWeight: 800, fontSize: '22px', color: '#0c1020', lineHeight: 1 } }, n),
+                React.createElement('div', { style: { marginTop: '4px', fontSize: '9px', fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', color: c.fg, background: c.bg, border: '1px solid ' + c.bd, borderRadius: '100px', padding: '2px 0' } }, tag)),
+              React.createElement('div', { style: { flex: 1, border: '1px solid #e6e9f2', borderRadius: '11px', padding: '13px 15px', background: '#fff' } },
+                React.createElement('div', { style: { fontSize: '14px', fontWeight: 700, color: '#0c1020', marginBottom: '3px' } }, title),
+                React.createElement('div', { style: { fontSize: '12.5px', color: '#8a6a12', fontWeight: 600, marginBottom: '8px' } }, goal),
+                React.createElement('ul', { style: { margin: 0, paddingLeft: '17px', fontSize: '12.5px', lineHeight: 1.6, color: '#424d66' } },
+                  items.map((it, i) => React.createElement('li', { key: i }, it)))))
+          }
+          const phases = React.createElement('div', {}, [
+            phase('P0', 'Ship', 'Wire the live engine', 'One route, end-to-end, behind a flag', [
+              'Replace scripted sends with POST /api/advisor/respond; keep the signed-out scripted path as fallback.',
+              'Render conversationalResponse + the five gates for general_hr_compliance only.',
+              'Session id, history, locale, province plumbed through chatApi.ts.'], 'now'),
+            phase('P1', 'Now', 'Full workspace + all routes', 'Every intent + every signal surfaced', [
+              'Map all engine intents to workspace cards (this prototype is the spec).',
+              'Jurisdiction: known / unknown-prompt / assumed / conflict. Dual risk. professionalReview.',
+              'Legal basis with validation status; retrieval with topic-alignment; confidence.'], 'next'),
+            phase('P2', 'Next', 'Streaming + safety', 'Token streaming, crisis, escalation', [
+              'SSE/stream conversationalResponse; reveal reasoning + citations progressively.',
+              'Crisis intercept (isCrisis) → maintained resources, all gates off, no override.',
+              'High-risk escalation banner + professionalReview routing (legal/medical/emergency).'], 'next'),
+            phase('P3', 'Then', 'Web search + documents', 'Current-info + Doc Studio hand-off', [
+              'Gate webSearch behind route.webSearchAllowed; authority-ranked sources; bounded fallback when off.',
+              'Suggested-document chips open Document Studio with the right template + prefilled facts.'], 'later'),
+            phase('P4', 'Then', 'Bilingual + workflows', 'FR parity + guided flows', [
+              'Wire EN/FR toggle to engine locale + all UI copy; keep FR gated per corpus status.',
+              'Guided workflows (termination map, in-flight runs) driven by real case + task data.'], 'later'),
+            phase('P4·M', 'Then', 'Advisor memory', 'Durable person / thread / case memory', [
+              'Memory store + per-turn extraction: inferred vs confirmed facts, each with provenance.',
+              'Scope- and permission-filtered retrieval injected as sourced context — turn state still computed fresh.',
+              'Governance UI: provenance, confidence, visibility, retention, edit/forget, audit (PIPEDA · Law 25).'], 'later'),
+            phase('P5', 'GA', 'Hardening', 'Observability, evals, a11y, load', [
+              'Telemetry, error/retry turns, rate-limit UX, contract + a11y test coverage, perf budget.'], 'later'),
+          ])
 
-    <!-- Principles -->
-    <div style="margin-bottom:30px;border-left:3px solid #d4af37;padding:4px 0 4px 16px;background:linear-gradient(90deg,rgba(212,175,55,.07),transparent)">
-      <div style="font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#a87f2e;margin-bottom:8px">Non-negotiable principles</div>
-      <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.7;color:#424d66">
-        <li><strong>Obey the gates.</strong> Never render workspace / legal basis / retrieval / documents / web results when the matching <code style="font-size:11.5px">route.*Allowed</code> is false. Build a fresh context per turn — never carry a prior turn's structured data forward.</li>
-        <li><strong>Jurisdiction is never assumed.</strong> Province defaults to <code style="font-size:11.5px">null</code>; surface the collect-jurisdiction prompt when status is <code style="font-size:11.5px">unknown</code>; show conflict warnings.</li>
-        <li><strong>Disclaimer always ships</strong> near Advisor output, generated docs and CTAs. Not legal advice.</li>
-        <li><strong>Bilingual EN/FR</strong> parity is enforced by the type system — every user string is a <code style="font-size:11.5px">{ en, fr }</code> pair.</li>
-        <li><strong>Crisis intercepts everything.</strong> <code style="font-size:11.5px">isCrisis</code> surfaces maintained resources; no HR content, gates all off, cannot be overridden by mode.</li>
-      </ul>
-    </div>
+          const ws = (area, scope, files, accept) => React.createElement('div', { style: { border: '1px solid #e6e9f2', borderRadius: '10px', padding: '12px 14px', marginBottom: '9px', background: '#fff' } },
+            React.createElement('div', { style: { display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '8px', marginBottom: '5px' } },
+              React.createElement('span', { style: { fontSize: '13px', fontWeight: 700, color: '#0c1020' } }, area),
+              React.createElement('span', { style: { fontSize: '11px', color: '#7d8596', fontFamily: 'ui-monospace,Menlo,monospace' } }, files)),
+            React.createElement('div', { style: { fontSize: '12.5px', lineHeight: 1.55, color: '#424d66', marginBottom: '5px' } }, scope),
+            React.createElement('div', { style: { fontSize: '11.5px', lineHeight: 1.5, color: '#2f6a4f', background: '#e7f1ec', border: '1px solid #b7d9c7', borderRadius: '7px', padding: '5px 9px' } }, '✓ ' + accept))
+          const workstreams = React.createElement('div', {}, [
+            ws('Engine transport', 'Typed client for /api/advisor/respond: session, history, locale, province, options. Retry + 30s timeout + error turn.', 'advisor/chatApi.ts', 'A signed-in send hits the engine; a failure lands the retry turn.'),
+            ws('Routing → UI', 'Consume route.responseMode + gates; drive mode chip, surface, and section visibility from the contract, not view flags.', 'ChatPane.tsx · new Workspace panel', 'Flipping any gate false hides exactly its section; no leaks across turns.'),
+            ws('Jurisdiction', 'Render status; collect-province prompt on unknown; conflict warnings; assumed after user confirms.', 'advisorFlows.ts · workspace', 'Unknown → prompt → assumed transition fills citations; conflict disables legal basis.'),
+            ws('Streaming', 'Stream tokens; progressive reasoning + citation reveal; blinking caret; aria-live.', 'StreamedText.tsx · engine SSE', 'First token < 1s; reasoning/citations appear as they arrive.'),
+            ws('Safety', 'Crisis intercept + maintained resources; dual risk; professionalReview referral types.', 'engine safety/ · ToneCard', 'Crisis shows resources only; no HR content or gates on.'),
+            ws('i18n', 'Every string { en, fr }; toggle sets engine locale + <html lang>; FR gated per corpus.', 'i18n/messages/*', 'EN & FR render for every route; no missing keys (type-enforced).'),
+            ws('Documents', 'Suggested-doc chips open Doc Studio with template + prefilled facts.', 'docstudio/*', 'Chip → studio opens correct template, disclaimer shown.'),
+            ws('Data', 'Swap fixtures for Supabase provider without touching views.', 'data/* · supabase/', 'Views unchanged when provider swapped.'),
+          ])
 
-    <!-- Phases -->
-    <div style="font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#a87f2e;margin-bottom:14px">02 · Phased delivery</div>
-    <div>{{ phases }}</div>
+          const row = (k, v, alt) => React.createElement('div', { style: { display: 'flex', gap: '12px', padding: '9px 14px', borderTop: '1px solid #e6e9f2', background: alt ? '#f6f8fc' : '#fff' } },
+            React.createElement('code', { style: { flex: 'none', width: '190px', fontSize: '11.5px', color: '#8a6a12', fontFamily: 'ui-monospace,Menlo,monospace' } }, k),
+            React.createElement('span', { style: { fontSize: '12px', color: '#424d66', lineHeight: 1.5 } }, v))
+          const contract = React.createElement('div', {}, [
+            React.createElement('div', { key: 'h', style: { padding: '9px 14px', fontSize: '11px', fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', color: '#565f78', background: '#eef1f8' } }, 'AdvisorResponse — check before rendering'),
+            row('route.responseMode', 'Actual internal mode (not the requested one) → drives the mode chip.', false),
+            row('route.workspaceAllowed', 'Gate the whole structured payload.', true),
+            row('route.legalBasisAllowed', 'Gate statute citations; false on unknown/conflicted jurisdiction.', false),
+            row('route.retrievalAllowed', 'Gate retrieved-guidance chips (jurisdiction + topic filtered).', true),
+            row('route.webSearchAllowed', 'Gate web sources; never carry across turns.', false),
+            row('jurisdiction.status', 'known | unknown | assumed | not_applicable → collect prompt when unknown.', true),
+            row('risk.compliance / safety', 'Two independent ramps → the dual risk meters.', false),
+            row('professionalReview.type', 'hr | legal | medical | emergency | union | none → referral card.', true),
+            row('isCrisis', 'true → resources only, all gates off, cannot be overridden.', false),
+            row('quality.warnings', 'Surface conflict / withheld notices to the operator.', true),
+          ])
 
-    <!-- Workstreams -->
-    <div style="font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#a87f2e;margin:36px 0 12px">03 · Workstreams</div>
-    <div>{{ workstreams }}</div>
-
-    <!-- Contract -->
-    <div style="font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#a87f2e;margin:36px 0 12px">04 · Response contract (quick reference)</div>
-    <div style="border:1px solid #d8dcea;border-radius:10px;overflow:hidden;font-size:12.5px">
-      <div>{{ contract }}</div>
-    </div>
-
-    <!-- 05 · Advisor memory -->
-    <div style="font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#a87f2e;margin:36px 0 12px">05 · Advisor memory</div>
-    <p style="margin:0 0 14px;font-size:13.5px;line-height:1.65;color:#424d66">A durable memory layer so the Advisor carries context between sessions — about a <strong>person</strong>, a <strong>conversation thread</strong>, and a <strong>case</strong>. Prototyped in <code style="background:#eef1f8;padding:1px 5px;border-radius:4px;font-size:12px">Advisor Memory.dc.html</code>: a person profile panel, case memory + timeline, inline chat recall with sources, the workspace “What I know” section, and a governed memory manager.</p>
-
-    <div style="margin-bottom:16px;border-left:3px solid #d4af37;padding:4px 0 4px 16px;background:linear-gradient(90deg,rgba(212,175,55,.07),transparent)">
-      <div style="font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#a87f2e;margin-bottom:6px">Memory ≠ carried-forward turn state</div>
-      <p style="margin:0;font-size:13px;line-height:1.65;color:#424d66">Memory is a <strong>facts-and-context layer</strong>, retrieved and injected into the prompt as inputs. It never carries a prior turn’s structured output forward — <code style="font-size:11.5px">route</code>, <code style="font-size:11.5px">risk</code>, legal basis, citations, gates and <code style="font-size:11.5px">isCrisis</code> are still computed <strong>fresh every turn</strong> (Principle 1 holds). Memory feeds the turn; it never replays a past decision.</p>
-    </div>
-
-    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">
-      <div style="flex:1;min-width:185px;border:1px solid #d8dcea;border-radius:10px;padding:13px 14px;background:#f6f8fc">
-        <div style="font-size:12.5px;font-weight:700;color:#0c1020;margin-bottom:4px">Person memory</div>
-        <div style="font-size:12px;line-height:1.5;color:#565f78">Facts about an employee/candidate, carried into every case and chat about them. Scope <code style="font-size:11px">person:{id}</code>.</div>
-      </div>
-      <div style="flex:1;min-width:185px;border:1px solid #d8dcea;border-radius:10px;padding:13px 14px;background:#f6f8fc">
-        <div style="font-size:12.5px;font-weight:700;color:#0c1020;margin-bottom:4px">Thread memory</div>
-        <div style="font-size:12px;line-height:1.5;color:#565f78">What was said earlier in one conversation, so follow-ups resolve against it. Scope <code style="font-size:11px">thread:{id}</code>.</div>
-      </div>
-      <div style="flex:1;min-width:185px;border:1px solid #d8dcea;border-radius:10px;padding:13px 14px;background:#f6f8fc">
-        <div style="font-size:12.5px;font-weight:700;color:#0c1020;margin-bottom:4px">Case memory</div>
-        <div style="font-size:12px;line-height:1.5;color:#565f78">A case’s summary, decisions and open threads — persisted across the many sessions it takes to resolve. Scope <code style="font-size:11px">case:{id}</code>.</div>
-      </div>
-    </div>
-
-    <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:18px">
-      <div style="flex:1;min-width:250px">
-        <div style="font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#a87f2e;margin-bottom:9px">Capture &amp; confidence</div>
-        <ul style="margin:0;padding-left:17px;font-size:12.5px;line-height:1.65;color:#424d66">
-          <li>Advisor extracts candidate facts per turn — automatically, each linked to its turn or document.</li>
-          <li>Two states only: <strong>Confirmed</strong> (authoritative source) vs <strong>Inferred</strong> (Advisor-derived).</li>
-          <li>Inferred is never treated as fact until a human confirms; confirming promotes it.</li>
-          <li>Correct/forget any time — first-class actions, not buried admin.</li>
-        </ul>
-      </div>
-      <div style="flex:1;min-width:250px">
-        <div style="font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#a87f2e;margin-bottom:9px">Governance (non-negotiable)</div>
-        <ul style="margin:0;padding-left:17px;font-size:12.5px;line-height:1.65;color:#424d66">
-          <li>Provenance on every fact: source, learned + last-confirmed dates.</li>
-          <li>Visibility scope: HR team / case + counsel / restricted (comp, health).</li>
-          <li>Retention TTLs by scope; wellbeing &amp; personal notes auto-forget at 12 months.</li>
-          <li>PIPEDA · Québec Law 25: access, correction &amp; erasure; forget honours those requests (source untouched).</li>
-          <li>Every add / edit / forget is audit-logged with who + when.</li>
-        </ul>
-      </div>
-    </div>
-
-    <div style="font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#a87f2e;margin:22px 0 12px">Memory workstreams</div>
-    <div style="border:1px solid #e6e9f2;border-radius:10px;padding:12px 14px;margin-bottom:9px;background:#fff">
-      <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-bottom:5px"><span style="font-size:13px;font-weight:700;color:#0c1020">Memory store &amp; schema</span><span style="font-size:11px;color:#7d8596;font-family:ui-monospace,Menlo,monospace">data/* · supabase/</span></div>
-      <div style="font-size:12.5px;line-height:1.55;color:#424d66;margin-bottom:5px">Entity/thread/case-scoped records, each with confidence, provenance, visibility and a retention TTL. One row = one fact.</div>
-      <div style="font-size:11.5px;line-height:1.5;color:#2f6a4f;background:#e7f1ec;border:1px solid #b7d9c7;border-radius:7px;padding:5px 9px">✓ A memory carries source, confidence, scope, visibility and timestamps; a TTL sweep forgets expired items.</div>
-    </div>
-    <div style="border:1px solid #e6e9f2;border-radius:10px;padding:12px 14px;margin-bottom:9px;background:#fff">
-      <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-bottom:5px"><span style="font-size:13px;font-weight:700;color:#0c1020">Extraction pipeline</span><span style="font-size:11px;color:#7d8596;font-family:ui-monospace,Menlo,monospace">dutiva-advisor-engine</span></div>
-      <div style="font-size:12.5px;line-height:1.55;color:#424d66;margin-bottom:5px">Per-turn candidate extraction → inferred memories linked to their turn; dedupe/merge against existing; redact PII before any persistence.</div>
-      <div style="font-size:11.5px;line-height:1.5;color:#2f6a4f;background:#e7f1ec;border:1px solid #b7d9c7;border-radius:7px;padding:5px 9px">✓ An answer yields inferred candidates tied to their source; high-sensitivity facts stay inferred until confirmed.</div>
-    </div>
-    <div style="border:1px solid #e6e9f2;border-radius:10px;padding:12px 14px;margin-bottom:9px;background:#fff">
-      <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-bottom:5px"><span style="font-size:13px;font-weight:700;color:#0c1020">Retrieval &amp; injection</span><span style="font-size:11px;color:#7d8596;font-family:ui-monospace,Menlo,monospace">engine · advisor/chatApi.ts</span></div>
-      <div style="font-size:12.5px;line-height:1.55;color:#424d66;margin-bottom:5px">Scope- and permission-filter memory for the active person/thread/case, budget tokens, and surface recalled facts as sourced references.</div>
-      <div style="font-size:11.5px;line-height:1.5;color:#2f6a4f;background:#e7f1ec;border:1px solid #b7d9c7;border-radius:7px;padding:5px 9px">✓ Recalled facts render with a source; out-of-scope or over-permission memory is never injected.</div>
-    </div>
-    <div style="border:1px solid #e6e9f2;border-radius:10px;padding:12px 14px;margin-bottom:9px;background:#fff">
-      <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-bottom:5px"><span style="font-size:13px;font-weight:700;color:#0c1020">Governance &amp; rights</span><span style="font-size:11px;color:#7d8596;font-family:ui-monospace,Menlo,monospace">data/* · app</span></div>
-      <div style="font-size:12.5px;line-height:1.55;color:#424d66;margin-bottom:5px">Edit/forget writes an audit entry; forget removes from retrieval only; access/correction/erasure flows; comp &amp; health access-controlled.</div>
-      <div style="font-size:11.5px;line-height:1.5;color:#2f6a4f;background:#e7f1ec;border:1px solid #b7d9c7;border-radius:7px;padding:5px 9px">✓ Forget → the fact stops being retrieved, its source stays intact, and an audit entry is written.</div>
-    </div>
-    <div style="border:1px solid #e6e9f2;border-radius:10px;padding:12px 14px;margin-bottom:9px;background:#fff">
-      <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-bottom:5px"><span style="font-size:13px;font-weight:700;color:#0c1020">Memory surfaces</span><span style="font-size:11px;color:#7d8596;font-family:ui-monospace,Menlo,monospace">Dutiva--Redesign-</span></div>
-      <div style="font-size:12.5px;line-height:1.55;color:#424d66;margin-bottom:5px">Person panel, case memory + timeline, inline recall chips, workspace “What I know”, and the memory manager (review queue, filters, edit/forget).</div>
-      <div style="font-size:11.5px;line-height:1.5;color:#2f6a4f;background:#e7f1ec;border:1px solid #b7d9c7;border-radius:7px;padding:5px 9px">✓ Every surface reads one store; a confirm/forget updates all of them.</div>
-    </div>
-
-    <!-- Testing + risks -->
-    <div style="display:flex;flex-wrap:wrap;gap:16px;margin-top:34px">
-      <div style="flex:1;min-width:250px">
-        <div style="font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#a87f2e;margin-bottom:10px">06 · Quality gate</div>
-        <ul style="margin:0;padding-left:17px;font-size:12.5px;line-height:1.65;color:#424d66">
-          <li>Engine <code style="font-size:11px">evals/</code> regression suite green (routing + screenshot cases).</li>
-          <li>App <code style="font-size:11px">npm run check</code> (tsc strict + oxlint + vitest) on every commit.</li>
-          <li>Contract tests assert gate → UI: a false gate must never paint its section.</li>
-          <li>Bilingual snapshot: EN & FR render for every route.</li>
-          <li>a11y: focus-visible, ≥44px hit targets, aria-live on streamed replies.</li>
-        </ul>
-      </div>
-      <div style="flex:1;min-width:250px">
-        <div style="font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#a87f2e;margin-bottom:10px">07 · Observability &amp; risk</div>
-        <ul style="margin:0;padding-left:17px;font-size:12.5px;line-height:1.65;color:#424d66">
-          <li>Log <code style="font-size:11px">route.intent</code>, latency, gate decisions, quality warnings — never PII or message bodies.</li>
-          <li>Web search is off by default; PII is redacted before any query leaves the engine.</li>
-          <li>Rate-limit + 30s timeout already in the engine; add a client fallback turn.</li>
-          <li><strong>Risk:</strong> FR guidance corpus is not production-validated — keep FR gated to routing/LLM until reviewed.</li>
-        </ul>
-      </div>
-    </div>
-
-    <div style="margin-top:34px;border-top:1px solid #e6e9f2;padding-top:14px;font-size:11px;line-height:1.5;color:#7d8596">Dutiva provides practical HR workflow support and compliance-oriented guidance. It does not provide legal advice. · Source of truth: <code style="font-size:10.5px">Dutiva--Redesign-</code> + <code style="font-size:10.5px">dutiva-advisor-engine</code>.</div>
-
-  </div>
-</div>
-</div>
-</x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:920,&quot;height&quot;:1400}}">
-class Component extends DCLogic {
-  renderVals() {
-    const phase = (n, tag, title, goal, items, tone) => {
-      const c = tone === 'now' ? { bg: '#e7f1ec', bd: '#b7d9c7', fg: '#2f6a4f' }
-        : tone === 'next' ? { bg: 'rgba(212,175,55,.1)', bd: 'rgba(212,175,55,.28)', fg: '#8a6a12' }
-        : { bg: '#eef1f8', bd: '#d8dcea', fg: '#565f78' }
-      return React.createElement('div', { style: { display: 'flex', gap: '14px', marginBottom: '14px', alignItems: 'flex-start' } },
-        React.createElement('div', { style: { flex: 'none', width: '52px', textAlign: 'center' } },
-          React.createElement('div', { style: { fontFamily: 'Montserrat', fontWeight: 800, fontSize: '22px', color: '#0c1020', lineHeight: 1 } }, n),
-          React.createElement('div', { style: { marginTop: '4px', fontSize: '9px', fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', color: c.fg, background: c.bg, border: '1px solid ' + c.bd, borderRadius: '100px', padding: '2px 0' } }, tag)),
-        React.createElement('div', { style: { flex: 1, border: '1px solid #e6e9f2', borderRadius: '11px', padding: '13px 15px', background: '#fff' } },
-          React.createElement('div', { style: { fontSize: '14px', fontWeight: 700, color: '#0c1020', marginBottom: '3px' } }, title),
-          React.createElement('div', { style: { fontSize: '12.5px', color: '#8a6a12', fontWeight: 600, marginBottom: '8px' } }, goal),
-          React.createElement('ul', { style: { margin: 0, paddingLeft: '17px', fontSize: '12.5px', lineHeight: 1.6, color: '#424d66' } },
-            items.map((it, i) => React.createElement('li', { key: i }, it)))))
-    }
-    const phases = React.createElement('div', {}, [
-      phase('P0', 'Ship', 'Wire the live engine', 'One route, end-to-end, behind a flag', [
-        'Replace scripted sends with POST /api/advisor/respond; keep the signed-out scripted path as fallback.',
-        'Render conversationalResponse + the five gates for general_hr_compliance only.',
-        'Session id, history, locale, province plumbed through chatApi.ts.'], 'now'),
-      phase('P1', 'Now', 'Full workspace + all routes', 'Every intent + every signal surfaced', [
-        'Map all engine intents to workspace cards (this prototype is the spec).',
-        'Jurisdiction: known / unknown-prompt / assumed / conflict. Dual risk. professionalReview.',
-        'Legal basis with validation status; retrieval with topic-alignment; confidence.'], 'next'),
-      phase('P2', 'Next', 'Streaming + safety', 'Token streaming, crisis, escalation', [
-        'SSE/stream conversationalResponse; reveal reasoning + citations progressively.',
-        'Crisis intercept (isCrisis) → maintained resources, all gates off, no override.',
-        'High-risk escalation banner + professionalReview routing (legal/medical/emergency).'], 'next'),
-      phase('P3', 'Then', 'Web search + documents', 'Current-info + Doc Studio hand-off', [
-        'Gate webSearch behind route.webSearchAllowed; authority-ranked sources; bounded fallback when off.',
-        'Suggested-document chips open Document Studio with the right template + prefilled facts.'], 'later'),
-      phase('P4', 'Then', 'Bilingual + workflows', 'FR parity + guided flows', [
-        'Wire EN/FR toggle to engine locale + all UI copy; keep FR gated per corpus status.',
-        'Guided workflows (termination map, in-flight runs) driven by real case + task data.'], 'later'),
-      phase('P4·M', 'Then', 'Advisor memory', 'Durable person / thread / case memory', [
-        'Memory store + per-turn extraction: inferred vs confirmed facts, each with provenance.',
-        'Scope- and permission-filtered retrieval injected as sourced context — turn state still computed fresh.',
-        'Governance UI: provenance, confidence, visibility, retention, edit/forget, audit (PIPEDA · Law 25).'], 'later'),
-      phase('P5', 'GA', 'Hardening', 'Observability, evals, a11y, load', [
-        'Telemetry, error/retry turns, rate-limit UX, contract + a11y test coverage, perf budget.'], 'later'),
-    ])
-
-    const ws = (area, scope, files, accept) => React.createElement('div', { style: { border: '1px solid #e6e9f2', borderRadius: '10px', padding: '12px 14px', marginBottom: '9px', background: '#fff' } },
-      React.createElement('div', { style: { display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '8px', marginBottom: '5px' } },
-        React.createElement('span', { style: { fontSize: '13px', fontWeight: 700, color: '#0c1020' } }, area),
-        React.createElement('span', { style: { fontSize: '11px', color: '#7d8596', fontFamily: 'ui-monospace,Menlo,monospace' } }, files)),
-      React.createElement('div', { style: { fontSize: '12.5px', lineHeight: 1.55, color: '#424d66', marginBottom: '5px' } }, scope),
-      React.createElement('div', { style: { fontSize: '11.5px', lineHeight: 1.5, color: '#2f6a4f', background: '#e7f1ec', border: '1px solid #b7d9c7', borderRadius: '7px', padding: '5px 9px' } }, '✓ ' + accept))
-    const workstreams = React.createElement('div', {}, [
-      ws('Engine transport', 'Typed client for /api/advisor/respond: session, history, locale, province, options. Retry + 30s timeout + error turn.', 'advisor/chatApi.ts', 'A signed-in send hits the engine; a failure lands the retry turn.'),
-      ws('Routing → UI', 'Consume route.responseMode + gates; drive mode chip, surface, and section visibility from the contract, not view flags.', 'ChatPane.tsx · new Workspace panel', 'Flipping any gate false hides exactly its section; no leaks across turns.'),
-      ws('Jurisdiction', 'Render status; collect-province prompt on unknown; conflict warnings; assumed after user confirms.', 'advisorFlows.ts · workspace', 'Unknown → prompt → assumed transition fills citations; conflict disables legal basis.'),
-      ws('Streaming', 'Stream tokens; progressive reasoning + citation reveal; blinking caret; aria-live.', 'StreamedText.tsx · engine SSE', 'First token < 1s; reasoning/citations appear as they arrive.'),
-      ws('Safety', 'Crisis intercept + maintained resources; dual risk; professionalReview referral types.', 'engine safety/ · ToneCard', 'Crisis shows resources only; no HR content or gates on.'),
-      ws('i18n', 'Every string { en, fr }; toggle sets engine locale + <html lang>; FR gated per corpus.', 'i18n/messages/*', 'EN & FR render for every route; no missing keys (type-enforced).'),
-      ws('Documents', 'Suggested-doc chips open Doc Studio with template + prefilled facts.', 'docstudio/*', 'Chip → studio opens correct template, disclaimer shown.'),
-      ws('Data', 'Swap fixtures for Supabase provider without touching views.', 'data/* · supabase/', 'Views unchanged when provider swapped.'),
-    ])
-
-    const row = (k, v, alt) => React.createElement('div', { style: { display: 'flex', gap: '12px', padding: '9px 14px', borderTop: '1px solid #e6e9f2', background: alt ? '#f6f8fc' : '#fff' } },
-      React.createElement('code', { style: { flex: 'none', width: '190px', fontSize: '11.5px', color: '#8a6a12', fontFamily: 'ui-monospace,Menlo,monospace' } }, k),
-      React.createElement('span', { style: { fontSize: '12px', color: '#424d66', lineHeight: 1.5 } }, v))
-    const contract = React.createElement('div', {}, [
-      React.createElement('div', { key: 'h', style: { padding: '9px 14px', fontSize: '11px', fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', color: '#565f78', background: '#eef1f8' } }, 'AdvisorResponse — check before rendering'),
-      row('route.responseMode', 'Actual internal mode (not the requested one) → drives the mode chip.', false),
-      row('route.workspaceAllowed', 'Gate the whole structured payload.', true),
-      row('route.legalBasisAllowed', 'Gate statute citations; false on unknown/conflicted jurisdiction.', false),
-      row('route.retrievalAllowed', 'Gate retrieved-guidance chips (jurisdiction + topic filtered).', true),
-      row('route.webSearchAllowed', 'Gate web sources; never carry across turns.', false),
-      row('jurisdiction.status', 'known | unknown | assumed | not_applicable → collect prompt when unknown.', true),
-      row('risk.compliance / safety', 'Two independent ramps → the dual risk meters.', false),
-      row('professionalReview.type', 'hr | legal | medical | emergency | union | none → referral card.', true),
-      row('isCrisis', 'true → resources only, all gates off, cannot be overridden.', false),
-      row('quality.warnings', 'Surface conflict / withheld notices to the operator.', true),
-    ])
-
-    return { phases, workstreams, contract }
-  }
-}
-</script>
-</body>
+          return { phases, workstreams, contract }
+        }
+      }
+    </script>
+  </body>
 </html>

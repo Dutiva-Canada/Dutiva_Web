@@ -80,7 +80,9 @@ describe('AuthConfirm', () => {
   })
 
   it('surfaces an error carried in the URL fragment (implicit flow)', async () => {
-    renderAt('#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired')
+    renderAt(
+      '#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired',
+    )
 
     expect(await screen.findByText(/invalid or has expired/i)).toBeInTheDocument()
     expect(authMock.verifyOtp).not.toHaveBeenCalled()

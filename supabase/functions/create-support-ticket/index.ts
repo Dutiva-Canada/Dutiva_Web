@@ -28,8 +28,16 @@ function json(body: unknown, status = 200) {
 }
 
 const CATEGORIES = [
-  'account_access', 'billing', 'technical', 'product_question', 'privacy',
-  'security', 'accessibility', 'complaint', 'sales', 'other',
+  'account_access',
+  'billing',
+  'technical',
+  'product_question',
+  'privacy',
+  'security',
+  'accessibility',
+  'complaint',
+  'sales',
+  'other',
 ] as const
 type Category = (typeof CATEGORIES)[number]
 const IMPACTS = ['blocking', 'major', 'minor', 'none'] as const
@@ -40,7 +48,12 @@ const RESPONSE_METHODS = ['email', 'in_app', 'scheduled_call'] as const
 const LANGUAGES = ['en', 'fr'] as const
 
 /** Categories handled off the ordinary product queue and hidden from workspace peers. */
-const RESTRICTED_CATEGORIES = new Set<Category>(['privacy', 'security', 'accessibility', 'complaint'])
+const RESTRICTED_CATEGORIES = new Set<Category>([
+  'privacy',
+  'security',
+  'accessibility',
+  'complaint',
+])
 
 const OPERATOR_EMAIL = Deno.env.get('SUPPORT_OPERATOR_EMAIL') ?? 'support@dutiva.ca'
 
@@ -55,14 +68,24 @@ function acknowledgementKind(category: Category): string {
 
 /** Allowlisted diagnostic keys — anything else the client sends is dropped. */
 const DIAGNOSTIC_KEYS = [
-  'plan', 'route', 'app_version', 'browser', 'os', 'locale', 'feature',
-  'correlation_id', 'error_code',
+  'plan',
+  'route',
+  'app_version',
+  'browser',
+  'os',
+  'locale',
+  'feature',
+  'correlation_id',
+  'error_code',
 ] as const
 
 const PRIORITIES = ['low', 'standard', 'high', 'critical'] as const
 const PAID_FLOOR_PLANS = new Set(['growth', 'pro'])
 const RESTRICTED_FROM_PAID_FLOOR = new Set<Category>([
-  'privacy', 'security', 'accessibility', 'complaint',
+  'privacy',
+  'security',
+  'accessibility',
+  'complaint',
 ])
 
 function applyPaidSupportFloor(priority: string, plan: string | null, category: Category): string {
@@ -83,8 +106,11 @@ function suggestPriority(category: Category, impact: Impact, urgency: Urgency): 
   const categoryFloor =
     category === 'security'
       ? 2
-      : category === 'account_access' || category === 'accessibility' ||
-          category === 'privacy' || category === 'billing' || category === 'complaint'
+      : category === 'account_access' ||
+          category === 'accessibility' ||
+          category === 'privacy' ||
+          category === 'billing' ||
+          category === 'complaint'
         ? 1
         : 0
   let rank = Math.max(impactRank, categoryFloor)
@@ -222,8 +248,18 @@ Deno.serve(async (req: Request) => {
     is_internal_note: false,
   })
   await admin.from('support_ticket_events').insert([
-    { ticket_id: ticket.id, actor_user_id: user.id, event_type: 'created', data: { source: 'app_form' } },
-    { ticket_id: ticket.id, actor_user_id: user.id, event_type: 'diagnostics', data: cleanDiagnostics(body.diagnostics) },
+    {
+      ticket_id: ticket.id,
+      actor_user_id: user.id,
+      event_type: 'created',
+      data: { source: 'app_form' },
+    },
+    {
+      ticket_id: ticket.id,
+      actor_user_id: user.id,
+      event_type: 'diagnostics',
+      data: cleanDiagnostics(body.diagnostics),
+    },
   ])
 
   // Enqueue notifications to the outbox — a future worker renders + sends them

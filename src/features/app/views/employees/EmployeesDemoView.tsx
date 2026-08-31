@@ -166,12 +166,7 @@ export function EmployeesDemoView() {
                         aria-label={x(M.employees_ask_about_aria)}
                         className="flex h-[32px] w-[32px] shrink-0 cursor-pointer items-center justify-center rounded-[9px] border-none bg-gold-bg text-gold-fg"
                       >
-                        <Sparkle
-                          size={14}
-                          fill="currentColor"
-                          strokeWidth={0}
-                          aria-hidden="true"
-                        />
+                        <Sparkle size={14} fill="currentColor" strokeWidth={0} aria-hidden="true" />
                       </button>
                     </div>
                     <div className="flex flex-wrap items-center gap-[8px]">

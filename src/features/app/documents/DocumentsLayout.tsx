@@ -4,7 +4,11 @@ import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { isDoclibStudioPath } from '@/features/app/shell/navConfig'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
-import { useWorkspaceRoot, workspacePath, workspaceSegments } from '@/features/app/workspaceRoot/workspaceRootContext'
+import {
+  useWorkspaceRoot,
+  workspacePath,
+  workspaceSegments,
+} from '@/features/app/workspaceRoot/workspaceRootContext'
 import { AppPage } from '@/features/app/shell/AppPage'
 import { DoclibProvider } from './DoclibProvider'
 import { useDoclib } from './doclibContext'

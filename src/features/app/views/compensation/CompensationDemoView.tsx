@@ -123,7 +123,9 @@ export function CompensationDemoView() {
                 </div>
                 <span className={statusChipClass(change.tone)}>{x(change.status)}</span>
               </div>
-              <div className="mt-[8px] text-[12.5px] leading-normal text-text-3">{x(change.note)}</div>
+              <div className="mt-[8px] text-[12.5px] leading-normal text-text-3">
+                {x(change.note)}
+              </div>
               <button
                 type="button"
                 onClick={() => reviewChange(change)}

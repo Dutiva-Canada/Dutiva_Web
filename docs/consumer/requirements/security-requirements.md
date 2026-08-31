@@ -136,21 +136,21 @@ This document defines conceptual security requirements for the consumer product 
 
 ## Threat model mitigations
 
-| Threat | Mitigation |
-|---|---|
-| Unauthorized account access | Strong auth, MFA, session expiry, suspicious-login alerts. |
-| Stolen documents | Encryption, access controls, signed URLs, export watermarks/fingerprints, audit logs. |
-| Malicious uploads | File-type validation, size limits, malware scanning, sandboxed preview. |
-| Prompt injection / AI manipulation | Structured prompts, deterministic safety backstop, input limits, refusal rules. |
-| Malicious document content | Sanitization, user review gates, prohibited categories. |
-| AI hallucinations | Grounded retrieval, deterministic facts, human review gates, citations. |
-| Data leakage | Encryption, least privilege, no PII in logs/telemetry, per-user isolation. |
-| Cross-user data exposure | Row-level access control, parameterized queries, signed URLs. |
-| Improper jurisdiction resolution | Default unknown, explicit confirmation, deterministic checks. |
-| Incorrect legal information | Vetted knowledge base, review status, no model-authored law. |
-| Evidence manipulation/deletion | Original preservation, hashing, versioning, append-only audit. |
-| Account takeover | MFA, email change verification, suspicious-activity alerts. |
-| Insider access | Role-based access, read-only defaults, audit logs, justification. |
-| Third-party AI provider exposure | Data minimization, no PII in prompts, provider due diligence. |
-| Accidental deletion | Soft delete, recovery window, export-before-delete. |
-| Retention failures | Automated retention policies, audit, tested deletion procedures. |
+| Threat                             | Mitigation                                                                            |
+| ---------------------------------- | ------------------------------------------------------------------------------------- |
+| Unauthorized account access        | Strong auth, MFA, session expiry, suspicious-login alerts.                            |
+| Stolen documents                   | Encryption, access controls, signed URLs, export watermarks/fingerprints, audit logs. |
+| Malicious uploads                  | File-type validation, size limits, malware scanning, sandboxed preview.               |
+| Prompt injection / AI manipulation | Structured prompts, deterministic safety backstop, input limits, refusal rules.       |
+| Malicious document content         | Sanitization, user review gates, prohibited categories.                               |
+| AI hallucinations                  | Grounded retrieval, deterministic facts, human review gates, citations.               |
+| Data leakage                       | Encryption, least privilege, no PII in logs/telemetry, per-user isolation.            |
+| Cross-user data exposure           | Row-level access control, parameterized queries, signed URLs.                         |
+| Improper jurisdiction resolution   | Default unknown, explicit confirmation, deterministic checks.                         |
+| Incorrect legal information        | Vetted knowledge base, review status, no model-authored law.                          |
+| Evidence manipulation/deletion     | Original preservation, hashing, versioning, append-only audit.                        |
+| Account takeover                   | MFA, email change verification, suspicious-activity alerts.                           |
+| Insider access                     | Role-based access, read-only defaults, audit logs, justification.                     |
+| Third-party AI provider exposure   | Data minimization, no PII in prompts, provider due diligence.                         |
+| Accidental deletion                | Soft delete, recovery window, export-before-delete.                                   |
+| Retention failures                 | Automated retention policies, audit, tested deletion procedures.                      |

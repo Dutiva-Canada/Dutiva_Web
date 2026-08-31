@@ -28,8 +28,6 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-
-
 The **marketing surface** is the public-facing half of Dutiva's architecture — every page a visitor sees before signing in or opening the demo. It is fully bilingual (EN/FR), prerendered for SEO, and code-split so that workspace modules never leak into the marketing critical path. The surface spans the landing page, pricing, beta signup, changelog, an editorial content layer (blog + guides), 26 legal/trust policy documents, a help centre, competitor comparison pages, and supporting pages such as FAQ, About, Contact, and Status.
 
 Visitors can also open the **public demo** at `/demo` (see [Home — Public demo surface](#public-demo-surface)) without creating an account.
@@ -42,13 +40,13 @@ Sources: [src/features/marketing/pages/MarketingPage.tsx:16-31](), [src/app/rout
 
 The marketing surface is isolated from the workspace at every layer:
 
-| Concern | Marketing surface | Workspace surface |
-|---|---|---|
-| Language strategy | URL-scoped (`ForcedLangProvider`) — `/fr/…` for French | Preference-scoped (`LangProvider`) — `dutiva-lang` localStorage |
-| Rendering | Prerendered static HTML via `scripts/prerender.mjs` | Client-rendered SPA shell (`app.html`, noindex) |
-| Route source of truth | `SEO_ROUTES` in `src/seo/routes.ts` | `appViewRoutes` in `src/app/appViews.tsx` |
-| Bundle isolation | `check-entry-graph.mjs` enforces eager budget ceilings | Behind `React.lazy()` boundaries |
-| Code splitting | Each page is `lazy()` — visitors download only what they view | Same pattern per workspace view |
+| Concern               | Marketing surface                                             | Workspace surface                                               |
+| --------------------- | ------------------------------------------------------------- | --------------------------------------------------------------- |
+| Language strategy     | URL-scoped (`ForcedLangProvider`) — `/fr/…` for French        | Preference-scoped (`LangProvider`) — `dutiva-lang` localStorage |
+| Rendering             | Prerendered static HTML via `scripts/prerender.mjs`           | Client-rendered SPA shell (`app.html`, noindex)                 |
+| Route source of truth | `SEO_ROUTES` in `src/seo/routes.ts`                           | `appViewRoutes` in `src/app/appViews.tsx`                       |
+| Bundle isolation      | `check-entry-graph.mjs` enforces eager budget ceilings        | Behind `React.lazy()` boundaries                                |
+| Code splitting        | Each page is `lazy()` — visitors download only what they view | Same pattern per workspace view                                 |
 
 The route table in `src/app/routes.tsx` builds one `publicRoutes(lang)` subtree per locale, each wrapped in `PublicShell`, plus the `/app/*` workspace subtree.
 
@@ -85,6 +83,7 @@ Sources: [src/app/routes.tsx:71-99]()
 The `LandingPage` component composes sections in a fixed sequence: `Hero` → `TrustStrip` → `HowItWorks` → `HomeFaq` → `Workflows` → `WhyDutiva` → `Product` → **`WorkspaceModuleDemos`** (`#workspace`) → `TestimonialWall` → `Coverage` → `Pricing` → `Guides` → `BetaSignup` → `Footer`.
 
 The unified **`#workspace`** section ([#279](https://github.com/Dutiva-Canada/Dutiva_Web/pull/279), [#280](https://github.com/Dutiva-Canada/Dutiva_Web/pull/280)) combines:
+
 - Three static preview cards (Analytics, Cases, Communications) with Northgate fixture slices from `workspaceDemoFixtures.ts` — marketing-owned, no `@/data` import
 - A horizontal **guided tour** pill row (`LandingDemoPath`) mirroring `DEMO_TOUR_STOPS` on `/demo`
 - **Module chips** linking into `/demo/{module}` — Analytics and Communications highlighted in gold
@@ -209,18 +208,18 @@ Sources: [src/features/marketing/LandingPage.tsx:25-47](), [src/seo/routes.ts:31
 
 The following table maps each marketing subsystem to its primary source files:
 
-| Subsystem | Key files |
-|---|---|
-| Landing page | `src/features/marketing/LandingPage.tsx`, `sections/Hero.tsx`, `sections/AdvisorDemo.tsx`, `sections/HowItWorks.tsx`, `sections/Product.tsx`, `sections/Modules.tsx`, `sections/Coverage.tsx`, `sections/Pricing.tsx`, `sections/Guides.tsx`, `sections/BetaSignup.tsx` |
-| Shared chrome | `sections/Header.tsx`, `sections/Footer.tsx`, `pages/MarketingPage.tsx`, `Brand.tsx`, `useLanding.ts`, `landing.css` |
-| Plans & pricing | `src/config/plans.ts`, `src/config/planComparison.ts`, `pages/PricingPage.tsx`, `pages/PricingShell.tsx` |
-| Beta signup | `betaSignupApi.ts`, `supabase/functions/create-beta-signup/index.ts`, `src/config/beta.ts` |
-| SEO system | `src/seo/routes.ts`, `src/seo/Seo.tsx`, `src/seo/head.ts`, `src/seo/jsonld.ts` |
-| Prerendering | `scripts/prerender.mjs`, `scripts/validate-seo.mjs`, `scripts/check-entry-graph.mjs` |
-| Content marketing | `articles/articleModel.ts`, `articles/blogArticles.ts`, `articles/guideArticles.ts`, `articles/blogContent.ts`, `articles/guideContent.ts`, `pages/ArticlePage.tsx` |
-| Legal hub | `legal/legalHubData.ts`, `legal/policyContent.ts`, `legal/content/*.ts` (52 edition files), `pages/LegalHubPage.tsx`, `pages/PolicyPage.tsx` |
-| i18n messages | `src/i18n/messages/landing.ts`, `src/i18n/messages/faq.ts`, `src/i18n/messages/marketing.ts` |
-| Other pages | `pages/FaqPage.tsx`, `pages/AboutPage.tsx`, `pages/ContactPage.tsx`, `pages/StatusPage.tsx`, `pages/HelpCenterPage.tsx`, `pages/TemplatesPage.tsx`, `pages/GuidesIndexPage.tsx`, `pages/KnownLimitationsPage.tsx`, `pages/JurisdictionToolPage.tsx` |
+| Subsystem         | Key files                                                                                                                                                                                                                                                               |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Landing page      | `src/features/marketing/LandingPage.tsx`, `sections/Hero.tsx`, `sections/AdvisorDemo.tsx`, `sections/HowItWorks.tsx`, `sections/Product.tsx`, `sections/Modules.tsx`, `sections/Coverage.tsx`, `sections/Pricing.tsx`, `sections/Guides.tsx`, `sections/BetaSignup.tsx` |
+| Shared chrome     | `sections/Header.tsx`, `sections/Footer.tsx`, `pages/MarketingPage.tsx`, `Brand.tsx`, `useLanding.ts`, `landing.css`                                                                                                                                                    |
+| Plans & pricing   | `src/config/plans.ts`, `src/config/planComparison.ts`, `pages/PricingPage.tsx`, `pages/PricingShell.tsx`                                                                                                                                                                |
+| Beta signup       | `betaSignupApi.ts`, `supabase/functions/create-beta-signup/index.ts`, `src/config/beta.ts`                                                                                                                                                                              |
+| SEO system        | `src/seo/routes.ts`, `src/seo/Seo.tsx`, `src/seo/head.ts`, `src/seo/jsonld.ts`                                                                                                                                                                                          |
+| Prerendering      | `scripts/prerender.mjs`, `scripts/validate-seo.mjs`, `scripts/check-entry-graph.mjs`                                                                                                                                                                                    |
+| Content marketing | `articles/articleModel.ts`, `articles/blogArticles.ts`, `articles/guideArticles.ts`, `articles/blogContent.ts`, `articles/guideContent.ts`, `pages/ArticlePage.tsx`                                                                                                     |
+| Legal hub         | `legal/legalHubData.ts`, `legal/policyContent.ts`, `legal/content/*.ts` (52 edition files), `pages/LegalHubPage.tsx`, `pages/PolicyPage.tsx`                                                                                                                            |
+| i18n messages     | `src/i18n/messages/landing.ts`, `src/i18n/messages/faq.ts`, `src/i18n/messages/marketing.ts`                                                                                                                                                                            |
+| Other pages       | `pages/FaqPage.tsx`, `pages/AboutPage.tsx`, `pages/ContactPage.tsx`, `pages/StatusPage.tsx`, `pages/HelpCenterPage.tsx`, `pages/TemplatesPage.tsx`, `pages/GuidesIndexPage.tsx`, `pages/KnownLimitationsPage.tsx`, `pages/JurisdictionToolPage.tsx`                     |
 
 Sources: [src/features/marketing/LandingPage.tsx:1-17](), [src/config/plans.ts:1-3](), [src/seo/routes.ts:1-9](), [src/features/marketing/legal/legalHubData.ts:27-214](), [src/features/marketing/articles/index.ts:1-8]()
 

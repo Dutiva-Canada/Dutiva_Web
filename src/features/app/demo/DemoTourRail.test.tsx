@@ -21,7 +21,10 @@ describe('DemoTourRail', () => {
   it('renders tour stops on the public demo workspace', () => {
     renderTour('/demo/home')
     expect(screen.getByRole('complementary', { name: /product tour/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Dutiva Advisor/i })).toHaveAttribute('href', '/demo/advisor')
+    expect(screen.getByRole('link', { name: /Dutiva Advisor/i })).toHaveAttribute(
+      'href',
+      '/demo/advisor',
+    )
     expect(screen.getByRole('link', { name: /Document Studio/i })).toHaveAttribute(
       'href',
       '/demo/documents/studio',

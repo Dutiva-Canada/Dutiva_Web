@@ -173,7 +173,9 @@ export function JurisdictionToolPage() {
             </button>
             <div className="flex items-start gap-2.5 border-t border-border pt-5">
               <Info size={14} className="mt-0.5 flex-none text-gold-strong" aria-hidden="true" />
-              <span className="text-[12.5px] leading-[1.6] text-text-3">{t('disclaimer_full')}</span>
+              <span className="text-[12.5px] leading-[1.6] text-text-3">
+                {t('disclaimer_full')}
+              </span>
             </div>
           </div>
         )}

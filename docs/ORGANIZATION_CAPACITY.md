@@ -7,16 +7,16 @@ changed without a code deployment.
 
 ## What is implemented
 
-| Area | Location |
-| --- | --- |
+| Area                                            | Location                                                                                                                                |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | Capacity schema + admission/waitlist/log tables | [`supabase/migrations/0075_organization_capacity_and_waitlist.sql`](../supabase/migrations/0075_organization_capacity_and_waitlist.sql) |
-| Server-authoritative admission RPC | `public.create_organization(...)` in migration `0075` |
-| Waitlist join RPC | `public.join_organization_waitlist(...)` |
-| Admin capacity dashboard RPCs | `public.get_organization_capacity_status()` and `public.update_capacity_config(...)` |
-| Frontend admission types + bootstrap | [`src/features/app/workspaceMode/api.ts`](../src/features/app/workspaceMode/api.ts) |
-| Capacity/waitlist UI | [`src/features/app/views/settings/CapacityAlert.tsx`](../src/features/app/views/settings/CapacityAlert.tsx) |
-| Admin capacity management UI | [`src/features/app/views/support/CapacityAdminControl.tsx`](../src/features/app/views/support/CapacityAdminControl.tsx) |
-| Bilingual UI strings | [`src/i18n/messages/capacity.ts`](../src/i18n/messages/capacity.ts) |
+| Server-authoritative admission RPC              | `public.create_organization(...)` in migration `0075`                                                                                   |
+| Waitlist join RPC                               | `public.join_organization_waitlist(...)`                                                                                                |
+| Admin capacity dashboard RPCs                   | `public.get_organization_capacity_status()` and `public.update_capacity_config(...)`                                                    |
+| Frontend admission types + bootstrap            | [`src/features/app/workspaceMode/api.ts`](../src/features/app/workspaceMode/api.ts)                                                     |
+| Capacity/waitlist UI                            | [`src/features/app/views/settings/CapacityAlert.tsx`](../src/features/app/views/settings/CapacityAlert.tsx)                             |
+| Admin capacity management UI                    | [`src/features/app/views/support/CapacityAdminControl.tsx`](../src/features/app/views/support/CapacityAdminControl.tsx)                 |
+| Bilingual UI strings                            | [`src/i18n/messages/capacity.ts`](../src/i18n/messages/capacity.ts)                                                                     |
 
 ## Configuration model
 
@@ -26,11 +26,11 @@ changed without a code deployment.
 - `capacity_enforcement_enabled` — whether the limit is actively blocking.
 - `capacity_mode` — `unlimited` | `capped` | `waitlist`.
 
-| Mode | Behaviour when at/above `capacity_limit` |
-| --- | --- |
-| `unlimited` | No limit; `capacity_limit` is ignored. |
-| `capped` | New organization creation returns `CAPACITY_REACHED`. |
-| `waitlist` | New creation returns `WAITLIST` and the user is added to `organization_admission_waitlist`. |
+| Mode        | Behaviour when at/above `capacity_limit`                                                    |
+| ----------- | ------------------------------------------------------------------------------------------- |
+| `unlimited` | No limit; `capacity_limit` is ignored.                                                      |
+| `capped`    | New organization creation returns `CAPACITY_REACHED`.                                       |
+| `waitlist`  | New creation returns `WAITLIST` and the user is added to `organization_admission_waitlist`. |
 
 The seed configuration is `(limit 100, enforcement false, mode unlimited)`, so
 capacity is **measured but not blocking** during the beta period.

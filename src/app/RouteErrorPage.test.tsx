@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2026 
+ *   Copyright (c) 2026
  *   All rights reserved.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -62,7 +62,10 @@ describe('RouteErrorPage', () => {
       ...navigator,
       serviceWorker: { getRegistrations: vi.fn().mockResolvedValue([{ unregister }]) },
     })
-    vi.stubGlobal('caches', { keys: vi.fn().mockResolvedValue(['dutiva-precache-1']), delete: remove })
+    vi.stubGlobal('caches', {
+      keys: vi.fn().mockResolvedValue(['dutiva-precache-1']),
+      delete: remove,
+    })
     vi.spyOn(window, 'location', 'get').mockReturnValue({
       ...window.location,
       pathname: '/',

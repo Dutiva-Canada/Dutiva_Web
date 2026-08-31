@@ -30,7 +30,10 @@ describe('createAdvisorCrisisHandlers', () => {
     })
 
     expect(interceptCrisis('I want to kill myself', 'chat-1')).toBe(true)
-    expect(patchResponseState).toHaveBeenCalledWith('chat-1', expect.objectContaining({ response: expect.any(Object) }))
+    expect(patchResponseState).toHaveBeenCalledWith(
+      'chat-1',
+      expect.objectContaining({ response: expect.any(Object) }),
+    )
     expect(pushAdvisor).toHaveBeenCalled()
   })
 

@@ -18,7 +18,8 @@ const outDir = path.join(root, 'src/i18n/messages/landing')
 /** Map landing key segment → output file (without .ts). */
 function bucketForKey(key) {
   if (/^landing_(nav_|signin|start_free)/.test(key)) return 'chrome'
-  if (/^landing_(hero_|h_|sub_|cta_nocard|cta_seehow|stat_|beta_honeypot|hero_check)/.test(key)) return 'hero'
+  if (/^landing_(hero_|h_|sub_|cta_nocard|cta_seehow|stat_|beta_honeypot|hero_check)/.test(key))
+    return 'hero'
   if (/^landing_adv_/.test(key)) return 'advisorPreview'
   if (/^landing_trust_/.test(key)) return 'trust'
   if (/^landing_how/.test(key)) return 'howItWorks'
@@ -31,7 +32,11 @@ function bucketForKey(key) {
   if (/^landing_testimonials_/.test(key)) return 'testimonials'
   if (/^landing_(price_|mo|free_|starter_|growth_|pro_)/.test(key)) return 'pricing'
   if (/^landing_guides_/.test(key)) return 'guidesTeaser'
-  if (/^landing_(cta_badge|cta_title|cta_p|cta_capacity|cta_spots|cta_email|cta_btn|cta_disclaimer)/.test(key))
+  if (
+    /^landing_(cta_badge|cta_title|cta_p|cta_capacity|cta_spots|cta_email|cta_btn|cta_disclaimer)/.test(
+      key,
+    )
+  )
     return 'waitlistCta'
   if (/^landing_foot_/.test(key)) return 'footer'
   if (/^landing_cov/.test(key)) return 'coverage'

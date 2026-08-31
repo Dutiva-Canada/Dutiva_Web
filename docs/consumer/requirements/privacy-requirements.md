@@ -51,8 +51,8 @@ This document defines privacy-by-design requirements for the consumer product fa
 
 `PRIV-REQ-012`: The system SHALL comply with applicable Canadian privacy legislation, including but not limited to:
 
-- the federal *Personal Information Protection and Electronic Documents Act* (PIPEDA) and its forthcoming replacement legislation;
-- Québec *Law 25* (Act 25, An Act to modernize legislative provisions as regards the protection of personal information);
+- the federal _Personal Information Protection and Electronic Documents Act_ (PIPEDA) and its forthcoming replacement legislation;
+- Québec _Law 25_ (Act 25, An Act to modernize legislative provisions as regards the protection of personal information);
 - provincial private-sector privacy statutes where applicable (e.g., British Columbia, Alberta).
 
 `PRIV-REQ-013`: The system SHALL provide a privacy policy in both English and French that describes:

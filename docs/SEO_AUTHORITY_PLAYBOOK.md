@@ -119,11 +119,11 @@ contested than the equivalent in English.
 G2, Capterra, GetApp, Software Advice, TrustRadius, and Trustpilot rank well for
 comparison and alternatives queries, and answer engines lean on them heavily.
 
-| Directory  | Status                                                                                                                                                          |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Directory  | Status                                                                                                                                                                   |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Trustpilot | Live at https://www.trustpilot.com/review/dutiva.ca — wired into `src/config/reviewDirectories.ts` (footer / trust strip / pricing). No rating badge until real reviews. |
-| G2         | Profile submitted / claimed — set `reviewUrl` when the **public** product page is live.                                                                         |
-| Capterra   | Not claimed.                                                                                                                                                    |
+| G2         | Profile submitted / claimed — set `reviewUrl` when the **public** product page is live.                                                                                  |
+| Capterra   | Not claimed.                                                                                                                                                             |
 
 **The honest constraint:** these are review-driven. A profile with no reviews
 ranks poorly and converts worse. Keep profiles claimed and indexed, then pursue

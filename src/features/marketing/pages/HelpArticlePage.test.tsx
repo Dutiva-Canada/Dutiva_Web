@@ -29,7 +29,9 @@ describe('HelpArticlePage', () => {
     expect(
       main.getByRole('heading', { level: 1, name: 'How Dutiva support works' }),
     ).toBeInTheDocument()
-    expect(main.getByRole('heading', { level: 2, name: 'When to expect a reply' })).toBeInTheDocument()
+    expect(
+      main.getByRole('heading', { level: 2, name: 'When to expect a reply' }),
+    ).toBeInTheDocument()
   })
 
   it('re-localizes the article to French via the language toggle', async () => {
