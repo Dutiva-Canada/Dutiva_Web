@@ -1,26 +1,28 @@
 /**
  * Canonical date validation for Advisor Memory fixtures and persistence.
- * Accepts YYYY-MM-DD (and optional time suffix); rejects relative labels,
- * unpadded components, and impossible calendar dates.
+ * Advisor Memory stores date-only values in strict `YYYY-MM-DD` form.
  */
 
-const RELATIVE_DATE_LABEL = /\b(Today|Yesterday|Aujourd|Hier)\b/i
 const CANONICAL_DAY = /^(\d{4})-(\d{2})-(\d{2})$/
 
-/** True when `value` is a valid YYYY-MM-DD calendar date (optional time suffix allowed). */
-export function isCanonicalMemoryDate(value: string): boolean {
-  if (value.length === 0 || RELATIVE_DATE_LABEL.test(value)) return false
+/** Inclusive lower bound — four-digit years avoid JavaScript `Date` 0–99 year coercion. */
+export const MEMORY_DATE_YEAR_MIN = 1900
 
-  const dayPart = value.slice(0, 10)
-  const match = CANONICAL_DAY.exec(dayPart)
+/** Inclusive upper bound for Advisor Memory HR employment dates. */
+export const MEMORY_DATE_YEAR_MAX = 9999
+
+/** True when `value` is a valid canonical `YYYY-MM-DD` calendar date within the supported year range. */
+export function isCanonicalMemoryDate(value: string): boolean {
+  const match = CANONICAL_DAY.exec(value)
   if (!match) return false
 
   const year = Number(match[1])
   const month = Number(match[2])
   const day = Number(match[3])
-  if (month < 1 || month > 12 || day < 1 || day > 31) return false
 
-  const parsed = new Date(`${dayPart}T12:00:00Z`)
+  if (year < MEMORY_DATE_YEAR_MIN || year > MEMORY_DATE_YEAR_MAX) return false
+
+  const parsed = new Date(Date.UTC(year, month - 1, day))
   if (Number.isNaN(parsed.getTime())) return false
 
   return (

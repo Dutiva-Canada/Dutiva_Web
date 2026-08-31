@@ -531,7 +531,19 @@ export const seedMemoryFacts: MemoryFact[] = [
 
 function assertCanonicalDate(factId: string, field: string, value: string): void {
   if (!isCanonicalMemoryDate(value)) {
-    throw new Error(`Memory fact ${factId}: ${field} must be a canonical ISO date, not "${value}"`)
+    throw new Error(
+      `Memory fact ${factId}: ${field} must be a canonical YYYY-MM-DD date, not "${value}"`,
+    )
+  }
+}
+
+function assertSeedMemoryThreadSemantics(threads: readonly MemoryThread[]): void {
+  for (const thread of threads) {
+    if (!isCanonicalMemoryDate(thread.resumedAt)) {
+      throw new Error(
+        `Memory thread ${thread.id}: resumedAt must be a canonical YYYY-MM-DD date, not "${thread.resumedAt}"`,
+      )
+    }
   }
 }
 
@@ -551,6 +563,7 @@ export function assertSeedMemoryFactSemantics(facts: readonly MemoryFact[]): voi
         `Memory fact ${fact.id}: confirmed facts must include confirmation provenance`,
       )
     }
+    // Compile-time typing excludes inference; cast guards malformed runtime/external rows.
     if (
       fact.confirmation !== null &&
       (fact.confirmation.source.type as MemorySourceType) === 'inference'
@@ -564,7 +577,7 @@ export function assertSeedMemoryFactSemantics(facts: readonly MemoryFact[]): voi
     }
     if (fact.confirmation !== null) {
       assertCanonicalDate(fact.id, 'confirmation.at', fact.confirmation.at)
-      if (fact.confirmation.at < fact.learnedAt.slice(0, 10)) {
+      if (fact.confirmation.at < fact.learnedAt) {
         throw new Error(
           `Memory fact ${fact.id}: confirmation cannot precede when the fact was learned`,
         )
@@ -574,3 +587,4 @@ export function assertSeedMemoryFactSemantics(facts: readonly MemoryFact[]): voi
 }
 
 assertSeedMemoryFactSemantics(seedMemoryFacts)
+assertSeedMemoryThreadSemantics(memoryThreads)
