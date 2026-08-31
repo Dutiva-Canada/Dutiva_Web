@@ -544,7 +544,7 @@ export const employeeDetails: Record<string, EmployeeDetail> = {
 
 /* -------------------------------------------------------------- org graph */
 
-/** Workspace root (prototype `buildOrgGraph().root`). Not an Employee row — line manager display uses orgRoot.name for orgRootReportIds. */
+/** Workspace root (prototype `buildOrgGraph().root`). Riley — not an Employee row; display uses orgRoot.name. */
 export const orgRoot = {
   name: 'Riley Summers',
   initials: 'RS',
@@ -552,8 +552,8 @@ export const orgRoot = {
 }
 
 /**
- * Branch managers who report directly to orgRoot. Riley is their line manager on
- * profile/case surfaces (orgRoot.name); she is not stored as an Employee fixture row.
+ * Branch managers who report directly to Riley. Line-manager display uses
+ * orgRoot.name; Riley is not stored as an Employee fixture row.
  */
 export const orgRootReportIds: readonly string[] = ['e1', 'e7', 'e9']
 
@@ -574,7 +574,7 @@ export const UNKNOWN_LINE_MANAGER = '—'
 
 const employeeById = new Map(employees.map((employee) => [employee.id, employee]))
 
-/** Direct line manager Employee from orgStructure; null for orgRoot reports or unknown edges. */
+/** Direct line manager Employee from orgStructure; null for Riley reports or unknown edges. */
 export function directManagerFor(employeeId: string): Employee | null {
   const branch = orgStructure.find((b) => b.reportIds.includes(employeeId))
   if (!branch) return null

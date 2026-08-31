@@ -159,7 +159,7 @@ describe('employees fixtures', () => {
     }
 
     for (const rootReportId of orgRootReportIds) {
-      expect(byId.has(rootReportId), `orgRoot report ${rootReportId}`).toBe(true)
+      expect(byId.has(rootReportId), `Riley report ${rootReportId}`).toBe(true)
       expect(
         allReportIds.has(rootReportId),
         `${rootReportId} is both branch manager and report`,
@@ -189,13 +189,13 @@ describe('employees fixtures', () => {
     expect(lineManagerLabel('e2')).toBe('Liam Fraser')
   })
 
-  it('returns unknown line manager when no orgStructure or orgRoot edge exists', () => {
+  it('returns unknown line manager when no orgStructure or Riley reporting edge exists', () => {
     expect(directManagerFor('e99')).toBeNull()
     expect(lineManagerLabel('e99')).toBe(UNKNOWN_LINE_MANAGER)
     expect(reportsToOrgRoot('e99')).toBe(false)
   })
 
-  it('derives branch-manager lines to orgRoot without fabricating an Employee row for Riley', () => {
+  it('derives branch-manager lines to Riley without fabricating an Employee row', () => {
     expect(directManagerFor('e1')).toBeNull()
     expect(reportsToOrgRoot('e1')).toBe(true)
     expect(lineManagerLabel('e1')).toBe('Riley Summers')
