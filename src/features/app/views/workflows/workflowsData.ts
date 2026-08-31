@@ -273,8 +273,8 @@ export const terminationStages: readonly TerminationStage[] = [
     n: 3,
     title: bi('Employment details', 'Détails d’emploi'),
     sub: bi(
-      'Full-time · 7.2 yrs · non-union · no termination clause on file',
-      'Temps plein · 7,2 ans · non syndiqué · aucune clause de cessation au dossier',
+      'Full-time · 8 yrs · non-union · no termination clause on file',
+      'Temps plein · 8 ans · non syndiqué · aucune clause de licenciement au dossier',
     ),
     state: 'done',
   },
@@ -292,7 +292,7 @@ export const terminationStages: readonly TerminationStage[] = [
     title: bi('Documents', 'Documents'),
     sub: bi(
       'Termination Letter ✓ · Full & Final Release ✓ · ROE pending · Offboarding Checklist pending',
-      'Lettre de cessation ✓ · Quittance ✓ · RE en attente · Liste de départ en attente',
+      'Lettre de licenciement ✓ · Quittance ✓ · RE en attente · Liste de départ en attente',
     ),
     state: 'partial',
   },

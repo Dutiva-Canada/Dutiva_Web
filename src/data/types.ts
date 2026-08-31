@@ -565,10 +565,10 @@ export interface MemoryFact {
   statement: Bi
   confidence: MemoryConfidence
   source: { type: MemorySourceType; detail: Bi }
-  /** Raw date labels ("Jul 5", "Mar 2018") — language-neutral like fixtures. */
-  learned: Bi
-  /** Last human confirmation; null while still inferred. */
-  confirmed: Bi | null
+  /** ISO 8601 date or timestamp when this memory was learned. */
+  learnedAt: string
+  /** ISO date when last human-confirmed; null while still inferred. */
+  confirmedAt: string | null
   visibility: MemoryVisibility
   /** Access-controlled by default (compensation, health). */
   sensitive: boolean

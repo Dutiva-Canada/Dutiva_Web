@@ -5,7 +5,7 @@ import type { ExpiryRecord, LeaveOverviewRecord, ProbationEndRecord } from './ty
  * Workforce records behind the Analytics Phase 2 cards: certifications &
  * training, dated employee documents, probation ends, and the leave
  * overview. All dates are read against the diorama's fixed today
- * (July 5, 2026 — see `demoTodayISO`).
+ * (July 11, 2026 — see `demoTodayISO`).
  *
  * People with an `employeeId` are the modelled roster; the rest belong to
  * the wider 82-person company, like the prototype's task owners (Marcus
@@ -13,7 +13,7 @@ import type { ExpiryRecord, LeaveOverviewRecord, ProbationEndRecord } from './ty
  */
 
 /* ── Certifications & training (expiring within 90 days) ─────────────────
-   Buckets vs Jul 5: expired 1 · ≤30 2 · 31–60 2 · 61–90 2. Devon (the
+   Buckets vs Jul 11: expired 1 · ≤30 2 · 31–60 2 · 61–90 2. Devon (the
    attendance-PIP warehouse file) also holds the lapsed forklift ticket —
    expired items feed the Needs attention card. */
 export const certifications: ExpiryRecord[] = [

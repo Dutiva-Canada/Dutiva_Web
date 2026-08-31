@@ -47,7 +47,7 @@ const SAMPLE_NOTIFICATIONS: DemoNotificationItem[] = [
     id: 'n2',
     text: bi(
       'Document ready: Termination Letter — Jordan Mensah',
-      'Document prêt : lettre de cessation d’emploi — Jordan Mensah',
+      'Document prêt : lettre de licenciement — Jordan Mensah',
     ),
     time: bi('2h ago', 'Il y a 2 h'),
     unread: true,
@@ -140,16 +140,12 @@ export function Topbar({
 
   const openItem = (id: string, href: string | null) => {
     if (mode === 'production') {
-      setProdNotifications((list) =>
-        list.map((n) => (n.id === id ? { ...n, unread: false } : n)),
-      )
+      setProdNotifications((list) => list.map((n) => (n.id === id ? { ...n, unread: false } : n)))
       void markWorkspaceNotificationRead(id).catch(() => {
         /* best-effort */
       })
     } else {
-      setDemoNotifications((list) =>
-        list.map((n) => (n.id === id ? { ...n, unread: false } : n)),
-      )
+      setDemoNotifications((list) => list.map((n) => (n.id === id ? { ...n, unread: false } : n)))
     }
     setNotifOpen(false)
     if (href) navigate(href)

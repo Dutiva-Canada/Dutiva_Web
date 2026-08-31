@@ -76,16 +76,16 @@ const joinDisclaimer = (en: string, fr: string): Bi =>
 
 const s1: AdvisorScenario = {
   id: 's1',
-  title: bi('Termination — Ontario, no clause', 'Cessation — Ontario, sans clause'),
+  title: bi('Termination — Ontario, no clause', 'Licenciement — Ontario, sans clause'),
   pinned: true,
   user: bi(
-    "I need to terminate a full-time employee in Ontario — 7 years' service, no termination clause in their contract. What's our exposure?",
-    'Je dois mettre fin à l’emploi d’un salarié à temps plein en Ontario — 7 ans de service, aucune clause de cessation dans son contrat. Quelle est notre exposition?',
+    "I need to terminate a full-time employee in Ontario — 8 years' service, no termination clause in their contract. What's our exposure?",
+    'Je dois licencier un salarié à temps plein en Ontario — 8 ans de service, aucune clause de licenciement dans son contrat. Quelle est notre exposition?',
   ),
   turn: {
     reply: joinDisclaimer(
-      "Here's how this looks. In Ontario the ESA sets the statutory floor — for 7 years' service that's about 7 weeks' notice, plus statutory severance if your payroll meets the ESA threshold. But with no enforceable termination clause, common-law reasonable notice likely governs, and for a mid-level 7-year role that's roughly 9–12 months of pay in lieu. I'd get employment counsel to review before any offer goes out.",
-      'Voici le portrait. En Ontario, la LNE fixe le plancher légal — pour 7 ans de service, environ 7 semaines de préavis, plus l’indemnité de licenciement si votre masse salariale atteint le seuil de la LNE. Mais sans clause de cessation exécutoire, le préavis raisonnable de common law s’applique probablement, et pour un poste intermédiaire de 7 ans, cela représente environ 9 à 12 mois d’indemnité. Je ferais réviser le dossier par un conseiller juridique en droit du travail avant toute offre.',
+      "Here's how this looks. In Ontario the ESA sets the statutory floor — for 8 years' service that's 8 weeks' termination notice/pay; statutory severance may also apply if eligibility requirements are met. With no termination clause on file, common-law reasonable notice likely governs, and for a mid-level 8-year role that's roughly 9–12 months of pay in lieu. I'd get employment counsel to review before any offer goes out.",
+      'Voici le portrait. En Ontario, la LNE fixe le plancher légal — pour 8 ans de service, c’est 8 semaines de préavis ou d’indemnité de licenciement; une indemnité de cessation d’emploi peut aussi s’appliquer si les conditions d’admissibilité sont remplies. Sans clause de licenciement au dossier, le préavis raisonnable de common law s’applique probablement, et pour un poste intermédiaire de 8 ans, cela représente environ 9 à 12 mois d’indemnité. Je ferais réviser le dossier par un conseiller juridique en droit du travail avant toute offre.',
     ),
     docs: ['Termination Letter', 'Full & Final Release', 'Offboarding Checklist'],
     followups: [
@@ -112,8 +112,8 @@ const s1: AdvisorScenario = {
           'Recommandé : conseiller juridique en droit du travail',
         ),
         reason: bi(
-          'No enforceable termination clause — common-law exposure well beyond ESA minimums.',
-          'Aucune clause de cessation exécutoire — exposition en common law bien au-delà des minimums de la LNE.',
+          'No termination clause on file — common-law exposure well beyond ESA minimums.',
+          'Aucune clause de licenciement au dossier — exposition en common law bien au-delà des minimums LNE.',
         ),
       },
       supportNotice: false,
@@ -149,14 +149,11 @@ const s1: AdvisorScenario = {
         items: [
           {
             factId: 'demo-tenure',
-            label: bi("7 years' service", '7 ans de service'),
+            label: bi("8 years' service", '8 ans de service'),
           },
           {
             factId: 'demo-clause',
-            label: bi(
-              'no enforceable termination clause',
-              'clause de cessation exécutoire',
-            ),
+            label: bi('no termination clause on file', 'aucune clause de licenciement au dossier'),
           },
           {
             factId: 'demo-notice',
@@ -431,8 +428,8 @@ const s4: AdvisorScenario = {
   },
   resolved: {
     reply: joinDisclaimer(
-      'Thanks — Ontario it is. Under the ESA the statutory notice floor scales with service: one week per completed year of employment, up to eight weeks, plus severance if your payroll meets the threshold. If the contract has no enforceable termination clause, common-law reasonable notice can run well beyond that. Want me to work it out for a specific tenure?',
-      'Merci — Ontario, donc. Selon la LNE, le plancher de préavis légal augmente avec le service : une semaine par année complète d’emploi, jusqu’à huit semaines, plus l’indemnité si votre masse salariale atteint le seuil. Si le contrat ne comporte aucune clause de cessation exécutoire, le préavis raisonnable de common law peut aller bien au-delà. Voulez-vous que je le calcule pour une ancienneté précise?',
+      'Thanks — Ontario it is. Under the ESA the statutory notice floor scales with service: one week per completed year of employment, up to eight weeks, plus severance if eligibility requirements are met. If the contract has no termination clause on file, common-law reasonable notice can run well beyond that. Want me to work it out for a specific tenure?',
+      'Merci — c’est bien l’Ontario. En vertu de la LNE, le plancher de préavis augmente avec l’ancienneté : une semaine par année complétée, jusqu’à huit semaines, plus une indemnité de cessation d’emploi si les conditions d’admissibilité sont remplies. S’il n’y a aucune clause de licenciement au dossier, le préavis raisonnable de common law peut être nettement plus élevé. Voulez-vous que je le calcule pour une ancienneté précise?',
     ),
     followups: ['Estimate severance range', 'Loop in employment counsel'],
     jurisdictionLine: bi('Ontario — ESA, 2000', 'Ontario — LNE, 2000'),

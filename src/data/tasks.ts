@@ -9,7 +9,7 @@ export const tasks: Task[] = [
     id: 'tk1',
     title: bi(
       'Review termination notice exposure — Jordan Mensah',
-      'Examiner l’exposition au préavis de cessation — Jordan Mensah',
+      'Examiner l’exposition au préavis de licenciement — Jordan Mensah',
     ),
     due: bi('Today', 'Aujourd’hui'),
     priority: 'high',

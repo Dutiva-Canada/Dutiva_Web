@@ -41,7 +41,7 @@ export const docMetaDefaults: DocMeta = {
 export const documentTemplates: DocumentTemplate[] = [
   {
     key: 'Termination Letter',
-    title: bi('Termination Letter', 'Lettre de cessation d’emploi'),
+    title: bi('Termination Letter', 'Lettre de licenciement'),
     category: catOffboarding,
     highRisk: true,
     sections: [
@@ -55,20 +55,20 @@ export const documentTemplates: DocumentTemplate[] = [
         'En reconnaissance de vos services, vous recevrez ce qui suit en tenant lieu de préavis travaillé : 9 mois de salaire de base, le maintien des avantages sociaux pendant la période de préavis et le paiement au prorata de toute prime acquise. Un calcul complet est joint séparément.',
       ),
       bi(
-        'Please note: because your employment agreement does not include an enforceable termination clause, this estimate is based on common law reasonable notice rather than ESA minimums alone. Advisor has flagged this case for legal review — treat the amount above as a starting point, not a final offer.',
-        'Veuillez noter : comme votre contrat de travail ne comporte pas de clause de cessation exécutoire, cette estimation repose sur le préavis raisonnable de common law plutôt que sur les seuls minimums de la LNE. Le Conseiller a signalé ce dossier pour examen juridique — considérez le montant ci-dessus comme un point de départ, non une offre finale.',
+        'Please note: because your employment agreement contains no termination clause, this estimate is based on common law reasonable notice rather than ESA minimums alone. Advisor has flagged this case for legal review — treat the amount above as a starting point, not a final offer.',
+        'Veuillez noter : comme votre contrat de travail ne comporte aucune clause de licenciement, cette estimation repose sur le préavis raisonnable de common law plutôt que sur les seuls minimums de la LNE. Le Conseiller a signalé ce dossier pour examen juridique — considérez le montant ci-dessus comme un point de départ, non une offre finale.',
       ),
       bi(
-        'We are prepared to discuss these terms with you or a representative of your choosing. Northgate is grateful for your seven years of contribution and will provide a reference upon request.\n\nSincerely,\nRiley Summers\nHR Lead',
-        'Nous sommes disposés à discuter de ces modalités avec vous ou un représentant de votre choix. Northgate vous est reconnaissante de vos sept années de contribution et fournira une référence sur demande.\n\nCordialement,\nRiley Summers\nResponsable RH',
+        'We are prepared to discuss these terms with you or a representative of your choosing. Northgate is grateful for your eight years of contribution and will provide a reference upon request.\n\nSincerely,\nRiley Summers\nHR Lead',
+        'Nous sommes disposés à discuter de ces modalités avec vous ou un représentant de votre choix. Northgate vous est reconnaissante de vos huit années de contribution et fournira une référence sur demande.\n\nCordialement,\nRiley Summers\nResponsable RH',
       ),
     ],
     meta: {
-      link: bi('Jordan Mensah · Termination case', 'Jordan Mensah · Dossier de cessation d’emploi'),
+      link: bi('Jordan Mensah · Termination case', 'Jordan Mensah · Dossier de licenciement'),
       jur: bi('Ontario · ESA, 2000', 'Ontario · LNE, 2000'),
       governing: bi(
-        '2019 employment agreement — no enforceable termination clause',
-        'Contrat d’emploi de 2019 — aucune clause de cessation exécutoire',
+        '2019 employment agreement — no termination clause',
+        'Contrat d’emploi de 2019 — aucune clause de licenciement',
       ),
       legalReview: bi('Required before sending', 'Requise avant l’envoi'),
       retention: bi(
@@ -109,7 +109,7 @@ export const documentTemplates: DocumentTemplate[] = [
       ),
     ],
     meta: {
-      link: bi('Jordan Mensah · Termination case', 'Jordan Mensah · Dossier de cessation d’emploi'),
+      link: bi('Jordan Mensah · Termination case', 'Jordan Mensah · Dossier de licenciement'),
       jur: bi('Ontario · ESA, 2000', 'Ontario · LNE, 2000'),
       governing: bi(
         'Termination letter — enhanced payment as consideration',
@@ -146,7 +146,7 @@ export const documentTemplates: DocumentTemplate[] = [
       ),
     ],
     meta: {
-      link: bi('Jordan Mensah · Termination case', 'Jordan Mensah · Dossier de cessation d’emploi'),
+      link: bi('Jordan Mensah · Termination case', 'Jordan Mensah · Dossier de licenciement'),
       jur: bi('Ontario · ESA, 2000', 'Ontario · LNE, 2000'),
       missing: bi(
         'ROE issue date; benefits end date confirmation.',

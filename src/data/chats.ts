@@ -14,10 +14,7 @@ import type { ChatThread, FollowupReply, LightFlow } from './types'
 export const chats: ChatThread[] = [
   {
     id: 'c1',
-    title: bi(
-      'Terminating Jordan Mensah — Ontario',
-      'Cessation d’emploi de Jordan Mensah — Ontario',
-    ),
+    title: bi('Terminating Jordan Mensah — Ontario', 'Licenciement de Jordan Mensah — Ontario'),
     folder: bi('Terminations & Offboarding', 'Cessations et départs'),
     pinned: true,
     time: bi('2m ago', 'Il y a 2 min'),
@@ -55,9 +52,12 @@ export const chats: ChatThread[] = [
         role: 'user',
         userChips: [
           bi('Full-time', 'Temps plein'),
-          bi('7.2 years', '7,2 ans'),
+          bi('8 years', '8 ans'),
           bi('Restructuring (without cause)', 'Restructuration (sans motif)'),
-          bi('Written contract, no termination clause', 'Contrat écrit, sans clause de cessation'),
+          bi(
+            'Written contract, no termination clause',
+            'Contrat écrit, sans clause de licenciement',
+          ),
           bi('Non-union', 'Non syndiqué'),
         ],
       },
@@ -75,15 +75,15 @@ export const chats: ChatThread[] = [
           ),
           bi(
             'No termination clause on file → common-law reasonable notice may apply beyond ESA minimums.',
-            'Aucune clause de cessation au dossier → le préavis raisonnable de common law peut s’appliquer au-delà des minimums LNE.',
+            'Aucune clause de licenciement au dossier → le préavis raisonnable de common law peut s’appliquer au-delà des minimums LNE.',
           ),
           bi(
-            "ESA minimum: 7 weeks' notice. Confirm whether the employer meets the ESA severance payroll threshold before finalizing statutory severance.",
-            'Minimum de la LNE : 7 semaines de préavis. Confirmez si l’employeur atteint le seuil de masse salariale de la LNE avant de finaliser l’indemnité de licenciement.',
+            "ESA minimum: 8 weeks' termination notice/pay; statutory severance may also apply if eligibility requirements are met.",
+            'Minimum LNE : 8 semaines de préavis ou d’indemnité de licenciement; une indemnité de cessation d’emploi peut aussi s’appliquer si les conditions d’admissibilité sont remplies.',
           ),
           bi(
-            'Common law estimate for a 7-year, mid-level role: roughly 9–12 months.',
-            'Estimation en common law pour un poste intermédiaire de 7 ans : environ 9 à 12 mois.',
+            'Common law estimate for an 8-year, mid-level role: roughly 9–12 months.',
+            'Estimation en common law pour un poste intermédiaire de 8 ans : environ 9 à 12 mois.',
           ),
         ],
         cards: [
@@ -91,8 +91,8 @@ export const chats: ChatThread[] = [
             tone: 'risk',
             title: bi('Notice exposure risk', 'Risque d’exposition au préavis'),
             body: bi(
-              "Jordan's contract has no termination clause on file. The preliminary estimate is 9–12 months of pay in lieu of notice under common law — well beyond the 7-week ESA minimum. Legal review recommended before an offer is made. This is compliance-oriented HR guidance, not legal advice.",
-              'Le contrat de Jordan ne comporte aucune clause de cessation au dossier. L’estimation préliminaire est de 9 à 12 mois d’indemnité en tenant lieu de préavis en common law — bien au-delà du minimum de 7 semaines de la LNE. Un examen juridique est recommandé avant de faire une offre. Il s’agit de conseils RH axés sur la conformité, et non d’un avis juridique.',
+              "Jordan's contract has no termination clause on file. The preliminary estimate is 9–12 months of pay in lieu of notice under common law — well beyond the 8-week ESA termination notice/pay minimum. Legal review recommended before an offer is made. This is compliance-oriented HR guidance, not legal advice.",
+              'Le contrat de Jordan ne comporte aucune clause de licenciement au dossier. L’estimation préliminaire est de 9 à 12 mois d’indemnité en tenant lieu de préavis en common law — bien au-delà du minimum LNE de 8 semaines de préavis ou d’indemnité de licenciement. Un examen juridique est recommandé avant de faire une offre. Il s’agit de conseils RH axés sur la conformité, et non d’un avis juridique.',
             ),
             confidence: bi(
               'Moderate — assumes a standard mid-level role; confirm payroll size for severance eligibility.',
@@ -581,8 +581,8 @@ export const followupReplies: Record<string, FollowupReply> = {
   'Estimate severance range': {
     label: bi('Estimate severance range', 'Estimer la fourchette d’indemnité'),
     text: bi(
-      'Based on 7.2 years of service and a mid-level role with no enforceable clause, expect a common-law range of roughly 9–12 months of pay in lieu of notice — or 7 weeks if a court found the clause enforceable, which is unlikely here. I’d budget toward the higher end until counsel weighs in.',
-      'Avec 7,2 ans de service et un poste intermédiaire sans clause exécutoire, prévoyez une fourchette en common law d’environ 9 à 12 mois d’indemnité en tenant lieu de préavis — ou 7 semaines si un tribunal jugeait la clause exécutoire, ce qui est peu probable ici. Je prévoirais le budget vers la limite supérieure jusqu’à l’avis du conseiller juridique.',
+      'Based on 8 years of service and a mid-level role with no termination clause on file, expect a preliminary common-law range of roughly 9–12 months of pay in lieu of notice — well above the 8-week ESA termination notice/pay minimum. Statutory severance may also apply if eligibility requirements are met. I’d budget toward the higher end until counsel weighs in.',
+      'Avec 8 ans de service et un poste intermédiaire sans clause de licenciement au dossier, prévoyez une fourchette préliminaire en common law d’environ 9 à 12 mois d’indemnité en tenant lieu de préavis — bien au-dessus du minimum LNE de 8 semaines de préavis ou d’indemnité de licenciement. Une indemnité de cessation d’emploi peut aussi s’appliquer si les conditions d’admissibilité sont remplies. Je prévoirais le budget vers la limite supérieure jusqu’à l’avis du conseiller juridique.',
     ),
     reasoning: [
       bi(

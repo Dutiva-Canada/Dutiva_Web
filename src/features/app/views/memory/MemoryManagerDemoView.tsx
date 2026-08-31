@@ -18,7 +18,7 @@ import { memoryMessages as M } from '@/i18n/messages/memory'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useAuth } from '@/features/app/auth/authContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
-import { cases, employees, memoryThreads } from '@/data'
+import { cases, employees, memoryScenarioTodayISO, memoryThreads } from '@/data'
 import type { MemoryFact, MemoryScope } from '@/data'
 import { MemoryFactRow } from './MemoryFactRow'
 import { exportMemoryRecord } from './exportMemoryRecord'
@@ -213,7 +213,12 @@ export function MemoryManagerDemoView() {
             {/* Governed rows */}
             <div className="overflow-hidden rounded-[14px] border border-border-soft bg-surface">
               {filtered.map((fact) => (
-                <MemoryFactRow key={fact.id} fact={fact} scopeTag={scopeTag(fact)} />
+                <MemoryFactRow
+                  key={fact.id}
+                  fact={fact}
+                  scopeTag={scopeTag(fact)}
+                  dateReferenceISO={memoryScenarioTodayISO}
+                />
               ))}
               {filtered.length === 0 && (
                 <div className="px-[20px] py-[30px] text-center text-[13px] text-text-faint">

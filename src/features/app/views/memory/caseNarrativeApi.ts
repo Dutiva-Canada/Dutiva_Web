@@ -157,7 +157,10 @@ export async function listCaseTimeline(
     .eq('case_id', caseId)
     .order('occurred_at', { ascending: true })
   if (error) throw error
-  return z.array(timelineRowSchema).parse(data ?? []).map(toEvent)
+  return z
+    .array(timelineRowSchema)
+    .parse(data ?? [])
+    .map(toEvent)
 }
 
 export async function addCaseTimelineEvent(

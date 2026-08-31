@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react'
 import { bi } from '@/i18n/core'
 import type { LText } from '@/i18n/core'
-import { seedMemoryFacts } from '@/data'
+import { memoryScenarioTodayISO, seedMemoryFacts } from '@/data'
 import type { MemoryFact } from '@/data'
 
 /**
@@ -51,7 +51,7 @@ export function useMemoryStore(): MemoryStore {
   return useSyncExternalStore(subscribe, () => store)
 }
 
-const TODAY = bi('Today', 'Aujourd’hui')
+const TODAY_ISO = memoryScenarioTodayISO
 
 export const memoryActions = {
   confirm(id: string): void {
@@ -59,7 +59,7 @@ export const memoryActions = {
     if (!fact || fact.confidence === 'confirmed') return
     emit({
       facts: store.facts.map((f) =>
-        f.id === id ? { ...f, confidence: 'confirmed', confirmed: TODAY } : f,
+        f.id === id ? { ...f, confidence: 'confirmed', confirmedAt: TODAY_ISO } : f,
       ),
       audit: [{ action: 'confirm', statement: fact.statement }, ...store.audit],
     })

@@ -25,7 +25,7 @@ describe('memoryStore', () => {
     act(() => memoryActions.confirm('p7'))
     const fact = store.current.facts.find((f) => f.id === 'p7')!
     expect(fact.confidence).toBe('confirmed')
-    expect(fact.confirmed).toEqual({ en: 'Today', fr: 'Aujourd’hui' })
+    expect(fact.confirmedAt).toBe('2026-07-11')
     expect(store.current.audit[0]).toMatchObject({ action: 'confirm' })
     /* The fixture itself is untouched (session-scoped edits only). */
     expect(seedMemoryFacts.find((f) => f.id === 'p7')!.confidence).toBe('inferred')

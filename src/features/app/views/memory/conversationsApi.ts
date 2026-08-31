@@ -40,9 +40,7 @@ function parseLastAdvisorResponse(raw: unknown): AdvisorResponse | null {
   return parsed.success ? parsed.data : null
 }
 
-function toProductionConversation(
-  row: z.infer<typeof rowSchema>,
-): ProductionConversation {
+function toProductionConversation(row: z.infer<typeof rowSchema>): ProductionConversation {
   return {
     id: row.id,
     messages: row.messages ?? [],

@@ -102,9 +102,9 @@ export const advisorCore = defineMessages({
     fr: 'Jordan Mensah — exposition au préavis',
   },
   advisor_brief_employees_risk_body: {
-    en: 'No enforceable termination clause on file. Recommend legal review before finalizing anything.',
+    en: 'No termination clause on file. Recommend legal review before finalizing anything.',
     // [FR self-authored; first clause from frDict]
-    fr: 'Aucune clause de cessation exécutoire au dossier. Un examen juridique est recommandé avant de finaliser quoi que ce soit.',
+    fr: 'Aucune clause de licenciement au dossier. Un examen juridique est recommandé avant de finaliser quoi que ce soit.',
   },
   advisor_brief_employees_warn_title: {
     en: 'Amara Okafor — accommodation review due',

@@ -173,7 +173,16 @@ export function ChatRecallProductionView() {
                       ) : (
                         <span
                           key={j}
-                          title={seg.title ?? pickL(facts.find((f) => f.id === seg.factId)?.statement ?? { en: seg.text, fr: seg.text }, lang)}
+                          title={
+                            seg.title ??
+                            pickL(
+                              facts.find((f) => f.id === seg.factId)?.statement ?? {
+                                en: seg.text,
+                                fr: seg.text,
+                              },
+                              lang,
+                            )
+                          }
                           className="cursor-help rounded-[3px] border-b-[1.5px] border-gold-dot bg-gold-bg px-[3px] py-px font-semibold text-gold-fg"
                         >
                           {seg.text}
@@ -187,7 +196,9 @@ export function ChatRecallProductionView() {
           </div>
         )}
 
-        <div className="mb-[8px] text-[12px] font-bold text-text">{x(M.memory_prod_thread_facts)}</div>
+        <div className="mb-[8px] text-[12px] font-bold text-text">
+          {x(M.memory_prod_thread_facts)}
+        </div>
         <div className="overflow-hidden rounded-[14px] border border-border-soft bg-surface">
           {facts.map((fact) => (
             <MemoryFactRow

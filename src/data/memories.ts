@@ -1,6 +1,13 @@
 import { bi } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
-import type { MemoryFact } from './types'
+import { demoTodayISO } from './calendar'
+import type {
+  MemoryCategory,
+  MemoryFact,
+  MemoryScope,
+  MemorySourceType,
+  MemoryVisibility,
+} from './types'
 
 /**
  * Advisor Memory seed fixtures — typed transcription of the Advisor Memory
@@ -9,6 +16,9 @@ import type { MemoryFact } from './types'
  * Amara Okafor `e6` / `case3`, Devon Clarke `e5`) so memory surfaces link to
  * real routes. EN verbatim from the prototype; FR [self-authored].
  */
+
+/** @deprecated Use `demoTodayISO` from `@/data` — kept for memory imports. */
+export const memoryScenarioTodayISO = demoTodayISO
 
 /* People with a memory profile (memory nav "People" group). */
 export interface MemoryPersonChip {
@@ -35,7 +45,7 @@ export const memoryPeople: MemoryPerson[] = [
   {
     id: 'e1',
     firstName: bi('Jordan', 'Jordan'),
-    navSub: bi('Termination', 'Cessation d’emploi'),
+    navSub: bi('Termination', 'Licenciement'),
     chips: [
       { tone: 'risk', label: bi('Case open · high risk', 'Dossier ouvert · risque élevé') },
       { tone: 'ok', label: bi('Active employee', 'Employé actif') },
@@ -86,7 +96,7 @@ export const memoryCases: MemoryCase[] = [
   {
     id: 'case1',
     personId: 'e1',
-    navLabel: bi('Jordan · Termination', 'Jordan · Cessation'),
+    navLabel: bi('Jordan · Termination', 'Jordan · Licenciement'),
     navSub: bi('Awaiting counsel', 'En attente du conseiller juridique'),
     code: 'CASE-2026-0142',
     opened: bi('Jul 2, 2026', '2 juill. 2026'),
@@ -118,348 +128,395 @@ export const memoryThreads: MemoryThread[] = [
     id: 'c1',
     personId: 'e1',
     caseId: 'case1',
-    navLabel: bi('Jordan termination', 'Cessation de Jordan'),
+    navLabel: bi('Jordan termination', 'Licenciement de Jordan'),
     navSub: bi('Resumed today', 'Repris aujourd’hui'),
   },
 ]
 
 /* ------------------------------------------------------------ seed facts */
 
-type MemoryFactSeed = [
-  id: string,
-  scope: MemoryFact['scope'],
-  entityId: string,
-  category: MemoryFact['category'],
-  statement: Bi,
-  confidence: MemoryFact['confidence'],
-  sourceType: MemoryFact['source']['type'],
-  sourceDetail: Bi,
-  learned: Bi,
-  confirmed: Bi | null,
-  visibility: MemoryFact['visibility'],
-  sensitive?: boolean,
-]
+interface MemoryFactInputBase {
+  id: string
+  scope: MemoryScope
+  entityId: string
+  category: MemoryCategory
+  statement: Bi
+  source: { type: MemorySourceType; detail: Bi }
+  learnedAt: string
+  visibility: MemoryVisibility
+  sensitive?: boolean
+}
 
-const M = (
-  ...[
-    id,
-    scope,
-    entityId,
-    category,
-    statement,
-    confidence,
-    sourceType,
-    sourceDetail,
-    learned,
-    confirmed,
-    visibility,
-    sensitive = false,
-  ]: MemoryFactSeed
-): MemoryFact => ({
-  id,
-  scope,
-  entityId,
-  category,
-  statement,
-  confidence,
-  source: { type: sourceType, detail: sourceDetail },
-  learned,
-  confirmed,
-  visibility,
-  sensitive,
+/** Confirmed facts must not be seeded from Advisor inference alone. */
+type MemoryFactInput =
+  | (MemoryFactInputBase & {
+      confidence: 'confirmed'
+      source: { type: Exclude<MemorySourceType, 'inference'>; detail: Bi }
+      confirmedAt: string
+    })
+  | (MemoryFactInputBase & {
+      confidence: 'inferred'
+      confirmedAt: null
+    })
+
+const M = (input: MemoryFactInput): MemoryFact => ({
+  id: input.id,
+  scope: input.scope,
+  entityId: input.entityId,
+  category: input.category,
+  statement: input.statement,
+  confidence: input.confidence,
+  source: input.source,
+  learnedAt: input.learnedAt,
+  confirmedAt: input.confirmedAt,
+  visibility: input.visibility,
+  sensitive: input.sensitive ?? false,
 })
 
 const peopleRecord = bi('People record', 'Dossier du personnel')
-const today = bi('Today', 'Aujourd’hui')
-const jul2 = bi('Jul 2', '2 juill.')
-const jul5 = bi('Jul 5', '5 juill.')
+
+/** ISO dates for deterministic demo memory (scenario date: Jul 11, 2026). */
+const MAR2018 = '2018-03-01'
+const AUG2022 = '2022-08-01'
+const APR2026 = '2026-04-01'
+const JUN22 = '2026-06-22'
+const JUL2 = '2026-07-02'
+const JUL5 = '2026-07-05'
+const JUL11 = memoryScenarioTodayISO
 
 export const seedMemoryFacts: MemoryFact[] = [
   /* Jordan — person */
-  M(
-    'p1',
-    'person',
-    'e1',
-    'employment',
-    bi(
+  M({
+    id: 'p1',
+    scope: 'person',
+    entityId: 'e1',
+    category: 'employment',
+    statement: bi(
       'Senior Operations Manager on the Operations team',
       'Gestionnaire principal des opérations, équipe Opérations',
     ),
-    'confirmed',
-    'hris',
-    peopleRecord,
-    bi('Mar 2018', 'Mars 2018'),
-    today,
-    'hr',
-  ),
-  M(
-    'p2',
-    'person',
-    'e1',
-    'employment',
-    bi(
-      '7 years’ continuous service — started March 2018',
-      '7 ans de service continu — entrée en mars 2018',
+    confidence: 'confirmed',
+    source: { type: 'hris', detail: peopleRecord },
+    learnedAt: MAR2018,
+    confirmedAt: JUL11,
+    visibility: 'hr',
+  }),
+  M({
+    id: 'p2',
+    scope: 'person',
+    entityId: 'e1',
+    category: 'employment',
+    statement: bi(
+      '8 years’ continuous service — started March 2018',
+      '8 ans de service continu — entrée en mars 2018',
     ),
-    'confirmed',
-    'hris',
-    peopleRecord,
-    bi('Mar 2018', 'Mars 2018'),
-    today,
-    'hr',
-  ),
-  M(
-    'p3',
-    'person',
-    'e1',
-    'employment',
-    bi(
+    confidence: 'confirmed',
+    source: { type: 'hris', detail: peopleRecord },
+    learnedAt: MAR2018,
+    confirmedAt: JUL11,
+    visibility: 'hr',
+  }),
+  M({
+    id: 'p3',
+    scope: 'person',
+    entityId: 'e1',
+    category: 'employment',
+    statement: bi(
       'Employed in Ontario — provincially regulated (ESA, 2000)',
       'Employé en Ontario — réglementation provinciale (LNE, 2000)',
     ),
-    'confirmed',
-    'chat',
-    bi('Confirmed in chat · Jul 2', 'Confirmé en clavardage · 2 juill.'),
-    jul2,
-    jul2,
-    'hr',
-  ),
-  M(
-    'p4',
-    'person',
-    'e1',
-    'employment',
-    bi(
-      'Employment contract has no enforceable termination clause',
-      'Le contrat de travail ne comporte aucune clause de cessation exécutoire',
+    confidence: 'confirmed',
+    source: {
+      type: 'chat',
+      detail: bi('Confirmed in chat · Jul 2', 'Confirmé en clavardage · 2 juill.'),
+    },
+    learnedAt: JUL2,
+    confirmedAt: JUL2,
+    visibility: 'hr',
+  }),
+  M({
+    id: 'p4',
+    scope: 'person',
+    entityId: 'e1',
+    category: 'employment',
+    statement: bi(
+      'Employment agreement contains no termination clause',
+      'Le contrat de travail ne comporte aucune clause de licenciement',
     ),
-    'confirmed',
-    'document',
-    bi('Employment Agreement.pdf', 'Employment Agreement.pdf'),
-    jul2,
-    jul2,
-    'case',
-    true,
-  ),
-  M(
-    'p5',
-    'person',
-    'e1',
-    'compensation',
-    bi(
+    confidence: 'confirmed',
+    source: {
+      type: 'document',
+      detail: bi('Employment Agreement.pdf', 'Employment Agreement.pdf'),
+    },
+    learnedAt: JUL2,
+    confirmedAt: JUL2,
+    visibility: 'case',
+    sensitive: true,
+  }),
+  M({
+    id: 'p5',
+    scope: 'person',
+    entityId: 'e1',
+    category: 'compensation',
+    statement: bi(
       'Base salary $95,000 + variable commission',
       'Salaire de base de 95 000 $ + commission variable',
     ),
-    'confirmed',
-    'hris',
-    peopleRecord,
-    today,
-    today,
-    'restricted',
-    true,
-  ),
-  M(
-    'p6',
-    'person',
-    'e1',
-    'record',
-    bi('No prior formal discipline on file', 'Aucune mesure disciplinaire formelle au dossier'),
-    'confirmed',
-    'hris',
-    peopleRecord,
-    jul2,
-    jul2,
-    'hr',
-  ),
-  M(
-    'p8',
-    'person',
-    'e1',
-    'record',
-    bi('Reports to Morgan Chen', 'Relève de Morgan Chen'),
-    'confirmed',
-    'hris',
-    peopleRecord,
-    bi('Mar 2018', 'Mars 2018'),
-    today,
-    'hr',
-  ),
-  M(
-    'p7',
-    'person',
-    'e1',
-    'matter',
-    bi(
-      'Preliminary common-law notice estimate: 9–12 months',
-      'Estimation préliminaire du préavis de common law : 9 à 12 mois',
+    confidence: 'confirmed',
+    source: { type: 'hris', detail: peopleRecord },
+    learnedAt: JUL11,
+    confirmedAt: JUL11,
+    visibility: 'restricted',
+    sensitive: true,
+  }),
+  M({
+    id: 'p6',
+    scope: 'person',
+    entityId: 'e1',
+    category: 'record',
+    statement: bi(
+      'No prior formal discipline on file',
+      'Aucune mesure disciplinaire formelle au dossier',
     ),
-    'inferred',
-    'inference',
-    bi('Advisor analysis · Jul 5', 'Analyse du Conseiller · 5 juill.'),
-    jul5,
-    null,
-    'case',
-    true,
-  ),
-  M(
-    'p9',
-    'person',
-    'e1',
-    'note',
-    bi('Booked vacation Jul 14–18', 'Vacances réservées du 14 au 18 juill.'),
-    'inferred',
-    'chat',
-    bi('Mentioned in chat · Jul 5', 'Mentionné en clavardage · 5 juill.'),
-    jul5,
-    null,
-    'hr',
-  ),
+    confidence: 'confirmed',
+    source: { type: 'hris', detail: peopleRecord },
+    learnedAt: JUL2,
+    confirmedAt: JUL2,
+    visibility: 'hr',
+    sensitive: true,
+  }),
+  M({
+    id: 'p8',
+    scope: 'person',
+    entityId: 'e1',
+    category: 'record',
+    statement: bi('Reports to Morgan Chen', 'Relève de Morgan Chen'),
+    confidence: 'confirmed',
+    source: { type: 'hris', detail: peopleRecord },
+    learnedAt: MAR2018,
+    confirmedAt: JUL11,
+    visibility: 'hr',
+  }),
+  M({
+    id: 'p7',
+    scope: 'person',
+    entityId: 'e1',
+    category: 'matter',
+    statement: bi(
+      'Preliminary common-law reasonable-notice estimate: 9–12 months; subject to additional employee and labour-market factors and counsel review',
+      'Estimation préliminaire du préavis raisonnable en common law : 9 à 12 mois; sous réserve de facteurs additionnels liés à l’employé et au marché du travail ainsi que d’une révision juridique',
+    ),
+    confidence: 'inferred',
+    source: {
+      type: 'inference',
+      detail: bi('Advisor analysis · Jul 5', 'Analyse du Conseiller · 5 juill.'),
+    },
+    learnedAt: JUL5,
+    confirmedAt: null,
+    visibility: 'case',
+    sensitive: true,
+  }),
+  M({
+    id: 'p9',
+    scope: 'person',
+    entityId: 'e1',
+    category: 'note',
+    statement: bi('Booked vacation Jul 14–18', 'Vacances réservées du 14 au 18 juill.'),
+    confidence: 'inferred',
+    source: {
+      type: 'chat',
+      detail: bi('Mentioned in chat · Jul 5', 'Mentionné en clavardage · 5 juill.'),
+    },
+    learnedAt: JUL5,
+    confirmedAt: null,
+    visibility: 'hr',
+    sensitive: true,
+  }),
   /* Jordan — case (termination) */
-  M(
-    'c1',
-    'case',
-    'case1',
-    'case',
-    bi(
+  M({
+    id: 'c1',
+    scope: 'case',
+    entityId: 'case1',
+    category: 'case',
+    statement: bi(
       'Terminating without cause — no offer issued yet',
-      'Cessation sans motif — aucune offre émise',
+      'Licenciement sans motif — aucune offre émise',
     ),
-    'confirmed',
-    'manual',
-    bi('Case note · Riley Summers', 'Note de dossier · Riley Summers'),
-    jul2,
-    today,
-    'case',
-  ),
-  M(
-    'c2',
-    'case',
-    'case1',
-    'case',
-    bi(
+    confidence: 'confirmed',
+    source: {
+      type: 'manual',
+      detail: bi('Case note · Riley Summers', 'Note de dossier · Riley Summers'),
+    },
+    learnedAt: JUL2,
+    confirmedAt: JUL11,
+    visibility: 'case',
+    sensitive: true,
+  }),
+  M({
+    id: 'c2',
+    scope: 'case',
+    entityId: 'case1',
+    category: 'case',
+    statement: bi(
       'Counsel review requested Jul 5 — still outstanding',
       'Révision juridique demandée le 5 juill. — toujours en attente',
     ),
-    'confirmed',
-    'chat',
-    bi('Advisor · Jul 5', 'Conseiller · 5 juill.'),
-    jul5,
-    today,
-    'case',
-  ),
-  M(
-    'c3',
-    'case',
-    'case1',
-    'case',
-    bi(
+    confidence: 'confirmed',
+    source: {
+      type: 'chat',
+      detail: bi('Advisor · Jul 5', 'Conseiller · 5 juill.'),
+    },
+    learnedAt: JUL5,
+    confirmedAt: JUL11,
+    visibility: 'case',
+    sensitive: true,
+  }),
+  M({
+    id: 'c3',
+    scope: 'case',
+    entityId: 'case1',
+    category: 'case',
+    statement: bi(
       'Termination letter drafted Jul 5 — held, not sent',
-      'Lettre de cessation rédigée le 5 juill. — retenue, non envoyée',
+      'Lettre de licenciement rédigée le 5 juill. — retenue, non envoyée',
     ),
-    'confirmed',
-    'document',
-    bi('Termination Letter (draft)', 'Lettre de cessation (ébauche)'),
-    jul5,
-    jul5,
-    'case',
-  ),
-  M(
-    'c4',
-    'case',
-    'case1',
-    'case',
-    bi(
-      'ESA statutory floor ≈ 7 weeks’ notice + severance',
-      'Plancher légal LNE ≈ 7 semaines de préavis + indemnité',
+    confidence: 'confirmed',
+    source: {
+      type: 'document',
+      detail: bi('Termination Letter (draft)', 'Lettre de licenciement (ébauche)'),
+    },
+    learnedAt: JUL5,
+    confirmedAt: JUL5,
+    visibility: 'case',
+    sensitive: true,
+  }),
+  M({
+    id: 'c4',
+    scope: 'case',
+    entityId: 'case1',
+    category: 'case',
+    statement: bi(
+      'ESA minimum: 8 weeks’ termination notice/pay; statutory severance may also apply if eligibility requirements are met',
+      'Minimum LNE : 8 semaines de préavis ou d’indemnité de licenciement; une indemnité de cessation d’emploi peut aussi s’appliquer si les conditions d’admissibilité sont remplies',
     ),
-    'confirmed',
-    'inference',
-    bi('Advisor analysis · Jul 2', 'Analyse du Conseiller · 2 juill.'),
-    jul2,
-    jul2,
-    'case',
-  ),
+    confidence: 'inferred',
+    source: {
+      type: 'inference',
+      detail: bi('Advisor analysis · Jul 2', 'Analyse du Conseiller · 2 juill.'),
+    },
+    learnedAt: JUL2,
+    confirmedAt: null,
+    visibility: 'case',
+    sensitive: true,
+  }),
   /* Jordan — thread */
-  M(
-    't1',
-    'thread',
-    'c1',
-    'conversation',
-    bi(
+  M({
+    id: 't1',
+    scope: 'thread',
+    entityId: 'c1',
+    category: 'conversation',
+    statement: bi(
       'This conversation is about Jordan Mensah’s termination',
-      'Cette conversation porte sur la cessation d’emploi de Jordan Mensah',
+      'Cette conversation porte sur le licenciement de Jordan Mensah',
     ),
-    'confirmed',
-    'chat',
-    bi('Conversation · opened Jul 2', 'Conversation · ouverte le 2 juill.'),
-    jul2,
-    today,
-    'case',
-  ),
-  M(
-    't2',
-    'thread',
-    'c1',
-    'conversation',
-    bi(
+    confidence: 'confirmed',
+    source: {
+      type: 'chat',
+      detail: bi('Conversation · opened Jul 2', 'Conversation · ouverte le 2 juill.'),
+    },
+    learnedAt: JUL2,
+    confirmedAt: JUL11,
+    visibility: 'case',
+  }),
+  M({
+    id: 't2',
+    scope: 'thread',
+    entityId: 'c1',
+    category: 'conversation',
+    statement: bi(
       'You want notice exposure and next steps before contacting Jordan',
       'Vous voulez l’exposition au préavis et les prochaines étapes avant de contacter Jordan',
     ),
-    'inferred',
-    'inference',
-    bi('Conversation summary', 'Résumé de la conversation'),
-    jul5,
-    null,
-    'case',
-  ),
+    confidence: 'inferred',
+    source: {
+      type: 'inference',
+      detail: bi('Conversation summary', 'Résumé de la conversation'),
+    },
+    learnedAt: JUL5,
+    confirmedAt: null,
+    visibility: 'case',
+    sensitive: true,
+  }),
   /* Amara / Devon */
-  M(
-    'a1',
-    'person',
-    'e6',
-    'employment',
-    bi(
+  M({
+    id: 'a1',
+    scope: 'person',
+    entityId: 'e6',
+    category: 'employment',
+    statement: bi(
       'Operations Analyst, 3 years’ service — British Columbia',
       'Analyste des opérations, 3 ans de service — Colombie-Britannique',
     ),
-    'confirmed',
-    'hris',
-    peopleRecord,
-    bi('Aug 2022', 'Août 2022'),
-    today,
-    'hr',
-  ),
-  M(
-    'a2',
-    'person',
-    'e6',
-    'matter',
-    bi(
+    confidence: 'confirmed',
+    source: { type: 'hris', detail: peopleRecord },
+    learnedAt: AUG2022,
+    confirmedAt: JUL11,
+    visibility: 'hr',
+  }),
+  M({
+    id: 'a2',
+    scope: 'person',
+    entityId: 'e6',
+    category: 'matter',
+    statement: bi(
       'Modified-duties accommodation active; 90-day review due Jul 14',
       'Accommodement en tâches modifiées actif; révision de 90 jours le 14 juill.',
     ),
-    'confirmed',
-    'case',
-    bi('CASE-2026-0138', 'CASE-2026-0138'),
-    bi('Apr 2026', 'Avr. 2026'),
-    today,
-    'case',
-    true,
-  ),
-  M(
-    'd1',
-    'person',
-    'e5',
-    'matter',
-    bi(
+    confidence: 'confirmed',
+    source: { type: 'case', detail: bi('CASE-2026-0138', 'CASE-2026-0138') },
+    learnedAt: APR2026,
+    confirmedAt: JUL11,
+    visibility: 'case',
+    sensitive: true,
+  }),
+  M({
+    id: 'd1',
+    scope: 'person',
+    entityId: 'e5',
+    category: 'matter',
+    statement: bi(
       'On a performance improvement plan; 30-day check-in Jul 22',
       'Sous plan d’amélioration du rendement; suivi de 30 jours le 22 juill.',
     ),
-    'confirmed',
-    'case',
-    bi('Case note', 'Note de dossier'),
-    bi('Jun 22', '22 juin'),
-    today,
-    'hr',
-  ),
+    confidence: 'confirmed',
+    source: { type: 'case', detail: bi('Case note', 'Note de dossier') },
+    learnedAt: JUN22,
+    confirmedAt: JUL11,
+    visibility: 'hr',
+    sensitive: true,
+  }),
 ]
+
+/** Seed facts must not pair confirmed confidence with an inference-only source. */
+export function assertSeedMemoryFactSemantics(facts: readonly MemoryFact[]): void {
+  for (const fact of facts) {
+    if (fact.confidence === 'confirmed' && fact.source.type === 'inference') {
+      throw new Error(
+        `Memory fact ${fact.id}: confirmed facts cannot be sourced from inference alone`,
+      )
+    }
+    if (fact.confidence === 'inferred' && fact.confirmedAt !== null) {
+      throw new Error(`Memory fact ${fact.id}: inferred facts must not carry a confirmation date`)
+    }
+    if (
+      /\bToday\b|Aujourd/i.test(fact.learnedAt) ||
+      (fact.confirmedAt !== null && /\bToday\b|Aujourd/i.test(fact.confirmedAt))
+    ) {
+      throw new Error(
+        `Memory fact ${fact.id}: temporal fields must be ISO dates, not relative labels`,
+      )
+    }
+  }
+}
+
+assertSeedMemoryFactSemantics(seedMemoryFacts)

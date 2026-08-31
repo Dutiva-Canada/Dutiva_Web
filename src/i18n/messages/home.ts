@@ -21,8 +21,8 @@ export const homeMessages = defineMessages({
   /* ── Advisor daily brief hero ───────────────────────────────────────────── */
   home_brief_title: { en: 'Advisor’s daily brief', fr: 'Résumé quotidien du Conseiller' },
   home_brief_lead: {
-    en: 'Jordan Mensah’s termination is your top exposure: counsel hasn’t replied to the Jul 5 review request, and the preliminary estimate puts common-law notice at 9–12 months against the 7-week ESA floor. Do first — nudge counsel and hold the offer. Then draft the Remote Work Policy refresh: 14 months overdue, and worth +4 of your +6 predicted compliance gain.',
-    fr: 'La cessation d’emploi de Jordan Mensah est votre principale exposition : le conseiller juridique n’a pas répondu à la demande du 5 juillet, et l’estimation préliminaire situe le préavis de common law entre 9 et 12 mois contre le plancher LNE de 7 semaines. À faire en premier : relancer le conseiller et retenir l’offre. Ensuite, rédiger la politique de télétravail — 14 mois de retard et +4 des +6 points de conformité prévus.',
+    en: 'Jordan Mensah’s termination is your top exposure: counsel hasn’t replied to the Jul 5 review request, and the preliminary estimate puts common-law notice at 9–12 months against the 8-week ESA termination notice/pay minimum. Do first — nudge counsel and hold the offer. Then draft the Remote Work Policy refresh: 14 months overdue, and worth +4 of your +6 predicted compliance gain.',
+    fr: 'Le licenciement de Jordan Mensah est votre principale exposition : le conseiller juridique n’a pas répondu à la demande du 5 juillet, et l’estimation préliminaire situe le préavis de common law entre 9 et 12 mois contre le minimum LNE de 8 semaines de préavis ou d’indemnité de licenciement. À faire en premier : relancer le conseiller et retenir l’offre. Ensuite, rédiger la politique de télétravail — 14 mois de retard et +4 des +6 points de conformité prévus.',
   },
   home_brief_rest: {
     en: 'Everything else can wait. Amara’s accommodation review is due Jul 14, Devon’s PIP check-in is Jul 22, and Théo’s pay review can hold for the next comp cycle.',

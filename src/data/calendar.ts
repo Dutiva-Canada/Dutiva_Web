@@ -3,15 +3,22 @@ import type { CalendarEvent, CalendarMonth } from './types'
 
 /**
  * Calendar fixtures, transcribed from the prototype's `buildCalendarView()`
- * (July 2026 grid; "today" is July 5).
+ * (July 2026 grid; "today" is July 11 — aligned with the Jordan termination
+ * memory resume and case timeline).
  */
 
 export const calendarMonth: CalendarMonth = {
   year: 2026,
   monthIndex: 6,
   monthLabel: bi('July 2026', 'Juillet 2026'),
-  todayDay: 5,
+  todayDay: 11,
 }
+
+/** The demo diorama's fixed "today" (YYYY-MM-DD), derived from the calendar grid. */
+export const demoTodayISO = `${calendarMonth.year}-${String(calendarMonth.monthIndex + 1).padStart(
+  2,
+  '0',
+)}-${String(calendarMonth.todayDay).padStart(2, '0')}`
 
 export const calendarEvents: CalendarEvent[] = [
   {

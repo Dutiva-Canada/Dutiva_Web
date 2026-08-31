@@ -20,8 +20,7 @@ import type { ProductionMemoryAuditEntry } from './productionApi'
  */
 
 export type MemoryExportResult =
-  | { ok: true }
-  | { ok: false; denial: ReturnType<typeof exportDenialMessage> }
+  { ok: true } | { ok: false; denial: ReturnType<typeof exportDenialMessage> }
 
 export async function exportMemoryRecord(input: {
   facts: readonly MemoryFact[]
