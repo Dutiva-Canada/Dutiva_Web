@@ -180,12 +180,10 @@ const M = (input: MemoryFactInput): MemoryFact => ({
 
 const peopleRecord = bi('People record', 'Dossier du personnel')
 const caseNoteRiley = bi('Case note · Riley Summers', 'Note de dossier · Riley Summers')
-const complianceReviewJul11 = bi('Compliance review · Jul 11', 'Revue conformité · 11 juill.')
+const caseAmara = bi('CASE-2026-0138', 'CASE-2026-0138')
 
 /** ISO dates for deterministic demo memory (scenario date: Jul 11, 2026). */
-const MAR2018 = '2018-03-01'
-const AUG2022 = '2022-08-01'
-const APR2026 = '2026-04-01'
+const APR2026 = '2026-04-03'
 const JUN22 = '2026-06-22'
 const JUL2 = '2026-07-02'
 const JUL5 = '2026-07-05'
@@ -204,7 +202,6 @@ export const seedMemoryFacts: MemoryFact[] = [
     ),
     confidence: 'confirmed',
     source: { type: 'hris', detail: peopleRecord },
-    effectiveAt: MAR2018,
     learnedAt: JUL2,
     confirmation: { at: JUL2, source: { type: 'hris', detail: peopleRecord } },
     visibility: 'hr',
@@ -220,7 +217,6 @@ export const seedMemoryFacts: MemoryFact[] = [
     ),
     confidence: 'confirmed',
     source: { type: 'hris', detail: peopleRecord },
-    effectiveAt: MAR2018,
     learnedAt: JUL2,
     confirmation: { at: JUL2, source: { type: 'hris', detail: peopleRecord } },
     visibility: 'hr',
@@ -314,7 +310,6 @@ export const seedMemoryFacts: MemoryFact[] = [
     statement: bi('Reports to Morgan Chen', 'Relève de Morgan Chen'),
     confidence: 'confirmed',
     source: { type: 'hris', detail: peopleRecord },
-    effectiveAt: MAR2018,
     learnedAt: JUL2,
     confirmation: { at: JUL2, source: { type: 'hris', detail: peopleRecord } },
     visibility: 'hr',
@@ -399,8 +394,8 @@ export const seedMemoryFacts: MemoryFact[] = [
     entityId: 'case1',
     category: 'case',
     statement: bi(
-      'Termination letter drafted Jul 5 — held, not sent',
-      'Lettre de licenciement rédigée le 5 juill. — retenue, non envoyée',
+      'Termination letter draft dated Jul 5',
+      'Ébauche de lettre de licenciement datée du 5 juill.',
     ),
     confidence: 'confirmed',
     source: {
@@ -493,7 +488,6 @@ export const seedMemoryFacts: MemoryFact[] = [
     ),
     confidence: 'confirmed',
     source: { type: 'hris', detail: peopleRecord },
-    effectiveAt: AUG2022,
     learnedAt: APR2026,
     confirmation: { at: APR2026, source: { type: 'hris', detail: peopleRecord } },
     visibility: 'hr',
@@ -504,14 +498,13 @@ export const seedMemoryFacts: MemoryFact[] = [
     entityId: 'e6',
     category: 'matter',
     statement: bi(
-      'Modified-duties accommodation active; 90-day review due Jul 14',
-      'Accommodement en tâches modifiées actif; révision de 90 jours le 14 juill.',
+      'Modified-duties accommodation established; 90-day review scheduled for Jul 14',
+      'Accommodement en tâches modifiées établi; révision de 90 jours prévue le 14 juill.',
     ),
     confidence: 'confirmed',
-    source: { type: 'case', detail: complianceReviewJul11 },
-    effectiveAt: APR2026,
-    learnedAt: JUL11,
-    confirmation: { at: JUL11, source: { type: 'case', detail: complianceReviewJul11 } },
+    source: { type: 'case', detail: caseAmara },
+    learnedAt: APR2026,
+    confirmation: { at: APR2026, source: { type: 'case', detail: caseAmara } },
     visibility: 'case',
     sensitive: true,
   }),
@@ -526,7 +519,6 @@ export const seedMemoryFacts: MemoryFact[] = [
     ),
     confidence: 'confirmed',
     source: { type: 'case', detail: bi('Case note', 'Note de dossier') },
-    effectiveAt: JUN22,
     learnedAt: JUN22,
     confirmation: {
       at: JUN22,
@@ -558,6 +550,12 @@ export function assertSeedMemoryFactSemantics(facts: readonly MemoryFact[]): voi
       throw new Error(
         `Memory fact ${fact.id}: confirmed facts must include confirmation provenance`,
       )
+    }
+    if (
+      fact.confirmation !== null &&
+      (fact.confirmation.source.type as MemorySourceType) === 'inference'
+    ) {
+      throw new Error(`Memory fact ${fact.id}: confirmation cannot be sourced from inference alone`)
     }
 
     assertCanonicalDate(fact.id, 'learnedAt', fact.learnedAt)
