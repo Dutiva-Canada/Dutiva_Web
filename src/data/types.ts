@@ -547,6 +547,9 @@ export type MemoryConfidence = 'confirmed' | 'inferred'
 
 export type MemorySourceType = 'hris' | 'document' | 'chat' | 'manual' | 'inference' | 'case'
 
+/** Source types that can affirm a confirmed fact — excludes Advisor inference alone. */
+export type MemoryAuthoritativeSourceType = Exclude<MemorySourceType, 'inference'>
+
 /** Who can see a fact: the HR team, case participants + counsel, or restricted. */
 export type MemoryVisibility = 'hr' | 'case' | 'restricted'
 
@@ -557,7 +560,7 @@ export type MemoryCategory =
 export interface MemoryConfirmation {
   /** ISO date (YYYY-MM-DD) of the confirmation event. */
   at: string
-  source: { type: MemorySourceType; detail: Bi }
+  source: { type: MemoryAuthoritativeSourceType; detail: Bi }
 }
 
 export interface MemoryFact {
