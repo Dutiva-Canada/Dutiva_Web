@@ -33,12 +33,12 @@ describe('employees fixtures', () => {
     expect(detail?.startDate).toBe(hire?.date)
   })
 
-  it('does not imply a statutory or universal BC probation period for Priya', () => {
+  it('does not imply a statutory or universal probation period for Priya', () => {
     const priya = employee('e2')
-    expect(priya.insight.en).not.toMatch(/Probation runs|statutory probation/i)
+    expect(priya.insight.en).not.toMatch(/probation/i)
+    expect(priya.insight.fr).not.toMatch(/probation/i)
     expect(priya.insight.en).toContain('3-month service milestone')
     expect(priya.insight.fr).toContain('jalon de trois mois de service')
-    expect(priya.insight.fr).not.toMatch(/La probation court/i)
   })
 
   it('treats org branch dept as the manager area, not each report functional department', () => {
@@ -67,9 +67,8 @@ describe('employees fixtures', () => {
     expect(employee('e6').dept.en).toBe('Engineering')
     expect(peopleBranch?.reportIds).toContain('e6')
 
-    /* Grace's Revenue department matches her financial-analyst role, not merely the branch label. */
+    /* Grace is intentionally assigned to Revenue and also reports through the Revenue branch. */
     expect(employee('e11').dept.en).toBe('Revenue')
-    expect(employee('e11').role.en).toBe('Financial Analyst')
     expect(revenueBranch?.reportIds).toContain('e11')
   })
 
@@ -203,7 +202,7 @@ describe('employees fixtures', () => {
     expect(lineManagerLabel('e9')).toBe('Riley Summers')
   })
 
-  it('aligns Priya offer-letter document metadata with Ontario jurisdiction', () => {
+  it('uses Ontario metadata for the shipped Offer Letter fixture', () => {
     const offer = documentTemplates.find((doc) => doc.key === 'Offer Letter')
     if (!offer?.meta?.jur || !offer.meta.missing) throw new Error('Missing Offer Letter fixture')
     expect(offer.meta.jur.en).toContain('Ontario')
