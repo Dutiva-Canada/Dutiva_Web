@@ -39,8 +39,9 @@ export const communications: Communication[] = [
   },
   {
     id: 'cm3',
-    /* Audience is historical scenario data (sent yesterday); not derived from the
-       named employee roster. BC reflects the diorama company in analytics headcount. */
+    /* Historical demo audience from the sent communication; not derived from the
+       named employee fixtures. BC is intentionally retained as part of the broader
+       demo workforce represented in aggregate headcount. */
     title: bi('Statutory holiday notice — August', 'Avis de jour férié — août'),
     audience: bi('Ontario, BC, AB · 71 people', 'Ontario, C.-B., AB · 71 personnes'),
     province: bi('Multi-jurisdiction', 'Multijuridictionnel'),
@@ -140,7 +141,10 @@ export const communicationDetails: Record<string, CommunicationDetail> = {
   cm4: {
     communicationId: 'cm4',
     audienceType: bi('Manager-facing', 'Destiné aux gestionnaires'),
-    bilingual: bi('EN only — manager audience', 'EN seulement — auditoire gestionnaire'),
+    bilingual: bi(
+      'EN only — French version not yet prepared',
+      'EN seulement — version française non encore préparée',
+    ),
     linkedTo: null,
     sensitive: false,
     review: { tone: true, legal: true, clarity: true, policy: true },
