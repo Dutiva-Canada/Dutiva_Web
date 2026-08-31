@@ -20,6 +20,11 @@ export const demoTodayISO = `${calendarMonth.year}-${String(calendarMonth.monthI
   '0',
 )}-${String(calendarMonth.todayDay).padStart(2, '0')}`
 
+/**
+ * Fixture event list — source order matches the prototype transcription.
+ * `CalendarDemoView` renders the Upcoming list in this order; do not reorder
+ * for chronological appearance unless a consumer is updated to sort by day.
+ */
 export const calendarEvents: CalendarEvent[] = [
   {
     id: 'cal-priya-start',
