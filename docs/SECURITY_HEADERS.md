@@ -21,6 +21,16 @@ the marketing and app surfaces showed zero console violations.
 | `Permissions-Policy` | `camera=(), microphone=(), geolocation=(), browsing-topics=()` | Powerful features the app never uses; opts out of Topics. |
 | `Access-Control-Allow-Origin` | `https://dutiva.ca` | Overrides Vercel's static-file default of `*`. The marketing site is first-party; hashed `/assets/*` files are still fetched same-origin (including the `crossorigin` font preload). |
 
+## Crawler-invented `/support@dutiva.ca`
+
+JSON-LD `Organization.email` is `mailto:support@dutiva.ca`. Some scanners
+still request `https://dutiva.ca/support@dutiva.ca` as if it were a page.
+A 308 to `/contact` is not enough for those tools: they score the original
+URL as a failed page load unless it returns 200 with HTML. `vercel.json`
+rewrites the invented path (and `/fr/support@dutiva.ca`) to the contact
+page, with `X-Robots-Tag: noindex, nofollow`. Canonical tags on that HTML
+still point at `/contact`.
+
 ## Directory indexes
 
 Vercel Directory Listing was on for this project, so `GET /assets` (and

@@ -37,6 +37,15 @@ const middleware = raw(
   'middleware.js',
 )
 
+const routeTable = raw(
+  import.meta.glob('../../src/app/routes.tsx', {
+    query: '?raw',
+    import: 'default',
+    eager: true,
+  }),
+  'routes.tsx',
+)
+
 type HeaderBlock = {
   source: string
   headers: Array<{ key: string; value: string }>
@@ -81,6 +90,8 @@ describe('HTTP security headers', () => {
     expect(serveDist).toContain("'X-Content-Type-Options': 'nosniff'")
     expect(serveDist).toContain("'Access-Control-Allow-Origin': 'https://dutiva.ca'")
     expect(serveDist).toContain("DIRECTORY_INDEXES = new Set(['/assets', '/brand', '/.well-known'])")
+    expect(serveDist).toContain("['/support@dutiva.ca', '/contact']")
+    expect(vercel).toMatch(/"source": "\/support@dutiva\.ca"[\s\S]*noindex, nofollow/)
   })
 
   it('404s folder indexes that would otherwise list hashed files', () => {
@@ -89,11 +100,18 @@ describe('HTTP security headers', () => {
     expect(middleware).not.toContain('/assets/:path*')
   })
 
-  it('redirects crawler-invented /support@dutiva.ca to /contact', () => {
+  it('serves the contact page at crawler-invented /support@dutiva.ca (200, not a redirect)', () => {
     const parsed = JSON.parse(vercel) as {
       redirects: Array<{ source: string; destination: string }>
+      rewrites: Array<{ source: string; destination: string }>
     }
-    expect(parsed.redirects).toEqual(
+    expect(parsed.redirects).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ source: '/support@dutiva.ca' }),
+        expect.objectContaining({ source: '/fr/support@dutiva.ca' }),
+      ]),
+    )
+    expect(parsed.rewrites).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ source: '/support@dutiva.ca', destination: '/contact' }),
         expect.objectContaining({
@@ -102,5 +120,7 @@ describe('HTTP security headers', () => {
         }),
       ]),
     )
+    expect(routeTable).toContain("'/support@dutiva.ca'")
+    expect(routeTable).toContain("'/fr/support@dutiva.ca'")
   })
 })

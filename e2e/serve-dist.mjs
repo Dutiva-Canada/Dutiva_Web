@@ -10,6 +10,7 @@
  *   - trailingSlash:false clean URLs        (/about → dist/about/index.html)
  *   - real files served directly            (/assets/*, /robots.txt, /sw.js)
  *   - /assets, /brand, /.well-known indexes → 404 (no directory listing)
+ *   - /support@dutiva.ca (and /fr/…)        → contact page (crawler-invented email path)
  *   - anything unmatched → 404.html with a 404 status
  *
  * Dependency-free (Node's http/fs only) so the e2e harness carries no server
@@ -40,6 +41,12 @@ const SECURITY_HEADERS = {
 
 /** Exact folder URLs that Vercel Directory Listing would otherwise inventory. */
 const DIRECTORY_INDEXES = new Set(['/assets', '/brand', '/.well-known'])
+
+/** Keep in sync with vercel.json rewrites — crawlers invent these from Organization.email. */
+const EMAIL_PAGE_ALIASES = new Map([
+  ['/support@dutiva.ca', '/contact'],
+  ['/fr/support@dutiva.ca', '/fr/contact'],
+])
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -74,6 +81,12 @@ async function resolve(pathname) {
   const folder = pathname.replace(/\/+$/, '') || '/'
   if (DIRECTORY_INDEXES.has(folder)) {
     return { file: join(DIST, '404.html'), status: 404 }
+  }
+
+  const aliased = EMAIL_PAGE_ALIASES.get(folder)
+  if (aliased) {
+    const resolved = await resolve(aliased)
+    return { ...resolved, robotsTag: 'noindex, nofollow' }
   }
 
   // /app and /app/* are rewritten to the SPA shell (vercel.json rewrites).
@@ -113,11 +126,12 @@ async function resolve(pathname) {
 const server = createServer(async (req, res) => {
   try {
     const { pathname } = new URL(req.url ?? '/', `http://127.0.0.1:${PORT}`)
-    const { file, status } = await resolve(pathname)
+    const { file, status, robotsTag } = await resolve(pathname)
     const body = await readFile(file)
     res.writeHead(status, {
       'Content-Type': MIME[extname(file)] ?? 'application/octet-stream',
       ...SECURITY_HEADERS,
+      ...(robotsTag ? { 'X-Robots-Tag': robotsTag } : {}),
     })
     res.end(body)
   } catch (error) {

@@ -102,6 +102,14 @@ function publicRoutes(lang: Lang): RouteObject {
       { path: p('help'), element: <HelpCenterPage /> },
       { path: `${p('help')}/:slug`, element: <HelpArticlePage /> },
       { path: p('contact'), element: <ContactPage /> },
+      /* Crawlers that treat JSON-LD `email` as a relative URL invent this
+         path. Serve Contact (canonical still /contact) so "page load" checks
+         get 200 instead of a 404 or a 308 they do not follow. Not in the
+         SEO registry — vercel.json rewrites here; X-Robots-Tag is noindex. */
+      {
+        path: lang === 'fr' ? '/fr/support@dutiva.ca' : '/support@dutiva.ca',
+        element: <ContactPage />,
+      },
       { path: p('status'), element: <StatusPage /> },
       { path: p('changelog'), element: <ChangelogPage /> },
       { path: p('vsHrdownloads'), element: <VsHrdownloadsPage /> },

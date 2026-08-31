@@ -8,16 +8,6 @@
       "permanent": true
     },
     {
-      "source": "/support@dutiva.ca",
-      "destination": "/contact",
-      "permanent": true
-    },
-    {
-      "source": "/fr/support@dutiva.ca",
-      "destination": "/fr/contact",
-      "permanent": true
-    },
-    {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "(?<host>www\\.dutiva\\.ca)" }],
       "destination": "https://dutiva.ca/:path*",
@@ -25,6 +15,14 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/support@dutiva.ca",
+      "destination": "/contact"
+    },
+    {
+      "source": "/fr/support@dutiva.ca",
+      "destination": "/fr/contact"
+    },
     { "source": "/app", "destination": "/app.html" },
     { "source": "/app/:path*", "destination": "/app.html" },
     { "source": "/demo/:path+", "destination": "/app.html" },
@@ -54,6 +52,14 @@
           "value": "https://dutiva.ca"
         }
       ]
+    },
+    {
+      "source": "/support@dutiva.ca",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/fr/support@dutiva.ca",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     },
     {
       "source": "/sign/:token",

@@ -89,6 +89,15 @@ test.describe('marketing HTTP security', () => {
     expect(body).not.toMatch(/Index of/i)
     expect(body).not.toMatch(/Files within/i)
   })
+
+  test('crawler-invented /support@dutiva.ca loads the contact page', async ({ request }) => {
+    const response = await request.get('/support@dutiva.ca')
+    expect(response.status()).toBe(200)
+    expect(response.headers()['x-robots-tag'] ?? '').toMatch(/noindex/i)
+    const body = await response.text()
+    expect(body).toMatch(/contact/i)
+    expect(body).not.toMatch(/Page not found/i)
+  })
 })
 
 test.describe('without JavaScript', () => {
