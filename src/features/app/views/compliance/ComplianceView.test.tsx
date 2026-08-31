@@ -62,7 +62,7 @@ describe('ComplianceView', () => {
     expect(screen.queryByText('Vacation time & pay reconciliation')).not.toBeInTheDocument()
     expect(screen.getByText('Privacy impact assessment — HRIS vendor change')).toBeInTheDocument()
 
-    /* Ontario flag hidden; Multi-province and Quebec flags kept. */
+    /* Ontario flag hidden; Multi-jurisdiction and Quebec flags kept. */
     expect(
       screen.queryByText('Jordan Mensah — notice exposure; no termination clause on file'),
     ).not.toBeInTheDocument()

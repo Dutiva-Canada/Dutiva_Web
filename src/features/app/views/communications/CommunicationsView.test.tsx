@@ -105,7 +105,7 @@ describe('CommunicationsView', () => {
     /* Rail header title + context chips (province · audience). */
     expect(screen.getAllByText('Return-to-office cadence — company-wide')).toHaveLength(2)
     /* The province and audience surface as rail context chips. */
-    expect(screen.getByText('Multi-province')).toBeInTheDocument()
+    expect(screen.getByText('Multi-jurisdiction')).toBeInTheDocument()
     expect(screen.getByText('All employees · 94 people')).toBeInTheDocument()
   })
 })

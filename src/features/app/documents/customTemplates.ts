@@ -363,8 +363,8 @@ export const tplT19: DocTemplate = {
     {
       type: 'para',
       text: {
-        en: 'Employee has disclosed a medical condition requiring modified duties. Documentation on file is limited to functional limitations, not diagnosis, consistent with human rights obligations.',
-        fr: 'L’employé a divulgué une condition médicale nécessitant des tâches modifiées. La documentation au dossier se limite aux limitations fonctionnelles, sans diagnostic, conformément aux obligations en matière de droits de la personne.',
+        en: 'Modified duties are in place based on documented functional limitations. The file holds functional limitations only — no diagnosis — consistent with human rights obligations.',
+        fr: 'Des tâches modifiées sont en place selon des limitations fonctionnelles documentées. Le dossier ne contient que les limitations fonctionnelles — aucun diagnostic — conformément aux obligations en matière de droits de la personne.',
       },
     },
     {

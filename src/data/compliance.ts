@@ -75,17 +75,17 @@ export const complianceItems: ComplianceItem[] = [
       'Politique de télétravail non révisée depuis 14 mois',
     ),
     detail: bi(
-      'You’ve added employees in 3 new provinces since the last review — occupational health & safety and expense sections likely need updates.',
-      'Vous avez ajouté des employés dans 3 nouvelles provinces depuis le dernier examen — les sections sur la SST et les dépenses doivent probablement être mises à jour.',
+      'You’ve added employees in 3 new employment jurisdictions since the last review — occupational health & safety and expense sections likely need updates.',
+      'Vous avez ajouté des employés dans 3 nouvelles compétences depuis le dernier examen — les sections sur la SST et les dépenses doivent probablement être mises à jour.',
     ),
-    province: bi('Multi-province', 'Multiprovincial'),
+    province: bi('Multi-jurisdiction', 'Multijuridictionnel'),
     /* The calendar fixture schedules this review for Jul 17 (cal-remote-policy). */
     dueISO: '2026-07-17',
     chatId: 'c3',
     citations: [],
     action: bi(
-      'Regenerate the Remote Work Policy with per-province OHS and expense sections this month.',
-      'Régénérez la politique de télétravail avec des sections SST et dépenses par province ce mois-ci.',
+      'Regenerate the Remote Work Policy with jurisdiction-specific OHS and expense sections this month.',
+      'Régénérez la politique de télétravail avec des sections SST et dépenses propres à chaque compétence ce mois-ci.',
     ),
   },
   {

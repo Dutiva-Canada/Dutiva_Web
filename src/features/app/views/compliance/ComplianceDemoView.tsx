@@ -71,7 +71,8 @@ export function ComplianceDemoView() {
   /** Prototype `state.obligationEvidence` — ids marked "evidence on file". */
   const [evidence, setEvidence] = useState<Record<string, boolean>>({})
 
-  const matchJur = (p: string) => jur === 'All' || p === jur || p === 'Multi-province'
+  const matchJur = (p: string) =>
+    jur === 'All' || p === jur || p === 'Multi-jurisdiction' || p === 'Multi-province'
   const filteredItems = complianceItems.filter((it) => matchJur(it.province.en))
   const visibleObligations = obligations.filter((o) => matchJur(o.jur))
   /* Counters run over the full register, not the filtered view (prototype). */

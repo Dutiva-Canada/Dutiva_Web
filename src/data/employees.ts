@@ -125,8 +125,8 @@ export const employees: Employee[] = [
     tone: 'warning',
     tenure: bi('2.6 yrs', '2,6 ans'),
     insight: bi(
-      'Amara is on modified duties for a documented medical accommodation. Next review is July 14.',
-      'Amara est en tâches modifiées pour un accommodement médical documenté. Le prochain examen est le 14 juillet.',
+      'Amara is on modified duties under a documented accommodation. Next review is July 14.',
+      'Amara est en tâches modifiées dans le cadre d’un accommodement documenté. Le prochain examen est le 14 juillet.',
     ),
     risk: {
       tone: 'warning',

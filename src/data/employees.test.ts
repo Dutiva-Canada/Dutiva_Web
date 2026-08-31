@@ -79,6 +79,8 @@ describe('employees fixtures', () => {
     expect(amara.status.en).toBe('Active')
     expect(amara.status.en).not.toBe('On Leave')
     expect(amara.insight.en).toContain('modified duties')
+    expect(amara.insight.en).toMatch(/documented accommodation/i)
+    expect(amara.insight.en).not.toMatch(/medical accommodation/i)
     expect(
       detail?.leave.some((row) => row.status === 'Active' && row.type.en.includes('Modified')),
     ).toBe(true)
@@ -212,6 +214,9 @@ describe('employees fixtures', () => {
     if (!offer?.meta?.jur || !offer.meta.missing) throw new Error('Missing Offer Letter fixture')
     expect(offer.meta.jur.en).toContain('Ontario')
     expect(offer.meta.missing.en).not.toMatch(/BC-specific/i)
+    const body = offer.sections.map((s) => s.en).join('\n')
+    expect(body).toContain('Liam Fraser')
+    expect(body).not.toContain('Director of Operations')
   })
 
   it('uses Ontario for Amara document expiry records in workforce fixtures', () => {

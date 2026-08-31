@@ -110,8 +110,8 @@ export const landingWorkflows = defineMessages({
     fr: 'Risque moyen',
   },
   landing_wf_ex2_meta: {
-    en: 'British Columbia · Modified duties · Doctor’s note on file',
-    fr: 'Colombie-Britannique · Tâches modifiées · Billet médical au dossier',
+    en: 'Ontario · Modified duties · Functional limitations on file',
+    fr: 'Ontario · Tâches modifiées · Limitations fonctionnelles au dossier',
   },
   landing_wf_ex2_step: {
     en: 'Step 2 of 5',

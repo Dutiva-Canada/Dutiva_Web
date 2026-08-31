@@ -54,7 +54,7 @@ export const certifications: ExpiryRecord[] = [
     employeeId: null,
     employeeName: 'Fatou Diallo',
     name: bi('First Aid / CPR-C', 'Secourisme / RCR-C'),
-    jurisdiction: bi('British Columbia', 'Colombie-Britannique'),
+    jurisdiction: bi('Ontario', 'Ontario'),
     expiryISO: '2026-08-30',
   },
   {

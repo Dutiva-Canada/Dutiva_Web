@@ -103,8 +103,8 @@ export const cases: CaseFile[] = [
     ),
     chatId: 'c5',
     summary: bi(
-      'Modified-duties accommodation for a documented medical condition. Functional limitations on file only — no diagnosis. Reviewed every 90 days.',
-      'Accommodement en tâches modifiées pour une condition médicale documentée. Seules les limitations fonctionnelles au dossier — aucun diagnostic. Révisé tous les 90 jours.',
+      'Modified-duties accommodation based on documented functional limitations. File holds functional limitations only — no diagnosis. Reviewed every 90 days.',
+      'Accommodement en tâches modifiées selon des limitations fonctionnelles documentées. Seules les limitations fonctionnelles au dossier — aucun diagnostic. Révisé tous les 90 jours.',
     ),
     steps: [
       { label: bi('Request received', 'Demande reçue'), done: true },

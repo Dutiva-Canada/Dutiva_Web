@@ -70,7 +70,7 @@ export const tasks: Task[] = [
     done: false,
     chatId: 'c5',
     owner: 'Morgan Chen',
-    jur: bi('British Columbia', 'Colombie-Britannique'),
+    jur: bi('Ontario', 'Ontario'),
   },
   {
     id: 'tk6',
@@ -83,7 +83,7 @@ export const tasks: Task[] = [
     done: false,
     chatId: 'c3',
     owner: 'Riley Summers',
-    jur: bi('Multi-province', 'Multiprovincial'),
+    jur: bi('Multi-jurisdiction', 'Multijuridictionnel'),
   },
 ]
 

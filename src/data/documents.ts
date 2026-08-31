@@ -97,7 +97,7 @@ export const documentTemplates: DocumentTemplate[] = [
       ),
       bi(
         'In exchange for the enhanced payment described in the accompanying termination letter, the employee agrees to release the employer from all claims arising from their employment or its end, to the extent permitted by law.',
-        "En échange du paiement bonifié décrit dans la lettre de cessation d'emploi ci-jointe, l'employé accepte de libérer l'employeur de toute réclamation découlant de son emploi ou de sa fin, dans la mesure permise par la loi.",
+        "En échange du paiement bonifié décrit dans la lettre de licenciement ci-jointe, l'employé accepte de libérer l'employeur de toute réclamation découlant de son emploi ou de sa fin, dans la mesure permise par la loi.",
       ),
       bi(
         'This release does not affect any claim that cannot be waived by law, including certain human rights or workers’ compensation claims.',
@@ -113,7 +113,7 @@ export const documentTemplates: DocumentTemplate[] = [
       jur: bi('Ontario · ESA, 2000', 'Ontario · LNE, 2000'),
       governing: bi(
         'Termination letter — enhanced payment as consideration',
-        'Lettre de cessation — indemnité bonifiée en contrepartie',
+        'Lettre de licenciement — indemnité bonifiée en contrepartie',
       ),
       legalReview: bi('Required before sending', 'Requise avant l’envoi'),
       retention: bi(
@@ -162,8 +162,8 @@ export const documentTemplates: DocumentTemplate[] = [
     sections: [
       bi('Offer of Employment — Senior Analyst', "Offre d'emploi — Analyste principale"),
       bi(
-        'Northgate Logistics Inc. is pleased to offer you the position of Senior Analyst, reporting to the Director of Operations, based in Ontario. This offer is contingent on standard background checks.',
-        "Northgate Logistics Inc. a le plaisir de vous offrir le poste d'analyste principale, relevant du directeur des opérations, basé en Ontario. Cette offre est conditionnelle à des vérifications d'antécédents standards.",
+        'Northgate Logistics Inc. is pleased to offer you the position of Senior Analyst, reporting to Liam Fraser, Regional Sales Manager, based in Ontario. This offer is contingent on standard background checks.',
+        "Northgate Logistics Inc. a le plaisir de vous offrir le poste d'analyste principale, relevant de Liam Fraser, directeur régional des ventes, basé en Ontario. Cette offre est conditionnelle à des vérifications d'antécédents standards.",
       ),
       bi(
         'Compensation: [base salary] annually, paid biweekly, plus eligibility for the company benefits plan after 3 months.',
@@ -171,7 +171,7 @@ export const documentTemplates: DocumentTemplate[] = [
       ),
       bi(
         'This role includes a 3-month probationary period as set out in the attached employment agreement.',
-        'Ce poste comprend une période de probation de 3 mois telle que prévue à la convention d’emploi ci-jointe.',
+        'Ce poste comprend une période de probation de 3 mois telle que prévue au contrat de travail ci-joint.',
       ),
       bi(
         'Please confirm your acceptance by [date]. We’re looking forward to having you on the team.',
@@ -198,18 +198,18 @@ export const documentTemplates: DocumentTemplate[] = [
       bi('Employment Agreement — key terms', 'Contrat de travail — modalités clés'),
       bi(
         'This agreement sets out compensation, benefits, confidentiality obligations, and termination provisions.',
-        "Ce contrat établit la rémunération, les avantages sociaux, les obligations de confidentialité et les dispositions de cessation d'emploi.",
+        'Ce contrat établit la rémunération, les avantages sociaux, les obligations de confidentialité et les dispositions de licenciement.',
       ),
       bi(
-        'Termination clause: drafted to limit entitlements to ESA minimums where enforceable in the employee’s province. Advisor recommends a provincial-specific review before signing — enforceability standards differ by jurisdiction and are frequently challenged in court.',
-        "Clause de cessation : rédigée pour limiter les droits aux minimums de la LNE là où elle est exécutoire dans la province de l'employé. Le Conseiller recommande un examen propre à la province avant la signature — les normes d'applicabilité varient selon la compétence et sont fréquemment contestées devant les tribunaux.",
+        'Termination clause: drafted to limit entitlements to applicable employment-standards minimums where enforceable under the employee’s employment jurisdiction. Advisor recommends jurisdiction-specific review before signing — enforceability varies by jurisdiction, and statutory minimums may not represent the employee’s full entitlement.',
+        "Clause de licenciement : rédigée pour limiter les droits aux minimums des normes d'emploi applicables là où elle est exécutable selon la compétence applicable. Le Conseiller recommande un examen propre à la compétence avant la signature — la force exécutoire varie selon la compétence, et les minimums légaux peuvent ne pas représenter l'ensemble des droits de l'employé.",
       ),
     ],
     meta: {
-      jur: bi('Multi-province', 'Multiprovincial'),
+      jur: bi('Multi-jurisdiction', 'Multijuridictionnel'),
       legalReview: bi(
-        'Recommended before signing — termination clause enforceability varies by province',
-        'Recommandée avant signature — la force exécutoire de la clause de cessation varie selon la province',
+        'Recommended before signing — termination clause enforceability varies by jurisdiction',
+        'Recommandée avant signature — la force exécutoire de la clause de licenciement varie selon la compétence',
       ),
     },
   },
@@ -225,12 +225,12 @@ export const documentTemplates: DocumentTemplate[] = [
         'Admissibilité : postes approuvés pour le télétravail par les chefs de service. Les employés doivent maintenir un espace de travail sûr et ergonomique.',
       ),
       bi(
-        'Health & safety: occupational health and safety obligations extend to home offices. Employees must complete the home office safety checklist before starting remote work.',
-        "Santé et sécurité : les obligations en matière de santé et sécurité au travail s'étendent aux bureaux à domicile. Les employés doivent remplir la liste de vérification de sécurité du bureau à domicile avant de commencer le télétravail.",
+        'Health & safety: occupational health and safety obligations may apply to remote work and can vary by jurisdiction and circumstances. Employees must complete the home office safety checklist before starting remote work.',
+        "Santé et sécurité : les obligations en matière de santé et sécurité au travail peuvent s'appliquer au télétravail et varier selon la compétence et les circonstances. Les employés doivent remplir la liste de vérification de sécurité du bureau à domicile avant de commencer le télétravail.",
       ),
       bi(
-        'Equipment & expenses: the company provides a laptop and a one-time home office allowance; ongoing internet costs are the employee’s responsibility unless otherwise required by provincial law.',
-        "Équipement et dépenses : l'entreprise fournit un ordinateur portable et une allocation unique pour le bureau à domicile; les frais Internet récurrents sont à la charge de l'employé sauf disposition contraire de la loi provinciale.",
+        'Equipment & expenses: the company provides a laptop and a one-time home office allowance; ongoing internet costs are the employee’s responsibility unless otherwise required by applicable law.',
+        "Équipement et dépenses : l'entreprise fournit un ordinateur portable et une allocation unique pour le bureau à domicile; les frais Internet récurrents sont à la charge de l'employé sauf disposition contraire de la loi applicable.",
       ),
       bi(
         'Data security: company data must stay within approved, encrypted devices and storage.',
@@ -257,8 +257,8 @@ export const documentTemplates: DocumentTemplate[] = [
         'Suivi à 30 jours : 22 juillet 2026. Les progrès seront évalués par rapport aux attentes ci-dessus.',
       ),
       bi(
-        'Note: before finalizing, confirm the absences are not linked to a medical condition requiring accommodation — see the linked risk flag.',
-        'Note : avant de finaliser, confirmez que les absences ne sont pas liées à une condition médicale nécessitant un accommodement — voir le signalement de risque associé.',
+        'Note: before finalizing, confirm whether accommodation obligations or other protected needs may affect how the attendance issue should be handled. Keep sensitive accommodation information separate from the performance record.',
+        "Note : avant de finaliser, confirmez si des obligations d'accommodement ou d'autres besoins protégés peuvent influer sur la façon de traiter le problème d'assiduité. Gardez les renseignements d'accommodement sensibles à l'écart du dossier de rendement.",
       ),
     ],
     meta: {
@@ -272,8 +272,8 @@ export const documentTemplates: DocumentTemplate[] = [
         'Facultative — recommandée si un accommodement peut s’appliquer',
       ),
       assumptions: bi(
-        'Assumes absences are not linked to a condition requiring accommodation — confirm before finalizing.',
-        'Suppose que les absences ne sont pas liées à une condition nécessitant un accommodement — à confirmer avant de finaliser.',
+        'Attendance issue may require a separate accommodation assessment — keep sensitive accommodation information out of this performance record.',
+        "Le problème d'assiduité peut exiger une évaluation d'accommodement distincte — excluez les renseignements d'accommodement sensibles de ce dossier de rendement.",
       ),
       missing: bi(
         'Measurable targets and check-in dates confirmed with the manager.',
@@ -289,8 +289,8 @@ export const documentTemplates: DocumentTemplate[] = [
     sections: [
       bi('Accommodation Record — Confidential', "Dossier d'accommodement — Confidentiel"),
       bi(
-        'Employee has disclosed a medical condition requiring modified duties. Documentation on file is limited to functional limitations, not diagnosis, consistent with human rights obligations.',
-        "L'employé a divulgué une condition médicale nécessitant des tâches modifiées. La documentation au dossier se limite aux limitations fonctionnelles, sans diagnostic, conformément aux obligations en matière de droits de la personne.",
+        'Modified duties are in place based on documented functional limitations. The file holds functional limitations only — no diagnosis — consistent with human rights obligations.',
+        'Des tâches modifiées sont en place selon des limitations fonctionnelles documentées. Le dossier ne contient que les limitations fonctionnelles — aucun diagnostic — conformément aux obligations en matière de droits de la personne.',
       ),
       bi(
         'Accommodation plan: modified duties reviewed every 90 days or as functional limitations change. Next review: July 14, 2026.',
@@ -299,7 +299,7 @@ export const documentTemplates: DocumentTemplate[] = [
     ],
     meta: {
       link: bi('Accommodation case', 'Dossier d’accommodement'),
-      jur: bi('British Columbia · Human Rights Code', 'Colombie-Britannique · Human Rights Code'),
+      jur: bi('Ontario · Human Rights Code', 'Ontario · Code des droits de la personne'),
       legalReview: bi('Recommended — privacy-sensitive', 'Recommandée — caractère confidentiel'),
       retention: bi(
         'Duration of employment + 3 years (accommodation records)',
@@ -336,7 +336,7 @@ export const documentTemplates: DocumentTemplate[] = [
     ],
     meta: {
       link: bi('Accommodation case', 'Dossier d’accommodement'),
-      jur: bi('British Columbia · Human Rights Code', 'Colombie-Britannique · Human Rights Code'),
+      jur: bi('Ontario · Human Rights Code', 'Ontario · Code des droits de la personne'),
       legalReview: bi('Recommended — privacy-sensitive', 'Recommandée — caractère confidentiel'),
       retention: bi(
         'Duration of employment + 3 years (accommodation records)',

@@ -7,6 +7,7 @@ import { complianceItems } from './compliance'
 import { documentTemplates, documentTemplatesByKey } from './documents'
 import { compChanges, employeeDetails, employees, orgStructure, supportSignals } from './employees'
 import { tasks } from './tasks'
+import { certifications } from './workforce'
 import { templateByTid } from '@/features/app/documents/data'
 import { customTemplateByTid } from '@/features/app/documents/customTemplates'
 
@@ -153,6 +154,47 @@ describe('cross-references resolve', () => {
       expect(det, `detail for ${comm.id}`).toBeDefined()
       expect(det?.communicationId).toBe(comm.id)
     }
+  })
+
+  it('keeps Amara-linked fixtures on Ontario, not stale British Columbia metadata', () => {
+    const amaraTask = tasks.find((t) => t.id === 'tk5')
+    const amaraComm = communications.find((c) => c.id === 'cm6')
+    const amaraCompliance = complianceItems.find((c) => c.id === 'ci2')
+
+    expect(amaraTask?.jur.en).toBe('Ontario')
+    expect(amaraComm?.province.en).toBe('Ontario')
+    expect(amaraCompliance?.province.en).toBe('Ontario')
+    expect(communicationDetails.cm6?.bilingual.en).toContain('Ontario')
+    expect(communicationDetails.cm6?.bilingual.en).not.toMatch(/BC|British Columbia/)
+  })
+
+  it('uses Multi-jurisdiction labels for cross-regime policy fixtures', () => {
+    const remotePolicyTask = tasks.find((t) => t.id === 'tk6')
+    const remotePolicyFlag = complianceItems.find((c) => c.id === 'ci3')
+
+    expect(remotePolicyTask?.jur.en).toBe('Multi-jurisdiction')
+    expect(remotePolicyFlag?.province.en).toBe('Multi-jurisdiction')
+    expect(
+      communications
+        .filter((c) => c.id !== 'cm5' && c.id !== 'cm6')
+        .every((c) => {
+          return c.province.en === 'Multi-jurisdiction' || c.province.en === 'Ontario'
+        }),
+    ).toBe(true)
+  })
+
+  it('keeps workforce certification jurisdictions within supported demo contexts', () => {
+    const fatouCert = certifications.find((c) => c.id === 'cert-fatou-firstaid')
+    expect(fatouCert?.jurisdiction.en).toBe('Ontario')
+    expect(certifications.map((c) => c.jurisdiction.en)).not.toContain('British Columbia')
+  })
+
+  it('describes Amara accommodation case summary without diagnosis-level language', () => {
+    const amaraCase = cases.find((c) => c.id === 'case3')
+    expect(amaraCase?.summary.en).toMatch(/functional limitations/i)
+    expect(amaraCase?.summary.en).not.toMatch(/medical condition/i)
+    expect(amaraCase?.summary.fr).toMatch(/limitations fonctionnelles/i)
+    expect(amaraCase?.summary.fr).not.toMatch(/condition médicale/i)
   })
 })
 

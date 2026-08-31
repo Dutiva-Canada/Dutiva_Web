@@ -182,8 +182,8 @@ export const memoryCaseContent: Record<string, MemoryCaseContent> = {
         label: bi('Accommodation opened', 'Accommodement ouvert'),
         events: [
           bi(
-            'Doctor’s note received; functional limitations recorded.',
-            'Billet médical reçu; limitations fonctionnelles consignées.',
+            'Functional-limitations information received and recorded.',
+            'Renseignements sur les limitations fonctionnelles reçus et consignés.',
           ),
         ],
       },
