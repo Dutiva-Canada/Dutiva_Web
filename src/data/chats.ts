@@ -181,8 +181,8 @@ export const chats: ChatThread[] = [
             'Compétence : Ontario → la Loi de 2000 sur les normes d’emploi régit les conditions minimales.',
           ),
           bi(
-            'Ontario requires certain hiring and pay information in writing — not necessarily a full offer letter for every hire.',
-            'L’Ontario exige certaines informations d’embauche et de rémunération par écrit — pas nécessairement une lettre d’offre complète pour chaque embauche.',
+            'Employers with 25 or more employees in Ontario must provide specified new-hire information in writing before the first day of work, or as soon as reasonably possible afterward.',
+            'Les employeurs comptant 25 employés ou plus en Ontario doivent fournir certains renseignements sur l’emploi par écrit avant la première journée de travail ou, le cas échéant, dès que raisonnablement possible par la suite.',
           ),
         ],
         cards: [
@@ -433,8 +433,8 @@ export const lightFlows: Record<string, LightFlow> = {
         'Compétence : Ontario → la Loi de 2000 sur les normes d’emploi régit les conditions minimales.',
       ),
       bi(
-        'Ontario requires certain hiring and pay information in writing — not necessarily a full offer letter for every hire.',
-        'L’Ontario exige certaines informations d’embauche et de rémunération par écrit — pas nécessairement une lettre d’offre complète pour chaque embauche.',
+        'Employers with 25 or more employees in Ontario must provide specified new-hire information in writing before the first day of work, or as soon as reasonably possible afterward.',
+        'Les employeurs comptant 25 employés ou plus en Ontario doivent fournir certains renseignements sur l’emploi par écrit avant la première journée de travail ou, le cas échéant, dès que raisonnablement possible par la suite.',
       ),
     ],
     cards: [
@@ -555,8 +555,8 @@ export const lightFlows: Record<string, LightFlow> = {
     ),
     reasoning: [
       bi(
-        'Occupational health & safety considerations for home offices vary by jurisdiction across Canada.',
-        'Les considérations de SST pour le travail à domicile varient selon la compétence au Canada.',
+        'Remote and home-office OHS considerations differ among Ontario, Quebec, federally regulated workplaces, and other applicable regimes.',
+        'Les considérations de SST pour le travail à domicile diffèrent en Ontario, au Québec, dans les milieux sous réglementation fédérale et selon les autres régimes applicables.',
       ),
       bi(
         'Expense reimbursement rules vary by jurisdiction — Ontario and Quebec differ on what employers must cover.',

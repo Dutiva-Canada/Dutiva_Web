@@ -27,14 +27,16 @@ describe('knowledgeItems', () => {
     expect(k1.title.fr).toContain('indemnité de cessation d’emploi')
     expect(k1.title.fr).not.toContain('préavis de cessation')
     expect(k1.tag.fr).toBe('Licenciement · Ontario')
+    expect(k1.summary.fr).toContain('sommes dues lors d’un licenciement')
   })
 
-  it('covers Ontario hiring metadata for k2 within shipped jurisdictions', () => {
+  it('covers Ontario mandatory new-employee information for k2 within shipped jurisdictions', () => {
     const k2 = item('k2')
-    expect(k2.title.en).toContain('Ontario ESA')
+    expect(k2.title.en).toBe('Ontario ESA: mandatory information for new employees')
     expect(k2.title.en).not.toMatch(/British Columbia|BC Employment/i)
     expect(k2.tag.en).toBe('Hiring · Ontario')
-    expect(k2.summary.en).not.toMatch(/universal written-offer requirement/i)
+    expect(k2.summary.en).toContain('25 or more employees')
+    expect(k2.summary.en).not.toMatch(/job-posting|publicly advertised/i)
   })
 
   it('does not ship BC jurisdiction articles in the knowledge seed', () => {
@@ -57,12 +59,24 @@ describe('knowledgeItems', () => {
     expect(k3.title.en).not.toMatch(/Bill 96/i)
     expect(k3.tag.en).toBe('Language · Quebec')
     expect(k3.tag.fr).toBe('Langue · Québec')
+    expect(k3.summary.en).toMatch(/document or communication type/i)
   })
 
   it('uses Canada-scoped accommodation metadata for k4', () => {
     const k4 = item('k4')
     expect(k4.title.fr).not.toMatch(/\bc\.\s*diagnostic/i)
     expect(k4.tag.en).toBe('Accommodation · Canada')
+    expect(k4.summary.en).toContain('functional limitations')
+    expect(k4.summary.en).toMatch(/rather than diagnosis/i)
+  })
+
+  it('uses Canada-scoped tags for cross-jurisdictional topics without implying uniform rules', () => {
+    for (const id of ['k4', 'k5', 'k7', 'k8'] as const) {
+      const k = item(id)
+      expect(k.tag.en).toMatch(/Canada/)
+      expect(k.summary.en).toMatch(/Ontario|federally regulated/i)
+      expect(k.summary.en).not.toMatch(/identical rules|same rules across Canada/i)
+    }
   })
 
   it('uses attendance and accommodation-aware absenteeism framing for k5', () => {
@@ -72,6 +86,7 @@ describe('knowledgeItems', () => {
     expect(k5.title.fr).toContain('fautif et non fautif')
     expect(k5.tag.en).toBe('Attendance · Canada')
     expect(k5.tag.fr).toBe('Assiduité · Canada')
+    expect(k5.summary.en).toContain('federally regulated workplaces')
   })
 
   it('uses Licenciement for federal termination metadata on k6', () => {
@@ -86,6 +101,7 @@ describe('knowledgeItems', () => {
     expect(k7.title.en).toContain('considerations')
     expect(k7.title.en).not.toMatch(/obligations for home offices/i)
     expect(k7.tag.en).toBe('Health & safety · Canada')
+    expect(k7.summary.en).toMatch(/Ontario, Quebec, federally regulated/i)
   })
 
   it('uses employment-standards probation framing for k8', () => {
@@ -93,6 +109,7 @@ describe('knowledgeItems', () => {
     expect(k8.title.en).toContain('employment standards & termination risk')
     expect(k8.title.en).not.toMatch(/what employers can and can’t do/i)
     expect(k8.tag.en).toBe('Hiring · Canada')
+    expect(k8.summary.fr).toContain('effets juridiques varient selon la compétence')
   })
 
   it('does not use All provinces / Toutes les provinces tags', () => {

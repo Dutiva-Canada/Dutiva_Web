@@ -48,7 +48,7 @@ describe('KnowledgeView', () => {
     fireEvent.change(input, { target: { value: 'hiring · ontario' } })
     expect(articles.getAllByRole('button')).toHaveLength(1)
     expect(
-      screen.getByText('Ontario ESA: hiring information & employment terms'),
+      screen.getByText('Ontario ESA: mandatory information for new employees'),
     ).toBeInTheDocument()
 
     /* Clearing restores the full list. */

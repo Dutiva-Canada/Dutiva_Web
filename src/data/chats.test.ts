@@ -18,15 +18,15 @@ describe('Advisor chat fixtures — jurisdiction and provenance copy', () => {
     )
   })
 
-  it('uses Ontario hiring guidance in the hiring light flow', () => {
+  it('uses Ontario mandatory new-hire information in the hiring light flow', () => {
     const hiring = lightFlows.hiring!
     expect(hiring.reasoning?.[0]?.en).toContain('Ontario')
-    expect(hiring.reasoning?.[1]?.en).not.toMatch(/universal written-offer requirement/i)
+    expect(hiring.reasoning?.[1]?.en).toContain('25 or more employees')
   })
 
-  it('uses OHS considerations rather than universal home-office obligations', () => {
+  it('names shipped jurisdictions for remote-work OHS considerations', () => {
     const policy = lightFlows.policy!
-    expect(policy.reasoning?.[0]?.en).toContain('considerations')
+    expect(policy.reasoning?.[0]?.en).toMatch(/Ontario, Quebec, federally regulated/i)
     expect(policy.reasoning?.[0]?.en).not.toMatch(/obligations extend to home offices/i)
   })
 })
