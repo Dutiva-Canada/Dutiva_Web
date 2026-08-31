@@ -29,17 +29,15 @@ import {
  * so the marketing landing page (and any single view) doesn't pull the whole
  * workspace into the initial chunk.
  *
- * gated() wraps a fixture-driven view in ModeGate: demo renders it as-is,
- * production renders the shared empty state. Ungated on purpose: home and
- * advisor (own production variants), knowledge (generic HR-law reference +
- * the real guidance panel), settings (hosts the toggle), Document Studio
- * screens (real catalogue), the document repository + detail (real
- * persistence via hr_generated_documents — migration 0076), and Advisor
- * Memory (hr_advisor_memory_facts — migration 0086; views dispatch on mode).
- * Signing remains gated until it gains real persistence. The legacy hr-library
- * gallery redirects to Document Studio in production (see HrLibraryRoute).
- * communications, compensation and wellbeing came off this way
- * (migrations 0039–0041) and now dispatch on mode themselves.
+ * Fixture-backed surfaces decide their production/demo behaviour within the
+ * view or its mode-aware dependencies. Home and Advisor have production
+ * variants; Knowledge, Settings, Document Studio, repository/detail, Advisor
+ * Memory, and Signing have real production-backed behaviour. The legacy
+ * hr-library gallery redirects to Document Studio in production via
+ * HrLibraryRoute.
+ *
+ * Communications, Compensation, and Wellbeing dispatch on workspace mode
+ * themselves (migrations 0039–0041).
  */
 /* prettier-ignore */ const HomeView = lazy(preloadHomeView)
 /* prettier-ignore */ const AdvisorView = lazy(preloadAdvisorView)
