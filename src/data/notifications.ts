@@ -7,8 +7,8 @@ export const notifications: Notification[] = [
   {
     id: 'n1',
     text: bi(
-      'Compliance: Remote Work Policy is overdue for review',
-      'Conformité : la politique de télétravail est en retard pour révision',
+      'Compliance: Remote Work Policy review due soon',
+      'Conformité : révision de la politique de télétravail bientôt due',
     ),
     time: bi('1h ago', 'Il y a 1 h'),
     unread: true,
@@ -16,8 +16,8 @@ export const notifications: Notification[] = [
   {
     id: 'n2',
     text: bi(
-      'Document ready: Termination Letter — Jordan Mensah',
-      'Document prêt : lettre de licenciement — Jordan Mensah',
+      'Draft ready: Termination Letter — Jordan Mensah',
+      'Ébauche prête : lettre de licenciement — Jordan Mensah',
     ),
     time: bi('2h ago', 'Il y a 2 h'),
     unread: true,
