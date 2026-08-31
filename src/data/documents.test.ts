@@ -73,6 +73,8 @@ describe('document fixture normalization', () => {
     expect(fr).toMatch(/normes d'emploi applicables/i)
     expect(fr).toMatch(/compétence applicable/i)
     expect(fr).toMatch(/examen propre à la compétence/i)
+    expect(fr).toMatch(/exécutoire dans la compétence applicable/i)
+    expect(fr).not.toMatch(/exécutable/i)
     expect(fr).not.toMatch(/province de l'employé/i)
   })
 
@@ -99,10 +101,13 @@ describe('document fixture normalization', () => {
     expect(pip.meta?.assumptions?.en).not.toMatch(/not linked to a condition/i)
   })
 
-  it('treats the Offer Letter as a populated demo template aligned with Priya scenario data', () => {
+  it('documents the Offer Letter as a populated scenario template, not a linked employee document', () => {
     const offer = template('Offer Letter')
     const body = offer.sections.map((s) => s.en).join('\n')
 
+    expect(offer.meta?.link).toBeUndefined()
+    expect(offer.meta?.assumptions?.en).toMatch(/not linked to an employee file or case/i)
+    expect(offer.meta?.assumptions?.fr).toMatch(/non liée à un dossier d’employé ou à un dossier/i)
     expect(body).toContain('Senior Analyst')
     expect(body).toContain('Liam Fraser')
     expect(body).not.toContain('Director of Operations')

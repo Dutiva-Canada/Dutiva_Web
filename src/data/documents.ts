@@ -155,6 +155,11 @@ export const documentTemplates: DocumentTemplate[] = [
     },
   },
   {
+    /* Populated Ontario hiring demo (Senior Analyst / Liam Fraser / contractual
+       probation). Scenario data aligns with Priya Nair (e2) elsewhere in the
+       fixtures, but this template is not linked to her employee file or a case —
+       see chat c2 (T01/T02) and workforce/calendar milestones for Priya-specific
+       records. */
     key: 'Offer Letter',
     title: bi('Offer Letter', 'Lettre d’offre'),
     category: catHiring,
@@ -183,6 +188,10 @@ export const documentTemplates: DocumentTemplate[] = [
         'Ontario · Employment Standards Act, 2000',
         'Ontario · Loi de 2000 sur les normes d’emploi',
       ),
+      assumptions: bi(
+        'Populated hiring demo — Ontario Senior Analyst scenario data only; not linked to an employee file or case.',
+        'Démo d’embauche préremplie — données de scénario pour analyste principale en Ontario seulement; non liée à un dossier d’employé ou à un dossier.',
+      ),
       missing: bi(
         'Non-solicitation or non-competition clauses need Ontario-specific review.',
         'Les clauses de non-sollicitation ou de non-concurrence exigent une révision propre à l’Ontario.',
@@ -202,7 +211,7 @@ export const documentTemplates: DocumentTemplate[] = [
       ),
       bi(
         'Termination clause: drafted to limit entitlements to applicable employment-standards minimums where enforceable under the employee’s employment jurisdiction. Advisor recommends jurisdiction-specific review before signing — enforceability varies by jurisdiction, and statutory minimums may not represent the employee’s full entitlement.',
-        "Clause de licenciement : rédigée pour limiter les droits aux minimums des normes d'emploi applicables là où elle est exécutable selon la compétence applicable. Le Conseiller recommande un examen propre à la compétence avant la signature — la force exécutoire varie selon la compétence, et les minimums légaux peuvent ne pas représenter l'ensemble des droits de l'employé.",
+        "Clause de licenciement : rédigée pour limiter les droits aux minimums des normes d'emploi applicables dans la mesure où elle est exécutoire dans la compétence applicable. Le Conseiller recommande un examen propre à la compétence avant la signature — la force exécutoire varie selon la compétence, et les minimums légaux peuvent ne pas représenter l'ensemble des droits de l'employé.",
       ),
     ],
     meta: {

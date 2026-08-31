@@ -214,6 +214,8 @@ describe('employees fixtures', () => {
     if (!offer?.meta?.jur || !offer.meta.missing) throw new Error('Missing Offer Letter fixture')
     expect(offer.meta.jur.en).toContain('Ontario')
     expect(offer.meta.missing.en).not.toMatch(/BC-specific/i)
+    expect(offer.meta.link).toBeUndefined()
+    expect(offer.meta.assumptions?.en).toMatch(/populated hiring demo/i)
     const body = offer.sections.map((s) => s.en).join('\n')
     expect(body).toContain('Liam Fraser')
     expect(body).not.toContain('Director of Operations')
