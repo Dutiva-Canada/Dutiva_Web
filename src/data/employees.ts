@@ -26,17 +26,17 @@ export const employees: Employee[] = [
     province: bi('Ontario', 'Ontario'),
     status: bi('Offboarding', 'Départ'),
     tone: 'risk',
-    tenure: bi('7.2 yrs', '7,2 ans'),
+    tenure: bi('8 yrs', '8 ans'),
     insight: bi(
       "Jordan's termination is in progress. No termination clause is on file, so the preliminary notice estimate runs well above the ESA minimum — legal review is in progress.",
-      'La cessation d’emploi de Jordan est en cours. Aucune clause de cessation au dossier, donc l’estimation préliminaire dépasse largement le minimum LNE — l’examen juridique est en cours.',
+      'Le licenciement de Jordan est en cours. Aucune clause de licenciement au dossier, donc l’estimation préliminaire dépasse largement le minimum LNE — l’examen juridique est en cours.',
     ),
     risk: {
       tone: 'risk',
       title: bi('Notice exposure risk', 'Risque d’exposition au préavis'),
       body: bi(
         'No termination clause on file — preliminary estimate: 9–12 months common-law exposure.',
-        'Aucune clause de cessation au dossier — estimation préliminaire : 9 à 12 mois d’exposition en common law.',
+        'Aucune clause de licenciement au dossier — estimation préliminaire : 9 à 12 mois d’exposition en common law.',
       ),
       chatId: 'c1',
     },
@@ -100,12 +100,12 @@ export const employees: Employee[] = [
     tone: 'warning',
     tenure: bi('1.8 yrs', '1,8 ans'),
     insight: bi(
-      'Devon is on a performance improvement plan for attendance. The 30-day check-in is coming up in 15 days.',
-      'Devon fait l’objet d’un plan d’amélioration du rendement lié à l’assiduité. Le suivi à 30 jours a lieu dans 15 jours.',
+      'Devon is on a performance improvement plan for attendance. The 30-day check-in is coming up in 11 days.',
+      'Devon fait l’objet d’un plan d’amélioration du rendement lié à l’assiduité. Le suivi à 30 jours a lieu dans 11 jours.',
     ),
     risk: {
       tone: 'warning',
-      title: bi('PIP check-in due in 15 days', 'Suivi du PAR dû dans 15 jours'),
+      title: bi('PIP check-in due in 11 days', 'Suivi du PAR dû dans 11 jours'),
       body: bi(
         'Review progress against the attendance expectations before the check-in.',
         'Examinez les progrès par rapport aux attentes d’assiduité avant le suivi.',
@@ -313,11 +313,11 @@ export const employeeDetails: Record<string, EmployeeDetail> = {
         docKey: 'T17',
       },
       {
-        date: 'Jul 5, 2026',
+        date: 'Jul 2, 2026',
         kind: 'case',
         text: bi(
           'Termination case opened — restructuring, without cause',
-          'Dossier de cessation d’emploi ouvert — restructuration, sans motif',
+          'Dossier de licenciement ouvert — restructuration, sans motif',
         ),
         tone: 'risk',
         caseId: 'case1',
@@ -326,8 +326,8 @@ export const employeeDetails: Record<string, EmployeeDetail> = {
         date: 'Jul 5, 2026',
         kind: 'compliance',
         text: bi(
-          'Notice-exposure risk flagged — no enforceable termination clause',
-          'Risque d’exposition au préavis signalé — aucune clause de cessation exécutoire',
+          'Notice-exposure risk flagged — no termination clause on file',
+          'Risque d’exposition au préavis signalé — aucune clause de licenciement au dossier',
         ),
       },
       {

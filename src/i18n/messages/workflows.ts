@@ -22,7 +22,7 @@ export const workflowsMessages = defineMessages({
   workflows_flagship_eyebrow: { en: 'Flagship workflow', fr: 'Processus phare' },
   workflows_flagship_title: {
     en: 'Termination — Jordan Mensah',
-    fr: 'Cessation d’emploi — Jordan Mensah',
+    fr: 'Licenciement — Jordan Mensah',
   },
   workflows_flagship_sub: {
     en: 'Ontario · step 4 of 9 · Advisor coordinates every stage, document, and approval',

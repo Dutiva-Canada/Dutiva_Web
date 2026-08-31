@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Brain, Briefcase, ChevronDown, List, MessageCircle, ShieldCheck, UserRound, X } from 'lucide-react'
+import {
+  Brain,
+  Briefcase,
+  ChevronDown,
+  List,
+  MessageCircle,
+  ShieldCheck,
+  UserRound,
+  X,
+} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick } from '@/i18n/core'
@@ -155,11 +164,7 @@ function MemoryNavPanel({
   )
 }
 
-function MemoryMobileNavAccess({
-  groups,
-}: {
-  groups: { label: Bi; items: NavEntry[] }[]
-}) {
+function MemoryMobileNavAccess({ groups }: { groups: { label: Bi; items: NavEntry[] }[] }) {
   const { x, lang } = useI18n()
   const { pathname } = useLocation()
   const mdUp = useMdUp()
@@ -177,11 +182,21 @@ function MemoryMobileNavAccess({
           aria-label={x(M.memory_open_nav)}
           className="flex min-h-[44px] w-full cursor-pointer items-center gap-[8px] rounded-[8px] border border-border-soft bg-surface-2 px-[12px] py-[8px] text-left font-sans text-[13px] font-semibold text-text"
         >
-          <List size={16} strokeWidth={1.8} className="shrink-0 text-text-muted" aria-hidden="true" />
+          <List
+            size={16}
+            strokeWidth={1.8}
+            className="shrink-0 text-text-muted"
+            aria-hidden="true"
+          />
           <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
             {currentLabel}
           </span>
-          <ChevronDown size={14} strokeWidth={1.8} className="shrink-0 text-text-muted" aria-hidden="true" />
+          <ChevronDown
+            size={14}
+            strokeWidth={1.8}
+            className="shrink-0 text-text-muted"
+            aria-hidden="true"
+          />
         </button>
       </div>
 
@@ -217,11 +232,7 @@ function MemoryMobileNavAccess({
   )
 }
 
-function MemoryNav({
-  groups,
-}: {
-  groups: { label: Bi; items: NavEntry[] }[]
-}) {
+function MemoryNav({ groups }: { groups: { label: Bi; items: NavEntry[] }[] }) {
   const { x } = useI18n()
   const mdUp = useMdUp()
 

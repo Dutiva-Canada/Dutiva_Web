@@ -88,16 +88,7 @@ const auditRowSchema = z.object({
 const SELECT_COLUMNS =
   'id, scope, entity_id, category, statement_en, statement_fr, confidence, source_type, source_detail_en, source_detail_fr, learned_at, confirmed_at, visibility, sensitive'
 
-const AUDIT_COLUMNS =
-  'id, fact_id, actor_user_id, action, statement_en, statement_fr, created_at'
-
-function formatDateLabel(iso: string): Bi {
-  const d = new Date(iso)
-  return bi(
-    d.toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }),
-    d.toLocaleDateString('fr-CA', { day: 'numeric', month: 'short', year: 'numeric' }),
-  )
-}
+const AUDIT_COLUMNS = 'id, fact_id, actor_user_id, action, statement_en, statement_fr, created_at'
 
 function toFact(row: z.infer<typeof factRowSchema>): MemoryFact {
   return {
@@ -111,8 +102,8 @@ function toFact(row: z.infer<typeof factRowSchema>): MemoryFact {
       type: row.source_type,
       detail: bi(row.source_detail_en, row.source_detail_fr),
     },
-    learned: formatDateLabel(row.learned_at),
-    confirmed: row.confirmed_at ? formatDateLabel(row.confirmed_at) : null,
+    learnedAt: row.learned_at,
+    confirmedAt: row.confirmed_at,
     visibility: row.visibility,
     sensitive: row.sensitive,
   }

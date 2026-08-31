@@ -59,9 +59,7 @@ describe('caseNarrativeApi persistence', () => {
     vi.doMock('@/lib/supabaseClient', () => ({
       supabase: {
         from: vi.fn((table: string) =>
-          table === 'hr_advisor_case_timeline_events'
-            ? { insert }
-            : { update },
+          table === 'hr_advisor_case_timeline_events' ? { insert } : { update },
         ),
       },
     }))

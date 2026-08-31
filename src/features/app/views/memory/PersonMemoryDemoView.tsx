@@ -9,6 +9,7 @@ import type { ChipTone } from '@/components/chips'
 import { employees, memoryPeople } from '@/data'
 import type { MemoryPersonChip } from '@/data'
 import { CATEGORY_LABELS, PERSON_CATEGORY_ORDER } from './memoryModel'
+import { memoryScenarioTodayISO } from '@/data'
 import { MemoryFactRow } from './MemoryFactRow'
 import { useMemoryStore } from './memoryStore'
 
@@ -107,7 +108,12 @@ export function PersonMemoryDemoView() {
           <div className="min-w-[300px] flex-1">
             <div className="mb-[18px] flex items-start gap-[11px] rounded-[14px] border border-gold-border bg-gold-bg px-[16px] py-[14px]">
               <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[9px] bg-navy">
-                <Sparkle size={14} className="fill-gold-on-navy" strokeWidth={0} aria-hidden="true" />
+                <Sparkle
+                  size={14}
+                  className="fill-gold-on-navy"
+                  strokeWidth={0}
+                  aria-hidden="true"
+                />
               </div>
               <div>
                 <div className="mb-[2px] text-[14px] font-bold text-text">
@@ -140,7 +146,11 @@ export function PersonMemoryDemoView() {
                 </div>
                 <div className="overflow-hidden rounded-[13px] border border-border-soft bg-surface">
                   {group.items.map((fact) => (
-                    <MemoryFactRow key={fact.id} fact={fact} />
+                    <MemoryFactRow
+                      key={fact.id}
+                      fact={fact}
+                      dateReferenceISO={memoryScenarioTodayISO}
+                    />
                   ))}
                 </div>
               </div>

@@ -259,15 +259,15 @@ export const terminationAssessment = {
     ),
     bi(
       'No termination clause on file → common-law reasonable notice may apply beyond ESA minimums.',
-      'Aucune clause de cessation au dossier → le préavis raisonnable de common law peut s’appliquer au-delà des minimums LNE.',
+      'Aucune clause de licenciement au dossier → le préavis raisonnable de common law peut s’appliquer au-delà des minimums LNE.',
     ),
     bi(
-      "ESA minimum: 7 weeks' notice, plus statutory severance if the ESA payroll threshold is met (confirm before finalizing).",
-      'Minimum de la LNE : 7 semaines de préavis, plus l’indemnité de licenciement si le seuil de masse salariale de la LNE est atteint (confirmez avant de finaliser).',
+      "ESA minimum: 8 weeks' termination notice/pay; statutory severance may also apply if eligibility requirements are met.",
+      'Minimum LNE : 8 semaines de préavis ou d’indemnité de licenciement; une indemnité de cessation d’emploi peut aussi s’appliquer si les conditions d’admissibilité sont remplies.',
     ),
     bi(
-      'Common law estimate for a 7-year, mid-level role: roughly 9–12 months.',
-      'Estimation en common law pour un poste intermédiaire de 7 ans : environ 9 à 12 mois.',
+      'Common law estimate for an 8-year, mid-level role: roughly 9–12 months.',
+      'Estimation en common law pour un poste intermédiaire de 8 ans : environ 9 à 12 mois.',
     ),
   ],
   cards: [
@@ -275,8 +275,8 @@ export const terminationAssessment = {
       tone: 'risk' as const,
       title: bi('Notice exposure risk', 'Risque d’exposition au préavis'),
       body: bi(
-        'This contract has no enforceable termination clause. Entitlement is likely 9–12 months of pay in lieu of notice under common law — well beyond the 7-week ESA minimum. Recommend legal review before an offer is made. This is compliance-oriented HR guidance, not legal advice.',
-        'Ce contrat ne comporte aucune clause de cessation exécutoire. Le droit est probablement de 9 à 12 mois d’indemnité en tenant lieu de préavis en common law — bien au-delà du minimum de 7 semaines de la LNE. Un examen juridique est recommandé avant de faire une offre. Il s’agit de conseils RH axés sur la conformité, et non d’un avis juridique.',
+        'No termination clause on file. Preliminary entitlement is likely 9–12 months of pay in lieu of notice under common law — well beyond the 8-week ESA termination notice/pay minimum. Recommend legal review before an offer is made. This is compliance-oriented HR guidance, not legal advice.',
+        'Aucune clause de licenciement au dossier. Le droit préliminaire est probablement de 9 à 12 mois d’indemnité en tenant lieu de préavis en common law — bien au-delà du minimum LNE de 8 semaines de préavis ou d’indemnité de licenciement. Un examen juridique est recommandé avant de faire une offre. Il s’agit de conseils RH axés sur la conformité, et non d’un avis juridique.',
       ),
       confidence: bi(
         'Moderate — assumes a standard mid-level role; confirm payroll size for severance eligibility.',

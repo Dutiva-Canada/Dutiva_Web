@@ -17,7 +17,7 @@ export const notifications: Notification[] = [
     id: 'n2',
     text: bi(
       'Document ready: Termination Letter — Jordan Mensah',
-      'Document prêt : lettre de cessation d’emploi — Jordan Mensah',
+      'Document prêt : lettre de licenciement — Jordan Mensah',
     ),
     time: bi('2h ago', 'Il y a 2 h'),
     unread: true,

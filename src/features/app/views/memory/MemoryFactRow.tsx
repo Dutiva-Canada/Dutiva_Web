@@ -7,6 +7,7 @@ import type { Bi } from '@/i18n/core'
 import { memoryMessages as M } from '@/i18n/messages/memory'
 import type { MemoryFact } from '@/data'
 import { CONFIDENCE_META, SOURCE_META, VISIBILITY_META } from './memoryModel'
+import { formatMemoryDate, memoryDateReferenceISO } from './memoryDates'
 import { memoryActions } from './memoryStore'
 
 /**
@@ -18,6 +19,8 @@ import { memoryActions } from './memoryStore'
  */
 export interface MemoryFactRowProps {
   readonly fact: MemoryFact
+  /** Demo fixtures pass the scenario reference day so "Today" stays deterministic. */
+  readonly dateReferenceISO?: string
   /** Manager rows show which scope the fact lives in. */
   readonly scopeTag?: { icon: LucideIcon; label: Bi | string }
   /** Production mode passes persistence callbacks; demo defaults to memoryStore. */
@@ -29,11 +32,13 @@ export interface MemoryFactRowProps {
 export function MemoryFactRow({
   fact,
   scopeTag,
+  dateReferenceISO,
   onConfirm,
   onCorrect,
   onForget,
 }: MemoryFactRowProps) {
   const { x, lang } = useI18n()
+  const dateReference = memoryDateReferenceISO(dateReferenceISO)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
 
@@ -123,9 +128,9 @@ export function MemoryFactRow({
             </span>
             <span className="inline-flex items-center gap-[5px] text-[11.5px] text-text-faint">
               <Clock size={13} strokeWidth={1.7} className="opacity-70" aria-hidden="true" />
-              {x(M.memory_learned)} {pick(fact.learned, lang)} ·{' '}
-              {fact.confirmed !== null
-                ? `${x(M.memory_confirmed_on)} ${pick(fact.confirmed, lang)}`
+              {x(M.memory_learned)} {formatMemoryDate(fact.learnedAt, lang, dateReference)} ·{' '}
+              {fact.confirmedAt !== null
+                ? `${x(M.memory_confirmed_on)} ${formatMemoryDate(fact.confirmedAt, lang, dateReference)}`
                 : x(M.memory_not_confirmed)}
             </span>
             <span

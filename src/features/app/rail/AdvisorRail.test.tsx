@@ -24,8 +24,8 @@ function OpenProbe() {
                 tone: 'risk',
                 title: bi('Notice exposure risk', 'Risque d’exposition au préavis'),
                 body: bi(
-                  'No enforceable termination clause on file.',
-                  'Aucune clause de cessation exécutoire au dossier.',
+                  'No termination clause on file.',
+                  'Aucune clause de licenciement au dossier.',
                 ),
               },
             ],
@@ -86,7 +86,7 @@ describe('AdvisorRail', () => {
     expect(screen.queryByText('Thinking')).not.toBeInTheDocument()
     expect(screen.getByText(INTRO.en)).toBeInTheDocument()
     expect(screen.getByText('Notice exposure risk')).toBeInTheDocument()
-    expect(screen.getByText('No enforceable termination clause on file.')).toBeInTheDocument()
+    expect(screen.getByText('No termination clause on file.')).toBeInTheDocument()
   })
 
   it('closes on Escape', () => {

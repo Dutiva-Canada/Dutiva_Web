@@ -54,7 +54,7 @@ describe('memory productionApi', () => {
       category: 'employment',
       confidence: 'inferred',
       statement: { en: 'Started March 2018', fr: 'Début en mars 2018' },
-      confirmed: null,
+      confirmedAt: null,
       sensitive: false,
     })
   })
@@ -131,7 +131,11 @@ describe('memory productionApi', () => {
   })
 
   it('correctFact updates both statement columns and audits the prior text', async () => {
-    const corrected = { ...FACT_ROW, statement_en: 'Started April 2018', statement_fr: 'Started April 2018' }
+    const corrected = {
+      ...FACT_ROW,
+      statement_en: 'Started April 2018',
+      statement_fr: 'Started April 2018',
+    }
     const maybeSingle = vi.fn().mockResolvedValue({ data: FACT_ROW, error: null })
     const is = vi.fn().mockReturnValue({ maybeSingle })
     const eqOrgRead = vi.fn().mockReturnValue({ is })
@@ -215,7 +219,9 @@ describe('memory productionApi', () => {
     expect(n).toBe(2)
     expect(update).toHaveBeenCalledTimes(2)
     expect(insert).toHaveBeenCalledTimes(2)
-    expect(insert).toHaveBeenCalledWith(expect.objectContaining({ action: 'forget', fact_id: 'fact-1' }))
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'forget', fact_id: 'fact-1' }),
+    )
   })
 
   it('createFact inserts a confirmed manual fact and audits create', async () => {

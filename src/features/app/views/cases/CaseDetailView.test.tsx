@@ -16,7 +16,7 @@ describe('CaseDetailView', () => {
     /* Advisor recommendation + risk assessment (fixture strings). */
     expect(screen.getByText('Advisor recommendation')).toBeInTheDocument()
     expect(screen.getByText(/Do not send an offer until counsel confirms/)).toBeInTheDocument()
-    expect(screen.getByText('No enforceable termination clause on file')).toBeInTheDocument()
+    expect(screen.getByText('No termination clause on file')).toBeInTheDocument()
 
     /* Workflow steps, people, linked tasks, documents, compliance flags. */
     expect(screen.getByText('Case opened')).toBeInTheDocument()

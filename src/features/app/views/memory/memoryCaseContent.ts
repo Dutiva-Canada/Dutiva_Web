@@ -57,8 +57,8 @@ export const memoryCaseContent: Record<string, MemoryCaseContent> = {
       ),
     },
     summary: bi(
-      'Full-time Ontario employee, 7 years’ service, no enforceable termination clause. Terminating without cause. ESA floor ≈ 7 weeks’ notice + severance; common-law exposure estimated at 9–12 months. Counsel review requested Jul 5, still outstanding. No offer issued.',
-      'Employé à temps plein en Ontario, 7 ans de service, aucune clause de cessation exécutoire. Cessation sans motif. Plancher LNE ≈ 7 semaines de préavis + indemnité; exposition en common law estimée à 9–12 mois. Révision juridique demandée le 5 juill., toujours en attente. Aucune offre émise.',
+      'Full-time Ontario employee, 8 years’ service, no termination clause on file. Terminating without cause. ESA minimum: 8 weeks’ termination notice/pay; statutory severance may apply if eligibility requirements are met. Preliminary common-law exposure estimated at 9–12 months. Counsel review requested Jul 5, still outstanding. No offer issued.',
+      'Employé à temps plein en Ontario, 8 ans de service, aucune clause de licenciement au dossier. Licenciement sans motif. Minimum LNE : 8 semaines de préavis ou d’indemnité de licenciement; une indemnité de cessation d’emploi peut s’appliquer si les conditions d’admissibilité sont remplies. Exposition préliminaire en common law estimée à 9–12 mois. Révision juridique demandée le 5 juill., toujours en attente. Aucune offre émise.',
     ),
     changed: [
       bi(
@@ -85,12 +85,12 @@ export const memoryCaseContent: Record<string, MemoryCaseContent> = {
             'Riley Summers a ouvert le dossier et téléversé Employment Agreement.pdf.',
           ),
           bi(
-            'Advisor flagged: no enforceable termination clause.',
-            'Le Conseiller a signalé : aucune clause de cessation exécutoire.',
+            'Advisor flagged: employment agreement contains no termination clause.',
+            'Le Conseiller a signalé : le contrat de travail ne comporte aucune clause de licenciement.',
           ),
           bi(
-            'Jurisdiction confirmed — Ontario. ESA statutory floor computed.',
-            'Compétence confirmée — Ontario. Plancher légal LNE calculé.',
+            'Jurisdiction confirmed — Ontario. ESA termination notice/pay minimum computed.',
+            'Compétence confirmée — Ontario. Minimum LNE de préavis ou d’indemnité de licenciement calculé.',
           ),
         ],
       },
@@ -109,7 +109,7 @@ export const memoryCaseContent: Record<string, MemoryCaseContent> = {
           ),
           bi(
             'Termination letter drafted — held, not sent.',
-            'Lettre de cessation rédigée — retenue, non envoyée.',
+            'Lettre de licenciement rédigée — retenue, non envoyée.',
           ),
         ],
       },

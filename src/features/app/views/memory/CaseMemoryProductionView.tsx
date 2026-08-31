@@ -230,7 +230,12 @@ export function CaseMemoryProductionView() {
                 onClick={() => navigate('/app/advisor')}
                 className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border-none bg-navy px-[13px] py-[8px] font-sans text-[12.5px] font-bold text-white"
               >
-                <Sparkle size={14} className="fill-gold-on-navy" strokeWidth={0} aria-hidden="true" />
+                <Sparkle
+                  size={14}
+                  className="fill-gold-on-navy"
+                  strokeWidth={0}
+                  aria-hidden="true"
+                />
                 {x(M.memory_case_resume_chat)}
               </button>
               {isOrgAdmin && (
@@ -409,9 +414,7 @@ export function CaseMemoryProductionView() {
                 <div key={ev.id} className="mb-[12px] border-l-2 border-border-soft pl-[12px]">
                   <div className="text-[11px] font-bold text-text-faint">
                     {new Date(ev.occurredAt).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
-                    {ev.sessionLabel.en
-                      ? ` · ${pick(ev.sessionLabel, lang)}`
-                      : ''}
+                    {ev.sessionLabel.en ? ` · ${pick(ev.sessionLabel, lang)}` : ''}
                   </div>
                   <div className="mt-[3px] text-[13px] leading-normal text-text-2">
                     {pick(ev.body, lang)}

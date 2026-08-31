@@ -151,7 +151,7 @@ describe('WorkflowsView', () => {
           'Trois façons d’avancer : demandez au Conseiller pour le jugement, lancez un processus guidé ou un calculateur ici, ou rédigez la lettre dans le Studio de documents.',
         ),
       ).toBeInTheDocument()
-      expect(screen.getByText('Cessation d’emploi — Jordan Mensah')).toBeInTheDocument()
+      expect(screen.getByText('Licenciement — Jordan Mensah')).toBeInTheDocument()
       expect(screen.getByText('Étape 4/9')).toBeInTheDocument()
       /* FR '2 doc. sur 4' doubles as wf1's docs label and the map's partial chip. */
       expect(screen.getAllByText('2 doc. sur 4').length).toBeGreaterThanOrEqual(2)

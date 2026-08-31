@@ -75,7 +75,7 @@ const RECALL_TURNS: RecallTurn[] = [
         ', because the contract you uploaded has ',
         ', parce que le contrat que vous avez téléversé ne comporte ',
       ),
-      seg('no enforceable termination clause', 'aucune clause de cessation exécutoire', 'p4'),
+      seg('no termination clause', 'aucune clause de licenciement', 'p4'),
       seg('. Counsel review is ', '. La révision juridique est '),
       seg('still outstanding', 'toujours en attente', 'c2'),
       seg(
@@ -100,12 +100,16 @@ const RECALL_TURNS: RecallTurn[] = [
         'Earlier in this case you confirmed there’s ',
         'Plus tôt dans ce dossier, vous avez confirmé qu’il n’y a ',
       ),
-      seg('no enforceable termination clause', 'aucune clause de cessation exécutoire', 'p4'),
+      seg('no termination clause', 'aucune clause de licenciement', 'p4'),
       seg(
         '. That’s what takes this past the ',
         '. C’est ce qui fait passer ce dossier au-delà du ',
       ),
-      seg('ESA statutory floor (≈ 7 weeks)', 'plancher légal de la LNE (≈ 7 semaines)', 'c4'),
+      seg(
+        'ESA minimum (8 weeks’ termination notice/pay)',
+        'minimum LNE (8 semaines de préavis ou d’indemnité de licenciement)',
+        'c4',
+      ),
       seg(
         ' into common-law reasonable notice — the statutory minimum is the floor, not the ceiling, when no valid clause caps it.',
         ' vers le préavis raisonnable de common law — le minimum légal est le plancher, pas le plafond, lorsqu’aucune clause valide ne le limite.',
@@ -240,9 +244,17 @@ export function ChatRecallDemoView() {
                 .map(byId)
                 .filter((f): f is MemoryFact => f !== undefined)
               return (
-                <div key={turn.text?.en ?? turn.recallIds?.join('-')} className="flex items-start gap-[12px]">
+                <div
+                  key={turn.text?.en ?? turn.recallIds?.join('-')}
+                  className="flex items-start gap-[12px]"
+                >
                   <div className="mt-[2px] flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-[8px] bg-navy">
-                    <Sparkle size={14} className="fill-gold-on-navy" strokeWidth={0} aria-hidden="true" />
+                    <Sparkle
+                      size={14}
+                      className="fill-gold-on-navy"
+                      strokeWidth={0}
+                      aria-hidden="true"
+                    />
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col gap-[9px]">
                     {turn.fromEarlier === true && (
@@ -254,7 +266,12 @@ export function ChatRecallDemoView() {
                     <div className="max-w-[640px] rounded-[14px] rounded-tl-[3px] border border-border-soft bg-surface px-[16px] py-[13px] text-[14.5px] leading-[1.75] text-text">
                       {(turn.segments ?? []).map((segment) => {
                         const fact = segment.memId !== undefined ? byId(segment.memId) : undefined
-                        if (!fact) return <span key={segment.memId ?? segment.text.en}>{pick(segment.text, lang)}</span>
+                        if (!fact)
+                          return (
+                            <span key={segment.memId ?? segment.text.en}>
+                              {pick(segment.text, lang)}
+                            </span>
+                          )
                         return (
                           <span
                             key={segment.memId ?? segment.text.en}
@@ -316,7 +333,9 @@ export function ChatRecallDemoView() {
                               </div>
                               <button
                                 type="button"
-                                onClick={() => navigate(`/app/settings/memory/people/${thread.personId}`)}
+                                onClick={() =>
+                                  navigate(`/app/settings/memory/people/${thread.personId}`)
+                                }
                                 className="shrink-0 cursor-pointer rounded-[7px] border border-border bg-surface px-[9px] py-[4px] font-sans text-[11.5px] font-semibold text-text-muted"
                               >
                                 {x(M.memory_action_correct)}

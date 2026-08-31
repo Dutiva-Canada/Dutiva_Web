@@ -7,8 +7,10 @@ import type {
   TrendPoint,
   TurnoverStat,
 } from './types'
-import { calendarMonth } from './calendar'
+import { demoTodayISO } from './calendar'
 import { complianceScore } from './compliance'
+
+export { demoTodayISO }
 
 /**
  * Analytics fixtures — the workspace-level aggregates the prototype carried
@@ -16,15 +18,6 @@ import { complianceScore } from './compliance'
  * 1204–1231), moved here so the Analytics view imports data like every other
  * view instead of inlining it.
  */
-
-/**
- * The demo diorama's fixed "today" (YYYY-MM-DD), derived from the calendar
- * fixture (July 2026 grid, today = 5) so the two can never disagree.
- */
-export const demoTodayISO = `${calendarMonth.year}-${String(calendarMonth.monthIndex + 1).padStart(
-  2,
-  '0',
-)}-${String(calendarMonth.todayDay).padStart(2, '0')}`
 
 /**
  * Six-month compliance-score history ending at the current score

@@ -43,7 +43,7 @@ describe('Advisor Memory surfaces', () => {
       expect(screen.getByText('Current matter')).toBeInTheDocument()
       /* Provenance: source · learned/confirmed · visibility. */
       expect(
-        screen.getByText('Employment contract has no enforceable termination clause'),
+        screen.getByText('Employment agreement contains no termination clause'),
       ).toBeInTheDocument()
       expect(screen.getAllByText(/People record/).length).toBeGreaterThan(0)
       expect(screen.getAllByText('Restricted').length).toBeGreaterThan(0)
@@ -129,10 +129,10 @@ describe('Advisor Memory surfaces', () => {
     it('shows the review banner and live tab counts', () => {
       renderManager()
 
-      expect(screen.getByText(/3 inferred memories are waiting for review/)).toBeInTheDocument()
+      expect(screen.getByText(/4 inferred memories are waiting for review/)).toBeInTheDocument()
       const allTab = screen.getByRole('tab', { name: /All/ })
       expect(allTab).toHaveTextContent('18')
-      expect(screen.getByRole('tab', { name: /Needs review/ })).toHaveTextContent('3')
+      expect(screen.getByRole('tab', { name: /Needs review/ })).toHaveTextContent('4')
     })
 
     it('filters to needs-review via the banner action', () => {
@@ -140,7 +140,7 @@ describe('Advisor Memory surfaces', () => {
 
       fireEvent.click(screen.getByRole('button', { name: 'Review now' }))
       /* Only the 3 inferred rows remain — all show a Confirm action. */
-      expect(screen.getAllByRole('button', { name: 'Confirm' })).toHaveLength(3)
+      expect(screen.getAllByRole('button', { name: 'Confirm' })).toHaveLength(4)
       expect(screen.queryByText('Reports to Morgan Chen')).not.toBeInTheDocument()
     })
 

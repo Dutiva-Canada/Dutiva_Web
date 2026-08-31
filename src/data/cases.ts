@@ -19,16 +19,16 @@ import type {
 export const cases: CaseFile[] = [
   {
     id: 'case1',
-    title: bi('Termination — Jordan Mensah', 'Cessation d’emploi — Jordan Mensah'),
+    title: bi('Termination — Jordan Mensah', 'Licenciement — Jordan Mensah'),
     type: 'Termination',
-    typeLabel: bi('Termination', 'Cessation d’emploi'),
+    typeLabel: bi('Termination', 'Licenciement'),
     empId: 'e1',
     empName: 'Jordan Mensah',
     province: bi('Ontario', 'Ontario'),
     status: bi('Legal review recommended', 'Révision juridique recommandée'),
     tone: 'risk',
-    opened: 'Jul 5, 2026',
-    openedISO: '2026-07-05',
+    opened: 'Jul 2, 2026',
+    openedISO: '2026-07-02',
     owner: 'Riley Summers',
     due: 'Jul 10, 2026',
     retention: bi(
@@ -42,7 +42,7 @@ export const cases: CaseFile[] = [
     chatId: 'c1',
     summary: bi(
       'Without-cause termination during a restructuring. No termination clause on file — preliminary common-law estimate: 9–12 months. Legal review requested.',
-      'Cessation d’emploi sans motif lors d’une restructuration. Aucune clause de cessation au dossier — estimation préliminaire en common law : 9 à 12 mois. Examen juridique demandé.',
+      'Licenciement sans motif lors d’une restructuration. Aucune clause de licenciement au dossier — estimation préliminaire en common law : 9 à 12 mois. Examen juridique demandé.',
     ),
     steps: [
       { label: bi('Case opened', 'Dossier ouvert'), done: true },
@@ -161,13 +161,10 @@ export const caseRiskByType: Record<CaseType, CaseRisk> = {
     levelLabel: riskLevelLabels.High,
     tone: 'risk',
     factors: [
+      bi('No termination clause on file', 'Aucune clause de licenciement au dossier'),
       bi(
-        'No enforceable termination clause on file',
-        'Aucune clause de cessation exécutoire au dossier',
-      ),
-      bi(
-        'Common-law exposure ~9–12 months vs 7-week ESA minimum',
-        'Exposition en common law d’environ 9 à 12 mois c. minimum de 7 semaines de la LNE',
+        'Common-law exposure ~9–12 months vs 8-week ESA termination notice/pay minimum',
+        'Exposition en common law d’environ 9 à 12 mois c. minimum LNE de 8 semaines de préavis ou d’indemnité de licenciement',
       ),
       bi(
         'ESA severance payroll threshold → confirm calculation before finalizing',
@@ -279,8 +276,8 @@ export const caseRiskAxesByType: Record<CaseType, CaseRiskAxis[]> = {
       axLegal,
       'High',
       bi(
-        'No enforceable termination clause — common-law exposure of roughly 9–12 months.',
-        'Aucune clause de cessation exécutoire — exposition en common law d’environ 9 à 12 mois.',
+        'No termination clause on file — preliminary common-law exposure of roughly 9–12 months.',
+        'Aucune clause de licenciement au dossier — exposition préliminaire en common law d’environ 9 à 12 mois.',
       ),
       bi(
         'Hold the offer until counsel confirms the notice range.',
@@ -291,8 +288,8 @@ export const caseRiskAxesByType: Record<CaseType, CaseRiskAxis[]> = {
       axRelations,
       'Medium',
       bi(
-        'Restructuring exit of a 7-year employee — the departure narrative matters.',
-        'Départ d’un employé de 7 ans lors d’une restructuration — le récit du départ compte.',
+        'Restructuring exit of an 8-year employee — the departure narrative matters.',
+        'Licenciement d’un employé de 8 ans lors d’une restructuration — le récit du départ compte.',
       ),
       bi(
         'Prepare a respectful meeting script and transition support.',

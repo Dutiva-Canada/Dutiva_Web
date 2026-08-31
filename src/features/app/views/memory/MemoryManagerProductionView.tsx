@@ -586,7 +586,9 @@ export function MemoryManagerProductionView() {
                   {x(M.memory_prod_forget_person_hint)}
                 </div>
                 {peopleWithFacts.length === 0 ? (
-                  <div className="text-[12px] text-text-faint">{x(M.memory_prod_forget_person_none)}</div>
+                  <div className="text-[12px] text-text-faint">
+                    {x(M.memory_prod_forget_person_none)}
+                  </div>
                 ) : (
                   <div className="flex flex-col gap-[8px]">
                     <select

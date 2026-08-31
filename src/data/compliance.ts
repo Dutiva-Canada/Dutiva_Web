@@ -26,8 +26,8 @@ export const complianceItems: ComplianceItem[] = [
       'Jordan Mensah — exposition au préavis; aucune clause de cessation au dossier',
     ),
     detail: bi(
-      'No termination clause on file limits notice. Preliminary risk estimate: 9–12 months of pay in lieu of notice under common law, against the 7-week ESA minimum. Legal review recommended before finalizing.',
-      'Aucune clause de cessation exécutoire au dossier. L’exposition en common law est estimée à 9-12 mois d’indemnité en tenant lieu de préavis, bien au-dessus du minimum de 7 semaines de la LNE. Un examen juridique est recommandé avant de finaliser.',
+      'No termination clause on file limits notice. Preliminary risk estimate: 9–12 months of pay in lieu of notice under common law, against the 8-week ESA termination notice/pay minimum. Statutory severance may also apply if eligibility requirements are met. Legal review recommended before finalizing.',
+      'Aucune clause de licenciement au dossier. L’exposition en common law est estimée à 9-12 mois d’indemnité en tenant lieu de préavis, bien au-dessus du minimum LNE de 8 semaines de préavis ou d’indemnité de licenciement. Une indemnité de cessation d’emploi peut aussi s’appliquer si les conditions d’admissibilité sont remplies. Un examen juridique est recommandé avant de finaliser.',
     ),
     province: bi('Ontario', 'Ontario'),
     chatId: 'c1',
@@ -50,8 +50,8 @@ export const complianceItems: ComplianceItem[] = [
     severityLabel: bi('Medium', 'Moyen'),
     tone: 'warning',
     title: bi(
-      'Amara Okafor — accommodation review due in 7 days',
-      'Amara Okafor — examen d’accommodement dû dans 7 jours',
+      'Amara Okafor — accommodation review due in 3 days',
+      'Amara Okafor — examen d’accommodement dû dans 3 jours',
     ),
     detail: bi(
       'Modified-duties accommodation is due for its scheduled 90-day review on July 14. Confirm functional limitations haven’t changed.',
@@ -94,8 +94,8 @@ export const complianceItems: ComplianceItem[] = [
     severityLabel: bi('Medium', 'Moyen'),
     tone: 'warning',
     title: bi(
-      'Devon Clarke — PIP check-in due in 15 days',
-      'Devon Clarke — suivi du PAR dû dans 15 jours',
+      'Devon Clarke — PIP check-in due in 11 days',
+      'Devon Clarke — suivi du PAR dû dans 11 jours',
     ),
     detail: bi(
       'The 30-day check-in for the attendance improvement plan falls on July 22.',

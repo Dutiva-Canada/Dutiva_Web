@@ -11,6 +11,7 @@ import type { MemoryFact } from '@/data'
 import { memoryCaseContent } from './memoryCaseContent'
 import type { MemoryCaseChip } from './memoryCaseContent'
 import { KnowFact } from './KnowFact'
+import { memoryScenarioTodayISO } from '@/data'
 import { MemoryFactRow } from './MemoryFactRow'
 import { useMemoryStore } from './memoryStore'
 
@@ -103,7 +104,12 @@ export function CaseMemoryDemoView() {
                 }
                 className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border-none bg-navy px-[13px] py-[8px] font-sans text-[12.5px] font-bold text-white"
               >
-                <Sparkle size={14} className="fill-gold-on-navy" strokeWidth={0} aria-hidden="true" />
+                <Sparkle
+                  size={14}
+                  className="fill-gold-on-navy"
+                  strokeWidth={0}
+                  aria-hidden="true"
+                />
                 {x(M.memory_case_resume_chat)}
               </button>
               <button
@@ -159,7 +165,11 @@ export function CaseMemoryDemoView() {
             </div>
             <div className="mb-[20px] overflow-hidden rounded-[13px] border border-border-soft bg-surface">
               {caseFacts.map((fact) => (
-                <MemoryFactRow key={fact.id} fact={fact} />
+                <MemoryFactRow
+                  key={fact.id}
+                  fact={fact}
+                  dateReferenceISO={memoryScenarioTodayISO}
+                />
               ))}
               {caseFacts.length === 0 && (
                 <div className="px-[20px] py-[24px] text-center text-[13px] text-text-faint">
@@ -178,7 +188,10 @@ export function CaseMemoryDemoView() {
             <div className="rounded-[13px] border border-border-soft bg-surface px-[16px] pt-[4px] pb-[12px]">
               {content.timeline.map((entry) =>
                 entry.kind === 'gap' ? (
-                  <div key={`${entry.kind}-${entry.label.en}`} className="flex items-center gap-[12px] py-[6px] pl-px">
+                  <div
+                    key={`${entry.kind}-${entry.label.en}`}
+                    className="flex items-center gap-[12px] py-[6px] pl-px"
+                  >
                     <div className="flex w-[11px] justify-center">
                       <div className="memory-timeline-gap-line h-[22px] w-[2px]" />
                     </div>
