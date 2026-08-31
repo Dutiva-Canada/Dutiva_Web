@@ -7,11 +7,7 @@ import { useAuth } from '@/features/app/auth/authContext'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
-import {
-  authorizeExport,
-  encodeInvisibleTag,
-  exportDenialMessage,
-} from '@/lib/exportProtection'
+import { authorizeExport, encodeInvisibleTag, exportDenialMessage } from '@/lib/exportProtection'
 
 /** Copy/export message handlers shared by ChatPane in AdvisorView. */
 export function useAdvisorMessageActions() {

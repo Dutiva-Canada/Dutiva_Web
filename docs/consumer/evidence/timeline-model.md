@@ -18,21 +18,21 @@ Event → date → evidence → source → notes
 
 ## Event attributes
 
-| Attribute | Description |
-|---|---|
-| `id` | Stable identifier. |
-| `case_id` | The case/situation this event belongs to. |
-| `event_date` | The date the event occurred. May be exact or approximate. |
-| `date_precision` | exact, month, year, approximate, unknown. |
-| `title` | Short event label. |
-| `description` | Longer description. |
-| `linked_evidence_ids` | Evidence items that support this event. |
-| `linked_document_ids` | Generated or uploaded documents related to this event. |
-| `linked_person_ids` | People or organizations involved. |
-| `source` | Where the event came from: user, evidence_interpretation, document, system_suggestion. |
-| `confidence` | confirmed, inferred. |
-| `notes` | Free-text user notes. |
-| `created_at`, `updated_at` | Timestamps. |
+| Attribute                  | Description                                                                            |
+| -------------------------- | -------------------------------------------------------------------------------------- |
+| `id`                       | Stable identifier.                                                                     |
+| `case_id`                  | The case/situation this event belongs to.                                              |
+| `event_date`               | The date the event occurred. May be exact or approximate.                              |
+| `date_precision`           | exact, month, year, approximate, unknown.                                              |
+| `title`                    | Short event label.                                                                     |
+| `description`              | Longer description.                                                                    |
+| `linked_evidence_ids`      | Evidence items that support this event.                                                |
+| `linked_document_ids`      | Generated or uploaded documents related to this event.                                 |
+| `linked_person_ids`        | People or organizations involved.                                                      |
+| `source`                   | Where the event came from: user, evidence_interpretation, document, system_suggestion. |
+| `confidence`               | confirmed, inferred.                                                                   |
+| `notes`                    | Free-text user notes.                                                                  |
+| `created_at`, `updated_at` | Timestamps.                                                                            |
 
 ---
 
@@ -54,12 +54,12 @@ Event → date → evidence → source → notes
 
 ## Event sources
 
-| Source | Description | Confidence |
-|---|---|---|
-| `user` | User created the event directly. | confirmed |
-| `evidence_interpretation` | Suggested by AI or OCR extraction from evidence. | inferred |
-| `document` | Derived from a generated or uploaded document. | confirmed / inferred |
-| `system_suggestion` | Proposed by the system based on workflow or case context. | inferred |
+| Source                    | Description                                               | Confidence           |
+| ------------------------- | --------------------------------------------------------- | -------------------- |
+| `user`                    | User created the event directly.                          | confirmed            |
+| `evidence_interpretation` | Suggested by AI or OCR extraction from evidence.          | inferred             |
+| `document`                | Derived from a generated or uploaded document.            | confirmed / inferred |
+| `system_suggestion`       | Proposed by the system based on workflow or case context. | inferred             |
 
 `TM-REQ-004`: Events from an inferred source SHALL be clearly labeled and editable by the user.
 

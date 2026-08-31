@@ -13,15 +13,23 @@ import { supabase } from '@/lib/supabaseClient'
 const BUCKET = 'support-attachments'
 export const ATTACHMENT_MAX_SIZE = 26214400 // 25 MB (matches the bucket + function)
 export const ATTACHMENT_ALLOWED_MIME: readonly string[] = [
-  'image/png', 'image/jpeg', 'image/gif', 'image/webp',
-  'application/pdf', 'text/plain', 'text/csv',
+  'image/png',
+  'image/jpeg',
+  'image/gif',
+  'image/webp',
+  'application/pdf',
+  'text/plain',
+  'text/csv',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 ]
 
 export type AttachmentValidationError = 'too_large' | 'bad_type'
 
-export function validateAttachment(file: { size: number; type: string }): AttachmentValidationError | null {
+export function validateAttachment(file: {
+  size: number
+  type: string
+}): AttachmentValidationError | null {
   if (file.size > ATTACHMENT_MAX_SIZE) return 'too_large'
   if (!ATTACHMENT_ALLOWED_MIME.includes(file.type)) return 'bad_type'
   return null
@@ -92,7 +100,10 @@ export async function listAttachments(ticketId: string): Promise<SupportAttachme
     .eq('ticket_id', ticketId)
     .order('created_at', { ascending: true })
   if (error) throw error
-  return z.array(attachmentSchema).parse(data ?? []).map(toAttachment)
+  return z
+    .array(attachmentSchema)
+    .parse(data ?? [])
+    .map(toAttachment)
 }
 
 export async function uploadAttachment(ticketId: string, file: File): Promise<SupportAttachment> {
@@ -119,7 +130,10 @@ export async function uploadAttachment(ticketId: string, file: File): Promise<Su
   })
   if (error) {
     // Recording failed — remove the orphaned object (best effort).
-    await supabase.storage.from(BUCKET).remove([path]).catch(() => undefined)
+    await supabase.storage
+      .from(BUCKET)
+      .remove([path])
+      .catch(() => undefined)
     throw error
   }
   return toAttachment(attachmentSchema.parse((data as { data: unknown }).data))

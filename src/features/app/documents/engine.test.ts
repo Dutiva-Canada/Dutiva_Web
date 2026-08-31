@@ -175,10 +175,9 @@ describe('merge fields', () => {
   it('merges vacation weeks as the option label without duplicating the unit word', () => {
     const resolved = answerLabels(tpl('T01'), { vacation_weeks: '3' }, 'en').vacation_weeks
     expect(resolved).toBe('3 weeks')
-    const text = mergeSegments(
-      'You will receive {{vacation_weeks}} of paid vacation per year.',
-      { vacation_weeks: resolved! },
-    )
+    const text = mergeSegments('You will receive {{vacation_weeks}} of paid vacation per year.', {
+      vacation_weeks: resolved!,
+    })
       .map((segment) => segment.text)
       .join('')
     expect(text).toBe('You will receive 3 weeks of paid vacation per year.')
@@ -282,7 +281,7 @@ describe('role & status action gating', () => {
 describe('parseClauseFieldLines', () => {
   it('splits intro prose from label/value rows', () => {
     const parsed = parseClauseFieldLines(
-      "The following information is included.\nLegal name: {{org}}\nEmployer telephone: {{employer_phone}}",
+      'The following information is included.\nLegal name: {{org}}\nEmployer telephone: {{employer_phone}}',
     )
     expect(parsed).toEqual({
       intro: 'The following information is included.',

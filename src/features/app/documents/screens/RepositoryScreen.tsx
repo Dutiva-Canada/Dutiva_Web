@@ -82,7 +82,12 @@ interface DocGroup {
 
 const docHref = (doc: GeneratedDoc): string => `/app/documents/${doc.id}`
 
-function matchesFilters(doc: GeneratedDoc, filters: RepoFilters, query: string, showArchived: boolean) {
+function matchesFilters(
+  doc: GeneratedDoc,
+  filters: RepoFilters,
+  query: string,
+  showArchived: boolean,
+) {
   if (doc.archived && !showArchived) return false
   if (filters.status !== 'all' && doc.status !== filters.status) return false
   if (filters.review !== 'all' && doc.reviewStatus !== filters.review) return false

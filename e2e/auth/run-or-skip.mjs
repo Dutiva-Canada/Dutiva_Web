@@ -21,10 +21,11 @@ if (!url || !anon || !service) {
   process.exit(0)
 }
 
-const result = spawnSync(
-  'npx',
-  ['playwright', 'test', '-c', 'playwright.auth.config.ts'],
-  { cwd: root, stdio: 'inherit', shell: true, env: process.env },
-)
+const result = spawnSync('npx', ['playwright', 'test', '-c', 'playwright.auth.config.ts'], {
+  cwd: root,
+  stdio: 'inherit',
+  shell: true,
+  env: process.env,
+})
 
 process.exit(result.status === null ? 1 : result.status)

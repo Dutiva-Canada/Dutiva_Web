@@ -3,7 +3,11 @@ import { render, screen, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { LangProvider } from '@/i18n/LangProvider'
-import { hasAnalyticsConsent, hasConsentResponse, setAnalyticsConsent } from '@/lib/analyticsConsent'
+import {
+  hasAnalyticsConsent,
+  hasConsentResponse,
+  setAnalyticsConsent,
+} from '@/lib/analyticsConsent'
 import { ConsentBanner } from './ConsentBanner'
 import { openCookiePreferences } from './cookiePreferences'
 

@@ -95,7 +95,11 @@ Deno.serve(async (req: Request) => {
   let rawEvents: unknown[]
   if (Array.isArray(payload)) {
     rawEvents = payload
-  } else if (typeof payload === 'object' && payload !== null && Array.isArray((payload as Record<string, unknown>).events)) {
+  } else if (
+    typeof payload === 'object' &&
+    payload !== null &&
+    Array.isArray((payload as Record<string, unknown>).events)
+  ) {
     rawEvents = (payload as Record<string, unknown>).events as unknown[]
   } else if (typeof payload === 'object' && payload !== null) {
     rawEvents = [payload]

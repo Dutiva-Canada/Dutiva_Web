@@ -37,29 +37,29 @@ This is **documentation-only**. No application code, database schemas, migration
 
 Requirement IDs are scoped by domain:
 
-| Prefix | Domain |
-| --- | --- |
-| `CLA-REQ-NNN` | Canadian Life Admin |
-| `CDG-REQ-NNN` | Canadian Document Generation |
-| `PEL-REQ-NNN` | Personal Evidence Locker |
-| `SHARED-REQ-NNN` | Cross-product requirements |
-| `AI-REQ-NNN` | AI behaviour and safety |
-| `SEC-REQ-NNN` | Security and privacy |
-| `ACC-REQ-NNN` | Accessibility |
-| `BIL-REQ-NNN` | Bilingualism / localization |
-| `NFR-REQ-NNN` | Non-functional requirements |
-| `PRIV-REQ-NNN` | Privacy requirements |
-| `DATA-REQ-NNN` | Data classification |
-| `RET-REQ-NNN` | Retention and deletion |
-| `INT-REQ-NNN` | Evidence integrity |
-| `TM-REQ-NNN` | Timeline model |
-| `DTAX-REQ-NNN` | Document taxonomy |
-| `DSPEC-REQ-NNN` | Document generation specification |
-| `SOURCE-REQ-NNN` | Source and citation |
-| `LREV-REQ-NNN` | Legal review |
-| `KG-REQ-NNN` | Knowledge governance |
-| `CM-REQ-NNN` | Change management |
-| `OQ-REQ-NNN` | Open questions |
+| Prefix           | Domain                            |
+| ---------------- | --------------------------------- |
+| `CLA-REQ-NNN`    | Canadian Life Admin               |
+| `CDG-REQ-NNN`    | Canadian Document Generation      |
+| `PEL-REQ-NNN`    | Personal Evidence Locker          |
+| `SHARED-REQ-NNN` | Cross-product requirements        |
+| `AI-REQ-NNN`     | AI behaviour and safety           |
+| `SEC-REQ-NNN`    | Security and privacy              |
+| `ACC-REQ-NNN`    | Accessibility                     |
+| `BIL-REQ-NNN`    | Bilingualism / localization       |
+| `NFR-REQ-NNN`    | Non-functional requirements       |
+| `PRIV-REQ-NNN`   | Privacy requirements              |
+| `DATA-REQ-NNN`   | Data classification               |
+| `RET-REQ-NNN`    | Retention and deletion            |
+| `INT-REQ-NNN`    | Evidence integrity                |
+| `TM-REQ-NNN`     | Timeline model                    |
+| `DTAX-REQ-NNN`   | Document taxonomy                 |
+| `DSPEC-REQ-NNN`  | Document generation specification |
+| `SOURCE-REQ-NNN` | Source and citation               |
+| `LREV-REQ-NNN`   | Legal review                      |
+| `KG-REQ-NNN`     | Knowledge governance              |
+| `CM-REQ-NNN`     | Change management                 |
+| `OQ-REQ-NNN`     | Open questions                    |
 
 Each file restarts numbering at `001`.
 
@@ -73,17 +73,17 @@ The consumer products are conceptually related to the Dutiva HR-compliance platf
 
 ## Index
 
-| Section | Documents |
-| --- | --- |
-| Product | `product/canadian-life-admin.md`, `product/canadian-document-generation.md`, `product/personal-evidence-locker.md` |
-| Strategy | `strategy/product-strategy.md`, `strategy/product-boundaries.md`, `strategy/target-users.md`, `strategy/positioning.md` |
-| Architecture | `architecture/system-overview.md`, `architecture/shared-domain-model.md`, `architecture/jurisdiction-model.md`, `architecture/knowledge-architecture.md`, `architecture/evidence-architecture.md`, `architecture/ai-architecture.md` |
+| Section      | Documents                                                                                                                                                                                                                                                         |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Product      | `product/canadian-life-admin.md`, `product/canadian-document-generation.md`, `product/personal-evidence-locker.md`                                                                                                                                                |
+| Strategy     | `strategy/product-strategy.md`, `strategy/product-boundaries.md`, `strategy/target-users.md`, `strategy/positioning.md`                                                                                                                                           |
+| Architecture | `architecture/system-overview.md`, `architecture/shared-domain-model.md`, `architecture/jurisdiction-model.md`, `architecture/knowledge-architecture.md`, `architecture/evidence-architecture.md`, `architecture/ai-architecture.md`                              |
 | Requirements | `requirements/functional-requirements.md`, `requirements/non-functional-requirements.md`, `requirements/security-requirements.md`, `requirements/privacy-requirements.md`, `requirements/accessibility-requirements.md`, `requirements/bilingual-requirements.md` |
-| Workflows | `workflows/life-admin-workflows.md`, `workflows/document-generation-workflows.md`, `workflows/evidence-workflows.md` |
-| AI | `ai/ai-behaviour.md`, `ai/ai-safety.md`, `ai/escalation.md`, `ai/source-and-citation-requirements.md` |
-| Data | `data/conceptual-data-model.md`, `data/data-classification.md`, `data/retention-and-deletion.md` |
-| Documents | `documents/document-taxonomy.md`, `documents/document-generation-specification.md` |
-| Evidence | `evidence/evidence-model.md`, `evidence/evidence-integrity.md`, `evidence/timeline-model.md` |
-| Governance | `governance/legal-review-requirements.md`, `governance/knowledge-governance.md`, `governance/change-management.md` |
-| Roadmap | `roadmap/mvp.md`, `roadmap/phase-2.md`, `roadmap/phase-3.md`, `roadmap/future-opportunities.md` |
-| Decisions | `decisions/architecture-decisions.md`, `decisions/open-questions.md` |
+| Workflows    | `workflows/life-admin-workflows.md`, `workflows/document-generation-workflows.md`, `workflows/evidence-workflows.md`                                                                                                                                              |
+| AI           | `ai/ai-behaviour.md`, `ai/ai-safety.md`, `ai/escalation.md`, `ai/source-and-citation-requirements.md`                                                                                                                                                             |
+| Data         | `data/conceptual-data-model.md`, `data/data-classification.md`, `data/retention-and-deletion.md`                                                                                                                                                                  |
+| Documents    | `documents/document-taxonomy.md`, `documents/document-generation-specification.md`                                                                                                                                                                                |
+| Evidence     | `evidence/evidence-model.md`, `evidence/evidence-integrity.md`, `evidence/timeline-model.md`                                                                                                                                                                      |
+| Governance   | `governance/legal-review-requirements.md`, `governance/knowledge-governance.md`, `governance/change-management.md`                                                                                                                                                |
+| Roadmap      | `roadmap/mvp.md`, `roadmap/phase-2.md`, `roadmap/phase-3.md`, `roadmap/future-opportunities.md`                                                                                                                                                                   |
+| Decisions    | `decisions/architecture-decisions.md`, `decisions/open-questions.md`                                                                                                                                                                                              |

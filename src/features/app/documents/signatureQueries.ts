@@ -134,7 +134,10 @@ export function countUndeliveredInvites(recipients: ProductionDocumentRecipient[
 export async function loadSignatureBundle(
   organizationId: string,
   documentId: string,
-): Promise<{ signature: ProductionDocumentSignature | null; recipients: ProductionDocumentRecipient[] }> {
+): Promise<{
+  signature: ProductionDocumentSignature | null
+  recipients: ProductionDocumentRecipient[]
+}> {
   if (!supabase) throw new Error('Supabase is not configured')
 
   const { data: sigRows, error: sigError } = await supabase
@@ -160,7 +163,10 @@ export async function loadSignatureBundle(
 
   return {
     signature,
-    recipients: z.array(recipientRowSchema).parse(recRows ?? []).map(toRecipient),
+    recipients: z
+      .array(recipientRowSchema)
+      .parse(recRows ?? [])
+      .map(toRecipient),
   }
 }
 

@@ -5,7 +5,15 @@ import type { WorkspaceIdentity } from '@/features/app/workspaceMode/workspaceMo
 import { loadDoclibData, loadProductionDoclibCatalogue } from './api'
 import type { DoclibData } from './api'
 import { defaultOrgProfile } from './data'
-import type { DocRecipient, DocStatus, GeneratedDoc, Jurisdiction, OrgProfile, SignatureStatus, WorkspaceRole } from './data'
+import type {
+  DocRecipient,
+  DocStatus,
+  GeneratedDoc,
+  Jurisdiction,
+  OrgProfile,
+  SignatureStatus,
+  WorkspaceRole,
+} from './data'
 import { DoclibContext } from './doclibContext'
 
 const ROLE_KEY = 'dutiva-doclib-role'
@@ -224,7 +232,8 @@ export function DoclibProvider({ children }: { readonly children: ReactNode }) {
   )
 
   const getDocumentForEnvelope = useCallback(
-    (envelopeId: string) => dataRef.current?.documents.find((d) => d.signature?.envelopeId === envelopeId),
+    (envelopeId: string) =>
+      dataRef.current?.documents.find((d) => d.signature?.envelopeId === envelopeId),
     [],
   )
 

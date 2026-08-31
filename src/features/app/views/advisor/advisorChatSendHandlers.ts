@@ -28,7 +28,9 @@ interface ChatSendHandlersOptions {
   pushAdvisor: (spec: AdvisorTurnSpec) => string
   patchResponseState: (chatId: string, patch: Partial<ThreadResponseState>) => void
   setProdThreads: (updater: (prev: ProductionConversation[]) => ProductionConversation[]) => void
-  updateExtras: (updater: (prev: Record<string, MessageExtras>) => Record<string, MessageExtras>) => void
+  updateExtras: (
+    updater: (prev: Record<string, MessageExtras>) => Record<string, MessageExtras>,
+  ) => void
   bindBackendConversationId: (threadId: string | null, backendId: string) => void
   conversationIdRef: RefObject<string | null>
   interceptCrisis: (raw: string, chatId: string | null) => boolean

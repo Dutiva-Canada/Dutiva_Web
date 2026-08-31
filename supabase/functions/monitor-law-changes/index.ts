@@ -157,7 +157,9 @@ const MONITORED_PAGES: PageConfig[] = [
     jurisdiction: 'Saskatchewan',
     law_name: 'Saskatchewan Employment Act',
     url: 'https://www.qp.gov.sk.ca/documents/English/Statutes/Statutes/S15-1.pdf',
-    fallbacks: ['https://publications.saskatchewan.ca/api/v1/products/73330/formats/82807/download'],
+    fallbacks: [
+      'https://publications.saskatchewan.ca/api/v1/products/73330/formats/82807/download',
+    ],
   },
   // ── Nova Scotia ───────────────────────────────────────────────────────────
   {
@@ -696,10 +698,7 @@ Deno.serve(async (req) => {
       /* No hashing: the document says when it was last amended, so we compare
          that. Nothing here can be fooled by a reformat or hidden by a shell. */
       if (page.source?.kind === 'justice-xml') {
-        const verdict = assessJusticeStatute(
-          fetchResult.text ?? '',
-          page.source.consolidatedNumber,
-        )
+        const verdict = assessJusticeStatute(fetchResult.text ?? '', page.source.consolidatedNumber)
 
         if (!verdict.ok) {
           const failures = (record?.failures ?? 0) + 1

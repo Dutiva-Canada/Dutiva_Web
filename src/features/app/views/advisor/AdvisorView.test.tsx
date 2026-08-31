@@ -256,8 +256,7 @@ describe('AdvisorView', () => {
       vi.stubGlobal(
         'matchMedia',
         vi.fn((query: string) => ({
-          matches:
-            query.includes('min-width:') || query === '(prefers-reduced-motion: reduce)',
+          matches: query.includes('min-width:') || query === '(prefers-reduced-motion: reduce)',
           media: query,
           addListener: vi.fn(),
           removeListener: vi.fn(),

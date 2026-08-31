@@ -43,7 +43,7 @@ English and French are first-class product languages. Every user-facing string s
 
 `BIL-REQ-012`: French legal and administrative terminology SHALL be accurate for a Canadian French audience, with particular attention to Québec civil-law and administrative-law terms.
 
-`BIL-REQ-013`: Statute names SHALL be presented in their official French form when referencing Québec or federal French texts (e.g., *Loi sur les normes du travail*, *Code du travail*, *Charte québécoise des droits et libertés de la personne*).
+`BIL-REQ-013`: Statute names SHALL be presented in their official French form when referencing Québec or federal French texts (e.g., _Loi sur les normes du travail_, _Code du travail_, _Charte québécoise des droits et libertés de la personne_).
 
 `BIL-REQ-014`: Terms with no direct equivalent SHALL be handled by a controlled glossary and SHALL NOT be invented by machine translation.
 

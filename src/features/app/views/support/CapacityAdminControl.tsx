@@ -2,17 +2,10 @@ import { useEffect, useState } from 'react'
 import { useI18n } from '@/i18n/context'
 import { capacityMessages as M } from '@/i18n/messages/capacity'
 import type { Bi } from '@/i18n/core'
-import {
-  getCapacityStatus,
-  updateCapacityConfig,
-} from '@/features/support/capacityAdminApi'
+import { getCapacityStatus, updateCapacityConfig } from '@/features/support/capacityAdminApi'
 import type { CapacityStatus } from '@/features/support/capacityAdminApi'
 
-const MODE_ORDER: Array<'unlimited' | 'capped' | 'waitlist'> = [
-  'unlimited',
-  'capped',
-  'waitlist',
-]
+const MODE_ORDER: Array<'unlimited' | 'capped' | 'waitlist'> = ['unlimited', 'capped', 'waitlist']
 
 const MODE_LABELS: Record<'unlimited' | 'capped' | 'waitlist', Bi> = {
   unlimited: M.capacity_admin_mode_unlimited,
@@ -94,7 +87,9 @@ export function CapacityAdminControl() {
 
   return (
     <section className="mb-[20px] rounded-[12px] border border-border bg-inset px-[16px] py-[14px]">
-      <h2 className="m-0 mb-[12px] text-[13px] font-semibold text-text-2">{x(M.capacity_admin_title)}</h2>
+      <h2 className="m-0 mb-[12px] text-[13px] font-semibold text-text-2">
+        {x(M.capacity_admin_title)}
+      </h2>
 
       <div className="grid gap-[12px] sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-[8px] border border-border bg-surface px-[12px] py-[10px]">
@@ -110,7 +105,8 @@ export function CapacityAdminControl() {
         <div className="rounded-[8px] border border-border bg-surface px-[12px] py-[10px]">
           <div className="text-[11.5px] text-text-muted">{x(M.capacity_admin_utilization)}</div>
           <div className="text-[18px] font-semibold text-text">
-            {status.utilization}% — {x(THRESHOLD_LABELS[status.thresholdStatus] ?? M.capacity_threshold_normal)}
+            {status.utilization}% —{' '}
+            {x(THRESHOLD_LABELS[status.thresholdStatus] ?? M.capacity_threshold_normal)}
           </div>
         </div>
         <div className="rounded-[8px] border border-border bg-surface px-[12px] py-[10px]">
@@ -171,7 +167,11 @@ export function CapacityAdminControl() {
           disabled={saving}
           className="cursor-pointer rounded-[8px] border border-border bg-surface px-[14px] py-[7px] text-[13px] font-semibold text-text-2 disabled:opacity-60"
         >
-          {saving ? x(M.capacity_admin_saving) : saved ? x(M.capacity_admin_saved) : x(M.capacity_admin_save)}
+          {saving
+            ? x(M.capacity_admin_saving)
+            : saved
+              ? x(M.capacity_admin_saved)
+              : x(M.capacity_admin_save)}
         </button>
       </div>
 

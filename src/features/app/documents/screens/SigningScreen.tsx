@@ -8,7 +8,12 @@ import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeCont
 import { useDoclib } from '../doclibContext'
 import { DocPaper } from '../components'
 import { SignaturePad, type SignatureValue } from '../components/SignaturePad'
-import { bilingualMergeValues, isBilingualDelivery, mergeFieldValues, resolveBlocks } from '../engine'
+import {
+  bilingualMergeValues,
+  isBilingualDelivery,
+  mergeFieldValues,
+  resolveBlocks,
+} from '../engine'
 import { SigningProductionView } from './SigningProductionView'
 
 export function SigningScreen() {
@@ -24,7 +29,9 @@ function SigningDemoScreen() {
   const navigate = useNavigate()
   const { showToast } = useToasts()
   const { data, org, applySignature } = useDoclib()
-  const [selectedEmail, setSelectedEmail] = useState<string | null>(() => searchParams.get('recipient'))
+  const [selectedEmail, setSelectedEmail] = useState<string | null>(() =>
+    searchParams.get('recipient'),
+  )
   const [signature, setSignature] = useState<SignatureValue | undefined>()
 
   const doc = useMemo(() => {
@@ -67,8 +74,7 @@ function SigningDemoScreen() {
       ? bilingualMergeValues(template, doc.answers, doc.jurisdiction)
       : undefined
     const values =
-      valuesByLang?.en ??
-      mergeFieldValues(template, doc.answers, doc.jurisdiction, doc.language)
+      valuesByLang?.en ?? mergeFieldValues(template, doc.answers, doc.jurisdiction, doc.language)
     return { blocks, values, valuesByLang, bilingual }
   }, [doc, template, org])
 
@@ -154,7 +160,6 @@ function SigningDemoScreen() {
           </div>
         </div>
       )}
-
 
       <div className="flex flex-col gap-6.5 lg:flex-row">
         <div className="min-w-0 flex-1">

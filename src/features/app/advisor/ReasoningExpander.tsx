@@ -33,7 +33,10 @@ export function ReasoningExpander({ lines }: { readonly lines: readonly LText[] 
       {open && (
         <div className="mt-[6px] flex max-w-[560px] flex-col gap-[6px] rounded-[10px] bg-inset px-[12px] py-[10px]">
           {lines.map((line) => (
-            <div key={keyOfL(line)} className="flex gap-[7px] text-[12.5px] leading-normal text-text-3">
+            <div
+              key={keyOfL(line)}
+              className="flex gap-[7px] text-[12.5px] leading-normal text-text-3"
+            >
               <span className="text-text-faint">—</span>
               <span>{pickL(line, lang)}</span>
             </div>

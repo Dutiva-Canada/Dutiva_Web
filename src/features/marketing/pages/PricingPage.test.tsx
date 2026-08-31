@@ -120,10 +120,9 @@ describe('PricingPage', () => {
       'href',
       '/app/welcome',
     )
-    expect(screen.getByRole('link', { name: /Sign in to continue — Professional/ })).toHaveAttribute(
-      'href',
-      '/app/welcome',
-    )
+    expect(
+      screen.getByRole('link', { name: /Sign in to continue — Professional/ }),
+    ).toHaveAttribute('href', '/app/welcome')
   })
 
   it('shows a success card with plan name and workspace link for a Stripe return', () => {

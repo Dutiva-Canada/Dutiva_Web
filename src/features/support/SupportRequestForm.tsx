@@ -219,12 +219,18 @@ export function SupportRequestForm() {
       </Field>
 
       {category === 'security' && (
-        <p role="note" className="m-0 rounded-[10px] border border-risk-border bg-risk-bg px-[14px] py-[12px] text-[13px] leading-[1.5] text-risk-fg">
+        <p
+          role="note"
+          className="m-0 rounded-[10px] border border-risk-border bg-risk-bg px-[14px] py-[12px] text-[13px] leading-[1.5] text-risk-fg"
+        >
           {x(M.support_security_warning)}
         </p>
       )}
       {category === 'privacy' && (
-        <p role="note" className="m-0 rounded-[10px] border border-border bg-inset px-[14px] py-[12px] text-[13px] leading-[1.5] text-text-2">
+        <p
+          role="note"
+          className="m-0 rounded-[10px] border border-border bg-inset px-[14px] py-[12px] text-[13px] leading-[1.5] text-text-2"
+        >
           {x(M.support_privacy_notice)}
         </p>
       )}
@@ -257,7 +263,10 @@ export function SupportRequestForm() {
       </Field>
 
       {category === 'billing' && (
-        <Field id={fid('billingref')} label={`${x(M.support_cond_billing_ref)} (${x(M.support_optional)})`}>
+        <Field
+          id={fid('billingref')}
+          label={`${x(M.support_cond_billing_ref)} (${x(M.support_optional)})`}
+        >
           <input
             id={fid('billingref')}
             value={billingRef}
@@ -268,7 +277,10 @@ export function SupportRequestForm() {
         </Field>
       )}
       {category === 'accessibility' && (
-        <Field id={fid('accommodation')} label={`${x(M.support_cond_accessibility)} (${x(M.support_optional)})`}>
+        <Field
+          id={fid('accommodation')}
+          label={`${x(M.support_cond_accessibility)} (${x(M.support_optional)})`}
+        >
           <input
             id={fid('accommodation')}
             value={accommodation}
@@ -300,11 +312,20 @@ export function SupportRequestForm() {
         />
       </Field>
 
-      <FirstLineSuggestions query={`${subject} ${description}`} category={category} allowGenerative />
+      <FirstLineSuggestions
+        query={`${subject} ${description}`}
+        category={category}
+        allowGenerative
+      />
 
       <div className="grid grid-cols-1 gap-[18px] min-[560px]:grid-cols-2">
         <Field id={fid('impact')} label={x(M.support_field_impact)}>
-          <select id={fid('impact')} value={impact} onChange={(e) => setImpact(e.target.value as SupportImpact)} className={selectClass}>
+          <select
+            id={fid('impact')}
+            value={impact}
+            onChange={(e) => setImpact(e.target.value as SupportImpact)}
+            className={selectClass}
+          >
             {IMPACTS.map((i) => (
               <option key={i} value={i}>
                 {x(IMPACT_LABELS[i])}
@@ -313,7 +334,12 @@ export function SupportRequestForm() {
           </select>
         </Field>
         <Field id={fid('urgency')} label={x(M.support_field_urgency)}>
-          <select id={fid('urgency')} value={urgency} onChange={(e) => setUrgency(e.target.value as SupportUrgency)} className={selectClass}>
+          <select
+            id={fid('urgency')}
+            value={urgency}
+            onChange={(e) => setUrgency(e.target.value as SupportUrgency)}
+            className={selectClass}
+          >
             {URGENCIES.map((u) => (
               <option key={u} value={u}>
                 {x(URGENCY_LABELS[u])}
@@ -322,13 +348,23 @@ export function SupportRequestForm() {
           </select>
         </Field>
         <Field id={fid('language')} label={x(M.support_field_language)}>
-          <select id={fid('language')} value={language} onChange={(e) => setLanguage(e.target.value as 'en' | 'fr')} className={selectClass}>
+          <select
+            id={fid('language')}
+            value={language}
+            onChange={(e) => setLanguage(e.target.value as 'en' | 'fr')}
+            className={selectClass}
+          >
             <option value="en">English</option>
             <option value="fr">Français</option>
           </select>
         </Field>
         <Field id={fid('method')} label={x(M.support_field_response_method)}>
-          <select id={fid('method')} value={responseMethod} onChange={(e) => setResponseMethod(e.target.value as ResponseMethod)} className={selectClass}>
+          <select
+            id={fid('method')}
+            value={responseMethod}
+            onChange={(e) => setResponseMethod(e.target.value as ResponseMethod)}
+            className={selectClass}
+          >
             {METHODS.map((m) => (
               <option key={m} value={m}>
                 {x(RESPONSE_METHOD_LABELS[m])}
@@ -384,7 +420,10 @@ export function SupportRequestForm() {
       </div>
 
       {submitError && (
-        <p role="alert" className="m-0 rounded-[10px] border border-risk-border bg-risk-bg px-[14px] py-[12px] text-[13px] text-risk-fg">
+        <p
+          role="alert"
+          className="m-0 rounded-[10px] border border-risk-border bg-risk-bg px-[14px] py-[12px] text-[13px] text-risk-fg"
+        >
           {submitError}
         </p>
       )}
@@ -398,9 +437,7 @@ export function SupportRequestForm() {
           {submitting ? x(M.support_submitting) : x(M.support_submit)}
         </button>
       </div>
-      <p className="m-0 text-[12px] text-text-faint">
-        {supportChannel('support').email}
-      </p>
+      <p className="m-0 text-[12px] text-text-faint">{supportChannel('support').email}</p>
     </form>
   )
 }

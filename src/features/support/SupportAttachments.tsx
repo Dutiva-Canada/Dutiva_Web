@@ -101,7 +101,9 @@ export function SupportAttachments({
             <li key={a.id} className="flex items-center gap-[10px]">
               <FileText size={16} aria-hidden="true" className="flex-none text-text-muted" />
               <span className="min-w-0 flex-1 truncate text-[13px] text-text">{a.fileName}</span>
-              <span className="flex-none text-[12px] text-text-faint">{formatBytes(a.sizeBytes)}</span>
+              <span className="flex-none text-[12px] text-text-faint">
+                {formatBytes(a.sizeBytes)}
+              </span>
               {a.scanStatus === 'pending' && (
                 <span className="flex-none rounded-full border border-border px-[8px] py-[1px] text-[11px] text-text-muted">
                   {x(M.support_attach_scan_pending)}

@@ -36,7 +36,8 @@ system, card and layout composition, and responsive behavior are final-intent an
 real design-system tokens (`_ds/.../tokens/*.css`, `.surface-app` ramp). Recreate the UI
 closely.
 
-Everything *behind* the UI is illustrative:
+Everything _behind_ the UI is illustrative:
+
 - All data (16 templates, 14 sample documents, 7 employees, 4 cases) is fictional sample
   content for a fictional org ("Northgate Logistics Inc.").
 - There is no backend. No auth, no persistence, no real e-signature integration, no PDF
@@ -59,6 +60,7 @@ is no real routing — recommend real routes in production (e.g.
 so links, back button, and refresh all work.
 
 ### 1. Document Studio (template library)
+
 Grid of the 16 templates, grouped by category (Hiring & onboarding · Agreements & IP ·
 Policies & handbook · Performance & discipline · Termination & offboarding), each card
 showing: template ID (T01–T16), risk chip, name, 2-line description, jurisdiction pills,
@@ -67,16 +69,19 @@ below), version, est. completion time, and a "Generate" button.
 
 Above the grid: an **organization compliance profile** bar (headcount tier, sector,
 union toggle — editable inline, drives applicability live) and a toolbar (search + category
-+ jurisdiction + risk filters). Empty state when filters match nothing.
+
+- jurisdiction + risk filters). Empty state when filters match nothing.
 
 ### 2. Template Detail
+
 Single template: risk/review chips, full description, per-jurisdiction legal notes,
 statutory references, "what's included" checklist, and an applicability card explaining
-*why* this template does/doesn't apply to the current org profile. Right rail (sticky):
+_why_ this template does/doesn't apply to the current org profile. Right rail (sticky):
 a sample rendered preview of the document and a "Generate document" CTA. Below the fold,
 the standing Dutiva disclaimer ("not legal advice").
 
 ### 3. Generation flow (3-step wizard)
+
 - **Step 0 — Context:** who/where this document is for (employee picker — required for
   employee-scoped templates, optional/linked for candidate templates, hidden for org-wide
   templates), case file, jurisdiction, document language.
@@ -92,6 +97,7 @@ control (click any completed step to jump back) and an autosave indicator
 (unsaved → saving… → all changes saved).
 
 ### 4. Document Repository
+
 Every generated document for the org. Search, group-by (none/employee/status/category),
 show-archived toggle, and six independent filters (status, review, signature, risk,
 jurisdiction, employee). Desktop: an 8-column table (title, employee/scope, jurisdiction,
@@ -99,6 +105,7 @@ status, review, signature, risk, updated). **Below 768px this becomes stacked la
 cards** — see "Responsive behavior."
 
 ### 5. Document Detail
+
 Header: title, reference number, template name, and all four status chips. Tabs:
 **Preview** (rendered document), **Fields** (every merge field and its current value or
 "not filled"), **Versions** (change history), **Recipients & signatures** (signing order,
@@ -111,6 +118,7 @@ Restore, Void) are role-gated and status-gated — see `docActionsFor()` logic d
 below.
 
 ### 6. Data Model & Handoff (dev-only view)
+
 A visual walkthrough of the intended schema: end-to-end flow, entity cards (table name,
 domain group, RLS flag, key fields, relations, "where it surfaces in the UI"), status
 enums, a roles × permissions matrix, and the audit event catalogue. **This screen's
@@ -143,8 +151,8 @@ permissions, EN/FR toggle, light/dark toggle). Toasts confirm actions bottom-rig
   ~800ms flips to "saving…", then ~650ms later to "all changes saved." Replace with real
   debounced writes to `document_generation_sessions`.
 - **Applicability engine** (`applicability(template)` in the prototype logic): given the
-  org's headcount, union status, and sector, returns one of *required for you* / *applies
-  to you* / *applies above your size* / *collective agreement governs*, plus the specific
+  org's headcount, union status, and sector, returns one of _required for you_ / _applies
+  to you_ / _applies above your size_ / _collective agreement governs_, plus the specific
   legal reason text. Drives both the Studio card chip and the Detail applicability card.
   Rules encoded in the sample data: ON disconnecting-from-work policy triggers at 25+
   employees; mass/group termination provisions trigger at 50+; several termination/
@@ -184,8 +192,8 @@ port this shape verbatim):
 - **Org compliance profile:** `orgHeadcount`, `orgUnion`, `orgSector` — in production this
   is `organizations` row data, not local UI state.
 - **Generation wizard:** a single `gen` object — `{ step, employeeId, caseId,
-  jurisdiction, language, answers: {}, saveState }`. `answers` is a flat `{questionId:
-  value}` map keyed by the active template's question schema.
+jurisdiction, language, answers: {}, saveState }`. `answers` is a flat `{questionId:
+value}` map keyed by the active template's question schema.
 - **Repository:** `rq` (search), `rf` (an object of 7 independent filter values),
   `showArchived`, `groupBy`.
 - **Data-model view:** `dmGroup` (entity-group filter chip).
@@ -208,23 +216,23 @@ provider-agnostic e-signature.
 
 ### Entities
 
-| Table | Domain | RLS | Key fields | Relations | Surfaces in UI as |
-|---|---|---|---|---|---|
-| `organizations` | Identity & access | ✓ | `id, name, employee_count, size_tier, unionized, sector, federally_regulated, primary_jurisdiction, created_at` | has many members/employees/documents/templates | Workspace switcher; org compliance profile bar |
-| `profiles` | Identity & access | ✓ | `id, full_name, email, avatar_url` | belongs to many orgs via `organization_members` | User menu; `created_by`/`updated_by` |
-| `organization_members` | Identity & access | ✓ | `id, organization_id, profile_id, role (owner\|hr\|manager\|viewer\|external), created_at` | → organizations, → profiles | Role switcher; permission gating (**the heart of RLS**) |
-| `employees` | People & cases | ✓ | `id, organization_id, name, role, jurisdiction, status` | has many documents, employee_cases | Generation context picker; repository filter |
-| `employee_cases` | People & cases | ✓ | `id, organization_id, employee_id, title, jurisdiction, risk` | → employees; has many documents | Generation context picker; repository filter |
-| `document_template_categories` | Template library | – | `id, key, name_en, name_fr, order` | has many document_templates | Studio category sections & filter |
-| `document_templates` | Template library | – | `id, category_id, template_key, name_en/fr, description_en/fr, jurisdictions_supported[], risk_level, requires_lawyer_review, is_active, status, created_at, updated_at` | → category; has many versions | Studio cards & detail |
-| `document_template_versions` | Template library | – | `id, template_id, version_number, language, body_content, schema_json, question_flow_json, clause_library_json, statutory_references_json, effective_date, deprecated_at, created_by` | → template; referenced by `documents.template_version_id` | Template detail; generation questions & preview |
-| `document_generation_sessions` | Generated documents | ✓ | `id, organization_id, template_version_id, employee_id?, case_id?, answers_json, language, jurisdiction, created_by` | → template_version; becomes a `documents` row on save | The guided generation wizard |
-| `documents` | Generated documents | ✓ | `id, organization_id, employee_id?, case_id?, template_id, template_version_id, title, language, jurisdiction, status, risk_level, review_status, signature_status, current_version_id, created_by, updated_by, created_at, updated_at, archived_at` | → template_version (frozen); → employee/case; has many versions/recipients/signatures/audit_events | Repository row + detail header |
-| `document_versions` | Generated documents | ✓ | `id, document_id, version_number, content, answers_json, generated_fields_json, change_summary, created_by, created_at` | → documents | Versions tab |
-| `document_recipients` | Signatures & audit | ✓ | `id, document_id, recipient_type (employee\|manager\|hr\|external), name, email, signing_order, status, signed_at` | → documents | Recipients & signatures tab |
-| `document_signatures` | Signatures & audit | ✓ | `id, document_id, provider, external_envelope_id, status, sent_at, viewed_at, signed_at, declined_at, expires_at` | → documents | Recipients & signatures tab |
-| `document_exports` | Signatures & audit | ✓ | `id, document_id, format, exported_by, created_at` | → documents | Export action + audit entries |
-| `document_audit_events` | Signatures & audit | ✓ | `id, organization_id, document_id, actor_id, event_type, event_metadata, created_at` | → documents; → profiles (actor) | Audit trail tab — **append-only** |
+| Table                          | Domain              | RLS | Key fields                                                                                                                                                                                                                                           | Relations                                                                                          | Surfaces in UI as                                       |
+| ------------------------------ | ------------------- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `organizations`                | Identity & access   | ✓   | `id, name, employee_count, size_tier, unionized, sector, federally_regulated, primary_jurisdiction, created_at`                                                                                                                                      | has many members/employees/documents/templates                                                     | Workspace switcher; org compliance profile bar          |
+| `profiles`                     | Identity & access   | ✓   | `id, full_name, email, avatar_url`                                                                                                                                                                                                                   | belongs to many orgs via `organization_members`                                                    | User menu; `created_by`/`updated_by`                    |
+| `organization_members`         | Identity & access   | ✓   | `id, organization_id, profile_id, role (owner\|hr\|manager\|viewer\|external), created_at`                                                                                                                                                           | → organizations, → profiles                                                                        | Role switcher; permission gating (**the heart of RLS**) |
+| `employees`                    | People & cases      | ✓   | `id, organization_id, name, role, jurisdiction, status`                                                                                                                                                                                              | has many documents, employee_cases                                                                 | Generation context picker; repository filter            |
+| `employee_cases`               | People & cases      | ✓   | `id, organization_id, employee_id, title, jurisdiction, risk`                                                                                                                                                                                        | → employees; has many documents                                                                    | Generation context picker; repository filter            |
+| `document_template_categories` | Template library    | –   | `id, key, name_en, name_fr, order`                                                                                                                                                                                                                   | has many document_templates                                                                        | Studio category sections & filter                       |
+| `document_templates`           | Template library    | –   | `id, category_id, template_key, name_en/fr, description_en/fr, jurisdictions_supported[], risk_level, requires_lawyer_review, is_active, status, created_at, updated_at`                                                                             | → category; has many versions                                                                      | Studio cards & detail                                   |
+| `document_template_versions`   | Template library    | –   | `id, template_id, version_number, language, body_content, schema_json, question_flow_json, clause_library_json, statutory_references_json, effective_date, deprecated_at, created_by`                                                                | → template; referenced by `documents.template_version_id`                                          | Template detail; generation questions & preview         |
+| `document_generation_sessions` | Generated documents | ✓   | `id, organization_id, template_version_id, employee_id?, case_id?, answers_json, language, jurisdiction, created_by`                                                                                                                                 | → template_version; becomes a `documents` row on save                                              | The guided generation wizard                            |
+| `documents`                    | Generated documents | ✓   | `id, organization_id, employee_id?, case_id?, template_id, template_version_id, title, language, jurisdiction, status, risk_level, review_status, signature_status, current_version_id, created_by, updated_by, created_at, updated_at, archived_at` | → template_version (frozen); → employee/case; has many versions/recipients/signatures/audit_events | Repository row + detail header                          |
+| `document_versions`            | Generated documents | ✓   | `id, document_id, version_number, content, answers_json, generated_fields_json, change_summary, created_by, created_at`                                                                                                                              | → documents                                                                                        | Versions tab                                            |
+| `document_recipients`          | Signatures & audit  | ✓   | `id, document_id, recipient_type (employee\|manager\|hr\|external), name, email, signing_order, status, signed_at`                                                                                                                                   | → documents                                                                                        | Recipients & signatures tab                             |
+| `document_signatures`          | Signatures & audit  | ✓   | `id, document_id, provider, external_envelope_id, status, sent_at, viewed_at, signed_at, declined_at, expires_at`                                                                                                                                    | → documents                                                                                        | Recipients & signatures tab                             |
+| `document_exports`             | Signatures & audit  | ✓   | `id, document_id, format, exported_by, created_at`                                                                                                                                                                                                   | → documents                                                                                        | Export action + audit entries                           |
+| `document_audit_events`        | Signatures & audit  | ✓   | `id, organization_id, document_id, actor_id, event_type, event_metadata, created_at`                                                                                                                                                                 | → documents; → profiles (actor)                                                                    | Audit trail tab — **append-only**                       |
 
 **RLS principle** (from the prototype's own note): every table is org-scoped. Row Level
 Security limits reads to the caller's `organization_members` row; role drives write
@@ -253,32 +261,32 @@ create policy "org members can read their org's documents"
 ### Status enums
 
 - **`documents.status`:** `draft, in_review, needs_revision, approved, sent_for_signature,
-  partially_signed, signed, exported, archived, voided, deleted`
+partially_signed, signed, exported, archived, voided, deleted`
 - **`review_status`:** `not_reviewed, hr_review_required, lawyer_review_recommended,
-  approved_for_use`
+approved_for_use`
 - **`signature_status`:** `not_sent, sent, viewed, pending, partially_signed, signed,
-  declined, expired, voided`
+declined, expired, voided`
 - **`risk_level`:** `low, medium, high`
 
 ### Roles & permissions (drives RLS + UI gating)
 
-| Capability | Owner/Admin | HR manager | Manager | Viewer | External signer |
-|---|---|---|---|---|---|
-| View repository | ✓ | ✓ | ✓ | ✓ | – |
-| View studio | ✓ | ✓ | ✓ | ✓ | – |
-| Generate | ✓ | ✓ | ✓ | – | – |
-| Edit | ✓ | ✓ | – | – | – |
-| Request review | ✓ | ✓ | ✓ | – | – |
-| Approve review | ✓ | ✓ | – | – | – |
-| Send for signature | ✓ | ✓ | – | – | – |
-| Export | ✓ | ✓ | ✓ | – | – |
-| Archive | ✓ | ✓ | – | – | – |
-| Restore | ✓ | – | – | – | – |
-| Void | ✓ | – | – | – | – |
-| Manage permissions | ✓ | – | – | – | – |
-| View audit | ✓ | ✓ | – | – | – |
+| Capability         | Owner/Admin | HR manager | Manager | Viewer | External signer |
+| ------------------ | ----------- | ---------- | ------- | ------ | --------------- |
+| View repository    | ✓           | ✓          | ✓       | ✓      | –               |
+| View studio        | ✓           | ✓          | ✓       | ✓      | –               |
+| Generate           | ✓           | ✓          | ✓       | –      | –               |
+| Edit               | ✓           | ✓          | –       | –      | –               |
+| Request review     | ✓           | ✓          | ✓       | –      | –               |
+| Approve review     | ✓           | ✓          | –       | –      | –               |
+| Send for signature | ✓           | ✓          | –       | –      | –               |
+| Export             | ✓           | ✓          | ✓       | –      | –               |
+| Archive            | ✓           | ✓          | –       | –      | –               |
+| Restore            | ✓           | –          | –       | –      | –               |
+| Void               | ✓           | –          | –       | –      | –               |
+| Manage permissions | ✓           | –          | –       | –      | –               |
+| View audit         | ✓           | ✓          | –       | –      | –               |
 
-Role notes from the sample data: Manager access is meant to be scoped to *assigned*
+Role notes from the sample data: Manager access is meant to be scoped to _assigned_
 employees/cases only (not implemented in the prototype — it shows all); External signer
 should see only their own assigned signing package, nothing else in the workspace — model
 this as a separate, narrowly-scoped read path, not the same query with a role check
@@ -311,11 +319,12 @@ service roles.
 
 Each template version's content (`document_template_versions.schema_json` /
 `question_flow_json` / `body_content`) is structured as:
+
 - **`questions[]`**: `{ id, section_en/fr, label_en/fr, type (text|textarea|date|number|
-  select|radio), required, placeholder_en/fr, hint_en/fr?, options[]? }` — drives the wizard
+select|radio), required, placeholder_en/fr, hint_en/fr?, options[]? }` — drives the wizard
   form and the Fields tab.
 - **`preview[]`**: ordered content blocks — `{type: "title"|"meta"|"para"|"clause"|"sig"|
-  "ack"|"note", en, fr, when?}` — `{{snake_case}}` tokens inside `en`/`fr` text are merge
+"ack"|"note", en, fr, when?}` — `{{snake_case}}` tokens inside `en`/`fr` text are merge
   fields resolved from `answers` (plus computed tokens: `org`, `today`, `jurisdiction`,
   `statute`). `when: {juris, min_headcount, union}` makes a block conditional.
 - **`body_content` (full legal text):** a small number of templates additionally carry a
@@ -333,22 +342,23 @@ renders on the **`.surface-app`** (light-first workspace) ramp, flipping to dark
 route titles, `--font-sans` (Inter) for body/UI. Radii, shadows, and motion all come from
 `tokens/elevation.css` / `tokens/animations.css`.
 
-**Important gap:** the prototype consumes the design system's CSS *tokens* (colors,
+**Important gap:** the prototype consumes the design system's CSS _tokens_ (colors,
 type, spacing) but hand-rolled its own HTML/CSS for pieces the system already ships as
 real components — it does not actually mount `StatusChip`, `Toast`/`ToastStack`,
 `Sidebar`, or `Topbar` from `components/app/`. In production, use the real components
 instead of reimplementing them:
 
-| Prototype's ad hoc CSS | Use instead |
-|---|---|
-| `.chip.tone-{risk\|warn\|ok\|info\|gold\|neutral}` + `.cdot` | `StatusChip` / `StatusDot` |
-| Bottom-right toast stack | `Toast` / `ToastStack` |
-| Left nav rail | `Sidebar` |
-| Top header bar | `Topbar` |
-| Advisor-style embedded answer card *(not used here, but relevant if this feature ever surfaces Advisor content)* | `ToneCard` / `CitationChips` |
+| Prototype's ad hoc CSS                                                                                           | Use instead                  |
+| ---------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| `.chip.tone-{risk\|warn\|ok\|info\|gold\|neutral}` + `.cdot`                                                     | `StatusChip` / `StatusDot`   |
+| Bottom-right toast stack                                                                                         | `Toast` / `ToastStack`       |
+| Left nav rail                                                                                                    | `Sidebar`                    |
+| Top header bar                                                                                                   | `Topbar`                     |
+| Advisor-style embedded answer card _(not used here, but relevant if this feature ever surfaces Advisor content)_ | `ToneCard` / `CitationChips` |
 
 CSS built specifically for this feature, with no existing design-system equivalent —
 worth formalizing as shared components since they'll recur anywhere documents render:
+
 - **`.jchip`** — small jurisdiction pill (ON/QC/FED), distinct from a status chip.
 - **`.doc-body` / `.doc-full`** + **`.mf` / `.mf.filled`** — the rendered-document "paper"
   typography, including the merge-field highlight treatment (unfilled vs. filled). This is
@@ -364,6 +374,7 @@ worth formalizing as shared components since they'll recur anywhere documents re
 ## Content & Legal Content — read before scoping
 
 Two categories of "content" in this feature need different owners:
+
 1. **UI copy** (~230 keys × EN/FR, namespaced `app.*`, `nav.*`, `studio.*`, `detail.*`,
    `gen.*`, `repo.*`, `col.*`, `filter.*`, `docd.*`, `dm.*`, `toast.*`, `disc.*`,
    `common.*`, `profile.*`, `applic.*` in `dutiva-data.js` → `DUTIVA_DATA.i18n`). Port these
@@ -390,7 +401,7 @@ To keep this maintainable and easy to extend past the initial 16 templates:
 - **Move the applicability + conditional-clause engine server-side** (a Postgres function
   or Edge Function), so the legal text a document actually contains is computed
   consistently and auditably rather than duplicated in client logic that could drift from
-  the server's understanding. Store the *resolved* clause set on the saved
+  the server's understanding. Store the _resolved_ clause set on the saved
   `document_versions.content`, not just the answers — so a later change to the engine's
   rules doesn't retroactively alter a document that was already finalized/signed.
 - **E-signature adapter interface:** keep the UI's provider-agnostic framing
@@ -408,12 +419,13 @@ To keep this maintainable and easy to extend past the initial 16 templates:
 ## Known Gaps / Not Yet Designed
 
 Product/engineering decisions the prototype does not resolve:
+
 - **Auth & onboarding:** no login/signup/invite-teammate flows exist. Assumed to be
   Supabase Auth, but method (password/magic link/SSO) and the multi-org workspace-switcher
   UI are undesigned.
 - **Manager/external scoping:** the permission matrix implies Manager sees only assigned
   employees/cases and External signer sees only their own signing package, but the
-  prototype (no backend) shows everything to every role — the *query-level* scoping needs
+  prototype (no backend) shows everything to every role — the _query-level_ scoping needs
   real design, not just a UI role switch.
 - **Real e-signature + export:** both are fully simulated (a status flip + a toast). Needs
   a real provider integration, webhook handling, and actual PDF/DOCX rendering + Storage.

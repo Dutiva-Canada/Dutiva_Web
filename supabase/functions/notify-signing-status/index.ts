@@ -23,8 +23,7 @@ function json(body: unknown, status = 200) {
   })
 }
 
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 function isAuthorizedInternal(req: Request): boolean {
   const sharedSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? ''
@@ -58,14 +57,14 @@ Deno.serve(async (req: Request) => {
 
   const organizationId = typeof body.organization_id === 'string' ? body.organization_id : ''
   const documentId = typeof body.document_id === 'string' ? body.document_id : ''
-  const event = body.event === 'declined' ? 'declined' : body.event === 'completed' ? 'completed' : null
+  const event =
+    body.event === 'declined' ? 'declined' : body.event === 'completed' ? 'completed' : null
 
   if (!UUID_RE.test(organizationId) || !UUID_RE.test(documentId) || !event) {
     return json({ error: 'organization_id, document_id, and event are required' }, 400)
   }
 
-  const apiKey =
-    Deno.env.get('RESEND_API_KEY') ?? Deno.env.get('SUPPORT_EMAIL_PROVIDER_API_KEY')
+  const apiKey = Deno.env.get('RESEND_API_KEY') ?? Deno.env.get('SUPPORT_EMAIL_PROVIDER_API_KEY')
   if (!apiKey) return json({ ok: true, skipped: true, reason: 'no_provider' })
 
   const from =
@@ -76,21 +75,24 @@ Deno.serve(async (req: Request) => {
 
   const admin = createClient(supabaseUrl, serviceRoleKey)
 
-  const [{ data: org }, { data: doc }, { data: adminEmails, error: emailError }] = await Promise.all([
-    admin.from('organizations').select('id, name').eq('id', organizationId).maybeSingle(),
-    admin
-      .from('hr_generated_documents')
-      .select('id, ref, title_en, title_fr, language')
-      .eq('id', documentId)
-      .eq('organization_id', organizationId)
-      .maybeSingle(),
-    admin.rpc('_hr_org_admin_emails', { p_org_id: organizationId }),
-  ])
+  const [{ data: org }, { data: doc }, { data: adminEmails, error: emailError }] =
+    await Promise.all([
+      admin.from('organizations').select('id, name').eq('id', organizationId).maybeSingle(),
+      admin
+        .from('hr_generated_documents')
+        .select('id, ref, title_en, title_fr, language')
+        .eq('id', documentId)
+        .eq('organization_id', organizationId)
+        .maybeSingle(),
+      admin.rpc('_hr_org_admin_emails', { p_org_id: organizationId }),
+    ])
 
   if (emailError) return json({ error: emailError.message }, 500)
   if (!org || !doc) return json({ error: 'Document not found' }, 404)
 
-  const emails = (adminEmails ?? []).filter((e): e is string => typeof e === 'string' && e.includes('@'))
+  const emails = (adminEmails ?? []).filter(
+    (e): e is string => typeof e === 'string' && e.includes('@'),
+  )
   if (emails.length === 0) return json({ ok: true, skipped: true, reason: 'no_admin_emails' })
 
   const docLang: Lang = doc.language === 'fr' ? 'fr' : 'en'
@@ -110,9 +112,10 @@ Deno.serve(async (req: Request) => {
       .limit(1)
       .maybeSingle()
     if (declined) {
-      signerSummary = docLang === 'fr'
-        ? `Signataire : ${declined.name} (${declined.email})${declined.decline_reason ? `\nMotif : ${declined.decline_reason}` : ''}`
-        : `Signer: ${declined.name} (${declined.email})${declined.decline_reason ? `\nReason: ${declined.decline_reason}` : ''}`
+      signerSummary =
+        docLang === 'fr'
+          ? `Signataire : ${declined.name} (${declined.email})${declined.decline_reason ? `\nMotif : ${declined.decline_reason}` : ''}`
+          : `Signer: ${declined.name} (${declined.email})${declined.decline_reason ? `\nReason: ${declined.decline_reason}` : ''}`
     }
   }
 

@@ -198,7 +198,10 @@ export function AnalyticsProductionView() {
       scoreComponent('tasks', taskRows.filter((t) => t.done).length, taskRows.length),
       weightedComponent(
         'findings',
-        findingRows.map((f) => ({ done: f.resolved, weight: FINDING_SEVERITY_WEIGHTS[f.severity] })),
+        findingRows.map((f) => ({
+          done: f.resolved,
+          weight: FINDING_SEVERITY_WEIGHTS[f.severity],
+        })),
       ),
       scoreComponent(
         'obligations',
@@ -212,7 +215,10 @@ export function AnalyticsProductionView() {
     () => rowsOf(findings.state).filter((f) => !f.resolved && f.severity === 'critical').length,
     [findings.state],
   )
-  const ceiling = applyCriticalCeiling(scoreReady ? blendScore(components) : null, openCriticalCount)
+  const ceiling = applyCriticalCeiling(
+    scoreReady ? blendScore(components) : null,
+    openCriticalCount,
+  )
   const liveScore = ceiling.score
 
   const activeEmployees = useMemo(
@@ -293,20 +299,20 @@ export function AnalyticsProductionView() {
   if (coreReady && !hasAnyData) {
     return (
       <AppPage width="default" responsivePad>
-          <div className="rounded-[12px] border border-border bg-surface px-[24px] py-[40px] text-center">
-            <div className="mx-auto mb-[14px] flex h-[44px] w-[44px] items-center justify-center rounded-[12px] bg-inset">
-              <ChartNoAxesColumn
-                size={20}
-                strokeWidth={1.7}
-                className="text-text-muted"
-                aria-hidden="true"
-              />
-            </div>
-            <div className="mb-[6px] text-[15px] font-semibold text-text">
-              {x(M.analytics_prod_empty_title)}
-            </div>
-            <p className="m-0 text-[13px] text-text-muted">{x(M.analytics_prod_empty_body)}</p>
+        <div className="rounded-[12px] border border-border bg-surface px-[24px] py-[40px] text-center">
+          <div className="mx-auto mb-[14px] flex h-[44px] w-[44px] items-center justify-center rounded-[12px] bg-inset">
+            <ChartNoAxesColumn
+              size={20}
+              strokeWidth={1.7}
+              className="text-text-muted"
+              aria-hidden="true"
+            />
           </div>
+          <div className="mb-[6px] text-[15px] font-semibold text-text">
+            {x(M.analytics_prod_empty_title)}
+          </div>
+          <p className="m-0 text-[13px] text-text-muted">{x(M.analytics_prod_empty_body)}</p>
+        </div>
       </AppPage>
     )
   }
@@ -504,331 +510,326 @@ export function AnalyticsProductionView() {
 
   return (
     <AppPage width="default" responsivePad>
-        <div className="mb-[14px] text-[13px] text-text-muted">{x(M.analytics_live_note)}</div>
+      <div className="mb-[14px] text-[13px] text-text-muted">{x(M.analytics_live_note)}</div>
 
-        <div className="grid grid-cols-1 gap-[14px] min-[900px]:grid-cols-2 min-[900px]:gap-[16px]">
-          {/* Compliance score */}
-          <AnalyticsCard
-            title={x(M.analytics_score_title)}
-            className="min-[900px]:col-span-2"
-            hidden={!show('score')}
-          >
-            <CardData deps={[policies, tasks, findings, obligations, snapshots]} skeletonLines={4}>
-              {() =>
-                liveScore === null ? (
-                  <CardEmpty text={x(M.analytics_score_empty)} />
-                ) : (
-                  <>
-                    <ScoreHero score={liveScore} delta={scoreDeltaValue} />
-                    {ceiling.capped && (
-                      <p className="mt-[8px] mb-0 text-[12.5px] font-medium text-risk-fg">
-                        {fill(x(M.analytics_score_capped_note), {
-                          ceiling: CRITICAL_SCORE_CEILING,
-                        })}
-                      </p>
-                    )}
-                    {history.length >= 2 ? (
-                      <div className="mt-[10px]">
-                        <TrendLineChart
-                          points={history.map((p) => ({ monthISO: p.monthISO, value: p.score }))}
-                          ariaLabel={x(M.analytics_score_chart_aria).replace(
-                            '{points}',
-                            history
-                              .map(
-                                (p) => `${formatMonthISO(p.monthISO, locale, 'long')} ${p.score}`,
-                              )
-                              .join(', '),
-                          )}
-                          valueHeader={x(M.analytics_score_table_score)}
-                          clampMax={100}
-                        />
-                      </div>
-                    ) : (
-                      <p className="mt-[10px] mb-0 text-[12.5px] text-text-muted">
-                        {x(M.analytics_score_first_point)}
-                      </p>
-                    )}
-                    {hasOlderFormulaPoints && (
-                      <p className="mt-[8px] mb-0 text-[11.5px] text-text-faint">
-                        {x(M.analytics_score_formula_note)}
-                      </p>
-                    )}
-                    {breakdownRows.length > 0 && (
-                      <div className="mt-[14px] border-t border-border-soft pt-[14px]">
-                        <div className="mb-[10px] text-[11.5px] font-bold tracking-[0.04em] uppercase text-text-muted">
-                          {x(M.analytics_score_breakdown_title)}
-                        </div>
-                        <ScoreBreakdownMeters rows={breakdownRows} />
-                      </div>
-                    )}
-                  </>
-                )
-              }
-            </CardData>
-          </AnalyticsCard>
-
-          {/* Needs attention */}
-          <AnalyticsCard
-            title={x(M.analytics_attention_title)}
-            subtitle={x(M.analytics_attention_sub)}
-            hidden={!show('attention')}
-          >
-            <CardData deps={[tasks, hrCases, obligations]} skeletonLines={4}>
-              {() =>
-                attentionRows.length === 0 ? (
-                  <CardEmpty text={x(M.analytics_attention_empty)} />
-                ) : (
-                  <AttentionList
-                    rows={attentionRows}
-                    viewAllHref="/app/planning/tasks"
-                    viewAllLabel={fill(x(M.analytics_attention_view_all), { n: ranked.length })}
-                  />
-                )
-              }
-            </CardData>
-          </AnalyticsCard>
-
-          {/* Headcount by jurisdiction */}
-          <AnalyticsCard
-            title={x(M.analytics_headcount_title)}
-            subtitle={
-              activeEmployees.length > 0
-                ? fill(x(M.analytics_headcount_total), { n: activeEmployees.length })
-                : undefined
-            }
-            hidden={!show('headcount')}
-          >
-            <CardData deps={[employees]} skeletonLines={4}>
-              {() =>
-                headcountRows.length === 0 ? (
-                  <CardEmpty text={x(M.analytics_headcount_empty)} />
-                ) : (
-                  <>
-                    <JurisdictionBars rows={headcountRows} />
-                    <p className="mt-[10px] mb-0 text-[11.5px] text-text-faint">
-                      {x(M.analytics_headcount_footnote)}
+      <div className="grid grid-cols-1 gap-[14px] min-[900px]:grid-cols-2 min-[900px]:gap-[16px]">
+        {/* Compliance score */}
+        <AnalyticsCard
+          title={x(M.analytics_score_title)}
+          className="min-[900px]:col-span-2"
+          hidden={!show('score')}
+        >
+          <CardData deps={[policies, tasks, findings, obligations, snapshots]} skeletonLines={4}>
+            {() =>
+              liveScore === null ? (
+                <CardEmpty text={x(M.analytics_score_empty)} />
+              ) : (
+                <>
+                  <ScoreHero score={liveScore} delta={scoreDeltaValue} />
+                  {ceiling.capped && (
+                    <p className="mt-[8px] mb-0 text-[12.5px] font-medium text-risk-fg">
+                      {fill(x(M.analytics_score_capped_note), {
+                        ceiling: CRITICAL_SCORE_CEILING,
+                      })}
                     </p>
-                  </>
-                )
-              }
-            </CardData>
-          </AnalyticsCard>
-
-          {/* Open cases */}
-          <AnalyticsCard title={x(M.analytics_cases_title)} hidden={!show('cases')}>
-            <CardData deps={[hrCases]} skeletonLines={4}>
-              {() =>
-                aging === null ? (
-                  <CardEmpty text={x(M.analytics_cases_empty)} />
-                ) : (
-                  <>
-                    <div className="mb-[12px] flex gap-[10px]">
-                      <StatTile
-                        value={String(aging.openCount)}
-                        label={x(M.analytics_cases_open_now)}
-                      />
-                      <StatTile
-                        value={String(aging.avgDays)}
-                        label={x(M.analytics_cases_avg_age)}
-                      />
-                      <StatTile
-                        value={String(aging.oldestDays)}
-                        label={x(M.analytics_cases_oldest)}
-                        alert={aging.oldestDays > 14}
-                      />
-                    </div>
-                    <OpenCaseRows
-                      rows={aging.rows.map(({ caseRow, daysOpen }) => ({
-                        key: caseRow.id,
-                        href: `/app/cases/${caseRow.id}`,
-                        typeLabel: x(TYPE_LABEL[caseRow.caseType]),
-                        jurisdiction: caseRow.province,
-                        openedLabel: fill(x(M.analytics_cases_opened), {
-                          date: formatDayISO(caseRow.openedISO, locale),
-                        }),
-                        daysOpen,
-                        daysLabel:
-                          daysOpen === 1
-                            ? x(M.analytics_cases_day_one)
-                            : fill(x(M.analytics_cases_days), { n: daysOpen }),
-                      }))}
-                    />
-                  </>
-                )
-              }
-            </CardData>
-          </AnalyticsCard>
-
-          {/* Policy acknowledgments — no tracking data source in production
-              yet; the card states that plainly instead of hiding. */}
-          <AnalyticsCard title={x(M.analytics_ack_title)} hidden={!show('acks')}>
-            <CardEmpty text={x(M.analytics_ack_empty)} />
-          </AnalyticsCard>
-
-          {/* A · Certifications & training — from hr_expiry_records. */}
-          <AnalyticsCard
-            title={x(M.analytics_certs_title)}
-            subtitle={x(M.analytics_certs_sub)}
-            hidden={!show('certifications')}
-          >
-            <CardData deps={[expiryRecords]} skeletonLines={4}>
-              {() =>
-                certRecords.length === 0 ? (
-                  <CardEmpty text={x(M.analytics_certs_prod_empty)} />
-                ) : flattenBuckets(certBuckets).length === 0 ? (
-                  <CardEmpty text={x(M.analytics_certs_empty)} />
-                ) : (
-                  <ExpiryBucketsSection
-                    counts={{
-                      expired: certBuckets.expired.length,
-                      within30: certBuckets.within30.length,
-                      within60: certBuckets.within60.length,
-                      within90: certBuckets.within90.length,
-                    }}
-                    rows={flattenBuckets(certBuckets).map(toExpiryRow)}
-                  />
-                )
-              }
-            </CardData>
-          </AnalyticsCard>
-
-          {/* C · Probation periods ending — employees.probation_end_date,
-              with the review-task linkage checked exactly (task metadata). */}
-          <AnalyticsCard
-            title={x(M.analytics_probation_title)}
-            subtitle={x(M.analytics_probation_sub)}
-            hidden={!show('probation')}
-          >
-            <CardData deps={[employees, tasks]} skeletonLines={3}>
-              {() =>
-                !anyProbationDates ? (
-                  <CardEmpty text={x(M.analytics_probation_prod_empty)} />
-                ) : probationRows.length === 0 ? (
-                  <CardEmpty text={x(M.analytics_probation_empty)} />
-                ) : (
-                  <ProbationList rows={probationRows} />
-                )
-              }
-            </CardData>
-          </AnalyticsCard>
-
-          {/* D · Document expiries — from hr_expiry_records. */}
-          <AnalyticsCard
-            title={x(M.analytics_docs_title)}
-            subtitle={x(M.analytics_docs_sub)}
-            hidden={!show('documents')}
-          >
-            <CardData deps={[expiryRecords]} skeletonLines={4}>
-              {() =>
-                docRecords.length === 0 ? (
-                  <CardEmpty text={x(M.analytics_docs_prod_empty)} />
-                ) : flattenBuckets(docBuckets).length === 0 ? (
-                  <CardEmpty text={x(M.analytics_docs_empty)} />
-                ) : (
-                  <ExpiryBucketsSection
-                    counts={{
-                      expired: docBuckets.expired.length,
-                      within30: docBuckets.within30.length,
-                      within60: docBuckets.within60.length,
-                      within90: docBuckets.within90.length,
-                    }}
-                    rows={flattenBuckets(docBuckets).map(toExpiryRow)}
-                  />
-                )
-              }
-            </CardData>
-          </AnalyticsCard>
-
-          {/* E · Leave overview — hr_leaves records, with a bare row for
-              anyone marked on_leave who has no record yet. */}
-          <AnalyticsCard
-            title={x(M.analytics_leave_title)}
-            subtitle={x(M.analytics_leave_sub)}
-            hidden={!show('leave')}
-          >
-            <CardData deps={[employees, leaves]} skeletonLines={3}>
-              {() =>
-                leaveRows.length === 0 ? (
-                  <CardEmpty text={x(M.analytics_leave_empty)} />
-                ) : (
-                  <>
-                    <LeaveList rows={leaveRows} />
-                    {bareOnLeave.length > 0 && (
-                      <p className="mt-[8px] mb-0 text-[11.5px] text-text-faint">
-                        {x(M.analytics_leave_prod_note)}
-                      </p>
-                    )}
-                  </>
-                )
-              }
-            </CardData>
-          </AnalyticsCard>
-
-          {/* F · Headcount & turnover — headcount history accumulates via the
-              monthly snapshot; turnover awaits termination history. */}
-          <AnalyticsCard
-            title={x(M.analytics_trend_title)}
-            subtitle={x(M.analytics_trend_sub)}
-            className="min-[900px]:col-span-2"
-            hidden={!show('trend')}
-          >
-            <CardData deps={[employees, snapshots]} skeletonLines={4}>
-              {() =>
-                liveHeadcount === null || liveHeadcount === 0 ? (
-                  <CardEmpty text={x(M.analytics_trend_empty)} />
-                ) : (
-                  <>
-                    {turnoverNow !== null && (
-                      <div className="mb-[12px] flex gap-[10px]">
-                        <div className="min-w-0 flex-1 rounded-[10px] border border-border-soft bg-surface-2 px-[12px] py-[10px]">
-                          <div className="flex flex-wrap items-center gap-x-[10px] gap-y-[4px]">
-                            <span className="font-display text-[22px] font-bold text-text">
-                              {formatPct(turnoverNow, locale)}
-                            </span>
-                            {turnoverDelta !== null && (
-                              <DeltaChip
-                                delta={turnoverDelta}
-                                goodWhenUp={false}
-                                label={fill(x(M.analytics_turnover_delta), {
-                                  delta: formatSignedDecimal(turnoverDelta, locale),
-                                  month: formatMonthISO(priorWindowEndISO, locale, 'long'),
-                                })}
-                              />
-                            )}
-                          </div>
-                          <div className="mt-[2px] text-[11.5px] text-text-muted">
-                            {x(M.analytics_turnover_label)}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    {headcountTrend.length >= 2 ? (
+                  )}
+                  {history.length >= 2 ? (
+                    <div className="mt-[10px]">
                       <TrendLineChart
-                        points={headcountTrend}
-                        ariaLabel={x(M.analytics_trend_chart_aria).replace(
+                        points={history.map((p) => ({ monthISO: p.monthISO, value: p.score }))}
+                        ariaLabel={x(M.analytics_score_chart_aria).replace(
                           '{points}',
-                          headcountTrend
-                            .map((p) => `${formatMonthISO(p.monthISO, locale, 'long')} ${p.value}`)
+                          history
+                            .map((p) => `${formatMonthISO(p.monthISO, locale, 'long')} ${p.score}`)
                             .join(', '),
                         )}
-                        valueHeader={x(M.analytics_trend_table_value)}
+                        valueHeader={x(M.analytics_score_table_score)}
+                        clampMax={100}
                       />
-                    ) : (
-                      <p className="m-0 text-[12.5px] text-text-muted">
-                        {x(M.analytics_trend_first_point)}
-                      </p>
-                    )}
-                    {turnoverNow === null && (
-                      <p className="mt-[8px] mb-0 text-[11.5px] text-text-faint">
-                        {x(M.analytics_turnover_prod_note)}
-                      </p>
-                    )}
-                  </>
-                )
-              }
-            </CardData>
-          </AnalyticsCard>
-        </div>
+                    </div>
+                  ) : (
+                    <p className="mt-[10px] mb-0 text-[12.5px] text-text-muted">
+                      {x(M.analytics_score_first_point)}
+                    </p>
+                  )}
+                  {hasOlderFormulaPoints && (
+                    <p className="mt-[8px] mb-0 text-[11.5px] text-text-faint">
+                      {x(M.analytics_score_formula_note)}
+                    </p>
+                  )}
+                  {breakdownRows.length > 0 && (
+                    <div className="mt-[14px] border-t border-border-soft pt-[14px]">
+                      <div className="mb-[10px] text-[11.5px] font-bold tracking-[0.04em] uppercase text-text-muted">
+                        {x(M.analytics_score_breakdown_title)}
+                      </div>
+                      <ScoreBreakdownMeters rows={breakdownRows} />
+                    </div>
+                  )}
+                </>
+              )
+            }
+          </CardData>
+        </AnalyticsCard>
+
+        {/* Needs attention */}
+        <AnalyticsCard
+          title={x(M.analytics_attention_title)}
+          subtitle={x(M.analytics_attention_sub)}
+          hidden={!show('attention')}
+        >
+          <CardData deps={[tasks, hrCases, obligations]} skeletonLines={4}>
+            {() =>
+              attentionRows.length === 0 ? (
+                <CardEmpty text={x(M.analytics_attention_empty)} />
+              ) : (
+                <AttentionList
+                  rows={attentionRows}
+                  viewAllHref="/app/planning/tasks"
+                  viewAllLabel={fill(x(M.analytics_attention_view_all), { n: ranked.length })}
+                />
+              )
+            }
+          </CardData>
+        </AnalyticsCard>
+
+        {/* Headcount by jurisdiction */}
+        <AnalyticsCard
+          title={x(M.analytics_headcount_title)}
+          subtitle={
+            activeEmployees.length > 0
+              ? fill(x(M.analytics_headcount_total), { n: activeEmployees.length })
+              : undefined
+          }
+          hidden={!show('headcount')}
+        >
+          <CardData deps={[employees]} skeletonLines={4}>
+            {() =>
+              headcountRows.length === 0 ? (
+                <CardEmpty text={x(M.analytics_headcount_empty)} />
+              ) : (
+                <>
+                  <JurisdictionBars rows={headcountRows} />
+                  <p className="mt-[10px] mb-0 text-[11.5px] text-text-faint">
+                    {x(M.analytics_headcount_footnote)}
+                  </p>
+                </>
+              )
+            }
+          </CardData>
+        </AnalyticsCard>
+
+        {/* Open cases */}
+        <AnalyticsCard title={x(M.analytics_cases_title)} hidden={!show('cases')}>
+          <CardData deps={[hrCases]} skeletonLines={4}>
+            {() =>
+              aging === null ? (
+                <CardEmpty text={x(M.analytics_cases_empty)} />
+              ) : (
+                <>
+                  <div className="mb-[12px] flex gap-[10px]">
+                    <StatTile
+                      value={String(aging.openCount)}
+                      label={x(M.analytics_cases_open_now)}
+                    />
+                    <StatTile value={String(aging.avgDays)} label={x(M.analytics_cases_avg_age)} />
+                    <StatTile
+                      value={String(aging.oldestDays)}
+                      label={x(M.analytics_cases_oldest)}
+                      alert={aging.oldestDays > 14}
+                    />
+                  </div>
+                  <OpenCaseRows
+                    rows={aging.rows.map(({ caseRow, daysOpen }) => ({
+                      key: caseRow.id,
+                      href: `/app/cases/${caseRow.id}`,
+                      typeLabel: x(TYPE_LABEL[caseRow.caseType]),
+                      jurisdiction: caseRow.province,
+                      openedLabel: fill(x(M.analytics_cases_opened), {
+                        date: formatDayISO(caseRow.openedISO, locale),
+                      }),
+                      daysOpen,
+                      daysLabel:
+                        daysOpen === 1
+                          ? x(M.analytics_cases_day_one)
+                          : fill(x(M.analytics_cases_days), { n: daysOpen }),
+                    }))}
+                  />
+                </>
+              )
+            }
+          </CardData>
+        </AnalyticsCard>
+
+        {/* Policy acknowledgments — no tracking data source in production
+              yet; the card states that plainly instead of hiding. */}
+        <AnalyticsCard title={x(M.analytics_ack_title)} hidden={!show('acks')}>
+          <CardEmpty text={x(M.analytics_ack_empty)} />
+        </AnalyticsCard>
+
+        {/* A · Certifications & training — from hr_expiry_records. */}
+        <AnalyticsCard
+          title={x(M.analytics_certs_title)}
+          subtitle={x(M.analytics_certs_sub)}
+          hidden={!show('certifications')}
+        >
+          <CardData deps={[expiryRecords]} skeletonLines={4}>
+            {() =>
+              certRecords.length === 0 ? (
+                <CardEmpty text={x(M.analytics_certs_prod_empty)} />
+              ) : flattenBuckets(certBuckets).length === 0 ? (
+                <CardEmpty text={x(M.analytics_certs_empty)} />
+              ) : (
+                <ExpiryBucketsSection
+                  counts={{
+                    expired: certBuckets.expired.length,
+                    within30: certBuckets.within30.length,
+                    within60: certBuckets.within60.length,
+                    within90: certBuckets.within90.length,
+                  }}
+                  rows={flattenBuckets(certBuckets).map(toExpiryRow)}
+                />
+              )
+            }
+          </CardData>
+        </AnalyticsCard>
+
+        {/* C · Probation periods ending — employees.probation_end_date,
+              with the review-task linkage checked exactly (task metadata). */}
+        <AnalyticsCard
+          title={x(M.analytics_probation_title)}
+          subtitle={x(M.analytics_probation_sub)}
+          hidden={!show('probation')}
+        >
+          <CardData deps={[employees, tasks]} skeletonLines={3}>
+            {() =>
+              !anyProbationDates ? (
+                <CardEmpty text={x(M.analytics_probation_prod_empty)} />
+              ) : probationRows.length === 0 ? (
+                <CardEmpty text={x(M.analytics_probation_empty)} />
+              ) : (
+                <ProbationList rows={probationRows} />
+              )
+            }
+          </CardData>
+        </AnalyticsCard>
+
+        {/* D · Document expiries — from hr_expiry_records. */}
+        <AnalyticsCard
+          title={x(M.analytics_docs_title)}
+          subtitle={x(M.analytics_docs_sub)}
+          hidden={!show('documents')}
+        >
+          <CardData deps={[expiryRecords]} skeletonLines={4}>
+            {() =>
+              docRecords.length === 0 ? (
+                <CardEmpty text={x(M.analytics_docs_prod_empty)} />
+              ) : flattenBuckets(docBuckets).length === 0 ? (
+                <CardEmpty text={x(M.analytics_docs_empty)} />
+              ) : (
+                <ExpiryBucketsSection
+                  counts={{
+                    expired: docBuckets.expired.length,
+                    within30: docBuckets.within30.length,
+                    within60: docBuckets.within60.length,
+                    within90: docBuckets.within90.length,
+                  }}
+                  rows={flattenBuckets(docBuckets).map(toExpiryRow)}
+                />
+              )
+            }
+          </CardData>
+        </AnalyticsCard>
+
+        {/* E · Leave overview — hr_leaves records, with a bare row for
+              anyone marked on_leave who has no record yet. */}
+        <AnalyticsCard
+          title={x(M.analytics_leave_title)}
+          subtitle={x(M.analytics_leave_sub)}
+          hidden={!show('leave')}
+        >
+          <CardData deps={[employees, leaves]} skeletonLines={3}>
+            {() =>
+              leaveRows.length === 0 ? (
+                <CardEmpty text={x(M.analytics_leave_empty)} />
+              ) : (
+                <>
+                  <LeaveList rows={leaveRows} />
+                  {bareOnLeave.length > 0 && (
+                    <p className="mt-[8px] mb-0 text-[11.5px] text-text-faint">
+                      {x(M.analytics_leave_prod_note)}
+                    </p>
+                  )}
+                </>
+              )
+            }
+          </CardData>
+        </AnalyticsCard>
+
+        {/* F · Headcount & turnover — headcount history accumulates via the
+              monthly snapshot; turnover awaits termination history. */}
+        <AnalyticsCard
+          title={x(M.analytics_trend_title)}
+          subtitle={x(M.analytics_trend_sub)}
+          className="min-[900px]:col-span-2"
+          hidden={!show('trend')}
+        >
+          <CardData deps={[employees, snapshots]} skeletonLines={4}>
+            {() =>
+              liveHeadcount === null || liveHeadcount === 0 ? (
+                <CardEmpty text={x(M.analytics_trend_empty)} />
+              ) : (
+                <>
+                  {turnoverNow !== null && (
+                    <div className="mb-[12px] flex gap-[10px]">
+                      <div className="min-w-0 flex-1 rounded-[10px] border border-border-soft bg-surface-2 px-[12px] py-[10px]">
+                        <div className="flex flex-wrap items-center gap-x-[10px] gap-y-[4px]">
+                          <span className="font-display text-[22px] font-bold text-text">
+                            {formatPct(turnoverNow, locale)}
+                          </span>
+                          {turnoverDelta !== null && (
+                            <DeltaChip
+                              delta={turnoverDelta}
+                              goodWhenUp={false}
+                              label={fill(x(M.analytics_turnover_delta), {
+                                delta: formatSignedDecimal(turnoverDelta, locale),
+                                month: formatMonthISO(priorWindowEndISO, locale, 'long'),
+                              })}
+                            />
+                          )}
+                        </div>
+                        <div className="mt-[2px] text-[11.5px] text-text-muted">
+                          {x(M.analytics_turnover_label)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {headcountTrend.length >= 2 ? (
+                    <TrendLineChart
+                      points={headcountTrend}
+                      ariaLabel={x(M.analytics_trend_chart_aria).replace(
+                        '{points}',
+                        headcountTrend
+                          .map((p) => `${formatMonthISO(p.monthISO, locale, 'long')} ${p.value}`)
+                          .join(', '),
+                      )}
+                      valueHeader={x(M.analytics_trend_table_value)}
+                    />
+                  ) : (
+                    <p className="m-0 text-[12.5px] text-text-muted">
+                      {x(M.analytics_trend_first_point)}
+                    </p>
+                  )}
+                  {turnoverNow === null && (
+                    <p className="mt-[8px] mb-0 text-[11.5px] text-text-faint">
+                      {x(M.analytics_turnover_prod_note)}
+                    </p>
+                  )}
+                </>
+              )
+            }
+          </CardData>
+        </AnalyticsCard>
+      </div>
     </AppPage>
   )
 }

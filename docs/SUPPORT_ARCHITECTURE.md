@@ -16,13 +16,13 @@ policy and messages is **flagged for human review**.
 
 ## What is implemented (Phase 1)
 
-| Area | Location |
-| --- | --- |
-| Centralized config (channels, hours, targets, priority, status, categories, escalation) | [`src/config/support.ts`](../src/config/support.ts) |
-| Triage logic (suggested priority, Ontario business calendar, response due dates) | [`src/features/support/triage.ts`](../src/features/support/triage.ts) + `triage.test.ts` |
-| Bilingual support prose (approved policy + sensitive-info + diagnostics + ack) | [`src/i18n/messages/support.ts`](../src/i18n/messages/support.ts) |
-| Public Customer Support Policy (EN/FR, approved wording) | `src/features/marketing/legal/content/support-policy.{en,fr}.ts` → `/legal/support-policy`, `/fr/juridique/politique-soutien` |
-| Ticket data model + RLS + private attachments bucket | [`supabase/migrations/0014_support_system.sql`](../supabase/migrations/0014_support_system.sql) |
+| Area                                                                                    | Location                                                                                                                      |
+| --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Centralized config (channels, hours, targets, priority, status, categories, escalation) | [`src/config/support.ts`](../src/config/support.ts)                                                                           |
+| Triage logic (suggested priority, Ontario business calendar, response due dates)        | [`src/features/support/triage.ts`](../src/features/support/triage.ts) + `triage.test.ts`                                      |
+| Bilingual support prose (approved policy + sensitive-info + diagnostics + ack)          | [`src/i18n/messages/support.ts`](../src/i18n/messages/support.ts)                                                             |
+| Public Customer Support Policy (EN/FR, approved wording)                                | `src/features/marketing/legal/content/support-policy.{en,fr}.ts` → `/legal/support-policy`, `/fr/juridique/politique-soutien` |
+| Ticket data model + RLS + private attachments bucket                                    | [`supabase/migrations/0014_support_system.sql`](../supabase/migrations/0014_support_system.sql)                               |
 
 The config is the **single source of truth**. Support email addresses,
 business hours, and response targets are defined only in `src/config/support.ts`
@@ -32,14 +32,14 @@ and must never be duplicated inline in components.
 
 Sourced from `SUPPORT_CHANNELS` — never hard-code an address:
 
-| Channel | Address | Public intake | Restricted handling |
-| --- | --- | --- | --- |
-| Support | <support@dutiva.ca> | yes | no |
-| Billing | <billing@dutiva.ca> | no (prefers authenticated) | no |
-| Privacy | <privacy@dutiva.ca> | yes | yes |
-| Security | <security@dutiva.ca> | yes | yes |
-| Accessibility | <accessibility@dutiva.ca> | yes | yes |
-| Sales | <sales@dutiva.ca> | yes | no |
+| Channel       | Address                   | Public intake              | Restricted handling |
+| ------------- | ------------------------- | -------------------------- | ------------------- |
+| Support       | <support@dutiva.ca>       | yes                        | no                  |
+| Billing       | <billing@dutiva.ca>       | no (prefers authenticated) | no                  |
+| Privacy       | <privacy@dutiva.ca>       | yes                        | yes                 |
+| Security      | <security@dutiva.ca>      | yes                        | yes                 |
+| Accessibility | <accessibility@dutiva.ca> | yes                        | yes                 |
+| Sales         | <sales@dutiva.ca>         | yes                        | no                  |
 
 No personal founder email or phone number is exposed anywhere.
 
@@ -51,11 +51,11 @@ Priority is `critical | high | standard | low`. Customers describe **impact** an
 initial-response targets (service targets, not guarantees, not resolution times):
 
 | Priority | Initial-response target |
-| --- | --- |
+| -------- | ----------------------- |
 | Critical | within 4 business hours |
-| High | within 1 business day |
-| Standard | within 2 business days |
-| Low | within 5 business days |
+| High     | within 1 business day   |
+| Standard | within 2 business days  |
+| Low      | within 5 business days  |
 
 Business days exclude weekends and **Ontario statutory holidays** (9 holidays,
 computed per year including Good Friday via the Gregorian computus). Business
@@ -121,7 +121,7 @@ signed URL. Client:
 [`SupportAttachments.tsx`](../src/features/support/SupportAttachments.tsx), on the
 customer thread (upload while open) and the admin view. `scan_status` starts
 `pending` and is flipped by the `support-attachment-scan` worker (see
-*Attachment malware scanning* below), which also gates the `sign` action. The
+_Attachment malware scanning_ below), which also gates the `sign` action. The
 **public** intake carries no attachments by design (unauthenticated users can't
 write to the bucket).
 
@@ -187,7 +187,7 @@ the payload: it is the `recipient` column.
   bilingual email, sends via Resend, and marks each row `sent`/`failed` (up to 5
   attempts, then `failed`).
 
-**`sent` is not `delivered`.** `status` records what *we* did — the provider
+**`sent` is not `delivered`.** `status` records what _we_ did — the provider
 accepted the message. A bounce comes back asynchronously minutes later. This bit
 us for real on 2026-07-16: an operator alert to a non-existent `support@dutiva.ca`
 mailbox was marked `sent`, then bounced, and nothing in the database knew. So:
@@ -205,9 +205,9 @@ mailbox was marked `sent`, then bounced, and nothing in the database knew. So:
 
 To find undelivered mail: `select * from support_notifications where
 delivery_status in ('bounced','complained')`. It mirrors `templates.ts` / `resendProvider.ts` / the
-  `src/config/support.ts` labels (kept in sync the same way `suggestPriority`
-  is). No sensitive content ever goes in a subject; customer emails link back to
-  the authenticated ticket, operator alerts to the admin ticket view.
+`src/config/support.ts` labels (kept in sync the same way `suggestPriority`
+is). No sensitive content ever goes in a subject; customer emails link back to
+the authenticated ticket, operator alerts to the admin ticket view.
 
 **Turning email on** (operator steps — see the runbook): the mechanism is built
 and deployed; it is inert until configured. (1) Verify a sending domain in
@@ -268,7 +268,7 @@ anyone, alongside general product/sales questions.
 - Anti-abuse: a honeypot; per-IP (3 / 15 min) and per-email (3 / 60 min) rate
   limits backed by `support_public_intake` (migration `0016`), which stores
   **only salted hashes** (`PUBLIC_INTAKE_SALT`) — never the raw IP or email;
-  and a CAPTCHA once configured (see *Anti-abuse on the public intake* below).
+  and a CAPTCHA once configured (see _Anti-abuse on the public intake_ below).
 
 An anonymous requester can't sign in to read the ticket, so updates go by email;
 account/billing issues are steered to sign-in (those categories aren't public).
@@ -298,7 +298,7 @@ The safety-critical half is the **escalation policy** in
 [`firstLineAssist.ts`](../src/features/support/firstLineAssist.ts): privacy,
 security, accessibility, complaint, billing disputes, and account recovery are
 `HUMAN_ONLY_CATEGORIES` — they get **no automated first-line answer** (retrieval
-*or* generative); the form plainly says a person will handle it. Retrieval
+_or_ generative); the form plainly says a person will handle it. Retrieval
 suggestions use the Help Centre search in `any`-term mode (whole-sentence
 questions).
 
@@ -364,7 +364,7 @@ something.
 - **Unrecognised is never a pass.** A `success: false` with no known error code
   still fails; a wrong secret is reported as `bad_secret` rather than blamed on
   the caller's token, so the operator isn't sent hunting a bot that isn't there.
-- The check runs *after* the rate limit, so a flooder is turned away before we
+- The check runs _after_ the rate limit, so a flooder is turned away before we
   pay the provider for them.
 
 Set `CAPTCHA_SECRET_KEY` and `VITE_CAPTCHA_SITE_KEY` **together** — the site key
@@ -375,7 +375,7 @@ every real customer out of the form. See the runbook.
 
 `support_attachments.scan_status` existed from migration `0014` and read
 `pending` on every row ever inserted, because nothing flipped it. The column
-documented an intention, not a control: the MIME allowlist is the *declared*
+documented an intention, not a control: the MIME allowlist is the _declared_
 content type, which an attacker picks freely.
 
 - Worker: [`support-attachment-scan`](../supabase/functions/support-attachment-scan/index.ts)
@@ -413,16 +413,16 @@ blessing it.
 
 Where a customer can reach support from, by surface:
 
-| Surface | Entry point |
-| --- | --- |
-| Marketing footer | Contact · Help Centre · Status (Resources column) |
-| Help Centre | Contact CTA on the hub and every article |
-| 404 page | Help Centre + Contact support |
-| Route error boundary | Contact support + the `support@` address |
-| Pricing | "Ask a question" → `/contact?topic=sales` (ticketed, not a mailto) |
-| App sidebar (account menu) | Help Centre · Contact support · Support dashboard (admin) |
-| App settings | Help and support section — Help Centre, send a request, address |
-| Sign-in / recovery | "Get help" article + the `support@` address |
+| Surface                    | Entry point                                                        |
+| -------------------------- | ------------------------------------------------------------------ |
+| Marketing footer           | Contact · Help Centre · Status (Resources column)                  |
+| Help Centre                | Contact CTA on the hub and every article                           |
+| 404 page                   | Help Centre + Contact support                                      |
+| Route error boundary       | Contact support + the `support@` address                           |
+| Pricing                    | "Ask a question" → `/contact?topic=sales` (ticketed, not a mailto) |
+| App sidebar (account menu) | Help Centre · Contact support · Support dashboard (admin)          |
+| App settings               | Help and support section — Help Centre, send a request, address    |
+| Sign-in / recovery         | "Get help" article + the `support@` address                        |
 
 Two rules hold across all of them: **addresses come from `src/config/support.ts`**
 (never inlined — the founder changes one file), and anything that can be a

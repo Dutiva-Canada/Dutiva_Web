@@ -23,23 +23,23 @@ customer-behaviour data shouldn't be designed speculatively."
 
 ### Decisions
 
-| Question | Decision | Rationale |
-| --- | --- | --- |
-| Scope | Full support funnel | Help Centre + deflection + ticket outcomes. The seam (`recordHelpfulness`) was already there; extending it to the full funnel is marginal work once the sink exists. |
-| Identification | Workspace-scoped | Anonymous Help Centre events carry a daily-rotated opaque visitor id. Authenticated ticket events carry `workspace_id` (the organization), never `user_id`. Lets you say "Northgate searched X 12 times" without naming the person. |
-| Retention | 90 days raw, forever aggregate | Raw rows kept 90 days for debugging, then auto-deleted by the daily rollup job. Daily aggregates kept indefinitely — they no longer identify an individual in a reasonably foreseeable way (per the Data Retention Policy § Anonymization). |
-| Sink | Both (phased) | Supabase edge function for product/deflection events that need joining to tickets (first-party, ca-central-1, no third-party cookies). GA4 for marketing-side page analytics. Both are now consent-gated behind the shipped banner (see the 2026-08-08 update above). |
+| Question       | Decision                       | Rationale                                                                                                                                                                                                                                                             |
+| -------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scope          | Full support funnel            | Help Centre + deflection + ticket outcomes. The seam (`recordHelpfulness`) was already there; extending it to the full funnel is marginal work once the sink exists.                                                                                                  |
+| Identification | Workspace-scoped               | Anonymous Help Centre events carry a daily-rotated opaque visitor id. Authenticated ticket events carry `workspace_id` (the organization), never `user_id`. Lets you say "Northgate searched X 12 times" without naming the person.                                   |
+| Retention      | 90 days raw, forever aggregate | Raw rows kept 90 days for debugging, then auto-deleted by the daily rollup job. Daily aggregates kept indefinitely — they no longer identify an individual in a reasonably foreseeable way (per the Data Retention Policy § Anonymization).                           |
+| Sink           | Both (phased)                  | Supabase edge function for product/deflection events that need joining to tickets (first-party, ca-central-1, no third-party cookies). GA4 for marketing-side page analytics. Both are now consent-gated behind the shipped banner (see the 2026-08-08 update above). |
 
 ## 2. Privacy model
 
 ### What is collected
 
-| Event type | Fields | Identification |
-| --- | --- | --- |
-| `helpfulness_vote` | `article_slug`, `vote_value` ('yes'/'no') | Anonymous (daily visitor id) |
-| `help_search` | `search_query` (max 200 chars), `search_result_count` | Anonymous (daily visitor id) |
-| `help_article_view` | `article_slug` | Anonymous (daily visitor id) |
-| `ticket_submitted` | `ticket_reference`, `ticket_category`, `ticket_source` | Workspace-scoped (`workspace_id`) |
+| Event type              | Fields                                                              | Identification                    |
+| ----------------------- | ------------------------------------------------------------------- | --------------------------------- |
+| `helpfulness_vote`      | `article_slug`, `vote_value` ('yes'/'no')                           | Anonymous (daily visitor id)      |
+| `help_search`           | `search_query` (max 200 chars), `search_result_count`               | Anonymous (daily visitor id)      |
+| `help_article_view`     | `article_slug`                                                      | Anonymous (daily visitor id)      |
+| `ticket_submitted`      | `ticket_reference`, `ticket_category`, `ticket_source`              | Workspace-scoped (`workspace_id`) |
 | `ticket_status_changed` | `ticket_reference`, `ticket_category`, `ticket_source` (new status) | Workspace-scoped (`workspace_id`) |
 
 All events also carry `locale` ('en' or 'fr') and `occurred_at`.
@@ -80,7 +80,7 @@ first-party, no third-party cookies, data in Canada, within the legitimate
 purpose of operating the service. As of 2026-08-08 the code takes the more
 conservative position and gates it on consent anyway. The reason is the
 daily-rotated `anonymous_visitor_id`: it exists to stitch a single visit's
-search → article → vote sequence, which is *profiling a visit* within the
+search → article → vote sequence, which is _profiling a visit_ within the
 meaning of Quebec Law 25 s. 8.1 — technology whose identifying/profiling
 functions must be deactivated by default. Off-by-default is also the safer
 choice for a commercial operator and is reversible: if counsel later
@@ -147,7 +147,7 @@ Client (browser)
   it **fails closed with a 500 on every request** if the pepper is missing,
   because the alternative is a committed default an attacker could reproduce.
   A rate-limited batch is not an error: it returns `200 {inserted: 0,
-  rate_limited: true}` and logs, since the client swallows errors by design and
+rate_limited: true}` and logs, since the client swallows errors by design and
   an error status would only invite retry storms.
 - **`src/features/support/analytics/supportAnalytics.ts`**: Client module —
   `trackEvent()` queues events, `flush()` sends them as a batch via
@@ -178,14 +178,14 @@ Client (browser)
 
 ### Wiring points
 
-| Event | Wired at | Trigger |
-| --- | --- | --- |
-| `helpfulness_vote` | `HelpfulnessWidget.tsx` | Vote button click |
-| `help_search` | `HelpCenterPage.tsx` | Debounced (1s) after search input changes |
-| `help_article_view` | `HelpArticlePage.tsx` | `useEffect` on article slug |
-| `ticket_submitted` (app) | `SupportRequestForm.tsx` | After successful `createSupportTicket` |
-| `ticket_submitted` (public) | `PublicSupportForm.tsx` | After successful `createPublicSupportTicket` |
-| `ticket_status_changed` | `SupportAdminTicket.tsx` | After successful admin status change |
+| Event                       | Wired at                 | Trigger                                      |
+| --------------------------- | ------------------------ | -------------------------------------------- |
+| `helpfulness_vote`          | `HelpfulnessWidget.tsx`  | Vote button click                            |
+| `help_search`               | `HelpCenterPage.tsx`     | Debounced (1s) after search input changes    |
+| `help_article_view`         | `HelpArticlePage.tsx`    | `useEffect` on article slug                  |
+| `ticket_submitted` (app)    | `SupportRequestForm.tsx` | After successful `createSupportTicket`       |
+| `ticket_submitted` (public) | `PublicSupportForm.tsx`  | After successful `createPublicSupportTicket` |
+| `ticket_status_changed`     | `SupportAdminTicket.tsx` | After successful admin status change         |
 
 ## 4. Querying the data
 
@@ -301,7 +301,7 @@ future redeploy:
 - **No analytics without consent.** As of 2026-08-08 the consent banner
   ships and gates both sinks; there is no longer an ungated first-party
   path. (The remaining open question is legal, not technical — whether the
-  first-party sink strictly *requires* opt-in — and it is the owner's to
+  first-party sink strictly _requires_ opt-in — and it is the owner's to
   settle with counsel. See §2 Legal basis.)
 - **No analytics dashboard.** The data is queryable via SQL (§4). An admin
   dashboard is a separate product decision — the data model supports it,

@@ -40,9 +40,7 @@ export async function exportSignedDocumentPdf(
     return { ok: false, reason: 'not_signed' }
   }
 
-  const current = input.detail.versions.find(
-    (v) => v.versionNumber === input.detail.currentVersion,
-  )
+  const current = input.detail.versions.find((v) => v.versionNumber === input.detail.currentVersion)
   if (!current) return { ok: false, reason: 'not_signed' }
 
   const title = pick(input.detail.title, input.detail.language)

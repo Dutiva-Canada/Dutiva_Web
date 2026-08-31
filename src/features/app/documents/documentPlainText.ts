@@ -109,7 +109,14 @@ export function blocksToPlainTextExport(
         break
       }
       case 'note': {
-        const label = block.tone === 'risk' ? (lang === 'fr' ? 'Avis' : 'Notice') : lang === 'fr' ? 'Note' : 'Note'
+        const label =
+          block.tone === 'risk'
+            ? lang === 'fr'
+              ? 'Avis'
+              : 'Notice'
+            : lang === 'fr'
+              ? 'Note'
+              : 'Note'
         const parts = splitProseParagraphs(resolveMergeText(blockCopy(block, lang), values))
         if (parts.length === 0) break
         paragraphs.push(`${label}: ${parts[0]}`)
@@ -125,9 +132,7 @@ export function blocksToPlainTextExport(
             recipients?.find((_, i) => i === index)
           if (recipient?.status === 'signed') {
             const signedAt = recipient.signedAt?.slice(0, 10) ?? ''
-            paragraphs.push(
-              `${label}\n${recipient.signedName ?? recipient.name}\n${signedAt}`,
-            )
+            paragraphs.push(`${label}\n${recipient.signedName ?? recipient.name}\n${signedAt}`)
             if (recipient.signatureImage?.startsWith('data:image/png')) {
               signatureImages.push({
                 afterParagraphIndex: paragraphs.length - 1,

@@ -32,7 +32,8 @@ import type { DigestCandidateRow } from '../_shared/lawUpdateDigest.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-notify-secret',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type, x-notify-secret',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 function json(body: unknown, status = 200) {
@@ -64,7 +65,9 @@ interface LawUpdateRow {
 }
 
 function formatUpdate(row: LawUpdateRow): string {
-  const date = row.detected_at ? new Date(row.detected_at).toLocaleDateString('en-CA') : 'unknown date'
+  const date = row.detected_at
+    ? new Date(row.detected_at).toLocaleDateString('en-CA')
+    : 'unknown date'
   const lines = [
     `${row.jurisdiction} — ${row.law_name} (detected ${date})`,
     row.change_summary ?? '(no summary recorded)',
@@ -96,7 +99,9 @@ Deno.serve(async (req: Request) => {
 
   const { data: rows, error } = await admin
     .from('law_updates')
-    .select('id, jurisdiction, law_name, url, change_summary, detected_at, event_type, review_status')
+    .select(
+      'id, jurisdiction, law_name, url, change_summary, detected_at, event_type, review_status',
+    )
     .eq('event_type', 'change')
     .eq('review_status', 'reviewed')
     .order('detected_at', { ascending: true })
@@ -117,7 +122,10 @@ Deno.serve(async (req: Request) => {
   const alreadySentIds = new Set((alreadySentRows ?? []).map((r) => r.law_update_id as string))
 
   const digestRows = selectDigestableUpdates(
-    relevant.map((r): LawUpdateRow & DigestCandidateRow => ({ ...r, reviewStatus: r.review_status })),
+    relevant.map((r): LawUpdateRow & DigestCandidateRow => ({
+      ...r,
+      reviewStatus: r.review_status,
+    })),
     alreadySentIds,
     GO_LIVE_AT,
   )
@@ -127,7 +135,9 @@ Deno.serve(async (req: Request) => {
   }
 
   if (!apiKey) {
-    console.info(`[send-law-updates] no provider configured; ${digestRows.length} reviewed row(s) left unrecorded`)
+    console.info(
+      `[send-law-updates] no provider configured; ${digestRows.length} reviewed row(s) left unrecorded`,
+    )
     return json({ ok: true, sent: false, reason: 'no_provider', pending: digestRows.length })
   }
 

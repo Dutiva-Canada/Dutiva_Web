@@ -10,10 +10,10 @@ surface and should be removed.
 
 ## Resources to delete
 
-| Resource | ID |
-| --- | --- |
-| Project name | `dutiva-support-calendar` |
-| Project ID | `sunny-mender-504801-m9` |
+| Resource        | ID                                                               |
+| --------------- | ---------------------------------------------------------------- |
+| Project name    | `dutiva-support-calendar`                                        |
+| Project ID      | `sunny-mender-504801-m9`                                         |
 | Service account | `dutiva-calendar@sunny-mender-504801-m9.iam.gserviceaccount.com` |
 
 ## Owner steps (Google Cloud Console or gcloud)

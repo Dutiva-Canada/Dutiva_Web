@@ -33,12 +33,12 @@ periods rather than continuous interruption. Config lives in
 
 ## Priority quick reference
 
-| Priority | Use when |
-| --- | --- |
-| Critical | Outage, active security incident, widespread auth failure, severe data-access issue, time-sensitive privacy incident |
-| High | Customer can't access an essential account/workflow; billing interrupting service; significant accessibility barrier; major feature failure without workaround |
-| Standard | Isolated defect, product question, billing clarification, general issue |
-| Low | Feature request, general feedback, non-urgent docs suggestion |
+| Priority | Use when                                                                                                                                                       |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Critical | Outage, active security incident, widespread auth failure, severe data-access issue, time-sensitive privacy incident                                           |
+| High     | Customer can't access an essential account/workflow; billing interrupting service; significant accessibility barrier; major feature failure without workaround |
+| Standard | Isolated defect, product question, billing clarification, general issue                                                                                        |
+| Low      | Feature request, general feedback, non-urgent docs suggestion                                                                                                  |
 
 ## When to schedule a call
 
@@ -244,17 +244,23 @@ and turning it on later scans the backlog rather than blessing it.
    that. It receives:
 
    ```json
-   { "url": "<5-minute signed URL>", "file_name": "…", "mime_type": "…",
-     "size_bytes": 1234, "reference": "<attachment id>" }
+   {
+     "url": "<5-minute signed URL>",
+     "file_name": "…",
+     "mime_type": "…",
+     "size_bytes": 1234,
+     "reference": "<attachment id>"
+   }
    ```
 
    and must answer `{"status":"clean"|"infected"|"unsupported"}`. The boolean
    shapes (`{"infected":true}`, `{"clean":true}`) and a bare `OK`/`FOUND` body
    are accepted too. **Anything unrecognised counts as "not scanned", never as
    clean** — it is retried up to 5 times and then settles on `skipped`.
+
 2. **Edge-function secrets**:
    - `SUPPORT_ATTACHMENT_SCAN_URL` — the endpoint. Setting this is what arms
-     both the worker *and* the download gate.
+     both the worker _and_ the download gate.
    - `SUPPORT_ATTACHMENT_SCAN_KEY` — sent as `Authorization: Bearer`.
 3. **Apply `0038` and `0048`**, and **deploy `support-attachment-scan`**. No
    Vault step of its own: since `0048` the cron job authenticates with
@@ -265,7 +271,7 @@ and turning it on later scans the backlog rather than blessing it.
    > `0038` originally had the job present the service-role key from a
    > `attachment_scan_service_key` Vault secret. That never worked: this
    > function is the one that compares the bearer to its own
-   > `SUPABASE_SERVICE_ROLE_KEY`, and the *legacy* service_role JWT is a valid
+   > `SUPABASE_SERVICE_ROLE_KEY`, and the _legacy_ service_role JWT is a valid
    > credential that is not the same string the edge runtime injects — so every
    > run 403'd while `attachment_scan_status()` cheerfully reported
    > `secret_configured: true`. Verified and fixed 2026-08-06. That Vault key is

@@ -94,7 +94,12 @@ export async function getServiceStatus(): Promise<ServiceStatusRow[]> {
   return SERVICE_COMPONENTS.map((c) => {
     const row = rows.find((r) => r.component === c.id)
     return row
-      ? { component: row.component, status: row.status, message: row.message, updatedAt: row.updated_at }
+      ? {
+          component: row.component,
+          status: row.status,
+          message: row.message,
+          updatedAt: row.updated_at,
+        }
       : { component: c.id, status: 'operational' as const, message: null, updatedAt: '' }
   })
 }

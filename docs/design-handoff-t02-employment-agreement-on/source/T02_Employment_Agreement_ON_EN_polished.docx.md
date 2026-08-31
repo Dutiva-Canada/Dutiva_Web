@@ -8,13 +8,13 @@ Between {{employer\_legal\_name}}, a corporation with its principal office at {{
 
 The Employer and the Employee are each a Party and together the Parties.
 
-*This Agreement is intended for Ontario employment governed by the Employment Standards Act, 2000\. It should be reviewed before use for federally regulated employers, unionized employees, regulated professions, special ESA exemptions or non-Ontario work locations.*
+_This Agreement is intended for Ontario employment governed by the Employment Standards Act, 2000\. It should be reviewed before use for federally regulated employers, unionized employees, regulated professions, special ESA exemptions or non-Ontario work locations._
 
 ## **1\. Start date, employment type, and probationary period**
 
 Employment begins on {{start\_date}} on a {{employment\_type}} basis. Unless ended in accordance with this Agreement and applicable law, employment will continue indefinitely.
 
-**Probationary Period** The first three (3) months of continuous employment will be considered a probationary period, during which the Employer will assess the Employee's performance, suitability, and fit for regular employment. At any time during this probationary period (prior to the completion of three months of continuous employment), the Employer may terminate the Employee's employment at its sole discretion, without cause, and without providing advance notice of termination, termination pay, severance pay, or common law reasonable notice, except as strictly required by the *Employment Standards Act, 2000* (ESA). If the Employee is terminated after having completed three months of continuous employment, the probationary period provisions will no longer apply, and the Employee's entitlements upon termination will be governed entirely by the termination provisions set out in Section 12 of this Agreement and the minimum requirements of the ESA.
+**Probationary Period** The first three (3) months of continuous employment will be considered a probationary period, during which the Employer will assess the Employee's performance, suitability, and fit for regular employment. At any time during this probationary period (prior to the completion of three months of continuous employment), the Employer may terminate the Employee's employment at its sole discretion, without cause, and without providing advance notice of termination, termination pay, severance pay, or common law reasonable notice, except as strictly required by the _Employment Standards Act, 2000_ (ESA). If the Employee is terminated after having completed three months of continuous employment, the probationary period provisions will no longer apply, and the Employee's entitlements upon termination will be governed entirely by the termination provisions set out in Section 12 of this Agreement and the minimum requirements of the ESA.
 
 The Employee will perform duties honestly, diligently, in good faith and in the best interests of the Employer. The Employee will comply with lawful and reasonable directions, applicable laws, and Employer policies that are made reasonably available to the Employee.
 
@@ -92,11 +92,11 @@ Resignation by the Employee. The Employee may resign by giving {{employee\_notic
 
 Termination by the Employer without cause. The Employer may end the Employee's employment without cause by providing:
 
-* the minimum notice of termination, termination pay or combination of notice and termination pay required by the ESA;  
-* statutory severance pay if required by the ESA;  
-* continued benefit plan contributions during the statutory ESA notice period where required by the ESA and the governing benefit plans;  
-* earned wages, accrued vacation pay and any other minimum amounts required by the ESA; and  
-* any additional contractual termination entitlement expressly stated in Schedule B, if Schedule B applies.
+- the minimum notice of termination, termination pay or combination of notice and termination pay required by the ESA;
+- statutory severance pay if required by the ESA;
+- continued benefit plan contributions during the statutory ESA notice period where required by the ESA and the governing benefit plans;
+- earned wages, accrued vacation pay and any other minimum amounts required by the ESA; and
+- any additional contractual termination entitlement expressly stated in Schedule B, if Schedule B applies.
 
 The amounts and benefits described above are in full satisfaction of all entitlements arising from a without-cause termination, including any entitlement to common-law reasonable notice or damages in lieu of such notice, to the maximum extent permitted by law.
 
@@ -136,11 +136,11 @@ The Employee confirms that the Employee has had a reasonable opportunity to revi
 
 By signing below, the Parties confirm that they have read this Agreement, understand it and agree to its terms.
 
-| EMPLOYER | EMPLOYEE |
-| :---- | :---- |
-| Signature: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ | Signature: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |
-| Name: {{employer\_signer\_name}} | Name: {{employee\_name}} |
-| Title: {{employer\_signer\_title}}   Date: {{employer\_signature\_date}} | Title/Position: {{employee\_position}}   Date: {{employee\_signature\_date}} |
+| EMPLOYER                                                                | EMPLOYEE                                                                   |
+| :---------------------------------------------------------------------- | :------------------------------------------------------------------------- |
+| Signature: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ | Signature: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_    |
+| Name: {{employer\_signer\_name}}                                        | Name: {{employee\_name}}                                                   |
+| Title: {{employer\_signer\_title}} Date: {{employer\_signature\_date}}  | Title/Position: {{employee\_position}} Date: {{employee\_signature\_date}} |
 
 **Schedule A \- Job Description**
 
@@ -148,7 +148,7 @@ By signing below, the Parties confirm that they have read this Agreement, unders
 
 **Schedule B \- Additional Contractual Termination Entitlement**
 
-*Complete this schedule only if the Employer is providing a contractual amount or benefit above ESA minimum entitlements. If this schedule is blank or marked not applicable, no additional contractual termination entitlement is provided.*
+_Complete this schedule only if the Employer is providing a contractual amount or benefit above ESA minimum entitlements. If this schedule is blank or marked not applicable, no additional contractual termination entitlement is provided._
 
 Additional entitlement, if any: {{without\_cause\_notice}}
 

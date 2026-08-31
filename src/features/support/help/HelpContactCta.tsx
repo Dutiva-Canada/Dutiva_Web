@@ -25,10 +25,7 @@ export function HelpContactCta() {
           {t('help_contact_body')}
         </p>
         <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
-          <Link
-            to={contactPath}
-            className="gold-button gold-button-lg"
-          >
+          <Link to={contactPath} className="gold-button gold-button-lg">
             {t('help_contact_action')}
             <ArrowRight size={16} />
           </Link>

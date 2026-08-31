@@ -183,7 +183,14 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
         admissionStatus,
       }))
     },
-    [admin.isAdmin, admin.organizationId, admin.memberRole, admin.admissionStatus, admin.identity, session],
+    [
+      admin.isAdmin,
+      admin.organizationId,
+      admin.memberRole,
+      admin.admissionStatus,
+      admin.identity,
+      session,
+    ],
   )
 
   const clearAdmissionStatus = useCallback(() => {

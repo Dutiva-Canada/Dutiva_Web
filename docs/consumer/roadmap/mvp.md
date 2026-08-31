@@ -154,11 +154,11 @@ If included, the Evidence Locker MVP is a basic secure repository:
 
 ## Recommended MVP composition
 
-| Product | MVP scope | In MVP? |
-|---|---|---|
-| Canadian Life Admin | Two workflows, deterministic or AI-assisted intake, jurisdiction gate, disclaimers, save/delete | **Yes — core** |
-| Canadian Document Generation | Two low-risk templates (repair request, ROE request) | Optional, but recommended if Life Admin handoff is tested |
-| Personal Evidence Locker | Basic upload/organize/timeline/export | Optional, but recommended if evidence handoff is tested |
+| Product                      | MVP scope                                                                                       | In MVP?                                                   |
+| ---------------------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| Canadian Life Admin          | Two workflows, deterministic or AI-assisted intake, jurisdiction gate, disclaimers, save/delete | **Yes — core**                                            |
+| Canadian Document Generation | Two low-risk templates (repair request, ROE request)                                            | Optional, but recommended if Life Admin handoff is tested |
+| Personal Evidence Locker     | Basic upload/organize/timeline/export                                                           | Optional, but recommended if evidence handoff is tested   |
 
 The smallest viable MVP is Canadian Life Admin with deterministic intake. Document Generation and Evidence Locker can be added in Phase 2 if they are not included in MVP.
 

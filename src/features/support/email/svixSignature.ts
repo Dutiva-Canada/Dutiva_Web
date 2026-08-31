@@ -20,11 +20,7 @@ export interface SvixHeaders {
 }
 
 export type SvixFailure =
-  | 'missing_headers'
-  | 'bad_timestamp'
-  | 'stale_timestamp'
-  | 'bad_secret'
-  | 'no_match'
+  'missing_headers' | 'bad_timestamp' | 'stale_timestamp' | 'bad_secret' | 'no_match'
 
 export type SvixVerifyResult = { ok: true } | { ok: false; reason: SvixFailure }
 

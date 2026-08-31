@@ -6,15 +6,15 @@ Individual Canadians, aged 18–65, who are managing a personal administrative s
 
 ### Key segments
 
-| Segment | Situations | Primary need |
-|---|---|---|
-| **Working Canadians** | Starting a job, losing a job, resigning, requesting accommodations, pay/record issues. | Understand rights and obligations, draft letters, keep records. |
-| **Renters** | Repair requests, lease disputes, moving out, deposits, landlord notices. | Document problems, write formal correspondence, know local rules. |
-| **Consumers** | Refunds, warranties, cancellations, service disputes, complaints to regulators. | Escalate effectively, preserve evidence, generate complaint letters. |
-| **People in transition** | Moving provinces, getting married, separating, having a child, handling a death. | Map overlapping obligations, find the right agencies, organize documents. |
-| **Gig / self-employed workers** | Invoicing, HST/GST basics, client disputes, record keeping. | Track obligations, store contracts and receipts, prepare correspondence. |
-| **Family helpers** | Adult children helping parents with estate, housing, or medical paperwork; parents helping young adults. | Organize and share documents safely without becoming a legal representative. |
-| **Newcomers** | Navigating Canadian federal/provincial systems, understanding tenancy/employment basics. | Plain-language orientation with clear source links and province-specific guidance. |
+| Segment                         | Situations                                                                                               | Primary need                                                                       |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **Working Canadians**           | Starting a job, losing a job, resigning, requesting accommodations, pay/record issues.                   | Understand rights and obligations, draft letters, keep records.                    |
+| **Renters**                     | Repair requests, lease disputes, moving out, deposits, landlord notices.                                 | Document problems, write formal correspondence, know local rules.                  |
+| **Consumers**                   | Refunds, warranties, cancellations, service disputes, complaints to regulators.                          | Escalate effectively, preserve evidence, generate complaint letters.               |
+| **People in transition**        | Moving provinces, getting married, separating, having a child, handling a death.                         | Map overlapping obligations, find the right agencies, organize documents.          |
+| **Gig / self-employed workers** | Invoicing, HST/GST basics, client disputes, record keeping.                                              | Track obligations, store contracts and receipts, prepare correspondence.           |
+| **Family helpers**              | Adult children helping parents with estate, housing, or medical paperwork; parents helping young adults. | Organize and share documents safely without becoming a legal representative.       |
+| **Newcomers**                   | Navigating Canadian federal/provincial systems, understanding tenancy/employment basics.                 | Plain-language orientation with clear source links and province-specific guidance. |
 
 ## Secondary users
 

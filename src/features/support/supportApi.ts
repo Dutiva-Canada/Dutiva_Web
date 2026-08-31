@@ -135,7 +135,8 @@ function toMessage(row: z.infer<typeof messageRowSchema>): SupportMessageView {
   return { id: row.id, authorRole: row.author_role, body: row.body, createdAt: row.created_at }
 }
 
-const TICKET_COLUMNS = 'id, public_reference, subject, category, status, priority, created_at, updated_at'
+const TICKET_COLUMNS =
+  'id, public_reference, subject, category, status, priority, created_at, updated_at'
 
 export async function listMySupportTickets(): Promise<SupportTicketSummary[]> {
   if (!supabase) return []
@@ -144,7 +145,10 @@ export async function listMySupportTickets(): Promise<SupportTicketSummary[]> {
     .select(TICKET_COLUMNS)
     .order('created_at', { ascending: false })
   if (error) throw error
-  return z.array(ticketRowSchema).parse(data ?? []).map(toSummary)
+  return z
+    .array(ticketRowSchema)
+    .parse(data ?? [])
+    .map(toSummary)
 }
 
 export async function getSupportTicket(id: string): Promise<SupportTicketThread | null> {
@@ -164,7 +168,10 @@ export async function getSupportTicket(id: string): Promise<SupportTicketThread 
   if (msgError) throw msgError
   return {
     ...toSummary(ticketRowSchema.parse(ticket)),
-    messages: z.array(messageRowSchema).parse(messages ?? []).map(toMessage),
+    messages: z
+      .array(messageRowSchema)
+      .parse(messages ?? [])
+      .map(toMessage),
   }
 }
 
@@ -241,7 +248,9 @@ export async function getScheduledCall(ticketId: string): Promise<ScheduledCallV
   if (!supabase) return null
   const { data, error } = await supabase
     .from('support_scheduled_calls')
-    .select('id, proposed_slots, duration_minutes, status, confirmed_start, confirmed_end, meet_link')
+    .select(
+      'id, proposed_slots, duration_minutes, status, confirmed_start, confirmed_end, meet_link',
+    )
     .eq('ticket_id', ticketId)
     .maybeSingle()
   if (error) throw error
@@ -258,7 +267,9 @@ export async function confirmScheduledCall(
   })
   if (error) throw error
   const parsed = z
-    .object({ data: z.object({ start: z.string(), end: z.string(), meet_link: z.string().nullable() }) })
+    .object({
+      data: z.object({ start: z.string(), end: z.string(), meet_link: z.string().nullable() }),
+    })
     .parse(data)
   return { start: parsed.data.start, end: parsed.data.end, meetLink: parsed.data.meet_link }
 }

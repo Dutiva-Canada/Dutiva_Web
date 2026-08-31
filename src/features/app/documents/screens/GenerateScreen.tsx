@@ -98,11 +98,6 @@ export function GenerateScreen() {
   const cases = mode === 'production' ? (prodCases ?? []) : data.cases
 
   return (
-    <GenerateWizard
-      key={template.id}
-      template={template}
-      employees={employees}
-      cases={cases}
-    />
+    <GenerateWizard key={template.id} template={template} employees={employees} cases={cases} />
   )
 }

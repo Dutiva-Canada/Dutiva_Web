@@ -49,13 +49,13 @@ Superseded
 Retired
 ```
 
-| State | Meaning | User-facing? |
-|---|---|---|
-| `draft` | New item being authored. | No. |
+| State          | Meaning                                  | User-facing?                                 |
+| -------------- | ---------------------------------------- | -------------------------------------------- |
+| `draft`        | New item being authored.                 | No.                                          |
 | `needs_review` | Item not yet reviewed or review overdue. | No, except as "under review" with a warning. |
-| `valid` | Reviewed and current. | Yes. |
-| `superseded` | Replaced by a newer item. | No; the newer item is used. |
-| `retired` | No longer relevant or out of scope. | No. |
+| `valid`        | Reviewed and current.                    | Yes.                                         |
+| `superseded`   | Replaced by a newer item.                | No; the newer item is used.                  |
+| `retired`      | No longer relevant or out of scope.      | No.                                          |
 
 `KG-REQ-007`: Only items marked `valid` SHALL be used as authoritative legal basis in user-facing answers or documents.
 

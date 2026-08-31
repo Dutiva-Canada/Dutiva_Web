@@ -90,11 +90,11 @@ Contact {{privacy\_contact\_name}} at {{privacy\_contact\_email}} to request acc
 
 Company systems, devices, accounts, email, messaging tools and data are provided for legitimate work purposes. Reasonable incidental personal use may be permitted if it does not interfere with work, create risk, consume excessive resources or breach policy.
 
-* Do not share passwords or authentication codes.  
-* Do not install unapproved software or browser extensions.  
-* Do not bypass security controls.  
-* Use approved storage, collaboration and communication tools for Company information.  
-* Report suspected compromise immediately.
+- Do not share passwords or authentication codes.
+- Do not install unapproved software or browser extensions.
+- Do not bypass security controls.
+- Use approved storage, collaboration and communication tools for Company information.
+- Report suspected compromise immediately.
 
 ## **14\. Conflicts of interest and outside activities**
 
@@ -128,8 +128,8 @@ This handbook is reviewed at least annually and updated as needed to reflect leg
 
 By signing the handbook acknowledgement or continuing employment after receiving this handbook, you acknowledge that you have received access to the handbook, have had the opportunity to read it, and agree to follow Company policies and workplace expectations. This acknowledgement does not convert the handbook into an employment contract.
 
-| EMPLOYER | EMPLOYEE |
-| :---- | :---- |
-| Signature: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ | Signature: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |
-| Name: {{employer\_signer\_name}} | Name: {{employee\_name}} |
-| Title: {{employer\_signer\_title}}   Date: {{employer\_signature\_date}} | Title/Position: {{employee\_position}}   Date: {{employee\_signature\_date}} |
+| EMPLOYER                                                                | EMPLOYEE                                                                   |
+| :---------------------------------------------------------------------- | :------------------------------------------------------------------------- |
+| Signature: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ | Signature: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_    |
+| Name: {{employer\_signer\_name}}                                        | Name: {{employee\_name}}                                                   |
+| Title: {{employer\_signer\_title}} Date: {{employer\_signature\_date}}  | Title/Position: {{employee\_position}} Date: {{employee\_signature\_date}} |

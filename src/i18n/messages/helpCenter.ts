@@ -29,10 +29,16 @@ export const helpCenterMessages = defineMessages({
   help_related_title: { en: 'More in this topic', fr: 'Plus dans ce sujet' },
 
   /* "Was this helpful?" widget. */
-  help_feedback_question: { en: 'Was this article helpful?', fr: 'Cet article vous a-t-il été utile ?' },
+  help_feedback_question: {
+    en: 'Was this article helpful?',
+    fr: 'Cet article vous a-t-il été utile ?',
+  },
   help_feedback_yes: { en: 'Yes', fr: 'Oui' },
   help_feedback_no: { en: 'No', fr: 'Non' },
-  help_feedback_thanks_yes: { en: 'Thanks for letting us know.', fr: 'Merci de nous l’avoir indiqué.' },
+  help_feedback_thanks_yes: {
+    en: 'Thanks for letting us know.',
+    fr: 'Merci de nous l’avoir indiqué.',
+  },
   help_feedback_thanks_no: {
     en: 'Thanks — if you still need help, contact support below.',
     fr: 'Merci — si vous avez encore besoin d’aide, contactez le soutien ci-dessous.',

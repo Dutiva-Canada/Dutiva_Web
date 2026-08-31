@@ -3,7 +3,10 @@ import { shellMessages as M } from '@/i18n/messages/shell'
 
 /** Strip `/app`, `/demo`, or `/fr/demo` prefix for segment parsing. */
 function workspaceSegments(pathname: string): string[] {
-  return pathname.replace(/^\/(?:app|demo|fr\/demo)\/?/, '').split('/').filter(Boolean)
+  return pathname
+    .replace(/^\/(?:app|demo|fr\/demo)\/?/, '')
+    .split('/')
+    .filter(Boolean)
 }
 
 /**

@@ -79,7 +79,10 @@ Deno.serve(async (req: Request) => {
     p_ttl_seconds: CRON_LOCK_TTL_SECONDS,
   })
   if (lockError) {
-    console.warn('[support-call-scheduler] acquire_cron_lock failed; continuing without lock:', lockError.message)
+    console.warn(
+      '[support-call-scheduler] acquire_cron_lock failed; continuing without lock:',
+      lockError.message,
+    )
   } else if (!acquired) {
     console.warn('[support-call-scheduler] another instance already holds the lock; skipping.')
     return json({ ok: true, skipped: true, reason: 'another-instance-running' })
@@ -94,7 +97,8 @@ Deno.serve(async (req: Request) => {
     .eq('status', 'confirmed')
     .or('reminder_sent_at.is.null,followup_flagged_at.is.null')
   if (fetchError) {
-    if (!lockError && acquired) await db.rpc('release_cron_lock', { p_job_name: CRON_LOCK_JOB, p_instance_id: instanceId })
+    if (!lockError && acquired)
+      await db.rpc('release_cron_lock', { p_job_name: CRON_LOCK_JOB, p_instance_id: instanceId })
     return json({ error: fetchError.message }, 500)
   }
 
@@ -123,7 +127,10 @@ Deno.serve(async (req: Request) => {
         payload: { reference: ticket.public_reference },
       })
     }
-    await db.from('support_scheduled_calls').update({ reminder_sent_at: now.toISOString() }).eq('id', row.id)
+    await db
+      .from('support_scheduled_calls')
+      .update({ reminder_sent_at: now.toISOString() })
+      .eq('id', row.id)
     results.push(`REMINDER  ticket ${row.ticketId}`)
   }
 
@@ -142,7 +149,10 @@ Deno.serve(async (req: Request) => {
       language: 'en',
       payload: { reference: ticket?.public_reference ?? '' },
     })
-    await db.from('support_scheduled_calls').update({ followup_flagged_at: now.toISOString() }).eq('id', row.id)
+    await db
+      .from('support_scheduled_calls')
+      .update({ followup_flagged_at: now.toISOString() })
+      .eq('id', row.id)
     results.push(`FOLLOWUP  ticket ${row.ticketId}`)
   }
 
@@ -151,7 +161,8 @@ Deno.serve(async (req: Request) => {
       p_job_name: CRON_LOCK_JOB,
       p_instance_id: instanceId,
     })
-    if (releaseError) console.warn('[support-call-scheduler] release_cron_lock failed:', releaseError.message)
+    if (releaseError)
+      console.warn('[support-call-scheduler] release_cron_lock failed:', releaseError.message)
   }
 
   return json({ ok: true, checked: rows.length, results })

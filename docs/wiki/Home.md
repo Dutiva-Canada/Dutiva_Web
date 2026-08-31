@@ -30,8 +30,6 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-
-
 Dutiva is a bilingual (English / French Canadian) HR compliance SaaS product built by **Dutiva Canada Inc.**, a federally incorporated Canadian company based in Ottawa. The platform helps Canadian employers manage HR compliance — documents, deadlines, and workplace decisions — with practical, AI-assisted guidance covering Ontario (ESA 2000), Québec (LNT), and federally regulated workplaces (Canada Labour Code Part III).
 
 The codebase implements three surfaces — a public marketing site at `dutiva.ca`, a **public read-only demo** at `/demo` (and `/fr/demo`), and the signed-in product workspace at `/app/*` — in a single React 19 monolith deployed on Vercel, with Supabase as the backend.
@@ -42,21 +40,21 @@ Sources: [README.md:1-7](), [docs/CANONICAL_FACTS.md:1-55]()
 
 ## Tech Stack
 
-| Layer | Technology | Version | Notes |
-|-------|-----------|---------|-------|
-| UI framework | React | 19 | Strict TypeScript, `tsc -b` |
-| Build tool | Vite | 8 | SSR build for prerendering |
-| CSS | Tailwind CSS | v4 | `@tailwindcss/vite` plugin |
-| Routing | react-router-dom | v7 | `createBrowserRouter` in `src/app/router.tsx` |
-| Backend | Supabase | `@supabase/supabase-js` ^2.110 | Auth, Postgres, Edge Functions, Vault |
-| Hosting | Vercel | — | Static + SPA rewrites via `vercel.json` |
-| Icons | lucide-react | — | Only icon library allowed |
-| Charts | recharts | — | Analytics dashboard |
-| AI model | DeepSeek | — | Via `advisor-chat` edge function |
-| Validation | Zod | v4 | AdvisorResponse contract, forms |
-| Linting | oxlint | — | Fast Rust-based linter |
-| Testing | Vitest + Testing Library + Playwright | — | Unit/integration + e2e |
-| TypeScript | ~6.0 | Strict mode | `tsc -b` via `npm run typecheck` |
+| Layer        | Technology                            | Version                        | Notes                                         |
+| ------------ | ------------------------------------- | ------------------------------ | --------------------------------------------- |
+| UI framework | React                                 | 19                             | Strict TypeScript, `tsc -b`                   |
+| Build tool   | Vite                                  | 8                              | SSR build for prerendering                    |
+| CSS          | Tailwind CSS                          | v4                             | `@tailwindcss/vite` plugin                    |
+| Routing      | react-router-dom                      | v7                             | `createBrowserRouter` in `src/app/router.tsx` |
+| Backend      | Supabase                              | `@supabase/supabase-js` ^2.110 | Auth, Postgres, Edge Functions, Vault         |
+| Hosting      | Vercel                                | —                              | Static + SPA rewrites via `vercel.json`       |
+| Icons        | lucide-react                          | —                              | Only icon library allowed                     |
+| Charts       | recharts                              | —                              | Analytics dashboard                           |
+| AI model     | DeepSeek                              | —                              | Via `advisor-chat` edge function              |
+| Validation   | Zod                                   | v4                             | AdvisorResponse contract, forms               |
+| Linting      | oxlint                                | —                              | Fast Rust-based linter                        |
+| Testing      | Vitest + Testing Library + Playwright | —                              | Unit/integration + e2e                        |
+| TypeScript   | ~6.0                                  | Strict mode                    | `tsc -b` via `npm run typecheck`              |
 
 The `package.json` defines the build pipeline as a multi-step chain: `tsc -b` → `vite build` → sourcemap relocation → SSR build → prerender → SEO validation → entry-graph budget check → service worker generation.
 
@@ -198,12 +196,12 @@ Sources: [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:1-60](), [src
 
 Dutiva's product scope is organized as four concentric rings. Each ring extends the previous one, and **all four rings are complete** as of the current codebase.
 
-| Ring | Pillar | Question It Answers | Code Artifacts |
-|------|--------|---------------------|----------------|
-| 1 | HR Compliance Core | What do I legally have to do? | `catalogue.ts` templates T01–T20, Advisor, compliance register, cases, employees |
-| 2 | Workplace Wellness | How do I support my employees properly? | Accommodation templates (T21–T24), mental health/psych safety flows, leave management |
-| 3 | Internal Communications | How do I communicate this to my team? | Templates T35–T43 (layoff, policy rollout, crisis comms) |
-| 4 | Compensation & Financial Literacy | Am I paying fairly, and explaining it well? | Templates T45–T46, reference guides (pay-statement, retirement-savings) |
+| Ring | Pillar                            | Question It Answers                         | Code Artifacts                                                                        |
+| ---- | --------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------- |
+| 1    | HR Compliance Core                | What do I legally have to do?               | `catalogue.ts` templates T01–T20, Advisor, compliance register, cases, employees      |
+| 2    | Workplace Wellness                | How do I support my employees properly?     | Accommodation templates (T21–T24), mental health/psych safety flows, leave management |
+| 3    | Internal Communications           | How do I communicate this to my team?       | Templates T35–T43 (layoff, policy rollout, crisis comms)                              |
+| 4    | Compensation & Financial Literacy | Am I paying fairly, and explaining it well? | Templates T45–T46, reference guides (pay-statement, retirement-savings)               |
 
 The rings are a **sequencing and packaging** device, not pricing tiers — no plan in `PLANS` is scoped by ring. The template catalogue (`src/features/app/documents/catalogue.ts`) combines templates from `data/templates/` and `customTemplates.ts` into a single sorted list of **50 templates** (T01–T50).
 
@@ -217,16 +215,16 @@ Sources: [docs/FOUR_RING_FRAMEWORK.md:1-70](), [src/features/app/documents/catal
 
 The platform is in **beta**. Key operational facts, enforced by CI:
 
-| Fact | Value | Source of Truth |
-|------|-------|-----------------|
-| Beta capacity | **15** individuals/organizations | `BETA_COHORT_LIMIT` in `src/config/beta.ts` |
-| Paid plans | **Open** — support membership; free cohort of **15** remains waitlisted | `PAID_PLANS_DISABLED_DURING_BETA = false` in `src/config/plans.ts` |
-| Plan tiers | Free · Starter $24 · Growth $49 · Pro $99 CAD/mo | `PLANS` array in `src/config/plans.ts` |
-| Annual billing | 10 of 12 months charged | `ANNUAL_MONTHS_BILLED = 10` |
-| Jurisdictions | 3 — ON, QC, FED | `MONITORING_COVERAGE` in `monitoringCoverage.ts` |
-| Templates | 50 (T01–T50) | `allTemplates` in `catalogue.ts` |
-| Languages | EN + FR, both surfaces | `src/i18n/` — EN unprefixed, FR under `/fr` |
-| Law monitoring | All 3 jurisdictions confirmed active (audit 2026-08-10) | `COVERAGE_AUDITED_ON` in `monitoringCoverage.ts` |
+| Fact           | Value                                                                   | Source of Truth                                                    |
+| -------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Beta capacity  | **15** individuals/organizations                                        | `BETA_COHORT_LIMIT` in `src/config/beta.ts`                        |
+| Paid plans     | **Open** — support membership; free cohort of **15** remains waitlisted | `PAID_PLANS_DISABLED_DURING_BETA = false` in `src/config/plans.ts` |
+| Plan tiers     | Free · Starter $24 · Growth $49 · Pro $99 CAD/mo                        | `PLANS` array in `src/config/plans.ts`                             |
+| Annual billing | 10 of 12 months charged                                                 | `ANNUAL_MONTHS_BILLED = 10`                                        |
+| Jurisdictions  | 3 — ON, QC, FED                                                         | `MONITORING_COVERAGE` in `monitoringCoverage.ts`                   |
+| Templates      | 50 (T01–T50)                                                            | `allTemplates` in `catalogue.ts`                                   |
+| Languages      | EN + FR, both surfaces                                                  | `src/i18n/` — EN unprefixed, FR under `/fr`                        |
+| Law monitoring | All 3 jurisdictions confirmed active (audit 2026-08-10)                 | `COVERAGE_AUDITED_ON` in `monitoringCoverage.ts`                   |
 
 The beta cohort limit is enforced server-side in the `current_user_is_workspace_member()` RPC (migration `0067_beta_cohort_capacity.sql`) and the `create-beta-signup` edge function. The signup form continues accepting interest as a waiting list after the cohort fills. `src/canonicalFacts.test.ts` fails the build if any copy of the limit drifts.
 
@@ -296,18 +294,18 @@ Sources: [supabase/config.toml:1-72](), [supabase/schema.sql:1-100]()
 
 ## Key npm Scripts
 
-| Command | Purpose |
-|---------|---------|
-| `npm run dev` | Vite dev server |
-| `npm run build` | Full production build chain (typecheck → build → SSR → prerender → SEO validation → entry-graph → SW) |
-| `npm run check` | Merge gate: typecheck + lint + test + migration check + RLS check + canonical facts + message scopes |
-| `npm run typecheck` | `tsc -b` (strict) |
-| `npm run lint` | oxlint |
-| `npm run test` | Vitest (jsdom + Testing Library) |
-| `npm run test:e2e` | Playwright browser tests |
-| `npm run check:facts` | Brand palette drift guard (`scripts/check-canonical-facts.mjs`) |
-| `npm run check:migrations` | Migration filename discipline + forward/reverse drift detection |
-| `npm run check:rls` | Runtime RLS regression probing |
+| Command                    | Purpose                                                                                               |
+| -------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `npm run dev`              | Vite dev server                                                                                       |
+| `npm run build`            | Full production build chain (typecheck → build → SSR → prerender → SEO validation → entry-graph → SW) |
+| `npm run check`            | Merge gate: typecheck + lint + test + migration check + RLS check + canonical facts + message scopes  |
+| `npm run typecheck`        | `tsc -b` (strict)                                                                                     |
+| `npm run lint`             | oxlint                                                                                                |
+| `npm run test`             | Vitest (jsdom + Testing Library)                                                                      |
+| `npm run test:e2e`         | Playwright browser tests                                                                              |
+| `npm run check:facts`      | Brand palette drift guard (`scripts/check-canonical-facts.mjs`)                                       |
+| `npm run check:migrations` | Migration filename discipline + forward/reverse drift detection                                       |
+| `npm run check:rls`        | Runtime RLS regression probing                                                                        |
 
 For details on setting up the development environment, see [Getting Started & Environment Setup](#1.1).
 
@@ -319,14 +317,14 @@ Sources: [package.json:8-26](), [README.md:29-40]()
 
 Both public surfaces and the signed-in workspace were polished for phones and small tablets in **Aug 2026** (PRs [#276](https://github.com/Dutiva-Canada/Dutiva_Web/pull/276) marketing, [#277](https://github.com/Dutiva-Canada/Dutiva_Web/pull/277) app). Document preview and marketing overlay fixes landed in [#270](https://github.com/Dutiva-Canada/Dutiva_Web/pull/270)–[#274](https://github.com/Dutiva-Canada/Dutiva_Web/pull/274). Synced to `main` at `ab8a5b1`.
 
-| Area | Behaviour on `<768px` |
-|------|------------------------|
-| **Marketing** (`dutiva.ca`) | Overflow-safe `marketing-auto-grid` utilities, tighter section gutters, 44px tap targets on header/demo sections, cookie banner full-width actions, template samples open in a portaled modal |
-| **App shell** | Existing drawer + bottom tab bar (`AppShell` / `MobileNav`); `AppPage` default padding `14px` → `32px` at `sm` |
-| **Advisor** | `ThreadListMobileAccess` — bar + full-screen conversation sheet; compliance workspace inline panel only at `≥1024px` (`lg`), otherwise header pill opens sheet |
-| **Memory** (`/app/settings/memory`) | `MemoryMobileNavAccess` — bar + full nav sheet; chat recall exposes “What I know” as a sheet below `lg` |
-| **Admin tables** | Settings roles matrix, production document repository, export audit, and support admin tickets render stacked cards instead of horizontal scroll |
-| **Shared hook** | `useMediaQuery` / `useMdUp` / `useLgUp` in `src/lib/useMediaQuery.ts` gates layouts where Tailwind breakpoints alone are insufficient (tests + real viewports) |
+| Area                                | Behaviour on `<768px`                                                                                                                                                                         |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Marketing** (`dutiva.ca`)         | Overflow-safe `marketing-auto-grid` utilities, tighter section gutters, 44px tap targets on header/demo sections, cookie banner full-width actions, template samples open in a portaled modal |
+| **App shell**                       | Existing drawer + bottom tab bar (`AppShell` / `MobileNav`); `AppPage` default padding `14px` → `32px` at `sm`                                                                                |
+| **Advisor**                         | `ThreadListMobileAccess` — bar + full-screen conversation sheet; compliance workspace inline panel only at `≥1024px` (`lg`), otherwise header pill opens sheet                                |
+| **Memory** (`/app/settings/memory`) | `MemoryMobileNavAccess` — bar + full nav sheet; chat recall exposes “What I know” as a sheet below `lg`                                                                                       |
+| **Admin tables**                    | Settings roles matrix, production document repository, export audit, and support admin tickets render stacked cards instead of horizontal scroll                                              |
+| **Shared hook**                     | `useMediaQuery` / `useMdUp` / `useLgUp` in `src/lib/useMediaQuery.ts` gates layouts where Tailwind breakpoints alone are insufficient (tests + real viewports)                                |
 
 Sources: [src/features/marketing/landing.css](), [src/features/app/views/advisor/ThreadList.tsx](), [src/features/app/views/memory/MemoryLayout.tsx](), [src/features/app/shell/AppPage.tsx](), [src/lib/useMediaQuery.ts]()
 
@@ -334,9 +332,9 @@ Sources: [src/features/marketing/landing.css](), [src/features/app/views/advisor
 
 ## Child Pages
 
-| Page | What It Covers |
-|------|---------------|
-| [Getting Started & Environment Setup](#1.1) | Cloning, `npm` scripts, `.env.example` variables, Supabase project setup, Vercel deployment, the configured-or-inert pattern where `supabaseClient` returns `null` when unconfigured |
-| [Conventions & Canonical Facts](#1.2) | `CONVENTIONS.md` engineering standards (surface scopes, CSS tokens, i18n, routing), `CANONICAL_FACTS.md` governance, the bidirectional CI drift guards in `canonicalFacts.test.ts` and `check-canonical-facts.mjs` |
+| Page                                        | What It Covers                                                                                                                                                                                                     |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [Getting Started & Environment Setup](#1.1) | Cloning, `npm` scripts, `.env.example` variables, Supabase project setup, Vercel deployment, the configured-or-inert pattern where `supabaseClient` returns `null` when unconfigured                               |
+| [Conventions & Canonical Facts](#1.2)       | `CONVENTIONS.md` engineering standards (surface scopes, CSS tokens, i18n, routing), `CANONICAL_FACTS.md` governance, the bidirectional CI drift guards in `canonicalFacts.test.ts` and `check-canonical-facts.mjs` |
 
 ---

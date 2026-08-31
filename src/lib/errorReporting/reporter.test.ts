@@ -49,7 +49,9 @@ describe('createReporter', () => {
 
   it('redacts emails and id-like tokens from message and stack', () => {
     const reporter = makeReporter()
-    const err = new Error('doclib: document 8f3b9c1e-0a2d-4b6f-9c1e-0a2d4b6f9c1e failed for jane@corp.ca')
+    const err = new Error(
+      'doclib: document 8f3b9c1e-0a2d-4b6f-9c1e-0a2d4b6f9c1e failed for jane@corp.ca',
+    )
     err.stack = 'Error: boom\n    at load (https://app.dutiva.ca/x.js?token=deadbeefdeadbeef:1:2)'
     reporter.report({ error: err, kind: 'route-boundary', pathname: '/app/home' })
     const { message, stack } = sent[0]!.payload
@@ -69,7 +71,11 @@ describe('createReporter', () => {
 
   it('dedupes an identical error within the dedupe window', () => {
     const reporter = makeReporter()
-    const input = { error: new Error('loop'), kind: 'route-boundary' as const, pathname: '/app/home' }
+    const input = {
+      error: new Error('loop'),
+      kind: 'route-boundary' as const,
+      pathname: '/app/home',
+    }
     reporter.report(input)
     reporter.report(input)
     reporter.report(input)
@@ -78,7 +84,11 @@ describe('createReporter', () => {
 
   it('re-sends the same error after the dedupe window elapses', () => {
     const reporter = makeReporter()
-    const input = { error: new Error('loop'), kind: 'route-boundary' as const, pathname: '/app/home' }
+    const input = {
+      error: new Error('loop'),
+      kind: 'route-boundary' as const,
+      pathname: '/app/home',
+    }
     reporter.report(input)
     clock += 61_000
     reporter.report(input)
@@ -101,7 +111,11 @@ describe('createReporter', () => {
   it('rate-limits a burst of distinct errors in the rolling window', () => {
     const reporter = makeReporter()
     for (let i = 0; i < 10; i++) {
-      reporter.report({ error: new Error(`distinct ${i}`), kind: 'window-error', pathname: '/app/home' })
+      reporter.report({
+        error: new Error(`distinct ${i}`),
+        kind: 'window-error',
+        pathname: '/app/home',
+      })
     }
     expect(sent.length).toBeLessThanOrEqual(5)
   })
@@ -152,7 +166,11 @@ describe('createReporter', () => {
   it('handles non-Error rejection reasons', () => {
     const reporter = makeReporter()
     reporter.report({ error: 'string reason', kind: 'unhandled-rejection', pathname: '/' })
-    reporter.report({ error: { message: 'objecty' }, kind: 'unhandled-rejection', pathname: '/app/home' })
+    reporter.report({
+      error: { message: 'objecty' },
+      kind: 'unhandled-rejection',
+      pathname: '/app/home',
+    })
     expect(sent.map((s) => s.payload.message)).toEqual(['string reason', 'objecty'])
   })
 })

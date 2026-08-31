@@ -75,9 +75,15 @@ export function renderSigningInviteEmail(ctx: {
       )
   return {
     subject,
-    text: [greeting, ctx.reminder ? reminderIntro : intro, docLine, cta, expiry, DISCLAIMER[lang], sign].join(
-      '\n\n',
-    ),
+    text: [
+      greeting,
+      ctx.reminder ? reminderIntro : intro,
+      docLine,
+      cta,
+      expiry,
+      DISCLAIMER[lang],
+      sign,
+    ].join('\n\n'),
   }
 }
 
@@ -102,7 +108,9 @@ export function filterTurnRecipients<T extends { signing_order: number }>(
 export async function sendInviteToRecipient(
   admin: {
     from: (table: string) => {
-      update: (patch: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<{ error: { message: string } | null }> }
+      update: (patch: Record<string, unknown>) => {
+        eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>
+      }
       insert: (row: Record<string, unknown>) => Promise<{ error: { message: string } | null }>
     }
   },

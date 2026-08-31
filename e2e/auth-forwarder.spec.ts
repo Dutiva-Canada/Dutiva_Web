@@ -9,9 +9,7 @@ test.describe('magic-link forwarder', () => {
   test.beforeEach(async ({ page }) => {
     await blockTrustedSite(page)
   })
-  test('redirects token_hash query params from / to the app confirm route', async ({
-    page,
-  }) => {
+  test('redirects token_hash query params from / to the app confirm route', async ({ page }) => {
     await page.goto('/?token_hash=e2e-test-hash&type=magiclink')
     await expect(page).toHaveURL(/\/app\/auth\/confirm\?token_hash=e2e-test-hash/)
   })

@@ -15,7 +15,5 @@ export function ArticlePublishedLabel({
   readonly template: string
 }) {
   const monthYear = formatArticleMonthYear(iso, lang)
-  return (
-    <time dateTime={iso}>{template.replace('{date}', monthYear)}</time>
-  )
+  return <time dateTime={iso}>{template.replace('{date}', monthYear)}</time>
 }

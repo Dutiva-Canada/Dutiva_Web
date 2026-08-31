@@ -38,7 +38,8 @@ describe('ModeGate', () => {
         },
         rpc: vi.fn((fn: string) => {
           if (fn === 'is_admin_user') return Promise.resolve({ data: true, error: null })
-          if (fn === 'create_organization') return Promise.resolve({ data: { id: 'org-1' }, error: null })
+          if (fn === 'create_organization')
+            return Promise.resolve({ data: { id: 'org-1' }, error: null })
           return Promise.resolve({ data: null, error: null })
         }),
         from: vi.fn((table: string) => ({
@@ -69,7 +70,9 @@ describe('ModeGate', () => {
     /* Empty state, titled with the module's own label. */
     expect(await screen.findByText('Production workspace')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Cases' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Want sample data? Open Demo in Settings' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Want sample data? Open Demo in Settings' }),
+    ).toBeInTheDocument()
     expect(screen.queryByTestId('fixture-view')).not.toBeInTheDocument()
   })
 })

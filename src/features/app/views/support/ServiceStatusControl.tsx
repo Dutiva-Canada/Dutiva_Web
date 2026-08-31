@@ -8,10 +8,15 @@ import {
   getServiceStatus,
   setServiceStatus,
 } from '@/features/support/statusApi'
-import type { ServiceComponent, ServiceStatusLevel, ServiceStatusRow } from '@/features/support/statusApi'
+import type {
+  ServiceComponent,
+  ServiceStatusLevel,
+  ServiceStatusRow,
+} from '@/features/support/statusApi'
 
 const LEVELS: ServiceStatusLevel[] = ['operational', 'degraded', 'maintenance', 'outage']
-const selectClass = 'rounded-[7px] border border-border bg-surface px-[8px] py-[6px] text-[12.5px] text-text'
+const selectClass =
+  'rounded-[7px] border border-border bg-surface px-[8px] py-[6px] text-[12.5px] text-text'
 
 /** Founder control for the public /status board (rendered inside the admin-only
     Support dashboard). Reads the current statuses and posts changes through the
@@ -54,7 +59,9 @@ export function ServiceStatusControl() {
 
   return (
     <section className="mb-[20px] rounded-[12px] border border-border bg-inset px-[16px] py-[14px]">
-      <h2 className="m-0 mb-[10px] text-[13px] font-semibold text-text-2">{x(M.status_admin_title)}</h2>
+      <h2 className="m-0 mb-[10px] text-[13px] font-semibold text-text-2">
+        {x(M.status_admin_title)}
+      </h2>
       <div className="grid gap-[8px]">
         {rows.map((row) => (
           <div key={row.component} className="flex flex-wrap items-center gap-[8px]">
@@ -65,7 +72,9 @@ export function ServiceStatusControl() {
             <select
               aria-label={`${label(row.component)} — ${x(M.status_admin_title)}`}
               value={row.status}
-              onChange={(e) => patch(row.component, { status: e.target.value as ServiceStatusLevel })}
+              onChange={(e) =>
+                patch(row.component, { status: e.target.value as ServiceStatusLevel })
+              }
               className={selectClass}
             >
               {LEVELS.map((l) => (

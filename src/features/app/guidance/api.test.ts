@@ -161,11 +161,7 @@ describe('guidance api', () => {
       const filters = await filtersFor()
       const jurisdictionFilter = filters.in.find(([column]) => column === 'jurisdiction')
       expect(jurisdictionFilter).toBeDefined()
-      expect([...(jurisdictionFilter?.[1] ?? [])].sort()).toEqual([
-        'Federal',
-        'Ontario',
-        'Quebec',
-      ])
+      expect([...(jurisdictionFilter?.[1] ?? [])].sort()).toEqual(['Federal', 'Ontario', 'Quebec'])
     })
 
     it('uses the monitor spellings, not the product codes', async () => {

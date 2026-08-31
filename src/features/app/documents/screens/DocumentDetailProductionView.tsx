@@ -63,10 +63,7 @@ const STATUS_LABEL: Record<ProductionDocumentStatus, (typeof M)[keyof typeof M]>
   exported: M.doclib_prod_status_exported,
 }
 
-const STATUS_TONE: Record<
-  ProductionDocumentStatus,
-  'neutral' | 'ok' | 'info' | 'warn' | 'risk'
-> = {
+const STATUS_TONE: Record<ProductionDocumentStatus, 'neutral' | 'ok' | 'info' | 'warn' | 'risk'> = {
   draft: 'neutral',
   approved: 'ok',
   archived: 'info',
@@ -109,10 +106,7 @@ function signatureInfo(status: string): StatusInfo | undefined {
   return status in signatureStatusInfo ? signatureStatusInfo[status as SignatureStatus] : undefined
 }
 
-const INVITE_DELIVERY_LABEL: Record<
-  InviteDeliveryStatus,
-  (typeof M)[keyof typeof M]
-> = {
+const INVITE_DELIVERY_LABEL: Record<InviteDeliveryStatus, (typeof M)[keyof typeof M]> = {
   delivered: M.doclib_invite_delivery_delivered,
   bounced: M.doclib_invite_delivery_bounced,
   complained: M.doclib_invite_delivery_complained,
@@ -236,20 +230,13 @@ export function DocumentDetailProductionView() {
   const recipients = [...detail.recipients].sort((a, b) => a.order - b.order)
   const undeliveredInviteCount = countUndeliveredInvites(recipients)
   const turn = currentSigningTurn(recipients)
-  const completion = signature
-    ? buildSigningCompletionRecord(detail, signature, recipients)
-    : null
+  const completion = signature ? buildSigningCompletionRecord(detail, signature, recipients) : null
   const canApprove =
     isOrgAdmin && detail.status === 'draft' && detail.signatureStatus === 'not_sent'
   const canSendForSignature =
-    isOrgAdmin &&
-    detail.signatureStatus === 'not_sent' &&
-    detail.status === 'approved'
+    isOrgAdmin && detail.signatureStatus === 'not_sent' && detail.status === 'approved'
   const canVoid =
-    isOrgAdmin &&
-    signature &&
-    detail.signatureStatus !== 'voided' &&
-    detail.status !== 'archived'
+    isOrgAdmin && signature && detail.signatureStatus !== 'voided' && detail.status !== 'archived'
   const canExport =
     isOrgAdmin &&
     detail.signatureStatus === 'signed' &&
@@ -361,7 +348,9 @@ export function DocumentDetailProductionView() {
     } catch (err) {
       const code = (err as { code?: string } | null)?.code
       showToast(
-        code === 'no_provider' ? M.doclib_external_email_no_provider : M.doclib_external_email_failed,
+        code === 'no_provider'
+          ? M.doclib_external_email_no_provider
+          : M.doclib_external_email_failed,
         'info',
       )
     } finally {
@@ -632,10 +621,7 @@ export function DocumentDetailProductionView() {
               </div>
               {isOrgAdmin &&
                 recipients.some(
-                  (r) =>
-                    r.signingToken &&
-                    r.status !== 'signed' &&
-                    r.status !== 'declined',
+                  (r) => r.signingToken && r.status !== 'signed' && r.status !== 'declined',
                 ) && (
                   <button
                     type="button"
@@ -730,10 +716,14 @@ export function DocumentDetailProductionView() {
                         {recipient.inviteDeliveryDetail &&
                           (recipient.inviteDeliveryStatus === 'bounced' ||
                             recipient.inviteDeliveryStatus === 'complained') && (
-                            <span className="block text-risk-fg">{recipient.inviteDeliveryDetail}</span>
+                            <span className="block text-risk-fg">
+                              {recipient.inviteDeliveryDetail}
+                            </span>
                           )}
                         {isSigningTokenExpired(recipient) && (
-                          <span className="block text-risk-fg">{x(M.doclib_external_link_expired)}</span>
+                          <span className="block text-risk-fg">
+                            {x(M.doclib_external_link_expired)}
+                          </span>
                         )}
                       </div>
                     )}
@@ -756,52 +746,52 @@ export function DocumentDetailProductionView() {
                       recipient.status !== 'signed' &&
                       recipient.status !== 'declined' &&
                       recipient.signingToken && (
-                      <div className="mt-2 flex flex-wrap justify-end gap-1.5">
-                        {turn?.email === recipient.email && (
+                        <div className="mt-2 flex flex-wrap justify-end gap-1.5">
+                          {turn?.email === recipient.email && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                navigate(
+                                  `/app/documents/sign/${signature.envelopeId}?recipient=${encodeURIComponent(recipient.email)}`,
+                                )
+                              }
+                              className="rounded-lg bg-navy px-2.5 py-1 text-[11.5px] font-semibold text-white"
+                            >
+                              {x(M.doclib_docd_sign)}
+                            </button>
+                          )}
                           <button
                             type="button"
-                            onClick={() =>
-                              navigate(
-                                `/app/documents/sign/${signature.envelopeId}?recipient=${encodeURIComponent(recipient.email)}`,
-                              )
-                            }
-                            className="rounded-lg bg-navy px-2.5 py-1 text-[11.5px] font-semibold text-white"
+                            onClick={() => void onCopySigningLink(recipient.signingToken!)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface px-2.5 py-1 text-[11.5px] font-semibold text-text hover:bg-inset"
                           >
-                            {x(M.doclib_docd_sign)}
+                            <Copy size={12} strokeWidth={2} aria-hidden="true" />
+                            {x(M.doclib_external_copy_link)}
                           </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => void onCopySigningLink(recipient.signingToken!)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface px-2.5 py-1 text-[11.5px] font-semibold text-text hover:bg-inset"
-                        >
-                          <Copy size={12} strokeWidth={2} aria-hidden="true" />
-                          {x(M.doclib_external_copy_link)}
-                        </button>
-                        {isOrgAdmin && (
-                          <button
-                            type="button"
-                            onClick={() => void onEmailSigningLink(recipient.id)}
-                            disabled={emailingAll || emailingRecipientId === recipient.id}
-                            className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface px-2.5 py-1 text-[11.5px] font-semibold text-text hover:bg-inset disabled:opacity-50"
-                          >
-                            <Mail size={12} strokeWidth={2} aria-hidden="true" />
-                            {x(M.doclib_external_email_link)}
-                          </button>
-                        )}
-                        {isOrgAdmin && (
-                          <button
-                            type="button"
-                            onClick={() => void onReissueSigningLink(recipient.id)}
-                            disabled={!!reissuingRecipientId}
-                            className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface px-2.5 py-1 text-[11.5px] font-semibold text-text hover:bg-inset disabled:opacity-50"
-                          >
-                            <RefreshCw size={12} strokeWidth={2} aria-hidden="true" />
-                            {x(M.doclib_external_reissue_link)}
-                          </button>
-                        )}
-                      </div>
-                    )}
+                          {isOrgAdmin && (
+                            <button
+                              type="button"
+                              onClick={() => void onEmailSigningLink(recipient.id)}
+                              disabled={emailingAll || emailingRecipientId === recipient.id}
+                              className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface px-2.5 py-1 text-[11.5px] font-semibold text-text hover:bg-inset disabled:opacity-50"
+                            >
+                              <Mail size={12} strokeWidth={2} aria-hidden="true" />
+                              {x(M.doclib_external_email_link)}
+                            </button>
+                          )}
+                          {isOrgAdmin && (
+                            <button
+                              type="button"
+                              onClick={() => void onReissueSigningLink(recipient.id)}
+                              disabled={!!reissuingRecipientId}
+                              className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface px-2.5 py-1 text-[11.5px] font-semibold text-text hover:bg-inset disabled:opacity-50"
+                            >
+                              <RefreshCw size={12} strokeWidth={2} aria-hidden="true" />
+                              {x(M.doclib_external_reissue_link)}
+                            </button>
+                          )}
+                        </div>
+                      )}
                   </div>
                 </div>
               )

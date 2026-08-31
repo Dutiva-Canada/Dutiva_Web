@@ -1,4 +1,12 @@
-import { ChevronRight, FileSignature, FileText, MessageSquare, ShieldCheck, Sparkles, Users } from 'lucide-react'
+import {
+  ChevronRight,
+  FileSignature,
+  FileText,
+  MessageSquare,
+  ShieldCheck,
+  Sparkles,
+  Users,
+} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { SectionIntro } from '../SectionIntro'
 import { usePublicPath } from '@/seo/usePublicPath'

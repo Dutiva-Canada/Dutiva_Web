@@ -39,17 +39,34 @@ function json(body: unknown, status = 200) {
 }
 
 const CATEGORIES = [
-  'account_access', 'billing', 'technical', 'product_question', 'privacy',
-  'security', 'accessibility', 'complaint', 'sales', 'other',
+  'account_access',
+  'billing',
+  'technical',
+  'product_question',
+  'privacy',
+  'security',
+  'accessibility',
+  'complaint',
+  'sales',
+  'other',
 ] as const
 type Category = (typeof CATEGORIES)[number]
 
 /** Only these may be submitted without an account (mirror allowPublic in config). */
 const PUBLIC_CATEGORIES = new Set<Category>([
-  'product_question', 'privacy', 'security', 'accessibility', 'sales',
+  'product_question',
+  'privacy',
+  'security',
+  'accessibility',
+  'sales',
 ])
 /** Restricted handling: requester + admin only, off the ordinary product queue. */
-const RESTRICTED_CATEGORIES = new Set<Category>(['privacy', 'security', 'accessibility', 'complaint'])
+const RESTRICTED_CATEGORIES = new Set<Category>([
+  'privacy',
+  'security',
+  'accessibility',
+  'complaint',
+])
 
 const IMPACTS = ['blocking', 'major', 'minor', 'none'] as const
 type Impact = (typeof IMPACTS)[number]
@@ -61,7 +78,10 @@ const LANGUAGES = ['en', 'fr'] as const
 const PRIORITIES = ['low', 'standard', 'high', 'critical'] as const
 const PAID_FLOOR_PLANS = new Set(['growth', 'pro'])
 const RESTRICTED_FROM_PAID_FLOOR = new Set<Category>([
-  'privacy', 'security', 'accessibility', 'complaint',
+  'privacy',
+  'security',
+  'accessibility',
+  'complaint',
 ])
 
 function applyPaidSupportFloor(priority: string, plan: string | null, category: Category): string {
@@ -82,8 +102,11 @@ function suggestPriority(category: Category, impact: Impact, urgency: Urgency): 
   const categoryFloor =
     category === 'security'
       ? 2
-      : category === 'account_access' || category === 'accessibility' ||
-          category === 'privacy' || category === 'billing' || category === 'complaint'
+      : category === 'account_access' ||
+          category === 'accessibility' ||
+          category === 'privacy' ||
+          category === 'billing' ||
+          category === 'complaint'
         ? 1
         : 0
   let rank = Math.max(impactRank, categoryFloor)
@@ -117,7 +140,9 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 async function sha256hex(input: string): Promise<string> {
   const bytes = new TextEncoder().encode(input)
   const digest = await crypto.subtle.digest('SHA-256', bytes)
-  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('')
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
 }
 
 /** Best-effort client IP from the usual proxy headers. */
@@ -150,7 +175,8 @@ const CAPTCHA_PROVIDER = (() => {
 type CaptchaResult = { ok: true } | { ok: false; reason: string }
 
 function interpretSiteverify(payload: unknown): CaptchaResult {
-  if (typeof payload !== 'object' || payload === null) return { ok: false, reason: 'provider_error' }
+  if (typeof payload !== 'object' || payload === null)
+    return { ok: false, reason: 'provider_error' }
   const record = payload as { success?: unknown; 'error-codes'?: unknown }
   if (record.success === true) return { ok: true }
   const codes = Array.isArray(record['error-codes'])
@@ -213,7 +239,10 @@ Deno.serve(async (req: Request) => {
 
   const category = oneOf<Category>(body.category, CATEGORIES, 'other')
   if (!PUBLIC_CATEGORIES.has(category)) {
-    return json({ error: 'This request type requires a signed-in account.', field: 'category' }, 400)
+    return json(
+      { error: 'This request type requires a signed-in account.', field: 'category' },
+      400,
+    )
   }
 
   const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
@@ -224,7 +253,8 @@ Deno.serve(async (req: Request) => {
   const description = str(body.description, 20000)
   if (!subject) return json({ error: 'A subject is required.', field: 'subject' }, 422)
   if (!description) return json({ error: 'A description is required.', field: 'description' }, 422)
-  if (body.consent !== true) return json({ error: 'Please confirm to continue.', field: 'consent' }, 422)
+  if (body.consent !== true)
+    return json({ error: 'Please confirm to continue.', field: 'consent' }, 422)
 
   const impact = oneOf<Impact>(body.impact, IMPACTS, 'none')
   const urgency = oneOf<Urgency>(body.urgency, URGENCIES, 'whenever')
@@ -234,7 +264,8 @@ Deno.serve(async (req: Request) => {
   const admin = createClient(supabaseUrl, serviceRoleKey)
 
   // Rate limiting on salted hashes (never the raw IP/email).
-  const salt = Deno.env.get('PUBLIC_INTAKE_SALT') ?? Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? 'dutiva-intake'
+  const salt =
+    Deno.env.get('PUBLIC_INTAKE_SALT') ?? Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? 'dutiva-intake'
   const ip = clientIp(req)
   const ipHash = await sha256hex(`${salt}:ip:${ip}`)
   const emailHash = await sha256hex(`${salt}:email:${email}`)
@@ -242,13 +273,25 @@ Deno.serve(async (req: Request) => {
   const ipSince = new Date(Date.now() - IP_WINDOW_MIN * 60 * 1000).toISOString()
   const emailSince = new Date(Date.now() - EMAIL_WINDOW_MIN * 60 * 1000).toISOString()
   const [{ count: ipCount }, { count: emailCount }] = await Promise.all([
-    admin.from('support_public_intake').select('id', { count: 'exact', head: true })
-      .eq('ip_hash', ipHash).gte('created_at', ipSince),
-    admin.from('support_public_intake').select('id', { count: 'exact', head: true })
-      .eq('email_hash', emailHash).gte('created_at', emailSince),
+    admin
+      .from('support_public_intake')
+      .select('id', { count: 'exact', head: true })
+      .eq('ip_hash', ipHash)
+      .gte('created_at', ipSince),
+    admin
+      .from('support_public_intake')
+      .select('id', { count: 'exact', head: true })
+      .eq('email_hash', emailHash)
+      .gte('created_at', emailSince),
   ])
   if ((ipCount ?? 0) >= IP_LIMIT || (emailCount ?? 0) >= EMAIL_LIMIT) {
-    return json({ error: 'Too many requests in a short time. Please try again later, or email support@dutiva.ca.' }, 429)
+    return json(
+      {
+        error:
+          'Too many requests in a short time. Please try again later, or email support@dutiva.ca.',
+      },
+      429,
+    )
   }
 
   // CAPTCHA last among the gates, because it is the only one that costs a
@@ -271,7 +314,10 @@ Deno.serve(async (req: Request) => {
       // to redo the check rather than showing a generic failure.
       console.error('public intake captcha rejected', { reason: verdict.reason })
       return json(
-        { error: 'Human verification failed. Please complete the check and try again.', code: verdict.reason },
+        {
+          error: 'Human verification failed. Please complete the check and try again.',
+          code: verdict.reason,
+        },
         403,
       )
     }

@@ -14,13 +14,13 @@ Do **not** paste live secrets into chat, PRs, or the repo.
 Owner confirmed the following are in place on the live Supabase project
 (`khtwpxnvziiyplaflwru`):
 
-| Step | Status |
-| --- | --- |
-| Stripe Products + monthly Prices (Starter / Growth / Pro, CAD) | Done |
-| Supabase secrets: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_*_MONTHLY`, `SITE_URL` | Done |
-| Webhook → `…/functions/v1/stripe-webhook` with subscription events | Done |
-| Edge functions match `main` (annual wiring, apex `SITE_URL` default) | Done (v23 / v28 / v21 as of 2026-08-27) |
-| `PAID_PLANS_DISABLED_DURING_BETA = false` | Done (2026-08-26) |
+| Step                                                                                                 | Status                                  |
+| ---------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| Stripe Products + monthly Prices (Starter / Growth / Pro, CAD)                                       | Done                                    |
+| Supabase secrets: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_*_MONTHLY`, `SITE_URL` | Done                                    |
+| Webhook → `…/functions/v1/stripe-webhook` with subscription events                                   | Done                                    |
+| Edge functions match `main` (annual wiring, apex `SITE_URL` default)                                 | Done (v23 / v28 / v21 as of 2026-08-27) |
+| `PAID_PLANS_DISABLED_DURING_BETA = false`                                                            | Done (2026-08-26)                       |
 
 **Optional follow-ons** (documented separately — not required to close OA11):
 
@@ -44,11 +44,11 @@ onboarding a second operator.
 
 From `src/config/plans.ts` (`ANNUAL_MONTHS_BILLED = 10` — two months free):
 
-| Plan | Monthly CAD | Annual total CAD (`annualTotal`) | Annual per-month display |
-| --- | ---: | ---: | ---: |
-| Starter | 24 | 240 | 20 |
-| Growth | 49 | 492 | 41 |
-| Pro | 99 | 996 | 83 |
+| Plan    | Monthly CAD | Annual total CAD (`annualTotal`) | Annual per-month display |
+| ------- | ----------: | -------------------------------: | -----------------------: |
+| Starter |          24 |                              240 |                       20 |
+| Growth  |          49 |                              492 |                       41 |
+| Pro     |          99 |                              996 |                       83 |
 
 Create Stripe **Products** + **Prices** in **test mode first**, then repeat in
 live mode when ready. Annual prices must be **yearly recurring** charging the
@@ -60,20 +60,20 @@ public sell.
 Dashboard → Project Settings → Edge Functions → Secrets, or
 `supabase secrets set … --project-ref khtwpxnvziiyplaflwru`.
 
-| Secret | Used by | Notes |
-| --- | --- | --- |
-| `STRIPE_SECRET_KEY` | checkout, portal | `sk_test_…` then later `sk_live_…` |
-| `STRIPE_WEBHOOK_SECRET` | webhook | `whsec_…` for the endpoint in §2 |
-| `STRIPE_PRICE_STARTER_MONTHLY` | checkout, webhook | `price_…` |
-| `STRIPE_PRICE_GROWTH_MONTHLY` | checkout, webhook | |
-| `STRIPE_PRICE_PRO_MONTHLY` | checkout, webhook | |
-| `STRIPE_PRICE_STARTER_ANNUAL` | checkout, webhook | Optional for a **monthly-only** first ship; **required** before un-hiding the annual toggle on `/pricing` |
-| `STRIPE_PRICE_GROWTH_ANNUAL` | checkout, webhook | same |
-| `STRIPE_PRICE_PRO_ANNUAL` | checkout, webhook | same |
-| `STRIPE_PRICE_ADVISOR_PACK_50` | pack checkout, webhook | One-time **$5 CAD** / 50 replies. Create Product “Advisor replies (50)”. |
-| `STRIPE_PRICE_ADVISOR_PACK_200` | pack checkout, webhook | One-time **$15 CAD** / 200 replies. Create Product “Advisor replies (200)”. |
-| `STRIPE_ADVISOR_METER_EVENT_NAME` | advisor-chat | Stripe Billing Meter event name for opt-in overage. Unset = overage denied. |
-| `SITE_URL` | checkout, portal, pack checkout | **`https://dutiva.ca`** (apex — not `www`) |
+| Secret                            | Used by                         | Notes                                                                                                     |
+| --------------------------------- | ------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `STRIPE_SECRET_KEY`               | checkout, portal                | `sk_test_…` then later `sk_live_…`                                                                        |
+| `STRIPE_WEBHOOK_SECRET`           | webhook                         | `whsec_…` for the endpoint in §2                                                                          |
+| `STRIPE_PRICE_STARTER_MONTHLY`    | checkout, webhook               | `price_…`                                                                                                 |
+| `STRIPE_PRICE_GROWTH_MONTHLY`     | checkout, webhook               |                                                                                                           |
+| `STRIPE_PRICE_PRO_MONTHLY`        | checkout, webhook               |                                                                                                           |
+| `STRIPE_PRICE_STARTER_ANNUAL`     | checkout, webhook               | Optional for a **monthly-only** first ship; **required** before un-hiding the annual toggle on `/pricing` |
+| `STRIPE_PRICE_GROWTH_ANNUAL`      | checkout, webhook               | same                                                                                                      |
+| `STRIPE_PRICE_PRO_ANNUAL`         | checkout, webhook               | same                                                                                                      |
+| `STRIPE_PRICE_ADVISOR_PACK_50`    | pack checkout, webhook          | One-time **$5 CAD** / 50 replies. Create Product “Advisor replies (50)”.                                  |
+| `STRIPE_PRICE_ADVISOR_PACK_200`   | pack checkout, webhook          | One-time **$15 CAD** / 200 replies. Create Product “Advisor replies (200)”.                               |
+| `STRIPE_ADVISOR_METER_EVENT_NAME` | advisor-chat                    | Stripe Billing Meter event name for opt-in overage. Unset = overage denied.                               |
+| `SITE_URL`                        | checkout, portal, pack checkout | **`https://dutiva.ca`** (apex — not `www`)                                                                |
 
 Until `STRIPE_SECRET_KEY` (and the price id for the clicked plan) are set,
 `create-checkout-session` answers `503 Payments not configured.`
@@ -104,11 +104,11 @@ Verified **2026-08-23** (eng prep): live `create-checkout-session` (v12) and
 price env map; checkout defaulted `SITE_URL` to `www`). Repo `main` already
 had annual wiring. Eng redeployed from this repo the same day:
 
-| Function | After redeploy | Notes |
-| --- | --- | --- |
-| `create-checkout-session` | v14 | monthly + annual price map; `SITE_URL` default `https://dutiva.ca` |
-| `create-portal-session` | redeployed | same `SITE_URL` default |
-| `stripe-webhook` | v20 | six price env keys; `billing_period` from metadata / price lookup |
+| Function                  | After redeploy | Notes                                                              |
+| ------------------------- | -------------- | ------------------------------------------------------------------ |
+| `create-checkout-session` | v14            | monthly + annual price map; `SITE_URL` default `https://dutiva.ca` |
+| `create-portal-session`   | redeployed     | same `SITE_URL` default                                            |
+| `stripe-webhook`          | v20            | six price env keys; `billing_period` from metadata / price lookup  |
 
 Re-check dashboard versions after any later deploy.
 

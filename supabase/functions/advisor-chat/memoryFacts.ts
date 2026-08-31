@@ -71,10 +71,10 @@ export function memoryBlock(facts: readonly MemoryFactForPrompt[]): string {
     })
     .join('\n')
   return (
-    "\n\nOrganization memory (confirmed facts for this workspace) — treat these as the " +
+    '\n\nOrganization memory (confirmed facts for this workspace) — treat these as the ' +
     "employer's recorded context for THIS organization only. They are NOT statutes and " +
     'do not override retrieved guidance or the statutory-precision rules above. Prefer ' +
-    'them when answering questions about this workplace\'s people, cases, or prior ' +
+    "them when answering questions about this workplace's people, cases, or prior " +
     'conversations; if they conflict with law or with retrieved guidance, follow the law ' +
     'and name the conflict. Never invent additional memories.\n' +
     items

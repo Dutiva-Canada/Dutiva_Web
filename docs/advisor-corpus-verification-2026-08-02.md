@@ -20,18 +20,18 @@ cannot be met for any work item.
 Probed 2026-08-02 with `curl` (result is the CONNECT response, not an HTTP status from
 the site):
 
-| Host | Result |
-| --- | --- |
-| `www.canada.ca` | `curl: (56) CONNECT tunnel failed, response 403` |
-| `www.ontario.ca` | `curl: (56) CONNECT tunnel failed, response 403` |
-| `www.cnesst.gouv.qc.ca` | `curl: (56) CONNECT tunnel failed, response 403` |
+| Host                         | Result                                           |
+| ---------------------------- | ------------------------------------------------ |
+| `www.canada.ca`              | `curl: (56) CONNECT tunnel failed, response 403` |
+| `www.ontario.ca`             | `curl: (56) CONNECT tunnel failed, response 403` |
+| `www.cnesst.gouv.qc.ca`      | `curl: (56) CONNECT tunnel failed, response 403` |
 | `www.legisquebec.gouv.qc.ca` | `curl: (56) CONNECT tunnel failed, response 403` |
-| `www.chrc-ccdp.gc.ca` | `curl: (56) CONNECT tunnel failed, response 403` |
-| `www.cdpdj.qc.ca` | `curl: (56) CONNECT tunnel failed, response 403` |
+| `www.chrc-ccdp.gc.ca`        | `curl: (56) CONNECT tunnel failed, response 403` |
+| `www.cdpdj.qc.ca`            | `curl: (56) CONNECT tunnel failed, response 403` |
 | `web.archive.org` (fallback) | `curl: (56) CONNECT tunnel failed, response 403` |
-| `www.canlii.org` (fallback) | `curl: (56) CONNECT tunnel failed, response 403` |
-| `example.com` (control) | `curl: (56) CONNECT tunnel failed, response 403` |
-| `pypi.org` (infra allowlist) | OK |
+| `www.canlii.org` (fallback)  | `curl: (56) CONNECT tunnel failed, response 403` |
+| `example.com` (control)      | `curl: (56) CONNECT tunnel failed, response 403` |
+| `pypi.org` (infra allowlist) | OK                                               |
 
 The proxy status endpoint records these as
 `connect_rejected — gateway answered 403 to CONNECT (policy denial or upstream failure)`.
@@ -102,9 +102,9 @@ state. All 42 live rows now carry a full French body (`content_fr` is non-null f
 1. **English body** — authored from the live English official page, fetched twice
    (author + independent verify).
 2. **French body** — `title_fr` and `content_fr` are **mandatory**, and per the standard
-   set in migration 0029 and restated in 0032, must be *"authored from a LIVE FRENCH
+   set in migration 0029 and restated in 0032, must be _"authored from a LIVE FRENCH
    official source (ontario.ca /fr/, cnesst.gouv.qc.ca /fr/, canada.ca /fr/), not
-   machine-translated from the English row."* This doubles the primary-source
+   machine-translated from the English row."_ This doubles the primary-source
    requirement: the French pages are a separate fetch and are blocked by the same egress
    policy.
 3. **Do not hand-write `fts` / `fts_fr`** — they are generated columns and will be
@@ -153,10 +153,10 @@ on unrelated CNESST paths (`/leave`, `/wage-and-pay`, `/procedures-and-forms`,
 `/client-services`) and need no change. Two page identities are each cited under both
 forms across the corpus:
 
-| Page identity | Cited SHORT | Cited LONG |
-| --- | --- | --- |
+| Page identity                                  | Cited SHORT | Cited LONG  |
+| ---------------------------------------------- | ----------- | ----------- |
 | `termination-layoff-dismissal-and-resignation` | yes (07-29) | yes (07-26) |
-| `notice-termination-employment-and-indemnity` | yes (07-29) | yes (07-26) |
+| `notice-termination-employment-and-indemnity`  | yes (07-29) | yes (07-26) |
 
 Row-level split in the live table: 3 rows LONG
 (`individual notice of termination`, `no separate statutory severance pay`,
@@ -186,8 +186,8 @@ tipped (May 1 2026).
 ## Not done this cycle
 
 - No retrieval smoke test through `match_advisor_guidance` was recorded. The smoke-test
-  table at the end of the 2026-07-29 snapshot exists to demonstrate that *newly added or
-  amended* chunks retrieve correctly; with no chunk changes there is nothing new to
+  table at the end of the 2026-07-29 snapshot exists to demonstrate that _newly added or
+  amended_ chunks retrieve correctly; with no chunk changes there is nothing new to
   exercise, and re-running it against an unchanged corpus would only restate the
   2026-07-29 result.
 - No `review_status` values were changed.

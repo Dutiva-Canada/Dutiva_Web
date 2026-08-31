@@ -20,6 +20,9 @@ describe('NotFoundPage', () => {
     await user.click(langToggle as HTMLElement)
     const nav = within(screen.getByRole('navigation', { name: 'Pages suggérées' }))
     expect(nav.getByRole('link', { name: 'Centre d’aide' })).toHaveAttribute('href', '/fr/aide')
-    expect(nav.getByRole('link', { name: 'Contacter le soutien' })).toHaveAttribute('href', '/fr/contact')
+    expect(nav.getByRole('link', { name: 'Contacter le soutien' })).toHaveAttribute(
+      'href',
+      '/fr/contact',
+    )
   })
 })

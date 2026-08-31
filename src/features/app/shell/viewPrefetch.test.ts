@@ -3,10 +3,7 @@
  *   All rights reserved.
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import {
-  prefetchWorkspaceView,
-  resetWorkspaceViewPrefetchForTests,
-} from './viewPrefetch'
+import { prefetchWorkspaceView, resetWorkspaceViewPrefetchForTests } from './viewPrefetch'
 
 vi.mock('@/app/viewPreloads', () => ({
   workspaceViewPreloads: {

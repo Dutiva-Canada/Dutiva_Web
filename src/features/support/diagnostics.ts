@@ -64,8 +64,7 @@ export function gatherDiagnostics({
   const { browser, os } = parseUserAgent(nav?.userAgent ?? '')
   const correlationId =
     typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : undefined
-  const version =
-    (import.meta.env.VITE_APP_VERSION as string | undefined) ?? 'web'
+  const version = (import.meta.env.VITE_APP_VERSION as string | undefined) ?? 'web'
 
   const diagnostics: SupportDiagnostics = {
     route: typeof location !== 'undefined' ? location.pathname : undefined,

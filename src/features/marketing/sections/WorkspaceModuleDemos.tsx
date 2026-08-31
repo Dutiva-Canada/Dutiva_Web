@@ -1,5 +1,15 @@
 import { Link } from 'react-router-dom'
-import { ChevronRight, TriangleAlert, Activity, Banknote, BarChart3, BookOpen, Send, ShieldCheck, Users } from 'lucide-react'
+import {
+  ChevronRight,
+  TriangleAlert,
+  Activity,
+  Banknote,
+  BarChart3,
+  BookOpen,
+  Send,
+  ShieldCheck,
+  Users,
+} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { statusChipClass } from '@/components/chips'
 import { ScoreHero } from '@/features/app/views/analytics/ScoreHero'
@@ -57,10 +67,7 @@ export function WorkspaceModuleDemos() {
   }
 
   return (
-    <section
-      id="workspace"
-      className="mx-auto max-w-300 scroll-mt-20 px-4 py-12 sm:px-6 sm:py-16"
-    >
+    <section id="workspace" className="mx-auto max-w-300 scroll-mt-20 px-4 py-12 sm:px-6 sm:py-16">
       <SectionIntro
         badge={lt('landing_ws_demo_badge')}
         title={lt('landing_ws_demo_title')}
@@ -72,8 +79,12 @@ export function WorkspaceModuleDemos() {
       <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {/* Analytics */}
         <article className="premium-card-soft flex min-w-0 flex-col p-4 sm:p-5">
-          <h3 className="text-base font-semibold text-text">{lt('landing_ws_demo_analytics_title')}</h3>
-          <p className="mt-1 text-sm leading-[1.55] text-text-2">{lt('landing_ws_demo_analytics_sub')}</p>
+          <h3 className="text-base font-semibold text-text">
+            {lt('landing_ws_demo_analytics_title')}
+          </h3>
+          <p className="mt-1 text-sm leading-[1.55] text-text-2">
+            {lt('landing_ws_demo_analytics_sub')}
+          </p>
           <div className="mt-4 rounded-xl border border-border bg-bg-soft p-3 sm:p-4">
             <div className="landing-score-hero">
               <ScoreHero score={score} delta={delta} />
@@ -85,14 +96,21 @@ export function WorkspaceModuleDemos() {
                   className="flex flex-col gap-2 rounded-lg border border-border bg-bg-elevated px-3 py-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3"
                 >
                   <span className="min-w-0 flex-1">
-                    <span className="block text-[13px] font-semibold leading-snug text-text">{x(row.title)}</span>
+                    <span className="block text-[13px] font-semibold leading-snug text-text">
+                      {x(row.title)}
+                    </span>
                     <span className="mt-0.5 block text-xs text-text-3">{x(row.secondary)}</span>
                   </span>
                   <span
                     className={`${statusChipClass(ATTENTION_CHIP_TONE[row.status])} shrink-0 items-center self-start sm:self-center`}
                   >
                     {row.status === 'overdue' ? (
-                      <TriangleAlert size={12} strokeWidth={1.9} className="mr-[5px]" aria-hidden="true" />
+                      <TriangleAlert
+                        size={12}
+                        strokeWidth={1.9}
+                        className="mr-[5px]"
+                        aria-hidden="true"
+                      />
                     ) : null}
                     {x(row.chipLabel)}
                   </span>
@@ -106,11 +124,15 @@ export function WorkspaceModuleDemos() {
         {/* Cases */}
         <article className="premium-card-soft flex min-w-0 flex-col p-4 sm:p-5">
           <h3 className="text-base font-semibold text-text">{lt('landing_ws_demo_cases_title')}</h3>
-          <p className="mt-1 text-sm leading-[1.55] text-text-2">{lt('landing_ws_demo_cases_sub')}</p>
+          <p className="mt-1 text-sm leading-[1.55] text-text-2">
+            {lt('landing_ws_demo_cases_sub')}
+          </p>
           <div className="mt-4 rounded-xl border border-border bg-bg-soft p-3 sm:p-4">
             <div className="flex flex-wrap items-center gap-2">
               <span className="min-w-0 font-semibold text-text">{x(caseFile.title)}</span>
-              <span className={`${statusChipClass(caseFile.tone)} shrink-0`}>{x(caseFile.status)}</span>
+              <span className={`${statusChipClass(caseFile.tone)} shrink-0`}>
+                {x(caseFile.status)}
+              </span>
             </div>
             <p className="mt-2 text-sm leading-[1.55] text-text-2">{x(caseFile.summary)}</p>
             <p className="mt-3 border-t border-border pt-3 text-xs text-text-3">
@@ -124,7 +146,9 @@ export function WorkspaceModuleDemos() {
         {/* Communications */}
         <article className="premium-card-soft flex min-w-0 flex-col p-4 sm:p-5">
           <h3 className="text-base font-semibold text-text">{lt('landing_ws_demo_comms_title')}</h3>
-          <p className="mt-1 text-sm leading-[1.55] text-text-2">{lt('landing_ws_demo_comms_sub')}</p>
+          <p className="mt-1 text-sm leading-[1.55] text-text-2">
+            {lt('landing_ws_demo_comms_sub')}
+          </p>
           <div className="mt-4 rounded-xl border border-border bg-bg-soft p-3 sm:p-4">
             <div className="flex flex-wrap items-center gap-2">
               <span className="min-w-0 font-semibold text-text">{x(comm.title)}</span>
@@ -155,10 +179,14 @@ export function WorkspaceModuleDemos() {
         </article>
       </div>
 
-      <p className="mt-4 text-xs leading-normal text-text-faint">{lt('landing_ws_demo_preview_note')}</p>
+      <p className="mt-4 text-xs leading-normal text-text-faint">
+        {lt('landing_ws_demo_preview_note')}
+      </p>
 
       <div className="mt-10 rounded-[22px] border border-border bg-bg-elevated p-4 sm:p-7">
-        <h3 className="m-0 text-base font-semibold text-text">{lt('landing_ws_demo_modules_heading')}</h3>
+        <h3 className="m-0 text-base font-semibold text-text">
+          {lt('landing_ws_demo_modules_heading')}
+        </h3>
         <div className="mt-4 flex flex-wrap gap-2">
           {MODULES.map((mod) => (
             <IconChip

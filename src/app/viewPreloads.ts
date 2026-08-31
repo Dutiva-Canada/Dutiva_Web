@@ -16,7 +16,9 @@ export function preloadHomeView(): Promise<ViewDefaultExport> {
 }
 
 export function preloadAdvisorView(): Promise<ViewDefaultExport> {
-  return import('@/features/app/views/advisor/AdvisorView').then((m) => ({ default: m.AdvisorView }))
+  return import('@/features/app/views/advisor/AdvisorView').then((m) => ({
+    default: m.AdvisorView,
+  }))
 }
 
 export function preloadWorkflowsView(): Promise<ViewDefaultExport> {

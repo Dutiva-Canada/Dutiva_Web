@@ -91,7 +91,12 @@ function buildActivity(
     fr: `Dossier ouvert et risque évalué comme gravité ${risk.levelLabel.fr.toLowerCase()}`,
   }
   const activity: CaseActivityEntry[] = [
-    { actor: 'Advisor', text: openedText, time: caze.opened, tone: risk.tone as CaseActivityEntry['tone'] },
+    {
+      actor: 'Advisor',
+      text: openedText,
+      time: caze.opened,
+      tone: risk.tone as CaseActivityEntry['tone'],
+    },
   ]
   caze.steps
     .filter((st) => st.done)
@@ -103,9 +108,14 @@ function buildActivity(
         tone: 'success',
       }),
     )
-  timeline
-    .slice(0, 2)
-    .forEach((t) => activity.push({ actor: 'System', text: t.text, time: t.date, tone: t.tone as CaseActivityEntry['tone'] }))
+  timeline.slice(0, 2).forEach((t) =>
+    activity.push({
+      actor: 'System',
+      text: t.text,
+      time: t.date,
+      tone: t.tone as CaseActivityEntry['tone'],
+    }),
+  )
   if (approvalRequested) {
     activity.unshift({
       actor: 'Riley Summers',
@@ -314,99 +324,99 @@ function CaseDetail({ caze }: Readonly<{ caze: WorkspaceCase }>) {
 
   return (
     <AppPage width="default">
-        <button
-          type="button"
-          onClick={() => navigate('/app/cases')}
-          className="mb-[16px] flex cursor-pointer items-center gap-[6px] border-none bg-transparent p-0 font-sans text-[13px] font-semibold text-text-muted"
-        >
-          <ChevronLeft size={15} strokeWidth={2} aria-hidden="true" />
-          {x(M.cases_all_cases)}
-        </button>
+      <button
+        type="button"
+        onClick={() => navigate('/app/cases')}
+        className="mb-[16px] flex cursor-pointer items-center gap-[6px] border-none bg-transparent p-0 font-sans text-[13px] font-semibold text-text-muted"
+      >
+        <ChevronLeft size={15} strokeWidth={2} aria-hidden="true" />
+        {x(M.cases_all_cases)}
+      </button>
 
-        {/* Header */}
-        <div className="mb-[6px] flex flex-wrap items-start justify-between gap-[16px]">
-          <div className="min-w-0">
-            <div className="font-display text-[22px] font-semibold text-text">
-              {pickL(caze.title, lang)}
-            </div>
-            <div className="mt-[3px] text-[13px] text-text-muted">
-              {x(caze.typeLabel)} · {x(caze.province)} · {x(M.cases_owner)} {caze.owner} ·{' '}
-              {x(M.cases_opened)} {caze.opened}
-            </div>
+      {/* Header */}
+      <div className="mb-[6px] flex flex-wrap items-start justify-between gap-[16px]">
+        <div className="min-w-0">
+          <div className="font-display text-[22px] font-semibold text-text">
+            {pickL(caze.title, lang)}
           </div>
-          <div className="flex min-w-0 flex-wrap items-center gap-[8px]">
-            <span className={statusChipClass(caze.tone)}>{x(caze.status)}</span>
-            <button
-              type="button"
-              onClick={askAdvisor}
-              className="flex cursor-pointer items-center gap-[7px] rounded-[9px] border border-gold-border bg-gold-bg px-[14px] py-[8px] font-sans text-[13px] font-bold text-gold-fg"
-            >
-              <Sparkle size={14} fill="currentColor" strokeWidth={0} aria-hidden="true" />
-              {x(M.cases_ask_advisor)}
-            </button>
+          <div className="mt-[3px] text-[13px] text-text-muted">
+            {x(caze.typeLabel)} · {x(caze.province)} · {x(M.cases_owner)} {caze.owner} ·{' '}
+            {x(M.cases_opened)} {caze.opened}
           </div>
         </div>
-
-        {/* Tabs */}
-        <div
-          role="tablist"
-          aria-label={x(M.cases_tabs_aria)}
-          className="mt-[18px] mb-[20px] flex gap-[2px] overflow-x-auto border-b border-border"
-        >
-          {tabs.map((t) => (
-            <button
-              key={t.key}
-              type="button"
-              role="tab"
-              aria-selected={tab === t.key}
-              onClick={() => setTab(t.key)}
-              className={`shrink-0 cursor-pointer border-b-2 bg-transparent px-[14px] py-[9px] font-sans text-[13px] font-semibold whitespace-nowrap ${
-                tab === t.key ? 'border-navy text-text' : 'border-transparent text-text-muted'
-              }`}
-            >
-              {x(t.label)}
-            </button>
-          ))}
+        <div className="flex min-w-0 flex-wrap items-center gap-[8px]">
+          <span className={statusChipClass(caze.tone)}>{x(caze.status)}</span>
+          <button
+            type="button"
+            onClick={askAdvisor}
+            className="flex cursor-pointer items-center gap-[7px] rounded-[9px] border border-gold-border bg-gold-bg px-[14px] py-[8px] font-sans text-[13px] font-bold text-gold-fg"
+          >
+            <Sparkle size={14} fill="currentColor" strokeWidth={0} aria-hidden="true" />
+            {x(M.cases_ask_advisor)}
+          </button>
         </div>
+      </div>
 
-        {/* ── Overview ───────────────────────────────────────────────────── */}
-        {tab === 'overview' && (
-          <CaseOverviewTab
-            data={{ caze, risk, rec, recTone, timeline, people, linkedTasks, docs, flags }}
-            approval={approval}
-            taskDone={taskDone}
-            onToggleTask={toggleTask}
-            onRequestApproval={requestApproval}
-            onOpenChat={openChat}
-            onOpenDoc={openDocFromLibrary}
-            onOpenFlag={openFlag}
-          />
-        )}
+      {/* Tabs */}
+      <div
+        role="tablist"
+        aria-label={x(M.cases_tabs_aria)}
+        className="mt-[18px] mb-[20px] flex gap-[2px] overflow-x-auto border-b border-border"
+      >
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            role="tab"
+            aria-selected={tab === t.key}
+            onClick={() => setTab(t.key)}
+            className={`shrink-0 cursor-pointer border-b-2 bg-transparent px-[14px] py-[9px] font-sans text-[13px] font-semibold whitespace-nowrap ${
+              tab === t.key ? 'border-navy text-text' : 'border-transparent text-text-muted'
+            }`}
+          >
+            {x(t.label)}
+          </button>
+        ))}
+      </div>
 
-        {/* ── Risk review ────────────────────────────────────────────────── */}
-        {tab === 'risk' && <CaseRiskTab axes={axes} />}
+      {/* ── Overview ───────────────────────────────────────────────────── */}
+      {tab === 'overview' && (
+        <CaseOverviewTab
+          data={{ caze, risk, rec, recTone, timeline, people, linkedTasks, docs, flags }}
+          approval={approval}
+          taskDone={taskDone}
+          onToggleTask={toggleTask}
+          onRequestApproval={requestApproval}
+          onOpenChat={openChat}
+          onOpenDoc={openDocFromLibrary}
+          onOpenFlag={openFlag}
+        />
+      )}
 
-        {/* ── Legal review ───────────────────────────────────────────────── */}
-        {tab === 'legal' && (
-          <CaseLegalTab
-            approval={approval}
-            legalRows={legalRows}
-            onRequestApproval={requestApproval}
-          />
-        )}
+      {/* ── Risk review ────────────────────────────────────────────────── */}
+      {tab === 'risk' && <CaseRiskTab axes={axes} />}
 
-        {/* ── Activity log ───────────────────────────────────────────────── */}
-        {tab === 'activity' && <CaseActivityTab activity={activity} />}
+      {/* ── Legal review ───────────────────────────────────────────────── */}
+      {tab === 'legal' && (
+        <CaseLegalTab
+          approval={approval}
+          legalRows={legalRows}
+          onRequestApproval={requestApproval}
+        />
+      )}
 
-        {/* ── Notes ──────────────────────────────────────────────────────── */}
-        {tab === 'notes' && (
-          <CaseNotesTab
-            noteDraft={noteDraft}
-            notes={notes}
-            onDraftChange={setNoteDraft}
-            onAddNote={addNote}
-          />
-        )}
+      {/* ── Activity log ───────────────────────────────────────────────── */}
+      {tab === 'activity' && <CaseActivityTab activity={activity} />}
+
+      {/* ── Notes ──────────────────────────────────────────────────────── */}
+      {tab === 'notes' && (
+        <CaseNotesTab
+          noteDraft={noteDraft}
+          notes={notes}
+          onDraftChange={setNoteDraft}
+          onAddNote={addNote}
+        />
+      )}
     </AppPage>
   )
 }
@@ -416,27 +426,27 @@ function CaseNotFound() {
   const { x } = useI18n()
   return (
     <AppPage width="default">
+      <Link
+        to="/app/cases"
+        className="mb-[16px] flex w-fit items-center gap-[6px] text-[13px] font-semibold text-text-muted no-underline"
+      >
+        <ChevronLeft size={15} strokeWidth={2} aria-hidden="true" />
+        {x(M.cases_all_cases)}
+      </Link>
+      <div className="mx-auto mt-[48px] max-w-[420px] rounded-[12px] border border-border bg-surface px-[24px] py-[28px] text-center">
+        <div className="font-display text-[17px] font-semibold text-text">
+          {x(M.cases_not_found_title)}
+        </div>
+        <div className="mt-[8px] text-[13px] leading-[1.55] text-text-3">
+          {x(M.cases_not_found_body)}
+        </div>
         <Link
           to="/app/cases"
-          className="mb-[16px] flex w-fit items-center gap-[6px] text-[13px] font-semibold text-text-muted no-underline"
+          className="mt-[16px] inline-block rounded-[9px] bg-navy px-[16px] py-[9px] text-[12.5px] font-bold text-white no-underline"
         >
-          <ChevronLeft size={15} strokeWidth={2} aria-hidden="true" />
           {x(M.cases_all_cases)}
         </Link>
-        <div className="mx-auto mt-[48px] max-w-[420px] rounded-[12px] border border-border bg-surface px-[24px] py-[28px] text-center">
-          <div className="font-display text-[17px] font-semibold text-text">
-            {x(M.cases_not_found_title)}
-          </div>
-          <div className="mt-[8px] text-[13px] leading-[1.55] text-text-3">
-            {x(M.cases_not_found_body)}
-          </div>
-          <Link
-            to="/app/cases"
-            className="mt-[16px] inline-block rounded-[9px] bg-navy px-[16px] py-[9px] text-[12.5px] font-bold text-white no-underline"
-          >
-            {x(M.cases_all_cases)}
-          </Link>
-        </div>
+      </div>
     </AppPage>
   )
 }

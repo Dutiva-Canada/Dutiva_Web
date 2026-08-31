@@ -19,16 +19,16 @@ the decisions that have to be made by a person before anything can be sent.
 
 ## 1. What already exists
 
-| Piece | State |
-| --- | --- |
-| Detection | Working (Federal) / not yet live (ON, QC) — `law_updates` gets a `change` row per amendment (`docs/LAW_MONITORING.md`) |
-| Relevance filter | **Built** — `supabase/functions/_shared/lawUpdateRelevance.ts` |
-| Review gate | **Built** — `law_updates.review_status` (migration `0046`); only a human flips a row to `reviewed` |
-| Recipient jurisdiction | Resolver **built** — `resolveRecipientJurisdictions()`; not wired to a real recipient yet (internal pilot only) |
-| Recipient language | Available — `profiles.language_default`, `organizations.default_language`; unused in the internal-only digest (English) |
-| Digest send | **Built** — `send-law-updates`, weekly, via the same `resendSend()` helper `support-notify` uses |
-| Consent record | **Missing — see §3** (not blocking while recipients are internal) |
-| Recipient model | **Decided — see §4a.** Internal-only pilot. |
+| Piece                  | State                                                                                                                   |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Detection              | Working (Federal) / not yet live (ON, QC) — `law_updates` gets a `change` row per amendment (`docs/LAW_MONITORING.md`)  |
+| Relevance filter       | **Built** — `supabase/functions/_shared/lawUpdateRelevance.ts`                                                          |
+| Review gate            | **Built** — `law_updates.review_status` (migration `0046`); only a human flips a row to `reviewed`                      |
+| Recipient jurisdiction | Resolver **built** — `resolveRecipientJurisdictions()`; not wired to a real recipient yet (internal pilot only)         |
+| Recipient language     | Available — `profiles.language_default`, `organizations.default_language`; unused in the internal-only digest (English) |
+| Digest send            | **Built** — `send-law-updates`, weekly, via the same `resendSend()` helper `support-notify` uses                        |
+| Consent record         | **Missing — see §3** (not blocking while recipients are internal)                                                       |
+| Recipient model        | **Decided — see §4a.** Internal-only pilot.                                                                             |
 
 ### The relevance filter
 
@@ -37,7 +37,7 @@ law change?" — the part that is true regardless of how the decisions below are
 settled. Two rules, both fail-closed:
 
 - **Only `change` events.** `first_seen` means we started watching a page.
-  `redirect` is our plumbing. `broken` is a report that *Dutiva's own scraper*
+  `redirect` is our plumbing. `broken` is a report that _Dutiva's own scraper_
   failed — operationally urgent, and the last thing a customer should receive
   dressed as legal news.
 - **Only ON / QC / FED.** The monitor watches 14 jurisdictions; Dutiva supports
@@ -48,7 +48,7 @@ An unknown jurisdiction is a gap to fill, not a licence to send.
 
 ## 2. The CASL question, and why it drives the design
 
-CASL governs *commercial electronic messages* — broadly, messages one purpose
+CASL governs _commercial electronic messages_ — broadly, messages one purpose
 of which is to encourage participation in a commercial activity. Two paths make
 a law-change email lawful, and they lead to different products:
 
@@ -83,8 +83,8 @@ courtesy and good practice; under Path B it is mandatory. Build it regardless.
 ## 3. Finding: consent is collected but never recorded
 
 The marketing signup asks for express CASL consent and the client refuses to
-submit without it (`BetaSignup.tsx`, `landing_cta_consent_label`: *"Yes, email
-me product updates about Dutiva. I can unsubscribe at any time."*). The value is
+submit without it (`BetaSignup.tsx`, `landing_cta_consent_label`: _"Yes, email
+me product updates about Dutiva. I can unsubscribe at any time."_). The value is
 sent to `create-beta-signup` as `consent`.
 
 **`beta_signups` has no column to store it.** Columns are `id, email, name,
@@ -97,7 +97,7 @@ sender**. Consent you cannot evidence — with a timestamp, the wording agreed
 to, and how it was obtained — is not consent you can rely on when asked. Right
 now Dutiva is asking correctly and keeping no record of the answer.
 
-This is not blocking for Path A, which does not rest on consent. It *is*
+This is not blocking for Path A, which does not rest on consent. It _is_
 blocking for Path B, and it is worth fixing on its own account regardless of
 which path is chosen, because the consent is already being collected — the only
 thing missing is writing it down.
@@ -157,7 +157,7 @@ section used to propose:
    shape `support_notifications` established, with a uniqueness constraint
    on `(law_update_id, recipient)` so a retry or an overlapping cron run can
    never double-send the same amendment to the same recipient. One row per
-   *(update, recipient)* that has been digested — not one row per digest
+   _(update, recipient)_ that has been digested — not one row per digest
    email.
 2. **`send-law-updates`** (new edge function): selects `change` rows,
    narrows through `lawUpdateRelevance.ts` (unchanged — this module already
@@ -174,7 +174,7 @@ section used to propose:
    isn't yet — see (a).
 
 **No backfill dump, two ways.** `send-law-updates` only digests reviewed
-rows (nothing old is pre-reviewed by construction) *and* enforces a fixed
+rows (nothing old is pre-reviewed by construction) _and_ enforces a fixed
 `GO_LIVE_AT` floor on `detected_at` as a second, independent guard — belt
 and suspenders for the exact failure this section used to warn about.
 

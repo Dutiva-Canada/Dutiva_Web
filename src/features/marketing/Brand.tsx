@@ -40,7 +40,9 @@ export function LeafTile({ variant }: LeafTileProps) {
 
 export function Wordmark({ size = 'lg' }: { readonly size?: 'lg' | 'drawer' }) {
   return (
-    <span className={`font-display font-bold text-text ${size === 'drawer' ? 'wordmark-drawer' : 'wordmark-lg'}`}>
+    <span
+      className={`font-display font-bold text-text ${size === 'drawer' ? 'wordmark-drawer' : 'wordmark-lg'}`}
+    >
       Duti<span className="text-gold-strong">va</span>
     </span>
   )

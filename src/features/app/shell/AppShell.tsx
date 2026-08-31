@@ -103,9 +103,7 @@ export function AppShell() {
   useEffect(() => {
     if (previousDrawerOpen.current && !drawerOpen) {
       const ref =
-        drawerTriggerSource.current === 'more'
-          ? drawerMoreTriggerRef
-          : drawerTopbarTriggerRef
+        drawerTriggerSource.current === 'more' ? drawerMoreTriggerRef : drawerTopbarTriggerRef
       ref.current?.focus()
     }
     previousDrawerOpen.current = drawerOpen
@@ -200,12 +198,7 @@ export function AppShell() {
       <DemoTourRail />
 
       <div className="relative flex min-h-0 flex-1">
-        {!isMobile && (
-          <Sidebar
-            mode={sidebarMode}
-            onToggleExpanded={toggleSidebarExpanded}
-          />
-        )}
+        {!isMobile && <Sidebar mode={sidebarMode} onToggleExpanded={toggleSidebarExpanded} />}
         {isMobile && drawerMounted && (
           <>
             <div

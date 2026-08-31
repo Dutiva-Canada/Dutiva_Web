@@ -8,16 +8,16 @@ The consumer products handle a wide range of data, from public reference materia
 
 ## Classification levels
 
-| Level | Description | Examples |
-|---|---|---|
-| **Public** | Information intended for public access. | Marketing pages, public help articles, jurisdiction descriptions, template catalogue metadata (name, category, supported jurisdictions). |
-| **Account** | Information that identifies or describes a user account. | Email, name, language/theme preferences, account status. |
-| **Personal** | Personal information about the user or others. | Address, phone, employment details, tenancy details, case descriptions. |
-| **Sensitive personal** | Information that could cause harm or discrimination if misused. | Health information, financial details, identity documents, family status, immigration status, allegations of misconduct. |
-| **Evidence** | Source documents, photos, recordings, and original records uploaded or captured by the user. | Contracts, leases, letters, pay stubs, screenshots, government correspondence, photos. |
-| **Generated document** | Documents produced by Canadian Document Generation. | Resignation letter, repair request, complaint letter. |
-| **AI interpretation** | Machine-generated summaries, extractions, and analyses. | Extracted dates, parties, contradiction flags, chronology suggestions. |
-| **Audit** | System-generated records of actions. | Access logs, export logs, AI telemetry, deletion logs. |
+| Level                  | Description                                                                                  | Examples                                                                                                                                 |
+| ---------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **Public**             | Information intended for public access.                                                      | Marketing pages, public help articles, jurisdiction descriptions, template catalogue metadata (name, category, supported jurisdictions). |
+| **Account**            | Information that identifies or describes a user account.                                     | Email, name, language/theme preferences, account status.                                                                                 |
+| **Personal**           | Personal information about the user or others.                                               | Address, phone, employment details, tenancy details, case descriptions.                                                                  |
+| **Sensitive personal** | Information that could cause harm or discrimination if misused.                              | Health information, financial details, identity documents, family status, immigration status, allegations of misconduct.                 |
+| **Evidence**           | Source documents, photos, recordings, and original records uploaded or captured by the user. | Contracts, leases, letters, pay stubs, screenshots, government correspondence, photos.                                                   |
+| **Generated document** | Documents produced by Canadian Document Generation.                                          | Resignation letter, repair request, complaint letter.                                                                                    |
+| **AI interpretation**  | Machine-generated summaries, extractions, and analyses.                                      | Extracted dates, parties, contradiction flags, chronology suggestions.                                                                   |
+| **Audit**              | System-generated records of actions.                                                         | Access logs, export logs, AI telemetry, deletion logs.                                                                                   |
 
 ---
 
@@ -109,16 +109,16 @@ The consumer products handle a wide range of data, from public reference materia
 
 ## Data flow summary
 
-| Data type | At rest | In transit | Access control | Retention |
-|---|---|---|---|---|
-| Public | encrypted | TLS | public | indefinite |
-| Account | encrypted | TLS | user + support | account lifetime |
-| Personal | encrypted | TLS | user + support | per retention policy |
-| Sensitive personal | encrypted (per-user if feasible) | TLS | user + limited support | per retention policy |
-| Evidence | encrypted | TLS | user + limited support | per retention policy |
-| Generated document | encrypted | TLS | user + authorized viewers | per retention policy |
-| AI interpretation | encrypted | TLS | user | per retention policy |
-| Audit | encrypted | TLS | security/ops only | per retention schedule |
+| Data type          | At rest                          | In transit | Access control            | Retention              |
+| ------------------ | -------------------------------- | ---------- | ------------------------- | ---------------------- |
+| Public             | encrypted                        | TLS        | public                    | indefinite             |
+| Account            | encrypted                        | TLS        | user + support            | account lifetime       |
+| Personal           | encrypted                        | TLS        | user + support            | per retention policy   |
+| Sensitive personal | encrypted (per-user if feasible) | TLS        | user + limited support    | per retention policy   |
+| Evidence           | encrypted                        | TLS        | user + limited support    | per retention policy   |
+| Generated document | encrypted                        | TLS        | user + authorized viewers | per retention policy   |
+| AI interpretation  | encrypted                        | TLS        | user                      | per retention policy   |
+| Audit              | encrypted                        | TLS        | security/ops only         | per retention schedule |
 
 ---
 
@@ -134,10 +134,10 @@ The consumer products handle a wide range of data, from public reference materia
 
 ## Special categories
 
-| Category | Examples | Extra safeguards |
-|---|---|---|
-| Health information | Disability, medical notes, mental health references | Opt-in for AI analysis; per-user encryption; strict access logs. |
-| Financial information | Bank records, pay stubs, tax documents, debts | Per-user encryption; no use for credit scoring; access logs. |
-| Identity documents | Passport, driver's licence, SIN, birth certificate | Restricted access; no AI analysis without explicit consent; secure deletion. |
-| Children's data | Information about minors | Avoid collection; parental consent if required by law. |
-| Allegations / disputes | Harassment claims, fraud allegations, litigation | Strict access control; no unauthorized disclosure; audit logs. |
+| Category               | Examples                                            | Extra safeguards                                                             |
+| ---------------------- | --------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Health information     | Disability, medical notes, mental health references | Opt-in for AI analysis; per-user encryption; strict access logs.             |
+| Financial information  | Bank records, pay stubs, tax documents, debts       | Per-user encryption; no use for credit scoring; access logs.                 |
+| Identity documents     | Passport, driver's licence, SIN, birth certificate  | Restricted access; no AI analysis without explicit consent; secure deletion. |
+| Children's data        | Information about minors                            | Avoid collection; parental consent if required by law.                       |
+| Allegations / disputes | Harassment claims, fraud allegations, litigation    | Strict access control; no unauthorized disclosure; audit logs.               |

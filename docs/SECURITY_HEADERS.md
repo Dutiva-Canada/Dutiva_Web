@@ -11,15 +11,15 @@ the marketing and app surfaces showed zero console violations.
 
 ## Enforcing now
 
-| Header | Value | Closes |
-| --- | --- | --- |
-| `X-Frame-Options` | `DENY` | Clickjacking — nothing legitimately frames `dutiva.ca` or the `/app` workspace. |
-| `Content-Security-Policy` | `default-src 'self'; ...` (full resource policy, see below) | Modern-browser clickjacking + `<object>`/`<embed>` + `<base>` hijack, plus all resource directives. Promoted to enforcing 2026-08-10. |
-| `X-Content-Type-Options` | `nosniff` | MIME sniffing on user-influenced blobs. |
-| `Referrer-Policy` | `strict-origin-when-cross-origin` | Path/query leakage to third parties. |
-| `Strict-Transport-Security` | `max-age=63072000; includeSubDomains` | SSL-strip / downgrade. (No `preload` yet — that commits every subdomain to HTTPS permanently; add it and submit to hstspreload.org when ready.) |
-| `Permissions-Policy` | `camera=(), microphone=(), geolocation=(), browsing-topics=()` | Powerful features the app never uses; opts out of Topics. |
-| `Access-Control-Allow-Origin` | `https://dutiva.ca` | Overrides Vercel's static-file default of `*`. The marketing site is first-party; hashed `/assets/*` files are still fetched same-origin (including the `crossorigin` font preload). |
+| Header                        | Value                                                          | Closes                                                                                                                                                                               |
+| ----------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `X-Frame-Options`             | `DENY`                                                         | Clickjacking — nothing legitimately frames `dutiva.ca` or the `/app` workspace.                                                                                                      |
+| `Content-Security-Policy`     | `default-src 'self'; ...` (full resource policy, see below)    | Modern-browser clickjacking + `<object>`/`<embed>` + `<base>` hijack, plus all resource directives. Promoted to enforcing 2026-08-10.                                                |
+| `X-Content-Type-Options`      | `nosniff`                                                      | MIME sniffing on user-influenced blobs.                                                                                                                                              |
+| `Referrer-Policy`             | `strict-origin-when-cross-origin`                              | Path/query leakage to third parties.                                                                                                                                                 |
+| `Strict-Transport-Security`   | `max-age=63072000; includeSubDomains`                          | SSL-strip / downgrade. (No `preload` yet — that commits every subdomain to HTTPS permanently; add it and submit to hstspreload.org when ready.)                                      |
+| `Permissions-Policy`          | `camera=(), microphone=(), geolocation=(), browsing-topics=()` | Powerful features the app never uses; opts out of Topics.                                                                                                                            |
+| `Access-Control-Allow-Origin` | `https://dutiva.ca`                                            | Overrides Vercel's static-file default of `*`. The marketing site is first-party; hashed `/assets/*` files are still fetched same-origin (including the `crossorigin` font preload). |
 
 ## Crawler-invented `/support@dutiva.ca`
 

@@ -2,7 +2,14 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
 import { chipToneClasses, statusChipBaseClass } from '@/components/chips'
-import { mergeSegments, parseClauseBulletLines, parseClauseFieldLines, splitBilingualBody, splitClauseSignOff, splitProseParagraphs } from './engine'
+import {
+  mergeSegments,
+  parseClauseBulletLines,
+  parseClauseFieldLines,
+  splitBilingualBody,
+  splitClauseSignOff,
+  splitProseParagraphs,
+} from './engine'
 import type { MergeSegment } from './engine'
 import type { DocChipTone, Jurisdiction, PreviewBlock } from './data'
 
@@ -146,7 +153,12 @@ function renderInlineTemplateText(text: string): ReactNode {
       return <strong key={`b-${index}`}>{part.slice(2, -2)}</strong>
     }
     return part.split(INLINE_ITALIC_PATTERN).map((segment, subIndex) => {
-      if (segment.startsWith('*') && segment.endsWith('*') && segment.length > 2 && !segment.startsWith('**')) {
+      if (
+        segment.startsWith('*') &&
+        segment.endsWith('*') &&
+        segment.length > 2 &&
+        !segment.startsWith('**')
+      ) {
         return <em key={`i-${index}-${subIndex}`}>{segment.slice(1, -1)}</em>
       }
       return segment
@@ -300,7 +312,9 @@ function ClauseBody({
           ))}
         </dl>
         {outro.trim() && <ProseParagraphs text={outro} values={values} className="mt-2" />}
-        {signOff && <ClauseSignOff closing={signOff.closing} lines={signOff.lines} values={values} />}
+        {signOff && (
+          <ClauseSignOff closing={signOff.closing} lines={signOff.lines} values={values} />
+        )}
       </div>
     )
   }
@@ -318,7 +332,9 @@ function ClauseBody({
           ))}
         </ul>
         {outro.trim() && <ProseParagraphs text={outro} values={values} className="mt-2" />}
-        {signOff && <ClauseSignOff closing={signOff.closing} lines={signOff.lines} values={values} />}
+        {signOff && (
+          <ClauseSignOff closing={signOff.closing} lines={signOff.lines} values={values} />
+        )}
       </div>
     )
   }

@@ -196,10 +196,7 @@ function auditDotClass(event: AuditEventType): string {
 /** The prototype's `.cdot` — tone dot inside the status/risk chips. */
 function ChipDot() {
   return (
-    <span
-      className="mr-1.25 h-1.5 w-1.5 self-center rounded-full bg-current"
-      aria-hidden="true"
-    />
+    <span className="mr-1.25 h-1.5 w-1.5 self-center rounded-full bg-current" aria-hidden="true" />
   )
 }
 
@@ -254,7 +251,9 @@ function DocumentActions({
       {actions.map((action) => {
         const cfg = ACTION_CFG[action]
         const handle =
-          action === 'send_for_signature' ? onSendForSignature : () => showToast(cfg.toast, cfg.tone)
+          action === 'send_for_signature'
+            ? onSendForSignature
+            : () => showToast(cfg.toast, cfg.tone)
         return (
           <ActBtn key={action} variant={cfg.variant} onClick={handle}>
             {t(cfg.label)}
@@ -524,10 +523,7 @@ function DocumentDetailDemoScreen() {
       <div className="flex items-start gap-6.5 max-[1023px]:flex-col">
         {/* ── Left: tabs ── */}
         <div className="min-w-0 flex-1 max-[1023px]:w-full">
-          <div
-            role="tablist"
-            className="mb-4.5 flex gap-1 overflow-x-auto border-b border-border"
-          >
+          <div role="tablist" className="mb-4.5 flex gap-1 overflow-x-auto border-b border-border">
             {TABS.map(([key, msgKey]) => (
               <button
                 key={key}

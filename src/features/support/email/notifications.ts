@@ -69,7 +69,19 @@ export interface ReminderRule {
 }
 
 export const REMINDER_RULES: readonly ReminderRule[] = [
-  { id: 'approaching_target', description: 'Ticket approaching its initial-response target', audience: 'operator' },
-  { id: 'waiting_on_customer', description: 'No customer reply after N business days on a waiting_on_customer ticket', audience: 'customer' },
-  { id: 'post_call_summary', description: 'Follow-up to add a written summary after a scheduled call', audience: 'operator' },
+  {
+    id: 'approaching_target',
+    description: 'Ticket approaching its initial-response target',
+    audience: 'operator',
+  },
+  {
+    id: 'waiting_on_customer',
+    description: 'No customer reply after N business days on a waiting_on_customer ticket',
+    audience: 'customer',
+  },
+  {
+    id: 'post_call_summary',
+    description: 'Follow-up to add a written summary after a scheduled call',
+    audience: 'operator',
+  },
 ] as const

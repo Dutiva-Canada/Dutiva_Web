@@ -67,8 +67,7 @@ export function resolveCaptchaProvider(value: string | undefined | null): Captch
 // else (and so the predicate is testable without rendering).
 
 export const CAPTCHA_SITE_KEY: string | undefined = import.meta.env.VITE_CAPTCHA_SITE_KEY as
-  | string
-  | undefined
+  string | undefined
 
 export const CAPTCHA_PROVIDER: CaptchaProvider = resolveCaptchaProvider(
   import.meta.env.VITE_CAPTCHA_PROVIDER as string | undefined,
@@ -85,7 +84,8 @@ export function isCaptchaConfigured(siteKey: string | undefined = CAPTCHA_SITE_K
  * (identical) error-code sets are handled in one place.
  */
 export function interpretSiteverify(payload: unknown): CaptchaResult {
-  if (typeof payload !== 'object' || payload === null) return { ok: false, reason: 'provider_error' }
+  if (typeof payload !== 'object' || payload === null)
+    return { ok: false, reason: 'provider_error' }
   const record = payload as { success?: unknown; 'error-codes'?: unknown }
   if (record.success === true) return { ok: true }
 

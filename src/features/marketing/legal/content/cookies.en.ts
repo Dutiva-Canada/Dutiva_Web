@@ -39,7 +39,7 @@ export default {
         },
         {
           type: 'li',
-          text: 'Public-site security trustmark: the marketing site loads TrustedSite (Halo Security) so visitors can see website security-scan status. That script may set cookies or similar storage on TrustedSite\'s domain. It is not loaded in the signed-in workspace and is not used for advertising.',
+          text: "Public-site security trustmark: the marketing site loads TrustedSite (Halo Security) so visitors can see website security-scan status. That script may set cookies or similar storage on TrustedSite's domain. It is not loaded in the signed-in workspace and is not used for advertising.",
         },
         {
           type: 'li',

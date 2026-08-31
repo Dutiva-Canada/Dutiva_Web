@@ -66,7 +66,10 @@ export const supportMessages = defineMessages({
     en: 'Your request has been logged. Keep this reference for your records — we’ll reply by email.',
     fr: 'Votre demande a été enregistrée. Conservez cette référence — nous répondrons par courriel.',
   },
-  support_err_email: { en: 'Please enter a valid email address.', fr: 'Veuillez saisir une adresse courriel valide.' },
+  support_err_email: {
+    en: 'Please enter a valid email address.',
+    fr: 'Veuillez saisir une adresse courriel valide.',
+  },
   support_err_rate_limited: {
     en: 'You’ve sent several requests recently. Please try again later, or email support@dutiva.ca.',
     fr: 'Vous avez envoyé plusieurs demandes récemment. Veuillez réessayer plus tard ou écrire à support@dutiva.ca.',
@@ -99,10 +102,19 @@ export const supportMessages = defineMessages({
   support_field_category: { en: 'What is this about?', fr: 'De quoi s’agit-il ?' },
   support_field_subject: { en: 'Subject', fr: 'Sujet' },
   support_field_description: { en: 'How can we help?', fr: 'Comment pouvons-nous vous aider ?' },
-  support_field_impact: { en: 'How much is this affecting you?', fr: 'Quelle est l’ampleur de l’impact ?' },
+  support_field_impact: {
+    en: 'How much is this affecting you?',
+    fr: 'Quelle est l’ampleur de l’impact ?',
+  },
   support_field_urgency: { en: 'How time-sensitive is it?', fr: 'Quel est le degré d’urgence ?' },
-  support_field_language: { en: 'Preferred language for our reply', fr: 'Langue préférée pour notre réponse' },
-  support_field_response_method: { en: 'Preferred way to hear back', fr: 'Moyen préféré pour la réponse' },
+  support_field_language: {
+    en: 'Preferred language for our reply',
+    fr: 'Langue préférée pour notre réponse',
+  },
+  support_field_response_method: {
+    en: 'Preferred way to hear back',
+    fr: 'Moyen préféré pour la réponse',
+  },
   support_choose: { en: 'Select…', fr: 'Sélectionner…' },
   support_optional: { en: 'optional', fr: 'facultatif' },
 
@@ -142,8 +154,14 @@ export const supportMessages = defineMessages({
   support_submitting: { en: 'Sending…', fr: 'Envoi en cours…' },
 
   support_err_subject: { en: 'Please add a subject.', fr: 'Veuillez ajouter un sujet.' },
-  support_err_description: { en: 'Please describe how we can help.', fr: 'Veuillez décrire comment nous pouvons aider.' },
-  support_err_consent: { en: 'Please confirm to continue.', fr: 'Veuillez confirmer pour continuer.' },
+  support_err_description: {
+    en: 'Please describe how we can help.',
+    fr: 'Veuillez décrire comment nous pouvons aider.',
+  },
+  support_err_consent: {
+    en: 'Please confirm to continue.',
+    fr: 'Veuillez confirmer pour continuer.',
+  },
   support_err_generic: {
     en: 'We couldn’t send your request. Please try again, or email support@dutiva.ca.',
     fr: 'Nous n’avons pas pu envoyer votre demande. Veuillez réessayer ou écrire à support@dutiva.ca.',
@@ -169,7 +187,10 @@ export const supportMessages = defineMessages({
     en: 'You haven’t sent any support requests yet.',
     fr: 'Vous n’avez pas encore envoyé de demande de soutien.',
   },
-  support_requests_empty_cta: { en: 'Send your first request', fr: 'Envoyer votre première demande' },
+  support_requests_empty_cta: {
+    en: 'Send your first request',
+    fr: 'Envoyer votre première demande',
+  },
   support_open_request: { en: 'Open request', fr: 'Ouvrir la demande' },
   support_back_to_requests: { en: 'Back to my requests', fr: 'Retour à mes demandes' },
   support_submitted_on: { en: 'Submitted', fr: 'Soumise le' },
@@ -228,7 +249,10 @@ export const supportMessages = defineMessages({
     en: 'The current status of Dutiva’s services. Self-reported by our team. For help with a specific issue, contact support.',
     fr: 'L’état actuel des services de Dutiva. Signalé par notre équipe. Pour de l’aide sur un problème précis, contactez le soutien.',
   },
-  status_all_operational: { en: 'All systems operational', fr: 'Tous les systèmes sont opérationnels' },
+  status_all_operational: {
+    en: 'All systems operational',
+    fr: 'Tous les systèmes sont opérationnels',
+  },
   status_some_issues: { en: 'Some systems are affected', fr: 'Certains systèmes sont touchés' },
   status_updated: { en: 'Updated', fr: 'Mis à jour' },
   status_admin_title: { en: 'Service status', fr: 'État des services' },
@@ -249,8 +273,14 @@ export const supportMessages = defineMessages({
     en: 'Images, PDF, text, or Office documents, up to 25 MB. Don’t attach confidential workplace records.',
     fr: 'Images, PDF, texte ou documents Office, jusqu’à 25 Mo. Ne joignez pas de dossiers confidentiels du milieu de travail.',
   },
-  support_attach_too_large: { en: 'That file is over the 25 MB limit.', fr: 'Ce fichier dépasse la limite de 25 Mo.' },
-  support_attach_bad_type: { en: 'That file type isn’t supported.', fr: 'Ce type de fichier n’est pas pris en charge.' },
+  support_attach_too_large: {
+    en: 'That file is over the 25 MB limit.',
+    fr: 'Ce fichier dépasse la limite de 25 Mo.',
+  },
+  support_attach_bad_type: {
+    en: 'That file type isn’t supported.',
+    fr: 'Ce type de fichier n’est pas pris en charge.',
+  },
   support_attach_error: {
     en: 'We couldn’t attach that file. Please try again.',
     fr: 'Nous n’avons pas pu joindre ce fichier. Veuillez réessayer.',
@@ -281,8 +311,14 @@ export const supportMessages = defineMessages({
   support_admin_filter_category: { en: 'Category', fr: 'Catégorie' },
   support_admin_filter_all: { en: 'All', fr: 'Toutes' },
   support_admin_filter_restricted: { en: 'Restricted only', fr: 'Restreintes seulement' },
-  support_admin_search: { en: 'Search subject or reference', fr: 'Rechercher un sujet ou une référence' },
-  support_admin_empty: { en: 'No tickets match these filters.', fr: 'Aucun billet ne correspond à ces filtres.' },
+  support_admin_search: {
+    en: 'Search subject or reference',
+    fr: 'Rechercher un sujet ou une référence',
+  },
+  support_admin_empty: {
+    en: 'No tickets match these filters.',
+    fr: 'Aucun billet ne correspond à ces filtres.',
+  },
   support_admin_col_requester: { en: 'Requester', fr: 'Demandeur' },
   support_admin_restricted_badge: { en: 'Restricted', fr: 'Restreinte' },
   support_admin_open_queues: { en: 'Open', fr: 'Ouverts' },
@@ -293,7 +329,10 @@ export const supportMessages = defineMessages({
   support_admin_internal_badge: { en: 'Internal note', fr: 'Note interne' },
   support_admin_reply_label: { en: 'Reply to the customer', fr: 'Répondre au client' },
   support_admin_reply_send: { en: 'Send reply', fr: 'Envoyer la réponse' },
-  support_admin_note_label: { en: 'Add an internal note (not visible to the customer)', fr: 'Ajouter une note interne (non visible par le client)' },
+  support_admin_note_label: {
+    en: 'Add an internal note (not visible to the customer)',
+    fr: 'Ajouter une note interne (non visible par le client)',
+  },
   support_admin_note_send: { en: 'Save note', fr: 'Enregistrer la note' },
   support_admin_set_status: { en: 'Set status', fr: 'Définir le statut' },
   support_admin_set_priority: { en: 'Set priority', fr: 'Définir la priorité' },
@@ -314,7 +353,10 @@ export const supportMessages = defineMessages({
     en: 'Could not save the proposed times. Each time must be in the future and end after it starts.',
     fr: 'Impossible d’enregistrer les heures proposées. Chaque heure doit être dans le futur et se terminer après son début.',
   },
-  support_admin_call_status_proposed: { en: 'Awaiting the customer’s choice', fr: 'En attente du choix du client' },
+  support_admin_call_status_proposed: {
+    en: 'Awaiting the customer’s choice',
+    fr: 'En attente du choix du client',
+  },
   support_admin_call_status_confirmed: { en: 'Confirmed', fr: 'Confirmé' },
   support_admin_call_calendar_skipped: {
     en: 'Calendar sync is not configured — add this to your calendar by hand.',
@@ -331,7 +373,10 @@ export const supportMessages = defineMessages({
   support_call_confirming: { en: 'Confirming…', fr: 'Confirmation en cours…' },
   support_call_confirmed_heading: { en: 'Your call is confirmed', fr: 'Votre appel est confirmé' },
   support_call_join_link: { en: 'Join the call', fr: 'Rejoindre l’appel' },
-  support_call_error: { en: 'Could not confirm that time. Please try again.', fr: 'Impossible de confirmer cette heure. Veuillez réessayer.' },
+  support_call_error: {
+    en: 'Could not confirm that time. Please try again.',
+    fr: 'Impossible de confirmer cette heure. Veuillez réessayer.',
+  },
 
   // ── Export audit trail — admin viewer (TODO.md EF3) ──────────────────
   export_audit_title: { en: 'Export audit trail', fr: 'Journal des exports' },
@@ -344,7 +389,10 @@ export const supportMessages = defineMessages({
     fr: 'Une ligne par export autorisé de contenu généré par l’entreprise. L’identifiant d’export intégré dans un artefact (filigrane visible, balise invisible à largeur nulle ou métadonnées du fichier) permet de retrouver la personne qui l’a exporté.',
   },
   export_audit_lookup_label: { en: 'Resolve an export id', fr: 'Résoudre un identifiant d’export' },
-  export_audit_lookup_placeholder: { en: 'Paste export id (UUID)', fr: 'Coller l’identifiant d’export (UUID)' },
+  export_audit_lookup_placeholder: {
+    en: 'Paste export id (UUID)',
+    fr: 'Coller l’identifiant d’export (UUID)',
+  },
   export_audit_lookup_button: { en: 'Resolve', fr: 'Résoudre' },
   export_audit_lookup_not_found: {
     en: 'No export event found for that id.',

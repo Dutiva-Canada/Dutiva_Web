@@ -103,10 +103,7 @@ export function AuthPanel() {
         {L('Get help', 'Obtenir de l’aide')}
       </Link>
       {' · '}
-      <a
-        href={`mailto:${SUPPORT_EMAIL}`}
-        className="font-semibold text-text-2 hover:text-text"
-      >
+      <a href={`mailto:${SUPPORT_EMAIL}`} className="font-semibold text-text-2 hover:text-text">
         {SUPPORT_EMAIL}
       </a>
     </p>
@@ -126,10 +123,7 @@ export function AuthPanel() {
             <p className="m-0 text-[13px] leading-[1.5] text-text-muted">
               {x(M.auth_not_authorized)}
             </p>
-            <Link
-              to={p('pricing')}
-              className={`${primaryBtnClass} mt-[4px] no-underline`}
-            >
+            <Link to={p('pricing')} className={`${primaryBtnClass} mt-[4px] no-underline`}>
               {x(M.auth_choose_plan)}
             </Link>
             <button
@@ -159,7 +153,8 @@ export function AuthPanel() {
             </h1>
             <p className="m-0 text-[13.5px] leading-[1.55] text-text-3" role="status">
               {x(M.auth_sent_body_prefix)}{' '}
-              <span className="font-semibold text-text-2">{sentTo}</span>. {x(M.auth_sent_body_suffix)}
+              <span className="font-semibold text-text-2">{sentTo}</span>.{' '}
+              {x(M.auth_sent_body_suffix)}
             </p>
             <p className="m-0 text-[12px] leading-[1.5] text-text-muted">{x(M.auth_sent_spam)}</p>
 

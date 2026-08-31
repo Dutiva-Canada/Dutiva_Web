@@ -77,11 +77,17 @@ export const tplT49: DocTemplate = {
   preview: [
     {
       type: 'title',
-      text: { en: 'Onboarding Package — {{office_location}}', fr: 'Trousse d’intégration — {{office_location}}' },
+      text: {
+        en: 'Onboarding Package — {{office_location}}',
+        fr: 'Trousse d’intégration — {{office_location}}',
+      },
     },
     {
       type: 'meta',
-      text: { en: '{{org}} · {{employee_name}} · {{jurisdiction}}', fr: '{{org}} · {{employee_name}} · {{jurisdiction}}' },
+      text: {
+        en: '{{org}} · {{employee_name}} · {{jurisdiction}}',
+        fr: '{{org}} · {{employee_name}} · {{jurisdiction}}',
+      },
     },
     {
       type: 'para',

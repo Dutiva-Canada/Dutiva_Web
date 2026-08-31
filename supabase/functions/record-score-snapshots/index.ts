@@ -78,7 +78,11 @@ async function fetchAll<T>(
 ): Promise<T[]> {
   const rows: T[] = []
   for (let from = 0; ; from += PAGE) {
-    let query = supabase.from(table).select(columns).order('id').range(from, from + PAGE - 1)
+    let query = supabase
+      .from(table)
+      .select(columns)
+      .order('id')
+      .range(from, from + PAGE - 1)
     if (organizationId !== null) query = query.eq('organization_id', organizationId)
     const { data, error } = await query
     if (error) {

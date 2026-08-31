@@ -46,11 +46,7 @@ function expandToMin(text: string, lang: Lang): string {
  * keys; dynamic legal, help, and editorial pages pass their one-line summaries
  * through here at the SEO registry boundary.
  */
-export function formatMetaDescription(
-  base: string,
-  lang: Lang,
-  suffix?: string,
-): string {
+export function formatMetaDescription(base: string, lang: Lang, suffix?: string): string {
   let text = normalize(base)
   if (inBand(text)) return text
   if (text.length > META_DESCRIPTION_MAX) return truncateAtWord(text, META_DESCRIPTION_MAX)
@@ -63,7 +59,8 @@ export function formatMetaDescription(
   for (const pad of pads) {
     const candidate = `${punctuated}${pad}`
     if (inBand(candidate)) return candidate
-    if (candidate.length > META_DESCRIPTION_MAX) return truncateAtWord(candidate, META_DESCRIPTION_MAX)
+    if (candidate.length > META_DESCRIPTION_MAX)
+      return truncateAtWord(candidate, META_DESCRIPTION_MAX)
   }
 
   return expandToMin(`${punctuated}${pads.at(-1) ?? DEFAULT_PAD[lang]}`, lang)

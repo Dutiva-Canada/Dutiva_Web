@@ -6,14 +6,14 @@
 
 ## Summary (for compliance documentation)
 
-| Question | Answer |
-| --- | --- |
-| Where does serverless inference run for `deepseek-3.2`? | **Canada, the United States, or the Netherlands** — routed by proximity to the caller and available capacity at request time. |
-| Can serverless be pinned to Canada / TOR1? | **No.** There is currently no way to select a datacenter or location for Serverless Inference processing. |
-| Likely region for Dutiva (Toronto operator)? | **Most requests likely TOR1**, but not guaranteed. |
-| Failover if TOR1 is unavailable? | **Yes — rerouted to the USA or the Netherlands** on serverless. |
-| Canada-only processing? | **Dedicated Inference in TOR1** is required; serverless cannot ensure exclusive Canadian processing. |
-| Dedicated TOR1 pricing for `deepseek-3.2`? | **Not quoted in ticket** — varies by GPU-hours and configuration; review Control Panel + [Inference Pricing](https://docs.digitalocean.com/products/inference/details/pricing/) / [Availability](https://docs.digitalocean.com/products/inference/details/availability/). Customer Success contact offered on request. |
+| Question                                                | Answer                                                                                                                                                                                                                                                                                                                 |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Where does serverless inference run for `deepseek-3.2`? | **Canada, the United States, or the Netherlands** — routed by proximity to the caller and available capacity at request time.                                                                                                                                                                                          |
+| Can serverless be pinned to Canada / TOR1?              | **No.** There is currently no way to select a datacenter or location for Serverless Inference processing.                                                                                                                                                                                                              |
+| Likely region for Dutiva (Toronto operator)?            | **Most requests likely TOR1**, but not guaranteed.                                                                                                                                                                                                                                                                     |
+| Failover if TOR1 is unavailable?                        | **Yes — rerouted to the USA or the Netherlands** on serverless.                                                                                                                                                                                                                                                        |
+| Canada-only processing?                                 | **Dedicated Inference in TOR1** is required; serverless cannot ensure exclusive Canadian processing.                                                                                                                                                                                                                   |
+| Dedicated TOR1 pricing for `deepseek-3.2`?              | **Not quoted in ticket** — varies by GPU-hours and configuration; review Control Panel + [Inference Pricing](https://docs.digitalocean.com/products/inference/details/pricing/) / [Availability](https://docs.digitalocean.com/products/inference/details/availability/). Customer Success contact offered on request. |
 
 ## Verbatim reply (body)
 

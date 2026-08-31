@@ -10,15 +10,15 @@ The products answer questions and guide workflows using authoritative Canadian l
 
 When two sources conflict, prefer the higher-ranked source. Lower-ranked sources are used only when appropriate and are clearly labeled.
 
-| Rank | Source type | Examples |
-|---|---|---|
-| 1 | Government legislation and regulations | Acts, regulations, statutes, proclamations, consolidated law published by governments. |
-| 2 | Official government agencies | Service Canada, CRA, provincial employment standards offices, landlord-tenant boards, CNESST. |
-| 3 | Courts and tribunals | Decisions of Canadian courts, tribunals, labour boards, administrative tribunals. |
-| 4 | Official regulatory bodies | CRTC, FCAC, CCTS, provincial regulators. |
-| 5 | Official public guidance | Government fact sheets, guides, bulletins, frequently asked questions. |
-| 6 | Other authoritative sources | Recognized legal information organizations, law societies (for general public information), accredited clinics. |
-| 7 | Secondary sources | Reputable legal commentary, news, educational sites — used only when clearly labeled as background. |
+| Rank | Source type                            | Examples                                                                                                        |
+| ---- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| 1    | Government legislation and regulations | Acts, regulations, statutes, proclamations, consolidated law published by governments.                          |
+| 2    | Official government agencies           | Service Canada, CRA, provincial employment standards offices, landlord-tenant boards, CNESST.                   |
+| 3    | Courts and tribunals                   | Decisions of Canadian courts, tribunals, labour boards, administrative tribunals.                               |
+| 4    | Official regulatory bodies             | CRTC, FCAC, CCTS, provincial regulators.                                                                        |
+| 5    | Official public guidance               | Government fact sheets, guides, bulletins, frequently asked questions.                                          |
+| 6    | Other authoritative sources            | Recognized legal information organizations, law societies (for general public information), accredited clinics. |
+| 7    | Secondary sources                      | Reputable legal commentary, news, educational sites — used only when clearly labeled as background.             |
 
 `KNOWLEDGE-REQ-001`: The system SHALL prefer sources ranked 1–5 for any factual claim about law, rights, deadlines, or procedures.
 
@@ -77,8 +77,8 @@ When two sources conflict, prefer the higher-ranked source. Lower-ranked sources
 
 `KNOWLEDGE-REQ-011`: Citations SHALL be concise and readable by non-lawyers. Example formats:
 
-- "*Employment Standards Act, 2000*, S.O. 2000, c. 41, s. 54" (English)
-- "*Loi sur les normes du travail*, RLRQ c. N-1.1, art. 82" (French)
+- "_Employment Standards Act, 2000_, S.O. 2000, c. 41, s. 54" (English)
+- "_Loi sur les normes du travail_, RLRQ c. N-1.1, art. 82" (French)
 - "Canada Labour Code, Part III, R.S.C., 1985, c. L-2"
 
 `KNOWLEDGE-REQ-012`: Where a source is available online, a stable URL SHOULD be provided.

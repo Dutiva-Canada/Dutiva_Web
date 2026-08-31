@@ -241,12 +241,18 @@ export function PublicSupportForm({ initialTopic }: { readonly initialTopic?: Su
       </Field>
 
       {category === 'security' && (
-        <p role="note" className="m-0 rounded-[10px] border border-risk-border bg-risk-bg px-[14px] py-[12px] text-[13px] leading-[1.5] text-risk-fg">
+        <p
+          role="note"
+          className="m-0 rounded-[10px] border border-risk-border bg-risk-bg px-[14px] py-[12px] text-[13px] leading-[1.5] text-risk-fg"
+        >
           {x(M.support_security_warning)}
         </p>
       )}
       {category === 'privacy' && (
-        <p role="note" className="premium-card-soft m-0 px-[14px] py-[12px] text-[13px] leading-[1.5] text-text-2">
+        <p
+          role="note"
+          className="premium-card-soft m-0 px-[14px] py-[12px] text-[13px] leading-[1.5] text-text-2"
+        >
           {x(M.support_privacy_notice)}
         </p>
       )}
@@ -255,7 +261,11 @@ export function PublicSupportForm({ initialTopic }: { readonly initialTopic?: Su
         id={fid('email')}
         label={x(M.support_field_email)}
         error={errors.email}
-        hint={<p className="m-0 text-[12px] leading-[1.5] text-text-3">{x(M.support_field_email_hint)}</p>}
+        hint={
+          <p className="m-0 text-[12px] leading-[1.5] text-text-3">
+            {x(M.support_field_email_hint)}
+          </p>
+        }
       >
         <input
           id={fid('email')}
@@ -283,7 +293,10 @@ export function PublicSupportForm({ initialTopic }: { readonly initialTopic?: Su
       </Field>
 
       {category === 'accessibility' && (
-        <Field id={fid('accommodation')} label={`${x(M.support_cond_accessibility)} (${x(M.support_optional)})`}>
+        <Field
+          id={fid('accommodation')}
+          label={`${x(M.support_cond_accessibility)} (${x(M.support_optional)})`}
+        >
           <input
             id={fid('accommodation')}
             value={accommodation}
@@ -319,7 +332,12 @@ export function PublicSupportForm({ initialTopic }: { readonly initialTopic?: Su
 
       <div className="grid grid-cols-1 gap-[18px] min-[560px]:grid-cols-2">
         <Field id={fid('impact')} label={x(M.support_field_impact)}>
-          <select id={fid('impact')} value={impact} onChange={(e) => setImpact(e.target.value as SupportImpact)} className={controlClass}>
+          <select
+            id={fid('impact')}
+            value={impact}
+            onChange={(e) => setImpact(e.target.value as SupportImpact)}
+            className={controlClass}
+          >
             {IMPACTS.map((i) => (
               <option key={i} value={i}>
                 {x(IMPACT_LABELS[i])}
@@ -328,7 +346,12 @@ export function PublicSupportForm({ initialTopic }: { readonly initialTopic?: Su
           </select>
         </Field>
         <Field id={fid('urgency')} label={x(M.support_field_urgency)}>
-          <select id={fid('urgency')} value={urgency} onChange={(e) => setUrgency(e.target.value as SupportUrgency)} className={controlClass}>
+          <select
+            id={fid('urgency')}
+            value={urgency}
+            onChange={(e) => setUrgency(e.target.value as SupportUrgency)}
+            className={controlClass}
+          >
             {URGENCIES.map((u) => (
               <option key={u} value={u}>
                 {x(URGENCY_LABELS[u])}
@@ -337,13 +360,23 @@ export function PublicSupportForm({ initialTopic }: { readonly initialTopic?: Su
           </select>
         </Field>
         <Field id={fid('language')} label={x(M.support_field_language)}>
-          <select id={fid('language')} value={language} onChange={(e) => setLanguage(e.target.value as 'en' | 'fr')} className={controlClass}>
+          <select
+            id={fid('language')}
+            value={language}
+            onChange={(e) => setLanguage(e.target.value as 'en' | 'fr')}
+            className={controlClass}
+          >
             <option value="en">English</option>
             <option value="fr">Français</option>
           </select>
         </Field>
         <Field id={fid('method')} label={x(M.support_field_response_method)}>
-          <select id={fid('method')} value={responseMethod} onChange={(e) => setResponseMethod(e.target.value as 'email' | 'scheduled_call')} className={controlClass}>
+          <select
+            id={fid('method')}
+            value={responseMethod}
+            onChange={(e) => setResponseMethod(e.target.value as 'email' | 'scheduled_call')}
+            className={controlClass}
+          >
             {METHODS.map((m) => (
               <option key={m} value={m}>
                 {x(RESPONSE_METHOD_LABELS[m])}
@@ -387,7 +420,10 @@ export function PublicSupportForm({ initialTopic }: { readonly initialTopic?: Su
       )}
 
       {submitError && (
-        <p role="alert" className="m-0 rounded-[10px] border border-risk-border bg-risk-bg px-[14px] py-[12px] text-[13px] text-risk-fg">
+        <p
+          role="alert"
+          className="m-0 rounded-[10px] border border-risk-border bg-risk-bg px-[14px] py-[12px] text-[13px] text-risk-fg"
+        >
           {submitError}
         </p>
       )}

@@ -89,7 +89,9 @@ describe('HTTP security headers', () => {
     expect(serveDist).toContain("'X-Frame-Options': 'DENY'")
     expect(serveDist).toContain("'X-Content-Type-Options': 'nosniff'")
     expect(serveDist).toContain("'Access-Control-Allow-Origin': 'https://dutiva.ca'")
-    expect(serveDist).toContain("DIRECTORY_INDEXES = new Set(['/assets', '/brand', '/.well-known'])")
+    expect(serveDist).toContain(
+      "DIRECTORY_INDEXES = new Set(['/assets', '/brand', '/.well-known'])",
+    )
     expect(serveDist).toContain("['/support@dutiva.ca', '/contact']")
     expect(vercel).toMatch(/"source": "\/support@dutiva\.ca"[\s\S]*noindex, nofollow/)
   })

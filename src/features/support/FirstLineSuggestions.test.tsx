@@ -17,7 +17,9 @@ describe('FirstLineSuggestions', () => {
   beforeEach(() => getFirstLineAnswer.mockReset())
 
   it('shows the human-handled note for a sensitive category', () => {
-    renderApp(<FirstLineSuggestions query="I found a vulnerability" category="security" allowGenerative />)
+    renderApp(
+      <FirstLineSuggestions query="I found a vulnerability" category="security" allowGenerative />,
+    )
     expect(screen.getByRole('note')).toHaveTextContent(
       'This type of request is always handled by a person',
     )
@@ -41,7 +43,9 @@ describe('FirstLineSuggestions', () => {
   })
 
   it('offers the instant-answer button only when allowGenerative is set', () => {
-    const { unmount } = renderApp(<FirstLineSuggestions query={ELIGIBLE} category="product_question" />)
+    const { unmount } = renderApp(
+      <FirstLineSuggestions query={ELIGIBLE} category="product_question" />,
+    )
     expect(screen.queryByRole('button', { name: /instant answer/i })).toBeNull()
     unmount()
     renderApp(<FirstLineSuggestions query={ELIGIBLE} category="product_question" allowGenerative />)
@@ -50,7 +54,10 @@ describe('FirstLineSuggestions', () => {
 
   it('generates a grounded answer with the not-legal-advice disclaimer', async () => {
     const user = userEvent.setup()
-    getFirstLineAnswer.mockResolvedValue({ escalate: false, answer: 'Open Document Studio and pick a template.' })
+    getFirstLineAnswer.mockResolvedValue({
+      escalate: false,
+      answer: 'Open Document Studio and pick a template.',
+    })
     renderApp(<FirstLineSuggestions query={ELIGIBLE} category="product_question" allowGenerative />)
     await user.click(screen.getByRole('button', { name: /instant answer/i }))
     expect(await screen.findByText('Open Document Studio and pick a template.')).toBeInTheDocument()

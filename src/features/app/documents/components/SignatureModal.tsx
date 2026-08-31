@@ -45,24 +45,23 @@ export function SignatureModal({
 }: SignatureModalProps) {
   const { t, x } = useI18n()
   const [recipients, setRecipients] = useState<DocRecipient[]>(() =>
-    initialRecipients && initialRecipients.length > 0
-      ? initialRecipients
-      : [emptyRecipient(1)],
+    initialRecipients && initialRecipients.length > 0 ? initialRecipients : [emptyRecipient(1)],
   )
   const [emailInvites, setEmailInvites] = useState(true)
 
   useEffect(() => {
     if (!isOpen) return
     setRecipients(
-      initialRecipients && initialRecipients.length > 0
-        ? initialRecipients
-        : [emptyRecipient(1)],
+      initialRecipients && initialRecipients.length > 0 ? initialRecipients : [emptyRecipient(1)],
     )
     setEmailInvites(true)
   }, [isOpen, initialRecipients])
 
   const canSend = useMemo(
-    () => recipients.every((r) => r.name.trim() !== '' && r.email.trim() !== '' && r.email.includes('@')),
+    () =>
+      recipients.every(
+        (r) => r.name.trim() !== '' && r.email.trim() !== '' && r.email.includes('@'),
+      ),
     [recipients],
   )
 
@@ -88,9 +87,7 @@ export function SignatureModal({
 
   const removeRecipient = (index: number) => {
     setRecipients((prev) =>
-      prev
-        .filter((_, i) => i !== index)
-        .map((r, i) => ({ ...r, order: i + 1 })),
+      prev.filter((_, i) => i !== index).map((r, i) => ({ ...r, order: i + 1 })),
     )
   }
 
@@ -180,7 +177,9 @@ export function SignatureModal({
                   </label>
                   <select
                     value={recipient.type}
-                    onChange={(e) => updateRecipient(index, { type: e.target.value as RecipientType })}
+                    onChange={(e) =>
+                      updateRecipient(index, { type: e.target.value as RecipientType })
+                    }
                     className="w-full rounded-[9px] border border-border bg-surface px-2.5 py-1.75 text-[13px] text-text"
                   >
                     {RECIPIENT_TYPES.map((type) => (
@@ -225,7 +224,9 @@ export function SignatureModal({
               className="mt-0.5"
             />
             <span>
-              <span className="block font-semibold text-text">{x(M.doclib_modal_email_invites)}</span>
+              <span className="block font-semibold text-text">
+                {x(M.doclib_modal_email_invites)}
+              </span>
               <span className="mt-0.5 block text-[11.5px] text-text-faint">
                 {x(M.doclib_modal_email_invites_hint)}
               </span>

@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2026 
+ *   Copyright (c) 2026
  *   All rights reserved.
  */
 /* oxlint-disable react/only-export-components -- route table, not a component
@@ -101,73 +101,73 @@ import {
 function createAppViewRoutes(root: string): RouteObject[] {
   const r = (path: string) => `${root}/${path}`
   return [
-  { path: 'home', element: <HomeView /> },
-  { path: 'advisor', element: <AdvisorView /> },
-  { path: 'workflows', element: <WorkflowsView /> },
-  { path: 'workflows/:slug', element: <FlowRunner /> },
-  { path: 'cases', element: <CasesView /> },
-  { path: 'cases/:caseId', element: <CaseDetailView /> },
-  { path: 'employees', element: <EmployeesView /> },
-  { path: 'employees/:employeeId', element: <EmployeeProfileView /> },
-  { path: 'compliance', element: <ComplianceView /> },
-  { path: 'policies', element: <PoliciesView /> },
-  { path: 'templates', element: <Navigate to={r('documents/hr-library')} replace /> },
-  { path: 'analytics', element: <AnalyticsView /> },
-  { path: 'reports', element: <Navigate to={r('analytics')} replace /> },
-  { path: 'knowledge', element: <KnowledgeView /> },
-  { path: 'knowledge/:slug', element: <GuideView /> },
-  { path: 'support', element: <SupportView /> },
-  { path: 'support/requests', element: <SupportRequestsList /> },
-  { path: 'support/requests/:ticketId', element: <SupportTicketDetail /> },
-  { path: 'support/admin', element: <SupportAdminView /> },
-  { path: 'support/admin/exports', element: <ExportAuditView /> },
-  { path: 'support/admin/:ticketId', element: <SupportAdminTicket /> },
-  { path: 'communications', element: <CommunicationsView /> },
-  { path: 'compensation', element: <CompensationView /> },
-  { path: 'wellbeing', element: <WellbeingView /> },
-  { path: 'tasks', element: <Navigate to={r('planning/tasks')} replace /> },
-  { path: 'calendar', element: <Navigate to={r('planning/calendar')} replace /> },
-  { path: 'memory', element: <Navigate to={r('settings/memory')} replace /> },
-  {
-    path: 'planning',
-    element: <PlanningLayout />,
-    children: [
-      { index: true, element: <Navigate to={r('planning/tasks')} replace /> },
-      { path: 'tasks', element: <TasksView /> },
-      { path: 'calendar', element: <CalendarView /> },
-    ],
-  },
-  {
-    path: 'settings',
-    element: <SettingsLayout />,
-    children: [
-      { index: true, element: <SettingsView /> },
-      {
-        path: 'memory',
-        element: <MemoryLayout />,
-        children: [
-          { index: true, element: <MemoryManagerView /> },
-          { path: 'people/:personId', element: <PersonMemoryView /> },
-          { path: 'cases/:caseId', element: <CaseMemoryView /> },
-          { path: 'conversations/:threadId', element: <ChatRecallView /> },
-        ],
-      },
-    ],
-  },
-  {
-    path: 'documents',
-    element: <DocumentsLayout />,
-    children: [
-      { index: true, element: <RepositoryScreen /> },
-      { path: 'hr-library', element: <HrLibraryRoute /> },
-      { path: 'studio', element: <StudioScreen /> },
-      { path: 'templates/:tid', element: <TemplateDetailScreen /> },
-      { path: 'generate/:templateId', element: <GenerateScreen /> },
-      { path: 'sign/:envelopeId', element: <SigningScreen /> },
-      { path: ':docId', element: <DocumentDetailScreen /> },
-    ],
-  },
-]
+    { path: 'home', element: <HomeView /> },
+    { path: 'advisor', element: <AdvisorView /> },
+    { path: 'workflows', element: <WorkflowsView /> },
+    { path: 'workflows/:slug', element: <FlowRunner /> },
+    { path: 'cases', element: <CasesView /> },
+    { path: 'cases/:caseId', element: <CaseDetailView /> },
+    { path: 'employees', element: <EmployeesView /> },
+    { path: 'employees/:employeeId', element: <EmployeeProfileView /> },
+    { path: 'compliance', element: <ComplianceView /> },
+    { path: 'policies', element: <PoliciesView /> },
+    { path: 'templates', element: <Navigate to={r('documents/hr-library')} replace /> },
+    { path: 'analytics', element: <AnalyticsView /> },
+    { path: 'reports', element: <Navigate to={r('analytics')} replace /> },
+    { path: 'knowledge', element: <KnowledgeView /> },
+    { path: 'knowledge/:slug', element: <GuideView /> },
+    { path: 'support', element: <SupportView /> },
+    { path: 'support/requests', element: <SupportRequestsList /> },
+    { path: 'support/requests/:ticketId', element: <SupportTicketDetail /> },
+    { path: 'support/admin', element: <SupportAdminView /> },
+    { path: 'support/admin/exports', element: <ExportAuditView /> },
+    { path: 'support/admin/:ticketId', element: <SupportAdminTicket /> },
+    { path: 'communications', element: <CommunicationsView /> },
+    { path: 'compensation', element: <CompensationView /> },
+    { path: 'wellbeing', element: <WellbeingView /> },
+    { path: 'tasks', element: <Navigate to={r('planning/tasks')} replace /> },
+    { path: 'calendar', element: <Navigate to={r('planning/calendar')} replace /> },
+    { path: 'memory', element: <Navigate to={r('settings/memory')} replace /> },
+    {
+      path: 'planning',
+      element: <PlanningLayout />,
+      children: [
+        { index: true, element: <Navigate to={r('planning/tasks')} replace /> },
+        { path: 'tasks', element: <TasksView /> },
+        { path: 'calendar', element: <CalendarView /> },
+      ],
+    },
+    {
+      path: 'settings',
+      element: <SettingsLayout />,
+      children: [
+        { index: true, element: <SettingsView /> },
+        {
+          path: 'memory',
+          element: <MemoryLayout />,
+          children: [
+            { index: true, element: <MemoryManagerView /> },
+            { path: 'people/:personId', element: <PersonMemoryView /> },
+            { path: 'cases/:caseId', element: <CaseMemoryView /> },
+            { path: 'conversations/:threadId', element: <ChatRecallView /> },
+          ],
+        },
+      ],
+    },
+    {
+      path: 'documents',
+      element: <DocumentsLayout />,
+      children: [
+        { index: true, element: <RepositoryScreen /> },
+        { path: 'hr-library', element: <HrLibraryRoute /> },
+        { path: 'studio', element: <StudioScreen /> },
+        { path: 'templates/:tid', element: <TemplateDetailScreen /> },
+        { path: 'generate/:templateId', element: <GenerateScreen /> },
+        { path: 'sign/:envelopeId', element: <SigningScreen /> },
+        { path: ':docId', element: <DocumentDetailScreen /> },
+      ],
+    },
+  ]
 }
 
 export const appViewRoutes = createAppViewRoutes('/app')

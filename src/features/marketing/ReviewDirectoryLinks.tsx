@@ -2,7 +2,8 @@ import { ExternalLink } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { activeReviewDirectories } from '@/config/reviewDirectories'
 
-const LINK_CLASS = 'inline-flex items-center gap-1.5 text-sm text-text-2 transition-opacity hover:opacity-80'
+const LINK_CLASS =
+  'inline-flex items-center gap-1.5 text-sm text-text-2 transition-opacity hover:opacity-80'
 
 /**
  * External review-directory links — rendered only when `reviewUrl` is set in

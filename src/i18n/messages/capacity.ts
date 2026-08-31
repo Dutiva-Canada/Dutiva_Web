@@ -13,10 +13,8 @@ export const capacityMessages = defineMessages({
     fr: 'Dutiva a actuellement atteint sa capacité.',
   },
   capacity_reached_body: {
-    en:
-      'We’re limiting new organizations while we expand our infrastructure and support capacity.',
-    fr:
-      'Nous limitons les nouvelles organisations pendant que nous augmentons notre infrastructure et notre capacité de soutien.',
+    en: 'We’re limiting new organizations while we expand our infrastructure and support capacity.',
+    fr: 'Nous limitons les nouvelles organisations pendant que nous augmentons notre infrastructure et notre capacité de soutien.',
   },
   capacity_waitlist_title: {
     en: 'You’re on the waitlist',

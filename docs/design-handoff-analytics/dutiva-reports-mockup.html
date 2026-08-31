@@ -1,275 +1,711 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dutiva — Revised Reports mockup</title>
-<style>
-  :root {
-    --brand-navy: #1e3054;      /* chrome, headings, nav */
-    --data-navy:  #2f4f8f;      /* data marks (validated ≥3:1 on white) */
-    --accent-gold:#b08c3c;
-    --surface:    #ffffff;      /* card surface */
-    --page:       #eef1f6;
-    --ink:        #17233b;
-    --ink-2:      #5b6577;
-    --muted:      #8b93a3;
-    --grid:       #e6e9ef;
-    --baseline:   #cfd4de;
-    --good:       #0ca30c;
-    --good-text:  #006300;
-    --warning:    #fab219;
-    --serious:    #ec835a;
-    --critical:   #d03b3b;
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-  }
-  * { box-sizing: border-box; margin: 0; }
-  body { background:#dfe3ea; color:var(--ink); display:flex; justify-content:center; padding:24px 8px; }
-  .phone { width:393px; background:var(--page); border-radius:28px; overflow:hidden;
-           box-shadow:0 12px 40px rgba(23,35,59,.25); border:1px solid rgba(23,35,59,.08); }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dutiva — Revised Reports mockup</title>
+    <style>
+      :root {
+        --brand-navy: #1e3054; /* chrome, headings, nav */
+        --data-navy: #2f4f8f; /* data marks (validated ≥3:1 on white) */
+        --accent-gold: #b08c3c;
+        --surface: #ffffff; /* card surface */
+        --page: #eef1f6;
+        --ink: #17233b;
+        --ink-2: #5b6577;
+        --muted: #8b93a3;
+        --grid: #e6e9ef;
+        --baseline: #cfd4de;
+        --good: #0ca30c;
+        --good-text: #006300;
+        --warning: #fab219;
+        --serious: #ec835a;
+        --critical: #d03b3b;
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      body {
+        background: #dfe3ea;
+        color: var(--ink);
+        display: flex;
+        justify-content: center;
+        padding: 24px 8px;
+      }
+      .phone {
+        width: 393px;
+        background: var(--page);
+        border-radius: 28px;
+        overflow: hidden;
+        box-shadow: 0 12px 40px rgba(23, 35, 59, 0.25);
+        border: 1px solid rgba(23, 35, 59, 0.08);
+      }
 
-  /* App header */
-  .appbar { background:var(--surface); display:flex; align-items:center; gap:12px;
-            padding:16px 18px 12px; border-bottom:1px solid var(--grid); }
-  .appbar .burger { width:20px; display:flex; flex-direction:column; gap:4px; }
-  .appbar .burger i { height:2px; background:var(--brand-navy); border-radius:2px; }
-  .appbar h1 { flex:1; text-align:center; font-size:19px; color:var(--brand-navy); letter-spacing:.2px; }
-  .appbar .icons { display:flex; gap:14px; color:var(--brand-navy); font-size:15px; }
+      /* App header */
+      .appbar {
+        background: var(--surface);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 18px 12px;
+        border-bottom: 1px solid var(--grid);
+      }
+      .appbar .burger {
+        width: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .appbar .burger i {
+        height: 2px;
+        background: var(--brand-navy);
+        border-radius: 2px;
+      }
+      .appbar h1 {
+        flex: 1;
+        text-align: center;
+        font-size: 19px;
+        color: var(--brand-navy);
+        letter-spacing: 0.2px;
+      }
+      .appbar .icons {
+        display: flex;
+        gap: 14px;
+        color: var(--brand-navy);
+        font-size: 15px;
+      }
 
-  main { padding:14px 14px 90px; }
-  .pagesub { font-size:13.5px; color:var(--ink-2); margin:4px 4px 12px; }
-  .pagesub b { color:var(--ink); font-weight:600; }
+      main {
+        padding: 14px 14px 90px;
+      }
+      .pagesub {
+        font-size: 13.5px;
+        color: var(--ink-2);
+        margin: 4px 4px 12px;
+      }
+      .pagesub b {
+        color: var(--ink);
+        font-weight: 600;
+      }
 
-  .card { background:var(--surface); border-radius:14px; padding:16px 16px 14px;
-          margin-bottom:12px; border:1px solid rgba(23,35,59,.06);
-          box-shadow:0 1px 2px rgba(23,35,59,.04); }
-  .card h2 { font-size:14.5px; color:var(--ink); margin-bottom:2px; }
-  .card .sub { font-size:12.5px; color:var(--ink-2); margin-bottom:10px; }
-  .card .foot { font-size:11px; color:var(--muted); margin-top:10px; }
+      .card {
+        background: var(--surface);
+        border-radius: 14px;
+        padding: 16px 16px 14px;
+        margin-bottom: 12px;
+        border: 1px solid rgba(23, 35, 59, 0.06);
+        box-shadow: 0 1px 2px rgba(23, 35, 59, 0.04);
+      }
+      .card h2 {
+        font-size: 14.5px;
+        color: var(--ink);
+        margin-bottom: 2px;
+      }
+      .card .sub {
+        font-size: 12.5px;
+        color: var(--ink-2);
+        margin-bottom: 10px;
+      }
+      .card .foot {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 10px;
+      }
 
-  /* Hero + delta */
-  .heroRow { display:flex; align-items:baseline; gap:10px; margin:6px 0 2px; }
-  .hero { font-size:48px; font-weight:600; color:var(--ink); line-height:1; }
-  .hero small { font-size:18px; font-weight:500; color:var(--muted); }
-  .delta { font-size:13px; font-weight:600; color:var(--good-text); }
-  .delta .vs { color:var(--muted); font-weight:400; }
+      /* Hero + delta */
+      .heroRow {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin: 6px 0 2px;
+      }
+      .hero {
+        font-size: 48px;
+        font-weight: 600;
+        color: var(--ink);
+        line-height: 1;
+      }
+      .hero small {
+        font-size: 18px;
+        font-weight: 500;
+        color: var(--muted);
+      }
+      .delta {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--good-text);
+      }
+      .delta .vs {
+        color: var(--muted);
+        font-weight: 400;
+      }
 
-  svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
-  .tick { font-size:10px; fill:var(--muted); font-variant-numeric:tabular-nums; }
-  .ptlabel { font-size:11px; font-weight:600; fill:var(--ink); }
+      svg text {
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+      }
+      .tick {
+        font-size: 10px;
+        fill: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+      .ptlabel {
+        font-size: 11px;
+        font-weight: 600;
+        fill: var(--ink);
+      }
 
-  /* Driver meters */
-  .drivers { margin-top:12px; border-top:1px solid var(--grid); padding-top:10px; }
-  .drv { display:flex; align-items:center; gap:8px; margin:7px 0; font-size:12.5px; }
-  .drv .lbl { width:118px; color:var(--ink-2); }
-  .drv .track { flex:1; height:6px; background:#e2e8f4; border-radius:3px; overflow:hidden; }
-  .drv .fill { height:100%; background:var(--data-navy); border-radius:3px; }
-  .drv .fill.warn { background:var(--serious); }
-  .drv .val { width:26px; text-align:right; font-weight:600; font-variant-numeric:tabular-nums; }
-  .drv .flag { font-size:10.5px; color:#b4491f; font-weight:600; }
+      /* Driver meters */
+      .drivers {
+        margin-top: 12px;
+        border-top: 1px solid var(--grid);
+        padding-top: 10px;
+      }
+      .drv {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 7px 0;
+        font-size: 12.5px;
+      }
+      .drv .lbl {
+        width: 118px;
+        color: var(--ink-2);
+      }
+      .drv .track {
+        flex: 1;
+        height: 6px;
+        background: #e2e8f4;
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .drv .fill {
+        height: 100%;
+        background: var(--data-navy);
+        border-radius: 3px;
+      }
+      .drv .fill.warn {
+        background: var(--serious);
+      }
+      .drv .val {
+        width: 26px;
+        text-align: right;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+      .drv .flag {
+        font-size: 10.5px;
+        color: #b4491f;
+        font-weight: 600;
+      }
 
-  /* Attention list */
-  .row { display:flex; align-items:flex-start; gap:10px; padding:9px 0; border-bottom:1px solid var(--grid); }
-  .row:last-child { border-bottom:none; padding-bottom:2px; }
-  .row .txt { flex:1; font-size:13px; line-height:1.35; }
-  .row .txt small { display:block; color:var(--ink-2); font-size:11.5px; margin-top:1px; }
-  .chip { font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:20px; white-space:nowrap; margin-top:1px; }
-  .chip.crit { background:#fbe9e9; color:#a32424; }
-  .chip.warn { background:#fdf3dc; color:#8a5a00; }
-  .chip.info { background:#e9eef8; color:var(--data-navy); }
+      /* Attention list */
+      .row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 9px 0;
+        border-bottom: 1px solid var(--grid);
+      }
+      .row:last-child {
+        border-bottom: none;
+        padding-bottom: 2px;
+      }
+      .row .txt {
+        flex: 1;
+        font-size: 13px;
+        line-height: 1.35;
+      }
+      .row .txt small {
+        display: block;
+        color: var(--ink-2);
+        font-size: 11.5px;
+        margin-top: 1px;
+      }
+      .chip {
+        font-size: 10.5px;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 20px;
+        white-space: nowrap;
+        margin-top: 1px;
+      }
+      .chip.crit {
+        background: #fbe9e9;
+        color: #a32424;
+      }
+      .chip.warn {
+        background: #fdf3dc;
+        color: #8a5a00;
+      }
+      .chip.info {
+        background: #e9eef8;
+        color: var(--data-navy);
+      }
 
-  /* Horizontal bars */
-  .hrow { display:flex; align-items:center; gap:8px; margin:8px 0; }
-  .hrow .lbl { width:56px; font-size:12.5px; color:var(--ink-2); }
-  .hrow .track { flex:1; display:flex; align-items:center; gap:6px; }
-  .hrow .bar { height:16px; background:var(--data-navy); border-radius:0 4px 4px 0; }
-  .hrow .val { font-size:12px; font-weight:600; font-variant-numeric:tabular-nums; }
+      /* Horizontal bars */
+      .hrow {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 8px 0;
+      }
+      .hrow .lbl {
+        width: 56px;
+        font-size: 12.5px;
+        color: var(--ink-2);
+      }
+      .hrow .track {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .hrow .bar {
+        height: 16px;
+        background: var(--data-navy);
+        border-radius: 0 4px 4px 0;
+      }
+      .hrow .val {
+        font-size: 12px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
 
-  /* Stat tiles */
-  .tiles { display:flex; gap:8px; margin-top:4px; }
-  .tile { flex:1; background:#f5f7fb; border-radius:10px; padding:10px 10px 8px; }
-  .tile .lbl { font-size:10.5px; color:var(--ink-2); margin-bottom:3px; line-height:1.2; }
-  .tile .val { font-size:20px; font-weight:600; }
-  .tile .val.attn { color:#b4491f; }
+      /* Stat tiles */
+      .tiles {
+        display: flex;
+        gap: 8px;
+        margin-top: 4px;
+      }
+      .tile {
+        flex: 1;
+        background: #f5f7fb;
+        border-radius: 10px;
+        padding: 10px 10px 8px;
+      }
+      .tile .lbl {
+        font-size: 10.5px;
+        color: var(--ink-2);
+        margin-bottom: 3px;
+        line-height: 1.2;
+      }
+      .tile .val {
+        font-size: 20px;
+        font-weight: 600;
+      }
+      .tile .val.attn {
+        color: #b4491f;
+      }
 
-  /* Case rows */
-  .case { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--grid); font-size:13px; }
-  .case:last-child { border-bottom:none; }
-  .case .dot { width:8px; height:8px; border-radius:50%; background:var(--data-navy); flex:none; }
-  .case .who { flex:1; }
-  .case .who small { display:block; color:var(--ink-2); font-size:11.5px; }
-  .case .age { font-size:11.5px; color:var(--ink-2); font-variant-numeric:tabular-nums; }
-  .case .age.old { color:#a32424; font-weight:600; }
+      /* Case rows */
+      .case {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--grid);
+        font-size: 13px;
+      }
+      .case:last-child {
+        border-bottom: none;
+      }
+      .case .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--data-navy);
+        flex: none;
+      }
+      .case .who {
+        flex: 1;
+      }
+      .case .who small {
+        display: block;
+        color: var(--ink-2);
+        font-size: 11.5px;
+      }
+      .case .age {
+        font-size: 11.5px;
+        color: var(--ink-2);
+        font-variant-numeric: tabular-nums;
+      }
+      .case .age.old {
+        color: #a32424;
+        font-weight: 600;
+      }
 
-  /* Ack meter */
-  .meterRow { display:flex; align-items:center; gap:10px; margin-top:6px; }
-  .meter { flex:1; height:10px; background:#e2e8f4; border-radius:5px; overflow:hidden; }
-  .meter .fill { height:100%; width:93%; background:var(--data-navy); border-radius:5px; }
-  .meterRow .val { font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; }
+      /* Ack meter */
+      .meterRow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 6px;
+      }
+      .meter {
+        flex: 1;
+        height: 10px;
+        background: #e2e8f4;
+        border-radius: 5px;
+        overflow: hidden;
+      }
+      .meter .fill {
+        height: 100%;
+        width: 93%;
+        background: var(--data-navy);
+        border-radius: 5px;
+      }
+      .meterRow .val {
+        font-size: 13px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
 
-  /* Bottom nav */
-  .tabbar { position:sticky; bottom:0; background:var(--surface); border-top:1px solid var(--grid);
-            display:flex; align-items:flex-end; justify-content:space-around; padding:8px 6px 14px; }
-  .tab { text-align:center; font-size:10.5px; color:var(--ink-2); width:56px; }
-  .tab .ic { font-size:17px; line-height:1.2; }
-  .tab.ask { position:relative; top:-16px; }
-  .tab.ask .fab { width:52px; height:52px; border-radius:50%; background:var(--brand-navy);
-                  color:var(--accent-gold); display:flex; align-items:center; justify-content:center;
-                  font-size:20px; margin:0 auto 3px; box-shadow:0 4px 10px rgba(23,35,59,.3);
-                  border:3px solid var(--page); }
-  .tab.ask span { color:var(--accent-gold); font-weight:600; }
+      /* Bottom nav */
+      .tabbar {
+        position: sticky;
+        bottom: 0;
+        background: var(--surface);
+        border-top: 1px solid var(--grid);
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-around;
+        padding: 8px 6px 14px;
+      }
+      .tab {
+        text-align: center;
+        font-size: 10.5px;
+        color: var(--ink-2);
+        width: 56px;
+      }
+      .tab .ic {
+        font-size: 17px;
+        line-height: 1.2;
+      }
+      .tab.ask {
+        position: relative;
+        top: -16px;
+      }
+      .tab.ask .fab {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: var(--brand-navy);
+        color: var(--accent-gold);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        margin: 0 auto 3px;
+        box-shadow: 0 4px 10px rgba(23, 35, 59, 0.3);
+        border: 3px solid var(--page);
+      }
+      .tab.ask span {
+        color: var(--accent-gold);
+        font-weight: 600;
+      }
 
-  /* Tooltip */
-  #tip { position:fixed; display:none; background:var(--ink); color:#fff; font-size:11.5px;
-         padding:5px 8px; border-radius:6px; pointer-events:none; z-index:9; white-space:nowrap; }
-  .hit { cursor:default; }
-</style>
-</head>
-<body>
-<div id="tip"></div>
-<div class="phone">
-
-  <div class="appbar">
-    <div class="burger"><i></i><i></i><i></i></div>
-    <h1>Analytics</h1>
-    <div class="icons">☾ &nbsp;⌕</div>
-  </div>
-
-  <main>
-    <p class="pagesub">Workforce and compliance overview · <b>Northgate Logistics Inc.</b></p>
-
-    <!-- 1 · Compliance score -->
-    <div class="card">
-      <h2>Compliance score</h2>
-      <div class="heroRow">
-        <div class="hero">82<small>/100</small></div>
-        <div class="delta">▲ +8 <span class="vs">vs February</span></div>
+      /* Tooltip */
+      #tip {
+        position: fixed;
+        display: none;
+        background: var(--ink);
+        color: #fff;
+        font-size: 11.5px;
+        padding: 5px 8px;
+        border-radius: 6px;
+        pointer-events: none;
+        z-index: 9;
+        white-space: nowrap;
+      }
+      .hit {
+        cursor: default;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="tip"></div>
+    <div class="phone">
+      <div class="appbar">
+        <div class="burger"><i></i><i></i><i></i></div>
+        <h1>Analytics</h1>
+        <div class="icons">☾ &nbsp;⌕</div>
       </div>
-      <svg viewBox="0 0 330 152" width="100%" aria-label="Compliance score, March to August: 74, 75, 76, 78, 79, 82">
-        <!-- gridlines at 70/75/80/85 -->
-        <line x1="26" y1="10"    x2="304" y2="10"    stroke="var(--grid)" stroke-width="1"/>
-        <line x1="26" y1="46.7"  x2="304" y2="46.7"  stroke="var(--grid)" stroke-width="1"/>
-        <line x1="26" y1="83.3"  x2="304" y2="83.3"  stroke="var(--grid)" stroke-width="1"/>
-        <line x1="26" y1="120"   x2="304" y2="120"   stroke="var(--baseline)" stroke-width="1"/>
-        <text class="tick" x="22" y="13"    text-anchor="end">85</text>
-        <text class="tick" x="22" y="49.7"  text-anchor="end">80</text>
-        <text class="tick" x="22" y="86.3"  text-anchor="end">75</text>
-        <text class="tick" x="22" y="123"   text-anchor="end">70</text>
-        <!-- line -->
-        <polyline points="34,90.7 88,83.3 142,76 196,61.3 250,54 297,32"
-                  fill="none" stroke="var(--data-navy)" stroke-width="2"
-                  stroke-linejoin="round" stroke-linecap="round"/>
-        <!-- start + end markers, surface ring -->
-        <circle class="hit" cx="34" cy="90.7" r="4.5" fill="var(--data-navy)" stroke="var(--surface)" stroke-width="2" data-tip="March · 74"/>
-        <circle class="hit" cx="88" cy="83.3" r="4.5" fill="transparent" data-tip="April · 75"/>
-        <circle class="hit" cx="142" cy="76" r="4.5" fill="transparent" data-tip="May · 76"/>
-        <circle class="hit" cx="196" cy="61.3" r="4.5" fill="transparent" data-tip="June · 78"/>
-        <circle class="hit" cx="250" cy="54" r="4.5" fill="transparent" data-tip="July · 79"/>
-        <circle class="hit" cx="297" cy="32" r="5" fill="var(--accent-gold)" stroke="var(--surface)" stroke-width="2" data-tip="August · 82"/>
-        <text class="ptlabel" x="34" y="107" text-anchor="middle">74</text>
-        <text class="ptlabel" x="297" y="20" text-anchor="middle">82</text>
-        <!-- month ticks -->
-        <text class="tick" x="34" y="136" text-anchor="middle">Mar</text>
-        <text class="tick" x="88" y="136" text-anchor="middle">Apr</text>
-        <text class="tick" x="142" y="136" text-anchor="middle">May</text>
-        <text class="tick" x="196" y="136" text-anchor="middle">Jun</text>
-        <text class="tick" x="250" y="136" text-anchor="middle">Jul</text>
-        <text class="tick" x="297" y="136" text-anchor="middle">Aug</text>
-      </svg>
-      <div class="drivers">
-        <div class="drv"><span class="lbl">Policies current</span><div class="track"><div class="fill" style="width:91%"></div></div><span class="val">91</span></div>
-        <div class="drv"><span class="lbl">Training complete</span><div class="track"><div class="fill" style="width:84%"></div></div><span class="val">84</span></div>
-        <div class="drv"><span class="lbl">Documentation</span><div class="track"><div class="fill warn" style="width:68%"></div></div><span class="val">68</span>&nbsp;<span class="flag">▲ fix</span></div>
+
+      <main>
+        <p class="pagesub">Workforce and compliance overview · <b>Northgate Logistics Inc.</b></p>
+
+        <!-- 1 · Compliance score -->
+        <div class="card">
+          <h2>Compliance score</h2>
+          <div class="heroRow">
+            <div class="hero">82<small>/100</small></div>
+            <div class="delta">▲ +8 <span class="vs">vs February</span></div>
+          </div>
+          <svg
+            viewBox="0 0 330 152"
+            width="100%"
+            aria-label="Compliance score, March to August: 74, 75, 76, 78, 79, 82"
+          >
+            <!-- gridlines at 70/75/80/85 -->
+            <line x1="26" y1="10" x2="304" y2="10" stroke="var(--grid)" stroke-width="1" />
+            <line x1="26" y1="46.7" x2="304" y2="46.7" stroke="var(--grid)" stroke-width="1" />
+            <line x1="26" y1="83.3" x2="304" y2="83.3" stroke="var(--grid)" stroke-width="1" />
+            <line x1="26" y1="120" x2="304" y2="120" stroke="var(--baseline)" stroke-width="1" />
+            <text class="tick" x="22" y="13" text-anchor="end">85</text>
+            <text class="tick" x="22" y="49.7" text-anchor="end">80</text>
+            <text class="tick" x="22" y="86.3" text-anchor="end">75</text>
+            <text class="tick" x="22" y="123" text-anchor="end">70</text>
+            <!-- line -->
+            <polyline
+              points="34,90.7 88,83.3 142,76 196,61.3 250,54 297,32"
+              fill="none"
+              stroke="var(--data-navy)"
+              stroke-width="2"
+              stroke-linejoin="round"
+              stroke-linecap="round"
+            />
+            <!-- start + end markers, surface ring -->
+            <circle
+              class="hit"
+              cx="34"
+              cy="90.7"
+              r="4.5"
+              fill="var(--data-navy)"
+              stroke="var(--surface)"
+              stroke-width="2"
+              data-tip="March · 74"
+            />
+            <circle
+              class="hit"
+              cx="88"
+              cy="83.3"
+              r="4.5"
+              fill="transparent"
+              data-tip="April · 75"
+            />
+            <circle class="hit" cx="142" cy="76" r="4.5" fill="transparent" data-tip="May · 76" />
+            <circle
+              class="hit"
+              cx="196"
+              cy="61.3"
+              r="4.5"
+              fill="transparent"
+              data-tip="June · 78"
+            />
+            <circle class="hit" cx="250" cy="54" r="4.5" fill="transparent" data-tip="July · 79" />
+            <circle
+              class="hit"
+              cx="297"
+              cy="32"
+              r="5"
+              fill="var(--accent-gold)"
+              stroke="var(--surface)"
+              stroke-width="2"
+              data-tip="August · 82"
+            />
+            <text class="ptlabel" x="34" y="107" text-anchor="middle">74</text>
+            <text class="ptlabel" x="297" y="20" text-anchor="middle">82</text>
+            <!-- month ticks -->
+            <text class="tick" x="34" y="136" text-anchor="middle">Mar</text>
+            <text class="tick" x="88" y="136" text-anchor="middle">Apr</text>
+            <text class="tick" x="142" y="136" text-anchor="middle">May</text>
+            <text class="tick" x="196" y="136" text-anchor="middle">Jun</text>
+            <text class="tick" x="250" y="136" text-anchor="middle">Jul</text>
+            <text class="tick" x="297" y="136" text-anchor="middle">Aug</text>
+          </svg>
+          <div class="drivers">
+            <div class="drv">
+              <span class="lbl">Policies current</span>
+              <div class="track"><div class="fill" style="width: 91%"></div></div>
+              <span class="val">91</span>
+            </div>
+            <div class="drv">
+              <span class="lbl">Training complete</span>
+              <div class="track"><div class="fill" style="width: 84%"></div></div>
+              <span class="val">84</span>
+            </div>
+            <div class="drv">
+              <span class="lbl">Documentation</span>
+              <div class="track"><div class="fill warn" style="width: 68%"></div></div>
+              <span class="val">68</span>&nbsp;<span class="flag">▲ fix</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2 · Needs attention -->
+        <div class="card">
+          <h2>Needs attention</h2>
+          <p class="sub">Deadlines and overdue items across programs</p>
+          <div class="row">
+            <div class="txt">
+              Harassment prevention training<small>3 employees past due · ON</small>
+            </div>
+            <span class="chip crit">⚠ Overdue</span>
+          </div>
+          <div class="row">
+            <div class="txt">WHMIS recertification<small>4 employees · BC warehouse</small></div>
+            <span class="chip warn">Due Aug 21</span>
+          </div>
+          <div class="row">
+            <div class="txt">
+              Updated ESA policy acknowledgment<small>5 signatures pending · ON</small>
+            </div>
+            <span class="chip warn">Due Aug 28</span>
+          </div>
+          <div class="row">
+            <div class="txt">French workplace policy review<small>Bill 96 · QC</small></div>
+            <span class="chip info">Sep 1</span>
+          </div>
+        </div>
+
+        <!-- 3 · Headcount by jurisdiction -->
+        <div class="card">
+          <h2>Headcount by jurisdiction</h2>
+          <p class="sub">82 total employees</p>
+          <div class="hrow">
+            <span class="lbl">ON</span>
+            <div class="track">
+              <div class="bar hit" style="width: 78%" data-tip="Ontario · 34 employees"></div>
+              <span class="val">34</span>
+            </div>
+          </div>
+          <div class="hrow">
+            <span class="lbl">BC</span>
+            <div class="track">
+              <div
+                class="bar hit"
+                style="width: 48%"
+                data-tip="British Columbia · 21 employees"
+              ></div>
+              <span class="val">21</span>
+            </div>
+          </div>
+          <div class="hrow">
+            <span class="lbl">QC</span>
+            <div class="track">
+              <div class="bar hit" style="width: 27%" data-tip="Québec · 12 employees"></div>
+              <span class="val">12</span>
+            </div>
+          </div>
+          <div class="hrow">
+            <span class="lbl">AB</span>
+            <div class="track">
+              <div class="bar hit" style="width: 20%" data-tip="Alberta · 9 employees"></div>
+              <span class="val">9</span>
+            </div>
+          </div>
+          <div class="hrow">
+            <span class="lbl">Federal</span>
+            <div class="track">
+              <div
+                class="bar hit"
+                style="width: 14%"
+                data-tip="Federally regulated · 6 employees"
+              ></div>
+              <span class="val">6</span>
+            </div>
+          </div>
+          <p class="foot">Federal = federally regulated roles under the Canada Labour Code</p>
+        </div>
+
+        <!-- 4 · Open cases -->
+        <div class="card">
+          <h2>Open cases</h2>
+          <div class="tiles">
+            <div class="tile">
+              <div class="lbl">Open now</div>
+              <div class="val">3</div>
+            </div>
+            <div class="tile">
+              <div class="lbl">Avg. age</div>
+              <div class="val">11d</div>
+            </div>
+            <div class="tile">
+              <div class="lbl">Oldest</div>
+              <div class="val attn">18d</div>
+            </div>
+          </div>
+          <div style="margin-top: 8px">
+            <div class="case">
+              <span class="dot"></span>
+              <div class="who">Workplace investigation<small>ON · opened Jul 20</small></div>
+              <span class="age old">18 days</span>
+            </div>
+            <div class="case">
+              <span class="dot"></span>
+              <div class="who">Accommodation request<small>BC · opened Jul 29</small></div>
+              <span class="age">9 days</span>
+            </div>
+            <div class="case">
+              <span class="dot"></span>
+              <div class="who">Grievance<small>Federal · opened Aug 2</small></div>
+              <span class="age">5 days</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5 · Policy acknowledgments -->
+        <div class="card">
+          <h2>Policy acknowledgments</h2>
+          <p class="sub">Current policy set, all jurisdictions</p>
+          <div class="meterRow">
+            <div class="meter"><div class="fill"></div></div>
+            <span class="val">76 / 82</span>
+          </div>
+          <p class="foot">6 outstanding — nudge from the Communications program</p>
+        </div>
+      </main>
+
+      <div class="tabbar">
+        <div class="tab">
+          <div class="ic">⌂</div>
+          Home
+        </div>
+        <div class="tab">
+          <div class="ic">▤</div>
+          Cases
+        </div>
+        <div class="tab ask">
+          <div class="fab">✦</div>
+          <span>Ask</span>
+        </div>
+        <div class="tab">
+          <div class="ic">☑</div>
+          Tasks
+        </div>
+        <div class="tab">
+          <div class="ic">≡</div>
+          More
+        </div>
       </div>
     </div>
 
-    <!-- 2 · Needs attention -->
-    <div class="card">
-      <h2>Needs attention</h2>
-      <p class="sub">Deadlines and overdue items across programs</p>
-      <div class="row">
-        <div class="txt">Harassment prevention training<small>3 employees past due · ON</small></div>
-        <span class="chip crit">⚠ Overdue</span>
-      </div>
-      <div class="row">
-        <div class="txt">WHMIS recertification<small>4 employees · BC warehouse</small></div>
-        <span class="chip warn">Due Aug 21</span>
-      </div>
-      <div class="row">
-        <div class="txt">Updated ESA policy acknowledgment<small>5 signatures pending · ON</small></div>
-        <span class="chip warn">Due Aug 28</span>
-      </div>
-      <div class="row">
-        <div class="txt">French workplace policy review<small>Bill 96 · QC</small></div>
-        <span class="chip info">Sep 1</span>
-      </div>
-    </div>
-
-    <!-- 3 · Headcount by jurisdiction -->
-    <div class="card">
-      <h2>Headcount by jurisdiction</h2>
-      <p class="sub">82 total employees</p>
-      <div class="hrow"><span class="lbl">ON</span><div class="track"><div class="bar hit" style="width:78%" data-tip="Ontario · 34 employees"></div><span class="val">34</span></div></div>
-      <div class="hrow"><span class="lbl">BC</span><div class="track"><div class="bar hit" style="width:48%" data-tip="British Columbia · 21 employees"></div><span class="val">21</span></div></div>
-      <div class="hrow"><span class="lbl">QC</span><div class="track"><div class="bar hit" style="width:27%" data-tip="Québec · 12 employees"></div><span class="val">12</span></div></div>
-      <div class="hrow"><span class="lbl">AB</span><div class="track"><div class="bar hit" style="width:20%" data-tip="Alberta · 9 employees"></div><span class="val">9</span></div></div>
-      <div class="hrow"><span class="lbl">Federal</span><div class="track"><div class="bar hit" style="width:14%" data-tip="Federally regulated · 6 employees"></div><span class="val">6</span></div></div>
-      <p class="foot">Federal = federally regulated roles under the Canada Labour Code</p>
-    </div>
-
-    <!-- 4 · Open cases -->
-    <div class="card">
-      <h2>Open cases</h2>
-      <div class="tiles">
-        <div class="tile"><div class="lbl">Open now</div><div class="val">3</div></div>
-        <div class="tile"><div class="lbl">Avg. age</div><div class="val">11d</div></div>
-        <div class="tile"><div class="lbl">Oldest</div><div class="val attn">18d</div></div>
-      </div>
-      <div style="margin-top:8px">
-        <div class="case"><span class="dot"></span><div class="who">Workplace investigation<small>ON · opened Jul 20</small></div><span class="age old">18 days</span></div>
-        <div class="case"><span class="dot"></span><div class="who">Accommodation request<small>BC · opened Jul 29</small></div><span class="age">9 days</span></div>
-        <div class="case"><span class="dot"></span><div class="who">Grievance<small>Federal · opened Aug 2</small></div><span class="age">5 days</span></div>
-      </div>
-    </div>
-
-    <!-- 5 · Policy acknowledgments -->
-    <div class="card">
-      <h2>Policy acknowledgments</h2>
-      <p class="sub">Current policy set, all jurisdictions</p>
-      <div class="meterRow">
-        <div class="meter"><div class="fill"></div></div>
-        <span class="val">76 / 82</span>
-      </div>
-      <p class="foot">6 outstanding — nudge from the Communications program</p>
-    </div>
-
-  </main>
-
-  <div class="tabbar">
-    <div class="tab"><div class="ic">⌂</div>Home</div>
-    <div class="tab"><div class="ic">▤</div>Cases</div>
-    <div class="tab ask"><div class="fab">✦</div><span>Ask</span></div>
-    <div class="tab"><div class="ic">☑</div>Tasks</div>
-    <div class="tab"><div class="ic">≡</div>More</div>
-  </div>
-</div>
-
-<script>
-  const tip = document.getElementById('tip');
-  document.querySelectorAll('.hit').forEach(el => {
-    const show = e => {
-      tip.textContent = el.dataset.tip;
-      tip.style.display = 'block';
-      const x = (e.touches ? e.touches[0].clientX : e.clientX);
-      const y = (e.touches ? e.touches[0].clientY : e.clientY);
-      tip.style.left = Math.min(x + 10, window.innerWidth - tip.offsetWidth - 8) + 'px';
-      tip.style.top  = (y - 34) + 'px';
-    };
-    el.addEventListener('mousemove', show);
-    el.addEventListener('touchstart', show, {passive:true});
-    el.addEventListener('mouseleave', () => tip.style.display = 'none');
-    el.addEventListener('touchend',  () => tip.style.display = 'none');
-  });
-</script>
-</body>
+    <script>
+      const tip = document.getElementById('tip')
+      document.querySelectorAll('.hit').forEach((el) => {
+        const show = (e) => {
+          tip.textContent = el.dataset.tip
+          tip.style.display = 'block'
+          const x = e.touches ? e.touches[0].clientX : e.clientX
+          const y = e.touches ? e.touches[0].clientY : e.clientY
+          tip.style.left = Math.min(x + 10, window.innerWidth - tip.offsetWidth - 8) + 'px'
+          tip.style.top = y - 34 + 'px'
+        }
+        el.addEventListener('mousemove', show)
+        el.addEventListener('touchstart', show, { passive: true })
+        el.addEventListener('mouseleave', () => (tip.style.display = 'none'))
+        el.addEventListener('touchend', () => (tip.style.display = 'none'))
+      })
+    </script>
+  </body>
 </html>

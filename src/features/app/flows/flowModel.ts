@@ -191,12 +191,7 @@ export interface FlowResultStep extends FlowStepBase {
 }
 
 export type FlowStep =
-  | FlowChoiceStep
-  | FlowTaskStep
-  | FlowInputStep
-  | FlowOutcomeStep
-  | FlowFormulaStep
-  | FlowResultStep
+  FlowChoiceStep | FlowTaskStep | FlowInputStep | FlowOutcomeStep | FlowFormulaStep | FlowResultStep
 
 export interface Flow {
   /** Stable URL slug — `/app/workflows/<slug>`. */

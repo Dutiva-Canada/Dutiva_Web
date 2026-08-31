@@ -20,12 +20,7 @@ import type { Bi } from '@/i18n/core'
 // ── Channels ─────────────────────────────────────────────────────────────
 
 export type SupportChannelId =
-  | 'support'
-  | 'privacy'
-  | 'security'
-  | 'accessibility'
-  | 'billing'
-  | 'sales'
+  'support' | 'privacy' | 'security' | 'accessibility' | 'billing' | 'sales'
 
 export interface SupportChannel {
   id: SupportChannelId
@@ -324,7 +319,10 @@ export type SupportImpact = 'blocking' | 'major' | 'minor' | 'none'
 export type SupportUrgency = 'urgent' | 'soon' | 'whenever'
 
 export const IMPACT_LABELS: Record<SupportImpact, Bi> = {
-  blocking: bi('I can’t use an essential part of Dutiva', 'Je ne peux pas utiliser une partie essentielle de Dutiva'),
+  blocking: bi(
+    'I can’t use an essential part of Dutiva',
+    'Je ne peux pas utiliser une partie essentielle de Dutiva',
+  ),
   major: bi('A key task is seriously affected', 'Une tâche importante est sérieusement touchée'),
   minor: bi('Inconvenient, but I can continue', 'Gênant, mais je peux continuer'),
   none: bi('No impact — a question or suggestion', 'Aucun impact — une question ou une suggestion'),
@@ -357,7 +355,10 @@ export type EscalationReasonId =
  */
 export const ESCALATION_REASONS: Record<EscalationReasonId, Bi> = {
   account_recovery: bi('Complex account recovery', 'Récupération de compte complexe'),
-  accessibility_accommodation: bi('Accessibility accommodation', 'Mesure d’adaptation en matière d’accessibilité'),
+  accessibility_accommodation: bi(
+    'Accessibility accommodation',
+    'Mesure d’adaptation en matière d’accessibilité',
+  ),
   security_concern: bi('Serious security concern', 'Préoccupation de sécurité sérieuse'),
   billing_dispute: bi('Escalated billing dispute', 'Différend de facturation escaladé'),
   enterprise_onboarding: bi('Enterprise onboarding', 'Intégration pour entreprise'),
@@ -369,7 +370,10 @@ export const ESCALATION_REASONS: Record<EscalationReasonId, Bi> = {
     'A sensitive complaint where written communication is unsuitable',
     'Une plainte sensible pour laquelle la communication écrite ne convient pas',
   ),
-  retention: bi('Exceptional customer-retention circumstances', 'Circonstances exceptionnelles de fidélisation'),
+  retention: bi(
+    'Exceptional customer-retention circumstances',
+    'Circonstances exceptionnelles de fidélisation',
+  ),
 }
 
 // ── Preferred response method ────────────────────────────────────────────

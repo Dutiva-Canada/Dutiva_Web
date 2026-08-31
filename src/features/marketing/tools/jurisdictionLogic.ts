@@ -84,7 +84,10 @@ export const QUESTIONS: readonly Question[] = [
     options: [
       { id: 'ON', label: bi('Ontario', 'Ontario') },
       { id: 'QC', label: bi('Quebec', 'Québec') },
-      { id: 'other', label: bi('Another province or territory', 'Une autre province ou un territoire') },
+      {
+        id: 'other',
+        label: bi('Another province or territory', 'Une autre province ou un territoire'),
+      },
     ],
   },
   {

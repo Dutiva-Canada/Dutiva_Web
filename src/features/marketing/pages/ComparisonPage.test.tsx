@@ -8,12 +8,12 @@ describe('ComparisonPage', () => {
   it('renders HRdownloads comparison table and FAQ in English', () => {
     const page = COMPARISON_PAGES.hrdownloads
     renderApp(<VsHrdownloadsPage />, { route: '/vs/hrdownloads', path: '/vs/hrdownloads' })
-    expect(
-      screen.getByRole('heading', { level: 1, name: page.h1.en }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: page.h1.en })).toBeInTheDocument()
     const main = within(screen.getByRole('main'))
     expect(main.getByRole('columnheader', { name: 'Dutiva' })).toBeInTheDocument()
-    expect(main.getByRole('columnheader', { name: 'Citation Canada (HRdownloads)' })).toBeInTheDocument()
+    expect(
+      main.getByRole('columnheader', { name: 'Citation Canada (HRdownloads)' }),
+    ).toBeInTheDocument()
     expect(main.getByText(/Citation Canada \(formerly HRdownloads\)/)).toBeInTheDocument()
     expect(main.getByText('Pricing transparency')).toBeInTheDocument()
     expect(main.getByText('AI risk flagging')).toBeInTheDocument()
@@ -26,9 +26,7 @@ describe('ComparisonPage', () => {
   it('renders SixFifty comparison page', () => {
     const page = COMPARISON_PAGES.sixfifty
     renderApp(<VsSixfiftyPage />, { route: '/vs/sixfifty', path: '/vs/sixfifty' })
-    expect(
-      screen.getByRole('heading', { level: 1, name: page.h1.en }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: page.h1.en })).toBeInTheDocument()
     const main = within(screen.getByRole('main'))
     expect(main.getByRole('columnheader', { name: 'SixFifty' })).toBeInTheDocument()
     expect(main.getByRole('row', { name: /Pricing transparency/ }).textContent).toMatch(

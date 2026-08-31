@@ -368,21 +368,21 @@ export function DocStudioOverlay() {
                 </div>
               </PlanGate>
               <PlanGate required="growth">
-              {studio.signatureSent ? (
-                <output className="flex items-center gap-2 rounded-[9px] border border-ok-border bg-ok-bg px-3.25 py-2.5 text-[12.5px] font-semibold text-ok-fg">
-                  <Check size={15} strokeWidth={2} className="shrink-0" aria-hidden="true" />
-                  <span>{x(M.docstudio_esign_pending)}</span>
-                </output>
-              ) : (
-                <button
-                  type="button"
-                  onClick={sendForSignature}
-                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[9px] border border-gold-border bg-gold-bg p-2.75 font-sans text-[13.5px] font-bold text-gold-fg"
-                >
-                  <PenTool size={15} strokeWidth={1.8} aria-hidden="true" />
-                  {x(M.docstudio_esign_send)}
-                </button>
-              )}
+                {studio.signatureSent ? (
+                  <output className="flex items-center gap-2 rounded-[9px] border border-ok-border bg-ok-bg px-3.25 py-2.5 text-[12.5px] font-semibold text-ok-fg">
+                    <Check size={15} strokeWidth={2} className="shrink-0" aria-hidden="true" />
+                    <span>{x(M.docstudio_esign_pending)}</span>
+                  </output>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={sendForSignature}
+                    className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[9px] border border-gold-border bg-gold-bg p-2.75 font-sans text-[13.5px] font-bold text-gold-fg"
+                  >
+                    <PenTool size={15} strokeWidth={1.8} aria-hidden="true" />
+                    {x(M.docstudio_esign_send)}
+                  </button>
+                )}
               </PlanGate>
             </>
           )}

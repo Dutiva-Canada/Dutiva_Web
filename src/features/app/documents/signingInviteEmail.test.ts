@@ -41,11 +41,7 @@ describe('renderSigningInviteEmail', () => {
 
   it('builds a French-prefixed signing URL when language is fr', () => {
     expect(
-      buildExternalSigningUrl(
-        'https://dutiva.ca',
-        '00000000-0000-4000-8000-000000000001',
-        'fr',
-      ),
+      buildExternalSigningUrl('https://dutiva.ca', '00000000-0000-4000-8000-000000000001', 'fr'),
     ).toBe('https://dutiva.ca/fr/sign/00000000-0000-4000-8000-000000000001')
   })
 

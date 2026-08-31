@@ -7,7 +7,13 @@ import { Disclaimer } from '@/components/Disclaimer'
 import { dotToneClass } from '@/components/chips'
 import type { ChipTone } from '@/components/chips'
 import { useDoclib } from '../doclibContext'
-import { applicability, bilingualMergeValues, computedTokens, isBilingualDelivery, resolveBlocks } from '../engine'
+import {
+  applicability,
+  bilingualMergeValues,
+  computedTokens,
+  isBilingualDelivery,
+  resolveBlocks,
+} from '../engine'
 import type { ApplicabilityKind } from '../engine'
 import { DocChip, DocPaper, JurisdictionPill, Skel } from '../components'
 import { jurisdictionInfo, reviewStatusInfo, riskLevelInfo, sectors, sizeTiers } from '../data'

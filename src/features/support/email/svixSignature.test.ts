@@ -22,7 +22,9 @@ const headers = (over: Partial<typeof VECTOR> = {}) => ({
 
 describe('verifySvixSignature', () => {
   it('accepts the published Svix test vector', async () => {
-    expect(await verifySvixSignature(VECTOR.secret, headers(), VECTOR.body, AT)).toEqual({ ok: true })
+    expect(await verifySvixSignature(VECTOR.secret, headers(), VECTOR.body, AT)).toEqual({
+      ok: true,
+    })
   })
 
   it('rejects a tampered body', async () => {
@@ -57,13 +59,23 @@ describe('verifySvixSignature', () => {
   })
 
   it('rejects a non-numeric timestamp', async () => {
-    const result = await verifySvixSignature(VECTOR.secret, headers({ timestamp: 'nope' }), VECTOR.body, AT)
+    const result = await verifySvixSignature(
+      VECTOR.secret,
+      headers({ timestamp: 'nope' }),
+      VECTOR.body,
+      AT,
+    )
     expect(result).toEqual({ ok: false, reason: 'bad_timestamp' })
   })
 
   it('accepts when one of several rotated signatures matches', async () => {
     const multi = `v1,aaaabbbbccccddddeeeeffffgggghhhhiiiijjjjkkk= ${VECTOR.signature}`
-    const result = await verifySvixSignature(VECTOR.secret, headers({ signature: multi }), VECTOR.body, AT)
+    const result = await verifySvixSignature(
+      VECTOR.secret,
+      headers({ signature: multi }),
+      VECTOR.body,
+      AT,
+    )
     expect(result).toEqual({ ok: true })
   })
 

@@ -14,7 +14,9 @@ type PushAdvisor = (spec: AdvisorTurnSpec) => string
 
 interface QuickFormHandlersOptions {
   extras: Record<string, MessageExtras>
-  updateExtras: (updater: (prev: Record<string, MessageExtras>) => Record<string, MessageExtras>) => void
+  updateExtras: (
+    updater: (prev: Record<string, MessageExtras>) => Record<string, MessageExtras>,
+  ) => void
   pushUser: PushUser
   pushAdvisor: PushAdvisor
   toToneCard: (card: FixtureToneCard) => ToneCardData

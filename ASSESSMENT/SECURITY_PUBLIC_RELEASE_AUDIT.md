@@ -59,12 +59,12 @@ All of the following are read from environment variables or Supabase Vault:
 
 The following values are not cryptographic secrets but identify the production environment. They are currently committed to source and would be published along with the code:
 
-| Identifier | Location | Risk |
-|---|---|---|
-| Supabase project reference `khtwpxnvziiyplaflwru` | `vercel.json`, `supabase/config.toml`, `services/attachment-scanner/do-app.yaml`, migration 0049, 0073 | Public by design for Supabase URLs; still reveals production project identity |
-| Supabase project URL `https://khtwpxnvziiyplaflwru.supabase.co` | `vercel.json`, multiple migrations | Public by design |
-| Supabase anon key in CI | `.woodpecker/live-checks.yml` | Publishable key with limited RLS permissions; still the production key |
-| GA4 measurement ID in CI | `.woodpecker/check.yml`, `.woodpecker/e2e.yml` | Public by design |
+| Identifier                                                      | Location                                                                                               | Risk                                                                          |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| Supabase project reference `khtwpxnvziiyplaflwru`               | `vercel.json`, `supabase/config.toml`, `services/attachment-scanner/do-app.yaml`, migration 0049, 0073 | Public by design for Supabase URLs; still reveals production project identity |
+| Supabase project URL `https://khtwpxnvziiyplaflwru.supabase.co` | `vercel.json`, multiple migrations                                                                     | Public by design                                                              |
+| Supabase anon key in CI                                         | `.woodpecker/live-checks.yml`                                                                          | Publishable key with limited RLS permissions; still the production key        |
+| GA4 measurement ID in CI                                        | `.woodpecker/check.yml`, `.woodpecker/e2e.yml`                                                         | Public by design                                                              |
 
 **Recommendation:** Before any public release, move the project reference and public keys out of the open-source packages. They can remain in private deployment configuration. Publishing them is not a secret leak but it does disclose infrastructure and increases enumeration risk.
 
@@ -121,12 +121,12 @@ RLS policies are generally well-designed:
 
 ### Historical RLS/auth issues (now fixed)
 
-| Issue | Location | Fix |
-|---|---|---|
-| Cron jobs accepted an unverified base64 JWT payload claiming `role: service_role` | `monitor-law-changes`, `support-call-scheduler` | Migration `0049_cron_trigger_shared_secret.sql` replaced JWT parsing with a shared secret from Supabase Vault. |
-| Anonymous SELECT on `beta_signups`, `hr_documents`, and token-based write on `signatures` | Out-of-band policies | Migration `0073_close_anon_rls_holes.sql` dropped the offending policies and revoked anon grants. |
-| Billing columns on `profiles` were client-editable | `profiles` table | Trigger `pin_profile_billing_columns` blocks client updates to plan/subscription/stripe IDs. |
-| `support-firstline` and `advisor-safety-event` telemetry were rejected by CHECK constraints | `ai_telemetry_events` | Migration `0027_ai_usage_guardrails.sql` widened constraints and fixed status values. |
+| Issue                                                                                       | Location                                        | Fix                                                                                                            |
+| ------------------------------------------------------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Cron jobs accepted an unverified base64 JWT payload claiming `role: service_role`           | `monitor-law-changes`, `support-call-scheduler` | Migration `0049_cron_trigger_shared_secret.sql` replaced JWT parsing with a shared secret from Supabase Vault. |
+| Anonymous SELECT on `beta_signups`, `hr_documents`, and token-based write on `signatures`   | Out-of-band policies                            | Migration `0073_close_anon_rls_holes.sql` dropped the offending policies and revoked anon grants.              |
+| Billing columns on `profiles` were client-editable                                          | `profiles` table                                | Trigger `pin_profile_billing_columns` blocks client updates to plan/subscription/stripe IDs.                   |
+| `support-firstline` and `advisor-safety-event` telemetry were rejected by CHECK constraints | `ai_telemetry_events`                           | Migration `0027_ai_usage_guardrails.sql` widened constraints and fixed status values.                          |
 
 **Security implication for public release:** Publishing the code reveals the exact shape of these historical vulnerabilities and the remediation patterns. This is normal for open source, but it means an attacker can compare old and new code if history is published. A clean release should not include the pre-fix commits.
 
@@ -134,15 +134,15 @@ RLS policies are generally well-designed:
 
 ## Attack surface exposed by open sourcing
 
-| Area | Current obscurity benefit | Risk if public |
-|---|---|---|
-| **RLS policies** | Exact policy logic is not visible | Attacker can craft queries to test edge cases; any subtle bug becomes exploitable faster. |
-| **Rate-limit constants** | Values not known | Adversaries can pace attacks just below thresholds. Move to env. |
-| **Admin email allow-list** | Not visible | Targeted phishing / account takeover against the single admin. Move to env. |
-| **Cron schedules** | Not visible | Timing attacks, DoS planning. These are already partly inferable from migrations. |
-| **System prompt / safety phrase sets** | Not visible | Gaming the Advisor to bypass crisis detection or statutory-figure gating. |
-| **Export protection mechanism** | Algorithm visible | Fingerprinting/watermark details visible; mechanism is deterrence, not secrecy, but public disclosure may reduce effectiveness. |
-| **Public endpoint shapes** | Source reveals URL paths, expected bodies, and auth modes | More targeted abuse of `create-public-support-ticket`, `report-error`, `create-beta-signup`. |
+| Area                                   | Current obscurity benefit                                 | Risk if public                                                                                                                  |
+| -------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **RLS policies**                       | Exact policy logic is not visible                         | Attacker can craft queries to test edge cases; any subtle bug becomes exploitable faster.                                       |
+| **Rate-limit constants**               | Values not known                                          | Adversaries can pace attacks just below thresholds. Move to env.                                                                |
+| **Admin email allow-list**             | Not visible                                               | Targeted phishing / account takeover against the single admin. Move to env.                                                     |
+| **Cron schedules**                     | Not visible                                               | Timing attacks, DoS planning. These are already partly inferable from migrations.                                               |
+| **System prompt / safety phrase sets** | Not visible                                               | Gaming the Advisor to bypass crisis detection or statutory-figure gating.                                                       |
+| **Export protection mechanism**        | Algorithm visible                                         | Fingerprinting/watermark details visible; mechanism is deterrence, not secrecy, but public disclosure may reduce effectiveness. |
+| **Public endpoint shapes**             | Source reveals URL paths, expected bodies, and auth modes | More targeted abuse of `create-public-support-ticket`, `report-error`, `create-beta-signup`.                                    |
 
 **Key principle:** Public code should be assumed fully inspectable. Security must not rely on obscurity. The current design mostly meets this standard for RLS and auth, but rate-limit values, admin email, and site config still benefit from being hidden.
 
@@ -164,15 +164,15 @@ The following are not necessarily vulnerabilities, but they currently benefit fr
 
 ## Public endpoint security posture
 
-| Endpoint | Auth | Mitigations |
-|---|---|---|
-| `create-public-support-ticket` | None | Honeypot, CAPTCHA when configured, IP/email salted-hash rate limits, length caps. |
-| `create-beta-signup` | None | Same as public support ticket, plus CASL consent recording and cohort limit. |
-| `report-error` | None | 64 KB body cap, IP hash rate limit, route allow-list, coarse UA only, no tokens/storage. |
-| `resend-webhook` | Svix signature | HMAC-SHA256 verification with 5-minute timestamp tolerance. |
-| `stripe-webhook` | Stripe signature | HMAC-SHA256 verification with 5-minute timestamp tolerance. |
-| `support-analytics-event` | None | Public sink for privacy-scrubbed analytics; no PII. |
-| All other functions | Bearer JWT | Supabase auth; many also check workspace membership or admin status. |
+| Endpoint                       | Auth             | Mitigations                                                                              |
+| ------------------------------ | ---------------- | ---------------------------------------------------------------------------------------- |
+| `create-public-support-ticket` | None             | Honeypot, CAPTCHA when configured, IP/email salted-hash rate limits, length caps.        |
+| `create-beta-signup`           | None             | Same as public support ticket, plus CASL consent recording and cohort limit.             |
+| `report-error`                 | None             | 64 KB body cap, IP hash rate limit, route allow-list, coarse UA only, no tokens/storage. |
+| `resend-webhook`               | Svix signature   | HMAC-SHA256 verification with 5-minute timestamp tolerance.                              |
+| `stripe-webhook`               | Stripe signature | HMAC-SHA256 verification with 5-minute timestamp tolerance.                              |
+| `support-analytics-event`      | None             | Public sink for privacy-scrubbed analytics; no PII.                                      |
+| All other functions            | Bearer JWT       | Supabase auth; many also check workspace membership or admin status.                     |
 
 ---
 

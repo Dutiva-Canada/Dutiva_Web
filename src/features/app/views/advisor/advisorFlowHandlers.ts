@@ -31,7 +31,9 @@ interface FlowHandlersOptions {
   pushAdvisor: (spec: AdvisorTurnSpec) => string
   updateSessionChats: (updater: (prev: SessionChat[]) => SessionChat[]) => void
   updateActiveChatId: (id: string | null) => void
-  updateExtras: (updater: (prev: Record<string, MessageExtras>) => Record<string, MessageExtras>) => void
+  updateExtras: (
+    updater: (prev: Record<string, MessageExtras>) => Record<string, MessageExtras>,
+  ) => void
   patchResponseState: (chatId: string, patch: Partial<ThreadResponseState>) => void
   setProdThreads: (updater: (prev: ProductionConversation[]) => ProductionConversation[]) => void
   bindBackendConversationId: (threadId: string | null, backendId: string) => void

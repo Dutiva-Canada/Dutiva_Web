@@ -19,7 +19,10 @@ export const DOCUMENT_AUDIT_LABEL: Record<string, Bi> = {
   signing_invite_sent: bi('Signing invite emailed', 'Invitation de signature envoyée'),
   signing_invite_reminded: bi('Signing invite reminder sent', 'Rappel de signature envoyé'),
   signing_link_reissued: bi('Signing link refreshed', 'Lien de signature renouvelé'),
-  signing_admin_notified: bi('Admins notified of signing status', 'Administrateurs avisés du statut de signature'),
+  signing_admin_notified: bi(
+    'Admins notified of signing status',
+    'Administrateurs avisés du statut de signature',
+  ),
   document_exported: bi('Document exported', 'Document exporté'),
   document_archived: bi('Archived', 'Archivé'),
   document_restored: bi('Restored', 'Restauré'),

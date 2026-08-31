@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2026 
+ *   Copyright (c) 2026
  *   All rights reserved.
  */
 import type { Lang } from '@/i18n/core'
@@ -93,7 +93,10 @@ export function buildHead(input: HeadInput): HeadData {
     lang,
     title,
     tags,
-    jsonLd: input.jsonLd && input.jsonLd.length > 0 ? serializeJsonLd(jsonLdDocument(input.jsonLd)) : null,
+    jsonLd:
+      input.jsonLd && input.jsonLd.length > 0
+        ? serializeJsonLd(jsonLdDocument(input.jsonLd))
+        : null,
   }
 }
 

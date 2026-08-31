@@ -114,9 +114,7 @@ async function resolve(pathname) {
   }
 
   const candidates =
-    pathname === '/'
-      ? [join(DIST, 'index.html')]
-      : [base, join(base, 'index.html'), `${base}.html`]
+    pathname === '/' ? [join(DIST, 'index.html')] : [base, join(base, 'index.html'), `${base}.html`]
   for (const candidate of candidates) {
     if (await isFile(candidate)) return { file: candidate, status: 200 }
   }

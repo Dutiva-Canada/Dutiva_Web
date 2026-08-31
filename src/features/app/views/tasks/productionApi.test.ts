@@ -20,7 +20,9 @@ describe('tasks productionApi', () => {
   it('listTasks parses rows, derives done and a date-only due date', async () => {
     const order = vi
       .fn()
-      .mockReturnValue(listChain([ROW, { ...ROW, id: 'task-2', status: 'completed', due_at: null }]))
+      .mockReturnValue(
+        listChain([ROW, { ...ROW, id: 'task-2', status: 'completed', due_at: null }]),
+      )
     const eq = vi.fn().mockReturnValue({ order })
     const select = vi.fn().mockReturnValue({ eq })
     vi.doMock('@/lib/supabaseClient', () => ({

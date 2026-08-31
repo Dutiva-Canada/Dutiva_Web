@@ -48,9 +48,7 @@ describe('ArticlePage', () => {
       route: articlePath(post, 'en'),
       path: '/blog/:slug',
     })
-    expect(
-      within(blog.getByRole('main')).getByText(/Published August 2026/),
-    ).toBeInTheDocument()
+    expect(within(blog.getByRole('main')).getByText(/Published August 2026/)).toBeInTheDocument()
     blog.unmount()
 
     const guide = firstGuide!
@@ -58,9 +56,7 @@ describe('ArticlePage', () => {
       route: articlePath(guide, 'en'),
       path: '/guides/:slug',
     })
-    expect(
-      within(guideView.getByRole('main')).queryByText(/Published/),
-    ).not.toBeInTheDocument()
+    expect(within(guideView.getByRole('main')).queryByText(/Published/)).not.toBeInTheDocument()
   })
 
   it('resolves a slug from the other locale rather than dropping the page', () => {

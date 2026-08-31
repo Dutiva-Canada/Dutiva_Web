@@ -52,9 +52,21 @@ describe('SupportTicketDetail', () => {
     getSupportTicket.mockResolvedValue({
       ...baseTicket,
       status: 'in_progress',
-      messages: [{ id: 'm1', authorRole: 'customer', body: 'The button does nothing', createdAt: '2026-07-16T00:00:00Z' }],
+      messages: [
+        {
+          id: 'm1',
+          authorRole: 'customer',
+          body: 'The button does nothing',
+          createdAt: '2026-07-16T00:00:00Z',
+        },
+      ],
     })
-    replyToSupportTicket.mockResolvedValue({ id: 'm2', authorRole: 'customer', body: 'Still broken', createdAt: '2026-07-16T01:00:00Z' })
+    replyToSupportTicket.mockResolvedValue({
+      id: 'm2',
+      authorRole: 'customer',
+      body: 'Still broken',
+      createdAt: '2026-07-16T01:00:00Z',
+    })
     const user = userEvent.setup()
     renderDetail()
 

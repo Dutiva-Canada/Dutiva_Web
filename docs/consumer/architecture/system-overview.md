@@ -92,16 +92,16 @@ The actual choices are left to the implementation team and documented in `non-fu
 
 Dutiva Web is an employer-focused HR-compliance platform. The consumer products may reuse its **generic** architectural concepts, but they must not reuse its employer-specific content.
 
-| Dutiva concept | Consumer reuse |
-|---|---|
-| `Bi` / `defineMessages` bilingual string model | Reuse as a pattern (open-core `dutiva-i18n` package). |
-| Design tokens / surface model | Reuse as a pattern (open-core `dutiva-ui` package). |
-| Document engine (`ClauseGate`, merge tokens, preview blocks) | Reuse as a pattern; consumer templates are separate. |
-| AI safety backstop (crisis intercept, jurisdiction gate, statutory-figure gate) | Reuse the pattern; phrase sets and rules are consumer-specific. |
-| Export protection / watermarking | Reuse the pattern with consumer-appropriate watermark text and limits. |
-| Supabase + RLS multi-tenancy for organizations | Not reused directly; consumer model is per-user/family, not organization-RLS. |
-| Dutiva HR document templates / compliance corpus | **Do not reuse.** Build a separate consumer knowledge base. |
-| Northgate Logistics fixtures / demo data | **Do not reuse.** Consumer demo fixtures must be synthetic and neutral. |
+| Dutiva concept                                                                  | Consumer reuse                                                                |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `Bi` / `defineMessages` bilingual string model                                  | Reuse as a pattern (open-core `dutiva-i18n` package).                         |
+| Design tokens / surface model                                                   | Reuse as a pattern (open-core `dutiva-ui` package).                           |
+| Document engine (`ClauseGate`, merge tokens, preview blocks)                    | Reuse as a pattern; consumer templates are separate.                          |
+| AI safety backstop (crisis intercept, jurisdiction gate, statutory-figure gate) | Reuse the pattern; phrase sets and rules are consumer-specific.               |
+| Export protection / watermarking                                                | Reuse the pattern with consumer-appropriate watermark text and limits.        |
+| Supabase + RLS multi-tenancy for organizations                                  | Not reused directly; consumer model is per-user/family, not organization-RLS. |
+| Dutiva HR document templates / compliance corpus                                | **Do not reuse.** Build a separate consumer knowledge base.                   |
+| Northgate Logistics fixtures / demo data                                        | **Do not reuse.** Consumer demo fixtures must be synthetic and neutral.       |
 
 ---
 

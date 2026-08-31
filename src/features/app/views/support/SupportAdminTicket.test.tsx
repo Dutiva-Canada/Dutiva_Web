@@ -47,8 +47,20 @@ const ticket = {
   urgency: 'urgent',
   preferredResponseMethod: 'email',
   messages: [
-    { id: 'm1', authorRole: 'customer' as const, body: 'Found an issue', isInternal: false, createdAt: '2026-07-16T00:00:00Z' },
-    { id: 'm2', authorRole: 'agent' as const, body: 'Only we can see this', isInternal: true, createdAt: '2026-07-16T00:05:00Z' },
+    {
+      id: 'm1',
+      authorRole: 'customer' as const,
+      body: 'Found an issue',
+      isInternal: false,
+      createdAt: '2026-07-16T00:00:00Z',
+    },
+    {
+      id: 'm2',
+      authorRole: 'agent' as const,
+      body: 'Only we can see this',
+      isInternal: true,
+      createdAt: '2026-07-16T00:05:00Z',
+    },
   ],
 }
 
@@ -81,7 +93,10 @@ describe('SupportAdminTicket', () => {
     await user.type(screen.getByLabelText(/reply to the customer/i), 'We are investigating')
     await user.click(screen.getByRole('button', { name: /send reply/i }))
 
-    expect(runAgentAction).toHaveBeenCalledWith('t1', { action: 'reply', body: 'We are investigating' })
+    expect(runAgentAction).toHaveBeenCalledWith('t1', {
+      action: 'reply',
+      body: 'We are investigating',
+    })
   })
 
   it('changes status via the operator control', async () => {

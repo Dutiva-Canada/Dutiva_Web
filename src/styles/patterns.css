@@ -319,7 +319,12 @@ body.dutiva-surface {
 
 /* ── Gilded text + glow ──────────────────────────────────────────────────────*/
 .gradient-text {
-  background: linear-gradient(135deg, var(--gold-strong) 0%, var(--gold) 50%, var(--gold-bright) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--gold-strong) 0%,
+    var(--gold) 50%,
+    var(--gold-bright) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

@@ -15,14 +15,7 @@
 export interface ExtractedMemoryCandidate {
   scope: 'person' | 'case' | 'thread'
   entityId: string
-  category:
-    | 'employment'
-    | 'compensation'
-    | 'matter'
-    | 'record'
-    | 'note'
-    | 'case'
-    | 'conversation'
+  category: 'employment' | 'compensation' | 'matter' | 'record' | 'note' | 'case' | 'conversation'
   statementEn: string
   statementFr: string
   sensitive: boolean
@@ -54,10 +47,7 @@ export interface ParsedMemoryExtract {
   candidates: ExtractedMemoryCandidate[]
 }
 
-export function parseMemoryExtract(
-  reply: string,
-  fallbackThreadId: string,
-): ParsedMemoryExtract {
+export function parseMemoryExtract(reply: string, fallbackThreadId: string): ParsedMemoryExtract {
   const match = FENCE_RE.exec(reply)
   if (!match) return { cleanReply: reply.trimEnd(), candidates: [] }
 
@@ -121,8 +111,7 @@ const SENSITIVE_CUE =
   /\b(salary|wage|compensation|pay rate|diagnosis|medical|health|disability|salaire|rémunération|diagnostic|médical)\b/i
 const QUESTION_LEAD =
   /^(what|how|when|where|why|who|is|are|can|should|do|does|did|could|would|quel|quelle|quels|quelles|comment|pourquoi|est-ce|puis-je)\b/i
-const STATUTE_CUE =
-  /\b(ESA|LNE|PIPEDA|Bardal|s\.\s*\d+|art\.\s*\d+|weeks?'?\s+notice|statutory)\b/i
+const STATUTE_CUE = /\b(ESA|LNE|PIPEDA|Bardal|s\.\s*\d+|art\.\s*\d+|weeks?'?\s+notice|statutory)\b/i
 const ACK_IN_REPLY =
   /\b(i'?ll (?:keep|remember|note)|noted|got it|i will remember|je (?:vais|viendrai) (?:retenir|noter)|c['’]est noté)\b/i
 

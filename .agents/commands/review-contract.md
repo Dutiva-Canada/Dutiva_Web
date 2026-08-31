@@ -1,6 +1,6 @@
 ---
 description: Review a contract against your organization's negotiation playbook — flag deviations, generate redlines, provide business impact analysis
-argument-hint: "<contract file or text>"
+argument-hint: '<contract file or text>'
 metadata:
   author: Anthropic
   license: Apache-2.0
@@ -24,6 +24,7 @@ Review a contract against your organization's negotiation playbook. Analyze each
 ### Step 1: Accept the Contract
 
 Accept the contract in any of these formats:
+
 - **File upload**: PDF, DOCX, or other document format
 - **URL**: Link to a contract in your CLM, cloud storage (e.g., Box, Egnyte, SharePoint), or other document system
 - **Pasted text**: Contract text pasted directly into the conversation
@@ -46,11 +47,13 @@ If the user provides partial context, proceed with what you have and note assump
 Look for the organization's contract review playbook in local settings (e.g., `legal.local.md` or similar configuration files).
 
 The playbook should define:
+
 - **Standard positions**: The organization's preferred terms for each major clause type
 - **Acceptable ranges**: Terms that can be agreed to without escalation
 - **Escalation triggers**: Terms that require senior counsel review or outside counsel involvement
 
 **If no playbook is configured:**
+
 - Inform the user that no playbook was found
 - Offer two options:
   1. Help the user set up their playbook (walk through defining positions for key clauses)
@@ -61,20 +64,20 @@ The playbook should define:
 
 Analyze the contract systematically, covering at minimum:
 
-| Clause Category | Key Review Points |
-|----------------|-------------------|
-| **Limitation of Liability** | Cap amount, carveouts, mutual vs. unilateral, consequential damages |
-| **Indemnification** | Scope, mutual vs. unilateral, cap, IP infringement, data breach |
-| **IP Ownership** | Pre-existing IP, developed IP, work-for-hire, license grants, assignment |
-| **Data Protection** | DPA requirement, processing terms, sub-processors, breach notification, cross-border transfers |
-| **Confidentiality** | Scope, term, carveouts, return/destruction obligations |
-| **Representations & Warranties** | Scope, disclaimers, survival period |
-| **Term & Termination** | Duration, renewal, termination for convenience, termination for cause, wind-down |
-| **Governing Law & Dispute Resolution** | Jurisdiction, venue, arbitration vs. litigation |
-| **Insurance** | Coverage requirements, minimums, evidence of coverage |
-| **Assignment** | Consent requirements, change of control, exceptions |
-| **Force Majeure** | Scope, notification, termination rights |
-| **Payment Terms** | Net terms, late fees, taxes, price escalation |
+| Clause Category                        | Key Review Points                                                                              |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| **Limitation of Liability**            | Cap amount, carveouts, mutual vs. unilateral, consequential damages                            |
+| **Indemnification**                    | Scope, mutual vs. unilateral, cap, IP infringement, data breach                                |
+| **IP Ownership**                       | Pre-existing IP, developed IP, work-for-hire, license grants, assignment                       |
+| **Data Protection**                    | DPA requirement, processing terms, sub-processors, breach notification, cross-border transfers |
+| **Confidentiality**                    | Scope, term, carveouts, return/destruction obligations                                         |
+| **Representations & Warranties**       | Scope, disclaimers, survival period                                                            |
+| **Term & Termination**                 | Duration, renewal, termination for convenience, termination for cause, wind-down               |
+| **Governing Law & Dispute Resolution** | Jurisdiction, venue, arbitration vs. litigation                                                |
+| **Insurance**                          | Coverage requirements, minimums, evidence of coverage                                          |
+| **Assignment**                         | Consent requirements, change of control, exceptions                                            |
+| **Force Majeure**                      | Scope, notification, termination rights                                                        |
+| **Payment Terms**                      | Net terms, late fees, taxes, price escalation                                                  |
 
 For each clause, assess against the playbook (or generic standards) and note whether it is present, absent, or unusual.
 
@@ -83,11 +86,13 @@ For each clause, assess against the playbook (or generic standards) and note whe
 Classify each deviation from the playbook using a three-tier system:
 
 #### GREEN -- Acceptable
+
 - Aligns with or is better than the organization's standard position
 - Minor variations that are commercially reasonable
 - No action needed; note for awareness
 
 #### YELLOW -- Negotiate
+
 - Falls outside standard position but within negotiable range
 - Common in the market but not the organization's preference
 - Requires attention but not escalation
@@ -96,6 +101,7 @@ Classify each deviation from the playbook using a three-tier system:
 - **Include**: Business impact of accepting as-is vs. negotiating
 
 #### RED -- Escalate
+
 - Falls outside acceptable range or triggers an escalation criterion
 - Unusual or aggressive terms that pose material risk
 - Requires senior counsel review, outside counsel involvement, or business decision-maker sign-off
@@ -107,6 +113,7 @@ Classify each deviation from the playbook using a three-tier system:
 ### Step 6: Generate Redline Suggestions
 
 For each YELLOW and RED deviation, provide:
+
 - **Current language**: Quote the relevant contract text
 - **Suggested redline**: Specific alternative language
 - **Rationale**: Brief explanation suitable for sharing with the counterparty
@@ -115,6 +122,7 @@ For each YELLOW and RED deviation, provide:
 ### Step 7: Business Impact Summary
 
 Provide a summary section covering:
+
 - **Overall risk assessment**: High-level view of the contract's risk profile
 - **Top 3 issues**: The most important items to address
 - **Negotiation strategy**: Recommended approach (which issues to lead with, what to concede)
@@ -123,6 +131,7 @@ Provide a summary section covering:
 ### Step 8: CLM Routing (If Connected)
 
 If a Contract Lifecycle Management system is connected via MCP:
+
 - Recommend the appropriate approval workflow based on contract type and risk level
 - Suggest the correct routing path (e.g., standard approval, senior counsel, outside counsel)
 - Note any required approvals based on contract value or risk flags

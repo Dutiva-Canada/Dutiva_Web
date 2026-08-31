@@ -59,13 +59,15 @@ Deno.serve(async (req: Request) => {
     p_ttl_seconds: CRON_LOCK_TTL_SECONDS,
   })
   if (lockError) {
-    console.warn('[signing-reminder-scheduler] acquire_cron_lock failed; continuing without lock:', lockError.message)
+    console.warn(
+      '[signing-reminder-scheduler] acquire_cron_lock failed; continuing without lock:',
+      lockError.message,
+    )
   } else if (!acquired) {
     return json({ ok: true, skipped: true, reason: 'another-instance-running' })
   }
 
-  const apiKey =
-    Deno.env.get('RESEND_API_KEY') ?? Deno.env.get('SUPPORT_EMAIL_PROVIDER_API_KEY')
+  const apiKey = Deno.env.get('RESEND_API_KEY') ?? Deno.env.get('SUPPORT_EMAIL_PROVIDER_API_KEY')
   if (!apiKey) {
     if (!lockError && acquired) {
       await db.rpc('release_cron_lock', { p_job_name: CRON_LOCK_JOB, p_instance_id: instanceId })
@@ -113,9 +115,7 @@ Deno.serve(async (req: Request) => {
 
     const docLang: Lang = doc.language === 'fr' ? 'fr' : 'en'
     const documentTitle =
-      docLang === 'fr'
-        ? String(doc.title_fr || doc.title_en)
-        : String(doc.title_en || doc.title_fr)
+      docLang === 'fr' ? String(doc.title_fr || doc.title_en) : String(doc.title_en || doc.title_fr)
 
     const result = await sendInviteToRecipient(db, {
       apiKey,

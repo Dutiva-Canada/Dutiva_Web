@@ -80,7 +80,9 @@ describe('severanceEligibilityOntarioFlow', () => {
       /* The $2.5M threshold appears only on the employer question, not as a computed entitlement. */
       expect(step.title.en).not.toMatch(moneyOrWeeks)
       expect(step.body.en).not.toMatch(/\d+\s*weeks?\s+of\s+severance/i)
-      expect(step.body.en).toMatch(/not calculated|not met|Exclusion|Not enough|may apply|compute the amount/i)
+      expect(step.body.en).toMatch(
+        /not calculated|not met|Exclusion|Not enough|may apply|compute the amount/i,
+      )
     }
   })
 

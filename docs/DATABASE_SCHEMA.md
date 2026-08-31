@@ -46,7 +46,7 @@ git commit -m "chore: refresh database schema snapshot"
 
 - **Is:** a reference dump of the live schema (tables, columns, RLS policies,
   functions, grants) — reviewable in a diff, and a reproducibility anchor.
-- **Isn't:** a replayable migration set. Schema *changes* still go through
+- **Isn't:** a replayable migration set. Schema _changes_ still go through
   `supabase/migrations/*` (applied via `supabase db push` or the Supabase MCP
   `apply_migration`). Treat `schema.sql` as generated output, not a source of
   truth you hand-edit.

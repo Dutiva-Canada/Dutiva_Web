@@ -2,10 +2,7 @@
  *   Copyright (c) 2026
  *   All rights reserved.
  */
-import {
-  AdvisorUsageLimitError,
-  type AdvisorChatResult,
-} from '@/features/app/advisor/chatApi'
+import { AdvisorUsageLimitError, type AdvisorChatResult } from '@/features/app/advisor/chatApi'
 import type { AdvisorTurnSpec } from '@/features/app/advisor/types'
 import type { LText } from '@/i18n/core'
 import { usageLimitReply } from '@/features/app/advisor/usageLimit'
@@ -24,7 +21,9 @@ export function applyRealChatResult(options: {
   pushAdvisor: (spec: AdvisorTurnSpec) => string
   patchResponseState: (chatId: string, patch: Partial<ThreadResponseState>) => void
   setProdThreads: (updater: (prev: ProductionConversation[]) => ProductionConversation[]) => void
-  updateExtras: (updater: (prev: Record<string, MessageExtras>) => Record<string, MessageExtras>) => void
+  updateExtras: (
+    updater: (prev: Record<string, MessageExtras>) => Record<string, MessageExtras>,
+  ) => void
   bindBackendConversationId: (threadId: string | null, backendId: string) => void
   fallbackReply?: LText
 }) {
@@ -76,7 +75,9 @@ export function applyRealChatResult(options: {
 /** Shared failure handling for real-backend Advisor send paths. */
 export function createRealChatFailureHandler(options: {
   pushAdvisor: (spec: AdvisorTurnSpec) => string
-  updateExtras: (updater: (prev: Record<string, MessageExtras>) => Record<string, MessageExtras>) => void
+  updateExtras: (
+    updater: (prev: Record<string, MessageExtras>) => Record<string, MessageExtras>,
+  ) => void
 }) {
   const { pushAdvisor, updateExtras } = options
   return (error: unknown) => {

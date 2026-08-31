@@ -48,16 +48,19 @@ This document proposes a future repository and package structure that separates 
 **Purpose:** Reusable bilingual string framework with type-safe message definitions and React language providers.
 
 **Contents:**
+
 - `src/i18n/core.ts` → `Bi` type, `defineMessages`, `pick`, `pickL`, `keyOfL`.
 - `src/i18n/context.ts` and `LangProvider.tsx`/`ForcedLangProvider.tsx` (refactored to accept configuration).
 
 **Public API:**
+
 - `defineMessages<T>(messages: T): T`
 - `pick(value: Bi, lang: Lang): string`
 - `useI18n()` hook returning `t`, `x`, `L`, `lang`.
 - `LangProvider`, `ForcedLangProvider`.
 
 **Security boundary:**
+
 - No network calls. No secrets. No customer data.
 - Language preference can be stored in `localStorage`; default key names should be configurable.
 
@@ -76,17 +79,20 @@ This document proposes a future repository and package structure that separates 
 **Purpose:** Generic design-system package built on Tailwind v4 with configurable tokens, surfaces, and React components.
 
 **Contents:**
+
 - `src/styles/*` (tokens, surfaces, patterns, animations, base).
 - Generic components from `src/components/` (`Disclaimer` as a generic callout, `chips.ts`).
 - Theme provider from `src/lib/theme.tsx`.
 
 **Public API:**
+
 - CSS variables / Tailwind theme configuration.
 - `ThemeProvider`, `useTheme()`.
 - `Disclaimer` component accepting localized text.
 - Chip/tone helpers.
 
 **Security boundary:**
+
 - Pure CSS/React. No secrets. No backend.
 - Brand assets must be configurable so the open package ships with neutral placeholders.
 
@@ -105,6 +111,7 @@ This document proposes a future repository and package structure that separates 
 **Purpose:** Reusable cross-cutting infrastructure: optional Supabase client wrapper, privacy-scrubbed error reporting, export-guardrail mechanism, preference storage, and service-worker registration.
 
 **Contents:**
+
 - `src/lib/supabaseClient.ts` (refactored to accept env names).
 - `src/lib/errorReporting/*` (privacy scrubbing, coarse UA, route patterns, reporter).
 - `src/lib/exportProtection/*` (watermark/fingerprint/audit mechanism, without Dutiva text or limits).
@@ -113,12 +120,14 @@ This document proposes a future repository and package structure that separates 
 - `src/lib/registerServiceWorker.ts`.
 
 **Public API:**
+
 - `createSupabaseClient(url, key)`.
 - `createErrorReporter(config)`.
 - `authorizeExport(config, audit)`.
 - `fingerprint(text, id)` / `decodeInvisibleTag(text)`.
 
 **Security boundary:**
+
 - No hardcoded endpoints, keys, or rate-limit values.
 - Export limits, site origin, and allowed routes are passed via configuration.
 
@@ -137,6 +146,7 @@ This document proposes a future repository and package structure that separates 
 **Purpose:** Architecturally separated engines and plumbing that could be published later if strategy changes, but remain Dutiva-controlled for now.
 
 **Contents:**
+
 - Document-generation engine (`src/features/app/documents/*` minus templates).
 - Workflow engine (`src/features/app/flows/flowEngine.ts`, `flowModel.ts`).
 - Support ticketing/email/outbox/attachment-scan plumbing (`src/features/support/*`, relevant `supabase/functions/support-*`).
@@ -151,6 +161,7 @@ This document proposes a future repository and package structure that separates 
 **Migration complexity:** Medium-High. Requires splitting the engine code from Dutiva content (templates, Help Centre articles, triage categories) and from the workspace UI.
 
 **Risks:**
+
 - Splitting too early may introduce maintenance overhead without strategic benefit.
 - Keeping it private preserves the option to use a source-available license later.
 
@@ -161,6 +172,7 @@ This document proposes a future repository and package structure that separates 
 **Purpose:** AI-powered Canadian HR compliance advisor.
 
 **Contents:**
+
 - `supabase/functions/advisor-chat/*`.
 - `supabase/functions/advisor-safety-event/*`.
 - `src/features/app/advisor/*`.
@@ -184,6 +196,7 @@ This document proposes a future repository and package structure that separates 
 **Purpose:** Compliance scoring, statutory tables, law monitoring, and curated corpus.
 
 **Contents:**
+
 - `src/features/app/views/analytics/aggregation.ts`.
 - `supabase/functions/record-score-snapshots/*`.
 - `src/features/app/advisor/safety/statutoryNotice.ts`.
@@ -208,6 +221,7 @@ This document proposes a future repository and package structure that separates 
 **Purpose:** 50 HR document templates, reference guides, and educational content.
 
 **Contents:**
+
 - `src/features/app/documents/data/templates/*`.
 - `src/features/app/reference/data/*`.
 - Design handoffs for documents and reference content.
@@ -229,6 +243,7 @@ This document proposes a future repository and package structure that separates 
 **Purpose:** Dutiva's public marketing site and authenticated workspace application.
 
 **Contents:**
+
 - `src/app/*`, `src/features/marketing/*`, `src/features/app/views/*` workspace shells.
 - `src/seo/*` (configured for Dutiva).
 - `src/data/*` (Northgate Logistics fixtures).
@@ -251,6 +266,7 @@ This document proposes a future repository and package structure that separates 
 **Purpose:** Billing, enterprise features, admin tooling, and customer-specific functionality.
 
 **Contents:**
+
 - `src/config/plans.ts`, `src/features/app/billing/*`, `src/lib/billing/*`.
 - `supabase/functions/create-checkout-session/*`, `create-portal-session/*`, `stripe-webhook/*`.
 - Support admin dashboard, export audit trail, analytics.
@@ -270,34 +286,40 @@ This document proposes a future repository and package structure that separates 
 ### `dutiva-i18n` boundary
 
 **What moves out (open):**
+
 - `Bi`, `Lang`, `LText`, `defineMessages`.
 - `pick`, `pickL`, `keyOfL`.
 - React providers and `useI18n` hook (generic).
 
 **What stays in `dutiva-web`:**
+
 - All `src/i18n/messages/*.ts` catalogues (`landing.ts`, `advisor.ts`, `workspace.ts`, etc.).
 - Dutiva-specific message keys and copy.
 
 ### `dutiva-ui` boundary
 
 **What moves out (open):**
+
 - Token system, surface system, patterns, animations, base CSS.
 - Generic `Disclaimer` component that accepts a message prop.
 - Generic chip/tone helpers.
 
 **What stays in `dutiva-web`:**
+
 - Brand-specific token values (Dutiva gold/navy) — replaced with neutral defaults in the open package.
 - Marketing page sections and landing copy.
 
 ### `dutiva-infra` boundary
 
 **What moves out (open):**
+
 - Optional Supabase client wrapper accepting URL/key arguments.
 - Privacy-scrubbed error reporter accepting allow-list config.
 - Export authorization/fingerprint/watermark mechanism accepting config.
 - `money.ts`, `prefs.ts`, service-worker registration.
 
 **What stays in `dutiva-web` / proprietary packages:**
+
 - Dutiva site origin, route allow-lists, error-report endpoint.
 - Dutiva watermark text, export velocity limits, audit log shape.
 - Admin email and beta configuration.
@@ -305,12 +327,14 @@ This document proposes a future repository and package structure that separates 
 ### `dutiva-shared-core` boundary (private)
 
 **What moves in (separated from `dutiva-web` but kept private):**
+
 - Document generation engine (template registry, ClauseGate, merge tokens, preview, PDF/Word rendering).
 - Workflow engine (flow graph, choice nodes, scoring, branching).
 - Support plumbing (ticket CRUD, outbox pattern, attachment signed URLs, malware scan integration).
 - Tenant/RLS patterns (organizations, members, per-tenant tables, `is_org_member` helpers).
 
 **What stays in `dutiva-knowledge` / proprietary content packages:**
+
 - The 50 templates.
 - Help Centre articles.
 - Flow content (mental-health triage, duty-to-accommodate, etc.).
@@ -372,15 +396,15 @@ This document proposes a future repository and package structure that separates 
 
 ## Risks and mitigation
 
-| Risk | Impact | Mitigation |
-|---|---|---|
-| Open packages leak Dutiva defaults | High | Env-ify all defaults before extraction; use neutral placeholders in open packages. |
-| Copyleft confusion for enterprise customers | Medium | Clearly document that only the open UI/i18n/infra packages are AGPLv3; the Dutiva SaaS is proprietary. |
-| AGPLv3 + Apache-2.0 compatibility question | Medium | **Legal review required**; keep Apache-2.0 deps as dev-only where possible. |
-| Competitor forks open packages | Low | Generic UI/i18n/infra are not the moat; the moat stays closed. |
-| Reduced export-protection deterrence | Low | The mechanism is deterrence through traceability, not secrecy; still, evaluate whether to keep it private. |
-| Maintenance overhead of package split | Medium | Start with private packages in the monorepo; only move to multi-repo after validation. |
-| History contains secrets or customer data | High | Mandate history audit and rotation before public release. |
+| Risk                                        | Impact | Mitigation                                                                                                 |
+| ------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------- |
+| Open packages leak Dutiva defaults          | High   | Env-ify all defaults before extraction; use neutral placeholders in open packages.                         |
+| Copyleft confusion for enterprise customers | Medium | Clearly document that only the open UI/i18n/infra packages are AGPLv3; the Dutiva SaaS is proprietary.     |
+| AGPLv3 + Apache-2.0 compatibility question  | Medium | **Legal review required**; keep Apache-2.0 deps as dev-only where possible.                                |
+| Competitor forks open packages              | Low    | Generic UI/i18n/infra are not the moat; the moat stays closed.                                             |
+| Reduced export-protection deterrence        | Low    | The mechanism is deterrence through traceability, not secrecy; still, evaluate whether to keep it private. |
+| Maintenance overhead of package split       | Medium | Start with private packages in the monorepo; only move to multi-repo after validation.                     |
+| History contains secrets or customer data   | High   | Mandate history audit and rotation before public release.                                                  |
 
 ---
 

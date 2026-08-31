@@ -43,7 +43,12 @@ function json(body: unknown, status = 200, extraHeaders: Record<string, string> 
 }
 
 const HUMAN_ONLY = new Set([
-  'privacy', 'security', 'accessibility', 'complaint', 'billing', 'account_access',
+  'privacy',
+  'security',
+  'accessibility',
+  'complaint',
+  'billing',
+  'account_access',
 ])
 
 const MAX_CONTEXT_ARTICLES = 3
@@ -55,7 +60,7 @@ function systemPrompt(lang: 'en' | 'fr', context: string): string {
   const language = lang === 'fr' ? 'French' : 'English'
   return [
     "You are Dutiva's support assistant for a Canadian HR compliance product.",
-    'Answer the user\'s question using ONLY the Dutiva Help Centre excerpts below.',
+    "Answer the user's question using ONLY the Dutiva Help Centre excerpts below.",
     'Rules:',
     '1. If the answer is not clearly contained in the excerpts, reply only that you are not certain and a Dutiva team member will follow up — never guess.',
     '2. Never provide legal advice or interpret employment law. Dutiva provides HR workflow support and compliance-oriented guidance, not legal advice.',
@@ -110,7 +115,8 @@ Deno.serve(async (req: Request) => {
   // Hard escalation gate — sensitive matters are never auto-answered.
   if (HUMAN_ONLY.has(category)) return json({ data: { escalate: true } })
 
-  const question = typeof body.question === 'string' ? body.question.trim().slice(0, MAX_QUESTION_CHARS) : ''
+  const question =
+    typeof body.question === 'string' ? body.question.trim().slice(0, MAX_QUESTION_CHARS) : ''
   if (question.length < 3) return json({ error: 'A question is required' }, 422)
   const lang = body.language === 'fr' ? 'fr' : 'en'
 
@@ -129,7 +135,9 @@ Deno.serve(async (req: Request) => {
   // Reuse the active advisor_chat model route (same provider/model as the Advisor).
   const { data: route } = await admin
     .from('ai_model_routes')
-    .select('model_name, config, provider:ai_model_providers(provider_key, base_url, secret_ref, status)')
+    .select(
+      'model_name, config, provider:ai_model_providers(provider_key, base_url, secret_ref, status)',
+    )
     .eq('route_key', 'advisor_chat')
     .eq('status', 'active')
     .order('priority', { ascending: true })

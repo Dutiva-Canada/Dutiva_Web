@@ -8,14 +8,14 @@ Escalation ensures that users are directed to qualified professionals or emergen
 
 ## Escalation categories
 
-| Category | When it applies | Destination | Product behaviour |
-|---|---|---|---|
-| **Crisis / emergency** | Imminent risk of harm to self or others; medical emergency; immediate danger. | 9-1-1, 9-8-8, crisis lines, emergency services. | Stop administrative guidance; show crisis resources; offer to contact emergency services if technically possible. |
-| **Legal complexity** | High-stakes legal matter; potential litigation; rights in dispute; multi-jurisdiction conflict. | Employment lawyer, tenant advocate, family lawyer, immigration lawyer, civil litigator, legal aid clinic. | Explain why a professional is needed; preserve next steps; suggest what documents/evidence to gather; offer to generate a referral-request or records-request letter. |
-| **Regulated professional advice** | Tax, immigration, financial planning, insurance underwriting, estate administration, regulated health professions. | Accountant, immigration consultant, financial planner, insurance broker, estate lawyer, health professional. | Flag the boundary; provide general information only; recommend professional; avoid specific advice. |
-| **Government filing / tribunal** | A document must be filed with a court, tribunal, or government body; deadlines have passed or are imminent. | Relevant tribunal, government office, ombudsman, or lawyer. | Provide procedural orientation and deadlines (where sourced); recommend professional or direct filing assistance; do not imply the product can file for the user. |
-| **Jurisdiction uncertainty** | The system cannot determine which jurisdiction applies or jurisdictions conflict. | User must confirm; if high-stakes, recommend a professional. | Ask clarifying questions; offer jurisdiction-neutral guidance; flag if the matter is too uncertain to proceed safely. |
-| **AI confidence too low** | The model is unsure and cannot ground its answer in vetted knowledge. | Human review or professional. | State the uncertainty clearly; do not present a fabricated answer; recommend verification or professional help. |
+| Category                          | When it applies                                                                                                    | Destination                                                                                                  | Product behaviour                                                                                                                                                     |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Crisis / emergency**            | Imminent risk of harm to self or others; medical emergency; immediate danger.                                      | 9-1-1, 9-8-8, crisis lines, emergency services.                                                              | Stop administrative guidance; show crisis resources; offer to contact emergency services if technically possible.                                                     |
+| **Legal complexity**              | High-stakes legal matter; potential litigation; rights in dispute; multi-jurisdiction conflict.                    | Employment lawyer, tenant advocate, family lawyer, immigration lawyer, civil litigator, legal aid clinic.    | Explain why a professional is needed; preserve next steps; suggest what documents/evidence to gather; offer to generate a referral-request or records-request letter. |
+| **Regulated professional advice** | Tax, immigration, financial planning, insurance underwriting, estate administration, regulated health professions. | Accountant, immigration consultant, financial planner, insurance broker, estate lawyer, health professional. | Flag the boundary; provide general information only; recommend professional; avoid specific advice.                                                                   |
+| **Government filing / tribunal**  | A document must be filed with a court, tribunal, or government body; deadlines have passed or are imminent.        | Relevant tribunal, government office, ombudsman, or lawyer.                                                  | Provide procedural orientation and deadlines (where sourced); recommend professional or direct filing assistance; do not imply the product can file for the user.     |
+| **Jurisdiction uncertainty**      | The system cannot determine which jurisdiction applies or jurisdictions conflict.                                  | User must confirm; if high-stakes, recommend a professional.                                                 | Ask clarifying questions; offer jurisdiction-neutral guidance; flag if the matter is too uncertain to proceed safely.                                                 |
+| **AI confidence too low**         | The model is unsure and cannot ground its answer in vetted knowledge.                                              | Human review or professional.                                                                                | State the uncertainty clearly; do not present a fabricated answer; recommend verification or professional help.                                                       |
 
 ---
 
@@ -73,12 +73,12 @@ Escalation ensures that users are directed to qualified professionals or emergen
 
 ## When escalation is optional vs. mandatory
 
-| Mandatory escalation | Optional recommendation |
-|---|---|
-| Crisis/emergency signals | Complex but manageable consumer complaint |
-| Prohibited document category | High-dollar dispute where a lawyer could help |
-| Litigation or threatened litigation | Cross-border move with tax implications |
-| Past or imminent statutory deadline | Unclear jurisdiction but low stakes |
+| Mandatory escalation                              | Optional recommendation                       |
+| ------------------------------------------------- | --------------------------------------------- |
+| Crisis/emergency signals                          | Complex but manageable consumer complaint     |
+| Prohibited document category                      | High-dollar dispute where a lawyer could help |
+| Litigation or threatened litigation               | Cross-border move with tax implications       |
+| Past or imminent statutory deadline               | Unclear jurisdiction but low stakes           |
 | Allegations of crime, fraud, or safety violations | User simply says "I want to talk to a lawyer" |
 
 `AI-REQ-076`: Mandatory escalations SHALL block the action that triggered them. Optional recommendations SHALL be presented clearly but SHALL NOT block the user from continuing if they understand the limitation.

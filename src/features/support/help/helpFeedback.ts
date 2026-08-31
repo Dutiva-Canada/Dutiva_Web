@@ -36,7 +36,10 @@ function isHelpfulness(value: unknown): value is Helpfulness {
 }
 
 /** Any prior vote for this article, or null if none / storage unavailable. */
-export function readHelpfulness(slug: string, storage: Storage | null = defaultStorage()): Helpfulness | null {
+export function readHelpfulness(
+  slug: string,
+  storage: Storage | null = defaultStorage(),
+): Helpfulness | null {
   if (!storage) return null
   try {
     const value = storage.getItem(feedbackStorageKey(slug))

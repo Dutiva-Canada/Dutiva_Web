@@ -38,25 +38,17 @@ function conversationTitle(messages: { role: string; content: string }[]): Bi {
  * Client-side filter reuses filterSearchEntriesFrom in searchCorpus.ts.
  */
 export async function buildProductionSearchEntries(organizationId: string): Promise<SearchEntry[]> {
-  const [
-    employees,
-    cases,
-    conversations,
-    documents,
-    comms,
-    tasks,
-    findings,
-    policies,
-  ] = await Promise.all([
-    listEmployees(organizationId),
-    listCases(organizationId),
-    listOwnConversations(24),
-    listDocuments(organizationId),
-    listCommunications(organizationId),
-    listTasks(organizationId),
-    listFindings(organizationId),
-    listPolicies(organizationId),
-  ])
+  const [employees, cases, conversations, documents, comms, tasks, findings, policies] =
+    await Promise.all([
+      listEmployees(organizationId),
+      listCases(organizationId),
+      listOwnConversations(24),
+      listDocuments(organizationId),
+      listCommunications(organizationId),
+      listTasks(organizationId),
+      listFindings(organizationId),
+      listPolicies(organizationId),
+    ])
 
   const personEntries: SearchEntry[] = employees.map((e) => ({
     id: `emp-${e.id}`,

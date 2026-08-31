@@ -23,7 +23,10 @@ describe('parseProposedSlots', () => {
   })
 
   it('rejects more than 3 slots', () => {
-    const four = Array.from({ length: 4 }, (_, i) => ({ start: future(24 + i), end: future(24.5 + i) }))
+    const four = Array.from({ length: 4 }, (_, i) => ({
+      start: future(24 + i),
+      end: future(24.5 + i),
+    }))
     expect(parseProposedSlots(four, NOW)).toBeNull()
   })
 

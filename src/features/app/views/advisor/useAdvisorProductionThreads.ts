@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState, type Dispatch, type MutableRefObject, type SetStateAction } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type MutableRefObject,
+  type SetStateAction,
+} from 'react'
 import type { ChatMessage } from '@/features/app/advisor/types'
 import type { WorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import {

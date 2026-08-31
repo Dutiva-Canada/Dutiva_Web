@@ -47,9 +47,7 @@ describe('makeGlobalErrorHandlers', () => {
     const { onError } = makeGlobalErrorHandlers(reporter)
     const err = new Error('global boom')
     onError({ error: err, message: 'global boom' })
-    expect(reporter.calls).toEqual([
-      expect.objectContaining({ error: err, kind: 'window-error' }),
-    ])
+    expect(reporter.calls).toEqual([expect.objectContaining({ error: err, kind: 'window-error' })])
   })
 
   it('falls back to the message when no Error object is present', () => {

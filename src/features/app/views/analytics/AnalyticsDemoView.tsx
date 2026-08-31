@@ -210,206 +210,206 @@ export function AnalyticsDemoView() {
 
   return (
     <AppPage width="default" responsivePad>
-        <div className="mb-[14px] text-[13px] text-text-muted">{x(M.analytics_subtitle)}</div>
+      <div className="mb-[14px] text-[13px] text-text-muted">{x(M.analytics_subtitle)}</div>
 
-        <div className="grid grid-cols-1 gap-[14px] min-[900px]:grid-cols-2 min-[900px]:gap-[16px]">
-          {/* Compliance score — hero, windowed trend, breakdown, jurisdictions */}
-          <AnalyticsCard title={x(M.analytics_score_title)} className="min-[900px]:col-span-2">
-            <ScoreHero score={currentScore} delta={delta} />
-            <div className="mt-[10px]">
-              <TrendLineChart
-                points={scoreHistory.map((p) => ({ monthISO: p.monthISO, value: p.score }))}
-                ariaLabel={x(M.analytics_score_chart_aria).replace(
-                  '{points}',
-                  scoreHistory
-                    .map((p) => `${formatMonthISO(p.monthISO, locale, 'long')} ${p.score}`)
-                    .join(', '),
-                )}
-                valueHeader={x(M.analytics_score_table_score)}
-                clampMax={100}
-              />
-            </div>
-            <div className="mt-[14px] border-t border-border-soft pt-[14px]">
-              <div className="mb-[10px] text-[11.5px] font-bold tracking-[0.04em] uppercase text-text-muted">
-                {x(M.analytics_score_breakdown_title)}
-              </div>
-              <ScoreBreakdownMeters rows={breakdownRows} />
-            </div>
-            <div className="mt-[14px] border-t border-border-soft pt-[14px]">
-              <div className="mb-[10px] text-[11.5px] font-bold tracking-[0.04em] uppercase text-text-muted">
-                {x(M.analytics_jur_score_title)}
-              </div>
-              <ScoreBreakdownMeters rows={jurisdictionRows} />
-            </div>
-          </AnalyticsCard>
-
-          {/* Needs attention */}
-          <AnalyticsCard
-            title={x(M.analytics_attention_title)}
-            subtitle={x(M.analytics_attention_sub)}
-          >
-            {attentionRows.length === 0 ? (
-              <CardEmpty text={x(M.analytics_attention_empty)} />
-            ) : (
-              <AttentionList
-                rows={attentionRows}
-                viewAllHref="/app/compliance"
-                viewAllLabel={fill(x(M.analytics_attention_view_all), { n: ranked.length })}
-              />
-            )}
-          </AnalyticsCard>
-
-          {/* Headcount by jurisdiction */}
-          <AnalyticsCard
-            title={x(M.analytics_headcount_title)}
-            subtitle={fill(x(M.analytics_headcount_total), { n: headcountTotal })}
-          >
-            <JurisdictionBars
-              rows={headcountByJurisdiction.map((row) => ({
-                key: row.key,
-                label: x(row.label),
-                value: row.value,
-              }))}
-            />
-            <p className="mt-[10px] mb-0 text-[11.5px] text-text-faint">
-              {x(M.analytics_headcount_footnote)}
-            </p>
-          </AnalyticsCard>
-
-          {/* Open cases */}
-          <AnalyticsCard title={x(M.analytics_cases_title)}>
-            {aging === null ? (
-              <CardEmpty text={x(M.analytics_cases_empty)} />
-            ) : (
-              <>
-                <div className="mb-[12px] flex gap-[10px]">
-                  <StatTile value={String(aging.openCount)} label={x(M.analytics_cases_open_now)} />
-                  <StatTile value={String(aging.avgDays)} label={x(M.analytics_cases_avg_age)} />
-                  <StatTile
-                    value={String(aging.oldestDays)}
-                    label={x(M.analytics_cases_oldest)}
-                    alert={aging.oldestDays > 14}
-                  />
-                </div>
-                <OpenCaseRows
-                  rows={aging.rows.map(({ caseRow, daysOpen }) => ({
-                    key: caseRow.id,
-                    href: `/app/cases/${caseRow.id}`,
-                    typeLabel: x(caseRow.typeLabel),
-                    jurisdiction: x(caseRow.province),
-                    openedLabel: fill(x(M.analytics_cases_opened), {
-                      date: formatDayISO(caseRow.openedISO, locale),
-                    }),
-                    daysOpen,
-                    daysLabel:
-                      daysOpen === 1
-                        ? x(M.analytics_cases_day_one)
-                        : fill(x(M.analytics_cases_days), { n: daysOpen }),
-                  }))}
-                />
-              </>
-            )}
-          </AnalyticsCard>
-
-          {/* Policy acknowledgments — outstanding signatures are chased from
-              the Communications program (mockup's suggested path). */}
-          <AnalyticsCard title={x(M.analytics_ack_title)} subtitle={x(policyAcknowledgment.title)}>
-            <AckMeter ack={ack} nudgeHref="/app/communications" />
-          </AnalyticsCard>
-
-          {/* A · Certifications & training expiring */}
-          <AnalyticsCard title={x(M.analytics_certs_title)} subtitle={x(M.analytics_certs_sub)}>
-            {flattenBuckets(certBuckets).length === 0 ? (
-              <CardEmpty text={x(M.analytics_certs_empty)} />
-            ) : (
-              <ExpiryBucketsSection
-                counts={{
-                  expired: certBuckets.expired.length,
-                  within30: certBuckets.within30.length,
-                  within60: certBuckets.within60.length,
-                  within90: certBuckets.within90.length,
-                }}
-                rows={flattenBuckets(certBuckets).map(toExpiryRow)}
-              />
-            )}
-          </AnalyticsCard>
-
-          {/* C · Probation periods ending */}
-          <AnalyticsCard
-            title={x(M.analytics_probation_title)}
-            subtitle={x(M.analytics_probation_sub)}
-          >
-            {probationRows.length === 0 ? (
-              <CardEmpty text={x(M.analytics_probation_empty)} />
-            ) : (
-              <ProbationList rows={probationRows} />
-            )}
-          </AnalyticsCard>
-
-          {/* D · Document expiries */}
-          <AnalyticsCard title={x(M.analytics_docs_title)} subtitle={x(M.analytics_docs_sub)}>
-            {flattenBuckets(docBuckets).length === 0 ? (
-              <CardEmpty text={x(M.analytics_docs_empty)} />
-            ) : (
-              <ExpiryBucketsSection
-                counts={{
-                  expired: docBuckets.expired.length,
-                  within30: docBuckets.within30.length,
-                  within60: docBuckets.within60.length,
-                  within90: docBuckets.within90.length,
-                }}
-                rows={flattenBuckets(docBuckets).map(toExpiryRow)}
-              />
-            )}
-          </AnalyticsCard>
-
-          {/* E · Leave overview */}
-          <AnalyticsCard title={x(M.analytics_leave_title)} subtitle={x(M.analytics_leave_sub)}>
-            {leaveRows.length === 0 ? (
-              <CardEmpty text={x(M.analytics_leave_empty)} />
-            ) : (
-              <LeaveList rows={leaveRows} />
-            )}
-          </AnalyticsCard>
-
-          {/* F · Headcount & turnover trend */}
-          <AnalyticsCard
-            title={x(M.analytics_trend_title)}
-            subtitle={x(M.analytics_trend_sub)}
-            className="min-[900px]:col-span-2"
-          >
-            <div className="mb-[12px] flex gap-[10px]">
-              <div className="min-w-0 flex-1 rounded-[10px] border border-border-soft bg-surface-2 px-[12px] py-[10px]">
-                <div className="flex flex-wrap items-center gap-x-[10px] gap-y-[4px]">
-                  <span className="font-display text-[22px] font-bold text-text">
-                    {formatPct(turnover.ratePct, locale)}
-                  </span>
-                  <DeltaChip
-                    delta={turnoverDelta}
-                    goodWhenUp={false}
-                    label={fill(x(M.analytics_turnover_delta), {
-                      delta: formatSignedDecimal(turnoverDelta, locale),
-                      month: formatMonthISO(turnover.priorMonthISO, locale, 'long'),
-                    })}
-                  />
-                </div>
-                <div className="mt-[2px] text-[11.5px] text-text-muted">
-                  {x(M.analytics_turnover_label)}
-                </div>
-              </div>
-            </div>
+      <div className="grid grid-cols-1 gap-[14px] min-[900px]:grid-cols-2 min-[900px]:gap-[16px]">
+        {/* Compliance score — hero, windowed trend, breakdown, jurisdictions */}
+        <AnalyticsCard title={x(M.analytics_score_title)} className="min-[900px]:col-span-2">
+          <ScoreHero score={currentScore} delta={delta} />
+          <div className="mt-[10px]">
             <TrendLineChart
-              points={headcountHistory}
-              ariaLabel={x(M.analytics_trend_chart_aria).replace(
+              points={scoreHistory.map((p) => ({ monthISO: p.monthISO, value: p.score }))}
+              ariaLabel={x(M.analytics_score_chart_aria).replace(
                 '{points}',
-                headcountHistory
-                  .map((p) => `${formatMonthISO(p.monthISO, locale, 'long')} ${p.value}`)
+                scoreHistory
+                  .map((p) => `${formatMonthISO(p.monthISO, locale, 'long')} ${p.score}`)
                   .join(', '),
               )}
-              valueHeader={x(M.analytics_trend_table_value)}
+              valueHeader={x(M.analytics_score_table_score)}
+              clampMax={100}
             />
-          </AnalyticsCard>
-        </div>
+          </div>
+          <div className="mt-[14px] border-t border-border-soft pt-[14px]">
+            <div className="mb-[10px] text-[11.5px] font-bold tracking-[0.04em] uppercase text-text-muted">
+              {x(M.analytics_score_breakdown_title)}
+            </div>
+            <ScoreBreakdownMeters rows={breakdownRows} />
+          </div>
+          <div className="mt-[14px] border-t border-border-soft pt-[14px]">
+            <div className="mb-[10px] text-[11.5px] font-bold tracking-[0.04em] uppercase text-text-muted">
+              {x(M.analytics_jur_score_title)}
+            </div>
+            <ScoreBreakdownMeters rows={jurisdictionRows} />
+          </div>
+        </AnalyticsCard>
+
+        {/* Needs attention */}
+        <AnalyticsCard
+          title={x(M.analytics_attention_title)}
+          subtitle={x(M.analytics_attention_sub)}
+        >
+          {attentionRows.length === 0 ? (
+            <CardEmpty text={x(M.analytics_attention_empty)} />
+          ) : (
+            <AttentionList
+              rows={attentionRows}
+              viewAllHref="/app/compliance"
+              viewAllLabel={fill(x(M.analytics_attention_view_all), { n: ranked.length })}
+            />
+          )}
+        </AnalyticsCard>
+
+        {/* Headcount by jurisdiction */}
+        <AnalyticsCard
+          title={x(M.analytics_headcount_title)}
+          subtitle={fill(x(M.analytics_headcount_total), { n: headcountTotal })}
+        >
+          <JurisdictionBars
+            rows={headcountByJurisdiction.map((row) => ({
+              key: row.key,
+              label: x(row.label),
+              value: row.value,
+            }))}
+          />
+          <p className="mt-[10px] mb-0 text-[11.5px] text-text-faint">
+            {x(M.analytics_headcount_footnote)}
+          </p>
+        </AnalyticsCard>
+
+        {/* Open cases */}
+        <AnalyticsCard title={x(M.analytics_cases_title)}>
+          {aging === null ? (
+            <CardEmpty text={x(M.analytics_cases_empty)} />
+          ) : (
+            <>
+              <div className="mb-[12px] flex gap-[10px]">
+                <StatTile value={String(aging.openCount)} label={x(M.analytics_cases_open_now)} />
+                <StatTile value={String(aging.avgDays)} label={x(M.analytics_cases_avg_age)} />
+                <StatTile
+                  value={String(aging.oldestDays)}
+                  label={x(M.analytics_cases_oldest)}
+                  alert={aging.oldestDays > 14}
+                />
+              </div>
+              <OpenCaseRows
+                rows={aging.rows.map(({ caseRow, daysOpen }) => ({
+                  key: caseRow.id,
+                  href: `/app/cases/${caseRow.id}`,
+                  typeLabel: x(caseRow.typeLabel),
+                  jurisdiction: x(caseRow.province),
+                  openedLabel: fill(x(M.analytics_cases_opened), {
+                    date: formatDayISO(caseRow.openedISO, locale),
+                  }),
+                  daysOpen,
+                  daysLabel:
+                    daysOpen === 1
+                      ? x(M.analytics_cases_day_one)
+                      : fill(x(M.analytics_cases_days), { n: daysOpen }),
+                }))}
+              />
+            </>
+          )}
+        </AnalyticsCard>
+
+        {/* Policy acknowledgments — outstanding signatures are chased from
+              the Communications program (mockup's suggested path). */}
+        <AnalyticsCard title={x(M.analytics_ack_title)} subtitle={x(policyAcknowledgment.title)}>
+          <AckMeter ack={ack} nudgeHref="/app/communications" />
+        </AnalyticsCard>
+
+        {/* A · Certifications & training expiring */}
+        <AnalyticsCard title={x(M.analytics_certs_title)} subtitle={x(M.analytics_certs_sub)}>
+          {flattenBuckets(certBuckets).length === 0 ? (
+            <CardEmpty text={x(M.analytics_certs_empty)} />
+          ) : (
+            <ExpiryBucketsSection
+              counts={{
+                expired: certBuckets.expired.length,
+                within30: certBuckets.within30.length,
+                within60: certBuckets.within60.length,
+                within90: certBuckets.within90.length,
+              }}
+              rows={flattenBuckets(certBuckets).map(toExpiryRow)}
+            />
+          )}
+        </AnalyticsCard>
+
+        {/* C · Probation periods ending */}
+        <AnalyticsCard
+          title={x(M.analytics_probation_title)}
+          subtitle={x(M.analytics_probation_sub)}
+        >
+          {probationRows.length === 0 ? (
+            <CardEmpty text={x(M.analytics_probation_empty)} />
+          ) : (
+            <ProbationList rows={probationRows} />
+          )}
+        </AnalyticsCard>
+
+        {/* D · Document expiries */}
+        <AnalyticsCard title={x(M.analytics_docs_title)} subtitle={x(M.analytics_docs_sub)}>
+          {flattenBuckets(docBuckets).length === 0 ? (
+            <CardEmpty text={x(M.analytics_docs_empty)} />
+          ) : (
+            <ExpiryBucketsSection
+              counts={{
+                expired: docBuckets.expired.length,
+                within30: docBuckets.within30.length,
+                within60: docBuckets.within60.length,
+                within90: docBuckets.within90.length,
+              }}
+              rows={flattenBuckets(docBuckets).map(toExpiryRow)}
+            />
+          )}
+        </AnalyticsCard>
+
+        {/* E · Leave overview */}
+        <AnalyticsCard title={x(M.analytics_leave_title)} subtitle={x(M.analytics_leave_sub)}>
+          {leaveRows.length === 0 ? (
+            <CardEmpty text={x(M.analytics_leave_empty)} />
+          ) : (
+            <LeaveList rows={leaveRows} />
+          )}
+        </AnalyticsCard>
+
+        {/* F · Headcount & turnover trend */}
+        <AnalyticsCard
+          title={x(M.analytics_trend_title)}
+          subtitle={x(M.analytics_trend_sub)}
+          className="min-[900px]:col-span-2"
+        >
+          <div className="mb-[12px] flex gap-[10px]">
+            <div className="min-w-0 flex-1 rounded-[10px] border border-border-soft bg-surface-2 px-[12px] py-[10px]">
+              <div className="flex flex-wrap items-center gap-x-[10px] gap-y-[4px]">
+                <span className="font-display text-[22px] font-bold text-text">
+                  {formatPct(turnover.ratePct, locale)}
+                </span>
+                <DeltaChip
+                  delta={turnoverDelta}
+                  goodWhenUp={false}
+                  label={fill(x(M.analytics_turnover_delta), {
+                    delta: formatSignedDecimal(turnoverDelta, locale),
+                    month: formatMonthISO(turnover.priorMonthISO, locale, 'long'),
+                  })}
+                />
+              </div>
+              <div className="mt-[2px] text-[11.5px] text-text-muted">
+                {x(M.analytics_turnover_label)}
+              </div>
+            </div>
+          </div>
+          <TrendLineChart
+            points={headcountHistory}
+            ariaLabel={x(M.analytics_trend_chart_aria).replace(
+              '{points}',
+              headcountHistory
+                .map((p) => `${formatMonthISO(p.monthISO, locale, 'long')} ${p.value}`)
+                .join(', '),
+            )}
+            valueHeader={x(M.analytics_trend_table_value)}
+          />
+        </AnalyticsCard>
+      </div>
     </AppPage>
   )
 }

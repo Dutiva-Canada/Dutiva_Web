@@ -99,7 +99,10 @@ export function reportRouteError(error: unknown): void {
  * `reportError()` global, which is what `window-error` reports were already
  * catching, just without this context).
  */
-export function reportRecoverableError(error: unknown, errorInfo?: { componentStack?: string }): void {
+export function reportRecoverableError(
+  error: unknown,
+  errorInfo?: { componentStack?: string },
+): void {
   reporter?.report({
     error,
     kind: 'recoverable-error',

@@ -34,10 +34,9 @@ describe('notice schedule drift — edge copy vs client copy', () => {
 
 describe('noticeScheduleBlock', () => {
   it('injects the ladder for an Ontario notice question', () => {
-    const block = noticeScheduleBlock(
-      'How much notice do I owe a 4-year employee in Ontario?',
-      ['ON'],
-    )
+    const block = noticeScheduleBlock('How much notice do I owe a 4-year employee in Ontario?', [
+      'ON',
+    ])
     expect(block).toContain('Ontario ESA, 2000 s.57')
     expect(block).toContain('- 4 years to under 5 years: 4 weeks')
     expect(block).toContain('- 8 years or more: 8 weeks')

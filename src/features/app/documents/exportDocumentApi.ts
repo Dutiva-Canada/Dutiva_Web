@@ -1,7 +1,6 @@
 import { supabase } from '@/lib/supabaseClient'
 
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 export interface DocumentExportStorageMeta {
   storagePath: string
@@ -56,9 +55,7 @@ export async function recordDocumentExport(
     document_id: documentId,
     event_type: 'document_exported',
     actor_label: actorLabel,
-    meta: storage
-      ? `PDF · ${exportId.slice(0, 8)} · stored`
-      : `PDF · ${exportId.slice(0, 8)}`,
+    meta: storage ? `PDF · ${exportId.slice(0, 8)} · stored` : `PDF · ${exportId.slice(0, 8)}`,
   })
   if (auditError) throw auditError
 }

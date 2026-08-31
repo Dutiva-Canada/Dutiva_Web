@@ -55,18 +55,18 @@ describe('interpretSiteverify', () => {
   })
 
   it('distinguishes a replayed token from an invalid one', () => {
-    expect(interpretSiteverify({ success: false, 'error-codes': ['timeout-or-duplicate'] })).toEqual(
-      { ok: false, reason: 'duplicate_token' },
-    )
-    expect(interpretSiteverify({ success: false, 'error-codes': ['invalid-input-response'] })).toEqual(
-      { ok: false, reason: 'invalid_token' },
-    )
+    expect(
+      interpretSiteverify({ success: false, 'error-codes': ['timeout-or-duplicate'] }),
+    ).toEqual({ ok: false, reason: 'duplicate_token' })
+    expect(
+      interpretSiteverify({ success: false, 'error-codes': ['invalid-input-response'] }),
+    ).toEqual({ ok: false, reason: 'invalid_token' })
   })
 
   it('maps an absent token and provider-side faults', () => {
-    expect(interpretSiteverify({ success: false, 'error-codes': ['missing-input-response'] })).toEqual(
-      { ok: false, reason: 'missing_token' },
-    )
+    expect(
+      interpretSiteverify({ success: false, 'error-codes': ['missing-input-response'] }),
+    ).toEqual({ ok: false, reason: 'missing_token' })
     expect(interpretSiteverify({ success: false, 'error-codes': ['internal-error'] })).toEqual({
       ok: false,
       reason: 'provider_error',
@@ -119,13 +119,21 @@ describe('verifyCaptcha', () => {
     // The intake records 'unknown' when no proxy header identifies the caller;
     // forwarding it as an IP would just make the provider reject the call.
     const fetchImpl = siteverify({ success: true })
-    await verifyCaptcha({ provider: 'turnstile', secret: 's', token: 't', remoteIp: 'unknown', fetchImpl })
+    await verifyCaptcha({
+      provider: 'turnstile',
+      secret: 's',
+      token: 't',
+      remoteIp: 'unknown',
+      fetchImpl,
+    })
     expect(sentBody(fetchImpl.mock.calls[0]![1]).has('remoteip')).toBe(false)
   })
 
   it('rejects an empty token without calling the provider', async () => {
     const fetchImpl = siteverify({ success: true })
-    expect(await verifyCaptcha({ provider: 'turnstile', secret: 's', token: '', fetchImpl })).toEqual({
+    expect(
+      await verifyCaptcha({ provider: 'turnstile', secret: 's', token: '', fetchImpl }),
+    ).toEqual({
       ok: false,
       reason: 'missing_token',
     })
@@ -134,7 +142,9 @@ describe('verifyCaptcha', () => {
 
   it('reports a missing secret as bad_secret rather than verifying', async () => {
     const fetchImpl = siteverify({ success: true })
-    expect(await verifyCaptcha({ provider: 'turnstile', secret: '', token: 't', fetchImpl })).toEqual({
+    expect(
+      await verifyCaptcha({ provider: 'turnstile', secret: '', token: 't', fetchImpl }),
+    ).toEqual({
       ok: false,
       reason: 'bad_secret',
     })
@@ -160,13 +170,18 @@ describe('verifyCaptcha', () => {
   })
 
   it('fails closed when the provider returns unparseable JSON', async () => {
-    const fetchImpl = vi.fn<typeof fetch>(async () => ({
-      ok: true,
-      json: async () => {
-        throw new Error('not json')
-      },
-    }) as unknown as Response)
-    expect(await verifyCaptcha({ provider: 'turnstile', secret: 's', token: 't', fetchImpl })).toEqual({
+    const fetchImpl = vi.fn<typeof fetch>(
+      async () =>
+        ({
+          ok: true,
+          json: async () => {
+            throw new Error('not json')
+          },
+        }) as unknown as Response,
+    )
+    expect(
+      await verifyCaptcha({ provider: 'turnstile', secret: 's', token: 't', fetchImpl }),
+    ).toEqual({
       ok: false,
       reason: 'provider_error',
     })

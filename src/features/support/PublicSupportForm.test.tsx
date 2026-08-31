@@ -112,7 +112,9 @@ describe('PublicSupportForm', () => {
     await user.click(screen.getByRole('button', { name: 'Send request' }))
 
     expect(createPublicSupportTicket).toHaveBeenCalledOnce()
-    expect(createPublicSupportTicket.mock.calls[0]![0]).toMatchObject({ captchaToken: 'captcha-token' })
+    expect(createPublicSupportTicket.mock.calls[0]![0]).toMatchObject({
+      captchaToken: 'captcha-token',
+    })
   })
 
   it('explains a rejected human check rather than showing a generic failure', async () => {

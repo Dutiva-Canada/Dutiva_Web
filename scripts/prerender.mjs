@@ -47,7 +47,10 @@ const template = await readFile(path.join(dist, 'index.html'), 'utf8')
 /** TrustedSite main code ships in the marketing HTML template. The signed-in
     workspace must not load it (employee-data pages + a third-party widget). */
 function stripTrustedSite(html) {
-  return html.replace(/<script[^>]*src="https:\/\/cdn\.ywxi\.net\/js\/1\.js"[^>]*><\/script>\s*/g, '')
+  return html.replace(
+    /<script[^>]*src="https:\/\/cdn\.ywxi\.net\/js\/1\.js"[^>]*><\/script>\s*/g,
+    '',
+  )
 }
 
 /** Optional search-engine verification tags, injected from the environment

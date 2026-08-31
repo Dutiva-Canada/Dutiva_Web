@@ -22,8 +22,6 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-
-
 The `src/data/` directory provides a typed, bilingual fixture data layer that powers the entire demo workspace. All 17 files export statically-defined sample entities — employees, cases, tasks, compliance items, chat threads, documents, calendar events, memory facts, and more — that every workspace view imports centrally. No view ever inlines entity data; the barrel `src/data/index.ts` re-exports everything so that a future Supabase provider can replace this module wholesale.
 
 [src/data/index.ts:1-22]()
@@ -82,24 +80,24 @@ Sources: [src/data/index.ts:1-22](), [src/data/types.ts:1-2]()
 
 The fixture layer consists of 17 files (16 data modules + 1 test file):
 
-| File | Primary Exports | Record Count |
-|------|----------------|-------------|
-| `types.ts` | `Tone`, `FixtureAction`, `FixtureToneCard`, `Employee`, `CaseFile`, `Task`, `ComplianceItem`, `ChatThread`, `MemoryFact`, `CalendarEvent`, `DocumentTemplate`, etc. | — (types only) |
-| `employees.ts` | `employees`, `employeeDetails`, `orgStructure`, `compChanges`, `supportSignals` | 12 employees, 12 detail records, 3 org branches |
-| `cases.ts` | `cases`, `caseRiskByType`, `caseRecommendationByType`, `caseRiskAxesByType`, `caseNotes` | 4 cases |
-| `tasks.ts` | `tasks`, `taskPriorityLabels`, `taskPriorityTones` | 6 tasks |
-| `chats.ts` | `chats`, `lightFlows`, `followupReplies` | 6 chat threads, 6 light flows, multiple followup replies |
-| `compliance.ts` | `complianceItems`, `complianceScore`, `complianceCategories`, `obligations`, `regulatoryWatchlist` | 5 items, 5 categories, 8 obligations, 3 watchlist items |
-| `documents.ts` | `documentTemplates`, `documentTemplatesByKey`, `docMetaDefaults` | 10 legacy templates |
-| `policies.ts` | `policies` | 6 policies |
-| `calendar.ts` | `calendarMonth`, `calendarEvents` | 1 month, 9 events |
-| `memories.ts` | `memoryPeople`, `memoryCases`, `memoryThreads`, `seedMemoryFacts` | 3 people, 2 cases, 1 thread, 17 facts |
-| `notifications.ts` | `notifications` | 4 notifications |
-| `communications.ts` | `communications`, `communicationDetails` | 6 communications |
-| `knowledge.ts` | `knowledgeItems` | 8 articles |
-| `analytics.ts` | `demoTodayISO`, `scoreHistory`, `headcountByJurisdiction`, `headcountTotal`, `policyAcknowledgment`, `jurisdictionScores`, `headcountHistory`, `turnover` | Aggregate data |
-| `workforce.ts` | `certifications`, `employeeDocuments`, `probationEnds`, `leaveOverview` | 7 certs, 3 docs, 3 probation, 4 leave |
-| `data.test.ts` | (test suite) | — |
+| File                | Primary Exports                                                                                                                                                     | Record Count                                             |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `types.ts`          | `Tone`, `FixtureAction`, `FixtureToneCard`, `Employee`, `CaseFile`, `Task`, `ComplianceItem`, `ChatThread`, `MemoryFact`, `CalendarEvent`, `DocumentTemplate`, etc. | — (types only)                                           |
+| `employees.ts`      | `employees`, `employeeDetails`, `orgStructure`, `compChanges`, `supportSignals`                                                                                     | 12 employees, 12 detail records, 3 org branches          |
+| `cases.ts`          | `cases`, `caseRiskByType`, `caseRecommendationByType`, `caseRiskAxesByType`, `caseNotes`                                                                            | 4 cases                                                  |
+| `tasks.ts`          | `tasks`, `taskPriorityLabels`, `taskPriorityTones`                                                                                                                  | 6 tasks                                                  |
+| `chats.ts`          | `chats`, `lightFlows`, `followupReplies`                                                                                                                            | 6 chat threads, 6 light flows, multiple followup replies |
+| `compliance.ts`     | `complianceItems`, `complianceScore`, `complianceCategories`, `obligations`, `regulatoryWatchlist`                                                                  | 5 items, 5 categories, 8 obligations, 3 watchlist items  |
+| `documents.ts`      | `documentTemplates`, `documentTemplatesByKey`, `docMetaDefaults`                                                                                                    | 10 legacy templates                                      |
+| `policies.ts`       | `policies`                                                                                                                                                          | 6 policies                                               |
+| `calendar.ts`       | `calendarMonth`, `calendarEvents`                                                                                                                                   | 1 month, 9 events                                        |
+| `memories.ts`       | `memoryPeople`, `memoryCases`, `memoryThreads`, `seedMemoryFacts`                                                                                                   | 3 people, 2 cases, 1 thread, 17 facts                    |
+| `notifications.ts`  | `notifications`                                                                                                                                                     | 4 notifications                                          |
+| `communications.ts` | `communications`, `communicationDetails`                                                                                                                            | 6 communications                                         |
+| `knowledge.ts`      | `knowledgeItems`                                                                                                                                                    | 8 articles                                               |
+| `analytics.ts`      | `demoTodayISO`, `scoreHistory`, `headcountByJurisdiction`, `headcountTotal`, `policyAcknowledgment`, `jurisdictionScores`, `headcountHistory`, `turnover`           | Aggregate data                                           |
+| `workforce.ts`      | `certifications`, `employeeDocuments`, `probationEnds`, `leaveOverview`                                                                                             | 7 certs, 3 docs, 3 probation, 4 leave                    |
+| `data.test.ts`      | (test suite)                                                                                                                                                        | —                                                        |
 
 Sources: [src/data/index.ts:7-21](), [src/data/employees.ts:19-19](), [src/data/cases.ts:19-19](), [src/data/tasks.ts:7-7](), [src/data/chats.ts:14-14](), [src/data/compliance.ts:18-18](), [src/data/documents.ts:41-41](), [src/data/policies.ts:6-6](), [src/data/calendar.ts:16-16](), [src/data/memories.ts:34-34](), [src/data/notifications.ts:6-6](), [src/data/communications.ts:10-10](), [src/data/knowledge.ts:10-10](), [src/data/analytics.ts:35-35](), [src/data/workforce.ts:19-19]()
 
@@ -128,14 +126,14 @@ Fixtures never carry `onClick` handlers. Instead, actions are declarative descri
 
 [src/data/types.ts:23-29]()
 
-| `kind` | `target` resolves to |
-|--------|---------------------|
-| `'open-case'` | `/app/cases/:caseId` |
-| `'open-employee'` | `/app/employees/:employeeId` |
-| `'open-chat'` | Chat thread id |
+| `kind`              | `target` resolves to                |
+| ------------------- | ----------------------------------- |
+| `'open-case'`       | `/app/cases/:caseId`                |
+| `'open-employee'`   | `/app/employees/:employeeId`        |
+| `'open-chat'`       | Chat thread id                      |
 | `'open-compliance'` | `/app/compliance` (optional target) |
-| `'open-view'` | Arbitrary app route |
-| `'draft-doc'` | Template key → DocStudio overlay |
+| `'open-view'`       | Arbitrary app route                 |
+| `'draft-doc'`       | Template key → DocStudio overlay    |
 
 This separation ensures fixtures remain serializable and free of React dependencies.
 
@@ -180,20 +178,20 @@ Sources: [src/data/types.ts:59-73](), [src/data/types.ts:159-181](), [src/data/t
 
 ### Key Entity Interfaces
 
-| Interface | Key Fields | ID Pattern |
-|-----------|-----------|------------|
-| `Employee` | `id`, `name`, `role: Bi`, `dept: Bi`, `province: Bi`, `status: Bi`, `tone`, `risk` | `e1`–`e12` |
-| `CaseFile` | `id`, `title: Bi`, `type: CaseType`, `empId`, `chatId`, `steps`, `openedISO` | `case1`–`case4` |
-| `Task` | `id`, `title: Bi`, `due: Bi`, `priority`, `chatId`, `owner`, `jur: Bi` | `tk1`–`tk6` |
-| `ChatThread` | `id`, `title: Bi`, `folder: Bi`, `bucket`, `flowKey`, `messages[]` | `c1`–`c6` |
-| `ComplianceItem` | `id`, `severity`, `title: Bi`, `chatId`, `citations[]`, `dueISO?` | `ci1`–`ci5` |
-| `DocumentTemplate` | `key`, `title: Bi`, `category: Bi`, `sections: Bi[]`, `highRisk`, `meta?` | title-string keys |
-| `CalendarEvent` | `id`, `day`, `dateLabel: Bi`, `label: Bi`, `tone` | `cal-*` |
-| `MemoryFact` | `id`, `scope`, `entityId`, `category`, `statement: Bi`, `confidence`, `visibility` | `p1`–`p9`, `c1`–`c4`, `t1`–`t2`, `a1`–`a2`, `d1` |
-| `Obligation` | `id`, `area: Bi`, `statute: Bi`, `title: Bi`, `jur`, `dueISO`, `status` | `ob1`–`ob8` |
-| `Policy` | `id`, `title: Bi`, `status: Bi`, `tone`, `updated: Bi` | `p1`–`p6` |
-| `Communication` | `id`, `title: Bi`, `audience: Bi`, `status: Bi`, `tone` | `cm1`–`cm6` |
-| `KnowledgeItem` | `id`, `title: Bi`, `tag: Bi` | `k1`–`k8` |
+| Interface          | Key Fields                                                                         | ID Pattern                                       |
+| ------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `Employee`         | `id`, `name`, `role: Bi`, `dept: Bi`, `province: Bi`, `status: Bi`, `tone`, `risk` | `e1`–`e12`                                       |
+| `CaseFile`         | `id`, `title: Bi`, `type: CaseType`, `empId`, `chatId`, `steps`, `openedISO`       | `case1`–`case4`                                  |
+| `Task`             | `id`, `title: Bi`, `due: Bi`, `priority`, `chatId`, `owner`, `jur: Bi`             | `tk1`–`tk6`                                      |
+| `ChatThread`       | `id`, `title: Bi`, `folder: Bi`, `bucket`, `flowKey`, `messages[]`                 | `c1`–`c6`                                        |
+| `ComplianceItem`   | `id`, `severity`, `title: Bi`, `chatId`, `citations[]`, `dueISO?`                  | `ci1`–`ci5`                                      |
+| `DocumentTemplate` | `key`, `title: Bi`, `category: Bi`, `sections: Bi[]`, `highRisk`, `meta?`          | title-string keys                                |
+| `CalendarEvent`    | `id`, `day`, `dateLabel: Bi`, `label: Bi`, `tone`                                  | `cal-*`                                          |
+| `MemoryFact`       | `id`, `scope`, `entityId`, `category`, `statement: Bi`, `confidence`, `visibility` | `p1`–`p9`, `c1`–`c4`, `t1`–`t2`, `a1`–`a2`, `d1` |
+| `Obligation`       | `id`, `area: Bi`, `statute: Bi`, `title: Bi`, `jur`, `dueISO`, `status`            | `ob1`–`ob8`                                      |
+| `Policy`           | `id`, `title: Bi`, `status: Bi`, `tone`, `updated: Bi`                             | `p1`–`p6`                                        |
+| `Communication`    | `id`, `title: Bi`, `audience: Bi`, `status: Bi`, `tone`                            | `cm1`–`cm6`                                      |
+| `KnowledgeItem`    | `id`, `title: Bi`, `tag: Bi`                                                       | `k1`–`k8`                                        |
 
 Sources: [src/data/types.ts:59-73](), [src/data/types.ts:159-181](), [src/data/types.ts:210-222](), [src/data/types.ts:239-255](), [src/data/types.ts:226-232](), [src/data/types.ts:265-285](), [src/data/types.ts:378-408](), [src/data/types.ts:492-502](), [src/data/types.ts:514-532](), [src/data/types.ts:556-575]()
 
@@ -255,6 +253,7 @@ All fixtures model a fictional company called **Northgate Logistics Inc.**, an 8
 [src/data/analytics.ts:24-27]()
 
 The diorama includes:
+
 - **12 individually modelled employees** spanning Ontario, BC, Quebec, Alberta, and Federal jurisdictions
 - **4 active cases**: a high-risk termination (Jordan Mensah), a PIP (Devon Clarke), a medical accommodation (Amara Okafor), and a resolved onboarding (Marc-Étienne Roy)
 - **6 Advisor chat threads** covering termination, hiring, policy, performance, accommodation, and onboarding scenarios
@@ -280,6 +279,7 @@ Sources: [src/data/employees.ts:24-26](), [src/data/types.ts:7-10]()
 ## View Consumption Pattern
 
 Views import fixture data from `@/data` and never inline entity data. Each view checks `workspaceMode` and branches:
+
 - **Demo mode**: renders the Northgate fixtures below
 - **Production mode**: renders a `*ProductionView` component that reads live Supabase data
 
@@ -317,6 +317,7 @@ Sources: [src/features/app/views/employees/EmployeesView.tsx:27-31](), [src/feat
 ## Document Template Resolution
 
 Document references use a dual resolution system. Chat messages, employee files, and followup replies reference documents by either:
+
 1. **Legacy title-string keys** (e.g. `'Termination Letter'`) — resolved via `documentTemplatesByKey`
 2. **Doclib TIDs** (e.g. `'T03'`, `'T17'`) — resolved via `templateByTid` and `customTemplateByTid`
 
@@ -334,13 +335,13 @@ Sources: [src/features/app/docstudio/resolveDocTitle.ts:1-19](), [src/features/a
 
 Some fixture files export computed values derived from other fixtures:
 
-| Export | Derivation | File |
-|--------|-----------|------|
-| `documentTemplatesByKey` | `Object.fromEntries(documentTemplates.map(t => [t.key, t]))` | `documents.ts` |
-| `headcountTotal` | `headcountByJurisdiction.reduce(...)` | `analytics.ts` |
-| `demoTodayISO` | Derived from `calendarMonth.year`, `monthIndex`, `todayDay` | `analytics.ts` |
-| `policyAcknowledgment.total` | Uses `headcountTotal` | `analytics.ts` |
-| `scoreHistory[5].score` | Uses `complianceScore` (82) | `analytics.ts` |
+| Export                       | Derivation                                                   | File           |
+| ---------------------------- | ------------------------------------------------------------ | -------------- |
+| `documentTemplatesByKey`     | `Object.fromEntries(documentTemplates.map(t => [t.key, t]))` | `documents.ts` |
+| `headcountTotal`             | `headcountByJurisdiction.reduce(...)`                        | `analytics.ts` |
+| `demoTodayISO`               | Derived from `calendarMonth.year`, `monthIndex`, `todayDay`  | `analytics.ts` |
+| `policyAcknowledgment.total` | Uses `headcountTotal`                                        | `analytics.ts` |
+| `scoreHistory[5].score`      | Uses `complianceScore` (82)                                  | `analytics.ts` |
 
 This ensures derived values always stay in sync with their sources.
 
@@ -390,19 +391,19 @@ Verifies that every collection has globally unique IDs within its domain — emp
 
 Nine test cases verify that every foreign-key reference resolves to an existing entity:
 
-| Test | Assertion |
-|------|-----------|
-| Tasks → chats | Every `task.chatId` exists in `chats` |
-| Cases → employees + chats | Every `case.empId` and `case.chatId` resolve |
-| Compliance → chats | Every `complianceItem.chatId` resolves |
-| Employee risks → chats | Every `employee.risk.chatId` resolves (when non-null) |
-| Employee details | Every employee has a detail record; detail `.docs` resolve to `docKeys`, `.cases` to `caseIds`, timeline `docKey`/`caseId` entries resolve |
-| Chat message docs + followups | Message `.docs` resolve to doc keys; `.followups` resolve to `followupReplies` keys |
-| Light flows | Same doc/followup resolution as chat messages |
-| Followup replies | Keyed by EN label; `.docs` resolve |
-| Org graph + comp changes + signals | All employee ID references resolve |
-| Communications | Unique IDs; each has a matching detail record |
-| Case notes | Every key resolves to an existing case |
+| Test                               | Assertion                                                                                                                                  |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Tasks → chats                      | Every `task.chatId` exists in `chats`                                                                                                      |
+| Cases → employees + chats          | Every `case.empId` and `case.chatId` resolve                                                                                               |
+| Compliance → chats                 | Every `complianceItem.chatId` resolves                                                                                                     |
+| Employee risks → chats             | Every `employee.risk.chatId` resolves (when non-null)                                                                                      |
+| Employee details                   | Every employee has a detail record; detail `.docs` resolve to `docKeys`, `.cases` to `caseIds`, timeline `docKey`/`caseId` entries resolve |
+| Chat message docs + followups      | Message `.docs` resolve to doc keys; `.followups` resolve to `followupReplies` keys                                                        |
+| Light flows                        | Same doc/followup resolution as chat messages                                                                                              |
+| Followup replies                   | Keyed by EN label; `.docs` resolve                                                                                                         |
+| Org graph + comp changes + signals | All employee ID references resolve                                                                                                         |
+| Communications                     | Unique IDs; each has a matching detail record                                                                                              |
+| Case notes                         | Every key resolves to an existing case                                                                                                     |
 
 [src/data/data.test.ts:36-157]()
 
@@ -488,6 +489,7 @@ flowchart LR
 ```
 
 The two key conventions that enable this:
+
 1. **Views never inline entity data** — all data comes through the `@/data` import path
 2. **Fixtures are declarative** — no `onClick` handlers, no React dependencies, no side effects; `FixtureAction` descriptors are interpreted by the view layer
 

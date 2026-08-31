@@ -6,11 +6,11 @@ This folder is a **full copy** of the [GitHub wiki](https://github.com/Dutiva-Ca
 
 ## Relationship to other docs
 
-| Location | Role |
-| --- | --- |
-| **`docs/wiki/`** (this folder) | Broad architecture and module map — synced from GitHub wiki |
-| **`docs/`** (siblings) | Load-bearing specs, facts, runbooks, handoffs — edited in-repo only |
-| **`AGENTS.md` / `CONVENTIONS.md`** | Agent and engineering conventions at repo root |
+| Location                           | Role                                                                |
+| ---------------------------------- | ------------------------------------------------------------------- |
+| **`docs/wiki/`** (this folder)     | Broad architecture and module map — synced from GitHub wiki         |
+| **`docs/`** (siblings)             | Load-bearing specs, facts, runbooks, handoffs — edited in-repo only |
+| **`AGENTS.md` / `CONVENTIONS.md`** | Agent and engineering conventions at repo root                      |
 
 Where this wiki disagrees with **`docs/CANONICAL_FACTS.md`** or the code on a load-bearing fact, **the code and CANONICAL_FACTS win** — same rule as everywhere else in the repo.
 

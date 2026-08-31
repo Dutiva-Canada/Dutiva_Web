@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2026 
+ *   Copyright (c) 2026
  *   All rights reserved.
  */
 /**
@@ -198,7 +198,9 @@ try {
     )
     process.exit(1)
   }
-  console.log(`check-rls: positive control ${POSITIVE_CONTROL} readable (${control.count} row(s)) — anon key valid`)
+  console.log(
+    `check-rls: positive control ${POSITIVE_CONTROL} readable (${control.count} row(s)) — anon key valid`,
+  )
 } catch (error) {
   /* A network failure must not read as "all locked down". */
   console.error(`check-rls: could not reach ${base} — ${error.message}`)
@@ -254,4 +256,6 @@ if (problems.length > 0) {
   process.exit(1)
 }
 
-console.log(`check-rls: OK — ${SENSITIVE_TABLES.length} sensitive table(s) locked down, control verified`)
+console.log(
+  `check-rls: OK — ${SENSITIVE_TABLES.length} sensitive table(s) locked down, control verified`,
+)

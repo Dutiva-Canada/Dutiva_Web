@@ -26,19 +26,19 @@ The repository references these sources in:
 
 Public law is the **input**. Dutiva's proprietary work is the **selection, normalization, interpretation, encoding, and workflow integration** of that law. The following are Dutiva IP and should not be open-sourced:
 
-| Proprietary element | Why it is Dutiva IP | Location examples |
-|---|---|---|
-| **Normalized compliance rules** | Choice of which statutes to cover, which topics to prioritize, and how to present them. | `docs/FOUR_RING_FRAMEWORK.md`, `src/data/compliance.ts` |
-| **Decision trees** | Step-by-step workflows that turn legal concepts into employer actions. | `src/features/app/flows/data/mentalHealthResponse.ts`, `src/features/app/documents/data/templates/*` |
-| **Mappings** | Jurisdiction → template → risk → obligation mappings. | `src/features/app/documents/catalogue.ts`, `src/data/compliance.ts` |
-| **Interpretations** | Decisions about what a statute means in the context of a specific HR workflow. | `docs/notice-bands-review-pack.md`, `docs/advisor-corpus-review-pack-ontario.md` |
-| **Workflow logic** | How a termination, accommodation, or leave process flows through Dutiva. | `src/features/app/flows/*`, `src/features/app/documents/screens/GenerateScreen.tsx` |
-| **Risk models** | Severity weights, critical-capped scoring, risk classification. | `src/features/app/views/analytics/aggregation.ts`, `docs/SCORING_LOGIC.md` |
-| **Internal classifications** | `review_status`, `risk_level`, `restricted`, `provenanced` semantics. | Database migrations, `src/features/support/triage.ts` |
-| **Retrieval strategies** | How queries are transformed, ranked, and injected into prompts. | `supabase/functions/advisor-chat/retrievalQuery.ts`, `supabase/migrations/0023_match_advisor_guidance.sql` |
-| **Curated summaries** | Machine-curated and human-reviewed chunks in the guidance corpus. | `docs/advisor-guidance-corpus*.md`, `advisor_guidance_chunks` |
-| **Proprietary annotations** | `effective_note`, `review_status`, Dutiva-authored warnings. | `advisor_guidance_chunks`, response payload |
-| **Internal methodologies** | The "LLM proposes, deterministic code disposes" framework and the five-gate test. | `docs/AI_USAGE_STRATEGY.md` |
+| Proprietary element             | Why it is Dutiva IP                                                                     | Location examples                                                                                          |
+| ------------------------------- | --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Normalized compliance rules** | Choice of which statutes to cover, which topics to prioritize, and how to present them. | `docs/FOUR_RING_FRAMEWORK.md`, `src/data/compliance.ts`                                                    |
+| **Decision trees**              | Step-by-step workflows that turn legal concepts into employer actions.                  | `src/features/app/flows/data/mentalHealthResponse.ts`, `src/features/app/documents/data/templates/*`       |
+| **Mappings**                    | Jurisdiction → template → risk → obligation mappings.                                   | `src/features/app/documents/catalogue.ts`, `src/data/compliance.ts`                                        |
+| **Interpretations**             | Decisions about what a statute means in the context of a specific HR workflow.          | `docs/notice-bands-review-pack.md`, `docs/advisor-corpus-review-pack-ontario.md`                           |
+| **Workflow logic**              | How a termination, accommodation, or leave process flows through Dutiva.                | `src/features/app/flows/*`, `src/features/app/documents/screens/GenerateScreen.tsx`                        |
+| **Risk models**                 | Severity weights, critical-capped scoring, risk classification.                         | `src/features/app/views/analytics/aggregation.ts`, `docs/SCORING_LOGIC.md`                                 |
+| **Internal classifications**    | `review_status`, `risk_level`, `restricted`, `provenanced` semantics.                   | Database migrations, `src/features/support/triage.ts`                                                      |
+| **Retrieval strategies**        | How queries are transformed, ranked, and injected into prompts.                         | `supabase/functions/advisor-chat/retrievalQuery.ts`, `supabase/migrations/0023_match_advisor_guidance.sql` |
+| **Curated summaries**           | Machine-curated and human-reviewed chunks in the guidance corpus.                       | `docs/advisor-guidance-corpus*.md`, `advisor_guidance_chunks`                                              |
+| **Proprietary annotations**     | `effective_note`, `review_status`, Dutiva-authored warnings.                            | `advisor_guidance_chunks`, response payload                                                                |
+| **Internal methodologies**      | The "LLM proposes, deterministic code disposes" framework and the five-gate test.       | `docs/AI_USAGE_STRATEGY.md`                                                                                |
 
 **Rule:** Even when a chunk quotes public law verbatim, the surrounding selection, tagging, review workflow, and integration are proprietary. A public release may include only raw statute URLs and citations, not Dutiva's curated corpus or interpretation.
 
@@ -178,18 +178,18 @@ It must **not**:
 
 ## 9. Summary
 
-| Material | Status | Can be open-sourced? |
-|---|---|---|
-| Raw public statutes and government URLs | Public | Yes, by reference only |
-| Dutiva's curated corpus, tags, and review status | Proprietary | No |
-| Document templates and statutory meta-data | Proprietary | No |
-| Compliance scoring formula and risk models | Proprietary | No |
-| System prompts and safety phrase sets | Proprietary | No |
-| Northgate Logistics fixtures | Dutiva creative content | No (use synthetic samples instead) |
-| Customer/employee data | Confidential / regulated | No |
-| Design handoffs and methodology docs | Confidential | No |
-| Dutiva trademarks and brand assets | Trademark-protected | No |
-| Generic UI/i18n/infra code | Reusable tooling | Yes, after removing Dutiva defaults |
+| Material                                         | Status                   | Can be open-sourced?                |
+| ------------------------------------------------ | ------------------------ | ----------------------------------- |
+| Raw public statutes and government URLs          | Public                   | Yes, by reference only              |
+| Dutiva's curated corpus, tags, and review status | Proprietary              | No                                  |
+| Document templates and statutory meta-data       | Proprietary              | No                                  |
+| Compliance scoring formula and risk models       | Proprietary              | No                                  |
+| System prompts and safety phrase sets            | Proprietary              | No                                  |
+| Northgate Logistics fixtures                     | Dutiva creative content  | No (use synthetic samples instead)  |
+| Customer/employee data                           | Confidential / regulated | No                                  |
+| Design handoffs and methodology docs             | Confidential             | No                                  |
+| Dutiva trademarks and brand assets               | Trademark-protected      | No                                  |
+| Generic UI/i18n/infra code                       | Reusable tooling         | Yes, after removing Dutiva defaults |
 
 ---
 

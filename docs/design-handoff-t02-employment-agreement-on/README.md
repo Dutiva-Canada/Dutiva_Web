@@ -59,7 +59,7 @@ field. Departures from a literal transcription:
   schedule only if...") is a gate, not prose to render unconditionally.
 - **No case-law citations were added.** The source cites only statutes (ESA,
   Ontario Human Rights Code, Occupational Health and Safety Act); unlike the
-  template this replaced, no *Waksdale*/*McKinley*/*Meiorin* citations were
+  template this replaced, no _Waksdale_/_McKinley_/_Meiorin_ citations were
   carried over, since they were not part of the supplied content.
 - **Sample fixture updated**: `src/features/app/documents/data/documents.ts`'s
   `doc_002` previously depicted a Québec employee (Léa Tremblay) receiving a

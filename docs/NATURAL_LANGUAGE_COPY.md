@@ -5,7 +5,7 @@ repo: marketing pages, UI strings, FAQ, changelog, help, comparison copy,
 and Advisor chrome. Engineering tone in code comments is out of scope.
 
 **Facts and claims** still come from [CANONICAL_FACTS.md](./CANONICAL_FACTS.md).
-This document governs *how* we say true things — not what we are allowed to
+This document governs _how_ we say true things — not what we are allowed to
 assert.
 
 Cursor agents also load a short always-on summary in
@@ -18,17 +18,17 @@ but oddly robotic.” We model **communication**, not just next-token language.
 
 Humans continuously decide:
 
-| Decision | Question |
-| --- | --- |
-| Intent | What am I trying to accomplish on *this* surface? |
-| Audience | Who is reading (employer, HR lead, consultant)? |
-| Context | What do they already know from the page above? |
-| Tone | Formal, direct, cautious — match the relationship |
-| Density | What can stay unsaid? |
-| Rhythm | Short. Then longer. A fragment when it earns it. |
-| Emphasis | Which point actually matters? |
+| Decision   | Question                                             |
+| ---------- | ---------------------------------------------------- |
+| Intent     | What am I trying to accomplish on _this_ surface?    |
+| Audience   | Who is reading (employer, HR lead, consultant)?      |
+| Context    | What do they already know from the page above?       |
+| Tone       | Formal, direct, cautious — match the relationship    |
+| Density    | What can stay unsaid?                                |
+| Rhythm     | Short. Then longer. A fragment when it earns it.     |
+| Emphasis   | Which point actually matters?                        |
 | Social fit | Would this sound patronizing, salesy, or artificial? |
-| Revision | Read it back — is any line awkward or generic? |
+| Revision   | Read it back — is any line awkward or generic?       |
 
 The last step is mandatory: **draft → evaluate → revise**.
 
@@ -86,14 +86,14 @@ Uncontrolled randomness is not.
 
 ## Surface-specific notes
 
-| Surface | Voice |
-| --- | --- |
-| Marketing hero / CTAs | One job, concrete; no slogan-ese |
-| FAQ / Known limitations | Plain limits; no fake confidence |
-| Comparison pages | Specific, hedged competitor claims; no cheerleading |
-| App empty states / errors | Short; “Couldn't X. Try again.” |
-| Advisor workspace chrome | What the panel *shows*, not how it is built |
-| Usage limits | One short clause that the rest of the product still works |
+| Surface                   | Voice                                                     |
+| ------------------------- | --------------------------------------------------------- |
+| Marketing hero / CTAs     | One job, concrete; no slogan-ese                          |
+| FAQ / Known limitations   | Plain limits; no fake confidence                          |
+| Comparison pages          | Specific, hedged competitor claims; no cheerleading       |
+| App empty states / errors | Short; “Couldn't X. Try again.”                           |
+| Advisor workspace chrome  | What the panel _shows_, not how it is built               |
+| Usage limits              | One short clause that the rest of the product still works |
 
 ## Style as policy (Martin / Dutiva)
 

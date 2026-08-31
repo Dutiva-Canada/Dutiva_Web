@@ -93,7 +93,8 @@ const CAPTCHA_PROVIDER = (() => {
 type CaptchaResult = { ok: true } | { ok: false; reason: string }
 
 function interpretSiteverify(payload: unknown): CaptchaResult {
-  if (typeof payload !== 'object' || payload === null) return { ok: false, reason: 'provider_error' }
+  if (typeof payload !== 'object' || payload === null)
+    return { ok: false, reason: 'provider_error' }
   const record = payload as { success?: unknown; 'error-codes'?: unknown }
   if (record.success === true) return { ok: true }
   const codes = Array.isArray(record['error-codes'])
@@ -211,9 +212,10 @@ Deno.serve(async (req: Request) => {
   }
 
   const company = optionalStr(body.company, 200)
-  const province = typeof body.province === 'string' && body.province.trim() !== ''
-    ? oneOf(body.province, PROVINCES, 'other')
-    : null
+  const province =
+    typeof body.province === 'string' && body.province.trim() !== ''
+      ? oneOf(body.province, PROVINCES, 'other')
+      : null
   const language = oneOf(body.language, LANGUAGES, 'en')
   const source = oneOf(body.source, SOURCES, 'landing')
 
@@ -257,7 +259,10 @@ Deno.serve(async (req: Request) => {
   ])
   if ((ipCount ?? 0) >= IP_LIMIT || (emailCount ?? 0) >= EMAIL_LIMIT) {
     return json(
-      { error: 'Too many requests in a short time. Please try again later, or email support@dutiva.ca.' },
+      {
+        error:
+          'Too many requests in a short time. Please try again later, or email support@dutiva.ca.',
+      },
       429,
     )
   }
@@ -322,7 +327,8 @@ Deno.serve(async (req: Request) => {
         payload: {},
       },
     ])
-    if (notifyError) console.error('create-beta-signup: could not enqueue alert', notifyError.message)
+    if (notifyError)
+      console.error('create-beta-signup: could not enqueue alert', notifyError.message)
   }
 
   return json({ data: { ok: true, cohort_full: cohortFull } })

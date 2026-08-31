@@ -201,9 +201,9 @@ Understand immediate and short-term administrative steps.
 
 ## AI vs deterministic workflow modes
 
-| Mode | User experience | System behaviour |
-|---|---|---|
-| **Deterministic** | Structured intake with branching questions. | Rule-based classification, fixed knowledge retrieval, deterministic next steps. |
-| **AI-assisted** | Free-text description + optional clarifying questions. | LLM proposes situation, jurisdiction, and next steps; deterministic rules confirm, gate, and ground. |
+| Mode              | User experience                                        | System behaviour                                                                                     |
+| ----------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| **Deterministic** | Structured intake with branching questions.            | Rule-based classification, fixed knowledge retrieval, deterministic next steps.                      |
+| **AI-assisted**   | Free-text description + optional clarifying questions. | LLM proposes situation, jurisdiction, and next steps; deterministic rules confirm, gate, and ground. |
 
 Both modes SHALL use the same safety backstop (crisis intercept, jurisdiction gate, statutory-figure gate, escalation gate).

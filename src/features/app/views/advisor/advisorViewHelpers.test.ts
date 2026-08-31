@@ -38,9 +38,9 @@ describe('advisorViewHelpers', () => {
   })
 
   it('resolveStartFlowKey prefers explicit flowKey', () => {
-    expect(
-      resolveStartFlowKey({ prompt: 'hello', flowKey: 'termination' }, 'signed-out'),
-    ).toBe('termination')
+    expect(resolveStartFlowKey({ prompt: 'hello', flowKey: 'termination' }, 'signed-out')).toBe(
+      'termination',
+    )
   })
 
   it('buildAdvisorThreadGroups omits empty buckets and tags keys', () => {

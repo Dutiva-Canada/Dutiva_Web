@@ -26,11 +26,7 @@ function AppWordmark() {
       className="flex w-fit items-center gap-2.5 rounded-lg transition-opacity hover:opacity-80"
     >
       {/* Decorative: the adjacent wordmark text already names the brand. */}
-      <img
-        src="/brand/dutiva-leaf.png"
-        alt=""
-        className="block h-6.5 w-auto logo-glow"
-      />
+      <img src="/brand/dutiva-leaf.png" alt="" className="block h-6.5 w-auto logo-glow" />
       <span className="font-display text-[17px] font-bold tracking-[-0.01em]">
         Duti<span className="text-gold-dot">va</span>
       </span>
@@ -49,9 +45,7 @@ function BrandRail() {
   const points = [M.auth_brand_point_1, M.auth_brand_point_2, M.auth_brand_point_3]
 
   return (
-    <aside
-      className="entry-brand-rail relative hidden w-[45%] max-w-150 shrink-0 flex-col justify-between overflow-hidden px-13 py-11 lg:flex"
-    >
+    <aside className="entry-brand-rail relative hidden w-[45%] max-w-150 shrink-0 flex-col justify-between overflow-hidden px-13 py-11 lg:flex">
       {/* Gold glow accents */}
       <div
         aria-hidden="true"

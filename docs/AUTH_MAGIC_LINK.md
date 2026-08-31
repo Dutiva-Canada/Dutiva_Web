@@ -8,7 +8,7 @@ is defined in `src/features/app/auth/allowedEmail.ts`.
 
 1. On `/app/welcome`, the user enters their email. `AuthProvider.signInWithEmail`
    calls `supabase.auth.signInWithOtp({ email, options: { emailRedirectTo:
-   \`${window.location.origin}/app/auth/confirm\` } })`.
+\`${window.location.origin}/app/auth/confirm\` } })`.
 2. Supabase emails a link. The user clicks it and lands on
    **`/app/auth/confirm`** with a one-time `token_hash` in the query string.
 3. `AuthConfirm` (`src/features/app/auth/AuthConfirm.tsx`) calls
@@ -18,8 +18,8 @@ is defined in `src/features/app/auth/allowedEmail.ts`.
 Verifying in the browser (rather than via Supabase's default
 `/auth/v1/verify` GET link) is deliberate: email-provider link scanners
 (Gmail/Outlook) prefetch URLs, and a GET verify link spends its one-time token
-the moment a scanner touches it — the classic *"Email link is invalid or has
-expired."* A `token_hash` + `verifyOtp` link is only spent when JavaScript runs,
+the moment a scanner touches it — the classic _"Email link is invalid or has
+expired."_ A `token_hash` + `verifyOtp` link is only spent when JavaScript runs,
 which scanners don't do. It also needs no PKCE code-verifier, so a link opened
 on a different device than it was requested from still works.
 
@@ -46,7 +46,7 @@ https://dutiva-*-…-dutiva-canada.vercel.app/**  # preview deployments
 
 **Wildcards match paths only if you ask them to.** `*` stops at `/`; `**`
 spans separators; an entry with no path segment matches only the bare origin.
-So `http://localhost:5173/auth` does *not* allow
+So `http://localhost:5173/auth` does _not_ allow
 `http://localhost:5173/app/auth/confirm`, and neither does a bare
 `https://dutiva-*-dutiva-canada.vercel.app`. This is exactly how the project
 drifted: the allow-list still held exact-path entries from an older `/auth`
@@ -72,9 +72,7 @@ Change the template body so the link points at the confirm route with a
 `token_hash`, instead of the default `{{ .ConfirmationURL }}`:
 
 ```html
-<a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=magiclink">
-  Sign in to Dutiva
-</a>
+<a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=magiclink"> Sign in to Dutiva </a>
 ```
 
 `{{ .RedirectTo }}` resolves to the `emailRedirectTo` we pass
@@ -95,12 +93,12 @@ stop a scanner from burning a `{{ .ConfirmationURL }}` token before the click).
 
 ## Symptoms → cause
 
-| What the user sees | Most likely cause |
-| --- | --- |
-| Click lands on `dutiva.ca` home page, still signed out | Confirm URL missing from **Redirect URLs**, so Supabase used the **Site URL**. Fix §1 (the safety net now also forwards these). |
-| "Email link is invalid or has expired" without clicking, or on first click | Template still uses `{{ .ConfirmationURL }}`; a scanner burned the token. Fix §3. |
-| No email arrives | Email not the allowed account (`allowedEmail.ts`), or SMTP/rate limits in Supabase Auth. |
-| Confirm page shows "couldn't confirm" | Token genuinely expired/reused, or `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` not set in the deployment. |
+| What the user sees                                                         | Most likely cause                                                                                                               |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Click lands on `dutiva.ca` home page, still signed out                     | Confirm URL missing from **Redirect URLs**, so Supabase used the **Site URL**. Fix §1 (the safety net now also forwards these). |
+| "Email link is invalid or has expired" without clicking, or on first click | Template still uses `{{ .ConfirmationURL }}`; a scanner burned the token. Fix §3.                                               |
+| No email arrives                                                           | Email not the allowed account (`allowedEmail.ts`), or SMTP/rate limits in Supabase Auth.                                        |
+| Confirm page shows "couldn't confirm"                                      | Token genuinely expired/reused, or `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` not set in the deployment.                    |
 
 ## Environment variables
 
@@ -142,7 +140,7 @@ What actually reduces the risk, and is in place or recommended:
 - **Constrain exfiltration with CSP** — shipped 2026-08-08 (Report-Only;
   promote to enforcing per `docs/SECURITY_HEADERS.md`). A tight `connect-src`
   is what limits where a stolen token could be sent.
-- **Shrink the value of a stolen refresh token** — *owner action:* enable
+- **Shrink the value of a stolen refresh token** — _owner action:_ enable
   **refresh-token rotation with reuse detection** in the Supabase dashboard
   (Authentication → Sessions). With rotation on, a replayed refresh token
   revokes the session, so a token lifted from storage is far less durable.

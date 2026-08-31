@@ -16,7 +16,10 @@ export function TestimonialWall() {
   if (entries.length === 0) return null
 
   return (
-    <section id="testimonials" className="mx-auto max-w-[1200px] scroll-mt-[80px] px-4 py-8 sm:px-6 sm:py-10">
+    <section
+      id="testimonials"
+      className="mx-auto max-w-[1200px] scroll-mt-[80px] px-4 py-8 sm:px-6 sm:py-10"
+    >
       <SectionIntro
         badge={lt('landing_testimonials_badge')}
         title={lt('landing_testimonials_title')}

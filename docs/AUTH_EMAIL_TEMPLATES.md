@@ -28,21 +28,21 @@
 On **2026-08-08** sign-in was broken for the admin account. The auth logs told
 the whole story:
 
-| Time (UTC) | Event | Source |
-| --- | --- | --- |
-| 17:02:05 | magic link emailed | — |
-| 17:02:38 | `POST /verify` → **200, login succeeded** | 74.125.184.186 (**Google**) |
-| 17:02:39 | `GET /user` → 200, then silence | 74.125.184.186 (**Google**) |
-| 17:03:40 | `POST /verify` → **403** `otp_expired` | 104.28.132.22 (the user) |
-| 17:04:51 | `POST /verify` → **403** `otp_expired` | 172.253.15.224 (Google) |
-| 17:05:15 | `POST /verify` → **403** `otp_expired` | 104.28.132.27 (the user) |
+| Time (UTC) | Event                                     | Source                      |
+| ---------- | ----------------------------------------- | --------------------------- |
+| 17:02:05   | magic link emailed                        | —                           |
+| 17:02:38   | `POST /verify` → **200, login succeeded** | 74.125.184.186 (**Google**) |
+| 17:02:39   | `GET /user` → 200, then silence           | 74.125.184.186 (**Google**) |
+| 17:03:40   | `POST /verify` → **403** `otp_expired`    | 104.28.132.22 (the user)    |
+| 17:04:51   | `POST /verify` → **403** `otp_expired`    | 172.253.15.224 (Google)     |
+| 17:05:15   | `POST /verify` → **403** `otp_expired`    | 104.28.132.27 (the user)    |
 
 Google Workspace's pre-delivery link scanner opened the link 33 seconds after
 the email was sent, **ran the page's JavaScript**, completed `verifyOtp`, and
 threw the resulting session away. The one-time token was spent, so every real
 click afterwards failed with "One-time token not found".
 
-`AuthConfirm.tsx` had already been built to defeat *prefetching* scanners — it
+`AuthConfirm.tsx` had already been built to defeat _prefetching_ scanners — it
 uses `token_hash` + `verifyOtp` in the browser rather than Supabase's default
 GET `/auth/v1/verify` link. The assumption it rested on, stated in its own
 comment, was that a scanner has "no JS". That assumption was wrong.
@@ -77,7 +77,7 @@ the markup here is the same content, for pasting into the dashboard instead.
 ---
 
 > **Note.** `{{ .Token }}` (the 6-digit code) and `{{ .TokenHash }}` (used in
-> the link) are two representations of the *same* one-time credential —
+> the link) are two representations of the _same_ one-time credential —
 > spending either spends both. That is safe now only because the link no longer
 > auto-spends. Keep both in the email: the link is the fast path, the code is
 > the one that always works.
@@ -91,7 +91,10 @@ the markup here is the same content, for pasting into the dashboard instead.
 <p style="font-size:28px;font-weight:700;letter-spacing:6px;">{{ .Token }}</p>
 <p>Enter it on the sign-in screen. It expires shortly and can be used once.</p>
 
-<p>Or <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=magiclink">sign in on this device</a>.</p>
+<p>
+  Or
+  <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=magiclink">sign in on this device</a>.
+</p>
 ```
 
 ### Confirm signup

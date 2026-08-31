@@ -8,9 +8,7 @@ import type { SupportTicketSummary } from '@/features/support/supportApi'
 import { SupportSectionNav } from './SupportSectionNav'
 
 type State =
-  | { kind: 'loading' }
-  | { kind: 'error' }
-  | { kind: 'ready'; tickets: SupportTicketSummary[] }
+  { kind: 'loading' } | { kind: 'error' } | { kind: 'ready'; tickets: SupportTicketSummary[] }
 
 function formatDate(iso: string, lang: 'en' | 'fr'): string {
   return new Date(iso).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
@@ -51,7 +49,10 @@ export function SupportRequestsList() {
       )}
 
       {state.kind === 'error' && (
-        <p className="m-0 rounded-[12px] border border-risk-border bg-risk-bg px-[16px] py-[12px] text-[14px] text-risk-fg" role="alert">
+        <p
+          className="m-0 rounded-[12px] border border-risk-border bg-risk-bg px-[16px] py-[12px] text-[14px] text-risk-fg"
+          role="alert"
+        >
           {x(M.support_requests_error)}
         </p>
       )}

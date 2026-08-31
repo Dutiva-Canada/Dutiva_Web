@@ -7,7 +7,11 @@ function okResponse(): Response {
 }
 
 describe('createResendProvider', () => {
-  const message = { to: 'user@example.ca', subject: 'Dutiva Support — Request DUT-2026-000001 received', text: 'Body.' }
+  const message = {
+    to: 'user@example.ca',
+    subject: 'Dutiva Support — Request DUT-2026-000001 received',
+    text: 'Body.',
+  }
 
   it('POSTs the Resend request with auth and the message fields', async () => {
     const fetchImpl = vi.fn().mockResolvedValue(okResponse())
@@ -34,7 +38,9 @@ describe('createResendProvider', () => {
   })
 
   it('throws with status and detail when Resend rejects the request', async () => {
-    const fetchImpl = vi.fn().mockResolvedValue(new Response('domain not verified', { status: 422 }))
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(new Response('domain not verified', { status: 422 }))
     const provider = createResendProvider({
       apiKey: 'key_test',
       from: 'x@dutiva.ca',

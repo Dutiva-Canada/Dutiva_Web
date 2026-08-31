@@ -38,7 +38,9 @@ describe('validateAttachment', () => {
     expect(validateAttachment({ size: 1000, type: 'image/png' })).toBeNull()
   })
   it('rejects an oversized file', () => {
-    expect(validateAttachment({ size: ATTACHMENT_MAX_SIZE + 1, type: 'image/png' })).toBe('too_large')
+    expect(validateAttachment({ size: ATTACHMENT_MAX_SIZE + 1, type: 'image/png' })).toBe(
+      'too_large',
+    )
   })
   it('rejects a disallowed type', () => {
     expect(validateAttachment({ size: 10, type: 'application/x-msdownload' })).toBe('bad_type')
@@ -92,7 +94,10 @@ describe('uploadAttachment', () => {
 describe('getAttachmentDownloadUrl', () => {
   beforeEach(() => invokeMock.mockReset())
   it('returns the signed URL from the edge function', async () => {
-    invokeMock.mockResolvedValue({ data: { data: { url: 'https://signed.example/x' } }, error: null })
+    invokeMock.mockResolvedValue({
+      data: { data: { url: 'https://signed.example/x' } },
+      error: null,
+    })
     expect(await getAttachmentDownloadUrl('att-1')).toBe('https://signed.example/x')
   })
 })
@@ -100,7 +105,9 @@ describe('getAttachmentDownloadUrl', () => {
 describe('listAttachments', () => {
   it('maps the RLS-scoped rows', async () => {
     fromMock.mockReturnValue({
-      select: () => ({ eq: () => ({ order: () => Promise.resolve({ data: [attachmentRow], error: null }) }) }),
+      select: () => ({
+        eq: () => ({ order: () => Promise.resolve({ data: [attachmentRow], error: null }) }),
+      }),
     })
     const list = await listAttachments('ticket-9')
     expect(list).toHaveLength(1)

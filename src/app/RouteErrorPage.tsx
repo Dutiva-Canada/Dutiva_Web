@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2026 
+ *   Copyright (c) 2026
  *   All rights reserved.
  */
 import { useEffect, useState } from 'react'
@@ -101,10 +101,7 @@ export function RouteErrorPage() {
           <a href={lang === 'fr' ? '/fr' : '/'} className="ghost-button pill-button">
             {L('Go to the homepage', 'Aller à la page d’accueil')}
           </a>
-          <a
-            href={lang === 'fr' ? '/fr/contact' : '/contact'}
-            className="ghost-button pill-button"
-          >
+          <a href={lang === 'fr' ? '/fr/contact' : '/contact'} className="ghost-button pill-button">
             {L('Contact support', 'Contacter le soutien')}
           </a>
         </div>

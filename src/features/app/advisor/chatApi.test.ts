@@ -164,7 +164,13 @@ describe('sendAdvisorMessage', () => {
       isCrisis: false,
     }
     const invoke = vi.fn().mockResolvedValue({
-      data: { data: { reply: 'Here is the process.', conversation_id: 'c', advisor_response: advisorResponse } },
+      data: {
+        data: {
+          reply: 'Here is the process.',
+          conversation_id: 'c',
+          advisor_response: advisorResponse,
+        },
+      },
       error: null,
     })
     const { sendAdvisorMessage } = await loadChatApiWithFakeInvoke(invoke)
@@ -234,8 +240,7 @@ describe('sendAdvisorMessage — beta usage limit', () => {
         retry_after_seconds: 240,
       }),
     })
-    const { sendAdvisorMessage, AdvisorUsageLimitError } =
-      await loadChatApiWithFakeInvoke(invoke)
+    const { sendAdvisorMessage, AdvisorUsageLimitError } = await loadChatApiWithFakeInvoke(invoke)
 
     await expect(sendAdvisorMessage('hi', null)).rejects.toMatchObject({
       name: 'AdvisorUsageLimitError',
@@ -245,7 +250,7 @@ describe('sendAdvisorMessage — beta usage limit', () => {
     await expect(sendAdvisorMessage('hi', null)).rejects.toBeInstanceOf(AdvisorUsageLimitError)
   })
 
-    it('keeps the platform-wide scope distinct from the caller’s own', async () => {
+  it('keeps the platform-wide scope distinct from the caller’s own', async () => {
     const invoke = vi.fn().mockResolvedValue({
       data: null,
       error: httpError(429, {
@@ -302,10 +307,7 @@ describe('sendAdvisorMessage — beta usage limit', () => {
 
   it('leaves other failures as ordinary errors', async () => {
     const invoke = vi.fn().mockResolvedValue({ data: null, error: httpError(503, {}) })
-    const { sendAdvisorMessage, AdvisorUsageLimitError } =
-      await loadChatApiWithFakeInvoke(invoke)
-    await expect(sendAdvisorMessage('hi', null)).rejects.not.toBeInstanceOf(
-      AdvisorUsageLimitError,
-    )
+    const { sendAdvisorMessage, AdvisorUsageLimitError } = await loadChatApiWithFakeInvoke(invoke)
+    await expect(sendAdvisorMessage('hi', null)).rejects.not.toBeInstanceOf(AdvisorUsageLimitError)
   })
 })

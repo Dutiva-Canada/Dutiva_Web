@@ -17,7 +17,10 @@ export function readStripeSecretKey(raw: string | undefined | null): string | nu
     .trim()
     .replace(/^["']|["']$/g, '')
     .replace(/^Bearer\s+/i, '')
-    .replace(/[\u0000-\u001F\u007F\u00A0\u1680\u2000-\u200D\u2028\u2029\u202F\u205F\u3000\uFEFF]/g, '')
+    .replace(
+      /[\u0000-\u001F\u007F\u00A0\u1680\u2000-\u200D\u2028\u2029\u202F\u205F\u3000\uFEFF]/g,
+      '',
+    )
     .trim()
   if (STRIPE_SECRET_RE.test(cleaned)) return cleaned
   const embedded = cleaned.match(/(?:sk|rk)_(?:live|test)_[A-Za-z0-9]+/)

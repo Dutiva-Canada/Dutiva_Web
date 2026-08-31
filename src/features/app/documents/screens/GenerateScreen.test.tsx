@@ -86,9 +86,7 @@ describe('GenerateScreen', () => {
     /* T01 is Ontario-only and bilingual — fixed ON jurisdiction, no EN/FR toggle. */
     expect(screen.getByRole('button', { name: 'ON' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'ON' })).toHaveAttribute('aria-pressed', 'true')
-    expect(
-      screen.getByText('Delivered in English and French in one document.'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Delivered in English and French in one document.')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'EN' })).not.toBeInTheDocument()
   })
 

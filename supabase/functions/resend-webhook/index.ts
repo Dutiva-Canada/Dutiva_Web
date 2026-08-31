@@ -124,7 +124,10 @@ Deno.serve(async (req: Request) => {
   )
   if (!signed) return json({ error: 'Invalid signature' }, 401)
 
-  let event: { type?: string; data?: { email_id?: string; to?: unknown; bounce?: { message?: string } } }
+  let event: {
+    type?: string
+    data?: { email_id?: string; to?: unknown; bounce?: { message?: string } }
+  }
   try {
     event = JSON.parse(raw)
   } catch {

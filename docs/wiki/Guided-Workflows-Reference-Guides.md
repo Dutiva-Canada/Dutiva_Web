@@ -25,8 +25,6 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-
-
 This page documents the **FlowRunner** engine for interactive guided workflows and the **Reference Guides** system for in-product HR reference content. Both subsystems deliver Ring 2 interactive tools that complement the Document Studio — flows decide which documents to produce, and guides provide the background reading for a user who is mid-task.
 
 ## Architecture Overview
@@ -94,16 +92,16 @@ The `Flow` interface represents a graph of bilingual steps routed at `/app/workf
 
 ### `Flow` Interface
 
-| Field | Type | Purpose |
-|---|---|---|
-| `slug` | `string` | Stable URL segment |
-| `title` | `Bi` | Bilingual display name |
-| `summary` | `Bi` | One-line description |
-| `ring` | `1 \| 2 \| 3 \| 4` | Four Ring Framework position |
-| `jurisdictions` | `Jurisdiction[]` | Covered jurisdictions |
-| `estMinutes` | `number` | Estimated run duration |
-| `start` | `FlowStepId` | Entry step id |
-| `steps` | `FlowStep[]` | All steps in the graph |
+| Field           | Type               | Purpose                      |
+| --------------- | ------------------ | ---------------------------- |
+| `slug`          | `string`           | Stable URL segment           |
+| `title`         | `Bi`               | Bilingual display name       |
+| `summary`       | `Bi`               | One-line description         |
+| `ring`          | `1 \| 2 \| 3 \| 4` | Four Ring Framework position |
+| `jurisdictions` | `Jurisdiction[]`   | Covered jurisdictions        |
+| `estMinutes`    | `number`           | Estimated run duration       |
+| `start`         | `FlowStepId`       | Entry step id                |
+| `steps`         | `FlowStep[]`       | All steps in the graph       |
 
 [src/features/app/flows/flowModel.ts:153-166]()
 
@@ -111,12 +109,12 @@ The `Flow` interface represents a graph of bilingual steps routed at `/app/workf
 
 `FlowStep` is a discriminated union of four kinds:
 
-| Kind | Interface | Purpose | Key Fields |
-|---|---|---|---|
-| `choice` | `FlowChoiceStep` | Branching question; user picks an option | `options: FlowOption[]`, optional `domain: Bi` |
-| `task` | `FlowTaskStep` | Instructional step with one exit | `points: Bi[]`, `to: FlowStepId \| null` |
-| `outcome` | `FlowOutcomeStep` | Terminal step from branching | `tone`, `documents?: string[]`, `noDocument?: Bi` |
-| `result` | `FlowResultStep` | Terminal step from scoring | `bands: FlowBand[]` |
+| Kind      | Interface         | Purpose                                  | Key Fields                                        |
+| --------- | ----------------- | ---------------------------------------- | ------------------------------------------------- |
+| `choice`  | `FlowChoiceStep`  | Branching question; user picks an option | `options: FlowOption[]`, optional `domain: Bi`    |
+| `task`    | `FlowTaskStep`    | Instructional step with one exit         | `points: Bi[]`, `to: FlowStepId \| null`          |
+| `outcome` | `FlowOutcomeStep` | Terminal step from branching             | `tone`, `documents?: string[]`, `noDocument?: Bi` |
+| `result`  | `FlowResultStep`  | Terminal step from scoring               | `bands: FlowBand[]`                               |
 
 [src/features/app/flows/flowModel.ts:71-151]()
 
@@ -128,25 +126,25 @@ All steps share a `FlowStepBase` with `id`, `title`, `body`, and optional `cauti
 
 `FlowOption` defines an outgoing edge from a `choice` step:
 
-| Field | Type | Purpose |
-|---|---|---|
-| `id` | `string` | Stable identifier |
-| `label` | `Bi` | Display text |
-| `detail?` | `Bi` | Optional sub-label |
-| `to` | `FlowStepId \| null` | Target step (null ends run) |
-| `value?` | `number` | Score contribution on rated questions |
+| Field     | Type                 | Purpose                               |
+| --------- | -------------------- | ------------------------------------- |
+| `id`      | `string`             | Stable identifier                     |
+| `label`   | `Bi`                 | Display text                          |
+| `detail?` | `Bi`                 | Optional sub-label                    |
+| `to`      | `FlowStepId \| null` | Target step (null ends run)           |
+| `value?`  | `number`             | Score contribution on rated questions |
 
 [src/features/app/flows/flowModel.ts:34-46]()
 
 `FlowBand` defines a score bracket on a `result` step:
 
-| Field | Type | Purpose |
-|---|---|---|
-| `id` | `string` | Stable identifier |
-| `minPercent` | `number` | Lower bound (inclusive, percentage) |
-| `tone` | `'ok' \| 'caution' \| 'risk'` | Visual treatment |
-| `title` / `body` | `Bi` | Bilingual reading |
-| `documents?` | `string[]` | Document Studio TIDs to hand off to |
+| Field            | Type                          | Purpose                             |
+| ---------------- | ----------------------------- | ----------------------------------- |
+| `id`             | `string`                      | Stable identifier                   |
+| `minPercent`     | `number`                      | Lower bound (inclusive, percentage) |
+| `tone`           | `'ok' \| 'caution' \| 'risk'` | Visual treatment                    |
+| `title` / `body` | `Bi`                          | Bilingual reading                   |
+| `documents?`     | `string[]`                    | Document Studio TIDs to hand off to |
 
 [src/features/app/flows/flowModel.ts:124-136]()
 
@@ -194,12 +192,12 @@ graph LR
     end
 ```
 
-| Shape | Step Kinds Used | Terminal Step | Example |
-|---|---|---|---|
-| Checklist | chain of `task` steps | `outcome` | Leave-of-absence branches |
-| Decision tree | `choice` + `task` mix | `outcome` | `dutyToAccommodateFlow` |
-| Guided worksheet | mix of both | `outcome` | `mentalHealthResponseFlow` |
-| Scored assessment | `task` intro + rated `choice` steps | `result` with bands | `psychologicalSafetyFlow` |
+| Shape             | Step Kinds Used                     | Terminal Step       | Example                    |
+| ----------------- | ----------------------------------- | ------------------- | -------------------------- |
+| Checklist         | chain of `task` steps               | `outcome`           | Leave-of-absence branches  |
+| Decision tree     | `choice` + `task` mix               | `outcome`           | `dutyToAccommodateFlow`    |
+| Guided worksheet  | mix of both                         | `outcome`           | `mentalHealthResponseFlow` |
+| Scored assessment | `task` intro + rated `choice` steps | `result` with bands | `psychologicalSafetyFlow`  |
 
 A rated `choice` step is just a `choice` whose options all carry a `value` and lead to the same place — no separate step kind.
 
@@ -216,11 +214,11 @@ The engine is a library of pure functions. Nothing mutates; every function takes
 ```typescript
 interface FlowAnswer {
   step: FlowStepId
-  option?: string    // absent on task steps
+  option?: string // absent on task steps
 }
 
 interface FlowRun {
-  path: FlowAnswer[]  // every step entered, oldest first
+  path: FlowAnswer[] // every step entered, oldest first
 }
 ```
 
@@ -230,22 +228,22 @@ The run keeps the whole path rather than just a cursor. This is what makes `back
 
 ### Function Reference
 
-| Function | Signature | Purpose |
-|---|---|---|
-| `startRun` | `(flow: Flow) → FlowRun` | Creates a run at `flow.start` |
-| `stepById` | `(flow, id) → FlowStep` | Looks up a step; throws if missing |
-| `currentStep` | `(flow, run) → FlowStep` | Returns the step at the end of `run.path` |
-| `isComplete` | `(flow, run) → boolean` | True when current step `isTerminal` |
-| `nextStepId` | `(step, optionId?) → FlowStepId \| null \| undefined` | Where a step leads; `null` = ends run, `undefined` = unknown option |
-| `advance` | `(flow, run, optionId?) → FlowRun` | Moves forward; returns unchanged run on bad input |
-| `back` | `(run) → FlowRun` | Pops one step and clears the answer at the new tail |
-| `progress` | `(flow, run) → number` | Fraction 0–1 against `longestPath`, clamped |
-| `longestPath` | `(flow) → number` | Longest simple route from start (cycle-safe via visited set) |
-| `outgoing` | `(step) → (FlowStepId \| null)[]` | All outgoing edge targets |
-| `unreachableSteps` | `(flow) → FlowStepId[]` | Steps not reachable from `flow.start` (BFS) |
-| `flowRecord` | `(flow, run) → FlowRecord` | Path taken with chosen labels; `outcome` is null until terminal |
-| `scoreRun` | `(flow, run) → FlowScore` | Scores only the rated questions actually answered |
-| `bandFor` | `(step, percent) → FlowBand \| null` | Highest band whose `minPercent` the score reaches |
+| Function           | Signature                                             | Purpose                                                             |
+| ------------------ | ----------------------------------------------------- | ------------------------------------------------------------------- |
+| `startRun`         | `(flow: Flow) → FlowRun`                              | Creates a run at `flow.start`                                       |
+| `stepById`         | `(flow, id) → FlowStep`                               | Looks up a step; throws if missing                                  |
+| `currentStep`      | `(flow, run) → FlowStep`                              | Returns the step at the end of `run.path`                           |
+| `isComplete`       | `(flow, run) → boolean`                               | True when current step `isTerminal`                                 |
+| `nextStepId`       | `(step, optionId?) → FlowStepId \| null \| undefined` | Where a step leads; `null` = ends run, `undefined` = unknown option |
+| `advance`          | `(flow, run, optionId?) → FlowRun`                    | Moves forward; returns unchanged run on bad input                   |
+| `back`             | `(run) → FlowRun`                                     | Pops one step and clears the answer at the new tail                 |
+| `progress`         | `(flow, run) → number`                                | Fraction 0–1 against `longestPath`, clamped                         |
+| `longestPath`      | `(flow) → number`                                     | Longest simple route from start (cycle-safe via visited set)        |
+| `outgoing`         | `(step) → (FlowStepId \| null)[]`                     | All outgoing edge targets                                           |
+| `unreachableSteps` | `(flow) → FlowStepId[]`                               | Steps not reachable from `flow.start` (BFS)                         |
+| `flowRecord`       | `(flow, run) → FlowRecord`                            | Path taken with chosen labels; `outcome` is null until terminal     |
+| `scoreRun`         | `(flow, run) → FlowScore`                             | Scores only the rated questions actually answered                   |
+| `bandFor`          | `(step, percent) → FlowBand \| null`                  | Highest band whose `minPercent` the score reaches                   |
 
 Sources: [src/features/app/flows/flowEngine.ts:26-258]()
 
@@ -302,12 +300,12 @@ Four flows are shipped, all registered in `data/index.ts` and keyed by slug via 
 
 ### Shipped Flows
 
-| Slug | Title | Ring | Shape | Est. Minutes | Steps | Terminal Steps |
-|---|---|---|---|---|---|---|
-| `duty-to-accommodate` | Duty to accommodate | 2 | Decision tree (guided worksheet) | 12 | 11 | 2 outcomes |
-| `psychological-safety-check` | Psychological safety self-check | 2 | Scored assessment | 10 | 15 (intro + 13 rated + result) | 1 result (3 bands) |
-| `leave-of-absence` | Leave of absence | 2 | Decision tree with checklist branches | 8 | Branching by leave type | Multiple outcomes |
-| `mental-health-response` | Responding to a mental health concern | 2 | Decision tree (triage) | 6 | Triages to correct process | Multiple outcomes |
+| Slug                         | Title                                 | Ring | Shape                                 | Est. Minutes | Steps                          | Terminal Steps     |
+| ---------------------------- | ------------------------------------- | ---- | ------------------------------------- | ------------ | ------------------------------ | ------------------ |
+| `duty-to-accommodate`        | Duty to accommodate                   | 2    | Decision tree (guided worksheet)      | 12           | 11                             | 2 outcomes         |
+| `psychological-safety-check` | Psychological safety self-check       | 2    | Scored assessment                     | 10           | 15 (intro + 13 rated + result) | 1 result (3 bands) |
+| `leave-of-absence`           | Leave of absence                      | 2    | Decision tree with checklist branches | 8            | Branching by leave type        | Multiple outcomes  |
+| `mental-health-response`     | Responding to a mental health concern | 2    | Decision tree (triage)                | 6            | Triages to correct process     | Multiple outcomes  |
 
 Sources: [src/features/app/flows/data/dutyToAccommodate.ts:23-28](), [src/features/app/flows/data/psychologicalSafety.ts:62-67](), [src/features/app/flows/data/leaveOfAbsence.ts:23-28](), [src/features/app/flows/data/mentalHealthResponse.ts:30-35]()
 
@@ -349,11 +347,11 @@ Thirteen rated questions, one per CSA Z1003-13 psychosocial factor, using a shar
 
 The `result` step has three bands:
 
-| Band ID | Min % | Tone | Documents |
-|---|---|---|---|
-| `established` | 70 | `ok` | T04, T13 |
-| `partial` | 40 | `caution` | T13, T12, T04 |
-| `early` | 0 | `risk` | T13, T12 |
+| Band ID       | Min % | Tone      | Documents     |
+| ------------- | ----- | --------- | ------------- |
+| `established` | 70    | `ok`      | T04, T13      |
+| `partial`     | 40    | `caution` | T13, T12, T04 |
+| `early`       | 0     | `risk`    | T13, T12      |
 
 [src/features/app/flows/data/psychologicalSafety.ts:250-287]()
 
@@ -379,12 +377,12 @@ Nothing is persisted. A run is a thinking tool; what belongs on the file is the 
 
 ### Rendering by Step Kind
 
-| Step Kind | Rendering | User Action |
-|---|---|---|
-| `choice` | Option buttons with `ChevronRight` icon | Click option → `setRun(advance(flow, run, option.id))` |
-| `task` | Bullet list of `points` + "Continue" button | Click Continue → `setRun(advance(flow, run))` |
-| `outcome` | Band/result card + document handoff links | — (terminal) |
-| `result` | `ScoredResult` with score %, band verdict, per-factor breakdown | — (terminal) |
+| Step Kind | Rendering                                                       | User Action                                            |
+| --------- | --------------------------------------------------------------- | ------------------------------------------------------ |
+| `choice`  | Option buttons with `ChevronRight` icon                         | Click option → `setRun(advance(flow, run, option.id))` |
+| `task`    | Bullet list of `points` + "Continue" button                     | Click Continue → `setRun(advance(flow, run))`          |
+| `outcome` | Band/result card + document handoff links                       | — (terminal)                                           |
+| `result`  | `ScoredResult` with score %, band verdict, per-factor breakdown | — (terminal)                                           |
 
 [src/features/app/flows/FlowRunner.tsx:110-186]()
 
@@ -446,17 +444,17 @@ Sources: [src/features/app/views/workflows/WorkflowsView.tsx:1-338](), [src/feat
 
 `ReferenceGuide` is the content type for in-product reference documents. Unlike the public editorial articles (`articleModel`), these are behind the app, carry per-jurisdiction notes, and link to templates and flows.
 
-| Field | Type | Purpose |
-|---|---|---|
-| `slug` | `string` | URL segment at `/app/knowledge/<slug>` |
-| `title` / `summary` / `tag` | `Bi` | Bilingual display text |
-| `ring` | `1–4` | Four Ring Framework position |
-| `jurisdictions` | `Jurisdiction[]` | Covered jurisdictions |
-| `readingMinutes` | `number` | Estimated reading time |
-| `sections` | `GuideSection[]` | Content sections |
-| `jurisdictionNotes` | `Partial<Record<Jurisdiction, Bi>>` | Per-jurisdiction notes |
-| `relatedTemplates?` | `string[]` | Document Studio TIDs |
-| `relatedFlows?` | `string[]` | Flow slugs |
+| Field                       | Type                                | Purpose                                |
+| --------------------------- | ----------------------------------- | -------------------------------------- |
+| `slug`                      | `string`                            | URL segment at `/app/knowledge/<slug>` |
+| `title` / `summary` / `tag` | `Bi`                                | Bilingual display text                 |
+| `ring`                      | `1–4`                               | Four Ring Framework position           |
+| `jurisdictions`             | `Jurisdiction[]`                    | Covered jurisdictions                  |
+| `readingMinutes`            | `number`                            | Estimated reading time                 |
+| `sections`                  | `GuideSection[]`                    | Content sections                       |
+| `jurisdictionNotes`         | `Partial<Record<Jurisdiction, Bi>>` | Per-jurisdiction notes                 |
+| `relatedTemplates?`         | `string[]`                          | Document Studio TIDs                   |
+| `relatedFlows?`             | `string[]`                          | Flow slugs                             |
 
 [src/features/app/reference/guideModel.ts:41-59]()
 
@@ -464,10 +462,10 @@ Sources: [src/features/app/views/workflows/WorkflowsView.tsx:1-338](), [src/feat
 
 Content blocks are a union `GuideBlock`:
 
-| Type | Fields | Purpose |
-|---|---|---|
-| `p` | `text: Bi` | Paragraph |
-| `li` | `text: Bi` | List item |
+| Type       | Fields                       | Purpose                                  |
+| ---------- | ---------------------------- | ---------------------------------------- |
+| `p`        | `text: Bi`                   | Paragraph                                |
+| `li`       | `text: Bi`                   | List item                                |
 | `contrast` | `instead: Bi`, `notThis: Bi` | Do/don't pair — the main teaching device |
 
 Factory functions `p()`, `li()`, and `contrast()` simplify block construction.
@@ -484,16 +482,16 @@ Eight guides are registered in `reference/data/index.ts` and keyed by slug via `
 
 [src/features/app/reference/data/index.ts:1-27]()
 
-| Slug | Title | Ring | Related Templates | Related Flows |
-|---|---|---|---|---|
-| `functional-limitations` | Functional limitations, not diagnosis | 2 | T20, T21, T23 | `duty-to-accommodate` |
-| `parental-leave` | Parental leave, from the employer's side | 2 | T33, T27, T29 | `leave-of-absence` |
-| `manager-conversations` | Manager conversations guide | 2 | — | — |
-| `eap-referral` | Referring someone to your EAP | 2 | T21, T33, T34 | `mental-health-response` |
-| `return-after-mental-health-leave` | Return after mental health leave | 2 | — | — |
-| `bystander-intervention` | Bystander intervention | 2 | — | — |
-| `pay-statement` | Pay statement guide | 2 | — | — |
-| `retirement-savings` | Retirement savings guide | 2 | — | — |
+| Slug                               | Title                                    | Ring | Related Templates | Related Flows            |
+| ---------------------------------- | ---------------------------------------- | ---- | ----------------- | ------------------------ |
+| `functional-limitations`           | Functional limitations, not diagnosis    | 2    | T20, T21, T23     | `duty-to-accommodate`    |
+| `parental-leave`                   | Parental leave, from the employer's side | 2    | T33, T27, T29     | `leave-of-absence`       |
+| `manager-conversations`            | Manager conversations guide              | 2    | —                 | —                        |
+| `eap-referral`                     | Referring someone to your EAP            | 2    | T21, T33, T34     | `mental-health-response` |
+| `return-after-mental-health-leave` | Return after mental health leave         | 2    | —                 | —                        |
+| `bystander-intervention`           | Bystander intervention                   | 2    | —                 | —                        |
+| `pay-statement`                    | Pay statement guide                      | 2    | —                 | —                        |
+| `retirement-savings`               | Retirement savings guide                 | 2    | —                 | —                        |
 
 Sources: [src/features/app/reference/data/index.ts:16-25](), [src/features/app/reference/data/functionalLimitations.ts:16-31](), [src/features/app/reference/data/eapReferral.ts:24-39](), [src/features/app/reference/data/parentalLeave.ts:26-41]()
 
@@ -589,12 +587,12 @@ Sources: [src/features/app/flows/FlowRunner.tsx:40](), [src/features/app/flows/F
 
 Both subsystems are registered as ungated routes in `appViews.tsx`:
 
-| Route | Component | Gated? |
-|---|---|---|
-| `/app/workflows` | `WorkflowsView` | No — handles both modes internally |
-| `/app/workflows/:slug` | `FlowRunner` | No — real content |
-| `/app/knowledge` | `KnowledgeView` | No — real content + `GuidanceSourcesPanel` |
-| `/app/knowledge/:slug` | `GuideView` | No — real content |
+| Route                  | Component       | Gated?                                     |
+| ---------------------- | --------------- | ------------------------------------------ |
+| `/app/workflows`       | `WorkflowsView` | No — handles both modes internally         |
+| `/app/workflows/:slug` | `FlowRunner`    | No — real content                          |
+| `/app/knowledge`       | `KnowledgeView` | No — real content + `GuidanceSourcesPanel` |
+| `/app/knowledge/:slug` | `GuideView`     | No — real content                          |
 
 Both `WorkflowsView` and `FlowRunner` are lazy-loaded:
 
@@ -616,20 +614,20 @@ Two kinds of tests, deliberately separated:
 1. **Fixture tests** — run against a small in-memory `fixture` flow to test engine rules without depending on shipped content.
 2. **Graph invariant tests** — `describe.each(flows...)` runs against every shipped flow and asserts structural safety:
 
-| Invariant | Test |
-|---|---|
-| No unreachable steps | `unreachableSteps(flow)` is empty |
-| All exits point to existing steps | `stepById` doesn't throw for any outgoing edge |
-| Every route ends at a terminal | No non-terminal `to: null` |
-| At least one terminal step | `flow.steps.some(isTerminal)` |
-| Start step exists | `stepById(flow, flow.start)` succeeds |
-| Bilingual completeness | Every `Bi` string has non-empty EN and FR, FR ≠ EN for multi-word strings |
-| No markdown in copy | Blocks render as text; `**` would show literally |
-| Document handoff on every ending | Outcome has `documents` XOR `noDocument`; bands all have `documents` |
-| Rated questions have uniform targets | All options with `value` lead to same step |
-| Rated questions are all-or-nothing | No mix of valued and unvalued options |
-| Every rated question has a domain | `step.domain` defined when `isScored` |
-| Bands cover all scores | At least one band at `minPercent: 0`; `bandFor` non-null at 0,1,39,40,69,70,100 |
+| Invariant                            | Test                                                                            |
+| ------------------------------------ | ------------------------------------------------------------------------------- |
+| No unreachable steps                 | `unreachableSteps(flow)` is empty                                               |
+| All exits point to existing steps    | `stepById` doesn't throw for any outgoing edge                                  |
+| Every route ends at a terminal       | No non-terminal `to: null`                                                      |
+| At least one terminal step           | `flow.steps.some(isTerminal)`                                                   |
+| Start step exists                    | `stepById(flow, flow.start)` succeeds                                           |
+| Bilingual completeness               | Every `Bi` string has non-empty EN and FR, FR ≠ EN for multi-word strings       |
+| No markdown in copy                  | Blocks render as text; `**` would show literally                                |
+| Document handoff on every ending     | Outcome has `documents` XOR `noDocument`; bands all have `documents`            |
+| Rated questions have uniform targets | All options with `value` lead to same step                                      |
+| Rated questions are all-or-nothing   | No mix of valued and unvalued options                                           |
+| Every rated question has a domain    | `step.domain` defined when `isScored`                                           |
+| Bands cover all scores               | At least one band at `minPercent: 0`; `bandFor` non-null at 0,1,39,40,69,70,100 |
 
 [src/features/app/flows/flowEngine.test.ts:403-564]()
 
@@ -648,6 +646,7 @@ Tests drive through the shipped `duty-to-accommodate` and `mental-health-respons
 - Unknown slug shows "does not exist"
 
 Scored assessment tests drive `psychological-safety-check`:
+
 - All-high answer produces 100%
 - All-low produces 0%
 - Per-factor breakdown shows 13 factors
@@ -683,11 +682,11 @@ Sources: [src/i18n/messages/flows.ts:1-51]()
 
 Guides reference flows and vice versa. The relationship is explicit via `relatedFlows` on guides and via TID references in flow outcomes:
 
-| Guide | Related Flows |
-|---|---|
-| `functionalLimitationsGuide` | `duty-to-accommodate` |
-| `parentalLeaveGuide` | `leave-of-absence` |
-| `eapReferralGuide` | `mental-health-response` |
+| Guide                        | Related Flows            |
+| ---------------------------- | ------------------------ |
+| `functionalLimitationsGuide` | `duty-to-accommodate`    |
+| `parentalLeaveGuide`         | `leave-of-absence`       |
+| `eapReferralGuide`           | `mental-health-response` |
 
 These create bidirectional navigation: `GuideView` renders links to `/app/workflows/<slug>`, and the `dutyToAccommodateFlow` refers to templates that `functionalLimitationsGuide` also relates to (T20, T21, T23), creating a coherent content web.
 

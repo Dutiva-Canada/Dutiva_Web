@@ -64,8 +64,7 @@ export function SignaturePad({ onChange, labels }: SignaturePadProps) {
     const { width, height } = container.getBoundingClientRect()
     ctx.clearRect(0, 0, width, height)
     if (!signedName.trim()) return
-    const fill =
-      getComputedStyle(container).getPropertyValue('--text').trim() || '#111827'
+    const fill = getComputedStyle(container).getPropertyValue('--text').trim() || '#111827'
     ctx.font = '32px cursive, Georgia, serif'
     ctx.fillStyle = fill
     ctx.textAlign = 'center'

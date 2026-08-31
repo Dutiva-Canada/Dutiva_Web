@@ -20,9 +20,15 @@ describe('overallStatus', () => {
   })
 
   it('rolls up to the worst component status', () => {
-    expect(overallStatus([row('platform', 'operational'), row('advisor', 'degraded')])).toBe('degraded')
+    expect(overallStatus([row('platform', 'operational'), row('advisor', 'degraded')])).toBe(
+      'degraded',
+    )
     expect(
-      overallStatus([row('platform', 'maintenance'), row('advisor', 'outage'), row('support', 'degraded')]),
+      overallStatus([
+        row('platform', 'maintenance'),
+        row('advisor', 'outage'),
+        row('support', 'degraded'),
+      ]),
     ).toBe('outage')
     expect(overallStatus([row('platform', 'operational'), row('advisor', 'maintenance')])).toBe(
       'maintenance',
@@ -38,7 +44,12 @@ describe('getServiceStatus', () => {
       select: () =>
         Promise.resolve({
           data: [
-            { component: 'advisor', status: 'degraded', message: 'Slower than usual', updated_at: '2026-07-16T00:00:00Z' },
+            {
+              component: 'advisor',
+              status: 'degraded',
+              message: 'Slower than usual',
+              updated_at: '2026-07-16T00:00:00Z',
+            },
           ],
           error: null,
         }),
@@ -53,7 +64,9 @@ describe('getServiceStatus', () => {
   })
 
   it('falls back to all-operational when the read fails', async () => {
-    from.mockReturnValue({ select: () => Promise.resolve({ data: null, error: { message: 'nope' } }) })
+    from.mockReturnValue({
+      select: () => Promise.resolve({ data: null, error: { message: 'nope' } }),
+    })
     const rows = await getServiceStatus()
     expect(rows).toHaveLength(4)
     expect(rows.every((r) => r.status === 'operational')).toBe(true)

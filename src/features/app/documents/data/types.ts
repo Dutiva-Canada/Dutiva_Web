@@ -80,16 +80,7 @@ export type QuestionType = 'text' | 'textarea' | 'date' | 'number' | 'select' | 
  * answer, so the form could not actually be completed.
  */
 export type PreviewBlockType =
-  | 'title'
-  | 'meta'
-  | 'letterhead'
-  | 'address'
-  | 'para'
-  | 'clause'
-  | 'sig'
-  | 'ack'
-  | 'note'
-  | 'fill'
+  'title' | 'meta' | 'letterhead' | 'address' | 'para' | 'clause' | 'sig' | 'ack' | 'note' | 'fill'
 
 /** Chip tones used by the doclib status maps (superset of the app ramp). */
 export type DocChipTone = 'ok' | 'warn' | 'risk' | 'info' | 'neutral' | 'gold'

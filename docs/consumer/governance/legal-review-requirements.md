@@ -31,11 +31,11 @@ All public-facing legal and policy documents in both English and French:
 
 All document templates, by risk level:
 
-| Risk / review flag | Reviewer | Scope |
-|---|---|---|
-| `lawyer_review_recommended` or `high` risk | Canadian lawyer (employment, tenancy, consumer, or administrative law as appropriate) | Full template, statutory references, jurisdiction-specific clauses, disclaimers. |
-| `medium` risk or `hr_review_required` equivalent | Subject-matter expert (tenant advocate, employment advocate, consumer advocate) + lawyer spot-check | Template content, clarity, boundaries. |
-| `low` risk | Knowledge/content reviewer | Clarity, disclaimer, plain language. |
+| Risk / review flag                               | Reviewer                                                                                            | Scope                                                                            |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `lawyer_review_recommended` or `high` risk       | Canadian lawyer (employment, tenancy, consumer, or administrative law as appropriate)               | Full template, statutory references, jurisdiction-specific clauses, disclaimers. |
+| `medium` risk or `hr_review_required` equivalent | Subject-matter expert (tenant advocate, employment advocate, consumer advocate) + lawyer spot-check | Template content, clarity, boundaries.                                           |
+| `low` risk                                       | Knowledge/content reviewer                                                                          | Clarity, disclaimer, plain language.                                             |
 
 `LREV-REQ-003`: No template SHALL be marked `approved_for_use` until the required review is complete and documented.
 

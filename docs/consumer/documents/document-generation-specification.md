@@ -43,22 +43,22 @@ Template
 
 ## Metadata fields
 
-| Field | Description | Bilingual |
-|---|---|---|
-| `id` | Stable UUID/slug | no |
-| `tid` | Display id (e.g., `C01`) | no |
-| `key` | Stable code for lookups | no |
-| `category` | Category slug from document taxonomy | no |
-| `name` | Display name | yes (`{en,fr}`) |
-| `description` | Short description and limitations | yes |
-| `jurisdictions_supported` | Array of jurisdiction codes | no |
-| `risk_level` | `low` / `medium` / `high` | no |
-| `review_status` | review status enum | no |
-| `version` | Semantic version or integer | no |
-| `effective_date` | ISO date | no |
-| `deprecated_at` | Optional ISO date | no |
-| `statutory_references` | Citations used by the template | yes |
-| `disclaimer` | Default disclaimer text | yes |
+| Field                     | Description                          | Bilingual       |
+| ------------------------- | ------------------------------------ | --------------- |
+| `id`                      | Stable UUID/slug                     | no              |
+| `tid`                     | Display id (e.g., `C01`)             | no              |
+| `key`                     | Stable code for lookups              | no              |
+| `category`                | Category slug from document taxonomy | no              |
+| `name`                    | Display name                         | yes (`{en,fr}`) |
+| `description`             | Short description and limitations    | yes             |
+| `jurisdictions_supported` | Array of jurisdiction codes          | no              |
+| `risk_level`              | `low` / `medium` / `high`            | no              |
+| `review_status`           | review status enum                   | no              |
+| `version`                 | Semantic version or integer          | no              |
+| `effective_date`          | ISO date                             | no              |
+| `deprecated_at`           | Optional ISO date                    | no              |
+| `statutory_references`    | Citations used by the template       | yes             |
+| `disclaimer`              | Default disclaimer text              | yes             |
 
 ---
 
@@ -97,16 +97,16 @@ Template
 
 ## Preview block types
 
-| Type | Purpose | Example fields |
-|---|---|---|
-| `title` | Document title | `text` |
-| `meta` | Date, recipient, sender block | `text` |
-| `para` | Body paragraph | `text` |
-| `clause` | Numbered clause or section | `text`, `n`, `heading` |
-| `sig` | Signature block | `roles` |
-| `ack` | Acknowledgment / checkbox | `text`, `roles` |
-| `note` | Callout / warning / info box | `text`, `tone` |
-| `fill` | Prompt the reader answers by hand | `heading`, `text`, `lines` |
+| Type     | Purpose                           | Example fields             |
+| -------- | --------------------------------- | -------------------------- |
+| `title`  | Document title                    | `text`                     |
+| `meta`   | Date, recipient, sender block     | `text`                     |
+| `para`   | Body paragraph                    | `text`                     |
+| `clause` | Numbered clause or section        | `text`, `n`, `heading`     |
+| `sig`    | Signature block                   | `roles`                    |
+| `ack`    | Acknowledgment / checkbox         | `text`, `roles`            |
+| `note`   | Callout / warning / info box      | `text`, `tone`             |
+| `fill`   | Prompt the reader answers by hand | `heading`, `text`, `lines` |
 
 `DSPEC-REQ-007`: Preview blocks SHALL be ordered as they appear in the final document.
 
@@ -120,18 +120,18 @@ Text in preview blocks MAY contain merge tokens. Tokens are replaced determinist
 
 Common tokens:
 
-| Token | Source |
-|---|---|
-| `{{user_name}}` | User profile or question answer |
-| `{{user_address}}` | Question answer |
-| `{{user_email}}` | User profile or question answer |
-| `{{today}}` | System current date, formatted by locale |
-| `{{jurisdiction}}` | Confirmed jurisdiction display name |
-| `{{recipient_name}}` | Question answer |
-| `{{recipient_address}}` | Question answer |
-| `{{case_title}}` | Linked case title |
-| `{{statute_name}}` | Jurisdiction-specific statute name from vetted knowledge |
-| `{{custom_field_id}}` | Answer to a question with matching `id` |
+| Token                   | Source                                                   |
+| ----------------------- | -------------------------------------------------------- |
+| `{{user_name}}`         | User profile or question answer                          |
+| `{{user_address}}`      | Question answer                                          |
+| `{{user_email}}`        | User profile or question answer                          |
+| `{{today}}`             | System current date, formatted by locale                 |
+| `{{jurisdiction}}`      | Confirmed jurisdiction display name                      |
+| `{{recipient_name}}`    | Question answer                                          |
+| `{{recipient_address}}` | Question answer                                          |
+| `{{case_title}}`        | Linked case title                                        |
+| `{{statute_name}}`      | Jurisdiction-specific statute name from vetted knowledge |
+| `{{custom_field_id}}`   | Answer to a question with matching `id`                  |
 
 `DSPEC-REQ-009`: Merge tokens SHALL be resolved before finalization. Unresolved tokens SHALL block finalization.
 

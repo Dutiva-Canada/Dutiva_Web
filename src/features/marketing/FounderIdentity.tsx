@@ -17,7 +17,9 @@ export function FounderIdentity({ size }: { readonly size: 'compact' | 'about' }
   return (
     <div
       className={
-        compact ? 'mt-6 flex flex-col items-start gap-4 min-[480px]:flex-row min-[480px]:items-center' : 'flex w-[240px] flex-col items-start gap-4'
+        compact
+          ? 'mt-6 flex flex-col items-start gap-4 min-[480px]:flex-row min-[480px]:items-center'
+          : 'flex w-[240px] flex-col items-start gap-4'
       }
     >
       <MarketingRaster

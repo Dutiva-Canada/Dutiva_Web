@@ -40,14 +40,20 @@ export function WellbeingDemoView() {
 
       <div className="mb-[22px] flex flex-wrap gap-[14px]">
         <div className="min-w-[150px] flex-1 rounded-[12px] border border-border bg-surface p-[16px]">
-          <div className="font-display text-[26px] font-bold text-text">{supportSignals.length}</div>
-          <div className="mt-[2px] text-[12.5px] text-text-muted">{x(M.wellbeing_active_label)}</div>
+          <div className="font-display text-[26px] font-bold text-text">
+            {supportSignals.length}
+          </div>
+          <div className="mt-[2px] text-[12.5px] text-text-muted">
+            {x(M.wellbeing_active_label)}
+          </div>
         </div>
         <div className="min-w-[150px] flex-1 rounded-[12px] border border-border bg-surface p-[16px]">
           <div className="font-display text-[26px] font-bold text-gold-dot">
             {FOLLOW_UPS_THIS_WEEK}
           </div>
-          <div className="mt-[2px] text-[12.5px] text-text-muted">{x(M.wellbeing_follow_label)}</div>
+          <div className="mt-[2px] text-[12.5px] text-text-muted">
+            {x(M.wellbeing_follow_label)}
+          </div>
         </div>
       </div>
 

@@ -40,13 +40,13 @@ Federal
 
 ## Jurisdiction types
 
-| Type | Examples | Role in the product |
-|---|---|---|
-| **Federal** | Parliament, Government of Canada, Service Canada, CRA, federally regulated industries | Employment, tax, immigration, bankruptcy, telecommunications, banking, transportation, criminal law, some consumer matters. |
-| **Province / Territory** | Ontario, Québec, British Columbia, Nunavut | Employment standards, tenancy, most consumer protection, family law, estate administration basics, motor vehicles, health care. |
-| **Municipality / Local authority** | City, regional municipality, band council | Property tax, zoning, transit, noise bylaws, landlord licensing, business permits. |
-| **Regulator / Tribunal** | LTB, CNESST, Employment Standards office, CRTC, CCTS | Complaint handling, dispute resolution, licensing, enforcement. |
-| **Contractual / Organizational** | Lease, employment contract, union agreement, service terms | May override or supplement statutory defaults; product must flag "check your specific contract." |
+| Type                               | Examples                                                                              | Role in the product                                                                                                             |
+| ---------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **Federal**                        | Parliament, Government of Canada, Service Canada, CRA, federally regulated industries | Employment, tax, immigration, bankruptcy, telecommunications, banking, transportation, criminal law, some consumer matters.     |
+| **Province / Territory**           | Ontario, Québec, British Columbia, Nunavut                                            | Employment standards, tenancy, most consumer protection, family law, estate administration basics, motor vehicles, health care. |
+| **Municipality / Local authority** | City, regional municipality, band council                                             | Property tax, zoning, transit, noise bylaws, landlord licensing, business permits.                                              |
+| **Regulator / Tribunal**           | LTB, CNESST, Employment Standards office, CRTC, CCTS                                  | Complaint handling, dispute resolution, licensing, enforcement.                                                                 |
+| **Contractual / Organizational**   | Lease, employment contract, union agreement, service terms                            | May override or supplement statutory defaults; product must flag "check your specific contract."                                |
 
 ---
 
@@ -81,15 +81,15 @@ Any suggestion SHALL be presented for confirmation, not applied silently.
 
 The product must handle overlapping authority carefully. Common overlaps include:
 
-| Area | Federal | Provincial/Territorial |
-|---|---|---|
-| Employment | Federally regulated industries (banking, interprovincial transport, telecom, grain, certain Crown corporations) | Most private-sector employment, construction, retail, restaurants, etc. |
-| Tax | Income tax (CRA), GST/HST | Provincial income tax, PST/RST/QST, property tax |
-| Consumer protection | Telecommunications (CRTC/CCTS), banking complaints (FCAC), anti-spam (CRTC) | Most consumer contracts, door-to-door sales, warranties, tenancy |
-| Housing | Indigenous housing on reserve, CMHC programs | Residential tenancies, landlord-tenant boards, rent control |
-| Transportation | Air, rail, interprovincial trucking | Highway traffic, driver's licences, vehicle registration |
-| Health | Health Canada, drug regulation | Hospitals, health insurance cards, long-term care |
-| Family | Divorce under Divorce Act | Separation, property division, child support under provincial/territorial law |
+| Area                | Federal                                                                                                         | Provincial/Territorial                                                        |
+| ------------------- | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Employment          | Federally regulated industries (banking, interprovincial transport, telecom, grain, certain Crown corporations) | Most private-sector employment, construction, retail, restaurants, etc.       |
+| Tax                 | Income tax (CRA), GST/HST                                                                                       | Provincial income tax, PST/RST/QST, property tax                              |
+| Consumer protection | Telecommunications (CRTC/CCTS), banking complaints (FCAC), anti-spam (CRTC)                                     | Most consumer contracts, door-to-door sales, warranties, tenancy              |
+| Housing             | Indigenous housing on reserve, CMHC programs                                                                    | Residential tenancies, landlord-tenant boards, rent control                   |
+| Transportation      | Air, rail, interprovincial trucking                                                                             | Highway traffic, driver's licences, vehicle registration                      |
+| Health              | Health Canada, drug regulation                                                                                  | Hospitals, health insurance cards, long-term care                             |
+| Family              | Divorce under Divorce Act                                                                                       | Separation, property division, child support under provincial/territorial law |
 
 `SHARED-REQ-007`: For employment matters, the system SHALL help the user determine whether the employer is federally regulated or provincially regulated before presenting jurisdiction-specific guidance.
 
@@ -149,4 +149,4 @@ The product must handle overlapping authority carefully. Common overlaps include
 
 `BIL-REQ-001`: Jurisdiction names SHALL be presented bilingually where they have distinct official names (e.g., Ontario / Ontario; Québec / Québec; New Brunswick / Nouveau-Brunswick; Canada / Canada). For provinces without distinct French forms, the same name is acceptable.
 
-`BIL-REQ-002`: Statute names SHALL be presented in the official language of the jurisdiction's legal tradition (e.g., *Employment Standards Act, 2000* in English for Ontario; *Loi sur les normes du travail* in French for Québec) and, where helpful, translated or referenced bilingually.
+`BIL-REQ-002`: Statute names SHALL be presented in the official language of the jurisdiction's legal tradition (e.g., _Employment Standards Act, 2000_ in English for Ontario; _Loi sur les normes du travail_ in French for Québec) and, where helpful, translated or referenced bilingually.

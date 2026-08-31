@@ -129,7 +129,7 @@ export default {
         },
         {
           type: 'li',
-          text: 'AI inference — DigitalOcean Gradient AI processes Advisor message content and limited context to generate responses. Data is sent only as needed for inference. Under Dutiva\'s arrangement, customer content is not used to train third-party foundation models.',
+          text: "AI inference — DigitalOcean Gradient AI processes Advisor message content and limited context to generate responses. Data is sent only as needed for inference. Under Dutiva's arrangement, customer content is not used to train third-party foundation models.",
         },
         {
           type: 'li',
@@ -339,7 +339,7 @@ export default {
         },
         {
           type: 'li',
-          text: 'Regulators — you may contact the Office of the Privacy Commissioner of Canada at priv.gc.ca or the Commission d\'accès à l\'information du Québec at cai.gouv.qc.ca.',
+          text: "Regulators — you may contact the Office of the Privacy Commissioner of Canada at priv.gc.ca or the Commission d'accès à l'information du Québec at cai.gouv.qc.ca.",
         },
         {
           type: 'p',

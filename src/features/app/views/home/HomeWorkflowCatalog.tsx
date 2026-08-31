@@ -9,7 +9,11 @@ import type { HomeAction } from './homeData'
  * flow open that runner; the rest start an Advisor conversation with the
  * workflow's opening prompt.
  */
-export function HomeWorkflowCatalog({ onAction }: { readonly onAction: (action: HomeAction) => void }) {
+export function HomeWorkflowCatalog({
+  onAction,
+}: {
+  readonly onAction: (action: HomeAction) => void
+}) {
   const { x } = useI18n()
   return (
     <div>

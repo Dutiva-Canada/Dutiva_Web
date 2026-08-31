@@ -47,7 +47,10 @@ export const leaveReturnTrackerFlow: Flow = {
         },
         {
           id: 'issues',
-          label: bi('Return is contested or needs adjustments', 'Retour contesté ou besoin d’ajustements'),
+          label: bi(
+            'Return is contested or needs adjustments',
+            'Retour contesté ou besoin d’ajustements',
+          ),
           to: 'hard',
         },
       ],
@@ -79,7 +82,10 @@ export const leaveReturnTrackerFlow: Flow = {
     {
       id: 'restore',
       kind: 'task',
-      title: bi('Restore the job and confirm in writing', 'Rétablir le poste et confirmer par écrit'),
+      title: bi(
+        'Restore the job and confirm in writing',
+        'Rétablir le poste et confirmer par écrit',
+      ),
       body: bi(
         'The return obligation is where a well-handled leave can still go wrong.',
         'C’est l’obligation de retour qui peut faire échouer un congé pourtant bien géré.',
@@ -107,7 +113,10 @@ export const leaveReturnTrackerFlow: Flow = {
     {
       id: 'hard',
       kind: 'task',
-      title: bi('When the return needs more than a confirmation', 'Quand le retour demande plus qu’une confirmation'),
+      title: bi(
+        'When the return needs more than a confirmation',
+        'Quand le retour demande plus qu’une confirmation',
+      ),
       body: bi(
         'Adjustments, disputes, or a role that disappeared are not improvisation problems — they are process problems.',
         'Les ajustements, les différends ou un poste disparu ne sont pas des problèmes d’improvisation — ce sont des problèmes de processus.',
@@ -136,7 +145,10 @@ export const leaveReturnTrackerFlow: Flow = {
       id: 'done',
       kind: 'outcome',
       tone: 'ok',
-      title: bi('Open the return-from-leave confirmation', 'Ouvrez la confirmation de retour de congé'),
+      title: bi(
+        'Open the return-from-leave confirmation',
+        'Ouvrez la confirmation de retour de congé',
+      ),
       body: bi(
         'Document Studio T27 puts the return on the file. Enter the dates and role facts you confirmed from the leave record and the statute — this tracker does not invent leave lengths.',
         'Le T27 du Studio de documents verse le retour au dossier. Inscrivez les dates et les faits de poste confirmés d’après le dossier de congé et la loi — ce suivi n’invente pas de durées de congé.',

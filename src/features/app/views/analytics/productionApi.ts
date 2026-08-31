@@ -107,10 +107,12 @@ export async function recordScoreSnapshot(
     headcount,
     updated_at: new Date().toISOString(),
   }
-  const { error } = await supabase.from('compliance_score_snapshots').upsert(
-    { ...row, formula_version: SCORE_FORMULA_VERSION },
-    { onConflict: 'organization_id,month' },
-  )
+  const { error } = await supabase
+    .from('compliance_score_snapshots')
+    .upsert(
+      { ...row, formula_version: SCORE_FORMULA_VERSION },
+      { onConflict: 'organization_id,month' },
+    )
   if (error?.code === 'PGRST204') {
     /* Migration 0068 not applied yet (the app deploys ahead of the manual
        migration step) — write the legacy shape rather than lose the month;

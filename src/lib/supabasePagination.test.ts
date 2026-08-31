@@ -37,9 +37,9 @@ describe('fetchAllPages', () => {
 
   it('throws the page error untouched', async () => {
     const boom = { code: 'PGRST205', message: 'missing table' }
-    await expect(
-      fetchAllPages(() => Promise.resolve({ data: null, error: boom })),
-    ).rejects.toBe(boom)
+    await expect(fetchAllPages(() => Promise.resolve({ data: null, error: boom }))).rejects.toBe(
+      boom,
+    )
   })
 
   it('treats null data as an empty page', async () => {

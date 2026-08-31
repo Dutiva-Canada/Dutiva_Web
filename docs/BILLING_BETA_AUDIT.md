@@ -257,17 +257,17 @@ secrets (Supabase dashboard → Edge Functions → Secrets, or
 **Do not flip `PAID_PLANS_DISABLED_DURING_BETA` until the go-live smoke test
 passes.**
 
-| Secret                         | Used by           | Note                                                                                   |
-| ------------------------------ | ----------------- | -------------------------------------------------------------------------------------- |
-| `STRIPE_SECRET_KEY`            | checkout, portal  | test key first, then live                                                              |
-| `STRIPE_WEBHOOK_SECRET`        | webhook           | the `whsec_…` for the endpoint below                                                   |
-| `STRIPE_PRICE_STARTER_MONTHLY` | checkout, webhook |                                                                                        |
-| `STRIPE_PRICE_GROWTH_MONTHLY`  | checkout, webhook |                                                                                        |
-| `STRIPE_PRICE_PRO_MONTHLY`     | checkout, webhook |                                                                                        |
-| `STRIPE_PRICE_STARTER_ANNUAL`  | checkout, webhook | optional for monthly-only first ship; required before un-hiding the annual toggle      |
-| `STRIPE_PRICE_GROWTH_ANNUAL`   | checkout, webhook | same                                                                                   |
-| `STRIPE_PRICE_PRO_ANNUAL`      | checkout, webhook | same                                                                                   |
-| `SITE_URL`                     | checkout, portal  | set to `https://dutiva.ca` — apex only (not `www`; vercel.json redirects www away)   |
+| Secret                         | Used by           | Note                                                                               |
+| ------------------------------ | ----------------- | ---------------------------------------------------------------------------------- |
+| `STRIPE_SECRET_KEY`            | checkout, portal  | test key first, then live                                                          |
+| `STRIPE_WEBHOOK_SECRET`        | webhook           | the `whsec_…` for the endpoint below                                               |
+| `STRIPE_PRICE_STARTER_MONTHLY` | checkout, webhook |                                                                                    |
+| `STRIPE_PRICE_GROWTH_MONTHLY`  | checkout, webhook |                                                                                    |
+| `STRIPE_PRICE_PRO_MONTHLY`     | checkout, webhook |                                                                                    |
+| `STRIPE_PRICE_STARTER_ANNUAL`  | checkout, webhook | optional for monthly-only first ship; required before un-hiding the annual toggle  |
+| `STRIPE_PRICE_GROWTH_ANNUAL`   | checkout, webhook | same                                                                               |
+| `STRIPE_PRICE_PRO_ANNUAL`      | checkout, webhook | same                                                                               |
+| `SITE_URL`                     | checkout, portal  | set to `https://dutiva.ca` — apex only (not `www`; vercel.json redirects www away) |
 
 Point the Stripe webhook endpoint at
 `https://khtwpxnvziiyplaflwru.supabase.co/functions/v1/stripe-webhook` and

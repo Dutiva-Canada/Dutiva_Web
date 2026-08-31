@@ -10,7 +10,7 @@ The following files were used as context for generating this wiki page:
 - [src/features/app/AppProviders.tsx](src/features/app/AppProviders.tsx)
 - [src/features/app/billing/PlanGate.tsx](src/features/app/billing/PlanGate.tsx)
 - [src/features/app/docstudio/DocStudioOverlay.tsx](src/features/app/docstudio/DocStudioOverlay.tsx)
-- [src/features/app/documents/__snapshots__/engine.test.ts.snap](src/features/app/documents/__snapshots__/engine.test.ts.snap)
+- [src/features/app/documents/**snapshots**/engine.test.ts.snap](src/features/app/documents/__snapshots__/engine.test.ts.snap)
 - [src/features/app/documents/components.tsx](src/features/app/documents/components.tsx)
 - [src/features/app/documents/data/meta.ts](src/features/app/documents/data/meta.ts)
 - [src/features/app/documents/data/templates/authoredTemplates.test.ts](src/features/app/documents/data/templates/authoredTemplates.test.ts)
@@ -40,8 +40,6 @@ The following files were used as context for generating this wiki page:
 - [src/i18n/messages/doclib.ts](src/i18n/messages/doclib.ts)
 
 </details>
-
-
 
 This page documents the template authoring system that powers Dutiva's HR Document Library. It covers the 50-template bilingual catalogue organized by the Four Ring Framework, the `engine.ts` resolution pipeline, jurisdiction-conditional clauses, the wizard-driven generation flow, and all surface-level screens.
 
@@ -103,31 +101,31 @@ Sources: [src/features/app/documents/catalogue.ts:1-24](), [src/features/app/doc
 
 Defined in `data/types.ts`, `DocTemplate` is the schema for every template in the catalogue:
 
-| Field | Type | Purpose |
-|---|---|---|
-| `id` | `string` | Unique identifier, e.g. `'tpl_t01'` |
-| `tid` | `string` | Display id, e.g. `'T01'` — used in routes and UI badges |
-| `key` | `string` | Slug, e.g. `'offer_letter'` |
-| `kind` | `string` | Document kind: `'letter'`, `'agreement'`, `'policy'`, `'checklist'`, `'record'`, etc. |
-| `category` | `TemplateCategoryId` | One of 10 lifecycle categories |
-| `core` | `boolean` | Whether the template is marked as "Core" (essential) |
-| `name` | `Bi` | Bilingual display name |
-| `desc` | `Bi` | Bilingual description |
-| `jurisdictions` | `Jurisdiction[]` | Supported jurisdictions: `'ON'`, `'QC'`, `'FED'` |
-| `risk` | `DocRiskLevel` | `'low'` / `'medium'` / `'high'` |
-| `review` | `ReviewStatus` | Review posture required |
-| `requiresLawyerReview` | `boolean` | Requires legal counsel before use |
-| `version` / `versionNumber` | `string` / `number` | Template version tracking |
-| `effectiveDate` / `updatedAt` | `string` | ISO date strings |
-| `estMinutes` | `number` | Estimated wizard completion time |
-| `usageCount` | `number` | Demo usage count |
-| `statutory` | `Bi[]` | Statutory references (bilingual) |
-| `jurisdictionNotes` | `Partial<Record<Jurisdiction, Bi>>` | Per-jurisdiction legal notes |
-| `includes` | `Bi[]` | What the template covers |
-| `questions` | `TemplateQuestion[]` | Wizard questions for merge fields |
-| `preview` | `PreviewBlock[]` | Ordered document blocks (the template body) |
-| `subject` | `TemplateSubject` | Who the document is about: `'candidate'`, `'employee'`, `'org'`, `'external'` |
-| `bodyHtmlEn?` | `string` | Optional full HTML body (handoff-era, EN-only) |
+| Field                         | Type                                | Purpose                                                                               |
+| ----------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------- |
+| `id`                          | `string`                            | Unique identifier, e.g. `'tpl_t01'`                                                   |
+| `tid`                         | `string`                            | Display id, e.g. `'T01'` — used in routes and UI badges                               |
+| `key`                         | `string`                            | Slug, e.g. `'offer_letter'`                                                           |
+| `kind`                        | `string`                            | Document kind: `'letter'`, `'agreement'`, `'policy'`, `'checklist'`, `'record'`, etc. |
+| `category`                    | `TemplateCategoryId`                | One of 10 lifecycle categories                                                        |
+| `core`                        | `boolean`                           | Whether the template is marked as "Core" (essential)                                  |
+| `name`                        | `Bi`                                | Bilingual display name                                                                |
+| `desc`                        | `Bi`                                | Bilingual description                                                                 |
+| `jurisdictions`               | `Jurisdiction[]`                    | Supported jurisdictions: `'ON'`, `'QC'`, `'FED'`                                      |
+| `risk`                        | `DocRiskLevel`                      | `'low'` / `'medium'` / `'high'`                                                       |
+| `review`                      | `ReviewStatus`                      | Review posture required                                                               |
+| `requiresLawyerReview`        | `boolean`                           | Requires legal counsel before use                                                     |
+| `version` / `versionNumber`   | `string` / `number`                 | Template version tracking                                                             |
+| `effectiveDate` / `updatedAt` | `string`                            | ISO date strings                                                                      |
+| `estMinutes`                  | `number`                            | Estimated wizard completion time                                                      |
+| `usageCount`                  | `number`                            | Demo usage count                                                                      |
+| `statutory`                   | `Bi[]`                              | Statutory references (bilingual)                                                      |
+| `jurisdictionNotes`           | `Partial<Record<Jurisdiction, Bi>>` | Per-jurisdiction legal notes                                                          |
+| `includes`                    | `Bi[]`                              | What the template covers                                                              |
+| `questions`                   | `TemplateQuestion[]`                | Wizard questions for merge fields                                                     |
+| `preview`                     | `PreviewBlock[]`                    | Ordered document blocks (the template body)                                           |
+| `subject`                     | `TemplateSubject`                   | Who the document is about: `'candidate'`, `'employee'`, `'org'`, `'external'`         |
+| `bodyHtmlEn?`                 | `string`                            | Optional full HTML body (handoff-era, EN-only)                                        |
 
 Sources: [src/features/app/documents/data/types.ts:169-201]()
 
@@ -135,16 +133,16 @@ Sources: [src/features/app/documents/data/types.ts:169-201]()
 
 Each `PreviewBlock` is one rendered block in the document. The `type` field determines rendering:
 
-| `type` | Rendered as | Key fields |
-|---|---|---|
-| `'title'` | Centered bold heading | `text` |
-| `'meta'` | Small centered metadata line (org · date · jurisdiction) | `text` |
-| `'para'` | Paragraph | `text` |
-| `'clause'` | Numbered legal clause with heading | `text`, `n`, `heading` |
-| `'fill'` | Reader-fill form prompt with ruled lines | `text`, `heading`, `lines` |
-| `'sig'` | Signature lines | `roles` (array of `Bi`) |
-| `'ack'` | Italicized acknowledgement paragraph | `text` |
-| `'note'` | Callout box (info or risk severity) | `text`, `tone` |
+| `type`     | Rendered as                                              | Key fields                 |
+| ---------- | -------------------------------------------------------- | -------------------------- |
+| `'title'`  | Centered bold heading                                    | `text`                     |
+| `'meta'`   | Small centered metadata line (org · date · jurisdiction) | `text`                     |
+| `'para'`   | Paragraph                                                | `text`                     |
+| `'clause'` | Numbered legal clause with heading                       | `text`, `n`, `heading`     |
+| `'fill'`   | Reader-fill form prompt with ruled lines                 | `text`, `heading`, `lines` |
+| `'sig'`    | Signature lines                                          | `roles` (array of `Bi`)    |
+| `'ack'`    | Italicized acknowledgement paragraph                     | `text`                     |
+| `'note'`   | Callout box (info or risk severity)                      | `text`, `tone`             |
 
 Every block may carry a `when?: ClauseGate` for conditional rendering.
 
@@ -156,10 +154,10 @@ Sources: [src/features/app/documents/data/types.ts:82-83](), [src/features/app/d
 
 ```typescript
 interface ClauseGate {
-  juris?: Jurisdiction        // Only render for this jurisdiction
-  min_headcount?: number      // Only render when org headcount >= threshold
-  union?: boolean             // Only render for union (true) or non-union (false)
-  answer?: { id: string; equals: string[] }  // Only render when wizard answer matches
+  juris?: Jurisdiction // Only render for this jurisdiction
+  min_headcount?: number // Only render when org headcount >= threshold
+  union?: boolean // Only render for union (true) or non-union (false)
+  answer?: { id: string; equals: string[] } // Only render when wizard answer matches
 }
 ```
 
@@ -171,15 +169,15 @@ Sources: [src/features/app/documents/data/types.ts:111-130]()
 
 Each question drives a merge field in the document body:
 
-| Field | Type | Purpose |
-|---|---|---|
-| `id` | `string` | Matches `{{id}}` tokens in `PreviewBlock.text` |
-| `section` | `Bi` | Groups questions under a heading in the wizard |
-| `label` | `Bi` | Input label |
-| `type` | `QuestionType` | `'text'`, `'textarea'`, `'date'`, `'number'`, `'select'`, `'radio'` |
-| `required` | `boolean` | Blocks generation when unfilled |
-| `placeholder?` / `hint?` | `Bi` | Input guidance |
-| `options?` | `TemplateQuestionOption[]` | For select/radio: `{ value, label: Bi }` |
+| Field                    | Type                       | Purpose                                                             |
+| ------------------------ | -------------------------- | ------------------------------------------------------------------- |
+| `id`                     | `string`                   | Matches `{{id}}` tokens in `PreviewBlock.text`                      |
+| `section`                | `Bi`                       | Groups questions under a heading in the wizard                      |
+| `label`                  | `Bi`                       | Input label                                                         |
+| `type`                   | `QuestionType`             | `'text'`, `'textarea'`, `'date'`, `'number'`, `'select'`, `'radio'` |
+| `required`               | `boolean`                  | Blocks generation when unfilled                                     |
+| `placeholder?` / `hint?` | `Bi`                       | Input guidance                                                      |
+| `options?`               | `TemplateQuestionOption[]` | For select/radio: `{ value, label: Bi }`                            |
 
 Sources: [src/features/app/documents/data/types.ts:132-146]()
 
@@ -189,12 +187,12 @@ Sources: [src/features/app/documents/data/types.ts:132-146]()
 
 Templates are organized by an employment lifecycle category scheme, not by ring number. The framework doc records the mapping:
 
-| Ring | Pillar | Question Answered | Category Mapping |
-|---|---|---|---|
-| 1 | HR Compliance Core | "What do I legally have to do?" | `hiring`, `changes`, `agreements`, `policies`, `discipline`, `termination`, `accommodation` |
-| 2 | Workplace Wellness | "How do I support my employees properly?" | `accommodation` (Pillar B), `wellbeing` (Pillar C) |
-| 3 | Internal Communications | "How do I communicate this to my team?" | `communications` |
-| 4 | Compensation & Financial Literacy | "Am I paying fairly?" | `compensation` |
+| Ring | Pillar                            | Question Answered                         | Category Mapping                                                                            |
+| ---- | --------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------- |
+| 1    | HR Compliance Core                | "What do I legally have to do?"           | `hiring`, `changes`, `agreements`, `policies`, `discipline`, `termination`, `accommodation` |
+| 2    | Workplace Wellness                | "How do I support my employees properly?" | `accommodation` (Pillar B), `wellbeing` (Pillar C)                                          |
+| 3    | Internal Communications           | "How do I communicate this to my team?"   | `communications`                                                                            |
+| 4    | Compensation & Financial Literacy | "Am I paying fairly?"                     | `compensation`                                                                              |
 
 Sources: [docs/FOUR_RING_FRAMEWORK.md:22-27](), [docs/FOUR_RING_FRAMEWORK.md:35-64]()
 
@@ -202,18 +200,18 @@ Sources: [docs/FOUR_RING_FRAMEWORK.md:22-27](), [docs/FOUR_RING_FRAMEWORK.md:35-
 
 Ten categories are defined in `data/meta.ts`, ordered by the employment lifecycle:
 
-| Order | `id` | Ring | Templates |
-|---|---|---|---|
-| 1 | `hiring` | 1 | T01, T02, T09, T47, T49 |
-| 2 | `changes` | 1 | T25, T26, T27 |
-| 3 | `agreements` | 1 | T05, T07, T08 |
-| 4 | `policies` | 1 | T04, T10, T11, T12, T13, T28, T34, T48, T50 |
-| 5 | `discipline` | 1 | T06, T16, T31 |
-| 6 | `accommodation` | 1+2 | T19, T20, T21, T22, T23, T24 |
-| 7 | `termination` | 1 | T03, T14, T15, T17, T18, T29, T30, T32, T33 |
-| 8 | `wellbeing` | 2 | T44 |
-| 9 | `compensation` | 4 | T45, T46 |
-| 10 | `communications` | 3 | T35–T43 |
+| Order | `id`             | Ring | Templates                                   |
+| ----- | ---------------- | ---- | ------------------------------------------- |
+| 1     | `hiring`         | 1    | T01, T02, T09, T47, T49                     |
+| 2     | `changes`        | 1    | T25, T26, T27                               |
+| 3     | `agreements`     | 1    | T05, T07, T08                               |
+| 4     | `policies`       | 1    | T04, T10, T11, T12, T13, T28, T34, T48, T50 |
+| 5     | `discipline`     | 1    | T06, T16, T31                               |
+| 6     | `accommodation`  | 1+2  | T19, T20, T21, T22, T23, T24                |
+| 7     | `termination`    | 1    | T03, T14, T15, T17, T18, T29, T30, T32, T33 |
+| 8     | `wellbeing`      | 2    | T44                                         |
+| 9     | `compensation`   | 4    | T45, T46                                    |
+| 10    | `communications` | 3    | T35–T43                                     |
 
 Sources: [src/features/app/documents/data/meta.ts:56-224](), [src/features/app/documents/data/templates/index.ts:1-122]()
 
@@ -314,16 +312,18 @@ Sources: [src/features/app/documents/engine.ts:43-60](), [src/features/app/docum
 
 Four merge tokens are computed from the context rather than wizard answers:
 
-| Token | Source |
-|---|---|
-| `{{org}}` | `DOC_ORG_NAME` constant |
-| `{{today}}` | The `today` parameter (formatted date string) |
+| Token              | Source                                              |
+| ------------------ | --------------------------------------------------- |
+| `{{org}}`          | `DOC_ORG_NAME` constant                             |
+| `{{today}}`        | The `today` parameter (formatted date string)       |
 | `{{jurisdiction}}` | Localized jurisdiction name from `jurisdictionInfo` |
-| `{{statute}}` | Localized governing statute name |
+| `{{statute}}`      | Localized governing statute name                    |
 
 ```typescript
 export function computedTokens(
-  jurisdiction: Jurisdiction, lang: Lang, today: string,
+  jurisdiction: Jurisdiction,
+  lang: Lang,
+  today: string,
 ): Record<string, string> {
   const info = jurisdictionInfo.find((j) => j.code === jurisdiction)
   return {
@@ -353,11 +353,11 @@ Sources: [src/features/app/documents/engine.ts:161-178](), [src/features/app/doc
 
 Splits block text on `{{token}}` boundaries into typed segments for the live-preview renderer:
 
-| `kind` | Meaning | Styling |
-|---|---|---|
-| `'text'` | Literal text | Normal |
-| `'filled'` | Token with a value present | Accent background highlight |
-| `'unfilled'` | Token with no value yet | Warning background, human-readable placeholder |
+| `kind`       | Meaning                    | Styling                                        |
+| ------------ | -------------------------- | ---------------------------------------------- |
+| `'text'`     | Literal text               | Normal                                         |
+| `'filled'`   | Token with a value present | Accent background highlight                    |
+| `'unfilled'` | Token with no value yet    | Warning background, human-readable placeholder |
 
 ```typescript
 const TOKEN_RE = /\{\{([a-z0-9_]+)\}\}/g
@@ -373,7 +373,8 @@ Counts answer-backed tokens only (excludes `org`, `today`, `jurisdiction`, `stat
 
 ```typescript
 export function fillProgress(
-  template: DocTemplate, answers: Record<string, string>,
+  template: DocTemplate,
+  answers: Record<string, string>,
 ): { filled: number; total: number }
 ```
 
@@ -396,16 +397,16 @@ Sources: [src/features/app/documents/engine.ts:172-235](), [src/features/app/doc
 
 `can(role, capability)` checks the handoff's capability matrix. `docActionsFor(doc, role)` returns available actions based on role permissions and document status:
 
-| Action | Required capability | Status constraints |
-|---|---|---|
-| `edit` | `edit` | Not from signed/exported/archived/voided/deleted |
-| `request_review` | `request_review` | Only from draft/needs_revision |
-| `approve` | `approve_review` | Only from in_review |
-| `send_for_signature` | `send_for_signature` | Only from approved |
-| `export` | `export` | Not from archived/voided/deleted |
-| `archive` | `archive` | Not from archived/voided/deleted |
-| `restore` | `restore` | Only from archived |
-| `void` | `void` | Not from voided/deleted/archived |
+| Action               | Required capability  | Status constraints                               |
+| -------------------- | -------------------- | ------------------------------------------------ |
+| `edit`               | `edit`               | Not from signed/exported/archived/voided/deleted |
+| `request_review`     | `request_review`     | Only from draft/needs_revision                   |
+| `approve`            | `approve_review`     | Only from in_review                              |
+| `send_for_signature` | `send_for_signature` | Only from approved                               |
+| `export`             | `export`             | Not from archived/voided/deleted                 |
+| `archive`            | `archive`            | Not from archived/voided/deleted                 |
+| `restore`            | `restore`            | Only from archived                               |
+| `void`               | `void`               | Not from voided/deleted/archived                 |
 
 Sources: [src/features/app/documents/engine.ts:237-294](), [src/features/app/documents/engine.test.ts:205-240]()
 
@@ -417,13 +418,13 @@ The `appliesToNoticeField` function gates applicability: the check only fires wh
 
 `assessNoticeFloor` returns one of five verdicts:
 
-| Verdict | Meaning |
-|---|---|
-| `'unavailable'` | No grounded schedule for this jurisdiction (QC, FED) |
-| `'unknown-tenure'` | Tenure not yet entered |
-| `'informational'` | Floor known, nothing entered — show as guidance |
-| `'meets'` | Entered value ≥ statutory floor |
-| `'below'` | Entered value < statutory floor — triggers `role="alert"` |
+| Verdict            | Meaning                                                   |
+| ------------------ | --------------------------------------------------------- |
+| `'unavailable'`    | No grounded schedule for this jurisdiction (QC, FED)      |
+| `'unknown-tenure'` | Tenure not yet entered                                    |
+| `'informational'`  | Floor known, nothing entered — show as guidance           |
+| `'meets'`          | Entered value ≥ statutory floor                           |
+| `'below'`          | Entered value < statutory floor — triggers `role="alert"` |
 
 The system deliberately advises rather than autofills: pre-filling the statutory floor would nudge employers toward the legal minimum when common-law reasonable notice is often much higher.
 
@@ -456,7 +457,7 @@ Sources: [src/features/app/documents/DoclibProvider.tsx:1-234](), [src/features/
 
 ```typescript
 interface DoclibContextValue {
-  data: DoclibData | null       // null while loading
+  data: DoclibData | null // null while loading
   role: WorkspaceRole
   setRole: (role: WorkspaceRole) => void
   org: OrgProfile
@@ -497,6 +498,7 @@ Sources: [src/app/appViews.tsx:153-166](), [src/app/appViews.tsx:9-22]()
 ### `DocumentsLayout`
 
 Provides three shared concerns:
+
 1. **`DoclibProvider`** — mounts the feature provider for all child screens
 2. **`DocumentsTabs`** — three-tab nav: HR Library → Document Library → Document Studio
 3. **`ViewingAsBar`** — role-switching control (prototype-only permission demo)
@@ -515,6 +517,7 @@ Sources: [src/features/app/documents/DocumentsLayout.tsx:1-103]()
 The search placeholder dynamically includes the catalogue size: `"Search 50 templates…"`.
 
 Each `TemplateCard` links to:
+
 - **Open** → `/app/documents/templates/:tid` (TemplateDetailScreen)
 - **Generate** → `/app/documents/generate/:id` (GenerateScreen)
 
@@ -525,6 +528,7 @@ Sources: [src/features/app/documents/screens/StudioScreen.tsx:247-448](), [src/f
 `TemplateDetailScreen` at `/app/documents/templates/:tid` shows a two-column layout:
 
 **Left column:**
+
 - Tid badge, risk chip, review flag
 - Template name (h1), version/updated/est-time metadata
 - Review-posture callout (lawyer review / HR review warning)
@@ -534,6 +538,7 @@ Sources: [src/features/app/documents/screens/StudioScreen.tsx:247-448](), [src/f
 - What's included / statutory references lists
 
 **Right rail (sticky):**
+
 - Sample preview rendered via `DocPaper` using `resolveBlocks()` and `computedTokens()`
 - "Generate document" CTA linking to `/app/documents/generate/:id`
 - `Disclaimer` component
@@ -550,13 +555,13 @@ Sources: [src/features/app/documents/screens/TemplateDetailScreen.tsx:145-351]()
 
 ```typescript
 interface WizardState {
-  step: 0 | 1 | 2             // Context → Questions → Review
+  step: 0 | 1 | 2 // Context → Questions → Review
   employeeId?: string
   caseId?: string
   jurisdiction: Jurisdiction
-  language: 'en' | 'fr'       // Document language (independent of UI locale)
+  language: 'en' | 'fr' // Document language (independent of UI locale)
   answers: Record<string, string>
-  saveState: SaveState         // 'unsaved' | 'saving' | 'saved'
+  saveState: SaveState // 'unsaved' | 'saving' | 'saved'
 }
 ```
 
@@ -625,12 +630,12 @@ Sources: [src/features/app/documents/components.tsx:183-312](), [src/features/ap
 
 Conditional clauses are a key feature of the bilingual template engine. Here are the documented clause-gate patterns used across the catalogue:
 
-| Template | Gate | Effect |
-|---|---|---|
-| T01 (Offer letter) | `{ juris: 'ON', min_headcount: 25 }` | Disconnecting-from-work clause (Ontario 25+ requirement) |
-| T03, T06, T15, T16 | `{ union: true }` | Collective-agreement clause for unionized orgs |
-| T40 (Policy update) | `{ answer: { id: 'reack', equals: ['yes'] } }` | Signature page only when acknowledgement requested |
-| Various | `{ juris: 'QC' }` | Quebec-specific Civil Code provisions |
+| Template            | Gate                                           | Effect                                                   |
+| ------------------- | ---------------------------------------------- | -------------------------------------------------------- |
+| T01 (Offer letter)  | `{ juris: 'ON', min_headcount: 25 }`           | Disconnecting-from-work clause (Ontario 25+ requirement) |
+| T03, T06, T15, T16  | `{ union: true }`                              | Collective-agreement clause for unionized orgs           |
+| T40 (Policy update) | `{ answer: { id: 'reack', equals: ['yes'] } }` | Signature page only when acknowledgement requested       |
+| Various             | `{ juris: 'QC' }`                              | Quebec-specific Civil Code provisions                    |
 
 The test suite in `engine.test.ts` exercises these patterns with a `(template × jurisdiction × headcount × union)` matrix, including snapshot tests for T03's clause text stability.
 
@@ -650,6 +655,7 @@ Runs structural guards on every in-repo-authored template (T21+):
 6. **Full fill check** — answering all questions leaves no unfilled fields (tested per-jurisdiction)
 
 Whole-catalogue guards (T01–T50):
+
 - **Clause numbering** — no duplicate clause numbers within any jurisdiction's resolved blocks
 - **Disclaimer presence** — every template carries `DOC_DISCLAIMER_NOTE` as a `note` block
 - **Disclaimer purity** — the disclaimer note is exactly the canonical text, not appended to
@@ -659,6 +665,7 @@ Sources: [src/features/app/documents/data/templates/authoredTemplates.test.ts:1-
 ### `engine.test.ts`
 
 Covers the core engine functions:
+
 - Conditional clause evaluation matrix
 - Applicability engine (size triggers, union precedence, clause-level gates)
 - Merge-field splitting and computed token localization
@@ -712,11 +719,11 @@ Sources: [src/features/app/documents/screens/StudioScreen.tsx:247-448](), [src/f
 
 Four templates in `customTemplates.ts` port content from the legacy `src/data/documents.ts` fixtures:
 
-| Tid | Name | Category | Risk |
-|---|---|---|---|
-| T17 | Full & final release | `termination` | high |
-| T18 | Offboarding checklist | `termination` | low |
-| T19 | Accommodation documentation | `accommodation` | high |
+| Tid | Name                               | Category        | Risk |
+| --- | ---------------------------------- | --------------- | ---- |
+| T17 | Full & final release               | `termination`   | high |
+| T18 | Offboarding checklist              | `termination`   | low  |
+| T19 | Accommodation documentation        | `accommodation` | high |
 | T20 | Medical information request letter | `accommodation` | high |
 
 T19 and T20 were moved from `discipline` to `accommodation` to correct a categorical error. They were rewritten for ON/QC/FED coverage (originally BC-only content) since the `Jurisdiction` type only models `'ON' | 'QC' | 'FED'`.
@@ -740,27 +747,27 @@ Sources: [src/features/app/documents/data/meta.ts:26-48](), [src/features/app/do
 
 ## Key File Inventory
 
-| File | Role |
-|---|---|
-| `documents/data/types.ts` | Core type definitions: `DocTemplate`, `PreviewBlock`, `ClauseGate`, `TemplateQuestion`, etc. |
-| `documents/data/meta.ts` | Category definitions, risk/review/status metadata, `DOC_DISCLAIMER_NOTE` |
-| `documents/data/templates/index.ts` | 46-template barrel, `templateByTid`, `templateById` maps |
-| `documents/customTemplates.ts` | 4 ported legacy templates (T17–T20) |
-| `documents/catalogue.ts` | `allTemplates` — unified, tid-sorted catalogue from both sources |
-| `documents/engine.ts` | Pure functions: `resolveBlocks`, `computedTokens`, `answerLabels`, `mergeSegments`, `fillProgress`, `applicability`, `can`, `docActionsFor` |
-| `documents/statutoryFloor.ts` | Notice-floor checking for termination templates |
-| `documents/api.ts` | `loadDoclibData()` — returns bundled fixture data |
-| `documents/DoclibProvider.tsx` | Feature state provider (catalogue, role, org profile, signature actions) |
-| `documents/doclibContext.ts` | `DoclibContext`, `useDoclib()` hook |
-| `documents/components.tsx` | `DocPaper`, `DocChip`, `JurisdictionPill`, `StepDots`, `ActBtn` |
-| `documents/DocumentsLayout.tsx` | Shared layout with tabs and role bar |
-| `documents/screens/StudioScreen.tsx` | Template library with filters and org profile bar |
-| `documents/screens/TemplateDetailScreen.tsx` | Single-template detail with preview |
-| `documents/screens/GenerateScreen.tsx` | 3-step generation wizard with live preview |
-| `views/templates/TemplatesView.tsx` | Legacy template gallery (HR Library tab) |
-| `i18n/messages/doclib.ts` | 215+ bilingual i18n keys for the document library |
-| `docs/FOUR_RING_FRAMEWORK.md` | Four Ring Framework documentation |
-| `data/templates/authoredTemplates.test.ts` | Structural test suite for all templates |
-| `documents/engine.test.ts` | Engine function test suite |
+| File                                         | Role                                                                                                                                        |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `documents/data/types.ts`                    | Core type definitions: `DocTemplate`, `PreviewBlock`, `ClauseGate`, `TemplateQuestion`, etc.                                                |
+| `documents/data/meta.ts`                     | Category definitions, risk/review/status metadata, `DOC_DISCLAIMER_NOTE`                                                                    |
+| `documents/data/templates/index.ts`          | 46-template barrel, `templateByTid`, `templateById` maps                                                                                    |
+| `documents/customTemplates.ts`               | 4 ported legacy templates (T17–T20)                                                                                                         |
+| `documents/catalogue.ts`                     | `allTemplates` — unified, tid-sorted catalogue from both sources                                                                            |
+| `documents/engine.ts`                        | Pure functions: `resolveBlocks`, `computedTokens`, `answerLabels`, `mergeSegments`, `fillProgress`, `applicability`, `can`, `docActionsFor` |
+| `documents/statutoryFloor.ts`                | Notice-floor checking for termination templates                                                                                             |
+| `documents/api.ts`                           | `loadDoclibData()` — returns bundled fixture data                                                                                           |
+| `documents/DoclibProvider.tsx`               | Feature state provider (catalogue, role, org profile, signature actions)                                                                    |
+| `documents/doclibContext.ts`                 | `DoclibContext`, `useDoclib()` hook                                                                                                         |
+| `documents/components.tsx`                   | `DocPaper`, `DocChip`, `JurisdictionPill`, `StepDots`, `ActBtn`                                                                             |
+| `documents/DocumentsLayout.tsx`              | Shared layout with tabs and role bar                                                                                                        |
+| `documents/screens/StudioScreen.tsx`         | Template library with filters and org profile bar                                                                                           |
+| `documents/screens/TemplateDetailScreen.tsx` | Single-template detail with preview                                                                                                         |
+| `documents/screens/GenerateScreen.tsx`       | 3-step generation wizard with live preview                                                                                                  |
+| `views/templates/TemplatesView.tsx`          | Legacy template gallery (HR Library tab)                                                                                                    |
+| `i18n/messages/doclib.ts`                    | 215+ bilingual i18n keys for the document library                                                                                           |
+| `docs/FOUR_RING_FRAMEWORK.md`                | Four Ring Framework documentation                                                                                                           |
+| `data/templates/authoredTemplates.test.ts`   | Structural test suite for all templates                                                                                                     |
+| `documents/engine.test.ts`                   | Engine function test suite                                                                                                                  |
 
 ---

@@ -5,7 +5,10 @@ describe('advisorNav', () => {
   describe('readNavStartFlow', () => {
     it('accepts a bilingual prompt with an explicit flow key', () => {
       expect(
-        readNavStartFlow({ prompt: { en: 'Start termination', fr: 'Commencer la cessation' }, flowKey: 'termination' }),
+        readNavStartFlow({
+          prompt: { en: 'Start termination', fr: 'Commencer la cessation' },
+          flowKey: 'termination',
+        }),
       ).toEqual({
         prompt: { en: 'Start termination', fr: 'Commencer la cessation' },
         flowKey: 'termination',

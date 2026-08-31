@@ -22,18 +22,23 @@ describe('LandingDemoPath', () => {
     await user.click(screen.getByRole('tab', { name: advisorScenarios.s3.title.en }))
     expect(screen.getByText(advisorScenarios.s3.user.en)).toBeInTheDocument()
 
-    const seeMore = screen.getByRole('link', { name: /See more in the demo|Voir plus dans la démo/i })
+    const seeMore = screen.getByRole('link', {
+      name: /See more in the demo|Voir plus dans la démo/i,
+    })
     expect(seeMore).toHaveAttribute('href', '/demo/advisor')
 
     await user.click(screen.getByRole('tab', { name: /Cases|Dossiers/i }))
-    expect(screen.getByRole('link', { name: /See more in the demo|Voir plus dans la démo/i })).toHaveAttribute(
-      'href',
-      '/demo/cases',
-    )
+    expect(
+      screen.getByRole('link', { name: /See more in the demo|Voir plus dans la démo/i }),
+    ).toHaveAttribute('href', '/demo/cases')
     await user.click(
-      await screen.findByRole('button', { name: /Performance — Devon Clarke|Rendement — Devon Clarke/i }),
+      await screen.findByRole('button', {
+        name: /Performance — Devon Clarke|Rendement — Devon Clarke/i,
+      }),
     )
-    expect(await screen.findByText(/Attendance-related PIP|PAR lié à l’assiduité/i)).toBeInTheDocument()
+    expect(
+      await screen.findByText(/Attendance-related PIP|PAR lié à l’assiduité/i),
+    ).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /Close preview|Fermer l’aperçu/i }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()

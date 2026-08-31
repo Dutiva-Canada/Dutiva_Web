@@ -17,7 +17,10 @@ export const statutoryNoticeQuebecFlow: Flow = {
   ring: 1,
   jurisdictions: ['QC'],
   estMinutes: 4,
-  title: bi('Québec termination notice (confirm against statute)', 'Préavis de cessation au Québec (confirmer dans la loi)'),
+  title: bi(
+    'Québec termination notice (confirm against statute)',
+    'Préavis de cessation au Québec (confirmer dans la loi)',
+  ),
   summary: bi(
     'Walk the Québec notice path without quoting week figures — LNT floor plus Civil Code reasonable notice. Confirm against primary sources before you write.',
     'Parcourez le chemin du préavis québécois sans citer de semaines — plancher LNT et préavis raisonnable du Code civil. Confirmez dans les sources officielles avant de rédiger.',
@@ -27,7 +30,10 @@ export const statutoryNoticeQuebecFlow: Flow = {
     {
       id: 'scope',
       kind: 'choice',
-      title: bi('Is this employee under Québec provincial standards?', 'Cet employé relève-t-il des normes provinciales du Québec?'),
+      title: bi(
+        'Is this employee under Québec provincial standards?',
+        'Cet employé relève-t-il des normes provinciales du Québec?',
+      ),
       body: bi(
         'Most Québec workplaces fall under the Act respecting labour standards (LNT). Federally regulated employers use the Canada Labour Code instead — use the federal notice workflow for those roles.',
         'La plupart des milieux de travail québécois relèvent de la Loi sur les normes du travail (LNT). Les employeurs de compétence fédérale utilisent le Code canadien du travail — utilisez le processus fédéral pour ces postes.',
@@ -57,7 +63,10 @@ export const statutoryNoticeQuebecFlow: Flow = {
     {
       id: 'statutes',
       kind: 'task',
-      title: bi('Read both layers before you pick a number', 'Lisez les deux couches avant de choisir un chiffre'),
+      title: bi(
+        'Read both layers before you pick a number',
+        'Lisez les deux couches avant de choisir un chiffre',
+      ),
       body: bi(
         'Québec notice is not a single product table. Confirm the current primary text yourself.',
         'Le préavis québécois n’est pas un seul tableau produit. Confirmez vous-même le texte officiel en vigueur.',
@@ -86,7 +95,10 @@ export const statutoryNoticeQuebecFlow: Flow = {
       id: 'done',
       kind: 'outcome',
       tone: 'caution',
-      title: bi('Confirm the floor and reasonable notice, then draft', 'Confirmez le plancher et le préavis raisonnable, puis rédigez'),
+      title: bi(
+        'Confirm the floor and reasonable notice, then draft',
+        'Confirmez le plancher et le préavis raisonnable, puis rédigez',
+      ),
       body: bi(
         'You have the process shape: identify LNT coverage, read the current LNT notice rules for tenure, weigh CCQ art. 2091 and any contract above that floor, then draft. Document Studio will not inject a Québec week figure — enter what you confirmed from primary sources into the letter.',
         'Vous avez la forme du processus : confirmer la couverture LNT, lire les règles de préavis LNT en vigueur selon l’ancienneté, peser l’art. 2091 du C.c.Q. et tout contrat au-dessus de ce plancher, puis rédiger. Le Studio de documents n’injectera pas de semaines pour le Québec — inscrivez ce que vous avez confirmé dans les sources officielles.',
@@ -108,7 +120,10 @@ export const statutoryNoticeQuebecFlow: Flow = {
       id: 'unclear',
       kind: 'outcome',
       tone: 'caution',
-      title: bi('Settle jurisdiction before notice weeks', 'Trancher la compétence avant les semaines de préavis'),
+      title: bi(
+        'Settle jurisdiction before notice weeks',
+        'Trancher la compétence avant les semaines de préavis',
+      ),
       body: bi(
         'Jurisdiction decides which statute applies. Use the jurisdiction checker or counsel before treating any notice period as the floor. Do not invent a Québec week figure from this product.',
         'La compétence décide quelle loi s’applique. Utilisez le vérificateur de compétence ou un conseiller avant de traiter une période de préavis comme plancher. N’inventez pas de semaines québécoises à partir de ce produit.',

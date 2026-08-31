@@ -12,22 +12,22 @@ This document defines the conceptual model for evidence in the Personal Evidence
 
 The smallest unit of evidence: a single uploaded file, captured image, imported record, or manual note. An evidence item is immutable in its original form.
 
-| Attribute | Description |
-|---|---|
-| `id` | Stable identifier. |
-| `user_id` | Owning user. |
-| `title` | User-provided or system-suggested title. |
-| `description` | User-provided notes. |
-| `source_type` | upload, capture, import, manual_entry. |
-| `original_file_id` | Reference to the stored original file. |
-| `mime_type` | Detected MIME type. |
-| `file_size` | Size in bytes. |
-| `original_hash` | SHA-256 hash of original file. |
-| `captured_at` | Date/time the record depicts (if known). |
-| `uploaded_at` | Date/time of ingestion. |
-| `provenance` | Source and method of acquisition. |
-| `sensitivity` | normal, sensitive, highly_sensitive. |
-| `status` | active, deleted_pending, purged. |
+| Attribute          | Description                              |
+| ------------------ | ---------------------------------------- |
+| `id`               | Stable identifier.                       |
+| `user_id`          | Owning user.                             |
+| `title`            | User-provided or system-suggested title. |
+| `description`      | User-provided notes.                     |
+| `source_type`      | upload, capture, import, manual_entry.   |
+| `original_file_id` | Reference to the stored original file.   |
+| `mime_type`        | Detected MIME type.                      |
+| `file_size`        | Size in bytes.                           |
+| `original_hash`    | SHA-256 hash of original file.           |
+| `captured_at`      | Date/time the record depicts (if known). |
+| `uploaded_at`      | Date/time of ingestion.                  |
+| `provenance`       | Source and method of acquisition.        |
+| `sensitivity`      | normal, sensitive, highly_sensitive.     |
+| `status`           | active, deleted_pending, purged.         |
 
 ### Case / situation
 
@@ -88,11 +88,11 @@ Use in workflows / export
 
 ## Evidence lifecycle states
 
-| State | Description |
-|---|---|
-| `active` | Available to the user, linked to cases, searchable. |
-| `deleted_pending` | Soft-deleted; hidden from normal UI; recoverable within the recovery window. |
-| `purged` | Permanently deleted per retention policy; metadata may be retained in audit logs only. |
+| State             | Description                                                                            |
+| ----------------- | -------------------------------------------------------------------------------------- |
+| `active`          | Available to the user, linked to cases, searchable.                                    |
+| `deleted_pending` | Soft-deleted; hidden from normal UI; recoverable within the recovery window.           |
+| `purged`          | Permanently deleted per retention policy; metadata may be retained in audit logs only. |
 
 ---
 
@@ -152,13 +152,13 @@ Every evidence item has core metadata and user-extensible metadata.
 
 ## Evidence types and handling
 
-| Type | Examples | Handling notes |
-|---|---|---|
-| Document (PDF, Word, TXT) | Contracts, letters, forms, statements | Preserve original; optional OCR; treat text extraction as interpretation. |
-| Image (JPEG, PNG, TIFF) | Photos, screenshots, scans | Preserve original; generate optional thumbnail; OCR in future. |
-| Audio / video (MP3, MP4, MOV) | Recordings, voicemails | Store as reference; transcripts are interpretations; legal recording consent is the user's responsibility. |
-| Email (EML, MSG — future) | Correspondence | Preserve original; parse headers as metadata. |
-| Manual note | Typed summary or observation | Store as structured text; no original file; user is the source. |
+| Type                          | Examples                              | Handling notes                                                                                             |
+| ----------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Document (PDF, Word, TXT)     | Contracts, letters, forms, statements | Preserve original; optional OCR; treat text extraction as interpretation.                                  |
+| Image (JPEG, PNG, TIFF)       | Photos, screenshots, scans            | Preserve original; generate optional thumbnail; OCR in future.                                             |
+| Audio / video (MP3, MP4, MOV) | Recordings, voicemails                | Store as reference; transcripts are interpretations; legal recording consent is the user's responsibility. |
+| Email (EML, MSG — future)     | Correspondence                        | Preserve original; parse headers as metadata.                                                              |
+| Manual note                   | Typed summary or observation          | Store as structured text; no original file; user is the source.                                            |
 
 ---
 

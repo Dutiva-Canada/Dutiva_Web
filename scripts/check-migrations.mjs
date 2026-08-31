@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2026 
+ *   Copyright (c) 2026
  *   All rights reserved.
  */
 /**
@@ -130,7 +130,9 @@ for (const file of files) {
 for (const [sequence, ledger] of ACCEPTED_DUPLICATE_SEQUENCES) {
   for (const file of ledger.files) {
     if (!files.includes(file)) {
-      problems.push(`${file}: listed in migration ledger for ${sequence} but missing from supabase/migrations`)
+      problems.push(
+        `${file}: listed in migration ledger for ${sequence} but missing from supabase/migrations`,
+      )
     }
   }
 }
@@ -225,8 +227,7 @@ if (!token || !projectRef) {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          query:
-            'select version, name from supabase_migrations.schema_migrations order by version',
+          query: 'select version, name from supabase_migrations.schema_migrations order by version',
         }),
       },
     )

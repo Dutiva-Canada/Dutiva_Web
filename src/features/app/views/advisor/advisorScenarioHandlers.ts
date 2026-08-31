@@ -9,11 +9,7 @@ import { advisorScenarios } from './advisorScenarios'
 import type { ScenarioId, ScenarioTurn } from './advisorScenarios'
 import { advisorSession, type SessionChat } from './advisorSession'
 import type { MessageExtras } from './advisorFlows'
-import {
-  freshResponseState,
-  scenarioExtras,
-  scenarioForResponseState,
-} from './advisorViewHelpers'
+import { freshResponseState, scenarioExtras, scenarioForResponseState } from './advisorViewHelpers'
 
 type PushUser = (text: LText, chips?: LText[]) => string
 type PushAdvisor = (spec: AdvisorTurnSpec) => string
@@ -21,7 +17,9 @@ type PushAdvisor = (spec: AdvisorTurnSpec) => string
 interface ScenarioHandlersOptions {
   pushUser: PushUser
   pushAdvisor: PushAdvisor
-  updateExtras: (updater: (prev: Record<string, MessageExtras>) => Record<string, MessageExtras>) => void
+  updateExtras: (
+    updater: (prev: Record<string, MessageExtras>) => Record<string, MessageExtras>,
+  ) => void
   patchResponseState: (
     chatId: string,
     patch: Partial<ReturnType<typeof freshResponseState>>,

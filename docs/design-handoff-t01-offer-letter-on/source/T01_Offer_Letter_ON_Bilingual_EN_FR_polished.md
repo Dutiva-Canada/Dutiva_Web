@@ -24,13 +24,13 @@ This bilingual document is provided in English and French. Both versions are int
 
 The following information is included to support Ontario employment standards requirements where applicable, including the written employment information required for employers with 25 or more employees on the employee's first day of work.
 
-| Field | Information |
-| :---- | :---- |
-| Legal name | {{employer\_legal\_name}} |
-| Operating/business name | {{employer\_business\_name}} |
-| Employer address | {{employer\_address}} |
-| Employer telephone | {{employer\_phone}} |
-| Employer contact | {{hr\_contact\_name}} \- {{hr\_contact\_email}} |
+| Field                   | Information                                     |
+| :---------------------- | :---------------------------------------------- |
+| Legal name              | {{employer\_legal\_name}}                       |
+| Operating/business name | {{employer\_business\_name}}                    |
+| Employer address        | {{employer\_address}}                           |
+| Employer telephone      | {{employer\_phone}}                             |
+| Employer contact        | {{hr\_contact\_name}} \- {{hr\_contact\_email}} |
 
 ## **2\. Role, start date and reporting**
 
@@ -48,12 +48,12 @@ Where Ontario overtime rules apply and no exemption or special rule applies, ove
 
 Your base salary will be {{annual\_base\_salary}} per year, paid {{pay\_frequency}} by direct deposit, less statutory deductions and authorized withholdings.
 
-| Field | Information |
-| :---- | :---- |
+| Field                   | Information              |
+| :---------------------- | :----------------------- |
 | Starting wage or salary | {{annual\_base\_salary}} |
-| Pay period | {{pay\_period}} |
-| Regular pay day | {{pay\_day}} |
-| Pay frequency | {{pay\_frequency}} |
+| Pay period              | {{pay\_period}}          |
+| Regular pay day         | {{pay\_day}}             |
+| Pay frequency           | {{pay\_frequency}}       |
 
 Your compensation will be reviewed as part of the Company's regular performance and compensation cycle. A review does not guarantee an increase or adjustment.
 
@@ -95,7 +95,7 @@ As a condition of employment, you must protect the Company's confidential inform
 
 ## **11\. Ending employment**
 
-Please refer to the Employment Agreement for the complete legal terms governing termination. This section is a summary provided for your convenience and does not replace or expand upon the entitlements set out in the Employment Agreement or the *Employment Standards Act, 2000*.
+Please refer to the Employment Agreement for the complete legal terms governing termination. This section is a summary provided for your convenience and does not replace or expand upon the entitlements set out in the Employment Agreement or the _Employment Standards Act, 2000_.
 
 For clarity, the Company will always provide at least the minimum notice of termination, termination pay, severance pay if applicable, benefit continuation, accrued and unpaid vacation pay, earned wages and any other amounts required by the ESA.
 
@@ -107,10 +107,10 @@ The Employment Agreement contains an express temporary layoff provision. By acce
 
 This offer is conditional on:
 
-* your legal authorization to work in Canada for the duration of your employment;  
-* The obtainment of satisfactory results from role-related background, credential and reference checks that have been disclosed to you and conducted with required consent, in accordance with applicable privacy, human rights and employment laws;  
-* your signing and returning the Employment Agreement, confidentiality and intellectual-property documents, policy acknowledgements and onboarding documents required by the Company on or before your start date; and  
-* your representation that accepting this offer and performing your duties will not breach any obligation owed to a current or former employer or other third party, including confidentiality, intellectual-property, non-solicitation or other lawful restrictive-covenant obligations.
+- your legal authorization to work in Canada for the duration of your employment;
+- The obtainment of satisfactory results from role-related background, credential and reference checks that have been disclosed to you and conducted with required consent, in accordance with applicable privacy, human rights and employment laws;
+- your signing and returning the Employment Agreement, confidentiality and intellectual-property documents, policy acknowledgements and onboarding documents required by the Company on or before your start date; and
+- your representation that accepting this offer and performing your duties will not breach any obligation owed to a current or former employer or other third party, including confidentiality, intellectual-property, non-solicitation or other lawful restrictive-covenant obligations.
 
 ## **14\. Governing documents and law**
 
@@ -136,13 +136,13 @@ Sincerely,
 
 ## **Schedule A \- Job Description**
 
-| Field | Information |
-| :---- | :---- |
-| Position title | {{position\_title}} |
-| Department/team | {{department}} |
-| Key responsibilities | {{job\_responsibilities}} |
-| Required qualifications | {{required\_qualifications}} |
-| Physical, travel or other role requirements, if any | {{role\_requirements}} |
+| Field                                               | Information                  |
+| :-------------------------------------------------- | :--------------------------- |
+| Position title                                      | {{position\_title}}          |
+| Department/team                                     | {{department}}               |
+| Key responsibilities                                | {{job\_responsibilities}}    |
+| Required qualifications                             | {{required\_qualifications}} |
+| Physical, travel or other role requirements, if any | {{role\_requirements}}       |
 
 ## **Version française**
 
@@ -166,13 +166,13 @@ Le présent document bilingue est fourni en anglais et en français. Les deux ve
 
 Les renseignements suivants sont inclus afin d'appuyer les exigences ontariennes en matière de normes d'emploi, le cas échéant, y compris les renseignements écrits sur l'emploi exigés des employeurs qui comptent 25 employés ou plus le premier jour de travail de l'employé.
 
-| Champ | Renseignements |
-| :---- | :---- |
-| Dénomination sociale | {{employer\_legal\_name}} |
-| Nom commercial | {{employer\_business\_name}} |
-| Adresse de l'employeur | {{employer\_address}} |
-| Téléphone de l'employeur | {{employer\_phone}} |
-| Personne-ressource | {{hr\_contact\_name}} \- {{hr\_contact\_email}} |
+| Champ                    | Renseignements                                  |
+| :----------------------- | :---------------------------------------------- |
+| Dénomination sociale     | {{employer\_legal\_name}}                       |
+| Nom commercial           | {{employer\_business\_name}}                    |
+| Adresse de l'employeur   | {{employer\_address}}                           |
+| Téléphone de l'employeur | {{employer\_phone}}                             |
+| Personne-ressource       | {{hr\_contact\_name}} \- {{hr\_contact\_email}} |
 
 ## **2\. Poste, date de début et supervision**
 
@@ -190,12 +190,12 @@ Lorsque les règles ontariennes sur les heures supplémentaires s'appliquent et 
 
 Votre salaire de base sera de {{annual\_base\_salary}} par année, payé {{pay\_frequency}} par dépôt direct, moins les retenues prévues par la loi et les retenues autorisées.
 
-| Champ | Renseignements |
-| :---- | :---- |
+| Champ                     | Renseignements           |
+| :------------------------ | :----------------------- |
 | Salaire ou taux de départ | {{annual\_base\_salary}} |
-| Période de paie | {{pay\_period}} |
-| Jour de paie régulier | {{pay\_day}} |
-| Fréquence de paie | {{pay\_frequency}} |
+| Période de paie           | {{pay\_period}}          |
+| Jour de paie régulier     | {{pay\_day}}             |
+| Fréquence de paie         | {{pay\_frequency}}       |
 
 Votre rémunération sera examinée dans le cadre du cycle régulier de gestion du rendement et de rémunération de la Société. Un tel examen ne garantit aucune augmentation ni rajustement.
 
@@ -249,10 +249,10 @@ Le contrat de travail contient une disposition expresse relative à la mise à p
 
 La présente offre est conditionnelle à ce qui suit :
 
-* votre autorisation légale de travailler au Canada pendant toute la durée de votre emploi;  
-* l'obtention de résultats satisfaisants aux vérifications liées au poste, notamment des vérifications des antécédents, des titres de compétence et des références qui vous ont été divulguées et qui sont effectuées avec le consentement requis, conformément aux lois applicables en matière de protection de la vie privée, de droits de la personne et d'emploi;  
-* votre signature et votre retour du contrat de travail, des documents relatifs à la confidentialité et à la propriété intellectuelle, des accusés de réception de politiques et des documents d'accueil exigés par la Société au plus tard à votre date de début; et  
-* votre déclaration selon laquelle l'acceptation de la présente offre et l'exécution de vos fonctions ne violeront aucune obligation envers un employeur actuel ou ancien ni envers un autre tiers, notamment en matière de confidentialité, de propriété intellectuelle, de non-sollicitation ou d'autres clauses restrictives légales.
+- votre autorisation légale de travailler au Canada pendant toute la durée de votre emploi;
+- l'obtention de résultats satisfaisants aux vérifications liées au poste, notamment des vérifications des antécédents, des titres de compétence et des références qui vous ont été divulguées et qui sont effectuées avec le consentement requis, conformément aux lois applicables en matière de protection de la vie privée, de droits de la personne et d'emploi;
+- votre signature et votre retour du contrat de travail, des documents relatifs à la confidentialité et à la propriété intellectuelle, des accusés de réception de politiques et des documents d'accueil exigés par la Société au plus tard à votre date de début; et
+- votre déclaration selon laquelle l'acceptation de la présente offre et l'exécution de vos fonctions ne violeront aucune obligation envers un employeur actuel ou ancien ni envers un autre tiers, notamment en matière de confidentialité, de propriété intellectuelle, de non-sollicitation ou d'autres clauses restrictives légales.
 
 ## **14\. Documents applicables et droit applicable**
 
@@ -278,13 +278,13 @@ Cordialement,
 
 ## **Annexe A \- Description du poste**
 
-| Champ | Renseignements |
-| :---- | :---- |
-| Titre du poste | {{position\_title}} |
-| Service/équipe | {{department}} |
-| Responsabilités principales | {{job\_responsibilities}} |
-| Qualifications requises | {{required\_qualifications}} |
-| Exigences physiques, déplacements ou autres exigences liées au poste, le cas échéant | {{role\_requirements}} |
+| Champ                                                                                | Renseignements               |
+| :----------------------------------------------------------------------------------- | :--------------------------- |
+| Titre du poste                                                                       | {{position\_title}}          |
+| Service/équipe                                                                       | {{department}}               |
+| Responsabilités principales                                                          | {{job\_responsibilities}}    |
+| Qualifications requises                                                              | {{required\_qualifications}} |
+| Exigences physiques, déplacements ou autres exigences liées au poste, le cas échéant | {{role\_requirements}}       |
 
 ## **Acceptance / Acceptation**
 
@@ -292,8 +292,8 @@ By signing below, the Employee accepts this offer and agrees to be bound by this
 
 En signant ci-dessous, l'employé accepte la présente offre et convient d'être lié par la présente lettre d'offre bilingue, l'annexe A / Schedule A et le contrat de travail ci-joint.
 
-| EMPLOYER / EMPLOYEUR | EMPLOYEE / EMPLOYÉ |
-| :---- | :---- |
-| Signature: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ | Signature: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |
-| Name / Nom: {{employer\_signer\_name}} | Name / Nom: {{employee\_name}} |
+| EMPLOYER / EMPLOYEUR                                                          | EMPLOYEE / EMPLOYÉ                                                                      |
+| :---------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------- |
+| Signature: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_       | Signature: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_                 |
+| Name / Nom: {{employer\_signer\_name}}                                        | Name / Nom: {{employee\_name}}                                                          |
 | Title / Titre: {{employer\_signer\_title}}Date: {{employer\_signature\_date}} | Title/Position / Titre/Poste: {{employee\_position}}Date: {{employee\_signature\_date}} |

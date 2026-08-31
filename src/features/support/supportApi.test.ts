@@ -12,7 +12,14 @@ beforeEach(() => {
 describe('createSupportTicket', () => {
   it('maps the input to the function payload and returns the parsed ticket', async () => {
     invoke.mockResolvedValue({
-      data: { data: { id: 't1', public_reference: 'DUT-2026-000001', status: 'new', priority: 'standard' } },
+      data: {
+        data: {
+          id: 't1',
+          public_reference: 'DUT-2026-000001',
+          status: 'new',
+          priority: 'standard',
+        },
+      },
       error: null,
     })
 

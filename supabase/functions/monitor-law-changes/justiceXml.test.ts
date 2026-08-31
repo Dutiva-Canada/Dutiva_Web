@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  amendmentFingerprint,
-  assessJusticeStatute,
-  parseJusticeStatuteHead,
-} from './justiceXml'
+import { amendmentFingerprint, assessJusticeStatute, parseJusticeStatuteHead } from './justiceXml'
 
 /**
  * The fixtures below are the real opening bytes of the two federal Acts we

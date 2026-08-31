@@ -24,8 +24,6 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-
-
 The Dutiva workspace contains **15+ feature modules** beyond the AI Advisor and Document Management systems covered in earlier pages. Each module follows a consistent **phased rollout pattern**: a demo mode renders rich fixture data (the "Northgate Logistics Inc." diorama from `src/data/`), while production mode reads and writes real Supabase tables through a per-module `productionApi.ts` boundary file. The mode dispatch happens either via the route-level `ModeGate` wrapper or inside the view component itself.
 
 This page provides a high-level map of all workspace modules, their rollout status, and how they interconnect. For detailed coverage:
@@ -127,17 +125,17 @@ Sources: [src/features/app/views/employees/EmployeesView.tsx:27-31](), [src/feat
 
 Nine modules have `productionApi.ts` files. Each follows the same contract: Zod-validated rows, org-scoped queries, throw-on-failure semantics.
 
-| Module | `productionApi.ts` path | Supabase Table(s) | Key Exports |
-|--------|------------------------|-------------------|-------------|
-| Employees | `views/employees/productionApi.ts` | `employees`, `hr_employee_notes`, `hr_expiry_records`, `hr_leaves` | `listEmployees`, `addEmployee`, `removeEmployee`, `getEmployee`, `updateEmployeeStatus`, `listEmployeeNotes`, `addEmployeeNote`, `listExpiryRecords`, `listLeaves`, `addLeave`, `endLeave` |
-| Cases | `views/cases/productionApi.ts` | `hr_cases`, `hr_case_notes` | `listCases`, `addCase`, `updateCaseStatus`, `removeCase`, `getCase`, `listCaseNotes`, `addCaseNote` |
-| Tasks | `views/tasks/productionApi.ts` | `compliance_tasks` | `listTasks`, `addTask`, `addProbationReviewTask`, `toggleTaskDone`, `removeTask` |
-| Compliance | `views/compliance/productionApi.ts` | `compliance_findings`, `hr_obligations` | `listFindings`, `addFinding`, `setFindingResolved`, `removeFinding`, `countOpenFindings`, `listObligations`, `addObligation` |
-| Policies | `views/policies/productionApi.ts` | `hr_policies` | `listPolicies`, `addPolicy`, `setPolicyStatus`, `removePolicy` |
-| Communications | `views/communications/productionApi.ts` | `hr_communications` | `listCommunications`, `addCommunication`, `markCommunicationSent`, `removeCommunication` |
-| Compensation | `views/compensation/productionApi.ts` | `hr_compensation_records` | `listCompensationRecords`, `addCompensationRecord`, `removeCompensationRecord`, `deltaFromMidpoint` |
-| Wellbeing | `views/wellbeing/productionApi.ts` | `hr_wellbeing_initiatives` | `listInitiatives`, `addInitiative`, `setInitiativeStatus`, `removeInitiative`, `overdueReviews` |
-| Analytics | `views/analytics/productionApi.ts` | `compliance_score_snapshots` | `listScoreSnapshots`, `upsertScoreSnapshot` |
+| Module         | `productionApi.ts` path                 | Supabase Table(s)                                                  | Key Exports                                                                                                                                                                                |
+| -------------- | --------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Employees      | `views/employees/productionApi.ts`      | `employees`, `hr_employee_notes`, `hr_expiry_records`, `hr_leaves` | `listEmployees`, `addEmployee`, `removeEmployee`, `getEmployee`, `updateEmployeeStatus`, `listEmployeeNotes`, `addEmployeeNote`, `listExpiryRecords`, `listLeaves`, `addLeave`, `endLeave` |
+| Cases          | `views/cases/productionApi.ts`          | `hr_cases`, `hr_case_notes`                                        | `listCases`, `addCase`, `updateCaseStatus`, `removeCase`, `getCase`, `listCaseNotes`, `addCaseNote`                                                                                        |
+| Tasks          | `views/tasks/productionApi.ts`          | `compliance_tasks`                                                 | `listTasks`, `addTask`, `addProbationReviewTask`, `toggleTaskDone`, `removeTask`                                                                                                           |
+| Compliance     | `views/compliance/productionApi.ts`     | `compliance_findings`, `hr_obligations`                            | `listFindings`, `addFinding`, `setFindingResolved`, `removeFinding`, `countOpenFindings`, `listObligations`, `addObligation`                                                               |
+| Policies       | `views/policies/productionApi.ts`       | `hr_policies`                                                      | `listPolicies`, `addPolicy`, `setPolicyStatus`, `removePolicy`                                                                                                                             |
+| Communications | `views/communications/productionApi.ts` | `hr_communications`                                                | `listCommunications`, `addCommunication`, `markCommunicationSent`, `removeCommunication`                                                                                                   |
+| Compensation   | `views/compensation/productionApi.ts`   | `hr_compensation_records`                                          | `listCompensationRecords`, `addCompensationRecord`, `removeCompensationRecord`, `deltaFromMidpoint`                                                                                        |
+| Wellbeing      | `views/wellbeing/productionApi.ts`      | `hr_wellbeing_initiatives`                                         | `listInitiatives`, `addInitiative`, `setInitiativeStatus`, `removeInitiative`, `overdueReviews`                                                                                            |
+| Analytics      | `views/analytics/productionApi.ts`      | `compliance_score_snapshots`                                       | `listScoreSnapshots`, `upsertScoreSnapshot`                                                                                                                                                |
 
 Sources: [src/features/app/views/employees/productionApi.ts:1-405](), [src/features/app/views/cases/productionApi.ts:1-60](), [src/features/app/views/tasks/productionApi.ts:1-93](), [src/features/app/views/compliance/productionApi.ts:1-132](), [src/features/app/views/policies/productionApi.ts:1-107](), [src/features/app/views/communications/productionApi.ts:1-99](), [src/features/app/views/compensation/productionApi.ts:1-118](), [src/features/app/views/wellbeing/productionApi.ts:1-148](), [src/features/app/views/analytics/productionApi.ts:1-74]()
 
@@ -267,23 +265,23 @@ Sources: [src/data/types.ts:1-148](), [CONVENTIONS.md:17-38]()
 
 ## Module Rollout Status Summary
 
-| Module | Demo | Production | Gating |
-|--------|------|------------|--------|
-| Home | `HomeView` | `HomeProductionView` | Self-dispatch |
-| Employees | `EmployeesDemoView` | `EmployeesProductionView` | Self-dispatch |
-| Cases | `CasesDemoView` | `CasesProductionView` | Self-dispatch |
-| Compliance | `ComplianceDemoView` | `ComplianceProductionView` | Self-dispatch |
-| Policies | `PoliciesDemoView` | `PoliciesProductionView` | Self-dispatch |
-| Tasks | `TasksDemoView` | `TasksProductionView` | Self-dispatch |
-| Calendar | `CalendarView` (demo) | `CalendarProductionView` | Self-dispatch |
-| Analytics | `AnalyticsDemoView` | `AnalyticsProductionView` | Self-dispatch |
-| Communications | `CommunicationsDemoView` | `CommunicationsProductionView` | Self-dispatch |
-| Compensation | `CompensationDemoView` | `CompensationProductionView` | Self-dispatch |
-| Wellbeing | `WellbeingDemoView` | `WellbeingProductionView` | Self-dispatch |
-| Workflows | `WorkflowsView` (mixed) | Guided flows only | Self-dispatch (partial) |
-| Knowledge | `KnowledgeView` | Same (real content) | Ungated |
-| Settings | `SettingsView` | Same (hosts toggle) | Ungated |
-| Memory | `MemoryLayout` + sub-views | `ProductionEmptyState` | `gated()` via `ModeGate` |
+| Module         | Demo                       | Production                     | Gating                   |
+| -------------- | -------------------------- | ------------------------------ | ------------------------ |
+| Home           | `HomeView`                 | `HomeProductionView`           | Self-dispatch            |
+| Employees      | `EmployeesDemoView`        | `EmployeesProductionView`      | Self-dispatch            |
+| Cases          | `CasesDemoView`            | `CasesProductionView`          | Self-dispatch            |
+| Compliance     | `ComplianceDemoView`       | `ComplianceProductionView`     | Self-dispatch            |
+| Policies       | `PoliciesDemoView`         | `PoliciesProductionView`       | Self-dispatch            |
+| Tasks          | `TasksDemoView`            | `TasksProductionView`          | Self-dispatch            |
+| Calendar       | `CalendarView` (demo)      | `CalendarProductionView`       | Self-dispatch            |
+| Analytics      | `AnalyticsDemoView`        | `AnalyticsProductionView`      | Self-dispatch            |
+| Communications | `CommunicationsDemoView`   | `CommunicationsProductionView` | Self-dispatch            |
+| Compensation   | `CompensationDemoView`     | `CompensationProductionView`   | Self-dispatch            |
+| Wellbeing      | `WellbeingDemoView`        | `WellbeingProductionView`      | Self-dispatch            |
+| Workflows      | `WorkflowsView` (mixed)    | Guided flows only              | Self-dispatch (partial)  |
+| Knowledge      | `KnowledgeView`            | Same (real content)            | Ungated                  |
+| Settings       | `SettingsView`             | Same (hosts toggle)            | Ungated                  |
+| Memory         | `MemoryLayout` + sub-views | `ProductionEmptyState`         | `gated()` via `ModeGate` |
 
 Sources: [src/app/appViews.tsx:71-165](), [src/features/app/views/employees/EmployeesView.tsx:27-31](), [src/features/app/views/cases/CasesView.tsx:24-27](), [src/features/app/views/compliance/ComplianceView.tsx:64-67](), [src/features/app/views/tasks/TasksView.tsx:33-35](), [src/features/app/views/communications/CommunicationsView.tsx:40-43](), [src/features/app/views/compensation/CompensationView.tsx:56-59](), [src/features/app/views/wellbeing/WellbeingView.tsx:28-31](), [src/features/app/views/analytics/AnalyticsView.tsx:69-72](), [src/features/app/views/policies/PoliciesView.tsx:34-37](), [src/features/app/views/home/HomeView.tsx:29-46](), [src/features/app/views/knowledge/KnowledgeView.tsx:27-28]()
 

@@ -11,10 +11,7 @@ export const ACCEPTED_DUPLICATE_SEQUENCES = new Map([
   [
     '0024',
     {
-      files: [
-        '0024_reconcile_billing_schema.sql',
-        '0024_match_advisor_guidance_review_topic.sql',
-      ],
+      files: ['0024_reconcile_billing_schema.sql', '0024_match_advisor_guidance_review_topic.sql'],
       reason:
         'Both applied on the live project under sequence 0024 before filename ' +
         'discipline blocked new collisions. Do not renumber either file.',

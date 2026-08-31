@@ -6,7 +6,11 @@ import type { MarketingMessageKey } from '@/i18n/messages'
 import { Seo } from '@/seo/Seo'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
 
-const SECTIONS: { titleKey: MarketingMessageKey; icon: LucideIcon; itemKeys: MarketingMessageKey[] }[] = [
+const SECTIONS: {
+  titleKey: MarketingMessageKey
+  icon: LucideIcon
+  itemKeys: MarketingMessageKey[]
+}[] = [
   { titleKey: 'limits_s1', icon: ShieldAlert, itemKeys: ['limits_n1', 'limits_n2', 'limits_n3'] },
   { titleKey: 'limits_s2', icon: TriangleAlert, itemKeys: ['limits_a1', 'limits_a2', 'limits_a3'] },
   { titleKey: 'limits_s3', icon: Globe, itemKeys: ['limits_c1', 'limits_c2', 'limits_c3'] },

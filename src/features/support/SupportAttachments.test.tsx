@@ -52,7 +52,11 @@ describe('SupportAttachments', () => {
     renderApp(<SupportAttachments ticketId="t1" canUpload={false} />)
     await user.click(await screen.findByRole('button', { name: /Download/ }))
     expect(getAttachmentDownloadUrl).toHaveBeenCalledWith('att-1')
-    expect(openSpy).toHaveBeenCalledWith('https://signed.example/x', '_blank', 'noopener,noreferrer')
+    expect(openSpy).toHaveBeenCalledWith(
+      'https://signed.example/x',
+      '_blank',
+      'noopener,noreferrer',
+    )
     openSpy.mockRestore()
   })
 
@@ -71,7 +75,12 @@ describe('SupportAttachments', () => {
 
   it('uploads a valid file and shows it in the list', async () => {
     const user = userEvent.setup()
-    uploadAttachment.mockResolvedValue({ ...existing, id: 'att-2', fileName: 'notes.pdf', mimeType: 'application/pdf' })
+    uploadAttachment.mockResolvedValue({
+      ...existing,
+      id: 'att-2',
+      fileName: 'notes.pdf',
+      mimeType: 'application/pdf',
+    })
     renderApp(<SupportAttachments ticketId="t1" canUpload />)
     const input = document.getElementById('support-attach-t1') as HTMLInputElement
     const file = new File(['hello'], 'notes.pdf', { type: 'application/pdf' })

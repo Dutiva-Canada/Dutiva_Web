@@ -4,12 +4,7 @@ import { ChevronLeft, Plus, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { LangContextValue } from '@/i18n/context'
 import { supportMessages as M } from '@/i18n/messages/support'
-import {
-  PRIORITY_LABELS,
-  STATUS_LABELS,
-  STATUS_ORDER,
-  supportCategory,
-} from '@/config/support'
+import { PRIORITY_LABELS, STATUS_LABELS, STATUS_ORDER, supportCategory } from '@/config/support'
 import type { SupportPriority, SupportStatus } from '@/config/support'
 import {
   adminGetScheduledCall,
@@ -17,7 +12,11 @@ import {
   isCurrentUserAdmin,
   runAgentAction,
 } from '@/features/support/supportAdminApi'
-import type { AdminMessage, AdminScheduledCall, AdminTicket } from '@/features/support/supportAdminApi'
+import type {
+  AdminMessage,
+  AdminScheduledCall,
+  AdminTicket,
+} from '@/features/support/supportAdminApi'
 import { SupportAttachments } from '@/features/support/SupportAttachments'
 import { trackEvent } from '@/features/support/analytics/supportAnalytics'
 
@@ -46,8 +45,7 @@ function callStatusLine(
 
 /** Tailwind class for a message bubble: internal (gold), agent (bordered), or customer (inset). */
 function messageBubbleClass(m: AdminMessage): string {
-  const base =
-    'rounded-xl px-4 py-2.75 text-[14px] leading-normal whitespace-pre-wrap'
+  const base = 'rounded-xl px-4 py-2.75 text-[14px] leading-normal whitespace-pre-wrap'
   if (m.isInternal) {
     return `${base} border border-gold-border bg-gold-bg text-gold-fg`
   }
@@ -57,7 +55,8 @@ function messageBubbleClass(m: AdminMessage): string {
   return `${base} rounded-br-0.75 bg-inset text-text`
 }
 
-const selectClass = 'rounded-lg border border-border bg-surface px-2.5 py-1.75 text-[13px] text-text'
+const selectClass =
+  'rounded-lg border border-border bg-surface px-2.5 py-1.75 text-[13px] text-text'
 const inputClass = 'rounded-lg border border-border bg-surface px-2.5 py-1.75 text-[13px] text-text'
 
 /** Admin panel to propose up to 3 call times, or view what was proposed/confirmed. */
@@ -116,7 +115,9 @@ function ProposeCallPanel({
 
   return (
     <div className="mb-5 rounded-xl border border-border bg-inset px-4 py-3.5">
-      <h2 className="m-0 mb-1 text-[14px] font-semibold text-text">{x(M.support_admin_call_heading)}</h2>
+      <h2 className="m-0 mb-1 text-[14px] font-semibold text-text">
+        {x(M.support_admin_call_heading)}
+      </h2>
       <p className="m-0 mb-2.5 text-[12.5px] text-text-muted">{x(M.support_admin_call_intro)}</p>
 
       {call && (
@@ -125,7 +126,9 @@ function ProposeCallPanel({
             {callStatusLine(call, x, lang)}
           </p>
           {call.status === 'confirmed' && !call.meetLink && (
-            <p className="m-0 mb-2.5 text-[12px] text-gold-fg">{x(M.support_admin_call_calendar_skipped)}</p>
+            <p className="m-0 mb-2.5 text-[12px] text-gold-fg">
+              {x(M.support_admin_call_calendar_skipped)}
+            </p>
           )}
         </>
       )}
@@ -207,7 +210,9 @@ export function SupportAdminTicket() {
   const [actionError, setActionError] = useState(false)
 
   useEffect(() => {
-    isCurrentUserAdmin().then(setAdmin).catch(() => setAdmin(false))
+    isCurrentUserAdmin()
+      .then(setAdmin)
+      .catch(() => setAdmin(false))
   }, [])
 
   const load = useCallback(async () => {
@@ -269,11 +274,11 @@ export function SupportAdminTicket() {
       </Link>
 
       {ticket === null && (
-        <output className="m-0 text-[14px] text-text-3">
-          {x(M.support_requests_loading)}
-        </output>
+        <output className="m-0 text-[14px] text-text-3">{x(M.support_requests_loading)}</output>
       )}
-      {ticket === 'missing' && <p className="m-0 text-[14px] text-text-3">{x(M.support_ticket_not_found)}</p>}
+      {ticket === 'missing' && (
+        <p className="m-0 text-[14px] text-text-3">{x(M.support_ticket_not_found)}</p>
+      )}
 
       {ticket && ticket !== 'missing' && (
         <>
@@ -300,7 +305,9 @@ export function SupportAdminTicket() {
                 className={selectClass}
                 value={ticket.status}
                 disabled={busy}
-                onChange={(e) => void act({ action: 'status', status: e.target.value as SupportStatus })}
+                onChange={(e) =>
+                  void act({ action: 'status', status: e.target.value as SupportStatus })
+                }
               >
                 {STATUS_ORDER.map((s) => (
                   <option key={s} value={s}>
@@ -315,7 +322,9 @@ export function SupportAdminTicket() {
                 className={selectClass}
                 value={ticket.priority}
                 disabled={busy}
-                onChange={(e) => void act({ action: 'priority', priority: e.target.value as SupportPriority })}
+                onChange={(e) =>
+                  void act({ action: 'priority', priority: e.target.value as SupportPriority })
+                }
               >
                 {PRIORITIES.map((p) => (
                   <option key={p} value={p}>
@@ -324,11 +333,16 @@ export function SupportAdminTicket() {
                 ))}
               </select>
             </label>
-            {busy && <span className="text-[12px] text-text-muted">{x(M.support_admin_working)}</span>}
+            {busy && (
+              <span className="text-[12px] text-text-muted">{x(M.support_admin_working)}</span>
+            )}
           </div>
 
           {actionError && (
-            <p role="alert" className="m-0 mb-3.5 rounded-[10px] border border-risk-border bg-risk-bg px-3.5 py-2.5 text-[13px] text-risk-fg">
+            <p
+              role="alert"
+              className="m-0 mb-3.5 rounded-[10px] border border-risk-border bg-risk-bg px-3.5 py-2.5 text-[13px] text-risk-fg"
+            >
               {x(M.support_admin_action_error)}
             </p>
           )}
@@ -338,9 +352,7 @@ export function SupportAdminTicket() {
           <ol className="m-0 mb-5.5 flex list-none flex-col gap-2.5 p-0">
             {ticket.messages.map((m) => (
               <li key={m.id}>
-                <div className={messageBubbleClass(m)}>
-                  {m.body}
-                </div>
+                <div className={messageBubbleClass(m)}>{m.body}</div>
                 <span className="mt-0.75 block text-[11px] text-text-faint">
                   {m.isInternal ? x(M.support_admin_internal_badge) : authorLabel(m)} ·{' '}
                   {formatDateTime(m.createdAt, lang)}
@@ -367,7 +379,9 @@ export function SupportAdminTicket() {
               <button
                 type="button"
                 disabled={busy || !reply.trim()}
-                onClick={() => void act({ action: 'reply', body: reply.trim() }, () => setReply(''))}
+                onClick={() =>
+                  void act({ action: 'reply', body: reply.trim() }, () => setReply(''))
+                }
                 className="cursor-pointer rounded-[9px] border-none bg-navy px-4.5 py-2.25 text-[13.5px] font-semibold text-white disabled:opacity-60"
               >
                 {x(M.support_admin_reply_send)}

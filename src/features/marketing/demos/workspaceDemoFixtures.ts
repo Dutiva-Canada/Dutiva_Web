@@ -19,7 +19,10 @@ export const LANDING_WORKSPACE_FIXTURES = {
     },
     {
       id: 'ci1',
-      title: bi('Law 25 PIA — francization review overdue', 'LPRPDE loi 25 — revue de francisation en retard'),
+      title: bi(
+        'Law 25 PIA — francization review overdue',
+        'LPRPDE loi 25 — revue de francisation en retard',
+      ),
       secondary: bi('12 employees · Quebec', '12 employés · Québec'),
       status: 'overdue' as const,
       chipLabel: bi('Overdue', 'En retard'),
