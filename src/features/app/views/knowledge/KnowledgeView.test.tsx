@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, screen, within } from '@testing-library/react'
+import { act, fireEvent, screen, within } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
 import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
+import { ADVISOR_STREAM_TICK_MS, ADVISOR_THINK_MS } from '@/features/app/advisor/useAdvisorEngine'
 import { knowledgeItems } from '@/data'
 import { KnowledgeView } from './KnowledgeView'
 
@@ -20,11 +21,11 @@ describe('KnowledgeView', () => {
     const articles = within(screen.getByTestId('knowledge-articles'))
     expect(articles.getAllByRole('button')).toHaveLength(knowledgeItems.length)
     expect(
-      screen.getByText('Ontario ESA: Notice of termination & severance pay'),
+      screen.getByText('Ontario ESA: notice of termination & severance pay'),
     ).toBeInTheDocument()
     expect(screen.getByText('Termination · Ontario')).toBeInTheDocument()
     expect(
-      screen.getByText('Probationary periods: what employers can and can’t do'),
+      screen.getByText('Probationary periods: employment standards & termination risk'),
     ).toBeInTheDocument()
   })
 
@@ -37,17 +38,17 @@ describe('KnowledgeView', () => {
     fireEvent.change(input, { target: { value: 'SEVERANCE' } })
     expect(articles.getAllByRole('button')).toHaveLength(1)
     expect(
-      screen.getByText('Ontario ESA: Notice of termination & severance pay'),
+      screen.getByText('Ontario ESA: notice of termination & severance pay'),
     ).toBeInTheDocument()
     expect(
-      screen.queryByText('Quebec Bill 96: French-language workplace documents'),
+      screen.queryByText('Quebec Charter of the French Language: employment documents in French'),
     ).not.toBeInTheDocument()
 
     /* Tag match. */
-    fireEvent.change(input, { target: { value: 'british columbia' } })
+    fireEvent.change(input, { target: { value: 'hiring · ontario' } })
     expect(articles.getAllByRole('button')).toHaveLength(1)
     expect(
-      screen.getByText('BC Employment Standards: written offer requirements'),
+      screen.getByText('Ontario ESA: hiring information & employment terms'),
     ).toBeInTheDocument()
 
     /* Clearing restores the full list. */
@@ -56,6 +57,7 @@ describe('KnowledgeView', () => {
   })
 
   it('opens the Advisor rail on the article when clicked', () => {
+    const k4 = knowledgeItems.find((k) => k.id === 'k4')!
     renderApp(
       <>
         <KnowledgeView />
@@ -65,11 +67,18 @@ describe('KnowledgeView', () => {
     )
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: /Duty to accommodate/ }))
+    act(() => {
+      fireEvent.click(screen.getByRole('button', { name: /Duty to accommodate/ }))
+    })
 
     const dialog = screen.getByRole('dialog')
     expect(
       within(dialog).getByText('Duty to accommodate: functional limitations vs. diagnosis'),
     ).toBeInTheDocument()
+
+    act(() => {
+      vi.advanceTimersByTime(ADVISOR_THINK_MS + 200 * ADVISOR_STREAM_TICK_MS)
+    })
+    expect(within(dialog).getByText(k4.summary.en)).toBeInTheDocument()
   })
 })

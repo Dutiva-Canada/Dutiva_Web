@@ -38,7 +38,7 @@ function renderAdvisorWithStudio() {
 
 function openOfferLetterThread() {
   renderAdvisorWithStudio()
-  fireEvent.click(screen.getByRole('button', { name: /Offer letter — Senior Analyst, BC/ }))
+  fireEvent.click(screen.getByRole('button', { name: /Offer letter — Senior Analyst, Ontario/ }))
 }
 
 describe('AdvisorView copy/export actions', () => {

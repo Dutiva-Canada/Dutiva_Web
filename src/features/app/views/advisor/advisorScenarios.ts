@@ -141,7 +141,7 @@ const s1: AdvisorScenario = {
       },
       retrieval: {
         items: [
-          bi('Termination · ON', 'Cessation · ON'),
+          bi('Termination · ON', 'Licenciement · ON'),
           bi('Severance · ESA threshold', 'Indemnité · seuil LNE'),
         ],
       },
@@ -470,7 +470,7 @@ const s4: AdvisorScenario = {
       },
       retrieval: {
         items: [
-          bi('Termination · ON', 'Cessation · ON'),
+          bi('Termination · ON', 'Licenciement · ON'),
           bi('Notice periods', 'Périodes de préavis'),
         ],
       },

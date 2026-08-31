@@ -507,6 +507,8 @@ export interface KnowledgeItem {
   id: string
   title: Bi
   tag: Bi
+  /** Qualified Advisor rail intro when the article is opened from the Knowledge Base. */
+  summary: Bi
 }
 
 /* --------------------------------------------------------------- calendar */

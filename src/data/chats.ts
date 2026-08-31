@@ -150,7 +150,10 @@ export const chats: ChatThread[] = [
   },
   {
     id: 'c2',
-    title: bi('Offer letter — Senior Analyst, BC', 'Lettre d’offre — Analyste principal, C.-B.'),
+    title: bi(
+      'Offer letter — Senior Analyst, Ontario',
+      'Lettre d’offre — Analyste principal, Ontario',
+    ),
     folder: bi('Hiring 2026', 'Embauche 2026'),
     pinned: false,
     time: bi('Yesterday', 'Hier'),
@@ -161,8 +164,8 @@ export const chats: ChatThread[] = [
         id: 'm6',
         role: 'user',
         text: bi(
-          'Draft an offer letter for a Senior Analyst role in BC.',
-          'Rédigez une lettre d’offre pour un poste d’analyste principal en C.-B.',
+          'Draft an offer letter for a Senior Analyst role in Ontario.',
+          'Rédigez une lettre d’offre pour un poste d’analyste principal en Ontario.',
         ),
       },
       {
@@ -174,24 +177,29 @@ export const chats: ChatThread[] = [
         ),
         reasoning: [
           bi(
-            'Jurisdiction: British Columbia → BC Employment Standards Act governs minimum terms.',
-            'Compétence : Colombie-Britannique → la BC Employment Standards Act régit les conditions minimales.',
+            'Jurisdiction: Ontario → Employment Standards Act, 2000 governs minimum terms.',
+            'Compétence : Ontario → la Loi de 2000 sur les normes d’emploi régit les conditions minimales.',
           ),
           bi(
-            'BC requires a written offer stating wage rate before work begins.',
-            'La C.-B. exige une offre écrite indiquant le taux de salaire avant le début du travail.',
+            'Ontario requires certain hiring and pay information in writing — not necessarily a full offer letter for every hire.',
+            'L’Ontario exige certaines informations d’embauche et de rémunération par écrit — pas nécessairement une lettre d’offre complète pour chaque embauche.',
           ),
         ],
         cards: [
           {
             tone: 'info',
-            title: bi('BC-specific note', 'Note propre à la C.-B.'),
+            title: bi('Ontario-specific note', 'Note propre à l’Ontario'),
             body: bi(
-              'Non-compete clauses are unenforceable in Ontario and heavily restricted in BC — I left it out. A reasonable non-solicit clause is included instead.',
-              'Les clauses de non-concurrence sont inapplicables en Ontario et fortement restreintes en C.-B. — je l’ai omise. Une clause de non-sollicitation raisonnable est incluse à la place.',
+              'Non-compete clauses are generally unenforceable for most Ontario employees — I left it out. A reasonable non-solicit clause is included instead.',
+              'Les clauses de non-concurrence sont généralement inapplicables pour la plupart des employés ontariens — je l’ai omise. Une clause de non-sollicitation raisonnable est incluse à la place.',
             ),
             citations: [
-              { label: bi('BC Employment Standards Act', 'BC Employment Standards Act') },
+              {
+                label: bi(
+                  'Employment Standards Act, 2000 (Ontario)',
+                  'Loi de 2000 sur les normes d’emploi (Ontario)',
+                ),
+              },
             ],
           },
         ],
@@ -226,12 +234,12 @@ export const chats: ChatThread[] = [
         ),
         reasoning: [
           bi(
-            'Occupational health & safety obligations extend to home offices in most provinces.',
-            'Les obligations en santé et sécurité au travail s’étendent aux bureaux à domicile dans la plupart des provinces.',
+            'Occupational health & safety considerations for home offices vary by jurisdiction across Canada.',
+            'Les considérations de SST pour le travail à domicile varient selon la compétence au Canada.',
           ),
           bi(
-            'Expense reimbursement rules vary by province — Ontario and BC differ on what employers must cover.',
-            'Les règles de remboursement des dépenses varient selon la province — l’Ontario et la C.-B. diffèrent sur ce que les employeurs doivent couvrir.',
+            'Expense reimbursement rules vary by jurisdiction — Ontario and Quebec differ on what employers must cover.',
+            'Les règles de remboursement des dépenses varient selon la compétence — l’Ontario et le Québec diffèrent sur ce que les employeurs doivent couvrir.',
           ),
         ],
         cards: [
@@ -272,12 +280,12 @@ export const chats: ChatThread[] = [
         role: 'advisor',
         text: bi(
           'It depends on whether the absences are culpable (within their control) or innocent (medical/disability-related) — the process is very different for each.',
-          'Cela dépend si les absences sont coupables (sous son contrôle) ou non coupables (liées à une condition médicale ou un handicap) — le processus est très différent pour chacune.',
+          'Cela dépend si les absences sont fautives (sous son contrôle) ou non fautives (liées à une condition médicale ou un handicap) — le processus est très différent pour chacune.',
         ),
         reasoning: [
           bi(
             'Innocent absenteeism cannot be disciplined directly — it may trigger a duty to inquire about accommodation.',
-            'L’absentéisme non coupable ne peut être sanctionné directement — il peut déclencher une obligation de s’enquérir d’un accommodement.',
+            'L’absentéisme non fautif ne peut être sanctionné directement — il peut déclencher une obligation de s’enquérir d’un accommodement.',
           ),
           bi(
             'Disciplining before ruling out a medical cause risks a discrimination claim.',
@@ -379,8 +387,8 @@ export const chats: ChatThread[] = [
         ),
         reasoning: [
           bi(
-            'Bill 96 / Charter of the French Language requires most employment documents in French unless the employee explicitly requests another language.',
-            'La Loi 96 / Charte de la langue française exige la plupart des documents d’emploi en français, sauf si l’employé demande explicitement une autre langue.',
+            'Quebec’s Charter of the French Language governs the language of many employment documents — French is generally required, with limited document-specific exceptions.',
+            'La Charte de la langue française du Québec régit la langue de nombreux documents d’emploi — le français est généralement requis, avec des exceptions limitées selon le type de document.',
           ),
         ],
         cards: [
@@ -394,8 +402,8 @@ export const chats: ChatThread[] = [
             citations: [
               {
                 label: bi(
-                  'Charter of the French Language, Bill 96',
-                  'Charte de la langue française, Loi 96',
+                  'Charter of the French Language (Québec)',
+                  'Charte de la langue française (Québec)',
                 ),
               },
             ],
@@ -421,23 +429,30 @@ export const lightFlows: Record<string, LightFlow> = {
     ),
     reasoning: [
       bi(
-        'Jurisdiction: British Columbia → BC Employment Standards Act governs minimum terms.',
-        'Compétence : Colombie-Britannique → la BC Employment Standards Act régit les conditions minimales.',
+        'Jurisdiction: Ontario → Employment Standards Act, 2000 governs minimum terms.',
+        'Compétence : Ontario → la Loi de 2000 sur les normes d’emploi régit les conditions minimales.',
       ),
       bi(
-        'BC requires a written offer stating the wage rate before work begins.',
-        'La C.-B. exige une offre écrite indiquant le taux de salaire avant le début du travail.',
+        'Ontario requires certain hiring and pay information in writing — not necessarily a full offer letter for every hire.',
+        'L’Ontario exige certaines informations d’embauche et de rémunération par écrit — pas nécessairement une lettre d’offre complète pour chaque embauche.',
       ),
     ],
     cards: [
       {
         tone: 'info',
-        title: bi('BC-specific note', 'Note propre à la C.-B.'),
+        title: bi('Ontario-specific note', 'Note propre à l’Ontario'),
         body: bi(
-          'Non-compete clauses are unenforceable in Ontario and heavily restricted in BC — I left it out. A reasonable non-solicit clause is included instead.',
-          'Les clauses de non-concurrence sont inapplicables en Ontario et fortement restreintes en C.-B. — je l’ai omise. Une clause de non-sollicitation raisonnable est incluse à la place.',
+          'Non-compete clauses are generally unenforceable for most Ontario employees — I left it out. A reasonable non-solicit clause is included instead.',
+          'Les clauses de non-concurrence sont généralement inapplicables pour la plupart des employés ontariens — je l’ai omise. Une clause de non-sollicitation raisonnable est incluse à la place.',
         ),
-        citations: [{ label: bi('BC Employment Standards Act', 'BC Employment Standards Act') }],
+        citations: [
+          {
+            label: bi(
+              'Employment Standards Act, 2000 (Ontario)',
+              'Loi de 2000 sur les normes d’emploi (Ontario)',
+            ),
+          },
+        ],
       },
     ],
     docs: ['T01', 'T02'],
@@ -450,8 +465,8 @@ export const lightFlows: Record<string, LightFlow> = {
     ),
     reasoning: [
       bi(
-        'Bill 96 / Charter of the French Language requires most employment documents in French unless the employee explicitly requests another language.',
-        'La Loi 96 / Charte de la langue française exige la plupart des documents d’emploi en français, sauf si l’employé demande explicitement une autre langue.',
+        'Quebec’s Charter of the French Language governs the language of many employment documents — French is generally required, with limited document-specific exceptions.',
+        'La Charte de la langue française du Québec régit la langue de nombreux documents d’emploi — le français est généralement requis, avec des exceptions limitées selon le type de document.',
       ),
     ],
     cards: [
@@ -465,8 +480,8 @@ export const lightFlows: Record<string, LightFlow> = {
         citations: [
           {
             label: bi(
-              'Charter of the French Language, Bill 96',
-              'Charte de la langue française, Loi 96',
+              'Charter of the French Language (Québec)',
+              'Charte de la langue française (Québec)',
             ),
           },
         ],
@@ -478,12 +493,12 @@ export const lightFlows: Record<string, LightFlow> = {
   performance: {
     text: bi(
       'It depends on whether the absences are culpable (within their control) or innocent (medical/disability-related) — the process is very different for each.',
-      'Cela dépend si les absences sont coupables (sous son contrôle) ou non coupables (liées à une condition médicale ou un handicap) — le processus est très différent pour chacune.',
+      'Cela dépend si les absences sont fautives (sous son contrôle) ou non fautives (liées à une condition médicale ou un handicap) — le processus est très différent pour chacune.',
     ),
     reasoning: [
       bi(
         'Innocent absenteeism cannot be disciplined directly — it may trigger a duty to inquire about accommodation.',
-        'L’absentéisme non coupable ne peut être sanctionné directement — il peut déclencher une obligation de s’enquérir d’un accommodement.',
+        'L’absentéisme non fautif ne peut être sanctionné directement — il peut déclencher une obligation de s’enquérir d’un accommodement.',
       ),
       bi(
         'Disciplining before ruling out a medical cause risks a discrimination claim.',
@@ -540,12 +555,12 @@ export const lightFlows: Record<string, LightFlow> = {
     ),
     reasoning: [
       bi(
-        'Occupational health & safety obligations extend to home offices in most provinces.',
-        'Les obligations en santé et sécurité au travail s’étendent aux bureaux à domicile dans la plupart des provinces.',
+        'Occupational health & safety considerations for home offices vary by jurisdiction across Canada.',
+        'Les considérations de SST pour le travail à domicile varient selon la compétence au Canada.',
       ),
       bi(
-        'Expense reimbursement rules vary by province — Ontario and BC differ on what employers must cover.',
-        'Les règles de remboursement des dépenses varient selon la province — l’Ontario et la C.-B. diffèrent sur ce que les employeurs doivent couvrir.',
+        'Expense reimbursement rules vary by jurisdiction — Ontario and Quebec differ on what employers must cover.',
+        'Les règles de remboursement des dépenses varient selon la compétence — l’Ontario et le Québec diffèrent sur ce que les employeurs doivent couvrir.',
       ),
     ],
     cards: [
@@ -620,8 +635,8 @@ export const followupReplies: Record<string, FollowupReply> = {
   'Set probation terms': {
     label: bi('Set probation terms', 'Définir les modalités de probation'),
     text: bi(
-      'Standard for BC is up to 3 months, during which either party can end employment with statutory minimum notice. I’ve added that clause to the offer letter draft above.',
-      'La norme en C.-B. est d’au plus 3 mois, période pendant laquelle l’une ou l’autre partie peut mettre fin à l’emploi avec le préavis minimal prévu par la loi. J’ai ajouté cette clause à l’ébauche de lettre d’offre ci-dessus.',
+      'Ontario does not set a statutory probation period, but a contractual probation clause can interact with ESA notice minima. I’ve added a probation clause to the offer letter draft above.',
+      'L’Ontario ne prévoit pas de période de probation légale, mais une clause contractuelle peut interagir avec les minima de préavis de la LNE. J’ai ajouté une clause de probation à l’ébauche de lettre d’offre ci-dessus.',
     ),
   },
   'Draft rejection letter for other candidates': {
