@@ -102,8 +102,16 @@ function toFact(row: z.infer<typeof factRowSchema>): MemoryFact {
       type: row.source_type,
       detail: bi(row.source_detail_en, row.source_detail_fr),
     },
-    learnedAt: row.learned_at,
-    confirmedAt: row.confirmed_at,
+    learnedAt: row.learned_at.slice(0, 10),
+    confirmation: row.confirmed_at
+      ? {
+          at: row.confirmed_at.slice(0, 10),
+          source: {
+            type: 'manual',
+            detail: bi('Confirmed in Memory', 'Confirmé dans la Mémoire'),
+          },
+        }
+      : null,
     visibility: row.visibility,
     sensitive: row.sensitive,
   }

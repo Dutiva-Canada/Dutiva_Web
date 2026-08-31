@@ -1,8 +1,10 @@
 import { bi } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import { demoTodayISO } from './calendar'
+import { isCanonicalMemoryDate } from './memoryDates'
 import type {
   MemoryCategory,
+  MemoryConfirmation,
   MemoryFact,
   MemoryScope,
   MemorySourceType,
@@ -14,7 +16,7 @@ import type {
  * prototype's `seedMemories()` / `people()` / `cases()`. Entity ids map onto
  * the existing app fixtures (Jordan Mensah `e1` / `case1` / chat `c1`,
  * Amara Okafor `e6` / `case3`, Devon Clarke `e5`) so memory surfaces link to
- * real routes. EN verbatim from the prototype; FR [self-authored].
+ * real routes. EN follows corrected demo facts; FR [self-authored].
  */
 
 /** @deprecated Use `demoTodayISO` from `@/data` — kept for memory imports. */
@@ -120,7 +122,8 @@ export interface MemoryThread {
   personId: string
   caseId: string
   navLabel: Bi
-  navSub: Bi
+  /** ISO date the conversation was last resumed — nav subtitle is derived in the UI. */
+  resumedAt: string
 }
 
 export const memoryThreads: MemoryThread[] = [
@@ -129,7 +132,7 @@ export const memoryThreads: MemoryThread[] = [
     personId: 'e1',
     caseId: 'case1',
     navLabel: bi('Jordan termination', 'Licenciement de Jordan'),
-    navSub: bi('Resumed today', 'Repris aujourd’hui'),
+    resumedAt: demoTodayISO,
   },
 ]
 
@@ -143,6 +146,7 @@ interface MemoryFactInputBase {
   statement: Bi
   source: { type: MemorySourceType; detail: Bi }
   learnedAt: string
+  effectiveAt?: string | null
   visibility: MemoryVisibility
   sensitive?: boolean
 }
@@ -152,11 +156,11 @@ type MemoryFactInput =
   | (MemoryFactInputBase & {
       confidence: 'confirmed'
       source: { type: Exclude<MemorySourceType, 'inference'>; detail: Bi }
-      confirmedAt: string
+      confirmation: MemoryConfirmation
     })
   | (MemoryFactInputBase & {
       confidence: 'inferred'
-      confirmedAt: null
+      confirmation: null
     })
 
 const M = (input: MemoryFactInput): MemoryFact => ({
@@ -168,12 +172,15 @@ const M = (input: MemoryFactInput): MemoryFact => ({
   confidence: input.confidence,
   source: input.source,
   learnedAt: input.learnedAt,
-  confirmedAt: input.confirmedAt,
+  ...(input.effectiveAt != null ? { effectiveAt: input.effectiveAt } : {}),
+  confirmation: input.confirmation,
   visibility: input.visibility,
   sensitive: input.sensitive ?? false,
 })
 
 const peopleRecord = bi('People record', 'Dossier du personnel')
+const caseNoteRiley = bi('Case note · Riley Summers', 'Note de dossier · Riley Summers')
+const complianceReviewJul11 = bi('Compliance review · Jul 11', 'Revue conformité · 11 juill.')
 
 /** ISO dates for deterministic demo memory (scenario date: Jul 11, 2026). */
 const MAR2018 = '2018-03-01'
@@ -197,8 +204,9 @@ export const seedMemoryFacts: MemoryFact[] = [
     ),
     confidence: 'confirmed',
     source: { type: 'hris', detail: peopleRecord },
-    learnedAt: MAR2018,
-    confirmedAt: JUL11,
+    effectiveAt: MAR2018,
+    learnedAt: JUL2,
+    confirmation: { at: JUL2, source: { type: 'hris', detail: peopleRecord } },
     visibility: 'hr',
   }),
   M({
@@ -212,8 +220,9 @@ export const seedMemoryFacts: MemoryFact[] = [
     ),
     confidence: 'confirmed',
     source: { type: 'hris', detail: peopleRecord },
-    learnedAt: MAR2018,
-    confirmedAt: JUL11,
+    effectiveAt: MAR2018,
+    learnedAt: JUL2,
+    confirmation: { at: JUL2, source: { type: 'hris', detail: peopleRecord } },
     visibility: 'hr',
   }),
   M({
@@ -231,7 +240,13 @@ export const seedMemoryFacts: MemoryFact[] = [
       detail: bi('Confirmed in chat · Jul 2', 'Confirmé en clavardage · 2 juill.'),
     },
     learnedAt: JUL2,
-    confirmedAt: JUL2,
+    confirmation: {
+      at: JUL2,
+      source: {
+        type: 'chat',
+        detail: bi('Confirmed in chat · Jul 2', 'Confirmé en clavardage · 2 juill.'),
+      },
+    },
     visibility: 'hr',
   }),
   M({
@@ -249,7 +264,13 @@ export const seedMemoryFacts: MemoryFact[] = [
       detail: bi('Employment Agreement.pdf', 'Employment Agreement.pdf'),
     },
     learnedAt: JUL2,
-    confirmedAt: JUL2,
+    confirmation: {
+      at: JUL2,
+      source: {
+        type: 'document',
+        detail: bi('Employment Agreement.pdf', 'Employment Agreement.pdf'),
+      },
+    },
     visibility: 'case',
     sensitive: true,
   }),
@@ -265,7 +286,7 @@ export const seedMemoryFacts: MemoryFact[] = [
     confidence: 'confirmed',
     source: { type: 'hris', detail: peopleRecord },
     learnedAt: JUL11,
-    confirmedAt: JUL11,
+    confirmation: { at: JUL11, source: { type: 'hris', detail: peopleRecord } },
     visibility: 'restricted',
     sensitive: true,
   }),
@@ -281,7 +302,7 @@ export const seedMemoryFacts: MemoryFact[] = [
     confidence: 'confirmed',
     source: { type: 'hris', detail: peopleRecord },
     learnedAt: JUL2,
-    confirmedAt: JUL2,
+    confirmation: { at: JUL2, source: { type: 'hris', detail: peopleRecord } },
     visibility: 'hr',
     sensitive: true,
   }),
@@ -293,8 +314,9 @@ export const seedMemoryFacts: MemoryFact[] = [
     statement: bi('Reports to Morgan Chen', 'Relève de Morgan Chen'),
     confidence: 'confirmed',
     source: { type: 'hris', detail: peopleRecord },
-    learnedAt: MAR2018,
-    confirmedAt: JUL11,
+    effectiveAt: MAR2018,
+    learnedAt: JUL2,
+    confirmation: { at: JUL2, source: { type: 'hris', detail: peopleRecord } },
     visibility: 'hr',
   }),
   M({
@@ -312,7 +334,7 @@ export const seedMemoryFacts: MemoryFact[] = [
       detail: bi('Advisor analysis · Jul 5', 'Analyse du Conseiller · 5 juill.'),
     },
     learnedAt: JUL5,
-    confirmedAt: null,
+    confirmation: null,
     visibility: 'case',
     sensitive: true,
   }),
@@ -328,7 +350,7 @@ export const seedMemoryFacts: MemoryFact[] = [
       detail: bi('Mentioned in chat · Jul 5', 'Mentionné en clavardage · 5 juill.'),
     },
     learnedAt: JUL5,
-    confirmedAt: null,
+    confirmation: null,
     visibility: 'hr',
     sensitive: true,
   }),
@@ -339,16 +361,13 @@ export const seedMemoryFacts: MemoryFact[] = [
     entityId: 'case1',
     category: 'case',
     statement: bi(
-      'Terminating without cause — no offer issued yet',
+      'Terminating without cause — no offer issued',
       'Licenciement sans motif — aucune offre émise',
     ),
     confidence: 'confirmed',
-    source: {
-      type: 'manual',
-      detail: bi('Case note · Riley Summers', 'Note de dossier · Riley Summers'),
-    },
+    source: { type: 'manual', detail: caseNoteRiley },
     learnedAt: JUL2,
-    confirmedAt: JUL11,
+    confirmation: { at: JUL2, source: { type: 'manual', detail: caseNoteRiley } },
     visibility: 'case',
     sensitive: true,
   }),
@@ -357,17 +376,20 @@ export const seedMemoryFacts: MemoryFact[] = [
     scope: 'case',
     entityId: 'case1',
     category: 'case',
-    statement: bi(
-      'Counsel review requested Jul 5 — still outstanding',
-      'Révision juridique demandée le 5 juill. — toujours en attente',
-    ),
+    statement: bi('Counsel review requested Jul 5', 'Révision juridique demandée le 5 juill.'),
     confidence: 'confirmed',
     source: {
       type: 'chat',
       detail: bi('Advisor · Jul 5', 'Conseiller · 5 juill.'),
     },
     learnedAt: JUL5,
-    confirmedAt: JUL11,
+    confirmation: {
+      at: JUL5,
+      source: {
+        type: 'chat',
+        detail: bi('Advisor · Jul 5', 'Conseiller · 5 juill.'),
+      },
+    },
     visibility: 'case',
     sensitive: true,
   }),
@@ -386,7 +408,13 @@ export const seedMemoryFacts: MemoryFact[] = [
       detail: bi('Termination Letter (draft)', 'Lettre de licenciement (ébauche)'),
     },
     learnedAt: JUL5,
-    confirmedAt: JUL5,
+    confirmation: {
+      at: JUL5,
+      source: {
+        type: 'document',
+        detail: bi('Termination Letter (draft)', 'Lettre de licenciement (ébauche)'),
+      },
+    },
     visibility: 'case',
     sensitive: true,
   }),
@@ -405,7 +433,7 @@ export const seedMemoryFacts: MemoryFact[] = [
       detail: bi('Advisor analysis · Jul 2', 'Analyse du Conseiller · 2 juill.'),
     },
     learnedAt: JUL2,
-    confirmedAt: null,
+    confirmation: null,
     visibility: 'case',
     sensitive: true,
   }),
@@ -425,7 +453,13 @@ export const seedMemoryFacts: MemoryFact[] = [
       detail: bi('Conversation · opened Jul 2', 'Conversation · ouverte le 2 juill.'),
     },
     learnedAt: JUL2,
-    confirmedAt: JUL11,
+    confirmation: {
+      at: JUL2,
+      source: {
+        type: 'chat',
+        detail: bi('Conversation · opened Jul 2', 'Conversation · ouverte le 2 juill.'),
+      },
+    },
     visibility: 'case',
   }),
   M({
@@ -443,7 +477,7 @@ export const seedMemoryFacts: MemoryFact[] = [
       detail: bi('Conversation summary', 'Résumé de la conversation'),
     },
     learnedAt: JUL5,
-    confirmedAt: null,
+    confirmation: null,
     visibility: 'case',
     sensitive: true,
   }),
@@ -459,8 +493,9 @@ export const seedMemoryFacts: MemoryFact[] = [
     ),
     confidence: 'confirmed',
     source: { type: 'hris', detail: peopleRecord },
-    learnedAt: AUG2022,
-    confirmedAt: JUL11,
+    effectiveAt: AUG2022,
+    learnedAt: APR2026,
+    confirmation: { at: APR2026, source: { type: 'hris', detail: peopleRecord } },
     visibility: 'hr',
   }),
   M({
@@ -473,9 +508,10 @@ export const seedMemoryFacts: MemoryFact[] = [
       'Accommodement en tâches modifiées actif; révision de 90 jours le 14 juill.',
     ),
     confidence: 'confirmed',
-    source: { type: 'case', detail: bi('CASE-2026-0138', 'CASE-2026-0138') },
-    learnedAt: APR2026,
-    confirmedAt: JUL11,
+    source: { type: 'case', detail: complianceReviewJul11 },
+    effectiveAt: APR2026,
+    learnedAt: JUL11,
+    confirmation: { at: JUL11, source: { type: 'case', detail: complianceReviewJul11 } },
     visibility: 'case',
     sensitive: true,
   }),
@@ -490,12 +526,22 @@ export const seedMemoryFacts: MemoryFact[] = [
     ),
     confidence: 'confirmed',
     source: { type: 'case', detail: bi('Case note', 'Note de dossier') },
+    effectiveAt: JUN22,
     learnedAt: JUN22,
-    confirmedAt: JUL11,
+    confirmation: {
+      at: JUN22,
+      source: { type: 'case', detail: bi('Case note', 'Note de dossier') },
+    },
     visibility: 'hr',
     sensitive: true,
   }),
 ]
+
+function assertCanonicalDate(factId: string, field: string, value: string): void {
+  if (!isCanonicalMemoryDate(value)) {
+    throw new Error(`Memory fact ${factId}: ${field} must be a canonical ISO date, not "${value}"`)
+  }
+}
 
 /** Seed facts must not pair confirmed confidence with an inference-only source. */
 export function assertSeedMemoryFactSemantics(facts: readonly MemoryFact[]): void {
@@ -505,16 +551,26 @@ export function assertSeedMemoryFactSemantics(facts: readonly MemoryFact[]): voi
         `Memory fact ${fact.id}: confirmed facts cannot be sourced from inference alone`,
       )
     }
-    if (fact.confidence === 'inferred' && fact.confirmedAt !== null) {
-      throw new Error(`Memory fact ${fact.id}: inferred facts must not carry a confirmation date`)
+    if (fact.confidence === 'inferred' && fact.confirmation !== null) {
+      throw new Error(`Memory fact ${fact.id}: inferred facts must not carry confirmation`)
     }
-    if (
-      /\bToday\b|Aujourd/i.test(fact.learnedAt) ||
-      (fact.confirmedAt !== null && /\bToday\b|Aujourd/i.test(fact.confirmedAt))
-    ) {
+    if (fact.confidence === 'confirmed' && fact.confirmation === null) {
       throw new Error(
-        `Memory fact ${fact.id}: temporal fields must be ISO dates, not relative labels`,
+        `Memory fact ${fact.id}: confirmed facts must include confirmation provenance`,
       )
+    }
+
+    assertCanonicalDate(fact.id, 'learnedAt', fact.learnedAt)
+    if (fact.effectiveAt != null) {
+      assertCanonicalDate(fact.id, 'effectiveAt', fact.effectiveAt)
+    }
+    if (fact.confirmation !== null) {
+      assertCanonicalDate(fact.id, 'confirmation.at', fact.confirmation.at)
+      if (fact.confirmation.at < fact.learnedAt.slice(0, 10)) {
+        throw new Error(
+          `Memory fact ${fact.id}: confirmation cannot precede when the fact was learned`,
+        )
+      }
     }
   }
 }

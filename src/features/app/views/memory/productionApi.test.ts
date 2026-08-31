@@ -54,7 +54,7 @@ describe('memory productionApi', () => {
       category: 'employment',
       confidence: 'inferred',
       statement: { en: 'Started March 2018', fr: 'Début en mars 2018' },
-      confirmedAt: null,
+      confirmation: null,
       sensitive: false,
     })
   })

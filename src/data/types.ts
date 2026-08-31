@@ -553,6 +553,13 @@ export type MemoryVisibility = 'hr' | 'case' | 'restricted'
 export type MemoryCategory =
   'employment' | 'compensation' | 'matter' | 'record' | 'note' | 'case' | 'conversation'
 
+/** When and through which source a confirmed fact was last affirmed. */
+export interface MemoryConfirmation {
+  /** ISO date (YYYY-MM-DD) of the confirmation event. */
+  at: string
+  source: { type: MemorySourceType; detail: Bi }
+}
+
 export interface MemoryFact {
   id: string
   scope: MemoryScope
@@ -564,11 +571,17 @@ export interface MemoryFact {
   category: MemoryCategory
   statement: Bi
   confidence: MemoryConfidence
+  /** Source that first established this memory entry. */
   source: { type: MemorySourceType; detail: Bi }
-  /** ISO 8601 date or timestamp when this memory was learned. */
+  /** ISO date when Advisor Memory learned or ingested this fact. */
   learnedAt: string
-  /** ISO date when last human-confirmed; null while still inferred. */
-  confirmedAt: string | null
+  /**
+   * ISO date when the underlying fact became effective, when distinct from
+   * {@link learnedAt} (e.g. hire date vs HRIS sync date). Omitted when N/A.
+   */
+  effectiveAt?: string | null
+  /** Provenance of the latest confirmation; null while still inferred only. */
+  confirmation: MemoryConfirmation | null
   visibility: MemoryVisibility
   /** Access-controlled by default (compensation, health). */
   sensitive: boolean

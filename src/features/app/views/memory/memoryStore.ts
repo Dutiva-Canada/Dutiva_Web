@@ -59,7 +59,19 @@ export const memoryActions = {
     if (!fact || fact.confidence === 'confirmed') return
     emit({
       facts: store.facts.map((f) =>
-        f.id === id ? { ...f, confidence: 'confirmed', confirmedAt: TODAY_ISO } : f,
+        f.id === id
+          ? {
+              ...f,
+              confidence: 'confirmed',
+              confirmation: {
+                at: TODAY_ISO,
+                source: {
+                  type: 'manual',
+                  detail: bi('Confirmed in Memory', 'Confirmé dans la Mémoire'),
+                },
+              },
+            }
+          : f,
       ),
       audit: [{ action: 'confirm', statement: fact.statement }, ...store.audit],
     })

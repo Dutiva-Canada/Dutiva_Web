@@ -16,7 +16,8 @@ import { pick } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import { memoryMessages as M } from '@/i18n/messages/memory'
 import { shellMessages as SM } from '@/i18n/messages/shell'
-import { employees, memoryCases, memoryPeople, memoryThreads } from '@/data'
+import { employees, demoTodayISO, memoryCases, memoryPeople, memoryThreads } from '@/data'
+import { formatMemoryResumedSub } from './memoryDates'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { listEmployees } from '@/features/app/views/employees/productionApi'
 import type { ProductionEmployee } from '@/features/app/views/employees/productionApi'
@@ -302,7 +303,7 @@ function MemoryLayoutDemo() {
         to: `/app/settings/memory/conversations/${t.id}`,
         icon: MessageCircle,
         label: t.navLabel,
-        sub: t.navSub,
+        sub: formatMemoryResumedSub(t.resumedAt, demoTodayISO),
       })),
     },
   ]
