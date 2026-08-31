@@ -42,14 +42,14 @@ describe('ComplianceView', () => {
     ).toBeInTheDocument()
     expect(
       screen.getByText(
-        'Request counsel review before any offer; budget toward the 12-month end of the range.',
+        'Request counsel review before any offer; for internal contingency planning, model the upper end of the preliminary range pending that review.',
       ),
     ).toBeInTheDocument()
 
     /* Regulatory watchlist. */
     expect(screen.getByText('Regulatory watchlist')).toBeInTheDocument()
     expect(
-      screen.getByText('Ontario — proposed ESA amendments on sick-leave provisions'),
+      screen.getByText('Ontario — ESA sick leave and medical certificate rules'),
     ).toBeInTheDocument()
   })
 

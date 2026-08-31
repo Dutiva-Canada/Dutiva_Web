@@ -35,13 +35,13 @@ export const complianceItems: ComplianceItem[] = [
       {
         label: bi(
           'ESA s.57 — Notice of termination',
-          'LNE art. 57 — Préavis de cessation d’emploi',
+          'LNE art. 57 — Délai de préavis de l’employeur',
         ),
       },
     ],
     action: bi(
-      'Request counsel review before any offer; budget toward the 12-month end of the range.',
-      'Demandez un examen juridique avant toute offre; prévoyez le budget vers la limite de 12 mois.',
+      'Request counsel review before any offer; for internal contingency planning, model the upper end of the preliminary range pending that review.',
+      'Demandez un examen juridique avant toute offre; pour la planification interne, modélisez la limite supérieure de la fourchette préliminaire en attendant cet examen.',
     ),
   },
   {
@@ -359,14 +359,17 @@ export const obligations: Obligation[] = [
 export const regulatoryWatchlist: WatchlistItem[] = [
   {
     title: bi(
-      'Ontario — proposed ESA amendments on sick-leave provisions',
-      'Ontario — modifications proposées à la LNE sur les congés de maladie',
+      'Ontario — ESA sick leave and medical certificate rules',
+      'Ontario — congés de maladie (LNE) et règles sur les certificats médicaux',
     ),
-    status: bi('Monitoring — not in force', 'Surveillance — non en vigueur'),
+    status: bi(
+      'In force — guidance updated Feb 2026',
+      'En vigueur — guide mis à jour en févr. 2026',
+    ),
     tone: 'info',
     note: bi(
-      'Advisor will flag affected policies if enacted.',
-      'Le Conseiller signalera les politiques touchées si la loi est adoptée.',
+      'Confirm policies reflect the three-day leave and medical-note restrictions in current Ontario guidance.',
+      'Confirmez que les politiques reflètent le congé de trois jours et les restrictions sur les certificats médicaux selon l’orientation ontarienne actuelle.',
     ),
   },
   {
@@ -374,7 +377,7 @@ export const regulatoryWatchlist: WatchlistItem[] = [
       'Quebec Law 25 — data portability phase',
       'Loi 25 (Québec) — volet portabilité des données',
     ),
-    status: bi('In force Sep 2026', 'En vigueur sept. 2026'),
+    status: bi('In force since Sep 22, 2024', 'En vigueur depuis le 22 sept. 2024'),
     tone: 'warning',
     note: bi(
       'Gap review scheduled with the privacy owner.',
@@ -383,14 +386,14 @@ export const regulatoryWatchlist: WatchlistItem[] = [
   },
   {
     title: bi(
-      'Federal — harassment prevention training updates (Canada Labour Code)',
-      'Fédéral — mises à jour de la formation en prévention du harcèlement (Code canadien du travail)',
+      'Federal — workplace harassment and violence prevention framework review',
+      'Fédéral — examen du cadre de prévention du harcèlement et de la violence au travail',
     ),
     status: bi('Monitoring', 'Surveillance'),
     tone: 'info',
     note: bi(
-      'Applies only if federally regulated roles are added.',
-      'S’applique seulement si des postes sous réglementation fédérale s’ajoutent.',
+      'Relevant to existing federally regulated roles; monitor the 2026 framework review for changes affecting policy or training.',
+      'Pertinent pour les postes déjà sous réglementation fédérale; surveillez l’examen du cadre en 2026 pour tout changement touchant les politiques ou la formation.',
     ),
   },
 ]
