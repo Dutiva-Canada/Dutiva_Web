@@ -120,6 +120,7 @@ export interface EmployeeDetail {
 /** One reporting branch of the org graph (prototype `buildOrgGraph()`). */
 export interface OrgBranch {
   managerId: string
+  /** Organizational area for this manager's branch — shown on the manager card, not each report's functional department. */
   dept: Bi
   reportIds: string[]
 }

@@ -36,13 +36,36 @@ describe('employees fixtures', () => {
     expect(priya.insight.fr).not.toMatch(/La probation court/i)
   })
 
-  it('places Grace in the Revenue branch consistent with orgStructure', () => {
-    const grace = employee('e11')
-    const revenueBranch = orgStructure.find((branch) => branch.reportIds.includes('e11'))
+  it('treats org branch dept as the manager area, not each report functional department', () => {
+    const byId = new Map(employees.map((e) => [e.id, e]))
+    const reportAssignments = new Map<string, string>()
 
-    expect(grace.dept.en).toBe('Revenue')
+    for (const branch of orgStructure) {
+      expect(byId.has(branch.managerId), `manager ${branch.managerId}`).toBe(true)
+      for (const reportId of branch.reportIds) {
+        expect(byId.has(reportId), `report ${reportId}`).toBe(true)
+        expect(reportAssignments.has(reportId), `${reportId} in multiple branches`).toBe(false)
+        reportAssignments.set(reportId, branch.managerId)
+      }
+    }
+
+    const peopleBranch = orgStructure.find((b) => b.managerId === 'e9')
+    const revenueBranch = orgStructure.find((b) => b.managerId === 'e7')
+    expect(peopleBranch?.dept.en).toBe('People')
     expect(revenueBranch?.dept.en).toBe('Revenue')
-    expect(grace.dept.en).toBe(revenueBranch?.dept.en)
+
+    /* Functional departments may differ from the branch label they report into. */
+    expect(employee('e8').dept.en).toBe('Marketing')
+    expect(peopleBranch?.reportIds).toContain('e8')
+    expect(employee('e2').dept.en).toBe('Strategy')
+    expect(revenueBranch?.reportIds).toContain('e2')
+    expect(employee('e6').dept.en).toBe('Engineering')
+    expect(peopleBranch?.reportIds).toContain('e6')
+
+    /* Grace's Revenue department matches her financial-analyst role, not merely the branch label. */
+    expect(employee('e11').dept.en).toBe('Revenue')
+    expect(employee('e11').role.en).toBe('Financial Analyst')
+    expect(revenueBranch?.reportIds).toContain('e11')
   })
 
   it('shows Amara as active while modified duties are underway', () => {

@@ -557,6 +557,11 @@ export const orgRoot = {
   role: bi('Founder & Account Owner', 'Fondatrice et titulaire du compte'),
 }
 
+/**
+ * Direct-reporting branches under the workspace root. `dept` labels the
+ * manager's organizational area on the org chart; each report's functional
+ * `Employee.dept` may differ (e.g. Strategy under Revenue, Engineering under People).
+ */
 export const orgStructure: OrgBranch[] = [
   { managerId: 'e1', dept: bi('Operations', 'Opérations'), reportIds: ['e5', 'e10', 'e12', 'e3'] },
   { managerId: 'e9', dept: bi('People', 'Personnel'), reportIds: ['e8', 'e6'] },
@@ -604,7 +609,7 @@ export const compChanges: CompChange[] = [
   },
 ]
 
-/** Internal-equity advisory card shown on the Compensation view. */
+/** Compensation-positioning advisory card shown on the Compensation view. */
 export const compEquityCard = {
   title: bi(
     'Potential compensation positioning issue — review recommended',
