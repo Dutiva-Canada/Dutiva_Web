@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   title: 'Privacy Policy',
-  lastUpdated: 'August 26, 2026',
+  lastUpdated: 'August 30, 2026',
   effectiveDate: 'June 2, 2026',
   callout: [
     'Dutiva Canada Inc. ("Dutiva," "we," "us," or "our") provides HR compliance software for Canadian employers, HR professionals, and business operators. This Privacy Policy explains how we collect, use, disclose, retain, and protect personal information when you use Dutiva, including our website, application, Advisor, document workflows, beta access, support, and related services.',
@@ -22,13 +22,17 @@ export default {
         },
         {
           type: 'p',
-          text: 'Privacy questions, access requests, correction requests, and deletion requests can be sent to our Privacy Officer at privacy@dutiva.ca.',
+          text: 'Our Privacy Officer handles privacy questions and requests. See Section 10 for your rights and how to contact us.',
         },
       ],
     },
     {
       title: '2. Information We Collect',
       blocks: [
+        {
+          type: 'p',
+          text: 'We collect the categories below to operate Dutiva for the purposes described in Section 3. We disclose them only to the service providers and in the circumstances described in Section 4. We do not sell personal information.',
+        },
         {
           type: 'p',
           text: 'Depending on how you use Dutiva, we may collect the following categories of personal information:',
@@ -113,43 +117,43 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'We disclose personal information only as needed to operate the service, comply with law, complete business transactions, or protect rights, safety, and security. Current core service providers may include:',
+          text: 'We disclose personal information only as needed to operate the service, comply with law, complete business transactions, or protect rights, safety, and security. We do not sell personal information.',
+        },
+        {
+          type: 'p',
+          text: 'We use the following categories of service providers. Each receives only the information needed for its role:',
         },
         {
           type: 'li',
-          text: 'Supabase: database, authentication, storage and edge functions, and edge functions.',
+          text: 'Infrastructure and hosting — Supabase (database, authentication, storage, and edge functions) and Vercel (hosting, serverless functions, deployment, and operational logs) store and process account, workspace, document, and operational data needed to run Dutiva.',
         },
         {
           type: 'li',
-          text: 'Vercel: hosting, serverless functions, deployment, and operational logs.',
+          text: 'AI inference — DigitalOcean Gradient AI processes Advisor message content and limited context to generate responses. Data is sent only as needed for inference. Under Dutiva\'s arrangement, customer content is not used to train third-party foundation models.',
         },
         {
           type: 'li',
-          text: 'DigitalOcean Gradient AI: model inference for Advisor responses, where message content and limited context are sent only as needed to produce the response.',
+          text: 'Payments — Stripe processes subscription, payment, invoice, tax, and billing portal data. Dutiva does not store full card numbers or banking credentials.',
         },
         {
           type: 'li',
-          text: 'Stripe: payments, subscriptions, invoices, tax, and billing portal operations.',
+          text: 'Email — Resend (or an equivalent transactional email provider) delivers account, billing, document, and support emails.',
         },
         {
           type: 'li',
-          text: 'Cloudflare: DNS, network security, performance, and availability services.',
+          text: 'Network, security, and availability — Cloudflare provides DNS, network security, performance, and availability services, and may provide bot protection on public forms when configured.',
         },
         {
           type: 'li',
-          text: 'Google Tag Manager and Google Analytics, if enabled: product or website analytics. The current application only loads these services when they are configured and the user has granted consent through the consent banner.',
-        },
-        {
-          type: 'li',
-          text: 'TrustedSite (Halo Security): public-website security-scan trustmark. The marketing site loads their script so visitors can see scan status. It may receive the visitor\'s IP address and browser or device signals. It is not loaded in the signed-in workspace and is not used for advertising.',
-        },
-        {
-          type: 'li',
-          text: 'First-party support analytics: Help Centre searches, article views, helpfulness votes, and support ticket submission and status events. These events are optional and off by default — nothing is collected until the visitor accepts analytics through the consent banner. They are sent to a Dutiva-operated edge function in Canada and do not use third-party cookies. Anonymous Help Centre events carry a daily-rotated visitor identifier, not a user or workspace identifier. Authenticated ticket events carry the workspace (organization) identifier, not the individual user identifier. Raw event data is retained for 90 days; daily aggregates are retained indefinitely. See the Data Retention Policy for details.',
+          text: 'Analytics and trust signals — Google Tag Manager and Google Analytics load only when configured and the visitor has accepted analytics through the consent banner. First-party support analytics (Help Centre searches, article views, helpfulness votes, and support ticket events) are optional, off by default, sent to a Dutiva-operated edge function in Canada, and do not use third-party cookies. TrustedSite (Halo Security) loads on the public marketing site only so visitors can see security-scan status; it is not loaded in the signed-in workspace and is not used for advertising.',
         },
         {
           type: 'p',
           text: 'We may also disclose information where required by law, court order, regulator request, legal process, merger or financing diligence, corporate transaction, or where reasonably necessary to protect the security and integrity of Dutiva, our users, or the public.',
+        },
+        {
+          type: 'p',
+          text: 'More detail on subprocessors, processing locations, and data categories is available in our Subprocessor List.',
         },
       ],
     },
@@ -162,7 +166,23 @@ export default {
         },
         {
           type: 'p',
-          text: 'You may withdraw optional consent, such as beta feedback communications or optional marketing communications, by using unsubscribe or preference controls where available, or by contacting us. Some information is required to provide the service, maintain security, complete billing, preserve audit records, or meet legal obligations.',
+          text: 'Required processing. Account, workspace, document, billing, security, and core product data are needed to provide Dutiva, maintain security, complete billing, preserve audit records, and meet legal obligations. You cannot use the core service without this processing.',
+        },
+        {
+          type: 'p',
+          text: 'Optional processing. Beta feedback communications, optional marketing communications, third-party website analytics (Google Tag Manager and Google Analytics), and first-party support analytics are optional. These load or run only when you have granted consent through the consent banner or an explicit preference control, except where a communication is transactional and necessary to the service you requested.',
+        },
+        {
+          type: 'p',
+          text: 'Customer-controlled data. Where an employer or organization enters personal information about employees, candidates, contractors, or other individuals, that organization is responsible for having the authority, consent, notice, and internal policies required to use Dutiva for that information.',
+        },
+        {
+          type: 'p',
+          text: 'Withdrawal. You may withdraw optional consent by using unsubscribe or preference controls where available, adjusting consent through the consent banner where applicable, or contacting us at privacy@dutiva.ca. Withdrawing optional consent does not affect processing that is required to provide the service, maintain security, complete billing, or meet legal obligations.',
+        },
+        {
+          type: 'p',
+          text: 'Advisor. Dutiva Advisor is a core product feature. You cannot opt out of Advisor processing while using Advisor; you can choose not to use Advisor. See Sections 7 and 8 for AI and automated-processing notices.',
         },
       ],
     },
@@ -204,7 +224,11 @@ export default {
         },
         {
           type: 'p',
-          text: 'More detail is available in our AI Usage Disclosure and Legal Disclaimer.',
+          text: 'Dutiva does not use customer Advisor prompts or generated HR documents to train third-party foundation models unless a separate written agreement or explicit opt-in provides otherwise.',
+        },
+        {
+          type: 'p',
+          text: 'More detail is available in our AI Usage Disclosure, AI & Technology Policy, and Legal Disclaimer.',
         },
       ],
     },
@@ -217,7 +241,11 @@ export default {
         },
         {
           type: 'p',
-          text: 'Where automated processing produces a recommendation, draft, or guidance output, users should review the output before relying on it. If you have questions about automated processing associated with your personal information, contact us at privacy@dutiva.ca.',
+          text: 'Where automated processing produces a recommendation, draft, or guidance output, users should review the output before relying on it. Dutiva is not designed to make solely automated decisions that produce legal or similarly significant effects about individuals on behalf of customers.',
+        },
+        {
+          type: 'p',
+          text: 'If you have questions about automated processing associated with your personal information, want information about how automated processing is used, or wish to request human review of a specific AI output where applicable law or our Human Review Escalation Policy provides for it, contact us at privacy@dutiva.ca or follow the escalation paths described in our Human Review Escalation Policy.',
         },
       ],
     },
@@ -226,23 +254,35 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'We retain personal information only as long as needed for the purposes described in this Policy, unless a longer period is required or permitted for legal, tax, accounting, security, dispute, regulatory, or audit reasons.',
+          text: 'We retain personal information only as long as needed for the purposes described in this Policy, unless a longer period is required or permitted for legal, tax, accounting, security, dispute, regulatory, or audit reasons. The periods below describe our current approach. Exact timing may vary based on product configuration, customer instructions, legal requirements, and whether an account remains active.',
         },
         {
           type: 'li',
-          text: 'Account and workspace data are retained while the account is active.',
+          text: 'Account and workspace data: retained while the account is active, then deleted or anonymized after account deletion unless retained for legal, billing, security, support, audit, or dispute purposes.',
         },
         {
           type: 'li',
-          text: 'Saved documents remain available until deleted, archived, or the account is deleted, subject to legal retention requirements and customer configuration.',
+          text: 'Generated documents, inputs, and saved drafts: retained until a user or authorized administrator deletes or archives them, the account is deleted, or a required retention period ends, subject to legal, security, and backup limitations.',
+        },
+        {
+          type: 'li',
+          text: 'Advisor messages and AI workflow context: current browser workflows may keep conversation state for the in-session user experience. Server-side calls may process limited context for inference, safety, troubleshooting, rate limiting, and service reliability.',
+        },
+        {
+          type: 'li',
+          text: 'First-party support analytics raw event data: retained for 90 days, then deleted. Daily aggregates, which no longer identify an individual in a reasonably foreseeable way, are retained indefinitely.',
+        },
+        {
+          type: 'li',
+          text: 'Billing, tax, security, and audit records: retained for required statutory or operational periods.',
+        },
+        {
+          type: 'li',
+          text: 'Backups: retained until they expire through the normal backup lifecycle. Backups may not allow selective deletion before expiry, but they are protected by access controls and are not used for ordinary production access.',
         },
         {
           type: 'li',
           text: 'Self-initiated account deletion removes owned account rows and generated documents, then records an anonymized deletion audit entry.',
-        },
-        {
-          type: 'li',
-          text: 'Billing, tax, security, and audit records may be retained for required statutory or operational periods.',
         },
         {
           type: 'p',
@@ -255,15 +295,23 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Subject to legal limits, you may request access to personal information we hold about you, correction of inaccurate information, withdrawal of consent, account deletion, and information about our privacy practices.',
+          text: 'Subject to legal limits, you may request access to personal information we hold about you, correction of inaccurate information, withdrawal of consent for optional processing, account deletion, and information about our privacy practices and how we have used or disclosed your information.',
         },
         {
           type: 'p',
-          text: 'Quebec residents may also have rights to portability, de-indexing or erasure in certain circumstances, and information about automated decision-making that produces legal or similarly significant effects.',
+          text: 'Quebec residents may also have rights to portability, de-indexing or erasure in certain circumstances, and information about automated decision-making that produces legal or similarly significant effects. Contact us to exercise these rights.',
         },
         {
           type: 'p',
-          text: "You may also contact the Office of the Privacy Commissioner of Canada at priv.gc.ca or the Commission d'accès à l'information du Québec at cai.gouv.qc.ca.",
+          text: 'How to submit a request. Send privacy requests to privacy@dutiva.ca or use our contact form at dutiva.ca/contact and select the Privacy request category. Privacy requests are handled separately from ordinary support. We may need to verify your identity before responding. Do not attach identity documents to an ordinary support message unless we ask you to.',
+        },
+        {
+          type: 'p',
+          text: 'Response timing. We aim to respond within 30 days where required by law, unless an extension is permitted or required.',
+        },
+        {
+          type: 'p',
+          text: "Regulators. You may also contact the Office of the Privacy Commissioner of Canada at priv.gc.ca or the Commission d'accès à l'information du Québec at cai.gouv.qc.ca.",
         },
       ],
     },
@@ -285,7 +333,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'We use safeguards appropriate to the sensitivity of the information, including TLS in transit, access controls, authentication, service-role separation, rate limiting, audit-oriented deletion records, and operational monitoring.',
+          text: 'We use safeguards appropriate to the sensitivity of the information, including TLS in transit, access controls, authentication, service-role separation, rate limiting, audit-oriented deletion records, and operational monitoring. These safeguards are designed to protect personal information against loss, theft, and unauthorized access, use, or disclosure.',
         },
         {
           type: 'p',
@@ -319,7 +367,7 @@ export default {
         },
         {
           type: 'p',
-          text: 'We aim to respond to privacy requests within 30 days where required by law, unless an extension is permitted or required.',
+          text: 'For privacy rights and request instructions, see Section 10.',
         },
       ],
     },

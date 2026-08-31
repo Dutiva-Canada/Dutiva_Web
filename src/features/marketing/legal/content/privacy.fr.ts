@@ -2,7 +2,7 @@ import type { PolicyEdition } from '../policyContent'
 
 export default {
   title: 'Politique de confidentialité',
-  lastUpdated: '26 août 2026',
+  lastUpdated: '30 août 2026',
   effectiveDate: '2 juin 2026',
   callout: [
     'Dutiva Canada Inc. (« Dutiva », « nous », « notre » ou « nos ») fournit un logiciel de conformité RH destiné aux employeurs, aux professionnels des RH et aux responsables d’entreprise au Canada. La présente Politique de confidentialité explique comment nous recueillons, utilisons, communiquons, conservons et protégeons les renseignements personnels lorsque vous utilisez Dutiva, y compris notre site Web, notre application, le Conseiller, les processus documentaires, l’accès bêta, le soutien et les services connexes.',
@@ -22,13 +22,19 @@ export default {
         },
         {
           type: 'p',
-          text: 'Les questions relatives à la protection des renseignements personnels, ainsi que les demandes d’accès, de rectification ou de suppression, peuvent être transmises à notre responsable de la protection des renseignements personnels à l’adresse privacy@dutiva.ca.',
+          /* [FR self-authored] */
+          text: 'Notre responsable de la protection des renseignements personnels traite les questions et demandes relatives à la confidentialité. Voir la section 10 pour vos droits et les coordonnées.',
         },
       ],
     },
     {
       title: '2. Renseignements que nous recueillons',
       blocks: [
+        {
+          type: 'p',
+          /* [FR self-authored] */
+          text: 'Nous recueillons les catégories ci-dessous pour exploiter Dutiva aux fins décrites à la section 3. Nous les communiquons uniquement aux fournisseurs de services et dans les circonstances décrites à la section 4. Nous ne vendons pas de renseignements personnels.',
+        },
         {
           type: 'p',
           text: 'Selon votre utilisation de Dutiva, nous pouvons recueillir les catégories suivantes de renseignements personnels :',
@@ -113,46 +119,52 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Nous communiquons des renseignements personnels uniquement dans la mesure nécessaire pour exploiter le service, respecter la loi, réaliser des opérations commerciales ou protéger les droits, la sécurité et l’intégrité du service. Les principaux fournisseurs de services actuels peuvent comprendre :',
+          /* [FR self-authored] */
+          text: 'Nous communiquons des renseignements personnels uniquement dans la mesure nécessaire pour exploiter le service, respecter la loi, réaliser des opérations commerciales ou protéger les droits, la sécurité et l’intégrité du service. Nous ne vendons pas de renseignements personnels.',
         },
         {
-          type: 'li',
-          text: 'Supabase : base de données, authentification, stockage et fonctions en périphérie.',
-        },
-        {
-          type: 'li',
-          text: 'Vercel : hébergement, fonctions sans serveur, déploiement et journaux opérationnels.',
-        },
-        {
-          type: 'li',
-          text: 'DigitalOcean Gradient AI : inférence de modèles pour les réponses du Conseiller, lorsque le contenu des messages et un contexte limité sont transmis uniquement dans la mesure nécessaire pour produire la réponse.',
-        },
-        {
-          type: 'li',
-          text: 'Stripe : paiements, abonnements, factures, taxes et opérations du portail de facturation.',
-        },
-        {
-          type: 'li',
-          text: 'Cloudflare : DNS, sécurité réseau, performance et disponibilité des services.',
+          type: 'p',
+          /* [FR self-authored] */
+          text: 'Nous utilisons les catégories de fournisseurs de services suivantes. Chaque fournisseur ne reçoit que les renseignements nécessaires à son rôle :',
         },
         {
           type: 'li',
           /* [FR self-authored] */
-          text: 'Google Tag Manager et Google Analytics, s’ils sont activés : analytique du produit ou du site Web. L’application actuelle ne charge ces services que lorsqu’ils sont configurés et que l’utilisateur a accordé son consentement par l’intermédiaire de la bannière de consentement.',
+          text: 'Infrastructure et hébergement — Supabase (base de données, authentification, stockage et fonctions en périphérie) et Vercel (hébergement, fonctions sans serveur, déploiement et journaux opérationnels) stockent et traitent les données de compte, d’espace de travail, de documents et opérationnelles nécessaires au fonctionnement de Dutiva.',
         },
         {
           type: 'li',
-          // [FR self-authored]
-          text: 'TrustedSite (Halo Security) : sceau de balayage de sécurité du site public. Le site marketing charge leur script pour que les visiteurs puissent voir l’état du balayage. Il peut recevoir l’adresse IP du visiteur et des signaux du navigateur ou de l’appareil. Il n’est pas chargé dans l’espace de travail authentifié et n’est pas utilisé à des fins publicitaires.',
+          /* [FR self-authored] */
+          text: 'Inférence par IA — DigitalOcean Gradient AI traite le contenu des messages au Conseiller et un contexte limité pour produire des réponses. Les données ne sont transmises que dans la mesure nécessaire à l’inférence. Selon l’entente de Dutiva, le contenu des clients n’est pas utilisé pour entraîner des modèles de fondation de tiers.',
         },
         {
           type: 'li',
-          // [FR self-authored] — matches the English privacy.en.ts update for D2 support analytics
-          text: 'Analytique de support interne : recherches dans le Centre d’aide, consultations d’articles, votes d’utilité, et événements de soumission et de statut des billets de support. Ces événements sont facultatifs et désactivés par défaut — rien n’est collecté tant que la personne n’a pas accepté l’analytique au moyen de la bannière de consentement. Ils sont envoyés à une fonction edge exploitée par Dutiva au Canada et n’utilisent pas de témoins tiers. Les événements anonymes du Centre d’aide portent un identifiant de visiteur quotidien rotatif, et non un identifiant d’utilisateur ou d’espace de travail. Les événements authentifiés liés aux billets portent l’identifiant de l’espace de travail (organisation), et non l’identifiant individuel de l’utilisateur. Les données d’événements brutes sont conservées pendant 90 jours ; les agrégats quotidiens sont conservés indéfiniment. Voir la Politique de conservation des données pour plus de détails.',
+          /* [FR self-authored] */
+          text: 'Paiements — Stripe traite les données d’abonnement, de paiement, de facturation, de taxes et du portail de facturation. Dutiva ne conserve pas les numéros complets de carte ni les identifiants bancaires.',
+        },
+        {
+          type: 'li',
+          /* [FR self-authored] */
+          text: 'Courriel — Resend (ou un fournisseur équivalent de courriels transactionnels) transmet les courriels liés au compte, à la facturation, aux documents et au soutien.',
+        },
+        {
+          type: 'li',
+          /* [FR self-authored] */
+          text: 'Réseau, sécurité et disponibilité — Cloudflare fournit les services DNS, de sécurité réseau, de performance et de disponibilité, et peut fournir une protection contre les robots sur les formulaires publics lorsqu’elle est configurée.',
+        },
+        {
+          type: 'li',
+          /* [FR self-authored] */
+          text: 'Analytique et signaux de confiance — Google Tag Manager et Google Analytics ne se chargent que lorsqu’ils sont configurés et que la personne a accepté l’analytique au moyen de la bannière de consentement. L’analytique de support interne (recherches dans le Centre d’aide, consultations d’articles, votes d’utilité et événements liés aux billets de support) est facultative, désactivée par défaut, envoyée à une fonction edge exploitée par Dutiva au Canada et n’utilise pas de témoins tiers. TrustedSite (Halo Security) se charge uniquement sur le site marketing public pour que les visiteurs puissent voir l’état du balayage de sécurité; il n’est pas chargé dans l’espace de travail authentifié et n’est pas utilisé à des fins publicitaires.',
         },
         {
           type: 'p',
           text: 'Nous pouvons également communiquer des renseignements lorsque la loi, une ordonnance d’un tribunal, une demande d’un organisme de réglementation, une procédure judiciaire, une vérification diligente liée à une fusion ou à un financement, une opération d’entreprise ou la protection raisonnablement nécessaire de la sécurité et de l’intégrité de Dutiva, de nos utilisateurs ou du public l’exige.',
+        },
+        {
+          type: 'p',
+          /* [FR self-authored] */
+          text: 'Des renseignements supplémentaires sur les sous-traitants, les lieux de traitement et les catégories de données sont disponibles dans notre Liste des sous-traitants.',
         },
       ],
     },
@@ -165,7 +177,28 @@ export default {
         },
         {
           type: 'p',
-          text: 'Vous pouvez retirer un consentement facultatif, comme les communications liées aux commentaires sur la bêta ou les communications de marketing facultatives, en utilisant les mécanismes de désabonnement ou de préférences lorsqu’ils sont disponibles, ou en communiquant avec nous. Certains renseignements sont nécessaires pour fournir le service, maintenir la sécurité, compléter la facturation, conserver des dossiers d’audit ou respecter des obligations légales.',
+          /* [FR self-authored] */
+          text: 'Traitement requis. Les données de compte, d’espace de travail, de documents, de facturation, de sécurité et les données essentielles au produit sont nécessaires pour fournir Dutiva, maintenir la sécurité, compléter la facturation, conserver des dossiers d’audit et respecter les obligations légales. Vous ne pouvez pas utiliser le service principal sans ce traitement.',
+        },
+        {
+          type: 'p',
+          /* [FR self-authored] */
+          text: 'Traitement facultatif. Les communications liées aux commentaires sur la bêta, les communications de marketing facultatives, l’analytique de site Web de tiers (Google Tag Manager et Google Analytics) et l’analytique de support interne sont facultatives. Elles ne se chargent ou ne s’exécutent que lorsque vous avez accordé votre consentement au moyen de la bannière de consentement ou d’un contrôle de préférences explicite, sauf lorsqu’une communication est transactionnelle et nécessaire au service demandé.',
+        },
+        {
+          type: 'p',
+          /* [FR self-authored] */
+          text: 'Données contrôlées par le client. Lorsqu’un employeur ou une organisation saisit des renseignements personnels concernant des employés, des candidats, des contractuels ou d’autres personnes, cette organisation est responsable de disposer de l’autorité, du consentement, des avis et des politiques internes requis pour utiliser Dutiva à l’égard de ces renseignements.',
+        },
+        {
+          type: 'p',
+          /* [FR self-authored] */
+          text: 'Retrait. Vous pouvez retirer un consentement facultatif en utilisant les mécanismes de désabonnement ou de préférences lorsqu’ils sont disponibles, en ajustant le consentement au moyen de la bannière de consentement le cas échéant, ou en communiquant avec nous à l’adresse privacy@dutiva.ca. Le retrait d’un consentement facultatif n’affecte pas le traitement requis pour fournir le service, maintenir la sécurité, compléter la facturation ou respecter les obligations légales.',
+        },
+        {
+          type: 'p',
+          /* [FR self-authored] */
+          text: 'Conseiller. Le Conseiller Dutiva est une fonctionnalité principale du produit. Vous ne pouvez pas refuser le traitement du Conseiller tout en l’utilisant; vous pouvez choisir de ne pas utiliser le Conseiller. Voir les sections 7 et 8 pour les avis relatifs à l’IA et au traitement automatisé.',
         },
       ],
     },
@@ -207,7 +240,13 @@ export default {
         },
         {
           type: 'p',
-          text: 'Des renseignements supplémentaires sont disponibles dans notre Divulgation relative à l’utilisation de l’IA et notre Avis de non-responsabilité juridique.',
+          /* [FR self-authored] */
+          text: 'Dutiva n’utilise pas les messages au Conseiller ni les documents RH générés des clients pour entraîner des modèles de fondation de tiers, sauf si un accord écrit distinct ou un consentement explicite prévoit autrement.',
+        },
+        {
+          type: 'p',
+          /* [FR self-authored] */
+          text: 'Des renseignements supplémentaires sont disponibles dans notre Divulgation relative à l’utilisation de l’IA, notre Politique relative à l’IA et aux technologies, et notre Avis de non-responsabilité juridique.',
         },
       ],
     },
@@ -220,7 +259,13 @@ export default {
         },
         {
           type: 'p',
-          text: 'Lorsqu’un traitement automatisé produit une recommandation, une ébauche ou un résultat d’accompagnement, les utilisateurs devraient examiner le résultat avant de s’y fier. Si vous avez des questions au sujet du traitement automatisé associé à vos renseignements personnels, communiquez avec nous à l’adresse privacy@dutiva.ca.',
+          /* [FR self-authored] */
+          text: 'Lorsqu’un traitement automatisé produit une recommandation, une ébauche ou un résultat d’accompagnement, les utilisateurs devraient examiner le résultat avant de s’y fier. Dutiva n’est pas conçu pour prendre des décisions exclusivement automatisées qui produisent des effets juridiques ou des effets similaires importants à l’égard de personnes au nom des clients.',
+        },
+        {
+          type: 'p',
+          /* [FR self-authored] */
+          text: 'Si vous avez des questions au sujet du traitement automatisé associé à vos renseignements personnels, souhaitez obtenir des renseignements sur la façon dont le traitement automatisé est utilisé, ou voulez demander un examen humain d’un résultat d’IA lorsque la loi applicable ou notre Politique d’escalade vers un examen humain le prévoit, communiquez avec nous à l’adresse privacy@dutiva.ca ou suivez les voies d’escalade décrites dans notre Politique d’escalade vers un examen humain.',
         },
       ],
     },
@@ -229,23 +274,41 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Nous conservons les renseignements personnels seulement aussi longtemps que nécessaire aux fins décrites dans la présente Politique, sauf si une période plus longue est requise ou permise pour des raisons juridiques, fiscales, comptables, de sécurité, de différend, réglementaires ou d’audit.',
+          /* [FR self-authored] */
+          text: 'Nous conservons les renseignements personnels seulement aussi longtemps que nécessaire aux fins décrites dans la présente Politique, sauf si une période plus longue est requise ou permise pour des raisons juridiques, fiscales, comptables, de sécurité, de différend, réglementaires ou d’audit. Les périodes ci-dessous décrivent notre approche actuelle. La durée exacte peut varier selon la configuration du produit, les instructions du client, les exigences légales et le fait qu’un compte demeure actif.',
         },
         {
           type: 'li',
-          text: 'Les données de compte et d’espace de travail sont conservées tant que le compte est actif.',
+          /* [FR self-authored] */
+          text: 'Données de compte et d’espace de travail : conservées tant que le compte est actif, puis supprimées ou anonymisées après la suppression du compte, sauf conservation requise à des fins juridiques, de facturation, de sécurité, de soutien, d’audit ou de différend.',
         },
         {
           type: 'li',
-          text: 'Les documents enregistrés demeurent disponibles jusqu’à leur suppression, leur archivage ou la suppression du compte, sous réserve des exigences légales de conservation et de la configuration du client.',
+          /* [FR self-authored] */
+          text: 'Documents générés, données saisies et ébauches enregistrées : conservés jusqu’à ce qu’un utilisateur ou un administrateur autorisé les supprime ou les archive, que le compte soit supprimé, ou qu’une période de conservation requise prenne fin, sous réserve des limitations juridiques, de sécurité et de sauvegarde.',
+        },
+        {
+          type: 'li',
+          /* [FR self-authored] */
+          text: 'Messages au Conseiller et contexte de processus d’IA : les processus actuels dans le navigateur peuvent conserver l’état de conversation pour l’expérience utilisateur en session. Les appels côté serveur peuvent traiter un contexte limité aux fins d’inférence, de sécurité, de dépannage, de limitation de débit et de fiabilité du service.',
+        },
+        {
+          type: 'li',
+          /* [FR self-authored] */
+          text: 'Données brutes d’événements d’analytique de support interne : conservées pendant 90 jours, puis supprimées. Les agrégats quotidiens, qui ne permettent plus d’identifier une personne de façon raisonnablement prévisible, sont conservés indéfiniment.',
+        },
+        {
+          type: 'li',
+          text: 'Dossiers de facturation, de taxes, de sécurité et d’audit : conservés pendant les périodes statutaires ou opérationnelles requises.',
+        },
+        {
+          type: 'li',
+          /* [FR self-authored] */
+          text: 'Sauvegardes : conservées jusqu’à leur expiration dans le cycle normal de sauvegarde. Les sauvegardes peuvent ne pas permettre une suppression sélective avant l’expiration, mais elles sont protégées par des contrôles d’accès et ne sont pas utilisées pour l’accès ordinaire en production.',
         },
         {
           type: 'li',
           text: 'La suppression de compte initiée par l’utilisateur supprime les lignes de compte détenues et les documents générés, puis enregistre une entrée d’audit anonymisée liée à la suppression.',
-        },
-        {
-          type: 'li',
-          text: 'Les dossiers de facturation, de taxes, de sécurité et d’audit peuvent être conservés pendant les périodes statutaires ou opérationnelles requises.',
         },
         {
           type: 'p',
@@ -258,15 +321,27 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Sous réserve des limites prévues par la loi, vous pouvez demander l’accès aux renseignements personnels que nous détenons à votre sujet, la rectification de renseignements inexacts, le retrait du consentement, la suppression du compte et des renseignements sur nos pratiques en matière de protection des renseignements personnels.',
+          /* [FR self-authored] */
+          text: 'Sous réserve des limites prévues par la loi, vous pouvez demander l’accès aux renseignements personnels que nous détenons à votre sujet, la rectification de renseignements inexacts, le retrait du consentement pour un traitement facultatif, la suppression du compte et des renseignements sur nos pratiques en matière de protection des renseignements personnels et sur la façon dont nous avons utilisé ou communiqué vos renseignements.',
         },
         {
           type: 'p',
-          text: 'Les résidents du Québec peuvent également disposer de droits à la portabilité, à la désindexation ou à l’effacement dans certaines circonstances, ainsi qu’à des renseignements sur la prise de décision automatisée qui produit des effets juridiques ou des effets similaires importants.',
+          /* [FR self-authored] */
+          text: 'Les résidents du Québec peuvent également disposer de droits à la portabilité, à la désindexation ou à l’effacement dans certaines circonstances, ainsi qu’à des renseignements sur la prise de décision automatisée qui produit des effets juridiques ou des effets similaires importants. Communiquez avec nous pour exercer ces droits.',
         },
         {
           type: 'p',
-          text: 'Vous pouvez également communiquer avec le Commissariat à la protection de la vie privée du Canada à priv.gc.ca ou avec la Commission d’accès à l’information du Québec à cai.gouv.qc.ca.',
+          /* [FR self-authored] */
+          text: 'Comment soumettre une demande. Envoyez les demandes relatives à la confidentialité à l’adresse privacy@dutiva.ca ou utilisez notre formulaire de contact à dutiva.ca/fr/contact et sélectionnez la catégorie Demande de confidentialité. Les demandes de confidentialité sont traitées séparément du soutien ordinaire. Nous pourrions devoir vérifier votre identité avant de répondre. N’ajoutez pas de documents d’identité à un message de soutien ordinaire, sauf si nous vous le demandons.',
+        },
+        {
+          type: 'p',
+          /* [FR self-authored] */
+          text: 'Délai de réponse. Nous visons à répondre dans un délai de 30 jours lorsque la loi l’exige, sauf si une prolongation est permise ou requise.',
+        },
+        {
+          type: 'p',
+          text: 'Organismes de réglementation. Vous pouvez également communiquer avec le Commissariat à la protection de la vie privée du Canada à priv.gc.ca ou avec la Commission d’accès à l’information du Québec à cai.gouv.qc.ca.',
         },
       ],
     },
@@ -288,7 +363,8 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Nous utilisons des mesures de protection adaptées à la sensibilité des renseignements, notamment le chiffrement TLS en transit, les contrôles d’accès, l’authentification, la séparation des rôles de service, la limitation du débit, les dossiers de suppression orientés vers l’audit et la surveillance opérationnelle.',
+          /* [FR self-authored] */
+          text: 'Nous utilisons des mesures de protection adaptées à la sensibilité des renseignements, notamment le chiffrement TLS en transit, les contrôles d’accès, l’authentification, la séparation des rôles de service, la limitation du débit, les dossiers de suppression orientés vers l’audit et la surveillance opérationnelle. Ces mesures sont conçues pour protéger les renseignements personnels contre la perte, le vol et l’accès, l’utilisation ou la communication non autorisés.',
         },
         {
           type: 'p',
@@ -322,7 +398,8 @@ export default {
         },
         {
           type: 'p',
-          text: 'Nous visons à répondre aux demandes relatives à la confidentialité dans un délai de 30 jours lorsque la loi l’exige, sauf si une prolongation est permise ou requise.',
+          /* [FR self-authored] */
+          text: 'Pour les droits en matière de confidentialité et les instructions relatives aux demandes, voir la section 10.',
         },
       ],
     },
