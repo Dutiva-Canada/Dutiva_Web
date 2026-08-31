@@ -95,17 +95,22 @@ export const chats: ChatThread[] = [
               'Le contrat de Jordan ne comporte aucune clause de licenciement au dossier. L’estimation préliminaire est de 9 à 12 mois d’indemnité en tenant lieu de préavis en common law — bien au-delà du minimum LNE de 8 semaines de préavis ou d’indemnité de licenciement. Un examen juridique est recommandé avant de faire une offre. Il s’agit de conseils RH axés sur la conformité, et non d’un avis juridique.',
             ),
             confidence: bi(
-              'Moderate — assumes a standard mid-level role; confirm payroll size for severance eligibility.',
-              'Modérée — suppose un poste intermédiaire standard; confirmez la masse salariale pour l’admissibilité à l’indemnité.',
+              'Moderate — assumes a standard mid-level role; confirm ESA severance eligibility, including the applicable payroll or permanent-closure criteria.',
+              'Modérée — suppose un poste intermédiaire standard; confirmez l’admissibilité à l’indemnité de cessation d’emploi (LNE), y compris les critères applicables de masse salariale ou de fermeture permanente.',
             ),
             citations: [
               {
                 label: bi(
                   'ESA s.57 — Notice of termination',
-                  'LNE art. 57 — Préavis de cessation d’emploi',
+                  'LNE art. 57 — Délai de préavis de l’employeur',
                 ),
               },
-              { label: bi('ESA s.64 — Severance pay', 'LNE art. 64 — Indemnité de licenciement') },
+              {
+                label: bi(
+                  'ESA s.64 — Severance pay',
+                  'LNE art. 64 — Indemnité de cessation d’emploi',
+                ),
+              },
             ],
           },
           {
@@ -122,7 +127,7 @@ export const chats: ChatThread[] = [
         ],
         docs: ['T03', 'T17', 'T18'],
         followups: [
-          'Estimate severance range',
+          'Estimate notice exposure',
           'Compare to PIP alternative',
           'Loop in employment counsel',
         ],
@@ -152,7 +157,7 @@ export const chats: ChatThread[] = [
     id: 'c2',
     title: bi(
       'Offer letter — Senior Analyst, Ontario',
-      'Lettre d’offre — Analyste principal, Ontario',
+      'Lettre d’offre — Analyste principale, Ontario',
     ),
     folder: bi('Hiring 2026', 'Embauche 2026'),
     pinned: false,
@@ -165,7 +170,7 @@ export const chats: ChatThread[] = [
         role: 'user',
         text: bi(
           'Draft an offer letter for a Senior Analyst role in Ontario.',
-          'Rédigez une lettre d’offre pour un poste d’analyste principal en Ontario.',
+          'Rédigez une lettre d’offre pour un poste d’analyste principale en Ontario.',
         ),
       },
       {
@@ -181,8 +186,8 @@ export const chats: ChatThread[] = [
             'Compétence : Ontario → la Loi de 2000 sur les normes d’emploi régit les conditions minimales.',
           ),
           bi(
-            'Employers with 25 or more employees in Ontario must provide specified new-hire information in writing before the first day of work, or as soon as reasonably possible afterward.',
-            'Les employeurs comptant 25 employés ou plus en Ontario doivent fournir certains renseignements sur l’emploi par écrit avant la première journée de travail ou, le cas échéant, dès que raisonnablement possible par la suite.',
+            'Employers with 25 or more employees in Ontario on the new employee’s first day must provide the specified employment information in writing before that first day, or, if that is not practicable, as soon afterward as is reasonably possible.',
+            'Les employeurs comptant 25 employés ou plus en Ontario à la première journée de travail du nouvel employé doivent fournir les renseignements sur l’emploi prescrits par écrit avant cette première journée, ou, si ce n’est pas possible, dès que raisonnablement possible par la suite.',
           ),
         ],
         cards: [
@@ -190,8 +195,8 @@ export const chats: ChatThread[] = [
             tone: 'info',
             title: bi('Ontario-specific note', 'Note propre à l’Ontario'),
             body: bi(
-              'Non-compete clauses are generally unenforceable for most Ontario employees — I left it out. A reasonable non-solicit clause is included instead.',
-              'Les clauses de non-concurrence sont généralement inapplicables pour la plupart des employés ontariens — je l’ai omise. Une clause de non-sollicitation raisonnable est incluse à la place.',
+              'Ontario’s ESA prohibits most new non-compete agreements, subject to statutory exceptions, so I left one out. Any non-solicitation restriction should be reviewed separately for scope and enforceability.',
+              'La LNE de l’Ontario interdit la plupart des nouvelles ententes de non-concurrence, sous réserve des exceptions prévues par la loi — j’en ai donc omis une. Toute restriction de non-sollicitation devrait être examinée séparément quant à sa portée et son exécutabilité.',
             ),
             citations: [
               {
@@ -229,8 +234,8 @@ export const chats: ChatThread[] = [
         id: 'm9',
         role: 'advisor',
         text: bi(
-          'A solid remote work policy for a multi-province team needs to cover eligibility, equipment & expenses, health & safety, and data security.',
-          'Une bonne politique de télétravail pour une équipe multiprovinciale doit couvrir l’admissibilité, l’équipement et les dépenses, la santé et la sécurité, et la sécurité des données.',
+          'A solid remote work policy for a multi-jurisdiction team needs to cover eligibility, equipment & expenses, health & safety, and data security.',
+          'Une bonne politique de télétravail pour une équipe multijuridictionnelle doit couvrir l’admissibilité, l’équipement et les dépenses, la santé et la sécurité, et la sécurité des données.',
         ),
         reasoning: [
           bi(
@@ -247,8 +252,8 @@ export const chats: ChatThread[] = [
             tone: 'warning',
             title: bi('Policy is overdue', 'Politique en retard'),
             body: bi(
-              "Your current Remote Work Policy hasn't been reviewed in 14 months, and you've added employees in 3 new provinces since. Recommend a refresh this month.",
-              'Votre politique de télétravail actuelle n’a pas été révisée depuis 14 mois, et vous avez ajouté des employés dans 3 nouvelles provinces depuis. Une mise à jour ce mois-ci est recommandée.',
+              "Your current Remote Work Policy hasn't been reviewed in 14 months, and you've added employees in 3 new employment jurisdictions since. Recommend a refresh this month.",
+              'Votre politique de télétravail actuelle n’a pas été révisée depuis 14 mois, et vous avez ajouté des employés dans 3 nouvelles compétences d’emploi depuis. Une mise à jour ce mois-ci est recommandée.',
             ),
             citations: [],
           },
@@ -279,13 +284,13 @@ export const chats: ChatThread[] = [
         id: 'm11',
         role: 'advisor',
         text: bi(
-          'It depends on whether the absences are culpable (within their control) or innocent (medical/disability-related) — the process is very different for each.',
-          'Cela dépend si les absences sont fautives (sous son contrôle) ou non fautives (liées à une condition médicale ou un handicap) — le processus est très différent pour chacune.',
+          'Start by distinguishing potentially culpable conduct from non-culpable or disability-related absence — then apply the employment and human-rights regime for the applicable jurisdiction. The process differs materially depending on which category applies.',
+          'Commencez par distinguer une conduite potentiellement fautive d’une absence non fautive ou liée à un handicap — puis appliquez le régime d’emploi et de droits de la personne pour la compétence applicable. Le processus diffère nettement selon la catégorie.',
         ),
         reasoning: [
           bi(
-            'Innocent absenteeism cannot be disciplined directly — it may trigger a duty to inquire about accommodation.',
-            'L’absentéisme non fautif ne peut être sanctionné directement — il peut déclencher une obligation de s’enquérir d’un accommodement.',
+            'Non-culpable or disability-related absence generally cannot be addressed through discipline alone — in Ontario, employers may have a duty to inquire before adverse action when they know or ought to know that disability may relate to job performance or behaviour.',
+            'L’absentéisme non fautif ou lié à un handicap ne peut généralement être traité par la seule discipline — en Ontario, l’employeur peut avoir l’obligation de s’enquérir avant une mesure défavorable lorsqu’il sait ou devrait savoir qu’un handicap peut être lié au rendement ou au comportement au travail.',
           ),
           bi(
             'Disciplining before ruling out a medical cause risks a discrimination claim.',
@@ -340,8 +345,8 @@ export const chats: ChatThread[] = [
         id: 'm13',
         role: 'advisor',
         text: bi(
-          "Good instinct to loop me in early. Let's keep the request to functional limitations only — you don't need (or want) a diagnosis on file.",
-          'Bon réflexe de m’impliquer tôt. Limitons la demande aux seules limitations fonctionnelles — vous n’avez pas besoin (ni envie) d’un diagnostic au dossier.',
+          'Good instinct to loop me in early. Keep any medical-information request focused on the information reasonably necessary to assess functional limitations and accommodation needs; diagnosis is generally unnecessary unless the circumstances justify additional information.',
+          'Bon réflexe de m’impliquer tôt. Limitez toute demande de renseignements médicaux à l’information raisonnablement nécessaire pour évaluer les limitations fonctionnelles et les besoins d’accommodement; le diagnostic est généralement inutile, sauf si les circonstances justifient des renseignements additionnels.',
         ),
         reasoning: [
           bi(
@@ -349,8 +354,8 @@ export const chats: ChatThread[] = [
             'L’obligation d’accommodement s’applique jusqu’à la contrainte excessive.',
           ),
           bi(
-            'Employers may request medical documentation of functional limitations, not diagnosis.',
-            'Les employeurs peuvent demander une documentation médicale des limitations fonctionnelles, pas le diagnostic.',
+            'Employers should request only the medical information reasonably necessary to assess functional limitations and accommodation needs; diagnosis is generally unnecessary unless the circumstances justify additional information.',
+            'Les employeurs ne devraient demander que les renseignements médicaux raisonnablement nécessaires pour évaluer les limitations fonctionnelles et les besoins d’accommodement; le diagnostic est généralement inutile, sauf si les circonstances justifient des renseignements additionnels.',
           ),
         ],
         docs: ['T19', 'T20'],
@@ -396,8 +401,8 @@ export const chats: ChatThread[] = [
             tone: 'warning',
             title: bi('French-language documents required', 'Documents en français requis'),
             body: bi(
-              'Offer letters, contracts, and policies for Quebec employees must be provided in French by default.',
-              'Les lettres d’offre, contrats et politiques pour les employés québécois doivent être fournis en français par défaut.',
+              'Written employment contracts, workplace communications, and applicable employment documents for Quebec employees generally must be available in French, subject to the Charter’s specific rules and exceptions.',
+              'Les contrats de travail écrits, les communications en milieu de travail et les documents d’emploi applicables pour les employés québécois doivent généralement être disponibles en français, sous réserve des règles et exceptions précises de la Charte.',
             ),
             citations: [
               {
@@ -433,8 +438,8 @@ export const lightFlows: Record<string, LightFlow> = {
         'Compétence : Ontario → la Loi de 2000 sur les normes d’emploi régit les conditions minimales.',
       ),
       bi(
-        'Employers with 25 or more employees in Ontario must provide specified new-hire information in writing before the first day of work, or as soon as reasonably possible afterward.',
-        'Les employeurs comptant 25 employés ou plus en Ontario doivent fournir certains renseignements sur l’emploi par écrit avant la première journée de travail ou, le cas échéant, dès que raisonnablement possible par la suite.',
+        'Employers with 25 or more employees in Ontario on the new employee’s first day must provide the specified employment information in writing before that first day, or, if that is not practicable, as soon afterward as is reasonably possible.',
+        'Les employeurs comptant 25 employés ou plus en Ontario à la première journée de travail du nouvel employé doivent fournir les renseignements sur l’emploi prescrits par écrit avant cette première journée, ou, si ce n’est pas possible, dès que raisonnablement possible par la suite.',
       ),
     ],
     cards: [
@@ -442,8 +447,8 @@ export const lightFlows: Record<string, LightFlow> = {
         tone: 'info',
         title: bi('Ontario-specific note', 'Note propre à l’Ontario'),
         body: bi(
-          'Non-compete clauses are generally unenforceable for most Ontario employees — I left it out. A reasonable non-solicit clause is included instead.',
-          'Les clauses de non-concurrence sont généralement inapplicables pour la plupart des employés ontariens — je l’ai omise. Une clause de non-sollicitation raisonnable est incluse à la place.',
+          'Ontario’s ESA prohibits most new non-compete agreements, subject to statutory exceptions, so I left one out. Any non-solicitation restriction should be reviewed separately for scope and enforceability.',
+          'La LNE de l’Ontario interdit la plupart des nouvelles ententes de non-concurrence, sous réserve des exceptions prévues par la loi — j’en ai donc omis une. Toute restriction de non-sollicitation devrait être examinée séparément quant à sa portée et son exécutabilité.',
         ),
         citations: [
           {
@@ -474,8 +479,8 @@ export const lightFlows: Record<string, LightFlow> = {
         tone: 'warning',
         title: bi('French-language documents required', 'Documents en français requis'),
         body: bi(
-          'Offer letters, contracts, and policies for Quebec employees must be provided in French by default.',
-          'Les lettres d’offre, contrats et politiques pour les employés québécois doivent être fournis en français par défaut.',
+          'Written employment contracts, workplace communications, and applicable employment documents for Quebec employees generally must be available in French, subject to the Charter’s specific rules and exceptions.',
+          'Les contrats de travail écrits, les communications en milieu de travail et les documents d’emploi applicables pour les employés québécois doivent généralement être disponibles en français, sous réserve des règles et exceptions précises de la Charte.',
         ),
         citations: [
           {
@@ -492,13 +497,13 @@ export const lightFlows: Record<string, LightFlow> = {
   },
   performance: {
     text: bi(
-      'It depends on whether the absences are culpable (within their control) or innocent (medical/disability-related) — the process is very different for each.',
-      'Cela dépend si les absences sont fautives (sous son contrôle) ou non fautives (liées à une condition médicale ou un handicap) — le processus est très différent pour chacune.',
+      'Start by distinguishing potentially culpable conduct from non-culpable or disability-related absence — then apply the employment and human-rights regime for the applicable jurisdiction. The process differs materially depending on which category applies.',
+      'Commencez par distinguer une conduite potentiellement fautive d’une absence non fautive ou liée à un handicap — puis appliquez le régime d’emploi et de droits de la personne pour la compétence applicable. Le processus diffère nettement selon la catégorie.',
     ),
     reasoning: [
       bi(
-        'Innocent absenteeism cannot be disciplined directly — it may trigger a duty to inquire about accommodation.',
-        'L’absentéisme non fautif ne peut être sanctionné directement — il peut déclencher une obligation de s’enquérir d’un accommodement.',
+        'Non-culpable or disability-related absence generally cannot be addressed through discipline alone — in Ontario, employers may have a duty to inquire before adverse action when they know or ought to know that disability may relate to job performance or behaviour.',
+        'L’absentéisme non fautif ou lié à un handicap ne peut généralement être traité par la seule discipline — en Ontario, l’employeur peut avoir l’obligation de s’enquérir avant une mesure défavorable lorsqu’il sait ou devrait savoir qu’un handicap peut être lié au rendement ou au comportement au travail.',
       ),
       bi(
         'Disciplining before ruling out a medical cause risks a discrimination claim.',
@@ -532,8 +537,8 @@ export const lightFlows: Record<string, LightFlow> = {
   },
   accommodation: {
     text: bi(
-      "Good instinct to loop me in early. Let's keep the request to functional limitations only — you don't need, or want, a diagnosis on file.",
-      'Bon réflexe de m’impliquer tôt. Limitons la demande aux seules limitations fonctionnelles — vous n’avez pas besoin, ni envie, d’un diagnostic au dossier.',
+      'Good instinct to loop me in early. Keep any medical-information request focused on the information reasonably necessary to assess functional limitations and accommodation needs; diagnosis is generally unnecessary unless the circumstances justify additional information.',
+      'Bon réflexe de m’impliquer tôt. Limitez toute demande de renseignements médicaux à l’information raisonnablement nécessaire pour évaluer les limitations fonctionnelles et les besoins d’accommodement; le diagnostic est généralement inutile, sauf si les circonstances justifient des renseignements additionnels.',
     ),
     reasoning: [
       bi(
@@ -541,8 +546,8 @@ export const lightFlows: Record<string, LightFlow> = {
         'L’obligation d’accommodement s’applique jusqu’à la contrainte excessive.',
       ),
       bi(
-        'Employers may request medical documentation of functional limitations, not diagnosis.',
-        'Les employeurs peuvent demander une documentation médicale des limitations fonctionnelles, pas le diagnostic.',
+        'Employers should request only the medical information reasonably necessary to assess functional limitations and accommodation needs; diagnosis is generally unnecessary unless the circumstances justify additional information.',
+        'Les employeurs ne devraient demander que les renseignements médicaux raisonnablement nécessaires pour évaluer les limitations fonctionnelles et les besoins d’accommodement; le diagnostic est généralement inutile, sauf si les circonstances justifient des renseignements additionnels.',
       ),
     ],
     docs: ['T19', 'T20'],
@@ -550,8 +555,8 @@ export const lightFlows: Record<string, LightFlow> = {
   },
   policy: {
     text: bi(
-      'A solid remote work policy for a multi-province team needs to cover eligibility, equipment & expenses, health & safety, and data security.',
-      'Une bonne politique de télétravail pour une équipe multiprovinciale doit couvrir l’admissibilité, l’équipement et les dépenses, la santé et la sécurité, et la sécurité des données.',
+      'A solid remote work policy for a multi-jurisdiction team needs to cover eligibility, equipment & expenses, health & safety, and data security.',
+      'Une bonne politique de télétravail pour une équipe multijuridictionnelle doit couvrir l’admissibilité, l’équipement et les dépenses, la santé et la sécurité, et la sécurité des données.',
     ),
     reasoning: [
       bi(
@@ -568,8 +573,8 @@ export const lightFlows: Record<string, LightFlow> = {
         tone: 'warning',
         title: bi('Policy is overdue', 'Politique en retard'),
         body: bi(
-          "Your current Remote Work Policy hasn't been reviewed in 14 months, and you've added employees in 3 new provinces since. Recommend a refresh this month.",
-          'Votre politique de télétravail actuelle n’a pas été révisée depuis 14 mois, et vous avez ajouté des employés dans 3 nouvelles provinces depuis. Une mise à jour ce mois-ci est recommandée.',
+          "Your current Remote Work Policy hasn't been reviewed in 14 months, and you've added employees in 3 new employment jurisdictions since. Recommend a refresh this month.",
+          'Votre politique de télétravail actuelle n’a pas été révisée depuis 14 mois, et vous avez ajouté des employés dans 3 nouvelles compétences d’emploi depuis. Une mise à jour ce mois-ci est recommandée.',
         ),
         citations: [],
       },
@@ -593,11 +598,11 @@ export const lightFlowFallbackText: Bi = bi(
  * prototype — FR self-authored; chip labels come from the prototype's frDict.
  */
 export const followupReplies: Record<string, FollowupReply> = {
-  'Estimate severance range': {
-    label: bi('Estimate severance range', 'Estimer la fourchette d’indemnité'),
+  'Estimate notice exposure': {
+    label: bi('Estimate notice exposure', 'Estimer l’exposition au préavis'),
     text: bi(
-      'Based on 8 years of service and a mid-level role with no termination clause on file, expect a preliminary common-law range of roughly 9–12 months of pay in lieu of notice — well above the 8-week ESA termination notice/pay minimum. Statutory severance may also apply if eligibility requirements are met. I’d budget toward the higher end until counsel weighs in.',
-      'Avec 8 ans de service et un poste intermédiaire sans clause de licenciement au dossier, prévoyez une fourchette préliminaire en common law d’environ 9 à 12 mois d’indemnité en tenant lieu de préavis — bien au-dessus du minimum LNE de 8 semaines de préavis ou d’indemnité de licenciement. Une indemnité de cessation d’emploi peut aussi s’appliquer si les conditions d’admissibilité sont remplies. Je prévoirais le budget vers la limite supérieure jusqu’à l’avis du conseiller juridique.',
+      'Based on 8 years of service and a mid-level role with no termination clause on file, expect a preliminary common-law range of roughly 9–12 months of pay in lieu of notice — well above the 8-week ESA termination notice/pay minimum. Statutory severance may also apply if eligibility requirements are met. For internal contingency planning, model the upper end of the preliminary range pending counsel review.',
+      'Avec 8 ans de service et un poste intermédiaire sans clause de licenciement au dossier, prévoyez une fourchette préliminaire en common law d’environ 9 à 12 mois d’indemnité en tenant lieu de préavis — bien au-dessus du minimum LNE de 8 semaines de préavis ou d’indemnité de licenciement. Une indemnité de cessation d’emploi peut aussi s’appliquer si les conditions d’admissibilité sont remplies. Pour la planification interne, modélisez la limite supérieure de la fourchette préliminaire en attendant l’examen juridique.',
     ),
     reasoning: [
       bi(
@@ -762,7 +767,12 @@ export const followupReplies: Record<string, FollowupReply> = {
           'Modérée — dépend des faits encore au dossier.',
         ),
         citations: [
-          { label: bi('Applicable provincial standards', 'Normes provinciales applicables') },
+          {
+            label: bi(
+              'Applicable employment standards and human-rights requirements',
+              'Normes d’emploi et exigences en droits de la personne applicables',
+            ),
+          },
         ],
       },
     ],
@@ -770,8 +780,8 @@ export const followupReplies: Record<string, FollowupReply> = {
   'Assess compliance risk': {
     label: bi('Assess compliance risk', 'Évaluer le risque de conformité'),
     text: bi(
-      'Tell me the situation and jurisdiction and I’ll flag the specific exposure. In general: document decisions, apply the right provincial statute, and rule out accommodation duties before discipline.',
-      'Décrivez-moi la situation et la compétence, et je signalerai l’exposition précise. En général : documentez les décisions, appliquez la bonne loi provinciale et écartez les obligations d’accommodement avant toute mesure disciplinaire.',
+      'Tell me the situation and jurisdiction and I’ll flag the specific exposure. In general: document decisions, apply the employment and human-rights regime for the applicable jurisdiction, and rule out accommodation duties before discipline.',
+      'Décrivez-moi la situation et la compétence, et je signalerai l’exposition précise. En général : documentez les décisions, appliquez le régime d’emploi et de droits de la personne pour la compétence applicable et écartez les obligations d’accommodement avant toute mesure disciplinaire.',
     ),
     cards: [
       {

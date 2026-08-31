@@ -300,7 +300,7 @@ export const terminationAssessment = {
   ],
   docs: ['Termination Letter', 'Full & Final Release', 'Offboarding Checklist'],
   followups: [
-    'Estimate severance range',
+    'Estimate notice exposure',
     'Compare to PIP alternative',
     'Loop in employment counsel',
     'Run severance estimator (beta)',

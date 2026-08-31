@@ -29,6 +29,24 @@ describe('Advisor chat fixtures — jurisdiction and provenance copy', () => {
     expect(policy.reasoning?.[0]?.en).toMatch(/Ontario, Quebec, federally regulated/i)
     expect(policy.reasoning?.[0]?.en).not.toMatch(/obligations extend to home offices/i)
   })
+
+  it('uses Ontario official ESA terminology and notice follow-up for Jordan termination', () => {
+    const jordanReply = chats.find((c) => c.id === 'c1')?.messages.find((m) => m.id === 'm4')
+    const riskCard = jordanReply?.cards?.[0]
+    expect(riskCard?.citations?.[0]?.label.fr).toBe('LNE art. 57 — Délai de préavis de l’employeur')
+    expect(riskCard?.citations?.[1]?.label.fr).toBe('LNE art. 64 — Indemnité de cessation d’emploi')
+    expect(jordanReply?.followups).toContain('Estimate notice exposure')
+    expect(followupReplies['Estimate notice exposure']?.text.en).toMatch(
+      /preliminary range pending counsel review/i,
+    )
+  })
+
+  it('uses multi-jurisdiction remote-work wording in the policy light flow', () => {
+    const policy = lightFlows.policy!
+    expect(policy.text.en).toMatch(/multi-jurisdiction team/i)
+    expect(policy.cards?.[0]?.body.en).toMatch(/3 new employment jurisdictions/i)
+    expect(JSON.stringify(policy)).not.toMatch(/multi-province team/i)
+  })
 })
 
 describe('compliance fixtures — Quebec language citations', () => {

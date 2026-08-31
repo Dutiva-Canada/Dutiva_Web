@@ -89,7 +89,7 @@ const s1: AdvisorScenario = {
     ),
     docs: ['Termination Letter', 'Full & Final Release', 'Offboarding Checklist'],
     followups: [
-      'Estimate severance range',
+      'Estimate notice exposure',
       'Compare to PIP alternative',
       'Loop in employment counsel',
     ],
@@ -425,7 +425,7 @@ const s4: AdvisorScenario = {
       'Thanks — Ontario it is. Under the ESA the statutory notice floor scales with service: one week per completed year of employment, up to eight weeks, plus severance if eligibility requirements are met. If the contract has no termination clause on file, common-law reasonable notice can run well beyond that. Want me to work it out for a specific tenure?',
       'Merci — c’est bien l’Ontario. En vertu de la LNE, le plancher de préavis augmente avec l’ancienneté : une semaine par année complétée, jusqu’à huit semaines, plus une indemnité de cessation d’emploi si les conditions d’admissibilité sont remplies. S’il n’y a aucune clause de licenciement au dossier, le préavis raisonnable de common law peut être nettement plus élevé. Voulez-vous que je le calcule pour une ancienneté précise?',
     ),
-    followups: ['Estimate severance range', 'Loop in employment counsel'],
+    followups: ['Estimate notice exposure', 'Loop in employment counsel'],
     jurisdictionLine: bi('Ontario — ESA, 2000', 'Ontario — LNE, 2000'),
     response: {
       route: { responseMode: 'hr', ...HYBRID_GATES },
