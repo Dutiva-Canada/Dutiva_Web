@@ -27,7 +27,7 @@ function BannerWithContext() {
       entityType: 'employee',
       empId: emp.id,
       initials: emp.initials,
-      meta: [emp.province, emp.role],
+      meta: [emp.jurisdiction, emp.role],
     })
   }, [setContext])
   return (

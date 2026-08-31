@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { bi } from '@/i18n/core'
-import { money } from '@/lib/money'
+import { moneyOrUnset } from '@/lib/money'
 import { employeeDetails, employees } from '@/data'
 import { compensationMessages as COMP } from '@/i18n/messages/compensation'
 import { wellbeingMessages as WB } from '@/i18n/messages/wellbeing'
@@ -24,11 +24,11 @@ export function usePayRail(): (employeeId: string) => void {
     (employeeId: string) => {
       const emp = employees.find((e) => e.id === employeeId)
       const det = employeeDetails[employeeId]
-      if (!emp || !det) return
+      if (!emp || !det || det.salary == null || det.market == null) return
       const delta = Math.round(((det.salary - det.market) / det.market) * 100)
       const below = delta < -4
-      const base = money(det.salary)
-      const market = money(det.market)
+      const base = moneyOrUnset(det.salary)
+      const market = moneyOrUnset(det.market)
       const sign = delta >= 0 ? '+' : ''
       openRail(
         bi(
@@ -50,10 +50,10 @@ export function usePayRail(): (employeeId: string) => void {
               tone: below ? 'warning' : 'success',
               title: below ? COMP.comp_below_title : COMP.comp_within_title,
               body: bi(
-                `Base ${base.en} vs market midpoint ${market.en} (${sign}${delta}%). Pay-equity obligations apply across genders for substantially similar work. Review recommended — additional comparator data is required before any change, and Dutiva does not determine pay-equity compliance conclusively.`,
-                `Salaire de base de ${base.fr} contre un point milieu du marché de ${market.fr} (${sign}${delta} %). Les obligations d’équité salariale s’appliquent au travail substantiellement similaire entre les genres. Révision recommandée — des données de comparaison supplémentaires sont requises avant tout changement, et Dutiva ne détermine pas de façon concluante la conformité en équité salariale.`,
+                `Base ${base.en} vs market midpoint ${market.en} (${sign}${delta}%). Additional comparator data and HR/Finance review are recommended before making a compensation decision.`,
+                `Salaire de base de ${base.fr} contre un point milieu du marché de ${market.fr} (${sign}${delta} %). Des données comparatives supplémentaires et un examen RH/Finances sont recommandés avant de prendre une décision de rémunération.`,
               ),
-              citations: [{ label: COMP.comp_pay_equity_citation }],
+              citations: [{ label: COMP.comp_market_review_citation }],
               actions: [
                 {
                   label: COMP.comp_open_comp_tab,
@@ -68,7 +68,7 @@ export function usePayRail(): (employeeId: string) => void {
           ],
         },
         {
-          chips: [emp.province, emp.role, COMP.comp_context_topic],
+          chips: [emp.jurisdiction, emp.role, COMP.comp_context_topic],
           initials: emp.initials,
         },
       )
@@ -117,7 +117,7 @@ export function useWellbeingRail(): (employeeId: string) => void {
           ],
         },
         {
-          chips: [emp.province, emp.role, WB.wellbeing_context_topic],
+          chips: [emp.jurisdiction, emp.role, WB.wellbeing_context_topic],
           initials: emp.initials,
         },
       )

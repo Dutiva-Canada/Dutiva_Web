@@ -97,9 +97,9 @@ describe('searchCorpus', () => {
   })
 
   it('matches against the current language strings', () => {
-    const fr = filterSearchEntries('all', 'cessation d’emploi', 'fr').map((e) => e.id)
+    const fr = filterSearchEntries('all', 'licenciement', 'fr').map((e) => e.id)
     expect(fr).toContain('case-case1')
-    const en = filterSearchEntries('all', 'cessation d’emploi', 'en').map((e) => e.id)
+    const en = filterSearchEntries('all', 'licenciement', 'en').map((e) => e.id)
     expect(en).not.toContain('case-case1')
   })
 })

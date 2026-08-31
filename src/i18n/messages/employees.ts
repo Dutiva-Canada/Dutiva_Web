@@ -129,9 +129,14 @@ export const employeesMessages = defineMessages({
   /* Concatenated after the signed delta: '+3% vs market' / '+3 % c. marché'. */
   employees_vs_market_suffix: { en: '% vs market', fr: ' % c. marché' },
   employees_band_label: { en: 'Band', fr: 'Échelle' },
+  employees_comp_market_note: {
+    en: 'Market midpoint comparisons are one input among several. Document any adjustment against a consistent band framework and complete HR/Finance review before committing.',
+    fr: 'Les comparaisons au point milieu du marché ne sont qu’un indicateur parmi d’autres. Documentez tout ajustement selon un cadre d’échelons cohérent et faites valider par les RH et les Finances avant de vous engager.',
+  },
+  /** @deprecated Use employees_comp_market_note. */
   employees_pay_equity_note: {
-    en: 'Pay-equity obligations apply for substantially similar work across genders. Any adjustment should be documented against a consistent band framework — ask Advisor to model an increase before committing.',
-    fr: 'Les obligations d’équité salariale s’appliquent au travail substantiellement similaire entre les genres. Tout ajustement doit être documenté selon un cadre d’échelles cohérent — demandez au Conseiller de modéliser une augmentation avant de vous engager.',
+    en: 'Market midpoint comparisons are one input among several. Document any adjustment against a consistent band framework and complete HR/Finance review before committing.',
+    fr: 'Les comparaisons au point milieu du marché ne sont qu’un indicateur parmi d’autres. Documentez tout ajustement selon un cadre d’échelons cohérent et faites valider par les RH et les Finances avant de vous engager.',
   },
   employees_comp_banner: {
     en: 'Restricted access — Compensation is visible to Owner/Admin, HR Manager, and Finance roles only. Views are recorded in the audit log.',

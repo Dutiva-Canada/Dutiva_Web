@@ -52,7 +52,7 @@ export const DEMO_TOUR_STOPS: readonly DemoTourStop[] = [
     title: bi('Cases', 'Dossiers'),
     blurb: bi(
       'Open a termination case with notes, documents, and Advisor context.',
-      'Ouvrez un dossier de cessation avec notes, documents et contexte du Conseiller.',
+      'Ouvrez un dossier de licenciement avec notes, documents et contexte du Conseiller.',
     ),
   },
   {

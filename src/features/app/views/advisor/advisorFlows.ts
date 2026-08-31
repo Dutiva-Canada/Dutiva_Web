@@ -77,10 +77,7 @@ export const flowTitles: Record<FlowKeyOrFallback, Bi> = {
  */
 export const flowJurisdictions: Record<FlowKeyOrFallback, Bi> = {
   termination: bi('Ontario — ESA, 2000', 'Ontario — LNE, 2000'),
-  hiring: bi(
-    'British Columbia — Employment Standards Act (BC)',
-    'Colombie-Britannique — Employment Standards Act (C.-B.)',
-  ),
+  hiring: bi('Ontario — ESA, 2000', 'Ontario — LNE, 2000'),
   onboarding: bi(
     'Quebec — Charter of the French Language',
     'Québec — Charte de la langue française',
@@ -366,8 +363,8 @@ export const homeSuggestionChips: HomeSuggestionChip[] = [
     sub: bi('Hiring & onboarding', 'Embauche et intégration'),
     flowKey: 'hiring',
     seed: bi(
-      'Draft an offer letter for a Senior Analyst role in BC.',
-      'Rédigez une lettre d’offre pour un poste d’analyste principal en C.-B.',
+      'Draft an offer letter for a Senior Analyst role in Ontario.',
+      'Rédigez une lettre d’offre pour un poste d’analyste principal en Ontario.',
     ),
   },
   {

@@ -23,7 +23,7 @@ export const complianceItems: ComplianceItem[] = [
     tone: 'risk',
     title: bi(
       'Jordan Mensah — notice exposure; no termination clause on file',
-      'Jordan Mensah — exposition au préavis; aucune clause de cessation au dossier',
+      'Jordan Mensah — exposition au préavis; aucune clause de licenciement au dossier',
     ),
     detail: bi(
       'No termination clause on file limits notice. Preliminary risk estimate: 9–12 months of pay in lieu of notice under common law, against the 8-week ESA termination notice/pay minimum. Statutory severance may also apply if eligibility requirements are met. Legal review recommended before finalizing.',

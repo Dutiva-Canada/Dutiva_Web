@@ -64,13 +64,13 @@ describe('AdvisorView', () => {
 
     /* Seeded messages render fully (status done — no typing dots). */
     expect(
-      screen.getByText('Draft an offer letter for a Senior Analyst role in BC.'),
+      screen.getByText('Draft an offer letter for a Senior Analyst role in Ontario.'),
     ).toBeInTheDocument()
-    expect(screen.getByText('BC-specific note')).toBeInTheDocument()
+    expect(screen.getByText('Ontario-specific note')).toBeInTheDocument()
     expect(screen.queryByText('Advisor is thinking')).not.toBeInTheDocument()
 
     /* Jurisdiction context line stays visible on the active conversation. */
-    expect(screen.getByText('British Columbia — Employment Standards Act (BC)')).toBeInTheDocument()
+    expect(screen.getByText('Ontario — ESA, 2000')).toBeInTheDocument()
 
     /* Doc-generate chips + follow-up chips from the fixture. */
     expect(screen.getByText('Offer of employment letter (Ontario)')).toBeInTheDocument()
@@ -535,7 +535,7 @@ describe('AdvisorView', () => {
         state: { chatId: convId },
       })
 
-      expect(await screen.findByText('Hello prod')).toBeInTheDocument()
+      expect((await screen.findAllByText('Hello prod')).length).toBeGreaterThan(0)
       expect(await screen.findByText('Prod reply from backend')).toBeInTheDocument()
     })
   })

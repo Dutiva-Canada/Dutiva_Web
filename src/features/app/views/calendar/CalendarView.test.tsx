@@ -29,12 +29,12 @@ describe('CalendarView', () => {
     expect(screen.getByText('31')).toBeInTheDocument()
 
     /* Fixture events appear as a grid chip and again in the Upcoming list. */
-    expect(screen.getAllByText('Probation ends — Priya Nair')).toHaveLength(2)
+    expect(screen.getAllByText('3-month service milestone — Priya Nair')).toHaveLength(2)
     expect(screen.getAllByText('Law 25 PIA due — HRIS vendor')).toHaveLength(2)
 
     /* Upcoming list: heading + date chips. */
     expect(screen.getByText('Upcoming')).toBeInTheDocument()
-    expect(screen.getByText('Jul 8')).toBeInTheDocument()
+    expect(screen.getAllByText('Jul 25').length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('Jul 31')).toBeInTheDocument()
   })
 

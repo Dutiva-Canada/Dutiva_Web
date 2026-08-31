@@ -160,18 +160,18 @@ export const documentTemplates: DocumentTemplate[] = [
     category: catHiring,
     highRisk: false,
     sections: [
-      bi('Offer of Employment — Senior Analyst', "Offre d'emploi — Analyste principal"),
+      bi('Offer of Employment — Senior Analyst', "Offre d'emploi — Analyste principale"),
       bi(
-        'Northgate Logistics Inc. is pleased to offer you the position of Senior Analyst, reporting to the Director of Operations, based in British Columbia. This offer is contingent on standard background checks.',
-        "Northgate Logistics Inc. a le plaisir de vous offrir le poste d'analyste principal, relevant du directeur des opérations, basé en Colombie-Britannique. Cette offre est conditionnelle à des vérifications d'antécédents standards.",
+        'Northgate Logistics Inc. is pleased to offer you the position of Senior Analyst, reporting to the Director of Operations, based in Ontario. This offer is contingent on standard background checks.',
+        "Northgate Logistics Inc. a le plaisir de vous offrir le poste d'analyste principale, relevant du directeur des opérations, basé en Ontario. Cette offre est conditionnelle à des vérifications d'antécédents standards.",
       ),
       bi(
         'Compensation: [base salary] annually, paid biweekly, plus eligibility for the company benefits plan after 3 months.',
         "Rémunération : [salaire de base] par année, versé aux deux semaines, plus l'admissibilité au régime d'avantages sociaux de l'entreprise après 3 mois.",
       ),
       bi(
-        'This role includes a 3-month probationary period consistent with BC employment standards. Either party may end the employment relationship during this period with the statutory minimum notice.',
-        "Ce poste comprend une période de probation de 3 mois conforme aux normes d'emploi de la C.-B. L'une ou l'autre partie peut mettre fin à la relation d'emploi durant cette période avec le préavis minimal prévu par la loi.",
+        'This role includes a 3-month probationary period as set out in the attached employment agreement.',
+        'Ce poste comprend une période de probation de 3 mois telle que prévue à la convention d’emploi ci-jointe.',
       ),
       bi(
         'Please confirm your acceptance by [date]. We’re looking forward to having you on the team.',
@@ -180,8 +180,8 @@ export const documentTemplates: DocumentTemplate[] = [
     ],
     meta: {
       jur: bi(
-        'British Columbia · Employment Standards Act (BC)',
-        'Colombie-Britannique · Employment Standards Act (C.-B.)',
+        'Ontario · Employment Standards Act, 2000',
+        'Ontario · Loi de 2000 sur les normes d’emploi',
       ),
       missing: bi(
         'Non-solicitation or non-competition clauses need BC-specific review.',

@@ -11,7 +11,7 @@ export const TOUR_STOP_FIXTURES = {
     briefTitle: bi('Advisor’s daily brief', 'Brief quotidien du Conseiller'),
     briefLead: bi(
       'Jordan Mensah’s termination file is the one that needs you first.',
-      'Le dossier de cessation de Jordan Mensah est celui qui vous attend en premier.',
+      'Le dossier de licenciement de Jordan Mensah est celui qui vous attend en premier.',
     ),
     metrics: [
       {
@@ -20,7 +20,7 @@ export const TOUR_STOP_FIXTURES = {
         label: bi('Open cases', 'Dossiers ouverts'),
         detail: bi(
           'Termination — Jordan Mensah is in legal review.',
-          'Cessation d’emploi — Jordan Mensah est en révision juridique.',
+          'Licenciement — Jordan Mensah est en révision juridique.',
         ),
       },
       {
@@ -29,7 +29,7 @@ export const TOUR_STOP_FIXTURES = {
         label: bi('Open tasks', 'Tâches ouvertes'),
         detail: bi(
           'Counsel response is the next step on the termination file.',
-          'La réponse du conseiller est la prochaine étape du dossier de cessation.',
+          'La réponse du conseiller est la prochaine étape du dossier de licenciement.',
         ),
       },
       {
@@ -59,7 +59,7 @@ export const TOUR_STOP_FIXTURES = {
       ...LANDING_WORKSPACE_FIXTURES.case,
       tabDocs: bi(
         'Termination letter draft on file — not sent. Release still with counsel.',
-        'Ébauche de lettre de cessation au dossier — non envoyée. La quittance est encore chez le conseiller.',
+        'Ébauche de lettre de licenciement au dossier — non envoyée. La quittance est encore chez le conseiller.',
       ),
     },
     {

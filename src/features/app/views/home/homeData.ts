@@ -38,9 +38,10 @@ export const openCaseCount = cases.filter((c) => c.status.en !== 'Resolved').len
 export const openTaskCount = tasks.filter((t) => !t.done).length
 
 /** Prototype `buildWellbeingView().attention` — employees with sentiment < 55. */
-export const supportSignalCount = employees.filter(
-  (e) => (employeeDetails[e.id]?.sentiment ?? 78) < 55,
-).length
+export const supportSignalCount = employees.filter((e) => {
+  const sentiment = employeeDetails[e.id]?.sentiment
+  return sentiment != null && sentiment < 55
+}).length
 
 /* ------------------------------------------------------------- priorities */
 
@@ -126,8 +127,8 @@ export const homePriorities: HomePriority[] = [
       'Amara Okafor — examen d’accommodement dû le 14 juillet',
     ),
     meta: bi(
-      'Accommodation · British Columbia · Due Jul 14 · Owner: Morgan Chen',
-      'Accommodement · Colombie-Britannique · Échéance : 14 juillet · Resp. : Morgan Chen',
+      'Accommodation · Ontario · Due Jul 14 · Owner: Morgan Chen',
+      'Accommodement · Ontario · Échéance : 14 juillet · Resp. : Morgan Chen',
     ),
     why: bi(
       'The 90-day modified-duties review is approaching. Confirm functional limitations are unchanged before the date.',
@@ -170,8 +171,8 @@ export const homePriorities: HomePriority[] = [
       'Rémunération · Québec · Prochain cycle · Resp. : Finances + RH',
     ),
     why: bi(
-      'Sustained below-midpoint pay for a comparable role is a retention and pay-equity risk. Model an adjustment at the next cycle.',
-      'Un salaire soutenu sous le point milieu pour un poste comparable présente un risque de rétention et d’équité salariale. Modélisez un ajustement au prochain cycle.',
+      'Sustained below-midpoint pay for a comparable role is a retention risk. Model an adjustment at the next cycle.',
+      'Un salaire soutenu sous le point milieu pour un poste comparable présente un risque de rétention. Modélisez un ajustement au prochain cycle.',
     ),
     actionLabel: bi('Review pay', 'Réviser le salaire'),
     action: { kind: 'comp-rail', employeeId: 'e10' },

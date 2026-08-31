@@ -27,12 +27,12 @@ export interface HomeMetric {
   labelKey: 'compliance' | 'risk' | 'cases' | 'signals'
 }
 
-const DEFAULT_SENTIMENT = 78
-
 /** Prototype `buildWellbeingView().attention` — sentiment < 55 head-count. */
 export function supportAttentionCount(): number {
-  return employees.filter((e) => (employeeDetails[e.id]?.sentiment ?? DEFAULT_SENTIMENT) < 55)
-    .length
+  return employees.filter((e) => {
+    const sentiment = employeeDetails[e.id]?.sentiment
+    return sentiment != null && sentiment < 55
+  }).length
 }
 
 export function buildHomeMetrics(): HomeMetric[] {

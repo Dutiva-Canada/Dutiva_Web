@@ -53,7 +53,7 @@ export interface NavGroup {
 const CASES_BADGE = String(cases.filter((c) => c.status.en !== 'Resolved').length)
 const COMPLIANCE_BADGE = '3'
 const WELLBEING_BADGE = String(
-  Object.values(employeeDetails).filter((d) => d.sentiment < 55).length,
+  Object.values(employeeDetails).filter((d) => d.sentiment != null && d.sentiment < 55).length,
 )
 
 export function getNavGroups(root: string): NavGroup[] {

@@ -5,17 +5,17 @@ import { analyticsMessages as M } from '@/i18n/messages/analytics'
 import { fill } from './format'
 
 /**
- * Probation periods ending within 30 days: name, role, jurisdiction, end
+ * Service milestones due within 30 days: name, role, jurisdiction, end
  * date and days remaining — with an explicit note when no review task has
- * been created yet, so no probation end date can pass unnoticed.
+ * been created yet, so no milestone date can pass unnoticed.
  */
 
-export interface ProbationDisplayRow {
+export interface ServiceMilestoneDisplayRow {
   key: string
   name: string
   /** "Role · jurisdiction". */
   secondary: string
-  /** Localized end date ('Jul 8'). */
+  /** Localized end date ('Jul 25'). */
   endLabel: string
   daysLeft: number
   reviewTaskCreated: boolean
@@ -23,12 +23,16 @@ export interface ProbationDisplayRow {
 }
 
 function daysLeftLabel(daysLeft: number, x: (b: (typeof M)[keyof typeof M]) => string): string {
-  if (daysLeft === 0) return x(M.analytics_probation_ends_today)
-  if (daysLeft === 1) return x(M.analytics_probation_day_left)
-  return fill(x(M.analytics_probation_days_left), { n: daysLeft })
+  if (daysLeft === 0) return x(M.analytics_service_milestone_ends_today)
+  if (daysLeft === 1) return x(M.analytics_service_milestone_day_left)
+  return fill(x(M.analytics_service_milestone_days_left), { n: daysLeft })
 }
 
-export function ProbationList({ rows }: { readonly rows: readonly ProbationDisplayRow[] }) {
+export function ServiceMilestoneList({
+  rows,
+}: {
+  readonly rows: readonly ServiceMilestoneDisplayRow[]
+}) {
   const { x } = useI18n()
   return (
     <ul className="m-0 flex list-none flex-col p-0">
@@ -41,13 +45,13 @@ export function ProbationList({ rows }: { readonly rows: readonly ProbationDispl
               {!row.reviewTaskCreated && (
                 <span className="flex items-center gap-[5px] text-[11.5px] font-semibold text-warn-fg">
                   <ClipboardX size={12} strokeWidth={1.9} aria-hidden="true" />
-                  {x(M.analytics_probation_no_task)}
+                  {x(M.analytics_service_milestone_no_task)}
                 </span>
               )}
             </span>
             <span className="flex shrink-0 flex-col items-end gap-[2px]">
               <span className="text-[12.5px] font-semibold text-text-2">
-                {fill(x(M.analytics_probation_ends), { date: row.endLabel })}
+                {fill(x(M.analytics_service_milestone_ends), { date: row.endLabel })}
               </span>
               <span className="text-[11.5px] text-text-muted tabular-nums">
                 {daysLeftLabel(row.daysLeft, x)}

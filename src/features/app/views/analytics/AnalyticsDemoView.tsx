@@ -14,7 +14,7 @@ import {
   leaveOverview,
   obligations,
   policyAcknowledgment,
-  probationEnds,
+  serviceMilestones,
   scoreHistory,
   turnover,
 } from '@/data'
@@ -29,7 +29,7 @@ import type { ExpiryDisplayRow } from './ExpiryBucketsSection'
 import { JurisdictionBars } from './JurisdictionBars'
 import { LeaveList } from './LeaveList'
 import { OpenCaseRows } from './OpenCaseRows'
-import { ProbationList } from './ProbationList'
+import { ServiceMilestoneList } from './ServiceMilestoneList'
 import { ScoreBreakdownMeters } from './ScoreBreakdownMeters'
 import { ScoreHero } from './ScoreHero'
 import { TrendLineChart } from './TrendLineChart'
@@ -53,7 +53,7 @@ import { AppPage } from '@/features/app/shell/AppPage'
  * compliance score (trend + breakdown + per-jurisdiction scores), the
  * needs-attention queue, headcount by jurisdiction, open-case aging and
  * policy acknowledgments. Phase 2 adds certifications & training expiring,
- * probation ends, document expiries, the leave overview and the headcount
+ * service milestones, document expiries, the leave overview and the headcount
  * & turnover trend.
  *
  * Demo mode renders the Northgate diorama below — every number computed
@@ -167,8 +167,8 @@ export function AnalyticsDemoView() {
   /* ── Policy acknowledgments ────────────────────────────────────────────── */
   const ack = ackProgress(policyAcknowledgment.signed, policyAcknowledgment.total)
 
-  /* ── Probation / leave / trend ─────────────────────────────────────────── */
-  const probationRows = probationEnds
+  /* ── Service milestones / leave / trend ────────────────────────────────── */
+  const serviceMilestoneRows = serviceMilestones
     .map((row) => ({ row, daysLeft: daysBetweenISO(demoTodayISO, row.endISO) }))
     .filter(({ daysLeft }) => daysLeft >= 0 && daysLeft <= 30)
     .sort((a, b) => a.daysLeft - b.daysLeft)
@@ -334,15 +334,15 @@ export function AnalyticsDemoView() {
           )}
         </AnalyticsCard>
 
-        {/* C · Probation periods ending */}
+        {/* C · Service milestones due */}
         <AnalyticsCard
-          title={x(M.analytics_probation_title)}
-          subtitle={x(M.analytics_probation_sub)}
+          title={x(M.analytics_service_milestone_title)}
+          subtitle={x(M.analytics_service_milestone_sub)}
         >
-          {probationRows.length === 0 ? (
-            <CardEmpty text={x(M.analytics_probation_empty)} />
+          {serviceMilestoneRows.length === 0 ? (
+            <CardEmpty text={x(M.analytics_service_milestone_empty)} />
           ) : (
-            <ProbationList rows={probationRows} />
+            <ServiceMilestoneList rows={serviceMilestoneRows} />
           )}
         </AnalyticsCard>
 

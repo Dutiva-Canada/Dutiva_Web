@@ -64,7 +64,8 @@ export interface Employee {
   role: Bi
   /** Department derived by the prototype's `deptFor(role)`. */
   dept: Bi
-  province: Bi
+  /** Employment jurisdiction — province, territory, or Federal. */
+  jurisdiction: Bi
   status: Bi
   tone: Tone
   tenure: Bi
@@ -98,13 +99,16 @@ export interface LeaveRecord {
 /** Per-employee detail (prototype `empDetailMap()`, defaults merged in). */
 export interface EmployeeDetail {
   employeeId: string
-  salary: number
+  /** Null when compensation has not been recorded for this person. */
+  salary: number | null
   band: string
-  market: number
+  /** Null when no market comparator is on file. */
+  market: number | null
   equity: string
   manager: string
   startDate: string
-  sentiment: number
+  /** Null when no wellbeing signal score exists. */
+  sentiment: number | null
   timeline: TimelineEvent[]
   /** Document template keys on file (documents.ts). */
   docs: string[]
@@ -330,16 +334,19 @@ export interface ExpiryRecord {
   expiryISO: string
 }
 
-export interface ProbationEndRecord {
+export interface ServiceMilestoneRecord {
   id: string
   employeeId: string | null
   employeeName: string
   role: Bi
   jurisdiction: Bi
   endISO: string
-  /** Whether a probation-review task already exists for this person. */
+  /** Whether a milestone-review task already exists for this person. */
   reviewTaskCreated: boolean
 }
+
+/** @deprecated Renamed to {@link ServiceMilestoneRecord}. */
+export type ProbationEndRecord = ServiceMilestoneRecord
 
 export interface LeaveOverviewRecord {
   id: string

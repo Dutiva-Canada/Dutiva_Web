@@ -59,7 +59,7 @@ export function CompensationDemoView() {
             `${change.note.en} ${M.comp_change_review_suffix.en}`,
             `${change.note.fr} ${M.comp_change_review_suffix.fr}`,
           ),
-          citations: [{ label: M.comp_pay_equity_citation }],
+          citations: [{ label: M.comp_market_review_citation }],
         },
       ],
     })

@@ -254,7 +254,7 @@ function CaseDetail({ caze }: Readonly<{ caze: WorkspaceCase }>) {
     openRail(
       emp.name,
       { text: emp.insight, cards },
-      { chips: [emp.province, emp.role, caze.typeLabel], initials: emp.initials },
+      { chips: [emp.jurisdiction, emp.role, caze.typeLabel], initials: emp.initials },
     )
   }
 

@@ -267,17 +267,17 @@ export const settingsMessages = defineMessages({
   settings_audit_ev1_when: { en: 'Today 09:12', fr: 'Aujourd’hui 9 h 12' },
   settings_audit_ev2_text: {
     en: 'Advisor generated Termination Letter (template v2.3)',
-    fr: 'Le Conseiller a généré la lettre de cessation (modèle v2.3)',
+    fr: 'Le Conseiller a généré la lettre de licenciement (modèle v2.3)',
   },
   settings_audit_ev2_when: { en: 'Jul 5, 14:03', fr: '5 juill., 14 h 03' },
   settings_audit_ev3_text: {
     en: 'Riley Summers exported Termination Letter (PDF) — review gate confirmed',
-    fr: 'Riley Summers a exporté la lettre de cessation (PDF) — vérification confirmée',
+    fr: 'Riley Summers a exporté la lettre de licenciement (PDF) — vérification confirmée',
   },
   settings_audit_ev3_when: { en: 'Jul 5, 14:10', fr: '5 juill., 14 h 10' },
   settings_audit_ev4_text: {
     en: 'Riley Summers requested legal review — Termination case',
-    fr: 'Riley Summers a demandé une révision juridique — dossier de cessation',
+    fr: 'Riley Summers a demandé une révision juridique — dossier de licenciement',
   },
   settings_audit_ev4_when: { en: 'Jul 5, 14:18', fr: '5 juill., 14 h 18' },
   settings_audit_ev5_text: {
