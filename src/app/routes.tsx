@@ -149,7 +149,7 @@ function NotFoundRoute() {
  *   /app/cases/:caseId     case detail
  *   /app/employees/:employeeId  employee profile
  *   /sign/:token               external Dutiva Signature (no login)
-   /fr/sign/:token           external signing (French UI)
+ *   /fr/sign/:token            external signing (French UI)
  *   *                      404 (noindex)
  */
 export const routes: RouteObject[] = [
