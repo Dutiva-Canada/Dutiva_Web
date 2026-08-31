@@ -574,7 +574,7 @@ export const UNKNOWN_LINE_MANAGER = '—'
 
 const employeeById = new Map(employees.map((employee) => [employee.id, employee]))
 
-/** Direct line manager Employee from orgStructure; null for Riley reports or unknown edges. */
+/** Direct line manager Employee from orgStructure; null when the manager is Riley or otherwise unknown. */
 export function directManagerFor(employeeId: string): Employee | null {
   const branch = orgStructure.find((b) => b.reportIds.includes(employeeId))
   if (!branch) return null
@@ -585,7 +585,7 @@ export function reportsToOrgRoot(employeeId: string): boolean {
   return orgRootReportIds.includes(employeeId)
 }
 
-/** Display name for profile/case surfaces — orgRoot.name, Employee.name, or unknown. */
+/** Display name for profile/case surfaces — Riley, another employee, or unknown. */
 export function lineManagerLabel(employeeId: string): string {
   const manager = directManagerFor(employeeId)
   if (manager) return manager.name
