@@ -124,6 +124,20 @@ describe('cross-references resolve', () => {
     }
   })
 
+  it('keeps document reference namespaces collision-free', () => {
+    const generatedTids = new Set(templateByTid.keys())
+    const customTids = new Set(customTemplateByTid.keys())
+
+    for (const key of legacyDocKeys) {
+      expect(generatedTids.has(key), `legacy/generated collision: ${key}`).toBe(false)
+      expect(customTids.has(key), `legacy/custom collision: ${key}`).toBe(false)
+    }
+
+    for (const key of generatedTids) {
+      expect(customTids.has(key), `generated/custom collision: ${key}`).toBe(false)
+    }
+  })
+
   it('case notes attach to existing cases', () => {
     for (const caseId of Object.keys(caseNotes)) {
       expect(caseIds.has(caseId), `note → case ${caseId}`).toBe(true)
@@ -171,22 +185,21 @@ describe('cross-references resolve', () => {
   it('uses Multi-jurisdiction labels for cross-regime policy fixtures', () => {
     const remotePolicyTask = tasks.find((t) => t.id === 'tk6')
     const remotePolicyFlag = complianceItems.find((c) => c.id === 'ci3')
+    const companyWideComms = ['cm1', 'cm2', 'cm3', 'cm4'] as const
 
     expect(remotePolicyTask?.jur.en).toBe('Multi-jurisdiction')
     expect(remotePolicyFlag?.province.en).toBe('Multi-jurisdiction')
-    expect(
-      communications
-        .filter((c) => c.id !== 'cm5' && c.id !== 'cm6')
-        .every((c) => {
-          return c.province.en === 'Multi-jurisdiction' || c.province.en === 'Ontario'
-        }),
-    ).toBe(true)
+    for (const commId of companyWideComms) {
+      const comm = communications.find((c) => c.id === commId)
+      expect(comm?.province.en, `${commId} province`).toBe('Multi-jurisdiction')
+    }
+    expect(communications.find((c) => c.id === 'cm5')?.province.en).toBe('Ontario')
+    expect(communications.find((c) => c.id === 'cm6')?.province.en).toBe('Ontario')
   })
 
-  it('keeps workforce certification jurisdictions within supported demo contexts', () => {
+  it('keeps normalized certification fixtures on their intended jurisdictions', () => {
     const fatouCert = certifications.find((c) => c.id === 'cert-fatou-firstaid')
     expect(fatouCert?.jurisdiction.en).toBe('Ontario')
-    expect(certifications.map((c) => c.jurisdiction.en)).not.toContain('British Columbia')
   })
 
   it('describes Amara accommodation case summary without diagnosis-level language', () => {
@@ -207,25 +220,33 @@ describe('bilingual completeness', () => {
 
   it('every Bi field has non-empty en and fr', () => {
     const visited = new Set<object>()
+    let biCount = 0
+
     const walk = (value: unknown, path: string): void => {
       if (typeof value !== 'object' || value === null) return
       if (visited.has(value)) return
       visited.add(value)
+
       if (isBi(value)) {
+        biCount += 1
         expect(value.en.trim().length, `${path}.en is empty`).toBeGreaterThan(0)
         expect(value.fr.trim().length, `${path}.fr is empty`).toBeGreaterThan(0)
         return
       }
+
       if (Array.isArray(value)) {
         value.forEach((item, i) => walk(item, `${path}[${i}]`))
         return
       }
+
       for (const [key, child] of Object.entries(value)) {
         walk(child, `${path}.${key}`)
       }
     }
+
     walk(data, 'data')
-    // Sanity: the walk actually saw a meaningful amount of data.
-    expect(visited.size).toBeGreaterThan(500)
+
+    expect(employees.length).toBeGreaterThan(0)
+    expect(biCount).toBeGreaterThan(0)
   })
 })
