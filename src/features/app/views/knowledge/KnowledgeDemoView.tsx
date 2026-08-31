@@ -82,7 +82,7 @@ export function KnowledgeDemoView() {
           <button
             key={a.id}
             type="button"
-            onClick={() => openRail(a.title, { text: M.knowledge_rail_intro, citations: [] })}
+            onClick={() => openRail(a.title, { text: a.summary, citations: [] })}
             className="flex cursor-pointer flex-col gap-[4px] rounded-[11px] border border-border bg-surface px-[16px] py-[14px] text-left font-sans"
           >
             <span className="text-[14px] font-semibold text-text">{x(a.title)}</span>

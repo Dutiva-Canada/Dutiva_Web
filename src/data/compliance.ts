@@ -119,16 +119,16 @@ export const complianceItems: ComplianceItem[] = [
       'Intégration — exigence linguistique française du Québec',
     ),
     detail: bi(
-      'Onboarding documents for the Quebec office were generated in French by default, consistent with Bill 96.',
-      'Les documents d’intégration du bureau du Québec ont été générés en français par défaut, conformément à la Loi 96.',
+      'Onboarding documents for the Quebec office were generated in French by default, consistent with the Charter of the French Language.',
+      'Les documents d’intégration du bureau du Québec ont été générés en français par défaut, conformément à la Charte de la langue française.',
     ),
     province: bi('Quebec', 'Québec'),
     chatId: 'c6',
     citations: [
       {
         label: bi(
-          'Charter of the French Language, Bill 96',
-          'Charte de la langue française, Loi 96',
+          'Charter of the French Language (Québec)',
+          'Charte de la langue française (Québec)',
         ),
       },
     ],
@@ -313,10 +313,7 @@ export const obligations: Obligation[] = [
   {
     id: 'ob7',
     area: bi('Language (Quebec)', 'Langue (Québec)'),
-    statute: bi(
-      'Charter of the French Language — Bill 96',
-      'Charte de la langue française — Loi 96',
-    ),
+    statute: bi('Charter of the French Language', 'Charte de la langue française'),
     title: bi(
       'French-language workplace communications review',
       'Examen des communications en français en milieu de travail',

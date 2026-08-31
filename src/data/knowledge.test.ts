@@ -29,11 +29,26 @@ describe('knowledgeItems', () => {
     expect(k1.tag.fr).toBe('Licenciement · Ontario')
   })
 
-  it('does not claim a general BC written-offer requirement for k2', () => {
+  it('covers Ontario hiring metadata for k2 within shipped jurisdictions', () => {
     const k2 = item('k2')
-    expect(k2.title.en).not.toMatch(/written offer requirements/i)
-    expect(k2.title.en).toContain('hiring rules & employment terms')
-    expect(k2.tag.en).toBe('Hiring · British Columbia')
+    expect(k2.title.en).toContain('Ontario ESA')
+    expect(k2.title.en).not.toMatch(/British Columbia|BC Employment/i)
+    expect(k2.tag.en).toBe('Hiring · Ontario')
+    expect(k2.summary.en).not.toMatch(/universal written-offer requirement/i)
+  })
+
+  it('does not ship BC jurisdiction articles in the knowledge seed', () => {
+    for (const k of knowledgeItems) {
+      expect(k.title.en).not.toMatch(/British Columbia|BC Employment/i)
+      expect(k.tag.en).not.toMatch(/British Columbia/i)
+    }
+  })
+
+  it('provides a qualified summary for every knowledge article', () => {
+    for (const k of knowledgeItems) {
+      expect(k.summary.en.length).toBeGreaterThan(40)
+      expect(k.summary.fr.length).toBeGreaterThan(40)
+    }
   })
 
   it('frames Quebec language rules under the Charter, not Bill 96, for k3', () => {

@@ -60,7 +60,7 @@ describe('AdvisorView', () => {
   it('opens a seeded thread and renders its transcript without re-streaming', () => {
     renderApp(<AdvisorView />, { route: '/app/advisor' })
 
-    fireEvent.click(screen.getByRole('button', { name: /Offer letter — Senior Analyst, BC/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Offer letter — Senior Analyst, Ontario/ }))
 
     /* Seeded messages render fully (status done — no typing dots). */
     expect(
