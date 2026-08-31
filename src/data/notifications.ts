@@ -8,7 +8,7 @@ export const notifications: Notification[] = [
     id: 'n1',
     text: bi(
       'Compliance: Remote Work Policy review due soon',
-      'Conformité : révision de la politique de télétravail bientôt due',
+      'Conformité : la politique de télétravail doit être révisée prochainement',
     ),
     time: bi('1h ago', 'Il y a 1 h'),
     unread: true,
