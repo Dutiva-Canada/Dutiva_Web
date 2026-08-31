@@ -10,12 +10,6 @@ import { supportChannel } from '@/config/support'
 
 const SUPPORT_EMAIL = supportChannel('support').email
 
-function messageOf(error: unknown): string {
-  if (error instanceof Error) return error.message
-  if (typeof error === 'string') return error
-  return 'Unknown error'
-}
-
 /**
  * Router-level error boundary for every route (wired as the root
  * `errorElement` in routes.tsx). Without it React Router falls back to its
@@ -79,7 +73,7 @@ export function RouteErrorPage() {
         <p className="mx-auto mt-4 max-w-[62ch] text-lg leading-[1.6] text-text-2">
           {L(
             'Reloading usually fixes it. If it keeps happening, clearing the offline cache reinstalls the latest version of the site.',
-            'Recharger la page règle généralement le problème. Si l’erreur persiste, vider la cache hors ligne réinstalle la version la plus récente du site.',
+            'Recharger la page règle généralement le problème. Si l’erreur persiste, vider le cache hors ligne réinstalle la version la plus récente du site.',
           )}
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
@@ -96,7 +90,7 @@ export function RouteErrorPage() {
             disabled={clearing}
             onClick={() => void clearOfflineCache()}
           >
-            {L('Clear the offline cache', 'Vider la cache hors ligne')}
+            {L('Clear the offline cache', 'Vider le cache hors ligne')}
           </button>
           <a href={lang === 'fr' ? '/fr' : '/'} className="ghost-button pill-button">
             {L('Go to the homepage', 'Aller à la page d’accueil')}
@@ -106,8 +100,10 @@ export function RouteErrorPage() {
           </a>
         </div>
         <p className="mx-auto mt-8 max-w-[52ch] text-sm text-text-3">
-          {L('Technical detail: ', 'Détail technique : ')}
-          <span className="font-mono">{messageOf(error)}</span>
+          {L(
+            'The error has been recorded for troubleshooting.',
+            'L’erreur a été enregistrée à des fins de dépannage.',
+          )}
         </p>
         <p className="mx-auto mt-2 max-w-[52ch] text-sm text-text-3">
           {L('Still stuck? Write to ', 'Toujours bloqué? Écrivez à ')}
