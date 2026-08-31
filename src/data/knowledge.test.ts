@@ -75,12 +75,15 @@ describe('knowledgeItems', () => {
   })
 
   it('uses Canada-scoped tags for cross-jurisdictional topics without implying uniform rules', () => {
-    for (const id of ['k4', 'k5', 'k7', 'k8'] as const) {
+    for (const id of ['k5', 'k7', 'k8'] as const) {
       const k = item(id)
       expect(k.tag.en).toMatch(/Canada/)
       expect(k.summary.en).toMatch(/Ontario|federally regulated/i)
       expect(k.summary.en).not.toMatch(/identical rules|same rules across Canada/i)
     }
+    const k4 = item('k4')
+    expect(k4.tag.en).toBe('Accommodation · Canada')
+    expect(k4.summary.en).toContain('applicable human-rights and employment law')
   })
 
   it('uses attendance and accommodation-aware absenteeism framing for k5', () => {
@@ -98,6 +101,7 @@ describe('knowledgeItems', () => {
     expect(k6.title.en).toContain('termination notice')
     expect(k6.tag.fr).toBe('Licenciement · Fédéral')
     expect(k6.tag.fr).not.toContain('Cessation')
+    expect(k6.summary.fr).toContain('normes minimales d’emploi provinciales')
   })
 
   it('uses OHS considerations rather than universal obligations for k7', () => {

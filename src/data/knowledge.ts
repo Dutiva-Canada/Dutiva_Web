@@ -57,7 +57,7 @@ export const knowledgeItems: KnowledgeItem[] = [
     ),
     tag: bi('Accommodation · Canada', 'Accommodement · Canada'),
     summary: bi(
-      'Accommodation generally focuses on functional limitations, accommodation needs, and workplace barriers rather than diagnosis; the medical information an employer may require depends on the circumstances and on Ontario, Quebec, federally regulated, or other applicable human-rights and employment rules.',
+      'Accommodation generally focuses on functional limitations, accommodation needs, and workplace barriers rather than diagnosis; the medical information an employer may require depends on the circumstances and applicable human-rights and employment law.',
       'L’accommodement porte généralement sur les limitations fonctionnelles, les besoins d’accommodement et les obstacles en milieu de travail plutôt que sur le diagnostic; les renseignements médicaux qu’un employeur peut demander dépendent des circonstances et des règles applicables en Ontario, au Québec, dans les milieux sous réglementation fédérale ou ailleurs.',
     ),
   },
@@ -82,7 +82,7 @@ export const knowledgeItems: KnowledgeItem[] = [
     tag: bi('Termination · Federal', 'Licenciement · Fédéral'),
     summary: bi(
       'Federally regulated employers follow Canada Labour Code termination notice rules — distinct from provincial employment standards minima.',
-      'Les employeurs sous réglementation fédérale suivent les règles de préavis de licenciement du Code canadien du travail — distinctes des minima des normes d’emploi provinciales.',
+      'Les employeurs sous réglementation fédérale suivent les règles de préavis de licenciement du Code canadien du travail — distinctes des normes minimales d’emploi provinciales.',
     ),
   },
   {
