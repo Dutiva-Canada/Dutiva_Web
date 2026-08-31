@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { demoTodayISO } from '@/data'
 import {
   CRITICAL_SCORE_CEILING,
   FINDING_SEVERITY_WEIGHTS,
@@ -180,7 +181,7 @@ describe('expiryBuckets', () => {
     expect(flattenBuckets(buckets).map((r) => r.id)).toEqual(['old', 'a', 'b'])
   })
 
-  it('buckets the demo certification fixtures 1 / 2 / 2 / 2', () => {
+  it('buckets the demo certification fixtures 1 / 2 / 3 / 1', () => {
     const buckets = expiryBuckets(
       [
         rec('devon', '2026-06-28'),
@@ -191,14 +192,14 @@ describe('expiryBuckets', () => {
         rec('sarah', '2026-09-08'),
         rec('aiden', '2026-09-26'),
       ],
-      TODAY,
+      demoTodayISO,
     )
     expect([
       buckets.expired.length,
       buckets.within30.length,
       buckets.within60.length,
       buckets.within90.length,
-    ]).toEqual([1, 2, 2, 2])
+    ]).toEqual([1, 2, 3, 1])
   })
 })
 

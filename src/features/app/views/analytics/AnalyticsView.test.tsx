@@ -98,13 +98,13 @@ describe('AnalyticsView (demo)', () => {
     expect(card.queryByText('−7 below overall')).not.toBeInTheDocument()
   })
 
-  it('buckets certifications 1/2/2/2 and reveals the list in one tap', async () => {
+  it('buckets certifications 1/2/3/1 and reveals the list in one tap', async () => {
     const { default: userEvent } = await import('@testing-library/user-event')
     const user = userEvent.setup()
     renderApp(<AnalyticsView />, { route: '/app/analytics' })
     const card = within(screen.getByRole('region', { name: 'Certifications & training' }))
 
-    /* Tile row: Expired 1 · ≤30 2 · 31–60 2 · 61–90 2. */
+    /* Tile row: Expired 1 · ≤30 2 · 31–60 3 · 61–90 1. */
     expect(card.getByText('Expired')).toBeInTheDocument()
     expect(card.getByText('≤ 30 days')).toBeInTheDocument()
 
@@ -123,16 +123,16 @@ describe('AnalyticsView (demo)', () => {
     const card = within(screen.getByRole('region', { name: 'Service milestones due' }))
 
     const rows = card.getAllByRole('listitem')
-    expect(rows).toHaveLength(3)
+    expect(rows).toHaveLength(2)
 
     /* Soonest first: Jasleen (Jul 21 — 10 days out), no review task yet. */
     expect(within(rows[0]!).getByText('Jasleen Kaur')).toBeInTheDocument()
     expect(within(rows[0]!).getByText('10 days left')).toBeInTheDocument()
     expect(within(rows[0]!).getByText('No review task yet')).toBeInTheDocument()
 
-    /* Priya next (Jul 25 — 14 days out), review task in place. */
-    expect(within(rows[1]!).getByText('Priya Nair')).toBeInTheDocument()
-    expect(within(rows[1]!).getByText('14 days left')).toBeInTheDocument()
+    /* Owen next (Jul 29 — 18 days out), review task in place. */
+    expect(within(rows[1]!).getByText('Owen Tremblay')).toBeInTheDocument()
+    expect(within(rows[1]!).getByText('18 days left')).toBeInTheDocument()
     expect(card.getAllByText('No review task yet')).toHaveLength(1)
   })
 
@@ -141,16 +141,13 @@ describe('AnalyticsView (demo)', () => {
     const card = within(screen.getByRole('region', { name: 'Leave overview' }))
 
     expect(card.getByText('Returning within 14 days')).toBeInTheDocument()
-    expect(card.getByText('Karan Dhillon')).toBeInTheDocument()
     expect(card.getByText('Rosa Almeida')).toBeInTheDocument()
 
     expect(card.getByText('On leave now')).toBeInTheDocument()
     expect(card.getByText('Ingrid Halvorsen')).toBeInTheDocument()
-    /* Amara's ongoing accommodation shows its review note, not a return. */
-    expect(card.getByText('90-day review Jul 14')).toBeInTheDocument()
 
-    /* Parental, medical and accommodation are protected; vacation is not. */
-    expect(card.getAllByText('Protected')).toHaveLength(3)
+    /* Parental and medical leave are statutorily protected. */
+    expect(card.getAllByText('Protected')).toHaveLength(2)
   })
 
   it('renders the headcount trend with the improving turnover tile', () => {

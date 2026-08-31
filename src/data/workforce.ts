@@ -4,7 +4,7 @@ import type { ExpiryRecord, LeaveOverviewRecord, ServiceMilestoneRecord } from '
 /**
  * Workforce records behind the Analytics Phase 2 cards: certifications &
  * training, dated employee documents, service milestones due, and the leave
- * overview. All dates are read against the diorama's fixed today
+ * overview. All dates are read against the demo scenario's fixed today
  * (July 11, 2026 — see `demoTodayISO`).
  *
  * People with an `employeeId` are the modelled roster; the rest belong to
@@ -13,7 +13,7 @@ import type { ExpiryRecord, LeaveOverviewRecord, ServiceMilestoneRecord } from '
  */
 
 /* ── Certifications & training (expiring within 90 days) ─────────────────
-   Buckets vs Jul 11: expired 1 · ≤30 2 · 31–60 2 · 61–90 2. Devon (the
+   Buckets vs Jul 11: expired 1 · ≤30 2 · 31–60 3 · 61–90 1. Devon (the
    attendance-PIP warehouse file) also holds the lapsed forklift ticket —
    expired items feed the Needs attention card. */
 export const certifications: ExpiryRecord[] = [
@@ -37,7 +37,7 @@ export const certifications: ExpiryRecord[] = [
     id: 'cert-marc-whmis',
     employeeId: 'e3',
     employeeName: 'Marc-Étienne Roy',
-    name: bi('WHMIS 2015 training', 'Formation SIMDUT 2015'),
+    name: bi('WHMIS 2015 annual refresher review', 'Révision annuelle SIMDUT 2015'),
     jurisdiction: bi('Quebec', 'Québec'),
     expiryISO: '2026-07-30',
   },
@@ -61,7 +61,10 @@ export const certifications: ExpiryRecord[] = [
     id: 'cert-sarah-jhsc',
     employeeId: 'e4',
     employeeName: 'Sarah Whitcombe',
-    name: bi('JHSC member certification', 'Attestation de membre du CMSST'),
+    name: bi(
+      'JHSC member training renewal (employer)',
+      'Renouvellement de formation CMSST (employeur)',
+    ),
     jurisdiction: bi('Alberta', 'Alberta'),
     expiryISO: '2026-09-08',
   },
@@ -105,22 +108,12 @@ export const employeeDocuments: ExpiryRecord[] = [
   },
 ]
 
-/* ── Service milestones ending within 30 days ────────────────────────────
-   Priya's Jul 25 start date comes from the calendar fixture
-   (cal-priya-start); her review task exists — the reminder is on the
-   calendar. Jasleen's doesn't yet, which is exactly what the card flags. */
+/* ── Service milestones occurring within 30 days ───────────────────────────
+   Jasleen's milestone doesn't have a review task yet — exactly what the
+   card flags. Priya's Jul 25 start date is on the calendar, not here. */
 export const serviceMilestones: ServiceMilestoneRecord[] = [
   {
-    id: 'prob-priya',
-    employeeId: 'e2',
-    employeeName: 'Priya Nair',
-    role: bi('Senior Analyst', 'Analyste principale'),
-    jurisdiction: bi('Ontario', 'Ontario'),
-    endISO: '2026-07-25',
-    reviewTaskCreated: true,
-  },
-  {
-    id: 'prob-jasleen',
+    id: 'milestone-jasleen',
     employeeId: null,
     employeeName: 'Jasleen Kaur',
     role: bi('Warehouse Associate', 'Préposée d’entrepôt'),
@@ -129,7 +122,7 @@ export const serviceMilestones: ServiceMilestoneRecord[] = [
     reviewTaskCreated: false,
   },
   {
-    id: 'prob-owen',
+    id: 'milestone-owen',
     employeeId: null,
     employeeName: 'Owen Tremblay',
     role: bi('Dispatcher', 'Répartiteur'),
@@ -140,18 +133,9 @@ export const serviceMilestones: ServiceMilestoneRecord[] = [
 ]
 
 /* ── Leave overview (status only — no balances, no medical detail) ───────
-   Amara is the roster's one active leave-adjacent arrangement (modified
-   duties, ongoing — the 90-day review is the date that matters); the
-   others are from the wider company. */
+   Active/upcoming statutory leave from the wider company; accommodation
+   arrangements stay in case/compliance fixtures, not here. */
 export const leaveOverview: LeaveOverviewRecord[] = [
-  {
-    id: 'leave-karan',
-    employeeId: null,
-    employeeName: 'Karan Dhillon',
-    type: bi('Vacation', 'Vacances'),
-    protected: false,
-    returnISO: '2026-07-10',
-  },
   {
     id: 'leave-rosa',
     employeeId: null,
@@ -167,14 +151,5 @@ export const leaveOverview: LeaveOverviewRecord[] = [
     type: bi('Medical leave', 'Congé médical'),
     protected: true,
     returnISO: '2026-08-24',
-  },
-  {
-    id: 'leave-amara',
-    employeeId: 'e6',
-    employeeName: 'Amara Okafor',
-    type: bi('Modified duties (accommodation)', 'Tâches modifiées (accommodement)'),
-    protected: true,
-    returnISO: null,
-    note: bi('90-day review Jul 14', 'Examen à 90 jours le 14 juill.'),
   },
 ]

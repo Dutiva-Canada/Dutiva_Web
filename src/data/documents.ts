@@ -158,8 +158,7 @@ export const documentTemplates: DocumentTemplate[] = [
     /* Populated Ontario hiring demo (Senior Analyst / Liam Fraser / contractual
        probation). Scenario data aligns with Priya Nair (e2) elsewhere in the
        fixtures, but this template is not linked to her employee file or a case —
-       see chat c2 (T01/T02) and workforce/calendar milestones for Priya-specific
-       records. */
+       see chat c2 (T01/T02) and the calendar for Priya-specific dates. */
     key: 'Offer Letter',
     title: bi('Offer Letter', 'Lettre d’offre'),
     category: catHiring,
