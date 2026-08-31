@@ -29,19 +29,19 @@ export const knowledgeItems: KnowledgeItem[] = [
     id: 'k2',
     title: bi(
       'Ontario ESA: mandatory information for new employees',
-      'LNE de l’Ontario : renseignements obligatoires pour les nouveaux employés',
+      'LNE de l’Ontario : renseignements sur l’emploi des nouveaux employés',
     ),
     tag: bi('Hiring · Ontario', 'Embauche · Ontario'),
     summary: bi(
-      'Ontario employers with 25 or more employees must provide new employees with specified job information in writing before their first day of work, or as soon afterward as reasonably possible if advance delivery is not practicable.',
-      'Les employeurs ontariens comptant 25 employés ou plus doivent fournir aux nouveaux employés certains renseignements sur leur emploi par écrit avant leur première journée de travail ou, si cela n’est pas possible, dès que raisonnablement possible par la suite.',
+      'Ontario employers with 25 or more employees in Ontario on a new employee’s first day of work must provide specified job information in writing before that day, or as soon afterward as reasonably possible if advance delivery is not practicable.',
+      'Les employeurs comptant 25 employés ou plus en Ontario lors du premier jour de travail d’un nouvel employé doivent lui fournir par écrit certains renseignements sur son emploi avant cette journée ou, si cela n’est pas possible, dès que raisonnablement possible par la suite.',
     ),
   },
   {
     id: 'k3',
     title: bi(
-      'Quebec Charter of the French Language: employment documents in French',
-      'Charte de la langue française du Québec : documents d’emploi en français',
+      'Quebec Charter of the French Language: employment documents & communications',
+      'Charte de la langue française : documents et communications liés à l’emploi',
     ),
     tag: bi('Language · Quebec', 'Langue · Québec'),
     summary: bi(
@@ -105,8 +105,8 @@ export const knowledgeItems: KnowledgeItem[] = [
     ),
     tag: bi('Hiring · Canada', 'Embauche · Canada'),
     summary: bi(
-      'Probationary periods interact with employment standards minima, contract terms, and termination risk — length and enforceability differ among Ontario, Quebec, federally regulated workplaces, and other provincial regimes.',
-      'Les périodes de probation interagissent avec les minima des normes d’emploi, les conditions contractuelles et les risques de licenciement — leur durée et leurs effets juridiques varient selon la compétence.',
+      'Probationary periods interact with employment standards minima, contract terms, and termination risk — length and enforceability differ among Ontario, Quebec, federally regulated workplaces, and other applicable provincial or territorial regimes.',
+      'Les périodes de probation interagissent avec les minima des normes d’emploi, les conditions contractuelles et les risques de licenciement — leur durée et leurs effets juridiques varient selon la compétence applicable.',
     ),
   },
 ]
