@@ -157,11 +157,11 @@ Do not machine-translate over handoff strings silently.
 `Employee` uses **`jurisdiction`** for employment-regulation scope. Three demo fixture types
 still use the prototype field name **`province`**:
 
-| Type              | Module            | Consumers (non-exhaustive)                          |
-| ----------------- | ----------------- | --------------------------------------------------- |
-| `CaseFile`        | `src/data/cases.ts` | Cases demo view, memory, home priorities          |
-| `ComplianceItem`  | `src/data/compliance.ts` | Compliance demo view, home priorities        |
-| `Communication`   | `src/data/communications.ts` | Communications demo view, Advisor rails    |
+| Type             | Module                       | Consumers (non-exhaustive)               |
+| ---------------- | ---------------------------- | ---------------------------------------- |
+| `CaseFile`       | `src/data/cases.ts`          | Cases demo view, memory, home priorities |
+| `ComplianceItem` | `src/data/compliance.ts`     | Compliance demo view, home priorities    |
+| `Communication`  | `src/data/communications.ts` | Communications demo view, Advisor rails  |
 
 `Task` already uses **`jur`**. Do **not** rename `.province` in tests alone — that hides a
 real type/fixture drift. When this debt is paid down, migrate **types → fixtures → demo
