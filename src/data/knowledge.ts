@@ -46,7 +46,7 @@ export const knowledgeItems: KnowledgeItem[] = [
     tag: bi('Language · Quebec', 'Langue · Québec'),
     summary: bi(
       'Quebec’s Charter of the French Language governs the language of many employment documents and communications — French requirements, conditions, and exceptions vary by document or communication type.',
-      'La Charte de la langue française du Québec régit la langue de nombreux documents et communications liés à l’emploi — les exigences, conditions et exceptions relatives au français varient selon le type de document ou de communication.',
+      'La Charte de la langue française régit la langue de nombreux documents et communications liés à l’emploi — les exigences, conditions et exceptions relatives au français varient selon le type de document ou de communication.',
     ),
   },
   {
@@ -57,7 +57,7 @@ export const knowledgeItems: KnowledgeItem[] = [
     ),
     tag: bi('Accommodation · Canada', 'Accommodement · Canada'),
     summary: bi(
-      'Accommodation generally focuses on functional limitations, accommodation needs, and workplace barriers rather than diagnosis; the medical information an employer may require depends on the circumstances and applicable human-rights and employment law.',
+      'Accommodation generally focuses on functional limitations, accommodation needs, and workplace barriers rather than diagnosis; the medical information an employer may require depends on the circumstances and applicable human rights and employment law.',
       'L’accommodement porte généralement sur les limitations fonctionnelles, les besoins d’accommodement et les obstacles en milieu de travail plutôt que sur le diagnostic; les renseignements médicaux qu’un employeur peut demander dépendent des circonstances et des règles applicables en Ontario, au Québec, dans les milieux sous réglementation fédérale ou ailleurs.',
     ),
   },

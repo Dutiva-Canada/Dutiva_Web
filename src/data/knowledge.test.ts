@@ -83,7 +83,7 @@ describe('knowledgeItems', () => {
     }
     const k4 = item('k4')
     expect(k4.tag.en).toBe('Accommodation · Canada')
-    expect(k4.summary.en).toContain('applicable human-rights and employment law')
+    expect(k4.summary.en).toContain('applicable human rights and employment law')
   })
 
   it('uses attendance and accommodation-aware absenteeism framing for k5', () => {
