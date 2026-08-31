@@ -1,32 +1,61 @@
 import { describe, expect, it } from 'vitest'
 import { demoTodayISO } from './calendar'
 import { assertSeedMemoryFactSemantics, memoryThreads, seedMemoryFacts } from './memories'
-import { isCanonicalMemoryDate } from './memoryDates'
+import { isCanonicalMemoryDate, MEMORY_DATE_YEAR_MAX, MEMORY_DATE_YEAR_MIN } from './memoryDates'
 
 describe('isCanonicalMemoryDate', () => {
   it('accepts valid calendar dates including leap days', () => {
     expect(isCanonicalMemoryDate('2026-07-05')).toBe(true)
     expect(isCanonicalMemoryDate('2024-02-29')).toBe(true)
+    expect(isCanonicalMemoryDate('2000-02-29')).toBe(true)
   })
 
-  it('rejects relative labels', () => {
-    expect(isCanonicalMemoryDate('Today')).toBe(false)
-    expect(isCanonicalMemoryDate('Aujourd’hui')).toBe(false)
-    expect(isCanonicalMemoryDate('Yesterday')).toBe(false)
-    expect(isCanonicalMemoryDate('Hier')).toBe(false)
+  it('enforces the supported year range', () => {
+    expect(isCanonicalMemoryDate(`${MEMORY_DATE_YEAR_MIN}-01-01`)).toBe(true)
+    expect(isCanonicalMemoryDate(`${MEMORY_DATE_YEAR_MAX}-12-31`)).toBe(true)
+    expect(isCanonicalMemoryDate(`${MEMORY_DATE_YEAR_MIN - 1}-12-31`)).toBe(false)
   })
 
-  it('rejects non-ISO prose, unpadded components, and impossible calendar dates', () => {
+  it('rejects invalid format strings', () => {
     for (const value of [
-      'Jul 5',
-      'banana',
-      '2026-7-5',
-      '2026-13-01',
+      '',
+      'Today',
+      'Yesterday',
+      'Aujourd’hui',
+      'Hier',
+      '2026-7-05',
+      '2026-07-5',
+      '26-07-05',
+      '2026/07/05',
+    ]) {
+      expect(isCanonicalMemoryDate(value)).toBe(false)
+    }
+  })
+
+  it('rejects values with trailing suffixes or timestamps', () => {
+    for (const value of [
+      '2026-07-05banana',
+      '2026-07-05foobar',
+      '2026-07-05T',
+      '2026-07-05T12:00:00Z',
+      '2026-07-05T99:99:99',
+      '2026-07-05 whatever',
+    ]) {
+      expect(isCanonicalMemoryDate(value)).toBe(false)
+    }
+  })
+
+  it('rejects impossible calendar dates', () => {
+    for (const value of [
       '2026-00-10',
+      '2026-13-01',
+      '2026-01-00',
+      '2026-01-32',
+      '2026-02-29',
+      '2025-02-29',
       '2026-02-30',
       '2026-04-31',
-      '2026-99-99',
-      '2025-02-29',
+      'banana',
     ]) {
       expect(isCanonicalMemoryDate(value)).toBe(false)
     }
@@ -92,7 +121,7 @@ describe('seedMemoryFacts', () => {
     }
   })
 
-  it('stores canonical ISO dates on every temporal field', () => {
+  it('stores canonical YYYY-MM-DD dates on every temporal field', () => {
     for (const fact of seedMemoryFacts) {
       expect(isCanonicalMemoryDate(fact.learnedAt)).toBe(true)
       if (fact.effectiveAt != null) {
@@ -100,9 +129,16 @@ describe('seedMemoryFacts', () => {
       }
       if (fact.confirmation !== null) {
         expect(isCanonicalMemoryDate(fact.confirmation.at)).toBe(true)
-        expect(fact.confirmation.at >= fact.learnedAt.slice(0, 10)).toBe(true)
+        expect(fact.confirmation.at >= fact.learnedAt).toBe(true)
       }
     }
+  })
+
+  it('rejects malformed learnedAt values in semantic validation', () => {
+    const bad = seedMemoryFacts.map((f) =>
+      f.id === 'p1' ? { ...f, learnedAt: '2026-07-05T12:00:00Z' } : f,
+    )
+    expect(() => assertSeedMemoryFactSemantics(bad)).toThrow(/canonical YYYY-MM-DD date/)
   })
 
   it('does not confirm counsel review with a later date than its source supports', () => {
@@ -183,8 +219,9 @@ describe('seedMemoryFacts', () => {
 })
 
 describe('memoryThreads', () => {
-  it('stores resumedAt instead of a relative nav label', () => {
+  it('stores resumedAt as a canonical YYYY-MM-DD date', () => {
     expect(memoryThreads[0]?.resumedAt).toBe(demoTodayISO)
+    expect(isCanonicalMemoryDate(memoryThreads[0]!.resumedAt)).toBe(true)
     expect(memoryThreads[0]).not.toHaveProperty('navSub')
   })
 })

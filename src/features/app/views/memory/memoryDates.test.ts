@@ -3,27 +3,10 @@ import { demoTodayISO } from '@/data'
 import { isCanonicalMemoryDate } from '@/data/memoryDates'
 import { formatMemoryDate, formatMemoryResumedSub } from './memoryDates'
 
-describe('isCanonicalMemoryDate', () => {
-  it('accepts valid calendar dates including leap days', () => {
-    expect(isCanonicalMemoryDate('2026-07-05')).toBe(true)
-    expect(isCanonicalMemoryDate('2024-02-29')).toBe(true)
-  })
-
-  it('rejects relative labels and malformed values', () => {
-    for (const value of [
-      'Today',
-      'Aujourd’hui',
-      'Jul 5',
-      '2026-7-5',
-      '2026-13-01',
-      '2026-00-10',
-      '2026-02-30',
-      '2026-04-31',
-      'banana',
-      '2025-02-29',
-    ]) {
-      expect(isCanonicalMemoryDate(value)).toBe(false)
-    }
+describe('isCanonicalMemoryDate re-export', () => {
+  it('rejects timestamp suffixes on otherwise valid date prefixes', () => {
+    expect(isCanonicalMemoryDate('2026-07-05T12:00:00Z')).toBe(false)
+    expect(isCanonicalMemoryDate('2026-07-05banana')).toBe(false)
   })
 })
 
