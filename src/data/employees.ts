@@ -569,7 +569,7 @@ export const orgStructure: OrgBranch[] = [
   { managerId: 'e7', dept: bi('Revenue', 'Revenus'), reportIds: ['e4', 'e11', 'e2'] },
 ]
 
-/** Profile placeholder when orgStructure has no direct-report edge for this person. */
+/** Unknown manager label — only when the person has no orgStructure manager and does not report directly to Riley. */
 export const UNKNOWN_LINE_MANAGER = '—'
 
 const employeeById = new Map(employees.map((employee) => [employee.id, employee]))
