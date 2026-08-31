@@ -183,8 +183,8 @@ describe('cross-references resolve', () => {
     expect(amaraTask?.jur.en).toBe('Ontario')
     expect(amaraComm?.province.en).toBe('Ontario')
     expect(amaraCompliance?.province.en).toBe('Ontario')
-    expect(communicationDetails.cm6?.bilingual.en).toContain('Ontario')
-    expect(communicationDetails.cm6?.bilingual.en).not.toMatch(/BC|British Columbia/)
+    expect(communicationDetails.cm6?.bilingual.en).toMatch(/confirm language preference/i)
+    expect(communicationDetails.cm6?.bilingual.en).not.toMatch(/Ontario workplace|BC|British Columbia/)
   })
 
   it('uses Multi-jurisdiction labels for cross-regime policy fixtures', () => {

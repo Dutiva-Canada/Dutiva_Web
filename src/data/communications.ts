@@ -20,8 +20,8 @@ export const communications: Communication[] = [
     tone: 'warning',
     updated: bi('2h ago', 'Il y a 2 h'),
     note: bi(
-      'Advisor flagged that RTO changes can constitute a change to terms of employment in some provinces. Review before sending.',
-      'Le Conseiller a signalé que les changements de retour au bureau peuvent constituer une modification des conditions d’emploi dans certaines provinces. À réviser avant l’envoi.',
+      'Advisor flagged that RTO changes may affect terms of employment depending on the applicable jurisdiction and circumstances. Review before sending.',
+      'Le Conseiller a signalé que les changements de retour au bureau peuvent modifier les conditions d’emploi selon la compétence applicable et les circonstances. À réviser avant l’envoi.',
     ),
   },
   {
@@ -110,8 +110,8 @@ export const communicationDetails: Record<string, CommunicationDetail> = {
     sensitive: true,
     review: { tone: true, legal: false, clarity: true, policy: false },
     gateNote: bi(
-      'RTO changes may alter terms of employment in some provinces, and the Remote Work Policy refresh is still in draft. Confirm policy alignment and jurisdictional impact before sending.',
-      'Les changements de retour au bureau peuvent modifier les conditions d’emploi dans certaines provinces, et la mise à jour de la Politique de télétravail est encore en ébauche. Confirmez la cohérence avec la politique et l’impact selon la compétence avant l’envoi.',
+      'RTO changes may affect terms of employment depending on the applicable jurisdiction and circumstances, and the Remote Work Policy refresh is still in draft. Confirm policy alignment and jurisdictional impact before sending.',
+      'Les changements de retour au bureau peuvent modifier les conditions d’emploi selon la compétence applicable et les circonstances, et la mise à jour de la Politique de télétravail est encore en ébauche. Confirmez la cohérence avec la politique et l’incidence selon la compétence avant l’envoi.',
     ),
   },
   cm2: {
@@ -162,7 +162,7 @@ export const communicationDetails: Record<string, CommunicationDetail> = {
   cm6: {
     communicationId: 'cm6',
     audienceType: bi('Employee-facing', 'Destiné aux employés'),
-    bilingual: bi('EN — Ontario workplace', 'EN — milieu de travail en Ontario'),
+    bilingual: bi('EN — confirm language preference', 'EN — confirmer la préférence linguistique'),
     linkedTo: bi(
       'Linked: Accommodation case — 90-day review Jul 14',
       'Lié : Dossier d’accommodement — examen à 90 jours le 14 juillet',
