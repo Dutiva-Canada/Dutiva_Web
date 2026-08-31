@@ -23,11 +23,14 @@ describe('compliance fixture accuracy', () => {
   })
 
   it('replaces the unsupported Ontario sick-leave proposal with verified in-force guidance', () => {
-    const sickLeave = regulatoryWatchlist[0]
-    expect(sickLeave?.title.en).toContain('sick leave and medical certificate rules')
+    const sickLeave = regulatoryWatchlist.find((item) =>
+      item.title.en.includes('sick leave and medical certificate rules'),
+    )
+
     expect(sickLeave?.title.en).not.toMatch(/proposed ESA amendments/i)
     expect(sickLeave?.status.en).toMatch(/In force/i)
     expect(sickLeave?.note.en).toMatch(/three-day leave/i)
+    expect(sickLeave?.note.en).toMatch(/medical-note restrictions/i)
   })
 
   it('acknowledges existing federally regulated roles in the harassment framework watch item', () => {
