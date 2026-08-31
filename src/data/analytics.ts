@@ -35,7 +35,7 @@ export const scoreHistory: ScoreHistoryPoint[] = [
 ]
 
 /**
- * Headcount by jurisdiction (prototype viewmodel constants — the diorama
+ * Headcount by jurisdiction (prototype viewmodel constants — the demo scenario
  * company is larger than the individually-modelled employee fixtures).
  * 'Federal' means federally regulated roles under the Canada Labour Code,
  * not a province — the view carries that footnote.
