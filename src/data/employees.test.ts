@@ -164,6 +164,11 @@ describe('employees fixtures', () => {
         `${rootReportId} is both branch manager and report`,
       ).toBe(false)
     }
+
+    /* Branch managers in orgStructure are exactly those who report directly to Riley. */
+    expect(new Set(orgRootReportIds)).toEqual(
+      new Set(orgStructure.map((branch) => branch.managerId)),
+    )
   })
 
   it('derives line managers from orgStructure rather than duplicated detail fields', () => {
