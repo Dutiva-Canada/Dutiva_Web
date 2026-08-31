@@ -70,12 +70,18 @@ export const cases: CaseFile[] = [
     retention: bi('3 years after the case closes', '3 ans après la fermeture du dossier'),
     chatId: 'c4',
     summary: bi(
-      'Attendance-related PIP. Advisor flagged the need to rule out a medical/accommodation cause before treating as misconduct.',
-      'PAR lié à l’assiduité. Le Conseiller a signalé la nécessité d’écarter une cause médicale ou d’accommodement avant de traiter la situation comme une inconduite.',
+      'Attendance-related PIP. Advisor flagged the need to consider whether disability-related or accommodation needs may be involved before treating the issue as misconduct.',
+      'PAR lié à l’assiduité. Le Conseiller a signalé la nécessité d’examiner si des besoins liés à un handicap ou à l’accommodement peuvent être en cause avant de traiter la situation comme une inconduite.',
     ),
     steps: [
       { label: bi('Concern documented', 'Préoccupation documentée'), done: true },
-      { label: bi('Accommodation ruled out', 'Accommodement écarté'), done: true },
+      {
+        label: bi(
+          'Accommodation considerations reviewed',
+          'Considérations d’accommodement examinées',
+        ),
+        done: true,
+      },
       { label: bi('PIP started', 'PAR démarré'), done: true },
       { label: bi('30-day check-in', 'Suivi à 30 jours'), done: false },
       { label: bi('Outcome decision', 'Décision sur l’issue'), done: false },
@@ -178,8 +184,8 @@ export const caseRiskByType: Record<CaseType, CaseRisk> = {
     tone: 'warning',
     factors: [
       bi(
-        'Must rule out a medical/accommodation cause before discipline',
-        'Doit écarter une cause médicale ou d’accommodement avant toute mesure disciplinaire',
+        'Consider whether disability-related or accommodation needs may be involved before discipline',
+        'Examiner si des besoins liés à un handicap ou à l’accommodement peuvent être en cause avant toute mesure disciplinaire',
       ),
       bi(
         'Requires a documented, measurable improvement plan',
@@ -197,8 +203,8 @@ export const caseRiskByType: Record<CaseType, CaseRisk> = {
         'Obligation d’accommodement jusqu’à la contrainte excessive',
       ),
       bi(
-        'Functional limitations only — diagnosis must stay off file',
-        'Limitations fonctionnelles seulement — le diagnostic doit rester hors dossier',
+        'Medical information should be limited to what is reasonably necessary to assess functional limitations and accommodation needs; diagnosis is generally unnecessary.',
+        'Les renseignements médicaux devraient être limités à ce qui est raisonnablement nécessaire pour évaluer les limitations fonctionnelles et les besoins d’accommodement; le diagnostic est généralement inutile.',
       ),
     ],
   },
@@ -222,8 +228,8 @@ export const caseRecommendationByType: Record<CaseType, FixtureToneCard> = {
     tone: 'risk',
     title: bi('Advisor recommendation', 'Recommandation du Conseiller'),
     body: bi(
-      'Do not send an offer until counsel confirms the notice range. Budget toward the high end (12 months) and keep the release contingent on independent legal advice.',
-      'N’envoyez pas d’offre tant que le conseiller juridique n’a pas confirmé la fourchette de préavis. Prévoyez le budget vers la limite supérieure (12 mois) et conditionnez la quittance à un avis juridique indépendant.',
+      'Do not send an offer until counsel reviews the preliminary notice range. For internal contingency planning, model the upper end of that range pending review. Keep any enhanced payment contingent on a signed release and recommend independent legal advice before signing.',
+      'N’envoyez pas d’offre avant l’examen par le conseiller juridique de la fourchette préliminaire de préavis. Pour la planification interne, modélisez la limite supérieure de cette fourchette en attendant l’examen. Conditionnez tout paiement bonifié à une quittance signée et recommandez un avis juridique indépendant avant la signature.',
     ),
   },
   Performance: {
@@ -238,8 +244,8 @@ export const caseRecommendationByType: Record<CaseType, FixtureToneCard> = {
     tone: 'warning',
     title: bi('Advisor recommendation', 'Recommandation du Conseiller'),
     body: bi(
-      'Hold functional-limitations info only — never a diagnosis. Confirm modified duties are still appropriate at the July 14 review.',
-      'Ne conservez que les limitations fonctionnelles — jamais un diagnostic. Confirmez que les tâches modifiées sont toujours appropriées à l’examen du 14 juillet.',
+      'Keep medical information limited to what is reasonably necessary for the accommodation process. Diagnosis is generally unnecessary unless the circumstances justify additional information. Confirm modified duties are still appropriate at the July 14 review.',
+      'Limitez les renseignements médicaux à ce qui est raisonnablement nécessaire au processus d’accommodement. Le diagnostic est généralement inutile, sauf si les circonstances justifient des renseignements additionnels. Confirmez que les tâches modifiées sont toujours appropriées à l’examen du 14 juillet.',
     ),
   },
   Onboarding: {
@@ -350,8 +356,8 @@ export const caseRiskAxesByType: Record<CaseType, CaseRiskAxis[]> = {
       axLegal,
       'Medium',
       bi(
-        'Discipline before ruling out accommodation creates human-rights exposure.',
-        'Discipliner avant d’écarter l’accommodement crée une exposition en droits de la personne.',
+        'Discipline without first considering whether disability-related or accommodation needs may be involved creates human-rights exposure.',
+        'Une mesure disciplinaire prise sans examiner d’abord si des besoins liés à un handicap ou à l’accommodement peuvent être en cause crée une exposition en droits de la personne.',
       ),
       bi(
         'Keep the accommodation door open in writing at each step.',
@@ -399,8 +405,8 @@ export const caseRiskAxesByType: Record<CaseType, CaseRiskAxis[]> = {
         'Les registres d’assiduité peuvent toucher à des renseignements médicaux.',
       ),
       bi(
-        'Hold functional information only — no diagnosis on file.',
-        'Ne conservez que l’information fonctionnelle — aucun diagnostic au dossier.',
+        'Restrict access and request or retain only the medical information reasonably necessary for the accommodation process.',
+        'Restreignez l’accès et ne demandez ou ne conservez que les renseignements médicaux raisonnablement nécessaires au processus d’accommodement.',
       ),
     ),
     axis(
@@ -467,8 +473,8 @@ export const caseRiskAxesByType: Record<CaseType, CaseRiskAxis[]> = {
         'Dossiers à caractère médical — limitations fonctionnelles seulement.',
       ),
       bi(
-        'Restrict access; never request or store a diagnosis.',
-        'Restreignez l’accès; ne demandez ni ne conservez jamais de diagnostic.',
+        'Restrict access and request or retain only the medical information reasonably necessary for the accommodation process.',
+        'Restreignez l’accès et ne demandez ou ne conservez que les renseignements médicaux raisonnablement nécessaires au processus d’accommodement.',
       ),
     ),
     axis(
@@ -544,7 +550,7 @@ export const caseNotes: Record<string, CaseNote[]> = {
     {
       text: bi(
         'Confirmed with Finance that the ESA severance payroll threshold is met — statutory severance applies.',
-        'Confirmé avec les Finances que le seuil de masse salariale de la LNE est atteint — l’indemnité de licenciement légale s’applique.',
+        'Confirmé avec les Finances que le seuil de masse salariale de la LNE est atteint — l’indemnité de cessation d’emploi s’applique.',
       ),
       author: 'Riley Summers',
       time: 'Jul 5, 3:12 PM',
