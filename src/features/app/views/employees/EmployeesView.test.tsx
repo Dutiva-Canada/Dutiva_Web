@@ -452,6 +452,7 @@ describe('EmployeeProfileProductionView for a non-admin member', () => {
               select: () => ({
                 eq: () => ({
                   maybeSingle: () => Promise.resolve({ data: EMPLOYEE_ROW, error: null }),
+                  order: () => listChain([EMPLOYEE_ROW]),
                 }),
               }),
             }

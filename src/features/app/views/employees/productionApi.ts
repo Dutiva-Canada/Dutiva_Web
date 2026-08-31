@@ -39,6 +39,8 @@ export interface NewEmployee {
   email: string
   jurisdiction: string
   startDate: string
+  /** Optional direct line manager within the same organization. */
+  managerId?: string
 }
 
 const rowSchema = z.object({
@@ -113,6 +115,7 @@ export async function addEmployee(
       email: fields.email || null,
       jurisdiction: fields.jurisdiction,
       start_date: fields.startDate || null,
+      manager_id: fields.managerId || null,
     })
     .select(SELECT_COLUMNS)
     .single()
@@ -163,6 +166,21 @@ export async function updateEmployeeStatus(
     .update({ status, updated_at: new Date().toISOString() })
     .eq('id', id)
   if (error) throw error
+}
+
+export async function updateEmployeeManager(
+  id: string,
+  managerId: string | null,
+): Promise<ProductionEmployee> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { data, error } = await supabase
+    .from('employees')
+    .update({ manager_id: managerId, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select(SELECT_COLUMNS)
+    .single()
+  if (error) throw error
+  return toEmployee(rowSchema.parse(data))
 }
 
 /**

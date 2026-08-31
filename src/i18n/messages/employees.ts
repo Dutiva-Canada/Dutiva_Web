@@ -280,6 +280,13 @@ export const employeesMessages = defineMessages({
   employees_prod_detail_email: { en: 'Email', fr: 'Courriel' },
   employees_prod_detail_jurisdiction: { en: 'Jurisdiction', fr: 'Compétence' },
   employees_prod_detail_start: { en: 'Start date', fr: 'Entrée en fonction' },
+  employees_prod_manager_unset: { en: 'Not set', fr: 'Non défini' },
+  employees_prod_manager_aria: { en: 'Line manager', fr: 'Gestionnaire' },
+  employees_prod_manager_updated: { en: 'Manager updated', fr: 'Gestionnaire mis à jour' },
+  employees_prod_manager_update_failed: {
+    en: 'Couldn’t update the manager. Try again.',
+    fr: 'Impossible de mettre à jour le gestionnaire. Réessayez.',
+  },
   employees_prod_status_aria: { en: 'Employee status', fr: 'Statut de l’employé' },
   employees_prod_status_updated: { en: 'Status updated', fr: 'Statut mis à jour' },
   employees_prod_status_update_failed: {

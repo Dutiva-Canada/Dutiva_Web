@@ -96,6 +96,7 @@ describe('employees productionApi', () => {
       email: null,
       jurisdiction: 'Ontario',
       start_date: null,
+      manager_id: null,
     })
     expect(added.name).toBe('Ana Souza')
   })
@@ -163,5 +164,25 @@ describe('employees productionApi', () => {
       employee_id: 'emp-1',
       body: 'Met for onboarding check-in.',
     })
+  })
+
+  it('updateEmployeeManager writes manager_id and returns the joined row', async () => {
+    const single = vi.fn().mockResolvedValue({
+      data: { ...ROW, manager_id: 'emp-2', manager: { name: 'Jordan Mensah' } },
+      error: null,
+    })
+    const eq = vi.fn().mockReturnValue({ select: () => ({ single }) })
+    const update = vi.fn().mockReturnValue({ eq })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: { from: vi.fn().mockReturnValue({ update }) },
+    }))
+    vi.resetModules()
+    const api = await import('./productionApi')
+
+    const updated = await api.updateEmployeeManager('emp-1', 'emp-2')
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ manager_id: 'emp-2' }))
+    expect(eq).toHaveBeenCalledWith('id', 'emp-1')
+    expect(updated.managerId).toBe('emp-2')
+    expect(updated.managerName).toBe('Jordan Mensah')
   })
 })

@@ -50,7 +50,14 @@ const inputClass =
   'w-full rounded-[10px] border border-border bg-surface px-[12px] py-[9px] font-sans text-[13.5px] text-text'
 const labelClass = 'mb-[4px] block text-[12px] font-semibold text-text-3'
 
-const EMPTY_FORM = { name: '', title: '', email: '', jurisdiction: 'Ontario', startDate: '' }
+const EMPTY_FORM = {
+  name: '',
+  title: '',
+  email: '',
+  jurisdiction: 'Ontario',
+  startDate: '',
+  managerId: '',
+}
 
 export function EmployeesProductionView() {
   const { x, lang } = useI18n()
@@ -92,6 +99,7 @@ export function EmployeesProductionView() {
       const added = await addEmployee(organizationId, {
         ...form,
         name: form.name.trim(),
+        managerId: form.managerId || undefined,
       })
       setRows((prev) => [...(prev ?? []), added].sort((a, b) => a.name.localeCompare(b.name)))
       setForm(EMPTY_FORM)
@@ -218,6 +226,26 @@ export function EmployeesProductionView() {
                 className={inputClass}
               />
             </div>
+            {(rows?.length ?? 0) > 0 && (
+              <div>
+                <label htmlFor="emp-manager" className={labelClass}>
+                  {x(M.employees_manager_label)}
+                </label>
+                <select
+                  id="emp-manager"
+                  value={form.managerId}
+                  onChange={(e) => setForm((f) => ({ ...f, managerId: e.target.value }))}
+                  className={inputClass}
+                >
+                  <option value="">{x(M.employees_prod_manager_unset)}</option>
+                  {(rows ?? []).map((row) => (
+                    <option key={row.id} value={row.id}>
+                      {row.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
           <div className="mt-[16px] flex gap-[8px]">
             <button

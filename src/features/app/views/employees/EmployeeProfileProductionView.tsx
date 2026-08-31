@@ -26,8 +26,10 @@ import {
   listEmployeeExpiryRecords,
   listEmployeeLeaves,
   listEmployeeNotes,
+  listEmployees,
   removeExpiryRecord,
   updateEmployeeDates,
+  updateEmployeeManager,
   updateEmployeeStatus,
   productionLineManagerLabel,
 } from './productionApi'
@@ -118,12 +120,13 @@ export function EmployeeProfileProductionView() {
   const [leaveStart, setLeaveStart] = useState('')
   const [leaveReturn, setLeaveReturn] = useState('')
   const [leaveSaving, setLeaveSaving] = useState(false)
+  const [roster, setRoster] = useState<ProductionEmployee[]>([])
 
   const load = useCallback(async () => {
     if (!organizationId || !employeeId) return
     setState('loading')
     try {
-      const [loaded, loadedNotes, allCases, loadedRecords, loadedLeaves, allTasks] =
+      const [loaded, loadedNotes, allCases, loadedRecords, loadedLeaves, allTasks, loadedRoster] =
         await Promise.all([
           getEmployee(employeeId),
           listEmployeeNotes(employeeId),
@@ -131,6 +134,7 @@ export function EmployeeProfileProductionView() {
           listEmployeeExpiryRecords(employeeId),
           listEmployeeLeaves(employeeId),
           listTasks(organizationId),
+          listEmployees(organizationId),
         ])
       if (!loaded) {
         setState('missing')
@@ -142,6 +146,7 @@ export function EmployeeProfileProductionView() {
       setRecords(loadedRecords)
       setLeaves(loadedLeaves)
       setTasks(allTasks)
+      setRoster(loadedRoster)
       setState('ready')
     } catch {
       setState('failed')
@@ -178,6 +183,22 @@ export function EmployeeProfileProductionView() {
       showToast(M.employees_prod_dates_failed, 'info')
     }
   }
+
+  const onManagerChange = async (value: string) => {
+    if (!employee) return
+    const managerId = value || null
+    try {
+      const updated = await updateEmployeeManager(employee.id, managerId)
+      setEmployee(updated)
+      showToast(M.employees_prod_manager_updated, 'ok')
+    } catch {
+      showToast(M.employees_prod_manager_update_failed, 'info')
+    }
+  }
+
+  const managerOptions = employee
+    ? roster.filter((row) => row.id !== employee.id).sort((a, b) => a.name.localeCompare(b.name))
+    : []
 
   const onCreateReviewTask = async () => {
     if (!employee) return
@@ -283,7 +304,6 @@ export function EmployeeProfileProductionView() {
     ? [
         { label: M.employees_prod_detail_title, value: employee.title },
         { label: M.employees_prod_detail_email, value: employee.email },
-        { label: M.employees_manager_label, value: productionLineManagerLabel(employee) },
         { label: M.employees_prod_detail_jurisdiction, value: employee.jurisdiction },
         { label: M.employees_prod_detail_start, value: employee.startDate },
       ]
@@ -364,6 +384,32 @@ export function EmployeeProfileProductionView() {
                   </div>
                 </div>
               ))}
+              {employee && (
+                <div>
+                  <div className="text-[11px] font-bold tracking-[0.04em] text-text-muted uppercase">
+                    {x(M.employees_manager_label)}
+                  </div>
+                  {isOrgAdmin && managerOptions.length > 0 ? (
+                    <select
+                      value={employee.managerId ?? ''}
+                      onChange={(e) => void onManagerChange(e.target.value)}
+                      aria-label={x(M.employees_prod_manager_aria)}
+                      className="mt-[2px] w-full cursor-pointer rounded-[8px] border border-border bg-surface px-[8px] py-[5px] font-sans text-[13px] font-semibold text-text"
+                    >
+                      <option value="">{x(M.employees_prod_manager_unset)}</option>
+                      {managerOptions.map((row) => (
+                        <option key={row.id} value={row.id}>
+                          {row.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="mt-[2px] text-[13px] font-semibold text-text">
+                      {productionLineManagerLabel(employee)}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Key dates — probation end (+ its review task) and, once the
