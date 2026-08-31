@@ -35,7 +35,9 @@ describe('knowledgeItems', () => {
     expect(k2.title.en).toBe('Ontario ESA: mandatory information for new employees')
     expect(k2.title.en).not.toMatch(/British Columbia|BC Employment/i)
     expect(k2.tag.en).toBe('Hiring · Ontario')
-    expect(k2.summary.en).toContain('25 or more employees')
+    expect(k2.summary.en).toContain('25 or more employees in Ontario')
+    expect(k2.summary.en).toContain('first day of work')
+    expect(k2.title.fr).toBe('LNE de l’Ontario : renseignements sur l’emploi des nouveaux employés')
     expect(k2.summary.en).not.toMatch(/job-posting|publicly advertised/i)
   })
 
@@ -59,6 +61,8 @@ describe('knowledgeItems', () => {
     expect(k3.title.en).not.toMatch(/Bill 96/i)
     expect(k3.tag.en).toBe('Language · Quebec')
     expect(k3.tag.fr).toBe('Langue · Québec')
+    expect(k3.title.en).toContain('documents & communications')
+    expect(k3.title.fr).toContain('documents et communications')
     expect(k3.summary.en).toMatch(/document or communication type/i)
   })
 
@@ -110,6 +114,7 @@ describe('knowledgeItems', () => {
     expect(k8.title.en).not.toMatch(/what employers can and can’t do/i)
     expect(k8.tag.en).toBe('Hiring · Canada')
     expect(k8.summary.fr).toContain('effets juridiques varient selon la compétence')
+    expect(k8.summary.en).toMatch(/provincial or territorial regimes/i)
   })
 
   it('does not use All provinces / Toutes les provinces tags', () => {

@@ -41,7 +41,9 @@ describe('KnowledgeView', () => {
       screen.getByText('Ontario ESA: notice of termination & severance pay'),
     ).toBeInTheDocument()
     expect(
-      screen.queryByText('Quebec Charter of the French Language: employment documents in French'),
+      screen.queryByText(
+        'Quebec Charter of the French Language: employment documents & communications',
+      ),
     ).not.toBeInTheDocument()
 
     /* Tag match. */
