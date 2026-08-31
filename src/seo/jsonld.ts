@@ -34,7 +34,9 @@ export function organizationNode(lang: Lang): JsonLdNode {
     legalName: ORG.legalName,
     url: `${SITE_ORIGIN}/`,
     description: ORG_DESCRIPTION[lang],
-    email: ORG.supportEmail,
+    /* mailto: so crawlers do not treat the address as a relative URL
+       (`/support@dutiva.ca`) and 404 it. Schema.org accepts either form. */
+    email: `mailto:${ORG.supportEmail}`,
     logo: {
       '@type': 'ImageObject',
       url: absoluteUrl(ORG.logoPath),

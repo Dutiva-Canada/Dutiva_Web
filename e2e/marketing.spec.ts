@@ -69,6 +69,28 @@ test.describe('marketing surface', () => {
   })
 })
 
+test.describe('marketing HTTP security', () => {
+  test('homepage sends clickjacking, MIME-sniff, and CSP headers without wildcard CORS', async ({
+    request,
+  }) => {
+    const response = await request.get('/')
+    expect(response.ok()).toBe(true)
+    const headers = response.headers()
+    expect(headers['x-frame-options']).toBe('DENY')
+    expect(headers['x-content-type-options']).toBe('nosniff')
+    expect(headers['content-security-policy']).toMatch(/frame-ancestors 'none'/)
+    expect(headers['access-control-allow-origin']).toBe('https://dutiva.ca')
+  })
+
+  test('does not list files at /assets', async ({ request }) => {
+    const response = await request.get('/assets')
+    expect(response.status()).toBe(404)
+    const body = await response.text()
+    expect(body).not.toMatch(/Index of/i)
+    expect(body).not.toMatch(/Files within/i)
+  })
+})
+
 test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false })
 

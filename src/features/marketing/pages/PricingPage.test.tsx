@@ -108,7 +108,22 @@ describe('PricingPage', () => {
   it('shows paid plans as checkout CTAs, not coming-soon', () => {
     renderPricing()
     expect(screen.queryByRole('button', { name: /Available after beta/i })).toBeNull()
-    expect(screen.getAllByRole('button', { name: /Sign in to continue/ }).length).toBeGreaterThan(0)
+    expect(screen.getByRole('link', { name: 'Join the waitlist — Free' })).toHaveAttribute(
+      'href',
+      '/#start',
+    )
+    expect(screen.getByRole('link', { name: /Sign in to continue — Starter/ })).toHaveAttribute(
+      'href',
+      '/app/welcome',
+    )
+    expect(screen.getByRole('link', { name: /Sign in to continue — Growth/ })).toHaveAttribute(
+      'href',
+      '/app/welcome',
+    )
+    expect(screen.getByRole('link', { name: /Sign in to continue — Professional/ })).toHaveAttribute(
+      'href',
+      '/app/welcome',
+    )
   })
 
   it('shows a success card with plan name and workspace link for a Stripe return', () => {

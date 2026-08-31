@@ -61,6 +61,9 @@ describe('AboutPage', () => {
     expect(screen.getByRole('heading', { level: 2, name: 'Company facts' })).toBeInTheDocument()
     expect(screen.getByText(ORG.corporationNumber)).toBeInTheDocument()
     expect(screen.getByText(ORG.legalName)).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('main')).getByRole('link', { name: ORG.supportEmail }),
+    ).toHaveAttribute('href', `mailto:${ORG.supportEmail}`)
   })
 
   it('re-localizes to French via the header language toggle', async () => {

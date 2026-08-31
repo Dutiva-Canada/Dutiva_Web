@@ -1,10 +1,13 @@
 # HTTP security headers
 
-Set in `vercel.json` on every route (`/:path*`), added 2026-08-08 after the
-security audit found none present. The full **Content-Security-Policy** is
-now enforcing; it was promoted from Report-Only on 2026-08-10 after a
-signed-in Playwright click-through of the marketing and app surfaces showed
-zero console violations.
+Set in `vercel.json` on every route (`/(.*)`), added 2026-08-08 after the
+security audit found none present. The matcher is `/(.*)` rather than
+`/:path*` because Vercel's path-to-regexp does **not** apply `/:path*` to
+`/` — TrustedSite (and any other homepage scanner) was reading the apex
+with no CSP, no `X-Frame-Options`, and no `nosniff`. The full
+**Content-Security-Policy** is now enforcing; it was promoted from
+Report-Only on 2026-08-10 after a signed-in Playwright click-through of
+the marketing and app surfaces showed zero console violations.
 
 ## Enforcing now
 
@@ -16,6 +19,22 @@ zero console violations.
 | `Referrer-Policy` | `strict-origin-when-cross-origin` | Path/query leakage to third parties. |
 | `Strict-Transport-Security` | `max-age=63072000; includeSubDomains` | SSL-strip / downgrade. (No `preload` yet — that commits every subdomain to HTTPS permanently; add it and submit to hstspreload.org when ready.) |
 | `Permissions-Policy` | `camera=(), microphone=(), geolocation=(), browsing-topics=()` | Powerful features the app never uses; opts out of Topics. |
+| `Access-Control-Allow-Origin` | `https://dutiva.ca` | Overrides Vercel's static-file default of `*`. The marketing site is first-party; hashed `/assets/*` files are still fetched same-origin (including the `crossorigin` font preload). |
+
+## Directory indexes
+
+Vercel Directory Listing was on for this project, so `GET /assets` (and
+`/brand`, `/.well-known`) returned an HTML inventory of every hashed
+bundle. `middleware.js` answers those exact paths with 404; files under
+them (`/assets/….js`, `/brand/icon-app.svg`, `/.well-known/security.txt`)
+are unchanged. Turn the project-wide setting off too: Vercel dashboard →
+Project → Settings → Advanced → Directory Listing.
+
+## Not overridable
+
+`Server: Vercel` is injected by the platform. `vercel.json` cannot remove or
+rename it. Scanners that flag it as an info leak will keep flagging it on
+this host.
 
 ## Enforcing CSP — promoted 2026-08-10
 

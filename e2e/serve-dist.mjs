@@ -9,6 +9,7 @@
  *   - /demo/* and /fr/demo/* (subpaths)   → app.html ( /demo roots stay prerendered )
  *   - trailingSlash:false clean URLs        (/about → dist/about/index.html)
  *   - real files served directly            (/assets/*, /robots.txt, /sw.js)
+ *   - /assets, /brand, /.well-known indexes → 404 (no directory listing)
  *   - anything unmatched → 404.html with a 404 status
  *
  * Dependency-free (Node's http/fs only) so the e2e harness carries no server
@@ -26,6 +27,19 @@ const PORT = Number(process.env.PORT) || 4173
 /** Keep in sync with vercel.json `Content-Security-Policy`. */
 const CSP =
   "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; worker-src 'self'; manifest-src 'self'; script-src 'self' 'sha256-gOx3nRh8znDQR7T1VkI+fFXDgsNzf5enQqdi7NP11Vk=' https://www.googletagmanager.com https://challenges.cloudflare.com https://js.hcaptcha.com https://newassets.hcaptcha.com https://cdn.ywxi.net; style-src 'self' https://newassets.hcaptcha.com https://cdn.ywxi.net; font-src 'self'; img-src 'self' data: blob: https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://*.challenges.cloudflare.com https://cdn.ywxi.net; connect-src 'self' https://khtwpxnvziiyplaflwru.supabase.co wss://khtwpxnvziiyplaflwru.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://api.hcaptcha.com https://js.hcaptcha.com https://challenges.cloudflare.com https://*.challenges.cloudflare.com https://cdn.ywxi.net https://www.trustedsite.com https://s3-us-west-2.amazonaws.com; frame-src https://www.googletagmanager.com https://challenges.cloudflare.com https://*.challenges.cloudflare.com https://newassets.hcaptcha.com https://www.trustedsite.com https://cdn.ywxi.net"
+
+/** Keep in sync with vercel.json security headers (minus HSTS — this server is http). */
+const SECURITY_HEADERS = {
+  'Content-Security-Policy': CSP,
+  'X-Frame-Options': 'DENY',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), browsing-topics=()',
+  'Access-Control-Allow-Origin': 'https://dutiva.ca',
+}
+
+/** Exact folder URLs that Vercel Directory Listing would otherwise inventory. */
+const DIRECTORY_INDEXES = new Set(['/assets', '/brand', '/.well-known'])
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -57,6 +71,11 @@ async function isFile(path) {
 
 /** Resolve a request pathname to a file in dist and its HTTP status. */
 async function resolve(pathname) {
+  const folder = pathname.replace(/\/+$/, '') || '/'
+  if (DIRECTORY_INDEXES.has(folder)) {
+    return { file: join(DIST, '404.html'), status: 404 }
+  }
+
   // /app and /app/* are rewritten to the SPA shell (vercel.json rewrites).
   if (pathname === '/app' || pathname.startsWith('/app/')) {
     return { file: join(DIST, 'app.html'), status: 200 }
@@ -98,7 +117,7 @@ const server = createServer(async (req, res) => {
     const body = await readFile(file)
     res.writeHead(status, {
       'Content-Type': MIME[extname(file)] ?? 'application/octet-stream',
-      'Content-Security-Policy': CSP,
+      ...SECURITY_HEADERS,
     })
     res.end(body)
   } catch (error) {

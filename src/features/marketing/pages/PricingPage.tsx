@@ -97,12 +97,19 @@ function PriceCard({
   plan,
   period,
   onCheckout,
+  onPrepareSignIn,
+  waitlistHref,
+  signInHref,
   isLoading,
   signedIn,
 }: {
   readonly plan: PlanDefinition
   readonly period: BillingPeriod
   readonly onCheckout: (plan: PlanDefinition) => void
+  /** Paid, signed-out: remember the plan before the sign-in link is followed. */
+  readonly onPrepareSignIn: (plan: PlanDefinition) => void
+  readonly waitlistHref: string
+  readonly signInHref: string
   readonly isLoading: boolean
   /** Paid plans read "Sign in to continue" instead of their own CTA when
    *  signed out — the click lands on the sign-in gate either way, and the
@@ -119,6 +126,18 @@ function PriceCard({
     : hasPrice && !signedIn
       ? t('pricing_cta_signin_first')
       : t(plan.ctaKey)
+  const accessibleName = `${ctaLabel} — ${t(plan.nameKey)}`
+  const ctaClass = [
+    'mt-8 inline-flex w-full items-center justify-center gap-2 px-4 py-3 text-sm',
+    plan.popular ? 'gold-button' : 'ghost-button',
+    isLoading || !purchasable ? 'cursor-not-allowed opacity-60' : '',
+  ].join(' ')
+  const ctaInner = (
+    <>
+      {isLoading ? t('pricing_cta_processing') : ctaLabel}
+      {purchasable ? <ArrowRight size={16} className="shrink-0" /> : null}
+    </>
+  )
 
   return (
     <div
@@ -174,18 +193,34 @@ function PriceCard({
         ))}
       </ul>
 
-      <button
-        onClick={() => onCheckout(plan)}
-        disabled={isLoading || !purchasable}
-        className={[
-          'mt-8 inline-flex w-full items-center justify-center gap-2 px-4 py-3 text-sm',
-          plan.popular ? 'gold-button' : 'ghost-button',
-          isLoading || !purchasable ? 'cursor-not-allowed opacity-60' : '',
-        ].join(' ')}
-      >
-        {isLoading ? t('pricing_cta_processing') : ctaLabel}
-        {purchasable ? <ArrowRight size={16} className="shrink-0" /> : null}
-      </button>
+      {!purchasable ? (
+        <button type="button" disabled className={ctaClass} aria-label={accessibleName}>
+          {ctaInner}
+        </button>
+      ) : plan.id === 'free' ? (
+        <a href={waitlistHref} className={ctaClass} aria-label={accessibleName}>
+          {ctaInner}
+        </a>
+      ) : !signedIn ? (
+        <a
+          href={signInHref}
+          className={ctaClass}
+          aria-label={accessibleName}
+          onClick={() => onPrepareSignIn(plan)}
+        >
+          {ctaInner}
+        </a>
+      ) : (
+        <button
+          type="button"
+          onClick={() => onCheckout(plan)}
+          disabled={isLoading}
+          className={ctaClass}
+          aria-label={accessibleName}
+        >
+          {ctaInner}
+        </button>
+      )}
     </div>
   )
 }
@@ -570,6 +605,9 @@ export function PricingPage() {
               plan={plan}
               period={effectivePeriod}
               onCheckout={handleCheckout}
+              onPrepareSignIn={(next) => setPendingCheckout(next.id)}
+              waitlistHref={home('start')}
+              signInHref="/app/welcome"
               isLoading={checkoutPlanId === plan.id}
               signedIn={status === 'signed-in'}
             />
