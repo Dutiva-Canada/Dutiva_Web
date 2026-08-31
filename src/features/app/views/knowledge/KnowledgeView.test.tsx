@@ -20,11 +20,11 @@ describe('KnowledgeView', () => {
     const articles = within(screen.getByTestId('knowledge-articles'))
     expect(articles.getAllByRole('button')).toHaveLength(knowledgeItems.length)
     expect(
-      screen.getByText('Ontario ESA: Notice of termination & severance pay'),
+      screen.getByText('Ontario ESA: notice of termination & severance pay'),
     ).toBeInTheDocument()
     expect(screen.getByText('Termination · Ontario')).toBeInTheDocument()
     expect(
-      screen.getByText('Probationary periods: what employers can and can’t do'),
+      screen.getByText('Probationary periods: employment standards & termination risk'),
     ).toBeInTheDocument()
   })
 
@@ -37,17 +37,17 @@ describe('KnowledgeView', () => {
     fireEvent.change(input, { target: { value: 'SEVERANCE' } })
     expect(articles.getAllByRole('button')).toHaveLength(1)
     expect(
-      screen.getByText('Ontario ESA: Notice of termination & severance pay'),
+      screen.getByText('Ontario ESA: notice of termination & severance pay'),
     ).toBeInTheDocument()
     expect(
-      screen.queryByText('Quebec Bill 96: French-language workplace documents'),
+      screen.queryByText('Quebec Charter of the French Language: employment documents in French'),
     ).not.toBeInTheDocument()
 
     /* Tag match. */
     fireEvent.change(input, { target: { value: 'british columbia' } })
     expect(articles.getAllByRole('button')).toHaveLength(1)
     expect(
-      screen.getByText('BC Employment Standards: written offer requirements'),
+      screen.getByText('BC Employment Standards: hiring rules & employment terms'),
     ).toBeInTheDocument()
 
     /* Clearing restores the full list. */

@@ -11,65 +11,65 @@ export const knowledgeItems: KnowledgeItem[] = [
   {
     id: 'k1',
     title: bi(
-      'Ontario ESA: Notice of termination & severance pay',
-      'LNE de l’Ontario : préavis de cessation et indemnité de licenciement',
+      'Ontario ESA: notice of termination & severance pay',
+      'LNE de l’Ontario : préavis de licenciement et indemnité de cessation d’emploi',
     ),
-    tag: bi('Termination · Ontario', 'Cessation · Ontario'),
+    tag: bi('Termination · Ontario', 'Licenciement · Ontario'),
   },
   {
     id: 'k2',
     title: bi(
-      'BC Employment Standards: written offer requirements',
-      'Normes d’emploi de la C.-B. : exigences d’offre écrite',
+      'BC Employment Standards: hiring rules & employment terms',
+      'Normes d’emploi de la C.-B. : règles d’embauche et conditions d’emploi',
     ),
     tag: bi('Hiring · British Columbia', 'Embauche · Colombie-Britannique'),
   },
   {
     id: 'k3',
     title: bi(
-      'Quebec Bill 96: French-language workplace documents',
-      'Loi 96 du Québec : documents de travail en français',
+      'Quebec Charter of the French Language: employment documents in French',
+      'Charte de la langue française du Québec : documents d’emploi en français',
     ),
-    tag: bi('Onboarding · Quebec', 'Intégration · Québec'),
+    tag: bi('Language · Quebec', 'Langue · Québec'),
   },
   {
     id: 'k4',
     title: bi(
       'Duty to accommodate: functional limitations vs. diagnosis',
-      'Obligation d’accommodement : limitations fonctionnelles c. diagnostic',
+      'Obligation d’accommodement : limitations fonctionnelles et diagnostic',
     ),
-    tag: bi('Accommodation · All provinces', 'Accommodement · Toutes les provinces'),
+    tag: bi('Accommodation · Canada', 'Accommodement · Canada'),
   },
   {
     id: 'k5',
     title: bi(
-      'Culpable vs. innocent absenteeism: what’s disciplinable',
-      'Absentéisme coupable c. non coupable : ce qui est sanctionnable',
+      'Culpable vs. innocent absenteeism: discipline & accommodation',
+      'Absentéisme fautif et non fautif : discipline et accommodement',
     ),
-    tag: bi('Performance · All provinces', 'Rendement · Toutes les provinces'),
+    tag: bi('Attendance · Canada', 'Assiduité · Canada'),
   },
   {
     id: 'k6',
     title: bi(
-      'Federally regulated employers: Canada Labour Code notice',
-      'Employeurs sous réglementation fédérale : préavis du Code canadien du travail',
+      'Federally regulated employers: Canada Labour Code termination notice',
+      'Employeurs sous réglementation fédérale : préavis de licenciement prévu par le Code canadien du travail',
     ),
-    tag: bi('Termination · Federal', 'Cessation · Fédéral'),
+    tag: bi('Termination · Federal', 'Licenciement · Fédéral'),
   },
   {
     id: 'k7',
     title: bi(
-      'Remote work: OHS obligations for home offices',
-      'Télétravail : obligations SST pour les bureaux à domicile',
+      'Remote work: OHS considerations for home offices',
+      'Télétravail : considérations de SST pour le travail à domicile',
     ),
-    tag: bi('Policy · All provinces', 'Politique · Toutes les provinces'),
+    tag: bi('Health & safety · Canada', 'Santé et sécurité · Canada'),
   },
   {
     id: 'k8',
     title: bi(
-      'Probationary periods: what employers can and can’t do',
-      'Périodes de probation : ce que les employeurs peuvent et ne peuvent pas faire',
+      'Probationary periods: employment standards & termination risk',
+      'Périodes de probation : normes d’emploi et risques liés au licenciement',
     ),
-    tag: bi('Hiring · All provinces', 'Embauche · Toutes les provinces'),
+    tag: bi('Hiring · Canada', 'Embauche · Canada'),
   },
 ]
