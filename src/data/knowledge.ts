@@ -2,9 +2,14 @@ import { bi } from '@/i18n/core'
 import type { KnowledgeItem } from './types'
 
 /**
- * Knowledge base articles, transcribed from the prototype's
- * `buildKnowledgeItems()`. The prototype has no ids — stable `k1`–`k8` ids
- * added here.
+ * Advisor Knowledge Base demo fixtures, adapted from the prototype's
+ * `buildKnowledgeItems()`. Stable `k1`–`k8` ids are retained for
+ * application routes and fixture references. EN/FR content has been
+ * revised for jurisdictional and compliance accuracy.
+ *
+ * Tags scoped to "Canada" / « Canada » mark cross-jurisdictional topics;
+ * substantive rules still depend on Ontario, Quebec, federal, or other
+ * applicable workplace law.
  */
 
 export const knowledgeItems: KnowledgeItem[] = [
@@ -17,19 +22,19 @@ export const knowledgeItems: KnowledgeItem[] = [
     tag: bi('Termination · Ontario', 'Licenciement · Ontario'),
     summary: bi(
       'Under Ontario’s ESA, notice of termination and severance pay are separate entitlements with different thresholds — check both before calculating a termination package.',
-      'Sous la LNE de l’Ontario, le préavis de licenciement et l’indemnité de cessation d’emploi sont des droits distincts, avec des seuils différents — vérifiez les deux avant de calculer une fin d’emploi.',
+      'Sous la LNE de l’Ontario, le préavis de licenciement et l’indemnité de cessation d’emploi sont des droits distincts, avec des seuils différents — vérifiez les deux avant de calculer les sommes dues lors d’un licenciement.',
     ),
   },
   {
     id: 'k2',
     title: bi(
-      'Ontario ESA: hiring information & employment terms',
-      'LNE de l’Ontario : informations d’embauche et conditions d’emploi',
+      'Ontario ESA: mandatory information for new employees',
+      'LNE de l’Ontario : renseignements obligatoires pour les nouveaux employés',
     ),
     tag: bi('Hiring · Ontario', 'Embauche · Ontario'),
     summary: bi(
-      'Ontario employment standards require certain hiring and pay information to be provided in writing — requirements depend on what is communicated and when employment begins.',
-      'La LNE exige que certaines informations d’embauche et de rémunération soient fournies par écrit — les exigences dépendent de ce qui est communiqué et du moment où l’emploi commence.',
+      'Ontario employers with 25 or more employees must provide new employees with specified job information in writing before their first day of work, or as soon afterward as reasonably possible if advance delivery is not practicable.',
+      'Les employeurs ontariens comptant 25 employés ou plus doivent fournir aux nouveaux employés certains renseignements sur leur emploi par écrit avant leur première journée de travail ou, si cela n’est pas possible, dès que raisonnablement possible par la suite.',
     ),
   },
   {
@@ -40,8 +45,8 @@ export const knowledgeItems: KnowledgeItem[] = [
     ),
     tag: bi('Language · Quebec', 'Langue · Québec'),
     summary: bi(
-      'Quebec’s Charter of the French Language governs the language of many employment documents — French is generally required, with limited document-specific exceptions.',
-      'La Charte de la langue française du Québec régit la langue de nombreux documents d’emploi — le français est généralement requis, avec des exceptions limitées selon le type de document.',
+      'Quebec’s Charter of the French Language governs the language of many employment documents and communications — French requirements, conditions, and exceptions vary by document or communication type.',
+      'La Charte de la langue française du Québec régit la langue de nombreux documents et communications liés à l’emploi — les exigences, conditions et exceptions relatives au français varient selon le type de document ou de communication.',
     ),
   },
   {
@@ -52,8 +57,8 @@ export const knowledgeItems: KnowledgeItem[] = [
     ),
     tag: bi('Accommodation · Canada', 'Accommodement · Canada'),
     summary: bi(
-      'Accommodation focuses on functional limitations and workplace barriers; diagnosis alone is not always required to begin the process, but rules vary by jurisdiction and federal sector.',
-      'L’accommodement porte sur les limitations fonctionnelles et les obstacles en milieu de travail; le diagnostic seul n’est pas toujours requis pour amorcer le processus, mais les règles varient selon la compétence.',
+      'Accommodation generally focuses on functional limitations, accommodation needs, and workplace barriers rather than diagnosis; the medical information an employer may require depends on the circumstances and on Ontario, Quebec, federally regulated, or other applicable human-rights and employment rules.',
+      'L’accommodement porte généralement sur les limitations fonctionnelles, les besoins d’accommodement et les obstacles en milieu de travail plutôt que sur le diagnostic; les renseignements médicaux qu’un employeur peut demander dépendent des circonstances et des règles applicables en Ontario, au Québec, dans les milieux sous réglementation fédérale ou ailleurs.',
     ),
   },
   {
@@ -64,8 +69,8 @@ export const knowledgeItems: KnowledgeItem[] = [
     ),
     tag: bi('Attendance · Canada', 'Assiduité · Canada'),
     summary: bi(
-      'Culpable and non-culpable absence framing helps structure attendance management, but discipline and accommodation obligations still depend on the facts and applicable jurisdiction.',
-      'La distinction entre absentéisme fautif et non fautif aide à structurer la gestion de l’assiduité, mais la discipline et l’accommodement dépendent toujours des faits et de la compétence applicable.',
+      'Culpable and non-culpable absence framing helps structure attendance management, but discipline steps and accommodation duties differ among Ontario, Quebec, federally regulated workplaces, and other applicable regimes.',
+      'La distinction entre absentéisme fautif et non fautif aide à structurer la gestion de l’assiduité, mais les mesures disciplinaires et les obligations d’accommodement varient en Ontario, au Québec, dans les milieux sous réglementation fédérale et selon les autres régimes applicables.',
     ),
   },
   {
@@ -88,8 +93,8 @@ export const knowledgeItems: KnowledgeItem[] = [
     ),
     tag: bi('Health & safety · Canada', 'Santé et sécurité · Canada'),
     summary: bi(
-      'Remote and home-office work raises OHS considerations that vary by jurisdiction — policies should reflect applicable provincial, territorial, or federal rules.',
-      'Le télétravail soulève des considérations de SST qui varient selon la compétence — les politiques doivent refléter les règles provinciales, territoriales ou fédérales applicables.',
+      'Remote and home-office work raises OHS considerations that differ among Ontario, Quebec, federally regulated workplaces, and other provincial or territorial regimes — policies should reflect the rules that apply to each employee’s workplace.',
+      'Le télétravail soulève des considérations de SST qui diffèrent en Ontario, au Québec, dans les milieux sous réglementation fédérale et selon les autres régimes provinciaux ou territoriaux — les politiques doivent refléter les règles applicables au milieu de travail de chaque employé.',
     ),
   },
   {
@@ -100,8 +105,8 @@ export const knowledgeItems: KnowledgeItem[] = [
     ),
     tag: bi('Hiring · Canada', 'Embauche · Canada'),
     summary: bi(
-      'Probationary periods interact with employment standards minima, contract terms, and termination risk — length and enforceability vary across Canada.',
-      'Les périodes de probation interagissent avec les minima des normes d’emploi, les conditions contractuelles et les risques de licenciement — la durée et l’applicabilité varient au Canada.',
+      'Probationary periods interact with employment standards minima, contract terms, and termination risk — length and enforceability differ among Ontario, Quebec, federally regulated workplaces, and other provincial regimes.',
+      'Les périodes de probation interagissent avec les minima des normes d’emploi, les conditions contractuelles et les risques de licenciement — leur durée et leurs effets juridiques varient selon la compétence.',
     ),
   },
 ]
