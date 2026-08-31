@@ -34,6 +34,7 @@ export const advisorCore = defineMessages({
   // Accessible name for the horizontally scrollable frame a Markdown table
   // sits in — screen-reader only. [FR self-authored]
   advisor_md_table: { en: 'Table', fr: 'Tableau' },
+  advisor_md_image: { en: 'Image', fr: 'Image' },
   advisor_chart_data: { en: 'Chart data', fr: 'Données du graphique' }, // [FR self-authored]
   advisor_chart_show_data: { en: 'Show data', fr: 'Afficher les données' }, // [FR self-authored]
   advisor_chart_hide_data: { en: 'Hide data', fr: 'Masquer les données' }, // [FR self-authored]

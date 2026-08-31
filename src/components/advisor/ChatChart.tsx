@@ -70,7 +70,7 @@ export interface ChartSpec {
   data?: Array<Record<string, string | number>>
 }
 
-/** Categorical slots, assigned in fixed order — never cycled, never by rank. */
+/** Categorical palette assigned in fixed order; repeats after five slots, never by rank. */
 const SERIES_VARS = [
   'var(--cm-chart-1)',
   'var(--cm-chart-2)',
@@ -84,12 +84,50 @@ const GRID = 'var(--cm-chart-grid)'
 const MUTED = 'var(--cm-chart-muted)'
 const SURFACE = 'var(--cm-chart-surface)'
 
+const CHART_TYPES = new Set(['bar', 'hbar', 'line', 'area', 'donut'])
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
 function parseSpec(source: string): ChartSpec | null {
   try {
-    const spec = JSON.parse(source) as ChartSpec
-    if (!Array.isArray(spec?.data) || spec.data.length === 0) return null
-    if (!Array.isArray(spec.series) || spec.series.length === 0) return null
-    return spec
+    const value: unknown = JSON.parse(source)
+    if (!isRecord(value)) return null
+
+    if (value.type !== undefined && (typeof value.type !== 'string' || !CHART_TYPES.has(value.type))) {
+      return null
+    }
+
+    if (
+      !Array.isArray(value.series) ||
+      value.series.length === 0 ||
+      !value.series.every(
+        (series) =>
+          isRecord(series) &&
+          typeof series.key === 'string' &&
+          series.key.length > 0 &&
+          (series.label === undefined || typeof series.label === 'string'),
+      )
+    ) {
+      return null
+    }
+
+    if (
+      !Array.isArray(value.data) ||
+      value.data.length === 0 ||
+      !value.data.every(
+        (row) =>
+          isRecord(row) &&
+          Object.values(row).every(
+            (cell) => typeof cell === 'string' || typeof cell === 'number',
+          ),
+      )
+    ) {
+      return null
+    }
+
+    return value as unknown as ChartSpec
   } catch {
     return null
   }

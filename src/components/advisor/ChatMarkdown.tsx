@@ -12,7 +12,7 @@
  *     titled by its first column, each value tagged with its column header.
  *     On >= 640px they stay real tables with a sticky header.
  *   - Charts via a ```chart fenced block (see ChatChart.tsx).
- *   - Images, code, quotes, lists styled to match the chat surface.
+ *   - Code, quotes, lists styled to match the chat surface.
  *
  * Theming: every color derives from `currentColor` of the message bubble, so
  * light/dark and any brand palette work with no configuration. Override
@@ -21,7 +21,8 @@
  *
  * Security: raw HTML in model output is NOT rendered (react-markdown's
  * default). Do not add rehype-raw here — it would let model output inject
- * markup into the page.
+ * markup into the page. Markdown images are also suppressed: model-supplied
+ * URLs must not trigger arbitrary third-party browser requests.
  */
 
 import {
@@ -134,6 +135,14 @@ function MdTable({ node, children }: { node?: unknown; children?: ReactNode }) {
   )
 }
 
+/** Model Markdown must not load arbitrary remote image URLs. */
+function MdImagePlaceholder({ alt, title }: { readonly alt?: string; readonly title?: string }) {
+  const { x } = useI18n()
+  return (
+    <span className="cm-image-placeholder">{title || alt || x(advisorCore.advisor_md_image)}</span>
+  )
+}
+
 /**
  * Stamp each cell with its column header so the mobile card layout can print
  * the label via CSS `content: attr(data-label)`.
@@ -196,17 +205,7 @@ const components: Components = {
     </a>
   ),
 
-  img: ({ src, alt, title }) => (
-    <figure className="cm-figure">
-      <img
-        className="cm-img"
-        src={typeof src === 'string' ? src : undefined}
-        alt={alt ?? ''}
-        loading="lazy"
-      />
-      {(title || alt) && <figcaption className="cm-caption">{title || alt}</figcaption>}
-    </figure>
-  ),
+  img: ({ alt, title }) => <MdImagePlaceholder alt={alt} title={title} />,
 
   table: MdTable,
   thead: ({ children }) => <thead className="cm-thead">{children}</thead>,

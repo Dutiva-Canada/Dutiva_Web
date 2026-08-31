@@ -78,9 +78,28 @@ describe('ChatMarkdown', () => {
     expect(container.textContent).toContain('<b>bold</b>')
   })
 
+  it('does not load remote images from model markdown', () => {
+    const { container } = renderMd('![wage chart](https://third-party.example/tracker?id=1)')
+    expect(container.querySelector('img')).toBeNull()
+    expect(container.querySelector('.cm-image-placeholder')).not.toBeNull()
+    expect(screen.getByText('wage chart')).toBeInTheDocument()
+  })
+
   it('falls back to a code block when a chart spec is malformed', async () => {
     const { container } = renderMd('```chart\n{ "type": "bar", oops\n```')
     expect(await screen.findByText(/"type": "bar", oops/)).toHaveClass('cm-codeblock')
+    expect(container.querySelector('figure.cm-chart')).toBeNull()
+  })
+
+  it.each([
+    ['unsupported type', { type: 'scatter', series: [{ key: 'rate' }], data: [{ rate: 17.6 }] }],
+    ['invalid series', { type: 'bar', series: [null], data: [{ rate: 17.6 }] }],
+    ['invalid data', { type: 'bar', series: [{ key: 'rate' }], data: [null] }],
+  ])('falls back for a parseable chart spec with %s', async (_name, spec) => {
+    const source = JSON.stringify(spec)
+    const { container } = renderMd(`\`\`\`chart\n${source}\n\`\`\``)
+
+    expect(await screen.findByText(source)).toHaveClass('cm-codeblock')
     expect(container.querySelector('figure.cm-chart')).toBeNull()
   })
 
@@ -107,6 +126,11 @@ describe('ChatMarkdown', () => {
 describe('hideIncompleteTable', () => {
   it('hides a trailing table fragment that has no separator row yet', () => {
     const partial = 'Here is the comparison.\n\n| Jurisdiction | Current rate |'
+    expect(hideIncompleteTable(partial)).toBe('Here is the comparison.\n')
+  })
+
+  it('hides an incomplete table even when the streamed header ends with a newline', () => {
+    const partial = 'Here is the comparison.\n\n| Jurisdiction | Current rate |\n'
     expect(hideIncompleteTable(partial)).toBe('Here is the comparison.\n')
   })
 

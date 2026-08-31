@@ -341,6 +341,13 @@
   line-height: 1.45;
   color: var(--cm-muted);
 }
+.cm-image-placeholder {
+  display: inline-block;
+  font-size: 0.85em;
+  line-height: 1.45;
+  color: var(--cm-muted);
+  font-style: italic;
+}
 
 /* ------------------------------------------------------------ Streaming */
 
@@ -527,6 +534,7 @@
   .cm-root *::before,
   .cm-root *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }

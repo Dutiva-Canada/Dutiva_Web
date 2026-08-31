@@ -8,13 +8,19 @@ const SEPARATOR_ROW = /^[\s|:-]+$/
  */
 export function hideIncompleteTable(markdown: string): string {
   const lines = markdown.split('\n')
-  let start = lines.length
-  while (start > 0 && PIPE_ROW.test(lines[start - 1] ?? '')) start -= 1
-  if (start >= lines.length) return markdown
 
-  const tail = lines.slice(start)
+  let end = lines.length
+  while (end > 0 && (lines[end - 1] ?? '').trim() === '') end -= 1
+
+  let start = end
+  while (start > 0 && PIPE_ROW.test(lines[start - 1] ?? '')) start -= 1
+
+  if (start >= end) return markdown
+
+  const tail = lines.slice(start, end)
   const settled = tail.some(
     (line) => SEPARATOR_ROW.test(line) && line.includes('-') && line.includes('|'),
   )
+
   return settled ? markdown : lines.slice(0, start).join('\n')
 }
