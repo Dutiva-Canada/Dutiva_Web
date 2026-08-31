@@ -324,7 +324,7 @@ export interface PolicyAcknowledgmentCampaign {
  * A dated per-person record with an expiry — a certification/training
  * credential or an employee document (work permit, visa, medical
  * certificate). `employeeId` is null when the person belongs to the wider
- * 82-person diorama rather than the individually modelled roster (same
+ * 82-person demo scenario rather than the individually modelled roster (same
  * pattern as task owners like Marcus Bell).
  */
 export interface ExpiryRecord {
