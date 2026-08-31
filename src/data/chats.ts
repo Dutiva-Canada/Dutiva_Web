@@ -293,8 +293,8 @@ export const chats: ChatThread[] = [
             'L’absentéisme non fautif ou lié à un handicap ne peut généralement être traité par la seule discipline — en Ontario, l’employeur peut avoir l’obligation de s’enquérir avant une mesure défavorable lorsqu’il sait ou devrait savoir qu’un handicap peut être lié au rendement ou au comportement au travail.',
           ),
           bi(
-            'Disciplining before ruling out a medical cause risks a discrimination claim.',
-            'Sanctionner avant d’écarter une cause médicale risque une plainte pour discrimination.',
+            'Taking disciplinary action before considering whether disability-related needs may be involved can create discrimination risk.',
+            'Prendre une mesure disciplinaire avant d’examiner si des besoins liés à un handicap peuvent être en cause peut créer un risque de discrimination.',
           ),
         ],
         cards: [
@@ -506,8 +506,8 @@ export const lightFlows: Record<string, LightFlow> = {
         'L’absentéisme non fautif ou lié à un handicap ne peut généralement être traité par la seule discipline — en Ontario, l’employeur peut avoir l’obligation de s’enquérir avant une mesure défavorable lorsqu’il sait ou devrait savoir qu’un handicap peut être lié au rendement ou au comportement au travail.',
       ),
       bi(
-        'Disciplining before ruling out a medical cause risks a discrimination claim.',
-        'Sanctionner avant d’écarter une cause médicale risque une plainte pour discrimination.',
+        'Taking disciplinary action before considering whether disability-related needs may be involved can create discrimination risk.',
+        'Prendre une mesure disciplinaire avant d’examiner si des besoins liés à un handicap peuvent être en cause peut créer un risque de discrimination.',
       ),
     ],
     cards: [
@@ -606,8 +606,8 @@ export const followupReplies: Record<string, FollowupReply> = {
     ),
     reasoning: [
       bi(
-        'Common-law "rule of thumb" scales with age, role seniority, tenure, and availability of similar work — not just years of service.',
-        'La « règle générale » en common law varie selon l’âge, le niveau du poste, l’ancienneté et la disponibilité d’un emploi comparable — pas seulement les années de service.',
+        'A common-law reasonable-notice assessment considers factors such as age, character and seniority of the role, length of service, and availability of similar employment — not just years of service.',
+        'L’évaluation du préavis raisonnable en common law tient notamment compte de l’âge, de la nature et du niveau du poste, de l’ancienneté et de la disponibilité d’un emploi comparable — pas seulement des années de service.',
       ),
     ],
   },
