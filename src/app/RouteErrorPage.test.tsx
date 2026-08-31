@@ -31,6 +31,7 @@ describe('RouteErrorPage', () => {
   })
 
   afterEach(() => {
+    vi.unstubAllGlobals()
     vi.restoreAllMocks()
   })
 
@@ -63,7 +64,7 @@ describe('RouteErrorPage', () => {
       serviceWorker: { getRegistrations: vi.fn().mockResolvedValue([{ unregister }]) },
     })
     vi.stubGlobal('caches', {
-      keys: vi.fn().mockResolvedValue(['dutiva-precache-1']),
+      keys: vi.fn().mockResolvedValue(['dutiva-precache-1', 'dutiva-runtime-1']),
       delete: remove,
     })
     vi.spyOn(window, 'location', 'get').mockReturnValue({
@@ -77,7 +78,7 @@ describe('RouteErrorPage', () => {
 
     expect(unregister).toHaveBeenCalled()
     expect(remove).toHaveBeenCalledWith('dutiva-precache-1')
+    expect(remove).toHaveBeenCalledWith('dutiva-runtime-1')
     expect(reload).toHaveBeenCalled()
-    vi.unstubAllGlobals()
   })
 })
