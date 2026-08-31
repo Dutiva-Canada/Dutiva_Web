@@ -544,7 +544,7 @@ export const employeeDetails: Record<string, EmployeeDetail> = {
 
 /* -------------------------------------------------------------- org graph */
 
-/** Workspace root (prototype `buildOrgGraph().root`). Not an Employee row — see orgRootReportIds. */
+/** Workspace root (prototype `buildOrgGraph().root`). Not an Employee row — line manager display uses orgRoot.name for orgRootReportIds. */
 export const orgRoot = {
   name: 'Riley Summers',
   initials: 'RS',
@@ -552,8 +552,8 @@ export const orgRoot = {
 }
 
 /**
- * Branch managers with a direct reporting line to orgRoot. Riley is the org-chart
- * root only; line-manager display uses orgRoot.name for these ids.
+ * Branch managers who report directly to orgRoot. Riley is their line manager on
+ * profile/case surfaces (orgRoot.name); she is not stored as an Employee fixture row.
  */
 export const orgRootReportIds: readonly string[] = ['e1', 'e7', 'e9']
 
