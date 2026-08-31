@@ -15,7 +15,7 @@ describe('Advisor chat fixtures — jurisdiction and provenance copy', () => {
   it('frames Quebec onboarding under the Charter rather than Bill 96', () => {
     const onboarding = lightFlows.onboarding!
     expect(onboarding.reasoning?.[0]?.en).toContain('Charter of the French Language')
-    expect(onboarding.reasoning?.[0]?.en).not.toMatch(/^Bill 96/)
+    expect(onboarding.reasoning?.[0]?.en).not.toMatch(/Bill 96/i)
     expect(onboarding.cards?.[0]?.citations?.[0]?.label.en).toBe(
       'Charter of the French Language (Québec)',
     )
@@ -23,8 +23,13 @@ describe('Advisor chat fixtures — jurisdiction and provenance copy', () => {
 
   it('uses Ontario mandatory new-hire information in the hiring light flow', () => {
     const hiring = lightFlows.hiring!
+    const requirement = hiring.reasoning?.[1]?.en
+
     expect(hiring.reasoning?.[0]?.en).toContain('Ontario')
-    expect(hiring.reasoning?.[1]?.en).toContain('25 or more employees')
+    expect(requirement).toContain('25 or more employees')
+    expect(requirement).toMatch(/new employee’s first day/i)
+    expect(requirement).toMatch(/before that first day/i)
+    expect(requirement).toMatch(/if that is not practicable/i)
   })
 
   it('names shipped jurisdictions for remote-work OHS considerations', () => {
