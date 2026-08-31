@@ -193,7 +193,7 @@ export const casesMessages = defineMessages({
   cases_prod_type: { en: 'Case type', fr: 'Type de dossier' },
   cases_prod_employee: { en: 'Employee (optional)', fr: 'Employé (facultatif)' },
   cases_prod_employee_none: { en: 'No linked employee', fr: 'Aucun employé lié' },
-  cases_prod_province: { en: 'Province', fr: 'Province' },
+  cases_prod_jurisdiction: { en: 'Jurisdiction', fr: 'Compétence' },
   cases_prod_due: { en: 'Due date', fr: 'Échéance' },
   cases_prod_save: { en: 'Create case', fr: 'Créer le dossier' },
   cases_prod_count_one: { en: 'case', fr: 'dossier' },
@@ -239,7 +239,7 @@ export const casesMessages = defineMessages({
   },
   cases_prod_detail_employee: { en: 'Employee', fr: 'Employé' },
   cases_prod_detail_type: { en: 'Type', fr: 'Type' },
-  cases_prod_detail_province: { en: 'Province', fr: 'Province' },
+  cases_prod_detail_jurisdiction: { en: 'Jurisdiction', fr: 'Compétence' },
   cases_prod_detail_due: { en: 'Due', fr: 'Échéance' },
   cases_prod_notes_title: { en: 'Notes', fr: 'Notes' },
   cases_prod_notes_empty: {

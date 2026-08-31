@@ -55,9 +55,9 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     kind: 'person',
     kindLabel: M.search_kind_person,
     title: neutral(e.name),
-    sub: joinBi([neutral(e.title ?? ''), neutral(e.province)]),
+    sub: joinBi([neutral(e.title ?? ''), neutral(e.jurisdiction)]),
     restricted: false,
-    match: joinBi([neutral(e.name), neutral(e.title ?? ''), neutral(e.province)]),
+    match: joinBi([neutral(e.name), neutral(e.title ?? ''), neutral(e.jurisdiction)]),
     nav: { kind: 'employee', employeeId: e.id },
   }))
 
@@ -66,7 +66,7 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     kind: 'case',
     kindLabel: M.search_kind_case,
     title: neutral(c.title),
-    sub: joinBi([neutral(c.caseType), neutral(c.province), neutral(c.status)]),
+    sub: joinBi([neutral(c.caseType), neutral(c.jurisdiction), neutral(c.status)]),
     restricted: sensitiveCaseTypes.includes(c.caseType),
     match: joinBi([neutral(c.title), neutral(c.caseType)]),
     nav: { kind: 'case', caseId: c.id },

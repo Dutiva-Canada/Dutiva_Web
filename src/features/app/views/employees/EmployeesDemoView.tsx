@@ -90,7 +90,7 @@ export function EmployeesDemoView() {
                 <div className="grid min-w-[700px] grid-cols-[2.4fr_1.7fr_0.9fr_1fr_0.8fr_34px] gap-[10px] bg-inset px-[16px] py-[11px] text-[11.5px] font-bold tracking-[0.03em] text-text-muted uppercase">
                   <div>{x(M.employees_th_name)}</div>
                   <div>{x(M.employees_th_role)}</div>
-                  <div>{x(M.employees_th_province)}</div>
+                  <div>{x(M.employees_th_jurisdiction)}</div>
                   <div>{x(M.employees_th_status)}</div>
                   <div>{x(M.employees_th_tenure)}</div>
                   <div />

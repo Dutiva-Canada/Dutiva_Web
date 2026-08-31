@@ -38,12 +38,12 @@ export function usePayRail(): (employeeId: string) => void {
         {
           text: below
             ? bi(
-                `${emp.name}’s base is sitting below the market midpoint for this role and province. Here’s the picture.`,
-                `Le salaire de base de ${emp.name} se situe sous le point milieu du marché pour ce poste et cette province. Voici le portrait.`,
+                `${emp.name}’s base is sitting below the market midpoint for this role and jurisdiction. Here’s the picture.`,
+                `Le salaire de base de ${emp.name} se situe sous le point milieu du marché pour ce poste et cette compétence. Voici le portrait.`,
               )
             : bi(
-                `${emp.name}’s pay is within a healthy band for the role and province.`,
-                `La rémunération de ${emp.name} se situe dans une fourchette saine pour le poste et la province.`,
+                `${emp.name}’s pay is within a healthy band for the role and jurisdiction.`,
+                `La rémunération de ${emp.name} se situe dans une fourchette saine pour le poste et la compétence.`,
               ),
           cards: [
             {

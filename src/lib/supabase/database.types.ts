@@ -2143,10 +2143,10 @@ export type Database = {
           created_by: string | null
           email: string | null
           id: string
+          jurisdiction: string
           name: string
           organization_id: string
           probation_end_date: string | null
-          province: string
           start_date: string | null
           status: string
           termination_date: string | null
@@ -2158,10 +2158,10 @@ export type Database = {
           created_by?: string | null
           email?: string | null
           id?: string
+          jurisdiction?: string
           name: string
           organization_id: string
           probation_end_date?: string | null
-          province?: string
           start_date?: string | null
           status?: string
           termination_date?: string | null
@@ -2173,10 +2173,10 @@ export type Database = {
           created_by?: string | null
           email?: string | null
           id?: string
+          jurisdiction?: string
           name?: string
           organization_id?: string
           probation_end_date?: string | null
-          province?: string
           start_date?: string | null
           status?: string
           termination_date?: string | null
@@ -2998,8 +2998,8 @@ export type Database = {
           due_date: string | null
           employee_id: string | null
           id: string
+          jurisdiction: string
           organization_id: string
-          province: string
           status: string
           title: string
           updated_at: string
@@ -3011,8 +3011,8 @@ export type Database = {
           due_date?: string | null
           employee_id?: string | null
           id?: string
+          jurisdiction?: string
           organization_id: string
-          province?: string
           status?: string
           title: string
           updated_at?: string
@@ -3024,8 +3024,8 @@ export type Database = {
           due_date?: string | null
           employee_id?: string | null
           id?: string
+          jurisdiction?: string
           organization_id?: string
-          province?: string
           status?: string
           title?: string
           updated_at?: string

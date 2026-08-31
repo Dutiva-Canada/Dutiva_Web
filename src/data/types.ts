@@ -96,7 +96,7 @@ export interface LeaveRecord {
   note: Bi
 }
 
-/** Per-employee detail (prototype `empDetailMap()`, defaults merged in). */
+/** Per-employee detail (demo `empDetailMap()`; nullable comp/sentiment when unknown). */
 export interface EmployeeDetail {
   employeeId: string
   /** Null when compensation has not been recorded for this person. */
@@ -344,9 +344,6 @@ export interface ServiceMilestoneRecord {
   /** Whether a milestone-review task already exists for this person. */
   reviewTaskCreated: boolean
 }
-
-/** @deprecated Renamed to {@link ServiceMilestoneRecord}. */
-export type ProbationEndRecord = ServiceMilestoneRecord
 
 export interface LeaveOverviewRecord {
   id: string

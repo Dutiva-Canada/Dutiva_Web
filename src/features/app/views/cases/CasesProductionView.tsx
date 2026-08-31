@@ -10,7 +10,7 @@ import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import { useOpenCreateFormFromQuery } from '@/features/app/workspaceMode/useOpenCreateFormFromQuery'
-import { EMPLOYMENT_PROVINCES, listEmployees } from '@/features/app/views/employees/productionApi'
+import { EMPLOYMENT_JURISDICTIONS, listEmployees } from '@/features/app/views/employees/productionApi'
 import type { ProductionEmployee } from '@/features/app/views/employees/productionApi'
 import {
   PRODUCTION_CASE_STATUSES,
@@ -57,7 +57,7 @@ const EMPTY_FORM = {
   title: '',
   caseType: 'Performance' as ProductionCaseType,
   employeeId: '',
-  province: 'Ontario',
+  jurisdiction: 'Ontario',
   dueDate: '',
 }
 
@@ -227,18 +227,18 @@ export function CasesProductionView() {
               </select>
             </div>
             <div>
-              <label htmlFor="case-province" className={labelClass}>
-                {x(M.cases_prod_province)}
+              <label htmlFor="case-jurisdiction" className={labelClass}>
+                {x(M.cases_prod_jurisdiction)}
               </label>
               <select
-                id="case-province"
-                value={form.province}
-                onChange={(e) => setForm((f) => ({ ...f, province: e.target.value }))}
+                id="case-jurisdiction"
+                value={form.jurisdiction}
+                onChange={(e) => setForm((f) => ({ ...f, jurisdiction: e.target.value }))}
                 className={inputClass}
               >
-                {EMPLOYMENT_PROVINCES.map((prov) => (
-                  <option key={prov.en} value={prov.en}>
-                    {pick(prov, lang)}
+                {EMPLOYMENT_JURISDICTIONS.map((jur) => (
+                  <option key={jur.en} value={jur.en}>
+                    {pick(jur, lang)}
                   </option>
                 ))}
               </select>
@@ -319,7 +319,7 @@ export function CasesProductionView() {
                   {[
                     x(TYPE_LABEL[caze.caseType]),
                     employeeName(caze.employeeId),
-                    caze.province,
+                    caze.jurisdiction,
                     caze.dueDate,
                   ]
                     .filter(Boolean)

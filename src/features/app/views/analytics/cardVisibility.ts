@@ -21,7 +21,7 @@ export type AnalyticsCardKey =
   | 'cases'
   | 'acks'
   | 'certifications'
-  | 'probation'
+  | 'serviceMilestones'
   | 'documents'
   | 'leave'
   | 'trend'
@@ -33,7 +33,7 @@ export const CARD_MIN_ROLE: Record<AnalyticsCardKey, OrgMemberRole> = {
   cases: 'viewer',
   acks: 'viewer',
   certifications: 'viewer',
-  probation: 'viewer',
+  serviceMilestones: 'viewer',
   documents: 'viewer',
   leave: 'viewer',
   trend: 'viewer',

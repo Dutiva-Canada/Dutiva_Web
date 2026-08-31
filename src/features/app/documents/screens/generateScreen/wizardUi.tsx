@@ -313,8 +313,8 @@ export function initialWizardState(
 }
 
 /**
- * Map employees.province strings to Document Studio jurisdictions.
- * Production roster stores province names; the wizard needs ON|QC|FED.
+ * Map employees.jurisdiction strings to Document Studio jurisdictions.
+ * Production roster stores full English jurisdiction names; the wizard needs ON|QC|FED.
  */
 export function provinceToJurisdiction(province: string): Jurisdiction {
   const normalized = province.trim().toLowerCase()

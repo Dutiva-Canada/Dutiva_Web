@@ -5,6 +5,11 @@ import type { AnalyticsCardKey } from './cardVisibility'
 const ALL_CARDS = Object.keys(CARD_MIN_ROLE) as AnalyticsCardKey[]
 
 describe('analyticsCardVisible', () => {
+  it('names the service-milestone card without legacy probation identifiers', () => {
+    expect(CARD_MIN_ROLE).toHaveProperty('serviceMilestones')
+    expect(CARD_MIN_ROLE).not.toHaveProperty('probation')
+  })
+
   it('shows every card to every member under the current policy', () => {
     for (const card of ALL_CARDS) {
       expect(analyticsCardVisible(card, 'viewer', false)).toBe(true)

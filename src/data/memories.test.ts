@@ -212,6 +212,14 @@ describe('seedMemoryFacts', () => {
     expect(a2.confirmation?.at).toBe('2026-04-03')
   })
 
+  it('keeps Amara HRIS memory aligned with the employee roster (Ontario, software engineer)', () => {
+    const a1 = seedMemoryFacts.find((f) => f.id === 'a1')!
+    expect(a1.entityId).toBe('e6')
+    expect(a1.statement.en).toContain('Software Engineer')
+    expect(a1.statement.en).toContain('Ontario')
+    expect(a1.statement.en).not.toMatch(/British Columbia|Operations Analyst/i)
+  })
+
   it('limits the termination-letter memory to what the draft document supports', () => {
     const c3 = seedMemoryFacts.find((f) => f.id === 'c3')!
     expect(c3.statement.en).toBe('Termination letter draft dated Jul 5')

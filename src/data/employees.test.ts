@@ -7,6 +7,7 @@ import {
   supportSignals,
 } from './employees'
 import { employeeDocuments } from './workforce'
+import { documentTemplates } from './documents'
 
 function employee(id: string) {
   const found = employees.find((e) => e.id === id)
@@ -91,8 +92,10 @@ describe('employees fixtures', () => {
   })
 
   it('stores employment jurisdiction on Employee, not province', () => {
-    expect(employee('e1')).toHaveProperty('jurisdiction')
-    expect(employee('e1')).not.toHaveProperty('province')
+    for (const emp of employees) {
+      expect(emp).toHaveProperty('jurisdiction')
+      expect(emp).not.toHaveProperty('province')
+    }
   })
 
   it('uses shipped Ontario jurisdiction for Priya and Amara demo records', () => {
@@ -106,6 +109,15 @@ describe('employees fixtures', () => {
     expect(priyaDetail?.market).toBeNull()
     expect(priyaDetail?.sentiment).toBeNull()
     expect(priyaDetail?.manager).toBe('—')
+    expect(priyaDetail?.band).toBe('—')
+    expect(priyaDetail?.startDate).toBe('—')
+  })
+
+  it('aligns Priya offer-letter document metadata with Ontario jurisdiction', () => {
+    const offer = documentTemplates.find((doc) => doc.key === 'Offer Letter')
+    if (!offer?.meta?.jur || !offer.meta.missing) throw new Error('Missing Offer Letter fixture')
+    expect(offer.meta.jur.en).toContain('Ontario')
+    expect(offer.meta.missing.en).not.toMatch(/BC-specific/i)
   })
 
   it('uses Ontario for Amara document expiry records in workforce fixtures', () => {

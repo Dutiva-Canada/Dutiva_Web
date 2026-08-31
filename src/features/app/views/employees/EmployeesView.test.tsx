@@ -28,9 +28,9 @@ describe('EmployeesView', () => {
     expect(screen.getByText(/Showing 12 of 82 · sample records/)).toBeInTheDocument()
   })
 
-  it('filters by name/role/province and clears via the empty state', () => {
+  it('filters by name/role/jurisdiction and clears via the empty state', () => {
     renderEmployees()
-    const input = screen.getByPlaceholderText('Filter by name, role, or province…')
+    const input = screen.getByPlaceholderText('Filter by name, role, or jurisdiction…')
 
     fireEvent.change(input, { target: { value: 'quebec' } })
     expect(screen.getByText(/Showing 2 of 82/)).toBeInTheDocument()
@@ -58,7 +58,7 @@ describe('EmployeesView', () => {
     ).toBeInTheDocument()
     /* Roster chrome is gone in org mode. */
     expect(
-      screen.queryByPlaceholderText('Filter by name, role, or province…'),
+      screen.queryByPlaceholderText('Filter by name, role, or jurisdiction…'),
     ).not.toBeInTheDocument()
   })
 
@@ -111,7 +111,7 @@ describe('EmployeesView in production mode', () => {
             name: row.name,
             title: row.title ?? null,
             email: row.email ?? null,
-            province: row.province,
+            jurisdiction: row.jurisdiction,
             start_date: row.start_date ?? null,
             status: 'active',
           }
@@ -203,7 +203,7 @@ describe('EmployeesView in production mode', () => {
         name: 'Ana Souza',
         title: 'Coordinator',
         email: null,
-        province: 'Ontario',
+        jurisdiction: 'Ontario',
         start_date: null,
         status: 'active',
       },
@@ -253,7 +253,7 @@ describe('EmployeeProfileView in production mode', () => {
       name: 'Ana Souza',
       title: 'Coordinator',
       email: 'ana@dutiva.ca',
-      province: 'Ontario',
+      jurisdiction: 'Ontario',
       start_date: '2026-07-02',
       status: 'active',
     }
@@ -262,7 +262,7 @@ describe('EmployeeProfileView in production mode', () => {
       title: 'Accommodation — ergonomic assessment',
       case_type: 'Accommodation',
       employee_id: 'emp-1',
-      province: 'Ontario',
+      jurisdiction: 'Ontario',
       status: 'open',
       due_date: null,
       created_at: '2026-07-01T12:00:00Z',
@@ -433,7 +433,7 @@ describe('EmployeeProfileProductionView for a non-admin member', () => {
       name: 'Ana Souza',
       title: 'Coordinator',
       email: 'ana@dutiva.ca',
-      province: 'Ontario',
+      jurisdiction: 'Ontario',
       start_date: '2026-07-02',
       status: 'on_leave',
       probation_end_date: '2026-09-30',

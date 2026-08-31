@@ -15,7 +15,7 @@ describe('AdvisorDemo scenario switcher', () => {
 
     await user.click(screen.getByRole('tab', { name: advisorScenarios.s3.title.en }))
     expect(screen.getByText(advisorScenarios.s3.user.en)).toBeInTheDocument()
-    expect(screen.getByText(/BC Human Rights Code/)).toBeInTheDocument()
+    expect(screen.getByText(advisorScenarios.s3.turn.jurisdictionLine!.en)).toBeInTheDocument()
 
     await user.click(screen.getByRole('tab', { name: advisorScenarios.s5.title.en }))
     expect(screen.getByText(advisorScenarios.s5.user.en)).toBeInTheDocument()

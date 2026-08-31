@@ -10,7 +10,7 @@ import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import { useOpenCreateFormFromQuery } from '@/features/app/workspaceMode/useOpenCreateFormFromQuery'
-import { EMPLOYMENT_PROVINCES, addEmployee, listEmployees, removeEmployee } from './productionApi'
+import { EMPLOYMENT_JURISDICTIONS, addEmployee, listEmployees, removeEmployee } from './productionApi'
 import type { ProductionEmployee, ProductionEmployeeStatus } from './productionApi'
 import { AppPage } from '@/features/app/shell/AppPage'
 
@@ -45,7 +45,7 @@ const inputClass =
   'w-full rounded-[10px] border border-border bg-surface px-[12px] py-[9px] font-sans text-[13.5px] text-text'
 const labelClass = 'mb-[4px] block text-[12px] font-semibold text-text-3'
 
-const EMPTY_FORM = { name: '', title: '', email: '', province: 'Ontario', startDate: '' }
+const EMPTY_FORM = { name: '', title: '', email: '', jurisdiction: 'Ontario', startDate: '' }
 
 export function EmployeesProductionView() {
   const { x, lang } = useI18n()
@@ -84,7 +84,10 @@ export function EmployeesProductionView() {
     if (!form.name.trim() || saving) return
     setSaving(true)
     try {
-      const added = await addEmployee(organizationId, { ...form, name: form.name.trim() })
+      const added = await addEmployee(organizationId, {
+        ...form,
+        name: form.name.trim(),
+      })
       setRows((prev) => [...(prev ?? []), added].sort((a, b) => a.name.localeCompare(b.name)))
       setForm(EMPTY_FORM)
       setFormOpen(false)
@@ -182,18 +185,18 @@ export function EmployeesProductionView() {
               />
             </div>
             <div>
-              <label htmlFor="emp-province" className={labelClass}>
-                {x(M.employees_prod_province)}
+              <label htmlFor="emp-jurisdiction" className={labelClass}>
+                {x(M.employees_prod_jurisdiction)}
               </label>
               <select
-                id="emp-province"
-                value={form.province}
-                onChange={(e) => setForm((f) => ({ ...f, province: e.target.value }))}
+                id="emp-jurisdiction"
+                value={form.jurisdiction}
+                onChange={(e) => setForm((f) => ({ ...f, jurisdiction: e.target.value }))}
                 className={inputClass}
               >
-                {EMPLOYMENT_PROVINCES.map((prov) => (
-                  <option key={prov.en} value={prov.en}>
-                    {pick(prov, lang)}
+                {EMPLOYMENT_JURISDICTIONS.map((jur) => (
+                  <option key={jur.en} value={jur.en}>
+                    {pick(jur, lang)}
                   </option>
                 ))}
               </select>
@@ -270,7 +273,7 @@ export function EmployeesProductionView() {
               <Link to={`/app/employees/${emp.id}`} className="min-w-0 flex-1 hover:opacity-80">
                 <div className="truncate text-[13.5px] font-semibold text-text">{emp.name}</div>
                 <div className="truncate text-[12px] text-text-muted">
-                  {[emp.title, emp.province].filter(Boolean).join(' · ')}
+                  {[emp.title, emp.jurisdiction].filter(Boolean).join(' · ')}
                 </div>
               </Link>
               <span className={statusChipClass(STATUS_TONE[emp.status])}>
