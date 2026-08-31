@@ -83,7 +83,7 @@ describe('document fixture normalization', () => {
     const clause = agreement.sections[2]
     if (!clause) throw new Error('Missing Employment Agreement termination clause')
     expect(clause.en).toMatch(/enforceability varies by jurisdiction/i)
-    expect(clause.en).toMatch(/may not represent the employee.s full entitlement/i)
+    expect(clause.en).toMatch(/may not represent the employee[’']s full entitlement/i)
     expect(clause.fr).toMatch(/la force exécutoire varie selon la compétence/i)
     expect(clause.fr).toMatch(/peuvent ne pas représenter l'ensemble des droits/i)
   })
@@ -136,7 +136,11 @@ describe('document fixture normalization', () => {
     expect(fr).toMatch(/peuvent s'appliquer au télétravail/i)
   })
 
-  it('exports a stable template count', () => {
-    expect(documentTemplates).toHaveLength(10)
+  it('keeps document template keys unique and the lookup index aligned', () => {
+    const keys = documentTemplates.map((doc) => doc.key)
+    expect(new Set(keys).size).toBe(keys.length)
+    for (const doc of documentTemplates) {
+      expect(documentTemplatesByKey[doc.key]).toBe(doc)
+    }
   })
 })
