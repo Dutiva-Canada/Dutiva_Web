@@ -1,7 +1,8 @@
 /**
  * Dutiva sample-data fixtures — typed transcription of the design-handoff
- * prototype's seed builders. Views import from here (never inline entity
- * data) so a future Supabase provider can replace this module wholesale.
+ * prototype's seed builders. Views consume data through this public barrel
+ * rather than importing fixture modules directly, preserving a stable
+ * boundary for a future Supabase-backed data layer.
  */
 
 export * from './types'
