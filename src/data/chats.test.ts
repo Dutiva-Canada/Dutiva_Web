@@ -3,10 +3,13 @@ import { complianceItems } from './compliance'
 import { chats, followupReplies, lightFlows } from './chats'
 
 describe('Advisor chat fixtures — jurisdiction and provenance copy', () => {
-  it('does not present BC employment standards as shipped Advisor guidance', () => {
-    const serialized = JSON.stringify({ chats, lightFlows, followupReplies })
+  it('does not retain stale BC-specific wording in the remote-work Advisor flow', () => {
+    const policy = lightFlows.policy!
+    const serialized = JSON.stringify(policy)
+
     expect(serialized).not.toMatch(/BC Employment Standards Act/)
     expect(serialized).not.toMatch(/British Columbia → BC/)
+    expect(policy.reasoning?.[0]?.en).toMatch(/Ontario, Quebec, federally regulated/i)
   })
 
   it('frames Quebec onboarding under the Charter rather than Bill 96', () => {
@@ -46,6 +49,31 @@ describe('Advisor chat fixtures — jurisdiction and provenance copy', () => {
     expect(policy.text.en).toMatch(/multi-jurisdiction team/i)
     expect(policy.cards?.[0]?.body.en).toMatch(/3 new employment jurisdictions/i)
     expect(JSON.stringify(policy)).not.toMatch(/multi-province team/i)
+  })
+
+  it('frames attendance discipline around disability-related needs rather than diagnostic exclusion', () => {
+    const performance = lightFlows.performance!
+    const serialized = JSON.stringify(performance)
+
+    expect(performance.reasoning?.[0]?.en).toMatch(/duty to inquire/i)
+    expect(performance.reasoning?.[1]?.en).toMatch(/disability-related needs/i)
+    expect(serialized).not.toMatch(/ruling out a medical cause/i)
+  })
+
+  it('keeps accommodation medical-information requests proportionate and non-diagnostic by default', () => {
+    const accommodation = lightFlows.accommodation!
+
+    expect(accommodation.text.en).toMatch(/reasonably necessary/i)
+    expect(accommodation.text.en).toMatch(/diagnosis is generally unnecessary/i)
+    expect(accommodation.text.en).toMatch(/circumstances justify additional information/i)
+  })
+
+  it('describes common-law notice as a factor-based assessment, not a rule of thumb', () => {
+    const notice = followupReplies['Estimate notice exposure']!
+
+    expect(notice.reasoning?.[0]?.en).toMatch(/reasonable-notice assessment/i)
+    expect(notice.reasoning?.[0]?.en).toMatch(/age.*role.*length of service.*similar employment/i)
+    expect(notice.reasoning?.[0]?.en).not.toMatch(/rule of thumb/i)
   })
 })
 
