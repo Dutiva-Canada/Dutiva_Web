@@ -12,7 +12,10 @@ import type { ExpiryRecord, LeaveOverviewRecord, ServiceMilestoneRecord } from '
  * Bell, Morgan Chen) who exist by name only.
  */
 
-/* ── Certifications & training (expiring within 90 days) ─────────────────
+/* ── Certifications & training dates within 90 days ──────────────────────
+   Includes credential expiries plus employer-set training review/renewal
+   dates; an `expiryISO` on an internal review row is an operational due date,
+   not a representation of a statutory credential expiry.
    Buckets vs Jul 11: expired 1 · ≤30 2 · 31–60 3 · 61–90 1. Devon (the
    attendance-PIP warehouse file) also holds the lapsed forklift ticket —
    expired items feed the Needs attention card. */
