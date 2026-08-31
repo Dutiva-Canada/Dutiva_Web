@@ -21,18 +21,18 @@ export const tasks: Task[] = [
   {
     id: 'tk2',
     title: bi(
-      'Confirm payroll size for ESA severance eligibility',
-      'Confirmer la masse salariale pour l’admissibilité à l’indemnité de la LNE',
+      'Confirm ESA severance payroll threshold',
+      'Confirmer le seuil de masse salariale pour l’indemnité de cessation d’emploi prévue par la LNE',
     ),
-    due: bi('Today', 'Aujourd’hui'),
+    due: bi('Done', 'Fait'),
     priority: 'high',
-    done: false,
+    done: true,
     chatId: 'c1',
     owner: 'Marcus Bell',
     jur: bi('Ontario', 'Ontario'),
-    blocked: bi(
-      'Waits on: counsel response (due Jul 10)',
-      'En attente : réponse du conseiller (échéance 10 juillet)',
+    evidence: bi(
+      'Finance confirmed the ESA severance payroll threshold is met',
+      'Les Finances ont confirmé que le seuil de masse salariale de la LNE est atteint',
     ),
   },
   {
@@ -55,7 +55,7 @@ export const tasks: Task[] = [
   {
     id: 'tk4',
     title: bi('PIP check-in — Devon Clarke', 'Suivi du PAR — Devon Clarke'),
-    due: bi('In 15 days', 'Dans 15 jours'),
+    due: bi('In 11 days', 'Dans 11 jours'),
     priority: 'medium',
     done: false,
     chatId: 'c4',
@@ -65,7 +65,7 @@ export const tasks: Task[] = [
   {
     id: 'tk5',
     title: bi('Accommodation review — Amara Okafor', 'Examen d’accommodement — Amara Okafor'),
-    due: bi('In 7 days', 'Dans 7 jours'),
+    due: bi('In 3 days', 'Dans 3 jours'),
     priority: 'medium',
     done: false,
     chatId: 'c5',
@@ -78,7 +78,7 @@ export const tasks: Task[] = [
       'Review Remote Work Policy draft',
       'Réviser l’ébauche de la politique de télétravail',
     ),
-    due: bi('In 2 weeks', 'Dans 2 semaines'),
+    due: bi('In 6 days', 'Dans 6 jours'),
     priority: 'low',
     done: false,
     chatId: 'c3',
