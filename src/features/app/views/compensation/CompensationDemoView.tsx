@@ -23,7 +23,9 @@ interface CompRow {
 const rows: CompRow[] = employees.map((employee) => {
   const det = employeeDetails[employee.id]
   const delta =
-    det?.salary && det.market ? Math.round(((det.salary - det.market) / det.market) * 100) : 0
+    det?.salary != null && det.market != null
+      ? Math.round(((det.salary - det.market) / det.market) * 100)
+      : 0
   return {
     employee,
     salary: det ? det.salary : null,

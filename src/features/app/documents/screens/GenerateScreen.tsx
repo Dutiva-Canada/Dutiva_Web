@@ -62,7 +62,7 @@ export function GenerateScreen() {
           emps.map((e) => ({
             id: e.id,
             name: e.name,
-            jurisdiction: provinceToJurisdiction(e.province),
+            jurisdiction: provinceToJurisdiction(e.jurisdiction),
           })),
         )
         setProdCases(
@@ -70,7 +70,7 @@ export function GenerateScreen() {
             id: c.id,
             title: bi(c.title, c.title),
             employeeId: c.employeeId ?? '',
-            jurisdiction: provinceToJurisdiction(c.province),
+            jurisdiction: provinceToJurisdiction(c.jurisdiction),
             risk: 'medium' as const,
           })),
         )

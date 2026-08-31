@@ -15,8 +15,8 @@ export const employeesMessages = defineMessages({
   employees_tab_people: { en: 'People', fr: 'Liste' },
   employees_tab_org: { en: 'Org chart', fr: 'Organigramme' },
   employees_filter_placeholder: {
-    en: 'Filter by name, role, or province…',
-    fr: 'Filtrer par nom, poste ou province…',
+    en: 'Filter by name, role, or jurisdiction…',
+    fr: 'Filtrer par nom, poste ou compétence…',
   },
   employees_showing: { en: 'Showing', fr: 'Affichage de' },
   employees_of_sample: {
@@ -25,7 +25,7 @@ export const employeesMessages = defineMessages({
   },
   employees_th_name: { en: 'Name', fr: 'Nom' },
   employees_th_role: { en: 'Role', fr: 'Poste' },
-  employees_th_province: { en: 'Province', fr: 'Province' },
+  employees_th_jurisdiction: { en: 'Jurisdiction', fr: 'Compétence' },
   employees_th_status: { en: 'Status', fr: 'Statut' },
   employees_th_tenure: { en: 'Tenure', fr: 'Ancienneté' },
   employees_no_results: {
@@ -33,8 +33,8 @@ export const employeesMessages = defineMessages({
     fr: 'Aucun employé ne correspond au filtre.',
   },
   employees_no_results_sub: {
-    en: 'Try a different name, role, or province.',
-    fr: 'Essayez un autre nom, poste ou province.',
+    en: 'Try a different name, role, or jurisdiction.',
+    fr: 'Essayez un autre nom, poste ou compétence.',
   },
   employees_clear_filter: { en: 'Clear filter', fr: 'Effacer le filtre' },
   /* Prototype row aria: 'Open profile for {{ emp.name }}'. [FR self-authored] */
@@ -130,11 +130,6 @@ export const employeesMessages = defineMessages({
   employees_vs_market_suffix: { en: '% vs market', fr: ' % c. marché' },
   employees_band_label: { en: 'Band', fr: 'Échelle' },
   employees_comp_market_note: {
-    en: 'Market midpoint comparisons are one input among several. Document any adjustment against a consistent band framework and complete HR/Finance review before committing.',
-    fr: 'Les comparaisons au point milieu du marché ne sont qu’un indicateur parmi d’autres. Documentez tout ajustement selon un cadre d’échelons cohérent et faites valider par les RH et les Finances avant de vous engager.',
-  },
-  /** @deprecated Use employees_comp_market_note. */
-  employees_pay_equity_note: {
     en: 'Market midpoint comparisons are one input among several. Document any adjustment against a consistent band framework and complete HR/Finance review before committing.',
     fr: 'Les comparaisons au point milieu du marché ne sont qu’un indicateur parmi d’autres. Documentez tout ajustement selon un cadre d’échelons cohérent et faites valider par les RH et les Finances avant de vous engager.',
   },
@@ -237,7 +232,10 @@ export const employeesMessages = defineMessages({
   employees_prod_name: { en: 'Full name', fr: 'Nom complet' },
   employees_prod_title: { en: 'Job title', fr: 'Titre du poste' },
   employees_prod_email: { en: 'Email', fr: 'Courriel' },
-  employees_prod_province: { en: 'Province of employment', fr: 'Province d’emploi' },
+  employees_prod_jurisdiction: {
+    en: 'Employment jurisdiction',
+    fr: 'Compétence d’emploi',
+  },
   employees_prod_start_date: { en: 'Start date', fr: 'Date d’entrée en fonction' },
   employees_prod_save: { en: 'Save employee', fr: 'Enregistrer l’employé' },
   employees_prod_count_one: { en: 'employee', fr: 'employé' },
@@ -280,7 +278,7 @@ export const employeesMessages = defineMessages({
   },
   employees_prod_detail_title: { en: 'Job title', fr: 'Titre du poste' },
   employees_prod_detail_email: { en: 'Email', fr: 'Courriel' },
-  employees_prod_detail_province: { en: 'Province', fr: 'Province' },
+  employees_prod_detail_jurisdiction: { en: 'Jurisdiction', fr: 'Compétence' },
   employees_prod_detail_start: { en: 'Start date', fr: 'Entrée en fonction' },
   employees_prod_status_aria: { en: 'Employee status', fr: 'Statut de l’employé' },
   employees_prod_status_updated: { en: 'Status updated', fr: 'Statut mis à jour' },
@@ -313,8 +311,8 @@ export const employeesMessages = defineMessages({
   employees_prod_dates_title: { en: 'Key dates', fr: 'Dates clés' },
   employees_prod_probation_end: { en: 'Probation ends', fr: 'Fin de la probation' },
   employees_prod_probation_hint: {
-    en: 'Entered per employee — probation length varies by province and contract.',
-    fr: 'Saisie par employé — la durée de probation varie selon la province et le contrat.',
+    en: 'Entered per employee — contractual probation length varies by jurisdiction and offer.',
+    fr: 'Saisie par employé — la durée de probation contractuelle varie selon la compétence et l’offre.',
   },
   employees_prod_termination_date: { en: 'Termination date', fr: 'Date de fin d’emploi' },
   employees_prod_termination_hint: {

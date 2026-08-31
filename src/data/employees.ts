@@ -11,9 +11,10 @@ import type {
 } from './types'
 
 /**
- * Employee roster + per-employee detail, transcribed from the prototype's
- * `buildEmployees()` / `empDetailMap()` / `buildOrgGraph()` /
- * `buildCompensationView()` / `supportSignals()`.
+ * Dutiva employee demo fixtures, adapted from the design-handoff prototype.
+ * Employee, detail, organization, compensation, and support-signal data have
+ * been normalized for cross-fixture consistency, bilingual accuracy, and
+ * compliance-safe demo behavior.
  */
 
 export const employees: Employee[] = [
@@ -277,8 +278,10 @@ const detail = (
 })
 
 /**
- * Per-employee detail map (prototype `empDetailMap()` with its defaults
- * applied). Timeline texts have no FR in the prototype — FR self-authored.
+ * Per-employee demo detail map, adapted from the prototype's
+ * `empDetailMap()`. Unspecified factual fields remain explicitly unknown
+ * rather than inheriting plausible employee facts. Timeline FR is
+ * self-authored where the prototype provided English only.
  */
 export const employeeDetails: Record<string, EmployeeDetail> = {
   e1: detail('e1', {

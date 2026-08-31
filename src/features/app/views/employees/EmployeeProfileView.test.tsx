@@ -60,6 +60,15 @@ describe('EmployeeProfileView', () => {
     expect(screen.getByText(/Market midpoint comparisons are one input/)).toBeInTheDocument()
   })
 
+  it('renders unknown compensation fields safely for Priya (default detail values)', () => {
+    renderProfile('e2')
+    fireEvent.click(screen.getByRole('tab', { name: 'Compensation' }))
+
+    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(2)
+    expect(screen.queryByText(/% vs market/)).not.toBeInTheDocument()
+    expect(screen.getByText(/Market midpoint comparisons are one input/)).toBeInTheDocument()
+  })
+
   it('shows linked cases with the restricted badge', () => {
     renderProfile()
     fireEvent.click(screen.getByRole('tab', { name: 'Cases' }))

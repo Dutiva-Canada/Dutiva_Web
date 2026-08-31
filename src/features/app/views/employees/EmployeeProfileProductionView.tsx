@@ -282,7 +282,7 @@ export function EmployeeProfileProductionView() {
     ? [
         { label: M.employees_prod_detail_title, value: employee.title },
         { label: M.employees_prod_detail_email, value: employee.email },
-        { label: M.employees_prod_detail_province, value: employee.province },
+        { label: M.employees_prod_detail_jurisdiction, value: employee.jurisdiction },
         { label: M.employees_prod_detail_start, value: employee.startDate },
       ]
     : []

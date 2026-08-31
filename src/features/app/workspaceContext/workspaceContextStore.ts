@@ -34,7 +34,7 @@ export function useWorkspaceContext(): WorkspaceContextValue {
   return ctx
 }
 
-/** Prototype `contextFromEmployee(emp, topic)` — meta = province · role · topic/status. */
+/** Demo `contextFromEmployee(emp, topic)` — meta = jurisdiction · role · topic/status. */
 export function contextFromEmployee(
   emp: Employee,
   topic?: LText,

@@ -12,7 +12,7 @@ describe('cases productionApi', () => {
     title: 'Accommodation — ergonomic assessment',
     case_type: 'Accommodation',
     employee_id: 'emp-1',
-    province: 'Ontario',
+    jurisdiction: 'Ontario',
     status: 'open',
     due_date: '2026-08-01',
     created_at: '2026-07-01T12:00:00Z',
@@ -37,7 +37,7 @@ describe('cases productionApi', () => {
         title: 'Accommodation — ergonomic assessment',
         caseType: 'Accommodation',
         employeeId: 'emp-1',
-        province: 'Ontario',
+        jurisdiction: 'Ontario',
         status: 'open',
         dueDate: '2026-08-01',
         createdAt: '2026-07-01T12:00:00Z',
@@ -59,7 +59,7 @@ describe('cases productionApi', () => {
       title: 'Accommodation — ergonomic assessment',
       caseType: 'Accommodation',
       employeeId: '',
-      province: 'Ontario',
+      jurisdiction: 'Ontario',
       dueDate: '',
     })
     expect(insert).toHaveBeenCalledWith({
@@ -67,7 +67,7 @@ describe('cases productionApi', () => {
       title: 'Accommodation — ergonomic assessment',
       case_type: 'Accommodation',
       employee_id: null,
-      province: 'Ontario',
+      jurisdiction: 'Ontario',
       due_date: null,
     })
   })

@@ -17,7 +17,7 @@ describe('contextFromEmployee', () => {
     expect(ctx.empId).toBe(emp.id)
   })
 
-  it('chains meta as province · role · status when no topic is passed', () => {
+  it('chains meta as jurisdiction · role · status when no topic is passed', () => {
     const ctx = contextFromEmployee(emp)
     expect(ctx.meta).toHaveLength(3)
     expect(ctx.meta[0]).toEqual(emp.jurisdiction)

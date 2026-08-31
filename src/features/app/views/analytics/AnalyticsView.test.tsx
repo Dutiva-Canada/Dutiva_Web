@@ -348,7 +348,7 @@ describe('AnalyticsView in production mode', () => {
 
   const EMPLOYEE = (
     id: string,
-    province: string,
+    jurisdiction: string,
     status = 'active',
     extra: Record<string, unknown> = {},
   ) => ({
@@ -356,7 +356,7 @@ describe('AnalyticsView in production mode', () => {
     name: `Employee ${id}`,
     title: null,
     email: null,
-    province,
+    jurisdiction,
     start_date: null,
     status,
     ...extra,
@@ -545,7 +545,7 @@ describe('AnalyticsView in production mode', () => {
           title: 'Accommodation — ergonomic assessment',
           case_type: 'Accommodation',
           employee_id: null,
-          province: 'Ontario',
+          jurisdiction: 'Ontario',
           status: 'open',
           due_date: '2020-01-01',
           created_at: daysAgoIso(20),
@@ -555,7 +555,7 @@ describe('AnalyticsView in production mode', () => {
           title: 'Onboarding — first hire',
           case_type: 'Onboarding',
           employee_id: null,
-          province: 'Quebec',
+          jurisdiction: 'Quebec',
           status: 'resolved',
           due_date: null,
           created_at: daysAgoIso(40),
@@ -675,7 +675,7 @@ describe('AnalyticsView in production mode', () => {
           kind: 'certification',
           name: 'Forklift certificate',
           expiry_date: daysFromNowDate(10),
-          employees: { name: 'Employee e1', province: 'Ontario' },
+          employees: { name: 'Employee e1', jurisdiction: 'Ontario' },
         },
         {
           id: 'r2',
@@ -683,7 +683,7 @@ describe('AnalyticsView in production mode', () => {
           kind: 'certification',
           name: 'WHMIS training',
           expiry_date: daysFromNowDate(-5),
-          employees: { name: 'Employee e2', province: 'Quebec' },
+          employees: { name: 'Employee e2', jurisdiction: 'Quebec' },
         },
         {
           id: 'r3',
@@ -691,7 +691,7 @@ describe('AnalyticsView in production mode', () => {
           kind: 'document',
           name: 'Work permit',
           expiry_date: daysFromNowDate(20),
-          employees: { name: 'Employee e4', province: 'British Columbia' },
+          employees: { name: 'Employee e4', jurisdiction: 'British Columbia' },
         },
       ],
       hr_leaves: [

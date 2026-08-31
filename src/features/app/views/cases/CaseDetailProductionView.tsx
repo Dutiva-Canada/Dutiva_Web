@@ -121,7 +121,7 @@ export function CaseDetailProductionView() {
     ? [
         { label: M.cases_prod_detail_type, value: x(TYPE_LABEL[caze.caseType]) },
         { label: M.cases_prod_detail_employee, value: employeeName },
-        { label: M.cases_prod_detail_province, value: caze.province },
+        { label: M.cases_prod_detail_jurisdiction, value: caze.jurisdiction },
         { label: M.cases_prod_detail_due, value: caze.dueDate },
       ]
     : []

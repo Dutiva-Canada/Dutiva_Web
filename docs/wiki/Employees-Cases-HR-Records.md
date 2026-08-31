@@ -430,7 +430,7 @@ Located at `src/features/app/views/employees/productionApi.ts`. Reads/writes `pu
 | `addLeave(orgId, empId, fields)`                                | `hr_leaves`         | INSERT [src/features/app/views/employees/productionApi.ts:320-345]()                                            |
 | `endLeave(id, endedOn)`                                         | `hr_leaves`         | UPDATE ended_on [src/features/app/views/employees/productionApi.ts:348-355]()                                   |
 
-The file also exports `EMPLOYMENT_PROVINCES` — 13 bilingual Canadian province/territory options. [src/features/app/views/employees/productionApi.ts:391-405]()
+The file also exports `EMPLOYMENT_JURISDICTIONS` — 13 bilingual Canadian province/territory options (stored in the DB `employees.province` column). [src/features/app/views/employees/productionApi.ts:391-405]()
 
 Sources: [src/features/app/views/employees/productionApi.ts:1-405]()
 

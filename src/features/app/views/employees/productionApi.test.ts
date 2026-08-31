@@ -13,7 +13,7 @@ describe('employees productionApi', () => {
     name: 'Ana Souza',
     title: 'Coordinator',
     email: 'ana@dutiva.ca',
-    province: 'Ontario',
+    jurisdiction: 'Ontario',
     start_date: '2026-07-02',
     status: 'active',
   }
@@ -36,7 +36,7 @@ describe('employees productionApi', () => {
         name: 'Ana Souza',
         title: 'Coordinator',
         email: 'ana@dutiva.ca',
-        province: 'Ontario',
+        jurisdiction: 'Ontario',
         startDate: '2026-07-02',
         status: 'active',
         probationEndDate: null,
@@ -72,7 +72,7 @@ describe('employees productionApi', () => {
       name: 'Ana Souza',
       title: 'Coordinator',
       email: '',
-      province: 'Ontario',
+      jurisdiction: 'Ontario',
       startDate: '',
     })
     expect(insert).toHaveBeenCalledWith({
@@ -80,7 +80,7 @@ describe('employees productionApi', () => {
       name: 'Ana Souza',
       title: 'Coordinator',
       email: null,
-      province: 'Ontario',
+      jurisdiction: 'Ontario',
       start_date: null,
     })
     expect(added.name).toBe('Ana Souza')

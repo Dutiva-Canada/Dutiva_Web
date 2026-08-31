@@ -20,10 +20,11 @@ export interface ProductionEmployee {
   name: string
   title: string | null
   email: string | null
-  province: string
+  /** Employment jurisdiction — full English name stored in DB column `jurisdiction`. */
+  jurisdiction: string
   startDate: string | null
   status: ProductionEmployeeStatus
-  /** End of probation (YYYY-MM-DD), entered per employee — never derived. */
+  /** Contractual probation end (YYYY-MM-DD), entered per employee — never derived. */
   probationEndDate: string | null
   /** Date employment ended; null for pre-0066 terminations. */
   terminationDate: string | null
@@ -33,7 +34,7 @@ export interface NewEmployee {
   name: string
   title: string
   email: string
-  province: string
+  jurisdiction: string
   startDate: string
 }
 
@@ -42,7 +43,7 @@ const rowSchema = z.object({
   name: z.string(),
   title: z.string().nullable(),
   email: z.string().nullable(),
-  province: z.string(),
+  jurisdiction: z.string(),
   start_date: z.string().nullable(),
   status: z.enum(['active', 'on_leave', 'terminated']),
   /* Lifecycle dates (0066). Optional-tolerant so pre-0066 row shapes in
@@ -52,7 +53,7 @@ const rowSchema = z.object({
 })
 
 const SELECT_COLUMNS =
-  'id, name, title, email, province, start_date, status, probation_end_date, termination_date'
+  'id, name, title, email, jurisdiction, start_date, status, probation_end_date, termination_date'
 
 function toEmployee(row: z.infer<typeof rowSchema>): ProductionEmployee {
   return {
@@ -60,7 +61,7 @@ function toEmployee(row: z.infer<typeof rowSchema>): ProductionEmployee {
     name: row.name,
     title: row.title,
     email: row.email,
-    province: row.province,
+    jurisdiction: row.jurisdiction,
     startDate: row.start_date,
     status: row.status,
     probationEndDate: row.probation_end_date ?? null,
@@ -95,7 +96,7 @@ export async function addEmployee(
       name: fields.name,
       title: fields.title || null,
       email: fields.email || null,
-      province: fields.province,
+      jurisdiction: fields.jurisdiction,
       start_date: fields.startDate || null,
     })
     .select(SELECT_COLUMNS)
@@ -174,7 +175,7 @@ export interface ProductionExpiryRecord {
   employeeId: string
   /** Joined from the employee row; null if the relation is unreadable. */
   employeeName: string | null
-  employeeProvince: string | null
+  employeeJurisdiction: string | null
   kind: ExpiryRecordKind
   name: string
   /** YYYY-MM-DD. */
@@ -187,17 +188,17 @@ const expiryRowSchema = z.object({
   kind: z.enum(['certification', 'document']),
   name: z.string(),
   expiry_date: z.string(),
-  employees: z.object({ name: z.string(), province: z.string() }).nullable().optional(),
+  employees: z.object({ name: z.string(), jurisdiction: z.string() }).nullable().optional(),
 })
 
-const EXPIRY_SELECT = 'id, employee_id, kind, name, expiry_date, employees ( name, province )'
+const EXPIRY_SELECT = 'id, employee_id, kind, name, expiry_date, employees ( name, jurisdiction )'
 
 function toExpiryRecord(row: z.infer<typeof expiryRowSchema>): ProductionExpiryRecord {
   return {
     id: row.id,
     employeeId: row.employee_id,
     employeeName: row.employees?.name ?? null,
-    employeeProvince: row.employees?.province ?? null,
+    employeeJurisdiction: row.employees?.jurisdiction ?? null,
     kind: row.kind,
     name: row.name,
     expiryDate: row.expiry_date,
@@ -386,10 +387,10 @@ export async function addEmployeeNote(
 }
 
 /**
- * Province of employment options — DB stores the EN name (matches the
- * `profiles.province` convention); the form displays the active language.
+ * Employment jurisdiction options — stored in `employees.jurisdiction` as the
+ * English jurisdiction name; the form displays the active language.
  */
-export const EMPLOYMENT_PROVINCES: readonly Bi[] = [
+export const EMPLOYMENT_JURISDICTIONS: readonly Bi[] = [
   bi('Alberta', 'Alberta'),
   bi('British Columbia', 'Colombie-Britannique'),
   bi('Manitoba', 'Manitoba'),

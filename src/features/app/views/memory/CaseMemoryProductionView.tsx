@@ -193,7 +193,7 @@ export function CaseMemoryProductionView() {
               {caseRow.title}
             </h1>
             <div className="mt-[4px] text-[12.5px] text-text-faint">
-              {caseRow.caseType} · {caseRow.status} · {caseRow.province}
+              {caseRow.caseType} · {caseRow.status} · {caseRow.jurisdiction}
             </div>
           </div>
           <button

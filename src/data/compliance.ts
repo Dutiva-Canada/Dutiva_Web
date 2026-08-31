@@ -57,7 +57,7 @@ export const complianceItems: ComplianceItem[] = [
       'Modified-duties accommodation is due for its scheduled 90-day review on July 14. Confirm functional limitations haven’t changed.',
       'L’accommodement en tâches modifiées doit faire l’objet de son examen prévu à 90 jours le 14 juillet. Confirmez que les limitations fonctionnelles n’ont pas changé.',
     ),
-    province: bi('British Columbia', 'Colombie-Britannique'),
+    province: bi('Ontario', 'Ontario'),
     chatId: 'c5',
     citations: [],
     action: bi(

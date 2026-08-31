@@ -184,8 +184,8 @@ export const documentTemplates: DocumentTemplate[] = [
         'Ontario · Loi de 2000 sur les normes d’emploi',
       ),
       missing: bi(
-        'Non-solicitation or non-competition clauses need BC-specific review.',
-        'Les clauses de non-sollicitation ou de non-concurrence exigent une révision propre à la C.-B.',
+        'Non-solicitation or non-competition clauses need Ontario-specific review.',
+        'Les clauses de non-sollicitation ou de non-concurrence exigent une révision propre à l’Ontario.',
       ),
     },
   },

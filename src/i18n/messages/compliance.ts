@@ -18,7 +18,10 @@ export const complianceMessages = defineMessages({
   compliance_jur_all: { en: 'All jurisdictions', fr: 'Toutes les compétences' },
   compliance_jur_ontario: { en: 'Ontario', fr: 'Ontario' },
   compliance_jur_quebec: { en: 'Quebec', fr: 'Québec' },
-  compliance_jur_bc: { en: 'British Columbia', fr: 'Colombie-Britannique' },
+  compliance_jur_bc: {
+    en: 'British Columbia (coming soon)',
+    fr: 'Colombie-Britannique (bientôt)',
+  },
   compliance_jur_federal: { en: 'Federal', fr: 'Fédéral' },
 
   /* ── Stat cards ─────────────────────────────────────────────────────────── */

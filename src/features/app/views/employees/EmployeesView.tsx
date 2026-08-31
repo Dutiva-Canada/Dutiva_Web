@@ -5,7 +5,7 @@ import { EmployeesProductionView } from './EmployeesProductionView'
 /**
  * Employees roster — the prototype's `isEmployeesView` markup (App
  * v2.dc.html, 869–988) + `buildEmployeesView()` (3316–3327): a People/Org
- * chart segmented control, the name/role/province filter, the roster table
+ * chart segmented control, the name/role/jurisdiction filter, the roster table
  * (stacked cards on phones), per-row status chips and the gold "Ask Advisor"
  * spark that opens the contextual rail. Rows open the profile route.
  *

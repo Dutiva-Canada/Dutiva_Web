@@ -483,8 +483,8 @@ export const seedMemoryFacts: MemoryFact[] = [
     entityId: 'e6',
     category: 'employment',
     statement: bi(
-      'Operations Analyst, 3 years’ service — British Columbia',
-      'Analyste des opérations, 3 ans de service — Colombie-Britannique',
+      'Software Engineer, 2.6 years’ service — Ontario',
+      'Ingénieure logicielle, 2,6 ans de service — Ontario',
     ),
     confidence: 'confirmed',
     source: { type: 'hris', detail: peopleRecord },

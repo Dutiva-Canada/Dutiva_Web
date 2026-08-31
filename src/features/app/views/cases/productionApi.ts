@@ -30,7 +30,8 @@ export interface ProductionCase {
   title: string
   caseType: ProductionCaseType
   employeeId: string | null
-  province: string
+  /** Governing jurisdiction — full English name stored in DB column `jurisdiction`. */
+  jurisdiction: string
   status: ProductionCaseStatus
   dueDate: string | null
   /** ISO timestamp the row was created — Analytics derives case aging from it. */
@@ -41,7 +42,7 @@ export interface NewCase {
   title: string
   caseType: ProductionCaseType
   employeeId: string
-  province: string
+  jurisdiction: string
   dueDate: string
 }
 
@@ -50,13 +51,14 @@ const rowSchema = z.object({
   title: z.string(),
   case_type: z.enum(['Termination', 'Performance', 'Accommodation', 'Onboarding']),
   employee_id: z.string().nullable(),
-  province: z.string(),
+  jurisdiction: z.string(),
   status: z.enum(['open', 'in_review', 'resolved']),
   due_date: z.string().nullable(),
   created_at: z.string(),
 })
 
-const SELECT_COLUMNS = 'id, title, case_type, employee_id, province, status, due_date, created_at'
+const SELECT_COLUMNS =
+  'id, title, case_type, employee_id, jurisdiction, status, due_date, created_at'
 
 function toCase(row: z.infer<typeof rowSchema>): ProductionCase {
   return {
@@ -64,7 +66,7 @@ function toCase(row: z.infer<typeof rowSchema>): ProductionCase {
     title: row.title,
     caseType: row.case_type,
     employeeId: row.employee_id,
-    province: row.province,
+    jurisdiction: row.jurisdiction,
     status: row.status,
     dueDate: row.due_date,
     createdAt: row.created_at,
@@ -91,7 +93,7 @@ export async function addCase(organizationId: string, fields: NewCase): Promise<
       title: fields.title,
       case_type: fields.caseType,
       employee_id: fields.employeeId || null,
-      province: fields.province,
+      jurisdiction: fields.jurisdiction,
       due_date: fields.dueDate || null,
     })
     .select(SELECT_COLUMNS)

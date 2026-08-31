@@ -186,33 +186,6 @@ export const analyticsMessages = defineMessages({
     en: 'Service milestone dates aren’t tracked in this workspace yet.',
     fr: 'Les dates de jalons de service ne sont pas encore suivies dans cet espace de travail.',
   },
-  /** @deprecated Use analytics_service_milestone_title. */
-  analytics_probation_title: { en: 'Service milestones due', fr: 'Jalons de service à venir' },
-  /** @deprecated Use analytics_service_milestone_sub. */
-  analytics_probation_sub: { en: 'Due within 30 days', fr: 'Échus d’ici 30 jours' },
-  /** @deprecated Use analytics_service_milestone_ends. */
-  analytics_probation_ends: { en: 'Ends {date}', fr: 'Se termine le {date}' },
-  /** @deprecated Use analytics_service_milestone_ends_today. */
-  analytics_probation_ends_today: { en: 'Ends today', fr: 'Se termine aujourd’hui' },
-  /** @deprecated Use analytics_service_milestone_day_left. */
-  analytics_probation_day_left: { en: '1 day left', fr: '1 jour restant' },
-  /** @deprecated Use analytics_service_milestone_days_left. */
-  analytics_probation_days_left: { en: '{n} days left', fr: '{n} jours restants' },
-  /** @deprecated Use analytics_service_milestone_no_task. */
-  analytics_probation_no_task: {
-    en: 'No review task yet',
-    fr: 'Aucune tâche d’évaluation créée',
-  },
-  /** @deprecated Use analytics_service_milestone_empty. */
-  analytics_probation_empty: {
-    en: 'No service milestones fall in the next 30 days.',
-    fr: 'Aucun jalon de service n’arrive d’ici 30 jours.',
-  },
-  /** @deprecated Use analytics_service_milestone_prod_empty. */
-  analytics_probation_prod_empty: {
-    en: 'Service milestone dates aren’t tracked in this workspace yet.',
-    fr: 'Les dates de jalons de service ne sont pas encore suivies dans cet espace de travail.',
-  },
 
   /* ── Leave overview ────────────────────────────────────────────────────── */
   analytics_leave_title: { en: 'Leave overview', fr: 'Aperçu des congés' },

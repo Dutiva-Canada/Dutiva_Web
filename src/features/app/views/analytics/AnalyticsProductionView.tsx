@@ -349,7 +349,7 @@ export function AnalyticsProductionView() {
   ): ExpiryDisplayRow => ({
     key: record.id,
     title: record.name,
-    secondary: [record.employeeName, record.employeeProvince].filter(Boolean).join(' · '),
+    secondary: [record.employeeName, record.employeeJurisdiction].filter(Boolean).join(' · '),
     dateLabel: formatDayISO(record.expiryISO, locale),
     expired: daysBetweenISO(todayISO, record.expiryISO) < 0,
     href: `/app/employees/${record.employeeId}`,
@@ -371,7 +371,7 @@ export function AnalyticsProductionView() {
         id: `case-${c.id}`,
         dueISO: c.dueDate!,
         title: c.title,
-        secondary: attentionSecondary(c.province, undefined, x),
+        secondary: attentionSecondary(c.jurisdiction, undefined, x),
         href: `/app/cases/${c.id}`,
       })),
     /* Obligations without evidence on file, once dated — the same pool the
@@ -391,7 +391,7 @@ export function AnalyticsProductionView() {
       id: record.id,
       dueISO: record.expiryISO,
       title: record.employeeName ? `${record.name} — ${record.employeeName}` : record.name,
-      secondary: attentionSecondary(record.employeeProvince ?? '', undefined, x),
+      secondary: attentionSecondary(record.employeeJurisdiction ?? '', undefined, x),
       href: `/app/employees/${record.employeeId}`,
     })),
   ]
@@ -407,7 +407,7 @@ export function AnalyticsProductionView() {
 
   const headcountCounts = new Map<string, number>()
   for (const employee of activeEmployees) {
-    headcountCounts.set(employee.province, (headcountCounts.get(employee.province) ?? 0) + 1)
+    headcountCounts.set(employee.jurisdiction, (headcountCounts.get(employee.jurisdiction) ?? 0) + 1)
   }
   const headcountRows = [...headcountCounts.entries()]
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
@@ -430,7 +430,7 @@ export function AnalyticsProductionView() {
     .map(({ employee, daysLeft }) => ({
       key: employee.id,
       name: employee.name,
-      secondary: [employee.title, employee.province].filter(Boolean).join(' · '),
+      secondary: [employee.title, employee.jurisdiction].filter(Boolean).join(' · '),
       endLabel: formatDayISO(employee.probationEndDate!, locale),
       daysLeft,
       reviewTaskCreated: hasProbationReviewTask(taskRows, employee.id),
@@ -469,7 +469,7 @@ export function AnalyticsProductionView() {
     ...bareOnLeave.map((e) => ({
       key: `bare-${e.id}`,
       name: e.name,
-      type: e.title ?? e.province,
+      type: e.title ?? e.jurisdiction,
       protected: false,
       returnLabel: x(M.analytics_leave_on_now),
       imminent: false,
@@ -643,7 +643,7 @@ export function AnalyticsProductionView() {
                       key: caseRow.id,
                       href: `/app/cases/${caseRow.id}`,
                       typeLabel: x(TYPE_LABEL[caseRow.caseType]),
-                      jurisdiction: caseRow.province,
+                      jurisdiction: caseRow.jurisdiction,
                       openedLabel: fill(x(M.analytics_cases_opened), {
                         date: formatDayISO(caseRow.openedISO, locale),
                       }),
@@ -698,7 +698,7 @@ export function AnalyticsProductionView() {
         <AnalyticsCard
           title={x(M.analytics_service_milestone_title)}
           subtitle={x(M.analytics_service_milestone_sub)}
-          hidden={!show('probation')}
+          hidden={!show('serviceMilestones')}
         >
           <CardData deps={[employees, tasks]} skeletonLines={3}>
             {() =>

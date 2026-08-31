@@ -131,7 +131,7 @@ describe('CalendarView in production mode', () => {
                           title: 'Accommodation review',
                           case_type: 'Accommodation',
                           employee_id: null,
-                          province: 'Ontario',
+                          jurisdiction: 'Ontario',
                           status: 'open',
                           due_date: todayIso,
                           created_at: `${todayIso}T12:00:00Z`,

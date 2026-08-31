@@ -3,7 +3,7 @@ import type { ExpiryRecord, LeaveOverviewRecord, ServiceMilestoneRecord } from '
 
 /**
  * Workforce records behind the Analytics Phase 2 cards: certifications &
- * training, dated employee documents, probation ends, and the leave
+ * training, dated employee documents, service milestones due, and the leave
  * overview. All dates are read against the diorama's fixed today
  * (July 11, 2026 — see `demoTodayISO`).
  *
@@ -138,9 +138,6 @@ export const serviceMilestones: ServiceMilestoneRecord[] = [
     reviewTaskCreated: true,
   },
 ]
-
-/** @deprecated Use {@link serviceMilestones}. */
-export const probationEnds = serviceMilestones
 
 /* ── Leave overview (status only — no balances, no medical detail) ───────
    Amara is the roster's one active leave-adjacent arrangement (modified

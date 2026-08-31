@@ -183,7 +183,7 @@ export function PersonMemoryProductionView() {
               {employee.name}
             </h1>
             <div className="mt-[4px] text-[13.5px] text-text-muted">
-              {[employee.title, employee.province].filter(Boolean).join(' · ')}
+              {[employee.title, employee.jurisdiction].filter(Boolean).join(' · ')}
             </div>
           </div>
           {isOrgAdmin && (

@@ -57,11 +57,6 @@ export const compensationMessages = defineMessages({
     en: 'Internal compensation band framework',
     fr: 'Cadre interne d’échelons salariales',
   },
-  /** @deprecated Use comp_market_review_citation. */
-  comp_pay_equity_citation: {
-    en: 'Internal compensation band framework',
-    fr: 'Cadre interne d’échelons salariales',
-  },
   comp_open_comp_tab: { en: 'Open compensation tab', fr: 'Ouvrir l’onglet Rémunération' },
   comp_context_topic: { en: 'Compensation review', fr: 'Examen de la rémunération' }, // [FR self-authored]
 
