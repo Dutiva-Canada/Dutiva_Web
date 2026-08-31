@@ -48,7 +48,7 @@ describe('knowledgeItems', () => {
     }
   })
 
-  it('provides a qualified summary for every knowledge article', () => {
+  it('provides substantive bilingual summaries for every knowledge article', () => {
     for (const k of knowledgeItems) {
       expect(k.summary.en.length).toBeGreaterThan(40)
       expect(k.summary.fr.length).toBeGreaterThan(40)
@@ -64,6 +64,8 @@ describe('knowledgeItems', () => {
     expect(k3.title.en).toContain('documents & communications')
     expect(k3.title.fr).toContain('documents et communications')
     expect(k3.summary.en).toMatch(/document or communication type/i)
+    expect(k3.summary.fr).toContain('La Charte de la langue française régit')
+    expect(k3.summary.fr).not.toContain('Charte de la langue française du Québec')
   })
 
   it('uses Canada-scoped accommodation metadata for k4', () => {
@@ -72,6 +74,7 @@ describe('knowledgeItems', () => {
     expect(k4.tag.en).toBe('Accommodation · Canada')
     expect(k4.summary.en).toContain('functional limitations')
     expect(k4.summary.en).toMatch(/rather than diagnosis/i)
+    expect(k4.summary.en).not.toContain('human-rights')
   })
 
   it('uses Canada-scoped tags for cross-jurisdictional topics without implying uniform rules', () => {
