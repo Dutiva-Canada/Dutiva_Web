@@ -39,6 +39,8 @@ export const communications: Communication[] = [
   },
   {
     id: 'cm3',
+    /* Audience is historical scenario data (sent yesterday); not derived from the
+       named employee roster. BC reflects the diorama company in analytics headcount. */
     title: bi('Statutory holiday notice — August', 'Avis de jour férié — août'),
     audience: bi('Ontario, BC, AB · 71 people', 'Ontario, C.-B., AB · 71 personnes'),
     province: bi('Multi-jurisdiction', 'Multijuridictionnel'),
