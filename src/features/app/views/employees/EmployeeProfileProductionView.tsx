@@ -373,19 +373,23 @@ export function EmployeeProfileProductionView() {
                 </select>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-[12px] sm:grid-cols-4">
+            <div className="grid grid-cols-1 gap-[12px] sm:grid-cols-2 lg:grid-cols-3">
               {facts.map((f) => (
-                <div key={f.label.en}>
+                <div key={f.label.en} className="min-w-0">
                   <div className="text-[11px] font-bold tracking-[0.04em] text-text-muted uppercase">
                     {x(f.label)}
                   </div>
-                  <div className="mt-[2px] text-[13px] font-semibold text-text">
+                  <div
+                    className={`mt-[2px] text-[13px] font-semibold text-text ${
+                      f.label === M.employees_prod_detail_email ? 'break-all' : 'break-words'
+                    }`}
+                  >
                     {f.value ?? '—'}
                   </div>
                 </div>
               ))}
               {employee && (
-                <div>
+                <div className="min-w-0">
                   <div className="text-[11px] font-bold tracking-[0.04em] text-text-muted uppercase">
                     {x(M.employees_manager_label)}
                   </div>
