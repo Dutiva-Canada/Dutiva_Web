@@ -107,8 +107,11 @@ a file past the 800-line budget.
 
 Feature work in this repo is driven by high-fidelity design handoffs
 (prototype HTML + spec docs + screenshots). Prototypes are the source of
-truth for pixels and copy — when in doubt, read the prototype, not this
-file. Handoffs used to build a feature belong in the repo, not just in the
+truth for visual fidelity and feature-specific copy from the approved handoff.
+They never override CANONICAL_FACTS.md for facts or NATURAL_LANGUAGE_COPY.md
+for writing rules. When implementation details are unclear, inspect the
+prototype rather than inferring them from this summary. Handoffs used to build
+a feature belong in the repo, not just in the
 upload/chat that produced the PR: commit them under
 `docs/design-handoff-<slug>/`, following the existing examples
 (`docs/design-handoff-hr-documents-library/`,
