@@ -3,8 +3,8 @@
  *
  * Most presentation colors are mixed from `currentColor`, i.e. the text color
  * the message bubble already uses. Chart categorical colors use the explicit
- * accessible palette defined below. Light mode, dark mode, and any brand palette
- * work with no configuration. To tune, set these on `.cm-root` or any ancestor:
+ * palette defined below. Light mode, dark mode, and any brand palette work
+ * with no configuration. To tune, set these on `.cm-root` or any ancestor:
  *
  *   --cm-accent          link / rule / quote accent      (default: inherits text)
  *   --cm-surface-solid   opaque backdrop behind sticky headers and scroll
