@@ -6,7 +6,9 @@
  * individuals/organizations to begin. Signup stays open past that — the
  * landing form keeps recording interest as a waiting list — but only the
  * first {@link BETA_COHORT_LIMIT} eligible signups are auto-admitted to the
- * workspace.
+ * workspace. Active paid subscribers (Starter/Growth/Pro with active or
+ * trialing status) are also workspace members regardless of cohort position —
+ * see migration `0089_paid_subscribers_are_workspace_members.sql`.
  *
  * Enforcement lives server-side in `current_user_is_workspace_member()`
  * (migration `0067_beta_cohort_capacity.sql`), the signup endpoint

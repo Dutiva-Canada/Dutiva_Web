@@ -45,7 +45,7 @@ people who don't read the repo. Re-export it when this file changes.
 | Pricing               | Free waitlist (3-month access once admitted) · Starter **$24** · Growth **$49** · Pro **$99** CAD/mo                                                                                                 | `src/config/plans.ts` → `PLANS`                                         |
 | Annual billing        | 10 of 12 months charged (two months free)                                                                                                                                                            | `ANNUAL_MONTHS_BILLED`                                                  |
 | Beta state            | Paid plans **sold** (support membership; product open to all admitted accounts). Free cohort of **15** remains waitlisted                                                                            | `PAID_PLANS_DISABLED_DURING_BETA` + `PLAN_FEATURE_GATES_ENABLED`        |
-| Beta capacity         | **15** individuals/organizations to begin; signup stays open as a waiting list                                                                                                                       | `src/config/beta.ts` `BETA_COHORT_LIMIT`; gate in migration `0067`      |
+| Beta capacity         | **15** free-cohort seats; signup stays open as a waiting list. Active paid plans skip the free waitlist (migration **0089**)                                                                 | `src/config/beta.ts` `BETA_COHORT_LIMIT`; gates in migrations **0067**, **0089** |
 | Rings live            | **All four rings complete.**                                                                                                                                                                         | `docs/FOUR_RING_FRAMEWORK.md`                                           |
 | Law-change monitoring | **Federal (FED), Ontario (ON) and Québec (QC) confirmed working** (audit 2026-08-10)                                                                                                                 | `src/features/app/guidance/monitoringCoverage.ts`                       |
 | Contact address       | <support@dutiva.ca>                                                                                                                                                                                  | the published support address; retired ones stay retired (§6, enforced) |
@@ -115,7 +115,8 @@ publication mandate.
 
 May 2026 and September 2026 have both been published as launch dates and both have
 passed. **Do not publish a new calendar date.** Paid plans are sold: a visitor can
-check out on `/pricing`. The 15-person free cohort remains a waitlist. Product
+check out on `/pricing` and skip the free waitlist once checkout completes. The
+15-person free cohort remains a waitlist. Product
 feature gates stay off (`PLAN_FEATURE_GATES_ENABLED`) — paying buys support, not
 extra modules. Optional prepaid Advisor reply packs (and opt-in metered overage
 on a paid subscription) are an AI add-on, not a plan feature. That stays true

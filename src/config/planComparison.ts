@@ -21,9 +21,11 @@ export interface ComparisonGroup {
 
 /**
  * Feature-by-feature plan comparison for the quiet-beta period: every admitted
- * account gets the full product. Paying skips the waitlist and buys support.
- * Restore per-plan product limits here only when PLAN_FEATURE_GATES_ENABLED
- * is on and those limits are actually enforced.
+ * account gets the full product. Paid plans skip the **free** waitlist — active
+ * Starter/Growth/Pro subscriptions admit immediately (migration 0089); the
+ * {@link BETA_COHORT_LIMIT} cap applies to the free cohort only. Paying also
+ * buys support. Restore per-plan product limits here only when
+ * PLAN_FEATURE_GATES_ENABLED is on and those limits are actually enforced.
  */
 export const PLAN_COMPARISON: ComparisonGroup[] = [
   {
