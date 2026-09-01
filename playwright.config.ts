@@ -6,9 +6,9 @@ import { existsSync } from 'node:fs'
 import { defineConfig, devices } from '@playwright/test'
 
 /**
- * End-to-end smoke layer. It runs the production build (scripts/build → dist/)
- * behind e2e/serve-dist.mjs, which mirrors the Vercel routing contract, and
- * drives it in a real Chromium. Deliberately small and hermetic: no live
+ * End-to-end smoke layer. It runs against the production build in `dist/`,
+ * served by e2e/serve-dist.mjs, which mirrors the Vercel routing contract,
+ * and drives it in a real Chromium. Deliberately small and hermetic: no live
  * Supabase, no third-party calls — every assertion is about what the shipped
  * bundle does on its own (routing, prerender + hydration, the consent gate).
  *
