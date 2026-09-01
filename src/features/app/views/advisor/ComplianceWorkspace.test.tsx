@@ -12,8 +12,8 @@ function renderWorkspace(props: Partial<React.ComponentProps<typeof ComplianceWo
   return renderApp(
     <ComplianceWorkspace
       state={{ kind: 'idle' }}
-      mobileOpen={false}
-      onCloseMobile={noop}
+      open={true}
+      onClose={noop}
       {...props}
     />,
     { route: '/app/advisor' },
@@ -31,7 +31,7 @@ describe('ComplianceWorkspace', () => {
   it('locked on public demo: panel omitted (banner covers read-only)', () => {
     renderApp(
       <PublicDemoProvider root="/demo">
-        <ComplianceWorkspace state={{ kind: 'locked' }} mobileOpen={false} onCloseMobile={noop} />
+        <ComplianceWorkspace state={{ kind: 'locked' }} open={true} onClose={noop} />
       </PublicDemoProvider>,
       { route: '/demo/advisor' },
     )

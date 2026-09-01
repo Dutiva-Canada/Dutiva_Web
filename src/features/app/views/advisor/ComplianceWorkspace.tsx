@@ -40,8 +40,8 @@ import type {
  *
  * Four states: locked (signed out — preview mode), running (routing
  * skeleton), ready (populated payload), idle (thread with no engine turn).
- * Below the lg breakpoint the panel becomes a full-screen sheet toggled from
- * the chat header (prototype `dv-ws dv-open`).
+ * On viewports ≥ lg the panel is on-demand (same as the mobile sheet):
+ * hidden until opened, auto-shown while routing or when a payload lands.
  */
 
 export type WorkspaceState =
@@ -66,9 +66,9 @@ export interface ComplianceWorkspaceProps {
    * payload yet), idle stays a quiet empty state — no starter cards.
    */
   readonly showIdleStarters?: boolean
-  /** Mobile sheet open state + close (ChatPane header pill owns opening). */
-  readonly mobileOpen: boolean
-  readonly onCloseMobile: () => void
+  /** When true, the workspace panel/sheet is visible. */
+  readonly open: boolean
+  readonly onClose: () => void
 }
 
 /* ------------------------------------------------------------- tone maps */
@@ -147,8 +147,8 @@ export function ComplianceWorkspace({
   onIdleSend,
   onIdleNavigate,
   showIdleStarters = true,
-  mobileOpen,
-  onCloseMobile,
+  open,
+  onClose,
 }: ComplianceWorkspaceProps) {
   const { x } = useI18n()
   const { isPublicDemo } = useWorkspaceRoot()
@@ -163,12 +163,12 @@ export function ComplianceWorkspace({
         <div className="flex items-center gap-[8px]">
           <ShieldCheck size={16} strokeWidth={1.7} className="text-gold-fg" aria-hidden="true" />
           <div className="font-display text-[14px] font-semibold text-text">{x(M.advws_title)}</div>
-          {mobileOpen && (
+          {open && (
             <button
               type="button"
-              onClick={onCloseMobile}
+              onClick={onClose}
               aria-label={x(M.advws_close_workspace)}
-              className="ml-auto flex cursor-pointer items-center rounded-[8px] border-none bg-inset p-[5px] text-text-2 lg:hidden"
+              className="ml-auto flex cursor-pointer items-center rounded-[8px] border-none bg-inset p-[5px] text-text-2"
             >
               <X size={18} strokeWidth={2} aria-hidden="true" />
             </button>
@@ -199,18 +199,10 @@ export function ComplianceWorkspace({
 
   return (
     <>
-      {/* Desktop panel */}
-      <aside
-        aria-label={x(M.advws_title)}
-        className="hidden w-[384px] shrink-0 overflow-y-auto border-l border-border bg-surface-2 lg:block"
-      >
-        {aside}
-      </aside>
-      {/* Mobile sheet (prototype: the workspace becomes a full overlay < 820px) */}
-      {mobileOpen && (
+      {open && (
         <aside
           aria-label={x(M.advws_title)}
-          className="fixed inset-0 z-80 overflow-y-auto bg-surface-2 lg:hidden"
+          className="fixed inset-0 z-80 overflow-y-auto bg-surface-2 lg:static lg:inset-auto lg:z-auto lg:w-[384px] lg:shrink-0 lg:border-l lg:border-border"
         >
           {aside}
         </aside>

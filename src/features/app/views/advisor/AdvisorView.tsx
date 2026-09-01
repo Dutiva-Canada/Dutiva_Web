@@ -9,7 +9,7 @@ import { useAdvisorViewController } from './useAdvisorViewController'
  *
  * - left column: thread list grouped Pinned / Today / Previous 7 days / Older;
  * - no active thread → Advisor home empty state;
- * - active thread → transcript + compliance workspace.
+ * - active thread → transcript + compliance workspace (on demand).
  *
  * Behaviour lives in useAdvisorViewController; this file is layout only.
  */
@@ -23,7 +23,6 @@ export function AdvisorView() {
     canDeleteThread,
     isPublicDemo,
     hasActiveChat,
-    authStatus,
     engine,
     sendingReal,
     jurisdictionLine,
@@ -85,6 +84,7 @@ export function AdvisorView() {
             onExportMessage={handleExportMessage}
             onPickProvince={pickProvince}
             onOpenWorkspace={() => setWorkspaceOpen(true)}
+            workspaceOpen={workspaceOpen}
             onBuyAdvisorPack={handleBuyAdvisorPack}
             buyingAdvisorPack={buyingAdvisorPack}
           />
@@ -95,29 +95,17 @@ export function AdvisorView() {
             onIdleSend={idleSend}
             onIdleNavigate={(to) => navigate(to)}
             showIdleStarters={engine.messages.length === 0}
-            mobileOpen={workspaceOpen}
-            onCloseMobile={() => setWorkspaceOpen(false)}
+            open={workspaceOpen}
+            onClose={() => setWorkspaceOpen(false)}
           />
         </>
       ) : (
-        <>
-          <AdvisorHome
-            onSend={homeSend}
-            onScenario={(scenarioId) => startScenario(scenarioId)}
-            onPriorityAction={runPriorityAction}
-            onMetricClick={(view) => navigate(`/app/${view}`)}
-          />
-          <ComplianceWorkspace
-            state={
-              authStatus === 'signed-in' && !isPublicDemo ? { kind: 'idle' } : { kind: 'locked' }
-            }
-            onIdleSend={idleSend}
-            onIdleNavigate={(to) => navigate(to)}
-            showIdleStarters
-            mobileOpen={false}
-            onCloseMobile={() => {}}
-          />
-        </>
+        <AdvisorHome
+          onSend={homeSend}
+          onScenario={(scenarioId) => startScenario(scenarioId)}
+          onPriorityAction={runPriorityAction}
+          onMetricClick={(view) => navigate(`/app/${view}`)}
+        />
       )}
     </div>
   )

@@ -66,8 +66,10 @@ export interface ChatPaneProps {
   readonly onExportMessage: (text: string) => void
   /** Province chip pick on a jurisdiction-unknown turn (response experience). */
   readonly onPickProvince?: (province: Bi) => void
-  /** Opens the Compliance Workspace sheet below the lg breakpoint. */
+  /** Opens the Compliance Workspace panel when it is collapsed. */
   readonly onOpenWorkspace?: () => void
+  /** When true, the workspace toggle is hidden (panel already open). */
+  readonly workspaceOpen?: boolean
   /** Commercial 429: start prepaid pack Checkout. */
   readonly onBuyAdvisorPack?: (pack: AdvisorPackSize) => void
   readonly buyingAdvisorPack?: AdvisorPackSize | null
@@ -156,6 +158,7 @@ export function ChatPane({
   onExportMessage,
   onPickProvince,
   onOpenWorkspace,
+  workspaceOpen = false,
   onBuyAdvisorPack,
   buyingAdvisorPack = null,
   jurisdictionTone = 'gold',
@@ -178,11 +181,11 @@ export function ChatPane({
         >
           {pickL(jurisdiction, lang)}
         </span>
-        {onOpenWorkspace && (
+        {onOpenWorkspace && !workspaceOpen && (
           <button
             type="button"
             onClick={onOpenWorkspace}
-            className="flex cursor-pointer items-center gap-[5px] rounded-[100px] border border-gold-border bg-gold-bg px-[11px] py-[4px] font-sans text-[11.5px] font-bold whitespace-nowrap text-gold-fg lg:hidden"
+            className="flex cursor-pointer items-center gap-[5px] rounded-[100px] border border-gold-border bg-gold-bg px-[11px] py-[4px] font-sans text-[11.5px] font-bold whitespace-nowrap text-gold-fg"
           >
             <ShieldCheck size={13} strokeWidth={1.9} aria-hidden="true" />
             {x(W.advws_open_workspace)}
