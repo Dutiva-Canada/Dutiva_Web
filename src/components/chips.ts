@@ -22,7 +22,7 @@ export const chipToneClasses: Record<ChipToneKey, string> = {
   neutral: 'bg-inset text-text-muted',
 }
 
-/** Resolve any fixture tone ('suggestion' renders as info, like the prototype). */
+/** Resolve known tone keys; unhandled fixture tones use the caller-supplied fallback. */
 function toneKey(tone: ChipTone, fallback: ChipToneKey): ChipToneKey {
   if (tone === 'risk' || tone === 'warning' || tone === 'success' || tone === 'neutral') {
     return tone
