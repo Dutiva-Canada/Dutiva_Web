@@ -69,19 +69,19 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Critique (panne confirmée de la plateforme, incident de sécurité actif crédible, défaillance d’authentification généralisée, problème grave d’accès aux données ou incident de confidentialité urgent) : première réponse en moins de 4 heures ouvrables.',
+          text: 'Critique (panne confirmée de la plateforme, incident de sécurité actif crédible, défaillance d’authentification généralisée, problème grave d’accès aux données ou incident de confidentialité urgent) : première réponse dans un délai de 4 heures ouvrables.',
         },
         {
           type: 'p',
-          text: 'Élevée (vous ne pouvez pas accéder à un compte ou à un processus essentiel, un problème de facturation interrompt votre service, un obstacle important à l’accessibilité ou une défaillance majeure d’une fonctionnalité sans solution de contournement raisonnable) : première réponse en moins de 1 jour ouvrable.',
+          text: 'Élevée (vous ne pouvez pas accéder à un compte ou à un processus essentiel, un problème de facturation interrompt votre service, un obstacle important à l’accessibilité ou une défaillance majeure d’une fonctionnalité sans solution de contournement raisonnable) : première réponse dans un délai de 1 jour ouvrable.',
         },
         {
           type: 'p',
-          text: 'Standard (une anomalie isolée, une question sur le produit, une précision de facturation ou une question de soutien générale) : première réponse en moins de 2 jours ouvrables.',
+          text: 'Standard (une anomalie isolée, une question sur le produit, une précision de facturation ou une question de soutien générale) : première réponse dans un délai de 2 jours ouvrables.',
         },
         {
           type: 'p',
-          text: 'Faible (une demande de fonctionnalité, une rétroaction générale ou une suggestion de documentation non urgente) : première réponse en moins de 5 jours ouvrables.',
+          text: 'Faible (une demande de fonctionnalité, une rétroaction générale ou une suggestion de documentation non urgente) : première réponse dans un délai de 5 jours ouvrables.',
         },
         {
           type: 'p',

@@ -62,10 +62,10 @@ const PRIORITY_LABELS: Record<string, { en: string; fr: string }> = {
   low: { en: 'Low', fr: 'Faible' },
 }
 const RESPONSE_TARGET_LABELS: Record<string, { en: string; fr: string }> = {
-  critical: { en: 'within 4 business hours', fr: 'en moins de 4 heures ouvrables' },
-  high: { en: 'within 1 business day', fr: 'en moins de 1 jour ouvrable' },
-  standard: { en: 'within 2 business days', fr: 'en moins de 2 jours ouvrables' },
-  low: { en: 'within 5 business days', fr: 'en moins de 5 jours ouvrables' },
+  critical: { en: 'within 4 business hours', fr: 'dans un délai de 4 heures ouvrables' },
+  high: { en: 'within 1 business day', fr: 'dans un délai de 1 jour ouvrable' },
+  standard: { en: 'within 2 business days', fr: 'dans un délai de 2 jours ouvrables' },
+  low: { en: 'within 5 business days', fr: 'dans un délai de 5 jours ouvrables' },
 }
 
 // ── Approved copy (mirror src/i18n/messages/support.ts + common.ts) ─────────
