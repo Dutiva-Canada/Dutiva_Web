@@ -1,9 +1,10 @@
 /**
  * chat-markdown.css — presentation layer for <ChatMarkdown />.
  *
- * Every color is mixed from `currentColor`, i.e. the text color the message
- * bubble already uses. Light mode, dark mode, and any brand palette work with
- * no configuration. To tune, set these on `.cm-root` or any ancestor:
+ * Most presentation colors are mixed from `currentColor`, i.e. the text color
+ * the message bubble already uses. Chart categorical colors use the explicit
+ * accessible palette defined below. Light mode, dark mode, and any brand palette
+ * work with no configuration. To tune, set these on `.cm-root` or any ancestor:
  *
  *   --cm-accent          link / rule / quote accent      (default: inherits text)
  *   --cm-surface-solid   opaque backdrop behind sticky headers and scroll
@@ -323,24 +324,6 @@
 
 /* --------------------------------------------------------------- Images */
 
-.cm-figure {
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.45em;
-}
-.cm-img {
-  display: block;
-  max-width: 100%;
-  height: auto;
-  border: 1px solid var(--cm-border);
-  border-radius: var(--cm-radius);
-}
-.cm-caption {
-  font-size: 0.85em;
-  line-height: 1.45;
-  color: var(--cm-muted);
-}
 .cm-image-placeholder {
   display: inline-block;
   font-size: 0.85em;
