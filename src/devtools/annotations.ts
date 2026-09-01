@@ -26,13 +26,40 @@ export interface Annotation {
 export const NOTES_KEY = 'dutiva-dev-annotations'
 export const ENABLED_KEY = 'dutiva-dev-enabled'
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+/** Drop corrupt entries; coerce optional fields so brief formatting never throws. */
+function sanitizeNote(raw: unknown): Annotation | null {
+  if (!isRecord(raw)) return null
+  if (typeof raw.id !== 'string' || raw.id.length === 0) return null
+  if (typeof raw.route !== 'string') return null
+  if (typeof raw.element !== 'string') return null
+  if (typeof raw.selector !== 'string') return null
+
+  return {
+    id: raw.id,
+    route: raw.route,
+    file: typeof raw.file === 'string' ? raw.file : null,
+    line: typeof raw.line === 'number' && Number.isFinite(raw.line) ? raw.line : null,
+    component: typeof raw.component === 'string' ? raw.component : null,
+    element: raw.element,
+    selector: raw.selector,
+    note: typeof raw.note === 'string' ? raw.note : '',
+    createdAt:
+      typeof raw.createdAt === 'number' && Number.isFinite(raw.createdAt) ? raw.createdAt : 0,
+  }
+}
+
 /** localStorage read that never throws (private mode, quota, SSR). */
 export function loadNotes(): Annotation[] {
   try {
     const raw = localStorage.getItem(NOTES_KEY)
     if (!raw) return []
     const parsed: unknown = JSON.parse(raw)
-    return Array.isArray(parsed) ? (parsed as Annotation[]) : []
+    if (!Array.isArray(parsed)) return []
+    return parsed.map(sanitizeNote).filter((note): note is Annotation => note !== null)
   } catch {
     return []
   }

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { buildBrief, type Annotation } from './annotations'
+import { buildBrief, loadNotes, NOTES_KEY, type Annotation } from './annotations'
 import { buildSelector, describeElement, getSourceInfo } from './domInspect'
 
 function note(partial: Partial<Annotation>): Annotation {
@@ -63,6 +63,67 @@ describe('buildBrief', () => {
 
   it('singularizes the header for one note', () => {
     expect(buildBrief([note({ note: 'x' })])).toContain('(1 annotation)')
+  })
+})
+
+describe('loadNotes', () => {
+  afterEach(() => {
+    localStorage.removeItem(NOTES_KEY)
+  })
+
+  it('returns an empty array when nothing is stored', () => {
+    expect(loadNotes()).toEqual([])
+  })
+
+  it('returns an empty array for invalid JSON or non-array payloads', () => {
+    localStorage.setItem(NOTES_KEY, '{not json')
+    expect(loadNotes()).toEqual([])
+
+    localStorage.setItem(NOTES_KEY, JSON.stringify({ route: '/' }))
+    expect(loadNotes()).toEqual([])
+  })
+
+  it('drops entries missing required fields and coerces optional ones', () => {
+    localStorage.setItem(
+      NOTES_KEY,
+      JSON.stringify([
+        { id: 'a', route: '/', element: 'button', selector: '#x', note: 'keep me' },
+        { id: 'b', route: '/' },
+        { route: '/', element: 'div', selector: 'div' },
+        'garbage',
+      ]),
+    )
+
+    expect(loadNotes()).toEqual([
+      {
+        id: 'a',
+        route: '/',
+        file: null,
+        line: null,
+        component: null,
+        element: 'button',
+        selector: '#x',
+        note: 'keep me',
+        createdAt: 0,
+      },
+    ])
+  })
+
+  it('preserves valid stored annotations', () => {
+    const stored = note({
+      id: 'n1',
+      route: '/pricing',
+      file: 'src/pages/Pricing.tsx',
+      line: 12,
+      component: 'Pricing',
+      element: 'h1',
+      selector: '#hero',
+      note: 'Tighten copy',
+      createdAt: 99,
+    })
+    localStorage.setItem(NOTES_KEY, JSON.stringify([stored]))
+
+    expect(loadNotes()).toEqual([stored])
   })
 })
 
