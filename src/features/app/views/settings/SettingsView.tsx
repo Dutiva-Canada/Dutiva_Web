@@ -39,7 +39,7 @@ import {
 } from '@/features/app/advisor/overageOptInApi'
 import {
   ADVISOR_MONTHLY_INCLUDED,
-  ADVISOR_OVERAGE_MONTHLY_CAP,
+  ADVISOR_OVERAGE_MONTHLY_REPLY_CAP,
   ADVISOR_OVERAGE_PER_REPLY_CAD,
 } from '@/config/advisorUsage'
 
@@ -148,7 +148,7 @@ export function SettingsView() {
   const overageSub = pickL(M.settings_toggle_overage_sub, lang)
     .replaceAll('{included}', String(ADVISOR_MONTHLY_INCLUDED))
     .replaceAll('{price}', String(ADVISOR_OVERAGE_PER_REPLY_CAD))
-    .replaceAll('{cap}', String(ADVISOR_OVERAGE_MONTHLY_CAP))
+    .replaceAll('{cap}', String(ADVISOR_OVERAGE_MONTHLY_REPLY_CAP))
 
   /* Production shows the real profile's single operating region; demo keeps
      the Northgate fixture chips. */

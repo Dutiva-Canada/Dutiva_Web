@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { BETA_COHORT_LIMIT } from '@/config/beta'
 import {
   ADVISOR_MONTHLY_INCLUDED,
-  ADVISOR_OVERAGE_MONTHLY_CAP,
+  ADVISOR_OVERAGE_MONTHLY_REPLY_CAP,
   ADVISOR_PACK_50_PRICE_CAD,
   ADVISOR_PACK_50_REPLIES,
   ADVISOR_PACK_200_PRICE_CAD,
@@ -177,7 +177,7 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
         ADVISOR_PACK_50_PRICE_CAD,
         ADVISOR_PACK_200_REPLIES,
         ADVISOR_PACK_200_PRICE_CAD,
-        ADVISOR_OVERAGE_MONTHLY_CAP,
+        ADVISOR_OVERAGE_MONTHLY_REPLY_CAP,
       ].sort(),
     )
     expect(replies.toLowerCase()).toContain('not a plan feature')
@@ -191,7 +191,7 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
       'aiUsage.ts',
     )
     expect(aiUsage).toContain(`envInt('AI_MONTHLY_CHAT_LIMIT', ${ADVISOR_MONTHLY_INCLUDED})`)
-    expect(aiUsage).toContain(`envInt('AI_OVERAGE_MONTHLY_CAP', ${ADVISOR_OVERAGE_MONTHLY_CAP})`)
+    expect(aiUsage).toContain(`envInt('AI_OVERAGE_MONTHLY_CAP', ${ADVISOR_OVERAGE_MONTHLY_REPLY_CAP})`)
   })
 
   it('states the beta cohort capacity, in every copy of the number', () => {

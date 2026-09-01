@@ -17,7 +17,7 @@ export const ADVISOR_PACK_200_PRICE_CAD = 15
 
 /** Phase 2: billed on an active paid subscription after included + pack balance. */
 export const ADVISOR_OVERAGE_PER_REPLY_CAD = 0.12
-export const ADVISOR_OVERAGE_MONTHLY_CAP = 500
+export const ADVISOR_OVERAGE_MONTHLY_REPLY_CAP = 500
 
 export type AdvisorPackSize = typeof ADVISOR_PACK_50_REPLIES | typeof ADVISOR_PACK_200_REPLIES
 

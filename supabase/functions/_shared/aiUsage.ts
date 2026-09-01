@@ -113,7 +113,7 @@ function envFlag(name: string): boolean {
 /**
  * Hard cap on extra billed replies this calendar month. Zero when the Stripe
  * meter event name is unset — packs still work; waitlist accounts cannot be
- * invoiced by accident. Fallback 500 must match `ADVISOR_OVERAGE_MONTHLY_CAP`.
+ * invoiced by accident. Fallback 500 must match `ADVISOR_OVERAGE_MONTHLY_REPLY_CAP`.
  */
 export function overageMonthlyCap(): number {
   if (!envFlag('STRIPE_ADVISOR_METER_EVENT_NAME')) return 0
