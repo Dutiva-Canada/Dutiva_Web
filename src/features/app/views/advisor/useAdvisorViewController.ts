@@ -73,7 +73,7 @@ export function useAdvisorViewController() {
     enginePrefix,
   } = useAdvisorThreadSession(location.state, workspaceMode)
   const selectChatRef = useRef<(chatId: string) => void>(() => {})
-  /* Compliance Workspace as a sheet below the xl breakpoint. */
+  /* Compliance Workspace panel — on demand on every viewport. */
   const [workspaceOpen, setWorkspaceOpen] = useState(false)
   const updateActiveChatId = (id: string | null) => {
     setActiveChatIdBase(id)
@@ -386,8 +386,6 @@ export function useAdvisorViewController() {
     openWellbeingRail,
   })
 
-  /* -------------------------------------------------------------- render */
-
   const {
     groups,
     hasActiveChat,
@@ -412,6 +410,12 @@ export function useAdvisorViewController() {
       older: M.advisorview_group_older,
     },
   })
+
+  useEffect(() => {
+    if (workspaceState.kind === 'running' || workspaceState.kind === 'ready') {
+      setWorkspaceOpen(true)
+    }
+  }, [workspaceState.kind])
 
   const getExtras = (messageId: string): MessageExtras | undefined =>
     extras[messageId] ?? seedExtras[messageId]
