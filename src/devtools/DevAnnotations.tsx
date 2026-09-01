@@ -154,7 +154,7 @@ export default function DevAnnotations() {
 
   /* Annotate mode: hover to highlight, click (captured) to pin. */
   useEffect(() => {
-    if (!annotating) return
+    if (!enabled || !annotating) return
 
     const onMove = (e: MouseEvent) => {
       const target = e.target
@@ -181,7 +181,7 @@ export default function DevAnnotations() {
       document.removeEventListener('mousemove', onMove, true)
       document.removeEventListener('click', onClick, true)
     }
-  }, [annotating, insideUi, pin])
+  }, [enabled, annotating, insideUi, pin])
 
   /* Focus the textarea of a freshly pinned note. */
   useEffect(() => {
@@ -205,6 +205,11 @@ export default function DevAnnotations() {
   }
 
   const locate = (note: Annotation) => {
+    if (window.location.pathname !== note.route) {
+      window.alert(`This annotation belongs to ${note.route}. Navigate there before locating it.`)
+      return
+    }
+
     let el: Element | null = null
     try {
       el = note.selector ? document.querySelector(note.selector) : null
@@ -227,7 +232,13 @@ export default function DevAnnotations() {
 
   const copyBrief = () => {
     const text = buildBrief(notes)
-    navigator.clipboard?.writeText(text).then(
+
+    if (!navigator.clipboard) {
+      setShowBrief(true)
+      return
+    }
+
+    navigator.clipboard.writeText(text).then(
       () => {
         setCopied(true)
         window.setTimeout(() => setCopied(false), 1600)
@@ -287,7 +298,11 @@ export default function DevAnnotations() {
               type="button"
               className="ddv-btn ddv-btn-icon"
               title="Hide (⌘/Ctrl+Shift+D to reopen)"
-              onClick={() => setEnabled(false)}
+              onClick={() => {
+                setAnnotating(false)
+                setHighlight(null)
+                setEnabled(false)
+              }}
             >
               Hide
             </button>
