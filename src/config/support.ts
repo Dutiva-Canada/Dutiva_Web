@@ -146,25 +146,25 @@ export const RESPONSE_TARGETS: Record<SupportPriority, ResponseTarget> = {
     priority: 'critical',
     amount: 4,
     unit: 'business_hours',
-    label: bi('within 4 business hours', 'en moins de 4 heures ouvrables'),
+    label: bi('within 4 business hours', 'dans un délai de 4 heures ouvrables'),
   },
   high: {
     priority: 'high',
     amount: 1,
     unit: 'business_days',
-    label: bi('within 1 business day', 'en moins de 1 jour ouvrable'),
+    label: bi('within 1 business day', 'dans un délai de 1 jour ouvrable'),
   },
   standard: {
     priority: 'standard',
     amount: 2,
     unit: 'business_days',
-    label: bi('within 2 business days', 'en moins de 2 jours ouvrables'),
+    label: bi('within 2 business days', 'dans un délai de 2 jours ouvrables'),
   },
   low: {
     priority: 'low',
     amount: 5,
     unit: 'business_days',
-    label: bi('within 5 business days', 'en moins de 5 jours ouvrables'),
+    label: bi('within 5 business days', 'dans un délai de 5 jours ouvrables'),
   },
 }
 
