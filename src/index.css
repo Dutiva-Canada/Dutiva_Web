@@ -18,8 +18,8 @@
    the prototypes that have no token should use arbitrary values (e.g.
    `rounded-[12px]`), keeping the port pixel-faithful and greppable. */
 @theme inline {
-  --font-display: var(--font-display);
-  --font-sans: var(--font-sans);
+  --font-display: var(--font-family-display);
+  --font-sans: var(--font-family-sans);
 
   /* Shared vocabulary */
   --color-bg: var(--bg);
@@ -69,11 +69,11 @@
   --color-overlay-scrim-soft: var(--overlay-scrim-soft);
   --color-overlay-scrim-mid: var(--overlay-scrim-mid);
 
-  --shadow-popover: var(--shadow-popover);
-  --shadow-modal: var(--shadow-modal);
-  --shadow-float: var(--shadow-float);
-  --shadow-menu: var(--shadow-menu);
-  --shadow-search: var(--shadow-search);
+  --shadow-popover: var(--shadow-token-popover);
+  --shadow-modal: var(--shadow-token-modal);
+  --shadow-float: var(--shadow-token-float);
+  --shadow-menu: var(--shadow-token-menu);
+  --shadow-search: var(--shadow-token-search);
 
   /* Marketing-surface vocabulary (design-system ramp) */
   --color-bg-elevated: var(--bg-elevated);
