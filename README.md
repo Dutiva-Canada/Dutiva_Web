@@ -156,9 +156,11 @@ i18n rules, data layer, and the quality bar, and
 
 ## Fidelity notes
 
-The design handoff (`design_handoff_dutiva_hr_platform/`) is the source of
-truth for pixels and copy. Documented deviations, each marked with a comment
-at the site:
+Approved design handoffs under `docs/design-handoff-*/` are the source of
+truth for visual fidelity and feature-specific handoff copy. They do not
+override `docs/CANONICAL_FACTS.md` for product facts or
+`docs/NATURAL_LANGUAGE_COPY.md` for writing rules. Documented deviations,
+each marked with a comment at the site:
 
 - **Two prototype bugs fixed**: open-task titles used `var(--ink)` (a border
   tone, near-invisible in both themes) and toasts used `var(--ink)` fills
