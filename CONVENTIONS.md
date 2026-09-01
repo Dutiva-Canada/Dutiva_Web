@@ -1,9 +1,13 @@
 # Dutiva Web — Engineering Conventions
 
-This codebase implements the high-fidelity design handoff in
-`C:\Users\Marti\Downloads\# HR Compliance AI Advisor\design_handoff_dutiva_hr_platform\`
-(start with its `README.md`). The prototype HTML files are the **source of truth for
-every pixel and every string (EN + FR)** — when in doubt, read the prototype.
+This codebase implements high-fidelity design handoffs committed under
+`docs/design-handoff-*/`. Start with the relevant handoff's `README.md`.
+
+Approved prototypes are the source of truth for visual fidelity and
+feature-specific handoff copy. They do not override `docs/CANONICAL_FACTS.md`
+for product facts or `docs/NATURAL_LANGUAGE_COPY.md` for writing rules.
+When implementation details are unclear, inspect the committed prototype
+rather than relying on memory or an external upload.
 
 ## Stack
 
