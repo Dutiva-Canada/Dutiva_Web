@@ -28,8 +28,9 @@ describe('plans config', () => {
     expect(hasPlanAccess('growth', 'growth')).toBe(true)
   })
 
-  it('requires an active subscription for paid plan access', () => {
+  it('requires both sufficient tier and an active subscription for paid plan access', () => {
     expect(hasPaidPlanAccess('pro', 'growth', 'active')).toBe(true)
+    expect(hasPaidPlanAccess('starter', 'growth', 'active')).toBe(false)
     expect(hasPaidPlanAccess('pro', 'growth', 'past_due')).toBe(false)
     expect(hasPaidPlanAccess('pro', 'growth', 'canceled')).toBe(false)
   })
