@@ -23,6 +23,7 @@ describe('AdvisorView', () => {
   beforeEach(() => {
     resetAdvisorSession()
     vi.stubGlobal('matchMedia', noReducedMotionMatchMedia)
+    localStorage.removeItem('dutiva.advisor.threads.open.v1')
   })
 
   it('renders the advisor home empty state with metrics, brief and priorities', () => {
@@ -43,9 +44,10 @@ describe('AdvisorView', () => {
     expect(screen.getByText('Jordan Mensah — counsel response outstanding')).toBeInTheDocument()
 
     /* Thread list groups from the chats fixtures (c1 is pinned + today). */
+    fireEvent.click(screen.getByRole('button', { name: 'Open conversations' }))
     expect(screen.getByText('Pinned')).toBeInTheDocument()
     expect(screen.getByText('Previous 7 days')).toBeInTheDocument()
-    expect(screen.getAllByText('Terminating Jordan Mensah — Ontario')).toHaveLength(2)
+    expect(screen.getAllByText('Terminating Jordan Mensah — Ontario')).toHaveLength(1)
   })
 
   it('toggles a priority "Why" expander', () => {
@@ -60,6 +62,7 @@ describe('AdvisorView', () => {
   it('opens a seeded thread and renders its transcript without re-streaming', () => {
     renderApp(<AdvisorView />, { route: '/app/advisor' })
 
+    fireEvent.click(screen.getByRole('button', { name: 'Open conversations' }))
     fireEvent.click(screen.getByRole('button', { name: /Offer letter — Senior Analyst, Ontario/ }))
 
     /* Seeded messages render fully (status done — no typing dots). */
@@ -89,6 +92,7 @@ describe('AdvisorView', () => {
     it('streams the canned acknowledgement after a free-form send in a thread', () => {
       renderApp(<AdvisorView />, { route: '/app/advisor' })
 
+      fireEvent.click(screen.getByRole('button', { name: 'Open conversations' }))
       fireEvent.click(screen.getByRole('button', { name: /Remote work policy refresh/ }))
 
       const composer = screen.getByPlaceholderText('Message Advisor…')

@@ -27,6 +27,7 @@ import { chats } from '@/data'
 import type { FixtureAction, FixtureToneCard } from '@/data'
 import type { FlowKeyOrFallback } from './advisorFlows'
 import type { MessageExtras } from './advisorFlows'
+import { readPref, writePref } from '@/lib/prefs'
 import { readNavNewChat, readNavStartFlow } from './advisorNav'
 import {
   readNavChatId,
@@ -75,6 +76,14 @@ export function useAdvisorViewController() {
   const selectChatRef = useRef<(chatId: string) => void>(() => {})
   /* Compliance Workspace panel — on demand on every viewport. */
   const [workspaceOpen, setWorkspaceOpen] = useState(false)
+  const THREADS_OPEN_PREF = 'dutiva.advisor.threads.open.v1'
+  const [threadsOpen, setThreadsOpenState] = useState(
+    () => readPref(THREADS_OPEN_PREF, 'false') === 'true',
+  )
+  const setThreadsOpen = (open: boolean) => {
+    setThreadsOpenState(open)
+    writePref(THREADS_OPEN_PREF, open ? 'true' : 'false')
+  }
   const updateActiveChatId = (id: string | null) => {
     setActiveChatIdBase(id)
     setWorkspaceOpen(false)
@@ -453,6 +462,8 @@ export function useAdvisorViewController() {
     pickProvince,
     workspaceOpen,
     setWorkspaceOpen,
+    threadsOpen,
+    setThreadsOpen,
     handleBuyAdvisorPack,
     buyingAdvisorPack,
     workspaceState,

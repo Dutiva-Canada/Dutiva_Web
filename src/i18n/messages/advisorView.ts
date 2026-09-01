@@ -58,6 +58,10 @@ export const advisorViewMessages = defineMessages({
   advisorview_open_threads: {
     en: 'Open conversations',
     fr: 'Ouvrir les conversations',
+  },
+  advisorview_close_threads: {
+    en: 'Hide conversations',
+    fr: 'Masquer les conversations',
   }, // [FR self-authored]
   advisorview_group_pinned: { en: 'Pinned', fr: 'Épinglé' },
   advisorview_group_today: { en: 'Today', fr: 'Aujourd’hui' },
