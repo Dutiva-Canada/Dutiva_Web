@@ -7,9 +7,10 @@ import type { Bi } from '@/i18n/core'
  * renders links and badges only when the data here is real; never fabricate
  * review counts or star ratings.
  *
- * Set `reviewUrl` when a profile is live. Set `displayedReviewCount` only from
- * the platform's public count once reviews exist. `ratingBadge` copy appears on
- * the homepage trust strip and pricing page once count >= {@link REVIEW_BADGE_MIN_COUNT}.
+ * Set `reviewUrl` when a profile is live. Update REVIEW_DISPLAYED_COUNT from
+ * verified public directory counts once reviews exist. `ratingBadge` copy
+ * appears on the homepage trust strip and pricing page once the aggregate
+ * count reaches REVIEW_BADGE_MIN_COUNT.
  */
 export interface ReviewDirectory {
   id: 'trustpilot' | 'g2' | 'capterra' | 'productHunt'
