@@ -37,9 +37,9 @@ const serveDist = raw(
   'serve-dist.mjs',
 )
 
-describe('TrustedSite main code', () => {
-  it('ships the vendor snippet on the marketing HTML template', () => {
-    expect(html).toContain('https://cdn.ywxi.net/js/1.js')
+describe('TrustedSite integration', () => {
+  it('does not ship the vendor snippet in the shared HTML template', () => {
+    expect(html).not.toContain('https://cdn.ywxi.net/js/1.js')
   })
 
   it('allows the origins TrustedSite documents, without style-src unsafe-inline', () => {

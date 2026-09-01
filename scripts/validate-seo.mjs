@@ -410,8 +410,8 @@ if (!appShell.includes('noindex, nofollow')) fail('app.html: missing noindex')
 if (appShell.includes('rel="canonical"')) fail('app.html: must not carry a canonical')
 if (appShell.includes('cdn.ywxi.net')) fail('app.html: must not load TrustedSite')
 const homeHtml = await readFile(path.join(dist, 'index.html'), 'utf8')
-if (!homeHtml.includes('https://cdn.ywxi.net/js/1.js')) {
-  fail('index.html: missing TrustedSite main code')
+if (homeHtml.includes('https://cdn.ywxi.net/js/1.js')) {
+  fail('index.html: TrustedSite must load from the marketing shell, not the shared template')
 }
 const notFound = await readFile(path.join(dist, '404.html'), 'utf8')
 if (!notFound.includes('noindex')) fail('404.html: missing noindex')

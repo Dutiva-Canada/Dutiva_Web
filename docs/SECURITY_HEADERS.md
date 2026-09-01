@@ -60,7 +60,7 @@ The allowed origins:
 - **Self-hosted fonts** — Inter Variable + Montserrat Variable from same-origin `/assets/*.woff2` (`font-src 'self'` only).
 - **GA4 / Tag Manager** — `googletagmanager.com`, `google-analytics.com`, `region1.google-analytics.com` (consent-gated). GTM also needs `frame-src` and `connect-src` for `www.googletagmanager.com`.
 - **CAPTCHA** — Turnstile (`challenges.cloudflare.com` and `*.challenges.cloudflare.com`) and hCaptcha (`js.hcaptcha.com`, `newassets.hcaptcha.com`, `api.hcaptcha.com`).
-- **TrustedSite** — `cdn.ywxi.net` (script, style, images), `www.trustedsite.com` (frame + connect), `s3-us-west-2.amazonaws.com` (connect). Public marketing HTML only; stripped from `app.html`. `style-src` does **not** add `'unsafe-inline'` for this vendor.
+- **TrustedSite** — `cdn.ywxi.net` (script, style, images), `www.trustedsite.com` (frame + connect), `s3-us-west-2.amazonaws.com` (connect). Loaded from the public marketing route shell only; never on `/app/*`. `style-src` does **not** add `'unsafe-inline'` for this vendor.
 
 `script-src` no longer includes `'unsafe-inline'` (2026-08-23): bootstrap
 scripts moved to `/bootstrap-auth.js` and `/bootstrap-theme.js`. `style-src`

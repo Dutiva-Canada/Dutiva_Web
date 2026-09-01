@@ -5,10 +5,9 @@
 import type { Page } from '@playwright/test'
 
 /**
- * Hermetic e2e must not fetch TrustedSite (or its S3 assets). The marketing
- * HTML includes their main code so production verification can see it; the
- * suite aborts those hosts so a floating widget cannot flake clicks or trip
- * style-src via injected inline CSS.
+ * Hermetic e2e must not fetch TrustedSite (or its S3 assets). Production loads
+ * it from the public marketing shell; the suite aborts those hosts so a
+ * floating widget cannot flake clicks or trip style-src via injected inline CSS.
  */
 export async function blockTrustedSite(page: Page): Promise<void> {
   await page.route(
