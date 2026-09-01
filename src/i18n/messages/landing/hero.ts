@@ -1,9 +1,10 @@
 import { defineMessages } from '../../core'
 
 export const landingHero = defineMessages({
+  /* Hero badge copy. [FR self-authored] */
   landing_hero_badge: {
-    en: 'AI-powered · Human support when needed · Canadian · Compliance-oriented',
-    fr: "Propulsé par l'IA · Soutien humain au besoin · Canadien · Axé sur la conformité",
+    en: 'AI-powered · Human support on demand · Canadian · Compliance-oriented',
+    fr: "Propulsé par l'IA · Soutien humain sur demande · Canadien · Axé sur la conformité",
   },
   landing_h_dir_a: {
     en: 'Canadian HR compliance support ',

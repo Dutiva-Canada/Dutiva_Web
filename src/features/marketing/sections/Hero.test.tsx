@@ -5,6 +5,11 @@ import { landing } from '@/i18n/messages/landing'
 import { Hero } from './Hero'
 
 describe('Hero', () => {
+  it('uses the on-demand support badge in both languages', () => {
+    expect(landing.landing_hero_badge.en).toContain('Human support on demand')
+    expect(landing.landing_hero_badge.fr).toContain('Soutien humain sur demande')
+  })
+
   it('states who the product is not for below the disclaimer', () => {
     renderApp(<Hero />, { route: '/', path: '/' })
     expect(screen.getByText(landing.landing_hero_scope.en)).toBeInTheDocument()
