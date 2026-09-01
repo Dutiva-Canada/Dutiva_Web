@@ -113,18 +113,14 @@ export type BillingPeriod = 'monthly' | 'annual'
  */
 export const ANNUAL_MONTHS_BILLED = 10
 
-/** Effective per-month price when billed annually, rounded to the dollar (CAD). */
-export function annualPerMonth(monthlyPrice: number): number {
-  return Math.round((monthlyPrice * ANNUAL_MONTHS_BILLED) / 12)
+/** Total charged once per year in CAD — exactly 10 monthly payments. */
+export function annualTotal(monthlyPrice: number): number {
+  return monthlyPrice * ANNUAL_MONTHS_BILLED
 }
 
-/**
- * Total charged once per year on the annual plan (CAD). Derived from the
- * rounded per-month figure (× 12) so the displayed "$X/mo" and "billed $Y/yr"
- * always reconcile exactly rather than drifting by a dollar after rounding.
- */
-export function annualTotal(monthlyPrice: number): number {
-  return annualPerMonth(monthlyPrice) * 12
+/** Approximate effective monthly price when billed annually, rounded for display. */
+export function annualPerMonth(monthlyPrice: number): number {
+  return Math.round(annualTotal(monthlyPrice) / 12)
 }
 
 const PLAN_RANK: Record<PlanId, number> = { free: 0, starter: 1, growth: 2, pro: 3 }
