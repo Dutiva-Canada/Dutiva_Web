@@ -9,7 +9,7 @@ export function ProgressFill({
   readonly pct: number
   readonly className?: string
 }) {
-  const width = Math.min(100, Math.max(0, pct))
+  const width = Number.isFinite(pct) ? Math.min(100, Math.max(0, pct)) : 0
   return (
     <svg viewBox="0 0 100 1" preserveAspectRatio="none" className={className} aria-hidden="true">
       <rect width={width} height="1" className="fill-current" />
