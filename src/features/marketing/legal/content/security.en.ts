@@ -81,7 +81,7 @@ export default {
         },
         {
           type: 'p',
-          text: 'To report a security vulnerability, contact security@dutiva.ca. We will acknowledge your report within 2 business days and keep you informed of our investigation. We do not currently offer a formal bug bounty program but appreciate responsible disclosure.',
+          text: 'To report a security vulnerability, contact security@dutiva.ca. We aim to acknowledge reports promptly in accordance with our published support response targets and keep you informed of our investigation. We do not currently offer a formal bug bounty program but appreciate responsible disclosure.',
         },
       ],
     },

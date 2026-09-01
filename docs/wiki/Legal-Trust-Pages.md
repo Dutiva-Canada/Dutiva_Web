@@ -422,7 +422,7 @@ The repo-root `SECURITY.md` defines the coordinated vulnerability disclosure pol
 | Field              | Value                                             |
 | ------------------ | ------------------------------------------------- |
 | Contact            | `security@dutiva.ca`                              |
-| Acknowledgment SLA | 3 business days                                   |
+| Acknowledgment SLA | Published support response targets (see Support Policy) |
 | Languages accepted | English, French                                   |
 | Scope              | dutiva.ca and subdomains, this repository         |
 | Out of scope       | Third-party services, compromised device findings |

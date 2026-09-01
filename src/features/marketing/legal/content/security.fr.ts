@@ -108,6 +108,10 @@ export default {
           text: 'Nous maintenons un plan de réponse aux incidents détaillé avec des procédures documentées pour détecter, analyser, contenir et remédier aux incidents de sécurité.',
         },
         {
+          type: 'p',
+          text: 'Pour signaler une vulnérabilité, écrivez à security@dutiva.ca. Nous visons à accuser réception des signalements promptement, conformément à nos cibles de première réponse publiées, et à vous tenir informé de notre enquête. Nous n’offrons pas actuellement de programme formel de primes aux bogues, mais nous apprécions la divulgation responsable.',
+        },
+        {
           type: 'li',
           text: 'Équipe de réponse aux incidents disponible 24h/24, 7j/7',
         },

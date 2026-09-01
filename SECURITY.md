@@ -10,9 +10,9 @@ Please include enough for us to reproduce it: what you found, the affected
 URL or component, and the steps or proof-of-concept. If you need to share
 sensitive details, say so and we will arrange a secure channel.
 
-**What to expect:** we aim to acknowledge a report within **3 business
-days** and to keep you updated as we investigate and remediate. Reports are
-handled by Dutiva Canada Inc.
+**What to expect:** we aim to acknowledge reports promptly in accordance with
+our published support response targets and to keep you updated as we
+investigate and remediate. Reports are handled by Dutiva Canada Inc.
 
 Reports may be sent in **English or French**.
 
