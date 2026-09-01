@@ -7,6 +7,7 @@ import { BETA_COHORT_LIMIT } from '@/config/beta'
 import {
   ADVISOR_MONTHLY_INCLUDED,
   ADVISOR_OVERAGE_MONTHLY_REPLY_CAP,
+  ADVISOR_OVERAGE_PER_REPLY_CAD,
   ADVISOR_PACK_50_PRICE_CAD,
   ADVISOR_PACK_50_REPLIES,
   ADVISOR_PACK_200_PRICE_CAD,
@@ -168,7 +169,7 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
     expect(beta).toContain('waitlist')
   })
 
-  it('states the Advisor included amount and pack SKUs', () => {
+  it('states the Advisor included amount, pack SKUs, and overage price', () => {
     const replies = row('Advisor replies')
     expect(boldNumbers(replies).sort()).toEqual(
       [
@@ -180,6 +181,7 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
         ADVISOR_OVERAGE_MONTHLY_REPLY_CAP,
       ].sort(),
     )
+    expect(replies).toContain(`$${ADVISOR_OVERAGE_PER_REPLY_CAD}`)
     expect(replies.toLowerCase()).toContain('not a plan feature')
 
     const aiUsage = raw(
