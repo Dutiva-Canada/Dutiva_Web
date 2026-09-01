@@ -21,8 +21,9 @@
  * Types: "bar" (magnitude across categories), "hbar" (same, long labels),
  * "line" / "area" (change over time), "donut" (parts of one whole).
  *
- * If the JSON doesn't parse — a truncated stream, a malformed reply — the
- * block falls back to plain preformatted text. A chart never breaks a message.
+ * If the JSON doesn't parse or the spec fails validation — a truncated stream
+ * or malformed reply — the block falls back to plain preformatted text.
+ * A chart never breaks a message.
  *
  * Every chart ships a "Show data" table: identity is never carried by color
  * alone, and it is the required relief for the lighter series colors, which
@@ -99,6 +100,25 @@ function parseSpec(source: string): ChartSpec | null {
       return null
     }
 
+    if (value.title !== undefined && typeof value.title !== 'string') return null
+    if (value.note !== undefined && typeof value.note !== 'string') return null
+    if (value.x !== undefined && typeof value.x !== 'string') return null
+
+    if (value.format !== undefined) {
+      if (!isRecord(value.format)) return null
+
+      const { prefix, suffix, decimals } = value.format
+
+      if (prefix !== undefined && typeof prefix !== 'string') return null
+      if (suffix !== undefined && typeof suffix !== 'string') return null
+      if (
+        decimals !== undefined &&
+        (!Number.isInteger(decimals) || (decimals as number) < 0 || (decimals as number) > 20)
+      ) {
+        return null
+      }
+    }
+
     if (
       !Array.isArray(value.series) ||
       value.series.length === 0 ||
@@ -120,7 +140,9 @@ function parseSpec(source: string): ChartSpec | null {
         (row) =>
           isRecord(row) &&
           Object.values(row).every(
-            (cell) => typeof cell === 'string' || typeof cell === 'number',
+            (cell) =>
+              typeof cell === 'string' ||
+              (typeof cell === 'number' && Number.isFinite(cell)),
           ),
       )
     ) {
