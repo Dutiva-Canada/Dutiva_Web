@@ -12,6 +12,8 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import { keyOfL, pickL } from '@/i18n/core'
+import type { Bi, LText } from '@/i18n/core'
 import type { AdvisorPackSize } from '@/config/advisorUsage'
 import {
   ADVISOR_PACK_50_PRICE_CAD,
@@ -20,8 +22,6 @@ import {
   ADVISOR_PACK_200_REPLIES,
 } from '@/config/advisorUsage'
 import { Disclaimer } from '@/components/Disclaimer'
-import { keyOfL, pickL } from '@/i18n/core'
-import type { Bi, LText } from '@/i18n/core'
 import { advisorCore } from '@/i18n/messages/advisorCore'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 import { advisorWorkspaceMessages as W } from '@/i18n/messages/advisorWorkspace'
@@ -39,6 +39,7 @@ import { estimatorFollowup } from './advisorFlows'
 import type { MessageExtras, QuickFormState, SuggestChipSpec } from './advisorFlows'
 import { PROVINCE_CHIPS, scenarioFollowupLabels } from './advisorScenarios'
 import type { ScenarioBanner, ScenarioBannerTone } from './advisorScenarios'
+import { ThreadListOpenButton } from './ThreadList'
 
 /**
  * Active conversation pane (prototype `hasActiveConversation` markup):
@@ -70,6 +71,12 @@ export interface ChatPaneProps {
   readonly onOpenWorkspace?: () => void
   /** When true, the workspace toggle is hidden (panel already open). */
   readonly workspaceOpen?: boolean
+  /** Opens the conversation list when it is collapsed (desktop). */
+  readonly onOpenThreads?: () => void
+  /** When true, the conversations toggle is hidden (list already open). */
+  readonly threadsOpen?: boolean
+  /** Shown in the context bar when the thread list is collapsed. */
+  readonly activeThreadTitle?: Bi | null
   /** Commercial 429: start prepaid pack Checkout. */
   readonly onBuyAdvisorPack?: (pack: AdvisorPackSize) => void
   readonly buyingAdvisorPack?: AdvisorPackSize | null
@@ -159,6 +166,9 @@ export function ChatPane({
   onPickProvince,
   onOpenWorkspace,
   workspaceOpen = false,
+  onOpenThreads,
+  threadsOpen = false,
+  activeThreadTitle = null,
   onBuyAdvisorPack,
   buyingAdvisorPack = null,
   jurisdictionTone = 'gold',
@@ -176,6 +186,12 @@ export function ChatPane({
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       {/* Jurisdiction context line — always visible on an active conversation. */}
       <div className="flex shrink-0 items-center justify-center gap-[10px] border-b border-border-soft px-[14px] py-[8px]">
+        {onOpenThreads && !threadsOpen ? <ThreadListOpenButton onOpen={onOpenThreads} /> : null}
+        {activeThreadTitle && !threadsOpen ? (
+          <span className="max-w-[220px] overflow-hidden text-[12px] font-semibold text-ellipsis whitespace-nowrap text-text-2">
+            {pickL(activeThreadTitle, lang)}
+          </span>
+        ) : null}
         <span
           className={`rounded-[100px] border px-[10px] py-[3px] text-[11.5px] font-semibold ${JURISDICTION_PILL[jurisdictionTone]}`}
         >

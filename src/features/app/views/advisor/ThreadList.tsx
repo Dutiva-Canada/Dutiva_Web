@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, List, MessageCircle, Plus, Star, Trash2, X } from 'lucide-react'
+import { ChevronDown, List, MessageCircle, PanelLeftClose, Plus, Star, Trash2, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
@@ -20,7 +20,8 @@ import { useMdUp } from '@/lib/useMediaQuery'
  * stay read-only.
  *
  * Below md, the list moves into a full-screen sheet opened from
- * `ThreadListMobileAccess`.
+ * `ThreadListMobileAccess`. On md+, the column is on demand: hidden until
+ * opened from the chat/home chrome, with preference persisted in localStorage.
  */
 
 export interface ThreadListItem {
@@ -47,9 +48,12 @@ export interface ThreadListProps {
   readonly onDelete?: (chatId: string) => void
   readonly canDelete?: (chatId: string) => boolean
   readonly hideNewConversation?: boolean
+  /** Desktop on-demand panel — when false, the column is not rendered. */
+  readonly open?: boolean
+  readonly onClose?: () => void
 }
 
-function activeThreadTitle(groups: ThreadGroup[], activeChatId: string | null): Bi | null {
+export function activeThreadTitle(groups: ThreadGroup[], activeChatId: string | null): Bi | null {
   if (activeChatId === null) return null
   for (const group of groups) {
     const match = group.items.find((item) => item.id === activeChatId)
@@ -196,18 +200,57 @@ function ThreadListPanel({
 }
 
 /** Desktop thread column (hidden below md). */
-export function ThreadList(props: ThreadListProps) {
+export function ThreadList({
+  open = true,
+  onClose,
+  ...props
+}: ThreadListProps) {
+  const { x } = useI18n()
+  const mdUp = useMdUp()
+  if (!mdUp || !open) return null
+
+  return (
+    <nav
+      aria-label={x(M.advisorview_threads_aria)}
+      className="hidden w-[248px] shrink-0 flex-col overflow-y-auto border-r border-border-soft md:flex"
+    >
+      <div className="flex shrink-0 items-center justify-between px-[10px] pt-[12px] pb-[6px]">
+        <h2 className="m-0 font-display text-[14px] font-semibold text-text">
+          {x(M.advisorview_threads_aria)}
+        </h2>
+        {onClose ? (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={x(M.advisorview_close_threads)}
+            className="flex h-[32px] w-[32px] shrink-0 cursor-pointer items-center justify-center rounded-[8px] border-none bg-transparent text-text-muted hover:bg-inset"
+          >
+            <PanelLeftClose size={16} strokeWidth={1.8} aria-hidden="true" />
+          </button>
+        ) : null}
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-[10px] pb-[12px]">
+        <ThreadListPanel {...props} />
+      </div>
+    </nav>
+  )
+}
+
+/** Opens the desktop conversation column when it is collapsed. */
+export function ThreadListOpenButton({ onOpen }: { readonly onOpen: () => void }) {
   const { x } = useI18n()
   const mdUp = useMdUp()
   if (!mdUp) return null
 
   return (
-    <nav
-      aria-label={x(M.advisorview_threads_aria)}
-      className="hidden w-[248px] shrink-0 flex-col overflow-y-auto border-r border-border-soft px-[10px] pt-[12px] pb-[12px] md:flex"
+    <button
+      type="button"
+      onClick={onOpen}
+      className="flex cursor-pointer items-center gap-[5px] rounded-[100px] border border-border-soft bg-surface-2 px-[11px] py-[4px] font-sans text-[11.5px] font-bold whitespace-nowrap text-text-2"
     >
-      <ThreadListPanel {...props} />
-    </nav>
+      <List size={13} strokeWidth={1.9} aria-hidden="true" />
+      {x(M.advisorview_open_threads)}
+    </button>
   )
 }
 

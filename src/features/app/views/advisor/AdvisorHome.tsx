@@ -17,6 +17,7 @@ import { scenarioSuggestions } from './advisorScenarios'
 import type { ScenarioId } from './advisorScenarios'
 import { buildDailyBrief, buildHomeMetrics } from './advisorHomeData'
 import type { HomeMetric } from './advisorHomeData'
+import { ThreadListOpenButton } from './ThreadList'
 
 /**
  * Advisor home — the empty state shown when no conversation is active
@@ -59,6 +60,25 @@ export interface AdvisorHomeProps {
   readonly onPriorityAction: (action: HomeAction) => void
   /** Metric tile deep link (route segment under /app). */
   readonly onMetricClick: (view: HomeMetric['view']) => void
+  /** Opens the conversation list when it is collapsed (desktop). */
+  readonly onOpenThreads?: () => void
+  /** When true, the conversations toggle is hidden (list already open). */
+  readonly threadsOpen?: boolean
+}
+
+function ThreadsAccessBar({
+  onOpen,
+  show,
+}: {
+  readonly onOpen: () => void
+  readonly show: boolean
+}) {
+  if (!show) return null
+  return (
+    <div className="flex shrink-0 items-center justify-center border-b border-border-soft px-[14px] py-[8px]">
+      <ThreadListOpenButton onOpen={onOpen} />
+    </div>
+  )
 }
 
 export function AdvisorHome({
@@ -66,6 +86,8 @@ export function AdvisorHome({
   onScenario,
   onPriorityAction,
   onMetricClick,
+  onOpenThreads,
+  threadsOpen = false,
 }: AdvisorHomeProps) {
   const { x, lang } = useI18n()
   const { mode } = useWorkspaceMode()
@@ -73,6 +95,7 @@ export function AdvisorHome({
   const [whyOpen, setWhyOpen] = useState<Record<string, boolean>>({})
   const metrics = useMemo(() => buildHomeMetrics(), [])
   const brief = useMemo(() => buildDailyBrief(), [])
+  const showThreadsAccess = onOpenThreads != null && !threadsOpen
 
   /* Production: live stat row + due-soon strip when the workspace has records;
      otherwise the reset-stage sub copy and starter prompt chips. */
@@ -81,7 +104,9 @@ export function AdvisorHome({
       !loading && totalRecords === 0 ? x(HM.home_production_body) : x(WM.wsmode_advisor_sub)
 
     return (
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-start overflow-y-auto px-6 pt-[10vh] pb-10">
+      <div className="flex min-h-0 flex-1 flex-col">
+        <ThreadsAccessBar onOpen={onOpenThreads ?? (() => {})} show={showThreadsAccess} />
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-start overflow-y-auto px-6 pt-[10vh] pb-10">
         <div className="w-full max-w-170 text-center">
           <div className="mx-auto mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-navy">
             <Sparkle size={22} className="fill-gold-on-navy" strokeWidth={0} aria-hidden="true" />
@@ -148,11 +173,14 @@ export function AdvisorHome({
           </div>
         </div>
       </div>
+    </div>
     )
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col items-center justify-start overflow-y-auto px-6 pt-[6vh] pb-10">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <ThreadsAccessBar onOpen={onOpenThreads ?? (() => {})} show={showThreadsAccess} />
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-start overflow-y-auto px-6 pt-[6vh] pb-10">
       <div className="w-full max-w-170 text-center">
         {/* Spark hero */}
         <div className="mx-auto mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-navy">
@@ -282,6 +310,7 @@ export function AdvisorHome({
           />
         </div>
       </div>
+    </div>
     </div>
   )
 }

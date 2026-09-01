@@ -1,13 +1,14 @@
 import { AdvisorHome } from './AdvisorHome'
 import { ChatPane } from './ChatPane'
 import { ComplianceWorkspace } from './ComplianceWorkspace'
-import { ThreadList, ThreadListMobileAccess } from './ThreadList'
+import { ThreadList, ThreadListMobileAccess, activeThreadTitle } from './ThreadList'
 import { useAdvisorViewController } from './useAdvisorViewController'
 
 /**
  * Advisor view — the full-page AI chat (prototype `isAdvisorView`):
  *
- * - left column: thread list grouped Pinned / Today / Previous 7 days / Older;
+ * - left column: thread list grouped Pinned / Today / Previous 7 days / Older
+ *   (on demand on desktop, sheet on mobile);
  * - no active thread → Advisor home empty state;
  * - active thread → transcript + compliance workspace (on demand).
  *
@@ -39,6 +40,8 @@ export function AdvisorView() {
     pickProvince,
     workspaceOpen,
     setWorkspaceOpen,
+    threadsOpen,
+    setThreadsOpen,
     handleBuyAdvisorPack,
     buyingAdvisorPack,
     workspaceState,
@@ -51,14 +54,21 @@ export function AdvisorView() {
     runPriorityAction,
   } = useAdvisorViewController()
 
+  const currentThreadTitle = activeThreadTitle(groups, activeChatId)
+
   const threadListProps = {
     groups,
     activeChatId,
-    onSelect: selectChat,
+    onSelect: (chatId: string) => {
+      selectChat(chatId)
+      setThreadsOpen(false)
+    },
     onNewConversation: newConversation,
     onDelete: deleteConversation,
     canDelete: canDeleteThread,
     hideNewConversation: isPublicDemo,
+    open: threadsOpen,
+    onClose: () => setThreadsOpen(false),
   } as const
 
   return (
@@ -85,6 +95,9 @@ export function AdvisorView() {
             onPickProvince={pickProvince}
             onOpenWorkspace={() => setWorkspaceOpen(true)}
             workspaceOpen={workspaceOpen}
+            onOpenThreads={() => setThreadsOpen(true)}
+            threadsOpen={threadsOpen}
+            activeThreadTitle={currentThreadTitle}
             onBuyAdvisorPack={handleBuyAdvisorPack}
             buyingAdvisorPack={buyingAdvisorPack}
           />
@@ -105,6 +118,8 @@ export function AdvisorView() {
           onScenario={(scenarioId) => startScenario(scenarioId)}
           onPriorityAction={runPriorityAction}
           onMetricClick={(view) => navigate(`/app/${view}`)}
+          onOpenThreads={() => setThreadsOpen(true)}
+          threadsOpen={threadsOpen}
         />
       )}
     </div>
