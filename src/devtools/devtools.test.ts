@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { buildBrief, loadNotes, NOTES_KEY, type Annotation } from './annotations'
 import { buildSelector, describeElement, getSourceInfo } from './domInspect'
 
@@ -210,6 +210,7 @@ describe('getSourceInfo', () => {
 describe('buildSelector', () => {
   afterEach(() => {
     document.body.innerHTML = ''
+    vi.unstubAllGlobals()
   })
 
   it('prefers an id', () => {
@@ -229,5 +230,15 @@ describe('buildSelector', () => {
     const third = document.querySelectorAll('li')[2]!
     const selector = buildSelector(third)
     expect(document.querySelector(selector)).toBe(third)
+  })
+
+  it('escapes leading-digit ids when CSS.escape is unavailable', () => {
+    vi.stubGlobal('CSS', {})
+    const el = document.createElement('div')
+    el.id = '123-panel'
+    document.body.appendChild(el)
+
+    const selector = buildSelector(el)
+    expect(document.querySelector(selector)).toBe(el)
   })
 })
