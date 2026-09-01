@@ -56,13 +56,15 @@ const rowSchema = z.object({
   probation_end_date: z.string().nullable().optional(),
   termination_date: z.string().nullable().optional(),
   manager_id: z.string().nullable().optional(),
-  manager: z.object({ name: z.string() }).nullable().optional(),
 })
 
+/* PostgREST on hosted Supabase does not resolve the self-referential
+   employees→employees embed (PGRST200 on employees_manager_id_fkey), so
+   manager names are fetched in a second flat query instead. */
 const SELECT_COLUMNS =
-  'id, name, title, email, jurisdiction, start_date, status, probation_end_date, termination_date, manager_id, manager:employees!employees_manager_id_fkey ( name )'
+  'id, name, title, email, jurisdiction, start_date, status, probation_end_date, termination_date, manager_id'
 
-function toEmployee(row: z.infer<typeof rowSchema>): ProductionEmployee {
+function toEmployee(row: z.infer<typeof rowSchema>, managerName: string | null): ProductionEmployee {
   return {
     id: row.id,
     name: row.name,
@@ -74,8 +76,32 @@ function toEmployee(row: z.infer<typeof rowSchema>): ProductionEmployee {
     probationEndDate: row.probation_end_date ?? null,
     terminationDate: row.termination_date ?? null,
     managerId: row.manager_id ?? null,
-    managerName: row.manager?.name ?? null,
+    managerName,
   }
+}
+
+async function managerNamesForIds(
+  organizationId: string,
+  managerIds: Iterable<string | null | undefined>,
+): Promise<Map<string, string>> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const ids = [...new Set([...managerIds].filter((id): id is string => Boolean(id)))]
+  if (ids.length === 0) return new Map()
+  const { data, error } = await supabase
+    .from('employees')
+    .select('id, name')
+    .eq('organization_id', organizationId)
+    .in('id', ids)
+  if (error) throw error
+  return new Map((data ?? []).map((row) => [row.id, row.name]))
+}
+
+async function managerNameForId(managerId: string | null | undefined): Promise<string | null> {
+  if (!managerId) return null
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { data, error } = await supabase.from('employees').select('name').eq('id', managerId).maybeSingle()
+  if (error) throw error
+  return data?.name ?? null
 }
 
 /** Display label for production line manager — unknown when manager_id is unset. */
@@ -98,7 +124,12 @@ export async function listEmployees(organizationId: string): Promise<ProductionE
       .order('id')
       .range(from, to),
   )
-  return z.array(rowSchema).parse(data).map(toEmployee)
+  const parsed = z.array(rowSchema).parse(data)
+  const managerNames = await managerNamesForIds(
+    organizationId,
+    parsed.map((row) => row.manager_id),
+  )
+  return parsed.map((row) => toEmployee(row, row.manager_id ? (managerNames.get(row.manager_id) ?? null) : null))
 }
 
 export async function addEmployee(
@@ -120,7 +151,8 @@ export async function addEmployee(
     .select(SELECT_COLUMNS)
     .single()
   if (error) throw error
-  return toEmployee(rowSchema.parse(data))
+  const row = rowSchema.parse(data)
+  return toEmployee(row, await managerNameForId(row.manager_id))
 }
 
 export async function removeEmployee(id: string): Promise<void> {
@@ -153,7 +185,8 @@ export async function getEmployee(id: string): Promise<ProductionEmployee | null
     .maybeSingle()
   if (error) throw error
   if (!data) return null
-  return toEmployee(rowSchema.parse(data))
+  const row = rowSchema.parse(data)
+  return toEmployee(row, await managerNameForId(row.manager_id))
 }
 
 export async function updateEmployeeStatus(
@@ -180,7 +213,8 @@ export async function updateEmployeeManager(
     .select(SELECT_COLUMNS)
     .single()
   if (error) throw error
-  return toEmployee(rowSchema.parse(data))
+  const row = rowSchema.parse(data)
+  return toEmployee(row, await managerNameForId(row.manager_id))
 }
 
 /**

@@ -81,9 +81,10 @@ export async function fetchOrganizationMembership(
   try {
     const { data, error } = await supabase
       .from('organization_members')
-      .select('organization_id, role')
+      .select('organization_id, role, organizations!inner(created_at)')
       .eq('user_id', userId)
       .eq('status', 'active')
+      .order('created_at', { referencedTable: 'organizations', ascending: false })
       .limit(1)
       .maybeSingle()
     if (error || !data) return null

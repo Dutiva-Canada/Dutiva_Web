@@ -17,15 +17,21 @@ describe('employees productionApi', () => {
     start_date: '2026-07-02',
     status: 'active',
     manager_id: 'emp-2',
-    manager: { name: 'Jordan Mensah' },
   }
 
   it('listEmployees returns parsed, camel-cased rows scoped to the org', async () => {
+    const managerIn = vi.fn().mockResolvedValue({
+      data: [{ id: 'emp-2', name: 'Jordan Mensah' }],
+      error: null,
+    })
+    const managerEq = vi.fn().mockReturnValue({ in: managerIn })
+    const managerSelect = vi.fn().mockReturnValue({ eq: managerEq })
     const order = vi.fn().mockReturnValue(listChain([ROW]))
     const eq = vi.fn().mockReturnValue({ order })
-    const select = vi.fn().mockReturnValue({ eq })
+    const listSelect = vi.fn().mockReturnValue({ eq })
+    const from = vi.fn().mockReturnValueOnce({ select: listSelect }).mockReturnValueOnce({ select: managerSelect })
     vi.doMock('@/lib/supabaseClient', () => ({
-      supabase: { from: vi.fn().mockReturnValue({ select }) },
+      supabase: { from },
     }))
     vi.resetModules()
     const api = await import('./productionApi')
@@ -73,7 +79,8 @@ describe('employees productionApi', () => {
   })
 
   it('addEmployee inserts with the org id and nulls out empty optionals', async () => {
-    const single = vi.fn().mockResolvedValue({ data: ROW, error: null })
+    const addedRow = { ...ROW, manager_id: null }
+    const single = vi.fn().mockResolvedValue({ data: addedRow, error: null })
     const select = vi.fn().mockReturnValue({ single })
     const insert = vi.fn().mockReturnValue({ select })
     vi.doMock('@/lib/supabaseClient', () => ({
@@ -167,14 +174,18 @@ describe('employees productionApi', () => {
   })
 
   it('updateEmployeeManager writes manager_id and returns the joined row', async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({ data: { name: 'Jordan Mensah' }, error: null })
+    const managerEq = vi.fn().mockReturnValue({ maybeSingle })
+    const managerSelect = vi.fn().mockReturnValue({ eq: managerEq })
     const single = vi.fn().mockResolvedValue({
-      data: { ...ROW, manager_id: 'emp-2', manager: { name: 'Jordan Mensah' } },
+      data: { ...ROW, manager_id: 'emp-2' },
       error: null,
     })
     const eq = vi.fn().mockReturnValue({ select: () => ({ single }) })
     const update = vi.fn().mockReturnValue({ eq })
+    const from = vi.fn().mockReturnValueOnce({ update }).mockReturnValueOnce({ select: managerSelect })
     vi.doMock('@/lib/supabaseClient', () => ({
-      supabase: { from: vi.fn().mockReturnValue({ update }) },
+      supabase: { from },
     }))
     vi.resetModules()
     const api = await import('./productionApi')
