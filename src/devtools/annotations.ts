@@ -42,7 +42,10 @@ function sanitizeNote(raw: unknown): Annotation | null {
     id: raw.id,
     route: raw.route,
     file: typeof raw.file === 'string' ? raw.file : null,
-    line: typeof raw.line === 'number' && Number.isFinite(raw.line) ? raw.line : null,
+    line:
+      typeof raw.line === 'number' && Number.isInteger(raw.line) && raw.line > 0
+        ? raw.line
+        : null,
     component: typeof raw.component === 'string' ? raw.component : null,
     element: raw.element,
     selector: raw.selector,

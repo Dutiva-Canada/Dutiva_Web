@@ -125,6 +125,40 @@ describe('loadNotes', () => {
 
     expect(loadNotes()).toEqual([stored])
   })
+
+  it('nulls non-positive or non-integer line numbers', () => {
+    localStorage.setItem(
+      NOTES_KEY,
+      JSON.stringify([
+        {
+          id: 'a',
+          route: '/',
+          element: 'div',
+          selector: 'div',
+          file: 'src/App.tsx',
+          line: -4,
+        },
+        {
+          id: 'b',
+          route: '/',
+          element: 'div',
+          selector: 'div',
+          file: 'src/App.tsx',
+          line: 12.5,
+        },
+        {
+          id: 'c',
+          route: '/',
+          element: 'div',
+          selector: 'div',
+          file: 'src/App.tsx',
+          line: 0,
+        },
+      ]),
+    )
+
+    expect(loadNotes().map((n) => n.line)).toEqual([null, null, null])
+  })
 })
 
 describe('describeElement', () => {
