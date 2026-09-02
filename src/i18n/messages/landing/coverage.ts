@@ -86,32 +86,8 @@ export const landingCoverage = defineMessages({
     fr: 'Congé de décès et congé de compassion',
   },
   landing_cov_fed_4: {
-    en: 'Federally regulated workplaces',
-    fr: 'Milieux de travail sous réglementation fédérale',
-  },
-  landing_cov_rem_name: {
-    en: 'Federal remote work',
-    fr: 'Télétravail fédéral',
-  },
-  landing_cov_rem_stat: {
-    en: 'A FED scenario — not a fourth jurisdiction',
-    fr: 'Un scénario FED — pas une quatrième compétence',
-  },
-  landing_cov_rem_1: {
     en: 'Remote work policy templates',
     fr: 'Modèles de politique de télétravail',
-  },
-  landing_cov_rem_2: {
-    en: 'Federal employment standards context',
-    fr: 'Contexte des normes du travail fédérales',
-  },
-  landing_cov_rem_3: {
-    en: 'Cross-provincial arrangements',
-    fr: 'Ententes interprovinciales',
-  },
-  landing_cov_rem_4: {
-    en: 'Onboarding documentation support',
-    fr: "Soutien à la documentation d'intégration",
   },
   landing_cov_soon: {
     en: 'Coming soon: Alberta and British Columbia. Additional provinces and territories to follow.',

@@ -21,8 +21,8 @@ export const landingFaq = defineMessages({
     fr: 'Quelles compétences canadiennes Dutiva couvre-t-il ?',
   },
   landing_faq2_a: {
-    en: 'Dutiva currently covers three legal contexts: Ontario under the Employment Standards Act, 2000; Quebec under the Act respecting labour standards; and federally regulated workplaces under the Canada Labour Code, Part III, including federal remote work. Alberta and British Columbia are on the roadmap and are not covered yet. The product names the statute that applies to the employee, not just the province.',
-    fr: 'Dutiva couvre actuellement trois contextes juridiques : l’Ontario en vertu de la Loi de 2000 sur les normes d’emploi; le Québec en vertu de la Loi sur les normes du travail; et les milieux de travail sous réglementation fédérale en vertu du Code canadien du travail, Partie III, y compris le télétravail fédéral. L’Alberta et la Colombie-Britannique sont sur la feuille de route et ne sont pas encore couvertes. Le produit nomme la loi qui s’applique à la personne salariée, pas seulement la province.',
+    en: 'Dutiva currently covers three legal contexts: Ontario under the Employment Standards Act, 2000; Quebec under the Act respecting labour standards; and federally regulated workplaces under the Canada Labour Code, Part III. Alberta and British Columbia are on the roadmap and are not covered yet. The product names the statute that applies to the employee, not just the province.',
+    fr: 'Dutiva couvre actuellement trois contextes juridiques : l’Ontario en vertu de la Loi de 2000 sur les normes d’emploi; le Québec en vertu de la Loi sur les normes du travail; et les milieux de travail sous réglementation fédérale en vertu du Code canadien du travail, Partie III. L’Alberta et la Colombie-Britannique sont sur la feuille de route et ne sont pas encore couvertes. Le produit nomme la loi qui s’applique à la personne salariée, pas seulement la province.',
   },
   landing_faq3_q: {
     en: 'Does Dutiva provide legal advice?',

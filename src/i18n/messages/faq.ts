@@ -41,8 +41,8 @@ export const faqMessages = defineMessages({
     fr: 'Quelles compétences Dutiva couvre-t-il ?',
   },
   faq_a4: {
-    en: 'Ontario (Employment Standards Act, 2000), Quebec (Act respecting labour standards), and Federal (Canada Labour Code, Part III), including federal remote work. Alberta and British Columbia are coming soon.',
-    fr: 'L’Ontario (Loi de 2000 sur les normes d’emploi), le Québec (Loi sur les normes du travail) et le fédéral (Code canadien du travail, Partie III), y compris le télétravail fédéral. L’Alberta et la Colombie-Britannique suivront bientôt.',
+    en: 'Ontario (Employment Standards Act, 2000), Quebec (Act respecting labour standards), and Federal (Canada Labour Code, Part III). Alberta and British Columbia are coming soon.',
+    fr: 'L’Ontario (Loi de 2000 sur les normes d’emploi), le Québec (Loi sur les normes du travail) et le fédéral (Code canadien du travail, Partie III). L’Alberta et la Colombie-Britannique suivront bientôt.',
   },
   faq_q5: {
     en: 'Does Dutiva give legal advice?',
