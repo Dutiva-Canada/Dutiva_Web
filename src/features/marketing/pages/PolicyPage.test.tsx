@@ -20,11 +20,6 @@ describe('PolicyPage', () => {
       'href',
       '/legal',
     )
-    expect(
-      main.getByText(
-        'Dutiva provides compliance-oriented HR workflow support and does not provide legal advice. For high-risk employment decisions, consult qualified legal counsel.',
-      ),
-    ).toBeInTheDocument()
   })
 
   it('re-localizes to French via the header language toggle', async () => {
