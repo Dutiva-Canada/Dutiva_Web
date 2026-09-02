@@ -189,11 +189,6 @@ function PolicyArticle({ row, doc }: { readonly row: LegalHubRow; readonly doc: 
         </section>
       ))}
 
-      {/* Not the shared src/components/Disclaimer.tsx — it is styled with app-surface tokens (text-text-muted/text-text-faint) that are undefined in the .surface-marketing scope. */}
-      <div className="mt-10 flex items-start gap-2.5 border-t border-border pt-5">
-        <Info size={14} className="mt-0.5 flex-none text-gold-strong" />
-        <span className="text-[12.5px] leading-[1.6] text-text-3">{t('disclaimer_full')}</span>
-      </div>
     </article>
   )
 }
