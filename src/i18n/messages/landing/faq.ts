@@ -13,8 +13,8 @@ export const landingFaq = defineMessages({
     fr: 'Qu’est-ce que Dutiva fait, concrètement ?',
   },
   landing_faq1_a: {
-    en: 'Dutiva is HR compliance software for Canadian employers. You ask a workplace question, choose Ontario, Quebec, or the federal labour regime, and get jurisdiction-aware guidance plus a review-ready document draft. It covers hiring through termination, including policies, leaves, accommodation, and offboarding, in English or French, without replacing your lawyer. Dutiva provides compliance-oriented support. It does not provide legal advice.',
-    fr: 'Dutiva est un logiciel de conformité RH pour les employeurs canadiens. Vous posez une question de milieu de travail, choisissez l’Ontario, le Québec ou le régime fédéral, et obtenez des conseils adaptés à la compétence plus une ébauche de document prêt à réviser. Ça couvre l’embauche jusqu’à la cessation d’emploi, y compris les politiques, les congés, l’accommodement et le départ, en français ou en anglais, sans remplacer votre avocat. Dutiva offre un soutien axé sur la conformité. Il ne fournit pas de conseils juridiques.',
+    en: 'Dutiva Advisor is AI-powered HR compliance software for Canadian employers. Describe a workplace situation, choose Ontario, Quebec, or federal, and get jurisdiction-aware guidance, risk flags, and review-ready HR documents from hiring through termination, in English or French. Not a substitute for your lawyer. Dutiva provides compliance-oriented support. It does not provide legal advice.',
+    fr: 'Le Conseiller Dutiva est un logiciel de conformité RH propulsé par l’IA pour les employeurs canadiens. Décrivez une situation de milieu de travail, choisissez l’Ontario, le Québec ou le fédéral, et obtenez des conseils adaptés à la compétence, un niveau de risque et des documents RH prêts à réviser, de l’embauche à la cessation d’emploi, en français ou en anglais. Ce n’est pas un substitut à votre avocat. Dutiva offre un soutien axé sur la conformité. Il ne fournit pas de conseils juridiques.',
   },
   landing_faq2_q: {
     en: 'Which Canadian jurisdictions does Dutiva cover?',
