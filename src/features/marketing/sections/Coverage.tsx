@@ -31,11 +31,6 @@ const REGIONS: Region[] = [
     stat: 'landing_cov_fed_stat',
     items: ['landing_cov_fed_1', 'landing_cov_fed_2', 'landing_cov_fed_3', 'landing_cov_fed_4'],
   },
-  {
-    name: 'landing_cov_rem_name',
-    stat: 'landing_cov_rem_stat',
-    items: ['landing_cov_rem_1', 'landing_cov_rem_2', 'landing_cov_rem_3', 'landing_cov_rem_4'],
-  },
 ]
 
 export function Coverage() {

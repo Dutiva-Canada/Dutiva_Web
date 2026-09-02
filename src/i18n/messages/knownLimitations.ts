@@ -46,8 +46,8 @@ export const limitsMessages = defineMessages({
   },
   limits_s3: { en: 'Coverage limits', fr: 'Limites de couverture' },
   limits_c1: {
-    en: 'Jurisdictions — Dutiva currently covers Ontario, Quebec, federal, and federal remote work. Alberta and British Columbia are coming soon.',
-    fr: 'Compétences — Dutiva couvre actuellement l’Ontario, le Québec, le fédéral et le télétravail fédéral. L’Alberta et la Colombie-Britannique suivront bientôt.',
+    en: 'Jurisdictions — Dutiva currently covers Ontario, Quebec, and federal workplaces. Alberta and British Columbia are coming soon.',
+    fr: 'Compétences — Dutiva couvre actuellement l’Ontario, le Québec et les milieux fédéraux. L’Alberta et la Colombie-Britannique suivront bientôt.',
   },
   limits_c2: {
     en: 'Not exhaustive — coverage focuses on core employment-standards workflows, not every statute or edge case.',

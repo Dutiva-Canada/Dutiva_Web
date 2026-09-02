@@ -26,8 +26,8 @@ export const landingProduct = defineMessages({
     fr: 'Contexte des normes du travail',
   },
   landing_prod2_p: {
-    en: 'Ontario, Quebec, federal, and remote-federal coverage. Review the relevant standards context before use.',
-    fr: "Couverture de l'Ontario, du Québec, du fédéral et du fédéral à distance. Consultez le contexte des normes applicables avant utilisation.",
+    en: 'Ontario, Quebec, and federal coverage. Review the relevant standards context before use.',
+    fr: "Couverture de l'Ontario, du Québec et du fédéral. Consultez le contexte des normes applicables avant utilisation.",
   },
   landing_prod3_t: {
     en: 'AI-guided generation',
