@@ -1,0 +1,200 @@
+[
+  {
+    "tablename": "admin_app_error_events",
+    "policyname": "Authenticated users can submit app error events",
+    "qual": null,
+    "with_check": "(auth.uid() = user_id)"
+  },
+  {
+    "tablename": "admin_beta_feedback_events",
+    "policyname": "Authenticated users can submit feedback events",
+    "qual": null,
+    "with_check": "(auth.uid() = user_id)"
+  },
+  {
+    "tablename": "admin_users",
+    "policyname": "Admins can manage admin_users",
+    "qual": "((EXISTS ( SELECT 1\n   FROM admin_users au\n  WHERE ((au.user_id = auth.uid()) AND (au.revoked_at IS NULL) AND ((au.expires_at IS NULL) OR (au.expires_at > now()))))) OR (((auth.jwt() -> 'app_metadata'::text) ->> 'role'::text) = 'admin'::text) OR ((auth.jwt() ->> 'role'::text) = 'admin'::text))",
+    "with_check": "((EXISTS ( SELECT 1\n   FROM admin_users au\n  WHERE ((au.user_id = auth.uid()) AND (au.revoked_at IS NULL) AND ((au.expires_at IS NULL) OR (au.expires_at > now()))))) OR (((auth.jwt() -> 'app_metadata'::text) ->> 'role'::text) = 'admin'::text) OR ((auth.jwt() ->> 'role'::text) = 'admin'::text))"
+  },
+  {
+    "tablename": "admin_users",
+    "policyname": "Users can view own admin record",
+    "qual": "(user_id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "tablename": "clients",
+    "policyname": "Own clients",
+    "qual": "(created_by = auth.uid())",
+    "with_check": "(created_by = auth.uid())"
+  },
+  {
+    "tablename": "conversations",
+    "policyname": "Users can manage their own conversations",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": "(auth.uid() = user_id)"
+  },
+  {
+    "tablename": "document_generation_runs",
+    "policyname": "Users can create own generation runs",
+    "qual": null,
+    "with_check": "(auth.uid() = user_id)"
+  },
+  {
+    "tablename": "document_generation_runs",
+    "policyname": "Users can read own generation runs",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": null
+  },
+  {
+    "tablename": "document_generation_runs",
+    "policyname": "Users can update own generation runs",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": "(auth.uid() = user_id)"
+  },
+  {
+    "tablename": "documents",
+    "policyname": "Users can access their own documents",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": null
+  },
+  {
+    "tablename": "documents",
+    "policyname": "Users can delete their own documents",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": null
+  },
+  {
+    "tablename": "documents",
+    "policyname": "Users can insert their own documents",
+    "qual": null,
+    "with_check": "(auth.uid() = user_id)"
+  },
+  {
+    "tablename": "documents",
+    "policyname": "Users can update their own documents",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": "(auth.uid() = user_id)"
+  },
+  {
+    "tablename": "documents",
+    "policyname": "Users can view their own documents",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": null
+  },
+  {
+    "tablename": "employer_profiles",
+    "policyname": "Users can delete their own employer profiles",
+    "qual": "(owner_id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "tablename": "employer_profiles",
+    "policyname": "Users can insert their own employer profiles",
+    "qual": null,
+    "with_check": "(owner_id = auth.uid())"
+  },
+  {
+    "tablename": "employer_profiles",
+    "policyname": "Users can update their own employer profiles",
+    "qual": "(owner_id = auth.uid())",
+    "with_check": "(owner_id = auth.uid())"
+  },
+  {
+    "tablename": "employer_profiles",
+    "policyname": "Users can view their own employer profiles",
+    "qual": "(owner_id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "tablename": "offer_workflow_states",
+    "policyname": "Users can delete their own workflow states",
+    "qual": "(owner_id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "tablename": "offer_workflow_states",
+    "policyname": "Users can insert their own workflow states",
+    "qual": null,
+    "with_check": "(owner_id = auth.uid())"
+  },
+  {
+    "tablename": "offer_workflow_states",
+    "policyname": "Users can update their own workflow states",
+    "qual": "(owner_id = auth.uid())",
+    "with_check": "(owner_id = auth.uid())"
+  },
+  {
+    "tablename": "offer_workflow_states",
+    "policyname": "Users can view their own workflow states",
+    "qual": "(owner_id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "tablename": "organization_admission_waitlist",
+    "policyname": "Users can read own waitlist row",
+    "qual": "(user_id = auth.uid())",
+    "with_check": null
+  },
+  {
+    "tablename": "profiles",
+    "policyname": "Users can insert their own profile",
+    "qual": null,
+    "with_check": "(auth.uid() = id)"
+  },
+  {
+    "tablename": "profiles",
+    "policyname": "Users can update their own profile",
+    "qual": "(auth.uid() = id)",
+    "with_check": "(auth.uid() = id)"
+  },
+  {
+    "tablename": "profiles",
+    "policyname": "Users can view their own profile",
+    "qual": "(auth.uid() = id)",
+    "with_check": null
+  },
+  {
+    "tablename": "signature_audit_events",
+    "policyname": "Owners can read their signature audit events",
+    "qual": "(EXISTS ( SELECT 1\n   FROM signatures s\n  WHERE ((s.id = signature_audit_events.signature_id) AND (s.user_id = auth.uid()))))",
+    "with_check": null
+  },
+  {
+    "tablename": "signatures",
+    "policyname": "Owners can manage their signatures",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": "(auth.uid() = user_id)"
+  },
+  {
+    "tablename": "template_documents",
+    "policyname": "Own template documents",
+    "qual": "((generated_by = auth.uid()) OR (workflow_id IN ( SELECT workflows.id\n   FROM workflows\n  WHERE (workflows.started_by = auth.uid()))))",
+    "with_check": "((generated_by = auth.uid()) OR (workflow_id IN ( SELECT workflows.id\n   FROM workflows\n  WHERE (workflows.started_by = auth.uid()))))"
+  },
+  {
+    "tablename": "usage_counters",
+    "policyname": "Users can view their own usage counters",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": null
+  },
+  {
+    "tablename": "workflow_responses",
+    "policyname": "Own workflow responses",
+    "qual": "(workflow_id IN ( SELECT workflows.id\n   FROM workflows\n  WHERE (workflows.started_by = auth.uid())))",
+    "with_check": "(workflow_id IN ( SELECT workflows.id\n   FROM workflows\n  WHERE (workflows.started_by = auth.uid())))"
+  },
+  {
+    "tablename": "workflows",
+    "policyname": "Own workflows",
+    "qual": "(started_by = auth.uid())",
+    "with_check": "(started_by = auth.uid())"
+  },
+  {
+    "tablename": "workspace_preferences",
+    "policyname": "Admins manage their own workspace preference",
+    "qual": "((user_id = auth.uid()) AND is_admin_user())",
+    "with_check": "((user_id = auth.uid()) AND is_admin_user())"
+  }
+]

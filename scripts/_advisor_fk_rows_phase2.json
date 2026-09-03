@@ -1,0 +1,457 @@
+[
+  {
+    "tbl": "activity_events",
+    "fkey": "activity_events_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "admin_app_error_events",
+    "fkey": "admin_app_error_events_user_id_fkey",
+    "col": "user_id"
+  },
+  {
+    "tbl": "admin_audit_log",
+    "fkey": "admin_audit_log_actor_user_id_fkey",
+    "col": "actor_user_id"
+  },
+  {
+    "tbl": "admin_beta_feedback_events",
+    "fkey": "admin_beta_feedback_events_user_id_fkey",
+    "col": "user_id"
+  },
+  {
+    "tbl": "advisor_memories",
+    "fkey": "advisor_memories_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "advisor_memories",
+    "fkey": "advisor_memories_user_id_fkey",
+    "col": "user_id"
+  },
+  {
+    "tbl": "agent_runs",
+    "fkey": "agent_runs_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "ai_action_runs",
+    "fkey": "ai_action_runs_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "ai_action_runs",
+    "fkey": "ai_action_runs_recommendation_id_fkey",
+    "col": "recommendation_id"
+  },
+  {
+    "tbl": "ai_advisor_credits",
+    "fkey": "ai_advisor_credits_user_id_fkey",
+    "col": "user_id"
+  },
+  {
+    "tbl": "ai_drafting_sessions",
+    "fkey": "ai_drafting_sessions_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "ai_drafting_sessions",
+    "fkey": "ai_drafting_sessions_user_id_fkey",
+    "col": "user_id"
+  },
+  {
+    "tbl": "ai_recommendations",
+    "fkey": "ai_recommendations_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "ai_recommendations",
+    "fkey": "ai_recommendations_user_id_fkey",
+    "col": "user_id"
+  },
+  {
+    "tbl": "ai_telemetry_events",
+    "fkey": "ai_telemetry_events_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "ai_telemetry_events",
+    "fkey": "ai_telemetry_events_user_id_fkey",
+    "col": "user_id"
+  },
+  {
+    "tbl": "benchmark_snapshots",
+    "fkey": "benchmark_snapshots_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "billing_events",
+    "fkey": "billing_events_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "clients",
+    "fkey": "clients_jurisdiction_id_fkey",
+    "col": "jurisdiction_id"
+  },
+  {
+    "tbl": "clients",
+    "fkey": "clients_tier_id_fkey",
+    "col": "tier_id"
+  },
+  {
+    "tbl": "comment_mentions",
+    "fkey": "comment_mentions_comment_id_fkey",
+    "col": "comment_id"
+  },
+  {
+    "tbl": "comment_mentions",
+    "fkey": "comment_mentions_mentioned_user_id_fkey",
+    "col": "mentioned_user_id"
+  },
+  {
+    "tbl": "comments",
+    "fkey": "comments_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "compliance_assessments",
+    "fkey": "compliance_assessments_document_id_fkey",
+    "col": "document_id"
+  },
+  {
+    "tbl": "compliance_assessments",
+    "fkey": "compliance_assessments_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "compliance_findings",
+    "fkey": "compliance_findings_assessment_id_fkey",
+    "col": "assessment_id"
+  },
+  {
+    "tbl": "compliance_findings",
+    "fkey": "compliance_findings_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "compliance_tasks",
+    "fkey": "compliance_tasks_assigned_to_fkey",
+    "col": "assigned_to"
+  },
+  {
+    "tbl": "compliance_tasks",
+    "fkey": "compliance_tasks_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "conversations",
+    "fkey": "conversations_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "conversations",
+    "fkey": "conversations_user_id_fkey",
+    "col": "user_id"
+  },
+  {
+    "tbl": "document_annotations",
+    "fkey": "document_annotations_document_id_fkey",
+    "col": "document_id"
+  },
+  {
+    "tbl": "document_annotations",
+    "fkey": "document_annotations_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "document_reviews",
+    "fkey": "document_reviews_document_id_fkey",
+    "col": "document_id"
+  },
+  {
+    "tbl": "document_reviews",
+    "fkey": "document_reviews_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "document_reviews",
+    "fkey": "document_reviews_reviewer_user_id_fkey",
+    "col": "reviewer_user_id"
+  },
+  {
+    "tbl": "document_versions",
+    "fkey": "document_versions_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "documents",
+    "fkey": "documents_employer_profile_id_fkey",
+    "col": "employer_profile_id"
+  },
+  {
+    "tbl": "documents",
+    "fkey": "documents_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "employer_profiles",
+    "fkey": "employer_profiles_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "employer_profiles",
+    "fkey": "employer_profiles_owner_id_fkey",
+    "col": "owner_id"
+  },
+  {
+    "tbl": "execution_traces",
+    "fkey": "execution_traces_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "execution_traces",
+    "fkey": "execution_traces_parent_trace_id_fkey",
+    "col": "parent_trace_id"
+  },
+  {
+    "tbl": "guidance_chunks",
+    "fkey": "guidance_chunks_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "guidance_chunks",
+    "fkey": "guidance_chunks_source_id_fkey",
+    "col": "source_id"
+  },
+  {
+    "tbl": "hr_advisor_case_timeline_events",
+    "fkey": "hr_advisor_case_timeline_events_case_id_fkey",
+    "col": "case_id"
+  },
+  {
+    "tbl": "hr_advisor_case_timeline_events",
+    "fkey": "hr_advisor_case_timeline_events_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "hr_case_notes",
+    "fkey": "hr_case_notes_case_id_fkey",
+    "col": "case_id"
+  },
+  {
+    "tbl": "hr_cases",
+    "fkey": "hr_cases_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "hr_document_exports",
+    "fkey": "hr_document_exports_document_id_fkey",
+    "col": "document_id"
+  },
+  {
+    "tbl": "hr_employee_notes",
+    "fkey": "hr_employee_notes_employee_id_fkey",
+    "col": "employee_id"
+  },
+  {
+    "tbl": "job_attempts",
+    "fkey": "job_attempts_job_id_fkey",
+    "col": "job_id"
+  },
+  {
+    "tbl": "job_queue",
+    "fkey": "job_queue_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "law_change_impacts",
+    "fkey": "law_change_impacts_document_id_fkey",
+    "col": "document_id"
+  },
+  {
+    "tbl": "law_change_impacts",
+    "fkey": "law_change_impacts_law_update_id_fkey",
+    "col": "law_update_id"
+  },
+  {
+    "tbl": "law_change_impacts",
+    "fkey": "law_change_impacts_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "legal_ingestion_runs",
+    "fkey": "legal_ingestion_runs_source_id_fkey",
+    "col": "source_id"
+  },
+  {
+    "tbl": "multi_agent_plans",
+    "fkey": "multi_agent_plans_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "notification_deliveries",
+    "fkey": "notification_deliveries_notification_id_fkey",
+    "col": "notification_id"
+  },
+  {
+    "tbl": "notifications",
+    "fkey": "notifications_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "notifications",
+    "fkey": "notifications_user_id_fkey",
+    "col": "user_id"
+  },
+  {
+    "tbl": "offer_workflow_states",
+    "fkey": "offer_workflow_states_document_id_fkey",
+    "col": "document_id"
+  },
+  {
+    "tbl": "offer_workflow_states",
+    "fkey": "offer_workflow_states_employer_profile_id_fkey",
+    "col": "employer_profile_id"
+  },
+  {
+    "tbl": "offer_workflow_states",
+    "fkey": "offer_workflow_states_owner_id_fkey",
+    "col": "owner_id"
+  },
+  {
+    "tbl": "operational_bottlenecks",
+    "fkey": "operational_bottlenecks_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "organization_maturity_scores",
+    "fkey": "organization_maturity_scores_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "organization_risk_snapshots",
+    "fkey": "organization_risk_snapshots_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "playbook_runs",
+    "fkey": "playbook_runs_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "policy_gap_analyses",
+    "fkey": "policy_gap_analyses_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "predictive_risk_forecasts",
+    "fkey": "predictive_risk_forecasts_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "scheduled_operations",
+    "fkey": "scheduled_operations_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "signature_audit_events",
+    "fkey": "signature_audit_events_signature_id_fkey",
+    "col": "signature_id"
+  },
+  {
+    "tbl": "signatures",
+    "fkey": "signatures_document_id_fkey",
+    "col": "document_id"
+  },
+  {
+    "tbl": "signatures",
+    "fkey": "signatures_user_id_fkey",
+    "col": "user_id"
+  },
+  {
+    "tbl": "support_messages",
+    "fkey": "support_messages_ticket_id_fkey",
+    "col": "ticket_id"
+  },
+  {
+    "tbl": "support_notifications",
+    "fkey": "support_notifications_ticket_id_fkey",
+    "col": "ticket_id"
+  },
+  {
+    "tbl": "support_ticket_assignments",
+    "fkey": "support_ticket_assignments_ticket_id_fkey",
+    "col": "ticket_id"
+  },
+  {
+    "tbl": "support_ticket_events",
+    "fkey": "support_ticket_events_ticket_id_fkey",
+    "col": "ticket_id"
+  },
+  {
+    "tbl": "support_tickets",
+    "fkey": "support_tickets_assigned_to_fkey",
+    "col": "assigned_to"
+  },
+  {
+    "tbl": "support_tickets",
+    "fkey": "support_tickets_requester_user_id_fkey",
+    "col": "requester_user_id"
+  },
+  {
+    "tbl": "system_events",
+    "fkey": "system_events_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "template_documents",
+    "fkey": "template_documents_client_id_fkey",
+    "col": "client_id"
+  },
+  {
+    "tbl": "template_documents",
+    "fkey": "template_documents_template_id_fkey",
+    "col": "template_id"
+  },
+  {
+    "tbl": "template_documents",
+    "fkey": "template_documents_workflow_id_fkey",
+    "col": "workflow_id"
+  },
+  {
+    "tbl": "usage_events",
+    "fkey": "usage_events_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "webhook_events",
+    "fkey": "webhook_events_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "workflow_automation_runs",
+    "fkey": "workflow_automation_runs_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "workflows",
+    "fkey": "workflows_client_id_fkey",
+    "col": "client_id"
+  },
+  {
+    "tbl": "workflows",
+    "fkey": "workflows_template_id_fkey",
+    "col": "template_id"
+  },
+  {
+    "tbl": "workspace_intelligence_items",
+    "fkey": "workspace_intelligence_items_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "workspace_notes",
+    "fkey": "workspace_notes_organization_id_fkey",
+    "col": "organization_id"
+  }
+]
