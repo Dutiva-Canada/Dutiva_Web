@@ -15,11 +15,12 @@
  *    request for a folder with no index file (notably /assets, /brand,
  *    /.well-known) returns an HTML inventory of every hashed bundle. Hashed
  *    files stay public at their exact URLs; only the directory index is closed.
- *    Matcher entries for those paths are exact — /assets/AboutPage-….js must
- *    not hit this.
  *
- * Note: `config.matcher` host values must be string literals — Vercel's edge
- * bundler does not accept identifier references there.
+ * Matcher note: this project's Vercel middleware bundler only accepts string
+ * path matchers (not `{ source, has }` objects), so hostname checks run in the
+ * handler. Exact directory paths are listed first so hashed asset URLs under
+ * `/assets/…` still match `/:path*` but the directory-index 404 only fires on
+ * the bare folder paths.
  */
 
 /** Keep in sync with vercel.json Strict-Transport-Security. */
@@ -28,15 +29,7 @@ const HSTS = 'max-age=63072000; includeSubDomains'
 const DIRECTORY_INDEXES = new Set(['/assets', '/brand', '/.well-known'])
 
 export const config = {
-  matcher: [
-    {
-      source: '/:path*',
-      has: [{ type: 'host', value: 'www.dutiva.ca' }],
-    },
-    '/assets',
-    '/brand',
-    '/.well-known',
-  ],
+  matcher: ['/assets', '/brand', '/.well-known', '/:path*'],
 }
 
 export default function middleware(request) {

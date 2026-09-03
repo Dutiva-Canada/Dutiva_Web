@@ -61,7 +61,9 @@ Project → Settings → Advanced → Directory Listing.
 `middleware.js` (not `vercel.json`). Host-based redirects in `vercel.json`
 were returning Vercel's default HSTS (`max-age` only), which omitted
 `includeSubDomains` and failed scanners / preload checks. The middleware
-308 sets the same HSTS string as `vercel.json`.
+308 sets the same HSTS string as `vercel.json`. This project's middleware
+bundler only accepts string path matchers, so the www check runs in the
+handler against `/:path*` rather than a `{ has: host }` matcher object.
 
 ## Not overridable / scanner noise
 
