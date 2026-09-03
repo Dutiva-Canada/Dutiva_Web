@@ -36,7 +36,12 @@ describe('workspaceMode api', () => {
 
   it('checkIsAdmin resolves true only when is_admin_user() returns true with no error', async () => {
     vi.doMock('@/lib/supabaseClient', () => ({
-      supabase: { rpc: vi.fn().mockResolvedValue({ data: true, error: null }) },
+      supabase: {
+        auth: {
+          getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+        },
+        rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
+      },
     }))
     vi.resetModules()
     const api = await import('./api')
@@ -44,9 +49,33 @@ describe('workspaceMode api', () => {
     expect(await api.checkIsAdmin()).toBe(true)
   })
 
+  it('checkIsAdmin resolves true for @dutiva.ca session email without the RPC', async () => {
+    const rpc = vi.fn()
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: vi.fn().mockResolvedValue({
+            data: { session: { user: { email: 'ops@dutiva.ca' } } },
+          }),
+        },
+        rpc,
+      },
+    }))
+    vi.resetModules()
+    const api = await import('./api')
+
+    expect(await api.checkIsAdmin()).toBe(true)
+    expect(rpc).not.toHaveBeenCalled()
+  })
+
   it('checkIsAdmin resolves false when the RPC errors', async () => {
     vi.doMock('@/lib/supabaseClient', () => ({
-      supabase: { rpc: vi.fn().mockResolvedValue({ data: null, error: new Error('nope') }) },
+      supabase: {
+        auth: {
+          getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+        },
+        rpc: vi.fn().mockResolvedValue({ data: null, error: new Error('nope') }),
+      },
     }))
     vi.resetModules()
     const api = await import('./api')

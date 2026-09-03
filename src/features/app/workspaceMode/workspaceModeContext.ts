@@ -21,7 +21,7 @@ export interface WorkspaceIdentity {
 
 export interface WorkspaceModeContextValue {
   mode: WorkspaceMode
-  /** True only for a signed-in, confirmed admin (the real is_admin_user() RPC). */
+  /** True for platform admins (`@dutiva.ca` or `is_admin_user()`). */
   isAdmin: boolean
   /** Northgate Logistics Inc. fixture identity in demo; the admin's real profile in production. */
   identity: WorkspaceIdentity

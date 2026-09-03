@@ -1,15 +1,13 @@
 /**
- * Internal-account billing bypass — ported from the production dutiva-website
- * repo's `src/lib/enterpriseAccess.ts`, which gates its Stripe paywall the
- * same way. Kept as a small standalone module because it answers a
- * different question than workspace sign-in access (AuthContext's
- * `authorized`, backed by the `current_user_is_workspace_member` Postgres
- * function): "does this account skip billing" vs. "may this account sign
- * into the workspace at all". These have genuinely different criteria —
- * bypassing billing is @dutiva.ca staff only; signing in is the admin
- * account, the first BETA_COHORT_LIMIT beta signups, or an admin-managed
- * invite — so they're independent enforcement points and shouldn't be
- * conflated.
+ * Internal `@dutiva.ca` staff entitlement — paywall bypass on the client, and
+ * the same domain check the workspace admin gate uses. Mirrored in
+ * `supabase/functions/_shared/adminAccess.ts` (Deno cannot import from src/).
+ *
+ * Distinct from workspace sign-in access (AuthContext's `authorized`, backed
+ * by `current_user_is_workspace_member`): "is this staff / skip billing" vs
+ * "may this account sign into the workspace". Postgres also treats
+ * `@dutiva.ca` as platform admin (`is_admin_user`) and skips AI hard-caps
+ * (`claim_ai_usage` / `user_is_dutiva_staff`) — see migration 0112.
  */
 const ADMIN_EMAILS = ['martin.constantineau@dutiva.ca']
 

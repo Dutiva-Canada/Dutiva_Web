@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { isInternalDutivaAccount } from '@/lib/billing/adminAccess'
 import { supabase } from '@/lib/supabaseClient'
 import type { WorkspaceMode } from './workspaceModeContext'
 import type { OrgMemberRole } from './roles'
@@ -29,10 +30,19 @@ const profileRowSchema = z.object({
  * never throw and strand the app, so each call is wrapped defensively.
  */
 
-/** True only for a confirmed admin — the real is_admin_user() RPC, not a hardcoded email. */
+/**
+ * True for platform admins. Prefers the session email domain check so
+ * `@dutiva.ca` staff get admin surfaces even before/without an `admin_users`
+ * row; the `is_admin_user` RPC (JWT role, admin_users, and the same domain)
+ * remains the server source of truth for RLS.
+ */
 export async function checkIsAdmin(): Promise<boolean> {
   if (!supabase) return false
   try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    if (isInternalDutivaAccount(session?.user?.email)) return true
     const { data, error } = await supabase.rpc('is_admin_user')
     return !error && data === true
   } catch {

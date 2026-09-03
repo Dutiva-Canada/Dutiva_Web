@@ -143,7 +143,8 @@ describe('RequireAdminSession', () => {
         auth: {
           getSession: () =>
             Promise.resolve({
-              data: { session: { user: { email: 'martin.constantineau@dutiva.ca' } } },
+              /* Non-staff email — @dutiva.ca short-circuits without the RPC. */
+              data: { session: { user: { email: 'invited@example.com' } } },
             }),
           onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
         },

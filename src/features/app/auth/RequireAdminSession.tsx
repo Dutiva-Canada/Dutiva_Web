@@ -5,12 +5,12 @@ import { isVercelPreview } from '@/lib/deployEnv'
 import { useAuth } from './authContext'
 
 /**
- * Gates the whole /app workspace behind a signed-in, invited session — the
- * admin account, the first BETA_COHORT_LIMIT beta signups, or an
- * admin-managed invite (AuthProvider's `authorized`, backed by the
- * `current_user_is_workspace_member` Postgres function; see
+ * Gates the whole /app workspace behind a signed-in, invited session — any
+ * `@dutiva.ca` staff account, the first BETA_COHORT_LIMIT beta signups, an
+ * admin-managed invite, or a paid subscriber (AuthProvider's `authorized`,
+ * backed by `current_user_is_workspace_member`; see
  * supabase/migrations/0026_open_workspace_to_beta_list.sql, capacity-capped
- * by 0067_beta_cohort_capacity.sql). The workspace
+ * by 0067_beta_cohort_capacity.sql, domain staff in 0114). The workspace
  * used to double as a public demo reachable by anyone; it's invite-only
  * now. Unauthorized visitors are sent to /app/welcome (the sign-in gate),
  * carrying the location they wanted so EntryStage can return them there

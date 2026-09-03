@@ -237,6 +237,41 @@ describe('AuthProvider', () => {
     await waitFor(() => expect(screen.getByTestId('authorized')).toHaveTextContent('null'))
   })
 
+  it('admits @dutiva.ca staff without waiting on the membership RPC', async () => {
+    const rpc = vi.fn()
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () =>
+            Promise.resolve({
+              data: { session: { user: { id: 'u1', email: 'ops@dutiva.ca' } } },
+            }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+        },
+        rpc,
+      },
+    }))
+    vi.resetModules()
+    const { AuthProvider } = await import('./AuthProvider')
+    const { useAuth } = await import('./authContext')
+    const { LangProvider } = await import('@/i18n/LangProvider')
+
+    function Probe() {
+      const { authorized } = useAuth()
+      return <span data-testid="authorized">{String(authorized)}</span>
+    }
+
+    render(
+      <LangProvider>
+        <AuthProvider>
+          <Probe />
+        </AuthProvider>
+      </LangProvider>,
+    )
+    await waitFor(() => expect(screen.getByTestId('authorized')).toHaveTextContent('true'))
+    expect(rpc).not.toHaveBeenCalled()
+  })
+
   it('fails closed to unauthorized when the membership RPC errors', async () => {
     vi.doMock('@/lib/supabaseClient', () => ({
       supabase: {

@@ -7,6 +7,7 @@ import type { ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { useI18n } from '@/i18n/context'
 import { authMessages as M } from '@/i18n/messages/auth'
+import { isInternalDutivaAccount } from '@/lib/billing/adminAccess'
 import { supabase } from '@/lib/supabaseClient'
 import { AuthContext } from './authContext'
 import type { AuthStatus } from './authContext'
@@ -57,6 +58,12 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
       setAuthorized(null)
       return
     }
+    /* Staff domain is admitted in SQL (0114); short-circuit here so the UI
+       unlocks even if the membership RPC is briefly stale or unreachable. */
+    if (isInternalDutivaAccount(session?.user.email)) {
+      setAuthorized(true)
+      return
+    }
     let cancelled = false
     setAuthorized(null)
     supabase.rpc('current_user_is_workspace_member').then(
@@ -78,7 +85,7 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
     return () => {
       cancelled = true
     }
-  }, [status, session?.user.id])
+  }, [status, session?.user.id, session?.user.email])
 
   const signInWithEmail = useCallback(
     async (email: string, opts?: { name?: string }) => {
