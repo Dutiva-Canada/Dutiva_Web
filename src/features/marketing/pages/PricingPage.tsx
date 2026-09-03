@@ -33,7 +33,6 @@ import type { BillingPeriod, PlanDefinition } from '@/config/plans'
 import { PLAN_COMPARISON } from '@/config/planComparison'
 import type { ComparisonCell } from '@/config/planComparison'
 import type { MarketingMessageKey } from '@/i18n/messages'
-import { Disclaimer } from '@/components/Disclaimer'
 import { Seo } from '@/seo/Seo'
 import { usePublicPath } from '@/seo/usePublicPath'
 import { webApplicationNode } from '@/seo/jsonld'
@@ -637,10 +636,6 @@ export function PricingPage() {
       <div className="mx-auto max-w-[1200px] px-6 pt-6">
         <ReviewTrustSignals />
       </div>
-
-      <Band>
-        <Disclaimer variant="block" className="mt-4" />
-      </Band>
 
       {/* ── Full feature comparison ────────────────────────────────────────── */}
       <PageSection title={t('pricing_compare_title')}>
