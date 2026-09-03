@@ -59,12 +59,12 @@ export const landingPricing = defineMessages({
     fr: 'Liste d’attente — nous vous écrirons dès qu’une place gratuite se libère.',
   },
   landing_free_desc_ent: {
-    en: 'Waitlist — limited capacity once a seat opens.',
-    fr: 'Liste d’attente — capacité limitée dès qu’une place se libère.', // [FR self-authored]
+    en: 'For evaluation and very small employers.',
+    fr: 'Pour l’évaluation et les très petits employeurs.', // [FR self-authored]
   },
   landing_free_note: {
-    en: `Free access lasts ${FREE_PLAN_ACCESS_MONTHS} months. It may be extended after that.`,
-    fr: `L’accès gratuit dure ${FREE_PLAN_ACCESS_MONTHS} mois. Il pourrait être prolongé par la suite.`, // [FR self-authored]
+    en: `Waitlist — limited capacity once a seat opens. Free access lasts ${FREE_PLAN_ACCESS_MONTHS} months. It may be extended after that.`,
+    fr: `Liste d’attente — capacité limitée dès qu’une place se libère. L’accès gratuit dure ${FREE_PLAN_ACCESS_MONTHS} mois. Il pourrait être prolongé par la suite.`, // [FR self-authored]
   },
   /* Quiet-beta bullets — support membership; gates off. */
   landing_free_f1: {
@@ -105,8 +105,8 @@ export const landingPricing = defineMessages({
     fr: 'Sautez la liste d’attente. Produit complet, soutien par courriel.',
   },
   landing_starter_desc_ent: {
-    en: 'Skip the waitlist. Capacity for small teams.',
-    fr: 'Sautez la liste d’attente. Capacité pour petites équipes.', // [FR self-authored]
+    en: 'For an owner-managed microbusiness.',
+    fr: 'Pour une microentreprise gérée par le propriétaire.', // [FR self-authored]
   },
   landing_starter_f1: {
     en: 'Skip the waitlist',
@@ -149,8 +149,8 @@ export const landingPricing = defineMessages({
     fr: 'Réponses plus rapides et une visite d’accueil sur demande.',
   },
   landing_growth_desc_ent: {
-    en: 'More capacity, analytics, and a 1-day initial reply target.',
-    fr: 'Plus de capacité, de l’analytique, et une cible de première réponse en 1 jour.', // [FR self-authored]
+    en: 'For a growing small business that needs repeatable HR processes.',
+    fr: 'Pour une PME en croissance qui a besoin de processus RH répétables.', // [FR self-authored]
   },
   landing_growth_f1: {
     en: 'Skip the waitlist',
@@ -189,8 +189,8 @@ export const landingPricing = defineMessages({
     fr: 'Comme Growth, plus un appel d’accueil planifié.',
   },
   landing_pro_desc_ent: {
-    en: 'Highest published capacity, plus a scheduled onboarding call.',
-    fr: 'La plus haute capacité publiée, plus un appel d’accueil planifié.', // [FR self-authored]
+    en: 'For an established SMB with multiple managers or more complex HR activity.',
+    fr: 'Pour une PME établie avec plusieurs gestionnaires ou une activité RH plus complexe.', // [FR self-authored]
   },
   landing_pro_f1: {
     en: 'Skip the waitlist',
