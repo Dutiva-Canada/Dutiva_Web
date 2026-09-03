@@ -16,50 +16,25 @@ import { workspaceRoles } from './data'
 import type { WorkspaceRole } from './data'
 
 /**
- * Tab switcher for /app/documents/*.
+ * Documents sub-tabs: Templates | My documents.
  *
- * Demo: Templates (legacy HR Library) | Library | Studio — three real
- * destinations. Production: Studio | Library only — the Templates tab used
- * to redirect to Studio, so two tabs pointed at one place.
+ * Routes stay compatible: `/documents/studio` (and generate/templates detail)
+ * = Templates; `/documents` (and doc detail/sign) = My documents.
+ * Legacy `/documents/hr-library` remains reachable; production redirects it
+ * to Studio. Demo keeps the gallery URL but does not surface a third tab.
  */
 function DocumentsTabs() {
   const { x } = useI18n()
   const { pathname } = useLocation()
   const { root } = useWorkspaceRoot()
-  const { mode } = useWorkspaceMode()
-  const production = mode === 'production'
   const segments = workspaceSegments(pathname)
   const studio = isDoclibStudioPath(pathname)
-  const hrLibrary = !production && segments[0] === 'documents' && segments[1] === 'hr-library'
-  const library = segments[0] === 'documents' && !hrLibrary && !studio
+  const hrLibrary = segments[0] === 'documents' && segments[1] === 'hr-library'
+  const myDocuments = segments[0] === 'documents' && !hrLibrary && !studio
   const linkClass = (active: boolean) =>
-    `shrink-0 rounded-none border-b-2 px-[14px] py-[9px] font-sans text-[13px] font-semibold whitespace-nowrap ${
+    `shrink-0 rounded-none border-b-2 px-[14px] py-[9px] font-sans text-[13px] font-semibold whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy ${
       active ? 'border-navy text-text' : 'border-transparent text-text-muted'
     }`
-
-  if (production) {
-    return (
-      <nav
-        aria-label={x(M.shell_nav_library)}
-        className="mb-[16px] flex gap-[2px] overflow-x-auto border-b border-border"
-      >
-        <Link
-          to={workspacePath(root, 'documents/studio')}
-          aria-current={studio ? 'page' : undefined}
-          className={linkClass(studio)}
-        >
-          {x(M.shell_hr_studio_studio)}
-        </Link>
-        <Link
-          to={workspacePath(root, 'documents')}
-          aria-current={library ? 'page' : undefined}
-          className={linkClass(library)}
-        >
-          {x(M.shell_hr_studio_library)}
-        </Link>
-      </nav>
-    )
-  }
 
   return (
     <nav
@@ -67,25 +42,18 @@ function DocumentsTabs() {
       className="mb-[16px] flex gap-[2px] overflow-x-auto border-b border-border"
     >
       <Link
-        to={workspacePath(root, 'documents/hr-library')}
-        aria-current={hrLibrary ? 'page' : undefined}
-        className={linkClass(hrLibrary)}
+        to={workspacePath(root, 'documents/studio')}
+        aria-current={studio || hrLibrary ? 'page' : undefined}
+        className={linkClass(studio || hrLibrary)}
       >
-        {x(M.shell_hr_studio_templates)}
+        {x(M.shell_hr_studio_studio)}
       </Link>
       <Link
         to={workspacePath(root, 'documents')}
-        aria-current={library ? 'page' : undefined}
-        className={linkClass(library)}
+        aria-current={myDocuments ? 'page' : undefined}
+        className={linkClass(myDocuments)}
       >
         {x(M.shell_hr_studio_library)}
-      </Link>
-      <Link
-        to={workspacePath(root, 'documents/studio')}
-        aria-current={studio ? 'page' : undefined}
-        className={linkClass(studio)}
-      >
-        {x(M.shell_hr_studio_studio)}
       </Link>
     </nav>
   )
@@ -136,7 +104,7 @@ function DocumentsChrome() {
 export function DocumentsLayout() {
   return (
     <DoclibProvider>
-      {/* Shared scroll chrome so tabs and Studio content share one left edge.
+      {/* Shared scroll chrome so tabs and Templates content share one left edge.
           width=studio (1240) matches the catalogue layout budget. */}
       <AppPage width="studio" responsivePad>
         <DocumentsChrome />

@@ -106,14 +106,19 @@ export function RepositoryProductionView() {
 
   return (
     <div className="px-[18px] pb-[48px] pt-[8px] max-[640px]:px-[12px]">
-      <header className="mb-4">
-        <p className="text-[11px] font-bold tracking-[0.08em] uppercase text-(--gold-fg)">
-          {x(M.doclib_repo_eyebrow)}
-        </p>
-        <h1 className="font-display text-[22px] font-bold tracking-[-0.02em] text-text">
-          {x(M.doclib_repo_title)}
-        </h1>
-        <p className="mt-1 text-[13.5px] text-text-muted">{x(M.doclib_repo_subtitle)}</p>
+      <header className="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="font-display text-[22px] font-bold tracking-[-0.02em] text-text">
+            {x(M.doclib_repo_title)}
+          </h1>
+          <p className="mt-1 text-[13.5px] text-text-muted">{x(M.doclib_repo_subtitle)}</p>
+        </div>
+        <Link
+          to="/app/documents/studio"
+          className="inline-flex min-h-[40px] items-center rounded-[9px] bg-navy px-[14px] py-[8px] text-[12.5px] font-semibold text-white hover:opacity-90"
+        >
+          {x(M.doclib_repo_createFrom)}
+        </Link>
       </header>
 
       <div className="mb-3 flex flex-wrap items-center gap-2">

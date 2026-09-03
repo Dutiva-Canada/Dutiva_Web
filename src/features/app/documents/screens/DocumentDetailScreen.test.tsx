@@ -41,7 +41,7 @@ describe('DocumentDetailScreen', () => {
        Signed, risk Medium risk. */
     expect(screen.getAllByText('Signed').filter(visible)).toHaveLength(2)
     expect(screen.getByText('Approved for use')).toBeInTheDocument()
-    expect(screen.getByText('Medium risk')).toBeInTheDocument()
+    expect(screen.getByText('Careful review')).toBeInTheDocument()
 
     /* Tabs — Preview selected by default. */
     expect(screen.getAllByRole('tab')).toHaveLength(5)

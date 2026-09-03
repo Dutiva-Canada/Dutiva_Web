@@ -30,25 +30,28 @@ export const doclibMessages = defineMessages({
   doclib_nav_knowledge: { en: 'Knowledge base', fr: 'Base de connaissances' },
   doclib_nav_settings: { en: 'Settings', fr: 'Réglages' },
   doclib_nav_dataModel: { en: 'Data model & handoff', fr: 'Modèle de données et transfert' },
-  doclib_studio_eyebrow: { en: 'Document Studio', fr: 'Studio de documents' },
-  doclib_studio_title: { en: 'Template library', fr: 'Bibliothèque de modèles' },
-  doclib_studio_subtitle: {
-    en: 'Reusable, jurisdiction-aware HR templates. Pick one to generate a real document.',
-    fr: 'Modèles RH réutilisables et adaptés à la juridiction. Choisissez-en un pour générer un vrai document.',
+  doclib_studio_eyebrow: { en: 'Templates', fr: 'Modèles' },
+  doclib_studio_title: {
+    en: 'Recommended templates for your organization',
+    fr: 'Modèles recommandés pour votre organisation',
   },
-  /* Composed with the live catalogue size and `doclib_studio_results` at the
-     call site — the count used to be baked into this string, which made every
-     template added to the catalogue a silent lie in the search box. */
-  doclib_studio_searchPh: { en: 'Search', fr: 'Rechercher parmi' },
+  doclib_studio_subtitle: {
+    en: 'Based on your jurisdiction, workforce and sector.',
+    fr: 'Selon votre territoire de compétence, votre effectif et votre secteur.',
+  },
+  /* Search placeholder is plain “Search templates…” — count lives once in the
+     result line, not in the placeholder. */
+  doclib_studio_searchPh: { en: 'Search templates…', fr: 'Rechercher des modèles…' },
   doclib_studio_filters: { en: 'Filters', fr: 'Filtres' },
   doclib_studio_category: { en: 'Category', fr: 'Catégorie' },
-  doclib_studio_jurisdiction: { en: 'Jurisdiction', fr: 'Juridiction' },
-  doclib_studio_jurisdictions: { en: 'Jurisdictions', fr: 'Juridictions' },
-  doclib_studio_risk: { en: 'Risk level', fr: 'Niveau de risque' },
-  doclib_studio_review: { en: 'Review', fr: 'Révision' },
+  doclib_studio_jurisdiction: { en: 'Jurisdiction', fr: 'Territoire de compétence' },
+  doclib_studio_jurisdictions: { en: 'Jurisdictions', fr: 'Territoires de compétence' },
+  doclib_studio_risk: { en: 'Review level', fr: 'Niveau de révision' },
+  doclib_studio_review: { en: 'Review level', fr: 'Niveau de révision' },
   doclib_studio_all: { en: 'All', fr: 'Tous' },
-  doclib_studio_results: { en: 'templates', fr: 'modèles' },
-  doclib_studio_result: { en: 'template', fr: 'modèle' },
+  doclib_studio_results: { en: 'templates found', fr: 'modèles trouvés' },
+  doclib_studio_result: { en: 'template found', fr: 'modèle trouvé' },
+  doclib_studio_catalogue: { en: 'Templates', fr: 'Modèles' },
   doclib_studio_noResults: {
     en: 'No templates match these filters',
     fr: 'Aucun modèle ne correspond à ces filtres',
@@ -61,17 +64,37 @@ export const doclibMessages = defineMessages({
   doclib_studio_version: { en: 'Version', fr: 'Version' },
   doclib_studio_uses: { en: 'uses', fr: 'utilisations' },
   doclib_studio_est: { en: 'min', fr: 'min' },
-  doclib_studio_open: { en: 'Open', fr: 'Ouvrir' },
-  doclib_studio_generate: { en: 'Generate', fr: 'Générer' },
+  doclib_studio_open: { en: 'Preview full template', fr: 'Prévisualiser le modèle complet' },
+  doclib_studio_generate: { en: 'Create document', fr: 'Créer le document' },
+  doclib_studio_askAdvisor: {
+    en: 'Ask Advisor about this template',
+    fr: 'Demander conseil au sujet de ce modèle',
+  },
+  doclib_studio_sections: { en: 'Document sections', fr: 'Sections du document' },
+  doclib_studio_sectionsSub: {
+    en: 'The completed document will be generated using the information you provide.',
+    fr: 'Le document final sera généré à partir des renseignements que vous fournirez.', // [FR self-authored]
+  },
+  doclib_studio_whyRecommended: {
+    en: 'Why recommended',
+    fr: 'Pourquoi ce modèle est recommandé',
+  },
+  doclib_studio_whyApplies: { en: 'Why this applies', fr: 'Pourquoi cela s’applique' },
+  doclib_studio_recommendedBadge: { en: 'Recommended', fr: 'Recommandé' },
+  doclib_studio_backToList: { en: 'Back to templates', fr: 'Retour aux modèles' }, // [FR self-authored]
+  doclib_studio_selectPrompt: {
+    en: 'Select a template to see details and create a document.',
+    fr: 'Sélectionnez un modèle pour voir les détails et créer un document.', // [FR self-authored]
+  },
   doclib_studio_core: { en: 'Core', fr: 'Essentiel' },
   doclib_studio_lawyerFlag: { en: 'Lawyer review', fr: 'Révision juridique' },
   doclib_studio_hrFlag: { en: 'HR review', fr: 'Révision RH' },
   doclib_studio_supports: { en: 'Supports', fr: 'Prend en charge' },
   doclib_studio_libraryVsRepo: {
-    en: 'Templates are blank & reusable. Generated documents live in the Documents repository.',
-    fr: 'Les modèles sont vierges et réutilisables. Les documents générés se trouvent dans le dépôt Documents.',
+    en: 'Templates are blank and reusable. Generated documents live in My documents.',
+    fr: 'Les modèles sont vierges et réutilisables. Les documents générés se trouvent dans Mes documents.', // [FR self-authored]
   },
-  doclib_detail_back: { en: 'Back to library', fr: 'Retour à la bibliothèque' },
+  doclib_detail_back: { en: 'Back to templates', fr: 'Retour aux modèles' },
   doclib_detail_about: { en: 'About this template', fr: 'À propos de ce modèle' },
   doclib_detail_jurisdictionNotes: { en: 'Jurisdiction notes', fr: 'Notes par juridiction' },
   doclib_detail_statutory: { en: 'Statutory references', fr: 'Références législatives' },
@@ -164,19 +187,23 @@ export const doclibMessages = defineMessages({
     fr: 'Une révision RH est requise avant l’utilisation de ce document.',
   },
   doclib_repo_eyebrow: { en: 'Documents', fr: 'Documents' },
-  doclib_repo_title: { en: 'Document repository', fr: 'Dépôt de documents' },
+  doclib_repo_title: { en: 'My documents', fr: 'Mes documents' },
   doclib_repo_subtitle: {
-    en: "Your organization's real generated and saved HR records — a structured filing cabinet, not a file dump.",
-    fr: 'Les vrais documents RH générés et enregistrés de votre organisation — un classeur structuré, non un dépotoir de fichiers.',
+    en: 'View and manage documents created from Dutiva templates.',
+    fr: 'Consultez et gérez les documents créés à partir des modèles Dutiva.',
   },
   doclib_repo_searchPh: { en: 'Search documents…', fr: 'Rechercher des documents…' },
   doclib_repo_count: { en: 'documents', fr: 'documents' },
-  doclib_repo_empty: { en: 'No documents yet', fr: 'Aucun document pour l’instant' },
+  doclib_repo_empty: { en: 'No documents yet', fr: 'Aucun document pour le moment' },
   doclib_repo_emptySub: {
-    en: 'Generate your first document from a template in Document Studio.',
-    fr: 'Générez votre premier document à partir d’un modèle du Studio.',
+    en: 'Create a document from a jurisdiction-aware HR template.',
+    fr: 'Créez un document à partir d’un modèle RH adapté à votre territoire de compétence.', // [FR self-authored]
   },
-  doclib_repo_goStudio: { en: 'Open Document Studio', fr: 'Ouvrir le Studio de documents' },
+  doclib_repo_goStudio: { en: 'Browse templates', fr: 'Parcourir les modèles' },
+  doclib_repo_createFrom: {
+    en: 'Create from a template',
+    fr: 'Créer à partir d’un modèle',
+  },
   doclib_repo_noMatch: {
     en: 'No documents match these filters',
     fr: 'Aucun document ne correspond à ces filtres',
@@ -195,7 +222,7 @@ export const doclibMessages = defineMessages({
   doclib_col_status: { en: 'Status', fr: 'Statut' },
   doclib_col_review: { en: 'Review', fr: 'Révision' },
   doclib_col_signature: { en: 'Signature', fr: 'Signature' },
-  doclib_col_risk: { en: 'Risk', fr: 'Risque' },
+  doclib_col_risk: { en: 'Review', fr: 'Révision' },
   doclib_col_updated: { en: 'Updated', fr: 'Mis à jour' },
   doclib_col_version: { en: 'Ver.', fr: 'Vers.' },
   doclib_filter_category: { en: 'Category', fr: 'Catégorie' },
@@ -204,7 +231,7 @@ export const doclibMessages = defineMessages({
   doclib_filter_status: { en: 'Status', fr: 'Statut' },
   doclib_filter_review: { en: 'Review status', fr: 'Statut de révision' },
   doclib_filter_signature: { en: 'Signature', fr: 'Signature' },
-  doclib_filter_risk: { en: 'Risk', fr: 'Risque' },
+  doclib_filter_risk: { en: 'Review level', fr: 'Niveau de révision' },
   doclib_filter_employee: { en: 'Employee', fr: 'Employé' },
   doclib_filter_all: { en: 'All', fr: 'Tous' },
   doclib_docd_back: { en: 'Back to repository', fr: 'Retour au dépôt' },
@@ -309,8 +336,8 @@ export const doclibMessages = defineMessages({
   doclib_common_today: { en: 'today', fr: 'aujourd’hui' },
   doclib_profile_title: { en: 'Organization profile', fr: 'Profil de l’organisation' },
   doclib_profile_sub: {
-    en: 'Applicability is tuned to size, union status, and sector.',
-    fr: 'L’applicabilité s’ajuste à la taille, au statut syndical et au secteur.',
+    en: 'Used to recommend templates. Not a legal determination.',
+    fr: 'Sert à recommander des modèles. Ce n’est pas une détermination juridique.', // [FR self-authored]
   },
   doclib_profile_employees: { en: 'employees', fr: 'employés' },
   doclib_profile_union: { en: 'Unionized', fr: 'Syndiqué' },
@@ -320,18 +347,68 @@ export const doclibMessages = defineMessages({
   doclib_profile_provincial: { en: 'provincially regulated', fr: 'de compétence provinciale' },
   doclib_profile_headcount: { en: 'Headcount', fr: 'Effectif' },
   doclib_profile_unionToggle: { en: 'Union status', fr: 'Statut syndical' },
-  doclib_applic_required: { en: 'Required for you', fr: 'Requis pour vous' },
-  doclib_applic_applies: { en: 'Applies to you', fr: 'S’applique à vous' },
+  doclib_profile_edit: { en: 'Edit profile', fr: 'Modifier le profil' },
+  doclib_profile_why: { en: 'Why this applies', fr: 'Pourquoi cela s’applique' },
+  doclib_profile_whyBody: {
+    en: 'Recommendations use your jurisdiction, workforce size, sector (including whether it is federally regulated), and union status. They do not guarantee that a template is legally required or sufficient for your situation.',
+    fr: 'Les recommandations tiennent compte de votre territoire de compétence, de la taille de votre effectif, de votre secteur (y compris s’il est de compétence fédérale) et de votre statut syndical. Elles ne garantissent pas qu’un modèle est légalement requis ou suffisant pour votre situation.', // [FR self-authored]
+  },
+  doclib_profile_incomplete: {
+    en: 'Complete your organization profile to personalize template recommendations.',
+    fr: 'Complétez le profil de votre organisation pour personnaliser les recommandations de modèles.', // [FR self-authored]
+  },
+  doclib_profile_complete: { en: 'Complete profile', fr: 'Compléter le profil' }, // [FR self-authored]
+  doclib_applic_required: {
+    en: 'Required based on your profile',
+    fr: 'Requis selon votre profil',
+  },
+  doclib_applic_applies: {
+    en: 'Recommended for your organization',
+    fr: 'Recommandé pour votre organisation',
+  },
+  doclib_applic_recommended: {
+    en: 'Recommended for your organization',
+    fr: 'Recommandé pour votre organisation',
+  },
+  doclib_applic_available: {
+    en: 'Available for your jurisdiction',
+    fr: 'Disponible pour votre territoire de compétence',
+  },
+  doclib_applic_not_matched: {
+    en: 'Not matched to your profile',
+    fr: 'Ne correspond pas à votre profil',
+  },
   doclib_applic_union: {
     en: 'Collective agreement governs',
     fr: 'Convention collective applicable',
   },
-  doclib_applic_below: { en: 'Applies above your size', fr: 'S’applique au-delà de votre taille' },
+  doclib_applic_below: {
+    en: 'Available for your jurisdiction',
+    fr: 'Disponible pour votre territoire de compétence',
+  },
   doclib_applic_title: {
-    en: 'Applicability for your organization',
-    fr: 'Applicabilité pour votre organisation',
+    en: 'Applicability',
+    fr: 'Applicabilité',
   },
   doclib_studio_applies: { en: 'Applies to my org', fr: 'S’applique à mon org.' },
+  doclib_review_standard: { en: 'Standard review', fr: 'Révision standard' },
+  doclib_review_careful: { en: 'Careful review', fr: 'Révision approfondie' },
+  doclib_review_legal: {
+    en: 'Legal review recommended',
+    fr: 'Révision juridique recommandée',
+  },
+  doclib_review_standard_desc: {
+    en: 'Routine document. Standard HR review is enough.',
+    fr: 'Document courant. Une révision RH standard suffit.',
+  },
+  doclib_review_careful_desc: {
+    en: 'Some legal exposure. Careful HR review before use.',
+    fr: 'Exposition juridique modérée. Révision RH approfondie avant usage.',
+  },
+  doclib_review_legal_desc: {
+    en: 'Significant exposure. Lawyer review recommended before use.',
+    fr: 'Exposition importante. Révision juridique recommandée avant usage.',
+  },
   doclib_gen_employeeReq: { en: 'Employee', fr: 'Employé(e)' },
   doclib_gen_empRequired: {
     en: 'Required for this document type',
@@ -437,12 +514,12 @@ export const doclibMessages = defineMessages({
   doclib_prod_status_draft: { en: 'Draft', fr: 'Brouillon' },
   doclib_prod_status_approved: { en: 'Approved', fr: 'Approuvé' },
   doclib_prod_status_archived: { en: 'Archived', fr: 'Archivé' },
-  doclib_prod_empty_title: { en: 'No documents yet', fr: 'Aucun document pour l’instant' },
+  doclib_prod_empty_title: { en: 'No documents yet', fr: 'Aucun document pour le moment' },
   doclib_prod_empty_body: {
-    en: 'Create a document from Document Studio. Saved drafts appear here for your organization.',
-    fr: 'Créez un document depuis le Studio de documents. Les brouillons enregistrés apparaissent ici pour votre organisation.',
+    en: 'Create a document from a jurisdiction-aware HR template.',
+    fr: 'Créez un document à partir d’un modèle RH adapté à votre territoire de compétence.', // [FR self-authored]
   },
-  doclib_prod_go_studio: { en: 'Open Document Studio', fr: 'Ouvrir le Studio de documents' },
+  doclib_prod_go_studio: { en: 'Browse templates', fr: 'Parcourir les modèles' },
   doclib_prod_error: {
     en: 'Could not load documents. Check your connection and try again.',
     fr: 'Impossible de charger les documents. Vérifiez votre connexion et réessayez.',
@@ -462,7 +539,7 @@ export const doclibMessages = defineMessages({
     en: 'This document was not found in your organization.',
     fr: 'Ce document est introuvable dans votre organisation.',
   },
-  doclib_prod_back: { en: 'Back to repository', fr: 'Retour au dépôt' },
+  doclib_prod_back: { en: 'Back to My documents', fr: 'Retour à Mes documents' }, // [FR self-authored]
   doclib_prod_archive: { en: 'Archive', fr: 'Archiver' },
   doclib_prod_archived: { en: 'Document archived', fr: 'Document archivé' },
   doclib_prod_archive_failed: {

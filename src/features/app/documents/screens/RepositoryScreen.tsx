@@ -170,21 +170,26 @@ function RepositoryDemoScreen() {
     <div className="pb-8">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 max-w-[640px]">
-          <div className="text-[11px] font-bold tracking-[0.08em] text-gold-dot uppercase">
-            {t('doclib_repo_eyebrow')}
-          </div>
-          <h1 className="mt-1 font-display text-[26px] font-bold tracking-[-0.01em] text-text max-[640px]:text-[22px]">
+          <h1 className="font-display text-[22px] font-bold tracking-[-0.02em] text-text max-[640px]:text-[20px]">
             {t('doclib_repo_title')}
           </h1>
           <p className="mt-1 text-[13.5px] leading-relaxed text-text-muted">
             {t('doclib_repo_subtitle')}
           </p>
         </div>
-        <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[10px] text-center shadow-sm">
-          <div className="font-display text-[22px] leading-tight font-bold text-navy">
-            {visible.length}
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            to="/app/documents/studio"
+            className="inline-flex min-h-[40px] items-center rounded-[9px] bg-navy px-[14px] py-[8px] text-[12.5px] font-semibold text-white hover:opacity-90"
+          >
+            {t('doclib_repo_createFrom')}
+          </Link>
+          <div className="rounded-[12px] border border-border bg-surface px-[16px] py-[8px] text-center">
+            <div className="font-display text-[20px] leading-tight font-bold text-navy">
+              {visible.length}
+            </div>
+            <div className="text-[11.5px] text-text-muted">{t('doclib_repo_count')}</div>
           </div>
-          <div className="text-[11.5px] text-text-muted">{t('doclib_repo_count')}</div>
         </div>
       </header>
 
