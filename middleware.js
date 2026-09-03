@@ -17,10 +17,11 @@
  *    files stay public at their exact URLs; only the directory index is closed.
  *    Matcher entries for those paths are exact — /assets/AboutPage-….js must
  *    not hit this.
+ *
+ * Note: `config.matcher` host values must be string literals — Vercel's edge
+ * bundler does not accept identifier references there.
  */
 
-const APEX_HOST = 'dutiva.ca'
-const WWW_HOST = 'www.dutiva.ca'
 /** Keep in sync with vercel.json Strict-Transport-Security. */
 const HSTS = 'max-age=63072000; includeSubDomains'
 
@@ -30,7 +31,7 @@ export const config = {
   matcher: [
     {
       source: '/:path*',
-      has: [{ type: 'host', value: WWW_HOST }],
+      has: [{ type: 'host', value: 'www.dutiva.ca' }],
     },
     '/assets',
     '/brand',
@@ -41,8 +42,8 @@ export const config = {
 export default function middleware(request) {
   const url = new URL(request.url)
 
-  if (url.hostname === WWW_HOST) {
-    url.hostname = APEX_HOST
+  if (url.hostname === 'www.dutiva.ca') {
+    url.hostname = 'dutiva.ca'
     return new Response(null, {
       status: 308,
       headers: {
