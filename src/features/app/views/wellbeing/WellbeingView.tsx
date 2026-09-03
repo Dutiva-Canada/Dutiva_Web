@@ -1,4 +1,5 @@
 ﻿import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { FeatureGate } from '@/features/app/billing/PlanGate'
 import { WellbeingDemoView } from './WellbeingDemoView'
 import { WellbeingProductionView } from './WellbeingProductionView'
 
@@ -13,10 +14,16 @@ import { WellbeingProductionView } from './WellbeingProductionView'
  * (WellbeingProductionView, public.hr_wellbeing_initiatives). **The signals
  * below do not cross over, and that is the design** — they are inferred
  * health information about named people, which is the one thing Ring 2 is
- * built not to record. See migration 0041's header.
+ * built not to record. See migration 0041's header. Growth+ when gates are on.
  */
 export function WellbeingView() {
   const { mode: workspaceMode } = useWorkspaceMode()
-  if (workspaceMode === 'production') return <WellbeingProductionView />
+  if (workspaceMode === 'production') {
+    return (
+      <FeatureGate feature="wellbeing_register">
+        <WellbeingProductionView />
+      </FeatureGate>
+    )
+  }
   return <WellbeingDemoView />
 }

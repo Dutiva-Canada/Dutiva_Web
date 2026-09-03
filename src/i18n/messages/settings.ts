@@ -132,6 +132,10 @@ export const settingsMessages = defineMessages({
     en: 'Advisor reads the case, employee, and document context you attach — removable per question',
     fr: 'Le Conseiller lit le contexte de dossier, d’employé et de document que vous joignez — retirable pour chaque question',
   },
+  settings_toggle_ai_context_locked: {
+    en: 'Cross-record Advisor memory injects on Growth. Your preference is kept; injection stays off until you upgrade.',
+    fr: 'La mémoire transversale du Conseiller s’injecte avec Croissance. Votre préférence est conservée; l’injection reste inactive jusqu’à une mise à niveau.', // [FR self-authored]
+  },
   settings_toggle_ai_citations: {
     en: 'Show sources on compliance answers',
     fr: 'Afficher les sources sur les réponses de conformité',
@@ -155,6 +159,40 @@ export const settingsMessages = defineMessages({
   settings_overage_failed: {
     en: 'Couldn’t save that setting. Try again.',
     fr: 'Impossible d’enregistrer ce réglage. Réessayez.', // [FR self-authored]
+  },
+  settings_advisor_usage_title: {
+    en: 'Advisor reply usage',
+    fr: 'Utilisation des réponses du Conseiller', // [FR self-authored]
+  },
+  settings_advisor_usage_monthly: {
+    en: 'This month: {remaining} of {limit} included left',
+    fr: 'Ce mois-ci : {remaining} sur {limit} incluses restantes', // [FR self-authored]
+  },
+  settings_advisor_usage_rollover: {
+    en: 'Rollover: {balance} (nearest expiry {date})',
+    fr: 'Report : {balance} (échéance la plus proche {date})', // [FR self-authored]
+  },
+  settings_advisor_usage_rollover_none: {
+    en: 'Rollover: {balance}',
+    fr: 'Report : {balance}', // [FR self-authored]
+  },
+  settings_advisor_usage_pack: {
+    en: 'Purchased pack balance: {balance}',
+    fr: 'Solde de forfaits achetés : {balance}', // [FR self-authored]
+  },
+  settings_advisor_usage_overage: {
+    en: 'Overage billing: {yesNo}',
+    fr: 'Facturation des réponses en trop : {yesNo}', // [FR self-authored]
+  },
+  settings_advisor_usage_yes: { en: 'Yes', fr: 'Oui' }, // [FR self-authored]
+  settings_advisor_usage_no: { en: 'No', fr: 'Non' }, // [FR self-authored]
+  settings_advisor_usage_reset: {
+    en: 'Next monthly reset: {date}',
+    fr: 'Prochaine réinitialisation mensuelle : {date}', // [FR self-authored]
+  },
+  settings_advisor_usage_order: {
+    en: 'Used in order: oldest rollover, then this month’s included replies, then packs, then overage (if on).',
+    fr: 'Ordre d’utilisation : report le plus ancien, puis les réponses incluses du mois, puis les forfaits, puis les réponses en trop (si activées).', // [FR self-authored]
   },
   settings_disclaimer_label: { en: 'Legal disclaimer', fr: 'Avis juridique' },
   settings_disclaimer_note: {

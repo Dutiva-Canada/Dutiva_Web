@@ -1,9 +1,10 @@
 /**
  * Pure helpers for turning a Stripe checkout/subscription event payload into
- * a `public.profiles` patch. Adapted from the production dutiva-website
- * repo's `billing-event.ts`, narrowed to this repo's four plans
- * (free/starter/growth/pro — see src/config/plans.ts) instead of
- * starter/growth/advanced/enterprise.
+ * a `public.profiles` patch (0089 workspace membership) and an optional
+ * `apply_organization_billing` payload (org source of truth — 0107).
+ * Adapted from the production dutiva-website repo's `billing-event.ts`,
+ * narrowed to this repo's four plans (free/starter/growth/pro — see
+ * src/config/plans.ts) instead of starter/growth/advanced/enterprise.
  */
 /** Mirrors `BillingPeriod` in src/config/plans.ts (Deno cannot import src/). */
 export type BillingPeriod = 'monthly' | 'annual'
@@ -29,7 +30,18 @@ export type PlanSignupNotificationPayload = {
   source: 'stripe_checkout'
 }
 
+/** Args for `apply_organization_billing` (plan vocabulary includes free). */
+export type OrganizationBillingApply = {
+  plan: string
+  subscriptionStatus: string
+  billingPeriod: BillingPeriod
+  stripeCustomerId?: string | null
+  stripeSubscriptionId?: string | null
+  billingOwnerUserId?: string | null
+}
+
 const ALLOWED_PLANS = new Set(['starter', 'growth', 'pro'])
+const ORG_PLANS = new Set(['free', 'starter', 'growth', 'pro'])
 const ALLOWED_PERIODS = new Set<string>(['monthly', 'annual'])
 
 export function stringId(value: unknown): string | null {
@@ -175,5 +187,51 @@ export function getSubscriptionProfileUpdate(
   return {
     customerId: stringId(subscription.customer),
     updates,
+  }
+}
+
+/**
+ * Build `apply_organization_billing` args from a profile patch. Returns null
+ * when plan cannot be determined — callers must supply defaults from the
+ * existing profile/org row for partial subscription updates.
+ */
+export function organizationBillingFromProfileUpdate(
+  updates: ProfileUpdate,
+  options: {
+    billingOwnerUserId?: string | null
+    defaultPlan?: string | null
+    defaultBillingPeriod?: BillingPeriod | null
+  } = {},
+): OrganizationBillingApply | null {
+  const planRaw = updates.plan ?? options.defaultPlan ?? null
+  const plan = planRaw && ORG_PLANS.has(planRaw) ? planRaw : null
+  if (!plan) return null
+
+  const billingPeriod =
+    normalizeBillingPeriod(updates.billing_period) ??
+    normalizeBillingPeriod(options.defaultBillingPeriod) ??
+    'monthly'
+
+  return {
+    plan,
+    subscriptionStatus: normalizeSubscriptionStatus(updates.subscription_status),
+    billingPeriod,
+    stripeCustomerId: updates.stripe_customer_id,
+    stripeSubscriptionId: updates.stripe_subscription_id,
+    billingOwnerUserId: options.billingOwnerUserId ?? null,
+  }
+}
+
+/** Cancellation mirror: free + canceled on the org (and profile via 0107 dual-write). */
+export function cancellationOrganizationBilling(
+  customerId: string | null,
+  billingOwnerUserId?: string | null,
+): OrganizationBillingApply {
+  return {
+    plan: 'free',
+    subscriptionStatus: 'canceled',
+    billingPeriod: 'monthly',
+    stripeCustomerId: customerId,
+    billingOwnerUserId: billingOwnerUserId ?? null,
   }
 }

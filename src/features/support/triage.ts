@@ -1,3 +1,4 @@
+import { supportQueueSortRank } from '@/config/planEntitlements'
 import { RESPONSE_TARGETS, SUPPORT_HOURS } from '@/config/support'
 import type {
   ResponseTarget,
@@ -18,6 +19,11 @@ import type {
  * raises to `critical` in triage only for a confirmed/credible platform
  * outage, active security incident, widespread auth failure, severe
  * data-access issue, or time-sensitive privacy incident.
+ *
+ * Plan → queue ordering comes from `planEntitlements` `supportPriority` /
+ * `SUPPORT_PRIORITY_RANK` via `supportQueueSortRank`. Growth/Pro keep a
+ * product-ticket floor at `high` (1-business-day target); Starter is paid
+ * queue rank without that floor (2 business days — matches entitled table).
  */
 
 const PRIORITY_RANK: Record<SupportPriority, number> = {
@@ -54,18 +60,21 @@ const RESTRICTED_FROM_PAID_FLOOR: ReadonlySet<SupportCategory> = new Set([
 
 export type RequesterPlan = 'free' | 'starter' | 'growth' | 'pro' | null
 
-/** Queue rank: paid first (Pro, Growth, Starter), then free/unknown. */
+/**
+ * Queue rank for admin sort: lower = sooner.
+ * Maps `planEntitlements.supportPriority` (Pro highest → Growth priority →
+ * Starter paid → Free standard). Unknown / null sorts with Free.
+ */
 export function supportQueueRank(plan: RequesterPlan): number {
-  if (plan === 'pro') return 0
-  if (plan === 'growth') return 1
-  if (plan === 'starter') return 2
-  return 3
+  return supportQueueSortRank(plan ?? 'free')
 }
 
 /**
  * Growth and Pro product tickets floor at `high` (1-business-day initial
- * reply). Privacy/security/accessibility/complaint keep their existing
- * suggestPriority result — paying does not change restricted handling.
+ * reply — entitled `supportResponseTarget`). Starter stays at the suggested
+ * priority (paid queue rank, 2-business-day target). Privacy / security /
+ * accessibility / complaint keep their existing suggestPriority result —
+ * paying does not change restricted handling.
  */
 export function applyPaidSupportFloor(
   priority: SupportPriority,

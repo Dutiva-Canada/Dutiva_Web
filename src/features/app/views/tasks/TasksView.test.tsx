@@ -31,24 +31,22 @@ describe('TasksView', () => {
   it('renders the open count and the fixture checklist rows', () => {
     renderTasks()
 
-    /* 5 of the 6 fixture tasks are open (tk3 is done). */
-    expect(screen.getByText('5 open')).toBeInTheDocument()
+    /* 4 of the 6 fixture tasks are open (tk2 and tk3 are done). */
+    expect(screen.getByText('4 open')).toBeInTheDocument()
 
-    /* Row content: title, meta line, linked case, blocked + evidence notes. */
+    /* Row content: title, meta line, linked case, evidence note. */
     expect(
       screen.getByText('Review termination notice exposure — Jordan Mensah'),
     ).toBeInTheDocument()
     expect(screen.getByText('Today · Owner: Riley Summers · Ontario')).toBeInTheDocument()
     expect(screen.getAllByText('Linked: Termination — Jordan Mensah')).toHaveLength(2)
     expect(screen.getByText('Linked: Remote work policy refresh')).toBeInTheDocument()
-    expect(screen.getByText('Waits on: counsel response (due Jul 10)')).toBeInTheDocument()
     expect(
       screen.getByText('Evidence: French onboarding package filed to the case'),
     ).toBeInTheDocument()
 
     /* Status + priority chips. */
-    expect(screen.getByText('Blocked')).toBeInTheDocument()
-    expect(screen.getByText('Done')).toBeInTheDocument()
+    expect(screen.getAllByText('Done')).toHaveLength(2)
     expect(screen.getAllByText('Open')).toHaveLength(4)
     expect(screen.getAllByText('high')).toHaveLength(2)
     expect(screen.getAllByText('medium')).toHaveLength(2)
@@ -62,15 +60,15 @@ describe('TasksView', () => {
     expect(firstToggle).toBeDefined()
     fireEvent.click(firstToggle!)
 
-    expect(screen.getByText('4 open')).toBeInTheDocument()
+    expect(screen.getByText('3 open')).toBeInTheDocument()
     expect(screen.getByText('Review termination notice exposure — Jordan Mensah')).toHaveClass(
       'line-through',
     )
-    expect(screen.getAllByText('Done')).toHaveLength(2)
+    expect(screen.getAllByText('Done')).toHaveLength(3)
 
     /* Toggle back re-opens it. */
     fireEvent.click(firstToggle!)
-    expect(screen.getByText('5 open')).toBeInTheDocument()
+    expect(screen.getByText('4 open')).toBeInTheDocument()
   })
 
   it('opens the linked Advisor conversation when a row body is clicked', () => {
@@ -123,11 +121,12 @@ describe('TasksView in production mode', () => {
             }),
           onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
         },
-        rpc: vi.fn((fn: string) =>
-          Promise.resolve(
-            fn === 'is_admin_user' ? { data: true, error: null } : { data: null, error: null },
-          ),
-        ),
+        rpc: vi.fn((fn: string) => {
+          if (fn === 'is_admin_user') return Promise.resolve({ data: true, error: null })
+          if (fn === 'current_user_is_workspace_member')
+            return Promise.resolve({ data: true, error: null })
+          return Promise.resolve({ data: null, error: null })
+        }),
         from: vi.fn((table: string) => {
           if (table === 'workspace_preferences') {
             return {
@@ -162,9 +161,11 @@ describe('TasksView in production mode', () => {
               select: () => ({
                 eq: () => ({
                   eq: () => ({
-                    limit: () => ({
-                      maybeSingle: () =>
-                        Promise.resolve({ data: { organization_id: 'org-1' }, error: null }),
+                    order: () => ({
+                      limit: () => ({
+                        maybeSingle: () =>
+                          Promise.resolve({ data: { organization_id: 'org-1' }, error: null }),
+                      }),
                     }),
                   }),
                 }),

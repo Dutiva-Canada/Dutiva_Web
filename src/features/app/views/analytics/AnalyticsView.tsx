@@ -1,4 +1,5 @@
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { FeatureGate } from '@/features/app/billing/PlanGate'
 import { AnalyticsDemoView } from './AnalyticsDemoView'
 import { AnalyticsProductionView } from './AnalyticsProductionView'
 
@@ -12,11 +13,18 @@ import { AnalyticsProductionView } from './AnalyticsProductionView'
  *
  * Demo mode renders the Northgate diorama below — every number computed
  * from `src/data` fixtures against the diorama's fixed "today"; production
- * renders AnalyticsProductionView (live aggregation).
+ * renders AnalyticsProductionView (live aggregation), gated to Growth+ when
+ * PLAN_FEATURE_GATES_ENABLED is on.
  */
 
 export function AnalyticsView() {
   const { mode: workspaceMode } = useWorkspaceMode()
-  if (workspaceMode === 'production') return <AnalyticsProductionView />
+  if (workspaceMode === 'production') {
+    return (
+      <FeatureGate feature="operational_analytics">
+        <AnalyticsProductionView />
+      </FeatureGate>
+    )
+  }
   return <AnalyticsDemoView />
 }

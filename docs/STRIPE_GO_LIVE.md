@@ -30,12 +30,16 @@ Owner confirmed the following are in place on the live Supabase project
   checkout (`create-advisor-pack-checkout`).
 - **Advisor overage meter** — `STRIPE_ADVISOR_METER_EVENT_NAME` for opt-in
   usage billing beyond included replies.
-- **Plan feature gates** — `PLAN_FEATURE_GATES_ENABLED` stays `false`; paying
-  buys support membership, not extra modules, until limits are enforced.
+- **Plan feature gates** — `PLAN_FEATURE_GATES_ENABLED` is `true` (client +
+  edge secret) as of 2026-09-03, with migrations **0107–0111** applied.
+- **Org billing dual-write** — webhook writes org plan via
+  `apply_organization_billing` (see §4). Applied to production 2026-09-03.
 
 **Smoke verification** (run after any secret or webhook change): signed-in
 non-`@dutiva.ca` user completes a test checkout → `profiles.plan` and
-`subscription_status: active` update, row in `stripe_webhook_events`. See §4.
+`subscription_status: active` update, row in `stripe_webhook_events`. After
+org billing migrations are live, also confirm `organizations.plan` (and related
+org billing columns) match. See §4.
 
 The checklist sections below remain the reference for re-verification or
 onboarding a second operator.
@@ -138,6 +142,9 @@ Expect after a successful test purchase:
 - at least one new row in `public.stripe_webhook_events`
 - `current_user_is_workspace_member()` is true for that user (paid-profile
   path from migration `0089_paid_subscribers_are_workspace_members`)
+- `organizations.plan` (and org `subscription_status` / Stripe ids) updated
+  via `apply_organization_billing` for the purchaser’s org — dual-write with
+  the profile row. Plan feature gates are on (`PLAN_FEATURE_GATES_ENABLED`).
 
 Expect after a successful pack purchase:
 
@@ -153,8 +160,9 @@ Internal `@dutiva.ca` accounts skip pack payment.
    all three `STRIPE_PRICE_*_ANNUAL` secrets are set.
 2. Record annual go-live in [TODO.md](TODO.md) EF4a.
 
-`PLAN_FEATURE_GATES_ENABLED` stays `false` until product limits are actually
-enforced. Paying buys support membership, not extra modules.
+`PLAN_FEATURE_GATES_ENABLED` is `true` (2026-09-03). Product limits follow
+`planEntitlements.ts` and the 0107–0111 RPCs. Demo mode still shows the full
+product. Annual billing stays off until EF4a.
 
 ## Related
 

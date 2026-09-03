@@ -6,7 +6,7 @@ import { listChain } from '@/test/productionWorkspace'
 import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
 import { HomeView } from './HomeView'
 import { HomeCompliancePanel } from './HomeCompliancePanel'
-import { homePriorities } from './homeData'
+import { homePriorities, openTaskCount } from './homeData'
 
 /** Echoes the current pathname so navigations triggered by the view are observable. */
 function LocationProbe() {
@@ -27,11 +27,11 @@ describe('HomeView', () => {
     expect(screen.getByText('Advisor’s daily brief')).toBeInTheDocument()
     expect(screen.getByText(/Jordan Mensah’s termination is your top exposure/)).toBeInTheDocument()
 
-    /* Metric chips — counts derive from the @/data fixtures (3 open cases, 5 open tasks). */
+    /* Metric chips — counts derive from the @/data fixtures (open cases / open tasks). */
     const casesChip = screen.getByRole('button', { name: /Open cases/ })
     expect(casesChip).toHaveTextContent('3')
     expect(casesChip).toHaveTextContent('1 legal review required')
-    expect(screen.getByText('of 5 open')).toBeInTheDocument()
+    expect(screen.getByText(`of ${openTaskCount} open`)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Support signals/ })).toHaveTextContent('1')
 
     /* Priority queue — Act now / This week / Watching, in severity order. */
@@ -238,11 +238,14 @@ describe('HomeView production command centre', () => {
             }),
           onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
         },
-        rpc: vi.fn((fn: string) =>
-          Promise.resolve(
-            fn === 'is_admin_user' ? { data: true, error: null } : { data: null, error: null },
-          ),
-        ),
+        rpc: vi.fn((fn: string) => {
+          if (fn === 'is_admin_user') return Promise.resolve({ data: true, error: null })
+          if (fn === 'current_user_is_workspace_member')
+            return Promise.resolve({ data: true, error: null })
+          if (fn === 'resolve_user_billing_organization')
+            return Promise.resolve({ data: 'org-1', error: null })
+          return Promise.resolve({ data: null, error: null })
+        }),
         from: vi.fn((table: string) => {
           if (table === 'workspace_preferences') {
             return {
@@ -265,6 +268,26 @@ describe('HomeView production command centre', () => {
                         primary_contact: 'Martin Constantineau',
                         province: 'Ontario',
                         city: 'Ottawa',
+                        plan: 'pro',
+                        subscription_status: 'active',
+                        stripe_customer_id: null,
+                      },
+                      error: null,
+                    }),
+                }),
+              }),
+            }
+          }
+          if (table === 'organizations') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  maybeSingle: () =>
+                    Promise.resolve({
+                      data: {
+                        plan: 'pro',
+                        subscription_status: 'active',
+                        stripe_customer_id: null,
                       },
                       error: null,
                     }),
@@ -277,9 +300,11 @@ describe('HomeView production command centre', () => {
               select: () => ({
                 eq: () => ({
                   eq: () => ({
-                    limit: () => ({
-                      maybeSingle: () =>
-                        Promise.resolve({ data: { organization_id: 'org-1' }, error: null }),
+                    order: () => ({
+                      limit: () => ({
+                        maybeSingle: () =>
+                          Promise.resolve({ data: { organization_id: 'org-1' }, error: null }),
+                      }),
                     }),
                   }),
                 }),

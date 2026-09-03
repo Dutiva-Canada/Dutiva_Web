@@ -1,5 +1,5 @@
 import { Check, FileStack, Route, Sparkles, Users } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { Disclaimer } from '@/components/Disclaimer'
@@ -25,11 +25,14 @@ export function HomeProductionEmptyState({
   identity,
   onSend,
   employeeCount = 0,
+  afterChecklist,
 }: {
   readonly identity: WorkspaceIdentity
   readonly onSend: (text: string) => void
   /** Live employee count — usually 0 while this empty Home is shown. */
   readonly employeeCount?: number
+  /** Optional strip below the checklist (e.g. plan upgrade nudge). */
+  readonly afterChecklist?: ReactNode
 }) {
   const { x } = useI18n()
   const { organizationId } = useWorkspaceMode()
@@ -133,6 +136,8 @@ export function HomeProductionEmptyState({
           {x(M.home_production_demo_link)}
         </Link>
       </p>
+
+      {afterChecklist ? <div className="mb-[22px] text-left">{afterChecklist}</div> : null}
 
       <div className="mb-[8px] text-left text-[11px] font-bold tracking-wider text-text-muted uppercase">
         {x(M.home_production_pinned_label)}

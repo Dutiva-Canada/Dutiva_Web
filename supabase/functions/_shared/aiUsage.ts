@@ -1,18 +1,24 @@
 /**
  * Usage guardrails for the generative AI surface — the policy half of
- * `claim_ai_usage` (0027 abuse rails + 0091 commercial included/packs/overage).
+ * `claim_ai_usage` (0027 abuse rails + 0091 commercial included/packs/overage
+ * + 0109 org-pooled rollover when `organization_id` is set).
  *
  * Two layers, kept separate on purpose:
  *
  *   * Abuse rails (burst / daily request / daily tokens / platform) — never
- *     for sale. A 429 here is a wait, not a buy path.
- *   * Commercial included — monthly Advisor-reply budget on operation `chat`
- *     only. Exhausted included + empty pack credits (+ no opted-in overage)
- *     is `scope = 'commercial'`, which the Advisor answers with a pack CTA.
+ *     for sale. A 429 here is a wait, not a buy path. These stay per-user.
+ *   * Commercial budget — monthly Advisor-reply allowance on operation `chat`
+ *     only. With an organization id, consumption is org-pooled: oldest
+ *     unexpired rollover → monthly included → org packs → opted-in overage.
+ *     Without an org (legacy), the user-scoped 0091 path still applies.
+ *     Exhausted commercial budget is `scope = 'commercial'`, which the
+ *     Advisor answers with a pack CTA.
  *
- * Numbers here are env fallbacks. The product catalogue lives in
- * `src/config/advisorUsage.ts` (Deno cannot import `src/`); keep the two in
- * step — `canonicalFacts.test.ts` greps these fallbacks.
+ * Numbers here are env fallbacks. Plan-specific monthly included limits live
+ * in SQL (`advisor_monthly_included` / planEntitlements); the env fallback
+ * below remains for legacy/null-org callers. The product catalogue also
+ * lives in `src/config/advisorUsage.ts` (Deno cannot import `src/`); keep
+ * the two in step — `canonicalFacts.test.ts` greps these fallbacks.
  *
  * Shape of the mechanism (limits here, enforcement in SQL — same split as
  * report-error / ingest_client_error_report):
@@ -50,7 +56,7 @@ export const METERED_OPERATIONS: MeteredOperation[] = ['chat', 'support_firstlin
  */
 export const COMMERCIAL_OPERATIONS: MeteredOperation[] = ['chat']
 
-export type CommercialSource = 'included' | 'pack' | 'overage'
+export type CommercialSource = 'included' | 'pack' | 'overage' | 'rollover'
 
 /** Which ceiling refused the call. Mirrors the RPC's `scope` values. */
 export type UsageScope =
@@ -95,8 +101,11 @@ function sharedCeilings() {
 }
 
 /**
- * Monthly included Advisor replies. Fallback must match
- * `ADVISOR_MONTHLY_INCLUDED` in src/config/advisorUsage.ts.
+ * Monthly included Advisor replies passed to `claim_ai_usage` as
+ * `p_monthly_chat_limit`. Plan-specific org limits come from SQL
+ * (`advisor_monthly_included`); this env fallback (80) remains for
+ * legacy/null-org callers and must match `ADVISOR_MONTHLY_INCLUDED` in
+ * src/config/advisorUsage.ts.
  */
 export function monthlyChatLimit(): number {
   return envInt('AI_MONTHLY_CHAT_LIMIT', 80)
@@ -197,7 +206,10 @@ export function decisionFromRpc(payload: unknown): UsageDecision {
     }
     const commercial = verdict.commercial
     const commercialSource: CommercialSource | undefined =
-      commercial === 'included' || commercial === 'pack' || commercial === 'overage'
+      commercial === 'included' ||
+      commercial === 'pack' ||
+      commercial === 'overage' ||
+      commercial === 'rollover'
         ? commercial
         : undefined
     return commercialSource

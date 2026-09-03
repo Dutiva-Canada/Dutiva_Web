@@ -39,21 +39,26 @@ server-side; no inbox / magic-link click.
 Eight tests, one worker (`fullyParallel: false`). Each test enables Production
 mode, exercises one module, and tears down created rows where applicable.
 
-| Module         | Route                            | Operations exercised                                  | Setup / teardown                             |
-| -------------- | -------------------------------- | ----------------------------------------------------- | -------------------------------------------- |
-| Employees      | `/app/employees`                 | empty → create → list count → remove                  | —                                            |
-| Cases          | `/app/cases`                     | empty → create → list count → remove                  | —                                            |
-| Tasks          | `/app/planning/tasks`            | empty → create → toggle done → remove                 | —                                            |
-| Communications | `/app/communications`            | empty → log → edit title → mark sent → confirm remove | —                                            |
-| Memory manager | `/app/settings/memory`           | add person-scoped fact → correct → forget             | create employee first; remove employee after |
-| Case memory    | `/app/settings/memory/cases/:id` | edit resume summary (English)                         | create case first; remove case after         |
-| Documents      | `/app/documents`                 | honest empty state only (no CRUD yet)                 | —                                            |
-| Search         | `/app/home`                      | `Ctrl+K` opens overlay                                | —                                            |
+| Module                   | Route                            | Operations exercised                                                            | Setup / teardown                                              |
+| ------------------------ | -------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Employees                | `/app/employees`                 | empty → create → list count → remove                                            | —                                                             |
+| Cases                    | `/app/cases`                     | empty → create → list count → remove                                            | —                                                             |
+| Tasks                    | `/app/planning/tasks`            | empty → create → toggle done → remove                                           | —                                                             |
+| Communications           | `/app/communications`            | empty → log → edit title → mark sent → confirm remove                           | —                                                             |
+| Memory manager           | `/app/settings/memory`           | add person-scoped fact → correct → forget                                       | create employee first; remove employee after                  |
+| Case memory              | `/app/settings/memory/cases/:id` | edit resume summary (English)                                                   | create case first; remove case after                          |
+| Documents                | `/app/documents`                 | honest empty state only (no CRUD yet)                                           | —                                                             |
+| Search                   | `/app/home`                      | `Ctrl+K` opens overlay                                                          | —                                                             |
+| Plan entitlements (stub) | `/app/settings`                  | skipped unless `E2E_PLAN_ENTITLEMENTS=1` + auth env; needs migrations 0107–0111 | [`plan-entitlements.spec.ts`](auth/plan-entitlements.spec.ts) |
 
 Shared helpers in the spec: `enableProductionMode`, `createEmployee`,
 `removeEmployee`, `createCase`, `removeCase`. Selectors use English i18n
 strings and ARIA labels from production views (`Add task`, `Log a message`,
 `Add memory fact`, `Edit — {title}`, etc.).
+
+**Plan entitlements:** there is no credentialed plan fixture yet. The stub
+spec documents the gate (`SUPABASE_SERVICE_ROLE_KEY` + `E2E_PLAN_ENTITLEMENTS`)
+and stays skipped — do not invent org/checkout credentials in CI.
 
 Requires a **Supabase-aware** production build and a service-role key for
 seed + session mint (no inbox):

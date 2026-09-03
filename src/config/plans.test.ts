@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
+  PLAN_FEATURE_GATES_ENABLED,
   PLANS,
   annualTotal,
   getPlanById,
   hasPaidPlanAccess,
   hasPlanAccess,
   normalizePlanId,
+  planDescKey,
+  planFeatureKeys,
 } from './plans'
 
 describe('plans config', () => {
@@ -46,5 +49,18 @@ describe('plans config', () => {
     expect(annualTotal(24)).toBe(240)
     expect(annualTotal(49)).toBe(490)
     expect(annualTotal(99)).toBe(990)
+  })
+
+  it('exposes support vs entitled card copy behind the feature-gates flag', () => {
+    const starter = getPlanById('starter')!
+    expect(starter.featureKeysEntitled).toHaveLength(3)
+    expect(starter.descKeyEntitled).toBe('landing_starter_desc_ent')
+    if (PLAN_FEATURE_GATES_ENABLED) {
+      expect(planFeatureKeys(starter)).toEqual(starter.featureKeysEntitled)
+      expect(planDescKey(starter)).toBe(starter.descKeyEntitled)
+    } else {
+      expect(planFeatureKeys(starter)).toEqual(starter.featureKeys)
+      expect(planDescKey(starter)).toBe(starter.descKey)
+    }
   })
 })

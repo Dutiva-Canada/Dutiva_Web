@@ -287,6 +287,10 @@ export const memoryMessages = defineMessages({
     en: 'Could not load memory. Try again.',
     fr: 'Impossible de charger la mémoire. Réessayez.',
   },
+  memory_injection_upgrade: {
+    en: 'You can review and edit memory here. Cross-record injection into Advisor unlocks on Growth — nothing is deleted.',
+    fr: 'Vous pouvez consulter et modifier la mémoire ici. L’injection transversale dans le Conseiller se débloque avec Croissance — rien n’est supprimé.', // [FR self-authored]
+  },
   memory_prod_action_failed: {
     en: 'Could not update that memory.',
     fr: 'Impossible de mettre à jour cette mémoire.',

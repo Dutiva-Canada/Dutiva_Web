@@ -29,7 +29,10 @@ describe('employees productionApi', () => {
     const order = vi.fn().mockReturnValue(listChain([ROW]))
     const eq = vi.fn().mockReturnValue({ order })
     const listSelect = vi.fn().mockReturnValue({ eq })
-    const from = vi.fn().mockReturnValueOnce({ select: listSelect }).mockReturnValueOnce({ select: managerSelect })
+    const from = vi
+      .fn()
+      .mockReturnValueOnce({ select: listSelect })
+      .mockReturnValueOnce({ select: managerSelect })
     vi.doMock('@/lib/supabaseClient', () => ({
       supabase: { from },
     }))
@@ -183,7 +186,10 @@ describe('employees productionApi', () => {
     })
     const eq = vi.fn().mockReturnValue({ select: () => ({ single }) })
     const update = vi.fn().mockReturnValue({ eq })
-    const from = vi.fn().mockReturnValueOnce({ update }).mockReturnValueOnce({ select: managerSelect })
+    const from = vi
+      .fn()
+      .mockReturnValueOnce({ update })
+      .mockReturnValueOnce({ select: managerSelect })
     vi.doMock('@/lib/supabaseClient', () => ({
       supabase: { from },
     }))

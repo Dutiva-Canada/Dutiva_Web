@@ -3,24 +3,31 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import type { Database } from '../_shared/database.types.ts'
 import {
+  cancellationOrganizationBilling,
   getCheckoutProfilePatch,
   getSubscriptionProfileUpdate,
+  normalizeBillingPeriod,
+  organizationBillingFromProfileUpdate,
   planSignupPayloadFromProfileUpdate,
   stringId,
 } from './billing-event.ts'
-import type { BillingPeriod, PriceLookup, ProfileUpdate } from './billing-event.ts'
-import { advisorPackGrantFromSession } from './advisorPack.ts'
+import type {
+  BillingPeriod,
+  OrganizationBillingApply,
+  PriceLookup,
+  ProfileUpdate,
+} from './billing-event.ts'
+import { advisorPackGrantFromSession, grantAdvisorPackEntitlements } from './advisorPack.ts'
 import { verifyStripeSignature } from './verify-signature.ts'
 
 /**
- * Stripe webhook handler — keeps `public.profiles` in sync with Stripe.
- * Ported from the production dutiva-website repo's stripe-webhook function,
- * narrowed to this repo's three paid plans (starter/growth/pro, monthly or
- * annual — see src/config/plans.ts).
+ * Stripe webhook handler — keeps `public.profiles` in sync with Stripe for
+ * 0089 workspace membership, and dual-writes paid entitlements to
+ * organizations via `apply_organization_billing` (0107).
  *
- * Annual is wired but not reachable: `PAID_PLANS_DISABLED_DURING_BETA` is true,
- * so nothing on /pricing is purchasable and the annual toggle is hidden. The
- * annual price ids also do not exist in Stripe yet (TODO.md OA11).
+ * Paid monthly checkout is live (`PAID_PLANS_DISABLED_DURING_BETA` is false).
+ * Annual remains hidden via `ANNUAL_BILLING_AVAILABLE` until annual Stripe
+ * price ids exist (TODO.md EF4a; OA11 closed for monthly).
  *
  * An internal Dutiva account never has Stripe events to process for it: the
  * paywall bypass (src/lib/billing/adminAccess.ts) is checked before
@@ -80,17 +87,18 @@ async function updateProfileByIdOrEmail(
   userId: string | null,
   email: string | null,
   updates: Record<string, unknown>,
-): Promise<{ ok: boolean }> {
+): Promise<{ ok: boolean; userId: string | null }> {
   if (userId) {
-    return applyProfileUpdate(
+    const result = await applyProfileUpdate(
       supabase.from('profiles').update(updates).eq('id', userId),
       `profile update for user ${userId}`,
     )
+    return { ...result, userId }
   }
 
   if (!email) {
     console.error('[stripe-webhook] No user id or email available for profile update.')
-    return { ok: false }
+    return { ok: false, userId: null }
   }
 
   // Do NOT interpolate an externally-influenced email into a PostgREST
@@ -104,13 +112,14 @@ async function updateProfileByIdOrEmail(
   if (error) console.error('[stripe-webhook] profile lookup error:', error.message)
   if (!data?.id) {
     console.error('[stripe-webhook] Could not resolve profile by checkout email:', email)
-    return { ok: false }
+    return { ok: false, userId: null }
   }
 
-  return applyProfileUpdate(
+  const result = await applyProfileUpdate(
     supabase.from('profiles').update(updates).eq('id', data.id),
     `profile update for ${email}`,
   )
+  return { ...result, userId: data.id }
 }
 
 async function enqueuePlanSignupNotification(
@@ -131,6 +140,160 @@ async function enqueuePlanSignupNotification(
   if (error) {
     console.error('[stripe-webhook] could not enqueue plan signup alert:', error.message)
   }
+}
+
+/** Service-role RPC helper — new org billing RPCs are not yet in database.types. */
+async function rpc(
+  supabase: SupabaseClient<Database>,
+  fn: string,
+  params: Record<string, unknown>,
+): Promise<{ data: unknown; error: { message: string } | null }> {
+  // deno-lint-ignore no-explicit-any
+  return await (supabase as any).rpc(fn, params)
+}
+
+async function resolveUserBillingOrganization(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+): Promise<string | null> {
+  const { data, error } = await rpc(supabase, 'resolve_user_billing_organization', {
+    p_user_id: userId,
+  })
+  if (error) {
+    console.error(
+      `[stripe-webhook] resolve_user_billing_organization failed for ${userId}:`,
+      error.message,
+    )
+    return null
+  }
+  return typeof data === 'string' && data.trim() ? data : null
+}
+
+/**
+ * Prefer org already linked by Stripe customer id; else resolve via the
+ * profile that owns that customer id.
+ */
+async function resolveOrganizationForCustomer(
+  supabase: SupabaseClient<Database>,
+  customerId: string,
+): Promise<{ organizationId: string | null; billingOwnerUserId: string | null }> {
+  // deno-lint-ignore no-explicit-any
+  const { data: orgByCustomer, error: orgError } = await (supabase as any)
+    .from('organizations')
+    .select('id, billing_owner_user_id')
+    .eq('stripe_customer_id', customerId)
+    .maybeSingle()
+  if (orgError) {
+    console.error('[stripe-webhook] org lookup by stripe_customer_id failed:', orgError.message)
+  }
+  if (orgByCustomer?.id) {
+    return {
+      organizationId: orgByCustomer.id as string,
+      billingOwnerUserId: (orgByCustomer.billing_owner_user_id as string | null) ?? null,
+    }
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('stripe_customer_id', customerId)
+    .maybeSingle()
+  if (profileError) {
+    console.error(
+      '[stripe-webhook] profile lookup by stripe_customer_id failed:',
+      profileError.message,
+    )
+  }
+  if (!profile?.id) {
+    return { organizationId: null, billingOwnerUserId: null }
+  }
+
+  const organizationId = await resolveUserBillingOrganization(supabase, profile.id)
+  return { organizationId, billingOwnerUserId: profile.id }
+}
+
+async function loadProfileBillingDefaults(
+  supabase: SupabaseClient<Database>,
+  opts: { userId?: string | null; customerId?: string | null },
+): Promise<{ plan: string; billingPeriod: BillingPeriod } | null> {
+  let query = supabase.from('profiles').select('plan, billing_period')
+  if (opts.userId) query = query.eq('id', opts.userId)
+  else if (opts.customerId) query = query.eq('stripe_customer_id', opts.customerId)
+  else return null
+
+  const { data, error } = await query.maybeSingle()
+  if (error) {
+    console.error('[stripe-webhook] profile billing defaults lookup failed:', error.message)
+    return null
+  }
+  if (!data) return null
+  const plan = typeof data.plan === 'string' ? data.plan : 'free'
+  const billingPeriod = normalizeBillingPeriod(data.billing_period) ?? 'monthly'
+  return { plan, billingPeriod }
+}
+
+async function applyOrganizationBilling(
+  supabase: SupabaseClient<Database>,
+  organizationId: string,
+  apply: OrganizationBillingApply,
+): Promise<{ ok: boolean }> {
+  const { error } = await rpc(supabase, 'apply_organization_billing', {
+    p_organization_id: organizationId,
+    p_plan: apply.plan,
+    p_subscription_status: apply.subscriptionStatus,
+    p_billing_period: apply.billingPeriod,
+    p_stripe_customer_id: apply.stripeCustomerId ?? null,
+    p_stripe_subscription_id: apply.stripeSubscriptionId ?? null,
+    p_billing_owner_user_id: apply.billingOwnerUserId ?? null,
+  })
+  if (error) {
+    console.error(
+      `[stripe-webhook] apply_organization_billing failed for org ${organizationId}:`,
+      error.message,
+    )
+    return { ok: false }
+  }
+  return { ok: true }
+}
+
+/**
+ * After a successful profile write: mirror to the billing org when one
+ * resolves. Missing org is a warning only — profile entitlement already
+ * landed; backfill covers later org creation.
+ */
+async function dualWriteOrganizationBilling(
+  supabase: SupabaseClient<Database>,
+  opts: {
+    userId?: string | null
+    customerId?: string | null
+    apply: OrganizationBillingApply
+    context: string
+  },
+): Promise<{ ok: boolean }> {
+  let organizationId: string | null = null
+  let billingOwnerUserId = opts.apply.billingOwnerUserId ?? null
+
+  if (opts.customerId) {
+    const resolved = await resolveOrganizationForCustomer(supabase, opts.customerId)
+    organizationId = resolved.organizationId
+    billingOwnerUserId = billingOwnerUserId ?? resolved.billingOwnerUserId
+  }
+  if (!organizationId && opts.userId) {
+    organizationId = await resolveUserBillingOrganization(supabase, opts.userId)
+    billingOwnerUserId = billingOwnerUserId ?? opts.userId
+  }
+
+  if (!organizationId) {
+    console.warn(
+      `[stripe-webhook] ${opts.context}: no billing organization resolved; profile write kept.`,
+    )
+    return { ok: true }
+  }
+
+  return applyOrganizationBilling(supabase, organizationId, {
+    ...opts.apply,
+    billingOwnerUserId,
+  })
 }
 
 Deno.serve(async (req: Request) => {
@@ -183,20 +346,21 @@ Deno.serve(async (req: Request) => {
     const session = event.data.object
     const packGrant = advisorPackGrantFromSession(session as Record<string, unknown>)
     if (packGrant) {
-      const { data, error } = await supabase.rpc('grant_ai_advisor_pack', {
-        p_user_id: packGrant.userId,
-        p_pack_size: packGrant.packSize,
-        p_stripe_checkout_id: packGrant.checkoutSessionId,
-      })
-      if (error) {
-        console.error('[stripe-webhook] grant_ai_advisor_pack failed:', error.message)
+      const packResult = await grantAdvisorPackEntitlements(
+        { rpc: (fn, params) => rpc(supabase, fn, params) },
+        packGrant,
+        (userId) => resolveUserBillingOrganization(supabase, userId),
+      )
+      if (!packResult.ok) {
+        console.error('[stripe-webhook] Advisor pack grant failed:', packResult.reason)
         return fail('Could not credit Advisor pack.')
       }
-      const verdict = data as { granted?: boolean; reason?: string } | null
-      if (verdict?.granted === true || verdict?.reason === 'duplicate') {
-        return json({ received: true, pack: true })
+      if (!packResult.orgId) {
+        console.warn(
+          `[stripe-webhook] Advisor pack credited for user ${packGrant.userId} without org; org pack skipped.`,
+        )
       }
-      return fail('Could not credit Advisor pack.')
+      return json({ received: true, pack: true, org_pack: packResult.orgGranted })
     }
 
     const { userId, email, updates } = getCheckoutProfilePatch(session)
@@ -211,6 +375,19 @@ Deno.serve(async (req: Request) => {
     const result = await updateProfileByIdOrEmail(supabase, userId, email, updates)
     if (!result.ok) return fail('Could not apply checkout to profile.')
     await enqueuePlanSignupNotification(supabase, updates)
+
+    const orgApply = organizationBillingFromProfileUpdate(updates, {
+      billingOwnerUserId: result.userId,
+    })
+    if (orgApply) {
+      const orgResult = await dualWriteOrganizationBilling(supabase, {
+        userId: result.userId,
+        customerId: updates.stripe_customer_id ?? null,
+        apply: orgApply,
+        context: 'checkout.session.completed',
+      })
+      if (!orgResult.ok) return fail('Could not apply checkout to organization.')
+    }
   }
 
   if (
@@ -228,6 +405,24 @@ Deno.serve(async (req: Request) => {
       `subscription update for customer ${customerId}`,
     )
     if (!result.ok) return fail('Could not apply subscription to profile.')
+
+    const defaults = await loadProfileBillingDefaults(supabase, { customerId })
+    const orgApply = organizationBillingFromProfileUpdate(updates, {
+      defaultPlan: defaults?.plan ?? null,
+      defaultBillingPeriod: defaults?.billingPeriod ?? null,
+    })
+    if (orgApply) {
+      const orgResult = await dualWriteOrganizationBilling(supabase, {
+        customerId,
+        apply: { ...orgApply, stripeCustomerId: orgApply.stripeCustomerId ?? customerId },
+        context: event.type,
+      })
+      if (!orgResult.ok) return fail('Could not apply subscription to organization.')
+    } else {
+      console.warn(
+        `[stripe-webhook] ${event.type}: could not build org billing payload for ${customerId}.`,
+      )
+    }
   }
 
   if (event.type === 'invoice.payment_failed') {
@@ -244,6 +439,25 @@ Deno.serve(async (req: Request) => {
       `past_due flag for customer ${customerId}`,
     )
     if (!result.ok) return fail('Could not flag the profile past due.')
+
+    const defaults = await loadProfileBillingDefaults(supabase, { customerId })
+    const orgApply = organizationBillingFromProfileUpdate(
+      {
+        plan: defaults?.plan ?? 'free',
+        billing_period: defaults?.billingPeriod ?? 'monthly',
+        subscription_status: 'past_due',
+        stripe_customer_id: customerId,
+      },
+      {},
+    )
+    if (orgApply) {
+      const orgResult = await dualWriteOrganizationBilling(supabase, {
+        customerId,
+        apply: orgApply,
+        context: 'invoice.payment_failed',
+      })
+      if (!orgResult.ok) return fail('Could not flag the organization past due.')
+    }
   }
 
   if (event.type === 'customer.subscription.deleted') {
@@ -260,6 +474,13 @@ Deno.serve(async (req: Request) => {
       `cancellation for customer ${customerId}`,
     )
     if (!result.ok) return fail('Could not apply the cancellation.')
+
+    const orgResult = await dualWriteOrganizationBilling(supabase, {
+      customerId,
+      apply: cancellationOrganizationBilling(customerId),
+      context: 'customer.subscription.deleted',
+    })
+    if (!orgResult.ok) return fail('Could not apply the organization cancellation.')
   }
 
   return json({ received: true })

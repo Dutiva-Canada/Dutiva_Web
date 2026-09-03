@@ -56,10 +56,12 @@ export function ToggleSwitch({
   on,
   label,
   onToggle,
+  disabled = false,
 }: {
   readonly on: boolean
   readonly label: string
   readonly onToggle: () => void
+  readonly disabled?: boolean
 }) {
   return (
     <button
@@ -67,10 +69,12 @@ export function ToggleSwitch({
       role="switch"
       aria-checked={on}
       aria-label={label}
-      onClick={onToggle}
-      className={`relative h-[22px] w-[38px] shrink-0 cursor-pointer rounded-[100px] border-none transition-colors duration-150 ${
-        on ? 'bg-navy' : 'bg-border'
-      }`}
+      aria-disabled={disabled || undefined}
+      disabled={disabled}
+      onClick={disabled ? undefined : onToggle}
+      className={`relative h-[22px] w-[38px] shrink-0 rounded-[100px] border-none transition-colors duration-150 ${
+        disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+      } ${on ? 'bg-navy' : 'bg-border'}`}
     >
       <div
         className={`absolute top-[3px] h-[16px] w-[16px] rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,0.2)] transition-[left] duration-150 ${

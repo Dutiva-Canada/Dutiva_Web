@@ -22,6 +22,11 @@ import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useAuth } from '@/features/app/auth/authContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
+import { usePlan } from '@/features/app/billing/planContext'
+import { hasPlanFeature } from '@/features/app/billing/planAccess'
+import { PLAN_FEATURE_GATES_ENABLED, hasActiveSubscription } from '@/config/plans'
+import { seoRoute } from '@/seo/routes'
+import { Link } from 'react-router-dom'
 import { listEmployees } from '@/features/app/views/employees/productionApi'
 import type { ProductionEmployee } from '@/features/app/views/employees/productionApi'
 import { listCases } from '@/features/app/views/cases/productionApi'
@@ -78,10 +83,19 @@ const inputClass =
 const labelClass = 'mb-[4px] block text-[12px] font-semibold text-text-3'
 
 export function MemoryManagerProductionView() {
-  const { x, lang } = useI18n()
+  const { x, t, lang } = useI18n()
   const { showToast } = useToasts()
   const { session } = useAuth()
   const { organizationId, isOrgAdmin, identity } = useWorkspaceMode()
+  const { plan, subscriptionStatus, isAdmin: isBillingAdmin } = usePlan()
+
+  const injectionLocked =
+    PLAN_FEATURE_GATES_ENABLED &&
+    !isBillingAdmin &&
+    !(
+      hasPlanFeature(plan, 'advisor_cross_record_memory') &&
+      hasActiveSubscription(subscriptionStatus)
+    )
 
   const [facts, setFacts] = useState<MemoryFact[] | null>(null)
   const [audit, setAudit] = useState<ProductionMemoryAuditEntry[]>([])
@@ -302,6 +316,20 @@ export function MemoryManagerProductionView() {
         {loadFailed && (
           <div className="mb-[14px] rounded-[10px] border border-risk-border bg-surface px-[14px] py-[10px] text-[13px] text-risk-dot">
             {x(M.memory_prod_load_failed)}
+          </div>
+        )}
+
+        {injectionLocked && (
+          <div className="mb-[14px] rounded-[10px] border border-gold-border bg-gold-bg px-[14px] py-[12px]">
+            <p className="m-0 text-[13px] leading-[1.5] text-gold-fg">
+              {x(M.memory_injection_upgrade)}
+            </p>
+            <Link
+              to={`${seoRoute('pricing').path[lang]}?upgrade=growth`}
+              className="mt-[8px] inline-block text-[12.5px] font-semibold text-gold-strong"
+            >
+              {t('landing_price_compare')}
+            </Link>
           </div>
         )}
 

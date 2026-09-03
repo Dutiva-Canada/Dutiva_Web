@@ -1,4 +1,5 @@
 ﻿import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { FeatureGate } from '@/features/app/billing/PlanGate'
 import { CommunicationsDemoView } from './CommunicationsDemoView'
 import { CommunicationsProductionView } from './CommunicationsProductionView'
 
@@ -11,10 +12,16 @@ import { CommunicationsProductionView } from './CommunicationsProductionView'
  * Production renders the real log (CommunicationsProductionView,
  * public.hr_communications) instead of the fixtures below. The review
  * dimensions do not cross over — nothing performs that analysis, so they stay
- * a demo device. See the production view's header.
+ * a demo device. See the production view's header. Growth+ when gates are on.
  */
 export function CommunicationsView() {
   const { mode: workspaceMode } = useWorkspaceMode()
-  if (workspaceMode === 'production') return <CommunicationsProductionView />
+  if (workspaceMode === 'production') {
+    return (
+      <FeatureGate feature="communications_register">
+        <CommunicationsProductionView />
+      </FeatureGate>
+    )
+  }
   return <CommunicationsDemoView />
 }

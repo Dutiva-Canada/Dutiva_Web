@@ -28,6 +28,10 @@ import { AppPage } from '@/features/app/shell/AppPage'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { markEmptyWorkspaceWorkflowVisited } from '@/features/app/workspaceMode/emptyWorkspaceOnboarding'
+import { usePlan } from '@/features/app/billing/planContext'
+import { UpgradeNudge } from '@/features/app/billing/PlanGate'
+import { canAccessWorkflow } from '@/features/app/billing/planAccess'
+import { PLAN_FEATURE_GATES_ENABLED } from '@/config/plans'
 
 /**
  * Runs a guided flow — the surface Ring 2's decision-tree tools needed
@@ -76,6 +80,7 @@ function FlowBody({ flow }: { readonly flow: Flow }) {
   const { x } = useI18n()
   const { root } = useWorkspaceRoot()
   const { mode, organizationId } = useWorkspaceMode()
+  const { plan, isAdmin } = usePlan()
   const [run, setRun] = useState<FlowRun>(() => startRun(flow))
   const stepHeadingRef = useRef<HTMLHeadingElement>(null)
 
@@ -96,6 +101,32 @@ function FlowBody({ flow }: { readonly flow: Flow }) {
   const restart = () => {
     if (run.path.length > 1 && !window.confirm(x(M.flows_restart_confirm))) return
     setRun(startRun(flow))
+  }
+
+  const workflowLocked =
+    mode === 'production' &&
+    PLAN_FEATURE_GATES_ENABLED &&
+    !isAdmin &&
+    !canAccessWorkflow(plan, flow.slug)
+
+  if (workflowLocked) {
+    return (
+      <AppPage width="narrow">
+        <Link
+          to={workspacePath(root, 'workflows')}
+          className="mb-[14px] inline-flex items-center gap-[6px] text-[12.5px] font-semibold text-text-muted"
+        >
+          <ArrowLeft size={13} strokeWidth={2} aria-hidden="true" />
+          {x(M.flows_back_to_workflows)}
+        </Link>
+        <h1 className="font-display text-[22px] leading-[1.3] font-bold text-text">
+          {x(flow.title)}
+        </h1>
+        <div className="mt-[18px]">
+          <UpgradeNudge required="starter" />
+        </div>
+      </AppPage>
+    )
   }
 
   return (

@@ -15,6 +15,10 @@ export const workflowsMessages = defineMessages({
     en: 'Calculators and process guides above are live in production. The in-flight list, termination map, and start-a-workflow catalogue are Northgate demo fixtures — switch to Demo in Settings to explore them.',
     fr: 'Les calculateurs et guides ci-dessus sont actifs en production. La liste en cours, la carte de cessation et le catalogue de démarrage sont des données d’exemple Northgate — passez en mode Démo dans les paramètres pour les explorer.', // [FR self-authored]
   },
+  workflows_upgrade_starter: {
+    en: 'Included on Starter and above.',
+    fr: 'Inclus dans Démarrage et les forfaits supérieurs.', // [FR self-authored]
+  },
   workflows_inflight_title: { en: 'In flight', fr: 'En cours' },
   workflows_start_title: { en: 'Start a workflow', fr: 'Démarrer un processus' },
   workflows_next: { en: 'Next', fr: 'Prochaine étape' },

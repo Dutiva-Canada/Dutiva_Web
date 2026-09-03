@@ -1,4 +1,5 @@
 ﻿import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { FeatureGate } from '@/features/app/billing/PlanGate'
 import { CompensationDemoView } from './CompensationDemoView'
 import { CompensationProductionView } from './CompensationProductionView'
 
@@ -12,10 +13,16 @@ import { CompensationProductionView } from './CompensationProductionView'
  * Production renders the real records (CompensationProductionView,
  * public.hr_compensation_records) instead of the Northgate fixtures below.
  * The fixture `market` figure has no production counterpart on purpose —
- * see the production view's header.
+ * see the production view's header. Growth+ when gates are on.
  */
 export function CompensationView() {
   const { mode: workspaceMode } = useWorkspaceMode()
-  if (workspaceMode === 'production') return <CompensationProductionView />
+  if (workspaceMode === 'production') {
+    return (
+      <FeatureGate feature="compensation_register">
+        <CompensationProductionView />
+      </FeatureGate>
+    )
+  }
   return <CompensationDemoView />
 }

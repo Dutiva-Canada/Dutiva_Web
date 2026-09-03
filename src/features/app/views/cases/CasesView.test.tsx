@@ -137,11 +137,12 @@ describe('CasesView in production mode', () => {
             }),
           onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
         },
-        rpc: vi.fn((fn: string) =>
-          Promise.resolve(
-            fn === 'is_admin_user' ? { data: true, error: null } : { data: null, error: null },
-          ),
-        ),
+        rpc: vi.fn((fn: string) => {
+          if (fn === 'is_admin_user') return Promise.resolve({ data: true, error: null })
+          if (fn === 'current_user_is_workspace_member')
+            return Promise.resolve({ data: true, error: null })
+          return Promise.resolve({ data: null, error: null })
+        }),
         from: vi.fn((table: string) => {
           if (table === 'workspace_preferences') {
             return {
@@ -176,9 +177,11 @@ describe('CasesView in production mode', () => {
               select: () => ({
                 eq: () => ({
                   eq: () => ({
-                    limit: () => ({
-                      maybeSingle: () =>
-                        Promise.resolve({ data: { organization_id: 'org-1' }, error: null }),
+                    order: () => ({
+                      limit: () => ({
+                        maybeSingle: () =>
+                          Promise.resolve({ data: { organization_id: 'org-1' }, error: null }),
+                      }),
                     }),
                   }),
                 }),
@@ -339,11 +342,12 @@ describe('CaseDetailView in production mode', () => {
             }),
           onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
         },
-        rpc: vi.fn((fn: string) =>
-          Promise.resolve(
-            fn === 'is_admin_user' ? { data: true, error: null } : { data: null, error: null },
-          ),
-        ),
+        rpc: vi.fn((fn: string) => {
+          if (fn === 'is_admin_user') return Promise.resolve({ data: true, error: null })
+          if (fn === 'current_user_is_workspace_member')
+            return Promise.resolve({ data: true, error: null })
+          return Promise.resolve({ data: null, error: null })
+        }),
         from: vi.fn((table: string) => {
           if (table === 'workspace_preferences') {
             return {
@@ -378,9 +382,11 @@ describe('CaseDetailView in production mode', () => {
               select: () => ({
                 eq: () => ({
                   eq: () => ({
-                    limit: () => ({
-                      maybeSingle: () =>
-                        Promise.resolve({ data: { organization_id: 'org-1' }, error: null }),
+                    order: () => ({
+                      limit: () => ({
+                        maybeSingle: () =>
+                          Promise.resolve({ data: { organization_id: 'org-1' }, error: null }),
+                      }),
                     }),
                   }),
                 }),

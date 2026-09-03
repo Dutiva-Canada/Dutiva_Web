@@ -11,8 +11,13 @@ export interface PlanDefinition {
   monthlyPrice: number
   nameKey: SharedMessageKey
   descKey: SharedMessageKey
+  /** Card description when `PLAN_FEATURE_GATES_ENABLED` — capacity, not “full product”. */
+  descKeyEntitled: SharedMessageKey
   noteKey?: SharedMessageKey
+  /** Quiet-beta / support-membership bullets while gates are off. */
   featureKeys: SharedMessageKey[]
+  /** Capacity bullets shown only when gates are on and enforced. */
+  featureKeysEntitled: SharedMessageKey[]
   ctaKey: SharedMessageKey
   popular?: boolean
   /**
@@ -35,8 +40,10 @@ export const PLANS: PlanDefinition[] = [
     monthlyPrice: 0,
     nameKey: 'landing_free_name',
     descKey: 'landing_free_desc',
+    descKeyEntitled: 'landing_free_desc_ent',
     noteKey: 'landing_free_note',
     featureKeys: ['landing_free_f1', 'landing_free_f2', 'landing_free_f3'],
+    featureKeysEntitled: ['landing_free_ent_f1', 'landing_free_ent_f2', 'landing_free_ent_f3'],
     ctaKey: 'landing_free_cta',
     stripePriceEnvVar: null,
   },
@@ -45,7 +52,13 @@ export const PLANS: PlanDefinition[] = [
     monthlyPrice: 24,
     nameKey: 'landing_starter_name',
     descKey: 'landing_starter_desc',
+    descKeyEntitled: 'landing_starter_desc_ent',
     featureKeys: ['landing_starter_f1', 'landing_starter_f2', 'landing_starter_f3'],
+    featureKeysEntitled: [
+      'landing_starter_ent_f1',
+      'landing_starter_ent_f2',
+      'landing_starter_ent_f3',
+    ],
     ctaKey: 'landing_starter_cta',
     stripePriceEnvVar: 'STRIPE_PRICE_STARTER_MONTHLY',
   },
@@ -54,7 +67,13 @@ export const PLANS: PlanDefinition[] = [
     monthlyPrice: 49,
     nameKey: 'landing_growth_name',
     descKey: 'landing_growth_desc',
+    descKeyEntitled: 'landing_growth_desc_ent',
     featureKeys: ['landing_growth_f1', 'landing_growth_f2', 'landing_growth_f3'],
+    featureKeysEntitled: [
+      'landing_growth_ent_f1',
+      'landing_growth_ent_f2',
+      'landing_growth_ent_f3',
+    ],
     ctaKey: 'landing_growth_cta',
     popular: true,
     stripePriceEnvVar: 'STRIPE_PRICE_GROWTH_MONTHLY',
@@ -64,7 +83,9 @@ export const PLANS: PlanDefinition[] = [
     monthlyPrice: 99,
     nameKey: 'landing_pro_name',
     descKey: 'landing_pro_desc',
+    descKeyEntitled: 'landing_pro_desc_ent',
     featureKeys: ['landing_pro_f1', 'landing_pro_f2', 'landing_pro_f3'],
+    featureKeysEntitled: ['landing_pro_ent_f1', 'landing_pro_ent_f2', 'landing_pro_ent_f3'],
     ctaKey: 'landing_pro_cta',
     stripePriceEnvVar: 'STRIPE_PRICE_PRO_MONTHLY',
   },
@@ -82,12 +103,21 @@ export function getPlanById(id?: string | null): PlanDefinition | undefined {
 export const PAID_PLANS_DISABLED_DURING_BETA = false
 
 /**
- * When false, PlanGate does not block product features — every admitted
- * account (waitlist cohort and paid) gets the full product. Paying buys
- * support, not extra modules. Flip to `true` only when per-plan limits are
- * actually enforced and advertised.
+ * When true, PlanGate, public pricing, and advisor-chat memory follow the
+ * entitlement catalogue. Server capacity / usage RPCs (migrations 0107–0111)
+ * must stay deployed with this flag. Flip both client and edge together.
  */
-export const PLAN_FEATURE_GATES_ENABLED = false
+export const PLAN_FEATURE_GATES_ENABLED = true
+
+/** Card feature bullets for the active commercial mode. */
+export function planFeatureKeys(plan: PlanDefinition): SharedMessageKey[] {
+  return PLAN_FEATURE_GATES_ENABLED ? plan.featureKeysEntitled : plan.featureKeys
+}
+
+/** Card description for the active commercial mode. */
+export function planDescKey(plan: PlanDefinition): SharedMessageKey {
+  return PLAN_FEATURE_GATES_ENABLED ? plan.descKeyEntitled : plan.descKey
+}
 
 /**
  * Annual Stripe prices are not live yet. Keep the /pricing annual toggle

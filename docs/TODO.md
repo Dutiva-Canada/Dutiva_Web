@@ -305,7 +305,7 @@ subscription per [STRIPE_GO_LIVE.md](STRIPE_GO_LIVE.md). Eng prep was verified
 path in. **Optional follow-ons (not part of OA11 close):** annual billing
 (`ANNUAL_BILLING_AVAILABLE`, EF4a); advisor pack price secrets if pack checkout
 should sell; `STRIPE_ADVISOR_METER_EVENT_NAME` for opt-in Advisor overage;
-`PLAN_FEATURE_GATES_ENABLED` stays `false` until per-plan limits are enforced.
+`PLAN_FEATURE_GATES_ENABLED` is `true` as of OA21 (2026-09-03).
 Prior audit: [BILLING_BETA_AUDIT.md](BILLING_BETA_AUDIT.md).
 
 **Vercel production (`dutiva-website`).** Project `dutiva-canada/dutiva-website`;
@@ -483,6 +483,18 @@ were applied, the `record-score-snapshots` edge function was deployed with
 `secret_configured: true`, both cron jobs scheduled, and
 `orgs_with_current_month` ≥ 1 after `public.trigger_score_snapshots()` was
 fired. See [SCORING_LOGIC.md](SCORING_LOGIC.md) §2.3/§8.
+
+**OA21 — Done (2026-09-03).** Org plan entitlements are live on production
+(`khtwpxnvziiyplaflwru`). Migrations **0107–0111** applied (`organization_billing`,
+`plan_capacity_enforcement`, `advisor_org_usage_rollover`,
+`document_signature_usage`, `billing_rollover_hooks`). Types regenerated.
+`stripe-webhook` and `advisor-chat` deployed. Edge secret
+`PLAN_FEATURE_GATES_ENABLED=true` set with the client flag. RPC smoke:
+`plan_limit` / `advisor_monthly_included` match the catalogue;
+`apply_organization_billing` and `advisor_usage_summary` exist. Checkout dual-write
+still needs a Stripe test purchase to confirm end-to-end (see
+[STRIPE_GO_LIVE.md](STRIPE_GO_LIVE.md) §4). No paid profiles were present at
+activation (`paid_profiles` = 0); all orgs were `free`/`inactive`.
 
 ---
 
@@ -762,11 +774,9 @@ product). Production mode enforces the plan check, with an upgrade nudge
 linking to `/pricing?upgrade={required}` when access is denied. Internal
 `@dutiva.ca` accounts always bypass via `isAdmin`.
 
-`PLAN_FEATURE_GATES_ENABLED` remains `false` — the gates exist and are
-wired, but product limits are not enforced. Paying buys support membership
-(skip waitlist + founder-led reply targets), not extra modules. The owner
-action to start gating features is: flip that flag to `true` only once the
-limits in `PLAN_COMPARISON` are actually enforced. (PR #161)
+`PLAN_FEATURE_GATES_ENABLED` is `true` as of OA21 (2026-09-03). Demo mode still
+bypasses gates. Internal `@dutiva.ca` accounts still bypass via `isAdmin`.
+(PR #161; activation OA21)
 
 **EF9 — Ring 2 Pillar B's two design-blocked tools are built; the pattern is
 not.** The duty-to-accommodate workflow and the functional-limitations guide
