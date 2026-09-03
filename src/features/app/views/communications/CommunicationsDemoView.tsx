@@ -89,7 +89,7 @@ export function CommunicationsDemoView() {
                 primary: true,
                 onClick: () => {
                   closeRail()
-                  navigate('/app/documents/hr-library')
+                  navigate('/app/documents/studio')
                 },
               },
             ],

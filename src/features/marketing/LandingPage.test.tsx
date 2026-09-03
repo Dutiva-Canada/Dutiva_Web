@@ -83,7 +83,7 @@ describe('LandingPage', () => {
   it('shows the Free plan access duration on the homepage pricing card', () => {
     renderApp(<LandingPage />, { route: '/', path: '/' })
     expect(
-      screen.getByText('Free access lasts 3 months. It may be extended after that.'),
+      screen.getByText(/Free access lasts 3 months\. It may be extended after that\./),
     ).toBeInTheDocument()
   })
 

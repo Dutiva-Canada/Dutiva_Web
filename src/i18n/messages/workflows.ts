@@ -8,8 +8,8 @@
 export const workflowsMessages = defineMessages({
   workflows_title: { en: 'Workflows', fr: 'Processus' },
   workflows_sub: {
-    en: 'Three ways to move work: Ask the Advisor for judgment calls, run a guided process or calculator here, or draft the letter in Document Studio.',
-    fr: 'Trois façons d’avancer : demandez au Conseiller pour le jugement, lancez un processus guidé ou un calculateur ici, ou rédigez la lettre dans le Studio de documents.', // [FR self-authored]
+    en: 'Three ways to move work: Ask the Advisor for judgment calls, run a guided process or calculator here, or create the letter from Templates.',
+    fr: 'Trois façons d’avancer : demandez au Conseiller pour le jugement, lancez un processus guidé ou un calculateur ici, ou créez la lettre à partir des Modèles.', // [FR self-authored]
   },
   workflows_prod_intro: {
     en: 'Calculators and process guides above are live in production. The in-flight list, termination map, and start-a-workflow catalogue are Northgate demo fixtures — switch to Demo in Settings to explore them.',

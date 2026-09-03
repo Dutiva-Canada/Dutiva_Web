@@ -49,7 +49,7 @@ describe('PricingPage', () => {
       expect(screen.getAllByText(name).length).toBeGreaterThan(0)
     }
     expect(
-      screen.getByText('Free access lasts 3 months. It may be extended after that.'),
+      screen.getByText(/Free access lasts 3 months\. It may be extended after that\./),
     ).toBeInTheDocument()
     expect(screen.getByText('Most popular')).toBeInTheDocument()
     expect(screen.queryByText('Coming soon')).toBeNull()
@@ -86,7 +86,8 @@ describe('PricingPage', () => {
 
   it('shows the not-legal-advice disclaimer', () => {
     renderPricing()
-    expect(screen.getByText(/not provide legal advice/i)).toBeInTheDocument()
+    /* Standing disclaimer ships in the shared Footer after #321. */
+    expect(screen.getByText(/does not provide legal/i)).toBeInTheDocument()
   })
 
   it('re-localizes to French via the header language toggle', async () => {
@@ -101,7 +102,7 @@ describe('PricingPage', () => {
       }),
     ).toBeInTheDocument()
     expect(
-      screen.getByText('L’accès gratuit dure 3 mois. Il pourrait être prolongé par la suite.'),
+      screen.getByText(/L’accès gratuit dure 3 mois\. Il pourrait être prolongé par la suite\./),
     ).toBeInTheDocument()
   })
 

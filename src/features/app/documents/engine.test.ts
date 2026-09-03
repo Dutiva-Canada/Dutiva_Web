@@ -135,6 +135,12 @@ describe('applicability engine', () => {
 
   it('clause-level size gates surface as "required" once the org crosses them', () => {
     expect(applicability(tpl('T01'), org({ headcount: 30 })).kind).toBe('required')
+    expect(applicability(tpl('T01'), org({ headcount: 30 })).reason.en).toMatch(
+      /25\+ employee clause/i,
+    )
+    expect(applicability(tpl('T01'), org({ headcount: 30 })).reason.en).not.toMatch(
+      /disconnecting-from-work & electronic-monitoring policies/i,
+    )
     expect(applicability(tpl('T01'), org({ headcount: 10 })).kind).toBe('applies')
   })
 

@@ -4,7 +4,7 @@ import { useI18n } from '@/i18n/context'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 import { exportProtectionMessages as XP } from '@/i18n/messages/exportProtection'
 import { useAuth } from '@/features/app/auth/authContext'
-import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
+import { useOpenCatalogueDocument } from '@/features/app/documents/useOpenCatalogueDocument'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { authorizeExport, encodeInvisibleTag, exportDenialMessage } from '@/lib/exportProtection'
@@ -12,7 +12,7 @@ import { authorizeExport, encodeInvisibleTag, exportDenialMessage } from '@/lib/
 /** Copy/export message handlers shared by ChatPane in AdvisorView. */
 export function useAdvisorMessageActions() {
   const { showToast } = useToasts()
-  const { openDocStudio } = useDocStudio()
+  const openCatalogueDocument = useOpenCatalogueDocument()
   const { lang } = useI18n()
   const auth = useAuth()
   const workspaceModeCtx = useWorkspaceMode()
@@ -51,10 +51,10 @@ export function useAdvisorMessageActions() {
 
   const handleExportMessage = useCallback(
     (text: string) => {
-      openDocStudio('T10', { initialContent: text })
+      openCatalogueDocument('T10', { initialContent: text })
       showToast({ en: 'Drafting document...', fr: 'Rédaction du document...' }, 'ok')
     },
-    [openDocStudio, showToast],
+    [openCatalogueDocument, showToast],
   )
 
   return { handleCopyMessage, handleExportMessage }

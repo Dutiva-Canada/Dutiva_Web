@@ -11,15 +11,21 @@ interface PriorityActionRunnerOptions {
   navigate: NavigateFunction
   selectChat: (chatId: string) => void
   startFlow: (flowKey: FlowKeyOrFallback, userText: LText) => void
-  openDocStudio: (templateKey: string) => void
+  openCatalogueDocument: (templateKey: string) => void
   openCompRail: (employeeId: string) => void
   openWellbeingRail: (employeeId: string) => void
 }
 
 /** Resolve Home command-centre actions inside the Advisor view. */
 export function createAdvisorPriorityActionRunner(options: PriorityActionRunnerOptions) {
-  const { navigate, selectChat, startFlow, openDocStudio, openCompRail, openWellbeingRail } =
-    options
+  const {
+    navigate,
+    selectChat,
+    startFlow,
+    openCatalogueDocument,
+    openCompRail,
+    openWellbeingRail,
+  } = options
 
   return (action: HomeAction) => {
     switch (action.kind) {
@@ -30,7 +36,7 @@ export function createAdvisorPriorityActionRunner(options: PriorityActionRunnerO
         selectChat(action.chatId)
         break
       case 'doc':
-        openDocStudio(action.templateKey)
+        openCatalogueDocument(action.templateKey)
         break
       case 'flow':
         startFlow(action.flowKey, action.prompt)

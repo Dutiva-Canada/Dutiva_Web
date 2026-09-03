@@ -44,7 +44,7 @@ describe('TemplateDetailScreen', () => {
       'href',
       '/app/documents/studio',
     )
-    expect(screen.getByRole('link', { name: 'Generate document' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Create document' })).toHaveAttribute(
       'href',
       '/app/documents/generate/tpl_t01',
     )
@@ -70,9 +70,7 @@ describe('TemplateDetailScreen', () => {
     /* T03 is lawyer-flagged — review chip + warning callout surface. */
     expect(screen.getByText('Lawyer review recommended')).toBeInTheDocument()
     expect(
-      screen.getByText(
-        'This is a high-risk document. Lawyer review is recommended before it is sent or signed.',
-      ),
+      screen.getByText('Legal review is recommended before this document is sent or signed.'),
     ).toBeInTheDocument()
   })
 })

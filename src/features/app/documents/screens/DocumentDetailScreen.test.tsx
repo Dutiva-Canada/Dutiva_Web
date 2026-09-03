@@ -35,7 +35,7 @@ describe('DocumentDetailScreen', () => {
         name: 'Offer of employment — Gabriel Dubois',
       }),
     ).toBeInTheDocument()
-    expect(screen.getByText('Back to repository')).toBeInTheDocument()
+    expect(screen.getByText('Back to My documents')).toBeInTheDocument()
 
     /* Four header chips: status Signed, review Approved for use, signature
        Signed, risk Medium risk. */
@@ -93,7 +93,7 @@ describe('DocumentDetailScreen', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Offre d’emploi — Gabriel Dubois' }),
     ).toBeInTheDocument()
-    expect(screen.getByText('Retour au dépôt')).toBeInTheDocument()
+    expect(screen.getByText('Retour à Mes documents')).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Aperçu', selected: true })).toBeInTheDocument()
     expect(screen.getByText('Juridiction')).toBeInTheDocument()
   })

@@ -85,7 +85,7 @@ export function getNavGroups(root: string): NavGroup[] {
         },
         {
           key: 'documents',
-          to: p('documents/hr-library'),
+          to: p('documents/studio'),
           icon: FileStack,
           label: M.shell_nav_library,
           isActive: (pathname) => pathname.startsWith(`${root}/documents`),

@@ -250,7 +250,7 @@ export const homeMetricChips: HomeMetricChip[] = [
     delta: bi('1 high-risk', '1 à risque élevé'),
     valueClass: 'text-accent',
     deltaClass: 'text-risk-fg',
-    action: { kind: 'route', to: '/app/documents/hr-library' },
+    action: { kind: 'route', to: '/app/documents/studio' },
   },
   {
     value: String(supportSignalCount),

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, screen, within } from '@testing-library/react'
 import { Route, Routes } from 'react-router-dom'
 import { renderApp } from '@/test/renderApp'
@@ -10,6 +10,22 @@ import { StudioScreen } from './StudioScreen'
 
 const CATALOGUE_SIZE = allTemplates.length
 
+function stubDesktopLayout() {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn((query: string) => ({
+      matches: query === '(min-width: 1024px)' || query === '(min-width: 768px)',
+      media: query,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+      onchange: null,
+    })),
+  )
+}
+
 const renderStudio = () =>
   renderApp(
     <DoclibProvider>
@@ -20,6 +36,14 @@ const renderStudio = () =>
   )
 
 describe('StudioScreen', () => {
+  beforeEach(() => {
+    stubDesktopLayout()
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it('renders the recommendation-first catalogue with a derived result count', async () => {
     renderStudio()
 

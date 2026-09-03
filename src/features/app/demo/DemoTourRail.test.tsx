@@ -25,7 +25,7 @@ describe('DemoTourRail', () => {
       'href',
       '/demo/advisor',
     )
-    expect(screen.getByRole('link', { name: /Document Studio/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Templates/i })).toHaveAttribute(
       'href',
       '/demo/documents/studio',
     )

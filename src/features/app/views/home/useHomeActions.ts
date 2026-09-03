@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
+import { useOpenCatalogueDocument } from '@/features/app/documents/useOpenCatalogueDocument'
 import { usePayRail, useWellbeingRail } from '@/features/app/rail/useEntityRails'
 import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import type { AdvisorStartFlowNavState } from '@/features/app/views/advisor/advisorNav'
@@ -7,14 +7,13 @@ import type { HomeAction } from './homeData'
 
 /**
  * Resolve the Home view's declarative actions (`homeData.ts`) into real
- * navigation, Document Studio and Advisor-rail calls — the port of the
- * prototype's `openCase` / `selectChat` / `handleGenerateDoc` / `startFlow`
- * / `askAboutComp` / `askAboutWellbeing` wiring in `buildPriorities()` and
- * `buildHomeView()`.
+ * navigation, Documents wizard / DocStudio overlay, and Advisor-rail calls —
+ * the port of the prototype's `openCase` / `selectChat` / `handleGenerateDoc`
+ * / `startFlow` / `askAboutComp` / `askAboutWellbeing` wiring.
  */
 export function useHomeActions(): (action: HomeAction) => void {
   const navigate = useWorkspaceNavigate()
-  const { openDocStudio } = useDocStudio()
+  const openCatalogueDocument = useOpenCatalogueDocument()
   const openPayRail = usePayRail()
   const openWellbeingRail = useWellbeingRail()
 
@@ -28,7 +27,7 @@ export function useHomeActions(): (action: HomeAction) => void {
           navigate('/app/advisor', { state: { chatId: action.chatId } })
           break
         case 'doc':
-          openDocStudio(action.templateKey)
+          openCatalogueDocument(action.templateKey)
           break
         case 'flow':
           /* Bi prompt + explicit key — live language toggles re-localize the
@@ -48,6 +47,6 @@ export function useHomeActions(): (action: HomeAction) => void {
           break
       }
     },
-    [navigate, openDocStudio, openPayRail, openWellbeingRail],
+    [navigate, openCatalogueDocument, openPayRail, openWellbeingRail],
   )
 }
