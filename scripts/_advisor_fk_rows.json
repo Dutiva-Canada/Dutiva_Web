@@ -1,0 +1,497 @@
+[
+  {
+    "tbl": "activity_events",
+    "fkey": "activity_events_actor_user_id_fkey",
+    "col": "actor_user_id"
+  },
+  {
+    "tbl": "admin_activity_log",
+    "fkey": "admin_activity_log_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "admin_analytics_snapshots",
+    "fkey": "admin_analytics_snapshots_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "admin_beta_access",
+    "fkey": "admin_beta_access_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "admin_beta_access",
+    "fkey": "admin_beta_access_updated_by_fkey",
+    "col": "updated_by"
+  },
+  {
+    "tbl": "admin_beta_access",
+    "fkey": "admin_beta_access_user_id_fkey",
+    "col": "user_id"
+  },
+  {
+    "tbl": "admin_feature_flags",
+    "fkey": "admin_feature_flags_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "admin_feature_flags",
+    "fkey": "admin_feature_flags_updated_by_fkey",
+    "col": "updated_by"
+  },
+  {
+    "tbl": "admin_plan_overrides",
+    "fkey": "admin_plan_overrides_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "admin_plan_overrides",
+    "fkey": "admin_plan_overrides_updated_by_fkey",
+    "col": "updated_by"
+  },
+  {
+    "tbl": "admin_plan_overrides",
+    "fkey": "admin_plan_overrides_user_id_fkey",
+    "col": "user_id"
+  },
+  {
+    "tbl": "admin_users",
+    "fkey": "admin_users_granted_by_fkey",
+    "col": "granted_by"
+  },
+  {
+    "tbl": "admin_users",
+    "fkey": "admin_users_revoked_by_fkey",
+    "col": "revoked_by"
+  },
+  {
+    "tbl": "agent_runs",
+    "fkey": "agent_runs_agent_id_fkey",
+    "col": "agent_id"
+  },
+  {
+    "tbl": "agent_runs",
+    "fkey": "agent_runs_triggered_by_fkey",
+    "col": "triggered_by"
+  },
+  {
+    "tbl": "ai_action_runs",
+    "fkey": "ai_action_runs_actor_user_id_fkey",
+    "col": "actor_user_id"
+  },
+  {
+    "tbl": "ai_drafting_sessions",
+    "fkey": "ai_drafting_sessions_document_id_fkey",
+    "col": "document_id"
+  },
+  {
+    "tbl": "ai_model_routes",
+    "fkey": "ai_model_routes_provider_id_fkey",
+    "col": "provider_id"
+  },
+  {
+    "tbl": "ai_recommendations",
+    "fkey": "ai_recommendations_related_document_id_fkey",
+    "col": "related_document_id"
+  },
+  {
+    "tbl": "ai_recommendations",
+    "fkey": "ai_recommendations_related_finding_id_fkey",
+    "col": "related_finding_id"
+  },
+  {
+    "tbl": "ai_recommendations",
+    "fkey": "ai_recommendations_related_task_id_fkey",
+    "col": "related_task_id"
+  },
+  {
+    "tbl": "billing_events",
+    "fkey": "billing_events_user_id_fkey",
+    "col": "user_id"
+  },
+  {
+    "tbl": "comments",
+    "fkey": "comments_author_user_id_fkey",
+    "col": "author_user_id"
+  },
+  {
+    "tbl": "comments",
+    "fkey": "comments_parent_comment_id_fkey",
+    "col": "parent_comment_id"
+  },
+  {
+    "tbl": "compliance_assessments",
+    "fkey": "compliance_assessments_assessed_by_fkey",
+    "col": "assessed_by"
+  },
+  {
+    "tbl": "compliance_findings",
+    "fkey": "compliance_findings_document_id_fkey",
+    "col": "document_id"
+  },
+  {
+    "tbl": "compliance_findings",
+    "fkey": "compliance_findings_source_chunk_id_fkey",
+    "col": "source_chunk_id"
+  },
+  {
+    "tbl": "compliance_tasks",
+    "fkey": "compliance_tasks_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "compliance_tasks",
+    "fkey": "compliance_tasks_document_id_fkey",
+    "col": "document_id"
+  },
+  {
+    "tbl": "document_annotations",
+    "fkey": "document_annotations_author_user_id_fkey",
+    "col": "author_user_id"
+  },
+  {
+    "tbl": "document_generation_runs",
+    "fkey": "document_generation_runs_document_id_fkey",
+    "col": "document_id"
+  },
+  {
+    "tbl": "document_generation_runs",
+    "fkey": "document_generation_runs_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "document_generation_runs",
+    "fkey": "document_generation_runs_template_id_fkey",
+    "col": "template_id"
+  },
+  {
+    "tbl": "document_generation_runs",
+    "fkey": "document_generation_runs_user_id_fkey",
+    "col": "user_id"
+  },
+  {
+    "tbl": "document_reviews",
+    "fkey": "document_reviews_requested_by_fkey",
+    "col": "requested_by"
+  },
+  {
+    "tbl": "document_versions",
+    "fkey": "document_versions_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "employees",
+    "fkey": "employees_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "entity_relationships",
+    "fkey": "entity_relationships_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "execution_traces",
+    "fkey": "execution_traces_actor_user_id_fkey",
+    "col": "actor_user_id"
+  },
+  {
+    "tbl": "external_integrations",
+    "fkey": "external_integrations_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "hr_advisor_case_narratives",
+    "fkey": "hr_advisor_case_narratives_updated_by_fkey",
+    "col": "updated_by"
+  },
+  {
+    "tbl": "hr_advisor_case_timeline_events",
+    "fkey": "hr_advisor_case_timeline_events_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "hr_advisor_memory_audit",
+    "fkey": "hr_advisor_memory_audit_actor_user_id_fkey",
+    "col": "actor_user_id"
+  },
+  {
+    "tbl": "hr_advisor_memory_audit",
+    "fkey": "hr_advisor_memory_audit_fact_id_fkey",
+    "col": "fact_id"
+  },
+  {
+    "tbl": "hr_advisor_memory_facts",
+    "fkey": "hr_advisor_memory_facts_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "hr_advisor_memory_facts",
+    "fkey": "hr_advisor_memory_facts_updated_by_fkey",
+    "col": "updated_by"
+  },
+  {
+    "tbl": "hr_case_notes",
+    "fkey": "hr_case_notes_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "hr_case_notes",
+    "fkey": "hr_case_notes_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "hr_cases",
+    "fkey": "hr_cases_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "hr_cases",
+    "fkey": "hr_cases_employee_id_fkey",
+    "col": "employee_id"
+  },
+  {
+    "tbl": "hr_communications",
+    "fkey": "hr_communications_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "hr_compensation_records",
+    "fkey": "hr_compensation_records_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "hr_document_audit_events",
+    "fkey": "hr_document_audit_events_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "hr_document_exports",
+    "fkey": "hr_document_exports_export_event_id_fkey",
+    "col": "export_event_id"
+  },
+  {
+    "tbl": "hr_document_exports",
+    "fkey": "hr_document_exports_exported_by_fkey",
+    "col": "exported_by"
+  },
+  {
+    "tbl": "hr_document_recipients",
+    "fkey": "hr_document_recipients_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "hr_document_versions",
+    "fkey": "hr_document_versions_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "hr_document_versions",
+    "fkey": "hr_document_versions_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "hr_employee_notes",
+    "fkey": "hr_employee_notes_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "hr_employee_notes",
+    "fkey": "hr_employee_notes_organization_id_fkey",
+    "col": "organization_id"
+  },
+  {
+    "tbl": "hr_expiry_records",
+    "fkey": "hr_expiry_records_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "hr_generated_documents",
+    "fkey": "hr_generated_documents_case_id_fkey",
+    "col": "case_id"
+  },
+  {
+    "tbl": "hr_generated_documents",
+    "fkey": "hr_generated_documents_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "hr_generated_documents",
+    "fkey": "hr_generated_documents_updated_by_fkey",
+    "col": "updated_by"
+  },
+  {
+    "tbl": "hr_leaves",
+    "fkey": "hr_leaves_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "hr_obligations",
+    "fkey": "hr_obligations_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "hr_policies",
+    "fkey": "hr_policies_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "hr_wellbeing_initiatives",
+    "fkey": "hr_wellbeing_initiatives_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "hr_workspace_notifications",
+    "fkey": "hr_workspace_notifications_document_id_fkey",
+    "col": "document_id"
+  },
+  {
+    "tbl": "job_queue",
+    "fkey": "job_queue_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "law_change_impacts",
+    "fkey": "law_change_impacts_template_id_fkey",
+    "col": "template_id"
+  },
+  {
+    "tbl": "legal_ingestion_runs",
+    "fkey": "legal_ingestion_runs_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "multi_agent_plans",
+    "fkey": "multi_agent_plans_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "multi_agent_plans",
+    "fkey": "multi_agent_plans_lead_agent_id_fkey",
+    "col": "lead_agent_id"
+  },
+  {
+    "tbl": "organization_invitations",
+    "fkey": "organization_invitations_invited_by_fkey",
+    "col": "invited_by"
+  },
+  {
+    "tbl": "organizations",
+    "fkey": "organizations_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "playbook_runs",
+    "fkey": "playbook_runs_initiated_by_fkey",
+    "col": "initiated_by"
+  },
+  {
+    "tbl": "playbook_runs",
+    "fkey": "playbook_runs_playbook_id_fkey",
+    "col": "playbook_id"
+  },
+  {
+    "tbl": "policy_gap_analyses",
+    "fkey": "policy_gap_analyses_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "scheduled_operations",
+    "fkey": "scheduled_operations_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "signature_audit_events",
+    "fkey": "signature_audit_events_document_id_fkey",
+    "col": "document_id"
+  },
+  {
+    "tbl": "signature_audit_events",
+    "fkey": "signature_audit_events_user_id_fkey",
+    "col": "user_id"
+  },
+  {
+    "tbl": "support_attachments",
+    "fkey": "support_attachments_message_id_fkey",
+    "col": "message_id"
+  },
+  {
+    "tbl": "support_attachments",
+    "fkey": "support_attachments_uploaded_by_fkey",
+    "col": "uploaded_by"
+  },
+  {
+    "tbl": "support_messages",
+    "fkey": "support_messages_author_user_id_fkey",
+    "col": "author_user_id"
+  },
+  {
+    "tbl": "support_scheduled_calls",
+    "fkey": "support_scheduled_calls_confirmed_by_fkey",
+    "col": "confirmed_by"
+  },
+  {
+    "tbl": "support_scheduled_calls",
+    "fkey": "support_scheduled_calls_proposed_by_fkey",
+    "col": "proposed_by"
+  },
+  {
+    "tbl": "support_ticket_assignments",
+    "fkey": "support_ticket_assignments_assigned_by_fkey",
+    "col": "assigned_by"
+  },
+  {
+    "tbl": "support_ticket_assignments",
+    "fkey": "support_ticket_assignments_assigned_to_fkey",
+    "col": "assigned_to"
+  },
+  {
+    "tbl": "support_ticket_events",
+    "fkey": "support_ticket_events_actor_user_id_fkey",
+    "col": "actor_user_id"
+  },
+  {
+    "tbl": "support_ticket_feedback",
+    "fkey": "support_ticket_feedback_submitted_by_fkey",
+    "col": "submitted_by"
+  },
+  {
+    "tbl": "system_events",
+    "fkey": "system_events_actor_user_id_fkey",
+    "col": "actor_user_id"
+  },
+  {
+    "tbl": "template_documents",
+    "fkey": "template_documents_jurisdiction_id_fkey",
+    "col": "jurisdiction_id"
+  },
+  {
+    "tbl": "template_documents",
+    "fkey": "template_documents_template_version_id_fkey",
+    "col": "template_version_id"
+  },
+  {
+    "tbl": "workflow_automation_runs",
+    "fkey": "workflow_automation_runs_created_by_fkey",
+    "col": "created_by"
+  },
+  {
+    "tbl": "workflow_responses",
+    "fkey": "workflow_responses_field_id_fkey",
+    "col": "field_id"
+  },
+  {
+    "tbl": "workflows",
+    "fkey": "workflows_jurisdiction_id_fkey",
+    "col": "jurisdiction_id"
+  },
+  {
+    "tbl": "workflows",
+    "fkey": "workflows_template_version_id_fkey",
+    "col": "template_version_id"
+  },
+  {
+    "tbl": "workspace_notes",
+    "fkey": "workspace_notes_author_user_id_fkey",
+    "col": "author_user_id"
+  }
+]
