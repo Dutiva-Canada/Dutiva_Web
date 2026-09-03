@@ -8,11 +8,13 @@ describe('viewLabelFor', () => {
     expect(pick(viewLabelFor('/app/employees/e1'), 'en')).toBe('Jordan Mensah')
   })
 
-  it('distinguishes HR Studio sub-routes', () => {
+  it('distinguishes Documents sub-routes', () => {
     expect(viewLabelFor('/app/documents/hr-library')).toEqual(M.shell_hr_studio_templates)
     expect(viewLabelFor('/app/documents/studio')).toEqual(M.shell_hr_studio_studio)
     expect(viewLabelFor('/app/documents')).toEqual(M.shell_hr_studio_library)
     expect(viewLabelFor('/app/documents/generate/T01')).toEqual(M.shell_hr_studio_studio)
+    expect(M.shell_hr_studio_studio.en).toBe('Templates')
+    expect(M.shell_hr_studio_library.en).toBe('My documents')
   })
 
   it('returns planning sub-route labels', () => {

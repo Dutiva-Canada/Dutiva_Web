@@ -1,100 +1,166 @@
 import { describe, expect, it } from 'vitest'
 import { fireEvent, screen, within } from '@testing-library/react'
+import { Route, Routes } from 'react-router-dom'
 import { renderApp } from '@/test/renderApp'
+import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
 import { allTemplates } from '../catalogue'
 import { DoclibProvider } from '../DoclibProvider'
+import { DocumentsLayout } from '../DocumentsLayout'
 import { StudioScreen } from './StudioScreen'
 
-/* Derived, not hardcoded: the assertion worth making is "every template in
-   the catalogue reaches the grid", and a literal count turns each catalogue
-   addition into an unrelated test edit. */
 const CATALOGUE_SIZE = allTemplates.length
 
 const renderStudio = () =>
   renderApp(
     <DoclibProvider>
       <StudioScreen />
+      <AdvisorRail />
     </DoclibProvider>,
     { route: '/app/documents/studio', path: '/app/documents/studio' },
   )
 
 describe('StudioScreen', () => {
-  it('renders the whole catalogue grouped by category', async () => {
+  it('renders the recommendation-first catalogue with a derived result count', async () => {
     renderStudio()
 
-    /* Data loads async from fixtures — wait for the first card. */
-    expect(await screen.findByText('Offer of employment letter (Ontario)')).toBeInTheDocument()
-    /* Spot-check across categories: hiring / agreements / termination. */
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Recommended templates for your organization',
+      }),
+    ).toBeInTheDocument()
+
+    expect(await screen.findByText('Offer of employment letter')).toBeInTheDocument()
     expect(screen.getByText('Confidentiality agreement')).toBeInTheDocument()
-    expect(screen.getByText('Group termination notice')).toBeInTheDocument()
-    /* customTemplates.ts additions (T17-T20) — ported from the legacy
-       docstudio-only fixture, see that file's header comment. */
-    expect(screen.getByText('Full & final release')).toBeInTheDocument()
-    expect(screen.getByText('Accommodation documentation')).toBeInTheDocument()
-    /* Authored in-repo (T21-T24) — Ring 2 Pillar B, see
-       docs/FOUR_RING_FRAMEWORK.md. */
-    expect(screen.getByText('Accommodation request form')).toBeInTheDocument()
-    expect(screen.getByText('Undue hardship assessment')).toBeInTheDocument()
-    expect(screen.getAllByRole('article')).toHaveLength(CATALOGUE_SIZE)
-    expect(screen.getByText(`${CATALOGUE_SIZE} templates`)).toBeInTheDocument()
-    /* Category group headings in handoff order, then the authored one. */
-    expect(screen.getByRole('heading', { name: 'Hiring & onboarding' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Termination & offboarding' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Accommodation' })).toBeInTheDocument()
+    const listbox = screen.getByRole('listbox', { name: 'Templates' })
+    expect(within(listbox).getAllByRole('option')).toHaveLength(CATALOGUE_SIZE)
+    expect(screen.getByText(`${CATALOGUE_SIZE} templates found`)).toBeInTheDocument()
   })
 
-  it('search narrows the grid to offer templates and updates the count', async () => {
+  it('exposes labelled filters and narrows results by search', async () => {
     renderStudio()
-    await screen.findByText('Offer of employment letter (Ontario)')
+    await screen.findByText('Offer of employment letter')
 
-    fireEvent.change(screen.getByPlaceholderText(`Search ${CATALOGUE_SIZE} templates…`), {
+    expect(screen.getByLabelText('Category')).toBeInTheDocument()
+    expect(screen.getByLabelText('Jurisdiction')).toBeInTheDocument()
+    expect(screen.getByLabelText('Review level')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('Search templates…'), {
       target: { value: 'offer' },
     })
 
-    expect(screen.getByText('Offer of employment letter (Ontario)')).toBeInTheDocument()
-    expect(screen.getByText('Québec offer letter')).toBeInTheDocument()
-    expect(screen.queryByText('Confidentiality agreement')).not.toBeInTheDocument()
-
-    /* Derived from the same haystack StudioScreen searches, rather than a
-       literal: "offer" once matched exactly the two offer letters, then a
-       later template happened to use the word in its description and the
-       count moved. What is being tested is that search narrows and the count
-       follows it — not how many templates contain a particular word. */
     const matches = allTemplates.filter((tpl) =>
       `${tpl.tid} ${tpl.name.en} ${tpl.name.fr} ${tpl.desc.en} ${tpl.desc.fr}`
         .toLowerCase()
         .includes('offer'),
     ).length
     expect(matches).toBeLessThan(CATALOGUE_SIZE)
-    expect(screen.getAllByRole('article')).toHaveLength(matches)
-    expect(screen.getByText(`${matches} templates`)).toBeInTheDocument()
+    const listbox = screen.getByRole('listbox', { name: 'Templates' })
+    expect(within(listbox).getAllByRole('option')).toHaveLength(matches)
+    expect(screen.getByText(`${matches} templates found`)).toBeInTheDocument()
+    expect(screen.queryByText('Confidentiality agreement')).not.toBeInTheDocument()
   })
 
-  it('union toggle flips T03 to "Collective agreement governs"', async () => {
+  it('maps review level and opens Advisor with safe template context', async () => {
     renderStudio()
-    await screen.findByText('Termination letter (without cause)')
+    await screen.findByText('Offer of employment letter')
 
-    const card = () =>
-      within(screen.getByRole('article', { name: 'Termination letter (without cause)' }))
-    expect(card().getByText('Applies to you')).toBeInTheDocument()
+    fireEvent.click(
+      within(screen.getByRole('listbox')).getByRole('option', {
+        name: /Offer of employment letter/i,
+      }),
+    )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Unionized' }))
+    const detail = await screen.findByRole('article', { name: /Offer of employment letter/i })
+    expect(detail).toHaveTextContent('Standard review')
+    expect(detail).not.toHaveTextContent('Low risk')
 
-    expect(card().getByText('Collective agreement governs')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Ask Advisor about this template' }))
+    expect(await screen.findByRole('dialog', { name: 'Ask Advisor' })).toBeInTheDocument()
   })
 
-  it('raising headcount to 60 makes T15 "Required for you"', async () => {
+  it('updates the detail panel when a template is selected', async () => {
+    renderStudio()
+    await screen.findByText('Offer of employment letter')
+
+    fireEvent.click(
+      within(screen.getByRole('listbox')).getByRole('option', {
+        name: /Confidentiality agreement/i,
+      }),
+    )
+
+    const detail = await screen.findByRole('article', { name: /Confidentiality agreement/i })
+    expect(
+      within(detail).getByRole('heading', { name: 'Confidentiality agreement' }),
+    ).toBeInTheDocument()
+    expect(within(detail).getByRole('link', { name: 'Create document' })).toHaveAttribute(
+      'href',
+      '/app/documents/generate/tpl_t05',
+    )
+    expect(within(detail).getByRole('link', { name: 'Preview full template' })).toHaveAttribute(
+      'href',
+      '/app/documents/templates/T05',
+    )
+  })
+
+  it('reselects deterministically when filters remove the current template', async () => {
+    renderStudio()
+    await screen.findByText('Offer of employment letter')
+
+    fireEvent.click(
+      within(screen.getByRole('listbox')).getByRole('option', {
+        name: /Confidentiality agreement/i,
+      }),
+    )
+    expect(screen.getByRole('article', { name: /Confidentiality agreement/i })).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('Category'), { target: { value: 'hiring' } })
+
+    const options = within(screen.getByRole('listbox')).getAllByRole('option')
+    expect(options.length).toBeGreaterThan(0)
+    expect(options[0]).toHaveAttribute('aria-selected', 'true')
+    expect(
+      screen.queryByRole('article', { name: /Confidentiality agreement/i }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows Required in the detail panel only when the size trigger fires', async () => {
     renderStudio()
     await screen.findByText('Group termination notice')
 
-    const card = () => within(screen.getByRole('article', { name: 'Group termination notice' }))
-    /* Default org is 42 employees — below the 50+ group-termination trigger. */
-    expect(card().getByText('Applies above your size')).toBeInTheDocument()
+    fireEvent.click(
+      within(screen.getByRole('listbox')).getByRole('option', {
+        name: /Group termination notice/i,
+      }),
+    )
+    expect(screen.getByRole('article')).toHaveTextContent('Available for your jurisdiction')
+    expect(screen.getByRole('article')).not.toHaveTextContent('Required based on your profile')
 
+    fireEvent.click(screen.getByRole('button', { name: 'Edit profile' }))
     fireEvent.change(screen.getByRole('spinbutton', { name: 'Headcount' }), {
       target: { value: '60' },
     })
 
-    expect(card().getByText('Required for you')).toBeInTheDocument()
+    expect(screen.getByRole('article')).toHaveTextContent('Required based on your profile')
+  })
+})
+
+describe('DocumentsLayout tabs', () => {
+  it('shows Templates and My documents with correct selected state', async () => {
+    renderApp(
+      <Routes>
+        <Route path="/app/documents" element={<DocumentsLayout />}>
+          <Route index element={<div>My documents body</div>} />
+          <Route path="studio" element={<StudioScreen />} />
+        </Route>
+      </Routes>,
+      { route: '/app/documents/studio', path: '*' },
+    )
+
+    const templatesTab = await screen.findByRole('link', { name: 'Templates' })
+    const myDocsTab = screen.getByRole('link', { name: 'My documents' })
+    expect(templatesTab).toHaveAttribute('aria-current', 'page')
+    expect(myDocsTab).not.toHaveAttribute('aria-current')
+    expect(screen.queryByRole('link', { name: 'Studio' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Library' })).not.toBeInTheDocument()
   })
 })

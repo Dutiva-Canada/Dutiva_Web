@@ -105,14 +105,15 @@ export const shellMessages = defineMessages({
   shell_nav_workflows: { en: 'Workflows', fr: 'Processus' },
   shell_nav_people: { en: 'People', fr: 'Personnel' },
   shell_nav_cases: { en: 'Cases', fr: 'Dossiers' },
-  /* Unified HR Studio nav entry (Templates | Library | Studio tabs inside
+  /* Documents nav entry (Templates | My documents tabs inside
      DocumentsLayout). Hand-authored on purpose: doclib.ts is wholesale-
      regenerated and has no slot for these app-owned labels. */
   shell_nav_library: { en: 'Documents', fr: 'Documents' }, // [FR self-authored]
-  /* Three sub-tab labels within the HR Studio section. */
-  shell_hr_studio_templates: { en: 'Templates', fr: 'Gabarits' }, // [FR self-authored]
-  shell_hr_studio_library: { en: 'Library', fr: 'Bibliothèque' }, // [FR self-authored]
-  shell_hr_studio_studio: { en: 'Studio', fr: 'Studio' },
+  /* Sub-tab labels. Legacy keys kept for route/topbar compatibility:
+     studio → Templates, library → My documents, templates → legacy gallery. */
+  shell_hr_studio_templates: { en: 'Templates', fr: 'Modèles' }, // [FR self-authored]
+  shell_hr_studio_library: { en: 'My documents', fr: 'Mes documents' }, // [FR self-authored]
+  shell_hr_studio_studio: { en: 'Templates', fr: 'Modèles' }, // [FR self-authored]
   shell_nav_knowledge: { en: 'Knowledge', fr: 'Connaissances' },
   shell_nav_compliance: { en: 'Compliance', fr: 'Conformité' },
   shell_nav_compensation: { en: 'Compensation', fr: 'Rémunération' },

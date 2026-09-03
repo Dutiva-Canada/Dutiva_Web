@@ -74,10 +74,10 @@ describe('GenerateScreen', () => {
     expect(screen.getByText('Who and where is this document for?')).toBeInTheDocument()
 
     /* Org compliance strip (default profile: 42 employees, non-union, ON).
-       T01 carries a 25+ headcount clause gate → 'Required for you'. */
+       T01 carries a 25+ headcount clause gate → 'Required based on your profile'. */
     expect(screen.getByText('Small employer · 42')).toBeInTheDocument()
     expect(screen.getByText('Non-union')).toBeInTheDocument()
-    expect(screen.getByText('Required for you')).toBeInTheDocument()
+    expect(screen.getByText('Required based on your profile')).toBeInTheDocument()
 
     /* Candidate-subject template: employee link is optional, case picker shown. */
     expect(screen.getByRole('combobox', { name: 'Employee record (optional)' })).toBeInTheDocument()
@@ -140,7 +140,7 @@ describe('GenerateScreen', () => {
     expect(screen.getByText(`${filled}/${total}`)).toBeInTheDocument()
     expect(screen.getByText('fields filled')).toBeInTheDocument()
 
-    expect(screen.getByText('Low risk')).toBeInTheDocument()
+    expect(screen.getByText('Standard review')).toBeInTheDocument()
     expect(screen.getByText('HR review required')).toBeInTheDocument()
     expect(
       screen.getByText('HR review is required before this document is used.'),
@@ -249,7 +249,7 @@ describe('GenerateScreen', () => {
     expect(screen.getByText(`${filledTokenCount}/${total}`)).toBeInTheDocument()
     expect(screen.getByText('fields filled')).toBeInTheDocument()
 
-    expect(screen.getByText('Medium risk')).toBeInTheDocument()
+    expect(screen.getByText('Careful review')).toBeInTheDocument()
     expect(screen.getByText('HR review required')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Save to repository' })).toBeInTheDocument()
   })
@@ -294,7 +294,7 @@ describe('GenerateScreen', () => {
     const { total } = fillProgress(t04, {})
     expect(screen.getByText(`${filled}/${total}`)).toBeInTheDocument()
     expect(screen.getByText('fields filled')).toBeInTheDocument()
-    expect(screen.getByText('Low risk')).toBeInTheDocument()
+    expect(screen.getByText('Standard review')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Save to repository' })).toBeInTheDocument()
   })
 

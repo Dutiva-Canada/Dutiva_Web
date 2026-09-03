@@ -24,7 +24,7 @@ describe('TemplateDetailScreen', () => {
 
     /* Header chips + risk. */
     expect(screen.getByText('T01')).toBeInTheDocument()
-    expect(screen.getByText('Low risk')).toBeInTheDocument()
+    expect(screen.getByText('Standard review')).toBeInTheDocument()
 
     /* Statutory reference + what's-included items. */
     expect(
@@ -40,7 +40,7 @@ describe('TemplateDetailScreen', () => {
     ).toBeInTheDocument()
 
     /* Back link + Generate CTA targets. */
-    expect(screen.getByRole('link', { name: 'Back to library' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Back to templates' })).toHaveAttribute(
       'href',
       '/app/documents/studio',
     )
@@ -65,7 +65,7 @@ describe('TemplateDetailScreen', () => {
     expect(await screen.findByText('Termination letter (without cause)')).toBeInTheDocument()
 
     /* Default org: 42 headcount, non-union, ON → standard applicability. */
-    expect(screen.getByText('Applies to you')).toBeInTheDocument()
+    expect(screen.getByText('Recommended for your organization')).toBeInTheDocument()
 
     /* T03 is lawyer-flagged — review chip + warning callout surface. */
     expect(screen.getByText('Lawyer review recommended')).toBeInTheDocument()

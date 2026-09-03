@@ -341,14 +341,19 @@ export const workspaceRoles: RoleInfo[] = [
   },
 ]
 
+/**
+ * Stored values remain `low|medium|high`. User-facing copy is review level —
+ * what review action is advisable — not a danger label for the template.
+ * See `presentation.ts` for the Documents UI mapper and tests.
+ */
 export const riskLevelInfo: Record<DocRiskLevel, RiskLevelInfo> = {
   low: {
     key: 'low',
     tone: 'ok',
     order: 1,
     label: {
-      en: 'Low risk',
-      fr: 'Risque faible',
+      en: 'Standard review',
+      fr: 'Révision standard',
     },
     desc: {
       en: 'Routine document. Standard HR review is enough.',
@@ -360,12 +365,12 @@ export const riskLevelInfo: Record<DocRiskLevel, RiskLevelInfo> = {
     tone: 'warn',
     order: 2,
     label: {
-      en: 'Medium risk',
-      fr: 'Risque moyen',
+      en: 'Careful review',
+      fr: 'Révision approfondie',
     },
     desc: {
-      en: 'Some legal exposure. HR review required before use.',
-      fr: 'Exposition juridique modérée. Révision RH requise.',
+      en: 'Some legal exposure. Careful HR review before use.',
+      fr: 'Exposition juridique modérée. Révision RH approfondie avant usage.',
     },
   },
   high: {
@@ -373,12 +378,12 @@ export const riskLevelInfo: Record<DocRiskLevel, RiskLevelInfo> = {
     tone: 'risk',
     order: 3,
     label: {
-      en: 'High risk',
-      fr: 'Risque élevé',
+      en: 'Legal review recommended',
+      fr: 'Révision juridique recommandée',
     },
     desc: {
-      en: 'Significant exposure. Lawyer review recommended.',
-      fr: 'Exposition importante. Révision juridique recommandée.',
+      en: 'Significant exposure. Lawyer review recommended before use.',
+      fr: 'Exposition importante. Révision juridique recommandée avant usage.',
     },
   },
 }

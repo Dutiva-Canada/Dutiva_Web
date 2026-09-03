@@ -12,6 +12,7 @@ import {
 } from './engine'
 import type { MergeSegment } from './engine'
 import type { DocChipTone, Jurisdiction, PreviewBlock } from './data'
+import { jurisdictionInfo } from './data'
 
 /**
  * Shared primitives the handoff calls out as feature-specific (no existing
@@ -41,10 +42,24 @@ export function DocChip({
 }
 
 /** Small jurisdiction pill (ON/QC/FED) — visually distinct from status chips. */
-export function JurisdictionPill({ code }: { readonly code: Jurisdiction }) {
+export function JurisdictionPill({
+  code,
+  expanded,
+}: {
+  readonly code: Jurisdiction
+  /** When true, show the full jurisdiction name instead of the code. */
+  readonly expanded?: boolean
+}) {
+  const { x } = useI18n()
+  const info = jurisdictionInfo.find((j) => j.code === code)
+  const fullName = info ? x(info.name) : code
   return (
-    <span className="inline-flex items-center rounded-[6px] border border-border bg-inset px-[6px] py-px text-[10.5px] font-bold tracking-[0.04em] text-text-muted">
-      {code}
+    <span
+      title={fullName}
+      aria-label={fullName}
+      className="inline-flex items-center rounded-[6px] border border-border bg-inset px-[6px] py-px text-[10.5px] font-bold tracking-[0.04em] text-text-muted"
+    >
+      {expanded && info ? fullName : code}
     </span>
   )
 }

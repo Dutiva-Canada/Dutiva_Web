@@ -21,7 +21,7 @@ describe('RepositoryScreen', () => {
   it('lists the 13 non-archived documents by default, with row links to detail', async () => {
     renderRepository()
 
-    expect(await screen.findByText('Document repository')).toBeInTheDocument()
+    expect(await screen.findByText('My documents')).toBeInTheDocument()
     const table = await screen.findByRole('table')
     const links = within(table).getAllByRole('link')
     expect(links).toHaveLength(13)
@@ -32,6 +32,14 @@ describe('RepositoryScreen', () => {
 
     /* Count card mirrors the visible set. */
     expect(screen.getByText('13')).toBeInTheDocument()
+
+    /* Catalogue templates must not appear as repository rows. */
+    expect(screen.queryByText('Offer of employment letter')).not.toBeInTheDocument()
+
+    expect(screen.getByRole('link', { name: 'Create from a template' })).toHaveAttribute(
+      'href',
+      '/app/documents/studio',
+    )
 
     /* The archived fixture stays hidden until the toggle is on. */
     expect(
