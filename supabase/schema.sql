@@ -9533,6 +9533,10 @@ CREATE INDEX "guidance_chunks_source_id_fkey_idx" ON "public"."guidance_chunks" 
 
 
 
+CREATE INDEX "hr_advisor_case_narratives_case_id_fkey_idx" ON "public"."hr_advisor_case_narratives" USING "btree" ("case_id");
+
+
+
 CREATE INDEX "hr_advisor_case_narratives_updated_by_fkey_idx" ON "public"."hr_advisor_case_narratives" USING "btree" ("updated_by");
 
 
@@ -10065,6 +10069,10 @@ CREATE INDEX "system_events_organization_id_fkey_idx" ON "public"."system_events
 
 
 
+CREATE INDEX "template_content_variants_jurisdiction_id_fkey_idx" ON "public"."template_content_variants" USING "btree" ("jurisdiction_id");
+
+
+
 CREATE INDEX "template_documents_client_id_fkey_idx" ON "public"."template_documents" USING "btree" ("client_id");
 
 
@@ -10082,6 +10090,10 @@ CREATE INDEX "template_documents_template_version_id_fkey_idx" ON "public"."temp
 
 
 CREATE INDEX "template_documents_workflow_id_fkey_idx" ON "public"."template_documents" USING "btree" ("workflow_id");
+
+
+
+CREATE INDEX "tier_categories_category_id_fkey_idx" ON "public"."tier_categories" USING "btree" ("category_id");
 
 
 
@@ -10105,7 +10117,15 @@ CREATE INDEX "workflow_automation_runs_organization_id_fkey_idx" ON "public"."wo
 
 
 
+CREATE INDEX "workflow_questions_field_id_fkey_idx" ON "public"."workflow_questions" USING "btree" ("field_id");
+
+
+
 CREATE INDEX "workflow_responses_field_id_fkey_idx" ON "public"."workflow_responses" USING "btree" ("field_id");
+
+
+
+CREATE INDEX "workflow_responses_question_id_fkey_idx" ON "public"."workflow_responses" USING "btree" ("question_id");
 
 
 
@@ -12073,6 +12093,50 @@ CREATE POLICY "Authenticated users can view enabled generator templates" ON "pub
 
 
 
+CREATE POLICY "Deny client API access" ON "public"."advisor_guidance_chunks" TO "anon", "authenticated" USING (false) WITH CHECK (false);
+
+
+
+CREATE POLICY "Deny client API access" ON "public"."ai_advisor_credits" TO "anon", "authenticated" USING (false) WITH CHECK (false);
+
+
+
+CREATE POLICY "Deny client API access" ON "public"."ai_advisor_overage_months" TO "anon", "authenticated" USING (false) WITH CHECK (false);
+
+
+
+CREATE POLICY "Deny client API access" ON "public"."cron_locks" TO "anon", "authenticated" USING (false) WITH CHECK (false);
+
+
+
+CREATE POLICY "Deny client API access" ON "public"."export_events" TO "anon", "authenticated" USING (false) WITH CHECK (false);
+
+
+
+CREATE POLICY "Deny client API access" ON "public"."hr_documents" TO "anon", "authenticated" USING (false) WITH CHECK (false);
+
+
+
+CREATE POLICY "Deny client API access" ON "public"."hr_signing_rpc_rate_limit" TO "anon", "authenticated" USING (false) WITH CHECK (false);
+
+
+
+CREATE POLICY "Deny client API access" ON "public"."platform_capacity_config" TO "anon", "authenticated" USING (false) WITH CHECK (false);
+
+
+
+CREATE POLICY "Deny client API access" ON "public"."stripe_webhook_events" TO "anon", "authenticated" USING (false) WITH CHECK (false);
+
+
+
+CREATE POLICY "Deny client API access" ON "public"."support_analytics_events" TO "anon", "authenticated" USING (false) WITH CHECK (false);
+
+
+
+CREATE POLICY "Deny client API access" ON "public"."template_audit_log" TO "anon", "authenticated" USING (false) WITH CHECK (false);
+
+
+
 CREATE POLICY "Internal admins can read app error events" ON "public"."admin_app_error_events" FOR SELECT TO "authenticated" USING (("public"."is_internal_admin_user"() OR "public"."is_admin_user"()));
 
 
@@ -12509,13 +12573,13 @@ CREATE POLICY "Org can update document recipients" ON "public"."hr_document_reci
    FROM "public"."organization_members" "om"
   WHERE (("om"."organization_id" = "hr_document_recipients"."organization_id") AND ("om"."user_id" = ( SELECT "auth"."uid"() AS "uid")) AND ("om"."status" = 'active'::"text") AND ("om"."role" = ANY (ARRAY['owner'::"text", 'admin'::"text"]))))) OR ((EXISTS ( SELECT 1
    FROM "public"."organization_members" "om"
-  WHERE (("om"."organization_id" = "hr_document_recipients"."organization_id") AND ("om"."user_id" = ( SELECT "auth"."uid"() AS "uid")) AND ("om"."status" = 'active'::"text")))) AND ("lower"("email") = "lower"(COALESCE(( SELECT ("auth"."jwt"() ->> 'email'::"text")), ''::"text"))) AND ("status" = ANY (ARRAY['pending'::"text", 'sent'::"text", 'viewed'::"text"]))))) WITH CHECK (((EXISTS ( SELECT 1
+  WHERE (("om"."organization_id" = "hr_document_recipients"."organization_id") AND ("om"."user_id" = ( SELECT "auth"."uid"() AS "uid")) AND ("om"."status" = 'active'::"text")))) AND ("lower"("email") = "lower"(COALESCE(( SELECT (( SELECT "auth"."jwt"() AS "jwt") ->> 'email'::"text")), ''::"text"))) AND ("status" = ANY (ARRAY['pending'::"text", 'sent'::"text", 'viewed'::"text"]))))) WITH CHECK (((EXISTS ( SELECT 1
    FROM "public"."user_roles" "ur"
   WHERE (("ur"."user_id" = ( SELECT "auth"."uid"() AS "uid")) AND ("ur"."role" = ANY (ARRAY['owner'::"text", 'admin'::"text"]))))) OR (EXISTS ( SELECT 1
    FROM "public"."organization_members" "om"
   WHERE (("om"."organization_id" = "hr_document_recipients"."organization_id") AND ("om"."user_id" = ( SELECT "auth"."uid"() AS "uid")) AND ("om"."status" = 'active'::"text") AND ("om"."role" = ANY (ARRAY['owner'::"text", 'admin'::"text"]))))) OR ((EXISTS ( SELECT 1
    FROM "public"."organization_members" "om"
-  WHERE (("om"."organization_id" = "hr_document_recipients"."organization_id") AND ("om"."user_id" = ( SELECT "auth"."uid"() AS "uid")) AND ("om"."status" = 'active'::"text")))) AND ("lower"("email") = "lower"(COALESCE(( SELECT ("auth"."jwt"() ->> 'email'::"text")), ''::"text"))) AND ("status" = ANY (ARRAY['viewed'::"text", 'signed'::"text", 'declined'::"text"])))));
+  WHERE (("om"."organization_id" = "hr_document_recipients"."organization_id") AND ("om"."user_id" = ( SELECT "auth"."uid"() AS "uid")) AND ("om"."status" = 'active'::"text")))) AND ("lower"("email") = "lower"(COALESCE(( SELECT (( SELECT "auth"."jwt"() AS "jwt") ->> 'email'::"text")), ''::"text"))) AND ("status" = ANY (ARRAY['viewed'::"text", 'signed'::"text", 'declined'::"text"])))));
 
 
 
@@ -12527,7 +12591,7 @@ CREATE POLICY "Org can update document signatures" ON "public"."hr_document_sign
    FROM "public"."organization_members" "om"
   WHERE (("om"."organization_id" = "hr_document_signatures"."organization_id") AND ("om"."user_id" = ( SELECT "auth"."uid"() AS "uid")) AND ("om"."status" = 'active'::"text")))) AND ("status" = ANY (ARRAY['sent'::"text", 'viewed'::"text", 'pending'::"text", 'partially_signed'::"text"])) AND (EXISTS ( SELECT 1
    FROM "public"."hr_document_recipients" "r"
-  WHERE (("r"."signature_id" = "hr_document_signatures"."id") AND ("lower"("r"."email") = "lower"(COALESCE(( SELECT ("auth"."jwt"() ->> 'email'::"text")), ''::"text"))) AND ("r"."status" = ANY (ARRAY['pending'::"text", 'sent'::"text", 'viewed'::"text"])))))))) WITH CHECK (((EXISTS ( SELECT 1
+  WHERE (("r"."signature_id" = "hr_document_signatures"."id") AND ("lower"("r"."email") = "lower"(COALESCE(( SELECT (( SELECT "auth"."jwt"() AS "jwt") ->> 'email'::"text")), ''::"text"))) AND ("r"."status" = ANY (ARRAY['pending'::"text", 'sent'::"text", 'viewed'::"text"])))))))) WITH CHECK (((EXISTS ( SELECT 1
    FROM "public"."user_roles" "ur"
   WHERE (("ur"."user_id" = ( SELECT "auth"."uid"() AS "uid")) AND ("ur"."role" = ANY (ARRAY['owner'::"text", 'admin'::"text"]))))) OR (EXISTS ( SELECT 1
    FROM "public"."organization_members" "om"
@@ -14093,8 +14157,6 @@ GRANT ALL ON FUNCTION "public"."_hr_signing_actor_email"() TO "service_role";
 
 
 REVOKE ALL ON FUNCTION "public"."_hr_signing_assert_turn"("p_signature_id" "uuid", "p_signing_order" integer) FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."_hr_signing_assert_turn"("p_signature_id" "uuid", "p_signing_order" integer) TO "anon";
-GRANT ALL ON FUNCTION "public"."_hr_signing_assert_turn"("p_signature_id" "uuid", "p_signing_order" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."_hr_signing_assert_turn"("p_signature_id" "uuid", "p_signing_order" integer) TO "service_role";
 
 
@@ -14126,15 +14188,11 @@ GRANT ALL ON TABLE "public"."hr_document_recipients" TO "service_role";
 
 
 REVOKE ALL ON FUNCTION "public"."_hr_signing_recipient_for_envelope"("p_envelope_id" "text") FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."_hr_signing_recipient_for_envelope"("p_envelope_id" "text") TO "anon";
-GRANT ALL ON FUNCTION "public"."_hr_signing_recipient_for_envelope"("p_envelope_id" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."_hr_signing_recipient_for_envelope"("p_envelope_id" "text") TO "service_role";
 
 
 
 REVOKE ALL ON FUNCTION "public"."_hr_signing_recipient_for_token"("p_token" "uuid") FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."_hr_signing_recipient_for_token"("p_token" "uuid") TO "anon";
-GRANT ALL ON FUNCTION "public"."_hr_signing_recipient_for_token"("p_token" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."_hr_signing_recipient_for_token"("p_token" "uuid") TO "service_role";
 
 
