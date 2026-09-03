@@ -6,6 +6,7 @@ import { ToastHost } from '@/features/app/toasts/ToastHost'
 import { appendExportAudit, clearExportAudit, decodeInvisibleTag } from '@/lib/exportProtection'
 import { PlanContext } from '@/features/app/billing/planContext'
 import type { PlanContextValue } from '@/features/app/billing/planContext'
+import { makePlanContextValue } from '@/features/app/billing/planContext'
 import { WorkspaceModeContext } from '@/features/app/workspaceMode/workspaceModeContext'
 import type { WorkspaceModeContextValue } from '@/features/app/workspaceMode/workspaceModeContext'
 import { DocStudioProvider } from './DocStudioProvider'
@@ -60,13 +61,14 @@ const DEMO_MODE_CTX: WorkspaceModeContextValue = {
   admissionStatus: 'idle',
   clearAdmissionStatus: vi.fn(),
 }
-const PRO_PLAN_CTX: PlanContextValue = {
+const PRO_PLAN_CTX: PlanContextValue = makePlanContextValue({
   plan: 'pro',
   subscriptionStatus: 'active',
   stripeCustomerId: null,
+  organizationId: null,
   isAdmin: false,
   loading: false,
-}
+})
 
 function renderStudio({ withToastHost = false } = {}) {
   return render(

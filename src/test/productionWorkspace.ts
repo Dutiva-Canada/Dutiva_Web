@@ -15,6 +15,9 @@ import { vi } from 'vitest'
  * module actually touches; anything else throws, so a view that queries a
  * table the test did not expect fails loudly instead of returning undefined.
  *
+ * Also stubs PlanProvider / AuthProvider RPCs and billing columns so feature
+ * gates (when enabled) and org billing resolution do not break the preamble.
+ *
  * The existing hand-rolled copies (policies, cases, employees, compliance,
  * tasks, calendar, reports, home) still work and were left alone — migrate
  * one when you are already editing it, not as a sweep.
@@ -68,11 +71,14 @@ export function mockProductionWorkspace({
           }),
         onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
       },
-      rpc: vi.fn((fn: string) =>
-        Promise.resolve(
-          fn === 'is_admin_user' ? { data: true, error: null } : { data: null, error: null },
-        ),
-      ),
+      rpc: vi.fn((fn: string) => {
+        if (fn === 'is_admin_user') return Promise.resolve({ data: true, error: null })
+        if (fn === 'current_user_is_workspace_member')
+          return Promise.resolve({ data: true, error: null })
+        if (fn === 'resolve_user_billing_organization')
+          return Promise.resolve({ data: organizationId, error: null })
+        return Promise.resolve({ data: null, error: null })
+      }),
       from: vi.fn((table: string) => {
         if (table === 'workspace_preferences') {
           return {
@@ -95,7 +101,29 @@ export function mockProductionWorkspace({
                       primary_contact: 'Martin Constantineau',
                       province: 'Ontario',
                       city: 'Ottawa',
+                      plan: 'pro',
+                      subscription_status: 'active',
+                      stripe_customer_id: null,
                     },
+                    error: null,
+                  }),
+              }),
+            }),
+          }
+        }
+        if (table === 'organizations') {
+          return {
+            select: () => ({
+              eq: () => ({
+                maybeSingle: () =>
+                  Promise.resolve({
+                    data: organizationId
+                      ? {
+                          plan: 'pro',
+                          subscription_status: 'active',
+                          stripe_customer_id: null,
+                        }
+                      : null,
                     error: null,
                   }),
               }),
@@ -107,12 +135,14 @@ export function mockProductionWorkspace({
             select: () => ({
               eq: () => ({
                 eq: () => ({
-                  limit: () => ({
-                    maybeSingle: () =>
-                      Promise.resolve({
-                        data: organizationId ? { organization_id: organizationId } : null,
-                        error: null,
-                      }),
+                  order: () => ({
+                    limit: () => ({
+                      maybeSingle: () =>
+                        Promise.resolve({
+                          data: organizationId ? { organization_id: organizationId } : null,
+                          error: null,
+                        }),
+                    }),
                   }),
                 }),
               }),

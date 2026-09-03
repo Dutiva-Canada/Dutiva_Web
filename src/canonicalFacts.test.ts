@@ -152,28 +152,35 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
     expect(pricing).toContain(`${FREE_PLAN_ACCESS_MONTHS}-month access`)
   })
 
-  it('states the annual billing ratio', () => {
+  it('states the annual billing ratio and that purchase is unavailable', () => {
     /* Not bolded in the doc — matched as the phrase it actually reads,
-       "10 of 12 months charged". */
-    expect(row('Annual billing')).toContain(`${ANNUAL_MONTHS_BILLED} of 12`)
+       "10 of 12 months charged". Annual checkout stays off until EF4a. */
+    const annual = row('Annual billing')
+    expect(annual).toContain(`${ANNUAL_MONTHS_BILLED} of 12`)
+    expect(annual.toLowerCase()).toContain('not available')
+    expect(annual).toContain('ANNUAL_BILLING_AVAILABLE')
   })
 
   it('describes the beta paid-plan state the flags actually produce', () => {
-    /* Paid plans are sold; product gates stay off. If either flag flips, the
-       Beta state row and Launch status section have to be revisited. */
+    /* Paid plans are sold; product gates follow the entitlement catalogue. */
     const beta = row('Beta state').toLowerCase()
     expect(PAID_PLANS_DISABLED_DURING_BETA).toBe(false)
-    expect(PLAN_FEATURE_GATES_ENABLED).toBe(false)
+    expect(PLAN_FEATURE_GATES_ENABLED).toBe(true)
     expect(beta).toContain('sold')
     expect(beta).not.toContain('not sold')
     expect(beta).toContain('waitlist')
+    expect(beta).toContain('gates')
   })
 
-  it('states the Advisor included amount, pack SKUs, and overage price', () => {
+  it('states the Advisor included amount, pack SKUs, and overage price', async () => {
+    const { ADVISOR_MONTHLY_BY_PLAN } = await import('@/config/planEntitlements')
     const replies = row('Advisor replies')
     expect(boldNumbers(replies).sort()).toEqual(
       [
-        ADVISOR_MONTHLY_INCLUDED,
+        ADVISOR_MONTHLY_BY_PLAN.free,
+        ADVISOR_MONTHLY_BY_PLAN.starter,
+        ADVISOR_MONTHLY_BY_PLAN.growth,
+        ADVISOR_MONTHLY_BY_PLAN.pro,
         ADVISOR_PACK_50_REPLIES,
         ADVISOR_PACK_50_PRICE_CAD,
         ADVISOR_PACK_200_REPLIES,
@@ -182,7 +189,7 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
       ].sort(),
     )
     expect(replies).toContain(`$${ADVISOR_OVERAGE_PER_REPLY_CAD}`)
-    expect(replies.toLowerCase()).toContain('not a plan feature')
+    expect(replies.toLowerCase()).toContain('org-pooled')
 
     const aiUsage = raw(
       import.meta.glob('../supabase/functions/_shared/aiUsage.ts', {
@@ -193,8 +200,11 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
       'aiUsage.ts',
     )
     expect(aiUsage).toContain(`envInt('AI_MONTHLY_CHAT_LIMIT', ${ADVISOR_MONTHLY_INCLUDED})`)
-    expect(aiUsage).toContain(`envInt('AI_OVERAGE_MONTHLY_CAP', ${ADVISOR_OVERAGE_MONTHLY_REPLY_CAP})`)
+    expect(aiUsage).toContain(
+      `envInt('AI_OVERAGE_MONTHLY_CAP', ${ADVISOR_OVERAGE_MONTHLY_REPLY_CAP})`,
+    )
   })
+
 
   it('states the beta cohort capacity, in every copy of the number', () => {
     /* The capacity lives in places that cannot import each other:
@@ -282,6 +292,18 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
         expect(monitoring.toLowerCase()).toContain('unavailable')
       }
     }
+  })
+})
+
+describe('plan entitlement catalogue (live commercial claim)', () => {
+  it('matches Free 20 / Starter 80 / Growth 200 / Pro 400', async () => {
+    const { ADVISOR_MONTHLY_BY_PLAN } = await import('@/config/planEntitlements')
+    expect(ADVISOR_MONTHLY_BY_PLAN).toEqual({
+      free: 20,
+      starter: 80,
+      growth: 200,
+      pro: 400,
+    })
   })
 })
 

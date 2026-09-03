@@ -47,6 +47,13 @@ describe('decisionFromRpc', () => {
       claimId: 'claim-2',
       commercialSource: 'pack',
     })
+    expect(decisionFromRpc({ allowed: true, claim_id: 'claim-3', commercial: 'rollover' })).toEqual(
+      {
+        kind: 'allowed',
+        claimId: 'claim-3',
+        commercialSource: 'rollover',
+      },
+    )
   })
 
   it('maps a denial to its scope, counts and retry delay', () => {

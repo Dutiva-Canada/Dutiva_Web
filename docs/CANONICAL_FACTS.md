@@ -20,7 +20,8 @@ Drive documents they replaced did:
   **Beta state**, **Beta capacity** (the doc row, the SQL gate and the edge
   function all carrying the same number), **Law-change monitoring** (both
   the audit date and the "not confirmed working" claim itself),
-  **Advisor replies** — `src/canonicalFacts.test.ts`.
+  **Advisor replies**, **Advisor replies (catalogue)** —
+  `src/canonicalFacts.test.ts`.
 - **Brand gold**, **Brand navy** — `scripts/check-canonical-facts.mjs`
   (`npm run check:facts`), separate because their values live in CSS that
   Vitest cannot read.
@@ -38,21 +39,21 @@ people who don't read the repo. Re-export it when this file changes.
 
 ## Verified against the product
 
-| Fact                  | Value                                                                                                                                                                                                | Source of truth                                                         |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Templates shipped     | **50** — T01…T50                                                                                                                                                                                     | `src/features/app/documents/catalogue.ts`                               |
-| Jurisdictions         | **3** — ON (ESA 2000), QC (LNT), FED (Canada Labour Code Part III)                                                                                                                                   | jurisdiction codes `ON`, `QC`, `FED`                                    |
-| Pricing               | Free waitlist (3-month access once admitted) · Starter **$24** · Growth **$49** · Pro **$99** CAD/mo                                                                                                 | `src/config/plans.ts` → `PLANS`                                         |
-| Annual billing        | 10 of 12 months charged (two months free)                                                                                                                                                            | `ANNUAL_MONTHS_BILLED`                                                  |
-| Beta state            | Paid plans **sold** (support membership; product open to all admitted accounts). Free cohort of **15** remains waitlisted                                                                            | `PAID_PLANS_DISABLED_DURING_BETA` + `PLAN_FEATURE_GATES_ENABLED`        |
-| Beta capacity         | **15** free-cohort seats; signup stays open as a waiting list. Active paid plans skip the free waitlist (migration **0089**)                                                                 | `src/config/beta.ts` `BETA_COHORT_LIMIT`; gates in migrations **0067**, **0089** |
-| Rings live            | **All four rings complete.**                                                                                                                                                                         | `docs/FOUR_RING_FRAMEWORK.md`                                           |
-| Law-change monitoring | **Federal (FED), Ontario (ON) and Québec (QC) confirmed working** (audit 2026-08-10)                                                                                                                 | `src/features/app/guidance/monitoringCoverage.ts`                       |
-| Contact address       | <support@dutiva.ca>                                                                                                                                                                                  | the published support address; retired ones stay retired (§6, enforced) |
-| Languages             | EN + FR, both surfaces, prerendered per locale                                                                                                                                                       | `src/i18n/` — EN unprefixed, FR under `/fr`                             |
-| Advisor replies       | **80** included / calendar month UTC. Optional packs: **50** for **$5** CAD, **200** for **$15** CAD. Not a plan feature. Opt-in overage $0.12 CAD/reply, cap **500**/month, paid subscription only. | `src/config/advisorUsage.ts`                                            |
-| Brand gold            | `#b98512 → #d4af37 → #f4c54b → #ffe37a`; on dark `#e9c877`                                                                                                                                           | `tokens.css` `--gold-gradient`, `--gold-on-dark`                        |
-| Brand navy            | `#0d1b2a` ground, `#081019` deep                                                                                                                                                                     | `tokens.css` `--dutiva-navy`; `surfaces.css` `.surface-marketing --bg`  |
+| Fact                        | Value                                                                                                                                                                                                                                           | Source of truth                                                                  |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Templates shipped           | **50** — T01…T50                                                                                                                                                                                                                                | `src/features/app/documents/catalogue.ts`                                        |
+| Jurisdictions               | **3** — ON (ESA 2000), QC (LNT), FED (Canada Labour Code Part III)                                                                                                                                                                              | jurisdiction codes `ON`, `QC`, `FED`                                             |
+| Pricing                     | Free waitlist (3-month access once admitted) · Starter **$24** · Growth **$49** · Pro **$99** CAD/mo — flat per organization (org billing migrations **0107–0111** applied to production 2026-09-03)                                          | `src/config/plans.ts` → `PLANS`; `src/config/planEntitlements.ts`                |
+| Annual billing              | 10 of 12 months charged (two months free). **Not available** for purchase yet (`ANNUAL_BILLING_AVAILABLE` is false)                                                                                                                             | `ANNUAL_MONTHS_BILLED`                                                           |
+| Beta state                  | Paid plans **sold**. Plan feature **gates** on (`PLAN_FEATURE_GATES_ENABLED`). Free cohort of **15** remains waitlisted                                                                                                                          | `PAID_PLANS_DISABLED_DURING_BETA` + `PLAN_FEATURE_GATES_ENABLED`                 |
+| Beta capacity               | **15** free-cohort seats; signup stays open as a waiting list. Active paid plans skip the free waitlist (migration **0089**)                                                                                                                    | `src/config/beta.ts` `BETA_COHORT_LIMIT`; gates in migrations **0067**, **0089** |
+| Rings live                  | **All four rings complete.**                                                                                                                                                                                                                    | `docs/FOUR_RING_FRAMEWORK.md`                                                    |
+| Law-change monitoring       | **Federal (FED), Ontario (ON) and Québec (QC) confirmed working** (audit 2026-08-10)                                                                                                                                                            | `src/features/app/guidance/monitoringCoverage.ts`                                |
+| Contact address             | <support@dutiva.ca>                                                                                                                                                                                                                             | the published support address; retired ones stay retired (§6, enforced)          |
+| Languages                   | EN + FR, both surfaces, prerendered per locale                                                                                                                                                                                                  | `src/i18n/` — EN unprefixed, FR under `/fr`                                      |
+| Advisor replies             | Org-pooled included replies / UTC calendar month: Free **20** · Starter **80** · Growth **200** · Pro **400**. Paid plans may roll unused included replies for 90 days, capped at the current plan’s monthly allowance. Optional packs: **50** for **$5** CAD, **200** for **$15** CAD. Opt-in overage $0.12 CAD/reply, cap **500**/month, paid subscription only. | `src/config/planEntitlements.ts` `ADVISOR_MONTHLY_BY_PLAN`; `src/config/advisorUsage.ts` |
+| Brand gold                  | `#b98512 → #d4af37 → #f4c54b → #ffe37a`; on dark `#e9c877`                                                                                                                                                                                      | `tokens.css` `--gold-gradient`, `--gold-on-dark`                                 |
+| Brand navy                  | `#0d1b2a` ground, `#081019` deep                                                                                                                                                                                                                | `tokens.css` `--dutiva-navy`; `surfaces.css` `.surface-marketing --bg`           |
 
 ## Company and legal
 
@@ -116,12 +117,12 @@ publication mandate.
 May 2026 and September 2026 have both been published as launch dates and both have
 passed. **Do not publish a new calendar date.** Paid plans are sold: a visitor can
 check out on `/pricing` and skip the free waitlist once checkout completes. The
-15-person free cohort remains a waitlist. Product
-feature gates stay off (`PLAN_FEATURE_GATES_ENABLED`) — paying buys support, not
-extra modules. Optional prepaid Advisor reply packs (and opt-in metered overage
-on a paid subscription) are an AI add-on, not a plan feature. That stays true
-until those flags change, at which point this section has to be revisited in
-the same change.
+15-person free cohort remains a waitlist. Product feature gates are **on**
+(`PLAN_FEATURE_GATES_ENABLED`) together with org billing and capacity enforcement
+(migrations **0107–0111**, applied 2026-09-03). Demo workspace still shows the
+full product. Optional prepaid Advisor reply packs and opt-in metered overage
+remain add-ons on top of the plan’s included replies. Annual billing remains
+unavailable (`ANNUAL_BILLING_AVAILABLE`).
 
 ## Claims to stop making
 

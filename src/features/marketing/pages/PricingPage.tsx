@@ -20,11 +20,14 @@ import { supabase } from '@/lib/supabaseClient'
 import {
   ANNUAL_BILLING_AVAILABLE,
   PAID_PLANS_DISABLED_DURING_BETA,
+  PLAN_FEATURE_GATES_ENABLED,
   PLANS,
   annualPerMonth,
   annualTotal,
   getPlanById,
   isPurchasable,
+  planDescKey,
+  planFeatureKeys,
 } from '@/config/plans'
 import type { BillingPeriod, PlanDefinition } from '@/config/plans'
 import { PLAN_COMPARISON } from '@/config/planComparison'
@@ -160,7 +163,7 @@ function PriceCard({
       ) : null}
 
       <div className="mt-4 text-lg font-semibold text-text">{t(plan.nameKey)}</div>
-      <p className="mt-2 text-sm leading-6 text-text-2">{t(plan.descKey)}</p>
+      <p className="mt-2 text-sm leading-6 text-text-2">{t(planDescKey(plan))}</p>
       {plan.noteKey ? (
         <p className="mt-2 text-xs leading-5 text-text-3">{t(plan.noteKey)}</p>
       ) : null}
@@ -183,7 +186,7 @@ function PriceCard({
       </p>
 
       <ul className="m-0 mt-5 flex-1 list-none space-y-3 p-0">
-        {plan.featureKeys.map((key) => (
+        {planFeatureKeys(plan).map((key) => (
           <li key={key} className="flex items-start gap-3 text-sm text-text-2">
             <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-gold-subtle text-gold-strong">
               <Check size={13} />
@@ -342,7 +345,19 @@ const FAQ_ITEMS: { q: MarketingMessageKey; a: MarketingMessageKey }[] = [
   { q: 'pricing_faq_switch_q', a: 'pricing_faq_switch_a' },
   { q: 'pricing_faq_refund_q', a: 'pricing_faq_refund_a' },
   { q: 'pricing_faq_multiclient_q', a: 'pricing_faq_multiclient_a' },
-  { q: 'pricing_faq_packs_q', a: 'pricing_faq_packs_a' },
+  {
+    q: 'pricing_faq_packs_q',
+    a: PLAN_FEATURE_GATES_ENABLED ? 'pricing_faq_packs_a_entitled' : 'pricing_faq_packs_a',
+  },
+]
+
+const ENTITLED_FOOTNOTES: MarketingMessageKey[] = [
+  'pricing_fn_active_employees',
+  'pricing_fn_rollover',
+  'pricing_fn_documents',
+  'pricing_fn_signatures',
+  'pricing_fn_initial_reply',
+  'pricing_fn_review_before_use',
 ]
 
 /**
@@ -634,8 +649,15 @@ export function PricingPage() {
         </p>
         <ComparisonTable priceFor={priceFor} />
         <p className="mt-4 max-w-[68ch] text-xs leading-5 text-text-3">
-          {t('pricing_compare_note')}
+          {t(PLAN_FEATURE_GATES_ENABLED ? 'pricing_compare_note_entitled' : 'pricing_compare_note')}
         </p>
+        {PLAN_FEATURE_GATES_ENABLED ? (
+          <ul className="mt-3 max-w-[68ch] list-disc space-y-2 pl-5 text-xs leading-5 text-text-3">
+            {ENTITLED_FOOTNOTES.map((key) => (
+              <li key={key}>{t(key)}</li>
+            ))}
+          </ul>
+        ) : null}
       </PageSection>
 
       <TestimonialWall />

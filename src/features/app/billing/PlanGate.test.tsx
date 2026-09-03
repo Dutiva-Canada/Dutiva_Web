@@ -6,6 +6,7 @@ import { LangProvider } from '@/i18n/LangProvider'
 import { ThemeProvider } from '@/lib/theme'
 import { PlanContext } from './planContext'
 import type { PlanContextValue } from './planContext'
+import { makePlanContextValue } from './planContext'
 import { WorkspaceModeContext } from '@/features/app/workspaceMode/workspaceModeContext'
 import type { WorkspaceModeContextValue } from '@/features/app/workspaceMode/workspaceModeContext'
 
@@ -24,6 +25,7 @@ vi.mock('@/config/plans', async (importOriginal) => {
 })
 
 import { PlanGate } from './PlanGate'
+import type { PlanFeature } from '@/config/planEntitlements'
 
 /* PlanGate has two bypass paths — admin and demo mode — plus the
    PLAN_FEATURE_GATES_ENABLED off switch. Enforcement is production mode
@@ -57,20 +59,23 @@ const PROD_MODE: WorkspaceModeContextValue = {
 }
 
 function makePlanCtx(overrides: Partial<PlanContextValue> = {}): PlanContextValue {
-  return {
+  return makePlanContextValue({
     plan: 'free',
     subscriptionStatus: 'active',
     stripeCustomerId: null,
+    organizationId: null,
     isAdmin: false,
     loading: false,
     ...overrides,
-  }
+  })
 }
 
 function renderGate(
   planCtx: PlanContextValue,
   modeCtx: WorkspaceModeContextValue,
-  required: 'free' | 'starter' | 'growth' | 'pro' = 'growth',
+  opts: { required?: 'free' | 'starter' | 'growth' | 'pro'; feature?: PlanFeature } = {
+    required: 'growth',
+  },
 ) {
   return render(
     <ThemeProvider>
@@ -78,9 +83,15 @@ function renderGate(
         <MemoryRouter>
           <WorkspaceModeContext.Provider value={modeCtx}>
             <PlanContext.Provider value={planCtx}>
-              <PlanGate required={required}>
-                <div data-testid="content">Premium content</div>
-              </PlanGate>
+              {opts.feature !== undefined ? (
+                <PlanGate feature={opts.feature}>
+                  <div data-testid="content">Premium content</div>
+                </PlanGate>
+              ) : (
+                <PlanGate required={opts.required ?? 'growth'}>
+                  <div data-testid="content">Premium content</div>
+                </PlanGate>
+              )}
             </PlanContext.Provider>
           </WorkspaceModeContext.Provider>
         </MemoryRouter>
@@ -98,32 +109,34 @@ describe('PlanGate', () => {
 
   it('renders children in production when feature gates are off, even on a free plan', () => {
     PLAN_FEATURE_GATES_ENABLED.value = false
-    renderGate(makePlanCtx({ plan: 'free' }), PROD_MODE, 'growth')
+    renderGate(makePlanCtx({ plan: 'free' }), PROD_MODE, { required: 'growth' })
     expect(screen.getByTestId('content')).toBeInTheDocument()
   })
 
   it('renders children in production mode when plan meets the requirement', () => {
     PLAN_FEATURE_GATES_ENABLED.value = true
-    renderGate(makePlanCtx({ plan: 'growth' }), PROD_MODE, 'growth')
+    renderGate(makePlanCtx({ plan: 'growth' }), PROD_MODE, { required: 'growth' })
     expect(screen.getByTestId('content')).toBeInTheDocument()
   })
 
   it('renders children in production mode when plan exceeds the requirement', () => {
     PLAN_FEATURE_GATES_ENABLED.value = true
-    renderGate(makePlanCtx({ plan: 'pro' }), PROD_MODE, 'growth')
+    renderGate(makePlanCtx({ plan: 'pro' }), PROD_MODE, { required: 'growth' })
     expect(screen.getByTestId('content')).toBeInTheDocument()
   })
 
   it('renders the upgrade nudge in production mode when gates are on and plan is below required', () => {
     PLAN_FEATURE_GATES_ENABLED.value = true
-    renderGate(makePlanCtx({ plan: 'free' }), PROD_MODE, 'growth')
+    renderGate(makePlanCtx({ plan: 'free' }), PROD_MODE, { required: 'growth' })
     expect(screen.queryByTestId('content')).not.toBeInTheDocument()
     expect(screen.getByRole('link')).toHaveAttribute('href', '/pricing?upgrade=growth')
   })
 
   it('renders the upgrade nudge when subscription is past due despite a paid plan', () => {
     PLAN_FEATURE_GATES_ENABLED.value = true
-    renderGate(makePlanCtx({ plan: 'pro', subscriptionStatus: 'past_due' }), PROD_MODE, 'growth')
+    renderGate(makePlanCtx({ plan: 'pro', subscriptionStatus: 'past_due' }), PROD_MODE, {
+      required: 'growth',
+    })
     expect(screen.queryByTestId('content')).not.toBeInTheDocument()
     expect(screen.getByRole('link')).toHaveAttribute('href', '/pricing?upgrade=growth')
   })
@@ -151,14 +164,54 @@ describe('PlanGate', () => {
 
   it('renders children when isAdmin is true, even on a free plan in production', () => {
     PLAN_FEATURE_GATES_ENABLED.value = true
-    renderGate(makePlanCtx({ plan: 'free', isAdmin: true }), PROD_MODE, 'pro')
+    renderGate(makePlanCtx({ plan: 'free', isAdmin: true }), PROD_MODE, { required: 'pro' })
     expect(screen.getByTestId('content')).toBeInTheDocument()
   })
 
-  it('renders nothing while loading', () => {
+  it('renders nothing while loading when gates are on', () => {
     PLAN_FEATURE_GATES_ENABLED.value = true
     renderGate(makePlanCtx({ loading: true }), PROD_MODE)
     expect(screen.queryByTestId('content')).not.toBeInTheDocument()
     expect(screen.queryByRole('link')).not.toBeInTheDocument()
+  })
+
+  it('renders children while loading when gates are off', () => {
+    PLAN_FEATURE_GATES_ENABLED.value = false
+    renderGate(makePlanCtx({ loading: true }), PROD_MODE)
+    expect(screen.getByTestId('content')).toBeInTheDocument()
+  })
+
+  it('gates Word export behind starter via word_compatible_export feature', () => {
+    PLAN_FEATURE_GATES_ENABLED.value = true
+    renderGate(makePlanCtx({ plan: 'free' }), PROD_MODE, {
+      feature: 'word_compatible_export',
+    })
+    expect(screen.queryByTestId('content')).not.toBeInTheDocument()
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/pricing?upgrade=starter')
+  })
+
+  it('allows word_compatible_export on starter with an active subscription', () => {
+    PLAN_FEATURE_GATES_ENABLED.value = true
+    renderGate(makePlanCtx({ plan: 'starter' }), PROD_MODE, {
+      feature: 'word_compatible_export',
+    })
+    expect(screen.getByTestId('content')).toBeInTheDocument()
+  })
+
+  it('allows free features without an active subscription', () => {
+    PLAN_FEATURE_GATES_ENABLED.value = true
+    renderGate(makePlanCtx({ plan: 'free', subscriptionStatus: 'inactive' }), PROD_MODE, {
+      feature: 'pdf_export',
+    })
+    expect(screen.getByTestId('content')).toBeInTheDocument()
+  })
+
+  it('gates Growth module features behind growth', () => {
+    PLAN_FEATURE_GATES_ENABLED.value = true
+    renderGate(makePlanCtx({ plan: 'starter' }), PROD_MODE, {
+      feature: 'operational_analytics',
+    })
+    expect(screen.queryByTestId('content')).not.toBeInTheDocument()
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/pricing?upgrade=growth')
   })
 })

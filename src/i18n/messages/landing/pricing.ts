@@ -58,10 +58,15 @@ export const landingPricing = defineMessages({
     en: 'Waitlist — we’ll email you when a free seat opens.',
     fr: 'Liste d’attente — nous vous écrirons dès qu’une place gratuite se libère.',
   },
+  landing_free_desc_ent: {
+    en: 'Waitlist — limited capacity once a seat opens.',
+    fr: 'Liste d’attente — capacité limitée dès qu’une place se libère.', // [FR self-authored]
+  },
   landing_free_note: {
     en: `Free access lasts ${FREE_PLAN_ACCESS_MONTHS} months. It may be extended after that.`,
     fr: `L’accès gratuit dure ${FREE_PLAN_ACCESS_MONTHS} mois. Il pourrait être prolongé par la suite.`, // [FR self-authored]
   },
+  /* Quiet-beta bullets — support membership; gates off. */
   landing_free_f1: {
     en: 'Full product once a seat opens',
     fr: 'Produit complet dès qu’une place se libère',
@@ -73,6 +78,19 @@ export const landingPricing = defineMessages({
   landing_free_f3: {
     en: 'Standard queue (2 business days)',
     fr: 'File standard (2 jours ouvrables)',
+  },
+  /* Entitled bullets — shown only when PLAN_FEATURE_GATES_ENABLED. */
+  landing_free_ent_f1: {
+    en: '1 user, 5 active employees',
+    fr: '1 utilisateur, 5 employés actifs', // [FR self-authored]
+  },
+  landing_free_ent_f2: {
+    en: '20 Advisor replies / month',
+    fr: '20 réponses du Conseiller / mois', // [FR self-authored]
+  },
+  landing_free_ent_f3: {
+    en: 'Help Centre and email (2 business days)',
+    fr: 'Centre d’aide et courriel (2 jours ouvrables)', // [FR self-authored]
   },
   landing_free_cta: {
     en: 'Join the waitlist',
@@ -86,6 +104,10 @@ export const landingPricing = defineMessages({
     en: 'Skip the waitlist. Full product, email support.',
     fr: 'Sautez la liste d’attente. Produit complet, soutien par courriel.',
   },
+  landing_starter_desc_ent: {
+    en: 'Skip the waitlist. Capacity for small teams.',
+    fr: 'Sautez la liste d’attente. Capacité pour petites équipes.', // [FR self-authored]
+  },
   landing_starter_f1: {
     en: 'Skip the waitlist',
     fr: 'Sauter la liste d’attente',
@@ -97,6 +119,18 @@ export const landingPricing = defineMessages({
   landing_starter_f3: {
     en: 'Email support — paid tickets first',
     fr: 'Soutien par courriel — billets payants en premier',
+  },
+  landing_starter_ent_f1: {
+    en: '2 users, 10 active employees',
+    fr: '2 utilisateurs, 10 employés actifs', // [FR self-authored]
+  },
+  landing_starter_ent_f2: {
+    en: '80 Advisor replies / month',
+    fr: '80 réponses du Conseiller / mois', // [FR self-authored]
+  },
+  landing_starter_ent_f3: {
+    en: 'Email support — paid tickets first',
+    fr: 'Soutien par courriel — billets payants en premier', // [FR self-authored]
   },
   landing_starter_cta: {
     en: 'Start Starter',
@@ -114,6 +148,10 @@ export const landingPricing = defineMessages({
     en: 'Faster replies and an onboarding walkthrough on request.',
     fr: 'Réponses plus rapides et une visite d’accueil sur demande.',
   },
+  landing_growth_desc_ent: {
+    en: 'More capacity, analytics, and a 1-day initial reply target.',
+    fr: 'Plus de capacité, de l’analytique, et une cible de première réponse en 1 jour.', // [FR self-authored]
+  },
   landing_growth_f1: {
     en: 'Skip the waitlist',
     fr: 'Sauter la liste d’attente',
@@ -125,6 +163,18 @@ export const landingPricing = defineMessages({
   landing_growth_f3: {
     en: 'Onboarding walkthrough on request',
     fr: 'Visite d’accueil sur demande',
+  },
+  landing_growth_ent_f1: {
+    en: '5 users, 50 active employees',
+    fr: '5 utilisateurs, 50 employés actifs', // [FR self-authored]
+  },
+  landing_growth_ent_f2: {
+    en: '200 Advisor replies / month',
+    fr: '200 réponses du Conseiller / mois', // [FR self-authored]
+  },
+  landing_growth_ent_f3: {
+    en: 'Operational dashboard and analytics',
+    fr: 'Tableau de bord opérationnel et analytique', // [FR self-authored]
   },
   landing_growth_cta: {
     en: 'Upgrade to Growth',
@@ -138,6 +188,10 @@ export const landingPricing = defineMessages({
     en: 'Same as Growth, plus a scheduled onboarding call.',
     fr: 'Comme Growth, plus un appel d’accueil planifié.',
   },
+  landing_pro_desc_ent: {
+    en: 'Highest published capacity, plus a scheduled onboarding call.',
+    fr: 'La plus haute capacité publiée, plus un appel d’accueil planifié.', // [FR self-authored]
+  },
   landing_pro_f1: {
     en: 'Skip the waitlist',
     fr: 'Sauter la liste d’attente',
@@ -149,6 +203,18 @@ export const landingPricing = defineMessages({
   landing_pro_f3: {
     en: 'Scheduled onboarding call',
     fr: 'Appel d’accueil planifié',
+  },
+  landing_pro_ent_f1: {
+    en: '10 users, 100 active employees',
+    fr: '10 utilisateurs, 100 employés actifs', // [FR self-authored]
+  },
+  landing_pro_ent_f2: {
+    en: '400 Advisor replies / month',
+    fr: '400 réponses du Conseiller / mois', // [FR self-authored]
+  },
+  landing_pro_ent_f3: {
+    en: 'Scheduled onboarding call',
+    fr: 'Appel d’accueil planifié', // [FR self-authored]
   },
   landing_pro_cta: {
     en: 'Upgrade to Professional',

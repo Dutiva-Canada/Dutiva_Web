@@ -7,6 +7,11 @@
 > webhook) is closed** — owner confirmed dashboard configuration 2026-08-27;
 > see [STRIPE_GO_LIVE.md § Completion record](STRIPE_GO_LIVE.md). The findings
 > below are kept as written, as the record of what was found.
+>
+> **Follow-on (OA21, 2026-09-03):** org billing migrations **0107–0111** are
+> applied on production; `stripe-webhook` and `advisor-chat` redeployed;
+> `PLAN_FEATURE_GATES_ENABLED` is `true` on client and edge. Historical
+> findings below are kept as written.
 
 **Date:** 2026-07-27
 **Scope:** the paid-signup path (`/pricing` → Stripe Checkout → entitlement) and

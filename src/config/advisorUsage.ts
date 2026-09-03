@@ -1,13 +1,19 @@
 /**
- * Commercial Advisor-reply budget — same included amount for every admitted
- * account. Abuse rails (burst / daily / platform) live in
+ * Commercial Advisor-reply budget catalogue.
+ *
+ * Live included replies are plan-tiered (20 / 80 / 200 / 400) in
+ * `planEntitlements.ts` and SQL `advisor_monthly_included`.
+ * `ADVISOR_MONTHLY_INCLUDED` (80) remains the env fallback for legacy
+ * null-org `claim_ai_usage` callers (`AI_MONTHLY_CHAT_LIMIT`).
+ *
+ * Abuse rails (burst / daily / platform) live in
  * `supabase/functions/_shared/aiUsage.ts` and are never for sale.
  *
- * Deno edge functions cannot import `src/`, so the same numbers are duplicated
- * as env fallbacks there. `canonicalFacts.test.ts` greps those fallbacks so
- * they cannot drift from this file.
+ * Deno edge functions cannot import `src/`, so fallbacks are duplicated there.
+ * `canonicalFacts.test.ts` greps those fallbacks so they cannot drift.
  */
 
+/** Quiet-beta / gates-off included replies (UTC calendar month). */
 export const ADVISOR_MONTHLY_INCLUDED = 80
 
 export const ADVISOR_PACK_50_REPLIES = 50

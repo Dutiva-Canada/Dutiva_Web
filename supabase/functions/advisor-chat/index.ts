@@ -8,6 +8,12 @@ import type { MemoryFactForPrompt } from './memoryFacts.ts'
 import { memoryExtractionPromptAppendix, extractMemoryCandidates } from './memoryExtract.ts'
 import type { ExtractedMemoryCandidate } from './memoryExtract.ts'
 import {
+  normalizeOrgPlan,
+  planAllowsAdvisorMemory,
+  planFeatureGatesEnabled,
+  type OrgPlanId,
+} from './planEntitlements.ts'
+import {
   advisorChatPolicy,
   claimAiUsage,
   finalizeAiUsage,
@@ -230,14 +236,41 @@ function guidanceBlock(chunks: GuidanceChunk[]): string {
 }
 
 /**
+ * Effective org plan for feature gates. Failures → free (fail closed for
+ * premium injection, not for chat itself).
+ */
+async function loadOrganizationPlan(
+  adminClient: SupabaseClient,
+  organizationId: string | null,
+): Promise<OrgPlanId> {
+  if (!organizationId) return 'free'
+  try {
+    const { data, error } = await adminClient
+      .from('organizations')
+      .select('plan, subscription_status')
+      .eq('id', organizationId)
+      .maybeSingle()
+    if (error || !data) return 'free'
+    const status = String((data as { subscription_status?: string }).subscription_status ?? '')
+    if (status !== 'active' && status !== 'trialing') return 'free'
+    return normalizeOrgPlan((data as { plan?: string }).plan)
+  } catch {
+    return 'free'
+  }
+}
+
+/**
  * Load confirmed org memory for prompt injection. Failures return [] — memory
  * must never take the Advisor down (same posture as corpus retrieval).
+ * When plan feature gates are on, Free/Starter never receive cross-record
+ * memory in the prompt (facts remain stored for privacy/export paths).
  */
 async function loadOrgMemoryFacts(
   adminClient: SupabaseClient,
   organizationId: string | null,
+  allowInjection: boolean,
 ): Promise<MemoryFactForPrompt[]> {
-  if (!organizationId) return []
+  if (!organizationId || !allowInjection) return []
   try {
     const { data, error } = await adminClient
       .from('hr_advisor_memory_facts')
@@ -671,12 +704,16 @@ Deno.serve(async (req: Request) => {
      the one figure the product has a table for is looked up, not generated
      (§5.2's grounding half, finally wired into the chat path). Confirmed
      org memory (hr_advisor_memory_facts) is appended separately — workplace
-     context, never statute. */
+     context, never statute. Injection is Growth+ when plan feature gates are
+     on; while gates are off every admitted org keeps current parity. */
+  const orgPlan = await loadOrganizationPlan(authenticated.adminClient, request.organizationId)
+  const memoryAllowed = !planFeatureGatesEnabled() || planAllowsAdvisorMemory(orgPlan)
   const memoryFacts = selectMemoryFactsForPrompt(
-    await loadOrgMemoryFacts(authenticated.adminClient, request.organizationId),
+    await loadOrgMemoryFacts(authenticated.adminClient, request.organizationId, memoryAllowed),
     conversation.id,
   )
-  const extractionAppendix = request.organizationId ? memoryExtractionPromptAppendix() : ''
+  const extractionAppendix =
+    request.organizationId && memoryAllowed ? memoryExtractionPromptAppendix() : ''
   const guidance =
     guidanceBlock(guidanceChunks) +
     noticeScheduleBlock(request.message, detectJurisdictions(request.message)) +
@@ -696,11 +733,12 @@ Deno.serve(async (req: Request) => {
   if (completionResult instanceof Response) return completionResult
 
   const rawReply = completionResult.completion.choices?.[0]?.message?.content ?? ''
-  const extracted = request.organizationId
-    ? extractMemoryCandidates(rawReply, request.message, conversation.id)
-    : { cleanReply: rawReply, candidates: [] as ExtractedMemoryCandidate[] }
+  const extracted =
+    request.organizationId && memoryAllowed
+      ? extractMemoryCandidates(rawReply, request.message, conversation.id)
+      : { cleanReply: rawReply, candidates: [] as ExtractedMemoryCandidate[] }
   const reply = extracted.cleanReply
-  if (request.organizationId && extracted.candidates.length > 0) {
+  if (request.organizationId && memoryAllowed && extracted.candidates.length > 0) {
     await persistExtractedFacts(
       authenticated.adminClient,
       request.organizationId,

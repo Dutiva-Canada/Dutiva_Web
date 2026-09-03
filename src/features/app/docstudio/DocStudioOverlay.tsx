@@ -342,15 +342,15 @@ export function DocStudioOverlay() {
 
           {!gateOpen && (
             <>
-              <PlanGate required="growth">
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => exportDoc('PDF')}
-                    className="flex-1 cursor-pointer rounded-[9px] bg-navy p-2.5 font-sans text-[13.5px] font-bold text-white"
-                  >
-                    {x(M.docstudio_export_pdf)}
-                  </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => exportDoc('PDF')}
+                  className="flex-1 cursor-pointer rounded-[9px] bg-navy p-2.5 font-sans text-[13.5px] font-bold text-white"
+                >
+                  {x(M.docstudio_export_pdf)}
+                </button>
+                <PlanGate feature="word_compatible_export">
                   <button
                     type="button"
                     onClick={() => exportDoc('Word')}
@@ -358,32 +358,30 @@ export function DocStudioOverlay() {
                   >
                     {x(M.docstudio_export_word)}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => exportDoc('link')}
-                    className="cursor-pointer rounded-[9px] border border-border bg-surface px-3.5 py-2.5 font-sans text-[13.5px] font-semibold text-text"
-                  >
-                    {x(M.docstudio_copy_link)}
-                  </button>
-                </div>
-              </PlanGate>
-              <PlanGate required="growth">
-                {studio.signatureSent ? (
-                  <output className="flex items-center gap-2 rounded-[9px] border border-ok-border bg-ok-bg px-3.25 py-2.5 text-[12.5px] font-semibold text-ok-fg">
-                    <Check size={15} strokeWidth={2} className="shrink-0" aria-hidden="true" />
-                    <span>{x(M.docstudio_esign_pending)}</span>
-                  </output>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={sendForSignature}
-                    className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[9px] border border-gold-border bg-gold-bg p-2.75 font-sans text-[13.5px] font-bold text-gold-fg"
-                  >
-                    <PenTool size={15} strokeWidth={1.8} aria-hidden="true" />
-                    {x(M.docstudio_esign_send)}
-                  </button>
-                )}
-              </PlanGate>
+                </PlanGate>
+                <button
+                  type="button"
+                  onClick={() => exportDoc('link')}
+                  className="cursor-pointer rounded-[9px] border border-border bg-surface px-3.5 py-2.5 font-sans text-[13.5px] font-semibold text-text"
+                >
+                  {x(M.docstudio_copy_link)}
+                </button>
+              </div>
+              {studio.signatureSent ? (
+                <output className="flex items-center gap-2 rounded-[9px] border border-ok-border bg-ok-bg px-3.25 py-2.5 text-[12.5px] font-semibold text-ok-fg">
+                  <Check size={15} strokeWidth={2} className="shrink-0" aria-hidden="true" />
+                  <span>{x(M.docstudio_esign_pending)}</span>
+                </output>
+              ) : (
+                <button
+                  type="button"
+                  onClick={sendForSignature}
+                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[9px] border border-gold-border bg-gold-bg p-2.75 font-sans text-[13.5px] font-bold text-gold-fg"
+                >
+                  <PenTool size={15} strokeWidth={1.8} aria-hidden="true" />
+                  {x(M.docstudio_esign_send)}
+                </button>
+              )}
             </>
           )}
         </div>

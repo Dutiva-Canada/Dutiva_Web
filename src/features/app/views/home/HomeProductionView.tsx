@@ -1,3 +1,4 @@
+import { useContext } from 'react'
 import { Link } from 'react-router-dom'
 import { BookOpen } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -6,6 +7,10 @@ import { homeMessages as M } from '@/i18n/messages/home'
 import { ChatComposer } from '@/features/app/advisor/ChatComposer'
 import { statusChipClass } from '@/components/chips'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { PlanContext } from '@/features/app/billing/planContext'
+import { UpgradeNudge } from '@/features/app/billing/PlanGate'
+import { hasPlanFeature } from '@/features/app/billing/planAccess'
+import { PLAN_FEATURE_GATES_ENABLED, hasActiveSubscription } from '@/config/plans'
 import { HomeProductionEmptyState } from './HomeProductionEmptyState'
 import { useHomeProductionStats } from './useHomeProductionStats'
 import { AppPage } from '@/features/app/shell/AppPage'
@@ -17,12 +22,27 @@ import { AppPage } from '@/features/app/shell/AppPage'
  * modules, a due-soon list drawn from real cases and tasks (overdue
  * flagged), and a policy-attention row. Everything loads through the
  * modules' own productionApi boundaries, like Reports.
+ *
+ * When feature gates are on and the plan lacks operational_dashboard
+ * (Free / Starter), keep the guided setup + nav CTAs and show an upgrade
+ * strip — do not replace the whole Home with a locked card.
  */
 
 export function HomeProductionView({ onSend }: { readonly onSend: (text: string) => void }) {
   const { x } = useI18n()
   const { identity, organizationId } = useWorkspaceMode()
+  /* Optional: production view tests reimport after vi.resetModules(), which can
+     desync PlanContext identity from PlanProvider. Gates-off / missing context
+     keep the full dashboard (parity with PLAN_FEATURE_GATES_ENABLED = false). */
+  const planCtx = useContext(PlanContext)
   const { data, loadFailed, reload, stats, dueItems, totalRecords } = useHomeProductionStats()
+
+  const showOperationalDashboard =
+    !PLAN_FEATURE_GATES_ENABLED ||
+    !planCtx ||
+    planCtx.isAdmin ||
+    (hasPlanFeature(planCtx.plan, 'operational_dashboard') &&
+      hasActiveSubscription(planCtx.subscriptionStatus))
 
   /* No org yet (bootstrap pending/failed) or still loading — the welcome
      state stays useful and never flashes an error at the front door. */
@@ -53,6 +73,24 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
      but TypeScript can't correlate the two guards. */
   if (data === null) {
     return <HomeProductionEmptyState identity={identity} onSend={onSend} employeeCount={0} />
+  }
+
+  if (!showOperationalDashboard) {
+    return (
+      <HomeProductionEmptyState
+        identity={identity}
+        onSend={onSend}
+        employeeCount={data.employees}
+        afterChecklist={
+          <>
+            <p className="mb-[10px] text-center text-[13px] text-text-muted">
+              {x(M.home_prod_dashboard_upgrade)}
+            </p>
+            <UpgradeNudge required="growth" />
+          </>
+        }
+      />
+    )
   }
 
   if (totalRecords === 0) {

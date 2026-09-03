@@ -64,7 +64,10 @@ const rowSchema = z.object({
 const SELECT_COLUMNS =
   'id, name, title, email, jurisdiction, start_date, status, probation_end_date, termination_date, manager_id'
 
-function toEmployee(row: z.infer<typeof rowSchema>, managerName: string | null): ProductionEmployee {
+function toEmployee(
+  row: z.infer<typeof rowSchema>,
+  managerName: string | null,
+): ProductionEmployee {
   return {
     id: row.id,
     name: row.name,
@@ -99,7 +102,11 @@ async function managerNamesForIds(
 async function managerNameForId(managerId: string | null | undefined): Promise<string | null> {
   if (!managerId) return null
   if (!supabase) throw new Error('Supabase is not configured')
-  const { data, error } = await supabase.from('employees').select('name').eq('id', managerId).maybeSingle()
+  const { data, error } = await supabase
+    .from('employees')
+    .select('name')
+    .eq('id', managerId)
+    .maybeSingle()
   if (error) throw error
   return data?.name ?? null
 }
@@ -129,7 +136,9 @@ export async function listEmployees(organizationId: string): Promise<ProductionE
     organizationId,
     parsed.map((row) => row.manager_id),
   )
-  return parsed.map((row) => toEmployee(row, row.manager_id ? (managerNames.get(row.manager_id) ?? null) : null))
+  return parsed.map((row) =>
+    toEmployee(row, row.manager_id ? (managerNames.get(row.manager_id) ?? null) : null),
+  )
 }
 
 export async function addEmployee(

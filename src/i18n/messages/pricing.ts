@@ -1,4 +1,18 @@
+import {
+  ADVISOR_OVERAGE_MONTHLY_REPLY_CAP,
+  ADVISOR_OVERAGE_PER_REPLY_CAD,
+  ADVISOR_PACK_50_PRICE_CAD,
+  ADVISOR_PACK_50_REPLIES,
+  ADVISOR_PACK_200_PRICE_CAD,
+  ADVISOR_PACK_200_REPLIES,
+} from '@/config/advisorUsage'
+import { PLAN_ENTITLEMENTS } from '@/config/planEntitlements'
 import { defineMessages } from '../core'
+
+const freeAdvisor = PLAN_ENTITLEMENTS.free.limits.advisorRepliesPerMonth
+const starterAdvisor = PLAN_ENTITLEMENTS.starter.limits.advisorRepliesPerMonth
+const growthAdvisor = PLAN_ENTITLEMENTS.growth.limits.advisorRepliesPerMonth
+const proAdvisor = PLAN_ENTITLEMENTS.pro.limits.advisorRepliesPerMonth
 
 /**
  * Standalone /pricing page chrome. Plan names/descriptions/features reuse
@@ -168,17 +182,197 @@ export const pricingMessages = defineMessages({
     en: 'Every admitted account gets the full product. Paying skips the waitlist and buys faster founder-led support. Advisor usage has fair-use caps so the service stays fast. Initial-reply times are targets, not resolution promises.',
     fr: 'Chaque compte admis a le produit complet. Payer saute la liste d’attente et achète un soutien plus rapide mené par le fondateur. L’usage du Conseiller a des plafonds raisonnables pour garder le service rapide. Les délais de première réponse sont des cibles, pas des promesses de résolution.', // [FR self-authored]
   },
+  /* Shown when PLAN_FEATURE_GATES_ENABLED — never claim “full product”. */
+  pricing_compare_note_entitled: {
+    en: 'Limits apply to your active workspace. Footnotes explain how employees, documents, signatures, and Advisor rollover are counted. Initial-reply times are targets, not resolution promises.',
+    fr: 'Les limites s’appliquent à votre espace de travail actif. Les notes de bas de page expliquent le décompte des employés, documents, signatures et reports du Conseiller. Les délais de première réponse sont des cibles, pas des promesses de résolution.', // [FR self-authored]
+  },
   pricing_grp_workspace: { en: 'Access', fr: 'Accès' },
+  pricing_grp_access: { en: 'Access', fr: 'Accès' }, // [FR self-authored]
+  pricing_grp_advisor: { en: 'AI Advisor', fr: 'Conseiller IA' }, // [FR self-authored]
+  pricing_grp_employees_cases: {
+    en: 'Employees & cases',
+    fr: 'Employés et dossiers', // [FR self-authored]
+  },
+  pricing_grp_planning: { en: 'Planning', fr: 'Planification' }, // [FR self-authored]
+  pricing_grp_documents: { en: 'Documents', fr: 'Documents' }, // [FR self-authored]
+  pricing_grp_workflows: { en: 'Workflows & guides', fr: 'Flux et guides' }, // [FR self-authored]
+  pricing_grp_dashboard: { en: 'Dashboard & analytics', fr: 'Tableau de bord et analytique' }, // [FR self-authored]
+  pricing_grp_workplace: { en: 'Workplace registers', fr: 'Registres du milieu de travail' }, // [FR self-authored]
   pricing_grp_support: { en: 'Support', fr: 'Soutien' },
   pricing_grp_billing: { en: 'Billing & terms', fr: 'Facturation et conditions' },
 
   pricing_row_full_product: { en: 'Full product', fr: 'Produit complet' },
   pricing_row_skip_waitlist: { en: 'Skip the waitlist', fr: 'Sauter la liste d’attente' },
+  pricing_row_workspace_users: {
+    en: 'Workspace users',
+    fr: 'Utilisateurs de l’espace', // [FR self-authored]
+  },
+  pricing_row_active_employees: {
+    en: 'Active employees',
+    fr: 'Employés actifs', // [FR self-authored]
+  },
+  pricing_row_active_cases: {
+    en: 'Active HR cases',
+    fr: 'Dossiers RH actifs', // [FR self-authored]
+  },
+  pricing_row_open_tasks: {
+    en: 'Open tasks',
+    fr: 'Tâches ouvertes', // [FR self-authored]
+  },
+  pricing_row_advisor_replies: {
+    en: 'Advisor replies / month',
+    fr: 'Réponses du Conseiller / mois', // [FR self-authored]
+  },
+  pricing_row_advisor_rollover: {
+    en: 'Advisor reply rollover',
+    fr: 'Report des réponses du Conseiller', // [FR self-authored]
+  },
+  pricing_row_reply_packs: {
+    en: 'Prepaid reply packs',
+    fr: 'Forfaits de réponses prépayés', // [FR self-authored]
+  },
+  pricing_row_metered_overage: {
+    en: 'Opt-in metered overage',
+    fr: 'Dépassement mesuré (sur demande)', // [FR self-authored]
+  },
+  pricing_row_advisor_memory: {
+    en: 'Cross-record Advisor memory',
+    fr: 'Mémoire du Conseiller entre dossiers', // [FR self-authored]
+  },
+  pricing_row_employee_profiles: {
+    en: 'Employee profiles',
+    fr: 'Profils d’employés', // [FR self-authored]
+  },
+  pricing_row_employee_notes: {
+    en: 'Employee notes',
+    fr: 'Notes sur les employés', // [FR self-authored]
+  },
+  pricing_row_leave_records: {
+    en: 'Leave records',
+    fr: 'Dossiers de congé', // [FR self-authored]
+  },
+  pricing_row_expiry_tracking: {
+    en: 'Expiry tracking',
+    fr: 'Suivi des échéances', // [FR self-authored]
+  },
+  pricing_row_hr_cases: {
+    en: 'HR cases',
+    fr: 'Dossiers RH', // [FR self-authored]
+  },
+  pricing_row_case_notes: {
+    en: 'Case notes',
+    fr: 'Notes de dossier', // [FR self-authored]
+  },
+  pricing_row_tasks: {
+    en: 'Tasks',
+    fr: 'Tâches', // [FR self-authored]
+  },
+  pricing_row_calendar: {
+    en: 'Calendar',
+    fr: 'Calendrier', // [FR self-authored]
+  },
+  pricing_row_compliance_findings: {
+    en: 'Compliance findings',
+    fr: 'Constatations de conformité', // [FR self-authored]
+  },
+  pricing_row_obligations: {
+    en: 'Obligations',
+    fr: 'Obligations', // [FR self-authored]
+  },
+  pricing_row_policy_register: {
+    en: 'Policy register',
+    fr: 'Registre des politiques', // [FR self-authored]
+  },
+  pricing_row_policy_review: {
+    en: 'Policy review reminders',
+    fr: 'Rappels de révision des politiques', // [FR self-authored]
+  },
+  pricing_row_templates_visible: {
+    en: 'Document templates',
+    fr: 'Modèles de documents', // [FR self-authored]
+  },
+  pricing_row_saved_documents: {
+    en: 'Saved documents',
+    fr: 'Documents enregistrés', // [FR self-authored]
+  },
+  pricing_row_signature_envelopes: {
+    en: 'Signature envelopes',
+    fr: 'Enveloppes de signature', // [FR self-authored]
+  },
+  pricing_row_pdf_export: {
+    en: 'PDF export',
+    fr: 'Export PDF', // [FR self-authored]
+  },
+  pricing_row_word_export: {
+    en: 'Word-compatible export',
+    fr: 'Export compatible Word', // [FR self-authored]
+  },
+  pricing_row_doc_repository: {
+    en: 'Document repository',
+    fr: 'Dépôt de documents', // [FR self-authored]
+  },
+  pricing_row_workflows: {
+    en: 'Guided workflows',
+    fr: 'Flux guidés', // [FR self-authored]
+  },
+  pricing_row_reference_guides: {
+    en: 'Reference guides',
+    fr: 'Guides de référence', // [FR self-authored]
+  },
+  pricing_row_official_sources: {
+    en: 'Links to official sources',
+    fr: 'Liens vers les sources officielles', // [FR self-authored]
+  },
+  pricing_row_guided_setup: {
+    en: 'Guided setup',
+    fr: 'Configuration guidée', // [FR self-authored]
+  },
+  pricing_row_operational_dashboard: {
+    en: 'Operational dashboard',
+    fr: 'Tableau de bord opérationnel', // [FR self-authored]
+  },
+  pricing_row_operational_analytics: {
+    en: 'Operational analytics',
+    fr: 'Analytique opérationnelle', // [FR self-authored]
+  },
+  pricing_row_compliance_trends: {
+    en: 'Compliance trends',
+    fr: 'Tendances de conformité', // [FR self-authored]
+  },
+  pricing_row_case_aging: {
+    en: 'Case aging insights',
+    fr: 'Insights sur le vieillissement des dossiers', // [FR self-authored]
+  },
+  pricing_row_workforce_insights: {
+    en: 'Workforce insights',
+    fr: 'Insights sur l’effectif', // [FR self-authored]
+  },
+  pricing_row_communications: {
+    en: 'Communications register',
+    fr: 'Registre des communications', // [FR self-authored]
+  },
+  pricing_row_compensation: {
+    en: 'Compensation register',
+    fr: 'Registre de la rémunération', // [FR self-authored]
+  },
+  pricing_row_wellbeing: {
+    en: 'Wellbeing register',
+    fr: 'Registre du bien-être', // [FR self-authored]
+  },
   pricing_row_help_centre: { en: 'Help Centre', fr: 'Centre d’aide' },
   pricing_row_support: { en: 'Support', fr: 'Soutien' },
+  pricing_row_queue_priority: {
+    en: 'Support queue priority',
+    fr: 'Priorité dans la file de soutien', // [FR self-authored]
+  },
   pricing_row_initial_reply: {
     en: 'Initial reply (business days)',
     fr: 'Première réponse (jours ouvrables)',
+  },
+  pricing_row_self_onboarding: {
+    en: 'Self-serve onboarding',
+    fr: 'Accueil en libre-service', // [FR self-authored]
   },
   pricing_row_walkthrough: {
     en: 'Onboarding walkthrough on request',
@@ -194,6 +388,84 @@ export const pricingMessages = defineMessages({
   pricing_v_email: { en: 'Email', fr: 'Courriel' },
   pricing_v_2_days: { en: '2 days', fr: '2 jours' },
   pricing_v_1_day: { en: '1 day', fr: '1 jour' },
+  pricing_v_unlimited: { en: 'Unlimited', fr: 'Illimité' }, // [FR self-authored]
+
+  pricing_v_users_free: { en: '1', fr: '1' },
+  pricing_v_users_starter: { en: '2', fr: '2' },
+  pricing_v_users_growth: { en: '5', fr: '5' },
+  pricing_v_users_pro: { en: '10', fr: '10' },
+
+  pricing_v_employees_free: { en: '5', fr: '5' },
+  pricing_v_employees_starter: { en: '10', fr: '10' },
+  pricing_v_employees_growth: { en: '50', fr: '50' },
+  pricing_v_employees_pro: { en: '100', fr: '100' },
+
+  pricing_v_cases_free: { en: '3', fr: '3' },
+  pricing_v_tasks_free: { en: '10', fr: '10' },
+
+  pricing_v_advisor_free: { en: `${freeAdvisor} / month`, fr: `${freeAdvisor} / mois` }, // [FR self-authored]
+  pricing_v_advisor_starter: { en: `${starterAdvisor} / month`, fr: `${starterAdvisor} / mois` }, // [FR self-authored]
+  pricing_v_advisor_growth: { en: `${growthAdvisor} / month`, fr: `${growthAdvisor} / mois` }, // [FR self-authored]
+  pricing_v_advisor_pro: { en: `${proAdvisor} / month`, fr: `${proAdvisor} / mois` }, // [FR self-authored]
+
+  pricing_v_rollover_starter: {
+    en: `Up to ${starterAdvisor} for 90 days`,
+    fr: `Jusqu’à ${starterAdvisor} pendant 90 jours`, // [FR self-authored]
+  },
+  pricing_v_rollover_growth: {
+    en: `Up to ${growthAdvisor} for 90 days`,
+    fr: `Jusqu’à ${growthAdvisor} pendant 90 jours`, // [FR self-authored]
+  },
+  pricing_v_rollover_pro: {
+    en: `Up to ${proAdvisor} for 90 days`,
+    fr: `Jusqu’à ${proAdvisor} pendant 90 jours`, // [FR self-authored]
+  },
+
+  pricing_v_docs_free: { en: '5 total', fr: '5 au total' }, // [FR self-authored]
+  pricing_v_docs_starter: { en: '20 / month', fr: '20 / mois' }, // [FR self-authored]
+  pricing_v_docs_growth: { en: '100 / month', fr: '100 / mois' }, // [FR self-authored]
+  pricing_v_docs_pro: { en: '300 / month', fr: '300 / mois' }, // [FR self-authored]
+
+  pricing_v_sign_free: { en: '1 total', fr: '1 au total' }, // [FR self-authored]
+  pricing_v_sign_starter: { en: '5 / month', fr: '5 / mois' }, // [FR self-authored]
+  pricing_v_sign_growth: { en: '25 / month', fr: '25 / mois' }, // [FR self-authored]
+  pricing_v_sign_pro: { en: '100 / month', fr: '100 / mois' }, // [FR self-authored]
+
+  pricing_v_templates_all: { en: 'All 50', fr: 'Les 50' }, // [FR self-authored]
+  pricing_v_workflows_free: { en: '3 selected', fr: '3 sélectionnés' }, // [FR self-authored]
+  pricing_v_workflows_all: { en: 'All 12', fr: 'Les 12' }, // [FR self-authored]
+  pricing_v_guides_all: { en: 'All 8', fr: 'Les 8' }, // [FR self-authored]
+
+  pricing_v_priority_standard: { en: 'Standard', fr: 'Standard' }, // [FR self-authored]
+  pricing_v_priority_paid: { en: 'Paid first', fr: 'Payants d’abord' }, // [FR self-authored]
+  pricing_v_priority_priority: { en: 'Priority', fr: 'Prioritaire' }, // [FR self-authored]
+  pricing_v_priority_highest: { en: 'Highest', fr: 'La plus élevée' }, // [FR self-authored]
+  pricing_v_walkthrough_request: { en: 'On request', fr: 'Sur demande' }, // [FR self-authored]
+
+  pricing_fn_active_employees: {
+    en: 'Active employees only — terminated or archived profiles do not count.',
+    fr: 'Employés actifs seulement — les profils résiliés ou archivés ne comptent pas.', // [FR self-authored]
+  },
+  pricing_fn_rollover: {
+    en: 'Unused included Advisor replies on paid plans may roll over for 90 days, up to one month of your current plan. Pack and overage replies do not roll over.',
+    fr: 'Les réponses du Conseiller incluses et inutilisées sur les forfaits payants peuvent être reportées 90 jours, jusqu’à un mois de votre forfait actuel. Les réponses des forfaits prépayés et du dépassement ne se reportent pas.', // [FR self-authored]
+  },
+  pricing_fn_documents: {
+    en: 'A document counts on first save to the repository. Free is a total during free access; paid plans reset each calendar month (UTC).',
+    fr: 'Un document compte à la première sauvegarde dans le dépôt. Le forfait gratuit est un total pendant l’accès gratuit ; les forfaits payants se réinitialisent chaque mois civil (UTC).', // [FR self-authored]
+  },
+  pricing_fn_signatures: {
+    en: 'A signature envelope counts on first send. Free is a total during free access; paid plans reset each calendar month (UTC).',
+    fr: 'Une enveloppe de signature compte au premier envoi. Le forfait gratuit est un total pendant l’accès gratuit ; les forfaits payants se réinitialisent chaque mois civil (UTC).', // [FR self-authored]
+  },
+  pricing_fn_initial_reply: {
+    en: 'Initial reply times are targets for a first response, not promises that the issue will be resolved in that window.',
+    fr: 'Les délais de première réponse sont des cibles pour un premier avis, pas des promesses que le dossier sera résolu dans ce délai.', // [FR self-authored]
+  },
+  pricing_fn_review_before_use: {
+    en: 'Document templates are for review before use. They are not lawyer-approved for your situation.',
+    fr: 'Les modèles de documents sont à revoir avant usage. Ils ne sont pas approuvés par un avocat pour votre situation.', // [FR self-authored]
+  },
 
   /* ── Expanded FAQ ──────────────────────────────────────────────────────── */
   pricing_faq_switch_q: {
@@ -243,5 +515,9 @@ export const pricingMessages = defineMessages({
   pricing_faq_packs_a: {
     en: 'No. Every admitted account has the same included Advisor replies each month. Prepaid packs are optional if you go past that — they are not a plan feature. Paying for a plan still buys founder-led support, not extra modules. On a paid subscription you can also opt in, in Settings, to bill extra replies at month end.',
     fr: 'Non. Chaque compte admis a le même nombre de réponses du Conseiller incluses chaque mois. Les forfaits prépayés sont facultatifs si vous dépassez ce plafond — ce n’est pas une fonction d’abonnement. Payer un forfait achète encore du soutien mené par le fondateur, pas des modules supplémentaires. Avec un abonnement payant, vous pouvez aussi activer, dans les paramètres, la facturation des réponses en trop en fin de mois.', // [FR self-authored]
+  },
+  pricing_faq_packs_a_entitled: {
+    en: `Each plan includes Advisor replies each month (Free ${freeAdvisor}, Starter ${starterAdvisor}, Growth ${growthAdvisor}, Professional ${proAdvisor}). On paid plans you can buy prepaid packs (${ADVISOR_PACK_50_REPLIES} for $${ADVISOR_PACK_50_PRICE_CAD} CAD, ${ADVISOR_PACK_200_REPLIES} for $${ADVISOR_PACK_200_PRICE_CAD} CAD) and, in Settings, opt in to bill extra replies at $${ADVISOR_OVERAGE_PER_REPLY_CAD.toFixed(2)} CAD each (cap ${ADVISOR_OVERAGE_MONTHLY_REPLY_CAP}/month).`,
+    fr: `Chaque forfait inclut des réponses du Conseiller chaque mois (Gratuit ${freeAdvisor}, Starter ${starterAdvisor}, Growth ${growthAdvisor}, Professional ${proAdvisor}). Sur les forfaits payants, vous pouvez acheter des forfaits prépayés (${ADVISOR_PACK_50_REPLIES} pour ${ADVISOR_PACK_50_PRICE_CAD} $ CAD, ${ADVISOR_PACK_200_REPLIES} pour ${ADVISOR_PACK_200_PRICE_CAD} $ CAD) et, dans les paramètres, activer la facturation des réponses en trop à ${ADVISOR_OVERAGE_PER_REPLY_CAD.toFixed(2)} $ CAD chacune (plafond ${ADVISOR_OVERAGE_MONTHLY_REPLY_CAP}/mois).`, // [FR self-authored]
   },
 })

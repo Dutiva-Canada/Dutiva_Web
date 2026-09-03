@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
+  cancellationOrganizationBilling,
   getCheckoutProfilePatch,
   getSubscriptionProfileUpdate,
   normalizeBillingPeriod,
   normalizePlan,
   normalizeSubscriptionStatus,
+  organizationBillingFromProfileUpdate,
   planSignupPayloadFromProfileUpdate,
   stringId,
 } from './billing-event'
@@ -237,5 +239,57 @@ describe('stripe webhook billing event helpers', () => {
 
     expect(result.updates.subscription_status).toBe('inactive')
     expect(result.updates.plan).toBe('pro')
+  })
+
+  it('builds apply_organization_billing args from a full checkout patch', () => {
+    expect(
+      organizationBillingFromProfileUpdate(
+        {
+          plan: 'growth',
+          subscription_status: 'active',
+          billing_period: 'annual',
+          stripe_customer_id: 'cus_1',
+          stripe_subscription_id: 'sub_1',
+        },
+        { billingOwnerUserId: 'user_1' },
+      ),
+    ).toEqual({
+      plan: 'growth',
+      subscriptionStatus: 'active',
+      billingPeriod: 'annual',
+      stripeCustomerId: 'cus_1',
+      stripeSubscriptionId: 'sub_1',
+      billingOwnerUserId: 'user_1',
+    })
+  })
+
+  it('fills missing plan/period from defaults for partial subscription updates', () => {
+    expect(
+      organizationBillingFromProfileUpdate(
+        { subscription_status: 'past_due', stripe_subscription_id: 'sub_2' },
+        { defaultPlan: 'starter', defaultBillingPeriod: 'monthly' },
+      ),
+    ).toEqual({
+      plan: 'starter',
+      subscriptionStatus: 'past_due',
+      billingPeriod: 'monthly',
+      stripeCustomerId: undefined,
+      stripeSubscriptionId: 'sub_2',
+      billingOwnerUserId: null,
+    })
+  })
+
+  it('returns null when plan cannot be resolved for org apply', () => {
+    expect(organizationBillingFromProfileUpdate({ subscription_status: 'active' })).toBeNull()
+  })
+
+  it('builds a free/canceled org payload on subscription deletion', () => {
+    expect(cancellationOrganizationBilling('cus_gone', 'user_gone')).toEqual({
+      plan: 'free',
+      subscriptionStatus: 'canceled',
+      billingPeriod: 'monthly',
+      stripeCustomerId: 'cus_gone',
+      billingOwnerUserId: 'user_gone',
+    })
   })
 })

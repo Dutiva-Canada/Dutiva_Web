@@ -57,6 +57,31 @@ const FILENAME_RE = /^(\d{4})_([a-z0-9_]+)\.sql$/
 const ACCEPTED_DUPLICATES = acceptedDuplicateSequenceNumbers()
 
 /**
+ * 0097–0106 were applied through the Management API with the filename (including
+ * the sequence) as `schema_migrations.name`. The repo slug is the part after
+ * `NNNN_`. Schema matches the files; only the history name differs.
+ */
+function advisorPhaseMcpNameAliases() {
+  const files = [
+    ['0097', 'advisor_phase2_anon_revokes'],
+    ['0098', 'advisor_rls_initplan'],
+    ['0099', 'advisor_fk_indexes'],
+    ['0100', 'advisor_multiple_permissive_policies'],
+    ['0101', 'advisor_drop_unused_indexes'],
+    ['0102', 'advisor_phase3_fk_initplan_permissive'],
+    ['0104', 'advisor_phase4_permissive_initplan'],
+    ['0105', 'advisor_phase5_signing_jwt_initplan'],
+    ['0106', 'advisor_phase6_service_role_policies_fk_indexes'],
+  ]
+  const reason =
+    'applied via MCP as NNNN_slug; live schema matches supabase/migrations/NNNN_slug.sql'
+  return {
+    unapplied: files.map(([, slug]) => [slug, reason]),
+    untracked: files.map(([seq, slug]) => [`${seq}_${slug}`, reason]),
+  }
+}
+
+/**
  * Slugs present in the repo that are deliberately not applied under their own
  * name on the live project. Keep this list short and justified — every entry
  * is a place where the repo and the database disagree on purpose.
@@ -74,6 +99,7 @@ const ACCEPTED_UNAPPLIED = new Map([
     'drop_doclib_demo_schema',
     'the demo objects are already absent from the project (verified via to_regclass)',
   ],
+  ...advisorPhaseMcpNameAliases().unapplied,
 ])
 
 /**
@@ -96,6 +122,7 @@ const ACCEPTED_UNTRACKED = new Map([
     'hr_signing_reminder_schedule_part2',
     'intermediate MCP apply slice of 0083_hr_signing_reminder_schedule.sql; live schema matches the repo file',
   ],
+  ...advisorPhaseMcpNameAliases().untracked,
 ])
 
 const problems = []

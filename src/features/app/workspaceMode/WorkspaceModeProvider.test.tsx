@@ -84,12 +84,14 @@ describe('WorkspaceModeProvider', () => {
           select: () => ({
             eq: () => ({
               eq: () => ({
-                limit: () => ({
-                  maybeSingle: () =>
-                    Promise.resolve({
-                      data: membershipOrgId ? { organization_id: membershipOrgId } : null,
-                      error: null,
-                    }),
+                order: () => ({
+                  limit: () => ({
+                    maybeSingle: () =>
+                      Promise.resolve({
+                        data: membershipOrgId ? { organization_id: membershipOrgId } : null,
+                        error: null,
+                      }),
+                  }),
                 }),
               }),
             }),

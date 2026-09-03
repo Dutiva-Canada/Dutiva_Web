@@ -154,4 +154,11 @@ export const homeMessages = defineMessages({
     fr: 'politiques demandent votre attention',
   },
   home_prod_policy_open: { en: 'Open policies', fr: 'Ouvrir les politiques' },
+
+  /* Plan gate — Free/Starter keep guided setup; Growth unlocks the dashboard.
+     [FR self-authored] */
+  home_prod_dashboard_upgrade: {
+    en: 'The operational dashboard and analytics unlock on Growth.',
+    fr: 'Le tableau de bord opérationnel et les analyses se débloquent avec Croissance.',
+  },
 })

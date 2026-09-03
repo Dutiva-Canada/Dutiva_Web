@@ -33,10 +33,14 @@ import { SettingsDemoFixtures } from './SettingsDemoFixtures'
 import { AppPage } from '@/features/app/shell/AppPage'
 import { useMdUp } from '@/lib/useMediaQuery'
 import { useAuth } from '@/features/app/auth/authContext'
+import { usePlan } from '@/features/app/billing/planContext'
+import { hasPlanFeature } from '@/features/app/billing/planAccess'
+import { PLAN_FEATURE_GATES_ENABLED, hasActiveSubscription } from '@/config/plans'
 import {
   getAdvisorOverageOptIn,
   setAdvisorOverageOptIn,
 } from '@/features/app/advisor/overageOptInApi'
+import { AdvisorUsagePanel } from '@/features/app/advisor/AdvisorUsagePanel'
 import {
   ADVISOR_MONTHLY_INCLUDED,
   ADVISOR_OVERAGE_MONTHLY_REPLY_CAP,
@@ -57,7 +61,7 @@ import {
 const SUPPORT_EMAIL = supportChannel('support').email
 
 export function SettingsView() {
-  const { x, lang, setLang } = useI18n()
+  const { x, t, lang, setLang } = useI18n()
   const { status: authStatus } = useAuth()
   /* The Help Centre lives on the public marketing surface, so it opens in a new
      tab rather than navigating the workspace away from itself. */
@@ -72,6 +76,16 @@ export function SettingsView() {
     organizationId,
     setMode: setWorkspaceMode,
   } = useWorkspaceMode()
+  const { plan, subscriptionStatus, isAdmin: isBillingAdmin } = usePlan()
+
+  const memoryInjectionLocked =
+    workspaceMode === 'production' &&
+    PLAN_FEATURE_GATES_ENABLED &&
+    !isBillingAdmin &&
+    !(
+      hasPlanFeature(plan, 'advisor_cross_record_memory') &&
+      hasActiveSubscription(subscriptionStatus)
+    )
 
   const [prefs, setPrefs] = useState<Record<PrefKey, boolean>>(initialPrefs)
   /* Device-local export audit trail (src/lib/exportProtection) — read once
@@ -342,14 +356,46 @@ export function SettingsView() {
       {/* AI & Advisor */}
       <Section label={x(M.settings_ai)}>
         <Card>
-          {aiToggles.map((spec) => (
-            <ToggleRow
-              key={spec.key}
-              spec={spec}
-              on={prefs[spec.key]}
-              onToggle={() => toggleSetting(spec.key)}
-            />
-          ))}
+          {aiToggles.map((spec) => {
+            if (spec.key === 'aiContext' && memoryInjectionLocked) {
+              return (
+                <div
+                  key={spec.key}
+                  className="flex items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[14px]"
+                >
+                  <div className="min-w-0">
+                    <div className="text-[13.5px] font-semibold text-text">{x(spec.label)}</div>
+                    <div className="mt-[2px] text-[12px] text-text-muted">
+                      {x(M.settings_toggle_ai_context_locked)}
+                    </div>
+                    <Link
+                      to={`${seoRoute('pricing').path[lang]}?upgrade=growth`}
+                      className="mt-[6px] inline-block text-[12px] font-semibold text-gold-strong"
+                    >
+                      {t('landing_price_compare')}
+                    </Link>
+                  </div>
+                  <ToggleSwitch
+                    on={prefs.aiContext}
+                    label={x(spec.label)}
+                    disabled
+                    onToggle={() => {
+                      /* read-only while gated — preference kept, injection server-gated */
+                    }}
+                  />
+                </div>
+              )
+            }
+            return (
+              <ToggleRow
+                key={spec.key}
+                spec={spec}
+                on={prefs[spec.key]}
+                onToggle={() => toggleSetting(spec.key)}
+              />
+            )
+          })}
+          {authStatus === 'signed-in' && organizationId ? <AdvisorUsagePanel /> : null}
           {authStatus === 'signed-in' && (
             <div className="flex items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[14px]">
               <div className="min-w-0">
