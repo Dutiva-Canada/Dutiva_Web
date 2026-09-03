@@ -94,6 +94,20 @@ describe('HTTP security headers', () => {
     expect(serveDist).toContain(policy)
   })
 
+  it('ships cross-origin isolation headers that do not break third-party embeds', () => {
+    const block = securityBlock()
+    expect(headerValue(block, 'Cross-Origin-Opener-Policy')).toBe('same-origin-allow-popups')
+    expect(headerValue(block, 'Cross-Origin-Resource-Policy')).toBe('same-origin')
+    expect(headerValue(block, 'Origin-Agent-Cluster')).toBe('?1')
+    expect(headerValue(block, 'X-Permitted-Cross-Domain-Policies')).toBe('none')
+    expect(headerValue(block, 'X-DNS-Prefetch-Control')).toBe('off')
+    expect(headerValue(block, 'Cross-Origin-Embedder-Policy')).toBeUndefined()
+    expect(vercel).not.toMatch(/Clear-Site-Data/)
+    expect(vercel).not.toMatch(/X-XSS-Protection/)
+    expect(serveDist).toContain("'Cross-Origin-Opener-Policy': 'same-origin-allow-popups'")
+    expect(serveDist).toContain("'Cross-Origin-Resource-Policy': 'same-origin'")
+  })
+
   it('does not send a wildcard CORS origin', () => {
     const allowOrigin = headerValue(securityBlock(), 'Access-Control-Allow-Origin')
     expect(allowOrigin).toBe('https://dutiva.ca')

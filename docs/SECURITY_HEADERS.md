@@ -19,7 +19,22 @@ the marketing and app surfaces showed zero console violations.
 | `Referrer-Policy`             | `strict-origin-when-cross-origin`                              | Path/query leakage to third parties.                                                                                                                                                 |
 | `Strict-Transport-Security`   | `max-age=63072000; includeSubDomains`                          | SSL-strip / downgrade. (No `preload` yet — that commits every subdomain to HTTPS permanently; add it and submit to hstspreload.org when ready.)                                      |
 | `Permissions-Policy`          | Broad deny list (camera/mic/geo/payment/usb/… + Topics)        | Powerful browser features the app never uses; opts out of Topics / FLoC. Expanded 2026-09-02 after ImmuniWeb flagged the shorter list as misconfigured.                              |
+| `Cross-Origin-Opener-Policy`  | `same-origin-allow-popups`                                     | Process-isolates the browsing context from cross-origin openers while still allowing intentional popups (auth/payment).                                                              |
+| `Cross-Origin-Resource-Policy`| `same-origin`                                                  | Stops other origins from embedding our documents/assets as no-cors resources.                                                                                                        |
+| `Origin-Agent-Cluster`        | `?1`                                                           | Asks the browser to give this origin its own agent cluster (Spectre isolation hint).                                                                                                 |
+| `X-Permitted-Cross-Domain-Policies` | `none`                                                   | Blocks legacy Adobe cross-domain policy files (Flash/PDF).                                                                                                                           |
+| `X-DNS-Prefetch-Control`      | `off`                                                          | Disables speculative DNS prefetch of outbound links.                                                                                                                                 |
 | `Access-Control-Allow-Origin` | `https://dutiva.ca`                                            | Overrides Vercel's static-file default of `*`. The marketing site is first-party; hashed `/assets/*` files are still fetched same-origin (including the `crossorigin` font preload). |
+
+## Deliberately not set
+
+| Header | Why |
+| --- | --- |
+| `Cross-Origin-Embedder-Policy: require-corp` | Would break Turnstile, hCaptcha, TrustedSite, and GTM embeds that do not send matching CORP headers. |
+| `Clear-Site-Data` | Must not ship on normal page responses — it wipes cookies and storage. |
+| `X-XSS-Protection` | Deprecated; modern browsers ignore it, and ImmuniWeb **penalizes** its presence. CSP replaces it. |
+| `Document-Policy` / `Integrity-Policy` | Experimental scanner checklists; no product need yet. |
+| Removing `Server: Vercel` | Injected by the platform; not overridable from `vercel.json`. |
 
 ## Crawler-invented `/support@dutiva.ca`
 
@@ -40,11 +55,11 @@ them (`/assets/….js`, `/brand/icon-app.svg`, `/.well-known/security.txt`)
 are unchanged. Turn the project-wide setting off too: Vercel dashboard →
 Project → Settings → Advanced → Directory Listing.
 
-## Not overridable
+## Not overridable / scanner noise
 
 `Server: Vercel` is injected by the platform. `vercel.json` cannot remove or
 rename it. Scanners that flag it as an info leak will keep flagging it on
-this host.
+this host — that is expected on Vercel.
 
 ## Enforcing CSP — promoted 2026-08-10
 
