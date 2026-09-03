@@ -24,6 +24,8 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+
+
 The Dutiva application uses a **three-surface route architecture** that separates the public marketing website, the public read-only demo, and the authenticated app workspace. Each surface has its own language strategy, rendering model, SEO posture, and code-splitting boundary. The route system is built on React Router v6 with `RouteObject[]` arrays, and every view is lazily loaded via `React.lazy()`.
 
 ## Three-Surface Architecture Overview
@@ -53,14 +55,14 @@ Sources: [src/app/routes.tsx:133-175](), [src/app/routes.tsx:50-63](), [src/app/
 
 The three surfaces differ fundamentally:
 
-| Aspect            | Marketing                              | Public demo                                              | App workspace                      |
-| ----------------- | -------------------------------------- | -------------------------------------------------------- | ---------------------------------- |
-| URL prefix        | `/` (EN), `/fr/…` (FR)                 | `/demo`, `/fr/demo`                                      | `/app/…`                           |
-| Language strategy | URL-scoped (`ForcedLangProvider`)      | URL-scoped (`ForcedWorkspaceLangProvider`)               | Preference-scoped (`LangProvider`) |
-| SEO               | Indexable, prerendered, canonical URLs | Demo index prerendered; subpaths `noindex` via app shell | `noindex`, client-rendered         |
-| Auth              | None                                   | None (read-only)                                         | `RequireAdminSession` gate         |
-| i18n catalogue    | Marketing messages only                | Full workspace catalogue                                 | Full workspace catalogue           |
-| Code chunk        | Marketing lazy chunk                   | App lazy chunk (`appSurface.tsx`)                        | App lazy chunk (`appSurface.tsx`)  |
+| Aspect | Marketing | Public demo | App workspace |
+|---|---|---|---|
+| URL prefix | `/` (EN), `/fr/…` (FR) | `/demo`, `/fr/demo` | `/app/…` |
+| Language strategy | URL-scoped (`ForcedLangProvider`) | URL-scoped (`ForcedWorkspaceLangProvider`) | Preference-scoped (`LangProvider`) |
+| SEO | Indexable, prerendered, canonical URLs | Demo index prerendered; subpaths `noindex` via app shell | `noindex`, client-rendered |
+| Auth | None | None (read-only) | `RequireAdminSession` gate |
+| i18n catalogue | Marketing messages only | Full workspace catalogue | Full workspace catalogue |
+| Code chunk | Marketing lazy chunk | App lazy chunk (`appSurface.tsx`) | App lazy chunk (`appSurface.tsx`) |
 
 Sources: [src/app/routes.tsx:13-15](), [src/app/appSurface.tsx:6-12](), [src/i18n/ForcedLangProvider.tsx:22-57]()
 
@@ -112,11 +114,11 @@ Dynamic sub-routes use `:slug` params for blog articles (`/blog/:slug`), guide a
 
 The `/app` branch is split into three lazy entry points, all loaded from `appSurface.tsx`:
 
-| Route               | Export           | Purpose                                               |
-| ------------------- | ---------------- | ----------------------------------------------------- |
-| `/app/welcome`      | `AppWelcome`     | Sign-in gate (EntryStage)                             |
-| `/app/auth/confirm` | `AppAuthConfirm` | Magic-link token verification                         |
-| `/app`              | `Workspace`      | Main workspace shell (gated by `RequireAdminSession`) |
+| Route | Export | Purpose |
+|---|---|---|
+| `/app/welcome` | `AppWelcome` | Sign-in gate (EntryStage) |
+| `/app/auth/confirm` | `AppAuthConfirm` | Magic-link token verification |
+| `/app` | `Workspace` | Main workspace shell (gated by `RequireAdminSession`) |
 
 [src/app/routes.tsx:148-172](), [src/app/appSurface.tsx:31-68]()
 
@@ -160,7 +162,7 @@ Every view uses a consistent named-export `React.lazy()` pattern. Because the co
 
 ```typescript
 const HomeView = lazy(() =>
-  import('@/features/app/views/home/HomeView').then((m) => ({ default: m.HomeView })),
+  import('@/features/app/views/home/HomeView').then((m) => ({ default: m.HomeView }))
 )
 ```
 
@@ -174,10 +176,10 @@ This pattern is applied to all 40+ lazy components across both `routes.tsx` (mar
 
 The `check-entry-graph.mjs` CI script enforces that the eager entry graph (what marketing visitors download before anything is interactive) stays within strict budgets:
 
-| Budget         | Ceiling | Purpose                        |
-| -------------- | ------- | ------------------------------ |
-| `MAX_PRELOADS` | 9       | Maximum modulepreload links    |
-| `MAX_EAGER_KB` | 580     | Maximum raw kB of eager chunks |
+| Budget | Ceiling | Purpose |
+|---|---|---|
+| `MAX_PRELOADS` | 9 | Maximum modulepreload links |
+| `MAX_EAGER_KB` | 580 | Maximum raw kB of eager chunks |
 
 [scripts/check-entry-graph.mjs:48-49]()
 
@@ -198,11 +200,11 @@ This guard exists because `appViews.tsx`'s route objects are built at module sco
 
 The `vite.config.ts` configures `codeSplitting.groups` to control chunk boundaries:
 
-| Group Name           | Contents                                                             | Purpose                                  |
-| -------------------- | -------------------------------------------------------------------- | ---------------------------------------- |
-| `messages-marketing` | Marketing + shared i18n modules                                      | Eager — needed by every public page      |
-| `messages-workspace` | All other i18n modules (29 feature modules)                          | Lazy — only `/app` surface needs them    |
-| `vendor`             | Third-party deps excluding `@supabase`, markdown tree, recharts tree | Shared vendor chunk with long cache life |
+| Group Name | Contents | Purpose |
+|---|---|---|
+| `messages-marketing` | Marketing + shared i18n modules | Eager — needed by every public page |
+| `messages-workspace` | All other i18n modules (29 feature modules) | Lazy — only `/app` surface needs them |
+| `vendor` | Third-party deps excluding `@supabase`, markdown tree, recharts tree | Shared vendor chunk with long cache life |
 
 The `messages-workspace` group uses `includeDependenciesRecursively: false` to prevent `shell.ts` and `workspaceMode.ts` from being dragged into the workspace message chunk (they belong in the eager graph as dependencies of `ModeGate`).
 
@@ -216,33 +218,33 @@ The `appViewRoutes` array in `appViews.tsx` defines all child routes rendered in
 
 ### Complete Workspace Route Table
 
-| Path                         | Component             | Gated? | Notes                               |
-| ---------------------------- | --------------------- | ------ | ----------------------------------- |
-| `home`                       | `HomeView`            | No     | Own production variant              |
-| `advisor`                    | `AdvisorView`         | No     | Own production variant              |
-| `workflows`                  | `WorkflowsView`       | No     | Handles both modes itself           |
-| `workflows/:slug`            | `FlowRunner`          | No     |                                     |
-| `cases`                      | `CasesView`           | No     | Real persistence in production      |
-| `cases/:caseId`              | `CaseDetailView`      | No     |                                     |
-| `employees`                  | `EmployeesView`       | No     | Real persistence in production      |
-| `employees/:employeeId`      | `EmployeeProfileView` | No     |                                     |
-| `compliance`                 | `ComplianceView`      | No     | Real persistence in production      |
-| `policies`                   | `PoliciesView`        | No     | Real persistence in production      |
-| `analytics`                  | `AnalyticsView`       | No     | Live aggregation in production      |
-| `knowledge`                  | `KnowledgeView`       | No     | Real content (legal reference)      |
-| `knowledge/:slug`            | `GuideView`           | No     | Reference guides                    |
-| `communications`             | `CommunicationsView`  | No     | Handles both modes (migration 0040) |
-| `compensation`               | `CompensationView`    | No     | Handles both modes (migration 0039) |
-| `wellbeing`                  | `WellbeingView`       | No     | Handles both modes (migration 0041) |
-| `support`                    | `SupportView`         | No     | Real feature                        |
-| `support/requests`           | `SupportRequestsList` | No     |                                     |
-| `support/requests/:ticketId` | `SupportTicketDetail` | No     |                                     |
-| `support/admin`              | `SupportAdminView`    | No     | Admin-gated in view                 |
-| `support/admin/exports`      | `ExportAuditView`     | No     | Admin-gated in view                 |
-| `support/admin/:ticketId`    | `SupportAdminTicket`  | No     |                                     |
-| `planning`                   | `PlanningLayout`      | No     | Nested layout (see below)           |
-| `settings`                   | `SettingsLayout`      | No     | Nested layout (see below)           |
-| `documents`                  | `DocumentsLayout`     | No     | Nested layout (see below)           |
+| Path | Component | Gated? | Notes |
+|---|---|---|---|
+| `home` | `HomeView` | No | Own production variant |
+| `advisor` | `AdvisorView` | No | Own production variant |
+| `workflows` | `WorkflowsView` | No | Handles both modes itself |
+| `workflows/:slug` | `FlowRunner` | No | |
+| `cases` | `CasesView` | No | Real persistence in production |
+| `cases/:caseId` | `CaseDetailView` | No | |
+| `employees` | `EmployeesView` | No | Real persistence in production |
+| `employees/:employeeId` | `EmployeeProfileView` | No | |
+| `compliance` | `ComplianceView` | No | Real persistence in production |
+| `policies` | `PoliciesView` | No | Real persistence in production |
+| `analytics` | `AnalyticsView` | No | Live aggregation in production |
+| `knowledge` | `KnowledgeView` | No | Real content (legal reference) |
+| `knowledge/:slug` | `GuideView` | No | Reference guides |
+| `communications` | `CommunicationsView` | No | Handles both modes (migration 0040) |
+| `compensation` | `CompensationView` | No | Handles both modes (migration 0039) |
+| `wellbeing` | `WellbeingView` | No | Handles both modes (migration 0041) |
+| `support` | `SupportView` | No | Real feature |
+| `support/requests` | `SupportRequestsList` | No | |
+| `support/requests/:ticketId` | `SupportTicketDetail` | No | |
+| `support/admin` | `SupportAdminView` | No | Admin-gated in view |
+| `support/admin/exports` | `ExportAuditView` | No | Admin-gated in view |
+| `support/admin/:ticketId` | `SupportAdminTicket` | No | |
+| `planning` | `PlanningLayout` | No | Nested layout (see below) |
+| `settings` | `SettingsLayout` | No | Nested layout (see below) |
+| `documents` | `DocumentsLayout` | No | Nested layout (see below) |
 
 [src/app/appViews.tsx:71-166]()
 
@@ -294,7 +296,6 @@ stateDiagram-v2
 ```
 
 Currently gated views (wrapped in `gated()`) are limited to nested children of `DocumentsLayout` and `SettingsLayout`:
-
 - `RepositoryScreen` (documents index)
 - `TemplatesView` (HR library tab)
 - `SigningScreen`
@@ -317,9 +318,9 @@ Three workspace routes use nested layout components that provide a tab strip and
 
 Wraps `/app/planning` with a Tasks / Calendar tab strip. The index route redirects to `/app/planning/tasks`.
 
-| Sub-route  | Component      |
-| ---------- | -------------- |
-| `tasks`    | `TasksView`    |
+| Sub-route | Component |
+|---|---|
+| `tasks` | `TasksView` |
 | `calendar` | `CalendarView` |
 
 [src/features/app/views/planning/PlanningLayout.tsx:1-51](), [src/app/appViews.tsx:125-133]()
@@ -328,13 +329,13 @@ Wraps `/app/planning` with a Tasks / Calendar tab strip. The index route redirec
 
 Wraps `/app/settings` with General / Memory tabs. The memory sub-tree is gated (demo-only) and uses its own nested `MemoryLayout`:
 
-| Sub-route                        | Component              |
-| -------------------------------- | ---------------------- |
-| (index)                          | `SettingsView`         |
-| `memory`                         | `MemoryLayout` (gated) |
-| `memory/people/:personId`        | `PersonMemoryView`     |
-| `memory/cases/:caseId`           | `CaseMemoryView`       |
-| `memory/conversations/:threadId` | `ChatRecallView`       |
+| Sub-route | Component |
+|---|---|
+| (index) | `SettingsView` |
+| `memory` | `MemoryLayout` (gated) |
+| `memory/people/:personId` | `PersonMemoryView` |
+| `memory/cases/:caseId` | `CaseMemoryView` |
+| `memory/conversations/:threadId` | `ChatRecallView` |
 
 [src/features/app/views/settings/SettingsLayout.tsx:1-52](), [src/app/appViews.tsx:134-151]()
 
@@ -342,15 +343,15 @@ Wraps `/app/settings` with General / Memory tabs. The memory sub-tree is gated (
 
 Wraps `/app/documents` with three tabs: HR Library, Document Library, Document Studio. Also mounts `DoclibProvider` and a "Viewing as" role selector bar.
 
-| Sub-route              | Component              | Gated? |
-| ---------------------- | ---------------------- | ------ |
-| (index)                | `RepositoryScreen`     | Yes    |
-| `hr-library`           | `TemplatesView`        | Yes    |
-| `studio`               | `StudioScreen`         | No     |
-| `templates/:tid`       | `TemplateDetailScreen` | No     |
-| `generate/:templateId` | `GenerateScreen`       | No     |
-| `sign/:envelopeId`     | `SigningScreen`        | Yes    |
-| `:docId`               | `DocumentDetailScreen` | Yes    |
+| Sub-route | Component | Gated? |
+|---|---|---|
+| (index) | `RepositoryScreen` | Yes |
+| `hr-library` | `TemplatesView` | Yes |
+| `studio` | `StudioScreen` | No |
+| `templates/:tid` | `TemplateDetailScreen` | No |
+| `generate/:templateId` | `GenerateScreen` | No |
+| `sign/:envelopeId` | `SigningScreen` | Yes |
+| `:docId` | `DocumentDetailScreen` | Yes |
 
 [src/features/app/documents/DocumentsLayout.tsx:86-102](), [src/app/appViews.tsx:152-165]()
 
@@ -362,13 +363,13 @@ The `DocumentsLayout` wraps all children in `DoclibProvider`, which loads the do
 
 Several `Navigate` elements handle renamed or restructured routes:
 
-| Legacy Path      | Redirect Target             | Reason                               |
-| ---------------- | --------------------------- | ------------------------------------ |
+| Legacy Path | Redirect Target | Reason |
+|---|---|---|
 | `/app/templates` | `/app/documents/hr-library` | Templates moved into DocumentsLayout |
-| `/app/reports`   | `/app/analytics`            | Renamed to analytics                 |
-| `/app/tasks`     | `/app/planning/tasks`       | Moved under PlanningLayout           |
-| `/app/calendar`  | `/app/planning/calendar`    | Moved under PlanningLayout           |
-| `/app/memory`    | `/app/settings/memory`      | Moved under SettingsLayout           |
+| `/app/reports` | `/app/analytics` | Renamed to analytics |
+| `/app/tasks` | `/app/planning/tasks` | Moved under PlanningLayout |
+| `/app/calendar` | `/app/planning/calendar` | Moved under PlanningLayout |
+| `/app/memory` | `/app/settings/memory` | Moved under SettingsLayout |
 
 All redirects use `replace` to avoid polluting browser history.
 
@@ -414,7 +415,6 @@ graph TD
 [src/app/appSurface.tsx:56-68](), [src/features/app/AppProviders.tsx:25-43]()
 
 Key ordering constraints:
-
 - `AuthProvider` must be outermost (other providers read session)
 - `PlanProvider` reads the signed-in account's plan from `profiles`
 - `WorkspaceModeProvider` reads the session to resolve demo/production toggle

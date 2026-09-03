@@ -30,6 +30,8 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+
+
 The Dutiva workspace supports two runtime modes — **demo** and **production** — that determine whether every module renders fixture data (the "Northgate Logistics Inc." prototype experience) or real Supabase-backed records scoped to an organization. This page covers the mode resolution lifecycle, the `AppProviders` composition tree, the per-module `productionApi.ts` data boundary pattern, and the phased rollout strategy for ungating modules.
 
 ## Workspace Mode Overview
@@ -38,13 +40,13 @@ The Dutiva workspace supports two runtime modes — **demo** and **production** 
 
 [src/features/app/workspaceMode/workspaceModeContext.ts:5-5]()
 
-| Condition                                           | Resolved Mode |
-| --------------------------------------------------- | ------------- |
-| Supabase not configured (`supabase` is null)        | `demo`        |
-| Signed out or auth loading                          | `demo`        |
-| Signed in, `is_admin_user()` RPC returns false      | `demo`        |
-| Signed in admin, no stored preference               | `demo`        |
-| Signed in admin, stored preference = `'production'` | `production`  |
+| Condition | Resolved Mode |
+|---|---|
+| Supabase not configured (`supabase` is null) | `demo` |
+| Signed out or auth loading | `demo` |
+| Signed in, `is_admin_user()` RPC returns false | `demo` |
+| Signed in admin, no stored preference | `demo` |
+| Signed in admin, stored preference = `'production'` | `production` |
 
 Sources: [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:138-141](), [src/features/app/workspaceMode/api.ts:33-41]()
 
@@ -117,15 +119,15 @@ Sources: [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:119-136](), [
 
 The context value exposes everything downstream consumers need:
 
-| Field            | Type                      | Description                                            |
-| ---------------- | ------------------------- | ------------------------------------------------------ |
-| `mode`           | `'demo' \| 'production'`  | Resolved mode                                          |
-| `isAdmin`        | `boolean`                 | Real `is_admin_user()` RPC result                      |
-| `identity`       | `WorkspaceIdentity`       | Northgate fixtures (demo) or real profile (production) |
-| `organizationId` | `string \| null`          | The admin's org ID; always `null` in demo              |
-| `memberRole`     | `OrgMemberRole \| null`   | From `organization_members.role`                       |
-| `isOrgAdmin`     | `boolean`                 | Client mirror of RLS's `is_org_admin`                  |
-| `setMode`        | `(mode) => Promise<void>` | Persists and switches mode                             |
+| Field | Type | Description |
+|---|---|---|
+| `mode` | `'demo' \| 'production'` | Resolved mode |
+| `isAdmin` | `boolean` | Real `is_admin_user()` RPC result |
+| `identity` | `WorkspaceIdentity` | Northgate fixtures (demo) or real profile (production) |
+| `organizationId` | `string \| null` | The admin's org ID; always `null` in demo |
+| `memberRole` | `OrgMemberRole \| null` | From `organization_members.role` |
+| `isOrgAdmin` | `boolean` | Client mirror of RLS's `is_org_admin` |
+| `setMode` | `(mode) => Promise<void>` | Persists and switches mode |
 
 The `useWorkspaceMode()` hook provides access and throws if called outside the provider. [src/features/app/workspaceMode/workspaceModeContext.ts:52-56]()
 
@@ -140,7 +142,6 @@ viewer (0) → member (1) → manager (2) → admin (3) → owner (4)
 ```
 
 Key predicates:
-
 - `isAdminRole(role)` — true for `admin` or `owner`, matching RLS's `is_org_admin`. [src/features/app/workspaceMode/roles.ts:30-32]()
 - `roleAtLeast(role, min)` — rank comparison for future role-gated surfaces. [src/features/app/workspaceMode/roles.ts:24-27]()
 
@@ -179,16 +180,16 @@ graph TD
 
 ### Provider Dependency Rationale
 
-| Provider                   | Why it must be at this position                                                                                                                                                                                              |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `AuthProvider`             | Outermost — tracks Supabase session. Everything else reads auth state. [src/features/app/auth/AuthProvider.tsx:16-134]()                                                                                                     |
-| `PlanProvider`             | Reads auth session to resolve user's billing plan from `profiles`. Must be inside `AuthProvider` but outside `WorkspaceModeProvider` (plan gates check mode themselves). [src/features/app/billing/PlanProvider.tsx:29-95]() |
-| `WorkspaceModeProvider`    | Reads session from `useAuth()` to resolve demo/production. [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:53-53]()                                                                                                |
-| `ToastsProvider`           | Independent state (toast queue with 3600ms auto-dismiss), but must wrap `DocStudioProvider` which fires "draft ready" toasts. [src/features/app/toasts/ToastsProvider.tsx:9-45]()                                            |
-| `RailProvider`             | Advisor contextual rail — manages slide-over state plus a streaming engine instance. [src/features/app/rail/RailProvider.tsx:29-98]()                                                                                        |
-| `SearchProvider`           | Global search overlay state with ⌘K keyboard binding. [src/features/app/search/SearchProvider.tsx:5-25]()                                                                                                                    |
-| `DocStudioProvider`        | Document Studio overlay state. Reads `AuthContext` and `WorkspaceModeContext` optionally for export protection identity. [src/features/app/docstudio/DocStudioProvider.tsx:141-149]()                                        |
-| `WorkspaceContextProvider` | "Advisor is using …" pinned-entity banner state. Innermost. [src/features/app/workspaceContext/WorkspaceContextProvider.tsx:6-27]()                                                                                          |
+| Provider | Why it must be at this position |
+|---|---|
+| `AuthProvider` | Outermost — tracks Supabase session. Everything else reads auth state. [src/features/app/auth/AuthProvider.tsx:16-134]() |
+| `PlanProvider` | Reads auth session to resolve user's billing plan from `profiles`. Must be inside `AuthProvider` but outside `WorkspaceModeProvider` (plan gates check mode themselves). [src/features/app/billing/PlanProvider.tsx:29-95]() |
+| `WorkspaceModeProvider` | Reads session from `useAuth()` to resolve demo/production. [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:53-53]() |
+| `ToastsProvider` | Independent state (toast queue with 3600ms auto-dismiss), but must wrap `DocStudioProvider` which fires "draft ready" toasts. [src/features/app/toasts/ToastsProvider.tsx:9-45]() |
+| `RailProvider` | Advisor contextual rail — manages slide-over state plus a streaming engine instance. [src/features/app/rail/RailProvider.tsx:29-98]() |
+| `SearchProvider` | Global search overlay state with ⌘K keyboard binding. [src/features/app/search/SearchProvider.tsx:5-25]() |
+| `DocStudioProvider` | Document Studio overlay state. Reads `AuthContext` and `WorkspaceModeContext` optionally for export protection identity. [src/features/app/docstudio/DocStudioProvider.tsx:141-149]() |
+| `WorkspaceContextProvider` | "Advisor is using …" pinned-entity banner state. Innermost. [src/features/app/workspaceContext/WorkspaceContextProvider.tsx:6-27]() |
 
 Sources: [src/features/app/AppProviders.tsx:1-43]()
 
@@ -233,17 +234,17 @@ Each workspace module that has gained real persistence exposes a `productionApi.
 
 ### productionApi.ts Inventory
 
-| Module         | File                                    | DB Table(s)                                                        | Key Functions                                                                                                                                   |
-| -------------- | --------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Employees      | `views/employees/productionApi.ts`      | `employees`, `hr_expiry_records`, `hr_leaves`, `hr_employee_notes` | `listEmployees`, `addEmployee`, `removeEmployee`, `getEmployee`, `updateEmployeeStatus`, `listExpiryRecords`, `listLeaves`, `listEmployeeNotes` |
-| Cases          | `views/cases/productionApi.ts`          | `hr_cases`, `hr_case_notes`                                        | `listCases`, `addCase`, `updateCaseStatus`, `removeCase`, `getCase`, `listCaseNotes`, `countOpenCases`                                          |
-| Tasks          | `views/tasks/productionApi.ts`          | `compliance_tasks`                                                 | `listTasks`, `addTask`, `setTaskDone`, `removeTask`, `countOpenTasks`, `addProbationReviewTask`                                                 |
-| Compliance     | `views/compliance/productionApi.ts`     | `compliance_findings`, `hr_obligations`                            | `listFindings`, `addFinding`, `setFindingResolved`, `countOpenFindings`, `listObligations`, `addObligation`                                     |
-| Policies       | `views/policies/productionApi.ts`       | `hr_policies`                                                      | `listPolicies`, `addPolicy`, `setPolicyStatus`, `removePolicy`                                                                                  |
-| Communications | `views/communications/productionApi.ts` | —                                                                  | —                                                                                                                                               |
-| Compensation   | `views/compensation/productionApi.ts`   | —                                                                  | —                                                                                                                                               |
-| Wellbeing      | `views/wellbeing/productionApi.ts`      | —                                                                  | —                                                                                                                                               |
-| Analytics      | `views/analytics/productionApi.ts`      | —                                                                  | —                                                                                                                                               |
+| Module | File | DB Table(s) | Key Functions |
+|---|---|---|---|
+| Employees | `views/employees/productionApi.ts` | `employees`, `hr_expiry_records`, `hr_leaves`, `hr_employee_notes` | `listEmployees`, `addEmployee`, `removeEmployee`, `getEmployee`, `updateEmployeeStatus`, `listExpiryRecords`, `listLeaves`, `listEmployeeNotes` |
+| Cases | `views/cases/productionApi.ts` | `hr_cases`, `hr_case_notes` | `listCases`, `addCase`, `updateCaseStatus`, `removeCase`, `getCase`, `listCaseNotes`, `countOpenCases` |
+| Tasks | `views/tasks/productionApi.ts` | `compliance_tasks` | `listTasks`, `addTask`, `setTaskDone`, `removeTask`, `countOpenTasks`, `addProbationReviewTask` |
+| Compliance | `views/compliance/productionApi.ts` | `compliance_findings`, `hr_obligations` | `listFindings`, `addFinding`, `setFindingResolved`, `countOpenFindings`, `listObligations`, `addObligation` |
+| Policies | `views/policies/productionApi.ts` | `hr_policies` | `listPolicies`, `addPolicy`, `setPolicyStatus`, `removePolicy` |
+| Communications | `views/communications/productionApi.ts` | — | — |
+| Compensation | `views/compensation/productionApi.ts` | — | — |
+| Wellbeing | `views/wellbeing/productionApi.ts` | — | — |
+| Analytics | `views/analytics/productionApi.ts` | — | — |
 
 Sources: [src/features/app/views/employees/productionApi.ts:1-14](), [src/features/app/views/cases/productionApi.ts:1-10](), [src/features/app/views/tasks/productionApi.ts:1-17](), [src/features/app/views/compliance/productionApi.ts:1-16](), [src/features/app/views/policies/productionApi.ts:1-11]()
 
@@ -324,11 +325,11 @@ The route table in `appViews.tsx` documents the ungating lifecycle. As described
 
 ### Current Gate Status
 
-| Status                          | Routes                                                                                                                                                                               | Notes                                                            |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
-| **Ungated — handle both modes** | `home`, `advisor`, `cases`, `cases/:caseId`, `employees`, `employees/:employeeId`, `compliance`, `policies`, `analytics`, `communications`, `compensation`, `wellbeing`, `workflows` | Each dispatches on `mode` internally                             |
-| **Ungated — real content**      | `knowledge`, `knowledge/:slug`, `settings`, `support/*`, `documents/studio`, `documents/templates/:tid`, `documents/generate/:templateId`                                            | Template catalogue and reference guides are real product content |
-| **Still gated via `gated()`**   | `documents` (index/repository), `documents/hr-library`, `documents/sign/:envelopeId`, `documents/:docId`, `settings/memory/*`                                                        | Fixture-driven, show `ProductionEmptyState` in production        |
+| Status | Routes | Notes |
+|---|---|---|
+| **Ungated — handle both modes** | `home`, `advisor`, `cases`, `cases/:caseId`, `employees`, `employees/:employeeId`, `compliance`, `policies`, `analytics`, `communications`, `compensation`, `wellbeing`, `workflows` | Each dispatches on `mode` internally |
+| **Ungated — real content** | `knowledge`, `knowledge/:slug`, `settings`, `support/*`, `documents/studio`, `documents/templates/:tid`, `documents/generate/:templateId` | Template catalogue and reference guides are real product content |
+| **Still gated via `gated()`** | `documents` (index/repository), `documents/hr-library`, `documents/sign/:envelopeId`, `documents/:docId`, `settings/memory/*` | Fixture-driven, show `ProductionEmptyState` in production |
 
 [src/app/appViews.tsx:71-166]()
 

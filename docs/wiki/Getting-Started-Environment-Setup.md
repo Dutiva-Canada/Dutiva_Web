@@ -37,6 +37,8 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+
+
 This page covers everything a new developer needs to clone, configure, build, and deploy the Dutiva platform. It explains the npm scripts, Vite configuration, Vercel deployment rules, Supabase project setup, and — critically — the **configured-or-inert** design pattern that lets every feature degrade gracefully when its backing secret is absent.
 
 ## Cloning & Installing
@@ -53,22 +55,22 @@ Sources: [package.json:1-4](), [.github/workflows/ci.yml:33-35]()
 
 ## Tech Stack at a Glance
 
-| Layer          | Package                             | Version          | Role                                      |
-| -------------- | ----------------------------------- | ---------------- | ----------------------------------------- |
-| UI framework   | `react` / `react-dom`               | ^19.2.7          | React 19 with JSX transform               |
-| Routing        | `react-router-dom`                  | ^7.18.1          | Two-surface route tree                    |
-| Backend client | `@supabase/supabase-js`             | ^2.110.2         | Auth, PostgREST, edge functions           |
-| Bundler        | `vite`                              | ^8.1.1           | Dev server + production build             |
-| CSS            | `tailwindcss` + `@tailwindcss/vite` | ^4.3.2           | Utility-first styling                     |
-| Charts         | `recharts`                          | ^3.10.1          | Advisor chat chart blocks                 |
-| Markdown       | `react-markdown` + `remark-gfm`     | ^10.1.0 / ^4.0.1 | Advisor response rendering                |
-| Validation     | `zod`                               | ^4.4.3           | Schema validation (AdvisorResponse, etc.) |
-| Icons          | `lucide-react`                      | ^0.542.0         | Icon library                              |
-| Type checker   | `typescript`                        | ~6.0.2           | Strict mode, project references           |
-| Test runner    | `vitest`                            | ^4.1.10          | Unit + integration (jsdom)                |
-| E2E            | `@playwright/test`                  | ^1.62.1          | Browser smoke tests                       |
-| Linter         | `oxlint`                            | ^1.71.0          | Fast linting                              |
-| Formatter      | `prettier`                          | ^3.9.4           | Code formatting                           |
+| Layer | Package | Version | Role |
+|-------|---------|---------|------|
+| UI framework | `react` / `react-dom` | ^19.2.7 | React 19 with JSX transform |
+| Routing | `react-router-dom` | ^7.18.1 | Two-surface route tree |
+| Backend client | `@supabase/supabase-js` | ^2.110.2 | Auth, PostgREST, edge functions |
+| Bundler | `vite` | ^8.1.1 | Dev server + production build |
+| CSS | `tailwindcss` + `@tailwindcss/vite` | ^4.3.2 | Utility-first styling |
+| Charts | `recharts` | ^3.10.1 | Advisor chat chart blocks |
+| Markdown | `react-markdown` + `remark-gfm` | ^10.1.0 / ^4.0.1 | Advisor response rendering |
+| Validation | `zod` | ^4.4.3 | Schema validation (AdvisorResponse, etc.) |
+| Icons | `lucide-react` | ^0.542.0 | Icon library |
+| Type checker | `typescript` | ~6.0.2 | Strict mode, project references |
+| Test runner | `vitest` | ^4.1.10 | Unit + integration (jsdom) |
+| E2E | `@playwright/test` | ^1.62.1 | Browser smoke tests |
+| Linter | `oxlint` | ^1.71.0 | Fast linting |
+| Formatter | `prettier` | ^3.9.4 | Code formatting |
 
 Sources: [package.json:27-58]()
 
@@ -76,10 +78,10 @@ Sources: [package.json:27-58]()
 
 The project uses **TypeScript project references** with two sub-configs:
 
-| Config               | Scope            | Module                        | Target |
-| -------------------- | ---------------- | ----------------------------- | ------ |
-| `tsconfig.app.json`  | `src/`           | `esnext` (bundler resolution) | ES2022 |
-| `tsconfig.node.json` | `vite.config.ts` | `NodeNext`                    | ES2022 |
+| Config | Scope | Module | Target |
+|--------|-------|--------|--------|
+| `tsconfig.app.json` | `src/` | `esnext` (bundler resolution) | ES2022 |
+| `tsconfig.node.json` | `vite.config.ts` | `NodeNext` | ES2022 |
 
 Both enforce strict mode with `noUncheckedIndexedAccess`, `noUnusedLocals`, and `noUnusedParameters`. The `@/*` path alias maps to `./src/*`.
 
@@ -89,27 +91,27 @@ Sources: [tsconfig.json:1-11](), [tsconfig.app.json:1-35](), [tsconfig.node.json
 
 ### Script Reference Table
 
-| Script                 | Command                                                                                                                | Purpose                                      |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `dev`                  | `vite`                                                                                                                 | Local dev server with HMR                    |
-| `build`                | `tsc -b && vite build && relocate-sourcemaps → build:ssr → prerender → validate-seo → check-entry-graph → generate-sw` | Full production build pipeline               |
-| `build:ssr`            | `vite build --ssr src/entry-server.tsx --outDir dist-ssr`                                                              | SSR bundle for prerendering                  |
-| `preview`              | `vite preview`                                                                                                         | Serve built `dist/` locally                  |
-| `lint`                 | `oxlint`                                                                                                               | Fast lint                                    |
-| `typecheck`            | `tsc -b`                                                                                                               | Type-check both sub-projects                 |
-| `format`               | `prettier --write .`                                                                                                   | Auto-format                                  |
-| `format:check`         | `prettier --check .`                                                                                                   | CI format check                              |
-| `test`                 | `vitest run`                                                                                                           | Run unit/integration tests once              |
-| `test:watch`           | `vitest`                                                                                                               | Tests in watch mode                          |
-| `test:coverage`        | `vitest run --coverage`                                                                                                | Tests with v8 coverage (thresholds enforced) |
-| `test:e2e`             | `playwright test`                                                                                                      | Browser smoke tests                          |
-| `check:migrations`     | `node scripts/check-migrations.mjs`                                                                                    | Filename discipline + drift detection        |
-| `check:rls`            | `node scripts/check-rls.mjs`                                                                                           | RLS regression guard (anon role probing)     |
-| `check:facts`          | `node scripts/check-canonical-facts.mjs`                                                                               | Brand palette drift check                    |
-| `check:message-scopes` | `node scripts/check-message-scopes.mjs`                                                                                | i18n surface boundary guard                  |
-| `check`                | typecheck → lint → test → check:migrations → check:rls → check:facts → check:message-scopes                            | Local pre-commit gate                        |
-| `db:snapshot`          | `supabase db dump -f supabase/schema.sql`                                                                              | Dump live schema to repo                     |
-| `auth:email-templates` | `node scripts/apply-auth-email-templates.mjs`                                                                          | Push auth email templates                    |
+| Script | Command | Purpose |
+|--------|---------|---------|
+| `dev` | `vite` | Local dev server with HMR |
+| `build` | `tsc -b && vite build && relocate-sourcemaps → build:ssr → prerender → validate-seo → check-entry-graph → generate-sw` | Full production build pipeline |
+| `build:ssr` | `vite build --ssr src/entry-server.tsx --outDir dist-ssr` | SSR bundle for prerendering |
+| `preview` | `vite preview` | Serve built `dist/` locally |
+| `lint` | `oxlint` | Fast lint |
+| `typecheck` | `tsc -b` | Type-check both sub-projects |
+| `format` | `prettier --write .` | Auto-format |
+| `format:check` | `prettier --check .` | CI format check |
+| `test` | `vitest run` | Run unit/integration tests once |
+| `test:watch` | `vitest` | Tests in watch mode |
+| `test:coverage` | `vitest run --coverage` | Tests with v8 coverage (thresholds enforced) |
+| `test:e2e` | `playwright test` | Browser smoke tests |
+| `check:migrations` | `node scripts/check-migrations.mjs` | Filename discipline + drift detection |
+| `check:rls` | `node scripts/check-rls.mjs` | RLS regression guard (anon role probing) |
+| `check:facts` | `node scripts/check-canonical-facts.mjs` | Brand palette drift check |
+| `check:message-scopes` | `node scripts/check-message-scopes.mjs` | i18n surface boundary guard |
+| `check` | typecheck → lint → test → check:migrations → check:rls → check:facts → check:message-scopes | Local pre-commit gate |
+| `db:snapshot` | `supabase db dump -f supabase/schema.sql` | Dump live schema to repo |
+| `auth:email-templates` | `node scripts/apply-auth-email-templates.mjs` | Push auth email templates |
 
 Sources: [package.json:6-26]()
 
@@ -135,7 +137,6 @@ flowchart LR
 Sources: [package.json:8-9](), [scripts/relocate-sourcemaps.mjs:1-10](), [scripts/prerender.mjs:1-18]()
 
 The build chain is sequential by design. Each step depends on the prior output:
-
 1. `tsc -b` type-checks both projects (app + node configs) [package.json:8]()
 2. `vite build` produces `dist/` with hidden source maps [vite.config.ts:161]()
 3. `relocate-sourcemaps.mjs` moves `.map` files out of `dist/` into `sourcemaps/<rev>/` so they are never publicly served [scripts/relocate-sourcemaps.mjs:8-9]()
@@ -156,21 +157,20 @@ cp .env.example .env
 
 ### Variable Categories
 
-| Variable                   | Prefix     | Required | Configured-or-Inert Behavior                                 |
-| -------------------------- | ---------- | -------- | ------------------------------------------------------------ |
-| `VITE_SUPABASE_URL`        | `VITE_`    | No       | `supabaseClient` returns `null`; app serves bundled fixtures |
-| `VITE_SUPABASE_ANON_KEY`   | `VITE_`    | No       | Same as above                                                |
-| `VITE_GTM_CONTAINER_ID`    | `VITE_`    | No       | Tag Manager loader is inert, no Google script loaded         |
-| `VITE_GA_MEASUREMENT_ID`   | `VITE_`    | No       | Direct GA4 loader is inert (used only when GTM is unset)     |
-| `VITE_SITE_ORIGIN`         | `VITE_`    | No       | Defaults to `https://dutiva.ca`                              |
-| `GOOGLE_SITE_VERIFICATION` | —          | No       | No verification meta tag injected                            |
-| `BING_SITE_VERIFICATION`   | —          | No       | No verification meta tag injected                            |
-| `VITE_CAPTCHA_SITE_KEY`    | `VITE_`    | No       | CAPTCHA skipped on public intake                             |
-| `STRIPE_SECRET_KEY`        | — (server) | No       | Checkout/portal return 503 "not configured"                  |
-| `RESEND_API_KEY`           | — (server) | No       | Support notifications stay `pending`, nothing sent           |
-| `CAPTCHA_SECRET_KEY`       | — (server) | No       | Verification skipped entirely                                |
-| `AI_DAILY_REQUEST_LIMIT`   | — (server) | No       | Defaults in `_shared/aiUsage.ts` apply                       |
-| `ERROR_REPORT_SALT`        | — (server) | No       | `report-error` function fails closed                         |
+| Variable | Prefix | Required | Configured-or-Inert Behavior |
+|----------|--------|----------|------------------------------|
+| `VITE_SUPABASE_URL` | `VITE_` | No | `supabaseClient` returns `null`; app serves bundled fixtures |
+| `VITE_SUPABASE_ANON_KEY` | `VITE_` | No | Same as above |
+| `VITE_GA_MEASUREMENT_ID` | `VITE_` | No | GA4 loader is inert, no script loaded |
+| `VITE_SITE_ORIGIN` | `VITE_` | No | Defaults to `https://dutiva.ca` |
+| `GOOGLE_SITE_VERIFICATION` | — | No | No verification meta tag injected |
+| `BING_SITE_VERIFICATION` | — | No | No verification meta tag injected |
+| `VITE_CAPTCHA_SITE_KEY` | `VITE_` | No | CAPTCHA skipped on public intake |
+| `STRIPE_SECRET_KEY` | — (server) | No | Checkout/portal return 503 "not configured" |
+| `RESEND_API_KEY` | — (server) | No | Support notifications stay `pending`, nothing sent |
+| `CAPTCHA_SECRET_KEY` | — (server) | No | Verification skipped entirely |
+| `AI_DAILY_REQUEST_LIMIT` | — (server) | No | Defaults in `_shared/aiUsage.ts` apply |
+| `ERROR_REPORT_SALT` | — (server) | No | `report-error` function fails closed |
 
 **Key convention:** Variables prefixed `VITE_` are bundled into the client at build time. Server-side secrets (Stripe, Resend, CAPTCHA server keys) must **never** be prefixed with `VITE_`.
 
@@ -180,10 +180,10 @@ Sources: [.env.example:1-127]()
 
 Two non-`VITE_` environment variables are injected into the client bundle via `vite.config.ts` `define`:
 
-| Define            | Source                  | Fallback | Usage                                               |
-| ----------------- | ----------------------- | -------- | --------------------------------------------------- |
-| `__VERCEL_ENV__`  | `VERCEL_ENV`            | `''`     | Auth gate bypass on preview; DevAnnotations overlay |
-| `__RELEASE_SHA__` | `VERCEL_GIT_COMMIT_SHA` | `''`     | Error report release tagging                        |
+| Define | Source | Fallback | Usage |
+|--------|--------|----------|-------|
+| `__VERCEL_ENV__` | `VERCEL_ENV` | `''` | Auth gate bypass on preview; DevAnnotations overlay |
+| `__RELEASE_SHA__` | `VERCEL_GIT_COMMIT_SHA` | `''` | Error report release tagging |
 
 These are consumed through `src/lib/deployEnv.ts` and `src/lib/release.ts` respectively.
 
@@ -218,13 +218,13 @@ The pattern propagates throughout the codebase:
 
 ```typescript
 // src/features/app/auth/RequireAdminSession.tsx
-if (!supabase) return children // line 37
-if (isVercelPreview()) return children // line 39
+if (!supabase) return children          // line 37
+if (isVercelPreview()) return children   // line 39
 ```
 
 [src/features/app/auth/RequireAdminSession.tsx:37-39]()
 
-**`gtm.ts` / `ga4.ts`** — Tag Manager is preferred when `VITE_GTM_CONTAINER_ID` is set. The direct GA4 loader checks `VITE_GA_MEASUREMENT_ID` and returns `false` (no script injected) when unconfigured:
+**`ga4.ts`** — the GA4 loader checks `VITE_GA_MEASUREMENT_ID` and returns `false` (no script injected) when unconfigured:
 
 ```typescript
 // src/features/marketing/analytics/ga4.ts
@@ -270,15 +270,15 @@ Sources: [src/lib/supabaseClient.ts:15-16](), [src/features/marketing/analytics/
 
 The pattern extends to every Supabase edge function that depends on an external secret:
 
-| Edge Function                  | Missing Secret                | Behavior                                          |
-| ------------------------------ | ----------------------------- | ------------------------------------------------- |
-| `create-checkout-session`      | `STRIPE_SECRET_KEY`           | Responds 503 "not configured"                     |
-| `stripe-webhook`               | `STRIPE_WEBHOOK_SECRET`       | Responds 503                                      |
-| `support-notify`               | `RESEND_API_KEY`              | Safe no-op; notifications stay `pending`          |
-| `support-attachment-scan`      | `SUPPORT_ATTACHMENT_SCAN_URL` | Safe no-op; rows stay `pending`                   |
-| `resend-webhook`               | `RESEND_WEBHOOK_SECRET`       | Fails closed (503), never accepts unsigned events |
-| `create-public-support-ticket` | `CAPTCHA_SECRET_KEY`          | Skips verification entirely                       |
-| `report-error`                 | `ERROR_REPORT_SALT`           | Fails closed                                      |
+| Edge Function | Missing Secret | Behavior |
+|---------------|---------------|----------|
+| `create-checkout-session` | `STRIPE_SECRET_KEY` | Responds 503 "not configured" |
+| `stripe-webhook` | `STRIPE_WEBHOOK_SECRET` | Responds 503 |
+| `support-notify` | `RESEND_API_KEY` | Safe no-op; notifications stay `pending` |
+| `support-attachment-scan` | `SUPPORT_ATTACHMENT_SCAN_URL` | Safe no-op; rows stay `pending` |
+| `resend-webhook` | `RESEND_WEBHOOK_SECRET` | Fails closed (503), never accepts unsigned events |
+| `create-public-support-ticket` | `CAPTCHA_SECRET_KEY` | Skips verification entirely |
+| `report-error` | `ERROR_REPORT_SALT` | Fails closed |
 
 Sources: [.env.example:30-34](), [.env.example:67-78](), [.env.example:84-103](), [.env.example:115-127]()
 
@@ -290,11 +290,11 @@ Sources: [.env.example:30-34](), [.env.example:67-78](), [.env.example:84-103]()
 
 Three plugins are registered, with `devSourceLocation` conditional on context:
 
-| Plugin                | Condition                                  | Purpose                                                        |
-| --------------------- | ------------------------------------------ | -------------------------------------------------------------- |
+| Plugin | Condition | Purpose |
+|--------|-----------|---------|
 | `devSourceLocation()` | `dev` server or `VERCEL_ENV === 'preview'` | Stamps `data-loc` attributes on JSX for DevAnnotations overlay |
-| `react()`             | Always                                     | `@vitejs/plugin-react` (oxc-based)                             |
-| `tailwindcss()`       | Always                                     | `@tailwindcss/vite` integration                                |
+| `react()` | Always | `@vitejs/plugin-react` (oxc-based) |
+| `tailwindcss()` | Always | `@tailwindcss/vite` integration |
 
 The `stampSource` gate at [vite.config.ts:130-131]() ensures production builds never include `data-loc` attributes:
 
@@ -309,11 +309,11 @@ Sources: [vite.config.ts:23-55](), [vite.config.ts:126-134]()
 
 The `rolldownOptions.output.codeSplitting.groups` array defines three named chunk groups:
 
-| Group                | Purpose                                                        | Key Detail                                                                          |
-| -------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `messages-marketing` | i18n messages for the marketing surface                        | Includes `marketing.ts`, `shared.ts`, and specific feature modules                  |
-| `messages-workspace` | i18n messages for the workspace surface                        | Excludes `shell.ts` and `workspaceMode.ts`; `includeDependenciesRecursively: false` |
-| `vendor`             | Third-party deps (react, react-router-dom, lucide-react, etc.) | Excludes `@supabase`, `recharts`/d3 tree, and `react-markdown` tree                 |
+| Group | Purpose | Key Detail |
+|-------|---------|------------|
+| `messages-marketing` | i18n messages for the marketing surface | Includes `marketing.ts`, `shared.ts`, and specific feature modules |
+| `messages-workspace` | i18n messages for the workspace surface | Excludes `shell.ts` and `workspaceMode.ts`; `includeDependenciesRecursively: false` |
+| `vendor` | Third-party deps (react, react-router-dom, lucide-react, etc.) | Excludes `@supabase`, `recharts`/d3 tree, and `react-markdown` tree |
 
 The markdown renderer's dependency closure (~99 packages) is computed at config load by `dependencyClosure()` [vite.config.ts:70-92]() and converted to a regex by `packageAlternation()` [vite.config.ts:95-100](). This keeps the markdown parser out of the eager entry graph so marketing visitors never download it.
 
@@ -391,10 +391,10 @@ Sources: [supabase/config.toml:24-72]()
 
 Two CI jobs probe the live Supabase project. Both use the **loud skipping** pattern: when credentials are absent, the step passes but emits a GitHub Actions warning annotation and job summary entry so a green check is never mistaken for a verified one.
 
-| Check              | Credentials Needed                              | What It Verifies                                                                                       |
-| ------------------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `check:migrations` | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF` | Every local migration file is applied on the live project (and vice versa)                             |
-| `check:rls`        | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (public)    | Sensitive tables (`beta_signups`, `hr_documents`, `signatures`) return zero rows to the anonymous role |
+| Check | Credentials Needed | What It Verifies |
+|-------|-------------------|-----------------|
+| `check:migrations` | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF` | Every local migration file is applied on the live project (and vice versa) |
+| `check:rls` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (public) | Sensitive tables (`beta_signups`, `hr_documents`, `signatures`) return zero rows to the anonymous role |
 
 The RLS check includes a **positive control**: it first confirms the anon key can read `service_status` (a table meant to be public). If that fails, the key is wrong and all negative results are meaningless — the check errors out rather than reporting a false all-clear.
 
@@ -413,34 +413,32 @@ Sources: [scripts/lib/secrets.mjs:31-58]()
 The `vercel.json` file defines redirects, rewrites, and security headers:
 
 **Redirects:**
-
 - `www.dutiva.ca` → `dutiva.ca` (permanent 301) [vercel.json:3-9]()
 
 **Rewrites:**
-
 - `/app` and `/app/:path*` → `/app.html` (the SPA shell for the workspace) [vercel.json:11-14]()
 
 **Security Headers** (applied to all routes `/:path*`):
 
-| Header                      | Value                                                          | Purpose                               |
-| --------------------------- | -------------------------------------------------------------- | ------------------------------------- |
-| `Content-Security-Policy`   | Full resource policy                                           | XSS, clickjacking, resource injection |
-| `X-Frame-Options`           | `DENY`                                                         | Clickjacking prevention               |
-| `X-Content-Type-Options`    | `nosniff`                                                      | MIME sniffing prevention              |
-| `Referrer-Policy`           | `strict-origin-when-cross-origin`                              | Path/query leakage prevention         |
-| `Strict-Transport-Security` | `max-age=63072000; includeSubDomains`                          | SSL-strip prevention                  |
-| `Permissions-Policy`        | `camera=(), microphone=(), geolocation=(), browsing-topics=()` | Opt out of unused APIs                |
+| Header | Value | Purpose |
+|--------|-------|---------|
+| `Content-Security-Policy` | Full resource policy | XSS, clickjacking, resource injection |
+| `X-Frame-Options` | `DENY` | Clickjacking prevention |
+| `X-Content-Type-Options` | `nosniff` | MIME sniffing prevention |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` | Path/query leakage prevention |
+| `Strict-Transport-Security` | `max-age=63072000; includeSubDomains` | SSL-strip prevention |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=(), browsing-topics=()` | Opt out of unused APIs |
 
 Sources: [vercel.json:15-35](), [docs/SECURITY_HEADERS.md:9-18]()
 
 **Caching & Indexing Rules:**
 
-| Route Pattern                      | Header          | Value                                 |
-| ---------------------------------- | --------------- | ------------------------------------- |
-| `/app`, `/app/:path*`, `/app.html` | `X-Robots-Tag`  | `noindex, nofollow`                   |
-| `*.vercel.app` (any preview)       | `X-Robots-Tag`  | `noindex, nofollow`                   |
-| `/assets/:path*`                   | `Cache-Control` | `public, max-age=31536000, immutable` |
-| `/sw.js`                           | `Cache-Control` | `public, max-age=0, must-revalidate`  |
+| Route Pattern | Header | Value |
+|---------------|--------|-------|
+| `/app`, `/app/:path*`, `/app.html` | `X-Robots-Tag` | `noindex, nofollow` |
+| `*.vercel.app` (any preview) | `X-Robots-Tag` | `noindex, nofollow` |
+| `/assets/:path*` | `Cache-Control` | `public, max-age=31536000, immutable` |
+| `/sw.js` | `Cache-Control` | `public, max-age=0, must-revalidate` |
 
 Sources: [vercel.json:37-61]()
 
@@ -492,11 +490,11 @@ flowchart TD
     BuildE2E --> Playwright["npm run test:e2e"]
 ```
 
-| Job           | Required for Merge | Needs Credentials          | Deterministic               |
-| ------------- | ------------------ | -------------------------- | --------------------------- |
-| `check`       | Yes                | No                         | Yes                         |
-| `live-checks` | No                 | Yes (loud-skip if missing) | No (probes live DB)         |
-| `e2e`         | No                 | No                         | Yes (but browser-dependent) |
+| Job | Required for Merge | Needs Credentials | Deterministic |
+|-----|-------------------|-------------------|--------------|
+| `check` | Yes | No | Yes |
+| `live-checks` | No | Yes (loud-skip if missing) | No (probes live DB) |
+| `e2e` | No | No | Yes (but browser-dependent) |
 
 The `check` job is the required status check. `live-checks` is isolated so credential problems never block the merge gate — the failure mode that let unverified builds merge when the access token expired.
 
@@ -535,16 +533,16 @@ Sources: [src/entry-server.tsx:1-131]()
 
 ## Quick-Start Checklist
 
-| Step                | Command / Action       | Notes                                      |
-| ------------------- | ---------------------- | ------------------------------------------ |
-| 1. Clone            | `git clone … && cd …`  |                                            |
-| 2. Install          | `npm ci`               | Node 22 recommended                        |
-| 3. Copy env         | `cp .env.example .env` | All vars optional — app works without any  |
-| 4. Dev server       | `npm run dev`          | Runs at `localhost:5173`                   |
-| 5. Run tests        | `npm test`             | Vitest with jsdom                          |
-| 6. Full check       | `npm run check`        | typecheck + lint + test + integrity checks |
-| 7. Production build | `npm run build`        | Outputs `dist/` and `dist-ssr/`            |
-| 8. Preview build    | `npm run preview`      | Serves `dist/` locally                     |
+| Step | Command / Action | Notes |
+|------|-----------------|-------|
+| 1. Clone | `git clone … && cd …` | |
+| 2. Install | `npm ci` | Node 22 recommended |
+| 3. Copy env | `cp .env.example .env` | All vars optional — app works without any |
+| 4. Dev server | `npm run dev` | Runs at `localhost:5173` |
+| 5. Run tests | `npm test` | Vitest with jsdom |
+| 6. Full check | `npm run check` | typecheck + lint + test + integrity checks |
+| 7. Production build | `npm run build` | Outputs `dist/` and `dist-ssr/` |
+| 8. Preview build | `npm run preview` | Serves `dist/` locally |
 
 To connect to a real Supabase project, set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env`. Without them, the app serves identical bundled fixture data and auth features degrade to their signed-out state — this is by design, not an error.
 

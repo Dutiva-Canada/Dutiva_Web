@@ -44,6 +44,8 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+
+
 This page covers the public marketing funnel: the `LandingPage` component and its sections, the standalone `PricingPage` with Stripe checkout integration, the `FaqPage`, the plan configuration system (`plans.ts`, `planComparison.ts`), and the full beta signup flow from the client-side `BetaSignup` form through the `create-beta-signup` edge function.
 
 ## Landing Page Architecture
@@ -54,20 +56,20 @@ This page covers the public marketing funnel: the `LandingPage` component and it
 
 ### Section Composition Order
 
-| Order | Component    | Anchor       | Description                                                                 |
-| ----- | ------------ | ------------ | --------------------------------------------------------------------------- |
-| 1     | `Header`     | —            | Sticky nav bar with section anchors, lang/theme toggles, sign-in/start CTAs |
-| 2     | `Hero`       | `#top`       | Headline + `AdvisorDemo` product frame                                      |
-| 3     | `TrustStrip` | —            | Ottawa · PIPEDA · Law 25 · Bilingual pills                                  |
-| 4     | `HowItWorks` | `#how`       | Three-step cards (Ask → Get guidance → Generate)                            |
-| 5     | `Workflows`  | `#workflows` | 8 workflow tiles + example workflow card                                    |
-| 6     | `Product`    | `#product`   | Document Studio features + template category chips                          |
-| 7     | `Modules`    | —            | 7 workspace module `IconChip` components                                    |
-| 8     | `WhyDutiva`  | —            | Differentiator cards                                                        |
-| 9     | `Coverage`   | `#coverage`  | Jurisdiction cards (ON, QC, Federal, Remote)                                |
-| 10    | `Pricing`    | `#pricing`   | Plan tier teaser cards (links to `#start`)                                  |
-| 11    | `Guides`     | `#guides`    | Guide article teasers from `GUIDE_ARTICLES`                                 |
-| 12    | `BetaSignup` | `#start`     | Waiting-list form                                                           |
+| Order | Component | Anchor | Description |
+|-------|-----------|--------|-------------|
+| 1 | `Header` | — | Sticky nav bar with section anchors, lang/theme toggles, sign-in/start CTAs |
+| 2 | `Hero` | `#top` | Headline + `AdvisorDemo` product frame |
+| 3 | `TrustStrip` | — | Ottawa · PIPEDA · Law 25 · Bilingual pills |
+| 4 | `HowItWorks` | `#how` | Three-step cards (Ask → Get guidance → Generate) |
+| 5 | `Workflows` | `#workflows` | 8 workflow tiles + example workflow card |
+| 6 | `Product` | `#product` | Document Studio features + template category chips |
+| 7 | `Modules` | — | 7 workspace module `IconChip` components |
+| 8 | `WhyDutiva` | — | Differentiator cards |
+| 9 | `Coverage` | `#coverage` | Jurisdiction cards (ON, QC, Federal, Remote) |
+| 10 | `Pricing` | `#pricing` | Plan tier teaser cards (links to `#start`) |
+| 11 | `Guides` | `#guides` | Guide article teasers from `GUIDE_ARTICLES` |
+| 12 | `BetaSignup` | `#start` | Waiting-list form |
 
 **Landing page section composition diagram:**
 
@@ -150,12 +152,12 @@ Sources: [src/features/marketing/sections/Modules.tsx:1-72]()
 
 The canonical plan catalogue is defined in `src/config/plans.ts` as the `PLANS` array of four `PlanDefinition` objects:
 
-| Plan         | `id`      | Monthly (CAD) | `popular` | `stripePriceEnvVar`            |
-| ------------ | --------- | ------------- | --------- | ------------------------------ |
-| Free / Beta  | `free`    | $0            | —         | `null`                         |
-| Starter      | `starter` | $24           | —         | `STRIPE_PRICE_STARTER_MONTHLY` |
-| Growth       | `growth`  | $49           | ✓         | `STRIPE_PRICE_GROWTH_MONTHLY`  |
-| Professional | `pro`     | $99           | —         | `STRIPE_PRICE_PRO_MONTHLY`     |
+| Plan | `id` | Monthly (CAD) | `popular` | `stripePriceEnvVar` |
+|------|------|--------------|-----------|---------------------|
+| Free / Beta | `free` | $0 | — | `null` |
+| Starter | `starter` | $24 | — | `STRIPE_PRICE_STARTER_MONTHLY` |
+| Growth | `growth` | $49 | ✓ | `STRIPE_PRICE_GROWTH_MONTHLY` |
+| Professional | `pro` | $99 | — | `STRIPE_PRICE_PRO_MONTHLY` |
 
 [src/config/plans.ts:28-66]()
 
@@ -165,14 +167,14 @@ Each `PlanDefinition` carries i18n keys for name, description, features, and CTA
 
 ### Key Utility Functions
 
-| Function                           | Purpose                                                                          | Source                          |
-| ---------------------------------- | -------------------------------------------------------------------------------- | ------------------------------- |
-| `getPlanById(id)`                  | Lookup plan by string id                                                         | [src/config/plans.ts:68-70]()   |
-| `isPurchasable(plan)`              | Returns `false` for paid plans while `PAID_PLANS_DISABLED_DURING_BETA` is `true` | [src/config/plans.ts:82-84]()   |
-| `annualPerMonth(price)`            | Computes effective monthly price on annual billing (`price × 10 / 12`, rounded)  | [src/config/plans.ts:98-99]()   |
-| `annualTotal(price)`               | Total annual charge (derived from `annualPerMonth × 12` for reconciliation)      | [src/config/plans.ts:107-109]() |
-| `normalizePlanId(value)`           | Normalizes unknown/missing plan ids to `'free'`                                  | [src/config/plans.ts:113-118]() |
-| `hasPlanAccess(current, required)` | Hierarchical plan gate check                                                     | [src/config/plans.ts:121-123]() |
+| Function | Purpose | Source |
+|----------|---------|--------|
+| `getPlanById(id)` | Lookup plan by string id | [src/config/plans.ts:68-70]() |
+| `isPurchasable(plan)` | Returns `false` for paid plans while `PAID_PLANS_DISABLED_DURING_BETA` is `true` | [src/config/plans.ts:82-84]() |
+| `annualPerMonth(price)` | Computes effective monthly price on annual billing (`price × 10 / 12`, rounded) | [src/config/plans.ts:98-99]() |
+| `annualTotal(price)` | Total annual charge (derived from `annualPerMonth × 12` for reconciliation) | [src/config/plans.ts:107-109]() |
+| `normalizePlanId(value)` | Normalizes unknown/missing plan ids to `'free'` | [src/config/plans.ts:113-118]() |
+| `hasPlanAccess(current, required)` | Hierarchical plan gate check | [src/config/plans.ts:121-123]() |
 
 ### `PAID_PLANS_DISABLED_DURING_BETA`
 
@@ -181,7 +183,6 @@ This constant is set to `true` and acts as the global beta gate for billing:
 [src/config/plans.ts:79]()
 
 When `true`:
-
 - Paid plan cards on both the landing teaser and `/pricing` show "Coming soon" badges and disabled CTAs
 - The billing toggle (monthly/annual) is hidden on `/pricing`
 - `isPurchasable()` returns `false` for any plan with `monthlyPrice > 0`
@@ -324,14 +325,14 @@ Sources: [src/features/marketing/sections/BetaSignup.tsx:68-108](), [src/feature
 
 The form (anchored at `#start`) collects four fields and two anti-abuse inputs:
 
-| Field    | Type                           | Required    | Notes                                                   |
-| -------- | ------------------------------ | ----------- | ------------------------------------------------------- |
-| Email    | `<input type="email">`         | Yes         | Client-validated by `isValidEmail()`                    |
-| Company  | `<input type="text">`          | No          | Optional organization name                              |
-| Province | `<select>`                     | No          | Options: ON, QC, Federal, Other                         |
-| Consent  | `<input type="checkbox">`      | Yes         | CASL express consent                                    |
-| Honeypot | Hidden `<input>` (`#beta-fax`) | —           | Off-screen, `tabIndex={-1}`, `aria-hidden`              |
-| CAPTCHA  | `CaptchaField`                 | Conditional | Rendered only when `isCaptchaConfigured()` returns true |
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| Email | `<input type="email">` | Yes | Client-validated by `isValidEmail()` |
+| Company | `<input type="text">` | No | Optional organization name |
+| Province | `<select>` | No | Options: ON, QC, Federal, Other |
+| Consent | `<input type="checkbox">` | Yes | CASL express consent |
+| Honeypot | Hidden `<input>` (`#beta-fax`) | — | Off-screen, `tabIndex={-1}`, `aria-hidden` |
+| CAPTCHA | `CaptchaField` | Conditional | Rendered only when `isCaptchaConfigured()` returns true |
 
 [src/features/marketing/sections/BetaSignup.tsx:144-277]()
 
@@ -340,7 +341,6 @@ The component tracks four status states: `'idle'`, `'sending'`, `'done'`, and `'
 [src/features/marketing/sections/BetaSignup.tsx:27]()
 
 Error codes from the API are mapped to localized messages:
-
 - `rate_limited` → `landing_cta_rate_limited`
 - `captcha` → `landing_cta_captcha_failed`
 - anything else → `landing_cta_fail`
@@ -356,7 +356,6 @@ Sources: [src/features/marketing/sections/BetaSignup.tsx:1-283]()
 [src/features/marketing/betaSignupApi.ts:76-101]()
 
 Key payload mappings:
-
 - `honeypot` → `contact_fax` (the server's trap field name)
 - `captchaToken` → `captcha_token`
 - `source` is hardcoded to `'landing'`
@@ -366,12 +365,12 @@ Key payload mappings:
 
 HTTP status codes are mapped to typed `BetaSignupErrorCode` values:
 
-| Status  | Code           |
-| ------- | -------------- |
-| 429     | `rate_limited` |
-| 400/422 | `validation`   |
-| 403     | `captcha`      |
-| other   | `error`        |
+| Status | Code |
+|--------|------|
+| 429 | `rate_limited` |
+| 400/422 | `validation` |
+| 403 | `captcha` |
+| other | `error` |
 
 [src/features/marketing/betaSignupApi.ts:58-65]()
 
@@ -417,11 +416,11 @@ Sources: [supabase/functions/create-beta-signup/index.ts:1-329]()
 
 The `buildConsentRecord()` function in `_shared/caslConsent.ts` constructs a three-field record that is spread into the `beta_signups` insert:
 
-| Field             | Value                                | Purpose             |
-| ----------------- | ------------------------------------ | ------------------- |
-| `consent_granted` | `true`                               | The person agreed   |
-| `consent_text`    | Verbatim checkbox wording (EN or FR) | What they agreed to |
-| `consent_at`      | ISO timestamp                        | When they agreed    |
+| Field | Value | Purpose |
+|-------|-------|---------|
+| `consent_granted` | `true` | The person agreed |
+| `consent_text` | Verbatim checkbox wording (EN or FR) | What they agreed to |
+| `consent_at` | ISO timestamp | When they agreed |
 
 [supabase/functions/_shared/caslConsent.ts:58-64]()
 
@@ -469,12 +468,12 @@ Sources: [src/config/beta.ts:1-19](), [supabase/migrations/0067_beta_cohort_capa
 
 `FaqPage` renders at `/faq` with four accordion groups using native `<details>` elements (no JS required for expand/collapse):
 
-| Group                 | Title Key     | Questions                                                                        |
-| --------------------- | ------------- | -------------------------------------------------------------------------------- |
-| General               | `faq_g_title` | Is Dutiva a law firm? · Who is it for? · Is it bilingual? · Does it run payroll? |
-| Compliance & Coverage | `faq_c_title` | Jurisdictions covered · Legal advice · AI accuracy                               |
-| Data & Security       | `faq_d_title` | Data processing location · Training data · Deletion                              |
-| Pricing & Billing     | `faq_p_title` | Cost · Free trial · Cancellation                                                 |
+| Group | Title Key | Questions |
+|-------|-----------|-----------|
+| General | `faq_g_title` | Is Dutiva a law firm? · Who is it for? · Is it bilingual? · Does it run payroll? |
+| Compliance & Coverage | `faq_c_title` | Jurisdictions covered · Legal advice · AI accuracy |
+| Data & Security | `faq_d_title` | Data processing location · Training data · Deletion |
+| Pricing & Billing | `faq_p_title` | Cost · Free trial · Cancellation |
 
 [src/features/marketing/pages/FaqPage.tsx:7-41]()
 
@@ -494,13 +493,13 @@ Sources: [src/i18n/messages/pricing.ts:1-60](), [src/i18n/messages/landing.ts:1-
 
 ## Test Coverage
 
-| Test File               | Coverage                                                                                                                                     |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `plans.test.ts`         | Four tiers, ascending price, popular flag, `getPlanById`, `normalizePlanId`, `hasPlanAccess`                                                 |
-| `PricingPage.test.ts`   | Hero rendering, all four tiers, beta-disabled CTAs, comparison table, French locale, checkout return params                                  |
+| Test File | Coverage |
+|-----------|----------|
+| `plans.test.ts` | Four tiers, ascending price, popular flag, `getPlanById`, `normalizePlanId`, `hasPlanAccess` |
+| `PricingPage.test.ts` | Hero rendering, all four tiers, beta-disabled CTAs, comparison table, French locale, checkout return params |
 | `betaSignupApi.test.ts` | Payload shape, optional field omission, honeypot forwarding, CAPTCHA token forwarding, cohort waitlisted bit, HTTP status→error code mapping |
-| `BetaSignup.test.tsx`   | (exists as referenced sibling test)                                                                                                          |
-| `caslConsent.test.ts`   | Consent text pinning to i18n source                                                                                                          |
+| `BetaSignup.test.tsx` | (exists as referenced sibling test) |
+| `caslConsent.test.ts` | Consent text pinning to i18n source |
 
 Sources: [src/config/plans.test.ts:1-30](), [src/features/marketing/pages/PricingPage.test.ts:1-143](), [src/features/marketing/betaSignupApi.test.ts:1-132]()
 

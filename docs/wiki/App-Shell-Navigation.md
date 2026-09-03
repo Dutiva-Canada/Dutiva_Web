@@ -39,6 +39,8 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+
+
 The workspace UI is enclosed in `AppShell`, a responsive layout component that coordinates a sidebar, topbar, mobile navigation, context banners, and global overlays. Every `/app/*` and `/demo/*` route renders inside this frame. On the public demo, `PublicDemoBanner` and `DemoTourRail` render above the main flex area; the sidebar defaults to compact width.
 
 The shell adapts across three breakpoints and persists user layout preferences to `localStorage`.
@@ -85,11 +87,11 @@ Sources: [src/features/app/shell/AppShell.tsx:1-221](), [src/features/app/shell/
 
 The `useLayoutMode` hook returns one of three modes based on CSS media queries:
 
-| LayoutMode | Breakpoint | Sidebar                                                                                                                           | Topbar                    | Bottom Nav  |
-| ---------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------- | ----------- |
-| `desktop`  | ≥ 1024px   | expanded or compact (user toggle)                                                                                                 | `Topbar` + sidebar toggle | —           |
-| `tablet`   | 768–1023px | compact by default; same expand toggle + `localStorage` as desktop ([#280](https://github.com/Dutiva-Canada/Dutiva_Web/pull/280)) | `Topbar` + sidebar toggle | —           |
-| `mobile`   | < 768px    | drawer (slide-in)                                                                                                                 | `MobileTopbar`            | `MobileNav` |
+| LayoutMode | Breakpoint | Sidebar | Topbar | Bottom Nav |
+|------------|-----------|---------|--------|------------|
+| `desktop`  | ≥ 1024px  | expanded or compact (user toggle) | `Topbar` + sidebar toggle | — |
+| `tablet`   | 768–1023px | compact by default; same expand toggle + `localStorage` as desktop ([#280](https://github.com/Dutiva-Canada/Dutiva_Web/pull/280)) | `Topbar` + sidebar toggle | — |
+| `mobile`   | < 768px   | drawer (slide-in) | `MobileTopbar` | `MobileNav` |
 
 The `currentLayoutMode()` function uses `window.matchMedia` queries, and `useLayoutMode` listens for `change` events on both media queries to re-evaluate on resize/rotation.
 
@@ -155,11 +157,11 @@ The `Sidebar` component (`src/features/app/shell/Sidebar.tsx`) accepts a `Sideba
 
 ### SidebarMode Visual Properties
 
-| Mode       | Width               | Positioning                  | Labels            | Sections                    |
-| ---------- | ------------------- | ---------------------------- | ----------------- | --------------------------- |
-| `expanded` | 292px (`w-[292px]`) | In-flow                      | Visible text      | Collapsible headings        |
-| `compact`  | 64px (`w-[64px]`)   | In-flow, `z-1`               | Hidden (tooltips) | Always visible, no headings |
-| `drawer`   | 292px               | Fixed, `z-70`, CSS translate | Visible text      | Collapsible headings        |
+| Mode | Width | Positioning | Labels | Sections |
+|------|-------|-------------|--------|----------|
+| `expanded` | 292px (`w-[292px]`) | In-flow | Visible text | Collapsible headings |
+| `compact` | 64px (`w-[64px]`) | In-flow, `z-1` | Hidden (tooltips) | Always visible, no headings |
+| `drawer` | 292px | Fixed, `z-70`, CSS translate | Visible text | Collapsible headings |
 
 [src/features/app/shell/Sidebar.tsx:19-87]()
 
@@ -181,14 +183,14 @@ The `SearchProvider` registers a global `keydown` listener that opens the search
 
 `SidebarCreateMenu` is a dropdown menu for quick entity creation. It uses `useCreateActions()` to define six action items:
 
-| Action        | Key             | Route                   | Status   |
-| ------------- | --------------- | ----------------------- | -------- |
-| Conversation  | `conversation`  | `/app/advisor`          | Active   |
-| Document      | `document`      | `/app/documents/studio` | Active   |
-| Case          | `case`          | `/app/cases`            | Active   |
-| Workflow      | `workflow`      | —                       | Disabled |
-| Employee      | `employee`      | —                       | Disabled |
-| Communication | `communication` | —                       | Disabled |
+| Action | Key | Route | Status |
+|--------|-----|-------|--------|
+| Conversation | `conversation` | `/app/advisor` | Active |
+| Document | `document` | `/app/documents/studio` | Active |
+| Case | `case` | `/app/cases` | Active |
+| Workflow | `workflow` | — | Disabled |
+| Employee | `employee` | — | Disabled |
+| Communication | `communication` | — | Disabled |
 
 Disabled items show an "Unavailable" badge and have `aria-disabled="true"` with a shared `aria-describedby` pointing to a hidden description. The menu supports full keyboard navigation: `ArrowUp`/`ArrowDown` for item focus, `Escape` to close with focus return to the trigger button.
 
@@ -218,10 +220,10 @@ Sources: [src/features/app/shell/Sidebar.tsx:96-233](), [src/features/app/shell/
 
 The sidebar organizes `NAV_GROUPS` into collapsible sections. Only groups with a non-null `heading` are collapsible; heading-less groups render as always-visible top-level items. Two section keys exist:
 
-| Section Key | Heading (EN/FR)       | Items                                                         |
-| ----------- | --------------------- | ------------------------------------------------------------- |
-| `records`   | Records / Registres   | People, Cases, Documents, Knowledge                           |
-| `programs`  | Programs / Programmes | Compliance, Compensation, Communications, Wellbeing, Planning |
+| Section Key | Heading (EN/FR) | Items |
+|-------------|----------------|-------|
+| `records` | Records / Registres | People, Cases, Documents, Knowledge |
+| `programs` | Programs / Programmes | Compliance, Compensation, Communications, Wellbeing, Planning |
 
 [src/features/app/shell/Sidebar.tsx:21-33]()
 
@@ -299,12 +301,12 @@ Sources: [src/features/app/shell/navConfig.ts:58-151]()
 
 ```typescript
 interface NavItem {
-  key: string // stable key, first path segment under /app
-  to: string // route target
-  icon: LucideIcon // sidebar icon component
-  label: Bi // bilingual label { en, fr }
+  key: string           // stable key, first path segment under /app
+  to: string            // route target
+  icon: LucideIcon      // sidebar icon component
+  label: Bi             // bilingual label { en, fr }
   badge?: { value: string; tone: NavBadgeTone }
-  isActive?: (pathname: string) => boolean // custom active predicate
+  isActive?: (pathname: string) => boolean  // custom active predicate
 }
 ```
 
@@ -420,16 +422,16 @@ Available on desktop and tablet (not in drawer mode), `SidebarCollapseButton` to
 
 The `Topbar` component renders on desktop and tablet layouts (≥ 768px). It occupies a 60px height strip and contains:
 
-| Element              | Description                                                                                                                                   |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Sidebar toggle       | `PanelLeftOpen` / `PanelLeftClose` — same preference as footer collapse button ([#280](https://github.com/Dutiva-Canada/Dutiva_Web/pull/280)) |
-| Route title          | `<h1>` displaying the current view/module label                                                                                               |
-| "Ask Advisor" button | Gold-bordered button opening the contextual `AdvisorRail` (hidden on `/app/advisor`)                                                          |
-| `LangToggle`         | EN/FR segmented pill                                                                                                                          |
-| `ThemeToggle`        | Sun/moon icon button                                                                                                                          |
-| Search trigger       | Opens `SearchOverlay` via `openSearch()`                                                                                                      |
-| `AuthMenuButton`     | Account/sign-in popover                                                                                                                       |
-| Notifications bell   | Popover with sample notifications (demo mode) or empty state (production)                                                                     |
+| Element | Description |
+|---------|-------------|
+| Sidebar toggle | `PanelLeftOpen` / `PanelLeftClose` — same preference as footer collapse button ([#280](https://github.com/Dutiva-Canada/Dutiva_Web/pull/280)) |
+| Route title | `<h1>` displaying the current view/module label |
+| "Ask Advisor" button | Gold-bordered button opening the contextual `AdvisorRail` (hidden on `/app/advisor`) |
+| `LangToggle` | EN/FR segmented pill |
+| `ThemeToggle` | Sun/moon icon button |
+| Search trigger | Opens `SearchOverlay` via `openSearch()` |
+| `AuthMenuButton` | Account/sign-in popover |
+| Notifications bell | Popover with sample notifications (demo mode) or empty state (production) |
 
 [src/features/app/shell/Topbar.tsx:70-178]()
 
@@ -458,13 +460,13 @@ Rendered at < 768px, `MobileTopbar` is a 56px header with a hamburger button (op
 
 A fixed-bottom tab bar with five items:
 
-| Tab          | Route          | Icon                            |
-| ------------ | -------------- | ------------------------------- |
-| Home         | `/app/home`    | `House`                         |
-| Cases        | `/app/cases`   | `Briefcase`                     |
+| Tab | Route | Icon |
+|-----|-------|------|
+| Home | `/app/home` | `House` |
+| Cases | `/app/cases` | `Briefcase` |
 | Ask (raised) | `/app/advisor` | `Sparkle` (gold on navy circle) |
-| Tasks        | `/app/tasks`   | `ListChecks`                    |
-| More         | opens drawer   | `Menu`                          |
+| Tasks | `/app/tasks` | `ListChecks` |
+| More | opens drawer | `Menu` |
 
 The "Ask" tab is visually elevated with a 50px navy circle that overlaps the tab bar's top edge by 16px. It passes `{ newConversation: true }` as route state to start a fresh advisor session. The tab bar handles safe-area bottom insets with `pb-[calc(5px_+_env(safe-area-inset-bottom))]`.
 
@@ -482,12 +484,12 @@ Sources: [src/features/app/shell/MobileNav.tsx:1-154](), [src/features/app/shell
 
 Some modules hide their desktop side rails below `md` and expose them through full-screen sheets opened from a compact bar. This matches the Advisor and Memory design handoffs (`Advisor Response Experience.dc.html`, `Advisor Memory.dc.html`).
 
-| Module                 | Desktop rail                      | Mobile access                                                                         | Close behaviour            |
-| ---------------------- | --------------------------------- | ------------------------------------------------------------------------------------- | -------------------------- |
-| **Advisor threads**    | 248px `ThreadList` column         | `ThreadListMobileAccess` bar (active title + list icon) + sheet                       | Select thread or tap close |
-| **Memory nav**         | 252px `MemoryLayout` nav          | `MemoryMobileNavAccess` bar + sheet with full `MemoryNavPanel`                        | Navigate or tap close      |
-| **Advisor compliance** | 384px `ComplianceWorkspace` aside | Inline at `≥1024px` only; below `lg`, gold “Workspace” pill in `ChatPane` opens sheet | Sheet close button         |
-| **Chat recall rail**   | “What I know” aside at `≥1024px`  | Pill in jurisdiction line opens sheet below `lg`                                      | Sheet close button         |
+| Module | Desktop rail | Mobile access | Close behaviour |
+|--------|-------------|---------------|-----------------|
+| **Advisor threads** | 248px `ThreadList` column | `ThreadListMobileAccess` bar (active title + list icon) + sheet | Select thread or tap close |
+| **Memory nav** | 252px `MemoryLayout` nav | `MemoryMobileNavAccess` bar + sheet with full `MemoryNavPanel` | Navigate or tap close |
+| **Advisor compliance** | 384px `ComplianceWorkspace` aside | Inline at `≥1024px` only; below `lg`, gold “Workspace” pill in `ChatPane` opens sheet | Sheet close button |
+| **Chat recall rail** | “What I know” aside at `≥1024px` | Pill in jurisdiction line opens sheet below `lg` | Sheet close button |
 
 Layout mode uses `useMdUp()` / `useLgUp()` from `@/lib/useMediaQuery` so only one variant mounts (important for Vitest, where both Tailwind `hidden`/`md:flex` classes would otherwise render).
 
@@ -510,7 +512,6 @@ Each type has a localized label from `shellMessages`.
 ### Display
 
 The banner shows:
-
 - An initials avatar circle
 - "ADVISOR IS USING · [type]" label in uppercase gold
 - The entity subject name
@@ -526,14 +527,14 @@ The context state is managed by `WorkspaceContext` from `workspaceContextStore.t
 
 `ModuleContextBanner` shows a specialist mode banner on certain workspace views. It maps the current route segment to an Advisor specialty:
 
-| Route segment    | Specialty                 |
-| ---------------- | ------------------------- |
-| `compensation`   | Compensation Analyst      |
-| `compliance`     | Compliance Specialist     |
-| `wellbeing`      | Wellbeing Specialist      |
+| Route segment | Specialty |
+|--------------|-----------|
+| `compensation` | Compensation Analyst |
+| `compliance` | Compliance Specialist |
+| `wellbeing` | Wellbeing Specialist |
 | `communications` | Communications Specialist |
-| `templates`      | Template Specialist       |
-| `cases`          | Case Specialist           |
+| `templates` | Template Specialist |
+| `cases` | Case Specialist |
 
 The banner is hidden when a `WorkspaceContext` is already set, or when viewing a detail page (route has a second segment).
 
@@ -554,7 +555,6 @@ The global search overlay is triggered from multiple points: the `SidebarSearch`
 ### SearchOverlay
 
 When open, `SearchOverlay` mounts `SearchDialog`, which provides:
-
 - Text input with live filtering
 - Tab strip across entity types (`all`, employees, cases, chats, documents, views)
 - Arrow key navigation of results
@@ -586,10 +586,10 @@ Sources: [src/features/app/shell/AppShell.tsx:215-218](), [src/lib/escapeStack.t
 
 The shell persists several preferences to `localStorage` via the `readPref`/`writePref` helpers from `@/lib/prefs`, which wrap `localStorage` in try/catch for private-mode/SSR safety.
 
-| Key                          | Purpose                        | Default                             | Used by    |
-| ---------------------------- | ------------------------------ | ----------------------------------- | ---------- |
-| `dutiva.sidebar.expanded.v1` | Sidebar expanded vs compact    | `'true'`                            | `AppShell` |
-| `dutiva.sidebar.sections.v1` | Section collapse states (JSON) | `{ records: true, programs: true }` | `Sidebar`  |
+| Key | Purpose | Default | Used by |
+|-----|---------|---------|---------|
+| `dutiva.sidebar.expanded.v1` | Sidebar expanded vs compact | `'true'` | `AppShell` |
+| `dutiva.sidebar.sections.v1` | Section collapse states (JSON) | `{ records: true, programs: true }` | `Sidebar` |
 
 [src/features/app/shell/AppShell.tsx:29-44](), [src/features/app/shell/Sidebar.tsx:26-55](), [src/lib/prefs.ts:1-16]()
 
@@ -599,16 +599,16 @@ Sources: [src/lib/prefs.ts:1-16](), [src/features/app/shell/AppShell.tsx:29-44](
 
 All shell components resolve messages through `shellMessages` from `@/i18n/messages/shell.ts` via the `useI18n()` hook's `x()` function. The shell message namespace uses the `shell_` prefix. Key message groups include:
 
-| Prefix               | Purpose                                                 |
-| -------------------- | ------------------------------------------------------- |
-| `shell_nav_*`        | Navigation link labels                                  |
-| `shell_sec_*`        | Section headings                                        |
-| `shell_v_*`          | View/page titles                                        |
-| `shell_create_*`     | Create menu labels                                      |
+| Prefix | Purpose |
+|--------|---------|
+| `shell_nav_*` | Navigation link labels |
+| `shell_sec_*` | Section headings |
+| `shell_v_*` | View/page titles |
+| `shell_create_*` | Create menu labels |
 | `shell_badge_*_aria` | Badge accessible descriptions (with `{count}` template) |
-| `shell_ctx_*`        | Workspace context banner                                |
-| `shell_mod_*`        | Module context banner specialties                       |
-| `shell_tab_*`        | Mobile bottom tab labels                                |
+| `shell_ctx_*` | Workspace context banner |
+| `shell_mod_*` | Module context banner specialties |
+| `shell_tab_*` | Mobile bottom tab labels |
 
 [src/i18n/messages/shell.ts:1-130]()
 
@@ -678,7 +678,6 @@ The sidebar has a comprehensive test suite in `Sidebar.test.tsx` covering:
 [src/features/app/shell/Sidebar.test.tsx:1-251]()
 
 The production nav badges are tested through `useProductionNavBadges.test.tsx`, which mocks the Supabase client to verify:
-
 - Demo mode retains fixture badge counts
 - Production mode displays live counts from `hr_cases`, `compliance_tasks`, and `compliance_findings` tables
 - Fixture-only badges (Workflows, Wellbeing) disappear in production mode

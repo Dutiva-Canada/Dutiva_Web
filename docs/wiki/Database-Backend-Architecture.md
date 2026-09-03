@@ -18,6 +18,8 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+
+
 Dutiva's backend is a **Supabase** project (project id `khtwpxnvziiyplaflwru`) comprising a PostgreSQL database with 124 tables, 218 RLS policies, 136 functions, and 24 Deno edge functions. The browser connects through a nullable `supabase` client that returns `null` when env vars are missing — the "configured or inert" pattern — so the entire workspace gracefully degrades to demo fixtures when unconfigured.
 
 [src/lib/supabaseClient.ts:1-17]()
@@ -62,14 +64,14 @@ The full schema lives in `supabase/schema.sql` — a 124-table PostgreSQL databa
 
 Key PostgreSQL extensions enable the backend's capabilities:
 
-| Extension        | Schema       | Purpose                                       |
-| ---------------- | ------------ | --------------------------------------------- |
-| `pg_cron`        | `pg_catalog` | Scheduled edge function triggers              |
-| `pg_net`         | `public`     | Fire-and-forget HTTP calls from SQL           |
-| `supabase_vault` | `vault`      | Encrypted secret storage                      |
-| `vector`         | `extensions` | Embedding similarity search (guidance corpus) |
-| `pgcrypto`       | `extensions` | Cryptographic functions                       |
-| `uuid-ossp`      | `extensions` | UUID generation                               |
+| Extension | Schema | Purpose |
+|---|---|---|
+| `pg_cron` | `pg_catalog` | Scheduled edge function triggers |
+| `pg_net` | `public` | Fire-and-forget HTTP calls from SQL |
+| `supabase_vault` | `vault` | Encrypted secret storage |
+| `vector` | `extensions` | Embedding similarity search (guidance corpus) |
+| `pgcrypto` | `extensions` | Cryptographic functions |
+| `uuid-ossp` | `extensions` | UUID generation |
 
 Three authorization helpers — `is_admin()`, `is_org_member()`, and `is_org_admin()` — underpin RLS policies across 71, 46, and 13 tables respectively. These are `SECURITY DEFINER` functions granted to the `authenticated` role (migration `0050`) so that signed-in users can read their own data.
 
@@ -106,18 +108,18 @@ Functions that bypass JWT verification authenticate callers in-band: webhooks ve
 
 A `_shared/` directory provides reusable server modules consumed by multiple edge functions:
 
-| Module                  | Role                                                                                   |
-| ----------------------- | -------------------------------------------------------------------------------------- |
-| `aiUsage.ts`            | Claim/finalize pattern for AI metering with burst, daily, token, and platform ceilings |
-| `exportGuard.ts`        | Export velocity limiting (burst + daily caps)                                          |
-| `resendSend.ts`         | Thin Resend email API wrapper                                                          |
-| `caslConsent.ts`        | CASL consent record builder with pinned wording                                        |
-| `lawUpdateRelevance.ts` | Jurisdiction filtering for law changes (ON/QC/FED)                                     |
-| `lawUpdateDigest.ts`    | Digest candidate selection with review gate                                            |
-| `adminAccess.ts`        | `@dutiva.ca` paywall bypass                                                            |
-| `supportAnalytics.ts`   | Analytics event validation                                                             |
-| `googleCalendar.ts`     | Google Calendar service-account JWT flow                                               |
-| `scheduledCalls.ts`     | Call scheduling logic                                                                  |
+| Module | Role |
+|---|---|
+| `aiUsage.ts` | Claim/finalize pattern for AI metering with burst, daily, token, and platform ceilings |
+| `exportGuard.ts` | Export velocity limiting (burst + daily caps) |
+| `resendSend.ts` | Thin Resend email API wrapper |
+| `caslConsent.ts` | CASL consent record builder with pinned wording |
+| `lawUpdateRelevance.ts` | Jurisdiction filtering for law changes (ON/QC/FED) |
+| `lawUpdateDigest.ts` | Digest candidate selection with review gate |
+| `adminAccess.ts` | `@dutiva.ca` paywall bypass |
+| `supportAnalytics.ts` | Analytics event validation |
+| `googleCalendar.ts` | Google Calendar service-account JWT flow |
+| `scheduledCalls.ts` | Call scheduling logic |
 
 For the full edge function inventory, shared module details, and Vault secrets management, see [Edge Functions & Shared Modules](#9.2).
 
@@ -127,14 +129,14 @@ Sources: [supabase/functions/_shared/aiUsage.ts:1-39](), [supabase/functions/_sh
 
 Background jobs use `pg_cron` + `pg_net` to invoke edge functions on a schedule. Each cron job is a `SECURITY DEFINER` trigger function (e.g. `trigger_law_monitor()`, `trigger_attachment_scan()`) that reads credentials from `vault.decrypted_secrets` and fires a `net.http_post`. Overlapping runs are prevented by the `cron_locks` lease table with `acquire_cron_lock()` / `release_cron_lock()`.
 
-| Cron Job                      | Schedule                      | Edge Function             |
-| ----------------------------- | ----------------------------- | ------------------------- |
-| Law monitor sweep             | `0 7 * * *` (daily)           | `monitor-law-changes`     |
-| Support notify drain          | `* * * * *` (every minute)    | `support-notify`          |
-| Attachment scan               | `*/10 * * * *` (every 10 min) | `support-attachment-scan` |
-| Score snapshots (daily)       | `30 5 * * *`                  | `record-score-snapshots`  |
-| Score snapshots (month-close) | `5,25,45 0 1 * *`             | `record-score-snapshots`  |
-| Analytics rate-limit purge    | `17 * * * *`                  | SQL function (no edge fn) |
+| Cron Job | Schedule | Edge Function |
+|---|---|---|
+| Law monitor sweep | `0 7 * * *` (daily) | `monitor-law-changes` |
+| Support notify drain | `* * * * *` (every minute) | `support-notify` |
+| Attachment scan | `*/10 * * * *` (every 10 min) | `support-attachment-scan` |
+| Score snapshots (daily) | `30 5 * * *` | `record-score-snapshots` |
+| Score snapshots (month-close) | `5,25,45 0 1 * *` | `record-score-snapshots` |
+| Analytics rate-limit purge | `17 * * * *` | SQL function (no edge fn) |
 
 ```mermaid
 sequenceDiagram
@@ -170,13 +172,13 @@ For the complete billing flow, plan tiers, Stripe event processing, and usage co
 
 The backend integrates with five external services, all following the "configured or inert" pattern — each returns a safe no-op or 503 when its credentials are absent:
 
-| Service             | Credential(s)                                                 | Consumer                                                 |
-| ------------------- | ------------------------------------------------------------- | -------------------------------------------------------- |
-| **DeepSeek** (LLM)  | `HF_TOKEN` via model routes                                   | `advisor-chat`, `support-firstline`                      |
-| **Stripe**          | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`                  | `create-checkout-session`, `stripe-webhook`              |
-| **Resend**          | `RESEND_API_KEY`                                              | `support-notify`, `send-law-updates` via `resendSend.ts` |
-| **Google Calendar** | `GOOGLE_CALENDAR_CLIENT_EMAIL`, `GOOGLE_CALENDAR_PRIVATE_KEY` | `support-call-scheduler` via `googleCalendar.ts`         |
-| **ClamAV scanner**  | `SUPPORT_ATTACHMENT_SCAN_URL`                                 | `support-attachment-scan`                                |
+| Service | Credential(s) | Consumer |
+|---|---|---|
+| **DeepSeek** (LLM) | `HF_TOKEN` via model routes | `advisor-chat`, `support-firstline` |
+| **Stripe** | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | `create-checkout-session`, `stripe-webhook` |
+| **Resend** | `RESEND_API_KEY` | `support-notify`, `send-law-updates` via `resendSend.ts` |
+| **Google Calendar** | `GOOGLE_CALENDAR_CLIENT_EMAIL`, `GOOGLE_CALENDAR_PRIVATE_KEY` | `support-call-scheduler` via `googleCalendar.ts` |
+| **ClamAV scanner** | `SUPPORT_ATTACHMENT_SCAN_URL` | `support-attachment-scan` |
 
 Sources: [.env.example:29-104](), [supabase/functions/_shared/resendSend.ts:9-25](), [supabase/functions/_shared/googleCalendar.ts:1-15]()
 

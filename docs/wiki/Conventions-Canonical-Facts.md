@@ -21,6 +21,8 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+
+
 This page covers the two governance documents that sit at the repository root and in `docs/`: `CONVENTIONS.md` (engineering standards) and `docs/CANONICAL_FACTS.md` (load-bearing business facts). It then details the bidirectional CI drift guards—`src/canonicalFacts.test.ts` and `scripts/check-canonical-facts.mjs`—that enforce agreement between documentation and code.
 
 ## CONVENTIONS.md — Engineering Standards
@@ -37,18 +39,18 @@ The declared stack is React 19, TypeScript (strict), Vite, Tailwind CSS v4, reac
 
 The source tree under `src/` is organized by concern:
 
-| Path                        | Role                                                                       |
-| --------------------------- | -------------------------------------------------------------------------- |
-| `src/app/`                  | App root, providers, router, route tables                                  |
-| `src/components/`           | Cross-feature shared UI (Disclaimer, chip classes)                         |
-| `src/data/`                 | Entity types + realistic sample fixtures                                   |
-| `src/features/marketing/`   | Landing page (dutiva.ca) + its i18n module                                 |
-| `src/features/app/shell/`   | EntryStage, AppShell (sidebar, topbar, mobile drawer)                      |
-| `src/features/app/views/`   | One folder per workspace view                                              |
-| `src/features/app/advisor/` | Chat core (bubbles, tone cards, streaming)                                 |
-| `src/i18n/`                 | Language provider + message catalogue                                      |
-| `src/lib/`                  | Prefs, theme, generic hooks/utils                                          |
-| `src/styles/`               | `tokens.css`, `surfaces.css`, `patterns.css`, `animations.css`, `base.css` |
+| Path | Role |
+|---|---|
+| `src/app/` | App root, providers, router, route tables |
+| `src/components/` | Cross-feature shared UI (Disclaimer, chip classes) |
+| `src/data/` | Entity types + realistic sample fixtures |
+| `src/features/marketing/` | Landing page (dutiva.ca) + its i18n module |
+| `src/features/app/shell/` | EntryStage, AppShell (sidebar, topbar, mobile drawer) |
+| `src/features/app/views/` | One folder per workspace view |
+| `src/features/app/advisor/` | Chat core (bubbles, tone cards, streaming) |
+| `src/i18n/` | Language provider + message catalogue |
+| `src/lib/` | Prefs, theme, generic hooks/utils |
+| `src/styles/` | `tokens.css`, `surfaces.css`, `patterns.css`, `animations.css`, `base.css` |
 
 [CONVENTIONS.md:15-38]()
 
@@ -56,10 +58,10 @@ The source tree under `src/` is organized by concern:
 
 The codebase operates two distinct token scopes defined in `src/styles/surfaces.css`:
 
-| Scope class          | Purpose                                 | Default theme |
-| -------------------- | --------------------------------------- | ------------- |
-| `.surface-marketing` | Design-system ramp for the landing page | Dark-first    |
-| `.surface-app`       | App v2 ramp for the workspace           | Light-first   |
+| Scope class | Purpose | Default theme |
+|---|---|---|
+| `.surface-marketing` | Design-system ramp for the landing page | Dark-first |
+| `.surface-app` | App v2 ramp for the workspace | Light-first |
 
 Both scopes define the same semantic variable names (`--bg`, `--text`, `--border`, etc.) so a single Tailwind utility like `bg-bg` or `text-text-2` resolves differently per surface. The active theme is set via `data-theme="dark" | "light"` on `<html>`, stamped before first paint by `index.html` and kept in sync by `ThemeProvider` (persist key `dutiva-theme`).
 
@@ -72,12 +74,12 @@ The hard rule: **never hardcode a colour that exists as a token.** Use mapped Ta
 
 Brand-identity tokens in `src/styles/tokens.css` are theme-independent foundations:
 
-| Token             | Value                                   | Purpose                         |
-| ----------------- | --------------------------------------- | ------------------------------- |
-| `--dutiva-navy`   | `#0d1b2a`                               | Brand navy ground               |
-| `--dutiva-gold`   | `#d4af37`                               | Brand gold core                 |
-| `--gold-gradient` | `#b98512 → #d4af37 → #f4c54b → #ffe37a` | 4-stop gold gradient            |
-| `--gold-on-dark`  | `#e9c877`                               | Readable gold for dark surfaces |
+| Token | Value | Purpose |
+|---|---|---|
+| `--dutiva-navy` | `#0d1b2a` | Brand navy ground |
+| `--dutiva-gold` | `#d4af37` | Brand gold core |
+| `--gold-gradient` | `#b98512 → #d4af37 → #f4c54b → #ffe37a` | 4-stop gold gradient |
+| `--gold-on-dark` | `#e9c877` | Readable gold for dark surfaces |
 
 [src/styles/tokens.css:10-27]()
 
@@ -124,11 +126,11 @@ Sources: [src/styles/tokens.css:10-27](), [src/styles/surfaces.css:14-250](), [C
 
 Every user-facing string ships EN + FR. The conventions prescribe three mechanisms:
 
-| Mechanism                             | Type                 | Usage                                                                                                                                    |
-| ------------------------------------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Mechanism | Type | Usage |
+|---|---|---|
 | `defineMessages({ key: { en, fr } })` | `Record<string, Bi>` | Per-feature message modules under `src/i18n/messages/<feature>.ts`, keys prefixed by feature (`home_`, `advisor_`, `landing_`, `shell_`) |
-| `bi('English', 'Français')`           | `Bi`                 | Entity/sample data with bilingual fields                                                                                                 |
-| `useI18n()` hook                      | `{ t, L, x, lang }`  | Component consumption: `t('key')` for catalogue, `x(biValue)` for data, `L('en','fr')` for one-offs                                      |
+| `bi('English', 'Français')` | `Bi` | Entity/sample data with bilingual fields |
+| `useI18n()` hook | `{ t, L, x, lang }` | Component consumption: `t('key')` for catalogue, `x(biValue)` for data, `L('en','fr')` for one-offs |
 
 [CONVENTIONS.md:115-134]()
 [src/i18n/core.ts:1-39]()
@@ -139,10 +141,10 @@ The `Bi` type (`{ en: string; fr: string }`) and `defineMessages` identity funct
 
 Language routing differs by surface:
 
-| Surface            | Provider             | Source of truth            | Persist key   |
-| ------------------ | -------------------- | -------------------------- | ------------- |
-| Marketing (public) | `ForcedLangProvider` | URL (`/fr/…` → French)     | —             |
-| App (workspace)    | `LangProvider`       | In-place preference toggle | `dutiva-lang` |
+| Surface | Provider | Source of truth | Persist key |
+|---|---|---|---|
+| Marketing (public) | `ForcedLangProvider` | URL (`/fr/…` → French) | — |
+| App (workspace) | `LangProvider` | In-place preference toggle | `dutiva-lang` |
 
 Both set `<html lang>` to `en-CA` or `fr-CA`.
 
@@ -157,13 +159,13 @@ Public marketing routes are bilingual, generated from the SEO route registry `sr
 
 Canonical legacy redirects are defined explicitly:
 
-| Legacy path      | Redirect target             |
-| ---------------- | --------------------------- |
-| `/app/reports`   | `/app/analytics`            |
+| Legacy path | Redirect target |
+|---|---|
+| `/app/reports` | `/app/analytics` |
 | `/app/templates` | `/app/documents/hr-library` |
-| `/app/tasks`     | `/app/planning/tasks`       |
-| `/app/calendar`  | `/app/planning/calendar`    |
-| `/app/memory`    | `/app/settings/memory`      |
+| `/app/tasks` | `/app/planning/tasks` |
+| `/app/calendar` | `/app/planning/calendar` |
+| `/app/memory` | `/app/settings/memory` |
 
 Navigation between entities uses route paths, never view-state flags.
 
@@ -173,22 +175,22 @@ Navigation between entities uses route paths, never view-state flags.
 
 `useWorkspaceMode()` resolves to `'demo'` or `'production'`. Production only activates for a signed-in, confirmed admin who has stored that preference. The rollout follows a phased approach documented across 14+ phases:
 
-| Phase | Module                     | Pattern                                                         |
-| ----- | -------------------------- | --------------------------------------------------------------- |
-| 1     | Toggle + Shell identity    | Settings admin toggle, `Sidebar.tsx` identity                   |
-| 2     | Route-level gating         | `ModeGate` / `gated()` wrapper in `appViews.tsx`                |
-| 3     | Employees (reference impl) | Per-tenant table, `productionApi.ts`, `EmployeesProductionView` |
-| 4     | Cases                      | `hr_cases`, migration 0007                                      |
-| 5     | Tasks                      | Zero-migration, reused `compliance_tasks`                       |
-| 6     | Compliance                 | Zero-migration, `compliance_findings`                           |
-| 7     | Policies                   | `hr_policies`, migration 0008                                   |
-| 8     | Reports/Analytics          | Aggregation-only, no table                                      |
-| 9     | Home                       | Welcome state + real command centre                             |
-| 10    | Calendar                   | Real case/task due dates                                        |
-| 11    | Case detail                | `hr_case_notes`, migration 0009                                 |
-| 12    | Employee profiles          | `hr_employee_notes`, migration 0010                             |
-| 13    | Sidebar badges             | `useProductionNavBadges` + `countOpen*` queries                 |
-| 14    | Org membership role        | `memberRole` + `isOrgAdmin`                                     |
+| Phase | Module | Pattern |
+|---|---|---|
+| 1 | Toggle + Shell identity | Settings admin toggle, `Sidebar.tsx` identity |
+| 2 | Route-level gating | `ModeGate` / `gated()` wrapper in `appViews.tsx` |
+| 3 | Employees (reference impl) | Per-tenant table, `productionApi.ts`, `EmployeesProductionView` |
+| 4 | Cases | `hr_cases`, migration 0007 |
+| 5 | Tasks | Zero-migration, reused `compliance_tasks` |
+| 6 | Compliance | Zero-migration, `compliance_findings` |
+| 7 | Policies | `hr_policies`, migration 0008 |
+| 8 | Reports/Analytics | Aggregation-only, no table |
+| 9 | Home | Welcome state + real command centre |
+| 10 | Calendar | Real case/task due dates |
+| 11 | Case detail | `hr_case_notes`, migration 0009 |
+| 12 | Employee profiles | `hr_employee_notes`, migration 0010 |
+| 13 | Sidebar badges | `useProductionNavBadges` + `countOpen*` queries |
+| 14 | Org membership role | `memberRole` + `isOrgAdmin` |
 
 [CONVENTIONS.md:144-237]()
 
@@ -246,20 +248,20 @@ The file states a strict hierarchy:
 
 The "Verified against the product" table contains 12 facts, each with its code source of truth:
 
-| Fact                  | Value                                   | Code Source                                      |
-| --------------------- | --------------------------------------- | ------------------------------------------------ |
-| Templates shipped     | **50** (T01…T50)                        | `src/features/app/documents/catalogue.ts`        |
-| Jurisdictions         | **3** — ON, QC, FED                     | `MONITORING_COVERAGE` in `monitoringCoverage.ts` |
-| Pricing               | Free / $24 / $49 / $99 CAD/mo           | `PLANS` in `src/config/plans.ts`                 |
-| Annual billing        | 10 of 12 months                         | `ANNUAL_MONTHS_BILLED` in `plans.ts`             |
-| Beta state            | Shown but not sold                      | `PAID_PLANS_DISABLED_DURING_BETA` in `plans.ts`  |
-| Beta capacity         | **15**                                  | `BETA_COHORT_LIMIT` in `src/config/beta.ts`      |
-| Rings live            | All four complete                       | `docs/FOUR_RING_FRAMEWORK.md`                    |
-| Law-change monitoring | FED, ON, QC confirmed                   | `monitoringCoverage.ts`                          |
-| Contact address       | support@dutiva.ca                       | Retired addresses enforced                       |
-| Languages             | EN + FR                                 | `src/i18n/`                                      |
-| Brand gold            | `#b98512 → #d4af37 → #f4c54b → #ffe37a` | `tokens.css` `--gold-gradient`                   |
-| Brand navy            | `#0d1b2a` ground, `#081019` deep        | `tokens.css` `--dutiva-navy`, `surfaces.css`     |
+| Fact | Value | Code Source |
+|---|---|---|
+| Templates shipped | **50** (T01…T50) | `src/features/app/documents/catalogue.ts` |
+| Jurisdictions | **3** — ON, QC, FED | `MONITORING_COVERAGE` in `monitoringCoverage.ts` |
+| Pricing | Free / $24 / $49 / $99 CAD/mo | `PLANS` in `src/config/plans.ts` |
+| Annual billing | 10 of 12 months | `ANNUAL_MONTHS_BILLED` in `plans.ts` |
+| Beta state | Shown but not sold | `PAID_PLANS_DISABLED_DURING_BETA` in `plans.ts` |
+| Beta capacity | **15** | `BETA_COHORT_LIMIT` in `src/config/beta.ts` |
+| Rings live | All four complete | `docs/FOUR_RING_FRAMEWORK.md` |
+| Law-change monitoring | FED, ON, QC confirmed | `monitoringCoverage.ts` |
+| Contact address | support@dutiva.ca | Retired addresses enforced |
+| Languages | EN + FR | `src/i18n/` |
+| Brand gold | `#b98512 → #d4af37 → #f4c54b → #ffe37a` | `tokens.css` `--gold-gradient` |
+| Brand navy | `#0d1b2a` ground, `#081019` deep | `tokens.css` `--dutiva-navy`, `surfaces.css` |
 
 [docs/CANONICAL_FACTS.md:39-54]()
 
@@ -267,11 +269,11 @@ The "Verified against the product" table contains 12 facts, each with its code s
 
 The facts are split into three enforcement tiers:
 
-| Tier                       | Facts                                                                                                                  | Enforced by                         |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| Vitest (TypeScript values) | Templates, Jurisdictions, Pricing, Annual billing, Beta state, Beta capacity, Law-change monitoring, Retired addresses | `src/canonicalFacts.test.ts`        |
-| Node script (CSS values)   | Brand gold, Brand navy                                                                                                 | `scripts/check-canonical-facts.mjs` |
-| Manual (not CI-backed)     | Rings live, Languages                                                                                                  | Human confirmation                  |
+| Tier | Facts | Enforced by |
+|---|---|---|
+| Vitest (TypeScript values) | Templates, Jurisdictions, Pricing, Annual billing, Beta state, Beta capacity, Law-change monitoring, Retired addresses | `src/canonicalFacts.test.ts` |
+| Node script (CSS values) | Brand gold, Brand navy | `scripts/check-canonical-facts.mjs` |
+| Manual (not CI-backed) | Rings live, Languages | Human confirmation |
 
 [docs/CANONICAL_FACTS.md:15-34]()
 
@@ -356,16 +358,16 @@ This Vitest file reads `CANONICAL_FACTS.md` as raw text via `import.meta.glob` w
 
 #### Test Cases
 
-| Test                                                              | What it checks                                                                                                                                | Bidirectional?        |
-| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
-| `states the shipped template count and range`                     | Bold number matches `allTemplates.length`; T01…T50 range spans real TIDs                                                                      | Yes — count + range   |
-| `has no duplicate template ids`                                   | TID and ID uniqueness across catalogue sources                                                                                                | —                     |
-| `states the supported jurisdiction count and exactly those codes` | Bold count matches `MONITORING_COVERAGE.length`; backticked codes match as a set                                                              | Yes — exact set       |
-| `states every paid plan price, and no price that is not a plan`   | Bold dollar figures equal `PLANS` monthly prices as a set                                                                                     | Yes — exact set       |
-| `states the annual billing ratio`                                 | Row contains `"10 of 12"` matching `ANNUAL_MONTHS_BILLED`                                                                                     | One-way               |
-| `describes the beta paid-plan state`                              | `PAID_PLANS_DISABLED_DURING_BETA === true` and row contains "not sold"                                                                        | One-way               |
-| `states the beta cohort capacity, in every copy`                  | Bold number matches `BETA_COHORT_LIMIT`; migration 0067 SQL contains `limit 15`; signup edge function contains `const BETA_COHORT_LIMIT = 15` | Three-way cross-check |
-| `states the law-monitoring claim`                                 | Row contains `COVERAGE_AUDITED_ON` date; branch on `noSupportedJurisdictionCovered()` checks wording against actual coverage status           | Adaptive              |
+| Test | What it checks | Bidirectional? |
+|---|---|---|
+| `states the shipped template count and range` | Bold number matches `allTemplates.length`; T01…T50 range spans real TIDs | Yes — count + range |
+| `has no duplicate template ids` | TID and ID uniqueness across catalogue sources | — |
+| `states the supported jurisdiction count and exactly those codes` | Bold count matches `MONITORING_COVERAGE.length`; backticked codes match as a set | Yes — exact set |
+| `states every paid plan price, and no price that is not a plan` | Bold dollar figures equal `PLANS` monthly prices as a set | Yes — exact set |
+| `states the annual billing ratio` | Row contains `"10 of 12"` matching `ANNUAL_MONTHS_BILLED` | One-way |
+| `describes the beta paid-plan state` | `PAID_PLANS_DISABLED_DURING_BETA === true` and row contains "not sold" | One-way |
+| `states the beta cohort capacity, in every copy` | Bold number matches `BETA_COHORT_LIMIT`; migration 0067 SQL contains `limit 15`; signup edge function contains `const BETA_COHORT_LIMIT = 15` | Three-way cross-check |
+| `states the law-monitoring claim` | Row contains `COVERAGE_AUDITED_ON` date; branch on `noSupportedJurisdictionCovered()` checks wording against actual coverage status | Adaptive |
 
 [src/canonicalFacts.test.ts:82-213]()
 
@@ -453,11 +455,11 @@ The `MONITORING_COVERAGE` array in `src/features/app/guidance/monitoringCoverage
 
 The coverage entries are:
 
-| Jurisdiction | Status   | Since                            |
-| ------------ | -------- | -------------------------------- |
-| ON           | `active` | 2026-08-10 (e-Laws API)          |
-| QC           | `active` | 2026-08-10 (Données Québec CKAN) |
-| FED          | `active` | 2026-08-06 (Justice Canada XML)  |
+| Jurisdiction | Status | Since |
+|---|---|---|
+| ON | `active` | 2026-08-10 (e-Laws API) |
+| QC | `active` | 2026-08-10 (Données Québec CKAN) |
+| FED | `active` | 2026-08-06 (Justice Canada XML) |
 
 [src/features/app/guidance/monitoringCoverage.ts:51-79]()
 
@@ -506,11 +508,11 @@ Sources: [src/canonicalFacts.test.ts:82-131](), [scripts/check-canonical-facts.m
 
 ## Summary of CI Integration Points
 
-| Check                        | Runner | NPM command                                     | What it guards                                                                                                           |
-| ---------------------------- | ------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `canonicalFacts.test.ts`     | Vitest | `npm test` (part of `npm run check`)            | Template count, jurisdictions, pricing, billing ratio, beta state/capacity (3-way), law monitoring claim, retired emails |
-| `check-canonical-facts.mjs`  | Node   | `npm run check:facts` (part of `npm run check`) | Brand gold hex palette, Brand navy hex palette                                                                           |
-| `monitoringCoverage.test.ts` | Vitest | `npm test`                                      | Coverage array covers exactly ON/QC/FED, presentation tones, `noSupportedJurisdictionCovered` logic                      |
+| Check | Runner | NPM command | What it guards |
+|---|---|---|---|
+| `canonicalFacts.test.ts` | Vitest | `npm test` (part of `npm run check`) | Template count, jurisdictions, pricing, billing ratio, beta state/capacity (3-way), law monitoring claim, retired emails |
+| `check-canonical-facts.mjs` | Node | `npm run check:facts` (part of `npm run check`) | Brand gold hex palette, Brand navy hex palette |
+| `monitoringCoverage.test.ts` | Vitest | `npm test` | Coverage array covers exactly ON/QC/FED, presentation tones, `noSupportedJurisdictionCovered` logic |
 
 Sources: [src/canonicalFacts.test.ts:1-246](), [scripts/check-canonical-facts.mjs:1-182](), [src/features/app/guidance/monitoringCoverage.test.ts:1-100](), [docs/CANONICAL_FACTS.md:15-34]()
 

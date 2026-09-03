@@ -33,6 +33,8 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+
+
 This page covers the full SEO pipeline — from the route registry that declares every public URL, through the head-management layer that builds per-page metadata, the prerendering script that writes static HTML + sitemap + robots.txt + llms.txt, the post-build validator that fails the build on any violation, and the content marketing article system. It also details the entry-graph budget enforcer that keeps workspace code off the marketing critical path.
 
 ## Architecture Overview
@@ -72,21 +74,21 @@ The `SEO_ROUTES` array is the **single source of truth** for every public URL. T
 
 The `SeoRouteId` union type defines 14 static route identifiers:
 
-| Route ID           | EN Path                     | FR Path                               |
-| ------------------ | --------------------------- | ------------------------------------- |
-| `home`             | `/`                         | `/fr`                                 |
-| `about`            | `/about`                    | `/fr/a-propos`                        |
-| `faq`              | `/faq`                      | `/fr/faq`                             |
-| `blog`             | `/blog`                     | `/fr/blogue`                          |
-| `pricing`          | `/pricing`                  | `/fr/tarifs`                          |
-| `templates`        | `/templates`                | `/fr/modeles`                         |
-| `guides`           | `/guides`                   | `/fr/guides`                          |
-| `templateUsage`    | `/guides/template-usage`    | `/fr/guides/utilisation-des-modeles`  |
-| `knownLimitations` | `/known-limitations`        | `/fr/limites-connues`                 |
-| `legal`            | `/legal`                    | `/fr/juridique`                       |
-| `help`             | `/help`                     | `/fr/aide`                            |
-| `contact`          | `/contact`                  | `/fr/contact`                         |
-| `status`           | `/status`                   | `/fr/etat`                            |
+| Route ID | EN Path | FR Path |
+|---|---|---|
+| `home` | `/` | `/fr` |
+| `about` | `/about` | `/fr/a-propos` |
+| `faq` | `/faq` | `/fr/faq` |
+| `blog` | `/blog` | `/fr/blogue` |
+| `pricing` | `/pricing` | `/fr/tarifs` |
+| `templates` | `/templates` | `/fr/modeles` |
+| `guides` | `/guides` | `/fr/guides` |
+| `templateUsage` | `/guides/template-usage` | `/fr/guides/utilisation-des-modeles` |
+| `knownLimitations` | `/known-limitations` | `/fr/limites-connues` |
+| `legal` | `/legal` | `/fr/juridique` |
+| `help` | `/help` | `/fr/aide` |
+| `contact` | `/contact` | `/fr/contact` |
+| `status` | `/status` | `/fr/etat` |
 | `jurisdictionTool` | `/tools/jurisdiction-check` | `/fr/outils/verification-juridiction` |
 
 Each `SeoRoute` carries bilingual `path`, `title`, `description`, and an `indexable` boolean.
@@ -97,11 +99,11 @@ Sources: [src/seo/routes.ts:29-227]()
 
 Beyond the 14 static routes, the registry dynamically incorporates three content collections into `allPublicPages()`:
 
-| Collection             | Count                  | Source data                               | Key prefix                           |
-| ---------------------- | ---------------------- | ----------------------------------------- | ------------------------------------ |
-| Legal policy documents | 26                     | `LEGAL_HUB_GROUPS` from `legalHubData.ts` | `legalDoc:<slug>`                    |
-| Help Centre articles   | 12                     | `HELP_ARTICLES` from `helpCenterData.ts`  | `helpDoc:<slug>`                     |
-| Editorial articles     | 12 (6 guides + 6 blog) | `ALL_ARTICLES` from `articles/index.ts`   | `guideDoc:<slug>` / `blogDoc:<slug>` |
+| Collection | Count | Source data | Key prefix |
+|---|---|---|---|
+| Legal policy documents | 26 | `LEGAL_HUB_GROUPS` from `legalHubData.ts` | `legalDoc:<slug>` |
+| Help Centre articles | 12 | `HELP_ARTICLES` from `helpCenterData.ts` | `helpDoc:<slug>` |
+| Editorial articles | 12 (6 guides + 6 blog) | `ALL_ARTICLES` from `articles/index.ts` | `guideDoc:<slug>` / `blogDoc:<slug>` |
 
 The `allPublicPages()` function merges all four sources into a single `PublicPage[]` array that drives prerendering and the sitemap. Total indexable page count: **63 pages × 2 locales = 126 URLs**.
 
@@ -168,11 +170,11 @@ Sources: [src/seo/Seo.tsx:62-112]()
 
 The `HeadData` interface represents a complete set of managed head elements. Three key functions operate on it:
 
-| Function              | Purpose                                                                                                                                                                                                  |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `buildHead(input)`    | Assembles `HeadData` from page metadata: title, meta description, robots directive, canonical, hreflang alternates (en-CA, fr-CA, x-default), Open Graph tags, Twitter card tags, and serialized JSON-LD |
-| `applyHead(head)`     | Client-side: removes all `[data-seo]`-marked elements from `document.head` and appends the new set — deterministic replace-all semantics, no duplicates                                                  |
-| `serializeHead(head)` | Server-side: produces an HTML string for injection into the static `<head>`                                                                                                                              |
+| Function | Purpose |
+|---|---|
+| `buildHead(input)` | Assembles `HeadData` from page metadata: title, meta description, robots directive, canonical, hreflang alternates (en-CA, fr-CA, x-default), Open Graph tags, Twitter card tags, and serialized JSON-LD |
+| `applyHead(head)` | Client-side: removes all `[data-seo]`-marked elements from `document.head` and appends the new set — deterministic replace-all semantics, no duplicates |
+| `serializeHead(head)` | Server-side: produces an HTML string for injection into the static `<head>` |
 
 All managed elements carry a `data-seo` attribute marker. Noindex pages receive only title + description + robots — no canonical, hreflang, social tags, or JSON-LD, because those would invite indexing signals that contradict the robots directive.
 
@@ -196,14 +198,14 @@ The `jsonld.ts` module provides schema.org builders with stable `@id`s anchored 
 
 ### Entity Types
 
-| Builder Function                    | Schema Type                                            | `@id`                 | Used On                             |
-| ----------------------------------- | ------------------------------------------------------ | --------------------- | ----------------------------------- |
-| `organizationNode(lang)`            | `Organization`                                         | `…/#organization`     | Every indexable page                |
-| `webSiteNode(lang)`                 | `WebSite`                                              | `…/#website`          | Every indexable page                |
-| `webApplicationNode(lang, offers?)` | `SoftwareApplication` + `WebApplication`               | `…/#software`         | Landing, Pricing                    |
-| `webPageNode(input)`                | `WebPage` / `AboutPage` / `CollectionPage` / `FAQPage` | `…/<path>#webpage`    | Every indexable page                |
-| `breadcrumbNode(path, items)`       | `BreadcrumbList`                                       | `…/<path>#breadcrumb` | Articles, legal docs, help articles |
-| `faqPageEntities(entries)`          | `Question[]` (mainEntity)                              | —                     | FAQ page                            |
+| Builder Function | Schema Type | `@id` | Used On |
+|---|---|---|---|
+| `organizationNode(lang)` | `Organization` | `…/#organization` | Every indexable page |
+| `webSiteNode(lang)` | `WebSite` | `…/#website` | Every indexable page |
+| `webApplicationNode(lang, offers?)` | `SoftwareApplication` + `WebApplication` | `…/#software` | Landing, Pricing |
+| `webPageNode(input)` | `WebPage` / `AboutPage` / `CollectionPage` / `FAQPage` | `…/<path>#webpage` | Every indexable page |
+| `breadcrumbNode(path, items)` | `BreadcrumbList` | `…/<path>#breadcrumb` | Articles, legal docs, help articles |
+| `faqPageEntities(entries)` | `Question[]` (mainEntity) | — | FAQ page |
 
 Rules: only verified, visible facts. No ratings, reviews, awards, addresses, founding dates, or social profiles.
 
@@ -252,7 +254,6 @@ Sources: [scripts/prerender.mjs:116-122]()
 ### 4. `sitemap.xml`
 
 Generated from the indexable subset of the manifest. Each `<url>` entry includes:
-
 - `<loc>` with the absolute URL
 - `<lastmod>` when the content has a real date (policy documents, editorial articles — never the build date)
 - Three `<xhtml:link>` alternates: `hreflang="en-CA"`, `hreflang="fr-CA"`, `hreflang="x-default"` (→ EN)
@@ -265,11 +266,11 @@ Sources: [scripts/prerender.mjs:128-154]()
 
 Generated with a deliberate crawler policy:
 
-| Category           | Bots                                                           | Policy                                                           |
-| ------------------ | -------------------------------------------------------------- | ---------------------------------------------------------------- |
-| General            | `*`                                                            | Allow public, disallow `/app`, `/app/`, `/app.html`, `/404.html` |
-| AI search crawlers | `OAI-SearchBot`, `Claude-SearchBot`, `PerplexityBot`           | Same as general (welcome, with private-path exclusions)          |
-| Training crawlers  | `GPTBot`, `ClaudeBot`, `CCBot`, `Amazonbot`, `Google-Extended` | Opted in (decided 2026-08-06), same private-path exclusions      |
+| Category | Bots | Policy |
+|---|---|---|
+| General | `*` | Allow public, disallow `/app`, `/app/`, `/app.html`, `/404.html` |
+| AI search crawlers | `OAI-SearchBot`, `Claude-SearchBot`, `PerplexityBot` | Same as general (welcome, with private-path exclusions) |
+| Training crawlers | `GPTBot`, `ClaudeBot`, `CCBot`, `Amazonbot`, `Google-Extended` | Opted in (decided 2026-08-06), same private-path exclusions |
 
 Each named bot group repeats the private-path exclusions because a bot-specific group replaces the `*` group entirely.
 
@@ -303,35 +304,35 @@ The post-build validator crawls the built `dist/` output (not React state) and *
 
 ### Per-Page Checks
 
-| Check         | Description                                                                                                 |
-| ------------- | ----------------------------------------------------------------------------------------------------------- |
-| Title         | Unique, non-empty, no placeholders (`undefined`, `[object Object]`, `TODO`, `Lorem ipsum`)                  |
-| Description   | Non-empty (≥ 40 chars), no placeholders                                                                     |
-| Robots        | Exactly one `<meta name="robots">` per page                                                                 |
-| `<html lang>` | `en-CA` for EN pages, `fr-CA` for FR pages                                                                  |
-| Canonical     | Exactly one, self-referencing, unique across all pages                                                      |
-| Hreflang      | `en-CA`, `fr-CA`, and `x-default` present; self-hreflang matches self; `x-default` equals `en-CA`           |
-| Open Graph    | Exactly one each of `og:title`, `og:description`, `og:url`, `og:image`, `og:locale`; `og:image` file exists |
-| JSON-LD       | Exactly one block per page; parses as valid JSON; no placeholders; all URLs on canonical origin             |
-| Structure     | Exactly one `<h1>`; a `<main>` landmark; ≥ 500 chars of visible text                                        |
+| Check | Description |
+|---|---|
+| Title | Unique, non-empty, no placeholders (`undefined`, `[object Object]`, `TODO`, `Lorem ipsum`) |
+| Description | Non-empty (≥ 40 chars), no placeholders |
+| Robots | Exactly one `<meta name="robots">` per page |
+| `<html lang>` | `en-CA` for EN pages, `fr-CA` for FR pages |
+| Canonical | Exactly one, self-referencing, unique across all pages |
+| Hreflang | `en-CA`, `fr-CA`, and `x-default` present; self-hreflang matches self; `x-default` equals `en-CA` |
+| Open Graph | Exactly one each of `og:title`, `og:description`, `og:url`, `og:image`, `og:locale`; `og:image` file exists |
+| JSON-LD | Exactly one block per page; parses as valid JSON; no placeholders; all URLs on canonical origin |
+| Structure | Exactly one `<h1>`; a `<main>` landmark; ≥ 500 chars of visible text |
 
 Sources: [scripts/validate-seo.mjs:83-190]()
 
 ### Cross-Page Checks
 
-| Check                       | Description                                                                                                             |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Hreflang reciprocity        | Every `hreflang` alternate points to a page that points back                                                            |
-| Cross-locale canonical      | EN and FR pages never canonicalize to each other                                                                        |
-| Coverage (registry → dist/) | Every registry page was prerendered                                                                                     |
-| Coverage (dist/ → registry) | No extra prerendered pages exist outside the registry                                                                   |
-| Sitemap ↔ file ↔ canonical  | Every sitemap URL has a prerendered file; every indexable page is in the sitemap; no private or noindex URLs in sitemap |
-| Sitemap `lastmod` order     | `<lastmod>` precedes `<xhtml:link>` in each `<url>`                                                                     |
-| Internal links              | Every `href="/<path>"` in page bodies resolves to a known route or existing asset                                       |
-| robots.txt                  | Sitemap reference present; all named bot groups present with `/app` exclusions                                          |
-| llms.txt                    | No off-origin URLs; no private URLs; all linked pages exist                                                             |
-| App shell                   | `app.html` is noindex, has no canonical                                                                                 |
-| 404                         | `404.html` is noindex                                                                                                   |
+| Check | Description |
+|---|---|
+| Hreflang reciprocity | Every `hreflang` alternate points to a page that points back |
+| Cross-locale canonical | EN and FR pages never canonicalize to each other |
+| Coverage (registry → dist/) | Every registry page was prerendered |
+| Coverage (dist/ → registry) | No extra prerendered pages exist outside the registry |
+| Sitemap ↔ file ↔ canonical | Every sitemap URL has a prerendered file; every indexable page is in the sitemap; no private or noindex URLs in sitemap |
+| Sitemap `lastmod` order | `<lastmod>` precedes `<xhtml:link>` in each `<url>` |
+| Internal links | Every `href="/<path>"` in page bodies resolves to a known route or existing asset |
+| robots.txt | Sitemap reference present; all named bot groups present with `/app` exclusions |
+| llms.txt | No off-origin URLs; no private URLs; all linked pages exist |
+| App shell | `app.html` is noindex, has no canonical |
+| 404 | `404.html` is noindex |
 
 Sources: [scripts/validate-seo.mjs:192-348]()
 
@@ -357,16 +358,16 @@ Sources: [src/seo/seo.test.ts:26-277]()
 
 The `Article` interface in `articleModel.ts` defines the metadata for editorial pages:
 
-| Field            | Type                | Purpose                              |
-| ---------------- | ------------------- | ------------------------------------ |
-| `slug`           | `string`            | English slug, also stable id         |
-| `frSlug`         | `string`            | Localized French slug                |
-| `collection`     | `'guide' \| 'blog'` | Which collection                     |
-| `topic`          | `Bi`                | Short topic label                    |
-| `readingMinutes` | `number`            | Approximate reading time             |
-| `updated`        | `string`            | ISO date, feeds sitemap `lastmod`    |
-| `title`          | `Bi`                | Page title                           |
-| `summary`        | `Bi`                | Blurb for cards and meta description |
+| Field | Type | Purpose |
+|---|---|---|
+| `slug` | `string` | English slug, also stable id |
+| `frSlug` | `string` | Localized French slug |
+| `collection` | `'guide' \| 'blog'` | Which collection |
+| `topic` | `Bi` | Short topic label |
+| `readingMinutes` | `number` | Approximate reading time |
+| `updated` | `string` | ISO date, feeds sitemap `lastmod` |
+| `title` | `Bi` | Page title |
+| `summary` | `Bi` | Blurb for cards and meta description |
 
 Sources: [src/features/marketing/articles/articleModel.ts:57-88]()
 
@@ -374,10 +375,10 @@ Sources: [src/features/marketing/articles/articleModel.ts:57-88]()
 
 The two collections are deliberately disjoint in topic and purpose:
 
-| Collection | Path            | Purpose                                                                                                                | Articles |
-| ---------- | --------------- | ---------------------------------------------------------------------------------------------------------------------- | -------- |
-| `guide`    | `/guides/:slug` | Documents and decisions an employer _produces_ (contracts, probation, accommodation, termination)                      | 6        |
-| `blog`     | `/blog/:slug`   | Regimes and obligations that _apply_ before anything is drafted (jurisdictions, policies, records, leaves, harassment) | 6        |
+| Collection | Path | Purpose | Articles |
+|---|---|---|---|
+| `guide` | `/guides/:slug` | Documents and decisions an employer *produces* (contracts, probation, accommodation, termination) | 6 |
+| `blog` | `/blog/:slug` | Regimes and obligations that *apply* before anything is drafted (jurisdictions, policies, records, leaves, harassment) | 6 |
 
 The rule: "Is this about a document they are writing, or about a rule they are under?" The SEO constraint is that both indexes once listed the same topics — giving each a URL under both prefixes ships duplicate competing pages. `seo.test.ts` fails the build if the collections converge.
 
@@ -387,13 +388,13 @@ Sources: [src/features/marketing/articles/articleModel.ts:14-37](), [src/seo/seo
 
 Article prose is deliberately **not** a field on `Article`. The SEO registry reads every article for slugs and titles, and the router imports the registry — so anything on the `Article` interface enters the eager entry graph of every public page. Bodies live in separate files, accessed through `articleSections()` in `content.ts`:
 
-| File               | Content                                      |
-| ------------------ | -------------------------------------------- |
-| `guideArticles.ts` | 6 guide article metadata records             |
-| `blogArticles.ts`  | 6 blog article metadata records              |
-| `guideContent.ts`  | Guide article prose (keyed by slug)          |
-| `blogContent.ts`   | Blog article prose (keyed by slug)           |
-| `content.ts`       | `articleSections(collection, slug)` accessor |
+| File | Content |
+|---|---|
+| `guideArticles.ts` | 6 guide article metadata records |
+| `blogArticles.ts` | 6 blog article metadata records |
+| `guideContent.ts` | Guide article prose (keyed by slug) |
+| `blogContent.ts` | Blog article prose (keyed by slug) |
+| `content.ts` | `articleSections(collection, slug)` accessor |
 
 `ArticlePage` is a lazy route, so the prose rides its chunk. The `articles.test.ts` test verifies that metadata and content cover the same slugs in both directions — metadata with no sections or sections with no metadata both fail.
 
@@ -423,11 +424,11 @@ Sources: [src/features/marketing/pages/ArticlePage.tsx:28-180]()
 
 The `usePublicPath()` hook provides three helpers for internal links on the public surface:
 
-| Helper           | Signature               | Purpose                                              |
-| ---------------- | ----------------------- | ---------------------------------------------------- |
-| `p(id)`          | `(SeoRouteId) → string` | Pathname of a registry route in the current language |
-| `legalDoc(slug)` | `(string) → string`     | Pathname of a policy document                        |
-| `home(hash?)`    | `(string?) → string`    | Homepage with optional hash anchor                   |
+| Helper | Signature | Purpose |
+|---|---|---|
+| `p(id)` | `(SeoRouteId) → string` | Pathname of a registry route in the current language |
+| `legalDoc(slug)` | `(string) → string` | Pathname of a policy document |
+| `home(hash?)` | `(string?) → string` | Homepage with optional hash anchor |
 
 English pages link to unprefixed URLs, French pages to `/fr` equivalents — crawlers see locale-consistent link graphs.
 
@@ -439,16 +440,16 @@ This post-build script enforces what a first-time visitor to a public page downl
 
 ### Why It Exists
 
-The workspace is route-split and every view is `lazy()`, so the split _looks_ right in source but drifts silently in the output. By 2026-08, `routes.tsx` → `appViews.tsx` → `ModeGate` → `navConfig` → `@/data` had dragged 113kB of demo HR fixtures, and the `vendor` group brought a 157kB Markdown parser, onto the marketing critical path. Nothing failed because nothing looked.
+The workspace is route-split and every view is `lazy()`, so the split *looks* right in source but drifts silently in the output. By 2026-08, `routes.tsx` → `appViews.tsx` → `ModeGate` → `navConfig` → `@/data` had dragged 113kB of demo HR fixtures, and the `vendor` group brought a 157kB Markdown parser, onto the marketing critical path. Nothing failed because nothing looked.
 
 Sources: [scripts/check-entry-graph.mjs:1-25]()
 
 ### Budget Ceilings
 
-| Budget         | Current Ceiling | Notes                                                  |
-| -------------- | --------------- | ------------------------------------------------------ |
-| `MAX_PRELOADS` | 9               | Maximum `<link rel="modulepreload">` count             |
-| `MAX_EAGER_KB` | 580             | Maximum total raw (uncompressed) bytes of eager chunks |
+| Budget | Current Ceiling | Notes |
+|---|---|---|
+| `MAX_PRELOADS` | 9 | Maximum `<link rel="modulepreload">` count |
+| `MAX_EAGER_KB` | 580 | Maximum total raw (uncompressed) bytes of eager chunks |
 
 These are a **ratchet, not a target** — going over requires a deliberate decision recorded in the source.
 
@@ -571,12 +572,12 @@ Sources: [src/app/routes.tsx:16-99](), [src/features/marketing/pages/PricingShel
 
 ## Indexing Policy Summary
 
-| Surface                              | Robots                                      | Canonical      | Sitemap | Delivery                           |
-| ------------------------------------ | ------------------------------------------- | -------------- | ------- | ---------------------------------- |
-| Public marketing/legal/help/articles | `index, follow, max-image-preview:large`    | Self-canonical | Yes     | Prerendered static HTML            |
-| `/app/*` (workspace)                 | `noindex, nofollow` + `X-Robots-Tag` header | None           | No      | Client-rendered `app.html`         |
-| Unknown URLs                         | `noindex`                                   | None           | No      | `404.html` with 404 status         |
-| Preview deployments (`*.vercel.app`) | `X-Robots-Tag: noindex, nofollow` header    | —              | —       | Same build, header blocks indexing |
+| Surface | Robots | Canonical | Sitemap | Delivery |
+|---|---|---|---|---|
+| Public marketing/legal/help/articles | `index, follow, max-image-preview:large` | Self-canonical | Yes | Prerendered static HTML |
+| `/app/*` (workspace) | `noindex, nofollow` + `X-Robots-Tag` header | None | No | Client-rendered `app.html` |
+| Unknown URLs | `noindex` | None | No | `404.html` with 404 status |
+| Preview deployments (`*.vercel.app`) | `X-Robots-Tag: noindex, nofollow` header | — | — | Same build, header blocks indexing |
 
 Sources: [docs/SEO_GEO_IMPLEMENTATION.md:79-95]()
 

@@ -45,6 +45,8 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+
+
 This page covers three interconnected subsystems of the HR Documents feature: (1) `DoclibProvider` / `DoclibContext` state management for the document repository, (2) the `DocumentDetailScreen` and e-signature workflow, and (3) the export protection pipeline that watermarks, fingerprints, and rate-limits every artifact leaving the platform.
 
 ## DoclibProvider & DoclibContext — State Management
@@ -55,16 +57,16 @@ The document library's client-side state lives in a dedicated React context, sco
 
 `DoclibContext` is defined in a standalone module and exposes the `DoclibContextValue` interface:
 
-| Field                    | Type                                                        | Purpose                                                           |
-| ------------------------ | ----------------------------------------------------------- | ----------------------------------------------------------------- |
-| `data`                   | `DoclibData \| null`                                        | Loaded catalogue; `null` while loading (screens render skeletons) |
-| `role`                   | `WorkspaceRole`                                             | Current demo "Viewing as" role                                    |
-| `setRole`                | `(role) => void`                                            | Persists to `sessionStorage` under key `dutiva-doclib-role`       |
-| `org`                    | `OrgProfile`                                                | Editable org compliance profile driving the applicability engine  |
-| `setOrg`                 | `(org) => void`                                             | Updates org profile                                               |
-| `sendForSignature`       | `(docId, recipients) => GeneratedDoc \| undefined`          | Creates an envelope and transitions status                        |
-| `applySignature`         | `(envelopeId, email, payload) => GeneratedDoc \| undefined` | Records a captured signature                                      |
-| `getDocumentForEnvelope` | `(envelopeId) => GeneratedDoc \| undefined`                 | Lookup by signing envelope                                        |
+| Field | Type | Purpose |
+|---|---|---|
+| `data` | `DoclibData \| null` | Loaded catalogue; `null` while loading (screens render skeletons) |
+| `role` | `WorkspaceRole` | Current demo "Viewing as" role |
+| `setRole` | `(role) => void` | Persists to `sessionStorage` under key `dutiva-doclib-role` |
+| `org` | `OrgProfile` | Editable org compliance profile driving the applicability engine |
+| `setOrg` | `(org) => void` | Updates org profile |
+| `sendForSignature` | `(docId, recipients) => GeneratedDoc \| undefined` | Creates an envelope and transitions status |
+| `applySignature` | `(envelopeId, email, payload) => GeneratedDoc \| undefined` | Records a captured signature |
+| `getDocumentForEnvelope` | `(envelopeId) => GeneratedDoc \| undefined` | Lookup by signing envelope |
 
 [src/features/app/documents/doclibContext.ts:11-28]()
 
@@ -101,7 +103,6 @@ source: 'fixtures'            — always bundled fixtures
 ### Mount Point
 
 `DocumentsLayout` wraps all `/app/documents/*` routes and provides:
-
 1. The `DoclibProvider` context
 2. A three-tab navigator (HR Library / Document Library / Document Studio)
 3. The "Viewing as" role switcher bar
@@ -110,15 +111,15 @@ source: 'fixtures'            — always bundled fixtures
 
 **Document route tree in `appViewRoutes`:**
 
-| Route                                 | Screen                 | Gated? |
-| ------------------------------------- | ---------------------- | ------ |
-| `/app/documents` (index)              | `RepositoryScreen`     | Yes    |
-| `/app/documents/hr-library`           | `TemplatesView`        | Yes    |
-| `/app/documents/studio`               | `StudioScreen`         | No     |
-| `/app/documents/templates/:tid`       | `TemplateDetailScreen` | No     |
-| `/app/documents/generate/:templateId` | `GenerateScreen`       | No     |
-| `/app/documents/sign/:envelopeId`     | `SigningScreen`        | Yes    |
-| `/app/documents/:docId`               | `DocumentDetailScreen` | Yes    |
+| Route | Screen | Gated? |
+|---|---|---|
+| `/app/documents` (index) | `RepositoryScreen` | Yes |
+| `/app/documents/hr-library` | `TemplatesView` | Yes |
+| `/app/documents/studio` | `StudioScreen` | No |
+| `/app/documents/templates/:tid` | `TemplateDetailScreen` | No |
+| `/app/documents/generate/:templateId` | `GenerateScreen` | No |
+| `/app/documents/sign/:envelopeId` | `SigningScreen` | Yes |
+| `/app/documents/:docId` | `DocumentDetailScreen` | Yes |
 
 [src/app/appViews.tsx:153-165]()
 
@@ -134,13 +135,13 @@ Sources: [src/features/app/documents/doclibContext.ts](), [src/features/app/docu
 
 The header renders four status chips plus a jurisdiction pill, each driven by typed info maps:
 
-| Chip             | Source Map            | Type                                         |
-| ---------------- | --------------------- | -------------------------------------------- |
-| Document status  | `documentStatusInfo`  | `DocStatus` (11 states: `draft` → `deleted`) |
-| Review status    | `reviewStatusInfo`    | `ReviewStatus` (4 states)                    |
-| Signature status | `signatureStatusInfo` | `SignatureStatus` (9 states)                 |
-| Risk level       | `riskLevelInfo`       | `DocRiskLevel` (`low` / `medium` / `high`)   |
-| Jurisdiction     | `jurisdictionInfo`    | `Jurisdiction` (`ON` / `QC` / `FED`)         |
+| Chip | Source Map | Type |
+|---|---|---|
+| Document status | `documentStatusInfo` | `DocStatus` (11 states: `draft` → `deleted`) |
+| Review status | `reviewStatusInfo` | `ReviewStatus` (4 states) |
+| Signature status | `signatureStatusInfo` | `SignatureStatus` (9 states) |
+| Risk level | `riskLevelInfo` | `DocRiskLevel` (`low` / `medium` / `high`) |
+| Jurisdiction | `jurisdictionInfo` | `Jurisdiction` (`ON` / `QC` / `FED`) |
 
 [src/features/app/documents/screens/DocumentDetailScreen.tsx:374-378]()
 [src/features/app/documents/data/meta.ts:344-561]()
@@ -149,16 +150,16 @@ The header renders four status chips plus a jurisdiction pill, each driven by ty
 
 The action bar is computed by `docActionsFor(doc, role)` from the engine module. The `capabilityMatrix` maps each `DocCapability` to the `WorkspaceRole[]` that may perform it:
 
-| Capability           | Roles              |
-| -------------------- | ------------------ |
-| `generate`           | owner, hr, manager |
-| `edit`               | owner, hr          |
-| `approve_review`     | owner, hr          |
-| `send_for_signature` | owner, hr          |
-| `export`             | owner, hr, manager |
-| `archive`            | owner, hr          |
-| `restore`            | owner              |
-| `void`               | owner              |
+| Capability | Roles |
+|---|---|
+| `generate` | owner, hr, manager |
+| `edit` | owner, hr |
+| `approve_review` | owner, hr |
+| `send_for_signature` | owner, hr |
+| `export` | owner, hr, manager |
+| `archive` | owner, hr |
+| `restore` | owner |
+| `void` | owner |
 
 [src/features/app/documents/data/meta.ts:563-577]()
 
@@ -172,13 +173,13 @@ Special banners render for restricted roles: `viewer` sees a read-only banner wi
 
 ### Five Tabs
 
-| Tab Key      | i18n Key                    | Content                                                                |
-| ------------ | --------------------------- | ---------------------------------------------------------------------- |
-| `preview`    | `doclib_docd_tabPreview`    | Rendered document via `DocPaper` with resolved blocks and merge values |
-| `fields`     | `doclib_docd_tabFields`     | Grid of merge tokens with filled/unfilled chips                        |
-| `versions`   | `doclib_docd_tabVersions`   | Version history cards (vN, change summary, creator)                    |
-| `recipients` | `doclib_docd_tabRecipients` | Signature envelope info + per-recipient status with sign buttons       |
-| `audit`      | `doclib_docd_tabAudit`      | Timeline of 17 audit event types with tone-coded dots                  |
+| Tab Key | i18n Key | Content |
+|---|---|---|
+| `preview` | `doclib_docd_tabPreview` | Rendered document via `DocPaper` with resolved blocks and merge values |
+| `fields` | `doclib_docd_tabFields` | Grid of merge tokens with filled/unfilled chips |
+| `versions` | `doclib_docd_tabVersions` | Version history cards (vN, change summary, creator) |
+| `recipients` | `doclib_docd_tabRecipients` | Signature envelope info + per-recipient status with sign buttons |
+| `audit` | `doclib_docd_tabAudit` | Timeline of 17 audit event types with tone-coded dots |
 
 [src/features/app/documents/screens/DocumentDetailScreen.tsx:54-60]()
 
@@ -238,7 +239,6 @@ Opens as a `<dialog>` overlay when the user clicks "Send for signature". Allows 
 ### sendForSignature (DoclibProvider)
 
 Creates an envelope by:
-
 1. Generating a unique envelope ID via `makeEnvelopeId()` (UUID v4 prefix `ENV-`)
 2. Setting `status: 'sent_for_signature'`, `signatureStatus: 'sent'`
 3. Creating a `DocSignature` object with `provider: 'dutiva_embedded'`
@@ -249,7 +249,6 @@ Creates an envelope by:
 ### SigningScreen
 
 Routed at `/app/documents/sign/:envelopeId`. Looks up the document by envelope ID, resolves the template, and renders:
-
 - The document preview (via `DocPaper` with resolved blocks)
 - A recipient selector (when multiple pending recipients exist)
 - A `SignaturePad` component for capture
@@ -261,10 +260,10 @@ Routed at `/app/documents/sign/:envelopeId`. Looks up the document by envelope I
 
 A dual-mode signature capture component:
 
-| Mode   | Behavior                                                               |
-| ------ | ---------------------------------------------------------------------- |
+| Mode | Behavior |
+|---|---|
 | `draw` | Canvas-based freehand drawing with mouse/touch events, DPR-aware setup |
-| `type` | Renders the signer's name in cursive font on the canvas                |
+| `type` | Renders the signer's name in cursive font on the canvas |
 
 Outputs a `SignatureValue` with `image` (base64 PNG from `canvas.toDataURL`) and `signedName` (plain text).
 
@@ -274,7 +273,6 @@ Outputs a `SignatureValue` with `image` (base64 PNG from `canvas.toDataURL`) and
 ### applySignature (DoclibProvider)
 
 Records a signature for one recipient and computes aggregate status:
-
 - If all recipients signed → `signatureStatus: 'signed'`, `docStatus: 'signed'`
 - If some signed → `'partially_signed'`
 - Otherwise → `'sent'`
@@ -335,7 +333,6 @@ Sources: [src/lib/exportProtection/index.ts:1-10](), [src/lib/exportProtection/a
 [src/lib/exportProtection/authorize.ts:112-141]()
 
 Returns an `ExportDecision`:
-
 - `{ allowed: true, stamp: ExportStamp, recordedRemotely, contentSha256 }` — proceed
 - `{ allowed: false, scope, retryAfterSeconds }` — show `exportDenialMessage()` toast
 
@@ -348,7 +345,6 @@ This module provides three fingerprinting capabilities:
 #### Zero-Width Invisible Tags
 
 The export ID is encoded as 128 zero-width characters between WORD JOINER sentinels (`U+2060 U+2060`). Each bit is encoded as:
-
 - `U+200C` ZWNJ = 0
 - `U+200B` ZWSP = 1
 
@@ -370,11 +366,11 @@ ZWJ (`U+200D`) is deliberately avoided — it is meaningful inside emoji sequenc
 
 The export ID travels through three channels, because any single one can be stripped:
 
-| Channel                  | Survives                                | Implementation             |
-| ------------------------ | --------------------------------------- | -------------------------- |
-| Visible watermark line   | Print, screenshot, PDF re-save          | `watermark.ts`             |
-| Invisible zero-width tag | Copy-paste of content                   | `fingerprint.ts`           |
-| Artifact metadata        | File re-save (PDF Info dict, Word meta) | `textPdf.ts`, `wordDoc.ts` |
+| Channel | Survives | Implementation |
+|---|---|---|
+| Visible watermark line | Print, screenshot, PDF re-save | `watermark.ts` |
+| Invisible zero-width tag | Copy-paste of content | `fingerprint.ts` |
+| Artifact metadata | File re-save (PDF Info dict, Word meta) | `textPdf.ts`, `wordDoc.ts` |
 
 [src/lib/exportProtection/fingerprint.ts:1-23]()
 
@@ -383,7 +379,6 @@ Sources: [src/lib/exportProtection/fingerprint.ts]()
 ### watermark.ts — Visible Identity Line
 
 Every exported artifact receives a visible two-line footer:
-
 1. **Identity line** — workspace, actor, timestamp, export ID (via `watermarkNotice()`)
 2. **Confidentiality line** — bilingual notice (via `watermarkFooterLines()`)
 
@@ -403,10 +398,10 @@ A localStorage ring buffer (`dutiva-export-audit`, max 300 entries) serves two p
 
 #### Rate Limits (LOCAL_GUARD_POLICY)
 
-| Window                     | Limit       | Purpose                      |
-| -------------------------- | ----------- | ---------------------------- |
-| Burst: 300 seconds (5 min) | 12 exports  | Catches scripted loops       |
-| Daily: 24 hours            | 100 exports | Catches patient exfiltration |
+| Window | Limit | Purpose |
+|---|---|---|
+| Burst: 300 seconds (5 min) | 12 exports | Catches scripted loops |
+| Daily: 24 hours | 100 exports | Catches patient exfiltration |
 
 [src/lib/exportProtection/localAudit.ts:63-67]()
 
@@ -415,7 +410,6 @@ A localStorage ring buffer (`dutiva-export-audit`, max 300 entries) serves two p
 [src/lib/exportProtection/localAudit.ts:133-156]()
 
 **Design choices:**
-
 - If localStorage is unavailable (private mode), the guard allows — velocity enforcement falls to the server guard.
 - Clearing site data resets the local window by design; the server guard is the ceiling a cleared localStorage cannot reset.
 
@@ -438,10 +432,10 @@ The `record-export` Supabase edge function is the server-side authority:
 
 Server ceilings are slightly tighter than client-side:
 
-| Window        | Server Limit | Client Limit |
-| ------------- | ------------ | ------------ |
-| Burst (5 min) | 10           | 12           |
-| Daily         | 80           | 100          |
+| Window | Server Limit | Client Limit |
+|---|---|---|
+| Burst (5 min) | 10 | 12 |
+| Daily | 80 | 100 |
 
 [supabase/functions/_shared/exportGuard.ts:43-49]()
 
@@ -458,7 +452,6 @@ Sources: [supabase/functions/record-export/index.ts](), [supabase/functions/_sha
 A zero-dependency PDF writer that produces letter-format text PDFs with Helvetica/WinAnsi encoding (covers Québec French). No external PDF library is used — the entire file structure (header, objects, xref table, trailer) is assembled by hand.
 
 Key characteristics:
-
 - Letter page: 612×792 points, ~56pt margins
 - Body: 10.5pt Helvetica, 15.5pt leading
 - Title: 13pt Helvetica-Bold
@@ -473,12 +466,12 @@ Key characteristics:
 
 Generates a `.doc` file using Word's HTML dialect (compatible with Word, Pages, LibreOffice, Google Docs). The fingerprint travels through four channels in this format:
 
-| Channel                  | Implementation                                                 |
-| ------------------------ | -------------------------------------------------------------- |
-| Invisible zero-width tag | `<span>` containing the encoded tag inline                     |
-| Meta tag                 | `<meta name="dutiva-export-id" content="...">`                 |
-| HTML comment             | `<!--dutiva-export-id:...-->`                                  |
-| Visible watermark        | `<p class="DutivaWatermark">` + MSO conditional running footer |
+| Channel | Implementation |
+|---|---|
+| Invisible zero-width tag | `<span>` containing the encoded tag inline |
+| Meta tag | `<meta name="dutiva-export-id" content="...">` |
+| HTML comment | `<!--dutiva-export-id:...-->` |
+| Visible watermark | `<p class="DutivaWatermark">` + MSO conditional running footer |
 
 [src/lib/exportProtection/artifacts/wordDoc.ts:40-75]()
 
@@ -544,18 +537,18 @@ The Document Studio is a right-hand drawer overlay for AI-assisted document gene
 
 `DocStudioContext` provides `DocStudioState` and action methods:
 
-| State Field          | Type                                | Purpose                                                  |
-| -------------------- | ----------------------------------- | -------------------------------------------------------- |
-| `open`               | `boolean`                           | Whether the overlay is visible                           |
-| `templateKey`        | `string`                            | Template key (tid or legacy title)                       |
-| `title` / `category` | `Bi`                                | Bilingual display strings                                |
-| `highRisk`           | `boolean`                           | Whether export/signature actions require the review gate |
-| `sections`           | `LText[]`                           | Live section texts (Bi or plain string after user edit)  |
-| `generating`         | `boolean`                           | True during the 750ms generation shimmer                 |
-| `gate`               | `{ action: DocGateAction } \| null` | Open high-risk confirmation gate                         |
-| `gateConfirmed`      | `boolean`                           | Once confirmed, further actions skip the gate            |
-| `exportStatus`       | `DocExportKind \| null`             | Last export kind (PDF/Word/link)                         |
-| `signatureSent`      | `boolean`                           | Whether e-signature has been sent                        |
+| State Field | Type | Purpose |
+|---|---|---|
+| `open` | `boolean` | Whether the overlay is visible |
+| `templateKey` | `string` | Template key (tid or legacy title) |
+| `title` / `category` | `Bi` | Bilingual display strings |
+| `highRisk` | `boolean` | Whether export/signature actions require the review gate |
+| `sections` | `LText[]` | Live section texts (Bi or plain string after user edit) |
+| `generating` | `boolean` | True during the 750ms generation shimmer |
+| `gate` | `{ action: DocGateAction } \| null` | Open high-risk confirmation gate |
+| `gateConfirmed` | `boolean` | Once confirmed, further actions skip the gate |
+| `exportStatus` | `DocExportKind \| null` | Last export kind (PDF/Word/link) |
+| `signatureSent` | `boolean` | Whether e-signature has been sent |
 
 [src/features/app/docstudio/docStudioContext.ts:16-45]()
 
@@ -563,10 +556,10 @@ The Document Studio is a right-hand drawer overlay for AI-assisted document gene
 
 Two entry points:
 
-| Method                    | Source                   | Shimmer?    | Toast?        |
-| ------------------------- | ------------------------ | ----------- | ------------- |
-| `openDocStudio(key)`      | Advisor / template cards | Yes (750ms) | "draft ready" |
-| `openDocFromLibrary(key)` | Document library         | No          | No            |
+| Method | Source | Shimmer? | Toast? |
+|---|---|---|---|
+| `openDocStudio(key)` | Advisor / template cards | Yes (750ms) | "draft ready" |
+| `openDocFromLibrary(key)` | Document library | No | No |
 
 Template resolution tries three sources in order: doclib `templateByTid`, `customTemplateByTid`, legacy `documentTemplatesByKey`, then a generic fallback.
 
@@ -576,7 +569,6 @@ Template resolution tries three sources in order: doclib `templateByTid`, `custo
 ### High-Risk Gate
 
 For `highRisk` templates, export and signature actions are deferred through a review gate rendered as an `alertdialog`. Three options:
-
 - **Confirm and continue** — `confirmGate()` runs the deferred action
 - **Cancel** — `cancelGate()` closes the gate
 - **Request legal review** — `requestLegalReview()` closes the gate and shows a toast
@@ -608,7 +600,6 @@ The `doExport(kind)` method in `DocStudioProvider` is the real export pipeline:
 ### Overlay UI
 
 The `DocStudioOverlay` component renders:
-
 - A backdrop button that closes on click
 - A `<dialog>` with focus trapping and Escape handling (via `useEscapeToClose`)
 - Header with category, title, edit-draft toggle
@@ -695,26 +686,26 @@ Sources: [src/features/app/documents/DocumentsLayout.tsx](), [src/features/app/d
 
 ### Key Enumerations
 
-| Type              | Values                                                                                                                                              | Defined in                                          |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| `DocStatus`       | `draft`, `in_review`, `needs_revision`, `approved`, `sent_for_signature`, `partially_signed`, `signed`, `exported`, `archived`, `voided`, `deleted` | [src/features/app/documents/data/types.ts:14-25]()  |
-| `SignatureStatus` | `not_sent`, `sent`, `viewed`, `pending`, `partially_signed`, `signed`, `declined`, `expired`, `voided`                                              | [src/features/app/documents/data/types.ts:30-40]()  |
-| `WorkspaceRole`   | `owner`, `hr`, `manager`, `viewer`, `external`                                                                                                      | [src/features/app/documents/data/types.ts:41]()     |
-| `DocRiskLevel`    | `low`, `medium`, `high`                                                                                                                             | [src/features/app/documents/data/types.ts:12]()     |
-| `ExportSurface`   | `docstudio`, `doclib`, `memory`, `advisor`                                                                                                          | [src/lib/exportProtection/localAudit.ts:25]()       |
-| `ExportKind`      | `pdf`, `word`, `link`, `json`, `text`                                                                                                               | [src/lib/exportProtection/localAudit.ts:26]()       |
-| `AuditEventType`  | 17 event types from `template_opened` to `comment_added`                                                                                            | [src/features/app/documents/data/types.ts:88-108]() |
+| Type | Values | Defined in |
+|---|---|---|
+| `DocStatus` | `draft`, `in_review`, `needs_revision`, `approved`, `sent_for_signature`, `partially_signed`, `signed`, `exported`, `archived`, `voided`, `deleted` | [src/features/app/documents/data/types.ts:14-25]() |
+| `SignatureStatus` | `not_sent`, `sent`, `viewed`, `pending`, `partially_signed`, `signed`, `declined`, `expired`, `voided` | [src/features/app/documents/data/types.ts:30-40]() |
+| `WorkspaceRole` | `owner`, `hr`, `manager`, `viewer`, `external` | [src/features/app/documents/data/types.ts:41]() |
+| `DocRiskLevel` | `low`, `medium`, `high` | [src/features/app/documents/data/types.ts:12]() |
+| `ExportSurface` | `docstudio`, `doclib`, `memory`, `advisor` | [src/lib/exportProtection/localAudit.ts:25]() |
+| `ExportKind` | `pdf`, `word`, `link`, `json`, `text` | [src/lib/exportProtection/localAudit.ts:26]() |
+| `AuditEventType` | 17 event types from `template_opened` to `comment_added` | [src/features/app/documents/data/types.ts:88-108]() |
 
 ### Key Interfaces
 
-| Interface          | Module             | Purpose                                                                                 |
-| ------------------ | ------------------ | --------------------------------------------------------------------------------------- |
-| `GeneratedDoc`     | `data/types.ts`    | Full document record with status, answers, versions, recipients, signature, audit trail |
-| `DocTemplate`      | `data/types.ts`    | Template definition with preview blocks, questions, jurisdiction gates                  |
-| `ExportStamp`      | `watermark.ts`     | Export ID, actor, workspace, timestamp — embedded in every artifact                     |
-| `ExportAuditEntry` | `localAudit.ts`    | One row of the device-local export audit ring buffer                                    |
-| `ExportRequest`    | `authorize.ts`     | Input to the `authorizeExport` orchestrator                                             |
-| `SignatureValue`   | `SignaturePad.tsx` | Base64 PNG image + signer name from the pad                                             |
+| Interface | Module | Purpose |
+|---|---|---|
+| `GeneratedDoc` | `data/types.ts` | Full document record with status, answers, versions, recipients, signature, audit trail |
+| `DocTemplate` | `data/types.ts` | Template definition with preview blocks, questions, jurisdiction gates |
+| `ExportStamp` | `watermark.ts` | Export ID, actor, workspace, timestamp — embedded in every artifact |
+| `ExportAuditEntry` | `localAudit.ts` | One row of the device-local export audit ring buffer |
+| `ExportRequest` | `authorize.ts` | Input to the `authorizeExport` orchestrator |
+| `SignatureValue` | `SignaturePad.tsx` | Base64 PNG image + signer name from the pad |
 
 Sources: [src/features/app/documents/data/types.ts](), [src/lib/exportProtection/watermark.ts:14-20](), [src/lib/exportProtection/localAudit.ts:31-46](), [src/lib/exportProtection/authorize.ts:37-48](), [src/features/app/documents/components/SignaturePad.tsx:3-8]()
 
@@ -724,19 +715,19 @@ Sources: [src/features/app/documents/data/types.ts](), [src/lib/exportProtection
 
 The subsystems are covered by dedicated test suites:
 
-| Test File                                                          | Coverage                                                                                                                       |
-| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| `src/features/app/docstudio/docstudio.test.tsx`                    | Overlay rendering, generation shimmer, high-risk gate, export pipeline producing real watermarked PDFs, invisible tag recovery |
-| `src/features/app/documents/screens/StudioScreen.test.tsx`         | Catalogue rendering, search, union toggle, headcount applicability                                                             |
-| `src/features/app/documents/screens/DocumentDetailScreen.test.tsx` | Detail view rendering, tab navigation, signing flow                                                                            |
-| `src/features/app/documents/DoclibProvider.test.tsx`               | Provider state mutations                                                                                                       |
-| `src/lib/exportProtection/authorize.test.ts`                       | Authorization orchestrator with mocked server                                                                                  |
-| `src/lib/exportProtection/fingerprint.test.ts`                     | Tag encode/decode roundtrip, SHA-256 fingerprint                                                                               |
-| `src/lib/exportProtection/watermark.test.ts`                       | Watermark formatting                                                                                                           |
-| `src/lib/exportProtection/localAudit.test.ts`                      | Ring buffer, velocity guard windows                                                                                            |
-| `src/lib/exportProtection/artifacts/textPdf.test.ts`               | PDF xref correctness, WinAnsi encoding                                                                                         |
-| `src/lib/exportProtection/artifacts/wordDoc.test.ts`               | Word HTML structure, meta tags                                                                                                 |
-| `supabase/functions/_shared/exportGuard.test.ts`                   | Server-side policy, RPC decision parsing                                                                                       |
+| Test File | Coverage |
+|---|---|
+| `src/features/app/docstudio/docstudio.test.tsx` | Overlay rendering, generation shimmer, high-risk gate, export pipeline producing real watermarked PDFs, invisible tag recovery |
+| `src/features/app/documents/screens/StudioScreen.test.tsx` | Catalogue rendering, search, union toggle, headcount applicability |
+| `src/features/app/documents/screens/DocumentDetailScreen.test.tsx` | Detail view rendering, tab navigation, signing flow |
+| `src/features/app/documents/DoclibProvider.test.tsx` | Provider state mutations |
+| `src/lib/exportProtection/authorize.test.ts` | Authorization orchestrator with mocked server |
+| `src/lib/exportProtection/fingerprint.test.ts` | Tag encode/decode roundtrip, SHA-256 fingerprint |
+| `src/lib/exportProtection/watermark.test.ts` | Watermark formatting |
+| `src/lib/exportProtection/localAudit.test.ts` | Ring buffer, velocity guard windows |
+| `src/lib/exportProtection/artifacts/textPdf.test.ts` | PDF xref correctness, WinAnsi encoding |
+| `src/lib/exportProtection/artifacts/wordDoc.test.ts` | Word HTML structure, meta tags |
+| `supabase/functions/_shared/exportGuard.test.ts` | Server-side policy, RPC decision parsing |
 
 Sources: [src/features/app/docstudio/docstudio.test.tsx](), [src/features/app/documents/screens/StudioScreen.test.tsx](), [src/lib/exportProtection/localAudit.test.ts]()
 

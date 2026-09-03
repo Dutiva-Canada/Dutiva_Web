@@ -22,6 +22,8 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+
+
 This page covers the 24 Supabase Deno edge functions that comprise Dutiva's server-side logic, the 10 shared modules under `_shared/`, the `config.toml` JWT settings that control gateway authentication, and the Vault secrets management pattern.
 
 ## Function Inventory by Authentication Mode
@@ -34,20 +36,20 @@ Every edge function runs on Supabase's Deno runtime. The critical configuration 
 
 These functions handle their own authentication in-band (shared secrets, provider signatures, or no auth at all for fire-and-forget sinks).
 
-| Function                       | Purpose                                     | Auth mechanism                     |
-| ------------------------------ | ------------------------------------------- | ---------------------------------- |
-| `stripe-webhook`               | Stripe subscription lifecycle events        | Stripe HMAC signature verification |
-| `resend-webhook`               | Resend delivery/bounce tracking             | Svix HMAC signature verification   |
-| `create-public-support-ticket` | Public (signed-out) ticket intake           | CAPTCHA + honeypot + rate limit    |
-| `create-beta-signup`           | Beta waiting-list signup                    | CAPTCHA + honeypot + rate limit    |
-| `report-error`                 | Client error telemetry sink                 | Rate limit (peppered IP hash)      |
-| `support-analytics-event`      | Support funnel analytics sink               | Rate limit (peppered IP hash)      |
-| `monitor-law-changes`          | Nightly law-change sweep (14 jurisdictions) | Service key / vault secret         |
-| `support-call-scheduler`       | Cron: call reminders + follow-up flags      | Shared secret / service key        |
-| `support-attachment-scan`      | Cron: malware scan queue drain              | Shared secret / service key        |
-| `support-notify`               | Cron: outbox email sender (Resend)          | Shared secret / service key        |
-| `send-law-updates`             | Weekly law-change digest email              | Shared secret / service key        |
-| `record-score-snapshots`       | Daily/month-close compliance score job      | Service key exact match            |
+| Function | Purpose | Auth mechanism |
+|---|---|---|
+| `stripe-webhook` | Stripe subscription lifecycle events | Stripe HMAC signature verification |
+| `resend-webhook` | Resend delivery/bounce tracking | Svix HMAC signature verification |
+| `create-public-support-ticket` | Public (signed-out) ticket intake | CAPTCHA + honeypot + rate limit |
+| `create-beta-signup` | Beta waiting-list signup | CAPTCHA + honeypot + rate limit |
+| `report-error` | Client error telemetry sink | Rate limit (peppered IP hash) |
+| `support-analytics-event` | Support funnel analytics sink | Rate limit (peppered IP hash) |
+| `monitor-law-changes` | Nightly law-change sweep (14 jurisdictions) | Service key / vault secret |
+| `support-call-scheduler` | Cron: call reminders + follow-up flags | Shared secret / service key |
+| `support-attachment-scan` | Cron: malware scan queue drain | Shared secret / service key |
+| `support-notify` | Cron: outbox email sender (Resend) | Shared secret / service key |
+| `send-law-updates` | Weekly law-change digest email | Shared secret / service key |
+| `record-score-snapshots` | Daily/month-close compliance score job | Service key exact match |
 
 Sources: [supabase/config.toml:25-72]()
 
@@ -55,20 +57,20 @@ Sources: [supabase/config.toml:25-72]()
 
 These functions rely on the Supabase gateway to enforce a valid JWT, then perform additional authorization checks (workspace membership, admin role, ticket ownership).
 
-| Function                    | Purpose                                    | Additional auth gate                  |
-| --------------------------- | ------------------------------------------ | ------------------------------------- |
-| `advisor-chat`              | Real AI Advisor replies                    | `current_user_is_workspace_member()`  |
-| `advisor-safety-event`      | Safety backstop telemetry                  | `current_user_is_workspace_member()`  |
-| `support-firstline`         | AI first-line answer for support form      | Bearer JWT + `auth.getUser()`         |
-| `create-support-ticket`     | Authenticated ticket creation              | Bearer JWT + `auth.getUser()`         |
-| `support-agent-action`      | Admin ticket actions (reply, status, call) | `is_admin()`                          |
-| `support-confirm-call`      | Customer confirms a scheduled call time    | Ticket requester check                |
-| `support-attachment-action` | Upload metadata + signed URL download      | Ticket requester / admin / org member |
-| `record-export`             | Export audit + velocity guard              | `current_user_is_workspace_member()`  |
-| `export-audit-trail`        | Admin read-only export event viewer        | `is_admin()`                          |
-| `set-service-status`        | Update service status board                | `is_admin()`                          |
-| `create-checkout-session`   | Stripe checkout session creation           | Bearer JWT + paywall bypass check     |
-| `create-portal-session`     | Stripe billing portal session              | Bearer JWT + paywall bypass check     |
+| Function | Purpose | Additional auth gate |
+|---|---|---|
+| `advisor-chat` | Real AI Advisor replies | `current_user_is_workspace_member()` |
+| `advisor-safety-event` | Safety backstop telemetry | `current_user_is_workspace_member()` |
+| `support-firstline` | AI first-line answer for support form | Bearer JWT + `auth.getUser()` |
+| `create-support-ticket` | Authenticated ticket creation | Bearer JWT + `auth.getUser()` |
+| `support-agent-action` | Admin ticket actions (reply, status, call) | `is_admin()` |
+| `support-confirm-call` | Customer confirms a scheduled call time | Ticket requester check |
+| `support-attachment-action` | Upload metadata + signed URL download | Ticket requester / admin / org member |
+| `record-export` | Export audit + velocity guard | `current_user_is_workspace_member()` |
+| `export-audit-trail` | Admin read-only export event viewer | `is_admin()` |
+| `set-service-status` | Update service status board | `is_admin()` |
+| `create-checkout-session` | Stripe checkout session creation | Bearer JWT + paywall bypass check |
+| `create-portal-session` | Stripe billing portal session | Bearer JWT + paywall bypass check |
 
 Sources: [supabase/functions/advisor-chat/index.ts:236-266](), [supabase/functions/advisor-safety-event/index.ts:63-88](), [supabase/functions/support-agent-action/index.ts:60-64](), [supabase/functions/record-export/index.ts:63-85](), [supabase/functions/export-audit-trail/index.ts:62-78](), [supabase/functions/set-service-status/index.ts:38-49](), [supabase/functions/create-checkout-session/index.ts:99-114](), [supabase/functions/support-confirm-call/index.ts:56-63]()
 
@@ -240,7 +242,6 @@ The `supabase/functions/_shared/` directory contains 10 modules reused across mu
 The core metering module that prevents uncontrolled AI spending during beta.
 
 **Claim/Finalize Pattern**: Every model call is bracketed by two operations:
-
 1. `claimAiUsage()` **before** the call — atomically checks all ceilings and reserves a `status = 'started'` row in `ai_telemetry_events`
 2. `finalizeAiUsage()` **after** the call — stamps that row with tokens, latency, and outcome
 
@@ -250,12 +251,12 @@ A claim that is never finalized (e.g. function timeout) stays `started` and cont
 
 **Four Ceilings** (all env-overridable):
 
-| Ceiling        | Default                      | Scope                    | Purpose                     |
-| -------------- | ---------------------------- | ------------------------ | --------------------------- |
-| Burst          | 10 chat / 6 support per 300s | Per-user, per-operation  | Stops retry loops / scripts |
-| Daily requests | 120                          | Per-user, all operations | Working day budget          |
-| Daily tokens   | 250,000                      | Per-user, all operations | Cost cap                    |
-| Platform daily | 2,000                        | All users                | Beta-wide stop-loss         |
+| Ceiling | Default | Scope | Purpose |
+|---|---|---|---|
+| Burst | 10 chat / 6 support per 300s | Per-user, per-operation | Stops retry loops / scripts |
+| Daily requests | 120 | Per-user, all operations | Working day budget |
+| Daily tokens | 250,000 | Per-user, all operations | Cost cap |
+| Platform daily | 2,000 | All users | Beta-wide stop-loss |
 
 [supabase/functions/_shared/aiUsage.ts:74-103]()
 
@@ -268,7 +269,6 @@ The `decisionFromRpc()` function parses the SQL RPC's jsonb verdict and treats a
 [supabase/functions/_shared/aiUsage.ts:148-170]()
 
 Two policy factories produce the operation-specific configurations:
-
 - `advisorChatPolicy()` — burst limit of 10 for `chat` operations
 - `supportFirstLinePolicy()` — burst limit of 6 for `support_firstline` operations
 
@@ -284,10 +284,10 @@ Same claim/finalize architectural pattern as `aiUsage.ts`, defending against bul
 
 **Ceilings** (slightly tighter than the client-side guard in `localAudit.ts`):
 
-| Ceiling | Default     | Purpose                          |
-| ------- | ----------- | -------------------------------- |
-| Burst   | 10 per 300s | Stops automated extraction loops |
-| Daily   | 80          | A patient exfiltration cap       |
+| Ceiling | Default | Purpose |
+|---|---|---|
+| Burst | 10 per 300s | Stops automated extraction loops |
+| Daily | 80 | A patient exfiltration cap |
 
 [supabase/functions/_shared/exportGuard.ts:43-49]()
 
@@ -321,7 +321,6 @@ Sources: [supabase/functions/_shared/lawUpdateRelevance.ts:1-131]()
 Builds on `lawUpdateRelevance.ts` to answer "which relevant, reviewed rows has this recipient not already been told about?"
 
 Three additional filters beyond relevance:
-
 - **Review gate**: Only `review_status = 'reviewed'` rows (human-approved)
 - **Go-live cutoff**: Only rows detected on or after the go-live date
 - **Already-sent exclusion**: Rows recorded in `law_update_notifications` for this recipient are skipped
@@ -367,7 +366,6 @@ Sources: [supabase/functions/_shared/caslConsent.ts:1-65](), [supabase/functions
 Pure, deterministic logic for the support call-scheduling flow. No I/O — callers pass `now`.
 
 Key exports:
-
 - `parseProposedSlots()` — validates 1-3 future ISO time ranges
 - `isValidDurationMinutes()` — 10-120 minute range check
 - `parseSlotIndex()` — validates a customer's slot selection
@@ -397,7 +395,6 @@ Sources: [supabase/functions/_shared/supportAnalytics.ts:1-179]()
 Service-account JWT-bearer flow (RFC 7523) using Web Crypto — no `google-auth-library` dependency. Generates a signed JWT, exchanges it for an access token at `https://oauth2.googleapis.com/token`, then creates calendar events with auto-generated Google Meet links.
 
 Key exports:
-
 - `parseServiceAccountKey()` — parses and normalizes env vars
 - `buildJwtClaims()` — pure function producing the unsigned JWT claims (unit-testable without crypto)
 - `createCalendarEvent()` — full flow: token exchange → `events.insert` with `conferenceDataVersion=1` and `sendUpdates=all`
@@ -512,7 +509,6 @@ sequenceDiagram
 ```
 
 Key implementation details:
-
 - The system prompt includes the current timestamp in the user's timezone (validated via `Intl.DateTimeFormat`) so the model has clock awareness.
 - Conversation history is capped at 20 messages (10 exchanges) sent upstream to control cost/latency.
 - Retrieval includes the previous user turn so follow-up questions carry the relevant lexemes.
@@ -565,7 +561,6 @@ Sources: [supabase/functions/stripe-webhook/index.ts:1-210](), [supabase/functio
 `supabase/config.toml` is the single source of truth for `verify_jwt` settings per function. Without this file, the Supabase CLI defaults `verify_jwt = true` on deploy, which silently breaks all public/cron endpoints.
 
 The file was created after a production incident on 2026-08-06 where:
-
 1. A bulk `functions deploy` silently set `verify_jwt = true` on the `support-analytics-event` function
 2. The client (`supportAnalytics.ts`) posts bare bodies with no auth header and swallows all errors
 3. Every analytics event returned 401 at the gateway — silently lost
@@ -602,24 +597,24 @@ Edge functions access secrets through `Deno.env.get()`. Supabase injects two aut
 
 ### Secret Categories
 
-| Secret                         | Used by                                              | Purpose                            |
-| ------------------------------ | ---------------------------------------------------- | ---------------------------------- |
-| `SUPABASE_URL`                 | All functions                                        | Auto-injected project URL          |
-| `SUPABASE_SERVICE_ROLE_KEY`    | All functions                                        | Auto-injected service role key     |
-| `SUPABASE_ANON_KEY`            | JWT-verified functions                               | Used to create user-scoped clients |
-| `STRIPE_SECRET_KEY`            | `create-checkout-session`, `create-portal-session`   | Stripe API access                  |
-| `STRIPE_WEBHOOK_SECRET`        | `stripe-webhook`                                     | Stripe signature verification      |
-| `RESEND_API_KEY`               | `support-notify`, `send-law-updates`                 | Resend email sending               |
-| `RESEND_WEBHOOK_SECRET`        | `resend-webhook`                                     | Svix signature verification        |
-| `HF_TOKEN`                     | `monitor-law-changes`                                | HuggingFace model for summaries    |
-| `CAPTCHA_SECRET_KEY`           | `create-public-support-ticket`, `create-beta-signup` | CAPTCHA verification               |
-| `SUPPORT_NOTIFY_SECRET`        | Cron functions                                       | Shared secret for cron auth        |
-| `ERROR_REPORT_SALT`            | `report-error`, `support-analytics-event`            | IP hash pepper                     |
-| `GOOGLE_CALENDAR_CLIENT_EMAIL` | `support-confirm-call`                               | Google Calendar service account    |
-| `GOOGLE_CALENDAR_PRIVATE_KEY`  | `support-confirm-call`                               | Google Calendar service account    |
-| `GOOGLE_CALENDAR_ID`           | `support-confirm-call`                               | Target calendar for events         |
-| `SUPPORT_ATTACHMENT_SCAN_URL`  | `support-attachment-scan`                            | ClamAV scanner endpoint            |
-| `STRIPE_PRICE_*`               | `stripe-webhook`, `create-checkout-session`          | Stripe price IDs (6 vars)          |
+| Secret | Used by | Purpose |
+|---|---|---|
+| `SUPABASE_URL` | All functions | Auto-injected project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | All functions | Auto-injected service role key |
+| `SUPABASE_ANON_KEY` | JWT-verified functions | Used to create user-scoped clients |
+| `STRIPE_SECRET_KEY` | `create-checkout-session`, `create-portal-session` | Stripe API access |
+| `STRIPE_WEBHOOK_SECRET` | `stripe-webhook` | Stripe signature verification |
+| `RESEND_API_KEY` | `support-notify`, `send-law-updates` | Resend email sending |
+| `RESEND_WEBHOOK_SECRET` | `resend-webhook` | Svix signature verification |
+| `HF_TOKEN` | `monitor-law-changes` | HuggingFace model for summaries |
+| `CAPTCHA_SECRET_KEY` | `create-public-support-ticket`, `create-beta-signup` | CAPTCHA verification |
+| `SUPPORT_NOTIFY_SECRET` | Cron functions | Shared secret for cron auth |
+| `ERROR_REPORT_SALT` | `report-error`, `support-analytics-event` | IP hash pepper |
+| `GOOGLE_CALENDAR_CLIENT_EMAIL` | `support-confirm-call` | Google Calendar service account |
+| `GOOGLE_CALENDAR_PRIVATE_KEY` | `support-confirm-call` | Google Calendar service account |
+| `GOOGLE_CALENDAR_ID` | `support-confirm-call` | Target calendar for events |
+| `SUPPORT_ATTACHMENT_SCAN_URL` | `support-attachment-scan` | ClamAV scanner endpoint |
+| `STRIPE_PRICE_*` | `stripe-webhook`, `create-checkout-session` | Stripe price IDs (6 vars) |
 
 ### Configured-or-Inert Pattern
 
@@ -666,7 +661,7 @@ Used by `report-error` and `support-analytics-event`. The pattern:
 
 Used by `create-public-support-ticket` and `create-beta-signup`. These query `support_public_intake` / `beta_signup_intake` tables that store only salted hashes (never raw IPs or emails):
 
-- IP: 10/hour (support) or 5/hour (beta)
+- IP: 10/hour (support) or 5/hour (beta)  
 - Email: 3/hour (both)
 
 [supabase/functions/create-beta-signup/index.ts:144-147]()
@@ -694,17 +689,17 @@ Sources: [supabase/schema.sql:170-194](), [supabase/functions/support-call-sched
 
 Shared modules and `billing-event.ts` are unit-tested under Vitest. The key testing pattern: modules accept narrow structural types (e.g. `UsageDbClient`) rather than importing the Supabase client, making them testable without Deno or database access.
 
-| Test file                              | Tests                                                        |
-| -------------------------------------- | ------------------------------------------------------------ |
-| `_shared/aiUsage.test.ts`              | Verdict parsing, fail-closed behavior, RPC parameter passing |
-| `_shared/exportGuard.test.ts`          | Export decision parsing, fail-closed behavior                |
-| `_shared/caslConsent.test.ts`          | Consent text matches i18n source, bilingual completeness     |
-| `_shared/lawUpdateRelevance.test.ts`   | Jurisdiction mapping, event-type filtering                   |
-| `_shared/lawUpdateDigest.test.ts`      | Review gate, cutoff, deduplication                           |
-| `_shared/scheduledCalls.test.ts`       | Slot validation, reminder/followup logic                     |
-| `_shared/supportAnalytics.test.ts`     | Event validation, per-type required fields                   |
-| `_shared/googleCalendar.test.ts`       | JWT claim shape, key parsing                                 |
-| `stripe-webhook/billing-event.test.ts` | Plan normalization, status mapping, price resolution         |
+| Test file | Tests |
+|---|---|
+| `_shared/aiUsage.test.ts` | Verdict parsing, fail-closed behavior, RPC parameter passing |
+| `_shared/exportGuard.test.ts` | Export decision parsing, fail-closed behavior |
+| `_shared/caslConsent.test.ts` | Consent text matches i18n source, bilingual completeness |
+| `_shared/lawUpdateRelevance.test.ts` | Jurisdiction mapping, event-type filtering |
+| `_shared/lawUpdateDigest.test.ts` | Review gate, cutoff, deduplication |
+| `_shared/scheduledCalls.test.ts` | Slot validation, reminder/followup logic |
+| `_shared/supportAnalytics.test.ts` | Event validation, per-type required fields |
+| `_shared/googleCalendar.test.ts` | JWT claim shape, key parsing |
+| `stripe-webhook/billing-event.test.ts` | Plan normalization, status mapping, price resolution |
 
 Sources: [supabase/functions/_shared/aiUsage.test.ts:1-86](), [supabase/functions/_shared/caslConsent.test.ts:1-53](), [supabase/functions/stripe-webhook/billing-event.test.ts:1-193]()
 

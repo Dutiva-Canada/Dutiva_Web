@@ -36,6 +36,8 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+
+
 This page documents the `advisor-chat` Supabase edge function — the server-side pipeline that turns a user message into a grounded, metered, deterministically-annotated AI reply — and the `AdvisorResponse` contract that bridges the server payload to the client-side Compliance Workspace. It also covers the rendering layer (`ChatMarkdown`, `ChatChart`) that presents model output.
 
 ## End-to-End Pipeline Overview
@@ -92,12 +94,12 @@ Sources: [supabase/functions/advisor-chat/index.ts:236-266]()
 
 `readChatRequest()` extracts four fields from the JSON body:
 
-| Field             | Type             | Required | Purpose                                   |
-| ----------------- | ---------------- | -------- | ----------------------------------------- |
-| `message`         | `string`         | Yes      | The user's current message                |
-| `conversation_id` | `string \| null` | No       | Existing conversation to continue         |
-| `organization_id` | `string \| null` | No       | Tenant scope for the conversation         |
-| `timezone`        | `string \| null` | No       | IANA timezone for the system prompt clock |
+| Field | Type | Required | Purpose |
+|---|---|---|---|
+| `message` | `string` | Yes | The user's current message |
+| `conversation_id` | `string \| null` | No | Existing conversation to continue |
+| `organization_id` | `string \| null` | No | Tenant scope for the conversation |
+| `timezone` | `string \| null` | No | IANA timezone for the system prompt clock |
 
 The client sends the timezone via `Intl.DateTimeFormat().resolvedOptions().timeZone`. [src/features/app/advisor/chatApi.ts:100-106]()
 
@@ -111,10 +113,10 @@ Sources: [supabase/functions/advisor-chat/index.ts:268-283](), [src/features/app
 
 The returned `ActiveModelRoute` carries:
 
-| Interface       | Fields                                               | Source                     |
-| --------------- | ---------------------------------------------------- | -------------------------- |
-| `ModelRoute`    | `model_name`, `config` (`max_tokens`, `temperature`) | `ai_model_routes` table    |
-| `ModelProvider` | `provider_key`, `base_url`, `secret_ref`, `status`   | `ai_model_providers` table |
+| Interface | Fields | Source |
+|---|---|---|
+| `ModelRoute` | `model_name`, `config` (`max_tokens`, `temperature`) | `ai_model_routes` table |
+| `ModelProvider` | `provider_key`, `base_url`, `secret_ref`, `status` | `ai_model_providers` table |
 
 Temperature is DB-tunable — some reasoning models reject `temperature != 1`, so this avoids a redeploy. [supabase/functions/advisor-chat/index.ts:382-386]()
 
@@ -199,12 +201,12 @@ Sources: [supabase/functions/_shared/aiUsage.ts:177-204](), [supabase/functions/
 
 `advisorChatPolicy()` defines the ceilings for the `chat` operation. All values are env-overridable:
 
-| Ceiling        | Default     | Env Var                                           | Scope                              |
-| -------------- | ----------- | ------------------------------------------------- | ---------------------------------- |
-| Burst          | 10 per 300s | `AI_BURST_LIMIT_CHAT` / `AI_BURST_WINDOW_SECONDS` | Per-user, per-operation            |
-| Daily requests | 120         | `AI_DAILY_REQUEST_LIMIT`                          | Per-user, shared across operations |
-| Daily tokens   | 250,000     | `AI_DAILY_TOKEN_LIMIT`                            | Per-user, shared                   |
-| Platform daily | 2,000       | `AI_PLATFORM_DAILY_LIMIT`                         | All users combined                 |
+| Ceiling | Default | Env Var | Scope |
+|---|---|---|---|
+| Burst | 10 per 300s | `AI_BURST_LIMIT_CHAT` / `AI_BURST_WINDOW_SECONDS` | Per-user, per-operation |
+| Daily requests | 120 | `AI_DAILY_REQUEST_LIMIT` | Per-user, shared across operations |
+| Daily tokens | 250,000 | `AI_DAILY_TOKEN_LIMIT` | Per-user, shared |
+| Platform daily | 2,000 | `AI_PLATFORM_DAILY_LIMIT` | All users combined |
 
 [supabase/functions/_shared/aiUsage.ts:74-103]()
 
@@ -311,14 +313,14 @@ Sources: [src/features/app/advisor/contract.ts:1-170]()
 
 ### Key Enums
 
-| Enum                     | Values                                                                  | Defined at                                     |
-| ------------------------ | ----------------------------------------------------------------------- | ---------------------------------------------- |
-| `ResponseMode`           | `hr`, `escalation`, `supportive`                                        | [src/features/app/advisor/contract.ts:21]()    |
-| `JurisdictionStatus`     | `known`, `assumed`, `unknown`, `conflict`, `not_applicable`             | [src/features/app/advisor/contract.ts:24-30]() |
-| `ComplianceRisk`         | `low`, `medium`, `high`, `critical`                                     | [src/features/app/advisor/contract.ts:33]()    |
-| `SafetyRisk`             | `none`, `watch`, `urgent`, `critical`                                   | [src/features/app/advisor/contract.ts:36]()    |
-| `ProfessionalReviewType` | `hr`, `legal`, `medical`, `union`, `emergency`                          | [src/features/app/advisor/contract.ts:39]()    |
-| `WebAuthority`           | `legislation`, `official`, `regulator`, `court`, `secondary`, `general` | [src/features/app/advisor/contract.ts:43-50]() |
+| Enum | Values | Defined at |
+|---|---|---|
+| `ResponseMode` | `hr`, `escalation`, `supportive` | [src/features/app/advisor/contract.ts:21]() |
+| `JurisdictionStatus` | `known`, `assumed`, `unknown`, `conflict`, `not_applicable` | [src/features/app/advisor/contract.ts:24-30]() |
+| `ComplianceRisk` | `low`, `medium`, `high`, `critical` | [src/features/app/advisor/contract.ts:33]() |
+| `SafetyRisk` | `none`, `watch`, `urgent`, `critical` | [src/features/app/advisor/contract.ts:36]() |
+| `ProfessionalReviewType` | `hr`, `legal`, `medical`, `union`, `emergency` | [src/features/app/advisor/contract.ts:39]() |
+| `WebAuthority` | `legislation`, `official`, `regulator`, `court`, `secondary`, `general` | [src/features/app/advisor/contract.ts:43-50]() |
 
 ### `LText` Boundary Form
 
@@ -344,11 +346,11 @@ Defined in `responsePayload.ts`, this function is **pure and deterministic** —
 
 ### Response Modes
 
-| Mode             | Trigger                                               | Effect                                                                                                       |
-| ---------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **`supportive`** | Crisis detected (`detectsCrisis`)                     | All gates off, `supportNotice: true`, safety risk `critical`, professional review → `medical` (EAP referral) |
-| **`escalation`** | Escalation terms (harassment, violence, threat, etc.) | Safety risk `watch`, compliance `high`, professional review → `legal`, documents gate OFF                    |
-| **`hr`**         | Default (no crisis, no escalation)                    | Standard compliance gates, documents allowed                                                                 |
+| Mode | Trigger | Effect |
+|---|---|---|
+| **`supportive`** | Crisis detected (`detectsCrisis`) | All gates off, `supportNotice: true`, safety risk `critical`, professional review → `medical` (EAP referral) |
+| **`escalation`** | Escalation terms (harassment, violence, threat, etc.) | Safety risk `watch`, compliance `high`, professional review → `legal`, documents gate OFF |
+| **`hr`** | Default (no crisis, no escalation) | Standard compliance gates, documents allowed |
 
 [supabase/functions/advisor-chat/responsePayload.ts:281-338](), [supabase/functions/advisor-chat/responsePayload.ts:337-338]()
 
@@ -356,14 +358,13 @@ Defined in `responsePayload.ts`, this function is **pure and deterministic** —
 
 `detectJurisdictions()` normalizes the message and pattern-matches against jurisdiction-specific terms. Bare two-letter codes are deliberately excluded — "on" is a common English word. [supabase/functions/advisor-chat/responsePayload.ts:207-229]()
 
-| Code  | Match Terms                                                                                |
-| ----- | ------------------------------------------------------------------------------------------ |
-| `ON`  | `ontario`, `employment standards act`, `esa` (bounded), `ohsa`                             |
-| `QC`  | `quebec`, `cnesst`, `normes du travail`, `lnt`, `charte des droits`                        |
+| Code | Match Terms |
+|---|---|
+| `ON` | `ontario`, `employment standards act`, `esa` (bounded), `ohsa` |
+| `QC` | `quebec`, `cnesst`, `normes du travail`, `lnt`, `charte des droits` |
 | `FED` | `federally regulated`, `canada labour code`, `code canadien du travail`, `interprovincial` |
 
 Jurisdiction status resolution:
-
 - 1 match → `known`
 - 2+ matches → `conflict`
 - 0 matches → `unknown`
@@ -372,11 +373,11 @@ Jurisdiction status resolution:
 
 ### Risk Classification
 
-| Level    | Trigger terms                                                                                               |
-| -------- | ----------------------------------------------------------------------------------------------------------- |
-| `high`   | `HIGH_RISK_TERMS` — termination, dismissal, severance, discipline, accommodation, plus all escalation terms |
-| `medium` | `MEDIUM_RISK_TERMS` — overtime, vacation, minimum wage, holiday, leave, pay                                 |
-| `low`    | Default (no risk terms detected)                                                                            |
+| Level | Trigger terms |
+|---|---|
+| `high` | `HIGH_RISK_TERMS` — termination, dismissal, severance, discipline, accommodation, plus all escalation terms |
+| `medium` | `MEDIUM_RISK_TERMS` — overtime, vacation, minimum wage, holiday, leave, pay |
+| `low` | Default (no risk terms detected) |
 
 [supabase/functions/advisor-chat/responsePayload.ts:154-197]()
 
@@ -392,11 +393,11 @@ Confidence tracks grounding quality, never model self-assessment:
 pct = min(88, 20 + (jurisdictionConfirmed ? 30 : 0) + min(chunks.length, 4) × 10)
 ```
 
-| pct range | Label    |
-| --------- | -------- |
-| ≥ 70      | High     |
-| 45–69     | Moderate |
-| < 45      | Low      |
+| pct range | Label |
+|---|---|
+| ≥ 70 | High |
+| 45–69 | Moderate |
+| < 45 | Low |
 
 [supabase/functions/advisor-chat/responsePayload.ts:436-445]()
 
@@ -428,11 +429,11 @@ flowchart TD
 
 The three safety actions are:
 
-| Action                 | Trigger                                                      | Effect                                                 |
-| ---------------------- | ------------------------------------------------------------ | ------------------------------------------------------ |
-| `crisis-intercept`     | Client's `detectCrisisSignal` catches what the server missed | Sets `isCrisis: true`, all gates OFF                   |
-| `legal-basis-withheld` | Reply contains statutory figure + jurisdiction unknown       | `legalBasisAllowed: false` + warning                   |
-| `figure-mismatch`      | Stated Ontario notice figure ≠ encoded ESA schedule          | `legalBasisAllowed: false` + warning with both numbers |
+| Action | Trigger | Effect |
+|---|---|---|
+| `crisis-intercept` | Client's `detectCrisisSignal` catches what the server missed | Sets `isCrisis: true`, all gates OFF |
+| `legal-basis-withheld` | Reply contains statutory figure + jurisdiction unknown | `legalBasisAllowed: false` + warning |
+| `figure-mismatch` | Stated Ontario notice figure ≠ encoded ESA schedule | `legalBasisAllowed: false` + warning with both numbers |
 
 When any action fires, `reportSafetyEvent()` sends a fire-and-forget call to the `advisor-safety-event` edge function, which records an `ai_telemetry_events` row with `operation = 'safety_backstop'`. [src/features/app/advisor/safetyTelemetry.ts:11-23](), [supabase/functions/advisor-safety-event/index.ts:146-158]()
 
@@ -452,9 +453,9 @@ The `ComplianceWorkspace` component renders the structured payload as a 384px ri
 
 ```typescript
 type WorkspaceState =
-  | { kind: 'locked' } // Signed out — preview mode with sign-in form
-  | { kind: 'idle' } // Thread open, no engine turn yet
-  | { kind: 'running' } // Routing skeleton while LLM is thinking
+  | { kind: 'locked' }     // Signed out — preview mode with sign-in form
+  | { kind: 'idle' }       // Thread open, no engine turn yet
+  | { kind: 'running' }    // Routing skeleton while LLM is thinking
   | { kind: 'ready'; response: AdvisorResponse; provincePrompt?: boolean }
 ```
 
@@ -486,7 +487,7 @@ The system prompt instructs the model to emit a ` ```chart ` fenced block contai
 interface ChartSpec {
   type?: 'bar' | 'hbar' | 'line' | 'area' | 'donut'
   title?: string
-  x?: string // category axis key
+  x?: string              // category axis key
   format?: { prefix?: string; suffix?: string; decimals?: number }
   series?: { key: string; label?: string }[]
   data?: Array<Record<string, string | number>>
@@ -495,13 +496,13 @@ interface ChartSpec {
 
 [src/components/advisor/ChatChart.tsx:62-70]()
 
-| Type    | Use case                    | Notes                                     |
-| ------- | --------------------------- | ----------------------------------------- |
-| `bar`   | Magnitude across categories | Direct labels for single series ≤ 8 items |
-| `hbar`  | Same, with long labels      | Dynamic height based on data count        |
-| `line`  | Change over time            | Monotone interpolation                    |
-| `area`  | Change over time, filled    | 12% fill opacity                          |
-| `donut` | Parts of a whole            | Inner radius 58%, outer 82%               |
+| Type | Use case | Notes |
+|---|---|---|
+| `bar` | Magnitude across categories | Direct labels for single series ≤ 8 items |
+| `hbar` | Same, with long labels | Dynamic height based on data count |
+| `line` | Change over time | Monotone interpolation |
+| `area` | Change over time, filled | 12% fill opacity |
+| `donut` | Parts of a whole | Inner radius 58%, outer 82% |
 
 Every chart includes a **"Show data" toggle** that reveals a fully accessible data table — identity is never carried by color alone. Malformed JSON falls back to a `<code className="cm-codeblock">` preformatted block. [src/components/advisor/ChatChart.tsx:158-169](), [src/components/advisor/ChatChart.tsx:347-354]()
 
@@ -573,12 +574,12 @@ Sources: [supabase/functions/advisor-chat/index.ts:1-11](), [src/features/app/ad
 
 Several mirrored data structures span the client/server boundary. Each is pinned by a dedicated drift test:
 
-| Data                 | Client copy                           | Server copy                              | Drift test                                                  |
-| -------------------- | ------------------------------------- | ---------------------------------------- | ----------------------------------------------------------- |
-| Crisis phrases       | `crisisSignals.ts#CRISIS_PHRASES`     | `responsePayload.ts#CRISIS_PHRASES`      | `responsePayload.test.ts` (imports both)                    |
-| Ontario notice bands | `statutoryNotice.ts#NOTICE_SCHEDULES` | `noticeSchedule.ts#ONTARIO_NOTICE_BANDS` | `noticeSchedule.test.ts`                                    |
-| Jurisdiction labels  | `contract.ts` (via Zod)               | `responsePayload.ts#JURISDICTION_VALUE`  | `safetyBackstop.test.ts`                                    |
-| Response shape       | `advisorResponseSchema` (Zod)         | `buildAdvisorResponse` output            | `responsePayload.test.ts` (parses every output through Zod) |
+| Data | Client copy | Server copy | Drift test |
+|---|---|---|---|
+| Crisis phrases | `crisisSignals.ts#CRISIS_PHRASES` | `responsePayload.ts#CRISIS_PHRASES` | `responsePayload.test.ts` (imports both) |
+| Ontario notice bands | `statutoryNotice.ts#NOTICE_SCHEDULES` | `noticeSchedule.ts#ONTARIO_NOTICE_BANDS` | `noticeSchedule.test.ts` |
+| Jurisdiction labels | `contract.ts` (via Zod) | `responsePayload.ts#JURISDICTION_VALUE` | `safetyBackstop.test.ts` |
+| Response shape | `advisorResponseSchema` (Zod) | `buildAdvisorResponse` output | `responsePayload.test.ts` (parses every output through Zod) |
 
 Sources: [supabase/functions/advisor-chat/responsePayload.test.ts:28-35](), [supabase/functions/advisor-chat/noticeSchedule.test.ts:20-33](), [src/features/app/advisor/safety/safetyBackstop.test.ts:101-123]()
 
