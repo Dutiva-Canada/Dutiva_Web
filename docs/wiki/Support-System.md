@@ -20,6 +20,8 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+
+
 Dutiva runs a **digital-first** customer support model: self-service and asynchronous by default, with scheduled telephone/video reserved for exceptional cases. There is no routine inbound phone channel and no 24/7 staffed support. The system is built around a centralized config file (`src/config/support.ts`), a six-table database model (migration `0014`), an outbox-driven notification pipeline, a ClamAV-based attachment scanner microservice, and a self-service Help Centre with optional AI first-line assist.
 
 The customer journey follows a clear deflection-first path:
@@ -96,15 +98,15 @@ Sources: [src/config/support.ts:1-391](), [src/features/support/supportApi.ts:47
 
 All support channels, business hours, response targets, priority/status/category vocabularies, and escalation reasons are defined in a single source of truth: `src/config/support.ts`. Components never hard-code email addresses, hours, or response targets inline — they read from this config.
 
-| Config element     | Code symbol          | Purpose                                                                        |
-| ------------------ | -------------------- | ------------------------------------------------------------------------------ |
-| Channels           | `SUPPORT_CHANNELS`   | Six email channels (support, billing, privacy, security, accessibility, sales) |
-| Business hours     | `SUPPORT_HOURS`      | Mon–Fri 09:00–17:00 America/Toronto                                            |
-| Response targets   | `RESPONSE_TARGETS`   | Critical: 4 biz hours, High: 1 day, Standard: 2 days, Low: 5 days              |
-| Priorities         | `SupportPriority`    | `critical`, `high`, `standard`, `low`                                          |
-| Statuses           | `SupportStatus`      | 8-state lifecycle from `new` to `closed`                                       |
-| Categories         | `SUPPORT_CATEGORIES` | 10 categories, each routing to a channel                                       |
-| Escalation reasons | `ESCALATION_REASONS` | 8 narrow reasons for scheduled phone/video                                     |
+| Config element | Code symbol | Purpose |
+|---|---|---|
+| Channels | `SUPPORT_CHANNELS` | Six email channels (support, billing, privacy, security, accessibility, sales) |
+| Business hours | `SUPPORT_HOURS` | Mon–Fri 09:00–17:00 America/Toronto |
+| Response targets | `RESPONSE_TARGETS` | Critical: 4 biz hours, High: 1 day, Standard: 2 days, Low: 5 days |
+| Priorities | `SupportPriority` | `critical`, `high`, `standard`, `low` |
+| Statuses | `SupportStatus` | 8-state lifecycle from `new` to `closed` |
+| Categories | `SUPPORT_CATEGORIES` | 10 categories, each routing to a channel |
+| Escalation reasons | `ESCALATION_REASONS` | 8 narrow reasons for scheduled phone/video |
 
 Sources: [src/config/support.ts:46-107](), [src/config/support.ts:134-174](), [src/config/support.ts:185-215](), [src/config/support.ts:219-313](), [src/config/support.ts:339-373]()
 
@@ -137,10 +139,10 @@ Sources: [src/config/support.ts:185-215](), [src/features/support/triage.ts:55-7
 
 Two edge functions handle ticket creation, both re-validating all inputs server-side:
 
-| Path                   | Edge function                  | Auth                                   | Client API                                            |
-| ---------------------- | ------------------------------ | -------------------------------------- | ----------------------------------------------------- |
-| Authenticated (in-app) | `create-support-ticket`        | JWT (verify_jwt=true)                  | `supportApi.ts` → `createSupportTicket()`             |
-| Public (contact page)  | `create-public-support-ticket` | None (CAPTCHA + honeypot + rate limit) | `publicSupportApi.ts` → `createPublicSupportTicket()` |
+| Path | Edge function | Auth | Client API |
+|---|---|---|---|
+| Authenticated (in-app) | `create-support-ticket` | JWT (verify_jwt=true) | `supportApi.ts` → `createSupportTicket()` |
+| Public (contact page) | `create-public-support-ticket` | None (CAPTCHA + honeypot + rate limit) | `publicSupportApi.ts` → `createPublicSupportTicket()` |
 
 The authenticated form (`SupportRequestForm`) collects category, subject, description, impact, urgency, language, preferred response method, and optional non-sensitive diagnostics (gathered by `gatherDiagnostics()` from `diagnostics.ts` — an allowlist of route, browser, OS, plan, version, and error code). The public form (`PublicSupportForm`) adds email, CASL consent, and CAPTCHA but carries no attachments.
 
@@ -154,13 +156,13 @@ Sources: [src/features/support/supportApi.ts:47-74](), [src/features/support/pub
 
 The operator dashboard is `SupportAdminView`, accessible only to `is_admin()` users. It presents a filterable ticket queue (by status, priority, category) with an open-ticket count. On `≥768px` the queue is a table; below `md`, tickets render as stacked cards via `useMdUp()`. Ticket detail is in `SupportAdminTicket`, and all agent mutations flow through the `support-agent-action` edge function, which supports five action types:
 
-| Action         | Description                                       |
-| -------------- | ------------------------------------------------- |
-| `reply`        | Customer-visible agent reply                      |
-| `note`         | Internal-only note (hidden from customer)         |
-| `status`       | Change ticket status                              |
-| `priority`     | Set priority (may set `critical` — unlike intake) |
-| `propose_call` | Propose up to 3 candidate call times              |
+| Action | Description |
+|---|---|
+| `reply` | Customer-visible agent reply |
+| `note` | Internal-only note (hidden from customer) |
+| `status` | Change ticket status |
+| `priority` | Set priority (may set `critical` — unlike intake) |
+| `propose_call` | Propose up to 3 candidate call times |
 
 The call scheduling flow uses `support-call-scheduler` and `support-confirm-call` edge functions. The customer picks a slot from `SupportTicketDetail`'s `ScheduledCallPanel`, and — when Google Calendar integration is configured — a calendar event with a Meet link is created automatically.
 
@@ -222,13 +224,13 @@ Sources: [src/features/support/statusApi.ts:14-92]()
 
 Support analytics measures the full funnel: Help Centre searches, article views, helpfulness votes, ticket submissions, and status changes. The client-side `trackEvent()` function in `supportAnalytics.ts` is consent-gated (Quebec Law 25 s. 8.1 — off by default until the visitor opts in), queues events with a daily-rotated anonymous visitor ID, and flushes them to the `support-analytics-event` edge function pinned to `ca-central-1`.
 
-| Event type              | Identification               | Fields                                                 |
-| ----------------------- | ---------------------------- | ------------------------------------------------------ |
-| `help_search`           | Anonymous (daily visitor ID) | `search_query`, `search_result_count`                  |
-| `help_article_view`     | Anonymous                    | `article_slug`                                         |
-| `helpfulness_vote`      | Anonymous                    | `article_slug`, `vote_value`                           |
-| `ticket_submitted`      | Workspace-scoped             | `ticket_reference`, `ticket_category`, `ticket_source` |
-| `ticket_status_changed` | Workspace-scoped             | `ticket_reference`, `ticket_category`                  |
+| Event type | Identification | Fields |
+|---|---|---|
+| `help_search` | Anonymous (daily visitor ID) | `search_query`, `search_result_count` |
+| `help_article_view` | Anonymous | `article_slug` |
+| `helpfulness_vote` | Anonymous | `article_slug`, `vote_value` |
+| `ticket_submitted` | Workspace-scoped | `ticket_reference`, `ticket_category`, `ticket_source` |
+| `ticket_status_changed` | Workspace-scoped | `ticket_reference`, `ticket_category` |
 
 No user IDs, ticket body text, document contents, or IP addresses are collected.
 
@@ -315,15 +317,15 @@ Sources: [src/config/support.ts:1-391](), [src/features/support/supportApi.ts:1-
 
 The support system follows the "configured or inert" pattern — no env vars are required to run; the system degrades gracefully when they're absent.
 
-| Variable                      | Used by                                     | Purpose                                  |
-| ----------------------------- | ------------------------------------------- | ---------------------------------------- |
-| `RESEND_API_KEY`              | `support-notify`                            | Transactional email delivery             |
-| `SUPPORT_NOTIFY_SECRET`       | `support-notify`, `support-attachment-scan` | Shared secret for cron-triggered workers |
-| `RESEND_WEBHOOK_SECRET`       | `resend-webhook`                            | Svix signature verification              |
-| `SUPPORT_ATTACHMENT_SCAN_URL` | `support-attachment-scan`                   | ClamAV scanner endpoint URL              |
-| `CAPTCHA_SECRET_KEY`          | `create-public-support-ticket`              | Server-side CAPTCHA verification         |
-| `VITE_CAPTCHA_SITE_KEY`       | `PublicSupportForm`                         | Client-side CAPTCHA widget               |
-| `SUPPORT_OPERATOR_EMAIL`      | `create-support-ticket`                     | Operator alert recipient                 |
+| Variable | Used by | Purpose |
+|---|---|---|
+| `RESEND_API_KEY` | `support-notify` | Transactional email delivery |
+| `SUPPORT_NOTIFY_SECRET` | `support-notify`, `support-attachment-scan` | Shared secret for cron-triggered workers |
+| `RESEND_WEBHOOK_SECRET` | `resend-webhook` | Svix signature verification |
+| `SUPPORT_ATTACHMENT_SCAN_URL` | `support-attachment-scan` | ClamAV scanner endpoint URL |
+| `CAPTCHA_SECRET_KEY` | `create-public-support-ticket` | Server-side CAPTCHA verification |
+| `VITE_CAPTCHA_SITE_KEY` | `PublicSupportForm` | Client-side CAPTCHA widget |
+| `SUPPORT_OPERATOR_EMAIL` | `create-support-ticket` | Operator alert recipient |
 
 Sources: [.env.example:62-104](), [docs/SUPPORT_RUNBOOK.md:109-123]()
 

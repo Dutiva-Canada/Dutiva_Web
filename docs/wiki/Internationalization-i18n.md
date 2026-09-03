@@ -21,6 +21,8 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+
+
 Dutiva is a bilingual Canadian HR platform — every user-facing string ships in both English and French Canadian. The i18n system is a lightweight, compile-time-safe layer built on a single `Bi` type (`{ en, fr }`), two React context providers that differ by surface, and a 47-file message catalogue split into three scope groups. There is no third-party i18n library; the entire system lives under `src/i18n/`.
 
 ## Architecture at a Glance
@@ -89,11 +91,11 @@ For details, see [Core i18n Types & Providers](#8.1).
 
 The system uses three providers for three surfaces with different language-selection semantics:
 
-| Provider                      | Surface                           | Language Source                | Persistence                       | Message Catalogue                           |
-| ----------------------------- | --------------------------------- | ------------------------------ | --------------------------------- | ------------------------------------------- |
-| `LangProvider`                | Workspace (`/app…`)               | `dutiva-lang` localStorage key | User preference, toggles in-place | `workspaceMessages` (29 + 4 shared modules) |
-| `ForcedLangProvider`          | Marketing (public pages)          | URL path (`/fr/…` prefix)      | URL is source of truth            | `marketingMessages` (10 + 4 shared modules) |
-| `ForcedWorkspaceLangProvider` | Public demo (`/demo`, `/fr/demo`) | URL path (`/fr/demo` → French) | URL is source of truth            | `workspaceMessages` (same as `/app`)        |
+| Provider | Surface | Language Source | Persistence | Message Catalogue |
+|---|---|---|---|---|
+| `LangProvider` | Workspace (`/app…`) | `dutiva-lang` localStorage key | User preference, toggles in-place | `workspaceMessages` (29 + 4 shared modules) |
+| `ForcedLangProvider` | Marketing (public pages) | URL path (`/fr/…` prefix) | URL is source of truth | `marketingMessages` (10 + 4 shared modules) |
+| `ForcedWorkspaceLangProvider` | Public demo (`/demo`, `/fr/demo`) | URL path (`/fr/demo` → French) | URL is source of truth | `workspaceMessages` (same as `/app`) |
 
 `LangProvider` reads the persisted preference via `readLang()` and allows the user to switch language at will. Both forced providers derive language from the URL so shared links render consistently for visitors and crawlers. The public demo uses the **workspace** catalogue — not marketing — so doclib, Advisor, and shell keys resolve on `/demo`.
 
@@ -151,11 +153,11 @@ Sources: [src/i18n/LangProvider.tsx:38-39](), [src/i18n/ForcedLangProvider.tsx:5
 
 The 47 message module files are organized into three groups based on empirical consumer analysis — which source files under which directories actually import each module:
 
-| Group     | Entry file     | Module count | Purpose                                            |
-| --------- | -------------- | ------------ | -------------------------------------------------- |
-| Workspace | `workspace.ts` | 29           | Modules read only from `src/features/app/**`       |
-| Marketing | `marketing.ts` | 10           | Modules read only from `src/features/marketing/**` |
-| Shared    | `shared.ts`    | 4            | Modules genuinely read from both surfaces          |
+| Group | Entry file | Module count | Purpose |
+|---|---|---|---|
+| Workspace | `workspace.ts` | 29 | Modules read only from `src/features/app/**` |
+| Marketing | `marketing.ts` | 10 | Modules read only from `src/features/marketing/**` |
+| Shared | `shared.ts` | 4 | Modules genuinely read from both surfaces |
 
 Each message module follows a consistent pattern: export a `const` created by `defineMessages()`, with every key prefixed by the feature name (e.g., `shell_*`, `home_*`, `advisor_*`, `landing_*`). This prefix convention avoids key collisions when modules are merged into surface-level catalogues.
 
@@ -189,11 +191,11 @@ The three-group split has a direct impact on bundle size. Because `ForcedLangPro
 
 Components access i18n through three resolution patterns, all exposed by `useI18n()`:
 
-| Method | Signature                            | Use Case                           | Example                   |
-| ------ | ------------------------------------ | ---------------------------------- | ------------------------- |
-| `t()`  | `(key: MessageKey) => string`        | Catalogue key lookup               | `t('shell_nav_platform')` |
-| `x()`  | `(value: Bi) => string`              | Resolve a `Bi` data field directly | `x(M.employees_prod_add)` |
-| `L()`  | `(en: string, fr: string) => string` | Inline bilingual pair              | `L('Hello', 'Bonjour')`   |
+| Method | Signature | Use Case | Example |
+|---|---|---|---|
+| `t()` | `(key: MessageKey) => string` | Catalogue key lookup | `t('shell_nav_platform')` |
+| `x()` | `(value: Bi) => string` | Resolve a `Bi` data field directly | `x(M.employees_prod_add)` |
+| `L()` | `(en: string, fr: string) => string` | Inline bilingual pair | `L('Hello', 'Bonjour')` |
 
 Most workspace components import their feature's message module as `M` and resolve strings via `x(M.key)` — this provides immediate typecheck without requiring the key to be registered in the catalogue first. The `t('key')` pattern is used when the key is stored in a data structure or computed at runtime.
 
@@ -207,9 +209,9 @@ The i18n test suite (`src/i18n/i18n.test.tsx`) validates three concerns: that `L
 
 ## Child Pages
 
-| Page                                                       | Topic                                                                                                                                                                                   |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Core i18n Types & Providers](#8.1)                        | The `Bi` / `Lang` / `LText` types, `pick`/`pickL`/`keyOfL` helpers, `defineMessages`, `useI18n()` hook, `LangProvider`, `ForcedLangProvider`, `buildLangContextValue()`, HTML lang tags |
-| [Message Catalogue Organization & Scope Enforcement](#8.2) | Three-surface message split, 47+ module files, `defineMessages` pattern, feature-prefixed keys, compile-time disjointness tests, CI scope guard, bundle optimization                    |
+| Page | Topic |
+|---|---|
+| [Core i18n Types & Providers](#8.1) | The `Bi` / `Lang` / `LText` types, `pick`/`pickL`/`keyOfL` helpers, `defineMessages`, `useI18n()` hook, `LangProvider`, `ForcedLangProvider`, `buildLangContextValue()`, HTML lang tags |
+| [Message Catalogue Organization & Scope Enforcement](#8.2) | Three-surface message split, 47+ module files, `defineMessages` pattern, feature-prefixed keys, compile-time disjointness tests, CI scope guard, bundle optimization |
 
 ---

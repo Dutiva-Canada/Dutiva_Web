@@ -33,6 +33,8 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+
+
 This page covers the cross-cutting client infrastructure: the privacy-first error reporting pipeline, the light/dark theme system, and the shared utility libraries that multiple features depend on.
 
 ## Error Reporting Pipeline
@@ -67,11 +69,11 @@ Sources: [src/lib/errorReporting/index.ts:1-114](), [src/lib/errorReporting/repo
 
 `installErrorReporting()` is called once from `src/main.tsx` before the app renders, so early crashes are captured. It is **inert** unless all three gates pass:
 
-| Gate                | Check                                        | Effect when absent                            |
-| ------------------- | -------------------------------------------- | --------------------------------------------- |
-| Browser environment | `typeof window !== 'undefined'`              | Prevents firing during SSR/prerender          |
-| Vercel deploy env   | `VERCEL_ENV === 'production' \|\| 'preview'` | No-op in dev, tests, or `development` deploys |
-| Supabase URL        | `VITE_SUPABASE_URL` is set                   | Cannot derive endpoint without it             |
+| Gate | Check | Effect when absent |
+|------|-------|--------------------|
+| Browser environment | `typeof window !== 'undefined'` | Prevents firing during SSR/prerender |
+| Vercel deploy env | `VERCEL_ENV === 'production' \|\| 'preview'` | No-op in dev, tests, or `development` deploys |
+| Supabase URL | `VITE_SUPABASE_URL` is set | Cannot derive endpoint without it |
 
 The `VERCEL_ENV` value is baked in at build time via `vite.config.ts` `define` as `__VERCEL_ENV__` and read through `src/lib/deployEnv.ts`. Similarly, the commit SHA is baked as `__RELEASE_SHA__` and read via `src/lib/release.ts` to tag reports for source-map correlation.
 
@@ -97,14 +99,14 @@ Sources: [src/lib/errorReporting/index.ts:16-43](), [src/lib/deployEnv.ts:1-25](
 
 [src/lib/errorReporting/reporter.ts:70-79]() — constants for the limits:
 
-| Constant           | Value      | Purpose                            |
-| ------------------ | ---------- | ---------------------------------- |
-| `MAX_MESSAGE`      | 1000 chars | Truncation cap on message          |
-| `MAX_STACK`        | 4000 chars | Truncation cap on stack            |
-| `DEDUPE_WINDOW_MS` | 60,000 ms  | Per-fingerprint suppression window |
-| `RATE_WINDOW_MS`   | 10,000 ms  | Rolling rate window                |
-| `MAX_PER_WINDOW`   | 5          | Max reports per rate window        |
-| `MAX_TOTAL`        | 25         | Hard session cap                   |
+| Constant | Value | Purpose |
+|----------|-------|---------|
+| `MAX_MESSAGE` | 1000 chars | Truncation cap on message |
+| `MAX_STACK` | 4000 chars | Truncation cap on stack |
+| `DEDUPE_WINDOW_MS` | 60,000 ms | Per-fingerprint suppression window |
+| `RATE_WINDOW_MS` | 10,000 ms | Rolling rate window |
+| `MAX_PER_WINDOW` | 5 | Max reports per rate window |
+| `MAX_TOTAL` | 25 | Hard session cap |
 
 The redaction patterns are defined at [src/lib/errorReporting/reporter.ts:94-98]():
 
@@ -225,10 +227,10 @@ Sources: [src/lib/theme.tsx:1-67](), [src/lib/themeContext.ts:1-49](), [src/lib/
 
 [index.html:45-46]() — Two `<meta name="theme-color">` tags are declared, media-scoped to light and dark OS preferences:
 
-| Media                           | Color     | Purpose                        |
-| ------------------------------- | --------- | ------------------------------ |
+| Media | Color | Purpose |
+|-------|-------|---------|
 | `(prefers-color-scheme: light)` | `#f3f5fa` | Light mode Safari toolbar tint |
-| `(prefers-color-scheme: dark)`  | `#081019` | Dark mode Safari toolbar tint  |
+| `(prefers-color-scheme: dark)` | `#081019` | Dark mode Safari toolbar tint |
 
 Both tags are re-pointed by the inline script and by `applyThemeToDocument()` on toggle, so the browser chrome follows the persisted theme even when it disagrees with the OS preference.
 
@@ -246,11 +248,11 @@ Sources: [src/lib/prefs.ts:1-16]()
 
 [src/lib/analyticsConsent.ts:1-77]() — The single source of truth for optional analytics consent. Three functions:
 
-| Function                                 | Returns   | Default                  |
-| ---------------------------------------- | --------- | ------------------------ |
-| `hasAnalyticsConsent(storage?)`          | `boolean` | `false` (off by default) |
-| `setAnalyticsConsent(granted, storage?)` | `void`    | —                        |
-| `hasConsentResponse(storage?)`           | `boolean` | `false` (not yet asked)  |
+| Function | Returns | Default |
+|----------|---------|---------|
+| `hasAnalyticsConsent(storage?)` | `boolean` | `false` (off by default) |
+| `setAnalyticsConsent(granted, storage?)` | `void` | — |
+| `hasConsentResponse(storage?)` | `boolean` | `false` (not yet asked) |
 
 Consent state is stored under `dutiva.analytics.consent` in `localStorage`. Two consumers gate on it: Google Analytics 4 tag loading and first-party support analytics (`trackEvent()`). The off-by-default posture satisfies Quebec Law 25 (s. 8.1) — analytics stays inert until the visitor explicitly opts in via the `ConsentBanner`.
 
@@ -285,11 +287,11 @@ Sources: [src/lib/supabasePagination.ts:12-38]()
 
 [src/lib/useMediaQuery.ts:1-40]() — React hooks that subscribe to `window.matchMedia` for layout gating where CSS breakpoints alone are insufficient (Vitest would otherwise render both `hidden` and `md:flex` variants). Exports:
 
-| Hook                   | Query                        | Typical use                              |
-| ---------------------- | ---------------------------- | ---------------------------------------- |
-| `useMediaQuery(query)` | Arbitrary media query string | Custom breakpoints                       |
-| `useMdUp()`            | `(min-width: 768px)`         | Desktop table vs mobile card layouts     |
-| `useLgUp()`            | `(min-width: 1024px)`        | Inline Advisor compliance panel vs sheet |
+| Hook | Query | Typical use |
+|---|---|---|
+| `useMediaQuery(query)` | Arbitrary media query string | Custom breakpoints |
+| `useMdUp()` | `(min-width: 768px)` | Desktop table vs mobile card layouts |
+| `useLgUp()` | `(min-width: 1024px)` | Inline Advisor compliance panel vs sheet |
 
 Used by Advisor thread list, Memory nav, compliance workspace, chat recall rail, Settings roles matrix, production document repository, export audit, and support admin queue.
 
@@ -300,7 +302,6 @@ Sources: [src/lib/useMediaQuery.ts:1-40](), [src/features/app/views/advisor/Thre
 [src/lib/registerServiceWorker.ts:14-25]() — `registerServiceWorker()` registers `dist/sw.js` (generated by `scripts/generate-sw.mjs`) in production browser builds only. Registration is deferred to the `load` event and uses `updateViaCache: 'none'` for prompt updates. Failures are swallowed.
 
 [src/lib/registerServiceWorker.ts:51-63]() — `reloadOnWorkerTakeover()` listens for `controllerchange` and reloads the page when a replacement worker takes control, with three guards:
-
 1. No reload on first control (initial install)
 2. No reload on `/app*` paths (preserves unsaved workspace state)
 3. One reload per page load (prevents loops)
@@ -360,11 +361,11 @@ Sources: [src/lib/prefs.ts:1-16](), [src/lib/theme.tsx:1-67](), [src/lib/themeCo
 
 The overlay is composed of three modules:
 
-| Module                            | Role                                                                            |
-| --------------------------------- | ------------------------------------------------------------------------------- |
-| `src/devtools/DevAnnotations.tsx` | React UI: panel, highlight, annotation list                                     |
-| `src/devtools/annotations.ts`     | Data model (`Annotation`), localStorage persistence, `buildBrief()`             |
-| `src/devtools/domInspect.ts`      | DOM → source mapping: `getSourceInfo()`, `describeElement()`, `buildSelector()` |
+| Module | Role |
+|--------|------|
+| `src/devtools/DevAnnotations.tsx` | React UI: panel, highlight, annotation list |
+| `src/devtools/annotations.ts` | Data model (`Annotation`), localStorage persistence, `buildBrief()` |
+| `src/devtools/domInspect.ts` | DOM → source mapping: `getSourceInfo()`, `describeElement()`, `buildSelector()` |
 
 ### Source Location Stamping
 

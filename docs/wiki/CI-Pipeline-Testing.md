@@ -27,6 +27,8 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+
+
 The GitHub Actions CI workflow (`.github/workflows/ci.yml`) defines three isolated jobs — `check`, `live-checks`, and `e2e` — each targeting a distinct failure class. The separation ensures that credential problems or browser flakes never block the merge gate. Test infrastructure uses Vitest (jsdom) for unit/integration tests and Playwright (Chromium) for end-to-end smoke tests, with a custom static server that mirrors the production Vercel routing contract.
 
 ## Workflow Triggers & Environment
@@ -35,12 +37,11 @@ The CI workflow fires on pull requests, pushes to `main`, and manual `workflow_d
 
 Three public (non-secret) environment variables are set at workflow level [.github/workflows/ci.yml:16-19]():
 
-| Variable                 | Value                                      | Purpose                                                    |
-| ------------------------ | ------------------------------------------ | ---------------------------------------------------------- |
-| `SUPABASE_URL`           | `https://khtwpxnvziiyplaflwru.supabase.co` | Project endpoint for live checks                           |
-| `SUPABASE_ANON_KEY`      | `sb_publishable_…`                         | Publishable anon key for RLS probing                       |
-| `VITE_GA_MEASUREMENT_ID` | `G-V85ZQ75EWL`                             | Direct GA4 measurement ID (public; unused when GTM is set) |
-| `VITE_GTM_CONTAINER_ID`  | `GTM-P3C7386R`                             | Tag Manager container ID (public in HTML after consent)    |
+| Variable | Value | Purpose |
+|---|---|---|
+| `SUPABASE_URL` | `https://khtwpxnvziiyplaflwru.supabase.co` | Project endpoint for live checks |
+| `SUPABASE_ANON_KEY` | `sb_publishable_…` | Publishable anon key for RLS probing |
+| `VITE_GA_MEASUREMENT_ID` | `G-V85ZQ75EWL` | GA4 measurement ID (public in HTML) |
 
 Sources: [.github/workflows/ci.yml:1-19]()
 
@@ -84,14 +85,14 @@ flowchart TD
     H --> I["npm run build\n(build + SEO validation)"]
 ```
 
-| Step               | npm script                     | Tool                                                                    | What it catches                                    |
-| ------------------ | ------------------------------ | ----------------------------------------------------------------------- | -------------------------------------------------- |
-| Typecheck          | `npm run typecheck`            | `tsc -b`                                                                | Type errors across the project                     |
-| Lint               | `npm run lint`                 | `oxlint`                                                                | Linting violations                                 |
-| Test with coverage | `npm run test:coverage`        | `vitest run --coverage`                                                 | Unit/integration failures, coverage regression     |
-| Message scopes     | `npm run check:message-scopes` | `check-message-scopes.mjs`                                              | i18n key crossing surface boundary                 |
-| Canonical facts    | `npm run check:facts`          | `check-canonical-facts.mjs`                                             | Brand palette drift vs CSS                         |
-| Build + SEO        | `npm run build`                | vite build → prerender → validate-seo → check-entry-graph → generate-sw | Build, metadata, sitemap, entry-graph budget drift |
+| Step | npm script | Tool | What it catches |
+|---|---|---|---|
+| Typecheck | `npm run typecheck` | `tsc -b` | Type errors across the project |
+| Lint | `npm run lint` | `oxlint` | Linting violations |
+| Test with coverage | `npm run test:coverage` | `vitest run --coverage` | Unit/integration failures, coverage regression |
+| Message scopes | `npm run check:message-scopes` | `check-message-scopes.mjs` | i18n key crossing surface boundary |
+| Canonical facts | `npm run check:facts` | `check-canonical-facts.mjs` | Brand palette drift vs CSS |
+| Build + SEO | `npm run build` | vite build → prerender → validate-seo → check-entry-graph → generate-sw | Build, metadata, sitemap, entry-graph budget drift |
 
 The build script is a multi-step chain defined in `package.json` [package.json:8]():
 
@@ -116,11 +117,11 @@ flowchart TD
         M["check-migrations.mjs"]
         R["check-rls.mjs"]
     end
-
+    
     M -->|"SUPABASE_ACCESS_TOKEN\n+ SUPABASE_PROJECT_REF"| API["Supabase Management API\n(/v1/projects/{ref}/database/query)"]
     API -->|"schema_migrations rows"| M
     M -->|"compare"| LOCAL["supabase/migrations/*.sql\n(local files)"]
-
+    
     R -->|"SUPABASE_ANON_KEY"| REST["PostgREST /rest/v1/{table}"]
     REST -->|"row count"| R
     R -->|"positive control"| SC["service_status table\n(must return rows)"]
@@ -185,14 +186,14 @@ Sources: [.github/workflows/ci.yml:107-130]()
 
 The configuration defines a single Chromium project on port `4173` [playwright.config.ts:19-20](). Key settings:
 
-| Setting               | CI Value                   | Local Value    |
-| --------------------- | -------------------------- | -------------- |
-| `retries`             | 1                          | 0              |
-| `workers`             | 1                          | unlimited      |
-| `reporter`            | `list` + `html` (unopened) | `list` only    |
-| `reuseExistingServer` | false                      | true           |
-| `forbidOnly`          | true                       | false          |
-| `trace`               | on-first-retry             | on-first-retry |
+| Setting | CI Value | Local Value |
+|---|---|---|
+| `retries` | 1 | 0 |
+| `workers` | 1 | unlimited |
+| `reporter` | `list` + `html` (unopened) | `list` only |
+| `reuseExistingServer` | false | true |
+| `forbidOnly` | true | false |
+| `trace` | on-first-retry | on-first-retry |
 
 The `webServer` block starts `e2e/serve-dist.mjs` before tests run, waiting up to 30 seconds for the server to be ready [playwright.config.ts:39-44]().
 
@@ -206,12 +207,12 @@ A zero-dependency Node HTTP server that mirrors the Vercel routing contract from
 
 **Routing contract comparison**
 
-| Route Pattern            | `vercel.json`           | `serve-dist.mjs`                                                             |
-| ------------------------ | ----------------------- | ---------------------------------------------------------------------------- |
-| `/app` and `/app/*`      | Rewrites to `/app.html` | Returns `dist/app.html` with 200 [e2e/serve-dist.mjs:56-57]()                |
-| Clean URLs (`/about`)    | `trailingSlash: false`  | Tries `dist/about/index.html` then `about.html` [e2e/serve-dist.mjs:74-79]() |
-| Real files (`/assets/*`) | Served directly         | Served if `isFile()` returns true [e2e/serve-dist.mjs:79]()                  |
-| Unknown paths            | 404                     | Returns `dist/404.html` with 404 status [e2e/serve-dist.mjs:81]()            |
+| Route Pattern | `vercel.json` | `serve-dist.mjs` |
+|---|---|---|
+| `/app` and `/app/*` | Rewrites to `/app.html` | Returns `dist/app.html` with 200 [e2e/serve-dist.mjs:56-57]() |
+| Clean URLs (`/about`) | `trailingSlash: false` | Tries `dist/about/index.html` then `about.html` [e2e/serve-dist.mjs:74-79]() |
+| Real files (`/assets/*`) | Served directly | Served if `isFile()` returns true [e2e/serve-dist.mjs:79]() |
+| Unknown paths | 404 | Returns `dist/404.html` with 404 status [e2e/serve-dist.mjs:81]() |
 
 The server includes path traversal protection — decoded paths are normalized and confirmed to be inside `DIST` before serving [e2e/serve-dist.mjs:62-72]().
 
@@ -223,12 +224,12 @@ Sources: [e2e/serve-dist.mjs:1-99](), [vercel.json:1-14]()
 
 Four test cases exercise the prerendered marketing pages:
 
-| Test                          | What it proves                                                                                                                                                                    |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Test | What it proves |
+|---|---|
 | Home page load + consent gate | Prerendered content visible, consent banner proves hydration, `Accept` records `dutiva.analytics.consent` in localStorage, persists across reload [e2e/marketing.spec.ts:11-45]() |
-| French homepage               | `/fr` serves `fr-CA` title, consent banner reads `Accepter` from URL-scoped language provider [e2e/marketing.spec.ts:47-53]()                                                     |
-| Prerendered subpage           | `/about` routes to the prerendered About page [e2e/marketing.spec.ts:55-59]()                                                                                                     |
-| 404 status                    | Unknown URL returns HTTP 404 with the "Page not found" page [e2e/marketing.spec.ts:61-65]()                                                                                       |
+| French homepage | `/fr` serves `fr-CA` title, consent banner reads `Accepter` from URL-scoped language provider [e2e/marketing.spec.ts:47-53]() |
+| Prerendered subpage | `/about` routes to the prerendered About page [e2e/marketing.spec.ts:55-59]() |
+| 404 status | Unknown URL returns HTTP 404 with the "Page not found" page [e2e/marketing.spec.ts:61-65]() |
 
 A separate test group disables JavaScript and confirms the homepage is fully prerendered (content without hydration) — the H1 and footer are present with no client runtime [e2e/marketing.spec.ts:68-78]().
 
@@ -240,10 +241,10 @@ Sources: [e2e/marketing.spec.ts:1-78]()
 
 Two test cases exercise the SPA shell rewrite:
 
-| Test                             | What it proves                                                                                        |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `/app/welcome` → SPA shell       | 200 status (not 404), `#root` is not empty, and marketing content is absent [e2e/app.spec.ts:12-24]() |
-| Deep `/app/this/does/not/matter` | Arbitrary deep paths rewrite to the shell with 200 and `#root` attached [e2e/app.spec.ts:26-31]()     |
+| Test | What it proves |
+|---|---|
+| `/app/welcome` → SPA shell | 200 status (not 404), `#root` is not empty, and marketing content is absent [e2e/app.spec.ts:12-24]() |
+| Deep `/app/this/does/not/matter` | Arbitrary deep paths rewrite to the shell with 200 and `#root` attached [e2e/app.spec.ts:26-31]() |
 
 Tests deliberately stop at the sign-in gate — the authenticated workspace needs a backend and is out of scope for a hermetic build [e2e/app.spec.ts:6-9]().
 
@@ -255,25 +256,25 @@ Sources: [e2e/app.spec.ts:1-32]()
 
 Vitest is configured in `vite.config.ts` under the `test` key [vite.config.ts:255-284]():
 
-| Setting       | Value                                                 | Rationale                                                                                         |
-| ------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `environment` | `jsdom`                                               | Browser-like DOM for React component tests                                                        |
-| `setupFiles`  | `./src/test/setup.ts`                                 | Global test setup                                                                                 |
-| `exclude`     | default + `e2e/**`                                    | Prevents Vitest from claiming Playwright spec files [vite.config.ts:259-260]()                    |
-| `css`         | `false`                                               | CSS modules stubbed (canonical facts palette check uses a separate script) [vite.config.ts:261]() |
-| `testTimeout` | 20000ms                                               | First test per worker pays fixture-module transform cost [vite.config.ts:263-264]()               |
-| `env`         | `VITE_SUPABASE_URL: ''`, `VITE_SUPABASE_ANON_KEY: ''` | Forces doclib onto bundled fixtures, independent of local `.env` [vite.config.ts:270]()           |
+| Setting | Value | Rationale |
+|---|---|---|
+| `environment` | `jsdom` | Browser-like DOM for React component tests |
+| `setupFiles` | `./src/test/setup.ts` | Global test setup |
+| `exclude` | default + `e2e/**` | Prevents Vitest from claiming Playwright spec files [vite.config.ts:259-260]() |
+| `css` | `false` | CSS modules stubbed (canonical facts palette check uses a separate script) [vite.config.ts:261]() |
+| `testTimeout` | 20000ms | First test per worker pays fixture-module transform cost [vite.config.ts:263-264]() |
+| `env` | `VITE_SUPABASE_URL: ''`, `VITE_SUPABASE_ANON_KEY: ''` | Forces doclib onto bundled fixtures, independent of local `.env` [vite.config.ts:270]() |
 
 ### Coverage Thresholds
 
 Coverage uses the `v8` provider with thresholds set a few points below the measured baseline to prevent flakes while catching real regressions [vite.config.ts:274-283]():
 
-| Metric     | Threshold | Measured Baseline |
-| ---------- | --------- | ----------------- |
-| Statements | 80%       | 83.7%             |
-| Branches   | 65%       | 69.9%             |
-| Functions  | 75%       | 80.5%             |
-| Lines      | 80%       | 85.1%             |
+| Metric | Threshold | Measured Baseline |
+|---|---|---|
+| Statements | 80% | 83.7% |
+| Branches | 65% | 69.9% |
+| Functions | 75% | 80.5% |
+| Lines | 80% | 85.1% |
 
 Sources: [vite.config.ts:255-284]()
 
@@ -291,18 +292,18 @@ Sources: [src/test/setup.ts:1-41]()
 
 The project contains 150+ test files across the codebase. A representative sample by area:
 
-| Area             | Example Files                                                                                       | Count |
-| ---------------- | --------------------------------------------------------------------------------------------------- | ----- |
-| Advisor & Safety | `chatApi.test.ts`, `crisisSignals.test.ts`, `safetyBackstop.test.ts`, `statutoryCrossCheck.test.ts` | ~12   |
-| Auth             | `AuthProvider.test.tsx`, `AuthConfirm.test.tsx`, `RequireAdminSession.test.tsx`                     | 5     |
-| Documents        | `engine.test.ts`, `DoclibProvider.test.tsx`, `GenerateScreen.test.tsx`                              | ~8    |
-| Workspace Views  | `EmployeesView.test.tsx`, `CasesView.test.tsx`, `AnalyticsView.test.tsx`                            | ~20   |
-| Marketing Pages  | `PricingPage.test.tsx`, `LegalHubPage.test.tsx`, `ArticlePage.test.tsx`                             | ~15   |
-| Support          | `SupportRequestForm.test.tsx`, `helpSearch.test.ts`, `triage.test.ts`                               | ~15   |
-| Infrastructure   | `reporter.test.ts`, `scrubRoute.test.ts`, `fingerprint.test.ts`                                     | ~12   |
-| i18n             | `i18n.test.tsx`, `scopes.test.ts`                                                                   | 2     |
-| Edge Functions   | `aiUsage.test.ts`, `billing-event.test.ts`, `contentSanity.test.ts`                                 | ~12   |
-| Canonical/Data   | `canonicalFacts.test.ts`, `data.test.ts`                                                            | 2     |
+| Area | Example Files | Count |
+|---|---|---|
+| Advisor & Safety | `chatApi.test.ts`, `crisisSignals.test.ts`, `safetyBackstop.test.ts`, `statutoryCrossCheck.test.ts` | ~12 |
+| Auth | `AuthProvider.test.tsx`, `AuthConfirm.test.tsx`, `RequireAdminSession.test.tsx` | 5 |
+| Documents | `engine.test.ts`, `DoclibProvider.test.tsx`, `GenerateScreen.test.tsx` | ~8 |
+| Workspace Views | `EmployeesView.test.tsx`, `CasesView.test.tsx`, `AnalyticsView.test.tsx` | ~20 |
+| Marketing Pages | `PricingPage.test.tsx`, `LegalHubPage.test.tsx`, `ArticlePage.test.tsx` | ~15 |
+| Support | `SupportRequestForm.test.tsx`, `helpSearch.test.ts`, `triage.test.ts` | ~15 |
+| Infrastructure | `reporter.test.ts`, `scrubRoute.test.ts`, `fingerprint.test.ts` | ~12 |
+| i18n | `i18n.test.tsx`, `scopes.test.ts` | 2 |
+| Edge Functions | `aiUsage.test.ts`, `billing-event.test.ts`, `contentSanity.test.ts` | ~12 |
+| Canonical/Data | `canonicalFacts.test.ts`, `data.test.ts` | 2 |
 
 Sources: search results for `.test.ts` files across the repository
 
@@ -313,7 +314,6 @@ Sources: search results for `.test.ts` files across the repository
 Guards the surface boundary established by `src/i18n/messages/{workspace,marketing,shared}.ts`. It derives which message keys each surface may use (from the modules each entry file imports) and scans for any literal `t('key')` call reaching outside its file's surface [scripts/check-message-scopes.mjs:1-23]().
 
 Two surfaces are scanned [scripts/check-message-scopes.mjs:76-87]():
-
 - **workspace**: `src/features/app`, `src/components/advisor`, `src/lib/exportProtection`
 - **marketing**: `src/features/marketing`
 
@@ -389,28 +389,28 @@ Sources: [e2e/serve-dist.mjs:54-82]()
 
 ## Key Design Decisions
 
-| Decision                                   | Rationale                                                                                                              | Reference                                                         |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `check` is isolated from `live-checks`     | Credential failure (expired token) must never abort build/test verification — the OA19 incident                        | [.github/workflows/ci.yml:22-27]()                                |
-| `e2e` is isolated from `check`             | Browser download/flake should never charge against the merge gate                                                      | [.github/workflows/ci.yml:104-106]()                              |
-| `live-checks` steps use `if: !cancelled()` | Each live check reports independently; migration drift failure doesn't skip RLS                                        | [.github/workflows/ci.yml:97]()                                   |
-| `workflow_dispatch` trigger                | Live-project checks can go red without a code change (out-of-band DB changes)                                          | [.github/workflows/ci.yml:7-11]()                                 |
-| Vitest `env` blanks Supabase vars          | Forces doclib onto bundled fixtures, prevents test ordering from varying by `.env`                                     | [vite.config.ts:269-270]()                                        |
-| Coverage thresholds are below baseline     | Normal fluctuation doesn't flake CI; real regression still fails                                                       | [vite.config.ts:273-283]()                                        |
-| Pinned action SHAs                         | `actions/checkout@34e114…` and `actions/setup-node@49933…` pinned by commit hash, not tag                              | [.github/workflows/ci.yml:31-32]()                                |
-| Dependency-free scripts                    | `check-migrations.mjs` and `check-rls.mjs` use Node's global `fetch` only, so they cannot rot behind a package upgrade | [scripts/check-migrations.mjs:37](), [scripts/check-rls.mjs:36]() |
+| Decision | Rationale | Reference |
+|---|---|---|
+| `check` is isolated from `live-checks` | Credential failure (expired token) must never abort build/test verification — the OA19 incident | [.github/workflows/ci.yml:22-27]() |
+| `e2e` is isolated from `check` | Browser download/flake should never charge against the merge gate | [.github/workflows/ci.yml:104-106]() |
+| `live-checks` steps use `if: !cancelled()` | Each live check reports independently; migration drift failure doesn't skip RLS | [.github/workflows/ci.yml:97]() |
+| `workflow_dispatch` trigger | Live-project checks can go red without a code change (out-of-band DB changes) | [.github/workflows/ci.yml:7-11]() |
+| Vitest `env` blanks Supabase vars | Forces doclib onto bundled fixtures, prevents test ordering from varying by `.env` | [vite.config.ts:269-270]() |
+| Coverage thresholds are below baseline | Normal fluctuation doesn't flake CI; real regression still fails | [vite.config.ts:273-283]() |
+| Pinned action SHAs | `actions/checkout@34e114…` and `actions/setup-node@49933…` pinned by commit hash, not tag | [.github/workflows/ci.yml:31-32]() |
+| Dependency-free scripts | `check-migrations.mjs` and `check-rls.mjs` use Node's global `fetch` only, so they cannot rot behind a package upgrade | [scripts/check-migrations.mjs:37](), [scripts/check-rls.mjs:36]() |
 
 Sources: [.github/workflows/ci.yml:1-130](), [vite.config.ts:255-284](), [scripts/check-migrations.mjs:36-37](), [scripts/check-rls.mjs:34-36]()
 
 ## Artifacts & Outputs
 
-| Artifact             | Location               | Committed?        | Purpose                                           |
-| -------------------- | ---------------------- | ----------------- | ------------------------------------------------- |
-| `dist/`              | Build output           | No (`.gitignore`) | Production bundle, served by e2e tests            |
-| `coverage/`          | Vitest coverage        | No (`.gitignore`) | V8 coverage reports                               |
-| `test-results/`      | Playwright results     | No (`.gitignore`) | Test run artifacts                                |
-| `playwright-report/` | Playwright HTML report | No (`.gitignore`) | HTML report (CI: `open: 'never'`)                 |
-| `sourcemaps/`        | Relocated source maps  | No (`.gitignore`) | Moved out of `dist/` by `relocate-sourcemaps.mjs` |
+| Artifact | Location | Committed? | Purpose |
+|---|---|---|---|
+| `dist/` | Build output | No (`.gitignore`) | Production bundle, served by e2e tests |
+| `coverage/` | Vitest coverage | No (`.gitignore`) | V8 coverage reports |
+| `test-results/` | Playwright results | No (`.gitignore`) | Test run artifacts |
+| `playwright-report/` | Playwright HTML report | No (`.gitignore`) | HTML report (CI: `open: 'never'`) |
+| `sourcemaps/` | Relocated source maps | No (`.gitignore`) | Moved out of `dist/` by `relocate-sourcemaps.mjs` |
 
 Sources: [.gitignore:12-43](), [playwright.config.ts:28]()
 

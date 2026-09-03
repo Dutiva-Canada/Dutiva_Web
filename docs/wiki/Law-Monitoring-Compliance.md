@@ -30,6 +30,8 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+
+
 Dutiva is a compliance product — its value depends on knowing when Canadian employment law changes, measuring an organization's compliance posture against that law, and guiding HR practitioners through the correct response. This page introduces the three systems that deliver that capability and links to child pages for implementation details.
 
 The three systems form a pipeline: the **Law Change Monitor** watches legislation sources and records amendments, the **Compliance Scoring & Analytics Dashboard** measures an organization's posture and surfaces what needs attention, and the **Guided Workflows & Reference Guides** provide step-by-step processes for acting on what the dashboard reveals.
@@ -201,11 +203,11 @@ Sources: [supabase/functions/monitor-law-changes/index.ts:1-7](), [supabase/func
 
 The following table summarizes the key data tables and edge functions across the three sub-systems:
 
-| Sub-system         | Edge Function(s)                          | Key Tables                                                                                               | Client Module                                            |
-| ------------------ | ----------------------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| Law Monitor        | `monitor-law-changes`, `send-law-updates` | `law_page_hashes`, `law_updates`, `cron_locks`                                                           | `src/features/app/guidance/`                             |
-| Compliance Scoring | `record-score-snapshots`                  | `compliance_score_snapshots`, `compliance_tasks`, `compliance_findings`, `hr_obligations`, `hr_policies` | `src/features/app/views/analytics/`                      |
-| Guided Workflows   | — (client-only)                           | —                                                                                                        | `src/features/app/flows/`, `src/features/app/reference/` |
+| Sub-system | Edge Function(s) | Key Tables | Client Module |
+|---|---|---|---|
+| Law Monitor | `monitor-law-changes`, `send-law-updates` | `law_page_hashes`, `law_updates`, `cron_locks` | `src/features/app/guidance/` |
+| Compliance Scoring | `record-score-snapshots` | `compliance_score_snapshots`, `compliance_tasks`, `compliance_findings`, `hr_obligations`, `hr_policies` | `src/features/app/views/analytics/` |
+| Guided Workflows | — (client-only) | — | `src/features/app/flows/`, `src/features/app/reference/` |
 
 Sources: [supabase/migrations/0034_cron_locks.sql:1-10](), [supabase/functions/record-score-snapshots/index.ts:1-10](), [src/features/app/views/analytics/productionApi.ts:1-14](), [src/features/app/flows/data/index.ts:1-17](), [src/features/app/reference/data/index.ts:1-20]()
 
@@ -215,7 +217,7 @@ Sources: [supabase/migrations/0034_cron_locks.sql:1-10](), [supabase/functions/r
 
 1. **Deterministic scoring.** The compliance score is computed by pure functions with no `Date.now()` calls — callers inject "today" so demo stays stable and every path is unit-testable. The LLM is never involved in score computation. See [docs/AI_USAGE_STRATEGY.md:1-15]() and [docs/SCORING_LOGIC.md:1-15]().
 
-2. **Monitored ≠ covered.** The law monitor sweeps 14 jurisdictions but the product supports only three (ON, QC, FED). The `monitoringCoverage.ts` module is a _maintained claim_ — manually audited and dated — rather than being derived from `law_page_hashes`, because deriving it would re-create the silent failure it exists to prevent. See [src/features/app/guidance/monitoringCoverage.ts:1-35]().
+2. **Monitored ≠ covered.** The law monitor sweeps 14 jurisdictions but the product supports only three (ON, QC, FED). The `monitoringCoverage.ts` module is a *maintained claim* — manually audited and dated — rather than being derived from `law_page_hashes`, because deriving it would re-create the silent failure it exists to prevent. See [src/features/app/guidance/monitoringCoverage.ts:1-35]().
 
 3. **Drift-tested copies.** The scoring formula exists in two copies — `aggregation.ts` (client) and `scoring.ts` (edge function) — because the two runtimes cannot share a module. A drift test (`scoring.test.ts`) imports both and asserts identical outputs across scenarios. See [supabase/functions/record-score-snapshots/scoring.test.ts:1-40]().
 

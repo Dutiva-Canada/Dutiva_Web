@@ -32,6 +32,8 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+
+
 The Dutiva repository ships a substantial body of documentation and design handoff artifacts under `docs/`, plus root-level governance files (`AGENTS.md`, `CONVENTIONS.md`, `CANONICAL_FACTS.md`). Because Dutiva is a compliance product — where a wrong fact is a product defect — documentation is not supplementary but load-bearing: strategy documents govern what the code is allowed to assert, design handoffs are the source of truth for UI behaviour, and the advisor guidance corpus carries statutory figures the product quotes to users. This page introduces the documentation system and its two major areas; each is covered in depth on its own child page.
 
 ## Documentation Architecture
@@ -59,15 +61,15 @@ Sources: [docs/README.md:1-21](), [AGENTS.md:9-21]()
 
 The `docs/README.md` file is the project-wide documentation index. It organises documents into seven sections — each a table mapping a document to what it settles. Key sections include:
 
-| Section            | Documents                                                                             | Purpose                                         |
-| ------------------ | ------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| Start here         | `CANONICAL_FACTS.md`                                                                  | Source of record for every load-bearing fact    |
-| What is still open | `TODO.md`, `DEVIN_PROMPTS.md`, `LEGAL_REVIEW_INVENTORY.md`                            | Operational backlog and delegable agent prompts |
-| What is true       | `FOUR_RING_FRAMEWORK.md`, `AI_USAGE_STRATEGY.md`, `SCORING_LOGIC.md`, corpus tranches | Governs what the product may assert             |
-| Privacy & security | `SECURITY_HEADERS.md`, `ERROR_REPORTING.md`, `EXPORT_PROTECTION.md`                   | Security posture docs                           |
-| Data & platform    | `DATA_MODEL.md`, `AUTH_MAGIC_LINK.md`, `BILLING_BETA_AUDIT.md`                        | Backend architecture                            |
-| Web surface        | `SEO_ROUTE_MATRIX.md`, `SEO_GEO_IMPLEMENTATION.md`, `SEO_AUTHORITY_PLAYBOOK.md`       | Marketing SEO system                            |
-| Support            | `SUPPORT_ARCHITECTURE.md`, `SUPPORT_ANALYTICS.md`                                     | Support subsystem                               |
+| Section | Documents | Purpose |
+|---------|-----------|---------|
+| Start here | `CANONICAL_FACTS.md` | Source of record for every load-bearing fact |
+| What is still open | `TODO.md`, `DEVIN_PROMPTS.md`, `LEGAL_REVIEW_INVENTORY.md` | Operational backlog and delegable agent prompts |
+| What is true | `FOUR_RING_FRAMEWORK.md`, `AI_USAGE_STRATEGY.md`, `SCORING_LOGIC.md`, corpus tranches | Governs what the product may assert |
+| Privacy & security | `SECURITY_HEADERS.md`, `ERROR_REPORTING.md`, `EXPORT_PROTECTION.md` | Security posture docs |
+| Data & platform | `DATA_MODEL.md`, `AUTH_MAGIC_LINK.md`, `BILLING_BETA_AUDIT.md` | Backend architecture |
+| Web surface | `SEO_ROUTE_MATRIX.md`, `SEO_GEO_IMPLEMENTATION.md`, `SEO_AUTHORITY_PLAYBOOK.md` | Marketing SEO system |
+| Support | `SUPPORT_ARCHITECTURE.md`, `SUPPORT_ANALYTICS.md` | Support subsystem |
 
 For details, see [Documentation Index & Strategy Docs](#12.1).
 
@@ -110,11 +112,11 @@ Sources: [AGENTS.md:1-116](), [docs/TODO.md:1-76](), [docs/DEVIN_PROMPTS.md:1-43
 
 Three design handoff packages capture the high-fidelity prototypes, screenshots, and engineering specs from which major features were implemented. Each package includes HTML prototypes (design references, not production code), annotated screenshots, and behaviour specifications.
 
-| Package              | Path                                        | Feature Built                                                                   | Key Files                                                                               |
-| -------------------- | ------------------------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| Advisor Chat         | `docs/design-handoff-advisor-chat/`         | `AdvisorView`, `ChatPane`, `ComplianceWorkspace`, `advisor-chat` edge function  | 3 prototypes, `AGENT.md` behaviour contract, 11 screenshots, Engineering Roadmap        |
+| Package | Path | Feature Built | Key Files |
+|---------|------|--------------|-----------|
+| Advisor Chat | `docs/design-handoff-advisor-chat/` | `AdvisorView`, `ChatPane`, `ComplianceWorkspace`, `advisor-chat` edge function | 3 prototypes, `AGENT.md` behaviour contract, 11 screenshots, Engineering Roadmap |
 | HR Documents Library | `docs/design-handoff-hr-documents-library/` | `TemplatesView`, `DocumentDetailScreen`, `GenerateScreen`, e-signature workflow | 1 prototype (`HR Documents Library.dc.html`), `dutiva-data.js` seed spec, 6 screenshots |
-| Analytics            | `docs/design-handoff-analytics/`            | `AnalyticsProductionView`, compliance score cards, attention queue              | 1 mobile mockup (`dutiva-reports-mockup.html`), README with reconciliation notes        |
+| Analytics | `docs/design-handoff-analytics/` | `AnalyticsProductionView`, compliance score cards, attention queue | 1 mobile mockup (`dutiva-reports-mockup.html`), README with reconciliation notes |
 
 **Design handoff to implementation mapping**
 
@@ -162,12 +164,12 @@ Sources: [AGENTS.md:84-96](), [docs/design-handoff-advisor-chat/README.md:20-32]
 
 The advisor guidance corpus is a set of human-reviewable documentation tranches recording the statutory content seeded into the `advisor_guidance_chunks` database table. Currently 42 chunks across Ontario, Québec, and Federal jurisdictions — all at `review_status = 'machine_curated'`, none yet flipped to `reviewed`.
 
-| Tranche                                 | Date      | Topics                                                                                 |
-| --------------------------------------- | --------- | -------------------------------------------------------------------------------------- |
-| `advisor-guidance-corpus-2026-07-26.md` | Seed      | ON/QC/FED termination notice, severance                                                |
-| `advisor-guidance-corpus-2026-07-27.md` | Second    | Leaves, public holidays, hours of work, accommodation                                  |
-| `advisor-guidance-corpus-2026-07-29.md` | Third     | Pay & deductions, records retention, layoffs, constructive dismissal, workplace injury |
-| `advisor-guidance-corpus-2026-08-04.md` | Amendment | Minimum wage updates, URL corrections, figure verification                             |
+| Tranche | Date | Topics |
+|---------|------|--------|
+| `advisor-guidance-corpus-2026-07-26.md` | Seed | ON/QC/FED termination notice, severance |
+| `advisor-guidance-corpus-2026-07-27.md` | Second | Leaves, public holidays, hours of work, accommodation |
+| `advisor-guidance-corpus-2026-07-29.md` | Third | Pay & deductions, records retention, layoffs, constructive dismissal, workplace injury |
+| `advisor-guidance-corpus-2026-08-04.md` | Amendment | Minimum wage updates, URL corrections, figure verification |
 
 Two review packs prepare the corpus for human sign-off:
 
@@ -186,9 +188,9 @@ Sources: [docs/LEGAL_REVIEW_INVENTORY.md:1-52]()
 
 ## Child Pages
 
-| Child                                        | Coverage                                                                                                                                                                                                              |
-| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Child | Coverage |
+|-------|----------|
 | [Documentation Index & Strategy Docs](#12.1) | Full walkthrough of `docs/README.md`, all 15+ strategy documents (`AI_USAGE_STRATEGY.md`, `SCORING_LOGIC.md`, `FOUR_RING_FRAMEWORK.md`, etc.), `AGENTS.md` coding agent instructions, and `TODO.md` operational index |
-| [Design Handoffs & Advisor Corpus](#12.2)    | Detailed coverage of the three design handoff packages, the four advisor guidance corpus tranches, the two review packs, and the corpus review workflow with sign-off SQL templates                                   |
+| [Design Handoffs & Advisor Corpus](#12.2) | Detailed coverage of the three design handoff packages, the four advisor guidance corpus tranches, the two review packs, and the corpus review workflow with sign-off SQL templates |
 
 ---

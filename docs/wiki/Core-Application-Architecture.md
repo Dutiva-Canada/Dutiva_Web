@@ -29,6 +29,8 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+
+
 Dutiva is a single-page React 19 application that serves two distinct surfaces from one route tree: a **public marketing site** (bilingual, prerendered to static HTML) and a **private workspace** (client-rendered, invite-only, `noindex`). This page describes the high-level structure that ties these surfaces together: the application entry point, the React provider hierarchy, the routing system, the authentication gate, and the workspace mode system. Each sub-topic has a dedicated child page for in-depth coverage.
 
 ## Application Entry Point
@@ -59,11 +61,11 @@ Sources: [src/main.tsx:18-39](), [src/app/App.tsx:29-39](), [src/app/router.tsx:
 
 The route table in `src/app/routes.tsx` defines the full route tree. It splits into:
 
-| Surface     | Path pattern                                  | Language strategy                          | Rendering                                             | Auth                       |
-| ----------- | --------------------------------------------- | ------------------------------------------ | ----------------------------------------------------- | -------------------------- |
-| Marketing   | `/`, `/about`, `/blog`, `/fr/...`             | URL-scoped (`ForcedLangProvider`)          | Prerendered + hydrated                                | None                       |
-| Public demo | `/demo`, `/fr/demo`                           | URL-scoped (`ForcedWorkspaceLangProvider`) | Client-rendered (`app.html` shell); index prerendered | None (read-only fixtures)  |
-| Workspace   | `/app/welcome`, `/app/auth/confirm`, `/app/*` | Preference-scoped (`LangProvider`)         | Client-rendered                                       | `RequireAdminSession` gate |
+| Surface | Path pattern | Language strategy | Rendering | Auth |
+|---------|-------------|-------------------|-----------|------|
+| Marketing | `/`, `/about`, `/blog`, `/fr/...` | URL-scoped (`ForcedLangProvider`) | Prerendered + hydrated | None |
+| Public demo | `/demo`, `/fr/demo` | URL-scoped (`ForcedWorkspaceLangProvider`) | Client-rendered (`app.html` shell); index prerendered | None (read-only fixtures) |
+| Workspace | `/app/welcome`, `/app/auth/confirm`, `/app/*` | Preference-scoped (`LangProvider`) | Client-rendered | `RequireAdminSession` gate |
 
 Marketing routes are generated from the SEO route registry (`src/seo/routes.ts`) — the `publicRoutes()` function builds the same route children for both English (unprefixed) and French (`/fr/…` with localized slugs) [src/app/routes.tsx:71-99](). The public demo reuses `AppShell` and `demoViewRoutes` inside `PublicDemoWorkspace` [src/app/routes.tsx:198-217](). Workspace routes are three top-level entries — `/app/welcome` (sign-in gate), `/app/auth/confirm` (magic-link landing), and `/app` (the shell with nested view routes) [src/app/routes.tsx:162-227](). A catch-all `*` route handles 404s [src/app/routes.tsx:228]().
 
@@ -126,11 +128,11 @@ Sources: [src/features/app/AppProviders.tsx:1-43]()
 
 The workspace shell is the `AppShell` component in `src/features/app/shell/AppShell.tsx` [src/features/app/shell/AppShell.tsx:84-221](). It implements a responsive three-mode layout:
 
-| Breakpoint          | Sidebar mode            | Description                                         |
-| ------------------- | ----------------------- | --------------------------------------------------- |
-| ≥1024px (desktop)   | `expanded` or `compact` | User-toggled, persisted in localStorage             |
-| 768–1023px (tablet) | `compact`               | Always compact                                      |
-| <768px (mobile)     | `drawer`                | Hamburger topbar + slide-in drawer + bottom tab nav |
+| Breakpoint | Sidebar mode | Description |
+|-----------|-------------|-------------|
+| ≥1024px (desktop) | `expanded` or `compact` | User-toggled, persisted in localStorage |
+| 768–1023px (tablet) | `compact` | Always compact |
+| <768px (mobile) | `drawer` | Hamburger topbar + slide-in drawer + bottom tab nav |
 
 The shell renders four global overlays as siblings of the main content: `SearchOverlay`, `AdvisorRail`, `DocStudioOverlay`, and `ToastHost` [src/features/app/shell/AppShell.tsx:215-218]().
 
@@ -178,21 +180,21 @@ Sources: [src/main.tsx:18-39](), [src/app/App.tsx:29-39](), [src/app/routes.tsx:
 
 ## Key Files Quick Reference
 
-| File                                                       | Purpose                                                           |
-| ---------------------------------------------------------- | ----------------------------------------------------------------- |
-| `src/main.tsx`                                             | Application bootstrap — hydrate or client-render                  |
-| `src/app/App.tsx`                                          | Root component — ThemeProvider + RouterProvider                   |
-| `src/app/router.tsx`                                       | Creates `createBrowserRouter` from the route table                |
-| `src/app/routes.tsx`                                       | Full route tree — public (EN + FR) and workspace                  |
-| `src/app/appSurface.tsx`                                   | Lazy-loaded workspace entry — LangProvider + AppProviders + shell |
-| `src/app/appViews.tsx`                                     | Workspace view route table with `React.lazy()` + `gated()`        |
-| `src/features/app/AppProviders.tsx`                        | Provider composition stack (9 providers)                          |
-| `src/features/app/auth/AuthProvider.tsx`                   | Supabase session tracking, magic-link OTP                         |
-| `src/features/app/auth/RequireAdminSession.tsx`            | Workspace access gate                                             |
-| `src/features/app/workspaceMode/WorkspaceModeProvider.tsx` | Demo/production mode resolution                                   |
-| `src/features/app/workspaceMode/ModeGate.tsx`              | Per-route demo/production view gate                               |
-| `src/features/app/shell/AppShell.tsx`                      | Workspace shell — sidebar, topbar, overlays                       |
-| `src/features/app/shell/navConfig.ts`                      | Navigation model — `NAV_GROUPS`, `isNavActive`                    |
+| File | Purpose |
+|------|---------|
+| `src/main.tsx` | Application bootstrap — hydrate or client-render |
+| `src/app/App.tsx` | Root component — ThemeProvider + RouterProvider |
+| `src/app/router.tsx` | Creates `createBrowserRouter` from the route table |
+| `src/app/routes.tsx` | Full route tree — public (EN + FR) and workspace |
+| `src/app/appSurface.tsx` | Lazy-loaded workspace entry — LangProvider + AppProviders + shell |
+| `src/app/appViews.tsx` | Workspace view route table with `React.lazy()` + `gated()` |
+| `src/features/app/AppProviders.tsx` | Provider composition stack (9 providers) |
+| `src/features/app/auth/AuthProvider.tsx` | Supabase session tracking, magic-link OTP |
+| `src/features/app/auth/RequireAdminSession.tsx` | Workspace access gate |
+| `src/features/app/workspaceMode/WorkspaceModeProvider.tsx` | Demo/production mode resolution |
+| `src/features/app/workspaceMode/ModeGate.tsx` | Per-route demo/production view gate |
+| `src/features/app/shell/AppShell.tsx` | Workspace shell — sidebar, topbar, overlays |
+| `src/features/app/shell/navConfig.ts` | Navigation model — `NAV_GROUPS`, `isNavActive` |
 
 Sources: all files listed above.
 

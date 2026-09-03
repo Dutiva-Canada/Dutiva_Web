@@ -43,6 +43,8 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+
+
 The Law Change Monitor is a nightly cron-driven edge function (`monitor-law-changes`) that sweeps 19 Canadian employment legislation pages across all 14 jurisdictions, detects amendments through four distinct source strategies, and logs structured events to the `law_updates` table. The customer-facing surface is the `GuidanceSourcesPanel` in the Knowledge view, which filters the log to show only real changes in supported jurisdictions.
 
 ## System Architecture Overview
@@ -121,16 +123,16 @@ Sources: [supabase/functions/monitor-law-changes/index.ts:1-40](), [supabase/mig
 
 The `MONITORED_PAGES` array defines all 19 legislation pages across 14 Canadian jurisdictions. Each entry is a `PageConfig` with jurisdiction, law name, primary URL, fallback URLs, and an optional `source` discriminant.
 
-| Jurisdiction                               | Law                                      | Source Strategy     | URL Pattern                                                        |
-| ------------------------------------------ | ---------------------------------------- | ------------------- | ------------------------------------------------------------------ |
-| Federal                                    | Canada Labour Code                       | `justice-xml` (L-2) | `justicecanada/laws-lois-xml` GitHub raw                           |
-| Federal                                    | Canadian Human Rights Act                | `justice-xml` (H-6) | `justicecanada/laws-lois-xml` GitHub raw                           |
-| Ontario                                    | Employment Standards Act, 2000           | `ontario-api`       | `ontario.ca/laws/api/v2/legislation/en/act-versions/statute/00e41` |
-| Ontario                                    | Ontario Human Rights Code                | `ontario-api`       | `ontario.ca/laws/api/v2/legislation/en/act-versions/statute/90h19` |
-| Ontario                                    | Workplace Safety and Insurance Act, 1997 | `ontario-api`       | `ontario.ca/laws/api/v2/legislation/en/act-versions/statute/97w16` |
-| Quebec                                     | Act respecting labour standards (LNT)    | `quebec-ckan`       | `donneesquebec.ca` CKAN `package_show`                             |
-| Quebec                                     | Charter of Human Rights and Freedoms     | `quebec-ckan`       | `donneesquebec.ca` CKAN `package_show`                             |
-| BC, AB, MB, SK, NS, NB, PE, NL, NT, NU, YK | Employment/Labour Standards Acts         | `html` (default)    | Various government sites                                           |
+| Jurisdiction | Law | Source Strategy | URL Pattern |
+|---|---|---|---|
+| Federal | Canada Labour Code | `justice-xml` (L-2) | `justicecanada/laws-lois-xml` GitHub raw |
+| Federal | Canadian Human Rights Act | `justice-xml` (H-6) | `justicecanada/laws-lois-xml` GitHub raw |
+| Ontario | Employment Standards Act, 2000 | `ontario-api` | `ontario.ca/laws/api/v2/legislation/en/act-versions/statute/00e41` |
+| Ontario | Ontario Human Rights Code | `ontario-api` | `ontario.ca/laws/api/v2/legislation/en/act-versions/statute/90h19` |
+| Ontario | Workplace Safety and Insurance Act, 1997 | `ontario-api` | `ontario.ca/laws/api/v2/legislation/en/act-versions/statute/97w16` |
+| Quebec | Act respecting labour standards (LNT) | `quebec-ckan` | `donneesquebec.ca` CKAN `package_show` |
+| Quebec | Charter of Human Rights and Freedoms | `quebec-ckan` | `donneesquebec.ca` CKAN `package_show` |
+| BC, AB, MB, SK, NS, NB, PE, NL, NT, NU, YK | Employment/Labour Standards Acts | `html` (default) | Various government sites |
 
 Monitoring is deliberately wider than the product's three supported jurisdictions (ON, QC, FED). The panel filters; the monitor watches everything.
 
@@ -194,7 +196,6 @@ Sources: [supabase/functions/monitor-law-changes/justiceXml.ts:47-138](), [supab
 Ontario's statute HTML pages are JavaScript app shells (~422 characters of boilerplate after tag stripping), making HTML hashing structurally non-functional. The `ontario-api` strategy reads the e-Laws act-versions API instead, which returns byte-stable JSON.
 
 The `assessOntarioActVersions()` function navigates a three-level Elasticsearch envelope: `aggregations.all.versions.hits.hits.hits[]._source`. Each version carries `state` (`current` | `historical`) and `dateFrom`. The function validates:
-
 - JSON is parseable
 - Versions array is non-empty (zero versions = outage, not "no change")
 - A `state=current` version exists
@@ -218,10 +219,10 @@ Sources: [supabase/functions/monitor-law-changes/quebecCkan.ts:65-127](), [supab
 
 The `assessLegislationText()` function (`contentSanity.ts`) guards against three failure modes that HTTP 200 alone cannot detect:
 
-| Check                         | Threshold              | Detects                                                                                 |
-| ----------------------------- | ---------------------- | --------------------------------------------------------------------------------------- |
+| Check | Threshold | Detects |
+|---|---|---|
 | `BLOCK_PAGE_SIGNATURES` match | Any match in 8 phrases | WAF rejections served as 200 (Nova Scotia F5), Cloudflare challenges, CloudFront blocks |
-| `MIN_STATUTE_TEXT_LENGTH`     | < 2000 chars           | JS app shells (Ontario ~422 chars), empty responses                                     |
+| `MIN_STATUTE_TEXT_LENGTH` | < 2000 chars | JS app shells (Ontario ~422 chars), empty responses |
 
 Signature matching runs before the length check so a block page is reported as `block-page` (different remedy) rather than `too-short`.
 
@@ -247,43 +248,43 @@ Sources: [supabase/functions/monitor-law-changes/contentSanity.ts:42-107](), [su
 
 One row per monitored URL. Columns:
 
-| Column                     | Purpose                                                                    |
-| -------------------------- | -------------------------------------------------------------------------- |
-| `url`                      | Primary key — the URL from `PageConfig`                                    |
-| `jurisdiction`, `law_name` | Identifiers                                                                |
-| `content_hash`             | SHA-256 hex, `amended:YYYY-MM-DD`, `ontario-api:...`, or `quebec-ckan:...` |
-| `redirect_url`             | New canonical URL when a redirect was followed                             |
-| `is_broken`                | Currently unreachable or failing sanity check                              |
-| `consecutive_failures`     | Counter, resets on success                                                 |
-| `last_checked`             | Timestamp of most recent sweep                                             |
-| `last_broken_at`           | Timestamp of most recent failure                                           |
+| Column | Purpose |
+|---|---|
+| `url` | Primary key — the URL from `PageConfig` |
+| `jurisdiction`, `law_name` | Identifiers |
+| `content_hash` | SHA-256 hex, `amended:YYYY-MM-DD`, `ontario-api:...`, or `quebec-ckan:...` |
+| `redirect_url` | New canonical URL when a redirect was followed |
+| `is_broken` | Currently unreachable or failing sanity check |
+| `consecutive_failures` | Counter, resets on success |
+| `last_checked` | Timestamp of most recent sweep |
+| `last_broken_at` | Timestamp of most recent failure |
 
 ### `law_updates` — Append-Only Event Log
 
 The product-facing log. Each row represents a detected event:
 
-| Column           | Purpose                                                   |
-| ---------------- | --------------------------------------------------------- |
-| `id`             | UUID primary key                                          |
-| `jurisdiction`   | Display name (e.g. `'Ontario'`, `'Federal'`)              |
-| `law_name`       | Human-readable Act name                                   |
-| `url`            | Legislation URL (may be the new URL on redirect)          |
-| `content_hash`   | Fingerprint at time of detection                          |
-| `change_summary` | Model-generated or canned English summary                 |
-| `raw_diff`       | First 2000 chars of text, or structured diff info         |
-| `detected_at`    | ISO timestamp                                             |
-| `is_new`         | Boolean — first time seeing this page                     |
-| `event_type`     | `first_seen` / `change` / `redirect` / `broken`           |
-| `review_status`  | `machine_curated` (default) or `reviewed` (human-flipped) |
+| Column | Purpose |
+|---|---|
+| `id` | UUID primary key |
+| `jurisdiction` | Display name (e.g. `'Ontario'`, `'Federal'`) |
+| `law_name` | Human-readable Act name |
+| `url` | Legislation URL (may be the new URL on redirect) |
+| `content_hash` | Fingerprint at time of detection |
+| `change_summary` | Model-generated or canned English summary |
+| `raw_diff` | First 2000 chars of text, or structured diff info |
+| `detected_at` | ISO timestamp |
+| `is_new` | Boolean — first time seeing this page |
+| `event_type` | `first_seen` / `change` / `redirect` / `broken` |
+| `review_status` | `machine_curated` (default) or `reviewed` (human-flipped) |
 
 ### Event Types
 
-| Event        | Meaning                                         | Customer-facing?           |
-| ------------ | ----------------------------------------------- | -------------------------- |
-| `first_seen` | Baseline captured on first monitoring           | No — operational           |
-| `change`     | Content/amendment date differs from last sweep  | **Yes**                    |
-| `redirect`   | Page moved permanently; monitoring auto-follows | No — plumbing              |
-| `broken`     | Unreachable for ≥ 3 consecutive sweeps          | No — Dutiva infrastructure |
+| Event | Meaning | Customer-facing? |
+|---|---|---|
+| `first_seen` | Baseline captured on first monitoring | No — operational |
+| `change` | Content/amendment date differs from last sweep | **Yes** |
+| `redirect` | Page moved permanently; monitoring auto-follows | No — plumbing |
+| `broken` | Unreachable for ≥ 3 consecutive sweeps | No — Dutiva infrastructure |
 
 Only `change` events are shown to customers, enforced by `CUSTOMER_FACING_EVENT_TYPE` in `monitoringCoverage.ts` and `CUSTOMER_FACING_EVENT_TYPES` in `lawUpdateRelevance.ts`.
 
@@ -368,10 +369,10 @@ Sources: [supabase/functions/monitor-law-changes/index.ts:462-497](), [supabase/
 
 Two HuggingFace API calls are used, both against `mistralai/Mistral-7B-Instruct-v0.3`:
 
-| Function            | Purpose                                                    | Max Tokens | Temperature | Fallback                                                                      |
-| ------------------- | ---------------------------------------------------------- | ---------- | ----------- | ----------------------------------------------------------------------------- |
-| `summarizeChange()` | Plain-English summary of a detected change for HR audience | 220        | 0.2         | Generic message: "Change detected on {lawName}. Review the legislation page." |
-| `findNewUrl()`      | Suggest replacement URL for broken page                    | 80         | 0.1         | `null` — no recovery attempted                                                |
+| Function | Purpose | Max Tokens | Temperature | Fallback |
+|---|---|---|---|---|
+| `summarizeChange()` | Plain-English summary of a detected change for HR audience | 220 | 0.2 | Generic message: "Change detected on {lawName}. Review the legislation page." |
+| `findNewUrl()` | Suggest replacement URL for broken page | 80 | 0.1 | `null` — no recovery attempted |
 
 Both degrade gracefully when `HF_TOKEN` is absent — the monitor still runs and records events, just with generic summaries.
 
@@ -418,7 +419,6 @@ Sources: [supabase/migrations/0035_schedule_law_monitor.sql:37-115](), [supabase
 ### Authentication Gate
 
 `isAuthorizedTrigger()` checks two credential paths:
-
 1. `x-trigger-secret` header matching `SUPPORT_NOTIFY_SECRET` env var
 2. `Authorization: Bearer` token matching either `SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_SECRET_KEY` (exact match only)
 
@@ -430,12 +430,12 @@ Sources: [supabase/functions/monitor-law-changes/index.ts:442-455]()
 
 The `law_monitor_status()` function provides a one-query health check:
 
-| Column              | Healthy value |
-| ------------------- | ------------- |
-| `secret_configured` | `true`        |
-| `job_scheduled`     | `true`        |
-| `hours_since_check` | `< 48`        |
-| `broken_pages`      | Ideally `0`   |
+| Column | Healthy value |
+|---|---|
+| `secret_configured` | `true` |
+| `job_scheduled` | `true` |
+| `hours_since_check` | `< 48` |
+| `broken_pages` | Ideally `0` |
 
 Sources: [supabase/migrations/0035_schedule_law_monitor.sql:74-99]()
 
@@ -447,11 +447,11 @@ The client-side coverage model is a **maintained claim**, deliberately not deriv
 
 The `MONITORING_COVERAGE` array covers exactly the three supported jurisdictions with bilingual labels and per-jurisdiction detail text:
 
-| Jurisdiction | Code  | Status (as of audit 2026-08-10)        |
-| ------------ | ----- | -------------------------------------- |
-| Ontario      | `ON`  | `active` — e-Laws act-versions API     |
-| Quebec       | `QC`  | `active` — Données Québec CKAN dataset |
-| Federal      | `FED` | `active` — Justice Canada XML          |
+| Jurisdiction | Code | Status (as of audit 2026-08-10) |
+|---|---|---|
+| Ontario | `ON` | `active` — e-Laws act-versions API |
+| Quebec | `QC` | `active` — Données Québec CKAN dataset |
+| Federal | `FED` | `active` — Justice Canada XML |
 
 The `CoverageStatus` type is `'active' | 'unavailable' | 'unverified'`, with a `coverageTone()` function mapping to chip colors (`success`, `risk`, `warning`).
 
@@ -478,7 +478,6 @@ Sources: [src/features/app/guidance/updatesAreStale.ts:1-20]()
 ### Client API: `fetchRecentLawUpdates()`
 
 Reads from `law_updates` with two filters:
-
 1. `.eq('event_type', CUSTOMER_FACING_EVENT_TYPE)` — only `'change'`
 2. `.in('jurisdiction', MONITOR_JURISDICTION_NAMES)` — only `['Ontario', 'Quebec', 'Federal']`
 
@@ -544,7 +543,6 @@ Sources: [supabase/migrations/0046_law_update_digest.sql:18-39]()
 ### Digest Filtering (`selectDigestableUpdates`)
 
 The `selectDigestableUpdates()` pure function in `lawUpdateDigest.ts` applies three gates:
-
 1. `reviewStatus === 'reviewed'`
 2. Not in `alreadySentIds` (deduplicated via `law_update_notifications` unique constraint on `(law_update_id, recipient)`)
 3. `detected_at >= GO_LIVE_AT` (fixed at `2026-08-06T00:00:00Z` to prevent backfill dumps)
@@ -587,7 +585,6 @@ Sources: [docs/LAW_CHANGE_NOTIFICATIONS.md:49-108]()
 ## Canonical Facts Enforcement
 
 The monitoring coverage is a canonical fact enforced by `src/canonicalFacts.test.ts`. The test:
-
 - Asserts the documented jurisdiction count matches `MONITORING_COVERAGE.length`
 - Bidirectionally compares the backtick-quoted codes in `CANONICAL_FACTS.md` against the `MONITORING_COVERAGE` array
 - Checks that `noSupportedJurisdictionCovered()` returns `false` (at least one jurisdiction is active)
@@ -598,28 +595,28 @@ Sources: [src/canonicalFacts.test.ts:109-123](), [src/canonicalFacts.test.ts:168
 
 ## File Inventory
 
-| File                                                      | Role                                                                         |
-| --------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `supabase/functions/monitor-law-changes/index.ts`         | Main edge function — fetch loop, event recording, HF calls                   |
-| `supabase/functions/monitor-law-changes/contentSanity.ts` | Block-page and length checks for HTML sources                                |
-| `supabase/functions/monitor-law-changes/justiceXml.ts`    | Federal XML parser and identity check                                        |
-| `supabase/functions/monitor-law-changes/ontarioApi.ts`    | Ontario e-Laws API parser and identity check                                 |
-| `supabase/functions/monitor-law-changes/quebecCkan.ts`    | Québec CKAN dataset parser                                                   |
-| `supabase/functions/send-law-updates/index.ts`            | Weekly digest edge function                                                  |
-| `supabase/functions/_shared/lawUpdateRelevance.ts`        | Jurisdiction + event type relevance filter                                   |
-| `supabase/functions/_shared/lawUpdateDigest.ts`           | Digest candidate selection (review gate, dedup, cutoff)                      |
-| `supabase/functions/_shared/resendSend.ts`                | Shared Resend email wrapper                                                  |
-| `supabase/migrations/0034_cron_locks.sql`                 | `cron_locks` table, `acquire_cron_lock`, `release_cron_lock`                 |
-| `supabase/migrations/0035_schedule_law_monitor.sql`       | `trigger_law_monitor()`, `law_monitor_status()`, pg_cron schedule            |
-| `supabase/migrations/0046_law_update_digest.sql`          | `review_status` column, `law_update_notifications`, digest schedule          |
-| `supabase/migrations/0049_cron_trigger_shared_secret.sql` | Credential migration to shared-secret header                                 |
-| `src/features/app/guidance/api.ts`                        | Client-side Supabase reads (`fetchRecentLawUpdates`, `fetchGuidanceSources`) |
-| `src/features/app/guidance/monitoringCoverage.ts`         | Coverage claims, jurisdiction mapping, coverage status types                 |
-| `src/features/app/guidance/updatesAreStale.ts`            | 7-day freshness check                                                        |
-| `src/features/app/guidance/GuidanceSourcesPanel.tsx`      | React panel component                                                        |
-| `src/i18n/messages/guidance.ts`                           | Bilingual panel messages                                                     |
-| `docs/LAW_MONITORING.md`                                  | Operational documentation                                                    |
-| `docs/LAW_CHANGE_NOTIFICATIONS.md`                        | Notification design decisions and CASL analysis                              |
+| File | Role |
+|---|---|
+| `supabase/functions/monitor-law-changes/index.ts` | Main edge function — fetch loop, event recording, HF calls |
+| `supabase/functions/monitor-law-changes/contentSanity.ts` | Block-page and length checks for HTML sources |
+| `supabase/functions/monitor-law-changes/justiceXml.ts` | Federal XML parser and identity check |
+| `supabase/functions/monitor-law-changes/ontarioApi.ts` | Ontario e-Laws API parser and identity check |
+| `supabase/functions/monitor-law-changes/quebecCkan.ts` | Québec CKAN dataset parser |
+| `supabase/functions/send-law-updates/index.ts` | Weekly digest edge function |
+| `supabase/functions/_shared/lawUpdateRelevance.ts` | Jurisdiction + event type relevance filter |
+| `supabase/functions/_shared/lawUpdateDigest.ts` | Digest candidate selection (review gate, dedup, cutoff) |
+| `supabase/functions/_shared/resendSend.ts` | Shared Resend email wrapper |
+| `supabase/migrations/0034_cron_locks.sql` | `cron_locks` table, `acquire_cron_lock`, `release_cron_lock` |
+| `supabase/migrations/0035_schedule_law_monitor.sql` | `trigger_law_monitor()`, `law_monitor_status()`, pg_cron schedule |
+| `supabase/migrations/0046_law_update_digest.sql` | `review_status` column, `law_update_notifications`, digest schedule |
+| `supabase/migrations/0049_cron_trigger_shared_secret.sql` | Credential migration to shared-secret header |
+| `src/features/app/guidance/api.ts` | Client-side Supabase reads (`fetchRecentLawUpdates`, `fetchGuidanceSources`) |
+| `src/features/app/guidance/monitoringCoverage.ts` | Coverage claims, jurisdiction mapping, coverage status types |
+| `src/features/app/guidance/updatesAreStale.ts` | 7-day freshness check |
+| `src/features/app/guidance/GuidanceSourcesPanel.tsx` | React panel component |
+| `src/i18n/messages/guidance.ts` | Bilingual panel messages |
+| `docs/LAW_MONITORING.md` | Operational documentation |
+| `docs/LAW_CHANGE_NOTIFICATIONS.md` | Notification design decisions and CASL analysis |
 
 Sources: All files listed above.
 

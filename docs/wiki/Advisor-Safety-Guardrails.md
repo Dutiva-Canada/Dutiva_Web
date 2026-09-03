@@ -30,7 +30,9 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-The Advisor safety system is a **deterministic rule layer** that runs on every advisor turn — both server-side (inside the `advisor-chat` edge function) and client-side (after the response arrives). Its design principle, codified in `docs/AI_USAGE_STRATEGY.md`, is: _"the LLM proposes, deterministic code disposes."_ Routing, risk classification, jurisdiction gating, crisis detection, and statutory figure verification are never delegated to the model.
+
+
+The Advisor safety system is a **deterministic rule layer** that runs on every advisor turn — both server-side (inside the `advisor-chat` edge function) and client-side (after the response arrives). Its design principle, codified in `docs/AI_USAGE_STRATEGY.md`, is: *"the LLM proposes, deterministic code disposes."* Routing, risk classification, jurisdiction gating, crisis detection, and statutory figure verification are never delegated to the model.
 
 This page covers three subsystems:
 
@@ -77,16 +79,16 @@ Sources: [src/features/app/advisor/chatApi.ts:90-131](), [supabase/functions/adv
 
 The safety code is organized into a self-contained module at `src/features/app/advisor/safety/` with a barrel export:
 
-| File                         | Role                                                                                                    |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `index.ts`                   | Barrel export — re-exports all public symbols                                                           |
-| `text.ts`                    | `normalizeText()` — locale-tolerant normalization (NFD, strip diacritics/apostrophes, lowercase)        |
-| `crisisSignals.ts`           | `detectCrisisSignal()` + `CRISIS_PHRASES` — bilingual self-harm phrase matching                         |
-| `statutoryFigures.ts`        | `mentionsStatutoryFigure()` — detects notice/severance/dollar/percentage figures with statutory context |
-| `statutoryNotice.ts`         | `lookupStatutoryNoticeWeeks()` + `NOTICE_SCHEDULES` — Ontario ESA s.57 notice table                     |
-| `statutoryCrossCheck.ts`     | `crossCheckNoticeFigure()` — verifies a stated notice figure against the encoded schedule               |
-| `safetyBackstop.ts`          | `applySafetyBackstop()` — the orchestrator that runs all rules and returns a hardened response          |
-| `crisisSignalsDrift.test.ts` | Drift guard enforcing client/server phrase-list sync                                                    |
+| File | Role |
+|---|---|
+| `index.ts` | Barrel export — re-exports all public symbols |
+| `text.ts` | `normalizeText()` — locale-tolerant normalization (NFD, strip diacritics/apostrophes, lowercase) |
+| `crisisSignals.ts` | `detectCrisisSignal()` + `CRISIS_PHRASES` — bilingual self-harm phrase matching |
+| `statutoryFigures.ts` | `mentionsStatutoryFigure()` — detects notice/severance/dollar/percentage figures with statutory context |
+| `statutoryNotice.ts` | `lookupStatutoryNoticeWeeks()` + `NOTICE_SCHEDULES` — Ontario ESA s.57 notice table |
+| `statutoryCrossCheck.ts` | `crossCheckNoticeFigure()` — verifies a stated notice figure against the encoded schedule |
+| `safetyBackstop.ts` | `applySafetyBackstop()` — the orchestrator that runs all rules and returns a hardened response |
+| `crisisSignalsDrift.test.ts` | Drift guard enforcing client/server phrase-list sync |
 
 Sources: [src/features/app/advisor/safety/index.ts:1-21]()
 
@@ -111,12 +113,12 @@ Sources: [src/features/app/advisor/safety/crisisSignals.ts:31-71](), [src/featur
 
 Crisis detection runs on **both** client and server. The server copy is `detectsCrisis()` in `responsePayload.ts` with an identical `CRISIS_PHRASES` array and `normalize()` function. The two lists are kept in sync by a drift test:
 
-| Invariant                                                    | Enforcement                                  |
-| ------------------------------------------------------------ | -------------------------------------------- |
-| Phrase sets are byte-identical                               | `crisisSignalsDrift.test.ts` compares arrays |
-| No duplicate phrases on either side                          | Set-size check                               |
-| Every phrase is stable under its own normalizer              | `normalizeText(phrase) === phrase` for all   |
-| `normalizeText()` and `normalize()` produce identical output | Cross-tested with representative samples     |
+| Invariant | Enforcement |
+|---|---|
+| Phrase sets are byte-identical | `crisisSignalsDrift.test.ts` compares arrays |
+| No duplicate phrases on either side | Set-size check |
+| Every phrase is stable under its own normalizer | `normalizeText(phrase) === phrase` for all |
+| `normalizeText()` and `normalize()` produce identical output | Cross-tested with representative samples |
 
 The union of both detectors wins — if either side detects crisis, the flag is raised. This is the **fail-safe-on** rule: a model that fails to flag crisis cannot suppress the intercept.
 
@@ -145,11 +147,11 @@ The safety backstop is the **client-side defense-in-depth layer** defined in [sr
 
 The rules are **monotonic** — they can only tighten a gate, never loosen one. The worst case is an over-cautious turn. The three possible `SafetyAction` values are:
 
-| Action                 | Rule                                                                     | Effect                                                                    |
-| ---------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| `crisis-intercept`     | User message matches a crisis phrase but engine's `isCrisis` is `false`  | Sets `isCrisis = true`                                                    |
-| `legal-basis-withheld` | Reply mentions a statutory figure but jurisdiction is not confirmed      | Sets `legalBasisAllowed = false`, adds `withheldReason` and warning       |
-| `figure-mismatch`      | A notice figure in the reply disagrees with the encoded Ontario schedule | Sets `legalBasisAllowed = false`, adds mismatch warning with both numbers |
+| Action | Rule | Effect |
+|---|---|---|
+| `crisis-intercept` | User message matches a crisis phrase but engine's `isCrisis` is `false` | Sets `isCrisis = true` |
+| `legal-basis-withheld` | Reply mentions a statutory figure but jurisdiction is not confirmed | Sets `legalBasisAllowed = false`, adds `withheldReason` and warning |
+| `figure-mismatch` | A notice figure in the reply disagrees with the encoded Ontario schedule | Sets `legalBasisAllowed = false`, adds mismatch warning with both numbers |
 
 When no rule fires, `applySafetyBackstop` returns the **same object reference** — the caller can cheaply check `result.response === input.response`.
 
@@ -240,17 +242,17 @@ Sources: [src/features/app/advisor/safety/statutoryCrossCheck.ts:122-153]()
 
 The Ontario ESA s.57 schedule is encoded in [src/features/app/advisor/safety/statutoryNotice.ts:52-62]():
 
-| Completed Tenure     | Statutory Notice  |
-| -------------------- | ----------------- |
-| < 3 months           | 0 weeks           |
-| 3 months to < 1 year | 1 week            |
-| 1 to < 3 years       | 2 weeks           |
-| 3 to < 4 years       | 3 weeks           |
-| 4 to < 5 years       | 4 weeks           |
-| 5 to < 6 years       | 5 weeks           |
-| 6 to < 7 years       | 6 weeks           |
-| 7 to < 8 years       | 7 weeks           |
-| 8+ years             | 8 weeks (maximum) |
+| Completed Tenure | Statutory Notice |
+|---|---|
+| < 3 months | 0 weeks |
+| 3 months to < 1 year | 1 week |
+| 1 to < 3 years | 2 weeks |
+| 3 to < 4 years | 3 weeks |
+| 4 to < 5 years | 4 weeks |
+| 5 to < 6 years | 5 weeks |
+| 6 to < 7 years | 6 weeks |
+| 7 to < 8 years | 7 weeks |
+| 8+ years | 8 weeks (maximum) |
 
 `lookupStatutoryNoticeWeeks` at [src/features/app/advisor/safety/statutoryNotice.ts:108-121]() returns `null` for QC and FED (bands are `null` pending review documented in `docs/notice-bands-review-pack.md`), and `null` for invalid/negative tenure.
 
@@ -266,10 +268,10 @@ Sources: [src/features/app/advisor/safety/statutoryNotice.ts:36-121](), [supabas
 
 `detectJurisdictions` at [supabase/functions/advisor-chat/responsePayload.ts:226-229]() scans the normalized message for jurisdiction-specific terms:
 
-| Code  | Terms                                                                                      |
-| ----- | ------------------------------------------------------------------------------------------ |
-| `ON`  | `ontario`, `employment standards act`, ` esa`, `esa `, `ohsa`                              |
-| `QC`  | `quebec`, `cnesst`, `normes du travail`, `lnt`, `charte des droits`                        |
+| Code | Terms |
+|---|---|
+| `ON` | `ontario`, `employment standards act`, ` esa`, `esa `, `ohsa` |
+| `QC` | `quebec`, `cnesst`, `normes du travail`, `lnt`, `charte des droits` |
 | `FED` | `federally regulated`, `canada labour code`, `code canadien du travail`, `interprovincial` |
 
 Bare two-letter codes are excluded — `"on"` is a common English word and a false jurisdiction read is worse than `unknown`.
@@ -282,19 +284,18 @@ Sources: [supabase/functions/advisor-chat/responsePayload.ts:203-229](), [supaba
 
 Risk is computed from normalized-message term matching:
 
-| Risk Level          | Term Sets                                                                                                     |
-| ------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `high` compliance   | `HIGH_RISK_TERMS` — termination, dismissal, severance, discipline, accommodation, plus all `ESCALATION_TERMS` |
-| `medium` compliance | `MEDIUM_RISK_TERMS` — overtime, vacation, minimum wage, holiday, leave, sick, pay                             |
-| `low` compliance    | No matching terms                                                                                             |
-| `watch` safety      | `ESCALATION_TERMS` match — harassment, violence, assault, threat, discrimination, retaliation, whistleblow    |
+| Risk Level | Term Sets |
+|---|---|
+| `high` compliance | `HIGH_RISK_TERMS` — termination, dismissal, severance, discipline, accommodation, plus all `ESCALATION_TERMS` |
+| `medium` compliance | `MEDIUM_RISK_TERMS` — overtime, vacation, minimum wage, holiday, leave, sick, pay |
+| `low` compliance | No matching terms |
+| `watch` safety | `ESCALATION_TERMS` match — harassment, violence, assault, threat, discrimination, retaliation, whistleblow |
 
 Sources: [supabase/functions/advisor-chat/responsePayload.ts:132-201]()
 
 ### Legal Basis Validity
 
 A citation is `valid: true` only when **both** conditions hold:
-
 1. The chunk has `review_status = 'reviewed'` (human-reviewed)
 2. The chunk has no `source_changed_at` timestamp (the law monitor has not seen a post-curation source change)
 
@@ -363,12 +364,12 @@ Sources: [supabase/functions/_shared/aiUsage.ts:177-204](), [supabase/functions/
 
 All ceilings are env-overridable (tuning the beta is a secret change, not a deploy):
 
-| Ceiling                   | Default                                       | Scope                            | Env Override                                                               |
-| ------------------------- | --------------------------------------------- | -------------------------------- | -------------------------------------------------------------------------- |
-| **Burst** (per-operation) | 10 requests / 300s (chat), 6 / 300s (support) | Per user, per operation          | `AI_BURST_LIMIT_CHAT`, `AI_BURST_LIMIT_SUPPORT`, `AI_BURST_WINDOW_SECONDS` |
-| **Daily requests**        | 120 / 24h                                     | Per user, all metered operations | `AI_DAILY_REQUEST_LIMIT`                                                   |
-| **Daily tokens**          | 250,000 / 24h                                 | Per user, all metered operations | `AI_DAILY_TOKEN_LIMIT`                                                     |
-| **Platform daily**        | 2,000 / 24h                                   | All users combined               | `AI_PLATFORM_DAILY_LIMIT`                                                  |
+| Ceiling | Default | Scope | Env Override |
+|---|---|---|---|
+| **Burst** (per-operation) | 10 requests / 300s (chat), 6 / 300s (support) | Per user, per operation | `AI_BURST_LIMIT_CHAT`, `AI_BURST_LIMIT_SUPPORT`, `AI_BURST_WINDOW_SECONDS` |
+| **Daily requests** | 120 / 24h | Per user, all metered operations | `AI_DAILY_REQUEST_LIMIT` |
+| **Daily tokens** | 250,000 / 24h | Per user, all metered operations | `AI_DAILY_TOKEN_LIMIT` |
+| **Platform daily** | 2,000 / 24h | All users combined | `AI_PLATFORM_DAILY_LIMIT` |
 
 The daily budget is **shared** across the Advisor (`chat`) and support first-line (`support_firstline`) — moving between surfaces cannot double the budget.
 
@@ -381,7 +382,6 @@ The `claim_ai_usage` RPC at [supabase/migrations/0027_ai_usage_guardrails.sql:97
 Ceiling checks are evaluated in order: burst → daily → daily_tokens → platform_daily. Each returns a jsonb verdict with `scope`, `limit`, `used`, and `retry_after_seconds` if denied. `retry_after_seconds` is computed from when the oldest call in the window will age out.
 
 **Key fail-safe properties:**
-
 - Unclaimed calls (function timeout/crash) stay `status = 'started'` and keep counting — over-counts, never leaks
 - Failed upstream calls are **not refunded** — a client hammering a broken provider is exactly what burst limits prevent
 - Denials are **not recorded as rows** — they would either compound the limit or need excluding from counts
@@ -434,16 +434,16 @@ Sources: [src/features/app/advisor/chatApi.ts:90-131](), [src/features/app/advis
 
 The safety module has extensive test coverage across multiple test files:
 
-| Test File                     | What It Covers                                                                             |
-| ----------------------------- | ------------------------------------------------------------------------------------------ |
-| `crisisSignals.test.ts`       | English/French crisis detection, case/accent insensitivity, no false positives on HR terms |
-| `crisisSignalsDrift.test.ts`  | Client/server phrase list sync, normalizer parity                                          |
-| `statutoryFigures.test.ts`    | Duration, dollar, percentage, day-count detection with/without statutory context           |
-| `statutoryNotice.test.ts`     | Ontario ESA band lookup, fail-safe on invalid input, null for QC/FED                       |
-| `statutoryCrossCheck.test.ts` | Tenure extraction (ambiguity, context), notice claim extraction, cross-check verdicts      |
-| `safetyBackstop.test.ts`      | Crisis monotonicity, jurisdiction/figure gate, notice mismatch, pass-through               |
-| `safetyTelemetry.test.ts`     | Fire-and-forget behavior, Supabase-unconfigured, swallowed failures                        |
-| `aiUsage.test.ts`             | RPC verdict parsing, fail-closed on errors, shared daily budget, metered operations        |
+| Test File | What It Covers |
+|---|---|
+| `crisisSignals.test.ts` | English/French crisis detection, case/accent insensitivity, no false positives on HR terms |
+| `crisisSignalsDrift.test.ts` | Client/server phrase list sync, normalizer parity |
+| `statutoryFigures.test.ts` | Duration, dollar, percentage, day-count detection with/without statutory context |
+| `statutoryNotice.test.ts` | Ontario ESA band lookup, fail-safe on invalid input, null for QC/FED |
+| `statutoryCrossCheck.test.ts` | Tenure extraction (ambiguity, context), notice claim extraction, cross-check verdicts |
+| `safetyBackstop.test.ts` | Crisis monotonicity, jurisdiction/figure gate, notice mismatch, pass-through |
+| `safetyTelemetry.test.ts` | Fire-and-forget behavior, Supabase-unconfigured, swallowed failures |
+| `aiUsage.test.ts` | RPC verdict parsing, fail-closed on errors, shared daily budget, metered operations |
 
 Sources: [src/features/app/advisor/safety/crisisSignals.test.ts:1-32](), [src/features/app/advisor/safety/crisisSignalsDrift.test.ts:1-55](), [src/features/app/advisor/safety/safetyBackstop.test.ts:1-185](), [src/features/app/advisor/safetyTelemetry.test.ts:1-58](), [supabase/functions/_shared/aiUsage.test.ts:1-275]()
 

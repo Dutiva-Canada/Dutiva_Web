@@ -47,6 +47,8 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+
+
 The Dutiva platform stores all workspace state in a single Supabase-managed PostgreSQL database. The full schema snapshot lives in `supabase/schema.sql`, while incremental changes are tracked by 94 numbered migration files under `supabase/migrations/` (sequence through `0093`) and 6 archived legacy migrations under `supabase/legacy-migrations/`. This page documents the schema design conventions, table taxonomy, key functions, RLS security model, migration lifecycle, and drift-detection tooling.
 
 ## Schema Overview
@@ -55,18 +57,18 @@ The schema is a single-schema (`public`) design running on Supabase's managed Po
 
 ### PostgreSQL Extensions
 
-| Extension            | Schema       | Purpose                                                     |
-| -------------------- | ------------ | ----------------------------------------------------------- |
-| `pg_cron`            | `pg_catalog` | Scheduled jobs (law monitor, purge tasks)                   |
-| `pg_net`             | `public`     | HTTP requests from SQL (cron-triggered edge function calls) |
-| `hypopg`             | `extensions` | Hypothetical index analysis                                 |
-| `index_advisor`      | `extensions` | Automatic index recommendations                             |
-| `pg_stat_statements` | `extensions` | Query performance tracking                                  |
-| `pgcrypto`           | `extensions` | Cryptographic functions (`gen_random_uuid()`)               |
-| `supabase_vault`     | `vault`      | Encrypted secrets storage                                   |
-| `uuid-ossp`          | `extensions` | UUID generation                                             |
-| `vector`             | `extensions` | Vector similarity search (future RAG embedding)             |
-| `wrappers`           | `extensions` | Foreign data wrappers                                       |
+| Extension | Schema | Purpose |
+|---|---|---|
+| `pg_cron` | `pg_catalog` | Scheduled jobs (law monitor, purge tasks) |
+| `pg_net` | `public` | HTTP requests from SQL (cron-triggered edge function calls) |
+| `hypopg` | `extensions` | Hypothetical index analysis |
+| `index_advisor` | `extensions` | Automatic index recommendations |
+| `pg_stat_statements` | `extensions` | Query performance tracking |
+| `pgcrypto` | `extensions` | Cryptographic functions (`gen_random_uuid()`) |
+| `supabase_vault` | `vault` | Encrypted secrets storage |
+| `uuid-ossp` | `extensions` | UUID generation |
+| `vector` | `extensions` | Vector similarity search (future RAG embedding) |
+| `wrappers` | `extensions` | Foreign data wrappers |
 
 Sources: [supabase/schema.sql:16-83]()
 
@@ -158,101 +160,101 @@ The tables are organized into seven domains:
 
 **Identity & Multi-Tenancy**
 
-| Table                   | Migration     | Purpose                                                                      |
-| ----------------------- | ------------- | ---------------------------------------------------------------------------- |
-| `profiles`              | Legacy + 0013 | User account, billing columns (plan, stripe_customer_id)                     |
-| `organizations`         | Pre-repo      | Tenant entity with compliance profile                                        |
-| `organization_members`  | Pre-repo      | Join table: profile ↔ organization + role (owner/hr/manager/viewer/external) |
-| `user_roles`            | Pre-repo      | Global platform roles (admin)                                                |
-| `workspace_preferences` | 0005          | Per-workspace user settings                                                  |
+| Table | Migration | Purpose |
+|---|---|---|
+| `profiles` | Legacy + 0013 | User account, billing columns (plan, stripe_customer_id) |
+| `organizations` | Pre-repo | Tenant entity with compliance profile |
+| `organization_members` | Pre-repo | Join table: profile ↔ organization + role (owner/hr/manager/viewer/external) |
+| `user_roles` | Pre-repo | Global platform roles (admin) |
+| `workspace_preferences` | 0005 | Per-workspace user settings |
 
 **HR Records**
 
-| Table                      | Migration | Purpose                                                          |
-| -------------------------- | --------- | ---------------------------------------------------------------- |
-| `employees`                | 0006      | Per-org workforce roster                                         |
-| `hr_cases`                 | 0007      | Case files (Termination, Performance, Accommodation, Onboarding) |
-| `hr_case_notes`            | 0009      | Notes on cases                                                   |
-| `hr_employee_notes`        | 0010      | Notes on employees                                               |
-| `hr_policies`              | 0008      | Policy register (up_to_date/needs_review/missing)                |
-| `hr_documents`             | Pre-repo  | Document template catalogue                                      |
-| `hr_compensation_records`  | 0039      | Compensation records                                             |
-| `hr_communications`        | 0040      | Communications records                                           |
-| `hr_wellbeing_initiatives` | 0041      | Wellbeing program records                                        |
-| `hr_expiry_records`        | 0064      | Certification/document expiry tracking                           |
-| `hr_leaves`                | 0065      | Leave records                                                    |
+| Table | Migration | Purpose |
+|---|---|---|
+| `employees` | 0006 | Per-org workforce roster |
+| `hr_cases` | 0007 | Case files (Termination, Performance, Accommodation, Onboarding) |
+| `hr_case_notes` | 0009 | Notes on cases |
+| `hr_employee_notes` | 0010 | Notes on employees |
+| `hr_policies` | 0008 | Policy register (up_to_date/needs_review/missing) |
+| `hr_documents` | Pre-repo | Document template catalogue |
+| `hr_compensation_records` | 0039 | Compensation records |
+| `hr_communications` | 0040 | Communications records |
+| `hr_wellbeing_initiatives` | 0041 | Wellbeing program records |
+| `hr_expiry_records` | 0064 | Certification/document expiry tracking |
+| `hr_leaves` | 0065 | Leave records |
 
 **Documents & Signatures**
 
-| Table                        | Migration  | Purpose                                                     |
-| ---------------------------- | ---------- | ----------------------------------------------------------- |
-| `documents`                  | Legacy     | User-created documents                                      |
-| `signatures`                 | Legacy     | E-signature records (token-gated)                           |
-| `document_annotations`       | schema.sql | Inline annotations (note/risk/suggestion/question/citation) |
-| `document_templates`         | Pre-repo   | Reusable template definitions                               |
-| `document_template_versions` | Pre-repo   | Versioned template content                                  |
-| `custom_templates`           | 0012       | User-created custom templates                               |
-| `export_events`              | 0033       | Export audit trail with content SHA-256                     |
+| Table | Migration | Purpose |
+|---|---|---|
+| `documents` | Legacy | User-created documents |
+| `signatures` | Legacy | E-signature records (token-gated) |
+| `document_annotations` | schema.sql | Inline annotations (note/risk/suggestion/question/citation) |
+| `document_templates` | Pre-repo | Reusable template definitions |
+| `document_template_versions` | Pre-repo | Versioned template content |
+| `custom_templates` | 0012 | User-created custom templates |
+| `export_events` | 0033 | Export audit trail with content SHA-256 |
 
 **AI & Advisor**
 
-| Table                     | Migration  | Purpose                                        |
-| ------------------------- | ---------- | ---------------------------------------------- |
-| `conversations`           | Legacy     | Advisor chat threads (messages as JSONB array) |
-| `advisor_guidance_chunks` | 0022       | Grounding corpus for RAG retrieval with FTS    |
-| `ai_telemetry_events`     | Pre-repo   | Usage telemetry (model, tokens, latency)       |
-| `ai_recommendations`      | schema.sql | AI-generated action recommendations            |
-| `ai_action_runs`          | schema.sql | Execution records for accepted recommendations |
-| `ai_agents`               | schema.sql | Agent definitions                              |
-| `agent_runs`              | schema.sql | Agent execution records                        |
-| `multi_agent_plans`       | schema.sql | Multi-agent orchestration plans                |
-| `advisor_memories`        | Pre-repo   | Per-user advisor memory storage                |
+| Table | Migration | Purpose |
+|---|---|---|
+| `conversations` | Legacy | Advisor chat threads (messages as JSONB array) |
+| `advisor_guidance_chunks` | 0022 | Grounding corpus for RAG retrieval with FTS |
+| `ai_telemetry_events` | Pre-repo | Usage telemetry (model, tokens, latency) |
+| `ai_recommendations` | schema.sql | AI-generated action recommendations |
+| `ai_action_runs` | schema.sql | Execution records for accepted recommendations |
+| `ai_agents` | schema.sql | Agent definitions |
+| `agent_runs` | schema.sql | Agent execution records |
+| `multi_agent_plans` | schema.sql | Multi-agent orchestration plans |
+| `advisor_memories` | Pre-repo | Per-user advisor memory storage |
 
 **Compliance & Law Monitoring**
 
-| Table                        | Migration  | Purpose                                 |
-| ---------------------------- | ---------- | --------------------------------------- |
-| `compliance_tasks`           | schema.sql | Org-scoped compliance tasks             |
-| `compliance_findings`        | schema.sql | Compliance findings (severity-weighted) |
-| `compliance_assessments`     | schema.sql | Assessment run records                  |
-| `compliance_score_snapshots` | 0062       | Monthly score history per org           |
-| `hr_obligations`             | schema.sql | Regulatory obligations register         |
-| `law_updates`                | Legacy     | Detected legislation changes            |
-| `law_page_hashes`            | Legacy     | Content hash state per monitored URL    |
-| `law_change_impacts`         | schema.sql | Impact analysis of law changes          |
-| `legal_ingestion_runs`       | schema.sql | Legal document processing records       |
+| Table | Migration | Purpose |
+|---|---|---|
+| `compliance_tasks` | schema.sql | Org-scoped compliance tasks |
+| `compliance_findings` | schema.sql | Compliance findings (severity-weighted) |
+| `compliance_assessments` | schema.sql | Assessment run records |
+| `compliance_score_snapshots` | 0062 | Monthly score history per org |
+| `hr_obligations` | schema.sql | Regulatory obligations register |
+| `law_updates` | Legacy | Detected legislation changes |
+| `law_page_hashes` | Legacy | Content hash state per monitored URL |
+| `law_change_impacts` | schema.sql | Impact analysis of law changes |
+| `legal_ingestion_runs` | schema.sql | Legal document processing records |
 
 **Support System**
 
-| Table                        | Migration | Purpose                                               |
-| ---------------------------- | --------- | ----------------------------------------------------- |
-| `support_tickets`            | 0014      | Customer support tickets (DUT-YYYY-NNNNNN references) |
-| `support_messages`           | 0014      | Ticket messages (customer/agent/system)               |
-| `support_attachments`        | 0014      | Attachment metadata (files in Storage bucket)         |
-| `support_ticket_events`      | 0014      | Append-only audit trail                               |
-| `support_ticket_assignments` | 0014      | Agent assignment history                              |
-| `support_ticket_feedback`    | 0014      | Post-resolution feedback                              |
-| `support_notifications`      | 0015      | Outbox for email notifications                        |
-| `support_scheduled_calls`    | 0045      | Scheduled call records                                |
-| `support_analytics_events`   | 0047      | Help Centre analytics events                          |
+| Table | Migration | Purpose |
+|---|---|---|
+| `support_tickets` | 0014 | Customer support tickets (DUT-YYYY-NNNNNN references) |
+| `support_messages` | 0014 | Ticket messages (customer/agent/system) |
+| `support_attachments` | 0014 | Attachment metadata (files in Storage bucket) |
+| `support_ticket_events` | 0014 | Append-only audit trail |
+| `support_ticket_assignments` | 0014 | Agent assignment history |
+| `support_ticket_feedback` | 0014 | Post-resolution feedback |
+| `support_notifications` | 0015 | Outbox for email notifications |
+| `support_scheduled_calls` | 0045 | Scheduled call records |
+| `support_analytics_events` | 0047 | Help Centre analytics events |
 
 **Platform Infrastructure**
 
-| Table                     | Migration  | Purpose                                   |
-| ------------------------- | ---------- | ----------------------------------------- |
-| `beta_signups`            | 0055       | Beta waitlist with CASL consent           |
-| `beta_signup_intake`      | 0055       | Rate-limit log for signups                |
-| `cron_locks`              | 0034       | Lease-style locks for edge function crons |
-| `job_queue`               | schema.sql | General-purpose async job queue           |
-| `client_error_reports`    | 0019       | Privacy-scrubbed crash reports            |
-| `client_error_rate_limit` | 0019       | Error report rate-limit hashes            |
-| `stripe_webhook_events`   | 0013       | Idempotency table for Stripe webhooks     |
-| `usage_counters`          | Pre-repo   | Per-user monthly usage limits             |
-| `service_status`          | 0017       | Public service status page data           |
-| `admin_audit_log`         | schema.sql | Admin action audit trail                  |
-| `activity_events`         | schema.sql | Workspace activity feed                   |
-| `notifications`           | schema.sql | In-app notification records               |
-| `external_integrations`   | schema.sql | Third-party integration config            |
+| Table | Migration | Purpose |
+|---|---|---|
+| `beta_signups` | 0055 | Beta waitlist with CASL consent |
+| `beta_signup_intake` | 0055 | Rate-limit log for signups |
+| `cron_locks` | 0034 | Lease-style locks for edge function crons |
+| `job_queue` | schema.sql | General-purpose async job queue |
+| `client_error_reports` | 0019 | Privacy-scrubbed crash reports |
+| `client_error_rate_limit` | 0019 | Error report rate-limit hashes |
+| `stripe_webhook_events` | 0013 | Idempotency table for Stripe webhooks |
+| `usage_counters` | Pre-repo | Per-user monthly usage limits |
+| `service_status` | 0017 | Public service status page data |
+| `admin_audit_log` | schema.sql | Admin action audit trail |
+| `activity_events` | schema.sql | Workspace activity feed |
+| `notifications` | schema.sql | In-app notification records |
+| `external_integrations` | schema.sql | Third-party integration config |
 
 Sources: [supabase/schema.sql:107-670](), [supabase/migrations/0014_support_system.sql:33-144](), [supabase/migrations/0022_advisor_guidance_chunks.sql:13-58](), [supabase/migrations/0034_cron_locks.sql:16-84](), [supabase/migrations/0055_beta_signups.sql:12-72](), [supabase/migrations/0033_export_audit.sql:27-153](), [supabase/migrations/0062_add_compliance_score_snapshots.sql:10-51]()
 
@@ -260,21 +262,21 @@ Sources: [supabase/schema.sql:107-670](), [supabase/migrations/0014_support_syst
 
 Status and type columns use CHECK constraints rather than Postgres ENUM types. The constraints follow the naming convention `{table}_{column}_check`. Below is a representative sample:
 
-| Table                   | Column       | Allowed Values                                                                                                      |
-| ----------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `ai_recommendations`    | `status`     | `pending`, `accepted`, `dismissed`, `executed`, `failed`                                                            |
-| `ai_recommendations`    | `priority`   | `low`, `medium`, `high`, `critical`                                                                                 |
-| `compliance_tasks`      | `status`     | `open`, `in_progress`, `blocked`, `completed`, `cancelled`                                                          |
-| `compliance_findings`   | `severity`   | `info`, `low`, `medium`, `high`, `critical`                                                                         |
-| `support_tickets`       | `status`     | `new`, `triaged`, `in_progress`, `waiting_on_customer`, `waiting_on_dutiva`, `scheduled_call`, `resolved`, `closed` |
-| `job_queue`             | `status`     | `queued`, `locked`, `running`, `completed`, `failed`, `cancelled`, `dead_letter`                                    |
-| `hr_cases`              | `case_type`  | `Termination`, `Performance`, `Accommodation`, `Onboarding`                                                         |
-| `employees`             | `status`     | `active`, `on_leave`, `terminated`                                                                                  |
-| `hr_policies`           | `status`     | `up_to_date`, `needs_review`, `missing`                                                                             |
-| `profiles`              | `plan`       | `free`, `starter`, `growth`, `pro`                                                                                  |
-| `law_updates`           | `event_type` | `change`, `redirect`, `broken`, `first_seen`                                                                        |
-| `ai_telemetry_events`   | `status`     | `started`, `completed`, `failed`, `cancelled`                                                                       |
-| `support_notifications` | `kind`       | Ticket/call/ack kinds plus `beta_signup`, `beta_confirmation`, `account_signup`, `plan_signup` (0093)               |
+| Table | Column | Allowed Values |
+|---|---|---|
+| `ai_recommendations` | `status` | `pending`, `accepted`, `dismissed`, `executed`, `failed` |
+| `ai_recommendations` | `priority` | `low`, `medium`, `high`, `critical` |
+| `compliance_tasks` | `status` | `open`, `in_progress`, `blocked`, `completed`, `cancelled` |
+| `compliance_findings` | `severity` | `info`, `low`, `medium`, `high`, `critical` |
+| `support_tickets` | `status` | `new`, `triaged`, `in_progress`, `waiting_on_customer`, `waiting_on_dutiva`, `scheduled_call`, `resolved`, `closed` |
+| `job_queue` | `status` | `queued`, `locked`, `running`, `completed`, `failed`, `cancelled`, `dead_letter` |
+| `hr_cases` | `case_type` | `Termination`, `Performance`, `Accommodation`, `Onboarding` |
+| `employees` | `status` | `active`, `on_leave`, `terminated` |
+| `hr_policies` | `status` | `up_to_date`, `needs_review`, `missing` |
+| `profiles` | `plan` | `free`, `starter`, `growth`, `pro` |
+| `law_updates` | `event_type` | `change`, `redirect`, `broken`, `first_seen` |
+| `ai_telemetry_events` | `status` | `started`, `completed`, `failed`, `cancelled` |
+| `support_notifications` | `kind` | Ticket/call/ack kinds plus `beta_signup`, `beta_confirmation`, `account_signup`, `plan_signup` (0093) |
 
 Sources: [supabase/schema.sql:125-128](), [supabase/schema.sql:545-547](), [supabase/schema.sql:584-587](), [supabase/schema.sql:665-669](), [supabase/schema.sql:740-742](), [supabase/migrations/0014_support_system.sql:44-48](), [supabase/migrations/0027_ai_usage_guardrails.sql:40-64](), [supabase/migrations/0093_all_plan_signup_notifications.sql:8-18]()
 
@@ -282,11 +284,11 @@ Sources: [supabase/schema.sql:125-128](), [supabase/schema.sql:545-547](), [supa
 
 Row Level Security is enabled on every table. The access control model is built on three `SECURITY DEFINER` helper functions that are called inside RLS policy `USING` clauses:
 
-| Function        | Signature                | Purpose                                           |
-| --------------- | ------------------------ | ------------------------------------------------- |
-| `is_admin`      | `(uuid) → boolean`       | Checks `user_roles` for platform admin            |
-| `is_org_member` | `(uuid, uuid) → boolean` | Checks active `organization_members` membership   |
-| `is_org_admin`  | `(uuid, uuid) → boolean` | Checks owner/admin role in `organization_members` |
+| Function | Signature | Purpose |
+|---|---|---|
+| `is_admin` | `(uuid) → boolean` | Checks `user_roles` for platform admin |
+| `is_org_member` | `(uuid, uuid) → boolean` | Checks active `organization_members` membership |
+| `is_org_admin` | `(uuid, uuid) → boolean` | Checks owner/admin role in `organization_members` |
 
 These helpers are `STABLE`, `SECURITY DEFINER`, `SET search_path`, and read-only. They were granted `EXECUTE` to `authenticated` by migration 0050, and explicitly revoked from `anon`.
 
@@ -361,14 +363,14 @@ Sources: [supabase/migrations/0006_add_employees.sql:34-49](), [supabase/migrati
 
 The schema's security posture was iteratively hardened through several migrations:
 
-| Migration | Fix                                                                                         |
-| --------- | ------------------------------------------------------------------------------------------- |
-| 0004      | Revoke anon EXECUTE on SECURITY DEFINER functions (insufficient — see 0020)                 |
-| 0020      | Revoke PUBLIC grant (the effective lockdown), re-grant authenticated where needed           |
-| 0050      | Grant `is_admin`/`is_org_member`/`is_org_admin` to `authenticated` (fixes RLS 42501 errors) |
-| 0060      | Revoke anon EXECUTE on `current_user_is_workspace_member`                                   |
-| 0073      | Close 3 anonymous-read RLS holes on `beta_signups`, `hr_documents`, `signatures`            |
-| 0074      | Revoke public execute on `flag_guidance_chunks_on_law_change`                               |
+| Migration | Fix |
+|---|---|
+| 0004 | Revoke anon EXECUTE on SECURITY DEFINER functions (insufficient — see 0020) |
+| 0020 | Revoke PUBLIC grant (the effective lockdown), re-grant authenticated where needed |
+| 0050 | Grant `is_admin`/`is_org_member`/`is_org_admin` to `authenticated` (fixes RLS 42501 errors) |
+| 0060 | Revoke anon EXECUTE on `current_user_is_workspace_member` |
+| 0073 | Close 3 anonymous-read RLS holes on `beta_signups`, `hr_documents`, `signatures` |
+| 0074 | Revoke public execute on `flag_guidance_chunks_on_law_change` |
 
 Sources: [supabase/migrations/0004_revoke_anon_execute_security_definer.sql:1-67](), [supabase/migrations/0020_harden_definer_execute_revoke_public.sql:1-70](), [supabase/migrations/0073_close_anon_rls_holes.sql:1-55]()
 
@@ -378,12 +380,12 @@ The schema defines ~136 functions. They fall into several categories:
 
 ### Authorization Helpers
 
-| Function                             | Access        | Description                                      |
-| ------------------------------------ | ------------- | ------------------------------------------------ |
-| `is_admin(uuid)`                     | authenticated | Check user_roles for admin flag                  |
-| `is_org_member(uuid, uuid)`          | authenticated | Check organization_members for active membership |
-| `is_org_admin(uuid, uuid)`           | authenticated | Check organization_members for owner/admin role  |
-| `current_user_is_workspace_member()` | authenticated | Check if caller's email is on beta_signups list  |
+| Function | Access | Description |
+|---|---|---|
+| `is_admin(uuid)` | authenticated | Check user_roles for admin flag |
+| `is_org_member(uuid, uuid)` | authenticated | Check organization_members for active membership |
+| `is_org_admin(uuid, uuid)` | authenticated | Check organization_members for owner/admin role |
+| `current_user_is_workspace_member()` | authenticated | Check if caller's email is on beta_signups list |
 
 ### Rate-Limiting & Claim Functions
 
@@ -415,12 +417,12 @@ sequenceDiagram
     RPC-->>EF: "{allowed: true, claim_id: uuid}"
 ```
 
-| Function                          | Access       | Description                                                                 |
-| --------------------------------- | ------------ | --------------------------------------------------------------------------- |
-| `claim_ai_usage(...)`             | service_role | Atomic check-and-reserve for AI usage (burst/daily/token/platform ceilings) |
-| `finalize_ai_usage(...)`          | service_role | Update claim row with final token count and status                          |
-| `claim_export_slot(...)`          | service_role | Atomic check-and-reserve for document exports                               |
-| `ingest_client_error_report(...)` | service_role | Rate-limited error report ingestion                                         |
+| Function | Access | Description |
+|---|---|---|
+| `claim_ai_usage(...)` | service_role | Atomic check-and-reserve for AI usage (burst/daily/token/platform ceilings) |
+| `finalize_ai_usage(...)` | service_role | Update claim row with final token count and status |
+| `claim_export_slot(...)` | service_role | Atomic check-and-reserve for document exports |
+| `ingest_client_error_report(...)` | service_role | Rate-limited error report ingestion |
 
 All claim functions use `pg_advisory_xact_lock` to serialize concurrent requests, preventing race conditions where multiple requests all read a count below the limit.
 
@@ -428,10 +430,10 @@ Sources: [supabase/migrations/0027_ai_usage_guardrails.sql:97-220](), [supabase/
 
 ### Cron Lock Functions
 
-| Function                                                | Access       | Description                                        |
-| ------------------------------------------------------- | ------------ | -------------------------------------------------- |
+| Function | Access | Description |
+|---|---|---|
 | `acquire_cron_lock(job_name, instance_id, ttl_seconds)` | service_role | Lease-style lock via UPSERT; steals expired leases |
-| `release_cron_lock(job_name, instance_id)`              | service_role | Release only if caller still owns                  |
+| `release_cron_lock(job_name, instance_id)` | service_role | Release only if caller still owns |
 
 The cron lock pattern uses a `cron_locks` table rather than `pg_advisory_lock` because advisory locks are session-scoped and don't survive pgbouncer's transaction pooling. The UPSERT atomically acquires or steals an expired lease.
 
@@ -441,13 +443,13 @@ Sources: [supabase/migrations/0034_cron_locks.sql:32-84](), [supabase/schema.sql
 
 `match_advisor_guidance(q text, k integer)` performs bilingual full-text search over the `advisor_guidance_chunks` corpus. It evolved through four migrations:
 
-| Migration | Change                                                      |
-| --------- | ----------------------------------------------------------- |
-| 0023      | Initial: OR-ed English lexemes, ts_rank ordering            |
-| 0024      | Added `review_status` and `topic` to return columns         |
-| 0029      | Bilingual: merged English + French FTS ranking              |
-| 0058      | Quote lexemes to fix tsquery metacharacter errors from URLs |
-| 0071      | Added `source_changed_at` to return columns                 |
+| Migration | Change |
+|---|---|
+| 0023 | Initial: OR-ed English lexemes, ts_rank ordering |
+| 0024 | Added `review_status` and `topic` to return columns |
+| 0029 | Bilingual: merged English + French FTS ranking |
+| 0058 | Quote lexemes to fix tsquery metacharacter errors from URLs |
+| 0071 | Added `source_changed_at` to return columns |
 
 The final version returns up to `k` (max 8) active chunks, ranked by the greater of English and French `ts_rank` scores. It is restricted to `service_role` only.
 
@@ -540,14 +542,14 @@ Sources: [scripts/check-migrations.mjs:56]()
 
 Six SQL files under `supabase/legacy-migrations/` predate this repository. They were recovered from a separate Supabase CLI project folder and are **not runnable** — the CLI only reads `supabase/migrations/`, so these are historical records only.
 
-| File                                 | Creates                                              |
-| ------------------------------------ | ---------------------------------------------------- |
-| `202604070001_initial_schema.sql`    | `profiles`, `documents`, `handle_new_user()` trigger |
-| `202604070002_signatures.sql`        | `signatures` table with token-based access           |
-| `202604070003_conversations.sql`     | `conversations` table (advisor chat)                 |
-| `202604070004_stripe.sql`            | Stripe billing integration                           |
-| `202604080001_law_monitoring.sql`    | `law_updates`, `law_page_hashes`                     |
-| `202604080002_law_monitoring_v2.sql` | Law monitoring enhancements                          |
+| File | Creates |
+|---|---|
+| `202604070001_initial_schema.sql` | `profiles`, `documents`, `handle_new_user()` trigger |
+| `202604070002_signatures.sql` | `signatures` table with token-based access |
+| `202604070003_conversations.sql` | `conversations` table (advisor chat) |
+| `202604070004_stripe.sql` | Stripe billing integration |
+| `202604080001_law_monitoring.sql` | `law_updates`, `law_page_hashes` |
+| `202604080002_law_monitoring_v2.sql` | Law monitoring enhancements |
 
 These fill a gap identified as OA10 in `docs/TODO.md`: three live tables (`documents`, `signatures`, `conversations`) had no `CREATE TABLE` in the repository's migration history.
 
@@ -656,7 +658,6 @@ Sources: [supabase/migrations/0014_support_system.sql:33-80]()
 The grounding corpus table uses a `GENERATED ALWAYS AS` stored `tsvector` column for full-text search. After migration 0029, it carries both English (`fts`) and French (`fts_fr`) tsvector columns. The `source_changed_at` flag (added in 0071) is set by the `law_updates_flag_guidance` trigger when a law change is detected, allowing the advisor to warn about potentially stale citations.
 
 Key columns:
-
 - `jurisdiction` — constrained to `'ON'`, `'QC'`, `'FED'`, `'ALL'`
 - `review_status` — `'machine_curated'` or `'reviewed'`
 - `status` — `'active'` or `'retired'`
@@ -710,13 +711,13 @@ Sources: [supabase/schema.sql:647-670]()
 
 The `supabase/config.toml` file pins `verify_jwt` settings for every edge function. Functions that must be reachable without a JWT (webhooks, public intake, cron workers) are explicitly set to `verify_jwt = false`. This prevents a bare `supabase functions deploy` from accidentally flipping them closed.
 
-| Function Group                                              | `verify_jwt`     | Authentication Method           |
-| ----------------------------------------------------------- | ---------------- | ------------------------------- |
-| `stripe-webhook`, `resend-webhook`                          | `false`          | Provider signature verification |
-| `create-public-support-ticket`, `create-beta-signup`        | `false`          | CAPTCHA / honeypot              |
-| `report-error`, `support-analytics-event`                   | `false`          | Fire-and-forget, no auth header |
-| `monitor-law-changes`, `support-notify`, `send-law-updates` | `false`          | In-handler shared secret        |
-| All other functions                                         | `true` (default) | JWT from Supabase auth          |
+| Function Group | `verify_jwt` | Authentication Method |
+|---|---|---|
+| `stripe-webhook`, `resend-webhook` | `false` | Provider signature verification |
+| `create-public-support-ticket`, `create-beta-signup` | `false` | CAPTCHA / honeypot |
+| `report-error`, `support-analytics-event` | `false` | Fire-and-forget, no auth header |
+| `monitor-law-changes`, `support-notify`, `send-law-updates` | `false` | In-handler shared secret |
+| All other functions | `true` (default) | JWT from Supabase auth |
 
 Sources: [supabase/config.toml:1-72]()
 

@@ -44,6 +44,8 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+
+
 This page covers all remaining workspace modules not detailed in earlier sections: the Planning layout (Tasks + Calendar), Policies, Settings, Memory, Home (Command Centre), Communications, Compensation, Wellbeing, Knowledge, and the global Search overlay. Every module follows the same dual-mode pattern: fixture-driven demo views for the Northgate Logistics prototype, and production views backed by per-module `productionApi.ts` boundaries.
 
 ## Module Architecture Overview
@@ -113,7 +115,6 @@ Sources: [src/features/app/views/planning/PlanningLayout.tsx:1-51](), [src/app/a
 ### TasksView (Demo)
 
 `TasksDemoView` renders an Advisor-generated checklist from the `@/data` fixtures. Each row has:
-
 - A done-toggle button that flips local state via `useState<Record<string, boolean>>`
 - A clickable body that navigates to `/app/advisor` with `{ chatId }` router state
 - Status chips (Open / Blocked / Done) and priority chips (high / medium / low)
@@ -125,7 +126,6 @@ The open count is derived live: `tasks.filter((task) => !isDone(task)).length`.
 ### TasksProductionView
 
 `TasksProductionView` operates on the `compliance_tasks` table via `productionApi`. It supports:
-
 - **List**: `listTasks(organizationId)` with Zod-validated rows
 - **Add**: inline form → `addTask()` → insert row with optimistic update
 - **Toggle done**: `setTaskDone(id, done)` updates `status` between `'open'` and `'completed'`
@@ -146,7 +146,6 @@ Grid construction computes `firstDow`, `daysInMonth`, and builds a `DayCell[][]`
 ### CalendarProductionView
 
 `CalendarProductionView` rebuilds the month grid over real due dates from open cases and tasks. It loads through `listCases()` and `listTasks()` — the same `productionApi` boundaries used by other modules. Features:
-
 - Month navigation via `moveMonth(delta)` with `MonthCursor` state
 - Deadlines mapped by day for grid chips; a sorted list below
 - Chips link to `/app/cases` or `/app/tasks`
@@ -167,12 +166,12 @@ Sources: [src/features/app/views/calendar/CalendarView.tsx:1-187](), [src/featur
 
 Backed by `hr_policies` table (migration 0008). The `productionApi.ts` exports:
 
-| Function                                   | Description                                            |
-| ------------------------------------------ | ------------------------------------------------------ |
-| `listPolicies(orgId)`                      | Fetches all policies, Zod-validated, ordered by name   |
-| `addPolicy(orgId, fields)`                 | Inserts a new policy with name/status/lastReviewed     |
+| Function | Description |
+|---|---|
+| `listPolicies(orgId)` | Fetches all policies, Zod-validated, ordered by name |
+| `addPolicy(orgId, fields)` | Inserts a new policy with name/status/lastReviewed |
 | `setPolicyStatus(id, status, reviewedOn?)` | Status transition; `up_to_date` stamps `last_reviewed` |
-| `removePolicy(id)`                         | Deletes a policy row                                   |
+| `removePolicy(id)` | Deletes a policy row |
 
 The `ProductionPolicyStatus` type constrains to `'up_to_date' | 'needs_review' | 'missing'`.
 
@@ -198,21 +197,21 @@ Sources: [src/features/app/views/policies/PoliciesView.tsx:1-104](), [src/featur
 
 **Sections rendered:**
 
-| Section               | Description                                                          |
-| --------------------- | -------------------------------------------------------------------- |
-| Appearance + Language | Segmented controls driving `ThemeProvider` / `LangProvider`          |
-| Data & Privacy        | Law 25 (Quebec) notice banner                                        |
-| Workspace             | Mode toggle (demo ↔ production), admin-only                          |
-| Notifications         | Toggle rows: email digest, risk alerts, auto-escalate, weekly digest |
-| AI preferences        | Toggle rows: AI context, AI citations                                |
-| Integrations          | E-sign (connected), Payroll (connected), Calendar (error → retry)    |
-| Provinces             | Region chips (production: real profile province; demo: fixture list) |
-| Team                  | Member list with role labels and initials                            |
-| Roles & Permissions   | Matrix table on `≥768px`; stacked permission cards on phones         |
-| Retention             | Data retention periods by category                                   |
-| Security              | 2FA, SSO, timeout, residency settings                                |
-| Audit log             | Recent events with kind/tone chips                                   |
-| Export trail          | Device-local export audit from `readExportAudit()`                   |
+| Section | Description |
+|---|---|
+| Appearance + Language | Segmented controls driving `ThemeProvider` / `LangProvider` |
+| Data & Privacy | Law 25 (Quebec) notice banner |
+| Workspace | Mode toggle (demo ↔ production), admin-only |
+| Notifications | Toggle rows: email digest, risk alerts, auto-escalate, weekly digest |
+| AI preferences | Toggle rows: AI context, AI citations |
+| Integrations | E-sign (connected), Payroll (connected), Calendar (error → retry) |
+| Provinces | Region chips (production: real profile province; demo: fixture list) |
+| Team | Member list with role labels and initials |
+| Roles & Permissions | Matrix table on `≥768px`; stacked permission cards on phones |
+| Retention | Data retention periods by category |
+| Security | 2FA, SSO, timeout, residency settings |
+| Audit log | Recent events with kind/tone chips |
+| Export trail | Device-local export audit from `readExportAudit()` |
 
 [src/features/app/views/settings/SettingsView.tsx:43-93]()
 
@@ -257,11 +256,11 @@ Below `768px`, the rail is replaced by **`MemoryMobileNavAccess`**: a bar showin
 
 Session-scoped external store using `useSyncExternalStore`. Seeds from `seedMemoryFacts` fixtures and supports three first-class actions via `memoryActions`:
 
-| Action                   | Behavior                                               |
-| ------------------------ | ------------------------------------------------------ |
-| `confirm(id)`            | Promotes `inferred` → `confirmed`, stamps today's date |
-| `correct(id, statement)` | Inline statement edit, original preserved in audit     |
-| `forget(id)`             | Removes the fact, logged in audit trail                |
+| Action | Behavior |
+|---|---|
+| `confirm(id)` | Promotes `inferred` → `confirmed`, stamps today's date |
+| `correct(id, statement)` | Inline statement edit, original preserved in audit |
+| `forget(id)` | Removes the fact, logged in audit trail |
 
 Every action appends to the session `audit` log as a `MemoryAuditEntry`. The store is intentionally not persisted — it lives for the browser session.
 
@@ -365,14 +364,14 @@ Provides typed view-model data:
 
 Resolves declarative `HomeAction` objects into real navigation/rail/studio calls:
 
-| Action kind      | Resolution                                                 |
-| ---------------- | ---------------------------------------------------------- |
-| `route`          | `navigate(action.to)`                                      |
-| `chat`           | `navigate('/app/advisor', { state: { chatId } })`          |
-| `doc`            | `openDocStudio(action.templateKey)`                        |
-| `flow`           | `navigate('/app/advisor', { state: { prompt, flowKey } })` |
-| `comp-rail`      | `openPayRail(employeeId)`                                  |
-| `wellbeing-rail` | `openWellbeingRail(employeeId)`                            |
+| Action kind | Resolution |
+|---|---|
+| `route` | `navigate(action.to)` |
+| `chat` | `navigate('/app/advisor', { state: { chatId } })` |
+| `doc` | `openDocStudio(action.templateKey)` |
+| `flow` | `navigate('/app/advisor', { state: { prompt, flowKey } })` |
+| `comp-rail` | `openPayRail(employeeId)` |
+| `wellbeing-rail` | `openWellbeingRail(employeeId)` |
 
 [src/features/app/views/home/useHomeActions.ts:1-53]()
 
@@ -399,7 +398,6 @@ const [employees, cases, tasks, findings, policies] = await Promise.all([
 [src/features/app/views/home/HomeProductionView.tsx:60-66]()
 
 It renders:
-
 1. **Stat tiles** linking to their modules (Employees, Open cases, Open tasks, Open findings)
 2. **Due soon list** — merged cases/tasks sorted by due date, top 5, with overdue flagging
 3. **Policy attention row** — golden banner when `policiesNeedingAttention > 0`
@@ -473,13 +471,13 @@ Sources: [src/features/app/views/knowledge/KnowledgeView.tsx:1-115](), [src/app/
 - **Pinned conversations** shown when query is empty (from `pinnedChatEntries`)
 - **Result navigation** resolves `SearchNav` to router routes:
 
-| Nav kind   | Destination                                         |
-| ---------- | --------------------------------------------------- |
-| `employee` | `/app/employees/{id}`                               |
-| `case`     | `/app/cases/{id}`                                   |
-| `chat`     | `/app/advisor` with `{ chatId }` state              |
+| Nav kind | Destination |
+|---|---|
+| `employee` | `/app/employees/{id}` |
+| `case` | `/app/cases/{id}` |
+| `chat` | `/app/advisor` with `{ chatId }` state |
 | `document` | `/app/documents/hr-library` with `{ docKey }` state |
-| `view`     | `/app/{view}`                                       |
+| `view` | `/app/{view}` |
 
 - **Production mode**: search returns empty results (corpus is fixture-based)
 - **Restricted badge**: gold lock icon on sensitive cases and high-risk documents
@@ -490,17 +488,17 @@ Sources: [src/features/app/views/knowledge/KnowledgeView.tsx:1-115](), [src/app/
 
 Builds the search corpus from all fixture domains. Entity types indexed:
 
-| Kind         | Source            | Count basis                                      |
-| ------------ | ----------------- | ------------------------------------------------ |
-| `person`     | `employees`       | All employees                                    |
-| `case`       | `cases`           | All cases (sensitive types get restricted badge) |
-| `chat`       | `chats`           | All chat threads                                 |
-| `document`   | `allTemplates`    | All document templates                           |
-| `comms`      | `communications`  | All communications                               |
-| `task`       | `tasks`           | All tasks                                        |
-| `compliance` | `complianceItems` | All compliance findings                          |
-| `policy`     | `policies`        | All policies                                     |
-| `knowledge`  | `knowledgeItems`  | All knowledge articles                           |
+| Kind | Source | Count basis |
+|---|---|---|
+| `person` | `employees` | All employees |
+| `case` | `cases` | All cases (sensitive types get restricted badge) |
+| `chat` | `chats` | All chat threads |
+| `document` | `allTemplates` | All document templates |
+| `comms` | `communications` | All communications |
+| `task` | `tasks` | All tasks |
+| `compliance` | `complianceItems` | All compliance findings |
+| `policy` | `policies` | All policies |
+| `knowledge` | `knowledgeItems` | All knowledge articles |
 
 Filtering uses `filterSearchEntries(tab, query, lang)` — case-insensitive substring match against the `match` field in the current language.
 
@@ -545,19 +543,19 @@ Sources: [src/features/app/views/home/HomeProductionView.tsx:56-78](), [src/feat
 
 The route table in `appViews.tsx` controls which modules are gated (demo-only in production until backed by real data) vs ungated (dispatch on mode themselves):
 
-| Module         | Gating    | Notes                                                         |
-| -------------- | --------- | ------------------------------------------------------------- |
-| Home           | Ungated   | Own production variant (`HomeProductionView`)                 |
-| Tasks          | Ungated   | Dispatches via `useWorkspaceMode()` → `TasksProductionView`   |
-| Calendar       | Ungated   | Dispatches → `CalendarProductionView`                         |
-| Policies       | Ungated   | Dispatches → `PoliciesProductionView`                         |
-| Settings       | Ungated   | Hosts mode toggle; real `ThemeProvider`/`LangProvider`        |
-| Memory         | `gated()` | Demo-only (session-scoped `memoryStore`)                      |
-| Communications | Ungated   | Dispatches → `CommunicationsProductionView` (migration 0040)  |
-| Compensation   | Ungated   | Dispatches → `CompensationProductionView` (migration 0039)    |
-| Wellbeing      | Ungated   | Dispatches → `WellbeingProductionView` (migration 0041)       |
-| Knowledge      | Ungated   | Generic HR-law reference + real `GuidanceSourcesPanel`        |
-| Search         | N/A       | Overlay; corpus is fixture-based, returns empty in production |
+| Module | Gating | Notes |
+|---|---|---|
+| Home | Ungated | Own production variant (`HomeProductionView`) |
+| Tasks | Ungated | Dispatches via `useWorkspaceMode()` → `TasksProductionView` |
+| Calendar | Ungated | Dispatches → `CalendarProductionView` |
+| Policies | Ungated | Dispatches → `PoliciesProductionView` |
+| Settings | Ungated | Hosts mode toggle; real `ThemeProvider`/`LangProvider` |
+| Memory | `gated()` | Demo-only (session-scoped `memoryStore`) |
+| Communications | Ungated | Dispatches → `CommunicationsProductionView` (migration 0040) |
+| Compensation | Ungated | Dispatches → `CompensationProductionView` (migration 0039) |
+| Wellbeing | Ungated | Dispatches → `WellbeingProductionView` (migration 0041) |
+| Knowledge | Ungated | Generic HR-law reference + real `GuidanceSourcesPanel` |
+| Search | N/A | Overlay; corpus is fixture-based, returns empty in production |
 
 Sources: [src/app/appViews.tsx:14-21](), [src/app/appViews.tsx:71-166]()
 
