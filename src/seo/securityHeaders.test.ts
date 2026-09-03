@@ -129,9 +129,38 @@ describe('HTTP security headers', () => {
   })
 
   it('404s folder indexes that would otherwise list hashed files', () => {
-    expect(middleware).toContain("matcher: ['/assets', '/brand', '/.well-known']")
+    expect(middleware).toContain("'/assets'")
+    expect(middleware).toContain("'/brand'")
+    expect(middleware).toContain("'/.well-known'")
     expect(middleware).toContain('status: 404')
     expect(middleware).not.toContain('/assets/:path*')
+  })
+
+  it('redirects www to apex with the full HSTS policy (not Vercel default)', () => {
+    expect(middleware).toContain("WWW_HOST = 'www.dutiva.ca'")
+    expect(middleware).toContain("APEX_HOST = 'dutiva.ca'")
+    expect(middleware).toContain("HSTS = 'max-age=63072000; includeSubDomains'")
+    expect(middleware).toContain('status: 308')
+    expect(headerValue(securityBlock(), 'Strict-Transport-Security')).toBe(
+      'max-age=63072000; includeSubDomains',
+    )
+    const parsed = JSON.parse(vercel) as { redirects?: unknown[] }
+    expect(parsed.redirects ?? []).toHaveLength(0)
+  })
+
+  it('points security.txt Policy at the current Dutiva_Web SECURITY.md', () => {
+    const securityTxt = raw(
+      import.meta.glob('../../public/.well-known/security.txt', {
+        query: '?raw',
+        import: 'default',
+        eager: true,
+      }),
+      'security.txt',
+    )
+    expect(securityTxt).toContain(
+      'Policy: https://github.com/Dutiva-Canada/Dutiva_Web/blob/main/SECURITY.md',
+    )
+    expect(securityTxt).not.toContain('Dutiva-Website-Final-Design')
   })
 
   it('serves the contact page at crawler-invented /support@dutiva.ca (200, not a redirect)', () => {

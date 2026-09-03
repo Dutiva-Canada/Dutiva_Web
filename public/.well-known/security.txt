@@ -1,9 +1,10 @@
 # Dutiva security contact — RFC 9116 (https://securitytxt.org)
 # Update `Expires` before it lapses (annually), and keep `Contact` routed to a
-# monitored inbox. See /SECURITY.md for the full policy.
+# monitored inbox. See SECURITY.md in the Dutiva_Web repo for the full policy.
+# Encryption (OpenPGP) is omitted until a long-lived public key is published.
 
 Contact: mailto:security@dutiva.ca
 Expires: 2027-08-08T00:00:00.000Z
 Preferred-Languages: en, fr
 Canonical: https://dutiva.ca/.well-known/security.txt
-Policy: https://github.com/Dutiva-Canada/Dutiva-Website-Final-Design/blob/main/SECURITY.md
+Policy: https://github.com/Dutiva-Canada/Dutiva_Web/blob/main/SECURITY.md

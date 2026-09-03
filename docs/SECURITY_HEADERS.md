@@ -55,6 +55,14 @@ them (`/assets/….js`, `/brand/icon-app.svg`, `/.well-known/security.txt`)
 are unchanged. Turn the project-wide setting off too: Vercel dashboard →
 Project → Settings → Advanced → Directory Listing.
 
+## www → apex redirect
+
+`www.dutiva.ca` permanently redirects to `https://dutiva.ca` in
+`middleware.js` (not `vercel.json`). Host-based redirects in `vercel.json`
+were returning Vercel's default HSTS (`max-age` only), which omitted
+`includeSubDomains` and failed scanners / preload checks. The middleware
+308 sets the same HSTS string as `vercel.json`.
+
 ## Not overridable / scanner noise
 
 `Server: Vercel` is injected by the platform. `vercel.json` cannot remove or
