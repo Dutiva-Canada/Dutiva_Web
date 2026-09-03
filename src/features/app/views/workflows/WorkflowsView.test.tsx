@@ -62,7 +62,7 @@ describe('WorkflowsView', () => {
 
     expect(
       screen.getByText(
-        'Three ways to move work: Ask the Advisor for judgment calls, run a guided process or calculator here, or draft the letter in Document Studio.',
+        'Three ways to move work: Ask the Advisor for judgment calls, run a guided process or calculator here, or create the letter from Templates.',
       ),
     ).toBeInTheDocument()
     expect(screen.getByText(/In flight/)).toBeInTheDocument()
@@ -148,7 +148,7 @@ describe('WorkflowsView', () => {
       renderWorkflows()
       expect(
         screen.getByText(
-          'Trois façons d’avancer : demandez au Conseiller pour le jugement, lancez un processus guidé ou un calculateur ici, ou rédigez la lettre dans le Studio de documents.',
+          'Trois façons d’avancer : demandez au Conseiller pour le jugement, lancez un processus guidé ou un calculateur ici, ou créez la lettre à partir des Modèles.',
         ),
       ).toBeInTheDocument()
       expect(screen.getByText('Licenciement — Jordan Mensah')).toBeInTheDocument()

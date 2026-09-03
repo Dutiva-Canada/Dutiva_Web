@@ -27,7 +27,6 @@ const SIZE_ALLOWLIST = new Set([
   'src/data/employees.ts',
   'src/features/app/views/advisor/advisorScenarios.ts',
   'src/features/app/views/analytics/AnalyticsProductionView.tsx',
-  'src/features/app/documents/screens/DocumentDetailProductionView.tsx',
 ])
 
 const MAX_SOURCE_LINES = 800

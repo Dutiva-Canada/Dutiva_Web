@@ -86,7 +86,7 @@ export const advisorCore = defineMessages({
   advisor_brief_title_tasks: { en: 'Tasks', fr: 'Tâches' },
   advisor_brief_title_calendar: { en: 'Calendar', fr: 'Calendrier' },
   advisor_brief_title_reports: { en: 'Reports', fr: 'Rapports' },
-  advisor_brief_title_templates: { en: 'Document Studio', fr: 'Studio de documents' },
+  advisor_brief_title_templates: { en: 'Documents', fr: 'Documents' },
   advisor_brief_title_knowledge: { en: 'Knowledge Base', fr: 'Base de connaissances' },
   advisor_brief_title_settings: { en: 'Settings', fr: 'Paramètres' },
   advisor_brief_title_fallback: { en: 'Advisor', fr: 'Conseiller' },
@@ -167,9 +167,8 @@ export const advisorCore = defineMessages({
     fr: 'Le score de conformité est passé de 74 à 82 au cours des 6 derniers mois — l’écart restant tient surtout à la politique de télétravail en retard.',
   },
   advisor_brief_templates_text: {
-    en: 'Most-used documents this month: Termination Letter, Offer Letter, and Onboarding Package.',
-    // [FR self-authored; document titles from frDict]
-    fr: 'Documents les plus utilisés ce mois-ci : lettre de cessation d’emploi, lettre d’offre et trousse d’intégration.',
+    en: 'Most-used templates this month: termination letter, offer letter, and onboarding package.',
+    fr: 'Modèles les plus utilisés ce mois-ci : lettre de cessation d’emploi, lettre d’offre et trousse d’intégration.', // [FR self-authored]
   },
   advisor_brief_knowledge_text: {
     en: 'Ontario notice & severance rules are your most-viewed topic — want a refresher?',
@@ -189,23 +188,23 @@ export const advisorCore = defineMessages({
   /* Production Ask Advisor — no Northgate fixture cards; point at real entry
      points instead. [FR self-authored] */
   advisor_brief_prod_text: {
-    en: 'Ask anything about HR compliance. Or jump into a guided process or Document Studio — those don’t need sample data.',
-    fr: 'Posez toute question sur la conformité RH. Ou lancez un processus guidé ou le Studio de documents — ceux-ci n’exigent pas de données d’exemple.',
+    en: 'Ask anything about HR compliance. Or jump into a guided process or Documents — those don’t need sample data.',
+    fr: 'Posez toute question sur la conformité RH. Ou lancez un processus guidé ou Documents — ceux-ci n’exigent pas de données d’exemple.', // [FR self-authored]
   },
   advisor_brief_prod_card_title: {
     en: 'Start without sample data',
     fr: 'Commencer sans données d’exemple',
   },
   advisor_brief_prod_card_body: {
-    en: 'Guided processes and Studio work in an empty production workspace. Fixture case briefs only appear in Demo.',
-    fr: 'Les processus guidés et le Studio fonctionnent dans un espace de production vide. Les résumés de dossiers d’exemple n’apparaissent qu’en mode Démo.',
+    en: 'Guided processes and Documents work in an empty production workspace. Fixture case briefs only appear in Demo.',
+    fr: 'Les processus guidés et Documents fonctionnent dans un espace de production vide. Les résumés de dossiers d’exemple n’apparaissent qu’en mode Démo.', // [FR self-authored]
   },
   advisor_action_start_process: {
     en: 'Guided processes',
     fr: 'Processus guidés',
   },
   advisor_action_open_studio: {
-    en: 'Open Studio',
-    fr: 'Ouvrir le Studio',
+    en: 'Open Templates',
+    fr: 'Ouvrir les modèles', // [FR self-authored]
   },
 })

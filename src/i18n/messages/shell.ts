@@ -158,7 +158,7 @@ export const shellMessages = defineMessages({
   /* One name for the destination everywhere (nav, header, route): Analytics.
      The old 'Reports' header/route title is retired with the rename. */
   shell_v_analytics: { en: 'Analytics', fr: 'Analytique' },
-  shell_v_templates: { en: 'Document Studio', fr: 'Studio de documents' },
+  shell_v_templates: { en: 'Templates', fr: 'Modèles' }, // [FR self-authored]
   shell_v_knowledge: { en: 'Knowledge', fr: 'Connaissances' },
   shell_v_settings: { en: 'Settings', fr: 'Paramètres' },
   shell_v_compensation: { en: 'Compensation', fr: 'Rémunération' },

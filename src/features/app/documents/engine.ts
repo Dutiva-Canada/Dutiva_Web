@@ -412,16 +412,26 @@ export function applicability(template: DocTemplate, org: OrgProfile): Applicabi
       : { kind: 'below', label: APPLIC_LABEL.below, reason }
   }
 
-  const sizeGates = template.preview
-    .map((b) => b.when?.min_headcount)
-    .filter((n): n is number => n !== undefined)
-  const activeGate = sizeGates.find((gate) => org.headcount >= gate)
-  if (activeGate !== undefined) {
-    const threshold = sizeThresholds.find((t) => t.at === activeGate)
+  /* Clause-level size gates (e.g. T01's 25+ disconnecting/monitoring clause)
+     must not borrow the shared sizeThresholds statute list — that prose
+     describes other instruments and misleads on an offer letter. */
+  const gatedBlock = template.preview.find(
+    (b) => b.when?.min_headcount !== undefined && org.headcount >= b.when.min_headcount,
+  )
+  if (gatedBlock?.when?.min_headcount !== undefined) {
+    const gate = gatedBlock.when.min_headcount
+    const clause = gatedBlock.heading
     return {
       kind: 'required',
       label: APPLIC_LABEL.required,
-      reason: threshold?.text ?? APPLIES_REASON,
+      reason: {
+        en: clause
+          ? `Your headcount meets a ${gate}+ employee clause in this template (${clause.en}).`
+          : `Your headcount meets a ${gate}+ employee clause in this template.`,
+        fr: clause
+          ? `Votre effectif atteint une clause de ${gate} employés ou plus dans ce modèle (${clause.fr}).` // [FR self-authored]
+          : `Votre effectif atteint une clause de ${gate} employés ou plus dans ce modèle.`, // [FR self-authored]
+      },
     }
   }
 

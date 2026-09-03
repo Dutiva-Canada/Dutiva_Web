@@ -399,7 +399,7 @@ export function CommunicationsProductionView() {
 
                 {template && (
                   <Link
-                    to={`/app/documents/generate/${template.tid}`}
+                    to={`/app/documents/generate/${template.id}`}
                     className="flex items-center gap-[6px] text-[12px] text-accent no-underline"
                   >
                     <LinkIcon size={12} strokeWidth={1.8} className="shrink-0" aria-hidden="true" />

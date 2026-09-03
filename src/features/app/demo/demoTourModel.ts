@@ -31,7 +31,7 @@ export const DEMO_TOUR_STOPS: readonly DemoTourStop[] = [
   {
     id: 'studio',
     pathSuffix: 'documents/studio',
-    title: bi('Document Studio', 'Studio de documents'),
+    title: bi('Templates', 'Modèles'),
     blurb: bi(
       'Pick a template and preview how clauses assemble for Ontario employers.',
       'Choisissez un modèle et voyez comment les clauses s’assemblent pour les employeurs ontariens.',

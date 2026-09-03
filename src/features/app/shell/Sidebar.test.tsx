@@ -50,7 +50,7 @@ describe('Sidebar', () => {
     expect(within(nav).getByRole('link', { name: /Cases/ })).toHaveAttribute('href', '/app/cases')
     expect(within(nav).getByRole('link', { name: 'Documents' })).toHaveAttribute(
       'href',
-      '/app/documents/hr-library',
+      '/app/documents/studio',
     )
     expect(within(nav).getByRole('link', { name: 'Knowledge' })).toHaveAttribute(
       'href',

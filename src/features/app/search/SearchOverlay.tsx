@@ -5,6 +5,7 @@ import { searchMessages as M } from '@/i18n/messages/search'
 import { useEscapeToClose } from '@/lib/escapeStack'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
+import { catalogueGeneratePath } from '@/features/app/documents/catalogueGeneratePath'
 import { useSearch } from './searchContext'
 import {
   filterSearchEntries,
@@ -134,17 +135,22 @@ function SearchDialog() {
             state: { chatId: nav.chatId } satisfies AdvisorSearchNavState,
           })
           break
-        case 'document':
+        case 'document': {
+          const generatePath = catalogueGeneratePath(nav.docKey)
+          if (generatePath) {
+            navigate(generatePath)
+            break
+          }
           if (production) {
             navigate(`/app/documents/generate/${nav.docKey}`)
           } else {
-            /* Navigate to the HR Library tab; TemplatesView reads location.state.docKey
-               on mount and opens the overlay immediately (prototype openDocFromLibrary). */
-            navigate('/app/documents/hr-library', {
+            /* Legacy title keys still open the gallery + overlay path. */
+            navigate('/app/documents/studio', {
               state: { docKey: nav.docKey } satisfies TemplatesSearchNavState,
             })
           }
           break
+        }
         case 'generatedDocument':
           navigate(`/app/documents/${nav.docId}`)
           break

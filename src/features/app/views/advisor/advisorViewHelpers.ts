@@ -194,7 +194,7 @@ export function operationalNextStepChips(
       to: '/app/employees?new=1',
     },
     {
-      label: bi('Open Studio', 'Ouvrir le Studio'),
+      label: bi('Open Templates', 'Ouvrir les modèles'),
       to: '/app/documents/studio',
     },
   ]

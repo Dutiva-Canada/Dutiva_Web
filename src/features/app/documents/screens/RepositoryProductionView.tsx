@@ -7,14 +7,18 @@ import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeCont
 import { useMdUp } from '@/lib/useMediaQuery'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import { DocChip, JurisdictionPill } from '../components'
-import { templateByTid } from '../data'
+import { jurisdictionInfo, reviewStatusInfo, templateByTid } from '../data'
+import type { Jurisdiction, ReviewStatus } from '../data'
 import { PRODUCTION_DOCUMENT_STATUSES, listDocuments } from '../productionApi'
 import type { ProductionDocument, ProductionDocumentStatus } from '../productionApi'
 
 /**
  * Document repository in production mode — real persistence on
- * public.hr_generated_documents (migration 0076). Leaner than the demo
- * register: search + status filter; signing states from migration 0077.
+ * public.hr_generated_documents (migration 0076).
+ *
+ * Intentional filter set (not demo parity): search + status + jurisdiction +
+ * review posture. Demo still has employee/risk/signature/group-by chrome that
+ * production does not expose until those dimensions are first-class in the API UI.
  */
 
 const STATUS_LABEL: Record<ProductionDocumentStatus, (typeof M)[keyof typeof M]> = {
@@ -66,6 +70,8 @@ export function RepositoryProductionView() {
   const [loadFailed, setLoadFailed] = useState(false)
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | ProductionDocumentStatus>('all')
+  const [jurisdictionFilter, setJurisdictionFilter] = useState<'all' | Jurisdiction>('all')
+  const [reviewFilter, setReviewFilter] = useState<'all' | ReviewStatus>('all')
 
   const load = useCallback(async () => {
     if (!organizationId) return
@@ -87,12 +93,26 @@ export function RepositoryProductionView() {
     const q = query.trim().toLowerCase()
     return list.filter((doc) => {
       if (statusFilter !== 'all' && doc.status !== statusFilter) return false
+      if (jurisdictionFilter !== 'all' && doc.jurisdiction !== jurisdictionFilter) return false
+      if (reviewFilter !== 'all' && doc.reviewStatus !== reviewFilter) return false
       if (!q) return true
       return `${doc.title.en} ${doc.title.fr} ${doc.ref} ${doc.templateTid}`
         .toLowerCase()
         .includes(q)
     })
-  }, [rows, query, statusFilter])
+  }, [rows, query, statusFilter, jurisdictionFilter, reviewFilter])
+
+  const reviewOptions = useMemo(() => {
+    const seen = new Set<ReviewStatus>()
+    for (const doc of rows ?? []) seen.add(doc.reviewStatus)
+    return [...seen]
+  }, [rows])
+
+  const jurisdictionOptions = useMemo(() => {
+    const seen = new Set<Jurisdiction>()
+    for (const doc of rows ?? []) seen.add(doc.jurisdiction)
+    return jurisdictionInfo.filter((info) => seen.has(info.code)).map((info) => info.code)
+  }, [rows])
 
   if (!organizationId) {
     return <ProductionEmptyState title={x(M.doclib_prod_empty_title)} />
@@ -146,6 +166,35 @@ export function RepositoryProductionView() {
           {PRODUCTION_DOCUMENT_STATUSES.map((status) => (
             <option key={status} value={status}>
               {x(STATUS_LABEL[status])}
+            </option>
+          ))}
+        </select>
+        <select
+          value={jurisdictionFilter}
+          onChange={(e) => setJurisdictionFilter(e.target.value as 'all' | Jurisdiction)}
+          className={SELECT_CLASS}
+          aria-label={x(M.doclib_filter_jurisdiction)}
+        >
+          <option value="all">{`${x(M.doclib_filter_jurisdiction)}: ${x(M.doclib_prod_status_all)}`}</option>
+          {jurisdictionOptions.map((code) => {
+            const info = jurisdictionInfo.find((row) => row.code === code)
+            return (
+              <option key={code} value={code}>
+                {info ? x(info.name) : code}
+              </option>
+            )
+          })}
+        </select>
+        <select
+          value={reviewFilter}
+          onChange={(e) => setReviewFilter(e.target.value as 'all' | ReviewStatus)}
+          className={SELECT_CLASS}
+          aria-label={x(M.doclib_filter_review)}
+        >
+          <option value="all">{`${x(M.doclib_filter_review)}: ${x(M.doclib_prod_status_all)}`}</option>
+          {reviewOptions.map((status) => (
+            <option key={status} value={status}>
+              {x(reviewStatusInfo[status].label)}
             </option>
           ))}
         </select>

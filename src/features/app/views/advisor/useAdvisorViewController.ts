@@ -20,7 +20,7 @@ import { startAdvisorPackCheckout } from '@/features/app/advisor/packCheckout'
 import type { AdvisorPackSize } from '@/config/advisorUsage'
 import { usePayRail, useWellbeingRail } from '@/features/app/rail/useEntityRails'
 import { useToasts } from '@/features/app/toasts/toastsContext'
-import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
+import { useOpenCatalogueDocument } from '@/features/app/documents/useOpenCatalogueDocument'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { chats } from '@/data'
@@ -51,7 +51,7 @@ export function useAdvisorViewController() {
   const location = useLocation()
   const { x } = useI18n()
   const { showToast } = useToasts()
-  const { openDocStudio } = useDocStudio()
+  const openCatalogueDocument = useOpenCatalogueDocument()
   const auth = useAuth()
   const { status: authStatus } = auth
   const workspaceModeCtx = useWorkspaceMode()
@@ -131,7 +131,7 @@ export function useAdvisorViewController() {
         navigate(`/app/${action.target}`)
         break
       case 'draft-doc':
-        openDocStudio(action.target)
+        openCatalogueDocument(action.target)
         break
     }
   }
@@ -390,7 +390,7 @@ export function useAdvisorViewController() {
     navigate,
     selectChat: (chatId) => selectChatRef.current(chatId),
     startFlow: (flowKey, userText) => startFlowRef.current(flowKey, userText),
-    openDocStudio,
+    openCatalogueDocument,
     openCompRail,
     openWellbeingRail,
   })
@@ -453,7 +453,7 @@ export function useAdvisorViewController() {
     getExtras,
     sendInThread,
     handleFollowup,
-    openDocStudio,
+    openDocStudio: openCatalogueDocument,
     onSuggestChip,
     changeQuickField,
     submitQuickForm,

@@ -2,8 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft, Copy, Mail, RefreshCw } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import { bi, pick } from '@/i18n/core'
-import type { Lang } from '@/i18n/core'
+import { pick } from '@/i18n/core'
 import { doclibMessages as M } from '@/i18n/messages/doclib'
 import { Disclaimer } from '@/components/Disclaimer'
 import { useAuth } from '@/features/app/auth/authContext'
@@ -18,13 +17,10 @@ import {
   signatureStatusInfo,
   templateByTid,
   type DocRecipient,
-  type RecipientType,
-  type SignatureStatus,
-  type StatusInfo,
 } from '../data'
 import { archiveDocument, approveDocument, getDocument } from '../productionApi'
 import { bilingualMergeValues, isBilingualDelivery } from '../engine'
-import type { ProductionDocumentDetail, ProductionDocumentStatus } from '../productionApi'
+import type { ProductionDocumentDetail } from '../productionApi'
 import { DOCUMENT_AUDIT_LABEL } from '../auditLabels'
 import {
   buildSigningCompletionRecord,
@@ -44,91 +40,24 @@ import {
   toDocRecipient,
   voidDocumentSignature,
 } from '../signatureApi'
-import type { InviteDeliveryStatus, ProductionDocumentRecipient } from '../signatureQueries'
 import { countUndeliveredInvites, isSigningTokenExpired } from '../signatureQueries'
+import {
+  PROD_DETAIL_TABS,
+  PROD_RECIPIENT_TYPE,
+  PROD_STATUS_LABEL,
+  PROD_STATUS_TONE,
+  fmtDetailDate,
+  inviteDeliveryInfo,
+  signatureInfoForStatus,
+  type ProdDetailTab,
+} from './documentDetailProductionMeta'
 
 /**
  * Document detail in production mode — preview from frozen content_json,
  * fields from answers, versions + audit from DB, Dutiva Signature workflow.
  */
 
-const STATUS_LABEL: Record<ProductionDocumentStatus, (typeof M)[keyof typeof M]> = {
-  draft: M.doclib_prod_status_draft,
-  approved: M.doclib_prod_status_approved,
-  archived: M.doclib_prod_status_archived,
-  sent_for_signature: M.doclib_prod_status_sent,
-  partially_signed: M.doclib_prod_status_partial,
-  signed: M.doclib_prod_status_signed,
-  voided: M.doclib_prod_status_voided,
-  exported: M.doclib_prod_status_exported,
-}
-
-const STATUS_TONE: Record<ProductionDocumentStatus, 'neutral' | 'ok' | 'info' | 'warn' | 'risk'> = {
-  draft: 'neutral',
-  approved: 'ok',
-  archived: 'info',
-  sent_for_signature: 'info',
-  partially_signed: 'warn',
-  signed: 'ok',
-  voided: 'risk',
-  exported: 'ok',
-}
-
-const RECIPIENT_TYPE = {
-  employer: bi('Employer', 'Employeur'),
-  employee: bi('Employee', 'Employé(e)'),
-  manager: bi('Manager', 'Gestionnaire'),
-  hr: bi('HR', 'RH'),
-  external: bi('External', 'Externe'),
-} as const satisfies Record<RecipientType, ReturnType<typeof bi>>
-
-const TABS = [
-  ['preview', M.doclib_prod_tab_preview],
-  ['fields', M.doclib_prod_tab_fields],
-  ['recipients', M.doclib_prod_tab_recipients],
-  ['versions', M.doclib_prod_tab_versions],
-  ['audit', M.doclib_prod_tab_audit],
-] as const
-
-type TabKey = (typeof TABS)[number][0]
-
-function fmtDate(value: string, lang: Lang): string {
-  const parsed = new Date(`${value.slice(0, 10)}T00:00:00`)
-  if (Number.isNaN(parsed.getTime())) return value
-  return parsed.toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
-}
-
-function signatureInfo(status: string): StatusInfo | undefined {
-  return status in signatureStatusInfo ? signatureStatusInfo[status as SignatureStatus] : undefined
-}
-
-const INVITE_DELIVERY_LABEL: Record<InviteDeliveryStatus, (typeof M)[keyof typeof M]> = {
-  delivered: M.doclib_invite_delivery_delivered,
-  bounced: M.doclib_invite_delivery_bounced,
-  complained: M.doclib_invite_delivery_complained,
-  delayed: M.doclib_invite_delivery_delayed,
-}
-
-const INVITE_DELIVERY_TONE: Record<
-  InviteDeliveryStatus,
-  'neutral' | 'ok' | 'info' | 'warn' | 'risk'
-> = {
-  delivered: 'ok',
-  bounced: 'risk',
-  complained: 'risk',
-  delayed: 'warn',
-}
-
-function inviteDeliveryInfo(recipient: ProductionDocumentRecipient): StatusInfo | undefined {
-  if (!recipient.inviteLastSentAt) return undefined
-  const status = recipient.inviteDeliveryStatus
-  if (!status) return { tone: 'neutral', label: M.doclib_invite_delivery_sent }
-  return { tone: INVITE_DELIVERY_TONE[status], label: INVITE_DELIVERY_LABEL[status] }
-}
+type TabKey = ProdDetailTab
 
 export function DocumentDetailProductionView() {
   const { docId } = useParams()
@@ -486,7 +415,7 @@ export function DocumentDetailProductionView() {
             {x(detail.title)}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <DocChip tone={STATUS_TONE[detail.status]}>{x(STATUS_LABEL[detail.status])}</DocChip>
+            <DocChip tone={PROD_STATUS_TONE[detail.status]}>{x(PROD_STATUS_LABEL[detail.status])}</DocChip>
             <DocChip tone={riskInfo.tone}>{x(riskInfo.label)}</DocChip>
             <DocChip tone={reviewInfo.tone}>{x(reviewInfo.label)}</DocChip>
             <JurisdictionPill code={detail.jurisdiction} />
@@ -537,7 +466,7 @@ export function DocumentDetailProductionView() {
       </p>
 
       <div className="mb-4 flex flex-wrap gap-1 border-b border-border">
-        {TABS.map(([key, label]) => (
+        {PROD_DETAIL_TABS.map(([key, label]) => (
           <button
             key={key}
             type="button"
@@ -689,7 +618,7 @@ export function DocumentDetailProductionView() {
             </div>
           ) : (
             recipients.map((recipient) => {
-              const info = signatureInfo(recipient.status)
+              const info = signatureInfoForStatus(recipient.status)
               const inviteInfo = inviteDeliveryInfo(recipient)
               return (
                 <div
@@ -705,7 +634,7 @@ export function DocumentDetailProductionView() {
                   <div className="min-w-0 flex-1">
                     <div className="text-[13px] font-semibold text-text">{recipient.name}</div>
                     <div className="text-[11.5px] text-text-faint">
-                      {x(RECIPIENT_TYPE[recipient.type])} · {recipient.email}
+                      {x(PROD_RECIPIENT_TYPE[recipient.type])} · {recipient.email}
                     </div>
                     {recipient.inviteLastSentAt && (
                       <div className="mt-0.75 text-[11px] text-text-faint">
@@ -740,7 +669,7 @@ export function DocumentDetailProductionView() {
                       )}
                     </div>
                     <div className="mt-0.75 text-[11px] text-text-faint">
-                      {recipient.signedAt ? fmtDate(recipient.signedAt, lang) : '—'}
+                      {recipient.signedAt ? fmtDetailDate(recipient.signedAt, lang) : '—'}
                     </div>
                     {signature &&
                       recipient.status !== 'signed' &&

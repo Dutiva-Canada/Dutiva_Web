@@ -143,9 +143,9 @@ describe('GenerateScreen', () => {
     expect(screen.getByText('Standard review')).toBeInTheDocument()
     expect(screen.getByText('HR review required')).toBeInTheDocument()
     expect(
-      screen.getByText('HR review is required before this document is used.'),
+      screen.getByText('Careful HR review is required before this document is used.'),
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Save to repository' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Save to My documents' })).toBeInTheDocument()
   })
 
   it('shows resolved merge text in the live preview after answers are filled', async () => {
@@ -160,13 +160,13 @@ describe('GenerateScreen', () => {
     expect(screen.queryByText('{{employee_name}}')).not.toBeInTheDocument()
   })
 
-  it('returns to the repository after Save to repository in demo mode', async () => {
+  it('returns to My documents after Save to My documents in demo mode', async () => {
     renderWizard('tpl_t01')
     await screen.findByText('Generate · Offer of employment letter (Ontario)')
     fireEvent.click(screen.getByRole('button', { name: 'Next' }))
     fillRequired('tpl_t01')
     fireEvent.click(screen.getByRole('button', { name: 'Next' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Save to repository' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save to My documents' }))
     expect(await screen.findByText('Repository landing')).toBeInTheDocument()
   })
 
@@ -251,7 +251,7 @@ describe('GenerateScreen', () => {
 
     expect(screen.getByText('Careful review')).toBeInTheDocument()
     expect(screen.getByText('HR review required')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Save to repository' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Save to My documents' })).toBeInTheDocument()
   })
 
   it('renders the context step for T04 (Ontario-only, org-wide subject)', async () => {
@@ -295,7 +295,7 @@ describe('GenerateScreen', () => {
     expect(screen.getByText(`${filled}/${total}`)).toBeInTheDocument()
     expect(screen.getByText('fields filled')).toBeInTheDocument()
     expect(screen.getByText('Standard review')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Save to repository' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Save to My documents' })).toBeInTheDocument()
   })
 
   it('requires an employee before Next on an employee-subject template (T03) and prefills the name', async () => {

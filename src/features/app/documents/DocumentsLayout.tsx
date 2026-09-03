@@ -2,6 +2,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom'
 import { UserRound } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
+import { FeatureGate } from '@/features/app/billing/PlanGate'
 import { isDoclibStudioPath } from '@/features/app/shell/navConfig'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import {
@@ -92,11 +93,21 @@ function ViewingAsBar() {
 
 function DocumentsChrome() {
   const { mode } = useWorkspaceMode()
+  const { pathname } = useLocation()
+  const studio = isDoclibStudioPath(pathname)
+  const segments = workspaceSegments(pathname)
+  const hrLibrary = segments[0] === 'documents' && segments[1] === 'hr-library'
+  /* Free already includes both features; FeatureGate surfaces the upgrade
+     pattern if a future plan drops Templates or My documents. */
+  const gateFeature = studio || hrLibrary ? 'all_templates_visible' : 'document_repository'
+
   return (
     <>
       <DocumentsTabs />
       {mode === 'demo' && <ViewingAsBar />}
-      <Outlet />
+      <FeatureGate feature={gateFeature}>
+        <Outlet />
+      </FeatureGate>
     </>
   )
 }

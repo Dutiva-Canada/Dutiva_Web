@@ -176,7 +176,7 @@ describe('CommunicationsView in production mode', () => {
     expect(screen.getByText('1 message')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Team restructuring announcement/ })).toHaveAttribute(
       'href',
-      '/app/documents/generate/T36',
+      '/app/documents/generate/tpl_t36',
     )
   })
 

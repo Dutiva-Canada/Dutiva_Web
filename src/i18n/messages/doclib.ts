@@ -24,7 +24,7 @@ export const doclibMessages = defineMessages({
   doclib_nav_advisor: { en: 'AI Advisor', fr: 'Conseiller IA' },
   doclib_nav_people: { en: 'People', fr: 'Personnes' },
   doclib_nav_cases: { en: 'Case files', fr: 'Dossiers' },
-  doclib_nav_studio: { en: 'Document Studio', fr: 'Studio de documents' },
+  doclib_nav_studio: { en: 'Templates', fr: 'Modèles' },
   doclib_nav_documents: { en: 'Documents', fr: 'Documents' },
   doclib_nav_compliance: { en: 'Compliance', fr: 'Conformité' },
   doclib_nav_knowledge: { en: 'Knowledge base', fr: 'Base de connaissances' },
@@ -99,8 +99,8 @@ export const doclibMessages = defineMessages({
   doclib_detail_jurisdictionNotes: { en: 'Jurisdiction notes', fr: 'Notes par juridiction' },
   doclib_detail_statutory: { en: 'Statutory references', fr: 'Références législatives' },
   doclib_detail_includes: { en: "What's included", fr: 'Ce qui est inclus' },
-  doclib_detail_risk: { en: 'Risk & review', fr: 'Risque et révision' },
-  doclib_detail_generate: { en: 'Generate document', fr: 'Générer un document' },
+  doclib_detail_risk: { en: 'Review level', fr: 'Niveau de révision' },
+  doclib_detail_generate: { en: 'Create document', fr: 'Créer le document' },
   doclib_detail_preview: { en: 'Sample preview', fr: 'Aperçu type' },
   doclib_detail_est: { en: 'Est. time', fr: 'Durée estimée' },
   doclib_detail_updated: { en: 'Updated', fr: 'Mis à jour' },
@@ -132,23 +132,23 @@ export const doclibMessages = defineMessages({
   doclib_gen_back: { en: 'Back', fr: 'Précédent' },
   doclib_gen_questions: { en: 'Guided questions', fr: 'Questions guidées' },
   doclib_gen_livePreview: { en: 'Live preview', fr: 'Aperçu en direct' },
-  doclib_gen_review: { en: 'Review & risk check', fr: 'Révision et vérification des risques' },
+  doclib_gen_review: { en: 'Review before creating', fr: 'Révision avant création' }, // [FR self-authored]
   doclib_gen_reviewSub: {
-    en: 'Confirm before saving to the repository.',
-    fr: 'Confirmez avant d’enregistrer au dépôt.',
+    en: 'Confirm before saving to My documents.',
+    fr: 'Confirmez avant d’enregistrer dans Mes documents.', // [FR self-authored]
   },
   doclib_gen_saveDraft: { en: 'Save draft', fr: 'Enregistrer le brouillon' },
   doclib_gen_saving: { en: 'Saving…', fr: 'Enregistrement…' },
   doclib_gen_saved: { en: 'All changes saved', fr: 'Modifications enregistrées' },
   doclib_gen_unsaved: { en: 'Unsaved changes', fr: 'Modifications non enregistrées' },
-  doclib_gen_createDoc: { en: 'Save to repository', fr: 'Enregistrer au dépôt' },
+  doclib_gen_createDoc: { en: 'Save to My documents', fr: 'Enregistrer dans Mes documents' }, // [FR self-authored]
   doclib_gen_missing_required: {
     en: 'Still needed before this can be created:',
     fr: 'Encore requis avant la création :',
   },
   doclib_gen_required: { en: 'Required', fr: 'Requis' },
   doclib_gen_cancel: { en: 'Cancel', fr: 'Annuler' },
-  doclib_gen_riskLine: { en: 'Risk level', fr: 'Niveau de risque' },
+  doclib_gen_riskLine: { en: 'Review level', fr: 'Niveau de révision' },
   doclib_gen_reviewLine: { en: 'Review posture', fr: 'Posture de révision' },
   doclib_gen_mergeFilled: { en: 'fields filled', fr: 'champs remplis' },
   doclib_gen_mergeRemaining: { en: 'to fill', fr: 'à remplir' },
@@ -179,12 +179,12 @@ export const doclibMessages = defineMessages({
     fr: 'Aucun minimum vérifié n’est disponible pour cette juridiction — vérifiez auprès de la loi applicable.',
   },
   doclib_gen_lawyerWarn: {
-    en: 'This is a high-risk document. Lawyer review is recommended before it is sent or signed.',
-    fr: 'Document à risque élevé. Une révision juridique est recommandée avant l’envoi ou la signature.',
+    en: 'Legal review is recommended before this document is sent or signed.',
+    fr: 'Une révision juridique est recommandée avant l’envoi ou la signature.', // [FR self-authored]
   },
   doclib_gen_hrWarn: {
-    en: 'HR review is required before this document is used.',
-    fr: 'Une révision RH est requise avant l’utilisation de ce document.',
+    en: 'Careful HR review is required before this document is used.',
+    fr: 'Une révision RH approfondie est requise avant l’utilisation de ce document.', // [FR self-authored]
   },
   doclib_repo_eyebrow: { en: 'Documents', fr: 'Documents' },
   doclib_repo_title: { en: 'My documents', fr: 'Mes documents' },
@@ -234,7 +234,7 @@ export const doclibMessages = defineMessages({
   doclib_filter_risk: { en: 'Review level', fr: 'Niveau de révision' },
   doclib_filter_employee: { en: 'Employee', fr: 'Employé' },
   doclib_filter_all: { en: 'All', fr: 'Tous' },
-  doclib_docd_back: { en: 'Back to repository', fr: 'Retour au dépôt' },
+  doclib_docd_back: { en: 'Back to My documents', fr: 'Retour à Mes documents' }, // [FR self-authored]
   doclib_docd_tabPreview: { en: 'Preview', fr: 'Aperçu' },
   doclib_docd_tabFields: { en: 'Fields', fr: 'Champs' },
   doclib_docd_tabVersions: { en: 'Versions', fr: 'Versions' },
