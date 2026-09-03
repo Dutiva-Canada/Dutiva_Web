@@ -18,7 +18,7 @@ the marketing and app surfaces showed zero console violations.
 | `X-Content-Type-Options`      | `nosniff`                                                      | MIME sniffing on user-influenced blobs.                                                                                                                                              |
 | `Referrer-Policy`             | `strict-origin-when-cross-origin`                              | Path/query leakage to third parties.                                                                                                                                                 |
 | `Strict-Transport-Security`   | `max-age=63072000; includeSubDomains`                          | SSL-strip / downgrade. (No `preload` yet — that commits every subdomain to HTTPS permanently; add it and submit to hstspreload.org when ready.)                                      |
-| `Permissions-Policy`          | `camera=(), microphone=(), geolocation=(), browsing-topics=()` | Powerful features the app never uses; opts out of Topics.                                                                                                                            |
+| `Permissions-Policy`          | Broad deny list (camera/mic/geo/payment/usb/… + Topics)        | Powerful browser features the app never uses; opts out of Topics / FLoC. Expanded 2026-09-02 after ImmuniWeb flagged the shorter list as misconfigured.                              |
 | `Access-Control-Allow-Origin` | `https://dutiva.ca`                                            | Overrides Vercel's static-file default of `*`. The marketing site is first-party; hashed `/assets/*` files are still fetched same-origin (including the `crossorigin` font preload). |
 
 ## Crawler-invented `/support@dutiva.ca`
@@ -68,6 +68,11 @@ no longer includes `'unsafe-inline'` (2026-08-23): React inline `style={{…}}`
 attributes were replaced with Tailwind utilities, SVG geometry (`ProgressFill`),
 and colocated CSS classes. Prerendered marketing pages allow one hashed inline
 script for React Router static hydration data (`__staticRouterHydrationData`).
+
+`upgrade-insecure-requests` was added 2026-09-02 (ImmuniWeb CSP scoring). The
+CSP still includes `https://*.challenges.cloudflare.com` for Turnstile regional
+challenge hosts — ImmuniWeb deducts for host wildcards; removing them would
+break CAPTCHA.
 
 ### Ongoing CSP hygiene
 

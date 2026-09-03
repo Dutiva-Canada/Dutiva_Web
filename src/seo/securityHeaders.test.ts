@@ -74,6 +74,24 @@ describe('HTTP security headers', () => {
     expect(headerValue(block, 'X-Frame-Options')).toBe('DENY')
     expect(headerValue(block, 'X-Content-Type-Options')).toBe('nosniff')
     expect(headerValue(block, 'Content-Security-Policy')).toMatch(/frame-ancestors 'none'/)
+    expect(headerValue(block, 'Content-Security-Policy')).toMatch(/upgrade-insecure-requests/)
+  })
+
+  it('ships a broad Permissions-Policy deny list for unused powerful features', () => {
+    const policy = headerValue(securityBlock(), 'Permissions-Policy')
+    expect(policy).toBeDefined()
+    for (const feature of [
+      'camera',
+      'microphone',
+      'geolocation',
+      'payment',
+      'usb',
+      'browsing-topics',
+      'interest-cohort',
+    ]) {
+      expect(policy).toContain(`${feature}=()`)
+    }
+    expect(serveDist).toContain(policy)
   })
 
   it('does not send a wildcard CORS origin', () => {

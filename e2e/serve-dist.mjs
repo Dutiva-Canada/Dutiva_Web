@@ -27,7 +27,7 @@ const PORT = Number(process.env.PORT) || 4173
 
 /** Keep in sync with vercel.json `Content-Security-Policy`. */
 const CSP =
-  "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; worker-src 'self'; manifest-src 'self'; script-src 'self' 'sha256-gOx3nRh8znDQR7T1VkI+fFXDgsNzf5enQqdi7NP11Vk=' https://www.googletagmanager.com https://challenges.cloudflare.com https://js.hcaptcha.com https://newassets.hcaptcha.com https://cdn.ywxi.net; style-src 'self' https://newassets.hcaptcha.com https://cdn.ywxi.net; font-src 'self'; img-src 'self' data: blob: https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://*.challenges.cloudflare.com https://cdn.ywxi.net; connect-src 'self' https://khtwpxnvziiyplaflwru.supabase.co wss://khtwpxnvziiyplaflwru.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://api.hcaptcha.com https://js.hcaptcha.com https://challenges.cloudflare.com https://*.challenges.cloudflare.com https://cdn.ywxi.net https://www.trustedsite.com https://s3-us-west-2.amazonaws.com; frame-src https://www.googletagmanager.com https://challenges.cloudflare.com https://*.challenges.cloudflare.com https://newassets.hcaptcha.com https://www.trustedsite.com https://cdn.ywxi.net"
+  "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; worker-src 'self'; manifest-src 'self'; script-src 'self' 'sha256-gOx3nRh8znDQR7T1VkI+fFXDgsNzf5enQqdi7NP11Vk=' https://www.googletagmanager.com https://challenges.cloudflare.com https://js.hcaptcha.com https://newassets.hcaptcha.com https://cdn.ywxi.net; style-src 'self' https://newassets.hcaptcha.com https://cdn.ywxi.net; font-src 'self'; img-src 'self' data: blob: https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://*.challenges.cloudflare.com https://cdn.ywxi.net; connect-src 'self' https://khtwpxnvziiyplaflwru.supabase.co wss://khtwpxnvziiyplaflwru.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://api.hcaptcha.com https://js.hcaptcha.com https://challenges.cloudflare.com https://*.challenges.cloudflare.com https://cdn.ywxi.net https://www.trustedsite.com https://s3-us-west-2.amazonaws.com; frame-src https://www.googletagmanager.com https://challenges.cloudflare.com https://*.challenges.cloudflare.com https://newassets.hcaptcha.com https://www.trustedsite.com https://cdn.ywxi.net; upgrade-insecure-requests"
 
 /** Keep in sync with vercel.json security headers (minus HSTS — this server is http). */
 const SECURITY_HEADERS = {
@@ -35,7 +35,8 @@ const SECURITY_HEADERS = {
   'X-Frame-Options': 'DENY',
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), browsing-topics=()',
+  'Permissions-Policy':
+    'accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=(), browsing-topics=(), interest-cohort=()',
   'Access-Control-Allow-Origin': 'https://dutiva.ca',
 }
 
