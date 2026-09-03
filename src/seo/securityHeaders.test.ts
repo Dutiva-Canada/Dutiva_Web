@@ -133,15 +133,16 @@ describe('HTTP security headers', () => {
     expect(middleware).toContain("'/brand'")
     expect(middleware).toContain("'/.well-known'")
     expect(middleware).toContain('status: 404')
+    expect(middleware).toContain("'/:path*'")
     expect(middleware).not.toContain('/assets/:path*')
   })
 
   it('redirects www to apex with the full HSTS policy (not Vercel default)', () => {
-    expect(middleware).toContain("value: 'www.dutiva.ca'")
     expect(middleware).toContain("hostname === 'www.dutiva.ca'")
     expect(middleware).toContain("hostname = 'dutiva.ca'")
     expect(middleware).toContain("HSTS = 'max-age=63072000; includeSubDomains'")
     expect(middleware).toContain('status: 308')
+    expect(middleware).not.toMatch(/has:\s*\[\s*\{\s*type:\s*'host'/)
     expect(headerValue(securityBlock(), 'Strict-Transport-Security')).toBe(
       'max-age=63072000; includeSubDomains',
     )
