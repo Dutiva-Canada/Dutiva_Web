@@ -206,6 +206,14 @@ function FunnelAnalytics({ metrics }: { metrics: typeof demoFunnelMetrics }) {
     { key: 'hires', label: M.hiring_funnel_hires, count: metrics.hires },
   ]
 
+  const conversionRateByStage: Record<string, number | undefined> = {
+    basicQualified: metrics.conversionRates.toBasicQualified,
+    evidenceQualified: metrics.conversionRates.toEvidenceQualified,
+    workSamples: metrics.conversionRates.toWorkSample,
+    interviews: metrics.conversionRates.toInterview,
+    hires: metrics.conversionRates.toHire,
+  }
+
   return (
     <div className="flex flex-col gap-[20px]">
       <div className="rounded-[12px] border border-border bg-surface p-[20px]">
@@ -216,17 +224,16 @@ function FunnelAnalytics({ metrics }: { metrics: typeof demoFunnelMetrics }) {
         <div className="space-y-[8px]">
           {stages.map((stage, index) => {
             const width = index === 0 ? 100 : Math.round((stage.count / metrics.totalApplications) * 100)
+            const rate = conversionRateByStage[stage.key]
             return (
               <div key={stage.key} className="flex items-center gap-[12px]">
                 <div className="w-[140px] shrink-0 text-[13px] text-text-2">{x(stage.label)}</div>
                 <div className="flex-1">
                   <div className="mb-[4px] flex items-center justify-between text-[12px]">
                     <span className="font-semibold text-text">{stage.count}</span>
-                    {index > 0 && (
+                    {rate !== undefined && (
                       <span className="text-text-muted">
-                        {metrics.conversionRates[
-                          `to${stage.key.charAt(0).toUpperCase() + stage.key.slice(1)}` as keyof typeof metrics.conversionRates
-                        ] * 100}% conversion
+                        {Math.round(rate * 100)}% conversion
                       </span>
                     )}
                   </div>
