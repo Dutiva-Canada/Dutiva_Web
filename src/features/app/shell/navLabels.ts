@@ -32,6 +32,7 @@ export const VIEW_LABELS: Record<string, Bi> = {
   workflows: M.shell_v_workflows,
   cases: M.shell_v_cases,
   employees: M.shell_v_employees,
+  hiring: M.shell_nav_hiring,
   compliance: M.shell_v_compliance,
   policies: M.shell_v_policies,
   analytics: M.shell_v_analytics,
