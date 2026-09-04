@@ -59,6 +59,7 @@ export const shellMessages = defineMessages({
   shell_search: { en: 'Search', fr: 'Rechercher' },
   shell_ask_advisor: { en: 'Ask Advisor', fr: 'Demander au Conseiller' },
   shell_hr_workspace: { en: 'HR workspace', fr: 'Espace de travail RH' },
+  shell_demo_workspace: { en: 'Demo workspace', fr: 'Espace démo' }, // [FR self-authored]
   shell_powered_by: { en: 'Powered by', fr: 'Propulsé par' },
   shell_sign_out: { en: 'Sign out', fr: 'Se déconnecter' }, // [FR self-authored]
 
@@ -77,8 +78,8 @@ export const shellMessages = defineMessages({
   }, // [FR self-authored]
 
   /* Sidebar toggle / tooltips */
-  shell_collapse_sidebar: { en: 'Collapse sidebar', fr: 'Réduire la barre latérale' }, // [FR self-authored]
-  shell_expand_sidebar: { en: 'Expand sidebar', fr: 'Développer la barre latérale' }, // [FR self-authored]
+  shell_collapse_sidebar: { en: 'Collapse', fr: 'Réduire' }, // [FR self-authored]
+  shell_expand_sidebar: { en: 'Expand', fr: 'Développer' }, // [FR self-authored]
   shell_user_profile_aria: { en: 'Current user profile', fr: 'Profil de l’utilisateur actuel' }, // [FR self-authored]
 
   /* Badge accessible descriptions — {count} is replaced at runtime */
@@ -125,13 +126,17 @@ export const shellMessages = defineMessages({
      rail label; page chrome can still say more where space allows. */
   shell_nav_planning: { en: 'Planning', fr: 'Planification' }, // [FR self-authored]
   shell_getting_started: {
-    en: 'Getting started',
-    fr: 'Premiers pas',
-  }, // [FR self-authored] — empty production rail cue → Home checklist
+    en: 'Add your first person',
+    fr: 'Ajoutez une première personne',
+  }, // [FR self-authored] — empty production rail → People create form
   shell_getting_started_hint: {
-    en: 'Three useful first steps on Home',
-    fr: 'Trois premiers pas utiles sur l’accueil',
+    en: 'Opens People with a blank record',
+    fr: 'Ouvre Personnes avec une fiche vide',
   }, // [FR self-authored]
+  shell_section_item_count: {
+    en: '{n} items',
+    fr: '{n} éléments',
+  }, // [FR self-authored] — collapsed Records/Programs heading meta
   /* Settings section tab labels (General + Memory) */
   shell_settings_general: { en: 'General', fr: 'Général' }, // [FR self-authored]
   shell_nav_analytics: { en: 'Analytics', fr: 'Analytique' },

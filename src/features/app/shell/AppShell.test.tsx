@@ -78,7 +78,7 @@ describe('AppShell', () => {
 
     expect(screen.getByRole('button', { name: /Create/i })).toHaveTextContent('Create')
 
-    await user.click(screen.getAllByRole('button', { name: 'Collapse sidebar' })[0]!)
+    await user.click(screen.getAllByRole('button', { name: 'Collapse' })[0]!)
 
     expect(localStorage.getItem(SIDEBAR_EXPANDED_KEY)).toBe('false')
     expect(screen.getByRole('button', { name: /Create/i })).not.toHaveTextContent('Create')
@@ -90,8 +90,8 @@ describe('AppShell', () => {
     const user = userEvent.setup()
     renderShell('/app/home')
 
-    expect(screen.getAllByRole('button', { name: /Expand sidebar/i })[0]).toBeInTheDocument()
-    await user.click(screen.getAllByRole('button', { name: 'Expand sidebar' })[0]!)
+    expect(screen.getAllByRole('button', { name: /Expand/i })[0]).toBeInTheDocument()
+    await user.click(screen.getAllByRole('button', { name: 'Expand' })[0]!)
     expect(localStorage.getItem(SIDEBAR_EXPANDED_KEY)).toBe('true')
     expect(screen.getByRole('button', { name: /Create/i })).toHaveTextContent('Create')
   })
