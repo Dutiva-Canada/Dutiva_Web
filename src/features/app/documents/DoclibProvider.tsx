@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
-import type { WorkspaceIdentity } from '@/features/app/workspaceMode/workspaceModeContext'
+import { listEmployees } from '@/features/app/views/employees/productionApi'
 import { loadDoclibData, loadProductionDoclibCatalogue } from './api'
 import type { DoclibData } from './api'
 import { defaultOrgProfile } from './data'
@@ -9,25 +9,14 @@ import type {
   DocRecipient,
   DocStatus,
   GeneratedDoc,
-  Jurisdiction,
   OrgProfile,
   SignatureStatus,
   WorkspaceRole,
 } from './data'
 import { DoclibContext } from './doclibContext'
+import { activeHeadcount, orgProfileForIdentity } from './orgProfile'
 
 const ROLE_KEY = 'dutiva-doclib-role'
-
-function orgProfileForIdentity(identity: WorkspaceIdentity): OrgProfile {
-  const province = identity.province?.trim().toUpperCase()
-  const primaryJurisdiction: Jurisdiction =
-    province === 'QC' || province === 'QUÉBEC' || province === 'QUEBEC' ? 'QC' : 'ON'
-  return {
-    ...defaultOrgProfile,
-    name: identity.companyName,
-    primaryJurisdiction,
-  }
-}
 
 function initialRole(): WorkspaceRole {
   try {
@@ -74,7 +63,7 @@ function nowIso(): string {
 }
 
 export function DoclibProvider({ children }: { readonly children: ReactNode }) {
-  const { mode, identity } = useWorkspaceMode()
+  const { mode, identity, organizationId } = useWorkspaceMode()
   const [data, setData] = useState<DoclibData | null>(null)
   const dataRef = useRef(data)
   dataRef.current = data
@@ -97,6 +86,25 @@ export function DoclibProvider({ children }: { readonly children: ReactNode }) {
   useEffect(() => {
     setOrg(mode === 'production' ? orgProfileForIdentity(identity) : defaultOrgProfile)
   }, [mode, identity])
+
+  /* Production headcount comes from the People roster — not the Northgate
+     demo default of 42, which wrongly flipped 25+ ESA clause applicability. */
+  useEffect(() => {
+    if (mode !== 'production' || !organizationId) return
+    let cancelled = false
+    void listEmployees(organizationId)
+      .then((employees) => {
+        if (cancelled) return
+        const headcount = activeHeadcount(employees)
+        setOrg((prev) => (prev.headcount === headcount ? prev : { ...prev, headcount }))
+      })
+      .catch(() => {
+        /* Keep the provisional profile; Edit profile still works. */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [mode, organizationId])
 
   const sendForSignature = useCallback((docId: string, recipients: DocRecipient[]) => {
     const ts = nowIso()
