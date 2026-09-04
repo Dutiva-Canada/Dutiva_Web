@@ -173,9 +173,12 @@ export async function joinOrganizationWaitlist(
 }
 
 function profileFromRow(row: z.infer<typeof profileRowSchema>): AdminProfile {
+  const rawContact = row.primary_contact?.trim() || null
   return {
     companyName: row.legal_name ?? row.company_name ?? 'Dutiva Canada Inc.',
-    contactName: row.primary_contact ?? 'Martin Constantineau',
+    /* Keep the raw DB value; WorkspaceModeProvider resolves a display name so
+       email-shaped primary_contact does not appear as the sidebar label. */
+    contactName: rawContact ?? 'Martin Constantineau',
     province: row.province ?? 'Ontario',
     city: row.city ?? 'Ottawa',
   }
