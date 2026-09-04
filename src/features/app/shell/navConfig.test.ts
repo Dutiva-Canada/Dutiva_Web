@@ -21,4 +21,10 @@ describe('viewLabelFor', () => {
     expect(viewLabelFor('/app/planning/tasks')).toEqual(M.shell_nav_tasks)
     expect(viewLabelFor('/app/planning/calendar')).toEqual(M.shell_nav_calendar)
   })
+
+  it('titles Memory routes as Advisor memory', async () => {
+    const { memoryMessages: MEM } = await import('@/i18n/messages/memory')
+    expect(viewLabelFor('/app/settings/memory')).toEqual(MEM.memory_title)
+    expect(viewLabelFor('/app/settings')).toEqual(M.shell_v_settings)
+  })
 })
