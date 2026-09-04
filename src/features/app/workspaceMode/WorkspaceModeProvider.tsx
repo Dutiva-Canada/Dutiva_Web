@@ -66,6 +66,10 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
     }
     const userId = session.user.id
     const email = session.user.email ?? ''
+    const authFullName =
+      typeof session.user.user_metadata?.full_name === 'string'
+        ? session.user.user_metadata.full_name
+        : null
     let cancelled = false
 
     async function load() {
@@ -107,10 +111,6 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
         }
       }
 
-      const authFullName =
-        typeof session.user.user_metadata?.full_name === 'string'
-          ? session.user.user_metadata.full_name
-          : null
       const contactName = resolveContactDisplayName({
         contactName: profile?.contactName,
         email,
