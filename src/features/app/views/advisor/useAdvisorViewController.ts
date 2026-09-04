@@ -327,6 +327,7 @@ export function useAdvisorViewController() {
     toToneCard,
     setSendingReal,
     handleRealChatFailure,
+    showToast,
   })
   startFlowRef.current = startFlow
 

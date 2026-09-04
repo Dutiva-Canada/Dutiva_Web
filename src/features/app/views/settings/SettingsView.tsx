@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ExternalLink, LifeBuoy, ShieldCheck } from 'lucide-react'
+import { ExternalLink, LifeBuoy, Brain, ShieldCheck } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { supportChannel } from '@/config/support'
 import { pickL } from '@/i18n/core'
@@ -11,6 +11,7 @@ import { seoRoute } from '@/seo/routes'
 import { formatStampTime, readExportAudit } from '@/lib/exportProtection'
 import { common } from '@/i18n/messages/common'
 import { settingsMessages as M } from '@/i18n/messages/settings'
+import { memoryMessages as MEM } from '@/i18n/messages/memory'
 import { exportProtectionMessages as XP } from '@/i18n/messages/exportProtection'
 import {
   getSigningReminderDays,
@@ -408,6 +409,25 @@ export function SettingsView() {
           <div className="border-t border-inset px-[18px] py-[10px] text-[11px] text-text-faint">
             {x(M.settings_ai_prefs_note)}
           </div>
+          <Link
+            to="/app/settings/memory"
+            className="flex items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[13px] no-underline hover:bg-inset"
+          >
+            <span className="min-w-0">
+              <span className="block text-[13px] font-semibold text-text">
+                {x(MEM.memory_settings_open_title)}
+              </span>
+              <span className="mt-[2px] block text-[12px] leading-[1.5] text-text-muted">
+                {x(MEM.memory_settings_open_note)}
+              </span>
+            </span>
+            <Brain
+              size={15}
+              strokeWidth={1.7}
+              aria-hidden="true"
+              className="shrink-0 text-text-muted"
+            />
+          </Link>
           {authStatus === 'signed-in' && organizationId ? <AdvisorUsagePanel /> : null}
           {authStatus === 'signed-in' && (
             <div className="flex items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[14px]">

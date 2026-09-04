@@ -13,6 +13,7 @@ import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmp
 import { getEmployee } from '@/features/app/views/employees/productionApi'
 import type { ProductionEmployee } from '@/features/app/views/employees/productionApi'
 import { listCases } from '@/features/app/views/cases/productionApi'
+import { useWorkspaceContext } from '@/features/app/workspaceContext/workspaceContextStore'
 import type { MemoryCategory, MemoryFact } from '@/data'
 import { CATEGORY_LABELS, PERSON_CATEGORY_ORDER } from './memoryModel'
 import { MemoryFactRow } from './MemoryFactRow'
@@ -59,6 +60,7 @@ export function PersonMemoryProductionView() {
   const { personId } = useParams()
   const { showToast } = useToasts()
   const { organizationId, isOrgAdmin } = useWorkspaceMode()
+  const { setContext } = useWorkspaceContext()
 
   const [employee, setEmployee] = useState<ProductionEmployee | null | undefined>(undefined)
   const [facts, setFacts] = useState<MemoryFact[] | null>(null)
@@ -208,7 +210,21 @@ export function PersonMemoryProductionView() {
           <div className="flex flex-wrap gap-[9px]">
             <button
               type="button"
-              onClick={() => navigate('/app/advisor')}
+              onClick={() => {
+                setContext({
+                  subject: employee.name,
+                  entityType: 'employee',
+                  empId: employee.id,
+                  initials: initials || '?',
+                  meta: [
+                    ...(employee.jurisdiction
+                      ? [{ en: employee.jurisdiction, fr: employee.jurisdiction }]
+                      : []),
+                    ...(employee.title ? [{ en: employee.title, fr: employee.title }] : []),
+                  ],
+                })
+                navigate('/app/advisor')
+              }}
               className="flex cursor-pointer items-center gap-[7px] rounded-[9px] border-none bg-navy px-[14px] py-[9px] font-sans text-[13px] font-bold text-white"
             >
               <Sparkle size={15} className="fill-gold-on-navy" strokeWidth={0} aria-hidden="true" />

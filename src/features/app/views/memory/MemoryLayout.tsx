@@ -392,7 +392,7 @@ function MemoryLayoutProduction() {
       ? [...threadNav, { id: activeThreadId, label: activeThreadId.slice(0, 8) }]
       : threadNav
 
-  const groups: { label: Bi; items: NavEntry[] }[] = [
+  const allGroups: { label: Bi; items: NavEntry[] }[] = [
     {
       label: M.memory_nav_memory,
       items: [
@@ -402,7 +402,7 @@ function MemoryLayoutProduction() {
           icon: Brain,
           label: M.memory_nav_manager,
           sub: M.memory_nav_manager_sub,
-          badge: reviewCount > 0 ? { value: String(reviewCount), tone: 'gold' } : undefined,
+          badge: reviewCount > 0 ? { value: String(reviewCount), tone: 'gold' as const } : undefined,
         },
       ],
     },
@@ -436,6 +436,9 @@ function MemoryLayoutProduction() {
       })),
     },
   ]
+  const groups = allGroups.filter(
+    (group) => group.label === M.memory_nav_memory || group.items.length > 0,
+  )
 
   return <MemoryNav groups={groups} />
 }

@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 import {
   Activity,
   Book,
+  Brain,
   CalendarCheck,
   ChartNoAxesColumn,
   DollarSign,
@@ -65,6 +66,13 @@ export function getNavGroups(root: string): NavGroup[] {
       items: [
         { key: 'home', to: p('home'), icon: House, label: M.shell_nav_home },
         { key: 'advisor', to: p('advisor'), icon: MessageCircle, label: M.shell_nav_advisor_home },
+        {
+          key: 'memory',
+          to: p('settings/memory'),
+          icon: Brain,
+          label: MEM.memory_title,
+          isActive: (pathname) => pathname.includes('/settings/memory'),
+        },
         {
           key: 'workflows',
           to: p('workflows'),
@@ -152,6 +160,7 @@ export const NAV_GROUPS: NavGroup[] = getNavGroups('/app')
 export const PUBLIC_DEMO_NAV_KEYS = new Set([
   'home',
   'advisor',
+  'memory',
   'workflows',
   'employees',
   'cases',

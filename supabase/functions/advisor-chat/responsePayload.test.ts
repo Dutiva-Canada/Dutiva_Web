@@ -285,12 +285,16 @@ describe('buildAdvisorResponse — memory used', () => {
             id: 'fact-1',
             statementEn: 'Started March 2018',
             statementFr: 'Début en mars 2018',
+            scope: 'person',
+            entityId: 'emp-1',
           },
         ],
       }),
     )
     expect(res.memory?.items).toHaveLength(1)
     expect(res.memory?.items[0]?.factId).toBe('fact-1')
+    expect(res.memory?.items[0]?.scope).toBe('person')
+    expect(res.memory?.items[0]?.entityId).toBe('emp-1')
     expect(res.memory?.items[0]?.label.en).toContain('March 2018')
   })
 

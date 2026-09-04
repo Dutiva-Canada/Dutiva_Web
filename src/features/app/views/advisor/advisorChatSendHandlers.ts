@@ -4,12 +4,12 @@
  */
 import type { RefObject } from 'react'
 import type { LText } from '@/i18n/core'
-import type { Bi } from '@/i18n/core'
 import { sendAdvisorMessage } from '@/features/app/advisor/chatApi'
 import type { AdvisorTurnSpec, ToneCardData } from '@/features/app/advisor/types'
 import { followupFallbackText, followupReplies } from '@/data'
 import type { FixtureToneCard } from '@/data'
 import type { ProductionConversation } from '@/features/app/views/memory/conversationsApi'
+import type { ToastAction } from '@/features/app/toasts/toastsContext'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 import { estimatorFollowup, genericAck } from './advisorFlows'
 import type { MessageExtras } from './advisorFlows'
@@ -37,7 +37,7 @@ interface ChatSendHandlersOptions {
   toToneCard: (card: FixtureToneCard) => ToneCardData
   setSendingReal: (sending: boolean) => void
   handleRealChatFailure: (error: unknown) => void
-  showToast: (message: Bi, tone: 'ok' | 'info') => void
+  showToast: (message: LText, tone?: 'ok' | 'info', action?: ToastAction) => void
 }
 
 /** In-thread send and scripted follow-up chip handling. */
@@ -86,6 +86,7 @@ export function createAdvisorChatSendHandlers(options: ChatSendHandlersOptions) 
           setProdThreads,
           updateExtras,
           bindBackendConversationId,
+          showToast,
         }),
       )
       .catch(handleRealChatFailure)

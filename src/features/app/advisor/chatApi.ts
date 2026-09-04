@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { supabase } from '@/lib/supabaseClient'
-import { advisorResponseSchema } from './contract'
-import type { AdvisorResponse } from './contract'
+import { advisorResponseSchema, memoryCreatedItemSchema } from './contract'
+import type { AdvisorResponse, MemoryCreatedItem } from './contract'
 import { applySafetyBackstop } from './safety'
 import { reportSafetyEvent } from './safetyTelemetry'
 
@@ -83,6 +83,7 @@ const advisorChatResponseSchema = z.object({
     reply: z.string(),
     conversation_id: z.string(),
     advisor_response: z.unknown().optional(),
+    memory_created: z.array(memoryCreatedItemSchema).optional(),
   }),
 })
 
@@ -91,6 +92,8 @@ export interface AdvisorChatResult {
   conversationId: string
   /** Validated structured payload, or null if the engine didn't send one. */
   response: AdvisorResponse | null
+  /** Facts newly persisted from this turn (inferred), for Review toasts. */
+  memoryCreated: MemoryCreatedItem[]
 }
 
 export async function sendAdvisorMessage(
@@ -137,5 +140,10 @@ export async function sendAdvisorMessage(
       console.warn('advisor: structured payload failed contract validation', structured.error)
     }
   }
-  return { reply: parsed.data.reply, conversationId: parsed.data.conversation_id, response }
+  return {
+    reply: parsed.data.reply,
+    conversationId: parsed.data.conversation_id,
+    response,
+    memoryCreated: parsed.data.memory_created ?? [],
+  }
 }

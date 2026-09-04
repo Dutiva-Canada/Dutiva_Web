@@ -19,6 +19,7 @@ describe('applyRealChatResult', () => {
         reply: 'Here is guidance.',
         conversationId: 'conv-backend',
         response: null,
+        memoryCreated: [],
       },
       threadId: 'session-1',
       userText: 'What notice?',

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { ChevronLeft, Lock, Shield, Sparkle } from 'lucide-react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Brain, ChevronLeft, Lock, Shield, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
 import {
@@ -20,6 +20,7 @@ import {
 } from '@/features/app/workspaceContext/workspaceContextStore'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import { employeesMessages as M } from '@/i18n/messages/employees'
+import { memoryMessages as MEM } from '@/i18n/messages/memory'
 import { statusChipClass } from '@/components/chips'
 import { useAskAdvisorAboutEmployee } from './useAskAdvisorAboutEmployee'
 import {
@@ -219,14 +220,23 @@ export function EmployeeProfileDemoView() {
             </span>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => askAdvisor(emp)}
-          className="flex shrink-0 cursor-pointer items-center gap-[7px] rounded-[9px] border border-gold-border bg-gold-bg px-[15px] py-[9px] font-sans text-[13px] font-bold text-gold-fg"
-        >
-          <Sparkle size={14} fill="currentColor" strokeWidth={0} aria-hidden="true" />
-          {x(M.employees_ask_advisor)}
-        </button>
+        <div className="flex shrink-0 flex-wrap gap-[8px]">
+          <Link
+            to={`/app/settings/memory/people/${emp.id}`}
+            className="inline-flex items-center gap-[6px] rounded-[9px] border border-border bg-surface px-[12px] py-[9px] font-sans text-[13px] font-bold text-text-2 no-underline"
+          >
+            <Brain size={14} strokeWidth={1.7} aria-hidden="true" />
+            {x(MEM.memory_review_person_memory)}
+          </Link>
+          <button
+            type="button"
+            onClick={() => askAdvisor(emp)}
+            className="flex cursor-pointer items-center gap-[7px] rounded-[9px] border border-gold-border bg-gold-bg px-[15px] py-[9px] font-sans text-[13px] font-bold text-gold-fg"
+          >
+            <Sparkle size={14} fill="currentColor" strokeWidth={0} aria-hidden="true" />
+            {x(M.employees_ask_advisor)}
+          </button>
+        </div>
       </div>
 
       {/* Tab strip */}

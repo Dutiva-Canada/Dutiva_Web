@@ -46,6 +46,7 @@ describe('sendAdvisorMessage', () => {
       reply: 'Here is some guidance.',
       conversationId: 'conv-1',
       response: null,
+      memoryCreated: [],
     })
   })
 

@@ -328,8 +328,23 @@ async function persistExtractedFacts(
   conversationId: string,
   actorUserId: string,
   candidates: readonly ExtractedMemoryCandidate[],
-): Promise<void> {
-  if (candidates.length === 0) return
+): Promise<
+  Array<{
+    factId: string
+    scope: 'person' | 'case' | 'thread'
+    entityId: string
+    statementEn: string
+    statementFr: string
+  }>
+> {
+  if (candidates.length === 0) return []
+  const created: Array<{
+    factId: string
+    scope: 'person' | 'case' | 'thread'
+    entityId: string
+    statementEn: string
+    statementFr: string
+  }> = []
   try {
     const { data: existing, error: readError } = await adminClient
       .from('hr_advisor_memory_facts')
@@ -339,7 +354,7 @@ async function persistExtractedFacts(
       .limit(200)
     if (readError) {
       console.error('advisor-chat: extract dedupe read failed —', readError.message)
-      return
+      return []
     }
     const seen = new Set(
       ((existing ?? []) as Array<{ statement_en: string; scope: string; entity_id: string }>).map(
@@ -351,12 +366,13 @@ async function persistExtractedFacts(
       const key = `${c.scope}:${c.entityId}:${c.statementEn.trim().toLowerCase()}`
       if (seen.has(key)) continue
       seen.add(key)
+      const entityId = c.entityId || conversationId
       const { data: inserted, error: insertError } = await adminClient
         .from('hr_advisor_memory_facts')
         .insert({
           organization_id: organizationId,
           scope: c.scope,
-          entity_id: c.entityId || conversationId,
+          entity_id: entityId,
           category: c.category,
           statement_en: c.statementEn,
           statement_fr: c.statementFr || c.statementEn,
@@ -371,13 +387,19 @@ async function persistExtractedFacts(
           created_by: actorUserId,
           updated_by: actorUserId,
         })
-        .select('id, statement_en, statement_fr')
+        .select('id, statement_en, statement_fr, scope, entity_id')
         .single()
       if (insertError || !inserted) {
         console.error('advisor-chat: extract insert failed —', insertError?.message)
         continue
       }
-      const row = inserted as { id: string; statement_en: string; statement_fr: string }
+      const row = inserted as {
+        id: string
+        statement_en: string
+        statement_fr: string
+        scope: 'person' | 'case' | 'thread'
+        entity_id: string
+      }
       await adminClient.from('hr_advisor_memory_audit').insert({
         organization_id: organizationId,
         fact_id: row.id,
@@ -386,10 +408,18 @@ async function persistExtractedFacts(
         statement_en: row.statement_en,
         statement_fr: row.statement_fr,
       })
+      created.push({
+        factId: row.id,
+        scope: row.scope,
+        entityId: row.entity_id,
+        statementEn: row.statement_en,
+        statementFr: row.statement_fr,
+      })
     }
   } catch (error) {
     console.error('advisor-chat: extract persist failed —', error)
   }
+  return created
 }
 
 function serverConfig(): ServerConfig | Response {
@@ -738,8 +768,15 @@ Deno.serve(async (req: Request) => {
       ? extractMemoryCandidates(rawReply, request.message, conversation.id)
       : { cleanReply: rawReply, candidates: [] as ExtractedMemoryCandidate[] }
   const reply = extracted.cleanReply
+  let memoryCreated: Array<{
+    factId: string
+    scope: 'person' | 'case' | 'thread'
+    entityId: string
+    statementEn: string
+    statementFr: string
+  }> = []
   if (request.organizationId && memoryAllowed && extracted.candidates.length > 0) {
-    await persistExtractedFacts(
+    memoryCreated = await persistExtractedFacts(
       authenticated.adminClient,
       request.organizationId,
       conversation.id,
@@ -780,6 +817,8 @@ Deno.serve(async (req: Request) => {
         id: f.id,
         statementEn: f.statementEn,
         statementFr: f.statementFr,
+        scope: f.scope,
+        entityId: f.entityId,
       })),
     })
   } catch (error) {
@@ -795,6 +834,19 @@ Deno.serve(async (req: Request) => {
   if (updateResponse) return updateResponse
 
   return json({
-    data: { reply, conversation_id: conversation.id, advisor_response: advisorResponse },
+    data: {
+      reply,
+      conversation_id: conversation.id,
+      advisor_response: advisorResponse,
+      memory_created:
+        memoryCreated.length > 0
+          ? memoryCreated.map((f) => ({
+              factId: f.factId,
+              scope: f.scope,
+              entityId: f.entityId,
+              label: { en: f.statementEn, fr: f.statementFr || f.statementEn },
+            }))
+          : undefined,
+    },
   })
 })

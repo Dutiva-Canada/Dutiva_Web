@@ -56,7 +56,12 @@ export interface AdvisorResponsePayload {
   retrieval: { items: Bi[]; note?: Bi; withheldReason?: Bi }
   /** Org memory facts injected this turn (null/omit when none). */
   memory?: {
-    items: { label: Bi; factId?: string }[]
+    items: {
+      label: Bi
+      factId?: string
+      scope?: 'person' | 'case' | 'thread'
+      entityId?: string
+    }[]
     note?: Bi
   } | null
   webSearch: null
@@ -278,7 +283,13 @@ export interface BuildInput {
    *  "retrieval was unavailable", never "nothing matched". */
   retrievalFailed?: boolean
   /** Confirmed org memory facts injected into the system prompt this turn. */
-  memoryFacts?: readonly { id: string; statementEn: string; statementFr: string }[]
+  memoryFacts?: readonly {
+    id: string
+    statementEn: string
+    statementFr: string
+    scope?: 'person' | 'case' | 'thread'
+    entityId?: string
+  }[]
 }
 
 export function buildAdvisorResponse(input: BuildInput): AdvisorResponsePayload {
@@ -539,10 +550,13 @@ export function buildAdvisorResponse(input: BuildInput): AdvisorResponsePayload 
             items: (input.memoryFacts ?? []).slice(0, 8).map((f) => ({
               label: bi(f.statementEn, f.statementFr || f.statementEn),
               factId: f.id,
+              ...(f.scope != null && f.entityId != null
+                ? { scope: f.scope, entityId: f.entityId }
+                : {}),
             })),
             note: bi(
-              'Organization memory (confirmed facts) — not a statutory source. Review or correct in Settings → Memory.',
-              'Mémoire de l’organisation (faits confirmés) — pas une source législative. Réviser ou corriger dans Réglages → Mémoire.',
+              'Organization memory (confirmed facts) — not a statutory source. Review or correct in Advisor memory.',
+              'Mémoire de l’organisation (faits confirmés) — pas une source législative. Réviser ou corriger dans Mémoire du Conseiller.',
             ),
           }
         : null,

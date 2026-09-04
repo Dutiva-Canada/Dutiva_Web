@@ -4,6 +4,7 @@
  */
 import type { RefObject } from 'react'
 import type { LText } from '@/i18n/core'
+import type { ToastAction } from '@/features/app/toasts/toastsContext'
 import { sendAdvisorMessage } from '@/features/app/advisor/chatApi'
 import type { AdvisorTurnSpec, ToneCardData } from '@/features/app/advisor/types'
 import type { AuthStatus } from '@/features/app/auth/authContext'
@@ -44,6 +45,7 @@ interface FlowHandlersOptions {
   toToneCard: (card: FixtureToneCard) => ToneCardData
   setSendingReal: (sending: boolean) => void
   handleRealChatFailure: (error: unknown) => void
+  showToast: (message: LText, tone?: 'ok' | 'info', action?: ToastAction) => void
 }
 
 /** Start a demo flow thread or route free text to the real backend when signed in. */
@@ -66,6 +68,7 @@ export function createAdvisorFlowHandlers(options: FlowHandlersOptions) {
     toToneCard,
     setSendingReal,
     handleRealChatFailure,
+    showToast,
   } = options
 
   const startFlow = (flowKey: FlowKeyOrFallback, userText: LText) => {
@@ -113,6 +116,7 @@ export function createAdvisorFlowHandlers(options: FlowHandlersOptions) {
               setProdThreads,
               updateExtras,
               bindBackendConversationId,
+              showToast,
             }),
           )
           .catch(handleRealChatFailure)

@@ -116,12 +116,24 @@ export type RetrievalRead = z.infer<typeof retrievalReadSchema>
 export const memoryUsedItemSchema = z.object({
   label: lTextSchema,
   factId: z.string().optional(),
+  /** When present, UI deep-links to the entity Memory surface. */
+  scope: z.enum(['person', 'case', 'thread']).optional(),
+  entityId: z.string().optional(),
 })
 export const memoryUsedReadSchema = z.object({
   items: z.array(memoryUsedItemSchema),
   note: lTextSchema.optional(),
 })
 export type MemoryUsedRead = z.infer<typeof memoryUsedReadSchema>
+
+/** Newly extracted facts persisted this turn (for Review-in-Memory toasts). */
+export const memoryCreatedItemSchema = z.object({
+  factId: z.string(),
+  scope: z.enum(['person', 'case', 'thread']),
+  entityId: z.string(),
+  label: lTextSchema,
+})
+export type MemoryCreatedItem = z.infer<typeof memoryCreatedItemSchema>
 
 export const webSourceSchema = z.object({
   domain: z.string(),
