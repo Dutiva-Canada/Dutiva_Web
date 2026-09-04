@@ -25,7 +25,11 @@ describe('SettingsView', () => {
 
     // Retention, security, billing, audit
     expect(screen.getByText('7 years after employment ends (ESA/CRA)')).toBeInTheDocument()
-    expect(screen.getByText('Canada (Montréal region)')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Primary database in Canada (Montréal). Advisor AI and some subprocessors may process outside Canada.',
+      ),
+    ).toBeInTheDocument()
     expect(
       screen.getByText('Growth plan — sample invoice line for the demo walkthrough'),
     ).toBeInTheDocument()

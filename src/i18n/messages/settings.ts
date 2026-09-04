@@ -319,8 +319,8 @@ export const settingsMessages = defineMessages({
   },
   settings_security_residency: { en: 'Data residency', fr: 'Résidence des données' },
   settings_security_residency_v: {
-    en: 'Canada (Montréal region)',
-    fr: 'Canada (région de Montréal)',
+    en: 'Primary database in Canada (Montréal). Advisor AI and some subprocessors may process outside Canada.',
+    fr: 'Base de données principale au Canada (Montréal). L’IA du Conseiller et certains sous-traitants peuvent traiter hors du Canada.', // [FR self-authored]
   },
   settings_security_note: {
     en: 'Status lines describe the product today — not a configurable security console.',
