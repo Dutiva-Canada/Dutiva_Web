@@ -188,6 +188,10 @@ export const settingsMessages = defineMessages({
     en: 'Overage billing below is live. The two switches above are device preferences until server-side prefs ship.',
     fr: 'La facturation des réponses en trop ci-dessous est en service. Les deux commutateurs ci-dessus sont des préférences d’appareil jusqu’à ce que les préférences côté serveur soient livrées.', // [FR self-authored]
   },
+  settings_ai_prefs_note_staff: {
+    en: 'The two switches above are device preferences until server-side prefs ship. Staff accounts skip overage billing.',
+    fr: 'Les deux commutateurs ci-dessus sont des préférences d’appareil jusqu’à ce que les préférences côté serveur soient livrées. Les comptes du personnel n’utilisent pas la facturation des réponses en trop.', // [FR self-authored]
+  },
   settings_toggle_overage: {
     en: 'Bill extra Advisor replies this month',
     fr: 'Facturer les réponses du Conseiller en trop ce mois-ci', // [FR self-authored]
@@ -195,6 +199,14 @@ export const settingsMessages = defineMessages({
   settings_toggle_overage_sub: {
     en: 'After this month’s {included} included replies and any unused pack balance, extra replies are ${price} CAD each, up to {cap}. Only bills if you have an active paid plan. Waitlist accounts are never invoiced. Packs are optional and not a plan feature.',
     fr: 'Après les {included} réponses incluses ce mois-ci et tout solde de forfait inutilisé, les réponses supplémentaires coûtent {price} $ CA chacune, jusqu’à {cap}. La facturation ne s’applique que si vous avez un forfait payant actif. Les comptes en liste d’attente ne reçoivent jamais de facture. Les forfaits de réponses sont facultatifs et ne sont pas une fonction d’abonnement.', // [FR self-authored]
+  },
+  settings_toggle_overage_staff_note: {
+    en: 'Overage billing doesn’t apply to @dutiva.ca staff accounts.',
+    fr: 'La facturation des réponses en trop ne s’applique pas aux comptes du personnel @dutiva.ca.', // [FR self-authored]
+  },
+  settings_billing_staff_note: {
+    en: 'Internal accounts show Professional entitlement for product access. Workspace org billing in Stripe may still read Free until a paid org checkout is linked.',
+    fr: 'Les comptes internes affichent l’accès Professionnel. La facturation d’organisation dans Stripe peut encore indiquer Gratuit tant qu’aucun paiement d’organisation n’est lié.', // [FR self-authored]
   },
   settings_overage_saved: {
     en: 'Advisor overage setting saved.',
@@ -207,6 +219,14 @@ export const settingsMessages = defineMessages({
   settings_advisor_usage_title: {
     en: 'Advisor reply usage',
     fr: 'Utilisation des réponses du Conseiller', // [FR self-authored]
+  },
+  settings_advisor_usage_staff: {
+    en: 'Internal Dutiva account — Advisor replies aren’t capped for @dutiva.ca staff.',
+    fr: 'Compte interne Dutiva — les réponses du Conseiller ne sont pas plafonnées pour le personnel @dutiva.ca.', // [FR self-authored]
+  },
+  settings_advisor_usage_staff_meter: {
+    en: 'Workspace meter (visibility only): {used} used this month against a {plan} org bank of {limit}.',
+    fr: 'Compteur de l’espace (visibilité seulement) : {used} utilisées ce mois-ci sur une banque d’organisation {plan} de {limit}.', // [FR self-authored]
   },
   settings_advisor_usage_monthly: {
     en: 'This month: {remaining} of {limit} included left',

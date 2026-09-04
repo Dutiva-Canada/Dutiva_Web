@@ -71,7 +71,7 @@ export function SettingsBillingSection() {
           </div>
         </div>
         <div className="border-t border-inset px-[18px] py-[10px] text-[11px] text-text-faint">
-          {x(M.settings_billing_note)}
+          {x(isBillingAdmin ? M.settings_billing_staff_note : M.settings_billing_note)}
         </div>
       </Card>
     </Section>

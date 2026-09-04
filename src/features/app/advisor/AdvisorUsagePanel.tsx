@@ -3,6 +3,7 @@ import { useI18n } from '@/i18n/context'
 import { pickL } from '@/i18n/core'
 import { settingsMessages as M } from '@/i18n/messages/settings'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { usePlan } from '@/features/app/billing/planContext'
 import { fetchAdvisorUsageSummary, type AdvisorUsageSummary } from './advisorUsageSummaryApi'
 
 function formatDay(iso: string, lang: 'en' | 'fr'): string {
@@ -15,13 +16,28 @@ function formatDay(iso: string, lang: 'en' | 'fr'): string {
   })
 }
 
+function planLabel(plan: string, lang: 'en' | 'fr'): string {
+  const key = plan.trim().toLowerCase()
+  const map: Record<string, { en: string; fr: string }> = {
+    free: { en: 'Free', fr: 'Gratuit' },
+    starter: { en: 'Starter', fr: 'Débutant' },
+    growth: { en: 'Growth', fr: 'Croissance' },
+    pro: { en: 'Professional', fr: 'Professionnel' },
+  }
+  const row = map[key]
+  if (!row) return plan
+  return lang === 'fr' ? row.fr : row.en
+}
+
 /**
- * Compact org Advisor usage from `advisor_usage_summary`. Shown when an
- * organization id is available and the RPC returns data (safe while gates off).
+ * Compact org Advisor usage from `advisor_usage_summary`. For @dutiva.ca staff,
+ * replies aren't capped — the org meter is budget visibility only (see
+ * `.cursor/rules/dutiva-internal-accounts.mdc`).
  */
 export function AdvisorUsagePanel({ compact = false }: { readonly compact?: boolean }) {
   const { x, lang } = useI18n()
   const { organizationId } = useWorkspaceMode()
+  const { isAdmin: isStaff } = usePlan()
   const [summary, setSummary] = useState<AdvisorUsageSummary | null>(null)
 
   useEffect(() => {
@@ -39,6 +55,30 @@ export function AdvisorUsagePanel({ compact = false }: { readonly compact?: bool
   }, [organizationId])
 
   if (!organizationId || !summary) return null
+
+  const shellClass = compact
+    ? 'mb-4 overflow-hidden rounded-xl border border-border bg-surface px-[14px] py-[10px] text-left'
+    : 'border-t border-inset px-[18px] py-[14px]'
+  const titleClass = compact
+    ? 'text-[12px] font-bold tracking-[0.04em] text-text-muted uppercase'
+    : 'text-[13.5px] font-semibold text-text'
+
+  if (isStaff) {
+    const meterLine = pickL(M.settings_advisor_usage_staff_meter, lang)
+      .replaceAll('{used}', String(summary.monthlyUsed))
+      .replaceAll('{limit}', String(summary.monthlyLimit))
+      .replaceAll('{plan}', planLabel(summary.plan, lang))
+
+    return (
+      <div className={shellClass} role="status" aria-label={x(M.settings_advisor_usage_title)}>
+        <div className={titleClass}>{x(M.settings_advisor_usage_title)}</div>
+        <p className="m-0 mt-[8px] text-[12.5px] leading-[1.45] text-text-2">
+          {x(M.settings_advisor_usage_staff)}
+        </p>
+        <p className="m-0 mt-[6px] text-[12px] leading-[1.45] text-text-muted">{meterLine}</p>
+      </div>
+    )
+  }
 
   const yesNo = summary.overageEnabled
     ? x(M.settings_advisor_usage_yes)
@@ -67,13 +107,6 @@ export function AdvisorUsagePanel({ compact = false }: { readonly compact?: bool
     '{date}',
     formatDay(summary.nextResetAt, lang),
   )
-
-  const shellClass = compact
-    ? 'mb-4 overflow-hidden rounded-xl border border-border bg-surface px-[14px] py-[10px] text-left'
-    : 'border-t border-inset px-[18px] py-[14px]'
-  const titleClass = compact
-    ? 'text-[12px] font-bold tracking-[0.04em] text-text-muted uppercase'
-    : 'text-[13.5px] font-semibold text-text'
 
   return (
     <div className={shellClass} role="status" aria-label={x(M.settings_advisor_usage_title)}>
