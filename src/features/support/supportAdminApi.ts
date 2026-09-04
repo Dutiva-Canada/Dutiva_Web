@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { isInternalDutivaAccount } from '@/lib/billing/adminAccess'
 import { supabase } from '@/lib/supabaseClient'
 import type { SupportCategory, SupportPriority, SupportStatus } from '@/config/support'
 import { supportQueueRank, type RequesterPlan } from './triage'
@@ -113,9 +114,11 @@ function toMessage(m: z.infer<typeof messageSchema>): AdminMessage {
 export async function isCurrentUserAdmin(): Promise<boolean> {
   if (!supabase) return false
   const { data: userData } = await supabase.auth.getUser()
-  const userId = userData?.user?.id
-  if (!userId) return false
-  const { data, error } = await supabase.rpc('is_admin', { check_user_id: userId })
+  const user = userData?.user
+  if (!user?.id) return false
+  if (isInternalDutivaAccount(user.email)) return true
+  /* Support RLS predicates use is_admin(uuid); keep the client gate aligned. */
+  const { data, error } = await supabase.rpc('is_admin', { check_user_id: user.id })
   return !error && data === true
 }
 

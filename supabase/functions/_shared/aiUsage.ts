@@ -1,7 +1,8 @@
 /**
  * Usage guardrails for the generative AI surface — the policy half of
  * `claim_ai_usage` (0027 abuse rails + 0091 commercial included/packs/overage
- * + 0109 org-pooled rollover when `organization_id` is set).
+ * + 0109 org-pooled rollover when `organization_id` is set + 0112
+ * `@dutiva.ca` staff bypass).
  *
  * Two layers, kept separate on purpose:
  *
@@ -13,6 +14,9 @@
  *     Without an org (legacy), the user-scoped 0091 path still applies.
  *     Exhausted commercial budget is `scope = 'commercial'`, which the
  *     Advisor answers with a pack CTA.
+ *   * Staff (`@dutiva.ca` via `user_is_dutiva_staff`) — always allowed; a
+ *     telemetry row is still reserved (metadata `staff_bypass`) so usage UI
+ *     can stay a manual budget signal without lockout.
  *
  * Numbers here are env fallbacks. Plan-specific monthly included limits live
  * in SQL (`advisor_monthly_included` / planEntitlements); the env fallback

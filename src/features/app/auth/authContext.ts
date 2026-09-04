@@ -4,9 +4,9 @@ import type { Session } from '@supabase/supabase-js'
 /**
  * Minimal auth context — scoped to what the real legal-sources feature and
  * the workspace's invite-only gate (RequireAdminSession) need: an
- * authenticated Supabase session for an invited account (the admin, or
- * anyone on the beta list — see the `current_user_is_workspace_member`
- * Postgres function, supabase/migrations/0026_open_workspace_to_beta_list.sql).
+ * authenticated Supabase session for an invited account (`@dutiva.ca` staff,
+ * the beta cohort, an admin invite, or a paid subscriber — see
+ * `current_user_is_workspace_member`, including 0114 for the staff domain).
  * No org/tenant membership beyond that. See docs — this is deliberately
  * narrower than the eventual Auth + org/tenant + RLS foundation.
  */

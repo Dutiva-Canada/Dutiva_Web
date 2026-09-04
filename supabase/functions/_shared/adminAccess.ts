@@ -1,16 +1,28 @@
 /**
- * Internal-account billing bypass, shared by the two Stripe edge functions
- * (create-checkout-session, create-portal-session). Mirrors
- * src/lib/billing/adminAccess.ts, which stays a separate copy on purpose —
- * Deno edge functions can't import from src/, so that boundary is a real
- * constraint, not an oversight. This file exists so the two functions that
- * *can* share code don't hand-copy it against each other instead.
+ * Internal-account billing bypass, shared by Stripe edge functions and any
+ * other Deno path that needs the same staff check. Mirrors
+ * src/lib/billing/adminAccess.ts — Deno cannot import from src/, so the two
+ * copies must stay in sync by hand.
  */
 const ADMIN_EMAILS = ['martin.constantineau@dutiva.ca']
 
-export function bypassesPaywall(email: string | null | undefined): boolean {
-  const normalized = String(email ?? '')
+function normalizeEmail(email: string | null | undefined): string {
+  return String(email ?? '')
     .trim()
     .toLowerCase()
-  return ADMIN_EMAILS.includes(normalized) || normalized.endsWith('@dutiva.ca')
+}
+
+/** Explicitly listed internal accounts — always treated as fully entitled. */
+export function isAdminEmail(email: string | null | undefined): boolean {
+  return ADMIN_EMAILS.includes(normalizeEmail(email))
+}
+
+/** Any @dutiva.ca staff account. */
+export function isInternalDutivaAccount(email: string | null | undefined): boolean {
+  return normalizeEmail(email).endsWith('@dutiva.ca')
+}
+
+/** True if this account should skip the paywall entirely. */
+export function bypassesPaywall(email: string | null | undefined): boolean {
+  return isAdminEmail(email) || isInternalDutivaAccount(email)
 }

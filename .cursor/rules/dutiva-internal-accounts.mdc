@@ -1,0 +1,38 @@
+---
+description: @dutiva.ca staff accounts — full product unlock, no AI reply caps, admin control
+alwaysApply: true
+---
+
+# Internal `@dutiva.ca` accounts
+
+Any signed-in user whose email ends with `@dutiva.ca` (case-insensitive) is
+internal staff. Treat them as fully entitled operators — not as Free/Starter
+customers.
+
+## Required behaviour
+
+1. **All features unlocked** — PlanGate / FeatureGate / workflow and export
+   limits must not blank or nudge these accounts. Client source of truth:
+   `bypassesPaywall()` / `isInternalDutivaAccount()` in
+   `src/lib/billing/adminAccess.ts` (mirrored in
+   `supabase/functions/_shared/adminAccess.ts`).
+2. **Workspace access to every view** — `current_user_is_workspace_member`
+   (and the client `authorized` gate) must admit the whole `@dutiva.ca`
+   domain, not only a single founder email. Staff must reach `/app/*`
+   without needing beta cohort membership or a paid plan.
+3. **No enforced Advisor / AI reply cap** — do not hard-stop `@dutiva.ca`
+   usage with `ai_usage_limit` / `claim_ai_usage` denials. Usage metering and
+   Settings usage UI may still exist as a **manual budget visibility** tool
+   so spend stays intentional; that is not an automatic product lockout.
+4. **Full admin control** — platform admin surfaces (capacity, support ops,
+   beta, internal tools) that gate on admin must treat `@dutiva.ca` as admin-
+   capable. Do not invent a customer-plan path that strips staff admin.
+
+## When changing billing, entitlements, or Advisor usage
+
+- Prefer domain check (`endsWith('@dutiva.ca')`) over a one-person allowlist
+  for “is this staff?” New enforcement paths must bypass for the whole
+  domain, not only `martin.constantineau@dutiva.ca`.
+- Keep Deno (`supabase/functions/_shared/adminAccess.ts`) and Vite
+  (`src/lib/billing/adminAccess.ts`) copies in sync.
+- Never document or market `@dutiva.ca` unlock as a customer entitlement.

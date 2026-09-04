@@ -11,9 +11,10 @@ import {
  * internal note, change status, set priority, or propose scheduled-call times
  * (TODO.md D3 — up to 3 candidate slots; the customer confirms one from their
  * own ticket view via support-confirm-call). Gated by is_admin server-side
- * and executed with the service role, so these mutations never depend on the
- * browser. Priority here MAY be 'critical' (unlike the customer intake, which is
- * capped at 'high'). Every action writes an audit event.
+ * (`user_roles` or `@dutiva.ca` via 0115) and executed with the service role,
+ * so these mutations never depend on the browser. Priority here MAY be
+ * 'critical' (unlike the customer intake, which is capped at 'high'). Every
+ * action writes an audit event.
  */
 
 const corsHeaders = {
