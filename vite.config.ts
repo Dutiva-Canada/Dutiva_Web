@@ -155,6 +155,11 @@ const MARKDOWN_TREE = packageAlternation(
   ),
 )
 
+/* Document Studio Word (.docx) export — keep OOXML + JSZip out of vendor. */
+const DOCX_TREE = packageAlternation(
+  dependencyClosure(['docx'], ['react', 'react-dom', 'react-router', 'react-router-dom', 'scheduler']),
+)
+
 // https://vite.dev/config/
 export default defineConfig(({ command }) => {
   /* Stamp source locations for local dev and Vercel preview builds only —
@@ -294,14 +299,19 @@ export default defineConfig(({ command }) => {
                  pdf-lib (+ @pdf-lib/* + pako) is excluded the same way:
                  ~500kB+ raw for watermarked signed-PDF export, reached only
                  from the lazy documents surface (`signedDocumentPdf.ts`). In
-                 vendor it rode every marketing page's modulepreload set. */
+                 vendor it rode every marketing page's modulepreload set.
+
+                 docx (+ jszip tree) is excluded the same way: OOXML Word
+                 export is reached only from Document Studio via a dynamic
+                 import of wordDoc.ts. In vendor it inflated every public
+                 page's eager graph past the entry budget. */
               {
                 name: 'vendor',
                 test: new RegExp(
-                  `node_modules[\\\\/](?!@supabase[\\\\/])(?!@pdf-lib[\\\\/])(?!${MARKDOWN_TREE}[\\\\/])` +
+                  `node_modules[\\\\/](?!@supabase[\\\\/])(?!@pdf-lib[\\\\/])(?!${MARKDOWN_TREE}[\\\\/])(?!${DOCX_TREE}[\\\\/])` +
                     `(?!(?:recharts|victory-vendor|d3-[a-z-]+|internmap|@reduxjs[\\\\/]toolkit` +
                     `|react-redux|reselect|immer|use-sync-external-store|es-toolkit` +
-                    `|decimal\\.js-light|eventemitter3|pdf-lib|pako)[\\\\/])`,
+                    `|decimal\\.js-light|eventemitter3|pdf-lib|pako|docx|jszip)[\\\\/])`,
                 ),
               },
             ],
