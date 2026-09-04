@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ChevronLeft, Sparkle } from 'lucide-react'
+import { ChevronLeft, Brain, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pickL } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
@@ -28,6 +28,7 @@ import { cardToneStyles } from '@/features/app/advisor/toneStyles'
 import type { ToneCardData } from '@/features/app/advisor/types'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import { casesMessages as M } from '@/i18n/messages/cases'
+import { memoryMessages as MEM } from '@/i18n/messages/memory'
 import { statusChipClass } from '@/components/chips'
 import {
   findCase,
@@ -348,6 +349,13 @@ function CaseDetail({ caze }: Readonly<{ caze: WorkspaceCase }>) {
         </div>
         <div className="flex min-w-0 flex-wrap items-center gap-[8px]">
           <span className={statusChipClass(caze.tone)}>{x(caze.status)}</span>
+          <Link
+            to={`/app/settings/memory/cases/${caze.id}`}
+            className="inline-flex items-center gap-[6px] rounded-[9px] border border-border bg-surface px-[12px] py-[8px] font-sans text-[13px] font-bold text-text-2 no-underline"
+          >
+            <Brain size={14} strokeWidth={1.7} aria-hidden="true" />
+            {x(MEM.memory_review_this_case_memory)}
+          </Link>
           <button
             type="button"
             onClick={askAdvisor}

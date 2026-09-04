@@ -178,18 +178,24 @@ export function MemoryManagerProductionView() {
   const scopeTag = (fact: MemoryFact) => {
     if (fact.scope === 'person') {
       const name = employees.find((e) => e.id === fact.entityId)?.name ?? fact.entityId
-      return { icon: UserRound, label: `${pick(M.memory_mgr_scope_person, lang)} · ${name}` }
+      return {
+        icon: UserRound,
+        label: `${pick(M.memory_mgr_scope_person, lang)} · ${name}`,
+        href: `/app/settings/memory/people/${fact.entityId}`,
+      }
     }
     if (fact.scope === 'case') {
       const title = cases.find((c) => c.id === fact.entityId)?.title
       return {
         icon: Briefcase,
         label: `${pick(M.memory_mgr_scope_case, lang)} · ${title ?? fact.entityId}`,
+        href: `/app/settings/memory/cases/${fact.entityId}`,
       }
     }
     return {
       icon: MessageCircle,
       label: `${pick(M.memory_mgr_scope_thread, lang)} · ${fact.entityId}`,
+      href: `/app/settings/memory/conversations/${fact.entityId}`,
     }
   }
 

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, CheckCircle2, ClipboardX, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, Brain, CheckCircle2, ClipboardX, ShieldCheck } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { employeesMessages as M } from '@/i18n/messages/employees'
+import { memoryMessages as MEM } from '@/i18n/messages/memory'
 import { casesMessages as CM } from '@/i18n/messages/cases'
 import { sourceChipClass, statusChipClass } from '@/components/chips'
 import { useToasts } from '@/features/app/toasts/toastsContext'
@@ -372,6 +373,13 @@ export function EmployeeProfileProductionView() {
                   ))}
                 </select>
               )}
+              <Link
+                to={`/app/settings/memory/people/${employee.id}`}
+                className="inline-flex items-center gap-[6px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-bold text-text-2 no-underline"
+              >
+                <Brain size={14} strokeWidth={1.7} aria-hidden="true" />
+                {x(MEM.memory_review_person_memory)}
+              </Link>
             </div>
             <div className="grid grid-cols-1 gap-[12px] sm:grid-cols-2 lg:grid-cols-3">
               {facts.map((f) => (

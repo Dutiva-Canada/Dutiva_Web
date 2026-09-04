@@ -8,6 +8,7 @@ import { statusChipClass } from '@/components/chips'
 import type { ChipTone } from '@/components/chips'
 import { cases, employees, memoryCases, memoryPeople } from '@/data'
 import type { MemoryFact } from '@/data'
+import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import { memoryCaseContent } from './memoryCaseContent'
 import type { MemoryCaseChip } from './memoryCaseContent'
 import { KnowFact } from './KnowFact'
@@ -99,7 +100,9 @@ export function CaseMemoryDemoView() {
                 type="button"
                 onClick={() =>
                   person?.threadId != null
-                    ? navigate(`/app/settings/memory/conversations/${person.threadId}`)
+                    ? navigate('/app/advisor', {
+                        state: { chatId: person.threadId } satisfies AdvisorSearchNavState,
+                      })
                     : navigate('/app/advisor')
                 }
                 className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border-none bg-navy px-[13px] py-[8px] font-sans text-[12.5px] font-bold text-white"

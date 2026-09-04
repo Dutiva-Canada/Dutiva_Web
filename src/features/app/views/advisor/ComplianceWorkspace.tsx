@@ -12,11 +12,13 @@ import {
   X,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { ProgressFill } from '@/components/ProgressFill'
 import { useI18n } from '@/i18n/context'
 import { keyOfL, pickL } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import { advisorWorkspaceMessages as M } from '@/i18n/messages/advisorWorkspace'
+import { memoryMessages as MEM } from '@/i18n/messages/memory'
 import { AuthSignInForm } from '@/features/app/auth/AuthSignInForm'
 import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { PROVINCE_CHIPS } from './advisorScenarios'
@@ -520,14 +522,24 @@ function ReadyState({ response, provincePrompt, onPickProvince, onToggleWeb }: R
       {/* Organization memory used this turn */}
       {response.memory != null && response.memory.items.length > 0 && (
         <Card>
-          <div className="mb-[9px] text-[12.5px] font-bold text-text">{x(M.advws_sec_memory)}</div>
+          <div className="mb-[9px] flex items-center justify-between gap-[8px]">
+            <div className="text-[12.5px] font-bold text-text">{x(M.advws_sec_memory)}</div>
+            <Link
+              to="/app/settings/memory"
+              className="shrink-0 text-[11.5px] font-semibold text-accent no-underline hover:underline"
+            >
+              {x(MEM.memory_manage_from_answer)}
+            </Link>
+          </div>
           <ul className="m-0 list-none space-y-[7px] p-0">
             {response.memory.items.map((item) => (
-              <li
-                key={item.factId ?? keyOfL(item.label)}
-                className="rounded-[8px] border border-gold-border bg-gold-bg px-[10px] py-[8px] text-[12px] leading-normal text-text-2"
-              >
-                {pickL(item.label, lang)}
+              <li key={item.factId ?? keyOfL(item.label)}>
+                <Link
+                  to="/app/settings/memory"
+                  className="block rounded-[8px] border border-gold-border bg-gold-bg px-[10px] py-[8px] text-[12px] leading-normal text-text-2 no-underline hover:border-gold-dot"
+                >
+                  {pickL(item.label, lang)}
+                </Link>
               </li>
             ))}
           </ul>

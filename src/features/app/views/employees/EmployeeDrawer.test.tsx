@@ -31,6 +31,10 @@ describe('EmployeeDrawer', () => {
     expect(
       screen.getByRole('button', { name: 'Ask Advisor about Jordan Mensah' }),
     ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Review Advisor memory' })).toHaveAttribute(
+      'href',
+      '/app/settings/memory/people/e1',
+    )
   })
 
   it('omits the risk card for employees without a flag', () => {

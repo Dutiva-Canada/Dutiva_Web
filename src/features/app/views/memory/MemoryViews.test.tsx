@@ -32,6 +32,14 @@ describe('Advisor Memory surfaces', () => {
         path: '/app/settings/memory/people/:personId',
       })
 
+    it('links Open case to the case record and Review case memory to Memory', () => {
+      renderPerson()
+
+      expect(screen.getByRole('button', { name: /Open case/ })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Review case memory/ })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Ask Advisor about/ })).toBeInTheDocument()
+    })
+
     it('renders the profile header, category groups, and governed rows', () => {
       renderPerson()
 
