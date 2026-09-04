@@ -459,7 +459,9 @@ export function SettingsView() {
             )
           })}
           <div className="border-t border-inset px-[18px] py-[10px] text-[11px] text-text-faint">
-            {x(M.settings_ai_prefs_note)}
+            {x(
+              isBillingAdmin ? M.settings_ai_prefs_note_staff : M.settings_ai_prefs_note,
+            )}
           </div>
           <Link
             to="/app/settings/memory"
@@ -481,7 +483,12 @@ export function SettingsView() {
             />
           </Link>
           {authStatus === 'signed-in' && organizationId ? <AdvisorUsagePanel /> : null}
-          {authStatus === 'signed-in' && (
+          {authStatus === 'signed-in' && isBillingAdmin ? (
+            <div className="border-t border-inset px-[18px] py-[14px] text-[12.5px] leading-[1.45] text-text-muted">
+              {x(M.settings_toggle_overage_staff_note)}
+            </div>
+          ) : null}
+          {authStatus === 'signed-in' && !isBillingAdmin && (
             <div className="flex items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[14px]">
               <div className="min-w-0">
                 <div className="text-[13.5px] font-semibold text-text">
