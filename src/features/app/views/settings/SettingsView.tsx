@@ -285,11 +285,13 @@ export function SettingsView() {
         <div className="flex flex-col rounded-[12px] border border-border bg-surface px-[20px] py-[18px]">
           {isAdmin && (
             <div>
-              <span className="text-[12px] text-text-muted">{x(M.settings_workspace_mode)}</span>
+              <span className="block text-[12px] text-text-muted">
+                {x(M.settings_workspace_mode)}
+              </span>
               <div
                 role="tablist"
                 aria-label={x(M.settings_workspace_mode)}
-                className="mt-[6px] flex w-fit gap-[6px] rounded-[12px] border border-border bg-inset px-[6px] py-[5px]"
+                className="mt-[8px] flex w-fit gap-[6px] rounded-[12px] border border-border bg-inset px-[6px] py-[5px]"
               >
                 <button
                   type="button"
@@ -317,13 +319,16 @@ export function SettingsView() {
             </div>
           )}
           {isAdmin && workspaceMode === 'production' && organizationId && (
-            <div className="mt-[16px] border-t border-border pt-[16px]">
-              <div className="mb-[12px] text-[12px] font-semibold text-text-3">
+            <div className="mt-[18px] border-t border-border pt-[18px]">
+              <div className="mb-[14px] text-[12px] font-semibold text-text-3">
                 {x(M.settings_reminders)}
               </div>
-              <div className="flex flex-col gap-[14px] sm:flex-row sm:gap-[24px]">
-                <div className="min-w-0 flex-1">
-                  <label htmlFor="signing-reminder-days" className="text-[12px] text-text-muted">
+              <div className="flex max-w-[640px] flex-col gap-[16px]">
+                <div className="flex flex-col gap-[6px]">
+                  <label
+                    htmlFor="signing-reminder-days"
+                    className="block text-[12px] text-text-muted"
+                  >
                     {x(M.settings_signing_reminder_days)}
                   </label>
                   <input
@@ -335,14 +340,14 @@ export function SettingsView() {
                     disabled={reminderSaving}
                     onChange={(e) => setReminderDays(Number(e.target.value) || 1)}
                     onBlur={() => void saveReminderDays(reminderDays)}
-                    className="mt-[6px] w-[88px] rounded-[8px] border border-border bg-bg px-[10px] py-[7px] text-[13.5px] text-text"
+                    className="block w-[88px] rounded-[8px] border border-border bg-bg px-[10px] py-[7px] text-[13.5px] text-text"
                   />
-                  <p className="mt-[6px] max-w-[36ch] text-[11.5px] leading-[1.45] text-text-faint">
+                  <p className="max-w-[42ch] text-[11.5px] leading-[1.45] text-text-faint">
                     {x(M.settings_signing_reminder_days_note)}
                   </p>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <label htmlFor="policy-review-days" className="text-[12px] text-text-muted">
+                <div className="flex flex-col gap-[6px]">
+                  <label htmlFor="policy-review-days" className="block text-[12px] text-text-muted">
                     {x(M.settings_policy_review_days)}
                   </label>
                   <input
@@ -354,9 +359,9 @@ export function SettingsView() {
                     disabled={policyReviewSaving}
                     onChange={(e) => setPolicyReviewDaysState(Number(e.target.value) || 30)}
                     onBlur={() => void savePolicyReviewDays(policyReviewDays)}
-                    className="mt-[6px] w-[88px] rounded-[8px] border border-border bg-bg px-[10px] py-[7px] text-[13.5px] text-text"
+                    className="block w-[88px] rounded-[8px] border border-border bg-bg px-[10px] py-[7px] text-[13.5px] text-text"
                   />
-                  <p className="mt-[6px] max-w-[36ch] text-[11.5px] leading-[1.45] text-text-faint">
+                  <p className="max-w-[42ch] text-[11.5px] leading-[1.45] text-text-faint">
                     {x(M.settings_policy_review_days_note)}
                   </p>
                 </div>
@@ -366,7 +371,7 @@ export function SettingsView() {
           <div
             className={
               isAdmin
-                ? 'mt-[16px] flex flex-col gap-[12px] border-t border-border pt-[16px]'
+                ? 'mt-[18px] flex flex-col gap-[12px] border-t border-border pt-[18px]'
                 : 'flex flex-col gap-[12px]'
             }
           >

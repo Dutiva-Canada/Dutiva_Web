@@ -25,7 +25,9 @@ const JURISDICTION_OPTIONS = [
 ] as const
 
 const fieldClass =
-  'mt-[6px] w-full max-w-[320px] rounded-[8px] border border-border bg-bg px-[10px] py-[7px] text-[13.5px] text-text'
+  'block w-full max-w-[320px] rounded-[8px] border border-border bg-bg px-[10px] py-[7px] text-[13.5px] text-text'
+
+const labelClass = 'block text-[12px] text-text-muted'
 
 /** Production workspace: edit company name / jurisdiction / city on the user's profile. */
 export function WorkspaceProfileEditor() {
@@ -67,12 +69,12 @@ export function WorkspaceProfileEditor() {
 
   return (
     <div>
-      <div className="mb-[12px] text-[12px] font-semibold text-text-3">
+      <div className="mb-[14px] text-[12px] font-semibold text-text-3">
         {x(M.settings_profile_edit)}
       </div>
-      <div className="flex flex-col gap-[12px]">
-        <div>
-          <label htmlFor="settings-company-name" className="text-[12px] text-text-muted">
+      <div className="flex flex-col gap-[16px]">
+        <div className="flex flex-col gap-[6px]">
+          <label htmlFor="settings-company-name" className={labelClass}>
             {x(M.settings_company)}
           </label>
           <input
@@ -84,8 +86,8 @@ export function WorkspaceProfileEditor() {
             className={fieldClass}
           />
         </div>
-        <div>
-          <label htmlFor="settings-province" className="text-[12px] text-text-muted">
+        <div className="flex flex-col gap-[6px]">
+          <label htmlFor="settings-province" className={labelClass}>
             {x(M.settings_primary_jurisdiction)}
           </label>
           <select
@@ -103,8 +105,8 @@ export function WorkspaceProfileEditor() {
             ))}
           </select>
         </div>
-        <div>
-          <label htmlFor="settings-city" className="text-[12px] text-text-muted">
+        <div className="flex flex-col gap-[6px]">
+          <label htmlFor="settings-city" className={labelClass}>
             {x(M.settings_city)}
           </label>
           <input
@@ -120,7 +122,7 @@ export function WorkspaceProfileEditor() {
           type="button"
           disabled={saving || !companyName.trim() || !city.trim()}
           onClick={() => void save()}
-          className="w-fit cursor-pointer rounded-[8px] border border-border bg-surface px-[12px] py-[7px] font-sans text-[12px] font-bold text-text disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-[2px] w-fit cursor-pointer rounded-[8px] border border-border bg-surface px-[12px] py-[7px] font-sans text-[12px] font-bold text-text disabled:cursor-not-allowed disabled:opacity-60"
         >
           {x(M.settings_profile_save)}
         </button>
