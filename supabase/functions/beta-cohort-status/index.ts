@@ -29,7 +29,7 @@ function json(body: unknown, status = 200) {
   })
 }
 
-const BETA_COHORT_LIMIT = 15
+const BETA_COHORT_LIMIT = 5
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })

@@ -53,10 +53,7 @@ export function SelectedTemplatePanel({
   const applic = presentApplicability(template, org)
   const title = displayTemplateTitle(x(template.name), template.jurisdictions)
   const Icon = CATEGORY_ICON[template.category] ?? FileText
-  const whyHeading =
-    applic.kind === 'recommended'
-      ? t('doclib_studio_whyRecommended')
-      : t('doclib_studio_whyApplies')
+  const whyHeading = t('doclib_studio_whyApplies')
   const sections = templateSections(template)
 
   const askAdvisor = () => {
