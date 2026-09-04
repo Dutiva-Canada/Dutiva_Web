@@ -14,7 +14,6 @@ import { WorkspaceModeContext } from '@/features/app/workspaceMode/workspaceMode
 import {
   authorizeExport,
   buildTextPdf,
-  buildWordDoc,
   encodeInvisibleTag,
   exportDenialMessage,
   exportFilename,
@@ -301,6 +300,7 @@ export function DocStudioProvider({ children }: { readonly children: ReactNode }
           new Blob([bytes.buffer as ArrayBuffer], { type: 'application/pdf' }),
         )
       } else if (kind === 'Word') {
+        const { buildWordDoc } = await import('@/lib/exportProtection/artifacts/wordDoc')
         const bytes = await buildWordDoc({
           title,
           paragraphs,

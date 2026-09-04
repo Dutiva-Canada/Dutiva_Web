@@ -6,7 +6,7 @@
  * Call order for an export path:
  *   authorizeExport() → (denied? exportDenialMessage → toast, stop)
  *   → build the watermarked artifact (applyTextWatermark / buildTextPdf /
- *     buildWordDoc) with the returned stamp → triggerDownload().
+ *     dynamic wordDoc) with the returned stamp → triggerDownload().
  */
 
 export {
@@ -40,5 +40,6 @@ export {
   type ExportRequest,
 } from './authorize'
 export { buildTextPdf, type TextPdfInput } from './artifacts/textPdf'
-export { buildWordDoc, type WordDocInput } from './artifacts/wordDoc'
+/* Word OOXML stays off this barrel — `docx` must not reach the eager graph.
+   Callers dynamic-import `@/lib/exportProtection/artifacts/wordDoc`. */
 export { exportFilename, triggerDownload } from './artifacts/download'
