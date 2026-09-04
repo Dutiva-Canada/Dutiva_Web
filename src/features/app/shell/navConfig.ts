@@ -13,6 +13,7 @@ import {
   Send,
   ShieldCheck,
   Users,
+  UserCheck,
   Waypoints,
 } from 'lucide-react'
 import type { Bi } from '@/i18n/core'
@@ -92,6 +93,13 @@ export function getNavGroups(root: string): NavGroup[] {
           label: M.shell_nav_cases,
           badge: { value: CASES_BADGE, tone: 'neutral' },
         },
+        /* Hiring module — evidence-based recruitment system */
+        {
+          key: 'hiring',
+          to: p('hiring'),
+          icon: UserCheck,
+          label: M.shell_nav_hiring,
+        },
         {
           key: 'documents',
           to: p('documents/studio'),
@@ -164,6 +172,7 @@ export const PUBLIC_DEMO_NAV_KEYS = new Set([
   'workflows',
   'employees',
   'cases',
+  'hiring',
   'documents',
   'knowledge',
   'compliance',

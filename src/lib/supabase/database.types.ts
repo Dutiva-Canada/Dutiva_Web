@@ -3120,6 +3120,133 @@ export type Database = {
           },
         ]
       }
+      hr_authenticity_scores: {
+        Row: {
+          id: string
+          candidate_id: string
+          qualification: string
+          evidence: string
+          capability: string
+          reasoning: string
+          motivation: string
+          overall: string
+          explanations: Json
+          last_updated: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          candidate_id: string
+          qualification: string
+          evidence: string
+          capability: string
+          reasoning: string
+          motivation: string
+          overall: string
+          explanations?: Json
+          last_updated?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          candidate_id?: string
+          qualification?: string
+          evidence?: string
+          capability?: string
+          reasoning?: string
+          motivation?: string
+          overall?: string
+          explanations?: Json
+          last_updated?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_authenticity_scores_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "hr_candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_candidates: {
+        Row: {
+          id: string
+          organization_id: string
+          name: string
+          email: string
+          phone: string | null
+          location: string
+          resume: string
+          linkedin: string | null
+          position: string
+          current_role: string
+          years_experience: number
+          work_authorization: string
+          compensation_expectations: string | null
+          status: string
+          applied_date: string
+          assigned_to: string | null
+          knockout_criteria: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          name: string
+          email: string
+          phone?: string | null
+          location: string
+          resume: string
+          linkedin?: string | null
+          position: string
+          current_role: string
+          years_experience: number
+          work_authorization: string
+          compensation_expectations?: string | null
+          status?: string
+          applied_date?: string
+          assigned_to?: string | null
+          knockout_criteria?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          name?: string
+          email?: string
+          phone?: string | null
+          location?: string
+          resume?: string
+          linkedin?: string | null
+          position?: string
+          current_role?: string
+          years_experience?: number
+          work_authorization?: string
+          compensation_expectations?: string | null
+          status?: string
+          applied_date?: string
+          assigned_to?: string | null
+          knockout_criteria?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_candidates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hr_case_notes: {
         Row: {
           body: string
@@ -3328,6 +3455,63 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_defense_interviews: {
+        Row: {
+          id: string
+          candidate_id: string
+          work_sample_id: string
+          format: string
+          scheduled_date: string
+          interviewers: string[]
+          status: string
+          conversation: Json
+          assessment: Json | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          candidate_id: string
+          work_sample_id: string
+          format: string
+          scheduled_date: string
+          interviewers?: string[]
+          status?: string
+          conversation?: Json
+          assessment?: Json | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          candidate_id?: string
+          work_sample_id?: string
+          format?: string
+          scheduled_date?: string
+          interviewers?: string[]
+          status?: string
+          conversation?: Json
+          assessment?: Json | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_defense_interviews_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "hr_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_defense_interviews_work_sample_id_fkey"
+            columns: ["work_sample_id"]
+            isOneToOne: false
+            referencedRelation: "hr_work_samples"
             referencedColumns: ["id"]
           },
         ]
@@ -3781,6 +3965,62 @@ export type Database = {
           },
         ]
       }
+      hr_evidence_screening: {
+        Row: {
+          id: string
+          candidate_id: string
+          relevant_experience: Json
+          scope: Json
+          outcomes: Json
+          skills: Json
+          career_trajectory: Json
+          domain_knowledge: Json
+          evidence_quality: string
+          confidence: string
+          missing_info: string[]
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          candidate_id: string
+          relevant_experience?: Json
+          scope?: Json
+          outcomes?: Json
+          skills?: Json
+          career_trajectory?: Json
+          domain_knowledge?: Json
+          evidence_quality: string
+          confidence: string
+          missing_info?: string[]
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          candidate_id?: string
+          relevant_experience?: Json
+          scope?: Json
+          outcomes?: Json
+          skills?: Json
+          career_trajectory?: Json
+          domain_knowledge?: Json
+          evidence_quality?: string
+          confidence?: string
+          missing_info?: string[]
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_evidence_screening_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "hr_candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hr_expiry_records: {
         Row: {
           created_at: string
@@ -3925,6 +4165,68 @@ export type Database = {
           },
           {
             foreignKeyName: "hr_generated_documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_job_postings: {
+        Row: {
+          id: string
+          organization_id: string
+          title: string
+          department: string
+          location: string
+          type: string
+          description: string
+          requirements: string[]
+          knockout_criteria: string[]
+          work_sample_scenario: string
+          status: string
+          posted_date: string | null
+          closing_date: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          title: string
+          department: string
+          location: string
+          type: string
+          description: string
+          requirements?: string[]
+          knockout_criteria?: string[]
+          work_sample_scenario: string
+          status?: string
+          posted_date?: string | null
+          closing_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          title?: string
+          department?: string
+          location?: string
+          type?: string
+          description?: string
+          requirements?: string[]
+          knockout_criteria?: string[]
+          work_sample_scenario?: string
+          status?: string
+          posted_date?: string | null
+          closing_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_job_postings_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -4153,6 +4455,68 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_work_samples: {
+        Row: {
+          id: string
+          candidate_id: string
+          assessment_type: string
+          scenario: string
+          submission: string
+          ai_allowed: boolean
+          ai_detected: boolean
+          time_taken: string | null
+          status: string
+          evaluator: string | null
+          evaluation: Json | null
+          assigned_date: string
+          completed_date: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          candidate_id: string
+          assessment_type: string
+          scenario: string
+          submission: string
+          ai_allowed?: boolean
+          ai_detected?: boolean
+          time_taken?: string | null
+          status?: string
+          evaluator?: string | null
+          evaluation?: Json | null
+          assigned_date?: string
+          completed_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          candidate_id?: string
+          assessment_type?: string
+          scenario?: string
+          submission?: string
+          ai_allowed?: boolean
+          ai_detected?: boolean
+          time_taken?: string | null
+          status?: string
+          evaluator?: string | null
+          evaluation?: Json | null
+          assigned_date?: string
+          completed_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_work_samples_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "hr_candidates"
             referencedColumns: ["id"]
           },
         ]

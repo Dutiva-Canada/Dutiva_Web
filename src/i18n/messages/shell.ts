@@ -106,6 +106,7 @@ export const shellMessages = defineMessages({
   shell_nav_workflows: { en: 'Workflows', fr: 'Processus' },
   shell_nav_people: { en: 'People', fr: 'Personnel' },
   shell_nav_cases: { en: 'Cases', fr: 'Dossiers' },
+  shell_nav_hiring: { en: 'Hiring', fr: 'Recrutement' }, // [FR self-authored]
   /* Documents nav entry (Templates | My documents tabs inside
      DocumentsLayout). Hand-authored on purpose: doclib.ts is wholesale-
      regenerated and has no slot for these app-owned labels. */
@@ -156,6 +157,7 @@ export const shellMessages = defineMessages({
   shell_v_workflows: { en: 'Workflows', fr: 'Processus' },
   shell_v_cases: { en: 'Cases', fr: 'Dossiers' },
   shell_v_employees: { en: 'Employees', fr: 'Employés' },
+  shell_v_hiring: { en: 'Hiring', fr: 'Recrutement' }, // [FR self-authored]
   shell_v_compliance: { en: 'Compliance', fr: 'Conformité' },
   shell_v_policies: { en: 'Policies', fr: 'Politiques' },
   shell_v_tasks: { en: 'Tasks', fr: 'Tâches' },
