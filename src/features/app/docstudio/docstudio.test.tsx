@@ -60,6 +60,7 @@ const DEMO_MODE_CTX: WorkspaceModeContextValue = {
   setMode: vi.fn(),
   admissionStatus: 'idle',
   clearAdmissionStatus: vi.fn(),
+  refreshIdentity: vi.fn(),
 }
 const PRO_PLAN_CTX: PlanContextValue = makePlanContextValue({
   plan: 'pro',

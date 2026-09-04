@@ -54,6 +54,11 @@ export interface WorkspaceModeContextValue {
   /** No-op for non-admins — the toggle is only ever rendered for isAdmin. */
   setMode: (mode: WorkspaceMode) => Promise<void>
   /**
+   * Re-read the signed-in admin's `profiles` row into the production identity.
+   * No-op when not an admin / not signed in.
+   */
+  refreshIdentity: () => Promise<void>
+  /**
    * Set when an attempted switch to production is rejected by the server-side
    * capacity gate, so the UI can show the dedicated capacity/waitlist state.
    */

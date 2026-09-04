@@ -51,6 +51,7 @@ const DEMO_MODE: WorkspaceModeContextValue = {
   setMode: vi.fn(),
   admissionStatus: 'idle',
   clearAdmissionStatus: vi.fn(),
+  refreshIdentity: vi.fn(),
 }
 
 const PROD_MODE: WorkspaceModeContextValue = {

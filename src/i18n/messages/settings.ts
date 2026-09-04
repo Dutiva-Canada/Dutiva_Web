@@ -86,6 +86,26 @@ export const settingsMessages = defineMessages({
   },
   settings_team_pending_name: { en: 'Invitation pending', fr: 'Invitation en attente' },
   settings_team_pending_role: { en: 'Viewer (read-only)', fr: 'Lecture seule' },
+  settings_team_demo_note: {
+    en: 'Sample Northgate roster for the demo walkthrough — not a live team list.',
+    fr: 'Liste d’exemple Northgate pour la démo — pas une équipe en direct.', // [FR self-authored]
+  },
+  settings_team_production_note: {
+    en: 'You’re on this workspace. Invites and role changes aren’t available in Settings yet.',
+    fr: 'Vous êtes sur cet espace de travail. Les invitations et les changements de rôle ne sont pas encore disponibles dans Paramètres.', // [FR self-authored]
+  },
+
+  /* Workspace profile edit — [FR self-authored] */
+  settings_profile_edit: {
+    en: 'Edit company profile',
+    fr: 'Modifier le profil de l’entreprise',
+  },
+  settings_profile_save: { en: 'Save profile', fr: 'Enregistrer le profil' },
+  settings_profile_saved: { en: 'Company profile saved', fr: 'Profil de l’entreprise enregistré' },
+  settings_profile_failed: {
+    en: 'Couldn’t save the company profile. Try again.',
+    fr: 'Impossible d’enregistrer le profil de l’entreprise. Réessayez.',
+  },
 
   /* ── Notifications toggles (settingsPrefs, frDict) ─────────────────────── */
   settings_notifications: { en: 'Notifications', fr: 'Notifications' },
@@ -94,32 +114,36 @@ export const settingsMessages = defineMessages({
     fr: 'Résumé quotidien par courriel',
   },
   settings_toggle_email_digest_sub: {
-    en: 'A summary of what Advisor noticed each morning',
-    fr: 'Un résumé de ce que le Conseiller a remarqué chaque matin',
+    en: 'Preference saved on this device. Morning digests aren’t emailed yet.',
+    fr: 'Préférence enregistrée sur cet appareil. Les résumés du matin ne sont pas encore envoyés par courriel.', // [FR self-authored]
   },
   settings_toggle_risk_alerts: {
     en: 'Real-time risk alerts',
     fr: 'Alertes de risque en temps réel',
   },
   settings_toggle_risk_alerts_sub: {
-    en: 'Notify immediately when a high-severity risk is flagged',
-    fr: 'Aviser immédiatement lorsqu’un risque élevé est signalé',
+    en: 'Preference saved on this device. Push/email alerts aren’t wired yet.',
+    fr: 'Préférence enregistrée sur cet appareil. Les alertes poussées ou par courriel ne sont pas encore branchées.', // [FR self-authored]
   },
   settings_toggle_auto_escalate: {
     en: 'Auto-suggest legal escalation',
     fr: 'Suggérer automatiquement une escalade juridique',
   },
   settings_toggle_auto_escalate_sub: {
-    en: 'Advisor proactively offers counsel review on high-risk cases',
-    fr: 'Le Conseiller propose de façon proactive un examen juridique pour les dossiers à risque élevé',
+    en: 'Preference saved on this device. Advisor doesn’t auto-offer counsel from this switch yet.',
+    fr: 'Préférence enregistrée sur cet appareil. Le Conseiller ne propose pas encore automatiquement un examen juridique à partir de ce commutateur.', // [FR self-authored]
   },
   settings_toggle_weekly_digest: {
     en: 'Weekly compliance report',
     fr: 'Rapport de conformité hebdomadaire',
   },
   settings_toggle_weekly_digest_sub: {
-    en: 'Emailed every Monday to workspace admins',
-    fr: 'Envoyé par courriel chaque lundi aux administrateurs de l’espace de travail',
+    en: 'Preference saved on this device. Monday emails aren’t sent yet.',
+    fr: 'Préférence enregistrée sur cet appareil. Les courriels du lundi ne sont pas encore envoyés.', // [FR self-authored]
+  },
+  settings_notifications_note: {
+    en: 'These switches remember your choice on this browser. Delivery isn’t live yet.',
+    fr: 'Ces commutateurs mémorisent votre choix dans ce navigateur. L’envoi n’est pas encore en service.', // [FR self-authored]
   },
 
   /* ── AI & Advisor toggles + disclaimer ──────────────────────────────────── */
@@ -129,8 +153,8 @@ export const settingsMessages = defineMessages({
     fr: 'Utiliser le contexte de l’espace de travail dans le Conseiller',
   },
   settings_toggle_ai_context_sub: {
-    en: 'Advisor reads the case, employee, and document context you attach — removable per question',
-    fr: 'Le Conseiller lit le contexte de dossier, d’employé et de document que vous joignez — retirable pour chaque question',
+    en: 'Preference saved on this device. Cross-record injection still follows your plan.',
+    fr: 'Préférence enregistrée sur cet appareil. L’injection transversale suit toujours votre forfait.', // [FR self-authored]
   },
   settings_toggle_ai_context_locked: {
     en: 'Cross-record Advisor memory injects on Growth. Your preference is kept; injection stays off until you upgrade.',
@@ -141,8 +165,12 @@ export const settingsMessages = defineMessages({
     fr: 'Afficher les sources sur les réponses de conformité',
   },
   settings_toggle_ai_citations_sub: {
-    en: 'Statute and section references shown on jurisdiction-specific guidance',
-    fr: 'Références aux lois et articles affichées sur les conseils propres à la compétence',
+    en: 'Preference saved on this device. Advisor still shows sources when it has them.',
+    fr: 'Préférence enregistrée sur cet appareil. Le Conseiller affiche toujours les sources lorsqu’il en a.', // [FR self-authored]
+  },
+  settings_ai_prefs_note: {
+    en: 'Overage billing below is live. The two switches above are device preferences until server-side prefs ship.',
+    fr: 'La facturation des réponses en trop ci-dessous est en service. Les deux commutateurs ci-dessus sont des préférences d’appareil jusqu’à ce que les préférences côté serveur soient livrées.', // [FR self-authored]
   },
   settings_toggle_overage: {
     en: 'Bill extra Advisor replies this month',
@@ -213,8 +241,8 @@ export const settingsMessages = defineMessages({
   settings_perm_team: { en: 'Team only', fr: 'Équipe' },
   settings_perm_assigned: { en: 'Assigned', fr: 'Assignés' },
   settings_roles_note: {
-    en: 'Permission changes require Owner/Admin and are recorded in the audit log. Restricted areas across the app enforce this matrix.',
-    fr: 'Les changements de permissions exigent Propriétaire/Admin et sont consignés au journal d’audit. Les zones restreintes de l’application appliquent cette matrice.',
+    en: 'Today workspace access uses Owner, Admin, Manager, Member, and Viewer on membership. This matrix is the finer model we intend — it isn’t editable here yet.',
+    fr: 'Aujourd’hui, l’accès à l’espace de travail utilise Propriétaire, Admin, Gestionnaire, Membre et Lecteur sur l’adhésion. Cette matrice est le modèle plus fin prévu — elle n’est pas encore modifiable ici.', // [FR self-authored]
   },
 
   /* ── Data retention ─────────────────────────────────────────────────────── */
@@ -244,10 +272,13 @@ export const settingsMessages = defineMessages({
     en: 'Advisor conversations',
     fr: 'Conversations avec le Conseiller',
   },
-  settings_retention_advisor_v: { en: '2 years — configurable', fr: '2 ans — configurable' },
+  settings_retention_advisor_v: {
+    en: '2 years (platform default)',
+    fr: '2 ans (défaut de la plateforme)', // [FR self-authored]
+  },
   settings_retention_note: {
-    en: 'Retention changes require Owner/Admin and are recorded in the audit log.',
-    fr: 'Les changements de conservation exigent Propriétaire/Admin et sont consignés au journal d’audit.',
+    en: 'These are the current platform defaults. Retention isn’t configurable in Settings yet.',
+    fr: 'Ce sont les défauts actuels de la plateforme. La conservation n’est pas encore configurable dans Paramètres.', // [FR self-authored]
   },
 
   /* ── Security ───────────────────────────────────────────────────────────── */
@@ -256,15 +287,28 @@ export const settingsMessages = defineMessages({
     en: 'Two-factor authentication',
     fr: 'Authentification à deux facteurs',
   },
-  settings_security_2fa_v: { en: 'Required for all roles', fr: 'Requise pour tous les rôles' },
+  settings_security_2fa_v: {
+    en: 'Available through your sign-in provider — not required by Dutiva yet',
+    fr: 'Disponible via votre fournisseur de connexion — pas encore exigée par Dutiva', // [FR self-authored]
+  },
   settings_security_sso: { en: 'Single sign-on (SSO)', fr: 'Authentification unique (SSO)' },
-  settings_security_sso_v: { en: 'Not configured', fr: 'Non configurée' },
+  settings_security_sso_v: {
+    en: 'Not available yet',
+    fr: 'Pas encore disponible', // [FR self-authored]
+  },
   settings_security_timeout: { en: 'Session timeout', fr: 'Expiration de session' },
-  settings_security_timeout_v: { en: '8 hours', fr: '8 heures' },
+  settings_security_timeout_v: {
+    en: 'Managed by your sign-in session',
+    fr: 'Gérée par votre session de connexion', // [FR self-authored]
+  },
   settings_security_residency: { en: 'Data residency', fr: 'Résidence des données' },
   settings_security_residency_v: {
     en: 'Canada (Montréal region)',
     fr: 'Canada (région de Montréal)',
+  },
+  settings_security_note: {
+    en: 'Status lines describe the product today — not a configurable security console.',
+    fr: 'Ces lignes décrivent le produit aujourd’hui — ce n’est pas une console de sécurité configurable.', // [FR self-authored]
   },
 
   /* ── Integrations & billing ─────────────────────────────────────────────── */
@@ -279,13 +323,43 @@ export const settingsMessages = defineMessages({
   settings_int_retry: { en: 'Retry', fr: 'Réessayer' },
   settings_toast_reconnected: { en: 'Calendar reconnected', fr: 'Calendrier reconnecté' },
   settings_billing: {
-    en: 'Growth plan — $49/mo CAD · Next invoice Aug 1, 2026',
-    fr: 'Forfait Croissance — 49 $/mois CAD · Prochaine facture le 1er août 2026',
+    en: 'Growth plan — sample invoice line for the demo walkthrough',
+    fr: 'Forfait Croissance — ligne de facture d’exemple pour la démo', // [FR self-authored]
   },
   settings_billing_btn: { en: 'Manage billing', fr: 'Gérer la facturation' },
   settings_toast_billing: {
-    en: 'Billing portal opens here in production',
-    fr: 'Le portail de facturation s’ouvre ici en production',
+    en: 'Demo sample — open Pricing to manage a real plan.',
+    fr: 'Exemple de démo — ouvrez Tarifs pour gérer un vrai forfait.', // [FR self-authored]
+  },
+  settings_billing_section: { en: 'Billing', fr: 'Facturation' }, // [FR self-authored]
+  settings_billing_plan_paid: {
+    en: '{name} — ${price}/mo CAD',
+    fr: '{name} — {price} $/mois CAD', // [FR self-authored]
+  },
+  settings_billing_plan_free: {
+    en: '{name} — no monthly charge',
+    fr: '{name} — sans frais mensuels', // [FR self-authored]
+  },
+  settings_billing_status: {
+    en: 'Subscription status: {status}',
+    fr: 'État de l’abonnement : {status}', // [FR self-authored]
+  },
+  settings_billing_see_plans: { en: 'See plans', fr: 'Voir les forfaits' }, // [FR self-authored]
+  settings_billing_note: {
+    en: 'Manage payment method and invoices in the Stripe portal when you have a customer record. Otherwise open Pricing.',
+    fr: 'Gérez le mode de paiement et les factures dans le portail Stripe lorsque vous avez un dossier client. Sinon, ouvrez Tarifs.', // [FR self-authored]
+  },
+  settings_billing_unavailable: {
+    en: 'Billing isn’t available in this environment.',
+    fr: 'La facturation n’est pas disponible dans cet environnement.', // [FR self-authored]
+  },
+  settings_billing_portal_failed: {
+    en: 'Couldn’t open the billing portal. Try again or open Pricing.',
+    fr: 'Impossible d’ouvrir le portail de facturation. Réessayez ou ouvrez Tarifs.', // [FR self-authored]
+  },
+  settings_integrations_demo_note: {
+    en: 'Sample connections for the Northgate walkthrough — not live integrations.',
+    fr: 'Connexions d’exemple pour la démo Northgate — pas des intégrations en direct.', // [FR self-authored]
   },
 
   /* ── Audit log ──────────────────────────────────────────────────────────── */
@@ -339,8 +413,12 @@ export const settingsMessages = defineMessages({
   },
   settings_audit_ev8_when: { en: 'Jun 12, 10:02', fr: '12 juin, 10 h 02' },
   settings_audit_note: {
-    en: 'Immutable log — every sensitive view, document action, permission change, and retention change is recorded with actor and timestamp.',
-    fr: 'Journal immuable — chaque consultation sensible, action documentaire, changement de permission et changement de conservation est consigné avec l’acteur et l’horodatage.',
+    en: 'Sample Northgate events for the demo walkthrough — not a live org audit trail.',
+    fr: 'Événements d’exemple Northgate pour la démo — pas un journal d’audit d’organisation en direct.', // [FR self-authored]
+  },
+  settings_export_admin_link: {
+    en: 'Open signed-in export audit (staff)',
+    fr: 'Ouvrir l’audit des exportations en session (personnel)', // [FR self-authored]
   },
 
   /* ── Help & support (account-surface entry point) ───────────────────────── */
