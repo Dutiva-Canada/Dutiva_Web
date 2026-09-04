@@ -2,9 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { LText } from '@/i18n/core'
 import { ToastsContext } from './toastsContext'
-import type { Toast, ToastTone } from './toastsContext'
+import type { Toast, ToastAction, ToastTone } from './toastsContext'
 
 const TOAST_DURATION_MS = 3600
+const TOAST_WITH_ACTION_MS = 6200
 
 export function ToastsProvider({ children }: { readonly children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
@@ -24,13 +25,14 @@ export function ToastsProvider({ children }: { readonly children: ReactNode }) {
   }, [])
 
   const showToast = useCallback(
-    (message: LText, tone: ToastTone = 'ok') => {
+    (message: LText, tone: ToastTone = 'ok', action?: ToastAction) => {
       const id = nextId.current++
-      setToasts((prev) => [...prev, { id, message, tone }])
+      setToasts((prev) => [...prev, { id, message, tone, action }])
+      const duration = action != null ? TOAST_WITH_ACTION_MS : TOAST_DURATION_MS
       const handle = setTimeout(() => {
         timers.current = timers.current.filter((t) => t !== handle)
         dismissToast(id)
-      }, TOAST_DURATION_MS)
+      }, duration)
       timers.current.push(handle)
     },
     [dismissToast],

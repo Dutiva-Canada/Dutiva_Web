@@ -19,6 +19,7 @@ import { keyOfL, pickL } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import { advisorWorkspaceMessages as M } from '@/i18n/messages/advisorWorkspace'
 import { memoryMessages as MEM } from '@/i18n/messages/memory'
+import { memoryPathForFact } from '@/features/app/views/memory/memoryRoutes'
 import { AuthSignInForm } from '@/features/app/auth/AuthSignInForm'
 import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { PROVINCE_CHIPS } from './advisorScenarios'
@@ -535,7 +536,11 @@ function ReadyState({ response, provincePrompt, onPickProvince, onToggleWeb }: R
             {response.memory.items.map((item) => (
               <li key={item.factId ?? keyOfL(item.label)}>
                 <Link
-                  to="/app/settings/memory"
+                  to={memoryPathForFact({
+                    scope: item.scope,
+                    entityId: item.entityId,
+                    factId: item.factId,
+                  })}
                   className="block rounded-[8px] border border-gold-border bg-gold-bg px-[10px] py-[8px] text-[12px] leading-normal text-text-2 no-underline hover:border-gold-dot"
                 >
                   {pickL(item.label, lang)}

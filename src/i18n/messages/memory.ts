@@ -70,6 +70,18 @@ export const memoryMessages = defineMessages({
     en: 'Review in Memory',
     fr: 'Réviser dans Mémoire',
   }, // [FR self-authored]
+  memory_toast_fact_recorded: {
+    en: 'Advisor saved a memory fact for review.',
+    fr: 'Le Conseiller a enregistré un fait mémoire à réviser.',
+  }, // [FR self-authored]
+  memory_settings_open_title: {
+    en: 'Advisor memory',
+    fr: 'Mémoire du Conseiller',
+  }, // [FR self-authored]
+  memory_settings_open_note: {
+    en: 'Review, correct, or forget facts Advisor carries about people, cases, and conversations.',
+    fr: 'Réviser, corriger ou oublier les faits que le Conseiller retient sur les personnes, dossiers et conversations.',
+  }, // [FR self-authored]
   memory_person_remembers: {
     en: 'What Advisor remembers about',
     fr: 'Ce que le Conseiller retient à propos de',

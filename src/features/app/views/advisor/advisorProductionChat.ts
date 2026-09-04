@@ -7,11 +7,14 @@ import type { AdvisorTurnSpec } from '@/features/app/advisor/types'
 import type { LText } from '@/i18n/core'
 import { usageLimitReply } from '@/features/app/advisor/usageLimit'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
+import { memoryMessages as MEM } from '@/i18n/messages/memory'
 import type { ProductionConversation } from '@/features/app/views/memory/conversationsApi'
+import { memoryPathForFact } from '@/features/app/views/memory/memoryRoutes'
 import type { MessageExtras } from './advisorFlows'
 import { genericAck } from './advisorFlows'
 import type { ThreadResponseState } from './advisorSession'
 import { operationalNextStepChips } from './advisorViewHelpers'
+import type { ToastAction } from '@/features/app/toasts/toastsContext'
 
 /** Apply a successful advisor-chat backend result to thread state and UI extras. */
 export function applyRealChatResult(options: {
@@ -26,6 +29,7 @@ export function applyRealChatResult(options: {
   ) => void
   bindBackendConversationId: (threadId: string | null, backendId: string) => void
   fallbackReply?: LText
+  showToast?: (message: LText, tone?: 'ok' | 'info', action?: ToastAction) => void
 }) {
   const {
     result,
@@ -37,6 +41,7 @@ export function applyRealChatResult(options: {
     updateExtras,
     bindBackendConversationId,
     fallbackReply = genericAck,
+    showToast,
   } = options
 
   bindBackendConversationId(threadId, result.conversationId)
@@ -70,6 +75,18 @@ export function applyRealChatResult(options: {
       ...(navChips.length > 0 ? { navChips } : {}),
     },
   }))
+
+  const created = result.memoryCreated[0]
+  if (created != null && showToast != null) {
+    showToast(MEM.memory_toast_fact_recorded, 'ok', {
+      label: MEM.memory_manage_from_answer,
+      to: memoryPathForFact({
+        scope: created.scope,
+        entityId: created.entityId,
+        factId: created.factId,
+      }),
+    })
+  }
 }
 
 /** Shared failure handling for real-backend Advisor send paths. */

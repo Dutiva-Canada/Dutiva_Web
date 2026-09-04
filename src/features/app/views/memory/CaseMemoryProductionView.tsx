@@ -8,6 +8,7 @@ import { memoryMessages as M } from '@/i18n/messages/memory'
 import { Disclaimer } from '@/components/Disclaimer'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { useWorkspaceContext } from '@/features/app/workspaceContext/workspaceContextStore'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import { getCase, listCaseNotes } from '@/features/app/views/cases/productionApi'
 import type { ProductionCase } from '@/features/app/views/cases/productionApi'
@@ -39,6 +40,7 @@ export function CaseMemoryProductionView() {
   const { caseId } = useParams()
   const { showToast } = useToasts()
   const { organizationId, isOrgAdmin } = useWorkspaceMode()
+  const { setContext } = useWorkspaceContext()
 
   const [caseRow, setCaseRow] = useState<ProductionCase | null | undefined>(undefined)
   const [facts, setFacts] = useState<MemoryFact[] | null>(null)
@@ -227,7 +229,25 @@ export function CaseMemoryProductionView() {
             <div className="mt-[11px] flex flex-wrap gap-[8px]">
               <button
                 type="button"
-                onClick={() => navigate('/app/advisor')}
+                onClick={() => {
+                  const parts = caseRow.title.split(/\s+/).filter(Boolean)
+                  const initials = parts
+                    .map((p) => p[0])
+                    .join('')
+                    .slice(0, 2)
+                    .toUpperCase()
+                  setContext({
+                    subject: caseRow.title,
+                    entityType: 'case',
+                    empId: caseRow.employeeId ?? undefined,
+                    initials: initials || 'C',
+                    meta: [
+                      { en: caseRow.caseType, fr: caseRow.caseType },
+                      { en: caseRow.jurisdiction, fr: caseRow.jurisdiction },
+                    ],
+                  })
+                  navigate('/app/advisor')
+                }}
                 className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border-none bg-navy px-[13px] py-[8px] font-sans text-[12.5px] font-bold text-white"
               >
                 <Sparkle

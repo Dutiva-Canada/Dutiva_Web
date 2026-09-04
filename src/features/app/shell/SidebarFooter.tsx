@@ -39,7 +39,8 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
     }
   }, [])
 
-  const settingsActive = pathname.startsWith(`${root}/settings`)
+  const settingsActive =
+    pathname.startsWith(`${root}/settings`) && !pathname.includes('/settings/memory')
   const settingsPrefetch = usePrefetchIntent('settings')
   const displayName = identity.user.name.trim() || identity.user.email
 
