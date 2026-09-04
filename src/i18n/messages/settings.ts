@@ -47,41 +47,42 @@ export const settingsMessages = defineMessages({
   settings_workspace_mode_demo: { en: 'Demo', fr: 'Démo' },
   settings_workspace_mode_production: { en: 'Production', fr: 'Production' },
   settings_workspace_mode_note: {
-    en: 'Demo shows Northgate Logistics Inc. sample data for training and walkthroughs. Production is your real, empty Dutiva workspace — visible only to you.',
-    fr: 'Le mode Démo affiche les données d’exemple de Northgate Logistics Inc. pour la formation et les démonstrations. Le mode Production est votre espace de travail Dutiva réel et vide — visible pour vous seul.',
+    en: 'Demo uses Northgate Logistics Inc. sample data for training. Production is your live workspace.',
+    fr: 'Le mode Démo utilise les données d’exemple de Northgate Logistics Inc. pour la formation. Le mode Production est votre espace de travail en direct.', // [FR self-authored]
   },
-  /* Signing reminder cadence — [FR self-authored] */
+  /* Cadence controls — [FR self-authored] */
+  settings_reminders: { en: 'Reminders', fr: 'Rappels' },
   settings_signing_reminder_days: {
-    en: 'Signing reminder interval (days)',
-    fr: 'Intervalle de rappel de signature (jours)',
+    en: 'Signing reminder (days)',
+    fr: 'Rappel de signature (jours)',
   },
   settings_signing_reminder_days_note: {
-    en: 'How long after the invite (or last reminder) before Dutiva emails the current signer again. Between 1 and 14 days.',
-    fr: 'Délai après l’invitation (ou le dernier rappel) avant que Dutiva renvoie un courriel au signataire en cours. Entre 1 et 14 jours.',
+    en: 'Days between reminder emails to the current signer. 1–14.',
+    fr: 'Jours entre les courriels de rappel au signataire en cours. 1 à 14.',
   },
   settings_signing_reminder_saved: {
-    en: 'Reminder interval saved',
-    fr: 'Intervalle de rappel enregistré',
+    en: 'Signing reminder saved',
+    fr: 'Rappel de signature enregistré',
   },
   settings_signing_reminder_failed: {
-    en: 'Could not save reminder interval',
-    fr: 'Impossible d’enregistrer l’intervalle de rappel',
+    en: 'Couldn’t save the signing reminder',
+    fr: 'Impossible d’enregistrer le rappel de signature',
   },
   settings_policy_review_days: {
-    en: 'Policy review interval (days)',
-    fr: 'Intervalle de révision des politiques (jours)', // [FR self-authored]
+    en: 'Policy review (days)',
+    fr: 'Révision des politiques (jours)',
   },
   settings_policy_review_days_note: {
-    en: 'After this many days without a review, Dutiva marks the policy for review and emails org admins. Between 30 and 365 days.',
-    fr: 'Après ce nombre de jours sans révision, Dutiva marque la politique à revoir et envoie un courriel aux administrateurs. Entre 30 et 365 jours.', // [FR self-authored]
+    en: 'When a policy hasn’t been reviewed in this many days, Dutiva flags it and emails org admins. 30–365.',
+    fr: 'Quand une politique n’a pas été révisée depuis ce nombre de jours, Dutiva la signale et envoie un courriel aux administrateurs. 30 à 365.',
   },
   settings_policy_review_saved: {
-    en: 'Policy review interval saved',
-    fr: 'Intervalle de révision enregistré', // [FR self-authored]
+    en: 'Policy review cadence saved',
+    fr: 'Cadence de révision enregistrée',
   },
   settings_policy_review_failed: {
-    en: 'Could not save policy review interval',
-    fr: 'Impossible d’enregistrer l’intervalle de révision', // [FR self-authored]
+    en: 'Couldn’t save the policy review cadence',
+    fr: 'Impossible d’enregistrer la cadence de révision',
   },
 
   /* ── Users & team ───────────────────────────────────────────────────────── */
@@ -113,9 +114,14 @@ export const settingsMessages = defineMessages({
 
   /* Workspace profile edit — [FR self-authored] */
   settings_profile_edit: {
-    en: 'Edit company profile',
-    fr: 'Modifier le profil de l’entreprise',
+    en: 'Company profile',
+    fr: 'Profil de l’entreprise',
   },
+  settings_primary_jurisdiction: {
+    en: 'Primary jurisdiction',
+    fr: 'Compétence principale',
+  },
+  settings_city: { en: 'City', fr: 'Ville' },
   settings_profile_save: { en: 'Save profile', fr: 'Enregistrer le profil' },
   settings_profile_saved: { en: 'Company profile saved', fr: 'Profil de l’entreprise enregistré' },
   settings_profile_failed: {

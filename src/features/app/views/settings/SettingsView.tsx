@@ -282,7 +282,7 @@ export function SettingsView() {
 
       {/* Workspace */}
       <Section label={x(M.settings_workspace)}>
-        <div className="flex flex-col gap-[12px] rounded-[12px] border border-border bg-surface px-[20px] py-[18px]">
+        <div className="flex flex-col rounded-[12px] border border-border bg-surface px-[20px] py-[18px]">
           {isAdmin && (
             <div>
               <span className="text-[12px] text-text-muted">{x(M.settings_workspace_mode)}</span>
@@ -310,83 +310,96 @@ export function SettingsView() {
                   {x(M.settings_workspace_mode_production)}
                 </button>
               </div>
-              <p className="mt-[8px] text-[11.5px] leading-normal text-text-faint">
+              <p className="mt-[8px] max-w-[52ch] text-[11.5px] leading-[1.45] text-text-faint">
                 {x(M.settings_workspace_mode_note)}
               </p>
               <CapacityAlert />
-              {workspaceMode === 'production' && organizationId && (
-                <div className="mt-[14px] flex flex-col gap-[14px]">
-                  <div>
-                    <label htmlFor="signing-reminder-days" className="text-[12px] text-text-muted">
-                      {x(M.settings_signing_reminder_days)}
-                    </label>
-                    <input
-                      id="signing-reminder-days"
-                      type="number"
-                      min={1}
-                      max={14}
-                      value={reminderDays}
-                      disabled={reminderSaving}
-                      onChange={(e) => setReminderDays(Number(e.target.value) || 1)}
-                      onBlur={() => void saveReminderDays(reminderDays)}
-                      className="mt-[6px] w-[88px] rounded-[8px] border border-border bg-bg px-[10px] py-[7px] text-[13.5px] text-text"
-                    />
-                    <p className="mt-[6px] text-[11.5px] leading-normal text-text-faint">
-                      {x(M.settings_signing_reminder_days_note)}
-                    </p>
-                  </div>
-                  <div>
-                    <label htmlFor="policy-review-days" className="text-[12px] text-text-muted">
-                      {x(M.settings_policy_review_days)}
-                    </label>
-                    <input
-                      id="policy-review-days"
-                      type="number"
-                      min={30}
-                      max={365}
-                      value={policyReviewDays}
-                      disabled={policyReviewSaving}
-                      onChange={(e) => setPolicyReviewDaysState(Number(e.target.value) || 30)}
-                      onBlur={() => void savePolicyReviewDays(policyReviewDays)}
-                      className="mt-[6px] w-[88px] rounded-[8px] border border-border bg-bg px-[10px] py-[7px] text-[13.5px] text-text"
-                    />
-                    <p className="mt-[6px] text-[11.5px] leading-normal text-text-faint">
-                      {x(M.settings_policy_review_days_note)}
-                    </p>
-                  </div>
-                </div>
-              )}
             </div>
           )}
-          {workspaceMode === 'production' ? (
-            <WorkspaceProfileEditor />
-          ) : (
-            <>
-              <div>
-                <span className="text-[12px] text-text-muted">{x(M.settings_company)}</span>
-                <div className="text-[14px] font-semibold text-text">Northgate Logistics Inc.</div>
+          {isAdmin && workspaceMode === 'production' && organizationId && (
+            <div className="mt-[16px] border-t border-border pt-[16px]">
+              <div className="mb-[12px] text-[12px] font-semibold text-text-3">
+                {x(M.settings_reminders)}
               </div>
-              <div>
-                <span className="text-[12px] text-text-muted">{x(M.settings_provinces_of_op)}</span>
-                <div className="mt-[6px] flex flex-wrap gap-[6px]">
-                  {provinces.map((prov) => (
-                    <span
-                      key={prov.en}
-                      className="rounded-[100px] bg-inset px-[11px] py-[4px] text-[12.5px] font-semibold text-text-2"
-                    >
-                      {x(prov)}
-                    </span>
-                  ))}
+              <div className="flex flex-col gap-[14px] sm:flex-row sm:gap-[24px]">
+                <div className="min-w-0 flex-1">
+                  <label htmlFor="signing-reminder-days" className="text-[12px] text-text-muted">
+                    {x(M.settings_signing_reminder_days)}
+                  </label>
+                  <input
+                    id="signing-reminder-days"
+                    type="number"
+                    min={1}
+                    max={14}
+                    value={reminderDays}
+                    disabled={reminderSaving}
+                    onChange={(e) => setReminderDays(Number(e.target.value) || 1)}
+                    onBlur={() => void saveReminderDays(reminderDays)}
+                    className="mt-[6px] w-[88px] rounded-[8px] border border-border bg-bg px-[10px] py-[7px] text-[13.5px] text-text"
+                  />
+                  <p className="mt-[6px] max-w-[36ch] text-[11.5px] leading-[1.45] text-text-faint">
+                    {x(M.settings_signing_reminder_days_note)}
+                  </p>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <label htmlFor="policy-review-days" className="text-[12px] text-text-muted">
+                    {x(M.settings_policy_review_days)}
+                  </label>
+                  <input
+                    id="policy-review-days"
+                    type="number"
+                    min={30}
+                    max={365}
+                    value={policyReviewDays}
+                    disabled={policyReviewSaving}
+                    onChange={(e) => setPolicyReviewDaysState(Number(e.target.value) || 30)}
+                    onBlur={() => void savePolicyReviewDays(policyReviewDays)}
+                    className="mt-[6px] w-[88px] rounded-[8px] border border-border bg-bg px-[10px] py-[7px] text-[13.5px] text-text"
+                  />
+                  <p className="mt-[6px] max-w-[36ch] text-[11.5px] leading-[1.45] text-text-faint">
+                    {x(M.settings_policy_review_days_note)}
+                  </p>
                 </div>
               </div>
-              <div>
-                <span className="text-[12px] text-text-muted">{x(M.settings_locations)}</span>
-                <div className="mt-[2px] text-[13.5px] font-semibold text-text">
-                  {x(M.settings_locations_value)}
-                </div>
-              </div>
-            </>
+            </div>
           )}
+          <div
+            className={
+              isAdmin
+                ? 'mt-[16px] flex flex-col gap-[12px] border-t border-border pt-[16px]'
+                : 'flex flex-col gap-[12px]'
+            }
+          >
+            {workspaceMode === 'production' ? (
+              <WorkspaceProfileEditor />
+            ) : (
+              <>
+                <div>
+                  <span className="text-[12px] text-text-muted">{x(M.settings_company)}</span>
+                  <div className="text-[14px] font-semibold text-text">Northgate Logistics Inc.</div>
+                </div>
+                <div>
+                  <span className="text-[12px] text-text-muted">{x(M.settings_provinces_of_op)}</span>
+                  <div className="mt-[6px] flex flex-wrap gap-[6px]">
+                    {provinces.map((prov) => (
+                      <span
+                        key={prov.en}
+                        className="rounded-[100px] bg-inset px-[11px] py-[4px] text-[12.5px] font-semibold text-text-2"
+                      >
+                        {x(prov)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-[12px] text-text-muted">{x(M.settings_locations)}</span>
+                  <div className="mt-[2px] text-[13.5px] font-semibold text-text">
+                    {x(M.settings_locations_value)}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </Section>
 
