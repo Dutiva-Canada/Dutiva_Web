@@ -216,13 +216,15 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
        another — exactly the defect class this file exists to prevent. */
     expect(boldNumbers(row('Beta capacity'))).toContain(BETA_COHORT_LIMIT)
 
+    /* Live gate is the latest rewrite of current_user_is_workspace_member —
+       older migrations (0067/0089/0114) keep their historical limit 15. */
     const gate = raw(
-      import.meta.glob('../supabase/migrations/0067_beta_cohort_capacity.sql', {
+      import.meta.glob('../supabase/migrations/0116_beta_cohort_capacity_five.sql', {
         query: '?raw',
         import: 'default',
         eager: true,
       }),
-      '0067_beta_cohort_capacity.sql',
+      '0116_beta_cohort_capacity_five.sql',
     )
     expect(gate).toContain(`limit ${BETA_COHORT_LIMIT}`)
 
@@ -234,7 +236,6 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
       }),
       '0089_paid_subscribers_are_workspace_members.sql',
     )
-    expect(paidGate).toContain(`limit ${BETA_COHORT_LIMIT}`)
     expect(paidGate).toContain("plan in ('starter', 'growth', 'pro')")
 
     const signup = raw(

@@ -1,3 +1,4 @@
+import { BETA_COHORT_LIMIT } from '@/config/beta'
 import { defineMessages } from '../../core'
 
 export const landingFaq = defineMessages({
@@ -37,8 +38,8 @@ export const landingFaq = defineMessages({
     fr: 'Comment puis-je commencer avec Dutiva ?',
   },
   landing_faq4_a: {
-    en: 'Pick a plan at dutiva.ca/pricing to start today — paying skips the waitlist and includes founder-led support. If you’d rather not pay yet, leave your email on the waitlist of 15 free seats and we’ll write when one opens. The full product is open to every admitted account. Dutiva provides compliance-oriented support. It does not provide legal advice.',
-    fr: 'Choisissez un forfait sur dutiva.ca/tarifs pour commencer aujourd’hui — payer saute la liste d’attente et comprend un soutien mené par le fondateur. Si vous préférez ne pas payer pour l’instant, laissez votre courriel sur la liste d’attente de 15 places gratuites et nous vous écrirons dès qu’une place se libère. Le produit complet est ouvert à chaque compte admis. Dutiva offre un soutien axé sur la conformité. Il ne fournit pas de conseils juridiques.',
+    en: `Pick a plan at dutiva.ca/pricing to start today — paying skips the waitlist and includes founder-led support. If you’d rather not pay yet, leave your email on the waitlist of ${BETA_COHORT_LIMIT} free seats and we’ll write when one opens. The full product is open to every admitted account. Dutiva provides compliance-oriented support. It does not provide legal advice.`,
+    fr: `Choisissez un forfait sur dutiva.ca/tarifs pour commencer aujourd’hui — payer saute la liste d’attente et comprend un soutien mené par le fondateur. Si vous préférez ne pas payer pour l’instant, laissez votre courriel sur la liste d’attente de ${BETA_COHORT_LIMIT} places gratuites et nous vous écrirons dès qu’une place se libère. Le produit complet est ouvert à chaque compte admis. Dutiva offre un soutien axé sur la conformité. Il ne fournit pas de conseils juridiques.`,
   },
   landing_faq5_q: {
     en: 'Is Dutiva reputable?',

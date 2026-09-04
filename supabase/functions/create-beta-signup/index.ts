@@ -153,7 +153,7 @@ const EMAIL_LIMIT = 3
    15 eligible signups, so the response tells the form which of the two things
    just happened. Keep in sync with src/config/beta.ts BETA_COHORT_LIMIT;
    src/canonicalFacts.test.ts fails on drift. */
-const BETA_COHORT_LIMIT = 15
+const BETA_COHORT_LIMIT = 5
 
 const OPERATOR_EMAIL = Deno.env.get('SUPPORT_OPERATOR_EMAIL') ?? 'support@dutiva.ca'
 

@@ -113,7 +113,7 @@ describe('BetaSignup', () => {
     createBetaSignup.mockReset()
     getBetaCohortStatus.mockResolvedValue({ taken: 3, limit: 15 })
     render()
-    expect(screen.getByText(/waitlist has 15 free seats/)).toBeInTheDocument()
+    expect(screen.getByText(/waitlist has 5 free seats/)).toBeInTheDocument()
   })
 
   it('surfaces the rate-limit message and stays on the form', async () => {
