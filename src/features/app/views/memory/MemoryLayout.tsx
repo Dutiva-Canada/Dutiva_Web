@@ -152,7 +152,14 @@ function MemoryNavPanel({
       ))}
 
       <div className="flex-1" />
-      <div className="mt-[16px] rounded-[11px] border border-border-soft bg-surface px-[12px] py-[11px]">
+      <button
+        type="button"
+        onClick={() => go('/app/settings')}
+        className="mb-[10px] w-full cursor-pointer rounded-[9px] border border-transparent bg-transparent px-[10px] py-[8px] text-left font-sans text-[12.5px] font-semibold text-text-muted hover:bg-surface hover:text-text-2"
+      >
+        {x(SM.shell_settings_general)}
+      </button>
+      <div className="mt-[6px] rounded-[11px] border border-border-soft bg-surface px-[12px] py-[11px]">
         <div className="mb-[5px] flex items-center gap-[7px]">
           <ShieldCheck size={15} strokeWidth={1.7} className="text-gold-fg" aria-hidden="true" />
           <span className="text-[11.5px] font-bold text-text">{x(M.memory_state_on_title)}</span>
@@ -313,9 +320,12 @@ function MemoryLayoutDemo() {
 
 function MemoryLayoutProduction() {
   const { organizationId } = useWorkspaceMode()
+  const { pathname } = useLocation()
   const [employeesProd, setEmployeesProd] = useState<ProductionEmployee[]>([])
   const [casesProd, setCasesProd] = useState<ProductionCase[]>([])
   const [threadNav, setThreadNav] = useState<{ id: string; label: string }[]>([])
+  const [personIdsWithFacts, setPersonIdsWithFacts] = useState<Set<string>>(new Set())
+  const [caseIdsWithFacts, setCaseIdsWithFacts] = useState<Set<string>>(new Set())
   const [reviewCount, setReviewCount] = useState(0)
 
   const load = useCallback(async () => {
@@ -323,6 +333,8 @@ function MemoryLayoutProduction() {
       setEmployeesProd([])
       setCasesProd([])
       setThreadNav([])
+      setPersonIdsWithFacts(new Set())
+      setCaseIdsWithFacts(new Set())
       setReviewCount(0)
       return
     }
@@ -336,6 +348,10 @@ function MemoryLayoutProduction() {
       setEmployeesProd(emps)
       setCasesProd(cases)
       setReviewCount(facts.filter((f) => f.confidence === 'inferred').length)
+      setPersonIdsWithFacts(
+        new Set(facts.filter((f) => f.scope === 'person').map((f) => f.entityId)),
+      )
+      setCaseIdsWithFacts(new Set(facts.filter((f) => f.scope === 'case').map((f) => f.entityId)))
       const fromFacts = facts.filter((f) => f.scope === 'thread').map((f) => f.entityId)
       const fromConvos = conversations.map((c) => c.id)
       const ids = [...new Set([...fromConvos, ...fromFacts])]
@@ -350,6 +366,8 @@ function MemoryLayoutProduction() {
       setEmployeesProd([])
       setCasesProd([])
       setThreadNav([])
+      setPersonIdsWithFacts(new Set())
+      setCaseIdsWithFacts(new Set())
       setReviewCount(0)
     }
   }, [organizationId])
@@ -357,6 +375,14 @@ function MemoryLayoutProduction() {
   useEffect(() => {
     void load()
   }, [load])
+
+  const activePersonId = pathname.match(/\/memory\/people\/([^/]+)/)?.[1]
+  const activeCaseId = pathname.match(/\/memory\/cases\/([^/]+)/)?.[1]
+
+  const peopleNav = employeesProd.filter(
+    (e) => personIdsWithFacts.has(e.id) || e.id === activePersonId,
+  )
+  const casesNav = casesProd.filter((c) => caseIdsWithFacts.has(c.id) || c.id === activeCaseId)
 
   const groups: { label: Bi; items: NavEntry[] }[] = [
     {
@@ -374,7 +400,7 @@ function MemoryLayoutProduction() {
     },
     {
       label: M.memory_nav_people,
-      items: employeesProd.map((e) => ({
+      items: peopleNav.map((e) => ({
         key: `person-${e.id}`,
         to: `/app/settings/memory/people/${e.id}`,
         icon: UserRound,
@@ -384,7 +410,7 @@ function MemoryLayoutProduction() {
     },
     {
       label: M.memory_nav_cases,
-      items: casesProd.map((c) => ({
+      items: casesNav.map((c) => ({
         key: `case-${c.id}`,
         to: `/app/settings/memory/cases/${c.id}`,
         icon: Briefcase,

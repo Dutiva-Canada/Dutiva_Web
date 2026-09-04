@@ -50,6 +50,26 @@ export const memoryMessages = defineMessages({
   memory_person_sub: { en: 'People memory', fr: 'Mémoire des personnes' },
   memory_person_ask: { en: 'Ask Advisor about', fr: 'Demander au Conseiller à propos de' },
   memory_person_open_case: { en: 'Open case', fr: 'Ouvrir le dossier' },
+  memory_review_case_memory: {
+    en: 'Review case memory',
+    fr: 'Réviser la mémoire du dossier',
+  }, // [FR self-authored]
+  memory_open_people_record: {
+    en: 'Open people record',
+    fr: 'Ouvrir le dossier du personnel',
+  }, // [FR self-authored]
+  memory_review_person_memory: {
+    en: 'Review Advisor memory',
+    fr: 'Réviser la mémoire du Conseiller',
+  }, // [FR self-authored]
+  memory_review_this_case_memory: {
+    en: 'Case memory',
+    fr: 'Mémoire du dossier',
+  }, // [FR self-authored]
+  memory_manage_from_answer: {
+    en: 'Review in Memory',
+    fr: 'Réviser dans Mémoire',
+  }, // [FR self-authored]
   memory_person_remembers: {
     en: 'What Advisor remembers about',
     fr: 'Ce que le Conseiller retient à propos de',

@@ -8,6 +8,7 @@ import { Disclaimer } from '@/components/Disclaimer'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
+import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import {
   phrasesFromMemoryUsed,
   segmentTextByMemoryPhrases,
@@ -125,7 +126,9 @@ export function ChatRecallProductionView() {
           </div>
           <button
             type="button"
-            onClick={() => navigate('/app/advisor')}
+            onClick={() =>
+              navigate('/app/advisor', { state: { chatId: threadId } satisfies AdvisorSearchNavState })
+            }
             className="cursor-pointer rounded-[9px] border border-border bg-surface px-[12px] py-[8px] font-sans text-[12.5px] font-semibold text-text-2"
           >
             {x(M.memory_prod_open_advisor)}

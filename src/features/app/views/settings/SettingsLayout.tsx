@@ -5,11 +5,10 @@ import { memoryMessages as MEM } from '@/i18n/messages/memory'
 
 /**
  * Shared frame for /app/settings — General settings and Memory as sub-tabs.
- * Each child view owns its own scroll container; this layout is a flex-col
- * wrapper that only contributes the tab strip.
- *
- * Nav landmark with `aria-current` — route navigation, not WAI-ARIA tabs.
+ * On Memory routes the General|Memory strip is hidden so MemoryLayout’s own
+ * nav is the only secondary chrome (Settings still reachable from the rail).
  */
+
 function SettingsTabs() {
   const { x } = useI18n()
   const { pathname } = useLocation()
@@ -42,10 +41,12 @@ function SettingsTabs() {
 }
 
 export function SettingsLayout() {
+  const { pathname } = useLocation()
+  const onMemory = pathname.startsWith('/app/settings/memory')
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <SettingsTabs />
-      {/* SettingsView / MemoryLayout each provide their own scroll container */}
+      {!onMemory && <SettingsTabs />}
       <Outlet />
     </div>
   )

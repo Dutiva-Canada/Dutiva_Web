@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { SubmitEvent } from 'react'
-import { Navigate, useParams } from 'react-router-dom'
-import { Brain, Plus } from 'lucide-react'
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Brain, Briefcase, Plus, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
@@ -12,6 +12,7 @@ import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeCont
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import { getEmployee } from '@/features/app/views/employees/productionApi'
 import type { ProductionEmployee } from '@/features/app/views/employees/productionApi'
+import { listCases } from '@/features/app/views/cases/productionApi'
 import type { MemoryCategory, MemoryFact } from '@/data'
 import { CATEGORY_LABELS, PERSON_CATEGORY_ORDER } from './memoryModel'
 import { MemoryFactRow } from './MemoryFactRow'
@@ -54,12 +55,14 @@ const labelClass = 'mb-[4px] block text-[12px] font-semibold text-text-3'
 
 export function PersonMemoryProductionView() {
   const { x, lang } = useI18n()
+  const navigate = useNavigate()
   const { personId } = useParams()
   const { showToast } = useToasts()
   const { organizationId, isOrgAdmin } = useWorkspaceMode()
 
   const [employee, setEmployee] = useState<ProductionEmployee | null | undefined>(undefined)
   const [facts, setFacts] = useState<MemoryFact[] | null>(null)
+  const [relatedCases, setRelatedCases] = useState<{ id: string; title: string }[]>([])
   const [loadFailed, setLoadFailed] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -73,15 +76,23 @@ export function PersonMemoryProductionView() {
     if (!organizationId || !personId) return
     setLoadFailed(false)
     try {
-      const [emp, factRows] = await Promise.all([
+      const [emp, factRows, cases] = await Promise.all([
         getEmployee(personId),
         listFactsByEntity(organizationId, 'person', personId),
+        listCases(organizationId).catch(() => []),
       ])
       setEmployee(emp)
       setFacts(factRows)
+      setRelatedCases(
+        cases
+          .filter((c) => c.employeeId === personId)
+          .map((c) => ({ id: c.id, title: c.title }))
+          .slice(0, 3),
+      )
     } catch {
       setEmployee(null)
       setFacts([])
+      setRelatedCases([])
       setLoadFailed(true)
     }
   }, [organizationId, personId])
@@ -165,6 +176,8 @@ export function PersonMemoryProductionView() {
     .join('')
     .toUpperCase()
 
+  const firstName = employee.name.split(/\s+/)[0] ?? employee.name
+
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
       <div className="mx-auto max-w-[1080px] px-[16px] pt-[26px] pb-[40px] md:px-[28px]">
@@ -185,17 +198,53 @@ export function PersonMemoryProductionView() {
             <div className="mt-[4px] text-[13.5px] text-text-muted">
               {[employee.title, employee.jurisdiction].filter(Boolean).join(' · ')}
             </div>
+            <Link
+              to={`/app/employees/${employee.id}`}
+              className="mt-[8px] inline-block text-[12.5px] font-semibold text-accent no-underline hover:underline"
+            >
+              {x(M.memory_open_people_record)}
+            </Link>
           </div>
-          {isOrgAdmin && (
+          <div className="flex flex-wrap gap-[9px]">
             <button
               type="button"
-              onClick={() => setFormOpen((o) => !o)}
-              className="flex cursor-pointer items-center gap-[6px] rounded-[9px] border-none bg-navy px-[12px] py-[8px] font-sans text-[12.5px] font-bold text-white"
+              onClick={() => navigate('/app/advisor')}
+              className="flex cursor-pointer items-center gap-[7px] rounded-[9px] border-none bg-navy px-[14px] py-[9px] font-sans text-[13px] font-bold text-white"
             >
-              <Plus size={14} strokeWidth={2} aria-hidden="true" />
-              {x(M.memory_prod_add)}
+              <Sparkle size={15} className="fill-gold-on-navy" strokeWidth={0} aria-hidden="true" />
+              {x(M.memory_person_ask)} {firstName}
             </button>
-          )}
+            {relatedCases[0] && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/app/cases/${relatedCases[0]!.id}`)}
+                  className="flex cursor-pointer items-center gap-[7px] rounded-[9px] border border-border bg-surface px-[14px] py-[9px] font-sans text-[13px] font-bold text-text-2"
+                >
+                  <Briefcase size={16} strokeWidth={1.7} aria-hidden="true" />
+                  {x(M.memory_person_open_case)}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/app/settings/memory/cases/${relatedCases[0]!.id}`)}
+                  className="flex cursor-pointer items-center gap-[7px] rounded-[9px] border border-border bg-surface px-[14px] py-[9px] font-sans text-[13px] font-bold text-text-2"
+                >
+                  <Brain size={16} strokeWidth={1.7} aria-hidden="true" />
+                  {x(M.memory_review_case_memory)}
+                </button>
+              </>
+            )}
+            {isOrgAdmin && (
+              <button
+                type="button"
+                onClick={() => setFormOpen((o) => !o)}
+                className="flex cursor-pointer items-center gap-[6px] rounded-[9px] border border-border bg-surface px-[12px] py-[8px] font-sans text-[12.5px] font-bold text-text-2"
+              >
+                <Plus size={14} strokeWidth={2} aria-hidden="true" />
+                {x(M.memory_prod_add)}
+              </button>
+            )}
+          </div>
         </div>
 
         {formOpen && isOrgAdmin && (

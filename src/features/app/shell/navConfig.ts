@@ -17,6 +17,7 @@ import {
 import type { Bi } from '@/i18n/core'
 import { bi } from '@/i18n/core'
 import { shellMessages as M } from '@/i18n/messages/shell'
+import { memoryMessages as MEM } from '@/i18n/messages/memory'
 import { cases, employeeDetails, employees } from '@/data'
 import { VIEW_LABELS, isDoclibStudioPath } from './navLabels'
 import { workspaceSegments } from '@/features/app/workspaceRoot/workspaceRootContext'
@@ -192,7 +193,7 @@ export function viewLabelFor(pathname: string): Bi {
     return pathname.includes('/planning/calendar') ? M.shell_nav_calendar : M.shell_nav_tasks
   }
   if (segment === 'settings' && pathname.includes('/settings/memory')) {
-    return M.shell_v_settings
+    return MEM.memory_title
   }
   return VIEW_LABELS[segment] ?? M.shell_v_home
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Check, Clock, Pencil, Trash2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -22,7 +23,7 @@ export interface MemoryFactRowProps {
   /** Demo fixtures pass the scenario reference day so "Today" stays deterministic. */
   readonly dateReferenceISO?: string
   /** Manager rows show which scope the fact lives in. */
-  readonly scopeTag?: { icon: LucideIcon; label: Bi | string }
+  readonly scopeTag?: { icon: LucideIcon; label: Bi | string; href?: string }
   /** Production mode passes persistence callbacks; demo defaults to memoryStore. */
   readonly onConfirm?: (id: string) => void
   readonly onCorrect?: (id: string, statement: string) => void
@@ -78,9 +79,18 @@ export function MemoryFactRow({
                 className="text-text-faint"
                 aria-hidden="true"
               />
-              <span className="text-[11px] font-semibold text-text-faint">
-                {typeof scopeTag.label === 'string' ? scopeTag.label : pick(scopeTag.label, lang)}
-              </span>
+              {scopeTag.href ? (
+                <Link
+                  to={scopeTag.href}
+                  className="text-[11px] font-semibold text-accent no-underline hover:underline"
+                >
+                  {typeof scopeTag.label === 'string' ? scopeTag.label : pick(scopeTag.label, lang)}
+                </Link>
+              ) : (
+                <span className="text-[11px] font-semibold text-text-faint">
+                  {typeof scopeTag.label === 'string' ? scopeTag.label : pick(scopeTag.label, lang)}
+                </span>
+              )}
             </div>
           )}
 

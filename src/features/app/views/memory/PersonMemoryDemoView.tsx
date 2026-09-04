@@ -8,6 +8,7 @@ import { statusChipClass } from '@/components/chips'
 import type { ChipTone } from '@/components/chips'
 import { employees, memoryPeople } from '@/data'
 import type { MemoryPersonChip } from '@/data'
+import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import { CATEGORY_LABELS, PERSON_CATEGORY_ORDER } from './memoryModel'
 import { memoryScenarioTodayISO } from '@/data'
 import { MemoryFactRow } from './MemoryFactRow'
@@ -78,7 +79,9 @@ export function PersonMemoryDemoView() {
               type="button"
               onClick={() =>
                 person.threadId !== null
-                  ? navigate(`/app/settings/memory/conversations/${person.threadId}`)
+                  ? navigate('/app/advisor', {
+                      state: { chatId: person.threadId } satisfies AdvisorSearchNavState,
+                    })
                   : navigate('/app/advisor')
               }
               className="flex cursor-pointer items-center gap-[7px] rounded-[9px] border-none bg-navy px-[14px] py-[9px] font-sans text-[13px] font-bold text-white"
@@ -89,15 +92,21 @@ export function PersonMemoryDemoView() {
             {person.caseId !== null && (
               <button
                 type="button"
-                onClick={() =>
-                  person.memoryCaseId !== null
-                    ? navigate(`/app/settings/memory/cases/${person.memoryCaseId}`)
-                    : navigate(`/app/cases/${person.caseId}`)
-                }
+                onClick={() => navigate(`/app/cases/${person.caseId}`)}
                 className="flex cursor-pointer items-center gap-[7px] rounded-[9px] border border-border bg-surface px-[14px] py-[9px] font-sans text-[13px] font-bold text-text-2"
               >
                 <Briefcase size={16} strokeWidth={1.7} aria-hidden="true" />
                 {x(M.memory_person_open_case)}
+              </button>
+            )}
+            {person.memoryCaseId !== null && (
+              <button
+                type="button"
+                onClick={() => navigate(`/app/settings/memory/cases/${person.memoryCaseId}`)}
+                className="flex cursor-pointer items-center gap-[7px] rounded-[9px] border border-border bg-surface px-[14px] py-[9px] font-sans text-[13px] font-bold text-text-2"
+              >
+                <Brain size={16} strokeWidth={1.7} aria-hidden="true" />
+                {x(M.memory_review_case_memory)}
               </button>
             )}
           </div>

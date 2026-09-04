@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Brain } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { casesMessages as M } from '@/i18n/messages/cases'
+import { memoryMessages as MEM } from '@/i18n/messages/memory'
 import { statusChipClass } from '@/components/chips'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
@@ -183,6 +184,13 @@ export function CaseDetailProductionView() {
                   </option>
                 ))}
               </select>
+              <Link
+                to={`/app/settings/memory/cases/${caze.id}`}
+                className="inline-flex items-center gap-[6px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-bold text-text-2 no-underline"
+              >
+                <Brain size={14} strokeWidth={1.7} aria-hidden="true" />
+                {x(MEM.memory_review_this_case_memory)}
+              </Link>
             </div>
             <div className="grid grid-cols-2 gap-[12px] sm:grid-cols-4">
               {facts
