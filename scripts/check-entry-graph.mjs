@@ -105,6 +105,11 @@ const BARRED_PACKAGES = [
     why: 'only signedDocumentPdf (lazy documents surface) builds PDFs',
   },
   {
+    match: (pkg) => pkg === 'docx' || pkg === 'jszip' || pkg.startsWith('@types/jszip'),
+    what: 'the docx OOXML export tree',
+    why: 'only Document Studio Word export (lazy /app) builds .docx',
+  },
+  {
     match: (pkg) => /^(recharts|victory-vendor|d3-)/.test(pkg),
     what: 'the charting tree',
     why: 'it serves one thing — a ```chart block in an Advisor reply',

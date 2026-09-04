@@ -12,8 +12,8 @@ describe('exportFilename', () => {
     expect(exportFilename('Termination Letter — Jordan Mensah', 'pdf', at)).toBe(
       'dutiva-termination-letter-jordan-mensah-20260730.pdf',
     )
-    expect(exportFilename('Congé payé — Éloïse', 'doc', at)).toBe(
-      'dutiva-conge-paye-eloise-20260730.doc',
+    expect(exportFilename('Congé payé — Éloïse', 'docx', at)).toBe(
+      'dutiva-conge-paye-eloise-20260730.docx',
     )
     expect(exportFilename('***', 'json', at)).toBe('dutiva-document-20260730.json')
   })

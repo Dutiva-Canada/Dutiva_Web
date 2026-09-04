@@ -1,9 +1,11 @@
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
+import { pickL } from '@/i18n/core'
 import { legalDocPath, legalRowBySlug, seoRoute } from '@/seo/routes'
 import { supportMessages as M } from '@/i18n/messages/support'
 import { RESPONSE_TARGETS, SUPPORT_CHANNELS } from '@/config/support'
 import { SupportRequestForm } from '@/features/support/SupportRequestForm'
+import { onboardingSupportPrefill } from '@/features/app/views/settings/onboardingRequest'
 import { SupportSectionNav } from './SupportSectionNav'
 
 const PRIORITY_ORDER = ['critical', 'high', 'standard', 'low'] as const
@@ -15,10 +17,19 @@ const PRIORITY_ORDER = ['critical', 'high', 'standard', 'low'] as const
  */
 export function SupportView() {
   const { x, L, lang } = useI18n()
+  const [params] = useSearchParams()
   const supportPolicy = legalRowBySlug('support-policy')
   const supportPolicyPath = supportPolicy
     ? legalDocPath(supportPolicy, lang)
     : seoRoute('legal').path[lang]
+
+  const intent = params.get('intent')
+  const onboarding =
+    intent === 'onboarding-call'
+      ? onboardingSupportPrefill('walkthrough_and_call')
+      : intent === 'walkthrough'
+        ? onboardingSupportPrefill('walkthrough_on_request')
+        : null
 
   return (
     <div className="mx-auto max-w-[1100px] px-[28px] pt-[8px] pb-[64px] max-[640px]:px-[16px]">
@@ -35,7 +46,12 @@ export function SupportView() {
 
       <div className="flex items-start gap-[28px] max-[1023px]:flex-col">
         <div className="min-w-0 flex-1 rounded-[16px] border border-border bg-surface p-[24px] max-[1023px]:w-full">
-          <SupportRequestForm />
+          <SupportRequestForm
+            initialCategory={onboarding?.category}
+            initialSubject={onboarding ? pickL(onboarding.subject, lang) : undefined}
+            initialDescription={onboarding ? pickL(onboarding.description, lang) : undefined}
+            initialResponseMethod={onboarding?.responseMethod}
+          />
         </div>
 
         <aside className="w-[300px] shrink-0 flex-col gap-[16px] max-[1023px]:w-full">

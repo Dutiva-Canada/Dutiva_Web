@@ -4051,6 +4051,7 @@ export type Database = {
           created_by: string | null
           id: string
           last_reviewed: string | null
+          last_reminder_sent_at: string | null
           name: string
           organization_id: string
           status: string
@@ -4061,6 +4062,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           last_reviewed?: string | null
+          last_reminder_sent_at?: string | null
           name: string
           organization_id: string
           status?: string
@@ -4071,6 +4073,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           last_reviewed?: string | null
+          last_reminder_sent_at?: string | null
           name?: string
           organization_id?: string
           status?: string
@@ -5284,6 +5287,7 @@ export type Database = {
           name: string
           plan: string
           signing_reminder_days: number
+          policy_review_days: number
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           subscription_status: string
@@ -5305,6 +5309,7 @@ export type Database = {
           name: string
           plan?: string
           signing_reminder_days?: number
+          policy_review_days?: number
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_status?: string
@@ -5326,6 +5331,7 @@ export type Database = {
           name?: string
           plan?: string
           signing_reminder_days?: number
+          policy_review_days?: number
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_status?: string
@@ -8387,6 +8393,7 @@ export type Database = {
           name: string
           plan: string
           signing_reminder_days: number
+          policy_review_days: number
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           subscription_status: string

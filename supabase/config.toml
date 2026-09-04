@@ -80,5 +80,8 @@ verify_jwt = false
 [functions.signing-reminder-scheduler]
 verify_jwt = false
 
+[functions.policy-review-scheduler]
+verify_jwt = false
+
 [functions.notify-signing-status]
 verify_jwt = false

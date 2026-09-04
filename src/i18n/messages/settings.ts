@@ -67,6 +67,22 @@ export const settingsMessages = defineMessages({
     en: 'Could not save reminder interval',
     fr: 'Impossible d’enregistrer l’intervalle de rappel',
   },
+  settings_policy_review_days: {
+    en: 'Policy review interval (days)',
+    fr: 'Intervalle de révision des politiques (jours)', // [FR self-authored]
+  },
+  settings_policy_review_days_note: {
+    en: 'After this many days without a review, Dutiva marks the policy for review and emails org admins. Between 30 and 365 days.',
+    fr: 'Après ce nombre de jours sans révision, Dutiva marque la politique à revoir et envoie un courriel aux administrateurs. Entre 30 et 365 jours.', // [FR self-authored]
+  },
+  settings_policy_review_saved: {
+    en: 'Policy review interval saved',
+    fr: 'Intervalle de révision enregistré', // [FR self-authored]
+  },
+  settings_policy_review_failed: {
+    en: 'Could not save policy review interval',
+    fr: 'Impossible d’enregistrer l’intervalle de révision', // [FR self-authored]
+  },
 
   /* ── Users & team ───────────────────────────────────────────────────────── */
   settings_team: { en: 'Users & team', fr: 'Équipe et utilisateurs' },
@@ -432,6 +448,22 @@ export const settingsMessages = defineMessages({
   settings_support_request_note: {
     en: 'Opens a written ticket you can track here, with a reference and a response target.',
     fr: 'Ouvre un billet écrit que vous pouvez suivre ici, avec une référence et une cible de réponse.',
+  },
+  settings_onboarding_walkthrough: {
+    en: 'Request an onboarding walkthrough',
+    fr: 'Demander une démonstration d’intégration', // [FR self-authored]
+  },
+  settings_onboarding_walkthrough_note: {
+    en: 'Included with Growth — opens a support request so we can schedule a walkthrough.',
+    fr: 'Inclus avec Croissance — ouvre une demande de soutien pour planifier une démonstration.', // [FR self-authored]
+  },
+  settings_onboarding_call: {
+    en: 'Schedule your onboarding call',
+    fr: 'Planifier votre appel d’intégration', // [FR self-authored]
+  },
+  settings_onboarding_call_note: {
+    en: 'Included with Professional — opens a support request for a scheduled founder call.',
+    fr: 'Inclus avec Professionnel — ouvre une demande de soutien pour un appel planifié avec le fondateur.', // [FR self-authored]
   },
   settings_support_open: { en: 'Open', fr: 'Ouvrir' },
   settings_support_email_note: {

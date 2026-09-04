@@ -247,13 +247,16 @@ describe('Document Studio', () => {
 
     expect(downloads.list).toHaveLength(1)
     const download = downloads.list[0]!
-    expect(download.filename).toMatch(/\.doc$/)
-    const html = await download.blob.text()
-    expect(decodeInvisibleTag(html)).toMatch(/^[0-9a-f-]{36}$/)
-    expect(html).toContain('Exported from Dutiva')
+    expect(download.filename).toMatch(/\.docx$/)
+    const bytes = new Uint8Array(await download.blob.arrayBuffer())
+    const { default: JSZip } = await import('jszip')
+    const zip = await JSZip.loadAsync(bytes)
+    const documentXml = await zip.file('word/document.xml')!.async('string')
+    expect(decodeInvisibleTag(documentXml)).toMatch(/^[0-9a-f-]{36}$/)
+    expect(documentXml).toContain('Exported from Dutiva')
     /* The mock workspace identity is Riley Chen — exports carry the real
        actor label, not the "Demo session" fallback. */
-    expect(html).toContain('Riley Chen')
+    expect(documentXml).toContain('Riley Chen')
   })
 
   it('refuses a bulk-export burst, leaves the document unexported, and says when to retry', async () => {

@@ -18,6 +18,10 @@ import {
   setSigningReminderDays,
 } from '@/features/app/documents/signingReminderSettingsApi'
 import {
+  getPolicyReviewDays,
+  setPolicyReviewDays,
+} from '@/features/app/views/policies/policyReviewSettingsApi'
+import {
   aiToggles,
   notificationToggles,
   provinces,
@@ -50,6 +54,7 @@ import {
   ADVISOR_OVERAGE_MONTHLY_REPLY_CAP,
   ADVISOR_OVERAGE_PER_REPLY_CAD,
 } from '@/config/advisorUsage'
+import { onboardingSupportPath } from './onboardingRequest'
 
 /**
  * Settings view — port of the prototype's largest static view
@@ -78,7 +83,7 @@ export function SettingsView() {
     organizationId,
     setMode: setWorkspaceMode,
   } = useWorkspaceMode()
-  const { plan, subscriptionStatus, isAdmin: isBillingAdmin } = usePlan()
+  const { plan, subscriptionStatus, isAdmin: isBillingAdmin, entitlements } = usePlan()
 
   const memoryInjectionLocked =
     workspaceMode === 'production' &&
@@ -95,6 +100,8 @@ export function SettingsView() {
   const [exportTrail] = useState(() => readExportAudit().slice(0, 8))
   const [reminderDays, setReminderDays] = useState(3)
   const [reminderSaving, setReminderSaving] = useState(false)
+  const [policyReviewDays, setPolicyReviewDaysState] = useState(90)
+  const [policyReviewSaving, setPolicyReviewSaving] = useState(false)
   const [overageOptIn, setOverageOptIn] = useState(false)
   const [overageSaving, setOverageSaving] = useState(false)
 
@@ -123,6 +130,13 @@ export function SettingsView() {
       .catch(() => {
         /* keep default */
       })
+    void getPolicyReviewDays(organizationId)
+      .then((days) => {
+        if (!cancelled) setPolicyReviewDaysState(days)
+      })
+      .catch(() => {
+        /* keep default */
+      })
     return () => {
       cancelled = true
     }
@@ -139,6 +153,20 @@ export function SettingsView() {
       showToast(M.settings_signing_reminder_failed, 'info')
     } finally {
       setReminderSaving(false)
+    }
+  }
+
+  const savePolicyReviewDays = async (raw: number) => {
+    if (!organizationId || policyReviewSaving) return
+    setPolicyReviewSaving(true)
+    try {
+      const saved = await setPolicyReviewDays(organizationId, raw)
+      setPolicyReviewDaysState(saved)
+      showToast(M.settings_policy_review_saved, 'ok')
+    } catch {
+      showToast(M.settings_policy_review_failed, 'info')
+    } finally {
+      setPolicyReviewSaving(false)
     }
   }
 
@@ -169,6 +197,9 @@ export function SettingsView() {
     .replaceAll('{included}', String(ADVISOR_MONTHLY_INCLUDED))
     .replaceAll('{price}', String(ADVISOR_OVERAGE_PER_REPLY_CAD))
     .replaceAll('{cap}', String(ADVISOR_OVERAGE_MONTHLY_REPLY_CAP))
+
+  const onboardingPath = onboardingSupportPath(entitlements.onboarding)
+  const onboardingIsCall = entitlements.onboarding === 'walkthrough_and_call'
 
   return (
     <AppPage width="narrow" responsivePad innerClassName="flex flex-col gap-[26px]">
@@ -284,24 +315,45 @@ export function SettingsView() {
               </p>
               <CapacityAlert />
               {workspaceMode === 'production' && organizationId && (
-                <div className="mt-[14px]">
-                  <label htmlFor="signing-reminder-days" className="text-[12px] text-text-muted">
-                    {x(M.settings_signing_reminder_days)}
-                  </label>
-                  <input
-                    id="signing-reminder-days"
-                    type="number"
-                    min={1}
-                    max={14}
-                    value={reminderDays}
-                    disabled={reminderSaving}
-                    onChange={(e) => setReminderDays(Number(e.target.value) || 1)}
-                    onBlur={() => void saveReminderDays(reminderDays)}
-                    className="mt-[6px] w-[88px] rounded-[8px] border border-border bg-bg px-[10px] py-[7px] text-[13.5px] text-text"
-                  />
-                  <p className="mt-[6px] text-[11.5px] leading-normal text-text-faint">
-                    {x(M.settings_signing_reminder_days_note)}
-                  </p>
+                <div className="mt-[14px] flex flex-col gap-[14px]">
+                  <div>
+                    <label htmlFor="signing-reminder-days" className="text-[12px] text-text-muted">
+                      {x(M.settings_signing_reminder_days)}
+                    </label>
+                    <input
+                      id="signing-reminder-days"
+                      type="number"
+                      min={1}
+                      max={14}
+                      value={reminderDays}
+                      disabled={reminderSaving}
+                      onChange={(e) => setReminderDays(Number(e.target.value) || 1)}
+                      onBlur={() => void saveReminderDays(reminderDays)}
+                      className="mt-[6px] w-[88px] rounded-[8px] border border-border bg-bg px-[10px] py-[7px] text-[13.5px] text-text"
+                    />
+                    <p className="mt-[6px] text-[11.5px] leading-normal text-text-faint">
+                      {x(M.settings_signing_reminder_days_note)}
+                    </p>
+                  </div>
+                  <div>
+                    <label htmlFor="policy-review-days" className="text-[12px] text-text-muted">
+                      {x(M.settings_policy_review_days)}
+                    </label>
+                    <input
+                      id="policy-review-days"
+                      type="number"
+                      min={30}
+                      max={365}
+                      value={policyReviewDays}
+                      disabled={policyReviewSaving}
+                      onChange={(e) => setPolicyReviewDaysState(Number(e.target.value) || 30)}
+                      onBlur={() => void savePolicyReviewDays(policyReviewDays)}
+                      className="mt-[6px] w-[88px] rounded-[8px] border border-border bg-bg px-[10px] py-[7px] text-[13.5px] text-text"
+                    />
+                    <p className="mt-[6px] text-[11.5px] leading-normal text-text-faint">
+                      {x(M.settings_policy_review_days_note)}
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
@@ -640,6 +692,35 @@ export function SettingsView() {
               className="shrink-0 text-text-muted"
             />
           </Link>
+          {onboardingPath && (
+            <Link
+              to={onboardingPath}
+              className="flex items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[13px] no-underline hover:bg-inset"
+            >
+              <span className="min-w-0">
+                <span className="block text-[13px] font-semibold text-text">
+                  {x(
+                    onboardingIsCall
+                      ? M.settings_onboarding_call
+                      : M.settings_onboarding_walkthrough,
+                  )}
+                </span>
+                <span className="mt-[2px] block text-[12px] leading-[1.5] text-text-muted">
+                  {x(
+                    onboardingIsCall
+                      ? M.settings_onboarding_call_note
+                      : M.settings_onboarding_walkthrough_note,
+                  )}
+                </span>
+              </span>
+              <LifeBuoy
+                size={15}
+                strokeWidth={1.7}
+                aria-hidden="true"
+                className="shrink-0 text-text-muted"
+              />
+            </Link>
+          )}
           <div className="border-t border-inset px-[18px] py-[10px] text-[11px] text-text-faint">
             {x(M.settings_support_email_note)}{' '}
             <a href={`mailto:${SUPPORT_EMAIL}`} className="font-semibold text-text-2">

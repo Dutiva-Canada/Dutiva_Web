@@ -301,7 +301,7 @@ export function DocStudioProvider({ children }: { readonly children: ReactNode }
           new Blob([bytes.buffer as ArrayBuffer], { type: 'application/pdf' }),
         )
       } else if (kind === 'Word') {
-        const html = buildWordDoc({
+        const bytes = await buildWordDoc({
           title,
           paragraphs,
           footerLines,
@@ -312,8 +312,10 @@ export function DocStudioProvider({ children }: { readonly children: ReactNode }
           lang,
         })
         triggerDownload(
-          exportFilename(title, 'doc', stamp.exportedAt),
-          new Blob([html], { type: 'application/msword' }),
+          exportFilename(title, 'docx', stamp.exportedAt),
+          new Blob([bytes.buffer as ArrayBuffer], {
+            type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          }),
         )
       } else {
         /* "Copy link" — a reference URL carrying the export id, so even the
