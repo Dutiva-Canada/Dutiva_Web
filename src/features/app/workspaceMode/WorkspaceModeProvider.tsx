@@ -13,6 +13,7 @@ import {
 } from './api'
 import { resetAdvisorSession } from '@/features/app/views/advisor/advisorSession'
 import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
+import { resolveContactDisplayName } from './contactDisplayName'
 import { WorkspaceModeContext } from './workspaceModeContext'
 import type { AdmissionStatus, WorkspaceIdentity, WorkspaceMode } from './workspaceModeContext'
 import type { OrgMemberRole } from './roles'
@@ -106,7 +107,16 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
         }
       }
 
-      const contactName = profile?.contactName ?? 'Martin Constantineau'
+      const authFullName =
+        typeof session.user.user_metadata?.full_name === 'string'
+          ? session.user.user_metadata.full_name
+          : null
+      const contactName = resolveContactDisplayName({
+        contactName: profile?.contactName,
+        email,
+        authFullName,
+        fallback: 'Martin Constantineau',
+      })
       setAdmin({
         isAdmin: true,
         storedMode,
@@ -202,6 +212,16 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
     const profile = await fetchAdminProfile(session.user.id)
     if (!profile) return
     const email = session.user.email ?? ''
+    const authFullName =
+      typeof session.user.user_metadata?.full_name === 'string'
+        ? session.user.user_metadata.full_name
+        : null
+    const contactName = resolveContactDisplayName({
+      contactName: profile.contactName,
+      email,
+      authFullName,
+      fallback: 'Martin Constantineau',
+    })
     setAdmin((prev) => ({
       ...prev,
       identity: {
@@ -209,8 +229,8 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
         province: profile.province,
         city: profile.city,
         user: {
-          name: profile.contactName,
-          initials: initialsOf(profile.contactName),
+          name: contactName,
+          initials: initialsOf(contactName),
           role: bi('Admin', 'Administrateur'),
           email,
         },
