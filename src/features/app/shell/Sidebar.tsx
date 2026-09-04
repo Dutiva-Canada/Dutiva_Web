@@ -34,24 +34,18 @@ const DEFAULT_SECTIONS: Record<SectionKey, boolean> = {
   records: true,
   programs: true,
 }
-/** Empty production: keep Records open, collapse Programs until the user opens them. */
-const EMPTY_DEFAULT_SECTIONS: Record<SectionKey, boolean> = {
-  records: true,
-  programs: false,
-}
 
 const EXPANDED_WIDTH = 'w-[292px]'
 const COMPACT_WIDTH = 'w-[64px]'
 
-function readSectionPrefs(emptyWorkspace: boolean): Record<SectionKey, boolean> {
-  const defaults = emptyWorkspace ? EMPTY_DEFAULT_SECTIONS : DEFAULT_SECTIONS
+function readSectionPrefs(): Record<SectionKey, boolean> {
   try {
     const raw = readPref(SECTION_PREFS_KEY, '')
-    if (!raw) return defaults
+    if (!raw) return DEFAULT_SECTIONS
     const parsed = JSON.parse(raw) as Partial<Record<SectionKey, boolean>>
-    return { ...defaults, ...parsed }
+    return { ...DEFAULT_SECTIONS, ...parsed }
   } catch {
-    return defaults
+    return DEFAULT_SECTIONS
   }
 }
 
@@ -124,19 +118,10 @@ export function Sidebar({
   const workspaceEmpty = useProductionWorkspaceEmpty()
   const expanded = mode === 'expanded' || mode === 'drawer'
   const onHome = pathname === `${root}/home` || pathname.startsWith(`${root}/home/`)
+  const firstPersonHref = `${root}/employees?new=1`
 
-  const [sections, setSections] = useState<Record<SectionKey, boolean>>(() =>
-    readSectionPrefs(false),
-  )
+  const [sections, setSections] = useState<Record<SectionKey, boolean>>(readSectionPrefs)
   const activeGroup = useMemo(() => activeGroupIndex(pathname, navGroups), [pathname, navGroups])
-
-  /* Once we know the workspace is empty and the user has never stored section
-     prefs, collapse Programs so the rail fits without a heavy scroll. */
-  useEffect(() => {
-    if (!workspaceEmpty) return
-    if (readPref(SECTION_PREFS_KEY, '')) return
-    setSections(EMPTY_DEFAULT_SECTIONS)
-  }, [workspaceEmpty])
 
   const toggleSection = useCallback((key: SectionKey) => {
     setSections((prev) => {
@@ -202,16 +187,17 @@ export function Sidebar({
           expanded={expanded}
           inDrawer={mode === 'drawer'}
           identity={identity}
+          workspaceMode={workspaceMode}
           onCloseDrawer={onCloseDrawer}
           focusCloseOnMount={focusDrawerClose}
         />
         <div className={cx('flex gap-2', expanded ? 'flex-col' : 'flex-col items-center')}>
           {!readOnly ? <SidebarCreateMenu expanded={expanded} onNavigate={onCloseDrawer} /> : null}
-          <SidebarSearch expanded={expanded} />
+          <SidebarSearch expanded={expanded} quiet={workspaceEmpty} />
         </div>
         {expanded && workspaceEmpty && onHome && !isPublicDemo && (
           <Link
-            to={`${root}/home`}
+            to={firstPersonHref}
             onClick={onCloseDrawer}
             className="mt-2 flex items-start gap-2 rounded-[9px] border border-border-soft bg-surface px-2.5 py-2 text-left hover:border-(--accent-soft-border)"
           >
@@ -244,11 +230,6 @@ export function Sidebar({
         {navGroups.map((group, i) => {
           const isLast = i === navGroups.length - 1
           const key = group.heading ? SECTION_KEYS[i - 1] : null
-          /* Compact + empty: hide Programs icons so the rail stays scannable;
-             expanded still shows the collapsed section heading. */
-          if (!expanded && workspaceEmpty && key === 'programs' && !effectiveSections.programs) {
-            return null
-          }
           if (group.heading === null) {
             return (
               <div key={group.items[0]?.key ?? i} className="flex flex-col">
@@ -268,6 +249,7 @@ export function Sidebar({
                 heading={heading}
                 expanded={expanded}
                 open={!!effectiveSections[key]}
+                itemCount={group.items.length}
                 onToggle={() => toggleSection(key)}
               >
                 {renderGroupItems(group)}

@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
-import type { WorkspaceIdentity } from '@/features/app/workspaceMode/workspaceModeContext'
+import type { WorkspaceIdentity, WorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { SidebarTooltip } from './SidebarTooltip'
 import { cx } from './cx'
 
@@ -10,6 +10,7 @@ interface SidebarHeaderProps {
   readonly expanded: boolean
   readonly inDrawer: boolean
   readonly identity: WorkspaceIdentity
+  readonly workspaceMode: WorkspaceMode
   readonly onCloseDrawer?: () => void
   readonly focusCloseOnMount?: boolean
 }
@@ -18,6 +19,7 @@ export function SidebarHeader({
   expanded,
   inDrawer,
   identity,
+  workspaceMode,
   onCloseDrawer,
   focusCloseOnMount = false,
 }: SidebarHeaderProps) {
@@ -29,6 +31,7 @@ export function SidebarHeader({
     }
   }, [focusCloseOnMount, inDrawer])
   const { x } = useI18n()
+  const subtitle = workspaceMode === 'demo' ? x(M.shell_demo_workspace) : x(M.shell_hr_workspace)
 
   return (
     <div
@@ -58,7 +61,7 @@ export function SidebarHeader({
         >
           {identity.companyName}
         </div>
-        <div className="truncate text-[11px] text-text-muted">{x(M.shell_hr_workspace)}</div>
+        <div className="truncate text-[11px] text-text-muted">{subtitle}</div>
       </div>
       {inDrawer && (
         <button

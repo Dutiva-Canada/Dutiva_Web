@@ -108,6 +108,28 @@ describe('Sidebar', () => {
     expect(homeLink).not.toHaveAttribute('aria-current')
   })
 
+  it('shows Demo workspace under the company name in demo mode', () => {
+    renderApp(<Sidebar mode="expanded" />, { route: '/app/home' })
+    expect(screen.getByText('Demo workspace')).toBeInTheDocument()
+    expect(screen.queryByText('HR workspace')).not.toBeInTheDocument()
+  })
+
+  it('shows the module count on a collapsed Programs heading', async () => {
+    const user = userEvent.setup()
+    renderApp(<Sidebar mode="expanded" />, { route: '/app/home' })
+
+    const programsToggle = screen.getByRole('button', { name: /^Programs$/i })
+    await user.click(programsToggle)
+
+    expect(screen.getByRole('button', { name: /Programs, 5 items/i })).toBeInTheDocument()
+    expect(screen.getByText('5')).toBeInTheDocument()
+  })
+
+  it('renders Collapse control aligned with nav density', () => {
+    renderApp(<Sidebar mode="expanded" onToggleExpanded={() => {}} />, { route: '/app/home' })
+    expect(screen.getByRole('button', { name: 'Collapse' })).toBeInTheDocument()
+  })
+
   it('expands and collapses Records and Programs sections', async () => {
     const user = userEvent.setup()
     renderApp(<Sidebar mode="expanded" />, { route: '/app/home' })
