@@ -6,26 +6,28 @@ import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeCont
 import { updateAdminProfile } from '@/features/app/workspaceMode/api'
 import { settingsMessages as M } from '@/i18n/messages/settings'
 
-const PROVINCE_OPTIONS = [
-  'Alberta',
-  'British Columbia',
-  'Manitoba',
-  'New Brunswick',
-  'Newfoundland and Labrador',
-  'Nova Scotia',
-  'Ontario',
-  'Prince Edward Island',
-  'Quebec',
-  'Saskatchewan',
-  'Northwest Territories',
-  'Nunavut',
-  'Yukon',
+/** Stored `profiles.province` values — Federal means Canada Labour Code. */
+const JURISDICTION_OPTIONS = [
+  { value: 'Federal', label: M.settings_prov_federal },
+  { value: 'Alberta', label: null },
+  { value: 'British Columbia', label: null },
+  { value: 'Manitoba', label: null },
+  { value: 'New Brunswick', label: null },
+  { value: 'Newfoundland and Labrador', label: null },
+  { value: 'Nova Scotia', label: null },
+  { value: 'Ontario', label: null },
+  { value: 'Prince Edward Island', label: null },
+  { value: 'Quebec', label: null },
+  { value: 'Saskatchewan', label: null },
+  { value: 'Northwest Territories', label: null },
+  { value: 'Nunavut', label: null },
+  { value: 'Yukon', label: null },
 ] as const
 
 const fieldClass =
   'mt-[6px] w-full max-w-[320px] rounded-[8px] border border-border bg-bg px-[10px] py-[7px] text-[13.5px] text-text'
 
-/** Production workspace: edit company name / province / city on the user's profile. */
+/** Production workspace: edit company name / jurisdiction / city on the user's profile. */
 export function WorkspaceProfileEditor() {
   const { x } = useI18n()
   const { status, session } = useAuth()
@@ -43,6 +45,9 @@ export function WorkspaceProfileEditor() {
   }, [identity.companyName, identity.province, identity.city])
 
   if (!isAdmin || status !== 'signed-in' || !session) return null
+
+  const knownValues = JURISDICTION_OPTIONS.map((o) => o.value)
+  const hasKnownProvince = knownValues.includes(province as (typeof knownValues)[number])
 
   const save = async () => {
     if (saving) return
@@ -62,7 +67,9 @@ export function WorkspaceProfileEditor() {
 
   return (
     <div>
-      <p className="mb-[10px] text-[12px] text-text-muted">{x(M.settings_profile_edit)}</p>
+      <div className="mb-[12px] text-[12px] font-semibold text-text-3">
+        {x(M.settings_profile_edit)}
+      </div>
       <div className="flex flex-col gap-[12px]">
         <div>
           <label htmlFor="settings-company-name" className="text-[12px] text-text-muted">
@@ -79,7 +86,7 @@ export function WorkspaceProfileEditor() {
         </div>
         <div>
           <label htmlFor="settings-province" className="text-[12px] text-text-muted">
-            {x(M.settings_provinces_of_op)}
+            {x(M.settings_primary_jurisdiction)}
           </label>
           <select
             id="settings-province"
@@ -88,19 +95,17 @@ export function WorkspaceProfileEditor() {
             onChange={(e) => setProvince(e.target.value)}
             className={fieldClass}
           >
-            {!PROVINCE_OPTIONS.includes(province as (typeof PROVINCE_OPTIONS)[number]) && (
-              <option value={province}>{province}</option>
-            )}
-            {PROVINCE_OPTIONS.map((p) => (
-              <option key={p} value={p}>
-                {p}
+            {!hasKnownProvince && <option value={province}>{province}</option>}
+            {JURISDICTION_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label ? x(opt.label) : opt.value}
               </option>
             ))}
           </select>
         </div>
         <div>
           <label htmlFor="settings-city" className="text-[12px] text-text-muted">
-            {x(M.settings_locations)}
+            {x(M.settings_city)}
           </label>
           <input
             id="settings-city"
