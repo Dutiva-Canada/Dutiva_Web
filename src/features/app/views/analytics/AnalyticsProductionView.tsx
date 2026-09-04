@@ -5,6 +5,7 @@ import { useI18n } from '@/i18n/context'
 import { analyticsMessages as M } from '@/i18n/messages/analytics'
 import { casesMessages } from '@/i18n/messages/cases'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { usePlan } from '@/features/app/billing/planContext'
 import { analyticsCardVisible } from './cardVisibility'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import {
@@ -158,6 +159,7 @@ export function AnalyticsProductionView() {
   const { x, lang } = useI18n()
   const locale = intlLocale(lang)
   const { organizationId, memberRole, isOrgAdmin } = useWorkspaceMode()
+  const { plan, isAdmin: isBillingAdmin } = usePlan()
 
   const todayISO = new Date().toISOString().slice(0, 10)
   const currentMonthISO = monthStartISO(todayISO)
@@ -509,7 +511,9 @@ export function AnalyticsProductionView() {
       : null
 
   const show = (card: Parameters<typeof analyticsCardVisible>[0]) =>
-    analyticsCardVisible(card, memberRole, isOrgAdmin)
+    analyticsCardVisible(card, memberRole, isOrgAdmin, plan, {
+      bypassPlanGates: isBillingAdmin,
+    })
 
   return (
     <AppPage width="default" responsivePad>

@@ -305,8 +305,8 @@ export const pricingMessages = defineMessages({
     fr: 'Export PDF', // [FR self-authored]
   },
   pricing_row_word_export: {
-    en: 'Word-compatible export',
-    fr: 'Export compatible Word', // [FR self-authored]
+    en: 'Word (.docx) export',
+    fr: 'Export Word (.docx)', // [FR self-authored]
   },
   pricing_row_doc_repository: {
     en: 'Document repository',

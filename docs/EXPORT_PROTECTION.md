@@ -37,13 +37,13 @@ because any single channel can be stripped (`src/lib/exportProtection/`):
 Export ID {id}.` Survives print, screenshot, and PDF re-save.
 2. **Invisible zero-width tag** (`fingerprint.ts`) — the id encoded as
    ZWNJ/ZWSP runs between WORD JOINER sentinels, woven into the exported
-   text (Word/HTML/JSON notice string). Survives copy-paste of the content
+   text (Word body / JSON notice string). Survives copy-paste of the content
    itself — exactly the path a visible footer gets cropped from.
    `decodeInvisibleTag()` recovers it from a leaked snippet.
 3. **Artifact metadata** — PDF `/Info /Keywords (dutiva-export-id:…)` +
-   `/Author`; Word `<meta name="dutiva-export-id">` + an HTML comment; the
-   JSON `_export` manifest (id, actor, workspace, timestamp, content
-   SHA-256). Survives file re-saves that keep the format.
+   `/Author`; Word core keywords + custom property `dutiva-export-id` in
+   the `.docx` package; the JSON `_export` manifest (id, actor, workspace,
+   timestamp, content SHA-256). Survives file re-saves that keep the format.
 
 The PDF body deliberately carries no zero-width tag (WinAnsi has no encoding
 for those code points); its per-page footer + Info dict do that job.

@@ -68,19 +68,31 @@ const selectClass =
 const inputClass = selectClass
 const textareaClass = `${selectClass} min-h-[120px] resize-y`
 
-export function SupportRequestForm() {
+export function SupportRequestForm({
+  initialCategory,
+  initialSubject,
+  initialDescription,
+  initialResponseMethod,
+}: {
+  readonly initialCategory?: SupportCategory
+  readonly initialSubject?: string
+  readonly initialDescription?: string
+  readonly initialResponseMethod?: ResponseMethod
+} = {}) {
   const { x, lang } = useI18n()
   const { organizationId } = useWorkspaceMode()
   const baseId = useId()
   const fid = (name: string) => `${baseId}-${name}`
 
-  const [category, setCategory] = useState<SupportCategory | ''>('')
-  const [subject, setSubject] = useState('')
-  const [description, setDescription] = useState('')
+  const [category, setCategory] = useState<SupportCategory | ''>(initialCategory ?? '')
+  const [subject, setSubject] = useState(initialSubject ?? '')
+  const [description, setDescription] = useState(initialDescription ?? '')
   const [impact, setImpact] = useState<SupportImpact>('none')
   const [urgency, setUrgency] = useState<SupportUrgency>('whenever')
   const [language, setLanguage] = useState<'en' | 'fr'>(lang)
-  const [responseMethod, setResponseMethod] = useState<ResponseMethod>('email')
+  const [responseMethod, setResponseMethod] = useState<ResponseMethod>(
+    initialResponseMethod ?? 'email',
+  )
   const [canSignIn, setCanSignIn] = useState('')
   const [billingRef, setBillingRef] = useState('')
   const [accommodation, setAccommodation] = useState('')
