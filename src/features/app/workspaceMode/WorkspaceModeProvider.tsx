@@ -197,6 +197,27 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
     setAdmin((prev) => ({ ...prev, admissionStatus: 'idle' }))
   }, [])
 
+  const refreshIdentity = useCallback(async () => {
+    if (!admin.isAdmin || !session) return
+    const profile = await fetchAdminProfile(session.user.id)
+    if (!profile) return
+    const email = session.user.email ?? ''
+    setAdmin((prev) => ({
+      ...prev,
+      identity: {
+        companyName: profile.companyName,
+        province: profile.province,
+        city: profile.city,
+        user: {
+          name: profile.contactName,
+          initials: initialsOf(profile.contactName),
+          role: bi('Admin', 'Administrateur'),
+          email,
+        },
+      },
+    }))
+  }, [admin.isAdmin, session])
+
   const value = useMemo(() => {
     if (isPublicDemo) {
       return {
@@ -208,6 +229,7 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
         memberRole: null,
         isOrgAdmin: false,
         setMode: async () => {},
+        refreshIdentity: async () => {},
         admissionStatus: 'idle' as const,
         clearAdmissionStatus: () => {},
       }
@@ -230,10 +252,11 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
       /* Mirrors RLS's is_org_admin: platform admin, or owner/admin role. */
       isOrgAdmin: mode === 'production' && (admin.isAdmin || isAdminRole(memberRole)),
       setMode,
+      refreshIdentity,
       admissionStatus: admin.admissionStatus,
       clearAdmissionStatus,
     }
-  }, [admin, setMode, clearAdmissionStatus, isPublicDemo])
+  }, [admin, setMode, refreshIdentity, clearAdmissionStatus, isPublicDemo])
 
   return <WorkspaceModeContext.Provider value={value}>{children}</WorkspaceModeContext.Provider>
 }

@@ -522,6 +522,7 @@ describe('EmployeeProfileProductionView for a non-admin member', () => {
           setMode: vi.fn(),
           admissionStatus: 'idle',
           clearAdmissionStatus: vi.fn(),
+          refreshIdentity: vi.fn(),
         }}
       >
         <ProfileFresh />

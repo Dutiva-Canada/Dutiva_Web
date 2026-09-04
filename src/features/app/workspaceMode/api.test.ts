@@ -136,6 +136,48 @@ describe('workspaceMode api', () => {
     })
   })
 
+  it('updateAdminProfile writes company and region fields', async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: {
+        legal_name: 'Acme HR Inc.',
+        company_name: 'Acme HR Inc.',
+        primary_contact: 'Alex',
+        province: 'Quebec',
+        city: 'Montréal',
+      },
+      error: null,
+    })
+    const select = vi.fn().mockReturnValue({ maybeSingle })
+    const eq = vi.fn().mockReturnValue({ select })
+    const update = vi.fn().mockReturnValue({ eq })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: { from: vi.fn().mockReturnValue({ update }) },
+    }))
+    vi.resetModules()
+    const api = await import('./api')
+
+    expect(
+      await api.updateAdminProfile('u1', {
+        companyName: 'Acme HR Inc.',
+        province: 'Quebec',
+        city: 'Montréal',
+      }),
+    ).toEqual({
+      companyName: 'Acme HR Inc.',
+      contactName: 'Alex',
+      province: 'Quebec',
+      city: 'Montréal',
+    })
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        legal_name: 'Acme HR Inc.',
+        company_name: 'Acme HR Inc.',
+        province: 'Quebec',
+        city: 'Montréal',
+      }),
+    )
+  })
+
   it('saveStoredMode upserts and reports success', async () => {
     const upsert = vi.fn().mockResolvedValue({ error: null })
     vi.doMock('@/lib/supabaseClient', () => ({

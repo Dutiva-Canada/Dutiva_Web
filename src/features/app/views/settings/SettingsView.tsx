@@ -18,7 +18,6 @@ import {
 } from '@/features/app/documents/signingReminderSettingsApi'
 import {
   aiToggles,
-  initialPrefs,
   notificationToggles,
   provinces,
   retentionRows,
@@ -27,9 +26,13 @@ import {
   segClass,
 } from './settingsData'
 import type { PrefKey } from './settingsData'
+import { readSettingsPrefs, writeSettingsPrefs } from './settingsPrefs'
 import { Card, Section, StatusChip, ToggleRow, ToggleSwitch } from './settingsPrimitives'
 import { CapacityAlert } from './CapacityAlert'
 import { SettingsDemoFixtures } from './SettingsDemoFixtures'
+import { SettingsBillingSection } from './SettingsBillingSection'
+import { SettingsProductionTeam } from './SettingsProductionTeam'
+import { WorkspaceProfileEditor } from './WorkspaceProfileEditor'
 import { AppPage } from '@/features/app/shell/AppPage'
 import { useMdUp } from '@/lib/useMediaQuery'
 import { useAuth } from '@/features/app/auth/authContext'
@@ -51,11 +54,10 @@ import {
  * Settings view — port of the prototype's largest static view
  * (`App v2.dc.html` markup 1267–1435, `buildSettingsView()` 3539–3622).
  *
- * Appearance/Language segments drive the real ThemeProvider / LangProvider;
- * preference toggles flip local state (prototype `settingsPrefs`); the
- * Calendar-sync integration starts in its error state and Retry clears it
- * with a toast, exactly like `retryIntegration()`. Content tables live in
- * settingsData.ts; shared building blocks in settingsPrimitives.tsx.
+ * Appearance/Language drive ThemeProvider / LangProvider. Preference toggles
+ * persist on-device (`settingsPrefs`) with honest copy where delivery isn't
+ * live. Production adds profile edit, billing portal, and a real member card;
+ * demo keeps Northgate fixtures labelled as samples.
  */
 
 const SUPPORT_EMAIL = supportChannel('support').email
@@ -72,7 +74,6 @@ export function SettingsView() {
   const {
     mode: workspaceMode,
     isAdmin,
-    identity,
     organizationId,
     setMode: setWorkspaceMode,
   } = useWorkspaceMode()
@@ -87,9 +88,9 @@ export function SettingsView() {
       hasActiveSubscription(subscriptionStatus)
     )
 
-  const [prefs, setPrefs] = useState<Record<PrefKey, boolean>>(initialPrefs)
+  const [prefs, setPrefs] = useState<Record<PrefKey, boolean>>(readSettingsPrefs)
   /* Device-local export audit trail (src/lib/exportProtection) — read once
-     per mount; the workspace-wide copy lives in export_events server-side. */
+     per mount; signed-in exports also land in export_events for staff. */
   const [exportTrail] = useState(() => readExportAudit().slice(0, 8))
   const [reminderDays, setReminderDays] = useState(3)
   const [reminderSaving, setReminderSaving] = useState(false)
@@ -141,7 +142,11 @@ export function SettingsView() {
   }
 
   const toggleSetting = (key: PrefKey) => {
-    setPrefs((s) => ({ ...s, [key]: !s[key] }))
+    setPrefs((s) => {
+      const next = { ...s, [key]: !s[key] }
+      writeSettingsPrefs(next)
+      return next
+    })
   }
 
   const saveOverageOptIn = async () => {
@@ -163,13 +168,6 @@ export function SettingsView() {
     .replaceAll('{included}', String(ADVISOR_MONTHLY_INCLUDED))
     .replaceAll('{price}', String(ADVISOR_OVERAGE_PER_REPLY_CAD))
     .replaceAll('{cap}', String(ADVISOR_OVERAGE_MONTHLY_REPLY_CAP))
-
-  /* Production shows the real profile's single operating region; demo keeps
-     the Northgate fixture chips. */
-  const provinceChips: string[] =
-    workspaceMode === 'production'
-      ? [identity.province ?? 'Ontario']
-      : provinces.map((prov) => x(prov))
 
   return (
     <AppPage width="narrow" responsivePad innerClassName="flex flex-col gap-[26px]">
@@ -307,37 +305,46 @@ export function SettingsView() {
               )}
             </div>
           )}
-          <div>
-            <span className="text-[12px] text-text-muted">{x(M.settings_company)}</span>
-            <div className="text-[14px] font-semibold text-text">
-              {workspaceMode === 'production' ? identity.companyName : 'Northgate Logistics Inc.'}
-            </div>
-          </div>
-          <div>
-            <span className="text-[12px] text-text-muted">{x(M.settings_provinces_of_op)}</span>
-            <div className="mt-[6px] flex flex-wrap gap-[6px]">
-              {provinceChips.map((prov) => (
-                <span
-                  key={prov}
-                  className="rounded-[100px] bg-inset px-[11px] py-[4px] text-[12.5px] font-semibold text-text-2"
-                >
-                  {prov}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div>
-            <span className="text-[12px] text-text-muted">{x(M.settings_locations)}</span>
-            <div className="mt-[2px] text-[13.5px] font-semibold text-text">
-              {workspaceMode === 'production'
-                ? (identity.city ?? 'Ottawa')
-                : x(M.settings_locations_value)}
-            </div>
-          </div>
+          {workspaceMode === 'production' ? (
+            <WorkspaceProfileEditor />
+          ) : (
+            <>
+              <div>
+                <span className="text-[12px] text-text-muted">{x(M.settings_company)}</span>
+                <div className="text-[14px] font-semibold text-text">Northgate Logistics Inc.</div>
+              </div>
+              <div>
+                <span className="text-[12px] text-text-muted">{x(M.settings_provinces_of_op)}</span>
+                <div className="mt-[6px] flex flex-wrap gap-[6px]">
+                  {provinces.map((prov) => (
+                    <span
+                      key={prov.en}
+                      className="rounded-[100px] bg-inset px-[11px] py-[4px] text-[12.5px] font-semibold text-text-2"
+                    >
+                      {x(prov)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <span className="text-[12px] text-text-muted">{x(M.settings_locations)}</span>
+                <div className="mt-[2px] text-[13.5px] font-semibold text-text">
+                  {x(M.settings_locations_value)}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </Section>
 
-      {workspaceMode !== 'production' && <SettingsDemoFixtures />}
+      {workspaceMode === 'production' ? (
+        <>
+          <SettingsProductionTeam />
+          <SettingsBillingSection />
+        </>
+      ) : (
+        <SettingsDemoFixtures />
+      )}
 
       {/* Notifications */}
       <Section label={x(M.settings_notifications)}>
@@ -350,6 +357,9 @@ export function SettingsView() {
               onToggle={() => toggleSetting(spec.key)}
             />
           ))}
+          <div className="border-t border-inset px-[18px] py-[10px] text-[11px] text-text-faint">
+            {x(M.settings_notifications_note)}
+          </div>
         </Card>
       </Section>
 
@@ -395,6 +405,9 @@ export function SettingsView() {
               />
             )
           })}
+          <div className="border-t border-inset px-[18px] py-[10px] text-[11px] text-text-faint">
+            {x(M.settings_ai_prefs_note)}
+          </div>
           {authStatus === 'signed-in' && organizationId ? <AdvisorUsagePanel /> : null}
           {authStatus === 'signed-in' && (
             <div className="flex items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[14px]">
@@ -518,6 +531,9 @@ export function SettingsView() {
               <div className="text-right text-[12.5px] text-text-2">{x(sec.v)}</div>
             </div>
           ))}
+          <div className="border-t border-inset px-[18px] py-[10px] text-[11px] text-text-faint">
+            {x(M.settings_security_note)}
+          </div>
         </Card>
       </Section>
 
@@ -548,6 +564,14 @@ export function SettingsView() {
           <div className="border-t border-inset px-[18px] py-[10px] text-[11px] text-text-faint">
             {x(XP.exportprot_audit_device_note)}
           </div>
+          {isAdmin && (
+            <Link
+              to="/app/support/admin/exports"
+              className="block border-t border-inset px-[18px] py-[12px] text-[12.5px] font-semibold text-accent no-underline hover:bg-inset"
+            >
+              {x(M.settings_export_admin_link)}
+            </Link>
+          )}
         </Card>
       </Section>
 

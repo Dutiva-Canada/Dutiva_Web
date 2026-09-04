@@ -27,10 +27,13 @@ describe('SettingsView', () => {
     expect(screen.getByText('7 years after employment ends (ESA/CRA)')).toBeInTheDocument()
     expect(screen.getByText('Canada (Montréal region)')).toBeInTheDocument()
     expect(
-      screen.getByText('Growth plan — $49/mo CAD · Next invoice Aug 1, 2026'),
+      screen.getByText('Growth plan — sample invoice line for the demo walkthrough'),
     ).toBeInTheDocument()
     expect(
       screen.getByText('Riley Summers viewed compensation — Jordan Mensah'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('These switches remember your choice on this browser. Delivery isn’t live yet.'),
     ).toBeInTheDocument()
   })
 
@@ -89,6 +92,31 @@ describe('SettingsView', () => {
     expect(screen.queryByText('Connection error')).not.toBeInTheDocument()
     expect(screen.getAllByText('Connected')).toHaveLength(3)
     expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
+  })
+
+  it('points demo billing at Pricing instead of a fake portal toast', () => {
+    renderApp(<SettingsView />, { route: '/app/settings', path: '/app/settings' })
+    expect(screen.getByRole('link', { name: 'See plans' })).toHaveAttribute('href', '/pricing')
+  })
+
+  it('persists preference toggles on this device', async () => {
+    const user = userEvent.setup()
+    localStorage.removeItem('dutiva.settings.prefs.v1')
+    const { unmount } = renderApp(<SettingsView />, {
+      route: '/app/settings',
+      path: '/app/settings',
+    })
+    const toggle = screen.getByRole('switch', { name: 'Auto-suggest legal escalation' })
+    await user.click(toggle)
+    expect(toggle).toHaveAttribute('aria-checked', 'true')
+    unmount()
+
+    renderApp(<SettingsView />, { route: '/app/settings', path: '/app/settings' })
+    expect(screen.getByRole('switch', { name: 'Auto-suggest legal escalation' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
+    localStorage.removeItem('dutiva.settings.prefs.v1')
   })
 
   it('switches the app language from the Language segment', async () => {
@@ -182,20 +210,22 @@ describe('SettingsView workspace-mode toggle (admin only)', () => {
 
     await user.click(screen.getByRole('tab', { name: 'Production' }))
 
-    expect(await screen.findByText('Dutiva Canada Inc.')).toBeInTheDocument()
+    expect(await screen.findByDisplayValue('Dutiva Canada Inc.')).toBeInTheDocument()
     expect(upsert).toHaveBeenCalledWith(
       expect.objectContaining({ user_id: 'u1', mode: 'production' }),
     )
 
     /* Workspace card swaps to the real region; the Northgate fixture
        sections (team, audit log, integrations & billing) disappear. */
-    expect(screen.getByText('Ottawa')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('Ottawa')).toBeInTheDocument()
     expect(screen.queryByText('Ottawa (HQ) · Montréal · Vancouver')).not.toBeInTheDocument()
     expect(screen.queryByText('Riley Summers')).not.toBeInTheDocument()
     expect(
       screen.queryByText('Riley Summers viewed compensation — Jordan Mensah'),
     ).not.toBeInTheDocument()
     expect(screen.queryByText('Integrations & billing')).not.toBeInTheDocument()
+    expect(screen.getByText('Billing')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'See plans' })).toBeInTheDocument()
 
     await user.click(screen.getByRole('tab', { name: 'Demo' }))
     expect(await screen.findByText('Northgate Logistics Inc.')).toBeInTheDocument()

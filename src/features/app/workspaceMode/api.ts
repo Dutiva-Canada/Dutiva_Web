@@ -172,6 +172,15 @@ export async function joinOrganizationWaitlist(
   }
 }
 
+function profileFromRow(row: z.infer<typeof profileRowSchema>): AdminProfile {
+  return {
+    companyName: row.legal_name ?? row.company_name ?? 'Dutiva Canada Inc.',
+    contactName: row.primary_contact ?? 'Martin Constantineau',
+    province: row.province ?? 'Ontario',
+    city: row.city ?? 'Ottawa',
+  }
+}
+
 export async function fetchAdminProfile(userId: string): Promise<AdminProfile | null> {
   if (!supabase) return null
   try {
@@ -181,13 +190,36 @@ export async function fetchAdminProfile(userId: string): Promise<AdminProfile | 
       .eq('id', userId)
       .maybeSingle()
     if (error || !data) return null
-    const row = profileRowSchema.parse(data)
-    return {
-      companyName: row.legal_name ?? row.company_name ?? 'Dutiva Canada Inc.',
-      contactName: row.primary_contact ?? 'Martin Constantineau',
-      province: row.province ?? 'Ontario',
-      city: row.city ?? 'Ottawa',
-    }
+    return profileFromRow(profileRowSchema.parse(data))
+  } catch {
+    return null
+  }
+}
+
+/** Persist company / region fields on the signed-in user's own `profiles` row. */
+export async function updateAdminProfile(
+  userId: string,
+  patch: { companyName: string; province: string; city: string },
+): Promise<AdminProfile | null> {
+  if (!supabase) return null
+  const companyName = patch.companyName.trim()
+  const province = patch.province.trim()
+  const city = patch.city.trim()
+  if (!companyName || !province || !city) return null
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({
+        legal_name: companyName,
+        company_name: companyName,
+        province,
+        city,
+      })
+      .eq('id', userId)
+      .select('legal_name, company_name, primary_contact, province, city')
+      .maybeSingle()
+    if (error || !data) return null
+    return profileFromRow(profileRowSchema.parse(data))
   } catch {
     return null
   }

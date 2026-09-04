@@ -48,8 +48,8 @@ export const exportProtectionMessages = defineMessages({
     fr: 'Aucune exportation enregistrée sur cet appareil pour l’instant.',
   }, // FR self-authored
   exportprot_audit_device_note: {
-    en: 'Every export is watermarked with its export ID and recorded here on this device. Signed-in exports are also logged in the workspace audit trail.',
-    fr: 'Chaque exportation est filigranée avec son ID d’exportation et enregistrée ici sur cet appareil. Les exportations en session sont aussi consignées dans le journal d’audit de l’espace de travail.',
+    en: 'Every export is watermarked with its export ID and recorded here on this device. Signed-in exports are also written to the server export trail for staff review.',
+    fr: 'Chaque exportation est filigranée avec son ID d’exportation et enregistrée ici sur cet appareil. Les exportations en session sont aussi écrites dans le journal d’exportation serveur pour revue par le personnel.', // FR self-authored
   }, // FR self-authored
   exportprot_audit_row_by: { en: 'by', fr: 'par' }, // FR self-authored
 })

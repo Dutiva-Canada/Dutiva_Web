@@ -16,6 +16,7 @@ import { useI18n } from '@/i18n/context'
 import { useAuth } from '@/features/app/auth/authContext'
 import { usePlan } from '@/features/app/billing/planContext'
 import { setPendingCheckout, takePendingCheckout } from '@/features/app/billing/pendingCheckout'
+import { openBillingPortal } from '@/features/app/billing/openBillingPortal'
 import { supabase } from '@/lib/supabaseClient'
 import {
   ANNUAL_BILLING_AVAILABLE,
@@ -495,24 +496,14 @@ export function PricingPage() {
 
   async function handleManageBilling() {
     setNotice(null)
-    if (!supabase) {
-      setNotice({ tone: 'error', text: t('pricing_checkout_unavailable') })
-      return
-    }
     setPortalLoading(true)
     try {
-      const { data, error } = await supabase.functions.invoke<CheckoutResponse>(
-        'create-portal-session',
-        { body: {} },
-      )
-      if (error) throw error
-      if (data?.url) {
-        window.location.href = data.url
-        return
-      }
-      throw new Error(data?.error ?? 'Portal session missing url')
-    } catch {
-      setNotice({ tone: 'error', text: t('pricing_portal_error') })
+      const result = await openBillingPortal()
+      if (result.ok) return
+      setNotice({
+        tone: 'error',
+        text: t(result.reason === 'unavailable' ? 'pricing_checkout_unavailable' : 'pricing_portal_error'),
+      })
     } finally {
       setPortalLoading(false)
     }
