@@ -264,6 +264,18 @@ export const hiringMessages = defineMessages({
   hiring_action_cancel: { en: 'Cancel', fr: 'Annuler' },
   hiring_action_save: { en: 'Save', fr: 'Enregistrer' },
 
+  hiring_add_candidate: { en: 'Add candidate', fr: 'Ajouter un candidat' },
+  hiring_add_candidate_name: { en: 'Name', fr: 'Nom' },
+  hiring_add_candidate_email: { en: 'Email', fr: 'Courriel' },
+  hiring_add_candidate_location: { en: 'Location', fr: 'Lieu' },
+  hiring_add_candidate_position: { en: 'Position', fr: 'Poste' },
+  hiring_add_candidate_current_role: { en: 'Current role', fr: 'Poste actuel' },
+  hiring_add_candidate_years_experience: { en: 'Years of experience', fr: 'Années d\'expérience' },
+  hiring_add_candidate_work_authorization: { en: 'Work authorization', fr: 'Autorisation de travail' },
+  hiring_add_candidate_resume: { en: 'Resume text or URL', fr: 'Texte du CV ou URL' },
+  hiring_add_candidate_success: { en: 'Candidate added.', fr: 'Candidat ajouté.' },
+  hiring_add_candidate_error: { en: 'Couldn\'t add candidate.', fr: 'Impossible d\'ajouter le candidat.' },
+
   /* ── Empty States ─────────────────────────────────────────────────────── */
   hiring_empty_evidence: {
     en: 'No evidence screening yet',
