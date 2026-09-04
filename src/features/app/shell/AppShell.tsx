@@ -128,7 +128,12 @@ export function AppShell() {
   }, [isPublicDemo])
 
   const title = x(
-    workspaceMode === 'production' ? moduleLabelFor(pathname) : viewLabelFor(pathname),
+    /* Production uses module labels so fixture employee names never leak into
+       ModeGate / topbar. Memory is an exception — viewLabelFor already maps it
+       to Advisor memory without touching @/data. */
+    workspaceMode === 'production' && !pathname.includes('/settings/memory')
+      ? moduleLabelFor(pathname)
+      : viewLabelFor(pathname),
   )
 
   const toggleSidebarExpanded = useCallback(() => {

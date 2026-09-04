@@ -35,8 +35,8 @@ import { useMdUp } from '@/lib/useMediaQuery'
  * topbar are shared chrome (AppShell); this nav replaces the Advisor thread
  * list within the view, exactly as the prototype swaps them.
  *
- * Production nav lists real employees and cases; conversation links appear
- * only when thread-scoped facts exist (transcripts stay demo-only).
+ * Production nav lists people/cases/conversations that already have facts
+ * (plus the active entity). Full chat history stays in Advisor.
  */
 
 interface NavEntry {
@@ -352,11 +352,14 @@ function MemoryLayoutProduction() {
         new Set(facts.filter((f) => f.scope === 'person').map((f) => f.entityId)),
       )
       setCaseIdsWithFacts(new Set(facts.filter((f) => f.scope === 'case').map((f) => f.entityId)))
-      const fromFacts = facts.filter((f) => f.scope === 'thread').map((f) => f.entityId)
-      const fromConvos = conversations.map((c) => c.id)
-      const ids = [...new Set([...fromConvos, ...fromFacts])]
+      /* Same rule as People/Cases: only threads that already have facts — not
+         every Advisor chat (those belong in Advisor). Labels come from the
+         conversation list when available. */
+      const threadIdsWithFacts = [
+        ...new Set(facts.filter((f) => f.scope === 'thread').map((f) => f.entityId)),
+      ]
       setThreadNav(
-        ids.map((id) => {
+        threadIdsWithFacts.map((id) => {
           const conv = conversations.find((c) => c.id === id)
           const preview = conv?.messages.find((m) => m.role === 'user')?.content?.slice(0, 40)
           return { id, label: preview && preview.length > 0 ? preview : id.slice(0, 8) }
@@ -378,11 +381,16 @@ function MemoryLayoutProduction() {
 
   const activePersonId = pathname.match(/\/memory\/people\/([^/]+)/)?.[1]
   const activeCaseId = pathname.match(/\/memory\/cases\/([^/]+)/)?.[1]
+  const activeThreadId = pathname.match(/\/memory\/conversations\/([^/]+)/)?.[1]
 
   const peopleNav = employeesProd.filter(
     (e) => personIdsWithFacts.has(e.id) || e.id === activePersonId,
   )
   const casesNav = casesProd.filter((c) => caseIdsWithFacts.has(c.id) || c.id === activeCaseId)
+  const conversationsNav =
+    activeThreadId && !threadNav.some((t) => t.id === activeThreadId)
+      ? [...threadNav, { id: activeThreadId, label: activeThreadId.slice(0, 8) }]
+      : threadNav
 
   const groups: { label: Bi; items: NavEntry[] }[] = [
     {
@@ -420,7 +428,7 @@ function MemoryLayoutProduction() {
     },
     {
       label: M.memory_nav_conversations,
-      items: threadNav.map((t) => ({
+      items: conversationsNav.map((t) => ({
         key: `thread-${t.id}`,
         to: `/app/settings/memory/conversations/${t.id}`,
         icon: MessageCircle,
