@@ -713,6 +713,15 @@ export async function listJobPostings(organizationId: string): Promise<Productio
   return z.array(jobPostingRowSchema).parse(data).map(toJobPosting)
 }
 
+export async function getJobPosting(id: string): Promise<ProductionJobPosting | null> {
+  const client = supabase
+  if (!client) throw new Error('Supabase is not configured')
+  const { data, error } = await client.from('hr_job_postings').select('*').eq('id', id).maybeSingle()
+  if (error) throw error
+  if (!data) return null
+  return toJobPosting(jobPostingRowSchema.parse(data))
+}
+
 /* ── Funnel Metrics ─────────────────────────────────────────────────────── */
 
 export interface ProductionFunnelMetrics {

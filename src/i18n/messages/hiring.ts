@@ -252,6 +252,15 @@ export const hiringMessages = defineMessages({
   hiring_posting_closed: { en: 'Closed', fr: 'Fermé' },
   hiring_posting_draft: { en: 'Draft', fr: 'Brouillon' },
 
+  /* ── Job Posting Detail View ───────────────────────────────────────────── */
+  hiring_open_posting: { en: 'Open job posting', fr: 'Ouvrir l\'offre d\'emploi' },
+  hiring_posting_back: { en: 'All job postings', fr: 'Toutes les offres d\'emploi' },
+  hiring_posting_not_found: { en: 'This job posting doesn’t exist or was removed.', fr: 'Cette offre d\'emploi n\'existe pas ou a été retirée.' },
+  hiring_posting_description_label: { en: 'Description', fr: 'Description' },
+  hiring_posting_requirements_label: { en: 'Requirements', fr: 'Exigences' },
+  hiring_posting_knockout_label: { en: 'Knockout criteria', fr: 'Critères d\'élimination' },
+  hiring_posting_work_sample_label: { en: 'Work sample scenario', fr: 'Scénario d\'échantillon de travail' },
+
   /* ── Actions ─────────────────────────────────────────────────────────── */
   hiring_advance_stage: { en: 'Advance to next stage', fr: 'Avancer à l\'étape suivante' },
   hiring_reject_candidate: { en: 'Reject candidate', fr: 'Rejeter le candidat' },

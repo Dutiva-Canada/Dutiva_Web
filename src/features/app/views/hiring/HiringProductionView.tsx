@@ -459,9 +459,12 @@ export function HiringProductionView() {
 
           {(postings ?? []).length > 0 ? (
             (postings ?? []).map((posting) => (
-              <div
+              <button
                 key={posting.id}
-                className="rounded-[12px] border border-border bg-surface p-[16px]"
+                type="button"
+                onClick={() => navigate(`/app/hiring/postings/${posting.id}`)}
+                aria-label={x(M.hiring_open_posting)}
+                className="w-full cursor-pointer rounded-[12px] border border-border bg-surface p-[16px] text-left font-sans hover:border-(--accent-soft-border)"
               >
                 <div className="flex items-start justify-between gap-[12px]">
                   <div className="flex-1">
@@ -481,7 +484,7 @@ export function HiringProductionView() {
                     {x(getPostingStatusLabel(posting.status))}
                   </span>
                 </div>
-              </div>
+              </button>
             ))
           ) : (
             <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">

@@ -82,6 +82,7 @@ import {
 /* Hiring module — evidence-based recruitment system */
 /* prettier-ignore */ const HiringView = lazy(() => import('@/features/app/views/hiring/HiringView').then((m) => ({ default: m.HiringView })))
 /* prettier-ignore */ const CandidateDetailView = lazy(() => import('@/features/app/views/hiring/CandidateDetailView').then((m) => ({ default: m.CandidateDetailView })))
+/* prettier-ignore */ const JobPostingDetailView = lazy(() => import('@/features/app/views/hiring/JobPostingDetailView').then((m) => ({ default: m.JobPostingDetailView })))
 /* Advisor Memory (person / case / chat recall / manager) — nested under Settings */
 /* prettier-ignore */ const MemoryLayout = lazy(() => import('@/features/app/views/memory/MemoryLayout').then((m) => ({ default: m.MemoryLayout })))
 /* prettier-ignore */ const MemoryManagerView = lazy(() => import('@/features/app/views/memory/MemoryManagerView').then((m) => ({ default: m.MemoryManagerView })))
@@ -129,6 +130,7 @@ function createAppViewRoutes(root: string): RouteObject[] {
     /* Hiring module — evidence-based recruitment system with demo/production support */
     { path: 'hiring', element: <HiringView /> },
     { path: 'hiring/candidates/:candidateId', element: <CandidateDetailView /> },
+    { path: 'hiring/postings/:postingId', element: <JobPostingDetailView /> },
     { path: 'tasks', element: <Navigate to={r('planning/tasks')} replace /> },
     { path: 'calendar', element: <Navigate to={r('planning/calendar')} replace /> },
     { path: 'memory', element: <Navigate to={r('settings/memory')} replace /> },
