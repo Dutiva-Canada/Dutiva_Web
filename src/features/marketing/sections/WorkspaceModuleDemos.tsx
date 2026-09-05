@@ -8,6 +8,7 @@ import {
   BookOpen,
   Send,
   ShieldCheck,
+  UserCheck,
   Users,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -22,6 +23,7 @@ import {
   landingAttentionPreview,
   landingCasePreview,
   landingCommPreview,
+  landingHiringPreview,
   landingScorePreview,
 } from '../demos/workspaceDemoModel'
 import { IconChip } from './IconChip'
@@ -44,6 +46,7 @@ const MODULES: {
   { icon: Send, label: 'landing_mod5_label', demoPath: 'communications', highlighted: true },
   { icon: Activity, label: 'landing_mod6_label', demoPath: 'wellbeing' },
   { icon: BarChart3, label: 'landing_mod7_label', demoPath: 'analytics', highlighted: true },
+  { icon: UserCheck, label: 'landing_mod8_label', demoPath: 'hiring', highlighted: true },
 ]
 
 /** Unified workspace section — preview cards, tour path, and module chips. */
@@ -58,6 +61,7 @@ export function WorkspaceModuleDemos() {
   const attention = landingAttentionPreview()
   const caseFile = landingCasePreview()
   const comm = landingCommPreview()
+  const hiring = landingHiringPreview()
 
   const dimLabels = {
     tone: lt('landing_ws_demo_comms_dim_tone'),
@@ -176,6 +180,46 @@ export function WorkspaceModuleDemos() {
             </div>
           </div>
           <DemoFooter to={`${demoRoot}/communications`} label={openLabel} />
+        </article>
+
+        {/* Hiring — evidence-based recruitment funnel */}
+        <article className="premium-card-soft flex min-w-0 flex-col p-4 sm:p-5">
+          <h3 className="text-base font-semibold text-text">
+            {lt('landing_ws_demo_hiring_title')}
+          </h3>
+          <p className="mt-1 text-sm leading-[1.55] text-text-2">
+            {lt('landing_ws_demo_hiring_sub')}
+          </p>
+          <div className="mt-4 rounded-xl border border-border bg-bg-soft p-3 sm:p-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="min-w-0 font-semibold text-text">{hiring.candidate.name}</span>
+              <span className={`${statusChipClass(hiring.candidate.tone)} shrink-0`}>
+                {x(hiring.candidate.status)}
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-text-3">
+              {x(hiring.candidate.position)} · {x(hiring.candidate.location)}
+            </p>
+            <div className="mt-3 border-t border-border pt-3">
+              <div className="mb-2 text-[10px] font-bold tracking-[0.08em] text-text-3 uppercase">
+                {lt('landing_ws_demo_hiring_funnel')}
+              </div>
+              <ul className="grid gap-1.5">
+                {hiring.funnel.map((stage, idx) => (
+                  <li key={idx} className="flex items-center justify-between gap-2 text-xs">
+                    <span className="text-text-2">{x(stage.label)}</span>
+                    <span className="font-semibold text-text">{stage.count}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 border-t border-border pt-2 text-xs text-text-3">
+                <span className="font-semibold text-text-2">
+                  {lt('landing_ws_demo_hiring_time')}: </span>
+                {x(hiring.timeToHire)}
+              </p>
+            </div>
+          </div>
+          <DemoFooter to={`${demoRoot}/hiring`} label={openLabel} />
         </article>
       </div>
 

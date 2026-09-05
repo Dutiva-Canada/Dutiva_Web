@@ -21,3 +21,7 @@ export function landingScorePreview(): { score: number; delta: ScoreDelta | null
 export function landingAttentionPreview() {
   return LANDING_WORKSPACE_FIXTURES.attention
 }
+
+export function landingHiringPreview() {
+  return LANDING_WORKSPACE_FIXTURES.hiring
+}

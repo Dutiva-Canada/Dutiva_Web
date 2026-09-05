@@ -138,4 +138,25 @@ export const landingWorkspaceDemos = defineMessages({
     en: 'Next step',
     fr: 'Prochaine étape',
   },
+  /* Hiring demo card — evidence-based recruitment funnel preview. [FR self-authored] */
+  landing_ws_demo_hiring_title: {
+    en: 'Hiring',
+    fr: 'Recrutement',
+  },
+  landing_ws_demo_hiring_sub: {
+    en: 'Evidence-based funnel with AI-resistant evaluation.',
+    fr: 'Entonnoir fondé sur des preuves avec évaluation résistante à l’IA.',
+  },
+  landing_ws_demo_hiring_candidate: {
+    en: 'Top candidate',
+    fr: 'Candidat principal',
+  },
+  landing_ws_demo_hiring_funnel: {
+    en: 'Funnel',
+    fr: 'Entonnoir',
+  },
+  landing_ws_demo_hiring_time: {
+    en: 'Time to hire',
+    fr: 'Temps d’embauche',
+  },
 })

@@ -18,8 +18,8 @@ export const landingWorkflows = defineMessages({
     fr: 'Embauche',
   },
   landing_wf1_sub: {
-    en: 'Offer → onboarding',
-    fr: 'Offre → intégration',
+    en: 'Evidence → work sample → interview',
+    fr: 'Preuves → échantillon → entretien',
   },
   landing_wf2_label: {
     en: 'Termination',

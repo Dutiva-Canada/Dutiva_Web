@@ -30,6 +30,10 @@ export const landingPricing = defineMessages({
     en: 'Analytics',
     fr: 'Analytique',
   },
+  landing_mod8_label: {
+    en: 'Hiring',
+    fr: 'Recrutement',
+  },
   landing_price_badge: {
     en: 'Pricing',
     fr: 'Tarifs',

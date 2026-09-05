@@ -52,6 +52,24 @@ export const LANDING_WORKSPACE_FIXTURES = {
     ),
     review: { tone: true, legal: false, clarity: true, policy: false },
   },
+  hiring: {
+    candidate: {
+      name: 'Sarah Chen',
+      position: bi('Senior Product Manager', 'Gestionnaire de produit principal'),
+      location: bi('Toronto, ON', 'Toronto, ON'),
+      status: bi('Evidence qualified', 'Qualifié par preuves'),
+      tone: 'success' as PreviewTone,
+    },
+    funnel: [
+      { label: bi('Applications', 'Candidatures'), count: 127 },
+      { label: bi('Basic qualified', 'Qualifié de base'), count: 89 },
+      { label: bi('Evidence qualified', 'Qualifié par preuves'), count: 52 },
+      { label: bi('Work samples', 'Échantillons de travail'), count: 23 },
+      { label: bi('Interviews', 'Entretiens'), count: 8 },
+      { label: bi('Hires', 'Embauches'), count: 2 },
+    ],
+    timeToHire: bi('18 days avg.', '18 jours en moy.'),
+  },
 } as const
 
 export type LandingAttentionStatus = (typeof LANDING_WORKSPACE_FIXTURES.attention)[number]['status']
