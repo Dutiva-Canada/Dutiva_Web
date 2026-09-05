@@ -73,4 +73,13 @@ export const DEMO_TOUR_STOPS: readonly DemoTourStop[] = [
       'Révisez une ébauche avant l’envoi — ton, clarté et cohérence avec les politiques.',
     ),
   },
+  {
+    id: 'hiring',
+    pathSuffix: 'hiring',
+    title: bi('Hiring', 'Recrutement'),
+    blurb: bi(
+      'Evidence-based funnel — candidates, work samples, and defense interviews.',
+      'Entonnoir fondé sur des preuves — candidats, échantillons et entretiens de défense.',
+    ),
+  },
 ]

@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { hiringMessages as M } from '@/i18n/messages/hiring'
 import { demoCandidates, demoEvidenceScreening, demoWorkSamples, demoInterviews, demoAuthenticityScores } from '@/data'
 import type { Candidate, EvidenceScreening, WorkSampleAssessment, DefenseInterview, AuthenticityScores } from '@/data'
 import { statusChipClass } from '@/components/chips'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 
 /**
  * Candidate detail demo view — Northgate fixture data for the demo workspace.
@@ -13,7 +14,7 @@ import { statusChipClass } from '@/components/chips'
  */
 export function CandidateDetailDemoView() {
   const { x } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const { candidateId } = useParams<{ candidateId: string }>()
   const [activeTab, setActiveTab] = useState<'overview' | 'evidence' | 'work_sample' | 'interview' | 'scores'>('overview')
 

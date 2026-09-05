@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { hiringMessages as M } from '@/i18n/messages/hiring'
 import { demoCandidates, demoFunnelMetrics, demoJobPostings } from '@/data'
 import type { Candidate } from '@/data'
 import { statusChipClass } from '@/components/chips'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 
 /**
  * Hiring demo view — Northgate fixture data for the demo workspace.
@@ -12,7 +12,7 @@ import { statusChipClass } from '@/components/chips'
  */
 export function HiringDemoView() {
   const { x } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const [activeTab, setActiveTab] = useState<'candidates' | 'funnel' | 'postings'>('candidates')
   const [filter, setFilter] = useState('')
 

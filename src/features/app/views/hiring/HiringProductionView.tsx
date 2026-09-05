@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Plus, Search } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { hiringMessages as M } from '@/i18n/messages/hiring'
 import { statusChipClass } from '@/components/chips'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import { AppPage } from '@/features/app/shell/AppPage'
 import {
@@ -53,7 +53,7 @@ const EMPTY_FORM = {
 export function HiringProductionView() {
   const { x } = useI18n()
   const { showToast } = useToasts()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const { organizationId, isOrgAdmin } = useWorkspaceMode()
 
   const [activeTab, setActiveTab] = useState<Tab>('candidates')

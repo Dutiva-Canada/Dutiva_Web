@@ -6,6 +6,7 @@ import type { Bi } from '@/i18n/core'
 import { hiringMessages as M } from '@/i18n/messages/hiring'
 import { statusChipClass } from '@/components/chips'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import { AppPage } from '@/features/app/shell/AppPage'
 import {
@@ -34,6 +35,7 @@ type LoadState = 'loading' | 'ready' | 'failed'
 export function CandidateDetailProductionView() {
   const { x } = useI18n()
   const { organizationId } = useWorkspaceMode()
+  const { root } = useWorkspaceRoot()
   const { candidateId } = useParams<{ candidateId: string }>()
 
   const [activeTab, setActiveTab] = useState<Tab>('overview')
@@ -82,7 +84,7 @@ export function CandidateDetailProductionView() {
   return (
     <AppPage width="comfort">
       <Link
-        to="/app/hiring"
+        to={workspacePath(root, 'hiring')}
         className="mb-[16px] inline-flex items-center gap-[6px] text-[13px] font-semibold text-text-muted hover:text-text"
       >
         <ArrowLeft size={14} strokeWidth={2} aria-hidden="true" />
