@@ -1,6 +1,7 @@
 import { Check, FileStack, Route, Sparkles, Users } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { useI18n } from '@/i18n/context'
 import { Disclaimer } from '@/components/Disclaimer'
 import { ChatComposer } from '@/features/app/advisor/ChatComposer'
@@ -35,6 +36,7 @@ export function HomeProductionEmptyState({
   readonly afterChecklist?: ReactNode
 }) {
   const { x } = useI18n()
+  const { root } = useWorkspaceRoot()
   const { organizationId } = useWorkspaceMode()
   const [session, setSession] = useState(() => readEmptyWorkspaceProgress(organizationId))
 
@@ -46,7 +48,7 @@ export function HomeProductionEmptyState({
     {
       key: 'person',
       done: employeeCount > 0,
-      to: '/app/employees?new=1',
+      to: workspacePath(root, 'employees?new=1'),
       label: M.home_production_step_person,
       hint: M.home_production_step_person_hint,
       icon: Users,
@@ -55,7 +57,7 @@ export function HomeProductionEmptyState({
     {
       key: 'studio',
       done: session.studioVisited,
-      to: '/app/documents/studio',
+      to: workspacePath(root, 'documents/studio'),
       label: M.home_production_step_studio,
       hint: M.home_production_step_studio_hint,
       icon: FileStack,
@@ -67,7 +69,7 @@ export function HomeProductionEmptyState({
     {
       key: 'workflow',
       done: session.workflowVisited,
-      to: '/app/workflows/statutory-notice-ontario',
+      to: workspacePath(root, 'workflows/statutory-notice-ontario'),
       label: M.home_production_step_workflow,
       hint: M.home_production_step_workflow_hint,
       icon: Route,
@@ -132,7 +134,7 @@ export function HomeProductionEmptyState({
       </ol>
 
       <p className="m-0 mb-[22px] text-[12.5px] leading-[1.5] text-text-muted">
-        <Link to="/app/settings" className="font-semibold text-accent hover:opacity-80">
+        <Link to={workspacePath(root, 'settings')} className="font-semibold text-accent hover:opacity-80">
           {x(M.home_production_demo_link)}
         </Link>
       </p>
@@ -144,7 +146,7 @@ export function HomeProductionEmptyState({
       </div>
       <div className="mb-[24px] grid grid-cols-1 gap-[8px] text-left sm:grid-cols-3">
         <Link
-          to="/app/workflows/statutory-notice-ontario"
+          to={workspacePath(root, 'workflows/statutory-notice-ontario')}
           onClick={() => {
             markEmptyWorkspaceWorkflowVisited(organizationId)
             setSession(readEmptyWorkspaceProgress(organizationId))
@@ -154,7 +156,7 @@ export function HomeProductionEmptyState({
           {x(F.flows_pin_notice_on)}
         </Link>
         <Link
-          to="/app/workflows/severance-eligibility-ontario"
+          to={workspacePath(root, 'workflows/severance-eligibility-ontario')}
           onClick={() => {
             markEmptyWorkspaceWorkflowVisited(organizationId)
             setSession(readEmptyWorkspaceProgress(organizationId))
@@ -164,7 +166,7 @@ export function HomeProductionEmptyState({
           {x(F.flows_pin_severance)}
         </Link>
         <Link
-          to="/app/workflows/duty-to-accommodate"
+          to={workspacePath(root, 'workflows/duty-to-accommodate')}
           onClick={() => {
             markEmptyWorkspaceWorkflowVisited(organizationId)
             setSession(readEmptyWorkspaceProgress(organizationId))

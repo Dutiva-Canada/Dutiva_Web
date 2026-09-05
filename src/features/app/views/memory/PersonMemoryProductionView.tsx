@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { SubmitEvent } from 'react'
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
+import { useWorkspaceNavigate, useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { Brain, Briefcase, Plus, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick } from '@/i18n/core'
@@ -56,7 +57,8 @@ const labelClass = 'mb-[4px] block text-[12px] font-semibold text-text-3'
 
 export function PersonMemoryProductionView() {
   const { x, lang } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
+  const { root } = useWorkspaceRoot()
   const { personId } = useParams()
   const { showToast } = useToasts()
   const { organizationId, isOrgAdmin } = useWorkspaceMode()
@@ -106,7 +108,7 @@ export function PersonMemoryProductionView() {
   if (!organizationId) {
     return <ProductionEmptyState title={x(M.memory_prod_empty_title)} />
   }
-  if (!personId) return <Navigate to="/app/settings/memory" replace />
+  if (!personId) return <Navigate to={workspacePath(root, 'settings/memory')} replace />
   if (employee === undefined || facts === null) {
     return (
       <div className="min-h-0 flex-1 overflow-y-auto px-[28px] pt-[28px] text-[13px] text-text-faint">
@@ -114,7 +116,7 @@ export function PersonMemoryProductionView() {
       </div>
     )
   }
-  if (employee === null) return <Navigate to="/app/settings/memory" replace />
+  if (employee === null) return <Navigate to={workspacePath(root, 'settings/memory')} replace />
 
   const inferredCount = facts.filter((f) => f.confidence === 'inferred').length
   const groups = PERSON_CATEGORY_ORDER.map((category) => ({
@@ -201,7 +203,7 @@ export function PersonMemoryProductionView() {
               {[employee.title, employee.jurisdiction].filter(Boolean).join(' · ')}
             </div>
             <Link
-              to={`/app/employees/${employee.id}`}
+              to={workspacePath(root, `employees/${employee.id}`)}
               className="mt-[8px] inline-block text-[12.5px] font-semibold text-accent no-underline hover:underline"
             >
               {x(M.memory_open_people_record)}

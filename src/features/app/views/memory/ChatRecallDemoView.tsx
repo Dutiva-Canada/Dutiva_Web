@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
+import { useWorkspaceNavigate, useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { Brain, History, Info, Sparkle, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { bi, pick, pickL } from '@/i18n/core'
@@ -121,14 +122,15 @@ const RECALL_TURNS: RecallTurn[] = [
 /** Northgate fixtures — demo workspace and public `/demo` only. */
 export function ChatRecallDemoView() {
   const { x, lang } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
+  const { root } = useWorkspaceRoot()
   const { threadId } = useParams()
   const { facts } = useMemoryStore()
   const [knowRailOpen, setKnowRailOpen] = useState(false)
   const lgUp = useLgUp()
 
   const thread = memoryThreads.find((t) => t.id === threadId)
-  if (!thread) return <Navigate to="/app/settings/memory" replace />
+  if (!thread) return <Navigate to={workspacePath(root, 'settings/memory')} replace />
 
   const employee = employees.find((e) => e.id === thread.personId)
   const byId = (id: string) => facts.find((f) => f.id === id)

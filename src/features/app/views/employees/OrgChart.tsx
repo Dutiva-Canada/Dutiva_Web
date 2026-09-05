@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { bi } from '@/i18n/core'
@@ -46,7 +46,7 @@ function orgChipTone(tone: Employee['tone']): ChipTone {
 
 export function OrgChart() {
   const { x } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
 
   const openProfile = (id: string) => navigate(`/app/employees/${id}`)
 

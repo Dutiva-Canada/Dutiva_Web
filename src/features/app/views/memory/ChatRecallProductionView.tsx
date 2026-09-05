@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
+import { useWorkspaceNavigate, useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { Info, MessageCircle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pickL } from '@/i18n/core'
@@ -27,7 +28,8 @@ import { confirmFact, correctFact, forgetFact, listFactsByEntity } from './produ
 
 export function ChatRecallProductionView() {
   const { x, lang } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
+  const { root } = useWorkspaceRoot()
   const { threadId } = useParams()
   const { showToast } = useToasts()
   const { organizationId } = useWorkspaceMode()
@@ -60,7 +62,7 @@ export function ChatRecallProductionView() {
   if (!organizationId) {
     return <ProductionEmptyState title={x(M.memory_prod_empty_title)} />
   }
-  if (!threadId) return <Navigate to="/app/settings/memory" replace />
+  if (!threadId) return <Navigate to={workspacePath(root, 'settings/memory')} replace />
   if (facts === null || turns === null) {
     return (
       <div className="min-h-0 flex-1 overflow-y-auto px-[28px] pt-[28px] text-[13px] text-text-faint">

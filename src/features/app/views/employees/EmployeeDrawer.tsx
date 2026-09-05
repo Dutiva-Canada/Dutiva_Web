@@ -1,4 +1,5 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import { useWorkspaceNavigate, useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { Brain, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { useEscapeToClose } from '@/lib/escapeStack'
@@ -26,7 +27,8 @@ export interface EmployeeDrawerProps {
 
 export function EmployeeDrawer({ employee, onClose }: EmployeeDrawerProps) {
   const { x } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
+  const { root } = useWorkspaceRoot()
   const askAdvisor = useAskAdvisorAboutEmployee()
 
   const open = employee !== null
@@ -102,7 +104,7 @@ export function EmployeeDrawer({ employee, onClose }: EmployeeDrawerProps) {
 
         <div className="border-t border-border-soft px-[22px] pt-[16px] pb-[20px]">
           <Link
-            to={`/app/settings/memory/people/${employee.id}`}
+            to={workspacePath(root, `settings/memory/people/${employee.id}`)}
             onClick={onClose}
             className="mb-[10px] flex w-full items-center justify-center gap-[7px] rounded-[9px] border border-border bg-surface p-[11px] font-sans text-[13px] font-bold text-text-2 no-underline"
           >

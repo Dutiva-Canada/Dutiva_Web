@@ -1,3 +1,4 @@
+/* oxlint-disable react/only-export-components -- module exports shared active-state classes used by sibling nav components. */
 import { Link } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import type { NavItem } from './navConfig'

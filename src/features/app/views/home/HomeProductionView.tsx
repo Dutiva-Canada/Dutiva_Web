@@ -1,5 +1,6 @@
 import { useContext } from 'react'
 import { Link } from 'react-router-dom'
+import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { BookOpen } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { Disclaimer } from '@/components/Disclaimer'
@@ -30,6 +31,7 @@ import { AppPage } from '@/features/app/shell/AppPage'
 
 export function HomeProductionView({ onSend }: { readonly onSend: (text: string) => void }) {
   const { x } = useI18n()
+  const { root } = useWorkspaceRoot()
   const { identity, organizationId } = useWorkspaceMode()
   /* Optional: production view tests reimport after vi.resetModules(), which can
      desync PlanContext identity from PlanProvider. Gates-off / missing context
@@ -162,7 +164,7 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
       {/* Policy attention */}
       {data.policiesNeedingAttention > 0 && (
         <Link
-          to="/app/policies"
+          to={workspacePath(root, 'policies')}
           className="mb-[20px] flex items-center gap-[12px] rounded-[12px] border border-gold-border bg-gold-bg px-[16px] py-[13px] hover:opacity-90"
         >
           <BookOpen

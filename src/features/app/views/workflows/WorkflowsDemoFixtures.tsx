@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Calendar, Check, File, Share2, Star, User } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
@@ -8,6 +7,7 @@ import { workflowsMessages as M } from '@/i18n/messages/workflows'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import type { AdvisorStartFlowNavState } from '@/features/app/views/advisor/advisorNav'
 import { chipToneClass, statusChipClass } from '@/components/chips'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { inFlightWorkflows, terminationStages, workflowCatalog } from './workflowsData'
 import type { TerminationStageState, WorkflowChipTone, WorkflowNav } from './workflowsData'
 
@@ -47,7 +47,7 @@ function StageMarker({ n, state }: { readonly n: number; readonly state: Termina
 /** Northgate in-flight rows, termination map, and Advisor catalogue — demo only. */
 export function WorkflowsDemoFixtures() {
   const { x } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const [mapOpen, setMapOpen] = useState(true)
 
   const openWorkflow = (nav: WorkflowNav) => {

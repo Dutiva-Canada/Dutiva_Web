@@ -1,3 +1,4 @@
+/* oxlint-disable react/only-export-components -- module exports workflow fixture arrays and helper types used by the landing page; not a hot-reload component. */
 import {
   Accessibility,
   Award,

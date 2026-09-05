@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Bi } from '@/i18n/core'
 import { homeMessages as M } from '@/i18n/messages/home'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { listEmployees } from '@/features/app/views/employees/productionApi'
 import { listCases } from '@/features/app/views/cases/productionApi'
 import type { ProductionCase } from '@/features/app/views/cases/productionApi'
@@ -30,6 +31,7 @@ export interface HomeDueItem {
 const today = (): string => new Date().toISOString().slice(0, 10)
 
 export function useHomeProductionStats() {
+  const { root } = useWorkspaceRoot()
   const { organizationId } = useWorkspaceMode()
   const [data, setData] = useState<HomeProductionData | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
@@ -82,12 +84,12 @@ export function useHomeProductionStats() {
     const openCases = data.cases.filter((c) => c.status !== 'resolved')
     const openTasks = data.tasks.filter((t) => !t.done)
     return [
-      { value: data.employees, label: M.home_prod_stat_employees, to: '/app/employees' },
-      { value: openCases.length, label: M.home_prod_stat_open_cases, to: '/app/cases' },
-      { value: openTasks.length, label: M.home_prod_stat_open_tasks, to: '/app/planning/tasks' },
-      { value: data.openFindings, label: M.home_prod_stat_open_findings, to: '/app/compliance' },
+      { value: data.employees, label: M.home_prod_stat_employees, to: workspacePath(root, 'employees') },
+      { value: openCases.length, label: M.home_prod_stat_open_cases, to: workspacePath(root, 'cases') },
+      { value: openTasks.length, label: M.home_prod_stat_open_tasks, to: workspacePath(root, 'planning/tasks') },
+      { value: data.openFindings, label: M.home_prod_stat_open_findings, to: workspacePath(root, 'compliance') },
     ]
-  }, [data])
+  }, [data, root])
 
   const dueItems = useMemo((): HomeDueItem[] => {
     if (!data) return []
@@ -102,7 +104,7 @@ export function useHomeProductionStats() {
           kind: M.home_prod_kind_case,
           title: c.title,
           dueDate: c.dueDate ?? '',
-          to: '/app/cases',
+          to: workspacePath(root, 'cases'),
           overdue: (c.dueDate ?? '') < now,
         })),
       ...openTasks
@@ -112,13 +114,13 @@ export function useHomeProductionStats() {
           kind: M.home_prod_kind_task,
           title: t.title,
           dueDate: t.dueDate ?? '',
-          to: '/app/planning/tasks',
+          to: workspacePath(root, 'planning/tasks'),
           overdue: (t.dueDate ?? '') < now,
         })),
     ]
       .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
       .slice(0, 5)
-  }, [data])
+  }, [data, root])
 
   return {
     data,

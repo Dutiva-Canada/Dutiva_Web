@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useRail } from '@/features/app/rail/railContext'
 import { employeesMessages as M } from '@/i18n/messages/employees'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import type { Employee } from '@/data'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 
@@ -13,7 +13,7 @@ import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
  */
 export function useAskAdvisorAboutEmployee(): (emp: Employee) => void {
   const { openRail, closeRail } = useRail()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
 
   return useCallback(
     (emp: Employee) => {

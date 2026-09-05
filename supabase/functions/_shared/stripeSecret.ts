@@ -8,6 +8,8 @@
  * and must be accepted — Stripe recommends them over `sk_` for production.
  */
 
+/* oxlint-disable no-control-regex -- intentional sanitization of control characters pasted into Stripe secret keys. */
+
 const STRIPE_SECRET_RE = /^(?:sk|rk)_(?:live|test)_[A-Za-z0-9]+$/
 
 export function readStripeSecretKey(raw: string | undefined | null): string | null {

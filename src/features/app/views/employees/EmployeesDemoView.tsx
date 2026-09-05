@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import type { MouseEvent as ReactMouseEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick } from '@/i18n/core'
@@ -9,13 +8,14 @@ import type { Employee } from '@/data'
 import { employeesMessages as M } from '@/i18n/messages/employees'
 import { statusChipClass } from '@/components/chips'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { OrgChart } from './OrgChart'
 import { useAskAdvisorAboutEmployee } from './useAskAdvisorAboutEmployee'
 
 /** Northgate employee roster — demo workspace and public `/demo` only. */
 export function EmployeesDemoView() {
   const { x, lang } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const askAdvisor = useAskAdvisorAboutEmployee()
   const [mode, setMode] = useState<'list' | 'org'>('list')
   const [filter, setFilter] = useState('')

@@ -71,7 +71,7 @@ export function ExternalSigningView() {
     void recordExternalSignatureView(token).catch(() => {
       /* view audit is best-effort */
     })
-  }, [token, pkg?.recipient.id])
+  }, [token, pkg])
 
   const canSign = pkg ? externalRecipientCanSignNow(pkg) : false
   const turnRecipient = useMemo(() => {

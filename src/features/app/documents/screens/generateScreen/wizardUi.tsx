@@ -1,3 +1,4 @@
+/* oxlint-disable react/only-export-components -- wizard utility functions exported alongside the screen component. */
 import type { Dispatch, ReactNode, SetStateAction } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'

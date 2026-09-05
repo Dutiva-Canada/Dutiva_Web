@@ -1,4 +1,5 @@
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
+import { useWorkspaceNavigate, useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { Brain, Briefcase, History, Info, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick } from '@/i18n/core'
@@ -36,13 +37,14 @@ const CHIP_TONE: Record<MemoryCaseChip['tone'], ChipTone> = {
 /** Northgate fixtures — demo workspace and public `/demo` only. */
 export function CaseMemoryDemoView() {
   const { x, lang } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
+  const { root } = useWorkspaceRoot()
   const { caseId } = useParams()
   const { facts } = useMemoryStore()
 
   const memoryCase = memoryCases.find((c) => c.id === caseId)
   const content = caseId !== undefined ? memoryCaseContent[caseId] : undefined
-  if (!memoryCase || !content) return <Navigate to="/app/settings/memory" replace />
+  if (!memoryCase || !content) return <Navigate to={workspacePath(root, 'settings/memory')} replace />
 
   const person = memoryPeople.find((p) => p.id === memoryCase.personId)
   const employee = employees.find((e) => e.id === memoryCase.personId)

@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Check } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
@@ -9,6 +8,7 @@ import type { Task, Tone } from '@/data'
 import { statusChipClass } from '@/components/chips'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 
 function linkedFor(task: Task): Bi | null {
   const linkedCase = cases.find((c) => c.chatId === task.chatId)
@@ -20,7 +20,7 @@ function linkedFor(task: Task): Bi | null {
 /** Northgate task checklist — demo workspace and public `/demo` only. */
 export function TasksDemoView() {
   const { x } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const [doneById, setDoneById] = useState<Record<string, boolean>>({})
 
   const isDone = (task: Task) => doneById[task.id] ?? task.done

@@ -28,14 +28,6 @@ export const STATUS_LEVEL_LABELS: Record<ServiceStatusLevel, Bi> = {
   outage: bi('Outage', 'Panne'),
 }
 
-/** Dot colour per level (self-contained — independent of surface tokens). */
-export const STATUS_LEVEL_COLOR: Record<ServiceStatusLevel, string> = {
-  operational: '#16a34a',
-  maintenance: '#2563eb',
-  degraded: '#d97706',
-  outage: '#dc2626',
-}
-
 /** CSP-safe status dot classes (pair with `.status-dot`). */
 export const STATUS_DOT_CLASS: Record<ServiceStatusLevel, string> = {
   operational: 'status-dot-operational',

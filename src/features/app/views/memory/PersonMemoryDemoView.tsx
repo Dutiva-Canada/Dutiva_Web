@@ -1,4 +1,4 @@
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 import { Brain, Briefcase, Clock, Eye, ShieldCheck, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick } from '@/i18n/core'
@@ -9,6 +9,7 @@ import type { ChipTone } from '@/components/chips'
 import { employees, memoryPeople } from '@/data'
 import type { MemoryPersonChip } from '@/data'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
+import { useWorkspaceNavigate, useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { CATEGORY_LABELS, PERSON_CATEGORY_ORDER } from './memoryModel'
 import { memoryScenarioTodayISO } from '@/data'
 import { MemoryFactRow } from './MemoryFactRow'
@@ -33,13 +34,14 @@ const CHIP_TONE: Record<MemoryPersonChip['tone'], ChipTone> = {
 /** Northgate fixtures — demo workspace and public `/demo` only. */
 export function PersonMemoryDemoView() {
   const { x, lang } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
+  const { root } = useWorkspaceRoot()
   const { personId } = useParams()
   const { facts } = useMemoryStore()
 
   const person = memoryPeople.find((p) => p.id === personId)
   const employee = employees.find((e) => e.id === personId)
-  if (!person || !employee) return <Navigate to="/app/settings/memory" replace />
+  if (!person || !employee) return <Navigate to={workspacePath(root, 'settings/memory')} replace />
 
   const first = pick(person.firstName, lang)
   const meta = [employee.role, employee.dept, employee.jurisdiction, employee.tenure]

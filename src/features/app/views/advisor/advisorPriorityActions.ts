@@ -2,13 +2,13 @@
  *   Copyright (c) 2026
  *   All rights reserved.
  */
-import type { NavigateFunction } from 'react-router-dom'
+import type { NavigateOptions, To } from 'react-router-dom'
 import type { HomeAction } from '@/features/app/views/home/homeData'
 import type { FlowKeyOrFallback } from './advisorFlows'
 import type { LText } from '@/i18n/core'
 
 interface PriorityActionRunnerOptions {
-  navigate: NavigateFunction
+  navigate: (to: To, options?: NavigateOptions) => void
   selectChat: (chatId: string) => void
   startFlow: (flowKey: FlowKeyOrFallback, userText: LText) => void
   openCatalogueDocument: (templateKey: string) => void

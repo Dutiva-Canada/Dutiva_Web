@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom'
 import { Shield } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { employees, supportSignals } from '@/data'
@@ -6,6 +5,7 @@ import { statusChipClass } from '@/components/chips'
 import { useWellbeingRail } from '@/features/app/rail/useEntityRails'
 import { wellbeingMessages as M } from '@/i18n/messages/wellbeing'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 
 /** Prototype `followCount: '2'` — a fixed figure in the handoff. */
 const FOLLOW_UPS_THIS_WEEK = '2'
@@ -13,7 +13,7 @@ const FOLLOW_UPS_THIS_WEEK = '2'
 /** Northgate support signals — demo workspace and public `/demo` only. */
 export function WellbeingDemoView() {
   const { x } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const openWellbeingRail = useWellbeingRail()
 
   const draftCheckIn = (employeeId: string | null) => {

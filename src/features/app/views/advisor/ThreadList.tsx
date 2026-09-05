@@ -1,3 +1,4 @@
+/* oxlint-disable react/only-export-components -- module exports a thread-title helper used by the parent view. */
 import { useState } from 'react'
 import { ChevronDown, List, MessageCircle, PanelLeftClose, Plus, Star, Trash2, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'

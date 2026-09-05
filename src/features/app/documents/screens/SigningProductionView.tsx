@@ -64,7 +64,7 @@ export function SigningProductionView() {
     void recordDocumentSignatureView(envelopeId).catch(() => {
       /* view audit is best-effort */
     })
-  }, [envelopeId, pkg?.signature.id])
+  }, [envelopeId, pkg])
 
   /* Refresh while waiting for an earlier signer so turn state stays current. */
   useEffect(() => {

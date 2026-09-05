@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
+import {
+  useWorkspaceNavigate,
+  useWorkspaceRoot,
+  workspacePath,
+  type WorkspaceRoot,
+} from '@/features/app/workspaceRoot/workspaceRootContext'
 import {
   Brain,
   Briefcase,
@@ -54,18 +60,19 @@ export function MemoryLayout() {
   return <MemoryLayoutDemo />
 }
 
-function isNavActive(pathname: string, to: string): boolean {
-  return to === '/app/settings/memory' ? pathname === to : pathname.startsWith(to)
+function isNavActive(pathname: string, to: string, root: WorkspaceRoot): boolean {
+  return to === workspacePath(root, 'settings/memory') ? pathname === to : pathname.startsWith(to)
 }
 
 function activeNavLabel(
   groups: { label: Bi; items: NavEntry[] }[],
   pathname: string,
   lang: 'en' | 'fr',
+  root: WorkspaceRoot,
 ): string {
   for (const group of groups) {
     for (const item of group.items) {
-      if (isNavActive(pathname, item.to)) {
+      if (isNavActive(pathname, item.to, root)) {
         return typeof item.label === 'string' ? item.label : pick(item.label, lang)
       }
     }
@@ -81,7 +88,8 @@ function MemoryNavPanel({
   onNavigate?: (to: string) => void
 }) {
   const { x, lang } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
+  const { root } = useWorkspaceRoot()
   const { pathname } = useLocation()
 
   const go = (to: string) => {
@@ -104,7 +112,7 @@ function MemoryNavPanel({
             {pick(group.label, lang)}
           </div>
           {group.items.map((item) => {
-            const active = isNavActive(pathname, item.to)
+            const active = isNavActive(pathname, item.to, root)
             const Icon = item.icon
             return (
               <button
@@ -154,7 +162,7 @@ function MemoryNavPanel({
       <div className="flex-1" />
       <button
         type="button"
-        onClick={() => go('/app/settings')}
+        onClick={() => go(workspacePath(root, 'settings'))}
         className="mb-[10px] w-full cursor-pointer rounded-[9px] border border-transparent bg-transparent px-[10px] py-[8px] text-left font-sans text-[12.5px] font-semibold text-text-muted hover:bg-surface hover:text-text-2"
       >
         {x(SM.shell_settings_general)}
@@ -174,10 +182,11 @@ function MemoryNavPanel({
 
 function MemoryMobileNavAccess({ groups }: { groups: { label: Bi; items: NavEntry[] }[] }) {
   const { x, lang } = useI18n()
+  const { root } = useWorkspaceRoot()
   const { pathname } = useLocation()
   const mdUp = useMdUp()
   const [open, setOpen] = useState(false)
-  const currentLabel = activeNavLabel(groups, pathname, lang)
+  const currentLabel = activeNavLabel(groups, pathname, lang, root)
 
   if (mdUp) return null
 
@@ -264,6 +273,7 @@ function MemoryNav({ groups }: { groups: { label: Bi; items: NavEntry[] }[] }) {
 }
 
 function MemoryLayoutDemo() {
+  const { root } = useWorkspaceRoot()
   const { facts } = useMemoryStore()
   const reviewCount = facts.filter((f) => f.confidence === 'inferred').length
   const personName = (id: string) => employees.find((e) => e.id === id)?.name ?? id
@@ -274,7 +284,7 @@ function MemoryLayoutDemo() {
       items: [
         {
           key: 'manager',
-          to: '/app/settings/memory',
+          to: workspacePath(root, 'settings/memory'),
           icon: Brain,
           label: M.memory_nav_manager,
           sub: M.memory_nav_manager_sub,
@@ -286,7 +296,7 @@ function MemoryLayoutDemo() {
       label: M.memory_nav_people,
       items: memoryPeople.map((p) => ({
         key: `person-${p.id}`,
-        to: `/app/settings/memory/people/${p.id}`,
+        to: workspacePath(root, `settings/memory/people/${p.id}`),
         icon: UserRound,
         label: personName(p.id),
         sub: p.navSub,
@@ -296,7 +306,7 @@ function MemoryLayoutDemo() {
       label: M.memory_nav_cases,
       items: memoryCases.map((c) => ({
         key: `case-${c.id}`,
-        to: `/app/settings/memory/cases/${c.id}`,
+        to: workspacePath(root, `settings/memory/cases/${c.id}`),
         icon: Briefcase,
         label: c.navLabel,
         sub: c.navSub,
@@ -307,7 +317,7 @@ function MemoryLayoutDemo() {
       label: M.memory_nav_conversations,
       items: memoryThreads.map((t) => ({
         key: `thread-${t.id}`,
-        to: `/app/settings/memory/conversations/${t.id}`,
+        to: workspacePath(root, `settings/memory/conversations/${t.id}`),
         icon: MessageCircle,
         label: t.navLabel,
         sub: formatMemoryResumedSub(t.resumedAt, demoTodayISO),
@@ -319,6 +329,7 @@ function MemoryLayoutDemo() {
 }
 
 function MemoryLayoutProduction() {
+  const { root } = useWorkspaceRoot()
   const { organizationId } = useWorkspaceMode()
   const { pathname } = useLocation()
   const [employeesProd, setEmployeesProd] = useState<ProductionEmployee[]>([])
@@ -398,7 +409,7 @@ function MemoryLayoutProduction() {
       items: [
         {
           key: 'manager',
-          to: '/app/settings/memory',
+          to: workspacePath(root, 'settings/memory'),
           icon: Brain,
           label: M.memory_nav_manager,
           sub: M.memory_nav_manager_sub,
@@ -410,7 +421,7 @@ function MemoryLayoutProduction() {
       label: M.memory_nav_people,
       items: peopleNav.map((e) => ({
         key: `person-${e.id}`,
-        to: `/app/settings/memory/people/${e.id}`,
+        to: workspacePath(root, `settings/memory/people/${e.id}`),
         icon: UserRound,
         label: e.name,
         sub: e.title ? ({ en: e.title, fr: e.title } as Bi) : undefined,
@@ -420,7 +431,7 @@ function MemoryLayoutProduction() {
       label: M.memory_nav_cases,
       items: casesNav.map((c) => ({
         key: `case-${c.id}`,
-        to: `/app/settings/memory/cases/${c.id}`,
+        to: workspacePath(root, `settings/memory/cases/${c.id}`),
         icon: Briefcase,
         label: c.title,
         sub: { en: c.caseType, fr: c.caseType },
@@ -430,7 +441,7 @@ function MemoryLayoutProduction() {
       label: M.memory_nav_conversations,
       items: conversationsNav.map((t) => ({
         key: `thread-${t.id}`,
-        to: `/app/settings/memory/conversations/${t.id}`,
+        to: workspacePath(root, `settings/memory/conversations/${t.id}`),
         icon: MessageCircle,
         label: t.label,
       })),

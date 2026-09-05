@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import type { LText } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { createAdvisorCrisisHandlers } from './advisorCrisisHandlers'
@@ -22,7 +22,7 @@ import { usePayRail, useWellbeingRail } from '@/features/app/rail/useEntityRails
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useOpenCatalogueDocument } from '@/features/app/documents/useOpenCatalogueDocument'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
-import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
+import { useWorkspaceNavigate, useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { chats } from '@/data'
 import type { FixtureAction, FixtureToneCard } from '@/data'
 import type { FlowKeyOrFallback } from './advisorFlows'
@@ -47,7 +47,7 @@ import { useAdvisorThreadSession } from './useAdvisorThreadSession'
  * in AdvisorView.tsx.
  */
 export function useAdvisorViewController() {
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const location = useLocation()
   const { x } = useI18n()
   const { showToast } = useToasts()
@@ -266,7 +266,7 @@ export function useAdvisorViewController() {
     navigate(location.pathname, { replace: true, state: null })
     pendingNavChatIdRef.current = chatId
     selectChatRef.current(chatId)
-  }, [location.state, location.pathname, navigate])
+  }, [location.state, location.pathname, navigate, pendingNavChatIdRef])
 
   /* Home / Workflows navigation contracts: { prompt, flowKey? } starts a
      fresh flow (explicit key wins — the EN-keyword router is only for

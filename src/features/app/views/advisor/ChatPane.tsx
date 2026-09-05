@@ -1,5 +1,5 @@
 ﻿import { useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import {
   Copy,
   Download,
@@ -313,7 +313,7 @@ function AdvisorTurn({
   buyingAdvisorPack = null,
 }: AdvisorTurnProps) {
   const { x, lang } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const status = message.status ?? 'done'
   const showBubble = status === 'streaming' || status === 'done'
   const done = status === 'done'

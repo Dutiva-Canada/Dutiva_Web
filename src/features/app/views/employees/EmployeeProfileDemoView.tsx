@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { Brain, ChevronLeft, Lock, Shield, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
@@ -34,6 +34,7 @@ import {
   EmployeeWellbeingTab,
 } from './employeeProfileTabs'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { useWorkspaceNavigate, useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 
 /**
  * Employee profile hub — the prototype's `isProfileView` markup (App
@@ -93,7 +94,8 @@ export function EmployeeProfileDemoView() {
   const { employeeId } = useParams()
   const location = useLocation()
   const { x, lang } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
+  const { root } = useWorkspaceRoot()
   const { openRail, closeRail } = useRail()
   const { openDocFromLibrary } = useDocStudio()
   const askAdvisor = useAskAdvisorAboutEmployee()
@@ -192,14 +194,13 @@ export function EmployeeProfileDemoView() {
 
   return (
     <AppPage width="default">
-      <button
-        type="button"
-        onClick={() => navigate('/app/employees')}
-        className="mb-[16px] flex cursor-pointer items-center gap-[6px] border-none bg-transparent p-0 font-sans text-[13px] font-semibold text-text-muted"
+      <Link
+        to={workspacePath(root, 'employees')}
+        className="mb-[16px] inline-flex items-center gap-[6px] font-sans text-[13px] font-semibold text-text-muted hover:text-text"
       >
         <ChevronLeft size={15} strokeWidth={2} aria-hidden="true" />
         {x(M.employees_back_all_people)}
-      </button>
+      </Link>
 
       {/* Identity header */}
       <div className="mb-[6px] flex flex-wrap items-start gap-[16px]">
