@@ -1,10 +1,13 @@
 import { useState } from 'react'
+import { ArrowRight } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { hiringMessages as M } from '@/i18n/messages/hiring'
 import { demoCandidates, demoFunnelMetrics, demoJobPostings } from '@/data'
 import type { Candidate } from '@/data'
 import { statusChipClass } from '@/components/chips'
 import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
+import { JobPostingCard } from './JobPostingCard'
+import { useHiringTab } from './useHiringTab'
 
 /**
  * Hiring demo view — Northgate fixture data for the demo workspace.
@@ -13,7 +16,7 @@ import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRoot
 export function HiringDemoView() {
   const { x } = useI18n()
   const navigate = useWorkspaceNavigate()
-  const [activeTab, setActiveTab] = useState<'candidates' | 'funnel' | 'postings'>('candidates')
+  const [activeTab, setActiveTab] = useHiringTab()
   const [filter, setFilter] = useState('')
 
   // Filter candidates based on search
@@ -117,7 +120,7 @@ export function HiringDemoView() {
                       <div className="overflow-hidden text-[13px] text-ellipsis whitespace-nowrap text-text-2">{x(candidate.position)}</div>
                       <div className="text-[13px] text-text-2">{x(candidate.location)}</div>
                       <div>
-                        <span className={statusChipClass(getStatusTone(candidate.status) as any)}>
+                        <span className={statusChipClass(getStatusTone(candidate.status))}>
                           {x(getStatusLabel(candidate.status))}
                         </span>
                       </div>
@@ -129,7 +132,7 @@ export function HiringDemoView() {
                         aria-label={x(M.hiring_open_candidate)}
                         className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[8px] border-none bg-navy text-white"
                       >
-                        →
+                        <ArrowRight size={14} strokeWidth={2} aria-hidden="true" />
                       </button>
                     </div>
                   ))}
@@ -149,7 +152,7 @@ export function HiringDemoView() {
                           <div className="text-[14.5px] font-semibold text-text">{candidate.name}</div>
                           <div className="mt-[2px] text-[12px] text-text-muted">{x(candidate.position)}</div>
                         </div>
-                        <span className={statusChipClass(getStatusTone(candidate.status) as any)}>
+                        <span className={statusChipClass(getStatusTone(candidate.status))}>
                           {x(getStatusLabel(candidate.status))}
                         </span>
                       </div>
@@ -177,7 +180,7 @@ export function HiringDemoView() {
                   onClick={() => setFilter('')}
                   className="cursor-pointer rounded-[8px] border border-(--accent-soft-border) bg-accent-soft px-[16px] py-[8px] font-sans text-[13px] font-semibold text-accent"
                 >
-                  Clear filter
+                  {x(M.hiring_clear_filter)}
                 </button>
               </div>
             )}
@@ -277,7 +280,8 @@ function JobPostings({ postings }: { postings: typeof demoJobPostings }) {
         <h2 className="text-[16px] font-bold text-text">{x(M.hiring_postings_title)}</h2>
         <button
           type="button"
-          className="cursor-pointer rounded-[9px] border-none bg-navy px-[15px] py-[9px] font-sans text-[12.5px] font-bold text-white"
+          disabled
+          className="cursor-not-allowed rounded-[9px] border-none bg-navy px-[15px] py-[9px] font-sans text-[12.5px] font-bold text-white opacity-60"
         >
           {x(M.hiring_postings_create)}
         </button>
@@ -285,30 +289,18 @@ function JobPostings({ postings }: { postings: typeof demoJobPostings }) {
 
       {postings.length > 0 ? (
         postings.map((posting) => (
-          <button
+          <JobPostingCard
             key={posting.id}
-            type="button"
+            title={x(posting.title)}
+            department={x(posting.department)}
+            location={x(posting.location)}
+            type={x(posting.type)}
+            postedDate={posting.postedDate}
+            closingDate={posting.closingDate}
+            status={posting.status}
             onClick={() => navigate(`/app/hiring/postings/${posting.id}`)}
-            aria-label={x(M.hiring_open_posting)}
-            className="w-full cursor-pointer rounded-[12px] border border-border bg-surface p-[16px] text-left font-sans hover:border-(--accent-soft-border)"
-          >
-            <div className="flex items-start justify-between gap-[12px]">
-              <div className="flex-1">
-                <div className="text-[14.5px] font-semibold text-text">{x(posting.title)}</div>
-                <div className="mt-[8px] space-y-[4px] text-[13px] text-text-2">
-                  <div>{x(posting.department)} · {x(posting.location)}</div>
-                  <div>{x(posting.type)}</div>
-                  <div className="text-[12px] text-text-muted">
-                    {x(M.hiring_posting_posted)} {posting.postedDate}
-                    {posting.closingDate && ` · ${x(M.hiring_posting_closing)} ${posting.closingDate}`}
-                  </div>
-                </div>
-              </div>
-              <span className={statusChipClass(posting.status === 'active' ? 'success' : 'muted' as any)}>
-                {x(getPostingStatusLabel(posting.status))}
-              </span>
-            </div>
-          </button>
+            ariaLabel={x(M.hiring_open_posting)}
+          />
         ))
       ) : (
         <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
@@ -320,7 +312,7 @@ function JobPostings({ postings }: { postings: typeof demoJobPostings }) {
 }
 
 // Helper functions
-function getStatusTone(status: Candidate['status']): 'success' | 'info' | 'warning' | 'risk' | 'muted' {
+function getStatusTone(status: Candidate['status']): 'success' | 'info' | 'warning' | 'risk' | 'neutral' {
   switch (status) {
     case 'hired':
       return 'success'
@@ -331,11 +323,11 @@ function getStatusTone(status: Candidate['status']): 'success' | 'info' | 'warni
     case 'basic_qualified':
       return 'warning'
     case 'application':
-      return 'muted'
+      return 'neutral'
     case 'rejected':
       return 'risk'
     default:
-      return 'muted'
+      return 'neutral'
   }
 }
 
@@ -360,15 +352,3 @@ function getStatusLabel(status: Candidate['status']) {
   }
 }
 
-function getPostingStatusLabel(status: string) {
-  switch (status) {
-    case 'active':
-      return M.hiring_posting_active
-    case 'closed':
-      return M.hiring_posting_closed
-    case 'draft':
-      return M.hiring_posting_draft
-    default:
-      return M.hiring_posting_draft
-  }
-}

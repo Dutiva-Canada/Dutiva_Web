@@ -8,6 +8,8 @@ import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeCont
 import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { JobPostingCard } from './JobPostingCard'
+import { useHiringTab } from './useHiringTab'
 import {
   addCandidate,
   getFunnelMetrics,
@@ -56,7 +58,7 @@ export function HiringProductionView() {
   const navigate = useWorkspaceNavigate()
   const { organizationId, isOrgAdmin } = useWorkspaceMode()
 
-  const [activeTab, setActiveTab] = useState<Tab>('candidates')
+  const [activeTab, setActiveTab] = useHiringTab()
   const [filter, setFilter] = useState('')
   const [candidates, setCandidates] = useState<ProductionCandidate[] | null>(null)
   const [funnel, setFunnel] = useState<ProductionFunnelMetrics | null>(null)
@@ -459,32 +461,18 @@ export function HiringProductionView() {
 
           {(postings ?? []).length > 0 ? (
             (postings ?? []).map((posting) => (
-              <button
+              <JobPostingCard
                 key={posting.id}
-                type="button"
+                title={posting.title}
+                department={posting.department}
+                location={posting.location}
+                type={posting.type}
+                postedDate={posting.postedDate}
+                closingDate={posting.closingDate}
+                status={posting.status}
                 onClick={() => navigate(`/app/hiring/postings/${posting.id}`)}
-                aria-label={x(M.hiring_open_posting)}
-                className="w-full cursor-pointer rounded-[12px] border border-border bg-surface p-[16px] text-left font-sans hover:border-(--accent-soft-border)"
-              >
-                <div className="flex items-start justify-between gap-[12px]">
-                  <div className="flex-1">
-                    <div className="text-[14.5px] font-semibold text-text">{posting.title}</div>
-                    <div className="mt-[8px] space-y-[4px] text-[13px] text-text-2">
-                      <div>
-                        {posting.department} · {posting.location}
-                      </div>
-                      <div>{posting.type}</div>
-                      <div className="text-[12px] text-text-muted">
-                        {x(M.hiring_posting_posted)} {posting.postedDate || '-'}
-                        {posting.closingDate && ` · ${x(M.hiring_posting_closing)} ${posting.closingDate}`}
-                      </div>
-                    </div>
-                  </div>
-                  <span className={statusChipClass(posting.status === 'active' ? 'success' : 'neutral')}>
-                    {x(getPostingStatusLabel(posting.status))}
-                  </span>
-                </div>
-              </button>
+                ariaLabel={x(M.hiring_open_posting)}
+              />
             ))
           ) : (
             <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
@@ -574,15 +562,3 @@ function getStatusLabel(status: string) {
   }
 }
 
-function getPostingStatusLabel(status: string) {
-  switch (status) {
-    case 'active':
-      return M.hiring_posting_active
-    case 'closed':
-      return M.hiring_posting_closed
-    case 'draft':
-      return M.hiring_posting_draft
-    default:
-      return M.hiring_posting_draft
-  }
-}

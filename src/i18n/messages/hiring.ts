@@ -23,7 +23,8 @@ export const hiringMessages = defineMessages({
   hiring_candidates_showing: { en: 'Showing', fr: 'Affichage de' },
   hiring_candidates_of: { en: 'of', fr: 'sur' },
   hiring_candidates_candidates: { en: 'candidates', fr: 'candidats' },
-  
+  hiring_clear_filter: { en: 'Clear filter', fr: 'Effacer le filtre' },
+
   hiring_th_name: { en: 'Name', fr: 'Nom' },
   hiring_th_position: { en: 'Position', fr: 'Poste' },
   hiring_th_location: { en: 'Location', fr: 'Lieu' },

@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { hiringMessages as M } from '@/i18n/messages/hiring'
 import { statusChipClass } from '@/components/chips'
+import { getPostingStatusLabel, getPostingStatusTone } from './postingStatus'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
@@ -49,7 +50,7 @@ export function JobPostingDetailProductionView() {
   return (
     <AppPage width="comfort">
       <Link
-        to={workspacePath(root, 'hiring')}
+        to={{ pathname: workspacePath(root, 'hiring'), search: '?tab=postings' }}
         className="mb-[16px] inline-flex items-center gap-[6px] text-[13px] font-semibold text-text-muted hover:text-text"
       >
         <ArrowLeft size={14} strokeWidth={2} aria-hidden="true" />
@@ -137,26 +138,4 @@ export function JobPostingDetailProductionView() {
   )
 }
 
-function getPostingStatusTone(status: string): 'success' | 'neutral' | 'warning' {
-  switch (status) {
-    case 'active':
-      return 'success'
-    case 'closed':
-      return 'neutral'
-    default:
-      return 'warning'
-  }
-}
 
-function getPostingStatusLabel(status: string) {
-  switch (status) {
-    case 'active':
-      return M.hiring_posting_active
-    case 'closed':
-      return M.hiring_posting_closed
-    case 'draft':
-      return M.hiring_posting_draft
-    default:
-      return M.hiring_posting_draft
-  }
-}

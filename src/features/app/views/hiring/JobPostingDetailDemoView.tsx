@@ -1,17 +1,18 @@
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { hiringMessages as M } from '@/i18n/messages/hiring'
 import { demoJobPostings } from '@/data'
 import { statusChipClass } from '@/components/chips'
-import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
+import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
+import { getPostingStatusLabel, getPostingStatusTone } from './postingStatus'
 
 /**
  * Job posting detail demo view — Northgate fixture data for the demo workspace.
  */
 export function JobPostingDetailDemoView() {
   const { x } = useI18n()
-  const navigate = useWorkspaceNavigate()
+  const { root } = useWorkspaceRoot()
   const { postingId } = useParams<{ postingId: string }>()
 
   const posting = demoJobPostings.find((p) => p.id === postingId)
@@ -28,14 +29,13 @@ export function JobPostingDetailDemoView() {
   return (
     <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
       <div className="mx-auto max-w-[900px]">
-        <button
-          type="button"
-          onClick={() => navigate('/app/hiring')}
-          className="mb-[16px] flex cursor-pointer items-center gap-[6px] text-[13px] font-semibold text-text-muted hover:text-text"
+        <Link
+          to={{ pathname: workspacePath(root, 'hiring'), search: '?tab=postings' }}
+          className="mb-[16px] inline-flex items-center gap-[6px] text-[13px] font-semibold text-text-muted hover:text-text"
         >
           <ArrowLeft size={14} strokeWidth={2} aria-hidden="true" />
           {x(M.hiring_posting_back)}
-        </button>
+        </Link>
 
         <div className="mb-[18px] flex flex-wrap items-center gap-[12px]">
           <div className="flex-1">
@@ -94,26 +94,4 @@ export function JobPostingDetailDemoView() {
   )
 }
 
-function getPostingStatusTone(status: string): 'success' | 'neutral' | 'warning' {
-  switch (status) {
-    case 'active':
-      return 'success'
-    case 'closed':
-      return 'neutral'
-    default:
-      return 'warning'
-  }
-}
 
-function getPostingStatusLabel(status: string) {
-  switch (status) {
-    case 'active':
-      return M.hiring_posting_active
-    case 'closed':
-      return M.hiring_posting_closed
-    case 'draft':
-      return M.hiring_posting_draft
-    default:
-      return M.hiring_posting_draft
-  }
-}

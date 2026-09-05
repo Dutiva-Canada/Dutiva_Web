@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { hiringMessages as M } from '@/i18n/messages/hiring'
 import { demoCandidates, demoEvidenceScreening, demoWorkSamples, demoInterviews, demoAuthenticityScores } from '@/data'
 import type { Candidate, EvidenceScreening, WorkSampleAssessment, DefenseInterview, AuthenticityScores } from '@/data'
 import { statusChipClass } from '@/components/chips'
-import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
+import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 
 /**
  * Candidate detail demo view — Northgate fixture data for the demo workspace.
@@ -14,7 +14,7 @@ import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRoot
  */
 export function CandidateDetailDemoView() {
   const { x } = useI18n()
-  const navigate = useWorkspaceNavigate()
+  const { root } = useWorkspaceRoot()
   const { candidateId } = useParams<{ candidateId: string }>()
   const [activeTab, setActiveTab] = useState<'overview' | 'evidence' | 'work_sample' | 'interview' | 'scores'>('overview')
 
@@ -44,18 +44,17 @@ export function CandidateDetailDemoView() {
       <div className="mx-auto max-w-[900px]">
         {/* Header */}
         <div className="mb-[18px] flex items-center gap-[12px]">
-          <button
-            type="button"
-            onClick={() => navigate('/app/hiring')}
-            className="flex h-[32px] w-[32px] cursor-pointer items-center justify-center rounded-[8px] border-none bg-inset text-text hover:bg-surface"
+          <Link
+            to={workspacePath(root, 'hiring')}
+            className="flex h-[32px] w-[32px] items-center justify-center rounded-[8px] border-none bg-inset text-text hover:bg-surface"
           >
             <ArrowLeft size={16} strokeWidth={2} aria-hidden="true" />
-          </button>
+          </Link>
           <div className="flex-1">
             <h1 className="text-[20px] font-bold text-text">{candidate.name}</h1>
             <p className="mt-[2px] text-[13px] text-text-muted">{x(candidate.position)}</p>
           </div>
-          <span className={statusChipClass(getStatusTone(candidate.status) as any)}>
+          <span className={statusChipClass(getStatusTone(candidate.status))}>
             {x(getStatusLabel(candidate.status))}
           </span>
         </div>
@@ -308,7 +307,7 @@ function WorkSampleTab({ workSample }: { workSample?: WorkSampleAssessment }) {
       <div className="rounded-[12px] border border-border bg-surface p-[20px]">
         <div className="mb-[16px] flex items-center justify-between">
           <h2 className="text-[16px] font-bold text-text">{x(M.hiring_work_sample_title)}</h2>
-          <span className={statusChipClass(workSample.status === 'completed' ? 'success' : 'muted' as any)}>
+          <span className={statusChipClass(workSample.status === 'completed' ? 'success' : 'neutral')}>
             {x(getWorkSampleStatusLabel(workSample.status))}
           </span>
         </div>
@@ -389,7 +388,7 @@ function InterviewTab({ interview }: { interview?: DefenseInterview }) {
       <div className="rounded-[12px] border border-border bg-surface p-[20px]">
         <div className="mb-[16px] flex items-center justify-between">
           <h2 className="text-[16px] font-bold text-text">{x(M.hiring_interview_title)}</h2>
-          <span className={statusChipClass(interview.status === 'completed' ? 'success' : 'muted' as any)}>
+          <span className={statusChipClass(interview.status === 'completed' ? 'success' : 'neutral')}>
             {interview.status}
           </span>
         </div>
