@@ -28,9 +28,9 @@ export function HomeDemoView() {
         <div className="mb-[6px] text-[10.5px] font-bold tracking-[0.09em] text-gold-dot uppercase">
           {x(M.home_date_label)}
         </div>
-        <h1 className="m-0 mb-[4px] font-display text-[23px] font-semibold text-text">
+        <h2 className="m-0 mb-[4px] font-display text-[23px] font-semibold text-text">
           {x(M.home_greeting)}
-        </h1>
+        </h2>
         <p className="m-0 text-[13.5px] text-text-muted">{x(M.home_sub)}</p>
       </div>
 

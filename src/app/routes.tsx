@@ -5,7 +5,7 @@
 /* oxlint-disable react/only-export-components -- route table, not a component
    module: the lazy() wrappers here don't participate in fast refresh. */
 import { Suspense, lazy } from 'react'
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Outlet, redirect, useLocation } from 'react-router-dom'
 import type { RouteObject } from 'react-router-dom'
 import { ForcedLangProvider } from '@/i18n/ForcedLangProvider'
 import type { Lang } from '@/i18n/core'
@@ -217,7 +217,7 @@ function routeTree(): RouteObject[] {
           <PublicDemoWorkspace root="/demo" />
         </Suspense>
       ),
-      children: [{ index: true, element: <Navigate to="/demo/home" replace /> }, ...demoViewRoutes],
+      children: [{ index: true, loader: () => redirect('/demo/home') }, ...demoViewRoutes],
     },
     {
       path: '/fr/demo',
@@ -227,7 +227,7 @@ function routeTree(): RouteObject[] {
         </Suspense>
       ),
       children: [
-        { index: true, element: <Navigate to="/fr/demo/home" replace /> },
+        { index: true, loader: () => redirect('/fr/demo/home') },
         ...frDemoViewRoutes,
       ],
     },
@@ -238,7 +238,7 @@ function routeTree(): RouteObject[] {
           <Workspace />
         </Suspense>
       ),
-      children: [{ index: true, element: <Navigate to="/app/home" replace /> }, ...appViewRoutes],
+      children: [{ index: true, loader: () => redirect('/app/home') }, ...appViewRoutes],
     },
     { path: '*', element: <NotFoundRoute /> },
   ]

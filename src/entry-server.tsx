@@ -37,11 +37,25 @@ export interface RenderedPage {
   head: HeadData | null
 }
 
-export async function renderPage(pathname: string): Promise<RenderedPage> {
+const MAX_REDIRECTS = 3
+
+export async function renderPage(pathname: string, redirectCount = 0): Promise<RenderedPage> {
+  if (redirectCount > MAX_REDIRECTS) {
+    throw new Error(`Too many redirects while prerendering ${pathname}`)
+  }
+
   const sink: HeadSink = { head: null }
   const handler = createStaticHandler(routes)
   const context = await handler.query(new Request(`${SITE_ORIGIN}${pathname}`))
   if (context instanceof Response) {
+    if (context.status >= 300 && context.status < 400) {
+      const location = context.headers.get('Location')
+      if (!location) {
+        throw new Error(`Redirect without Location header while prerendering ${pathname}`)
+      }
+      const nextPathname = new URL(location, SITE_ORIGIN).pathname
+      return renderPage(nextPathname, redirectCount + 1)
+    }
     throw new Error(`Unexpected ${context.status} response while prerendering ${pathname}`)
   }
   const router = createStaticRouter(handler.dataRoutes, context)

@@ -5,7 +5,7 @@
 /* oxlint-disable react/only-export-components -- route table, not a component
    module: the lazy() wrappers here don't participate in fast refresh. */
 import { lazy } from 'react'
-import { Navigate } from 'react-router-dom'
+import { redirect } from 'react-router-dom'
 import type { RouteObject } from 'react-router-dom'
 import {
   preloadAdvisorView,
@@ -113,9 +113,9 @@ function createAppViewRoutes(root: string): RouteObject[] {
     { path: 'employees/:employeeId', element: <EmployeeProfileView /> },
     { path: 'compliance', element: <ComplianceView /> },
     { path: 'policies', element: <PoliciesView /> },
-    { path: 'templates', element: <Navigate to={r('documents/hr-library')} replace /> },
+    { path: 'templates', loader: () => redirect(r('documents/hr-library')) },
     { path: 'analytics', element: <AnalyticsView /> },
-    { path: 'reports', element: <Navigate to={r('analytics')} replace /> },
+    { path: 'reports', loader: () => redirect(r('analytics')) },
     { path: 'knowledge', element: <KnowledgeView /> },
     { path: 'knowledge/:slug', element: <GuideView /> },
     { path: 'support', element: <SupportView /> },
@@ -131,14 +131,14 @@ function createAppViewRoutes(root: string): RouteObject[] {
     { path: 'hiring', element: <HiringView /> },
     { path: 'hiring/candidates/:candidateId', element: <CandidateDetailView /> },
     { path: 'hiring/postings/:postingId', element: <JobPostingDetailView /> },
-    { path: 'tasks', element: <Navigate to={r('planning/tasks')} replace /> },
-    { path: 'calendar', element: <Navigate to={r('planning/calendar')} replace /> },
-    { path: 'memory', element: <Navigate to={r('settings/memory')} replace /> },
+    { path: 'tasks', loader: () => redirect(r('planning/tasks')) },
+    { path: 'calendar', loader: () => redirect(r('planning/calendar')) },
+    { path: 'memory', loader: () => redirect(r('settings/memory')) },
     {
       path: 'planning',
       element: <PlanningLayout />,
       children: [
-        { index: true, element: <Navigate to={r('planning/tasks')} replace /> },
+        { index: true, loader: () => redirect(r('planning/tasks')) },
         { path: 'tasks', element: <TasksView /> },
         { path: 'calendar', element: <CalendarView /> },
       ],
