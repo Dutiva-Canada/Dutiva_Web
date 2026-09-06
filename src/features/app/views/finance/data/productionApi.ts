@@ -1,4 +1,5 @@
 import { initialFinanceState } from './fixtures'
+import { DEFAULT_CATEGORY_RULES, DEFAULT_LEDGER_ACCOUNTS } from './defaultCategoryRules'
 import type {
   FinanceBankAccount,
   FinanceBudget,
@@ -754,6 +755,57 @@ export function removeCategoryRule(orgId: string, id: string): boolean {
     return { ...state, categoryRules: next }
   })
   return removed
+}
+
+export function seedDefaultCategoryRules(orgId: string): number {
+  const state = loadFinanceState(orgId)
+  const entity = state.entities[0]
+  const book = state.books[0]
+  if (!entity || !book) return 0
+
+  const nextState = { ...state }
+  let addedRules = 0
+
+  for (const defaultAccount of DEFAULT_LEDGER_ACCOUNTS) {
+    if (!nextState.ledgerAccounts.some((la) => la.code === defaultAccount.code)) {
+      const newAccount: FinanceLedgerAccount = {
+        id: `la-${Date.now()}-${defaultAccount.code}`,
+        bookId: book.id,
+        code: defaultAccount.code,
+        name: defaultAccount.name,
+        type: defaultAccount.type,
+        sensitive: defaultAccount.sensitive ?? false,
+        active: true,
+      }
+      nextState.ledgerAccounts = [...nextState.ledgerAccounts, newAccount]
+    }
+  }
+
+  const accountByCode = new Map(nextState.ledgerAccounts.map((la) => [la.code, la]))
+
+  for (const defaultRule of DEFAULT_CATEGORY_RULES) {
+    const existing = nextState.categoryRules.some(
+      (r) => r.pattern.toUpperCase() === defaultRule.pattern.toUpperCase() && r.entityId === entity.id,
+    )
+    if (existing) continue
+    const account = accountByCode.get(defaultRule.ledgerAccountCode)
+    if (!account) continue
+    const newRule: FinanceCategoryRule = {
+      id: `cat-rule-${Date.now()}-${addedRules}`,
+      entityId: entity.id,
+      pattern: defaultRule.pattern,
+      matchType: defaultRule.matchType,
+      ledgerAccountId: account.id,
+      direction: defaultRule.direction,
+      priority: defaultRule.priority,
+      active: true,
+    }
+    nextState.categoryRules = [...nextState.categoryRules, newRule]
+    addedRules++
+  }
+
+  saveFinanceState(orgId, { ...nextState, categoryRules: nextState.categoryRules })
+  return addedRules
 }
 
 export function deleteImportSession(orgId: string, id: string): boolean {

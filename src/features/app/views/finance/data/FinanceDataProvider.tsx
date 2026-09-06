@@ -16,6 +16,7 @@ import {
   addCategoryRule as addCategoryRuleLocalApi,
   updateCategoryRule as updateCategoryRuleLocalApi,
   removeCategoryRule as removeCategoryRuleLocalApi,
+  seedDefaultCategoryRules as seedDefaultCategoryRulesLocalApi,
   runAutoCategorize as runAutoCategorizeLocalApi,
   isJournalBalanced as isJournalBalancedLocalApi,
   loadFullState as loadFullStateLocalApi,
@@ -64,6 +65,7 @@ import {
   deleteCategoryRuleFromSupabase as removeCategoryRuleSupa,
   importBankStatementInSupabase,
   deleteImportSessionFromSupabase,
+  seedDefaultCategoryRulesInSupabase,
   runAutoCategorizeInSupabase,
 } from './supabaseApi'
 import type {
@@ -536,6 +538,18 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
     [isLive, orgId, hasSupabase, reload, setState],
   )
 
+  const seedDefaultCategoryRules = useCallback(async () => {
+    if (!isLive || !orgId) return 0
+    if (hasSupabase) {
+      const count = await seedDefaultCategoryRulesInSupabase(orgId)
+      await reload()
+      return count
+    }
+    const count = seedDefaultCategoryRulesLocalApi(orgId)
+    setState(loadFullStateLocalApi(orgId))
+    return count
+  }, [isLive, orgId, hasSupabase, reload, setState])
+
   const runAutoCategorize = useCallback(async () => {
     if (!isLive || !orgId) return 0
     if (hasSupabase) {
@@ -585,6 +599,7 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
       addCategoryRule,
       updateCategoryRule,
       removeCategoryRule,
+      seedDefaultCategoryRules,
       runAutoCategorize,
       ...creates,
     }),
@@ -622,6 +637,7 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
       addCategoryRule,
       updateCategoryRule,
       removeCategoryRule,
+      seedDefaultCategoryRules,
       runAutoCategorize,
       creates,
     ],

@@ -21,6 +21,7 @@ export function ImportExport() {
     addCategoryRule,
     updateCategoryRule,
     removeCategoryRule,
+    seedDefaultCategoryRules,
     runAutoCategorize,
   } = useFinanceData()
 
@@ -32,6 +33,7 @@ export function ImportExport() {
   const [importErrorDetails, setImportErrorDetails] = useState<FinanceImportRowError[]>([])
   const [showErrorDetails, setShowErrorDetails] = useState(false)
   const [categorizeResult, setCategorizeResult] = useState<string | null>(null)
+  const [seedRulesResult, setSeedRulesResult] = useState<string | null>(null)
   const [showRuleForm, setShowRuleForm] = useState(false)
   const [showWizard, setShowWizard] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -112,6 +114,15 @@ export function ImportExport() {
       count > 0
         ? x(M.finance_categorize_result).replace('{count}', String(count))
         : x(M.finance_categorize_none),
+    )
+  }
+
+  const handleSeedDefaultRules = async () => {
+    const count = await seedDefaultCategoryRules()
+    setSeedRulesResult(
+      count > 0
+        ? x(M.finance_rules_seed_result).replace('{count}', String(count))
+        : x(M.finance_rules_seed_none),
     )
   }
 
@@ -291,15 +302,26 @@ export function ImportExport() {
             <h2 className="text-[15px] font-semibold text-text">{x(M.finance_rules_title)}</h2>
             <p className="mt-[2px] text-[12px] text-text-muted">{x(M.finance_rules_description)}</p>
           </div>
-          {canWrite && (
-            <button
-              type="button"
-              onClick={() => setShowRuleForm((v) => !v)}
-              className="rounded-[8px] bg-surface px-[10px] py-[5px] text-[12px] font-semibold text-text-2 hover:bg-inset border border-border"
-            >
-              {x(M.finance_rules_add)}
-            </button>
-          )}
+          <div className="flex items-center gap-[8px]">
+            {canWrite && state.entities.length > 0 && state.books.length > 0 && (
+              <button
+                type="button"
+                onClick={handleSeedDefaultRules}
+                className="rounded-[8px] bg-navy px-[10px] py-[5px] text-[12px] font-semibold text-white hover:opacity-90"
+              >
+                {x(M.finance_rules_seed)}
+              </button>
+            )}
+            {canWrite && (
+              <button
+                type="button"
+                onClick={() => setShowRuleForm((v) => !v)}
+                className="rounded-[8px] bg-surface px-[10px] py-[5px] text-[12px] font-semibold text-text-2 hover:bg-inset border border-border"
+              >
+                {x(M.finance_rules_add)}
+              </button>
+            )}
+          </div>
         </div>
 
         {showRuleForm && canWrite && (
@@ -311,6 +333,12 @@ export function ImportExport() {
             }}
             onCancel={() => setShowRuleForm(false)}
           />
+        )}
+
+        {seedRulesResult && (
+          <div className="mb-[8px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text">
+            {seedRulesResult}
+          </div>
         )}
 
         {state.categoryRules.length === 0 ? (

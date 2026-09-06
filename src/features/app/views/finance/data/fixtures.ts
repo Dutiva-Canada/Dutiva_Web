@@ -1,4 +1,5 @@
 import { bi } from '@/i18n/core'
+import { DEFAULT_LEDGER_ACCOUNTS, DEFAULT_CATEGORY_RULES } from './defaultCategoryRules'
 import type { FinanceWorkspaceState } from './types'
 
 /**
@@ -79,71 +80,15 @@ const taxAccount: FinanceWorkspaceState['bankAccounts'][number] = {
   earmarkedAmount: '12000.00',
 }
 
-const ledgerAccounts: FinanceWorkspaceState['ledgerAccounts'] = [
-  {
-    id: 'acct-1000',
-    bookId: 'book-1',
-    code: '1000',
-    name: bi('Cash — Operating', 'Encaisse — Exploitation'),
-    type: 'asset',
-    sensitive: false,
-    active: true,
-  },
-  {
-    id: 'acct-1200',
-    bookId: 'book-1',
-    code: '1200',
-    name: bi('Accounts receivable', 'Clients'),
-    type: 'asset',
-    sensitive: false,
-    active: true,
-  },
-  {
-    id: 'acct-2000',
-    bookId: 'book-1',
-    code: '2000',
-    name: bi('Accounts payable', 'Fournisseurs'),
-    type: 'liability',
-    sensitive: false,
-    active: true,
-  },
-  {
-    id: 'acct-2200',
-    bookId: 'book-1',
-    code: '2200',
-    name: bi('GST/HST payable', 'TPS/TVH à payer'),
-    type: 'liability',
-    sensitive: false,
-    active: true,
-  },
-  {
-    id: 'acct-5000',
-    bookId: 'book-1',
-    code: '5000',
-    name: bi('Revenue — Services', 'Revenus — Services'),
-    type: 'revenue',
-    sensitive: false,
-    active: true,
-  },
-  {
-    id: 'acct-6000',
-    bookId: 'book-1',
-    code: '6000',
-    name: bi('Salaries and wages', 'Salaires et traitements'),
-    type: 'expense',
-    sensitive: true,
-    active: true,
-  },
-  {
-    id: 'acct-5100',
-    bookId: 'book-1',
-    code: '5100',
-    name: bi('Rent', 'Loyer'),
-    type: 'expense',
-    sensitive: false,
-    active: true,
-  },
-]
+const ledgerAccounts: FinanceWorkspaceState['ledgerAccounts'] = DEFAULT_LEDGER_ACCOUNTS.map((la) => ({
+  id: `acct-${la.code}`,
+  bookId: book.id,
+  code: la.code,
+  name: la.name,
+  type: la.type,
+  sensitive: la.sensitive ?? false,
+  active: true,
+}))
 
 const invoice: FinanceWorkspaceState['invoices'][number] = {
   id: 'inv-1',
@@ -575,49 +520,16 @@ const externalAction: FinanceWorkspaceState['externalActions'][number] = {
   notes: bi('Pay run submitted to ADP; results imported.', 'Traitement de paie soumis à ADP; résultats importés.'),
 }
 
-const categoryRule1: FinanceWorkspaceState['categoryRules'][number] = {
-  id: 'cat-rule-1',
-  entityId: 'ent-1',
-  pattern: 'PAYROLL',
-  matchType: 'contains',
-  ledgerAccountId: 'acct-6000',
-  direction: 'debit',
-  priority: 100,
+const categoryRules: FinanceWorkspaceState['categoryRules'] = DEFAULT_CATEGORY_RULES.map((rule, index) => ({
+  id: `cat-rule-${index + 1}`,
+  entityId: entity.id,
+  pattern: rule.pattern,
+  matchType: rule.matchType,
+  ledgerAccountId: `acct-${rule.ledgerAccountCode}`,
+  direction: rule.direction,
+  priority: rule.priority,
   active: true,
-}
-
-const categoryRule2: FinanceWorkspaceState['categoryRules'][number] = {
-  id: 'cat-rule-2',
-  entityId: 'ent-1',
-  pattern: 'STRIPE',
-  matchType: 'contains',
-  ledgerAccountId: 'acct-5000',
-  direction: 'credit',
-  priority: 90,
-  active: true,
-}
-
-const categoryRule3: FinanceWorkspaceState['categoryRules'][number] = {
-  id: 'cat-rule-3',
-  entityId: 'ent-1',
-  pattern: 'SHOPIFY',
-  matchType: 'contains',
-  ledgerAccountId: 'acct-5000',
-  direction: 'credit',
-  priority: 80,
-  active: true,
-}
-
-const categoryRule4: FinanceWorkspaceState['categoryRules'][number] = {
-  id: 'cat-rule-4',
-  entityId: 'ent-1',
-  pattern: 'RENT',
-  matchType: 'contains',
-  ledgerAccountId: 'acct-5100',
-  direction: 'debit',
-  priority: 70,
-  active: true,
-}
+}))
 
 const importSession: FinanceWorkspaceState['importSessions'][number] = {
   id: 'imp-1',
@@ -665,6 +577,6 @@ export const initialFinanceState: FinanceWorkspaceState = {
   approvals: [approval],
   auditEvents: [auditEvent],
   externalActions: [externalAction],
-  categoryRules: [categoryRule1, categoryRule2, categoryRule3, categoryRule4],
+  categoryRules,
   importSessions: [importSession],
 }

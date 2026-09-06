@@ -139,6 +139,8 @@ export interface FinanceDataContextValue {
   removeCategoryRule: (id: string) => Promise<boolean>
   /** Run auto-categorization on all unmatched bank items. */
   runAutoCategorize: () => Promise<number>
+  /** Seed the workspace with default ledger accounts and category rules. */
+  seedDefaultCategoryRules: () => Promise<number>
 }
 
 export const FinanceDataContext = createContext<FinanceDataContextValue | null>(null)

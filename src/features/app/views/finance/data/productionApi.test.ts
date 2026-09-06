@@ -13,6 +13,7 @@ import {
   loadFinanceState,
   markTaxScenarioStale,
   reviseBudget,
+  seedDefaultCategoryRules,
   settlePayrollLiability,
   setHoldingStale,
   transitionBankItemMatchStatus,
@@ -34,11 +35,23 @@ import {
   updateReserveGoalProgress,
 } from './productionApi'
 import type { FinanceJournalLine } from './types'
+import { DEFAULT_CATEGORY_RULES, DEFAULT_LEDGER_ACCOUNTS } from './defaultCategoryRules'
 
 const ORG = 'test-finance-org'
+const SEED_ORG = 'test-seed-finance-org'
 
 function clearStorage(): void {
-  if (typeof localStorage !== 'undefined') localStorage.removeItem(`dutiva_finance_state_${ORG}`)
+  if (typeof localStorage !== 'undefined') {
+    localStorage.removeItem(`dutiva_finance_state_${ORG}`)
+    localStorage.removeItem(`dutiva_finance_state_${SEED_ORG}`)
+  }
+}
+
+function setEmptySeedState(org: string): void {
+  if (typeof localStorage === 'undefined') return
+  const state = loadFinanceState(org)
+  const empty = { ...state, ledgerAccounts: [], categoryRules: [] }
+  localStorage.setItem(`dutiva_finance_state_${org}`, JSON.stringify(empty))
 }
 
 beforeEach(() => {
@@ -557,5 +570,32 @@ describe('deleteImportSession', () => {
     const stateAfterDelete = loadFinanceState(ORG)
     expect(stateAfterDelete.importSessions.some((s) => s.id === session?.id)).toBe(false)
     expect(stateAfterDelete.bankItems.filter((bi) => bi.bankAccountId === account.id)).toHaveLength(0)
+  })
+})
+
+describe('seedDefaultCategoryRules', () => {
+  it('seeds default ledger accounts and category rules in an empty workspace', () => {
+    setEmptySeedState(SEED_ORG)
+
+    const created = seedDefaultCategoryRules(SEED_ORG)
+    expect(created).toBeGreaterThan(0)
+
+    const state = loadFinanceState(SEED_ORG)
+    expect(state.ledgerAccounts.length).toBeGreaterThanOrEqual(DEFAULT_LEDGER_ACCOUNTS.length)
+    expect(state.categoryRules.length).toBeGreaterThanOrEqual(DEFAULT_CATEGORY_RULES.length)
+    expect(state.categoryRules.some((r) => r.pattern === 'PAYROLL')).toBe(true)
+  })
+
+  it('is idempotent and skips existing patterns', () => {
+    setEmptySeedState(SEED_ORG)
+
+    const first = seedDefaultCategoryRules(SEED_ORG)
+    expect(first).toBeGreaterThan(0)
+
+    const second = seedDefaultCategoryRules(SEED_ORG)
+    expect(second).toBe(0)
+
+    const state = loadFinanceState(SEED_ORG)
+    expect(state.categoryRules.length).toBe(first)
   })
 })

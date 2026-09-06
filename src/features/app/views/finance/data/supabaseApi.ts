@@ -583,6 +583,7 @@ export {
   addLedgerAccountInSupabase,
   addPartyInSupabase,
   addSubscriptionInSupabase,
+  seedDefaultCategoryRulesInSupabase,
 } from './supabaseCreates'
 
 /* ---------- Evidence / receipt storage (re-exported from supabaseEvidence) ---------- */
