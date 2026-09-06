@@ -538,6 +538,7 @@ export const financeMessages = defineMessages({
   finance_entity_active: { en: 'Active', fr: 'Actif' },
   finance_entity_empty: { en: 'No legal entities yet. Create one to use bank accounts, invoices, and other finance records.', fr: 'Aucune entité juridique pour l’instant. Créez-en une pour utiliser les comptes bancaires, factures et autres enregistrements financiers.' },
   finance_entity_select_prompt: { en: 'Create a legal entity in the Entities tab first.', fr: 'Créez d’abord une entité juridique dans l’onglet Entités.' },
+  finance_entity_save_failed: { en: 'Couldn’t save the legal entity. Try again.', fr: 'Impossible d’enregistrer l’entité juridique. Réessayez.' },
 
   finance_subscription_create: { en: 'New subscription', fr: 'Nouvel abonnement' },
   finance_subscription_label: { en: 'Label', fr: 'Libellé' },

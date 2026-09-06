@@ -32,9 +32,16 @@ export function Entities() {
         </div>
         {showForm && canWrite && (
           <EntityForm
-            onSubmit={(ent) => {
-              void addEntity(ent)
-              setShowForm(false)
+            onSubmit={async (ent) => {
+              try {
+                const created = await addEntity(ent)
+                if (!created) {
+                  throw new Error('addEntity returned null')
+                }
+                setShowForm(false)
+              } catch {
+                throw new Error('save failed')
+              }
             }}
             onCancel={() => setShowForm(false)}
           />
@@ -63,7 +70,7 @@ function EntityForm({
   onSubmit,
   onCancel,
 }: {
-  onSubmit: (ent: Omit<FinanceLegalEntity, 'id'>) => void
+  onSubmit: (ent: Omit<FinanceLegalEntity, 'id'>) => Promise<unknown>
   onCancel: () => void
 }) {
   const { x } = useI18n()
@@ -75,6 +82,8 @@ function EntityForm({
   const [accountingSourceId, setAccountingSourceId] = useState('')
   const [payrollSourceId, setPayrollSourceId] = useState('')
   const [active, setActive] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleJurisdictionToggle = (code: string) => {
     setSelectedJurisdictions((prev) =>
@@ -82,18 +91,29 @@ function EntityForm({
     )
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit({
-      legalName,
-      legalForm,
-      fiscalYearStart,
-      functionalCurrency,
-      jurisdictions: selectedJurisdictions,
-      accountingSourceId: accountingSourceId || undefined,
-      payrollSourceId: payrollSourceId || undefined,
-      active,
-    })
+    if (saving) return
+    setSaving(true)
+    setError(null)
+    try {
+      await onSubmit({
+        legalName,
+        legalForm,
+        fiscalYearStart,
+        functionalCurrency,
+        jurisdictions: selectedJurisdictions,
+        accountingSourceId: accountingSourceId || undefined,
+        payrollSourceId: payrollSourceId || undefined,
+        active,
+      })
+      // onSubmit closes the form on success; if it does not throw but still
+      // returns an error-like value, keep the form open.
+    } catch {
+      setError(x(M.finance_entity_save_failed))
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -186,15 +206,21 @@ function EntityForm({
         <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
         <span className="text-[12px] text-text-muted">{x(M.finance_entity_active)}</span>
       </label>
+      {error && <p className="text-[12px] text-red-600">{error}</p>}
       <div className="flex justify-end gap-[8px]">
         <button
           type="button"
+          disabled={saving}
           onClick={onCancel}
-          className="rounded-[6px] border border-border bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2"
+          className="rounded-[6px] border border-border bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 disabled:opacity-60"
         >
           {x(M.finance_cancel)}
         </button>
-        <button type="submit" className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">
+        <button
+          type="submit"
+          disabled={saving}
+          className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white disabled:opacity-60"
+        >
           {x(M.finance_save)}
         </button>
       </div>
