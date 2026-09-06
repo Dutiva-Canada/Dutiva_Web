@@ -171,9 +171,8 @@ export async function importBankStatementInSupabase(
 
   if (newItems.length === 0) {
     // Still record the import session even if all rows were duplicates
-    const entityId = existingItems[0]?.entityId ?? (existingRows?.[0] as Record<string, unknown>)?.entity_id as string ?? orgId
     await insertImportSession(orgId, {
-      entityId,
+      entityId: bankAccount.entityId,
       bankAccountId,
       fileName,
       importedAt: new Date().toISOString(),
@@ -206,9 +205,8 @@ export async function importBankStatementInSupabase(
   }
 
   // Record the import session
-  const entityId = existingItems[0]?.entityId ?? (existingRows?.[0] as Record<string, unknown>)?.entity_id as string ?? orgId
   await insertImportSession(orgId, {
-    entityId,
+    entityId: bankAccount.entityId,
     bankAccountId,
     fileName,
     importedAt: new Date().toISOString(),

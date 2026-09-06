@@ -545,6 +545,11 @@ export const financeMessages = defineMessages({
   },
   finance_import_no_file: { en: 'Select a file to import.', fr: 'Sélectionnez un fichier à importer.' },
   finance_import_no_account: { en: 'Select a bank account.', fr: 'Sélectionnez un compte bancaire.' },
+  finance_import_no_accounts: {
+    en: 'No bank accounts yet. Create one in the Treasury tab before importing statements.',
+    fr: 'Aucun compte bancaire pour l’instant. Créez-en un dans l’onglet Trésorerie avant d’importer des relevés.',
+  },
+  finance_import_failed: { en: 'Import failed.', fr: 'L’import a échoué.' },
   finance_import_history: { en: 'Import history', fr: 'Historique des imports' },
   finance_import_no_history: { en: 'No imports yet.', fr: 'Aucun import pour l\'instant.' },
   finance_import_file_name: { en: 'File', fr: 'Fichier' },

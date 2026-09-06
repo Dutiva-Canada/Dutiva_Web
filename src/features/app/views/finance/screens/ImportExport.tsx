@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { Download, FileUp, Sparkles, Trash2 } from 'lucide-react'
+import { NavLink } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
@@ -23,6 +24,7 @@ export function ImportExport() {
   const [selectedFileName, setSelectedFileName] = useState('')
   const [fileContent, setFileContent] = useState('')
   const [importResult, setImportResult] = useState<string | null>(null)
+  const [importError, setImportError] = useState<string | null>(null)
   const [categorizeResult, setCategorizeResult] = useState<string | null>(null)
   const [showRuleForm, setShowRuleForm] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -45,17 +47,24 @@ export function ImportExport() {
 
   const handleImport = async () => {
     if (!selectedAccountId || !fileContent) return
-    const result = await importBankStatement(selectedAccountId, selectedFileName, fileContent)
-    if (result) {
-      setImportResult(
-        x(M.finance_import_result)
-          .replace('{new}', String(result.newItems))
-          .replace('{dup}', String(result.duplicates))
-          .replace('{err}', String(result.errors)),
-      )
-      setSelectedFileName('')
-      setFileContent('')
-      if (fileInputRef.current) fileInputRef.current.value = ''
+    setImportError(null)
+    try {
+      const result = await importBankStatement(selectedAccountId, selectedFileName, fileContent)
+      if (result) {
+        setImportResult(
+          x(M.finance_import_result)
+            .replace('{new}', String(result.newItems))
+            .replace('{dup}', String(result.duplicates))
+            .replace('{err}', String(result.errors)),
+        )
+        setSelectedFileName('')
+        setFileContent('')
+        if (fileInputRef.current) fileInputRef.current.value = ''
+      } else {
+        setImportError(x(M.finance_import_failed))
+      }
+    } catch {
+      setImportError(x(M.finance_import_failed))
     }
   }
 
@@ -85,18 +94,27 @@ export function ImportExport() {
           <label className="text-[12px] font-semibold text-text-2">
             {x(M.finance_import_select_account)}
           </label>
-          <select
-            value={selectedAccountId}
-            onChange={(e) => setSelectedAccountId(e.target.value)}
-            className="rounded-[8px] border border-border bg-inset px-[10px] py-[6px] text-[13px] text-text"
-          >
-            <option value="">—</option>
-            {state.bankAccounts.map((ba) => (
-              <option key={ba.id} value={ba.id}>
-                {ba.label.en} ({ba.currency})
-              </option>
-            ))}
-          </select>
+          {state.bankAccounts.length === 0 ? (
+            <p className="rounded-[8px] bg-inset p-[10px] text-[13px] text-text-muted">
+              {x(M.finance_import_no_accounts)}{' '}
+              <NavLink to="treasury" className="font-semibold text-accent hover:underline">
+                {x(M.finance_treasury_title)}
+              </NavLink>
+            </p>
+          ) : (
+            <select
+              value={selectedAccountId}
+              onChange={(e) => setSelectedAccountId(e.target.value)}
+              className="rounded-[8px] border border-border bg-inset px-[10px] py-[6px] text-[13px] text-text"
+            >
+              <option value="">—</option>
+              {state.bankAccounts.map((ba) => (
+                <option key={ba.id} value={ba.id}>
+                  {x(ba.label)} ({ba.currency})
+                </option>
+              ))}
+            </select>
+          )}
 
           <label className="text-[12px] font-semibold text-text-2">
             {x(M.finance_import_select_file)}
@@ -127,6 +145,11 @@ export function ImportExport() {
           )}
           {!canWrite && (
             <p className="text-[12px] text-text-muted">{x(M.finance_import_no_account)}</p>
+          )}
+          {importError && (
+            <div className="rounded-[8px] bg-risk-bg px-[10px] py-[8px] text-[12px] text-risk-fg">
+              {importError}
+            </div>
           )}
           {importResult && (
             <div className="rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text">
