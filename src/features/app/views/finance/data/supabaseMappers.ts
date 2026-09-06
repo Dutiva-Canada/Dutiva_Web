@@ -7,6 +7,7 @@ import type {
   FinanceBill,
   FinanceBook,
   FinanceBudget,
+  FinanceCategoryRule,
   FinanceClosePeriod,
   FinanceCredit,
   FinanceDebt,
@@ -15,6 +16,7 @@ import type {
   FinanceFiscalPeriod,
   FinanceForecast,
   FinanceHolding,
+  FinanceImportSession,
   FinanceInvoice,
   FinanceJournal,
   FinanceJournalLine,
@@ -530,6 +532,34 @@ export function mapAuditEvent(r: Record<string, unknown>): FinanceAuditEvent {
     recordId: r.record_id as string,
     timestamp: r.timestamp as string,
     outcome: bi(r.outcome),
+  }
+}
+
+export function mapCategoryRule(r: Record<string, unknown>): FinanceCategoryRule {
+  return {
+    id: r.id as string,
+    entityId: r.entity_id as string,
+    pattern: r.pattern as string,
+    matchType: r.match_type as FinanceCategoryRule['matchType'],
+    ledgerAccountId: r.ledger_account_id as string,
+    direction: r.direction as FinanceCategoryRule['direction'],
+    priority: r.priority as number,
+    active: r.active as boolean,
+  }
+}
+
+export function mapImportSession(r: Record<string, unknown>): FinanceImportSession {
+  return {
+    id: r.id as string,
+    entityId: r.entity_id as string,
+    bankAccountId: r.bank_account_id as string,
+    fileName: r.file_name as string,
+    importedAt: r.imported_at as string,
+    totalRows: r.total_rows as number,
+    newItems: r.new_items as number,
+    duplicates: r.duplicates as number,
+    errors: r.errors as number,
+    status: r.status as FinanceImportSession['status'],
   }
 }
 

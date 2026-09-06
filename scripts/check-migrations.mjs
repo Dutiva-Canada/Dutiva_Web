@@ -103,6 +103,10 @@ const ACCEPTED_UNAPPLIED = new Map([
     'add_finance_module',
     'pending database password to apply via psql — finance workspace uses localStorage stubs until then',
   ],
+  [
+    'add_finance_imports',
+    'pending database password to apply via psql — finance import/export uses localStorage stubs until then',
+  ],
   ...advisorPhaseMcpNameAliases().unapplied,
 ])
 

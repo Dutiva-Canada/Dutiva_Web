@@ -58,6 +58,11 @@ import {
   updateReconciliationStatus as updateReconciliationStatusSupa,
   updateSpendRequestStatus as updateSpendRequestStatusSupa,
   updateTaxObligationStatus as updateTaxObligationStatusSupa,
+  insertCategoryRule as insertCategoryRuleSupa,
+  updateCategoryRuleInSupabase as updateCategoryRuleSupa,
+  deleteCategoryRuleFromSupabase as removeCategoryRuleSupa,
+  importBankStatementInSupabase,
+  runAutoCategorizeInSupabase,
 } from './supabaseApi'
 import type {
   FinanceBankMatchStatus,
@@ -457,51 +462,74 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
   const importBankStatement = useCallback(
     async (bankAccountId: string, fileName: string, fileContent: string) => {
       if (!isLive || !orgId) return null
-      // Both localStorage and Supabase modes use the same parser for now;
-      // Supabase mode will insert rows via the API once the migration is applied.
+      if (hasSupabase) {
+        const result = await importBankStatementInSupabase(orgId, bankAccountId, fileName, fileContent)
+        await reload()
+        return result
+      }
       const result = importBankStatementLocalApi(orgId, bankAccountId, fileName, fileContent)
       if (result) setState(loadFullStateLocalApi(orgId))
       return result
     },
-    [isLive, orgId, setState],
+    [isLive, orgId, hasSupabase, reload, setState],
   )
 
   const addCategoryRule = useCallback(
     async (rule: Omit<import('./types').FinanceCategoryRule, 'id'>) => {
       if (!isLive || !orgId) return null
+      if (hasSupabase) {
+        const created = await insertCategoryRuleSupa(orgId, rule)
+        await reload()
+        return created
+      }
       const created = addCategoryRuleLocalApi(orgId, rule)
       setState(loadFullStateLocalApi(orgId))
       return created
     },
-    [isLive, orgId, setState],
+    [isLive, orgId, hasSupabase, reload, setState],
   )
 
   const updateCategoryRule = useCallback(
     async (id: string, patch: Partial<import('./types').FinanceCategoryRule>) => {
       if (!isLive || !orgId) return null
+      if (hasSupabase) {
+        const updated = await updateCategoryRuleSupa(orgId, id, patch)
+        await reload()
+        return updated
+      }
       const updated = updateCategoryRuleLocalApi(orgId, id, patch)
       if (updated) setState(loadFullStateLocalApi(orgId))
       return updated
     },
-    [isLive, orgId, setState],
+    [isLive, orgId, hasSupabase, reload, setState],
   )
 
   const removeCategoryRule = useCallback(
     async (id: string) => {
       if (!isLive || !orgId) return false
+      if (hasSupabase) {
+        const removed = await removeCategoryRuleSupa(orgId, id)
+        await reload()
+        return removed
+      }
       const removed = removeCategoryRuleLocalApi(orgId, id)
       if (removed) setState(loadFullStateLocalApi(orgId))
       return removed
     },
-    [isLive, orgId, setState],
+    [isLive, orgId, hasSupabase, reload, setState],
   )
 
   const runAutoCategorize = useCallback(async () => {
     if (!isLive || !orgId) return 0
+    if (hasSupabase) {
+      const count = await runAutoCategorizeInSupabase(orgId)
+      await reload()
+      return count
+    }
     const count = runAutoCategorizeLocalApi(orgId)
     setState(loadFullStateLocalApi(orgId))
     return count
-  }, [isLive, orgId, setState])
+  }, [isLive, orgId, hasSupabase, reload, setState])
 
   const creates = useFinanceCreates({ orgId, isLive, hasSupabase, reload, setState })
 

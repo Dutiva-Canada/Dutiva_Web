@@ -23,6 +23,7 @@ import {
   mapBill,
   mapBook,
   mapBudget,
+  mapCategoryRule,
   mapClosePeriod,
   mapCredit,
   mapDebt,
@@ -31,6 +32,7 @@ import {
   mapFiscalPeriod,
   mapForecast,
   mapHolding,
+  mapImportSession,
   mapInvoice,
   mapJournal,
   mapLedgerAccount,
@@ -94,6 +96,8 @@ const TABLES = {
   approvals: 'finance_approvals',
   auditEvents: 'finance_audit_events',
   externalActions: 'finance_external_actions',
+  categoryRules: 'finance_category_rules',
+  importSessions: 'finance_import_sessions',
 } as const
 
 /**
@@ -132,6 +136,7 @@ export async function loadFinanceStateFromSupabase(orgId: string): Promise<Finan
     payPeriods, payRuns, payrollLiabilities, budgets, scenarios, forecasts,
     reserveGoals, holdings, debts, taxObligations, taxScenarios,
     approvals, auditEvents, externalActions,
+    categoryRules, importSessions,
   ] = await Promise.all([
     selectAll(TABLES.entities, mapEntity),
     selectAll(TABLES.books, mapBook),
@@ -165,6 +170,8 @@ export async function loadFinanceStateFromSupabase(orgId: string): Promise<Finan
     selectAll(TABLES.approvals, mapApproval),
     selectAll(TABLES.auditEvents, mapAuditEvent),
     selectAll(TABLES.externalActions, mapExternalAction),
+    selectAll(TABLES.categoryRules, mapCategoryRule),
+    selectAll(TABLES.importSessions, mapImportSession),
   ])
 
   return {
@@ -174,7 +181,7 @@ export async function loadFinanceStateFromSupabase(orgId: string): Promise<Finan
     payPeriods, payRuns, payrollLiabilities, budgets, scenarios, forecasts,
     reserveGoals, holdings, debts, taxObligations, taxScenarios,
     approvals, auditEvents, externalActions,
-    categoryRules: [], importSessions: [],
+    categoryRules, importSessions,
   }
 }
 
@@ -537,6 +544,16 @@ export async function updateExternalActionStatus(
   if (error) throw error
   return mapExternalAction(data as Record<string, unknown>)
 }
+
+/* ---------- Import, categorization (re-exported from supabaseImports) ---------- */
+export {
+  insertCategoryRule,
+  updateCategoryRuleInSupabase,
+  deleteCategoryRuleFromSupabase,
+  insertImportSession,
+  importBankStatementInSupabase,
+  runAutoCategorizeInSupabase,
+} from './supabaseImports'
 
 /* ---------- Creates / lifecycle (re-exported from supabaseCreates) ---------- */
 export {
