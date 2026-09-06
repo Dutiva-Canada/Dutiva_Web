@@ -123,9 +123,16 @@ const supabase: any = supabaseTyped
 export async function loadFinanceStateFromSupabase(orgId: string): Promise<FinanceWorkspaceState> {
   if (!supabase) throw new Error('Supabase is not configured')
   const selectAll = async <T>(table: string, mapper: (r: Record<string, unknown>) => T): Promise<T[]> => {
-    return fetchAllPages((from, to) =>
-      supabase!.from(table).select('*').eq('organization_id', orgId).order('created_at', { ascending: false }).range(from, to),
-    ).then((rows) => rows.map((r) => mapper(r as Record<string, unknown>)))
+    try {
+      return await fetchAllPages((from, to) =>
+        supabase!.from(table).select('*').eq('organization_id', orgId).order('created_at', { ascending: false }).range(from, to),
+      ).then((rows) => rows.map((r) => mapper(r as Record<string, unknown>)))
+    } catch (err) {
+      // Keep the workspace usable even if one finance table is unavailable or
+      // has a schema drift — log and surface an empty array for that slice.
+      console.error(`[finance] load ${table} failed:`, err)
+      return []
+    }
   }
 
   // Payroll tables are admin-only; non-admins get empty arrays (RLS handles this)

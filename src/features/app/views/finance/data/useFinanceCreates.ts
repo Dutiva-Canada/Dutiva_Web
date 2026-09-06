@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import type { Dispatch, SetStateAction } from 'react'
 import {
   addScenario as addScenarioLocalApi,
   addForecast as addForecastLocalApi,
@@ -56,7 +57,7 @@ interface UseFinanceCreatesArgs {
   isLive: boolean
   hasSupabase: boolean
   reload: () => Promise<void>
-  setState: (state: FinanceWorkspaceState) => void
+  setState: Dispatch<SetStateAction<FinanceWorkspaceState>>
 }
 
 export function useFinanceCreates({
@@ -236,6 +237,9 @@ export function useFinanceCreates({
       if (!isLive || !orgId) return null
       if (hasSupabase) {
         const created = await addEntityInSupabase(orgId, item)
+        if (created) {
+          setState((prev) => ({ ...prev, entities: [...prev.entities, created] }))
+        }
         await reload()
         return created
       }
