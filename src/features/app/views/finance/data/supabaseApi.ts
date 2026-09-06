@@ -576,6 +576,8 @@ export {
   updateForecastPeriodsInSupabase,
   addExternalActionInSupabase,
   addEntityInSupabase,
+  updateEntityInSupabase,
+  deleteEntityInSupabase,
   addBankAccountInSupabase,
   addLedgerAccountInSupabase,
   addPartyInSupabase,

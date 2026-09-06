@@ -69,6 +69,40 @@ export async function addEntityInSupabase(orgId: string, item: Omit<FinanceLegal
   return mapEntity(data as Record<string, unknown>)
 }
 
+export async function updateEntityInSupabase(
+  orgId: string,
+  id: string,
+  patch: Partial<Omit<FinanceLegalEntity, 'id'>>,
+): Promise<FinanceLegalEntity | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.entities)
+    .update({
+      legal_name: patch.legalName,
+      legal_form: patch.legalForm,
+      fiscal_year_start: patch.fiscalYearStart,
+      functional_currency: patch.functionalCurrency,
+      jurisdictions: patch.jurisdictions,
+      accounting_source_id: patch.accountingSourceId,
+      payroll_source_id: patch.payrollSourceId,
+      active: patch.active,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('organization_id', orgId)
+    .eq('id', id)
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapEntity(data as Record<string, unknown>)
+}
+
+export async function deleteEntityInSupabase(orgId: string, id: string): Promise<boolean> {
+  if (!supabase) return false
+  const { error } = await supabase.from(TABLES.entities).delete().eq('organization_id', orgId).eq('id', id)
+  if (error) throw error
+  return true
+}
+
 /* ---------- Scenario / forecast / reserve / holding / debt lifecycle ---------- */
 
 export async function addScenarioInSupabase(orgId: string, item: Omit<FinanceScenario, 'id'>): Promise<FinanceScenario | null> {

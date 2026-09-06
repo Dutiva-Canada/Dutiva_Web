@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
@@ -11,8 +11,8 @@ const JURISDICTIONS = ['CA-AB', 'CA-BC', 'CA-MB', 'CA-NB', 'CA-NL', 'CA-NS', 'CA
 
 export function Entities() {
   const { x } = useI18n()
-  const { state, canWrite, addEntity } = useFinanceData()
-  const [showForm, setShowForm] = useState(false)
+  const { state, canWrite, addEntity, updateEntity, removeEntity } = useFinanceData()
+  const [form, setForm] = useState<{ mode: 'add' } | { mode: 'edit'; entity: FinanceLegalEntity } | null>(null)
 
   return (
     <div className="flex flex-col gap-[16px]">
@@ -22,7 +22,7 @@ export function Entities() {
           {canWrite && (
             <button
               type="button"
-              onClick={() => setShowForm((v) => !v)}
+              onClick={() => setForm({ mode: 'add' })}
               className="flex items-center gap-[6px] text-[13px] font-semibold text-accent"
             >
               <Plus size={14} />
@@ -30,33 +30,64 @@ export function Entities() {
             </button>
           )}
         </div>
-        {showForm && canWrite && (
+        {form && canWrite && (
           <EntityForm
+            key={form.mode === 'edit' ? form.entity.id : 'add'}
+            initial={form.mode === 'edit' ? form.entity : undefined}
             onSubmit={async (ent) => {
-              try {
+              if (form.mode === 'edit') {
+                const updated = await updateEntity(form.entity.id, ent)
+                if (!updated) {
+                  throw new Error('updateEntity returned null')
+                }
+                setForm(null)
+              } else {
                 const created = await addEntity(ent)
                 if (!created) {
                   throw new Error('addEntity returned null')
                 }
-                setShowForm(false)
-              } catch {
-                throw new Error('save failed')
+                setForm(null)
               }
             }}
-            onCancel={() => setShowForm(false)}
+            onCancel={() => setForm(null)}
           />
         )}
-        {state.entities.length === 0 && !showForm ? (
+        {state.entities.length === 0 && !form ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_none)}</p>
         ) : (
           <ul className="m-0 flex flex-col gap-[10px] p-0">
             {state.entities.map((ent) => (
-              <li key={ent.id} className="flex flex-col gap-[2px]">
-                <div className="text-[13px] font-semibold text-text">{ent.legalName}</div>
-                <div className="text-[12px] text-text-muted">
-                  {x(M[`finance_entity_legal_form_${ent.legalForm}` as keyof typeof M])} · {ent.fiscalYearStart} · {ent.functionalCurrency}
-                  {ent.jurisdictions.length > 0 && ` · ${ent.jurisdictions.join(', ')}`}
+              <li key={ent.id} className="flex items-start justify-between gap-[8px]">
+                <div className="flex flex-col gap-[2px]">
+                  <div className="text-[13px] font-semibold text-text">{ent.legalName}</div>
+                  <div className="text-[12px] text-text-muted">
+                    {x(M[`finance_entity_legal_form_${ent.legalForm}` as keyof typeof M])} · {ent.fiscalYearStart} · {ent.functionalCurrency}
+                    {ent.jurisdictions.length > 0 && ` · ${ent.jurisdictions.join(', ')}`}
+                  </div>
                 </div>
+                {canWrite && (
+                  <div className="flex items-center gap-[4px]">
+                    <button
+                      type="button"
+                      onClick={() => setForm({ mode: 'edit', entity: ent })}
+                      className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+                      aria-label={x(M.finance_entity_edit)}
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!confirm(x(M.finance_entity_remove_confirm))) return
+                        await removeEntity(ent.id)
+                      }}
+                      className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-red-600"
+                      aria-label={x(M.finance_entity_remove)}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                )}
               </li>
             ))}
           </ul>
@@ -67,21 +98,23 @@ export function Entities() {
 }
 
 function EntityForm({
+  initial,
   onSubmit,
   onCancel,
 }: {
+  initial?: FinanceLegalEntity
   onSubmit: (ent: Omit<FinanceLegalEntity, 'id'>) => Promise<unknown>
   onCancel: () => void
 }) {
   const { x } = useI18n()
-  const [legalName, setLegalName] = useState('')
-  const [legalForm, setLegalForm] = useState<FinanceLegalForm>('corporation')
-  const [fiscalYearStart, setFiscalYearStart] = useState('')
-  const [functionalCurrency, setFunctionalCurrency] = useState<FinanceCurrency>('CAD')
-  const [selectedJurisdictions, setSelectedJurisdictions] = useState<string[]>([])
-  const [accountingSourceId, setAccountingSourceId] = useState('')
-  const [payrollSourceId, setPayrollSourceId] = useState('')
-  const [active, setActive] = useState(true)
+  const [legalName, setLegalName] = useState(initial?.legalName ?? '')
+  const [legalForm, setLegalForm] = useState<FinanceLegalForm>(initial?.legalForm ?? 'corporation')
+  const [fiscalYearStart, setFiscalYearStart] = useState(initial?.fiscalYearStart ?? '')
+  const [functionalCurrency, setFunctionalCurrency] = useState<FinanceCurrency>(initial?.functionalCurrency ?? 'CAD')
+  const [selectedJurisdictions, setSelectedJurisdictions] = useState<string[]>(initial?.jurisdictions ?? [])
+  const [accountingSourceId, setAccountingSourceId] = useState(initial?.accountingSourceId ?? '')
+  const [payrollSourceId, setPayrollSourceId] = useState(initial?.payrollSourceId ?? '')
+  const [active, setActive] = useState(initial?.active ?? true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -107,8 +140,6 @@ function EntityForm({
         payrollSourceId: payrollSourceId || undefined,
         active,
       })
-      // onSubmit closes the form on success; if it does not throw but still
-      // returns an error-like value, keep the form open.
     } catch {
       setError(x(M.finance_entity_save_failed))
     } finally {

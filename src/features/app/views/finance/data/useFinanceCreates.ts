@@ -18,6 +18,8 @@ import {
   addSubscription as addSubscriptionLocalApi,
   updateForecastPeriods as updateForecastPeriodsLocalApi,
   loadFullState as loadFullStateLocalApi,
+  updateEntity as updateEntityLocalApi,
+  removeEntity as removeEntityLocalApi,
 } from './productionApi'
 import {
   addScenarioInSupabase,
@@ -32,6 +34,8 @@ import {
   updateForecastPeriodsInSupabase,
   addExternalActionInSupabase,
   addEntityInSupabase,
+  updateEntityInSupabase,
+  deleteEntityInSupabase,
   addBankAccountInSupabase,
   addLedgerAccountInSupabase,
   addPartyInSupabase,
@@ -250,6 +254,48 @@ export function useFinanceCreates({
     [isLive, orgId, hasSupabase, reload, setState],
   )
 
+  const updateEntity = useCallback(
+    async (id: string, patch: Partial<Omit<FinanceLegalEntity, 'id'>>) => {
+      if (!isLive || !orgId) return null
+      if (hasSupabase) {
+        const updated = await updateEntityInSupabase(orgId, id, patch)
+        if (updated) {
+          setState((prev) => ({
+            ...prev,
+            entities: prev.entities.map((ent) => (ent.id === id ? updated : ent)),
+          }))
+        }
+        await reload()
+        return updated
+      }
+      const updated = updateEntityLocalApi(orgId, id, patch)
+      setState(loadFullStateLocalApi(orgId))
+      return updated
+    },
+    [isLive, orgId, hasSupabase, reload, setState],
+  )
+
+  const removeEntity = useCallback(
+    async (id: string) => {
+      if (!isLive || !orgId) return false
+      if (hasSupabase) {
+        const ok = await deleteEntityInSupabase(orgId, id)
+        if (ok) {
+          setState((prev) => ({
+            ...prev,
+            entities: prev.entities.filter((ent) => ent.id !== id),
+          }))
+        }
+        await reload()
+        return ok
+      }
+      const ok = removeEntityLocalApi(orgId, id)
+      setState(loadFullStateLocalApi(orgId))
+      return ok
+    },
+    [isLive, orgId, hasSupabase, reload, setState],
+  )
+
   const addBankAccount = useCallback(
     async (item: Omit<FinanceBankAccount, 'id'>) => {
       if (!isLive || !orgId) return null
@@ -323,6 +369,8 @@ export function useFinanceCreates({
     updateForecastPeriods,
     addExternalAction,
     addEntity,
+    updateEntity,
+    removeEntity,
     addBankAccount,
     addLedgerAccount,
     addParty,

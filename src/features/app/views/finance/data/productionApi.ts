@@ -569,6 +569,29 @@ export function addEntity(orgId: string, item: Omit<FinanceLegalEntity, 'id'>): 
   return created
 }
 
+export function updateEntity(orgId: string, id: string, patch: Partial<Omit<FinanceLegalEntity, 'id'>>): FinanceLegalEntity | null {
+  let result: FinanceLegalEntity | null = null
+  updateState(orgId, (state) => ({
+    ...state,
+    entities: state.entities.map((ent): FinanceLegalEntity => {
+      if (ent.id !== id) return ent
+      result = { ...ent, ...patch }
+      return result
+    }),
+  }))
+  return result
+}
+
+export function removeEntity(orgId: string, id: string): boolean {
+  let removed = false
+  updateState(orgId, (state) => {
+    const next = state.entities.filter((ent) => ent.id !== id)
+    removed = next.length !== state.entities.length
+    return { ...state, entities: next }
+  })
+  return removed
+}
+
 export function addBankAccount(orgId: string, acc: Omit<FinanceBankAccount, 'id'>): FinanceBankAccount {
   const created: FinanceBankAccount = { ...acc, id: `ba-${Date.now()}` }
   updateState(orgId, (state) => ({ ...state, bankAccounts: [...state.bankAccounts, created] }))
