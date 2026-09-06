@@ -658,19 +658,22 @@ export function importBankStatement(
   if (!bankAccount) return null
   const currency: FinanceCurrency = bankAccount.currency
 
+  const sessionId = `imp-${Date.now()}`
+
   const parsed = parseStatementCSV(fileContent, currency)
   const { newItems, duplicates, errors } = rowsToBankItems(
     parsed.rows,
     bankAccountId,
     currency,
     state.bankItems,
+    sessionId,
   )
 
   const errorDetails = parsed.errorDetails
 
   if (newItems.length === 0) {
     const session: FinanceImportSession = {
-      id: `imp-${Date.now()}`,
+      id: sessionId,
       entityId: state.entities[0]?.id ?? orgId,
       bankAccountId,
       fileName,
@@ -692,7 +695,7 @@ export function importBankStatement(
   }
 
   const session: FinanceImportSession = {
-    id: `imp-${Date.now()}`,
+    id: sessionId,
     entityId: state.entities[0]?.id ?? orgId,
     bankAccountId,
     fileName,
@@ -749,6 +752,23 @@ export function removeCategoryRule(orgId: string, id: string): boolean {
     const next = state.categoryRules.filter((r) => r.id !== id)
     removed = next.length !== state.categoryRules.length
     return { ...state, categoryRules: next }
+  })
+  return removed
+}
+
+export function deleteImportSession(orgId: string, id: string): boolean {
+  let removed = false
+  updateState(orgId, (state) => {
+    const session = state.importSessions.find((s) => s.id === id)
+    if (!session) return state
+    removed = true
+    return {
+      ...state,
+      bankItems: state.bankItems.filter(
+        (bi) => bi.importSessionId !== id,
+      ),
+      importSessions: state.importSessions.filter((s) => s.id !== id),
+    }
   })
   return removed
 }

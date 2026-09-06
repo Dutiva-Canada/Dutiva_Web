@@ -296,6 +296,8 @@ export interface FinanceBankItem {
   matchedJournalId?: string
   matchedInvoiceId?: string
   matchedBillId?: string
+  /** Tracks which import session created this bank item, for undo. */
+  importSessionId?: string
 }
 
 export interface FinanceReconciliation {

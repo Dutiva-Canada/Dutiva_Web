@@ -106,12 +106,13 @@ export async function deleteCategoryRuleFromSupabase(
 
 export async function insertImportSession(
   orgId: string,
-  session: Omit<FinanceImportSession, 'id'>,
+  session: FinanceImportSession,
 ): Promise<FinanceImportSession | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.importSessions)
     .insert({
+      id: session.id,
       organization_id: orgId,
       entity_id: session.entityId,
       bank_account_id: session.bankAccountId,
@@ -131,6 +132,27 @@ export async function insertImportSession(
 
 /* ---------- Bank statement import ---------- */
 
+export async function deleteImportSessionFromSupabase(orgId: string, id: string): Promise<boolean> {
+  if (!supabase) return false
+
+  // Delete associated bank items first (cascade could do this, but we keep the
+  // explicit client-side delete for localStorage parity and clarity).
+  const { error: deleteItemsError } = await supabase
+    .from(TABLES.bankItems)
+    .delete()
+    .eq('organization_id', orgId)
+    .eq('import_session_id', id)
+  if (deleteItemsError) throw deleteItemsError
+
+  const { error } = await supabase
+    .from(TABLES.importSessions)
+    .delete()
+    .eq('organization_id', orgId)
+    .eq('id', id)
+  if (error) throw error
+  return true
+}
+
 export async function importBankStatementInSupabase(
   orgId: string,
   bankAccountId: string,
@@ -138,6 +160,8 @@ export async function importBankStatementInSupabase(
   fileContent: string,
 ): Promise<{ newItems: number; duplicates: number; errors: number; errorDetails: FinanceImportRowError[] } | null> {
   if (!supabase) return null
+
+  const sessionId = crypto.randomUUID()
 
   // Fetch existing bank items for this account to deduplicate against
   const { data: existingRows, error: fetchError } = await supabase
@@ -168,12 +192,14 @@ export async function importBankStatementInSupabase(
     bankAccountId,
     currency,
     existingItems,
+    sessionId,
   )
   const errorDetails = parsed.errorDetails
 
   if (newItems.length === 0) {
     // Still record the import session even if all rows were duplicates
     await insertImportSession(orgId, {
+      id: sessionId,
       entityId: bankAccount.entityId,
       bankAccountId,
       fileName,
@@ -183,14 +209,17 @@ export async function importBankStatementInSupabase(
       duplicates,
       errors,
       status: 'imported',
+      errorDetails,
     })
     return { newItems: 0, duplicates, errors, errorDetails }
   }
 
   // Insert new bank items in batches of 100
   const rowsToInsert = newItems.map((bi) => ({
+    id: bi.id,
     organization_id: orgId,
     bank_account_id: bi.bankAccountId,
+    import_session_id: bi.importSessionId,
     date: bi.date,
     amount: Number(bi.amount),
     currency: bi.currency,
@@ -208,6 +237,7 @@ export async function importBankStatementInSupabase(
 
   // Record the import session
   await insertImportSession(orgId, {
+    id: sessionId,
     entityId: bankAccount.entityId,
     bankAccountId,
     fileName,
@@ -217,6 +247,7 @@ export async function importBankStatementInSupabase(
     duplicates,
     errors,
     status: 'imported',
+    errorDetails,
   })
 
   return { newItems: newItems.length, duplicates, errors, errorDetails }

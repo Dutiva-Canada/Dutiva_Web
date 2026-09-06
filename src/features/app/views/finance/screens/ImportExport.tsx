@@ -17,6 +17,7 @@ export function ImportExport() {
     state,
     canWrite,
     importBankStatement,
+    deleteImportSession,
     addCategoryRule,
     updateCategoryRule,
     removeCategoryRule,
@@ -94,6 +95,14 @@ export function ImportExport() {
     ])
     const csv = [header.join(','), ...lines.map((l) => l.join(','))].join('\n')
     downloadFile(csv, `import-errors-${selectedAccountId}-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv')
+  }
+
+  const handleDeleteSession = async (session: import('../data/types').FinanceImportSession) => {
+    if (!canWrite) return
+    const confirmMessage = x(M.finance_import_delete_confirm).replace('{count}', String(session.newItems))
+    if (typeof window !== 'undefined' && window.confirm(confirmMessage)) {
+      await deleteImportSession(session.id)
+    }
   }
 
   const handleAutoCategorize = async () => {
@@ -412,7 +421,8 @@ export function ImportExport() {
                 <th className="pb-[6px] pr-[10px]">{x(M.finance_import_rows)}</th>
                 <th className="pb-[6px] pr-[10px]">{x(M.finance_import_new)}</th>
                 <th className="pb-[6px] pr-[10px]">{x(M.finance_import_dupes)}</th>
-                <th className="pb-[6px]">{x(M.finance_import_errors)}</th>
+                <th className="pb-[6px] pr-[10px]">{x(M.finance_import_errors)}</th>
+                <th className="pb-[6px]"></th>
               </tr>
             </thead>
             <tbody>
@@ -425,7 +435,20 @@ export function ImportExport() {
                   <td className="py-[6px] pr-[10px]">{s.totalRows}</td>
                   <td className="py-[6px] pr-[10px]">{s.newItems}</td>
                   <td className="py-[6px] pr-[10px]">{s.duplicates}</td>
-                  <td className="py-[6px]">{s.errors}</td>
+                  <td className="py-[6px] pr-[10px]">{s.errors}</td>
+                  <td className="py-[6px]">
+                    {canWrite && (
+                      <button
+                        type="button"
+                        onClick={() => void handleDeleteSession(s)}
+                        className="rounded-[6px] p-[4px] text-text-muted hover:bg-risk-bg hover:text-risk-fg"
+                        title={x(M.finance_import_delete)}
+                        aria-label={x(M.finance_import_delete)}
+                      >
+                        <Trash2 size={14} strokeWidth={1.9} aria-hidden="true" />
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

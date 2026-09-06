@@ -281,6 +281,7 @@ export function mapBankItem(r: Record<string, unknown>): FinanceBankItem {
     matchedJournalId: r.matched_journal_id as string | undefined,
     matchedInvoiceId: r.matched_invoice_id as string | undefined,
     matchedBillId: r.matched_bill_id as string | undefined,
+    importSessionId: r.import_session_id as string | undefined,
   }
 }
 

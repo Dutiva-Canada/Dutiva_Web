@@ -587,6 +587,8 @@ export const financeMessages = defineMessages({
   finance_import_download_errors: { en: 'Download error report', fr: 'Télécharger le rapport d’erreurs' },
   finance_import_bulk_wizard: { en: 'Bulk import wizard', fr: 'Assistant d’importation en bloc' },
   finance_import_xlsx_supported: { en: 'CSV and Excel files are supported.', fr: 'Les fichiers CSV et Excel sont pris en charge.' },
+  finance_import_delete: { en: 'Delete', fr: 'Supprimer' },
+  finance_import_delete_confirm: { en: 'Delete this import and its {count} transactions?', fr: 'Supprimer cet import et ses {count} transactions?' },
 
   /* Auto-categorization */
   finance_categorize_title: { en: 'Auto-categorize', fr: 'Catégorisation automatique' },

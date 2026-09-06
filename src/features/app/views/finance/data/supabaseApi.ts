@@ -559,6 +559,7 @@ export {
   deleteCategoryRuleFromSupabase,
   insertImportSession,
   importBankStatementInSupabase,
+  deleteImportSessionFromSupabase,
   runAutoCategorizeInSupabase,
 } from './supabaseImports'
 

@@ -402,6 +402,7 @@ export function rowsToBankItems(
   bankAccountId: string,
   currency: FinanceCurrency,
   existingItems: FinanceBankItem[],
+  importSessionId?: string,
 ): { newItems: FinanceBankItem[]; duplicates: number; errors: number } {
   const existingKeys = new Set(
     existingItems.map((bi) => `${bi.date}|${bi.amount}|${bi.description}`),
@@ -430,6 +431,7 @@ export function rowsToBankItems(
       currency,
       description: row.description,
       matchStatus: 'unmatched',
+      importSessionId,
     })
   }
 

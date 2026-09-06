@@ -12,6 +12,7 @@ import {
   addTaxObligation as addTaxObligationLocalApi,
   addTaxScenario as addTaxScenarioLocalApi,
   importBankStatement as importBankStatementLocalApi,
+  deleteImportSession as deleteImportSessionLocalApi,
   addCategoryRule as addCategoryRuleLocalApi,
   updateCategoryRule as updateCategoryRuleLocalApi,
   removeCategoryRule as removeCategoryRuleLocalApi,
@@ -62,6 +63,7 @@ import {
   updateCategoryRuleInSupabase as updateCategoryRuleSupa,
   deleteCategoryRuleFromSupabase as removeCategoryRuleSupa,
   importBankStatementInSupabase,
+  deleteImportSessionFromSupabase,
   runAutoCategorizeInSupabase,
 } from './supabaseApi'
 import type {
@@ -474,6 +476,21 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
     [isLive, orgId, hasSupabase, reload, setState],
   )
 
+  const deleteImportSession = useCallback(
+    async (id: string) => {
+      if (!isLive || !orgId) return false
+      if (hasSupabase) {
+        const result = await deleteImportSessionFromSupabase(orgId, id)
+        await reload()
+        return result
+      }
+      const result = deleteImportSessionLocalApi(orgId, id)
+      if (result) setState(loadFullStateLocalApi(orgId))
+      return result
+    },
+    [isLive, orgId, hasSupabase, reload, setState],
+  )
+
   const addCategoryRule = useCallback(
     async (rule: Omit<import('./types').FinanceCategoryRule, 'id'>) => {
       if (!isLive || !orgId) return null
@@ -564,6 +581,7 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
       transitionClosePeriodStatus,
       transitionExpenseStatus,
       importBankStatement,
+      deleteImportSession,
       addCategoryRule,
       updateCategoryRule,
       removeCategoryRule,
@@ -600,6 +618,7 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
       transitionClosePeriodStatus,
       transitionExpenseStatus,
       importBankStatement,
+      deleteImportSession,
       addCategoryRule,
       updateCategoryRule,
       removeCategoryRule,

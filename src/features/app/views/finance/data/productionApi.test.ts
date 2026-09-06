@@ -6,7 +6,9 @@ import {
   addLedgerAccount,
   addParty,
   addSubscription,
+  deleteImportSession,
   deadlineState,
+  importBankStatement,
   isJournalBalanced,
   loadFinanceState,
   markTaxScenarioStale,
@@ -522,5 +524,38 @@ describe('updateForecastPeriods', () => {
     expect(updated).not.toBeNull()
     expect(updated?.periods).toHaveLength(1)
     expect(updated?.periods[0]?.label).toBe('W1')
+  })
+})
+
+describe('deleteImportSession', () => {
+  it('removes the session and the bank items it created', () => {
+    addBankAccount(ORG, {
+      entityId: 'ent-1',
+      label: { en: 'Test account', fr: 'Compte test' },
+      currency: 'CAD',
+      restricted: false,
+    })
+    const stateBefore = loadFinanceState(ORG)
+    const account = stateBefore.bankAccounts[stateBefore.bankAccounts.length - 1]
+    if (!account) return
+
+    const csv = 'Date,Amount,Description\n2026-08-15,100.00,PAYMENT\n2026-08-16,50.00,RENT'
+    const result = importBankStatement(ORG, account.id, 'test.csv', csv)
+    expect(result).not.toBeNull()
+    expect(result?.newItems).toBe(2)
+
+    const stateAfterImport = loadFinanceState(ORG)
+    const session = stateAfterImport.importSessions[0]
+    expect(session).toBeDefined()
+    const importedForAccount = stateAfterImport.bankItems.filter((bi) => bi.bankAccountId === account.id)
+    expect(importedForAccount).toHaveLength(2)
+    expect(importedForAccount.every((bi) => bi.importSessionId === session?.id)).toBe(true)
+
+    const deleted = deleteImportSession(ORG, session?.id ?? '')
+    expect(deleted).toBe(true)
+
+    const stateAfterDelete = loadFinanceState(ORG)
+    expect(stateAfterDelete.importSessions.some((s) => s.id === session?.id)).toBe(false)
+    expect(stateAfterDelete.bankItems.filter((bi) => bi.bankAccountId === account.id)).toHaveLength(0)
   })
 })

@@ -133,6 +133,7 @@ export interface FinanceDataContextValue {
   ) => Promise<
     { newItems: number; duplicates: number; errors: number; errorDetails?: FinanceImportRowError[] } | null
   >
+  deleteImportSession: (id: string) => Promise<boolean>
   addCategoryRule: (rule: Omit<import('./types').FinanceCategoryRule, 'id'>) => Promise<import('./types').FinanceCategoryRule | null>
   updateCategoryRule: (id: string, patch: Partial<import('./types').FinanceCategoryRule>) => Promise<import('./types').FinanceCategoryRule | null>
   removeCategoryRule: (id: string) => Promise<boolean>
