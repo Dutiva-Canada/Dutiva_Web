@@ -1,18 +1,132 @@
+import { useState } from 'react'
+import { Plus } from 'lucide-react'
 import { statusChipClass } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
 import { BUDGET_STATUS_LABEL, CURRENCY_LABEL, SCENARIO_TYPE_LABEL } from '../financeLabels'
+import type { FinanceCurrency, FinanceScenarioType } from '../data/types'
 
 export function Plans() {
   const { x } = useI18n()
-  const { state, canWrite, reviseBudget } = useFinanceData()
+  const {
+    state, canWrite, reviseBudget, addBudget, transitionBudgetStatus,
+    addScenario, transitionScenarioStatus, addForecast, freezeForecast,
+  } = useFinanceData()
+  const [showBudgetForm, setShowBudgetForm] = useState(false)
+  const [showScenarioForm, setShowScenarioForm] = useState(false)
+  const [showForecastForm, setShowForecastForm] = useState(false)
 
   return (
     <div className="flex flex-col gap-[16px]">
+      {/* Budget variance summary */}
+      {state.budgets.length > 0 && (
+        <section className="rounded-[12px] border border-border bg-surface p-[16px]">
+          <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_variance_title)}</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-[12px]">
+              <thead>
+                <tr className="text-left text-text-muted">
+                  <th className="pb-[6px] pr-[12px]">{x(M.finance_variance_department)}</th>
+                  <th className="pb-[6px] pr-[12px]">{x(M.finance_variance_period)}</th>
+                  <th className="pb-[6px] pr-[12px] text-right">{x(M.finance_variance_budgeted)}</th>
+                  <th className="pb-[6px] pr-[12px] text-right">{x(M.finance_variance_actual)}</th>
+                  <th className="pb-[6px] pr-[12px] text-right">{x(M.finance_variance_committed)}</th>
+                  <th className="pb-[6px] pr-[12px] text-right">{x(M.finance_variance_headroom)}</th>
+                  <th className="pb-[6px] text-right">{x(M.finance_variance_pct)}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {state.budgets.flatMap((bud) =>
+                  bud.lines.map((line) => {
+                    const headroom = Number(line.amount) - Number(line.actualAmount) - Number(line.committedAmount)
+                    const usedPct = Number(line.amount) > 0
+                      ? ((Number(line.actualAmount) + Number(line.committedAmount)) / Number(line.amount)) * 100
+                      : 0
+                    return (
+                      <tr key={`${bud.id}-${line.id}`} className="border-t border-border">
+                        <td className="py-[6px] pr-[12px] text-text">{line.department ?? line.projectId ?? '—'}</td>
+                        <td className="py-[6px] pr-[12px] text-text-muted">{line.period}</td>
+                        <td className="py-[6px] pr-[12px] text-right text-text-muted">{line.amount}</td>
+                        <td className="py-[6px] pr-[12px] text-right text-text-muted">{line.actualAmount}</td>
+                        <td className="py-[6px] pr-[12px] text-right text-text-muted">{line.committedAmount}</td>
+                        <td className={`py-[6px] pr-[12px] text-right font-semibold ${headroom < 0 ? 'text-risk-fg' : 'text-success-fg'}`}>
+                          {headroom.toFixed(2)}
+                        </td>
+                        <td className={`py-[6px] text-right ${usedPct > 100 ? 'text-risk-fg font-semibold' : usedPct > 85 ? 'text-warning-fg' : 'text-text-muted'}`}>
+                          {usedPct.toFixed(0)}%
+                        </td>
+                      </tr>
+                    )
+                  }),
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {/* Cash-flow projection */}
+      {state.forecasts.length > 0 && (
+        <section className="rounded-[12px] border border-border bg-surface p-[16px]">
+          <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_cashflow_title)}</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-[12px]">
+              <thead>
+                <tr className="text-left text-text-muted">
+                  <th className="pb-[6px] pr-[12px]">{x(M.finance_cashflow_period)}</th>
+                  <th className="pb-[6px] pr-[12px] text-right">{x(M.finance_cashflow_inflow)}</th>
+                  <th className="pb-[6px] pr-[12px] text-right">{x(M.finance_cashflow_outflow)}</th>
+                  <th className="pb-[6px] pr-[12px] text-right">{x(M.finance_cashflow_net)}</th>
+                  <th className="pb-[6px] text-right">{x(M.finance_cashflow_closing)}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {state.forecasts.flatMap((fc) =>
+                  fc.periods.map((p, idx) => (
+                    <tr key={`${fc.id}-${idx}`} className="border-t border-border">
+                      <td className="py-[6px] pr-[12px] text-text">{p.label}</td>
+                      <td className="py-[6px] pr-[12px] text-right text-text-muted">{p.inflow}</td>
+                      <td className="py-[6px] pr-[12px] text-right text-text-muted">{p.outflow}</td>
+                      <td className={`py-[6px] pr-[12px] text-right font-semibold ${Number(p.net) < 0 ? 'text-risk-fg' : 'text-success-fg'}`}>
+                        {p.net}
+                      </td>
+                      <td className="py-[6px] text-right text-text-muted">{p.closingBalance}</td>
+                    </tr>
+                  )),
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {/* Budgets */}
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_plans_budgets)}</h2>
-        {state.budgets.length === 0 ? (
+        <div className="mb-[12px] flex items-center justify-between">
+          <h2 className="text-[15px] font-semibold text-text">{x(M.finance_plans_budgets)}</h2>
+          {canWrite && (
+            <button
+              type="button"
+              onClick={() => setShowBudgetForm((v) => !v)}
+              className="flex items-center gap-[6px] text-[13px] font-semibold text-accent"
+            >
+              <Plus size={14} />
+              {x(M.finance_budget_create)}
+            </button>
+          )}
+        </div>
+        {showBudgetForm && canWrite && (
+          <BudgetForm
+            onSubmit={(bud) => {
+              addBudget(bud)
+              setShowBudgetForm(false)
+            }}
+            onCancel={() => setShowBudgetForm(false)}
+            entities={state.entities}
+          />
+        )}
+        {state.budgets.length === 0 && !showBudgetForm ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_plans_no_budgets)}</p>
         ) : (
           <ul className="m-0 flex flex-col gap-[12px] p-0">
@@ -48,13 +162,24 @@ export function Plans() {
                   })}
                 </ul>
                 {canWrite && (
-                  <button
-                    type="button"
-                    onClick={() => reviseBudget(bud.id, bud.lines)}
-                    className="mt-[8px] rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
-                  >
-                    {x(M.finance_plans_revise)}
-                  </button>
+                  <div className="mt-[8px] flex flex-wrap gap-[6px]">
+                    <button
+                      type="button"
+                      onClick={() => reviseBudget(bud.id, bud.lines)}
+                      className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                    >
+                      {x(M.finance_plans_revise)}
+                    </button>
+                    {bud.status === 'draft' && (
+                      <button
+                        type="button"
+                        onClick={() => transitionBudgetStatus(bud.id, 'approved')}
+                        className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                      >
+                        {x(M.finance_budget_approve)}
+                      </button>
+                    )}
+                  </div>
                 )}
               </li>
             ))}
@@ -62,9 +187,32 @@ export function Plans() {
         )}
       </section>
 
+      {/* Scenarios */}
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_plans_scenarios)}</h2>
-        {state.scenarios.length === 0 ? (
+        <div className="mb-[12px] flex items-center justify-between">
+          <h2 className="text-[15px] font-semibold text-text">{x(M.finance_plans_scenarios)}</h2>
+          {canWrite && (
+            <button
+              type="button"
+              onClick={() => setShowScenarioForm((v) => !v)}
+              className="flex items-center gap-[6px] text-[13px] font-semibold text-accent"
+            >
+              <Plus size={14} />
+              {x(M.finance_scenario_create)}
+            </button>
+          )}
+        </div>
+        {showScenarioForm && canWrite && (
+          <ScenarioForm
+            onSubmit={(scn) => {
+              addScenario(scn)
+              setShowScenarioForm(false)
+            }}
+            onCancel={() => setShowScenarioForm(false)}
+            entities={state.entities}
+          />
+        )}
+        {state.scenarios.length === 0 && !showScenarioForm ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_plans_no_scenarios)}</p>
         ) : (
           <ul className="m-0 flex flex-col gap-[12px] p-0">
@@ -90,23 +238,77 @@ export function Plans() {
                   {x(M.finance_plans_budgeted)}: {x(CURRENCY_LABEL[scn.currency])} {scn.projectedExpense} ·{' '}
                   Cash flow: {scn.projectedCashFlow}
                 </div>
+                {canWrite && (scn.status === 'draft' || scn.status === 'reviewed') && (
+                  <div className="mt-[8px] flex flex-wrap gap-[6px]">
+                    {scn.status === 'draft' && (
+                      <button
+                        type="button"
+                        onClick={() => transitionScenarioStatus(scn.id, 'reviewed', 'Workspace user')}
+                        className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                      >
+                        {x(M.finance_scenario_review)}
+                      </button>
+                    )}
+                    {scn.status === 'reviewed' && (
+                      <button
+                        type="button"
+                        onClick={() => transitionScenarioStatus(scn.id, 'accepted', 'Workspace user')}
+                        className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                      >
+                        {x(M.finance_scenario_accept)}
+                      </button>
+                    )}
+                  </div>
+                )}
               </li>
             ))}
           </ul>
         )}
       </section>
 
+      {/* Forecasts */}
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_plans_forecasts)}</h2>
-        {state.forecasts.length === 0 ? (
+        <div className="mb-[12px] flex items-center justify-between">
+          <h2 className="text-[15px] font-semibold text-text">{x(M.finance_plans_forecasts)}</h2>
+          {canWrite && (
+            <button
+              type="button"
+              onClick={() => setShowForecastForm((v) => !v)}
+              className="flex items-center gap-[6px] text-[13px] font-semibold text-accent"
+            >
+              <Plus size={14} />
+              {x(M.finance_forecast_create)}
+            </button>
+          )}
+        </div>
+        {showForecastForm && canWrite && (
+          <ForecastForm
+            onSubmit={(fc) => {
+              addForecast(fc)
+              setShowForecastForm(false)
+            }}
+            onCancel={() => setShowForecastForm(false)}
+            entities={state.entities}
+            scenarios={state.scenarios}
+          />
+        )}
+        {state.forecasts.length === 0 && !showForecastForm ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_none)}</p>
         ) : (
           <ul className="m-0 flex flex-col gap-[12px] p-0">
             {state.forecasts.map((fc) => (
               <li key={fc.id} className="rounded-[10px] bg-inset p-[12px]">
-                <div className="text-[13px] font-semibold text-text">{x(fc.label)}</div>
-                <div className="text-[12px] text-text-muted">
-                  {fc.type} · {x(CURRENCY_LABEL[fc.currency])} · {x(M.finance_owner)}: {fc.owner}
+                <div className="flex items-start justify-between gap-[12px]">
+                  <div>
+                    <div className="text-[13px] font-semibold text-text">{x(fc.label)}</div>
+                    <div className="text-[12px] text-text-muted">
+                      {fc.type} · {x(CURRENCY_LABEL[fc.currency])} · {x(M.finance_owner)}: {fc.owner}
+                      {fc.frozenAt && ` · ${fc.frozenAt.slice(0, 10)}`}
+                    </div>
+                  </div>
+                  {fc.frozenAt && (
+                    <span className={statusChipClass('neutral')}>Frozen</span>
+                  )}
                 </div>
                 <ul className="m-0 mt-[8px] flex flex-col gap-[4px] p-0">
                   {fc.periods.map((p, idx) => (
@@ -118,11 +320,285 @@ export function Plans() {
                     </li>
                   ))}
                 </ul>
+                {canWrite && !fc.frozenAt && (
+                  <button
+                    type="button"
+                    onClick={() => freezeForecast(fc.id)}
+                    className="mt-[8px] rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                  >
+                    {x(M.finance_forecast_freeze)}
+                  </button>
+                )}
               </li>
             ))}
           </ul>
         )}
       </section>
     </div>
+  )
+}
+
+function BudgetForm({
+  onSubmit,
+  onCancel,
+  entities,
+}: {
+  onSubmit: (bud: Omit<import('../data/types').FinanceBudget, 'id'>) => void
+  onCancel: () => void
+  entities: import('../data/types').FinanceLegalEntity[]
+}) {
+  const { x } = useI18n()
+  const [entityId, setEntityId] = useState(entities[0]?.id ?? '')
+  const [label, setLabel] = useState('')
+  const [owner, setOwner] = useState('')
+  const [currency] = useState<FinanceCurrency>('CAD')
+  const [lines, setLines] = useState<import('../data/types').FinanceBudgetLine[]>([
+    { id: `bl-${Date.now()}`, department: '', period: new Date().toISOString().slice(0, 7), amount: '0.00', currency: 'CAD', actualAmount: '0.00', committedAmount: '0.00' },
+  ])
+
+  const updateLine = (idx: number, patch: Partial<import('../data/types').FinanceBudgetLine>) => {
+    setLines((prev) => prev.map((l, i) => (i === idx ? { ...l, ...patch } : l)))
+  }
+  const addLine = () => setLines((prev) => [...prev, { id: `bl-${Date.now()}-${prev.length}`, department: '', period: new Date().toISOString().slice(0, 7), amount: '0.00', currency: 'CAD', actualAmount: '0.00', committedAmount: '0.00' }])
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSubmit({
+      entityId,
+      label: { en: label, fr: label },
+      status: 'draft',
+      currency,
+      lines,
+      owner: owner || 'Workspace user',
+      version: 1,
+    })
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]">
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_invoice_entity)}</span>
+          <select value={entityId} onChange={(e) => setEntityId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+            {entities.map((ent) => (
+              <option key={ent.id} value={ent.id}>{ent.legalName}</option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_budget_label)}</span>
+          <input value={label} onChange={(e) => setLabel(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+      </div>
+      <label className="flex flex-col gap-[4px]">
+        <span className="text-[12px] text-text-muted">{x(M.finance_budget_owner)}</span>
+        <input value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="Workspace user" className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+      </label>
+      <div>
+        <div className="mb-[6px] text-[12px] font-semibold text-text-muted">{x(M.finance_budget_lines)}</div>
+        <div className="flex flex-col gap-[6px]">
+          {lines.map((line, idx) => (
+            <div key={idx} className="grid grid-cols-[1fr_1fr_100px] items-center gap-[6px]">
+              <input value={line.department ?? ''} onChange={(e) => updateLine(idx, { department: e.target.value })} placeholder={x(M.finance_budget_department)} className="rounded-[6px] border border-border bg-surface px-[6px] py-[3px] text-[12px]" />
+              <input value={line.period} onChange={(e) => updateLine(idx, { period: e.target.value })} placeholder={x(M.finance_budget_period)} className="rounded-[6px] border border-border bg-surface px-[6px] py-[3px] text-[12px]" />
+              <input value={line.amount} onChange={(e) => updateLine(idx, { amount: e.target.value })} placeholder={x(M.finance_budget_amount)} className="rounded-[6px] border border-border bg-surface px-[6px] py-[3px] text-[12px]" />
+            </div>
+          ))}
+        </div>
+        <button type="button" onClick={addLine} className="mt-[6px] text-[12px] font-semibold text-accent">
+          + {x(M.finance_budget_add_line)}
+        </button>
+      </div>
+      <div className="flex justify-end gap-[8px]">
+        <button type="button" onClick={onCancel} className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border">
+          {x(M.finance_cancel)}
+        </button>
+        <button type="submit" className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">
+          {x(M.finance_save)}
+        </button>
+      </div>
+    </form>
+  )
+}
+
+function ScenarioForm({
+  onSubmit,
+  onCancel,
+  entities,
+}: {
+  onSubmit: (scn: Omit<import('../data/types').FinanceScenario, 'id'>) => void
+  onCancel: () => void
+  entities: import('../data/types').FinanceLegalEntity[]
+}) {
+  const { x } = useI18n()
+  const [entityId, setEntityId] = useState(entities[0]?.id ?? '')
+  const [label, setLabel] = useState('')
+  const [type, setType] = useState<FinanceScenarioType>('baseline')
+  const [assumptions, setAssumptions] = useState('')
+  const [cutoffDate, setCutoffDate] = useState(new Date().toISOString().slice(0, 10))
+  const [currency] = useState<FinanceCurrency>('CAD')
+  const [projectedRevenue, setProjectedRevenue] = useState('0.00')
+  const [projectedExpense, setProjectedExpense] = useState('0.00')
+  const [projectedCashFlow, setProjectedCashFlow] = useState('0.00')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSubmit({
+      entityId,
+      label: { en: label, fr: label },
+      type,
+      assumptions: { en: assumptions, fr: assumptions },
+      cutoffDate,
+      currency,
+      projectedRevenue: Number(projectedRevenue).toFixed(2),
+      projectedExpense: Number(projectedExpense).toFixed(2),
+      projectedCashFlow: Number(projectedCashFlow).toFixed(2),
+      status: 'draft',
+    })
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]">
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_invoice_entity)}</span>
+          <select value={entityId} onChange={(e) => setEntityId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+            {entities.map((ent) => (
+              <option key={ent.id} value={ent.id}>{ent.legalName}</option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_scenario_type)}</span>
+          <select value={type} onChange={(e) => setType(e.target.value as FinanceScenarioType)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+            <option value="baseline">Baseline</option>
+            <option value="hiring">Hiring</option>
+            <option value="capital_purchase">Capital purchase</option>
+            <option value="financing">Financing</option>
+            <option value="operating_change">Operating change</option>
+            <option value="tax">Tax</option>
+          </select>
+        </label>
+      </div>
+      <label className="flex flex-col gap-[4px]">
+        <span className="text-[12px] text-text-muted">{x(M.finance_scenario_label)}</span>
+        <input value={label} onChange={(e) => setLabel(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+      </label>
+      <label className="flex flex-col gap-[4px]">
+        <span className="text-[12px] text-text-muted">{x(M.finance_scenario_assumptions)}</span>
+        <input value={assumptions} onChange={(e) => setAssumptions(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+      </label>
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_scenario_cutoff)}</span>
+          <input type="date" value={cutoffDate} onChange={(e) => setCutoffDate(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_scenario_revenue)}</span>
+          <input value={projectedRevenue} onChange={(e) => setProjectedRevenue(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+      </div>
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_scenario_expense)}</span>
+          <input value={projectedExpense} onChange={(e) => setProjectedExpense(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_scenario_cashflow)}</span>
+          <input value={projectedCashFlow} onChange={(e) => setProjectedCashFlow(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+      </div>
+      <div className="flex justify-end gap-[8px]">
+        <button type="button" onClick={onCancel} className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border">
+          {x(M.finance_cancel)}
+        </button>
+        <button type="submit" className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">
+          {x(M.finance_save)}
+        </button>
+      </div>
+    </form>
+  )
+}
+
+function ForecastForm({
+  onSubmit,
+  onCancel,
+  entities,
+  scenarios,
+}: {
+  onSubmit: (fc: Omit<import('../data/types').FinanceForecast, 'id'>) => void
+  onCancel: () => void
+  entities: import('../data/types').FinanceLegalEntity[]
+  scenarios: import('../data/types').FinanceScenario[]
+}) {
+  const { x } = useI18n()
+  const [entityId, setEntityId] = useState(entities[0]?.id ?? '')
+  const [label, setLabel] = useState('')
+  const [type, setType] = useState<import('../data/types').FinanceForecast['type']>('monthly_operating')
+  const [baselineScenarioId, setBaselineScenarioId] = useState('')
+  const [currency] = useState<FinanceCurrency>('CAD')
+  const [owner, setOwner] = useState('')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSubmit({
+      entityId,
+      label: { en: label, fr: label },
+      type,
+      baselineScenarioId: baselineScenarioId || undefined,
+      currency,
+      periods: [],
+      owner: owner || 'Workspace user',
+    })
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]">
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_invoice_entity)}</span>
+          <select value={entityId} onChange={(e) => setEntityId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+            {entities.map((ent) => (
+              <option key={ent.id} value={ent.id}>{ent.legalName}</option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_forecast_type)}</span>
+          <select value={type} onChange={(e) => setType(e.target.value as import('../data/types').FinanceForecast['type'])} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+            <option value="monthly_operating">Monthly operating</option>
+            <option value="13_week_cash">13-week cash</option>
+            <option value="custom">Custom</option>
+          </select>
+        </label>
+      </div>
+      <label className="flex flex-col gap-[4px]">
+        <span className="text-[12px] text-text-muted">{x(M.finance_forecast_label)}</span>
+        <input value={label} onChange={(e) => setLabel(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+      </label>
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_forecast_owner)}</span>
+          <input value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="Workspace user" className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">Baseline scenario</span>
+          <select value={baselineScenarioId} onChange={(e) => setBaselineScenarioId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+            <option value="">—</option>
+            {scenarios.map((scn) => (
+              <option key={scn.id} value={scn.id}>{scn.label.en}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <div className="flex justify-end gap-[8px]">
+        <button type="button" onClick={onCancel} className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border">
+          {x(M.finance_cancel)}
+        </button>
+        <button type="submit" className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">
+          {x(M.finance_save)}
+        </button>
+      </div>
+    </form>
   )
 }

@@ -53,6 +53,19 @@ export interface FinanceDataContextValue {
   ) => Promise<FinanceTaxObligation | null>
   addBudget: (item: Omit<FinanceBudget, 'id'>) => Promise<FinanceBudget | null>
   reviseBudget: (id: string, lines: FinanceBudget['lines']) => Promise<FinanceBudget | null>
+  transitionBudgetStatus: (id: string, nextStatus: FinanceBudget['status']) => Promise<FinanceBudget | null>
+  addScenario: (item: Omit<import('./types').FinanceScenario, 'id'>) => Promise<import('./types').FinanceScenario | null>
+  transitionScenarioStatus: (
+    id: string,
+    nextStatus: import('./types').FinanceScenario['status'],
+    reviewer?: string,
+  ) => Promise<import('./types').FinanceScenario | null>
+  addForecast: (item: Omit<import('./types').FinanceForecast, 'id'>) => Promise<import('./types').FinanceForecast | null>
+  freezeForecast: (id: string) => Promise<import('./types').FinanceForecast | null>
+  addReserveGoal: (item: Omit<import('./types').FinanceReserveGoal, 'id'>) => Promise<import('./types').FinanceReserveGoal | null>
+  updateReserveGoalProgress: (id: string, currentAmount: string) => Promise<import('./types').FinanceReserveGoal | null>
+  setHoldingStale: (id: string, stale: boolean) => Promise<import('./types').FinanceHolding | null>
+  transitionDebtStatus: (id: string, nextStatus: import('./types').FinanceDebt['status']) => Promise<import('./types').FinanceDebt | null>
   addTaxScenario: (item: Omit<FinanceTaxScenario, 'id'>) => Promise<FinanceTaxScenario | null>
   markTaxScenarioStale: (id: string, reason: string) => Promise<FinanceTaxScenario | null>
   transitionTaxScenarioStatus: (

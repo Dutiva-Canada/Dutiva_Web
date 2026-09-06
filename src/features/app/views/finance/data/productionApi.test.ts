@@ -7,9 +7,12 @@ import {
   markTaxScenarioStale,
   reviseBudget,
   settlePayrollLiability,
+  setHoldingStale,
   transitionBankItemMatchStatus,
   transitionBillStatus,
+  transitionBudgetStatus,
   transitionClosePeriodStatus,
+  transitionDebtStatus,
   transitionExpenseStatus,
   transitionExternalActionStatus,
   transitionInvoiceStatus,
@@ -17,8 +20,10 @@ import {
   transitionObligationStatus,
   transitionPayRunStatus,
   transitionReconciliationStatus,
+  transitionScenarioStatus,
   transitionSpendRequestStatus,
   transitionTaxScenarioStatus,
+  updateReserveGoalProgress,
 } from './productionApi'
 import type { FinanceJournalLine } from './types'
 
@@ -360,5 +365,62 @@ describe('settlePayrollLiability', () => {
     const updated = settlePayrollLiability(ORG, liab.id)
     // Already settled — the function returns null
     expect(updated).toBeNull()
+  })
+})
+
+describe('transitionBudgetStatus', () => {
+  it('transitions a draft budget to approved', () => {
+    const state = loadFinanceState(ORG)
+    const bud = state.budgets.find((b) => b.status === 'draft')
+    if (!bud) return
+    const updated = transitionBudgetStatus(ORG, bud.id, 'approved')
+    expect(updated).not.toBeNull()
+    expect(updated?.status).toBe('approved')
+    expect(updated?.approvedAt).toBeDefined()
+  })
+})
+
+describe('transitionScenarioStatus', () => {
+  it('transitions a draft scenario to reviewed', () => {
+    const state = loadFinanceState(ORG)
+    const scn = state.scenarios.find((s) => s.status === 'draft')
+    if (!scn) return
+    const updated = transitionScenarioStatus(ORG, scn.id, 'reviewed', 'Test reviewer')
+    expect(updated).not.toBeNull()
+    expect(updated?.status).toBe('reviewed')
+    expect(updated?.reviewer).toBe('Test reviewer')
+  })
+})
+
+describe('updateReserveGoalProgress', () => {
+  it('updates the current amount of a reserve goal', () => {
+    const state = loadFinanceState(ORG)
+    const rg = state.reserveGoals[0]
+    if (!rg) return
+    const updated = updateReserveGoalProgress(ORG, rg.id, '5000.00')
+    expect(updated).not.toBeNull()
+    expect(updated?.currentAmount).toBe('5000.00')
+  })
+})
+
+describe('setHoldingStale', () => {
+  it('marks a holding as stale', () => {
+    const state = loadFinanceState(ORG)
+    const h = state.holdings[0]
+    if (!h) return
+    const updated = setHoldingStale(ORG, h.id, true)
+    expect(updated).not.toBeNull()
+    expect(updated?.stale).toBe(true)
+  })
+})
+
+describe('transitionDebtStatus', () => {
+  it('transitions an active debt to paid_off', () => {
+    const state = loadFinanceState(ORG)
+    const d = state.debts.find((debt) => debt.status === 'active')
+    if (!d) return
+    const updated = transitionDebtStatus(ORG, d.id, 'paid_off')
+    expect(updated).not.toBeNull()
+    expect(updated?.status).toBe('paid_off')
   })
 })

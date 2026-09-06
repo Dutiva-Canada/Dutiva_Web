@@ -5,9 +5,12 @@ import type {
   FinanceBill,
   FinanceBudget,
   FinanceClosePeriod,
+  FinanceDebt,
   FinanceExpenseStatus,
   FinanceExternalAction,
   FinanceExternalActionStatus,
+  FinanceForecast,
+  FinanceHolding,
   FinanceInvoice,
   FinanceInvoiceStatus,
   FinanceJournal,
@@ -18,6 +21,8 @@ import type {
   FinancePayRunStatus,
   FinancePayrollLiability,
   FinanceReconciliation,
+  FinanceReserveGoal,
+  FinanceScenario,
   FinanceSpendRequest,
   FinanceTaxObligation,
   FinanceTaxScenario,
@@ -391,6 +396,157 @@ export function addBudget(orgId: string, budget: Omit<FinanceBudget, 'id'>): Fin
   const created: FinanceBudget = { ...budget, id: `bud-${Date.now()}` }
   updateState(orgId, (state) => ({ ...state, budgets: [created, ...state.budgets] }))
   return created
+}
+
+export function addScenario(orgId: string, scn: Omit<FinanceScenario, 'id'>): FinanceScenario {
+  const created: FinanceScenario = { ...scn, id: `scn-${Date.now()}` }
+  updateState(orgId, (state) => ({ ...state, scenarios: [created, ...state.scenarios] }))
+  return created
+}
+
+export function addForecast(orgId: string, fc: Omit<FinanceForecast, 'id'>): FinanceForecast {
+  const created: FinanceForecast = { ...fc, id: `fc-${Date.now()}` }
+  updateState(orgId, (state) => ({ ...state, forecasts: [created, ...state.forecasts] }))
+  return created
+}
+
+export function addReserveGoal(orgId: string, rg: Omit<FinanceReserveGoal, 'id'>): FinanceReserveGoal {
+  const created: FinanceReserveGoal = { ...rg, id: `rg-${Date.now()}` }
+  updateState(orgId, (state) => ({ ...state, reserveGoals: [created, ...state.reserveGoals] }))
+  return created
+}
+
+/* ---------- Budget status transitions ---------- */
+
+const BUDGET_TRANSITIONS: Record<FinanceBudget['status'], FinanceBudget['status'][]> = {
+  draft: ['approved', 'archived'],
+  approved: ['revised', 'archived'],
+  revised: ['approved', 'archived'],
+  archived: [],
+}
+
+export function transitionBudgetStatus(
+  orgId: string,
+  id: string,
+  status: FinanceBudget['status'],
+): FinanceBudget | null {
+  let result: FinanceBudget | null = null
+  updateState(orgId, (state) => ({
+    ...state,
+    budgets: state.budgets.map((bud): FinanceBudget => {
+      if (bud.id !== id) return bud
+      if (!BUDGET_TRANSITIONS[bud.status]?.includes(status)) return bud
+      result = {
+        ...bud,
+        status,
+        version: status === 'revised' ? bud.version + 1 : bud.version,
+        approvedAt: status === 'approved' ? new Date().toISOString() : bud.approvedAt,
+      }
+      return result
+    }),
+  }))
+  return result
+}
+
+/* ---------- Scenario status transitions ---------- */
+
+const SCENARIO_TRANSITIONS: Record<FinanceScenario['status'], FinanceScenario['status'][]> = {
+  draft: ['reviewed'],
+  reviewed: ['accepted', 'draft'],
+  accepted: [],
+  stale: [],
+}
+
+export function transitionScenarioStatus(
+  orgId: string,
+  id: string,
+  status: FinanceScenario['status'],
+  reviewer?: string,
+): FinanceScenario | null {
+  let result: FinanceScenario | null = null
+  updateState(orgId, (state) => ({
+    ...state,
+    scenarios: state.scenarios.map((scn): FinanceScenario => {
+      if (scn.id !== id) return scn
+      if (!SCENARIO_TRANSITIONS[scn.status]?.includes(status)) return scn
+      result = {
+        ...scn,
+        status,
+        reviewer: reviewer ?? scn.reviewer,
+        reviewedAt: status === 'reviewed' || status === 'accepted' ? new Date().toISOString() : scn.reviewedAt,
+      }
+      return result
+    }),
+  }))
+  return result
+}
+
+/* ---------- Reserve goal progress update ---------- */
+
+export function updateReserveGoalProgress(orgId: string, id: string, currentAmount: string): FinanceReserveGoal | null {
+  let result: FinanceReserveGoal | null = null
+  updateState(orgId, (state) => ({
+    ...state,
+    reserveGoals: state.reserveGoals.map((rg): FinanceReserveGoal => {
+      if (rg.id !== id) return rg
+      result = { ...rg, currentAmount }
+      return result
+    }),
+  }))
+  return result
+}
+
+/* ---------- Holding staleness toggle ---------- */
+
+export function setHoldingStale(orgId: string, id: string, stale: boolean): FinanceHolding | null {
+  let result: FinanceHolding | null = null
+  updateState(orgId, (state) => ({
+    ...state,
+    holdings: state.holdings.map((h): FinanceHolding => {
+      if (h.id !== id) return h
+      result = { ...h, stale }
+      return result
+    }),
+  }))
+  return result
+}
+
+/* ---------- Debt status transitions ---------- */
+
+const DEBT_TRANSITIONS: Record<FinanceDebt['status'], FinanceDebt['status'][]> = {
+  active: ['paid_off', 'defaulted'],
+  paid_off: [],
+  defaulted: [],
+}
+
+export function transitionDebtStatus(orgId: string, id: string, status: FinanceDebt['status']): FinanceDebt | null {
+  let result: FinanceDebt | null = null
+  updateState(orgId, (state) => ({
+    ...state,
+    debts: state.debts.map((d): FinanceDebt => {
+      if (d.id !== id) return d
+      if (!DEBT_TRANSITIONS[d.status]?.includes(status)) return d
+      result = { ...d, status }
+      return result
+    }),
+  }))
+  return result
+}
+
+/* ---------- Forecast freeze ---------- */
+
+export function freezeForecast(orgId: string, id: string): FinanceForecast | null {
+  let result: FinanceForecast | null = null
+  updateState(orgId, (state) => ({
+    ...state,
+    forecasts: state.forecasts.map((fc): FinanceForecast => {
+      if (fc.id !== id) return fc
+      if (fc.frozenAt) return fc
+      result = { ...fc, frozenAt: new Date().toISOString() }
+      return result
+    }),
+  }))
+  return result
 }
 
 export function addTaxScenario(orgId: string, ts: Omit<FinanceTaxScenario, 'id'>): FinanceTaxScenario {

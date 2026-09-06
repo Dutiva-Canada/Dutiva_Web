@@ -382,4 +382,70 @@ export const financeMessages = defineMessages({
 
   /* Payroll liability settlement */
   finance_payroll_settle_liability: { en: 'Mark settled', fr: 'Marquer réglé' },
+
+  /* Treasury — reserve goal create/update */
+  finance_reserve_create: { en: 'New reserve goal', fr: 'Nouvel objectif de réserve' },
+  finance_reserve_type: { en: 'Type', fr: 'Type' },
+  finance_reserve_label: { en: 'Label', fr: 'Libellé' },
+  finance_reserve_target: { en: 'Target amount', fr: 'Montant cible' },
+  finance_reserve_current: { en: 'Current amount', fr: 'Montant actuel' },
+  finance_reserve_owner: { en: 'Owner', fr: 'Responsable' },
+  finance_reserve_due_date: { en: 'Due date', fr: 'Échéance' },
+  finance_reserve_update_progress: { en: 'Update progress', fr: 'Mettre à jour la progression' },
+  finance_reserve_mark_stale: { en: 'Mark stale', fr: 'Marquer obsolète' },
+
+  /* Treasury — holdings */
+  finance_holding_mark_stale: { en: 'Mark stale', fr: 'Marquer obsolète' },
+  finance_holding_refresh: { en: 'Mark current', fr: 'Marquer à jour' },
+
+  /* Treasury — debt */
+  finance_debt_mark_paid_off: { en: 'Mark paid off', fr: 'Marquer remboursé' },
+
+  /* Plans — budget create/edit */
+  finance_budget_create: { en: 'New budget', fr: 'Nouveau budget' },
+  finance_budget_label: { en: 'Label', fr: 'Libellé' },
+  finance_budget_owner: { en: 'Owner', fr: 'Responsable' },
+  finance_budget_lines: { en: 'Budget lines', fr: 'Lignes budgétaires' },
+  finance_budget_add_line: { en: 'Add line', fr: 'Ajouter une ligne' },
+  finance_budget_department: { en: 'Department', fr: 'Département' },
+  finance_budget_period: { en: 'Period', fr: 'Période' },
+  finance_budget_amount: { en: 'Amount', fr: 'Montant' },
+  finance_budget_approve: { en: 'Approve', fr: 'Approuver' },
+
+  /* Plans — scenario create */
+  finance_scenario_create: { en: 'New scenario', fr: 'Nouveau scénario' },
+  finance_scenario_label: { en: 'Label', fr: 'Libellé' },
+  finance_scenario_type: { en: 'Type', fr: 'Type' },
+  finance_scenario_assumptions: { en: 'Assumptions', fr: 'Hypothèses' },
+  finance_scenario_cutoff: { en: 'Cutoff date', fr: 'Date de coupure' },
+  finance_scenario_revenue: { en: 'Projected revenue', fr: 'Revenus projetés' },
+  finance_scenario_expense: { en: 'Projected expense', fr: 'Dépenses projetées' },
+  finance_scenario_cashflow: { en: 'Projected cash flow', fr: 'Flux de trésorerie projeté' },
+  finance_scenario_review: { en: 'Mark reviewed', fr: 'Marquer révisé' },
+  finance_scenario_accept: { en: 'Accept', fr: 'Accepter' },
+
+  /* Plans — forecast create */
+  finance_forecast_create: { en: 'New forecast', fr: 'Nouvelle prévision' },
+  finance_forecast_label: { en: 'Label', fr: 'Libellé' },
+  finance_forecast_type: { en: 'Type', fr: 'Type' },
+  finance_forecast_owner: { en: 'Owner', fr: 'Responsable' },
+  finance_forecast_freeze: { en: 'Freeze', fr: 'Geler' },
+
+  /* Budget variance */
+  finance_variance_title: { en: 'Budget variance', fr: 'Écart budgétaire' },
+  finance_variance_department: { en: 'Department', fr: 'Département' },
+  finance_variance_period: { en: 'Period', fr: 'Période' },
+  finance_variance_budgeted: { en: 'Budgeted', fr: 'Budgété' },
+  finance_variance_actual: { en: 'Actual', fr: 'Réel' },
+  finance_variance_committed: { en: 'Committed', fr: 'Engagé' },
+  finance_variance_headroom: { en: 'Headroom', fr: 'Marge' },
+  finance_variance_pct: { en: 'Used %', fr: 'Utilisé %' },
+
+  /* Cash-flow projection */
+  finance_cashflow_title: { en: 'Cash-flow projection', fr: 'Projection de trésorerie' },
+  finance_cashflow_period: { en: 'Period', fr: 'Période' },
+  finance_cashflow_inflow: { en: 'Inflow', fr: 'Entrées' },
+  finance_cashflow_outflow: { en: 'Outflow', fr: 'Sorties' },
+  finance_cashflow_net: { en: 'Net', fr: 'Net' },
+  finance_cashflow_closing: { en: 'Closing balance', fr: 'Solde de clôture' },
 })

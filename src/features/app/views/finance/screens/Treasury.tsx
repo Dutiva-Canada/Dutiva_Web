@@ -1,12 +1,18 @@
+import { useState } from 'react'
+import { Plus } from 'lucide-react'
 import { statusChipClass } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
 import { CURRENCY_LABEL, RESERVE_TYPE_LABEL } from '../financeLabels'
+import type { FinanceCurrency, FinanceReserveType } from '../data/types'
 
 export function Treasury() {
   const { x } = useI18n()
-  const { state } = useFinanceData()
+  const { state, canWrite, addReserveGoal, updateReserveGoalProgress, setHoldingStale, transitionDebtStatus } = useFinanceData()
+  const [showReserveForm, setShowReserveForm] = useState(false)
+  const [progressEdit, setProgressEdit] = useState<string | null>(null)
+  const [progressValue, setProgressValue] = useState('')
 
   return (
     <div className="flex flex-col gap-[16px]">
@@ -37,8 +43,31 @@ export function Treasury() {
       </section>
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_treasury_reserves)}</h2>
-        {state.reserveGoals.length === 0 ? (
+        <div className="mb-[12px] flex items-center justify-between">
+          <h2 className="text-[15px] font-semibold text-text">{x(M.finance_treasury_reserves)}</h2>
+          {canWrite && (
+            <button
+              type="button"
+              onClick={() => setShowReserveForm((v) => !v)}
+              className="flex items-center gap-[6px] text-[13px] font-semibold text-accent"
+            >
+              <Plus size={14} />
+              {x(M.finance_reserve_create)}
+            </button>
+          )}
+        </div>
+        {showReserveForm && canWrite && (
+          <ReserveGoalForm
+            onSubmit={(rg) => {
+              addReserveGoal(rg)
+              setShowReserveForm(false)
+            }}
+            onCancel={() => setShowReserveForm(false)}
+            entities={state.entities}
+            bankAccounts={state.bankAccounts}
+          />
+        )}
+        {state.reserveGoals.length === 0 && !showReserveForm ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_treasury_no_reserves)}</p>
         ) : (
           <ul className="m-0 flex flex-col gap-[10px] p-0">
@@ -53,6 +82,46 @@ export function Treasury() {
                       {x(M.finance_treasury_target)}: {rg.targetAmount} ({pct.toFixed(0)}%)
                       {rg.dueDate && ` · ${x(M.finance_due_date)}: ${rg.dueDate}`}
                     </div>
+                    {canWrite && progressEdit === rg.id && (
+                      <div className="mt-[6px] flex items-center gap-[6px]">
+                        <input
+                          value={progressValue}
+                          onChange={(e) => setProgressValue(e.target.value)}
+                          placeholder={rg.currentAmount}
+                          className="w-[100px] rounded-[6px] border border-border bg-surface px-[6px] py-[3px] text-[12px]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            updateReserveGoalProgress(rg.id, Number(progressValue).toFixed(2))
+                            setProgressEdit(null)
+                            setProgressValue('')
+                          }}
+                          className="rounded-[6px] bg-navy px-[8px] py-[3px] text-[11px] font-semibold text-white"
+                        >
+                          {x(M.finance_save)}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setProgressEdit(null)}
+                          className="rounded-[6px] bg-inset px-[8px] py-[3px] text-[11px] font-semibold text-text-2 border border-border"
+                        >
+                          {x(M.finance_cancel)}
+                        </button>
+                      </div>
+                    )}
+                    {canWrite && progressEdit !== rg.id && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProgressEdit(rg.id)
+                          setProgressValue(rg.currentAmount)
+                        }}
+                        className="mt-[6px] rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                      >
+                        {x(M.finance_reserve_update_progress)}
+                      </button>
+                    )}
                   </div>
                   <span className={statusChipClass(pct >= 100 ? 'success' : pct >= 75 ? 'neutral' : 'warning')}>
                     {pct.toFixed(0)}%
@@ -81,6 +150,15 @@ export function Treasury() {
                   <div className="text-[12px] text-text-muted">
                     {x(M.finance_source)}: {x(h.valuationSource)}
                   </div>
+                  {canWrite && (
+                    <button
+                      type="button"
+                      onClick={() => setHoldingStale(h.id, !h.stale)}
+                      className="mt-[6px] rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                    >
+                      {h.stale ? x(M.finance_holding_refresh) : x(M.finance_holding_mark_stale)}
+                    </button>
+                  )}
                 </div>
                 {h.stale && (
                   <span className={statusChipClass('warning')}>{x(M.finance_treasury_stale)}</span>
@@ -106,6 +184,15 @@ export function Treasury() {
                     {x(M.finance_treasury_interest_rate)}: {d.interestRate}% ·{' '}
                     {x(M.finance_treasury_maturity)}: {d.maturityDate}
                   </div>
+                  {canWrite && d.status === 'active' && (
+                    <button
+                      type="button"
+                      onClick={() => transitionDebtStatus(d.id, 'paid_off')}
+                      className="mt-[6px] rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                    >
+                      {x(M.finance_debt_mark_paid_off)}
+                    </button>
+                  )}
                 </div>
                 <span className={statusChipClass(d.status === 'active' ? 'warning' : d.status === 'paid_off' ? 'success' : 'risk')}>
                   {d.status === 'active' ? 'Active' : d.status === 'paid_off' ? 'Paid off' : 'Defaulted'}
@@ -116,5 +203,109 @@ export function Treasury() {
         )}
       </section>
     </div>
+  )
+}
+
+function ReserveGoalForm({
+  onSubmit,
+  onCancel,
+  entities,
+  bankAccounts,
+}: {
+  onSubmit: (rg: Omit<import('../data/types').FinanceReserveGoal, 'id'>) => void
+  onCancel: () => void
+  entities: import('../data/types').FinanceLegalEntity[]
+  bankAccounts: import('../data/types').FinanceBankAccount[]
+}) {
+  const { x } = useI18n()
+  const [entityId, setEntityId] = useState(entities[0]?.id ?? '')
+  const [type, setType] = useState<FinanceReserveType>('emergency_operating')
+  const [label, setLabel] = useState('')
+  const [targetAmount, setTargetAmount] = useState('0.00')
+  const [currentAmount, setCurrentAmount] = useState('0.00')
+  const [currency] = useState<FinanceCurrency>('CAD')
+  const [linkedBankAccountId, setLinkedBankAccountId] = useState('')
+  const [dueDate, setDueDate] = useState('')
+  const [owner, setOwner] = useState('')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSubmit({
+      entityId,
+      type,
+      label: { en: label, fr: label },
+      targetAmount: Number(targetAmount).toFixed(2),
+      currentAmount: Number(currentAmount).toFixed(2),
+      currency,
+      linkedBankAccountId: linkedBankAccountId || undefined,
+      dueDate: dueDate || undefined,
+      owner: owner || 'Workspace user',
+    })
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]">
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_invoice_entity)}</span>
+          <select value={entityId} onChange={(e) => setEntityId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+            {entities.map((ent) => (
+              <option key={ent.id} value={ent.id}>{ent.legalName}</option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_reserve_type)}</span>
+          <select value={type} onChange={(e) => setType(e.target.value as FinanceReserveType)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+            <option value="emergency_operating">Emergency operating</option>
+            <option value="payroll">Payroll</option>
+            <option value="tax">Tax</option>
+            <option value="capital_purchase">Capital purchase</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+      </div>
+      <label className="flex flex-col gap-[4px]">
+        <span className="text-[12px] text-text-muted">{x(M.finance_reserve_label)}</span>
+        <input value={label} onChange={(e) => setLabel(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+      </label>
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_reserve_target)}</span>
+          <input value={targetAmount} onChange={(e) => setTargetAmount(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_reserve_current)}</span>
+          <input value={currentAmount} onChange={(e) => setCurrentAmount(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+      </div>
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_reserve_owner)}</span>
+          <input value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="Workspace user" className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_reserve_due_date)}</span>
+          <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+      </div>
+      <label className="flex flex-col gap-[4px]">
+        <span className="text-[12px] text-text-muted">{x(M.finance_treasury_accounts)}</span>
+        <select value={linkedBankAccountId} onChange={(e) => setLinkedBankAccountId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+          <option value="">—</option>
+          {bankAccounts.map((acc) => (
+            <option key={acc.id} value={acc.id}>{acc.label.en}</option>
+          ))}
+        </select>
+      </label>
+      <div className="flex justify-end gap-[8px]">
+        <button type="button" onClick={onCancel} className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border">
+          {x(M.finance_cancel)}
+        </button>
+        <button type="submit" className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">
+          {x(M.finance_save)}
+        </button>
+      </div>
+    </form>
   )
 }
