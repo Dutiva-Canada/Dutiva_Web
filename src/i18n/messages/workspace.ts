@@ -29,6 +29,7 @@ import { workspaceModeMessages } from './workspaceMode'
 import { exportProtectionMessages } from './exportProtection'
 import { capacityMessages } from './capacity'
 import { hiringMessages } from './hiring'
+import { commsMessages } from './comms'
 import { sharedMessages } from './shared'
 
 /**
@@ -70,6 +71,7 @@ export const workspaceMessages = {
   ...exportProtectionMessages,
   ...capacityMessages,
   ...hiringMessages,
+  ...commsMessages,
   ...sharedMessages,
 } as const
 

@@ -121,8 +121,8 @@ describe('Sidebar', () => {
     const programsToggle = screen.getByRole('button', { name: /^Programs$/i })
     await user.click(programsToggle)
 
-    expect(screen.getByRole('button', { name: /Programs, 5 items/i })).toBeInTheDocument()
-    expect(screen.getByText('5')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Programs, 6 items/i })).toBeInTheDocument()
+    expect(screen.getByText('6')).toBeInTheDocument()
   })
 
   it('renders Collapse control aligned with nav density', () => {

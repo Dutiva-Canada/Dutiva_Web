@@ -9,6 +9,7 @@ import {
   FileStack,
   Folder,
   House,
+  Megaphone,
   MessageCircle,
   Send,
   ShieldCheck,
@@ -19,6 +20,7 @@ import {
 import type { Bi } from '@/i18n/core'
 import { bi } from '@/i18n/core'
 import { shellMessages as M } from '@/i18n/messages/shell'
+import { commsMessages as COMMS } from '@/i18n/messages/comms'
 import { memoryMessages as MEM } from '@/i18n/messages/memory'
 import { cases, employeeDetails, employees } from '@/data'
 import { VIEW_LABELS, isDoclibStudioPath } from './navLabels'
@@ -133,6 +135,13 @@ export function getNavGroups(root: string): NavGroup[] {
           label: M.shell_nav_communications,
         },
         {
+          key: 'comms',
+          to: p('comms/overview'),
+          icon: Megaphone,
+          label: COMMS.comms_title,
+          isActive: (pathname) => pathname.startsWith(`${root}/comms`),
+        },
+        {
           key: 'wellbeing',
           to: p('wellbeing'),
           icon: Activity,
@@ -177,6 +186,7 @@ export const PUBLIC_DEMO_NAV_KEYS = new Set([
   'knowledge',
   'compliance',
   'communications',
+  'comms',
   'compensation',
   'wellbeing',
   'analytics',
@@ -212,6 +222,9 @@ export function viewLabelFor(pathname: string): Bi {
   }
   if (segment === 'settings' && pathname.includes('/settings/memory')) {
     return MEM.memory_title
+  }
+  if (segment === 'comms') {
+    return COMMS.comms_title
   }
   return VIEW_LABELS[segment] ?? M.shell_v_home
 }

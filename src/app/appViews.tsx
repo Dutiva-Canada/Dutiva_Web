@@ -12,6 +12,7 @@ import {
   preloadAnalyticsView,
   preloadCasesView,
   preloadCommunicationsView,
+  preloadCommsView,
   preloadComplianceView,
   preloadCompensationView,
   preloadDocumentsView,
@@ -56,7 +57,18 @@ import {
 /* prettier-ignore */ const KnowledgeView = lazy(preloadKnowledgeView)
 /* prettier-ignore */ const GuideView = lazy(() => import('@/features/app/reference/GuideView').then((m) => ({ default: m.GuideView })))
 /* prettier-ignore */ const CommunicationsView = lazy(preloadCommunicationsView)
+/* prettier-ignore */ const CommsView = lazy(preloadCommsView)
 /* prettier-ignore */ const CompensationView = lazy(preloadCompensationView)
+
+/* Communications workspace screens */
+/* prettier-ignore */ const CommsOverview = lazy(() => import('@/features/app/views/comms/screens/Overview').then((m) => ({ default: m.Overview })))
+/* prettier-ignore */ const CommsInitiatives = lazy(() => import('@/features/app/views/comms/screens/Initiatives').then((m) => ({ default: m.Initiatives })))
+/* prettier-ignore */ const CommsContentCalendar = lazy(() => import('@/features/app/views/comms/screens/ContentCalendar').then((m) => ({ default: m.ContentCalendar })))
+/* prettier-ignore */ const CommsRelationships = lazy(() => import('@/features/app/views/comms/screens/Relationships').then((m) => ({ default: m.Relationships })))
+/* prettier-ignore */ const CommsEngagement = lazy(() => import('@/features/app/views/comms/screens/Engagement').then((m) => ({ default: m.Engagement })))
+/* prettier-ignore */ const CommsIntelligence = lazy(() => import('@/features/app/views/comms/screens/Intelligence').then((m) => ({ default: m.Intelligence })))
+/* prettier-ignore */ const CommsResults = lazy(() => import('@/features/app/views/comms/screens/Results').then((m) => ({ default: m.Results })))
+/* prettier-ignore */ const CommsSettings = lazy(() => import('@/features/app/views/comms/screens/Settings').then((m) => ({ default: m.Settings })))
 /* prettier-ignore */ const WellbeingView = lazy(preloadWellbeingView)
 /* prettier-ignore */ const SupportView = lazy(() => import('@/features/app/views/support/SupportView').then((m) => ({ default: m.SupportView })))
 /* prettier-ignore */ const SupportRequestsList = lazy(() => import('@/features/app/views/support/SupportRequestsList').then((m) => ({ default: m.SupportRequestsList })))
@@ -125,6 +137,21 @@ function createAppViewRoutes(root: string): RouteObject[] {
     { path: 'support/admin/exports', element: <ExportAuditView /> },
     { path: 'support/admin/:ticketId', element: <SupportAdminTicket /> },
     { path: 'communications', element: <CommunicationsView /> },
+    {
+      path: 'comms',
+      element: <CommsView />,
+      children: [
+        { index: true, loader: () => redirect(r('comms/overview')) },
+        { path: 'overview', element: <CommsOverview /> },
+        { path: 'initiatives', element: <CommsInitiatives /> },
+        { path: 'content', element: <CommsContentCalendar /> },
+        { path: 'relationships', element: <CommsRelationships /> },
+        { path: 'engagement', element: <CommsEngagement /> },
+        { path: 'intelligence', element: <CommsIntelligence /> },
+        { path: 'results', element: <CommsResults /> },
+        { path: 'settings', element: <CommsSettings /> },
+      ],
+    },
     { path: 'compensation', element: <CompensationView /> },
     { path: 'wellbeing', element: <WellbeingView /> },
     /* Hiring module — evidence-based recruitment system with demo/production support */
