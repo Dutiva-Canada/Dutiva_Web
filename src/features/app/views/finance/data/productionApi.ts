@@ -1,7 +1,8 @@
 import { initialFinanceState } from './fixtures'
-import { DEFAULT_CATEGORY_RULES, DEFAULT_LEDGER_ACCOUNTS } from './defaultCategoryRules'
+import { DEFAULT_CATEGORY_RULES, DEFAULT_ENTITY, DEFAULT_LEDGER_ACCOUNTS, DEFAULT_BOOK } from './defaultCategoryRules'
 import type {
   FinanceBankAccount,
+  FinanceBook,
   FinanceBudget,
   FinanceCategoryRule,
   FinanceCurrency,
@@ -758,7 +759,23 @@ export function removeCategoryRule(orgId: string, id: string): boolean {
 }
 
 export function seedDefaultCategoryRules(orgId: string): number {
-  const state = loadFinanceState(orgId)
+  let state = loadFinanceState(orgId)
+
+  if (state.entities.length === 0) {
+    addEntity(orgId, DEFAULT_ENTITY)
+    state = loadFinanceState(orgId)
+  }
+  if (state.books.length === 0) {
+    const entity = state.entities[0]!
+    const newBook: FinanceBook = {
+      ...DEFAULT_BOOK,
+      id: `book-${Date.now()}`,
+      entityId: entity.id,
+    }
+    updateState(orgId, (s) => ({ ...s, books: [...s.books, newBook] }))
+    state = loadFinanceState(orgId)
+  }
+
   const entity = state.entities[0]
   const book = state.books[0]
   if (!entity || !book) return 0

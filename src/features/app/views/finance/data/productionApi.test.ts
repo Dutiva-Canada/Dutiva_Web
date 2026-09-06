@@ -583,6 +583,8 @@ describe('seedDefaultCategoryRules', () => {
     const state = loadFinanceState(SEED_ORG)
     expect(state.ledgerAccounts.length).toBeGreaterThanOrEqual(DEFAULT_LEDGER_ACCOUNTS.length)
     expect(state.categoryRules.length).toBeGreaterThanOrEqual(DEFAULT_CATEGORY_RULES.length)
+    expect(state.entities.length).toBeGreaterThan(0)
+    expect(state.books.length).toBeGreaterThan(0)
     expect(state.categoryRules.some((r) => r.pattern === 'PAYROLL')).toBe(true)
   })
 

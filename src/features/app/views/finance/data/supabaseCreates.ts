@@ -1,5 +1,5 @@
 import { insertCategoryRule } from './supabaseImports'
-import { DEFAULT_CATEGORY_RULES, DEFAULT_LEDGER_ACCOUNTS } from './defaultCategoryRules'
+import { DEFAULT_CATEGORY_RULES, DEFAULT_ENTITY, DEFAULT_LEDGER_ACCOUNTS, DEFAULT_BOOK } from './defaultCategoryRules'
 import { supabase as supabaseTyped } from '@/lib/supabaseClient'
 import type {
   FinanceBankAccount,
@@ -380,23 +380,44 @@ export async function addSubscriptionInSupabase(orgId: string, item: Omit<Financ
 export async function seedDefaultCategoryRulesInSupabase(orgId: string): Promise<number> {
   if (!supabase) return 0
 
-  const { data: entityRows, error: entityError } = await supabase
+  let { data: entityRows, error: entityError } = await supabase
     .from(TABLES.entities)
     .select('*')
     .eq('organization_id', orgId)
     .limit(1)
   if (entityError) throw entityError
-  const entity = entityRows?.[0] ? mapEntity(entityRows[0] as Record<string, unknown>) : null
+  let entity = entityRows?.[0] ? mapEntity(entityRows[0] as Record<string, unknown>) : null
 
-  const { data: bookRows, error: bookError } = await supabase
+  if (!entity) {
+    const created = await addEntityInSupabase(orgId, DEFAULT_ENTITY)
+    if (!created) return 0
+    entity = created
+  }
+
+  let { data: bookRows, error: bookError } = await supabase
     .from(TABLES.books)
     .select('*')
     .eq('organization_id', orgId)
     .limit(1)
   if (bookError) throw bookError
-  const book = bookRows?.[0] ? mapBook(bookRows[0] as Record<string, unknown>) : null
+  let book = bookRows?.[0] ? mapBook(bookRows[0] as Record<string, unknown>) : null
 
-  if (!entity || !book) return 0
+  if (!book) {
+    const { data, error } = await supabase
+      .from(TABLES.books)
+      .insert({
+        organization_id: orgId,
+        entity_id: entity.id,
+        label: DEFAULT_BOOK.label,
+        basis: DEFAULT_BOOK.basis,
+        authoritative_source: DEFAULT_BOOK.authoritativeSource,
+        last_synced_at: DEFAULT_BOOK.lastSyncedAt,
+      })
+      .select('*')
+      .single()
+    if (error) throw error
+    book = mapBook(data as Record<string, unknown>)
+  }
 
   const { data: ledgerRows, error: ledgerError } = await supabase
     .from(TABLES.ledgerAccounts)

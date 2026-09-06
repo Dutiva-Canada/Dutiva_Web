@@ -1,5 +1,5 @@
 import { bi } from '@/i18n/core'
-import type { FinanceCategoryMatchType, FinanceLedgerAccount } from './types'
+import type { FinanceBook, FinanceCategoryMatchType, FinanceLedgerAccount, FinanceLegalEntity } from './types'
 
 export interface DefaultLedgerAccountSeed {
   code: string
@@ -14,6 +14,24 @@ export interface DefaultCategoryRule {
   direction: 'debit' | 'credit'
   priority: number
   ledgerAccountCode: string
+}
+
+const currentYear = new Date().getFullYear()
+
+export const DEFAULT_ENTITY: Omit<FinanceLegalEntity, 'id'> = {
+  legalName: 'My Organization',
+  legalForm: 'corporation',
+  fiscalYearStart: `${currentYear}-01-01`,
+  functionalCurrency: 'CAD',
+  jurisdictions: ['ON'],
+  active: true,
+}
+
+export const DEFAULT_BOOK: Omit<FinanceBook, 'id' | 'entityId'> = {
+  label: bi('Main ledger', 'Grand livre principal'),
+  basis: 'accrual',
+  authoritativeSource: bi('Manual', 'Manuel'),
+  lastSyncedAt: new Date().toISOString(),
 }
 
 export const DEFAULT_LEDGER_ACCOUNTS: DefaultLedgerAccountSeed[] = [

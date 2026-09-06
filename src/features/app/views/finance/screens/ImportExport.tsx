@@ -307,8 +307,7 @@ export function ImportExport() {
               <button
                 type="button"
                 onClick={handleSeedDefaultRules}
-                disabled={state.entities.length === 0 || state.books.length === 0}
-                className="rounded-[8px] bg-navy px-[10px] py-[5px] text-[12px] font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                className="rounded-[8px] bg-navy px-[10px] py-[5px] text-[12px] font-semibold text-white hover:opacity-90"
               >
                 {x(M.finance_rules_seed)}
               </button>
@@ -339,12 +338,6 @@ export function ImportExport() {
         {seedRulesResult && (
           <div className="mb-[8px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text">
             {seedRulesResult}
-          </div>
-        )}
-
-        {canWrite && (state.entities.length === 0 || state.books.length === 0) && (
-          <div className="mb-[8px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text-muted">
-            {x(M.finance_rules_seed_disabled)}
           </div>
         )}
 
