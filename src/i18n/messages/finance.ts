@@ -622,6 +622,7 @@ export const financeMessages = defineMessages({
   finance_rules_active: { en: 'Active', fr: 'Actif' },
   finance_rules_no_rules: { en: 'No category rules yet.', fr: 'Aucune règle de catégorisation.' },
   finance_rules_seed: { en: 'Load defaults', fr: 'Charger les valeurs par défaut' },
+  finance_rules_seed_disabled: { en: 'Create a legal entity and a book first.', fr: 'Créez d’abord une entité légale et un livre.' },
   finance_rules_seed_result: { en: 'Added {count} default category rules.', fr: 'Ajouté {count} règles de catégorisation par défaut.' },
   finance_rules_seed_none: { en: 'No default rules were added. You may already have the same patterns, or no entity/book exists.', fr: 'Aucune règle par défaut n’a été ajoutée. Les mêmes motifs existent peut-être déjà, ou aucune entité/livre n’est défini.' },
   finance_rules_deactivate: { en: 'Deactivate', fr: 'Désactiver' },
