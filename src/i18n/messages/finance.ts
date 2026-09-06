@@ -639,4 +639,17 @@ export const financeMessages = defineMessages({
   finance_export_invoices: { en: 'Export invoices (CSV)', fr: 'Exporter les factures (CSV)' },
   finance_export_bills: { en: 'Export bills (CSV)', fr: 'Exporter les factures fournisseurs (CSV)' },
   finance_export_workspace: { en: 'Export full workspace (JSON)', fr: 'Exporter l\'espace de travail complet (JSON)' },
+
+  /* Rule suggestions */
+  finance_suggest_rules: { en: 'Suggest rules', fr: 'Suggérer des règles' },
+  finance_suggest_rules_loading: { en: 'Analyzing transactions…', fr: 'Analyse des transactions en cours…' },
+  finance_suggest_rules_none: { en: 'No rule suggestions found.', fr: 'Aucune suggestion de règle trouvée.' },
+  finance_suggest_rules_result: { en: '{count} rule suggestion(s).', fr: '{count} suggestion(s) de règle.' },
+  finance_suggest_rules_add: { en: 'Add rule', fr: 'Ajouter la règle' },
+  finance_suggest_rules_add_all: { en: 'Add all', fr: 'Tout ajouter' },
+  finance_suggest_rules_ignore: { en: 'Ignore', fr: 'Ignorer' },
+  finance_suggest_rules_from: { en: 'From {count} transaction(s)', fr: 'À partir de {count} transaction(s)' },
+  finance_suggest_rules_confidence_high: { en: 'High confidence', fr: 'Confiance élevée' },
+  finance_suggest_rules_confidence_medium: { en: 'Medium confidence', fr: 'Confiance moyenne' },
+  finance_suggest_rules_confidence_low: { en: 'Low confidence', fr: 'Confiance faible' },
 })

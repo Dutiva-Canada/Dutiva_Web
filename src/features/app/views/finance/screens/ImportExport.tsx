@@ -7,6 +7,7 @@ import { useFinanceData } from '../data/useFinanceData'
 import { CATEGORY_MATCH_TYPE_LABEL } from '../financeLabels'
 import { buildExportBundles, downloadFile } from '../data/importExport'
 import { statementFileToCsv } from '../data/statementParser'
+import { suggestCategoryRules, type RuleSuggestion } from '../data/ruleSuggestion'
 import { createBankStatementBulkImportAdapter } from '../bulkImport/bankStatementAdapter'
 import { BulkImportWizard } from '@/features/app/bulkImport/BulkImportWizard'
 import type { FinanceCategoryMatchType, FinanceImportRowError } from '../data/types'
@@ -34,6 +35,9 @@ export function ImportExport() {
   const [showErrorDetails, setShowErrorDetails] = useState(false)
   const [categorizeResult, setCategorizeResult] = useState<string | null>(null)
   const [seedRulesResult, setSeedRulesResult] = useState<string | null>(null)
+  const [suggestions, setSuggestions] = useState<RuleSuggestion[]>([])
+  const [suggesting, setSuggesting] = useState(false)
+  const [suggestResult, setSuggestResult] = useState<string | null>(null)
   const [showRuleForm, setShowRuleForm] = useState(false)
   const [showWizard, setShowWizard] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -43,6 +47,12 @@ export function ImportExport() {
     [state.bankItems],
   )
   const hasRules = state.categoryRules.length > 0
+
+  const CONFIDENCE_MESSAGES = {
+    high: M.finance_suggest_rules_confidence_high,
+    medium: M.finance_suggest_rules_confidence_medium,
+    low: M.finance_suggest_rules_confidence_low,
+  } as const
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -124,6 +134,61 @@ export function ImportExport() {
         ? x(M.finance_rules_seed_result).replace('{count}', String(count))
         : x(M.finance_rules_seed_none),
     )
+  }
+
+  const handleSuggestRules = () => {
+    if (state.ledgerAccounts.length === 0) {
+      setSuggestResult(x(M.finance_suggest_rules_none))
+      setSuggestions([])
+      return
+    }
+    setSuggesting(true)
+    setSuggestResult(null)
+    const result = suggestCategoryRules(state.bankItems, state.ledgerAccounts, state.categoryRules)
+    setSuggestions(result)
+    setSuggesting(false)
+    setSuggestResult(
+      result.length > 0
+        ? x(M.finance_suggest_rules_result).replace('{count}', String(result.length))
+        : x(M.finance_suggest_rules_none),
+    )
+  }
+
+  const handleAddSuggestion = async (suggestion: RuleSuggestion) => {
+    const entityId = state.books[0]?.entityId ?? state.entities[0]?.id
+    if (!entityId) return
+    await addCategoryRule({
+      entityId,
+      pattern: suggestion.pattern,
+      matchType: suggestion.matchType,
+      ledgerAccountId: suggestion.ledgerAccountId,
+      direction: suggestion.direction,
+      priority: suggestion.priority,
+      active: true,
+    })
+    setSuggestions((prev) => prev.filter((s) => s.pattern !== suggestion.pattern || s.ledgerAccountId !== suggestion.ledgerAccountId))
+  }
+
+  const handleAddAllSuggestions = async () => {
+    const entityId = state.books[0]?.entityId ?? state.entities[0]?.id
+    if (!entityId) return
+    for (const suggestion of suggestions) {
+      await addCategoryRule({
+        entityId,
+        pattern: suggestion.pattern,
+        matchType: suggestion.matchType,
+        ledgerAccountId: suggestion.ledgerAccountId,
+        direction: suggestion.direction,
+        priority: suggestion.priority,
+        active: true,
+      })
+    }
+    setSuggestions([])
+    setSuggestResult(null)
+  }
+
+  const handleIgnoreSuggestion = (suggestion: RuleSuggestion) => {
+    setSuggestions((prev) => prev.filter((s) => s.pattern !== suggestion.pattern || s.ledgerAccountId !== suggestion.ledgerAccountId))
   }
 
   const handleExport = (bundleIndex: number) => {
@@ -306,6 +371,17 @@ export function ImportExport() {
             {canWrite && (
               <button
                 type="button"
+                onClick={handleSuggestRules}
+                disabled={suggesting || unmatchedCount === 0}
+                className="flex items-center gap-[4px] rounded-[8px] bg-navy px-[10px] py-[5px] text-[12px] font-semibold text-white hover:opacity-90 disabled:opacity-50"
+              >
+                <Sparkles size={12} strokeWidth={1.9} aria-hidden="true" />
+                {x(M.finance_suggest_rules)}
+              </button>
+            )}
+            {canWrite && (
+              <button
+                type="button"
                 onClick={handleSeedDefaultRules}
                 className="rounded-[8px] bg-navy px-[10px] py-[5px] text-[12px] font-semibold text-white hover:opacity-90"
               >
@@ -390,6 +466,67 @@ export function ImportExport() {
                 )
               })}
           </ul>
+        )}
+
+        {suggesting && (
+          <div className="mt-[8px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text-muted">
+            {x(M.finance_suggest_rules_loading)}
+          </div>
+        )}
+
+        {suggestResult && !suggesting && (
+          <div className="mt-[8px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text">
+            {suggestResult}
+          </div>
+        )}
+
+        {suggestions.length > 0 && (
+          <div className="mt-[8px] flex flex-col gap-[8px]">
+            <div className="flex items-center justify-between">
+              <h3 className="text-[13px] font-semibold text-text">{x(M.finance_suggest_rules)}</h3>
+              <button
+                type="button"
+                onClick={handleAddAllSuggestions}
+                className="rounded-[6px] bg-navy px-[8px] py-[4px] text-[11px] font-semibold text-white hover:opacity-90"
+              >
+                {x(M.finance_suggest_rules_add_all)}
+              </button>
+            </div>
+            <ul className="m-0 flex flex-col gap-[8px] p-0">
+              {suggestions.map((suggestion) => (
+                <li
+                  key={`${suggestion.pattern}-${suggestion.ledgerAccountId}`}
+                  className="flex flex-col gap-[4px] rounded-[10px] border border-border bg-surface p-[10px]"
+                >
+                  <div className="flex items-center justify-between gap-[8px]">
+                    <div className="text-[13px] font-semibold text-text">{suggestion.pattern}</div>
+                    <div className="flex items-center gap-[6px]">
+                      <button
+                        type="button"
+                        onClick={() => handleAddSuggestion(suggestion)}
+                        className="rounded-[6px] bg-navy px-[8px] py-[4px] text-[11px] font-semibold text-white hover:opacity-90"
+                      >
+                        {x(M.finance_suggest_rules_add)}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleIgnoreSuggestion(suggestion)}
+                        className="rounded-[6px] bg-surface px-[8px] py-[4px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                      >
+                        {x(M.finance_suggest_rules_ignore)}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="text-[12px] text-text-muted">
+                    {suggestion.accountName} · {suggestion.direction} · {x(M.finance_suggest_rules_from).replace('{count}', String(suggestion.count))}
+                  </div>
+                  <div className="text-[11px] text-text-muted">
+                    {x(CONFIDENCE_MESSAGES[suggestion.confidence])} · {suggestion.sampleDescriptions.slice(0, 3).join(' · ')}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </section>
 
