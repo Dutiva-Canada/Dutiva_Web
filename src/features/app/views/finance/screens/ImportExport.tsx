@@ -40,6 +40,7 @@ export function ImportExport() {
     () => state.bankItems.filter((bi) => bi.matchStatus === 'unmatched').length,
     [state.bankItems],
   )
+  const hasRules = state.categoryRules.length > 0
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -260,7 +261,7 @@ export function ImportExport() {
             <button
               type="button"
               onClick={handleAutoCategorize}
-              disabled={unmatchedCount === 0}
+              disabled={unmatchedCount === 0 || !hasRules}
               className="flex items-center gap-[6px] rounded-[8px] bg-navy px-[14px] py-[7px] text-[12.5px] font-semibold text-white hover:opacity-90 disabled:opacity-50"
             >
               <Sparkles size={14} strokeWidth={1.9} aria-hidden="true" />
@@ -274,6 +275,11 @@ export function ImportExport() {
         {categorizeResult && (
           <div className="mt-[8px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text">
             {categorizeResult}
+          </div>
+        )}
+        {!hasRules && canWrite && (
+          <div className="mt-[8px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text-muted">
+            {x(M.finance_categorize_no_rules)}
           </div>
         )}
       </section>

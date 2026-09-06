@@ -602,6 +602,10 @@ export const financeMessages = defineMessages({
     fr: 'Catégorisé {count} transactions.',
   },
   finance_categorize_none: { en: 'No transactions matched your category rules.', fr: 'Aucune transaction ne correspond à vos règles de catégorisation.' },
+  finance_categorize_no_rules: {
+    en: 'Add a category rule to start auto-categorizing.',
+    fr: 'Ajoutez une règle de catégorisation pour lancer la catégorisation automatique.',
+  },
 
   /* Category rules */
   finance_rules_title: { en: 'Category rules', fr: 'Règles de catégorisation' },
