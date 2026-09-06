@@ -1,8 +1,11 @@
 import { useState } from 'react'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2, Upload } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
+import { bulkImportMessages as B } from '@/i18n/messages/bulkImport'
 import { useFinanceData } from '../data/useFinanceData'
+import { BulkImportWizard } from '@/features/app/bulkImport/BulkImportWizard'
+import { createEntityBulkImportAdapter } from '../bulkImport/entityAdapter'
 import type { FinanceCurrency, FinanceLegalEntity, FinanceLegalForm } from '../data/types'
 
 const LEGAL_FORMS: FinanceLegalForm[] = ['corporation', 'partnership', 'sole_proprietor', 'nonprofit']
@@ -13,6 +16,8 @@ export function Entities() {
   const { x } = useI18n()
   const { state, canWrite, addEntity, updateEntity, removeEntity } = useFinanceData()
   const [form, setForm] = useState<{ mode: 'add' } | { mode: 'edit'; entity: FinanceLegalEntity } | null>(null)
+  const [showBulkImport, setShowBulkImport] = useState(false)
+  const entityAdapter = createEntityBulkImportAdapter(addEntity)
 
   return (
     <div className="flex flex-col gap-[16px]">
@@ -20,16 +25,29 @@ export function Entities() {
         <div className="mb-[12px] flex items-center justify-between">
           <h2 className="text-[15px] font-semibold text-text">{x(M.finance_entity_title)}</h2>
           {canWrite && (
-            <button
-              type="button"
-              onClick={() => setForm({ mode: 'add' })}
-              className="flex items-center gap-[6px] text-[13px] font-semibold text-accent"
-            >
-              <Plus size={14} />
-              {x(M.finance_entity_create)}
-            </button>
+            <div className="flex items-center gap-[12px]">
+              <button
+                type="button"
+                onClick={() => setShowBulkImport(true)}
+                className="flex items-center gap-[6px] text-[13px] font-semibold text-accent"
+              >
+                <Upload size={14} />
+                {x(B.bulk_import_title)}
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm({ mode: 'add' })}
+                className="flex items-center gap-[6px] text-[13px] font-semibold text-accent"
+              >
+                <Plus size={14} />
+                {x(M.finance_entity_create)}
+              </button>
+            </div>
           )}
         </div>
+        {showBulkImport && (
+          <BulkImportWizard adapter={entityAdapter} onClose={() => setShowBulkImport(false)} />
+        )}
         {form && canWrite && (
           <EntityForm
             key={form.mode === 'edit' ? form.entity.id : 'add'}

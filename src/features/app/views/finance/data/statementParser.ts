@@ -1,4 +1,5 @@
 import type { FinanceBankItem, FinanceCurrency } from './types'
+import { detectDelimiter, splitLines, parseCSVLine } from '@/lib/csv'
 
 /**
  * Bank statement import parser. Supports CSV files exported from Canadian
@@ -159,43 +160,6 @@ export function rowsToBankItems(
 }
 
 /* ---------- Internal helpers ---------- */
-
-function detectDelimiter(text: string): ',' | ';' | '\t' | '|' {
-  const firstLine = text.split(/\r?\n/)[0] ?? ''
-  if (firstLine.includes('\t')) return '\t'
-  if (firstLine.includes(';')) return ';'
-  if (firstLine.includes('|')) return '|'
-  return ','
-}
-
-function splitLines(text: string): string[] {
-  return text.split(/\r?\n/).filter((l) => l.trim() !== '')
-}
-
-function parseCSVLine(line: string, delimiter: string): string[] {
-  const result: string[] = []
-  let current = ''
-  let inQuotes = false
-
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i]
-    if (char === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        current += '"'
-        i++
-      } else {
-        inQuotes = !inQuotes
-      }
-    } else if (char === delimiter && !inQuotes) {
-      result.push(current)
-      current = ''
-    } else {
-      current += char
-    }
-  }
-  result.push(current)
-  return result.map((s) => s.trim())
-}
 
 function detectColumns(header: string[]): ColumnMap | null {
   const lower = header.map((h) => h.toLowerCase().trim())
