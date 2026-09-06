@@ -12,6 +12,7 @@ import { Accounting } from './screens/Accounting'
 import { Plans } from './screens/Plans'
 import { Treasury } from './screens/Treasury'
 import { Tax } from './screens/Tax'
+import { Evidence } from './screens/Evidence'
 
 function renderAt(route: string) {
   return renderApp(
@@ -26,6 +27,7 @@ function renderAt(route: string) {
         <Route path="plans" element={<Plans />} />
         <Route path="treasury" element={<Treasury />} />
         <Route path="tax" element={<Tax />} />
+        <Route path="evidence" element={<Evidence />} />
       </Route>
     </Routes>,
     { route, path: '*' },
@@ -108,5 +110,11 @@ describe('FinanceView', () => {
         'A tax scenario is a planning record, not a filed return. Estimated reductions are not guaranteed tax savings.',
       ),
     ).toBeInTheDocument()
+  })
+
+  it('renders the evidence checklist on the evidence tab', () => {
+    renderAt('/app/finance/evidence')
+
+    expect(screen.getByText('Evidence checklist')).toBeInTheDocument()
   })
 })

@@ -36,6 +36,7 @@ export const financeMessages = defineMessages({
   finance_tab_plans: { en: 'Plans & budgets', fr: 'Plans et budgets' },
   finance_tab_treasury: { en: 'Treasury', fr: 'Trésorerie' },
   finance_tab_tax: { en: 'Tax', fr: 'Fiscalité' },
+  finance_tab_evidence: { en: 'Evidence', fr: 'Preuves' },
 
   /* Common actions */
   finance_add: { en: 'Add', fr: 'Ajouter' },
@@ -128,6 +129,10 @@ export const financeMessages = defineMessages({
   finance_payroll_mark_results: { en: 'Import results', fr: 'Importer les résultats' },
   finance_payroll_mark_reconciled: { en: 'Mark reconciled', fr: 'Marquer rapproché' },
   finance_payroll_restricted: { en: 'Payroll details are restricted.', fr: 'Les détails de paie sont restreints.' },
+  finance_payroll_admin_only: {
+    en: 'Payroll records are visible to admins only. Ask a workspace admin to grant access or review pay runs.',
+    fr: 'Les dossiers de paie sont visibles par les administrateurs uniquement. Demandez à un administrateur de l\'espace d\'accorder l\'accès ou de réviser les traitements.',
+  },
 
   /* Accounting */
   finance_accounting_title: { en: 'Accounting', fr: 'Comptabilité' },
@@ -243,4 +248,32 @@ export const financeMessages = defineMessages({
 
   /* Money representation */
   finance_total_currency: { en: 'Total', fr: 'Total' },
+
+  /* Evidence & receipts */
+  finance_evidence_title: { en: 'Evidence & receipts', fr: 'Preuves et reçus' },
+  finance_evidence_upload: { en: 'Upload receipt', fr: 'Téléverser un reçu' },
+  finance_evidence_no_receipts: { en: 'No receipts uploaded.', fr: 'Aucun reçu téléversé.' },
+  finance_evidence_reviewed: { en: 'Reviewed', fr: 'Révisé' },
+  finance_evidence_pending: { en: 'Pending review', fr: 'En attente de révision' },
+  finance_evidence_mark_reviewed: { en: 'Mark reviewed', fr: 'Marquer révisé' },
+  finance_evidence_download: { en: 'Download', fr: 'Télécharger' },
+  finance_evidence_uploaded_at: { en: 'Uploaded', fr: 'Téléversé' },
+  finance_evidence_upload_error: {
+    en: 'Could not upload the file. Check your connection and try again.',
+    fr: 'Impossible de téléverser le fichier. Vérifiez votre connexion et réessayez.',
+  },
+  finance_evidence_select_file: { en: 'Choose a file', fr: 'Choisir un fichier' },
+  finance_evidence_checklist: { en: 'Evidence checklist', fr: 'Liste de vérification des preuves' },
+  finance_evidence_checklist_hint: {
+    en: 'Track whether source documents are attached for each record.',
+    fr: 'Suivez si les documents source sont joints pour chaque dossier.',
+  },
+  finance_evidence_attached: { en: 'Attached', fr: 'Joint' },
+  finance_evidence_missing: { en: 'Missing', fr: 'Manquant' },
+
+  /* Closed period */
+  finance_period_locked: {
+    en: 'This period is locked. Ordinary edits are not allowed.',
+    fr: 'Cette période est verrouillée. Les modifications ordinaires ne sont pas autorisées.',
+  },
 })

@@ -81,6 +81,7 @@ import {
 /* prettier-ignore */ const FinancePlans = lazy(() => import('@/features/app/views/finance/screens/Plans').then((m) => ({ default: m.Plans })))
 /* prettier-ignore */ const FinanceTreasury = lazy(() => import('@/features/app/views/finance/screens/Treasury').then((m) => ({ default: m.Treasury })))
 /* prettier-ignore */ const FinanceTax = lazy(() => import('@/features/app/views/finance/screens/Tax').then((m) => ({ default: m.Tax })))
+/* prettier-ignore */ const FinanceEvidence = lazy(() => import('@/features/app/views/finance/screens/Evidence').then((m) => ({ default: m.Evidence })))
 /* prettier-ignore */ const WellbeingView = lazy(preloadWellbeingView)
 /* prettier-ignore */ const SupportView = lazy(() => import('@/features/app/views/support/SupportView').then((m) => ({ default: m.SupportView })))
 /* prettier-ignore */ const SupportRequestsList = lazy(() => import('@/features/app/views/support/SupportRequestsList').then((m) => ({ default: m.SupportRequestsList })))
@@ -178,6 +179,7 @@ function createAppViewRoutes(root: string): RouteObject[] {
         { path: 'plans', element: <FinancePlans /> },
         { path: 'treasury', element: <FinanceTreasury /> },
         { path: 'tax', element: <FinanceTax /> },
+        { path: 'evidence', element: <FinanceEvidence /> },
       ],
     },
     { path: 'compensation', element: <CompensationView /> },

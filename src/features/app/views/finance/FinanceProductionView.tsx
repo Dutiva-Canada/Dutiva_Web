@@ -6,9 +6,11 @@ import { FinanceDataProvider } from './data/FinanceDataProvider'
 import { FinanceLayout } from './FinanceLayout'
 
 /**
- * Production-mode finance workspace. State is persisted to browser
- * localStorage in this first implementation; a Supabase-backed migration
- * will replace this once the data model and RLS policies are finalized.
+ * Production-mode finance workspace. State is persisted to Supabase
+ * (`finance_*` tables, org-scoped by RLS) when the Supabase client is
+ * configured; otherwise it falls back to a localStorage stub for local
+ * development without env vars. Sensitive payroll tables are admin-only
+ * at the RLS level; the UI also gates visibility via `memberRole`.
  */
 export function FinanceProductionView() {
   const { x } = useI18n()

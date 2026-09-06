@@ -5,6 +5,7 @@ import {
   Calculator,
   FileText,
   LayoutDashboard,
+  Paperclip,
   PiggyBank,
   Receipt,
   ShoppingBag,
@@ -33,6 +34,7 @@ const TABS: FinanceTab[] = [
   { key: 'plans', to: 'plans', label: 'finance_tab_plans', icon: Calculator },
   { key: 'treasury', to: 'treasury', label: 'finance_tab_treasury', icon: PiggyBank },
   { key: 'tax', to: 'tax', label: 'finance_tab_tax', icon: Banknote },
+  { key: 'evidence', to: 'evidence', label: 'finance_tab_evidence', icon: Paperclip },
 ]
 
 interface FinanceLayoutProps {

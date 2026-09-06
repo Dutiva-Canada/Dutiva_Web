@@ -1,7 +1,10 @@
 import { useMemo, useState } from 'react'
+import { Lock } from 'lucide-react'
 import { statusChipClass } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { isAdminRole } from '@/features/app/workspaceMode/roles'
 import { useFinanceData } from '../data/useFinanceData'
 import { CURRENCY_LABEL, PAY_RUN_STATUS_LABEL } from '../financeLabels'
 import type { FinancePayRunStatus } from '../data/types'
@@ -21,6 +24,7 @@ const VALID_TRANSITIONS: Record<FinancePayRunStatus, { status: FinancePayRunStat
 
 export function Payroll() {
   const { x } = useI18n()
+  const { memberRole, mode } = useWorkspaceMode()
   const { state, canWrite, transitionPayRunStatus } = useFinanceData()
   const [filter, setFilter] = useState<'all' | FinancePayRunStatus>('all')
 
@@ -30,6 +34,22 @@ export function Payroll() {
   )
 
   const periodLabel = (id: string) => state.payPeriods.find((p) => p.id === id)?.label ?? id
+
+  // In production mode, payroll records are sensitive — RLS returns no rows
+  // for non-admins. Show an explicit notice instead of an empty list.
+  // In demo mode, everyone sees the fixture data.
+  const isRestricted = mode === 'production' && !isAdminRole(memberRole)
+
+  if (isRestricted) {
+    return (
+      <div className="flex flex-col gap-[16px]">
+        <div className="flex items-start gap-[10px] rounded-[10px] bg-inset px-[12px] py-[8px] text-[12px] text-text-muted">
+          <Lock size={14} className="mt-[2px] shrink-0" />
+          <span>{x(M.finance_payroll_admin_only)}</span>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-[16px]">
