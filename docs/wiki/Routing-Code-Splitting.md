@@ -168,7 +168,7 @@ const HomeView = lazy(() =>
 
 [src/app/appViews.tsx:26]()
 
-This pattern is applied to all 40+ lazy components across both `routes.tsx` (marketing pages) and `appViews.tsx` (workspace views). `Suspense` boundaries use `fallback={null}` — each surface paints its own background via CSS surface classes, so there is nothing to flash.
+This pattern is applied to all 50+ lazy components across both `routes.tsx` (marketing pages) and `appViews.tsx` (workspace views). `Suspense` boundaries use `fallback={null}` — each surface paints its own background via CSS surface classes, so there is nothing to flash.
 
 [src/app/routes.tsx:14-15]()
 
@@ -236,6 +236,11 @@ The `appViewRoutes` array in `appViews.tsx` defines all child routes rendered in
 | `communications` | `CommunicationsView` | No | Handles both modes (migration 0040) |
 | `compensation` | `CompensationView` | No | Handles both modes (migration 0039) |
 | `wellbeing` | `WellbeingView` | No | Handles both modes (migration 0041) |
+| `comms` | `CommsView` | No | Multi-screen layout (8 screens, localStorage) |
+| `finance` | `FinanceView` | No | Multi-screen layout (10 screens, migration 0119 pending) |
+| `hiring` | `HiringView` | No | Evidence-based recruitment (migration 0118) |
+| `hiring/candidates/:candidateId` | `CandidateDetailView` | No | |
+| `hiring/postings/:postingId` | `JobPostingDetailView` | No | |
 | `support` | `SupportView` | No | Real feature |
 | `support/requests` | `SupportRequestsList` | No | |
 | `support/requests/:ticketId` | `SupportTicketDetail` | No | |
@@ -246,7 +251,7 @@ The `appViewRoutes` array in `appViews.tsx` defines all child routes rendered in
 | `settings` | `SettingsLayout` | No | Nested layout (see below) |
 | `documents` | `DocumentsLayout` | No | Nested layout (see below) |
 
-[src/app/appViews.tsx:71-166]()
+[src/app/appViews.tsx:71-237]()
 
 ## `gated()` Wrapper and `ModeGate`
 
@@ -312,7 +317,7 @@ Sources: [src/app/appViews.tsx:9-22](), [src/features/app/workspaceMode/ModeGate
 
 ## Nested Layouts
 
-Three workspace routes use nested layout components that provide a tab strip and render child routes via `<Outlet />`.
+Five workspace routes use nested layout components that provide a tab strip and render child routes via `<Outlet />`.
 
 ### `PlanningLayout`
 
@@ -358,6 +363,42 @@ Wraps `/app/documents` with three tabs: HR Library, Document Library, Document S
 The `DocumentsLayout` wraps all children in `DoclibProvider`, which loads the document catalogue data and exposes signature operations (`sendForSignature`, `applySignature`):
 
 [src/features/app/documents/DocumentsLayout.tsx:88-100]()
+
+### `CommsLayout`
+
+Wraps `/app/comms` with an eight-screen tab strip for the Communications Platform. The index route redirects to `/app/comms/overview`. Each screen is lazy-loaded and consumes `useCommsData()`.
+
+| Sub-route | Component |
+|---|---|
+| `overview` | `CommsOverview` |
+| `initiatives` | `CommsInitiatives` |
+| `content` | `CommsContentCalendar` |
+| `relationships` | `CommsRelationships` |
+| `engagement` | `CommsEngagement` |
+| `intelligence` | `CommsIntelligence` |
+| `results` | `CommsResults` |
+| `settings` | `CommsSettings` |
+
+[src/features/app/views/comms/CommsLayout.tsx:1-60](), [src/app/appViews.tsx:153-167]()
+
+### `FinanceLayout`
+
+Wraps `/app/finance` with a ten-screen tab strip for the Finance workspace. The index route redirects to `/app/finance/overview`. Each screen is lazy-loaded and consumes `useFinanceData()`. Payroll screen is admin-restricted in production mode.
+
+| Sub-route | Component |
+|---|---|
+| `overview` | `FinanceOverview` |
+| `transactions` | `FinanceTransactions` |
+| `sales` | `FinanceSales` |
+| `purchases` | `FinancePurchases` |
+| `payroll` | `FinancePayroll` |
+| `accounting` | `FinanceAccounting` |
+| `plans` | `FinancePlans` |
+| `treasury` | `FinanceTreasury` |
+| `tax` | `FinanceTax` |
+| `evidence` | `FinanceEvidence` |
+
+[src/features/app/views/finance/FinanceView.tsx](), [src/app/appViews.tsx:168-184]()
 
 ## Legacy Path Redirects
 

@@ -276,11 +276,13 @@ graph TD
     G0["Group 0\n(heading: null)"]
     G0 --> home["home → /app/home"]
     G0 --> advisor["advisor → /app/advisor"]
-    G0 --> workflows["workflows → /app/workflows\nbadge: 3 (gold)"]
+    G0 --> memory["memory → /app/settings/memory\ncustom isActive"]
+    G0 --> workflows["workflows → /app/workflows"]
 
     G1["Group 1 — Records"]
     G1 --> employees["employees → /app/employees"]
     G1 --> cases["cases → /app/cases\nbadge: count (neutral)"]
+    G1 --> hiring["hiring → /app/hiring"]
     G1 --> documents["documents → /app/documents/hr-library\ncustom isActive"]
     G1 --> knowledge["knowledge → /app/knowledge"]
 
@@ -288,6 +290,8 @@ graph TD
     G2 --> compliance["compliance → /app/compliance\nbadge: 3 (warn)"]
     G2 --> compensation["compensation → /app/compensation"]
     G2 --> communications["communications → /app/communications"]
+    G2 --> comms["comms → /app/comms/overview\ncustom isActive"]
+    G2 --> finance["finance → /app/finance/overview\ncustom isActive"]
     G2 --> wellbeing["wellbeing → /app/wellbeing\nbadge: count (warn)"]
     G2 --> planning["planning → /app/planning/tasks\ncustom isActive"]
 
@@ -295,7 +299,7 @@ graph TD
     G3 --> analytics["analytics → /app/analytics"]
 ```
 
-Sources: [src/features/app/shell/navConfig.ts:58-151]()
+Sources: [src/features/app/shell/navConfig.ts:66-181]()
 
 ### NavItem Interface
 

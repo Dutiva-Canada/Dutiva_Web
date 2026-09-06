@@ -93,7 +93,7 @@ graph LR
         APP_ENTRY["AppWelcome /app/welcome"]
         WORKSPACE["Workspace → AppShell"]
         WORKSPACE --- HOME["HomeView /app/home"]
-        WORKSPACE --- MORE_APP["... 15+ view routes"]
+        WORKSPACE --- MORE_APP["... 18+ view routes"]
     end
 
     MarketingSurface -. "code-split boundary" .-> DemoSurface
@@ -124,6 +124,8 @@ The workspace lives under `/app/*`, is client-rendered, and carries `X-Robots-Ta
 AuthProvider → PlanProvider → WorkspaceModeProvider → ToastsProvider
   → RailProvider → SearchProvider → DocStudioProvider → WorkspaceContextProvider
 ```
+
+The workspace includes multi-screen module layouts for **Communications Platform** (`/app/comms`, 8 screens) and **Finance** (`/app/finance`, 10 screens), each with their own data context providers, bilingual message catalogues, and integration-led persistence layers.
 
 Sources: [src/features/app/AppProviders.tsx:1-43](), [vercel.json:1-60](), [src/app/appViews.tsx:1-50]()
 
@@ -188,7 +190,7 @@ The workspace defaults to a **demo** experience powered by typed bilingual fixtu
 
 `WorkspaceModeProvider` resolves the mode by checking admin status (`checkIsAdmin()`), reading the stored preference (`fetchStoredMode()`), and loading the admin's profile and organization membership. The `ModeGate` component and the `gated()` wrapper in `appViews.tsx` control which views show fixture data vs. production data.
 
-Modules are ungated individually as they gain real persistence — employees, cases, communications, compensation, and wellbeing have already been ungated and dispatch on mode internally. Still-gated modules render a `ProductionEmptyState` in production mode.
+Modules are ungated individually as they gain real persistence — employees, cases, communications, compensation, wellbeing, hiring, comms platform, and finance have already been ungated and dispatch on mode internally. Still-gated modules render a `ProductionEmptyState` in production mode.
 
 Sources: [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:1-60](), [src/features/app/workspaceMode/workspaceModeContext.ts:1-55](), [src/app/appViews.tsx:14-25]()
 
@@ -249,7 +251,7 @@ Sources: [docs/CANONICAL_FACTS.md:1-35](), [src/canonicalFacts.test.ts:1-33](), 
 
 ## Backend at a Glance
 
-The Supabase backend comprises a 124-table Postgres schema with 218 RLS policies and 24 edge functions. Edge functions are split by authentication mode — some use JWT verification, while webhooks, cron workers, and public intake forms authenticate in-band. The `supabase/config.toml` pins `verify_jwt` per function to prevent accidental lockouts during deployment.
+The Supabase backend comprises a 150+ table Postgres schema with 218+ RLS policies and 24 edge functions. Edge functions are split by authentication mode — some use JWT verification, while webhooks, cron workers, and public intake forms authenticate in-band. The `supabase/config.toml` pins `verify_jwt` per function to prevent accidental lockouts during deployment.
 
 **Backend topology**
 
@@ -266,7 +268,7 @@ graph LR
 
     subgraph Supabase["Supabase Project"]
         AUTH["Auth (magic-link OTP)"]
-        DB["Postgres<br>schema.sql — 124 tables"]
+        DB["Postgres<br>schema.sql — 150+ tables"]
         EDGE["Edge Functions (24)"]
         VAULT["Vault secrets"]
         CRON["pg_cron schedules"]

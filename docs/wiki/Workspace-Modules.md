@@ -17,6 +17,13 @@ The following files were used as context for generating this wiki page:
 - [src/features/app/views/home/HomeWorkflowCatalog.tsx](src/features/app/views/home/HomeWorkflowCatalog.tsx)
 - [src/features/app/views/wellbeing/WellbeingView.tsx](src/features/app/views/wellbeing/WellbeingView.tsx)
 - [src/features/app/views/workflows/WorkflowsView.tsx](src/features/app/views/workflows/WorkflowsView.tsx)
+- [src/features/app/views/comms/CommsView.tsx](src/features/app/views/comms/CommsView.tsx)
+- [src/features/app/views/comms/data/types.ts](src/features/app/views/comms/data/types.ts)
+- [src/features/app/views/comms/data/productionApi.ts](src/features/app/views/comms/data/productionApi.ts)
+- [src/features/app/views/finance/FinanceView.tsx](src/features/app/views/finance/FinanceView.tsx)
+- [src/features/app/views/finance/data/types.ts](src/features/app/views/finance/data/types.ts)
+- [src/features/app/views/finance/data/productionApi.ts](src/features/app/views/finance/data/productionApi.ts)
+- [src/features/app/views/finance/data/supabaseApi.ts](src/features/app/views/finance/data/supabaseApi.ts)
 - [src/features/app/workspaceMode/ProductionEmptyState.tsx](src/features/app/workspaceMode/ProductionEmptyState.tsx)
 - [src/features/app/workspaceMode/WorkspaceModeProvider.tsx](src/features/app/workspaceMode/WorkspaceModeProvider.tsx)
 - [src/features/app/workspaceMode/api.ts](src/features/app/workspaceMode/api.ts)
@@ -26,7 +33,9 @@ The following files were used as context for generating this wiki page:
 
 
 
-The Dutiva workspace contains **15+ feature modules** beyond the AI Advisor and Document Management systems covered in earlier pages. Each module follows a consistent **phased rollout pattern**: a demo mode renders rich fixture data (the "Northgate Logistics Inc." diorama from `src/data/`), while production mode reads and writes real Supabase tables through a per-module `productionApi.ts` boundary file. The mode dispatch happens either via the route-level `ModeGate` wrapper or inside the view component itself.
+The Dutiva workspace contains **18+ feature modules** beyond the AI Advisor and Document Management systems covered in earlier pages. Each module follows a consistent **phased rollout pattern**: a demo mode renders rich fixture data (the "Northgate Logistics Inc." diorama from `src/data/`), while production mode reads and writes real Supabase tables through a per-module `productionApi.ts` boundary file. The mode dispatch happens either via the route-level `ModeGate` wrapper or inside the view component itself.
+
+Two larger workspace modules — **Communications Platform** (`/app/comms`) and **Finance** (`/app/finance`) — follow a multi-screen layout pattern with their own data providers, context, and bilingual message catalogues. These modules are integration-led: they connect to external accounting, payroll, and publishing systems rather than replacing them.
 
 This page provides a high-level map of all workspace modules, their rollout status, and how they interconnect. For detailed coverage:
 
@@ -45,7 +54,7 @@ All workspace modules are lazy-loaded through `React.lazy()` in the route table 
 [src/app/appViews.tsx:142-143]()
 [src/app/appViews.tsx:156-163]()
 
-**Self-dispatching** modules check `workspaceMode` in their root component and render their own `*ProductionView` variant. This list includes Employees, Cases, Compliance, Policies, Tasks, Calendar, Analytics, Communications, Compensation, Wellbeing, and Home:
+**Self-dispatching** modules check `workspaceMode` in their root component and render their own `*ProductionView` variant. This list includes Employees, Cases, Compliance, Policies, Tasks, Calendar, Analytics, Communications, Compensation, Wellbeing, Home, Comms Platform, Finance, and Hiring:
 
 [src/app/appViews.tsx:79-118]()
 
@@ -88,12 +97,15 @@ graph TD
     MEML --> MEMR["ChatRecallView"]
 
     R --> COMMS["/app/communications\nCommunicationsView"]
+    R --> COMMS2["/app/comms\nCommsView (8 screens)"]
     R --> COMPN["/app/compensation\nCompensationView"]
     R --> WELL["/app/wellbeing\nWellbeingView"]
     R --> WF["/app/workflows\nWorkflowsView"]
+    R --> FIN["/app/finance\nFinanceView (10 screens)"]
+    R --> HIRE["/app/hiring\nHiringView"]
 ```
 
-Sources: [src/app/appViews.tsx:71-165]()
+Sources: [src/app/appViews.tsx:71-237]()
 
 ## Phased Rollout Pattern
 
@@ -125,7 +137,7 @@ Sources: [src/features/app/views/employees/EmployeesView.tsx:27-31](), [src/feat
 
 ## Production API Boundary Files
 
-Nine modules have `productionApi.ts` files. Each follows the same contract: Zod-validated rows, org-scoped queries, throw-on-failure semantics.
+Eleven modules have `productionApi.ts` files. Each follows the same contract: org-scoped queries, throw-on-failure semantics. The HR modules use Zod-validated Supabase rows; the Communications Platform and Finance modules use a context-provider pattern with localStorage demo persistence and Supabase production persistence.
 
 | Module | `productionApi.ts` path | Supabase Table(s) | Key Exports |
 |--------|------------------------|-------------------|-------------|
@@ -138,8 +150,10 @@ Nine modules have `productionApi.ts` files. Each follows the same contract: Zod-
 | Compensation | `views/compensation/productionApi.ts` | `hr_compensation_records` | `listCompensationRecords`, `addCompensationRecord`, `removeCompensationRecord`, `deltaFromMidpoint` |
 | Wellbeing | `views/wellbeing/productionApi.ts` | `hr_wellbeing_initiatives` | `listInitiatives`, `addInitiative`, `setInitiativeStatus`, `removeInitiative`, `overdueReviews` |
 | Analytics | `views/analytics/productionApi.ts` | `compliance_score_snapshots` | `listScoreSnapshots`, `upsertScoreSnapshot` |
+| Comms Platform | `views/comms/data/productionApi.ts` | localStorage (no migration yet) | `loadCommsState`, `listInitiatives`, `addInitiative`, `updateInitiative`, `listContentItems`, `addContentItem`, `transitionDeliveryStatus`, `addSource`, `addCoverageItem`, `addSubmission`, `addFeed`, `syncFeed` |
+| Finance | `views/finance/data/productionApi.ts` | 32 `finance_*` tables (migration 0119) | `loadFinanceState`, `addInvoice`, `addSpendRequest`, `addJournal`, `transitionPayRunStatus`, `settlePayrollLiability`, `addTaxObligation`, `addBudget`, `reviseBudget`, `addTaxScenario`, `addScenario`, `addForecast`, `addReserveGoal`, `addBankAccount`, `addLedgerAccount`, `addParty`, `addSubscription` |
 
-Sources: [src/features/app/views/employees/productionApi.ts:1-405](), [src/features/app/views/cases/productionApi.ts:1-60](), [src/features/app/views/tasks/productionApi.ts:1-93](), [src/features/app/views/compliance/productionApi.ts:1-132](), [src/features/app/views/policies/productionApi.ts:1-107](), [src/features/app/views/communications/productionApi.ts:1-99](), [src/features/app/views/compensation/productionApi.ts:1-118](), [src/features/app/views/wellbeing/productionApi.ts:1-148](), [src/features/app/views/analytics/productionApi.ts:1-74]()
+Sources: [src/features/app/views/employees/productionApi.ts:1-405](), [src/features/app/views/cases/productionApi.ts:1-60](), [src/features/app/views/tasks/productionApi.ts:1-93](), [src/features/app/views/compliance/productionApi.ts:1-132](), [src/features/app/views/policies/productionApi.ts:1-107](), [src/features/app/views/communications/productionApi.ts:1-99](), [src/features/app/views/compensation/productionApi.ts:1-118](), [src/features/app/views/wellbeing/productionApi.ts:1-148](), [src/features/app/views/analytics/productionApi.ts:1-74](), [src/features/app/views/comms/data/productionApi.ts:1-552](), [src/features/app/views/finance/data/productionApi.ts:1-622]()
 
 ## Module Categories
 
@@ -188,6 +202,62 @@ For details, see [Planning, Settings & Other Modules](#10.2).
 [src/features/app/views/compensation/CompensationView.tsx:56-59]()
 [src/features/app/views/wellbeing/WellbeingView.tsx:28-31]()
 [src/features/app/views/wellbeing/productionApi.ts:4-20]()
+
+### Multi-Screen Workspace Modules: Comms Platform & Finance
+
+Two workspace modules follow a different pattern from the single-view modules above. Each has its own layout component, a multi-screen route tree, a dedicated data context/provider, and bilingual message catalogues. Both are **integration-led** — they connect to external systems rather than replacing them.
+
+#### Communications Platform (`/app/comms`)
+
+The Comms Platform is a planning-and-approval workspace for internal communications. It manages initiatives, content calendar, stakeholder relationships, engagement tracking, intelligence feeds (RSS/Atom), and results reporting. Eight screens are nested under `CommsLayout`:
+
+| Screen | Route | Purpose |
+|--------|-------|---------|
+| Overview | `/app/comms/overview` | Initiative summary, active campaigns, coverage |
+| Initiatives | `/app/comms/initiatives` | Create/edit/pause communications initiatives |
+| Content Calendar | `/app/comms/content` | Content items with delivery status tracking |
+| Relationships | `/app/comms/relationships` | Stakeholder and audience mapping |
+| Engagement | `/app/comms/engagement` | Engagement metrics and outreach tracking |
+| Intelligence | `/app/comms/intelligence` | RSS/Atom feed monitoring and source management |
+| Results | `/app/comms/results` | Submission tracking and outcome reporting |
+| Settings | `/app/comms/settings` | Feed sources, coverage items, configuration |
+
+The data layer (`views/comms/data/`) provides `CommsDataContext`, `CommsDataProvider`, `useCommsData`, typed fixtures, and a `productionApi.ts` with localStorage persistence. External publishing, ad execution, and AI drafting are intentionally out of scope. No Supabase migration exists yet — production mode uses localStorage.
+
+Sources: [src/features/app/views/comms/CommsView.tsx:1-20](), [src/features/app/views/comms/CommsLayout.tsx:1-60](), [src/features/app/views/comms/data/types.ts:1-50](), [src/features/app/views/comms/data/productionApi.ts:1-552]()
+
+#### Finance (`/app/finance`)
+
+The Finance workspace is an integration-led financial management module for Canadian SMBs (Ontario and Québec initially). It answers: what do we own and owe, what money is available, what must be paid/collected/filed, what can we afford, and how will decisions affect the business. Ten screens are nested under `FinanceLayout`:
+
+| Screen | Route | Purpose |
+|--------|-------|---------|
+| Overview | `/app/finance/overview` | AR, AP, burn-rate KPIs, entity summary |
+| Transactions | `/app/finance/transactions` | Bank items, matching, reconciliation |
+| Sales | `/app/finance/sales` | Invoices, credits, AR lifecycle |
+| Purchases | `/app/finance/purchases` | Bills, expenses, spend requests, parties, subscriptions |
+| Payroll | `/app/finance/payroll` | Pay runs, payroll liabilities (admin-restricted in production) |
+| Accounting | `/app/finance/accounting` | Journals, ledger accounts, close periods, books |
+| Plans | `/app/finance/plans` | Budgets, scenarios, forecasts, variance reporting |
+| Treasury | `/app/finance/treasury` | Bank accounts, reserves, holdings, debt |
+| Tax | `/app/finance/tax` | Tax obligations, tax-planning scenarios |
+| Evidence | `/app/finance/evidence` | Receipt upload, review, signed download URLs |
+
+The data layer (`views/finance/data/`) provides `FinanceDataContext`, `FinanceDataProvider`, `useFinanceData`, typed fixtures, a `productionApi.ts` (localStorage demo), and a full Supabase persistence layer split across:
+
+- `supabaseApi.ts` — full state load, invoice/journal/spend/tax/budget inserts, status transitions
+- `supabaseCreates.ts` — scenario, forecast, reserve, holding, debt, external action, and master-data inserts
+- `supabaseLifecycle.ts` — invoice, bill, journal, bank item, reconciliation, close period, expense transitions
+- `supabaseEvidence.ts` — receipt file storage and signed URL generation
+- `supabaseMappers.ts` — row-to-domain-object mappers
+- `productionLifecycle.ts` — localStorage lifecycle transitions
+- `useFinanceCreates.ts` — React hook for create/transition callbacks
+
+Migration `0119_add_finance_module.sql` creates 32 `finance_*` tables with org-scoped RLS. The migration is committed but **not yet applied** to the Supabase project — production mode falls back to localStorage until it is applied. Sensitive payroll tables are admin-only at the RLS level and gated by `useWorkspaceMode().memberRole` on the client.
+
+The product does not provide native accounting, payroll, tax filing, investment execution, or professional advice. The selected accounting system remains authoritative for posted books; the payroll provider remains authoritative for completed pay runs. Dutiva owns budgets, forecasts, review work, approvals, and source-record links.
+
+Sources: [src/features/app/views/finance/FinanceView.tsx](), [src/features/app/views/finance/data/types.ts:1-50](), [src/features/app/views/finance/data/FinanceDataContext.ts:1-60](), [src/features/app/views/finance/data/supabaseApi.ts:1-593](), [supabase/migrations/0119_add_finance_module.sql:1-50]()
 
 ## Cross-Module Integration Diagram
 
@@ -284,7 +354,10 @@ Sources: [src/data/types.ts:1-148](), [CONVENTIONS.md:17-38]()
 | Knowledge | `KnowledgeView` | Same (real content) | Ungated |
 | Settings | `SettingsView` | Same (hosts toggle) | Ungated |
 | Memory | `MemoryLayout` + sub-views | `ProductionEmptyState` | `gated()` via `ModeGate` |
+| Hiring | `HiringView` (demo) | `HiringView` (production) | Self-dispatch |
+| Comms Platform | `CommsDemoView` (8 screens) | `CommsProductionView` (localStorage) | Self-dispatch |
+| Finance | `FinanceView` (10 screens, fixtures) | `FinanceView` (Supabase, migration 0119 pending) | Self-dispatch |
 
-Sources: [src/app/appViews.tsx:71-165](), [src/features/app/views/employees/EmployeesView.tsx:27-31](), [src/features/app/views/cases/CasesView.tsx:24-27](), [src/features/app/views/compliance/ComplianceView.tsx:64-67](), [src/features/app/views/tasks/TasksView.tsx:33-35](), [src/features/app/views/communications/CommunicationsView.tsx:40-43](), [src/features/app/views/compensation/CompensationView.tsx:56-59](), [src/features/app/views/wellbeing/WellbeingView.tsx:28-31](), [src/features/app/views/analytics/AnalyticsView.tsx:69-72](), [src/features/app/views/policies/PoliciesView.tsx:34-37](), [src/features/app/views/home/HomeView.tsx:29-46](), [src/features/app/views/knowledge/KnowledgeView.tsx:27-28]()
+Sources: [src/app/appViews.tsx:71-237](), [src/features/app/views/employees/EmployeesView.tsx:27-31](), [src/features/app/views/cases/CasesView.tsx:24-27](), [src/features/app/views/compliance/ComplianceView.tsx:64-67](), [src/features/app/views/tasks/TasksView.tsx:33-35](), [src/features/app/views/communications/CommunicationsView.tsx:40-43](), [src/features/app/views/compensation/CompensationView.tsx:56-59](), [src/features/app/views/wellbeing/WellbeingView.tsx:28-31](), [src/features/app/views/analytics/AnalyticsView.tsx:69-72](), [src/features/app/views/policies/PoliciesView.tsx:34-37](), [src/features/app/views/home/HomeView.tsx:29-46](), [src/features/app/views/knowledge/KnowledgeView.tsx:27-28](), [src/features/app/views/comms/CommsView.tsx:1-20](), [src/features/app/views/finance/FinanceView.tsx]()
 
 ---

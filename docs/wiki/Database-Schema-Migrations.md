@@ -49,7 +49,7 @@ The following files were used as context for generating this wiki page:
 
 
 
-The Dutiva platform stores all workspace state in a single Supabase-managed PostgreSQL database. The full schema snapshot lives in `supabase/schema.sql`, while incremental changes are tracked by 94 numbered migration files under `supabase/migrations/` (sequence through `0093`) and 6 archived legacy migrations under `supabase/legacy-migrations/`. This page documents the schema design conventions, table taxonomy, key functions, RLS security model, migration lifecycle, and drift-detection tooling.
+The Dutiva platform stores all workspace state in a single Supabase-managed PostgreSQL database. The full schema snapshot lives in `supabase/schema.sql`, while incremental changes are tracked by 119 numbered migration files under `supabase/migrations/` (sequence through `0119`) and 6 archived legacy migrations under `supabase/legacy-migrations/`. This page documents the schema design conventions, table taxonomy, key functions, RLS security model, migration lifecycle, and drift-detection tooling.
 
 ## Schema Overview
 
@@ -156,7 +156,7 @@ Sources: [supabase/schema.sql:478-496](), [supabase/migrations/0013_add_billing_
 
 ### Table Domain Reference
 
-The tables are organized into seven domains:
+The tables are organized into nine domains:
 
 **Identity & Multi-Tenancy**
 
@@ -183,6 +183,54 @@ The tables are organized into seven domains:
 | `hr_wellbeing_initiatives` | 0041 | Wellbeing program records |
 | `hr_expiry_records` | 0064 | Certification/document expiry tracking |
 | `hr_leaves` | 0065 | Leave records |
+
+**Hiring**
+
+| Table | Migration | Purpose |
+|---|---|---|
+| `hiring_job_postings` | 0118 | Job postings with bilingual content |
+| `hiring_candidates` | 0118 | Candidate profiles and application data |
+| `hiring_applications` | 0118 | Applications linking candidates to postings |
+| `hiring_interviews` | 0118 | Interview records and feedback |
+| `hiring_evaluations` | 0118 | Structured candidate evaluations |
+| `hiring_activity_log` | 0118 | Audit trail for hiring actions |
+
+**Finance** (migration 0119 — committed but not yet applied to the Supabase project)
+
+| Table | Migration | Purpose |
+|---|---|---|
+| `finance_entities` | 0119 | Legal entities (org-scoped) |
+| `finance_books` | 0119 | Accounting books per entity |
+| `finance_fiscal_periods` | 0119 | Fiscal period definitions |
+| `finance_parties` | 0119 | Customers, suppliers, vendors |
+| `finance_bank_accounts` | 0119 | Bank account master data |
+| `finance_ledger_accounts` | 0119 | Chart of accounts per book |
+| `finance_invoices` | 0119 | AR invoices with lifecycle status |
+| `finance_bills` | 0119 | AP bills with lifecycle status |
+| `finance_credits` | 0119 | Credit notes |
+| `finance_receipts` | 0119 | Evidence receipts (Storage bucket `finance-evidence`) |
+| `finance_spend_requests` | 0119 | Spend approval requests |
+| `finance_purchase_orders` | 0119 | Purchase orders |
+| `finance_expenses` | 0119 | Employee expenses with approval flow |
+| `finance_subscriptions` | 0119 | Recurring subscription tracking |
+| `finance_journals` | 0119 | Journal entries with balanced check |
+| `finance_bank_items` | 0119 | Bank transaction items for matching |
+| `finance_reconciliations` | 0119 | Reconciliation records |
+| `finance_close_periods` | 0119 | Period close/lock records |
+| `finance_pay_periods` | 0119 | Pay period definitions (admin-only) |
+| `finance_pay_runs` | 0119 | Pay run records (admin-only) |
+| `finance_payroll_liabilities` | 0119 | Payroll liability settlement tracking (admin-only) |
+| `finance_budgets` | 0119 | Budgets with versioned lines |
+| `finance_scenarios` | 0119 | Planning scenarios (hiring, capital, financing, tax) |
+| `finance_forecasts` | 0119 | Cash flow and operating forecasts |
+| `finance_reserve_goals` | 0119 | Reserve/savings goals |
+| `finance_holdings` | 0119 | Investment holdings with staleness tracking |
+| `finance_debts` | 0119 | Debt instruments with status lifecycle |
+| `finance_tax_obligations` | 0119 | Tax filing obligations (ON, QC, FED) |
+| `finance_tax_scenarios` | 0119 | Tax-planning scenarios with disclaimer |
+| `finance_approvals` | 0119 | Approval records for finance workflows |
+| `finance_audit_events` | 0119 | Audit trail for finance actions |
+| `finance_external_actions` | 0119 | External action tracking (payroll submissions, tax filings) |
 
 **Documents & Signatures**
 
