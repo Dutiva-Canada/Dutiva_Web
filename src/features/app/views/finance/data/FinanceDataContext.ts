@@ -28,6 +28,8 @@ export interface FinanceDataContextValue {
   canWrite: boolean
   /** True when the last Supabase load failed (localStorage never sets this). */
   loadFailed: boolean
+  /** True when a Supabase client is configured; false means localStorage fallback. */
+  hasSupabase: boolean
   /** Re-fetch the full workspace state from the backend. */
   reload: () => Promise<void>
   addInvoice: (item: Omit<FinanceInvoice, 'id'>) => Promise<FinanceInvoice | null>

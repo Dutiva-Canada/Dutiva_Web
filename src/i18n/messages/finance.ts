@@ -22,8 +22,12 @@ export const financeMessages = defineMessages({
     fr: 'Mode démo — les données sont du contenu d’exemple en lecture seule.',
   },
   finance_production_local_only: {
-    en: 'Production mode — data is saved to this browser only until a database migration is deployed.',
-    fr: 'Mode production — les données sont enregistrées dans ce navigateur uniquement jusqu’au déploiement d’une migration de base de données.',
+    en: 'Production mode — data is saved to this browser only. Supabase is not configured.',
+    fr: 'Mode production — les données sont enregistrées dans ce navigateur uniquement. Supabase n’est pas configuré.',
+  },
+  finance_production_workspace: {
+    en: 'Production mode — data is saved to your organization workspace.',
+    fr: 'Mode production — les données sont enregistrées dans l’espace de travail de votre organisation.',
   },
 
   /* Navigation tabs */

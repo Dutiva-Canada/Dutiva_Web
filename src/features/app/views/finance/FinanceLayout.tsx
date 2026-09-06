@@ -16,6 +16,7 @@ import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { AppPage } from '@/features/app/shell/AppPage'
 import { Disclaimer } from '@/components/Disclaimer'
+import { useFinanceData } from './data/useFinanceData'
 import type { LucideIcon } from 'lucide-react'
 
 interface FinanceTab {
@@ -45,6 +46,14 @@ interface FinanceLayoutProps {
 
 export function FinanceLayout({ mode }: FinanceLayoutProps) {
   const { x } = useI18n()
+  const { hasSupabase } = useFinanceData()
+
+  const modeMessage = (() => {
+    if (mode === 'demo') return x(M.finance_demo_read_only)
+    if (hasSupabase) return x(M.finance_production_workspace)
+    return x(M.finance_production_local_only)
+  })()
+
   return (
     <AppPage width="comfort">
       <div className="mb-[18px]">
@@ -75,9 +84,7 @@ export function FinanceLayout({ mode }: FinanceLayoutProps) {
         })}
       </div>
 
-      <div className="mb-[14px] text-[12px] text-text-muted">
-        {mode === 'demo' ? x(M.finance_demo_read_only) : x(M.finance_production_local_only)}
-      </div>
+      <div className="mb-[14px] text-[12px] text-text-muted">{modeMessage}</div>
 
       <Outlet />
 
