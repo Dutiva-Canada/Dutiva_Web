@@ -99,14 +99,6 @@ const ACCEPTED_UNAPPLIED = new Map([
     'drop_doclib_demo_schema',
     'the demo objects are already absent from the project (verified via to_regclass)',
   ],
-  [
-    'add_finance_module',
-    'pending database password to apply via psql — finance workspace uses localStorage stubs until then',
-  ],
-  [
-    'add_finance_imports',
-    'pending database password to apply via psql — finance import/export uses localStorage stubs until then',
-  ],
   ...advisorPhaseMcpNameAliases().unapplied,
 ])
 
