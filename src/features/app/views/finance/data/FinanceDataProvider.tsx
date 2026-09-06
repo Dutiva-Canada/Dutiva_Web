@@ -11,6 +11,11 @@ import {
   addSpendRequest as addSpendRequestLocalApi,
   addTaxObligation as addTaxObligationLocalApi,
   addTaxScenario as addTaxScenarioLocalApi,
+  importBankStatement as importBankStatementLocalApi,
+  addCategoryRule as addCategoryRuleLocalApi,
+  updateCategoryRule as updateCategoryRuleLocalApi,
+  removeCategoryRule as removeCategoryRuleLocalApi,
+  runAutoCategorize as runAutoCategorizeLocalApi,
   isJournalBalanced as isJournalBalancedLocalApi,
   loadFullState as loadFullStateLocalApi,
   markTaxScenarioStale as markTaxScenarioStaleLocalApi,
@@ -449,6 +454,55 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
     [isLive, orgId, hasSupabase, reload],
   )
 
+  const importBankStatement = useCallback(
+    async (bankAccountId: string, fileName: string, fileContent: string) => {
+      if (!isLive || !orgId) return null
+      // Both localStorage and Supabase modes use the same parser for now;
+      // Supabase mode will insert rows via the API once the migration is applied.
+      const result = importBankStatementLocalApi(orgId, bankAccountId, fileName, fileContent)
+      if (result) setState(loadFullStateLocalApi(orgId))
+      return result
+    },
+    [isLive, orgId, setState],
+  )
+
+  const addCategoryRule = useCallback(
+    async (rule: Omit<import('./types').FinanceCategoryRule, 'id'>) => {
+      if (!isLive || !orgId) return null
+      const created = addCategoryRuleLocalApi(orgId, rule)
+      setState(loadFullStateLocalApi(orgId))
+      return created
+    },
+    [isLive, orgId, setState],
+  )
+
+  const updateCategoryRule = useCallback(
+    async (id: string, patch: Partial<import('./types').FinanceCategoryRule>) => {
+      if (!isLive || !orgId) return null
+      const updated = updateCategoryRuleLocalApi(orgId, id, patch)
+      if (updated) setState(loadFullStateLocalApi(orgId))
+      return updated
+    },
+    [isLive, orgId, setState],
+  )
+
+  const removeCategoryRule = useCallback(
+    async (id: string) => {
+      if (!isLive || !orgId) return false
+      const removed = removeCategoryRuleLocalApi(orgId, id)
+      if (removed) setState(loadFullStateLocalApi(orgId))
+      return removed
+    },
+    [isLive, orgId, setState],
+  )
+
+  const runAutoCategorize = useCallback(async () => {
+    if (!isLive || !orgId) return 0
+    const count = runAutoCategorizeLocalApi(orgId)
+    setState(loadFullStateLocalApi(orgId))
+    return count
+  }, [isLive, orgId, setState])
+
   const creates = useFinanceCreates({ orgId, isLive, hasSupabase, reload, setState })
 
   return useMemo(
@@ -480,6 +534,11 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
       transitionReconciliationStatus,
       transitionClosePeriodStatus,
       transitionExpenseStatus,
+      importBankStatement,
+      addCategoryRule,
+      updateCategoryRule,
+      removeCategoryRule,
+      runAutoCategorize,
       ...creates,
     }),
     [
@@ -510,6 +569,11 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
       transitionReconciliationStatus,
       transitionClosePeriodStatus,
       transitionExpenseStatus,
+      importBankStatement,
+      addCategoryRule,
+      updateCategoryRule,
+      removeCategoryRule,
+      runAutoCategorize,
       creates,
     ],
   )
@@ -525,6 +589,7 @@ function emptyState(): FinanceWorkspaceState {
     scenarios: [], forecasts: [], reserveGoals: [], holdings: [], debts: [],
     taxObligations: [], taxScenarios: [], approvals: [], auditEvents: [],
     externalActions: [],
+    categoryRules: [], importSessions: [],
   }
 }
 

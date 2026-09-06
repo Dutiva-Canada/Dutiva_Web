@@ -634,6 +634,44 @@ export interface FinanceExternalAction {
   notes?: Bi
 }
 
+/* ---------- Categorization rules and imports ---------- */
+
+export type FinanceCategoryMatchType = 'contains' | 'exact' | 'starts_with' | 'ends_with'
+
+export interface FinanceCategoryRule {
+  id: string
+  entityId: string
+  /** Keyword or pattern to match against bank item description. */
+  pattern: string
+  matchType: FinanceCategoryMatchType
+  /** Ledger account to categorize matched transactions to. */
+  ledgerAccountId: string
+  /** Whether a positive amount debits or credits this account. */
+  direction: 'debit' | 'credit'
+  /** Higher priority rules are evaluated first. */
+  priority: number
+  active: boolean
+}
+
+export type FinanceImportStatus = 'pending' | 'imported' | 'reviewed' | 'archived'
+
+export interface FinanceImportSession {
+  id: string
+  entityId: string
+  bankAccountId: string
+  fileName: string
+  importedAt: string
+  /** Total rows parsed from the source file. */
+  totalRows: number
+  /** Rows that became new bank items. */
+  newItems: number
+  /** Rows skipped as duplicates of existing bank items. */
+  duplicates: number
+  /** Rows that could not be parsed. */
+  errors: number
+  status: FinanceImportStatus
+}
+
 /* ---------- Workspace state ---------- */
 
 export interface FinanceWorkspaceState {
@@ -669,4 +707,6 @@ export interface FinanceWorkspaceState {
   approvals: FinanceApproval[]
   auditEvents: FinanceAuditEvent[]
   externalActions: FinanceExternalAction[]
+  categoryRules: FinanceCategoryRule[]
+  importSessions: FinanceImportSession[]
 }

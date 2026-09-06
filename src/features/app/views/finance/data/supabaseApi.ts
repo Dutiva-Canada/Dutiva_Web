@@ -174,6 +174,7 @@ export async function loadFinanceStateFromSupabase(orgId: string): Promise<Finan
     payPeriods, payRuns, payrollLiabilities, budgets, scenarios, forecasts,
     reserveGoals, holdings, debts, taxObligations, taxScenarios,
     approvals, auditEvents, externalActions,
+    categoryRules: [], importSessions: [],
   }
 }
 

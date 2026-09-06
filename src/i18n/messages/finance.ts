@@ -523,4 +523,73 @@ export const financeMessages = defineMessages({
   finance_subscription_next_renewal: { en: 'Next renewal date', fr: 'Prochaine date de renouvellement' },
   finance_subscription_notice_date: { en: 'Notice date', fr: 'Date de préavis' },
   finance_subscription_owner: { en: 'Owner', fr: 'Responsable' },
+
+  /* Import & Export */
+  finance_tab_import_export: { en: 'Import & export', fr: 'Import et export' },
+  finance_import_title: { en: 'Import bank statement', fr: 'Importer un relevé bancaire' },
+  finance_import_description: {
+    en: 'Upload a CSV file exported from your bank. Transactions are parsed and auto-categorized using your rules.',
+    fr: 'Téléversez un fichier CSV exporté par votre banque. Les transactions sont analysées et catégorisées automatiquement selon vos règles.',
+  },
+  finance_import_select_account: { en: 'Bank account', fr: 'Compte bancaire' },
+  finance_import_select_file: { en: 'Choose CSV file', fr: 'Choisir un fichier CSV' },
+  finance_import_file_selected: { en: 'File selected', fr: 'Fichier sélectionné' },
+  finance_import_process: { en: 'Import', fr: 'Importer' },
+  finance_import_result: {
+    en: 'Imported {new} new transactions, skipped {dup} duplicates, {err} errors.',
+    fr: 'Importé {new} nouvelles transactions, ignoré {dup} doublons, {err} erreurs.',
+  },
+  finance_import_no_file: { en: 'Select a file to import.', fr: 'Sélectionnez un fichier à importer.' },
+  finance_import_no_account: { en: 'Select a bank account.', fr: 'Sélectionnez un compte bancaire.' },
+  finance_import_history: { en: 'Import history', fr: 'Historique des imports' },
+  finance_import_no_history: { en: 'No imports yet.', fr: 'Aucun import pour l\'instant.' },
+  finance_import_file_name: { en: 'File', fr: 'Fichier' },
+  finance_import_date: { en: 'Date', fr: 'Date' },
+  finance_import_rows: { en: 'Rows', fr: 'Lignes' },
+  finance_import_new: { en: 'New', fr: 'Nouvelles' },
+  finance_import_dupes: { en: 'Duplicates', fr: 'Doublons' },
+  finance_import_errors: { en: 'Errors', fr: 'Erreurs' },
+
+  /* Auto-categorization */
+  finance_categorize_title: { en: 'Auto-categorize', fr: 'Catégorisation automatique' },
+  finance_categorize_description: {
+    en: 'Match unmatched bank items to ledger accounts using your category rules.',
+    fr: 'Associez les écritures non rapprochées aux comptes du grand livre selon vos règles de catégorisation.',
+  },
+  finance_categorize_run: { en: 'Run auto-categorize', fr: 'Lancer la catégorisation' },
+  finance_categorize_result: {
+    en: 'Categorized {count} transactions.',
+    fr: 'Catégorisé {count} transactions.',
+  },
+  finance_categorize_none: { en: 'No unmatched items to categorize.', fr: 'Aucune écriture à catégoriser.' },
+
+  /* Category rules */
+  finance_rules_title: { en: 'Category rules', fr: 'Règles de catégorisation' },
+  finance_rules_description: {
+    en: 'Rules match transaction descriptions to ledger accounts. Higher priority rules are checked first.',
+    fr: 'Les règles associent les descriptions de transactions aux comptes du grand livre. Les règles de priorité élevée sont vérifiées en premier.',
+  },
+  finance_rules_add: { en: 'Add rule', fr: 'Ajouter une règle' },
+  finance_rules_pattern: { en: 'Pattern', fr: 'Motif' },
+  finance_rules_match_type: { en: 'Match type', fr: 'Type de correspondance' },
+  finance_rules_ledger_account: { en: 'Ledger account', fr: 'Compte du grand livre' },
+  finance_rules_direction: { en: 'Direction', fr: 'Sens' },
+  finance_rules_priority: { en: 'Priority', fr: 'Priorité' },
+  finance_rules_active: { en: 'Active', fr: 'Actif' },
+  finance_rules_no_rules: { en: 'No category rules yet.', fr: 'Aucune règle de catégorisation.' },
+  finance_rules_deactivate: { en: 'Deactivate', fr: 'Désactiver' },
+  finance_rules_activate: { en: 'Activate', fr: 'Activer' },
+  finance_rules_remove: { en: 'Remove', fr: 'Retirer' },
+
+  /* Export */
+  finance_export_title: { en: 'Export', fr: 'Export' },
+  finance_export_description: {
+    en: 'Download finance data as CSV for accounting import or as JSON for backup.',
+    fr: 'Téléchargez les données financières en CSV pour importation comptable ou en JSON pour sauvegarde.',
+  },
+  finance_export_bank_items: { en: 'Export bank items (CSV)', fr: 'Exporter les écritures bancaires (CSV)' },
+  finance_export_journals: { en: 'Export journals (CSV)', fr: 'Exporter les écritures comptables (CSV)' },
+  finance_export_invoices: { en: 'Export invoices (CSV)', fr: 'Exporter les factures (CSV)' },
+  finance_export_bills: { en: 'Export bills (CSV)', fr: 'Exporter les factures fournisseurs (CSV)' },
+  finance_export_workspace: { en: 'Export full workspace (JSON)', fr: 'Exporter l\'espace de travail complet (JSON)' },
 })

@@ -2,11 +2,14 @@ import { initialFinanceState } from './fixtures'
 import type {
   FinanceBankAccount,
   FinanceBudget,
+  FinanceCategoryRule,
+  FinanceCurrency,
   FinanceDebt,
   FinanceExternalAction,
   FinanceExternalActionStatus,
   FinanceForecast,
   FinanceHolding,
+  FinanceImportSession,
   FinanceInvoice,
   FinanceJournal,
   FinanceJournalLine,
@@ -81,6 +84,8 @@ export function loadFinanceState(orgId: string): FinanceWorkspaceState {
         approvals: parsed.approvals ?? initialFinanceState.approvals,
         auditEvents: parsed.auditEvents ?? initialFinanceState.auditEvents,
         externalActions: parsed.externalActions ?? initialFinanceState.externalActions,
+        categoryRules: parsed.categoryRules ?? initialFinanceState.categoryRules,
+        importSessions: parsed.importSessions ?? initialFinanceState.importSessions,
       }
     }
   } catch {
@@ -605,6 +610,116 @@ export {
   transitionClosePeriodStatus,
   transitionExpenseStatus,
 } from './productionLifecycle'
+
+/* ---------- Statement import and category rules ---------- */
+
+import { parseStatementCSV, rowsToBankItems } from './statementParser'
+import { autoCategorize, applySuggestions } from './autoCategorize'
+
+export function importBankStatement(
+  orgId: string,
+  bankAccountId: string,
+  fileName: string,
+  fileContent: string,
+): { newItems: number; duplicates: number; errors: number } | null {
+  const state = loadFinanceState(orgId)
+  const bankAccount = state.bankAccounts.find((ba) => ba.id === bankAccountId)
+  if (!bankAccount) return null
+  const currency: FinanceCurrency = bankAccount.currency
+
+  const parsed = parseStatementCSV(fileContent, currency)
+  const { newItems, duplicates, errors } = rowsToBankItems(
+    parsed.rows,
+    bankAccountId,
+    currency,
+    state.bankItems,
+  )
+
+  if (newItems.length === 0) return { newItems: 0, duplicates, errors }
+
+  const session: FinanceImportSession = {
+    id: `imp-${Date.now()}`,
+    entityId: state.entities[0]?.id ?? orgId,
+    bankAccountId,
+    fileName,
+    importedAt: new Date().toISOString(),
+    totalRows: parsed.totalRows,
+    newItems: newItems.length,
+    duplicates,
+    errors,
+    status: 'imported',
+  }
+
+  const nextState: FinanceWorkspaceState = {
+    ...state,
+    bankItems: [...state.bankItems, ...newItems],
+    importSessions: [session, ...state.importSessions],
+  }
+  saveFinanceState(orgId, nextState)
+  return { newItems: newItems.length, duplicates, errors }
+}
+
+export function addCategoryRule(
+  orgId: string,
+  rule: Omit<FinanceCategoryRule, 'id'>,
+): FinanceCategoryRule {
+  const newRule: FinanceCategoryRule = { ...rule, id: `cat-rule-${Date.now()}` }
+  updateState(orgId, (state) => ({
+    ...state,
+    categoryRules: [...state.categoryRules, newRule],
+  }))
+  return newRule
+}
+
+export function updateCategoryRule(
+  orgId: string,
+  id: string,
+  patch: Partial<FinanceCategoryRule>,
+): FinanceCategoryRule | null {
+  let result: FinanceCategoryRule | null = null
+  updateState(orgId, (state) => ({
+    ...state,
+    categoryRules: state.categoryRules.map((r) => {
+      if (r.id !== id) return r
+      result = { ...r, ...patch, id: r.id }
+      return result
+    }),
+  }))
+  return result
+}
+
+export function removeCategoryRule(orgId: string, id: string): boolean {
+  let removed = false
+  updateState(orgId, (state) => {
+    const next = state.categoryRules.filter((r) => r.id !== id)
+    removed = next.length !== state.categoryRules.length
+    return { ...state, categoryRules: next }
+  })
+  return removed
+}
+
+export function runAutoCategorize(orgId: string): number {
+  let matchedCount = 0
+  updateState(orgId, (state) => {
+    const unmatched = state.bankItems.filter((bi) => bi.matchStatus === 'unmatched')
+    if (unmatched.length === 0) return state
+    const suggestions = autoCategorize(unmatched, state.categoryRules, state.ledgerAccounts)
+    const updated = applySuggestions(unmatched, suggestions)
+    const updatedIds = new Set(updated.map((bi) => bi.id))
+    const suggestionMap = new Map(suggestions.map((s) => [s.bankItemId, s]))
+    matchedCount = suggestions.filter((s) => s.confidence !== 'none').length
+    return {
+      ...state,
+      bankItems: state.bankItems.map((bi) => {
+        if (!updatedIds.has(bi.id)) return bi
+        const sug = suggestionMap.get(bi.id)
+        if (!sug || sug.confidence === 'none') return bi
+        return { ...bi, matchStatus: 'suggested' }
+      }),
+    }
+  })
+  return matchedCount
+}
 
 /* ---------- Deadline helpers ---------- */
 

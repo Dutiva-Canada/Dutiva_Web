@@ -3,6 +3,7 @@ import { financeMessages as M } from '@/i18n/messages/finance'
 import type {
   FinanceBankMatchStatus,
   FinanceBudgetStatus,
+  FinanceCategoryMatchType,
   FinanceCurrency,
   FinanceExternalActionStatus,
   FinanceInvoiceStatus,
@@ -125,6 +126,13 @@ export const EXTERNAL_ACTION_STATUS_LABEL: Record<FinanceExternalActionStatus, B
   failed: { en: 'Failed', fr: 'Échec' },
   returned: { en: 'Returned', fr: 'Retourné' },
   unknown: { en: 'Unknown', fr: 'Inconnu' },
+}
+
+export const CATEGORY_MATCH_TYPE_LABEL: Record<FinanceCategoryMatchType, Bi> = {
+  contains: { en: 'Contains', fr: 'Contient' },
+  exact: { en: 'Exact match', fr: 'Correspondance exacte' },
+  starts_with: { en: 'Starts with', fr: 'Commence par' },
+  ends_with: { en: 'Ends with', fr: 'Se termine par' },
 }
 
 export { M as FINANCE_MESSAGES }

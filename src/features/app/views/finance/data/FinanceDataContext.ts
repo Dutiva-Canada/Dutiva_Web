@@ -119,6 +119,17 @@ export interface FinanceDataContextValue {
     id: string,
     nextStatus: FinanceExpenseStatus,
   ) => Promise<FinanceWorkspaceState['expenses'][number] | null>
+  /* ---------- Import, export, and categorization ---------- */
+  importBankStatement: (
+    bankAccountId: string,
+    fileName: string,
+    fileContent: string,
+  ) => Promise<{ newItems: number; duplicates: number; errors: number } | null>
+  addCategoryRule: (rule: Omit<import('./types').FinanceCategoryRule, 'id'>) => Promise<import('./types').FinanceCategoryRule | null>
+  updateCategoryRule: (id: string, patch: Partial<import('./types').FinanceCategoryRule>) => Promise<import('./types').FinanceCategoryRule | null>
+  removeCategoryRule: (id: string) => Promise<boolean>
+  /** Run auto-categorization on all unmatched bank items. */
+  runAutoCategorize: () => Promise<number>
 }
 
 export const FinanceDataContext = createContext<FinanceDataContextValue | null>(null)

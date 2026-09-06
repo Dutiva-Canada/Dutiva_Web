@@ -9,6 +9,7 @@ import {
   PiggyBank,
   Receipt,
   ShoppingBag,
+  Upload,
   Wallet,
 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -35,6 +36,7 @@ const TABS: FinanceTab[] = [
   { key: 'treasury', to: 'treasury', label: 'finance_tab_treasury', icon: PiggyBank },
   { key: 'tax', to: 'tax', label: 'finance_tab_tax', icon: Banknote },
   { key: 'evidence', to: 'evidence', label: 'finance_tab_evidence', icon: Paperclip },
+  { key: 'import-export', to: 'import-export', label: 'finance_tab_import_export', icon: Upload },
 ]
 
 interface FinanceLayoutProps {

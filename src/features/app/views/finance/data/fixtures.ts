@@ -134,6 +134,15 @@ const ledgerAccounts: FinanceWorkspaceState['ledgerAccounts'] = [
     sensitive: true,
     active: true,
   },
+  {
+    id: 'acct-5100',
+    bookId: 'book-1',
+    code: '5100',
+    name: bi('Rent', 'Loyer'),
+    type: 'expense',
+    sensitive: false,
+    active: true,
+  },
 ]
 
 const invoice: FinanceWorkspaceState['invoices'][number] = {
@@ -566,6 +575,63 @@ const externalAction: FinanceWorkspaceState['externalActions'][number] = {
   notes: bi('Pay run submitted to ADP; results imported.', 'Traitement de paie soumis à ADP; résultats importés.'),
 }
 
+const categoryRule1: FinanceWorkspaceState['categoryRules'][number] = {
+  id: 'cat-rule-1',
+  entityId: 'ent-1',
+  pattern: 'PAYROLL',
+  matchType: 'contains',
+  ledgerAccountId: 'acct-6000',
+  direction: 'debit',
+  priority: 100,
+  active: true,
+}
+
+const categoryRule2: FinanceWorkspaceState['categoryRules'][number] = {
+  id: 'cat-rule-2',
+  entityId: 'ent-1',
+  pattern: 'STRIPE',
+  matchType: 'contains',
+  ledgerAccountId: 'acct-5000',
+  direction: 'credit',
+  priority: 90,
+  active: true,
+}
+
+const categoryRule3: FinanceWorkspaceState['categoryRules'][number] = {
+  id: 'cat-rule-3',
+  entityId: 'ent-1',
+  pattern: 'SHOPIFY',
+  matchType: 'contains',
+  ledgerAccountId: 'acct-5000',
+  direction: 'credit',
+  priority: 80,
+  active: true,
+}
+
+const categoryRule4: FinanceWorkspaceState['categoryRules'][number] = {
+  id: 'cat-rule-4',
+  entityId: 'ent-1',
+  pattern: 'RENT',
+  matchType: 'contains',
+  ledgerAccountId: 'acct-5100',
+  direction: 'debit',
+  priority: 70,
+  active: true,
+}
+
+const importSession: FinanceWorkspaceState['importSessions'][number] = {
+  id: 'imp-1',
+  entityId: 'ent-1',
+  bankAccountId: 'bank-1',
+  fileName: 'operating_2026_08.csv',
+  importedAt: '2026-08-20T10:00:00Z',
+  totalRows: 42,
+  newItems: 38,
+  duplicates: 4,
+  errors: 0,
+  status: 'imported',
+}
+
 export const initialFinanceState: FinanceWorkspaceState = {
   entities: [entity],
   books: [book],
@@ -599,4 +665,6 @@ export const initialFinanceState: FinanceWorkspaceState = {
   approvals: [approval],
   auditEvents: [auditEvent],
   externalActions: [externalAction],
+  categoryRules: [categoryRule1, categoryRule2, categoryRule3, categoryRule4],
+  importSessions: [importSession],
 }
