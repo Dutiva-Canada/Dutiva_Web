@@ -144,14 +144,20 @@ export function ImportExport() {
     }
     setSuggesting(true)
     setSuggestResult(null)
-    const result = suggestCategoryRules(state.bankItems, state.ledgerAccounts, state.categoryRules)
-    setSuggestions(result)
-    setSuggesting(false)
-    setSuggestResult(
-      result.length > 0
-        ? x(M.finance_suggest_rules_result).replace('{count}', String(result.length))
-        : x(M.finance_suggest_rules_none),
-    )
+    try {
+      const result = suggestCategoryRules(state.bankItems, state.ledgerAccounts, state.categoryRules)
+      setSuggestions(result)
+      setSuggestResult(
+        result.length > 0
+          ? x(M.finance_suggest_rules_result).replace('{count}', String(result.length))
+          : x(M.finance_suggest_rules_none),
+      )
+    } catch (err) {
+      setSuggestResult(x(M.finance_suggest_rules_none))
+      console.error('[finance] rule suggestion failed', err)
+    } finally {
+      setSuggesting(false)
+    }
   }
 
   const handleAddSuggestion = async (suggestion: RuleSuggestion) => {
@@ -475,8 +481,11 @@ export function ImportExport() {
         )}
 
         {suggestResult && !suggesting && (
-          <div className="mt-[8px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text">
-            {suggestResult}
+          <div className="mt-[8px] flex flex-col gap-[4px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text">
+            <span>{suggestResult}</span>
+            {suggestions.length === 0 && (
+              <span className="text-text-muted">{x(M.finance_suggest_rules_none_detail)}</span>
+            )}
           </div>
         )}
 

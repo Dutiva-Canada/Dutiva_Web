@@ -644,6 +644,10 @@ export const financeMessages = defineMessages({
   finance_suggest_rules: { en: 'Suggest rules', fr: 'Suggérer des règles' },
   finance_suggest_rules_loading: { en: 'Analyzing transactions…', fr: 'Analyse des transactions en cours…' },
   finance_suggest_rules_none: { en: 'No rule suggestions found.', fr: 'Aucune suggestion de règle trouvée.' },
+  finance_suggest_rules_none_detail: {
+    en: 'Either existing rules already cover these transactions, or the descriptions do not form a clear group.',
+    fr: 'Soit les règles existantes couvrent déjà ces transactions, soit les descriptions ne forment pas un groupe clair.',
+  },
   finance_suggest_rules_result: { en: '{count} rule suggestion(s).', fr: '{count} suggestion(s) de règle.' },
   finance_suggest_rules_add: { en: 'Add rule', fr: 'Ajouter la règle' },
   finance_suggest_rules_add_all: { en: 'Add all', fr: 'Tout ajouter' },
