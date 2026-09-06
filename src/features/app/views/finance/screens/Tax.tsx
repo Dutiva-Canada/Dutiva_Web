@@ -24,7 +24,7 @@ const VALID_TRANSITIONS: Record<FinanceObligationStatus, { status: FinanceObliga
 
 export function Tax() {
   const { x } = useI18n()
-  const { state, canWrite, transitionObligationStatus } = useFinanceData()
+  const { state, canWrite, transitionObligationStatus, transitionExternalActionStatus } = useFinanceData()
   const [filter, setFilter] = useState<'all' | FinanceObligationStatus>('all')
 
   const obligations = useMemo(
@@ -163,6 +163,76 @@ export function Tax() {
           </ul>
         )}
       </section>
+
+      {state.externalActions.length > 0 && (
+        <section className="rounded-[12px] border border-border bg-surface p-[16px]">
+          <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_tax_external_actions)}</h2>
+          <ul className="m-0 flex flex-col gap-[12px] p-0">
+            {state.externalActions
+              .filter((ea) => ea.recordType === 'filing' || ea.recordType === 'payment')
+              .map((ea) => (
+                <li key={ea.id} className="flex flex-col gap-[8px] rounded-[10px] bg-inset p-[12px]">
+                  <div className="flex items-start justify-between gap-[12px]">
+                    <div>
+                      <div className="text-[13px] font-semibold text-text">{ea.recordType} · {ea.recordId}</div>
+                      <div className="text-[12px] text-text-muted">
+                        {ea.providerRef && ` · ${ea.providerRef}`}
+                        {ea.confirmedAt && ` · ${ea.confirmedAt}`}
+                      </div>
+                    </div>
+                    <span
+                      className={statusChipClass(
+                        ea.status === 'settled' || ea.status === 'filing_accepted'
+                          ? 'success'
+                          : ea.status === 'failed'
+                            ? 'risk'
+                            : 'neutral',
+                      )}
+                    >
+                      {ea.status.replace(/_/g, ' ')}
+                    </span>
+                  </div>
+                  {canWrite && ea.status === 'internal_approval' && (
+                    <button
+                      type="button"
+                      onClick={() => transitionExternalActionStatus(ea.id, 'export_prepared')}
+                      className="w-fit rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                    >
+                      {x(M.finance_external_prepare_export)}
+                    </button>
+                  )}
+                  {canWrite && ea.status === 'export_prepared' && (
+                    <button
+                      type="button"
+                      onClick={() => transitionExternalActionStatus(ea.id, 'provider_accepted')}
+                      className="w-fit rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                    >
+                      {x(M.finance_external_mark_accepted)}
+                    </button>
+                  )}
+                  {canWrite && ea.status === 'provider_accepted' && (
+                    <div className="flex flex-wrap gap-[6px]">
+                      <button
+                        type="button"
+                        onClick={() => transitionExternalActionStatus(ea.id, 'settled')}
+                        className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                      >
+                        {x(M.finance_external_mark_settled)}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => transitionExternalActionStatus(ea.id, 'filing_accepted')}
+                        className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                      >
+                        {x(M.finance_external_mark_accepted)}
+                      </button>
+                    </div>
+                  )}
+                </li>
+              ))}
+          </ul>
+        </section>
+      )}
     </div>
   )
 }

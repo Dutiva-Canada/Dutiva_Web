@@ -10,9 +10,38 @@ const FILTERS: ('all' | FinanceInvoiceStatus)[] = [
   'all', 'draft', 'issued', 'partial', 'paid', 'overdue', 'disputed', 'written_off', 'cancelled',
 ]
 
+const VALID_TRANSITIONS: Record<FinanceInvoiceStatus, { status: FinanceInvoiceStatus; label: keyof typeof M }[]> = {
+  draft: [{ status: 'issued', label: 'finance_invoice_issue' }, { status: 'cancelled', label: 'finance_invoice_cancel' }],
+  issued: [
+    { status: 'paid', label: 'finance_invoice_mark_paid' },
+    { status: 'partial', label: 'finance_invoice_mark_partial' },
+    { status: 'disputed', label: 'finance_invoice_dispute' },
+    { status: 'overdue', label: 'finance_invoice_mark_overdue' },
+    { status: 'cancelled', label: 'finance_invoice_cancel' },
+  ],
+  partial: [
+    { status: 'paid', label: 'finance_invoice_mark_paid' },
+    { status: 'disputed', label: 'finance_invoice_dispute' },
+    { status: 'cancelled', label: 'finance_invoice_cancel' },
+  ],
+  paid: [],
+  overdue: [
+    { status: 'paid', label: 'finance_invoice_mark_paid' },
+    { status: 'disputed', label: 'finance_invoice_dispute' },
+    { status: 'cancelled', label: 'finance_invoice_cancel' },
+  ],
+  disputed: [
+    { status: 'issued', label: 'finance_invoice_issue' },
+    { status: 'written_off', label: 'finance_invoice_write_off' },
+    { status: 'cancelled', label: 'finance_invoice_cancel' },
+  ],
+  written_off: [],
+  cancelled: [],
+}
+
 export function Sales() {
   const { x } = useI18n()
-  const { state } = useFinanceData()
+  const { state, canWrite, transitionInvoiceStatus } = useFinanceData()
   const [filter, setFilter] = useState<'all' | FinanceInvoiceStatus>('all')
 
   const invoices = useMemo(
@@ -43,29 +72,45 @@ export function Sales() {
         {invoices.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_no_results)}</p>
         ) : (
-          <ul className="m-0 flex flex-col gap-[10px] p-0">
+          <ul className="m-0 flex flex-col gap-[12px] p-0">
             {invoices.map((inv) => {
               const outstanding = Number(inv.total) - Number(inv.paidAmount)
               return (
-                <li key={inv.id} className="flex items-start justify-between gap-[12px]">
-                  <div>
-                    <div className="text-[13px] font-semibold text-text">{inv.number}</div>
-                    <div className="text-[12px] text-text-muted">
-                      {customerName(inv.customerId)} · {inv.issueDate} · {x(M.finance_due_date)}: {inv.dueDate}
+                <li key={inv.id} className="flex flex-col gap-[8px] rounded-[10px] bg-inset p-[12px]">
+                  <div className="flex items-start justify-between gap-[12px]">
+                    <div>
+                      <div className="text-[13px] font-semibold text-text">{inv.number}</div>
+                      <div className="text-[12px] text-text-muted">
+                        {customerName(inv.customerId)} · {inv.issueDate} · {x(M.finance_due_date)}: {inv.dueDate}
+                      </div>
+                      <div className="text-[12px] text-text-muted">
+                        {x(M.finance_sales_total)}: {x(CURRENCY_LABEL[inv.currency])} {inv.total} ·{' '}
+                        {x(M.finance_sales_paid)}: {inv.paidAmount} ·{' '}
+                        {x(M.finance_sales_outstanding)}: {outstanding.toFixed(2)}
+                      </div>
                     </div>
-                    <div className="text-[12px] text-text-muted">
-                      {x(M.finance_sales_total)}: {x(CURRENCY_LABEL[inv.currency])} {inv.total} ·{' '}
-                      {x(M.finance_sales_paid)}: {inv.paidAmount} ·{' '}
-                      {x(M.finance_sales_outstanding)}: {outstanding.toFixed(2)}
-                    </div>
+                    <span
+                      className={statusChipClass(
+                        inv.status === 'paid' ? 'success' : inv.status === 'overdue' ? 'risk' : 'neutral',
+                      )}
+                    >
+                      {x(INVOICE_STATUS_LABEL[inv.status])}
+                    </span>
                   </div>
-                  <span
-                    className={statusChipClass(
-                      inv.status === 'paid' ? 'success' : inv.status === 'overdue' ? 'risk' : 'neutral',
-                    )}
-                  >
-                    {x(INVOICE_STATUS_LABEL[inv.status])}
-                  </span>
+                  {canWrite && VALID_TRANSITIONS[inv.status].length > 0 && (
+                    <div className="flex flex-wrap gap-[6px]">
+                      {VALID_TRANSITIONS[inv.status].map((t) => (
+                        <button
+                          key={t.status}
+                          type="button"
+                          onClick={() => transitionInvoiceStatus(inv.id, t.status)}
+                          className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                        >
+                          {x(M[t.label])}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </li>
               )
             })}

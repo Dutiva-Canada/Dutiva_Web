@@ -14,9 +14,16 @@ import {
   loadFullState as loadFullStateLocalApi,
   markTaxScenarioStale as markTaxScenarioStaleLocalApi,
   reviseBudget as reviseBudgetLocalApi,
+  transitionBankItemMatchStatus as transitionBankItemMatchStatusLocalApi,
+  transitionBillStatus as transitionBillStatusLocalApi,
+  transitionClosePeriodStatus as transitionClosePeriodStatusLocalApi,
+  transitionExpenseStatus as transitionExpenseStatusLocalApi,
   transitionExternalActionStatus as transitionExternalActionStatusLocalApi,
+  transitionInvoiceStatus as transitionInvoiceStatusLocalApi,
+  transitionJournalStatus as transitionJournalStatusLocalApi,
   transitionObligationStatus as transitionObligationStatusLocalApi,
   transitionPayRunStatus as transitionPayRunStatusLocalApi,
+  transitionReconciliationStatus as transitionReconciliationStatusLocalApi,
   transitionSpendRequestStatus as transitionSpendRequestStatusLocalApi,
 } from './productionApi'
 import {
@@ -30,19 +37,33 @@ import {
   loadFinanceStateFromSupabase,
   markTaxScenarioStaleInSupabase,
   reviseBudgetInSupabase,
+  updateBankItemMatchStatus as updateBankItemMatchStatusSupa,
+  updateBillStatus as updateBillStatusSupa,
+  updateClosePeriodStatus as updateClosePeriodStatusSupa,
+  updateExpenseStatus as updateExpenseStatusSupa,
   updateExternalActionStatus as updateExternalActionStatusSupa,
+  updateInvoiceStatus as updateInvoiceStatusSupa,
+  updateJournalStatus as updateJournalStatusSupa,
   updatePayRunStatus as updatePayRunStatusSupa,
+  updateReconciliationStatus as updateReconciliationStatusSupa,
   updateSpendRequestStatus as updateSpendRequestStatusSupa,
   updateTaxObligationStatus as updateTaxObligationStatusSupa,
 } from './supabaseApi'
 import type {
+  FinanceBankMatchStatus,
+  FinanceBill,
   FinanceBudget,
+  FinanceClosePeriod,
+  FinanceExpenseStatus,
   FinanceExternalActionStatus,
   FinanceInvoice,
+  FinanceInvoiceStatus,
   FinanceJournal,
   FinanceJournalLine,
+  FinanceJournalStatus,
   FinanceObligationStatus,
   FinancePayRunStatus,
+  FinanceReconciliation,
   FinanceSpendRequest,
   FinanceTaxObligation,
   FinanceTaxScenario,
@@ -279,6 +300,120 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
     [state.closePeriods],
   )
 
+  const transitionInvoiceStatus = useCallback(
+    async (id: string, nextStatus: FinanceInvoiceStatus, paidAmount?: string) => {
+      if (!isLive || !orgId) return null
+      if (hasSupabase) {
+        const updated = await updateInvoiceStatusSupa(orgId, id, nextStatus, paidAmount)
+        await reload()
+        return updated
+      }
+      const updated = transitionInvoiceStatusLocalApi(orgId, id, nextStatus, paidAmount)
+      if (updated) setState(loadFullStateLocalApi(orgId))
+      return updated
+    },
+    [isLive, orgId, hasSupabase, reload],
+  )
+
+  const transitionBillStatus = useCallback(
+    async (id: string, nextStatus: FinanceBill['status'], paidAmount?: string) => {
+      if (!isLive || !orgId) return null
+      if (hasSupabase) {
+        const updated = await updateBillStatusSupa(orgId, id, nextStatus, paidAmount)
+        await reload()
+        return updated
+      }
+      const updated = transitionBillStatusLocalApi(orgId, id, nextStatus, paidAmount)
+      if (updated) setState(loadFullStateLocalApi(orgId))
+      return updated
+    },
+    [isLive, orgId, hasSupabase, reload],
+  )
+
+  const transitionJournalStatus = useCallback(
+    async (id: string, nextStatus: FinanceJournalStatus) => {
+      if (!isLive || !orgId) return null
+      if (hasSupabase) {
+        const updated = await updateJournalStatusSupa(orgId, id, nextStatus)
+        await reload()
+        return updated
+      }
+      const updated = transitionJournalStatusLocalApi(orgId, id, nextStatus)
+      if (updated) setState(loadFullStateLocalApi(orgId))
+      return updated
+    },
+    [isLive, orgId, hasSupabase, reload],
+  )
+
+  const transitionBankItemMatchStatus = useCallback(
+    async (
+      id: string,
+      nextStatus: FinanceBankMatchStatus,
+      matchRef?: { journalId?: string; invoiceId?: string; billId?: string },
+    ) => {
+      if (!isLive || !orgId) return null
+      if (hasSupabase) {
+        const updated = await updateBankItemMatchStatusSupa(orgId, id, nextStatus, matchRef)
+        await reload()
+        return updated
+      }
+      const updated = transitionBankItemMatchStatusLocalApi(orgId, id, nextStatus, matchRef)
+      if (updated) setState(loadFullStateLocalApi(orgId))
+      return updated
+    },
+    [isLive, orgId, hasSupabase, reload],
+  )
+
+  const transitionReconciliationStatus = useCallback(
+    async (id: string, nextStatus: FinanceReconciliation['status'], reviewer?: string) => {
+      if (!isLive || !orgId) return null
+      if (hasSupabase) {
+        const updated = await updateReconciliationStatusSupa(orgId, id, nextStatus, reviewer)
+        await reload()
+        return updated
+      }
+      const updated = transitionReconciliationStatusLocalApi(orgId, id, nextStatus, reviewer)
+      if (updated) setState(loadFullStateLocalApi(orgId))
+      return updated
+    },
+    [isLive, orgId, hasSupabase, reload],
+  )
+
+  const transitionClosePeriodStatus = useCallback(
+    async (
+      id: string,
+      nextStatus: FinanceClosePeriod['status'],
+      approver?: string,
+      reopenReason?: string,
+    ) => {
+      if (!isLive || !orgId) return null
+      if (hasSupabase) {
+        const updated = await updateClosePeriodStatusSupa(orgId, id, nextStatus, approver, reopenReason)
+        await reload()
+        return updated
+      }
+      const updated = transitionClosePeriodStatusLocalApi(orgId, id, nextStatus, approver, reopenReason)
+      if (updated) setState(loadFullStateLocalApi(orgId))
+      return updated
+    },
+    [isLive, orgId, hasSupabase, reload],
+  )
+
+  const transitionExpenseStatus = useCallback(
+    async (id: string, nextStatus: FinanceExpenseStatus) => {
+      if (!isLive || !orgId) return null
+      if (hasSupabase) {
+        const updated = await updateExpenseStatusSupa(orgId, id, nextStatus)
+        await reload()
+        return updated
+      }
+      const updated = transitionExpenseStatusLocalApi(orgId, id, nextStatus)
+      if (updated) setState(loadFullStateLocalApi(orgId))
+      return updated
+    },
+    [isLive, orgId, hasSupabase, reload],
+  )
+
   return useMemo(
     () => ({
       state,
@@ -299,6 +434,13 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
       markTaxScenarioStale,
       transitionExternalActionStatus,
       isPeriodLocked,
+      transitionInvoiceStatus,
+      transitionBillStatus,
+      transitionJournalStatus,
+      transitionBankItemMatchStatus,
+      transitionReconciliationStatus,
+      transitionClosePeriodStatus,
+      transitionExpenseStatus,
     }),
     [
       state,
@@ -319,6 +461,13 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
       markTaxScenarioStale,
       transitionExternalActionStatus,
       isPeriodLocked,
+      transitionInvoiceStatus,
+      transitionBillStatus,
+      transitionJournalStatus,
+      transitionBankItemMatchStatus,
+      transitionReconciliationStatus,
+      transitionClosePeriodStatus,
+      transitionExpenseStatus,
     ],
   )
 }

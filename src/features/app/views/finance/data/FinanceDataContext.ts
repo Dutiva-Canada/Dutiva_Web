@@ -1,14 +1,22 @@
 import { createContext } from 'react'
 import type {
+  FinanceBankItem,
+  FinanceBankMatchStatus,
+  FinanceBill,
   FinanceBudget,
+  FinanceClosePeriod,
+  FinanceExpenseStatus,
   FinanceExternalAction,
   FinanceExternalActionStatus,
   FinanceInvoice,
+  FinanceInvoiceStatus,
   FinanceJournal,
   FinanceJournalLine,
+  FinanceJournalStatus,
   FinanceObligationStatus,
   FinancePayRun,
   FinancePayRunStatus,
+  FinanceReconciliation,
   FinanceSpendRequest,
   FinanceTaxObligation,
   FinanceTaxScenario,
@@ -52,6 +60,40 @@ export interface FinanceDataContextValue {
   ) => Promise<FinanceExternalAction | null>
   /** Check whether a book's period is locked or approved (ordinary edits rejected). */
   isPeriodLocked: (bookId: string, periodId: string) => boolean
+  transitionInvoiceStatus: (
+    id: string,
+    nextStatus: FinanceInvoiceStatus,
+    paidAmount?: string,
+  ) => Promise<FinanceInvoice | null>
+  transitionBillStatus: (
+    id: string,
+    nextStatus: FinanceBill['status'],
+    paidAmount?: string,
+  ) => Promise<FinanceBill | null>
+  transitionJournalStatus: (
+    id: string,
+    nextStatus: FinanceJournalStatus,
+  ) => Promise<FinanceJournal | null>
+  transitionBankItemMatchStatus: (
+    id: string,
+    nextStatus: FinanceBankMatchStatus,
+    matchRef?: { journalId?: string; invoiceId?: string; billId?: string },
+  ) => Promise<FinanceBankItem | null>
+  transitionReconciliationStatus: (
+    id: string,
+    nextStatus: FinanceReconciliation['status'],
+    reviewer?: string,
+  ) => Promise<FinanceReconciliation | null>
+  transitionClosePeriodStatus: (
+    id: string,
+    nextStatus: FinanceClosePeriod['status'],
+    approver?: string,
+    reopenReason?: string,
+  ) => Promise<FinanceClosePeriod | null>
+  transitionExpenseStatus: (
+    id: string,
+    nextStatus: FinanceExpenseStatus,
+  ) => Promise<FinanceWorkspaceState['expenses'][number] | null>
 }
 
 export const FinanceDataContext = createContext<FinanceDataContextValue | null>(null)

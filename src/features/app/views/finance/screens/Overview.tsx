@@ -9,7 +9,7 @@ import { REQUEST_STATUS_LABEL } from '../financeLabels'
 
 export function Overview() {
   const { x } = useI18n()
-  const { state } = useFinanceData()
+  const { state, canWrite, transitionSpendRequestStatus } = useFinanceData()
 
   const upcomingObligations = useMemo(
     () =>
@@ -135,21 +135,41 @@ export function Overview() {
         {approvalsQueue.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_overview_no_approvals)}</p>
         ) : (
-          <ul className="m-0 flex flex-col gap-[10px] p-0">
+          <ul className="m-0 flex flex-col gap-[12px] p-0">
             {approvalsQueue.map((sr) => (
-              <li key={sr.id} className="flex items-start justify-between gap-[12px]">
-                <div>
-                  <Link
-                    to={`/app/finance/purchases`}
-                    className="text-[13px] font-semibold text-accent no-underline hover:underline"
-                  >
-                    {x(sr.purpose)}
-                  </Link>
-                  <div className="text-[12px] text-text-muted">
-                    {sr.requester} · {sr.currency} {sr.amount}
+              <li key={sr.id} className="flex flex-col gap-[8px] rounded-[10px] bg-inset p-[12px]">
+                <div className="flex items-start justify-between gap-[12px]">
+                  <div>
+                    <Link
+                      to={`/app/finance/purchases`}
+                      className="text-[13px] font-semibold text-accent no-underline hover:underline"
+                    >
+                      {x(sr.purpose)}
+                    </Link>
+                    <div className="text-[12px] text-text-muted">
+                      {sr.requester} · {sr.currency} {sr.amount}
+                    </div>
                   </div>
+                  <span className={statusChipClass('warning')}>{x(REQUEST_STATUS_LABEL[sr.status])}</span>
                 </div>
-                <span className={statusChipClass('warning')}>{x(REQUEST_STATUS_LABEL[sr.status])}</span>
+                {canWrite && (
+                  <div className="flex flex-wrap gap-[6px]">
+                    <button
+                      type="button"
+                      onClick={() => transitionSpendRequestStatus(sr.id, 'approved', 'Workspace user')}
+                      className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                    >
+                      {x(M.finance_approve)}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => transitionSpendRequestStatus(sr.id, 'rejected')}
+                      className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                    >
+                      {x(M.finance_reject)}
+                    </button>
+                  </div>
+                )}
               </li>
             ))}
           </ul>

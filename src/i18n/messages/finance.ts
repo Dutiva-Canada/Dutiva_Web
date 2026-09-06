@@ -276,4 +276,71 @@ export const financeMessages = defineMessages({
     en: 'This period is locked. Ordinary edits are not allowed.',
     fr: 'Cette période est verrouillée. Les modifications ordinaires ne sont pas autorisées.',
   },
+
+  /* Invoice actions */
+  finance_invoice_issue: { en: 'Issue', fr: 'Émettre' },
+  finance_invoice_mark_paid: { en: 'Mark paid', fr: 'Marquer payée' },
+  finance_invoice_mark_partial: { en: 'Record partial payment', fr: 'Enregistrer un paiement partiel' },
+  finance_invoice_dispute: { en: 'Dispute', fr: 'Contester' },
+  finance_invoice_write_off: { en: 'Write off', fr: 'Passer en perte' },
+  finance_invoice_cancel: { en: 'Cancel', fr: 'Annuler' },
+  finance_invoice_mark_overdue: { en: 'Mark overdue', fr: 'Marquer en retard' },
+
+  /* Bill actions */
+  finance_bills_title: { en: 'Bills', fr: 'Factures fournisseurs' },
+  finance_bills_no_bills: { en: 'No bills.', fr: 'Aucune facture fournisseur.' },
+  finance_bill_post: { en: 'Post', fr: 'Afficher' },
+  finance_bill_mark_paid: { en: 'Mark paid', fr: 'Marquer payée' },
+  finance_bill_mark_partial: { en: 'Record partial payment', fr: 'Enregistrer un paiement partiel' },
+  finance_bill_dispute: { en: 'Dispute', fr: 'Contester' },
+  finance_bill_cancel: { en: 'Cancel', fr: 'Annuler' },
+  finance_bill_mark_overdue: { en: 'Mark overdue', fr: 'Marquer en retard' },
+
+  /* Journal actions */
+  finance_journal_post: { en: 'Post', fr: 'Comptabiliser' },
+  finance_journal_reverse: { en: 'Reverse', fr: 'Extourner' },
+  finance_journal_unbalanced: { en: 'Unbalanced — cannot post', fr: 'Non équilibré — comptabilisation impossible' },
+
+  /* Bank item matching */
+  finance_bank_accept_suggested: { en: 'Accept match', fr: 'Accepter la correspondance' },
+  finance_bank_mark_matched: { en: 'Mark matched', fr: 'Marquer rapproché' },
+  finance_bank_mark_exception: { en: 'Mark exception', fr: 'Marquer comme exception' },
+  finance_bank_matched_to: { en: 'Matched to', fr: 'Rapproché avec' },
+
+  /* Reconciliation actions */
+  finance_reconciliation_mark_reconciled: { en: 'Mark reconciled', fr: 'Marquer rapproché' },
+  finance_reconciliation_mark_exception: { en: 'Mark exception', fr: 'Marquer comme exception' },
+
+  /* Close period actions */
+  finance_close_period_start_review: { en: 'Start review', fr: 'Commencer la révision' },
+  finance_close_period_approve: { en: 'Approve', fr: 'Approuver' },
+  finance_close_period_lock: { en: 'Lock', fr: 'Verrouiller' },
+  finance_close_period_reopen: { en: 'Reopen', fr: 'Rouvrir' },
+
+  /* Expense actions */
+  finance_expense_approve: { en: 'Approve', fr: 'Approuver' },
+  finance_expense_reject: { en: 'Reject', fr: 'Rejeter' },
+  finance_expense_reimburse: { en: 'Mark reimbursed', fr: 'Marquer remboursée' },
+  finance_expense_submit: { en: 'Submit', fr: 'Soumettre' },
+
+  /* Approval actions */
+  finance_approve: { en: 'Approve', fr: 'Approuver' },
+  finance_reject: { en: 'Reject', fr: 'Rejeter' },
+
+  /* External actions */
+  finance_external_prepare_export: { en: 'Prepare export', fr: 'Préparer l\'export' },
+  finance_external_mark_accepted: { en: 'Mark accepted', fr: 'Marquer accepté' },
+  finance_external_mark_settled: { en: 'Mark settled', fr: 'Marquer réglé' },
+  finance_external_mark_failed: { en: 'Mark failed', fr: 'Marquer échoué' },
+
+  /* Audit trail */
+  finance_audit_title: { en: 'Audit trail', fr: 'Piste d\'audit' },
+  finance_audit_no_events: { en: 'No audit events recorded.', fr: 'Aucun événement d\'audit enregistré.' },
+  finance_audit_actor: { en: 'Actor', fr: 'Acteur' },
+  finance_audit_action: { en: 'Action', fr: 'Action' },
+  finance_audit_record: { en: 'Record', fr: 'Dossier' },
+  finance_audit_timestamp: { en: 'Timestamp', fr: 'Horodatage' },
+
+  /* External actions section in Tax */
+  finance_tax_external_actions: { en: 'External actions', fr: 'Actions externes' },
 })
