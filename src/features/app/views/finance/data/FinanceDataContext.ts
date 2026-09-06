@@ -77,6 +77,7 @@ export interface FinanceDataContextValue {
   ) => Promise<FinanceTaxScenario | null>
   addExternalAction: (item: Omit<import('./types').FinanceExternalAction, 'id'>) => Promise<import('./types').FinanceExternalAction | null>
   updateForecastPeriods: (id: string, periods: import('./types').FinanceForecast['periods']) => Promise<import('./types').FinanceForecast | null>
+  addEntity: (item: Omit<import('./types').FinanceLegalEntity, 'id'>) => Promise<import('./types').FinanceLegalEntity | null>
   addBankAccount: (item: Omit<import('./types').FinanceBankAccount, 'id'>) => Promise<import('./types').FinanceBankAccount | null>
   addLedgerAccount: (item: Omit<import('./types').FinanceLedgerAccount, 'id'>) => Promise<import('./types').FinanceLedgerAccount | null>
   addParty: (item: Omit<import('./types').FinanceParty, 'id'>) => Promise<import('./types').FinanceParty | null>

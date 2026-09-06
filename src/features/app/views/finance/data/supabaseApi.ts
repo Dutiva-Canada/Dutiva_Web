@@ -568,6 +568,7 @@ export {
   freezeForecastInSupabase,
   updateForecastPeriodsInSupabase,
   addExternalActionInSupabase,
+  addEntityInSupabase,
   addBankAccountInSupabase,
   addLedgerAccountInSupabase,
   addPartyInSupabase,

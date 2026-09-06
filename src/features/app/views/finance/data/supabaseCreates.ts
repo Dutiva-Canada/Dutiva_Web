@@ -7,6 +7,7 @@ import type {
   FinanceForecast,
   FinanceHolding,
   FinanceLedgerAccount,
+  FinanceLegalEntity,
   FinanceParty,
   FinanceReserveGoal,
   FinanceScenario,
@@ -16,6 +17,7 @@ import {
   mapBankAccount,
   mapBudget,
   mapDebt,
+  mapEntity,
   mapExternalAction,
   mapForecast,
   mapHolding,
@@ -30,6 +32,7 @@ import {
 const supabase: any = supabaseTyped
 
 const TABLES = {
+  entities: 'finance_entities',
   budgets: 'finance_budgets',
   scenarios: 'finance_scenarios',
   forecasts: 'finance_forecasts',
@@ -42,6 +45,29 @@ const TABLES = {
   parties: 'finance_parties',
   subscriptions: 'finance_subscriptions',
 } as const
+
+/* ---------- Entity management ---------- */
+
+export async function addEntityInSupabase(orgId: string, item: Omit<FinanceLegalEntity, 'id'>): Promise<FinanceLegalEntity | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.entities)
+    .insert({
+      organization_id: orgId,
+      legal_name: item.legalName,
+      legal_form: item.legalForm,
+      fiscal_year_start: item.fiscalYearStart,
+      functional_currency: item.functionalCurrency,
+      jurisdictions: item.jurisdictions,
+      accounting_source_id: item.accountingSourceId,
+      payroll_source_id: item.payrollSourceId,
+      active: item.active,
+    })
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapEntity(data as Record<string, unknown>)
+}
 
 /* ---------- Scenario / forecast / reserve / holding / debt lifecycle ---------- */
 

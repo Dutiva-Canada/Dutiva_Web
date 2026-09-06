@@ -10,6 +10,7 @@ import {
   transitionScenarioStatus as transitionScenarioStatusLocalApi,
   freezeForecast as freezeForecastLocalApi,
   addExternalAction as addExternalActionLocalApi,
+  addEntity as addEntityLocalApi,
   addBankAccount as addBankAccountLocalApi,
   addLedgerAccount as addLedgerAccountLocalApi,
   addParty as addPartyLocalApi,
@@ -29,6 +30,7 @@ import {
   freezeForecastInSupabase,
   updateForecastPeriodsInSupabase,
   addExternalActionInSupabase,
+  addEntityInSupabase,
   addBankAccountInSupabase,
   addLedgerAccountInSupabase,
   addPartyInSupabase,
@@ -41,6 +43,7 @@ import type {
   FinanceExternalAction,
   FinanceForecast,
   FinanceLedgerAccount,
+  FinanceLegalEntity,
   FinanceParty,
   FinanceReserveGoal,
   FinanceScenario,
@@ -228,6 +231,21 @@ export function useFinanceCreates({
     [isLive, orgId, hasSupabase, reload, setState],
   )
 
+  const addEntity = useCallback(
+    async (item: Omit<FinanceLegalEntity, 'id'>) => {
+      if (!isLive || !orgId) return null
+      if (hasSupabase) {
+        const created = await addEntityInSupabase(orgId, item)
+        await reload()
+        return created
+      }
+      const created = addEntityLocalApi(orgId, item)
+      setState(loadFullStateLocalApi(orgId))
+      return created
+    },
+    [isLive, orgId, hasSupabase, reload, setState],
+  )
+
   const addBankAccount = useCallback(
     async (item: Omit<FinanceBankAccount, 'id'>) => {
       if (!isLive || !orgId) return null
@@ -300,6 +318,7 @@ export function useFinanceCreates({
     freezeForecast,
     updateForecastPeriods,
     addExternalAction,
+    addEntity,
     addBankAccount,
     addLedgerAccount,
     addParty,

@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import {
   Banknote,
   BookOpen,
+  Building2,
   Calculator,
   FileText,
   LayoutDashboard,
@@ -28,6 +29,7 @@ interface FinanceTab {
 
 const TABS: FinanceTab[] = [
   { key: 'overview', to: 'overview', label: 'finance_tab_overview', icon: LayoutDashboard },
+  { key: 'entities', to: 'entities', label: 'finance_tab_entities', icon: Building2 },
   { key: 'transactions', to: 'transactions', label: 'finance_tab_transactions', icon: Receipt },
   { key: 'sales', to: 'sales', label: 'finance_tab_sales', icon: FileText },
   { key: 'purchases', to: 'purchases', label: 'finance_tab_purchases', icon: ShoppingBag },

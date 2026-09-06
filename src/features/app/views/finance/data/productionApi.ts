@@ -14,6 +14,7 @@ import type {
   FinanceJournal,
   FinanceJournalLine,
   FinanceLedgerAccount,
+  FinanceLegalEntity,
   FinanceObligationStatus,
   FinanceParty,
   FinancePayRun,
@@ -559,6 +560,12 @@ export function addTaxScenario(orgId: string, ts: Omit<FinanceTaxScenario, 'id'>
 export function addExternalAction(orgId: string, ea: Omit<FinanceExternalAction, 'id'>): FinanceExternalAction {
   const created: FinanceExternalAction = { ...ea, id: `ea-${Date.now()}` }
   updateState(orgId, (state) => ({ ...state, externalActions: [created, ...state.externalActions] }))
+  return created
+}
+
+export function addEntity(orgId: string, item: Omit<FinanceLegalEntity, 'id'>): FinanceLegalEntity {
+  const created: FinanceLegalEntity = { ...item, id: `ent-${Date.now()}` }
+  updateState(orgId, (state) => ({ ...state, entities: [...state.entities, created] }))
   return created
 }
 

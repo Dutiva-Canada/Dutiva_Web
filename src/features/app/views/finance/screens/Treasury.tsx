@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
+import { NavLink } from 'react-router-dom'
 import { statusChipClass } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
@@ -34,7 +35,15 @@ export function Treasury() {
             entities={state.entities}
           />
         )}
-        {state.bankAccounts.length === 0 && !showBankForm ? (
+        {!showBankForm && state.bankAccounts.length === 0 && state.entities.length === 0 && (
+          <p className="rounded-[8px] bg-inset p-[10px] text-[13px] text-text-muted">
+            {x(M.finance_entity_empty)}{' '}
+            <NavLink to="entities" className="font-semibold text-accent hover:underline">
+              {x(M.finance_tab_entities)}
+            </NavLink>
+          </p>
+        )}
+        {state.bankAccounts.length === 0 && !showBankForm && state.entities.length > 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_none)}</p>
         ) : (
           <ul className="m-0 flex flex-col gap-[10px] p-0">
@@ -343,6 +352,17 @@ function BankAccountForm({
   const [restricted, setRestricted] = useState(false)
   const [earmarkedAmount, setEarmarkedAmount] = useState('')
   const [maturityDate, setMaturityDate] = useState('')
+
+  if (entities.length === 0) {
+    return (
+      <p className="rounded-[8px] bg-inset p-[10px] text-[13px] text-text-muted">
+        {x(M.finance_entity_select_prompt)}{' '}
+        <NavLink to="entities" className="font-semibold text-accent hover:underline">
+          {x(M.finance_tab_entities)}
+        </NavLink>
+      </p>
+    )
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

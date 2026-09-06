@@ -73,6 +73,7 @@ import {
 /* prettier-ignore */ const CommsSettings = lazy(() => import('@/features/app/views/comms/screens/Settings').then((m) => ({ default: m.Settings })))
 /* Finance workspace screens */
 /* prettier-ignore */ const FinanceOverview = lazy(() => import('@/features/app/views/finance/screens/Overview').then((m) => ({ default: m.Overview })))
+/* prettier-ignore */ const FinanceEntities = lazy(() => import('@/features/app/views/finance/screens/Entities').then((m) => ({ default: m.Entities })))
 /* prettier-ignore */ const FinanceTransactions = lazy(() => import('@/features/app/views/finance/screens/Transactions').then((m) => ({ default: m.Transactions })))
 /* prettier-ignore */ const FinanceSales = lazy(() => import('@/features/app/views/finance/screens/Sales').then((m) => ({ default: m.Sales })))
 /* prettier-ignore */ const FinancePurchases = lazy(() => import('@/features/app/views/finance/screens/Purchases').then((m) => ({ default: m.Purchases })))
@@ -172,6 +173,7 @@ function createAppViewRoutes(root: string): RouteObject[] {
       children: [
         { index: true, loader: () => redirect(r('finance/overview')) },
         { path: 'overview', element: <FinanceOverview /> },
+        { path: 'entities', element: <FinanceEntities /> },
         { path: 'transactions', element: <FinanceTransactions /> },
         { path: 'sales', element: <FinanceSales /> },
         { path: 'purchases', element: <FinancePurchases /> },
