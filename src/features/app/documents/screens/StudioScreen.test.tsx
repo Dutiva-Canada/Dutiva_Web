@@ -37,6 +37,7 @@ const renderStudio = () =>
 
 describe('StudioScreen', () => {
   beforeEach(() => {
+    localStorage.clear()
     stubDesktopLayout()
   })
 
