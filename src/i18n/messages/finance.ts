@@ -343,4 +343,43 @@ export const financeMessages = defineMessages({
 
   /* External actions section in Tax */
   finance_tax_external_actions: { en: 'External actions', fr: 'Actions externes' },
+
+  /* Create invoice form */
+  finance_invoice_create: { en: 'New invoice', fr: 'Nouvelle facture' },
+  finance_invoice_number: { en: 'Invoice number', fr: 'Numéro de facture' },
+  finance_invoice_customer: { en: 'Customer', fr: 'Client' },
+  finance_invoice_issue_date: { en: 'Issue date', fr: 'Date d\'émission' },
+  finance_invoice_due_date: { en: 'Due date', fr: 'Date d\'échéance' },
+  finance_invoice_subtotal: { en: 'Subtotal', fr: 'Sous-total' },
+  finance_invoice_tax: { en: 'Tax', fr: 'Taxe' },
+  finance_invoice_total: { en: 'Total', fr: 'Total' },
+  finance_invoice_entity: { en: 'Entity', fr: 'Entité' },
+
+  /* Create journal form */
+  finance_journal_create: { en: 'New journal entry', fr: 'Nouvelle écriture' },
+  finance_journal_number: { en: 'Journal number', fr: 'Numéro de journal' },
+  finance_journal_date: { en: 'Date', fr: 'Date' },
+  finance_journal_description: { en: 'Description', fr: 'Description' },
+  finance_journal_book: { en: 'Book', fr: 'Livre' },
+  finance_journal_source: { en: 'Source', fr: 'Source' },
+  finance_journal_lines: { en: 'Lines', fr: 'Lignes' },
+  finance_journal_add_line: { en: 'Add line', fr: 'Ajouter une ligne' },
+  finance_journal_account: { en: 'Account', fr: 'Compte' },
+  finance_journal_debit: { en: 'Debit', fr: 'Débit' },
+  finance_journal_credit: { en: 'Credit', fr: 'Crédit' },
+
+  /* Create spend request form */
+  finance_spend_create: { en: 'New spend request', fr: 'Nouvelle demande de dépense' },
+  finance_spend_purpose: { en: 'Purpose', fr: 'Objet' },
+  finance_spend_requester: { en: 'Requester', fr: 'Demandeur' },
+  finance_spend_supplier: { en: 'Supplier', fr: 'Fournisseur' },
+  finance_spend_amount: { en: 'Amount', fr: 'Montant' },
+
+  /* Tax scenario actions */
+  finance_tax_scenario_review: { en: 'Mark reviewed', fr: 'Marquer révisé' },
+  finance_tax_scenario_accept: { en: 'Accept', fr: 'Accepter' },
+  finance_tax_scenario_mark_stale: { en: 'Mark stale', fr: 'Marquer obsolète' },
+
+  /* Payroll liability settlement */
+  finance_payroll_settle_liability: { en: 'Mark settled', fr: 'Marquer réglé' },
 })

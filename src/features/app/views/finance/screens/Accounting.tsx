@@ -1,9 +1,11 @@
+import { useState } from 'react'
+import { Plus } from 'lucide-react'
 import { statusChipClass } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
 import { JOURNAL_STATUS_LABEL } from '../financeLabels'
-import type { FinanceClosePeriod, FinanceJournalStatus } from '../data/types'
+import type { FinanceClosePeriod, FinanceCurrency, FinanceJournal, FinanceJournalLine, FinanceJournalStatus } from '../data/types'
 
 const JOURNAL_ACTIONS: Record<FinanceJournalStatus, { status: FinanceJournalStatus; label: keyof typeof M }[]> = {
   draft: [{ status: 'posted', label: 'finance_journal_post' }],
@@ -29,7 +31,8 @@ const CLOSE_PERIOD_ACTIONS: Record<
 
 export function Accounting() {
   const { x } = useI18n()
-  const { state, canWrite, transitionJournalStatus, transitionClosePeriodStatus } = useFinanceData()
+  const { state, canWrite, transitionJournalStatus, transitionClosePeriodStatus, addJournal } = useFinanceData()
+  const [showJournalForm, setShowJournalForm] = useState(false)
 
   const accountName = (id: string) => {
     const acct = state.ledgerAccounts.find((a) => a.id === id)
@@ -73,7 +76,30 @@ export function Accounting() {
       </section>
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_accounting_journals)}</h2>
+        <div className="mb-[12px] flex items-center justify-between">
+          <h2 className="text-[15px] font-semibold text-text">{x(M.finance_accounting_journals)}</h2>
+          {canWrite && (
+            <button
+              type="button"
+              onClick={() => setShowJournalForm((v) => !v)}
+              className="flex items-center gap-[6px] text-[13px] font-semibold text-accent"
+            >
+              <Plus size={14} />
+              {x(M.finance_journal_create)}
+            </button>
+          )}
+        </div>
+        {showJournalForm && canWrite && (
+          <JournalForm
+            onSubmit={(jrnl) => {
+              addJournal(jrnl)
+              setShowJournalForm(false)
+            }}
+            onCancel={() => setShowJournalForm(false)}
+            books={state.books}
+            ledgerAccounts={state.ledgerAccounts}
+          />
+        )}
         {state.journals.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_accounting_no_journals)}</p>
         ) : (
@@ -192,5 +218,114 @@ export function Accounting() {
         </section>
       )}
     </div>
+  )
+}
+
+function JournalForm({
+  onSubmit,
+  onCancel,
+  books,
+  ledgerAccounts,
+}: {
+  onSubmit: (jrnl: Omit<FinanceJournal, 'id' | 'balanced'>) => void
+  onCancel: () => void
+  books: import('../data/types').FinanceBook[]
+  ledgerAccounts: import('../data/types').FinanceLedgerAccount[]
+}) {
+  const { x } = useI18n()
+  const [bookId, setBookId] = useState(books[0]?.id ?? '')
+  const [number, setNumber] = useState('')
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10))
+  const [description, setDescription] = useState('')
+  const [currency] = useState<FinanceCurrency>('CAD')
+  const [lines, setLines] = useState<FinanceJournalLine[]>([
+    { accountId: ledgerAccounts[0]?.id ?? '', debit: '0.00', credit: '0.00' },
+    { accountId: ledgerAccounts[1]?.id ?? '', debit: '0.00', credit: '0.00' },
+  ])
+
+  const totalDebit = lines.reduce((s, l) => s + Number(l.debit), 0).toFixed(2)
+  const totalCredit = lines.reduce((s, l) => s + Number(l.credit), 0).toFixed(2)
+  const balanced = Math.abs(Number(totalDebit) - Number(totalCredit)) < 0.005
+
+  const updateLine = (idx: number, patch: Partial<FinanceJournalLine>) => {
+    setLines((prev) => prev.map((l, i) => (i === idx ? { ...l, ...patch } : l)))
+  }
+  const addLine = () => setLines((prev) => [...prev, { accountId: ledgerAccounts[0]?.id ?? '', debit: '0.00', credit: '0.00' }])
+  const removeLine = (idx: number) => setLines((prev) => prev.filter((_, i) => i !== idx))
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSubmit({
+      bookId,
+      number: number || `JE-${Date.now()}`,
+      date,
+      description: { en: description, fr: description },
+      lines,
+      currency,
+      status: 'draft' as FinanceJournalStatus,
+      source: 'manual',
+    })
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mb-[16px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]">
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_journal_book)}</span>
+          <select value={bookId} onChange={(e) => setBookId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+            {books.map((b) => (
+              <option key={b.id} value={b.id}>{b.label.en}</option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_journal_number)}</span>
+          <input value={number} onChange={(e) => setNumber(e.target.value)} placeholder={`JE-${Date.now()}`} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+      </div>
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_journal_date)}</span>
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_journal_description)}</span>
+          <input value={description} onChange={(e) => setDescription(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+      </div>
+      <div>
+        <div className="mb-[6px] text-[12px] font-semibold text-text-muted">{x(M.finance_journal_lines)}</div>
+        <div className="flex flex-col gap-[6px]">
+          {lines.map((line, idx) => (
+            <div key={idx} className="grid grid-cols-[1fr_80px_80px_28px] items-center gap-[6px]">
+              <select value={line.accountId} onChange={(e) => updateLine(idx, { accountId: e.target.value })} className="rounded-[6px] border border-border bg-surface px-[6px] py-[3px] text-[12px]">
+                {ledgerAccounts.map((a) => (
+                  <option key={a.id} value={a.id}>{a.code} — {a.name.en}</option>
+                ))}
+              </select>
+              <input value={line.debit} onChange={(e) => updateLine(idx, { debit: e.target.value })} placeholder="0.00" className="rounded-[6px] border border-border bg-surface px-[6px] py-[3px] text-[12px]" />
+              <input value={line.credit} onChange={(e) => updateLine(idx, { credit: e.target.value })} placeholder="0.00" className="rounded-[6px] border border-border bg-surface px-[6px] py-[3px] text-[12px]" />
+              <button type="button" onClick={() => removeLine(idx)} className="text-[14px] text-text-muted hover:text-risk-fg">×</button>
+            </div>
+          ))}
+        </div>
+        <button type="button" onClick={addLine} className="mt-[6px] text-[12px] font-semibold text-accent">
+          + {x(M.finance_journal_add_line)}
+        </button>
+      </div>
+      <div className="flex items-center justify-between">
+        <span className={`text-[12px] font-semibold ${balanced ? 'text-success-fg' : 'text-risk-fg'}`}>
+          {x(M.finance_journal_debit)}: {totalDebit} · {x(M.finance_journal_credit)}: {totalCredit}
+        </span>
+        <div className="flex gap-[8px]">
+          <button type="button" onClick={onCancel} className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border">
+            {x(M.finance_cancel)}
+          </button>
+          <button type="submit" className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">
+            {x(M.finance_save)}
+          </button>
+        </div>
+      </div>
+    </form>
   )
 }

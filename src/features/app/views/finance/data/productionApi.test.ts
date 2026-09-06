@@ -6,6 +6,7 @@ import {
   loadFinanceState,
   markTaxScenarioStale,
   reviseBudget,
+  settlePayrollLiability,
   transitionBankItemMatchStatus,
   transitionBillStatus,
   transitionClosePeriodStatus,
@@ -17,6 +18,7 @@ import {
   transitionPayRunStatus,
   transitionReconciliationStatus,
   transitionSpendRequestStatus,
+  transitionTaxScenarioStatus,
 } from './productionApi'
 import type { FinanceJournalLine } from './types'
 
@@ -316,5 +318,47 @@ describe('deadlineState', () => {
   it('returns ok for a date beyond 7 days', () => {
     const future = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
     expect(deadlineState(future)).toBe('ok')
+  })
+})
+
+describe('transitionTaxScenarioStatus', () => {
+  it('transitions a draft tax scenario to reviewed', () => {
+    const state = loadFinanceState(ORG)
+    const ts = state.taxScenarios.find((t) => t.status === 'draft')
+    if (!ts) return
+    const updated = transitionTaxScenarioStatus(ORG, ts.id, 'reviewed', 'Test reviewer')
+    expect(updated).not.toBeNull()
+    expect(updated?.status).toBe('reviewed')
+    expect(updated?.reviewer).toBe('Test reviewer')
+  })
+
+  it('rejects invalid transitions', () => {
+    const state = loadFinanceState(ORG)
+    const ts = state.taxScenarios.find((t) => t.status === 'draft')
+    if (!ts) return
+    const updated = transitionTaxScenarioStatus(ORG, ts.id, 'accepted')
+    expect(updated).toBeNull()
+  })
+})
+
+describe('settlePayrollLiability', () => {
+  it('settles an outstanding payroll liability', () => {
+    const state = loadFinanceState(ORG)
+    const liab = state.payrollLiabilities.find((l) => !l.settled)
+    if (!liab) return
+    const updated = settlePayrollLiability(ORG, liab.id)
+    expect(updated).not.toBeNull()
+    expect(updated?.settled).toBe(true)
+    expect(updated?.settledAt).toBeDefined()
+  })
+
+  it('does not re-settle an already settled liability', () => {
+    const state = loadFinanceState(ORG)
+    const liab = state.payrollLiabilities.find((l) => !l.settled)
+    if (!liab) return
+    settlePayrollLiability(ORG, liab.id)
+    const updated = settlePayrollLiability(ORG, liab.id)
+    // Already settled — the function returns null
+    expect(updated).toBeNull()
   })
 })

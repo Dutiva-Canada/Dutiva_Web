@@ -16,6 +16,7 @@ import {
   reviseBudget as reviseBudgetLocalApi,
   transitionBankItemMatchStatus as transitionBankItemMatchStatusLocalApi,
   transitionBillStatus as transitionBillStatusLocalApi,
+  transitionTaxScenarioStatus as transitionTaxScenarioStatusLocalApi,
   transitionClosePeriodStatus as transitionClosePeriodStatusLocalApi,
   transitionExpenseStatus as transitionExpenseStatusLocalApi,
   transitionExternalActionStatus as transitionExternalActionStatusLocalApi,
@@ -24,6 +25,7 @@ import {
   transitionObligationStatus as transitionObligationStatusLocalApi,
   transitionPayRunStatus as transitionPayRunStatusLocalApi,
   transitionReconciliationStatus as transitionReconciliationStatusLocalApi,
+  settlePayrollLiability as settlePayrollLiabilityLocalApi,
   transitionSpendRequestStatus as transitionSpendRequestStatusLocalApi,
 } from './productionApi'
 import {
@@ -35,8 +37,10 @@ import {
   insertTaxScenario as insertTaxScenarioSupa,
   isJournalBalanced as isJournalBalancedSupa,
   loadFinanceStateFromSupabase,
+  settlePayrollLiabilityInSupabase,
   markTaxScenarioStaleInSupabase,
   reviseBudgetInSupabase,
+  transitionTaxScenarioStatusInSupabase,
   updateBankItemMatchStatus as updateBankItemMatchStatusSupa,
   updateBillStatus as updateBillStatusSupa,
   updateClosePeriodStatus as updateClosePeriodStatusSupa,
@@ -185,6 +189,21 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
     [isLive, orgId, hasSupabase, reload],
   )
 
+  const settlePayrollLiability = useCallback(
+    async (id: string) => {
+      if (!isLive || !orgId) return null
+      if (hasSupabase) {
+        const updated = await settlePayrollLiabilityInSupabase(orgId, id)
+        await reload()
+        return updated
+      }
+      const updated = settlePayrollLiabilityLocalApi(orgId, id)
+      if (updated) setState(loadFullStateLocalApi(orgId))
+      return updated
+    },
+    [isLive, orgId, hasSupabase, reload],
+  )
+
   const addTaxObligation = useCallback(
     async (item: Omit<FinanceTaxObligation, 'id'>) => {
       if (!isLive || !orgId) return null
@@ -269,6 +288,21 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
         return updated
       }
       const updated = markTaxScenarioStaleLocalApi(orgId, id, reason)
+      if (updated) setState(loadFullStateLocalApi(orgId))
+      return updated
+    },
+    [isLive, orgId, hasSupabase, reload],
+  )
+
+  const transitionTaxScenarioStatus = useCallback(
+    async (id: string, nextStatus: FinanceTaxScenario['status'], reviewer?: string) => {
+      if (!isLive || !orgId) return null
+      if (hasSupabase) {
+        const updated = await transitionTaxScenarioStatusInSupabase(orgId, id, nextStatus, reviewer)
+        await reload()
+        return updated
+      }
+      const updated = transitionTaxScenarioStatusLocalApi(orgId, id, nextStatus, reviewer)
       if (updated) setState(loadFullStateLocalApi(orgId))
       return updated
     },
@@ -426,12 +460,14 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
       addJournal,
       isJournalBalanced,
       transitionPayRunStatus,
+      settlePayrollLiability,
       addTaxObligation,
       transitionObligationStatus,
       addBudget,
       reviseBudget,
       addTaxScenario,
       markTaxScenarioStale,
+      transitionTaxScenarioStatus,
       transitionExternalActionStatus,
       isPeriodLocked,
       transitionInvoiceStatus,
@@ -453,12 +489,14 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
       addJournal,
       isJournalBalanced,
       transitionPayRunStatus,
+      settlePayrollLiability,
       addTaxObligation,
       transitionObligationStatus,
       addBudget,
       reviseBudget,
       addTaxScenario,
       markTaxScenarioStale,
+      transitionTaxScenarioStatus,
       transitionExternalActionStatus,
       isPeriodLocked,
       transitionInvoiceStatus,

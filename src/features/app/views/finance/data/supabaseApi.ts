@@ -13,7 +13,6 @@ import type {
   FinanceObligationStatus,
   FinancePayRun,
   FinancePayRunStatus,
-  FinanceReceipt,
   FinanceReconciliation,
   FinanceSpendRequest,
   FinanceTaxObligation,
@@ -330,6 +329,27 @@ export async function updatePayRunStatus(
   return mapPayRun(data as Record<string, unknown>)
 }
 
+export async function settlePayrollLiabilityInSupabase(
+  orgId: string,
+  id: string,
+): Promise<import('./types').FinancePayrollLiability | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.payrollLiabilities)
+    .update({
+      settled: true,
+      settled_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('organization_id', orgId)
+    .eq('id', id)
+    .eq('settled', false)
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapPayrollLiability(data as Record<string, unknown>)
+}
+
 export async function insertTaxObligation(orgId: string, item: Omit<FinanceTaxObligation, 'id'>): Promise<FinanceTaxObligation | null> {
   if (!supabase) return null
   const { data, error } = await supabase
@@ -477,6 +497,29 @@ export async function markTaxScenarioStaleInSupabase(orgId: string, id: string, 
   return mapTaxScenario(data as Record<string, unknown>)
 }
 
+export async function transitionTaxScenarioStatusInSupabase(
+  orgId: string,
+  id: string,
+  status: FinanceTaxScenario['status'],
+  reviewer?: string,
+): Promise<FinanceTaxScenario | null> {
+  if (!supabase) return null
+  const patch: Record<string, unknown> = { status, updated_at: new Date().toISOString() }
+  if (reviewer && (status === 'reviewed' || status === 'accepted')) {
+    patch.reviewer = reviewer
+    patch.reviewed_at = new Date().toISOString()
+  }
+  const { data, error } = await supabase
+    .from(TABLES.taxScenarios)
+    .update(patch)
+    .eq('organization_id', orgId)
+    .eq('id', id)
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapTaxScenario(data as Record<string, unknown>)
+}
+
 export async function updateExternalActionStatus(
   orgId: string,
   id: string,
@@ -498,92 +541,14 @@ export async function updateExternalActionStatus(
   return mapExternalAction(data as Record<string, unknown>)
 }
 
-/* ---------- Evidence / receipt storage ---------- */
-
-const EVIDENCE_BUCKET = 'finance-evidence'
-
-export function financeEvidencePath(
-  organizationId: string,
-  entityId: string,
-  receiptId: string,
-  ext: string,
-): string {
-  return `${organizationId}/${entityId}/${receiptId}.${ext}`
-}
-
-export async function uploadReceiptFile(
-  organizationId: string,
-  entityId: string,
-  receiptId: string,
-  file: File,
-): Promise<{ storagePath: string; sha256: string; sizeBytes: number }> {
-  if (!supabase) throw new Error('Supabase is not configured')
-  const ext = file.name.split('.').pop()?.toLowerCase() ?? 'bin'
-  const storagePath = financeEvidencePath(organizationId, entityId, receiptId, ext)
-  const { error } = await supabase.storage
-    .from(EVIDENCE_BUCKET)
-    .upload(storagePath, file, { contentType: file.type || 'application/octet-stream', upsert: false })
-  if (error) throw error
-  // SHA-256 is computed server-side by the edge function in a future phase;
-  // for now we record size only.
-  return { storagePath, sha256: '', sizeBytes: file.size }
-}
-
-export async function createReceiptDownloadUrl(storagePath: string, expiresInSeconds = 3600): Promise<string> {
-  if (!supabase) throw new Error('Supabase is not configured')
-  const { data, error } = await supabase.storage.from(EVIDENCE_BUCKET).createSignedUrl(storagePath, expiresInSeconds)
-  if (error) throw error
-  if (!data?.signedUrl) throw new Error('Could not create download URL')
-  return data.signedUrl
-}
-
-export async function insertReceipt(
-  orgId: string,
-  item: Omit<FinanceReceipt, 'id'> & { storagePath: string; sha256?: string; sizeBytes?: number; contentType?: string },
-): Promise<FinanceReceipt | null> {
-  if (!supabase) return null
-  const { data, error } = await supabase
-    .from(TABLES.receipts)
-    .insert({
-      organization_id: orgId,
-      entity_id: item.entityId,
-      bill_id: item.billId,
-      expense_id: item.expenseId,
-      file_name: item.fileName,
-      storage_path: item.storagePath,
-      file_sha256: item.sha256 ?? null,
-      size_bytes: item.sizeBytes ?? null,
-      content_type: item.contentType ?? 'application/octet-stream',
-      uploaded_at: item.uploadedAt,
-      reviewed: item.reviewed,
-    })
-    .select('*')
-    .single()
-  if (error) throw error
-  return mapReceipt(data as Record<string, unknown>)
-}
-
-export async function markReceiptReviewed(
-  orgId: string,
-  id: string,
-  reviewer: string,
-): Promise<FinanceReceipt | null> {
-  if (!supabase) return null
-  const { data, error } = await supabase
-    .from(TABLES.receipts)
-    .update({
-      reviewed: true,
-      reviewed_by: reviewer,
-      reviewed_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq('organization_id', orgId)
-    .eq('id', id)
-    .select('*')
-    .single()
-  if (error) throw error
-  return mapReceipt(data as Record<string, unknown>)
-}
+/* ---------- Evidence / receipt storage (re-exported from supabaseEvidence) ---------- */
+export {
+  financeEvidencePath,
+  uploadReceiptFile,
+  createReceiptDownloadUrl,
+  insertReceipt,
+  markReceiptReviewed,
+} from './supabaseEvidence'
 
 /* ---------- Journal balance check (shared) ---------- */
 

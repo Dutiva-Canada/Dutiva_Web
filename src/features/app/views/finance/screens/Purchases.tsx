@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
+import { Plus } from 'lucide-react'
 import { statusChipClass } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
 import { CURRENCY_LABEL, REQUEST_STATUS_LABEL } from '../financeLabels'
-import type { FinanceBillStatus, FinanceExpenseStatus, FinanceRequestStatus } from '../data/types'
+import type { FinanceBillStatus, FinanceCurrency, FinanceExpenseStatus, FinanceRequestStatus } from '../data/types'
 
 const FILTERS: ('all' | FinanceRequestStatus)[] = [
   'all', 'draft', 'submitted', 'approved', 'rejected', 'committed', 'cancelled',
@@ -53,8 +54,9 @@ const EXPENSE_TRANSITIONS: Record<FinanceExpenseStatus, { status: FinanceExpense
 
 export function Purchases() {
   const { x } = useI18n()
-  const { state, canWrite, transitionSpendRequestStatus, transitionBillStatus, transitionExpenseStatus } = useFinanceData()
+  const { state, canWrite, transitionSpendRequestStatus, transitionBillStatus, transitionExpenseStatus, addSpendRequest } = useFinanceData()
   const [filter, setFilter] = useState<'all' | FinanceRequestStatus>('all')
+  const [showForm, setShowForm] = useState(false)
 
   const requests = useMemo(
     () => (filter === 'all' ? state.spendRequests : state.spendRequests.filter((sr) => sr.status === filter)),
@@ -65,6 +67,30 @@ export function Purchases() {
 
   return (
     <div className="flex flex-col gap-[16px]">
+      {canWrite && (
+        <section className="rounded-[12px] border border-border bg-surface p-[16px]">
+          <button
+            type="button"
+            onClick={() => setShowForm((v) => !v)}
+            className="flex items-center gap-[6px] text-[13px] font-semibold text-accent"
+          >
+            <Plus size={14} />
+            {x(M.finance_spend_create)}
+          </button>
+          {showForm && (
+            <SpendRequestForm
+              onSubmit={(req) => {
+                addSpendRequest(req)
+                setShowForm(false)
+              }}
+              onCancel={() => setShowForm(false)}
+              entities={state.entities}
+              suppliers={state.parties.filter((p) => p.type === 'supplier')}
+            />
+          )}
+        </section>
+      )}
+
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
         <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_purchases_requests)}</h2>
         <div className="mb-[12px] flex flex-wrap gap-[6px]">
@@ -274,5 +300,85 @@ export function Purchases() {
         )}
       </section>
     </div>
+  )
+}
+
+function SpendRequestForm({
+  onSubmit,
+  onCancel,
+  entities,
+  suppliers,
+}: {
+  onSubmit: (req: Omit<import('../data/types').FinanceSpendRequest, 'id'>) => void
+  onCancel: () => void
+  entities: import('../data/types').FinanceLegalEntity[]
+  suppliers: import('../data/types').FinanceParty[]
+}) {
+  const { x } = useI18n()
+  const [entityId, setEntityId] = useState(entities[0]?.id ?? '')
+  const [requester, setRequester] = useState('')
+  const [purpose, setPurpose] = useState('')
+  const [supplierId, setSupplierId] = useState(suppliers[0]?.id ?? '')
+  const [amount, setAmount] = useState('0.00')
+  const [currency] = useState<FinanceCurrency>('CAD')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSubmit({
+      entityId,
+      requester: requester || 'Workspace user',
+      purpose: { en: purpose, fr: purpose },
+      supplierId: supplierId || undefined,
+      amount: Number(amount).toFixed(2),
+      currency,
+      status: 'draft',
+      submittedAt: new Date().toISOString(),
+    })
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mt-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]">
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_invoice_entity)}</span>
+          <select value={entityId} onChange={(e) => setEntityId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+            {entities.map((ent) => (
+              <option key={ent.id} value={ent.id}>{ent.legalName}</option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_spend_requester)}</span>
+          <input value={requester} onChange={(e) => setRequester(e.target.value)} placeholder="Workspace user" className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+      </div>
+      <label className="flex flex-col gap-[4px]">
+        <span className="text-[12px] text-text-muted">{x(M.finance_spend_purpose)}</span>
+        <input value={purpose} onChange={(e) => setPurpose(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+      </label>
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_spend_supplier)}</span>
+          <select value={supplierId} onChange={(e) => setSupplierId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+            <option value="">—</option>
+            {suppliers.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_spend_amount)}</span>
+          <input value={amount} onChange={(e) => setAmount(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+      </div>
+      <div className="flex justify-end gap-[8px]">
+        <button type="button" onClick={onCancel} className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border">
+          {x(M.finance_cancel)}
+        </button>
+        <button type="submit" className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">
+          {x(M.finance_save)}
+        </button>
+      </div>
+    </form>
   )
 }

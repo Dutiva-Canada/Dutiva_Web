@@ -16,6 +16,7 @@ import type {
   FinanceObligationStatus,
   FinancePayRun,
   FinancePayRunStatus,
+  FinancePayrollLiability,
   FinanceReconciliation,
   FinanceSpendRequest,
   FinanceTaxObligation,
@@ -207,6 +208,22 @@ export function transitionPayRunStatus(
   return result
 }
 
+/* ---------- Payroll liability settlement ---------- */
+
+export function settlePayrollLiability(orgId: string, id: string): FinancePayrollLiability | null {
+  let result: FinancePayrollLiability | null = null
+  updateState(orgId, (state) => ({
+    ...state,
+    payrollLiabilities: state.payrollLiabilities.map((liab): FinancePayrollLiability => {
+      if (liab.id !== id) return liab
+      if (liab.settled) return liab
+      result = { ...liab, settled: true, settledAt: new Date().toISOString() }
+      return result
+    }),
+  }))
+  return result
+}
+
 /* ---------- Tax obligation lifecycle ---------- */
 
 const OBLIGATION_TRANSITIONS: Record<FinanceObligationStatus, FinanceObligationStatus[]> = {
@@ -311,6 +328,39 @@ export function markTaxScenarioStale(orgId: string, id: string, reason: string):
     taxScenarios: state.taxScenarios.map((ts): FinanceTaxScenario => {
       if (ts.id !== id) return ts
       result = { ...ts, status: 'stale', staleReason: { en: reason, fr: reason } }
+      return result
+    }),
+  }))
+  return result
+}
+
+/* ---------- Tax scenario status transitions ---------- */
+
+const TAX_SCENARIO_TRANSITIONS: Record<FinanceTaxScenario['status'], FinanceTaxScenario['status'][]> = {
+  draft: ['reviewed'],
+  reviewed: ['accepted', 'draft'],
+  accepted: [],
+  stale: [],
+}
+
+export function transitionTaxScenarioStatus(
+  orgId: string,
+  id: string,
+  status: FinanceTaxScenario['status'],
+  reviewer?: string,
+): FinanceTaxScenario | null {
+  let result: FinanceTaxScenario | null = null
+  updateState(orgId, (state) => ({
+    ...state,
+    taxScenarios: state.taxScenarios.map((ts): FinanceTaxScenario => {
+      if (ts.id !== id) return ts
+      if (!TAX_SCENARIO_TRANSITIONS[ts.status]?.includes(status)) return ts
+      result = {
+        ...ts,
+        status,
+        reviewer: reviewer ?? ts.reviewer,
+        reviewedAt: status === 'reviewed' || status === 'accepted' ? new Date().toISOString() : ts.reviewedAt,
+      }
       return result
     }),
   }))

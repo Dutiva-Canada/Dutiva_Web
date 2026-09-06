@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
+import { Plus } from 'lucide-react'
 import { statusChipClass } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
 import { CURRENCY_LABEL, INVOICE_STATUS_LABEL } from '../financeLabels'
-import type { FinanceInvoiceStatus } from '../data/types'
+import type { FinanceCurrency, FinanceInvoiceStatus } from '../data/types'
 
 const FILTERS: ('all' | FinanceInvoiceStatus)[] = [
   'all', 'draft', 'issued', 'partial', 'paid', 'overdue', 'disputed', 'written_off', 'cancelled',
@@ -41,8 +42,9 @@ const VALID_TRANSITIONS: Record<FinanceInvoiceStatus, { status: FinanceInvoiceSt
 
 export function Sales() {
   const { x } = useI18n()
-  const { state, canWrite, transitionInvoiceStatus } = useFinanceData()
+  const { state, canWrite, transitionInvoiceStatus, addInvoice } = useFinanceData()
   const [filter, setFilter] = useState<'all' | FinanceInvoiceStatus>('all')
+  const [showForm, setShowForm] = useState(false)
 
   const invoices = useMemo(
     () => (filter === 'all' ? state.invoices : state.invoices.filter((inv) => inv.status === filter)),
@@ -53,6 +55,30 @@ export function Sales() {
 
   return (
     <div className="flex flex-col gap-[16px]">
+      {canWrite && (
+        <section className="rounded-[12px] border border-border bg-surface p-[16px]">
+          <button
+            type="button"
+            onClick={() => setShowForm((v) => !v)}
+            className="flex items-center gap-[6px] text-[13px] font-semibold text-accent"
+          >
+            <Plus size={14} />
+            {x(M.finance_invoice_create)}
+          </button>
+          {showForm && (
+            <InvoiceForm
+              onSubmit={(inv) => {
+                addInvoice(inv)
+                setShowForm(false)
+              }}
+              onCancel={() => setShowForm(false)}
+              entities={state.entities}
+              customers={state.parties.filter((p) => p.type === 'customer')}
+            />
+          )}
+        </section>
+      )}
+
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
         <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_sales_invoices)}</h2>
         <div className="mb-[12px] flex flex-wrap gap-[6px]">
@@ -141,5 +167,104 @@ export function Sales() {
         )}
       </section>
     </div>
+  )
+}
+
+function InvoiceForm({
+  onSubmit,
+  onCancel,
+  entities,
+  customers,
+}: {
+  onSubmit: (inv: Omit<import('../data/types').FinanceInvoice, 'id'>) => void
+  onCancel: () => void
+  entities: import('../data/types').FinanceLegalEntity[]
+  customers: import('../data/types').FinanceParty[]
+}) {
+  const { x } = useI18n()
+  const [entityId, setEntityId] = useState(entities[0]?.id ?? '')
+  const [customerId, setCustomerId] = useState(customers[0]?.id ?? '')
+  const [number, setNumber] = useState('')
+  const [issueDate, setIssueDate] = useState(new Date().toISOString().slice(0, 10))
+  const [dueDate, setDueDate] = useState('')
+  const [subtotal, setSubtotal] = useState('0.00')
+  const [taxTotal, setTaxTotal] = useState('0.00')
+  const [currency] = useState<FinanceCurrency>('CAD')
+
+  const total = (Number(subtotal) + Number(taxTotal)).toFixed(2)
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSubmit({
+      entityId,
+      customerId,
+      number: number || `INV-${Date.now()}`,
+      issueDate,
+      dueDate: dueDate || issueDate,
+      currency,
+      subtotal: Number(subtotal).toFixed(2),
+      taxTotal: Number(taxTotal).toFixed(2),
+      total,
+      paidAmount: '0.00',
+      status: 'draft',
+    })
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mt-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]">
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_invoice_entity)}</span>
+          <select value={entityId} onChange={(e) => setEntityId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+            {entities.map((ent) => (
+              <option key={ent.id} value={ent.id}>{ent.legalName}</option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_invoice_customer)}</span>
+          <select value={customerId} onChange={(e) => setCustomerId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+            {customers.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_invoice_number)}</span>
+          <input value={number} onChange={(e) => setNumber(e.target.value)} placeholder={`INV-${Date.now()}`} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_invoice_issue_date)}</span>
+          <input type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+      </div>
+      <div className="grid grid-cols-3 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_invoice_due_date)}</span>
+          <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_invoice_subtotal)}</span>
+          <input value={subtotal} onChange={(e) => setSubtotal(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_invoice_tax)}</span>
+          <input value={taxTotal} onChange={(e) => setTaxTotal(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+      </div>
+      <div className="flex items-center justify-between">
+        <span className="text-[13px] font-semibold text-text">{x(M.finance_invoice_total)}: {currency} {total}</span>
+        <div className="flex gap-[8px]">
+          <button type="button" onClick={onCancel} className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border">
+            {x(M.finance_cancel)}
+          </button>
+          <button type="submit" className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">
+            {x(M.finance_save)}
+          </button>
+        </div>
+      </div>
+    </form>
   )
 }

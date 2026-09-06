@@ -24,7 +24,7 @@ const VALID_TRANSITIONS: Record<FinanceObligationStatus, { status: FinanceObliga
 
 export function Tax() {
   const { x } = useI18n()
-  const { state, canWrite, transitionObligationStatus, transitionExternalActionStatus } = useFinanceData()
+  const { state, canWrite, transitionObligationStatus, transitionExternalActionStatus, markTaxScenarioStale, transitionTaxScenarioStatus } = useFinanceData()
   const [filter, setFilter] = useState<'all' | FinanceObligationStatus>('all')
 
   const obligations = useMemo(
@@ -158,6 +158,44 @@ export function Tax() {
                 <div className="mt-[8px] rounded-[6px] border border-border bg-surface px-[10px] py-[6px] text-[11px] text-text-muted">
                   {x(M.finance_tax_disclaimer)}
                 </div>
+                {canWrite && (ts.status === 'draft' || ts.status === 'reviewed') && (
+                  <div className="mt-[8px] flex flex-wrap gap-[6px]">
+                    {ts.status === 'draft' && (
+                      <button
+                        type="button"
+                        onClick={() => transitionTaxScenarioStatus(ts.id, 'reviewed', 'Workspace user')}
+                        className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                      >
+                        {x(M.finance_tax_scenario_review)}
+                      </button>
+                    )}
+                    {ts.status === 'reviewed' && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => transitionTaxScenarioStatus(ts.id, 'accepted', 'Workspace user')}
+                          className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                        >
+                          {x(M.finance_tax_scenario_accept)}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => transitionTaxScenarioStatus(ts.id, 'draft')}
+                          className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                        >
+                          {x(M.finance_tax_scenario_review)}
+                        </button>
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => markTaxScenarioStale(ts.id, 'Facts changed')}
+                      className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                    >
+                      {x(M.finance_tax_scenario_mark_stale)}
+                    </button>
+                  </div>
+                )}
               </li>
             ))}
           </ul>

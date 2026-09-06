@@ -44,6 +44,7 @@ export interface FinanceDataContextValue {
     nextStatus: FinancePayRunStatus,
     actor?: string,
   ) => Promise<FinancePayRun | null>
+  settlePayrollLiability: (id: string) => Promise<import('./types').FinancePayrollLiability | null>
   addTaxObligation: (item: Omit<FinanceTaxObligation, 'id'>) => Promise<FinanceTaxObligation | null>
   transitionObligationStatus: (
     id: string,
@@ -54,6 +55,11 @@ export interface FinanceDataContextValue {
   reviseBudget: (id: string, lines: FinanceBudget['lines']) => Promise<FinanceBudget | null>
   addTaxScenario: (item: Omit<FinanceTaxScenario, 'id'>) => Promise<FinanceTaxScenario | null>
   markTaxScenarioStale: (id: string, reason: string) => Promise<FinanceTaxScenario | null>
+  transitionTaxScenarioStatus: (
+    id: string,
+    nextStatus: FinanceTaxScenario['status'],
+    reviewer?: string,
+  ) => Promise<FinanceTaxScenario | null>
   transitionExternalActionStatus: (
     id: string,
     nextStatus: FinanceExternalActionStatus,

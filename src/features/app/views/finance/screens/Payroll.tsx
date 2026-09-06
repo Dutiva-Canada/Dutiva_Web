@@ -25,7 +25,7 @@ const VALID_TRANSITIONS: Record<FinancePayRunStatus, { status: FinancePayRunStat
 export function Payroll() {
   const { x } = useI18n()
   const { memberRole, mode } = useWorkspaceMode()
-  const { state, canWrite, transitionPayRunStatus } = useFinanceData()
+  const { state, canWrite, transitionPayRunStatus, settlePayrollLiability } = useFinanceData()
   const [filter, setFilter] = useState<'all' | FinancePayRunStatus>('all')
 
   const payRuns = useMemo(
@@ -146,6 +146,15 @@ export function Payroll() {
                   <div className="text-[12px] text-text-muted">
                     {x(CURRENCY_LABEL[liab.currency])} {liab.amount} · {x(M.finance_due_date)}: {liab.dueDate}
                   </div>
+                  {canWrite && !liab.settled && (
+                    <button
+                      type="button"
+                      onClick={() => settlePayrollLiability(liab.id)}
+                      className="mt-[6px] rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                    >
+                      {x(M.finance_payroll_settle_liability)}
+                    </button>
+                  )}
                 </div>
                 <span className={statusChipClass(liab.settled ? 'success' : 'warning')}>
                   {liab.settled ? 'Settled' : 'Outstanding'}
