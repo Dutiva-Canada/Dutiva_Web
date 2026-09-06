@@ -97,7 +97,7 @@ export function ImportExport() {
           {state.bankAccounts.length === 0 ? (
             <p className="rounded-[8px] bg-inset p-[10px] text-[13px] text-text-muted">
               {x(M.finance_import_no_accounts)}{' '}
-              <NavLink to="treasury" className="font-semibold text-accent hover:underline">
+              <NavLink to="../treasury" className="font-semibold text-accent hover:underline">
                 {x(M.finance_treasury_title)}
               </NavLink>
             </p>

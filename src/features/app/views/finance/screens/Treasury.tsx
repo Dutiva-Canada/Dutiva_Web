@@ -38,7 +38,7 @@ export function Treasury() {
         {!showBankForm && state.bankAccounts.length === 0 && state.entities.length === 0 && (
           <p className="rounded-[8px] bg-inset p-[10px] text-[13px] text-text-muted">
             {x(M.finance_entity_empty)}{' '}
-            <NavLink to="entities" className="font-semibold text-accent hover:underline">
+            <NavLink to="../entities" className="font-semibold text-accent hover:underline">
               {x(M.finance_tab_entities)}
             </NavLink>
           </p>
@@ -357,7 +357,7 @@ function BankAccountForm({
     return (
       <p className="rounded-[8px] bg-inset p-[10px] text-[13px] text-text-muted">
         {x(M.finance_entity_select_prompt)}{' '}
-        <NavLink to="entities" className="font-semibold text-accent hover:underline">
+        <NavLink to="../entities" className="font-semibold text-accent hover:underline">
           {x(M.finance_tab_entities)}
         </NavLink>
       </p>
