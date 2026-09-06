@@ -448,4 +448,79 @@ export const financeMessages = defineMessages({
   finance_cashflow_outflow: { en: 'Outflow', fr: 'Sorties' },
   finance_cashflow_net: { en: 'Net', fr: 'Net' },
   finance_cashflow_closing: { en: 'Closing balance', fr: 'Solde de clôture' },
+
+  /* Evidence — receipt linking and download */
+  finance_evidence_link_bill: { en: 'Link to bill', fr: 'Lier à une facture' },
+  finance_evidence_link_expense: { en: 'Link to expense', fr: 'Lier à une dépense' },
+  finance_evidence_link_none: { en: 'No link', fr: 'Aucun lien' },
+  finance_evidence_download_error: { en: 'Could not download file', fr: 'Téléchargement impossible' },
+
+  /* Budget revise flow */
+  finance_budget_revise_lines: { en: 'Revise lines', fr: 'Réviser les lignes' },
+  finance_budget_actual_amount: { en: 'Actual', fr: 'Réel' },
+  finance_budget_committed_amount: { en: 'Committed', fr: 'Engagé' },
+
+  /* Forecast period editor */
+  finance_forecast_add_period: { en: 'Add period', fr: 'Ajouter une période' },
+  finance_forecast_period_label: { en: 'Period label', fr: 'Libellé de période' },
+  finance_forecast_start_date: { en: 'Start date', fr: 'Date de début' },
+  finance_forecast_end_date: { en: 'End date', fr: 'Date de fin' },
+  finance_forecast_inflow: { en: 'Inflow', fr: 'Entrées' },
+  finance_forecast_outflow: { en: 'Outflow', fr: 'Sorties' },
+  finance_forecast_net: { en: 'Net', fr: 'Net' },
+  finance_forecast_closing: { en: 'Closing balance', fr: 'Solde de clôture' },
+  finance_forecast_save_periods: { en: 'Save periods', fr: 'Enregistrer les périodes' },
+
+  /* Tax create forms */
+  finance_tax_create_obligation: { en: 'New tax obligation', fr: 'Nouvelle obligation fiscale' },
+  finance_tax_period: { en: 'Period', fr: 'Période' },
+  finance_tax_due_date: { en: 'Filing due date', fr: 'Échéance de production' },
+  finance_tax_create_scenario: { en: 'New tax scenario', fr: 'Nouveau scénario fiscal' },
+  finance_tax_scenario_label: { en: 'Label', fr: 'Libellé' },
+  finance_tax_scenario_baseline: { en: 'Baseline', fr: 'Référence' },
+  finance_tax_scenario_decision: { en: 'Proposed decision', fr: 'Décision proposée' },
+  finance_tax_scenario_profit: { en: 'Projected profit', fr: 'Bénéfice projeté' },
+  finance_tax_scenario_taxable_income: { en: 'Projected taxable income', fr: 'Revenu imposable projeté' },
+  finance_tax_scenario_projected_tax: { en: 'Projected tax', fr: 'Impôt projeté' },
+  finance_tax_scenario_projected_cashflow: { en: 'Projected cash flow', fr: 'Flux de trésorerie projeté' },
+  finance_tax_scenario_assumptions: { en: 'Assumptions', fr: 'Hypothèses' },
+  finance_tax_scenario_law_version: { en: 'Law version', fr: 'Version de la loi' },
+  finance_tax_scenario_enacted: { en: 'Enacted', fr: 'Promulguée' },
+  finance_tax_scenario_proposed: { en: 'Proposed', fr: 'Proposée' },
+
+  /* Payroll external actions */
+  finance_payroll_external_actions: { en: 'Payroll submissions', fr: 'Soumissions de paie' },
+  finance_payroll_no_external_actions: { en: 'No payroll submissions tracked', fr: 'Aucune soumission de paie suivie' },
+
+  /* Overview KPIs */
+  finance_overview_kpis: { en: 'Key metrics', fr: 'Indicateurs clés' },
+  finance_overview_ar: { en: 'Outstanding receivables', fr: 'Créances en suspens' },
+  finance_overview_ap: { en: 'Outstanding payables', fr: 'Dettes en suspens' },
+  finance_overview_burn_rate: { en: 'Monthly burn', fr: 'Brûlage mensuel' },
+  finance_overview_cash_total: { en: 'Cash on hand', fr: 'Trésorerie disponible' },
+
+  /* Master data */
+  finance_bank_account_create: { en: 'New bank account', fr: 'Nouveau compte bancaire' },
+  finance_bank_account_label: { en: 'Account label', fr: 'Libellé du compte' },
+  finance_bank_account_last4: { en: 'Last 4 digits', fr: '4 derniers chiffres' },
+  finance_bank_account_restricted: { en: 'Restricted', fr: 'Restreint' },
+  finance_bank_account_earmarked: { en: 'Earmarked amount', fr: 'Montant réservé' },
+  finance_bank_account_maturity: { en: 'Maturity date', fr: 'Date d’échéance' },
+  finance_ledger_account_create: { en: 'New ledger account', fr: 'Nouveau compte du grand livre' },
+  finance_ledger_account_code: { en: 'Code', fr: 'Code' },
+  finance_ledger_account_name: { en: 'Account name', fr: 'Nom du compte' },
+  finance_ledger_account_type: { en: 'Account type', fr: 'Type de compte' },
+  finance_ledger_account_sensitive: { en: 'Sensitive', fr: 'Sensible' },
+  finance_party_create: { en: 'New party', fr: 'Nouvelle partie' },
+  finance_party_name: { en: 'Name', fr: 'Nom' },
+  finance_party_type: { en: 'Party type', fr: 'Type de partie' },
+  finance_party_banking_on_file: { en: 'Banking details on file', fr: 'Coordonnées bancaires au dossier' },
+  finance_subscription_create: { en: 'New subscription', fr: 'Nouvel abonnement' },
+  finance_subscription_label: { en: 'Label', fr: 'Libellé' },
+  finance_subscription_supplier: { en: 'Supplier', fr: 'Fournisseur' },
+  finance_subscription_cost: { en: 'Cost', fr: 'Coût' },
+  finance_subscription_renewal_term: { en: 'Renewal term', fr: 'Terme de renouvellement' },
+  finance_subscription_next_renewal: { en: 'Next renewal date', fr: 'Prochaine date de renouvellement' },
+  finance_subscription_notice_date: { en: 'Notice date', fr: 'Date de préavis' },
+  finance_subscription_owner: { en: 'Owner', fr: 'Responsable' },
 })

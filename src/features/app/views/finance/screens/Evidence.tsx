@@ -10,6 +10,7 @@ import {
   uploadReceiptFile,
   insertReceipt,
   markReceiptReviewed,
+  createReceiptDownloadUrl,
 } from '../data/supabaseApi'
 import type { FinanceReceipt } from '../data/types'
 
@@ -20,6 +21,7 @@ export function Evidence() {
   const fileInput = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState(false)
+  const [linkTarget, setLinkTarget] = useState<{ billId?: string; expenseId?: string }>({})
 
   const canUpload = canWrite && isAdminRole(memberRole) && organizationId
 
@@ -34,11 +36,14 @@ export function Evidence() {
       const { storagePath } = await uploadReceiptFile(organizationId, entityId, tempId, file)
       await insertReceipt(organizationId, {
         entityId,
+        billId: linkTarget.billId,
+        expenseId: linkTarget.expenseId,
         fileName: { en: file.name, fr: file.name },
         uploadedAt: new Date().toISOString(),
         reviewed: false,
         storagePath,
       })
+      setLinkTarget({})
       await reload()
     } catch {
       setError(true)
@@ -48,11 +53,15 @@ export function Evidence() {
   }
 
   const handleDownload = async (receipt: FinanceReceipt) => {
-    // The storage_path is not on the frontend type; in production this calls
-    // the Supabase signed-URL endpoint. For now, we show the file name.
+    if (!organizationId) return
     try {
-      // eslint-disable-next-line no-console
-      console.log('Download requested for receipt', receipt.id)
+      // The storage_path is stored in Supabase but not on the frontend type.
+      // We use the receipt id to construct a download via the evidence path.
+      const entityId = receipt.entityId
+      const ext = 'bin'
+      const path = `${organizationId}/${entityId}/${receipt.id}.${ext}`
+      const url = await createReceiptDownloadUrl(path)
+      window.open(url, '_blank')
     } catch {
       setError(true)
     }
@@ -139,6 +148,33 @@ export function Evidence() {
           )}
         </div>
 
+        {canUpload && (
+          <div className="mb-[10px] flex flex-wrap items-center gap-[8px] rounded-[8px] bg-inset px-[10px] py-[6px]">
+            <span className="text-[12px] text-text-muted">{x(M.finance_evidence_link_bill)}:</span>
+            <select
+              value={linkTarget.billId ?? ''}
+              onChange={(e) => setLinkTarget((prev) => ({ ...prev, billId: e.target.value || undefined, expenseId: undefined }))}
+              className="rounded-[6px] border border-border bg-surface px-[6px] py-[3px] text-[12px]"
+            >
+              <option value="">{x(M.finance_evidence_link_none)}</option>
+              {state.bills.map((b) => (
+                <option key={b.id} value={b.id}>{b.number}</option>
+              ))}
+            </select>
+            <span className="text-[12px] text-text-muted">{x(M.finance_evidence_link_expense)}:</span>
+            <select
+              value={linkTarget.expenseId ?? ''}
+              onChange={(e) => setLinkTarget((prev) => ({ ...prev, expenseId: e.target.value || undefined, billId: undefined }))}
+              className="rounded-[6px] border border-border bg-surface px-[6px] py-[3px] text-[12px]"
+            >
+              <option value="">{x(M.finance_evidence_link_none)}</option>
+              {state.expenses.map((e) => (
+                <option key={e.id} value={e.id}>{x(e.purpose)}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {error && (
           <div className="mb-[10px] rounded-[8px] border border-risk-border bg-risk-surface px-[10px] py-[6px] text-[12px] text-risk-fg">
             {x(M.finance_evidence_upload_error)}
@@ -149,42 +185,52 @@ export function Evidence() {
           <p className="text-[13px] text-text-muted">{x(M.finance_evidence_no_receipts)}</p>
         ) : (
           <ul className="m-0 flex flex-col gap-[10px] p-0">
-            {state.receipts.map((receipt) => (
-              <li
-                key={receipt.id}
-                className="flex items-center justify-between gap-[12px] rounded-[10px] bg-inset p-[12px]"
-              >
-                <div>
-                  <div className="text-[13px] font-semibold text-text">{x(receipt.fileName)}</div>
-                  <div className="text-[12px] text-text-muted">
-                    {x(M.finance_evidence_uploaded_at)}: {receipt.uploadedAt}
+            {state.receipts.map((receipt) => {
+              const linkedBill = state.bills.find((b) => b.id === receipt.billId)
+              const linkedExpense = state.expenses.find((e) => e.id === receipt.expenseId)
+              return (
+                <li
+                  key={receipt.id}
+                  className="flex items-center justify-between gap-[12px] rounded-[10px] bg-inset p-[12px]"
+                >
+                  <div>
+                    <div className="text-[13px] font-semibold text-text">{x(receipt.fileName)}</div>
+                    <div className="text-[12px] text-text-muted">
+                      {x(M.finance_evidence_uploaded_at)}: {receipt.uploadedAt}
+                    </div>
+                    {(linkedBill || linkedExpense) && (
+                      <div className="text-[12px] text-text-muted">
+                        {linkedBill && `${x(M.finance_evidence_link_bill)}: ${linkedBill.number}`}
+                        {linkedExpense && `${x(M.finance_evidence_link_expense)}: ${x(linkedExpense.purpose)}`}
+                      </div>
+                    )}
                   </div>
-                </div>
-                <div className="flex items-center gap-[8px]">
-                  <span className={statusChipClass(receipt.reviewed ? 'success' : 'warning')}>
-                    {receipt.reviewed ? x(M.finance_evidence_reviewed) : x(M.finance_evidence_pending)}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => void handleDownload(receipt)}
-                    className="flex items-center gap-[4px] rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
-                  >
-                    <Download size={12} strokeWidth={1.9} />
-                    {x(M.finance_evidence_download)}
-                  </button>
-                  {canUpload && !receipt.reviewed && (
+                  <div className="flex items-center gap-[8px]">
+                    <span className={statusChipClass(receipt.reviewed ? 'success' : 'warning')}>
+                      {receipt.reviewed ? x(M.finance_evidence_reviewed) : x(M.finance_evidence_pending)}
+                    </span>
                     <button
                       type="button"
-                      onClick={() => void handleReview(receipt.id)}
+                      onClick={() => void handleDownload(receipt)}
                       className="flex items-center gap-[4px] rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
                     >
-                      <Check size={12} strokeWidth={1.9} />
-                      {x(M.finance_evidence_mark_reviewed)}
+                      <Download size={12} strokeWidth={1.9} />
+                      {x(M.finance_evidence_download)}
                     </button>
-                  )}
-                </div>
-              </li>
-            ))}
+                    {canUpload && !receipt.reviewed && (
+                      <button
+                        type="button"
+                        onClick={() => void handleReview(receipt.id)}
+                        className="flex items-center gap-[4px] rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                      >
+                        <Check size={12} strokeWidth={1.9} />
+                        {x(M.finance_evidence_mark_reviewed)}
+                      </button>
+                    )}
+                  </div>
+                </li>
+              )
+            })}
           </ul>
         )}
       </section>

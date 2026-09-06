@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { FinanceDataContext } from './FinanceDataContext'
 import type { FinanceDataContextValue } from './FinanceDataContext'
 import { initialFinanceState } from './fixtures'
+import { useFinanceCreates } from './useFinanceCreates'
 import {
   addBudget as addBudgetLocalApi,
   addInvoice as addInvoiceLocalApi,
@@ -27,15 +28,6 @@ import {
   transitionReconciliationStatus as transitionReconciliationStatusLocalApi,
   settlePayrollLiability as settlePayrollLiabilityLocalApi,
   transitionSpendRequestStatus as transitionSpendRequestStatusLocalApi,
-  addScenario as addScenarioLocalApi,
-  addForecast as addForecastLocalApi,
-  addReserveGoal as addReserveGoalLocalApi,
-  updateReserveGoalProgress as updateReserveGoalProgressLocalApi,
-  setHoldingStale as setHoldingStaleLocalApi,
-  transitionDebtStatus as transitionDebtStatusLocalApi,
-  transitionBudgetStatus as transitionBudgetStatusLocalApi,
-  transitionScenarioStatus as transitionScenarioStatusLocalApi,
-  freezeForecast as freezeForecastLocalApi,
 } from './productionApi'
 import {
   insertBudget as insertBudgetSupa,
@@ -61,15 +53,6 @@ import {
   updateReconciliationStatus as updateReconciliationStatusSupa,
   updateSpendRequestStatus as updateSpendRequestStatusSupa,
   updateTaxObligationStatus as updateTaxObligationStatusSupa,
-  addScenarioInSupabase,
-  addForecastInSupabase,
-  addReserveGoalInSupabase,
-  updateReserveGoalProgressInSupabase,
-  setHoldingStaleInSupabase,
-  transitionDebtStatusInSupabase,
-  transitionBudgetStatusInSupabase,
-  transitionScenarioStatusInSupabase,
-  freezeForecastInSupabase,
 } from './supabaseApi'
 import type {
   FinanceBankMatchStatus,
@@ -466,140 +449,7 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
     [isLive, orgId, hasSupabase, reload],
   )
 
-  const addScenario = useCallback(
-    async (item: Omit<import('./types').FinanceScenario, 'id'>) => {
-      if (!isLive || !orgId) return null
-      if (hasSupabase) {
-        const created = await addScenarioInSupabase(orgId, item)
-        await reload()
-        return created
-      }
-      const created = addScenarioLocalApi(orgId, item)
-      setState(loadFullStateLocalApi(orgId))
-      return created
-    },
-    [isLive, orgId, hasSupabase, reload],
-  )
-
-  const addForecast = useCallback(
-    async (item: Omit<import('./types').FinanceForecast, 'id'>) => {
-      if (!isLive || !orgId) return null
-      if (hasSupabase) {
-        const created = await addForecastInSupabase(orgId, item)
-        await reload()
-        return created
-      }
-      const created = addForecastLocalApi(orgId, item)
-      setState(loadFullStateLocalApi(orgId))
-      return created
-    },
-    [isLive, orgId, hasSupabase, reload],
-  )
-
-  const addReserveGoal = useCallback(
-    async (item: Omit<import('./types').FinanceReserveGoal, 'id'>) => {
-      if (!isLive || !orgId) return null
-      if (hasSupabase) {
-        const created = await addReserveGoalInSupabase(orgId, item)
-        await reload()
-        return created
-      }
-      const created = addReserveGoalLocalApi(orgId, item)
-      setState(loadFullStateLocalApi(orgId))
-      return created
-    },
-    [isLive, orgId, hasSupabase, reload],
-  )
-
-  const updateReserveGoalProgress = useCallback(
-    async (id: string, currentAmount: string) => {
-      if (!isLive || !orgId) return null
-      if (hasSupabase) {
-        const updated = await updateReserveGoalProgressInSupabase(orgId, id, currentAmount)
-        await reload()
-        return updated
-      }
-      const updated = updateReserveGoalProgressLocalApi(orgId, id, currentAmount)
-      if (updated) setState(loadFullStateLocalApi(orgId))
-      return updated
-    },
-    [isLive, orgId, hasSupabase, reload],
-  )
-
-  const setHoldingStale = useCallback(
-    async (id: string, stale: boolean) => {
-      if (!isLive || !orgId) return null
-      if (hasSupabase) {
-        const updated = await setHoldingStaleInSupabase(orgId, id, stale)
-        await reload()
-        return updated
-      }
-      const updated = setHoldingStaleLocalApi(orgId, id, stale)
-      if (updated) setState(loadFullStateLocalApi(orgId))
-      return updated
-    },
-    [isLive, orgId, hasSupabase, reload],
-  )
-
-  const transitionDebtStatus = useCallback(
-    async (id: string, nextStatus: import('./types').FinanceDebt['status']) => {
-      if (!isLive || !orgId) return null
-      if (hasSupabase) {
-        const updated = await transitionDebtStatusInSupabase(orgId, id, nextStatus)
-        await reload()
-        return updated
-      }
-      const updated = transitionDebtStatusLocalApi(orgId, id, nextStatus)
-      if (updated) setState(loadFullStateLocalApi(orgId))
-      return updated
-    },
-    [isLive, orgId, hasSupabase, reload],
-  )
-
-  const transitionBudgetStatus = useCallback(
-    async (id: string, nextStatus: FinanceBudget['status']) => {
-      if (!isLive || !orgId) return null
-      if (hasSupabase) {
-        const updated = await transitionBudgetStatusInSupabase(orgId, id, nextStatus)
-        await reload()
-        return updated
-      }
-      const updated = transitionBudgetStatusLocalApi(orgId, id, nextStatus)
-      if (updated) setState(loadFullStateLocalApi(orgId))
-      return updated
-    },
-    [isLive, orgId, hasSupabase, reload],
-  )
-
-  const transitionScenarioStatus = useCallback(
-    async (id: string, nextStatus: import('./types').FinanceScenario['status'], reviewer?: string) => {
-      if (!isLive || !orgId) return null
-      if (hasSupabase) {
-        const updated = await transitionScenarioStatusInSupabase(orgId, id, nextStatus, reviewer)
-        await reload()
-        return updated
-      }
-      const updated = transitionScenarioStatusLocalApi(orgId, id, nextStatus, reviewer)
-      if (updated) setState(loadFullStateLocalApi(orgId))
-      return updated
-    },
-    [isLive, orgId, hasSupabase, reload],
-  )
-
-  const freezeForecast = useCallback(
-    async (id: string) => {
-      if (!isLive || !orgId) return null
-      if (hasSupabase) {
-        const updated = await freezeForecastInSupabase(orgId, id)
-        await reload()
-        return updated
-      }
-      const updated = freezeForecastLocalApi(orgId, id)
-      if (updated) setState(loadFullStateLocalApi(orgId))
-      return updated
-    },
-    [isLive, orgId, hasSupabase, reload],
-  )
+  const creates = useFinanceCreates({ orgId, isLive, hasSupabase, reload, setState })
 
   return useMemo(
     () => ({
@@ -630,15 +480,7 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
       transitionReconciliationStatus,
       transitionClosePeriodStatus,
       transitionExpenseStatus,
-      transitionBudgetStatus,
-      addScenario,
-      transitionScenarioStatus,
-      addForecast,
-      freezeForecast,
-      addReserveGoal,
-      updateReserveGoalProgress,
-      setHoldingStale,
-      transitionDebtStatus,
+      ...creates,
     }),
     [
       state,
@@ -668,15 +510,7 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
       transitionReconciliationStatus,
       transitionClosePeriodStatus,
       transitionExpenseStatus,
-      transitionBudgetStatus,
-      addScenario,
-      transitionScenarioStatus,
-      addForecast,
-      freezeForecast,
-      addReserveGoal,
-      updateReserveGoalProgress,
-      setHoldingStale,
-      transitionDebtStatus,
+      creates,
     ],
   )
 }

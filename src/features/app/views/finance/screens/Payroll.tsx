@@ -25,7 +25,7 @@ const VALID_TRANSITIONS: Record<FinancePayRunStatus, { status: FinancePayRunStat
 export function Payroll() {
   const { x } = useI18n()
   const { memberRole, mode } = useWorkspaceMode()
-  const { state, canWrite, transitionPayRunStatus, settlePayrollLiability } = useFinanceData()
+  const { state, canWrite, transitionPayRunStatus, settlePayrollLiability, addExternalAction } = useFinanceData()
   const [filter, setFilter] = useState<'all' | FinancePayRunStatus>('all')
 
   const payRuns = useMemo(
@@ -34,6 +34,11 @@ export function Payroll() {
   )
 
   const periodLabel = (id: string) => state.payPeriods.find((p) => p.id === id)?.label ?? id
+
+  const payrollExternalActions = useMemo(
+    () => state.externalActions.filter((ea) => ea.recordType === 'payroll_submission'),
+    [state.externalActions],
+  )
 
   // In production mode, payroll records are sensitive — RLS returns no rows
   // for non-admins. Show an explicit notice instead of an empty list.
@@ -119,7 +124,19 @@ export function Payroll() {
                       <button
                         key={t.status}
                         type="button"
-                        onClick={() => transitionPayRunStatus(pr.id, t.status, 'Workspace user')}
+                        onClick={() => {
+                          transitionPayRunStatus(pr.id, t.status, 'Workspace user')
+                          if (t.status === 'submitted' && pr.entityId) {
+                            addExternalAction({
+                              entityId: pr.entityId,
+                              recordType: 'payroll_submission',
+                              recordId: pr.id,
+                              status: 'internal_approval',
+                              payloadVersion: '1',
+                              idempotencyKey: `payrun-${pr.id}-${Date.now()}`,
+                            })
+                          }
+                        }}
                         className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
                       >
                         {x(M[t.label])}
@@ -164,6 +181,28 @@ export function Payroll() {
           </ul>
         )}
       </section>
+
+      {payrollExternalActions.length > 0 && (
+        <section className="rounded-[12px] border border-border bg-surface p-[16px]">
+          <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_payroll_external_actions)}</h2>
+          <ul className="m-0 flex flex-col gap-[10px] p-0">
+            {payrollExternalActions.map((ea) => (
+              <li key={ea.id} className="flex items-start justify-between gap-[12px]">
+                <div>
+                  <div className="text-[13px] font-semibold text-text">{ea.recordType.replace(/_/g, ' ')} · {ea.recordId}</div>
+                  <div className="text-[12px] text-text-muted">
+                    {ea.providerRef && ` · ${ea.providerRef}`}
+                    {ea.confirmedAt && ` · ${ea.confirmedAt}`}
+                  </div>
+                </div>
+                <span className={statusChipClass(ea.status === 'settled' ? 'success' : ea.status === 'failed' ? 'risk' : 'neutral')}>
+                  {ea.status.replace(/_/g, ' ')}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   )
 }

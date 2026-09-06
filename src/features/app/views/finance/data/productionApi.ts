@@ -1,29 +1,25 @@
 import { initialFinanceState } from './fixtures'
 import type {
-  FinanceBankItem,
-  FinanceBankMatchStatus,
-  FinanceBill,
+  FinanceBankAccount,
   FinanceBudget,
-  FinanceClosePeriod,
   FinanceDebt,
-  FinanceExpenseStatus,
   FinanceExternalAction,
   FinanceExternalActionStatus,
   FinanceForecast,
   FinanceHolding,
   FinanceInvoice,
-  FinanceInvoiceStatus,
   FinanceJournal,
   FinanceJournalLine,
-  FinanceJournalStatus,
+  FinanceLedgerAccount,
   FinanceObligationStatus,
+  FinanceParty,
   FinancePayRun,
   FinancePayRunStatus,
   FinancePayrollLiability,
-  FinanceReconciliation,
   FinanceReserveGoal,
   FinanceScenario,
   FinanceSpendRequest,
+  FinanceSubscription,
   FinanceTaxObligation,
   FinanceTaxScenario,
   FinanceWorkspaceState,
@@ -98,7 +94,7 @@ function saveFinanceState(orgId: string, state: FinanceWorkspaceState): void {
   localStorage.setItem(storageKey(orgId), JSON.stringify(state))
 }
 
-function updateState(
+export function updateState(
   orgId: string,
   patch: (state: FinanceWorkspaceState) => FinanceWorkspaceState,
 ): FinanceWorkspaceState {
@@ -555,227 +551,60 @@ export function addTaxScenario(orgId: string, ts: Omit<FinanceTaxScenario, 'id'>
   return created
 }
 
-/* ---------- Invoice lifecycle ---------- */
-
-const INVOICE_TRANSITIONS: Record<FinanceInvoiceStatus, FinanceInvoiceStatus[]> = {
-  draft: ['issued', 'cancelled'],
-  issued: ['partial', 'paid', 'disputed', 'overdue', 'cancelled'],
-  partial: ['paid', 'disputed', 'cancelled'],
-  paid: [],
-  overdue: ['paid', 'disputed', 'cancelled'],
-  disputed: ['issued', 'written_off', 'cancelled'],
-  written_off: [],
-  cancelled: [],
+export function addExternalAction(orgId: string, ea: Omit<FinanceExternalAction, 'id'>): FinanceExternalAction {
+  const created: FinanceExternalAction = { ...ea, id: `ea-${Date.now()}` }
+  updateState(orgId, (state) => ({ ...state, externalActions: [created, ...state.externalActions] }))
+  return created
 }
 
-export function transitionInvoiceStatus(
-  orgId: string,
-  id: string,
-  nextStatus: FinanceInvoiceStatus,
-  paidAmount?: string,
-): FinanceInvoice | null {
-  let result: FinanceInvoice | null = null
+export function addBankAccount(orgId: string, acc: Omit<FinanceBankAccount, 'id'>): FinanceBankAccount {
+  const created: FinanceBankAccount = { ...acc, id: `ba-${Date.now()}` }
+  updateState(orgId, (state) => ({ ...state, bankAccounts: [...state.bankAccounts, created] }))
+  return created
+}
+
+export function addLedgerAccount(orgId: string, acc: Omit<FinanceLedgerAccount, 'id'>): FinanceLedgerAccount {
+  const created: FinanceLedgerAccount = { ...acc, id: `la-${Date.now()}` }
+  updateState(orgId, (state) => ({ ...state, ledgerAccounts: [...state.ledgerAccounts, created] }))
+  return created
+}
+
+export function addParty(orgId: string, party: Omit<FinanceParty, 'id'>): FinanceParty {
+  const created: FinanceParty = { ...party, id: `pty-${Date.now()}` }
+  updateState(orgId, (state) => ({ ...state, parties: [...state.parties, created] }))
+  return created
+}
+
+export function addSubscription(orgId: string, sub: Omit<FinanceSubscription, 'id'>): FinanceSubscription {
+  const created: FinanceSubscription = { ...sub, id: `sub-${Date.now()}` }
+  updateState(orgId, (state) => ({ ...state, subscriptions: [...state.subscriptions, created] }))
+  return created
+}
+
+export function updateForecastPeriods(orgId: string, id: string, periods: FinanceForecast['periods']): FinanceForecast | null {
+  let result: FinanceForecast | null = null
   updateState(orgId, (state) => ({
     ...state,
-    invoices: state.invoices.map((inv) => {
-      if (inv.id !== id) return inv
-      const allowed = INVOICE_TRANSITIONS[inv.status]
-      if (!allowed.includes(nextStatus)) return inv
-      result = {
-        ...inv,
-        status: nextStatus,
-        ...(paidAmount !== undefined ? { paidAmount } : {}),
-      }
+    forecasts: state.forecasts.map((fc): FinanceForecast => {
+      if (fc.id !== id) return fc
+      if (fc.frozenAt) return fc
+      result = { ...fc, periods }
       return result
     }),
   }))
   return result
 }
 
-/* ---------- Bill lifecycle ---------- */
-
-const BILL_TRANSITIONS: Record<FinanceBill['status'], FinanceBill['status'][]> = {
-  draft: ['posted', 'cancelled'],
-  posted: ['partial', 'paid', 'overdue', 'disputed', 'cancelled'],
-  partial: ['paid', 'disputed', 'cancelled'],
-  paid: [],
-  overdue: ['paid', 'disputed', 'cancelled'],
-  disputed: ['posted', 'cancelled'],
-  cancelled: [],
-}
-
-export function transitionBillStatus(
-  orgId: string,
-  id: string,
-  nextStatus: FinanceBill['status'],
-  paidAmount?: string,
-): FinanceBill | null {
-  let result: FinanceBill | null = null
-  updateState(orgId, (state) => ({
-    ...state,
-    bills: state.bills.map((bill) => {
-      if (bill.id !== id) return bill
-      const allowed = BILL_TRANSITIONS[bill.status]
-      if (!allowed.includes(nextStatus)) return bill
-      result = {
-        ...bill,
-        status: nextStatus,
-        ...(paidAmount !== undefined ? { paidAmount } : {}),
-      }
-      return result
-    }),
-  }))
-  return result
-}
-
-/* ---------- Journal lifecycle ---------- */
-
-const JOURNAL_TRANSITIONS: Record<FinanceJournalStatus, FinanceJournalStatus[]> = {
-  draft: ['posted'],
-  posted: ['reversed'],
-  reversed: [],
-}
-
-export function transitionJournalStatus(
-  orgId: string,
-  id: string,
-  nextStatus: FinanceJournalStatus,
-): FinanceJournal | null {
-  let result: FinanceJournal | null = null
-  updateState(orgId, (state) => ({
-    ...state,
-    journals: state.journals.map((j) => {
-      if (j.id !== id) return j
-      const allowed = JOURNAL_TRANSITIONS[j.status]
-      if (!allowed.includes(nextStatus)) return j
-      // Unbalanced journals cannot become posted actuals.
-      if (nextStatus === 'posted' && !j.balanced) return j
-      result = { ...j, status: nextStatus }
-      return result
-    }),
-  }))
-  return result
-}
-
-/* ---------- Bank item matching ---------- */
-
-export function transitionBankItemMatchStatus(
-  orgId: string,
-  id: string,
-  nextStatus: FinanceBankMatchStatus,
-  matchRef?: { journalId?: string; invoiceId?: string; billId?: string },
-): FinanceBankItem | null {
-  let result: FinanceBankItem | null = null
-  updateState(orgId, (state) => ({
-    ...state,
-    bankItems: state.bankItems.map((bi) => {
-      if (bi.id !== id) return bi
-      result = {
-        ...bi,
-        matchStatus: nextStatus,
-        ...(matchRef?.journalId ? { matchedJournalId: matchRef.journalId } : {}),
-        ...(matchRef?.invoiceId ? { matchedInvoiceId: matchRef.invoiceId } : {}),
-        ...(matchRef?.billId ? { matchedBillId: matchRef.billId } : {}),
-      }
-      return result
-    }),
-  }))
-  return result
-}
-
-/* ---------- Reconciliation lifecycle ---------- */
-
-export function transitionReconciliationStatus(
-  orgId: string,
-  id: string,
-  nextStatus: FinanceReconciliation['status'],
-  reviewer?: string,
-): FinanceReconciliation | null {
-  let result: FinanceReconciliation | null = null
-  updateState(orgId, (state) => ({
-    ...state,
-    reconciliations: state.reconciliations.map((rec) => {
-      if (rec.id !== id) return rec
-      result = {
-        ...rec,
-        status: nextStatus,
-        ...(nextStatus === 'reconciled' && reviewer
-          ? { reviewer, reviewedAt: new Date().toISOString() }
-          : {}),
-      }
-      return result
-    }),
-  }))
-  return result
-}
-
-/* ---------- Close period lifecycle ---------- */
-
-const CLOSE_PERIOD_TRANSITIONS: Record<FinanceClosePeriod['status'], FinanceClosePeriod['status'][]> = {
-  open: ['in_review'],
-  in_review: ['approved', 'open'],
-  approved: ['locked', 'open'],
-  locked: ['open'],
-}
-
-export function transitionClosePeriodStatus(
-  orgId: string,
-  id: string,
-  nextStatus: FinanceClosePeriod['status'],
-  approver?: string,
-  reopenReason?: string,
-): FinanceClosePeriod | null {
-  let result: FinanceClosePeriod | null = null
-  updateState(orgId, (state) => ({
-    ...state,
-    closePeriods: state.closePeriods.map((cp) => {
-      if (cp.id !== id) return cp
-      const allowed = CLOSE_PERIOD_TRANSITIONS[cp.status]
-      if (!allowed.includes(nextStatus)) return cp
-      result = {
-        ...cp,
-        status: nextStatus,
-        ...(nextStatus === 'approved' && approver
-          ? { approver, approvedAt: new Date().toISOString() }
-          : {}),
-        ...(nextStatus === 'open' && reopenReason
-          ? { reopenReason: { en: reopenReason, fr: reopenReason } }
-          : {}),
-      }
-      return result
-    }),
-  }))
-  return result
-}
-
-/* ---------- Expense lifecycle ---------- */
-
-const EXPENSE_TRANSITIONS: Record<FinanceExpenseStatus, FinanceExpenseStatus[]> = {
-  draft: ['submitted', 'cancelled' as FinanceExpenseStatus],
-  submitted: ['approved', 'rejected'],
-  approved: ['reimbursed'],
-  reimbursed: [],
-  rejected: [],
-}
-
-export function transitionExpenseStatus(
-  orgId: string,
-  id: string,
-  nextStatus: FinanceExpenseStatus,
-): FinanceWorkspaceState['expenses'][number] | null {
-  let result: FinanceWorkspaceState['expenses'][number] | null = null
-  updateState(orgId, (state) => ({
-    ...state,
-    expenses: state.expenses.map((ex) => {
-      if (ex.id !== id) return ex
-      const allowed = EXPENSE_TRANSITIONS[ex.status]
-      if (!allowed.includes(nextStatus)) return ex
-      result = { ...ex, status: nextStatus }
-      return result
-    }),
-  }))
-  return result
-}
+/* ---------- Lifecycle transitions (re-exported from productionLifecycle) ---------- */
+export {
+  transitionInvoiceStatus,
+  transitionBillStatus,
+  transitionJournalStatus,
+  transitionBankItemMatchStatus,
+  transitionReconciliationStatus,
+  transitionClosePeriodStatus,
+  transitionExpenseStatus,
+} from './productionLifecycle'
 
 /* ---------- Deadline helpers ---------- */
 

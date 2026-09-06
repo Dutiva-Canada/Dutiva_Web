@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
+  addBankAccount,
+  addExternalAction,
   addJournal,
+  addLedgerAccount,
+  addParty,
+  addSubscription,
   deadlineState,
   isJournalBalanced,
   loadFinanceState,
@@ -23,6 +28,7 @@ import {
   transitionScenarioStatus,
   transitionSpendRequestStatus,
   transitionTaxScenarioStatus,
+  updateForecastPeriods,
   updateReserveGoalProgress,
 } from './productionApi'
 import type { FinanceJournalLine } from './types'
@@ -422,5 +428,99 @@ describe('transitionDebtStatus', () => {
     const updated = transitionDebtStatus(ORG, d.id, 'paid_off')
     expect(updated).not.toBeNull()
     expect(updated?.status).toBe('paid_off')
+  })
+})
+
+describe('addExternalAction', () => {
+  it('creates a payroll_submission external action', () => {
+    const created = addExternalAction(ORG, {
+      entityId: 'ent-1',
+      recordType: 'payroll_submission',
+      recordId: 'pr-1',
+      status: 'internal_approval',
+      payloadVersion: '1',
+      idempotencyKey: `payrun-pr-1-${Date.now()}`,
+    })
+    expect(created).toBeDefined()
+    expect(created.recordType).toBe('payroll_submission')
+    expect(created.status).toBe('internal_approval')
+  })
+})
+
+describe('addBankAccount', () => {
+  it('creates a bank account', () => {
+    const created = addBankAccount(ORG, {
+      entityId: 'ent-1',
+      label: { en: 'Test account', fr: 'Compte test' },
+      currency: 'CAD',
+      restricted: false,
+    })
+    expect(created).toBeDefined()
+    expect(created.label.en).toBe('Test account')
+  })
+})
+
+describe('addLedgerAccount', () => {
+  it('creates a ledger account', () => {
+    const state = loadFinanceState(ORG)
+    const book = state.books[0]
+    if (!book) return
+    const created = addLedgerAccount(ORG, {
+      bookId: book.id,
+      code: '9999',
+      name: { en: 'Test account', fr: 'Compte test' },
+      type: 'expense',
+      sensitive: false,
+      active: true,
+    })
+    expect(created).toBeDefined()
+    expect(created.code).toBe('9999')
+  })
+})
+
+describe('addParty', () => {
+  it('creates a supplier party', () => {
+    const created = addParty(ORG, {
+      entityId: 'ent-1',
+      name: 'Test Supplier',
+      type: 'supplier',
+      bankingDetailsOnFile: false,
+      active: true,
+    })
+    expect(created).toBeDefined()
+    expect(created.name).toBe('Test Supplier')
+    expect(created.type).toBe('supplier')
+  })
+})
+
+describe('addSubscription', () => {
+  it('creates a subscription', () => {
+    const created = addSubscription(ORG, {
+      entityId: 'ent-1',
+      label: { en: 'Test sub', fr: 'Abonnement test' },
+      supplierId: 'pty-1',
+      cost: '100.00',
+      currency: 'CAD',
+      renewalTerm: { en: 'Annual', fr: 'Annuel' },
+      nextRenewalDate: '2027-01-01',
+      owner: 'Test user',
+      active: true,
+    })
+    expect(created).toBeDefined()
+    expect(created.cost).toBe('100.00')
+  })
+})
+
+describe('updateForecastPeriods', () => {
+  it('updates forecast periods on an unfrozen forecast', () => {
+    const state = loadFinanceState(ORG)
+    const fc = state.forecasts.find((f) => !f.frozenAt)
+    if (!fc) return
+    const updated = updateForecastPeriods(ORG, fc.id, [
+      { label: 'W1', startDate: '2026-01-01', endDate: '2026-01-07', inflow: '1000', outflow: '500', net: '500', closingBalance: '500' },
+    ])
+    expect(updated).not.toBeNull()
+    expect(updated?.periods).toHaveLength(1)
+    expect(updated?.periods[0]?.label).toBe('W1')
   })
 })

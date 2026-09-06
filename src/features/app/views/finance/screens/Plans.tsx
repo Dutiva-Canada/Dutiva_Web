@@ -5,17 +5,21 @@ import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
 import { BUDGET_STATUS_LABEL, CURRENCY_LABEL, SCENARIO_TYPE_LABEL } from '../financeLabels'
-import type { FinanceCurrency, FinanceScenarioType } from '../data/types'
+import type { FinanceBudgetLine, FinanceCurrency, FinanceForecastPeriod, FinanceScenarioType } from '../data/types'
 
 export function Plans() {
   const { x } = useI18n()
   const {
     state, canWrite, reviseBudget, addBudget, transitionBudgetStatus,
-    addScenario, transitionScenarioStatus, addForecast, freezeForecast,
+    addScenario, transitionScenarioStatus, addForecast, freezeForecast, updateForecastPeriods,
   } = useFinanceData()
   const [showBudgetForm, setShowBudgetForm] = useState(false)
   const [showScenarioForm, setShowScenarioForm] = useState(false)
   const [showForecastForm, setShowForecastForm] = useState(false)
+  const [reviseTarget, setReviseTarget] = useState<string | null>(null)
+  const [reviseLines, setReviseLines] = useState<FinanceBudgetLine[]>([])
+  const [periodEditTarget, setPeriodEditTarget] = useState<string | null>(null)
+  const [periodDrafts, setPeriodDrafts] = useState<FinanceForecastPeriod[]>([])
 
   return (
     <div className="flex flex-col gap-[16px]">
@@ -161,14 +165,17 @@ export function Plans() {
                     )
                   })}
                 </ul>
-                {canWrite && (
+                {canWrite && reviseTarget !== bud.id && (
                   <div className="mt-[8px] flex flex-wrap gap-[6px]">
                     <button
                       type="button"
-                      onClick={() => reviseBudget(bud.id, bud.lines)}
+                      onClick={() => {
+                        setReviseTarget(bud.id)
+                        setReviseLines(bud.lines.map((l) => ({ ...l })))
+                      }}
                       className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
                     >
-                      {x(M.finance_plans_revise)}
+                      {x(M.finance_budget_revise_lines)}
                     </button>
                     {bud.status === 'draft' && (
                       <button
@@ -179,6 +186,39 @@ export function Plans() {
                         {x(M.finance_budget_approve)}
                       </button>
                     )}
+                  </div>
+                )}
+                {canWrite && reviseTarget === bud.id && (
+                  <div className="mt-[8px] flex flex-col gap-[8px]">
+                    <div className="text-[12px] font-semibold text-text-muted">{x(M.finance_budget_revise_lines)}</div>
+                    {reviseLines.map((line, idx) => (
+                      <div key={idx} className="grid grid-cols-[1fr_1fr_80px_80px_80px] items-center gap-[6px]">
+                        <input value={line.department ?? ''} onChange={(e) => setReviseLines((prev) => prev.map((l, i) => i === idx ? { ...l, department: e.target.value } : l))} placeholder={x(M.finance_budget_department)} className="rounded-[6px] border border-border bg-surface px-[6px] py-[3px] text-[12px]" />
+                        <input value={line.period} onChange={(e) => setReviseLines((prev) => prev.map((l, i) => i === idx ? { ...l, period: e.target.value } : l))} placeholder={x(M.finance_budget_period)} className="rounded-[6px] border border-border bg-surface px-[6px] py-[3px] text-[12px]" />
+                        <input value={line.amount} onChange={(e) => setReviseLines((prev) => prev.map((l, i) => i === idx ? { ...l, amount: e.target.value } : l))} placeholder={x(M.finance_budget_amount)} className="rounded-[6px] border border-border bg-surface px-[6px] py-[3px] text-[12px]" />
+                        <input value={line.actualAmount} onChange={(e) => setReviseLines((prev) => prev.map((l, i) => i === idx ? { ...l, actualAmount: e.target.value } : l))} placeholder={x(M.finance_budget_actual_amount)} className="rounded-[6px] border border-border bg-surface px-[6px] py-[3px] text-[12px]" />
+                        <input value={line.committedAmount} onChange={(e) => setReviseLines((prev) => prev.map((l, i) => i === idx ? { ...l, committedAmount: e.target.value } : l))} placeholder={x(M.finance_budget_committed_amount)} className="rounded-[6px] border border-border bg-surface px-[6px] py-[3px] text-[12px]" />
+                      </div>
+                    ))}
+                    <div className="flex gap-[6px]">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          reviseBudget(bud.id, reviseLines)
+                          setReviseTarget(null)
+                        }}
+                        className="rounded-[6px] bg-navy px-[8px] py-[3px] text-[11px] font-semibold text-white"
+                      >
+                        {x(M.finance_save)}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setReviseTarget(null)}
+                        className="rounded-[6px] bg-inset px-[8px] py-[3px] text-[11px] font-semibold text-text-2 border border-border"
+                      >
+                        {x(M.finance_cancel)}
+                      </button>
+                    </div>
                   </div>
                 )}
               </li>
@@ -320,14 +360,56 @@ export function Plans() {
                     </li>
                   ))}
                 </ul>
-                {canWrite && !fc.frozenAt && (
-                  <button
-                    type="button"
-                    onClick={() => freezeForecast(fc.id)}
-                    className="mt-[8px] rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
-                  >
-                    {x(M.finance_forecast_freeze)}
-                  </button>
+                {canWrite && !fc.frozenAt && periodEditTarget !== fc.id && (
+                  <div className="mt-[8px] flex flex-wrap gap-[6px]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPeriodEditTarget(fc.id)
+                        setPeriodDrafts(fc.periods.length > 0 ? fc.periods.map((p) => ({ ...p })) : [{
+                          label: '', startDate: new Date().toISOString().slice(0, 10),
+                          endDate: new Date().toISOString().slice(0, 10),
+                          inflow: '0.00', outflow: '0.00', net: '0.00', closingBalance: '0.00',
+                        }])
+                      }}
+                      className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                    >
+                      {x(M.finance_forecast_save_periods)}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => freezeForecast(fc.id)}
+                      className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                    >
+                      {x(M.finance_forecast_freeze)}
+                    </button>
+                  </div>
+                )}
+                {canWrite && !fc.frozenAt && periodEditTarget === fc.id && (
+                  <div className="mt-[8px] flex flex-col gap-[8px]">
+                    {periodDrafts.map((p, idx) => (
+                      <div key={idx} className="grid grid-cols-[1fr_100px_100px_80px_80px_80px_100px] items-center gap-[4px]">
+                        <input value={p.label} onChange={(e) => setPeriodDrafts((prev) => prev.map((pp, i) => i === idx ? { ...pp, label: e.target.value } : pp))} placeholder={x(M.finance_forecast_period_label)} className="rounded-[6px] border border-border bg-surface px-[4px] py-[2px] text-[11px]" />
+                        <input type="date" value={p.startDate} onChange={(e) => setPeriodDrafts((prev) => prev.map((pp, i) => i === idx ? { ...pp, startDate: e.target.value } : pp))} className="rounded-[6px] border border-border bg-surface px-[4px] py-[2px] text-[11px]" />
+                        <input type="date" value={p.endDate} onChange={(e) => setPeriodDrafts((prev) => prev.map((pp, i) => i === idx ? { ...pp, endDate: e.target.value } : pp))} className="rounded-[6px] border border-border bg-surface px-[4px] py-[2px] text-[11px]" />
+                        <input value={p.inflow} onChange={(e) => setPeriodDrafts((prev) => prev.map((pp, i) => i === idx ? { ...pp, inflow: e.target.value } : pp))} placeholder={x(M.finance_forecast_inflow)} className="rounded-[6px] border border-border bg-surface px-[4px] py-[2px] text-[11px]" />
+                        <input value={p.outflow} onChange={(e) => setPeriodDrafts((prev) => prev.map((pp, i) => i === idx ? { ...pp, outflow: e.target.value } : pp))} placeholder={x(M.finance_forecast_outflow)} className="rounded-[6px] border border-border bg-surface px-[4px] py-[2px] text-[11px]" />
+                        <input value={p.net} onChange={(e) => setPeriodDrafts((prev) => prev.map((pp, i) => i === idx ? { ...pp, net: e.target.value } : pp))} placeholder={x(M.finance_forecast_net)} className="rounded-[6px] border border-border bg-surface px-[4px] py-[2px] text-[11px]" />
+                        <input value={p.closingBalance} onChange={(e) => setPeriodDrafts((prev) => prev.map((pp, i) => i === idx ? { ...pp, closingBalance: e.target.value } : pp))} placeholder={x(M.finance_forecast_closing)} className="rounded-[6px] border border-border bg-surface px-[4px] py-[2px] text-[11px]" />
+                      </div>
+                    ))}
+                    <div className="flex gap-[6px]">
+                      <button type="button" onClick={() => setPeriodDrafts((prev) => [...prev, { label: '', startDate: new Date().toISOString().slice(0, 10), endDate: new Date().toISOString().slice(0, 10), inflow: '0.00', outflow: '0.00', net: '0.00', closingBalance: '0.00' }])} className="text-[12px] font-semibold text-accent">
+                        + {x(M.finance_forecast_add_period)}
+                      </button>
+                      <button type="button" onClick={() => { updateForecastPeriods(fc.id, periodDrafts); setPeriodEditTarget(null) }} className="rounded-[6px] bg-navy px-[8px] py-[3px] text-[11px] font-semibold text-white">
+                        {x(M.finance_save)}
+                      </button>
+                      <button type="button" onClick={() => setPeriodEditTarget(null)} className="rounded-[6px] bg-inset px-[8px] py-[3px] text-[11px] font-semibold text-text-2 border border-border">
+                        {x(M.finance_cancel)}
+                      </button>
+                    </div>
+                  </div>
                 )}
               </li>
             ))}

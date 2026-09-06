@@ -31,8 +31,9 @@ const CLOSE_PERIOD_ACTIONS: Record<
 
 export function Accounting() {
   const { x } = useI18n()
-  const { state, canWrite, transitionJournalStatus, transitionClosePeriodStatus, addJournal } = useFinanceData()
+  const { state, canWrite, transitionJournalStatus, transitionClosePeriodStatus, addJournal, addLedgerAccount } = useFinanceData()
   const [showJournalForm, setShowJournalForm] = useState(false)
+  const [showLedgerForm, setShowLedgerForm] = useState(false)
 
   const accountName = (id: string) => {
     const acct = state.ledgerAccounts.find((a) => a.id === id)
@@ -56,7 +57,22 @@ export function Accounting() {
       </section>
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_accounting_ledger)}</h2>
+        <div className="mb-[12px] flex items-center justify-between">
+          <h2 className="text-[15px] font-semibold text-text">{x(M.finance_accounting_ledger)}</h2>
+          {canWrite && (
+            <button type="button" onClick={() => setShowLedgerForm((v) => !v)} className="flex items-center gap-[6px] text-[13px] font-semibold text-accent">
+              <Plus size={14} />
+              {x(M.finance_ledger_account_create)}
+            </button>
+          )}
+        </div>
+        {showLedgerForm && canWrite && (
+          <LedgerAccountForm
+            onSubmit={(acc) => { addLedgerAccount(acc); setShowLedgerForm(false) }}
+            onCancel={() => setShowLedgerForm(false)}
+            books={state.books}
+          />
+        )}
         <ul className="m-0 flex flex-col gap-[6px] p-0">
           {state.ledgerAccounts.map((acct) => (
             <li key={acct.id} className="flex items-center justify-between gap-[8px]">
@@ -325,6 +341,77 @@ function JournalForm({
             {x(M.finance_save)}
           </button>
         </div>
+      </div>
+    </form>
+  )
+}
+
+function LedgerAccountForm({
+  onSubmit,
+  onCancel,
+  books,
+}: {
+  onSubmit: (acc: Omit<import('../data/types').FinanceLedgerAccount, 'id'>) => void
+  onCancel: () => void
+  books: import('../data/types').FinanceBook[]
+}) {
+  const { x } = useI18n()
+  const [bookId, setBookId] = useState(books[0]?.id ?? '')
+  const [code, setCode] = useState('')
+  const [name, setName] = useState('')
+  const [type, setType] = useState<import('../data/types').FinanceLedgerAccount['type']>('expense')
+  const [sensitive, setSensitive] = useState(false)
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSubmit({
+      bookId,
+      code,
+      name: { en: name, fr: name },
+      type,
+      sensitive,
+      active: true,
+    })
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]">
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">Book</span>
+          <select value={bookId} onChange={(e) => setBookId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+            {books.map((b) => <option key={b.id} value={b.id}>{x(b.label)}</option>)}
+          </select>
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_ledger_account_code)}</span>
+          <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="1000" className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+      </div>
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_ledger_account_name)}</span>
+          <input value={name} onChange={(e) => setName(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_ledger_account_type)}</span>
+          <select value={type} onChange={(e) => setType(e.target.value as import('../data/types').FinanceLedgerAccount['type'])} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+            <option value="asset">Asset</option>
+            <option value="liability">Liability</option>
+            <option value="equity">Equity</option>
+            <option value="revenue">Revenue</option>
+            <option value="expense">Expense</option>
+            <option value="contra">Contra</option>
+          </select>
+        </label>
+      </div>
+      <label className="flex items-center gap-[6px]">
+        <input type="checkbox" checked={sensitive} onChange={(e) => setSensitive(e.target.checked)} />
+        <span className="text-[12px] text-text-muted">{x(M.finance_ledger_account_sensitive)}</span>
+      </label>
+      <div className="flex justify-end gap-[8px]">
+        <button type="button" onClick={onCancel} className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border">{x(M.finance_cancel)}</button>
+        <button type="submit" className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">{x(M.finance_save)}</button>
       </div>
     </form>
   )

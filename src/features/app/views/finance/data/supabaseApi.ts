@@ -537,158 +537,24 @@ export async function updateExternalActionStatus(
   return mapExternalAction(data as Record<string, unknown>)
 }
 
-/* ---------- Scenario / forecast / reserve / holding / debt lifecycle ---------- */
-
-export async function addScenarioInSupabase(orgId: string, item: Omit<import('./types').FinanceScenario, 'id'>): Promise<import('./types').FinanceScenario | null> {
-  if (!supabase) return null
-  const { data, error } = await supabase
-    .from(TABLES.scenarios)
-    .insert({
-      organization_id: orgId,
-      entity_id: item.entityId,
-      label: item.label,
-      type: item.type,
-      assumptions: item.assumptions,
-      cutoff_date: item.cutoffDate,
-      currency: item.currency,
-      projected_revenue: Number(item.projectedRevenue),
-      projected_expense: Number(item.projectedExpense),
-      projected_cash_flow: Number(item.projectedCashFlow),
-      status: item.status,
-    })
-    .select('*')
-    .single()
-  if (error) throw error
-  return mapScenario(data as Record<string, unknown>)
-}
-
-export async function addForecastInSupabase(orgId: string, item: Omit<import('./types').FinanceForecast, 'id'>): Promise<import('./types').FinanceForecast | null> {
-  if (!supabase) return null
-  const { data, error } = await supabase
-    .from(TABLES.forecasts)
-    .insert({
-      organization_id: orgId,
-      entity_id: item.entityId,
-      label: item.label,
-      type: item.type,
-      baseline_scenario_id: item.baselineScenarioId,
-      currency: item.currency,
-      periods: item.periods,
-      owner: item.owner,
-    })
-    .select('*')
-    .single()
-  if (error) throw error
-  return mapForecast(data as Record<string, unknown>)
-}
-
-export async function addReserveGoalInSupabase(orgId: string, item: Omit<import('./types').FinanceReserveGoal, 'id'>): Promise<import('./types').FinanceReserveGoal | null> {
-  if (!supabase) return null
-  const { data, error } = await supabase
-    .from(TABLES.reserveGoals)
-    .insert({
-      organization_id: orgId,
-      entity_id: item.entityId,
-      type: item.type,
-      label: item.label,
-      target_amount: Number(item.targetAmount),
-      current_amount: Number(item.currentAmount),
-      currency: item.currency,
-      linked_bank_account_id: item.linkedBankAccountId,
-      due_date: item.dueDate,
-      owner: item.owner,
-    })
-    .select('*')
-    .single()
-  if (error) throw error
-  return mapReserveGoal(data as Record<string, unknown>)
-}
-
-export async function updateReserveGoalProgressInSupabase(orgId: string, id: string, currentAmount: string): Promise<import('./types').FinanceReserveGoal | null> {
-  if (!supabase) return null
-  const { data, error } = await supabase
-    .from(TABLES.reserveGoals)
-    .update({ current_amount: Number(currentAmount), updated_at: new Date().toISOString() })
-    .eq('organization_id', orgId)
-    .eq('id', id)
-    .select('*')
-    .single()
-  if (error) throw error
-  return mapReserveGoal(data as Record<string, unknown>)
-}
-
-export async function setHoldingStaleInSupabase(orgId: string, id: string, stale: boolean): Promise<import('./types').FinanceHolding | null> {
-  if (!supabase) return null
-  const { data, error } = await supabase
-    .from(TABLES.holdings)
-    .update({ stale, updated_at: new Date().toISOString() })
-    .eq('organization_id', orgId)
-    .eq('id', id)
-    .select('*')
-    .single()
-  if (error) throw error
-  return mapHolding(data as Record<string, unknown>)
-}
-
-export async function transitionDebtStatusInSupabase(orgId: string, id: string, status: import('./types').FinanceDebt['status']): Promise<import('./types').FinanceDebt | null> {
-  if (!supabase) return null
-  const { data, error } = await supabase
-    .from(TABLES.debts)
-    .update({ status, updated_at: new Date().toISOString() })
-    .eq('organization_id', orgId)
-    .eq('id', id)
-    .select('*')
-    .single()
-  if (error) throw error
-  return mapDebt(data as Record<string, unknown>)
-}
-
-export async function transitionBudgetStatusInSupabase(orgId: string, id: string, status: import('./types').FinanceBudget['status']): Promise<import('./types').FinanceBudget | null> {
-  if (!supabase) return null
-  const patch: Record<string, unknown> = { status, updated_at: new Date().toISOString() }
-  if (status === 'approved') patch.approved_at = new Date().toISOString()
-  const { data, error } = await supabase
-    .from(TABLES.budgets)
-    .update(patch)
-    .eq('organization_id', orgId)
-    .eq('id', id)
-    .select('*')
-    .single()
-  if (error) throw error
-  return mapBudget(data as Record<string, unknown>)
-}
-
-export async function transitionScenarioStatusInSupabase(orgId: string, id: string, status: import('./types').FinanceScenario['status'], reviewer?: string): Promise<import('./types').FinanceScenario | null> {
-  if (!supabase) return null
-  const patch: Record<string, unknown> = { status, updated_at: new Date().toISOString() }
-  if (reviewer && (status === 'reviewed' || status === 'accepted')) {
-    patch.reviewer = reviewer
-    patch.reviewed_at = new Date().toISOString()
-  }
-  const { data, error } = await supabase
-    .from(TABLES.scenarios)
-    .update(patch)
-    .eq('organization_id', orgId)
-    .eq('id', id)
-    .select('*')
-    .single()
-  if (error) throw error
-  return mapScenario(data as Record<string, unknown>)
-}
-
-export async function freezeForecastInSupabase(orgId: string, id: string): Promise<import('./types').FinanceForecast | null> {
-  if (!supabase) return null
-  const { data, error } = await supabase
-    .from(TABLES.forecasts)
-    .update({ frozen_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-    .eq('organization_id', orgId)
-    .eq('id', id)
-    .is('frozen_at', null)
-    .select('*')
-    .single()
-  if (error) throw error
-  return mapForecast(data as Record<string, unknown>)
-}
+/* ---------- Creates / lifecycle (re-exported from supabaseCreates) ---------- */
+export {
+  addScenarioInSupabase,
+  addForecastInSupabase,
+  addReserveGoalInSupabase,
+  updateReserveGoalProgressInSupabase,
+  setHoldingStaleInSupabase,
+  transitionDebtStatusInSupabase,
+  transitionBudgetStatusInSupabase,
+  transitionScenarioStatusInSupabase,
+  freezeForecastInSupabase,
+  updateForecastPeriodsInSupabase,
+  addExternalActionInSupabase,
+  addBankAccountInSupabase,
+  addLedgerAccountInSupabase,
+  addPartyInSupabase,
+  addSubscriptionInSupabase,
+} from './supabaseCreates'
 
 /* ---------- Evidence / receipt storage (re-exported from supabaseEvidence) ---------- */
 export {

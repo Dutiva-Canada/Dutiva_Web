@@ -11,6 +11,20 @@ export function Overview() {
   const { x } = useI18n()
   const { state, canWrite, transitionSpendRequestStatus } = useFinanceData()
 
+  const kpis = useMemo(() => {
+    const outstandingAR = state.invoices
+      .filter((inv) => inv.status === 'issued' || inv.status === 'partial' || inv.status === 'overdue')
+      .reduce((sum, inv) => sum + Number(inv.total) - Number(inv.paidAmount), 0)
+    const outstandingAP = state.bills
+      .filter((b) => b.status === 'posted' || b.status === 'partial')
+      .reduce((sum, b) => sum + Number(b.total) - Number(b.paidAmount), 0)
+    const cashOnHand = state.bankAccounts.reduce((sum, acc) => sum + Number(acc.earmarkedAmount ?? '0'), 0)
+    const monthlyBurn = state.expenses
+      .filter((e) => e.status === 'approved' || e.status === 'reimbursed')
+      .reduce((sum, e) => sum + Number(e.amount), 0)
+    return { outstandingAR, outstandingAP, cashOnHand, monthlyBurn }
+  }, [state.invoices, state.bills, state.bankAccounts, state.expenses])
+
   const upcomingObligations = useMemo(
     () =>
       [
@@ -73,6 +87,28 @@ export function Overview() {
 
   return (
     <div className="flex flex-col gap-[16px]">
+      <section className="rounded-[12px] border border-border bg-surface p-[16px]">
+        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_overview_kpis)}</h2>
+        <div className="grid grid-cols-2 gap-[10px] sm:grid-cols-4">
+          <div className="rounded-[8px] bg-inset px-[12px] py-[10px]">
+            <div className="text-[12px] text-text-muted">{x(M.finance_overview_cash_total)}</div>
+            <div className="mt-[4px] text-[16px] font-semibold text-text">CAD {kpis.cashOnHand.toFixed(2)}</div>
+          </div>
+          <div className="rounded-[8px] bg-inset px-[12px] py-[10px]">
+            <div className="text-[12px] text-text-muted">{x(M.finance_overview_ar)}</div>
+            <div className="mt-[4px] text-[16px] font-semibold text-text">CAD {kpis.outstandingAR.toFixed(2)}</div>
+          </div>
+          <div className="rounded-[8px] bg-inset px-[12px] py-[10px]">
+            <div className="text-[12px] text-text-muted">{x(M.finance_overview_ap)}</div>
+            <div className="mt-[4px] text-[16px] font-semibold text-text">CAD {kpis.outstandingAP.toFixed(2)}</div>
+          </div>
+          <div className="rounded-[8px] bg-inset px-[12px] py-[10px]">
+            <div className="text-[12px] text-text-muted">{x(M.finance_overview_burn_rate)}</div>
+            <div className="mt-[4px] text-[16px] font-semibold text-text">CAD {kpis.monthlyBurn.toFixed(2)}</div>
+          </div>
+        </div>
+      </section>
+
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
         <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_overview_cash_position)}</h2>
         {cashByAccount.length === 0 ? (

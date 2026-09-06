@@ -54,9 +54,11 @@ const EXPENSE_TRANSITIONS: Record<FinanceExpenseStatus, { status: FinanceExpense
 
 export function Purchases() {
   const { x } = useI18n()
-  const { state, canWrite, transitionSpendRequestStatus, transitionBillStatus, transitionExpenseStatus, addSpendRequest } = useFinanceData()
+  const { state, canWrite, transitionSpendRequestStatus, transitionBillStatus, transitionExpenseStatus, addSpendRequest, addParty, addSubscription } = useFinanceData()
   const [filter, setFilter] = useState<'all' | FinanceRequestStatus>('all')
   const [showForm, setShowForm] = useState(false)
+  const [showPartyForm, setShowPartyForm] = useState(false)
+  const [showSubForm, setShowSubForm] = useState(false)
 
   const requests = useMemo(
     () => (filter === 'all' ? state.spendRequests : state.spendRequests.filter((sr) => sr.status === filter)),
@@ -277,8 +279,37 @@ export function Purchases() {
       </section>
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_purchases_subscriptions)}</h2>
-        {state.subscriptions.length === 0 ? (
+        <div className="mb-[12px] flex items-center justify-between">
+          <h2 className="text-[15px] font-semibold text-text">{x(M.finance_purchases_subscriptions)}</h2>
+          {canWrite && (
+            <div className="flex gap-[8px]">
+              <button type="button" onClick={() => setShowPartyForm((v) => !v)} className="flex items-center gap-[6px] text-[13px] font-semibold text-accent">
+                <Plus size={14} />
+                {x(M.finance_party_create)}
+              </button>
+              <button type="button" onClick={() => setShowSubForm((v) => !v)} className="flex items-center gap-[6px] text-[13px] font-semibold text-accent">
+                <Plus size={14} />
+                {x(M.finance_subscription_create)}
+              </button>
+            </div>
+          )}
+        </div>
+        {showPartyForm && canWrite && (
+          <PartyForm
+            onSubmit={(p) => { addParty(p); setShowPartyForm(false) }}
+            onCancel={() => setShowPartyForm(false)}
+            entities={state.entities}
+          />
+        )}
+        {showSubForm && canWrite && (
+          <SubscriptionForm
+            onSubmit={(s) => { addSubscription(s); setShowSubForm(false) }}
+            onCancel={() => setShowSubForm(false)}
+            entities={state.entities}
+            parties={state.parties}
+          />
+        )}
+        {state.subscriptions.length === 0 && !showSubForm ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_none)}</p>
         ) : (
           <ul className="m-0 flex flex-col gap-[10px] p-0">
@@ -300,6 +331,157 @@ export function Purchases() {
         )}
       </section>
     </div>
+  )
+}
+
+function PartyForm({
+  onSubmit,
+  onCancel,
+  entities,
+}: {
+  onSubmit: (p: Omit<import('../data/types').FinanceParty, 'id'>) => void
+  onCancel: () => void
+  entities: import('../data/types').FinanceLegalEntity[]
+}) {
+  const { x } = useI18n()
+  const [entityId, setEntityId] = useState(entities[0]?.id ?? '')
+  const [name, setName] = useState('')
+  const [type, setType] = useState<import('../data/types').FinancePartyType>('supplier')
+  const [bankingDetailsOnFile, setBankingDetailsOnFile] = useState(false)
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSubmit({ entityId, name, type, bankingDetailsOnFile, active: true })
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]">
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_invoice_entity)}</span>
+          <select value={entityId} onChange={(e) => setEntityId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+            {entities.map((ent) => <option key={ent.id} value={ent.id}>{ent.legalName}</option>)}
+          </select>
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_party_name)}</span>
+          <input value={name} onChange={(e) => setName(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+      </div>
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_party_type)}</span>
+          <select value={type} onChange={(e) => setType(e.target.value as import('../data/types').FinancePartyType)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+            <option value="supplier">Supplier</option>
+            <option value="customer">Customer</option>
+            <option value="employee">Employee</option>
+            <option value="bank">Bank</option>
+            <option value="advisor">Advisor</option>
+          </select>
+        </label>
+        <label className="flex items-center gap-[6px] pt-[20px]">
+          <input type="checkbox" checked={bankingDetailsOnFile} onChange={(e) => setBankingDetailsOnFile(e.target.checked)} />
+          <span className="text-[12px] text-text-muted">{x(M.finance_party_banking_on_file)}</span>
+        </label>
+      </div>
+      <div className="flex justify-end gap-[8px]">
+        <button type="button" onClick={onCancel} className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border">{x(M.finance_cancel)}</button>
+        <button type="submit" className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">{x(M.finance_save)}</button>
+      </div>
+    </form>
+  )
+}
+
+function SubscriptionForm({
+  onSubmit,
+  onCancel,
+  entities,
+  parties,
+}: {
+  onSubmit: (s: Omit<import('../data/types').FinanceSubscription, 'id'>) => void
+  onCancel: () => void
+  entities: import('../data/types').FinanceLegalEntity[]
+  parties: import('../data/types').FinanceParty[]
+}) {
+  const { x } = useI18n()
+  const [entityId, setEntityId] = useState(entities[0]?.id ?? '')
+  const [label, setLabel] = useState('')
+  const [supplierId, setSupplierId] = useState(parties.find((p) => p.type === 'supplier')?.id ?? '')
+  const [cost, setCost] = useState('0.00')
+  const [currency] = useState<FinanceCurrency>('CAD')
+  const [renewalTerm, setRenewalTerm] = useState('')
+  const [nextRenewalDate, setNextRenewalDate] = useState('')
+  const [noticeDate, setNoticeDate] = useState('')
+  const [owner, setOwner] = useState('')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSubmit({
+      entityId,
+      label: { en: label, fr: label },
+      supplierId,
+      cost: Number(cost).toFixed(2),
+      currency,
+      renewalTerm: { en: renewalTerm, fr: renewalTerm },
+      nextRenewalDate,
+      noticeDate: noticeDate || undefined,
+      owner: owner || 'Workspace user',
+      active: true,
+    })
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]">
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_invoice_entity)}</span>
+          <select value={entityId} onChange={(e) => setEntityId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+            {entities.map((ent) => <option key={ent.id} value={ent.id}>{ent.legalName}</option>)}
+          </select>
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_subscription_label)}</span>
+          <input value={label} onChange={(e) => setLabel(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+      </div>
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_subscription_supplier)}</span>
+          <select value={supplierId} onChange={(e) => setSupplierId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+            <option value="">—</option>
+            {parties.filter((p) => p.type === 'supplier').map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_subscription_cost)}</span>
+          <input value={cost} onChange={(e) => setCost(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+      </div>
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_subscription_renewal_term)}</span>
+          <input value={renewalTerm} onChange={(e) => setRenewalTerm(e.target.value)} placeholder="Annual" className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_subscription_next_renewal)}</span>
+          <input type="date" value={nextRenewalDate} onChange={(e) => setNextRenewalDate(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+      </div>
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_subscription_notice_date)}</span>
+          <input type="date" value={noticeDate} onChange={(e) => setNoticeDate(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_subscription_owner)}</span>
+          <input value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="Workspace user" className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        </label>
+      </div>
+      <div className="flex justify-end gap-[8px]">
+        <button type="button" onClick={onCancel} className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border">{x(M.finance_cancel)}</button>
+        <button type="submit" className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">{x(M.finance_save)}</button>
+      </div>
+    </form>
   )
 }
 
