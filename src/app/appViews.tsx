@@ -16,6 +16,7 @@ import {
   preloadComplianceView,
   preloadCompensationView,
   preloadDocumentsView,
+  preloadFinanceView,
   preloadEmployeesView,
   preloadHomeView,
   preloadKnowledgeView,
@@ -58,6 +59,7 @@ import {
 /* prettier-ignore */ const GuideView = lazy(() => import('@/features/app/reference/GuideView').then((m) => ({ default: m.GuideView })))
 /* prettier-ignore */ const CommunicationsView = lazy(preloadCommunicationsView)
 /* prettier-ignore */ const CommsView = lazy(preloadCommsView)
+/* prettier-ignore */ const FinanceView = lazy(preloadFinanceView)
 /* prettier-ignore */ const CompensationView = lazy(preloadCompensationView)
 
 /* Communications workspace screens */
@@ -69,6 +71,16 @@ import {
 /* prettier-ignore */ const CommsIntelligence = lazy(() => import('@/features/app/views/comms/screens/Intelligence').then((m) => ({ default: m.Intelligence })))
 /* prettier-ignore */ const CommsResults = lazy(() => import('@/features/app/views/comms/screens/Results').then((m) => ({ default: m.Results })))
 /* prettier-ignore */ const CommsSettings = lazy(() => import('@/features/app/views/comms/screens/Settings').then((m) => ({ default: m.Settings })))
+/* Finance workspace screens */
+/* prettier-ignore */ const FinanceOverview = lazy(() => import('@/features/app/views/finance/screens/Overview').then((m) => ({ default: m.Overview })))
+/* prettier-ignore */ const FinanceTransactions = lazy(() => import('@/features/app/views/finance/screens/Transactions').then((m) => ({ default: m.Transactions })))
+/* prettier-ignore */ const FinanceSales = lazy(() => import('@/features/app/views/finance/screens/Sales').then((m) => ({ default: m.Sales })))
+/* prettier-ignore */ const FinancePurchases = lazy(() => import('@/features/app/views/finance/screens/Purchases').then((m) => ({ default: m.Purchases })))
+/* prettier-ignore */ const FinancePayroll = lazy(() => import('@/features/app/views/finance/screens/Payroll').then((m) => ({ default: m.Payroll })))
+/* prettier-ignore */ const FinanceAccounting = lazy(() => import('@/features/app/views/finance/screens/Accounting').then((m) => ({ default: m.Accounting })))
+/* prettier-ignore */ const FinancePlans = lazy(() => import('@/features/app/views/finance/screens/Plans').then((m) => ({ default: m.Plans })))
+/* prettier-ignore */ const FinanceTreasury = lazy(() => import('@/features/app/views/finance/screens/Treasury').then((m) => ({ default: m.Treasury })))
+/* prettier-ignore */ const FinanceTax = lazy(() => import('@/features/app/views/finance/screens/Tax').then((m) => ({ default: m.Tax })))
 /* prettier-ignore */ const WellbeingView = lazy(preloadWellbeingView)
 /* prettier-ignore */ const SupportView = lazy(() => import('@/features/app/views/support/SupportView').then((m) => ({ default: m.SupportView })))
 /* prettier-ignore */ const SupportRequestsList = lazy(() => import('@/features/app/views/support/SupportRequestsList').then((m) => ({ default: m.SupportRequestsList })))
@@ -150,6 +162,22 @@ function createAppViewRoutes(root: string): RouteObject[] {
         { path: 'intelligence', element: <CommsIntelligence /> },
         { path: 'results', element: <CommsResults /> },
         { path: 'settings', element: <CommsSettings /> },
+      ],
+    },
+    {
+      path: 'finance',
+      element: <FinanceView />,
+      children: [
+        { index: true, loader: () => redirect(r('finance/overview')) },
+        { path: 'overview', element: <FinanceOverview /> },
+        { path: 'transactions', element: <FinanceTransactions /> },
+        { path: 'sales', element: <FinanceSales /> },
+        { path: 'purchases', element: <FinancePurchases /> },
+        { path: 'payroll', element: <FinancePayroll /> },
+        { path: 'accounting', element: <FinanceAccounting /> },
+        { path: 'plans', element: <FinancePlans /> },
+        { path: 'treasury', element: <FinanceTreasury /> },
+        { path: 'tax', element: <FinanceTax /> },
       ],
     },
     { path: 'compensation', element: <CompensationView /> },

@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react'
 import {
   Activity,
+  Banknote,
   Book,
   Brain,
   CalendarCheck,
@@ -21,6 +22,7 @@ import type { Bi } from '@/i18n/core'
 import { bi } from '@/i18n/core'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { commsMessages as COMMS } from '@/i18n/messages/comms'
+import { financeMessages as FINANCE } from '@/i18n/messages/finance'
 import { memoryMessages as MEM } from '@/i18n/messages/memory'
 import { cases, employeeDetails, employees } from '@/data'
 import { VIEW_LABELS, isDoclibStudioPath } from './navLabels'
@@ -142,6 +144,13 @@ export function getNavGroups(root: string): NavGroup[] {
           isActive: (pathname) => pathname.startsWith(`${root}/comms`),
         },
         {
+          key: 'finance',
+          to: p('finance/overview'),
+          icon: Banknote,
+          label: FINANCE.finance_title,
+          isActive: (pathname) => pathname.startsWith(`${root}/finance`),
+        },
+        {
           key: 'wellbeing',
           to: p('wellbeing'),
           icon: Activity,
@@ -187,6 +196,7 @@ export const PUBLIC_DEMO_NAV_KEYS = new Set([
   'compliance',
   'communications',
   'comms',
+  'finance',
   'compensation',
   'wellbeing',
   'analytics',
@@ -225,6 +235,9 @@ export function viewLabelFor(pathname: string): Bi {
   }
   if (segment === 'comms') {
     return COMMS.comms_title
+  }
+  if (segment === 'finance') {
+    return FINANCE.finance_title
   }
   return VIEW_LABELS[segment] ?? M.shell_v_home
 }

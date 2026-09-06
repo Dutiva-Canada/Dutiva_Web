@@ -72,6 +72,10 @@ export function preloadCommsView(): Promise<ViewDefaultExport> {
   return import('@/features/app/views/comms/CommsView').then((m) => ({ default: m.CommsView }))
 }
 
+export function preloadFinanceView(): Promise<ViewDefaultExport> {
+  return import('@/features/app/views/finance/FinanceView').then((m) => ({ default: m.FinanceView }))
+}
+
 export function preloadWellbeingView(): Promise<ViewDefaultExport> {
   return import('@/features/app/views/wellbeing/WellbeingView').then((m) => ({
     default: m.WellbeingView,
@@ -111,6 +115,7 @@ export const workspaceViewPreloads: Record<string, () => Promise<unknown>> = {
   compensation: preloadCompensationView,
   communications: preloadCommunicationsView,
   comms: preloadCommsView,
+  finance: preloadFinanceView,
   wellbeing: preloadWellbeingView,
   planning: preloadPlanningView,
   analytics: preloadAnalyticsView,

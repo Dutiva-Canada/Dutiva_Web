@@ -30,6 +30,7 @@ import { exportProtectionMessages } from './exportProtection'
 import { capacityMessages } from './capacity'
 import { hiringMessages } from './hiring'
 import { commsMessages } from './comms'
+import { financeMessages } from './finance'
 import { sharedMessages } from './shared'
 
 /**
@@ -72,6 +73,7 @@ export const workspaceMessages = {
   ...capacityMessages,
   ...hiringMessages,
   ...commsMessages,
+  ...financeMessages,
   ...sharedMessages,
 } as const
 
