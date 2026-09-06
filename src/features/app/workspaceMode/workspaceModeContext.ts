@@ -19,6 +19,14 @@ export interface WorkspaceIdentity {
   }
 }
 
+export interface WorkspaceOrganization {
+  id: string
+  name: string
+  industry: string | null
+  jurisdictions: string[]
+  financeFeatures: Record<string, boolean>
+}
+
 export interface WorkspaceModeContextValue {
   mode: WorkspaceMode
   /** True for platform admins (`@dutiva.ca` or `is_admin_user()`). */
@@ -53,6 +61,15 @@ export interface WorkspaceModeContextValue {
   isOrgAdmin: boolean
   /** No-op for non-admins — the toggle is only ever rendered for isAdmin. */
   setMode: (mode: WorkspaceMode) => Promise<void>
+  /**
+   * The signed-in admin's real organization settings (industry, jurisdictions,
+   * finance feature flags). Null in demo mode or before the organization loads.
+   */
+  organization: WorkspaceOrganization | null
+  /**
+   * Re-read the signed-in admin's organization row. No-op when not an admin.
+   */
+  refreshOrganization: () => Promise<void>
   /**
    * Re-read the signed-in admin's `profiles` row into the production identity.
    * No-op when not an admin / not signed in.

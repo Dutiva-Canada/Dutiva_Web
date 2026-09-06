@@ -58,6 +58,8 @@ const DEMO_MODE_CTX: WorkspaceModeContextValue = {
   memberRole: null,
   isOrgAdmin: false,
   setMode: vi.fn(),
+  organization: null,
+  refreshOrganization: vi.fn(),
   admissionStatus: 'idle',
   clearAdmissionStatus: vi.fn(),
   refreshIdentity: vi.fn(),

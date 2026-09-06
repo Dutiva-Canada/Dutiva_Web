@@ -172,6 +172,71 @@ export async function joinOrganizationWaitlist(
   }
 }
 
+export interface WorkspaceOrganizationSettings {
+  id: string
+  name: string
+  industry: string | null
+  jurisdictions: string[]
+  financeFeatures: Record<string, boolean>
+}
+
+const organizationRowSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  industry: z.string().nullable(),
+  jurisdictions: z.array(z.string()),
+  finance_features: z.record(z.string(), z.boolean()).nullable().optional(),
+})
+
+function orgSettingsFromRow(row: z.infer<typeof organizationRowSchema>): WorkspaceOrganizationSettings {
+  return {
+    id: row.id,
+    name: row.name,
+    industry: row.industry,
+    jurisdictions: row.jurisdictions,
+    financeFeatures: row.finance_features ?? {},
+  }
+}
+
+export async function fetchOrganizationSettings(
+  organizationId: string,
+): Promise<WorkspaceOrganizationSettings | null> {
+  if (!supabase) return null
+  try {
+    const { data, error } = await supabase
+      .from('organizations')
+      .select('id, name, industry, jurisdictions, finance_features')
+      .eq('id', organizationId)
+      .maybeSingle()
+    if (error || !data) return null
+    return orgSettingsFromRow(organizationRowSchema.parse(data))
+  } catch {
+    return null
+  }
+}
+
+export async function updateOrganizationSettings(
+  organizationId: string,
+  patch: Partial<Pick<WorkspaceOrganizationSettings, 'industry' | 'jurisdictions' | 'financeFeatures'>>,
+): Promise<WorkspaceOrganizationSettings | null> {
+  if (!supabase) return null
+  try {
+    const { data, error } = await supabase
+      .from('organizations')
+      .update({
+        industry: patch.industry,
+        jurisdictions: patch.jurisdictions,
+        finance_features: patch.financeFeatures,
+      })
+      .eq('id', organizationId)
+      .select('id, name, industry, jurisdictions, finance_features')
+      .maybeSingle()
+    if (error || !data) return null
+    return orgSettingsFromRow(organizationRowSchema.parse(data))
+  } catch {
+    return null
+  }
+}
 function profileFromRow(row: z.infer<typeof profileRowSchema>): AdminProfile {
   const rawContact = row.primary_contact?.trim() || null
   return {

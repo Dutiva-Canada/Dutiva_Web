@@ -31,6 +31,8 @@ const MODE: WorkspaceModeContextValue = {
   organizationId: '11111111-1111-4111-8111-111111111111',
   memberRole: 'owner',
   isOrgAdmin: true,
+  organization: null,
+  refreshOrganization: async () => {},
   admissionStatus: 'idle',
   clearAdmissionStatus: () => {},
   setMode: async () => {},

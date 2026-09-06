@@ -38,6 +38,7 @@ import { SettingsDemoFixtures } from './SettingsDemoFixtures'
 import { SettingsBillingSection } from './SettingsBillingSection'
 import { SettingsProductionTeam } from './SettingsProductionTeam'
 import { WorkspaceProfileEditor } from './WorkspaceProfileEditor'
+import { OrganizationProfileEditor } from './OrganizationProfileEditor'
 import { AppPage } from '@/features/app/shell/AppPage'
 import { useMdUp } from '@/lib/useMediaQuery'
 import { useAuth } from '@/features/app/auth/authContext'
@@ -376,7 +377,10 @@ export function SettingsView() {
             }
           >
             {workspaceMode === 'production' ? (
-              <WorkspaceProfileEditor />
+              <>
+                <WorkspaceProfileEditor />
+                <OrganizationProfileEditor />
+              </>
             ) : (
               <>
                 <div>

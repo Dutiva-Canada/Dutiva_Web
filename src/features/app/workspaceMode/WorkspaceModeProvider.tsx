@@ -8,9 +8,11 @@ import {
   checkIsAdmin,
   fetchAdminProfile,
   fetchOrganizationMembership,
+  fetchOrganizationSettings,
   fetchStoredMode,
   saveStoredMode,
 } from './api'
+import type { WorkspaceOrganizationSettings } from './api'
 import { resetAdvisorSession } from '@/features/app/views/advisor/advisorSession'
 import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { resolveContactDisplayName } from './contactDisplayName'
@@ -34,6 +36,7 @@ interface AdminState {
   storedMode: WorkspaceMode
   identity: WorkspaceIdentity | null
   organizationId: string | null
+  organization: WorkspaceOrganizationSettings | null
   memberRole: OrgMemberRole | null
   admissionStatus: AdmissionStatus
 }
@@ -43,6 +46,7 @@ const SIGNED_OUT_STATE: AdminState = {
   storedMode: 'demo',
   identity: null,
   organizationId: null,
+  organization: null,
   memberRole: null,
   admissionStatus: 'idle',
 }
@@ -94,6 +98,7 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
          inserts the caller as the org's active owner. */
       let organizationId = membership?.organizationId ?? null
       let memberRole = membership?.role ?? null
+      let organization: WorkspaceOrganizationSettings | null = null
       let admissionStatus: AdmissionStatus = 'idle'
       if (storedMode === 'production' && organizationId === null) {
         const result = await bootstrapOrganization(companyName, companyName)
@@ -110,6 +115,9 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
           admissionStatus = 'error'
         }
       }
+      if (organizationId && !cancelled) {
+        organization = await fetchOrganizationSettings(organizationId)
+      }
 
       const contactName = resolveContactDisplayName({
         contactName: profile?.contactName,
@@ -121,6 +129,7 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
         isAdmin: true,
         storedMode,
         organizationId,
+        organization,
         memberRole,
         admissionStatus,
         identity: {
@@ -184,11 +193,16 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
         setAdmin((prev) => ({ ...prev, organizationId, memberRole, admissionStatus: 'error' }))
         return
       }
+      let organization: WorkspaceOrganizationSettings | null = null
+      if (organizationId) {
+        organization = await fetchOrganizationSettings(organizationId)
+      }
       resetAdvisorSession()
       setAdmin((prev) => ({
         ...prev,
         storedMode: next,
         organizationId,
+        organization,
         memberRole,
         admissionStatus,
       }))
@@ -206,6 +220,13 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
   const clearAdmissionStatus = useCallback(() => {
     setAdmin((prev) => ({ ...prev, admissionStatus: 'idle' }))
   }, [])
+
+  const refreshOrganization = useCallback(async () => {
+    if (!admin.organizationId) return
+    const organization = await fetchOrganizationSettings(admin.organizationId)
+    if (!organization) return
+    setAdmin((prev) => ({ ...prev, organization }))
+  }, [admin.organizationId])
 
   const refreshIdentity = useCallback(async () => {
     if (!admin.isAdmin || !session) return
@@ -246,10 +267,12 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
         identity: DEMO_IDENTITY,
         companyName: WORKSPACE_NAME,
         organizationId: null,
+        organization: null,
         memberRole: null,
         isOrgAdmin: false,
         setMode: async () => {},
         refreshIdentity: async () => {},
+        refreshOrganization: async () => {},
         admissionStatus: 'idle' as const,
         clearAdmissionStatus: () => {},
       }
@@ -268,15 +291,17 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
       identity: mode === 'production' && admin.identity ? admin.identity : DEMO_IDENTITY,
       companyName: admin.identity?.companyName ?? 'Dutiva Canada Inc.',
       organizationId: mode === 'production' ? admin.organizationId : null,
+      organization: mode === 'production' ? admin.organization : null,
       memberRole,
       /* Mirrors RLS's is_org_admin: platform admin, or owner/admin role. */
       isOrgAdmin: mode === 'production' && (admin.isAdmin || isAdminRole(memberRole)),
       setMode,
       refreshIdentity,
+      refreshOrganization,
       admissionStatus: admin.admissionStatus,
       clearAdmissionStatus,
     }
-  }, [admin, setMode, refreshIdentity, clearAdmissionStatus, isPublicDemo])
+  }, [admin, setMode, refreshIdentity, refreshOrganization, clearAdmissionStatus, isPublicDemo])
 
   return <WorkspaceModeContext.Provider value={value}>{children}</WorkspaceModeContext.Provider>
 }

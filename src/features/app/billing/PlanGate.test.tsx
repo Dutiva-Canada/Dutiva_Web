@@ -49,6 +49,8 @@ const DEMO_MODE: WorkspaceModeContextValue = {
   memberRole: null,
   isOrgAdmin: false,
   setMode: vi.fn(),
+  organization: null,
+  refreshOrganization: vi.fn(),
   admissionStatus: 'idle',
   clearAdmissionStatus: vi.fn(),
   refreshIdentity: vi.fn(),

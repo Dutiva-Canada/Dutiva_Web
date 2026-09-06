@@ -129,6 +129,44 @@ export const settingsMessages = defineMessages({
     fr: 'Impossible d’enregistrer le profil de l’entreprise. Réessayez.',
   },
 
+  /* Organization settings — workspace profile and feature flags [FR self-authored] */
+  settings_org_profile_edit: {
+    en: 'Workspace profile',
+    fr: 'Profil de l’espace de travail',
+  },
+  settings_org_industry: {
+    en: 'Industry',
+    fr: 'Secteur d’activité',
+  },
+  settings_org_jurisdictions: {
+    en: 'Operating jurisdictions',
+    fr: 'Territoires d’exploitation',
+  },
+  settings_org_jurisdictions_note: {
+    en: 'Select every province or federal regime where the company operates.',
+    fr: 'Sélectionnez chaque province ou régime fédéral où l’entreprise opère.',
+  },
+  settings_org_finance_features: {
+    en: 'Finance modules',
+    fr: 'Modules Finance',
+  },
+  settings_org_finance_features_note: {
+    en: 'Turn tabs on or off for your Finance workspace. Hidden tabs stay off until you enable them here.',
+    fr: 'Activez ou désactivez les onglets dans votre espace Finance. Les onglets masqués restent inactifs jusqu’à ce que vous les activiez ici.',
+  },
+  settings_org_save: {
+    en: 'Save workspace settings',
+    fr: 'Enregistrer les paramètres de l’espace de travail',
+  },
+  settings_org_saved: {
+    en: 'Workspace settings saved',
+    fr: 'Paramètres de l’espace de travail enregistrés',
+  },
+  settings_org_failed: {
+    en: 'Couldn’t save workspace settings. Try again.',
+    fr: 'Impossible d’enregistrer les paramètres de l’espace de travail. Réessayez.',
+  },
+
   /* ── Notifications toggles (settingsPrefs, frDict) ─────────────────────── */
   settings_notifications: { en: 'Notifications', fr: 'Notifications' },
   settings_toggle_email_digest: {

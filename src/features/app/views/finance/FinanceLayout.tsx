@@ -17,6 +17,7 @@ import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { AppPage } from '@/features/app/shell/AppPage'
 import { Disclaimer } from '@/components/Disclaimer'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useFinanceData } from './data/useFinanceData'
 import type { LucideIcon } from 'lucide-react'
 
@@ -49,6 +50,13 @@ interface FinanceLayoutProps {
 export function FinanceLayout({ mode }: FinanceLayoutProps) {
   const { x } = useI18n()
   const { hasSupabase } = useFinanceData()
+  const { organization } = useWorkspaceMode()
+
+  const visibleTabs = mode === 'demo' ? TABS : TABS.filter((tab) => {
+    const flags = organization?.financeFeatures
+    if (!flags || Object.keys(flags).length === 0) return true
+    return flags[tab.key] !== false
+  })
 
   const modeMessage = (() => {
     if (mode === 'demo') return x(M.finance_demo_read_only)
@@ -64,7 +72,7 @@ export function FinanceLayout({ mode }: FinanceLayoutProps) {
       </div>
 
       <div className="mb-[18px] flex flex-wrap gap-[6px]">
-        {TABS.map((tab) => {
+        {visibleTabs.map((tab) => {
           const Icon = tab.icon
           return (
             <NavLink

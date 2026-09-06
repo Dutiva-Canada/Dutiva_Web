@@ -520,6 +520,8 @@ describe('EmployeeProfileProductionView for a non-admin member', () => {
           memberRole: 'member',
           isOrgAdmin: false,
           setMode: vi.fn(),
+          organization: null,
+          refreshOrganization: vi.fn(),
           admissionStatus: 'idle',
           clearAdmissionStatus: vi.fn(),
           refreshIdentity: vi.fn(),
