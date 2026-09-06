@@ -49,11 +49,34 @@ export interface ColumnMap {
   creditColumn?: number
 }
 
-const DATE_HEADERS = ['date', 'transaction date', 'posting date', 'trans date', 'date posted']
-const AMOUNT_HEADERS = ['amount', 'transaction amount', 'amount (cad)', 'amount cad', 'value']
+const DATE_HEADERS = [
+  'date',
+  'transaction date',
+  'posting date',
+  'trans date',
+  'date posted',
+  'effective date',
+  'effective_date',
+  'settlement date',
+  'settlement_date',
+  'value date',
+  'book date',
+]
+const AMOUNT_HEADERS = ['amount', 'transaction amount', 'amount (cad)', 'amount cad', 'value', 'net amount']
 const DEBIT_HEADERS = ['debit', 'withdrawal', 'withdrawals', 'debit (cad)', 'outflow']
 const CREDIT_HEADERS = ['credit', 'deposit', 'deposits', 'credit (cad)', 'inflow']
-const DESCRIPTION_HEADERS = ['description', 'details', 'memo', 'narrative', 'transaction details', 'payee']
+const DESCRIPTION_HEADERS = [
+  'description',
+  'details',
+  'memo',
+  'narrative',
+  'transaction details',
+  'payee',
+  'name',
+  'transaction',
+  'counterparty',
+  'reference',
+]
 
 /**
  * Parse CSV text into structured statement rows. Auto-detects delimiter and
@@ -68,11 +91,23 @@ export function parseStatementCSV(text: string, _currency: FinanceCurrency): Sta
   }
 
   const firstRow = parseCSVLine(lines[0] ?? '', delimiter)
-  const columnMap = detectColumns(firstRow)
-  const hasHeader = columnMap != null
+  let columnMap = detectColumns(firstRow)
+  let hasHeader = columnMap != null
+
+  // Fallback: if the first row does not look like a known header, but it is
+  // text-only and the next row has real data, treat the first row as an
+  // unrecognized header and infer the columns from the data instead.
+  if (!hasHeader && lines.length > 1 && looksLikeHeaderRow(firstRow)) {
+    const candidateRows = lines.slice(1).map((line) => parseCSVLine(line, delimiter))
+    const inferred = inferColumnMap(candidateRows)
+    if (inferred) {
+      columnMap = inferred
+      hasHeader = true
+    }
+  }
 
   const dataStart = hasHeader ? 1 : 0
-  const map: ColumnMap = hasHeader ? columnMap : { date: 0, amount: 1, description: 2 }
+  const map: ColumnMap = columnMap ?? { date: 0, amount: 1, description: 2 }
 
   const dataRows = lines.slice(dataStart).map((line) => parseCSVLine(line, delimiter))
   const { rows, errorDetails } = parseStatementRows(map, dataRows)
@@ -221,6 +256,110 @@ function parseStatementRows(
   }
 
   return { rows, errorDetails }
+}
+
+/* ---------- Header detection helpers ---------- */
+
+function looksLikeHeaderRow(row: string[]): boolean {
+  if (row.length < 3) return false
+  // A header row is typically all non-numeric text and contains words that
+  // describe the column (e.g. "effective_date", "settlement_date").
+  const textCount = row.filter((cell) => {
+    const s = cell.trim()
+    if (s === '') return false
+    if (!Number.isNaN(Number.parseFloat(s))) return false
+    return true
+  }).length
+  if (textCount < row.length) return false
+
+  // At least one cell should look like a common statement header keyword.
+  const headerKeywords = [
+    ...DATE_HEADERS,
+    ...AMOUNT_HEADERS,
+    ...DEBIT_HEADERS,
+    ...CREDIT_HEADERS,
+    ...DESCRIPTION_HEADERS,
+  ]
+  const lower = row.map((c) => c.toLowerCase().replace(/[_-]/g, ' ').trim())
+  return lower.some((cell) => headerKeywords.some((kw) => cell.includes(kw)))
+}
+
+function inferColumnMap(dataRows: string[][]): ColumnMap | null {
+  if (dataRows.length === 0) return null
+  const columnCount = dataRows[0]?.length ?? 0
+  if (columnCount < 3) return null
+
+  let dateIdx = -1
+  let amountIdx = -1
+  let descIdx = -1
+
+  // Look for the column that has the most valid dates and the one that has
+  // the most valid amounts, among the first 50 rows.
+  const sample = dataRows.slice(0, 50)
+  let bestDateScore = 0
+  let bestAmountScore = 0
+
+  for (let col = 0; col < columnCount; col++) {
+    let dates = 0
+    let amounts = 0
+    let nonEmpty = 0
+    for (const row of sample) {
+      const cell = row[col]?.trim() ?? ''
+      if (cell === '') continue
+      nonEmpty++
+      const normalizedDate = normalizeDate(cell)
+      if (normalizedDate) {
+        dates++
+        continue
+      }
+      const normalizedAmount = normalizeAmount(cell)
+      if (normalizedAmount !== '' && Number.parseFloat(normalizedAmount) !== 0) amounts++
+    }
+
+    // Require a minimum density to avoid a column of noise being selected.
+    if (nonEmpty > 0) {
+      const dateScore = dates / nonEmpty
+      const amountScore = amounts / nonEmpty
+      if (dateScore > bestDateScore && dateScore >= 0.5) {
+        bestDateScore = dateScore
+        dateIdx = col
+      }
+      if (amountScore > bestAmountScore && amountScore >= 0.5) {
+        bestAmountScore = amountScore
+        amountIdx = col
+      }
+    }
+  }
+
+  if (dateIdx < 0 || amountIdx < 0) return null
+
+  // Description is the non-date, non-amount column with the most text.
+  let bestDescScore = 0
+  for (let col = 0; col < columnCount; col++) {
+    if (col === dateIdx || col === amountIdx) continue
+    let text = 0
+    let nonEmpty = 0
+    for (const row of sample) {
+      const cell = row[col]?.trim() ?? ''
+      if (cell === '') continue
+      nonEmpty++
+      if (normalizeDate(cell) === '' && normalizeAmount(cell) === '') text++
+    }
+    if (nonEmpty > 0) {
+      const score = text / nonEmpty
+      if (score > bestDescScore) {
+        bestDescScore = score
+        descIdx = col
+      }
+    }
+  }
+
+  if (descIdx < 0) {
+    // If no clear description column, pick the first remaining column.
+    descIdx = [0, 1, 2].find((i) => i !== dateIdx && i !== amountIdx) ?? 2
+  }
+
+  return { date: dateIdx, amount: amountIdx, description: descIdx }
 }
 
 /**
@@ -374,6 +513,9 @@ function normalizeDate(raw: string): string {
 function normalizeAmount(raw: string): string {
   let s = raw.trim()
   if (s === '') return '0'
+
+  // Don't parse date-like strings as money (e.g. 2026-08-15, 15/08/2026).
+  if (normalizeDate(s)) return '0'
 
   // Track negativity from parentheses, trailing minus, or debit / Dr / DB markers.
   let negative = false

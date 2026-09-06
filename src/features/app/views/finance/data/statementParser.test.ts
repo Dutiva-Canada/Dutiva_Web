@@ -119,4 +119,15 @@ describe('rowsToBankItems', () => {
     expect(result.errors).toBe(1)
     expect(result.newItems).toHaveLength(1)
   })
+
+  it('falls back to header inference for unrecognized bank headers', () => {
+    const csv = 'effective_date,effective_time,settlement_date\n2026-08-15,100.00,PAYMENT\n2026-08-16,-50.00,RENT'
+    const parsed = parseStatementCSV(csv, 'CAD')
+    expect(parsed.errorRows).toBe(0)
+    expect(parsed.totalRows).toBe(2)
+    expect(parsed.rows[0]?.date).toBe('2026-08-15')
+    expect(parsed.rows[0]?.amount).toBe('100.00')
+    expect(parsed.rows[0]?.description).toBe('PAYMENT')
+    expect(parsed.rows[1]?.amount).toBe('-50.00')
+  })
 })
