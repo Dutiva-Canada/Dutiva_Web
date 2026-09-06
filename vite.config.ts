@@ -160,6 +160,11 @@ const DOCX_TREE = packageAlternation(
   dependencyClosure(['docx'], ['react', 'react-dom', 'react-router', 'react-router-dom', 'scheduler']),
 )
 
+/* Bulk import XLSX/CSV parser — keep the Excel reader tree in the lazy import chunk. */
+const READ_EXCEL_FILE_TREE = packageAlternation(
+  dependencyClosure(['read-excel-file'], ['react', 'react-dom', 'react-router', 'react-router-dom', 'scheduler']),
+)
+
 // https://vite.dev/config/
 export default defineConfig(({ command }) => {
   /* Stamp source locations for local dev and Vercel preview builds only —
@@ -304,14 +309,19 @@ export default defineConfig(({ command }) => {
                  docx (+ jszip tree) is excluded the same way: OOXML Word
                  export is reached only from Document Studio via a dynamic
                  import of wordDoc.ts. In vendor it inflated every public
-                 page's eager graph past the entry budget. */
+                 page's eager graph past the entry budget.
+
+                 read-excel-file is excluded the same way: XLSX parsing is
+                 reached only from the lazy BulkImportWizard, so the parser
+                 tree stays in the import chunk and off the marketing landing
+                 path. */
               {
                 name: 'vendor',
                 test: new RegExp(
-                  `node_modules[\\\\/](?!@supabase[\\\\/])(?!@pdf-lib[\\\\/])(?!${MARKDOWN_TREE}[\\\\/])(?!${DOCX_TREE}[\\\\/])` +
+                  `node_modules[\\\\/](?!@supabase[\\\\/])(?!@pdf-lib[\\\\/])(?!${MARKDOWN_TREE}[\\\\/])(?!${DOCX_TREE}[\\\\/])(?!${READ_EXCEL_FILE_TREE}[\\\\/])` +
                     `(?!(?:recharts|victory-vendor|d3-[a-z-]+|internmap|@reduxjs[\\\\/]toolkit` +
                     `|react-redux|reselect|immer|use-sync-external-store|es-toolkit` +
-                    `|decimal\\.js-light|eventemitter3|pdf-lib|pako|docx|jszip)[\\\\/])`,
+                    `|decimal\\.js-light|eventemitter3|pdf-lib|pako|docx|jszip|read-excel-file)[\\\\/])`,
                 ),
               },
             ],
