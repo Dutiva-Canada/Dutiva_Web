@@ -556,11 +556,11 @@ export const financeMessages = defineMessages({
   finance_tab_import_export: { en: 'Import & export', fr: 'Import et export' },
   finance_import_title: { en: 'Import bank statement', fr: 'Importer un relevé bancaire' },
   finance_import_description: {
-    en: 'Upload a CSV file exported from your bank. Transactions are parsed and auto-categorized using your rules.',
-    fr: 'Téléversez un fichier CSV exporté par votre banque. Les transactions sont analysées et catégorisées automatiquement selon vos règles.',
+    en: 'Upload a CSV or Excel file exported from your bank. Transactions are parsed and auto-categorized using your rules.',
+    fr: 'Téléversez un fichier CSV ou Excel exporté par votre banque. Les transactions sont analysées et catégorisées automatiquement selon vos règles.',
   },
   finance_import_select_account: { en: 'Bank account', fr: 'Compte bancaire' },
-  finance_import_select_file: { en: 'Choose CSV file', fr: 'Choisir un fichier CSV' },
+  finance_import_select_file: { en: 'Choose CSV or Excel file', fr: 'Choisir un fichier CSV ou Excel' },
   finance_import_file_selected: { en: 'File selected', fr: 'Fichier sélectionné' },
   finance_import_process: { en: 'Import', fr: 'Importer' },
   finance_import_result: {
@@ -582,6 +582,11 @@ export const financeMessages = defineMessages({
   finance_import_new: { en: 'New', fr: 'Nouvelles' },
   finance_import_dupes: { en: 'Duplicates', fr: 'Doublons' },
   finance_import_errors: { en: 'Errors', fr: 'Erreurs' },
+  finance_import_amount: { en: 'Amount', fr: 'Montant' },
+  finance_import_view_errors: { en: 'View errors', fr: 'Voir les erreurs' },
+  finance_import_download_errors: { en: 'Download error report', fr: 'Télécharger le rapport d’erreurs' },
+  finance_import_bulk_wizard: { en: 'Bulk import wizard', fr: 'Assistant d’importation en bloc' },
+  finance_import_xlsx_supported: { en: 'CSV and Excel files are supported.', fr: 'Les fichiers CSV et Excel sont pris en charge.' },
 
   /* Auto-categorization */
   finance_categorize_title: { en: 'Auto-categorize', fr: 'Catégorisation automatique' },

@@ -1,12 +1,15 @@
 import { useMemo, useRef, useState } from 'react'
-import { Download, FileUp, Sparkles, Trash2 } from 'lucide-react'
+import { Download, FileUp, Sparkles, Trash2, Wand2 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
 import { CATEGORY_MATCH_TYPE_LABEL } from '../financeLabels'
 import { buildExportBundles, downloadFile } from '../data/importExport'
-import type { FinanceCategoryMatchType } from '../data/types'
+import { statementFileToCsv } from '../data/statementParser'
+import { createBankStatementBulkImportAdapter } from '../bulkImport/bankStatementAdapter'
+import { BulkImportWizard } from '@/features/app/bulkImport/BulkImportWizard'
+import type { FinanceCategoryMatchType, FinanceImportRowError } from '../data/types'
 
 export function ImportExport() {
   const { x } = useI18n()
@@ -25,8 +28,11 @@ export function ImportExport() {
   const [fileContent, setFileContent] = useState('')
   const [importResult, setImportResult] = useState<string | null>(null)
   const [importError, setImportError] = useState<string | null>(null)
+  const [importErrorDetails, setImportErrorDetails] = useState<FinanceImportRowError[]>([])
+  const [showErrorDetails, setShowErrorDetails] = useState(false)
   const [categorizeResult, setCategorizeResult] = useState<string | null>(null)
   const [showRuleForm, setShowRuleForm] = useState(false)
+  const [showWizard, setShowWizard] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const unmatchedCount = useMemo(
@@ -34,20 +40,27 @@ export function ImportExport() {
     [state.bankItems],
   )
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     setSelectedFileName(file.name)
-    const reader = new FileReader()
-    reader.onload = () => {
-      setFileContent(String(reader.result ?? ''))
+    setImportError(null)
+    setImportErrorDetails([])
+    setImportResult(null)
+    try {
+      const csv = await statementFileToCsv(file)
+      setFileContent(csv)
+    } catch {
+      setImportError(x(M.finance_import_failed))
+      setFileContent('')
     }
-    reader.readAsText(file)
   }
 
   const handleImport = async () => {
     if (!selectedAccountId || !fileContent) return
     setImportError(null)
+    setImportErrorDetails([])
+    setImportResult(null)
     try {
       const result = await importBankStatement(selectedAccountId, selectedFileName, fileContent)
       if (result) {
@@ -57,6 +70,7 @@ export function ImportExport() {
             .replace('{dup}', String(result.duplicates))
             .replace('{err}', String(result.errors)),
         )
+        setImportErrorDetails(result.errorDetails ?? [])
         setSelectedFileName('')
         setFileContent('')
         if (fileInputRef.current) fileInputRef.current.value = ''
@@ -66,6 +80,20 @@ export function ImportExport() {
     } catch {
       setImportError(x(M.finance_import_failed))
     }
+  }
+
+  const downloadErrorReport = () => {
+    if (importErrorDetails.length === 0) return
+    const header = ['Row', 'Date', 'Amount', 'Description', 'Reason']
+    const lines = importErrorDetails.map((err) => [
+      String(err.rowIndex + 1),
+      err.rawDate,
+      err.rawAmount,
+      err.rawDescription,
+      err.reason,
+    ])
+    const csv = [header.join(','), ...lines.map((l) => l.join(','))].join('\n')
+    downloadFile(csv, `import-errors-${selectedAccountId}-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv')
   }
 
   const handleAutoCategorize = async () => {
@@ -122,17 +150,30 @@ export function ImportExport() {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".csv,text/csv"
-            onChange={handleFileSelect}
+            accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+            onChange={(e) => {
+              void handleFileSelect(e)
+            }}
             disabled={!canWrite || !selectedAccountId}
             className="text-[12px] text-text-2"
           />
+          <p className="text-[11px] text-text-muted">{x(M.finance_import_xlsx_supported)}</p>
           {selectedFileName && (
             <div className="text-[12px] text-text-muted">
               {x(M.finance_import_file_selected)}: {selectedFileName}
             </div>
           )}
 
+          {canWrite && selectedAccountId && (
+            <button
+              type="button"
+              onClick={() => setShowWizard(true)}
+              className="flex items-center gap-[6px] self-start rounded-[8px] bg-surface px-[14px] py-[7px] text-[12.5px] font-semibold text-text-2 hover:bg-inset border border-border"
+            >
+              <Wand2 size={14} strokeWidth={1.9} aria-hidden="true" />
+              {x(M.finance_import_bulk_wizard)}
+            </button>
+          )}
           {canWrite && selectedAccountId && fileContent && (
             <button
               type="button"
@@ -152,8 +193,50 @@ export function ImportExport() {
             </div>
           )}
           {importResult && (
-            <div className="rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text">
-              {importResult}
+            <div className="flex flex-col gap-[8px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text">
+              <span>{importResult}</span>
+              {importErrorDetails.length > 0 && (
+                <div className="flex flex-col gap-[8px]">
+                  <div className="flex flex-wrap gap-[8px]">
+                    <button
+                      type="button"
+                      onClick={() => setShowErrorDetails((v) => !v)}
+                      className="rounded-[6px] bg-surface px-[8px] py-[4px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                    >
+                      {x(M.finance_import_view_errors)}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={downloadErrorReport}
+                      className="rounded-[6px] bg-surface px-[8px] py-[4px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                    >
+                      {x(M.finance_import_download_errors)}
+                    </button>
+                  </div>
+                  {showErrorDetails && (
+                    <table className="w-full text-[11px]">
+                      <thead>
+                        <tr className="text-left text-text-muted">
+                          <th className="pb-[4px] pr-[8px]">{x(M.finance_import_rows)}</th>
+                          <th className="pb-[4px] pr-[8px]">{x(M.finance_import_date)}</th>
+                          <th className="pb-[4px] pr-[8px]">{x(M.finance_import_amount)}</th>
+                          <th className="pb-[4px]">{x(M.finance_import_description)}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {importErrorDetails.map((err) => (
+                          <tr key={err.rowIndex} className="border-t border-border/50">
+                            <td className="py-[4px] pr-[8px]">{err.rowIndex + 1}</td>
+                            <td className="py-[4px] pr-[8px] text-red-600">{err.rawDate}</td>
+                            <td className="py-[4px] pr-[8px] text-red-600">{err.rawAmount}</td>
+                            <td className="py-[4px]">{err.rawDescription}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -349,6 +432,16 @@ export function ImportExport() {
           </table>
         )}
       </section>
+      {showWizard && selectedAccountId && (
+        <BulkImportWizard
+          adapter={createBankStatementBulkImportAdapter(selectedAccountId, importBankStatement)}
+          onClose={() => {
+            setShowWizard(false)
+            setImportResult(null)
+            setImportErrorDetails([])
+          }}
+        />
+      )}
     </div>
   )
 }

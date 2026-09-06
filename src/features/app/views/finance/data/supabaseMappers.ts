@@ -559,6 +559,7 @@ export function mapImportSession(r: Record<string, unknown>): FinanceImportSessi
     newItems: r.new_items as number,
     duplicates: r.duplicates as number,
     errors: r.errors as number,
+    errorDetails: (r.error_details as import('./types').FinanceImportRowError[] | undefined) ?? undefined,
     status: r.status as FinanceImportSession['status'],
   }
 }

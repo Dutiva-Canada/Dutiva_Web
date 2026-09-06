@@ -3,6 +3,7 @@ import type {
   FinanceBankItem,
   FinanceCategoryRule,
   FinanceCurrency,
+  FinanceImportRowError,
   FinanceImportSession,
 } from './types'
 import {
@@ -135,7 +136,7 @@ export async function importBankStatementInSupabase(
   bankAccountId: string,
   fileName: string,
   fileContent: string,
-): Promise<{ newItems: number; duplicates: number; errors: number } | null> {
+): Promise<{ newItems: number; duplicates: number; errors: number; errorDetails: FinanceImportRowError[] } | null> {
   if (!supabase) return null
 
   // Fetch existing bank items for this account to deduplicate against
@@ -168,6 +169,7 @@ export async function importBankStatementInSupabase(
     currency,
     existingItems,
   )
+  const errorDetails = parsed.errorDetails
 
   if (newItems.length === 0) {
     // Still record the import session even if all rows were duplicates
@@ -182,7 +184,7 @@ export async function importBankStatementInSupabase(
       errors,
       status: 'imported',
     })
-    return { newItems: 0, duplicates, errors }
+    return { newItems: 0, duplicates, errors, errorDetails }
   }
 
   // Insert new bank items in batches of 100
@@ -217,7 +219,7 @@ export async function importBankStatementInSupabase(
     status: 'imported',
   })
 
-  return { newItems: newItems.length, duplicates, errors }
+  return { newItems: newItems.length, duplicates, errors, errorDetails }
 }
 
 /* ---------- Auto-categorize ---------- */

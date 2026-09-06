@@ -1,10 +1,11 @@
-import type { FinanceBankItem, FinanceCurrency } from './types'
+import type { FinanceBankItem, FinanceCurrency, FinanceImportRowError } from './types'
 import { detectDelimiter, splitLines, parseCSVLine } from '@/lib/csv'
+import { readSheet } from 'read-excel-file/browser'
 
 /**
- * Bank statement import parser. Supports CSV files exported from Canadian
- * banking platforms (RBC, TD, Scotiabank, BMO, CIBC, Desjardins). The parser
- * auto-detects column layout from header names and falls back to positional
+ * Bank statement import parser. Supports CSV and Excel files exported from
+ * Canadian banking platforms (RBC, TD, Scotiabank, BMO, CIBC, Desjardins).
+ * Auto-detects column layout from header names and falls back to positional
  * mapping when headers are missing.
  *
  * Money is represented as string-based fixed-precision decimals to avoid
@@ -19,6 +20,10 @@ export interface ParsedStatementRow {
   rowIndex: number
   /** Whether the row had a parse error. */
   error?: string
+  /** Original field values for error reporting. */
+  rawDate?: string
+  rawAmount?: string
+  rawDescription?: string
 }
 
 export interface StatementParseResult {
@@ -27,9 +32,13 @@ export interface StatementParseResult {
   errorRows: number
   /** Detected column mapping. */
   columnMap: ColumnMap
-  /** Detected delimiter. */
+  /** Detected delimiter (CSV) or ',' for Excel. */
   delimiter: ',' | ';' | '\t' | '|'
+  /** Per-row error details for diagnostics and export. */
+  errorDetails: StatementRowError[]
 }
+
+export interface StatementRowError extends FinanceImportRowError {}
 
 export interface ColumnMap {
   date: number
@@ -55,7 +64,7 @@ export function parseStatementCSV(text: string, _currency: FinanceCurrency): Sta
   const delimiter = detectDelimiter(text)
   const lines = splitLines(text)
   if (lines.length === 0) {
-    return { rows: [], totalRows: 0, errorRows: 0, columnMap: { date: 0, amount: 1, description: 2 }, delimiter }
+    return { rows: [], totalRows: 0, errorRows: 0, columnMap: { date: 0, amount: 1, description: 2 }, delimiter, errorDetails: [] }
   }
 
   const firstRow = parseCSVLine(lines[0] ?? '', delimiter)
@@ -65,55 +74,184 @@ export function parseStatementCSV(text: string, _currency: FinanceCurrency): Sta
   const dataStart = hasHeader ? 1 : 0
   const map: ColumnMap = hasHeader ? columnMap : { date: 0, amount: 1, description: 2 }
 
+  const dataRows = lines.slice(dataStart).map((line) => parseCSVLine(line, delimiter))
+  const { rows, errorDetails } = parseStatementRows(map, dataRows)
+
+  return {
+    rows,
+    totalRows: rows.length,
+    errorRows: errorDetails.length,
+    columnMap: map,
+    delimiter,
+    errorDetails,
+  }
+}
+
+/**
+ * Parse an Excel or CSV file into structured statement rows.
+ * The bank-statement flow accepts the same formats as the generic
+ * bulk-import wizard, but preserves Excel date cells and quoted CSV fields.
+ */
+export function parseStatementFile(
+  file: File,
+  currency: FinanceCurrency,
+): Promise<StatementParseResult> {
+  const lower = file.name.toLowerCase()
+  if (lower.endsWith('.csv') || lower.endsWith('.tsv') || lower.endsWith('.txt')) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        try {
+          const text = String(reader.result ?? '')
+          resolve(parseStatementCSV(text, currency))
+        } catch (err) {
+          reject(err)
+        }
+      }
+      reader.onerror = () => reject(new Error('Failed to read file'))
+      reader.readAsText(file)
+    })
+  }
+
+  return readSheet(file).then((data) => {
+    const rows = (data as (string | number | boolean | Date | null)[][]).map((r) =>
+      (r ?? []).map((cell) => (cell == null ? '' : formatStatementCell(cell))),
+    )
+    const headers = rows[0] ?? []
+    const columnMap = detectColumns(headers)
+    const hasHeader = columnMap != null
+
+    const map: ColumnMap = hasHeader ? columnMap : { date: 0, amount: 1, description: 2 }
+    const dataRows = hasHeader ? rows.slice(1) : [headers, ...rows.slice(1)]
+
+    const { rows: parsedRows, errorDetails } = parseStatementRows(map, dataRows)
+
+    return {
+      rows: parsedRows,
+      totalRows: parsedRows.length,
+      errorRows: errorDetails.length,
+      columnMap: map,
+      delimiter: ',',
+      errorDetails,
+    }
+  })
+}
+
+function parseStatementRows(
+  map: ColumnMap,
+  dataRows: string[][],
+): { rows: ParsedStatementRow[]; errorDetails: StatementRowError[] } {
   const rows: ParsedStatementRow[] = []
-  let errorRows = 0
+  const errorDetails: StatementRowError[] = []
 
-  for (let i = dataStart; i < lines.length; i++) {
-    const line = (lines[i] ?? '').trim()
-    if (line === '') continue
-
-    const fields = parseCSVLine(line, delimiter)
-    const rowIndex = i - dataStart
+  for (let i = 0; i < dataRows.length; i++) {
+    const fields = dataRows[i] ?? []
+    const rowIndex = i
 
     const dateRaw = fields[map.date]?.trim() ?? ''
     const description = fields[map.description]?.trim() ?? ''
 
-    let amountRaw: string
+    let amountRaw = ''
     if (map.debitColumn != null && map.creditColumn != null) {
       const debit = fields[map.debitColumn]?.trim() ?? ''
       const credit = fields[map.creditColumn]?.trim() ?? ''
-      amountRaw = debit || credit || '0'
-      // Debit is negative (money out), credit is positive (money in).
-      if (debit && !credit) amountRaw = `-${normalizeAmount(debit)}`
-      else amountRaw = normalizeAmount(credit || debit)
+      amountRaw = debit || credit
+      if (debit && !credit) amountRaw = `-${debit}`
     } else {
-      amountRaw = fields[map.amount]?.trim() ?? '0'
+      amountRaw = fields[map.amount]?.trim() ?? ''
     }
+
+    // Skip blank or summary rows (e.g. totals, empty Excel cells).
+    if (dateRaw === '' && amountRaw === '' && description === '') continue
 
     const normalizedDate = normalizeDate(dateRaw)
     const normalizedAmount = normalizeAmount(amountRaw)
 
     if (!normalizedDate) {
-      errorRows++
-      rows.push({ date: dateRaw, amount: normalizedAmount, description, rowIndex, error: 'invalid_date' })
-      continue
-    }
-    if (normalizedAmount === '' || !isFiniteAmount(normalizedAmount)) {
-      errorRows++
-      rows.push({ date: normalizedDate, amount: '0', description, rowIndex, error: 'invalid_amount' })
+      errorDetails.push({
+        rowIndex,
+        rawDate: dateRaw,
+        rawAmount: amountRaw,
+        rawDescription: description,
+        reason: 'invalid_date',
+      })
+      rows.push({
+        date: dateRaw,
+        amount: normalizedAmount,
+        description,
+        rowIndex,
+        error: 'invalid_date',
+        rawDate: dateRaw,
+        rawAmount: amountRaw,
+        rawDescription: description,
+      })
       continue
     }
 
-    rows.push({ date: normalizedDate, amount: normalizedAmount, description, rowIndex })
+    if (amountRaw === '' || normalizedAmount === '') {
+      errorDetails.push({
+        rowIndex,
+        rawDate: dateRaw,
+        rawAmount: amountRaw,
+        rawDescription: description,
+        reason: 'invalid_amount',
+      })
+      rows.push({
+        date: normalizedDate,
+        amount: '0',
+        description,
+        rowIndex,
+        error: 'invalid_amount',
+        rawDate: dateRaw,
+        rawAmount: amountRaw,
+        rawDescription: description,
+      })
+      continue
+    }
+
+    rows.push({
+      date: normalizedDate,
+      amount: normalizedAmount,
+      description,
+      rowIndex,
+      rawDate: dateRaw,
+      rawAmount: amountRaw,
+      rawDescription: description,
+    })
   }
 
-  return {
-    rows,
-    totalRows: rows.length,
-    errorRows,
-    columnMap: map,
-    delimiter,
+  return { rows, errorDetails }
+}
+
+/**
+ * Convert a bank-statement file (CSV, XLSX, XLS) to a CSV string suitable for
+ * `importBankStatement`. Preserves Excel dates as ISO strings and quotes cells
+ * that contain commas or quotes.
+ */
+export function statementFileToCsv(file: File): Promise<string> {
+  const lower = file.name.toLowerCase()
+  if (lower.endsWith('.csv') || lower.endsWith('.tsv') || lower.endsWith('.txt')) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(String(reader.result ?? ''))
+      reader.onerror = () => reject(new Error('Failed to read file'))
+      reader.readAsText(file)
+    })
   }
+
+  return readSheet(file).then((data) => {
+    const rows = (data as (string | number | boolean | Date | null)[][]).map((r) =>
+      (r ?? []).map((cell) => quoteCsvCell(formatStatementCell(cell))),
+    )
+    return rows.map((r) => r.join(',')).join('\n')
+  })
+}
+
+function quoteCsvCell(cell: string): string {
+  if (cell.includes(',') || cell.includes('"') || cell.includes('\n')) {
+    return `"${cell.replace(/"/g, '""')}"`
+  }
+  return cell
 }
 
 /**
@@ -188,11 +326,10 @@ function normalizeDate(raw: string): string {
   if (trimmed === '') return ''
 
   // ISO format: 2026-08-15
-  const isoMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  const isoMatch = trimmed.match(/^(\d{4})[-/.](\d{2})[-/.](\d{2})$/)
   if (isoMatch) return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`
 
-  // DD/MM/YYYY or MM/DD/YYYY — Canadian banks use both
-  const slashMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
+  const slashMatch = trimmed.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/)
   if (slashMatch) {
     const a = slashMatch[1] ?? '0'
     const b = slashMatch[2] ?? '0'
@@ -206,8 +343,8 @@ function normalizeDate(raw: string): string {
     return `${year}-${String(second).padStart(2, '0')}-${String(first).padStart(2, '0')}`
   }
 
-  // MM-DD-YYYY
-  const dashMatch = trimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/)
+  // MM-DD-YYYY or DD-MM-YYYY with 4-digit year at end, using - or .
+  const dashMatch = trimmed.match(/^(\d{1,2})[-.](\d{1,2})[-.](\d{4})$/)
   if (dashMatch) {
     const a = dashMatch[1] ?? '0'
     const b = dashMatch[2] ?? '0'
@@ -218,17 +355,48 @@ function normalizeDate(raw: string): string {
     return `${year}-${String(first).padStart(2, '0')}-${String(second).padStart(2, '0')}`
   }
 
+  // Aug 15, 2026 or 15 Aug 2026 / 15-Aug-2026 with textual month
+  const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+  const textMatch = trimmed.match(/^(?:([A-Za-z]{3})[a-z]*[-\s,]+(\d{1,2})[-\s,]+(\d{4})|(\d{1,2})[-\s,]+([A-Za-z]{3})[a-z]*[-\s,]+(\d{4}))$/)
+  if (textMatch) {
+    const monthText = (textMatch[1] ?? textMatch[5] ?? '').toLowerCase()
+    const day = Number.parseInt(textMatch[2] ?? textMatch[4] ?? '0', 10)
+    const year = textMatch[3] ?? textMatch[6] ?? '2000'
+    const month = monthNames.indexOf(monthText) + 1
+    if (month > 0 && day > 0) {
+      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    }
+  }
+
   return ''
 }
 
 function normalizeAmount(raw: string): string {
   let s = raw.trim()
   if (s === '') return '0'
-  // Remove currency symbols and spaces
-  s = s.replace(/[$€£\s]/g, '')
+
+  // Track negativity from parentheses, trailing minus, or debit / Dr / DB markers.
+  let negative = false
+  if (s.startsWith('(') && s.endsWith(')')) {
+    negative = true
+    s = s.slice(1, -1)
+  }
+  if (s.endsWith('-')) {
+    negative = true
+    s = s.slice(0, -1).trim()
+  }
+  if (/\b(Dr|DB|Debit)\b$/i.test(s)) {
+    negative = true
+    s = s.replace(/\s*(Dr|DB|Debit)\b$/i, '')
+  } else if (/\b(Cr|CD|Credit)\b$/i.test(s)) {
+    s = s.replace(/\s*(Cr|CD|Credit)\b$/i, '')
+  }
+
+  // Remove currency symbols, spaces, and plus signs
+  s = s.replace(/[$€£¥\s+]/g, '')
+
   // Handle European decimal: 1.234,56 → 1234.56
   if (s.includes(',') && s.includes('.')) {
-    // If comma comes after the last dot, comma is decimal separator
     const lastComma = s.lastIndexOf(',')
     const lastDot = s.lastIndexOf('.')
     if (lastComma > lastDot) {
@@ -245,13 +413,21 @@ function normalizeAmount(raw: string): string {
       s = s.replace(/,/g, '')
     }
   }
+
   // Ensure two decimal places
-  const n = Number.parseFloat(s)
+  let n = Number.parseFloat(s)
   if (!Number.isFinite(n)) return '0'
+  if (negative) n = -Math.abs(n)
   return n.toFixed(2)
 }
 
-function isFiniteAmount(s: string): boolean {
-  const n = Number.parseFloat(s)
-  return Number.isFinite(n) && n !== 0
+function formatStatementCell(cell: string | number | boolean | Date | null): string {
+  if (cell == null) return ''
+  if (cell instanceof Date) {
+    const year = cell.getFullYear()
+    const month = String(cell.getMonth() + 1).padStart(2, '0')
+    const day = String(cell.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+  return String(cell)
 }

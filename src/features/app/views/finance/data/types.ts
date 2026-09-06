@@ -655,6 +655,14 @@ export interface FinanceCategoryRule {
 
 export type FinanceImportStatus = 'pending' | 'imported' | 'reviewed' | 'archived'
 
+export interface FinanceImportRowError {
+  rowIndex: number
+  rawDate: string
+  rawAmount: string
+  rawDescription: string
+  reason: string
+}
+
 export interface FinanceImportSession {
   id: string
   entityId: string
@@ -670,6 +678,8 @@ export interface FinanceImportSession {
   /** Rows that could not be parsed. */
   errors: number
   status: FinanceImportStatus
+  /** Per-row error details when rows could not be parsed. */
+  errorDetails?: FinanceImportRowError[]
 }
 
 /* ---------- Workspace state ---------- */

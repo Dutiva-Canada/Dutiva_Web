@@ -9,6 +9,7 @@ import type {
   FinanceExternalActionStatus,
   FinanceForecast,
   FinanceHolding,
+  FinanceImportRowError,
   FinanceImportSession,
   FinanceInvoice,
   FinanceJournal,
@@ -651,7 +652,7 @@ export function importBankStatement(
   bankAccountId: string,
   fileName: string,
   fileContent: string,
-): { newItems: number; duplicates: number; errors: number } | null {
+): { newItems: number; duplicates: number; errors: number; errorDetails: FinanceImportRowError[] } | null {
   const state = loadFinanceState(orgId)
   const bankAccount = state.bankAccounts.find((ba) => ba.id === bankAccountId)
   if (!bankAccount) return null
@@ -665,7 +666,30 @@ export function importBankStatement(
     state.bankItems,
   )
 
-  if (newItems.length === 0) return { newItems: 0, duplicates, errors }
+  const errorDetails = parsed.errorDetails
+
+  if (newItems.length === 0) {
+    const session: FinanceImportSession = {
+      id: `imp-${Date.now()}`,
+      entityId: state.entities[0]?.id ?? orgId,
+      bankAccountId,
+      fileName,
+      importedAt: new Date().toISOString(),
+      totalRows: parsed.totalRows,
+      newItems: 0,
+      duplicates,
+      errors,
+      status: 'imported',
+      errorDetails,
+    }
+
+    const nextState: FinanceWorkspaceState = {
+      ...state,
+      importSessions: [session, ...state.importSessions],
+    }
+    saveFinanceState(orgId, nextState)
+    return { newItems: 0, duplicates, errors, errorDetails }
+  }
 
   const session: FinanceImportSession = {
     id: `imp-${Date.now()}`,
@@ -678,6 +702,7 @@ export function importBankStatement(
     duplicates,
     errors,
     status: 'imported',
+    errorDetails,
   }
 
   const nextState: FinanceWorkspaceState = {
@@ -686,7 +711,7 @@ export function importBankStatement(
     importSessions: [session, ...state.importSessions],
   }
   saveFinanceState(orgId, nextState)
-  return { newItems: newItems.length, duplicates, errors }
+  return { newItems: newItems.length, duplicates, errors, errorDetails }
 }
 
 export function addCategoryRule(

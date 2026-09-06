@@ -23,6 +23,7 @@ export const bulkImportMessages = defineMessages({
   // Adapter names
   bulk_import_legal_entities: { en: 'Legal entities', fr: 'Entités juridiques' },
   bulk_import_transactions: { en: 'Transactions', fr: 'Transactions' },
+  bulk_import_bank_statement: { en: 'Bank statement', fr: 'Relevé bancaire' },
 
   // Generic field labels
   bulk_field_date: { en: 'Date', fr: 'Date' },
@@ -30,6 +31,8 @@ export const bulkImportMessages = defineMessages({
   bulk_field_description: { en: 'Description', fr: 'Description' },
   bulk_field_currency: { en: 'Currency', fr: 'Devise' },
   bulk_field_bank_account_id: { en: 'Bank account ID', fr: 'ID du compte bancaire' },
+  bulk_field_debit: { en: 'Debit', fr: 'Débit' },
+  bulk_field_credit: { en: 'Credit', fr: 'Crédit' },
   bulk_field_employee_name: { en: 'Name', fr: 'Nom' },
   bulk_field_employee_role: { en: 'Role', fr: 'Rôle' },
   bulk_field_employee_email: { en: 'Email', fr: 'Courriel' },

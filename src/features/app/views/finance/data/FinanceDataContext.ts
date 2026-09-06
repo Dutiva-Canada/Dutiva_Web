@@ -8,6 +8,7 @@ import type {
   FinanceExpenseStatus,
   FinanceExternalAction,
   FinanceExternalActionStatus,
+  FinanceImportRowError,
   FinanceInvoice,
   FinanceInvoiceStatus,
   FinanceJournal,
@@ -129,7 +130,9 @@ export interface FinanceDataContextValue {
     bankAccountId: string,
     fileName: string,
     fileContent: string,
-  ) => Promise<{ newItems: number; duplicates: number; errors: number } | null>
+  ) => Promise<
+    { newItems: number; duplicates: number; errors: number; errorDetails?: FinanceImportRowError[] } | null
+  >
   addCategoryRule: (rule: Omit<import('./types').FinanceCategoryRule, 'id'>) => Promise<import('./types').FinanceCategoryRule | null>
   updateCategoryRule: (id: string, patch: Partial<import('./types').FinanceCategoryRule>) => Promise<import('./types').FinanceCategoryRule | null>
   removeCategoryRule: (id: string) => Promise<boolean>
