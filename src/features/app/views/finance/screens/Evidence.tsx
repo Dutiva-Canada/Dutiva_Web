@@ -25,26 +25,35 @@ export function Evidence() {
 
   const canUpload = canWrite && isAdminRole(memberRole) && organizationId
 
-  const handleFile = async (file: File) => {
+  const uploadOne = async (file: File) => {
     if (!organizationId) return
+    const entityId = state.entities[0]?.id
+    if (!entityId) return
+    const tempId = crypto.randomUUID()
+    const { storagePath } = await uploadReceiptFile(organizationId, entityId, tempId, file)
+    await insertReceipt(organizationId, {
+      entityId,
+      billId: linkTarget.billId,
+      expenseId: linkTarget.expenseId,
+      fileName: { en: file.name, fr: file.name },
+      uploadedAt: new Date().toISOString(),
+      reviewed: false,
+      storagePath,
+    })
+    setLinkTarget({})
+    await reload()
+  }
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files) return
+    const list = Array.from(files)
+    if (list.length === 0) return
     setUploading(true)
     setError(false)
     try {
-      const entityId = state.entities[0]?.id
-      if (!entityId) return
-      const tempId = crypto.randomUUID()
-      const { storagePath } = await uploadReceiptFile(organizationId, entityId, tempId, file)
-      await insertReceipt(organizationId, {
-        entityId,
-        billId: linkTarget.billId,
-        expenseId: linkTarget.expenseId,
-        fileName: { en: file.name, fr: file.name },
-        uploadedAt: new Date().toISOString(),
-        reviewed: false,
-        storagePath,
-      })
-      setLinkTarget({})
-      await reload()
+      for (const file of list) {
+        await uploadOne(file)
+      }
     } catch {
       setError(true)
     } finally {
@@ -127,11 +136,11 @@ export function Evidence() {
               <input
                 ref={fileInput}
                 type="file"
+                multiple
                 accept=".pdf,.png,.jpg,.jpeg,.webp,.csv,.xls,.xlsx"
                 className="hidden"
                 onChange={(e) => {
-                  const file = e.target.files?.[0]
-                  if (file) void handleFile(file)
+                  void handleFiles(e.target.files)
                   e.target.value = ''
                 }}
               />

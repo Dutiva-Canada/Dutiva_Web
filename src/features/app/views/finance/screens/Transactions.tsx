@@ -2,16 +2,22 @@ import { useMemo, useState } from 'react'
 import { statusChipClass } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
+import { bulkImportMessages as B } from '@/i18n/messages/bulkImport'
 import { useFinanceData } from '../data/useFinanceData'
 import { BANK_MATCH_LABEL, CURRENCY_LABEL } from '../financeLabels'
+import { BulkImportWizard } from '@/features/app/bulkImport/BulkImportWizard'
+import { createTransactionBulkImportAdapter } from '../bulkImport/transactionAdapter'
 import type { FinanceBankMatchStatus, FinanceReconciliation } from '../data/types'
+import { Upload } from 'lucide-react'
 
 const FILTERS: ('all' | FinanceBankMatchStatus)[] = ['all', 'unmatched', 'suggested', 'matched', 'exception']
 
 export function Transactions() {
   const { x } = useI18n()
-  const { state, canWrite, transitionBankItemMatchStatus, transitionReconciliationStatus } = useFinanceData()
+  const { state, canWrite, transitionBankItemMatchStatus, transitionReconciliationStatus, importBankStatement } = useFinanceData()
   const [filter, setFilter] = useState<'all' | FinanceBankMatchStatus>('all')
+  const [showBulkImport, setShowBulkImport] = useState(false)
+  const transactionAdapter = createTransactionBulkImportAdapter(importBankStatement)
 
   const bankItems = useMemo(
     () => (filter === 'all' ? state.bankItems : state.bankItems.filter((bi) => bi.matchStatus === filter)),
@@ -28,7 +34,22 @@ export function Transactions() {
   return (
     <div className="flex flex-col gap-[16px]">
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_transactions_bank_items)}</h2>
+        <div className="mb-[12px] flex items-center justify-between">
+          <h2 className="text-[15px] font-semibold text-text">{x(M.finance_transactions_bank_items)}</h2>
+          {canWrite && (
+            <button
+              type="button"
+              onClick={() => setShowBulkImport(true)}
+              className="flex items-center gap-[6px] text-[13px] font-semibold text-accent"
+            >
+              <Upload size={14} />
+              {x(B.bulk_import_title)}
+            </button>
+          )}
+        </div>
+        {showBulkImport && (
+          <BulkImportWizard adapter={transactionAdapter} onClose={() => setShowBulkImport(false)} />
+        )}
         <div className="mb-[12px] flex flex-wrap gap-[6px]">
           {FILTERS.map((f) => (
             <button

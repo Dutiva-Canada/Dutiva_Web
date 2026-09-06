@@ -2,8 +2,8 @@ import { defineMessages } from '../core'
 
 export const bulkImportMessages = defineMessages({
   bulk_import_title: { en: 'Bulk import', fr: 'Importation en bloc' },
-  bulk_upload_description: { en: 'Upload a CSV file to import many records at once.', fr: 'Téléversez un fichier CSV pour importer plusieurs enregistrements à la fois.' },
-  bulk_upload_drop_or_click: { en: 'Drop a CSV file here or click to browse', fr: 'Déposez un fichier CSV ici ou cliquez pour parcourir' },
+  bulk_upload_description: { en: 'Upload a CSV or Excel file to import many records at once.', fr: 'Téléversez un fichier CSV ou Excel pour importer plusieurs enregistrements à la fois.' },
+  bulk_upload_drop_or_click: { en: 'Drop a CSV or Excel file here or click to browse', fr: 'Déposez un fichier CSV ou Excel ici ou cliquez pour parcourir' },
   bulk_download_template: { en: 'Download template', fr: 'Télécharger le modèle' },
   bulk_upload_map_columns: { en: 'Map file columns to fields', fr: 'Associer les colonnes du fichier aux champs' },
   bulk_file_column: { en: 'File column', fr: 'Colonne du fichier' },
@@ -23,4 +23,19 @@ export const bulkImportMessages = defineMessages({
   // Adapter names
   bulk_import_legal_entities: { en: 'Legal entities', fr: 'Entités juridiques' },
   bulk_import_transactions: { en: 'Transactions', fr: 'Transactions' },
+
+  // Generic field labels
+  bulk_field_date: { en: 'Date', fr: 'Date' },
+  bulk_field_amount: { en: 'Amount', fr: 'Montant' },
+  bulk_field_description: { en: 'Description', fr: 'Description' },
+  bulk_field_currency: { en: 'Currency', fr: 'Devise' },
+  bulk_field_bank_account_id: { en: 'Bank account ID', fr: 'ID du compte bancaire' },
+  bulk_field_employee_name: { en: 'Name', fr: 'Nom' },
+  bulk_field_employee_role: { en: 'Role', fr: 'Rôle' },
+  bulk_field_employee_email: { en: 'Email', fr: 'Courriel' },
+  bulk_field_employee_jurisdiction: { en: 'Jurisdiction', fr: 'Territoire de compétence' },
+  bulk_field_employee_status: { en: 'Status', fr: 'Statut' },
+  bulk_field_employee_start_date: { en: 'Start date', fr: 'Date de début' },
+  bulk_field_employee_manager_id: { en: 'Manager ID', fr: 'ID du gestionnaire' },
+  bulk_import_employees: { en: 'Employees', fr: 'Employés' },
 })

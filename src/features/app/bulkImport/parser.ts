@@ -1,4 +1,5 @@
 import { parseCSV } from '@/lib/csv'
+import { readSheet } from 'read-excel-file/browser'
 import type { BulkImportParseResult } from './types'
 
 export function parseImportFile(file: File): Promise<BulkImportParseResult> {
@@ -10,7 +11,7 @@ export function parseImportFile(file: File): Promise<BulkImportParseResult> {
   }
 
   if (lower.endsWith('.xlsx') || lower.endsWith('.xls')) {
-    throw new Error('Excel support is not yet available; please use CSV for now.')
+    return parseXLSXFile(file, fileName)
   }
 
   // Try CSV for files with no extension.
@@ -33,5 +34,15 @@ function parseCSVFile(file: File, fileName: string): Promise<BulkImportParseResu
     }
     reader.onerror = () => reject(new Error('Failed to read file'))
     reader.readAsText(file)
+  })
+}
+
+function parseXLSXFile(file: File, fileName: string): Promise<BulkImportParseResult> {
+  return readSheet(file).then((data) => {
+    const rows = (data as (string | number | boolean | Date | null)[][]).map((r) =>
+      (r ?? []).map((cell) => (cell == null ? '' : String(cell))),
+    )
+    const headers = rows[0] ?? []
+    return { headers, rows: rows.slice(1), format: 'xlsx', fileName }
   })
 }

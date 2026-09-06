@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Trash2, Users } from 'lucide-react'
+import { Plus, Trash2, Upload, Users } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick } from '@/i18n/core'
 import { employeesMessages as M } from '@/i18n/messages/employees'
+import { bulkImportMessages as B } from '@/i18n/messages/bulkImport'
 import { statusChipClass } from '@/components/chips'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import { useOpenCreateFormFromQuery } from '@/features/app/workspaceMode/useOpenCreateFormFromQuery'
+import { BulkImportWizard } from '@/features/app/bulkImport/BulkImportWizard'
+import { createEmployeeBulkImportAdapter } from './bulkImport/employeeAdapter'
 import {
   EMPLOYMENT_JURISDICTIONS,
   addEmployee,
@@ -69,6 +72,15 @@ export function EmployeesProductionView() {
   const { formOpen, setFormOpen } = useOpenCreateFormFromQuery(isOrgAdmin)
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
+  const [showBulkImport, setShowBulkImport] = useState(false)
+
+  const employeeAdapter = createEmployeeBulkImportAdapter((fields) => {
+    if (!organizationId) throw new Error('No organization selected')
+    return addEmployee(organizationId, fields).then((emp) => {
+      setRows((prev) => [...(prev ?? []), emp].sort((a, b) => a.name.localeCompare(b.name)))
+      return emp
+    })
+  })
 
   const load = useCallback(async () => {
     if (!organizationId) return
@@ -132,16 +144,33 @@ export function EmployeesProductionView() {
           {rows === null ? x(M.employees_prod_loading) : countLabel}
         </div>
         {!formOpen && isOrgAdmin && (
-          <button
-            type="button"
-            onClick={() => setFormOpen(true)}
-            className="flex cursor-pointer items-center gap-[7px] rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
-          >
-            <Plus size={14} strokeWidth={2} aria-hidden="true" />
-            {x(M.employees_prod_add)}
-          </button>
+          <div className="flex items-center gap-[8px]">
+            <button
+              type="button"
+              onClick={() => setShowBulkImport(true)}
+              className="flex cursor-pointer items-center gap-[7px] rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text"
+            >
+              <Upload size={14} strokeWidth={2} aria-hidden="true" />
+              {x(B.bulk_import_title)}
+            </button>
+            <button
+              type="button"
+              onClick={() => setFormOpen(true)}
+              className="flex cursor-pointer items-center gap-[7px] rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
+            >
+              <Plus size={14} strokeWidth={2} aria-hidden="true" />
+              {x(M.employees_prod_add)}
+            </button>
+          </div>
         )}
       </div>
+
+      {showBulkImport && (
+        <BulkImportWizard
+          adapter={employeeAdapter}
+          onClose={() => setShowBulkImport(false)}
+        />
+      )}
 
       {loadFailed && (
         <div className="mb-[14px] flex items-center justify-between gap-[12px] rounded-[11px] border border-risk-border bg-risk-bg px-[16px] py-[12px]">

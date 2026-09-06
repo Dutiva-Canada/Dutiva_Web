@@ -76,7 +76,7 @@ export function BulkImportWizard<T>({ adapter, onClose }: BulkImportWizardProps<
             <input
               ref={fileInputRef}
               type="file"
-              accept=".csv,.tsv,.txt"
+              accept=".csv,.tsv,.txt,.xlsx,.xls"
               className="hidden"
               onChange={(e) => {
                 const file = e.target.files?.[0]
