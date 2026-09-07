@@ -8,6 +8,7 @@ import type {
   CommsExecutionAction,
   CommsFeed,
   CommsInitiative,
+  CommsInteraction,
   CommsOrganization,
   CommsSource,
   CommsSubmission,
@@ -62,6 +63,9 @@ export interface CommsDataContextValue {
   addOrganization: (item: Omit<CommsOrganization, 'id'>) => CommsOrganization | null
   updateOrganization: (id: string, patch: Partial<CommsOrganization>) => CommsOrganization | null
   removeOrganization: (id: string) => void
+  addInteraction: (item: Omit<CommsInteraction, 'id'>) => CommsInteraction | null
+  updateInteraction: (id: string, patch: Partial<CommsInteraction>) => CommsInteraction | null
+  removeInteraction: (id: string) => void
 }
 
 export const CommsDataContext = createContext<CommsDataContextValue | null>(null)

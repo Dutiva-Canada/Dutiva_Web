@@ -10,6 +10,7 @@ import {
   addCoverageItem as addCoverageItemApi,
   addFeed as addFeedApi,
   addInitiative as addInitiativeApi,
+  addInteraction as addInteractionApi,
   addOrganization as addOrganizationApi,
   addSource as addSourceApi,
   addSubmission as addSubmissionApi,
@@ -22,6 +23,7 @@ import {
   removeCoverageItem as removeCoverageItemApi,
   removeFeed as removeFeedApi,
   removeInitiative as removeInitiativeApi,
+  removeInteraction as removeInteractionApi,
   removeOrganization as removeOrganizationApi,
   removeSource as removeSourceApi,
   removeSubmission as removeSubmissionApi,
@@ -36,6 +38,7 @@ import {
   updateCoverageItem as updateCoverageItemApi,
   updateFeed as updateFeedApi,
   updateInitiative as updateInitiativeApi,
+  updateInteraction as updateInteractionApi,
   updateOrganization as updateOrganizationApi,
   updateSource as updateSourceApi,
   updateSubmission as updateSubmissionApi,
@@ -49,6 +52,7 @@ import type {
   CommsExecutionAction,
   CommsFeed,
   CommsInitiative,
+  CommsInteraction,
   CommsOrganization,
   CommsSource,
   CommsSubmission,
@@ -409,6 +413,35 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
     [isLive, orgId],
   )
 
+  const addInteraction = useCallback(
+    (item: Omit<CommsInteraction, 'id'>) => {
+      if (!isLive || !orgId) return null
+      const created = addInteractionApi(orgId, item)
+      setState(loadFullStateApi(orgId))
+      return created
+    },
+    [isLive, orgId],
+  )
+
+  const updateInteraction = useCallback(
+    (id: string, patch: Partial<CommsInteraction>) => {
+      if (!isLive || !orgId) return null
+      const updated = updateInteractionApi(orgId, id, patch)
+      if (updated) setState(loadFullStateApi(orgId))
+      return updated
+    },
+    [isLive, orgId],
+  )
+
+  const removeInteraction = useCallback(
+    (id: string) => {
+      if (!isLive || !orgId) return
+      removeInteractionApi(orgId, id)
+      setState(loadFullStateApi(orgId))
+    },
+    [isLive, orgId],
+  )
+
   return useMemo(
     () => ({
       state,
@@ -448,6 +481,9 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
       addOrganization,
       updateOrganization,
       removeOrganization,
+      addInteraction,
+      updateInteraction,
+      removeInteraction,
     }),
     [
       state,
@@ -487,6 +523,9 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
       addOrganization,
       updateOrganization,
       removeOrganization,
+      addInteraction,
+      updateInteraction,
+      removeInteraction,
     ],
   )
 }

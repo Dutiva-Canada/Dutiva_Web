@@ -9,6 +9,7 @@ import type {
   CommsExecutionEvent,
   CommsFeed,
   CommsInitiative,
+  CommsInteraction,
   CommsOrganization,
   CommsSource,
   CommsSourceType,
@@ -729,6 +730,39 @@ export function removeOrganization(orgId: string, id: string): void {
   updateState(orgId, (state) => ({
     ...state,
     organizations: state.organizations.filter((o) => o.id !== id),
+  }))
+}
+
+export function addInteraction(
+  orgId: string,
+  interaction: Omit<CommsInteraction, 'id'>,
+): CommsInteraction {
+  const created: CommsInteraction = { ...interaction, id: createId('interaction') }
+  updateState(orgId, (state) => ({ ...state, interactions: [created, ...state.interactions] }))
+  return created
+}
+
+export function updateInteraction(
+  orgId: string,
+  id: string,
+  patch: Partial<CommsInteraction>,
+): CommsInteraction | null {
+  let result: CommsInteraction | null = null
+  updateState(orgId, (state) => ({
+    ...state,
+    interactions: state.interactions.map((i) => {
+      if (i.id !== id) return i
+      result = { ...i, ...patch }
+      return result
+    }),
+  }))
+  return result
+}
+
+export function removeInteraction(orgId: string, id: string): void {
+  updateState(orgId, (state) => ({
+    ...state,
+    interactions: state.interactions.filter((i) => i.id !== id),
   }))
 }
 

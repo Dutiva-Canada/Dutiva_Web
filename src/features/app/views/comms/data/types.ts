@@ -166,17 +166,26 @@ export type CommsInteractionType =
   | 'meeting'
   | 'submission'
 
+export type CommsInteractionStatus =
+  | 'open'
+  | 'pending'
+  | 'responded'
+  | 'escalated'
+  | 'closed'
+
+export type CommsInteractionVisibility = 'public' | 'internal' | 'restricted'
+
 export interface CommsInteraction {
   id: string
   initiativeId?: string
   contactId?: string
   type: CommsInteractionType
   source: Bi
-  visibility: 'public' | 'internal' | 'restricted'
+  visibility: CommsInteractionVisibility
   summary: Bi
   responseTarget?: string
   owner: string
-  status: 'open' | 'pending' | 'responded' | 'escalated' | 'closed'
+  status: CommsInteractionStatus
   escalationReason?: Bi
   moderationReason?: Bi
 }

@@ -247,6 +247,13 @@ export const commsMessages = defineMessages({
   comms_interaction_status_responded: { en: 'Responded', fr: 'Répondu' },
   comms_interaction_status_escalated: { en: 'Escalated', fr: 'Escaladé' },
   comms_interaction_status_closed: { en: 'Closed', fr: 'Clôturé' },
+  comms_engagement_summary: { en: 'Summary', fr: 'Résumé' },
+  comms_engagement_owner: { en: 'Owner', fr: 'Responsable' },
+  comms_engagement_contact: { en: 'Contact', fr: 'Contact' },
+  comms_engagement_initiative: { en: 'Initiative', fr: 'Initiative' },
+  comms_engagement_escalation: { en: 'Escalation reason', fr: 'Motif d’escalade' },
+  comms_engagement_moderation: { en: 'Moderation note', fr: 'Note de modération' },
+  comms_engagement_add: { en: 'Log interaction', fr: 'Enregistrer une interaction' },
 
   /* Intelligence & issues */
   comms_intelligence_title: { en: 'Intelligence & issues', fr: 'Veille et enjeux' },
