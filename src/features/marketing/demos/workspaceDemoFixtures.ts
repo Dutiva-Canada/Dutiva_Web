@@ -44,13 +44,25 @@ export const LANDING_WORKSPACE_FIXTURES = {
       'Return-to-office cadence — company-wide',
       'Cadence de retour au bureau — à l’échelle de l’entreprise',
     ),
+    initiative: bi('Return-to-office rollout', 'Déploiement du retour au bureau'),
     status: bi('Draft', 'Brouillon'),
     tone: 'warning' as PreviewTone,
+    channel: bi('Email', 'Courriel'),
+    dueDate: bi('Due 2026-09-15', 'Échéance 2026-09-15'),
+    owner: bi('Priya Sharma', 'Priya Sharma'),
     note: bi(
-      'Advisor flagged that RTO changes can constitute a change to terms of employment in some provinces. Review before sending.',
-      'Le Conseiller a signalé que les changements de retour au bureau peuvent constituer une modification des conditions d’emploi dans certaines provinces. À réviser avant l’envoi.',
+      'Content calendar item linked to an initiative. Body drafted in Markdown; scheduled send and approvals are tracked.',
+      'Élément du calendrier de contenu lié à une initiative. Corps rédigé en Markdown; envoi planifié et approbations suivis.',
     ),
-    review: { tone: true, legal: false, clarity: true, policy: false },
+    bulkImport: bi(
+      'Import contacts, organizations, and content from CSV or Excel.',
+      'Importez des contacts, organismes et contenus à partir de CSV ou Excel.',
+    ),
+    capabilities: [
+      { key: 'content', label: bi('Content & calendar', 'Contenu et calendrier') },
+      { key: 'relationships', label: bi('Relationships', 'Relations') },
+      { key: 'objectives', label: bi('Objectives & activity', 'Objectifs et activité') },
+    ] as const,
   },
   hiring: {
     candidate: {

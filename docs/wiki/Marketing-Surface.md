@@ -86,7 +86,8 @@ The `LandingPage` component composes sections in a fixed sequence: `Hero` → `T
 
 The unified **`#workspace`** section ([#279](https://github.com/Dutiva-Canada/Dutiva_Web/pull/279), [#280](https://github.com/Dutiva-Canada/Dutiva_Web/pull/280)) combines:
 - Three static preview cards (Analytics, Cases, Communications) with Northgate fixture slices from `workspaceDemoFixtures.ts` — marketing-owned, no `@/data` import
-- A horizontal **guided tour** pill row (`LandingDemoPath`) mirroring `DEMO_TOUR_STOPS` on `/demo`
+- The Communications preview now highlights the `/app/comms` workspace: initiatives, content calendar, relationships, objectives, and CSV/Excel bulk import for contacts, organizations, and content
+- A horizontal **guided tour** pill row (`LandingDemoPath`) mirroring `DEMO_TOUR_STOPS` on `/demo`; the Communications stop links to `/demo/comms`
 - **Module chips** linking into `/demo/{module}` — Analytics and Communications highlighted in gold
 - Canonical CTA copy: **"Open in demo"** / **"Ouvrir dans la démo"** (`landing_open_in_demo`) site-wide
 

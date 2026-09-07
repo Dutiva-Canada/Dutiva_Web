@@ -34,8 +34,8 @@ export const landingWorkspaceDemos = defineMessages({
     fr: 'Communications',
   },
   landing_ws_demo_comms_sub: {
-    en: 'Draft review before a company-wide send.',
-    fr: 'Révision d’une ébauche avant un envoi à l’échelle de l’entreprise.',
+    en: 'Plan initiatives, draft content, and track contacts — with bulk import.',
+    fr: 'Planifiez des initiatives, rédigez du contenu et suivez les contacts — avec import en bloc.',
   },
   landing_ws_demo_open: {
     en: 'Open in demo',
@@ -90,10 +90,6 @@ export const landingWorkspaceDemos = defineMessages({
     en: 'Case sections',
     fr: 'Sections du dossier',
   },
-  landing_ws_demo_comms_tap: {
-    en: 'Pick a dimension to see why it passed or needs review.',
-    fr: 'Choisissez une dimension pour voir pourquoi elle passe ou demande une révision.',
-  },
   landing_ws_demo_advisor_doc_hint: {
     en: 'In the demo, this opens Document Studio with the suggested template.',
     fr: 'Dans la démo, ceci ouvre le Studio de documents avec le modèle suggéré.',
@@ -106,33 +102,9 @@ export const landingWorkspaceDemos = defineMessages({
     en: 'Illustrative sample — not your organization’s data.',
     fr: 'Exemple illustratif — pas les données de votre organisation.',
   },
-  landing_ws_demo_comms_review: {
-    en: 'Advisor review',
-    fr: 'Révision du Conseiller',
-  },
-  landing_ws_demo_comms_dim_tone: {
-    en: 'Tone',
-    fr: 'Ton',
-  },
-  landing_ws_demo_comms_dim_legal: {
-    en: 'Legal',
-    fr: 'Juridique',
-  },
-  landing_ws_demo_comms_dim_clarity: {
-    en: 'Clarity',
-    fr: 'Clarté',
-  },
-  landing_ws_demo_comms_dim_policy: {
-    en: 'Policy',
-    fr: 'Politique',
-  },
-  landing_ws_demo_comms_pass: {
-    en: 'OK',
-    fr: 'OK',
-  },
-  landing_ws_demo_comms_flag: {
-    en: 'Review',
-    fr: 'À réviser',
+  landing_ws_demo_comms_caps: {
+    en: 'Capabilities',
+    fr: 'Fonctions',
   },
   landing_ws_demo_case_next: {
     en: 'Next step',

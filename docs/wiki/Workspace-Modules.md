@@ -35,7 +35,7 @@ The following files were used as context for generating this wiki page:
 
 The Dutiva workspace contains **18+ feature modules** beyond the AI Advisor and Document Management systems covered in earlier pages. Each module follows a consistent **phased rollout pattern**: a demo mode renders rich fixture data (the "Northgate Logistics Inc." diorama from `src/data/`), while production mode reads and writes real Supabase tables through a per-module `productionApi.ts` boundary file. The mode dispatch happens either via the route-level `ModeGate` wrapper or inside the view component itself.
 
-Two larger workspace modules — **Communications Platform** (`/app/comms`) and **Finance** (`/app/finance`) — follow a multi-screen layout pattern with their own data providers, context, and bilingual message catalogues. These modules are integration-led: they connect to external accounting, payroll, and publishing systems rather than replacing them.
+Two larger workspace modules — **Communications Platform** (`/app/comms`) and **Finance** (`/app/finance`) — follow a multi-screen layout pattern with their own data providers, context, bilingual message catalogues, and shared bulk-import adapters. These modules are integration-led: they connect to external accounting, payroll, and publishing systems rather than replacing them.
 
 This page provides a high-level map of all workspace modules, their rollout status, and how they interconnect. For detailed coverage:
 
@@ -150,8 +150,8 @@ Eleven modules have `productionApi.ts` files. Each follows the same contract: or
 | Compensation | `views/compensation/productionApi.ts` | `hr_compensation_records` | `listCompensationRecords`, `addCompensationRecord`, `removeCompensationRecord`, `deltaFromMidpoint` |
 | Wellbeing | `views/wellbeing/productionApi.ts` | `hr_wellbeing_initiatives` | `listInitiatives`, `addInitiative`, `setInitiativeStatus`, `removeInitiative`, `overdueReviews` |
 | Analytics | `views/analytics/productionApi.ts` | `compliance_score_snapshots` | `listScoreSnapshots`, `upsertScoreSnapshot` |
-| Comms Platform | `views/comms/data/productionApi.ts` | localStorage (no migration yet) | `loadCommsState`, `listInitiatives`, `addInitiative`, `updateInitiative`, `listContentItems`, `addContentItem`, `transitionDeliveryStatus`, `addSource`, `addCoverageItem`, `addSubmission`, `addFeed`, `syncFeed` |
-| Finance | `views/finance/data/productionApi.ts` | 32 `finance_*` tables (migration 0119) | `loadFinanceState`, `addInvoice`, `addSpendRequest`, `addJournal`, `transitionPayRunStatus`, `settlePayrollLiability`, `addTaxObligation`, `addBudget`, `reviseBudget`, `addTaxScenario`, `addScenario`, `addForecast`, `addReserveGoal`, `addBankAccount`, `addLedgerAccount`, `addParty`, `addSubscription` |
+| Comms Platform | `views/comms/data/productionApi.ts` | localStorage (no migration yet) | `loadCommsState`, `listInitiatives`, `addInitiative`, `updateInitiative`, `removeInitiative`, `listObjectives`, `addObjective`, `updateObjective`, `removeObjective`, `listContentItems`, `addContentItem`, `updateContentItem`, `removeContentItem`, `transitionDeliveryStatus`, `addSource`, `removeSource`, `addCoverageItem`, `removeCoverageItem`, `addSubmission`, `removeSubmission`, `addFeed`, `syncFeed`, `addContact`, `updateContact`, `removeContact`, `addOrganization`, `updateOrganization`, `removeOrganization`, `addInteraction`, `removeInteraction`, `addPolicyFile`, `removePolicyFile`, `addIssue`, `updateIssue`, `removeIssue`, `addMetric`, `updateMetric`, `removeMetric`, `addIntegration`, `updateIntegration`, `removeIntegration`, `addExecutionEvent` |
+| Finance | `views/finance/data/productionApi.ts` | 32 `finance_*` tables (migration 0119) | `loadFinanceState`, `addInvoice`, `addSpendRequest`, `addJournal`, `transitionPayRunStatus`, `settlePayrollLiability`, `addTaxObligation`, `addBudget`, `reviseBudget`, `addTaxScenario`, `addScenario`, `addForecast`, `addReserveGoal`, `addBankAccount`, `addLedgerAccount`, `addParty`, `addSubscription`, `importBankStatement`, `deleteImportSession`, `runAutoCategorize`, `seedDefaultCategoryRules`, `addCategoryRule`, `updateCategoryRule`, `removeCategoryRule`, `updateAiImportSettings`, `buildExportBundles` |
 
 Sources: [src/features/app/views/employees/productionApi.ts:1-405](), [src/features/app/views/cases/productionApi.ts:1-60](), [src/features/app/views/tasks/productionApi.ts:1-93](), [src/features/app/views/compliance/productionApi.ts:1-132](), [src/features/app/views/policies/productionApi.ts:1-107](), [src/features/app/views/communications/productionApi.ts:1-99](), [src/features/app/views/compensation/productionApi.ts:1-118](), [src/features/app/views/wellbeing/productionApi.ts:1-148](), [src/features/app/views/analytics/productionApi.ts:1-74](), [src/features/app/views/comms/data/productionApi.ts:1-552](), [src/features/app/views/finance/data/productionApi.ts:1-622]()
 
@@ -192,7 +192,7 @@ For details, see [Planning, Settings & Other Modules](#10.2).
 
 These three modules were ungated in migrations 0039–0041. Each self-dispatches on mode and intentionally narrows its production surface compared to demo:
 
-- **Communications** — logs what was sent, to whom, and when. The demo's Advisor review dimensions (tone/legal/clarity/policy) are not stored in production because the product performs no such analysis.
+- **Communications** — `/app/communications` logs what was sent, to whom, and when. The newer `/app/comms` workspace adds initiative planning, content calendar, relationships, engagement, intelligence, results, and bulk import, but it still does not analyse or review drafts.
 - **Compensation** — records base salary and the employer's own band midpoint. No market-rate comparison in production — `deltaFromMidpoint` returns `null` when no midpoint is entered.
 - **Wellbeing** — records employer-offered initiatives, **never per-person health signals**. The demo's `supportSignals` with confidence scores are explicitly not persisted, as they represent inferred health information (Ring 2 data the system avoids recording).
 
@@ -213,16 +213,16 @@ The Comms Platform is a planning-and-approval workspace for internal communicati
 
 | Screen | Route | Purpose |
 |--------|-------|---------|
-| Overview | `/app/comms/overview` | Initiative summary, active campaigns, coverage |
-| Initiatives | `/app/comms/initiatives` | Create/edit/pause communications initiatives |
-| Content Calendar | `/app/comms/content` | Content items with delivery status tracking |
-| Relationships | `/app/comms/relationships` | Stakeholder and audience mapping |
+| Overview | `/app/comms/overview` | Initiative summary, active campaigns, coverage, recent activity log |
+| Initiatives | `/app/comms/initiatives` | Create/edit/pause communications initiatives and objectives |
+| Content Calendar | `/app/comms/content` | Content items with delivery status tracking and Markdown body support |
+| Relationships | `/app/comms/relationships` | Stakeholder and audience mapping; bulk import contacts and organizations |
 | Engagement | `/app/comms/engagement` | Engagement metrics and outreach tracking |
-| Intelligence | `/app/comms/intelligence` | RSS/Atom feed monitoring and source management |
-| Results | `/app/comms/results` | Submission tracking and outcome reporting |
-| Settings | `/app/comms/settings` | Feed sources, coverage items, configuration |
+| Intelligence | `/app/comms/intelligence` | RSS/Atom feed monitoring, policy files, and issue tracking |
+| Results | `/app/comms/results` | Submission tracking, metrics, coverage, and outcome reporting |
+| Settings | `/app/comms/settings` | Feed sources, coverage items, integrations, usage controls, claims, and approvals |
 
-The data layer (`views/comms/data/`) provides `CommsDataContext`, `CommsDataProvider`, `useCommsData`, typed fixtures, and a `productionApi.ts` with localStorage persistence. External publishing, ad execution, and AI drafting are intentionally out of scope. No Supabase migration exists yet — production mode uses localStorage.
+The data layer (`views/comms/data/`) provides `CommsDataContext`, `CommsDataProvider`, `useCommsData`, typed fixtures, and a `productionApi.ts` with localStorage persistence. Bulk-import adapters live in `views/comms/bulkImport/` and reuse the shared `BulkImportWizard`. External publishing, ad execution, and AI drafting are intentionally out of scope. No Supabase migration exists yet — production mode uses localStorage.
 
 Sources: [src/features/app/views/comms/CommsView.tsx:1-20](), [src/features/app/views/comms/CommsLayout.tsx:1-60](), [src/features/app/views/comms/data/types.ts:1-50](), [src/features/app/views/comms/data/productionApi.ts:1-552]()
 
@@ -242,6 +242,7 @@ The Finance workspace is an integration-led financial management module for Cana
 | Treasury | `/app/finance/treasury` | Bank accounts, reserves, holdings, debt |
 | Tax | `/app/finance/tax` | Tax obligations, tax-planning scenarios |
 | Evidence | `/app/finance/evidence` | Receipt upload, review, signed download URLs |
+| Import/Export | `/app/finance/import-export` | Bank statement and CSV import, auto-categorization, rule suggestions, export bundles, and bulk import wizard |
 
 The data layer (`views/finance/data/`) provides `FinanceDataContext`, `FinanceDataProvider`, `useFinanceData`, typed fixtures, a `productionApi.ts` (localStorage demo), and a full Supabase persistence layer split across:
 
@@ -252,12 +253,28 @@ The data layer (`views/finance/data/`) provides `FinanceDataContext`, `FinanceDa
 - `supabaseMappers.ts` — row-to-domain-object mappers
 - `productionLifecycle.ts` — localStorage lifecycle transitions
 - `useFinanceCreates.ts` — React hook for create/transition callbacks
+- `importExport.ts` — export bundles and CSV download helpers
+- `statementParser.ts` — bank statement file-to-CSV conversion
+- `autoCategorize.ts` and `defaultCategoryRules.ts` — rule-based transaction categorization
+- `ruleSuggestion.ts` — suggested category rules from imported transactions
+- `aiImportAnalyzer.ts` and `productionAi.ts` — AI-assisted import analysis with rule fallback
+- `bulkImport/bankStatementAdapter.ts`, `entityAdapter.ts`, `transactionAdapter.ts` — `BulkImportWizard` adapters
 
 Migration `0119_add_finance_module.sql` creates 32 `finance_*` tables with org-scoped RLS. The migration is committed but **not yet applied** to the Supabase project — production mode falls back to localStorage until it is applied. Sensitive payroll tables are admin-only at the RLS level and gated by `useWorkspaceMode().memberRole` on the client.
 
 The product does not provide native accounting, payroll, tax filing, investment execution, or professional advice. The selected accounting system remains authoritative for posted books; the payroll provider remains authoritative for completed pay runs. Dutiva owns budgets, forecasts, review work, approvals, and source-record links.
 
 Sources: [src/features/app/views/finance/FinanceView.tsx](), [src/features/app/views/finance/data/types.ts:1-50](), [src/features/app/views/finance/data/FinanceDataContext.ts:1-60](), [src/features/app/views/finance/data/supabaseApi.ts:1-593](), [supabase/migrations/0119_add_finance_module.sql:1-50]()
+
+## Cross-Module Bulk Import
+
+A shared `BulkImportWizard` in `src/features/app/bulkImport/` provides a reusable upload → column mapping → preview → import flow. Adapters are colocated with each workspace module:
+
+- `src/features/app/views/employees/bulkImport/employeeAdapter.ts`
+- `src/features/app/views/finance/bulkImport/bankStatementAdapter.ts`, `entityAdapter.ts`, `transactionAdapter.ts`
+- `src/features/app/views/comms/bulkImport/contactAdapter.ts`, `organizationAdapter.ts`, `contentAdapter.ts`
+
+Each adapter defines a typed row, field labels (bilingual), header inference, validation, and the `import` callback that persists valid rows. The wizard supports CSV/TSV/TXT/XLSX and downloads a template. Imported text fields that are not yet translated are tagged for French or English review.
 
 ## Cross-Module Integration Diagram
 

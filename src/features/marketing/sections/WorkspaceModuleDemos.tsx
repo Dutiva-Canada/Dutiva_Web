@@ -31,8 +31,6 @@ import { LandingDemoPath } from './LandingDemoPath'
 
 const ATTENTION_CHIP_TONE = { overdue: 'risk', due_soon: 'warning', upcoming: 'neutral' } as const
 
-const COMM_DIMS = ['tone', 'legal', 'clarity', 'policy'] as const
-
 const MODULES: {
   icon: LucideIcon
   label: LandingMessageKey
@@ -43,7 +41,7 @@ const MODULES: {
   { icon: Users, label: 'landing_mod2_label', demoPath: 'employees' },
   { icon: BookOpen, label: 'landing_mod3_label', demoPath: 'knowledge' },
   { icon: Banknote, label: 'landing_mod4_label', demoPath: 'compensation' },
-  { icon: Send, label: 'landing_mod5_label', demoPath: 'communications', highlighted: true },
+  { icon: Send, label: 'landing_mod5_label', demoPath: 'comms', highlighted: true },
   { icon: Activity, label: 'landing_mod6_label', demoPath: 'wellbeing' },
   { icon: BarChart3, label: 'landing_mod7_label', demoPath: 'analytics', highlighted: true },
   { icon: UserCheck, label: 'landing_mod8_label', demoPath: 'hiring', highlighted: true },
@@ -62,13 +60,6 @@ export function WorkspaceModuleDemos() {
   const caseFile = landingCasePreview()
   const comm = landingCommPreview()
   const hiring = landingHiringPreview()
-
-  const dimLabels = {
-    tone: lt('landing_ws_demo_comms_dim_tone'),
-    legal: lt('landing_ws_demo_comms_dim_legal'),
-    clarity: lt('landing_ws_demo_comms_dim_clarity'),
-    policy: lt('landing_ws_demo_comms_dim_policy'),
-  }
 
   return (
     <section id="workspace" className="mx-auto max-w-300 scroll-mt-20 px-4 py-12 sm:px-6 sm:py-16">
@@ -158,28 +149,25 @@ export function WorkspaceModuleDemos() {
               <span className="min-w-0 font-semibold text-text">{x(comm.title)}</span>
               <span className={`${statusChipClass(comm.tone)} shrink-0`}>{x(comm.status)}</span>
             </div>
+            <p className="mt-1 text-xs text-text-3">
+              {x(comm.initiative)} · {x(comm.channel)} · {x(comm.dueDate)} · {x(comm.owner)}
+            </p>
             <p className="mt-2 text-sm leading-[1.55] text-text-2">{x(comm.note)}</p>
             <div className="mt-3 border-t border-border pt-3">
               <div className="mb-2 text-[10px] font-bold tracking-[0.08em] text-text-3 uppercase">
-                {lt('landing_ws_demo_comms_review')}
+                {lt('landing_ws_demo_comms_caps')}
               </div>
               <ul className="flex flex-wrap gap-2">
-                {COMM_DIMS.map((dim) => {
-                  const passed = comm.review[dim]
-                  return (
-                    <li
-                      key={dim}
-                      className={`${statusChipClass(passed ? 'success' : 'warning')} shrink-0`}
-                    >
-                      {dimLabels[dim]} ·{' '}
-                      {passed ? lt('landing_ws_demo_comms_pass') : lt('landing_ws_demo_comms_flag')}
-                    </li>
-                  )
-                })}
+                {comm.capabilities.map((cap) => (
+                  <li key={cap.key} className={`${statusChipClass('neutral')} shrink-0`}>
+                    {x(cap.label)}
+                  </li>
+                ))}
               </ul>
             </div>
+            <p className="mt-3 text-xs leading-normal text-text-2">{x(comm.bulkImport)}</p>
           </div>
-          <DemoFooter to={`${demoRoot}/communications`} label={openLabel} />
+          <DemoFooter to={`${demoRoot}/comms/overview`} label={openLabel} />
         </article>
 
         {/* Hiring — evidence-based recruitment funnel */}

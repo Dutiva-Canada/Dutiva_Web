@@ -35,7 +35,6 @@ import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
 
 const ATTENTION_CHIP_TONE = { overdue: 'risk', due_soon: 'warning', upcoming: 'neutral' } as const
-const COMM_DIMS = ['tone', 'legal', 'clarity', 'policy'] as const
 const CASE_TABS = ['overview', 'docs', 'next'] as const
 const STUDIO_WIZARD_IDS = ['employee_name', 'position_title', 'start_date'] as const
 
@@ -56,7 +55,7 @@ const STOP_ICON: Record<string, LucideIcon> = {
   workflows: Activity,
   cases: FolderOpen,
   analytics: BarChart3,
-  communications: Send,
+  comms: Send,
 }
 
 const WF_EXAMPLE_BY_LABEL: Partial<
@@ -131,7 +130,7 @@ function StopPreview({ stopId }: { readonly stopId: string }) {
       return <CasesTourPreview />
     case 'analytics':
       return <AnalyticsTourPreview />
-    case 'communications':
+    case 'comms':
       return <CommsTourPreview />
     default:
       return null
@@ -439,13 +438,6 @@ function AnalyticsTourPreview() {
 function CommsTourPreview() {
   const { lt, x } = useLanding()
   const comm = landingCommPreview()
-  const [dim, setDim] = useState<(typeof COMM_DIMS)[number] | null>(null)
-  const dimLabels = {
-    tone: lt('landing_ws_demo_comms_dim_tone'),
-    legal: lt('landing_ws_demo_comms_dim_legal'),
-    clarity: lt('landing_ws_demo_comms_dim_clarity'),
-    policy: lt('landing_ws_demo_comms_dim_policy'),
-  }
 
   return (
     <div className="p-3 sm:p-4">
@@ -454,42 +446,23 @@ function CommsTourPreview() {
           <span className="min-w-0 font-semibold text-text">{x(comm.title)}</span>
           <span className={`${statusChipClass(comm.tone)} shrink-0`}>{x(comm.status)}</span>
         </div>
+        <p className="mt-1 text-xs text-text-3">
+          {x(comm.initiative)} · {x(comm.channel)} · {x(comm.dueDate)} · {x(comm.owner)}
+        </p>
         <p className="mt-2 m-0 text-sm leading-[1.55] text-text-2">{x(comm.note)}</p>
         <div className="mt-3 border-t border-border pt-3">
           <div className="mb-2 text-[10px] font-bold tracking-[0.08em] text-text-3 uppercase">
-            {lt('landing_ws_demo_comms_review')}
+            {lt('landing_ws_demo_comms_caps')}
           </div>
           <ul className="flex flex-wrap gap-2">
-            {COMM_DIMS.map((key) => {
-              const passed = comm.review[key]
-              const selected = dim === key
-              return (
-                <li key={key}>
-                  <button
-                    type="button"
-                    aria-pressed={selected}
-                    onClick={() => setDim(key)}
-                    className={`${statusChipClass(passed ? 'success' : 'warning')} min-h-11 cursor-pointer ${
-                      selected ? 'outline-2 outline-offset-2 outline-gold-border' : ''
-                    }`}
-                  >
-                    {dimLabels[key]} ·{' '}
-                    {passed ? lt('landing_ws_demo_comms_pass') : lt('landing_ws_demo_comms_flag')}
-                  </button>
-                </li>
-              )
-            })}
+            {comm.capabilities.map((cap) => (
+              <li key={cap.key} className={`${statusChipClass('neutral')} shrink-0`}>
+                {x(cap.label)}
+              </li>
+            ))}
           </ul>
-          {dim ? (
-            <p className="mt-3 m-0 text-xs leading-normal text-text-2">
-              {x(TOUR_STOP_FIXTURES.reviewNotes[dim])}
-            </p>
-          ) : (
-            <p className="mt-3 m-0 text-xs leading-normal text-text-3">
-              {lt('landing_ws_demo_comms_tap')}
-            </p>
-          )}
         </div>
+        <p className="mt-3 m-0 text-xs leading-normal text-text-2">{x(comm.bulkImport)}</p>
       </div>
     </div>
   )

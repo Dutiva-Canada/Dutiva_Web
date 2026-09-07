@@ -65,12 +65,12 @@ export const DEMO_TOUR_STOPS: readonly DemoTourStop[] = [
     ),
   },
   {
-    id: 'communications',
-    pathSuffix: 'communications',
+    id: 'comms',
+    pathSuffix: 'comms',
     title: bi('Communications', 'Communications'),
     blurb: bi(
-      'Review a draft before send — tone, clarity, and policy alignment.',
-      'Révisez une ébauche avant l’envoi — ton, clarté et cohérence avec les politiques.',
+      'Plan initiatives, draft content, manage contacts, and track delivery.',
+      'Planifiez des initiatives, rédigez du contenu, gérez les contacts et suivez la diffusion.',
     ),
   },
   {
