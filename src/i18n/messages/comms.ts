@@ -46,6 +46,8 @@ export const commsMessages = defineMessages({
   comms_overview_health: { en: 'Integration health', fr: 'Santé de l’intégration' },
   comms_overview_approvals: { en: 'Approvals queue', fr: 'File d’approbations' },
   comms_overview_no_upcoming: { en: 'No upcoming deadlines.', fr: 'Aucune échéance à venir.' },
+  comms_overview_activity: { en: 'Recent activity', fr: 'Activité récente' },
+  comms_overview_no_activity: { en: 'No recorded activity yet.', fr: 'Aucune activité consignée pour l’instant.' },
   comms_overview_all_areas: { en: 'Open a tab above to drill into a workspace area.', fr: 'Ouvrez un onglet ci-dessus pour explorer un secteur de l’espace de travail.' },
 
   /* Initiatives */
@@ -399,6 +401,16 @@ export const commsMessages = defineMessages({
     en: 'Coverage and reach are manually recorded. Cross-platform reach is not de-duplicated and does not represent unique people.',
     fr: 'La couverture et la portée sont consignées manuellement. La portée entre plateformes n’est pas dédupliquée et ne représente pas des personnes uniques.',
   },
+  comms_objectives_title: { en: 'Objectives', fr: 'Objectifs' },
+  comms_objectives_empty: { en: 'No objectives yet.', fr: 'Aucun objectif pour l’instant.' },
+  comms_objective_label: { en: 'Objective', fr: 'Objectif' },
+  comms_objective_initiative: { en: 'Initiative', fr: 'Initiative' },
+  comms_objective_baseline: { en: 'Baseline', fr: 'Référence' },
+  comms_objective_target: { en: 'Target', fr: 'Cible' },
+  comms_objective_period: { en: 'Period', fr: 'Période' },
+  comms_objective_evidence: { en: 'Evidence source', fr: 'Source de preuve' },
+  comms_objective_owner: { en: 'Owner', fr: 'Responsable' },
+  comms_objective_add: { en: 'Add objective', fr: 'Ajouter un objectif' },
 
   /* Settings */
   comms_settings_title: { en: 'Communications settings', fr: 'Paramètres des communications' },

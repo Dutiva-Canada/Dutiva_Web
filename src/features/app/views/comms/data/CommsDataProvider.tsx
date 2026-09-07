@@ -14,6 +14,7 @@ import {
   addInteraction as addInteractionApi,
   addIssue as addIssueApi,
   addMetric as addMetricApi,
+  addObjective as addObjectiveApi,
   addOrganization as addOrganizationApi,
   addPolicyFile as addPolicyFileApi,
   addSource as addSourceApi,
@@ -31,6 +32,7 @@ import {
   removeInteraction as removeInteractionApi,
   removeIssue as removeIssueApi,
   removeMetric as removeMetricApi,
+  removeObjective as removeObjectiveApi,
   removeOrganization as removeOrganizationApi,
   removePolicyFile as removePolicyFileApi,
   removeSource as removeSourceApi,
@@ -50,6 +52,7 @@ import {
   updateInteraction as updateInteractionApi,
   updateIssue as updateIssueApi,
   updateMetric as updateMetricApi,
+  updateObjective as updateObjectiveApi,
   updateOrganization as updateOrganizationApi,
   updateSource as updateSourceApi,
   updateSubmission as updateSubmissionApi,
@@ -68,6 +71,7 @@ import type {
   CommsInteraction,
   CommsIssue,
   CommsMetric,
+  CommsObjective,
   CommsOrganization,
   CommsPolicyFile,
   CommsSource,
@@ -575,6 +579,35 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
     [isLive, orgId],
   )
 
+  const addObjective = useCallback(
+    (item: Omit<CommsObjective, 'id'>) => {
+      if (!isLive || !orgId) return null
+      const created = addObjectiveApi(orgId, item)
+      setState(loadFullStateApi(orgId))
+      return created
+    },
+    [isLive, orgId],
+  )
+
+  const updateObjective = useCallback(
+    (id: string, patch: Partial<CommsObjective>) => {
+      if (!isLive || !orgId) return null
+      const updated = updateObjectiveApi(orgId, id, patch)
+      if (updated) setState(loadFullStateApi(orgId))
+      return updated
+    },
+    [isLive, orgId],
+  )
+
+  const removeObjective = useCallback(
+    (id: string) => {
+      if (!isLive || !orgId) return
+      removeObjectiveApi(orgId, id)
+      setState(loadFullStateApi(orgId))
+    },
+    [isLive, orgId],
+  )
+
   return useMemo(
     () => ({
       state,
@@ -629,6 +662,9 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
       addIntegration,
       updateIntegration,
       removeIntegration,
+      addObjective,
+      updateObjective,
+      removeObjective,
     }),
     [
       state,
@@ -683,6 +719,9 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
       addIntegration,
       updateIntegration,
       removeIntegration,
+      addObjective,
+      updateObjective,
+      removeObjective,
     ],
   )
 }

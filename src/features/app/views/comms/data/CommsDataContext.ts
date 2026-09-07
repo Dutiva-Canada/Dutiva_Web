@@ -12,6 +12,7 @@ import type {
   CommsInteraction,
   CommsIssue,
   CommsMetric,
+  CommsObjective,
   CommsOrganization,
   CommsPolicyFile,
   CommsSource,
@@ -79,6 +80,9 @@ export interface CommsDataContextValue {
   addMetric: (item: Omit<CommsMetric, 'id'>) => CommsMetric | null
   updateMetric: (id: string, patch: Partial<CommsMetric>) => CommsMetric | null
   removeMetric: (id: string) => void
+  addObjective: (item: Omit<CommsObjective, 'id'>) => CommsObjective | null
+  updateObjective: (id: string, patch: Partial<CommsObjective>) => CommsObjective | null
+  removeObjective: (id: string) => void
   addIntegration: (item: Omit<CommsIntegration, 'id'>) => CommsIntegration | null
   updateIntegration: (id: string, patch: Partial<CommsIntegration>) => CommsIntegration | null
   removeIntegration: (id: string) => void

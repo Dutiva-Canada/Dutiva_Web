@@ -13,6 +13,7 @@ import type {
   CommsInteraction,
   CommsIssue,
   CommsMetric,
+  CommsObjective,
   CommsOrganization,
   CommsPolicyFile,
   CommsSource,
@@ -892,6 +893,39 @@ export function removeIntegration(orgId: string, id: string): void {
   updateState(orgId, (state) => ({
     ...state,
     integrations: state.integrations.filter((i) => i.id !== id),
+  }))
+}
+
+export function addObjective(orgId: string, objective: Omit<CommsObjective, 'id'>): CommsObjective {
+  const created: CommsObjective = { ...objective, id: createId('objective') }
+  updateState(orgId, (state) => ({
+    ...state,
+    objectives: [created, ...state.objectives],
+  }))
+  return created
+}
+
+export function updateObjective(
+  orgId: string,
+  id: string,
+  patch: Partial<CommsObjective>,
+): CommsObjective | null {
+  let result: CommsObjective | null = null
+  updateState(orgId, (state) => ({
+    ...state,
+    objectives: state.objectives.map((o) => {
+      if (o.id !== id) return o
+      result = { ...o, ...patch }
+      return result
+    }),
+  }))
+  return result
+}
+
+export function removeObjective(orgId: string, id: string): void {
+  updateState(orgId, (state) => ({
+    ...state,
+    objectives: state.objectives.filter((o) => o.id !== id),
   }))
 }
 

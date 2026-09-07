@@ -4,10 +4,10 @@ import { statusChipClass } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { useCommsData } from '../data/useCommsData'
-import { CHANNEL_LABEL, CONTENT_STATUS_LABEL, DELIVERY_STATUS_LABEL, DOMAIN_LABEL, INITIATIVE_STATUS_LABEL, RISK_LABEL } from '../commsLabels'
+import { ACTION_LABEL, CHANNEL_LABEL, CONTENT_STATUS_LABEL, DELIVERY_STATUS_LABEL, DOMAIN_LABEL, INITIATIVE_STATUS_LABEL, RISK_LABEL } from '../commsLabels'
 
 export function Overview() {
-  const { x } = useI18n()
+  const { x, lang } = useI18n()
   const { state } = useCommsData()
 
   const upcoming = useMemo(
@@ -34,6 +34,11 @@ export function Overview() {
   const reconcileQueue = useMemo(
     () => state.contentItems.filter((c) => c.deliveryStatus === 'unknown' || c.deliveryStatus === 'failed'),
     [state.contentItems],
+  )
+
+  const activity = useMemo(
+    () => [...state.executionEvents].sort((a, b) => b.timestamp.localeCompare(a.timestamp)).slice(0, 20),
+    [state.executionEvents],
   )
 
   return (
@@ -151,6 +156,52 @@ export function Overview() {
                 </span>
               </li>
             ))}
+          </ul>
+        </section>
+      )}
+
+      {activity.length > 0 && (
+        <section className="rounded-[12px] border border-border bg-surface p-[16px]">
+          <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.comms_overview_activity)}</h2>
+          <ul className="m-0 flex flex-col gap-[10px] p-0">
+            {activity.map((event) => {
+              const item = state.contentItems.find((c) => c.id === event.contentItemId)
+              return (
+                <li key={event.id} className="flex flex-col gap-[2px] rounded-[8px] bg-inset p-[12px]">
+                  <div className="flex items-start justify-between gap-[12px]">
+                    <div>
+                      <div className="text-[13px] font-semibold text-text">{x(ACTION_LABEL[event.action])}</div>
+                      <div className="text-[12px] text-text-muted">
+                        {item ? x(item.title) : event.contentItemId}
+                        {event.actor ? ` · ${event.actor}` : ''}
+                      </div>
+                    </div>
+                    <time className="text-[12px] text-text-2" dateTime={event.timestamp}>
+                      {new Date(event.timestamp).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
+                        dateStyle: 'short',
+                        timeStyle: 'short',
+                      })}
+                    </time>
+                  </div>
+                  {(event.previousStatus || event.newStatus) && (
+                    <div className="text-[12px] text-text-2">
+                      {event.previousStatus && (
+                        <span>
+                          {x(M.comms_execution_previous_status)}: {x(DELIVERY_STATUS_LABEL[event.previousStatus])}
+                        </span>
+                      )}
+                      {event.previousStatus && event.newStatus && ' → '}
+                      {event.newStatus && (
+                        <span>
+                          {x(M.comms_execution_new_status)}: {x(DELIVERY_STATUS_LABEL[event.newStatus])}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {event.note && <div className="text-[12px] text-text-2">{x(event.note)}</div>}
+                </li>
+              )
+            })}
           </ul>
         </section>
       )}
