@@ -424,7 +424,7 @@ export function rowsToBankItems(
     }
     existingKeys.add(key)
     newItems.push({
-      id: `bi-imp-${Date.now()}-${row.rowIndex}`,
+      id: crypto.randomUUID(),
       bankAccountId,
       date: row.date,
       amount: row.amount,
