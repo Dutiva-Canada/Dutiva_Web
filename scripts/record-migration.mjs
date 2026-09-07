@@ -30,6 +30,13 @@ if (!fileName) {
   process.exit(1)
 }
 
+const match = fileName.match(/^(\d{4})_([a-z0-9_]+)$/)
+if (!match) {
+  console.error('record-migration: filename must match NNNN_lower_snake_case')
+  process.exit(1)
+}
+const slug = match[2]
+
 const sql = readFileSync(resolve(file), 'utf-8')
 
 // Simple statement splitter. Production migrations should avoid unescaped
@@ -132,7 +139,7 @@ function splitStatements(raw) {
 
 const statements = splitStatements(sql)
 
-const query = `UPDATE supabase_migrations.schema_migrations SET name = '${fileName.replace(/'/g, "''")}', statements = ARRAY[${statements.map((s) => `'${s.replace(/'/g, "''")}'`).join(', ')}] WHERE version = '${version.replace(/'/g, "''")}'`
+const query = `INSERT INTO supabase_migrations.schema_migrations (version, name, statements) VALUES ('${version.replace(/'/g, "''")}', '${slug.replace(/'/g, "''")}', ARRAY[${statements.map((s) => `'${s.replace(/'/g, "''")}'`).join(', ')}]) ON CONFLICT (version) DO UPDATE SET name = EXCLUDED.name, statements = EXCLUDED.statements`
 
 const response = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/database/query`, {
   method: 'POST',
@@ -148,4 +155,4 @@ if (!response.ok) {
   process.exit(1)
 }
 
-console.log(`record-migration: updated schema_migrations row for version ${version} to name ${fileName}`)
+console.log(`record-migration: updated schema_migrations row for version ${version} to name ${slug}`)
