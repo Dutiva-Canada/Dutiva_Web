@@ -183,7 +183,11 @@ export default defineConfig(({ command }) => {
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
+        sharp: fileURLToPath(new URL('./src/lib/sharp-stub.ts', import.meta.url)),
       },
+    },
+    optimizeDeps: {
+      exclude: ['@xenova/transformers', 'onnxruntime-web'],
     },
     define: {
       /* Bake Vercel's VERCEL_ENV system var ('production' | 'preview' |
@@ -321,7 +325,8 @@ export default defineConfig(({ command }) => {
                   `node_modules[\\\\/](?!@supabase[\\\\/])(?!@pdf-lib[\\\\/])(?!${MARKDOWN_TREE}[\\\\/])(?!${DOCX_TREE}[\\\\/])(?!${READ_EXCEL_FILE_TREE}[\\\\/])` +
                     `(?!(?:recharts|victory-vendor|d3-[a-z-]+|internmap|@reduxjs[\\\\/]toolkit` +
                     `|react-redux|reselect|immer|use-sync-external-store|es-toolkit` +
-                    `|decimal\\.js-light|eventemitter3|pdf-lib|pako|docx|jszip|read-excel-file)[\\\\/])`,
+                    `|decimal\\.js-light|eventemitter3|pdf-lib|pako|docx|jszip|read-excel-file` +
+                    `|@xenova[\\\\/]transformers|onnxruntime-web|sharp|@huggingface[\\\\/]jinja)[\\\\/])`,
                 ),
               },
             ],

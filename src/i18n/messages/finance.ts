@@ -656,4 +656,7 @@ export const financeMessages = defineMessages({
   finance_suggest_rules_confidence_high: { en: 'High confidence', fr: 'Confiance élevée' },
   finance_suggest_rules_confidence_medium: { en: 'Medium confidence', fr: 'Confiance moyenne' },
   finance_suggest_rules_confidence_low: { en: 'Low confidence', fr: 'Confiance faible' },
+  finance_suggest_rules_ai_loading: { en: 'Loading AI model…', fr: 'Chargement du modèle IA…' },
+  finance_suggest_rules_ai_toggle: { en: 'Use AI model', fr: 'Utiliser le modèle IA' },
+  finance_suggest_rules_ai_error: { en: 'AI model failed. Falling back to local suggestions.', fr: 'Le modèle IA a échoué. Retour aux suggestions locales.' },
 })

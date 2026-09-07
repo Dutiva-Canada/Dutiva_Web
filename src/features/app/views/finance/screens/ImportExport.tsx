@@ -38,6 +38,7 @@ export function ImportExport() {
   const [suggestions, setSuggestions] = useState<RuleSuggestion[]>([])
   const [suggesting, setSuggesting] = useState(false)
   const [suggestResult, setSuggestResult] = useState<string | null>(null)
+  const [useAiSuggestions, setUseAiSuggestions] = useState(false)
   const [showRuleForm, setShowRuleForm] = useState(false)
   const [showWizard, setShowWizard] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -144,9 +145,15 @@ export function ImportExport() {
     }
     setSuggesting(true)
     setSuggestResult(null)
-    window.setTimeout(() => {
+    window.setTimeout(async () => {
       try {
-        const result = suggestCategoryRules(state.bankItems, state.ledgerAccounts, state.categoryRules)
+        let result: RuleSuggestion[]
+        if (useAiSuggestions) {
+          const { suggestCategoryRulesWithAi } = await import('../data/ruleSuggestionAi')
+          result = await suggestCategoryRulesWithAi(state.bankItems, state.ledgerAccounts, state.categoryRules)
+        } else {
+          result = suggestCategoryRules(state.bankItems, state.ledgerAccounts, state.categoryRules)
+        }
         setSuggestions(result)
         setSuggestResult(
           result.length > 0
@@ -154,8 +161,23 @@ export function ImportExport() {
             : x(M.finance_suggest_rules_none),
         )
       } catch (err) {
-        setSuggestResult(x(M.finance_suggest_rules_none))
         console.error('[finance] rule suggestion failed', err)
+        if (useAiSuggestions) {
+          try {
+            const fallback = suggestCategoryRules(state.bankItems, state.ledgerAccounts, state.categoryRules)
+            setSuggestions(fallback)
+            setSuggestResult(
+              fallback.length > 0
+                ? x(M.finance_suggest_rules_ai_error)
+                : x(M.finance_suggest_rules_none),
+            )
+          } catch {
+            setSuggestResult(x(M.finance_suggest_rules_none))
+            setSuggestions([])
+          }
+        } else {
+          setSuggestResult(x(M.finance_suggest_rules_none))
+        }
       } finally {
         setSuggesting(false)
       }
@@ -377,15 +399,26 @@ export function ImportExport() {
           </div>
           <div className="flex items-center gap-[8px]">
             {canWrite && (
-              <button
-                type="button"
-                onClick={handleSuggestRules}
-                disabled={suggesting || unmatchedCount === 0}
-                className="flex items-center gap-[4px] rounded-[8px] bg-navy px-[10px] py-[5px] text-[12px] font-semibold text-white hover:opacity-90 disabled:opacity-50"
-              >
-                <Sparkles size={12} strokeWidth={1.9} aria-hidden="true" />
-                {x(M.finance_suggest_rules)}
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={handleSuggestRules}
+                  disabled={suggesting || unmatchedCount === 0}
+                  className="flex items-center gap-[4px] rounded-[8px] bg-navy px-[10px] py-[5px] text-[12px] font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                >
+                  <Sparkles size={12} strokeWidth={1.9} aria-hidden="true" />
+                  {x(M.finance_suggest_rules)}
+                </button>
+                <label className="flex items-center gap-[4px] text-[11px] text-text-2">
+                  <input
+                    type="checkbox"
+                    checked={useAiSuggestions}
+                    onChange={(e) => setUseAiSuggestions(e.target.checked)}
+                    className="h-[14px] w-[14px] accent-navy"
+                  />
+                  {x(M.finance_suggest_rules_ai_toggle)}
+                </label>
+              </>
             )}
             {canWrite && (
               <button
@@ -427,7 +460,7 @@ export function ImportExport() {
 
         {suggesting && (
           <div className="mb-[8px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text-muted">
-            {x(M.finance_suggest_rules_loading)}
+            {x(useAiSuggestions ? M.finance_suggest_rules_ai_loading : M.finance_suggest_rules_loading)}
           </div>
         )}
 
