@@ -70,7 +70,12 @@ export function getNavGroups(root: string): NavGroup[] {
       heading: null,
       items: [
         { key: 'home', to: p('home'), icon: House, label: M.shell_nav_home },
-        { key: 'advisor', to: p('advisor'), icon: MessageCircle, label: M.shell_nav_advisor_home },
+        {
+          key: 'advisor',
+          to: p('advisor'),
+          icon: MessageCircle,
+          label: M.shell_nav_advisor_home,
+        },
         {
           key: 'memory',
           to: p('settings/memory'),
@@ -87,7 +92,7 @@ export function getNavGroups(root: string): NavGroup[] {
       ],
     },
     {
-      heading: M.shell_sec_records,
+      heading: M.shell_sec_people,
       items: [
         { key: 'employees', to: p('employees'), icon: Users, label: M.shell_nav_people },
         {
@@ -97,58 +102,11 @@ export function getNavGroups(root: string): NavGroup[] {
           label: M.shell_nav_cases,
           badge: { value: CASES_BADGE, tone: 'neutral' },
         },
-        /* Hiring module — evidence-based recruitment system */
         {
           key: 'hiring',
           to: p('hiring'),
           icon: UserCheck,
           label: M.shell_nav_hiring,
-        },
-        {
-          key: 'documents',
-          to: p('documents/studio'),
-          icon: FileStack,
-          label: M.shell_nav_library,
-          isActive: (pathname) => pathname.startsWith(`${root}/documents`),
-        },
-        { key: 'knowledge', to: p('knowledge'), icon: Book, label: M.shell_nav_knowledge },
-      ],
-    },
-    {
-      heading: M.shell_sec_programs,
-      items: [
-        {
-          key: 'compliance',
-          to: p('compliance'),
-          icon: ShieldCheck,
-          label: M.shell_nav_compliance,
-          badge: { value: COMPLIANCE_BADGE, tone: 'warn' },
-        },
-        {
-          key: 'compensation',
-          to: p('compensation'),
-          icon: DollarSign,
-          label: M.shell_nav_compensation,
-        },
-        {
-          key: 'communications',
-          to: p('communications'),
-          icon: Send,
-          label: M.shell_nav_communications,
-        },
-        {
-          key: 'comms',
-          to: p('comms/overview'),
-          icon: Megaphone,
-          label: COMMS.comms_title,
-          isActive: (pathname) => pathname.startsWith(`${root}/comms`),
-        },
-        {
-          key: 'finance',
-          to: p('finance/overview'),
-          icon: Banknote,
-          label: FINANCE.finance_title,
-          isActive: (pathname) => pathname.startsWith(`${root}/finance`),
         },
         {
           key: 'wellbeing',
@@ -157,12 +115,68 @@ export function getNavGroups(root: string): NavGroup[] {
           label: M.shell_nav_wellbeing,
           badge: { value: WELLBEING_BADGE, tone: 'warn' },
         },
+      ],
+    },
+    {
+      heading: M.shell_sec_operations,
+      items: [
+        {
+          key: 'documents',
+          to: p('documents/studio'),
+          icon: FileStack,
+          label: M.shell_nav_library,
+          isActive: (pathname) => pathname.startsWith(`${root}/documents`),
+        },
+        { key: 'knowledge', to: p('knowledge'), icon: Book, label: M.shell_nav_knowledge },
         {
           key: 'planning',
           to: p('planning/tasks'),
           icon: CalendarCheck,
           label: M.shell_nav_planning,
           isActive: (pathname) => pathname.startsWith(`${root}/planning`),
+        },
+        {
+          key: 'compliance',
+          to: p('compliance'),
+          icon: ShieldCheck,
+          label: M.shell_nav_compliance,
+          badge: { value: COMPLIANCE_BADGE, tone: 'warn' },
+        },
+      ],
+    },
+    {
+      heading: M.shell_sec_comms,
+      items: [
+        {
+          key: 'comms',
+          to: p('comms/overview'),
+          icon: Megaphone,
+          label: COMMS.comms_title,
+          isActive: (pathname) => pathname.startsWith(`${root}/comms`),
+        },
+        {
+          key: 'communications',
+          to: p('communications'),
+          icon: Send,
+          label: M.shell_nav_communications,
+        },
+      ],
+    },
+    {
+      heading: M.shell_sec_finance,
+      items: [
+        {
+          key: 'compensation',
+          to: p('compensation'),
+          icon: DollarSign,
+          label: M.shell_nav_compensation,
+        },
+        {
+          key: 'finance',
+          to: p('finance/overview'),
+          icon: Banknote,
+          label: FINANCE.finance_title,
+          isActive: (pathname) => pathname.startsWith(`${root}/finance`),
         },
       ],
     },

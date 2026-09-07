@@ -22,17 +22,18 @@ import { useProductionWorkspaceEmpty } from './useProductionWorkspaceEmpty'
 export type SidebarMode = 'expanded' | 'compact' | 'drawer'
 
 /* Collapsible section keys, positionally aligned with NAV_GROUPS: group i
-   with a heading maps to SECTION_KEYS[i - 1]. Heading-less groups (the
-   workspace trio, Analytics) render as always-visible top-level items.
-   'insights' is gone with the section — a stale key in the stored prefs is
-   simply ignored. */
-const SECTION_KEYS = ['records', 'programs'] as const
+   with a heading maps to SECTION_KEYS[i - 1]. Heading-less groups (Home /
+   Advisor / Workflows, Analytics) render as always-visible top-level items.
+   Stale keys from earlier sidebars ('records', 'programs') are ignored. */
+const SECTION_KEYS = ['people', 'operations', 'comms', 'finance'] as const
 type SectionKey = (typeof SECTION_KEYS)[number]
 
 const SECTION_PREFS_KEY = 'dutiva.sidebar.sections.v1'
 const DEFAULT_SECTIONS: Record<SectionKey, boolean> = {
-  records: true,
-  programs: true,
+  people: true,
+  operations: true,
+  comms: true,
+  finance: true,
 }
 
 const EXPANDED_WIDTH = 'w-[292px]'

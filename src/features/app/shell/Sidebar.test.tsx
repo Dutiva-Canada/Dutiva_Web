@@ -42,12 +42,21 @@ describe('Sidebar', () => {
       '/app/workflows',
     )
 
-    expect(within(nav).getByRole('button', { name: /Records/i })).toBeInTheDocument()
+    /* People & HR */
+    expect(within(nav).getByRole('button', { name: /People & HR/i })).toBeInTheDocument()
     expect(within(nav).getByRole('link', { name: 'People' })).toHaveAttribute(
       'href',
       '/app/employees',
     )
     expect(within(nav).getByRole('link', { name: /Cases/ })).toHaveAttribute('href', '/app/cases')
+    expect(within(nav).getByRole('link', { name: 'Hiring' })).toHaveAttribute('href', '/app/hiring')
+    expect(within(nav).getByRole('link', { name: /Wellbeing/ })).toHaveAttribute(
+      'href',
+      '/app/wellbeing',
+    )
+
+    /* Operations & library */
+    expect(within(nav).getByRole('button', { name: /Operations/i })).toBeInTheDocument()
     expect(within(nav).getByRole('link', { name: 'Documents' })).toHaveAttribute(
       'href',
       '/app/documents/studio',
@@ -56,19 +65,38 @@ describe('Sidebar', () => {
       'href',
       '/app/knowledge',
     )
-
-    expect(within(nav).getByRole('button', { name: /Programs/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: /Planning/ })).toHaveAttribute(
+      'href',
+      '/app/planning/tasks',
+    )
     expect(within(nav).getByRole('link', { name: /Compliance/ })).toHaveAttribute(
       'href',
       '/app/compliance',
     )
-    expect(within(nav).getByRole('link', { name: 'Planning' })).toHaveAttribute(
+
+    /* Communications & content */
+    expect(within(nav).getByRole('button', { name: /Communications & content/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: /Communications$/ })).toHaveAttribute(
       'href',
-      '/app/planning/tasks',
+      '/app/comms/overview',
+    )
+    expect(within(nav).getByRole('link', { name: /Message log/ })).toHaveAttribute(
+      'href',
+      '/app/communications',
     )
 
-    /* Analytics is a top-level item — no 'Insights' section wraps (and
-       hides) it anymore. */
+    /* Pay & finance */
+    expect(within(nav).getByRole('button', { name: /Pay & finance/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: /Compensation/ })).toHaveAttribute(
+      'href',
+      '/app/compensation',
+    )
+    expect(within(nav).getByRole('link', { name: /Finance$/ })).toHaveAttribute(
+      'href',
+      '/app/finance/overview',
+    )
+
+    /* Analytics is a top-level item — no section wraps it. */
     expect(within(nav).queryByRole('button', { name: /Insights/i })).not.toBeInTheDocument()
     expect(within(nav).getByRole('link', { name: 'Analytics' })).toHaveAttribute(
       'href',
@@ -93,8 +121,10 @@ describe('Sidebar', () => {
     const nav = await screen.findByRole('navigation', { name: 'Navigation principale' })
     expect(within(nav).getByRole('link', { name: 'Accueil' })).toBeInTheDocument()
     expect(within(nav).getByRole('link', { name: 'Conseiller IA' })).toBeInTheDocument()
-    expect(within(nav).getByRole('button', { name: /Registres/i })).toBeInTheDocument()
-    expect(within(nav).getByRole('button', { name: /Programmes/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('button', { name: /Personnes et RH/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('button', { name: /Opérations/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('button', { name: /Communications et contenu/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('button', { name: /Paie et finances/i })).toBeInTheDocument()
     expect(within(nav).getByRole('link', { name: 'Analytique' })).toBeInTheDocument()
   })
 
@@ -114,15 +144,15 @@ describe('Sidebar', () => {
     expect(screen.queryByText('HR workspace')).not.toBeInTheDocument()
   })
 
-  it('shows the module count on a collapsed Programs heading', async () => {
+  it('shows the module count on a collapsed People & HR heading', async () => {
     const user = userEvent.setup()
     renderApp(<Sidebar mode="expanded" />, { route: '/app/home' })
 
-    const programsToggle = screen.getByRole('button', { name: /^Programs$/i })
-    await user.click(programsToggle)
+    const peopleToggle = screen.getByRole('button', { name: /^People & HR$/i })
+    await user.click(peopleToggle)
 
-    expect(screen.getByRole('button', { name: /Programs, 7 items/i })).toBeInTheDocument()
-    expect(screen.getByText('7')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /People & HR, 4 items/i })).toBeInTheDocument()
+    expect(screen.getByText('4')).toBeInTheDocument()
   })
 
   it('renders Collapse control aligned with nav density', () => {
@@ -130,41 +160,40 @@ describe('Sidebar', () => {
     expect(screen.getByRole('button', { name: 'Collapse' })).toBeInTheDocument()
   })
 
-  it('expands and collapses Records and Programs sections', async () => {
+  it('expands and collapses People & HR and Operations sections', async () => {
     const user = userEvent.setup()
     renderApp(<Sidebar mode="expanded" />, { route: '/app/home' })
 
-    const recordsToggle = screen.getByRole('button', { name: /Records/i })
-    const programsToggle = screen.getByRole('button', { name: /Programs/i })
-    expect(recordsToggle).toHaveAttribute('aria-expanded', 'true')
-    expect(programsToggle).toHaveAttribute('aria-expanded', 'true')
+    const peopleToggle = screen.getByRole('button', { name: /People & HR/i })
+    const operationsToggle = screen.getByRole('button', { name: /Operations/i })
+    expect(peopleToggle).toHaveAttribute('aria-expanded', 'true')
+    expect(operationsToggle).toHaveAttribute('aria-expanded', 'true')
 
-    await user.click(recordsToggle)
-    expect(recordsToggle).toHaveAttribute('aria-expanded', 'false')
+    await user.click(peopleToggle)
+    expect(peopleToggle).toHaveAttribute('aria-expanded', 'false')
 
-    await user.click(recordsToggle)
-    expect(recordsToggle).toHaveAttribute('aria-expanded', 'true')
+    await user.click(peopleToggle)
+    expect(peopleToggle).toHaveAttribute('aria-expanded', 'true')
   })
 
   it('keeps Analytics reachable regardless of section collapse state', async () => {
-    /* The old 'Insights' section shipped default-collapsed with Analytics as
-       its only child — the destination was hidden until discovered. Promoted
-       to top level, it must stay visible even with every section collapsed. */
+    /* Analytics is promoted to top level and must stay visible even with
+       every section collapsed. */
     const user = userEvent.setup()
     renderApp(<Sidebar mode="expanded" />, { route: '/app/home' })
 
-    await user.click(screen.getByRole('button', { name: /Records/i }))
-    await user.click(screen.getByRole('button', { name: /Programs/i }))
+    await user.click(screen.getByRole('button', { name: /People & HR/i }))
+    await user.click(screen.getByRole('button', { name: /Operations/i }))
 
     expect(screen.getByRole('link', { name: 'Analytics' })).toBeVisible()
-    expect(localStorage.getItem(SECTION_PREFS_KEY)).toContain('"records":false')
+    expect(localStorage.getItem(SECTION_PREFS_KEY)).toContain('"people":false')
   })
 
-  it('auto-expands the Records group when a nested route is active', () => {
+  it('auto-expands the People & HR group when a nested route is active', () => {
     renderApp(<Sidebar mode="expanded" />, { route: '/app/cases/case1' })
 
-    const recordsToggle = screen.getByRole('button', { name: /Records/i })
-    expect(recordsToggle).toHaveAttribute('aria-expanded', 'true')
+    const peopleToggle = screen.getByRole('button', { name: /People & HR/i })
+    expect(peopleToggle).toHaveAttribute('aria-expanded', 'true')
   })
 
   it('renders the Create menu with functional items including guided processes', async () => {

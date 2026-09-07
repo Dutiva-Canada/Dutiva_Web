@@ -119,7 +119,7 @@ export const shellMessages = defineMessages({
   shell_nav_knowledge: { en: 'Knowledge', fr: 'Connaissances' },
   shell_nav_compliance: { en: 'Compliance', fr: 'Conformité' },
   shell_nav_compensation: { en: 'Compensation', fr: 'Rémunération' },
-  shell_nav_communications: { en: 'Communications', fr: 'Communications' },
+  shell_nav_communications: { en: 'Message log', fr: 'Journal des messages' },
   shell_nav_wellbeing: { en: 'Wellbeing', fr: 'Bien-être' },
   shell_nav_tasks: { en: 'Tasks', fr: 'Tâches' },
   shell_nav_calendar: { en: 'Calendar', fr: 'Calendrier' },
@@ -150,6 +150,11 @@ export const shellMessages = defineMessages({
      removed. */
   shell_sec_records: { en: 'Records', fr: 'Registres' },
   shell_sec_programs: { en: 'Programs', fr: 'Programmes' },
+
+  shell_sec_people: { en: 'People & HR', fr: 'Personnes et RH' },
+  shell_sec_comms: { en: 'Communications & content', fr: 'Communications et contenu' },
+  shell_sec_operations: { en: 'Operations', fr: 'Opérations' },
+  shell_sec_finance: { en: 'Pay & finance', fr: 'Paie et finances' },
 
   /* ── Route/view titles (buildI18n v_*) — topbar + mobile topbar ─────────── */
   shell_v_home: { en: 'Home', fr: 'Accueil' },
