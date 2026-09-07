@@ -21,7 +21,47 @@ import { feedItemToSource, parseFeedXml } from './feedParser'
  * for a Supabase-backed API.
  */
 
-const storageKey = (orgId: string) => `dutiva_comms_state_${orgId}`
+const CURRENT_STORAGE_KEY = (orgId: string) => `dutiva_comms_state_v2_${orgId}`
+const LEGACY_STORAGE_KEY = (orgId: string) => `dutiva_comms_state_${orgId}`
+
+const emptyCommsState: CommsWorkspaceState = {
+  initiatives: [],
+  objectives: [],
+  contentItems: [],
+  contacts: [],
+  organizations: [],
+  interactions: [],
+  policyFiles: [],
+  issues: [],
+  sources: [],
+  feeds: [],
+  coverageItems: [],
+  submissions: [],
+  metrics: [],
+  approvals: [],
+  brandClaims: [],
+  executionEvents: [],
+}
+
+// Production workspaces seeded before 2026-09-06 stored the demo fixtures.
+// Treat any persisted state that still contains a fixture ID as a seed to reset.
+const FIXTURE_ITEM_IDS = new Set<string>(
+  (Object.keys(initialCommsState) as Array<keyof CommsWorkspaceState>)
+    .flatMap((key) => (initialCommsState[key] as { id?: string }[] | undefined) ?? [])
+    .map((item) => item.id)
+    .filter((id): id is string => id != null),
+)
+
+function containsFixtureItem(state: CommsWorkspaceState): boolean {
+  for (const key of Object.keys(state) as Array<keyof CommsWorkspaceState>) {
+    const arr = state[key]
+    if (!Array.isArray(arr)) continue
+    for (const item of arr as { id?: string }[]) {
+      if (item.id && FIXTURE_ITEM_IDS.has(item.id)) return true
+    }
+  }
+  return false
+}
 
 function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
@@ -31,40 +71,61 @@ function hasStorage(): boolean {
   return typeof localStorage !== 'undefined'
 }
 
-export function loadCommsState(orgId: string): CommsWorkspaceState {
-  try {
-    if (!hasStorage()) return clone(initialCommsState)
-    const raw = localStorage.getItem(storageKey(orgId))
-    if (raw) {
-      const parsed = JSON.parse(raw) as CommsWorkspaceState
-      return {
-        initiatives: parsed.initiatives ?? initialCommsState.initiatives,
-        objectives: parsed.objectives ?? initialCommsState.objectives,
-        contentItems: parsed.contentItems ?? initialCommsState.contentItems,
-        contacts: parsed.contacts ?? initialCommsState.contacts,
-        organizations: parsed.organizations ?? initialCommsState.organizations,
-        interactions: parsed.interactions ?? initialCommsState.interactions,
-        policyFiles: parsed.policyFiles ?? initialCommsState.policyFiles,
-        issues: parsed.issues ?? initialCommsState.issues,
-        sources: parsed.sources ?? initialCommsState.sources,
-        feeds: parsed.feeds ?? initialCommsState.feeds,
-        coverageItems: parsed.coverageItems ?? initialCommsState.coverageItems,
-        submissions: parsed.submissions ?? initialCommsState.submissions,
-        metrics: parsed.metrics ?? initialCommsState.metrics,
-        approvals: parsed.approvals ?? initialCommsState.approvals,
-        brandClaims: parsed.brandClaims ?? initialCommsState.brandClaims,
-        executionEvents: parsed.executionEvents ?? initialCommsState.executionEvents,
-      }
-    }
-  } catch {
-    // fall through to fixture seed
+function normalizeState(parsed: CommsWorkspaceState): CommsWorkspaceState {
+  return {
+    initiatives: parsed.initiatives ?? emptyCommsState.initiatives,
+    objectives: parsed.objectives ?? emptyCommsState.objectives,
+    contentItems: parsed.contentItems ?? emptyCommsState.contentItems,
+    contacts: parsed.contacts ?? emptyCommsState.contacts,
+    organizations: parsed.organizations ?? emptyCommsState.organizations,
+    interactions: parsed.interactions ?? emptyCommsState.interactions,
+    policyFiles: parsed.policyFiles ?? emptyCommsState.policyFiles,
+    issues: parsed.issues ?? emptyCommsState.issues,
+    sources: parsed.sources ?? emptyCommsState.sources,
+    feeds: parsed.feeds ?? emptyCommsState.feeds,
+    coverageItems: parsed.coverageItems ?? emptyCommsState.coverageItems,
+    submissions: parsed.submissions ?? emptyCommsState.submissions,
+    metrics: parsed.metrics ?? emptyCommsState.metrics,
+    approvals: parsed.approvals ?? emptyCommsState.approvals,
+    brandClaims: parsed.brandClaims ?? emptyCommsState.brandClaims,
+    executionEvents: parsed.executionEvents ?? emptyCommsState.executionEvents,
   }
-  return clone(initialCommsState)
 }
 
-function saveCommsState(orgId: string, state: CommsWorkspaceState): void {
+function readStoredState(orgId: string): { raw: string | null; legacy: boolean } {
+  if (!hasStorage()) return { raw: null, legacy: false }
+  const current = localStorage.getItem(CURRENT_STORAGE_KEY(orgId))
+  if (current) return { raw: current, legacy: false }
+  const legacy = localStorage.getItem(LEGACY_STORAGE_KEY(orgId))
+  if (legacy) return { raw: legacy, legacy: true }
+  return { raw: null, legacy: false }
+}
+
+export function loadCommsState(orgId: string): CommsWorkspaceState {
+  try {
+    if (!hasStorage()) return clone(emptyCommsState)
+    const { raw, legacy } = readStoredState(orgId)
+    if (raw) {
+      const parsed = JSON.parse(raw) as CommsWorkspaceState
+      if (legacy && containsFixtureItem(parsed)) {
+        // The legacy key was seeded with demo fixtures. Start clean under the
+        // current key rather than migrate the demo furniture.
+        saveCommsState(orgId, emptyCommsState)
+        return clone(emptyCommsState)
+      }
+      const state = normalizeState(parsed)
+      if (legacy) saveCommsState(orgId, state)
+      return clone(state)
+    }
+  } catch {
+    // fall through to empty state
+  }
+  return clone(emptyCommsState)
+}
+
+export function saveCommsState(orgId: string, state: CommsWorkspaceState): void {
   if (!hasStorage()) return
-  localStorage.setItem(storageKey(orgId), JSON.stringify(state))
+  localStorage.setItem(CURRENT_STORAGE_KEY(orgId), JSON.stringify(state))
 }
 
 function updateState(

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { initialCommsState } from './fixtures'
 import {
   addCoverageItem,
   addFeed,
@@ -14,6 +15,7 @@ import {
   removeInitiative,
   removeSource,
   removeSubmission,
+  saveCommsState,
   syncAllFeeds,
   syncFeed,
   toggleInitiativePause,
@@ -25,6 +27,7 @@ const ORG_ID = 'test-org'
 
 beforeEach(() => {
   localStorage.clear()
+  saveCommsState(ORG_ID, initialCommsState)
 })
 
 afterEach(() => {
@@ -32,9 +35,10 @@ afterEach(() => {
 })
 
 describe('comms production API', () => {
-  it('loads fixture seed when no local state exists', () => {
+  it('starts empty when no local state exists', () => {
+    localStorage.clear()
     const state = loadFullState(ORG_ID)
-    expect(state.initiatives.some((i) => i.title.en === 'Bilingual product launch')).toBe(true)
+    expect(state.initiatives).toEqual([])
     expect(state.executionEvents).toEqual([])
   })
 
@@ -91,7 +95,7 @@ describe('comms production API', () => {
       deliveryStatus: 'unknown',
     }
     stateBefore.contentItems.push(unknownItem)
-    localStorage.setItem(`dutiva_comms_state_${ORG_ID}`, JSON.stringify(stateBefore))
+    saveCommsState(ORG_ID, stateBefore)
 
     transitionDeliveryStatus(ORG_ID, 'unknown-content', 'reconcile', 'Riley Summers', 'Verified in analytics')
     const state = loadFullState(ORG_ID)
