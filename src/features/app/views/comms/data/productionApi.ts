@@ -1,5 +1,6 @@
 import { initialCommsState } from './fixtures'
 import type {
+  CommsBrandClaim,
   CommsContentItem,
   CommsCoverageItem,
   CommsExecutionAction,
@@ -608,6 +609,39 @@ export async function syncAllFeeds(orgId: string): Promise<(FeedSyncResult & { f
   const feeds = loadCommsState(orgId).feeds.filter((f) => f.enabled)
   const results = await Promise.all(feeds.map((f) => syncFeed(orgId, f.id)))
   return results.map((r, i) => ({ ...r, feedId: feeds[i]!.id }))
+}
+
+export function addBrandClaim(
+  orgId: string,
+  claim: Omit<CommsBrandClaim, 'id'>,
+): CommsBrandClaim {
+  const created: CommsBrandClaim = { ...claim, id: createId('claim') }
+  updateState(orgId, (state) => ({ ...state, brandClaims: [created, ...state.brandClaims] }))
+  return created
+}
+
+export function updateBrandClaim(
+  orgId: string,
+  id: string,
+  patch: Partial<CommsBrandClaim>,
+): CommsBrandClaim | null {
+  let result: CommsBrandClaim | null = null
+  updateState(orgId, (state) => ({
+    ...state,
+    brandClaims: state.brandClaims.map((c) => {
+      if (c.id !== id) return c
+      result = { ...c, ...patch }
+      return result
+    }),
+  }))
+  return result
+}
+
+export function removeBrandClaim(orgId: string, id: string): void {
+  updateState(orgId, (state) => ({
+    ...state,
+    brandClaims: state.brandClaims.filter((c) => c.id !== id),
+  }))
 }
 
 export function loadFullState(orgId: string): CommsWorkspaceState {

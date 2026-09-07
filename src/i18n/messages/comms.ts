@@ -382,6 +382,11 @@ export const commsMessages = defineMessages({
   comms_claim_status_expired: { en: 'Expired', fr: 'Expirée' },
   comms_claim_status_rejected: { en: 'Rejected', fr: 'Rejetée' },
   comms_claim_evidence: { en: 'Evidence', fr: 'Preuve' },
+  comms_brand_claim_text: { en: 'Claim text', fr: 'Texte de la revendication' },
+  comms_brand_claim_evidence: { en: 'Evidence or source', fr: 'Preuve ou source' },
+  comms_brand_claim_review_date: { en: 'Review date', fr: 'Date de révision' },
+  comms_brand_claim_status: { en: 'Status', fr: 'Statut' },
+  comms_brand_claim_add: { en: 'Add claim', fr: 'Ajouter une revendication' },
 
   /* Demo / production notices */
   comms_demo_read_only: {

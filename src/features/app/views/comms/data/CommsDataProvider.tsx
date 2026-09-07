@@ -3,6 +3,7 @@ import { CommsDataContext } from './CommsDataContext'
 import type { CommsDataContextValue } from './CommsDataContext'
 import { initialCommsState } from './fixtures'
 import {
+  addBrandClaim as addBrandClaimApi,
   addContentItem as addContentItemApi,
   addCoverageItem as addCoverageItemApi,
   addFeed as addFeedApi,
@@ -11,6 +12,7 @@ import {
   addSubmission as addSubmissionApi,
   loadFullState as loadFullStateApi,
   recordManualReceipt as recordManualReceiptApi,
+  removeBrandClaim as removeBrandClaimApi,
   removeContentItem as removeContentItemApi,
   removeCoverageItem as removeCoverageItemApi,
   removeFeed as removeFeedApi,
@@ -22,6 +24,7 @@ import {
   toggleInitiativePause as toggleInitiativePauseApi,
   transitionDeliveryStatus as transitionDeliveryStatusApi,
   transitionSubmissionStatus as transitionSubmissionStatusApi,
+  updateBrandClaim as updateBrandClaimApi,
   updateContentItem as updateContentItemApi,
   updateCoverageItem as updateCoverageItemApi,
   updateFeed as updateFeedApi,
@@ -30,6 +33,7 @@ import {
   updateSubmission as updateSubmissionApi,
 } from './productionApi'
 import type {
+  CommsBrandClaim,
   CommsContentItem,
   CommsCoverageItem,
   CommsExecutionAction,
@@ -288,6 +292,35 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
     [isLive, orgId],
   )
 
+  const addBrandClaim = useCallback(
+    (item: Omit<CommsBrandClaim, 'id'>) => {
+      if (!isLive || !orgId) return null
+      const created = addBrandClaimApi(orgId, item)
+      setState(loadFullStateApi(orgId))
+      return created
+    },
+    [isLive, orgId],
+  )
+
+  const updateBrandClaim = useCallback(
+    (id: string, patch: Partial<CommsBrandClaim>) => {
+      if (!isLive || !orgId) return null
+      const updated = updateBrandClaimApi(orgId, id, patch)
+      if (updated) setState(loadFullStateApi(orgId))
+      return updated
+    },
+    [isLive, orgId],
+  )
+
+  const removeBrandClaim = useCallback(
+    (id: string) => {
+      if (!isLive || !orgId) return
+      removeBrandClaimApi(orgId, id)
+      setState(loadFullStateApi(orgId))
+    },
+    [isLive, orgId],
+  )
+
   return useMemo(
     () => ({
       state,
@@ -316,6 +349,9 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
       updateSubmission,
       transitionSubmissionStatus,
       removeSubmission,
+      addBrandClaim,
+      updateBrandClaim,
+      removeBrandClaim,
     }),
     [
       state,
@@ -344,6 +380,9 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
       updateSubmission,
       transitionSubmissionStatus,
       removeSubmission,
+      addBrandClaim,
+      updateBrandClaim,
+      removeBrandClaim,
     ],
   )
 }
