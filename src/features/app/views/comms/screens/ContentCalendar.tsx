@@ -264,6 +264,7 @@ export function ContentCalendar() {
   const [status, setStatus] = useState<CommsContentStatus>('draft')
   const [dueDate, setDueDate] = useState('')
   const [owner, setOwner] = useState('')
+  const [body, setBody] = useState('')
 
   const reset = () => {
     setOpen(false)
@@ -275,6 +276,7 @@ export function ContentCalendar() {
     setStatus('draft')
     setDueDate('')
     setOwner('')
+    setBody('')
   }
 
   const startEdit = (item: CommsContentItem) => {
@@ -286,29 +288,43 @@ export function ContentCalendar() {
     setStatus(item.status)
     setDueDate(item.dueDate ?? '')
     setOwner(item.owner)
+    setBody(item.body?.[lang] ?? '')
     setOpen(true)
+  }
+
+  const bodyBi = (text: string, itemLanguage: typeof language): Bi => {
+    if (itemLanguage === 'en') return { en: text, fr: text ? `[FR review] ${text}` : '' }
+    if (itemLanguage === 'fr') return { en: text ? `[EN review] ${text}` : '', fr: text }
+    return { en: text, fr: text }
   }
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const base = {
       initiativeId,
-      title: { en: title, fr: `[FR] ${title}` },
+      title: { en: title, fr: title ? `[FR] ${title}` : '' },
       language,
       channel,
       status,
       deliveryStatus: 'not_queued' as const,
       owner,
+      body: bodyBi(body, language),
       dueDate: dueDate || undefined,
     }
     if (editingId) {
       const existing = state.contentItems.find((c) => c.id === editingId)
       if (existing) {
+        const needsTranslationReview =
+          language === 'en' && existing.language === 'fr'
+            ? true
+            : existing.needsTranslationReview
         updateContentItem(editingId, {
           ...base,
-          title: existing.title.en !== title ? { en: title, fr: `[FR review] ${title}` } : existing.title,
-          needsTranslationReview:
-            language === 'en' && existing.language === 'fr' ? true : existing.needsTranslationReview,
+          title:
+            existing.title.en !== title
+              ? { en: title, fr: title ? `[FR review] ${title}` : '' }
+              : existing.title,
+          needsTranslationReview,
         })
       }
     } else {
@@ -396,6 +412,15 @@ export function ContentCalendar() {
               <label className={labelClass}>{x(M.comms_content_owner)}</label>
               <input value={owner} onChange={(e) => setOwner(e.target.value)} className={inputClass} />
             </div>
+            <div className="sm:col-span-2">
+              <label className={labelClass}>{x(M.comms_content_body)}</label>
+              <textarea
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                rows={6}
+                className={`${inputClass} resize-y`}
+              />
+            </div>
           </div>
           <div className="mt-[14px] flex gap-[8px]">
             <button type="submit" className="rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white">
@@ -460,6 +485,11 @@ export function ContentCalendar() {
                   <div className="mt-[8px] text-[12px] text-gold-fg">{x(M.comms_initiative_paused_notice)}</div>
                 )}
                 {!isInitiativePaused && <DeliveryActions item={item} />}
+                {item.body && (
+                  <div className="mt-[10px] whitespace-pre-wrap text-[13px] leading-relaxed text-text-2">
+                    {x(item.body)}
+                  </div>
+                )}
               </div>
             )
           })}
