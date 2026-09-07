@@ -7,16 +7,26 @@ import { useFinanceData } from '../data/useFinanceData'
 import { BANK_MATCH_LABEL, CURRENCY_LABEL } from '../financeLabels'
 import { BulkImportWizard } from '@/features/app/bulkImport/BulkImportWizard'
 import { createTransactionBulkImportAdapter } from '../bulkImport/transactionAdapter'
-import type { FinanceBankMatchStatus, FinanceReconciliation } from '../data/types'
+import type { FinanceBankItem, FinanceBankMatchStatus, FinanceReconciliation } from '../data/types'
 import { Upload } from 'lucide-react'
 
 const FILTERS: ('all' | FinanceBankMatchStatus)[] = ['all', 'unmatched', 'suggested', 'matched', 'exception']
 
 export function Transactions() {
   const { x } = useI18n()
-  const { state, canWrite, transitionBankItemMatchStatus, transitionReconciliationStatus, importBankStatement } = useFinanceData()
+  const {
+    state,
+    canWrite,
+    transitionBankItemMatchStatus,
+    transitionReconciliationStatus,
+    importBankStatement,
+    updateBankItemCategorization,
+    recordCategorizationFeedback,
+  } = useFinanceData()
   const [filter, setFilter] = useState<'all' | FinanceBankMatchStatus>('all')
   const [showBulkImport, setShowBulkImport] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingAccountId, setEditingAccountId] = useState<string>('')
   const transactionAdapter = createTransactionBulkImportAdapter(importBankStatement)
 
   const bankItems = useMemo(
@@ -29,6 +39,56 @@ export function Transactions() {
     if (bi.matchedInvoiceId) return `${x(M.finance_bank_matched_to)}: ${bi.matchedInvoiceId}`
     if (bi.matchedBillId) return `${x(M.finance_bank_matched_to)}: ${bi.matchedBillId}`
     return null
+  }
+
+  const startEdit = (bi: FinanceBankItem) => {
+    setEditingId(bi.id)
+    setEditingAccountId(bi.aiSuggestion?.ledgerAccountId ?? state.ledgerAccounts[0]?.id ?? '')
+  }
+
+  const saveEdit = async (bi: FinanceBankItem) => {
+    const account = state.ledgerAccounts.find((la) => la.id === editingAccountId)
+    if (!account) return
+    const originalAccountId = bi.aiSuggestion?.ledgerAccountId
+    await updateBankItemCategorization(bi.id, {
+      ledgerAccountId: account.id,
+      direction: account.type === 'revenue' || account.type === 'liability' || account.type === 'equity' ? 'credit' : 'debit',
+      matchStatus: 'suggested',
+    })
+    if (originalAccountId && originalAccountId !== account.id) {
+      await recordCategorizationFeedback({
+        entityId: state.entities[0]?.id ?? bi.bankAccountId,
+        description: bi.description,
+        originalLedgerAccountId: originalAccountId,
+        correctedLedgerAccountId: account.id,
+        correctedDirection: account.type === 'revenue' || account.type === 'liability' || account.type === 'equity' ? 'credit' : 'debit',
+      })
+    }
+    setEditingId(null)
+  }
+
+  const acceptSuggestion = async (bi: FinanceBankItem) => {
+    const account = bi.aiSuggestion
+      ? state.ledgerAccounts.find((la) => la.id === bi.aiSuggestion!.ledgerAccountId)
+      : undefined
+    await updateBankItemCategorization(bi.id, {
+      ledgerAccountId: bi.aiSuggestion?.ledgerAccountId,
+      direction: bi.aiSuggestion?.direction,
+      matchStatus: 'matched',
+    })
+    if (account) {
+      await recordCategorizationFeedback({
+        entityId: state.entities[0]?.id ?? bi.bankAccountId,
+        description: bi.description,
+        originalLedgerAccountId: bi.aiSuggestion?.ledgerAccountId,
+        correctedLedgerAccountId: account.id,
+        correctedDirection: bi.aiSuggestion?.direction ?? 'debit',
+      })
+    }
+  }
+
+  const rejectSuggestion = async (bi: FinanceBankItem) => {
+    await updateBankItemCategorization(bi.id, { matchStatus: 'exception' })
   }
 
   return (
@@ -70,15 +130,31 @@ export function Transactions() {
           <ul className="m-0 flex flex-col gap-[12px] p-0">
             {bankItems.map((bi) => {
               const ref = matchedRef(bi)
+              const isEditing = editingId === bi.id
+              const suggestedAccount = bi.aiSuggestion
+                ? state.ledgerAccounts.find((la) => la.id === bi.aiSuggestion!.ledgerAccountId)
+                : undefined
               return (
                 <li key={bi.id} className="flex flex-col gap-[8px] rounded-[10px] bg-inset p-[12px]">
                   <div className="flex items-start justify-between gap-[12px]">
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <div className="text-[13px] font-semibold text-text">{bi.description}</div>
                       <div className="text-[12px] text-text-muted">
                         {bi.date} · {x(CURRENCY_LABEL[bi.currency])} {bi.amount}
                       </div>
                       {ref && <div className="text-[12px] text-text-muted">{ref}</div>}
+                      {bi.note && (
+                        <div className="mt-[4px] text-[12px] text-text-muted">
+                          <span className="font-semibold text-text-2">{x(M.finance_transactions_note)}: </span>
+                          {x(bi.note)}
+                        </div>
+                      )}
+                      {bi.aiSuggestion && suggestedAccount && (
+                        <div className="mt-[4px] text-[12px] text-text-muted">
+                          <span className="font-semibold text-text-2">{x(M.finance_transactions_ai_suggestion)} </span>
+                          {suggestedAccount.code} — {x(suggestedAccount.name)} ({bi.aiSuggestion.direction})
+                        </div>
+                      )}
                     </div>
                     <span
                       className={statusChipClass(
@@ -88,36 +164,75 @@ export function Transactions() {
                       {x(BANK_MATCH_LABEL[bi.matchStatus])}
                     </span>
                   </div>
-                  {canWrite && bi.matchStatus !== 'matched' && (
-                    <div className="flex flex-wrap gap-[6px]">
-                      {bi.matchStatus === 'suggested' && (
-                        <button
-                          type="button"
-                          onClick={() => transitionBankItemMatchStatus(bi.id, 'matched')}
-                          className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
-                        >
-                          {x(M.finance_bank_accept_suggested)}
-                        </button>
-                      )}
-                      {bi.matchStatus !== 'suggested' && (
-                        <button
-                          type="button"
-                          onClick={() => transitionBankItemMatchStatus(bi.id, 'matched')}
-                          className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
-                        >
-                          {x(M.finance_bank_mark_matched)}
-                        </button>
-                      )}
-                      {bi.matchStatus !== 'exception' && (
-                        <button
-                          type="button"
-                          onClick={() => transitionBankItemMatchStatus(bi.id, 'exception')}
-                          className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
-                        >
-                          {x(M.finance_bank_mark_exception)}
-                        </button>
-                      )}
+                  {isEditing ? (
+                    <div className="flex flex-wrap items-center gap-[6px]">
+                      <select
+                        value={editingAccountId}
+                        onChange={(e) => setEditingAccountId(e.target.value)}
+                        className="rounded-[6px] border border-border bg-surface px-[8px] py-[3px] text-[12px] text-text"
+                      >
+                        {state.ledgerAccounts.map((la) => (
+                          <option key={la.id} value={la.id}>
+                            {la.code} — {x(la.name)}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => void saveEdit(bi)}
+                        className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                      >
+                        {x(M.finance_transactions_save_changes)}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingId(null)}
+                        className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                      >
+                        {x(M.finance_suggest_rules_ignore)}
+                      </button>
                     </div>
+                  ) : (
+                    canWrite && (
+                      <div className="flex flex-wrap gap-[6px]">
+                        {bi.aiSuggestion && bi.matchStatus !== 'matched' && (
+                          <button
+                            type="button"
+                            onClick={() => void acceptSuggestion(bi)}
+                            className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                          >
+                            {x(M.finance_transactions_accept_suggestion)}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => startEdit(bi)}
+                          className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                        >
+                          {x(M.finance_transactions_change_account)}
+                        </button>
+                        {bi.matchStatus !== 'exception' && (
+                          <button
+                            type="button"
+                            onClick={() => transitionBankItemMatchStatus(bi.id, 'matched')}
+                            className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                          >
+                            {bi.matchStatus === 'suggested'
+                              ? x(M.finance_bank_accept_suggested)
+                              : x(M.finance_bank_mark_matched)}
+                          </button>
+                        )}
+                        {bi.matchStatus !== 'exception' && (
+                          <button
+                            type="button"
+                            onClick={() => void rejectSuggestion(bi)}
+                            className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                          >
+                            {x(M.finance_bank_mark_exception)}
+                          </button>
+                        )}
+                      </div>
+                    )
                   )}
                 </li>
               )

@@ -16,6 +16,7 @@ import type {
   FinanceWorkspaceState,
 } from './types'
 import {
+  mapAiImportSettings,
   mapApproval,
   mapAuditEvent,
   mapBankAccount,
@@ -23,6 +24,7 @@ import {
   mapBill,
   mapBook,
   mapBudget,
+  mapCategorizationFeedback,
   mapCategoryRule,
   mapClosePeriod,
   mapCredit,
@@ -98,6 +100,8 @@ const TABLES = {
   externalActions: 'finance_external_actions',
   categoryRules: 'finance_category_rules',
   importSessions: 'finance_import_sessions',
+  workspaceSettings: 'finance_workspace_settings',
+  categorizationFeedback: 'finance_categorization_feedback',
 } as const
 
 /**
@@ -148,6 +152,7 @@ export async function loadFinanceStateFromSupabase(orgId: string): Promise<Finan
     reserveGoals, holdings, debts, taxObligations, taxScenarios,
     approvals, auditEvents, externalActions,
     categoryRules, importSessions,
+    categorizationFeedback,
   ] = await Promise.all([
     selectAll(TABLES.entities, mapEntity),
     selectAll(TABLES.books, mapBook),
@@ -183,7 +188,10 @@ export async function loadFinanceStateFromSupabase(orgId: string): Promise<Finan
     selectAll(TABLES.externalActions, mapExternalAction),
     selectAll(TABLES.categoryRules, mapCategoryRule),
     selectAll(TABLES.importSessions, mapImportSession),
+    selectAll(TABLES.categorizationFeedback, mapCategorizationFeedback),
   ])
+
+  const aiImportSettings = await loadAiImportSettingsSupabase(orgId)
 
   return {
     entities, books, fiscalPeriods, parties, bankAccounts, ledgerAccounts,
@@ -193,6 +201,27 @@ export async function loadFinanceStateFromSupabase(orgId: string): Promise<Finan
     reserveGoals, holdings, debts, taxObligations, taxScenarios,
     approvals, auditEvents, externalActions,
     categoryRules, importSessions,
+    aiImportSettings,
+    categorizationFeedback,
+  }
+}
+
+async function loadAiImportSettingsSupabase(orgId: string): Promise<import('./types').FinanceAiImportSettings> {
+  if (!supabase) return { aiImportEnabled: false, aiImportMode: 'auto_high' }
+  try {
+    const { data, error } = await supabase
+      .from(TABLES.workspaceSettings)
+      .select('*')
+      .eq('organization_id', orgId)
+      .maybeSingle()
+    if (error || !data) {
+      if (error) console.error('[finance] load workspace settings failed:', error)
+      return { aiImportEnabled: false, aiImportMode: 'auto_high' }
+    }
+    return mapAiImportSettings(data as Record<string, unknown>)
+  } catch (err) {
+    console.error('[finance] load workspace settings failed:', err)
+    return { aiImportEnabled: false, aiImportMode: 'auto_high' }
   }
 }
 
@@ -614,7 +643,6 @@ function parseDecimal(s: string): number {
 
 export { isJournalBalanced }
 
-/* ---------- Lifecycle transitions (re-exported from supabaseLifecycle) ---------- */
 export {
   updateInvoiceStatus,
   updateBillStatus,

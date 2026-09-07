@@ -24,6 +24,7 @@ export function ImportExport() {
     removeCategoryRule,
     seedDefaultCategoryRules,
     runAutoCategorize,
+    updateAiImportSettings,
   } = useFinanceData()
 
   const [selectedAccountId, setSelectedAccountId] = useState('')
@@ -41,6 +42,7 @@ export function ImportExport() {
   const [useAiSuggestions, setUseAiSuggestions] = useState(false)
   const [showRuleForm, setShowRuleForm] = useState(false)
   const [showWizard, setShowWizard] = useState(false)
+  const [aiImportResult, setAiImportResult] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const unmatchedCount = useMemo(
@@ -76,6 +78,7 @@ export function ImportExport() {
     setImportError(null)
     setImportErrorDetails([])
     setImportResult(null)
+    setAiImportResult(null)
     try {
       const result = await importBankStatement(selectedAccountId, selectedFileName, fileContent)
       if (result) {
@@ -89,6 +92,20 @@ export function ImportExport() {
         setSelectedFileName('')
         setFileContent('')
         if (fileInputRef.current) fileInputRef.current.value = ''
+        if (result.aiSummary) {
+          if (result.aiSummary.itemsAnalysed === 0) {
+            setAiImportResult(x(M.finance_ai_import_result_none))
+          } else {
+            setAiImportResult(
+              x(M.finance_ai_import_result)
+                .replace('{count}', String(result.aiSummary.itemsAnalysed))
+                .replace('{matched}', String(result.aiSummary.itemsMatched))
+                .replace('{suggested}', String(result.aiSummary.itemsSuggested)) +
+              ' ' +
+              x(M.finance_ai_import_result_rules).replace('{count}', String(result.aiSummary.rulesAdded)),
+            )
+          }
+        }
       } else {
         setImportError(x(M.finance_import_failed))
       }
@@ -355,6 +372,11 @@ export function ImportExport() {
               )}
             </div>
           )}
+          {aiImportResult && (
+            <div className="rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text">
+              {aiImportResult}
+            </div>
+          )}
         </div>
       </section>
 
@@ -388,6 +410,43 @@ export function ImportExport() {
             {x(M.finance_categorize_no_rules)}
           </div>
         )}
+      </section>
+
+      {/* AI import settings */}
+      <section className="rounded-[12px] border border-border bg-surface p-[16px]">
+        <h2 className="mb-[8px] text-[15px] font-semibold text-text">{x(M.finance_ai_settings_title)}</h2>
+        <p className="mb-[12px] text-[13px] text-text-muted">{x(M.finance_ai_settings_description)}</p>
+        <div className="flex flex-col gap-[10px]">
+          <label className="flex items-center gap-[8px] text-[13px] text-text-2">
+            <input
+              type="checkbox"
+              checked={state.aiImportSettings.aiImportEnabled}
+              onChange={async (e) => {
+                await updateAiImportSettings({ aiImportEnabled: e.target.checked })
+              }}
+              disabled={!canWrite}
+              className="h-[14px] w-[14px] accent-navy"
+            />
+            {x(M.finance_ai_settings_enable)}
+          </label>
+          <div className="flex items-center gap-[10px]">
+            <label className="text-[12px] font-semibold text-text-2">{x(M.finance_ai_settings_mode)}</label>
+            <select
+              value={state.aiImportSettings.aiImportMode}
+              onChange={async (e) => {
+                await updateAiImportSettings({
+                  aiImportMode: e.target.value as 'suggest' | 'auto_high' | 'auto_all',
+                })
+              }}
+              disabled={!canWrite || !state.aiImportSettings.aiImportEnabled}
+              className="rounded-[6px] border border-border bg-inset px-[8px] py-[4px] text-[12px] text-text"
+            >
+              <option value="suggest">{x(M.finance_ai_settings_mode_suggest)}</option>
+              <option value="auto_high">{x(M.finance_ai_settings_mode_auto_high)}</option>
+              <option value="auto_all">{x(M.finance_ai_settings_mode_auto_all)}</option>
+            </select>
+          </div>
+        </div>
       </section>
 
       {/* Category rules section */}

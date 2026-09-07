@@ -579,4 +579,6 @@ export const initialFinanceState: FinanceWorkspaceState = {
   externalActions: [externalAction],
   categoryRules,
   importSessions: [importSession],
+  aiImportSettings: { aiImportEnabled: false, aiImportMode: 'auto_high' },
+  categorizationFeedback: [],
 }

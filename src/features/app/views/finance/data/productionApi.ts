@@ -5,13 +5,13 @@ import type {
   FinanceBook,
   FinanceBudget,
   FinanceCategoryRule,
+  FinanceBankStatementImportResult,
   FinanceCurrency,
   FinanceDebt,
   FinanceExternalAction,
   FinanceExternalActionStatus,
   FinanceForecast,
   FinanceHolding,
-  FinanceImportRowError,
   FinanceImportSession,
   FinanceInvoice,
   FinanceJournal,
@@ -90,6 +90,8 @@ export function loadFinanceState(orgId: string): FinanceWorkspaceState {
         externalActions: parsed.externalActions ?? initialFinanceState.externalActions,
         categoryRules: parsed.categoryRules ?? initialFinanceState.categoryRules,
         importSessions: parsed.importSessions ?? initialFinanceState.importSessions,
+        aiImportSettings: parsed.aiImportSettings ?? initialFinanceState.aiImportSettings,
+        categorizationFeedback: parsed.categorizationFeedback ?? initialFinanceState.categorizationFeedback,
       }
     }
   } catch {
@@ -654,7 +656,7 @@ export function importBankStatement(
   bankAccountId: string,
   fileName: string,
   fileContent: string,
-): { newItems: number; duplicates: number; errors: number; errorDetails: FinanceImportRowError[] } | null {
+): FinanceBankStatementImportResult | null {
   const state = loadFinanceState(orgId)
   const bankAccount = state.bankAccounts.find((ba) => ba.id === bankAccountId)
   if (!bankAccount) return null
@@ -693,7 +695,7 @@ export function importBankStatement(
       importSessions: [session, ...state.importSessions],
     }
     saveFinanceState(orgId, nextState)
-    return { newItems: 0, duplicates, errors, errorDetails }
+    return { newItems: 0, duplicates, errors, errorDetails, sessionId }
   }
 
   const session: FinanceImportSession = {
@@ -716,7 +718,7 @@ export function importBankStatement(
     importSessions: [session, ...state.importSessions],
   }
   saveFinanceState(orgId, nextState)
-  return { newItems: newItems.length, duplicates, errors, errorDetails }
+  return { newItems: newItems.length, duplicates, errors, errorDetails, sessionId }
 }
 
 export function addCategoryRule(

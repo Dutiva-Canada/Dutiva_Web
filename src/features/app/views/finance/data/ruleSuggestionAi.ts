@@ -1,95 +1,14 @@
 import type { RuleSuggestion } from './ruleSuggestion'
 import type { FinanceBankItem, FinanceCategoryRule, FinanceLedgerAccount } from './types'
-
-let extractorPromise: ReturnType<typeof loadExtractor> | null = null
-
-async function loadExtractor() {
-  const { env, pipeline } = await import('@xenova/transformers')
-  env.allowRemoteModels = true
-  env.useBrowserCache = true
-  env.useFSCache = false
-  env.cacheDir = 'dutiva-transformers-cache'
-  // Avoid SharedArrayBuffer/COEP requirements and keep the browser permission surface small.
-  env.backends.onnx.wasm.numThreads = 1
-  return await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2', {
-    quantized: true,
-  })
-}
-
-function getExtractor() {
-  if (!extractorPromise) extractorPromise = loadExtractor()
-  return extractorPromise
-}
-
-function cosineSimilarity(a: number[], b: number[]): number {
-  let dot = 0
-  let normA = 0
-  let normB = 0
-  for (let i = 0; i < a.length; i++) {
-    dot += a[i]! * b[i]!
-    normA += a[i]! * a[i]!
-    normB += b[i]! * b[i]!
-  }
-  if (normA === 0 || normB === 0) return 0
-  return dot / (Math.sqrt(normA) * Math.sqrt(normB))
-}
-
-function meanEmbedding(embeddings: number[][]): number[] {
-  if (embeddings.length === 0) return []
-  const dim = embeddings[0]!.length
-  const result = new Array(dim).fill(0)
-  for (const emb of embeddings) {
-    for (let i = 0; i < dim; i++) {
-      result[i]! += emb[i]!
-    }
-  }
-  return result.map((v) => v / embeddings.length)
-}
-
-function normalize(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9àâäéèêëîïôöùûüç\s]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-function tokenize(text: string): string[] {
-  return [...new Set(normalize(text).split(' ').filter((t) => t.length >= 2))]
-}
-
-function mostCommonNGram(tokenLists: string[][]): string {
-  const maxN = Math.min(4, Math.max(...tokenLists.map((t) => t.length), 1))
-  let bestGram = ''
-  let bestScore = -1
-  for (let n = maxN; n >= 1; n--) {
-    const counts = new Map<string, { count: number; total: number; minPos: number }>()
-    for (let i = 0; i < tokenLists.length; i++) {
-      const tokens = tokenLists[i]!
-      const seen = new Set<string>()
-      for (let pos = 0; pos <= tokens.length - n; pos++) {
-        const gram = tokens.slice(pos, pos + n).join(' ')
-        if (seen.has(gram)) continue
-        seen.add(gram)
-        const entry = counts.get(gram) ?? { count: 0, total: 0, minPos: Number.POSITIVE_INFINITY }
-        entry.count += 1
-        entry.total += 1
-        entry.minPos = Math.min(entry.minPos, pos)
-        counts.set(gram, entry)
-      }
-    }
-    for (const [gram, entry] of counts) {
-      const coverage = entry.count / tokenLists.length
-      const lengthBonus = n * 0.1
-      const score = coverage + lengthBonus - entry.minPos * 0.001
-      if (score > bestScore) {
-        bestScore = score
-        bestGram = gram
-      }
-    }
-  }
-  return bestGram
-}
+import {
+  getExtractor,
+  extractEmbeddings,
+  cosineSimilarity,
+  meanEmbedding,
+  tokenize,
+  mostCommonNGram,
+  directionForAccount,
+} from './aiEmbeddings'
 
 export async function suggestCategoryRulesWithAi(
   bankItems: FinanceBankItem[],
@@ -102,30 +21,15 @@ export async function suggestCategoryRulesWithAi(
 
   const extractor = await getExtractor()
 
-  const descriptions = unmatched.map((bi) => bi.description)
-  const descOutputs = (await extractor(descriptions, { pooling: 'mean', normalize: true })) as {
-    data: number[]
-    dims: number[]
-  }
-  const dim = descOutputs.dims[descOutputs.dims.length - 1] ?? 0
-  const descEmbeddings: number[][] = []
-  for (let i = 0; i < descriptions.length; i++) {
-    const start = i * dim
-    descEmbeddings.push(Array.from(descOutputs.data.slice(start, start + dim)))
-  }
+  const descEmbeddings = await extractEmbeddings(
+    unmatched.map((bi) => bi.description),
+    extractor,
+  )
 
   const accountLabels = ledgerAccounts.map(
     (la) => `${la.name.en} ${la.name.fr ?? ''} ${la.code} ${la.type}`,
   )
-  const accountOutputs = (await extractor(accountLabels, { pooling: 'mean', normalize: true })) as {
-    data: number[]
-    dims: number[]
-  }
-  const accountEmbeddings: number[][] = []
-  for (let i = 0; i < ledgerAccounts.length; i++) {
-    const start = i * dim
-    accountEmbeddings.push(Array.from(accountOutputs.data.slice(start, start + dim)))
-  }
+  const accountEmbeddings = await extractEmbeddings(accountLabels, extractor)
 
   // Cluster unmatched descriptions by cosine similarity
   const clusters: number[][] = []
@@ -153,20 +57,6 @@ export async function suggestCategoryRulesWithAi(
       if (p === existing || p.includes(existing) || existing.includes(p)) return true
     }
     return false
-  }
-
-  function directionForAccount(account: FinanceLedgerAccount): 'debit' | 'credit' {
-    switch (account.type) {
-      case 'revenue':
-      case 'liability':
-      case 'equity':
-        return 'credit'
-      case 'expense':
-      case 'asset':
-      case 'contra':
-      default:
-        return 'debit'
-    }
   }
 
   const suggestions: RuleSuggestion[] = []

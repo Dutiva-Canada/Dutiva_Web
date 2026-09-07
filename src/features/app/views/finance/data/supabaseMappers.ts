@@ -1,5 +1,7 @@
 import type { Bi } from '@/i18n/core'
 import type {
+  FinanceAiBankItemSuggestion,
+  FinanceAiImportSettings,
   FinanceApproval,
   FinanceAuditEvent,
   FinanceBankAccount,
@@ -9,7 +11,7 @@ import type {
   FinanceBudget,
   FinanceCategoryRule,
   FinanceClosePeriod,
-  FinanceCredit,
+  FinanceCategorizationFeedback,  FinanceCredit,
   FinanceDebt,
   FinanceExternalAction,
   FinanceExternalActionStatus,
@@ -270,6 +272,7 @@ export function mapJournal(r: Record<string, unknown>): FinanceJournal {
 }
 
 export function mapBankItem(r: Record<string, unknown>): FinanceBankItem {
+  const aiSuggestion = r.ai_suggestion as Record<string, unknown> | undefined
   return {
     id: r.id as string,
     bankAccountId: r.bank_account_id as string,
@@ -282,6 +285,16 @@ export function mapBankItem(r: Record<string, unknown>): FinanceBankItem {
     matchedInvoiceId: r.matched_invoice_id as string | undefined,
     matchedBillId: r.matched_bill_id as string | undefined,
     importSessionId: r.import_session_id as string | undefined,
+    aiSuggestion: aiSuggestion
+      ? {
+          ledgerAccountId: aiSuggestion.ledger_account_id as string,
+          direction: aiSuggestion.direction as 'debit' | 'credit',
+          confidence: aiSuggestion.confidence as FinanceAiBankItemSuggestion['confidence'],
+          reasonKey: aiSuggestion.reason_key as FinanceAiBankItemSuggestion['reasonKey'],
+          note: aiSuggestion.note ? (aiSuggestion.note as Bi) : { en: '', fr: '' },
+        }
+      : undefined,
+    note: r.note ? (r.note as Bi) : undefined,
   }
 }
 
@@ -589,5 +602,26 @@ export function mapReceipt(r: Record<string, unknown>): FinanceReceipt {
     fileName: bi(r.file_name),
     uploadedAt: r.uploaded_at as string,
     reviewed: r.reviewed as boolean,
+  }
+}
+
+export function mapCategorizationFeedback(r: Record<string, unknown>): FinanceCategorizationFeedback {
+  return {
+    id: r.id as string,
+    entityId: r.entity_id as string,
+    description: r.description as string,
+    originalLedgerAccountId: r.original_ledger_account_id as string | undefined,
+    correctedLedgerAccountId: r.corrected_ledger_account_id as string,
+    correctedDirection: r.corrected_direction as 'debit' | 'credit',
+    correctedNote: r.corrected_note ? (r.corrected_note as Bi) : undefined,
+    correctedAt: r.corrected_at as string,
+  }
+}
+
+export function mapAiImportSettings(r: Record<string, unknown>): FinanceAiImportSettings {
+  const mode = r.ai_import_mode as 'suggest' | 'auto_high' | 'auto_all' | undefined
+  return {
+    aiImportEnabled: r.ai_import_enabled as boolean,
+    aiImportMode: mode && ['suggest', 'auto_high', 'auto_all'].includes(mode) ? mode : 'auto_high',
   }
 }

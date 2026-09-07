@@ -3,7 +3,6 @@ import type {
   FinanceBankItem,
   FinanceCategoryRule,
   FinanceCurrency,
-  FinanceImportRowError,
   FinanceImportSession,
 } from './types'
 import {
@@ -158,7 +157,7 @@ export async function importBankStatementInSupabase(
   bankAccountId: string,
   fileName: string,
   fileContent: string,
-): Promise<{ newItems: number; duplicates: number; errors: number; errorDetails: FinanceImportRowError[] } | null> {
+): Promise<import('./types').FinanceBankStatementImportResult | null> {
   if (!supabase) return null
 
   const sessionId = crypto.randomUUID()
@@ -211,7 +210,7 @@ export async function importBankStatementInSupabase(
       status: 'imported',
       errorDetails,
     })
-    return { newItems: 0, duplicates, errors, errorDetails }
+    return { newItems: 0, duplicates, errors, errorDetails, sessionId }
   }
 
   // Insert new bank items in batches of 100
@@ -250,7 +249,7 @@ export async function importBankStatementInSupabase(
     errorDetails,
   })
 
-  return { newItems: newItems.length, duplicates, errors, errorDetails }
+  return { newItems: newItems.length, duplicates, errors, errorDetails, sessionId }
 }
 
 /* ---------- Auto-categorize ---------- */

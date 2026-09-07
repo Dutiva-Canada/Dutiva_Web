@@ -1,4 +1,4 @@
-import type { FinanceBankItem } from '../data/types'
+import type { FinanceBankItem, FinanceBankStatementImportResult } from '../data/types'
 import type { BulkImportAdapter, BulkImportField } from '@/features/app/bulkImport/types'
 import { bulkImportMessages as B } from '@/i18n/messages/bulkImport'
 
@@ -90,7 +90,7 @@ export function createTransactionBulkImportAdapter(
     bankAccountId: string,
     fileName: string,
     fileContent: string,
-  ) => Promise<{ newItems: number; duplicates: number; errors: number } | null>,
+  ) => Promise<FinanceBankStatementImportResult | null>,
 ): BulkImportAdapter<FinanceBankItem> {
   return {
     name: B.bulk_import_transactions,

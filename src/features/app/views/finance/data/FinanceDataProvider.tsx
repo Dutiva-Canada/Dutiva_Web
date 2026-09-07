@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import type { Bi } from '@/i18n/core'
 import { FinanceDataContext } from './FinanceDataContext'
 import type { FinanceDataContextValue } from './FinanceDataContext'
 import { initialFinanceState } from './fixtures'
@@ -37,6 +38,12 @@ import {
   transitionSpendRequestStatus as transitionSpendRequestStatusLocalApi,
 } from './productionApi'
 import {
+  analyseImportWithAiLocal,
+  recordCategorizationFeedbackLocal,
+  updateAiImportSettingsLocal,
+  updateBankItemCategorizationLocal,
+} from './productionAi'
+import {
   insertBudget as insertBudgetSupa,
   insertInvoice as insertInvoiceSupa,
   insertJournal as insertJournalSupa,
@@ -68,6 +75,12 @@ import {
   seedDefaultCategoryRulesInSupabase,
   runAutoCategorizeInSupabase,
 } from './supabaseApi'
+import {
+  analyseImportWithAiSupa,
+  recordCategorizationFeedbackSupa,
+  updateAiImportSettingsSupa,
+  updateBankItemCategorizationSupa,
+} from './supabaseAi'
 import type {
   FinanceBankMatchStatus,
   FinanceBill,
@@ -468,11 +481,23 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
       if (!isLive || !orgId) return null
       if (hasSupabase) {
         const result = await importBankStatementInSupabase(orgId, bankAccountId, fileName, fileContent)
+        let aiSummary: import('./types').FinanceBankStatementImportResult['aiSummary'] = undefined
+        if (result?.sessionId) {
+          aiSummary = (await analyseImportWithAiSupa(orgId, result.sessionId)) ?? undefined
+        }
         await reload()
-        return result
+        return result ? { ...result, aiSummary } : null
       }
       const result = importBankStatementLocalApi(orgId, bankAccountId, fileName, fileContent)
-      if (result) setState(loadFullStateLocalApi(orgId))
+      if (result) {
+        setState(loadFullStateLocalApi(orgId))
+        let aiSummary: import('./types').FinanceBankStatementImportResult['aiSummary'] = undefined
+        if (result.sessionId) {
+          aiSummary = (await analyseImportWithAiLocal(orgId, result.sessionId)) ?? undefined
+          if (aiSummary) setState(loadFullStateLocalApi(orgId))
+        }
+        return { ...result, aiSummary }
+      }
       return result
     },
     [isLive, orgId, hasSupabase, reload, setState],
@@ -562,6 +587,72 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
     return count
   }, [isLive, orgId, hasSupabase, reload, setState])
 
+  const analyseImportWithAi = useCallback(
+    async (sessionId: string) => {
+      if (!isLive || !orgId) return null
+      if (hasSupabase) {
+        return await analyseImportWithAiSupa(orgId, sessionId)
+      }
+      const result = await analyseImportWithAiLocal(orgId, sessionId)
+      if (result) setState(loadFullStateLocalApi(orgId))
+      return result
+    },
+    [isLive, orgId, hasSupabase, setState],
+  )
+
+  const updateBankItemCategorization = useCallback(
+    async (
+      id: string,
+      patch: {
+        ledgerAccountId?: string
+        direction?: 'debit' | 'credit'
+        note?: Bi
+        matchStatus?: FinanceBankMatchStatus
+      },
+    ) => {
+      if (!isLive || !orgId) return null
+      if (hasSupabase) {
+        const updated = await updateBankItemCategorizationSupa(orgId, id, patch)
+        await reload()
+        return updated
+      }
+      const updated = updateBankItemCategorizationLocal(orgId, id, patch)
+      if (updated) setState(loadFullStateLocalApi(orgId))
+      return updated
+    },
+    [isLive, orgId, hasSupabase, reload, setState],
+  )
+
+  const recordCategorizationFeedback = useCallback(
+    async (item: Omit<import('./types').FinanceCategorizationFeedback, 'id' | 'correctedAt'>) => {
+      if (!isLive || !orgId) return null
+      if (hasSupabase) {
+        const created = await recordCategorizationFeedbackSupa(orgId, item)
+        await reload()
+        return created
+      }
+      const created = recordCategorizationFeedbackLocal(orgId, item)
+      if (created) setState(loadFullStateLocalApi(orgId))
+      return created
+    },
+    [isLive, orgId, hasSupabase, reload, setState],
+  )
+
+  const updateAiImportSettings = useCallback(
+    async (patch: Partial<import('./types').FinanceAiImportSettings>) => {
+      if (!isLive || !orgId) return null
+      if (hasSupabase) {
+        const updated = await updateAiImportSettingsSupa(orgId, patch)
+        await reload()
+        return updated
+      }
+      const updated = updateAiImportSettingsLocal(orgId, patch)
+      if (updated) setState(loadFullStateLocalApi(orgId))
+      return updated
+    },
+    [isLive, orgId, hasSupabase, reload, setState],
+  )
+
   const creates = useFinanceCreates({ orgId, isLive, hasSupabase, reload, setState })
 
   return useMemo(
@@ -601,6 +692,10 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
       removeCategoryRule,
       seedDefaultCategoryRules,
       runAutoCategorize,
+      analyseImportWithAi,
+      updateBankItemCategorization,
+      recordCategorizationFeedback,
+      updateAiImportSettings,
       ...creates,
     }),
     [
@@ -639,6 +734,10 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
       removeCategoryRule,
       seedDefaultCategoryRules,
       runAutoCategorize,
+      analyseImportWithAi,
+      updateBankItemCategorization,
+      recordCategorizationFeedback,
+      updateAiImportSettings,
       creates,
     ],
   )
@@ -655,6 +754,8 @@ function emptyState(): FinanceWorkspaceState {
     taxObligations: [], taxScenarios: [], approvals: [], auditEvents: [],
     externalActions: [],
     categoryRules: [], importSessions: [],
+    aiImportSettings: { aiImportEnabled: false, aiImportMode: 'auto_high' },
+    categorizationFeedback: [],
   }
 }
 

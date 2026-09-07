@@ -285,6 +285,14 @@ export interface FinanceJournal {
 
 export type FinanceBankMatchStatus = 'unmatched' | 'suggested' | 'matched' | 'exception'
 
+export interface FinanceAiBankItemSuggestion {
+  ledgerAccountId: string
+  direction: 'debit' | 'credit'
+  confidence: 'high' | 'medium' | 'low' | 'none'
+  reasonKey: 'feedback_match' | 'semantic_match' | 'rule_match' | 'fallback' | 'manual'
+  note: Bi
+}
+
 export interface FinanceBankItem {
   id: string
   bankAccountId: string
@@ -298,6 +306,28 @@ export interface FinanceBankItem {
   matchedBillId?: string
   /** Tracks which import session created this bank item, for undo. */
   importSessionId?: string
+  /** AI-generated categorization proposal. Kept for comparison with user edits. */
+  aiSuggestion?: FinanceAiBankItemSuggestion
+  /** User-visible note: set by AI, editable by the user. */
+  note?: Bi
+}
+
+export type FinanceAiImportMode = 'suggest' | 'auto_high' | 'auto_all'
+
+export interface FinanceAiImportSettings {
+  aiImportEnabled: boolean
+  aiImportMode: FinanceAiImportMode
+}
+
+export interface FinanceCategorizationFeedback {
+  id: string
+  entityId: string
+  description: string
+  originalLedgerAccountId?: string
+  correctedLedgerAccountId: string
+  correctedDirection: 'debit' | 'credit'
+  correctedNote?: Bi
+  correctedAt: string
 }
 
 export interface FinanceReconciliation {
@@ -665,6 +695,22 @@ export interface FinanceImportRowError {
   reason: string
 }
 
+export interface FinanceBankStatementImportResult {
+  newItems: number
+  duplicates: number
+  errors: number
+  errorDetails: FinanceImportRowError[]
+  /** The import session ID, so the caller can run follow-up AI analysis. */
+  sessionId: string
+  /** Summary from AI post-import analysis, if it ran. */
+  aiSummary?: {
+    itemsAnalysed: number
+    itemsMatched: number
+    itemsSuggested: number
+    rulesAdded: number
+  }
+}
+
 export interface FinanceImportSession {
   id: string
   entityId: string
@@ -721,4 +767,7 @@ export interface FinanceWorkspaceState {
   externalActions: FinanceExternalAction[]
   categoryRules: FinanceCategoryRule[]
   importSessions: FinanceImportSession[]
+  /** Per-workspace AI import controls and user correction history. */
+  aiImportSettings: FinanceAiImportSettings
+  categorizationFeedback: FinanceCategorizationFeedback[]
 }

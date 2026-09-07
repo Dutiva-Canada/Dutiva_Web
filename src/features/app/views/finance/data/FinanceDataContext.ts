@@ -1,14 +1,15 @@
 import { createContext } from 'react'
+import type { Bi } from '@/i18n/core'
 import type {
   FinanceBankItem,
   FinanceBankMatchStatus,
+  FinanceBankStatementImportResult,
   FinanceBill,
   FinanceBudget,
   FinanceClosePeriod,
   FinanceExpenseStatus,
   FinanceExternalAction,
   FinanceExternalActionStatus,
-  FinanceImportRowError,
   FinanceInvoice,
   FinanceInvoiceStatus,
   FinanceJournal,
@@ -130,9 +131,7 @@ export interface FinanceDataContextValue {
     bankAccountId: string,
     fileName: string,
     fileContent: string,
-  ) => Promise<
-    { newItems: number; duplicates: number; errors: number; errorDetails?: FinanceImportRowError[] } | null
-  >
+  ) => Promise<FinanceBankStatementImportResult | null>
   deleteImportSession: (id: string) => Promise<boolean>
   addCategoryRule: (rule: Omit<import('./types').FinanceCategoryRule, 'id'>) => Promise<import('./types').FinanceCategoryRule | null>
   updateCategoryRule: (id: string, patch: Partial<import('./types').FinanceCategoryRule>) => Promise<import('./types').FinanceCategoryRule | null>
@@ -141,6 +140,24 @@ export interface FinanceDataContextValue {
   runAutoCategorize: () => Promise<number>
   /** Seed the workspace with default ledger accounts and category rules. */
   seedDefaultCategoryRules: () => Promise<number>
+  /** Analyse a single import session with AI, categorizing its bank items. */
+  analyseImportWithAi: (sessionId: string) => Promise<{ itemsAnalysed: number; itemsMatched: number; itemsSuggested: number; rulesAdded: number } | null>
+  /** Update a bank item's AI categorization, note, and match status. */
+  updateBankItemCategorization: (
+    id: string,
+    patch: {
+      ledgerAccountId?: string
+      direction?: 'debit' | 'credit'
+      note?: Bi
+      matchStatus?: FinanceBankMatchStatus
+    },
+  ) => Promise<FinanceBankItem | null>
+  /** Record a user correction so the AI can learn from it. */
+  recordCategorizationFeedback: (
+    feedback: Omit<import('./types').FinanceCategorizationFeedback, 'id' | 'correctedAt'>,
+  ) => Promise<import('./types').FinanceCategorizationFeedback | null>
+  /** Update workspace AI import settings. */
+  updateAiImportSettings: (patch: Partial<import('./types').FinanceAiImportSettings>) => Promise<import('./types').FinanceAiImportSettings | null>
 }
 
 export const FinanceDataContext = createContext<FinanceDataContextValue | null>(null)

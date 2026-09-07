@@ -659,4 +659,37 @@ export const financeMessages = defineMessages({
   finance_suggest_rules_ai_loading: { en: 'Loading AI model…', fr: 'Chargement du modèle IA…' },
   finance_suggest_rules_ai_toggle: { en: 'Use AI model', fr: 'Utiliser le modèle IA' },
   finance_suggest_rules_ai_error: { en: 'AI model failed. Falling back to local suggestions.', fr: 'Le modèle IA a échoué. Retour aux suggestions locales.' },
+
+  /* AI import analysis */
+  finance_ai_note_matched: {
+    en: 'AI matched to {account} ({code}). Confidence: {confidence}.',
+    fr: 'L\'IA a associé à {account} ({code}). Confiance : {confidence}.',
+  },
+  finance_ai_note_feedback: {
+    en: 'Matched to {account} ({code}) based on a previous correction. Confidence: {confidence}.',
+    fr: 'Associé à {account} ({code}) d\'après une correction antérieure. Confiance : {confidence}.',
+  },
+  finance_ai_note_review: {
+    en: 'Could not confidently match. Review recommended.',
+    fr: 'Impossible d\'associer avec confiance. Révision recommandée.',
+  },
+  finance_ai_settings_title: { en: 'AI import analysis', fr: 'Analyse des imports par IA' },
+  finance_ai_settings_description: {
+    en: 'Automatically analyse imported transactions, suggest or apply ledger accounts, and learn from your corrections.',
+    fr: 'Analyser automatiquement les transactions importées, suggérer ou appliquer des comptes du grand livre, et apprendre de vos corrections.',
+  },
+  finance_ai_settings_enable: { en: 'Analyse imports automatically', fr: 'Analyser les imports automatiquement' },
+  finance_ai_settings_mode: { en: 'AI mode', fr: 'Mode IA' },
+  finance_ai_settings_mode_suggest: { en: 'Suggest only', fr: 'Suggérer seulement' },
+  finance_ai_settings_mode_auto_high: { en: 'Auto-apply high confidence', fr: 'Appliquer automatiquement les confiances élevées' },
+  finance_ai_settings_mode_auto_all: { en: 'Auto-apply all matches', fr: 'Appliquer automatiquement toutes les associations' },
+  finance_ai_import_analyzing: { en: 'Analysing imported transactions with AI…', fr: 'Analyse des transactions importées par IA en cours…' },
+  finance_ai_import_result: { en: 'AI analysed {count} transaction(s). {matched} matched, {suggested} suggested for review.', fr: 'L\'IA a analysé {count} transaction(s). {matched} associée(s), {suggested} en attente de révision.' },
+  finance_ai_import_result_none: { en: 'AI could not confidently match any imported transactions.', fr: 'L\'IA n\'a pu associer aucune transaction importée avec confiance.' },
+  finance_ai_import_result_rules: { en: '{count} new categorization rule(s) created.', fr: '{count} nouvelle(s) règle(s) de catégorisation créée(s).' },
+  finance_transactions_ai_suggestion: { en: 'AI suggestion:', fr: 'Suggestion de l\'IA :' },
+  finance_transactions_note: { en: 'Note', fr: 'Note' },
+  finance_transactions_change_account: { en: 'Change account', fr: 'Changer de compte' },
+  finance_transactions_save_changes: { en: 'Save', fr: 'Enregistrer' },
+  finance_transactions_accept_suggestion: { en: 'Accept', fr: 'Accepter' },
 })
