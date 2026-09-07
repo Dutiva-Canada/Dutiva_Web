@@ -10,6 +10,7 @@ import type {
   CommsInitiative,
   CommsInteraction,
   CommsIssue,
+  CommsMetric,
   CommsOrganization,
   CommsPolicyFile,
   CommsSource,
@@ -74,6 +75,9 @@ export interface CommsDataContextValue {
   addIssue: (item: Omit<CommsIssue, 'id'>) => CommsIssue | null
   updateIssue: (id: string, patch: Partial<CommsIssue>) => CommsIssue | null
   removeIssue: (id: string) => void
+  addMetric: (item: Omit<CommsMetric, 'id'>) => CommsMetric | null
+  updateMetric: (id: string, patch: Partial<CommsMetric>) => CommsMetric | null
+  removeMetric: (id: string) => void
   updateUsageControls: (controls: Partial<CommsUsageControls>) => CommsUsageControls | null
 }
 

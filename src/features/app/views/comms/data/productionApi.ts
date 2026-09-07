@@ -11,6 +11,7 @@ import type {
   CommsInitiative,
   CommsInteraction,
   CommsIssue,
+  CommsMetric,
   CommsOrganization,
   CommsPolicyFile,
   CommsSource,
@@ -822,6 +823,36 @@ export function removeIssue(orgId: string, id: string): void {
   updateState(orgId, (state) => ({
     ...state,
     issues: state.issues.filter((i) => i.id !== id),
+  }))
+}
+
+export function addMetric(orgId: string, metric: Omit<CommsMetric, 'id'>): CommsMetric {
+  const created: CommsMetric = { ...metric, id: createId('metric') }
+  updateState(orgId, (state) => ({ ...state, metrics: [created, ...state.metrics] }))
+  return created
+}
+
+export function updateMetric(
+  orgId: string,
+  id: string,
+  patch: Partial<CommsMetric>,
+): CommsMetric | null {
+  let result: CommsMetric | null = null
+  updateState(orgId, (state) => ({
+    ...state,
+    metrics: state.metrics.map((m) => {
+      if (m.id !== id) return m
+      result = { ...m, ...patch }
+      return result
+    }),
+  }))
+  return result
+}
+
+export function removeMetric(orgId: string, id: string): void {
+  updateState(orgId, (state) => ({
+    ...state,
+    metrics: state.metrics.filter((m) => m.id !== id),
   }))
 }
 

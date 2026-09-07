@@ -1,15 +1,154 @@
+import { useState } from 'react'
+import { Plus, X } from 'lucide-react'
+import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { useCommsData } from '../data/useCommsData'
+import type { CommsMetric } from '../data/types'
 import { SENTIMENT_LABEL } from '../commsLabels'
+
+const inputClass =
+  'w-full rounded-[10px] border border-border bg-surface px-[12px] py-[9px] font-sans text-[13.5px] text-text'
+const labelClass = 'mb-[4px] block text-[12px] font-semibold text-text-3'
+
+const PROVENANCES: CommsMetric['provenance'][] = ['manual', 'provider', 'ai_estimate']
+
+function biInput(value: string, lang: 'en' | 'fr'): Bi | undefined {
+  const text = value.trim()
+  if (!text) return undefined
+  return lang === 'fr'
+    ? { en: `[EN review] ${text}`, fr: text }
+    : { en: text, fr: `[FR review] ${text}` }
+}
+
+function numberValue(value: string): number | undefined {
+  const n = Number(value)
+  return value === '' ? undefined : Number.isNaN(n) ? undefined : n
+}
+
+function MetricForm({ onCancel }: { onCancel: () => void }) {
+  const { x, lang } = useI18n()
+  const { state, addMetric } = useCommsData()
+  const [name, setName] = useState('')
+  const [period, setPeriod] = useState('')
+  const [value, setValue] = useState('')
+  const [baseline, setBaseline] = useState('')
+  const [target, setTarget] = useState('')
+  const [provenance, setProvenance] = useState<CommsMetric['provenance']>('manual')
+  const [owner, setOwner] = useState('')
+  const [initiativeId, setInitiativeId] = useState('')
+
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!name.trim() || !owner.trim() || !initiativeId) return
+    addMetric({
+      initiativeId,
+      name: biInput(name, lang) ?? { en: name.trim(), fr: `[FR review] ${name.trim()}` },
+      period: biInput(period, lang),
+      value: numberValue(value),
+      baseline: numberValue(baseline),
+      target: numberValue(target),
+      provenance,
+      owner: owner.trim(),
+    })
+    onCancel()
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]">
+      <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <label className={labelClass}>{x(M.comms_results_name)}</label>
+          <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} required />
+        </div>
+        <div>
+          <label className={labelClass}>{x(M.comms_results_metric_initiative)}</label>
+          <select
+            value={initiativeId}
+            onChange={(e) => setInitiativeId(e.target.value)}
+            className={inputClass}
+            required
+          >
+            <option value="">{x(M.comms_org_none)}</option>
+            {state.initiatives.map((i) => (
+              <option key={i.id} value={i.id}>{x(i.title)}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className={labelClass}>{x(M.comms_results_period)}</label>
+          <input value={period} onChange={(e) => setPeriod(e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>{x(M.comms_results_value)}</label>
+          <input type="number" value={value} onChange={(e) => setValue(e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>{x(M.comms_results_baseline)}</label>
+          <input type="number" value={baseline} onChange={(e) => setBaseline(e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>{x(M.comms_results_target)}</label>
+          <input type="number" value={target} onChange={(e) => setTarget(e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>{x(M.comms_results_provenance_label)}</label>
+          <select
+            value={provenance}
+            onChange={(e) => setProvenance(e.target.value as CommsMetric['provenance'])}
+            className={inputClass}
+          >
+            {PROVENANCES.map((p) => (
+              <option key={p} value={p}>{x(M[`comms_results_provenance_${p}` as keyof typeof M])}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className={labelClass}>{x(M.comms_results_owner)}</label>
+          <input value={owner} onChange={(e) => setOwner(e.target.value)} className={inputClass} required />
+        </div>
+      </div>
+      <div className="mt-[14px] flex gap-[8px]">
+        <button
+          type="submit"
+          className="rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
+        >
+          {x(M.comms_create)}
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text"
+        >
+          {x(M.comms_cancel)}
+        </button>
+      </div>
+    </form>
+  )
+}
 
 export function Results() {
   const { x, lang } = useI18n()
-  const { state } = useCommsData()
+  const { state, canWrite, removeMetric, removeCoverageItem } = useCommsData()
+  const [adding, setAdding] = useState(false)
 
   return (
     <div className="flex flex-col gap-[16px]">
-      <h2 className="text-[18px] font-semibold text-text">{x(M.comms_results_title)}</h2>
+      <div className="flex items-center justify-between gap-[12px]">
+        <h2 className="text-[18px] font-semibold text-text">{x(M.comms_results_title)}</h2>
+        {canWrite && !adding && (
+          <button
+            type="button"
+            onClick={() => setAdding(true)}
+            className="flex items-center gap-[6px] rounded-[8px] border-none bg-navy px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-white"
+          >
+            <Plus size={14} aria-hidden="true" />
+            {x(M.comms_results_add_metric)}
+          </button>
+        )}
+      </div>
+
+      {adding && <MetricForm onCancel={() => setAdding(false)} />}
 
       {state.metrics.length === 0 ? (
         <p className="text-[13px] text-text-muted">{x(M.comms_results_empty)}</p>
@@ -25,14 +164,26 @@ export function Results() {
                     {metric.owner ? ` · ${metric.owner}` : ''}
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-[18px] font-bold text-text">
-                    {metric.value == null ? x(M.comms_results_no_data) : metric.value}
-                  </div>
-                  {metric.target != null && (
-                    <div className="text-[12px] text-text-muted">
-                      {x(M.comms_results_target)} {metric.target}
+                <div className="flex items-center gap-[8px]">
+                  <div className="text-right">
+                    <div className="text-[18px] font-bold text-text">
+                      {metric.value == null ? x(M.comms_results_no_data) : metric.value}
                     </div>
+                    {metric.target != null && (
+                      <div className="text-[12px] text-text-muted">
+                        {x(M.comms_results_target)} {metric.target}
+                      </div>
+                    )}
+                  </div>
+                  {canWrite && (
+                    <button
+                      type="button"
+                      onClick={() => removeMetric(metric.id)}
+                      aria-label={x(M.comms_remove)}
+                      className="text-text-muted hover:text-risk-fg"
+                    >
+                      <X size={14} />
+                    </button>
                   )}
                 </div>
               </div>
@@ -76,11 +227,23 @@ export function Results() {
                           {item.publishedDate ? ` · ${item.publishedDate}` : ''}
                         </div>
                       </div>
-                      {typeof item.reach === 'number' && (
-                        <div className="text-[14px] font-semibold text-text">
-                          {item.reach.toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
-                        </div>
-                      )}
+                      <div className="flex items-center gap-[8px]">
+                        {typeof item.reach === 'number' && (
+                          <div className="text-[14px] font-semibold text-text">
+                            {item.reach.toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
+                          </div>
+                        )}
+                        {canWrite && (
+                          <button
+                            type="button"
+                            onClick={() => removeCoverageItem(item.id)}
+                            aria-label={x(M.comms_remove)}
+                            className="text-text-muted hover:text-risk-fg"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
+                      </div>
                     </div>
                     {item.sentiment && (
                       <div className="text-[12px] text-text-muted">

@@ -12,6 +12,7 @@ import {
   addInitiative as addInitiativeApi,
   addInteraction as addInteractionApi,
   addIssue as addIssueApi,
+  addMetric as addMetricApi,
   addOrganization as addOrganizationApi,
   addPolicyFile as addPolicyFileApi,
   addSource as addSourceApi,
@@ -27,6 +28,7 @@ import {
   removeInitiative as removeInitiativeApi,
   removeInteraction as removeInteractionApi,
   removeIssue as removeIssueApi,
+  removeMetric as removeMetricApi,
   removeOrganization as removeOrganizationApi,
   removePolicyFile as removePolicyFileApi,
   removeSource as removeSourceApi,
@@ -44,6 +46,7 @@ import {
   updateInitiative as updateInitiativeApi,
   updateInteraction as updateInteractionApi,
   updateIssue as updateIssueApi,
+  updateMetric as updateMetricApi,
   updateOrganization as updateOrganizationApi,
   updateSource as updateSourceApi,
   updateSubmission as updateSubmissionApi,
@@ -60,6 +63,7 @@ import type {
   CommsInitiative,
   CommsInteraction,
   CommsIssue,
+  CommsMetric,
   CommsOrganization,
   CommsPolicyFile,
   CommsSource,
@@ -509,6 +513,35 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
     [isLive, orgId],
   )
 
+  const addMetric = useCallback(
+    (item: Omit<CommsMetric, 'id'>) => {
+      if (!isLive || !orgId) return null
+      const created = addMetricApi(orgId, item)
+      setState(loadFullStateApi(orgId))
+      return created
+    },
+    [isLive, orgId],
+  )
+
+  const updateMetric = useCallback(
+    (id: string, patch: Partial<CommsMetric>) => {
+      if (!isLive || !orgId) return null
+      const updated = updateMetricApi(orgId, id, patch)
+      if (updated) setState(loadFullStateApi(orgId))
+      return updated
+    },
+    [isLive, orgId],
+  )
+
+  const removeMetric = useCallback(
+    (id: string) => {
+      if (!isLive || !orgId) return
+      removeMetricApi(orgId, id)
+      setState(loadFullStateApi(orgId))
+    },
+    [isLive, orgId],
+  )
+
   return useMemo(
     () => ({
       state,
@@ -557,6 +590,9 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
       addIssue,
       updateIssue,
       removeIssue,
+      addMetric,
+      updateMetric,
+      removeMetric,
     }),
     [
       state,
@@ -605,6 +641,9 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
       addIssue,
       updateIssue,
       removeIssue,
+      addMetric,
+      updateMetric,
+      removeMetric,
     ],
   )
 }
