@@ -59,6 +59,22 @@ export function ImportExport() {
     low: M.finance_suggest_rules_confidence_low,
   } as const
 
+  const formatError = (err: unknown): string => {
+    if (err instanceof Error) return err.message
+    if (err && typeof err === 'object') {
+      const msg = (err as { message?: string; error?: string; error_description?: string }).message
+      if (msg) return msg
+      const desc = (err as { error_description?: string }).error_description
+      if (desc) return desc
+      try {
+        return JSON.stringify(err)
+      } catch {
+        return String(err)
+      }
+    }
+    return String(err)
+  }
+
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -70,7 +86,7 @@ export function ImportExport() {
       const csv = await statementFileToCsv(file)
       setFileContent(csv)
     } catch (err) {
-      setImportError(x(M.finance_import_failed) + (err instanceof Error ? `: ${err.message}` : ''))
+      setImportError(x(M.finance_import_failed) + (formatError(err) ? `: ${formatError(err)}` : ''))
       setFileContent('')
     }
   }
@@ -113,7 +129,7 @@ export function ImportExport() {
       }
     } catch (err) {
       console.error('[finance] import failed:', err)
-      setImportError(x(M.finance_import_failed) + (err instanceof Error ? `: ${err.message}` : ''))
+      setImportError(x(M.finance_import_failed) + (formatError(err) ? `: ${formatError(err)}` : ''))
     }
   }
 

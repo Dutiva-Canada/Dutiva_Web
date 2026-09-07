@@ -195,21 +195,23 @@ export async function importBankStatementInSupabase(
   )
   const errorDetails = parsed.errorDetails
 
+  // Record the import session first so bank items can reference it via FK.
+  const session: FinanceImportSession = {
+    id: sessionId,
+    entityId: bankAccount.entityId,
+    bankAccountId,
+    fileName,
+    importedAt: new Date().toISOString(),
+    totalRows: parsed.totalRows,
+    newItems: newItems.length,
+    duplicates,
+    errors,
+    status: 'imported',
+    errorDetails,
+  }
+  await insertImportSession(orgId, session)
+
   if (newItems.length === 0) {
-    // Still record the import session even if all rows were duplicates
-    await insertImportSession(orgId, {
-      id: sessionId,
-      entityId: bankAccount.entityId,
-      bankAccountId,
-      fileName,
-      importedAt: new Date().toISOString(),
-      totalRows: parsed.totalRows,
-      newItems: 0,
-      duplicates,
-      errors,
-      status: 'imported',
-      errorDetails,
-    })
     return { newItems: 0, duplicates, errors, errorDetails, sessionId }
   }
 
@@ -226,28 +228,23 @@ export async function importBankStatementInSupabase(
     match_status: bi.matchStatus,
   }))
 
-  for (let i = 0; i < rowsToInsert.length; i += 100) {
-    const batch = rowsToInsert.slice(i, i + 100)
-    const { error: insertError } = await supabase
-      .from(TABLES.bankItems)
-      .insert(batch)
-    if (insertError) throw insertError
+  try {
+    for (let i = 0; i < rowsToInsert.length; i += 100) {
+      const batch = rowsToInsert.slice(i, i + 100)
+      const { error: insertError } = await supabase.from(TABLES.bankItems).insert(batch)
+      if (insertError) throw insertError
+    }
+  } catch (err) {
+    // Clean up the empty import session so the user can retry without
+    // leaving a partial audit record. Best-effort: don't let delete failure
+    // hide the original error.
+    try {
+      await supabase.from(TABLES.importSessions).delete().eq('id', sessionId).eq('organization_id', orgId)
+    } catch {
+      /* ignore */
+    }
+    throw err
   }
-
-  // Record the import session
-  await insertImportSession(orgId, {
-    id: sessionId,
-    entityId: bankAccount.entityId,
-    bankAccountId,
-    fileName,
-    importedAt: new Date().toISOString(),
-    totalRows: parsed.totalRows,
-    newItems: newItems.length,
-    duplicates,
-    errors,
-    status: 'imported',
-    errorDetails,
-  })
 
   return { newItems: newItems.length, duplicates, errors, errorDetails, sessionId }
 }
