@@ -144,20 +144,22 @@ export function ImportExport() {
     }
     setSuggesting(true)
     setSuggestResult(null)
-    try {
-      const result = suggestCategoryRules(state.bankItems, state.ledgerAccounts, state.categoryRules)
-      setSuggestions(result)
-      setSuggestResult(
-        result.length > 0
-          ? x(M.finance_suggest_rules_result).replace('{count}', String(result.length))
-          : x(M.finance_suggest_rules_none),
-      )
-    } catch (err) {
-      setSuggestResult(x(M.finance_suggest_rules_none))
-      console.error('[finance] rule suggestion failed', err)
-    } finally {
-      setSuggesting(false)
-    }
+    window.setTimeout(() => {
+      try {
+        const result = suggestCategoryRules(state.bankItems, state.ledgerAccounts, state.categoryRules)
+        setSuggestions(result)
+        setSuggestResult(
+          result.length > 0
+            ? x(M.finance_suggest_rules_result).replace('{count}', String(result.length))
+            : x(M.finance_suggest_rules_none),
+        )
+      } catch (err) {
+        setSuggestResult(x(M.finance_suggest_rules_none))
+        console.error('[finance] rule suggestion failed', err)
+      } finally {
+        setSuggesting(false)
+      }
+    }, 0)
   }
 
   const handleAddSuggestion = async (suggestion: RuleSuggestion) => {

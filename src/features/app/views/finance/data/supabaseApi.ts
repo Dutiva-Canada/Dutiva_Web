@@ -122,10 +122,14 @@ const supabase: any = supabaseTyped
 
 export async function loadFinanceStateFromSupabase(orgId: string): Promise<FinanceWorkspaceState> {
   if (!supabase) throw new Error('Supabase is not configured')
-  const selectAll = async <T>(table: string, mapper: (r: Record<string, unknown>) => T): Promise<T[]> => {
+  const selectAll = async <T>(
+    table: string,
+    mapper: (r: Record<string, unknown>) => T,
+    orderBy = 'created_at',
+  ): Promise<T[]> => {
     try {
       return await fetchAllPages((from, to) =>
-        supabase!.from(table).select('*').eq('organization_id', orgId).order('created_at', { ascending: false }).range(from, to),
+        supabase!.from(table).select('*').eq('organization_id', orgId).order(orderBy, { ascending: false }).range(from, to),
       ).then((rows) => rows.map((r) => mapper(r as Record<string, unknown>)))
     } catch (err) {
       // Keep the workspace usable even if one finance table is unavailable or
@@ -147,7 +151,7 @@ export async function loadFinanceStateFromSupabase(orgId: string): Promise<Finan
   ] = await Promise.all([
     selectAll(TABLES.entities, mapEntity),
     selectAll(TABLES.books, mapBook),
-    selectAll(TABLES.fiscalPeriods, mapFiscalPeriod),
+    selectAll(TABLES.fiscalPeriods, mapFiscalPeriod, 'start_date'),
     selectAll(TABLES.parties, mapParty),
     selectAll(TABLES.bankAccounts, mapBankAccount),
     selectAll(TABLES.ledgerAccounts, mapLedgerAccount),
