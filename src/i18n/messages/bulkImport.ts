@@ -26,6 +26,7 @@ export const bulkImportMessages = defineMessages({
   bulk_import_bank_statement: { en: 'Bank statement', fr: 'Relevé bancaire' },
   bulk_import_contacts: { en: 'Contacts', fr: 'Contacts' },
   bulk_import_organizations: { en: 'Organizations', fr: 'Organismes' },
+  bulk_import_content: { en: 'Content', fr: 'Contenu' },
 
   // Generic field labels
   bulk_field_date: { en: 'Date', fr: 'Date' },
@@ -54,5 +55,16 @@ export const bulkImportMessages = defineMessages({
   bulk_field_organization_type: { en: 'Type', fr: 'Type' },
   bulk_field_organization_jurisdiction: { en: 'Jurisdiction', fr: 'Territoire de compétence' },
   bulk_field_organization_notes: { en: 'Notes', fr: 'Remarques' },
+  bulk_field_content_initiative: { en: 'Initiative', fr: 'Initiative' },
+  bulk_field_content_title: { en: 'Title', fr: 'Titre' },
+  bulk_field_content_body: { en: 'Body', fr: 'Corps' },
+  bulk_field_content_language: { en: 'Language', fr: 'Langue' },
+  bulk_field_content_channel: { en: 'Channel', fr: 'Canal' },
+  bulk_field_content_status: { en: 'Status', fr: 'Statut' },
+  bulk_field_content_delivery_status: { en: 'Delivery status', fr: 'Statut de diffusion' },
+  bulk_field_content_due_date: { en: 'Due date', fr: 'Date d’échéance' },
+  bulk_field_content_scheduled_for: { en: 'Scheduled for', fr: 'Planifié pour' },
+  bulk_field_content_owner: { en: 'Owner', fr: 'Responsable' },
+  bulk_field_content_time_zone: { en: 'Time zone', fr: 'Fuseau horaire' },
   bulk_import_employees: { en: 'Employees', fr: 'Employés' },
 })

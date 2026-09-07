@@ -4,6 +4,7 @@ import {
   Calendar,
   Check,
   Clock,
+  FileUp,
   Heading,
   Italic,
   Link,
@@ -22,6 +23,8 @@ import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useCommsData } from '../data/useCommsData'
+import { createContentBulkImportAdapter } from '../bulkImport/contentAdapter'
+import { BulkImportWizard } from '@/features/app/bulkImport/BulkImportWizard'
 import type {
   CommsChannel,
   CommsContentItem,
@@ -410,6 +413,7 @@ export function ContentCalendar() {
   const { x, lang } = useI18n()
   const { state, canWrite, addContentItem, updateContentItem, removeContentItem } = useCommsData()
   const [open, setOpen] = useState(false)
+  const [bulkImport, setBulkImport] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [initiativeId, setInitiativeId] = useState<string>('')
   const [title, setTitle] = useState('')
@@ -501,18 +505,28 @@ export function ContentCalendar() {
       <div className="flex items-center justify-between gap-[12px]">
         <h2 className="text-[18px] font-semibold text-text">{x(M.comms_content_title)}</h2>
         {canWrite && !open && (
-          <button
-            type="button"
-            onClick={() => {
-              reset()
-              setInitiativeId(state.initiatives[0]?.id ?? '')
-              setOpen(true)
-            }}
-            className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border-none bg-navy px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-white"
-          >
-            <Plus size={14} aria-hidden="true" />
-            {x(M.comms_content_add)}
-          </button>
+          <div className="flex items-center gap-[8px]">
+            <button
+              type="button"
+              onClick={() => {
+                reset()
+                setInitiativeId(state.initiatives[0]?.id ?? '')
+                setOpen(true)
+              }}
+              className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border-none bg-navy px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-white"
+            >
+              <Plus size={14} aria-hidden="true" />
+              {x(M.comms_content_add)}
+            </button>
+            <button
+              type="button"
+              onClick={() => setBulkImport(true)}
+              className="flex items-center gap-[6px] rounded-[8px] border border-border bg-surface px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-text"
+            >
+              <FileUp size={14} aria-hidden="true" />
+              {x(M.comms_import)}
+            </button>
+          </div>
         )}
       </div>
 
@@ -661,6 +675,13 @@ export function ContentCalendar() {
       </div>
 
       <p className="text-[11px] leading-normal text-text-faint">{x(M.comms_delivery_note)}</p>
+
+      {bulkImport && (
+        <BulkImportWizard
+          adapter={createContentBulkImportAdapter(lang, addContentItem, state.initiatives)}
+          onClose={() => setBulkImport(false)}
+        />
+      )}
     </div>
   )
 }
