@@ -12,7 +12,6 @@ import {
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { AppPage } from '@/features/app/shell/AppPage'
-import { Disclaimer } from '@/components/Disclaimer'
 import type { LucideIcon } from 'lucide-react'
 
 interface CommsTab {
@@ -75,8 +74,8 @@ export function CommsLayout({ mode }: CommsLayoutProps) {
 
       <Outlet />
 
-      <div className="mt-[24px]">
-        <Disclaimer />
+      <div className="mt-[24px] text-[11px] text-text-faint">
+        {x(M.comms_disclaimer)}
       </div>
     </AppPage>
   )
