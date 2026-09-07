@@ -650,8 +650,8 @@ export const financeMessages = defineMessages({
   finance_suggest_rules_loading: { en: 'Analyzing transactions…', fr: 'Analyse des transactions en cours…' },
   finance_suggest_rules_none: { en: 'No rule suggestions found.', fr: 'Aucune suggestion de règle trouvée.' },
   finance_suggest_rules_none_detail: {
-    en: 'Either existing rules already cover these transactions, or the descriptions do not form a clear group.',
-    fr: 'Soit les règles existantes couvrent déjà ces transactions, soit les descriptions ne forment pas un groupe clair.',
+    en: 'Either existing rules already cover these transactions, the descriptions do not form a clear group, or there are no ledger accounts for the AI to match against. Try loading defaults or adding ledger accounts.',
+    fr: 'Soit les règles existantes couvrent déjà ces transactions, soit les descriptions ne forment pas un groupe clair, soit il n’y a pas de comptes de grand livre contre lesquels l’IA peut faire correspondre. Essayez de charger les valeurs par défaut ou d’ajouter des comptes de grand livre.',
   },
   finance_suggest_rules_result: { en: '{count} rule suggestion(s).', fr: '{count} suggestion(s) de règle.' },
   finance_suggest_rules_add: { en: 'Add rule', fr: 'Ajouter la règle' },
@@ -692,6 +692,10 @@ export const financeMessages = defineMessages({
   finance_ai_import_result: { en: 'AI analysed {count} transaction(s). {matched} matched, {suggested} suggested for review.', fr: 'L\'IA a analysé {count} transaction(s). {matched} associée(s), {suggested} en attente de révision.' },
   finance_ai_import_result_none: { en: 'AI could not confidently match any imported transactions.', fr: 'L\'IA n\'a pu associer aucune transaction importée avec confiance.' },
   finance_ai_import_result_rules: { en: '{count} new categorization rule(s) created.', fr: '{count} nouvelle(s) règle(s) de catégorisation créée(s).' },
+  finance_ai_import_no_ledger: {
+    en: 'AI analysis is on, but there are no ledger accounts yet. Load defaults or add ledger accounts so the AI can match transactions.',
+    fr: 'L’analyse IA est activée, mais il n’y a pas encore de comptes de grand livre. Chargez les valeurs par défaut ou ajoutez des comptes de grand livre pour que l’IA puisse faire correspondre les transactions.',
+  },
   finance_transactions_ai_suggestion: { en: 'AI suggestion:', fr: 'Suggestion de l\'IA :' },
   finance_transactions_note: { en: 'Note', fr: 'Note' },
   finance_transactions_change_account: { en: 'Change account', fr: 'Changer de compte' },

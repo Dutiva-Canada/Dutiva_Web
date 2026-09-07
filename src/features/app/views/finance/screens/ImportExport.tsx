@@ -356,6 +356,9 @@ export function ImportExport() {
           {importResult && (
             <div className="flex flex-col gap-[8px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text">
               <span>{importResult}</span>
+              {state.aiImportSettings.aiImportEnabled && !aiImportResult && state.ledgerAccounts.length === 0 && (
+                <span className="text-text-muted">{x(M.finance_ai_import_no_ledger)}</span>
+              )}
               {importErrorDetails.length > 0 && (
                 <div className="flex flex-col gap-[8px]">
                   <div className="flex flex-wrap gap-[8px]">
