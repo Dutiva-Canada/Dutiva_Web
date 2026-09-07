@@ -61,6 +61,7 @@ export const CONTENT_STATUS_LABEL: Record<CommsContentStatus, Bi> = {
   approved: M.comms_content_status_approved,
   superseded: M.comms_content_status_superseded,
   withdrawn: M.comms_content_status_withdrawn,
+  rejected: M.comms_content_status_rejected,
 }
 
 export const DELIVERY_STATUS_LABEL: Record<CommsDeliveryStatus, Bi> = {

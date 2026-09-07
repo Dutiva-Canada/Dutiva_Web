@@ -54,6 +54,7 @@ const STATUSES: CommsContentStatus[] = [
   'approved',
   'superseded',
   'withdrawn',
+  'rejected',
 ]
 const TIME_ZONES = [
   'America/Vancouver',
@@ -597,9 +598,11 @@ export function ContentCalendar() {
             const statusTone =
               item.status === 'approved'
                 ? 'success'
-                : item.status === 'in_review' || item.status === 'changes_requested'
-                  ? 'warning'
-                  : 'neutral'
+                : item.status === 'rejected'
+                  ? 'risk'
+                  : item.status === 'in_review' || item.status === 'changes_requested'
+                    ? 'warning'
+                    : 'neutral'
             const initiative = state.initiatives.find((i) => i.id === item.initiativeId)
             const isInitiativePaused = initiative?.status === 'paused'
             return (

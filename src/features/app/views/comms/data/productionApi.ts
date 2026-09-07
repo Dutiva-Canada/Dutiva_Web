@@ -1,5 +1,6 @@
 import { initialCommsState } from './fixtures'
 import type {
+  CommsApproval,
   CommsBrandClaim,
   CommsContentItem,
   CommsCoverageItem,
@@ -641,6 +642,28 @@ export function removeBrandClaim(orgId: string, id: string): void {
   updateState(orgId, (state) => ({
     ...state,
     brandClaims: state.brandClaims.filter((c) => c.id !== id),
+  }))
+}
+
+export function addApproval(
+  orgId: string,
+  approval: Omit<CommsApproval, 'id'>,
+): CommsApproval {
+  const created: CommsApproval = { ...approval, id: createId('approval') }
+  updateState(orgId, (state) => {
+    const contentItems = state.contentItems.map((c) => {
+      if (c.id !== approval.contentItemId) return c
+      return { ...c, status: approval.decision }
+    })
+    return { ...state, contentItems, approvals: [created, ...state.approvals] }
+  })
+  return created
+}
+
+export function removeApproval(orgId: string, id: string): void {
+  updateState(orgId, (state) => ({
+    ...state,
+    approvals: state.approvals.filter((a) => a.id !== id),
   }))
 }
 

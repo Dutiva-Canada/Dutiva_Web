@@ -134,6 +134,7 @@ export const commsMessages = defineMessages({
   comms_content_status_approved: { en: 'Approved', fr: 'Approuvé' },
   comms_content_status_superseded: { en: 'Superseded', fr: 'Remplacé' },
   comms_content_status_withdrawn: { en: 'Withdrawn', fr: 'Retiré' },
+  comms_content_status_rejected: { en: 'Rejected', fr: 'Rejeté' },
 
   comms_delivery_status_not_queued: { en: 'Not queued', fr: 'Non en file' },
   comms_delivery_status_ready: { en: 'Ready', fr: 'Prêt' },
@@ -387,6 +388,17 @@ export const commsMessages = defineMessages({
   comms_brand_claim_review_date: { en: 'Review date', fr: 'Date de révision' },
   comms_brand_claim_status: { en: 'Status', fr: 'Statut' },
   comms_brand_claim_add: { en: 'Add claim', fr: 'Ajouter une revendication' },
+  comms_approval_content_item: { en: 'Content item', fr: 'Contenu' },
+  comms_approval_approver: { en: 'Approver', fr: 'Approbateur' },
+  comms_approval_decision: { en: 'Decision', fr: 'Décision' },
+  comms_approval_rationale: { en: 'Rationale', fr: 'Justification' },
+  comms_approval_record: { en: 'Record approval', fr: 'Enregistrer l’approbation' },
+  comms_approval_history: { en: 'Approval history', fr: 'Historique des approbations' },
+  comms_approval_pending: { en: 'Awaiting approval', fr: 'En attente d’approbation' },
+  comms_approval_empty: { en: 'No approvals recorded.', fr: 'Aucune approbation enregistrée.' },
+  comms_approval_decision_approved: { en: 'Approved', fr: 'Approuvé' },
+  comms_approval_decision_rejected: { en: 'Rejected', fr: 'Rejeté' },
+  comms_approval_decision_changes_requested: { en: 'Changes requested', fr: 'Modifications demandées' },
 
   /* Demo / production notices */
   comms_demo_read_only: {

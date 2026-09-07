@@ -3,6 +3,7 @@ import { CommsDataContext } from './CommsDataContext'
 import type { CommsDataContextValue } from './CommsDataContext'
 import { initialCommsState } from './fixtures'
 import {
+  addApproval as addApprovalApi,
   addBrandClaim as addBrandClaimApi,
   addContentItem as addContentItemApi,
   addCoverageItem as addCoverageItemApi,
@@ -12,6 +13,7 @@ import {
   addSubmission as addSubmissionApi,
   loadFullState as loadFullStateApi,
   recordManualReceipt as recordManualReceiptApi,
+  removeApproval as removeApprovalApi,
   removeBrandClaim as removeBrandClaimApi,
   removeContentItem as removeContentItemApi,
   removeCoverageItem as removeCoverageItemApi,
@@ -33,6 +35,7 @@ import {
   updateSubmission as updateSubmissionApi,
 } from './productionApi'
 import type {
+  CommsApproval,
   CommsBrandClaim,
   CommsContentItem,
   CommsCoverageItem,
@@ -321,6 +324,25 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
     [isLive, orgId],
   )
 
+  const addApproval = useCallback(
+    (item: Omit<CommsApproval, 'id'>) => {
+      if (!isLive || !orgId) return null
+      const created = addApprovalApi(orgId, item)
+      setState(loadFullStateApi(orgId))
+      return created
+    },
+    [isLive, orgId],
+  )
+
+  const removeApproval = useCallback(
+    (id: string) => {
+      if (!isLive || !orgId) return
+      removeApprovalApi(orgId, id)
+      setState(loadFullStateApi(orgId))
+    },
+    [isLive, orgId],
+  )
+
   return useMemo(
     () => ({
       state,
@@ -352,6 +374,8 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
       addBrandClaim,
       updateBrandClaim,
       removeBrandClaim,
+      addApproval,
+      removeApproval,
     }),
     [
       state,
@@ -383,6 +407,8 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
       addBrandClaim,
       updateBrandClaim,
       removeBrandClaim,
+      addApproval,
+      removeApproval,
     ],
   )
 }

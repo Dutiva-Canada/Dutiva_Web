@@ -67,6 +67,7 @@ export type CommsContentStatus =
   | 'approved'
   | 'superseded'
   | 'withdrawn'
+  | 'rejected'
 
 export type CommsDeliveryStatus =
   | 'not_queued'

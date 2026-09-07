@@ -1,5 +1,6 @@
 import { createContext } from 'react'
 import type {
+  CommsApproval,
   CommsBrandClaim,
   CommsContentItem,
   CommsCoverageItem,
@@ -51,6 +52,8 @@ export interface CommsDataContextValue {
   addBrandClaim: (item: Omit<CommsBrandClaim, 'id'>) => CommsBrandClaim | null
   updateBrandClaim: (id: string, patch: Partial<CommsBrandClaim>) => CommsBrandClaim | null
   removeBrandClaim: (id: string) => void
+  addApproval: (item: Omit<CommsApproval, 'id'>) => CommsApproval | null
+  removeApproval: (id: string) => void
 }
 
 export const CommsDataContext = createContext<CommsDataContextValue | null>(null)
