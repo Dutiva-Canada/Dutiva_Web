@@ -347,6 +347,14 @@ export interface CommsBrandClaim {
   status: 'active' | 'expired' | 'rejected'
 }
 
+export interface CommsUsageControls {
+  monthlyContentBudget?: number
+  monthlyInteractionBudget?: number
+  alertThresholdPercent?: number
+  defaultReviewDays?: number
+  contentRetentionDays?: number
+}
+
 export interface CommsWorkspaceState {
   initiatives: CommsInitiative[]
   objectives: CommsObjective[]
@@ -363,6 +371,7 @@ export interface CommsWorkspaceState {
   metrics: CommsMetric[]
   approvals: CommsApproval[]
   brandClaims: CommsBrandClaim[]
+  usageControls: CommsUsageControls
   /** Audit trail of manual delivery actions. Not a provider log. */
   executionEvents: CommsExecutionEvent[]
 }

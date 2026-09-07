@@ -15,6 +15,7 @@ import type {
   CommsSourceType,
   CommsSubmission,
   CommsSubmissionStatus,
+  CommsUsageControls,
   CommsWorkspaceState,
 } from './types'
 import { feedItemToSource, parseFeedXml } from './feedParser'
@@ -45,6 +46,7 @@ const emptyCommsState: CommsWorkspaceState = {
   metrics: [],
   approvals: [],
   brandClaims: [],
+  usageControls: {},
   executionEvents: [],
 }
 
@@ -93,6 +95,7 @@ function normalizeState(parsed: CommsWorkspaceState): CommsWorkspaceState {
     metrics: parsed.metrics ?? emptyCommsState.metrics,
     approvals: parsed.approvals ?? emptyCommsState.approvals,
     brandClaims: parsed.brandClaims ?? emptyCommsState.brandClaims,
+    usageControls: parsed.usageControls ?? emptyCommsState.usageControls,
     executionEvents: parsed.executionEvents ?? emptyCommsState.executionEvents,
   }
 }
@@ -764,6 +767,17 @@ export function removeInteraction(orgId: string, id: string): void {
     ...state,
     interactions: state.interactions.filter((i) => i.id !== id),
   }))
+}
+
+export function updateUsageControls(
+  orgId: string,
+  controls: Partial<CommsUsageControls>,
+): CommsUsageControls {
+  updateState(orgId, (state) => ({
+    ...state,
+    usageControls: { ...state.usageControls, ...controls },
+  }))
+  return loadCommsState(orgId).usageControls
 }
 
 export function loadFullState(orgId: string): CommsWorkspaceState {

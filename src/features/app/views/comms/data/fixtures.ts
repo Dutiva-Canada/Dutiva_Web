@@ -428,5 +428,6 @@ export const initialCommsState: CommsWorkspaceState = {
       status: 'rejected',
     },
   ],
+  usageControls: {},
   executionEvents: [],
 }

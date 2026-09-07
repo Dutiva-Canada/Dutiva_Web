@@ -414,6 +414,12 @@ export const commsMessages = defineMessages({
   comms_approval_decision_approved: { en: 'Approved', fr: 'Approuvé' },
   comms_approval_decision_rejected: { en: 'Rejected', fr: 'Rejeté' },
   comms_approval_decision_changes_requested: { en: 'Changes requested', fr: 'Modifications demandées' },
+  comms_usage_content_budget: { en: 'Monthly content budget', fr: 'Budget de contenu mensuel' },
+  comms_usage_interaction_budget: { en: 'Monthly interaction budget', fr: 'Budget d’interactions mensuel' },
+  comms_usage_alert_threshold: { en: 'Alert threshold (%)', fr: 'Seuil d’alerte (%)' },
+  comms_usage_review_days: { en: 'Default review days', fr: 'Délai de révision par défaut' },
+  comms_usage_retention_days: { en: 'Content retention days', fr: 'Jours de conservation du contenu' },
+  comms_usage_update: { en: 'Update controls', fr: 'Mettre à jour les contrôles' },
 
   /* Demo / production notices */
   comms_demo_read_only: {

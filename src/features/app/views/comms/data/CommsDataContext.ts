@@ -13,6 +13,7 @@ import type {
   CommsSource,
   CommsSubmission,
   CommsSubmissionStatus,
+  CommsUsageControls,
   CommsWorkspaceState,
 } from './types'
 
@@ -66,6 +67,7 @@ export interface CommsDataContextValue {
   addInteraction: (item: Omit<CommsInteraction, 'id'>) => CommsInteraction | null
   updateInteraction: (id: string, patch: Partial<CommsInteraction>) => CommsInteraction | null
   removeInteraction: (id: string) => void
+  updateUsageControls: (controls: Partial<CommsUsageControls>) => CommsUsageControls | null
 }
 
 export const CommsDataContext = createContext<CommsDataContextValue | null>(null)

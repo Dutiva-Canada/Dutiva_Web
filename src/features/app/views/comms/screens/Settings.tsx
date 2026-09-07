@@ -4,7 +4,7 @@ import { statusChipClass } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { useCommsData } from '../data/useCommsData'
-import type { CommsApprovalDecision, CommsBrandClaim, CommsContentItem } from '../data/types'
+import type { CommsApprovalDecision, CommsBrandClaim, CommsContentItem, CommsUsageControls } from '../data/types'
 
 const inputClass =
   'w-full rounded-[10px] border border-border bg-surface px-[12px] py-[9px] font-sans text-[13.5px] text-text'
@@ -240,6 +240,104 @@ function RolesAndApprovals() {
   )
 }
 
+function UsageControls() {
+  const { x } = useI18n()
+  const { state, canWrite, updateUsageControls } = useCommsData()
+  const [controls, setControls] = useState<CommsUsageControls>(() => state.usageControls)
+
+  const update = (patch: Partial<CommsUsageControls>) => {
+    setControls((prev) => ({ ...prev, ...patch }))
+  }
+
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    updateUsageControls(controls)
+  }
+
+  const numberValue = (value: string) => {
+    const n = Number(value)
+    return value === '' ? undefined : Number.isNaN(n) ? undefined : n
+  }
+
+  const disabled = !canWrite
+
+  return (
+    <section className="rounded-[12px] border border-border bg-surface p-[16px]">
+      <h3 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.comms_usage_controls)}</h3>
+      <form onSubmit={onSubmit}>
+        <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
+          <div>
+            <label className={labelClass}>{x(M.comms_usage_content_budget)}</label>
+            <input
+              type="number"
+              min={0}
+              value={controls.monthlyContentBudget ?? ''}
+              onChange={(e) => update({ monthlyContentBudget: numberValue(e.target.value) })}
+              disabled={disabled}
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>{x(M.comms_usage_interaction_budget)}</label>
+            <input
+              type="number"
+              min={0}
+              value={controls.monthlyInteractionBudget ?? ''}
+              onChange={(e) => update({ monthlyInteractionBudget: numberValue(e.target.value) })}
+              disabled={disabled}
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>{x(M.comms_usage_alert_threshold)}</label>
+            <input
+              type="number"
+              min={0}
+              max={100}
+              value={controls.alertThresholdPercent ?? ''}
+              onChange={(e) => update({ alertThresholdPercent: numberValue(e.target.value) })}
+              disabled={disabled}
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>{x(M.comms_usage_review_days)}</label>
+            <input
+              type="number"
+              min={0}
+              value={controls.defaultReviewDays ?? ''}
+              onChange={(e) => update({ defaultReviewDays: numberValue(e.target.value) })}
+              disabled={disabled}
+              className={inputClass}
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className={labelClass}>{x(M.comms_usage_retention_days)}</label>
+            <input
+              type="number"
+              min={0}
+              value={controls.contentRetentionDays ?? ''}
+              onChange={(e) => update({ contentRetentionDays: numberValue(e.target.value) })}
+              disabled={disabled}
+              className={inputClass}
+            />
+          </div>
+        </div>
+        {canWrite && (
+          <div className="mt-[14px] flex gap-[8px]">
+            <button
+              type="submit"
+              className="rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
+            >
+              {x(M.comms_usage_update)}
+            </button>
+          </div>
+        )}
+      </form>
+    </section>
+  )
+}
+
 export function Settings() {
   const { x } = useI18n()
   const { state, canWrite, addBrandClaim, removeBrandClaim } = useCommsData()
@@ -416,10 +514,7 @@ export function Settings() {
         <p className="text-[13px] text-text-muted">{x(M.comms_settings_empty)}</p>
       </section>
 
-      <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h3 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.comms_usage_controls)}</h3>
-        <p className="text-[13px] text-text-muted">{x(M.comms_settings_empty)}</p>
-      </section>
+      <UsageControls />
     </div>
   )
 }

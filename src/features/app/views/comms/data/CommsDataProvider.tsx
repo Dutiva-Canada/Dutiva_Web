@@ -42,6 +42,7 @@ import {
   updateOrganization as updateOrganizationApi,
   updateSource as updateSourceApi,
   updateSubmission as updateSubmissionApi,
+  updateUsageControls as updateUsageControlsApi,
 } from './productionApi'
 import type {
   CommsApproval,
@@ -56,6 +57,7 @@ import type {
   CommsOrganization,
   CommsSource,
   CommsSubmission,
+  CommsUsageControls,
 } from './types'
 
 function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
@@ -442,6 +444,16 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
     [isLive, orgId],
   )
 
+  const updateUsageControls = useCallback(
+    (controls: Partial<CommsUsageControls>) => {
+      if (!isLive || !orgId) return null
+      const updated = updateUsageControlsApi(orgId, controls)
+      setState(loadFullStateApi(orgId))
+      return updated
+    },
+    [isLive, orgId],
+  )
+
   return useMemo(
     () => ({
       state,
@@ -484,6 +496,7 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
       addInteraction,
       updateInteraction,
       removeInteraction,
+      updateUsageControls,
     }),
     [
       state,
@@ -526,6 +539,7 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
       addInteraction,
       updateInteraction,
       removeInteraction,
+      updateUsageControls,
     ],
   )
 }
