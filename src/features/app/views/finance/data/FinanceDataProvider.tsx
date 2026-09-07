@@ -483,7 +483,11 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
         const result = await importBankStatementInSupabase(orgId, bankAccountId, fileName, fileContent)
         let aiSummary: import('./types').FinanceBankStatementImportResult['aiSummary'] = undefined
         if (result?.sessionId) {
-          aiSummary = (await analyseImportWithAiSupa(orgId, result.sessionId)) ?? undefined
+          try {
+            aiSummary = (await analyseImportWithAiSupa(orgId, result.sessionId)) ?? undefined
+          } catch (err) {
+            console.error('[finance] AI analysis after import failed:', err)
+          }
         }
         await reload()
         return result ? { ...result, aiSummary } : null

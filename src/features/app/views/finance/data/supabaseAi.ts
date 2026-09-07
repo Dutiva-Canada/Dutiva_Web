@@ -57,27 +57,39 @@ export async function analyseImportWithAiSupa(
     )
 
     let rulesAdded = 0
+    const entityId =
+      state.entities[0]?.id ??
+      state.bankAccounts.find((ba) => ba.id === newItems[0]?.bankAccountId)?.entityId ??
+      orgId
     for (const rule of result.ruleSuggestions) {
-      const created = await insertCategoryRule(orgId, {
-        entityId: state.entities[0]?.id ?? orgId,
-        pattern: rule.pattern,
-        matchType: rule.matchType,
-        ledgerAccountId: rule.ledgerAccountId,
-        direction: rule.direction,
-        priority: rule.priority,
-        active: true,
-      })
-      if (created) rulesAdded++
+      try {
+        const created = await insertCategoryRule(orgId, {
+          entityId,
+          pattern: rule.pattern,
+          matchType: rule.matchType,
+          ledgerAccountId: rule.ledgerAccountId,
+          direction: rule.direction,
+          priority: rule.priority,
+          active: true,
+        })
+        if (created) rulesAdded++
+      } catch (ruleErr) {
+        console.error('[finance] AI rule suggestion insert failed:', ruleErr)
+      }
     }
 
     const updates = applyCategorizations(newItems, result.categorizations)
     for (const u of updates) {
-      await updateBankItemCategorizationSupa(orgId, u.id, {
-        ledgerAccountId: u.aiSuggestion?.ledgerAccountId,
-        direction: u.aiSuggestion?.direction,
-        note: u.note,
-        matchStatus: u.matchStatus,
-      })
+      try {
+        await updateBankItemCategorizationSupa(orgId, u.id, {
+          ledgerAccountId: u.aiSuggestion?.ledgerAccountId,
+          direction: u.aiSuggestion?.direction,
+          note: u.note,
+          matchStatus: u.matchStatus,
+        })
+      } catch (updateErr) {
+        console.error('[finance] AI bank item update failed:', updateErr)
+      }
     }
 
     const itemsMatched = result.categorizations.filter((c) => c.matchStatus === 'matched').length

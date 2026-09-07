@@ -67,8 +67,8 @@ export function ImportExport() {
     try {
       const csv = await statementFileToCsv(file)
       setFileContent(csv)
-    } catch {
-      setImportError(x(M.finance_import_failed))
+    } catch (err) {
+      setImportError(x(M.finance_import_failed) + (err instanceof Error ? `: ${err.message}` : ''))
       setFileContent('')
     }
   }
@@ -109,8 +109,9 @@ export function ImportExport() {
       } else {
         setImportError(x(M.finance_import_failed))
       }
-    } catch {
-      setImportError(x(M.finance_import_failed))
+    } catch (err) {
+      console.error('[finance] import failed:', err)
+      setImportError(x(M.finance_import_failed) + (err instanceof Error ? `: ${err.message}` : ''))
     }
   }
 
