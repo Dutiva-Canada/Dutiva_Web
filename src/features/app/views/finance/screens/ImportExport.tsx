@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { Download, FileUp, Sparkles, Trash2, Wand2 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
 import { CATEGORY_MATCH_TYPE_LABEL } from '../financeLabels'
@@ -14,6 +15,7 @@ import type { FinanceCategoryMatchType, FinanceImportRowError } from '../data/ty
 
 export function ImportExport() {
   const { x } = useI18n()
+  const { mode } = useWorkspaceMode()
   const {
     state,
     canWrite,
@@ -292,6 +294,15 @@ export function ImportExport() {
             className="text-[12px] text-text-2"
           />
           <p className="text-[11px] text-text-muted">{x(M.finance_import_xlsx_supported)}</p>
+          {!canWrite && mode === 'demo' && (
+            <p className="text-[12px] text-risk-fg">{x(M.finance_import_demo_disabled)}</p>
+          )}
+          {!canWrite && mode !== 'demo' && (
+            <p className="text-[12px] text-text-muted">{x(M.finance_import_select_account_first)}</p>
+          )}
+          {canWrite && !selectedAccountId && (
+            <p className="text-[12px] text-text-muted">{x(M.finance_import_select_account_first)}</p>
+          )}
           {selectedFileName && (
             <div className="text-[12px] text-text-muted">
               {x(M.finance_import_file_selected)}: {selectedFileName}

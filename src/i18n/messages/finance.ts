@@ -587,6 +587,11 @@ export const financeMessages = defineMessages({
   finance_import_download_errors: { en: 'Download error report', fr: 'Télécharger le rapport d’erreurs' },
   finance_import_bulk_wizard: { en: 'Bulk import wizard', fr: 'Assistant d’importation en bloc' },
   finance_import_xlsx_supported: { en: 'CSV and Excel files are supported.', fr: 'Les fichiers CSV et Excel sont pris en charge.' },
+  finance_import_select_account_first: { en: 'Select a bank account to upload a statement.', fr: 'Sélectionnez un compte bancaire pour téléverser un relevé.' },
+  finance_import_demo_disabled: {
+    en: 'Imports are disabled in the demo workspace. Switch to your production workspace to import.',
+    fr: 'Les importations sont désactivées dans l’espace de démonstration. Passez à votre espace de production pour importer.',
+  },
   finance_import_delete: { en: 'Delete', fr: 'Supprimer' },
   finance_import_delete_confirm: { en: 'Delete this import and its {count} transactions?', fr: 'Supprimer cet import et ses {count} transactions?' },
 
