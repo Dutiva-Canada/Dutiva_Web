@@ -423,6 +423,70 @@ export function ImportExport() {
           </div>
         )}
 
+        {suggesting && (
+          <div className="mb-[8px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text-muted">
+            {x(M.finance_suggest_rules_loading)}
+          </div>
+        )}
+
+        {suggestResult && !suggesting && (
+          <div className="mb-[8px] flex flex-col gap-[4px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text">
+            <span>{suggestResult}</span>
+            {suggestions.length === 0 && (
+              <span className="text-text-muted">{x(M.finance_suggest_rules_none_detail)}</span>
+            )}
+          </div>
+        )}
+
+        {suggestions.length > 0 && (
+          <div className="mb-[12px] flex flex-col gap-[8px]">
+            <div className="flex items-center justify-between">
+              <h3 className="text-[13px] font-semibold text-text">{x(M.finance_suggest_rules)}</h3>
+              <button
+                type="button"
+                onClick={handleAddAllSuggestions}
+                className="rounded-[6px] bg-navy px-[8px] py-[4px] text-[11px] font-semibold text-white hover:opacity-90"
+              >
+                {x(M.finance_suggest_rules_add_all)}
+              </button>
+            </div>
+            <ul className="m-0 flex flex-col gap-[8px] p-0">
+              {suggestions.map((suggestion) => (
+                <li
+                  key={`${suggestion.pattern}-${suggestion.ledgerAccountId}`}
+                  className="flex flex-col gap-[4px] rounded-[10px] border border-border bg-surface p-[10px]"
+                >
+                  <div className="flex items-center justify-between gap-[8px]">
+                    <div className="text-[13px] font-semibold text-text">{suggestion.pattern}</div>
+                    <div className="flex items-center gap-[6px]">
+                      <button
+                        type="button"
+                        onClick={() => handleAddSuggestion(suggestion)}
+                        className="rounded-[6px] bg-navy px-[8px] py-[4px] text-[11px] font-semibold text-white hover:opacity-90"
+                      >
+                        {x(M.finance_suggest_rules_add)}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleIgnoreSuggestion(suggestion)}
+                        className="rounded-[6px] bg-surface px-[8px] py-[4px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                      >
+                        {x(M.finance_suggest_rules_ignore)}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="text-[12px] text-text-muted">
+                    {suggestion.accountName} · {suggestion.direction} · {x(M.finance_suggest_rules_from).replace('{count}', String(suggestion.count))}
+                  </div>
+                  <div className="text-[11px] text-text-muted">
+                    {x(CONFIDENCE_MESSAGES[suggestion.confidence])} · {suggestion.sampleDescriptions.slice(0, 3).join(' · ')}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {state.categoryRules.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_rules_no_rules)}</p>
         ) : (
@@ -472,70 +536,6 @@ export function ImportExport() {
                 )
               })}
           </ul>
-        )}
-
-        {suggesting && (
-          <div className="mt-[8px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text-muted">
-            {x(M.finance_suggest_rules_loading)}
-          </div>
-        )}
-
-        {suggestResult && !suggesting && (
-          <div className="mt-[8px] flex flex-col gap-[4px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text">
-            <span>{suggestResult}</span>
-            {suggestions.length === 0 && (
-              <span className="text-text-muted">{x(M.finance_suggest_rules_none_detail)}</span>
-            )}
-          </div>
-        )}
-
-        {suggestions.length > 0 && (
-          <div className="mt-[8px] flex flex-col gap-[8px]">
-            <div className="flex items-center justify-between">
-              <h3 className="text-[13px] font-semibold text-text">{x(M.finance_suggest_rules)}</h3>
-              <button
-                type="button"
-                onClick={handleAddAllSuggestions}
-                className="rounded-[6px] bg-navy px-[8px] py-[4px] text-[11px] font-semibold text-white hover:opacity-90"
-              >
-                {x(M.finance_suggest_rules_add_all)}
-              </button>
-            </div>
-            <ul className="m-0 flex flex-col gap-[8px] p-0">
-              {suggestions.map((suggestion) => (
-                <li
-                  key={`${suggestion.pattern}-${suggestion.ledgerAccountId}`}
-                  className="flex flex-col gap-[4px] rounded-[10px] border border-border bg-surface p-[10px]"
-                >
-                  <div className="flex items-center justify-between gap-[8px]">
-                    <div className="text-[13px] font-semibold text-text">{suggestion.pattern}</div>
-                    <div className="flex items-center gap-[6px]">
-                      <button
-                        type="button"
-                        onClick={() => handleAddSuggestion(suggestion)}
-                        className="rounded-[6px] bg-navy px-[8px] py-[4px] text-[11px] font-semibold text-white hover:opacity-90"
-                      >
-                        {x(M.finance_suggest_rules_add)}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleIgnoreSuggestion(suggestion)}
-                        className="rounded-[6px] bg-surface px-[8px] py-[4px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
-                      >
-                        {x(M.finance_suggest_rules_ignore)}
-                      </button>
-                    </div>
-                  </div>
-                  <div className="text-[12px] text-text-muted">
-                    {suggestion.accountName} · {suggestion.direction} · {x(M.finance_suggest_rules_from).replace('{count}', String(suggestion.count))}
-                  </div>
-                  <div className="text-[11px] text-text-muted">
-                    {x(CONFIDENCE_MESSAGES[suggestion.confidence])} · {suggestion.sampleDescriptions.slice(0, 3).join(' · ')}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
         )}
       </section>
 
