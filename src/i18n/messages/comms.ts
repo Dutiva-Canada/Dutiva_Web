@@ -265,6 +265,10 @@ export const commsMessages = defineMessages({
   comms_policy_authority: { en: 'Authority', fr: 'Autorité' },
   comms_policy_stage: { en: 'Stage', fr: 'Étape' },
   comms_policy_deadline: { en: 'Deadline', fr: 'Échéance' },
+  comms_policy_objective: { en: 'Objective', fr: 'Objectif' },
+  comms_policy_source_url: { en: 'Source URL', fr: 'URL source' },
+  comms_policy_owner: { en: 'Owner', fr: 'Responsable' },
+  comms_policy_add: { en: 'Add policy file', fr: 'Ajouter un dossier politique' },
 
   comms_policy_stage_proposed: { en: 'Proposed', fr: 'Proposé' },
   comms_policy_stage_enacted: { en: 'Enacted', fr: 'Adopté' },
@@ -277,6 +281,12 @@ export const commsMessages = defineMessages({
   comms_issue_spokesperson: { en: 'Spokesperson', fr: 'Porte-parole' },
   comms_issue_affected_channels: { en: 'Affected channels', fr: 'Canaux touchés' },
   comms_issue_restricted: { en: 'Restricted', fr: 'Restreint' },
+  comms_issue_title: { en: 'Title', fr: 'Titre' },
+  comms_issue_status: { en: 'Status', fr: 'Statut' },
+  comms_issue_summary: { en: 'Summary', fr: 'Résumé' },
+  comms_issue_resolution: { en: 'Resolution', fr: 'Résolution' },
+  comms_issue_add: { en: 'Log issue', fr: 'Enregistrer un enjeu' },
+  comms_issue_affected_channels_placeholder: { en: 'Channel 1, Channel 2', fr: 'Canal 1, Canal 2' },
   comms_issue_restricted_notice: {
     en: 'This issue is restricted. The communications workspace cannot open the underlying HR case.',
     fr: 'Cet enjeu est restreint. L’espace de travail Communications ne peut pas ouvrir le dossier RH sous-jacent.',

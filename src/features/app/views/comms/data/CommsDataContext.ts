@@ -9,7 +9,9 @@ import type {
   CommsFeed,
   CommsInitiative,
   CommsInteraction,
+  CommsIssue,
   CommsOrganization,
+  CommsPolicyFile,
   CommsSource,
   CommsSubmission,
   CommsSubmissionStatus,
@@ -67,6 +69,11 @@ export interface CommsDataContextValue {
   addInteraction: (item: Omit<CommsInteraction, 'id'>) => CommsInteraction | null
   updateInteraction: (id: string, patch: Partial<CommsInteraction>) => CommsInteraction | null
   removeInteraction: (id: string) => void
+  addPolicyFile: (item: Omit<CommsPolicyFile, 'id'>) => CommsPolicyFile | null
+  removePolicyFile: (id: string) => void
+  addIssue: (item: Omit<CommsIssue, 'id'>) => CommsIssue | null
+  updateIssue: (id: string, patch: Partial<CommsIssue>) => CommsIssue | null
+  removeIssue: (id: string) => void
   updateUsageControls: (controls: Partial<CommsUsageControls>) => CommsUsageControls | null
 }
 

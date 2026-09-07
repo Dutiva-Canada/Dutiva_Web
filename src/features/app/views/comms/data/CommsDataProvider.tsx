@@ -11,7 +11,9 @@ import {
   addFeed as addFeedApi,
   addInitiative as addInitiativeApi,
   addInteraction as addInteractionApi,
+  addIssue as addIssueApi,
   addOrganization as addOrganizationApi,
+  addPolicyFile as addPolicyFileApi,
   addSource as addSourceApi,
   addSubmission as addSubmissionApi,
   loadFullState as loadFullStateApi,
@@ -24,7 +26,9 @@ import {
   removeFeed as removeFeedApi,
   removeInitiative as removeInitiativeApi,
   removeInteraction as removeInteractionApi,
+  removeIssue as removeIssueApi,
   removeOrganization as removeOrganizationApi,
+  removePolicyFile as removePolicyFileApi,
   removeSource as removeSourceApi,
   removeSubmission as removeSubmissionApi,
   syncAllFeeds as syncAllFeedsApi,
@@ -39,6 +43,7 @@ import {
   updateFeed as updateFeedApi,
   updateInitiative as updateInitiativeApi,
   updateInteraction as updateInteractionApi,
+  updateIssue as updateIssueApi,
   updateOrganization as updateOrganizationApi,
   updateSource as updateSourceApi,
   updateSubmission as updateSubmissionApi,
@@ -54,7 +59,9 @@ import type {
   CommsFeed,
   CommsInitiative,
   CommsInteraction,
+  CommsIssue,
   CommsOrganization,
+  CommsPolicyFile,
   CommsSource,
   CommsSubmission,
   CommsUsageControls,
@@ -454,6 +461,54 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
     [isLive, orgId],
   )
 
+  const addPolicyFile = useCallback(
+    (item: Omit<CommsPolicyFile, 'id'>) => {
+      if (!isLive || !orgId) return null
+      const created = addPolicyFileApi(orgId, item)
+      setState(loadFullStateApi(orgId))
+      return created
+    },
+    [isLive, orgId],
+  )
+
+  const removePolicyFile = useCallback(
+    (id: string) => {
+      if (!isLive || !orgId) return
+      removePolicyFileApi(orgId, id)
+      setState(loadFullStateApi(orgId))
+    },
+    [isLive, orgId],
+  )
+
+  const addIssue = useCallback(
+    (item: Omit<CommsIssue, 'id'>) => {
+      if (!isLive || !orgId) return null
+      const created = addIssueApi(orgId, item)
+      setState(loadFullStateApi(orgId))
+      return created
+    },
+    [isLive, orgId],
+  )
+
+  const updateIssue = useCallback(
+    (id: string, patch: Partial<CommsIssue>) => {
+      if (!isLive || !orgId) return null
+      const updated = updateIssueApi(orgId, id, patch)
+      if (updated) setState(loadFullStateApi(orgId))
+      return updated
+    },
+    [isLive, orgId],
+  )
+
+  const removeIssue = useCallback(
+    (id: string) => {
+      if (!isLive || !orgId) return
+      removeIssueApi(orgId, id)
+      setState(loadFullStateApi(orgId))
+    },
+    [isLive, orgId],
+  )
+
   return useMemo(
     () => ({
       state,
@@ -497,6 +552,11 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
       updateInteraction,
       removeInteraction,
       updateUsageControls,
+      addPolicyFile,
+      removePolicyFile,
+      addIssue,
+      updateIssue,
+      removeIssue,
     }),
     [
       state,
@@ -540,6 +600,11 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
       updateInteraction,
       removeInteraction,
       updateUsageControls,
+      addPolicyFile,
+      removePolicyFile,
+      addIssue,
+      updateIssue,
+      removeIssue,
     ],
   )
 }

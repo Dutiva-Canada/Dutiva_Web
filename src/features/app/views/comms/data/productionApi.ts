@@ -10,7 +10,9 @@ import type {
   CommsFeed,
   CommsInitiative,
   CommsInteraction,
+  CommsIssue,
   CommsOrganization,
+  CommsPolicyFile,
   CommsSource,
   CommsSourceType,
   CommsSubmission,
@@ -778,6 +780,49 @@ export function updateUsageControls(
     usageControls: { ...state.usageControls, ...controls },
   }))
   return loadCommsState(orgId).usageControls
+}
+
+export function addPolicyFile(orgId: string, file: Omit<CommsPolicyFile, 'id'>): CommsPolicyFile {
+  const created: CommsPolicyFile = { ...file, id: createId('policyFile') }
+  updateState(orgId, (state) => ({ ...state, policyFiles: [created, ...state.policyFiles] }))
+  return created
+}
+
+export function removePolicyFile(orgId: string, id: string): void {
+  updateState(orgId, (state) => ({
+    ...state,
+    policyFiles: state.policyFiles.filter((f) => f.id !== id),
+  }))
+}
+
+export function addIssue(orgId: string, issue: Omit<CommsIssue, 'id'>): CommsIssue {
+  const created: CommsIssue = { ...issue, id: createId('issue') }
+  updateState(orgId, (state) => ({ ...state, issues: [created, ...state.issues] }))
+  return created
+}
+
+export function updateIssue(
+  orgId: string,
+  id: string,
+  patch: Partial<CommsIssue>,
+): CommsIssue | null {
+  let result: CommsIssue | null = null
+  updateState(orgId, (state) => ({
+    ...state,
+    issues: state.issues.map((i) => {
+      if (i.id !== id) return i
+      result = { ...i, ...patch }
+      return result
+    }),
+  }))
+  return result
+}
+
+export function removeIssue(orgId: string, id: string): void {
+  updateState(orgId, (state) => ({
+    ...state,
+    issues: state.issues.filter((i) => i.id !== id),
+  }))
 }
 
 export function loadFullState(orgId: string): CommsWorkspaceState {
