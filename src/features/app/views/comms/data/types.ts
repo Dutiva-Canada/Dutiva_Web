@@ -355,6 +355,17 @@ export interface CommsUsageControls {
   contentRetentionDays?: number
 }
 
+export type CommsIntegrationStatus = 'connected' | 'disconnected' | 'pending'
+
+export interface CommsIntegration {
+  id: string
+  name: string
+  type: Bi
+  status: CommsIntegrationStatus
+  owner: string
+  notes?: Bi
+}
+
 export interface CommsWorkspaceState {
   initiatives: CommsInitiative[]
   objectives: CommsObjective[]
@@ -372,6 +383,7 @@ export interface CommsWorkspaceState {
   approvals: CommsApproval[]
   brandClaims: CommsBrandClaim[]
   usageControls: CommsUsageControls
+  integrations: CommsIntegration[]
   /** Audit trail of manual delivery actions. Not a provider log. */
   executionEvents: CommsExecutionEvent[]
 }

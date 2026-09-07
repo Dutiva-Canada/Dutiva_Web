@@ -8,6 +8,7 @@ import type {
   CommsExecutionAction,
   CommsFeed,
   CommsInitiative,
+  CommsIntegration,
   CommsInteraction,
   CommsIssue,
   CommsMetric,
@@ -78,6 +79,9 @@ export interface CommsDataContextValue {
   addMetric: (item: Omit<CommsMetric, 'id'>) => CommsMetric | null
   updateMetric: (id: string, patch: Partial<CommsMetric>) => CommsMetric | null
   removeMetric: (id: string) => void
+  addIntegration: (item: Omit<CommsIntegration, 'id'>) => CommsIntegration | null
+  updateIntegration: (id: string, patch: Partial<CommsIntegration>) => CommsIntegration | null
+  removeIntegration: (id: string) => void
   updateUsageControls: (controls: Partial<CommsUsageControls>) => CommsUsageControls | null
 }
 

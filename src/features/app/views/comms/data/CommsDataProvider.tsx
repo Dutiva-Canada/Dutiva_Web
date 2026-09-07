@@ -10,6 +10,7 @@ import {
   addCoverageItem as addCoverageItemApi,
   addFeed as addFeedApi,
   addInitiative as addInitiativeApi,
+  addIntegration as addIntegrationApi,
   addInteraction as addInteractionApi,
   addIssue as addIssueApi,
   addMetric as addMetricApi,
@@ -26,6 +27,7 @@ import {
   removeCoverageItem as removeCoverageItemApi,
   removeFeed as removeFeedApi,
   removeInitiative as removeInitiativeApi,
+  removeIntegration as removeIntegrationApi,
   removeInteraction as removeInteractionApi,
   removeIssue as removeIssueApi,
   removeMetric as removeMetricApi,
@@ -44,6 +46,7 @@ import {
   updateCoverageItem as updateCoverageItemApi,
   updateFeed as updateFeedApi,
   updateInitiative as updateInitiativeApi,
+  updateIntegration as updateIntegrationApi,
   updateInteraction as updateInteractionApi,
   updateIssue as updateIssueApi,
   updateMetric as updateMetricApi,
@@ -61,6 +64,7 @@ import type {
   CommsExecutionAction,
   CommsFeed,
   CommsInitiative,
+  CommsIntegration,
   CommsInteraction,
   CommsIssue,
   CommsMetric,
@@ -542,6 +546,35 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
     [isLive, orgId],
   )
 
+  const addIntegration = useCallback(
+    (item: Omit<CommsIntegration, 'id'>) => {
+      if (!isLive || !orgId) return null
+      const created = addIntegrationApi(orgId, item)
+      setState(loadFullStateApi(orgId))
+      return created
+    },
+    [isLive, orgId],
+  )
+
+  const updateIntegration = useCallback(
+    (id: string, patch: Partial<CommsIntegration>) => {
+      if (!isLive || !orgId) return null
+      const updated = updateIntegrationApi(orgId, id, patch)
+      if (updated) setState(loadFullStateApi(orgId))
+      return updated
+    },
+    [isLive, orgId],
+  )
+
+  const removeIntegration = useCallback(
+    (id: string) => {
+      if (!isLive || !orgId) return
+      removeIntegrationApi(orgId, id)
+      setState(loadFullStateApi(orgId))
+    },
+    [isLive, orgId],
+  )
+
   return useMemo(
     () => ({
       state,
@@ -593,6 +626,9 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
       addMetric,
       updateMetric,
       removeMetric,
+      addIntegration,
+      updateIntegration,
+      removeIntegration,
     }),
     [
       state,
@@ -644,6 +680,9 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
       addMetric,
       updateMetric,
       removeMetric,
+      addIntegration,
+      updateIntegration,
+      removeIntegration,
     ],
   )
 }

@@ -4,7 +4,21 @@ import { statusChipClass } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { useCommsData } from '../data/useCommsData'
-import type { CommsApprovalDecision, CommsBrandClaim, CommsContentItem, CommsUsageControls } from '../data/types'
+import type {
+  CommsApprovalDecision,
+  CommsBrandClaim,
+  CommsContentItem,
+  CommsIntegrationStatus,
+  CommsUsageControls,
+} from '../data/types'
+
+function biInput(value: string, lang: 'en' | 'fr'): { en: string; fr: string } {
+  const text = value.trim()
+  if (!text) return { en: '', fr: '' }
+  return lang === 'fr'
+    ? { en: `[EN review] ${text}`, fr: text }
+    : { en: text, fr: `[FR review] ${text}` }
+}
 
 const inputClass =
   'w-full rounded-[10px] border border-border bg-surface px-[12px] py-[9px] font-sans text-[13.5px] text-text'
@@ -12,6 +26,7 @@ const labelClass = 'mb-[4px] block text-[12px] font-semibold text-text-3'
 
 const BRAND_CLAIM_STATUSES: CommsBrandClaim['status'][] = ['active', 'expired', 'rejected']
 const APPROVAL_DECISIONS: CommsApprovalDecision[] = ['approved', 'rejected', 'changes_requested']
+const INTEGRATION_STATUSES: CommsIntegrationStatus[] = ['connected', 'disconnected', 'pending']
 
 const decisionTone = (decision: CommsApprovalDecision) => {
   switch (decision) {
@@ -338,6 +353,156 @@ function UsageControls() {
   )
 }
 
+const INTEGRATION_STATUS_TONE: Record<CommsIntegrationStatus, 'success' | 'neutral' | 'warning'> = {
+  connected: 'success',
+  disconnected: 'neutral',
+  pending: 'warning',
+}
+
+function Integrations() {
+  const { x, lang } = useI18n()
+  const { state, canWrite, addIntegration, removeIntegration } = useCommsData()
+  const [open, setOpen] = useState(false)
+  const [name, setName] = useState('')
+  const [type, setType] = useState('')
+  const [status, setStatus] = useState<CommsIntegrationStatus>('pending')
+  const [owner, setOwner] = useState('')
+  const [notes, setNotes] = useState('')
+
+  const reset = () => {
+    setOpen(false)
+    setName('')
+    setType('')
+    setStatus('pending')
+    setOwner('')
+    setNotes('')
+  }
+
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!name.trim() || !owner.trim()) return
+    addIntegration({
+      name: name.trim(),
+      type: biInput(type, lang),
+      status,
+      owner: owner.trim(),
+      notes: notes.trim() ? biInput(notes, lang) : undefined,
+    })
+    reset()
+  }
+
+  return (
+    <section className="rounded-[12px] border border-border bg-surface p-[16px]">
+      <div className="mb-[12px] flex items-center justify-between gap-[12px]">
+        <h3 className="text-[15px] font-semibold text-text">{x(M.comms_integrations)}</h3>
+        {canWrite && !open && (
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="flex items-center gap-[6px] rounded-[8px] border-none bg-navy px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-white"
+          >
+            <Plus size={14} aria-hidden="true" />
+            {x(M.comms_integration_add)}
+          </button>
+        )}
+      </div>
+
+      {open && (
+        <form onSubmit={onSubmit} className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]">
+          <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
+            <div>
+              <label className={labelClass}>{x(M.comms_integration_name)}</label>
+              <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} required />
+            </div>
+            <div>
+              <label className={labelClass}>{x(M.comms_integration_type)}</label>
+              <input value={type} onChange={(e) => setType(e.target.value)} className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>{x(M.comms_integration_status)}</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as CommsIntegrationStatus)}
+                className={inputClass}
+              >
+                {INTEGRATION_STATUSES.map((s) => (
+                  <option key={s} value={s}>{x(M[`comms_integration_status_${s}` as keyof typeof M])}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className={labelClass}>{x(M.comms_integration_owner)}</label>
+              <input value={owner} onChange={(e) => setOwner(e.target.value)} className={inputClass} required />
+            </div>
+            <div className="sm:col-span-2">
+              <label className={labelClass}>{x(M.comms_integration_notes)}</label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                className={`${inputClass} resize-y`}
+              />
+            </div>
+          </div>
+          <div className="mt-[14px] flex gap-[8px]">
+            <button
+              type="submit"
+              className="rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
+            >
+              {x(M.comms_create)}
+            </button>
+            <button
+              type="button"
+              onClick={reset}
+              className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text"
+            >
+              {x(M.comms_cancel)}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {state.integrations.length === 0 ? (
+        <p className="text-[13px] text-text-muted">{x(M.comms_settings_empty)}</p>
+      ) : (
+        <ul className="m-0 flex flex-col gap-[10px] p-0">
+          {state.integrations.map((integration) => (
+            <li key={integration.id} className="rounded-[8px] bg-inset p-[12px]">
+              <div className="flex items-start justify-between gap-[12px]">
+                <div>
+                  <div className="text-[14px] font-semibold text-text">{integration.name}</div>
+                  <div className="text-[12px] text-text-muted">
+                    {x(integration.type)}
+                    {integration.owner ? ` · ${integration.owner}` : ''}
+                  </div>
+                </div>
+                <div className="flex items-center gap-[8px]">
+                  <span className={statusChipClass(INTEGRATION_STATUS_TONE[integration.status])}>
+                    {x(M[`comms_integration_status_${integration.status}` as keyof typeof M])}
+                  </span>
+                  {canWrite && (
+                    <button
+                      type="button"
+                      onClick={() => removeIntegration(integration.id)}
+                      aria-label={x(M.comms_remove)}
+                      className="text-text-muted hover:text-risk-fg"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+              </div>
+              {integration.notes && (
+                <p className="mt-[6px] text-[13px] leading-normal text-text-2">{x(integration.notes)}</p>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
 export function Settings() {
   const { x } = useI18n()
   const { state, canWrite, addBrandClaim, removeBrandClaim } = useCommsData()
@@ -509,10 +674,7 @@ export function Settings() {
 
       <RolesAndApprovals />
 
-      <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h3 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.comms_integrations)}</h3>
-        <p className="text-[13px] text-text-muted">{x(M.comms_settings_empty)}</p>
-      </section>
+      <Integrations />
 
       <UsageControls />
     </div>

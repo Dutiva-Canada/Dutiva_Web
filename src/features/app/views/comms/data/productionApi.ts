@@ -9,6 +9,7 @@ import type {
   CommsExecutionEvent,
   CommsFeed,
   CommsInitiative,
+  CommsIntegration,
   CommsInteraction,
   CommsIssue,
   CommsMetric,
@@ -50,6 +51,7 @@ const emptyCommsState: CommsWorkspaceState = {
   approvals: [],
   brandClaims: [],
   usageControls: {},
+  integrations: [],
   executionEvents: [],
 }
 
@@ -99,6 +101,7 @@ function normalizeState(parsed: CommsWorkspaceState): CommsWorkspaceState {
     approvals: parsed.approvals ?? emptyCommsState.approvals,
     brandClaims: parsed.brandClaims ?? emptyCommsState.brandClaims,
     usageControls: parsed.usageControls ?? emptyCommsState.usageControls,
+    integrations: parsed.integrations ?? emptyCommsState.integrations,
     executionEvents: parsed.executionEvents ?? emptyCommsState.executionEvents,
   }
 }
@@ -853,6 +856,42 @@ export function removeMetric(orgId: string, id: string): void {
   updateState(orgId, (state) => ({
     ...state,
     metrics: state.metrics.filter((m) => m.id !== id),
+  }))
+}
+
+export function addIntegration(
+  orgId: string,
+  integration: Omit<CommsIntegration, 'id'>,
+): CommsIntegration {
+  const created: CommsIntegration = { ...integration, id: createId('integration') }
+  updateState(orgId, (state) => ({
+    ...state,
+    integrations: [created, ...state.integrations],
+  }))
+  return created
+}
+
+export function updateIntegration(
+  orgId: string,
+  id: string,
+  patch: Partial<CommsIntegration>,
+): CommsIntegration | null {
+  let result: CommsIntegration | null = null
+  updateState(orgId, (state) => ({
+    ...state,
+    integrations: state.integrations.map((i) => {
+      if (i.id !== id) return i
+      result = { ...i, ...patch }
+      return result
+    }),
+  }))
+  return result
+}
+
+export function removeIntegration(orgId: string, id: string): void {
+  updateState(orgId, (state) => ({
+    ...state,
+    integrations: state.integrations.filter((i) => i.id !== id),
   }))
 }
 

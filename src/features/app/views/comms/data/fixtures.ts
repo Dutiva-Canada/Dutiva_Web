@@ -429,5 +429,6 @@ export const initialCommsState: CommsWorkspaceState = {
     },
   ],
   usageControls: {},
+  integrations: [],
   executionEvents: [],
 }
