@@ -5,20 +5,24 @@ import { initialCommsState } from './fixtures'
 import {
   addApproval as addApprovalApi,
   addBrandClaim as addBrandClaimApi,
+  addContact as addContactApi,
   addContentItem as addContentItemApi,
   addCoverageItem as addCoverageItemApi,
   addFeed as addFeedApi,
   addInitiative as addInitiativeApi,
+  addOrganization as addOrganizationApi,
   addSource as addSourceApi,
   addSubmission as addSubmissionApi,
   loadFullState as loadFullStateApi,
   recordManualReceipt as recordManualReceiptApi,
   removeApproval as removeApprovalApi,
   removeBrandClaim as removeBrandClaimApi,
+  removeContact as removeContactApi,
   removeContentItem as removeContentItemApi,
   removeCoverageItem as removeCoverageItemApi,
   removeFeed as removeFeedApi,
   removeInitiative as removeInitiativeApi,
+  removeOrganization as removeOrganizationApi,
   removeSource as removeSourceApi,
   removeSubmission as removeSubmissionApi,
   syncAllFeeds as syncAllFeedsApi,
@@ -27,21 +31,25 @@ import {
   transitionDeliveryStatus as transitionDeliveryStatusApi,
   transitionSubmissionStatus as transitionSubmissionStatusApi,
   updateBrandClaim as updateBrandClaimApi,
+  updateContact as updateContactApi,
   updateContentItem as updateContentItemApi,
   updateCoverageItem as updateCoverageItemApi,
   updateFeed as updateFeedApi,
   updateInitiative as updateInitiativeApi,
+  updateOrganization as updateOrganizationApi,
   updateSource as updateSourceApi,
   updateSubmission as updateSubmissionApi,
 } from './productionApi'
 import type {
   CommsApproval,
   CommsBrandClaim,
+  CommsContact,
   CommsContentItem,
   CommsCoverageItem,
   CommsExecutionAction,
   CommsFeed,
   CommsInitiative,
+  CommsOrganization,
   CommsSource,
   CommsSubmission,
 } from './types'
@@ -343,6 +351,64 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
     [isLive, orgId],
   )
 
+  const addContact = useCallback(
+    (item: Omit<CommsContact, 'id'>) => {
+      if (!isLive || !orgId) return null
+      const created = addContactApi(orgId, item)
+      setState(loadFullStateApi(orgId))
+      return created
+    },
+    [isLive, orgId],
+  )
+
+  const updateContact = useCallback(
+    (id: string, patch: Partial<CommsContact>) => {
+      if (!isLive || !orgId) return null
+      const updated = updateContactApi(orgId, id, patch)
+      if (updated) setState(loadFullStateApi(orgId))
+      return updated
+    },
+    [isLive, orgId],
+  )
+
+  const removeContact = useCallback(
+    (id: string) => {
+      if (!isLive || !orgId) return
+      removeContactApi(orgId, id)
+      setState(loadFullStateApi(orgId))
+    },
+    [isLive, orgId],
+  )
+
+  const addOrganization = useCallback(
+    (item: Omit<CommsOrganization, 'id'>) => {
+      if (!isLive || !orgId) return null
+      const created = addOrganizationApi(orgId, item)
+      setState(loadFullStateApi(orgId))
+      return created
+    },
+    [isLive, orgId],
+  )
+
+  const updateOrganization = useCallback(
+    (id: string, patch: Partial<CommsOrganization>) => {
+      if (!isLive || !orgId) return null
+      const updated = updateOrganizationApi(orgId, id, patch)
+      if (updated) setState(loadFullStateApi(orgId))
+      return updated
+    },
+    [isLive, orgId],
+  )
+
+  const removeOrganization = useCallback(
+    (id: string) => {
+      if (!isLive || !orgId) return
+      removeOrganizationApi(orgId, id)
+      setState(loadFullStateApi(orgId))
+    },
+    [isLive, orgId],
+  )
+
   return useMemo(
     () => ({
       state,
@@ -376,6 +442,12 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
       removeBrandClaim,
       addApproval,
       removeApproval,
+      addContact,
+      updateContact,
+      removeContact,
+      addOrganization,
+      updateOrganization,
+      removeOrganization,
     }),
     [
       state,
@@ -409,6 +481,12 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
       removeBrandClaim,
       addApproval,
       removeApproval,
+      addContact,
+      updateContact,
+      removeContact,
+      addOrganization,
+      updateOrganization,
+      removeOrganization,
     ],
   )
 }

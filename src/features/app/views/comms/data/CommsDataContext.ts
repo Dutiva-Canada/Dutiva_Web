@@ -2,11 +2,13 @@ import { createContext } from 'react'
 import type {
   CommsApproval,
   CommsBrandClaim,
+  CommsContact,
   CommsContentItem,
   CommsCoverageItem,
   CommsExecutionAction,
   CommsFeed,
   CommsInitiative,
+  CommsOrganization,
   CommsSource,
   CommsSubmission,
   CommsSubmissionStatus,
@@ -54,6 +56,12 @@ export interface CommsDataContextValue {
   removeBrandClaim: (id: string) => void
   addApproval: (item: Omit<CommsApproval, 'id'>) => CommsApproval | null
   removeApproval: (id: string) => void
+  addContact: (item: Omit<CommsContact, 'id'>) => CommsContact | null
+  updateContact: (id: string, patch: Partial<CommsContact>) => CommsContact | null
+  removeContact: (id: string) => void
+  addOrganization: (item: Omit<CommsOrganization, 'id'>) => CommsOrganization | null
+  updateOrganization: (id: string, patch: Partial<CommsOrganization>) => CommsOrganization | null
+  removeOrganization: (id: string) => void
 }
 
 export const CommsDataContext = createContext<CommsDataContextValue | null>(null)

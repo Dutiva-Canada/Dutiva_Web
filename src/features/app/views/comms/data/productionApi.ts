@@ -2,12 +2,14 @@ import { initialCommsState } from './fixtures'
 import type {
   CommsApproval,
   CommsBrandClaim,
+  CommsContact,
   CommsContentItem,
   CommsCoverageItem,
   CommsExecutionAction,
   CommsExecutionEvent,
   CommsFeed,
   CommsInitiative,
+  CommsOrganization,
   CommsSource,
   CommsSourceType,
   CommsSubmission,
@@ -664,6 +666,69 @@ export function removeApproval(orgId: string, id: string): void {
   updateState(orgId, (state) => ({
     ...state,
     approvals: state.approvals.filter((a) => a.id !== id),
+  }))
+}
+
+export function addContact(orgId: string, contact: Omit<CommsContact, 'id'>): CommsContact {
+  const created: CommsContact = { ...contact, id: createId('contact') }
+  updateState(orgId, (state) => ({ ...state, contacts: [created, ...state.contacts] }))
+  return created
+}
+
+export function updateContact(
+  orgId: string,
+  id: string,
+  patch: Partial<CommsContact>,
+): CommsContact | null {
+  let result: CommsContact | null = null
+  updateState(orgId, (state) => ({
+    ...state,
+    contacts: state.contacts.map((c) => {
+      if (c.id !== id) return c
+      result = { ...c, ...patch }
+      return result
+    }),
+  }))
+  return result
+}
+
+export function removeContact(orgId: string, id: string): void {
+  updateState(orgId, (state) => ({
+    ...state,
+    contacts: state.contacts.filter((c) => c.id !== id),
+  }))
+}
+
+export function addOrganization(
+  orgId: string,
+  organization: Omit<CommsOrganization, 'id'>,
+): CommsOrganization {
+  const created: CommsOrganization = { ...organization, id: createId('organization') }
+  updateState(orgId, (state) => ({ ...state, organizations: [created, ...state.organizations] }))
+  return created
+}
+
+export function updateOrganization(
+  orgId: string,
+  id: string,
+  patch: Partial<CommsOrganization>,
+): CommsOrganization | null {
+  let result: CommsOrganization | null = null
+  updateState(orgId, (state) => ({
+    ...state,
+    organizations: state.organizations.map((o) => {
+      if (o.id !== id) return o
+      result = { ...o, ...patch }
+      return result
+    }),
+  }))
+  return result
+}
+
+export function removeOrganization(orgId: string, id: string): void {
+  updateState(orgId, (state) => ({
+    ...state,
+    organizations: state.organizations.filter((o) => o.id !== id),
   }))
 }
 
