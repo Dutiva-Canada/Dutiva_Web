@@ -1,5 +1,21 @@
-import { useMemo, useState, type ReactNode } from 'react'
-import { Calendar, Check, Clock, Pause, Play, Plus, RefreshCw, X } from 'lucide-react'
+import { useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
+import {
+  Bold,
+  Calendar,
+  Check,
+  Clock,
+  Heading,
+  Italic,
+  Link,
+  List,
+  ListOrdered,
+  Pause,
+  Play,
+  Plus,
+  RefreshCw,
+  X,
+} from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
 import { statusChipClass } from '@/components/chips'
 import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
@@ -252,6 +268,143 @@ function DeliveryActions({ item }: { item: CommsContentItem }) {
   )
 }
 
+const markdownComponents = {
+  p: ({ children }: { children?: ReactNode }) => <p className="mb-[8px] last:mb-0">{children}</p>,
+  ul: ({ children }: { children?: ReactNode }) => <ul className="mb-[8px] list-disc pl-[20px]">{children}</ul>,
+  ol: ({ children }: { children?: ReactNode }) => <ol className="mb-[8px] list-decimal pl-[20px]">{children}</ol>,
+  li: ({ children }: { children?: ReactNode }) => <li className="mb-[4px]">{children}</li>,
+  h1: ({ children }: { children?: ReactNode }) => (
+    <h2 className="mb-[8px] text-[16px] font-semibold text-text">{children}</h2>
+  ),
+  h2: ({ children }: { children?: ReactNode }) => (
+    <h2 className="mb-[8px] text-[16px] font-semibold text-text">{children}</h2>
+  ),
+  h3: ({ children }: { children?: ReactNode }) => (
+    <h3 className="mb-[8px] text-[15px] font-semibold text-text">{children}</h3>
+  ),
+  strong: ({ children }: { children?: ReactNode }) => <strong className="font-semibold text-text">{children}</strong>,
+  em: ({ children }: { children?: ReactNode }) => <em className="italic text-text">{children}</em>,
+  a: ({ children, href }: { children?: ReactNode; href?: string }) => (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-accent underline hover:text-accent-hover"
+    >
+      {children}
+    </a>
+  ),
+  blockquote: ({ children }: { children?: ReactNode }) => (
+    <blockquote className="mb-[8px] border-l-2 border-border pl-[12px] italic text-text-muted">
+      {children}
+    </blockquote>
+  ),
+}
+
+function MarkdownBody({ children }: { readonly children: string }) {
+  return <ReactMarkdown components={markdownComponents}>{children}</ReactMarkdown>
+}
+
+function getLineRange(text: string, position: number): { start: number; end: number } {
+  let start = position
+  while (start > 0 && text[start - 1] !== '\n') start -= 1
+  let end = position
+  while (end < text.length && text[end] !== '\n') end += 1
+  return { start, end }
+}
+
+interface MarkdownToolbarProps {
+  value: string
+  textareaRef: RefObject<HTMLTextAreaElement | null>
+  setValue: (value: string) => void
+}
+
+function MarkdownToolbar({ value, textareaRef, setValue }: MarkdownToolbarProps) {
+  const { x } = useI18n()
+
+  const apply = (fn: (text: string, start: number, end: number) => { text: string; start: number; end: number }) => {
+    const ta = textareaRef.current
+    if (!ta) return
+    const start = ta.selectionStart
+    const end = ta.selectionEnd
+    const result = fn(value, start, end)
+    setValue(result.text)
+    setTimeout(() => {
+      ta.focus()
+      ta.setSelectionRange(result.start, result.end)
+    }, 0)
+  }
+
+  const wrap = (before: string, after: string, placeholder = '') => {
+    apply((text, start, end) => {
+      const selected = text.slice(start, end)
+      if (selected) {
+        const replacement = `${before}${selected}${after}`
+        const next = text.slice(0, start) + replacement + text.slice(end)
+        return { text: next, start, end: end + before.length + after.length }
+      }
+      const replacement = `${before}${placeholder}${after}`
+      const next = text.slice(0, start) + replacement + text.slice(end)
+      const cursor = start + before.length
+      return { text: next, start: cursor, end: cursor + placeholder.length }
+    })
+  }
+
+  const prefixLines = (prefix: string) => {
+    apply((text, start, end) => {
+      const selection = text.slice(start, end)
+      if (selection) {
+        const lines = selection.split('\n')
+        const prefixed = lines.map((line) => (line.startsWith(prefix) ? line : `${prefix}${line}`)).join('\n')
+        const next = text.slice(0, start) + prefixed + text.slice(end)
+        return { text: next, start, end: start + prefixed.length }
+      }
+      const range = getLineRange(text, start)
+      const line = text.slice(range.start, range.end)
+      const prefixed = line.startsWith(prefix) ? line : `${prefix}${line}`
+      const next = text.slice(0, range.start) + prefixed + text.slice(range.end)
+      return { text: next, start: range.start + prefixed.length, end: range.start + prefixed.length }
+    })
+  }
+
+  const insertLink = () => {
+    apply((text, start, end) => {
+      const selected = text.slice(start, end)
+      const linkText = selected || 'text'
+      const replacement = `[${linkText}](url)`
+      const next = text.slice(0, start) + replacement + text.slice(end)
+      const cursorStart = start + 1
+      const cursorEnd = cursorStart + linkText.length
+      return { text: next, start: cursorStart, end: cursorEnd }
+    })
+  }
+
+  const iconButton = (icon: ReactNode, label: Bi, onClick: () => void) => (
+    <button
+      key={label.en}
+      type="button"
+      onClick={onClick}
+      aria-label={x(label)}
+      title={x(label)}
+      className="flex h-[28px] w-[28px] items-center justify-center rounded-[6px] border border-border bg-surface text-text-2 hover:bg-inset"
+    >
+      {icon}
+    </button>
+  )
+
+  return (
+    <div className="mb-[6px] flex items-center gap-[4px]">
+      {iconButton(<Bold size={14} />, M.comms_format_bold, () => wrap('**', '**', 'bold text'))}
+      {iconButton(<Italic size={14} />, M.comms_format_italic, () => wrap('_', '_', 'italic text'))}
+      {iconButton(<Heading size={14} />, M.comms_format_heading, () => prefixLines('## '))}
+      {iconButton(<List size={14} />, M.comms_format_bullet_list, () => prefixLines('- '))}
+      {iconButton(<ListOrdered size={14} />, M.comms_format_numbered_list, () => prefixLines('1. '))}
+      {iconButton(<Link size={14} />, M.comms_format_link, insertLink)}
+      <span className="ml-auto text-[11px] text-text-faint">{x(M.comms_content_body_hint)}</span>
+    </div>
+  )
+}
+
 export function ContentCalendar() {
   const { x, lang } = useI18n()
   const { state, canWrite, addContentItem, updateContentItem, removeContentItem } = useCommsData()
@@ -265,6 +418,7 @@ export function ContentCalendar() {
   const [dueDate, setDueDate] = useState('')
   const [owner, setOwner] = useState('')
   const [body, setBody] = useState('')
+  const bodyRef = useRef<HTMLTextAreaElement>(null)
 
   const reset = () => {
     setOpen(false)
@@ -414,7 +568,9 @@ export function ContentCalendar() {
             </div>
             <div className="sm:col-span-2">
               <label className={labelClass}>{x(M.comms_content_body)}</label>
+              <MarkdownToolbar value={body} textareaRef={bodyRef} setValue={setBody} />
               <textarea
+                ref={bodyRef}
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 rows={6}
@@ -486,8 +642,8 @@ export function ContentCalendar() {
                 )}
                 {!isInitiativePaused && <DeliveryActions item={item} />}
                 {item.body && (
-                  <div className="mt-[10px] whitespace-pre-wrap text-[13px] leading-relaxed text-text-2">
-                    {x(item.body)}
+                  <div className="mt-[10px] text-[13px] leading-relaxed text-text-2">
+                    <MarkdownBody>{x(item.body)}</MarkdownBody>
                   </div>
                 )}
               </div>

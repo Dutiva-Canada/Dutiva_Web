@@ -103,7 +103,16 @@ export const commsMessages = defineMessages({
   comms_content_scheduled: { en: 'Scheduled', fr: 'Planifié' },
   comms_content_owner: { en: 'Owner', fr: 'Responsable' },
   comms_content_body: { en: 'Body', fr: 'Corps' },
-  comms_content_revision_note: { en: 'Revision note', fr: 'Note de révision' },
+  comms_content_body_hint: {
+    en: 'Markdown formatting is supported.',
+    fr: 'La mise en forme Markdown est prise en charge.',
+  },
+  comms_format_bold: { en: 'Bold', fr: 'Gras' },
+  comms_format_italic: { en: 'Italic', fr: 'Italique' },
+  comms_format_heading: { en: 'Heading', fr: 'Titre' },
+  comms_format_bullet_list: { en: 'Bullet list', fr: 'Liste à puces' },
+  comms_format_numbered_list: { en: 'Numbered list', fr: 'Liste numérotée' },
+  comms_format_link: { en: 'Link', fr: 'Lien' },
 
   comms_language_en: { en: 'English', fr: 'Anglais' },
   comms_language_fr: { en: 'French', fr: 'Français' },
