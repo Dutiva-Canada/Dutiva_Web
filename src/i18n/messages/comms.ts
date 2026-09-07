@@ -33,6 +33,8 @@ export const commsMessages = defineMessages({
   comms_save: { en: 'Save', fr: 'Enregistrer' },
   comms_cancel: { en: 'Cancel', fr: 'Annuler' },
   comms_edit: { en: 'Edit', fr: 'Modifier' },
+  comms_import: { en: 'Import', fr: 'Importer' },
+  comms_export: { en: 'Export', fr: 'Exporter' },
   comms_remove: { en: 'Remove', fr: 'Retirer' },
   comms_create: { en: 'Create', fr: 'Créer' },
   comms_close: { en: 'Close', fr: 'Fermer' },

@@ -24,6 +24,8 @@ export const bulkImportMessages = defineMessages({
   bulk_import_legal_entities: { en: 'Legal entities', fr: 'Entités juridiques' },
   bulk_import_transactions: { en: 'Transactions', fr: 'Transactions' },
   bulk_import_bank_statement: { en: 'Bank statement', fr: 'Relevé bancaire' },
+  bulk_import_contacts: { en: 'Contacts', fr: 'Contacts' },
+  bulk_import_organizations: { en: 'Organizations', fr: 'Organismes' },
 
   // Generic field labels
   bulk_field_date: { en: 'Date', fr: 'Date' },
@@ -40,5 +42,17 @@ export const bulkImportMessages = defineMessages({
   bulk_field_employee_status: { en: 'Status', fr: 'Statut' },
   bulk_field_employee_start_date: { en: 'Start date', fr: 'Date de début' },
   bulk_field_employee_manager_id: { en: 'Manager ID', fr: 'ID du gestionnaire' },
+  bulk_field_contact_name: { en: 'Name', fr: 'Nom' },
+  bulk_field_contact_type: { en: 'Type', fr: 'Type' },
+  bulk_field_contact_organization: { en: 'Organization', fr: 'Organisme' },
+  bulk_field_contact_role: { en: 'Role', fr: 'Rôle' },
+  bulk_field_contact_purpose: { en: 'Purpose', fr: 'Objectif' },
+  bulk_field_contact_preferred_channel: { en: 'Preferred channel', fr: 'Canal préféré' },
+  bulk_field_contact_source: { en: 'Source', fr: 'Source' },
+  bulk_field_contact_active: { en: 'Active', fr: 'Actif' },
+  bulk_field_organization_name: { en: 'Name', fr: 'Nom' },
+  bulk_field_organization_type: { en: 'Type', fr: 'Type' },
+  bulk_field_organization_jurisdiction: { en: 'Jurisdiction', fr: 'Territoire de compétence' },
+  bulk_field_organization_notes: { en: 'Notes', fr: 'Remarques' },
   bulk_import_employees: { en: 'Employees', fr: 'Employés' },
 })

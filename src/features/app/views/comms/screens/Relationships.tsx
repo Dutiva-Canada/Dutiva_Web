@@ -1,11 +1,14 @@
 import { useState } from 'react'
-import { Plus, X } from 'lucide-react'
+import { FileUp, Plus, X } from 'lucide-react'
 import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
+import { BulkImportWizard } from '@/features/app/bulkImport/BulkImportWizard'
 import { useCommsData } from '../data/useCommsData'
 import type { CommsContactType } from '../data/types'
 import { CONTACT_TYPE_LABEL } from '../commsLabels'
+import { createContactBulkImportAdapter } from '../bulkImport/contactAdapter'
+import { createOrganizationBulkImportAdapter } from '../bulkImport/organizationAdapter'
 
 const inputClass =
   'w-full rounded-[10px] border border-border bg-surface px-[12px] py-[9px] font-sans text-[13.5px] text-text'
@@ -196,10 +199,11 @@ function OrganizationForm({ onCancel }: { onCancel: () => void }) {
 }
 
 export function Relationships() {
-  const { x } = useI18n()
-  const { state, canWrite, removeContact, removeOrganization } = useCommsData()
+  const { x, lang } = useI18n()
+  const { state, canWrite, addContact, addOrganization, removeContact, removeOrganization } = useCommsData()
   const [addingContact, setAddingContact] = useState(false)
   const [addingOrg, setAddingOrg] = useState(false)
+  const [bulkImport, setBulkImport] = useState<'contact' | 'organization' | null>(null)
 
   return (
     <div className="flex flex-col gap-[16px]">
@@ -209,14 +213,24 @@ export function Relationships() {
         <div className="mb-[12px] flex items-center justify-between gap-[12px]">
           <h3 className="text-[15px] font-semibold text-text">{x(M.comms_contacts)}</h3>
           {canWrite && !addingContact && (
-            <button
-              type="button"
-              onClick={() => setAddingContact(true)}
-              className="flex items-center gap-[6px] rounded-[8px] border-none bg-navy px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-white"
-            >
-              <Plus size={14} aria-hidden="true" />
-              {x(M.comms_add)}
-            </button>
+            <div className="flex items-center gap-[8px]">
+              <button
+                type="button"
+                onClick={() => setAddingContact(true)}
+                className="flex items-center gap-[6px] rounded-[8px] border-none bg-navy px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-white"
+              >
+                <Plus size={14} aria-hidden="true" />
+                {x(M.comms_add)}
+              </button>
+              <button
+                type="button"
+                onClick={() => setBulkImport('contact')}
+                className="flex items-center gap-[6px] rounded-[8px] border border-border bg-surface px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-text"
+              >
+                <FileUp size={14} aria-hidden="true" />
+                {x(M.comms_import)}
+              </button>
+            </div>
           )}
         </div>
 
@@ -277,14 +291,24 @@ export function Relationships() {
         <div className="mb-[12px] flex items-center justify-between gap-[12px]">
           <h3 className="text-[15px] font-semibold text-text">{x(M.comms_organizations)}</h3>
           {canWrite && !addingOrg && (
-            <button
-              type="button"
-              onClick={() => setAddingOrg(true)}
-              className="flex items-center gap-[6px] rounded-[8px] border-none bg-navy px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-white"
-            >
-              <Plus size={14} aria-hidden="true" />
-              {x(M.comms_add)}
-            </button>
+            <div className="flex items-center gap-[8px]">
+              <button
+                type="button"
+                onClick={() => setAddingOrg(true)}
+                className="flex items-center gap-[6px] rounded-[8px] border-none bg-navy px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-white"
+              >
+                <Plus size={14} aria-hidden="true" />
+                {x(M.comms_add)}
+              </button>
+              <button
+                type="button"
+                onClick={() => setBulkImport('organization')}
+                className="flex items-center gap-[6px] rounded-[8px] border border-border bg-surface px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-text"
+              >
+                <FileUp size={14} aria-hidden="true" />
+                {x(M.comms_import)}
+              </button>
+            </div>
           )}
         </div>
 
@@ -321,6 +345,19 @@ export function Relationships() {
           </ul>
         )}
       </section>
+
+      {bulkImport === 'contact' && (
+        <BulkImportWizard
+          adapter={createContactBulkImportAdapter(lang, addContact, state.organizations)}
+          onClose={() => setBulkImport(null)}
+        />
+      )}
+      {bulkImport === 'organization' && (
+        <BulkImportWizard
+          adapter={createOrganizationBulkImportAdapter(lang, addOrganization)}
+          onClose={() => setBulkImport(null)}
+        />
+      )}
     </div>
   )
 }
