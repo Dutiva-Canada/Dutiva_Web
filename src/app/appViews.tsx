@@ -103,6 +103,7 @@ import {
 /* prettier-ignore */ const CommsEngagement = lazy(() => import('@/features/app/views/comms/screens/Engagement').then((m) => ({ default: m.Engagement })))
 /* prettier-ignore */ const CommsIntelligence = lazy(() => import('@/features/app/views/comms/screens/Intelligence').then((m) => ({ default: m.Intelligence })))
 /* prettier-ignore */ const CommsResults = lazy(() => import('@/features/app/views/comms/screens/Results').then((m) => ({ default: m.Results })))
+/* prettier-ignore */ const CommsAnalytics = lazy(() => import('@/features/app/views/comms/screens/CommsAnalytics').then((m) => ({ default: m.CommsAnalytics })))
 /* prettier-ignore */ const CommsSettings = lazy(() => import('@/features/app/views/comms/screens/Settings').then((m) => ({ default: m.Settings })))
 /* Finance workspace screens */
 /* prettier-ignore */ const FinanceOverview = lazy(() => import('@/features/app/views/finance/screens/Overview').then((m) => ({ default: m.Overview })))
@@ -197,6 +198,7 @@ function createAppViewRoutes(root: string): RouteObject[] {
         { path: 'engagement', element: <CommsEngagement /> },
         { path: 'intelligence', element: <CommsIntelligence /> },
         { path: 'results', element: <CommsResults /> },
+        { path: 'analytics', element: <CommsAnalytics /> },
         { path: 'settings', element: <CommsSettings /> },
       ],
     },

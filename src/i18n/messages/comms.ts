@@ -26,7 +26,11 @@ export const commsMessages = defineMessages({
   comms_tab_engagement: { en: 'Engagement', fr: 'Interactions' },
   comms_tab_intelligence: { en: 'Intelligence & issues', fr: 'Veille et enjeux' },
   comms_tab_results: { en: 'Results', fr: 'Résultats' },
+  comms_tab_analytics: { en: 'Analytics', fr: 'Analytique' },
   comms_tab_settings: { en: 'Settings', fr: 'Paramètres' },
+
+  /* Common chrome */
+  comms_loading: { en: 'Loading…', fr: 'Chargement…' },
 
   /* Common actions */
   comms_add: { en: 'Add', fr: 'Ajouter' },
@@ -459,13 +463,25 @@ export const commsMessages = defineMessages({
   comms_usage_retention_days: { en: 'Content retention days', fr: 'Jours de conservation du contenu' },
   comms_usage_update: { en: 'Update controls', fr: 'Mettre à jour les contrôles' },
 
+  /* Analytics */
+  comms_analytics_title: { en: 'Communications analytics', fr: 'Analytique des communications' },
+  comms_analytics_subtitle: { en: 'Activity and volume across initiatives, content, and engagement.', fr: 'Activité et volume par initiative, contenu et interactions.' },
+  comms_analytics_initiatives: { en: 'Initiatives', fr: 'Initiatives' },
+  comms_analytics_content_items: { en: 'Content items', fr: 'Éléments de contenu' },
+  comms_analytics_open_interactions: { en: 'Open interactions', fr: 'Interactions ouvertes' },
+  comms_analytics_open_issues: { en: 'Open issues', fr: 'Enjeux ouverts' },
+  comms_analytics_coverage: { en: 'Coverage', fr: 'Couverture' },
+  comms_analytics_submissions: { en: 'Submissions', fr: 'Soumissions' },
+  comms_analytics_brand_claims: { en: 'Brand claims', fr: 'Revendications de marque' },
+  comms_analytics_empty: { en: 'No Comms activity to report yet.', fr: 'Aucune activité Comms à rapporter pour l’instant.' },
+
   /* Demo / production notices */
   comms_demo_read_only: {
     en: 'Demo workspace: changes are not persisted.',
     fr: 'Espace de travail de démonstration : les modifications ne sont pas conservées.',
   },
-  comms_production_local_only: {
-    en: 'Production mode uses local browser storage for now; a database migration will follow.',
-    fr: 'Le mode production utilise l’espace de stockage local du navigateur pour l’instant; une migration de base de données suivra.',
+  comms_production_synced: {
+    en: 'Production mode syncs with your workspace database.',
+    fr: 'Le mode production se synchronise avec la base de données de votre espace de travail.',
   },
 })

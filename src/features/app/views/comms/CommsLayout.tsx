@@ -29,6 +29,7 @@ const TABS: CommsTab[] = [
   { key: 'engagement', to: 'engagement', label: 'comms_tab_engagement', icon: MessageSquare },
   { key: 'intelligence', to: 'intelligence', label: 'comms_tab_intelligence', icon: Eye },
   { key: 'results', to: 'results', label: 'comms_tab_results', icon: BarChart3 },
+  { key: 'analytics', to: 'analytics', label: 'comms_tab_analytics', icon: BarChart3 },
   { key: 'settings', to: 'settings', label: 'comms_tab_settings', icon: Settings },
 ]
 
@@ -69,7 +70,7 @@ export function CommsLayout({ mode }: CommsLayoutProps) {
       </div>
 
       <div className="mb-[14px] text-[12px] text-text-muted">
-        {mode === 'demo' ? x(M.comms_demo_read_only) : x(M.comms_production_local_only)}
+        {mode === 'demo' ? x(M.comms_demo_read_only) : x(M.comms_production_synced)}
       </div>
 
       <Outlet />
