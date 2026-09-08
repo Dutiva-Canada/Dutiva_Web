@@ -50,7 +50,7 @@ const PAGE = path.join(dist, 'index.html')
 
 /** Ceilings. Raise deliberately, with a note saying what earned the room. */
 const MAX_PRELOADS = 9 // 5 as of 2026-08-02; 7 as of 2026-08-05 (messages-workspace split added shell.ts + workspaceMode.ts as their own small preloads); 9 as of 2026-08-10 — Vercel's production build produces one more preload than local builds (likely a rolldown chunking difference), and the ceiling is raised to keep the deploy green.
-const MAX_EAGER_KB = 630 // 612 as of 2026-09-06; 620 as of 2026-09-06 for the browser-local Transformer option (ruleSuggestionAi.ts controller + a few new workspace i18n strings). 630 as of 2026-09-06 because Vercel's production build is consistently ~6-7 kB larger than local builds, and the latest deployment measured 623.4 kB raw. The ~40 MB model and ONNX runtime stay in a lazy chunk, not the entry graph.
+const MAX_EAGER_KB = 645 // 612 as of 2026-09-06; 620 as of 2026-09-06 for the browser-local Transformer option (ruleSuggestionAi.ts controller + a few new workspace i18n strings). 630 as of 2026-09-06 because Vercel's production build is consistently ~6-7 kB larger than local builds, and the latest deployment measured 623.4 kB raw. 645 as of 2026-09-08: post-governance modules (security, operations, specialists, revenue, CRM, Comms segments) added shell nav labels that ride the eager graph via navLabels.ts; Vercel measured 637.0 kB raw on main. The ~40 MB model and ONNX runtime stay in a lazy chunk, not the entry graph.
 
 /**
  * Long-form prose that must stay out of the eager graph. Each of these is
