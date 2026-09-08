@@ -21,8 +21,8 @@ import { statusChipClass } from '@/components/chips'
 import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
-import { useCommsData } from '../data/useCommsData'
 import { useContentItems } from '../data/useContentItems'
+import { useExecutionEvents } from '../data/useExecutionEvents'
 import { useInitiatives } from '../data/useInitiatives'
 import { createContentBulkImportAdapter } from '../bulkImport/contentAdapter'
 import { BulkImportWizard } from '@/features/app/bulkImport/BulkImportWizard'
@@ -406,7 +406,7 @@ function MarkdownToolbar({ value, textareaRef, setValue }: MarkdownToolbarProps)
 
 export function ContentCalendar() {
   const { x, lang } = useI18n()
-  const { state: commsState } = useCommsData()
+  const { executionEvents } = useExecutionEvents()
   const {
     contentItems,
     canWrite,
@@ -674,7 +674,7 @@ export function ContentCalendar() {
 
       <div className="rounded-[12px] border border-border bg-surface p-[16px]">
         <h3 className="mb-[10px] text-[14px] font-semibold text-text">{x(M.comms_execution_log)}</h3>
-        <ExecutionLog events={commsState.executionEvents} lang={lang} />
+        <ExecutionLog events={executionEvents} lang={lang} />
       </div>
 
       <p className="text-[11px] leading-normal text-text-faint">{x(M.comms_delivery_note)}</p>

@@ -3,8 +3,11 @@ import { Plus, X } from 'lucide-react'
 import { statusChipClass } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
-import { useCommsData } from '../data/useCommsData'
+import { useApprovals } from '../data/useApprovals'
+import { useBrandClaims } from '../data/useBrandClaims'
 import { useContentItems } from '../data/useContentItems'
+import { useIntegrations } from '../data/useIntegrations'
+import { useUsageControls } from '../data/useUsageControls'
 import type {
   CommsApprovalDecision,
   CommsBrandClaim,
@@ -46,7 +49,7 @@ function ContentItemOption({ item, x }: { item: CommsContentItem; x: (b: import(
 
 function RolesAndApprovals() {
   const { x, lang } = useI18n()
-  const { state, canWrite, addApproval, removeApproval } = useCommsData()
+  const { canWrite, addApproval, removeApproval, approvals } = useApprovals()
   const { contentItems } = useContentItems()
   const [open, setOpen] = useState(false)
   const [contentItemId, setContentItemId] = useState('')
@@ -80,7 +83,7 @@ function RolesAndApprovals() {
     setOpen(true)
   }
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!contentItemId || !approver) return
     const text = rationale.trim()
@@ -89,7 +92,7 @@ function RolesAndApprovals() {
         ? { en: `[EN review] ${text}`, fr: text }
         : { en: text, fr: `[FR review] ${text}` }
       : undefined
-    addApproval({
+    await addApproval({
       contentItemId,
       approver,
       decision,
@@ -180,7 +183,7 @@ function RolesAndApprovals() {
         </form>
       )}
 
-      {pending.length === 0 && state.approvals.length === 0 ? (
+      {pending.length === 0 && approvals.length === 0 ? (
         <p className="text-[13px] text-text-muted">{x(M.comms_settings_empty)}</p>
       ) : (
         <div className="flex flex-col gap-[14px]">
@@ -211,11 +214,11 @@ function RolesAndApprovals() {
             </div>
           )}
 
-          {state.approvals.length > 0 && (
+          {approvals.length > 0 && (
             <div>
               <h4 className="mb-[8px] text-[13px] font-semibold text-text-2">{x(M.comms_approval_history)}</h4>
               <ul className="m-0 flex flex-col gap-[8px] p-0">
-                {state.approvals.map((approval) => {
+                {approvals.map((approval) => {
                   const item = itemTitle(approval.contentItemId)
                   return (
                     <li key={approval.id} className="rounded-[8px] bg-inset p-[10px]">
@@ -259,16 +262,16 @@ function RolesAndApprovals() {
 
 function UsageControls() {
   const { x } = useI18n()
-  const { state, canWrite, updateUsageControls } = useCommsData()
-  const [controls, setControls] = useState<CommsUsageControls>(() => state.usageControls)
+  const { canWrite, updateUsageControls, usageControls } = useUsageControls()
+  const [controls, setControls] = useState<CommsUsageControls>(() => usageControls)
 
   const update = (patch: Partial<CommsUsageControls>) => {
     setControls((prev) => ({ ...prev, ...patch }))
   }
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    updateUsageControls(controls)
+    await updateUsageControls(controls)
   }
 
   const numberValue = (value: string) => {
@@ -363,7 +366,7 @@ const INTEGRATION_STATUS_TONE: Record<CommsIntegrationStatus, 'success' | 'neutr
 
 function Integrations() {
   const { x, lang } = useI18n()
-  const { state, canWrite, addIntegration, removeIntegration } = useCommsData()
+  const { canWrite, addIntegration, removeIntegration, integrations } = useIntegrations()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
   const [type, setType] = useState('')
@@ -380,10 +383,10 @@ function Integrations() {
     setNotes('')
   }
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!name.trim() || !owner.trim()) return
-    addIntegration({
+    await addIntegration({
       name: name.trim(),
       type: biInput(type, lang),
       status,
@@ -464,11 +467,11 @@ function Integrations() {
         </form>
       )}
 
-      {state.integrations.length === 0 ? (
+      {integrations.length === 0 ? (
         <p className="text-[13px] text-text-muted">{x(M.comms_settings_empty)}</p>
       ) : (
         <ul className="m-0 flex flex-col gap-[10px] p-0">
-          {state.integrations.map((integration) => (
+          {integrations.map((integration) => (
             <li key={integration.id} className="rounded-[8px] bg-inset p-[12px]">
               <div className="flex items-start justify-between gap-[12px]">
                 <div>
@@ -507,7 +510,7 @@ function Integrations() {
 
 export function Settings() {
   const { x } = useI18n()
-  const { state, canWrite, addBrandClaim, removeBrandClaim } = useCommsData()
+  const { canWrite, addBrandClaim, removeBrandClaim, brandClaims } = useBrandClaims()
   const [open, setOpen] = useState(false)
   const [textEn, setTextEn] = useState('')
   const [textFr, setTextFr] = useState('')
@@ -528,7 +531,7 @@ export function Settings() {
     setStatus('active')
   }
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!textEn && !textFr) return
     const text = { en: textEn, fr: textFr || (textEn ? `[FR review] ${textEn}` : '') }
@@ -536,13 +539,13 @@ export function Settings() {
       en: evidenceEn,
       fr: evidenceFr || (evidenceEn ? `[FR review] ${evidenceEn}` : ''),
     }
-    addBrandClaim({ text, evidence, owner, reviewDate: reviewDate || undefined, status })
+    await addBrandClaim({ text, evidence, owner, reviewDate: reviewDate || undefined, status })
     reset()
   }
 
   const sortedClaims = useMemo(
-    () => [...state.brandClaims].sort((a, b) => a.status.localeCompare(b.status)),
-    [state.brandClaims],
+    () => [...brandClaims].sort((a, b) => a.status.localeCompare(b.status)),
+    [brandClaims],
   )
 
   return (

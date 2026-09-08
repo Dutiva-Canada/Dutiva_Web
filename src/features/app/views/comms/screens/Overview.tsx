@@ -3,15 +3,15 @@ import { Link } from 'react-router-dom'
 import { statusChipClass } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
-import { useCommsData } from '../data/useCommsData'
 import { useContentItems } from '../data/useContentItems'
+import { useExecutionEvents } from '../data/useExecutionEvents'
 import { useInitiatives } from '../data/useInitiatives'
 import { ACTION_LABEL, CHANNEL_LABEL, CONTENT_STATUS_LABEL, DELIVERY_STATUS_LABEL, DOMAIN_LABEL, INITIATIVE_STATUS_LABEL, RISK_LABEL } from '../commsLabels'
 
 export function Overview() {
   const { x, lang } = useI18n()
-  const { state } = useCommsData()
   const { contentItems } = useContentItems()
+  const { executionEvents } = useExecutionEvents()
   const { initiatives } = useInitiatives()
 
   const upcoming = useMemo(
@@ -41,8 +41,8 @@ export function Overview() {
   )
 
   const activity = useMemo(
-    () => [...state.executionEvents].sort((a, b) => b.timestamp.localeCompare(a.timestamp)).slice(0, 20),
-    [state.executionEvents],
+    () => [...executionEvents].sort((a, b) => b.timestamp.localeCompare(a.timestamp)).slice(0, 20),
+    [executionEvents],
   )
 
   return (
