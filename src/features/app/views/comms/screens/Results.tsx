@@ -3,7 +3,7 @@ import { Plus, X } from 'lucide-react'
 import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
-import { useCommsData } from '../data/useCommsData'
+import { useMetrics } from '../data/useMetrics'
 import { useCoverage } from '../data/useCoverage'
 import { useInitiatives } from '../data/useInitiatives'
 import type { CommsInitiative, CommsMetric } from '../data/types'
@@ -36,7 +36,7 @@ function MetricForm({
   initiatives: CommsInitiative[]
 }) {
   const { x, lang } = useI18n()
-  const { addMetric } = useCommsData()
+  const { addMetric } = useMetrics()
   const [name, setName] = useState('')
   const [period, setPeriod] = useState('')
   const [value, setValue] = useState('')
@@ -46,10 +46,10 @@ function MetricForm({
   const [owner, setOwner] = useState('')
   const [initiativeId, setInitiativeId] = useState('')
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!name.trim() || !owner.trim() || !initiativeId) return
-    addMetric({
+    await addMetric({
       initiativeId,
       name: biInput(name, lang) ?? { en: name.trim(), fr: `[FR review] ${name.trim()}` },
       period: biInput(period, lang),
@@ -137,7 +137,7 @@ function MetricForm({
 
 export function Results() {
   const { x, lang } = useI18n()
-  const { state, canWrite, removeMetric } = useCommsData()
+  const { metrics, canWrite, removeMetric } = useMetrics()
   const { initiatives } = useInitiatives()
   const { coverageItems, canWrite: coverageCanWrite, removeCoverageItem } = useCoverage()
   const [adding, setAdding] = useState(false)
@@ -160,11 +160,11 @@ export function Results() {
 
       {adding && <MetricForm onCancel={() => setAdding(false)} initiatives={initiatives} />}
 
-      {state.metrics.length === 0 ? (
+      {metrics.length === 0 ? (
         <p className="text-[13px] text-text-muted">{x(M.comms_results_empty)}</p>
       ) : (
         <div className="flex flex-col gap-[10px]">
-          {state.metrics.map((metric) => (
+          {metrics.map((metric) => (
             <div key={metric.id} className="rounded-[12px] border border-border bg-surface p-[16px]">
               <div className="flex flex-wrap items-start justify-between gap-[12px]">
                 <div>
