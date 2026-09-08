@@ -12,6 +12,7 @@ import type { CandidateProfile } from '@/features/careers/data/candidateApi'
 import { hasApplied, submitApplication } from '@/features/careers/data/applicationsApi'
 import { AiTools } from './AiTools'
 import { MarkdownEditor } from '@/components/MarkdownEditor'
+import { CoverLetterUpload } from './CoverLetterUpload'
 
 type LoadState = 'loading' | 'ready' | 'failed'
 
@@ -164,6 +165,9 @@ export function ApplyToJobPage() {
             <label className={labelClass} htmlFor="apply-cover-letter">
               {x(M.careers_apply_cover_letter)}
             </label>
+            <div className="mb-[12px]">
+              <CoverLetterUpload value={coverLetter} onChange={setCoverLetter} />
+            </div>
             <MarkdownEditor
               value={coverLetter}
               onChange={setCoverLetter}

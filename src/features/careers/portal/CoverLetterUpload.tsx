@@ -3,13 +3,15 @@ import { FileText, Loader2, Upload, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { careersMessages as M } from '@/i18n/messages/careers'
 import { extractTextFromFile, ResumeExtractionError } from './resumeExtraction'
-import { parseResumeText } from './resumeParser'
-import type { CandidateProfileFormValues } from './CandidateProfileForm'
-import type { ExtractionErrorReason } from './resumeExtraction'
 
-type UploadState = 'idle' | 'reading' | 'parsing' | 'done' | 'error'
+type UploadState = 'idle' | 'reading' | 'done' | 'error'
 
-function errorMessageForReason(reason: ExtractionErrorReason) {
+interface CoverLetterUploadProps {
+  value: string
+  onChange: (value: string) => void
+}
+
+function errorMessageForReason(reason: 'unsupported_type' | 'empty_file' | 'too_large' | 'corrupt' | 'read_failed') {
   switch (reason) {
     case 'unsupported_type':
       return M.careers_file_error_unsupported_type
@@ -26,45 +28,7 @@ function errorMessageForReason(reason: ExtractionErrorReason) {
   }
 }
 
-interface ResumeUploadProps {
-  values: CandidateProfileFormValues
-  onChange: (values: CandidateProfileFormValues) => void
-}
-
-function mergeExtracted(
-  current: CandidateProfileFormValues,
-  extracted: Partial<CandidateProfileFormValues>,
-): CandidateProfileFormValues {
-  const merged = { ...current }
-
-  // Resume text always comes from the uploaded document.
-  if (extracted.resumeText) {
-    merged.resumeText = extracted.resumeText
-  }
-
-  // Only fill empty fields so the candidate does not lose edits.
-  const fillable = [
-    'name',
-    'phone',
-    'location',
-    'headline',
-    'summary',
-    'currentRole',
-    'yearsExperience',
-    'linkedin',
-    'website',
-  ] as const satisfies (keyof CandidateProfileFormValues)[]
-
-  for (const key of fillable) {
-    if (!merged[key] && extracted[key] != null) {
-      ;(merged as Record<typeof key, string>)[key] = extracted[key] as string
-    }
-  }
-
-  return merged
-}
-
-export function ResumeUpload({ values, onChange }: ResumeUploadProps) {
+export function CoverLetterUpload({ value, onChange }: CoverLetterUploadProps) {
   const { x } = useI18n()
   const [state, setState] = useState<UploadState>('idle')
   const [error, setError] = useState<string | null>(null)
@@ -79,15 +43,12 @@ export function ResumeUpload({ values, onChange }: ResumeUploadProps) {
 
       try {
         const text = await extractTextFromFile(file)
-        setState('parsing')
-        const extracted = parseResumeText(text)
-        onChange(mergeExtracted(values, extracted))
+        onChange(value ? `${value}\n\n${text}` : text)
         setState('done')
       } catch (err) {
         setState('error')
         if (err instanceof ResumeExtractionError) {
-          const errorMessage = errorMessageForReason(err.reason)
-          setError(x(errorMessage))
+          setError(x(errorMessageForReason(err.reason)))
         } else if (err instanceof Error) {
           setError(err.message)
         } else {
@@ -95,7 +56,7 @@ export function ResumeUpload({ values, onChange }: ResumeUploadProps) {
         }
       }
     },
-    [onChange, values, x],
+    [onChange, value, x],
   )
 
   const onInputChange = useCallback(
@@ -135,8 +96,8 @@ export function ResumeUpload({ values, onChange }: ResumeUploadProps) {
         accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         onChange={onInputChange}
         className="sr-only"
-        id="cp-resume-upload"
-        aria-label={x(M.careers_profile_resume_upload_label)}
+        id="cp-cover-letter-upload"
+        aria-label={x(M.careers_apply_cover_letter_upload_label)}
       />
 
       <div
@@ -145,17 +106,17 @@ export function ResumeUpload({ values, onChange }: ResumeUploadProps) {
         onClick={() => inputRef.current?.click()}
         className="flex cursor-pointer flex-col items-center justify-center gap-[8px] rounded-[10px] border border-dashed border-border bg-bg px-[20px] py-[24px] transition-[border-color,background-color] duration-150 hover:border-navy hover:bg-inset"
       >
-        {state === 'reading' || state === 'parsing' ? (
+        {state === 'reading' ? (
           <Loader2 size={24} className="animate-spin text-text-muted" aria-hidden="true" />
         ) : (
           <Upload size={24} className="text-text-muted" aria-hidden="true" />
         )}
         <span className="text-[13px] font-semibold text-text">
-          {state === 'reading' || state === 'parsing'
-            ? x(M.careers_profile_resume_upload_processing)
-            : x(M.careers_profile_resume_upload_prompt)}
+          {state === 'reading'
+            ? x(M.careers_apply_cover_letter_upload_processing)
+            : x(M.careers_apply_cover_letter_upload_prompt)}
         </span>
-        <span className="text-[12px] text-text-muted">{x(M.careers_profile_resume_upload_hint)}</span>
+        <span className="text-[12px] text-text-muted">{x(M.careers_apply_cover_letter_upload_hint)}</span>
       </div>
 
       {(fileName || state === 'error') && (
@@ -163,14 +124,14 @@ export function ResumeUpload({ values, onChange }: ResumeUploadProps) {
           <div className="flex min-w-0 items-center gap-[8px]">
             <FileText size={16} className="shrink-0 text-text-muted" aria-hidden="true" />
             <span className="min-w-0 truncate text-[13px] text-text">
-              {state === 'error' ? x(M.careers_profile_resume_upload_failed) : fileName}
+              {state === 'error' ? x(M.careers_apply_cover_letter_upload_failed) : fileName}
             </span>
           </div>
           <button
             type="button"
             onClick={clear}
             className="shrink-0 rounded-[6px] p-[4px] text-text-muted transition-opacity hover:opacity-70"
-            aria-label={x(M.careers_profile_resume_upload_clear)}
+            aria-label={x(M.careers_apply_cover_letter_upload_clear)}
           >
             <X size={16} aria-hidden="true" />
           </button>
@@ -179,7 +140,7 @@ export function ResumeUpload({ values, onChange }: ResumeUploadProps) {
 
       {error && <p className="m-0 text-[12.5px] text-risk-fg">{error}</p>}
 
-      <p className="m-0 text-[12px] text-text-muted">{x(M.careers_profile_resume_upload_disclaimer)}</p>
+      <p className="m-0 text-[12px] text-text-muted">{x(M.careers_apply_cover_letter_upload_disclaimer)}</p>
     </div>
   )
 }

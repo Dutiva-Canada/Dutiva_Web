@@ -157,29 +157,57 @@ export const careersMessages = defineMessages({
     en: 'Your file is processed in your browser — Dutiva does not store the original document.',
     fr: 'Votre fichier est traité dans votre navigateur — Dutiva ne conserve pas le document original.',
   },
-  careers_profile_resume_error_unsupported_type: {
+  careers_file_error_unsupported_type: {
     en: 'Please upload a PDF or DOCX file.',
     fr: 'Veuillez téléverser un fichier PDF ou DOCX.',
   },
-  careers_profile_resume_error_empty_file: {
+  careers_file_error_empty_file: {
     en: 'The file is empty.',
     fr: 'Le fichier est vide.',
   },
-  careers_profile_resume_error_too_large: {
+  careers_file_error_too_large: {
     en: 'The file is too large (max 10 MB).',
     fr: 'Le fichier est trop volumineux (max 10 Mo).',
   },
-  careers_profile_resume_error_corrupt: {
+  careers_file_error_corrupt: {
     en: 'The file could not be read — it may be corrupt or password-protected.',
     fr: 'Le fichier n\'a pas pu être lu — il est peut-être corrompu ou protégé par mot de passe.',
   },
-  careers_profile_resume_error_read_failed: {
+  careers_file_error_read_failed: {
     en: 'Could not read the file.',
     fr: 'Impossible de lire le fichier.',
   },
-  careers_profile_resume_error_generic: {
+  careers_file_error_generic: {
     en: 'Something went wrong. Please try again.',
     fr: 'Une erreur s\'est produite. Veuillez réessayer.',
+  },
+  careers_apply_cover_letter_upload_label: {
+    en: 'Upload cover letter file',
+    fr: 'Téléverser le fichier de la lettre de motivation',
+  },
+  careers_apply_cover_letter_upload_prompt: {
+    en: 'Upload a PDF or DOCX',
+    fr: 'Téléverser un PDF ou DOCX',
+  },
+  careers_apply_cover_letter_upload_hint: {
+    en: 'We\'ll extract the text for your cover letter.',
+    fr: 'Nous extraierons le texte pour votre lettre de motivation.',
+  },
+  careers_apply_cover_letter_upload_processing: {
+    en: 'Reading your cover letter…',
+    fr: 'Lecture de votre lettre de motivation…',
+  },
+  careers_apply_cover_letter_upload_failed: {
+    en: 'Upload failed',
+    fr: 'Échec du téléversement',
+  },
+  careers_apply_cover_letter_upload_clear: {
+    en: 'Clear upload',
+    fr: 'Effacer le téléversement',
+  },
+  careers_apply_cover_letter_upload_disclaimer: {
+    en: 'Your file is processed in your browser — Dutiva does not store the original document.',
+    fr: 'Votre fichier est traité dans votre navigateur — Dutiva ne conserve pas le document original.',
   },
   careers_profile_resume_format_bold: { en: 'Bold', fr: 'Gras' },
   careers_profile_resume_format_italic: { en: 'Italic', fr: 'Italique' },

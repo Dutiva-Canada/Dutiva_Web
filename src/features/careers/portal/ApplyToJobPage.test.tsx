@@ -120,7 +120,7 @@ describe('ApplyToJobPage', () => {
     expect(await screen.findByText(/Apply to.*Senior Product Manager/i)).toBeInTheDocument()
 
     // Cover letter and resume fields are present
-    expect(screen.getByLabelText(/Cover letter/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^Cover letter/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/^Resume$/i)).toBeInTheDocument()
 
     // Submit button is present
