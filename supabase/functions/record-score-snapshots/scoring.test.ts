@@ -138,8 +138,17 @@ describe('computeOrgScore — the job-side row mapping', () => {
       commsSubmissionStatuses: [],
       commsBrandClaimStatuses: [],
       commsPolicyFileStages: [],
+      securityIncidentStatuses: [],
+      securityRiskStatuses: [],
+      operationsProjectStatuses: [],
+      governanceDecisionStatuses: [],
+      revenueInvoiceStatuses: [],
+      specialistFollowUpDates: [],
+      todayISO: '2026-01-15',
     })
-    expect(components.map((c) => c.pct)).toEqual([75, 80, 89, 67, null, null, null, null])
+    expect(components.map((c) => c.pct)).toEqual([
+      75, 80, 89, 67, null, null, null, null, null, null, null, null, null,
+    ])
     /* (75 + 80 + 89 + 67) / 4 = 77.75 → 78; no open critical, no ceiling. */
     expect(score).toBe(78)
   })
@@ -154,6 +163,13 @@ describe('computeOrgScore — the job-side row mapping', () => {
       commsSubmissionStatuses: [],
       commsBrandClaimStatuses: [],
       commsPolicyFileStages: [],
+      securityIncidentStatuses: [],
+      securityRiskStatuses: [],
+      operationsProjectStatuses: [],
+      governanceDecisionStatuses: [],
+      revenueInvoiceStatuses: [],
+      specialistFollowUpDates: [],
+      todayISO: '2026-01-15',
     })
     /* Only the kind-linked row is scoreable → 1/1. */
     expect(components[1]).toMatchObject({ done: 1, total: 1, pct: 100 })
@@ -172,6 +188,13 @@ describe('computeOrgScore — the job-side row mapping', () => {
       commsSubmissionStatuses: [],
       commsBrandClaimStatuses: [],
       commsPolicyFileStages: [],
+      securityIncidentStatuses: [],
+      securityRiskStatuses: [],
+      operationsProjectStatuses: [],
+      governanceDecisionStatuses: [],
+      revenueInvoiceStatuses: [],
+      specialistFollowUpDates: [],
+      todayISO: '2026-01-15',
     }
     expect(computeOrgScore(openCritical).score).toBe(CRITICAL_SCORE_CEILING)
     expect(
@@ -196,6 +219,13 @@ describe('computeOrgScore — the job-side row mapping', () => {
         commsSubmissionStatuses: [],
         commsBrandClaimStatuses: [],
         commsPolicyFileStages: [],
+        securityIncidentStatuses: [],
+        securityRiskStatuses: [],
+        operationsProjectStatuses: [],
+        governanceDecisionStatuses: [],
+        revenueInvoiceStatuses: [],
+        specialistFollowUpDates: [],
+        todayISO: '2026-01-15',
       }).score,
     ).toBeNull()
   })
@@ -213,6 +243,13 @@ describe('computeOrgScore — the job-side row mapping', () => {
       commsSubmissionStatuses: [],
       commsBrandClaimStatuses: [],
       commsPolicyFileStages: [],
+      securityIncidentStatuses: [],
+      securityRiskStatuses: [],
+      operationsProjectStatuses: [],
+      governanceDecisionStatuses: [],
+      revenueInvoiceStatuses: [],
+      specialistFollowUpDates: [],
+      todayISO: '2026-01-15',
     })
     /* 8 of 9 weight closed → 89. */
     expect(components[2]!.pct).toBe(89)

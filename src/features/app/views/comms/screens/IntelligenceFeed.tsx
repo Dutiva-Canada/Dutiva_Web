@@ -163,7 +163,7 @@ export function IntelligenceFeed() {
               <input type="date" value={publishedDate} onChange={(e) => setPublishedDate(e.target.value)} className={inputClass} />
             </div>
             <div className="sm:col-span-2">
-              <label className={labelClass}>URL</label>
+              <label className={labelClass}>{x(M.comms_url)}</label>
               <input type="url" value={url} onChange={(e) => setUrl(e.target.value)} className={inputClass} />
             </div>
             <div className="sm:col-span-2">

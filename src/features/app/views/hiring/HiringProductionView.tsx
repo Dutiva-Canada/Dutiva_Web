@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ArrowRight, Plus, Search } from 'lucide-react'
+import { ArrowRight, Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { hiringMessages as M } from '@/i18n/messages/hiring'
 import { statusChipClass } from '@/components/chips'
@@ -9,15 +9,22 @@ import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRoot
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import { AppPage } from '@/features/app/shell/AppPage'
 import { JobPostingCard } from './JobPostingCard'
+import { JobPostingForm } from './JobPostingForm'
 import { useHiringTab } from './useHiringTab'
 import {
   addCandidate,
+  createJobPosting,
+  deleteJobPosting,
   getFunnelMetrics,
   listCandidates,
   listJobPostings,
+  updateCandidateStatus,
+  updateJobPosting,
 } from './productionApi'
 import type {
+  NewJobPosting,
   ProductionCandidate,
+  ProductionCandidateStatus,
   ProductionFunnelMetrics,
   ProductionJobPosting,
 } from './productionApi'
@@ -67,6 +74,11 @@ export function HiringProductionView() {
   const [formOpen, setFormOpen] = useState(false)
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
+  const [postingFormOpen, setPostingFormOpen] = useState(false)
+  const [editingPosting, setEditingPosting] = useState<ProductionJobPosting | null>(null)
+  const [postingSaving, setPostingSaving] = useState(false)
+  const [deletingPostingId, setDeletingPostingId] = useState<string | null>(null)
+  const [statusUpdatingId, setStatusUpdatingId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     if (!organizationId) return
@@ -116,6 +128,76 @@ export function HiringProductionView() {
       showToast(M.hiring_add_candidate_error, 'info')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const onPostingSubmit = async (values: NewJobPosting) => {
+    if (!organizationId || postingSaving) return
+    setPostingSaving(true)
+    try {
+      if (editingPosting) {
+        await updateJobPosting(organizationId, editingPosting.id, values)
+        showToast(M.hiring_posting_updated, 'ok')
+      } else {
+        await createJobPosting(organizationId, values)
+        showToast(M.hiring_posting_created, 'ok')
+      }
+      setPostingFormOpen(false)
+      setEditingPosting(null)
+      void load()
+    } catch {
+      showToast(editingPosting ? M.hiring_posting_update_error : M.hiring_posting_create_error, 'info')
+    } finally {
+      setPostingSaving(false)
+    }
+  }
+
+  const onEditPosting = (posting: ProductionJobPosting) => {
+    setEditingPosting(posting)
+    setPostingFormOpen(true)
+  }
+
+  const onDeletePosting = async (id: string) => {
+    if (!organizationId || deletingPostingId) return
+    setDeletingPostingId(id)
+    try {
+      await deleteJobPosting(organizationId, id)
+      showToast(M.hiring_posting_deleted, 'ok')
+      void load()
+    } catch {
+      showToast(M.hiring_posting_delete_error, 'info')
+    } finally {
+      setDeletingPostingId(null)
+    }
+  }
+
+  const onAdvanceCandidate = async (candidate: ProductionCandidate) => {
+    if (statusUpdatingId) return
+    const next = nextStage(candidate.status)
+    if (!next) return
+    setStatusUpdatingId(candidate.id)
+    try {
+      await updateCandidateStatus(candidate.id, next)
+      showToast(M.hiring_candidate_status_updated, 'ok')
+      void load()
+    } catch {
+      showToast(M.hiring_candidate_status_error, 'info')
+    } finally {
+      setStatusUpdatingId(null)
+    }
+  }
+
+  const onCandidateStatusChange = async (candidate: ProductionCandidate, next: ProductionCandidateStatus) => {
+    if (statusUpdatingId || next === candidate.status) return
+    setStatusUpdatingId(candidate.id)
+    try {
+      await updateCandidateStatus(candidate.id, next)
+      showToast(M.hiring_candidate_status_updated, 'ok')
+      void load()
+    } catch {
+      showToast(M.hiring_candidate_status_error, 'info')
+    } finally {
+      setStatusUpdatingId(null)
     }
   }
 
@@ -363,7 +445,7 @@ export function HiringProductionView() {
           {filteredCandidates.length > 0 ? (
             <div className="flex flex-col gap-[12px]">
               <div className="hidden overflow-x-auto rounded-[12px] border border-border bg-surface md:block">
-                <div className="grid min-w-[800px] grid-cols-[2fr_1.5fr_1fr_1fr_1fr_1fr_0.5fr] gap-[10px] bg-inset px-[16px] py-[11px] text-[11.5px] font-bold tracking-[0.03em] text-text-muted uppercase">
+                <div className="grid min-w-[900px] grid-cols-[2fr_1.5fr_1fr_1.5fr_1fr_1fr_1fr] gap-[10px] bg-inset px-[16px] py-[11px] text-[11.5px] font-bold tracking-[0.03em] text-text-muted uppercase">
                   <div>{x(M.hiring_th_name)}</div>
                   <div>{x(M.hiring_th_position)}</div>
                   <div>{x(M.hiring_th_location)}</div>
@@ -375,7 +457,7 @@ export function HiringProductionView() {
                 {filteredCandidates.map((candidate) => (
                   <div
                     key={candidate.id}
-                    className="grid min-w-[800px] grid-cols-[2fr_1.5fr_1fr_1fr_1fr_1fr_0.5fr] items-center gap-[10px] border-t border-t-inset px-[16px] py-[12px]"
+                    className="grid min-w-[900px] grid-cols-[2fr_1.5fr_1fr_1.5fr_1fr_1fr_1fr] items-center gap-[10px] border-t border-t-inset px-[16px] py-[12px]"
                   >
                     <div className="font-sans text-[13.5px] font-semibold text-text">{candidate.name}</div>
                     <div className="overflow-hidden text-[13px] text-ellipsis whitespace-nowrap text-text-2">
@@ -383,20 +465,50 @@ export function HiringProductionView() {
                     </div>
                     <div className="text-[13px] text-text-2">{candidate.location}</div>
                     <div>
-                      <span className={statusChipClass(getStatusTone(candidate.status))}>
-                        {x(getStatusLabel(candidate.status))}
-                      </span>
+                      <select
+                        value={candidate.status}
+                        disabled={statusUpdatingId === candidate.id}
+                        aria-label={x(M.hiring_candidate_status)}
+                        onChange={(e) =>
+                          void onCandidateStatusChange(
+                            candidate,
+                            e.target.value as ProductionCandidateStatus,
+                          )
+                        }
+                        className="w-full rounded-[8px] border border-border bg-surface px-[8px] py-[6px] font-sans text-[12.5px] text-text"
+                      >
+                        <option value="application">{x(M.hiring_status_application)}</option>
+                        <option value="basic_qualified">{x(M.hiring_status_basic_qualified)}</option>
+                        <option value="evidence_qualified">{x(M.hiring_status_evidence_qualified)}</option>
+                        <option value="work_sample">{x(M.hiring_status_work_sample)}</option>
+                        <option value="interview">{x(M.hiring_status_interview)}</option>
+                        <option value="hired">{x(M.hiring_status_hired)}</option>
+                        <option value="rejected">{x(M.hiring_status_rejected)}</option>
+                      </select>
                     </div>
                     <div className="text-[13px] text-text-2">{candidate.appliedDate}</div>
                     <div className="text-[13px] text-text-2">{candidate.assignedTo || '-'}</div>
-                    <button
-                      type="button"
-                      onClick={() => openCandidate(candidate.id)}
-                      aria-label={x(M.hiring_open_candidate)}
-                      className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[8px] border-none bg-navy text-white"
-                    >
-                      <ArrowRight size={14} strokeWidth={2} aria-hidden="true" />
-                    </button>
+                    <div className="flex items-center gap-[4px]">
+                      {nextStage(candidate.status) && (
+                        <button
+                          type="button"
+                          onClick={() => void onAdvanceCandidate(candidate)}
+                          disabled={statusUpdatingId === candidate.id}
+                          aria-label={x(M.hiring_candidate_advance)}
+                          className="flex h-[28px] cursor-pointer items-center justify-center rounded-[8px] border border-border bg-surface px-[8px] font-sans text-[11px] font-semibold text-text-2 disabled:opacity-60"
+                        >
+                          {x(M.hiring_candidate_advance)}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => openCandidate(candidate.id)}
+                        aria-label={x(M.hiring_open_candidate)}
+                        className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[8px] border-none bg-navy text-white"
+                      >
+                        <ArrowRight size={14} strokeWidth={2} aria-hidden="true" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -448,31 +560,75 @@ export function HiringProductionView() {
         <div className="flex flex-col gap-[12px]">
           <div className="flex items-center justify-between">
             <h2 className="text-[16px] font-bold text-text">{x(M.hiring_postings_title)}</h2>
-            {isOrgAdmin && (
+            {isOrgAdmin && !postingFormOpen && (
               <button
                 type="button"
-                disabled
-                className="cursor-not-allowed rounded-[9px] border-none bg-navy px-[15px] py-[9px] font-sans text-[12.5px] font-bold text-white opacity-60"
+                onClick={() => {
+                  setEditingPosting(null)
+                  setPostingFormOpen(true)
+                }}
+                className="flex cursor-pointer items-center gap-[7px] rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
               >
-                {x(M.hiring_postings_create)}
+                <Plus size={14} strokeWidth={2} aria-hidden="true" />
+                {x(M.hiring_posting_create)}
               </button>
             )}
           </div>
 
+          {postingFormOpen && (
+            <JobPostingForm
+              initial={editingPosting ?? undefined}
+              saving={postingSaving}
+              onSubmit={onPostingSubmit}
+              onCancel={() => {
+                setPostingFormOpen(false)
+                setEditingPosting(null)
+              }}
+            />
+          )}
+
           {(postings ?? []).length > 0 ? (
             (postings ?? []).map((posting) => (
-              <JobPostingCard
-                key={posting.id}
-                title={posting.title}
-                department={posting.department}
-                location={posting.location}
-                type={posting.type}
-                postedDate={posting.postedDate}
-                closingDate={posting.closingDate}
-                status={posting.status}
-                onClick={() => navigate(`/app/hiring/postings/${posting.id}`)}
-                ariaLabel={x(M.hiring_open_posting)}
-              />
+              <div key={posting.id} className="flex items-start gap-[8px]">
+                <div className="flex-1">
+                  <JobPostingCard
+                    title={posting.title}
+                    department={posting.department}
+                    location={posting.location}
+                    type={posting.type}
+                    postedDate={posting.postedDate}
+                    closingDate={posting.closingDate}
+                    status={posting.status}
+                    onClick={() => navigate(`/app/hiring/postings/${posting.id}`)}
+                    ariaLabel={x(M.hiring_open_posting)}
+                  />
+                </div>
+                {isOrgAdmin && (
+                  <div className="flex shrink-0 gap-[4px]">
+                    <button
+                      type="button"
+                      onClick={() => onEditPosting(posting)}
+                      aria-label={x(M.hiring_posting_edit)}
+                      className="flex h-[36px] w-[36px] cursor-pointer items-center justify-center rounded-[8px] border border-border bg-surface text-text-2 hover:text-text"
+                    >
+                      <Pencil size={14} strokeWidth={2} aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (window.confirm(x(M.hiring_posting_delete_confirm))) {
+                          void onDeletePosting(posting.id)
+                        }
+                      }}
+                      disabled={deletingPostingId === posting.id}
+                      aria-label={x(M.hiring_posting_delete)}
+                      className="flex h-[36px] w-[36px] cursor-pointer items-center justify-center rounded-[8px] border border-border bg-surface text-risk disabled:opacity-60"
+                    >
+                      <Trash2 size={14} strokeWidth={2} aria-hidden="true" />
+                    </button>
+                  </div>
+                )}
+              </div>
             ))
           ) : (
             <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
@@ -560,5 +716,20 @@ function getStatusLabel(status: string) {
     default:
       return M.hiring_status_application
   }
+}
+
+const STAGE_FLOW: ProductionCandidateStatus[] = [
+  'application',
+  'basic_qualified',
+  'evidence_qualified',
+  'work_sample',
+  'interview',
+  'hired',
+]
+
+function nextStage(status: ProductionCandidateStatus): ProductionCandidateStatus | null {
+  const idx = STAGE_FLOW.indexOf(status)
+  if (idx < 0 || idx >= STAGE_FLOW.length - 1) return null
+  return STAGE_FLOW[idx + 1] ?? null
 }
 

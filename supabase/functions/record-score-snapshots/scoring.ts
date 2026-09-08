@@ -18,7 +18,7 @@
  * under vitest.
  */
 
-export const SCORE_FORMULA_VERSION = 4
+export const SCORE_FORMULA_VERSION = 5
 
 export const FINDING_SEVERITY_WEIGHTS: Record<string, number> = {
   info: 1,
@@ -104,6 +104,20 @@ export interface OrgScoreRows {
   commsBrandClaimStatuses: readonly string[]
   /** comms_policy_files.stage values. */
   commsPolicyFileStages: readonly string[]
+  /** security_incidents.status values. */
+  securityIncidentStatuses: readonly string[]
+  /** security_risks.status values. */
+  securityRiskStatuses: readonly string[]
+  /** operations_projects.status values. */
+  operationsProjectStatuses: readonly string[]
+  /** governance_decisions.status values. */
+  governanceDecisionStatuses: readonly string[]
+  /** revenue_invoices.status values. */
+  revenueInvoiceStatuses: readonly string[]
+  /** specialist_engagements.follow_up_date values (nullable). */
+  specialistFollowUpDates: readonly (string | null)[]
+  /** Today (YYYY-MM-DD) for overdue follow-up comparison. */
+  todayISO: string
 }
 
 export interface OrgScore {
@@ -160,6 +174,32 @@ export function computeOrgScore(rows: OrgScoreRows): OrgScore {
       'comms_policy_files',
       rows.commsPolicyFileStages.filter((s) => s === 'in_force' || s === 'consultation_closed').length,
       rows.commsPolicyFileStages.length,
+    ),
+    scoreComponent(
+      'security',
+      rows.securityIncidentStatuses.filter((s) => s === 'resolved').length +
+        rows.securityRiskStatuses.filter((s) => s === 'mitigated' || s === 'closed').length,
+      rows.securityIncidentStatuses.length + rows.securityRiskStatuses.length,
+    ),
+    scoreComponent(
+      'operations',
+      rows.operationsProjectStatuses.filter((s) => s === 'completed').length,
+      rows.operationsProjectStatuses.length,
+    ),
+    scoreComponent(
+      'governance',
+      rows.governanceDecisionStatuses.filter((s) => s !== 'proposed').length,
+      rows.governanceDecisionStatuses.length,
+    ),
+    scoreComponent(
+      'revenue',
+      rows.revenueInvoiceStatuses.filter((s) => s === 'paid').length,
+      rows.revenueInvoiceStatuses.length,
+    ),
+    scoreComponent(
+      'specialists',
+      rows.specialistFollowUpDates.filter((d) => !(d !== null && d < rows.todayISO)).length,
+      rows.specialistFollowUpDates.length,
     ),
   ]
   const openCritical = rows.findings.filter(

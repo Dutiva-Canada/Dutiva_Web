@@ -361,6 +361,7 @@ export const commsMessages = defineMessages({
   comms_intelligence_feeds_empty: { en: 'No feeds configured yet.', fr: 'Aucun fil de veille configuré pour l’instant.' },
   comms_intelligence_add_feed: { en: 'Add feed', fr: 'Ajouter un fil' },
   comms_intelligence_feed_label: { en: 'Label', fr: 'Libellé' },
+  comms_url: { en: 'URL', fr: 'URL' },
   comms_intelligence_feed_format: { en: 'Format', fr: 'Format' },
   comms_intelligence_feed_enabled: { en: 'Enabled for auto-sync', fr: 'Activé pour la synchronisation automatique' },
   comms_intelligence_feed_sync: { en: 'Sync now', fr: 'Synchroniser' },

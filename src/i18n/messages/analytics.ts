@@ -53,6 +53,17 @@ export const analyticsMessages = defineMessages({
     fr: 'Revendications de marque actives',
   },
   analytics_comp_comms_policy_files: { en: 'Policy files closed', fr: 'Dossiers politiques clos' },
+  analytics_comp_security: {
+    en: 'Security incidents & risks resolved',
+    fr: 'Incidents et risques de sécurité résolus',
+  },
+  analytics_comp_operations: { en: 'Operations projects completed', fr: 'Projets opérationnels terminés' },
+  analytics_comp_governance: { en: 'Governance decisions made', fr: 'Décisions de gouvernance prises' },
+  analytics_comp_revenue: { en: 'Revenue invoices paid', fr: 'Factures de revenu payées' },
+  analytics_comp_specialists: {
+    en: 'Specialist follow-ups on time',
+    fr: 'Suivis de spécialistes à temps',
+  },
   analytics_comp_value: { en: '{done} of {total}', fr: '{done} sur {total}' },
 
   /* ── Comms/PR card ─────────────────────────────────────────────────────── */

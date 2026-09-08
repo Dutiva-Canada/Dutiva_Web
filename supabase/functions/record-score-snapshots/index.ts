@@ -137,7 +137,23 @@ Deno.serve(async (req) => {
 
   for (const org of orgs) {
     try {
-      const [policies, tasks, findings, obligations, employees, issues, submissions, brandClaims, policyFiles] =
+      const [
+          policies,
+          tasks,
+          findings,
+          obligations,
+          employees,
+          issues,
+          submissions,
+          brandClaims,
+          policyFiles,
+          securityIncidents,
+          securityRisks,
+          operationsProjects,
+          governanceDecisions,
+          revenueInvoices,
+          specialistEngagements,
+        ] =
         await Promise.all([
           fetchAll<{ status: string }>(supabase, 'hr_policies', 'id, status', org.id),
           fetchAll<{ status: string; category: string; metadata: Record<string, unknown> | null }>(
@@ -160,6 +176,12 @@ Deno.serve(async (req) => {
           fetchAll<{ status: string }>(supabase, 'comms_submissions', 'id, status', org.id, { optionalTable: true }),
           fetchAll<{ status: string }>(supabase, 'comms_brand_claims', 'id, status', org.id, { optionalTable: true }),
           fetchAll<{ stage: string }>(supabase, 'comms_policy_files', 'id, stage', org.id, { optionalTable: true }),
+          fetchAll<{ status: string }>(supabase, 'security_incidents', 'id, status', org.id, { optionalTable: true }),
+          fetchAll<{ status: string }>(supabase, 'security_risks', 'id, status', org.id, { optionalTable: true }),
+          fetchAll<{ status: string }>(supabase, 'operations_projects', 'id, status', org.id, { optionalTable: true }),
+          fetchAll<{ status: string }>(supabase, 'governance_decisions', 'id, status', org.id, { optionalTable: true }),
+          fetchAll<{ status: string }>(supabase, 'revenue_invoices', 'id, status', org.id, { optionalTable: true }),
+          fetchAll<{ follow_up_date: string | null }>(supabase, 'specialist_engagements', 'id, follow_up_date', org.id, { optionalTable: true }),
         ])
 
       const { score, components } = computeOrgScore({
@@ -175,6 +197,13 @@ Deno.serve(async (req) => {
         commsSubmissionStatuses: submissions.map((r) => r.status),
         commsBrandClaimStatuses: brandClaims.map((r) => r.status),
         commsPolicyFileStages: policyFiles.map((r) => r.stage),
+        securityIncidentStatuses: securityIncidents.map((r) => r.status),
+        securityRiskStatuses: securityRisks.map((r) => r.status),
+        operationsProjectStatuses: operationsProjects.map((r) => r.status),
+        governanceDecisionStatuses: governanceDecisions.map((r) => r.status),
+        revenueInvoiceStatuses: revenueInvoices.map((r) => r.status),
+        specialistFollowUpDates: specialistEngagements.map((r) => r.follow_up_date),
+        todayISO: nowISO.slice(0, 10),
       })
       if (score === null) {
         skipped += 1

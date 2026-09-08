@@ -5,20 +5,24 @@ import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
 import { hiringMessages as M } from '@/i18n/messages/hiring'
 import { statusChipClass } from '@/components/chips'
+import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import { AppPage } from '@/features/app/shell/AppPage'
 import {
+  assignCandidate,
   getAuthenticityScores,
   getCandidate,
   getDefenseInterview,
   getEvidenceScreening,
   getWorkSample,
+  updateCandidateStatus,
 } from './productionApi'
 import type {
   ProductionAuthenticityScores,
   ProductionCandidate,
+  ProductionCandidateStatus,
   ProductionDefenseInterview,
   ProductionEvidenceScreening,
   ProductionWorkSample,
@@ -34,6 +38,7 @@ type LoadState = 'loading' | 'ready' | 'failed'
 
 export function CandidateDetailProductionView() {
   const { x } = useI18n()
+  const { showToast } = useToasts()
   const { organizationId } = useWorkspaceMode()
   const { root } = useWorkspaceRoot()
   const { candidateId } = useParams<{ candidateId: string }>()
@@ -45,6 +50,8 @@ export function CandidateDetailProductionView() {
   const [workSample, setWorkSample] = useState<ProductionWorkSample | null>(null)
   const [interview, setInterview] = useState<ProductionDefenseInterview | null>(null)
   const [scores, setScores] = useState<ProductionAuthenticityScores | null>(null)
+  const [statusUpdating, setStatusUpdating] = useState(false)
+  const [assigneeValue, setAssigneeValue] = useState('')
 
   const load = useCallback(async () => {
     if (!candidateId) return
@@ -71,6 +78,33 @@ export function CandidateDetailProductionView() {
   useEffect(() => {
     void load()
   }, [load])
+
+  const onStatusChange = async (next: ProductionCandidateStatus) => {
+    if (!candidate || statusUpdating || next === candidate.status) return
+    setStatusUpdating(true)
+    try {
+      await updateCandidateStatus(candidate.id, next)
+      setCandidate({ ...candidate, status: next })
+      showToast(M.hiring_candidate_status_updated, 'ok')
+    } catch {
+      showToast(M.hiring_candidate_status_error, 'info')
+    } finally {
+      setStatusUpdating(false)
+    }
+  }
+
+  const onAssign = async () => {
+    if (!candidate) return
+    const value = assigneeValue.trim()
+    try {
+      await assignCandidate(candidate.id, value)
+      setCandidate({ ...candidate, assignedTo: value || undefined })
+      setAssigneeValue('')
+      showToast(M.hiring_candidate_assigned, 'ok')
+    } catch {
+      showToast(M.hiring_candidate_assign_error, 'info')
+    }
+  }
 
   if (!organizationId) {
     return <ProductionEmptyState title={x(M.hiring_prod_empty_title)} />
@@ -176,7 +210,16 @@ export function CandidateDetailProductionView() {
             </button>
           </div>
 
-          {activeTab === 'overview' && <OverviewTab candidate={candidate} />}
+          {activeTab === 'overview' && (
+            <OverviewTab
+              candidate={candidate}
+              statusUpdating={statusUpdating}
+              assigneeValue={assigneeValue}
+              onStatusChange={onStatusChange}
+              onAssigneeChange={setAssigneeValue}
+              onAssign={onAssign}
+            />
+          )}
           {activeTab === 'evidence' && <EvidenceTab evidence={evidence} />}
           {activeTab === 'work_sample' && <WorkSampleTab workSample={workSample} />}
           {activeTab === 'interview' && <InterviewTab interview={interview} />}
@@ -187,11 +230,79 @@ export function CandidateDetailProductionView() {
   )
 }
 
-function OverviewTab({ candidate }: { candidate: ProductionCandidate }) {
+interface OverviewTabProps {
+  candidate: ProductionCandidate
+  statusUpdating: boolean
+  assigneeValue: string
+  onStatusChange: (next: ProductionCandidateStatus) => void
+  onAssigneeChange: (value: string) => void
+  onAssign: () => void
+}
+
+function OverviewTab({
+  candidate,
+  statusUpdating,
+  assigneeValue,
+  onStatusChange,
+  onAssigneeChange,
+  onAssign,
+}: OverviewTabProps) {
   const { x } = useI18n()
 
   return (
     <div className="flex flex-col gap-[16px]">
+      <div className="rounded-[12px] border border-border bg-surface p-[20px]">
+        <div className="mb-[16px] flex items-center justify-between gap-[12px]">
+          <h2 className="text-[16px] font-bold text-text">{x(M.hiring_candidate_status)}</h2>
+          <span className={statusChipClass(getStatusTone(candidate.status))}>
+            {x(getStatusLabel(candidate.status))}
+          </span>
+        </div>
+        <div className="grid gap-[12px] md:grid-cols-2">
+          <div>
+            <label htmlFor="cand-status-select" className="mb-[4px] block text-[12px] font-semibold text-text-3">
+              {x(M.hiring_candidate_status)}
+            </label>
+            <select
+              id="cand-status-select"
+              value={candidate.status}
+              disabled={statusUpdating}
+              onChange={(e) => onStatusChange(e.target.value as ProductionCandidateStatus)}
+              className="w-full rounded-[10px] border border-border bg-surface px-[12px] py-[9px] font-sans text-[13.5px] text-text"
+            >
+              <option value="application">{x(M.hiring_status_application)}</option>
+              <option value="basic_qualified">{x(M.hiring_status_basic_qualified)}</option>
+              <option value="evidence_qualified">{x(M.hiring_status_evidence_qualified)}</option>
+              <option value="work_sample">{x(M.hiring_status_work_sample)}</option>
+              <option value="interview">{x(M.hiring_status_interview)}</option>
+              <option value="hired">{x(M.hiring_status_hired)}</option>
+              <option value="rejected">{x(M.hiring_status_rejected)}</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="cand-assign-input" className="mb-[4px] block text-[12px] font-semibold text-text-3">
+              {x(M.hiring_candidate_assign)}
+            </label>
+            <div className="flex gap-[8px]">
+              <input
+                id="cand-assign-input"
+                value={assigneeValue}
+                onChange={(e) => onAssigneeChange(e.target.value)}
+                placeholder={candidate.assignedTo ?? x(M.hiring_candidate_unassign)}
+                className="w-full rounded-[10px] border border-border bg-surface px-[12px] py-[9px] font-sans text-[13.5px] text-text"
+              />
+              <button
+                type="button"
+                onClick={onAssign}
+                className="shrink-0 cursor-pointer rounded-[8px] border-none bg-navy px-[14px] py-[9px] font-sans text-[13px] font-semibold text-white"
+              >
+                {x(M.hiring_action_save)}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="rounded-[12px] border border-border bg-surface p-[20px]">
         <h2 className="mb-[16px] text-[16px] font-bold text-text">{x(M.hiring_overview_application)}</h2>
 
@@ -575,168 +686,65 @@ function DataBlock({ value }: { value: unknown }) {
 }
 
 function getStatusTone(status: string): 'success' | 'info' | 'warning' | 'risk' | 'neutral' {
-  switch (status) {
-    case 'hired':
-      return 'success'
-    case 'interview':
-    case 'work_sample':
-    case 'evidence_qualified':
-      return 'info'
-    case 'basic_qualified':
-      return 'warning'
-    case 'application':
-      return 'neutral'
-    case 'rejected':
-      return 'risk'
-    default:
-      return 'neutral'
-  }
+  if (status === 'hired') return 'success'
+  if (status === 'interview' || status === 'work_sample' || status === 'evidence_qualified') return 'info'
+  if (status === 'basic_qualified') return 'warning'
+  if (status === 'rejected') return 'risk'
+  return 'neutral'
 }
 
 function getStatusLabel(status: string) {
-  switch (status) {
-    case 'application':
-      return M.hiring_status_application
-    case 'basic_qualified':
-      return M.hiring_status_basic_qualified
-    case 'evidence_qualified':
-      return M.hiring_status_evidence_qualified
-    case 'work_sample':
-      return M.hiring_status_work_sample
-    case 'interview':
-      return M.hiring_status_interview
-    case 'hired':
-      return M.hiring_status_hired
-    case 'rejected':
-      return M.hiring_status_rejected
-    default:
-      return M.hiring_status_application
-  }
+  return ({
+    application: M.hiring_status_application, basic_qualified: M.hiring_status_basic_qualified,
+    evidence_qualified: M.hiring_status_evidence_qualified, work_sample: M.hiring_status_work_sample,
+    interview: M.hiring_status_interview, hired: M.hiring_status_hired, rejected: M.hiring_status_rejected,
+  } as Record<string, Bi>)[status] ?? M.hiring_status_application
 }
 
 function getAuthLabel(auth: string) {
-  switch (auth) {
-    case 'authorized':
-      return M.hiring_auth_authorized
-    case 'needs_sponsorship':
-      return M.hiring_auth_needs_sponsorship
-    default:
-      return M.hiring_auth_unknown
-  }
+  return auth === 'authorized' ? M.hiring_auth_authorized
+    : auth === 'needs_sponsorship' ? M.hiring_auth_needs_sponsorship : M.hiring_auth_unknown
 }
 
 function getEvidenceQualityTone(quality: string): 'success' | 'info' | 'warning' | 'risk' {
-  switch (quality) {
-    case 'high':
-      return 'success'
-    case 'medium':
-      return 'info'
-    case 'low':
-      return 'warning'
-    case 'generic':
-      return 'risk'
-    default:
-      return 'info'
-  }
+  return ({ high: 'success', medium: 'info', low: 'warning', generic: 'risk' } as const)[quality as 'high'] ?? 'info'
 }
 
 function getEvidenceQualityLabel(quality: string) {
-  switch (quality) {
-    case 'high':
-      return M.hiring_evidence_high_quality
-    case 'medium':
-      return M.hiring_evidence_medium_quality
-    case 'low':
-      return M.hiring_evidence_low_quality
-    case 'generic':
-      return M.hiring_evidence_generic
-    default:
-      return M.hiring_evidence_generic
-  }
+  return ({ high: M.hiring_evidence_high_quality, medium: M.hiring_evidence_medium_quality,
+    low: M.hiring_evidence_low_quality, generic: M.hiring_evidence_generic,
+  } as Record<string, Bi>)[quality] ?? M.hiring_evidence_generic
 }
 
 function getSpecificityLabel(specificity: string) {
-  switch (specificity) {
-    case 'specific':
-      return M.hiring_evidence_specificity_specific
-    case 'moderate':
-      return M.hiring_evidence_specificity_moderate
-    case 'generic':
-      return M.hiring_evidence_specificity_generic
-    default:
-      return M.hiring_evidence_specificity_generic
-  }
+  return ({ specific: M.hiring_evidence_specificity_specific, moderate: M.hiring_evidence_specificity_moderate,
+    generic: M.hiring_evidence_specificity_generic,
+  } as Record<string, Bi>)[specificity] ?? M.hiring_evidence_specificity_generic
 }
 
 function getWorkSampleStatusTone(status: string): 'success' | 'info' | 'warning' | 'risk' | 'neutral' {
-  switch (status) {
-    case 'completed':
-      return 'success'
-    case 'in_progress':
-      return 'info'
-    case 'pending':
-      return 'neutral'
-    case 'skipped':
-      return 'warning'
-    default:
-      return 'neutral'
-  }
+  return ({ completed: 'success', in_progress: 'info', pending: 'neutral', skipped: 'warning' } as const)[status as 'completed'] ?? 'neutral'
 }
 
 function getWorkSampleStatusLabel(status: string) {
-  switch (status) {
-    case 'pending':
-      return M.hiring_work_sample_pending
-    case 'in_progress':
-      return M.hiring_work_sample_in_progress
-    case 'completed':
-      return M.hiring_work_sample_completed
-    case 'skipped':
-      return M.hiring_work_sample_skipped
-    default:
-      return M.hiring_work_sample_pending
-  }
+  return ({ pending: M.hiring_work_sample_pending, in_progress: M.hiring_work_sample_in_progress,
+    completed: M.hiring_work_sample_completed, skipped: M.hiring_work_sample_skipped,
+  } as Record<string, Bi>)[status] ?? M.hiring_work_sample_pending
 }
 
 function getScoreTone(score: string): 'success' | 'info' | 'warning' | 'risk' {
-  switch (score) {
-    case 'high':
-      return 'success'
-    case 'medium':
-      return 'info'
-    case 'low':
-      return 'warning'
-    case 'insufficient':
-      return 'risk'
-    default:
-      return 'info'
-  }
+  return ({ high: 'success', medium: 'info', low: 'warning', insufficient: 'risk' } as const)[score as 'high'] ?? 'info'
 }
 
 function getScoreLabel(score: string) {
-  switch (score) {
-    case 'high':
-      return M.hiring_scores_high
-    case 'medium':
-      return M.hiring_scores_medium
-    case 'low':
-      return M.hiring_scores_low
-    case 'insufficient':
-      return M.hiring_scores_insufficient
-    default:
-      return M.hiring_scores_insufficient
-  }
+  return ({ high: M.hiring_scores_high, medium: M.hiring_scores_medium, low: M.hiring_scores_low,
+    insufficient: M.hiring_scores_insufficient,
+  } as Record<string, Bi>)[score] ?? M.hiring_scores_insufficient
 }
 
 function getOverallScoreTone(overall: string): 'success' | 'info' | 'warning' | 'risk' {
-  switch (overall) {
-    case 'high':
-      return 'success'
-    case 'medium':
-      return 'info'
-    case 'low':
-      return 'warning'
-    default:
-      return 'risk'
-  }
+  if (overall === 'high') return 'success'
+  if (overall === 'medium') return 'info'
+  if (overall === 'low') return 'warning'
+  return 'risk'
 }

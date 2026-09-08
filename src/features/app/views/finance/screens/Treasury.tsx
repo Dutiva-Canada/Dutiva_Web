@@ -282,11 +282,11 @@ function ReserveGoalForm({
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_reserve_type)}</span>
           <select value={type} onChange={(e) => setType(e.target.value as FinanceReserveType)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
-            <option value="emergency_operating">Emergency operating</option>
-            <option value="payroll">Payroll</option>
-            <option value="tax">Tax</option>
-            <option value="capital_purchase">Capital purchase</option>
-            <option value="other">Other</option>
+            <option value="emergency_operating">{x(M.finance_reserve_type_emergency_operating)}</option>
+            <option value="payroll">{x(M.finance_reserve_type_payroll)}</option>
+            <option value="tax">{x(M.finance_reserve_type_tax)}</option>
+            <option value="capital_purchase">{x(M.finance_reserve_type_capital_purchase)}</option>
+            <option value="other">{x(M.finance_reserve_type_other)}</option>
           </select>
         </label>
       </div>

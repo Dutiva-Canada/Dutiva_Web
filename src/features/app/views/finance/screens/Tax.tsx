@@ -356,12 +356,12 @@ function TaxObligationForm({
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_tax_type)}</span>
           <select value={type} onChange={(e) => setType(e.target.value as FinanceTaxType)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
-            <option value="income_tax">Income tax</option>
-            <option value="gst_hst">GST/HST</option>
-            <option value="qst">QST</option>
-            <option value="payroll_source_deductions">Payroll source deductions</option>
-            <option value="employer_contributions">Employer contributions</option>
-            <option value="other">Other</option>
+            <option value="income_tax">{x(M.finance_tax_type_income_tax)}</option>
+            <option value="gst_hst">{x(M.finance_tax_type_gst_hst)}</option>
+            <option value="qst">{x(M.finance_tax_type_qst)}</option>
+            <option value="payroll_source_deductions">{x(M.finance_tax_type_payroll_source_deductions)}</option>
+            <option value="employer_contributions">{x(M.finance_tax_type_employer_contributions)}</option>
+            <option value="other">{x(M.finance_tax_type_other)}</option>
           </select>
         </label>
       </div>

@@ -390,8 +390,7 @@ export async function analyzeImportWithAi(
       return b.count - a.count
     }),
   }
-  } catch (error) {
-    console.error('[finance] AI model unavailable; falling back to rule-based analysis:', error)
+  } catch {
     return ruleBasedCategorizations(unmatched, ledgerAccounts, existingRules, mode)
   }
 }

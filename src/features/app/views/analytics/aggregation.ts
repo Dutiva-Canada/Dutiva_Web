@@ -279,12 +279,16 @@ export function meanInWindow(
  * v4: Comms/PR signals added — issues resolved/closed, submissions
  *     submitted/recorded, active brand claims, and closed/in-force policy
  *     files.
+ * v5: Five more modules wired in — security (incidents resolved + risks
+ *     mitigated/closed), operations (projects completed), governance
+ *     (decisions made — not 'proposed'), revenue (invoices paid), and
+ *     specialists (engagements with no overdue follow-ups).
  *
  * MIRROR: supabase/functions/record-score-snapshots/scoring.ts computes the
  * same formula for the scheduled job; scoring.test.ts there is the drift
  * test. Change the two together.
  */
-export const SCORE_FORMULA_VERSION = 4
+export const SCORE_FORMULA_VERSION = 5
 
 /**
  * v3 task scoping: only rows with provenance count toward the score — a

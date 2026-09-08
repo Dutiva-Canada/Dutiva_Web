@@ -247,7 +247,7 @@ describe('AnalyticsView in production mode', () => {
         organization_id: 'org-1',
         score: 54,
         headcount: 0,
-        formula_version: 4,
+        formula_version: 5,
       }),
       expect.objectContaining({ onConflict: 'organization_id,month' }),
     )

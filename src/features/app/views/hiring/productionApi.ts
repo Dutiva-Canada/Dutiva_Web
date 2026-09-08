@@ -666,36 +666,19 @@ export interface ProductionJobPosting {
 }
 
 const jobPostingRowSchema = z.object({
-  id: z.string(),
-  organization_id: z.string(),
-  title: z.string(),
-  department: z.string(),
-  location: z.string(),
-  type: z.string(),
-  description: z.string(),
-  requirements: z.array(z.string()),
-  knockout_criteria: z.array(z.string()),
-  work_sample_scenario: z.string(),
-  status: z.string(),
-  posted_date: z.string().nullable(),
-  closing_date: z.string().nullable(),
+  id: z.string(), organization_id: z.string(), title: z.string(), department: z.string(),
+  location: z.string(), type: z.string(), description: z.string(),
+  requirements: z.array(z.string()), knockout_criteria: z.array(z.string()),
+  work_sample_scenario: z.string(), status: z.string(),
+  posted_date: z.string().nullable(), closing_date: z.string().nullable(),
 })
 
 function toJobPosting(row: z.infer<typeof jobPostingRowSchema>): ProductionJobPosting {
   return {
-    id: row.id,
-    organizationId: row.organization_id,
-    title: row.title,
-    department: row.department,
-    location: row.location,
-    type: row.type,
-    description: row.description,
-    requirements: row.requirements,
-    knockoutCriteria: row.knockout_criteria,
-    workSampleScenario: row.work_sample_scenario,
-    status: row.status,
-    postedDate: row.posted_date,
-    closingDate: row.closing_date,
+    id: row.id, organizationId: row.organization_id, title: row.title, department: row.department,
+    location: row.location, type: row.type, description: row.description, requirements: row.requirements,
+    knockoutCriteria: row.knockout_criteria, workSampleScenario: row.work_sample_scenario,
+    status: row.status, postedDate: row.posted_date, closingDate: row.closing_date,
   }
 }
 
@@ -722,6 +705,63 @@ export async function getJobPosting(id: string): Promise<ProductionJobPosting | 
   return toJobPosting(jobPostingRowSchema.parse(data))
 }
 
+export interface NewJobPosting {
+  title: string; department: string; location: string; type: string
+  description: string; status: string
+  requirements?: string[]; knockoutCriteria?: string[]
+  workSampleScenario?: string; closingDate?: string | null
+}
+
+export async function createJobPosting(
+  organizationId: string,
+  posting: NewJobPosting,
+): Promise<ProductionJobPosting> {
+  const client = supabase
+  if (!client) throw new Error('Supabase is not configured')
+  const { data, error } = await client.from('hr_job_postings').insert({
+    organization_id: organizationId, title: posting.title, department: posting.department,
+    location: posting.location, type: posting.type, description: posting.description,
+    status: posting.status, requirements: posting.requirements ?? [],
+    knockout_criteria: posting.knockoutCriteria ?? [], work_sample_scenario: posting.workSampleScenario ?? '',
+    closing_date: posting.closingDate ?? null,
+    posted_date: posting.status === 'active' ? new Date().toISOString() : null,
+  }).select('*').single()
+  if (error) throw error
+  if (!data) throw new Error('Failed to create job posting')
+  return toJobPosting(jobPostingRowSchema.parse(data))
+}
+
+export async function updateJobPosting(
+  organizationId: string,
+  id: string,
+  patch: Partial<NewJobPosting>,
+): Promise<ProductionJobPosting | null> {
+  const client = supabase
+  if (!client) throw new Error('Supabase is not configured')
+  const row: TablesUpdate<'hr_job_postings'> = { updated_at: new Date().toISOString() }
+  if (patch.title !== undefined) row.title = patch.title
+  if (patch.department !== undefined) row.department = patch.department
+  if (patch.location !== undefined) row.location = patch.location
+  if (patch.type !== undefined) row.type = patch.type
+  if (patch.description !== undefined) row.description = patch.description
+  if (patch.status !== undefined) row.status = patch.status
+  if (patch.requirements !== undefined) row.requirements = patch.requirements
+  if (patch.knockoutCriteria !== undefined) row.knockout_criteria = patch.knockoutCriteria
+  if (patch.workSampleScenario !== undefined) row.work_sample_scenario = patch.workSampleScenario
+  if (patch.closingDate !== undefined) row.closing_date = patch.closingDate
+  const { data, error } = await client.from('hr_job_postings').update(row).eq('id', id).eq('organization_id', organizationId).select('*').maybeSingle()
+  if (error) throw error
+  if (!data) return null
+  return toJobPosting(jobPostingRowSchema.parse(data))
+}
+
+export async function deleteJobPosting(organizationId: string, id: string): Promise<void> {
+  const client = supabase
+  if (!client) throw new Error('Supabase is not configured')
+  const { error } = await client.from('hr_job_postings').delete().eq('id', id).eq('organization_id', organizationId)
+  if (error) throw error
+}
+
 /* ── Funnel Metrics ─────────────────────────────────────────────────────── */
 
 export interface ProductionFunnelMetrics {
@@ -734,31 +774,19 @@ export interface ProductionFunnelMetrics {
 }
 
 const STAGE_ORDER: ProductionCandidateStatus[] = [
-  'application',
-  'basic_qualified',
-  'evidence_qualified',
-  'work_sample',
-  'interview',
-  'hired',
+  'application', 'basic_qualified', 'evidence_qualified', 'work_sample', 'interview', 'hired',
 ]
 
 export async function getFunnelMetrics(organizationId: string): Promise<ProductionFunnelMetrics> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
-
-  const { data: candidates, error } = await client
-    .from('hr_candidates')
-    .select('status')
-    .eq('organization_id', organizationId)
-
+  const { data: candidates, error } = await client.from('hr_candidates').select('status').eq('organization_id', organizationId)
   if (error) throw error
-
   const active = (candidates ?? []).filter(
     (c): c is { status: ProductionCandidateStatus } =>
       !!c.status && c.status !== 'rejected' && STAGE_ORDER.includes(c.status as ProductionCandidateStatus),
   )
-
-  const metrics: ProductionFunnelMetrics = {
+  return {
     totalApplications: active.filter((c) => STAGE_ORDER.indexOf(c.status) >= 0).length,
     basicQualified: active.filter((c) => STAGE_ORDER.indexOf(c.status) >= 1).length,
     evidenceQualified: active.filter((c) => STAGE_ORDER.indexOf(c.status) >= 2).length,
@@ -766,6 +794,4 @@ export async function getFunnelMetrics(organizationId: string): Promise<Producti
     interviews: active.filter((c) => STAGE_ORDER.indexOf(c.status) >= 4).length,
     hires: active.filter((c) => STAGE_ORDER.indexOf(c.status) >= 5).length,
   }
-
-  return metrics
 }

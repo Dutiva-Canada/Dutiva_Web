@@ -485,8 +485,8 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
         if (result?.sessionId) {
           try {
             aiSummary = (await analyseImportWithAiSupa(orgId, result.sessionId)) ?? undefined
-          } catch (err) {
-            console.error('[finance] AI analysis after import failed:', err)
+          } catch {
+            // AI analysis after import failed — import itself succeeded
           }
         }
         await reload()

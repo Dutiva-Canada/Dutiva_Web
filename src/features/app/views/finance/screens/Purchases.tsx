@@ -372,11 +372,11 @@ function PartyForm({
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_party_type)}</span>
           <select value={type} onChange={(e) => setType(e.target.value as import('../data/types').FinancePartyType)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
-            <option value="supplier">Supplier</option>
-            <option value="customer">Customer</option>
-            <option value="employee">Employee</option>
-            <option value="bank">Bank</option>
-            <option value="advisor">Advisor</option>
+            <option value="supplier">{x(M.finance_party_type_supplier)}</option>
+            <option value="customer">{x(M.finance_party_type_customer)}</option>
+            <option value="employee">{x(M.finance_party_type_employee)}</option>
+            <option value="bank">{x(M.finance_party_type_bank)}</option>
+            <option value="advisor">{x(M.finance_party_type_advisor)}</option>
           </select>
         </label>
         <label className="flex items-center gap-[6px] pt-[20px]">

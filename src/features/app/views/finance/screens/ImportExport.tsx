@@ -128,7 +128,6 @@ export function ImportExport() {
         setImportError(x(M.finance_import_failed))
       }
     } catch (err) {
-      console.error('[finance] import failed:', err)
       setImportError(x(M.finance_import_failed) + (formatError(err) ? `: ${formatError(err)}` : ''))
     }
   }
@@ -196,8 +195,7 @@ export function ImportExport() {
             ? x(M.finance_suggest_rules_result).replace('{count}', String(result.length))
             : x(M.finance_suggest_rules_none),
         )
-      } catch (err) {
-        console.error('[finance] rule suggestion failed', err)
+      } catch {
         if (useAiSuggestions) {
           try {
             const fallback = suggestCategoryRules(state.bankItems, state.ledgerAccounts, state.categoryRules)
@@ -853,8 +851,8 @@ function CategoryRuleForm({
           onChange={(e) => setDirection(e.target.value as 'debit' | 'credit')}
           className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[12px] text-text"
         >
-          <option value="debit">Debit</option>
-          <option value="credit">Credit</option>
+          <option value="debit">{x(M.finance_accounting_debit)}</option>
+          <option value="credit">{x(M.finance_accounting_credit)}</option>
         </select>
         <input
           type="number"

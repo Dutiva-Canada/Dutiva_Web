@@ -378,7 +378,7 @@ function LedgerAccountForm({
     <form onSubmit={handleSubmit} className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]">
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
-          <span className="text-[12px] text-text-muted">Book</span>
+          <span className="text-[12px] text-text-muted">{x(M.finance_journal_book)}</span>
           <select value={bookId} onChange={(e) => setBookId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
             {books.map((b) => <option key={b.id} value={b.id}>{x(b.label)}</option>)}
           </select>
@@ -396,12 +396,12 @@ function LedgerAccountForm({
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_ledger_account_type)}</span>
           <select value={type} onChange={(e) => setType(e.target.value as import('../data/types').FinanceLedgerAccount['type'])} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
-            <option value="asset">Asset</option>
-            <option value="liability">Liability</option>
-            <option value="equity">Equity</option>
-            <option value="revenue">Revenue</option>
-            <option value="expense">Expense</option>
-            <option value="contra">Contra</option>
+            <option value="asset">{x(M.finance_account_type_asset)}</option>
+            <option value="liability">{x(M.finance_account_type_liability)}</option>
+            <option value="equity">{x(M.finance_account_type_equity)}</option>
+            <option value="revenue">{x(M.finance_account_type_revenue)}</option>
+            <option value="expense">{x(M.finance_account_type_expense)}</option>
+            <option value="contra">{x(M.finance_account_type_contra)}</option>
           </select>
         </label>
       </div>

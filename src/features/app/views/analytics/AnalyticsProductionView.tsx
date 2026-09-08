@@ -304,7 +304,13 @@ export function AnalyticsProductionView() {
     commsIssues.state.status === 'ready' &&
     commsSubmissions.state.status === 'ready' &&
     commsBrandClaims.state.status === 'ready' &&
-    commsPolicyFiles.state.status === 'ready'
+    commsPolicyFiles.state.status === 'ready' &&
+    securityIncidents.state.status === 'ready' &&
+    securityRisks.state.status === 'ready' &&
+    operationsProjects.state.status === 'ready' &&
+    governanceDecisions.state.status === 'ready' &&
+    revenueInvoices.state.status === 'ready' &&
+    specialistEngagements.state.status === 'ready'
 
   const components = useMemo(() => {
     const policyRows = rowsOf(policies.state)
@@ -320,6 +326,12 @@ export function AnalyticsProductionView() {
     const submissionRows = rowsOf(commsSubmissions.state)
     const brandClaimRows = rowsOf(commsBrandClaims.state)
     const policyFileRows = rowsOf(commsPolicyFiles.state)
+    const securityIncidentRows = rowsOf(securityIncidents.state)
+    const securityRiskRows = rowsOf(securityRisks.state)
+    const operationsProjectRows = rowsOf(operationsProjects.state)
+    const governanceDecisionRows = rowsOf(governanceDecisions.state)
+    const revenueInvoiceRows = rowsOf(revenueInvoices.state)
+    const specialistEngagementRows = rowsOf(specialistEngagements.state)
     return [
       scoreComponent(
         'policies',
@@ -360,6 +372,34 @@ export function AnalyticsProductionView() {
           .length,
         policyFileRows.length,
       ),
+      scoreComponent(
+        'security',
+        securityIncidentRows.filter((i) => i.status === 'resolved').length +
+          securityRiskRows.filter((r) => r.status === 'mitigated' || r.status === 'closed').length,
+        securityIncidentRows.length + securityRiskRows.length,
+      ),
+      scoreComponent(
+        'operations',
+        operationsProjectRows.filter((p) => p.status === 'completed').length,
+        operationsProjectRows.length,
+      ),
+      scoreComponent(
+        'governance',
+        governanceDecisionRows.filter((d) => d.status !== 'proposed').length,
+        governanceDecisionRows.length,
+      ),
+      scoreComponent(
+        'revenue',
+        revenueInvoiceRows.filter((i) => i.status === 'paid').length,
+        revenueInvoiceRows.length,
+      ),
+      scoreComponent(
+        'specialists',
+        specialistEngagementRows.filter(
+          (e) => !(e.follow_up_date !== null && e.follow_up_date < todayISO),
+        ).length,
+        specialistEngagementRows.length,
+      ),
     ]
   }, [
     policies.state,
@@ -370,6 +410,13 @@ export function AnalyticsProductionView() {
     commsSubmissions.state,
     commsBrandClaims.state,
     commsPolicyFiles.state,
+    securityIncidents.state,
+    securityRisks.state,
+    operationsProjects.state,
+    governanceDecisions.state,
+    revenueInvoices.state,
+    specialistEngagements.state,
+    todayISO,
   ])
 
   const openCriticalCount = useMemo(
@@ -493,6 +540,11 @@ export function AnalyticsProductionView() {
     comms_submissions: x(M.analytics_comp_comms_submissions),
     comms_brand_claims: x(M.analytics_comp_comms_brand_claims),
     comms_policy_files: x(M.analytics_comp_comms_policy_files),
+    security: x(M.analytics_comp_security),
+    operations: x(M.analytics_comp_operations),
+    governance: x(M.analytics_comp_governance),
+    revenue: x(M.analytics_comp_revenue),
+    specialists: x(M.analytics_comp_specialists),
   }
   const presentPcts = components.filter((c) => c.pct !== null).map((c) => c.pct!)
   const lowestPct = presentPcts.length >= 2 ? Math.min(...presentPcts) : null

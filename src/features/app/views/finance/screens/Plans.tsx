@@ -347,7 +347,7 @@ export function Plans() {
                     </div>
                   </div>
                   {fc.frozenAt && (
-                    <span className={statusChipClass('neutral')}>Frozen</span>
+                    <span className={statusChipClass('neutral')}>{x(M.finance_plan_frozen)}</span>
                   )}
                 </div>
                 <ul className="m-0 mt-[8px] flex flex-col gap-[4px] p-0">
@@ -553,12 +553,12 @@ function ScenarioForm({
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_scenario_type)}</span>
           <select value={type} onChange={(e) => setType(e.target.value as FinanceScenarioType)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
-            <option value="baseline">Baseline</option>
-            <option value="hiring">Hiring</option>
-            <option value="capital_purchase">Capital purchase</option>
-            <option value="financing">Financing</option>
-            <option value="operating_change">Operating change</option>
-            <option value="tax">Tax</option>
+            <option value="baseline">{x(M.finance_scenario_type_baseline)}</option>
+            <option value="hiring">{x(M.finance_scenario_type_hiring)}</option>
+            <option value="capital_purchase">{x(M.finance_scenario_type_capital_purchase)}</option>
+            <option value="financing">{x(M.finance_scenario_type_financing)}</option>
+            <option value="operating_change">{x(M.finance_scenario_type_operating_change)}</option>
+            <option value="tax">{x(M.finance_scenario_type_tax)}</option>
           </select>
         </label>
       </div>
@@ -648,9 +648,9 @@ function ForecastForm({
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_forecast_type)}</span>
           <select value={type} onChange={(e) => setType(e.target.value as import('../data/types').FinanceForecast['type'])} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
-            <option value="monthly_operating">Monthly operating</option>
-            <option value="13_week_cash">13-week cash</option>
-            <option value="custom">Custom</option>
+            <option value="monthly_operating">{x(M.finance_forecast_type_monthly_operating)}</option>
+            <option value="13_week_cash">{x(M.finance_forecast_type_13_week_cash)}</option>
+            <option value="custom">{x(M.finance_forecast_type_custom)}</option>
           </select>
         </label>
       </div>

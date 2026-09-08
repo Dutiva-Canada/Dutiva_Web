@@ -135,10 +135,9 @@ export async function loadFinanceStateFromSupabase(orgId: string): Promise<Finan
       return await fetchAllPages((from, to) =>
         supabase!.from(table).select('*').eq('organization_id', orgId).order(orderBy, { ascending: false }).range(from, to),
       ).then((rows) => rows.map((r) => mapper(r as Record<string, unknown>)))
-    } catch (err) {
+    } catch {
       // Keep the workspace usable even if one finance table is unavailable or
-      // has a schema drift — log and surface an empty array for that slice.
-      console.error(`[finance] load ${table} failed:`, err)
+      // has a schema drift — surface an empty array for that slice.
       return []
     }
   }
@@ -215,12 +214,10 @@ async function loadAiImportSettingsSupabase(orgId: string): Promise<import('./ty
       .eq('organization_id', orgId)
       .maybeSingle()
     if (error || !data) {
-      if (error) console.error('[finance] load workspace settings failed:', error)
       return { aiImportEnabled: false, aiImportMode: 'auto_high' }
     }
     return mapAiImportSettings(data as Record<string, unknown>)
-  } catch (err) {
-    console.error('[finance] load workspace settings failed:', err)
+  } catch {
     return { aiImportEnabled: false, aiImportMode: 'auto_high' }
   }
 }

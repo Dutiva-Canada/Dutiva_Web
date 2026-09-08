@@ -105,7 +105,6 @@ export function createRealChatFailureHandler(options: {
       }
       return
     }
-    console.error('advisor: real chat request failed', error)
     pushAdvisor({
       text: '',
       isError: true,

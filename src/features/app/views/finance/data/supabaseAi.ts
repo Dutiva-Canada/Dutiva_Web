@@ -73,8 +73,8 @@ export async function analyseImportWithAiSupa(
           active: true,
         })
         if (created) rulesAdded++
-      } catch (ruleErr) {
-        console.error('[finance] AI rule suggestion insert failed:', ruleErr)
+      } catch {
+        // Rule insert failed — continue with remaining suggestions
       }
     }
 
@@ -87,8 +87,8 @@ export async function analyseImportWithAiSupa(
           note: u.note,
           matchStatus: u.matchStatus,
         })
-      } catch (updateErr) {
-        console.error('[finance] AI bank item update failed:', updateErr)
+      } catch {
+        // Bank item update failed — continue with remaining items
       }
     }
 
@@ -100,8 +100,7 @@ export async function analyseImportWithAiSupa(
       itemsSuggested,
       rulesAdded,
     }
-  } catch (err) {
-    console.error('[finance] AI import analysis (supabase) failed:', err)
+  } catch {
     return null
   }
 }
@@ -167,7 +166,6 @@ export async function updateBankItemCategorizationSupa(
     .select('*')
     .single()
   if (error) {
-    console.error('[finance] updateBankItemCategorizationSupa error:', error)
     throw error
   }
   return mapBankItem(data as Record<string, unknown>)
@@ -193,7 +191,6 @@ export async function recordCategorizationFeedbackSupa(
     .select('*')
     .single()
   if (error) {
-    console.error('[finance] recordCategorizationFeedbackSupa error:', error)
     throw error
   }
   return mapCategorizationFeedback(data as Record<string, unknown>)
@@ -207,7 +204,6 @@ export async function getAiImportSettingsSupa(orgId: string): Promise<FinanceAiI
     .eq('organization_id', orgId)
     .maybeSingle()
   if (error || !data) {
-    if (error) console.error('[finance] getAiImportSettingsSupa error:', error)
     return { aiImportEnabled: false, aiImportMode: 'auto_high' }
   }
   return mapAiImportSettings(data as Record<string, unknown>)
@@ -234,7 +230,6 @@ export async function updateAiImportSettingsSupa(
     .select('*')
     .single()
   if (error) {
-    console.error('[finance] updateAiImportSettingsSupa error:', error)
     throw error
   }
   return mapAiImportSettings(data as Record<string, unknown>)

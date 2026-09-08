@@ -83,8 +83,7 @@ export function analyseImportWithAiLocal(
         rulesAdded,
       }
     })
-    .catch((err: unknown) => {
-      console.error('[finance] AI import analysis failed:', err)
+    .catch(() => {
       return null
     })
 }

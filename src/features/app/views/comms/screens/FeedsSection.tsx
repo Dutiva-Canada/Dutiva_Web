@@ -145,7 +145,7 @@ export function FeedsSection() {
         <form onSubmit={onSubmit} className="mb-[12px] rounded-[10px] border border-border bg-inset p-[12px]">
           <div className="grid grid-cols-1 gap-[12px] sm:grid-cols-2">
             <div className="sm:col-span-2">
-              <label className={labelClass}>URL</label>
+              <label className={labelClass}>{x(M.comms_url)}</label>
               <input
                 required
                 type="url"

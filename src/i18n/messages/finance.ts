@@ -701,4 +701,50 @@ export const financeMessages = defineMessages({
   finance_transactions_change_account: { en: 'Change account', fr: 'Changer de compte' },
   finance_transactions_save_changes: { en: 'Save', fr: 'Enregistrer' },
   finance_transactions_accept_suggestion: { en: 'Accept', fr: 'Accepter' },
+
+  /* Account types (ledger account form) */
+  finance_account_type_asset: { en: 'Asset', fr: 'Actif' },
+  finance_account_type_liability: { en: 'Liability', fr: 'Passif' },
+  finance_account_type_equity: { en: 'Equity', fr: 'Capitaux propres' },
+  finance_account_type_revenue: { en: 'Revenue', fr: 'Revenu' },
+  finance_account_type_expense: { en: 'Expense', fr: 'Charge' },
+  finance_account_type_contra: { en: 'Contra', fr: 'Contrepartie' },
+
+  /* Plan frozen badge */
+  finance_plan_frozen: { en: 'Frozen', fr: 'Gelé' },
+
+  /* Reserve goal types */
+  finance_reserve_type_emergency_operating: { en: 'Emergency operating', fr: 'Fonds de fonctionnement d’urgence' },
+  finance_reserve_type_payroll: { en: 'Payroll', fr: 'Paie' },
+  finance_reserve_type_tax: { en: 'Tax', fr: 'Fiscalité' },
+  finance_reserve_type_capital_purchase: { en: 'Capital purchase', fr: 'Achat d’immobilisations' },
+  finance_reserve_type_other: { en: 'Other', fr: 'Autre' },
+
+  /* Party types */
+  finance_party_type_supplier: { en: 'Supplier', fr: 'Fournisseur' },
+  finance_party_type_customer: { en: 'Customer', fr: 'Client' },
+  finance_party_type_employee: { en: 'Employee', fr: 'Employé' },
+  finance_party_type_bank: { en: 'Bank', fr: 'Banque' },
+  finance_party_type_advisor: { en: 'Advisor', fr: 'Conseiller' },
+
+  /* Tax types */
+  finance_tax_type_income_tax: { en: 'Income tax', fr: 'Impôt sur le revenu' },
+  finance_tax_type_gst_hst: { en: 'GST/HST', fr: 'TPS/TVH' },
+  finance_tax_type_qst: { en: 'QST', fr: 'TVQ' },
+  finance_tax_type_payroll_source_deductions: { en: 'Payroll source deductions', fr: 'Retenues à la source sur la paie' },
+  finance_tax_type_employer_contributions: { en: 'Employer contributions', fr: 'Cotisations patronales' },
+  finance_tax_type_other: { en: 'Other', fr: 'Autre' },
+
+  /* Scenario types */
+  finance_scenario_type_baseline: { en: 'Baseline', fr: 'Référence' },
+  finance_scenario_type_hiring: { en: 'Hiring', fr: 'Embauche' },
+  finance_scenario_type_capital_purchase: { en: 'Capital purchase', fr: 'Achat d’immobilisations' },
+  finance_scenario_type_financing: { en: 'Financing', fr: 'Financement' },
+  finance_scenario_type_operating_change: { en: 'Operating change', fr: 'Changement d’exploitation' },
+  finance_scenario_type_tax: { en: 'Tax', fr: 'Fiscalité' },
+
+  /* Forecast types */
+  finance_forecast_type_monthly_operating: { en: 'Monthly operating', fr: 'Exploitation mensuelle' },
+  finance_forecast_type_13_week_cash: { en: '13-week cash', fr: 'Trésorerie de 13 semaines' },
+  finance_forecast_type_custom: { en: 'Custom', fr: 'Personnalisé' },
 })

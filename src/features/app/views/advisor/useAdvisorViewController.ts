@@ -363,8 +363,7 @@ export function useAdvisorViewController() {
         }
         window.location.assign(result.url)
       })
-      .catch((error) => {
-        console.error('advisor: pack checkout failed', error)
+      .catch(() => {
         showToast(M.advisorview_pack_checkout_failed, 'info')
       })
       .finally(() => {

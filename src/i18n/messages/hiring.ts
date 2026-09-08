@@ -253,6 +253,23 @@ export const hiringMessages = defineMessages({
   hiring_posting_closed: { en: 'Closed', fr: 'Fermé' },
   hiring_posting_draft: { en: 'Draft', fr: 'Brouillon' },
 
+  hiring_posting_create: { en: 'Create posting', fr: 'Créer une offre' },
+  hiring_posting_edit: { en: 'Edit posting', fr: 'Modifier l\'offre' },
+  hiring_posting_delete: { en: 'Delete posting', fr: 'Supprimer l\'offre' },
+  hiring_posting_description: { en: 'Description', fr: 'Description' },
+  hiring_posting_save: { en: 'Save posting', fr: 'Enregistrer l\'offre' },
+  hiring_posting_cancel: { en: 'Cancel', fr: 'Annuler' },
+  hiring_posting_delete_confirm: {
+    en: 'Delete this job posting? This can\'t be undone.',
+    fr: 'Supprimer cette offre d\'emploi? Cette action est irréversible.',
+  },
+  hiring_posting_created: { en: 'Job posting created.', fr: 'Offre d\'emploi créée.' },
+  hiring_posting_updated: { en: 'Job posting updated.', fr: 'Offre d\'emploi mise à jour.' },
+  hiring_posting_deleted: { en: 'Job posting deleted.', fr: 'Offre d\'emploi supprimée.' },
+  hiring_posting_create_error: { en: 'Couldn\'t create job posting.', fr: 'Impossible de créer l\'offre.' },
+  hiring_posting_update_error: { en: 'Couldn\'t update job posting.', fr: 'Impossible de mettre à jour l\'offre.' },
+  hiring_posting_delete_error: { en: 'Couldn\'t delete job posting.', fr: 'Impossible de supprimer l\'offre.' },
+
   /* ── Job Posting Detail View ───────────────────────────────────────────── */
   hiring_open_posting: { en: 'Open job posting', fr: 'Ouvrir l\'offre d\'emploi' },
   hiring_posting_back: { en: 'All job postings', fr: 'Toutes les offres d\'emploi' },
@@ -269,6 +286,15 @@ export const hiringMessages = defineMessages({
   hiring_send_work_sample: { en: 'Send work sample', fr: 'Envoyer l\'échantillon de travail' },
   hiring_schedule_interview: { en: 'Schedule interview', fr: 'Planifier l\'entretien' },
   hiring_make_offer: { en: 'Make offer', fr: 'Faire une offre' },
+
+  hiring_candidate_status: { en: 'Status', fr: 'Statut' },
+  hiring_candidate_advance: { en: 'Advance stage', fr: 'Avancer l\'étape' },
+  hiring_candidate_assign: { en: 'Assign to', fr: 'Assigner à' },
+  hiring_candidate_unassign: { en: 'Unassigned', fr: 'Non assigné' },
+  hiring_candidate_status_updated: { en: 'Candidate status updated.', fr: 'Statut du candidat mis à jour.' },
+  hiring_candidate_status_error: { en: 'Couldn\'t update candidate status.', fr: 'Impossible de mettre à jour le statut.' },
+  hiring_candidate_assigned: { en: 'Candidate assigned.', fr: 'Candidat assigné.' },
+  hiring_candidate_assign_error: { en: 'Couldn\'t assign candidate.', fr: 'Impossible d\'assigner le candidat.' },
   
   hiring_action_confirm: { en: 'Confirm', fr: 'Confirmer' },
   hiring_action_cancel: { en: 'Cancel', fr: 'Annuler' },
