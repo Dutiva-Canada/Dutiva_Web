@@ -83,6 +83,10 @@ import {
 /* prettier-ignore */ const SecurityRisks = lazy(() => import('@/features/app/views/security/screens/Risks').then((m) => ({ default: m.Risks })))
 /* prettier-ignore */ const SecurityVendors = lazy(() => import('@/features/app/views/security/screens/Vendors').then((m) => ({ default: m.Vendors })))
 
+/* Specialists workspace screens */
+/* prettier-ignore */ const SpecialistsDirectory = lazy(() => import('@/features/app/views/specialists/screens/Directory').then((m) => ({ default: m.Directory })))
+/* prettier-ignore */ const SpecialistsEngagements = lazy(() => import('@/features/app/views/specialists/screens/Engagements').then((m) => ({ default: m.Engagements })))
+
 /* Operations workspace screens */
 /* prettier-ignore */ const OperationsOverview = lazy(() => import('@/features/app/views/operations/screens/Overview').then((m) => ({ default: m.Overview })))
 /* prettier-ignore */ const OperationsProjects = lazy(() => import('@/features/app/views/operations/screens/Projects').then((m) => ({ default: m.Projects })))
@@ -256,7 +260,15 @@ function createAppViewRoutes(root: string): RouteObject[] {
         { path: 'vendors', element: <SecurityVendors /> },
       ],
     },
-    { path: 'specialists', element: <SpecialistsView /> },
+    {
+      path: 'specialists',
+      element: <SpecialistsView />,
+      children: [
+        { index: true, loader: () => redirect(r('specialists/directory')) },
+        { path: 'directory', element: <SpecialistsDirectory /> },
+        { path: 'engagements', element: <SpecialistsEngagements /> },
+      ],
+    },
     { path: 'wellbeing', element: <WellbeingView /> },
     /* Hiring module — evidence-based recruitment system with demo/production support */
     { path: 'hiring', element: <HiringView /> },

@@ -36,6 +36,8 @@ import { placeholderMessages } from './placeholder'
 import { governanceMessages } from './governance'
 import { securityMessages } from './security'
 import { operationsMessages } from './operations'
+import { specialistsMessages } from './specialists'
+import { revenueMessages } from './revenue'
 import { sharedMessages } from './shared'
 
 /**
@@ -84,6 +86,8 @@ export const workspaceMessages = {
   ...governanceMessages,
   ...securityMessages,
   ...operationsMessages,
+  ...specialistsMessages,
+  ...revenueMessages,
   ...sharedMessages,
 } as const
 

@@ -9436,6 +9436,149 @@ export type Database = {
           },
         ]
       }
+      specialist_engagements: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          engagement_date: string | null
+          engagement_type: string | null
+          follow_up_date: string | null
+          id: string
+          organization_id: string
+          specialist_id: string
+          summary: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          engagement_date?: string | null
+          engagement_type?: string | null
+          follow_up_date?: string | null
+          id?: string
+          organization_id: string
+          specialist_id: string
+          summary?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          engagement_date?: string | null
+          engagement_type?: string | null
+          follow_up_date?: string | null
+          id?: string
+          organization_id?: string
+          specialist_id?: string
+          summary?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "specialist_engagements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "specialist_engagements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "specialist_engagements_specialist_id_fkey"
+            columns: ["specialist_id"]
+            isOneToOne: false
+            referencedRelation: "specialists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      specialists: {
+        Row: {
+          access_expires_at: string | null
+          company: string | null
+          created_at: string | null
+          crm_contact_id: string | null
+          email: string | null
+          finance_party_id: string | null
+          granted_modules: string[] | null
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string
+          organization_member_id: string | null
+          phone: string | null
+          specialty: string
+          updated_at: string | null
+          workspace_access: boolean | null
+          workspace_role: string | null
+        }
+        Insert: {
+          access_expires_at?: string | null
+          company?: string | null
+          created_at?: string | null
+          crm_contact_id?: string | null
+          email?: string | null
+          finance_party_id?: string | null
+          granted_modules?: string[] | null
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id: string
+          organization_member_id?: string | null
+          phone?: string | null
+          specialty: string
+          updated_at?: string | null
+          workspace_access?: boolean | null
+          workspace_role?: string | null
+        }
+        Update: {
+          access_expires_at?: string | null
+          company?: string | null
+          created_at?: string | null
+          crm_contact_id?: string | null
+          email?: string | null
+          finance_party_id?: string | null
+          granted_modules?: string[] | null
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          organization_member_id?: string | null
+          phone?: string | null
+          specialty?: string
+          updated_at?: string | null
+          workspace_access?: boolean | null
+          workspace_role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "specialists_finance_party_id_fkey"
+            columns: ["finance_party_id"]
+            isOneToOne: false
+            referencedRelation: "finance_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "specialists_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "specialists_organization_member_id_fkey"
+            columns: ["organization_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stripe_webhook_events: {
         Row: {
           event_id: string

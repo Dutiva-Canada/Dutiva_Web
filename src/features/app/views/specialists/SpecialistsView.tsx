@@ -1,6 +1,17 @@
-import { ModulePlaceholder } from '@/features/app/views/placeholders/ModulePlaceholder'
-import { shellMessages as M } from '@/i18n/messages/shell'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { SpecialistsDemoView } from './SpecialistsDemoView'
+import { SpecialistsProductionView } from './SpecialistsProductionView'
 
+/**
+ * External specialists directory. A tracker, not a full contract management
+ * system.
+ */
 export function SpecialistsView() {
-  return <ModulePlaceholder title={M.shell_v_specialists} />
+  const { mode } = useWorkspaceMode()
+
+  if (mode === 'production') {
+    return <SpecialistsProductionView />
+  }
+
+  return <SpecialistsDemoView />
 }

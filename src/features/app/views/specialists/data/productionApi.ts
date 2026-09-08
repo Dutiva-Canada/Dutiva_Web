@@ -1,0 +1,80 @@
+import { z } from 'zod'
+import { supabase } from '@/lib/supabaseClient'
+import { fetchAllPages } from '@/lib/supabasePagination'
+import type { Specialist, SpecialistEngagement } from './types'
+
+const specialistRowSchema = z.object({
+  id: z.string(),
+  organization_id: z.string(),
+  name: z.string(),
+  specialty: z.enum(['lawyer', 'accountant', 'tax', 'insurance', 'it_security', 'hr_consultant', 'bookkeeper', 'other']),
+  company: z.string().nullable(),
+  email: z.string().nullable(),
+  phone: z.string().nullable(),
+  crm_contact_id: z.string().nullable(),
+  finance_party_id: z.string().nullable(),
+  workspace_access: z.boolean(),
+  workspace_role: z.enum(['consultant', 'viewer']),
+  granted_modules: z.array(z.string()),
+  access_expires_at: z.string().nullable(),
+  organization_member_id: z.string().nullable(),
+  notes: z.string().nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+})
+
+const engagementRowSchema = z.object({
+  id: z.string(),
+  organization_id: z.string(),
+  specialist_id: z.string(),
+  engagement_date: z.string().nullable(),
+  engagement_type: z.enum(['call', 'email', 'meeting', 'contract', 'task']).nullable(),
+  summary: z.string().nullable(),
+  follow_up_date: z.string().nullable(),
+  created_by: z.string().nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
+})
+
+function toSpecialist(row: z.infer<typeof specialistRowSchema>): Specialist {
+  return { ...row }
+}
+
+function toEngagement(row: z.infer<typeof engagementRowSchema>): SpecialistEngagement {
+  return { ...row }
+}
+
+function getClient() {
+  if (!supabase) throw new Error('Supabase is not configured')
+  return supabase
+}
+
+export async function listSpecialists(organizationId: string): Promise<Specialist[]> {
+  const client = getClient()
+  const data = await fetchAllPages((from, to) =>
+    client
+      .from('specialists')
+      .select('*')
+      .eq('organization_id', organizationId)
+      .order('name')
+      .order('id')
+      .range(from, to),
+  )
+  const parsed = z.array(specialistRowSchema).parse(data)
+  return parsed.map(toSpecialist)
+}
+
+export async function listSpecialistEngagements(organizationId: string): Promise<SpecialistEngagement[]> {
+  const client = getClient()
+  const data = await fetchAllPages((from, to) =>
+    client
+      .from('specialist_engagements')
+      .select('*')
+      .eq('organization_id', organizationId)
+      .order('engagement_date')
+      .order('id')
+      .range(from, to),
+  )
+  const parsed = z.array(engagementRowSchema).parse(data)
+  return parsed.map(toEngagement)
+}
