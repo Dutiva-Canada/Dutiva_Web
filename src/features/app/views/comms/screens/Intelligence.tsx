@@ -4,8 +4,8 @@ import { statusChipClass } from '@/components/chips'
 import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
-import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
-import { useCommsData } from '../data/useCommsData'
+import { usePolicyFiles } from '../data/usePolicyFiles'
+import { useIssues } from '../data/useIssues'
 import { useInitiatives } from '../data/useInitiatives'
 import type {
   CommsChannel,
@@ -63,7 +63,7 @@ function parseChannels(raw: string): CommsChannel[] {
 
 function PolicyFileForm({ onCancel }: { onCancel: () => void }) {
   const { x, lang } = useI18n()
-  const { addPolicyFile } = useCommsData()
+  const { addPolicyFile } = usePolicyFiles()
   const [authority, setAuthority] = useState('')
   const [jurisdiction, setJurisdiction] = useState('')
   const [objective, setObjective] = useState('')
@@ -72,10 +72,10 @@ function PolicyFileForm({ onCancel }: { onCancel: () => void }) {
   const [deadline, setDeadline] = useState('')
   const [owner, setOwner] = useState('')
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!authority.trim() || !owner.trim()) return
-    addPolicyFile({
+    await addPolicyFile({
       authority: biInput(authority, lang) ?? { en: authority.trim(), fr: `[FR review] ${authority.trim()}` },
       jurisdiction: biInput(jurisdiction, lang) ?? { en: '', fr: '' },
       objective: biInput(objective, lang) ?? { en: '', fr: '' },
@@ -170,7 +170,7 @@ function IssueForm({
   initiatives: CommsInitiative[]
 }) {
   const { x, lang } = useI18n()
-  const { addIssue } = useCommsData()
+  const { addIssue } = useIssues()
   const [title, setTitle] = useState('')
   const [severity, setSeverity] = useState<CommsIssueSeverity>('medium')
   const [status, setStatus] = useState<CommsIssueStatus>('open')
@@ -182,10 +182,10 @@ function IssueForm({
   const [resolution, setResolution] = useState('')
   const [initiativeId, setInitiativeId] = useState('')
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!title.trim() || !lead.trim()) return
-    addIssue({
+    await addIssue({
       title: biInput(title, lang) ?? { en: title.trim(), fr: `[FR review] ${title.trim()}` },
       severity,
       status,
@@ -313,9 +313,10 @@ function IssueForm({
 
 export function Intelligence() {
   const { x } = useI18n()
-  const { state, canWrite, toggleInitiativePause, removePolicyFile, removeIssue } = useCommsData()
-  const { identity } = useWorkspaceMode()
-  const { initiatives } = useInitiatives()
+  const { canWrite: policyCanWrite, removePolicyFile, policyFiles } = usePolicyFiles()
+  const { canWrite: issueCanWrite, removeIssue, issues } = useIssues()
+  const { initiatives, toggleInitiativePause } = useInitiatives()
+  const canWrite = policyCanWrite && issueCanWrite
   const [addingPolicy, setAddingPolicy] = useState(false)
   const [addingIssue, setAddingIssue] = useState(false)
 
@@ -346,11 +347,11 @@ export function Intelligence() {
 
         {addingPolicy && <PolicyFileForm onCancel={() => setAddingPolicy(false)} />}
 
-        {state.policyFiles.length === 0 ? (
+        {policyFiles.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.comms_intelligence_empty)}</p>
         ) : (
           <ul className="m-0 flex flex-col gap-[10px] p-0">
-            {state.policyFiles.map((file) => (
+            {policyFiles.map((file) => (
               <li key={file.id} className="rounded-[8px] bg-inset p-[12px]">
                 <div className="flex items-start justify-between gap-[12px]">
                   <div>
@@ -407,11 +408,11 @@ export function Intelligence() {
 
         {addingIssue && <IssueForm onCancel={() => setAddingIssue(false)} initiatives={initiatives} />}
 
-        {state.issues.length === 0 ? (
+        {issues.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.comms_intelligence_empty)}</p>
         ) : (
           <ul className="m-0 flex flex-col gap-[10px] p-0">
-            {state.issues.map((issue) => (
+            {issues.map((issue) => (
               <li key={issue.id} className="rounded-[8px] bg-inset p-[12px]">
                 <div className="flex flex-wrap items-start justify-between gap-[12px]">
                   <div>
@@ -452,7 +453,7 @@ export function Intelligence() {
                 {canWrite && issue.initiativeId && (
                   <button
                     type="button"
-                    onClick={() => toggleInitiativePause(issue.initiativeId!, issue.status === 'open', identity.user.name)}
+                    onClick={() => toggleInitiativePause(issue.initiativeId!, issue.status === 'open')}
                     className="mt-[10px] flex items-center gap-[4px] rounded-[6px] border border-border bg-surface px-[8px] py-[4px] font-sans text-[11.5px] font-semibold text-text hover:bg-inset"
                   >
                     {x(M.comms_initiative_pause_publications)}

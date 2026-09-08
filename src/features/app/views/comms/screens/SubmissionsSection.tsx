@@ -4,7 +4,7 @@ import { statusChipClass } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import type { Bi } from '@/i18n/core'
-import { useCommsData } from '../data/useCommsData'
+import { useSubmissions } from '../data/useSubmissions'
 import { useInitiatives } from '../data/useInitiatives'
 import type { CommsSubmissionStatus } from '../data/types'
 import { getSubmissionDueStatus } from '../data/productionApi'
@@ -65,7 +65,7 @@ function nextActions(status: CommsSubmissionStatus): { label: Bi; next: CommsSub
 
 export function SubmissionsSection() {
   const { x } = useI18n()
-  const { state, canWrite, addSubmission, removeSubmission, transitionSubmissionStatus } = useCommsData()
+  const { submissions, canWrite, addSubmission, removeSubmission, transitionSubmissionStatus } = useSubmissions()
   const { initiatives } = useInitiatives()
   const [open, setOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<CommsSubmissionStatus | 'all'>('all')
@@ -88,9 +88,9 @@ export function SubmissionsSection() {
     setStatus('planned')
   }
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    addSubmission({
+    await addSubmission({
       initiativeId,
       authority: { en: authority, fr: `[FR] ${authority}` },
       method: { en: method, fr: `[FR] ${method}` },
@@ -105,9 +105,9 @@ export function SubmissionsSection() {
 
   const filtered = useMemo(() => {
     return statusFilter === 'all'
-      ? state.submissions
-      : state.submissions.filter((s) => s.status === statusFilter)
-  }, [state.submissions, statusFilter])
+      ? submissions
+      : submissions.filter((s) => s.status === statusFilter)
+  }, [submissions, statusFilter])
 
   return (
     <section className="rounded-[12px] border border-border bg-surface p-[16px]">
