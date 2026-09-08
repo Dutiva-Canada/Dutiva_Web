@@ -12665,6 +12665,102 @@ export type Database = {
         }
         Relationships: []
       }
+      candidate_profiles: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          email: string
+          phone: string | null
+          location: string
+          headline: string
+          summary: string
+          resume_text: string
+          linkedin: string | null
+          website: string | null
+          years_experience: number | null
+          work_authorization: string
+          current_role: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          email: string
+          phone?: string | null
+          location: string
+          headline: string
+          summary: string
+          resume_text: string
+          linkedin?: string | null
+          website?: string | null
+          years_experience?: number | null
+          work_authorization: string
+          current_role?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          email?: string
+          phone?: string | null
+          location?: string
+          headline?: string
+          summary?: string
+          resume_text?: string
+          linkedin?: string | null
+          website?: string | null
+          years_experience?: number | null
+          work_authorization?: string
+          current_role?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      candidate_applications: {
+        Row: {
+          id: string
+          candidate_id: string
+          job_posting_id: string
+          status: string
+          cover_letter: string | null
+          submitted_resume: string
+          ai_match_score: number | null
+          ai_suggestions: Json | null
+          applied_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          candidate_id: string
+          job_posting_id: string
+          status?: string
+          cover_letter?: string | null
+          submitted_resume: string
+          ai_match_score?: number | null
+          ai_suggestions?: Json | null
+          applied_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          candidate_id?: string
+          job_posting_id?: string
+          status?: string
+          cover_letter?: string | null
+          submitted_resume?: string
+          ai_match_score?: number | null
+          ai_suggestions?: Json | null
+          applied_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       generator_templates: {

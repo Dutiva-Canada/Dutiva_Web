@@ -39,6 +39,7 @@ import { operationsMessages } from './operations'
 import { specialistsMessages } from './specialists'
 import { revenueMessages } from './revenue'
 import { entityLinksMessages } from './entityLinks'
+import { careersMessages } from './careers'
 import { sharedMessages } from './shared'
 
 /**
@@ -90,6 +91,7 @@ export const workspaceMessages = {
   ...specialistsMessages,
   ...revenueMessages,
   ...entityLinksMessages,
+  ...careersMessages,
   ...sharedMessages,
 } as const
 

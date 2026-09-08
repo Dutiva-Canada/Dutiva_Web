@@ -51,6 +51,15 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const AppAuthConfirm = lazy(() => import('./appSurface').then((m) => ({ default: m.AppAuthConfirm })))
 /* prettier-ignore */ const Workspace = lazy(() => import('./appSurface').then((m) => ({ default: m.Workspace })))
 /* prettier-ignore */ const PublicDemoWorkspace = lazy(() => import('./appSurface').then((m) => ({ default: m.PublicDemoWorkspace })))
+/* Careers surface (public job board + candidate portal) — see careersSurface.tsx. */
+/* prettier-ignore */ const CareersSurface = lazy(() => import('./careersSurface').then((m) => ({ default: m.CareersSurface })))
+/* prettier-ignore */ const CareersPortalSurface = lazy(() => import('./careersSurface').then((m) => ({ default: m.CareersPortalSurface })))
+/* prettier-ignore */ const JobBoardPage = lazy(() => import('@/features/careers/JobBoardPage').then((m) => ({ default: m.JobBoardPage })))
+/* prettier-ignore */ const JobDetailPage = lazy(() => import('@/features/careers/JobDetailPage').then((m) => ({ default: m.JobDetailPage })))
+/* prettier-ignore */ const CandidatePortalHome = lazy(() => import('@/features/careers/portal/PortalHome').then((m) => ({ default: m.PortalHome })))
+/* prettier-ignore */ const CandidateProfilePage = lazy(() => import('@/features/careers/portal/CandidateProfilePage').then((m) => ({ default: m.CandidateProfilePage })))
+/* prettier-ignore */ const ApplicationsPage = lazy(() => import('@/features/careers/portal/ApplicationsPage').then((m) => ({ default: m.ApplicationsPage })))
+/* prettier-ignore */ const ApplyToJobPage = lazy(() => import('@/features/careers/portal/ApplyToJobPage').then((m) => ({ default: m.ApplyToJobPage })))
 /* prettier-ignore */ const ExternalSigningView = lazy(() => import('@/features/app/documents/screens/ExternalSigningView').then((m) => ({ default: m.ExternalSigningView })))
 
 /**
@@ -154,7 +163,13 @@ function NotFoundRoute() {
  *                          isn't the one allowed account back to /app/welcome)
  *   /app/<view>            the 16 workspace views
  *   /app/cases/:caseId     case detail
- *   /app/employees/:employeeId  employee profile
+*   /app/employees/:employeeId  employee profile
+ *   /careers               public job board — browse active postings
+ *   /careers/jobs/:postingId   job detail (public, no login)
+ *   /careers/portal         candidate portal (auth required)
+ *   /careers/portal/profile    candidate profile editor
+ *   /careers/portal/applications   track submitted applications
+ *   /careers/portal/jobs/:postingId/apply   apply to a role with optional AI
  *   /sign/:token               external Dutiva Signature (no login)
  *   /fr/sign/:token            external signing (French UI)
  *   *                      404 (noindex)
@@ -239,6 +254,32 @@ function routeTree(): RouteObject[] {
         </Suspense>
       ),
       children: [{ index: true, loader: () => redirect('/app/home') }, ...appViewRoutes],
+    },
+    {
+      path: '/careers',
+      element: (
+        <Suspense fallback={null}>
+          <CareersSurface />
+        </Suspense>
+      ),
+      children: [
+        { index: true, element: <JobBoardPage /> },
+        { path: 'jobs/:postingId', element: <JobDetailPage /> },
+      ],
+    },
+    {
+      path: '/careers/portal',
+      element: (
+        <Suspense fallback={null}>
+          <CareersPortalSurface />
+        </Suspense>
+      ),
+      children: [
+        { index: true, element: <CandidatePortalHome /> },
+        { path: 'profile', element: <CandidateProfilePage /> },
+        { path: 'applications', element: <ApplicationsPage /> },
+        { path: 'jobs/:postingId/apply', element: <ApplyToJobPage /> },
+      ],
     },
     { path: '*', element: <NotFoundRoute /> },
   ]
