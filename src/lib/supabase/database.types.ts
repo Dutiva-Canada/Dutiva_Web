@@ -2428,6 +2428,68 @@ export type Database = {
           },
         ]
       }
+      comms_sources: {
+        Row: {
+          classification: Json
+          created_at: string
+          id: string
+          initiative_id: string | null
+          issue_id: string | null
+          jurisdiction: Json | null
+          organization_id: string
+          published_date: string | null
+          publisher: Json
+          retrieved_at: string | null
+          rights: Json | null
+          source_type: string
+          supports: Json | null
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          classification: Json
+          created_at?: string
+          id?: string
+          initiative_id?: string | null
+          issue_id?: string | null
+          jurisdiction?: Json | null
+          organization_id: string
+          published_date?: string | null
+          publisher: Json
+          retrieved_at?: string | null
+          rights?: Json | null
+          source_type: string
+          supports?: Json | null
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          classification?: Json
+          created_at?: string
+          id?: string
+          initiative_id?: string | null
+          issue_id?: string | null
+          jurisdiction?: Json | null
+          organization_id?: string
+          published_date?: string | null
+          publisher?: Json
+          retrieved_at?: string | null
+          rights?: Json | null
+          source_type?: string
+          supports?: Json | null
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comms_sources_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comms_submissions: {
         Row: {
           authority: Json

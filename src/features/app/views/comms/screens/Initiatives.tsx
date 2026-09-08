@@ -6,7 +6,6 @@ import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 
-import { useCommsData } from '../data/useCommsData'
 import { useInitiatives } from '../data/useInitiatives'
 import { useObjectives } from '../data/useObjectives'
 import type {
@@ -152,8 +151,7 @@ function InitiativeForm({
 
 function ObjectivesSection({ initiatives }: { initiatives: CommsInitiative[] }) {
   const { x, lang } = useI18n()
-  const { canWrite } = useCommsData()
-  const { objectives, addObjective, removeObjective } = useObjectives()
+  const { canWrite, objectives, addObjective, removeObjective } = useObjectives()
   const [open, setOpen] = useState(false)
   const [initiativeId, setInitiativeId] = useState('')
   const [label, setLabel] = useState('')

@@ -175,6 +175,10 @@ const ACCEPTED_UNAPPLIED = new Map([
     'add_comms_execution_events',
     'applied via Management API with server-generated version 20260908050154; live schema matches the repo file',
   ],
+  [
+    'add_comms_sources',
+    'applied via Management API with server-generated version 20260908051056; live schema matches the repo file',
+  ],
   ...advisorPhaseMcpNameAliases().unapplied,
 ])
 
@@ -217,6 +221,7 @@ const ACCEPTED_UNTRACKED = new Map([
   ['0146_add_comms_brand_claims', 'applied via Management API with server-generated version 20260908050153'],
   ['0147_add_comms_usage_controls', 'applied via Management API with server-generated version 20260908050217'],
   ['0148_add_comms_execution_events', 'applied via Management API with server-generated version 20260908050154'],
+  ['0149_add_comms_sources', 'applied via Management API with server-generated version 20260908051056'],
   ...advisorPhaseMcpNameAliases().untracked,
 ])
 

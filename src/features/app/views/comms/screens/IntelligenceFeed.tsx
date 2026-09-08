@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
-import { useCommsData } from '../data/useCommsData'
+import { useSources } from '../data/useSources'
 import type { CommsSourceType } from '../data/types'
 import { SOURCE_TYPE_LABEL } from '../commsLabels'
 
@@ -40,7 +40,7 @@ function sourceTone(sourceType: CommsSourceType) {
 
 export function IntelligenceFeed() {
   const { x, lang } = useI18n()
-  const { state, canWrite, addSource, removeSource } = useCommsData()
+  const { canWrite, addSource, removeSource, sources } = useSources()
   const [open, setOpen] = useState(false)
   const [sourceTypeFilter, setSourceTypeFilter] = useState<CommsSourceType | 'all'>('all')
   const [jurisdictionFilter, setJurisdictionFilter] = useState<string>('all')
@@ -53,17 +53,17 @@ export function IntelligenceFeed() {
   const [supports, setSupports] = useState('')
 
   const jurisdictions = useMemo(
-    () => Array.from(new Set(state.sources.map((s) => s.jurisdiction?.[lang]).filter(Boolean))),
-    [state.sources, lang],
+    () => Array.from(new Set(sources.map((s) => s.jurisdiction?.[lang]).filter(Boolean))),
+    [sources, lang],
   )
 
   const filtered = useMemo(() => {
-    return state.sources.filter((s) => {
+    return sources.filter((s) => {
       const typeOk = sourceTypeFilter === 'all' || s.sourceType === sourceTypeFilter
       const jurisOk = jurisdictionFilter === 'all' || s.jurisdiction?.[lang] === jurisdictionFilter
       return typeOk && jurisOk
     })
-  }, [state.sources, sourceTypeFilter, jurisdictionFilter, lang])
+  }, [sources, sourceTypeFilter, jurisdictionFilter, lang])
 
   const reset = () => {
     setOpen(false)
@@ -76,9 +76,9 @@ export function IntelligenceFeed() {
     setSupports('')
   }
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    addSource({
+    await addSource({
       sourceType,
       publisher: { en: publisher, fr: `[FR] ${publisher}` },
       jurisdiction: jurisdiction ? { en: jurisdiction, fr: jurisdiction } : undefined,
