@@ -1596,6 +1596,97 @@ export type Database = {
           },
         ]
       }
+      comms_approvals: {
+        Row: {
+          approver: string
+          content_item_id: string
+          created_at: string
+          decided_at: string
+          decision: string
+          id: string
+          organization_id: string
+          policy_version: string | null
+          rationale: Json | null
+          updated_at: string
+        }
+        Insert: {
+          approver: string
+          content_item_id: string
+          created_at?: string
+          decided_at: string
+          decision: string
+          id?: string
+          organization_id: string
+          policy_version?: string | null
+          rationale?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          approver?: string
+          content_item_id?: string
+          created_at?: string
+          decided_at?: string
+          decision?: string
+          id?: string
+          organization_id?: string
+          policy_version?: string | null
+          rationale?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comms_approvals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comms_brand_claims: {
+        Row: {
+          created_at: string
+          evidence: Json
+          id: string
+          organization_id: string
+          owner: string
+          review_date: string | null
+          status: string
+          text: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          evidence: Json
+          id?: string
+          organization_id: string
+          owner: string
+          review_date?: string | null
+          status: string
+          text: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          evidence?: Json
+          id?: string
+          organization_id?: string
+          owner?: string
+          review_date?: string | null
+          status?: string
+          text?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comms_brand_claims_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comms_contacts: {
         Row: {
           active: boolean
@@ -1795,6 +1886,115 @@ export type Database = {
           },
         ]
       }
+      comms_execution_events: {
+        Row: {
+          action: string
+          actor: string
+          content_item_id: string
+          created_at: string
+          id: string
+          new_status: string | null
+          note: Json | null
+          organization_id: string
+          previous_status: string | null
+          timestamp: string
+        }
+        Insert: {
+          action: string
+          actor: string
+          content_item_id: string
+          created_at?: string
+          id?: string
+          new_status?: string | null
+          note?: Json | null
+          organization_id: string
+          previous_status?: string | null
+          timestamp: string
+        }
+        Update: {
+          action?: string
+          actor?: string
+          content_item_id?: string
+          created_at?: string
+          id?: string
+          new_status?: string | null
+          note?: Json | null
+          organization_id?: string
+          previous_status?: string | null
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comms_execution_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comms_feeds: {
+        Row: {
+          create_coverage_drafts: boolean
+          created_at: string
+          enabled: boolean
+          format: string
+          id: string
+          initiative_id: string | null
+          jurisdiction: string | null
+          label: Json
+          last_fetch_message: string | null
+          last_fetch_status: string | null
+          last_fetched_at: string | null
+          organization_id: string
+          source_type: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          create_coverage_drafts?: boolean
+          created_at?: string
+          enabled?: boolean
+          format: string
+          id?: string
+          initiative_id?: string | null
+          jurisdiction?: string | null
+          label: Json
+          last_fetch_message?: string | null
+          last_fetch_status?: string | null
+          last_fetched_at?: string | null
+          organization_id: string
+          source_type: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          create_coverage_drafts?: boolean
+          created_at?: string
+          enabled?: boolean
+          format?: string
+          id?: string
+          initiative_id?: string | null
+          jurisdiction?: string | null
+          label?: Json
+          last_fetch_message?: string | null
+          last_fetch_status?: string | null
+          last_fetched_at?: string | null
+          organization_id?: string
+          source_type?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comms_feeds_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comms_initiatives: {
         Row: {
           audience: Json | null
@@ -1866,6 +2066,50 @@ export type Database = {
           },
         ]
       }
+      comms_integrations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          notes: Json | null
+          organization_id: string
+          owner: string
+          status: string
+          type: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          notes?: Json | null
+          organization_id: string
+          owner: string
+          status: string
+          type: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: Json | null
+          organization_id?: string
+          owner?: string
+          status?: string
+          type?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comms_integrations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comms_interactions: {
         Row: {
           contact_id: string | null
@@ -1921,6 +2165,65 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "comms_interactions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comms_issues: {
+        Row: {
+          affected_channels: string[]
+          created_at: string
+          id: string
+          initiative_id: string | null
+          lead: string
+          organization_id: string
+          resolution: Json | null
+          restricted: boolean
+          severity: string
+          spokesperson: string | null
+          status: string
+          summary: Json | null
+          title: Json
+          updated_at: string
+        }
+        Insert: {
+          affected_channels?: string[]
+          created_at?: string
+          id?: string
+          initiative_id?: string | null
+          lead: string
+          organization_id: string
+          resolution?: Json | null
+          restricted?: boolean
+          severity: string
+          spokesperson?: string | null
+          status: string
+          summary?: Json | null
+          title: Json
+          updated_at?: string
+        }
+        Update: {
+          affected_channels?: string[]
+          created_at?: string
+          id?: string
+          initiative_id?: string | null
+          lead?: string
+          organization_id?: string
+          resolution?: Json | null
+          restricted?: boolean
+          severity?: string
+          spokesperson?: string | null
+          status?: string
+          summary?: Json | null
+          title?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comms_issues_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -2067,6 +2370,156 @@ export type Database = {
             foreignKeyName: "comms_organizations_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comms_policy_files: {
+        Row: {
+          authority: Json
+          created_at: string
+          deadline: string | null
+          id: string
+          initiative_id: string | null
+          jurisdiction: Json
+          objective: Json
+          organization_id: string
+          owner: string
+          source_url: string | null
+          stage: string
+          updated_at: string
+        }
+        Insert: {
+          authority: Json
+          created_at?: string
+          deadline?: string | null
+          id?: string
+          initiative_id?: string | null
+          jurisdiction: Json
+          objective: Json
+          organization_id: string
+          owner: string
+          source_url?: string | null
+          stage: string
+          updated_at?: string
+        }
+        Update: {
+          authority?: Json
+          created_at?: string
+          deadline?: string | null
+          id?: string
+          initiative_id?: string | null
+          jurisdiction?: Json
+          objective?: Json
+          organization_id?: string
+          owner?: string
+          source_url?: string | null
+          stage?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comms_policy_files_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comms_submissions: {
+        Row: {
+          authority: Json
+          confirmation_ref: string | null
+          created_at: string
+          deadline: string | null
+          id: string
+          initiative_id: string
+          method: Json
+          organization_id: string
+          owner: string
+          policy_file_id: string | null
+          status: string
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          authority: Json
+          confirmation_ref?: string | null
+          created_at?: string
+          deadline?: string | null
+          id?: string
+          initiative_id: string
+          method: Json
+          organization_id: string
+          owner: string
+          policy_file_id?: string | null
+          status: string
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          authority?: Json
+          confirmation_ref?: string | null
+          created_at?: string
+          deadline?: string | null
+          id?: string
+          initiative_id?: string
+          method?: Json
+          organization_id?: string
+          owner?: string
+          policy_file_id?: string | null
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comms_submissions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comms_usage_controls: {
+        Row: {
+          alert_threshold_percent: number | null
+          content_retention_days: number | null
+          created_at: string
+          default_review_days: number | null
+          monthly_content_budget: number | null
+          monthly_interaction_budget: number | null
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          alert_threshold_percent?: number | null
+          content_retention_days?: number | null
+          created_at?: string
+          default_review_days?: number | null
+          monthly_content_budget?: number | null
+          monthly_interaction_budget?: number | null
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          alert_threshold_percent?: number | null
+          content_retention_days?: number | null
+          created_at?: string
+          default_review_days?: number | null
+          monthly_content_budget?: number | null
+          monthly_interaction_budget?: number | null
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comms_usage_controls_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },

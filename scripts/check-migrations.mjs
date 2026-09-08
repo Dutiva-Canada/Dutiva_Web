@@ -139,6 +139,42 @@ const ACCEPTED_UNAPPLIED = new Map([
     'add_comms_metrics',
     'applied via Management API with server-generated version 20260908045923; live schema matches the repo file',
   ],
+  [
+    'add_comms_submissions',
+    'applied via Management API with server-generated version 20260908050150; live schema matches the repo file',
+  ],
+  [
+    'add_comms_feeds',
+    'applied via Management API with server-generated version 20260908050206; live schema matches the repo file',
+  ],
+  [
+    'add_comms_policy_files',
+    'applied via Management API with server-generated version 20260908050151; live schema matches the repo file',
+  ],
+  [
+    'add_comms_issues',
+    'applied via Management API with server-generated version 20260908050210; live schema matches the repo file',
+  ],
+  [
+    'add_comms_approvals',
+    'applied via Management API with server-generated version 20260908050152; live schema matches the repo file',
+  ],
+  [
+    'add_comms_integrations',
+    'applied via Management API with server-generated version 20260908050213; live schema matches the repo file',
+  ],
+  [
+    'add_comms_brand_claims',
+    'applied via Management API with server-generated version 20260908050153; live schema matches the repo file',
+  ],
+  [
+    'add_comms_usage_controls',
+    'applied via Management API with server-generated version 20260908050217; live schema matches the repo file',
+  ],
+  [
+    'add_comms_execution_events',
+    'applied via Management API with server-generated version 20260908050154; live schema matches the repo file',
+  ],
   ...advisorPhaseMcpNameAliases().unapplied,
 ])
 
@@ -172,6 +208,15 @@ const ACCEPTED_UNTRACKED = new Map([
   ['0137_add_comms_interactions', 'applied via Management API with server-generated version 20260908045632'],
   ['0138_add_comms_objectives', 'applied via Management API with server-generated version 20260908045756'],
   ['0139_add_comms_metrics', 'applied via Management API with server-generated version 20260908045923'],
+  ['0140_add_comms_submissions', 'applied via Management API with server-generated version 20260908050150'],
+  ['0141_add_comms_feeds', 'applied via Management API with server-generated version 20260908050206'],
+  ['0142_add_comms_policy_files', 'applied via Management API with server-generated version 20260908050151'],
+  ['0143_add_comms_issues', 'applied via Management API with server-generated version 20260908050210'],
+  ['0144_add_comms_approvals', 'applied via Management API with server-generated version 20260908050152'],
+  ['0145_add_comms_integrations', 'applied via Management API with server-generated version 20260908050213'],
+  ['0146_add_comms_brand_claims', 'applied via Management API with server-generated version 20260908050153'],
+  ['0147_add_comms_usage_controls', 'applied via Management API with server-generated version 20260908050217'],
+  ['0148_add_comms_execution_events', 'applied via Management API with server-generated version 20260908050154'],
   ...advisorPhaseMcpNameAliases().untracked,
 ])
 
