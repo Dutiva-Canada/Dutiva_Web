@@ -73,6 +73,11 @@ describe('searchCorpus', () => {
         'policy',
         'knowledge',
         'workflow',
+        'governance',
+        'security',
+        'operations',
+        'specialists',
+        'revenue',
       ]),
     )
   })

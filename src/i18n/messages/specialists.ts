@@ -26,6 +26,8 @@ export const specialistsMessages = defineMessages({
   spec_specialty_bookkeeper: { en: 'Bookkeeper', fr: 'Teneur de livres' },
   spec_specialty_other: { en: 'Other', fr: 'Autre' },
   spec_workspace_role_consultant: { en: 'Consultant', fr: 'Consultant' },
+  spec_link_crm: { en: 'Open in CRM', fr: 'Ouvrir dans le CRM' },
+  spec_link_finance: { en: 'Open in Finance', fr: 'Ouvrir dans Finance' },
   spec_workspace_role_viewer: { en: 'Viewer', fr: 'Lecteur' },
   spec_workspace_access: { en: 'Workspace access', fr: 'Accès à l’espace de travail' },
   spec_engagement_type_call: { en: 'Call', fr: 'Appel' },

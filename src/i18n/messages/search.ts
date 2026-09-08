@@ -41,6 +41,11 @@ export const searchMessages = defineMessages({
   search_kind_policy: { en: 'Policy', fr: 'Politique' },
   search_kind_knowledge: { en: 'Knowledge', fr: 'Savoir' },
   search_kind_workflow: { en: 'Workflow', fr: 'Processus' }, // [FR self-authored]
+  search_kind_governance: { en: 'Governance', fr: 'Gouvernance' },
+  search_kind_security: { en: 'Security', fr: 'Sécurité' },
+  search_kind_operations: { en: 'Operations', fr: 'Opérations' },
+  search_kind_specialists: { en: 'Specialists', fr: 'Spécialistes' },
+  search_kind_revenue: { en: 'Revenue', fr: 'Revenus' },
 
   /* Restricted lock badge (sensitive cases, high-risk documents). */
   search_restricted: { en: 'Restricted', fr: 'Restreint' },

@@ -13,6 +13,7 @@ import { listOwnConversations } from '@/features/app/views/memory/conversationsA
 import { listPolicies } from '@/features/app/views/policies/productionApi'
 import { listTasks } from '@/features/app/views/tasks/productionApi'
 import { searchMessages as M } from '@/i18n/messages/search'
+import { shellMessages as S } from '@/i18n/messages/shell'
 import { flowSearchEntries } from './searchCorpus'
 import type { SearchEntry } from './searchCorpus'
 
@@ -174,6 +175,54 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     })),
   ]
 
+  const moduleEntries: SearchEntry[] = [
+    {
+      id: 'mod-governance',
+      kind: 'governance',
+      kindLabel: M.search_kind_governance,
+      title: S.shell_v_governance,
+      restricted: false,
+      match: S.shell_v_governance,
+      nav: { kind: 'view', view: 'governance/overview' },
+    },
+    {
+      id: 'mod-security',
+      kind: 'security',
+      kindLabel: M.search_kind_security,
+      title: S.shell_v_security,
+      restricted: false,
+      match: S.shell_v_security,
+      nav: { kind: 'view', view: 'security/overview' },
+    },
+    {
+      id: 'mod-operations',
+      kind: 'operations',
+      kindLabel: M.search_kind_operations,
+      title: S.shell_v_operations,
+      restricted: false,
+      match: S.shell_v_operations,
+      nav: { kind: 'view', view: 'operations/overview' },
+    },
+    {
+      id: 'mod-specialists',
+      kind: 'specialists',
+      kindLabel: M.search_kind_specialists,
+      title: S.shell_v_specialists,
+      restricted: false,
+      match: S.shell_v_specialists,
+      nav: { kind: 'view', view: 'specialists/directory' },
+    },
+    {
+      id: 'mod-revenue',
+      kind: 'revenue',
+      kindLabel: M.search_kind_revenue,
+      title: S.shell_v_revenue,
+      restricted: false,
+      match: S.shell_v_revenue,
+      nav: { kind: 'view', view: 'revenue' },
+    },
+  ]
+
   return [
     ...personEntries,
     ...caseEntries,
@@ -185,6 +234,7 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     ...complianceEntries,
     ...policyEntries,
     ...knowledgeEntries,
+    ...moduleEntries,
     ...flowSearchEntries,
   ]
 }

@@ -1,5 +1,7 @@
+import { Link } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { governanceMessages as M } from '@/i18n/messages/governance'
+import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { statusChipClass } from '@/components/chips'
 import { useGovernanceData } from '../GovernanceDataContext'
 import type { GovernanceRecord, GovernanceRecordStatus, GovernanceRecordType } from '../data/types'
@@ -26,6 +28,7 @@ const STATUS_TONE: Record<GovernanceRecordStatus, 'success' | 'warning' | 'risk'
 
 function RecordRow({ record }: { readonly record: GovernanceRecord }) {
   const { x } = useI18n()
+  const { root } = useWorkspaceRoot()
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
       <div className="min-w-0 flex-1">
@@ -38,7 +41,14 @@ function RecordRow({ record }: { readonly record: GovernanceRecord }) {
           {record.review_due_date ? ` · ${record.review_due_date}` : null}
         </div>
       </div>
-      <span className={statusChipClass(STATUS_TONE[record.status])}>{x(M[STATUS_LABELS[record.status]])}</span>
+      <div className="flex items-center gap-[10px]">
+        {record.document_id ? (
+          <Link to={`${root}/documents/${record.document_id}`} className="text-[12px] text-accent hover:underline">
+            {x(M.gov_link_document)}
+          </Link>
+        ) : null}
+        <span className={statusChipClass(STATUS_TONE[record.status])}>{x(M[STATUS_LABELS[record.status]])}</span>
+      </div>
     </div>
   )
 }

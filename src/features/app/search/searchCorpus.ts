@@ -1,6 +1,7 @@
 import type { Bi, Lang } from '@/i18n/core'
 import { bi, pick } from '@/i18n/core'
 import { searchMessages as M } from '@/i18n/messages/search'
+import { shellMessages as S } from '@/i18n/messages/shell'
 import { sensitiveCaseTypes } from '@/features/app/views/cases/caseModel'
 import {
   cases,
@@ -49,6 +50,11 @@ export type SearchEntryKind =
   | 'policy'
   | 'knowledge'
   | 'workflow'
+  | 'governance'
+  | 'security'
+  | 'operations'
+  | 'specialists'
+  | 'revenue'
 
 /**
  * Where a result navigates. The overlay resolves these to react-router
@@ -61,7 +67,20 @@ export type SearchNav =
   | { kind: 'document'; docKey: string }
   | { kind: 'generatedDocument'; docId: string }
   | { kind: 'workflow'; flowSlug: string }
-  | { kind: 'view'; view: 'communications' | 'tasks' | 'compliance' | 'policies' | 'knowledge' }
+  | {
+      kind: 'view'
+      view:
+        | 'communications'
+        | 'tasks'
+        | 'compliance'
+        | 'policies'
+        | 'knowledge'
+        | 'governance/overview'
+        | 'security/overview'
+        | 'operations/overview'
+        | 'specialists/directory'
+        | 'revenue'
+    }
 
 /** Router `location.state` for chat results (prototype `selectChat(c.id)`). */
 export interface AdvisorSearchNavState {
@@ -220,6 +239,54 @@ export const flowSearchEntries: readonly SearchEntry[] = flows.map((f) => ({
   nav: { kind: 'workflow', flowSlug: f.slug },
 }))
 
+const moduleEntries: SearchEntry[] = [
+  {
+    id: 'mod-governance',
+    kind: 'governance',
+    kindLabel: M.search_kind_governance,
+    title: S.shell_v_governance,
+    restricted: false,
+    match: S.shell_v_governance,
+    nav: { kind: 'view', view: 'governance/overview' },
+  },
+  {
+    id: 'mod-security',
+    kind: 'security',
+    kindLabel: M.search_kind_security,
+    title: S.shell_v_security,
+    restricted: false,
+    match: S.shell_v_security,
+    nav: { kind: 'view', view: 'security/overview' },
+  },
+  {
+    id: 'mod-operations',
+    kind: 'operations',
+    kindLabel: M.search_kind_operations,
+    title: S.shell_v_operations,
+    restricted: false,
+    match: S.shell_v_operations,
+    nav: { kind: 'view', view: 'operations/overview' },
+  },
+  {
+    id: 'mod-specialists',
+    kind: 'specialists',
+    kindLabel: M.search_kind_specialists,
+    title: S.shell_v_specialists,
+    restricted: false,
+    match: S.shell_v_specialists,
+    nav: { kind: 'view', view: 'specialists/directory' },
+  },
+  {
+    id: 'mod-revenue',
+    kind: 'revenue',
+    kindLabel: M.search_kind_revenue,
+    title: S.shell_v_revenue,
+    restricted: false,
+    match: S.shell_v_revenue,
+    nav: { kind: 'view', view: 'revenue' },
+  },
+]
+
 /** Full corpus in the prototype's All-tab order. */
 export const searchEntries: readonly SearchEntry[] = [
   ...personEntries,
@@ -231,6 +298,7 @@ export const searchEntries: readonly SearchEntry[] = [
   ...complianceEntries,
   ...policyEntries,
   ...knowledgeEntries,
+  ...moduleEntries,
   ...flowSearchEntries,
 ]
 

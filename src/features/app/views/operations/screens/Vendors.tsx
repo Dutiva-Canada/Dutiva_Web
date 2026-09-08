@@ -1,5 +1,7 @@
+import { Link } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { operationsMessages as M } from '@/i18n/messages/operations'
+import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { statusChipClass } from '@/components/chips'
 import { useOperationsData } from '../OperationsDataContext'
 import type { OperationsVendor, OperationsVendorStatus, OperationsVendorType } from '../data/types'
@@ -25,6 +27,7 @@ const STATUS_TONE: Record<OperationsVendorStatus, 'success' | 'neutral' | 'warni
 
 function VendorRow({ vendor }: { readonly vendor: OperationsVendor }) {
   const { x } = useI18n()
+  const { root } = useWorkspaceRoot()
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
       <div className="min-w-0 flex-1">
@@ -35,7 +38,17 @@ function VendorRow({ vendor }: { readonly vendor: OperationsVendor }) {
           {vendor.notes ? ` · ${vendor.notes}` : null}
         </div>
       </div>
-      <span className={statusChipClass(STATUS_TONE[vendor.status])}>{x(M[STATUS_LABELS[vendor.status]])}</span>
+      <div className="flex items-center gap-[10px]">
+        {vendor.finance_party_id ? (
+          <Link
+            to={`${root}/finance/entities`}
+            className="text-[12px] text-accent hover:underline"
+          >
+            {x(M.ops_link_finance)}
+          </Link>
+        ) : null}
+        <span className={statusChipClass(STATUS_TONE[vendor.status])}>{x(M[STATUS_LABELS[vendor.status]])}</span>
+      </div>
     </div>
   )
 }

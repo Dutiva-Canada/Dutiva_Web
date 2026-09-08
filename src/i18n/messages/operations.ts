@@ -16,6 +16,7 @@ export const operationsMessages = defineMessages({
   ops_tab_quality: { en: 'Quality checks', fr: 'Contrôles qualité' },
   ops_tab_technology: { en: 'Technology', fr: 'Technologie' },
   ops_tab_logistics: { en: 'Logistics', fr: 'Logistique' },
+  ops_link_finance: { en: 'Open in Finance', fr: 'Ouvrir dans Finance' },
   ops_empty_title: { en: 'No operations records yet', fr: 'Aucun dossier opérationnel' },
   ops_empty_body: {
     en: 'Add your first project, vendor, or quality check.',

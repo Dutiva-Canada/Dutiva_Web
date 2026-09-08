@@ -21,6 +21,7 @@ export const governanceMessages = defineMessages({
     fr: 'Ajoutez votre premier dossier corporatif — articles, statuts ou procès-verbaux.',
   },
   gov_empty_add: { en: 'Add record', fr: 'Ajouter un dossier' },
+  gov_link_document: { en: 'Open document', fr: 'Ouvrir le document' },
   gov_record_type_articles: { en: 'Articles', fr: 'Statuts constitutifs' },
   gov_record_type_bylaw: { en: 'By-law', fr: 'Règlement' },
   gov_record_type_resolution: { en: 'Resolution', fr: 'Résolution' },

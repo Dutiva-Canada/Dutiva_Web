@@ -1,5 +1,7 @@
+import { Link } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { specialistsMessages as M } from '@/i18n/messages/specialists'
+import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { statusChipClass } from '@/components/chips'
 import { useSpecialistsData } from '../SpecialistsDataContext'
 import type { Specialist, SpecialistSpecialty, SpecialistWorkspaceRole } from '../data/types'
@@ -22,6 +24,7 @@ const ROLE_LABELS: Record<SpecialistWorkspaceRole, keyof typeof M> = {
 
 function SpecialistRow({ specialist }: { readonly specialist: Specialist }) {
   const { x } = useI18n()
+  const { root } = useWorkspaceRoot()
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
       <div className="min-w-0 flex-1">
@@ -32,9 +35,21 @@ function SpecialistRow({ specialist }: { readonly specialist: Specialist }) {
           {specialist.email ? ` · ${specialist.email}` : null}
         </div>
       </div>
-      {specialist.workspace_access ? (
-        <span className={statusChipClass('success')}>{x(M[ROLE_LABELS[specialist.workspace_role]])}</span>
-      ) : null}
+      <div className="flex items-center gap-[10px]">
+        {specialist.crm_contact_id ? (
+          <Link to={`${root}/crm`} className="text-[12px] text-accent hover:underline">
+            {x(M.spec_link_crm)}
+          </Link>
+        ) : null}
+        {specialist.finance_party_id ? (
+          <Link to={`${root}/finance/entities`} className="text-[12px] text-accent hover:underline">
+            {x(M.spec_link_finance)}
+          </Link>
+        ) : null}
+        {specialist.workspace_access ? (
+          <span className={statusChipClass('success')}>{x(M[ROLE_LABELS[specialist.workspace_role]])}</span>
+        ) : null}
+      </div>
     </div>
   )
 }
