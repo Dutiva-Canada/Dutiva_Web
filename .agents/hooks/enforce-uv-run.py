@@ -3,8 +3,15 @@
 # dependencies = []
 # ///
 """
-Hook: Intercept python commands and wrap them with uv run.
+Hook: Intercept bare python commands and rewrite them to a safe runner.
+
 Compatible with Claude Code (PreToolUse) and Gemini CLI (BeforeTool).
+
+On Windows, Application Control / Smart App Control often blocks the unsigned
+python.exe trampolines that `uv run` drops under %LOCALAPPDATA%\\uv\\cache.
+Those failures surface as "Failed to spawn: python (os error 4551)" and block
+the whole prompt. Prefer the signed Windows `py -3` launcher there instead.
+Elsewhere, keep wrapping with `uv run`.
 """
 
 import json
@@ -16,6 +23,7 @@ from pathlib import Path
 
 PYTHON_PATTERN = re.compile(r"^(\s*)(python3?(?:\.\d+)?)\b(.*)$")
 UV_RUN_PATTERN = re.compile(r"^\s*(uv|.*[/\\]uv(\.exe)?)\s+run\s+")
+PY_LAUNCHER_PATTERN = re.compile(r"^\s*py\s+")
 
 
 def find_uv() -> str | None:
@@ -45,6 +53,28 @@ def find_uv() -> str | None:
     return None
 
 
+def rewrite_command(command: str) -> str | None:
+    """Return a rewritten command, or None when no change is needed."""
+    if UV_RUN_PATTERN.match(command) or PY_LAUNCHER_PATTERN.match(command):
+        return None
+
+    match = PYTHON_PATTERN.match(command)
+    if not match:
+        return None
+
+    whitespace, _python_cmd, rest = match.groups()
+
+    # Signed Windows launcher — avoids uv's unsigned cache shims under App Control.
+    if os.name == "nt" and shutil.which("py"):
+        return f"{whitespace}py -3{rest}"
+
+    uv_path = find_uv()
+    if not uv_path:
+        return None
+
+    return f"{whitespace}{uv_path} run python{rest}"
+
+
 def main():
     try:
         data = json.load(sys.stdin)
@@ -57,19 +87,9 @@ def main():
     if tool_name not in ("Bash", "run_shell_command") or not command:
         return
 
-    if UV_RUN_PATTERN.match(command):
+    new_command = rewrite_command(command)
+    if not new_command:
         return
-
-    match = PYTHON_PATTERN.match(command)
-    if not match:
-        return
-
-    uv_path = find_uv()
-    if not uv_path:
-        return
-
-    whitespace, python_cmd, rest = match.groups()
-    new_command = f"{whitespace}{uv_path} run {python_cmd}{rest}"
 
     # Output format based on CLI
     if data.get("hook_event_name") == "BeforeTool":
