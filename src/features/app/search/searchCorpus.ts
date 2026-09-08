@@ -81,6 +81,11 @@ export type SearchNav =
         | 'security/incidents'
         | 'security/risks'
         | 'operations/overview'
+        | 'operations/projects'
+        | 'operations/vendors'
+        | 'operations/quality'
+        | 'operations/technology'
+        | 'operations/logistics'
         | 'specialists/directory'
         | 'revenue'
     }

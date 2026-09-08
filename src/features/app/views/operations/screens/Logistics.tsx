@@ -43,7 +43,15 @@ function emptyLogistics(): OperationsLogistics {
   }
 }
 
-function LogisticsRow({ row, onEdit }: { readonly row: OperationsLogistics; readonly onEdit: (row: OperationsLogistics) => void }) {
+function LogisticsRow({
+  row,
+  onEdit,
+  onRemove,
+}: {
+  readonly row: OperationsLogistics
+  readonly onEdit: (row: OperationsLogistics) => void
+  readonly onRemove: (id: string) => void
+}) {
   const { x } = useI18n()
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
@@ -64,6 +72,13 @@ function LogisticsRow({ row, onEdit }: { readonly row: OperationsLogistics; read
         >
           {x(M.ops_edit)}
         </button>
+        <button
+          type="button"
+          onClick={() => onRemove(row.id)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.ops_remove)}
+        </button>
       </div>
     </div>
   )
@@ -71,7 +86,7 @@ function LogisticsRow({ row, onEdit }: { readonly row: OperationsLogistics; read
 
 export function Logistics() {
   const { x } = useI18n()
-  const { logistics, addLogistics, updateLogistics } = useOperationsData()
+  const { logistics, addLogistics, updateLogistics, removeLogistics } = useOperationsData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<OperationsLogistics | null>(null)
 
@@ -187,7 +202,12 @@ export function Logistics() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {logistics.map((row) => (
-            <LogisticsRow key={row.id} row={row} onEdit={(r) => { setEditing(r); setShow(true) }} />
+            <LogisticsRow
+              key={row.id}
+              row={row}
+              onEdit={(r) => { setEditing(r); setShow(true) }}
+              onRemove={(id) => removeLogistics(id)}
+            />
           ))}
         </div>
       )}

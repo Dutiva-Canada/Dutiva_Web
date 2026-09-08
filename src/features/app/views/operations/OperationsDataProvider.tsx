@@ -17,6 +17,11 @@ import {
   updateOperationsQualityCheck,
   updateOperationsTechnology,
   updateOperationsLogistics,
+  deleteOperationsProject,
+  deleteOperationsVendor,
+  deleteOperationsQualityCheck,
+  deleteOperationsTechnology,
+  deleteOperationsLogistics,
 } from './data/productionApi'
 import { operationsSummary as fixtures } from './data/fixtures'
 import { OperationsDataContext } from './OperationsDataContext'
@@ -396,6 +401,101 @@ export function OperationsDataProvider({
     [mode, organizationId],
   )
 
+  const removeProject = useCallback(
+    async (id: string) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({ ...prev, projects: prev.projects.filter((p) => p.id !== id) }))
+        return
+      }
+      try {
+        await deleteOperationsProject(id)
+        setValue((prev) => ({ ...prev, projects: prev.projects.filter((p) => p.id !== id) }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not remove project.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const removeVendor = useCallback(
+    async (id: string) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({ ...prev, vendors: prev.vendors.filter((v) => v.id !== id) }))
+        return
+      }
+      try {
+        await deleteOperationsVendor(id)
+        setValue((prev) => ({ ...prev, vendors: prev.vendors.filter((v) => v.id !== id) }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not remove vendor.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const removeQualityCheck = useCallback(
+    async (id: string) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({ ...prev, qualityChecks: prev.qualityChecks.filter((c) => c.id !== id) }))
+        return
+      }
+      try {
+        await deleteOperationsQualityCheck(id)
+        setValue((prev) => ({ ...prev, qualityChecks: prev.qualityChecks.filter((c) => c.id !== id) }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not remove quality check.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const removeTechnology = useCallback(
+    async (id: string) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({ ...prev, technology: prev.technology.filter((t) => t.id !== id) }))
+        return
+      }
+      try {
+        await deleteOperationsTechnology(id)
+        setValue((prev) => ({ ...prev, technology: prev.technology.filter((t) => t.id !== id) }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not remove technology.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const removeLogistics = useCallback(
+    async (id: string) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({ ...prev, logistics: prev.logistics.filter((l) => l.id !== id) }))
+        return
+      }
+      try {
+        await deleteOperationsLogistics(id)
+        setValue((prev) => ({ ...prev, logistics: prev.logistics.filter((l) => l.id !== id) }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not remove logistics.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
   const stable = useMemo(
     () => ({
       projects: value.projects,
@@ -407,27 +507,37 @@ export function OperationsDataProvider({
       error: value.error,
       addProject,
       updateProject,
+      removeProject,
       addVendor,
       updateVendor,
+      removeVendor,
       addQualityCheck,
       updateQualityCheck,
+      removeQualityCheck,
       addTechnology,
       updateTechnology,
+      removeTechnology,
       addLogistics,
       updateLogistics,
+      removeLogistics,
     }),
     [
       value,
       addProject,
       updateProject,
+      removeProject,
       addVendor,
       updateVendor,
+      removeVendor,
       addQualityCheck,
       updateQualityCheck,
+      removeQualityCheck,
       addTechnology,
       updateTechnology,
+      removeTechnology,
       addLogistics,
       updateLogistics,
+      removeLogistics,
     ],
   )
 

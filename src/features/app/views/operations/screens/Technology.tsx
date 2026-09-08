@@ -47,7 +47,15 @@ function emptyTechnology(): OperationsTechnology {
   }
 }
 
-function TechnologyRow({ tech, onEdit }: { readonly tech: OperationsTechnology; readonly onEdit: (tech: OperationsTechnology) => void }) {
+function TechnologyRow({
+  tech,
+  onEdit,
+  onRemove,
+}: {
+  readonly tech: OperationsTechnology
+  readonly onEdit: (tech: OperationsTechnology) => void
+  readonly onRemove: (id: string) => void
+}) {
   const { x } = useI18n()
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
@@ -68,6 +76,13 @@ function TechnologyRow({ tech, onEdit }: { readonly tech: OperationsTechnology; 
         >
           {x(M.ops_edit)}
         </button>
+        <button
+          type="button"
+          onClick={() => onRemove(tech.id)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.ops_remove)}
+        </button>
       </div>
     </div>
   )
@@ -75,7 +90,7 @@ function TechnologyRow({ tech, onEdit }: { readonly tech: OperationsTechnology; 
 
 export function Technology() {
   const { x } = useI18n()
-  const { technology, addTechnology, updateTechnology } = useOperationsData()
+  const { technology, addTechnology, updateTechnology, removeTechnology } = useOperationsData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<OperationsTechnology | null>(null)
 
@@ -197,7 +212,12 @@ export function Technology() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {technology.map((tech) => (
-            <TechnologyRow key={tech.id} tech={tech} onEdit={(t) => { setEditing(t); setShow(true) }} />
+            <TechnologyRow
+              key={tech.id}
+              tech={tech}
+              onEdit={(t) => { setEditing(t); setShow(true) }}
+              onRemove={(id) => removeTechnology(id)}
+            />
           ))}
         </div>
       )}

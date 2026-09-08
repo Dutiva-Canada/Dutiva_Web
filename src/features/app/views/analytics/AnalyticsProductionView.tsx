@@ -59,6 +59,20 @@ import type {
   SecurityRisk,
   SecurityVendorReview,
 } from './securityAnalyticsApi'
+import {
+  listOperationsProjects,
+  listOperationsVendors,
+  listOperationsQualityChecks,
+  listOperationsTechnology,
+  listOperationsLogistics,
+} from './operationsAnalyticsApi'
+import type {
+  OperationsProject,
+  OperationsVendor,
+  OperationsQualityCheck,
+  OperationsTechnology,
+  OperationsLogistics,
+} from './operationsAnalyticsApi'
 import { listScoreSnapshots, recordScoreSnapshot } from './productionApi'
 import type { ScoreSnapshot } from './productionApi'
 import { AnalyticsCard, CardEmpty, CardError, CardSkeleton } from './AnalyticsCard'
@@ -214,6 +228,11 @@ export function AnalyticsProductionView() {
   const securityIncidents = useModuleRows<SecurityIncident>(organizationId, listSecurityIncidents)
   const securityRisks = useModuleRows<SecurityRisk>(organizationId, listSecurityRisks)
   const securityVendorReviews = useModuleRows<SecurityVendorReview>(organizationId, listSecurityVendorReviews)
+  const operationsProjects = useModuleRows<OperationsProject>(organizationId, listOperationsProjects)
+  const operationsVendors = useModuleRows<OperationsVendor>(organizationId, listOperationsVendors)
+  const operationsQualityChecks = useModuleRows<OperationsQualityCheck>(organizationId, listOperationsQualityChecks)
+  const operationsTechnology = useModuleRows<OperationsTechnology>(organizationId, listOperationsTechnology)
+  const operationsLogistics = useModuleRows<OperationsLogistics>(organizationId, listOperationsLogistics)
 
   /* ── Score: live components + snapshot history ─────────────────────────── */
   const scoreReady =
@@ -963,7 +982,93 @@ export function AnalyticsProductionView() {
           )
         })()}
 
-        {/* G · Comms & PR overview */}
+        {/* G · Operations — projects, vendors, quality, technology, logistics */}
+        {(() => {
+          const projectRows = rowsOf(operationsProjects.state)
+          const vendorRows = rowsOf(operationsVendors.state)
+          const qualityRows = rowsOf(operationsQualityChecks.state)
+          const technologyRows = rowsOf(operationsTechnology.state)
+          const logisticsRows = rowsOf(operationsLogistics.state)
+          const hasOperationsData =
+            projectRows.length +
+              vendorRows.length +
+              qualityRows.length +
+              technologyRows.length +
+              logisticsRows.length >
+            0
+
+          const today = new Date(todayISO)
+          const in7Days = new Date(today)
+          in7Days.setDate(today.getDate() + 7)
+          const in7ISO = in7Days.toISOString().slice(0, 10)
+
+          const activeProjects = projectRows.filter((p) => p.status === 'active').length
+          const activeVendors = vendorRows.filter((v) => v.status === 'active').length
+          const overdueQuality = qualityRows.filter(
+            (q) =>
+              q.status === 'overdue' ||
+              (q.status === 'pending' && q.due_date !== null && q.due_date < todayISO),
+          ).length
+          const techRenewals = technologyRows.filter(
+            (t) =>
+              t.renewal_date !== null &&
+              t.renewal_date >= todayISO &&
+              t.renewal_date <= in7ISO,
+          ).length
+          const delayedLogistics = logisticsRows.filter((l) => l.status === 'delayed').length
+
+          return (
+            <AnalyticsCard
+              title={x(M.analytics_operations_title)}
+              subtitle={x(M.analytics_operations_sub)}
+              hidden={!show('operations')}
+            >
+              <CardData
+                deps={[
+                  operationsProjects,
+                  operationsVendors,
+                  operationsQualityChecks,
+                  operationsTechnology,
+                  operationsLogistics,
+                ]}
+                skeletonLines={2}
+              >
+                {() =>
+                  !hasOperationsData ? (
+                    <CardEmpty text={x(M.analytics_operations_empty)} />
+                  ) : (
+                    <div className="flex flex-wrap gap-[10px]">
+                      <StatTile
+                        value={String(activeProjects)}
+                        label={x(M.analytics_operations_active_projects)}
+                      />
+                      <StatTile
+                        value={String(activeVendors)}
+                        label={x(M.analytics_operations_active_vendors)}
+                      />
+                      <StatTile
+                        value={String(overdueQuality)}
+                        label={x(M.analytics_operations_overdue_quality)}
+                        alert={overdueQuality > 0}
+                      />
+                      <StatTile
+                        value={String(techRenewals)}
+                        label={x(M.analytics_operations_tech_renewals)}
+                      />
+                      <StatTile
+                        value={String(delayedLogistics)}
+                        label={x(M.analytics_operations_delayed_logistics)}
+                        alert={delayedLogistics > 0}
+                      />
+                    </div>
+                  )
+                }
+              </CardData>
+            </AnalyticsCard>
+          )
+        })()}
+
+        {/* H · Comms & PR overview */}
         {(() => {
           const contentItemRows = rowsOf(commsContentItems.state)
           const interactionRows = rowsOf(commsInteractions.state)
@@ -1030,7 +1135,7 @@ export function AnalyticsProductionView() {
           )
         })()}
 
-        {/* G · Headcount & turnover — headcount history accumulates via the
+        {/* I · Headcount & turnover — headcount history accumulates via the
               monthly snapshot; turnover awaits termination history. */}
         <AnalyticsCard
           title={x(M.analytics_trend_title)}

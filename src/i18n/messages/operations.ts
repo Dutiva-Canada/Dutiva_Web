@@ -58,6 +58,7 @@ export const operationsMessages = defineMessages({
   ops_cancel: { en: 'Cancel', fr: 'Annuler' },
   ops_save: { en: 'Save', fr: 'Enregistrer' },
   ops_edit: { en: 'Edit', fr: 'Modifier' },
+  ops_remove: { en: 'Remove', fr: 'Retirer' },
   ops_save_changes: { en: 'Save changes', fr: 'Enregistrer les modifications' },
   ops_title_field: { en: 'Title', fr: 'Titre' },
   ops_name_field: { en: 'Name', fr: 'Nom' },
@@ -74,6 +75,14 @@ export const operationsMessages = defineMessages({
   ops_delivered_date: { en: 'Delivered date', fr: 'Date de livraison' },
   ops_notes: { en: 'Notes', fr: 'Notes' },
   ops_non_conformance: { en: 'Non-conformance', fr: 'Non-conformité' },
+  ops_demo_read_only: {
+    en: 'Demo workspace: changes are not persisted.',
+    fr: 'Espace de travail de démonstration : les modifications ne sont pas conservées.',
+  },
+  ops_production_synced: {
+    en: 'Production mode syncs with your workspace database.',
+    fr: 'Le mode production se synchronise avec la base de données de votre espace de travail.',
+  },
   ops_disclaimer: {
     en: 'Tracks operational work and renewal dates; it is not an ERP or inventory system.',
     fr: 'Fait le suivi du travail opérationnel et des échéances de renouvellement; ce n’est pas un ERP ou un système d’inventaire.',

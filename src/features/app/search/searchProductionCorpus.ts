@@ -10,6 +10,13 @@ import { sensitiveCaseTypes } from '@/features/app/views/cases/caseModel'
 import { listFindings } from '@/features/app/views/compliance/productionApi'
 import { listEmployees } from '@/features/app/views/employees/productionApi'
 import { listOwnConversations } from '@/features/app/views/memory/conversationsApi'
+import {
+  listOperationsProjects,
+  listOperationsVendors,
+  listOperationsQualityChecks,
+  listOperationsTechnology,
+  listOperationsLogistics,
+} from '@/features/app/views/operations/data/productionApi'
 import { listPolicies } from '@/features/app/views/policies/productionApi'
 import {
   listSecurityAssets,
@@ -44,7 +51,7 @@ function conversationTitle(messages: { role: string; content: string }[]): Bi {
  * Client-side filter reuses filterSearchEntriesFrom in searchCorpus.ts.
  */
 export async function buildProductionSearchEntries(organizationId: string): Promise<SearchEntry[]> {
-  const [employees, cases, conversations, documents, comms, tasks, findings, policies, securityAssets, securityIncidents, securityRisks] =
+  const [employees, cases, conversations, documents, comms, tasks, findings, policies, securityAssets, securityIncidents, securityRisks, operationsProjects, operationsVendors, operationsQualityChecks, operationsTechnology, operationsLogistics] =
     await Promise.all([
       listEmployees(organizationId),
       listCases(organizationId),
@@ -57,6 +64,11 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
       listSecurityAssets(organizationId),
       listSecurityIncidents(organizationId),
       listSecurityRisks(organizationId),
+      listOperationsProjects(organizationId),
+      listOperationsVendors(organizationId),
+      listOperationsQualityChecks(organizationId),
+      listOperationsTechnology(organizationId),
+      listOperationsLogistics(organizationId),
     ])
 
   const personEntries: SearchEntry[] = employees.map((e) => ({
@@ -195,6 +207,61 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     nav: { kind: 'view', view: 'security/risks' },
   }))
 
+  const operationsProjectEntries: SearchEntry[] = operationsProjects.map((p) => ({
+    id: `ops-project-${p.id}`,
+    kind: 'operations',
+    kindLabel: M.search_kind_operations,
+    title: neutral(p.title),
+    sub: joinBi([neutral(p.status), neutral(p.target_date ?? '')]),
+    restricted: false,
+    match: joinBi([neutral(p.title), neutral(p.status)]),
+    nav: { kind: 'view', view: 'operations/projects' },
+  }))
+
+  const operationsVendorEntries: SearchEntry[] = operationsVendors.map((v) => ({
+    id: `ops-vendor-${v.id}`,
+    kind: 'operations',
+    kindLabel: M.search_kind_operations,
+    title: neutral(v.name),
+    sub: joinBi([neutral(v.vendor_type ?? ''), neutral(v.status)]),
+    restricted: false,
+    match: joinBi([neutral(v.name), neutral(v.vendor_type ?? '')]),
+    nav: { kind: 'view', view: 'operations/vendors' },
+  }))
+
+  const operationsQualityCheckEntries: SearchEntry[] = operationsQualityChecks.map((q) => ({
+    id: `ops-quality-${q.id}`,
+    kind: 'operations',
+    kindLabel: M.search_kind_operations,
+    title: neutral(q.title),
+    sub: joinBi([neutral(q.status), neutral(q.due_date ?? '')]),
+    restricted: false,
+    match: joinBi([neutral(q.title), neutral(q.status)]),
+    nav: { kind: 'view', view: 'operations/quality' },
+  }))
+
+  const operationsTechnologyEntries: SearchEntry[] = operationsTechnology.map((t) => ({
+    id: `ops-tech-${t.id}`,
+    kind: 'operations',
+    kindLabel: M.search_kind_operations,
+    title: neutral(t.name),
+    sub: joinBi([neutral(t.system_type ?? ''), neutral(t.status), neutral(t.renewal_date ?? '')]),
+    restricted: false,
+    match: joinBi([neutral(t.name), neutral(t.system_type ?? '')]),
+    nav: { kind: 'view', view: 'operations/technology' },
+  }))
+
+  const operationsLogisticsEntries: SearchEntry[] = operationsLogistics.map((l) => ({
+    id: `ops-logistics-${l.id}`,
+    kind: 'operations',
+    kindLabel: M.search_kind_operations,
+    title: neutral(l.title),
+    sub: joinBi([neutral(l.status), neutral(l.expected_date ?? '')]),
+    restricted: false,
+    match: joinBi([neutral(l.title), neutral(l.status)]),
+    nav: { kind: 'view', view: 'operations/logistics' },
+  }))
+
   const knowledgeEntries: SearchEntry[] = [
     ...knowledgeItems.map((k) => ({
       id: `kb-${k.id}`,
@@ -277,6 +344,11 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     ...securityAssetEntries,
     ...securityIncidentEntries,
     ...securityRiskEntries,
+    ...operationsProjectEntries,
+    ...operationsVendorEntries,
+    ...operationsQualityCheckEntries,
+    ...operationsTechnologyEntries,
+    ...operationsLogisticsEntries,
     ...knowledgeEntries,
     ...moduleEntries,
     ...flowSearchEntries,

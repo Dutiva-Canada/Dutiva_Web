@@ -161,6 +161,84 @@ vi.mock('@/features/app/views/security/data/productionApi', () => ({
   ]),
 }))
 
+vi.mock('@/features/app/views/operations/data/productionApi', () => ({
+  listOperationsProjects: vi.fn(async () => [
+    {
+      id: 'op1',
+      organization_id: 'org-1',
+      title: 'Warehouse expansion',
+      owner_id: null,
+      status: 'active',
+      start_date: null,
+      target_date: null,
+      description: null,
+      created_at: '2026-08-01',
+      updated_at: '2026-08-01',
+    },
+  ]),
+  listOperationsVendors: vi.fn(async () => [
+    {
+      id: 'ov1',
+      organization_id: 'org-1',
+      finance_party_id: null,
+      name: 'Acme Supply',
+      vendor_type: 'supplier',
+      status: 'active',
+      contract_expiry: null,
+      notes: null,
+      created_at: '2026-08-01',
+      updated_at: '2026-08-01',
+    },
+  ]),
+  listOperationsQualityChecks: vi.fn(async () => [
+    {
+      id: 'oq1',
+      organization_id: 'org-1',
+      title: 'Inbound inspection',
+      assigned_to: null,
+      reviewer_id: null,
+      checklist: [],
+      due_date: '2026-09-01',
+      completed_date: null,
+      status: 'pending',
+      non_conformance: null,
+      created_by: null,
+      created_at: '2026-08-01',
+      updated_at: '2026-08-01',
+    },
+  ]),
+  listOperationsTechnology: vi.fn(async () => [
+    {
+      id: 'ot1',
+      organization_id: 'org-1',
+      name: 'WMS platform',
+      system_type: 'internal',
+      owner_id: null,
+      status: 'active',
+      renewal_date: null,
+      integration_notes: null,
+      created_at: '2026-08-01',
+      updated_at: '2026-08-01',
+    },
+  ]),
+  listOperationsLogistics: vi.fn(async () => [
+    {
+      id: 'ol1',
+      organization_id: 'org-1',
+      title: 'Parts shipment',
+      owner_id: null,
+      assigned_to: null,
+      status: 'in_transit',
+      expected_date: null,
+      delivered_date: null,
+      notes: null,
+      created_by: null,
+      created_at: '2026-08-01',
+      updated_at: '2026-08-01',
+    },
+  ]),
+}))
+
 describe('buildProductionSearchEntries', () => {
   beforeEach(() => {
     vi.clearAllMocks()

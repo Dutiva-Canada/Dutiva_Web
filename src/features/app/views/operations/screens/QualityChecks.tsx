@@ -44,7 +44,15 @@ function emptyCheck(): OperationsQualityCheck {
   }
 }
 
-function QualityRow({ check, onEdit }: { readonly check: OperationsQualityCheck; readonly onEdit: (check: OperationsQualityCheck) => void }) {
+function QualityRow({
+  check,
+  onEdit,
+  onRemove,
+}: {
+  readonly check: OperationsQualityCheck
+  readonly onEdit: (check: OperationsQualityCheck) => void
+  readonly onRemove: (id: string) => void
+}) {
   const { x } = useI18n()
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
@@ -65,6 +73,13 @@ function QualityRow({ check, onEdit }: { readonly check: OperationsQualityCheck;
         >
           {x(M.ops_edit)}
         </button>
+        <button
+          type="button"
+          onClick={() => onRemove(check.id)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.ops_remove)}
+        </button>
       </div>
     </div>
   )
@@ -72,7 +87,7 @@ function QualityRow({ check, onEdit }: { readonly check: OperationsQualityCheck;
 
 export function QualityChecks() {
   const { x } = useI18n()
-  const { qualityChecks, addQualityCheck, updateQualityCheck } = useOperationsData()
+  const { qualityChecks, addQualityCheck, updateQualityCheck, removeQualityCheck } = useOperationsData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<OperationsQualityCheck | null>(null)
 
@@ -189,7 +204,12 @@ export function QualityChecks() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {qualityChecks.map((check) => (
-            <QualityRow key={check.id} check={check} onEdit={(c) => { setEditing(c); setShow(true) }} />
+            <QualityRow
+              key={check.id}
+              check={check}
+              onEdit={(c) => { setEditing(c); setShow(true) }}
+              onRemove={(id) => removeQualityCheck(id)}
+            />
           ))}
         </div>
       )}

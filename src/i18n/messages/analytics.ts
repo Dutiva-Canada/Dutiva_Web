@@ -264,6 +264,22 @@ export const analyticsMessages = defineMessages({
   analytics_security_vendors_due: { en: 'Vendor reviews due', fr: 'Revues de fournisseurs à échéance' },
   analytics_security_empty: { en: 'No security records yet.', fr: 'Aucun dossier de sécurité pour l’instant.' },
 
+  /* ── Operations card ────────────────────────────────────────────────────── */
+  analytics_operations_title: { en: 'Operations', fr: 'Opérations' },
+  analytics_operations_sub: {
+    en: 'Projects, vendors, quality, technology, and logistics.',
+    fr: 'Projets, fournisseurs, qualité, technologie et logistique.',
+  },
+  analytics_operations_active_projects: { en: 'Active projects', fr: 'Projets actifs' },
+  analytics_operations_active_vendors: { en: 'Active vendors', fr: 'Fournisseurs actifs' },
+  analytics_operations_overdue_quality: { en: 'Overdue quality checks', fr: 'Contrôles qualité en retard' },
+  analytics_operations_tech_renewals: { en: 'Renewals due soon', fr: 'Renouvellements à échéance rapprochée' },
+  analytics_operations_delayed_logistics: { en: 'Delayed logistics', fr: 'Logistique en retard' },
+  analytics_operations_empty: {
+    en: 'No operations records yet.',
+    fr: 'Aucun dossier opérationnel pour l’instant.',
+  },
+
   /* ── Card chrome (loading / error / empty) ─────────────────────────────── */
   analytics_loading: { en: 'Loading…', fr: 'Chargement…' },
   analytics_error: { en: 'Couldn’t load this card.', fr: 'Impossible de charger cette carte.' },

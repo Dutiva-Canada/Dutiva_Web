@@ -348,6 +348,36 @@ export async function updateOperationsLogistics(
   return toLogistics(parsed)
 }
 
+export async function deleteOperationsProject(id: string): Promise<void> {
+  const client = getClient()
+  const { error } = await client.from('operations_projects').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteOperationsVendor(id: string): Promise<void> {
+  const client = getClient()
+  const { error } = await client.from('operations_vendors').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteOperationsQualityCheck(id: string): Promise<void> {
+  const client = getClient()
+  const { error } = await client.from('operations_quality_checks').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteOperationsTechnology(id: string): Promise<void> {
+  const client = getClient()
+  const { error } = await client.from('operations_technology').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteOperationsLogistics(id: string): Promise<void> {
+  const client = getClient()
+  const { error } = await client.from('operations_logistics').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
 export async function listOperationsLogistics(organizationId: string): Promise<OperationsLogistics[]> {
   const client = getClient()
   const data = await fetchAllPages((from, to) =>

@@ -49,7 +49,15 @@ function emptyVendor(): OperationsVendor {
   }
 }
 
-function VendorRow({ vendor, onEdit }: { readonly vendor: OperationsVendor; readonly onEdit: (vendor: OperationsVendor) => void }) {
+function VendorRow({
+  vendor,
+  onEdit,
+  onRemove,
+}: {
+  readonly vendor: OperationsVendor
+  readonly onEdit: (vendor: OperationsVendor) => void
+  readonly onRemove: (id: string) => void
+}) {
   const { x } = useI18n()
   const { root } = useWorkspaceRoot()
   return (
@@ -76,6 +84,13 @@ function VendorRow({ vendor, onEdit }: { readonly vendor: OperationsVendor; read
         >
           {x(M.ops_edit)}
         </button>
+        <button
+          type="button"
+          onClick={() => onRemove(vendor.id)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.ops_remove)}
+        </button>
       </div>
     </div>
   )
@@ -83,7 +98,7 @@ function VendorRow({ vendor, onEdit }: { readonly vendor: OperationsVendor; read
 
 export function Vendors() {
   const { x } = useI18n()
-  const { vendors, addVendor, updateVendor } = useOperationsData()
+  const { vendors, addVendor, updateVendor, removeVendor } = useOperationsData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<OperationsVendor | null>(null)
 
@@ -205,7 +220,12 @@ export function Vendors() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {vendors.map((vendor) => (
-            <VendorRow key={vendor.id} vendor={vendor} onEdit={(v) => { setEditing(v); setShow(true) }} />
+            <VendorRow
+              key={vendor.id}
+              vendor={vendor}
+              onEdit={(v) => { setEditing(v); setShow(true) }}
+              onRemove={(id) => removeVendor(id)}
+            />
           ))}
         </div>
       )}

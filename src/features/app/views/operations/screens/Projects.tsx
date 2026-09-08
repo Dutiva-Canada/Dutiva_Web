@@ -43,7 +43,15 @@ function emptyProject(): OperationsProject {
   }
 }
 
-function ProjectRow({ project, onEdit }: { readonly project: OperationsProject; readonly onEdit: (project: OperationsProject) => void }) {
+function ProjectRow({
+  project,
+  onEdit,
+  onRemove,
+}: {
+  readonly project: OperationsProject
+  readonly onEdit: (project: OperationsProject) => void
+  readonly onRemove: (id: string) => void
+}) {
   const { x } = useI18n()
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
@@ -64,6 +72,13 @@ function ProjectRow({ project, onEdit }: { readonly project: OperationsProject; 
         >
           {x(M.ops_edit)}
         </button>
+        <button
+          type="button"
+          onClick={() => onRemove(project.id)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.ops_remove)}
+        </button>
       </div>
     </div>
   )
@@ -71,7 +86,7 @@ function ProjectRow({ project, onEdit }: { readonly project: OperationsProject; 
 
 export function Projects() {
   const { x } = useI18n()
-  const { projects, addProject, updateProject } = useOperationsData()
+  const { projects, addProject, updateProject, removeProject } = useOperationsData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<OperationsProject | null>(null)
 
@@ -187,7 +202,12 @@ export function Projects() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {projects.map((project) => (
-            <ProjectRow key={project.id} project={project} onEdit={(p) => { setEditing(p); setShow(true) }} />
+            <ProjectRow
+              key={project.id}
+              project={project}
+              onEdit={(p) => { setEditing(p); setShow(true) }}
+              onRemove={(id) => removeProject(id)}
+            />
           ))}
         </div>
       )}
