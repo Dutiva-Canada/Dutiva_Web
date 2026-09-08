@@ -484,6 +484,107 @@ export async function addEmployeeNote(
   return { id: row.id, body: row.body, createdAt: row.created_at }
 }
 
+/* ── Performance reviews (0131) — goals, rating, next review date ───────── */
+
+export type PerformanceReviewRating = 'exceeds' | 'meets' | 'needs_improvement' | 'unrated'
+
+export interface ProductionPerformanceReview {
+  id: string
+  employeeId: string
+  employeeName: string | null
+  reviewDate: string
+  reviewerId: string | null
+  reviewerName: string | null
+  goals: string | null
+  rating: PerformanceReviewRating
+  notes: string | null
+  nextReviewDate: string | null
+}
+
+const performanceReviewRowSchema = z.object({
+  id: z.string(),
+  employee_id: z.string(),
+  review_date: z.string(),
+  reviewer_id: z.string().nullable(),
+  goals: z.string().nullable(),
+  rating: z.enum(['exceeds', 'meets', 'needs_improvement', 'unrated']),
+  notes: z.string().nullable(),
+  next_review_date: z.string().nullable(),
+  employees: z.object({ name: z.string() }).nullable().optional(),
+  reviewers: z.object({ name: z.string() }).nullable().optional(),
+})
+
+const PERFORMANCE_REVIEW_SELECT =
+  'id, employee_id, review_date, reviewer_id, goals, rating, notes, next_review_date, employees ( name ), reviewers ( name )'
+
+function toPerformanceReview(row: z.infer<typeof performanceReviewRowSchema>): ProductionPerformanceReview {
+  return {
+    id: row.id,
+    employeeId: row.employee_id,
+    employeeName: row.employees?.name ?? null,
+    reviewDate: row.review_date,
+    reviewerId: row.reviewer_id,
+    reviewerName: row.reviewers?.name ?? null,
+    goals: row.goals,
+    rating: row.rating,
+    notes: row.notes,
+    nextReviewDate: row.next_review_date,
+  }
+}
+
+export async function listEmployeePerformanceReviews(
+  employeeId: string,
+): Promise<ProductionPerformanceReview[]> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const client = supabase as any
+  const { data, error } = await client
+    .from('hr_performance_reviews')
+    .select(PERFORMANCE_REVIEW_SELECT)
+    .eq('employee_id', employeeId)
+    .order('review_date', { ascending: false })
+  if (error) throw error
+  return z.array(performanceReviewRowSchema).parse(data).map(toPerformanceReview)
+}
+
+export async function addPerformanceReview(
+  organizationId: string,
+  employeeId: string,
+  fields: {
+    reviewDate: string
+    reviewerId?: string
+    goals?: string
+    rating: PerformanceReviewRating
+    notes?: string
+    nextReviewDate?: string | null
+  },
+): Promise<ProductionPerformanceReview> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const client = supabase as any
+  const { data, error } = await client
+    .from('hr_performance_reviews')
+    .insert({
+      organization_id: organizationId,
+      employee_id: employeeId,
+      review_date: fields.reviewDate,
+      reviewer_id: fields.reviewerId || null,
+      goals: fields.goals || null,
+      rating: fields.rating,
+      notes: fields.notes || null,
+      next_review_date: fields.nextReviewDate ?? null,
+    })
+    .select(PERFORMANCE_REVIEW_SELECT)
+    .single()
+  if (error) throw error
+  return toPerformanceReview(performanceReviewRowSchema.parse(data))
+}
+
+export async function removePerformanceReview(id: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const client = supabase as any
+  const { error } = await client.from('hr_performance_reviews').delete().eq('id', id)
+  if (error) throw error
+}
+
 /**
  * Employment jurisdiction options — stored in `employees.jurisdiction` as the
  * English jurisdiction name; the form displays the active language.

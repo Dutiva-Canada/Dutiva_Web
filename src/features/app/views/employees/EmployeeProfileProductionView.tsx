@@ -43,6 +43,7 @@ import type {
   ProductionLeave,
 } from './productionApi'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { PerformanceReviews } from './PerformanceReviews'
 
 /**
  * Employee profile in production mode — the real record for one
@@ -730,6 +731,16 @@ export function EmployeeProfileProductionView() {
               </Link>
             ))}
           </div>
+
+          {/* Performance reviews */}
+          {employee && (
+            <PerformanceReviews
+              employee={employee}
+              organizationId={organizationId}
+              roster={roster}
+              isOrgAdmin={isOrgAdmin}
+            />
+          )}
 
           {/* Notes thread */}
           <SectionHeading text={x(M.employees_prod_notes_title)} />
