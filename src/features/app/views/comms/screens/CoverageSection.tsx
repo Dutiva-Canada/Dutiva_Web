@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { useCommsData } from '../data/useCommsData'
+import { useCoverage } from '../data/useCoverage'
 import type { CommsCoverageItem, CommsCoverageSentiment } from '../data/types'
 import { SENTIMENT_LABEL } from '../commsLabels'
 
@@ -28,7 +29,8 @@ function sentimentTone(sentiment: CommsCoverageSentiment | undefined) {
 
 export function CoverageSection() {
   const { x, lang } = useI18n()
-  const { state, canWrite, addCoverageItem, removeCoverageItem } = useCommsData()
+  const { state } = useCommsData()
+  const { coverageItems, canWrite, addCoverageItem, removeCoverageItem } = useCoverage()
   const [open, setOpen] = useState(false)
   const [outlet, setOutlet] = useState('')
   const [headline, setHeadline] = useState('')
@@ -40,6 +42,10 @@ export function CoverageSection() {
   const [provenance, setProvenance] = useState<CommsCoverageItem['provenance']>('manual')
   const [notes, setNotes] = useState('')
   const [initiativeId, setInitiativeId] = useState('')
+
+  useEffect(() => {
+    setInitiativeId(state.initiatives[0]?.id ?? '')
+  }, [state.initiatives])
 
   const reset = () => {
     setOpen(false)
@@ -55,9 +61,10 @@ export function CoverageSection() {
     setInitiativeId(state.initiatives[0]?.id ?? '')
   }
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    addCoverageItem({
+    if (!outlet.trim() || !headline.trim()) return
+    await addCoverageItem({
       initiativeId: initiativeId || undefined,
       outlet: { en: outlet, fr: `[FR] ${outlet}` },
       headline: { en: headline, fr: `[FR] ${headline}` },
@@ -82,7 +89,6 @@ export function CoverageSection() {
             type="button"
             onClick={() => {
               reset()
-              setInitiativeId(state.initiatives[0]?.id ?? '')
               setOpen(true)
             }}
             className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border-none bg-navy px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-white"
@@ -165,11 +171,11 @@ export function CoverageSection() {
         </form>
       )}
 
-      {state.coverageItems.length === 0 ? (
+      {coverageItems.length === 0 ? (
         <p className="text-[13px] text-text-muted">{x(M.comms_intelligence_coverage_empty)}</p>
       ) : (
         <ul className="m-0 flex flex-col gap-[10px] p-0">
-          {state.coverageItems.map((item) => {
+          {coverageItems.map((item) => {
             const initiative = state.initiatives.find((i) => i.id === item.initiativeId)
             const tone = sentimentTone(item.sentiment)
             return (

@@ -1656,6 +1656,71 @@ export type Database = {
           },
         ]
       }
+      comms_coverage_items: {
+        Row: {
+          created_at: string
+          headline: Json
+          id: string
+          initiative_id: string | null
+          language: string
+          notes: Json | null
+          organization_id: string
+          outlet: Json
+          owner: string
+          provenance: string
+          published_date: string | null
+          reach: number | null
+          sentiment: string | null
+          source_id: string | null
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          headline: Json
+          id?: string
+          initiative_id?: string | null
+          language: string
+          notes?: Json | null
+          organization_id: string
+          outlet: Json
+          owner: string
+          provenance: string
+          published_date?: string | null
+          reach?: number | null
+          sentiment?: string | null
+          source_id?: string | null
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          headline?: Json
+          id?: string
+          initiative_id?: string | null
+          language?: string
+          notes?: Json | null
+          organization_id?: string
+          outlet?: Json
+          owner?: string
+          provenance?: string
+          published_date?: string | null
+          reach?: number | null
+          sentiment?: string | null
+          source_id?: string | null
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comms_coverage_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comms_organizations: {
         Row: {
           created_at: string
