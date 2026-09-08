@@ -102,7 +102,7 @@ describe('CandidateProfilePage', () => {
     await user.type(screen.getByLabelText(/Location/i), 'Toronto')
     await user.type(screen.getByLabelText(/Headline/i), 'Senior PM')
     await user.type(screen.getByLabelText(/Summary/i), 'Experienced PM.')
-    await user.type(screen.getByLabelText(/Resume/i), 'Jane Doe resume')
+    await user.type(screen.getByLabelText(/^Resume$/i), 'Jane Doe resume')
 
     await user.click(screen.getByRole('button', { name: /Save profile/i }))
 

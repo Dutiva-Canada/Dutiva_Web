@@ -3,6 +3,7 @@ import { Loader2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { careersMessages as M } from '@/i18n/messages/careers'
 import type { CandidateWorkAuthorization } from '@/features/careers/data/candidateApi'
+import { ResumeUpload } from './ResumeUpload'
 
 export interface CandidateProfileFormValues {
   name: string
@@ -228,6 +229,9 @@ export function CandidateProfileForm({
           <label className={labelClass} htmlFor="cp-resume">
             {x(M.careers_profile_resume)}
           </label>
+          <div className="mb-[12px]">
+            <ResumeUpload values={values} onChange={onChange} />
+          </div>
           <textarea
             id="cp-resume"
             rows={8}

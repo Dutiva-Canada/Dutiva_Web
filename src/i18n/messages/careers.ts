@@ -129,6 +129,58 @@ export const careersMessages = defineMessages({
     en: 'Paste your resume text here. You can tailor it for specific roles when you apply.',
     fr: 'Collez le texte de votre CV ici. Vous pourrez l\'adapter à des postes spécifiques lors de votre candidature.',
   },
+  careers_profile_resume_upload_label: {
+    en: 'Upload resume file',
+    fr: 'Téléverser le fichier du CV',
+  },
+  careers_profile_resume_upload_prompt: {
+    en: 'Upload a PDF or DOCX',
+    fr: 'Téléverser un PDF ou DOCX',
+  },
+  careers_profile_resume_upload_hint: {
+    en: 'We\'ll extract the text and fill empty profile fields.',
+    fr: 'Nous extraierons le texte et remplirons les champs du profil vides.',
+  },
+  careers_profile_resume_upload_processing: {
+    en: 'Reading your resume…',
+    fr: 'Lecture de votre CV…',
+  },
+  careers_profile_resume_upload_failed: {
+    en: 'Upload failed',
+    fr: 'Échec du téléversement',
+  },
+  careers_profile_resume_upload_clear: {
+    en: 'Clear upload',
+    fr: 'Effacer le téléversement',
+  },
+  careers_profile_resume_upload_disclaimer: {
+    en: 'Your file is processed in your browser — Dutiva does not store the original document.',
+    fr: 'Votre fichier est traité dans votre navigateur — Dutiva ne conserve pas le document original.',
+  },
+  careers_profile_resume_error_unsupported_type: {
+    en: 'Please upload a PDF or DOCX file.',
+    fr: 'Veuillez téléverser un fichier PDF ou DOCX.',
+  },
+  careers_profile_resume_error_empty_file: {
+    en: 'The file is empty.',
+    fr: 'Le fichier est vide.',
+  },
+  careers_profile_resume_error_too_large: {
+    en: 'The file is too large (max 10 MB).',
+    fr: 'Le fichier est trop volumineux (max 10 Mo).',
+  },
+  careers_profile_resume_error_corrupt: {
+    en: 'The file could not be read — it may be corrupt or password-protected.',
+    fr: 'Le fichier n\'a pas pu être lu — il est peut-être corrompu ou protégé par mot de passe.',
+  },
+  careers_profile_resume_error_read_failed: {
+    en: 'Could not read the file.',
+    fr: 'Impossible de lire le fichier.',
+  },
+  careers_profile_resume_error_generic: {
+    en: 'Something went wrong. Please try again.',
+    fr: 'Une erreur s\'est produite. Veuillez réessayer.',
+  },
   careers_profile_linkedin: { en: 'LinkedIn URL (optional)', fr: 'LinkedIn (optionnel)' },
   careers_profile_website: { en: 'Website URL (optional)', fr: 'Site web (optionnel)' },
   careers_profile_current_role: { en: 'Current role', fr: 'Poste actuel' },
