@@ -3,6 +3,7 @@ import { Plus, RefreshCw } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { useCommsData } from '../data/useCommsData'
+import { useInitiatives } from '../data/useInitiatives'
 import { CURATED_FEEDS } from '../data/feedPresets'
 import type { CommsFeedFormat, CommsSourceType } from '../data/types'
 import { SOURCE_TYPE_LABEL } from '../commsLabels'
@@ -25,6 +26,7 @@ const labelClass = 'mb-[4px] block text-[12px] font-semibold text-text-3'
 export function FeedsSection() {
   const { x, lang } = useI18n()
   const { state, canWrite, addFeed, removeFeed, syncFeed, syncAllFeeds } = useCommsData()
+  const { initiatives } = useInitiatives()
   const [open, setOpen] = useState(false)
   const [url, setUrl] = useState('')
   const [label, setLabel] = useState('')
@@ -42,7 +44,7 @@ export function FeedsSection() {
     setLabel('')
     setSourceType('news')
     setFormat('auto')
-    setInitiativeId(state.initiatives[0]?.id ?? '')
+    setInitiativeId(initiatives[0]?.id ?? '')
     setEnabled(true)
     setCreateCoverageDrafts(false)
   }
@@ -177,7 +179,7 @@ export function FeedsSection() {
               <label className={labelClass}>{x(M.comms_initiatives_name)}</label>
               <select value={initiativeId} onChange={(e) => setInitiativeId(e.target.value)} className={inputClass}>
                 <option value="">{x(M.comms_none)}</option>
-                {state.initiatives.map((i) => (
+                {initiatives.map((i) => (
                   <option key={i.id} value={i.id}>{x(i.title)}</option>
                 ))}
               </select>

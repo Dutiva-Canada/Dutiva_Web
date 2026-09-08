@@ -6,6 +6,9 @@ import type { ChipTone } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { useCommsData } from '../data/useCommsData'
+import { useStakeholders } from '../data/useStakeholders'
+import { useInitiatives } from '../data/useInitiatives'
+import type { CommsContact, CommsInitiative } from '../data/types'
 import type {
   CommsInteractionStatus,
   CommsInteractionType,
@@ -43,9 +46,17 @@ function biInput(value: string, lang: 'en' | 'fr'): Bi | undefined {
     : { en: text, fr: `[FR review] ${text}` }
 }
 
-function InteractionForm({ onCancel }: { onCancel: () => void }) {
+function InteractionForm({
+  onCancel,
+  contacts,
+  initiatives,
+}: {
+  onCancel: () => void
+  contacts: CommsContact[]
+  initiatives: CommsInitiative[]
+}) {
   const { x, lang } = useI18n()
-  const { state, addInteraction } = useCommsData()
+  const { addInteraction } = useCommsData()
   const [type, setType] = useState<CommsInteractionType>('inquiry')
   const [source, setSource] = useState('')
   const [visibility, setVisibility] = useState<CommsInteractionVisibility>('internal')
@@ -151,7 +162,7 @@ function InteractionForm({ onCancel }: { onCancel: () => void }) {
             className={inputClass}
           >
             <option value="">{x(M.comms_org_none)}</option>
-            {state.contacts.map((c) => (
+            {contacts.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
@@ -164,7 +175,7 @@ function InteractionForm({ onCancel }: { onCancel: () => void }) {
             className={inputClass}
           >
             <option value="">{x(M.comms_org_none)}</option>
-            {state.initiatives.map((i) => (
+            {initiatives.map((i) => (
               <option key={i.id} value={i.id}>{x(i.title)}</option>
             ))}
           </select>
@@ -200,6 +211,8 @@ function InteractionForm({ onCancel }: { onCancel: () => void }) {
 export function Engagement() {
   const { x } = useI18n()
   const { state, canWrite, removeInteraction } = useCommsData()
+  const { contacts } = useStakeholders()
+  const { initiatives } = useInitiatives()
   const [adding, setAdding] = useState(false)
 
   return (
@@ -218,7 +231,7 @@ export function Engagement() {
         )}
       </div>
 
-      {adding && <InteractionForm onCancel={() => setAdding(false)} />}
+      {adding && <InteractionForm onCancel={() => setAdding(false)} contacts={contacts} initiatives={initiatives} />}
 
       {state.interactions.length === 0 ? (
         <p className="text-[13px] text-text-muted">{x(M.comms_engagement_empty)}</p>

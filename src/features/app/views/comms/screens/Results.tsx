@@ -4,7 +4,9 @@ import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { useCommsData } from '../data/useCommsData'
-import type { CommsMetric } from '../data/types'
+import { useCoverage } from '../data/useCoverage'
+import { useInitiatives } from '../data/useInitiatives'
+import type { CommsInitiative, CommsMetric } from '../data/types'
 import { SENTIMENT_LABEL } from '../commsLabels'
 
 const inputClass =
@@ -26,9 +28,15 @@ function numberValue(value: string): number | undefined {
   return value === '' ? undefined : Number.isNaN(n) ? undefined : n
 }
 
-function MetricForm({ onCancel }: { onCancel: () => void }) {
+function MetricForm({
+  onCancel,
+  initiatives,
+}: {
+  onCancel: () => void
+  initiatives: CommsInitiative[]
+}) {
   const { x, lang } = useI18n()
-  const { state, addMetric } = useCommsData()
+  const { addMetric } = useCommsData()
   const [name, setName] = useState('')
   const [period, setPeriod] = useState('')
   const [value, setValue] = useState('')
@@ -70,7 +78,7 @@ function MetricForm({ onCancel }: { onCancel: () => void }) {
             required
           >
             <option value="">{x(M.comms_org_none)}</option>
-            {state.initiatives.map((i) => (
+            {initiatives.map((i) => (
               <option key={i.id} value={i.id}>{x(i.title)}</option>
             ))}
           </select>
@@ -129,7 +137,9 @@ function MetricForm({ onCancel }: { onCancel: () => void }) {
 
 export function Results() {
   const { x, lang } = useI18n()
-  const { state, canWrite, removeMetric, removeCoverageItem } = useCommsData()
+  const { state, canWrite, removeMetric } = useCommsData()
+  const { initiatives } = useInitiatives()
+  const { coverageItems, canWrite: coverageCanWrite, removeCoverageItem } = useCoverage()
   const [adding, setAdding] = useState(false)
 
   return (
@@ -148,7 +158,7 @@ export function Results() {
         )}
       </div>
 
-      {adding && <MetricForm onCancel={() => setAdding(false)} />}
+      {adding && <MetricForm onCancel={() => setAdding(false)} initiatives={initiatives} />}
 
       {state.metrics.length === 0 ? (
         <p className="text-[13px] text-text-muted">{x(M.comms_results_empty)}</p>
@@ -202,7 +212,7 @@ export function Results() {
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
         <h3 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.comms_results_coverage)}</h3>
-        {state.coverageItems.length === 0 ? (
+        {coverageItems.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.comms_intelligence_coverage_empty)}</p>
         ) : (
           <>
@@ -210,13 +220,13 @@ export function Results() {
               <div className="rounded-[8px] bg-inset px-[12px] py-[10px]">
                 <div className="text-[12px] text-text-muted">{x(M.comms_results_coverage_total)}</div>
                 <div className="mt-[4px] text-[18px] font-bold text-text">
-                  {state.coverageItems.reduce((sum, item) => sum + (item.reach ?? 0), 0).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
+                  {coverageItems.reduce((sum, item) => sum + (item.reach ?? 0), 0).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
                 </div>
               </div>
             </div>
             <ul className="m-0 flex flex-col gap-[10px] p-0">
-              {state.coverageItems.map((item) => {
-                const initiative = state.initiatives.find((i) => i.id === item.initiativeId)
+              {coverageItems.map((item) => {
+                const initiative = initiatives.find((i) => i.id === item.initiativeId)
                 return (
                   <li key={item.id} className="flex flex-col gap-[4px] rounded-[8px] bg-inset p-[12px]">
                     <div className="flex flex-wrap items-start justify-between gap-[12px]">
@@ -233,7 +243,7 @@ export function Results() {
                             {item.reach.toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
                           </div>
                         )}
-                        {canWrite && (
+                        {coverageCanWrite && (
                           <button
                             type="button"
                             onClick={() => removeCoverageItem(item.id)}

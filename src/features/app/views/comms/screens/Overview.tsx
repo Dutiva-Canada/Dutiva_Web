@@ -4,11 +4,13 @@ import { statusChipClass } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { useCommsData } from '../data/useCommsData'
+import { useInitiatives } from '../data/useInitiatives'
 import { ACTION_LABEL, CHANNEL_LABEL, CONTENT_STATUS_LABEL, DELIVERY_STATUS_LABEL, DOMAIN_LABEL, INITIATIVE_STATUS_LABEL, RISK_LABEL } from '../commsLabels'
 
 export function Overview() {
   const { x, lang } = useI18n()
   const { state } = useCommsData()
+  const { initiatives } = useInitiatives()
 
   const upcoming = useMemo(
     () =>
@@ -27,8 +29,8 @@ export function Overview() {
   )
 
   const pausedInitiatives = useMemo(
-    () => state.initiatives.filter((i) => i.status === 'paused'),
-    [state.initiatives],
+    () => initiatives.filter((i) => i.status === 'paused'),
+    [initiatives],
   )
 
   const reconcileQueue = useMemo(
@@ -68,11 +70,11 @@ export function Overview() {
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
         <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.comms_overview_recent)}</h2>
-        {state.initiatives.length === 0 ? (
+        {initiatives.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.comms_initiatives_empty)}</p>
         ) : (
           <ul className="m-0 flex flex-col gap-[10px] p-0">
-            {state.initiatives.map((init) => (
+            {initiatives.map((init) => (
               <li key={init.id} className="flex items-start justify-between gap-[12px]">
                 <div>
                   <Link

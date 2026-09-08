@@ -23,6 +23,7 @@ import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useCommsData } from '../data/useCommsData'
+import { useInitiatives } from '../data/useInitiatives'
 import { createContentBulkImportAdapter } from '../bulkImport/contentAdapter'
 import { BulkImportWizard } from '@/features/app/bulkImport/BulkImportWizard'
 import type {
@@ -412,6 +413,7 @@ function MarkdownToolbar({ value, textareaRef, setValue }: MarkdownToolbarProps)
 export function ContentCalendar() {
   const { x, lang } = useI18n()
   const { state, canWrite, addContentItem, updateContentItem, removeContentItem } = useCommsData()
+  const { initiatives } = useInitiatives()
   const [open, setOpen] = useState(false)
   const [bulkImport, setBulkImport] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -428,7 +430,7 @@ export function ContentCalendar() {
   const reset = () => {
     setOpen(false)
     setEditingId(null)
-    setInitiativeId(state.initiatives[0]?.id ?? '')
+    setInitiativeId(initiatives[0]?.id ?? '')
     setTitle('')
     setLanguage('en')
     setChannel('email')
@@ -510,7 +512,7 @@ export function ContentCalendar() {
               type="button"
               onClick={() => {
                 reset()
-                setInitiativeId(state.initiatives[0]?.id ?? '')
+                setInitiativeId(initiatives[0]?.id ?? '')
                 setOpen(true)
               }}
               className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border-none bg-navy px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-white"
@@ -540,7 +542,7 @@ export function ContentCalendar() {
             <div>
               <label className={labelClass}>{x(M.comms_initiatives_name)}</label>
               <select value={initiativeId} onChange={(e) => setInitiativeId(e.target.value)} className={inputClass}>
-                {state.initiatives.map((i) => (
+                {initiatives.map((i) => (
                   <option key={i.id} value={i.id}>{x(i.title)}</option>
                 ))}
               </select>
@@ -617,7 +619,7 @@ export function ContentCalendar() {
                   : item.status === 'in_review' || item.status === 'changes_requested'
                     ? 'warning'
                     : 'neutral'
-            const initiative = state.initiatives.find((i) => i.id === item.initiativeId)
+            const initiative = initiatives.find((i) => i.id === item.initiativeId)
             const isInitiativePaused = initiative?.status === 'paused'
             return (
               <div key={item.id} className="rounded-[12px] border border-border bg-surface p-[16px]">
@@ -678,7 +680,7 @@ export function ContentCalendar() {
 
       {bulkImport && (
         <BulkImportWizard
-          adapter={createContentBulkImportAdapter(lang, addContentItem, state.initiatives)}
+          adapter={createContentBulkImportAdapter(lang, addContentItem, initiatives)}
           onClose={() => setBulkImport(false)}
         />
       )}

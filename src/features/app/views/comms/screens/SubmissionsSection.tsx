@@ -5,6 +5,7 @@ import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import type { Bi } from '@/i18n/core'
 import { useCommsData } from '../data/useCommsData'
+import { useInitiatives } from '../data/useInitiatives'
 import type { CommsSubmissionStatus } from '../data/types'
 import { getSubmissionDueStatus } from '../data/productionApi'
 import { SUBMISSION_STATUS_LABEL } from '../commsLabels'
@@ -65,6 +66,7 @@ function nextActions(status: CommsSubmissionStatus): { label: Bi; next: CommsSub
 export function SubmissionsSection() {
   const { x } = useI18n()
   const { state, canWrite, addSubmission, removeSubmission, transitionSubmissionStatus } = useCommsData()
+  const { initiatives } = useInitiatives()
   const [open, setOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<CommsSubmissionStatus | 'all'>('all')
   const [initiativeId, setInitiativeId] = useState('')
@@ -77,7 +79,7 @@ export function SubmissionsSection() {
 
   const reset = () => {
     setOpen(false)
-    setInitiativeId(state.initiatives[0]?.id ?? '')
+    setInitiativeId(initiatives[0]?.id ?? '')
     setAuthority('')
     setMethod('')
     setDeadline('')
@@ -133,7 +135,7 @@ export function SubmissionsSection() {
               <label className={labelClass}>{x(M.comms_initiatives_name)}</label>
               <select required value={initiativeId} onChange={(e) => setInitiativeId(e.target.value)} className={inputClass}>
                 <option value="">{x(M.comms_none)}</option>
-                {state.initiatives.map((i) => (
+                {initiatives.map((i) => (
                   <option key={i.id} value={i.id}>{x(i.title)}</option>
                 ))}
               </select>
@@ -197,7 +199,7 @@ export function SubmissionsSection() {
       ) : (
         <ul className="m-0 flex flex-col gap-[10px] p-0">
           {filtered.map((submission) => {
-            const initiative = state.initiatives.find((i) => i.id === submission.initiativeId)
+            const initiative = initiatives.find((i) => i.id === submission.initiativeId)
             const due = getSubmissionDueStatus(submission.deadline)
             return (
               <li key={submission.id} className="rounded-[8px] bg-inset p-[12px]">

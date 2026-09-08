@@ -6,8 +6,10 @@ import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useCommsData } from '../data/useCommsData'
+import { useInitiatives } from '../data/useInitiatives'
 import type {
   CommsChannel,
+  CommsInitiative,
   CommsIssueSeverity,
   CommsIssueStatus,
   CommsPolicyStage,
@@ -160,9 +162,15 @@ function PolicyFileForm({ onCancel }: { onCancel: () => void }) {
   )
 }
 
-function IssueForm({ onCancel }: { onCancel: () => void }) {
+function IssueForm({
+  onCancel,
+  initiatives,
+}: {
+  onCancel: () => void
+  initiatives: CommsInitiative[]
+}) {
   const { x, lang } = useI18n()
-  const { state, addIssue } = useCommsData()
+  const { addIssue } = useCommsData()
   const [title, setTitle] = useState('')
   const [severity, setSeverity] = useState<CommsIssueSeverity>('medium')
   const [status, setStatus] = useState<CommsIssueStatus>('open')
@@ -248,7 +256,7 @@ function IssueForm({ onCancel }: { onCancel: () => void }) {
             className={inputClass}
           >
             <option value="">{x(M.comms_org_none)}</option>
-            {state.initiatives.map((i) => (
+            {initiatives.map((i) => (
               <option key={i.id} value={i.id}>{x(i.title)}</option>
             ))}
           </select>
@@ -307,6 +315,7 @@ export function Intelligence() {
   const { x } = useI18n()
   const { state, canWrite, toggleInitiativePause, removePolicyFile, removeIssue } = useCommsData()
   const { identity } = useWorkspaceMode()
+  const { initiatives } = useInitiatives()
   const [addingPolicy, setAddingPolicy] = useState(false)
   const [addingIssue, setAddingIssue] = useState(false)
 
@@ -396,7 +405,7 @@ export function Intelligence() {
           )}
         </div>
 
-        {addingIssue && <IssueForm onCancel={() => setAddingIssue(false)} />}
+        {addingIssue && <IssueForm onCancel={() => setAddingIssue(false)} initiatives={initiatives} />}
 
         {state.issues.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.comms_intelligence_empty)}</p>
