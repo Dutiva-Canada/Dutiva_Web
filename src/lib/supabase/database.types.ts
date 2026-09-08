@@ -1596,6 +1596,107 @@ export type Database = {
           },
         ]
       }
+      comms_contacts: {
+        Row: {
+          active: boolean
+          channel_preference: Json | null
+          comms_organization_id: string | null
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          purpose: Json | null
+          role: Json | null
+          source: Json | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          channel_preference?: Json | null
+          comms_organization_id?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+          purpose?: Json | null
+          role?: Json | null
+          source?: Json | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          channel_preference?: Json | null
+          comms_organization_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          purpose?: Json | null
+          role?: Json | null
+          source?: Json | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comms_contacts_comms_organization_id_fkey"
+            columns: ["comms_organization_id"]
+            isOneToOne: false
+            referencedRelation: "comms_organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comms_contacts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comms_organizations: {
+        Row: {
+          created_at: string
+          id: string
+          jurisdiction: Json | null
+          name: string
+          notes: Json | null
+          organization_id: string
+          type: Json | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          jurisdiction?: Json | null
+          name: string
+          notes?: Json | null
+          organization_id: string
+          type?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          jurisdiction?: Json | null
+          name?: string
+          notes?: Json | null
+          organization_id?: string
+          type?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comms_organizations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compliance_assessments: {
         Row: {
           assessed_at: string
