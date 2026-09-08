@@ -218,18 +218,21 @@ Sources: [src/features/app/shell/Sidebar.tsx:96-233](), [src/features/app/shell/
 
 ### Section Model
 
-The sidebar organizes `NAV_GROUPS` into collapsible sections. Only groups with a non-null `heading` are collapsible; heading-less groups render as always-visible top-level items. Two section keys exist:
+The sidebar organizes `NAV_GROUPS` into collapsible sections. Only groups with a non-null `heading` are collapsible; heading-less groups render as always-visible top-level items. The section keys are positionally aligned with the heading groups in `NAV_GROUPS`:
 
 | Section Key | Heading (EN/FR) | Items |
 |-------------|----------------|-------|
-| `records` | Records / Registres | People, Cases, Documents, Knowledge |
-| `programs` | Programs / Programmes | Compliance, Compensation, Communications, Wellbeing, Planning |
+| `people` | People & HR / Personnes et RH | Employees, Cases, Hiring, Wellbeing |
+| `operations` | Operations / Opérations | Documents, Knowledge, Planning, Compliance |
+| `comms` | Communications / Communications | Comms Platform, HR Communications |
+| `finance` | Finance / Finance | Compensation, Finance |
+| `growth` | Growth / Croissance | CRM |
 
 [src/features/app/shell/Sidebar.tsx:21-33]()
 
 ### Persistence Mechanism
 
-Section open/closed state is stored in `localStorage` under the key `dutiva.sidebar.sections.v1` as a JSON object. The functions `readSectionPrefs()` and `writeSectionPrefs()` handle serialization with graceful fallback to defaults (`{ records: true, programs: true }`).
+Section open/closed state is stored in `localStorage` under the key `dutiva.sidebar.sections.v1` as a JSON object. The functions `readSectionPrefs()` and `writeSectionPrefs()` handle serialization with graceful fallback to defaults (all sections open).
 
 [src/features/app/shell/Sidebar.tsx:29-55]()
 

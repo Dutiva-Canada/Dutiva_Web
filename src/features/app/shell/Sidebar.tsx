@@ -25,7 +25,7 @@ export type SidebarMode = 'expanded' | 'compact' | 'drawer'
    with a heading maps to SECTION_KEYS[i - 1]. Heading-less groups (Home /
    Advisor / Workflows, Analytics) render as always-visible top-level items.
    Stale keys from earlier sidebars ('records', 'programs') are ignored. */
-const SECTION_KEYS = ['people', 'operations', 'comms', 'finance'] as const
+const SECTION_KEYS = ['people', 'operations', 'comms', 'finance', 'growth'] as const
 type SectionKey = (typeof SECTION_KEYS)[number]
 
 const SECTION_PREFS_KEY = 'dutiva.sidebar.sections.v1'
@@ -34,6 +34,7 @@ const DEFAULT_SECTIONS: Record<SectionKey, boolean> = {
   operations: true,
   comms: true,
   finance: true,
+  growth: true,
 }
 
 const EXPANDED_WIDTH = 'w-[292px]'
