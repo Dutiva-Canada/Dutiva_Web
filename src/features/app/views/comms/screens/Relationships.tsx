@@ -4,8 +4,8 @@ import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { BulkImportWizard } from '@/features/app/bulkImport/BulkImportWizard'
-import { useCommsData } from '../data/useCommsData'
-import type { CommsContactType } from '../data/types'
+import { useStakeholders } from '../data/useStakeholders'
+import type { CommsContact, CommsContactType, CommsOrganization } from '../data/types'
 import { CONTACT_TYPE_LABEL } from '../commsLabels'
 import { createContactBulkImportAdapter } from '../bulkImport/contactAdapter'
 import { createOrganizationBulkImportAdapter } from '../bulkImport/organizationAdapter'
@@ -26,9 +26,16 @@ function biInput(value: string, lang: 'en' | 'fr'): Bi | undefined {
     : { en: text, fr: `[FR review] ${text}` }
 }
 
-function ContactForm({ onCancel }: { onCancel: () => void }) {
+function ContactForm({
+  onCancel,
+  organizations,
+  onAdd,
+}: {
+  onCancel: () => void
+  organizations: CommsOrganization[]
+  onAdd: (item: Omit<CommsContact, 'id'>) => void
+}) {
   const { x, lang } = useI18n()
-  const { state, addContact } = useCommsData()
   const [name, setName] = useState('')
   const [type, setType] = useState<CommsContactType>('media')
   const [organizationId, setOrganizationId] = useState('')
@@ -41,7 +48,7 @@ function ContactForm({ onCancel }: { onCancel: () => void }) {
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!name.trim()) return
-    addContact({
+    onAdd({
       name: name.trim(),
       type,
       organizationId: organizationId || undefined,
@@ -81,7 +88,7 @@ function ContactForm({ onCancel }: { onCancel: () => void }) {
             className={inputClass}
           >
             <option value="">{x(M.comms_org_none)}</option>
-            {state.organizations.map((org) => (
+            {organizations.map((org) => (
               <option key={org.id} value={org.id}>{org.name}</option>
             ))}
           </select>
@@ -134,9 +141,14 @@ function ContactForm({ onCancel }: { onCancel: () => void }) {
   )
 }
 
-function OrganizationForm({ onCancel }: { onCancel: () => void }) {
+function OrganizationForm({
+  onCancel,
+  onAdd,
+}: {
+  onCancel: () => void
+  onAdd: (item: Omit<CommsOrganization, 'id'>) => void
+}) {
   const { x, lang } = useI18n()
-  const { addOrganization } = useCommsData()
   const [name, setName] = useState('')
   const [type, setType] = useState('')
   const [jurisdiction, setJurisdiction] = useState('')
@@ -145,7 +157,7 @@ function OrganizationForm({ onCancel }: { onCancel: () => void }) {
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!name.trim()) return
-    addOrganization({
+    onAdd({
       name: name.trim(),
       type: biInput(type, lang) ?? { en: 'Other', fr: 'Autre' },
       jurisdiction: biInput(jurisdiction, lang),
@@ -200,7 +212,15 @@ function OrganizationForm({ onCancel }: { onCancel: () => void }) {
 
 export function Relationships() {
   const { x, lang } = useI18n()
-  const { state, canWrite, addContact, addOrganization, removeContact, removeOrganization } = useCommsData()
+  const {
+    contacts,
+    organizations,
+    canWrite,
+    addContact,
+    addOrganization,
+    removeContact,
+    removeOrganization,
+  } = useStakeholders()
   const [addingContact, setAddingContact] = useState(false)
   const [addingOrg, setAddingOrg] = useState(false)
   const [bulkImport, setBulkImport] = useState<'contact' | 'organization' | null>(null)
@@ -234,13 +254,19 @@ export function Relationships() {
           )}
         </div>
 
-        {addingContact && <ContactForm onCancel={() => setAddingContact(false)} />}
+        {addingContact && (
+          <ContactForm
+            onCancel={() => setAddingContact(false)}
+            organizations={organizations}
+            onAdd={addContact}
+          />
+        )}
 
-        {state.contacts.length === 0 ? (
+        {contacts.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.comms_relationships_empty)}</p>
         ) : (
           <ul className="m-0 flex flex-col gap-[10px] p-0">
-            {state.contacts.map((contact) => (
+            {contacts.map((contact) => (
               <li key={contact.id} className="rounded-[8px] bg-inset p-[12px]">
                 <div className="flex items-start justify-between gap-[12px]">
                   <div className="flex items-center gap-[8px]">
@@ -268,7 +294,7 @@ export function Relationships() {
                 {contact.role && <div className="mt-[4px] text-[12px] text-text-muted">{x(contact.role)}</div>}
                 {contact.organizationId && (
                   <div className="text-[12px] text-text-muted">
-                    {state.organizations.find((o) => o.id === contact.organizationId)?.name}
+                    {organizations.find((o) => o.id === contact.organizationId)?.name}
                   </div>
                 )}
                 {contact.purpose && (
@@ -312,13 +338,13 @@ export function Relationships() {
           )}
         </div>
 
-        {addingOrg && <OrganizationForm onCancel={() => setAddingOrg(false)} />}
+        {addingOrg && <OrganizationForm onCancel={() => setAddingOrg(false)} onAdd={addOrganization} />}
 
-        {state.organizations.length === 0 ? (
+        {organizations.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.comms_relationships_empty)}</p>
         ) : (
           <ul className="m-0 flex flex-col gap-[10px] p-0">
-            {state.organizations.map((org) => (
+            {organizations.map((org) => (
               <li key={org.id} className="rounded-[8px] bg-inset p-[12px]">
                 <div className="flex items-start justify-between gap-[12px]">
                   <div className="text-[14px] font-semibold text-text">{org.name}</div>
@@ -348,13 +374,13 @@ export function Relationships() {
 
       {bulkImport === 'contact' && (
         <BulkImportWizard
-          adapter={createContactBulkImportAdapter(lang, addContact, state.organizations)}
+          adapter={createContactBulkImportAdapter(addContact, organizations, lang)}
           onClose={() => setBulkImport(null)}
         />
       )}
       {bulkImport === 'organization' && (
         <BulkImportWizard
-          adapter={createOrganizationBulkImportAdapter(lang, addOrganization)}
+          adapter={createOrganizationBulkImportAdapter(addOrganization, lang)}
           onClose={() => setBulkImport(null)}
         />
       )}

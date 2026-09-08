@@ -19,8 +19,8 @@ function biFromString(value: string, lang: 'en' | 'fr'): Bi | undefined {
 }
 
 export function createOrganizationBulkImportAdapter(
+  addOrganization: (item: Omit<CommsOrganization, 'id'>) => Promise<CommsOrganization | null>,
   lang: 'en' | 'fr',
-  addOrganization: (item: Omit<CommsOrganization, 'id'>) => CommsOrganization | null,
 ): BulkImportAdapter<OrganizationImportRow> {
   const fields: BulkImportField<OrganizationImportRow>[] = [
     {
@@ -61,7 +61,7 @@ export function createOrganizationBulkImportAdapter(
       })
       return mapping
     },
-    import: (rows) => {
+    import: async (rows) => {
       let created = 0
       let failed = 0
       const errors: string[] = []
@@ -74,19 +74,20 @@ export function createOrganizationBulkImportAdapter(
             errors.push('Missing name or type')
             continue
           }
-          addOrganization({
+          const ok = await addOrganization({
             name,
             type: biFromString(type, lang) ?? { en: type, fr: `[FR review] ${type}` },
             jurisdiction: biFromString(row.jurisdiction ?? '', lang),
             notes: biFromString(row.notes ?? '', lang),
           })
-          created++
+          if (ok) created++
+          else failed++
         } catch (err) {
           failed++
           errors.push(err instanceof Error ? err.message : String(err))
         }
       }
-      return Promise.resolve({ created, failed, errors })
+      return { created, failed, errors }
     },
     sampleTemplate: ['name', 'type', 'jurisdiction', 'notes'],
   }

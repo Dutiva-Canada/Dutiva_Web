@@ -40,9 +40,9 @@ function biFromString(value: string, lang: 'en' | 'fr'): Bi | undefined {
 }
 
 export function createContactBulkImportAdapter(
-  lang: 'en' | 'fr',
-  addContact: (item: Omit<CommsContact, 'id'>) => CommsContact | null,
+  addContact: (item: Omit<CommsContact, 'id'>) => Promise<CommsContact | null>,
   organizations: CommsOrganization[],
+  lang: 'en' | 'fr',
 ): BulkImportAdapter<ContactImportRow> {
   const fields: BulkImportField<ContactImportRow>[] = [
     {
@@ -111,7 +111,7 @@ export function createContactBulkImportAdapter(
       })
       return mapping
     },
-    import: (rows) => {
+    import: async (rows) => {
       let created = 0
       let failed = 0
       const errors: string[] = []
@@ -125,7 +125,7 @@ export function createContactBulkImportAdapter(
             continue
           }
           const active = row.active ?? true
-          addContact({
+          const ok = await addContact({
             name,
             type: row.type,
             organizationId: org?.id,
@@ -135,13 +135,14 @@ export function createContactBulkImportAdapter(
             source: biFromString(row.source ?? '', lang),
             active,
           })
-          created++
+          if (ok) created++
+          else failed++
         } catch (err) {
           failed++
           errors.push(err instanceof Error ? err.message : String(err))
         }
       }
-      return Promise.resolve({ created, failed, errors })
+      return { created, failed, errors }
     },
     sampleTemplate: ['name', 'type', 'organizationName', 'role', 'purpose', 'preferredChannel', 'source', 'active'],
   }
