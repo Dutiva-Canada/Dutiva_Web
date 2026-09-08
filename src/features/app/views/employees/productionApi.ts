@@ -585,6 +585,113 @@ export async function removePerformanceReview(id: string): Promise<void> {
   if (error) throw error
 }
 
+/* ── Onboarding checklist (0132) — per employee tasks with assignee ─────── */
+
+export interface ProductionOnboardingTask {
+  id: string
+  employeeId: string
+  title: string
+  dueDate: string | null
+  completed: boolean
+  completedAt: string | null
+  assigneeId: string | null
+  assigneeName: string | null
+  notes: string | null
+}
+
+const onboardingTaskRowSchema = z.object({
+  id: z.string(),
+  employee_id: z.string(),
+  title: z.string(),
+  due_date: z.string().nullable(),
+  completed: z.boolean(),
+  completed_at: z.string().nullable(),
+  assignee_employee_id: z.string().nullable(),
+  notes: z.string().nullable(),
+  employees: z.object({ name: z.string() }).nullable().optional(),
+})
+
+const ONBOARDING_TASK_SELECT =
+  'id, employee_id, title, due_date, completed, completed_at, assignee_employee_id, notes, employees ( name )'
+
+function toOnboardingTask(row: z.infer<typeof onboardingTaskRowSchema>): ProductionOnboardingTask {
+  return {
+    id: row.id,
+    employeeId: row.employee_id,
+    title: row.title,
+    dueDate: row.due_date,
+    completed: row.completed,
+    completedAt: row.completed_at,
+    assigneeId: row.assignee_employee_id,
+    assigneeName: row.employees?.name ?? null,
+    notes: row.notes,
+  }
+}
+
+export async function listEmployeeOnboardingTasks(
+  employeeId: string,
+): Promise<ProductionOnboardingTask[]> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const client = supabase as any
+  const { data, error } = await client
+    .from('hr_onboarding_tasks')
+    .select(ONBOARDING_TASK_SELECT)
+    .eq('employee_id', employeeId)
+    .order('completed', { ascending: true })
+    .order('due_date', { ascending: true, nullsFirst: false })
+  if (error) throw error
+  return z.array(onboardingTaskRowSchema).parse(data).map(toOnboardingTask)
+}
+
+export async function addOnboardingTask(
+  organizationId: string,
+  employeeId: string,
+  fields: {
+    title: string
+    dueDate?: string | null
+    assigneeId?: string
+    notes?: string
+  },
+): Promise<ProductionOnboardingTask> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const client = supabase as any
+  const { data, error } = await client
+    .from('hr_onboarding_tasks')
+    .insert({
+      organization_id: organizationId,
+      employee_id: employeeId,
+      title: fields.title.trim(),
+      due_date: fields.dueDate ?? null,
+      assignee_employee_id: fields.assigneeId || null,
+      notes: fields.notes || null,
+    })
+    .select(ONBOARDING_TASK_SELECT)
+    .single()
+  if (error) throw error
+  return toOnboardingTask(onboardingTaskRowSchema.parse(data))
+}
+
+export async function toggleOnboardingTask(id: string, completed: boolean): Promise<void> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const client = supabase as any
+  const { error } = await client
+    .from('hr_onboarding_tasks')
+    .update({
+      completed,
+      completed_at: completed ? new Date().toISOString() : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+  if (error) throw error
+}
+
+export async function removeOnboardingTask(id: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const client = supabase as any
+  const { error } = await client.from('hr_onboarding_tasks').delete().eq('id', id)
+  if (error) throw error
+}
+
 /**
  * Employment jurisdiction options — stored in `employees.jurisdiction` as the
  * English jurisdiction name; the form displays the active language.

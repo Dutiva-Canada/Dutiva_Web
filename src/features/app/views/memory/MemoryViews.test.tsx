@@ -191,7 +191,7 @@ describe('Advisor Memory in production mode', () => {
     renderAppFresh(<MemoryManagerViewFresh />, { route: '/app/settings/memory' })
 
     expect(
-      await screen.findByText(/Confirmed and inferred facts for people, cases, and conversations/i, {
+      await screen.findByText(/Confirmed and inferred facts for people, cases, and conversations/i, undefined, {
         timeout: 3000,
       }),
     ).toBeInTheDocument()

@@ -43,6 +43,7 @@ import type {
   ProductionLeave,
 } from './productionApi'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { OnboardingTasks } from './OnboardingTasks'
 import { PerformanceReviews } from './PerformanceReviews'
 
 /**
@@ -735,6 +736,16 @@ export function EmployeeProfileProductionView() {
           {/* Performance reviews */}
           {employee && (
             <PerformanceReviews
+              employee={employee}
+              organizationId={organizationId}
+              roster={roster}
+              isOrgAdmin={isOrgAdmin}
+            />
+          )}
+
+          {/* Onboarding checklist */}
+          {employee && (
+            <OnboardingTasks
               employee={employee}
               organizationId={organizationId}
               roster={roster}
