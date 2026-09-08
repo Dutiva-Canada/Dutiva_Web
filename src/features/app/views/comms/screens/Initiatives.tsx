@@ -5,8 +5,9 @@ import { statusChipClass } from '@/components/chips'
 import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
-import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+
 import { useCommsData } from '../data/useCommsData'
+import { useInitiatives } from '../data/useInitiatives'
 import type {
   CommsDomain,
   CommsInitiative,
@@ -49,12 +50,15 @@ function biInput(value: string, lang: 'en' | 'fr'): Bi | undefined {
 function InitiativeForm({
   editing,
   onCancel,
+  onAdd,
+  onUpdate,
 }: {
   editing?: CommsInitiative
   onCancel: () => void
+  onAdd: (item: Omit<CommsInitiative, 'id'>) => Promise<CommsInitiative | null>
+  onUpdate: (id: string, patch: Partial<CommsInitiative>) => Promise<CommsInitiative | null>
 }) {
   const { x, lang } = useI18n()
-  const { addInitiative, updateInitiative } = useCommsData()
   const [title, setTitle] = useState(editing?.title[lang] ?? '')
   const [type, setType] = useState<CommsInitiativeType>(editing?.type ?? 'campaign')
   const [domain, setDomain] = useState<CommsDomain>(editing?.domain ?? 'marketing')
@@ -62,23 +66,23 @@ function InitiativeForm({
   const [status, setStatus] = useState<CommsInitiativeStatus>(editing?.status ?? 'planning')
   const [risk, setRisk] = useState<CommsRiskLevel>(editing?.risk ?? 'low')
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const titleBi = biInput(title, lang) ?? { en: title, fr: `[FR review] ${title}` }
-    const payload = {
+    const payload: Omit<CommsInitiative, 'id'> = {
       title: titleBi,
       type,
       domain,
       owner,
-      audience: { en: '', fr: '' } as Bi,
-      intendedOutcome: { en: '', fr: '' } as Bi,
+      audience: { en: '', fr: '' },
+      intendedOutcome: { en: '', fr: '' },
       risk,
       status,
     }
     if (editing) {
-      updateInitiative(editing.id, payload)
+      await onUpdate(editing.id, payload)
     } else {
-      addInitiative(payload)
+      await onAdd(payload)
     }
     onCancel()
   }
@@ -145,7 +149,7 @@ function InitiativeForm({
   )
 }
 
-function ObjectivesSection() {
+function ObjectivesSection({ initiatives }: { initiatives: CommsInitiative[] }) {
   const { x, lang } = useI18n()
   const { state, canWrite, addObjective, removeObjective } = useCommsData()
   const [open, setOpen] = useState(false)
@@ -220,7 +224,7 @@ function ObjectivesSection() {
                 required
               >
                 <option value="">{x(M.comms_org_none)}</option>
-                {state.initiatives.map((i) => (
+                {initiatives.map((i) => (
                   <option key={i.id} value={i.id}>{x(i.title)}</option>
                 ))}
               </select>
@@ -265,7 +269,7 @@ function ObjectivesSection() {
         <p className="text-[13px] text-text-muted">{x(M.comms_objectives_empty)}</p>
       ) : (
         <div className="flex flex-col gap-[14px]">
-          {state.initiatives.map((init) => {
+          {initiatives.map((init) => {
             const objectives = grouped[init.id]
             if (!objectives || objectives.length === 0) return null
             return (
@@ -314,12 +318,18 @@ function ObjectivesSection() {
 
 export function Initiatives() {
   const { x } = useI18n()
-  const { state, canWrite, removeInitiative, toggleInitiativePause } = useCommsData()
-  const { identity } = useWorkspaceMode()
+  const {
+    initiatives,
+    canWrite,
+    addInitiative,
+    updateInitiative,
+    removeInitiative,
+    toggleInitiativePause,
+  } = useInitiatives()
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
 
-  const editing = useMemo(() => state.initiatives.find((i) => i.id === editingId), [editingId, state.initiatives])
+  const editing = useMemo(() => initiatives.find((i) => i.id === editingId), [editingId, initiatives])
 
   const onCancel = () => {
     setOpen(false)
@@ -332,8 +342,8 @@ export function Initiatives() {
   }
 
   const sorted = useMemo(
-    () => [...state.initiatives].sort((a, b) => a.title.en.localeCompare(b.title.en)),
-    [state.initiatives],
+    () => [...initiatives].sort((a, b) => a.title.en.localeCompare(b.title.en)),
+    [initiatives],
   )
 
   return (
@@ -355,7 +365,7 @@ export function Initiatives() {
         )}
       </div>
 
-      {open && <InitiativeForm editing={editing} onCancel={onCancel} />}
+      {open && <InitiativeForm editing={editing} onCancel={onCancel} onAdd={addInitiative} onUpdate={updateInitiative} />}
 
       {sorted.length === 0 ? (
         <p className="text-[13px] text-text-muted">{x(M.comms_initiatives_empty)}</p>
@@ -391,7 +401,7 @@ export function Initiatives() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => toggleInitiativePause(init.id, init.status !== 'paused', identity.user.name)}
+                      onClick={() => toggleInitiativePause(init.id, init.status !== 'paused')}
                       className="flex items-center gap-[3px] text-[12px] font-semibold text-text-2"
                     >
                       {init.status === 'paused' ? <Play size={12} /> : <Pause size={12} />}
@@ -412,7 +422,7 @@ export function Initiatives() {
         </div>
       )}
 
-      <ObjectivesSection />
+      <ObjectivesSection initiatives={initiatives} />
     </div>
   )
 }

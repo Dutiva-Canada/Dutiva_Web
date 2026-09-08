@@ -1721,6 +1721,77 @@ export type Database = {
           },
         ]
       }
+      comms_initiatives: {
+        Row: {
+          audience: Json | null
+          baseline: string | null
+          budget: number | null
+          created_at: string
+          currency: string | null
+          domain: string
+          end_date: string | null
+          id: string
+          intended_outcome: Json | null
+          organization_id: string
+          owner: string
+          risk: string | null
+          start_date: string | null
+          status: string
+          target: string | null
+          title: Json
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          audience?: Json | null
+          baseline?: string | null
+          budget?: number | null
+          created_at?: string
+          currency?: string | null
+          domain: string
+          end_date?: string | null
+          id?: string
+          intended_outcome?: Json | null
+          organization_id: string
+          owner: string
+          risk?: string | null
+          start_date?: string | null
+          status: string
+          target?: string | null
+          title: Json
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          audience?: Json | null
+          baseline?: string | null
+          budget?: number | null
+          created_at?: string
+          currency?: string | null
+          domain?: string
+          end_date?: string | null
+          id?: string
+          intended_outcome?: Json | null
+          organization_id?: string
+          owner?: string
+          risk?: string | null
+          start_date?: string | null
+          status?: string
+          target?: string | null
+          title?: Json
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comms_initiatives_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comms_organizations: {
         Row: {
           created_at: string

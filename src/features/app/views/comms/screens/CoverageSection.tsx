@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
-import { useCommsData } from '../data/useCommsData'
 import { useCoverage } from '../data/useCoverage'
+import { useInitiatives } from '../data/useInitiatives'
 import type { CommsCoverageItem, CommsCoverageSentiment } from '../data/types'
 import { SENTIMENT_LABEL } from '../commsLabels'
 
@@ -29,7 +29,7 @@ function sentimentTone(sentiment: CommsCoverageSentiment | undefined) {
 
 export function CoverageSection() {
   const { x, lang } = useI18n()
-  const { state } = useCommsData()
+  const { initiatives } = useInitiatives()
   const { coverageItems, canWrite, addCoverageItem, removeCoverageItem } = useCoverage()
   const [open, setOpen] = useState(false)
   const [outlet, setOutlet] = useState('')
@@ -44,8 +44,8 @@ export function CoverageSection() {
   const [initiativeId, setInitiativeId] = useState('')
 
   useEffect(() => {
-    setInitiativeId(state.initiatives[0]?.id ?? '')
-  }, [state.initiatives])
+    setInitiativeId(initiatives[0]?.id ?? '')
+  }, [initiatives])
 
   const reset = () => {
     setOpen(false)
@@ -58,7 +58,7 @@ export function CoverageSection() {
     setSentiment('neutral')
     setProvenance('manual')
     setNotes('')
-    setInitiativeId(state.initiatives[0]?.id ?? '')
+    setInitiativeId(initiatives[0]?.id ?? '')
   }
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -114,7 +114,7 @@ export function CoverageSection() {
               <label className={labelClass}>{x(M.comms_initiatives_name)}</label>
               <select value={initiativeId} onChange={(e) => setInitiativeId(e.target.value)} className={inputClass}>
                 <option value="">{x(M.comms_none)}</option>
-                {state.initiatives.map((i) => (
+                {initiatives.map((i) => (
                   <option key={i.id} value={i.id}>{x(i.title)}</option>
                 ))}
               </select>
@@ -176,7 +176,7 @@ export function CoverageSection() {
       ) : (
         <ul className="m-0 flex flex-col gap-[10px] p-0">
           {coverageItems.map((item) => {
-            const initiative = state.initiatives.find((i) => i.id === item.initiativeId)
+            const initiative = initiatives.find((i) => i.id === item.initiativeId)
             const tone = sentimentTone(item.sentiment)
             return (
               <li key={item.id} className="rounded-[8px] bg-inset p-[12px]">
