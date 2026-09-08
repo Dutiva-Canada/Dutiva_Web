@@ -51,6 +51,19 @@ export const analyticsMessages = defineMessages({
   analytics_comp_comms_brand_claims: { en: 'Brand claims active', fr: 'Revendications de marque actives' },
   analytics_comp_comms_policy_files: { en: 'Policy files closed', fr: 'Dossiers politiques clos' },
   analytics_comp_value: { en: '{done} of {total}', fr: '{done} sur {total}' },
+
+  /* ── Comms/PR card ─────────────────────────────────────────────────────── */
+  analytics_comms_title: { en: 'Comms & PR', fr: 'Comms et RP' },
+  analytics_comms_sub: { en: 'Active content, issues and engagement.', fr: 'Contenu actif, problèmes et engagement.' },
+  analytics_comms_content_items: { en: 'Content items', fr: 'Éléments de contenu' },
+  analytics_comms_scheduled: { en: 'Scheduled', fr: 'Planifiés' },
+  analytics_comms_confirmed: { en: 'Confirmed', fr: 'Confirmés' },
+  analytics_comms_open_issues: { en: 'Open issues', fr: 'Problèmes ouverts' },
+  analytics_comms_upcoming_submissions: { en: 'Submissions due', fr: 'Soumissions à échéance' },
+  analytics_comms_active_brand_claims: { en: 'Active brand claims', fr: 'Revendications de marque actives' },
+  analytics_comms_policy_files: { en: 'Policy files tracked', fr: 'Dossiers politiques suivis' },
+  analytics_comms_open_interactions: { en: 'Open interactions', fr: 'Interactions ouvertes' },
+  analytics_comms_empty: { en: 'No Comms activity yet.', fr: 'Aucune activité Comms pour l’instant.' },
   analytics_score_capped_note: {
     en: 'Capped at {ceiling} while a critical finding is open — resolve or dismiss it to lift the ceiling.',
     fr: 'Plafonné à {ceiling} tant qu’un constat critique est ouvert — résolvez-le ou rejetez-le pour lever le plafond.',

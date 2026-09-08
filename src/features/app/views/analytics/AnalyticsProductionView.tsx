@@ -31,12 +31,16 @@ import { listPolicies } from '@/features/app/views/policies/productionApi'
 import type { ProductionPolicy } from '@/features/app/views/policies/productionApi'
 import {
   listCommsBrandClaims,
+  listCommsContentItems,
+  listCommsInteractions,
   listCommsIssues,
   listCommsPolicyFiles,
   listCommsSubmissions,
 } from './commsAnalyticsApi'
 import type {
   CommsBrandClaim,
+  CommsContentItem,
+  CommsInteraction,
   CommsIssue,
   CommsPolicyFile,
   CommsSubmission,
@@ -189,6 +193,8 @@ export function AnalyticsProductionView() {
   const commsSubmissions = useModuleRows<CommsSubmission>(organizationId, listCommsSubmissions)
   const commsBrandClaims = useModuleRows<CommsBrandClaim>(organizationId, listCommsBrandClaims)
   const commsPolicyFiles = useModuleRows<CommsPolicyFile>(organizationId, listCommsPolicyFiles)
+  const commsContentItems = useModuleRows<CommsContentItem>(organizationId, listCommsContentItems)
+  const commsInteractions = useModuleRows<CommsInteraction>(organizationId, listCommsInteractions)
 
   /* ── Score: live components + snapshot history ─────────────────────────── */
   const scoreReady =
@@ -835,7 +841,74 @@ export function AnalyticsProductionView() {
           </CardData>
         </AnalyticsCard>
 
-        {/* F · Headcount & turnover — headcount history accumulates via the
+        {/* F · Comms & PR overview */}
+        {(() => {
+          const contentItemRows = rowsOf(commsContentItems.state)
+          const interactionRows = rowsOf(commsInteractions.state)
+          const issueRows = rowsOf(commsIssues.state)
+          const submissionRows = rowsOf(commsSubmissions.state)
+          const brandClaimRows = rowsOf(commsBrandClaims.state)
+          const policyFileRows = rowsOf(commsPolicyFiles.state)
+          const hasCommsData =
+            contentItemRows.length +
+              interactionRows.length +
+              issueRows.length +
+              submissionRows.length +
+              brandClaimRows.length +
+              policyFileRows.length >
+            0
+          return (
+            <AnalyticsCard
+              title={x(M.analytics_comms_title)}
+              subtitle={x(M.analytics_comms_sub)}
+              hidden={!show('comms')}
+            >
+              <CardData
+                deps={[commsContentItems, commsInteractions, commsIssues, commsSubmissions, commsBrandClaims, commsPolicyFiles]}
+                skeletonLines={2}
+              >
+                {() =>
+                  !hasCommsData ? (
+                    <CardEmpty text={x(M.analytics_comms_empty)} />
+                  ) : (
+                    <div className="flex flex-wrap gap-[10px]">
+                      <StatTile
+                        value={String(contentItemRows.length)}
+                        label={x(M.analytics_comms_content_items)}
+                      />
+                      <StatTile
+                        value={String(contentItemRows.filter((c) => c.deliveryStatus === 'scheduled').length)}
+                        label={x(M.analytics_comms_scheduled)}
+                      />
+                      <StatTile
+                        value={String(contentItemRows.filter((c) => c.deliveryStatus === 'confirmed').length)}
+                        label={x(M.analytics_comms_confirmed)}
+                      />
+                      <StatTile
+                        value={String(issueRows.filter((i) => i.status === 'open' || i.status === 'monitoring').length)}
+                        label={x(M.analytics_comms_open_issues)}
+                      />
+                      <StatTile
+                        value={String(interactionRows.filter((i) => i.status === 'open' || i.status === 'pending').length)}
+                        label={x(M.analytics_comms_open_interactions)}
+                      />
+                      <StatTile
+                        value={String(brandClaimRows.filter((c) => c.status === 'active').length)}
+                        label={x(M.analytics_comms_active_brand_claims)}
+                      />
+                      <StatTile
+                        value={String(policyFileRows.length)}
+                        label={x(M.analytics_comms_policy_files)}
+                      />
+                    </div>
+                  )
+                }
+              </CardData>
+            </AnalyticsCard>
+          )
+        })()}
+
+        {/* G · Headcount & turnover — headcount history accumulates via the
               monthly snapshot; turnover awaits termination history. */}
         <AnalyticsCard
           title={x(M.analytics_trend_title)}
