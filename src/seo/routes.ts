@@ -50,6 +50,7 @@ export type SeoRouteId =
   | 'vsSixfifty'
   | 'jurisdictionTool'
   | 'demoWorkspace'
+  | 'careers'
 
 export interface SeoRoute {
   id: SeoRouteId
@@ -290,6 +291,20 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
     indexable: true,
     updated: '2026-08-27',
   },
+  {
+    id: 'careers',
+    path: { en: '/careers', fr: '/fr/carrieres' },
+    title: {
+      en: 'Careers — browse open roles from Canadian employers | Dutiva',
+      fr: 'Carrières — parcourez les postes ouverts d\u2019employeurs canadiens | Dutiva',
+    },
+    description: {
+      en: 'Browse open roles from Canadian employers hiring through Dutiva. Create a candidate profile and apply with optional AI-assisted resume and interview tools.',
+      fr: 'Parcourez les postes ouverts d\u2019employeurs canadiens via Dutiva. Cr\u00e9ez un profil et postulez avec des outils IA optionnels pour le CV et l\u2019entretien.',
+    },
+    indexable: true,
+    updated: '2026-09-08',
+  },
 ] as const
 
 export function seoRoute(id: SeoRouteId): SeoRoute {
@@ -446,6 +461,14 @@ export function alternatePathFor(pathname: string, target: Lang): string | undef
   const normalized = pathname !== '/' ? pathname.replace(/\/+$/, '') : '/'
   for (const page of allPublicPages()) {
     if (page.path.en === normalized || page.path.fr === normalized) return page.path[target]
+  }
+  /* Careers job detail pages are dynamic (/careers/jobs/:postingId) and not
+     in the static registry. Map the locale prefix directly so the language
+     toggle on a job detail page cross-references its EN/FR counterpart. */
+  const jobMatch = normalized.match(/^\/(fr\/)?careers\/jobs\/(.+)$/)
+  if (jobMatch) {
+    const postingId = jobMatch[2]
+    return target === 'fr' ? `/fr/carrieres/jobs/${postingId}` : `/careers/jobs/${postingId}`
   }
   return undefined
 }

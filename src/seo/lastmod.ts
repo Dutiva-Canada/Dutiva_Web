@@ -45,6 +45,11 @@ export async function lastmodFor(key: string, lang: Lang): Promise<string | unde
   if (key.startsWith('legalDoc:')) {
     return policyLastmod(key.slice('legalDoc:'.length), lang)
   }
+  /* `careersJob:<postingId>` — dynamic job detail pages minted in
+     buildPrerenderManifest(). The lastmod is the posting's posted_date,
+     already attached to the manifest entry, so the lookup returns
+     undefined here (the manifest carries the date directly). */
+  if (key.startsWith('careersJob:')) return undefined
   /* `guideDoc:<slug>` / `blogDoc:<slug>` — minted in allPublicPages(). Both
      locales share one date: the article is authored bilingually in a single
      record, so an EN/FR split would be fictional. */

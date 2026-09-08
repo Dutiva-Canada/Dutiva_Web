@@ -278,6 +278,7 @@ export const hiringMessages = defineMessages({
   hiring_posting_requirements_label: { en: 'Requirements', fr: 'Exigences' },
   hiring_posting_knockout_label: { en: 'Knockout criteria', fr: 'Critères d\'élimination' },
   hiring_posting_work_sample_label: { en: 'Work sample scenario', fr: 'Scénario d\'échantillon de travail' },
+  hiring_posting_view_board: { en: 'View on job board', fr: 'Voir sur le tableau d\'emplois' },
 
   /* ── Actions ─────────────────────────────────────────────────────────── */
   hiring_advance_stage: { en: 'Advance to next stage', fr: 'Avancer à l\'étape suivante' },

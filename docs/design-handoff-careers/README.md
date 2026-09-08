@@ -23,6 +23,8 @@ board (`/careers`), and applications flow back into the employer's hiring pipeli
 |-------|---------|------|
 | `/careers` | Public job board | None |
 | `/careers/jobs/:postingId` | Job detail | None |
+| `/fr/carrieres` | Public job board (French) | None |
+| `/fr/carrieres/jobs/:postingId` | Job detail (French) | None |
 | `/careers/portal` | Portal home | Required |
 | `/careers/portal/profile` | Profile editor | Required |
 | `/careers/portal/applications` | Applications list | Required |
@@ -32,6 +34,12 @@ The careers surface is a third surface — not marketing (no locale URLs, no SEO
 registry) and not the workspace (no org membership, no admin gate). It uses
 `LangProvider` (persisted language preference) so both the public board and the
 portal share one language state.
+
+> **Update (2026-09-08):** The public job board (`/careers`, `/careers/jobs/:postingId`)
+> now uses `ForcedLangProvider` with URL-scoped locale pairs (`/fr/carrieres`,
+> `/fr/carrieres/jobs/:postingId`) and is registered in the SEO route registry
+> (`src/seo/routes.ts`). The candidate portal (`/careers/portal/*`) remains on
+> `LangProvider` (preference-scoped) since it is auth-gated and not crawled.
 
 ## Architecture
 
@@ -100,7 +108,8 @@ application flow simple and the B2B pipeline controlled.
 
 ## Future considerations
 
-- Locale URLs (`/fr/careers`) and SEO registry entries for the public job board
+- ~~Locale URLs (`/fr/careers`) and SEO registry entries for the public job board~~ — done (2026-09-08); `/fr/carrieres` is the French slug
+- Sitemap entries for dynamic job detail pages (requires build-time Supabase query to enumerate active postings)
 - Application sync from `candidate_applications` to `hr_candidates` for employers
 - Resume file uploads (currently text paste only)
 - Saved job alerts and notifications

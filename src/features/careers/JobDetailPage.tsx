@@ -7,7 +7,10 @@ import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Briefcase, Calendar, CheckCircle, MapPin } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { careersMessages as M } from '@/i18n/messages/careers'
+import { Seo } from '@/seo/Seo'
+import { seoRoute } from '@/seo/routes'
 import { useAuth } from '@/features/app/auth/authContext'
+import { useCareersPath } from './useCareersPath'
 import { getPublicJobPosting } from './data/jobBoardApi'
 import type { PublicJobPosting } from './data/jobBoardApi'
 
@@ -19,6 +22,7 @@ import type { PublicJobPosting } from './data/jobBoardApi'
  */
 export function JobDetailPage() {
   const { x } = useI18n()
+  const paths = useCareersPath()
   const { postingId } = useParams<{ postingId: string }>()
   const [posting, setPosting] = useState<PublicJobPosting | null | undefined>(undefined)
 
@@ -53,7 +57,7 @@ export function JobDetailPage() {
           <p className="font-semibold text-text">{x(M.careers_detail_not_found)}</p>
           <p className="mt-2 text-sm text-text-2">{x(M.careers_detail_not_found_body)}</p>
           <Link
-            to="/careers"
+            to={paths.board}
             className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
           >
             {x(M.careers_detail_back)}
@@ -66,6 +70,23 @@ export function JobDetailPage() {
 
   return (
     <div className="mx-auto max-w-[800px] px-4 py-8 sm:px-6 sm:py-12">
+      <Seo
+        page={{
+          title: {
+            en: `${posting.title} — ${posting.department} | Dutiva Careers`,
+            fr: `${posting.title} — ${posting.department} | Carrières Dutiva`,
+          },
+          description: {
+            en: posting.description.slice(0, 155),
+            fr: posting.description.slice(0, 155),
+          },
+          path: {
+            en: `${seoRoute('careers').path.en}/jobs/${posting.id}`,
+            fr: `${seoRoute('careers').path.fr}/jobs/${posting.id}`,
+          },
+          indexable: true,
+        }}
+      />
       <BackLink />
 
       <h1 className="mt-6 font-display text-[clamp(1.75rem,3vw,2.25rem)] font-semibold tracking-[-0.02em] text-text">
@@ -138,9 +159,10 @@ export function JobDetailPage() {
 
 function BackLink() {
   const { x } = useI18n()
+  const paths = useCareersPath()
   return (
     <Link
-      to="/careers"
+      to={paths.board}
       className="inline-flex items-center gap-1.5 text-sm font-semibold text-text-2 transition-opacity hover:opacity-80"
     >
       <ArrowLeft size={15} aria-hidden="true" />
@@ -152,13 +174,14 @@ function BackLink() {
 function ApplyCta({ postingId }: { readonly postingId: string }) {
   const { x } = useI18n()
   const { status } = useAuth()
+  const paths = useCareersPath()
   const signedIn = status === 'signed-in'
 
   if (signedIn) {
     return (
       <section className="mt-10 rounded-[12px] border border-border bg-surface px-6 py-5">
         <Link
-          to={`/careers/portal/jobs/${postingId}/apply`}
+          to={paths.apply(postingId)}
           className="inline-flex items-center gap-2 rounded-[10px] bg-navy px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
         >
           {x(M.careers_detail_apply_cta)}
@@ -177,7 +200,7 @@ function ApplyCta({ postingId }: { readonly postingId: string }) {
         {x(M.careers_detail_sign_in_to_apply_body)}
       </p>
       <Link
-        to="/careers/portal"
+        to={paths.portal}
         className="mt-4 inline-flex items-center gap-2 rounded-[10px] bg-navy px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
       >
         {x(M.careers_detail_sign_in_to_apply)}

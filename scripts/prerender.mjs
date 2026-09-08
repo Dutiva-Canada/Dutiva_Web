@@ -313,6 +313,7 @@ await writeFile(
     line('home'),
     line('pricing'),
     line('templates'),
+    line('careers'),
     '',
     '## Resources',
     line('guides'),
