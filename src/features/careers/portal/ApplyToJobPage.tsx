@@ -54,7 +54,10 @@ export function ApplyToJobPage() {
       setJob(j)
       setProfile(p)
       setAlreadyApplied(applied)
-      if (p) setResumeText(p.resumeText)
+      if (p) {
+        setResumeText(p.resumeText)
+        setCoverLetter(p.coverLetter ?? '')
+      }
       setState('ready')
     } catch {
       setState('failed')

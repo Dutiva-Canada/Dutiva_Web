@@ -4,6 +4,7 @@ import { useI18n } from '@/i18n/context'
 import { careersMessages as M } from '@/i18n/messages/careers'
 import type { CandidateWorkAuthorization } from '@/features/careers/data/candidateApi'
 import { ResumeUpload } from './ResumeUpload'
+import { CoverLetterUpload } from './CoverLetterUpload'
 import { MarkdownEditor } from '@/components/MarkdownEditor'
 
 export interface CandidateProfileFormValues {
@@ -14,6 +15,7 @@ export interface CandidateProfileFormValues {
   headline: string
   summary: string
   resumeText: string
+  coverLetter: string
   linkedin: string
   website: string
   currentRole: string
@@ -251,6 +253,37 @@ export function CandidateProfileForm({
               id: 'cp-resume',
               rows: 8,
               placeholder: x(M.careers_profile_resume_placeholder),
+              className: textareaClass,
+            }}
+          />
+        </div>
+
+        {/* Default cover letter (full width) */}
+        <div className="mt-[16px]">
+          <label className={labelClass} htmlFor="cp-cover-letter">
+            {x(M.careers_profile_cover_letter)}
+          </label>
+          <div className="mb-[12px]">
+            <CoverLetterUpload value={values.coverLetter} onChange={(value) => set('coverLetter', value)} />
+          </div>
+          <MarkdownEditor
+            value={values.coverLetter}
+            onChange={(value) => set('coverLetter', value)}
+            messages={{
+              bold: M.careers_profile_resume_format_bold,
+              italic: M.careers_profile_resume_format_italic,
+              heading: M.careers_profile_resume_format_heading,
+              bulletList: M.careers_profile_resume_format_bullet_list,
+              numberedList: M.careers_profile_resume_format_numbered_list,
+              link: M.careers_profile_resume_format_link,
+              hint: M.careers_profile_resume_markdown_hint,
+              write: M.careers_profile_resume_write,
+              preview: M.careers_profile_resume_preview,
+            }}
+            textareaProps={{
+              id: 'cp-cover-letter',
+              rows: 6,
+              placeholder: x(M.careers_profile_cover_letter_placeholder),
               className: textareaClass,
             }}
           />

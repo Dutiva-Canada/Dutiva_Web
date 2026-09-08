@@ -18,6 +18,7 @@ export interface CandidateProfile {
   headline: string
   summary: string
   resumeText: string
+  coverLetter: string | null
   linkedin: string | null
   website: string | null
   yearsExperience: number | null
@@ -35,6 +36,7 @@ export interface CandidateProfileInput {
   headline: string
   summary: string
   resumeText: string
+  coverLetter?: string | null
   linkedin?: string | null
   website?: string | null
   yearsExperience?: number | null
@@ -74,6 +76,7 @@ export async function createCandidateProfile(
       headline: input.headline,
       summary: input.summary,
       resume_text: input.resumeText,
+      cover_letter: input.coverLetter ?? null,
       linkedin: input.linkedin ?? null,
       website: input.website ?? null,
       years_experience: input.yearsExperience ?? null,
@@ -100,6 +103,7 @@ export async function updateCandidateProfile(
   if (patch.headline !== undefined) row.headline = patch.headline
   if (patch.summary !== undefined) row.summary = patch.summary
   if (patch.resumeText !== undefined) row.resume_text = patch.resumeText
+  if (patch.coverLetter !== undefined) row.cover_letter = patch.coverLetter
   if (patch.linkedin !== undefined) row.linkedin = patch.linkedin
   if (patch.website !== undefined) row.website = patch.website
   if (patch.yearsExperience !== undefined) row.years_experience = patch.yearsExperience
@@ -127,6 +131,7 @@ function toProfile(row: any): CandidateProfile {
     headline: row.headline,
     summary: row.summary,
     resumeText: row.resume_text,
+    coverLetter: row.cover_letter,
     linkedin: row.linkedin,
     website: row.website,
     yearsExperience: row.years_experience,

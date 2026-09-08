@@ -124,6 +124,11 @@ export const careersMessages = defineMessages({
     en: 'A brief pitch about your experience and what you\'re looking for.',
     fr: 'Un bref aperçu de votre expérience et de ce que vous recherchez.',
   },
+  careers_profile_cover_letter: { en: 'Default cover letter', fr: 'Lettre de motivation par défaut' },
+  careers_profile_cover_letter_placeholder: {
+    en: 'A default cover letter you can tailor for each role when you apply.',
+    fr: 'Une lettre de motivation par défaut que vous pourrez adapter à chaque poste lors de votre candidature.',
+  },
   careers_profile_resume: { en: 'Resume', fr: 'CV' },
   careers_profile_resume_placeholder: {
     en: 'Paste your resume text here. You can tailor it for specific roles when you apply.',

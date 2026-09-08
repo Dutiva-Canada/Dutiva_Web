@@ -61,6 +61,7 @@ const MOCK_PROFILE: CandidateProfile = {
   headline: 'Senior PM',
   summary: 'Experienced product manager.',
   resumeText: 'Jane Doe — Senior PM with 8 years experience.',
+  coverLetter: null,
   linkedin: null,
   website: null,
   yearsExperience: 8,

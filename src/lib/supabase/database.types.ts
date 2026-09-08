@@ -12676,6 +12676,7 @@ export type Database = {
           headline: string
           summary: string
           resume_text: string
+          cover_letter: string | null
           linkedin: string | null
           website: string | null
           years_experience: number | null
@@ -12694,6 +12695,7 @@ export type Database = {
           headline: string
           summary: string
           resume_text: string
+          cover_letter?: string | null
           linkedin?: string | null
           website?: string | null
           years_experience?: number | null
@@ -12712,6 +12714,7 @@ export type Database = {
           headline?: string
           summary?: string
           resume_text?: string
+          cover_letter?: string | null
           linkedin?: string | null
           website?: string | null
           years_experience?: number | null
