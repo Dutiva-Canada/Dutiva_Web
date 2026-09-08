@@ -285,6 +285,30 @@ export async function updateGovernanceShareholder(
   return toShareholder(parsed)
 }
 
+export async function deleteGovernanceRecord(id: string): Promise<void> {
+  const client = getClient()
+  const { error } = await client.from('governance_records').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteGovernanceDecision(id: string): Promise<void> {
+  const client = getClient()
+  const { error } = await client.from('governance_decisions').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteGovernanceOfficer(id: string): Promise<void> {
+  const client = getClient()
+  const { error } = await client.from('governance_officers').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteGovernanceShareholder(id: string): Promise<void> {
+  const client = getClient()
+  const { error } = await client.from('governance_shareholders').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
 export async function listGovernanceShareholders(
   organizationId: string,
 ): Promise<GovernanceShareholder[]> {

@@ -44,9 +44,11 @@ function emptyDecision(): GovernanceDecision {
 function DecisionRow({
   decision,
   onEdit,
+  onRemove,
 }: {
   readonly decision: GovernanceDecision
   readonly onEdit: (decision: GovernanceDecision) => void
+  readonly onRemove: (id: string) => void
 }) {
   const { x } = useI18n()
   return (
@@ -68,6 +70,13 @@ function DecisionRow({
         >
           {x(M.gov_edit)}
         </button>
+        <button
+          type="button"
+          onClick={() => onRemove(decision.id)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.gov_remove)}
+        </button>
       </div>
     </div>
   )
@@ -75,7 +84,7 @@ function DecisionRow({
 
 export function Decisions() {
   const { x } = useI18n()
-  const { decisions, addDecision, updateDecision } = useGovernanceData()
+  const { decisions, addDecision, updateDecision, removeDecision } = useGovernanceData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<GovernanceDecision | null>(null)
 
@@ -196,7 +205,12 @@ export function Decisions() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {decisions.map((decision) => (
-            <DecisionRow key={decision.id} decision={decision} onEdit={(d) => { setEditing(d); setShow(true) }} />
+            <DecisionRow
+              key={decision.id}
+              decision={decision}
+              onEdit={(d) => { setEditing(d); setShow(true) }}
+              onRemove={(id) => removeDecision(id)}
+            />
           ))}
         </div>
       )}

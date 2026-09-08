@@ -37,9 +37,11 @@ function emptyOfficer(): GovernanceOfficer {
 function OfficerRow({
   officer,
   onEdit,
+  onRemove,
 }: {
   readonly officer: GovernanceOfficer
   readonly onEdit: (officer: GovernanceOfficer) => void
+  readonly onRemove: (id: string) => void
 }) {
   const { x } = useI18n()
   return (
@@ -70,6 +72,13 @@ function OfficerRow({
         >
           {x(M.gov_edit)}
         </button>
+        <button
+          type="button"
+          onClick={() => onRemove(officer.id)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.gov_remove)}
+        </button>
       </div>
     </div>
   )
@@ -77,7 +86,7 @@ function OfficerRow({
 
 export function Officers() {
   const { x } = useI18n()
-  const { officers, addOfficer, updateOfficer } = useGovernanceData()
+  const { officers, addOfficer, updateOfficer, removeOfficer } = useGovernanceData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<GovernanceOfficer | null>(null)
 
@@ -207,7 +216,12 @@ export function Officers() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {officers.map((officer) => (
-            <OfficerRow key={officer.id} officer={officer} onEdit={(o) => { setEditing(o); setShow(true) }} />
+            <OfficerRow
+              key={officer.id}
+              officer={officer}
+              onEdit={(o) => { setEditing(o); setShow(true) }}
+              onRemove={(id) => removeOfficer(id)}
+            />
           ))}
         </div>
       )}

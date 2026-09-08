@@ -53,7 +53,15 @@ function emptyRecord(): GovernanceRecord {
   }
 }
 
-function RecordRow({ record, onEdit }: { readonly record: GovernanceRecord; readonly onEdit: (record: GovernanceRecord) => void }) {
+function RecordRow({
+  record,
+  onEdit,
+  onRemove,
+}: {
+  readonly record: GovernanceRecord
+  readonly onEdit: (record: GovernanceRecord) => void
+  readonly onRemove: (id: string) => void
+}) {
   const { x } = useI18n()
   const { root } = useWorkspaceRoot()
   return (
@@ -80,6 +88,13 @@ function RecordRow({ record, onEdit }: { readonly record: GovernanceRecord; read
         >
           {x(M.gov_edit)}
         </button>
+        <button
+          type="button"
+          onClick={() => onRemove(record.id)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.gov_remove)}
+        </button>
       </div>
     </div>
   )
@@ -87,7 +102,7 @@ function RecordRow({ record, onEdit }: { readonly record: GovernanceRecord; read
 
 export function Records() {
   const { x } = useI18n()
-  const { records, addRecord, updateRecord } = useGovernanceData()
+  const { records, addRecord, updateRecord, removeRecord } = useGovernanceData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<GovernanceRecord | null>(null)
 
@@ -224,7 +239,12 @@ export function Records() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {records.map((record) => (
-            <RecordRow key={record.id} record={record} onEdit={(r) => { setEditing(r); setShow(true) }} />
+            <RecordRow
+              key={record.id}
+              record={record}
+              onEdit={(r) => { setEditing(r); setShow(true) }}
+              onRemove={(id) => removeRecord(id)}
+            />
           ))}
         </div>
       )}

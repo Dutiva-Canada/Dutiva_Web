@@ -239,6 +239,71 @@ vi.mock('@/features/app/views/operations/data/productionApi', () => ({
   ]),
 }))
 
+vi.mock('@/features/app/views/governance/data/productionApi', () => ({
+  listGovernanceRecords: vi.fn(async () => [
+    {
+      id: 'gr1',
+      organization_id: 'org-1',
+      title: 'Articles of incorporation',
+      record_type: 'articles',
+      jurisdiction: 'ON',
+      effective_date: null,
+      review_due_date: null,
+      status: 'active',
+      viewer_visible: true,
+      document_id: null,
+      created_by: null,
+      created_at: '2026-08-01',
+      updated_at: '2026-08-01',
+    },
+  ]),
+  listGovernanceDecisions: vi.fn(async () => [
+    {
+      id: 'gd1',
+      organization_id: 'org-1',
+      title: 'Adopt remote work policy',
+      decision_date: '2026-08-01',
+      decided_by: null,
+      rationale: null,
+      status: 'adopted',
+      viewer_visible: true,
+      related_record_id: null,
+      created_by: null,
+      created_at: '2026-08-01',
+      updated_at: '2026-08-01',
+    },
+  ]),
+  listGovernanceOfficers: vi.fn(async () => [
+    {
+      id: 'go1',
+      organization_id: 'org-1',
+      name: 'Jordan Lee',
+      role: 'director',
+      appointed_date: null,
+      resigned_date: null,
+      contact_email: null,
+      is_active: true,
+      viewer_visible: true,
+      created_at: '2026-08-01',
+      updated_at: '2026-08-01',
+    },
+  ]),
+  listGovernanceShareholders: vi.fn(async () => [
+    {
+      id: 'gs1',
+      organization_id: 'org-1',
+      name: 'Northgate Holdings',
+      share_class: 'Common',
+      shares_issued: 1000,
+      issue_date: null,
+      contact_email: null,
+      viewer_visible: true,
+      created_at: '2026-08-01',
+      updated_at: '2026-08-01',
+    },
+  ]),
+}))
+
 describe('buildProductionSearchEntries', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -253,6 +318,10 @@ describe('buildProductionSearchEntries', () => {
     expect(byId.get('chat-1')?.nav).toEqual({ kind: 'chat', chatId: 'chat-1' })
     expect(byId.get('gen-doc-1')?.nav).toEqual({ kind: 'generatedDocument', docId: 'doc-1' })
     expect(byId.get('doc-T03')?.nav).toEqual({ kind: 'document', docKey: 'T03' })
+    expect(byId.get('gov-record-gr1')?.nav).toEqual({ kind: 'view', view: 'governance/records' })
+    expect(byId.get('gov-decision-gd1')?.nav).toEqual({ kind: 'view', view: 'governance/decisions' })
+    expect(byId.get('gov-officer-go1')?.nav).toEqual({ kind: 'view', view: 'governance/officers' })
+    expect(byId.get('gov-shareholder-gs1')?.nav).toEqual({ kind: 'view', view: 'governance/shareholders' })
   })
 
   it('includes knowledge and template catalogue entries', async () => {

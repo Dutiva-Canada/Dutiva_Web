@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { governanceMessages as M } from '@/i18n/messages/governance'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { AppPage } from '@/features/app/shell/AppPage'
 
@@ -16,6 +17,7 @@ export function GovernanceLayout() {
   const { x } = useI18n()
   const { root } = useWorkspaceRoot()
   const { pathname } = useLocation()
+  const { mode } = useWorkspaceMode()
 
   return (
     <AppPage width="default" responsivePad>
@@ -24,6 +26,10 @@ export function GovernanceLayout() {
           {x(M.gov_title)}
         </h1>
         <p className="m-0 text-[13.5px] text-text-muted">{x(M.gov_subtitle)}</p>
+      </div>
+
+      <div className="mb-[8px] text-[12px] text-text-muted">
+        {mode === 'demo' ? x(M.gov_demo_read_only) : x(M.gov_production_synced)}
       </div>
 
       <div className="mb-[18px] flex flex-wrap gap-2 border-b border-border pb-2">

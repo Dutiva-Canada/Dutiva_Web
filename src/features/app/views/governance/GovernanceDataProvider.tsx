@@ -14,6 +14,10 @@ import {
   updateGovernanceDecision,
   updateGovernanceOfficer,
   updateGovernanceShareholder,
+  deleteGovernanceRecord,
+  deleteGovernanceDecision,
+  deleteGovernanceOfficer,
+  deleteGovernanceShareholder,
 } from './data/productionApi'
 import { governanceSummary as fixtures } from './data/fixtures'
 import { GovernanceDataContext } from './GovernanceDataContext'
@@ -342,6 +346,82 @@ export function GovernanceDataProvider({
     [mode, organizationId],
   )
 
+  const removeRecord = useCallback(
+    async (id: string) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({ ...prev, records: prev.records.filter((r) => r.id !== id) }))
+        return
+      }
+      try {
+        await deleteGovernanceRecord(id)
+        setValue((prev) => ({ ...prev, records: prev.records.filter((r) => r.id !== id) }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not remove record.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const removeDecision = useCallback(
+    async (id: string) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({ ...prev, decisions: prev.decisions.filter((d) => d.id !== id) }))
+        return
+      }
+      try {
+        await deleteGovernanceDecision(id)
+        setValue((prev) => ({ ...prev, decisions: prev.decisions.filter((d) => d.id !== id) }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not remove decision.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const removeOfficer = useCallback(
+    async (id: string) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({ ...prev, officers: prev.officers.filter((o) => o.id !== id) }))
+        return
+      }
+      try {
+        await deleteGovernanceOfficer(id)
+        setValue((prev) => ({ ...prev, officers: prev.officers.filter((o) => o.id !== id) }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not remove officer.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const removeShareholder = useCallback(
+    async (id: string) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({ ...prev, shareholders: prev.shareholders.filter((s) => s.id !== id) }))
+        return
+      }
+      try {
+        await deleteGovernanceShareholder(id)
+        setValue((prev) => ({ ...prev, shareholders: prev.shareholders.filter((s) => s.id !== id) }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not remove shareholder.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
   const stable = useMemo(
     () => ({
       records: value.records,
@@ -352,23 +432,31 @@ export function GovernanceDataProvider({
       error: value.error,
       addRecord,
       updateRecord,
+      removeRecord,
       addDecision,
       updateDecision,
+      removeDecision,
       addOfficer,
       updateOfficer,
+      removeOfficer,
       addShareholder,
       updateShareholder,
+      removeShareholder,
     }),
     [
       value,
       addRecord,
       updateRecord,
+      removeRecord,
       addDecision,
       updateDecision,
+      removeDecision,
       addOfficer,
       updateOfficer,
+      removeOfficer,
       addShareholder,
       updateShareholder,
+      removeShareholder,
     ],
   )
 

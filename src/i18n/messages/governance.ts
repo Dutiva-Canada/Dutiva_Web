@@ -44,6 +44,7 @@ export const governanceMessages = defineMessages({
   gov_cancel: { en: 'Cancel', fr: 'Annuler' },
   gov_save: { en: 'Save', fr: 'Enregistrer' },
   gov_edit: { en: 'Edit', fr: 'Modifier' },
+  gov_remove: { en: 'Remove', fr: 'Retirer' },
   gov_save_changes: { en: 'Save changes', fr: 'Enregistrer les modifications' },
   gov_add_record: { en: 'Add record', fr: 'Ajouter un dossier' },
   gov_add_decision: { en: 'Add decision', fr: 'Ajouter une décision' },
@@ -63,6 +64,14 @@ export const governanceMessages = defineMessages({
   gov_contact_email: { en: 'Contact email', fr: 'Courriel de contact' },
   gov_shares_issued: { en: 'Shares issued', fr: 'Actions émises' },
   gov_viewer_visible: { en: 'Visible to viewers', fr: 'Visible aux lecteurs' },
+  gov_demo_read_only: {
+    en: 'Demo workspace: changes are not persisted.',
+    fr: 'Espace de travail de démonstration : les modifications ne sont pas conservées.',
+  },
+  gov_production_synced: {
+    en: 'Production mode syncs with your workspace database.',
+    fr: 'Le mode production se synchronise avec la base de données de votre espace de travail.',
+  },
   gov_disclaimer: {
     en: 'Dutiva provides practical workflow support, not legal review.',
     fr: 'Dutiva offre un soutien pratique aux flux de travail, pas un examen juridique.',

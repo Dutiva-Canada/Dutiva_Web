@@ -11,6 +11,12 @@ import { listFindings } from '@/features/app/views/compliance/productionApi'
 import { listEmployees } from '@/features/app/views/employees/productionApi'
 import { listOwnConversations } from '@/features/app/views/memory/conversationsApi'
 import {
+  listGovernanceRecords,
+  listGovernanceDecisions,
+  listGovernanceOfficers,
+  listGovernanceShareholders,
+} from '@/features/app/views/governance/data/productionApi'
+import {
   listOperationsProjects,
   listOperationsVendors,
   listOperationsQualityChecks,
@@ -51,7 +57,7 @@ function conversationTitle(messages: { role: string; content: string }[]): Bi {
  * Client-side filter reuses filterSearchEntriesFrom in searchCorpus.ts.
  */
 export async function buildProductionSearchEntries(organizationId: string): Promise<SearchEntry[]> {
-  const [employees, cases, conversations, documents, comms, tasks, findings, policies, securityAssets, securityIncidents, securityRisks, operationsProjects, operationsVendors, operationsQualityChecks, operationsTechnology, operationsLogistics] =
+  const [employees, cases, conversations, documents, comms, tasks, findings, policies, securityAssets, securityIncidents, securityRisks, operationsProjects, operationsVendors, operationsQualityChecks, operationsTechnology, operationsLogistics, governanceRecords, governanceDecisions, governanceOfficers, governanceShareholders] =
     await Promise.all([
       listEmployees(organizationId),
       listCases(organizationId),
@@ -69,6 +75,10 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
       listOperationsQualityChecks(organizationId),
       listOperationsTechnology(organizationId),
       listOperationsLogistics(organizationId),
+      listGovernanceRecords(organizationId),
+      listGovernanceDecisions(organizationId),
+      listGovernanceOfficers(organizationId),
+      listGovernanceShareholders(organizationId),
     ])
 
   const personEntries: SearchEntry[] = employees.map((e) => ({
@@ -262,6 +272,50 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     nav: { kind: 'view', view: 'operations/logistics' },
   }))
 
+  const governanceRecordEntries: SearchEntry[] = governanceRecords.map((r) => ({
+    id: `gov-record-${r.id}`,
+    kind: 'governance',
+    kindLabel: M.search_kind_governance,
+    title: neutral(r.title),
+    sub: joinBi([neutral(r.record_type), neutral(r.status), neutral(r.jurisdiction ?? '')]),
+    restricted: false,
+    match: joinBi([neutral(r.title), neutral(r.record_type)]),
+    nav: { kind: 'view', view: 'governance/records' },
+  }))
+
+  const governanceDecisionEntries: SearchEntry[] = governanceDecisions.map((d) => ({
+    id: `gov-decision-${d.id}`,
+    kind: 'governance',
+    kindLabel: M.search_kind_governance,
+    title: neutral(d.title),
+    sub: joinBi([neutral(d.status), neutral(d.decision_date ?? '')]),
+    restricted: false,
+    match: joinBi([neutral(d.title), neutral(d.status)]),
+    nav: { kind: 'view', view: 'governance/decisions' },
+  }))
+
+  const governanceOfficerEntries: SearchEntry[] = governanceOfficers.map((o) => ({
+    id: `gov-officer-${o.id}`,
+    kind: 'governance',
+    kindLabel: M.search_kind_governance,
+    title: neutral(o.name),
+    sub: joinBi([neutral(o.role), neutral(o.is_active ? 'active' : 'inactive')]),
+    restricted: false,
+    match: joinBi([neutral(o.name), neutral(o.role)]),
+    nav: { kind: 'view', view: 'governance/officers' },
+  }))
+
+  const governanceShareholderEntries: SearchEntry[] = governanceShareholders.map((s) => ({
+    id: `gov-shareholder-${s.id}`,
+    kind: 'governance',
+    kindLabel: M.search_kind_governance,
+    title: neutral(s.name),
+    sub: joinBi([neutral(s.share_class ?? ''), neutral(s.shares_issued !== null ? String(s.shares_issued) : '')]),
+    restricted: false,
+    match: neutral(s.name),
+    nav: { kind: 'view', view: 'governance/shareholders' },
+  }))
+
   const knowledgeEntries: SearchEntry[] = [
     ...knowledgeItems.map((k) => ({
       id: `kb-${k.id}`,
@@ -349,6 +403,10 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     ...operationsQualityCheckEntries,
     ...operationsTechnologyEntries,
     ...operationsLogisticsEntries,
+    ...governanceRecordEntries,
+    ...governanceDecisionEntries,
+    ...governanceOfficerEntries,
+    ...governanceShareholderEntries,
     ...knowledgeEntries,
     ...moduleEntries,
     ...flowSearchEntries,

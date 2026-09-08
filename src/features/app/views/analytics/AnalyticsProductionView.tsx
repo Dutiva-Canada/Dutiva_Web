@@ -73,6 +73,18 @@ import type {
   OperationsTechnology,
   OperationsLogistics,
 } from './operationsAnalyticsApi'
+import {
+  listGovernanceRecords,
+  listGovernanceDecisions,
+  listGovernanceOfficers,
+  listGovernanceShareholders,
+} from './governanceAnalyticsApi'
+import type {
+  GovernanceRecord,
+  GovernanceDecision,
+  GovernanceOfficer,
+  GovernanceShareholder,
+} from './governanceAnalyticsApi'
 import { listScoreSnapshots, recordScoreSnapshot } from './productionApi'
 import type { ScoreSnapshot } from './productionApi'
 import { AnalyticsCard, CardEmpty, CardError, CardSkeleton } from './AnalyticsCard'
@@ -233,6 +245,10 @@ export function AnalyticsProductionView() {
   const operationsQualityChecks = useModuleRows<OperationsQualityCheck>(organizationId, listOperationsQualityChecks)
   const operationsTechnology = useModuleRows<OperationsTechnology>(organizationId, listOperationsTechnology)
   const operationsLogistics = useModuleRows<OperationsLogistics>(organizationId, listOperationsLogistics)
+  const governanceRecords = useModuleRows<GovernanceRecord>(organizationId, listGovernanceRecords)
+  const governanceDecisions = useModuleRows<GovernanceDecision>(organizationId, listGovernanceDecisions)
+  const governanceOfficers = useModuleRows<GovernanceOfficer>(organizationId, listGovernanceOfficers)
+  const governanceShareholders = useModuleRows<GovernanceShareholder>(organizationId, listGovernanceShareholders)
 
   /* ── Score: live components + snapshot history ─────────────────────────── */
   const scoreReady =
@@ -1068,7 +1084,75 @@ export function AnalyticsProductionView() {
           )
         })()}
 
-        {/* H · Comms & PR overview */}
+        {/* H · Governance — records, decisions, officers, shareholders */}
+        {(() => {
+          const recordRows = rowsOf(governanceRecords.state)
+          const decisionRows = rowsOf(governanceDecisions.state)
+          const officerRows = rowsOf(governanceOfficers.state)
+          const shareholderRows = rowsOf(governanceShareholders.state)
+          const hasGovernanceData =
+            recordRows.length +
+              decisionRows.length +
+              officerRows.length +
+              shareholderRows.length >
+            0
+
+          const activeRecords = recordRows.filter((r) => r.status === 'active').length
+          const pendingRecords = recordRows.filter((r) => r.status === 'pending_review').length
+          const adoptedDecisions = decisionRows.filter((d) => d.status === 'adopted').length
+          const activeOfficers = officerRows.filter((o) => o.is_active).length
+          const totalShares = shareholderRows.reduce((sum, s) => sum + (s.shares_issued ?? 0), 0)
+
+          return (
+            <AnalyticsCard
+              title={x(M.analytics_governance_title)}
+              subtitle={x(M.analytics_governance_sub)}
+              hidden={!show('governance')}
+            >
+              <CardData
+                deps={[
+                  governanceRecords,
+                  governanceDecisions,
+                  governanceOfficers,
+                  governanceShareholders,
+                ]}
+                skeletonLines={2}
+              >
+                {() =>
+                  !hasGovernanceData ? (
+                    <CardEmpty text={x(M.analytics_governance_empty)} />
+                  ) : (
+                    <div className="flex flex-wrap gap-[10px]">
+                      <StatTile
+                        value={String(activeRecords)}
+                        label={x(M.analytics_governance_active_records)}
+                      />
+                      <StatTile
+                        value={String(pendingRecords)}
+                        label={x(M.analytics_governance_pending_records)}
+                        alert={pendingRecords > 0}
+                      />
+                      <StatTile
+                        value={String(adoptedDecisions)}
+                        label={x(M.analytics_governance_adopted_decisions)}
+                      />
+                      <StatTile
+                        value={String(activeOfficers)}
+                        label={x(M.analytics_governance_active_officers)}
+                      />
+                      <StatTile
+                        value={String(totalShares)}
+                        label={x(M.analytics_governance_total_shares)}
+                      />
+                    </div>
+                  )
+                }
+              </CardData>
+            </AnalyticsCard>
+          )
+        })()}
+
+        {/* I · Comms & PR overview */}
         {(() => {
           const contentItemRows = rowsOf(commsContentItems.state)
           const interactionRows = rowsOf(commsInteractions.state)
@@ -1135,7 +1219,7 @@ export function AnalyticsProductionView() {
           )
         })()}
 
-        {/* I · Headcount & turnover — headcount history accumulates via the
+        {/* J · Headcount & turnover — headcount history accumulates via the
               monthly snapshot; turnover awaits termination history. */}
         <AnalyticsCard
           title={x(M.analytics_trend_title)}

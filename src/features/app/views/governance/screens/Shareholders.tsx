@@ -27,9 +27,11 @@ function emptyShareholder(): GovernanceShareholder {
 function ShareholderRow({
   shareholder,
   onEdit,
+  onRemove,
 }: {
   readonly shareholder: GovernanceShareholder
   readonly onEdit: (shareholder: GovernanceShareholder) => void
+  readonly onRemove: (id: string) => void
 }) {
   const { x } = useI18n()
   return (
@@ -43,20 +45,29 @@ function ShareholderRow({
           {shareholder.contact_email ? ` · ${shareholder.contact_email}` : null}
         </div>
       </div>
-      <button
-        type="button"
-        onClick={() => onEdit(shareholder)}
-        className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
-      >
-        {x(M.gov_edit)}
-      </button>
+      <div className="flex items-center gap-[10px]">
+        <button
+          type="button"
+          onClick={() => onEdit(shareholder)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.gov_edit)}
+        </button>
+        <button
+          type="button"
+          onClick={() => onRemove(shareholder.id)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.gov_remove)}
+        </button>
+      </div>
     </div>
   )
 }
 
 export function Shareholders() {
   const { x } = useI18n()
-  const { shareholders, addShareholder, updateShareholder } = useGovernanceData()
+  const { shareholders, addShareholder, updateShareholder, removeShareholder } = useGovernanceData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<GovernanceShareholder | null>(null)
 
@@ -165,6 +176,7 @@ export function Shareholders() {
               key={shareholder.id}
               shareholder={shareholder}
               onEdit={(s) => { setEditing(s); setShow(true) }}
+              onRemove={(id) => removeShareholder(id)}
             />
           ))}
         </div>

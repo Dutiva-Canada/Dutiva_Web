@@ -280,6 +280,22 @@ export const analyticsMessages = defineMessages({
     fr: 'Aucun dossier opérationnel pour l’instant.',
   },
 
+  /* ── Governance card ────────────────────────────────────────────────────── */
+  analytics_governance_title: { en: 'Governance', fr: 'Gouvernance' },
+  analytics_governance_sub: {
+    en: 'Records, decisions, officers, and shareholders.',
+    fr: 'Registres, décisions, dirigeants et actionnaires.',
+  },
+  analytics_governance_active_records: { en: 'Active records', fr: 'Dossiers actifs' },
+  analytics_governance_pending_records: { en: 'Pending review', fr: 'En révision' },
+  analytics_governance_adopted_decisions: { en: 'Adopted decisions', fr: 'Décisions adoptées' },
+  analytics_governance_active_officers: { en: 'Active officers', fr: 'Dirigeants actifs' },
+  analytics_governance_total_shares: { en: 'Shares issued', fr: 'Actions émises' },
+  analytics_governance_empty: {
+    en: 'No governance records yet.',
+    fr: 'Aucun dossier de gouvernance pour l’instant.',
+  },
+
   /* ── Card chrome (loading / error / empty) ─────────────────────────────── */
   analytics_loading: { en: 'Loading…', fr: 'Chargement…' },
   analytics_error: { en: 'Couldn’t load this card.', fr: 'Impossible de charger cette carte.' },
