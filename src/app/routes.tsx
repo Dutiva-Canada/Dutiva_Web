@@ -166,7 +166,9 @@ function NotFoundRoute() {
 *   /app/employees/:employeeId  employee profile
  *   /careers               public job board — browse active postings
  *   /careers/jobs/:postingId   job detail (public, no login)
- *   /careers/portal         candidate portal (auth required)
+ *   /fr/carrieres          French job board (URL-scoped language)
+ *   /fr/carrieres/jobs/:postingId   job detail (French)
+ *   /careers/portal         candidate portal (auth required, preference-scoped language)
  *   /careers/portal/profile    candidate profile editor
  *   /careers/portal/applications   track submitted applications
  *   /careers/portal/jobs/:postingId/apply   apply to a role with optional AI
@@ -259,7 +261,19 @@ function routeTree(): RouteObject[] {
       path: '/careers',
       element: (
         <Suspense fallback={null}>
-          <CareersSurface />
+          <CareersSurface lang="en" />
+        </Suspense>
+      ),
+      children: [
+        { index: true, element: <JobBoardPage /> },
+        { path: 'jobs/:postingId', element: <JobDetailPage /> },
+      ],
+    },
+    {
+      path: '/fr/carrieres',
+      element: (
+        <Suspense fallback={null}>
+          <CareersSurface lang="fr" />
         </Suspense>
       ),
       children: [

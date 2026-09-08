@@ -25,6 +25,10 @@ export const landingChrome = defineMessages({
     en: 'Guides',
     fr: 'Guides',
   },
+  landing_nav_careers: {
+    en: 'Careers',
+    fr: 'Carrières',
+  },
   landing_signin: {
     en: 'Sign in',
     fr: 'Se connecter',

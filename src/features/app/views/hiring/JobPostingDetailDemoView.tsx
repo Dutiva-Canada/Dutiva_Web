@@ -1,7 +1,8 @@
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { hiringMessages as M } from '@/i18n/messages/hiring'
+import { seoRoute } from '@/seo/routes'
 import { demoJobPostings } from '@/data'
 import { statusChipClass } from '@/components/chips'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
@@ -11,7 +12,7 @@ import { getPostingStatusLabel, getPostingStatusTone } from './postingStatus'
  * Job posting detail demo view — Northgate fixture data for the demo workspace.
  */
 export function JobPostingDetailDemoView() {
-  const { x } = useI18n()
+  const { x, lang } = useI18n()
   const { root } = useWorkspaceRoot()
   const { postingId } = useParams<{ postingId: string }>()
 
@@ -47,6 +48,15 @@ export function JobPostingDetailDemoView() {
           <span className={statusChipClass(getPostingStatusTone(posting.status))}>
             {x(getPostingStatusLabel(posting.status))}
           </span>
+          {posting.status === 'active' && (
+            <Link
+              to={`${seoRoute('careers').path[lang]}/jobs/${posting.id}`}
+              className="inline-flex items-center gap-1.5 rounded-[8px] border border-border bg-surface px-3 py-1.5 text-[13px] font-semibold text-text-2 transition-[border-color] hover:border-gold-border"
+            >
+              <ExternalLink size={13} strokeWidth={2} aria-hidden="true" />
+              {x(M.hiring_posting_view_board)}
+            </Link>
+          )}
         </div>
 
         <div className="flex flex-col gap-[16px]">

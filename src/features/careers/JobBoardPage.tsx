@@ -8,6 +8,8 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, Briefcase, Calendar, MapPin, Search } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { careersMessages as M } from '@/i18n/messages/careers'
+import { Seo } from '@/seo/Seo'
+import { useCareersPath } from './useCareersPath'
 import { listActiveJobPostings } from './data/jobBoardApi'
 import type { PublicJobPosting } from './data/jobBoardApi'
 
@@ -51,6 +53,7 @@ export function JobBoardPage() {
 
   return (
     <div className="bg-bg text-text">
+      <Seo route="careers" />
       {/* Hero */}
       <section className="mx-auto max-w-[1200px] px-4 pt-12 pb-6 text-center sm:px-6 sm:pt-16">
         <h1 className="font-display text-[clamp(2rem,4vw,3rem)] font-semibold tracking-[-0.02em] text-text">
@@ -107,9 +110,10 @@ export function JobBoardPage() {
 
 function JobCard({ posting }: { readonly posting: PublicJobPosting }) {
   const { x } = useI18n()
+  const paths = useCareersPath()
   return (
     <Link
-      to={`/careers/jobs/${posting.id}`}
+      to={paths.jobDetail(posting.id)}
       className="flex flex-col rounded-[12px] border border-border bg-surface p-5 transition-[border-color] hover:border-gold-border"
     >
       <h2 className="text-base font-semibold text-text">{posting.title}</h2>
