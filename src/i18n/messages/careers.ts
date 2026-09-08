@@ -37,6 +37,10 @@ export const careersMessages = defineMessages({
     en: 'Could not load job openings. Please try again.',
     fr: 'Impossible de charger les postes ouverts. Veuillez réessayer.',
   },
+  careers_board_how_it_works: {
+    en: 'For candidates: Dutiva Careers lets you browse open positions from Canadian employers, create a profile, and apply with optional AI tools for resume tailoring and interview preparation. Employers post jobs through the B2B hiring module; candidates see the same active postings here. Sign in to save your profile, track applications, and get AI-assisted guidance.',
+    fr: 'Pour les candidats : Dutiva Carrières vous permet de parcourir les postes ouverts offerts par des employeurs canadiens, de créer un profil et de postuler avec des outils IA optionnels pour l\'adaptation du CV et la préparation d\'entretien. Les employeurs publient les offres via le module B2B de recrutement ; les candidats voient les mêmes postes actifs ici. Connectez-vous pour enregistrer votre profil, suivre les candidatures et obtenir de l\'aide IA.',
+  },
 
   /* ── Job detail page ──────────────────────────────────────────────────── */
   careers_detail_back: { en: 'All jobs', fr: 'Tous les emplois' },

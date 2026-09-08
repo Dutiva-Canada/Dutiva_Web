@@ -84,7 +84,7 @@ export function JobBoardPage() {
       </section>
 
       {/* Results */}
-      <section className="mx-auto max-w-[1200px] px-4 pb-16 sm:px-6">
+      <section className="mx-auto max-w-[1200px] px-4 pb-12 sm:px-6">
         {loadFailed ? (
           <div className="rounded-[12px] border border-risk-border bg-risk-bg px-5 py-4 text-center">
             <p className="text-sm text-risk-fg">{x(M.careers_board_load_error)}</p>
@@ -103,6 +103,15 @@ export function JobBoardPage() {
             ))}
           </div>
         )}
+      </section>
+
+      {/* Explainer */}
+      <section className="border-t border-border bg-bg-elevated">
+        <div className="mx-auto max-w-[1200px] px-4 py-12 sm:px-6 sm:py-16">
+          <p className="mx-auto max-w-[80ch] text-center text-base leading-[1.7] text-text-2">
+            {x(M.careers_board_how_it_works)}
+          </p>
+        </div>
       </section>
     </div>
   )
