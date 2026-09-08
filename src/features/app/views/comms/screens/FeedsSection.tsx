@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Plus, RefreshCw } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
-import { useCommsData } from '../data/useCommsData'
+import { useFeeds } from '../data/useFeeds'
 import { useInitiatives } from '../data/useInitiatives'
 import { CURATED_FEEDS } from '../data/feedPresets'
 import type { CommsFeedFormat, CommsSourceType } from '../data/types'
@@ -25,7 +25,7 @@ const labelClass = 'mb-[4px] block text-[12px] font-semibold text-text-3'
 
 export function FeedsSection() {
   const { x, lang } = useI18n()
-  const { state, canWrite, addFeed, removeFeed, syncFeed, syncAllFeeds } = useCommsData()
+  const { canWrite, addFeed, removeFeed, syncFeed, syncAllFeeds, feeds } = useFeeds()
   const { initiatives } = useInitiatives()
   const [open, setOpen] = useState(false)
   const [url, setUrl] = useState('')
@@ -49,9 +49,9 @@ export function FeedsSection() {
     setCreateCoverageDrafts(false)
   }
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    addFeed({
+    await addFeed({
       url,
       label: { en: label, fr: `[FR] ${label}` },
       sourceType,
@@ -92,12 +92,12 @@ export function FeedsSection() {
   }
 
   const existingUrls = useMemo(
-    () => new Set(state.feeds.map((f) => f.url)),
-    [state.feeds],
+    () => new Set(feeds.map((f) => f.url)),
+    [feeds],
   )
 
-  const addPreset = (preset: typeof CURATED_FEEDS[number]) => {
-    addFeed({
+  const addPreset = async (preset: typeof CURATED_FEEDS[number]) => {
+    await addFeed({
       url: preset.url,
       label: preset.label,
       sourceType: preset.sourceType,
@@ -114,7 +114,7 @@ export function FeedsSection() {
       <div className="mb-[12px] flex flex-wrap items-center justify-between gap-[12px]">
         <h3 className="text-[15px] font-semibold text-text">{x(M.comms_intelligence_feeds)}</h3>
         <div className="flex flex-wrap items-center gap-[8px]">
-          {canWrite && state.feeds.some((f) => f.enabled) && (
+          {canWrite && feeds.some((f) => f.enabled) && (
             <button
               type="button"
               onClick={onSyncAll}
@@ -247,11 +247,11 @@ export function FeedsSection() {
         </div>
       )}
 
-      {state.feeds.length === 0 ? (
+      {feeds.length === 0 ? (
         <p className="text-[13px] text-text-muted">{x(M.comms_intelligence_feeds_empty)}</p>
       ) : (
         <ul className="m-0 flex flex-col gap-[10px] p-0">
-          {state.feeds.map((feed) => (
+          {feeds.map((feed) => (
             <li key={feed.id} className="rounded-[8px] bg-inset p-[12px]">
               <div className="flex flex-wrap items-start justify-between gap-[12px]">
                 <div>
