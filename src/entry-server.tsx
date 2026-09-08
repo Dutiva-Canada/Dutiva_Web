@@ -15,6 +15,8 @@ import { lastmodFor } from '@/seo/lastmod'
 import { serializeHead } from '@/seo/head'
 import type { HeadData } from '@/seo/head'
 import { allPublicPages, langOfPath } from '@/seo/routes'
+import { seoRoute } from '@/seo/routes'
+import { getActiveJobPostingsForSitemap } from '@/seo/careersSitemap'
 import { ORG, ORG_DESCRIPTION, SITE_ORIGIN, FOUNDER } from '@/seo/site'
 import { ThemeProvider } from '@/lib/theme'
 
@@ -101,6 +103,12 @@ export interface ManifestEntry {
 /**
  * Every public page × locale, from the SEO route registry — the single
  * input for prerendering, sitemap.xml, and llms.txt generation.
+ *
+ * Dynamic careers job detail pages (`/careers/jobs/:postingId`) are added
+ * at build time by querying Supabase for active postings. When Supabase is
+ * not configured (local build without `.env`), job detail URLs are omitted
+ * from the manifest and sitemap — the static `/careers` index page still
+ * lists them at runtime.
  */
 export async function buildPrerenderManifest(): Promise<ManifestEntry[]> {
   const entries: ManifestEntry[] = []
@@ -119,6 +127,37 @@ export async function buildPrerenderManifest(): Promise<ManifestEntry[]> {
       })
     }
   }
+
+  /* Dynamic careers job detail pages — one EN/FR pair per active posting. */
+  const careersRoute = seoRoute('careers')
+  const jobPostings = await getActiveJobPostingsForSitemap()
+  for (const posting of jobPostings) {
+    const enPath = `${careersRoute.path.en}/jobs/${posting.id}`
+    const frPath = `${careersRoute.path.fr}/jobs/${posting.id}`
+    const title = {
+      en: `${posting.title} | Dutiva Careers`,
+      fr: `${posting.title} | Carrières Dutiva`,
+    }
+    const description = {
+      en: posting.description.slice(0, 155),
+      fr: posting.description.slice(0, 155),
+    }
+    const lastmod = posting.postedDate ?? undefined
+    for (const lang of ['en', 'fr'] as const) {
+      entries.push({
+        key: `careersJob:${posting.id}`,
+        lang,
+        htmlLang: HTML_LANG[lang],
+        path: lang === 'en' ? enPath : frPath,
+        indexable: true,
+        alternates: { en: enPath, fr: frPath },
+        title: title[lang],
+        description: description[lang],
+        lastmod,
+      })
+    }
+  }
+
   return entries
 }
 
