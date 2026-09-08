@@ -38,6 +38,7 @@ import { securityMessages } from './security'
 import { operationsMessages } from './operations'
 import { specialistsMessages } from './specialists'
 import { revenueMessages } from './revenue'
+import { entityLinksMessages } from './entityLinks'
 import { sharedMessages } from './shared'
 
 /**
@@ -88,6 +89,7 @@ export const workspaceMessages = {
   ...operationsMessages,
   ...specialistsMessages,
   ...revenueMessages,
+  ...entityLinksMessages,
   ...sharedMessages,
 } as const
 

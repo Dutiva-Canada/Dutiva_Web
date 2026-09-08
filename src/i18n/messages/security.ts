@@ -16,6 +16,21 @@ export const securityMessages = defineMessages({
   sec_tab_incidents: { en: 'Incidents', fr: 'Incidents' },
   sec_tab_risks: { en: 'Risks', fr: 'Risques' },
   sec_tab_vendors: { en: 'Vendors', fr: 'Fournisseurs' },
+  /* Overview — cross-tab "at a glance" tiles */
+  sec_overview_section_title: { en: 'At a glance', fr: 'En un coup d’œil' },
+  sec_overview_at_risk: { en: 'Assets at risk', fr: 'Actifs à risque' },
+  sec_overview_critical_assets: { en: 'Critical assets', fr: 'Actifs critiques' },
+  sec_overview_open_incidents: { en: 'Open incidents', fr: 'Incidents ouverts' },
+  sec_overview_critical_incidents: { en: 'Critical incidents', fr: 'Incidents critiques' },
+  sec_overview_overdue_reviews: {
+    en: 'Overdue access reviews',
+    fr: 'Revues d’accès en retard',
+  },
+  sec_overview_reviews_due: { en: 'Reviews due in 7 days', fr: 'Revues dues sous 7 jours' },
+  sec_overview_vendors_due: {
+    en: 'Vendor reviews due in 7 days',
+    fr: 'Revues fournisseurs dues sous 7 jours',
+  },
   sec_empty_title: { en: 'No security records yet', fr: 'Aucun dossier de sécurité' },
   sec_empty_body: {
     en: 'Track your first asset or access review.',

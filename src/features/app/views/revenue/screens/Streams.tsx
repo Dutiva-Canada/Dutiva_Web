@@ -1,8 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useI18n } from '@/i18n/context'
 import { revenueMessages as M } from '@/i18n/messages/revenue'
 import { statusChipClass } from '@/components/chips'
 import { FormField, FormInput, FormSelect, FormTextarea } from '@/components/FormField'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { useCrmData } from '@/features/app/views/crm/useCrmData'
+import { loadCommsState } from '@/features/app/views/comms/data/productionApi'
+import { initialCommsState } from '@/features/app/views/comms/data/fixtures'
+import { EntityLinksPanel } from '@/features/app/entityLinks/EntityLinksPanel'
+import type { LinkCandidate } from '@/features/app/entityLinks/data/types'
 import { useRevenueData } from '../RevenueDataContext'
 import type {
   RevenueStream,
@@ -120,9 +126,35 @@ function StreamRow({
 
 export function Streams() {
   const { x } = useI18n()
+  const { mode, organizationId } = useWorkspaceMode()
   const { streams, addStream, updateStream, removeStream } = useRevenueData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<RevenueStream | null>(null)
+
+  const crm = useCrmData(mode, organizationId ?? undefined)
+  const commsState = useMemo(
+    () =>
+      mode === 'production' && organizationId ? loadCommsState(organizationId) : initialCommsState,
+    [mode, organizationId],
+  )
+
+  const linkCandidates: LinkCandidate[] = useMemo(
+    () => [
+      {
+        table: 'crm_deals',
+        label: M.rev_links_crm_deals,
+        records: crm.state.deals.map((d) => ({ id: d.id, title: d.title })),
+        view: 'crm',
+      },
+      {
+        table: 'comms_initiatives',
+        label: M.rev_links_comms_initiatives,
+        records: commsState.initiatives.map((i) => ({ id: i.id, title: x(i.title) })),
+        view: 'comms/initiatives',
+      },
+    ],
+    [crm.state.deals, commsState.initiatives, x],
+  )
 
   const initial = editing ?? emptyStream()
   const [name, setName] = useState(initial.name)
@@ -289,6 +321,16 @@ export function Streams() {
           <FormField label={x(M.rev_notes)} className="sm:col-span-2">
             <FormTextarea value={notes} onChange={(e) => setNotes(e.target.value)} />
           </FormField>
+
+          {editing ? (
+            <div className="sm:col-span-2">
+              <EntityLinksPanel
+                fromTable="revenue_streams"
+                fromId={editing.id}
+                candidates={linkCandidates}
+              />
+            </div>
+          ) : null}
 
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button

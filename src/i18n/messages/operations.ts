@@ -17,6 +17,19 @@ export const operationsMessages = defineMessages({
   ops_tab_technology: { en: 'Technology', fr: 'Technologie' },
   ops_tab_logistics: { en: 'Logistics', fr: 'Logistique' },
   ops_link_finance: { en: 'Open in Finance', fr: 'Ouvrir dans Finance' },
+  /* Overview — cross-tab "at a glance" tiles */
+  ops_overview_section_title: { en: 'At a glance', fr: 'En un coup d’œil' },
+  ops_overview_active_projects: { en: 'Active projects', fr: 'Projets actifs' },
+  ops_overview_active_vendors: { en: 'Active vendors', fr: 'Fournisseurs actifs' },
+  ops_overview_overdue_quality: {
+    en: 'Overdue quality checks',
+    fr: 'Contrôles qualité en retard',
+  },
+  ops_overview_tech_renewals: {
+    en: 'Tech renewals due in 7 days',
+    fr: 'Renouvellements techno sous 7 jours',
+  },
+  ops_overview_delayed_logistics: { en: 'Delayed shipments', fr: 'Expéditions retardées' },
   ops_empty_title: { en: 'No operations records yet', fr: 'Aucun dossier opérationnel' },
   ops_empty_body: {
     en: 'Add your first project, vendor, or quality check.',

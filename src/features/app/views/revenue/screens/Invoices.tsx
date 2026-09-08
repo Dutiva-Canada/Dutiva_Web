@@ -1,8 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useI18n } from '@/i18n/context'
 import { revenueMessages as M } from '@/i18n/messages/revenue'
 import { statusChipClass } from '@/components/chips'
 import { FormField, FormInput, FormSelect, FormTextarea } from '@/components/FormField'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { useCrmData } from '@/features/app/views/crm/useCrmData'
+import { loadCommsState } from '@/features/app/views/comms/data/productionApi'
+import { initialCommsState } from '@/features/app/views/comms/data/fixtures'
+import { EntityLinksPanel } from '@/features/app/entityLinks/EntityLinksPanel'
+import type { LinkCandidate } from '@/features/app/entityLinks/data/types'
 import { useRevenueData } from '../RevenueDataContext'
 import type { RevenueInvoice, RevenueInvoiceStatus, RevenueCurrency } from '../data/types'
 import { formatCurrency } from '../data/format'
@@ -109,9 +115,41 @@ function InvoiceRow({
 
 export function Invoices() {
   const { x } = useI18n()
+  const { mode, organizationId } = useWorkspaceMode()
   const { streams, invoices, addInvoice, updateInvoice, removeInvoice } = useRevenueData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<RevenueInvoice | null>(null)
+
+  const crm = useCrmData(mode, organizationId ?? undefined)
+  const commsState = useMemo(
+    () =>
+      mode === 'production' && organizationId ? loadCommsState(organizationId) : initialCommsState,
+    [mode, organizationId],
+  )
+
+  const linkCandidates: LinkCandidate[] = useMemo(
+    () => [
+      {
+        table: 'revenue_streams',
+        label: M.rev_links_streams,
+        records: streams.map((s) => ({ id: s.id, title: s.name })),
+        view: 'revenue/streams',
+      },
+      {
+        table: 'crm_deals',
+        label: M.rev_links_crm_deals,
+        records: crm.state.deals.map((d) => ({ id: d.id, title: d.title })),
+        view: 'crm',
+      },
+      {
+        table: 'comms_initiatives',
+        label: M.rev_links_comms_initiatives,
+        records: commsState.initiatives.map((i) => ({ id: i.id, title: x(i.title) })),
+        view: 'comms/initiatives',
+      },
+    ],
+    [streams, crm.state.deals, commsState.initiatives, x],
+  )
 
   const initial = editing ?? emptyInvoice()
   const [customerName, setCustomerName] = useState(initial.customer_name)
@@ -280,6 +318,16 @@ export function Invoices() {
           <FormField label={x(M.rev_notes)} className="sm:col-span-2">
             <FormTextarea value={notes} onChange={(e) => setNotes(e.target.value)} />
           </FormField>
+
+          {editing ? (
+            <div className="sm:col-span-2">
+              <EntityLinksPanel
+                fromTable="revenue_invoices"
+                fromId={editing.id}
+                candidates={linkCandidates}
+              />
+            </div>
+          ) : null}
 
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button

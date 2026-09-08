@@ -55,6 +55,11 @@ export const revenueMessages = defineMessages({
   },
   rev_empty_comms: { en: 'No active campaigns.', fr: 'Aucune campagne active.' },
 
+  /* Entity link target modules */
+  rev_links_crm_deals: { en: 'CRM deals', fr: 'Opportunités CRM' },
+  rev_links_comms_initiatives: { en: 'Comms initiatives', fr: 'Initiatives Comms' },
+  rev_links_streams: { en: 'Revenue streams', fr: 'Flux de revenus' },
+
   /* Stream / invoice labels */
   rev_name: { en: 'Name', fr: 'Nom' },
   rev_customer_name: { en: 'Customer name', fr: 'Nom du client' },

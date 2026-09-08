@@ -15,6 +15,13 @@ export const governanceMessages = defineMessages({
   gov_tab_decisions: { en: 'Decisions', fr: 'Décisions' },
   gov_tab_officers: { en: 'Officers', fr: 'Dirigeants' },
   gov_tab_shareholders: { en: 'Shareholders', fr: 'Actionnaires' },
+  /* Overview — cross-tab "at a glance" tiles */
+  gov_overview_section_title: { en: 'At a glance', fr: 'En un coup d’œil' },
+  gov_overview_active_records: { en: 'Active records', fr: 'Registres actifs' },
+  gov_overview_pending_decisions: { en: 'Pending decisions', fr: 'Décisions en attente' },
+  gov_overview_adopted_decisions: { en: 'Adopted decisions', fr: 'Décisions adoptées' },
+  gov_overview_active_officers: { en: 'Active officers', fr: 'Dirigeants actifs' },
+  gov_overview_active_shareholders: { en: 'Shareholders', fr: 'Actionnaires' },
   gov_empty_title: { en: 'No governance records yet', fr: 'Aucun dossier de gouvernance' },
   gov_empty_body: {
     en: 'Add your first corporate record — articles, by-laws, or minutes.',
