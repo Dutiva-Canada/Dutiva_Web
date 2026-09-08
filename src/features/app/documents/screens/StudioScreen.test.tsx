@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, screen, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { Route, Routes } from 'react-router-dom'
 import { renderApp } from '@/test/renderApp'
 import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
@@ -136,16 +136,18 @@ describe('StudioScreen', () => {
         name: /Confidentiality agreement/i,
       }),
     )
-    expect(screen.getByRole('article', { name: /Confidentiality agreement/i })).toBeInTheDocument()
+    await screen.findByRole('article', { name: /Confidentiality agreement/i })
 
     fireEvent.change(screen.getByLabelText('Category'), { target: { value: 'hiring' } })
 
     const options = within(screen.getByRole('listbox')).getAllByRole('option')
     expect(options.length).toBeGreaterThan(0)
     expect(options[0]).toHaveAttribute('aria-selected', 'true')
-    expect(
-      screen.queryByRole('article', { name: /Confidentiality agreement/i }),
-    ).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('article', { name: /Confidentiality agreement/i }),
+      ).not.toBeInTheDocument()
+    })
   })
 
   it('shows Required in the detail panel only when the size trigger fires', async () => {
@@ -157,6 +159,9 @@ describe('StudioScreen', () => {
         name: /Group termination notice/i,
       }),
     )
+    await waitFor(() => {
+      expect(screen.getByRole('article')).toHaveTextContent(/Group termination notice/i)
+    })
     expect(screen.getByRole('article')).toHaveTextContent('Available for your jurisdiction')
     expect(screen.getByRole('article')).not.toHaveTextContent('Required based on your profile')
 
@@ -165,7 +170,9 @@ describe('StudioScreen', () => {
       target: { value: '60' },
     })
 
-    expect(screen.getByRole('article')).toHaveTextContent('Required based on your profile')
+    await waitFor(() => {
+      expect(screen.getByRole('article')).toHaveTextContent('Required based on your profile')
+    })
   })
 })
 

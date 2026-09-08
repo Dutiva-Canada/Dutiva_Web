@@ -19,7 +19,7 @@ import {
   listEmployees,
   removeEmployee,
 } from './productionApi'
-import type { ProductionEmployee, ProductionEmployeeStatus } from './productionApi'
+import type { ProductionEmployee, ProductionEmployeeStatus, ProductionEmploymentType } from './productionApi'
 import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
@@ -53,6 +53,15 @@ const inputClass =
   'w-full rounded-[10px] border border-border bg-surface px-[12px] py-[9px] font-sans text-[13.5px] text-text'
 const labelClass = 'mb-[4px] block text-[12px] font-semibold text-text-3'
 
+const EMPLOYMENT_TYPES: ProductionEmploymentType[] = ['full_time', 'part_time', 'contract', 'intern']
+
+const EMPLOYMENT_TYPE_LABELS: Record<ProductionEmploymentType, keyof typeof M> = {
+  full_time: 'employees_employment_type_full_time',
+  part_time: 'employees_employment_type_part_time',
+  contract: 'employees_employment_type_contract',
+  intern: 'employees_employment_type_intern',
+}
+
 const EMPTY_FORM = {
   name: '',
   title: '',
@@ -60,6 +69,9 @@ const EMPTY_FORM = {
   jurisdiction: 'Ontario',
   startDate: '',
   managerId: '',
+  department: '',
+  employmentType: '' as ProductionEmploymentType | '',
+  phone: '',
 }
 
 export function EmployeesProductionView() {
@@ -112,6 +124,7 @@ export function EmployeesProductionView() {
         ...form,
         name: form.name.trim(),
         managerId: form.managerId || undefined,
+        employmentType: form.employmentType || undefined,
       })
       setRows((prev) => [...(prev ?? []), added].sort((a, b) => a.name.localeCompare(b.name)))
       setForm(EMPTY_FORM)
@@ -255,6 +268,47 @@ export function EmployeesProductionView() {
                 className={inputClass}
               />
             </div>
+            <div>
+              <label htmlFor="emp-department" className={labelClass}>
+                {x(M.employees_prod_department)}
+              </label>
+              <input
+                id="emp-department"
+                value={form.department}
+                onChange={(e) => setForm((f) => ({ ...f, department: e.target.value }))}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="emp-employment-type" className={labelClass}>
+                {x(M.employees_prod_employment_type)}
+              </label>
+              <select
+                id="emp-employment-type"
+                value={form.employmentType}
+                onChange={(e) => setForm((f) => ({ ...f, employmentType: e.target.value as ProductionEmploymentType | '' }))}
+                className={inputClass}
+              >
+                <option value="">{x(M.employees_prod_employment_type_unset)}</option>
+                {EMPLOYMENT_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {x(M[EMPLOYMENT_TYPE_LABELS[t]])}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="emp-phone" className={labelClass}>
+                {x(M.employees_prod_phone)}
+              </label>
+              <input
+                id="emp-phone"
+                type="tel"
+                value={form.phone}
+                onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                className={inputClass}
+              />
+            </div>
             {(rows?.length ?? 0) > 0 && (
               <div>
                 <label htmlFor="emp-manager" className={labelClass}>
@@ -335,7 +389,7 @@ export function EmployeesProductionView() {
               <Link to={`/app/employees/${emp.id}`} className="min-w-0 flex-1 hover:opacity-80">
                 <div className="truncate text-[13.5px] font-semibold text-text">{emp.name}</div>
                 <div className="truncate text-[12px] text-text-muted">
-                  {[emp.title, emp.jurisdiction].filter(Boolean).join(' · ')}
+                  {[emp.title, emp.department, emp.employmentType ? x(M[EMPLOYMENT_TYPE_LABELS[emp.employmentType]]) : null, emp.jurisdiction].filter(Boolean).join(' · ')}
                 </div>
               </Link>
               <span className={statusChipClass(STATUS_TONE[emp.status])}>

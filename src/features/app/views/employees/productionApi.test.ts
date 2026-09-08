@@ -16,6 +16,9 @@ describe('employees productionApi', () => {
     jurisdiction: 'Ontario',
     start_date: '2026-07-02',
     status: 'active',
+    department: 'Operations',
+    employment_type: 'full_time',
+    phone: '+1-555-0101',
     manager_id: 'emp-2',
   }
 
@@ -50,6 +53,9 @@ describe('employees productionApi', () => {
         jurisdiction: 'Ontario',
         startDate: '2026-07-02',
         status: 'active',
+        department: 'Operations',
+        employmentType: 'full_time',
+        phone: '+1-555-0101',
         probationEndDate: null,
         terminationDate: null,
         managerId: 'emp-2',
@@ -106,6 +112,9 @@ describe('employees productionApi', () => {
       email: null,
       jurisdiction: 'Ontario',
       start_date: null,
+      department: null,
+      employment_type: null,
+      phone: null,
       manager_id: null,
     })
     expect(added.name).toBe('Ana Souza')

@@ -15,6 +15,8 @@ import { bi } from '@/i18n/core'
 
 export type ProductionEmployeeStatus = 'active' | 'on_leave' | 'terminated'
 
+export type ProductionEmploymentType = 'full_time' | 'part_time' | 'contract' | 'intern'
+
 export interface ProductionEmployee {
   id: string
   name: string
@@ -24,6 +26,12 @@ export interface ProductionEmployee {
   jurisdiction: string
   startDate: string | null
   status: ProductionEmployeeStatus
+  /** Free-form department or team. */
+  department: string | null
+  /** Full-time, part-time, contract, or intern. */
+  employmentType: ProductionEmploymentType | null
+  /** Work or direct phone number. */
+  phone: string | null
   /** Contractual probation end (YYYY-MM-DD), entered per employee — never derived. */
   probationEndDate: string | null
   /** Date employment ended; null for pre-0066 terminations. */
@@ -41,6 +49,9 @@ export interface NewEmployee {
   startDate: string
   /** Optional direct line manager within the same organization. */
   managerId?: string
+  department?: string
+  employmentType?: ProductionEmploymentType
+  phone?: string
 }
 
 const rowSchema = z.object({
@@ -51,6 +62,11 @@ const rowSchema = z.object({
   jurisdiction: z.string(),
   start_date: z.string().nullable(),
   status: z.enum(['active', 'on_leave', 'terminated']),
+  /* Deeper roster fields (0130). Optional-tolerant so pre-0130 row shapes in
+     tests keep parsing; the live SELECT always includes them. */
+  department: z.string().nullable().optional(),
+  employment_type: z.enum(['full_time', 'part_time', 'contract', 'intern']).nullable().optional(),
+  phone: z.string().nullable().optional(),
   /* Lifecycle dates (0066). Optional-tolerant so pre-0066 row shapes in
      tests keep parsing; the live SELECT always includes them. */
   probation_end_date: z.string().nullable().optional(),
@@ -62,7 +78,7 @@ const rowSchema = z.object({
    employees→employees embed (PGRST200 on employees_manager_id_fkey), so
    manager names are fetched in a second flat query instead. */
 const SELECT_COLUMNS =
-  'id, name, title, email, jurisdiction, start_date, status, probation_end_date, termination_date, manager_id'
+  'id, name, title, email, jurisdiction, start_date, status, department, employment_type, phone, probation_end_date, termination_date, manager_id'
 
 function toEmployee(
   row: z.infer<typeof rowSchema>,
@@ -76,6 +92,9 @@ function toEmployee(
     jurisdiction: row.jurisdiction,
     startDate: row.start_date,
     status: row.status,
+    department: row.department ?? null,
+    employmentType: row.employment_type ?? null,
+    phone: row.phone ?? null,
     probationEndDate: row.probation_end_date ?? null,
     terminationDate: row.termination_date ?? null,
     managerId: row.manager_id ?? null,
@@ -155,8 +174,11 @@ export async function addEmployee(
       email: fields.email || null,
       jurisdiction: fields.jurisdiction,
       start_date: fields.startDate || null,
+      department: fields.department || null,
+      employment_type: fields.employmentType || null,
+      phone: fields.phone || null,
       manager_id: fields.managerId || null,
-    })
+    } as any)
     .select(SELECT_COLUMNS)
     .single()
   if (error) throw error
