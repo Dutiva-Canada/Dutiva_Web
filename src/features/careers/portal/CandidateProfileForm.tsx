@@ -4,6 +4,7 @@ import { useI18n } from '@/i18n/context'
 import { careersMessages as M } from '@/i18n/messages/careers'
 import type { CandidateWorkAuthorization } from '@/features/careers/data/candidateApi'
 import { ResumeUpload } from './ResumeUpload'
+import { MarkdownEditor } from '@/components/MarkdownEditor'
 
 export interface CandidateProfileFormValues {
   name: string
@@ -232,13 +233,26 @@ export function CandidateProfileForm({
           <div className="mb-[12px]">
             <ResumeUpload values={values} onChange={onChange} />
           </div>
-          <textarea
-            id="cp-resume"
-            rows={8}
+          <MarkdownEditor
             value={values.resumeText}
-            onChange={(e) => set('resumeText', e.target.value)}
-            placeholder={x(M.careers_profile_resume_placeholder)}
-            className={textareaClass}
+            onChange={(value) => set('resumeText', value)}
+            messages={{
+              bold: M.careers_profile_resume_format_bold,
+              italic: M.careers_profile_resume_format_italic,
+              heading: M.careers_profile_resume_format_heading,
+              bulletList: M.careers_profile_resume_format_bullet_list,
+              numberedList: M.careers_profile_resume_format_numbered_list,
+              link: M.careers_profile_resume_format_link,
+              hint: M.careers_profile_resume_markdown_hint,
+              write: M.careers_profile_resume_write,
+              preview: M.careers_profile_resume_preview,
+            }}
+            textareaProps={{
+              id: 'cp-resume',
+              rows: 8,
+              placeholder: x(M.careers_profile_resume_placeholder),
+              className: textareaClass,
+            }}
           />
         </div>
       </div>

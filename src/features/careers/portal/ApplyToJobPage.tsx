@@ -11,6 +11,7 @@ import { getMyCandidateProfile } from '@/features/careers/data/candidateApi'
 import type { CandidateProfile } from '@/features/careers/data/candidateApi'
 import { hasApplied, submitApplication } from '@/features/careers/data/applicationsApi'
 import { AiTools } from './AiTools'
+import { MarkdownEditor } from '@/components/MarkdownEditor'
 
 type LoadState = 'loading' | 'ready' | 'failed'
 
@@ -177,13 +178,26 @@ export function ApplyToJobPage() {
             <label className={labelClass} htmlFor="apply-resume">
               {x(M.careers_apply_resume)}
             </label>
-            <textarea
-              id="apply-resume"
-              rows={10}
-              required
+            <MarkdownEditor
               value={resumeText}
-              onChange={(e) => setResumeText(e.target.value)}
-              className={fieldClass}
+              onChange={setResumeText}
+              messages={{
+                bold: M.careers_profile_resume_format_bold,
+                italic: M.careers_profile_resume_format_italic,
+                heading: M.careers_profile_resume_format_heading,
+                bulletList: M.careers_profile_resume_format_bullet_list,
+                numberedList: M.careers_profile_resume_format_numbered_list,
+                link: M.careers_profile_resume_format_link,
+                hint: M.careers_profile_resume_markdown_hint,
+                write: M.careers_profile_resume_write,
+                preview: M.careers_profile_resume_preview,
+              }}
+              textareaProps={{
+                id: 'apply-resume',
+                rows: 10,
+                required: true,
+                className: fieldClass,
+              }}
             />
           </div>
         </div>
