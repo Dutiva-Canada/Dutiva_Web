@@ -164,13 +164,26 @@ export function ApplyToJobPage() {
             <label className={labelClass} htmlFor="apply-cover-letter">
               {x(M.careers_apply_cover_letter)}
             </label>
-            <textarea
-              id="apply-cover-letter"
-              rows={6}
+            <MarkdownEditor
               value={coverLetter}
-              onChange={(e) => setCoverLetter(e.target.value)}
-              placeholder={x(M.careers_apply_cover_letter_placeholder)}
-              className={fieldClass}
+              onChange={setCoverLetter}
+              messages={{
+                bold: M.careers_profile_resume_format_bold,
+                italic: M.careers_profile_resume_format_italic,
+                heading: M.careers_profile_resume_format_heading,
+                bulletList: M.careers_profile_resume_format_bullet_list,
+                numberedList: M.careers_profile_resume_format_numbered_list,
+                link: M.careers_profile_resume_format_link,
+                hint: M.careers_profile_resume_markdown_hint,
+                write: M.careers_profile_resume_write,
+                preview: M.careers_profile_resume_preview,
+              }}
+              textareaProps={{
+                id: 'apply-cover-letter',
+                rows: 6,
+                placeholder: x(M.careers_apply_cover_letter_placeholder),
+                className: fieldClass,
+              }}
             />
           </div>
 
