@@ -155,6 +155,7 @@ export const shellMessages = defineMessages({
   shell_sec_comms: { en: 'Communications & content', fr: 'Communications et contenu' },
   shell_sec_operations: { en: 'Operations', fr: 'Opérations' },
   shell_sec_finance: { en: 'Pay & finance', fr: 'Paie et finances' },
+  shell_sec_growth: { en: 'Growth', fr: 'Croissance' },
 
   /* ── Route/view titles (buildI18n v_*) — topbar + mobile topbar ─────────── */
   shell_v_home: { en: 'Home', fr: 'Accueil' },
@@ -176,6 +177,7 @@ export const shellMessages = defineMessages({
   shell_v_compensation: { en: 'Compensation', fr: 'Rémunération' },
   shell_v_wellbeing: { en: 'Wellbeing', fr: 'Bien-être' },
   shell_v_communications: { en: 'Communications', fr: 'Communications' },
+  shell_v_crm: { en: 'CRM', fr: 'CRM' },
 
   /* Route subtitles (buildI18n sub_*) — rendered inside the views */
   shell_sub_policies: {

@@ -60,6 +60,7 @@ import {
 /* prettier-ignore */ const CommunicationsView = lazy(preloadCommunicationsView)
 /* prettier-ignore */ const CommsView = lazy(preloadCommsView)
 /* prettier-ignore */ const FinanceView = lazy(preloadFinanceView)
+/* prettier-ignore */ const CrmView = lazy(() => import('@/features/app/views/crm/CrmView').then((m) => ({ default: m.CrmView })))
 /* prettier-ignore */ const CompensationView = lazy(preloadCompensationView)
 
 /* Communications workspace screens */
@@ -187,6 +188,7 @@ function createAppViewRoutes(root: string): RouteObject[] {
       ],
     },
     { path: 'compensation', element: <CompensationView /> },
+    { path: 'crm', element: <CrmView /> },
     { path: 'wellbeing', element: <WellbeingView /> },
     /* Hiring module — evidence-based recruitment system with demo/production support */
     { path: 'hiring', element: <HiringView /> },

@@ -42,6 +42,7 @@ export const VIEW_LABELS: Record<string, Bi> = {
   compensation: M.shell_v_compensation,
   wellbeing: M.shell_v_wellbeing,
   communications: M.shell_v_communications,
+  crm: M.shell_v_crm,
   planning: M.shell_nav_planning,
 }
 

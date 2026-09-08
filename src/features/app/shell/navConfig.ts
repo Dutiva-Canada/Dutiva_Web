@@ -6,6 +6,7 @@ import {
   Brain,
   CalendarCheck,
   ChartNoAxesColumn,
+  Contact,
   DollarSign,
   FileStack,
   Folder,
@@ -22,6 +23,7 @@ import type { Bi } from '@/i18n/core'
 import { bi } from '@/i18n/core'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { commsMessages as COMMS } from '@/i18n/messages/comms'
+import { crmMessages as CRM } from '@/i18n/messages/crm'
 import { financeMessages as FINANCE } from '@/i18n/messages/finance'
 import { memoryMessages as MEM } from '@/i18n/messages/memory'
 import { cases, employeeDetails, employees } from '@/data'
@@ -181,6 +183,17 @@ export function getNavGroups(root: string): NavGroup[] {
       ],
     },
     {
+      heading: M.shell_sec_growth,
+      items: [
+        {
+          key: 'crm',
+          to: p('crm'),
+          icon: Contact,
+          label: CRM.crm_title,
+        },
+      ],
+    },
+    {
       heading: null,
       items: [
         {
@@ -213,6 +226,7 @@ export const PUBLIC_DEMO_NAV_KEYS = new Set([
   'finance',
   'compensation',
   'wellbeing',
+  'crm',
   'analytics',
 ])
 
