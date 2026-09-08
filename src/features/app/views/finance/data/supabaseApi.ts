@@ -61,8 +61,8 @@ import {
  * by RLS. Sensitive payroll tables are admin-only at the RLS level; the client
  * also gates visibility via `useWorkspaceMode().memberRole`.
  *
- * When Supabase is not configured (local dev without env vars), callers fall
- * back to the localStorage stub in `productionApi.ts`.
+ * When Supabase is not configured (local dev without env vars), demo mode
+ * uses the in-memory fixtures in `fixtures.ts`.
  */
 
 const TABLES = {

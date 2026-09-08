@@ -22,11 +22,20 @@ import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
  * Case detail in production mode — the real working record for one
- * hr_cases row: facts header (type, employee, province, due date), the
- * status select, and the hr_case_notes thread (migration 0009). The demo
- * detail's risk assessment, approvals and Advisor tabs return as those
+ * hr_cases row. Mirrors the demo view's five-tab layout (Overview / Risk
+ * review / Legal review / Activity log / Notes) with production data:
+ *
+ * - Overview — facts header (type, employee, jurisdiction, due date, opened).
+ * - Risk — bilingual empty state (no risk fields on hr_cases yet).
+ * - Legal — bilingual empty state (no legal-review API yet).
+ * - Activity — notes rendered as a read-only timeline.
+ * - Notes — the notes thread with the add-note composer.
+ *
+ * Risk assessment, legal review and Advisor integrations return as those
  * flows gain real backends.
  */
+
+type CaseTab = 'overview' | 'risk' | 'legal' | 'activity' | 'notes'
 
 const TYPE_LABEL = {
   Termination: M.cases_prod_type_termination,
@@ -47,6 +56,16 @@ const STATUS_TONE: Record<ProductionCaseStatus, 'info' | 'warning' | 'success'> 
   resolved: 'success',
 }
 
+const TABS: { key: CaseTab; label: (typeof M)[keyof typeof M] }[] = [
+  { key: 'overview', label: M.cases_prod_tab_overview },
+  { key: 'risk', label: M.cases_prod_tab_risk },
+  { key: 'legal', label: M.cases_prod_tab_legal },
+  { key: 'activity', label: M.cases_prod_tab_activity },
+  { key: 'notes', label: M.cases_prod_tab_notes },
+]
+
+const cardClass = 'rounded-[12px] border border-border bg-surface'
+
 export function CaseDetailProductionView() {
   const { x } = useI18n()
   const { caseId } = useParams()
@@ -59,6 +78,7 @@ export function CaseDetailProductionView() {
   const [state, setState] = useState<'loading' | 'ready' | 'missing' | 'failed'>('loading')
   const [draft, setDraft] = useState('')
   const [saving, setSaving] = useState(false)
+  const [tab, setTab] = useState<CaseTab>('overview')
 
   const load = useCallback(async () => {
     if (!organizationId || !caseId) return
@@ -121,9 +141,13 @@ export function CaseDetailProductionView() {
   const facts: { label: (typeof M)[keyof typeof M]; value: string | null }[] = caze
     ? [
         { label: M.cases_prod_detail_type, value: x(TYPE_LABEL[caze.caseType]) },
-        { label: M.cases_prod_detail_employee, value: employeeName },
+        {
+          label: M.cases_prod_detail_employee,
+          value: employeeName ?? (caze.employeeId ? null : x(M.cases_prod_detail_employee_none)),
+        },
         { label: M.cases_prod_detail_jurisdiction, value: caze.jurisdiction },
         { label: M.cases_prod_detail_due, value: caze.dueDate },
+        { label: M.cases_prod_detail_created, value: caze.createdAt.slice(0, 10) },
       ]
     : []
 
@@ -163,7 +187,7 @@ export function CaseDetailProductionView() {
 
       {state === 'ready' && caze && (
         <>
-          {/* Facts header */}
+          {/* Header — always visible above the tab strip */}
           <div className="mb-[18px] rounded-[12px] border border-border bg-surface px-[20px] py-[18px]">
             <div className="mb-[12px] flex flex-wrap items-center gap-[12px]">
               <h1 className="m-0 min-w-0 flex-1 font-display text-[20px] font-semibold text-text">
@@ -192,6 +216,32 @@ export function CaseDetailProductionView() {
                 {x(MEM.memory_review_this_case_memory)}
               </Link>
             </div>
+          </div>
+
+          {/* Tab strip — matches the demo view's visual style */}
+          <div
+            role="tablist"
+            aria-label={x(M.cases_prod_tabs_aria)}
+            className="mb-[20px] flex gap-[2px] overflow-x-auto border-b border-border"
+          >
+            {TABS.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                role="tab"
+                aria-selected={tab === t.key}
+                onClick={() => setTab(t.key)}
+                className={`shrink-0 cursor-pointer border-b-2 bg-transparent px-[14px] py-[9px] font-sans text-[13px] font-semibold whitespace-nowrap ${
+                  tab === t.key ? 'border-navy text-text' : 'border-transparent text-text-muted'
+                }`}
+              >
+                {x(t.label)}
+              </button>
+            ))}
+          </div>
+
+          {/* ── Overview ─────────────────────────────────────────────── */}
+          {tab === 'overview' && (
             <div className="grid grid-cols-2 gap-[12px] sm:grid-cols-4">
               {facts
                 .filter((f) => f.value)
@@ -204,50 +254,102 @@ export function CaseDetailProductionView() {
                   </div>
                 ))}
             </div>
-          </div>
+          )}
 
-          {/* Notes thread */}
-          <div className="mb-[10px] text-[12px] font-bold tracking-[0.04em] text-text-muted uppercase">
-            {x(M.cases_prod_notes_title)}
-          </div>
-          <div className="mb-[14px] overflow-hidden rounded-[12px] border border-border bg-surface">
-            {notes.length === 0 && (
-              <div className="px-[18px] py-[16px] text-[13px] text-text-muted">
-                {x(M.cases_prod_notes_empty)}
+          {/* ── Risk review ──────────────────────────────────────────── */}
+          {tab === 'risk' && (
+            <div className={`${cardClass} max-w-[640px] px-[24px] py-[32px] text-center`}>
+              <div className="text-[14.5px] font-semibold text-text">
+                {x(M.cases_prod_risk_empty_title)}
               </div>
-            )}
-            {notes.map((note) => (
-              <div
-                key={note.id}
-                className="border-t border-inset px-[18px] py-[12px] first:border-t-0"
-              >
-                <div className="text-[13px] leading-[1.55] whitespace-pre-wrap text-text">
-                  {note.body}
-                </div>
-                <div className="mt-[4px] text-[11.5px] text-text-faint">
-                  {note.createdAt.slice(0, 10)}
-                </div>
-              </div>
-            ))}
-          </div>
+              <p className="m-0 mt-[8px] text-[13px] leading-[1.55] text-text-muted">
+                {x(M.cases_prod_risk_empty_body)}
+              </p>
+            </div>
+          )}
 
-          {/* Add note */}
-          <form onSubmit={(e) => void onAddNote(e)} className="flex gap-[8px]">
-            <input
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              placeholder={x(M.cases_prod_note_placeholder)}
-              aria-label={x(M.cases_prod_note_placeholder)}
-              className="min-w-0 flex-1 rounded-[10px] border border-border bg-surface px-[14px] py-[10px] font-sans text-[13.5px] text-text"
-            />
-            <button
-              type="submit"
-              disabled={saving || !draft.trim()}
-              className="cursor-pointer rounded-[10px] border-none bg-navy px-[16px] py-[10px] font-sans text-[13px] font-semibold text-white disabled:opacity-60"
-            >
-              {x(M.cases_prod_note_add)}
-            </button>
-          </form>
+          {/* ── Legal review ─────────────────────────────────────────── */}
+          {tab === 'legal' && (
+            <div className={`${cardClass} max-w-[640px] px-[24px] py-[32px] text-center`}>
+              <div className="text-[14.5px] font-semibold text-text">
+                {x(M.cases_prod_legal_empty_title)}
+              </div>
+              <p className="m-0 mt-[8px] text-[13px] leading-[1.55] text-text-muted">
+                {x(M.cases_prod_legal_empty_body)}
+              </p>
+            </div>
+          )}
+
+          {/* ── Activity log ─────────────────────────────────────────── */}
+          {tab === 'activity' && (
+            <div className={`${cardClass} max-w-[640px] px-[18px] py-[8px]`}>
+              {notes.length === 0 && (
+                <div className="px-[0px] py-[16px] text-[13px] text-text-muted">
+                  {x(M.cases_prod_activity_empty)}
+                </div>
+              )}
+              {notes.map((note) => (
+                <div
+                  key={note.id}
+                  className="flex gap-[12px] border-t border-inset py-[13px] first:border-t-0"
+                >
+                  <div className="mt-[5px] h-[8px] w-[8px] shrink-0 rounded-full bg-accent" />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[13px] leading-normal whitespace-pre-wrap text-text">
+                      {note.body}
+                    </div>
+                    <div className="mt-[2px] text-[11.5px] text-text-muted">
+                      {note.createdAt.slice(0, 10)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ── Notes ────────────────────────────────────────────────── */}
+          {tab === 'notes' && (
+            <>
+              <div className="mb-[14px] overflow-hidden rounded-[12px] border border-border bg-surface">
+                {notes.length === 0 && (
+                  <div className="px-[18px] py-[16px] text-[13px] text-text-muted">
+                    {x(M.cases_prod_notes_empty)}
+                  </div>
+                )}
+                {notes.map((note) => (
+                  <div
+                    key={note.id}
+                    className="border-t border-inset px-[18px] py-[12px] first:border-t-0"
+                  >
+                    <div className="text-[13px] leading-[1.55] whitespace-pre-wrap text-text">
+                      {note.body}
+                    </div>
+                    <div className="mt-[4px] text-[11.5px] text-text-faint">
+                      {note.createdAt.slice(0, 10)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Add note */}
+              <form onSubmit={(e) => void onAddNote(e)} className="flex gap-[8px]">
+                <input
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  placeholder={x(M.cases_prod_note_placeholder)}
+                  aria-label={x(M.cases_prod_note_placeholder)}
+                  className="min-w-0 flex-1 rounded-[10px] border border-border bg-surface px-[14px] py-[10px] font-sans text-[13.5px] text-text"
+                />
+                <button
+                  type="submit"
+                  disabled={saving || !draft.trim()}
+                  className="cursor-pointer rounded-[10px] border-none bg-navy px-[16px] py-[10px] font-sans text-[13px] font-semibold text-white disabled:opacity-60"
+                >
+                  {x(M.cases_prod_note_add)}
+                </button>
+              </form>
+            </>
+          )}
         </>
       )}
     </AppPage>

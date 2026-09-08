@@ -2,610 +2,378 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { CommsDataContext } from './CommsDataContext'
 import type { CommsDataContextValue } from './CommsDataContext'
 import { initialCommsState } from './fixtures'
+import { emptyCommsState, loadFullCommsState, noteToBi } from './commsStateLoader'
+import { useAddCallback, useRemoveCallback, useUpdateCallback } from './commsCrudFactory'
+import type { CommsWorkspaceState } from './types'
+
 import {
-  addApproval as addApprovalApi,
-  addBrandClaim as addBrandClaimApi,
-  addContact as addContactApi,
-  addContentItem as addContentItemApi,
-  addCoverageItem as addCoverageItemApi,
-  addFeed as addFeedApi,
   addInitiative as addInitiativeApi,
-  addIntegration as addIntegrationApi,
-  addInteraction as addInteractionApi,
-  addIssue as addIssueApi,
-  addMetric as addMetricApi,
-  addObjective as addObjectiveApi,
-  addOrganization as addOrganizationApi,
-  addPolicyFile as addPolicyFileApi,
-  addSource as addSourceApi,
-  addSubmission as addSubmissionApi,
-  loadFullState as loadFullStateApi,
-  recordManualReceipt as recordManualReceiptApi,
-  removeApproval as removeApprovalApi,
-  removeBrandClaim as removeBrandClaimApi,
-  removeContact as removeContactApi,
-  removeContentItem as removeContentItemApi,
-  removeCoverageItem as removeCoverageItemApi,
-  removeFeed as removeFeedApi,
   removeInitiative as removeInitiativeApi,
-  removeIntegration as removeIntegrationApi,
-  removeInteraction as removeInteractionApi,
-  removeIssue as removeIssueApi,
-  removeMetric as removeMetricApi,
-  removeObjective as removeObjectiveApi,
+  updateInitiative as updateInitiativeApi,
+} from './initiativesApi'
+import {
+  addContentItem as addContentItemApi,
+  removeContentItem as removeContentItemApi,
+  transitionDeliveryStatus as transitionDeliveryStatusApi,
+  updateContentItem as updateContentItemApi,
+} from './contentItemsApi'
+import {
+  addContact as addContactApi,
+  addOrganization as addOrganizationApi,
+  removeContact as removeContactApi,
   removeOrganization as removeOrganizationApi,
-  removePolicyFile as removePolicyFileApi,
+  updateContact as updateContactApi,
+  updateOrganization as updateOrganizationApi,
+} from './stakeholdersApi'
+import {
+  addCoverageItem as addCoverageItemApi,
+  removeCoverageItem as removeCoverageItemApi,
+  updateCoverageItem as updateCoverageItemApi,
+} from './coverageApi'
+import {
+  addSource as addSourceApi,
   removeSource as removeSourceApi,
-  removeSubmission as removeSubmissionApi,
+  updateSource as updateSourceApi,
+} from './sourcesApi'
+import {
+  addFeed as addFeedApi,
+  removeFeed as removeFeedApi,
   syncAllFeeds as syncAllFeedsApi,
   syncFeed as syncFeedApi,
-  toggleInitiativePause as toggleInitiativePauseApi,
-  transitionDeliveryStatus as transitionDeliveryStatusApi,
-  transitionSubmissionStatus as transitionSubmissionStatusApi,
-  updateBrandClaim as updateBrandClaimApi,
-  updateContact as updateContactApi,
-  updateContentItem as updateContentItemApi,
-  updateCoverageItem as updateCoverageItemApi,
   updateFeed as updateFeedApi,
-  updateInitiative as updateInitiativeApi,
-  updateIntegration as updateIntegrationApi,
-  updateInteraction as updateInteractionApi,
-  updateIssue as updateIssueApi,
-  updateMetric as updateMetricApi,
-  updateObjective as updateObjectiveApi,
-  updateOrganization as updateOrganizationApi,
-  updateSource as updateSourceApi,
+} from './feedsApi'
+import type { FeedSyncResult } from './feedsApi'
+import {
+  addSubmission as addSubmissionApi,
+  removeSubmission as removeSubmissionApi,
   updateSubmission as updateSubmissionApi,
-  updateUsageControls as updateUsageControlsApi,
-} from './productionApi'
+} from './submissionsApi'
+import {
+  addApproval as addApprovalApi,
+  removeApproval as removeApprovalApi,
+} from './approvalsApi'
+import {
+  addBrandClaim as addBrandClaimApi,
+  removeBrandClaim as removeBrandClaimApi,
+  updateBrandClaim as updateBrandClaimApi,
+} from './brandClaimsApi'
+import {
+  addInteraction as addInteractionApi,
+  removeInteraction as removeInteractionApi,
+  updateInteraction as updateInteractionApi,
+} from './interactionsApi'
+import {
+  addIssue as addIssueApi,
+  removeIssue as removeIssueApi,
+  updateIssue as updateIssueApi,
+} from './issuesApi'
+import {
+  addMetric as addMetricApi,
+  removeMetric as removeMetricApi,
+} from './metricsApi'
+import {
+  addObjective as addObjectiveApi,
+  removeObjective as removeObjectiveApi,
+  updateObjective as updateObjectiveApi,
+} from './objectivesApi'
+import {
+  addPolicyFile as addPolicyFileApi,
+  removePolicyFile as removePolicyFileApi,
+} from './policyFilesApi'
+import {
+  addIntegration as addIntegrationApi,
+  removeIntegration as removeIntegrationApi,
+  updateIntegration as updateIntegrationApi,
+} from './integrationsApi'
+import { updateUsageControls as updateUsageControlsApi } from './usageControlsApi'
 import type {
   CommsApproval,
-  CommsBrandClaim,
-  CommsContact,
-  CommsContentItem,
-  CommsCoverageItem,
   CommsExecutionAction,
-  CommsFeed,
   CommsInitiative,
-  CommsIntegration,
-  CommsInteraction,
-  CommsIssue,
   CommsMetric,
-  CommsObjective,
-  CommsOrganization,
-  CommsPolicyFile,
-  CommsSource,
   CommsSubmission,
+  CommsSubmissionStatus,
   CommsUsageControls,
 } from './types'
 
 function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
   const isLive = orgId != null && orgId !== ''
-  const [state, setState] = useState(() => (isLive ? loadFullStateApi(orgId) : initialCommsState))
-
-  const addInitiative = useCallback(
-    (item: Omit<CommsInitiative, 'id'>) => {
-      if (!isLive || !orgId) return null
-      const created = addInitiativeApi(orgId, item)
-      setState(loadFullStateApi(orgId))
-      return created
-    },
-    [isLive, orgId],
+  const [state, setState] = useState<CommsWorkspaceState>(() =>
+    isLive ? emptyCommsState : initialCommsState,
   )
 
-  const updateInitiative = useCallback(
-    (id: string, patch: Partial<CommsInitiative>) => {
-      if (!isLive || !orgId) return null
-      const updated = updateInitiativeApi(orgId, id, patch)
-      if (updated) setState(loadFullStateApi(orgId))
-      return updated
-    },
-    [isLive, orgId],
-  )
+  const refresh = useCallback(async () => {
+    if (!isLive || !orgId) return
+    try {
+      setState(await loadFullCommsState(orgId))
+    } catch {
+      // keep current state on load failure
+    }
+  }, [isLive, orgId])
+
+  useEffect(() => {
+    if (!isLive || !orgId) {
+      setState(initialCommsState)
+      return
+    }
+    refresh()
+  }, [isLive, orgId, refresh])
+
+  // --- Simple CRUD via factory (no side effects) ---------------------------
+
+  const addContact = useAddCallback(orgId, isLive, setState, 'contacts', addContactApi)
+  const updateContact = useUpdateCallback(orgId, isLive, setState, 'contacts', updateContactApi)
+  const removeContact = useRemoveCallback(orgId, isLive, setState, 'contacts', removeContactApi)
+
+  const addOrganization = useAddCallback(orgId, isLive, setState, 'organizations', addOrganizationApi)
+  const updateOrganization = useUpdateCallback(orgId, isLive, setState, 'organizations', updateOrganizationApi)
+  const removeOrganization = useRemoveCallback(orgId, isLive, setState, 'organizations', removeOrganizationApi)
+
+  const addInteraction = useAddCallback(orgId, isLive, setState, 'interactions', addInteractionApi)
+  const updateInteraction = useUpdateCallback(orgId, isLive, setState, 'interactions', updateInteractionApi)
+  const removeInteraction = useRemoveCallback(orgId, isLive, setState, 'interactions', removeInteractionApi)
+
+  const addSource = useAddCallback(orgId, isLive, setState, 'sources', addSourceApi)
+  const updateSource = useUpdateCallback(orgId, isLive, setState, 'sources', updateSourceApi)
+  const removeSource = useRemoveCallback(orgId, isLive, setState, 'sources', removeSourceApi)
+
+  const addFeed = useAddCallback(orgId, isLive, setState, 'feeds', addFeedApi)
+  const updateFeed = useUpdateCallback(orgId, isLive, setState, 'feeds', updateFeedApi)
+  const removeFeed = useRemoveCallback(orgId, isLive, setState, 'feeds', removeFeedApi)
+
+  const addCoverageItem = useAddCallback(orgId, isLive, setState, 'coverageItems', addCoverageItemApi)
+  const updateCoverageItem = useUpdateCallback(orgId, isLive, setState, 'coverageItems', updateCoverageItemApi)
+  const removeCoverageItem = useRemoveCallback(orgId, isLive, setState, 'coverageItems', removeCoverageItemApi)
+
+  const addSubmission = useAddCallback(orgId, isLive, setState, 'submissions', addSubmissionApi)
+  const updateSubmission = useUpdateCallback(orgId, isLive, setState, 'submissions', updateSubmissionApi)
+  const removeSubmission = useRemoveCallback(orgId, isLive, setState, 'submissions', removeSubmissionApi)
+
+  const addBrandClaim = useAddCallback(orgId, isLive, setState, 'brandClaims', addBrandClaimApi)
+  const updateBrandClaim = useUpdateCallback(orgId, isLive, setState, 'brandClaims', updateBrandClaimApi)
+  const removeBrandClaim = useRemoveCallback(orgId, isLive, setState, 'brandClaims', removeBrandClaimApi)
+
+  const addIssue = useAddCallback(orgId, isLive, setState, 'issues', addIssueApi)
+  const updateIssue = useUpdateCallback(orgId, isLive, setState, 'issues', updateIssueApi)
+  const removeIssue = useRemoveCallback(orgId, isLive, setState, 'issues', removeIssueApi)
+
+  const addMetric = useAddCallback(orgId, isLive, setState, 'metrics', addMetricApi)
+  const removeMetric = useRemoveCallback(orgId, isLive, setState, 'metrics', removeMetricApi)
+
+  const addObjective = useAddCallback(orgId, isLive, setState, 'objectives', addObjectiveApi)
+  const updateObjective = useUpdateCallback(orgId, isLive, setState, 'objectives', updateObjectiveApi)
+  const removeObjective = useRemoveCallback(orgId, isLive, setState, 'objectives', removeObjectiveApi)
+
+  const addPolicyFile = useAddCallback(orgId, isLive, setState, 'policyFiles', addPolicyFileApi)
+  const removePolicyFile = useRemoveCallback(orgId, isLive, setState, 'policyFiles', removePolicyFileApi)
+
+  const addIntegration = useAddCallback(orgId, isLive, setState, 'integrations', addIntegrationApi)
+  const updateIntegration = useUpdateCallback(orgId, isLive, setState, 'integrations', updateIntegrationApi)
+  const removeIntegration = useRemoveCallback(orgId, isLive, setState, 'integrations', removeIntegrationApi)
+
+  // --- Custom CRUD (side effects or domain-specific logic) -----------------
+
+  const addInitiative = useAddCallback(orgId, isLive, setState, 'initiatives', addInitiativeApi)
+  const updateInitiative = useUpdateCallback(orgId, isLive, setState, 'initiatives', updateInitiativeApi)
 
   const removeInitiative = useCallback(
-    (id: string) => {
+    async (id: string) => {
       if (!isLive || !orgId) return
-      removeInitiativeApi(orgId, id)
-      setState(loadFullStateApi(orgId))
+      try {
+        await removeInitiativeApi(orgId, id)
+        setState((prev) => ({
+          ...prev,
+          initiatives: prev.initiatives.filter((i) => i.id !== id),
+          contentItems: prev.contentItems.filter((c) => c.initiativeId !== id),
+          objectives: prev.objectives.filter((o) => o.initiativeId !== id),
+          metrics: prev.metrics.filter((m) => m.initiativeId !== id),
+        }))
+      } catch {
+        // keep current state on failure
+      }
     },
     [isLive, orgId],
   )
 
-  const addContentItem = useCallback(
-    (item: Omit<CommsContentItem, 'id'>) => {
-      if (!isLive || !orgId) return null
-      const created = addContentItemApi(orgId, item)
-      setState(loadFullStateApi(orgId))
-      return created
-    },
-    [isLive, orgId],
-  )
-
-  const updateContentItem = useCallback(
-    (id: string, patch: Partial<CommsContentItem>) => {
-      if (!isLive || !orgId) return null
-      const updated = updateContentItemApi(orgId, id, patch)
-      if (updated) setState(loadFullStateApi(orgId))
-      return updated
-    },
-    [isLive, orgId],
-  )
+  const addContentItem = useAddCallback(orgId, isLive, setState, 'contentItems', addContentItemApi)
+  const updateContentItem = useUpdateCallback(orgId, isLive, setState, 'contentItems', updateContentItemApi)
 
   const removeContentItem = useCallback(
-    (id: string) => {
+    async (id: string) => {
       if (!isLive || !orgId) return
-      removeContentItemApi(orgId, id)
-      setState(loadFullStateApi(orgId))
+      try {
+        await removeContentItemApi(orgId, id)
+        setState((prev) => ({
+          ...prev,
+          contentItems: prev.contentItems.filter((c) => c.id !== id),
+          approvals: prev.approvals.filter((a) => a.contentItemId !== id),
+          executionEvents: prev.executionEvents.filter((e) => e.contentItemId !== id),
+        }))
+      } catch {
+        // keep current state on failure
+      }
     },
     [isLive, orgId],
   )
 
   const transitionDeliveryStatus = useCallback(
-    (contentItemId: string, action: CommsExecutionAction, actor: string, note?: string) => {
+    async (contentItemId: string, action: CommsExecutionAction, _actor: string, note?: string) => {
       if (!isLive || !orgId) return null
-      const updated = transitionDeliveryStatusApi(orgId, contentItemId, action, actor, note)
-      if (updated) setState(loadFullStateApi(orgId))
-      return updated
+      try {
+        const updated = await transitionDeliveryStatusApi(orgId, contentItemId, action, noteToBi(note))
+        if (updated) {
+          setState((prev) => ({
+            ...prev,
+            contentItems: prev.contentItems.map((c) => (c.id === contentItemId ? updated : c)),
+          }))
+        }
+        return updated
+      } catch {
+        return null
+      }
     },
     [isLive, orgId],
   )
 
   const recordManualReceipt = useCallback(
-    (contentItemId: string, actor: string, note?: string) => {
+    async (contentItemId: string, actor: string, note?: string) => {
       if (!isLive || !orgId) return null
-      const updated = recordManualReceiptApi(orgId, contentItemId, actor, note)
-      if (updated) setState(loadFullStateApi(orgId))
-      return updated
+      const item = state.contentItems.find((c) => c.id === contentItemId)
+      if (!item || item.status !== 'approved') return null
+      return transitionDeliveryStatus(contentItemId, 'mark_sent', actor, note)
     },
-    [isLive, orgId],
+    [isLive, orgId, state.contentItems, transitionDeliveryStatus],
   )
 
   const toggleInitiativePause = useCallback(
-    (initiativeId: string, paused: boolean, actor: string) => {
+    async (initiativeId: string, paused: boolean, _actor: string) => {
       if (!isLive || !orgId) return null
-      const updated = toggleInitiativePauseApi(orgId, initiativeId, paused, actor)
-      if (updated) setState(loadFullStateApi(orgId))
-      return updated
+      const initiative = state.initiatives.find((i) => i.id === initiativeId)
+      if (!initiative) return null
+      const nextStatus: CommsInitiative['status'] = paused
+        ? 'paused'
+        : initiative.status === 'paused'
+          ? 'active'
+          : initiative.status
+      try {
+        const updated = await updateInitiativeApi(orgId, initiativeId, { status: nextStatus })
+        if (updated) {
+          setState((prev) => ({
+            ...prev,
+            initiatives: prev.initiatives.map((i) => (i.id === initiativeId ? updated : i)),
+          }))
+        }
+        return updated
+      } catch {
+        return null
+      }
     },
-    [isLive, orgId],
-  )
-
-  const addSource = useCallback(
-    (item: Omit<CommsSource, 'id'>) => {
-      if (!isLive || !orgId) return null
-      const created = addSourceApi(orgId, item)
-      setState(loadFullStateApi(orgId))
-      return created
-    },
-    [isLive, orgId],
-  )
-
-  const updateSource = useCallback(
-    (id: string, patch: Partial<CommsSource>) => {
-      if (!isLive || !orgId) return null
-      const updated = updateSourceApi(orgId, id, patch)
-      if (updated) setState(loadFullStateApi(orgId))
-      return updated
-    },
-    [isLive, orgId],
-  )
-
-  const removeSource = useCallback(
-    (id: string) => {
-      if (!isLive || !orgId) return
-      removeSourceApi(orgId, id)
-      setState(loadFullStateApi(orgId))
-    },
-    [isLive, orgId],
-  )
-
-  const addFeed = useCallback(
-    (item: Omit<CommsFeed, 'id'>) => {
-      if (!isLive || !orgId) return null
-      const created = addFeedApi(orgId, item)
-      setState(loadFullStateApi(orgId))
-      return created
-    },
-    [isLive, orgId],
-  )
-
-  const updateFeed = useCallback(
-    (id: string, patch: Partial<CommsFeed>) => {
-      if (!isLive || !orgId) return null
-      const updated = updateFeedApi(orgId, id, patch)
-      if (updated) setState(loadFullStateApi(orgId))
-      return updated
-    },
-    [isLive, orgId],
-  )
-
-  const removeFeed = useCallback(
-    (id: string) => {
-      if (!isLive || !orgId) return
-      removeFeedApi(orgId, id)
-      setState(loadFullStateApi(orgId))
-    },
-    [isLive, orgId],
+    [isLive, orgId, state.initiatives],
   )
 
   const syncFeed = useCallback(
-    async (feedId: string) => {
+    async (feedId: string): Promise<FeedSyncResult> => {
       if (!isLive || !orgId) return { added: 0, error: 'Not in production mode' }
       const result = await syncFeedApi(orgId, feedId)
-      setState(loadFullStateApi(orgId))
+      await refresh()
       return result
     },
-    [isLive, orgId],
+    [isLive, orgId, refresh],
   )
 
   const syncAllFeeds = useCallback(
-    async () => {
+    async (): Promise<({ feedId: string } & FeedSyncResult)[]> => {
       if (!isLive || !orgId) return []
       const results = await syncAllFeedsApi(orgId)
-      setState(loadFullStateApi(orgId))
+      await refresh()
       return results
     },
-    [isLive, orgId],
+    [isLive, orgId, refresh],
   )
 
   useEffect(() => {
     if (!isLive || !orgId) return undefined
     const run = async () => {
       await syncAllFeedsApi(orgId)
-      setState(loadFullStateApi(orgId))
+      await refresh()
     }
     run()
     const id = setInterval(run, 15 * 60 * 1000)
     return () => clearInterval(id)
-  }, [isLive, orgId])
-
-  const addCoverageItem = useCallback(
-    (item: Omit<CommsCoverageItem, 'id'>) => {
-      if (!isLive || !orgId) return null
-      const created = addCoverageItemApi(orgId, item)
-      setState(loadFullStateApi(orgId))
-      return created
-    },
-    [isLive, orgId],
-  )
-
-  const updateCoverageItem = useCallback(
-    (id: string, patch: Partial<CommsCoverageItem>) => {
-      if (!isLive || !orgId) return null
-      const updated = updateCoverageItemApi(orgId, id, patch)
-      if (updated) setState(loadFullStateApi(orgId))
-      return updated
-    },
-    [isLive, orgId],
-  )
-
-  const removeCoverageItem = useCallback(
-    (id: string) => {
-      if (!isLive || !orgId) return
-      removeCoverageItemApi(orgId, id)
-      setState(loadFullStateApi(orgId))
-    },
-    [isLive, orgId],
-  )
-
-  const addSubmission = useCallback(
-    (item: Omit<CommsSubmission, 'id'>) => {
-      if (!isLive || !orgId) return null
-      const created = addSubmissionApi(orgId, item)
-      setState(loadFullStateApi(orgId))
-      return created
-    },
-    [isLive, orgId],
-  )
-
-  const updateSubmission = useCallback(
-    (id: string, patch: Partial<CommsSubmission>) => {
-      if (!isLive || !orgId) return null
-      const updated = updateSubmissionApi(orgId, id, patch)
-      if (updated) setState(loadFullStateApi(orgId))
-      return updated
-    },
-    [isLive, orgId],
-  )
-
-  const removeSubmission = useCallback(
-    (id: string) => {
-      if (!isLive || !orgId) return
-      removeSubmissionApi(orgId, id)
-      setState(loadFullStateApi(orgId))
-    },
-    [isLive, orgId],
-  )
+  }, [isLive, orgId, refresh])
 
   const transitionSubmissionStatus = useCallback(
-    (id: string, nextStatus: import('./types').CommsSubmissionStatus, actor = 'Workspace user') => {
+    async (id: string, nextStatus: CommsSubmissionStatus, actor = 'Workspace user') => {
       if (!isLive || !orgId) return null
-      const updated = transitionSubmissionStatusApi(orgId, id, nextStatus, actor)
-      if (updated) setState(loadFullStateApi(orgId))
-      return updated
+      const submission = state.submissions.find((s) => s.id === id)
+      if (!submission) return null
+      const valid: Record<CommsSubmissionStatus, CommsSubmissionStatus[]> = {
+        planned: ['submitted', 'withdrawn'],
+        submitted: ['recorded', 'planned'],
+        recorded: ['planned'],
+        withdrawn: ['planned'],
+      }
+      if (!valid[submission.status].includes(nextStatus)) return null
+      const patch: Partial<CommsSubmission> = { status: nextStatus }
+      if (nextStatus === 'submitted' && !submission.submittedAt) {
+        patch.submittedAt = new Date().toISOString().slice(0, 10)
+      }
+      if (nextStatus === 'recorded') {
+        patch.owner = actor
+      }
+      return updateSubmission(id, patch)
     },
-    [isLive, orgId],
-  )
-
-  const addBrandClaim = useCallback(
-    (item: Omit<CommsBrandClaim, 'id'>) => {
-      if (!isLive || !orgId) return null
-      const created = addBrandClaimApi(orgId, item)
-      setState(loadFullStateApi(orgId))
-      return created
-    },
-    [isLive, orgId],
-  )
-
-  const updateBrandClaim = useCallback(
-    (id: string, patch: Partial<CommsBrandClaim>) => {
-      if (!isLive || !orgId) return null
-      const updated = updateBrandClaimApi(orgId, id, patch)
-      if (updated) setState(loadFullStateApi(orgId))
-      return updated
-    },
-    [isLive, orgId],
-  )
-
-  const removeBrandClaim = useCallback(
-    (id: string) => {
-      if (!isLive || !orgId) return
-      removeBrandClaimApi(orgId, id)
-      setState(loadFullStateApi(orgId))
-    },
-    [isLive, orgId],
+    [isLive, orgId, state.submissions, updateSubmission],
   )
 
   const addApproval = useCallback(
-    (item: Omit<CommsApproval, 'id'>) => {
+    async (item: Omit<CommsApproval, 'id'>) => {
       if (!isLive || !orgId) return null
-      const created = addApprovalApi(orgId, item)
-      setState(loadFullStateApi(orgId))
-      return created
+      try {
+        const created = await addApprovalApi(orgId, item)
+        setState((prev) => ({
+          ...prev,
+          approvals: [created, ...prev.approvals],
+          contentItems: prev.contentItems.map((c) =>
+            c.id === item.contentItemId ? { ...c, status: item.decision } : c,
+          ),
+        }))
+        return created
+      } catch {
+        return null
+      }
     },
     [isLive, orgId],
   )
 
-  const removeApproval = useCallback(
-    (id: string) => {
-      if (!isLive || !orgId) return
-      removeApprovalApi(orgId, id)
-      setState(loadFullStateApi(orgId))
-    },
-    [isLive, orgId],
-  )
-
-  const addContact = useCallback(
-    (item: Omit<CommsContact, 'id'>) => {
-      if (!isLive || !orgId) return null
-      const created = addContactApi(orgId, item)
-      setState(loadFullStateApi(orgId))
-      return created
-    },
-    [isLive, orgId],
-  )
-
-  const updateContact = useCallback(
-    (id: string, patch: Partial<CommsContact>) => {
-      if (!isLive || !orgId) return null
-      const updated = updateContactApi(orgId, id, patch)
-      if (updated) setState(loadFullStateApi(orgId))
-      return updated
-    },
-    [isLive, orgId],
-  )
-
-  const removeContact = useCallback(
-    (id: string) => {
-      if (!isLive || !orgId) return
-      removeContactApi(orgId, id)
-      setState(loadFullStateApi(orgId))
-    },
-    [isLive, orgId],
-  )
-
-  const addOrganization = useCallback(
-    (item: Omit<CommsOrganization, 'id'>) => {
-      if (!isLive || !orgId) return null
-      const created = addOrganizationApi(orgId, item)
-      setState(loadFullStateApi(orgId))
-      return created
-    },
-    [isLive, orgId],
-  )
-
-  const updateOrganization = useCallback(
-    (id: string, patch: Partial<CommsOrganization>) => {
-      if (!isLive || !orgId) return null
-      const updated = updateOrganizationApi(orgId, id, patch)
-      if (updated) setState(loadFullStateApi(orgId))
-      return updated
-    },
-    [isLive, orgId],
-  )
-
-  const removeOrganization = useCallback(
-    (id: string) => {
-      if (!isLive || !orgId) return
-      removeOrganizationApi(orgId, id)
-      setState(loadFullStateApi(orgId))
-    },
-    [isLive, orgId],
-  )
-
-  const addInteraction = useCallback(
-    (item: Omit<CommsInteraction, 'id'>) => {
-      if (!isLive || !orgId) return null
-      const created = addInteractionApi(orgId, item)
-      setState(loadFullStateApi(orgId))
-      return created
-    },
-    [isLive, orgId],
-  )
-
-  const updateInteraction = useCallback(
-    (id: string, patch: Partial<CommsInteraction>) => {
-      if (!isLive || !orgId) return null
-      const updated = updateInteractionApi(orgId, id, patch)
-      if (updated) setState(loadFullStateApi(orgId))
-      return updated
-    },
-    [isLive, orgId],
-  )
-
-  const removeInteraction = useCallback(
-    (id: string) => {
-      if (!isLive || !orgId) return
-      removeInteractionApi(orgId, id)
-      setState(loadFullStateApi(orgId))
-    },
-    [isLive, orgId],
-  )
+  const removeApproval = useRemoveCallback(orgId, isLive, setState, 'approvals', removeApprovalApi)
 
   const updateUsageControls = useCallback(
-    (controls: Partial<CommsUsageControls>) => {
+    async (controls: Partial<CommsUsageControls>) => {
       if (!isLive || !orgId) return null
-      const updated = updateUsageControlsApi(orgId, controls)
-      setState(loadFullStateApi(orgId))
-      return updated
+      try {
+        const merged: CommsUsageControls = { ...state.usageControls, ...controls }
+        const updated = await updateUsageControlsApi(orgId, merged)
+        setState((prev) => ({ ...prev, usageControls: updated }))
+        return updated
+      } catch {
+        return null
+      }
     },
-    [isLive, orgId],
-  )
-
-  const addPolicyFile = useCallback(
-    (item: Omit<CommsPolicyFile, 'id'>) => {
-      if (!isLive || !orgId) return null
-      const created = addPolicyFileApi(orgId, item)
-      setState(loadFullStateApi(orgId))
-      return created
-    },
-    [isLive, orgId],
-  )
-
-  const removePolicyFile = useCallback(
-    (id: string) => {
-      if (!isLive || !orgId) return
-      removePolicyFileApi(orgId, id)
-      setState(loadFullStateApi(orgId))
-    },
-    [isLive, orgId],
-  )
-
-  const addIssue = useCallback(
-    (item: Omit<CommsIssue, 'id'>) => {
-      if (!isLive || !orgId) return null
-      const created = addIssueApi(orgId, item)
-      setState(loadFullStateApi(orgId))
-      return created
-    },
-    [isLive, orgId],
-  )
-
-  const updateIssue = useCallback(
-    (id: string, patch: Partial<CommsIssue>) => {
-      if (!isLive || !orgId) return null
-      const updated = updateIssueApi(orgId, id, patch)
-      if (updated) setState(loadFullStateApi(orgId))
-      return updated
-    },
-    [isLive, orgId],
-  )
-
-  const removeIssue = useCallback(
-    (id: string) => {
-      if (!isLive || !orgId) return
-      removeIssueApi(orgId, id)
-      setState(loadFullStateApi(orgId))
-    },
-    [isLive, orgId],
-  )
-
-  const addMetric = useCallback(
-    (item: Omit<CommsMetric, 'id'>) => {
-      if (!isLive || !orgId) return null
-      const created = addMetricApi(orgId, item)
-      setState(loadFullStateApi(orgId))
-      return created
-    },
-    [isLive, orgId],
+    [isLive, orgId, state.usageControls],
   )
 
   const updateMetric = useCallback(
-    (id: string, patch: Partial<CommsMetric>) => {
+    async (id: string, patch: Partial<CommsMetric>) => {
       if (!isLive || !orgId) return null
-      const updated = updateMetricApi(orgId, id, patch)
-      if (updated) setState(loadFullStateApi(orgId))
-      return updated
+      // metricsApi has no updateMetric; optimistic local update only
+      setState((prev) => ({
+        ...prev,
+        metrics: prev.metrics.map((m) => (m.id === id ? { ...m, ...patch } : m)),
+      }))
+      return state.metrics.find((m) => m.id === id) ?? null
     },
-    [isLive, orgId],
-  )
-
-  const removeMetric = useCallback(
-    (id: string) => {
-      if (!isLive || !orgId) return
-      removeMetricApi(orgId, id)
-      setState(loadFullStateApi(orgId))
-    },
-    [isLive, orgId],
-  )
-
-  const addIntegration = useCallback(
-    (item: Omit<CommsIntegration, 'id'>) => {
-      if (!isLive || !orgId) return null
-      const created = addIntegrationApi(orgId, item)
-      setState(loadFullStateApi(orgId))
-      return created
-    },
-    [isLive, orgId],
-  )
-
-  const updateIntegration = useCallback(
-    (id: string, patch: Partial<CommsIntegration>) => {
-      if (!isLive || !orgId) return null
-      const updated = updateIntegrationApi(orgId, id, patch)
-      if (updated) setState(loadFullStateApi(orgId))
-      return updated
-    },
-    [isLive, orgId],
-  )
-
-  const removeIntegration = useCallback(
-    (id: string) => {
-      if (!isLive || !orgId) return
-      removeIntegrationApi(orgId, id)
-      setState(loadFullStateApi(orgId))
-    },
-    [isLive, orgId],
-  )
-
-  const addObjective = useCallback(
-    (item: Omit<CommsObjective, 'id'>) => {
-      if (!isLive || !orgId) return null
-      const created = addObjectiveApi(orgId, item)
-      setState(loadFullStateApi(orgId))
-      return created
-    },
-    [isLive, orgId],
-  )
-
-  const updateObjective = useCallback(
-    (id: string, patch: Partial<CommsObjective>) => {
-      if (!isLive || !orgId) return null
-      const updated = updateObjectiveApi(orgId, id, patch)
-      if (updated) setState(loadFullStateApi(orgId))
-      return updated
-    },
-    [isLive, orgId],
-  )
-
-  const removeObjective = useCallback(
-    (id: string) => {
-      if (!isLive || !orgId) return
-      removeObjectiveApi(orgId, id)
-      setState(loadFullStateApi(orgId))
-    },
-    [isLive, orgId],
+    [isLive, orgId, state.metrics],
   )
 
   return useMemo(
@@ -667,61 +435,24 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
       removeObjective,
     }),
     [
-      state,
-      isLive,
-      addInitiative,
-      updateInitiative,
-      removeInitiative,
-      addContentItem,
-      updateContentItem,
-      removeContentItem,
-      transitionDeliveryStatus,
-      recordManualReceipt,
-      toggleInitiativePause,
-      addSource,
-      updateSource,
-      removeSource,
-      addFeed,
-      updateFeed,
-      removeFeed,
-      syncFeed,
-      syncAllFeeds,
-      addCoverageItem,
-      updateCoverageItem,
-      removeCoverageItem,
-      addSubmission,
-      updateSubmission,
-      transitionSubmissionStatus,
-      removeSubmission,
-      addBrandClaim,
-      updateBrandClaim,
-      removeBrandClaim,
-      addApproval,
-      removeApproval,
-      addContact,
-      updateContact,
-      removeContact,
-      addOrganization,
-      updateOrganization,
-      removeOrganization,
-      addInteraction,
-      updateInteraction,
-      removeInteraction,
-      updateUsageControls,
-      addPolicyFile,
-      removePolicyFile,
-      addIssue,
-      updateIssue,
-      removeIssue,
-      addMetric,
-      updateMetric,
-      removeMetric,
-      addIntegration,
-      updateIntegration,
-      removeIntegration,
-      addObjective,
-      updateObjective,
-      removeObjective,
+      state, isLive,
+      addInitiative, updateInitiative, removeInitiative,
+      addContentItem, updateContentItem, removeContentItem,
+      transitionDeliveryStatus, recordManualReceipt, toggleInitiativePause,
+      addSource, updateSource, removeSource,
+      addFeed, updateFeed, removeFeed, syncFeed, syncAllFeeds,
+      addCoverageItem, updateCoverageItem, removeCoverageItem,
+      addSubmission, updateSubmission, transitionSubmissionStatus, removeSubmission,
+      addBrandClaim, updateBrandClaim, removeBrandClaim,
+      addApproval, removeApproval,
+      addContact, updateContact, removeContact,
+      addOrganization, updateOrganization, removeOrganization,
+      addInteraction, updateInteraction, removeInteraction,
+      updateUsageControls, addPolicyFile, removePolicyFile,
+      addIssue, updateIssue, removeIssue,
+      addMetric, updateMetric, removeMetric,
+      addIntegration, updateIntegration, removeIntegration,
+      addObjective, updateObjective, removeObjective,
     ],
   )
 }

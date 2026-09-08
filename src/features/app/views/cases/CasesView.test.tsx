@@ -427,12 +427,43 @@ describe('CaseDetailView in production mode', () => {
       path: '/app/cases/:caseId',
     })
 
-    /* Real facts header + existing note. */
+    /* Real facts header is always visible above the tab strip. */
     expect(await screen.findByText('Accommodation — ergonomic assessment')).toBeInTheDocument()
+    /* Overview tab is active by default — due date is in the facts grid. */
     expect(screen.getByText('2026-08-01')).toBeInTheDocument()
-    expect(screen.getByText('Assessment scheduled with provider.')).toBeInTheDocument()
     /* Demo fixture detail is gone. */
     expect(screen.queryByText('Advisor recommendation')).not.toBeInTheDocument()
+
+    /* Tab strip renders all five tabs. */
+    expect(screen.getByRole('tab', { name: 'Overview' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: 'Risk review' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Legal review' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Activity log' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Notes' })).toBeInTheDocument()
+
+    /* Risk tab shows the bilingual empty state. */
+    fireEvent.click(screen.getByRole('tab', { name: 'Risk review' }))
+    expect(
+      await screen.findByText('Risk review not yet available'),
+    ).toBeInTheDocument()
+
+    /* Legal tab shows the bilingual empty state. */
+    fireEvent.click(screen.getByRole('tab', { name: 'Legal review' }))
+    expect(
+      await screen.findByText('Legal review not yet available'),
+    ).toBeInTheDocument()
+
+    /* Activity tab shows the existing note as a timeline entry. */
+    fireEvent.click(screen.getByRole('tab', { name: 'Activity log' }))
+    expect(
+      await screen.findByText('Assessment scheduled with provider.'),
+    ).toBeInTheDocument()
+
+    /* Notes tab shows the notes thread + composer. */
+    fireEvent.click(screen.getByRole('tab', { name: 'Notes' }))
+    expect(
+      await screen.findByText('Assessment scheduled with provider.'),
+    ).toBeInTheDocument()
 
     /* Add a note through the real path. */
     fireEvent.change(screen.getByLabelText('Add a note to the case record…'), {

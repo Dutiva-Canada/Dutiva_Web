@@ -494,4 +494,38 @@ export const employeesMessages = defineMessages({
   employees_prod_leave_current: { en: 'Current', fr: 'En cours' },
   employees_prod_leave_ended_on: { en: 'Ended {date}', fr: 'Terminé le {date}' },
   employees_prod_leave_returns: { en: 'Returns {date}', fr: 'Retour le {date}' },
+
+  /* ── Production profile tab empty states — [FR self-authored] ────────── */
+  employees_prod_tab_compensation_empty_title: {
+    en: 'Compensation tracking coming soon',
+    fr: 'Suivi de la rémunération à venir',
+  },
+  employees_prod_tab_compensation_empty_body: {
+    en: 'Salary, band, and market comparison data will appear here once compensation tracking is enabled for your workspace.',
+    fr: "Les données de salaire, d’échelle et de comparaison du marché apparaîtront ici une fois le suivi de la rémunération activé pour votre espace de travail.",
+  },
+  employees_prod_tab_compliance_empty_title: {
+    en: 'No compliance flags',
+    fr: 'Aucun signalement de conformité',
+  },
+  employees_prod_tab_compliance_empty_body: {
+    en: 'Compliance flags will appear here as they are raised through cases and reviews.',
+    fr: "Les signalements de conformité apparaîtront ici au fur et à mesure qu’ils sont soulevés par les dossiers et les évaluations.",
+  },
+  employees_prod_tab_timeline_empty_title: {
+    en: 'Timeline coming soon',
+    fr: 'Chronologie à venir',
+  },
+  employees_prod_tab_timeline_empty_body: {
+    en: 'Key dates, status changes, and case milestones will appear here once timeline tracking is enabled.',
+    fr: "Les dates clés, les changements de statut et les étapes des dossiers apparaîtront ici une fois le suivi de la chronologie activé.",
+  },
+  employees_prod_tab_wellbeing_empty_title: {
+    en: 'Wellbeing tracking coming soon',
+    fr: 'Suivi du bien-être à venir',
+  },
+  employees_prod_tab_wellbeing_empty_body: {
+    en: 'Leave patterns, workload indicators, and check-in notes will appear here once wellbeing tracking is enabled.',
+    fr: "Les tendances de congés, les indicateurs de charge de travail et les notes de suivi apparaîtront ici une fois le suivi du bien-être activé.",
+  },
 })

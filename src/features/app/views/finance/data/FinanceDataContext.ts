@@ -28,9 +28,9 @@ import type {
 export interface FinanceDataContextValue {
   state: FinanceWorkspaceState
   canWrite: boolean
-  /** True when the last Supabase load failed (localStorage never sets this). */
+  /** True when the last Supabase load failed. */
   loadFailed: boolean
-  /** True when a Supabase client is configured; false means localStorage fallback. */
+  /** True when a Supabase client is configured. */
   hasSupabase: boolean
   /** Re-fetch the full workspace state from the backend. */
   reload: () => Promise<void>

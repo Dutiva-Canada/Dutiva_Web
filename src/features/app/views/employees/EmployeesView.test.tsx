@@ -403,16 +403,20 @@ describe('EmployeeProfileView in production mode', () => {
       path: '/app/employees/:employeeId',
     })
 
-    /* Real facts header + the employee's open case linking to its detail. */
+    /* Real facts header. */
     expect(await screen.findByText('Ana Souza')).toBeInTheDocument()
     expect(screen.getByText('ana@dutiva.ca')).toBeInTheDocument()
     expect(screen.getByText('2026-07-02')).toBeInTheDocument()
-    const caseLink = screen.getByRole('link', { name: /Accommodation — ergonomic assessment/ })
-    expect(caseLink).toHaveAttribute('href', '/app/cases/case-1')
     /* Demo profile chrome is gone. */
     expect(screen.queryByText('All people')).not.toBeInTheDocument()
 
-    /* Add a note through the real path. */
+    /* Cases tab — the employee's open case linking to its detail. */
+    fireEvent.click(screen.getByRole('tab', { name: 'Cases' }))
+    const caseLink = screen.getByRole('link', { name: /Accommodation — ergonomic assessment/ })
+    expect(caseLink).toHaveAttribute('href', '/app/cases/case-1')
+
+    /* Overview tab — add a note through the real path. */
+    fireEvent.click(screen.getByRole('tab', { name: 'Overview' }))
     fireEvent.change(screen.getByLabelText('Add a note to this profile…'), {
       target: { value: 'Met for onboarding check-in.' },
     })
@@ -534,6 +538,8 @@ describe('EmployeeProfileProductionView for a non-admin member', () => {
 
     /* The record itself is fully readable… */
     expect(await screen.findByText('Ana Souza')).toBeInTheDocument()
+    /* Leave tab — leave record is visible. */
+    fireEvent.click(screen.getByRole('tab', { name: 'Leave & accommodation' }))
     expect(screen.getByText('Parental leave')).toBeInTheDocument()
     /* …probation end shows as a plain fact, not an input… */
     expect(screen.getByText('2026-09-30')).toBeInTheDocument()

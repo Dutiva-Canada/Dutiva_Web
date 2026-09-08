@@ -5,8 +5,7 @@ import { statusChipClass } from '@/components/chips'
 import { FormField, FormInput, FormSelect, FormTextarea } from '@/components/FormField'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useCrmData } from '@/features/app/views/crm/useCrmData'
-import { loadCommsState } from '@/features/app/views/comms/data/productionApi'
-import { initialCommsState } from '@/features/app/views/comms/data/fixtures'
+import { useCommsState } from '@/features/app/views/comms/data/useCommsState'
 import { listSpecialists } from '@/features/app/views/specialists/data/productionApi'
 import { specialists } from '@/features/app/views/specialists/data/fixtures'
 import type { Specialist } from '@/features/app/views/specialists/data/types'
@@ -127,11 +126,7 @@ export function Invoices() {
   const [editing, setEditing] = useState<RevenueInvoice | null>(null)
 
   const crm = useCrmData(mode, organizationId ?? undefined)
-  const commsState = useMemo(
-    () =>
-      mode === 'production' && organizationId ? loadCommsState(organizationId) : initialCommsState,
-    [mode, organizationId],
-  )
+  const commsState = useCommsState()
 
   const [specialistList, setSpecialistList] = useState<Specialist[]>([])
   const [caseList, setCaseList] = useState<ProductionCase[]>([])

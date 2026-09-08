@@ -20,8 +20,7 @@ import {
   workspacePath,
 } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { useCrmData } from '@/features/app/views/crm/useCrmData'
-import { loadCommsState } from '@/features/app/views/comms/data/productionApi'
-import { initialCommsState } from '@/features/app/views/comms/data/fixtures'
+import { useCommsState } from '@/features/app/views/comms/data/useCommsState'
 import { listSpecialists } from '@/features/app/views/specialists/data/productionApi'
 import { specialists } from '@/features/app/views/specialists/data/fixtures'
 import type { Specialist } from '@/features/app/views/specialists/data/types'
@@ -93,11 +92,7 @@ export function Overview() {
   const crm = useCrmData(mode, organizationId ?? undefined)
   const crmState = crm.state
 
-  const commsState = useMemo(
-    () =>
-      mode === 'production' && organizationId ? loadCommsState(organizationId) : initialCommsState,
-    [mode, organizationId],
-  )
+  const commsState = useCommsState()
 
   /* Cross-module entity links touching this module's records (either direction). */
   const isProduction = mode === 'production' && Boolean(organizationId)

@@ -1,4 +1,3 @@
-import { useMemo, useRef, useState } from 'react'
 import { Download, FileUp, Sparkles, Trash2, Wand2 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
@@ -6,260 +5,25 @@ import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeCont
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
 import { CATEGORY_MATCH_TYPE_LABEL } from '../financeLabels'
-import { buildExportBundles, downloadFile } from '../data/importExport'
-import { statementFileToCsv } from '../data/statementParser'
-import { suggestCategoryRules, type RuleSuggestion } from '../data/ruleSuggestion'
 import { createBankStatementBulkImportAdapter } from '../bulkImport/bankStatementAdapter'
 import { BulkImportWizard } from '@/features/app/bulkImport/BulkImportWizard'
-import type { FinanceCategoryMatchType, FinanceImportRowError } from '../data/types'
+import { CategoryRuleForm } from './CategoryRuleForm'
+import { useImportExportActions } from './useImportExportActions'
 
 export function ImportExport() {
   const { x } = useI18n()
   const { mode } = useWorkspaceMode()
+  const finance = useFinanceData()
   const {
     state,
     canWrite,
     importBankStatement,
-    deleteImportSession,
-    addCategoryRule,
     updateCategoryRule,
     removeCategoryRule,
-    seedDefaultCategoryRules,
-    runAutoCategorize,
     updateAiImportSettings,
-  } = useFinanceData()
+  } = finance
 
-  const [selectedAccountId, setSelectedAccountId] = useState('')
-  const [selectedFileName, setSelectedFileName] = useState('')
-  const [fileContent, setFileContent] = useState('')
-  const [importResult, setImportResult] = useState<string | null>(null)
-  const [importError, setImportError] = useState<string | null>(null)
-  const [importErrorDetails, setImportErrorDetails] = useState<FinanceImportRowError[]>([])
-  const [showErrorDetails, setShowErrorDetails] = useState(false)
-  const [categorizeResult, setCategorizeResult] = useState<string | null>(null)
-  const [seedRulesResult, setSeedRulesResult] = useState<string | null>(null)
-  const [suggestions, setSuggestions] = useState<RuleSuggestion[]>([])
-  const [suggesting, setSuggesting] = useState(false)
-  const [suggestResult, setSuggestResult] = useState<string | null>(null)
-  const [useAiSuggestions, setUseAiSuggestions] = useState(false)
-  const [showRuleForm, setShowRuleForm] = useState(false)
-  const [showWizard, setShowWizard] = useState(false)
-  const [aiImportResult, setAiImportResult] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const unmatchedCount = useMemo(
-    () => state.bankItems.filter((bi) => bi.matchStatus === 'unmatched').length,
-    [state.bankItems],
-  )
-  const hasRules = state.categoryRules.length > 0
-
-  const CONFIDENCE_MESSAGES = {
-    high: M.finance_suggest_rules_confidence_high,
-    medium: M.finance_suggest_rules_confidence_medium,
-    low: M.finance_suggest_rules_confidence_low,
-  } as const
-
-  const formatError = (err: unknown): string => {
-    if (err instanceof Error) return err.message
-    if (err && typeof err === 'object') {
-      const msg = (err as { message?: string; error?: string; error_description?: string }).message
-      if (msg) return msg
-      const desc = (err as { error_description?: string }).error_description
-      if (desc) return desc
-      try {
-        return JSON.stringify(err)
-      } catch {
-        return String(err)
-      }
-    }
-    return String(err)
-  }
-
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setSelectedFileName(file.name)
-    setImportError(null)
-    setImportErrorDetails([])
-    setImportResult(null)
-    try {
-      const csv = await statementFileToCsv(file)
-      setFileContent(csv)
-    } catch (err) {
-      setImportError(x(M.finance_import_failed) + (formatError(err) ? `: ${formatError(err)}` : ''))
-      setFileContent('')
-    }
-  }
-
-  const handleImport = async () => {
-    if (!selectedAccountId || !fileContent) return
-    setImportError(null)
-    setImportErrorDetails([])
-    setImportResult(null)
-    setAiImportResult(null)
-    try {
-      const result = await importBankStatement(selectedAccountId, selectedFileName, fileContent)
-      if (result) {
-        setImportResult(
-          x(M.finance_import_result)
-            .replace('{new}', String(result.newItems))
-            .replace('{dup}', String(result.duplicates))
-            .replace('{err}', String(result.errors)),
-        )
-        setImportErrorDetails(result.errorDetails ?? [])
-        setSelectedFileName('')
-        setFileContent('')
-        if (fileInputRef.current) fileInputRef.current.value = ''
-        if (result.aiSummary) {
-          if (result.aiSummary.itemsAnalysed === 0) {
-            setAiImportResult(x(M.finance_ai_import_result_none))
-          } else {
-            setAiImportResult(
-              x(M.finance_ai_import_result)
-                .replace('{count}', String(result.aiSummary.itemsAnalysed))
-                .replace('{matched}', String(result.aiSummary.itemsMatched))
-                .replace('{suggested}', String(result.aiSummary.itemsSuggested)) +
-              ' ' +
-              x(M.finance_ai_import_result_rules).replace('{count}', String(result.aiSummary.rulesAdded)),
-            )
-          }
-        }
-      } else {
-        setImportError(x(M.finance_import_failed))
-      }
-    } catch (err) {
-      setImportError(x(M.finance_import_failed) + (formatError(err) ? `: ${formatError(err)}` : ''))
-    }
-  }
-
-  const downloadErrorReport = () => {
-    if (importErrorDetails.length === 0) return
-    const header = ['Row', 'Date', 'Amount', 'Description', 'Reason']
-    const lines = importErrorDetails.map((err) => [
-      String(err.rowIndex + 1),
-      err.rawDate,
-      err.rawAmount,
-      err.rawDescription,
-      err.reason,
-    ])
-    const csv = [header.join(','), ...lines.map((l) => l.join(','))].join('\n')
-    downloadFile(csv, `import-errors-${selectedAccountId}-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv')
-  }
-
-  const handleDeleteSession = async (session: import('../data/types').FinanceImportSession) => {
-    if (!canWrite) return
-    const confirmMessage = x(M.finance_import_delete_confirm).replace('{count}', String(session.newItems))
-    if (typeof window !== 'undefined' && window.confirm(confirmMessage)) {
-      await deleteImportSession(session.id)
-    }
-  }
-
-  const handleAutoCategorize = async () => {
-    const count = await runAutoCategorize()
-    setCategorizeResult(
-      count > 0
-        ? x(M.finance_categorize_result).replace('{count}', String(count))
-        : x(M.finance_categorize_none),
-    )
-  }
-
-  const handleSeedDefaultRules = async () => {
-    const count = await seedDefaultCategoryRules()
-    setSeedRulesResult(
-      count > 0
-        ? x(M.finance_rules_seed_result).replace('{count}', String(count))
-        : x(M.finance_rules_seed_none),
-    )
-  }
-
-  const handleSuggestRules = () => {
-    if (state.ledgerAccounts.length === 0) {
-      setSuggestResult(x(M.finance_suggest_rules_none))
-      setSuggestions([])
-      return
-    }
-    setSuggesting(true)
-    setSuggestResult(null)
-    window.setTimeout(async () => {
-      try {
-        let result: RuleSuggestion[]
-        if (useAiSuggestions) {
-          const { suggestCategoryRulesWithAi } = await import('../data/ruleSuggestionAi')
-          result = await suggestCategoryRulesWithAi(state.bankItems, state.ledgerAccounts, state.categoryRules)
-        } else {
-          result = suggestCategoryRules(state.bankItems, state.ledgerAccounts, state.categoryRules)
-        }
-        setSuggestions(result)
-        setSuggestResult(
-          result.length > 0
-            ? x(M.finance_suggest_rules_result).replace('{count}', String(result.length))
-            : x(M.finance_suggest_rules_none),
-        )
-      } catch {
-        if (useAiSuggestions) {
-          try {
-            const fallback = suggestCategoryRules(state.bankItems, state.ledgerAccounts, state.categoryRules)
-            setSuggestions(fallback)
-            setSuggestResult(
-              fallback.length > 0
-                ? x(M.finance_suggest_rules_ai_error)
-                : x(M.finance_suggest_rules_none),
-            )
-          } catch {
-            setSuggestResult(x(M.finance_suggest_rules_none))
-            setSuggestions([])
-          }
-        } else {
-          setSuggestResult(x(M.finance_suggest_rules_none))
-        }
-      } finally {
-        setSuggesting(false)
-      }
-    }, 0)
-  }
-
-  const handleAddSuggestion = async (suggestion: RuleSuggestion) => {
-    const entityId = state.books[0]?.entityId ?? state.entities[0]?.id
-    if (!entityId) return
-    await addCategoryRule({
-      entityId,
-      pattern: suggestion.pattern,
-      matchType: suggestion.matchType,
-      ledgerAccountId: suggestion.ledgerAccountId,
-      direction: suggestion.direction,
-      priority: suggestion.priority,
-      active: true,
-    })
-    setSuggestions((prev) => prev.filter((s) => s.pattern !== suggestion.pattern || s.ledgerAccountId !== suggestion.ledgerAccountId))
-  }
-
-  const handleAddAllSuggestions = async () => {
-    const entityId = state.books[0]?.entityId ?? state.entities[0]?.id
-    if (!entityId) return
-    for (const suggestion of suggestions) {
-      await addCategoryRule({
-        entityId,
-        pattern: suggestion.pattern,
-        matchType: suggestion.matchType,
-        ledgerAccountId: suggestion.ledgerAccountId,
-        direction: suggestion.direction,
-        priority: suggestion.priority,
-        active: true,
-      })
-    }
-    setSuggestions([])
-    setSuggestResult(null)
-  }
-
-  const handleIgnoreSuggestion = (suggestion: RuleSuggestion) => {
-    setSuggestions((prev) => prev.filter((s) => s.pattern !== suggestion.pattern || s.ledgerAccountId !== suggestion.ledgerAccountId))
-  }
-
-  const handleExport = (bundleIndex: number) => {
-    const bundles = buildExportBundles(state)
-    const bundle = bundles[bundleIndex]
-    if (bundle) downloadFile(bundle.content, bundle.fileName, bundle.mimeType)
-  }
+  const a = useImportExportActions({ finance })
 
   return (
     <div className="flex flex-col gap-[16px]">
@@ -281,8 +45,8 @@ export function ImportExport() {
             </p>
           ) : (
             <select
-              value={selectedAccountId}
-              onChange={(e) => setSelectedAccountId(e.target.value)}
+              value={a.selectedAccountId}
+              onChange={(e) => a.setSelectedAccountId(e.target.value)}
               className="rounded-[8px] border border-border bg-inset px-[10px] py-[6px] text-[13px] text-text"
             >
               <option value="">—</option>
@@ -298,13 +62,13 @@ export function ImportExport() {
             {x(M.finance_import_select_file)}
           </label>
           <input
-            ref={fileInputRef}
+            ref={a.fileInputRef}
             type="file"
             accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
             onChange={(e) => {
-              void handleFileSelect(e)
+              void a.handleFileSelect(e)
             }}
-            disabled={!canWrite || !selectedAccountId}
+            disabled={!canWrite || !a.selectedAccountId}
             className="text-[12px] text-text-2"
           />
           <p className="text-[11px] text-text-muted">{x(M.finance_import_xlsx_supported)}</p>
@@ -314,29 +78,29 @@ export function ImportExport() {
           {!canWrite && mode !== 'demo' && (
             <p className="text-[12px] text-text-muted">{x(M.finance_import_select_account_first)}</p>
           )}
-          {canWrite && !selectedAccountId && (
+          {canWrite && !a.selectedAccountId && (
             <p className="text-[12px] text-text-muted">{x(M.finance_import_select_account_first)}</p>
           )}
-          {selectedFileName && (
+          {a.selectedFileName && (
             <div className="text-[12px] text-text-muted">
-              {x(M.finance_import_file_selected)}: {selectedFileName}
+              {x(M.finance_import_file_selected)}: {a.selectedFileName}
             </div>
           )}
 
-          {canWrite && selectedAccountId && (
+          {canWrite && a.selectedAccountId && (
             <button
               type="button"
-              onClick={() => setShowWizard(true)}
+              onClick={() => a.setShowWizard(true)}
               className="flex items-center gap-[6px] self-start rounded-[8px] bg-surface px-[14px] py-[7px] text-[12.5px] font-semibold text-text-2 hover:bg-inset border border-border"
             >
               <Wand2 size={14} strokeWidth={1.9} aria-hidden="true" />
               {x(M.finance_import_bulk_wizard)}
             </button>
           )}
-          {canWrite && selectedAccountId && fileContent && (
+          {canWrite && a.selectedAccountId && a.fileContent && (
             <button
               type="button"
-              onClick={handleImport}
+              onClick={a.handleImport}
               className="flex items-center gap-[6px] self-start rounded-[8px] bg-navy px-[14px] py-[7px] text-[12.5px] font-semibold text-white hover:opacity-90"
             >
               <FileUp size={14} strokeWidth={1.9} aria-hidden="true" />
@@ -346,36 +110,36 @@ export function ImportExport() {
           {!canWrite && (
             <p className="text-[12px] text-text-muted">{x(M.finance_import_no_account)}</p>
           )}
-          {importError && (
+          {a.importError && (
             <div className="rounded-[8px] bg-risk-bg px-[10px] py-[8px] text-[12px] text-risk-fg">
-              {importError}
+              {a.importError}
             </div>
           )}
-          {importResult && (
+          {a.importResult && (
             <div className="flex flex-col gap-[8px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text">
-              <span>{importResult}</span>
-              {state.aiImportSettings.aiImportEnabled && !aiImportResult && state.ledgerAccounts.length === 0 && (
+              <span>{a.importResult}</span>
+              {state.aiImportSettings.aiImportEnabled && !a.aiImportResult && state.ledgerAccounts.length === 0 && (
                 <span className="text-text-muted">{x(M.finance_ai_import_no_ledger)}</span>
               )}
-              {importErrorDetails.length > 0 && (
+              {a.importErrorDetails.length > 0 && (
                 <div className="flex flex-col gap-[8px]">
                   <div className="flex flex-wrap gap-[8px]">
                     <button
                       type="button"
-                      onClick={() => setShowErrorDetails((v) => !v)}
+                      onClick={() => a.setShowErrorDetails((v) => !v)}
                       className="rounded-[6px] bg-surface px-[8px] py-[4px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
                     >
                       {x(M.finance_import_view_errors)}
                     </button>
                     <button
                       type="button"
-                      onClick={downloadErrorReport}
+                      onClick={a.downloadErrorReport}
                       className="rounded-[6px] bg-surface px-[8px] py-[4px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
                     >
                       {x(M.finance_import_download_errors)}
                     </button>
                   </div>
-                  {showErrorDetails && (
+                  {a.showErrorDetails && (
                     <table className="w-full text-[11px]">
                       <thead>
                         <tr className="text-left text-text-muted">
@@ -386,7 +150,7 @@ export function ImportExport() {
                         </tr>
                       </thead>
                       <tbody>
-                        {importErrorDetails.map((err) => (
+                        {a.importErrorDetails.map((err) => (
                           <tr key={err.rowIndex} className="border-t border-border/50">
                             <td className="py-[4px] pr-[8px]">{err.rowIndex + 1}</td>
                             <td className="py-[4px] pr-[8px] text-red-600">{err.rawDate}</td>
@@ -401,9 +165,9 @@ export function ImportExport() {
               )}
             </div>
           )}
-          {aiImportResult && (
+          {a.aiImportResult && (
             <div className="rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text">
-              {aiImportResult}
+              {a.aiImportResult}
             </div>
           )}
         </div>
@@ -417,8 +181,8 @@ export function ImportExport() {
           {canWrite && (
             <button
               type="button"
-              onClick={handleAutoCategorize}
-              disabled={unmatchedCount === 0 || !hasRules}
+              onClick={a.handleAutoCategorize}
+              disabled={a.unmatchedCount === 0 || !a.hasRules}
               className="flex items-center gap-[6px] rounded-[8px] bg-navy px-[14px] py-[7px] text-[12.5px] font-semibold text-white hover:opacity-90 disabled:opacity-50"
             >
               <Sparkles size={14} strokeWidth={1.9} aria-hidden="true" />
@@ -426,15 +190,15 @@ export function ImportExport() {
             </button>
           )}
           <span className="text-[12px] text-text-muted">
-            {unmatchedCount} unmatched
+            {a.unmatchedCount} unmatched
           </span>
         </div>
-        {categorizeResult && (
+        {a.categorizeResult && (
           <div className="mt-[8px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text">
-            {categorizeResult}
+            {a.categorizeResult}
           </div>
         )}
-        {!hasRules && canWrite && (
+        {!a.hasRules && canWrite && (
           <div className="mt-[8px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text-muted">
             {x(M.finance_categorize_no_rules)}
           </div>
@@ -490,8 +254,8 @@ export function ImportExport() {
               <>
                 <button
                   type="button"
-                  onClick={handleSuggestRules}
-                  disabled={suggesting || unmatchedCount === 0}
+                  onClick={a.handleSuggestRules}
+                  disabled={a.suggesting || a.unmatchedCount === 0}
                   className="flex items-center gap-[4px] rounded-[8px] bg-navy px-[10px] py-[5px] text-[12px] font-semibold text-white hover:opacity-90 disabled:opacity-50"
                 >
                   <Sparkles size={12} strokeWidth={1.9} aria-hidden="true" />
@@ -500,8 +264,8 @@ export function ImportExport() {
                 <label className="flex items-center gap-[4px] text-[11px] text-text-2">
                   <input
                     type="checkbox"
-                    checked={useAiSuggestions}
-                    onChange={(e) => setUseAiSuggestions(e.target.checked)}
+                    checked={a.useAiSuggestions}
+                    onChange={(e) => a.setUseAiSuggestions(e.target.checked)}
                     className="h-[14px] w-[14px] accent-navy"
                   />
                   {x(M.finance_suggest_rules_ai_toggle)}
@@ -511,7 +275,7 @@ export function ImportExport() {
             {canWrite && (
               <button
                 type="button"
-                onClick={handleSeedDefaultRules}
+                onClick={a.handleSeedDefaultRules}
                 className="rounded-[8px] bg-navy px-[10px] py-[5px] text-[12px] font-semibold text-white hover:opacity-90"
               >
                 {x(M.finance_rules_seed)}
@@ -520,7 +284,7 @@ export function ImportExport() {
             {canWrite && (
               <button
                 type="button"
-                onClick={() => setShowRuleForm((v) => !v)}
+                onClick={() => a.setShowRuleForm((v) => !v)}
                 className="rounded-[8px] bg-surface px-[10px] py-[5px] text-[12px] font-semibold text-text-2 hover:bg-inset border border-border"
               >
                 {x(M.finance_rules_add)}
@@ -529,52 +293,52 @@ export function ImportExport() {
           </div>
         </div>
 
-        {showRuleForm && canWrite && (
+        {a.showRuleForm && canWrite && (
           <CategoryRuleForm
             state={state}
             onAdd={async (rule) => {
-              await addCategoryRule(rule)
-              setShowRuleForm(false)
+              await finance.addCategoryRule(rule)
+              a.setShowRuleForm(false)
             }}
-            onCancel={() => setShowRuleForm(false)}
+            onCancel={() => a.setShowRuleForm(false)}
           />
         )}
 
-        {seedRulesResult && (
+        {a.seedRulesResult && (
           <div className="mb-[8px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text">
-            {seedRulesResult}
+            {a.seedRulesResult}
           </div>
         )}
 
-        {suggesting && (
+        {a.suggesting && (
           <div className="mb-[8px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text-muted">
-            {x(useAiSuggestions ? M.finance_suggest_rules_ai_loading : M.finance_suggest_rules_loading)}
+            {x(a.useAiSuggestions ? M.finance_suggest_rules_ai_loading : M.finance_suggest_rules_loading)}
           </div>
         )}
 
-        {suggestResult && !suggesting && (
+        {a.suggestResult && !a.suggesting && (
           <div className="mb-[8px] flex flex-col gap-[4px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text">
-            <span>{suggestResult}</span>
-            {suggestions.length === 0 && (
+            <span>{a.suggestResult}</span>
+            {a.suggestions.length === 0 && (
               <span className="text-text-muted">{x(M.finance_suggest_rules_none_detail)}</span>
             )}
           </div>
         )}
 
-        {suggestions.length > 0 && (
+        {a.suggestions.length > 0 && (
           <div className="mb-[12px] flex flex-col gap-[8px]">
             <div className="flex items-center justify-between">
               <h3 className="text-[13px] font-semibold text-text">{x(M.finance_suggest_rules)}</h3>
               <button
                 type="button"
-                onClick={handleAddAllSuggestions}
+                onClick={a.handleAddAllSuggestions}
                 className="rounded-[6px] bg-navy px-[8px] py-[4px] text-[11px] font-semibold text-white hover:opacity-90"
               >
                 {x(M.finance_suggest_rules_add_all)}
               </button>
             </div>
             <ul className="m-0 flex flex-col gap-[8px] p-0">
-              {suggestions.map((suggestion) => (
+              {a.suggestions.map((suggestion) => (
                 <li
                   key={`${suggestion.pattern}-${suggestion.ledgerAccountId}`}
                   className="flex flex-col gap-[4px] rounded-[10px] border border-border bg-surface p-[10px]"
@@ -584,14 +348,14 @@ export function ImportExport() {
                     <div className="flex items-center gap-[6px]">
                       <button
                         type="button"
-                        onClick={() => handleAddSuggestion(suggestion)}
+                        onClick={() => a.handleAddSuggestion(suggestion)}
                         className="rounded-[6px] bg-navy px-[8px] py-[4px] text-[11px] font-semibold text-white hover:opacity-90"
                       >
                         {x(M.finance_suggest_rules_add)}
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleIgnoreSuggestion(suggestion)}
+                        onClick={() => a.handleIgnoreSuggestion(suggestion)}
                         className="rounded-[6px] bg-surface px-[8px] py-[4px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
                       >
                         {x(M.finance_suggest_rules_ignore)}
@@ -602,7 +366,7 @@ export function ImportExport() {
                     {suggestion.accountName} · {suggestion.direction} · {x(M.finance_suggest_rules_from).replace('{count}', String(suggestion.count))}
                   </div>
                   <div className="text-[11px] text-text-muted">
-                    {x(CONFIDENCE_MESSAGES[suggestion.confidence])} · {suggestion.sampleDescriptions.slice(0, 3).join(' · ')}
+                    {x(a.CONFIDENCE_MESSAGES[suggestion.confidence])} · {suggestion.sampleDescriptions.slice(0, 3).join(' · ')}
                   </div>
                 </li>
               ))}
@@ -615,7 +379,7 @@ export function ImportExport() {
         ) : (
           <ul className="m-0 flex flex-col gap-[8px] p-0">
             {[...state.categoryRules]
-              .sort((a, b) => b.priority - a.priority)
+              .sort((ruleA, ruleB) => ruleB.priority - ruleA.priority)
               .map((rule) => {
                 const account = state.ledgerAccounts.find((la) => la.id === rule.ledgerAccountId)
                 return (
@@ -669,7 +433,7 @@ export function ImportExport() {
         <div className="flex flex-wrap gap-[8px]">
           <button
             type="button"
-            onClick={() => handleExport(0)}
+            onClick={() => a.handleExport(0)}
             className="flex items-center gap-[6px] rounded-[8px] bg-surface px-[12px] py-[6px] text-[12.5px] font-semibold text-text-2 hover:bg-inset border border-border"
           >
             <Download size={14} strokeWidth={1.9} aria-hidden="true" />
@@ -677,7 +441,7 @@ export function ImportExport() {
           </button>
           <button
             type="button"
-            onClick={() => handleExport(1)}
+            onClick={() => a.handleExport(1)}
             className="flex items-center gap-[6px] rounded-[8px] bg-surface px-[12px] py-[6px] text-[12.5px] font-semibold text-text-2 hover:bg-inset border border-border"
           >
             <Download size={14} strokeWidth={1.9} aria-hidden="true" />
@@ -685,7 +449,7 @@ export function ImportExport() {
           </button>
           <button
             type="button"
-            onClick={() => handleExport(2)}
+            onClick={() => a.handleExport(2)}
             className="flex items-center gap-[6px] rounded-[8px] bg-surface px-[12px] py-[6px] text-[12.5px] font-semibold text-text-2 hover:bg-inset border border-border"
           >
             <Download size={14} strokeWidth={1.9} aria-hidden="true" />
@@ -693,7 +457,7 @@ export function ImportExport() {
           </button>
           <button
             type="button"
-            onClick={() => handleExport(3)}
+            onClick={() => a.handleExport(3)}
             className="flex items-center gap-[6px] rounded-[8px] bg-surface px-[12px] py-[6px] text-[12.5px] font-semibold text-text-2 hover:bg-inset border border-border"
           >
             <Download size={14} strokeWidth={1.9} aria-hidden="true" />
@@ -701,7 +465,7 @@ export function ImportExport() {
           </button>
           <button
             type="button"
-            onClick={() => handleExport(4)}
+            onClick={() => a.handleExport(4)}
             className="flex items-center gap-[6px] rounded-[8px] bg-surface px-[12px] py-[6px] text-[12.5px] font-semibold text-text-2 hover:bg-inset border border-border"
           >
             <Download size={14} strokeWidth={1.9} aria-hidden="true" />
@@ -743,7 +507,7 @@ export function ImportExport() {
                     {canWrite && (
                       <button
                         type="button"
-                        onClick={() => void handleDeleteSession(s)}
+                        onClick={() => void a.handleDeleteSession(s)}
                         className="rounded-[6px] p-[4px] text-text-muted hover:bg-risk-bg hover:text-risk-fg"
                         title={x(M.finance_import_delete)}
                         aria-label={x(M.finance_import_delete)}
@@ -758,125 +522,12 @@ export function ImportExport() {
           </table>
         )}
       </section>
-      {showWizard && selectedAccountId && (
+      {a.showWizard && a.selectedAccountId && (
         <BulkImportWizard
-          adapter={createBankStatementBulkImportAdapter(selectedAccountId, importBankStatement)}
-          onClose={() => {
-            setShowWizard(false)
-            setImportResult(null)
-            setImportErrorDetails([])
-          }}
+          adapter={createBankStatementBulkImportAdapter(a.selectedAccountId, importBankStatement)}
+          onClose={a.closeWizard}
         />
       )}
     </div>
-  )
-}
-
-/* ---------- Category rule form ---------- */
-
-function CategoryRuleForm({
-  state,
-  onAdd,
-  onCancel,
-}: {
-  state: import('../data/types').FinanceWorkspaceState
-  onAdd: (rule: Omit<import('../data/types').FinanceCategoryRule, 'id'>) => Promise<unknown>
-  onCancel: () => void
-}) {
-  const { x } = useI18n()
-  const [pattern, setPattern] = useState('')
-  const [matchType, setMatchType] = useState<FinanceCategoryMatchType>('contains')
-  const [ledgerAccountId, setLedgerAccountId] = useState('')
-  const [direction, setDirection] = useState<'debit' | 'credit'>('debit')
-  const [priority, setPriority] = useState('50')
-
-  const entityId = state.entities[0]?.id ?? ''
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!pattern || !ledgerAccountId) return
-    void onAdd({
-      entityId,
-      pattern,
-      matchType,
-      ledgerAccountId,
-      direction,
-      priority: Number.parseInt(priority, 10) || 0,
-      active: true,
-    })
-  }
-
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="mb-[12px] flex flex-col gap-[8px] rounded-[10px] bg-inset p-[12px]"
-    >
-      <div className="flex flex-wrap gap-[8px]">
-        <input
-          type="text"
-          placeholder={x(M.finance_rules_pattern)}
-          value={pattern}
-          onChange={(e) => setPattern(e.target.value)}
-          className="flex-1 rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[12px] text-text"
-          required
-        />
-        <select
-          value={matchType}
-          onChange={(e) => setMatchType(e.target.value as FinanceCategoryMatchType)}
-          className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[12px] text-text"
-        >
-          {(Object.keys(CATEGORY_MATCH_TYPE_LABEL) as FinanceCategoryMatchType[]).map((mt) => (
-            <option key={mt} value={mt}>
-              {x(CATEGORY_MATCH_TYPE_LABEL[mt])}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="flex flex-wrap gap-[8px]">
-        <select
-          value={ledgerAccountId}
-          onChange={(e) => setLedgerAccountId(e.target.value)}
-          className="flex-1 rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[12px] text-text"
-          required
-        >
-          <option value="">—</option>
-          {state.ledgerAccounts.map((la) => (
-            <option key={la.id} value={la.id}>
-              {la.code} — {la.name.en}
-            </option>
-          ))}
-        </select>
-        <select
-          value={direction}
-          onChange={(e) => setDirection(e.target.value as 'debit' | 'credit')}
-          className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[12px] text-text"
-        >
-          <option value="debit">{x(M.finance_accounting_debit)}</option>
-          <option value="credit">{x(M.finance_accounting_credit)}</option>
-        </select>
-        <input
-          type="number"
-          placeholder={x(M.finance_rules_priority)}
-          value={priority}
-          onChange={(e) => setPriority(e.target.value)}
-          className="w-[80px] rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[12px] text-text"
-        />
-      </div>
-      <div className="flex gap-[6px]">
-        <button
-          type="submit"
-          className="rounded-[6px] bg-navy px-[10px] py-[4px] text-[12px] font-semibold text-white hover:opacity-90"
-        >
-          {x(M.finance_rules_add)}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-[6px] bg-surface px-[10px] py-[4px] text-[12px] font-semibold text-text-2 hover:bg-inset border border-border"
-        >
-          {x(M.finance_cancel)}
-        </button>
-      </div>
-    </form>
   )
 }

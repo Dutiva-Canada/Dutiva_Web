@@ -6,9 +6,8 @@ import { CommsDataProvider } from './data/CommsDataProvider'
 import { CommsLayout } from './CommsLayout'
 
 /**
- * Production-mode communications workspace. State is persisted to browser
- * localStorage in this first implementation; a Supabase-backed migration will
- * replace this once the data model and RLS policies are finalized.
+ * Production-mode communications workspace. State is loaded from and
+ * persisted to Supabase via the domain-specific `*Api.ts` files.
  */
 export function CommsProductionView() {
   const { x } = useI18n()
