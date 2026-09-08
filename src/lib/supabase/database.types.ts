@@ -1656,6 +1656,80 @@ export type Database = {
           },
         ]
       }
+      comms_content_items: {
+        Row: {
+          body: Json | null
+          channel: string
+          created_at: string
+          delivery_note: Json | null
+          delivery_status: string
+          due_date: string | null
+          id: string
+          initiative_id: string
+          language: string
+          needs_translation_review: boolean | null
+          organization_id: string
+          owner: string
+          revision_note: Json | null
+          scheduled_for: string | null
+          source_revision_id: string | null
+          status: string
+          time_zone: string | null
+          title: Json
+          updated_at: string
+        }
+        Insert: {
+          body?: Json | null
+          channel: string
+          created_at?: string
+          delivery_note?: Json | null
+          delivery_status: string
+          due_date?: string | null
+          id?: string
+          initiative_id: string
+          language: string
+          needs_translation_review?: boolean | null
+          organization_id: string
+          owner: string
+          revision_note?: Json | null
+          scheduled_for?: string | null
+          source_revision_id?: string | null
+          status: string
+          time_zone?: string | null
+          title: Json
+          updated_at?: string
+        }
+        Update: {
+          body?: Json | null
+          channel?: string
+          created_at?: string
+          delivery_note?: Json | null
+          delivery_status?: string
+          due_date?: string | null
+          id?: string
+          initiative_id?: string
+          language?: string
+          needs_translation_review?: boolean | null
+          organization_id?: string
+          owner?: string
+          revision_note?: Json | null
+          scheduled_for?: string | null
+          source_revision_id?: string | null
+          status?: string
+          time_zone?: string | null
+          title?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comms_content_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comms_coverage_items: {
         Row: {
           created_at: string
