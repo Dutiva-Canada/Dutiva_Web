@@ -4,28 +4,30 @@ import { statusChipClass } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { useCommsData } from '../data/useCommsData'
+import { useContentItems } from '../data/useContentItems'
 import { useInitiatives } from '../data/useInitiatives'
 import { ACTION_LABEL, CHANNEL_LABEL, CONTENT_STATUS_LABEL, DELIVERY_STATUS_LABEL, DOMAIN_LABEL, INITIATIVE_STATUS_LABEL, RISK_LABEL } from '../commsLabels'
 
 export function Overview() {
   const { x, lang } = useI18n()
   const { state } = useCommsData()
+  const { contentItems } = useContentItems()
   const { initiatives } = useInitiatives()
 
   const upcoming = useMemo(
     () =>
-      [...state.contentItems]
+      [...contentItems]
         .filter((c) => c.dueDate)
         .sort((a, b) => (a.dueDate ?? '').localeCompare(b.dueDate ?? '')),
-    [state.contentItems],
+    [contentItems],
   )
 
   const approvals = useMemo(
     () =>
-      state.contentItems.filter(
+      contentItems.filter(
         (c) => c.status === 'in_review' || c.status === 'changes_requested',
       ),
-    [state.contentItems],
+    [contentItems],
   )
 
   const pausedInitiatives = useMemo(
@@ -34,8 +36,8 @@ export function Overview() {
   )
 
   const reconcileQueue = useMemo(
-    () => state.contentItems.filter((c) => c.deliveryStatus === 'unknown' || c.deliveryStatus === 'failed'),
-    [state.contentItems],
+    () => contentItems.filter((c) => c.deliveryStatus === 'unknown' || c.deliveryStatus === 'failed'),
+    [contentItems],
   )
 
   const activity = useMemo(
@@ -167,7 +169,7 @@ export function Overview() {
           <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.comms_overview_activity)}</h2>
           <ul className="m-0 flex flex-col gap-[10px] p-0">
             {activity.map((event) => {
-              const item = state.contentItems.find((c) => c.id === event.contentItemId)
+              const item = contentItems.find((c) => c.id === event.contentItemId)
               return (
                 <li key={event.id} className="flex flex-col gap-[2px] rounded-[8px] bg-inset p-[12px]">
                   <div className="flex items-start justify-between gap-[12px]">

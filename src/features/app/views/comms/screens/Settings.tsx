@@ -4,6 +4,7 @@ import { statusChipClass } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { useCommsData } from '../data/useCommsData'
+import { useContentItems } from '../data/useContentItems'
 import type {
   CommsApprovalDecision,
   CommsBrandClaim,
@@ -46,6 +47,7 @@ function ContentItemOption({ item, x }: { item: CommsContentItem; x: (b: import(
 function RolesAndApprovals() {
   const { x, lang } = useI18n()
   const { state, canWrite, addApproval, removeApproval } = useCommsData()
+  const { contentItems } = useContentItems()
   const [open, setOpen] = useState(false)
   const [contentItemId, setContentItemId] = useState('')
   const [approver, setApprover] = useState('')
@@ -54,13 +56,13 @@ function RolesAndApprovals() {
 
   const pending = useMemo(
     () =>
-      state.contentItems.filter(
+      contentItems.filter(
         (c) => c.status !== 'approved' && c.status !== 'superseded' && c.status !== 'withdrawn',
       ),
-    [state.contentItems],
+    [contentItems],
   )
 
-  const itemTitle = (id: string) => state.contentItems.find((c) => c.id === id)
+  const itemTitle = (id: string) => contentItems.find((c) => c.id === id)
 
   const reset = () => {
     setOpen(false)

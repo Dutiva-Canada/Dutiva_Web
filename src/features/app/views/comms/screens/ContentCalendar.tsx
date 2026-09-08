@@ -21,8 +21,8 @@ import { statusChipClass } from '@/components/chips'
 import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
-import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useCommsData } from '../data/useCommsData'
+import { useContentItems } from '../data/useContentItems'
 import { useInitiatives } from '../data/useInitiatives'
 import { createContentBulkImportAdapter } from '../bulkImport/contentAdapter'
 import { BulkImportWizard } from '@/features/app/bulkImport/BulkImportWizard'
@@ -92,11 +92,6 @@ function deliveryTone(status: CommsContentItem['deliveryStatus']) {
   }
 }
 
-function useCurrentActor() {
-  const { identity } = useWorkspaceMode()
-  return identity.user.name
-}
-
 function formatTimestamp(iso: string, lang: 'en' | 'fr'): string {
   try {
     return new Date(iso).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
@@ -145,7 +140,7 @@ function ScheduleForm({
   onCancel,
 }: {
   item: CommsContentItem
-  onSchedule: (scheduledFor: string, timeZone: string) => void
+  onSchedule: (scheduledFor: string, timeZone: string) => Promise<void>
   onCancel: () => void
 }) {
   const { x } = useI18n()
@@ -155,10 +150,10 @@ function ScheduleForm({
   const [timeZone, setTimeZone] = useState(item.timeZone ?? 'America/Toronto')
   return (
     <form
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault()
         if (!dateTime) return
-        onSchedule(`${dateTime}:00`, timeZone)
+        await onSchedule(`${dateTime}:00`, timeZone)
       }}
       className="mt-[8px] flex flex-wrap items-end gap-[8px] rounded-[8px] border border-border bg-inset p-[10px]"
     >
@@ -196,14 +191,13 @@ function ScheduleForm({
 
 function DeliveryActions({ item }: { item: CommsContentItem }) {
   const { x } = useI18n()
-  const { canWrite, transitionDeliveryStatus, updateContentItem } = useCommsData()
-  const actor = useCurrentActor()
+  const { canWrite, transitionDeliveryStatus, updateContentItem } = useContentItems()
   const [scheduling, setScheduling] = useState(false)
 
   if (!canWrite) return null
 
   const doAction = (action: CommsExecutionAction) => {
-    transitionDeliveryStatus(item.id, action, actor)
+    transitionDeliveryStatus(item.id, action)
   }
 
   const isApproved = item.status === 'approved'
@@ -261,9 +255,9 @@ function DeliveryActions({ item }: { item: CommsContentItem }) {
       {scheduling && (
         <ScheduleForm
           item={item}
-          onSchedule={(scheduledFor, timeZone) => {
-            updateContentItem(item.id, { scheduledFor, timeZone })
-            transitionDeliveryStatus(item.id, 'schedule', actor)
+          onSchedule={async (scheduledFor, timeZone) => {
+            await updateContentItem(item.id, { scheduledFor, timeZone })
+            await transitionDeliveryStatus(item.id, 'schedule')
             setScheduling(false)
           }}
           onCancel={() => setScheduling(false)}
@@ -412,7 +406,14 @@ function MarkdownToolbar({ value, textareaRef, setValue }: MarkdownToolbarProps)
 
 export function ContentCalendar() {
   const { x, lang } = useI18n()
-  const { state, canWrite, addContentItem, updateContentItem, removeContentItem } = useCommsData()
+  const { state: commsState } = useCommsData()
+  const {
+    contentItems,
+    canWrite,
+    addContentItem,
+    updateContentItem,
+    removeContentItem,
+  } = useContentItems()
   const { initiatives } = useInitiatives()
   const [open, setOpen] = useState(false)
   const [bulkImport, setBulkImport] = useState(false)
@@ -459,7 +460,7 @@ export function ContentCalendar() {
     return { en: text, fr: text }
   }
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const base = {
       initiativeId,
@@ -473,13 +474,13 @@ export function ContentCalendar() {
       dueDate: dueDate || undefined,
     }
     if (editingId) {
-      const existing = state.contentItems.find((c) => c.id === editingId)
+      const existing = contentItems.find((c) => c.id === editingId)
       if (existing) {
         const needsTranslationReview =
           language === 'en' && existing.language === 'fr'
             ? true
             : existing.needsTranslationReview
-        updateContentItem(editingId, {
+        await updateContentItem(editingId, {
           ...base,
           title:
             existing.title.en !== title
@@ -489,17 +490,17 @@ export function ContentCalendar() {
         })
       }
     } else {
-      addContentItem(base)
+      await addContentItem(base)
     }
     reset()
   }
 
   const sorted = useMemo(
     () =>
-      [...state.contentItems].sort(
+      [...contentItems].sort(
         (a, b) => (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999'),
       ),
-    [state.contentItems],
+    [contentItems],
   )
 
   return (
@@ -673,7 +674,7 @@ export function ContentCalendar() {
 
       <div className="rounded-[12px] border border-border bg-surface p-[16px]">
         <h3 className="mb-[10px] text-[14px] font-semibold text-text">{x(M.comms_execution_log)}</h3>
-        <ExecutionLog events={state.executionEvents} lang={lang} />
+        <ExecutionLog events={commsState.executionEvents} lang={lang} />
       </div>
 
       <p className="text-[11px] leading-normal text-text-faint">{x(M.comms_delivery_note)}</p>

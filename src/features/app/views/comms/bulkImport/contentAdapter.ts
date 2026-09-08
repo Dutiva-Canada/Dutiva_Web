@@ -97,7 +97,7 @@ function parseDeliveryStatus(value: string): CommsDeliveryStatus | undefined {
 
 export function createContentBulkImportAdapter(
   lang: 'en' | 'fr',
-  addContentItem: (item: Omit<CommsContentItem, 'id'>) => CommsContentItem | null,
+  addContentItem: (item: Omit<CommsContentItem, 'id'>) => Promise<CommsContentItem | null>,
   initiatives: CommsInitiative[],
 ): BulkImportAdapter<ContentImportRow> {
   const fields: BulkImportField<ContentImportRow>[] = [
@@ -197,7 +197,7 @@ export function createContentBulkImportAdapter(
       })
       return mapping
     },
-    import: (rows) => {
+    import: async (rows) => {
       let created = 0
       let failed = 0
       const errors: string[] = []
@@ -222,7 +222,7 @@ export function createContentBulkImportAdapter(
             errors.push(`Initiative not found: ${initiativeName}`)
             continue
           }
-          addContentItem({
+          const result = await addContentItem({
             initiativeId: initiative.id,
             title: biFromString(title, lang) ?? { en: title, fr: `[FR review] ${title}` },
             body: biFromString(row.body ?? '', lang),
@@ -235,13 +235,18 @@ export function createContentBulkImportAdapter(
             owner,
             timeZone: row.timeZone?.trim() || 'America/Toronto',
           })
+          if (!result) {
+            failed++
+            errors.push('Failed to create content item')
+            continue
+          }
           created++
         } catch (err) {
           failed++
           errors.push(err instanceof Error ? err.message : String(err))
         }
       }
-      return Promise.resolve({ created, failed, errors })
+      return { created, failed, errors }
     },
     sampleTemplate: ['initiative', 'title', 'body', 'language', 'channel', 'status', 'deliveryStatus', 'dueDate', 'scheduledFor', 'owner', 'timeZone'],
   }
