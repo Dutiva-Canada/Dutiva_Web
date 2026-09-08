@@ -104,6 +104,7 @@ import {
 /* prettier-ignore */ const CommsInitiatives = lazy(() => import('@/features/app/views/comms/screens/Initiatives').then((m) => ({ default: m.Initiatives })))
 /* prettier-ignore */ const CommsContentCalendar = lazy(() => import('@/features/app/views/comms/screens/ContentCalendar').then((m) => ({ default: m.ContentCalendar })))
 /* prettier-ignore */ const CommsRelationships = lazy(() => import('@/features/app/views/comms/screens/Relationships').then((m) => ({ default: m.Relationships })))
+/* prettier-ignore */ const CommsSegments = lazy(() => import('@/features/app/views/comms/screens/Segments').then((m) => ({ default: m.Segments })))
 /* prettier-ignore */ const CommsEngagement = lazy(() => import('@/features/app/views/comms/screens/Engagement').then((m) => ({ default: m.Engagement })))
 /* prettier-ignore */ const CommsIntelligence = lazy(() => import('@/features/app/views/comms/screens/Intelligence').then((m) => ({ default: m.Intelligence })))
 /* prettier-ignore */ const CommsResults = lazy(() => import('@/features/app/views/comms/screens/Results').then((m) => ({ default: m.Results })))
@@ -199,6 +200,7 @@ function createAppViewRoutes(root: string): RouteObject[] {
         { path: 'initiatives', element: <CommsInitiatives /> },
         { path: 'content', element: <CommsContentCalendar /> },
         { path: 'relationships', element: <CommsRelationships /> },
+        { path: 'segments', element: <CommsSegments /> },
         { path: 'engagement', element: <CommsEngagement /> },
         { path: 'intelligence', element: <CommsIntelligence /> },
         { path: 'results', element: <CommsResults /> },

@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { FileUp, Plus, X } from 'lucide-react'
 import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { BulkImportWizard } from '@/features/app/bulkImport/BulkImportWizard'
 import { useStakeholders } from '../data/useStakeholders'
-import type { CommsContact, CommsContactType, CommsOrganization } from '../data/types'
+import { useSegments } from '../data/useSegments'
+import type { CommsContact, CommsContactType, CommsOrganization, CommsSegment } from '../data/types'
 import { CONTACT_TYPE_LABEL } from '../commsLabels'
 import { createContactBulkImportAdapter } from '../bulkImport/contactAdapter'
 import { createOrganizationBulkImportAdapter } from '../bulkImport/organizationAdapter'
@@ -29,11 +30,15 @@ function biInput(value: string, lang: 'en' | 'fr'): Bi | undefined {
 function ContactForm({
   onCancel,
   organizations,
+  segments,
   onAdd,
+  onAssign,
 }: {
   onCancel: () => void
   organizations: CommsOrganization[]
-  onAdd: (item: Omit<CommsContact, 'id'>) => void
+  segments: CommsSegment[]
+  onAdd: (item: Omit<CommsContact, 'id'>) => Promise<CommsContact | null>
+  onAssign: (contactId: string, segmentId: string) => void
 }) {
   const { x, lang } = useI18n()
   const [name, setName] = useState('')
@@ -44,21 +49,33 @@ function ContactForm({
   const [channel, setChannel] = useState('')
   const [source, setSource] = useState('')
   const [active, setActive] = useState(true)
+  const [segmentIds, setSegmentIds] = useState<string[]>([])
+
+  const toggleSegment = (segmentId: string, checked: boolean) => {
+    setSegmentIds((prev) =>
+      checked ? [...prev, segmentId] : prev.filter((id) => id !== segmentId),
+    )
+  }
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!name.trim()) return
-    onAdd({
-      name: name.trim(),
-      type,
-      organizationId: organizationId || undefined,
-      role: biInput(role, lang),
-      purpose: biInput(purpose, lang),
-      channelPreference: biInput(channel, lang),
-      source: biInput(source, lang),
-      active,
-    })
-    onCancel()
+    void (async () => {
+      const created = await onAdd({
+        name: name.trim(),
+        type,
+        organizationId: organizationId || undefined,
+        role: biInput(role, lang),
+        purpose: biInput(purpose, lang),
+        channelPreference: biInput(channel, lang),
+        source: biInput(source, lang),
+        active,
+      })
+      if (created) {
+        for (const segmentId of segmentIds) onAssign(created.id, segmentId)
+      }
+      onCancel()
+    })()
   }
 
   return (
@@ -121,6 +138,27 @@ function ContactForm({
             {x(M.comms_contact_active)}
           </label>
         </div>
+        {segments.length > 0 && (
+          <div className="sm:col-span-2">
+            <span className={labelClass}>{x(M.comms_segments_assign)}</span>
+            <div className="flex flex-wrap gap-[12px]">
+              {segments.map((segment) => (
+                <label
+                  key={segment.id}
+                  className="flex items-center gap-[6px] text-[12.5px] text-text"
+                >
+                  <input
+                    type="checkbox"
+                    checked={segmentIds.includes(segment.id)}
+                    onChange={(e) => toggleSegment(segment.id, e.target.checked)}
+                    className={checkboxClass}
+                  />
+                  {x(segment.name)}
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       <div className="mt-[14px] flex gap-[8px]">
         <button
@@ -221,9 +259,36 @@ export function Relationships() {
     removeContact,
     removeOrganization,
   } = useStakeholders()
+  const {
+    segments,
+    segmentMemberships,
+    addContact: assignToSegment,
+  } = useSegments()
   const [addingContact, setAddingContact] = useState(false)
   const [addingOrg, setAddingOrg] = useState(false)
   const [bulkImport, setBulkImport] = useState<'contact' | 'organization' | null>(null)
+  const [segmentFilter, setSegmentFilter] = useState('')
+
+  const segmentsByContact = useMemo(() => {
+    const byId = new Map(segments.map((s) => [s.id, s]))
+    const map = new Map<string, CommsSegment[]>()
+    for (const membership of segmentMemberships) {
+      const segment = byId.get(membership.segmentId)
+      if (!segment) continue
+      const list = map.get(membership.contactId) ?? []
+      list.push(segment)
+      map.set(membership.contactId, list)
+    }
+    return map
+  }, [segments, segmentMemberships])
+
+  const filteredContacts = segmentFilter
+    ? contacts.filter((c) =>
+        segmentMemberships.some(
+          (m) => m.segmentId === segmentFilter && m.contactId === c.id,
+        ),
+      )
+    : contacts
 
   return (
     <div className="flex flex-col gap-[16px]">
@@ -258,15 +323,38 @@ export function Relationships() {
           <ContactForm
             onCancel={() => setAddingContact(false)}
             organizations={organizations}
+            segments={segments}
             onAdd={addContact}
+            onAssign={(contactId, segmentId) => void assignToSegment(contactId, segmentId)}
           />
         )}
 
-        {contacts.length === 0 ? (
+        {segments.length > 0 && contacts.length > 0 && (
+          <div className="mb-[12px] max-w-[280px]">
+            <label htmlFor="contact-segment-filter" className={labelClass}>
+              {x(M.comms_segments_filter_by)}
+            </label>
+            <select
+              id="contact-segment-filter"
+              value={segmentFilter}
+              onChange={(e) => setSegmentFilter(e.target.value)}
+              className={inputClass}
+            >
+              <option value="">{x(M.comms_segments_filter_all)}</option>
+              {segments.map((segment) => (
+                <option key={segment.id} value={segment.id}>
+                  {x(segment.name)}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {filteredContacts.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.comms_relationships_empty)}</p>
         ) : (
           <ul className="m-0 flex flex-col gap-[10px] p-0">
-            {contacts.map((contact) => (
+            {filteredContacts.map((contact) => (
               <li key={contact.id} className="rounded-[8px] bg-inset p-[12px]">
                 <div className="flex items-start justify-between gap-[12px]">
                   <div className="flex items-center gap-[8px]">
@@ -305,6 +393,18 @@ export function Relationships() {
                 {contact.channelPreference && (
                   <div className="text-[12px] text-text-2">
                     <span className="font-semibold">{x(M.comms_contact_preference)}:</span> {x(contact.channelPreference)}
+                  </div>
+                )}
+                {(segmentsByContact.get(contact.id)?.length ?? 0) > 0 && (
+                  <div className="mt-[6px] flex flex-wrap gap-[6px]">
+                    {segmentsByContact.get(contact.id)!.map((segment) => (
+                      <span
+                        key={segment.id}
+                        className="rounded-[100px] bg-surface px-[8px] py-[2px] text-[11px] font-semibold text-text-2"
+                      >
+                        {x(segment.name)}
+                      </span>
+                    ))}
                   </div>
                 )}
               </li>

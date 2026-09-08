@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -11,31 +11,6 @@ export type Database = {
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
-  }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
   }
   public: {
     Tables: {
@@ -1705,6 +1680,87 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "comms_brand_claims_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comms_contact_segment_memberships: {
+        Row: {
+          comms_contact_id: string
+          comms_segment_id: string
+          created_at: string
+          id: string
+          organization_id: string
+        }
+        Insert: {
+          comms_contact_id: string
+          comms_segment_id: string
+          created_at?: string
+          id?: string
+          organization_id: string
+        }
+        Update: {
+          comms_contact_id?: string
+          comms_segment_id?: string
+          created_at?: string
+          id?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comms_contact_segment_memberships_comms_contact_id_fkey"
+            columns: ["comms_contact_id"]
+            isOneToOne: false
+            referencedRelation: "comms_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comms_contact_segment_memberships_comms_segment_id_fkey"
+            columns: ["comms_segment_id"]
+            isOneToOne: false
+            referencedRelation: "comms_contact_segments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comms_contact_segment_memberships_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comms_contact_segments: {
+        Row: {
+          created_at: string
+          description: Json | null
+          id: string
+          name: Json
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: Json | null
+          id?: string
+          name: Json
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: Json | null
+          id?: string
+          name?: Json
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comms_contact_segments_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -14825,9 +14881,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },

@@ -1,5 +1,10 @@
 import { bi } from '@/i18n/core'
-import type { CommsInitiative, CommsWorkspaceState } from './types'
+import type {
+  CommsInitiative,
+  CommsSegment,
+  CommsSegmentMembership,
+  CommsWorkspaceState,
+} from './types'
 
 /**
  * Demo fixtures for the communications workspace, including the bilingual SMB
@@ -14,7 +19,10 @@ const productLaunch: CommsInitiative = {
   type: 'campaign',
   domain: 'imc',
   owner: 'Riley Summers',
-  audience: bi('Prospective employers in Ontario and Quebec', 'Employeurs potentiels en Ontario et au Québec'),
+  audience: bi(
+    'Prospective employers in Ontario and Quebec',
+    'Employeurs potentiels en Ontario et au Québec',
+  ),
   intendedOutcome: bi(
     'Generate qualified registrations for the Dutiva communications workspace preview.',
     'Générer des inscriptions qualifiées pour l’aperçu de l’espace de travail Communications de Dutiva.',
@@ -35,7 +43,10 @@ const policyConsultation: CommsInitiative = {
   type: 'policy_consultation',
   domain: 'public_affairs',
   owner: 'Alex Dubois',
-  audience: bi('Policy staff and stakeholder coalitions', 'Personnel politique et coalitions de parties prenantes'),
+  audience: bi(
+    'Policy staff and stakeholder coalitions',
+    'Personnel politique et coalitions de parties prenantes',
+  ),
   intendedOutcome: bi(
     'Record an informed, reviewable public-affairs position without a sales objective.',
     'Consigner une position en matière d’affaires publiques, éclairée et révisable, sans objectif de vente.',
@@ -48,7 +59,10 @@ const policyConsultation: CommsInitiative = {
 
 const hrHandoffIssue: CommsInitiative = {
   id: 'init-3',
-  title: bi('Workplace conduct review — communications hold', 'Examen de conduite au travail — suspension des communications'),
+  title: bi(
+    'Workplace conduct review — communications hold',
+    'Examen de conduite au travail — suspension des communications',
+  ),
   type: 'issue_response',
   domain: 'corporate',
   owner: 'Riley Summers',
@@ -60,6 +74,36 @@ const hrHandoffIssue: CommsInitiative = {
   startDate: '2026-09-05',
   risk: 'high',
   status: 'active',
+}
+
+const tier1Media: CommsSegment = {
+  id: 'segment-1',
+  name: bi('Tier-1 Media', 'Médias de premier plan'),
+  description: bi(
+    'National and trade outlets that should receive embargoed pitches.',
+    'Médias nationaux et spécialisés qui doivent recevoir des sollicitations sous embargo.',
+  ),
+}
+
+const bilingualCreators: CommsSegment = {
+  id: 'segment-2',
+  name: bi('Bilingual Creators', 'Créateurs bilingues'),
+  description: bi(
+    'Creators who publish in both English and French.',
+    'Créateurs qui publient en anglais et en français.',
+  ),
+}
+
+const tier1MediaSamira: CommsSegmentMembership = {
+  id: 'membership-1',
+  segmentId: 'segment-1',
+  contactId: 'contact-1',
+}
+
+const bilingualCreatorsPriya: CommsSegmentMembership = {
+  id: 'membership-2',
+  segmentId: 'segment-2',
+  contactId: 'contact-3',
 }
 
 export const initialCommsState: CommsWorkspaceState = {
@@ -109,7 +153,10 @@ export const initialCommsState: CommsWorkspaceState = {
         'French adaptation pending after English source revision.',
         'Adaptation française en attente après la révision de la source anglaise.',
       ),
-      revisionNote: bi('Marked for re-review because the English source changed.', 'Marquée pour relecture parce que la source anglaise a changé.'),
+      revisionNote: bi(
+        'Marked for re-review because the English source changed.',
+        'Marquée pour relecture parce que la source anglaise a changé.',
+      ),
       needsTranslationReview: true,
     },
     {
@@ -134,7 +181,10 @@ export const initialCommsState: CommsWorkspaceState = {
       deliveryStatus: 'not_queued',
       dueDate: '2026-09-12',
       owner: 'Riley Summers',
-      body: bi('Pitch to Canadian HR trade media.', 'Sollicitation des médias spécialisés canadiens en RH.'),
+      body: bi(
+        'Pitch to Canadian HR trade media.',
+        'Sollicitation des médias spécialisés canadiens en RH.',
+      ),
     },
     {
       id: 'content-5',
@@ -146,7 +196,10 @@ export const initialCommsState: CommsWorkspaceState = {
       deliveryStatus: 'not_queued',
       dueDate: '2026-09-11',
       owner: 'Morgan Patel',
-      body: bi('Launch-week edition for the waitlist.', 'Édition de la semaine du lancement pour la liste d’attente.'),
+      body: bi(
+        'Launch-week edition for the waitlist.',
+        'Édition de la semaine du lancement pour la liste d’attente.',
+      ),
     },
     {
       id: 'content-6',
@@ -159,7 +212,10 @@ export const initialCommsState: CommsWorkspaceState = {
       dueDate: '2026-09-15',
       timeZone: 'America/Toronto',
       owner: 'Alex Dubois',
-      body: bi('Key arguments and evidence links for coalition meetings.', 'Arguments clés et liens probants pour les réunions de coalition.'),
+      body: bi(
+        'Key arguments and evidence links for coalition meetings.',
+        'Arguments clés et liens probants pour les réunions de coalition.',
+      ),
     },
   ],
   contacts: [
@@ -168,7 +224,10 @@ export const initialCommsState: CommsWorkspaceState = {
       name: 'Samira Okonkwo',
       type: 'media',
       role: bi('Editor, Canadian HR Reporter', 'Rédactrice, Canadian HR Reporter'),
-      purpose: bi('Press pitch and coverage follow-up', 'Sollicitation médiatique et suivi de couverture'),
+      purpose: bi(
+        'Press pitch and coverage follow-up',
+        'Sollicitation médiatique et suivi de couverture',
+      ),
       channelPreference: bi('Email', 'Courriel'),
       active: true,
     },
@@ -177,7 +236,10 @@ export const initialCommsState: CommsWorkspaceState = {
       name: 'Leo Tremblay',
       type: 'institutional',
       role: bi('Policy Advisor, Innovation Canada', 'Conseiller politique, Innovation Canada'),
-      purpose: bi('AI-in-HR consultation stakeholder', 'Partie prenante à la consultation sur l’IA en RH'),
+      purpose: bi(
+        'AI-in-HR consultation stakeholder',
+        'Partie prenante à la consultation sur l’IA en RH',
+      ),
       channelPreference: bi('Email and meetings', 'Courriel et réunions'),
       active: true,
     },
@@ -241,7 +303,10 @@ export const initialCommsState: CommsWorkspaceState = {
       id: 'policy-1',
       initiativeId: 'init-2',
       jurisdiction: bi('Federal', 'Fédéral'),
-      authority: bi('Innovation, Science and Economic Development Canada', 'Innovation, Sciences et Développement économique Canada'),
+      authority: bi(
+        'Innovation, Science and Economic Development Canada',
+        'Innovation, Sciences et Développement économique Canada',
+      ),
       objective: bi(
         'Comment on proposed AI guidance for employers.',
         'Commenter l’orientation proposée sur l’IA pour les employeurs.',
@@ -289,7 +354,10 @@ export const initialCommsState: CommsWorkspaceState = {
       publishedDate: '2026-09-04',
       jurisdiction: bi('Internal', 'Interne'),
       classification: bi('Internal evidence', 'Preuve interne'),
-      supports: bi('Claim rejected: needs substantiation before use in public copy.', 'Revendication rejetée : justification requise avant usage dans le texte public.'),
+      supports: bi(
+        'Claim rejected: needs substantiation before use in public copy.',
+        'Revendication rejetée : justification requise avant usage dans le texte public.',
+      ),
     },
     {
       id: 'source-3',
@@ -300,18 +368,27 @@ export const initialCommsState: CommsWorkspaceState = {
       retrievedAt: '2026-09-06T12:00:00Z',
       jurisdiction: bi('National', 'Nationale'),
       classification: bi('Trade coverage', 'Couverture spécialisée'),
-      supports: bi('Early launch-week mention — reach not verified.', 'Mention précoce de la semaine du lancement — portée non vérifiée.'),
+      supports: bi(
+        'Early launch-week mention — reach not verified.',
+        'Mention précoce de la semaine du lancement — portée non vérifiée.',
+      ),
     },
     {
       id: 'source-4',
       initiativeId: 'init-2',
       sourceType: 'partner',
-      publisher: bi('Coalition for Ethical AI in Employment', 'Coalition pour une IA éthique en emploi'),
+      publisher: bi(
+        'Coalition for Ethical AI in Employment',
+        'Coalition pour une IA éthique en emploi',
+      ),
       publishedDate: '2026-09-03',
       retrievedAt: '2026-09-04T09:30:00Z',
       jurisdiction: bi('Federal', 'Fédéral'),
       classification: bi('Stakeholder position', 'Position de partie prenante'),
-      supports: bi('Context for coalition submission.', 'Contexte pour la soumission de la coalition.'),
+      supports: bi(
+        'Context for coalition submission.',
+        'Contexte pour la soumission de la coalition.',
+      ),
     },
   ],
   feeds: [
@@ -331,7 +408,10 @@ export const initialCommsState: CommsWorkspaceState = {
       initiativeId: 'init-1',
       sourceId: 'source-3',
       outlet: bi('Canadian HR Reporter', 'Canadian HR Reporter'),
-      headline: bi('Dutiva previews communications workspace for Canadian teams', 'Dutiva dévoile un aperçu de son espace de travail Communications pour les équipes canadiennes'),
+      headline: bi(
+        'Dutiva previews communications workspace for Canadian teams',
+        'Dutiva dévoile un aperçu de son espace de travail Communications pour les équipes canadiennes',
+      ),
       language: 'en',
       publishedDate: '2026-09-06',
       url: 'https://www.hrreporter.com/example-article',
@@ -339,20 +419,29 @@ export const initialCommsState: CommsWorkspaceState = {
       sentiment: 'neutral',
       provenance: 'manual',
       owner: 'Riley Summers',
-      notes: bi('Reach is an estimate from the outlet kit.', 'La portée est une estimation tirée du kit du média.'),
+      notes: bi(
+        'Reach is an estimate from the outlet kit.',
+        'La portée est une estimation tirée du kit du média.',
+      ),
     },
     {
       id: 'coverage-2',
       initiativeId: 'init-1',
       outlet: bi('LinkedIn', 'LinkedIn'),
-      headline: bi('Bilingual product-launch discussion', 'Discussion sur le lancement bilingue du produit'),
+      headline: bi(
+        'Bilingual product-launch discussion',
+        'Discussion sur le lancement bilingue du produit',
+      ),
       language: 'bilingual',
       publishedDate: '2026-09-07',
       reach: 180,
       sentiment: 'positive',
       provenance: 'manual',
       owner: 'Jordan Lee',
-      notes: bi('Engagement only; reach is not de-duplicated across platforms.', 'Engagement seulement; la portée n’est pas dédupliquée entre les plateformes.'),
+      notes: bi(
+        'Engagement only; reach is not de-duplicated across platforms.',
+        'Engagement seulement; la portée n’est pas dédupliquée entre les plateformes.',
+      ),
     },
   ],
   submissions: [
@@ -360,7 +449,10 @@ export const initialCommsState: CommsWorkspaceState = {
       id: 'submission-1',
       initiativeId: 'init-2',
       policyFileId: 'policy-1',
-      authority: bi('Innovation, Science and Economic Development Canada', 'Innovation, Sciences et Développement économique Canada'),
+      authority: bi(
+        'Innovation, Science and Economic Development Canada',
+        'Innovation, Sciences et Développement économique Canada',
+      ),
       deadline: '2026-09-30',
       method: bi('Online consultation portal', 'Portail de consultation en ligne'),
       owner: 'Alex Dubois',
@@ -431,4 +523,6 @@ export const initialCommsState: CommsWorkspaceState = {
   usageControls: {},
   integrations: [],
   executionEvents: [],
+  segments: [tier1Media, bilingualCreators],
+  segmentMemberships: [tier1MediaSamira, bilingualCreatorsPriya],
 }

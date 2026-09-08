@@ -23,6 +23,7 @@ export const commsMessages = defineMessages({
   comms_tab_initiatives: { en: 'Initiatives', fr: 'Initiatives' },
   comms_tab_content: { en: 'Content & calendar', fr: 'Contenu et calendrier' },
   comms_tab_relationships: { en: 'Relationships', fr: 'Relations' },
+  comms_tab_segments: { en: 'Segments', fr: 'Segments' },
   comms_tab_engagement: { en: 'Engagement', fr: 'Interactions' },
   comms_tab_intelligence: { en: 'Intelligence & issues', fr: 'Veille et enjeux' },
   comms_tab_results: { en: 'Results', fr: 'Résultats' },
@@ -231,6 +232,32 @@ export const commsMessages = defineMessages({
   comms_contact_type_partner: { en: 'Partner', fr: 'Partenaire' },
   comms_contact_type_creator: { en: 'Creator', fr: 'Créateur' },
   comms_contact_type_audience: { en: 'Audience', fr: 'Public' },
+
+  /* Segments */
+  comms_segments_title: { en: 'Segments', fr: 'Segments' },
+  comms_segments_subtitle: {
+    en: 'Group contacts for targeted outreach.',
+    fr: 'Regroupez des contacts pour des envois ciblés.',
+  },
+  comms_segments_empty: { en: 'No segments yet.', fr: 'Aucun segment pour l’instant.' },
+  comms_segments_add: { en: 'Add segment', fr: 'Ajouter un segment' },
+  comms_segments_name: { en: 'Segment name', fr: 'Nom du segment' },
+  comms_segments_description: { en: 'Description', fr: 'Description' },
+  comms_segments_contacts: { en: 'Contacts in this segment', fr: 'Contacts dans ce segment' },
+  comms_segments_contacts_empty: {
+    en: 'No contacts in this segment yet.',
+    fr: 'Aucun contact dans ce segment pour l’instant.',
+  },
+  comms_segments_add_contact: { en: 'Add contact', fr: 'Ajouter un contact' },
+  comms_segments_remove_contact: { en: 'Remove from segment', fr: 'Retirer du segment' },
+  comms_segments_delete_confirm: {
+    en: 'Delete this segment? Its contacts stay in your list.',
+    fr: 'Supprimer ce segment? Ses contacts restent dans votre liste.',
+  },
+  comms_segments_filter_all: { en: 'All segments', fr: 'Tous les segments' },
+  comms_segments_filter_by: { en: 'Filter by segment', fr: 'Filtrer par segment' },
+  comms_segments_members_count: { en: 'contacts', fr: 'contacts' },
+  comms_segments_assign: { en: 'Assign to segments', fr: 'Assigner à des segments' },
 
   /* Engagement */
   comms_engagement_title: { en: 'Engagement', fr: 'Interactions' },
@@ -473,6 +500,17 @@ export const commsMessages = defineMessages({
   comms_analytics_coverage: { en: 'Coverage', fr: 'Couverture' },
   comms_analytics_submissions: { en: 'Submissions', fr: 'Soumissions' },
   comms_analytics_brand_claims: { en: 'Brand claims', fr: 'Revendications de marque' },
+  comms_analytics_segments: { en: 'Segments', fr: 'Segments' },
+  comms_analytics_contacts_in_segments: {
+    en: 'Contacts in segments',
+    fr: 'Contacts dans des segments',
+  },
+  comms_analytics_contacts_by_type: { en: 'Contacts by type', fr: 'Contacts par type' },
+  comms_analytics_top_segment: { en: 'Largest segment', fr: 'Plus grand segment' },
+  comms_analytics_segment_breakdown: {
+    en: 'Contacts per segment',
+    fr: 'Contacts par segment',
+  },
   comms_analytics_empty: { en: 'No Comms activity to report yet.', fr: 'Aucune activité Comms à rapporter pour l’instant.' },
 
   /* Demo / production notices */

@@ -6,6 +6,8 @@ import { listDocuments } from '@/features/app/documents/productionApi'
 import { referenceGuides } from '@/features/app/reference/data'
 import { listCases } from '@/features/app/views/cases/productionApi'
 import { listCommunications } from '@/features/app/views/communications/productionApi'
+import { listSegments } from '@/features/app/views/comms/data/segmentsApi'
+import { listContacts } from '@/features/app/views/comms/data/stakeholdersApi'
 import { sensitiveCaseTypes } from '@/features/app/views/cases/caseModel'
 import { listFindings } from '@/features/app/views/compliance/productionApi'
 import { listEmployees } from '@/features/app/views/employees/productionApi'
@@ -71,6 +73,8 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     conversations,
     documents,
     comms,
+    commsSegments,
+    commsContacts,
     tasks,
     findings,
     policies,
@@ -96,6 +100,8 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     listOwnConversations(24),
     listDocuments(organizationId),
     listCommunications(organizationId),
+    listSegments(organizationId),
+    listContacts(organizationId),
     listTasks(organizationId),
     listFindings(organizationId),
     listPolicies(organizationId),
@@ -183,6 +189,28 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     restricted: false,
     match: neutral(c.title),
     nav: { kind: 'view', view: 'communications' },
+  }))
+
+  const commsSegmentEntries: SearchEntry[] = commsSegments.map((s) => ({
+    id: `seg-${s.id}`,
+    kind: 'comms',
+    kindLabel: M.search_kind_comms,
+    title: s.name,
+    sub: s.description,
+    restricted: false,
+    match: s.description ? joinBi([s.name, s.description]) : s.name,
+    nav: { kind: 'view', view: 'comms/segments' },
+  }))
+
+  const commsContactEntries: SearchEntry[] = commsContacts.map((c) => ({
+    id: `comm-contact-${c.id}`,
+    kind: 'comms',
+    kindLabel: M.search_kind_comms,
+    title: neutral(c.name),
+    sub: c.role,
+    restricted: false,
+    match: c.role ? joinBi([neutral(c.name), c.role]) : neutral(c.name),
+    nav: { kind: 'view', view: 'comms/relationships' },
   }))
 
   const taskEntries: SearchEntry[] = tasks.map((t) => ({
@@ -491,6 +519,8 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     ...templateEntries,
     ...generatedEntries,
     ...commsEntries,
+    ...commsSegmentEntries,
+    ...commsContactEntries,
     ...taskEntries,
     ...complianceEntries,
     ...policyEntries,

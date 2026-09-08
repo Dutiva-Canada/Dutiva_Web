@@ -2,6 +2,7 @@ import type { Bi, Lang } from '@/i18n/core'
 import { bi, pick } from '@/i18n/core'
 import { searchMessages as M } from '@/i18n/messages/search'
 import { shellMessages as S } from '@/i18n/messages/shell'
+import { commsMessages as C } from '@/i18n/messages/comms'
 import { sensitiveCaseTypes } from '@/features/app/views/cases/caseModel'
 import {
   cases,
@@ -71,6 +72,8 @@ export type SearchNav =
       kind: 'view'
       view:
         | 'communications'
+        | 'comms/relationships'
+        | 'comms/segments'
         | 'tasks'
         | 'compliance'
         | 'policies'
@@ -301,6 +304,15 @@ const moduleEntries: SearchEntry[] = [
     restricted: false,
     match: S.shell_v_revenue,
     nav: { kind: 'view', view: 'revenue/overview' },
+  },
+  {
+    id: 'mod-comms-segments',
+    kind: 'comms',
+    kindLabel: M.search_kind_comms,
+    title: C.comms_tab_segments,
+    restricted: false,
+    match: C.comms_tab_segments,
+    nav: { kind: 'view', view: 'comms/segments' },
   },
 ]
 

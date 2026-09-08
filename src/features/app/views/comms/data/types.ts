@@ -10,13 +10,7 @@ import type { Bi } from '@/i18n/core'
  */
 
 export type CommsDomain =
-  | 'pr'
-  | 'corporate'
-  | 'social'
-  | 'public_affairs'
-  | 'marketing'
-  | 'advertising'
-  | 'imc'
+  'pr' | 'corporate' | 'social' | 'public_affairs' | 'marketing' | 'advertising' | 'imc'
 
 export type CommsInitiativeType =
   | 'campaign'
@@ -61,13 +55,7 @@ export interface CommsObjective {
 }
 
 export type CommsContentStatus =
-  | 'draft'
-  | 'in_review'
-  | 'changes_requested'
-  | 'approved'
-  | 'superseded'
-  | 'withdrawn'
-  | 'rejected'
+  'draft' | 'in_review' | 'changes_requested' | 'approved' | 'superseded' | 'withdrawn' | 'rejected'
 
 export type CommsDeliveryStatus =
   | 'not_queued'
@@ -150,6 +138,21 @@ export interface CommsContact {
   active: boolean
 }
 
+export interface CommsSegment {
+  id: string
+  name: Bi
+  description?: Bi
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface CommsSegmentMembership {
+  id: string
+  segmentId: string
+  contactId: string
+  createdAt?: string
+}
+
 export interface CommsOrganization {
   id: string
   name: string
@@ -158,20 +161,9 @@ export interface CommsOrganization {
   notes?: Bi
 }
 
-export type CommsInteractionType =
-  | 'inquiry'
-  | 'comment'
-  | 'dm'
-  | 'pitch'
-  | 'meeting'
-  | 'submission'
+export type CommsInteractionType = 'inquiry' | 'comment' | 'dm' | 'pitch' | 'meeting' | 'submission'
 
-export type CommsInteractionStatus =
-  | 'open'
-  | 'pending'
-  | 'responded'
-  | 'escalated'
-  | 'closed'
+export type CommsInteractionStatus = 'open' | 'pending' | 'responded' | 'escalated' | 'closed'
 
 export type CommsInteractionVisibility = 'public' | 'internal' | 'restricted'
 
@@ -191,11 +183,7 @@ export interface CommsInteraction {
 }
 
 export type CommsPolicyStage =
-  | 'proposed'
-  | 'enacted'
-  | 'in_force'
-  | 'consultation_open'
-  | 'consultation_closed'
+  'proposed' | 'enacted' | 'in_force' | 'consultation_open' | 'consultation_closed'
 
 export interface CommsPolicyFile {
   id: string
@@ -229,13 +217,7 @@ export interface CommsIssue {
 }
 
 export type CommsSourceType =
-  | 'official_notice'
-  | 'news'
-  | 'social'
-  | 'press_release'
-  | 'internal'
-  | 'partner'
-  | 'manual'
+  'official_notice' | 'news' | 'social' | 'press_release' | 'internal' | 'partner' | 'manual'
 
 export interface CommsSource {
   id: string
@@ -386,4 +368,6 @@ export interface CommsWorkspaceState {
   integrations: CommsIntegration[]
   /** Audit trail of manual delivery actions. Not a provider log. */
   executionEvents: CommsExecutionEvent[]
+  segments: CommsSegment[]
+  segmentMemberships: CommsSegmentMembership[]
 }

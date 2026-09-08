@@ -74,6 +74,30 @@ vi.mock('@/features/app/views/communications/productionApi', () => ({
   ]),
 }))
 
+vi.mock('@/features/app/views/comms/data/segmentsApi', () => ({
+  listSegments: vi.fn(async () => [
+    {
+      id: 'sg1',
+      name: { en: 'Tier-1 Media', fr: 'Médias de premier plan' },
+      description: { en: 'Top outlets', fr: 'Meilleurs médias' },
+      createdAt: '2026-09-08T10:00:00Z',
+      updatedAt: '2026-09-08T10:00:00Z',
+    },
+  ]),
+}))
+
+vi.mock('@/features/app/views/comms/data/stakeholdersApi', () => ({
+  listContacts: vi.fn(async () => [
+    {
+      id: 'cc1',
+      name: 'Samira Okonkwo',
+      type: 'media',
+      role: { en: 'Editor, Canadian HR Reporter', fr: 'Rédactrice, Canadian HR Reporter' },
+      active: true,
+    },
+  ]),
+}))
+
 vi.mock('@/features/app/views/tasks/productionApi', () => ({
   listTasks: vi.fn(async () => [
     {
@@ -393,6 +417,13 @@ describe('buildProductionSearchEntries', () => {
     expect(byId.get('chat-1')?.nav).toEqual({ kind: 'chat', chatId: 'chat-1' })
     expect(byId.get('gen-doc-1')?.nav).toEqual({ kind: 'generatedDocument', docId: 'doc-1' })
     expect(byId.get('doc-T03')?.nav).toEqual({ kind: 'document', docKey: 'T03' })
+    expect(byId.get('seg-sg1')?.nav).toEqual({ kind: 'view', view: 'comms/segments' })
+    expect(byId.get('comm-contact-cc1')?.nav).toEqual({
+      kind: 'view',
+      view: 'comms/relationships',
+    })
+    expect(byId.get('seg-sg1')?.title.en).toBe('Tier-1 Media')
+    expect(byId.get('comm-contact-cc1')?.title.en).toBe('Samira Okonkwo')
     expect(byId.get('gov-record-gr1')?.nav).toEqual({ kind: 'view', view: 'governance/records' })
     expect(byId.get('gov-decision-gd1')?.nav).toEqual({
       kind: 'view',

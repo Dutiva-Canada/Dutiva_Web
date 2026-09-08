@@ -54,6 +54,8 @@ const emptyCommsState: CommsWorkspaceState = {
   usageControls: {},
   integrations: [],
   executionEvents: [],
+  segments: [],
+  segmentMemberships: [],
 }
 
 // Production workspaces seeded before 2026-09-06 stored the demo fixtures.
@@ -104,6 +106,8 @@ function normalizeState(parsed: CommsWorkspaceState): CommsWorkspaceState {
     usageControls: parsed.usageControls ?? emptyCommsState.usageControls,
     integrations: parsed.integrations ?? emptyCommsState.integrations,
     executionEvents: parsed.executionEvents ?? emptyCommsState.executionEvents,
+    segments: parsed.segments ?? emptyCommsState.segments,
+    segmentMemberships: parsed.segmentMemberships ?? emptyCommsState.segmentMemberships,
   }
 }
 
@@ -251,17 +255,24 @@ function nextDeliveryStatus(
 ): CommsContentItem['deliveryStatus'] | null {
   switch (action) {
     case 'schedule':
-      return current === 'not_queued' || current === 'ready' || current === 'scheduled' || current === 'paused'
+      return current === 'not_queued' ||
+        current === 'ready' ||
+        current === 'scheduled' ||
+        current === 'paused'
         ? 'scheduled'
         : null
     case 'unschedule':
       return current === 'scheduled' ? 'ready' : null
     case 'pause':
-      return current === 'scheduled' || current === 'ready' || current === 'sending' ? 'paused' : null
+      return current === 'scheduled' || current === 'ready' || current === 'sending'
+        ? 'paused'
+        : null
     case 'resume':
       return current === 'paused' ? 'ready' : null
     case 'mark_sent':
-      return current === 'scheduled' || current === 'ready' || current === 'sending' ? 'confirmed' : null
+      return current === 'scheduled' || current === 'ready' || current === 'sending'
+        ? 'confirmed'
+        : null
     case 'mark_failed':
       return current === 'scheduled' || current === 'sending' ? 'failed' : null
     case 'retry':
@@ -269,7 +280,9 @@ function nextDeliveryStatus(
     case 'reconcile':
       return current === 'unknown' ? 'confirmed' : null
     case 'cancel':
-      return current === 'scheduled' || current === 'ready' || current === 'paused' ? 'cancelled' : null
+      return current === 'scheduled' || current === 'ready' || current === 'paused'
+        ? 'cancelled'
+        : null
     default:
       return null
   }
@@ -335,14 +348,18 @@ export function toggleInitiativePause(
     if (!initiative) return state
     const nextStatus = paused
       ? 'paused'
-      : (initiative.status === 'paused' ? 'active' : initiative.status)
+      : initiative.status === 'paused'
+        ? 'active'
+        : initiative.status
     updated = { ...initiative, status: nextStatus }
     const events: Omit<CommsExecutionEvent, 'id'>[] = []
     const nextItems = state.contentItems.map<CommsContentItem>((c) => {
       if (c.initiativeId !== initiativeId) return c
       if (
         paused &&
-        (c.deliveryStatus === 'ready' || c.deliveryStatus === 'scheduled' || c.deliveryStatus === 'sending')
+        (c.deliveryStatus === 'ready' ||
+          c.deliveryStatus === 'scheduled' ||
+          c.deliveryStatus === 'sending')
       ) {
         events.push({
           contentItemId: c.id,
@@ -390,7 +407,11 @@ export function addSource(orgId: string, source: Omit<CommsSource, 'id'>): Comms
   return created
 }
 
-export function updateSource(orgId: string, id: string, patch: Partial<CommsSource>): CommsSource | null {
+export function updateSource(
+  orgId: string,
+  id: string,
+  patch: Partial<CommsSource>,
+): CommsSource | null {
   let result: CommsSource | null = null
   updateState(orgId, (state) => ({
     ...state,
@@ -410,7 +431,10 @@ export function removeSource(orgId: string, id: string): void {
   }))
 }
 
-export function addCoverageItem(orgId: string, item: Omit<CommsCoverageItem, 'id'>): CommsCoverageItem {
+export function addCoverageItem(
+  orgId: string,
+  item: Omit<CommsCoverageItem, 'id'>,
+): CommsCoverageItem {
   const created: CommsCoverageItem = { ...item, id: createId('coverage') }
   updateState(orgId, (state) => ({ ...state, coverageItems: [created, ...state.coverageItems] }))
   return created
@@ -440,7 +464,10 @@ export function removeCoverageItem(orgId: string, id: string): void {
   }))
 }
 
-export function addSubmission(orgId: string, submission: Omit<CommsSubmission, 'id'>): CommsSubmission {
+export function addSubmission(
+  orgId: string,
+  submission: Omit<CommsSubmission, 'id'>,
+): CommsSubmission {
   const created: CommsSubmission = { ...submission, id: createId('submission') }
   updateState(orgId, (state) => ({ ...state, submissions: [created, ...state.submissions] }))
   return created
@@ -564,7 +591,8 @@ export async function syncFeed(orgId: string, feedId: string): Promise<FeedSyncR
     const state = loadCommsState(orgId)
     const existingUrls = new Set(state.sources.map((s) => s.url).filter(Boolean))
     const existingCoverageUrls = new Set(state.coverageItems.map((c) => c.url).filter(Boolean))
-    const createCoverageDrafts = feed.createCoverageDrafts && COVERAGE_SOURCE_TYPES.has(feed.sourceType)
+    const createCoverageDrafts =
+      feed.createCoverageDrafts && COVERAGE_SOURCE_TYPES.has(feed.sourceType)
     let added = 0
     let coverageDrafts = 0
     for (const item of items) {
@@ -599,9 +627,10 @@ export async function syncFeed(orgId: string, feedId: string): Promise<FeedSyncR
         coverageDrafts++
       }
     }
-    const message = coverageDrafts > 0
-      ? `${added} source${added === 1 ? '' : 's'}, ${coverageDrafts} coverage draft${coverageDrafts === 1 ? '' : 's'}`
-      : `${added} source${added === 1 ? '' : 's'}`
+    const message =
+      coverageDrafts > 0
+        ? `${added} source${added === 1 ? '' : 's'}, ${coverageDrafts} coverage draft${coverageDrafts === 1 ? '' : 's'}`
+        : `${added} source${added === 1 ? '' : 's'}`
     updateFeed(orgId, feedId, {
       lastFetchedAt: new Date().toISOString(),
       lastFetchStatus: 'ok',
@@ -619,16 +648,15 @@ export async function syncFeed(orgId: string, feedId: string): Promise<FeedSyncR
   }
 }
 
-export async function syncAllFeeds(orgId: string): Promise<(FeedSyncResult & { feedId: string })[]> {
+export async function syncAllFeeds(
+  orgId: string,
+): Promise<(FeedSyncResult & { feedId: string })[]> {
   const feeds = loadCommsState(orgId).feeds.filter((f) => f.enabled)
   const results = await Promise.all(feeds.map((f) => syncFeed(orgId, f.id)))
   return results.map((r, i) => ({ ...r, feedId: feeds[i]!.id }))
 }
 
-export function addBrandClaim(
-  orgId: string,
-  claim: Omit<CommsBrandClaim, 'id'>,
-): CommsBrandClaim {
+export function addBrandClaim(orgId: string, claim: Omit<CommsBrandClaim, 'id'>): CommsBrandClaim {
   const created: CommsBrandClaim = { ...claim, id: createId('claim') }
   updateState(orgId, (state) => ({ ...state, brandClaims: [created, ...state.brandClaims] }))
   return created
@@ -658,10 +686,7 @@ export function removeBrandClaim(orgId: string, id: string): void {
   }))
 }
 
-export function addApproval(
-  orgId: string,
-  approval: Omit<CommsApproval, 'id'>,
-): CommsApproval {
+export function addApproval(orgId: string, approval: Omit<CommsApproval, 'id'>): CommsApproval {
   const created: CommsApproval = { ...approval, id: createId('approval') }
   updateState(orgId, (state) => {
     const contentItems = state.contentItems.map((c) => {

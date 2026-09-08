@@ -8,6 +8,7 @@ import {
   Megaphone,
   MessageSquare,
   Settings,
+  Tags,
 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
@@ -26,6 +27,7 @@ const TABS: CommsTab[] = [
   { key: 'initiatives', to: 'initiatives', label: 'comms_tab_initiatives', icon: Megaphone },
   { key: 'content', to: 'content', label: 'comms_tab_content', icon: CalendarDays },
   { key: 'relationships', to: 'relationships', label: 'comms_tab_relationships', icon: Contact },
+  { key: 'segments', to: 'segments', label: 'comms_tab_segments', icon: Tags },
   { key: 'engagement', to: 'engagement', label: 'comms_tab_engagement', icon: MessageSquare },
   { key: 'intelligence', to: 'intelligence', label: 'comms_tab_intelligence', icon: Eye },
   { key: 'results', to: 'results', label: 'comms_tab_results', icon: BarChart3 },
