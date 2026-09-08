@@ -8,12 +8,14 @@ import { homeMessages as M } from '@/i18n/messages/home'
 import { ChatComposer } from '@/features/app/advisor/ChatComposer'
 import { statusChipClass } from '@/components/chips'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { useOrgRole } from '@/features/app/workspaceMode/useOrgRole'
 import { PlanContext } from '@/features/app/billing/planContext'
 import { UpgradeNudge } from '@/features/app/billing/PlanGate'
 import { hasPlanFeature } from '@/features/app/billing/planAccess'
 import { PLAN_FEATURE_GATES_ENABLED, hasActiveSubscription } from '@/config/plans'
 import { HomeProductionEmptyState } from './HomeProductionEmptyState'
 import { useHomeProductionStats } from './useHomeProductionStats'
+import { homeRoleProfile } from './homeRoleConfig'
 import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
@@ -33,6 +35,8 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
   const { x } = useI18n()
   const { root } = useWorkspaceRoot()
   const { identity, organizationId } = useWorkspaceMode()
+  const role = useOrgRole()
+  const profile = homeRoleProfile(role)
   /* Optional: production view tests reimport after vi.resetModules(), which can
      desync PlanContext identity from PlanProvider. Gates-off / missing context
      keep the full dashboard (parity with PLAN_FEATURE_GATES_ENABLED = false). */
@@ -49,7 +53,15 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
   /* No org yet (bootstrap pending/failed) or still loading — the welcome
      state stays useful and never flashes an error at the front door. */
   if (!organizationId || (data === null && !loadFailed)) {
-    return <HomeProductionEmptyState identity={identity} onSend={onSend} employeeCount={0} />
+    return (
+      <HomeProductionEmptyState
+        identity={identity}
+        onSend={onSend}
+        employeeCount={0}
+        title={profile.emptyTitle}
+        body={profile.emptyBody}
+      />
+    )
   }
 
   if (loadFailed) {
@@ -74,7 +86,27 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
   /* Unreachable (loadFailed and data===null are mutually exclusive above),
      but TypeScript can't correlate the two guards. */
   if (data === null) {
-    return <HomeProductionEmptyState identity={identity} onSend={onSend} employeeCount={0} />
+    return (
+      <HomeProductionEmptyState
+        identity={identity}
+        onSend={onSend}
+        employeeCount={0}
+        title={profile.emptyTitle}
+        body={profile.emptyBody}
+      />
+    )
+  }
+
+  if (!profile.showDashboard) {
+    return (
+      <HomeProductionEmptyState
+        identity={identity}
+        onSend={onSend}
+        employeeCount={data.employees}
+        title={profile.emptyTitle}
+        body={profile.emptyBody}
+      />
+    )
   }
 
   if (!showOperationalDashboard) {
@@ -83,6 +115,8 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
         identity={identity}
         onSend={onSend}
         employeeCount={data.employees}
+        title={profile.emptyTitle}
+        body={profile.emptyBody}
         afterChecklist={
           <>
             <p className="mb-[10px] text-center text-[13px] text-text-muted">
@@ -101,6 +135,8 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
         identity={identity}
         onSend={onSend}
         employeeCount={data.employees}
+        title={profile.emptyTitle}
+        body={profile.emptyBody}
       />
     )
   }
@@ -113,9 +149,9 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
           {identity.companyName}
         </div>
         <h1 className="m-0 mb-[4px] font-display text-[23px] font-semibold text-text">
-          {x(M.home_prod_greeting)}
+          {x(profile.title)}
         </h1>
-        <p className="m-0 text-[13.5px] text-text-muted">{x(M.home_prod_sub)}</p>
+        <p className="m-0 text-[13.5px] text-text-muted">{x(profile.sub)}</p>
       </div>
 
       {/* Stat tiles → modules */}

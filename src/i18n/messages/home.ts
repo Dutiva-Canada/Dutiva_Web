@@ -161,4 +161,36 @@ export const homeMessages = defineMessages({
     en: 'The operational dashboard and analytics unlock on Growth.',
     fr: 'Le tableau de bord opérationnel et les analyses se débloquent avec Croissance.',
   },
+
+  /* Role-aware production cockpit. [FR self-authored] */
+  home_role_title_manager: { en: 'Manager workspace', fr: 'Espace gestionnaire' },
+  home_role_title_professional: { en: 'Professional workspace', fr: 'Espace professionnel' },
+  home_role_title_member: { en: 'My workspace', fr: 'Mon espace de travail' },
+  home_role_title_consultant: { en: 'Consultant workspace', fr: 'Espace consultant' },
+  home_role_title_viewer: { en: 'Read-only summary', fr: 'Résumé en lecture seule' },
+  home_role_sub_manager: {
+    en: 'Team priorities, approvals, and team health.',
+    fr: 'Priorités d’équipe, approbations et santé de l’équipe.',
+  },
+  home_role_sub_professional: {
+    en: 'Active work queue, assigned records, and due dates.',
+    fr: 'File de travail active, dossiers assignés et échéances.',
+  },
+  home_role_sub_member: {
+    en: 'Assigned tasks, deadlines, policies, and wellbeing.',
+    fr: 'Tâches assignées, échéances, politiques et bien-être.',
+  },
+  home_role_sub_consultant: {
+    en: 'Scoped work queue and assigned module metrics.',
+    fr: 'File de travail ciblée et indicateurs des modules assignés.',
+  },
+  home_role_sub_viewer: {
+    en: 'Read-only summary of selected records.',
+    fr: 'Résumé en lecture seule des dossiers sélectionnés.',
+  },
+  home_role_empty_title: { en: 'No assigned items', fr: 'Aucun élément assigné' },
+  home_role_empty_body: {
+    en: 'Your workspace is ready. Assigned tasks and records will appear here as they are shared with you.',
+    fr: 'Votre espace de travail est prêt. Les tâches et dossiers assignés apparaîtront ici dès qu’ils vous seront partagés.',
+  },
 })

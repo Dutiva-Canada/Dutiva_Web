@@ -3,6 +3,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { useI18n } from '@/i18n/context'
+import type { Bi } from '@/i18n/core'
 import { Disclaimer } from '@/components/Disclaimer'
 import { ChatComposer } from '@/features/app/advisor/ChatComposer'
 import { homeMessages as M } from '@/i18n/messages/home'
@@ -27,6 +28,8 @@ export function HomeProductionEmptyState({
   onSend,
   employeeCount = 0,
   afterChecklist,
+  title,
+  body,
 }: {
   readonly identity: WorkspaceIdentity
   readonly onSend: (text: string) => void
@@ -34,6 +37,9 @@ export function HomeProductionEmptyState({
   readonly employeeCount?: number
   /** Optional strip below the checklist (e.g. plan upgrade nudge). */
   readonly afterChecklist?: ReactNode
+  /** Override the default empty-state title and body for role-specific Home. */
+  readonly title?: Bi
+  readonly body?: Bi
 }) {
   const { x } = useI18n()
   const { root } = useWorkspaceRoot()
@@ -89,10 +95,10 @@ export function HomeProductionEmptyState({
         {x(M.home_production_workspace_label)}: {identity.companyName}
       </div>
       <h1 className="m-0 mb-[10px] font-display text-[22px] font-semibold text-text">
-        {x(M.home_production_title)}
+        {x(title ?? M.home_production_title)}
       </h1>
       <p className="m-0 mb-[24px] text-[13.5px] leading-[1.6] text-text-muted">
-        {x(M.home_production_body)}
+        {x(body ?? M.home_production_body)}
       </p>
 
       <div className="mb-[10px] text-left text-[11px] font-bold tracking-wider text-text-muted uppercase">
