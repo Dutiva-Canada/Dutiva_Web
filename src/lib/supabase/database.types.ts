@@ -8696,6 +8696,314 @@ export type Database = {
           },
         ]
       }
+      security_access_reviews: {
+        Row: {
+          assigned_to: string | null
+          completed_date: string | null
+          created_at: string | null
+          created_by: string | null
+          findings: string | null
+          id: string
+          organization_id: string
+          review_due_date: string | null
+          reviewer_id: string | null
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          findings?: string | null
+          id?: string
+          organization_id: string
+          review_due_date?: string | null
+          reviewer_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          findings?: string | null
+          id?: string
+          organization_id?: string
+          review_due_date?: string | null
+          reviewer_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_access_reviews_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_access_reviews_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_access_reviews_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_access_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_assets: {
+        Row: {
+          asset_type: string
+          created_at: string | null
+          criticality: string | null
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string
+          owner_id: string | null
+          renewal_date: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          asset_type: string
+          created_at?: string | null
+          criticality?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id: string
+          owner_id?: string | null
+          renewal_date?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          asset_type?: string
+          created_at?: string | null
+          criticality?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          owner_id?: string | null
+          renewal_date?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_assets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_assets_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_incidents: {
+        Row: {
+          assigned_to: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          impact: string | null
+          organization_id: string
+          remediation: string | null
+          reported_at: string | null
+          reported_by: string | null
+          resolved_at: string | null
+          severity: string
+          status: string
+          summary: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          impact?: string | null
+          organization_id: string
+          remediation?: string | null
+          reported_at?: string | null
+          reported_by?: string | null
+          resolved_at?: string | null
+          severity: string
+          status?: string
+          summary?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          impact?: string | null
+          organization_id?: string
+          remediation?: string | null
+          reported_at?: string | null
+          reported_by?: string | null
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          summary?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_incidents_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_incidents_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_incidents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_incidents_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_risks: {
+        Row: {
+          created_at: string | null
+          id: string
+          impact: string | null
+          likelihood: string | null
+          mitigation: string | null
+          organization_id: string
+          owner: string | null
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          impact?: string | null
+          likelihood?: string | null
+          mitigation?: string | null
+          organization_id: string
+          owner?: string | null
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          impact?: string | null
+          likelihood?: string | null
+          mitigation?: string | null
+          organization_id?: string
+          owner?: string | null
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_risks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_vendor_reviews: {
+        Row: {
+          created_at: string | null
+          id: string
+          next_review_date: string | null
+          notes: string | null
+          organization_id: string
+          privacy_agreement: boolean | null
+          security_review_date: string | null
+          updated_at: string | null
+          vendor_name: string
+          vendor_type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          next_review_date?: string | null
+          notes?: string | null
+          organization_id: string
+          privacy_agreement?: boolean | null
+          security_review_date?: string | null
+          updated_at?: string | null
+          vendor_name: string
+          vendor_type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          next_review_date?: string | null
+          notes?: string | null
+          organization_id?: string
+          privacy_agreement?: boolean | null
+          security_review_date?: string | null
+          updated_at?: string | null
+          vendor_name?: string
+          vendor_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_vendor_reviews_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_status: {
         Row: {
           component: string
@@ -10762,6 +11070,10 @@ export type Database = {
           p_ttl_seconds?: number
         }
         Returns: boolean
+      }
+      active_org_member_role: {
+        Args: { target_organization_id: string }
+        Returns: string
       }
       add_comment: {
         Args: {

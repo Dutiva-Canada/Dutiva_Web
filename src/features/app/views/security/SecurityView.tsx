@@ -1,6 +1,17 @@
-import { ModulePlaceholder } from '@/features/app/views/placeholders/ModulePlaceholder'
-import { shellMessages as M } from '@/i18n/messages/shell'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { SecurityDemoView } from './SecurityDemoView'
+import { SecurityProductionView } from './SecurityProductionView'
 
+/**
+ * Security workspace dispatch shell. Tracks assets, access reviews, incidents,
+ * risks, and vendor reviews — a governance cockpit, not a scanner.
+ */
 export function SecurityView() {
-  return <ModulePlaceholder title={M.shell_v_security} />
+  const { mode } = useWorkspaceMode()
+
+  if (mode === 'production') {
+    return <SecurityProductionView />
+  }
+
+  return <SecurityDemoView />
 }

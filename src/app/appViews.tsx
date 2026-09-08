@@ -75,6 +75,14 @@ import {
 /* prettier-ignore */ const GovernanceOfficers = lazy(() => import('@/features/app/views/governance/screens/Officers').then((m) => ({ default: m.Officers })))
 /* prettier-ignore */ const GovernanceShareholders = lazy(() => import('@/features/app/views/governance/screens/Shareholders').then((m) => ({ default: m.Shareholders })))
 
+/* Security workspace screens */
+/* prettier-ignore */ const SecurityOverview = lazy(() => import('@/features/app/views/security/screens/Overview').then((m) => ({ default: m.Overview })))
+/* prettier-ignore */ const SecurityAssets = lazy(() => import('@/features/app/views/security/screens/Assets').then((m) => ({ default: m.Assets })))
+/* prettier-ignore */ const SecurityAccessReviews = lazy(() => import('@/features/app/views/security/screens/AccessReviews').then((m) => ({ default: m.AccessReviews })))
+/* prettier-ignore */ const SecurityIncidents = lazy(() => import('@/features/app/views/security/screens/Incidents').then((m) => ({ default: m.Incidents })))
+/* prettier-ignore */ const SecurityRisks = lazy(() => import('@/features/app/views/security/screens/Risks').then((m) => ({ default: m.Risks })))
+/* prettier-ignore */ const SecurityVendors = lazy(() => import('@/features/app/views/security/screens/Vendors').then((m) => ({ default: m.Vendors })))
+
 /* Communications workspace screens */
 /* prettier-ignore */ const CommsOverview = lazy(() => import('@/features/app/views/comms/screens/Overview').then((m) => ({ default: m.Overview })))
 /* prettier-ignore */ const CommsInitiatives = lazy(() => import('@/features/app/views/comms/screens/Initiatives').then((m) => ({ default: m.Initiatives })))
@@ -215,7 +223,19 @@ function createAppViewRoutes(root: string): RouteObject[] {
         { path: 'shareholders', element: <GovernanceShareholders /> },
       ],
     },
-    { path: 'security', element: <SecurityView /> },
+    {
+      path: 'security',
+      element: <SecurityView />,
+      children: [
+        { index: true, loader: () => redirect(r('security/overview')) },
+        { path: 'overview', element: <SecurityOverview /> },
+        { path: 'assets', element: <SecurityAssets /> },
+        { path: 'access', element: <SecurityAccessReviews /> },
+        { path: 'incidents', element: <SecurityIncidents /> },
+        { path: 'risks', element: <SecurityRisks /> },
+        { path: 'vendors', element: <SecurityVendors /> },
+      ],
+    },
     { path: 'specialists', element: <SpecialistsView /> },
     { path: 'wellbeing', element: <WellbeingView /> },
     /* Hiring module — evidence-based recruitment system with demo/production support */
