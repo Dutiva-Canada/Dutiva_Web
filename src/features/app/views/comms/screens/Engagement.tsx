@@ -5,7 +5,7 @@ import type { Bi } from '@/i18n/core'
 import type { ChipTone } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
-import { useCommsData } from '../data/useCommsData'
+import { useInteractions } from '../data/useInteractions'
 import { useStakeholders } from '../data/useStakeholders'
 import { useInitiatives } from '../data/useInitiatives'
 import type { CommsContact, CommsInitiative } from '../data/types'
@@ -56,7 +56,7 @@ function InteractionForm({
   initiatives: CommsInitiative[]
 }) {
   const { x, lang } = useI18n()
-  const { addInteraction } = useCommsData()
+  const { addInteraction } = useInteractions()
   const [type, setType] = useState<CommsInteractionType>('inquiry')
   const [source, setSource] = useState('')
   const [visibility, setVisibility] = useState<CommsInteractionVisibility>('internal')
@@ -69,10 +69,10 @@ function InteractionForm({
   const [escalationReason, setEscalationReason] = useState('')
   const [moderationReason, setModerationReason] = useState('')
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!owner.trim() || !summary.trim()) return
-    addInteraction({
+    await addInteraction({
       type,
       source: biInput(source, lang) ?? { en: 'Unknown', fr: 'Inconnu' },
       visibility,
@@ -210,7 +210,7 @@ function InteractionForm({
 
 export function Engagement() {
   const { x } = useI18n()
-  const { state, canWrite, removeInteraction } = useCommsData()
+  const { interactions, canWrite, removeInteraction } = useInteractions()
   const { contacts } = useStakeholders()
   const { initiatives } = useInitiatives()
   const [adding, setAdding] = useState(false)
@@ -233,11 +233,11 @@ export function Engagement() {
 
       {adding && <InteractionForm onCancel={() => setAdding(false)} contacts={contacts} initiatives={initiatives} />}
 
-      {state.interactions.length === 0 ? (
+      {interactions.length === 0 ? (
         <p className="text-[13px] text-text-muted">{x(M.comms_engagement_empty)}</p>
       ) : (
         <div className="flex flex-col gap-[10px]">
-          {state.interactions.map((item) => (
+          {interactions.map((item) => (
             <div key={item.id} className="rounded-[12px] border border-border bg-surface p-[16px]">
               <div className="flex flex-wrap items-start justify-between gap-[12px]">
                 <div>

@@ -1866,6 +1866,68 @@ export type Database = {
           },
         ]
       }
+      comms_interactions: {
+        Row: {
+          contact_id: string | null
+          created_at: string
+          escalation_reason: Json | null
+          id: string
+          initiative_id: string | null
+          moderation_reason: Json | null
+          organization_id: string
+          owner: string
+          response_target: string | null
+          source: Json
+          status: string
+          summary: Json
+          type: string
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string
+          escalation_reason?: Json | null
+          id?: string
+          initiative_id?: string | null
+          moderation_reason?: Json | null
+          organization_id: string
+          owner: string
+          response_target?: string | null
+          source: Json
+          status: string
+          summary: Json
+          type: string
+          updated_at?: string
+          visibility: string
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string
+          escalation_reason?: Json | null
+          id?: string
+          initiative_id?: string | null
+          moderation_reason?: Json | null
+          organization_id?: string
+          owner?: string
+          response_target?: string | null
+          source?: Json
+          status?: string
+          summary?: Json
+          type?: string
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comms_interactions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comms_organizations: {
         Row: {
           created_at: string
