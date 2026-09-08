@@ -3,25 +3,32 @@ import {
   Activity,
   Banknote,
   Book,
+  BookOpen,
   Brain,
   CalendarCheck,
   ChartNoAxesColumn,
   Contact,
+  Cog,
   DollarSign,
   FileStack,
   Folder,
   House,
   Megaphone,
   MessageCircle,
+  Scale,
   Send,
+  Shield,
   ShieldCheck,
+  TrendingUp,
   Users,
   UserCheck,
+  UsersRound,
   Waypoints,
 } from 'lucide-react'
 import type { Bi } from '@/i18n/core'
 import { bi } from '@/i18n/core'
 import { shellMessages as M } from '@/i18n/messages/shell'
+import type { OrgMemberRole } from '@/features/app/workspaceMode/roles'
 import { commsMessages as COMMS } from '@/i18n/messages/comms'
 import { crmMessages as CRM } from '@/i18n/messages/crm'
 import { financeMessages as FINANCE } from '@/i18n/messages/finance'
@@ -46,6 +53,8 @@ export interface NavItem {
   badge?: { value: string; tone: NavBadgeTone }
   /** Custom active predicate for items sharing a path prefix (doclib). */
   isActive?: (pathname: string) => boolean
+  /** Roles that may see this item. `undefined` means visible to everyone. */
+  roles?: OrgMemberRole[]
 }
 
 export interface NavGroup {
@@ -65,9 +74,21 @@ const WELLBEING_BADGE = String(
   Object.values(employeeDetails).filter((d) => d.sentiment != null && d.sentiment < 55).length,
 )
 
-export function getNavGroups(root: string): NavGroup[] {
+const OWNER_ADMIN: OrgMemberRole[] = ['owner', 'admin']
+const PROFESSIONAL: OrgMemberRole[] = ['owner', 'admin', 'manager', 'professional']
+const CONSULTANT: OrgMemberRole[] = ['owner', 'admin', 'manager', 'professional', 'consultant']
+const OPERATORS: OrgMemberRole[] = ['owner', 'admin', 'manager', 'professional', 'member', 'consultant']
+const ALL_ROLES: OrgMemberRole[] = ['owner', 'admin', 'manager', 'professional', 'member', 'consultant', 'viewer']
+
+function itemVisible(item: NavItem, role: OrgMemberRole | null): boolean {
+  if (item.roles == null || item.roles.length === 0) return true
+  if (role == null) return true
+  return item.roles.includes(role)
+}
+
+export function getNavGroups(root: string, role: OrgMemberRole | null = null): NavGroup[] {
   const p = (suffix: string) => `${root}/${suffix}`
-  return [
+  const groups: NavGroup[] = [
     {
       heading: null,
       items: [
@@ -94,6 +115,60 @@ export function getNavGroups(root: string): NavGroup[] {
       ],
     },
     {
+      heading: M.shell_sec_revenue,
+      items: [
+        {
+          key: 'revenue',
+          to: p('revenue'),
+          icon: TrendingUp,
+          label: M.shell_nav_revenue,
+          roles: CONSULTANT,
+        },
+        {
+          key: 'crm',
+          to: p('crm'),
+          icon: Contact,
+          label: CRM.crm_title,
+          roles: CONSULTANT,
+        },
+        {
+          key: 'comms',
+          to: p('comms/overview'),
+          icon: Megaphone,
+          label: COMMS.comms_title,
+          isActive: (pathname) => pathname.startsWith(`${root}/comms`),
+          roles: CONSULTANT,
+        },
+      ],
+    },
+    {
+      heading: M.shell_sec_operations,
+      items: [
+        {
+          key: 'operations',
+          to: p('operations'),
+          icon: Cog,
+          label: M.shell_nav_operations,
+          roles: OPERATORS,
+        },
+        {
+          key: 'planning',
+          to: p('planning/tasks'),
+          icon: CalendarCheck,
+          label: M.shell_nav_planning,
+          isActive: (pathname) => pathname.startsWith(`${root}/planning`),
+        },
+        {
+          key: 'documents',
+          to: p('documents/studio'),
+          icon: FileStack,
+          label: M.shell_nav_library,
+          isActive: (pathname) => pathname.startsWith(`${root}/documents`),
+        },
+        { key: 'knowledge', to: p('knowledge'), icon: Book, label: M.shell_nav_knowledge },
+      ],
+    },
+    {
       heading: M.shell_sec_people,
       items: [
         { key: 'employees', to: p('employees'), icon: Users, label: M.shell_nav_people },
@@ -109,6 +184,7 @@ export function getNavGroups(root: string): NavGroup[] {
           to: p('hiring'),
           icon: UserCheck,
           label: M.shell_nav_hiring,
+          roles: PROFESSIONAL,
         },
         {
           key: 'wellbeing',
@@ -116,45 +192,6 @@ export function getNavGroups(root: string): NavGroup[] {
           icon: Activity,
           label: M.shell_nav_wellbeing,
           badge: { value: WELLBEING_BADGE, tone: 'warn' },
-        },
-      ],
-    },
-    {
-      heading: M.shell_sec_operations,
-      items: [
-        {
-          key: 'documents',
-          to: p('documents/studio'),
-          icon: FileStack,
-          label: M.shell_nav_library,
-          isActive: (pathname) => pathname.startsWith(`${root}/documents`),
-        },
-        { key: 'knowledge', to: p('knowledge'), icon: Book, label: M.shell_nav_knowledge },
-        {
-          key: 'planning',
-          to: p('planning/tasks'),
-          icon: CalendarCheck,
-          label: M.shell_nav_planning,
-          isActive: (pathname) => pathname.startsWith(`${root}/planning`),
-        },
-        {
-          key: 'compliance',
-          to: p('compliance'),
-          icon: ShieldCheck,
-          label: M.shell_nav_compliance,
-          badge: { value: COMPLIANCE_BADGE, tone: 'warn' },
-        },
-      ],
-    },
-    {
-      heading: M.shell_sec_comms,
-      items: [
-        {
-          key: 'comms',
-          to: p('comms/overview'),
-          icon: Megaphone,
-          label: COMMS.comms_title,
-          isActive: (pathname) => pathname.startsWith(`${root}/comms`),
         },
         {
           key: 'communications',
@@ -168,28 +205,69 @@ export function getNavGroups(root: string): NavGroup[] {
       heading: M.shell_sec_finance,
       items: [
         {
-          key: 'compensation',
-          to: p('compensation'),
-          icon: DollarSign,
-          label: M.shell_nav_compensation,
-        },
-        {
           key: 'finance',
           to: p('finance/overview'),
           icon: Banknote,
           label: FINANCE.finance_title,
           isActive: (pathname) => pathname.startsWith(`${root}/finance`),
+          roles: CONSULTANT,
+        },
+        {
+          key: 'compensation',
+          to: p('compensation'),
+          icon: DollarSign,
+          label: M.shell_nav_compensation,
+          roles: ALL_ROLES,
         },
       ],
     },
     {
-      heading: M.shell_sec_growth,
+      heading: M.shell_sec_governance,
       items: [
         {
-          key: 'crm',
-          to: p('crm'),
-          icon: Contact,
-          label: CRM.crm_title,
+          key: 'governance',
+          to: p('governance'),
+          icon: Scale,
+          label: M.shell_nav_governance,
+          roles: [...OWNER_ADMIN, 'viewer'],
+        },
+        {
+          key: 'compliance',
+          to: p('compliance'),
+          icon: ShieldCheck,
+          label: M.shell_nav_compliance,
+          badge: { value: COMPLIANCE_BADGE, tone: 'warn' },
+          roles: PROFESSIONAL,
+        },
+        {
+          key: 'policies',
+          to: p('policies'),
+          icon: BookOpen,
+          label: M.shell_nav_policies,
+        },
+      ],
+    },
+    {
+      heading: M.shell_sec_security,
+      items: [
+        {
+          key: 'security',
+          to: p('security'),
+          icon: Shield,
+          label: M.shell_nav_security,
+          roles: CONSULTANT,
+        },
+      ],
+    },
+    {
+      heading: M.shell_sec_external,
+      items: [
+        {
+          key: 'specialists',
+          to: p('specialists'),
+          icon: UsersRound,
+          label: M.shell_nav_specialists,
+          roles: OPERATORS,
         },
       ],
     },
@@ -201,10 +279,18 @@ export function getNavGroups(root: string): NavGroup[] {
           to: p('analytics'),
           icon: ChartNoAxesColumn,
           label: M.shell_nav_analytics,
+          roles: ALL_ROLES,
         },
       ],
     },
   ]
+
+  return groups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => itemVisible(item, role)),
+    }))
+    .filter((group) => group.heading === null || group.items.length > 0)
 }
 
 export const NAV_GROUPS: NavGroup[] = getNavGroups('/app')
@@ -218,20 +304,30 @@ export const PUBLIC_DEMO_NAV_KEYS = new Set([
   'employees',
   'cases',
   'hiring',
+  'wellbeing',
+  'operations',
+  'planning',
   'documents',
   'knowledge',
   'compliance',
   'communications',
   'comms',
+  'revenue',
+  'crm',
   'finance',
   'compensation',
-  'wellbeing',
-  'crm',
+  'governance',
+  'policies',
+  'security',
+  'specialists',
   'analytics',
 ])
 
-export function getPublicDemoNavGroups(root: string): NavGroup[] {
-  return getNavGroups(root)
+export function getPublicDemoNavGroups(
+  root: string,
+  role: OrgMemberRole | null = null,
+): NavGroup[] {
+  return getNavGroups(root, role)
     .map((group) => ({
       ...group,
       items: group.items.filter((item) => PUBLIC_DEMO_NAV_KEYS.has(item.key)),

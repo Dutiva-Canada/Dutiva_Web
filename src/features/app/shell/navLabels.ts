@@ -44,6 +44,11 @@ export const VIEW_LABELS: Record<string, Bi> = {
   communications: M.shell_v_communications,
   crm: M.shell_v_crm,
   planning: M.shell_nav_planning,
+  revenue: M.shell_v_revenue,
+  governance: M.shell_v_governance,
+  security: M.shell_v_security,
+  operations: M.shell_v_operations,
+  specialists: M.shell_v_specialists,
 }
 
 /** Active when the route is the item or one of its children (/app/cases/:id …). */

@@ -6,7 +6,7 @@ import { useI18n } from '@/i18n/context'
 import { renderApp } from '@/test/renderApp'
 import { Sidebar } from './Sidebar'
 
-const SECTION_PREFS_KEY = 'dutiva.sidebar.sections.v1'
+const SECTION_PREFS_KEY = 'dutiva.sidebar.sections.v2'
 
 function FrenchToggle() {
   const { setLang } = useI18n()
@@ -42,21 +42,24 @@ describe('Sidebar', () => {
       '/app/workflows',
     )
 
-    /* People & HR */
-    expect(within(nav).getByRole('button', { name: /People & HR/i })).toBeInTheDocument()
-    expect(within(nav).getByRole('link', { name: 'People' })).toHaveAttribute(
+    /* Revenue */
+    expect(within(nav).getByRole('button', { name: /Revenue/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: /Revenue$/ })).toHaveAttribute(
       'href',
-      '/app/employees',
+      '/app/revenue',
     )
-    expect(within(nav).getByRole('link', { name: /Cases/ })).toHaveAttribute('href', '/app/cases')
-    expect(within(nav).getByRole('link', { name: 'Hiring' })).toHaveAttribute('href', '/app/hiring')
-    expect(within(nav).getByRole('link', { name: /Wellbeing/ })).toHaveAttribute(
+    expect(within(nav).getByRole('link', { name: 'CRM' })).toHaveAttribute('href', '/app/crm')
+    expect(within(nav).getByRole('link', { name: /Communications$/ })).toHaveAttribute(
       'href',
-      '/app/wellbeing',
+      '/app/comms/overview',
     )
 
     /* Operations & library */
     expect(within(nav).getByRole('button', { name: /Operations/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: /Operations$/ })).toHaveAttribute(
+      'href',
+      '/app/operations',
+    )
     expect(within(nav).getByRole('link', { name: 'Documents' })).toHaveAttribute(
       'href',
       '/app/documents/studio',
@@ -69,16 +72,18 @@ describe('Sidebar', () => {
       'href',
       '/app/planning/tasks',
     )
-    expect(within(nav).getByRole('link', { name: /Compliance/ })).toHaveAttribute(
-      'href',
-      '/app/compliance',
-    )
 
-    /* Communications & content */
-    expect(within(nav).getByRole('button', { name: /Communications & content/i })).toBeInTheDocument()
-    expect(within(nav).getByRole('link', { name: /Communications$/ })).toHaveAttribute(
+    /* People & HR */
+    expect(within(nav).getByRole('button', { name: /People & HR/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: 'People' })).toHaveAttribute(
       'href',
-      '/app/comms/overview',
+      '/app/employees',
+    )
+    expect(within(nav).getByRole('link', { name: /Cases/ })).toHaveAttribute('href', '/app/cases')
+    expect(within(nav).getByRole('link', { name: 'Hiring' })).toHaveAttribute('href', '/app/hiring')
+    expect(within(nav).getByRole('link', { name: /Wellbeing/ })).toHaveAttribute(
+      'href',
+      '/app/wellbeing',
     )
     expect(within(nav).getByRole('link', { name: /Message log/ })).toHaveAttribute(
       'href',
@@ -94,6 +99,15 @@ describe('Sidebar', () => {
     expect(within(nav).getByRole('link', { name: /Finance$/ })).toHaveAttribute(
       'href',
       '/app/finance/overview',
+    )
+
+    /* Governance, Security, External */
+    expect(within(nav).getByRole('button', { name: /Governance/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('button', { name: /Security/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('button', { name: /External/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: /Specialists/ })).toHaveAttribute(
+      'href',
+      '/app/specialists',
     )
 
     /* Analytics is a top-level item — no section wraps it. */
@@ -121,10 +135,13 @@ describe('Sidebar', () => {
     const nav = await screen.findByRole('navigation', { name: 'Navigation principale' })
     expect(within(nav).getByRole('link', { name: 'Accueil' })).toBeInTheDocument()
     expect(within(nav).getByRole('link', { name: 'Conseiller IA' })).toBeInTheDocument()
-    expect(within(nav).getByRole('button', { name: /Personnes et RH/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('button', { name: /Revenus/i })).toBeInTheDocument()
     expect(within(nav).getByRole('button', { name: /Opérations/i })).toBeInTheDocument()
-    expect(within(nav).getByRole('button', { name: /Communications et contenu/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('button', { name: /Personnes et RH/i })).toBeInTheDocument()
     expect(within(nav).getByRole('button', { name: /Paie et finances/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('button', { name: /Gouvernance/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('button', { name: /Sécurité/i })).toBeInTheDocument()
+    expect(within(nav).getByRole('button', { name: /Externe/i })).toBeInTheDocument()
     expect(within(nav).getByRole('link', { name: 'Analytique' })).toBeInTheDocument()
   })
 
@@ -151,8 +168,8 @@ describe('Sidebar', () => {
     const peopleToggle = screen.getByRole('button', { name: /^People & HR$/i })
     await user.click(peopleToggle)
 
-    expect(screen.getByRole('button', { name: /People & HR, 4 items/i })).toBeInTheDocument()
-    expect(screen.getByText('4')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /People & HR, 5 items/i })).toBeInTheDocument()
+    expect(screen.getByText('5')).toBeInTheDocument()
   })
 
   it('renders Collapse control aligned with nav density', () => {

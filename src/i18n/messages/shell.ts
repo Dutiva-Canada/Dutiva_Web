@@ -157,6 +157,20 @@ export const shellMessages = defineMessages({
   shell_sec_finance: { en: 'Pay & finance', fr: 'Paie et finances' },
   shell_sec_growth: { en: 'Growth', fr: 'Croissance' },
 
+  /* New business-platform sections */
+  shell_sec_executive: { en: 'Executive', fr: 'Direction' }, // [FR self-authored]
+  shell_sec_revenue: { en: 'Revenue', fr: 'Revenus' },
+  shell_sec_governance: { en: 'Governance', fr: 'Gouvernance' },
+  shell_sec_security: { en: 'Security', fr: 'Sécurité' },
+  shell_sec_external: { en: 'External', fr: 'Externe' }, // [FR self-authored]
+
+  /* New nav labels */
+  shell_nav_revenue: { en: 'Revenue', fr: 'Revenus' },
+  shell_nav_governance: { en: 'Governance', fr: 'Gouvernance' },
+  shell_nav_security: { en: 'Security', fr: 'Sécurité' },
+  shell_nav_operations: { en: 'Operations', fr: 'Opérations' },
+  shell_nav_specialists: { en: 'Specialists', fr: 'Spécialistes' },
+
   /* ── Route/view titles (buildI18n v_*) — topbar + mobile topbar ─────────── */
   shell_v_home: { en: 'Home', fr: 'Accueil' },
   shell_v_advisor: { en: 'Advisor', fr: 'Conseiller' },
@@ -178,6 +192,11 @@ export const shellMessages = defineMessages({
   shell_v_wellbeing: { en: 'Wellbeing', fr: 'Bien-être' },
   shell_v_communications: { en: 'Communications', fr: 'Communications' },
   shell_v_crm: { en: 'CRM', fr: 'CRM' },
+  shell_v_revenue: { en: 'Revenue', fr: 'Revenus' },
+  shell_v_governance: { en: 'Governance', fr: 'Gouvernance' },
+  shell_v_security: { en: 'Security', fr: 'Sécurité' },
+  shell_v_operations: { en: 'Operations', fr: 'Opérations' },
+  shell_v_specialists: { en: 'Specialists', fr: 'Spécialistes' },
 
   /* Route subtitles (buildI18n sub_*) — rendered inside the views */
   shell_sub_policies: {

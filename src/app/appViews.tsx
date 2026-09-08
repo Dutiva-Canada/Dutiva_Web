@@ -61,6 +61,11 @@ import {
 /* prettier-ignore */ const CommsView = lazy(preloadCommsView)
 /* prettier-ignore */ const FinanceView = lazy(preloadFinanceView)
 /* prettier-ignore */ const CrmView = lazy(() => import('@/features/app/views/crm/CrmView').then((m) => ({ default: m.CrmView })))
+/* prettier-ignore */ const RevenueView = lazy(() => import('@/features/app/views/revenue/RevenueView').then((m) => ({ default: m.RevenueView })))
+/* prettier-ignore */ const OperationsView = lazy(() => import('@/features/app/views/operations/OperationsView').then((m) => ({ default: m.OperationsView })))
+/* prettier-ignore */ const GovernanceView = lazy(() => import('@/features/app/views/governance/GovernanceView').then((m) => ({ default: m.GovernanceView })))
+/* prettier-ignore */ const SecurityView = lazy(() => import('@/features/app/views/security/SecurityView').then((m) => ({ default: m.SecurityView })))
+/* prettier-ignore */ const SpecialistsView = lazy(() => import('@/features/app/views/specialists/SpecialistsView').then((m) => ({ default: m.SpecialistsView })))
 /* prettier-ignore */ const CompensationView = lazy(preloadCompensationView)
 
 /* Communications workspace screens */
@@ -189,6 +194,11 @@ function createAppViewRoutes(root: string): RouteObject[] {
     },
     { path: 'compensation', element: <CompensationView /> },
     { path: 'crm', element: <CrmView /> },
+    { path: 'revenue', element: <RevenueView /> },
+    { path: 'operations', element: <OperationsView /> },
+    { path: 'governance', element: <GovernanceView /> },
+    { path: 'security', element: <SecurityView /> },
+    { path: 'specialists', element: <SpecialistsView /> },
     { path: 'wellbeing', element: <WellbeingView /> },
     /* Hiring module — evidence-based recruitment system with demo/production support */
     { path: 'hiring', element: <HiringView /> },

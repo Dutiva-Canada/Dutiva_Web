@@ -5,6 +5,7 @@ import { readPref, writePref } from '@/lib/prefs'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { useOrgRole } from '@/features/app/workspaceMode/useOrgRole'
 import { useProductionNavBadges } from '@/features/app/workspaceMode/useProductionNavBadges'
 import type { NavGroup, NavItem } from './navConfig'
 import { getNavGroups, getPublicDemoNavGroups, isNavActive } from './navConfig'
@@ -23,18 +24,27 @@ export type SidebarMode = 'expanded' | 'compact' | 'drawer'
 
 /* Collapsible section keys, positionally aligned with NAV_GROUPS: group i
    with a heading maps to SECTION_KEYS[i - 1]. Heading-less groups (Home /
-   Advisor / Workflows, Analytics) render as always-visible top-level items.
-   Stale keys from earlier sidebars ('records', 'programs') are ignored. */
-const SECTION_KEYS = ['people', 'operations', 'comms', 'finance', 'growth'] as const
+   Advisor / Workflows, Analytics) render as always-visible top-level items. */
+const SECTION_KEYS = [
+  'revenue',
+  'operations',
+  'people',
+  'finance',
+  'governance',
+  'security',
+  'external',
+] as const
 type SectionKey = (typeof SECTION_KEYS)[number]
 
-const SECTION_PREFS_KEY = 'dutiva.sidebar.sections.v1'
+const SECTION_PREFS_KEY = 'dutiva.sidebar.sections.v2'
 const DEFAULT_SECTIONS: Record<SectionKey, boolean> = {
-  people: true,
+  revenue: true,
   operations: true,
-  comms: true,
+  people: true,
   finance: true,
-  growth: true,
+  governance: true,
+  security: true,
+  external: true,
 }
 
 const EXPANDED_WIDTH = 'w-[292px]'
@@ -112,9 +122,10 @@ export function Sidebar({
   const { pathname } = useLocation()
   const { root, isPublicDemo, readOnly } = useWorkspaceRoot()
   const { identity, mode: workspaceMode } = useWorkspaceMode()
+  const role = useOrgRole()
   const navGroups = useMemo(
-    () => (isPublicDemo ? getPublicDemoNavGroups(root) : getNavGroups(root)),
-    [isPublicDemo, root],
+    () => (isPublicDemo ? getPublicDemoNavGroups(root, role) : getNavGroups(root, role)),
+    [isPublicDemo, root, role],
   )
   const productionBadges = useProductionNavBadges()
   const workspaceEmpty = useProductionWorkspaceEmpty()

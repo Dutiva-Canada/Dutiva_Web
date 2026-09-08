@@ -5,15 +5,25 @@
  * Pure module: rankings and predicates only, no data access.
  */
 
-export const ORG_MEMBER_ROLES = ['viewer', 'member', 'manager', 'admin', 'owner'] as const
+export const ORG_MEMBER_ROLES = [
+  'viewer',
+  'consultant',
+  'member',
+  'professional',
+  'manager',
+  'admin',
+  'owner',
+] as const
 export type OrgMemberRole = (typeof ORG_MEMBER_ROLES)[number]
 
 const RANK: Record<OrgMemberRole, number> = {
   viewer: 0,
-  member: 1,
-  manager: 2,
-  admin: 3,
-  owner: 4,
+  consultant: 1,
+  member: 2,
+  professional: 3,
+  manager: 4,
+  admin: 5,
+  owner: 6,
 }
 
 export function isOrgMemberRole(value: unknown): value is OrgMemberRole {

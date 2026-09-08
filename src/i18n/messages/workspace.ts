@@ -32,6 +32,7 @@ import { hiringMessages } from './hiring'
 import { commsMessages } from './comms'
 import { financeMessages } from './finance'
 import { bulkImportMessages } from './bulkImport'
+import { placeholderMessages } from './placeholder'
 import { sharedMessages } from './shared'
 
 /**
@@ -76,6 +77,7 @@ export const workspaceMessages = {
   ...commsMessages,
   ...financeMessages,
   ...bulkImportMessages,
+  ...placeholderMessages,
   ...sharedMessages,
 } as const
 
