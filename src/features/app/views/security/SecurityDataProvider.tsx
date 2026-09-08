@@ -17,6 +17,11 @@ import {
   updateSecurityIncident,
   updateSecurityRisk,
   updateSecurityVendorReview,
+  deleteSecurityAsset,
+  deleteSecurityAccessReview,
+  deleteSecurityIncident,
+  deleteSecurityRisk,
+  deleteSecurityVendorReview,
 } from './data/productionApi'
 import { securitySummary as fixtures } from './data/fixtures'
 import { SecurityDataContext } from './SecurityDataContext'
@@ -370,6 +375,101 @@ export function SecurityDataProvider({
     [mode, organizationId],
   )
 
+  const removeAsset = useCallback(
+    async (id: string) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({ ...prev, assets: prev.assets.filter((a) => a.id !== id) }))
+        return
+      }
+      try {
+        await deleteSecurityAsset(id)
+        setValue((prev) => ({ ...prev, assets: prev.assets.filter((a) => a.id !== id) }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not remove asset.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const removeAccessReview = useCallback(
+    async (id: string) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({ ...prev, accessReviews: prev.accessReviews.filter((r) => r.id !== id) }))
+        return
+      }
+      try {
+        await deleteSecurityAccessReview(id)
+        setValue((prev) => ({ ...prev, accessReviews: prev.accessReviews.filter((r) => r.id !== id) }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not remove access review.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const removeIncident = useCallback(
+    async (id: string) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({ ...prev, incidents: prev.incidents.filter((i) => i.id !== id) }))
+        return
+      }
+      try {
+        await deleteSecurityIncident(id)
+        setValue((prev) => ({ ...prev, incidents: prev.incidents.filter((i) => i.id !== id) }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not remove incident.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const removeRisk = useCallback(
+    async (id: string) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({ ...prev, risks: prev.risks.filter((r) => r.id !== id) }))
+        return
+      }
+      try {
+        await deleteSecurityRisk(id)
+        setValue((prev) => ({ ...prev, risks: prev.risks.filter((r) => r.id !== id) }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not remove risk.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const removeVendorReview = useCallback(
+    async (id: string) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({ ...prev, vendorReviews: prev.vendorReviews.filter((r) => r.id !== id) }))
+        return
+      }
+      try {
+        await deleteSecurityVendorReview(id)
+        setValue((prev) => ({ ...prev, vendorReviews: prev.vendorReviews.filter((r) => r.id !== id) }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not remove vendor review.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
   const updateVendorReview = useCallback(
     async (review: SecurityVendorReview) => {
       if (mode !== 'production' || !organizationId) {
@@ -413,27 +513,37 @@ export function SecurityDataProvider({
       error: value.error,
       addAsset,
       updateAsset,
+      removeAsset,
       addAccessReview,
       updateAccessReview,
+      removeAccessReview,
       addIncident,
       updateIncident,
+      removeIncident,
       addRisk,
       updateRisk,
+      removeRisk,
       addVendorReview,
       updateVendorReview,
+      removeVendorReview,
     }),
     [
       value,
       addAsset,
       updateAsset,
+      removeAsset,
       addAccessReview,
       updateAccessReview,
+      removeAccessReview,
       addIncident,
       updateIncident,
+      removeIncident,
       addRisk,
       updateRisk,
+      removeRisk,
       addVendorReview,
       updateVendorReview,
+      removeVendorReview,
     ],
   )
 

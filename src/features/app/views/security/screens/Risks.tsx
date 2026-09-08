@@ -55,7 +55,15 @@ function emptyRisk(): SecurityRisk {
   }
 }
 
-function RiskRow({ risk, onEdit }: { readonly risk: SecurityRisk; readonly onEdit: (risk: SecurityRisk) => void }) {
+function RiskRow({
+  risk,
+  onEdit,
+  onRemove,
+}: {
+  readonly risk: SecurityRisk
+  readonly onEdit: (risk: SecurityRisk) => void
+  readonly onRemove: (id: string) => void
+}) {
   const { x } = useI18n()
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
@@ -77,6 +85,13 @@ function RiskRow({ risk, onEdit }: { readonly risk: SecurityRisk; readonly onEdi
         >
           {x(M.sec_edit)}
         </button>
+        <button
+          type="button"
+          onClick={() => onRemove(risk.id)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.sec_remove)}
+        </button>
       </div>
     </div>
   )
@@ -84,7 +99,7 @@ function RiskRow({ risk, onEdit }: { readonly risk: SecurityRisk; readonly onEdi
 
 export function Risks() {
   const { x } = useI18n()
-  const { risks, addRisk, updateRisk } = useSecurityData()
+  const { risks, addRisk, updateRisk, removeRisk } = useSecurityData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<SecurityRisk | null>(null)
 
@@ -222,7 +237,12 @@ export function Risks() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {risks.map((risk) => (
-            <RiskRow key={risk.id} risk={risk} onEdit={(r) => { setEditing(r); setShow(true) }} />
+            <RiskRow
+              key={risk.id}
+              risk={risk}
+              onEdit={(r) => { setEditing(r); setShow(true) }}
+              onRemove={(id) => removeRisk(id)}
+            />
           ))}
         </div>
       )}

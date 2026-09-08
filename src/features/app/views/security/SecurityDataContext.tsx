@@ -17,14 +17,19 @@ export interface SecurityDataValue {
   error: string | null
   addAsset: (asset: SecurityAsset) => void
   updateAsset: (asset: SecurityAsset) => void
+  removeAsset: (id: string) => Promise<void>
   addAccessReview: (review: SecurityAccessReview) => void
   updateAccessReview: (review: SecurityAccessReview) => void
+  removeAccessReview: (id: string) => Promise<void>
   addIncident: (incident: SecurityIncident) => void
   updateIncident: (incident: SecurityIncident) => void
+  removeIncident: (id: string) => Promise<void>
   addRisk: (risk: SecurityRisk) => void
   updateRisk: (risk: SecurityRisk) => void
+  removeRisk: (id: string) => Promise<void>
   addVendorReview: (review: SecurityVendorReview) => void
   updateVendorReview: (review: SecurityVendorReview) => void
+  removeVendorReview: (id: string) => Promise<void>
 }
 
 export const SecurityDataContext = createContext<SecurityDataValue | null>(null)

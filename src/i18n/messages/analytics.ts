@@ -252,6 +252,18 @@ export const analyticsMessages = defineMessages({
     fr: 'Le calcul du roulement nécessite l’historique des départs, qui n’est pas encore suivi.',
   },
 
+  /* ── Security card ──────────────────────────────────────────────────────── */
+  analytics_security_title: { en: 'Security posture', fr: 'Posture de sécurité' },
+  analytics_security_sub: { en: 'Assets, reviews, incidents, and vendors.', fr: 'Actifs, revues, incidents et fournisseurs.' },
+  analytics_security_assets_at_risk: { en: 'Assets at risk', fr: 'Actifs à risque' },
+  analytics_security_open_incidents: { en: 'Open incidents', fr: 'Incidents ouverts' },
+  analytics_security_critical_incidents: { en: 'Critical incidents', fr: 'Incidents critiques' },
+  analytics_security_open_risks: { en: 'Open risks', fr: 'Risques ouverts' },
+  analytics_security_overdue_reviews: { en: 'Overdue reviews', fr: 'Revues en retard' },
+  analytics_security_reviews_due: { en: 'Reviews due soon', fr: 'Revues à échéance rapprochée' },
+  analytics_security_vendors_due: { en: 'Vendor reviews due', fr: 'Revues de fournisseurs à échéance' },
+  analytics_security_empty: { en: 'No security records yet.', fr: 'Aucun dossier de sécurité pour l’instant.' },
+
   /* ── Card chrome (loading / error / empty) ─────────────────────────────── */
   analytics_loading: { en: 'Loading…', fr: 'Chargement…' },
   analytics_error: { en: 'Couldn’t load this card.', fr: 'Impossible de charger cette carte.' },

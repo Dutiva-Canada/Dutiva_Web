@@ -46,9 +46,11 @@ function emptyAccessReview(): SecurityAccessReview {
 function AccessReviewRow({
   review,
   onEdit,
+  onRemove,
 }: {
   readonly review: SecurityAccessReview
   readonly onEdit: (review: SecurityAccessReview) => void
+  readonly onRemove: (id: string) => void
 }) {
   const { x } = useI18n()
   return (
@@ -70,6 +72,13 @@ function AccessReviewRow({
         >
           {x(M.sec_edit)}
         </button>
+        <button
+          type="button"
+          onClick={() => onRemove(review.id)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.sec_remove)}
+        </button>
       </div>
     </div>
   )
@@ -77,7 +86,7 @@ function AccessReviewRow({
 
 export function AccessReviews() {
   const { x } = useI18n()
-  const { accessReviews, addAccessReview, updateAccessReview } = useSecurityData()
+  const { accessReviews, addAccessReview, updateAccessReview, removeAccessReview } = useSecurityData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<SecurityAccessReview | null>(null)
 
@@ -194,7 +203,12 @@ export function AccessReviews() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {accessReviews.map((review) => (
-            <AccessReviewRow key={review.id} review={review} onEdit={(r) => { setEditing(r); setShow(true) }} />
+            <AccessReviewRow
+              key={review.id}
+              review={review}
+              onEdit={(r) => { setEditing(r); setShow(true) }}
+              onRemove={(id) => removeAccessReview(id)}
+            />
           ))}
         </div>
       )}

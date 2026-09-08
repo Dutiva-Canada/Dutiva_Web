@@ -11,6 +11,11 @@ import { listFindings } from '@/features/app/views/compliance/productionApi'
 import { listEmployees } from '@/features/app/views/employees/productionApi'
 import { listOwnConversations } from '@/features/app/views/memory/conversationsApi'
 import { listPolicies } from '@/features/app/views/policies/productionApi'
+import {
+  listSecurityAssets,
+  listSecurityIncidents,
+  listSecurityRisks,
+} from '@/features/app/views/security/data/productionApi'
 import { listTasks } from '@/features/app/views/tasks/productionApi'
 import { searchMessages as M } from '@/i18n/messages/search'
 import { shellMessages as S } from '@/i18n/messages/shell'
@@ -39,7 +44,7 @@ function conversationTitle(messages: { role: string; content: string }[]): Bi {
  * Client-side filter reuses filterSearchEntriesFrom in searchCorpus.ts.
  */
 export async function buildProductionSearchEntries(organizationId: string): Promise<SearchEntry[]> {
-  const [employees, cases, conversations, documents, comms, tasks, findings, policies] =
+  const [employees, cases, conversations, documents, comms, tasks, findings, policies, securityAssets, securityIncidents, securityRisks] =
     await Promise.all([
       listEmployees(organizationId),
       listCases(organizationId),
@@ -49,6 +54,9 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
       listTasks(organizationId),
       listFindings(organizationId),
       listPolicies(organizationId),
+      listSecurityAssets(organizationId),
+      listSecurityIncidents(organizationId),
+      listSecurityRisks(organizationId),
     ])
 
   const personEntries: SearchEntry[] = employees.map((e) => ({
@@ -154,6 +162,39 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     nav: { kind: 'view', view: 'policies' },
   }))
 
+  const securityAssetEntries: SearchEntry[] = securityAssets.map((a) => ({
+    id: `sec-asset-${a.id}`,
+    kind: 'security',
+    kindLabel: M.search_kind_security,
+    title: neutral(a.name),
+    sub: joinBi([neutral(a.asset_type), neutral(a.status), neutral(a.criticality ?? '')]),
+    restricted: a.criticality === 'critical',
+    match: joinBi([neutral(a.name), neutral(a.asset_type)]),
+    nav: { kind: 'view', view: 'security/assets' },
+  }))
+
+  const securityIncidentEntries: SearchEntry[] = securityIncidents.map((i) => ({
+    id: `sec-incident-${i.id}`,
+    kind: 'security',
+    kindLabel: M.search_kind_security,
+    title: neutral(i.title),
+    sub: joinBi([neutral(i.severity), neutral(i.status)]),
+    restricted: i.severity === 'critical',
+    match: joinBi([neutral(i.title), neutral(i.severity)]),
+    nav: { kind: 'view', view: 'security/incidents' },
+  }))
+
+  const securityRiskEntries: SearchEntry[] = securityRisks.map((r) => ({
+    id: `sec-risk-${r.id}`,
+    kind: 'security',
+    kindLabel: M.search_kind_security,
+    title: neutral(r.title),
+    sub: joinBi([neutral(r.likelihood ?? ''), neutral(r.impact ?? ''), neutral(r.status)]),
+    restricted: false,
+    match: joinBi([neutral(r.title), neutral(r.status)]),
+    nav: { kind: 'view', view: 'security/risks' },
+  }))
+
   const knowledgeEntries: SearchEntry[] = [
     ...knowledgeItems.map((k) => ({
       id: `kb-${k.id}`,
@@ -233,6 +274,9 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     ...taskEntries,
     ...complianceEntries,
     ...policyEntries,
+    ...securityAssetEntries,
+    ...securityIncidentEntries,
+    ...securityRiskEntries,
     ...knowledgeEntries,
     ...moduleEntries,
     ...flowSearchEntries,

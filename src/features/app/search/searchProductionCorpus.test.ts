@@ -110,6 +110,57 @@ vi.mock('@/features/app/views/policies/productionApi', () => ({
   ]),
 }))
 
+vi.mock('@/features/app/views/security/data/productionApi', () => ({
+  listSecurityAssets: vi.fn(async () => [
+    {
+      id: 'sa1',
+      organization_id: 'org-1',
+      name: 'Laptop',
+      asset_type: 'hardware',
+      owner_id: null,
+      status: 'active',
+      criticality: 'high',
+      renewal_date: null,
+      notes: null,
+      created_at: '2026-08-01',
+      updated_at: '2026-08-01',
+    },
+  ]),
+  listSecurityIncidents: vi.fn(async () => [
+    {
+      id: 'si1',
+      organization_id: 'org-1',
+      title: 'Phishing',
+      severity: 'medium',
+      status: 'open',
+      reported_by: null,
+      assigned_to: null,
+      reported_at: '2026-08-01',
+      resolved_at: null,
+      summary: null,
+      impact: null,
+      remediation: null,
+      created_by: null,
+      created_at: '2026-08-01',
+      updated_at: '2026-08-01',
+    },
+  ]),
+  listSecurityRisks: vi.fn(async () => [
+    {
+      id: 'sr1',
+      organization_id: 'org-1',
+      title: 'Data loss',
+      likelihood: 'low',
+      impact: 'high',
+      owner: null,
+      mitigation: null,
+      status: 'open',
+      created_at: '2026-08-01',
+      updated_at: '2026-08-01',
+    },
+  ]),
+}))
+
 describe('buildProductionSearchEntries', () => {
   beforeEach(() => {
     vi.clearAllMocks()

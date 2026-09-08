@@ -45,6 +45,20 @@ import type {
   CommsPolicyFile,
   CommsSubmission,
 } from './commsAnalyticsApi'
+import {
+  listSecurityAssets,
+  listSecurityAccessReviews,
+  listSecurityIncidents,
+  listSecurityRisks,
+  listSecurityVendorReviews,
+} from './securityAnalyticsApi'
+import type {
+  SecurityAsset,
+  SecurityAccessReview,
+  SecurityIncident,
+  SecurityRisk,
+  SecurityVendorReview,
+} from './securityAnalyticsApi'
 import { listScoreSnapshots, recordScoreSnapshot } from './productionApi'
 import type { ScoreSnapshot } from './productionApi'
 import { AnalyticsCard, CardEmpty, CardError, CardSkeleton } from './AnalyticsCard'
@@ -195,6 +209,11 @@ export function AnalyticsProductionView() {
   const commsPolicyFiles = useModuleRows<CommsPolicyFile>(organizationId, listCommsPolicyFiles)
   const commsContentItems = useModuleRows<CommsContentItem>(organizationId, listCommsContentItems)
   const commsInteractions = useModuleRows<CommsInteraction>(organizationId, listCommsInteractions)
+  const securityAssets = useModuleRows<SecurityAsset>(organizationId, listSecurityAssets)
+  const securityAccessReviews = useModuleRows<SecurityAccessReview>(organizationId, listSecurityAccessReviews)
+  const securityIncidents = useModuleRows<SecurityIncident>(organizationId, listSecurityIncidents)
+  const securityRisks = useModuleRows<SecurityRisk>(organizationId, listSecurityRisks)
+  const securityVendorReviews = useModuleRows<SecurityVendorReview>(organizationId, listSecurityVendorReviews)
 
   /* ── Score: live components + snapshot history ─────────────────────────── */
   const scoreReady =
@@ -841,7 +860,110 @@ export function AnalyticsProductionView() {
           </CardData>
         </AnalyticsCard>
 
-        {/* F · Comms & PR overview */}
+        {/* F · Security posture */}
+        {(() => {
+          const assetRows = rowsOf(securityAssets.state)
+          const accessReviewRows = rowsOf(securityAccessReviews.state)
+          const incidentRows = rowsOf(securityIncidents.state)
+          const riskRows = rowsOf(securityRisks.state)
+          const vendorReviewRows = rowsOf(securityVendorReviews.state)
+          const hasSecurityData =
+            assetRows.length +
+              accessReviewRows.length +
+              incidentRows.length +
+              riskRows.length +
+              vendorReviewRows.length >
+            0
+
+          const today = new Date(todayISO)
+          const in7Days = new Date(today)
+          in7Days.setDate(today.getDate() + 7)
+          const in7ISO = in7Days.toISOString().slice(0, 10)
+
+          const atRisk = assetRows.filter((a) => a.status === 'at_risk').length
+          const criticalAssets = assetRows.filter((a) => a.criticality === 'critical').length
+          const openIncidents = incidentRows.filter((i) => i.status === 'open' || i.status === 'contained').length
+          const criticalIncidents = incidentRows.filter(
+            (i) => (i.status === 'open' || i.status === 'contained') && i.severity === 'critical',
+          ).length
+          const openRisks = riskRows.filter((r) => r.status === 'open').length
+          const overdueReviews = accessReviewRows.filter(
+            (r) =>
+              (r.status === 'pending' || r.status === 'in_progress') &&
+              r.review_due_date !== null &&
+              r.review_due_date < todayISO,
+          ).length
+          const reviewsDueSoon = accessReviewRows.filter(
+            (r) =>
+              (r.status === 'pending' || r.status === 'in_progress') &&
+              r.review_due_date !== null &&
+              r.review_due_date >= todayISO &&
+              r.review_due_date <= in7ISO,
+          ).length
+          const vendorsDueSoon = vendorReviewRows.filter(
+            (v) =>
+              v.next_review_date !== null &&
+              v.next_review_date >= todayISO &&
+              v.next_review_date <= in7ISO,
+          ).length
+
+          return (
+            <AnalyticsCard
+              title={x(M.analytics_security_title)}
+              subtitle={x(M.analytics_security_sub)}
+              hidden={!show('security')}
+            >
+              <CardData
+                deps={[
+                  securityAssets,
+                  securityAccessReviews,
+                  securityIncidents,
+                  securityRisks,
+                  securityVendorReviews,
+                ]}
+                skeletonLines={2}
+              >
+                {() =>
+                  !hasSecurityData ? (
+                    <CardEmpty text={x(M.analytics_security_empty)} />
+                  ) : (
+                    <div className="flex flex-wrap gap-[10px]">
+                      <StatTile
+                        value={String(atRisk)}
+                        label={x(M.analytics_security_assets_at_risk)}
+                        alert={atRisk > 0}
+                      />
+                      <StatTile
+                        value={String(criticalAssets)}
+                        label={x(M.analytics_security_title)}
+                        alert={criticalAssets > 0}
+                      />
+                      <StatTile
+                        value={String(openIncidents)}
+                        label={x(M.analytics_security_open_incidents)}
+                      />
+                      <StatTile
+                        value={String(criticalIncidents)}
+                        label={x(M.analytics_security_critical_incidents)}
+                        alert={criticalIncidents > 0}
+                      />
+                      <StatTile value={String(openRisks)} label={x(M.analytics_security_open_risks)} />
+                      <StatTile
+                        value={String(overdueReviews)}
+                        label={x(M.analytics_security_overdue_reviews)}
+                        alert={overdueReviews > 0}
+                      />
+                      <StatTile value={String(reviewsDueSoon)} label={x(M.analytics_security_reviews_due)} />
+                      <StatTile value={String(vendorsDueSoon)} label={x(M.analytics_security_vendors_due)} />
+                    </div>
+                  )
+                }
+              </CardData>
+            </AnalyticsCard>
+          )
+        })()}
+
+        {/* G · Comms & PR overview */}
         {(() => {
           const contentItemRows = rowsOf(commsContentItems.state)
           const interactionRows = rowsOf(commsInteractions.state)

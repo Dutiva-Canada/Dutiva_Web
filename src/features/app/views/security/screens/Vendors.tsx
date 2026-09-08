@@ -38,9 +38,11 @@ function emptyVendorReview(): SecurityVendorReview {
 function VendorRow({
   vendor,
   onEdit,
+  onRemove,
 }: {
   readonly vendor: SecurityVendorReview
   readonly onEdit: (vendor: SecurityVendorReview) => void
+  readonly onRemove: (id: string) => void
 }) {
   const { x } = useI18n()
   return (
@@ -68,6 +70,13 @@ function VendorRow({
         >
           {x(M.sec_edit)}
         </button>
+        <button
+          type="button"
+          onClick={() => onRemove(vendor.id)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.sec_remove)}
+        </button>
       </div>
     </div>
   )
@@ -75,7 +84,7 @@ function VendorRow({
 
 export function Vendors() {
   const { x } = useI18n()
-  const { vendorReviews, addVendorReview, updateVendorReview } = useSecurityData()
+  const { vendorReviews, addVendorReview, updateVendorReview, removeVendorReview } = useSecurityData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<SecurityVendorReview | null>(null)
 
@@ -205,7 +214,12 @@ export function Vendors() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {vendorReviews.map((vendor) => (
-            <VendorRow key={vendor.id} vendor={vendor} onEdit={(v) => { setEditing(v); setShow(true) }} />
+            <VendorRow
+              key={vendor.id}
+              vendor={vendor}
+              onEdit={(v) => { setEditing(v); setShow(true) }}
+              onRemove={(id) => removeVendorReview(id)}
+            />
           ))}
         </div>
       )}

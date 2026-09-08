@@ -354,6 +354,36 @@ export async function updateSecurityVendorReview(
   return toVendorReview(parsed)
 }
 
+export async function deleteSecurityAsset(id: string): Promise<void> {
+  const client = getClient()
+  const { error } = await client.from('security_assets').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteSecurityAccessReview(id: string): Promise<void> {
+  const client = getClient()
+  const { error } = await client.from('security_access_reviews').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteSecurityIncident(id: string): Promise<void> {
+  const client = getClient()
+  const { error } = await client.from('security_incidents').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteSecurityRisk(id: string): Promise<void> {
+  const client = getClient()
+  const { error } = await client.from('security_risks').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteSecurityVendorReview(id: string): Promise<void> {
+  const client = getClient()
+  const { error } = await client.from('security_vendor_reviews').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
 export async function listSecurityVendorReviews(
   organizationId: string,
 ): Promise<SecurityVendorReview[]> {

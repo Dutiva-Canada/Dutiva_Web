@@ -60,6 +60,7 @@ export const securityMessages = defineMessages({
   sec_cancel: { en: 'Cancel', fr: 'Annuler' },
   sec_save: { en: 'Save', fr: 'Enregistrer' },
   sec_edit: { en: 'Edit', fr: 'Modifier' },
+  sec_remove: { en: 'Remove', fr: 'Retirer' },
   sec_save_changes: { en: 'Save changes', fr: 'Enregistrer les modifications' },
   sec_add_asset: { en: 'Add asset', fr: 'Ajouter un actif' },
   sec_add_review: { en: 'Add review', fr: 'Ajouter une revue' },
@@ -88,6 +89,14 @@ export const securityMessages = defineMessages({
   sec_security_review_date: { en: 'Security review', fr: 'Revue de sécurité' },
   sec_next_review_date: { en: 'Next review', fr: 'Prochaine revue' },
   sec_notes: { en: 'Notes', fr: 'Notes' },
+  sec_demo_read_only: {
+    en: 'Demo workspace: changes are not persisted.',
+    fr: 'Espace de travail de démonstration : les modifications ne sont pas conservées.',
+  },
+  sec_production_synced: {
+    en: 'Production mode syncs with your workspace database.',
+    fr: 'Le mode production se synchronise avec la base de données de votre espace de travail.',
+  },
   sec_disclaimer: {
     en: 'Tracks posture and points to specialists; it does not make the organization secure.',
     fr: 'Fait le suivi de la posture et oriente vers des spécialistes; cela ne rend pas l’organisation sécurisée.',

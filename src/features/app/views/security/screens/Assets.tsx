@@ -57,7 +57,15 @@ function emptyAsset(): SecurityAsset {
   }
 }
 
-function AssetRow({ asset, onEdit }: { readonly asset: SecurityAsset; readonly onEdit: (asset: SecurityAsset) => void }) {
+function AssetRow({
+  asset,
+  onEdit,
+  onRemove,
+}: {
+  readonly asset: SecurityAsset
+  readonly onEdit: (asset: SecurityAsset) => void
+  readonly onRemove: (id: string) => void
+}) {
   const { x } = useI18n()
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
@@ -78,6 +86,13 @@ function AssetRow({ asset, onEdit }: { readonly asset: SecurityAsset; readonly o
         >
           {x(M.sec_edit)}
         </button>
+        <button
+          type="button"
+          onClick={() => onRemove(asset.id)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.sec_remove)}
+        </button>
       </div>
     </div>
   )
@@ -85,7 +100,7 @@ function AssetRow({ asset, onEdit }: { readonly asset: SecurityAsset; readonly o
 
 export function Assets() {
   const { x } = useI18n()
-  const { assets, addAsset, updateAsset } = useSecurityData()
+  const { assets, addAsset, updateAsset, removeAsset } = useSecurityData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<SecurityAsset | null>(null)
 
@@ -223,7 +238,12 @@ export function Assets() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {assets.map((asset) => (
-            <AssetRow key={asset.id} asset={asset} onEdit={(a) => { setEditing(a); setShow(true) }} />
+            <AssetRow
+              key={asset.id}
+              asset={asset}
+              onEdit={(a) => { setEditing(a); setShow(true) }}
+              onRemove={(id) => removeAsset(id)}
+            />
           ))}
         </div>
       )}

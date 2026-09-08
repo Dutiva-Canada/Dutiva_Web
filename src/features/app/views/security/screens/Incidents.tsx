@@ -72,9 +72,11 @@ function inputToIncidentDate(date: string) {
 function IncidentRow({
   incident,
   onEdit,
+  onRemove,
 }: {
   readonly incident: SecurityIncident
   readonly onEdit: (incident: SecurityIncident) => void
+  readonly onRemove: (id: string) => void
 }) {
   const { x } = useI18n()
   return (
@@ -97,6 +99,13 @@ function IncidentRow({
         >
           {x(M.sec_edit)}
         </button>
+        <button
+          type="button"
+          onClick={() => onRemove(incident.id)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.sec_remove)}
+        </button>
       </div>
     </div>
   )
@@ -104,7 +113,7 @@ function IncidentRow({
 
 export function Incidents() {
   const { x } = useI18n()
-  const { incidents, addIncident, updateIncident } = useSecurityData()
+  const { incidents, addIncident, updateIncident, removeIncident } = useSecurityData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<SecurityIncident | null>(null)
 
@@ -248,7 +257,12 @@ export function Incidents() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {incidents.map((incident) => (
-            <IncidentRow key={incident.id} incident={incident} onEdit={(i) => { setEditing(i); setShow(true) }} />
+            <IncidentRow
+              key={incident.id}
+              incident={incident}
+              onEdit={(i) => { setEditing(i); setShow(true) }}
+              onRemove={(id) => removeIncident(id)}
+            />
           ))}
         </div>
       )}
