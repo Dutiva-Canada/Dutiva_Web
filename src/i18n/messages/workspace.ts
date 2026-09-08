@@ -33,6 +33,7 @@ import { commsMessages } from './comms'
 import { financeMessages } from './finance'
 import { bulkImportMessages } from './bulkImport'
 import { placeholderMessages } from './placeholder'
+import { governanceMessages } from './governance'
 import { sharedMessages } from './shared'
 
 /**
@@ -78,6 +79,7 @@ export const workspaceMessages = {
   ...financeMessages,
   ...bulkImportMessages,
   ...placeholderMessages,
+  ...governanceMessages,
   ...sharedMessages,
 } as const
 

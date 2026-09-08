@@ -68,6 +68,13 @@ import {
 /* prettier-ignore */ const SpecialistsView = lazy(() => import('@/features/app/views/specialists/SpecialistsView').then((m) => ({ default: m.SpecialistsView })))
 /* prettier-ignore */ const CompensationView = lazy(preloadCompensationView)
 
+/* Governance workspace screens */
+/* prettier-ignore */ const GovernanceOverview = lazy(() => import('@/features/app/views/governance/screens/Overview').then((m) => ({ default: m.Overview })))
+/* prettier-ignore */ const GovernanceRecords = lazy(() => import('@/features/app/views/governance/screens/Records').then((m) => ({ default: m.Records })))
+/* prettier-ignore */ const GovernanceDecisions = lazy(() => import('@/features/app/views/governance/screens/Decisions').then((m) => ({ default: m.Decisions })))
+/* prettier-ignore */ const GovernanceOfficers = lazy(() => import('@/features/app/views/governance/screens/Officers').then((m) => ({ default: m.Officers })))
+/* prettier-ignore */ const GovernanceShareholders = lazy(() => import('@/features/app/views/governance/screens/Shareholders').then((m) => ({ default: m.Shareholders })))
+
 /* Communications workspace screens */
 /* prettier-ignore */ const CommsOverview = lazy(() => import('@/features/app/views/comms/screens/Overview').then((m) => ({ default: m.Overview })))
 /* prettier-ignore */ const CommsInitiatives = lazy(() => import('@/features/app/views/comms/screens/Initiatives').then((m) => ({ default: m.Initiatives })))
@@ -196,7 +203,18 @@ function createAppViewRoutes(root: string): RouteObject[] {
     { path: 'crm', element: <CrmView /> },
     { path: 'revenue', element: <RevenueView /> },
     { path: 'operations', element: <OperationsView /> },
-    { path: 'governance', element: <GovernanceView /> },
+    {
+      path: 'governance',
+      element: <GovernanceView />,
+      children: [
+        { index: true, loader: () => redirect(r('governance/overview')) },
+        { path: 'overview', element: <GovernanceOverview /> },
+        { path: 'records', element: <GovernanceRecords /> },
+        { path: 'decisions', element: <GovernanceDecisions /> },
+        { path: 'officers', element: <GovernanceOfficers /> },
+        { path: 'shareholders', element: <GovernanceShareholders /> },
+      ],
+    },
     { path: 'security', element: <SecurityView /> },
     { path: 'specialists', element: <SpecialistsView /> },
     { path: 'wellbeing', element: <WellbeingView /> },
