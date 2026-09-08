@@ -167,6 +167,127 @@ export async function listOperationsTechnology(organizationId: string): Promise<
   return parsed.map(toTechnology)
 }
 
+const projectInsertSchema = z.object({
+  organization_id: z.string(),
+  title: z.string().min(1),
+  owner_id: z.string().nullable(),
+  status: z.enum(['planning', 'active', 'on_hold', 'completed', 'cancelled']),
+  start_date: z.string().nullable(),
+  target_date: z.string().nullable(),
+  description: z.string().nullable(),
+})
+
+const vendorInsertSchema = z.object({
+  organization_id: z.string(),
+  finance_party_id: z.string().nullable(),
+  name: z.string().min(1),
+  vendor_type: z.enum(['supplier', 'logistics', 'technology', 'professional_service']).nullable(),
+  status: z.enum(['active', 'inactive', 'under_review']),
+  contract_expiry: z.string().nullable(),
+  notes: z.string().nullable(),
+})
+
+const qualityInsertSchema = z.object({
+  organization_id: z.string(),
+  title: z.string().min(1),
+  assigned_to: z.string().nullable(),
+  reviewer_id: z.string().nullable(),
+  checklist: z.array(z.any()).nullable(),
+  due_date: z.string().nullable(),
+  completed_date: z.string().nullable(),
+  status: z.enum(['pending', 'passed', 'failed', 'overdue']),
+  non_conformance: z.string().nullable(),
+  created_by: z.string().nullable(),
+})
+
+const technologyInsertSchema = z.object({
+  organization_id: z.string(),
+  name: z.string().min(1),
+  system_type: z.enum(['internal', 'customer_facing', 'integration', 'infrastructure']).nullable(),
+  owner_id: z.string().nullable(),
+  status: z.enum(['active', 'deprecated', 'planned']),
+  renewal_date: z.string().nullable(),
+  integration_notes: z.string().nullable(),
+})
+
+const logisticsInsertSchema = z.object({
+  organization_id: z.string(),
+  title: z.string().min(1),
+  owner_id: z.string().nullable(),
+  assigned_to: z.string().nullable(),
+  status: z.enum(['in_transit', 'delivered', 'delayed', 'returned']),
+  expected_date: z.string().nullable(),
+  delivered_date: z.string().nullable(),
+  notes: z.string().nullable(),
+  created_by: z.string().nullable(),
+})
+
+export type OperationsProjectInsert = z.input<typeof projectInsertSchema>
+export type OperationsVendorInsert = z.input<typeof vendorInsertSchema>
+export type OperationsQualityCheckInsert = z.input<typeof qualityInsertSchema>
+export type OperationsTechnologyInsert = z.input<typeof technologyInsertSchema>
+export type OperationsLogisticsInsert = z.input<typeof logisticsInsertSchema>
+
+export async function createOperationsProject(
+  organizationId: string,
+  values: Omit<OperationsProjectInsert, 'organization_id'>,
+): Promise<OperationsProject> {
+  const client = getClient()
+  const insert = projectInsertSchema.parse({ ...values, organization_id: organizationId })
+  const { data, error } = await client.from('operations_projects').insert(insert).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = projectRowSchema.parse(data)
+  return toProject(parsed)
+}
+
+export async function createOperationsVendor(
+  organizationId: string,
+  values: Omit<OperationsVendorInsert, 'organization_id'>,
+): Promise<OperationsVendor> {
+  const client = getClient()
+  const insert = vendorInsertSchema.parse({ ...values, organization_id: organizationId })
+  const { data, error } = await client.from('operations_vendors').insert(insert).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = vendorRowSchema.parse(data)
+  return toVendor(parsed)
+}
+
+export async function createOperationsQualityCheck(
+  organizationId: string,
+  values: Omit<OperationsQualityCheckInsert, 'organization_id'>,
+): Promise<OperationsQualityCheck> {
+  const client = getClient()
+  const insert = qualityInsertSchema.parse({ ...values, organization_id: organizationId })
+  const { data, error } = await client.from('operations_quality_checks').insert(insert).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = qualityRowSchema.parse(data)
+  return toQualityCheck(parsed)
+}
+
+export async function createOperationsTechnology(
+  organizationId: string,
+  values: Omit<OperationsTechnologyInsert, 'organization_id'>,
+): Promise<OperationsTechnology> {
+  const client = getClient()
+  const insert = technologyInsertSchema.parse({ ...values, organization_id: organizationId })
+  const { data, error } = await client.from('operations_technology').insert(insert).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = technologyRowSchema.parse(data)
+  return toTechnology(parsed)
+}
+
+export async function createOperationsLogistics(
+  organizationId: string,
+  values: Omit<OperationsLogisticsInsert, 'organization_id'>,
+): Promise<OperationsLogistics> {
+  const client = getClient()
+  const insert = logisticsInsertSchema.parse({ ...values, organization_id: organizationId })
+  const { data, error } = await client.from('operations_logistics').insert(insert).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = logisticsRowSchema.parse(data)
+  return toLogistics(parsed)
+}
+
 export async function listOperationsLogistics(organizationId: string): Promise<OperationsLogistics[]> {
   const client = getClient()
   const data = await fetchAllPages((from, to) =>

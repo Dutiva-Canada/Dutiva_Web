@@ -15,6 +15,11 @@ export interface OperationsDataValue {
   logistics: OperationsLogistics[]
   loading: boolean
   error: string | null
+  addProject: (project: OperationsProject) => void
+  addVendor: (vendor: OperationsVendor) => void
+  addQualityCheck: (check: OperationsQualityCheck) => void
+  addTechnology: (technology: OperationsTechnology) => void
+  addLogistics: (logistics: OperationsLogistics) => void
 }
 
 export const OperationsDataContext = createContext<OperationsDataValue | null>(null)

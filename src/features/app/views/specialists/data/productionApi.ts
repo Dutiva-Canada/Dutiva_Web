@@ -64,6 +64,59 @@ export async function listSpecialists(organizationId: string): Promise<Specialis
   return parsed.map(toSpecialist)
 }
 
+const specialistInsertSchema = z.object({
+  organization_id: z.string(),
+  name: z.string().min(1),
+  specialty: z.enum(['lawyer', 'accountant', 'tax', 'insurance', 'it_security', 'hr_consultant', 'bookkeeper', 'other']),
+  company: z.string().nullable(),
+  email: z.string().nullable(),
+  phone: z.string().nullable(),
+  crm_contact_id: z.string().nullable(),
+  finance_party_id: z.string().nullable(),
+  workspace_access: z.boolean(),
+  workspace_role: z.enum(['consultant', 'viewer']),
+  granted_modules: z.array(z.string()),
+  access_expires_at: z.string().nullable(),
+  notes: z.string().nullable(),
+})
+
+const engagementInsertSchema = z.object({
+  organization_id: z.string(),
+  specialist_id: z.string(),
+  engagement_date: z.string().nullable(),
+  engagement_type: z.enum(['call', 'email', 'meeting', 'contract', 'task']).nullable(),
+  summary: z.string().nullable(),
+  follow_up_date: z.string().nullable(),
+  created_by: z.string().nullable(),
+})
+
+export type SpecialistInsert = z.input<typeof specialistInsertSchema>
+export type SpecialistEngagementInsert = z.input<typeof engagementInsertSchema>
+
+export async function createSpecialist(
+  organizationId: string,
+  values: Omit<SpecialistInsert, 'organization_id'>,
+): Promise<Specialist> {
+  const client = getClient()
+  const insert = specialistInsertSchema.parse({ ...values, organization_id: organizationId })
+  const { data, error } = await client.from('specialists').insert(insert).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = specialistRowSchema.parse(data)
+  return toSpecialist(parsed)
+}
+
+export async function createSpecialistEngagement(
+  organizationId: string,
+  values: Omit<SpecialistEngagementInsert, 'organization_id'>,
+): Promise<SpecialistEngagement> {
+  const client = getClient()
+  const insert = engagementInsertSchema.parse({ ...values, organization_id: organizationId })
+  const { data, error } = await client.from('specialist_engagements').insert(insert).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = engagementRowSchema.parse(data)
+  return toEngagement(parsed)
+}
+
 export async function listSpecialistEngagements(organizationId: string): Promise<SpecialistEngagement[]> {
   const client = getClient()
   const data = await fetchAllPages((from, to) =>

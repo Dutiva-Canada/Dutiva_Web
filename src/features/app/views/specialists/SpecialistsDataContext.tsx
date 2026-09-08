@@ -6,6 +6,8 @@ export interface SpecialistsDataValue {
   engagements: SpecialistEngagement[]
   loading: boolean
   error: string | null
+  addSpecialist: (specialist: Specialist) => void
+  addEngagement: (engagement: SpecialistEngagement) => void
 }
 
 export const SpecialistsDataContext = createContext<SpecialistsDataValue | null>(null)

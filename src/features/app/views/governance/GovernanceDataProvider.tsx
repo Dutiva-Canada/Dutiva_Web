@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import {
@@ -6,10 +6,29 @@ import {
   listGovernanceDecisions,
   listGovernanceOfficers,
   listGovernanceShareholders,
+  createGovernanceRecord,
+  createGovernanceDecision,
+  createGovernanceOfficer,
+  createGovernanceShareholder,
 } from './data/productionApi'
 import { governanceSummary as fixtures } from './data/fixtures'
 import { GovernanceDataContext } from './GovernanceDataContext'
 import type { GovernanceDataValue } from './GovernanceDataContext'
+import type {
+  GovernanceRecord,
+  GovernanceDecision,
+  GovernanceOfficer,
+  GovernanceShareholder,
+} from './data/types'
+
+const EMPTY: Pick<GovernanceDataValue, 'records' | 'decisions' | 'officers' | 'shareholders' | 'loading' | 'error'> = {
+  records: [],
+  decisions: [],
+  officers: [],
+  shareholders: [],
+  loading: false,
+  error: null,
+}
 
 export function GovernanceDataProvider({
   mode,
@@ -19,7 +38,9 @@ export function GovernanceDataProvider({
   readonly children: ReactNode
 }) {
   const { organizationId } = useWorkspaceMode()
-  const [value, setValue] = useState<GovernanceDataValue>(() =>
+  const [value, setValue] = useState<
+    Pick<GovernanceDataValue, 'records' | 'decisions' | 'officers' | 'shareholders' | 'loading' | 'error'>
+  >(() =>
     mode === 'demo'
       ? {
           records: fixtures.records,
@@ -29,27 +50,13 @@ export function GovernanceDataProvider({
           loading: false,
           error: null,
         }
-      : {
-          records: [],
-          decisions: [],
-          officers: [],
-          shareholders: [],
-          loading: true,
-          error: null,
-        },
+      : { ...EMPTY, loading: true },
   )
 
   useEffect(() => {
     if (mode !== 'production') return
     if (!organizationId) {
-      setValue({
-        records: [],
-        decisions: [],
-        officers: [],
-        shareholders: [],
-        loading: false,
-        error: null,
-      })
+      setValue(EMPTY)
       return
     }
 
@@ -75,11 +82,7 @@ export function GovernanceDataProvider({
       } catch (err) {
         if (cancelled) return
         setValue({
-          records: [],
-          decisions: [],
-          officers: [],
-          shareholders: [],
-          loading: false,
+          ...EMPTY,
           error: err instanceof Error ? err.message : 'Could not load governance data.',
         })
       }
@@ -91,6 +94,116 @@ export function GovernanceDataProvider({
     }
   }, [mode, organizationId])
 
+  const addRecord = useCallback(
+    async (record: GovernanceRecord) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({ ...prev, records: [record, ...prev.records] }))
+        return
+      }
+      try {
+        const created = await createGovernanceRecord(organizationId, {
+          title: record.title,
+          record_type: record.record_type,
+          jurisdiction: record.jurisdiction,
+          effective_date: record.effective_date,
+          review_due_date: record.review_due_date,
+          status: record.status,
+          viewer_visible: record.viewer_visible,
+          document_id: record.document_id,
+          created_by: record.created_by,
+        })
+        setValue((prev) => ({ ...prev, records: [created, ...prev.records] }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not save record.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const addDecision = useCallback(
+    async (decision: GovernanceDecision) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({ ...prev, decisions: [decision, ...prev.decisions] }))
+        return
+      }
+      try {
+        const created = await createGovernanceDecision(organizationId, {
+          title: decision.title,
+          decision_date: decision.decision_date,
+          decided_by: decision.decided_by,
+          rationale: decision.rationale,
+          status: decision.status,
+          viewer_visible: decision.viewer_visible,
+          related_record_id: decision.related_record_id,
+          created_by: decision.created_by,
+        })
+        setValue((prev) => ({ ...prev, decisions: [created, ...prev.decisions] }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not save decision.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const addOfficer = useCallback(
+    async (officer: GovernanceOfficer) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({ ...prev, officers: [officer, ...prev.officers] }))
+        return
+      }
+      try {
+        const created = await createGovernanceOfficer(organizationId, {
+          name: officer.name,
+          role: officer.role,
+          appointed_date: officer.appointed_date,
+          resigned_date: officer.resigned_date,
+          contact_email: officer.contact_email,
+          is_active: officer.is_active,
+          viewer_visible: officer.viewer_visible,
+        })
+        setValue((prev) => ({ ...prev, officers: [created, ...prev.officers] }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not save officer.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const addShareholder = useCallback(
+    async (shareholder: GovernanceShareholder) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({ ...prev, shareholders: [shareholder, ...prev.shareholders] }))
+        return
+      }
+      try {
+        const created = await createGovernanceShareholder(organizationId, {
+          name: shareholder.name,
+          share_class: shareholder.share_class,
+          shares_issued: shareholder.shares_issued,
+          issue_date: shareholder.issue_date,
+          contact_email: shareholder.contact_email,
+          viewer_visible: shareholder.viewer_visible,
+        })
+        setValue((prev) => ({ ...prev, shareholders: [created, ...prev.shareholders] }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not save shareholder.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
   const stable = useMemo(
     () => ({
       records: value.records,
@@ -99,8 +212,12 @@ export function GovernanceDataProvider({
       shareholders: value.shareholders,
       loading: value.loading,
       error: value.error,
+      addRecord,
+      addDecision,
+      addOfficer,
+      addShareholder,
     }),
-    [value],
+    [value, addRecord, addDecision, addOfficer, addShareholder],
   )
 
   return <GovernanceDataContext.Provider value={stable}>{children}</GovernanceDataContext.Provider>

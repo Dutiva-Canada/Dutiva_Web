@@ -138,6 +138,105 @@ export async function listGovernanceOfficers(organizationId: string): Promise<Go
   return parsed.map(toOfficer)
 }
 
+const recordInsertSchema = z.object({
+  organization_id: z.string(),
+  title: z.string().min(1),
+  record_type: z.enum(['articles', 'bylaw', 'resolution', 'minutes', 'register']),
+  jurisdiction: z.string().nullable(),
+  effective_date: z.string().nullable(),
+  review_due_date: z.string().nullable(),
+  status: z.enum(['active', 'superseded', 'pending_review']),
+  viewer_visible: z.boolean(),
+  document_id: z.string().nullable(),
+  created_by: z.string().nullable(),
+})
+
+const decisionInsertSchema = z.object({
+  organization_id: z.string(),
+  title: z.string().min(1),
+  decision_date: z.string().nullable(),
+  decided_by: z.string().nullable(),
+  rationale: z.string().nullable(),
+  status: z.enum(['proposed', 'adopted', 'rescinded']),
+  viewer_visible: z.boolean(),
+  related_record_id: z.string().nullable(),
+  created_by: z.string().nullable(),
+})
+
+const officerInsertSchema = z.object({
+  organization_id: z.string(),
+  name: z.string().min(1),
+  role: z.enum(['director', 'officer_president', 'officer_secretary', 'officer_treasurer']),
+  appointed_date: z.string().nullable(),
+  resigned_date: z.string().nullable(),
+  contact_email: z.string().nullable(),
+  is_active: z.boolean(),
+  viewer_visible: z.boolean(),
+})
+
+const shareholderInsertSchema = z.object({
+  organization_id: z.string(),
+  name: z.string().min(1),
+  share_class: z.string().nullable(),
+  shares_issued: z.number().nullable(),
+  issue_date: z.string().nullable(),
+  contact_email: z.string().nullable(),
+  viewer_visible: z.boolean(),
+})
+
+export type GovernanceRecordInsert = z.input<typeof recordInsertSchema>
+export type GovernanceDecisionInsert = z.input<typeof decisionInsertSchema>
+export type GovernanceOfficerInsert = z.input<typeof officerInsertSchema>
+export type GovernanceShareholderInsert = z.input<typeof shareholderInsertSchema>
+
+export async function createGovernanceRecord(
+  organizationId: string,
+  values: Omit<GovernanceRecordInsert, 'organization_id'>,
+): Promise<GovernanceRecord> {
+  const client = getClient()
+  const insert = recordInsertSchema.parse({ ...values, organization_id: organizationId })
+  const { data, error } = await client.from('governance_records').insert(insert).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = recordRowSchema.parse(data)
+  return toRecord(parsed)
+}
+
+export async function createGovernanceDecision(
+  organizationId: string,
+  values: Omit<GovernanceDecisionInsert, 'organization_id'>,
+): Promise<GovernanceDecision> {
+  const client = getClient()
+  const insert = decisionInsertSchema.parse({ ...values, organization_id: organizationId })
+  const { data, error } = await client.from('governance_decisions').insert(insert).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = decisionRowSchema.parse(data)
+  return toDecision(parsed)
+}
+
+export async function createGovernanceOfficer(
+  organizationId: string,
+  values: Omit<GovernanceOfficerInsert, 'organization_id'>,
+): Promise<GovernanceOfficer> {
+  const client = getClient()
+  const insert = officerInsertSchema.parse({ ...values, organization_id: organizationId })
+  const { data, error } = await client.from('governance_officers').insert(insert).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = officerRowSchema.parse(data)
+  return toOfficer(parsed)
+}
+
+export async function createGovernanceShareholder(
+  organizationId: string,
+  values: Omit<GovernanceShareholderInsert, 'organization_id'>,
+): Promise<GovernanceShareholder> {
+  const client = getClient()
+  const insert = shareholderInsertSchema.parse({ ...values, organization_id: organizationId })
+  const { data, error } = await client.from('governance_shareholders').insert(insert).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = shareholderRowSchema.parse(data)
+  return toShareholder(parsed)
+}
+
 export async function listGovernanceShareholders(
   organizationId: string,
 ): Promise<GovernanceShareholder[]> {

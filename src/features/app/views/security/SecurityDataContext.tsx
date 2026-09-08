@@ -15,6 +15,11 @@ export interface SecurityDataValue {
   vendorReviews: SecurityVendorReview[]
   loading: boolean
   error: string | null
+  addAsset: (asset: SecurityAsset) => void
+  addAccessReview: (review: SecurityAccessReview) => void
+  addIncident: (incident: SecurityIncident) => void
+  addRisk: (risk: SecurityRisk) => void
+  addVendorReview: (review: SecurityVendorReview) => void
 }
 
 export const SecurityDataContext = createContext<SecurityDataValue | null>(null)

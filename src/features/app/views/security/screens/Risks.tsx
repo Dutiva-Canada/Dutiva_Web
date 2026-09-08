@@ -1,8 +1,14 @@
+import { useState } from 'react'
 import { useI18n } from '@/i18n/context'
 import { securityMessages as M } from '@/i18n/messages/security'
 import { statusChipClass } from '@/components/chips'
+import { FormField, FormInput, FormSelect, FormTextarea } from '@/components/FormField'
 import { useSecurityData } from '../SecurityDataContext'
 import type { SecurityRisk, SecurityRiskStatus, SecurityRiskLikelihood, SecurityRiskImpact } from '../data/types'
+
+const STATUSES: SecurityRiskStatus[] = ['open', 'mitigated', 'accepted', 'closed']
+const LIKELIHOODS: NonNullable<SecurityRiskLikelihood>[] = ['high', 'medium', 'low']
+const IMPACTS: NonNullable<SecurityRiskImpact>[] = ['high', 'medium', 'low']
 
 const STATUS_LABELS: Record<SecurityRiskStatus, keyof typeof M> = {
   open: 'sec_risk_status_open',
@@ -30,6 +36,10 @@ const IMPACT_LABELS: Record<NonNullable<SecurityRiskImpact>, keyof typeof M> = {
   low: 'sec_criticality_low',
 }
 
+function generateId() {
+  return `sr-${Math.random().toString(36).slice(2, 9)}`
+}
+
 function RiskRow({ risk }: { readonly risk: SecurityRisk }) {
   const { x } = useI18n()
   return (
@@ -50,21 +60,126 @@ function RiskRow({ risk }: { readonly risk: SecurityRisk }) {
 
 export function Risks() {
   const { x } = useI18n()
-  const { risks } = useSecurityData()
+  const { risks, addRisk } = useSecurityData()
+  const [show, setShow] = useState(false)
 
-  if (risks.length === 0) {
-    return (
-      <div className="rounded-[12px] border border-border bg-surface px-[16px] py-[24px] text-center">
-        <p className="m-0 text-[13.5px] text-text-muted">{x(M.sec_empty_body)}</p>
-      </div>
-    )
+  const [title, setTitle] = useState('')
+  const [status, setStatus] = useState<SecurityRiskStatus>('open')
+  const [likelihood, setLikelihood] = useState<NonNullable<SecurityRiskLikelihood>>('low')
+  const [impact, setImpact] = useState<NonNullable<SecurityRiskImpact>>('low')
+  const [owner, setOwner] = useState('')
+  const [mitigation, setMitigation] = useState('')
+
+  const reset = () => {
+    setTitle('')
+    setStatus('open')
+    setLikelihood('low')
+    setImpact('low')
+    setOwner('')
+    setMitigation('')
+  }
+
+  const onSubmit = async () => {
+    const newRisk: SecurityRisk = {
+      id: generateId(),
+      organization_id: '',
+      title,
+      likelihood,
+      impact,
+      owner: owner || null,
+      mitigation: mitigation || null,
+      status,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+    await addRisk(newRisk)
+    reset()
+    setShow(false)
   }
 
   return (
-    <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
-      {risks.map((risk) => (
-        <RiskRow key={risk.id} risk={risk} />
-      ))}
+    <div className="space-y-[14px]">
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => setShow((s) => !s)}
+          className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] font-medium text-text hover:bg-inset"
+        >
+          {x(show ? M.sec_cancel : M.sec_add_risk)}
+        </button>
+      </div>
+
+      {show ? (
+        <div className="grid grid-cols-1 gap-[14px] rounded-[12px] border border-border bg-surface p-[16px] sm:grid-cols-2">
+          <FormField label={x(M.sec_title_field)} className="sm:col-span-2">
+            <FormInput value={title} onChange={(e) => setTitle(e.target.value)} required />
+          </FormField>
+          <FormField label={x(M.sec_status)}>
+            <FormSelect value={status} onChange={(e) => setStatus(e.target.value as SecurityRiskStatus)}>
+              {STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {x(M[STATUS_LABELS[s]])}
+                </option>
+              ))}
+            </FormSelect>
+          </FormField>
+          <FormField label={x(M.sec_owner)}>
+            <FormInput value={owner} onChange={(e) => setOwner(e.target.value)} />
+          </FormField>
+          <FormField label={x(M.sec_likelihood)}>
+            <FormSelect
+              value={likelihood}
+              onChange={(e) => setLikelihood(e.target.value as NonNullable<SecurityRiskLikelihood>)}
+            >
+              {LIKELIHOODS.map((l) => (
+                <option key={l} value={l}>
+                  {x(M[LIKELIHOOD_LABELS[l]])}
+                </option>
+              ))}
+            </FormSelect>
+          </FormField>
+          <FormField label={x(M.sec_severity)}>
+            <FormSelect value={impact} onChange={(e) => setImpact(e.target.value as NonNullable<SecurityRiskImpact>)}>
+              {IMPACTS.map((i) => (
+                <option key={i} value={i}>
+                  {x(M[IMPACT_LABELS[i]])}
+                </option>
+              ))}
+            </FormSelect>
+          </FormField>
+          <FormField label={x(M.sec_mitigation)} className="sm:col-span-2">
+            <FormTextarea value={mitigation} onChange={(e) => setMitigation(e.target.value)} />
+          </FormField>
+          <div className="flex justify-end gap-3 sm:col-span-2">
+            <button
+              type="button"
+              onClick={() => setShow(false)}
+              className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] text-text-muted hover:text-text"
+            >
+              {x(M.sec_cancel)}
+            </button>
+            <button
+              type="button"
+              onClick={onSubmit}
+              className="rounded-[8px] bg-accent px-[14px] py-[8px] text-[13px] font-medium text-white hover:bg-accent/90"
+            >
+              {x(M.sec_save)}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {risks.length === 0 ? (
+        <div className="rounded-[12px] border border-border bg-surface px-[16px] py-[24px] text-center">
+          <p className="m-0 text-[13.5px] text-text-muted">{x(M.sec_empty_body)}</p>
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
+          {risks.map((risk) => (
+            <RiskRow key={risk.id} risk={risk} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

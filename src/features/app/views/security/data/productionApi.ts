@@ -170,6 +170,130 @@ export async function listSecurityRisks(organizationId: string): Promise<Securit
   return parsed.map(toRisk)
 }
 
+const assetInsertSchema = z.object({
+  organization_id: z.string(),
+  name: z.string().min(1),
+  asset_type: z.enum(['hardware', 'software', 'cloud_service', 'domain', 'data_store']),
+  owner_id: z.string().nullable(),
+  status: z.enum(['active', 'decommissioned', 'at_risk']),
+  criticality: z.enum(['critical', 'high', 'medium', 'low']).nullable(),
+  renewal_date: z.string().nullable(),
+  notes: z.string().nullable(),
+})
+
+const accessReviewInsertSchema = z.object({
+  organization_id: z.string(),
+  title: z.string().min(1),
+  assigned_to: z.string().nullable(),
+  reviewer_id: z.string().nullable(),
+  review_due_date: z.string().nullable(),
+  completed_date: z.string().nullable(),
+  status: z.enum(['pending', 'in_progress', 'completed', 'overdue']),
+  findings: z.string().nullable(),
+  created_by: z.string().nullable(),
+})
+
+const incidentInsertSchema = z.object({
+  organization_id: z.string(),
+  title: z.string().min(1),
+  severity: z.enum(['critical', 'high', 'medium', 'low']),
+  status: z.enum(['open', 'contained', 'resolved', 'closed']),
+  reported_by: z.string().nullable(),
+  assigned_to: z.string().nullable(),
+  reported_at: z.string(),
+  resolved_at: z.string().nullable(),
+  summary: z.string().nullable(),
+  impact: z.string().nullable(),
+  remediation: z.string().nullable(),
+  created_by: z.string().nullable(),
+})
+
+const riskInsertSchema = z.object({
+  organization_id: z.string(),
+  title: z.string().min(1),
+  likelihood: z.enum(['high', 'medium', 'low']).nullable(),
+  impact: z.enum(['high', 'medium', 'low']).nullable(),
+  owner: z.string().nullable(),
+  mitigation: z.string().nullable(),
+  status: z.enum(['open', 'mitigated', 'accepted', 'closed']),
+})
+
+const vendorReviewInsertSchema = z.object({
+  organization_id: z.string(),
+  vendor_name: z.string().min(1),
+  vendor_type: z.enum(['lawyer', 'accountant', 'insurance', 'it_security', 'other']).nullable(),
+  privacy_agreement: z.boolean().nullable(),
+  security_review_date: z.string().nullable(),
+  next_review_date: z.string().nullable(),
+  notes: z.string().nullable(),
+})
+
+export type SecurityAssetInsert = z.input<typeof assetInsertSchema>
+export type SecurityAccessReviewInsert = z.input<typeof accessReviewInsertSchema>
+export type SecurityIncidentInsert = z.input<typeof incidentInsertSchema>
+export type SecurityRiskInsert = z.input<typeof riskInsertSchema>
+export type SecurityVendorReviewInsert = z.input<typeof vendorReviewInsertSchema>
+
+export async function createSecurityAsset(
+  organizationId: string,
+  values: Omit<SecurityAssetInsert, 'organization_id'>,
+): Promise<SecurityAsset> {
+  const client = getClient()
+  const insert = assetInsertSchema.parse({ ...values, organization_id: organizationId })
+  const { data, error } = await client.from('security_assets').insert(insert).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = assetRowSchema.parse(data)
+  return toAsset(parsed)
+}
+
+export async function createSecurityAccessReview(
+  organizationId: string,
+  values: Omit<SecurityAccessReviewInsert, 'organization_id'>,
+): Promise<SecurityAccessReview> {
+  const client = getClient()
+  const insert = accessReviewInsertSchema.parse({ ...values, organization_id: organizationId })
+  const { data, error } = await client.from('security_access_reviews').insert(insert).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = accessReviewRowSchema.parse(data)
+  return toAccessReview(parsed)
+}
+
+export async function createSecurityIncident(
+  organizationId: string,
+  values: Omit<SecurityIncidentInsert, 'organization_id'>,
+): Promise<SecurityIncident> {
+  const client = getClient()
+  const insert = incidentInsertSchema.parse({ ...values, organization_id: organizationId })
+  const { data, error } = await client.from('security_incidents').insert(insert).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = incidentRowSchema.parse(data)
+  return toIncident(parsed)
+}
+
+export async function createSecurityRisk(
+  organizationId: string,
+  values: Omit<SecurityRiskInsert, 'organization_id'>,
+): Promise<SecurityRisk> {
+  const client = getClient()
+  const insert = riskInsertSchema.parse({ ...values, organization_id: organizationId })
+  const { data, error } = await client.from('security_risks').insert(insert).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = riskRowSchema.parse(data)
+  return toRisk(parsed)
+}
+
+export async function createSecurityVendorReview(
+  organizationId: string,
+  values: Omit<SecurityVendorReviewInsert, 'organization_id'>,
+): Promise<SecurityVendorReview> {
+  const client = getClient()
+  const insert = vendorReviewInsertSchema.parse({ ...values, organization_id: organizationId })
+  const { data, error } = await client.from('security_vendor_reviews').insert(insert).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = vendorReviewRowSchema.parse(data)
+  return toVendorReview(parsed)
+}
+
 export async function listSecurityVendorReviews(
   organizationId: string,
 ): Promise<SecurityVendorReview[]> {
