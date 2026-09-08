@@ -178,7 +178,7 @@ export async function addEmployee(
       employment_type: fields.employmentType || null,
       phone: fields.phone || null,
       manager_id: fields.managerId || null,
-    } as any)
+    })
     .select(SELECT_COLUMNS)
     .single()
   if (error) throw error

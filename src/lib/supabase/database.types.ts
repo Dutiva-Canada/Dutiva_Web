@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -11,31 +11,6 @@ export type Database = {
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
-  }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
   }
   public: {
     Tables: {
@@ -2301,12 +2276,15 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
+          department: string | null
           email: string | null
+          employment_type: string | null
           id: string
           jurisdiction: string
           manager_id: string | null
           name: string
           organization_id: string
+          phone: string | null
           probation_end_date: string | null
           start_date: string | null
           status: string
@@ -2317,12 +2295,15 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by?: string | null
+          department?: string | null
           email?: string | null
+          employment_type?: string | null
           id?: string
           jurisdiction?: string
           manager_id?: string | null
           name: string
           organization_id: string
+          phone?: string | null
           probation_end_date?: string | null
           start_date?: string | null
           status?: string
@@ -2333,12 +2314,15 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string | null
+          department?: string | null
           email?: string | null
+          employment_type?: string | null
           id?: string
           jurisdiction?: string
           manager_id?: string | null
           name?: string
           organization_id?: string
+          phone?: string | null
           probation_end_date?: string | null
           start_date?: string | null
           status?: string
@@ -6972,6 +6956,140 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_onboarding_tasks: {
+        Row: {
+          assignee_employee_id: string | null
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          due_date: string | null
+          employee_id: string
+          id: string
+          notes: string | null
+          organization_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assignee_employee_id?: string | null
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          employee_id: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assignee_employee_id?: string | null
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          employee_id?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_onboarding_tasks_assignee_employee_id_fkey"
+            columns: ["assignee_employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_onboarding_tasks_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_onboarding_tasks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_performance_reviews: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          employee_id: string
+          goals: string | null
+          id: string
+          next_review_date: string | null
+          notes: string | null
+          organization_id: string
+          rating: string | null
+          review_date: string
+          reviewer_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          employee_id: string
+          goals?: string | null
+          id?: string
+          next_review_date?: string | null
+          notes?: string | null
+          organization_id: string
+          rating?: string | null
+          review_date: string
+          reviewer_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string
+          goals?: string | null
+          id?: string
+          next_review_date?: string | null
+          notes?: string | null
+          organization_id?: string
+          rating?: string | null
+          review_date?: string
+          reviewer_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_performance_reviews_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_performance_reviews_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_performance_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
         ]
@@ -13518,9 +13636,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },

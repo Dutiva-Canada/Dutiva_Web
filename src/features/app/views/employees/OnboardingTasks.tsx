@@ -191,11 +191,13 @@ export function OnboardingTasks({
                 className={inputClass}
               >
                 <option value="">{x(M.employees_prod_reviewer_unset)}</option>
-                {roster.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.name}
-                  </option>
-                ))}
+                {roster
+                  .filter((r) => r.id !== employee.id)
+                  .map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
               </select>
             </div>
             <div className="sm:col-span-2">
