@@ -48,22 +48,34 @@ export const analyticsMessages = defineMessages({
   },
   analytics_comp_comms_issues: { en: 'Comms issues closed', fr: 'Problèmes comms clos' },
   analytics_comp_comms_submissions: { en: 'Submissions filed', fr: 'Soumissions déposées' },
-  analytics_comp_comms_brand_claims: { en: 'Brand claims active', fr: 'Revendications de marque actives' },
+  analytics_comp_comms_brand_claims: {
+    en: 'Brand claims active',
+    fr: 'Revendications de marque actives',
+  },
   analytics_comp_comms_policy_files: { en: 'Policy files closed', fr: 'Dossiers politiques clos' },
   analytics_comp_value: { en: '{done} of {total}', fr: '{done} sur {total}' },
 
   /* ── Comms/PR card ─────────────────────────────────────────────────────── */
   analytics_comms_title: { en: 'Comms & PR', fr: 'Comms et RP' },
-  analytics_comms_sub: { en: 'Active content, issues and engagement.', fr: 'Contenu actif, problèmes et engagement.' },
+  analytics_comms_sub: {
+    en: 'Active content, issues and engagement.',
+    fr: 'Contenu actif, problèmes et engagement.',
+  },
   analytics_comms_content_items: { en: 'Content items', fr: 'Éléments de contenu' },
   analytics_comms_scheduled: { en: 'Scheduled', fr: 'Planifiés' },
   analytics_comms_confirmed: { en: 'Confirmed', fr: 'Confirmés' },
   analytics_comms_open_issues: { en: 'Open issues', fr: 'Problèmes ouverts' },
   analytics_comms_upcoming_submissions: { en: 'Submissions due', fr: 'Soumissions à échéance' },
-  analytics_comms_active_brand_claims: { en: 'Active brand claims', fr: 'Revendications de marque actives' },
+  analytics_comms_active_brand_claims: {
+    en: 'Active brand claims',
+    fr: 'Revendications de marque actives',
+  },
   analytics_comms_policy_files: { en: 'Policy files tracked', fr: 'Dossiers politiques suivis' },
   analytics_comms_open_interactions: { en: 'Open interactions', fr: 'Interactions ouvertes' },
-  analytics_comms_empty: { en: 'No Comms activity yet.', fr: 'Aucune activité Comms pour l’instant.' },
+  analytics_comms_empty: {
+    en: 'No Comms activity yet.',
+    fr: 'Aucune activité Comms pour l’instant.',
+  },
   analytics_score_capped_note: {
     en: 'Capped at {ceiling} while a critical finding is open — resolve or dismiss it to lift the ceiling.',
     fr: 'Plafonné à {ceiling} tant qu’un constat critique est ouvert — résolvez-le ou rejetez-le pour lever le plafond.',
@@ -254,15 +266,24 @@ export const analyticsMessages = defineMessages({
 
   /* ── Security card ──────────────────────────────────────────────────────── */
   analytics_security_title: { en: 'Security posture', fr: 'Posture de sécurité' },
-  analytics_security_sub: { en: 'Assets, reviews, incidents, and vendors.', fr: 'Actifs, revues, incidents et fournisseurs.' },
+  analytics_security_sub: {
+    en: 'Assets, reviews, incidents, and vendors.',
+    fr: 'Actifs, revues, incidents et fournisseurs.',
+  },
   analytics_security_assets_at_risk: { en: 'Assets at risk', fr: 'Actifs à risque' },
   analytics_security_open_incidents: { en: 'Open incidents', fr: 'Incidents ouverts' },
   analytics_security_critical_incidents: { en: 'Critical incidents', fr: 'Incidents critiques' },
   analytics_security_open_risks: { en: 'Open risks', fr: 'Risques ouverts' },
   analytics_security_overdue_reviews: { en: 'Overdue reviews', fr: 'Revues en retard' },
   analytics_security_reviews_due: { en: 'Reviews due soon', fr: 'Revues à échéance rapprochée' },
-  analytics_security_vendors_due: { en: 'Vendor reviews due', fr: 'Revues de fournisseurs à échéance' },
-  analytics_security_empty: { en: 'No security records yet.', fr: 'Aucun dossier de sécurité pour l’instant.' },
+  analytics_security_vendors_due: {
+    en: 'Vendor reviews due',
+    fr: 'Revues de fournisseurs à échéance',
+  },
+  analytics_security_empty: {
+    en: 'No security records yet.',
+    fr: 'Aucun dossier de sécurité pour l’instant.',
+  },
 
   /* ── Operations card ────────────────────────────────────────────────────── */
   analytics_operations_title: { en: 'Operations', fr: 'Opérations' },
@@ -272,8 +293,14 @@ export const analyticsMessages = defineMessages({
   },
   analytics_operations_active_projects: { en: 'Active projects', fr: 'Projets actifs' },
   analytics_operations_active_vendors: { en: 'Active vendors', fr: 'Fournisseurs actifs' },
-  analytics_operations_overdue_quality: { en: 'Overdue quality checks', fr: 'Contrôles qualité en retard' },
-  analytics_operations_tech_renewals: { en: 'Renewals due soon', fr: 'Renouvellements à échéance rapprochée' },
+  analytics_operations_overdue_quality: {
+    en: 'Overdue quality checks',
+    fr: 'Contrôles qualité en retard',
+  },
+  analytics_operations_tech_renewals: {
+    en: 'Renewals due soon',
+    fr: 'Renouvellements à échéance rapprochée',
+  },
   analytics_operations_delayed_logistics: { en: 'Delayed logistics', fr: 'Logistique en retard' },
   analytics_operations_empty: {
     en: 'No operations records yet.',
@@ -285,6 +312,21 @@ export const analyticsMessages = defineMessages({
   analytics_governance_sub: {
     en: 'Records, decisions, officers, and shareholders.',
     fr: 'Registres, décisions, dirigeants et actionnaires.',
+  },
+
+  /* ── Revenue card ──────────────────────────────────────────────────────── */
+  analytics_revenue_title: { en: 'Revenue', fr: 'Revenus' },
+  analytics_revenue_sub: {
+    en: 'Streams, invoices, and collections.',
+    fr: 'Flux, factures et encaissements.',
+  },
+  analytics_revenue_mrr: { en: 'Monthly recurring revenue', fr: 'Revenu mensuel récurrent' },
+  analytics_revenue_open_invoices: { en: 'Open invoice total', fr: 'Total des factures ouvertes' },
+  analytics_revenue_paid_ytd: { en: 'Paid YTD', fr: 'Payé depuis le début de l’année' },
+  analytics_revenue_overdue: { en: 'Overdue invoices', fr: 'Factures en retard' },
+  analytics_revenue_empty: {
+    en: 'No revenue records yet.',
+    fr: 'Aucun dossier de revenus pour l’instant.',
   },
   analytics_governance_active_records: { en: 'Active records', fr: 'Dossiers actifs' },
   analytics_governance_pending_records: { en: 'Pending review', fr: 'En révision' },

@@ -13,6 +13,15 @@ export function intlLocale(lang: string): string {
   return lang === 'fr' ? 'fr-CA' : 'en-CA'
 }
 
+/** Currency amount, whole units. */
+export function formatCurrency(value: number, currency: string): string {
+  return new Intl.NumberFormat('en-CA', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 0,
+  }).format(value)
+}
+
 /** Short day-of-month date off a YYYY-MM-DD string ('Jul 25' / '25 juill.'). */
 export function formatDayISO(iso: string, locale: string): string {
   return new Intl.DateTimeFormat(locale, {

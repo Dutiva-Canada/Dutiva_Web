@@ -62,6 +62,9 @@ import {
 /* prettier-ignore */ const FinanceView = lazy(preloadFinanceView)
 /* prettier-ignore */ const CrmView = lazy(() => import('@/features/app/views/crm/CrmView').then((m) => ({ default: m.CrmView })))
 /* prettier-ignore */ const RevenueView = lazy(() => import('@/features/app/views/revenue/RevenueView').then((m) => ({ default: m.RevenueView })))
+/* prettier-ignore */ const RevenueOverview = lazy(() => import('@/features/app/views/revenue/screens/Overview').then((m) => ({ default: m.Overview })))
+/* prettier-ignore */ const RevenueStreams = lazy(() => import('@/features/app/views/revenue/screens/Streams').then((m) => ({ default: m.Streams })))
+/* prettier-ignore */ const RevenueInvoices = lazy(() => import('@/features/app/views/revenue/screens/Invoices').then((m) => ({ default: m.Invoices })))
 /* prettier-ignore */ const OperationsView = lazy(() => import('@/features/app/views/operations/OperationsView').then((m) => ({ default: m.OperationsView })))
 /* prettier-ignore */ const GovernanceView = lazy(() => import('@/features/app/views/governance/GovernanceView').then((m) => ({ default: m.GovernanceView })))
 /* prettier-ignore */ const SecurityView = lazy(() => import('@/features/app/views/security/SecurityView').then((m) => ({ default: m.SecurityView })))
@@ -223,7 +226,16 @@ function createAppViewRoutes(root: string): RouteObject[] {
     },
     { path: 'compensation', element: <CompensationView /> },
     { path: 'crm', element: <CrmView /> },
-    { path: 'revenue', element: <RevenueView /> },
+    {
+      path: 'revenue',
+      element: <RevenueView />,
+      children: [
+        { index: true, loader: () => redirect(r('revenue/overview')) },
+        { path: 'overview', element: <RevenueOverview /> },
+        { path: 'streams', element: <RevenueStreams /> },
+        { path: 'invoices', element: <RevenueInvoices /> },
+      ],
+    },
     {
       path: 'operations',
       element: <OperationsView />,

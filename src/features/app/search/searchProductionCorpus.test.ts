@@ -304,6 +304,43 @@ vi.mock('@/features/app/views/governance/data/productionApi', () => ({
   ]),
 }))
 
+vi.mock('@/features/app/views/revenue/data/productionApi', () => ({
+  listRevenueStreams: vi.fn(async () => [
+    {
+      id: 'rs1',
+      organization_id: 'org-1',
+      name: 'Monthly retainer',
+      stream_type: 'recurring',
+      status: 'active',
+      amount: 5000,
+      currency: 'CAD',
+      frequency: 'monthly',
+      start_date: null,
+      end_date: null,
+      notes: null,
+      created_at: '2026-08-01',
+      updated_at: '2026-08-01',
+    },
+  ]),
+  listRevenueInvoices: vi.fn(async () => [
+    {
+      id: 'ri1',
+      organization_id: 'org-1',
+      stream_id: null,
+      customer_name: 'Northgate Logistics Inc.',
+      amount: 5000,
+      currency: 'CAD',
+      status: 'sent',
+      issue_date: '2026-08-01',
+      due_date: '2026-08-31',
+      paid_date: null,
+      notes: null,
+      created_at: '2026-08-01',
+      updated_at: '2026-08-01',
+    },
+  ]),
+}))
+
 describe('buildProductionSearchEntries', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -319,9 +356,17 @@ describe('buildProductionSearchEntries', () => {
     expect(byId.get('gen-doc-1')?.nav).toEqual({ kind: 'generatedDocument', docId: 'doc-1' })
     expect(byId.get('doc-T03')?.nav).toEqual({ kind: 'document', docKey: 'T03' })
     expect(byId.get('gov-record-gr1')?.nav).toEqual({ kind: 'view', view: 'governance/records' })
-    expect(byId.get('gov-decision-gd1')?.nav).toEqual({ kind: 'view', view: 'governance/decisions' })
+    expect(byId.get('gov-decision-gd1')?.nav).toEqual({
+      kind: 'view',
+      view: 'governance/decisions',
+    })
     expect(byId.get('gov-officer-go1')?.nav).toEqual({ kind: 'view', view: 'governance/officers' })
-    expect(byId.get('gov-shareholder-gs1')?.nav).toEqual({ kind: 'view', view: 'governance/shareholders' })
+    expect(byId.get('gov-shareholder-gs1')?.nav).toEqual({
+      kind: 'view',
+      view: 'governance/shareholders',
+    })
+    expect(byId.get('rev-stream-rs1')?.nav).toEqual({ kind: 'view', view: 'revenue/streams' })
+    expect(byId.get('rev-invoice-ri1')?.nav).toEqual({ kind: 'view', view: 'revenue/invoices' })
   })
 
   it('includes knowledge and template catalogue entries', async () => {

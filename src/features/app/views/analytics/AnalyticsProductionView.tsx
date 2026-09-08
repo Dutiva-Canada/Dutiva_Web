@@ -85,6 +85,8 @@ import type {
   GovernanceOfficer,
   GovernanceShareholder,
 } from './governanceAnalyticsApi'
+import { listRevenueStreams, listRevenueInvoices } from './revenueAnalyticsApi'
+import type { RevenueStream, RevenueInvoice } from './revenueAnalyticsApi'
 import { listScoreSnapshots, recordScoreSnapshot } from './productionApi'
 import type { ScoreSnapshot } from './productionApi'
 import { AnalyticsCard, CardEmpty, CardError, CardSkeleton } from './AnalyticsCard'
@@ -124,7 +126,14 @@ import {
   weightedComponent,
 } from './aggregation'
 import { attentionChipLabel, attentionSecondary } from './attentionLabels'
-import { fill, formatDayISO, formatPct, formatSignedDecimal, intlLocale } from './format'
+import {
+  fill,
+  formatCurrency,
+  formatDayISO,
+  formatPct,
+  formatSignedDecimal,
+  intlLocale,
+} from './format'
 import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
@@ -236,19 +245,48 @@ export function AnalyticsProductionView() {
   const commsContentItems = useModuleRows<CommsContentItem>(organizationId, listCommsContentItems)
   const commsInteractions = useModuleRows<CommsInteraction>(organizationId, listCommsInteractions)
   const securityAssets = useModuleRows<SecurityAsset>(organizationId, listSecurityAssets)
-  const securityAccessReviews = useModuleRows<SecurityAccessReview>(organizationId, listSecurityAccessReviews)
+  const securityAccessReviews = useModuleRows<SecurityAccessReview>(
+    organizationId,
+    listSecurityAccessReviews,
+  )
   const securityIncidents = useModuleRows<SecurityIncident>(organizationId, listSecurityIncidents)
   const securityRisks = useModuleRows<SecurityRisk>(organizationId, listSecurityRisks)
-  const securityVendorReviews = useModuleRows<SecurityVendorReview>(organizationId, listSecurityVendorReviews)
-  const operationsProjects = useModuleRows<OperationsProject>(organizationId, listOperationsProjects)
+  const securityVendorReviews = useModuleRows<SecurityVendorReview>(
+    organizationId,
+    listSecurityVendorReviews,
+  )
+  const operationsProjects = useModuleRows<OperationsProject>(
+    organizationId,
+    listOperationsProjects,
+  )
   const operationsVendors = useModuleRows<OperationsVendor>(organizationId, listOperationsVendors)
-  const operationsQualityChecks = useModuleRows<OperationsQualityCheck>(organizationId, listOperationsQualityChecks)
-  const operationsTechnology = useModuleRows<OperationsTechnology>(organizationId, listOperationsTechnology)
-  const operationsLogistics = useModuleRows<OperationsLogistics>(organizationId, listOperationsLogistics)
+  const operationsQualityChecks = useModuleRows<OperationsQualityCheck>(
+    organizationId,
+    listOperationsQualityChecks,
+  )
+  const operationsTechnology = useModuleRows<OperationsTechnology>(
+    organizationId,
+    listOperationsTechnology,
+  )
+  const operationsLogistics = useModuleRows<OperationsLogistics>(
+    organizationId,
+    listOperationsLogistics,
+  )
   const governanceRecords = useModuleRows<GovernanceRecord>(organizationId, listGovernanceRecords)
-  const governanceDecisions = useModuleRows<GovernanceDecision>(organizationId, listGovernanceDecisions)
-  const governanceOfficers = useModuleRows<GovernanceOfficer>(organizationId, listGovernanceOfficers)
-  const governanceShareholders = useModuleRows<GovernanceShareholder>(organizationId, listGovernanceShareholders)
+  const governanceDecisions = useModuleRows<GovernanceDecision>(
+    organizationId,
+    listGovernanceDecisions,
+  )
+  const governanceOfficers = useModuleRows<GovernanceOfficer>(
+    organizationId,
+    listGovernanceOfficers,
+  )
+  const governanceShareholders = useModuleRows<GovernanceShareholder>(
+    organizationId,
+    listGovernanceShareholders,
+  )
+  const revenueStreams = useModuleRows<RevenueStream>(organizationId, listRevenueStreams)
+  const revenueInvoices = useModuleRows<RevenueInvoice>(organizationId, listRevenueInvoices)
 
   /* ── Score: live components + snapshot history ─────────────────────────── */
   const scoreReady =
@@ -301,9 +339,7 @@ export function AnalyticsProductionView() {
       ),
       scoreComponent(
         'comms_submissions',
-        submissionRows.filter(
-          (s) => s.status === 'submitted' || s.status === 'recorded',
-        ).length,
+        submissionRows.filter((s) => s.status === 'submitted' || s.status === 'recorded').length,
         submissionRows.length,
       ),
       scoreComponent(
@@ -313,7 +349,8 @@ export function AnalyticsProductionView() {
       ),
       scoreComponent(
         'comms_policy_files',
-        policyFileRows.filter((p) => p.stage === 'in_force' || p.stage === 'consultation_closed').length,
+        policyFileRows.filter((p) => p.stage === 'in_force' || p.stage === 'consultation_closed')
+          .length,
         policyFileRows.length,
       ),
     ]
@@ -917,7 +954,9 @@ export function AnalyticsProductionView() {
 
           const atRisk = assetRows.filter((a) => a.status === 'at_risk').length
           const criticalAssets = assetRows.filter((a) => a.criticality === 'critical').length
-          const openIncidents = incidentRows.filter((i) => i.status === 'open' || i.status === 'contained').length
+          const openIncidents = incidentRows.filter(
+            (i) => i.status === 'open' || i.status === 'contained',
+          ).length
           const criticalIncidents = incidentRows.filter(
             (i) => (i.status === 'open' || i.status === 'contained') && i.severity === 'critical',
           ).length
@@ -982,14 +1021,23 @@ export function AnalyticsProductionView() {
                         label={x(M.analytics_security_critical_incidents)}
                         alert={criticalIncidents > 0}
                       />
-                      <StatTile value={String(openRisks)} label={x(M.analytics_security_open_risks)} />
+                      <StatTile
+                        value={String(openRisks)}
+                        label={x(M.analytics_security_open_risks)}
+                      />
                       <StatTile
                         value={String(overdueReviews)}
                         label={x(M.analytics_security_overdue_reviews)}
                         alert={overdueReviews > 0}
                       />
-                      <StatTile value={String(reviewsDueSoon)} label={x(M.analytics_security_reviews_due)} />
-                      <StatTile value={String(vendorsDueSoon)} label={x(M.analytics_security_vendors_due)} />
+                      <StatTile
+                        value={String(reviewsDueSoon)}
+                        label={x(M.analytics_security_reviews_due)}
+                      />
+                      <StatTile
+                        value={String(vendorsDueSoon)}
+                        label={x(M.analytics_security_vendors_due)}
+                      />
                     </div>
                   )
                 }
@@ -1027,9 +1075,7 @@ export function AnalyticsProductionView() {
           ).length
           const techRenewals = technologyRows.filter(
             (t) =>
-              t.renewal_date !== null &&
-              t.renewal_date >= todayISO &&
-              t.renewal_date <= in7ISO,
+              t.renewal_date !== null && t.renewal_date >= todayISO && t.renewal_date <= in7ISO,
           ).length
           const delayedLogistics = logisticsRows.filter((l) => l.status === 'delayed').length
 
@@ -1091,10 +1137,7 @@ export function AnalyticsProductionView() {
           const officerRows = rowsOf(governanceOfficers.state)
           const shareholderRows = rowsOf(governanceShareholders.state)
           const hasGovernanceData =
-            recordRows.length +
-              decisionRows.length +
-              officerRows.length +
-              shareholderRows.length >
+            recordRows.length + decisionRows.length + officerRows.length + shareholderRows.length >
             0
 
           const activeRecords = recordRows.filter((r) => r.status === 'active').length
@@ -1152,7 +1195,87 @@ export function AnalyticsProductionView() {
           )
         })()}
 
-        {/* I · Comms & PR overview */}
+        {/* I · Revenue — streams, invoices, and collections */}
+        {(() => {
+          const streamRows = rowsOf(revenueStreams.state)
+          const invoiceRows = rowsOf(revenueInvoices.state)
+          const hasRevenueData = streamRows.length + invoiceRows.length > 0
+
+          const mrr = Math.round(
+            streamRows
+              .filter((s) => s.status === 'active' && s.stream_type === 'recurring' && s.frequency)
+              .reduce((sum, s) => {
+                const divisor =
+                  s.frequency === 'annually' ? 12 : s.frequency === 'quarterly' ? 4 : 1
+                return sum + s.amount / divisor
+              }, 0),
+          )
+          const mrrCurrency =
+            streamRows.find(
+              (s) => s.status === 'active' && s.stream_type === 'recurring' && s.frequency,
+            )?.currency ?? 'CAD'
+
+          const openTotal = invoiceRows
+            .filter((i) => i.status === 'sent' || i.status === 'overdue')
+            .reduce((sum, i) => sum + i.amount, 0)
+          const openCurrency =
+            invoiceRows.find((i) => i.status === 'sent' || i.status === 'overdue')?.currency ??
+            'CAD'
+
+          const paid = invoiceRows
+            .filter(
+              (i) =>
+                i.status === 'paid' &&
+                i.paid_date &&
+                i.paid_date.slice(0, 4) === todayISO.slice(0, 4),
+            )
+            .reduce((sum, i) => sum + i.amount, 0)
+          const paidCurrency = invoiceRows.find((i) => i.status === 'paid')?.currency ?? 'CAD'
+
+          const overdue = invoiceRows.filter(
+            (i) =>
+              (i.status === 'sent' && i.due_date && i.due_date < todayISO) ||
+              i.status === 'overdue',
+          ).length
+
+          return (
+            <AnalyticsCard
+              title={x(M.analytics_revenue_title)}
+              subtitle={x(M.analytics_revenue_sub)}
+              hidden={!show('revenue')}
+            >
+              <CardData deps={[revenueStreams, revenueInvoices]} skeletonLines={2}>
+                {() =>
+                  !hasRevenueData ? (
+                    <CardEmpty text={x(M.analytics_revenue_empty)} />
+                  ) : (
+                    <div className="flex flex-wrap gap-[10px]">
+                      <StatTile
+                        value={formatCurrency(mrr, mrrCurrency)}
+                        label={x(M.analytics_revenue_mrr)}
+                      />
+                      <StatTile
+                        value={formatCurrency(openTotal, openCurrency)}
+                        label={x(M.analytics_revenue_open_invoices)}
+                      />
+                      <StatTile
+                        value={formatCurrency(paid, paidCurrency)}
+                        label={x(M.analytics_revenue_paid_ytd)}
+                      />
+                      <StatTile
+                        value={String(overdue)}
+                        label={x(M.analytics_revenue_overdue)}
+                        alert={overdue > 0}
+                      />
+                    </div>
+                  )
+                }
+              </CardData>
+            </AnalyticsCard>
+          )
+        })()}
+
+        {/* J · Comms & PR overview */}
         {(() => {
           const contentItemRows = rowsOf(commsContentItems.state)
           const interactionRows = rowsOf(commsInteractions.state)
@@ -1175,7 +1298,14 @@ export function AnalyticsProductionView() {
               hidden={!show('comms')}
             >
               <CardData
-                deps={[commsContentItems, commsInteractions, commsIssues, commsSubmissions, commsBrandClaims, commsPolicyFiles]}
+                deps={[
+                  commsContentItems,
+                  commsInteractions,
+                  commsIssues,
+                  commsSubmissions,
+                  commsBrandClaims,
+                  commsPolicyFiles,
+                ]}
                 skeletonLines={2}
               >
                 {() =>
@@ -1188,19 +1318,30 @@ export function AnalyticsProductionView() {
                         label={x(M.analytics_comms_content_items)}
                       />
                       <StatTile
-                        value={String(contentItemRows.filter((c) => c.deliveryStatus === 'scheduled').length)}
+                        value={String(
+                          contentItemRows.filter((c) => c.deliveryStatus === 'scheduled').length,
+                        )}
                         label={x(M.analytics_comms_scheduled)}
                       />
                       <StatTile
-                        value={String(contentItemRows.filter((c) => c.deliveryStatus === 'confirmed').length)}
+                        value={String(
+                          contentItemRows.filter((c) => c.deliveryStatus === 'confirmed').length,
+                        )}
                         label={x(M.analytics_comms_confirmed)}
                       />
                       <StatTile
-                        value={String(issueRows.filter((i) => i.status === 'open' || i.status === 'monitoring').length)}
+                        value={String(
+                          issueRows.filter((i) => i.status === 'open' || i.status === 'monitoring')
+                            .length,
+                        )}
                         label={x(M.analytics_comms_open_issues)}
                       />
                       <StatTile
-                        value={String(interactionRows.filter((i) => i.status === 'open' || i.status === 'pending').length)}
+                        value={String(
+                          interactionRows.filter(
+                            (i) => i.status === 'open' || i.status === 'pending',
+                          ).length,
+                        )}
                         label={x(M.analytics_comms_open_interactions)}
                       />
                       <StatTile

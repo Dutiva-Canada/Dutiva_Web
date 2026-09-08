@@ -29,6 +29,10 @@ import {
   listSecurityIncidents,
   listSecurityRisks,
 } from '@/features/app/views/security/data/productionApi'
+import {
+  listRevenueStreams,
+  listRevenueInvoices,
+} from '@/features/app/views/revenue/data/productionApi'
 import { listTasks } from '@/features/app/views/tasks/productionApi'
 import { searchMessages as M } from '@/i18n/messages/search'
 import { shellMessages as S } from '@/i18n/messages/shell'
@@ -57,29 +61,53 @@ function conversationTitle(messages: { role: string; content: string }[]): Bi {
  * Client-side filter reuses filterSearchEntriesFrom in searchCorpus.ts.
  */
 export async function buildProductionSearchEntries(organizationId: string): Promise<SearchEntry[]> {
-  const [employees, cases, conversations, documents, comms, tasks, findings, policies, securityAssets, securityIncidents, securityRisks, operationsProjects, operationsVendors, operationsQualityChecks, operationsTechnology, operationsLogistics, governanceRecords, governanceDecisions, governanceOfficers, governanceShareholders] =
-    await Promise.all([
-      listEmployees(organizationId),
-      listCases(organizationId),
-      listOwnConversations(24),
-      listDocuments(organizationId),
-      listCommunications(organizationId),
-      listTasks(organizationId),
-      listFindings(organizationId),
-      listPolicies(organizationId),
-      listSecurityAssets(organizationId),
-      listSecurityIncidents(organizationId),
-      listSecurityRisks(organizationId),
-      listOperationsProjects(organizationId),
-      listOperationsVendors(organizationId),
-      listOperationsQualityChecks(organizationId),
-      listOperationsTechnology(organizationId),
-      listOperationsLogistics(organizationId),
-      listGovernanceRecords(organizationId),
-      listGovernanceDecisions(organizationId),
-      listGovernanceOfficers(organizationId),
-      listGovernanceShareholders(organizationId),
-    ])
+  const [
+    employees,
+    cases,
+    conversations,
+    documents,
+    comms,
+    tasks,
+    findings,
+    policies,
+    securityAssets,
+    securityIncidents,
+    securityRisks,
+    operationsProjects,
+    operationsVendors,
+    operationsQualityChecks,
+    operationsTechnology,
+    operationsLogistics,
+    governanceRecords,
+    governanceDecisions,
+    governanceOfficers,
+    governanceShareholders,
+    revenueStreams,
+    revenueInvoices,
+  ] = await Promise.all([
+    listEmployees(organizationId),
+    listCases(organizationId),
+    listOwnConversations(24),
+    listDocuments(organizationId),
+    listCommunications(organizationId),
+    listTasks(organizationId),
+    listFindings(organizationId),
+    listPolicies(organizationId),
+    listSecurityAssets(organizationId),
+    listSecurityIncidents(organizationId),
+    listSecurityRisks(organizationId),
+    listOperationsProjects(organizationId),
+    listOperationsVendors(organizationId),
+    listOperationsQualityChecks(organizationId),
+    listOperationsTechnology(organizationId),
+    listOperationsLogistics(organizationId),
+    listGovernanceRecords(organizationId),
+    listGovernanceDecisions(organizationId),
+    listGovernanceOfficers(organizationId),
+    listGovernanceShareholders(organizationId),
+    listRevenueStreams(organizationId),
+    listRevenueInvoices(organizationId),
+  ])
 
   const personEntries: SearchEntry[] = employees.map((e) => ({
     id: `emp-${e.id}`,
@@ -310,10 +338,37 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     kind: 'governance',
     kindLabel: M.search_kind_governance,
     title: neutral(s.name),
-    sub: joinBi([neutral(s.share_class ?? ''), neutral(s.shares_issued !== null ? String(s.shares_issued) : '')]),
+    sub: joinBi([
+      neutral(s.share_class ?? ''),
+      neutral(s.shares_issued !== null ? String(s.shares_issued) : ''),
+    ]),
     restricted: false,
     match: neutral(s.name),
     nav: { kind: 'view', view: 'governance/shareholders' },
+  }))
+
+  const revenueStreamEntries: SearchEntry[] = revenueStreams.map((s) => ({
+    id: `rev-stream-${s.id}`,
+    kind: 'revenue',
+    kindLabel: M.search_kind_revenue,
+    title: neutral(s.name),
+    sub: joinBi([neutral(s.stream_type), neutral(s.status)]),
+    restricted: false,
+    match: joinBi([neutral(s.name), neutral(s.stream_type)]),
+    nav: { kind: 'view', view: 'revenue/streams' },
+  }))
+
+  const revenueInvoiceEntries: SearchEntry[] = revenueInvoices.map((i) => ({
+    id: `rev-invoice-${i.id}`,
+    kind: 'revenue',
+    kindLabel: M.search_kind_revenue,
+    title: neutral(i.customer_name),
+    sub: i.due_date
+      ? joinBi([neutral(i.status), neutral(i.due_date)])
+      : joinBi([neutral(i.status)]),
+    restricted: i.status === 'overdue',
+    match: joinBi([neutral(i.customer_name), neutral(i.status)]),
+    nav: { kind: 'view', view: 'revenue/invoices' },
   }))
 
   const knowledgeEntries: SearchEntry[] = [
@@ -381,7 +436,7 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
       title: S.shell_v_revenue,
       restricted: false,
       match: S.shell_v_revenue,
-      nav: { kind: 'view', view: 'revenue' },
+      nav: { kind: 'view', view: 'revenue/overview' },
     },
   ]
 
@@ -407,6 +462,8 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     ...governanceDecisionEntries,
     ...governanceOfficerEntries,
     ...governanceShareholderEntries,
+    ...revenueStreamEntries,
+    ...revenueInvoiceEntries,
     ...knowledgeEntries,
     ...moduleEntries,
     ...flowSearchEntries,

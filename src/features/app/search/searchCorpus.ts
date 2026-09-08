@@ -92,6 +92,9 @@ export type SearchNav =
         | 'operations/logistics'
         | 'specialists/directory'
         | 'revenue'
+        | 'revenue/overview'
+        | 'revenue/streams'
+        | 'revenue/invoices'
     }
 
 /** Router `location.state` for chat results (prototype `selectChat(c.id)`). */
@@ -295,7 +298,7 @@ const moduleEntries: SearchEntry[] = [
     title: S.shell_v_revenue,
     restricted: false,
     match: S.shell_v_revenue,
-    nav: { kind: 'view', view: 'revenue' },
+    nav: { kind: 'view', view: 'revenue/overview' },
   },
 ]
 
