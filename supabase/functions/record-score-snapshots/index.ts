@@ -137,25 +137,30 @@ Deno.serve(async (req) => {
 
   for (const org of orgs) {
     try {
-      const [policies, tasks, findings, obligations, employees] = await Promise.all([
-        fetchAll<{ status: string }>(supabase, 'hr_policies', 'id, status', org.id),
-        fetchAll<{ status: string; category: string; metadata: Record<string, unknown> | null }>(
-          supabase,
-          'compliance_tasks',
-          'id, status, category, metadata',
-          org.id,
-        ),
-        fetchAll<{ severity: string; status: string }>(
-          supabase,
-          'compliance_findings',
-          'id, severity, status',
-          org.id,
-        ),
-        fetchAll<{ status: string }>(supabase, 'hr_obligations', 'id, status', org.id, {
-          optionalTable: true,
-        }),
-        fetchAll<{ status: string }>(supabase, 'employees', 'id, status', org.id),
-      ])
+      const [policies, tasks, findings, obligations, employees, issues, submissions, brandClaims, policyFiles] =
+        await Promise.all([
+          fetchAll<{ status: string }>(supabase, 'hr_policies', 'id, status', org.id),
+          fetchAll<{ status: string; category: string; metadata: Record<string, unknown> | null }>(
+            supabase,
+            'compliance_tasks',
+            'id, status, category, metadata',
+            org.id,
+          ),
+          fetchAll<{ severity: string; status: string }>(
+            supabase,
+            'compliance_findings',
+            'id, severity, status',
+            org.id,
+          ),
+          fetchAll<{ status: string }>(supabase, 'hr_obligations', 'id, status', org.id, {
+            optionalTable: true,
+          }),
+          fetchAll<{ status: string }>(supabase, 'employees', 'id, status', org.id),
+          fetchAll<{ status: string }>(supabase, 'comms_issues', 'id, status', org.id, { optionalTable: true }),
+          fetchAll<{ status: string }>(supabase, 'comms_submissions', 'id, status', org.id, { optionalTable: true }),
+          fetchAll<{ status: string }>(supabase, 'comms_brand_claims', 'id, status', org.id, { optionalTable: true }),
+          fetchAll<{ stage: string }>(supabase, 'comms_policy_files', 'id, stage', org.id, { optionalTable: true }),
+        ])
 
       const { score, components } = computeOrgScore({
         policyStatuses: policies.map((r) => r.status),
@@ -166,6 +171,10 @@ Deno.serve(async (req) => {
         })),
         findings: findings.map((r) => ({ severity: r.severity, status: r.status })),
         obligationStatuses: obligations.map((r) => r.status),
+        commsIssueStatuses: issues.map((r) => r.status),
+        commsSubmissionStatuses: submissions.map((r) => r.status),
+        commsBrandClaimStatuses: brandClaims.map((r) => r.status),
+        commsPolicyFileStages: policyFiles.map((r) => r.stage),
       })
       if (score === null) {
         skipped += 1

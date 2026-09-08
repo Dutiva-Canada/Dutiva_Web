@@ -18,7 +18,7 @@
  * under vitest.
  */
 
-export const SCORE_FORMULA_VERSION = 3
+export const SCORE_FORMULA_VERSION = 4
 
 export const FINDING_SEVERITY_WEIGHTS: Record<string, number> = {
   info: 1,
@@ -96,6 +96,14 @@ export interface OrgScoreRows {
   findings: readonly { severity: string; status: string }[]
   /** hr_obligations.status values. */
   obligationStatuses: readonly string[]
+  /** comms_issues.status values. */
+  commsIssueStatuses: readonly string[]
+  /** comms_submissions.status values. */
+  commsSubmissionStatuses: readonly string[]
+  /** comms_brand_claims.status values. */
+  commsBrandClaimStatuses: readonly string[]
+  /** comms_policy_files.stage values. */
+  commsPolicyFileStages: readonly string[]
 }
 
 export interface OrgScore {
@@ -132,6 +140,26 @@ export function computeOrgScore(rows: OrgScoreRows): OrgScore {
       'obligations',
       rows.obligationStatuses.filter((s) => s === 'ok').length,
       rows.obligationStatuses.length,
+    ),
+    scoreComponent(
+      'comms_issues',
+      rows.commsIssueStatuses.filter((s) => s === 'resolved' || s === 'closed').length,
+      rows.commsIssueStatuses.length,
+    ),
+    scoreComponent(
+      'comms_submissions',
+      rows.commsSubmissionStatuses.filter((s) => s === 'submitted' || s === 'recorded').length,
+      rows.commsSubmissionStatuses.length,
+    ),
+    scoreComponent(
+      'comms_brand_claims',
+      rows.commsBrandClaimStatuses.filter((s) => s === 'active').length,
+      rows.commsBrandClaimStatuses.length,
+    ),
+    scoreComponent(
+      'comms_policy_files',
+      rows.commsPolicyFileStages.filter((s) => s === 'in_force' || s === 'consultation_closed').length,
+      rows.commsPolicyFileStages.length,
     ),
   ]
   const openCritical = rows.findings.filter(

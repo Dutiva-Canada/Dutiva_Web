@@ -276,12 +276,15 @@ export function meanInWindow(
  *     critical finding caps the blend.
  * v3: the obligation register as a fourth component (status 'ok' over all),
  *     and tasks scoped to provenanced rows (docs/SCORING_LOGIC.md §8).
+ * v4: Comms/PR signals added — issues resolved/closed, submissions
+ *     submitted/recorded, active brand claims, and closed/in-force policy
+ *     files.
  *
  * MIRROR: supabase/functions/record-score-snapshots/scoring.ts computes the
  * same formula for the scheduled job; scoring.test.ts there is the drift
  * test. Change the two together.
  */
-export const SCORE_FORMULA_VERSION = 3
+export const SCORE_FORMULA_VERSION = 4
 
 /**
  * v3 task scoping: only rows with provenance count toward the score — a

@@ -29,6 +29,18 @@ import type {
 } from '@/features/app/views/compliance/productionApi'
 import { listPolicies } from '@/features/app/views/policies/productionApi'
 import type { ProductionPolicy } from '@/features/app/views/policies/productionApi'
+import {
+  listCommsBrandClaims,
+  listCommsIssues,
+  listCommsPolicyFiles,
+  listCommsSubmissions,
+} from './commsAnalyticsApi'
+import type {
+  CommsBrandClaim,
+  CommsIssue,
+  CommsPolicyFile,
+  CommsSubmission,
+} from './commsAnalyticsApi'
 import { listScoreSnapshots, recordScoreSnapshot } from './productionApi'
 import type { ScoreSnapshot } from './productionApi'
 import { AnalyticsCard, CardEmpty, CardError, CardSkeleton } from './AnalyticsCard'
@@ -173,13 +185,21 @@ export function AnalyticsProductionView() {
   const snapshots = useModuleRows<ScoreSnapshot>(organizationId, listScoreSnapshots)
   const expiryRecords = useModuleRows<ProductionExpiryRecord>(organizationId, listExpiryRecords)
   const leaves = useModuleRows<ProductionLeave>(organizationId, listLeaves)
+  const commsIssues = useModuleRows<CommsIssue>(organizationId, listCommsIssues)
+  const commsSubmissions = useModuleRows<CommsSubmission>(organizationId, listCommsSubmissions)
+  const commsBrandClaims = useModuleRows<CommsBrandClaim>(organizationId, listCommsBrandClaims)
+  const commsPolicyFiles = useModuleRows<CommsPolicyFile>(organizationId, listCommsPolicyFiles)
 
   /* ── Score: live components + snapshot history ─────────────────────────── */
   const scoreReady =
     policies.state.status === 'ready' &&
     tasks.state.status === 'ready' &&
     findings.state.status === 'ready' &&
-    obligations.state.status === 'ready'
+    obligations.state.status === 'ready' &&
+    commsIssues.state.status === 'ready' &&
+    commsSubmissions.state.status === 'ready' &&
+    commsBrandClaims.state.status === 'ready' &&
+    commsPolicyFiles.state.status === 'ready'
 
   const components = useMemo(() => {
     const policyRows = rowsOf(policies.state)
@@ -191,6 +211,10 @@ export function AnalyticsProductionView() {
     )
     const findingRows = rowsOf(findings.state)
     const obligationRows = rowsOf(obligations.state)
+    const issueRows = rowsOf(commsIssues.state)
+    const submissionRows = rowsOf(commsSubmissions.state)
+    const brandClaimRows = rowsOf(commsBrandClaims.state)
+    const policyFileRows = rowsOf(commsPolicyFiles.state)
     return [
       scoreComponent(
         'policies',
@@ -210,8 +234,39 @@ export function AnalyticsProductionView() {
         obligationRows.filter((o) => o.status === 'ok').length,
         obligationRows.length,
       ),
+      scoreComponent(
+        'comms_issues',
+        issueRows.filter((i) => i.status === 'resolved' || i.status === 'closed').length,
+        issueRows.length,
+      ),
+      scoreComponent(
+        'comms_submissions',
+        submissionRows.filter(
+          (s) => s.status === 'submitted' || s.status === 'recorded',
+        ).length,
+        submissionRows.length,
+      ),
+      scoreComponent(
+        'comms_brand_claims',
+        brandClaimRows.filter((c) => c.status === 'active').length,
+        brandClaimRows.length,
+      ),
+      scoreComponent(
+        'comms_policy_files',
+        policyFileRows.filter((p) => p.stage === 'in_force' || p.stage === 'consultation_closed').length,
+        policyFileRows.length,
+      ),
     ]
-  }, [policies.state, tasks.state, findings.state, obligations.state])
+  }, [
+    policies.state,
+    tasks.state,
+    findings.state,
+    obligations.state,
+    commsIssues.state,
+    commsSubmissions.state,
+    commsBrandClaims.state,
+    commsPolicyFiles.state,
+  ])
 
   const openCriticalCount = useMemo(
     () => rowsOf(findings.state).filter((f) => !f.resolved && f.severity === 'critical').length,
@@ -296,7 +351,11 @@ export function AnalyticsProductionView() {
       rowsOf(tasks.state).length +
       rowsOf(findings.state).length +
       rowsOf(obligations.state).length +
-      rowsOf(policies.state).length >
+      rowsOf(policies.state).length +
+      rowsOf(commsIssues.state).length +
+      rowsOf(commsSubmissions.state).length +
+      rowsOf(commsBrandClaims.state).length +
+      rowsOf(commsPolicyFiles.state).length >
     0
   if (coreReady && !hasAnyData) {
     return (
@@ -326,6 +385,10 @@ export function AnalyticsProductionView() {
     tasks: x(M.analytics_comp_tasks),
     findings: x(M.analytics_comp_findings),
     obligations: x(M.analytics_comp_obligations),
+    comms_issues: x(M.analytics_comp_comms_issues),
+    comms_submissions: x(M.analytics_comp_comms_submissions),
+    comms_brand_claims: x(M.analytics_comp_comms_brand_claims),
+    comms_policy_files: x(M.analytics_comp_comms_policy_files),
   }
   const presentPcts = components.filter((c) => c.pct !== null).map((c) => c.pct!)
   const lowestPct = presentPcts.length >= 2 ? Math.min(...presentPcts) : null

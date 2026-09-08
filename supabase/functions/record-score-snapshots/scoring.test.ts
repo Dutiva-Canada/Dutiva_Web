@@ -134,8 +134,12 @@ describe('computeOrgScore — the job-side row mapping', () => {
       ],
       /* 2 evidenced of 3 → 67. */
       obligationStatuses: ['ok', 'ok', 'needs_evidence'],
+      commsIssueStatuses: [],
+      commsSubmissionStatuses: [],
+      commsBrandClaimStatuses: [],
+      commsPolicyFileStages: [],
     })
-    expect(components.map((c) => c.pct)).toEqual([75, 80, 89, 67])
+    expect(components.map((c) => c.pct)).toEqual([75, 80, 89, 67, null, null, null, null])
     /* (75 + 80 + 89 + 67) / 4 = 77.75 → 78; no open critical, no ceiling. */
     expect(score).toBe(78)
   })
@@ -146,6 +150,10 @@ describe('computeOrgScore — the job-side row mapping', () => {
       tasks: [task('completed', 'general', 'probation_review'), task('open', 'general')],
       findings: [],
       obligationStatuses: [],
+      commsIssueStatuses: [],
+      commsSubmissionStatuses: [],
+      commsBrandClaimStatuses: [],
+      commsPolicyFileStages: [],
     })
     /* Only the kind-linked row is scoreable → 1/1. */
     expect(components[1]).toMatchObject({ done: 1, total: 1, pct: 100 })
@@ -160,6 +168,10 @@ describe('computeOrgScore — the job-side row mapping', () => {
         { severity: 'low', status: 'resolved' },
       ],
       obligationStatuses: ['ok'],
+      commsIssueStatuses: [],
+      commsSubmissionStatuses: [],
+      commsBrandClaimStatuses: [],
+      commsPolicyFileStages: [],
     }
     expect(computeOrgScore(openCritical).score).toBe(CRITICAL_SCORE_CEILING)
     expect(
@@ -180,6 +192,10 @@ describe('computeOrgScore — the job-side row mapping', () => {
         tasks: [],
         findings: [],
         obligationStatuses: [],
+        commsIssueStatuses: [],
+        commsSubmissionStatuses: [],
+        commsBrandClaimStatuses: [],
+        commsPolicyFileStages: [],
       }).score,
     ).toBeNull()
   })
@@ -193,6 +209,10 @@ describe('computeOrgScore — the job-side row mapping', () => {
         { severity: 'critical', status: 'resolved' },
       ],
       obligationStatuses: [],
+      commsIssueStatuses: [],
+      commsSubmissionStatuses: [],
+      commsBrandClaimStatuses: [],
+      commsPolicyFileStages: [],
     })
     /* 8 of 9 weight closed → 89. */
     expect(components[2]!.pct).toBe(89)

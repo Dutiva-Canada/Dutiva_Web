@@ -46,6 +46,10 @@ export const analyticsMessages = defineMessages({
     en: 'Obligations evidenced',
     fr: 'Obligations documentées',
   },
+  analytics_comp_comms_issues: { en: 'Comms issues closed', fr: 'Problèmes comms clos' },
+  analytics_comp_comms_submissions: { en: 'Submissions filed', fr: 'Soumissions déposées' },
+  analytics_comp_comms_brand_claims: { en: 'Brand claims active', fr: 'Revendications de marque actives' },
+  analytics_comp_comms_policy_files: { en: 'Policy files closed', fr: 'Dossiers politiques clos' },
   analytics_comp_value: { en: '{done} of {total}', fr: '{done} sur {total}' },
   analytics_score_capped_note: {
     en: 'Capped at {ceiling} while a critical finding is open — resolve or dismiss it to lift the ceiling.',
