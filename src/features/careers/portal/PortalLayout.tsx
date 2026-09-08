@@ -32,7 +32,7 @@ export function PortalLayout() {
     }`
 
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-bg">
+    <div className="surface-app flex min-h-[100dvh] flex-col bg-bg">
       <header className="sticky top-0 z-10 border-b border-border bg-surface">
         <div className="mx-auto flex h-[56px] max-w-[960px] items-center justify-between gap-[16px] px-[20px]">
           <div className="flex items-center gap-[24px]">

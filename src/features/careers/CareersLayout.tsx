@@ -31,7 +31,7 @@ export function CareersLayout() {
   const label = lang === 'en' ? 'FR' : 'EN'
 
   return (
-    <div className="min-h-screen bg-bg text-text">
+    <div className="surface-app min-h-screen bg-bg text-text">
       <header className="sticky top-0 z-30 border-b border-border bg-bg-elevated backdrop-blur-[18px]">
         <div className="mx-auto flex max-w-[1200px] items-center justify-between px-4 py-3 sm:px-6">
           <Link to={paths.board} className="flex items-center gap-2">
