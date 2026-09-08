@@ -7,6 +7,12 @@ import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeCont
 import { useCrmData } from '@/features/app/views/crm/useCrmData'
 import { loadCommsState } from '@/features/app/views/comms/data/productionApi'
 import { initialCommsState } from '@/features/app/views/comms/data/fixtures'
+import { listSpecialists } from '@/features/app/views/specialists/data/productionApi'
+import { specialists } from '@/features/app/views/specialists/data/fixtures'
+import type { Specialist } from '@/features/app/views/specialists/data/types'
+import { listCases } from '@/features/app/views/cases/productionApi'
+import { cases } from '@/data/cases'
+import type { ProductionCase } from '@/features/app/views/cases/productionApi'
 import { EntityLinksPanel } from '@/features/app/entityLinks/EntityLinksPanel'
 import type { LinkCandidate } from '@/features/app/entityLinks/data/types'
 import { useRevenueData } from '../RevenueDataContext'
@@ -127,6 +133,41 @@ export function Invoices() {
     [mode, organizationId],
   )
 
+  const [specialistList, setSpecialistList] = useState<Specialist[]>([])
+  const [caseList, setCaseList] = useState<ProductionCase[]>([])
+
+  useEffect(() => {
+    if (mode !== 'production' || !organizationId) return
+    const orgId = organizationId
+    let cancelled = false
+    async function load() {
+      try {
+        const [specialistsData, casesData] = await Promise.all([
+          listSpecialists(orgId),
+          listCases(orgId),
+        ])
+        if (!cancelled) {
+          setSpecialistList(specialistsData)
+          setCaseList(casesData)
+        }
+      } catch {
+        /* ignore — link candidates simply stay empty until data loads */
+      }
+    }
+    void load()
+    return () => {
+      cancelled = true
+    }
+  }, [mode, organizationId])
+
+  const caseRecords = useMemo(
+    () =>
+      mode === 'production'
+        ? caseList.map((c) => ({ id: c.id, title: c.title }))
+        : cases.map((c) => ({ id: c.id, title: x(c.title) })),
+    [mode, caseList, x],
+  )
+
   const linkCandidates: LinkCandidate[] = useMemo(
     () => [
       {
@@ -147,8 +188,23 @@ export function Invoices() {
         records: commsState.initiatives.map((i) => ({ id: i.id, title: x(i.title) })),
         view: 'comms/initiatives',
       },
+      {
+        table: 'specialists',
+        label: M.rev_links_specialists,
+        records: (mode === 'production' ? specialistList : specialists).map((s) => ({
+          id: s.id,
+          title: s.name,
+        })),
+        view: 'specialists/directory',
+      },
+      {
+        table: 'cases',
+        label: M.rev_links_cases,
+        records: caseRecords,
+        view: 'cases',
+      },
     ],
-    [streams, crm.state.deals, commsState.initiatives, x],
+    [streams, crm.state.deals, commsState.initiatives, x, caseRecords, mode, specialistList],
   )
 
   const initial = editing ?? emptyInvoice()

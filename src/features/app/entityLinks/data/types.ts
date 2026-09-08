@@ -17,6 +17,8 @@ export type EntityTable =
   | 'revenue_invoices'
   | 'crm_deals'
   | 'comms_initiatives'
+  | 'specialists'
+  | 'cases'
 
 /**
  * One selectable target module for the add-link form: a bilingual module

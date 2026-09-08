@@ -87,6 +87,8 @@ import type {
 } from './governanceAnalyticsApi'
 import { listRevenueStreams, listRevenueInvoices } from './revenueAnalyticsApi'
 import type { RevenueStream, RevenueInvoice } from './revenueAnalyticsApi'
+import { listSpecialists, listSpecialistEngagements } from './specialistsAnalyticsApi'
+import type { Specialist, SpecialistEngagement } from './specialistsAnalyticsApi'
 import { listScoreSnapshots, recordScoreSnapshot } from './productionApi'
 import type { ScoreSnapshot } from './productionApi'
 import { AnalyticsCard, CardEmpty, CardError, CardSkeleton } from './AnalyticsCard'
@@ -287,6 +289,11 @@ export function AnalyticsProductionView() {
   )
   const revenueStreams = useModuleRows<RevenueStream>(organizationId, listRevenueStreams)
   const revenueInvoices = useModuleRows<RevenueInvoice>(organizationId, listRevenueInvoices)
+  const specialists = useModuleRows<Specialist>(organizationId, listSpecialists)
+  const specialistEngagements = useModuleRows<SpecialistEngagement>(
+    organizationId,
+    listSpecialistEngagements,
+  )
 
   /* ── Score: live components + snapshot history ─────────────────────────── */
   const scoreReady =
@@ -1266,6 +1273,72 @@ export function AnalyticsProductionView() {
                         value={String(overdue)}
                         label={x(M.analytics_revenue_overdue)}
                         alert={overdue > 0}
+                      />
+                    </div>
+                  )
+                }
+              </CardData>
+            </AnalyticsCard>
+          )
+        })()}
+
+        {/* J · Specialists */}
+        {(() => {
+          const specialistRows = rowsOf(specialists.state)
+          const engagementRows = rowsOf(specialistEngagements.state)
+          const hasSpecialistsData = specialistRows.length + engagementRows.length > 0
+
+          const in7ISO = addDaysISO(todayISO, 7)
+          const currentMonth = todayISO.slice(0, 7)
+
+          const activeSpecialists = specialistRows.length
+          const activeWorkspaceAccess = specialistRows.filter((s) => s.workspace_access).length
+          const engagementsThisMonth = engagementRows.filter(
+            (e) => e.engagement_date !== null && e.engagement_date.startsWith(currentMonth),
+          ).length
+          const followUpsDue = engagementRows.filter(
+            (e) =>
+              e.follow_up_date !== null &&
+              e.follow_up_date >= todayISO &&
+              e.follow_up_date <= in7ISO,
+          ).length
+          const overdueFollowUps = engagementRows.filter(
+            (e) => e.follow_up_date !== null && e.follow_up_date < todayISO,
+          ).length
+
+          return (
+            <AnalyticsCard
+              title={x(M.analytics_specialists_title)}
+              subtitle={x(M.analytics_specialists_sub)}
+              hidden={!show('specialists')}
+            >
+              <CardData deps={[specialists, specialistEngagements]} skeletonLines={2}>
+                {() =>
+                  !hasSpecialistsData ? (
+                    <CardEmpty text={x(M.analytics_specialists_empty)} />
+                  ) : (
+                    <div className="flex flex-wrap gap-[10px]">
+                      <StatTile
+                        value={String(activeSpecialists)}
+                        label={x(M.analytics_specialists_active)}
+                      />
+                      <StatTile
+                        value={String(activeWorkspaceAccess)}
+                        label={x(M.analytics_specialists_workspace_access)}
+                      />
+                      <StatTile
+                        value={String(engagementsThisMonth)}
+                        label={x(M.analytics_specialists_engagements_month)}
+                      />
+                      <StatTile
+                        value={String(followUpsDue)}
+                        label={x(M.analytics_specialists_followups_due)}
+                        alert={followUpsDue > 0}
+                      />
+                      <StatTile
+                        value={String(overdueFollowUps)}
+                        label={x(M.analytics_specialists_overdue_followups)}
+                        alert={overdueFollowUps > 0}
                       />
                     </div>
                   )

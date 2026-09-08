@@ -141,6 +141,23 @@ export async function updateSpecialistEngagement(
   return toEngagement(parsed)
 }
 
+export async function deleteSpecialist(id: string): Promise<void> {
+  const client = getClient()
+  const { error: engagementsError } = await client
+    .from('specialist_engagements')
+    .delete()
+    .eq('specialist_id', id)
+  if (engagementsError) throw new Error(engagementsError.message)
+  const { error } = await client.from('specialists').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteSpecialistEngagement(id: string): Promise<void> {
+  const client = getClient()
+  const { error } = await client.from('specialist_engagements').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
 export async function listSpecialistEngagements(organizationId: string): Promise<SpecialistEngagement[]> {
   const client = getClient()
   const data = await fetchAllPages((from, to) =>

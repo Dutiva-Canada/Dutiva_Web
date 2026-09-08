@@ -341,6 +341,44 @@ vi.mock('@/features/app/views/revenue/data/productionApi', () => ({
   ]),
 }))
 
+vi.mock('@/features/app/views/specialists/data/productionApi', () => ({
+  listSpecialists: vi.fn(async () => [
+    {
+      id: 'sp1',
+      organization_id: 'org-1',
+      name: 'Jean-Marc Lefebvre',
+      specialty: 'lawyer',
+      company: 'Drolet & Associés',
+      email: null,
+      phone: null,
+      crm_contact_id: null,
+      finance_party_id: null,
+      workspace_access: false,
+      workspace_role: 'consultant',
+      granted_modules: [],
+      access_expires_at: null,
+      organization_member_id: null,
+      notes: null,
+      created_at: '2026-08-01',
+      updated_at: '2026-08-01',
+    },
+  ]),
+  listSpecialistEngagements: vi.fn(async () => [
+    {
+      id: 'se1',
+      organization_id: 'org-1',
+      specialist_id: 'sp1',
+      engagement_date: '2026-08-15',
+      engagement_type: 'call',
+      summary: 'Initial contract review.',
+      follow_up_date: null,
+      created_by: null,
+      created_at: '2026-08-01',
+      updated_at: '2026-08-01',
+    },
+  ]),
+}))
+
 describe('buildProductionSearchEntries', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -367,6 +405,9 @@ describe('buildProductionSearchEntries', () => {
     })
     expect(byId.get('rev-stream-rs1')?.nav).toEqual({ kind: 'view', view: 'revenue/streams' })
     expect(byId.get('rev-invoice-ri1')?.nav).toEqual({ kind: 'view', view: 'revenue/invoices' })
+    expect(byId.get('mod-specialists')?.nav).toEqual({ kind: 'view', view: 'specialists/overview' })
+    expect(byId.get('spec-sp1')?.nav).toEqual({ kind: 'view', view: 'specialists/directory' })
+    expect(byId.get('spec-eng-se1')?.nav).toEqual({ kind: 'view', view: 'specialists/engagements' })
   })
 
   it('includes knowledge and template catalogue entries', async () => {

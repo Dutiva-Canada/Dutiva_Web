@@ -39,10 +39,12 @@ function EngagementRow({
   engagement,
   name,
   onEdit,
+  onRemove,
 }: {
   readonly engagement: SpecialistEngagement
   readonly name: string
   readonly onEdit: (engagement: SpecialistEngagement) => void
+  readonly onRemove: (id: string) => void
 }) {
   const { x } = useI18n()
   return (
@@ -67,6 +69,13 @@ function EngagementRow({
         >
           {x(M.spec_edit)}
         </button>
+        <button
+          type="button"
+          onClick={() => onRemove(engagement.id)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.spec_remove)}
+        </button>
       </div>
     </div>
   )
@@ -74,7 +83,7 @@ function EngagementRow({
 
 export function Engagements() {
   const { x } = useI18n()
-  const { specialists, engagements, addEngagement, updateEngagement } = useSpecialistsData()
+  const { specialists, engagements, addEngagement, updateEngagement, removeEngagement } = useSpecialistsData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<SpecialistEngagement | null>(null)
 
@@ -208,6 +217,7 @@ export function Engagements() {
               engagement={engagement}
               name={namesById.get(engagement.specialist_id) ?? 'Unknown'}
               onEdit={(e) => { setEditing(e); setShow(true) }}
+              onRemove={removeEngagement}
             />
           ))}
         </div>

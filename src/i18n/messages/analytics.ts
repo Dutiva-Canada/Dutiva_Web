@@ -307,6 +307,22 @@ export const analyticsMessages = defineMessages({
     fr: 'Aucun dossier opérationnel pour l’instant.',
   },
 
+  /* ── Specialists card ───────────────────────────────────────────────────── */
+  analytics_specialists_title: { en: 'Specialists', fr: 'Spécialistes' },
+  analytics_specialists_sub: {
+    en: 'External specialists and engagement log.',
+    fr: 'Spécialistes externes et journal d’engagements.',
+  },
+  analytics_specialists_active: { en: 'Active specialists', fr: 'Spécialistes actifs' },
+  analytics_specialists_workspace_access: { en: 'Workspace access', fr: 'Accès à l’espace de travail' },
+  analytics_specialists_engagements_month: { en: 'Engagements this month', fr: 'Engagements ce mois-ci' },
+  analytics_specialists_followups_due: { en: 'Follow-ups due in 7 days', fr: 'Suivis dus sous 7 jours' },
+  analytics_specialists_overdue_followups: { en: 'Overdue follow-ups', fr: 'Suivis en retard' },
+  analytics_specialists_empty: {
+    en: 'No specialists records yet.',
+    fr: 'Aucun dossier de spécialistes pour l’instant.',
+  },
+
   /* ── Governance card ────────────────────────────────────────────────────── */
   analytics_governance_title: { en: 'Governance', fr: 'Gouvernance' },
   analytics_governance_sub: {

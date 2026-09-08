@@ -8,6 +8,8 @@ import {
   createSpecialistEngagement,
   updateSpecialist,
   updateSpecialistEngagement,
+  deleteSpecialist,
+  deleteSpecialistEngagement,
 } from './data/productionApi'
 import { specialistsSummary as fixtures } from './data/fixtures'
 import { SpecialistsDataContext } from './SpecialistsDataContext'
@@ -204,6 +206,58 @@ export function SpecialistsDataProvider({
     [mode, organizationId, value.engagements],
   )
 
+  const removeSpecialist = useCallback(
+    async (id: string) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({
+          ...prev,
+          specialists: prev.specialists.filter((s) => s.id !== id),
+          engagements: prev.engagements.filter((e) => e.specialist_id !== id),
+        }))
+        return
+      }
+      try {
+        await deleteSpecialist(id)
+        setValue((prev) => ({
+          ...prev,
+          specialists: prev.specialists.filter((s) => s.id !== id),
+          engagements: prev.engagements.filter((e) => e.specialist_id !== id),
+        }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not remove specialist.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const removeEngagement = useCallback(
+    async (id: string) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({
+          ...prev,
+          engagements: prev.engagements.filter((e) => e.id !== id),
+        }))
+        return
+      }
+      try {
+        await deleteSpecialistEngagement(id)
+        setValue((prev) => ({
+          ...prev,
+          engagements: prev.engagements.filter((e) => e.id !== id),
+        }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not remove engagement.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
   const stable = useMemo(
     () => ({
       specialists: value.specialists,
@@ -212,10 +266,12 @@ export function SpecialistsDataProvider({
       error: value.error,
       addSpecialist,
       updateSpecialist: saveSpecialist,
+      removeSpecialist,
       addEngagement,
       updateEngagement: saveEngagement,
+      removeEngagement,
     }),
-    [value, addSpecialist, saveSpecialist, addEngagement, saveEngagement],
+    [value, addSpecialist, saveSpecialist, removeSpecialist, addEngagement, saveEngagement, removeEngagement],
   )
 
   return <SpecialistsDataContext.Provider value={stable}>{children}</SpecialistsDataContext.Provider>

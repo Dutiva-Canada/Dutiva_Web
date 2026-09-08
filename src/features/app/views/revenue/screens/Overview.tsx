@@ -22,6 +22,13 @@ import {
 import { useCrmData } from '@/features/app/views/crm/useCrmData'
 import { loadCommsState } from '@/features/app/views/comms/data/productionApi'
 import { initialCommsState } from '@/features/app/views/comms/data/fixtures'
+import { listSpecialists } from '@/features/app/views/specialists/data/productionApi'
+import { specialists } from '@/features/app/views/specialists/data/fixtures'
+import type { Specialist } from '@/features/app/views/specialists/data/types'
+import { listCases } from '@/features/app/views/cases/productionApi'
+import { cases } from '@/data/cases'
+import type { CaseFile } from '@/data/types'
+import type { ProductionCase } from '@/features/app/views/cases/productionApi'
 import { statusChipClass } from '@/components/chips'
 import { listEntityLinks } from '@/features/app/entityLinks/data/productionApi'
 import { entityLinks as fixtureLinks } from '@/features/app/entityLinks/data/fixtures'
@@ -126,6 +133,33 @@ export function Overview() {
     }
   }, [isProduction, organizationId])
 
+  const [prodSpecialists, setProdSpecialists] = useState<Specialist[]>([])
+  const [prodCases, setProdCases] = useState<ProductionCase[]>([])
+
+  useEffect(() => {
+    if (!isProduction || !organizationId) return
+    const orgId = organizationId
+    let cancelled = false
+    async function load() {
+      try {
+        const [specialistsData, casesData] = await Promise.all([
+          listSpecialists(orgId),
+          listCases(orgId),
+        ])
+        if (!cancelled) {
+          setProdSpecialists(specialistsData)
+          setProdCases(casesData)
+        }
+      } catch {
+        /* ignore — cross-module links simply resolve by id when lookup is missing */
+      }
+    }
+    void load()
+    return () => {
+      cancelled = true
+    }
+  }, [isProduction, organizationId])
+
   const linkedRecords = useMemo(() => {
     const map = new Map<string, { title: string; view: string; module: string }>()
     for (const s of streams) {
@@ -156,8 +190,25 @@ export function Overview() {
         module: x(M.rev_links_comms_initiatives),
       })
     }
+    const specialistSource = isProduction ? prodSpecialists : specialists
+    for (const s of specialistSource) {
+      map.set(`specialists:${s.id}`, {
+        title: s.name,
+        view: 'specialists/directory',
+        module: x(M.rev_links_specialists),
+      })
+    }
+    const caseSource: CaseFile[] | ProductionCase[] = isProduction ? prodCases : cases
+    for (const c of caseSource) {
+      const title = typeof c.title === 'string' ? c.title : x(c.title)
+      map.set(`cases:${c.id}`, {
+        title,
+        view: 'cases',
+        module: x(M.rev_links_cases),
+      })
+    }
     return map
-  }, [streams, invoices, crmState.deals, commsState.initiatives, x])
+  }, [streams, invoices, crmState.deals, commsState.initiatives, x, isProduction, prodSpecialists, prodCases])
 
   const links = useMemo(() => {
     if (isProduction) return prodLinks

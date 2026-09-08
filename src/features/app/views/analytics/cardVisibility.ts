@@ -32,6 +32,7 @@ export type AnalyticsCardKey =
   | 'operations'
   | 'governance'
   | 'revenue'
+  | 'specialists'
   | 'certifications'
   | 'serviceMilestones'
   | 'documents'
@@ -49,6 +50,7 @@ export const CARD_MIN_ROLE: Record<AnalyticsCardKey, OrgMemberRole> = {
   operations: 'viewer',
   governance: 'viewer',
   revenue: 'viewer',
+  specialists: 'viewer',
   certifications: 'viewer',
   serviceMilestones: 'viewer',
   documents: 'viewer',

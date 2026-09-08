@@ -33,6 +33,10 @@ import {
   listRevenueStreams,
   listRevenueInvoices,
 } from '@/features/app/views/revenue/data/productionApi'
+import {
+  listSpecialists,
+  listSpecialistEngagements,
+} from '@/features/app/views/specialists/data/productionApi'
 import { listTasks } from '@/features/app/views/tasks/productionApi'
 import { searchMessages as M } from '@/i18n/messages/search'
 import { shellMessages as S } from '@/i18n/messages/shell'
@@ -84,6 +88,8 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     governanceShareholders,
     revenueStreams,
     revenueInvoices,
+    specialists,
+    specialistEngagements,
   ] = await Promise.all([
     listEmployees(organizationId),
     listCases(organizationId),
@@ -107,6 +113,8 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     listGovernanceShareholders(organizationId),
     listRevenueStreams(organizationId),
     listRevenueInvoices(organizationId),
+    listSpecialists(organizationId),
+    listSpecialistEngagements(organizationId),
   ])
 
   const personEntries: SearchEntry[] = employees.map((e) => ({
@@ -371,6 +379,42 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     nav: { kind: 'view', view: 'revenue/invoices' },
   }))
 
+  const specialistById = new Map(specialists.map((s) => [s.id, s]))
+
+  const specialistEntries: SearchEntry[] = specialists.map((s) => ({
+    id: `spec-${s.id}`,
+    kind: 'specialists',
+    kindLabel: M.search_kind_specialists,
+    title: neutral(s.name),
+    sub: joinBi([neutral(s.specialty), neutral(s.company ?? '')]),
+    restricted: false,
+    match: joinBi([neutral(s.name), neutral(s.specialty), neutral(s.company ?? '')]),
+    nav: { kind: 'view', view: 'specialists/directory' },
+  }))
+
+  const specialistEngagementEntries: SearchEntry[] = specialistEngagements.map((e) => {
+    const specialist = specialistById.get(e.specialist_id)
+    const name = specialist?.name ?? 'Unknown'
+    return {
+      id: `spec-eng-${e.id}`,
+      kind: 'specialists',
+      kindLabel: M.search_kind_specialists,
+      title: neutral(name),
+      sub: joinBi([
+        neutral(e.engagement_type ?? ''),
+        neutral(e.engagement_date ?? ''),
+        neutral(e.summary ?? ''),
+      ]),
+      restricted: false,
+      match: joinBi([
+        neutral(name),
+        neutral(e.engagement_type ?? ''),
+        neutral(e.summary ?? ''),
+      ]),
+      nav: { kind: 'view', view: 'specialists/engagements' },
+    }
+  })
+
   const knowledgeEntries: SearchEntry[] = [
     ...knowledgeItems.map((k) => ({
       id: `kb-${k.id}`,
@@ -427,7 +471,7 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
       title: S.shell_v_specialists,
       restricted: false,
       match: S.shell_v_specialists,
-      nav: { kind: 'view', view: 'specialists/directory' },
+      nav: { kind: 'view', view: 'specialists/overview' },
     },
     {
       id: 'mod-revenue',
@@ -464,6 +508,8 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     ...governanceShareholderEntries,
     ...revenueStreamEntries,
     ...revenueInvoiceEntries,
+    ...specialistEntries,
+    ...specialistEngagementEntries,
     ...knowledgeEntries,
     ...moduleEntries,
     ...flowSearchEntries,

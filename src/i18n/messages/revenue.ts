@@ -59,6 +59,8 @@ export const revenueMessages = defineMessages({
   rev_links_crm_deals: { en: 'CRM deals', fr: 'Opportunités CRM' },
   rev_links_comms_initiatives: { en: 'Comms initiatives', fr: 'Initiatives Comms' },
   rev_links_streams: { en: 'Revenue streams', fr: 'Flux de revenus' },
+  rev_links_specialists: { en: 'Specialists', fr: 'Spécialistes' },
+  rev_links_cases: { en: 'Cases', fr: 'Dossiers' },
 
   /* Stream / invoice labels */
   rev_name: { en: 'Name', fr: 'Nom' },

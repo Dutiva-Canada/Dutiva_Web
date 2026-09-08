@@ -67,9 +67,11 @@ function emptySpecialist(): Specialist {
 function SpecialistRow({
   specialist,
   onEdit,
+  onRemove,
 }: {
   readonly specialist: Specialist
   readonly onEdit: (specialist: Specialist) => void
+  readonly onRemove: (id: string) => void
 }) {
   const { x } = useI18n()
   const { root } = useWorkspaceRoot()
@@ -105,6 +107,14 @@ function SpecialistRow({
         >
           <Pencil size={14} />
         </button>
+        <button
+          type="button"
+          onClick={() => onRemove(specialist.id)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+          aria-label={x(M.spec_remove)}
+        >
+          {x(M.spec_remove)}
+        </button>
       </div>
     </div>
   )
@@ -112,7 +122,7 @@ function SpecialistRow({
 
 export function Directory() {
   const { x } = useI18n()
-  const { specialists, addSpecialist, updateSpecialist } = useSpecialistsData()
+  const { specialists, addSpecialist, updateSpecialist, removeSpecialist } = useSpecialistsData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<Specialist | null>(null)
 
@@ -265,7 +275,12 @@ export function Directory() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {specialists.map((specialist) => (
-            <SpecialistRow key={specialist.id} specialist={specialist} onEdit={(s) => { setEditing(s); setShow(true) }} />
+            <SpecialistRow
+              key={specialist.id}
+              specialist={specialist}
+              onEdit={(s) => { setEditing(s); setShow(true) }}
+              onRemove={removeSpecialist}
+            />
           ))}
         </div>
       )}

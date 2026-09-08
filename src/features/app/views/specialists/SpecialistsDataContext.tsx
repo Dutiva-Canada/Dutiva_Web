@@ -8,8 +8,10 @@ export interface SpecialistsDataValue {
   error: string | null
   addSpecialist: (specialist: Specialist) => void
   updateSpecialist: (specialist: Specialist) => void
+  removeSpecialist: (id: string) => Promise<void>
   addEngagement: (engagement: SpecialistEngagement) => void
   updateEngagement: (engagement: SpecialistEngagement) => void
+  removeEngagement: (id: string) => Promise<void>
 }
 
 export const SpecialistsDataContext = createContext<SpecialistsDataValue | null>(null)

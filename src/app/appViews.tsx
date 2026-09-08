@@ -87,6 +87,7 @@ import {
 /* prettier-ignore */ const SecurityVendors = lazy(() => import('@/features/app/views/security/screens/Vendors').then((m) => ({ default: m.Vendors })))
 
 /* Specialists workspace screens */
+/* prettier-ignore */ const SpecialistsOverview = lazy(() => import('@/features/app/views/specialists/screens/Overview').then((m) => ({ default: m.Overview })))
 /* prettier-ignore */ const SpecialistsDirectory = lazy(() => import('@/features/app/views/specialists/screens/Directory').then((m) => ({ default: m.Directory })))
 /* prettier-ignore */ const SpecialistsEngagements = lazy(() => import('@/features/app/views/specialists/screens/Engagements').then((m) => ({ default: m.Engagements })))
 
@@ -278,7 +279,8 @@ function createAppViewRoutes(root: string): RouteObject[] {
       path: 'specialists',
       element: <SpecialistsView />,
       children: [
-        { index: true, loader: () => redirect(r('specialists/directory')) },
+        { index: true, loader: () => redirect(r('specialists/overview')) },
+        { path: 'overview', element: <SpecialistsOverview /> },
         { path: 'directory', element: <SpecialistsDirectory /> },
         { path: 'engagements', element: <SpecialistsEngagements /> },
       ],

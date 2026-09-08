@@ -90,7 +90,9 @@ export type SearchNav =
         | 'operations/quality'
         | 'operations/technology'
         | 'operations/logistics'
+        | 'specialists/overview'
         | 'specialists/directory'
+        | 'specialists/engagements'
         | 'revenue'
         | 'revenue/overview'
         | 'revenue/streams'
@@ -289,7 +291,7 @@ const moduleEntries: SearchEntry[] = [
     title: S.shell_v_specialists,
     restricted: false,
     match: S.shell_v_specialists,
-    nav: { kind: 'view', view: 'specialists/directory' },
+    nav: { kind: 'view', view: 'specialists/overview' },
   },
   {
     id: 'mod-revenue',

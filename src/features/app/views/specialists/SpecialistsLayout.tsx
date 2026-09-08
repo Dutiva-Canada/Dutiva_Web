@@ -5,6 +5,7 @@ import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootCont
 import { AppPage } from '@/features/app/shell/AppPage'
 
 const TABS = [
+  { key: 'overview', to: 'overview' },
   { key: 'directory', to: 'directory' },
   { key: 'engagements', to: 'engagements' },
 ] as const
