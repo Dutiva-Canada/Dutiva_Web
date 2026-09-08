@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useI18n } from '@/i18n/context'
 import { operationsMessages as M } from '@/i18n/messages/operations'
 import { statusChipClass } from '@/components/chips'
@@ -32,7 +32,22 @@ function generateId() {
   return `ot-${Math.random().toString(36).slice(2, 9)}`
 }
 
-function TechnologyRow({ tech }: { readonly tech: OperationsTechnology }) {
+function emptyTechnology(): OperationsTechnology {
+  return {
+    id: generateId(),
+    organization_id: '',
+    name: '',
+    system_type: 'internal',
+    owner_id: null,
+    status: 'active',
+    renewal_date: null,
+    integration_notes: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+}
+
+function TechnologyRow({ tech, onEdit }: { readonly tech: OperationsTechnology; readonly onEdit: (tech: OperationsTechnology) => void }) {
   const { x } = useI18n()
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
@@ -44,46 +59,75 @@ function TechnologyRow({ tech }: { readonly tech: OperationsTechnology }) {
           {tech.integration_notes ? ` · ${tech.integration_notes}` : null}
         </div>
       </div>
-      <span className={statusChipClass(STATUS_TONE[tech.status])}>{x(M[STATUS_LABELS[tech.status]])}</span>
+      <div className="flex items-center gap-[10px]">
+        <span className={statusChipClass(STATUS_TONE[tech.status])}>{x(M[STATUS_LABELS[tech.status]])}</span>
+        <button
+          type="button"
+          onClick={() => onEdit(tech)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.ops_edit)}
+        </button>
+      </div>
     </div>
   )
 }
 
 export function Technology() {
   const { x } = useI18n()
-  const { technology, addTechnology } = useOperationsData()
+  const { technology, addTechnology, updateTechnology } = useOperationsData()
   const [show, setShow] = useState(false)
+  const [editing, setEditing] = useState<OperationsTechnology | null>(null)
 
-  const [name, setName] = useState('')
-  const [systemType, setSystemType] = useState<NonNullable<OperationsTechnologyType>>('internal')
-  const [status, setStatus] = useState<OperationsTechnologyStatus>('active')
-  const [renewalDate, setRenewalDate] = useState('')
-  const [integrationNotes, setIntegrationNotes] = useState('')
+  const initial = editing ?? emptyTechnology()
+  const [name, setName] = useState(initial.name)
+  const [systemType, setSystemType] = useState<NonNullable<OperationsTechnologyType>>(initial.system_type ?? 'internal')
+  const [status, setStatus] = useState<OperationsTechnologyStatus>(initial.status)
+  const [renewalDate, setRenewalDate] = useState(initial.renewal_date ?? '')
+  const [integrationNotes, setIntegrationNotes] = useState(initial.integration_notes ?? '')
+
+  useEffect(() => {
+    const base = editing ?? emptyTechnology()
+    setName(base.name)
+    setSystemType(base.system_type ?? 'internal')
+    setStatus(base.status)
+    setRenewalDate(base.renewal_date ?? '')
+    setIntegrationNotes(base.integration_notes ?? '')
+  }, [editing])
 
   const reset = () => {
-    setName('')
-    setSystemType('internal')
-    setStatus('active')
-    setRenewalDate('')
-    setIntegrationNotes('')
+    setShow(false)
+    setEditing(null)
+    const base = emptyTechnology()
+    setName(base.name)
+    setSystemType(base.system_type ?? 'internal')
+    setStatus(base.status)
+    setRenewalDate(base.renewal_date ?? '')
+    setIntegrationNotes(base.integration_notes ?? '')
   }
 
   const onSubmit = async () => {
-    const newTechnology: OperationsTechnology = {
-      id: generateId(),
-      organization_id: '',
+    const now = new Date().toISOString()
+    const technology: OperationsTechnology = {
+      ...(editing ?? emptyTechnology()),
       name,
       system_type: systemType,
-      owner_id: null,
       status,
       renewal_date: renewalDate || null,
       integration_notes: integrationNotes || null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      updated_at: now,
     }
-    await addTechnology(newTechnology)
+    if (editing) {
+      await updateTechnology(technology)
+    } else {
+      await addTechnology({ ...technology, created_at: now })
+    }
     reset()
-    setShow(false)
+  }
+
+  const openCreate = () => {
+    setEditing(null)
+    setShow(true)
   }
 
   return (
@@ -91,10 +135,10 @@ export function Technology() {
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={() => setShow((s) => !s)}
+          onClick={() => (show ? reset() : openCreate())}
           className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] font-medium text-text hover:bg-inset"
         >
-          {x(show ? M.ops_cancel : M.ops_add_technology)}
+          {x(show && !editing ? M.ops_cancel : M.ops_add_technology)}
         </button>
       </div>
 
@@ -104,10 +148,7 @@ export function Technology() {
             <FormInput value={name} onChange={(e) => setName(e.target.value)} required />
           </FormField>
           <FormField label={x(M.ops_type)}>
-            <FormSelect
-              value={systemType}
-              onChange={(e) => setSystemType(e.target.value as NonNullable<OperationsTechnologyType>)}
-            >
+            <FormSelect value={systemType} onChange={(e) => setSystemType(e.target.value as NonNullable<OperationsTechnologyType>)}>
               {TYPES.map((t) => (
                 <option key={t} value={t}>
                   {x(M[TYPE_LABELS[t]])}
@@ -133,7 +174,7 @@ export function Technology() {
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button
               type="button"
-              onClick={() => setShow(false)}
+              onClick={reset}
               className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] text-text-muted hover:text-text"
             >
               {x(M.ops_cancel)}
@@ -143,7 +184,7 @@ export function Technology() {
               onClick={onSubmit}
               className="rounded-[8px] bg-accent px-[14px] py-[8px] text-[13px] font-medium text-white hover:bg-accent/90"
             >
-              {x(M.ops_save)}
+              {x(editing ? M.ops_save_changes : M.ops_save)}
             </button>
           </div>
         </div>
@@ -156,7 +197,7 @@ export function Technology() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {technology.map((tech) => (
-            <TechnologyRow key={tech.id} tech={tech} />
+            <TechnologyRow key={tech.id} tech={tech} onEdit={(t) => { setEditing(t); setShow(true) }} />
           ))}
         </div>
       )}

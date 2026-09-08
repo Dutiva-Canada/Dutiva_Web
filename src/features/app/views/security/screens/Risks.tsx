@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useI18n } from '@/i18n/context'
 import { securityMessages as M } from '@/i18n/messages/security'
 import { statusChipClass } from '@/components/chips'
@@ -40,7 +40,22 @@ function generateId() {
   return `sr-${Math.random().toString(36).slice(2, 9)}`
 }
 
-function RiskRow({ risk }: { readonly risk: SecurityRisk }) {
+function emptyRisk(): SecurityRisk {
+  return {
+    id: generateId(),
+    organization_id: '',
+    title: '',
+    likelihood: 'low',
+    impact: 'low',
+    owner: null,
+    mitigation: null,
+    status: 'open',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+}
+
+function RiskRow({ risk, onEdit }: { readonly risk: SecurityRisk; readonly onEdit: (risk: SecurityRisk) => void }) {
   const { x } = useI18n()
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
@@ -53,48 +68,79 @@ function RiskRow({ risk }: { readonly risk: SecurityRisk }) {
           {risk.mitigation ? ` · ${risk.mitigation}` : null}
         </div>
       </div>
-      <span className={statusChipClass(STATUS_TONE[risk.status])}>{x(M[STATUS_LABELS[risk.status]])}</span>
+      <div className="flex items-center gap-[10px]">
+        <span className={statusChipClass(STATUS_TONE[risk.status])}>{x(M[STATUS_LABELS[risk.status]])}</span>
+        <button
+          type="button"
+          onClick={() => onEdit(risk)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.sec_edit)}
+        </button>
+      </div>
     </div>
   )
 }
 
 export function Risks() {
   const { x } = useI18n()
-  const { risks, addRisk } = useSecurityData()
+  const { risks, addRisk, updateRisk } = useSecurityData()
   const [show, setShow] = useState(false)
+  const [editing, setEditing] = useState<SecurityRisk | null>(null)
 
-  const [title, setTitle] = useState('')
-  const [status, setStatus] = useState<SecurityRiskStatus>('open')
-  const [likelihood, setLikelihood] = useState<NonNullable<SecurityRiskLikelihood>>('low')
-  const [impact, setImpact] = useState<NonNullable<SecurityRiskImpact>>('low')
-  const [owner, setOwner] = useState('')
-  const [mitigation, setMitigation] = useState('')
+  const initial = editing ?? emptyRisk()
+  const [title, setTitle] = useState(initial.title)
+  const [status, setStatus] = useState<SecurityRiskStatus>(initial.status)
+  const [likelihood, setLikelihood] = useState<NonNullable<SecurityRiskLikelihood>>(initial.likelihood ?? 'low')
+  const [impact, setImpact] = useState<NonNullable<SecurityRiskImpact>>(initial.impact ?? 'low')
+  const [owner, setOwner] = useState(initial.owner ?? '')
+  const [mitigation, setMitigation] = useState(initial.mitigation ?? '')
+
+  useEffect(() => {
+    const base = editing ?? emptyRisk()
+    setTitle(base.title)
+    setStatus(base.status)
+    setLikelihood(base.likelihood ?? 'low')
+    setImpact(base.impact ?? 'low')
+    setOwner(base.owner ?? '')
+    setMitigation(base.mitigation ?? '')
+  }, [editing])
 
   const reset = () => {
-    setTitle('')
-    setStatus('open')
-    setLikelihood('low')
-    setImpact('low')
-    setOwner('')
-    setMitigation('')
+    setShow(false)
+    setEditing(null)
+    const base = emptyRisk()
+    setTitle(base.title)
+    setStatus(base.status)
+    setLikelihood(base.likelihood ?? 'low')
+    setImpact(base.impact ?? 'low')
+    setOwner(base.owner ?? '')
+    setMitigation(base.mitigation ?? '')
   }
 
   const onSubmit = async () => {
-    const newRisk: SecurityRisk = {
-      id: generateId(),
-      organization_id: '',
+    const now = new Date().toISOString()
+    const risk: SecurityRisk = {
+      ...(editing ?? emptyRisk()),
       title,
+      status,
       likelihood,
       impact,
       owner: owner || null,
       mitigation: mitigation || null,
-      status,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      updated_at: now,
     }
-    await addRisk(newRisk)
+    if (editing) {
+      await updateRisk(risk)
+    } else {
+      await addRisk({ ...risk, created_at: now })
+    }
     reset()
-    setShow(false)
+  }
+
+  const openCreate = () => {
+    setEditing(null)
+    setShow(true)
   }
 
   return (
@@ -102,10 +148,10 @@ export function Risks() {
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={() => setShow((s) => !s)}
+          onClick={() => (show ? reset() : openCreate())}
           className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] font-medium text-text hover:bg-inset"
         >
-          {x(show ? M.sec_cancel : M.sec_add_risk)}
+          {x(show && !editing ? M.sec_cancel : M.sec_add_risk)}
         </button>
       </div>
 
@@ -153,7 +199,7 @@ export function Risks() {
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button
               type="button"
-              onClick={() => setShow(false)}
+              onClick={reset}
               className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] text-text-muted hover:text-text"
             >
               {x(M.sec_cancel)}
@@ -163,7 +209,7 @@ export function Risks() {
               onClick={onSubmit}
               className="rounded-[8px] bg-accent px-[14px] py-[8px] text-[13px] font-medium text-white hover:bg-accent/90"
             >
-              {x(M.sec_save)}
+              {x(editing ? M.sec_save_changes : M.sec_save)}
             </button>
           </div>
         </div>
@@ -176,7 +222,7 @@ export function Risks() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {risks.map((risk) => (
-            <RiskRow key={risk.id} risk={risk} />
+            <RiskRow key={risk.id} risk={risk} onEdit={(r) => { setEditing(r); setShow(true) }} />
           ))}
         </div>
       )}

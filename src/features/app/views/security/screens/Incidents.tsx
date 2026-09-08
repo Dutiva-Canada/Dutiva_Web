@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useI18n } from '@/i18n/context'
 import { securityMessages as M } from '@/i18n/messages/security'
 import { statusChipClass } from '@/components/chips'
@@ -41,7 +41,41 @@ function generateId() {
   return `si-${Math.random().toString(36).slice(2, 9)}`
 }
 
-function IncidentRow({ incident }: { readonly incident: SecurityIncident }) {
+function emptyIncident(): SecurityIncident {
+  return {
+    id: generateId(),
+    organization_id: '',
+    title: '',
+    severity: 'low',
+    status: 'open',
+    reported_by: null,
+    assigned_to: null,
+    reported_at: new Date().toISOString(),
+    resolved_at: null,
+    summary: null,
+    impact: null,
+    remediation: null,
+    created_by: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+}
+
+function incidentDateToInput(date: string) {
+  return date.slice(0, 10)
+}
+
+function inputToIncidentDate(date: string) {
+  return `${date}T00:00:00Z`
+}
+
+function IncidentRow({
+  incident,
+  onEdit,
+}: {
+  readonly incident: SecurityIncident
+  readonly onEdit: (incident: SecurityIncident) => void
+}) {
   const { x } = useI18n()
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
@@ -53,9 +87,16 @@ function IncidentRow({ incident }: { readonly incident: SecurityIncident }) {
           {incident.summary ? ` · ${incident.summary}` : null}
         </div>
       </div>
-      <div className="flex shrink-0 flex-wrap gap-2">
+      <div className="flex shrink-0 flex-wrap items-center gap-2">
         <span className={statusChipClass(SEVERITY_TONE[incident.severity])}>{x(M[SEVERITY_LABELS[incident.severity]])}</span>
         <span className={statusChipClass(STATUS_TONE[incident.status])}>{x(M[STATUS_LABELS[incident.status]])}</span>
+        <button
+          type="button"
+          onClick={() => onEdit(incident)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.sec_edit)}
+        </button>
       </div>
     </div>
   )
@@ -63,50 +104,72 @@ function IncidentRow({ incident }: { readonly incident: SecurityIncident }) {
 
 export function Incidents() {
   const { x } = useI18n()
-  const { incidents, addIncident } = useSecurityData()
+  const { incidents, addIncident, updateIncident } = useSecurityData()
   const [show, setShow] = useState(false)
+  const [editing, setEditing] = useState<SecurityIncident | null>(null)
 
-  const [title, setTitle] = useState('')
-  const [severity, setSeverity] = useState<SecuritySeverity>('low')
-  const [status, setStatus] = useState<SecurityIncidentStatus>('open')
-  const [reportedAt, setReportedAt] = useState('')
-  const [resolvedAt, setResolvedAt] = useState('')
-  const [summary, setSummary] = useState('')
-  const [impact, setImpact] = useState('')
-  const [remediation, setRemediation] = useState('')
+  const initial = editing ?? emptyIncident()
+  const [title, setTitle] = useState(initial.title)
+  const [severity, setSeverity] = useState<SecuritySeverity>(initial.severity)
+  const [status, setStatus] = useState<SecurityIncidentStatus>(initial.status)
+  const [reportedAt, setReportedAt] = useState(incidentDateToInput(initial.reported_at))
+  const [resolvedAt, setResolvedAt] = useState(initial.resolved_at ? incidentDateToInput(initial.resolved_at) : '')
+  const [summary, setSummary] = useState(initial.summary ?? '')
+  const [impact, setImpact] = useState(initial.impact ?? '')
+  const [remediation, setRemediation] = useState(initial.remediation ?? '')
+
+  useEffect(() => {
+    const base = editing ?? emptyIncident()
+    setTitle(base.title)
+    setSeverity(base.severity)
+    setStatus(base.status)
+    setReportedAt(incidentDateToInput(base.reported_at))
+    setResolvedAt(base.resolved_at ? incidentDateToInput(base.resolved_at) : '')
+    setSummary(base.summary ?? '')
+    setImpact(base.impact ?? '')
+    setRemediation(base.remediation ?? '')
+  }, [editing])
 
   const reset = () => {
-    setTitle('')
-    setSeverity('low')
-    setStatus('open')
-    setReportedAt('')
-    setResolvedAt('')
-    setSummary('')
-    setImpact('')
-    setRemediation('')
+    setShow(false)
+    setEditing(null)
+    const base = emptyIncident()
+    setTitle(base.title)
+    setSeverity(base.severity)
+    setStatus(base.status)
+    setReportedAt(incidentDateToInput(base.reported_at))
+    setResolvedAt(base.resolved_at ? incidentDateToInput(base.resolved_at) : '')
+    setSummary(base.summary ?? '')
+    setImpact(base.impact ?? '')
+    setRemediation(base.remediation ?? '')
   }
 
   const onSubmit = async () => {
-    const newIncident: SecurityIncident = {
-      id: generateId(),
-      organization_id: '',
+    const now = new Date().toISOString()
+    const incident: SecurityIncident = {
+      ...(editing ?? emptyIncident()),
       title,
       severity,
       status,
-      reported_by: null,
-      assigned_to: null,
-      reported_at: reportedAt ? `${reportedAt}T00:00:00Z` : new Date().toISOString(),
-      resolved_at: resolvedAt ? `${resolvedAt}T00:00:00Z` : null,
+      reported_at: inputToIncidentDate(reportedAt || now),
+      resolved_at: resolvedAt ? inputToIncidentDate(resolvedAt) : null,
       summary: summary || null,
       impact: impact || null,
       remediation: remediation || null,
       created_by: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      updated_at: now,
     }
-    await addIncident(newIncident)
+    if (editing) {
+      await updateIncident(incident)
+    } else {
+      await addIncident({ ...incident, created_at: now })
+    }
     reset()
-    setShow(false)
+  }
+
+  const openCreate = () => {
+    setEditing(null)
+    setShow(true)
   }
 
   return (
@@ -114,10 +177,10 @@ export function Incidents() {
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={() => setShow((s) => !s)}
+          onClick={() => (show ? reset() : openCreate())}
           className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] font-medium text-text hover:bg-inset"
         >
-          {x(show ? M.sec_cancel : M.sec_add_incident)}
+          {x(show && !editing ? M.sec_cancel : M.sec_add_incident)}
         </button>
       </div>
 
@@ -162,7 +225,7 @@ export function Incidents() {
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button
               type="button"
-              onClick={() => setShow(false)}
+              onClick={reset}
               className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] text-text-muted hover:text-text"
             >
               {x(M.sec_cancel)}
@@ -172,7 +235,7 @@ export function Incidents() {
               onClick={onSubmit}
               className="rounded-[8px] bg-accent px-[14px] py-[8px] text-[13px] font-medium text-white hover:bg-accent/90"
             >
-              {x(M.sec_save)}
+              {x(editing ? M.sec_save_changes : M.sec_save)}
             </button>
           </div>
         </div>
@@ -185,7 +248,7 @@ export function Incidents() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {incidents.map((incident) => (
-            <IncidentRow key={incident.id} incident={incident} />
+            <IncidentRow key={incident.id} incident={incident} onEdit={(i) => { setEditing(i); setShow(true) }} />
           ))}
         </div>
       )}

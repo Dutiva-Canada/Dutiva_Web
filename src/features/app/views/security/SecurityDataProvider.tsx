@@ -12,6 +12,11 @@ import {
   createSecurityIncident,
   createSecurityRisk,
   createSecurityVendorReview,
+  updateSecurityAsset,
+  updateSecurityAccessReview,
+  updateSecurityIncident,
+  updateSecurityRisk,
+  updateSecurityVendorReview,
 } from './data/productionApi'
 import { securitySummary as fixtures } from './data/fixtures'
 import { SecurityDataContext } from './SecurityDataContext'
@@ -229,6 +234,174 @@ export function SecurityDataProvider({
     [mode, organizationId],
   )
 
+  const updateAsset = useCallback(
+    async (asset: SecurityAsset) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({
+          ...prev,
+          assets: prev.assets.map((a) => (a.id === asset.id ? asset : a)),
+        }))
+        return
+      }
+      try {
+        const saved = await updateSecurityAsset(asset.id, {
+          name: asset.name,
+          asset_type: asset.asset_type,
+          owner_id: asset.owner_id,
+          status: asset.status,
+          criticality: asset.criticality,
+          renewal_date: asset.renewal_date,
+          notes: asset.notes,
+        })
+        setValue((prev) => ({
+          ...prev,
+          assets: prev.assets.map((a) => (a.id === saved.id ? saved : a)),
+        }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not update asset.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const updateAccessReview = useCallback(
+    async (review: SecurityAccessReview) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({
+          ...prev,
+          accessReviews: prev.accessReviews.map((r) => (r.id === review.id ? review : r)),
+        }))
+        return
+      }
+      try {
+        const saved = await updateSecurityAccessReview(review.id, {
+          title: review.title,
+          assigned_to: review.assigned_to,
+          reviewer_id: review.reviewer_id,
+          review_due_date: review.review_due_date,
+          completed_date: review.completed_date,
+          status: review.status,
+          findings: review.findings,
+          created_by: review.created_by,
+        })
+        setValue((prev) => ({
+          ...prev,
+          accessReviews: prev.accessReviews.map((r) => (r.id === saved.id ? saved : r)),
+        }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not update access review.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const updateIncident = useCallback(
+    async (incident: SecurityIncident) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({
+          ...prev,
+          incidents: prev.incidents.map((i) => (i.id === incident.id ? incident : i)),
+        }))
+        return
+      }
+      try {
+        const saved = await updateSecurityIncident(incident.id, {
+          title: incident.title,
+          severity: incident.severity,
+          status: incident.status,
+          reported_by: incident.reported_by,
+          assigned_to: incident.assigned_to,
+          reported_at: incident.reported_at,
+          resolved_at: incident.resolved_at,
+          summary: incident.summary,
+          impact: incident.impact,
+          remediation: incident.remediation,
+          created_by: incident.created_by,
+        })
+        setValue((prev) => ({
+          ...prev,
+          incidents: prev.incidents.map((i) => (i.id === saved.id ? saved : i)),
+        }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not update incident.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const updateRisk = useCallback(
+    async (risk: SecurityRisk) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({
+          ...prev,
+          risks: prev.risks.map((r) => (r.id === risk.id ? risk : r)),
+        }))
+        return
+      }
+      try {
+        const saved = await updateSecurityRisk(risk.id, {
+          title: risk.title,
+          likelihood: risk.likelihood,
+          impact: risk.impact,
+          owner: risk.owner,
+          mitigation: risk.mitigation,
+          status: risk.status,
+        })
+        setValue((prev) => ({
+          ...prev,
+          risks: prev.risks.map((r) => (r.id === saved.id ? saved : r)),
+        }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not update risk.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const updateVendorReview = useCallback(
+    async (review: SecurityVendorReview) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({
+          ...prev,
+          vendorReviews: prev.vendorReviews.map((r) => (r.id === review.id ? review : r)),
+        }))
+        return
+      }
+      try {
+        const saved = await updateSecurityVendorReview(review.id, {
+          vendor_name: review.vendor_name,
+          vendor_type: review.vendor_type,
+          privacy_agreement: review.privacy_agreement,
+          security_review_date: review.security_review_date,
+          next_review_date: review.next_review_date,
+          notes: review.notes,
+        })
+        setValue((prev) => ({
+          ...prev,
+          vendorReviews: prev.vendorReviews.map((r) => (r.id === saved.id ? saved : r)),
+        }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not update vendor review.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
   const stable = useMemo(
     () => ({
       assets: value.assets,
@@ -239,12 +412,29 @@ export function SecurityDataProvider({
       loading: value.loading,
       error: value.error,
       addAsset,
+      updateAsset,
       addAccessReview,
+      updateAccessReview,
       addIncident,
+      updateIncident,
       addRisk,
+      updateRisk,
       addVendorReview,
+      updateVendorReview,
     }),
-    [value, addAsset, addAccessReview, addIncident, addRisk, addVendorReview],
+    [
+      value,
+      addAsset,
+      updateAsset,
+      addAccessReview,
+      updateAccessReview,
+      addIncident,
+      updateIncident,
+      addRisk,
+      updateRisk,
+      addVendorReview,
+      updateVendorReview,
+    ],
   )
 
   return <SecurityDataContext.Provider value={stable}>{children}</SecurityDataContext.Provider>

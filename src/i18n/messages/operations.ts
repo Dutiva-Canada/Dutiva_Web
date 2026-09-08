@@ -57,6 +57,8 @@ export const operationsMessages = defineMessages({
   ops_add_logistics: { en: 'Add logistics', fr: 'Ajouter une logistique' },
   ops_cancel: { en: 'Cancel', fr: 'Annuler' },
   ops_save: { en: 'Save', fr: 'Enregistrer' },
+  ops_edit: { en: 'Edit', fr: 'Modifier' },
+  ops_save_changes: { en: 'Save changes', fr: 'Enregistrer les modifications' },
   ops_title_field: { en: 'Title', fr: 'Titre' },
   ops_name_field: { en: 'Name', fr: 'Nom' },
   ops_description: { en: 'Description', fr: 'Description' },

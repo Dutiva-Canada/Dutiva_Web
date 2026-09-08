@@ -45,6 +45,8 @@ export const specialistsMessages = defineMessages({
   spec_follow_up_date: { en: 'Follow-up date', fr: 'Date de suivi' },
   spec_cancel: { en: 'Cancel', fr: 'Annuler' },
   spec_save: { en: 'Save', fr: 'Enregistrer' },
+  spec_edit: { en: 'Edit', fr: 'Modifier' },
+  spec_save_changes: { en: 'Save changes', fr: 'Enregistrer les modifications' },
   spec_workspace_access: { en: 'Workspace access', fr: 'Accès à l’espace de travail' },
   spec_engagement_type_call: { en: 'Call', fr: 'Appel' },
   spec_engagement_type_email: { en: 'Email', fr: 'Courriel' },

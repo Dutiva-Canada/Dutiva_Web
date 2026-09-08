@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useI18n } from '@/i18n/context'
 import { operationsMessages as M } from '@/i18n/messages/operations'
 import { statusChipClass } from '@/components/chips'
@@ -28,7 +28,22 @@ function generateId() {
   return `op-${Math.random().toString(36).slice(2, 9)}`
 }
 
-function ProjectRow({ project }: { readonly project: OperationsProject }) {
+function emptyProject(): OperationsProject {
+  return {
+    id: generateId(),
+    organization_id: '',
+    title: '',
+    owner_id: null,
+    status: 'planning',
+    start_date: null,
+    target_date: null,
+    description: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+}
+
+function ProjectRow({ project, onEdit }: { readonly project: OperationsProject; readonly onEdit: (project: OperationsProject) => void }) {
   const { x } = useI18n()
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
@@ -40,46 +55,75 @@ function ProjectRow({ project }: { readonly project: OperationsProject }) {
           {project.description ? ` · ${project.description}` : null}
         </div>
       </div>
-      <span className={statusChipClass(STATUS_TONE[project.status])}>{x(M[STATUS_LABELS[project.status]])}</span>
+      <div className="flex items-center gap-[10px]">
+        <span className={statusChipClass(STATUS_TONE[project.status])}>{x(M[STATUS_LABELS[project.status]])}</span>
+        <button
+          type="button"
+          onClick={() => onEdit(project)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.ops_edit)}
+        </button>
+      </div>
     </div>
   )
 }
 
 export function Projects() {
   const { x } = useI18n()
-  const { projects, addProject } = useOperationsData()
+  const { projects, addProject, updateProject } = useOperationsData()
   const [show, setShow] = useState(false)
+  const [editing, setEditing] = useState<OperationsProject | null>(null)
 
-  const [title, setTitle] = useState('')
-  const [status, setStatus] = useState<OperationsProjectStatus>('planning')
-  const [startDate, setStartDate] = useState('')
-  const [targetDate, setTargetDate] = useState('')
-  const [description, setDescription] = useState('')
+  const initial = editing ?? emptyProject()
+  const [title, setTitle] = useState(initial.title)
+  const [status, setStatus] = useState<OperationsProjectStatus>(initial.status)
+  const [startDate, setStartDate] = useState(initial.start_date ?? '')
+  const [targetDate, setTargetDate] = useState(initial.target_date ?? '')
+  const [description, setDescription] = useState(initial.description ?? '')
+
+  useEffect(() => {
+    const base = editing ?? emptyProject()
+    setTitle(base.title)
+    setStatus(base.status)
+    setStartDate(base.start_date ?? '')
+    setTargetDate(base.target_date ?? '')
+    setDescription(base.description ?? '')
+  }, [editing])
 
   const reset = () => {
-    setTitle('')
-    setStatus('planning')
-    setStartDate('')
-    setTargetDate('')
-    setDescription('')
+    setShow(false)
+    setEditing(null)
+    const base = emptyProject()
+    setTitle(base.title)
+    setStatus(base.status)
+    setStartDate(base.start_date ?? '')
+    setTargetDate(base.target_date ?? '')
+    setDescription(base.description ?? '')
   }
 
   const onSubmit = async () => {
-    const newProject: OperationsProject = {
-      id: generateId(),
-      organization_id: '',
+    const now = new Date().toISOString()
+    const project: OperationsProject = {
+      ...(editing ?? emptyProject()),
       title,
-      owner_id: null,
       status,
       start_date: startDate || null,
       target_date: targetDate || null,
       description: description || null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      updated_at: now,
     }
-    await addProject(newProject)
+    if (editing) {
+      await updateProject(project)
+    } else {
+      await addProject({ ...project, created_at: now })
+    }
     reset()
-    setShow(false)
+  }
+
+  const openCreate = () => {
+    setEditing(null)
+    setShow(true)
   }
 
   return (
@@ -87,10 +131,10 @@ export function Projects() {
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={() => setShow((s) => !s)}
+          onClick={() => (show ? reset() : openCreate())}
           className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] font-medium text-text hover:bg-inset"
         >
-          {x(show ? M.ops_cancel : M.ops_add_project)}
+          {x(show && !editing ? M.ops_cancel : M.ops_add_project)}
         </button>
       </div>
 
@@ -120,7 +164,7 @@ export function Projects() {
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button
               type="button"
-              onClick={() => setShow(false)}
+              onClick={reset}
               className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] text-text-muted hover:text-text"
             >
               {x(M.ops_cancel)}
@@ -130,7 +174,7 @@ export function Projects() {
               onClick={onSubmit}
               className="rounded-[8px] bg-accent px-[14px] py-[8px] text-[13px] font-medium text-white hover:bg-accent/90"
             >
-              {x(M.ops_save)}
+              {x(editing ? M.ops_save_changes : M.ops_save)}
             </button>
           </div>
         </div>
@@ -143,7 +187,7 @@ export function Projects() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {projects.map((project) => (
-            <ProjectRow key={project.id} project={project} />
+            <ProjectRow key={project.id} project={project} onEdit={(p) => { setEditing(p); setShow(true) }} />
           ))}
         </div>
       )}

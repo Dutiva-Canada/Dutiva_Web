@@ -6,13 +6,15 @@ import {
   listSpecialistEngagements,
   createSpecialist,
   createSpecialistEngagement,
+  updateSpecialist,
+  updateSpecialistEngagement,
 } from './data/productionApi'
 import { specialistsSummary as fixtures } from './data/fixtures'
 import { SpecialistsDataContext } from './SpecialistsDataContext'
 import type { SpecialistsDataValue } from './SpecialistsDataContext'
 import type { Specialist, SpecialistEngagement } from './data/types'
 
-const EMPTY: Omit<SpecialistsDataValue, 'addSpecialist' | 'addEngagement'> = {
+const EMPTY: Pick<SpecialistsDataValue, 'specialists' | 'engagements' | 'loading' | 'error'> = {
   specialists: [],
   engagements: [],
   loading: false,
@@ -27,8 +29,8 @@ export function SpecialistsDataProvider({
   readonly children: ReactNode
 }) {
   const { organizationId } = useWorkspaceMode()
-  const [value, setValue] = useState<Omit<SpecialistsDataValue, 'addSpecialist' | 'addEngagement'>>(() =>
-    mode === 'demo' ? { ...fixtures, loading: false, error: null } : EMPTY,
+  const [value, setValue] = useState<Pick<SpecialistsDataValue, 'specialists' | 'engagements' | 'loading' | 'error'>>(
+    () => (mode === 'demo' ? { ...fixtures, loading: false, error: null } : EMPTY),
   )
 
   useEffect(() => {
@@ -100,6 +102,47 @@ export function SpecialistsDataProvider({
     [mode, organizationId],
   )
 
+  const saveSpecialist = useCallback(
+    async (specialist: Specialist) => {
+      const exists = value.specialists.some((s) => s.id === specialist.id)
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({
+          ...prev,
+          specialists: exists
+            ? prev.specialists.map((s) => (s.id === specialist.id ? specialist : s))
+            : [specialist, ...prev.specialists],
+        }))
+        return
+      }
+      try {
+        const saved = await updateSpecialist(specialist.id, {
+          name: specialist.name,
+          specialty: specialist.specialty,
+          company: specialist.company,
+          email: specialist.email,
+          phone: specialist.phone,
+          crm_contact_id: specialist.crm_contact_id,
+          finance_party_id: specialist.finance_party_id,
+          workspace_access: specialist.workspace_access,
+          workspace_role: specialist.workspace_role,
+          granted_modules: specialist.granted_modules,
+          access_expires_at: specialist.access_expires_at,
+          notes: specialist.notes,
+        })
+        setValue((prev) => ({
+          ...prev,
+          specialists: prev.specialists.map((s) => (s.id === saved.id ? saved : s)),
+        }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not update specialist.',
+        }))
+      }
+    },
+    [mode, organizationId, value.specialists],
+  )
+
   const addEngagement = useCallback(
     async (engagement: SpecialistEngagement) => {
       if (mode !== 'production' || !organizationId) {
@@ -126,6 +169,41 @@ export function SpecialistsDataProvider({
     [mode, organizationId],
   )
 
+  const saveEngagement = useCallback(
+    async (engagement: SpecialistEngagement) => {
+      const exists = value.engagements.some((e) => e.id === engagement.id)
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({
+          ...prev,
+          engagements: exists
+            ? prev.engagements.map((e) => (e.id === engagement.id ? engagement : e))
+            : [engagement, ...prev.engagements],
+        }))
+        return
+      }
+      try {
+        const saved = await updateSpecialistEngagement(engagement.id, {
+          specialist_id: engagement.specialist_id,
+          engagement_date: engagement.engagement_date,
+          engagement_type: engagement.engagement_type,
+          summary: engagement.summary,
+          follow_up_date: engagement.follow_up_date,
+          created_by: null,
+        })
+        setValue((prev) => ({
+          ...prev,
+          engagements: prev.engagements.map((e) => (e.id === saved.id ? saved : e)),
+        }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not update engagement.',
+        }))
+      }
+    },
+    [mode, organizationId, value.engagements],
+  )
+
   const stable = useMemo(
     () => ({
       specialists: value.specialists,
@@ -133,9 +211,11 @@ export function SpecialistsDataProvider({
       loading: value.loading,
       error: value.error,
       addSpecialist,
+      updateSpecialist: saveSpecialist,
       addEngagement,
+      updateEngagement: saveEngagement,
     }),
-    [value, addSpecialist, addEngagement],
+    [value, addSpecialist, saveSpecialist, addEngagement, saveEngagement],
   )
 
   return <SpecialistsDataContext.Provider value={stable}>{children}</SpecialistsDataContext.Provider>

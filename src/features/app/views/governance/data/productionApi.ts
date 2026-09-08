@@ -237,6 +237,54 @@ export async function createGovernanceShareholder(
   return toShareholder(parsed)
 }
 
+export async function updateGovernanceRecord(
+  id: string,
+  values: Omit<GovernanceRecordInsert, 'organization_id'>,
+): Promise<GovernanceRecord> {
+  const client = getClient()
+  const update = recordInsertSchema.parse(values)
+  const { data, error } = await client.from('governance_records').update(update).eq('id', id).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = recordRowSchema.parse(data)
+  return toRecord(parsed)
+}
+
+export async function updateGovernanceDecision(
+  id: string,
+  values: Omit<GovernanceDecisionInsert, 'organization_id'>,
+): Promise<GovernanceDecision> {
+  const client = getClient()
+  const update = decisionInsertSchema.parse(values)
+  const { data, error } = await client.from('governance_decisions').update(update).eq('id', id).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = decisionRowSchema.parse(data)
+  return toDecision(parsed)
+}
+
+export async function updateGovernanceOfficer(
+  id: string,
+  values: Omit<GovernanceOfficerInsert, 'organization_id'>,
+): Promise<GovernanceOfficer> {
+  const client = getClient()
+  const update = officerInsertSchema.parse(values)
+  const { data, error } = await client.from('governance_officers').update(update).eq('id', id).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = officerRowSchema.parse(data)
+  return toOfficer(parsed)
+}
+
+export async function updateGovernanceShareholder(
+  id: string,
+  values: Omit<GovernanceShareholderInsert, 'organization_id'>,
+): Promise<GovernanceShareholder> {
+  const client = getClient()
+  const update = shareholderInsertSchema.parse(values)
+  const { data, error } = await client.from('governance_shareholders').update(update).eq('id', id).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = shareholderRowSchema.parse(data)
+  return toShareholder(parsed)
+}
+
 export async function listGovernanceShareholders(
   organizationId: string,
 ): Promise<GovernanceShareholder[]> {

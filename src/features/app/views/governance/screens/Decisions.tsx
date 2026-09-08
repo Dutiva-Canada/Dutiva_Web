@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useI18n } from '@/i18n/context'
 import { governanceMessages as M } from '@/i18n/messages/governance'
 import { statusChipClass } from '@/components/chips'
@@ -14,7 +14,7 @@ const STATUS_LABELS: Record<GovernanceDecisionStatus, keyof typeof M> = {
   rescinded: 'gov_decision_status_rescinded',
 }
 
-const STATUS_TONE: Record<GovernanceDecisionStatus, 'success' | 'warning' | 'risk' | 'neutral'> = {
+const STATUS_TONE: Record<GovernanceDecisionStatus, 'warning' | 'success' | 'neutral'> = {
   proposed: 'warning',
   adopted: 'success',
   rescinded: 'neutral',
@@ -24,64 +24,115 @@ function generateId() {
   return `gd-${Math.random().toString(36).slice(2, 9)}`
 }
 
-function DecisionRow({ decision }: { readonly decision: GovernanceDecision }) {
+function emptyDecision(): GovernanceDecision {
+  return {
+    id: generateId(),
+    organization_id: '',
+    title: '',
+    decision_date: null,
+    decided_by: null,
+    rationale: null,
+    status: 'proposed',
+    viewer_visible: false,
+    related_record_id: null,
+    created_by: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+}
+
+function DecisionRow({
+  decision,
+  onEdit,
+}: {
+  readonly decision: GovernanceDecision
+  readonly onEdit: (decision: GovernanceDecision) => void
+}) {
   const { x } = useI18n()
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
       <div className="min-w-0 flex-1">
-        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">
-          {decision.title}
-        </div>
+        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">{decision.title}</div>
         <div className="text-[12px] text-text-muted">
           {decision.decision_date ? `${decision.decision_date}` : null}
           {decision.decided_by ? ` · ${decision.decided_by}` : null}
           {decision.rationale ? ` · ${decision.rationale}` : null}
         </div>
       </div>
-      <span className={statusChipClass(STATUS_TONE[decision.status])}>{x(M[STATUS_LABELS[decision.status]])}</span>
+      <div className="flex items-center gap-[10px]">
+        <span className={statusChipClass(STATUS_TONE[decision.status])}>{x(M[STATUS_LABELS[decision.status]])}</span>
+        <button
+          type="button"
+          onClick={() => onEdit(decision)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.gov_edit)}
+        </button>
+      </div>
     </div>
   )
 }
 
 export function Decisions() {
   const { x } = useI18n()
-  const { decisions, addDecision } = useGovernanceData()
+  const { decisions, addDecision, updateDecision } = useGovernanceData()
   const [show, setShow] = useState(false)
+  const [editing, setEditing] = useState<GovernanceDecision | null>(null)
 
-  const [title, setTitle] = useState('')
-  const [decisionDate, setDecisionDate] = useState('')
-  const [decidedBy, setDecidedBy] = useState('')
-  const [rationale, setRationale] = useState('')
-  const [status, setStatus] = useState<GovernanceDecisionStatus>('proposed')
-  const [viewerVisible, setViewerVisible] = useState(false)
+  const initial = editing ?? emptyDecision()
+  const [title, setTitle] = useState(initial.title)
+  const [decisionDate, setDecisionDate] = useState(initial.decision_date ?? '')
+  const [decidedBy, setDecidedBy] = useState(initial.decided_by ?? '')
+  const [rationale, setRationale] = useState(initial.rationale ?? '')
+  const [status, setStatus] = useState<GovernanceDecisionStatus>(initial.status)
+  const [viewerVisible, setViewerVisible] = useState(initial.viewer_visible)
+
+  useEffect(() => {
+    const base = editing ?? emptyDecision()
+    setTitle(base.title)
+    setDecisionDate(base.decision_date ?? '')
+    setDecidedBy(base.decided_by ?? '')
+    setRationale(base.rationale ?? '')
+    setStatus(base.status)
+    setViewerVisible(base.viewer_visible)
+  }, [editing])
 
   const reset = () => {
-    setTitle('')
-    setDecisionDate('')
-    setDecidedBy('')
-    setRationale('')
-    setStatus('proposed')
-    setViewerVisible(false)
+    setShow(false)
+    setEditing(null)
+    const base = emptyDecision()
+    setTitle(base.title)
+    setDecisionDate(base.decision_date ?? '')
+    setDecidedBy(base.decided_by ?? '')
+    setRationale(base.rationale ?? '')
+    setStatus(base.status)
+    setViewerVisible(base.viewer_visible)
   }
 
   const onSubmit = async () => {
-    const newDecision: GovernanceDecision = {
-      id: generateId(),
-      organization_id: '',
+    const now = new Date().toISOString()
+    const decision: GovernanceDecision = {
+      ...(editing ?? emptyDecision()),
       title,
       decision_date: decisionDate || null,
       decided_by: decidedBy || null,
       rationale: rationale || null,
       status,
       viewer_visible: viewerVisible,
-      related_record_id: null,
       created_by: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      updated_at: now,
     }
-    await addDecision(newDecision)
+    if (editing) {
+      await updateDecision(decision)
+    } else {
+      await addDecision({ ...decision, created_at: now })
+    }
     reset()
-    setShow(false)
+  }
+
+  const openCreate = () => {
+    setEditing(null)
+    setShow(true)
   }
 
   return (
@@ -89,10 +140,10 @@ export function Decisions() {
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={() => setShow((s) => !s)}
+          onClick={() => (show ? reset() : openCreate())}
           className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] font-medium text-text hover:bg-inset"
         >
-          {x(show ? M.gov_cancel : M.gov_add_decision)}
+          {x(show && !editing ? M.gov_cancel : M.gov_add_decision)}
         </button>
       </div>
 
@@ -117,16 +168,12 @@ export function Decisions() {
             <FormTextarea value={rationale} onChange={(e) => setRationale(e.target.value)} />
           </FormField>
           <div className="sm:col-span-2">
-            <FormCheckbox
-              label={x(M.gov_viewer_visible)}
-              checked={viewerVisible}
-              onChange={(checked) => setViewerVisible(checked)}
-            />
+            <FormCheckbox label={x(M.gov_viewer_visible)} checked={viewerVisible} onChange={setViewerVisible} />
           </div>
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button
               type="button"
-              onClick={() => setShow(false)}
+              onClick={reset}
               className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] text-text-muted hover:text-text"
             >
               {x(M.gov_cancel)}
@@ -136,7 +183,7 @@ export function Decisions() {
               onClick={onSubmit}
               className="rounded-[8px] bg-accent px-[14px] py-[8px] text-[13px] font-medium text-white hover:bg-accent/90"
             >
-              {x(M.gov_save)}
+              {x(editing ? M.gov_save_changes : M.gov_save)}
             </button>
           </div>
         </div>
@@ -149,7 +196,7 @@ export function Decisions() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {decisions.map((decision) => (
-            <DecisionRow key={decision.id} decision={decision} />
+            <DecisionRow key={decision.id} decision={decision} onEdit={(d) => { setEditing(d); setShow(true) }} />
           ))}
         </div>
       )}

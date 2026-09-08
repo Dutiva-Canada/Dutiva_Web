@@ -16,10 +16,15 @@ export interface OperationsDataValue {
   loading: boolean
   error: string | null
   addProject: (project: OperationsProject) => void
+  updateProject: (project: OperationsProject) => void
   addVendor: (vendor: OperationsVendor) => void
+  updateVendor: (vendor: OperationsVendor) => void
   addQualityCheck: (check: OperationsQualityCheck) => void
+  updateQualityCheck: (check: OperationsQualityCheck) => void
   addTechnology: (technology: OperationsTechnology) => void
+  updateTechnology: (technology: OperationsTechnology) => void
   addLogistics: (logistics: OperationsLogistics) => void
+  updateLogistics: (logistics: OperationsLogistics) => void
 }
 
 export const OperationsDataContext = createContext<OperationsDataValue | null>(null)

@@ -43,6 +43,8 @@ export const governanceMessages = defineMessages({
   gov_shareholder_total_shares: { en: 'shares issued', fr: 'actions émises' },
   gov_cancel: { en: 'Cancel', fr: 'Annuler' },
   gov_save: { en: 'Save', fr: 'Enregistrer' },
+  gov_edit: { en: 'Edit', fr: 'Modifier' },
+  gov_save_changes: { en: 'Save changes', fr: 'Enregistrer les modifications' },
   gov_add_record: { en: 'Add record', fr: 'Ajouter un dossier' },
   gov_add_decision: { en: 'Add decision', fr: 'Ajouter une décision' },
   gov_add_officer: { en: 'Add officer', fr: 'Ajouter un dirigeant' },

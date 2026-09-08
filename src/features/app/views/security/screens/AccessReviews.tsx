@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useI18n } from '@/i18n/context'
 import { securityMessages as M } from '@/i18n/messages/security'
 import { statusChipClass } from '@/components/chips'
@@ -26,7 +26,30 @@ function generateId() {
   return `sar-${Math.random().toString(36).slice(2, 9)}`
 }
 
-function AccessReviewRow({ review }: { readonly review: SecurityAccessReview }) {
+function emptyAccessReview(): SecurityAccessReview {
+  return {
+    id: generateId(),
+    organization_id: '',
+    title: '',
+    assigned_to: null,
+    reviewer_id: null,
+    review_due_date: null,
+    completed_date: null,
+    status: 'pending',
+    findings: null,
+    created_by: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+}
+
+function AccessReviewRow({
+  review,
+  onEdit,
+}: {
+  readonly review: SecurityAccessReview
+  readonly onEdit: (review: SecurityAccessReview) => void
+}) {
   const { x } = useI18n()
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
@@ -38,48 +61,76 @@ function AccessReviewRow({ review }: { readonly review: SecurityAccessReview }) 
           {review.findings ? ` · ${review.findings}` : null}
         </div>
       </div>
-      <span className={statusChipClass(STATUS_TONE[review.status])}>{x(M[STATUS_LABELS[review.status]])}</span>
+      <div className="flex items-center gap-[10px]">
+        <span className={statusChipClass(STATUS_TONE[review.status])}>{x(M[STATUS_LABELS[review.status]])}</span>
+        <button
+          type="button"
+          onClick={() => onEdit(review)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.sec_edit)}
+        </button>
+      </div>
     </div>
   )
 }
 
 export function AccessReviews() {
   const { x } = useI18n()
-  const { accessReviews, addAccessReview } = useSecurityData()
+  const { accessReviews, addAccessReview, updateAccessReview } = useSecurityData()
   const [show, setShow] = useState(false)
+  const [editing, setEditing] = useState<SecurityAccessReview | null>(null)
 
-  const [title, setTitle] = useState('')
-  const [status, setStatus] = useState<SecurityAccessReviewStatus>('pending')
-  const [reviewDueDate, setReviewDueDate] = useState('')
-  const [completedDate, setCompletedDate] = useState('')
-  const [findings, setFindings] = useState('')
+  const initial = editing ?? emptyAccessReview()
+  const [title, setTitle] = useState(initial.title)
+  const [status, setStatus] = useState<SecurityAccessReviewStatus>(initial.status)
+  const [reviewDueDate, setReviewDueDate] = useState(initial.review_due_date ?? '')
+  const [completedDate, setCompletedDate] = useState(initial.completed_date ?? '')
+  const [findings, setFindings] = useState(initial.findings ?? '')
+
+  useEffect(() => {
+    const base = editing ?? emptyAccessReview()
+    setTitle(base.title)
+    setStatus(base.status)
+    setReviewDueDate(base.review_due_date ?? '')
+    setCompletedDate(base.completed_date ?? '')
+    setFindings(base.findings ?? '')
+  }, [editing])
 
   const reset = () => {
-    setTitle('')
-    setStatus('pending')
-    setReviewDueDate('')
-    setCompletedDate('')
-    setFindings('')
+    setShow(false)
+    setEditing(null)
+    const base = emptyAccessReview()
+    setTitle(base.title)
+    setStatus(base.status)
+    setReviewDueDate(base.review_due_date ?? '')
+    setCompletedDate(base.completed_date ?? '')
+    setFindings(base.findings ?? '')
   }
 
   const onSubmit = async () => {
-    const newReview: SecurityAccessReview = {
-      id: generateId(),
-      organization_id: '',
+    const now = new Date().toISOString()
+    const review: SecurityAccessReview = {
+      ...(editing ?? emptyAccessReview()),
       title,
-      assigned_to: null,
-      reviewer_id: null,
+      status,
       review_due_date: reviewDueDate || null,
       completed_date: completedDate || null,
-      status,
       findings: findings || null,
       created_by: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      updated_at: now,
     }
-    await addAccessReview(newReview)
+    if (editing) {
+      await updateAccessReview(review)
+    } else {
+      await addAccessReview({ ...review, created_at: now })
+    }
     reset()
-    setShow(false)
+  }
+
+  const openCreate = () => {
+    setEditing(null)
+    setShow(true)
   }
 
   return (
@@ -87,10 +138,10 @@ export function AccessReviews() {
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={() => setShow((s) => !s)}
+          onClick={() => (show ? reset() : openCreate())}
           className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] font-medium text-text hover:bg-inset"
         >
-          {x(show ? M.sec_cancel : M.sec_add_review)}
+          {x(show && !editing ? M.sec_cancel : M.sec_add_review)}
         </button>
       </div>
 
@@ -100,10 +151,7 @@ export function AccessReviews() {
             <FormInput value={title} onChange={(e) => setTitle(e.target.value)} required />
           </FormField>
           <FormField label={x(M.sec_status)}>
-            <FormSelect
-              value={status}
-              onChange={(e) => setStatus(e.target.value as SecurityAccessReviewStatus)}
-            >
+            <FormSelect value={status} onChange={(e) => setStatus(e.target.value as SecurityAccessReviewStatus)}>
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {x(M[STATUS_LABELS[s]])}
@@ -123,7 +171,7 @@ export function AccessReviews() {
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button
               type="button"
-              onClick={() => setShow(false)}
+              onClick={reset}
               className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] text-text-muted hover:text-text"
             >
               {x(M.sec_cancel)}
@@ -133,7 +181,7 @@ export function AccessReviews() {
               onClick={onSubmit}
               className="rounded-[8px] bg-accent px-[14px] py-[8px] text-[13px] font-medium text-white hover:bg-accent/90"
             >
-              {x(M.sec_save)}
+              {x(editing ? M.sec_save_changes : M.sec_save)}
             </button>
           </div>
         </div>
@@ -146,7 +194,7 @@ export function AccessReviews() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {accessReviews.map((review) => (
-            <AccessReviewRow key={review.id} review={review} />
+            <AccessReviewRow key={review.id} review={review} onEdit={(r) => { setEditing(r); setShow(true) }} />
           ))}
         </div>
       )}

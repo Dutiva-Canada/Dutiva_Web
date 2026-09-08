@@ -117,6 +117,30 @@ export async function createSpecialistEngagement(
   return toEngagement(parsed)
 }
 
+export async function updateSpecialist(
+  id: string,
+  values: Omit<SpecialistInsert, 'organization_id'>,
+): Promise<Specialist> {
+  const client = getClient()
+  const update = specialistInsertSchema.parse(values)
+  const { data, error } = await client.from('specialists').update(update).eq('id', id).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = specialistRowSchema.parse(data)
+  return toSpecialist(parsed)
+}
+
+export async function updateSpecialistEngagement(
+  id: string,
+  values: Omit<SpecialistEngagementInsert, 'organization_id'>,
+): Promise<SpecialistEngagement> {
+  const client = getClient()
+  const update = engagementInsertSchema.parse(values)
+  const { data, error } = await client.from('specialist_engagements').update(update).eq('id', id).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = engagementRowSchema.parse(data)
+  return toEngagement(parsed)
+}
+
 export async function listSpecialistEngagements(organizationId: string): Promise<SpecialistEngagement[]> {
   const client = getClient()
   const data = await fetchAllPages((from, to) =>

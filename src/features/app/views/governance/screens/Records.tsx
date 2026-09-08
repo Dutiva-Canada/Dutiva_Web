@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { governanceMessages as M } from '@/i18n/messages/governance'
@@ -25,7 +25,7 @@ const STATUS_LABELS: Record<GovernanceRecordStatus, keyof typeof M> = {
   pending_review: 'gov_status_pending_review',
 }
 
-const STATUS_TONE: Record<GovernanceRecordStatus, 'success' | 'warning' | 'risk' | 'neutral'> = {
+const STATUS_TONE: Record<GovernanceRecordStatus, 'success' | 'neutral' | 'warning'> = {
   active: 'success',
   superseded: 'neutral',
   pending_review: 'warning',
@@ -35,15 +35,31 @@ function generateId() {
   return `gr-${Math.random().toString(36).slice(2, 9)}`
 }
 
-function RecordRow({ record }: { readonly record: GovernanceRecord }) {
+function emptyRecord(): GovernanceRecord {
+  return {
+    id: generateId(),
+    organization_id: '',
+    title: '',
+    record_type: 'resolution',
+    jurisdiction: null,
+    effective_date: null,
+    review_due_date: null,
+    status: 'active',
+    viewer_visible: false,
+    document_id: null,
+    created_by: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+}
+
+function RecordRow({ record, onEdit }: { readonly record: GovernanceRecord; readonly onEdit: (record: GovernanceRecord) => void }) {
   const { x } = useI18n()
   const { root } = useWorkspaceRoot()
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
       <div className="min-w-0 flex-1">
-        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">
-          {record.title}
-        </div>
+        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">{record.title}</div>
         <div className="text-[12px] text-text-muted">
           {x(M[RECORD_TYPE_LABELS[record.record_type]])}
           {record.jurisdiction ? ` · ${record.jurisdiction}` : null}
@@ -57,6 +73,13 @@ function RecordRow({ record }: { readonly record: GovernanceRecord }) {
           </Link>
         ) : null}
         <span className={statusChipClass(STATUS_TONE[record.status])}>{x(M[STATUS_LABELS[record.status]])}</span>
+        <button
+          type="button"
+          onClick={() => onEdit(record)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.gov_edit)}
+        </button>
       </div>
     </div>
   )
@@ -64,31 +87,47 @@ function RecordRow({ record }: { readonly record: GovernanceRecord }) {
 
 export function Records() {
   const { x } = useI18n()
-  const { records, addRecord } = useGovernanceData()
+  const { records, addRecord, updateRecord } = useGovernanceData()
   const [show, setShow] = useState(false)
+  const [editing, setEditing] = useState<GovernanceRecord | null>(null)
 
-  const [title, setTitle] = useState('')
-  const [recordType, setRecordType] = useState<GovernanceRecordType>('resolution')
-  const [jurisdiction, setJurisdiction] = useState('')
-  const [effectiveDate, setEffectiveDate] = useState('')
-  const [reviewDueDate, setReviewDueDate] = useState('')
-  const [status, setStatus] = useState<GovernanceRecordStatus>('active')
-  const [viewerVisible, setViewerVisible] = useState(false)
+  const initial = editing ?? emptyRecord()
+  const [title, setTitle] = useState(initial.title)
+  const [recordType, setRecordType] = useState<GovernanceRecordType>(initial.record_type)
+  const [jurisdiction, setJurisdiction] = useState(initial.jurisdiction ?? '')
+  const [effectiveDate, setEffectiveDate] = useState(initial.effective_date ?? '')
+  const [reviewDueDate, setReviewDueDate] = useState(initial.review_due_date ?? '')
+  const [status, setStatus] = useState<GovernanceRecordStatus>(initial.status)
+  const [viewerVisible, setViewerVisible] = useState(initial.viewer_visible)
+
+  useEffect(() => {
+    const base = editing ?? emptyRecord()
+    setTitle(base.title)
+    setRecordType(base.record_type)
+    setJurisdiction(base.jurisdiction ?? '')
+    setEffectiveDate(base.effective_date ?? '')
+    setReviewDueDate(base.review_due_date ?? '')
+    setStatus(base.status)
+    setViewerVisible(base.viewer_visible)
+  }, [editing])
 
   const reset = () => {
-    setTitle('')
-    setRecordType('resolution')
-    setJurisdiction('')
-    setEffectiveDate('')
-    setReviewDueDate('')
-    setStatus('active')
-    setViewerVisible(false)
+    setShow(false)
+    setEditing(null)
+    const base = emptyRecord()
+    setTitle(base.title)
+    setRecordType(base.record_type)
+    setJurisdiction(base.jurisdiction ?? '')
+    setEffectiveDate(base.effective_date ?? '')
+    setReviewDueDate(base.review_due_date ?? '')
+    setStatus(base.status)
+    setViewerVisible(base.viewer_visible)
   }
 
   const onSubmit = async () => {
-    const newRecord: GovernanceRecord = {
-      id: generateId(),
-      organization_id: '',
+    const now = new Date().toISOString()
+    const record: GovernanceRecord = {
+      ...(editing ?? emptyRecord()),
       title,
       record_type: recordType,
       jurisdiction: jurisdiction || null,
@@ -96,14 +135,20 @@ export function Records() {
       review_due_date: reviewDueDate || null,
       status,
       viewer_visible: viewerVisible,
-      document_id: null,
       created_by: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      updated_at: now,
     }
-    await addRecord(newRecord)
+    if (editing) {
+      await updateRecord(record)
+    } else {
+      await addRecord({ ...record, created_at: now })
+    }
     reset()
-    setShow(false)
+  }
+
+  const openCreate = () => {
+    setEditing(null)
+    setShow(true)
   }
 
   return (
@@ -111,10 +156,10 @@ export function Records() {
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={() => setShow((s) => !s)}
+          onClick={() => (show ? reset() : openCreate())}
           className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] font-medium text-text hover:bg-inset"
         >
-          {x(show ? M.gov_cancel : M.gov_add_record)}
+          {x(show && !editing ? M.gov_cancel : M.gov_add_record)}
         </button>
       </div>
 
@@ -124,13 +169,19 @@ export function Records() {
             <FormInput value={title} onChange={(e) => setTitle(e.target.value)} required />
           </FormField>
           <FormField label={x(M.gov_record_type)}>
-            <FormSelect
-              value={recordType}
-              onChange={(e) => setRecordType(e.target.value as GovernanceRecordType)}
-            >
+            <FormSelect value={recordType} onChange={(e) => setRecordType(e.target.value as GovernanceRecordType)}>
               {RECORD_TYPES.map((t) => (
                 <option key={t} value={t}>
                   {x(M[RECORD_TYPE_LABELS[t]])}
+                </option>
+              ))}
+            </FormSelect>
+          </FormField>
+          <FormField label={x(M.gov_status)}>
+            <FormSelect value={status} onChange={(e) => setStatus(e.target.value as GovernanceRecordStatus)}>
+              {STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {x(M[STATUS_LABELS[s]])}
                 </option>
               ))}
             </FormSelect>
@@ -144,26 +195,13 @@ export function Records() {
           <FormField label={x(M.gov_review_due_date)}>
             <FormInput type="date" value={reviewDueDate} onChange={(e) => setReviewDueDate(e.target.value)} />
           </FormField>
-          <FormField label={x(M.gov_status)}>
-            <FormSelect value={status} onChange={(e) => setStatus(e.target.value as GovernanceRecordStatus)}>
-              {STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {x(M[STATUS_LABELS[s]])}
-                </option>
-              ))}
-            </FormSelect>
+          <FormField label={x(M.gov_viewer_visible)}>
+            <FormCheckbox label={x(M.gov_viewer_visible)} checked={viewerVisible} onChange={setViewerVisible} />
           </FormField>
-          <div className="sm:col-span-2">
-            <FormCheckbox
-              label={x(M.gov_viewer_visible)}
-              checked={viewerVisible}
-              onChange={(checked) => setViewerVisible(checked)}
-            />
-          </div>
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button
               type="button"
-              onClick={() => setShow(false)}
+              onClick={reset}
               className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] text-text-muted hover:text-text"
             >
               {x(M.gov_cancel)}
@@ -173,7 +211,7 @@ export function Records() {
               onClick={onSubmit}
               className="rounded-[8px] bg-accent px-[14px] py-[8px] text-[13px] font-medium text-white hover:bg-accent/90"
             >
-              {x(M.gov_save)}
+              {x(editing ? M.gov_save_changes : M.gov_save)}
             </button>
           </div>
         </div>
@@ -186,7 +224,7 @@ export function Records() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {records.map((record) => (
-            <RecordRow key={record.id} record={record} />
+            <RecordRow key={record.id} record={record} onEdit={(r) => { setEditing(r); setShow(true) }} />
           ))}
         </div>
       )}

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useI18n } from '@/i18n/context'
 import { governanceMessages as M } from '@/i18n/messages/governance'
 import { FormField, FormInput, FormCheckbox } from '@/components/FormField'
@@ -9,14 +9,33 @@ function generateId() {
   return `gh-${Math.random().toString(36).slice(2, 9)}`
 }
 
-function ShareholderRow({ shareholder }: { readonly shareholder: GovernanceShareholder }) {
+function emptyShareholder(): GovernanceShareholder {
+  return {
+    id: generateId(),
+    organization_id: '',
+    name: '',
+    share_class: null,
+    shares_issued: null,
+    issue_date: null,
+    contact_email: null,
+    viewer_visible: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+}
+
+function ShareholderRow({
+  shareholder,
+  onEdit,
+}: {
+  readonly shareholder: GovernanceShareholder
+  readonly onEdit: (shareholder: GovernanceShareholder) => void
+}) {
   const { x } = useI18n()
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
       <div className="min-w-0 flex-1">
-        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">
-          {shareholder.name}
-        </div>
+        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">{shareholder.name}</div>
         <div className="text-[12px] text-text-muted">
           {shareholder.share_class ? `${shareholder.share_class}` : null}
           {shareholder.shares_issued ? ` · ${shareholder.shares_issued} ${x(M.gov_shareholder_total_shares)}` : null}
@@ -24,43 +43,70 @@ function ShareholderRow({ shareholder }: { readonly shareholder: GovernanceShare
           {shareholder.contact_email ? ` · ${shareholder.contact_email}` : null}
         </div>
       </div>
+      <button
+        type="button"
+        onClick={() => onEdit(shareholder)}
+        className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+      >
+        {x(M.gov_edit)}
+      </button>
     </div>
   )
 }
 
 export function Shareholders() {
   const { x } = useI18n()
-  const { shareholders, addShareholder } = useGovernanceData()
+  const { shareholders, addShareholder, updateShareholder } = useGovernanceData()
   const [show, setShow] = useState(false)
+  const [editing, setEditing] = useState<GovernanceShareholder | null>(null)
 
-  const [name, setName] = useState('')
-  const [sharesIssued, setSharesIssued] = useState('')
-  const [contactEmail, setContactEmail] = useState('')
-  const [viewerVisible, setViewerVisible] = useState(false)
+  const initial = editing ?? emptyShareholder()
+  const [name, setName] = useState(initial.name)
+  const [sharesIssued, setSharesIssued] = useState(initial.shares_issued?.toString() ?? '')
+  const [contactEmail, setContactEmail] = useState(initial.contact_email ?? '')
+  const [viewerVisible, setViewerVisible] = useState(initial.viewer_visible)
+
+  useEffect(() => {
+    const base = editing ?? emptyShareholder()
+    setName(base.name)
+    setSharesIssued(base.shares_issued?.toString() ?? '')
+    setContactEmail(base.contact_email ?? '')
+    setViewerVisible(base.viewer_visible)
+  }, [editing])
 
   const reset = () => {
-    setName('')
-    setSharesIssued('')
-    setContactEmail('')
-    setViewerVisible(false)
+    setShow(false)
+    setEditing(null)
+    const base = emptyShareholder()
+    setName(base.name)
+    setSharesIssued(base.shares_issued?.toString() ?? '')
+    setContactEmail(base.contact_email ?? '')
+    setViewerVisible(base.viewer_visible)
   }
 
   const onSubmit = async () => {
-    const newShareholder: GovernanceShareholder = {
-      id: generateId(),
-      organization_id: '',
+    const now = new Date().toISOString()
+    const shareholder: GovernanceShareholder = {
+      ...(editing ?? emptyShareholder()),
       name,
       share_class: null,
       shares_issued: sharesIssued ? Number(sharesIssued) : null,
       issue_date: null,
       contact_email: contactEmail || null,
       viewer_visible: viewerVisible,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      updated_at: now,
     }
-    await addShareholder(newShareholder)
+    if (editing) {
+      await updateShareholder(shareholder)
+    } else {
+      await addShareholder({ ...shareholder, created_at: now })
+    }
     reset()
-    setShow(false)
+  }
+
+  const openCreate = () => {
+    setEditing(null)
+    setShow(true)
   }
 
   return (
@@ -68,10 +114,10 @@ export function Shareholders() {
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={() => setShow((s) => !s)}
+          onClick={() => (show ? reset() : openCreate())}
           className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] font-medium text-text hover:bg-inset"
         >
-          {x(show ? M.gov_cancel : M.gov_add_shareholder)}
+          {x(show && !editing ? M.gov_cancel : M.gov_add_shareholder)}
         </button>
       </div>
 
@@ -87,16 +133,12 @@ export function Shareholders() {
             <FormInput type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} />
           </FormField>
           <div className="sm:col-span-2">
-            <FormCheckbox
-              label={x(M.gov_viewer_visible)}
-              checked={viewerVisible}
-              onChange={(checked) => setViewerVisible(checked)}
-            />
+            <FormCheckbox label={x(M.gov_viewer_visible)} checked={viewerVisible} onChange={setViewerVisible} />
           </div>
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button
               type="button"
-              onClick={() => setShow(false)}
+              onClick={reset}
               className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] text-text-muted hover:text-text"
             >
               {x(M.gov_cancel)}
@@ -106,7 +148,7 @@ export function Shareholders() {
               onClick={onSubmit}
               className="rounded-[8px] bg-accent px-[14px] py-[8px] text-[13px] font-medium text-white hover:bg-accent/90"
             >
-              {x(M.gov_save)}
+              {x(editing ? M.gov_save_changes : M.gov_save)}
             </button>
           </div>
         </div>
@@ -119,7 +161,11 @@ export function Shareholders() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {shareholders.map((shareholder) => (
-            <ShareholderRow key={shareholder.id} shareholder={shareholder} />
+            <ShareholderRow
+              key={shareholder.id}
+              shareholder={shareholder}
+              onEdit={(s) => { setEditing(s); setShow(true) }}
+            />
           ))}
         </div>
       )}

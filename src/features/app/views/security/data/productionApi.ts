@@ -294,6 +294,66 @@ export async function createSecurityVendorReview(
   return toVendorReview(parsed)
 }
 
+export async function updateSecurityAsset(
+  id: string,
+  values: Omit<SecurityAssetInsert, 'organization_id'>,
+): Promise<SecurityAsset> {
+  const client = getClient()
+  const update = assetInsertSchema.parse(values)
+  const { data, error } = await client.from('security_assets').update(update).eq('id', id).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = assetRowSchema.parse(data)
+  return toAsset(parsed)
+}
+
+export async function updateSecurityAccessReview(
+  id: string,
+  values: Omit<SecurityAccessReviewInsert, 'organization_id'>,
+): Promise<SecurityAccessReview> {
+  const client = getClient()
+  const update = accessReviewInsertSchema.parse(values)
+  const { data, error } = await client.from('security_access_reviews').update(update).eq('id', id).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = accessReviewRowSchema.parse(data)
+  return toAccessReview(parsed)
+}
+
+export async function updateSecurityIncident(
+  id: string,
+  values: Omit<SecurityIncidentInsert, 'organization_id'>,
+): Promise<SecurityIncident> {
+  const client = getClient()
+  const update = incidentInsertSchema.parse(values)
+  const { data, error } = await client.from('security_incidents').update(update).eq('id', id).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = incidentRowSchema.parse(data)
+  return toIncident(parsed)
+}
+
+export async function updateSecurityRisk(
+  id: string,
+  values: Omit<SecurityRiskInsert, 'organization_id'>,
+): Promise<SecurityRisk> {
+  const client = getClient()
+  const update = riskInsertSchema.parse(values)
+  const { data, error } = await client.from('security_risks').update(update).eq('id', id).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = riskRowSchema.parse(data)
+  return toRisk(parsed)
+}
+
+export async function updateSecurityVendorReview(
+  id: string,
+  values: Omit<SecurityVendorReviewInsert, 'organization_id'>,
+): Promise<SecurityVendorReview> {
+  const client = getClient()
+  const update = vendorReviewInsertSchema.parse(values)
+  const { data, error } = await client.from('security_vendor_reviews').update(update).eq('id', id).select().single()
+  if (error) throw new Error(error.message)
+  const parsed = vendorReviewRowSchema.parse(data)
+  return toVendorReview(parsed)
+}
+
 export async function listSecurityVendorReviews(
   organizationId: string,
 ): Promise<SecurityVendorReview[]> {

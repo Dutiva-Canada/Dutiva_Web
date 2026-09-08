@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { operationsMessages as M } from '@/i18n/messages/operations'
@@ -34,7 +34,22 @@ function generateId() {
   return `ov-${Math.random().toString(36).slice(2, 9)}`
 }
 
-function VendorRow({ vendor }: { readonly vendor: OperationsVendor }) {
+function emptyVendor(): OperationsVendor {
+  return {
+    id: generateId(),
+    organization_id: '',
+    finance_party_id: null,
+    name: '',
+    vendor_type: 'supplier',
+    status: 'active',
+    contract_expiry: null,
+    notes: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+}
+
+function VendorRow({ vendor, onEdit }: { readonly vendor: OperationsVendor; readonly onEdit: (vendor: OperationsVendor) => void }) {
   const { x } = useI18n()
   const { root } = useWorkspaceRoot()
   return (
@@ -49,14 +64,18 @@ function VendorRow({ vendor }: { readonly vendor: OperationsVendor }) {
       </div>
       <div className="flex items-center gap-[10px]">
         {vendor.finance_party_id ? (
-          <Link
-            to={`${root}/finance/entities`}
-            className="text-[12px] text-accent hover:underline"
-          >
+          <Link to={`${root}/finance/entities`} className="text-[12px] text-accent hover:underline">
             {x(M.ops_link_finance)}
           </Link>
         ) : null}
         <span className={statusChipClass(STATUS_TONE[vendor.status])}>{x(M[STATUS_LABELS[vendor.status]])}</span>
+        <button
+          type="button"
+          onClick={() => onEdit(vendor)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.ops_edit)}
+        </button>
       </div>
     </div>
   )
@@ -64,39 +83,59 @@ function VendorRow({ vendor }: { readonly vendor: OperationsVendor }) {
 
 export function Vendors() {
   const { x } = useI18n()
-  const { vendors, addVendor } = useOperationsData()
+  const { vendors, addVendor, updateVendor } = useOperationsData()
   const [show, setShow] = useState(false)
+  const [editing, setEditing] = useState<OperationsVendor | null>(null)
 
-  const [name, setName] = useState('')
-  const [vendorType, setVendorType] = useState<NonNullable<OperationsVendorType>>('supplier')
-  const [status, setStatus] = useState<OperationsVendorStatus>('active')
-  const [contractExpiry, setContractExpiry] = useState('')
-  const [notes, setNotes] = useState('')
+  const initial = editing ?? emptyVendor()
+  const [name, setName] = useState(initial.name)
+  const [vendorType, setVendorType] = useState<NonNullable<OperationsVendorType>>(initial.vendor_type ?? 'supplier')
+  const [status, setStatus] = useState<OperationsVendorStatus>(initial.status)
+  const [contractExpiry, setContractExpiry] = useState(initial.contract_expiry ?? '')
+  const [notes, setNotes] = useState(initial.notes ?? '')
+
+  useEffect(() => {
+    const base = editing ?? emptyVendor()
+    setName(base.name)
+    setVendorType(base.vendor_type ?? 'supplier')
+    setStatus(base.status)
+    setContractExpiry(base.contract_expiry ?? '')
+    setNotes(base.notes ?? '')
+  }, [editing])
 
   const reset = () => {
-    setName('')
-    setVendorType('supplier')
-    setStatus('active')
-    setContractExpiry('')
-    setNotes('')
+    setShow(false)
+    setEditing(null)
+    const base = emptyVendor()
+    setName(base.name)
+    setVendorType(base.vendor_type ?? 'supplier')
+    setStatus(base.status)
+    setContractExpiry(base.contract_expiry ?? '')
+    setNotes(base.notes ?? '')
   }
 
   const onSubmit = async () => {
-    const newVendor: OperationsVendor = {
-      id: generateId(),
-      organization_id: '',
-      finance_party_id: null,
+    const now = new Date().toISOString()
+    const vendor: OperationsVendor = {
+      ...(editing ?? emptyVendor()),
       name,
       vendor_type: vendorType,
       status,
       contract_expiry: contractExpiry || null,
       notes: notes || null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      updated_at: now,
     }
-    await addVendor(newVendor)
+    if (editing) {
+      await updateVendor(vendor)
+    } else {
+      await addVendor({ ...vendor, created_at: now })
+    }
     reset()
-    setShow(false)
+  }
+
+  const openCreate = () => {
+    setEditing(null)
+    setShow(true)
   }
 
   return (
@@ -104,10 +143,10 @@ export function Vendors() {
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={() => setShow((s) => !s)}
+          onClick={() => (show ? reset() : openCreate())}
           className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] font-medium text-text hover:bg-inset"
         >
-          {x(show ? M.ops_cancel : M.ops_add_vendor)}
+          {x(show && !editing ? M.ops_cancel : M.ops_add_vendor)}
         </button>
       </div>
 
@@ -117,10 +156,7 @@ export function Vendors() {
             <FormInput value={name} onChange={(e) => setName(e.target.value)} required />
           </FormField>
           <FormField label={x(M.ops_type)}>
-            <FormSelect
-              value={vendorType}
-              onChange={(e) => setVendorType(e.target.value as NonNullable<OperationsVendorType>)}
-            >
+            <FormSelect value={vendorType} onChange={(e) => setVendorType(e.target.value as NonNullable<OperationsVendorType>)}>
               {TYPES.map((t) => (
                 <option key={t} value={t}>
                   {x(M[TYPE_LABELS[t]])}
@@ -146,7 +182,7 @@ export function Vendors() {
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button
               type="button"
-              onClick={() => setShow(false)}
+              onClick={reset}
               className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] text-text-muted hover:text-text"
             >
               {x(M.ops_cancel)}
@@ -156,7 +192,7 @@ export function Vendors() {
               onClick={onSubmit}
               className="rounded-[8px] bg-accent px-[14px] py-[8px] text-[13px] font-medium text-white hover:bg-accent/90"
             >
-              {x(M.ops_save)}
+              {x(editing ? M.ops_save_changes : M.ops_save)}
             </button>
           </div>
         </div>
@@ -169,7 +205,7 @@ export function Vendors() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {vendors.map((vendor) => (
-            <VendorRow key={vendor.id} vendor={vendor} />
+            <VendorRow key={vendor.id} vendor={vendor} onEdit={(v) => { setEditing(v); setShow(true) }} />
           ))}
         </div>
       )}

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useI18n } from '@/i18n/context'
 import { securityMessages as M } from '@/i18n/messages/security'
 import { statusChipClass } from '@/components/chips'
@@ -41,7 +41,23 @@ function generateId() {
   return `sa-${Math.random().toString(36).slice(2, 9)}`
 }
 
-function AssetRow({ asset }: { readonly asset: SecurityAsset }) {
+function emptyAsset(): SecurityAsset {
+  return {
+    id: generateId(),
+    organization_id: '',
+    name: '',
+    asset_type: 'hardware',
+    owner_id: null,
+    status: 'active',
+    criticality: 'low',
+    renewal_date: null,
+    notes: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+}
+
+function AssetRow({ asset, onEdit }: { readonly asset: SecurityAsset; readonly onEdit: (asset: SecurityAsset) => void }) {
   const { x } = useI18n()
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
@@ -53,49 +69,79 @@ function AssetRow({ asset }: { readonly asset: SecurityAsset }) {
           {asset.renewal_date ? ` · ${asset.renewal_date}` : null}
         </div>
       </div>
-      <span className={statusChipClass(STATUS_TONE[asset.status])}>{x(M[STATUS_LABELS[asset.status]])}</span>
+      <div className="flex items-center gap-[10px]">
+        <span className={statusChipClass(STATUS_TONE[asset.status])}>{x(M[STATUS_LABELS[asset.status]])}</span>
+        <button
+          type="button"
+          onClick={() => onEdit(asset)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.sec_edit)}
+        </button>
+      </div>
     </div>
   )
 }
 
 export function Assets() {
   const { x } = useI18n()
-  const { assets, addAsset } = useSecurityData()
+  const { assets, addAsset, updateAsset } = useSecurityData()
   const [show, setShow] = useState(false)
+  const [editing, setEditing] = useState<SecurityAsset | null>(null)
 
-  const [name, setName] = useState('')
-  const [assetType, setAssetType] = useState<SecurityAssetType>('hardware')
-  const [status, setStatus] = useState<SecurityAssetStatus>('active')
-  const [criticality, setCriticality] = useState<NonNullable<SecurityCriticality>>('low')
-  const [renewalDate, setRenewalDate] = useState('')
-  const [notes, setNotes] = useState('')
+  const initial = editing ?? emptyAsset()
+  const [name, setName] = useState(initial.name)
+  const [assetType, setAssetType] = useState<SecurityAssetType>(initial.asset_type)
+  const [status, setStatus] = useState<SecurityAssetStatus>(initial.status)
+  const [criticality, setCriticality] = useState<NonNullable<SecurityCriticality>>(initial.criticality ?? 'low')
+  const [renewalDate, setRenewalDate] = useState(initial.renewal_date ?? '')
+  const [notes, setNotes] = useState(initial.notes ?? '')
+
+  useEffect(() => {
+    const base = editing ?? emptyAsset()
+    setName(base.name)
+    setAssetType(base.asset_type)
+    setStatus(base.status)
+    setCriticality(base.criticality ?? 'low')
+    setRenewalDate(base.renewal_date ?? '')
+    setNotes(base.notes ?? '')
+  }, [editing])
 
   const reset = () => {
-    setName('')
-    setAssetType('hardware')
-    setStatus('active')
-    setCriticality('low')
-    setRenewalDate('')
-    setNotes('')
+    setShow(false)
+    setEditing(null)
+    const base = emptyAsset()
+    setName(base.name)
+    setAssetType(base.asset_type)
+    setStatus(base.status)
+    setCriticality(base.criticality ?? 'low')
+    setRenewalDate(base.renewal_date ?? '')
+    setNotes(base.notes ?? '')
   }
 
   const onSubmit = async () => {
-    const newAsset: SecurityAsset = {
-      id: generateId(),
-      organization_id: '',
+    const now = new Date().toISOString()
+    const asset: SecurityAsset = {
+      ...(editing ?? emptyAsset()),
       name,
       asset_type: assetType,
-      owner_id: null,
       status,
       criticality,
       renewal_date: renewalDate || null,
       notes: notes || null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      updated_at: now,
     }
-    await addAsset(newAsset)
+    if (editing) {
+      await updateAsset(asset)
+    } else {
+      await addAsset({ ...asset, created_at: now })
+    }
     reset()
-    setShow(false)
+  }
+
+  const openCreate = () => {
+    setEditing(null)
+    setShow(true)
   }
 
   return (
@@ -103,10 +149,10 @@ export function Assets() {
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={() => setShow((s) => !s)}
+          onClick={() => (show ? reset() : openCreate())}
           className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] font-medium text-text hover:bg-inset"
         >
-          {x(show ? M.sec_cancel : M.sec_add_asset)}
+          {x(show && !editing ? M.sec_cancel : M.sec_add_asset)}
         </button>
       </div>
 
@@ -154,7 +200,7 @@ export function Assets() {
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button
               type="button"
-              onClick={() => setShow(false)}
+              onClick={reset}
               className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] text-text-muted hover:text-text"
             >
               {x(M.sec_cancel)}
@@ -164,7 +210,7 @@ export function Assets() {
               onClick={onSubmit}
               className="rounded-[8px] bg-accent px-[14px] py-[8px] text-[13px] font-medium text-white hover:bg-accent/90"
             >
-              {x(M.sec_save)}
+              {x(editing ? M.sec_save_changes : M.sec_save)}
             </button>
           </div>
         </div>
@@ -177,7 +223,7 @@ export function Assets() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {assets.map((asset) => (
-            <AssetRow key={asset.id} asset={asset} />
+            <AssetRow key={asset.id} asset={asset} onEdit={(a) => { setEditing(a); setShow(true) }} />
           ))}
         </div>
       )}

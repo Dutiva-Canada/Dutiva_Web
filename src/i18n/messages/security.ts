@@ -59,6 +59,8 @@ export const securityMessages = defineMessages({
   sec_review_pending: { en: 'Pending', fr: 'En attente' },
   sec_cancel: { en: 'Cancel', fr: 'Annuler' },
   sec_save: { en: 'Save', fr: 'Enregistrer' },
+  sec_edit: { en: 'Edit', fr: 'Modifier' },
+  sec_save_changes: { en: 'Save changes', fr: 'Enregistrer les modifications' },
   sec_add_asset: { en: 'Add asset', fr: 'Ajouter un actif' },
   sec_add_review: { en: 'Add review', fr: 'Ajouter une revue' },
   sec_add_incident: { en: 'Add incident', fr: 'Ajouter un incident' },

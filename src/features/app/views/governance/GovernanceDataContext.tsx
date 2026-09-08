@@ -14,9 +14,13 @@ export interface GovernanceDataValue {
   loading: boolean
   error: string | null
   addRecord: (record: GovernanceRecord) => void
+  updateRecord: (record: GovernanceRecord) => void
   addDecision: (decision: GovernanceDecision) => void
+  updateDecision: (decision: GovernanceDecision) => void
   addOfficer: (officer: GovernanceOfficer) => void
+  updateOfficer: (officer: GovernanceOfficer) => void
   addShareholder: (shareholder: GovernanceShareholder) => void
+  updateShareholder: (shareholder: GovernanceShareholder) => void
 }
 
 export const GovernanceDataContext = createContext<GovernanceDataValue | null>(null)

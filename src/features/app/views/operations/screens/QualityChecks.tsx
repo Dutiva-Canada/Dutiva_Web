@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useI18n } from '@/i18n/context'
 import { operationsMessages as M } from '@/i18n/messages/operations'
 import { statusChipClass } from '@/components/chips'
@@ -26,7 +26,25 @@ function generateId() {
   return `oq-${Math.random().toString(36).slice(2, 9)}`
 }
 
-function QualityRow({ check }: { readonly check: OperationsQualityCheck }) {
+function emptyCheck(): OperationsQualityCheck {
+  return {
+    id: generateId(),
+    organization_id: '',
+    title: '',
+    assigned_to: null,
+    reviewer_id: null,
+    checklist: [],
+    due_date: null,
+    completed_date: null,
+    status: 'pending',
+    non_conformance: null,
+    created_by: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+}
+
+function QualityRow({ check, onEdit }: { readonly check: OperationsQualityCheck; readonly onEdit: (check: OperationsQualityCheck) => void }) {
   const { x } = useI18n()
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
@@ -38,49 +56,76 @@ function QualityRow({ check }: { readonly check: OperationsQualityCheck }) {
           {check.non_conformance ? ` · ${check.non_conformance}` : null}
         </div>
       </div>
-      <span className={statusChipClass(STATUS_TONE[check.status])}>{x(M[STATUS_LABELS[check.status]])}</span>
+      <div className="flex items-center gap-[10px]">
+        <span className={statusChipClass(STATUS_TONE[check.status])}>{x(M[STATUS_LABELS[check.status]])}</span>
+        <button
+          type="button"
+          onClick={() => onEdit(check)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.ops_edit)}
+        </button>
+      </div>
     </div>
   )
 }
 
 export function QualityChecks() {
   const { x } = useI18n()
-  const { qualityChecks, addQualityCheck } = useOperationsData()
+  const { qualityChecks, addQualityCheck, updateQualityCheck } = useOperationsData()
   const [show, setShow] = useState(false)
+  const [editing, setEditing] = useState<OperationsQualityCheck | null>(null)
 
-  const [title, setTitle] = useState('')
-  const [status, setStatus] = useState<OperationsQualityStatus>('pending')
-  const [dueDate, setDueDate] = useState('')
-  const [completedDate, setCompletedDate] = useState('')
-  const [nonConformance, setNonConformance] = useState('')
+  const initial = editing ?? emptyCheck()
+  const [title, setTitle] = useState(initial.title)
+  const [status, setStatus] = useState<OperationsQualityStatus>(initial.status)
+  const [dueDate, setDueDate] = useState(initial.due_date ?? '')
+  const [completedDate, setCompletedDate] = useState(initial.completed_date ?? '')
+  const [nonConformance, setNonConformance] = useState(initial.non_conformance ?? '')
+
+  useEffect(() => {
+    const base = editing ?? emptyCheck()
+    setTitle(base.title)
+    setStatus(base.status)
+    setDueDate(base.due_date ?? '')
+    setCompletedDate(base.completed_date ?? '')
+    setNonConformance(base.non_conformance ?? '')
+  }, [editing])
 
   const reset = () => {
-    setTitle('')
-    setStatus('pending')
-    setDueDate('')
-    setCompletedDate('')
-    setNonConformance('')
+    setShow(false)
+    setEditing(null)
+    const base = emptyCheck()
+    setTitle(base.title)
+    setStatus(base.status)
+    setDueDate(base.due_date ?? '')
+    setCompletedDate(base.completed_date ?? '')
+    setNonConformance(base.non_conformance ?? '')
   }
 
   const onSubmit = async () => {
-    const newCheck: OperationsQualityCheck = {
-      id: generateId(),
-      organization_id: '',
+    const now = new Date().toISOString()
+    const check: OperationsQualityCheck = {
+      ...(editing ?? emptyCheck()),
       title,
-      assigned_to: null,
-      reviewer_id: null,
-      checklist: [],
       due_date: dueDate || null,
       completed_date: completedDate || null,
       status,
       non_conformance: nonConformance || null,
-      created_by: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      checklist: [],
+      updated_at: now,
     }
-    await addQualityCheck(newCheck)
+    if (editing) {
+      await updateQualityCheck(check)
+    } else {
+      await addQualityCheck({ ...check, created_at: now })
+    }
     reset()
-    setShow(false)
+  }
+
+  const openCreate = () => {
+    setEditing(null)
+    setShow(true)
   }
 
   return (
@@ -88,10 +133,10 @@ export function QualityChecks() {
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={() => setShow((s) => !s)}
+          onClick={() => (show ? reset() : openCreate())}
           className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] font-medium text-text hover:bg-inset"
         >
-          {x(show ? M.ops_cancel : M.ops_add_quality_check)}
+          {x(show && !editing ? M.ops_cancel : M.ops_add_quality_check)}
         </button>
       </div>
 
@@ -121,7 +166,7 @@ export function QualityChecks() {
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button
               type="button"
-              onClick={() => setShow(false)}
+              onClick={reset}
               className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] text-text-muted hover:text-text"
             >
               {x(M.ops_cancel)}
@@ -131,7 +176,7 @@ export function QualityChecks() {
               onClick={onSubmit}
               className="rounded-[8px] bg-accent px-[14px] py-[8px] text-[13px] font-medium text-white hover:bg-accent/90"
             >
-              {x(M.ops_save)}
+              {x(editing ? M.ops_save_changes : M.ops_save)}
             </button>
           </div>
         </div>
@@ -144,7 +189,7 @@ export function QualityChecks() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {qualityChecks.map((check) => (
-            <QualityRow key={check.id} check={check} />
+            <QualityRow key={check.id} check={check} onEdit={(c) => { setEditing(c); setShow(true) }} />
           ))}
         </div>
       )}

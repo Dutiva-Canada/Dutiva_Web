@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useI18n } from '@/i18n/context'
 import { securityMessages as M } from '@/i18n/messages/security'
 import { statusChipClass } from '@/components/chips'
@@ -20,7 +20,28 @@ function generateId() {
   return `sv-${Math.random().toString(36).slice(2, 9)}`
 }
 
-function VendorRow({ vendor }: { readonly vendor: SecurityVendorReview }) {
+function emptyVendorReview(): SecurityVendorReview {
+  return {
+    id: generateId(),
+    organization_id: '',
+    vendor_name: '',
+    vendor_type: 'other',
+    privacy_agreement: false,
+    security_review_date: null,
+    next_review_date: null,
+    notes: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+}
+
+function VendorRow({
+  vendor,
+  onEdit,
+}: {
+  readonly vendor: SecurityVendorReview
+  readonly onEdit: (vendor: SecurityVendorReview) => void
+}) {
   const { x } = useI18n()
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
@@ -34,52 +55,83 @@ function VendorRow({ vendor }: { readonly vendor: SecurityVendorReview }) {
           {vendor.next_review_date ? ` · ${vendor.next_review_date}` : null}
         </div>
       </div>
-      {vendor.security_review_date ? (
-        <span className={statusChipClass('success')}>{vendor.security_review_date}</span>
-      ) : (
-        <span className={statusChipClass('warning')}>{x(M.sec_review_pending)}</span>
-      )}
+      <div className="flex items-center gap-[10px]">
+        {vendor.security_review_date ? (
+          <span className={statusChipClass('success')}>{vendor.security_review_date}</span>
+        ) : (
+          <span className={statusChipClass('warning')}>{x(M.sec_review_pending)}</span>
+        )}
+        <button
+          type="button"
+          onClick={() => onEdit(vendor)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.sec_edit)}
+        </button>
+      </div>
     </div>
   )
 }
 
 export function Vendors() {
   const { x } = useI18n()
-  const { vendorReviews, addVendorReview } = useSecurityData()
+  const { vendorReviews, addVendorReview, updateVendorReview } = useSecurityData()
   const [show, setShow] = useState(false)
+  const [editing, setEditing] = useState<SecurityVendorReview | null>(null)
 
-  const [vendorName, setVendorName] = useState('')
-  const [vendorType, setVendorType] = useState<NonNullable<SecurityVendorType>>('other')
-  const [privacyAgreement, setPrivacyAgreement] = useState(false)
-  const [securityReviewDate, setSecurityReviewDate] = useState('')
-  const [nextReviewDate, setNextReviewDate] = useState('')
-  const [notes, setNotes] = useState('')
+  const initial = editing ?? emptyVendorReview()
+  const [vendorName, setVendorName] = useState(initial.vendor_name)
+  const [vendorType, setVendorType] = useState<NonNullable<SecurityVendorType>>(initial.vendor_type ?? 'other')
+  const [privacyAgreement, setPrivacyAgreement] = useState(initial.privacy_agreement ?? false)
+  const [securityReviewDate, setSecurityReviewDate] = useState(initial.security_review_date ?? '')
+  const [nextReviewDate, setNextReviewDate] = useState(initial.next_review_date ?? '')
+  const [notes, setNotes] = useState(initial.notes ?? '')
+
+  useEffect(() => {
+    const base = editing ?? emptyVendorReview()
+    setVendorName(base.vendor_name)
+    setVendorType(base.vendor_type ?? 'other')
+    setPrivacyAgreement(base.privacy_agreement ?? false)
+    setSecurityReviewDate(base.security_review_date ?? '')
+    setNextReviewDate(base.next_review_date ?? '')
+    setNotes(base.notes ?? '')
+  }, [editing])
 
   const reset = () => {
-    setVendorName('')
-    setVendorType('other')
-    setPrivacyAgreement(false)
-    setSecurityReviewDate('')
-    setNextReviewDate('')
-    setNotes('')
+    setShow(false)
+    setEditing(null)
+    const base = emptyVendorReview()
+    setVendorName(base.vendor_name)
+    setVendorType(base.vendor_type ?? 'other')
+    setPrivacyAgreement(base.privacy_agreement ?? false)
+    setSecurityReviewDate(base.security_review_date ?? '')
+    setNextReviewDate(base.next_review_date ?? '')
+    setNotes(base.notes ?? '')
   }
 
   const onSubmit = async () => {
-    const newVendor: SecurityVendorReview = {
-      id: generateId(),
-      organization_id: '',
+    const now = new Date().toISOString()
+    const vendor: SecurityVendorReview = {
+      ...(editing ?? emptyVendorReview()),
       vendor_name: vendorName,
       vendor_type: vendorType,
       privacy_agreement: privacyAgreement,
       security_review_date: securityReviewDate || null,
       next_review_date: nextReviewDate || null,
       notes: notes || null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      updated_at: now,
     }
-    await addVendorReview(newVendor)
+    if (editing) {
+      await updateVendorReview(vendor)
+    } else {
+      await addVendorReview({ ...vendor, created_at: now })
+    }
     reset()
-    setShow(false)
+  }
+
+  const openCreate = () => {
+    setEditing(null)
+    setShow(true)
   }
 
   return (
@@ -87,10 +139,10 @@ export function Vendors() {
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={() => setShow((s) => !s)}
+          onClick={() => (show ? reset() : openCreate())}
           className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] font-medium text-text hover:bg-inset"
         >
-          {x(show ? M.sec_cancel : M.sec_add_vendor)}
+          {x(show && !editing ? M.sec_cancel : M.sec_add_vendor)}
         </button>
       </div>
 
@@ -112,11 +164,7 @@ export function Vendors() {
             </FormSelect>
           </FormField>
           <FormField label={x(M.sec_security_review_date)}>
-            <FormInput
-              type="date"
-              value={securityReviewDate}
-              onChange={(e) => setSecurityReviewDate(e.target.value)}
-            />
+            <FormInput type="date" value={securityReviewDate} onChange={(e) => setSecurityReviewDate(e.target.value)} />
           </FormField>
           <FormField label={x(M.sec_next_review_date)}>
             <FormInput type="date" value={nextReviewDate} onChange={(e) => setNextReviewDate(e.target.value)} />
@@ -128,13 +176,13 @@ export function Vendors() {
             <FormCheckbox
               label={x(M.sec_privacy_agreement)}
               checked={privacyAgreement}
-              onChange={(checked) => setPrivacyAgreement(checked)}
+              onChange={setPrivacyAgreement}
             />
           </div>
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button
               type="button"
-              onClick={() => setShow(false)}
+              onClick={reset}
               className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] text-text-muted hover:text-text"
             >
               {x(M.sec_cancel)}
@@ -144,7 +192,7 @@ export function Vendors() {
               onClick={onSubmit}
               className="rounded-[8px] bg-accent px-[14px] py-[8px] text-[13px] font-medium text-white hover:bg-accent/90"
             >
-              {x(M.sec_save)}
+              {x(editing ? M.sec_save_changes : M.sec_save)}
             </button>
           </div>
         </div>
@@ -157,7 +205,7 @@ export function Vendors() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {vendorReviews.map((vendor) => (
-            <VendorRow key={vendor.id} vendor={vendor} />
+            <VendorRow key={vendor.id} vendor={vendor} onEdit={(v) => { setEditing(v); setShow(true) }} />
           ))}
         </div>
       )}

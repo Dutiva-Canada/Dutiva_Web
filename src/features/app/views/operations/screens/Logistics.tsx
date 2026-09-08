@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useI18n } from '@/i18n/context'
 import { operationsMessages as M } from '@/i18n/messages/operations'
 import { statusChipClass } from '@/components/chips'
@@ -26,7 +26,24 @@ function generateId() {
   return `ol-${Math.random().toString(36).slice(2, 9)}`
 }
 
-function LogisticsRow({ row }: { readonly row: OperationsLogistics }) {
+function emptyLogistics(): OperationsLogistics {
+  return {
+    id: generateId(),
+    organization_id: '',
+    title: '',
+    owner_id: null,
+    assigned_to: null,
+    status: 'in_transit',
+    expected_date: null,
+    delivered_date: null,
+    notes: null,
+    created_by: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+}
+
+function LogisticsRow({ row, onEdit }: { readonly row: OperationsLogistics; readonly onEdit: (row: OperationsLogistics) => void }) {
   const { x } = useI18n()
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
@@ -38,48 +55,75 @@ function LogisticsRow({ row }: { readonly row: OperationsLogistics }) {
           {row.notes ? ` · ${row.notes}` : null}
         </div>
       </div>
-      <span className={statusChipClass(STATUS_TONE[row.status])}>{x(M[STATUS_LABELS[row.status]])}</span>
+      <div className="flex items-center gap-[10px]">
+        <span className={statusChipClass(STATUS_TONE[row.status])}>{x(M[STATUS_LABELS[row.status]])}</span>
+        <button
+          type="button"
+          onClick={() => onEdit(row)}
+          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+        >
+          {x(M.ops_edit)}
+        </button>
+      </div>
     </div>
   )
 }
 
 export function Logistics() {
   const { x } = useI18n()
-  const { logistics, addLogistics } = useOperationsData()
+  const { logistics, addLogistics, updateLogistics } = useOperationsData()
   const [show, setShow] = useState(false)
+  const [editing, setEditing] = useState<OperationsLogistics | null>(null)
 
-  const [title, setTitle] = useState('')
-  const [status, setStatus] = useState<OperationsLogisticsStatus>('in_transit')
-  const [expectedDate, setExpectedDate] = useState('')
-  const [deliveredDate, setDeliveredDate] = useState('')
-  const [notes, setNotes] = useState('')
+  const initial = editing ?? emptyLogistics()
+  const [title, setTitle] = useState(initial.title)
+  const [status, setStatus] = useState<OperationsLogisticsStatus>(initial.status)
+  const [expectedDate, setExpectedDate] = useState(initial.expected_date ?? '')
+  const [deliveredDate, setDeliveredDate] = useState(initial.delivered_date ?? '')
+  const [notes, setNotes] = useState(initial.notes ?? '')
+
+  useEffect(() => {
+    const base = editing ?? emptyLogistics()
+    setTitle(base.title)
+    setStatus(base.status)
+    setExpectedDate(base.expected_date ?? '')
+    setDeliveredDate(base.delivered_date ?? '')
+    setNotes(base.notes ?? '')
+  }, [editing])
 
   const reset = () => {
-    setTitle('')
-    setStatus('in_transit')
-    setExpectedDate('')
-    setDeliveredDate('')
-    setNotes('')
+    setShow(false)
+    setEditing(null)
+    const base = emptyLogistics()
+    setTitle(base.title)
+    setStatus(base.status)
+    setExpectedDate(base.expected_date ?? '')
+    setDeliveredDate(base.delivered_date ?? '')
+    setNotes(base.notes ?? '')
   }
 
   const onSubmit = async () => {
-    const newLogistics: OperationsLogistics = {
-      id: generateId(),
-      organization_id: '',
+    const now = new Date().toISOString()
+    const logistics: OperationsLogistics = {
+      ...(editing ?? emptyLogistics()),
       title,
-      owner_id: null,
-      assigned_to: null,
       status,
       expected_date: expectedDate || null,
       delivered_date: deliveredDate || null,
       notes: notes || null,
-      created_by: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      updated_at: now,
     }
-    await addLogistics(newLogistics)
+    if (editing) {
+      await updateLogistics(logistics)
+    } else {
+      await addLogistics({ ...logistics, created_at: now })
+    }
     reset()
-    setShow(false)
+  }
+
+  const openCreate = () => {
+    setEditing(null)
+    setShow(true)
   }
 
   return (
@@ -87,10 +131,10 @@ export function Logistics() {
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={() => setShow((s) => !s)}
+          onClick={() => (show ? reset() : openCreate())}
           className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] font-medium text-text hover:bg-inset"
         >
-          {x(show ? M.ops_cancel : M.ops_add_logistics)}
+          {x(show && !editing ? M.ops_cancel : M.ops_add_logistics)}
         </button>
       </div>
 
@@ -120,7 +164,7 @@ export function Logistics() {
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button
               type="button"
-              onClick={() => setShow(false)}
+              onClick={reset}
               className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] text-text-muted hover:text-text"
             >
               {x(M.ops_cancel)}
@@ -130,7 +174,7 @@ export function Logistics() {
               onClick={onSubmit}
               className="rounded-[8px] bg-accent px-[14px] py-[8px] text-[13px] font-medium text-white hover:bg-accent/90"
             >
-              {x(M.ops_save)}
+              {x(editing ? M.ops_save_changes : M.ops_save)}
             </button>
           </div>
         </div>
@@ -143,7 +187,7 @@ export function Logistics() {
       ) : (
         <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
           {logistics.map((row) => (
-            <LogisticsRow key={row.id} row={row} />
+            <LogisticsRow key={row.id} row={row} onEdit={(r) => { setEditing(r); setShow(true) }} />
           ))}
         </div>
       )}

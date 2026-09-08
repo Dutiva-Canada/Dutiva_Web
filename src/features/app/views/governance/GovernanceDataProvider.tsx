@@ -10,6 +10,10 @@ import {
   createGovernanceDecision,
   createGovernanceOfficer,
   createGovernanceShareholder,
+  updateGovernanceRecord,
+  updateGovernanceDecision,
+  updateGovernanceOfficer,
+  updateGovernanceShareholder,
 } from './data/productionApi'
 import { governanceSummary as fixtures } from './data/fixtures'
 import { GovernanceDataContext } from './GovernanceDataContext'
@@ -204,6 +208,140 @@ export function GovernanceDataProvider({
     [mode, organizationId],
   )
 
+  const updateRecord = useCallback(
+    async (record: GovernanceRecord) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({
+          ...prev,
+          records: prev.records.map((r) => (r.id === record.id ? record : r)),
+        }))
+        return
+      }
+      try {
+        const saved = await updateGovernanceRecord(record.id, {
+          title: record.title,
+          record_type: record.record_type,
+          jurisdiction: record.jurisdiction,
+          effective_date: record.effective_date,
+          review_due_date: record.review_due_date,
+          status: record.status,
+          viewer_visible: record.viewer_visible,
+          document_id: record.document_id,
+          created_by: record.created_by,
+        })
+        setValue((prev) => ({
+          ...prev,
+          records: prev.records.map((r) => (r.id === saved.id ? saved : r)),
+        }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not update record.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const updateDecision = useCallback(
+    async (decision: GovernanceDecision) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({
+          ...prev,
+          decisions: prev.decisions.map((d) => (d.id === decision.id ? decision : d)),
+        }))
+        return
+      }
+      try {
+        const saved = await updateGovernanceDecision(decision.id, {
+          title: decision.title,
+          decision_date: decision.decision_date,
+          decided_by: decision.decided_by,
+          rationale: decision.rationale,
+          status: decision.status,
+          viewer_visible: decision.viewer_visible,
+          related_record_id: decision.related_record_id,
+          created_by: decision.created_by,
+        })
+        setValue((prev) => ({
+          ...prev,
+          decisions: prev.decisions.map((d) => (d.id === saved.id ? saved : d)),
+        }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not update decision.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const updateOfficer = useCallback(
+    async (officer: GovernanceOfficer) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({
+          ...prev,
+          officers: prev.officers.map((o) => (o.id === officer.id ? officer : o)),
+        }))
+        return
+      }
+      try {
+        const saved = await updateGovernanceOfficer(officer.id, {
+          name: officer.name,
+          role: officer.role,
+          appointed_date: officer.appointed_date,
+          resigned_date: officer.resigned_date,
+          contact_email: officer.contact_email,
+          is_active: officer.is_active,
+          viewer_visible: officer.viewer_visible,
+        })
+        setValue((prev) => ({
+          ...prev,
+          officers: prev.officers.map((o) => (o.id === saved.id ? saved : o)),
+        }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not update officer.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
+  const updateShareholder = useCallback(
+    async (shareholder: GovernanceShareholder) => {
+      if (mode !== 'production' || !organizationId) {
+        setValue((prev) => ({
+          ...prev,
+          shareholders: prev.shareholders.map((s) => (s.id === shareholder.id ? shareholder : s)),
+        }))
+        return
+      }
+      try {
+        const saved = await updateGovernanceShareholder(shareholder.id, {
+          name: shareholder.name,
+          share_class: shareholder.share_class,
+          shares_issued: shareholder.shares_issued,
+          issue_date: shareholder.issue_date,
+          contact_email: shareholder.contact_email,
+          viewer_visible: shareholder.viewer_visible,
+        })
+        setValue((prev) => ({
+          ...prev,
+          shareholders: prev.shareholders.map((s) => (s.id === saved.id ? saved : s)),
+        }))
+      } catch (err) {
+        setValue((prev) => ({
+          ...prev,
+          error: err instanceof Error ? err.message : 'Could not update shareholder.',
+        }))
+      }
+    },
+    [mode, organizationId],
+  )
+
   const stable = useMemo(
     () => ({
       records: value.records,
@@ -213,11 +351,25 @@ export function GovernanceDataProvider({
       loading: value.loading,
       error: value.error,
       addRecord,
+      updateRecord,
       addDecision,
+      updateDecision,
       addOfficer,
+      updateOfficer,
       addShareholder,
+      updateShareholder,
     }),
-    [value, addRecord, addDecision, addOfficer, addShareholder],
+    [
+      value,
+      addRecord,
+      updateRecord,
+      addDecision,
+      updateDecision,
+      addOfficer,
+      updateOfficer,
+      addShareholder,
+      updateShareholder,
+    ],
   )
 
   return <GovernanceDataContext.Provider value={stable}>{children}</GovernanceDataContext.Provider>
