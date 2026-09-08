@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Business Functions Workspace — Wireframe</title>
+  <style>
+    :root {
+      --bg: #f3f5fa;
+      --inset: #eef1f8;
+      --card: #ffffff;
+      --border: #d8dcea;
+      --text: #0c1020;
+      --muted: #565f78;
+      --gold: #d4af37;
+      --navy: #1f3a5f;
+      --risk: #f8e9e7;
+      --warn: #fceedd;
+      --ok: #e7f1ec;
+      --radius: 12px;
+      --gap: 16px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13.5px;
+      line-height: 1.4;
+    }
+    .app { display: flex; height: 100vh; overflow: hidden; }
+    .sidebar {
+      width: 260px;
+      background: var(--inset);
+      border-right: 1px solid var(--border);
+      padding: 16px 12px;
+      overflow-y: auto;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 20px; padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand-tile {
+      width: 32px; height: 32px; border-radius: 9px;
+      background: var(--navy); color: var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 12px;
+    }
+    .section { margin-bottom: 18px; }
+    .section-title {
+      font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--muted); margin: 0 0 6px 8px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 8px;
+      color: var(--text); text-decoration: none; margin-bottom: 2px;
+    }
+    .nav-item:hover, .nav-item.active {
+      background: rgba(212,175,55,0.12); color: #6b4f0b;
+    }
+    .nav-icon {
+      width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; color: var(--navy); background: rgba(31,58,95,0.08); border-radius: 5px;
+    }
+    .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .topbar {
+      height: 56px; background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px;
+    }
+    .topbar-title { font-size: 17px; font-weight: 700; }
+    .topbar-actions { display: flex; gap: 8px; }
+    .pill {
+      padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border);
+      background: var(--card); font-size: 12px;
+    }
+    .content { flex: 1; overflow-y: auto; padding: 24px; }
+    .grid { display: grid; gap: var(--gap); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px;
+    }
+    .card h3 { margin: 0 0 8px; font-size: 14px; font-weight: 700; }
+    .metric { font-size: 26px; font-weight: 700; color: var(--navy); margin: 8px 0; }
+    .muted { color: var(--muted); font-size: 12px; }
+    .row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .row:last-child { border-bottom: none; }
+    .chip { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .chip-gold { background: rgba(212,175,55,0.14); color: #6b4f0b; }
+    .chip-warn { background: var(--warn); color: #6b4f0b; }
+    .chip-risk { background: var(--risk); color: #6b2b2b; }
+    .chip-ok { background: var(--ok); color: #2f6a4f; }
+    .screen-title { font-size: 22px; font-weight: 700; margin-bottom: 16px; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    .tab { padding: 6px 12px; border-radius: 7px; font-weight: 600; }
+    .tab.active { background: rgba(212,175,55,0.14); color: #6b4f0b; }
+    .empty { text-align: center; padding: 40px; color: var(--muted); }
+    .btn {
+      padding: 6px 12px; border-radius: 7px; border: 1px solid var(--border);
+      background: var(--card); cursor: pointer; font-size: 12px;
+    }
+    .btn-primary { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gap); margin-bottom: 20px; }
+    .kpi { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+    .kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .kpi-value { font-size: 22px; font-weight: 700; margin-top: 4px; }
+    .note { background: var(--warn); border-radius: 8px; padding: 10px 12px; font-size: 12px; color: #6b4f0b; margin-bottom: 20px; }
+    h2 { font-size: 16px; font-weight: 700; margin: 0 0 12px; }
+    .two-col { display: grid; grid-template-columns: 2fr 1fr; gap: var(--gap); }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 600; }
+    .flag { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-tile">Du</div><div><strong>Dutiva</strong></div></div>
+
+      <div class="section">
+        <div class="section-title">Executive</div>
+        <a class="nav-item active" href="#home"><span class="nav-icon">H</span> Home</a>
+        <a class="nav-item" href="#advisor"><span class="nav-icon">A</span> Advisor</a>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Revenue</div>
+        <a class="nav-item" href="#revenue"><span class="nav-icon">R</span> Revenue</a>
+        <a class="nav-item" href="#crm"><span class="nav-icon">C</span> CRM</a>
+        <a class="nav-item" href="#comms"><span class="nav-icon">M</span> Comms</a>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Operations</div>
+        <a class="nav-item" href="#operations"><span class="nav-icon">O</span> Operations</a>
+        <a class="nav-item" href="#planning"><span class="nav-icon">P</span> Planning</a>
+        <a class="nav-item" href="#workflows"><span class="nav-icon">W</span> Workflows</a>
+        <a class="nav-item" href="#documents"><span class="nav-icon">D</span> Documents</a>
+        <a class="nav-item" href="#knowledge"><span class="nav-icon">K</span> Knowledge</a>
+      </div>
+
+      <div class="section">
+        <div class="section-title">People</div>
+        <a class="nav-item" href="#employees"><span class="nav-icon">E</span> Employees</a>
+        <a class="nav-item" href="#cases"><span class="nav-icon">F</span> Cases</a>
+        <a class="nav-item" href="#hiring"><span class="nav-icon">I</span> Hiring</a>
+        <a class="nav-item" href="#wellbeing"><span class="nav-icon">B</span> Wellbeing</a>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Finance</div>
+        <a class="nav-item" href="#finance"><span class="nav-icon">$</span> Finance</a>
+        <a class="nav-item" href="#compensation"><span class="nav-icon">Y</span> Compensation</a>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Governance</div>
+        <a class="nav-item" href="#governance"><span class="nav-icon">G</span> Governance</a>
+        <a class="nav-item" href="#compliance"><span class="nav-icon">L</span> Compliance</a>
+        <a class="nav-item" href="#policies"><span class="nav-icon">S</span> Policies</a>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Security</div>
+        <a class="nav-item" href="#security"><span class="nav-icon">X</span> Security</a>
+      </div>
+
+      <div class="section">
+        <div class="section-title">External</div>
+        <a class="nav-item" href="#specialists"><span class="nav-icon">T</span> Specialists</a>
+      </div>
+
+      <div class="section" style="margin-top: auto;">
+        <a class="nav-item" href="#analytics"><span class="nav-icon">N</span> Analytics</a>
+      </div>
+    </aside>
+
+    <main class="main" id="main">
+      <header class="topbar">
+        <div class="topbar-title">Home — Northgate Logistics Inc.</div>
+        <div class="topbar-actions">
+          <select id="role-select" class="pill" style="border:1px solid var(--border); background:var(--card);">
+            <option value="owner">Owner</option>
+            <option value="manager">Manager</option>
+            <option value="professional">Professional</option>
+            <option value="member">Member</option>
+            <option value="consultant">Consultant</option>
+          </select>
+          <span class="pill">EN / FR</span>
+          <span class="pill">Workspace</span>
+          <button class="btn btn-primary">New</button>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="note">Low-fidelity wireframe. Colours and spacing come from the Dutiva design system. Nav icons are generic placeholders; the real app uses lucide-react icons. Use the role switcher to preview the Home layout for owner, manager, and member.</div>
+
+        <section id="home">
+          <div id="home-owner" class="home-role">
+            <div class="kpi-grid">
+              <div class="kpi"><div class="kpi-label">Cash on hand</div><div class="kpi-value">$42,300</div></div>
+              <div class="kpi"><div class="kpi-label">Open pipeline</div><div class="kpi-value">$18,400</div></div>
+              <div class="kpi"><div class="kpi-label">Compliance score</div><div class="kpi-value">87</div></div>
+              <div class="kpi"><div class="kpi-label">Security posture</div><div class="kpi-value">Good</div></div>
+            </div>
+
+            <div class="two-col" style="margin-bottom: 20px;">
+              <div class="card">
+                <h2>Priorities this week</h2>
+                <div class="row"><span>Access review due</span><span class="chip chip-warn">Security</span></div>
+                <div class="row"><span>Cartier Consulting — Growth Plan follow-up</span><span class="chip chip-gold">Revenue</span></div>
+                <div class="row"><span>Q3 payroll remittance</span><span class="chip chip-ok">Finance</span></div>
+                <div class="row"><span>Board resolution: new signing officer</span><span class="chip chip-warn">Governance</span></div>
+              </div>
+              <div class="card">
+                <h2>Quick actions</h2>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+                  <button class="btn">Add employee</button>
+                  <button class="btn">Create case</button>
+                  <button class="btn">Generate document</button>
+                  <button class="btn">Add vendor</button>
+                  <button class="btn">Log decision</button>
+                  <button class="btn">Add specialist</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-3">
+              <div class="card"><h3>Open cases</h3><div class="metric">4</div><div class="muted">2 require attention this week</div></div>
+              <div class="card"><h3>Active projects</h3><div class="metric">3</div><div class="muted">1 at risk of missing target date</div></div>
+              <div class="card"><h3>Upcoming reviews</h3><div class="metric">2</div><div class="muted">Policies and access review due soon</div></div>
+            </div>
+          </div>
+
+          <div id="home-manager" class="home-role" style="display:none;">
+            <div class="kpi-grid">
+              <div class="kpi"><div class="kpi-label">Team headcount</div><div class="kpi-value">12</div></div>
+              <div class="kpi"><div class="kpi-label">Pending approvals</div><div class="kpi-value">3</div></div>
+              <div class="kpi"><div class="kpi-label">Open team cases</div><div class="kpi-value">2</div></div>
+              <div class="kpi"><div class="kpi-label">Quality checks due</div><div class="kpi-value">4</div></div>
+            </div>
+
+            <div class="two-col" style="margin-bottom: 20px;">
+              <div class="card">
+                <h2>Team priorities</h2>
+                <div class="row"><span>Leave request — Sarah W.</span><span class="chip chip-warn">Approve</span></div>
+                <div class="row"><span>Driver onboarding refresh</span><span class="chip chip-gold">Operations</span></div>
+                <div class="row"><span>Quality check — vehicle inspection</span><span class="chip chip-warn">Overdue</span></div>
+              </div>
+              <div class="card">
+                <h2>Quick actions</h2>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+                  <button class="btn">Approve request</button>
+                  <button class="btn">Add task</button>
+                  <button class="btn">Start review</button>
+                  <button class="btn">View team</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-3">
+              <div class="card"><h3>Team cases</h3><div class="metric">2</div><div class="muted">1 needs follow-up</div></div>
+              <div class="card"><h3>Projects</h3><div class="metric">3</div><div class="muted">1 at risk</div></div>
+              <div class="card"><h3>Policy acks pending</h3><div class="metric">5</div><div class="muted">From 12 team members</div></div>
+            </div>
+          </div>
+
+          <div id="home-member" class="home-role" style="display:none;">
+            <div class="kpi-grid">
+              <div class="kpi"><div class="kpi-label">My tasks</div><div class="kpi-value">3</div></div>
+              <div class="kpi"><div class="kpi-label">Policies to ack</div><div class="kpi-value">1</div></div>
+              <div class="kpi"><div class="kpi-label">Next pay date</div><div class="kpi-value">Sep 15</div></div>
+              <div class="kpi"><div class="kpi-label">Wellbeing</div><div class="kpi-value">Good</div></div>
+            </div>
+
+            <div class="two-col" style="margin-bottom: 20px;">
+              <div class="card">
+                <h2>My stuff</h2>
+                <div class="row"><span>Complete vehicle inspection checklist</span><span class="chip chip-warn">Due today</span></div>
+                <div class="row"><span>Acknowledge updated attendance policy</span><span class="chip chip-gold">Policy</span></div>
+                <div class="row"><span>Review quarterly goals with manager</span><span class="chip chip-ok">Scheduled</span></div>
+              </div>
+              <div class="card">
+                <h2>Quick actions</h2>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+                  <button class="btn">Request time off</button>
+                  <button class="btn">Submit quality check</button>
+                  <button class="btn">View my documents</button>
+                  <button class="btn">Get wellbeing guidance</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-3">
+              <div class="card"><h3>Assigned tasks</h3><div class="metric">3</div><div class="muted">1 due today</div></div>
+              <div class="card"><h3>My cases</h3><div class="metric">0</div><div class="muted">No active cases</div></div>
+              <div class="card"><h3>Wellbeing resources</h3><div class="metric">2</div><div class="muted">Available now</div></div>
+            </div>
+          </div>
+
+          <div id="home-professional" class="home-role" style="display:none;">
+            <div class="kpi-grid">
+              <div class="kpi"><div class="kpi-label">Work items</div><div class="kpi-value">8</div></div>
+              <div class="kpi"><div class="kpi-label">Pending reviews</div><div class="kpi-value">2</div></div>
+              <div class="kpi"><div class="kpi-label">Open incidents</div><div class="kpi-value">1</div></div>
+              <div class="kpi"><div class="kpi-label">Projects owned</div><div class="kpi-value">3</div></div>
+            </div>
+
+            <div class="two-col" style="margin-bottom: 20px;">
+              <div class="card">
+                <h2>Work queue</h2>
+                <div class="row"><span>Review Q3 payroll remittance</span><span class="chip chip-warn">Finance</span></div>
+                <div class="row"><span>Vehicle inspection checklist — Bay 4</span><span class="chip chip-gold">Operations</span></div>
+                <div class="row"><span>Triage: suspicious login alert</span><span class="chip chip-warn">Security</span></div>
+              </div>
+              <div class="card">
+                <h2>Quick actions</h2>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+                  <button class="btn">Complete review</button>
+                  <button class="btn">Update project</button>
+                  <button class="btn">Log incident</button>
+                  <button class="btn">Process case</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-3">
+              <div class="card"><h3>Quality checks</h3><div class="metric">4</div><div class="muted">2 overdue</div></div>
+              <div class="card"><h3>Security risks</h3><div class="metric">3</div><div class="muted">1 needs owner</div></div>
+              <div class="card"><h3>Project tasks</h3><div class="metric">5</div><div class="muted">Due this week</div></div>
+            </div>
+          </div>
+
+          <div id="home-consultant" class="home-role" style="display:none;">
+            <div class="kpi-grid">
+              <div class="kpi"><div class="kpi-label">Granted modules</div><div class="kpi-value">2</div></div>
+              <div class="kpi"><div class="kpi-label">Access expires</div><div class="kpi-value">Dec 31</div></div>
+              <div class="kpi"><div class="kpi-label">Open tasks</div><div class="kpi-value">3</div></div>
+              <div class="kpi"><div class="kpi-label">Engagements</div><div class="kpi-value">1</div></div>
+            </div>
+
+            <div class="two-col" style="margin-bottom: 20px;">
+              <div class="card">
+                <h2>My scope</h2>
+                <div class="row"><span>Finance — accounting and payables</span><span class="chip chip-ok">Granted</span></div>
+                <div class="row"><span>People — view employees, no cases</span><span class="chip chip-ok">Granted</span></div>
+                <div class="row"><span>Operations, Security, Governance</span><span class="chip chip-warn">No access</span></div>
+              </div>
+              <div class="card">
+                <h2>Quick actions</h2>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+                  <button class="btn">Reconcile entries</button>
+                  <button class="btn">View employee list</button>
+                  <button class="btn">Log engagement</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-3">
+              <div class="card"><h3>Assigned tasks</h3><div class="metric">3</div><div class="muted">In granted modules</div></div>
+              <div class="card"><h3>Documents</h3><div class="metric">2</div><div class="muted">Engagement letters</div></div>
+              <div class="card"><h3>Contact</h3><div class="metric">—</div><div class="muted">Robert Chen, Accountant</div></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="revenue" style="display:none;">
+          <div class="screen-title">Revenue overview</div>
+          <div class="kpi-grid">
+            <div class="kpi"><div class="kpi-label">Pipeline</div><div class="kpi-value">$18,400</div></div>
+            <div class="kpi"><div class="kpi-label">Open deals</div><div class="kpi-value">3</div></div>
+            <div class="kpi"><div class="kpi-label">Active campaigns</div><div class="kpi-value">2</div></div>
+            <div class="kpi"><div class="kpi-label">New leads this week</div><div class="kpi-value">5</div></div>
+          </div>
+          <div class="two-col">
+            <div class="card">
+              <h2>Pipeline by stage</h2>
+              <div class="row"><span>Qualified</span><span>Cartier Consulting — $3,600</span></div>
+              <div class="row"><span>Proposal</span><span>Lakeside Manufacturing — $4,800</span></div>
+              <div class="row"><span>Negotiation</span><span>Summit Health — $12,000</span></div>
+            </div>
+            <div class="card">
+              <h2>Recent customer activity</h2>
+              <div class="row"><span>Email with Amara Okafor</span><span class="chip chip-gold">CRM</span></div>
+              <div class="row"><span>Campaign: Law 25 webinar</span><span class="chip chip-gold">Comms</span></div>
+              <div class="row"><span>Policy rollout sent</span><span class="chip chip-ok">Comms</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="governance" style="display:none;">
+          <div class="screen-title">Governance</div>
+          <div class="tabs">
+            <div class="tab active">Overview</div>
+            <div class="tab">Records</div>
+            <div class="tab">Decisions</div>
+            <div class="tab">Officers</div>
+            <div class="tab">Shareholders</div>
+          </div>
+          <div class="two-col">
+            <div class="card">
+              <h2>Recent records</h2>
+              <div class="row"><span>Articles of Incorporation</span><span class="chip chip-ok">Active</span></div>
+              <div class="row"><span>By-law No. 1</span><span class="chip chip-ok">Active</span></div>
+              <div class="row"><span>Director resolution — banking</span><span class="chip chip-warn">Review due</span></div>
+            </div>
+            <div class="card">
+              <h2>Upcoming decisions</h2>
+              <div class="row"><span>Approve new signing officer</span><span class="chip chip-warn">Proposed</span></div>
+              <div class="row"><span>Fiscal year-end approval</span><span class="chip chip-gold">Adopted</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="security" style="display:none;">
+          <div class="screen-title">Security</div>
+          <div class="tabs">
+            <div class="tab active">Overview</div>
+            <div class="tab">Assets</div>
+            <div class="tab">Access Reviews</div>
+            <div class="tab">Incidents</div>
+            <div class="tab">Risks</div>
+            <div class="tab">Vendors</div>
+          </div>
+          <div class="kpi-grid">
+            <div class="kpi"><div class="kpi-label">Assets tracked</div><div class="kpi-value">24</div></div>
+            <div class="kpi"><div class="kpi-label">Open incidents</div><div class="kpi-value">0</div></div>
+            <div class="kpi"><div class="kpi-label">Access reviews due</div><div class="kpi-value">2</div></div>
+            <div class="kpi"><div class="kpi-label">Open risks</div><div class="kpi-value">3</div></div>
+          </div>
+          <div class="card">
+            <h2>Security posture</h2>
+            <div class="row"><span>Multi-factor authentication enabled</span><span class="chip chip-ok">Yes</span></div>
+            <div class="row"><span>Last access review completed</span><span class="chip chip-warn">Aug 1, 2026</span></div>
+            <div class="row"><span>Privacy policy review</span><span class="chip chip-gold">Due Q4</span></div>
+          </div>
+        </section>
+
+        <section id="operations" style="display:none;">
+          <div class="screen-title">Operations</div>
+          <div class="tabs">
+            <div class="tab active">Overview</div>
+            <div class="tab">Projects</div>
+            <div class="tab">Vendors</div>
+            <div class="tab">Quality</div>
+            <div class="tab">Technology</div>
+            <div class="tab">Logistics</div>
+          </div>
+          <div class="grid grid-2">
+            <div class="card">
+              <h2>Active projects</h2>
+              <div class="row"><span>Warehouse layout review</span><span class="chip chip-gold">Active</span></div>
+              <div class="row"><span>Driver onboarding refresh</span><span class="chip chip-gold">Active</span></div>
+              <div class="row"><span>EDI integration with Lakeside</span><span class="chip chip-warn">At risk</span></div>
+            </div>
+            <div class="card">
+              <h2>Vendor summary</h2>
+              <div class="row"><span>Lakeside Manufacturing</span><span class="chip chip-ok">Active</span></div>
+              <div class="row"><span>Cartier Consulting Group</span><span class="chip chip-ok">Active</span></div>
+              <div class="row"><span>Summit Health Clinics</span><span class="chip chip-ok">Active</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="specialists" style="display:none;">
+          <div class="screen-title">External specialists</div>
+          <div class="tabs">
+            <div class="tab active">Directory</div>
+            <div class="tab">Engagements</div>
+          </div>
+          <table>
+            <thead><tr><th>Name</th><th>Specialty</th><th>Company</th><th>Last engaged</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Helen Vance</td><td>Lawyer</td><td>Vance Employment Law</td><td>2026-08-12</td><td><span class="chip chip-ok">Active</span></td></tr>
+              <tr><td>Robert Chen</td><td>Accountant</td><td>Chen & Associates</td><td>2026-09-01</td><td><span class="chip chip-ok">Active</span></td></tr>
+              <tr><td>Marc Dubois</td><td>Insurance broker</td><td>Dubois Risk</td><td>2026-07-20</td><td><span class="chip chip-warn">Renewal due</span></td></tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function setRole(role) {
+      document.querySelectorAll('.home-role').forEach(el => el.style.display = 'none');
+      const active = document.getElementById('home-' + role);
+      if (active) active.style.display = 'block';
+    }
+
+    const roleSelect = document.getElementById('role-select');
+    if (roleSelect) {
+      roleSelect.addEventListener('change', (e) => setRole(e.target.value));
+      setRole(roleSelect.value);
+    }
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        const href = item.getAttribute('href').slice(1);
+        document.querySelectorAll('section').forEach(s => s.style.display = 'none');
+        const target = document.getElementById(href) || document.getElementById('home');
+        target.style.display = 'block';
+        document.querySelector('.topbar-title').textContent = item.textContent.trim() + ' — Northgate Logistics Inc.';
+      });
+    });
+  </script>
+</body>
+</html>
