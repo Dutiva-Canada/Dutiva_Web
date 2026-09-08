@@ -35,6 +35,7 @@ import { bulkImportMessages } from './bulkImport'
 import { placeholderMessages } from './placeholder'
 import { governanceMessages } from './governance'
 import { securityMessages } from './security'
+import { operationsMessages } from './operations'
 import { sharedMessages } from './shared'
 
 /**
@@ -82,6 +83,7 @@ export const workspaceMessages = {
   ...placeholderMessages,
   ...governanceMessages,
   ...securityMessages,
+  ...operationsMessages,
   ...sharedMessages,
 } as const
 

@@ -1,0 +1,55 @@
+import { defineMessages } from '../core'
+
+/**
+ * Operations command register chrome — projects, vendors, quality, technology,
+ * logistics. EN + FR [FR self-authored].
+ */
+export const operationsMessages = defineMessages({
+  ops_title: { en: 'Operations', fr: 'Opérations' },
+  ops_subtitle: {
+    en: 'A command register for projects, vendors, quality checks, technology, and logistics.',
+    fr: 'Un registre de commande pour les projets, fournisseurs, vérifications de qualité, technologie et logistique.',
+  },
+  ops_tab_overview: { en: 'Overview', fr: 'Aperçu' },
+  ops_tab_projects: { en: 'Projects', fr: 'Projets' },
+  ops_tab_vendors: { en: 'Vendors', fr: 'Fournisseurs' },
+  ops_tab_quality: { en: 'Quality checks', fr: 'Contrôles qualité' },
+  ops_tab_technology: { en: 'Technology', fr: 'Technologie' },
+  ops_tab_logistics: { en: 'Logistics', fr: 'Logistique' },
+  ops_empty_title: { en: 'No operations records yet', fr: 'Aucun dossier opérationnel' },
+  ops_empty_body: {
+    en: 'Add your first project, vendor, or quality check.',
+    fr: 'Ajoutez votre premier projet, fournisseur ou contrôle qualité.',
+  },
+  ops_project_status_planning: { en: 'Planning', fr: 'Planification' },
+  ops_project_status_active: { en: 'Active', fr: 'Actif' },
+  ops_project_status_on_hold: { en: 'On hold', fr: 'En suspens' },
+  ops_project_status_completed: { en: 'Completed', fr: 'Terminé' },
+  ops_project_status_cancelled: { en: 'Cancelled', fr: 'Annulé' },
+  ops_vendor_type_supplier: { en: 'Supplier', fr: 'Fournisseur' },
+  ops_vendor_type_logistics: { en: 'Logistics', fr: 'Logistique' },
+  ops_vendor_type_technology: { en: 'Technology', fr: 'Technologie' },
+  ops_vendor_type_professional_service: { en: 'Professional service', fr: 'Service professionnel' },
+  ops_status_active: { en: 'Active', fr: 'Actif' },
+  ops_status_inactive: { en: 'Inactive', fr: 'Inactif' },
+  ops_status_under_review: { en: 'Under review', fr: 'En révision' },
+  ops_quality_status_pending: { en: 'Pending', fr: 'En attente' },
+  ops_quality_status_passed: { en: 'Passed', fr: 'Réussi' },
+  ops_quality_status_failed: { en: 'Failed', fr: 'Échoué' },
+  ops_quality_status_overdue: { en: 'Overdue', fr: 'En retard' },
+  ops_tech_type_internal: { en: 'Internal', fr: 'Interne' },
+  ops_tech_type_customer_facing: { en: 'Customer facing', fr: 'Client' },
+  ops_tech_type_integration: { en: 'Integration', fr: 'Intégration' },
+  ops_tech_type_infrastructure: { en: 'Infrastructure', fr: 'Infrastructure' },
+  ops_tech_status_active: { en: 'Active', fr: 'Actif' },
+  ops_tech_status_deprecated: { en: 'Deprecated', fr: 'Obsolète' },
+  ops_tech_status_planned: { en: 'Planned', fr: 'Planifié' },
+  ops_logistics_status_in_transit: { en: 'In transit', fr: 'En transit' },
+  ops_logistics_status_delivered: { en: 'Delivered', fr: 'Livré' },
+  ops_logistics_status_delayed: { en: 'Delayed', fr: 'Retardé' },
+  ops_logistics_status_returned: { en: 'Returned', fr: 'Retourné' },
+  ops_disclaimer: {
+    en: 'Tracks operational work and renewal dates; it is not an ERP or inventory system.',
+    fr: 'Fait le suivi du travail opérationnel et des échéances de renouvellement; ce n’est pas un ERP ou un système d’inventaire.',
+  },
+})

@@ -7958,6 +7958,319 @@ export type Database = {
           },
         ]
       }
+      operations_logistics: {
+        Row: {
+          assigned_to: string | null
+          created_at: string | null
+          created_by: string | null
+          delivered_date: string | null
+          expected_date: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          owner_id: string | null
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          delivered_date?: string | null
+          expected_date?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          owner_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          delivered_date?: string | null
+          expected_date?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          owner_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operations_logistics_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operations_logistics_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operations_logistics_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operations_logistics_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operations_projects: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          organization_id: string
+          owner_id: string | null
+          start_date: string | null
+          status: string
+          target_date: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          organization_id: string
+          owner_id?: string | null
+          start_date?: string | null
+          status?: string
+          target_date?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          organization_id?: string
+          owner_id?: string | null
+          start_date?: string | null
+          status?: string
+          target_date?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operations_projects_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operations_projects_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operations_quality_checks: {
+        Row: {
+          assigned_to: string | null
+          checklist: Json | null
+          completed_date: string | null
+          created_at: string | null
+          created_by: string | null
+          due_date: string | null
+          id: string
+          non_conformance: string | null
+          organization_id: string
+          reviewer_id: string | null
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          checklist?: Json | null
+          completed_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          non_conformance?: string | null
+          organization_id: string
+          reviewer_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          checklist?: Json | null
+          completed_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          non_conformance?: string | null
+          organization_id?: string
+          reviewer_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operations_quality_checks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operations_quality_checks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operations_quality_checks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operations_quality_checks_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operations_technology: {
+        Row: {
+          created_at: string | null
+          id: string
+          integration_notes: string | null
+          name: string
+          organization_id: string
+          owner_id: string | null
+          renewal_date: string | null
+          status: string
+          system_type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          integration_notes?: string | null
+          name: string
+          organization_id: string
+          owner_id?: string | null
+          renewal_date?: string | null
+          status?: string
+          system_type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          integration_notes?: string | null
+          name?: string
+          organization_id?: string
+          owner_id?: string | null
+          renewal_date?: string | null
+          status?: string
+          system_type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operations_technology_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operations_technology_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operations_vendors: {
+        Row: {
+          contract_expiry: string | null
+          created_at: string | null
+          finance_party_id: string | null
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string
+          status: string
+          updated_at: string | null
+          vendor_type: string | null
+        }
+        Insert: {
+          contract_expiry?: string | null
+          created_at?: string | null
+          finance_party_id?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id: string
+          status?: string
+          updated_at?: string | null
+          vendor_type?: string | null
+        }
+        Update: {
+          contract_expiry?: string | null
+          created_at?: string | null
+          finance_party_id?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          status?: string
+          updated_at?: string | null
+          vendor_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operations_vendors_finance_party_id_fkey"
+            columns: ["finance_party_id"]
+            isOneToOne: false
+            referencedRelation: "finance_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "operations_vendors_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_admission_log: {
         Row: {
           created_at: string

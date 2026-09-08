@@ -83,6 +83,14 @@ import {
 /* prettier-ignore */ const SecurityRisks = lazy(() => import('@/features/app/views/security/screens/Risks').then((m) => ({ default: m.Risks })))
 /* prettier-ignore */ const SecurityVendors = lazy(() => import('@/features/app/views/security/screens/Vendors').then((m) => ({ default: m.Vendors })))
 
+/* Operations workspace screens */
+/* prettier-ignore */ const OperationsOverview = lazy(() => import('@/features/app/views/operations/screens/Overview').then((m) => ({ default: m.Overview })))
+/* prettier-ignore */ const OperationsProjects = lazy(() => import('@/features/app/views/operations/screens/Projects').then((m) => ({ default: m.Projects })))
+/* prettier-ignore */ const OperationsVendors = lazy(() => import('@/features/app/views/operations/screens/Vendors').then((m) => ({ default: m.Vendors })))
+/* prettier-ignore */ const OperationsQualityChecks = lazy(() => import('@/features/app/views/operations/screens/QualityChecks').then((m) => ({ default: m.QualityChecks })))
+/* prettier-ignore */ const OperationsTechnology = lazy(() => import('@/features/app/views/operations/screens/Technology').then((m) => ({ default: m.Technology })))
+/* prettier-ignore */ const OperationsLogistics = lazy(() => import('@/features/app/views/operations/screens/Logistics').then((m) => ({ default: m.Logistics })))
+
 /* Communications workspace screens */
 /* prettier-ignore */ const CommsOverview = lazy(() => import('@/features/app/views/comms/screens/Overview').then((m) => ({ default: m.Overview })))
 /* prettier-ignore */ const CommsInitiatives = lazy(() => import('@/features/app/views/comms/screens/Initiatives').then((m) => ({ default: m.Initiatives })))
@@ -210,7 +218,19 @@ function createAppViewRoutes(root: string): RouteObject[] {
     { path: 'compensation', element: <CompensationView /> },
     { path: 'crm', element: <CrmView /> },
     { path: 'revenue', element: <RevenueView /> },
-    { path: 'operations', element: <OperationsView /> },
+    {
+      path: 'operations',
+      element: <OperationsView />,
+      children: [
+        { index: true, loader: () => redirect(r('operations/overview')) },
+        { path: 'overview', element: <OperationsOverview /> },
+        { path: 'projects', element: <OperationsProjects /> },
+        { path: 'vendors', element: <OperationsVendors /> },
+        { path: 'quality', element: <OperationsQualityChecks /> },
+        { path: 'technology', element: <OperationsTechnology /> },
+        { path: 'logistics', element: <OperationsLogistics /> },
+      ],
+    },
     {
       path: 'governance',
       element: <GovernanceView />,

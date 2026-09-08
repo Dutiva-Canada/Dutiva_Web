@@ -1,6 +1,16 @@
-import { ModulePlaceholder } from '@/features/app/views/placeholders/ModulePlaceholder'
-import { shellMessages as M } from '@/i18n/messages/shell'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { OperationsDemoView } from './OperationsDemoView'
+import { OperationsProductionView } from './OperationsProductionView'
 
+/**
+ * Operations workspace dispatch shell. A command register, not an ERP.
+ */
 export function OperationsView() {
-  return <ModulePlaceholder title={M.shell_v_operations} />
+  const { mode } = useWorkspaceMode()
+
+  if (mode === 'production') {
+    return <OperationsProductionView />
+  }
+
+  return <OperationsDemoView />
 }
