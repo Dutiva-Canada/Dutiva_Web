@@ -8,6 +8,7 @@ import { commsMessages as M } from '@/i18n/messages/comms'
 
 import { useCommsData } from '../data/useCommsData'
 import { useInitiatives } from '../data/useInitiatives'
+import { useObjectives } from '../data/useObjectives'
 import type {
   CommsDomain,
   CommsInitiative,
@@ -151,7 +152,8 @@ function InitiativeForm({
 
 function ObjectivesSection({ initiatives }: { initiatives: CommsInitiative[] }) {
   const { x, lang } = useI18n()
-  const { state, canWrite, addObjective, removeObjective } = useCommsData()
+  const { canWrite } = useCommsData()
+  const { objectives, addObjective, removeObjective } = useObjectives()
   const [open, setOpen] = useState(false)
   const [initiativeId, setInitiativeId] = useState('')
   const [label, setLabel] = useState('')
@@ -172,10 +174,10 @@ function ObjectivesSection({ initiatives }: { initiatives: CommsInitiative[] }) 
     setEvidence('')
   }
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!initiativeId || !label.trim() || !owner.trim()) return
-    addObjective({
+    await addObjective({
       initiativeId,
       label: biInput(label, lang) ?? { en: label.trim(), fr: `[FR review] ${label.trim()}` },
       baseline: baseline.trim() || undefined,
@@ -188,13 +190,13 @@ function ObjectivesSection({ initiatives }: { initiatives: CommsInitiative[] }) 
   }
 
   const grouped = useMemo(() => {
-    const byInitiative: Record<string, typeof state.objectives> = {}
-    for (const obj of state.objectives) {
+    const byInitiative: Record<string, typeof objectives> = {}
+    for (const obj of objectives) {
       const list = byInitiative[obj.initiativeId] ?? (byInitiative[obj.initiativeId] = [])
       list.push(obj)
     }
     return byInitiative
-  }, [state.objectives])
+  }, [objectives])
 
   return (
     <section className="rounded-[12px] border border-border bg-surface p-[16px]">
@@ -265,7 +267,7 @@ function ObjectivesSection({ initiatives }: { initiatives: CommsInitiative[] }) 
         </form>
       )}
 
-      {state.objectives.length === 0 ? (
+      {objectives.length === 0 ? (
         <p className="text-[13px] text-text-muted">{x(M.comms_objectives_empty)}</p>
       ) : (
         <div className="flex flex-col gap-[14px]">

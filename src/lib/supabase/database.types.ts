@@ -1928,6 +1928,56 @@ export type Database = {
           },
         ]
       }
+      comms_objectives: {
+        Row: {
+          baseline: string | null
+          created_at: string
+          evidence_source: Json | null
+          id: string
+          initiative_id: string
+          label: Json
+          organization_id: string
+          owner: string
+          period: Json | null
+          target: string | null
+          updated_at: string
+        }
+        Insert: {
+          baseline?: string | null
+          created_at?: string
+          evidence_source?: Json | null
+          id?: string
+          initiative_id: string
+          label: Json
+          organization_id: string
+          owner: string
+          period?: Json | null
+          target?: string | null
+          updated_at?: string
+        }
+        Update: {
+          baseline?: string | null
+          created_at?: string
+          evidence_source?: Json | null
+          id?: string
+          initiative_id?: string
+          label?: Json
+          organization_id?: string
+          owner?: string
+          period?: Json | null
+          target?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comms_objectives_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comms_organizations: {
         Row: {
           created_at: string
