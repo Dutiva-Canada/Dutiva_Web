@@ -24,6 +24,7 @@ import {
   CLASSIFICATION_META,
   ORIGIN_META,
   RETENTION_CATEGORY_LABELS,
+  RETRIEVAL_SCOPE_META,
   SENSITIVITY_META,
   SOURCE_META,
   STATUS_META,
@@ -279,11 +280,25 @@ export function MemoryDetailsDrawer({
             </dl>
           </div>
 
-          {/* Purpose + jurisdiction */}
-          {(fact.purpose != null || fact.jurisdiction != null) && (
+          {/* Purpose + jurisdiction + retrieval scope */}
+          {(fact.purpose != null || fact.jurisdiction != null || fact.retrievalScope != null) && (
             <dl className="mb-[14px]">
               {fact.purpose != null && <Row label={x(M.memory_details_purpose)}>{pickL(fact.purpose, lang)}</Row>}
               {fact.jurisdiction != null && <Row label={x(M.memory_details_jurisdiction)}>{fact.jurisdiction}</Row>}
+              {fact.retrievalScope != null && (
+                <Row label={x(M.memory_retrieval_scope)}>
+                  <span className="inline-flex items-center gap-[5px]">
+                    {(() => {
+                      const ScopeIcon = RETRIEVAL_SCOPE_META[fact.retrievalScope!.type].icon
+                      return <ScopeIcon size={13} strokeWidth={1.7} aria-hidden="true" />
+                    })()}
+                    {pick(RETRIEVAL_SCOPE_META[fact.retrievalScope.type].label, lang)}
+                    {fact.retrievalScope.id != null && (
+                      <span className="text-text-faint"> · {fact.retrievalScope.id}</span>
+                    )}
+                  </span>
+                </Row>
+              )}
             </dl>
           )}
 

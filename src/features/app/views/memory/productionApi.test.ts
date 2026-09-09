@@ -16,6 +16,31 @@ const FACT_ROW = {
   confirmed_at: null,
   visibility: 'hr',
   sensitive: false,
+  // Governance columns (migration 0155) — null for legacy rows
+  status: null,
+  classification: null,
+  origin: null,
+  sensitivity: null,
+  advisor_usable: null,
+  retention_category: null,
+  review_date: null,
+  expiry_date: null,
+  last_verified_at: null,
+  legal_hold_reason_en: null,
+  legal_hold_reason_fr: null,
+  legal_hold_placed_by: null,
+  legal_hold_placed_at: null,
+  purpose_en: null,
+  purpose_fr: null,
+  jurisdiction: null,
+  proposed_by: null,
+  confidence_score: null,
+  creator_label: null,
+  confirmed_by_label: null,
+  source_excerpt_en: null,
+  source_excerpt_fr: null,
+  retrieval_scope_type: null,
+  retrieval_scope_id: null,
 }
 
 describe('memory productionApi', () => {
@@ -261,5 +286,121 @@ describe('memory productionApi', () => {
     )
     expect(insertAudit).toHaveBeenCalledWith(expect.objectContaining({ action: 'create' }))
     expect(fact.confidence).toBe('confirmed')
+  })
+
+  it('createFact persists governance fields (classification, sensitivity, retrieval scope)', async () => {
+    const created = {
+      ...FACT_ROW,
+      confidence: 'confirmed',
+      confirmed_at: '2026-08-23T12:00:00Z',
+      source_type: 'manual',
+      status: 'confirmed',
+      classification: 'fact',
+      origin: 'manual',
+      sensitivity: 'standard',
+      advisor_usable: true,
+      retrieval_scope_type: 'case',
+      retrieval_scope_id: 'case-1',
+    }
+    const single = vi.fn().mockResolvedValue({ data: created, error: null })
+    const select = vi.fn().mockReturnValue({ single })
+    const insertFact = vi.fn().mockReturnValue({ select })
+    const insertAudit = vi.fn().mockResolvedValue({ error: null })
+
+    mockClient((table) => {
+      if (table === 'hr_advisor_memory_audit') return { insert: insertAudit }
+      return { insert: insertFact }
+    })
+    vi.resetModules()
+    const api = await import('./productionApi')
+
+    const fact = await api.createFact('org-1', {
+      scope: 'person',
+      entityId: 'emp-1',
+      category: 'note',
+      statementEn: 'Prefers email follow-ups',
+      statementFr: 'Préfère les suivis par courriel',
+      classification: 'fact',
+      sensitivity: 'standard',
+      retrievalScope: { type: 'case', id: 'case-1' },
+    })
+    expect(insertFact).toHaveBeenCalledWith(
+      expect.objectContaining({
+        classification: 'fact',
+        sensitivity: 'standard',
+        retrieval_scope_type: 'case',
+        retrieval_scope_id: 'case-1',
+      }),
+    )
+    expect(fact.retrievalScope).toEqual({ type: 'case', id: 'case-1' })
+    expect(fact.classification).toBe('fact')
+  })
+
+  it('addLegalHold sets the hold columns and audits legal_hold_added', async () => {
+    const held = {
+      ...FACT_ROW,
+      legal_hold_reason_en: 'Pending litigation',
+      legal_hold_reason_fr: 'Litige en cours',
+      legal_hold_placed_by: 'Riley Summers',
+      legal_hold_placed_at: '2026-08-23T12:00:00Z',
+    }
+    const maybeSingle = vi.fn().mockResolvedValue({ data: FACT_ROW, error: null })
+    const is = vi.fn().mockReturnValue({ maybeSingle })
+    const eqOrgRead = vi.fn().mockReturnValue({ is })
+    const eqIdRead = vi.fn().mockReturnValue({ eq: eqOrgRead })
+    const selectRead = vi.fn().mockReturnValue({ eq: eqIdRead })
+
+    const single = vi.fn().mockResolvedValue({ data: held, error: null })
+    const selectUpdate = vi.fn().mockReturnValue({ single })
+    const eqOrgUpdate = vi.fn().mockReturnValue({ select: selectUpdate })
+    const eqIdUpdate = vi.fn().mockReturnValue({ eq: eqOrgUpdate })
+    const update = vi.fn().mockReturnValue({ eq: eqIdUpdate })
+    const insert = vi.fn().mockResolvedValue({ error: null })
+
+    mockClient((table) => {
+      if (table === 'hr_advisor_memory_audit') return { insert }
+      return { select: selectRead, update }
+    })
+    vi.resetModules()
+    const api = await import('./productionLifecycleApi')
+
+    const fact = await api.addLegalHold('org-1', 'fact-1', 'Pending litigation', 'Litige en cours', 'Riley Summers')
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        legal_hold_reason_en: 'Pending litigation',
+        legal_hold_placed_by: 'Riley Summers',
+      }),
+    )
+    expect(insert).toHaveBeenCalledWith(expect.objectContaining({ action: 'legal_hold_added' }))
+    expect(fact.legalHold).not.toBeNull()
+    expect(fact.legalHold?.placedBy).toBe('Riley Summers')
+  })
+
+  it('markForReview sets status to needs_review and audits review_requested', async () => {
+    const reviewed = { ...FACT_ROW, status: 'needs_review' }
+    const maybeSingle = vi.fn().mockResolvedValue({ data: FACT_ROW, error: null })
+    const is = vi.fn().mockReturnValue({ maybeSingle })
+    const eqOrgRead = vi.fn().mockReturnValue({ is })
+    const eqIdRead = vi.fn().mockReturnValue({ eq: eqOrgRead })
+    const selectRead = vi.fn().mockReturnValue({ eq: eqIdRead })
+
+    const single = vi.fn().mockResolvedValue({ data: reviewed, error: null })
+    const selectUpdate = vi.fn().mockReturnValue({ single })
+    const eqOrgUpdate = vi.fn().mockReturnValue({ select: selectUpdate })
+    const eqIdUpdate = vi.fn().mockReturnValue({ eq: eqOrgUpdate })
+    const update = vi.fn().mockReturnValue({ eq: eqIdUpdate })
+    const insert = vi.fn().mockResolvedValue({ error: null })
+
+    mockClient((table) => {
+      if (table === 'hr_advisor_memory_audit') return { insert }
+      return { select: selectRead, update }
+    })
+    vi.resetModules()
+    const api = await import('./productionLifecycleApi')
+
+    const fact = await api.markForReview('org-1', 'fact-1')
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ status: 'needs_review' }))
+    expect(insert).toHaveBeenCalledWith(expect.objectContaining({ action: 'review_requested' }))
+    expect(fact.status).toBe('needs_review')
   })
 })

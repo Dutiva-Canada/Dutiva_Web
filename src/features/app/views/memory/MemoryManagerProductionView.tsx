@@ -27,6 +27,7 @@ import {
   listFacts,
 } from './productionApi'
 import type { ProductionMemoryAuditEntry } from './productionApi'
+import { addLegalHold, markForReview, rejectFact, removeLegalHold } from './productionLifecycleApi'
 import { effectiveStatus } from './memoryModel'
 import {
   ProductionActivityTab,
@@ -37,18 +38,17 @@ import {
 
 /**
  * Advisor Memory workspace in production — org facts from
- * `hr_advisor_memory_facts` (migration 0086). Uses the same four-tab IA as
- * the demo view (Memories / Review queue / Activity / Governance).
+ * `hr_advisor_memory_facts` (migrations 0086 + 0155). Uses the same four-tab
+ * IA as the demo view (Memories / Review queue / Activity / Governance).
  *
- * Backend boundary (migration 0086): the table persists scope, entity,
- * category, bilingual statement, confidence, source, learned/confirmed
- * dates, visibility, sensitive flag, and soft-forget. It does NOT persist
- * the expanded governance metadata (status, classification, sensitivity
- * tier, retention category/schedule, legal hold, Advisor-usable state,
- * purpose, jurisdiction, proposed-by, confidence score, review/expiry
- * dates, source excerpt). Those are frontend-only abstractions here; the UI
- * is honest about that — it does not pretend the backend stores them. A
- * future migration will add the missing columns.
+ * Backend boundary: migration 0086 persisted the original fact columns
+ * (scope, entity, category, statement, confidence, source, learned/confirmed
+ * dates, visibility, sensitive, soft-forget). Migration 0155 added the
+ * governance columns (status, classification, sensitivity, retention,
+ * legal hold, Advisor-usable, purpose, jurisdiction, provenance, retrieval
+ * scope). The production API now persists and retrieves those fields.
+ * The memory-enabled toggle and auto-proposals setting remain frontend-only
+ * session state until a future migration adds org-level settings.
  */
 
 type MemoryTab = 'memories' | 'review' | 'activity' | 'governance'
@@ -244,6 +244,46 @@ export function MemoryManagerProductionView() {
     }
   }
 
+  const onMarkForReview = async (id: string) => {
+    if (!organizationId) return
+    try {
+      await markForReview(organizationId, id)
+      await load()
+    } catch {
+      showToast(M.memory_prod_error, 'info')
+    }
+  }
+
+  const onReject = async (id: string) => {
+    if (!organizationId) return
+    try {
+      await rejectFact(organizationId, id)
+      await load()
+    } catch {
+      showToast(M.memory_prod_error, 'info')
+    }
+  }
+
+  const onAddLegalHold = async (id: string, reasonEn: string, reasonFr: string) => {
+    if (!organizationId) return
+    try {
+      await addLegalHold(organizationId, id, reasonEn, reasonFr, identity.user.name)
+      await load()
+    } catch {
+      showToast(M.memory_prod_error, 'info')
+    }
+  }
+
+  const onRemoveLegalHold = async (id: string) => {
+    if (!organizationId) return
+    try {
+      await removeLegalHold(organizationId, id)
+      await load()
+    } catch {
+      showToast(M.memory_prod_error, 'info')
+    }
+  }
+
   const onBulkForgetPerson = async () => {
     if (!organizationId || !forgetPersonId || forgetting) return
     const name = personNames[forgetPersonId] ?? forgetPersonId
@@ -389,6 +429,9 @@ export function MemoryManagerProductionView() {
             onSaveEdit={(id) => void onCorrect(id, editDraft)}
             onConfirm={(id) => void onConfirm(id)}
             onForget={(id) => void onForget(id)}
+            onMarkForReview={(id) => void onMarkForReview(id)}
+            onAddLegalHold={(id, en, fr) => void onAddLegalHold(id, en, fr)}
+            onRemoveLegalHold={(id) => void onRemoveLegalHold(id)}
             onRetry={() => void load()}
           />
         )}
@@ -397,7 +440,7 @@ export function MemoryManagerProductionView() {
             rows={proposed}
             subjectLabel={subjectLabel}
             onConfirm={(id) => void onConfirm(id)}
-            onForget={(id) => void onForget(id)}
+            onReject={(id) => void onReject(id)}
           />
         )}
         {tab === 'activity' && <ProductionActivityTab audit={audit} />}

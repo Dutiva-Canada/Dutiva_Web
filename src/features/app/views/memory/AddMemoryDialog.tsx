@@ -4,13 +4,20 @@ import { useI18n } from '@/i18n/context'
 import { pick } from '@/i18n/core'
 import { memoryMessages as M } from '@/i18n/messages/memory'
 import { cases, employees } from '@/data'
-import type { MemoryCategory, MemoryClassification, MemoryRetentionCategory, MemoryScope } from '@/data'
+import type {
+  MemoryCategory,
+  MemoryClassification,
+  MemoryRetentionCategory,
+  MemoryRetrievalScopeType,
+  MemoryScope,
+} from '@/data'
 import { memoryActions, type AddMemoryInput } from './memoryStore'
 import {
   CLASSIFICATION_ORDER,
   CLASSIFICATION_META,
   RETENTION_CATEGORY_ORDER,
   RETENTION_CATEGORY_LABELS,
+  RETRIEVAL_SCOPE_META,
 } from './memoryModel'
 
 /**
@@ -39,7 +46,8 @@ export function AddMemoryDialog({ open, onClose }: AddMemoryDialogProps) {
   const [classification, setClassification] = useState<MemoryClassification>('fact')
   const [sensitivity, setSensitivity] = useState<'standard' | 'restricted'>('standard')
   const [purpose, setPurpose] = useState('')
-  const [retention, setRetention] = useState<MemoryRetentionCategory>('note' as never)
+  const [retention, setRetention] = useState<MemoryRetentionCategory | ''>('')
+  const [retrievalScope, setRetrievalScope] = useState<MemoryRetrievalScopeType | ''>('')
   const [advanced, setAdvanced] = useState(false)
 
   useEffect(() => {
@@ -66,7 +74,8 @@ export function AddMemoryDialog({ open, onClose }: AddMemoryDialogProps) {
     setClassification('fact')
     setSensitivity('standard')
     setPurpose('')
-    setRetention('note' as never)
+    setRetention('')
+    setRetrievalScope('')
     setAdvanced(false)
   }
 
@@ -84,7 +93,10 @@ export function AddMemoryDialog({ open, onClose }: AddMemoryDialogProps) {
       classification,
       sensitivity,
       ...(purpose.trim().length > 0 ? { purpose: { en: purpose.trim(), fr: purpose.trim() } } : {}),
-      ...(retention !== ('note' as never) ? { retentionCategory: retention } : {}),
+      ...(retention !== '' ? { retentionCategory: retention } : {}),
+      ...(retrievalScope !== ''
+        ? { retrievalScope: { type: retrievalScope, ...(scope === 'case' && caseId ? { id: caseId } : {}) } }
+        : {}),
     }
     memoryActions.addMemory(input)
     reset()
@@ -273,8 +285,8 @@ export function AddMemoryDialog({ open, onClose }: AddMemoryDialogProps) {
                 </label>
                 <select
                   id="mem-add-retention"
-                  value={retention === ('note' as never) ? '' : retention}
-                  onChange={(e) => setRetention((e.target.value || 'note') as MemoryRetentionCategory)}
+                  value={retention}
+                  onChange={(e) => setRetention(e.target.value as MemoryRetentionCategory | '')}
                   className={inputClass}
                 >
                   <option value="">{x(M.memory_filter_none)}</option>
@@ -284,6 +296,27 @@ export function AddMemoryDialog({ open, onClose }: AddMemoryDialogProps) {
                     </option>
                   ))}
                 </select>
+              </div>
+              <div className="sm:col-span-2">
+                <label className={labelClass} htmlFor="mem-add-scope-retrieval">
+                  {x(M.memory_retrieval_scope)}
+                </label>
+                <select
+                  id="mem-add-scope-retrieval"
+                  value={retrievalScope}
+                  onChange={(e) => setRetrievalScope(e.target.value as MemoryRetrievalScopeType | '')}
+                  className={inputClass}
+                >
+                  <option value="">{x(M.memory_filter_none)}</option>
+                  {(Object.keys(RETRIEVAL_SCOPE_META) as MemoryRetrievalScopeType[]).map((s) => (
+                    <option key={s} value={s}>
+                      {pick(RETRIEVAL_SCOPE_META[s].label, lang)}
+                    </option>
+                  ))}
+                </select>
+                <p className="m-0 mt-[4px] text-[11px] leading-normal text-text-faint">
+                  {x(M.memory_retrieval_scope_note)}
+                </p>
               </div>
             </div>
           )}

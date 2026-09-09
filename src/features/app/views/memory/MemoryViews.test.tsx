@@ -151,7 +151,7 @@ describe('Advisor Memory surfaces', () => {
       renderManager()
 
       const reviewTab = screen.getByRole('tab', { name: /Review queue/ })
-      expect(reviewTab).toHaveTextContent(String(4))
+      expect(reviewTab).toHaveTextContent(String(5))
     })
 
     it('searches memory statements from the Memories toolbar', () => {
@@ -222,6 +222,58 @@ describe('Advisor Memory surfaces', () => {
       fireEvent.click(screen.getByRole('button', { name: /Disable Advisor memory/ }))
       /* The disabled status appears in both the header badge and the governance section. */
       expect(screen.getAllByText('Advisor memory disabled').length).toBeGreaterThan(0)
+    })
+
+    it('shows the disabled-state banner on the Memories tab when memory is off', () => {
+      renderManager()
+
+      /* Disable memory from the Governance tab. */
+      fireEvent.click(screen.getByRole('tab', { name: /Governance/ }))
+      fireEvent.click(screen.getByRole('button', { name: /Disable Advisor memory/ }))
+      /* Return to Memories — the disabled banner should be visible. */
+      fireEvent.click(screen.getByRole('tab', { name: /Memories/ }))
+      expect(screen.getByText('Advisor memory is disabled')).toBeInTheDocument()
+    })
+
+    it('shows the no-results state with Clear filters when search matches nothing', () => {
+      renderManager()
+
+      fireEvent.change(screen.getByPlaceholderText('Search memories'), {
+        target: { value: 'zzz-no-such-memory-zzz' },
+      })
+      expect(screen.getByText('No memories match your filters')).toBeInTheDocument()
+      /* The no-results Clear filters button lives inside the memory list card. */
+      const listCard = screen.getByText('No memories match your filters').closest('div.rounded-\\[14px\\]')
+      expect(listCard).not.toBeNull()
+      expect(listCard!.querySelector('button')).not.toBeNull()
+    })
+
+    it('navigates to the Review queue when the Needs review metric is clicked', () => {
+      renderManager()
+
+      /* The Needs review metric is a clickable element inside the metrics row.
+         Scope to the metrics area to avoid matching the Review queue tab. */
+      const metricsRow = screen.getByText('Active memories').closest('div.flex.flex-wrap') as HTMLElement | null
+      expect(metricsRow).not.toBeNull()
+      const reviewMetric = within(metricsRow!).getByText('Needs review').closest('[role="button"]')
+      expect(reviewMetric).not.toBeNull()
+      fireEvent.click(reviewMetric!)
+      /* The Review queue tab should now be active. */
+      expect(screen.getByRole('tab', { name: /Review queue/ })).toHaveAttribute('aria-selected', 'true')
+    })
+
+    it('shows the retrieval scope in the details drawer for case-scoped memories', () => {
+      renderManager()
+
+      /* Open the details drawer for a memory that has a retrieval scope.
+         The allegation (c5) has retrievalScope { type: 'case', id: 'case1' }. */
+      fireEvent.change(screen.getByPlaceholderText('Search memories'), {
+        target: { value: 'falsified' },
+      })
+      fireEvent.click(screen.getByRole('button', { name: /Open details/ }))
+      /* The drawer should show the retrieval scope label. */
+      expect(screen.getByText('Retrieval scope')).toBeInTheDocument()
+      expect(screen.getByText('Case only')).toBeInTheDocument()
     })
   })
 })

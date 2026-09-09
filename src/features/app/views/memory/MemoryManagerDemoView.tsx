@@ -123,7 +123,13 @@ export function MemoryManagerDemoView() {
         aria-labelledby={`mem-tab-${tab}`}
         className="flex min-h-0 flex-1 flex-col overflow-hidden"
       >
-        {tab === 'memories' && <MemoryMemoriesTab onAddMemory={() => setAddOpen(true)} />}
+        {tab === 'memories' && (
+          <MemoryMemoriesTab
+            onAddMemory={() => setAddOpen(true)}
+            onGoToReview={() => setTab('review')}
+            onGoToGovernance={() => setTab('governance')}
+          />
+        )}
         {tab === 'review' && <MemoryReviewTab />}
         {tab === 'activity' && <MemoryActivityTab />}
         {tab === 'governance' && <MemoryGovernanceTab />}

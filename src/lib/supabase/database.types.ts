@@ -6784,67 +6784,139 @@ export type Database = {
       }
       hr_advisor_memory_facts: {
         Row: {
+          advisor_usable: boolean | null
           category: string
+          classification: string | null
           confidence: string
+          confidence_score: number | null
           confirmed_at: string | null
+          confirmed_by_label: string | null
           created_at: string
           created_by: string | null
+          creator_label: string | null
           entity_id: string
+          expiry_date: string | null
           forgotten_at: string | null
           id: string
+          jurisdiction: string | null
+          last_verified_at: string | null
           learned_at: string
+          legal_hold_placed_at: string | null
+          legal_hold_placed_by: string | null
+          legal_hold_reason_en: string | null
+          legal_hold_reason_fr: string | null
           organization_id: string
+          origin: string | null
+          proposed_by: string | null
+          purpose_en: string | null
+          purpose_fr: string | null
+          retention_category: string | null
+          retrieval_scope_id: string | null
+          retrieval_scope_type: string | null
+          review_date: string | null
           scope: string
           sensitive: boolean
+          sensitivity: string | null
           source_detail_en: string
           source_detail_fr: string
+          source_excerpt_en: string | null
+          source_excerpt_fr: string | null
           source_type: string
           statement_en: string
           statement_fr: string
+          status: string | null
           updated_at: string
           updated_by: string | null
           visibility: string
         }
         Insert: {
+          advisor_usable?: boolean | null
           category: string
+          classification?: string | null
           confidence?: string
+          confidence_score?: number | null
           confirmed_at?: string | null
+          confirmed_by_label?: string | null
           created_at?: string
           created_by?: string | null
+          creator_label?: string | null
           entity_id: string
+          expiry_date?: string | null
           forgotten_at?: string | null
           id?: string
+          jurisdiction?: string | null
+          last_verified_at?: string | null
           learned_at?: string
+          legal_hold_placed_at?: string | null
+          legal_hold_placed_by?: string | null
+          legal_hold_reason_en?: string | null
+          legal_hold_reason_fr?: string | null
           organization_id: string
+          origin?: string | null
+          proposed_by?: string | null
+          purpose_en?: string | null
+          purpose_fr?: string | null
+          retention_category?: string | null
+          retrieval_scope_id?: string | null
+          retrieval_scope_type?: string | null
+          review_date?: string | null
           scope: string
           sensitive?: boolean
+          sensitivity?: string | null
           source_detail_en?: string
           source_detail_fr?: string
+          source_excerpt_en?: string | null
+          source_excerpt_fr?: string | null
           source_type: string
           statement_en: string
           statement_fr: string
+          status?: string | null
           updated_at?: string
           updated_by?: string | null
           visibility?: string
         }
         Update: {
+          advisor_usable?: boolean | null
           category?: string
+          classification?: string | null
           confidence?: string
+          confidence_score?: number | null
           confirmed_at?: string | null
+          confirmed_by_label?: string | null
           created_at?: string
           created_by?: string | null
+          creator_label?: string | null
           entity_id?: string
+          expiry_date?: string | null
           forgotten_at?: string | null
           id?: string
+          jurisdiction?: string | null
+          last_verified_at?: string | null
           learned_at?: string
+          legal_hold_placed_at?: string | null
+          legal_hold_placed_by?: string | null
+          legal_hold_reason_en?: string | null
+          legal_hold_reason_fr?: string | null
           organization_id?: string
+          origin?: string | null
+          proposed_by?: string | null
+          purpose_en?: string | null
+          purpose_fr?: string | null
+          retention_category?: string | null
+          retrieval_scope_id?: string | null
+          retrieval_scope_type?: string | null
+          review_date?: string | null
           scope?: string
           sensitive?: boolean
+          sensitivity?: string | null
           source_detail_en?: string
           source_detail_fr?: string
+          source_excerpt_en?: string | null
+          source_excerpt_fr?: string | null
           source_type?: string
           statement_en?: string
           statement_fr?: string
+          status?: string | null
           updated_at?: string
           updated_by?: string | null
           visibility?: string

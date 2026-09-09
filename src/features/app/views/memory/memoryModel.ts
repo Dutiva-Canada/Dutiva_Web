@@ -22,6 +22,7 @@ import type {
   MemoryFact,
   MemoryOrigin,
   MemoryRetentionCategory,
+  MemoryRetrievalScopeType,
   MemorySensitivity,
   MemorySourceType,
   MemoryStatus,
@@ -165,6 +166,16 @@ export const RETENTION_CATEGORY_LABELS: Record<MemoryRetentionCategory, Bi> = {
   investigation: M.memory_retention_investigation,
   wellbeing_personal: M.memory_retention_wellbeing_personal,
   custom: M.memory_retention_custom,
+}
+
+export const RETRIEVAL_SCOPE_META: Record<
+  MemoryRetrievalScopeType,
+  { label: Bi; icon: LucideIcon }
+> = {
+  workspace: { label: M.memory_retrieval_workspace, icon: Users },
+  case: { label: M.memory_retrieval_case, icon: Briefcase },
+  conversation: { label: M.memory_retrieval_conversation, icon: MessageCircle },
+  workflow: { label: M.memory_retrieval_workflow, icon: Database },
 }
 
 export const RETENTION_CATEGORY_ORDER: MemoryRetentionCategory[] = [

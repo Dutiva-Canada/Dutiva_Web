@@ -11,6 +11,7 @@ import type {
   MemoryFact,
   MemoryLegalHold,
   MemoryRetentionCategory,
+  MemoryRetrievalScope,
   MemorySensitivity,
   MemoryStatus,
 } from '@/data'
@@ -168,6 +169,7 @@ export interface AddMemoryInput {
   purpose?: Bi | null
   jurisdiction?: string | null
   sourceDetail?: Bi
+  retrievalScope?: MemoryRetrievalScope | null
 }
 
 export const memoryActions = {
@@ -198,6 +200,7 @@ export const memoryActions = {
       ...(input.retentionCategory != null ? { retentionCategory: input.retentionCategory } : {}),
       ...(input.purpose != null ? { purpose: input.purpose } : {}),
       ...(input.jurisdiction != null ? { jurisdiction: input.jurisdiction } : {}),
+      ...(input.retrievalScope != null ? { retrievalScope: input.retrievalScope } : {}),
       creator: ACTOR,
       confirmedBy: ACTOR,
     }

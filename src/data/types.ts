@@ -634,6 +634,23 @@ export interface MemoryLegalHold {
   placedBy: string
 }
 
+/**
+ * Retrieval scope — where Advisor is permitted to use a memory. Distinct from
+ * the subject (who/what the memory is about) and the source (where it came
+ * from). A case-scoped allegation about John must not leak into unrelated
+ * general HR queries about John.
+ *
+ * Frontend/domain abstraction — the production table (migration 0086) does
+ * not yet persist this; see `productionApi.ts`.
+ */
+export type MemoryRetrievalScopeType = 'workspace' | 'case' | 'conversation' | 'workflow'
+
+export interface MemoryRetrievalScope {
+  type: MemoryRetrievalScopeType
+  /** Entity id when the scope is case/conversation/workflow-specific. */
+  id?: string | null
+}
+
 export interface MemoryFact {
   id: string
   scope: MemoryScope
@@ -702,4 +719,11 @@ export interface MemoryFact {
   confirmedBy?: string | null
   /** Free-form tags for search. */
   tags?: Bi[] | null
+  /**
+   * Where Advisor may retrieve this memory. When absent, defaults to
+   * `workspace` for non-restricted records. Case-scoped records (allegations,
+   * investigation material) should set this to `{ type: 'case', id }` so they
+   * do not leak into unrelated contexts.
+   */
+  retrievalScope?: MemoryRetrievalScope | null
 }

@@ -9,6 +9,7 @@ import type {
   MemoryLegalHold,
   MemoryOrigin,
   MemoryRetentionCategory,
+  MemoryRetrievalScope,
   MemoryScope,
   MemorySensitivity,
   MemorySourceType,
@@ -54,6 +55,7 @@ interface MemoryFactInputBase {
   creator?: string | null
   confirmedBy?: string | null
   tags?: Bi[] | null
+  retrievalScope?: MemoryRetrievalScope | null
 }
 
 /** Confirmed facts must not be seeded from Advisor inference alone. */
@@ -99,6 +101,7 @@ const M = (input: MemoryFactInput): MemoryFact => ({
   ...(input.creator != null ? { creator: input.creator } : {}),
   ...(input.confirmedBy != null ? { confirmedBy: input.confirmedBy } : {}),
   ...(input.tags != null ? { tags: input.tags } : {}),
+  ...(input.retrievalScope != null ? { retrievalScope: input.retrievalScope } : {}),
 })
 
 const peopleRecord = bi('People record', 'Dossier du personnel')
@@ -283,6 +286,8 @@ export const seedMemoryFacts: MemoryFact[] = [
       '« …compte tenu de 8 ans de service et d’un poste de cadre, le préavis en common law se situe généralement entre 9 et 12 mois… »',
     ),
     creator: 'Advisor',
+    /* Case-scoped opinion — restrict to this case context. */
+    retrievalScope: { type: 'case', id: 'case1' },
   }),
   M({
     id: 'p9',
@@ -402,8 +407,9 @@ export const seedMemoryFacts: MemoryFact[] = [
     proposedBy: 'Advisor',
     confidenceScore: 0.71,
     creator: 'Advisor',
+    /* Case-scoped inference — restrict to this case context. */
+    retrievalScope: { type: 'case', id: 'case1' },
   }),
-  /* Jordan — thread */
   M({
     id: 't1',
     scope: 'thread',
@@ -552,6 +558,8 @@ export const seedMemoryFacts: MemoryFact[] = [
       '« Jordan a soumis des heures le 3 août qui ne correspondent pas au registre de dispatch. »',
     ),
     tags: [bi('allegation', 'allégation'), bi('timesheet', 'feuille de temps')],
+    /* Case-scoped allegation — must not leak into unrelated Advisor contexts. */
+    retrievalScope: { type: 'case', id: 'case1' },
   }),
   /* Expiring soon — conversation memory nearing its 24-month review window. */
   M({
@@ -624,6 +632,8 @@ export const seedMemoryFacts: MemoryFact[] = [
     creator: 'Riley Summers',
     confirmedBy: 'Riley Summers',
     tags: [bi('disciplinary', 'disciplinaire'), bi('legal hold', 'conservation pour litige')],
+    /* Case-scoped — litigation hold material, restrict to this case. */
+    retrievalScope: { type: 'case', id: 'case1' },
   }),
   /* Additional confirmed memories for layout density. */
   M({
@@ -703,5 +713,87 @@ export const seedMemoryFacts: MemoryFact[] = [
     jurisdiction: 'ON',
     creator: 'Riley Summers',
     confirmedBy: 'Riley Summers',
+  }),
+  /* Expired — past its review/expiry date, no legal hold. */
+  M({
+    id: 'p13',
+    scope: 'person',
+    entityId: 'e5',
+    category: 'note',
+    statement: bi(
+      'Probationary period ended Dec 2025',
+      'Période de probation terminée en déc. 2025',
+    ),
+    confidence: 'confirmed',
+    source: { type: 'hris', detail: peopleRecord },
+    learnedAt: '2025-09-01',
+    confirmation: { at: '2025-09-01', source: { type: 'hris', detail: peopleRecord } },
+    visibility: 'hr',
+    status: 'expired',
+    classification: 'fact',
+    origin: 'explicit',
+    retentionCategory: 'employment_record',
+    reviewDate: '2025-12-15',
+    expiryDate: '2025-12-15',
+    lastVerifiedAt: '2025-12-01',
+    creator: 'HRIS sync',
+    confirmedBy: 'HRIS sync',
+  }),
+  /* Needs review — flagged for re-validation, not yet expired. */
+  M({
+    id: 'p14',
+    scope: 'person',
+    entityId: 'e6',
+    category: 'employment',
+    statement: bi(
+      'Work-from-home arrangement expires Sep 2026 — verify renewal',
+      'Entente de télétravail expirant en sept. 2026 — vérifier le renouvellement',
+    ),
+    confidence: 'confirmed',
+    source: { type: 'case', detail: caseAmara },
+    learnedAt: APR2026,
+    confirmation: { at: APR2026, source: { type: 'case', detail: caseAmara } },
+    visibility: 'hr',
+    sensitive: true,
+    status: 'needs_review',
+    classification: 'contextual',
+    origin: 'explicit',
+    retentionCategory: 'employment_record',
+    reviewDate: '2026-07-14',
+    lastVerifiedAt: APR2026,
+    creator: 'Riley Summers',
+    confirmedBy: 'Riley Summers',
+  }),
+  /* Thread-scoped with explicit retrieval scope — conversation-only context. */
+  M({
+    id: 't4',
+    scope: 'thread',
+    entityId: 'c1',
+    category: 'conversation',
+    statement: bi(
+      'Jordan asked about severance calculation methodology in the Jul 5 chat',
+      'Jordan a demandé la méthodologie de calcul de l’indemnité dans le clavardage du 5 juill.',
+    ),
+    confidence: 'confirmed',
+    source: {
+      type: 'chat',
+      detail: bi('Conversation · Jul 5', 'Conversation · 5 juill.'),
+    },
+    learnedAt: JUL5,
+    confirmation: {
+      at: JUL5,
+      source: { type: 'chat', detail: bi('Conversation · Jul 5', 'Conversation · 5 juill.') },
+    },
+    visibility: 'case',
+    status: 'confirmed',
+    classification: 'fact',
+    origin: 'explicit',
+    retentionCategory: 'advisor_conversation',
+    reviewDate: '2026-07-14',
+    lastVerifiedAt: JUL5,
+    creator: 'Advisor',
+    confirmedBy: 'Riley Summers',
+    /* Conversation-scoped — only surfaces in this conversation context. */
+    retrievalScope: { type: 'conversation', id: 'c1' },
   }),
 ]

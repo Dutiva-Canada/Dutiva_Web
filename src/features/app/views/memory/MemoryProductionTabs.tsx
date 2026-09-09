@@ -24,6 +24,8 @@ import type { ProductionEmployee } from '@/features/app/views/employees/producti
 import type { MemoryFact, MemoryScope } from '@/data'
 import type { ProductionMemoryAuditEntry } from './productionApi'
 import {
+  CLASSIFICATION_META,
+  RETRIEVAL_SCOPE_META,
   SOURCE_META,
   STATUS_META,
   SENSITIVITY_META,
@@ -65,6 +67,9 @@ export interface ProductionMemoriesTabProps {
   readonly onSaveEdit: (id: string) => void
   readonly onConfirm: (id: string) => void
   readonly onForget: (id: string) => void
+  readonly onMarkForReview: (id: string) => void
+  readonly onAddLegalHold: (id: string, reasonEn: string, reasonFr: string) => void
+  readonly onRemoveLegalHold: (id: string) => void
   readonly onRetry: () => void
 }
 
@@ -86,6 +91,9 @@ export function ProductionMemoriesTab({
   onSaveEdit,
   onConfirm,
   onForget,
+  onMarkForReview,
+  onAddLegalHold,
+  onRemoveLegalHold,
   onRetry,
 }: ProductionMemoriesTabProps) {
   const { x, lang } = useI18n()
@@ -176,6 +184,17 @@ export function ProductionMemoriesTab({
                       <StatusIcon size={11} strokeWidth={2} aria-hidden="true" />
                       {pick(statusMeta.label, lang)}
                     </span>
+                    {fact.classification != null && fact.classification !== 'fact' && (
+                      <span className="inline-flex items-center rounded-[100px] border border-border bg-inset px-[6px] py-[1px] text-[10px] font-semibold text-text-muted">
+                        {pick(CLASSIFICATION_META[fact.classification].label, lang)}
+                      </span>
+                    )}
+                    {fact.legalHold != null && (
+                      <span className="inline-flex items-center gap-[3px] rounded-[100px] border border-risk-border bg-risk-bg px-[6px] py-[1px] text-[10px] font-bold text-risk-dot">
+                        <Gavel size={10} strokeWidth={2} aria-hidden="true" />
+                        {x(M.memory_row_legal_hold)}
+                      </span>
+                    )}
                     <span className="text-[13px] font-medium text-text">{pickL(fact.statement, lang)}</span>
                   </div>
                   <div className="mt-[5px] flex flex-wrap items-center gap-x-[12px] gap-y-[4px] text-[11.5px] text-text-faint">
@@ -200,18 +219,40 @@ export function ProductionMemoriesTab({
                         {pick(sensMeta.label, lang)}
                       </span>
                     )}
+                    {fact.retrievalScope != null && fact.retrievalScope.type !== 'workspace' && (
+                      <span className="inline-flex items-center gap-[3px]">
+                        · {x(M.memory_retrieval_scope)}: {pick(RETRIEVAL_SCOPE_META[fact.retrievalScope.type].label, lang)}
+                      </span>
+                    )}
                   </div>
-                  <div className="mt-[6px] flex gap-[6px]">
+                  <div className="mt-[6px] flex flex-wrap gap-[6px]">
                     {status === 'proposed' && (
                       <button type="button" onClick={() => onConfirm(fact.id)} className="flex cursor-pointer items-center gap-[4px] rounded-[7px] border-none bg-ok-bg px-[10px] py-[5px] font-sans text-[11.5px] font-bold text-ok-fg">
                         <Check size={12} strokeWidth={2.2} aria-hidden="true" />
                         {x(M.memory_action_confirm)}
                       </button>
                     )}
+                    {status !== 'needs_review' && status !== 'removed' && (
+                      <button type="button" onClick={() => onMarkForReview(fact.id)} className="flex cursor-pointer items-center gap-[4px] rounded-[7px] border border-border bg-surface px-[9px] py-[5px] font-sans text-[11.5px] font-semibold text-text-muted">
+                        <Clock size={12} strokeWidth={1.7} aria-hidden="true" />
+                        {x(M.memory_action_mark_review)}
+                      </button>
+                    )}
                     <button type="button" onClick={() => onStartEdit(fact)} className="flex cursor-pointer items-center gap-[4px] rounded-[7px] border border-border bg-surface px-[9px] py-[5px] font-sans text-[11.5px] font-semibold text-text-muted">
                       <Pencil size={12} strokeWidth={1.7} aria-hidden="true" />
                       {x(M.memory_action_edit)}
                     </button>
+                    {fact.legalHold != null ? (
+                      <button type="button" onClick={() => onRemoveLegalHold(fact.id)} className="flex cursor-pointer items-center gap-[4px] rounded-[7px] border border-border bg-surface px-[9px] py-[5px] font-sans text-[11.5px] font-semibold text-text-muted">
+                        <Gavel size={12} strokeWidth={1.7} aria-hidden="true" />
+                        {x(M.memory_action_remove_hold)}
+                      </button>
+                    ) : (
+                      <button type="button" onClick={() => onAddLegalHold(fact.id, pickL(fact.statement, 'en'), pickL(fact.statement, 'fr'))} className="flex cursor-pointer items-center gap-[4px] rounded-[7px] border border-border bg-surface px-[9px] py-[5px] font-sans text-[11.5px] font-semibold text-text-muted">
+                        <Gavel size={12} strokeWidth={1.7} aria-hidden="true" />
+                        {x(M.memory_action_add_hold)}
+                      </button>
+                    )}
                     <button type="button" onClick={() => onForget(fact.id)} className="flex cursor-pointer items-center gap-[4px] rounded-[7px] border border-risk-border bg-surface px-[9px] py-[5px] font-sans text-[11.5px] font-semibold text-risk-dot">
                       <Trash2 size={12} strokeWidth={1.7} aria-hidden="true" />
                       {x(M.memory_action_remove)}
@@ -233,12 +274,12 @@ export function ProductionReviewTab({
   rows,
   subjectLabel,
   onConfirm,
-  onForget,
+  onReject,
 }: {
   readonly rows: readonly MemoryFact[]
   readonly subjectLabel: (f: MemoryFact) => string
   readonly onConfirm: (id: string) => void
-  readonly onForget: (id: string) => void
+  readonly onReject: (id: string) => void
 }) {
   const { x, lang } = useI18n()
   if (rows.length === 0) {
@@ -273,7 +314,7 @@ export function ProductionReviewTab({
                     <Check size={14} strokeWidth={2.2} aria-hidden="true" />
                     {x(M.memory_action_confirm)}
                   </button>
-                  <button type="button" onClick={() => onForget(fact.id)} className="flex cursor-pointer items-center gap-[5px] rounded-[8px] border border-risk-border bg-surface px-[11px] py-[7px] font-sans text-[12.5px] font-semibold text-risk-dot">
+                  <button type="button" onClick={() => onReject(fact.id)} className="flex cursor-pointer items-center gap-[5px] rounded-[8px] border border-risk-border bg-surface px-[11px] py-[7px] font-sans text-[12.5px] font-semibold text-risk-dot">
                     <X size={14} strokeWidth={2} aria-hidden="true" />
                     {x(M.memory_action_reject)}
                   </button>
@@ -288,6 +329,24 @@ export function ProductionReviewTab({
 }
 
 /* --------------------------------------------------------------- Activity */
+
+const AUDIT_ACTION_LABEL: Record<ProductionMemoryAuditEntry['action'], Bi> = {
+  create: M.memory_audit_created,
+  proposed: M.memory_audit_proposed,
+  confirm: M.memory_audit_confirmed,
+  rejected: M.memory_audit_rejected,
+  correct: M.memory_audit_edited,
+  edited: M.memory_audit_edited,
+  forget: M.memory_audit_removed,
+  restored: M.memory_audit_restored,
+  expired: M.memory_audit_expired,
+  exported: M.memory_audit_exported,
+  legal_hold_added: M.memory_audit_legal_hold_added,
+  legal_hold_removed: M.memory_audit_legal_hold_removed,
+  review_requested: M.memory_audit_review_requested,
+  memory_disabled: M.memory_audit_memory_disabled,
+  memory_enabled: M.memory_audit_memory_enabled,
+}
 
 export function ProductionActivityTab({ audit }: { readonly audit: readonly ProductionMemoryAuditEntry[] }) {
   const { x, lang } = useI18n()
@@ -316,7 +375,7 @@ export function ProductionActivityTab({ audit }: { readonly audit: readonly Prod
                 {audit.map((entry) => (
                   <tr key={entry.id} className="border-t border-inset align-top">
                     <td className="px-[14px] py-[10px] text-[12.5px] text-text-2">
-                      <span className="font-semibold">{entry.action}</span>
+                      <span className="font-semibold">{pick(AUDIT_ACTION_LABEL[entry.action], lang)}</span>
                       {entry.statement != null && (
                         <div className="mt-[2px] text-[12px] text-text-faint">“{pickL(entry.statement, lang)}”</div>
                       )}
@@ -381,7 +440,7 @@ export function ProductionGovernanceTab({
             </button>
             <p className="mt-[8px] flex items-start gap-[6px] text-[11.5px] leading-normal text-text-faint">
               <AlertTriangle size={13} strokeWidth={1.7} className="mt-[1px] shrink-0" aria-hidden="true" />
-              {x(M.memory_prod_gov_frontend_only)}
+              {x(M.memory_prod_gov_toggle_session_only)}
             </p>
           </section>
 
@@ -392,10 +451,6 @@ export function ProductionGovernanceTab({
             </div>
             <p className="m-0 mb-[10px] text-[12.5px] leading-normal text-text-muted">{x(M.memory_gov_privacy_note)}</p>
             <p className="m-0 text-[12px] leading-normal text-text-faint">{x(M.memory_gov_privacy_rights)}</p>
-            <p className="mt-[8px] flex items-start gap-[6px] text-[11.5px] leading-normal text-text-faint">
-              <AlertTriangle size={13} strokeWidth={1.7} className="mt-[1px] shrink-0" aria-hidden="true" />
-              {x(M.memory_prod_gov_frontend_only)}
-            </p>
           </section>
 
           <section className={cardClass}>
