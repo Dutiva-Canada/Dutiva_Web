@@ -9908,6 +9908,7 @@ export type Database = {
           created_by: string | null
           default_jurisdiction: string
           default_language: string
+          enabled_modules: Json
           finance_features: Json
           free_access_ends_at: string | null
           free_access_starts_at: string | null
@@ -9933,6 +9934,7 @@ export type Database = {
           created_by?: string | null
           default_jurisdiction?: string
           default_language?: string
+          enabled_modules?: Json
           finance_features?: Json
           free_access_ends_at?: string | null
           free_access_starts_at?: string | null
@@ -9958,6 +9960,7 @@ export type Database = {
           created_by?: string | null
           default_jurisdiction?: string
           default_language?: string
+          enabled_modules?: Json
           finance_features?: Json
           free_access_ends_at?: string | null
           free_access_starts_at?: string | null
@@ -13696,6 +13699,7 @@ export type Database = {
           created_by: string | null
           default_jurisdiction: string
           default_language: string
+          enabled_modules: Json
           finance_features: Json
           free_access_ends_at: string | null
           free_access_starts_at: string | null

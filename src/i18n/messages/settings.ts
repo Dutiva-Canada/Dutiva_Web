@@ -147,12 +147,20 @@ export const settingsMessages = defineMessages({
     fr: 'Sélectionnez chaque province ou régime fédéral où l’entreprise opère.',
   },
   settings_org_finance_features: {
-    en: 'Finance modules',
-    fr: 'Modules Finance',
+    en: 'Finance tabs',
+    fr: 'Onglets Finance',
   },
   settings_org_finance_features_note: {
     en: 'Turn tabs on or off for your Finance workspace. Hidden tabs stay off until you enable them here.',
     fr: 'Activez ou désactivez les onglets dans votre espace Finance. Les onglets masqués restent inactifs jusqu’à ce que vous les activiez ici.',
+  },
+  settings_org_workspace_modules: {
+    en: 'Workspace modules',
+    fr: 'Modules de l’espace de travail',
+  },
+  settings_org_workspace_modules_note: {
+    en: 'Choose which modules appear in the sidebar for everyone in this workspace. Disabled modules are hidden, not deleted.',
+    fr: 'Choisissez quels modules apparaissent dans la barre latérale pour tous les membres de cet espace. Les modules désactivés sont masqués, pas supprimés.',
   },
   settings_org_save: {
     en: 'Save workspace settings',

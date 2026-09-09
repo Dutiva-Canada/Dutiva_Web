@@ -5,6 +5,7 @@ import { financeMessages as FM } from '@/i18n/messages/finance'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { updateOrganizationSettings } from '@/features/app/workspaceMode/api'
+import { WorkspaceModulesEditor } from './WorkspaceModulesEditor'
 
 const JURISDICTION_OPTIONS = [
   { value: 'CA-AB', label: 'Alberta' },
@@ -137,6 +138,7 @@ export function OrganizationProfileEditor() {
             ))}
           </div>
         </div>
+        <WorkspaceModulesEditor />
         <div className="flex flex-col gap-[6px]">
           <span className={labelClass}>{x(M.settings_org_finance_features)}</span>
           <p className="text-[12px] text-text-muted">{x(M.settings_org_finance_features_note)}</p>

@@ -123,9 +123,10 @@ export function Sidebar({
   const { root, isPublicDemo, readOnly } = useWorkspaceRoot()
   const { identity, mode: workspaceMode } = useWorkspaceMode()
   const role = useOrgRole()
+  const { organization } = useWorkspaceMode()
   const navGroups = useMemo(
-    () => (isPublicDemo ? getPublicDemoNavGroups(root, role) : getNavGroups(root, role)),
-    [isPublicDemo, root, role],
+    () => (isPublicDemo ? getPublicDemoNavGroups(root, role, organization?.enabledModules) : getNavGroups(root, role, organization?.enabledModules)),
+    [isPublicDemo, root, role, organization?.enabledModules],
   )
   const productionBadges = useProductionNavBadges()
   const workspaceEmpty = useProductionWorkspaceEmpty()

@@ -29,6 +29,7 @@ import type { Bi } from '@/i18n/core'
 import { bi } from '@/i18n/core'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import type { OrgMemberRole } from '@/features/app/workspaceMode/roles'
+import { isModuleEnabled, type WorkspaceModuleKey } from '@/features/app/workspaceMode/workspaceModules'
 import { commsMessages as COMMS } from '@/i18n/messages/comms'
 import { crmMessages as CRM } from '@/i18n/messages/crm'
 import { financeMessages as FINANCE } from '@/i18n/messages/finance'
@@ -80,13 +81,22 @@ const CONSULTANT: OrgMemberRole[] = ['owner', 'admin', 'manager', 'professional'
 const OPERATORS: OrgMemberRole[] = ['owner', 'admin', 'manager', 'professional', 'member', 'consultant']
 const ALL_ROLES: OrgMemberRole[] = ['owner', 'admin', 'manager', 'professional', 'member', 'consultant', 'viewer']
 
-function itemVisible(item: NavItem, role: OrgMemberRole | null): boolean {
+function itemVisible(
+  item: NavItem,
+  role: OrgMemberRole | null,
+  enabledModules?: Record<string, boolean>,
+): boolean {
+  if (!isModuleEnabled(enabledModules, item.key as WorkspaceModuleKey)) return false
   if (item.roles == null || item.roles.length === 0) return true
   if (role == null) return true
   return item.roles.includes(role)
 }
 
-export function getNavGroups(root: string, role: OrgMemberRole | null = null): NavGroup[] {
+export function getNavGroups(
+  root: string,
+  role: OrgMemberRole | null = null,
+  enabledModules?: Record<string, boolean>,
+): NavGroup[] {
   const p = (suffix: string) => `${root}/${suffix}`
   const groups: NavGroup[] = [
     {
@@ -288,7 +298,7 @@ export function getNavGroups(root: string, role: OrgMemberRole | null = null): N
   return groups
     .map((group) => ({
       ...group,
-      items: group.items.filter((item) => itemVisible(item, role)),
+      items: group.items.filter((item) => itemVisible(item, role, enabledModules)),
     }))
     .filter((group) => group.heading === null || group.items.length > 0)
 }
@@ -326,8 +336,9 @@ export const PUBLIC_DEMO_NAV_KEYS = new Set([
 export function getPublicDemoNavGroups(
   root: string,
   role: OrgMemberRole | null = null,
+  enabledModules?: Record<string, boolean>,
 ): NavGroup[] {
-  return getNavGroups(root, role)
+  return getNavGroups(root, role, enabledModules)
     .map((group) => ({
       ...group,
       items: group.items.filter((item) => PUBLIC_DEMO_NAV_KEYS.has(item.key)),

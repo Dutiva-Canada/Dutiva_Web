@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { pick } from '@/i18n/core'
-import { viewLabelFor } from './navConfig'
+import { getNavGroups, viewLabelFor } from './navConfig'
 import { shellMessages as M } from '@/i18n/messages/shell'
 
 describe('viewLabelFor', () => {
@@ -26,5 +26,35 @@ describe('viewLabelFor', () => {
     const { memoryMessages: MEM } = await import('@/i18n/messages/memory')
     expect(viewLabelFor('/app/settings/memory')).toEqual(MEM.memory_title)
     expect(viewLabelFor('/app/settings')).toEqual(M.shell_v_settings)
+  })
+})
+
+describe('getNavGroups', () => {
+  it('shows all modules when enabled_modules is empty', () => {
+    const groups = getNavGroups('/app', 'admin', {})
+    const keys = groups.flatMap((g) => g.items.map((i) => i.key))
+    expect(keys).toContain('finance')
+    expect(keys).toContain('employees')
+    expect(keys).toContain('revenue')
+  })
+
+  it('hides disabled modules while keeping always-on modules', () => {
+    const groups = getNavGroups('/app', 'admin', { finance: false, revenue: false })
+    const keys = groups.flatMap((g) => g.items.map((i) => i.key))
+    expect(keys).not.toContain('finance')
+    expect(keys).not.toContain('revenue')
+    expect(keys).toContain('home')
+    expect(keys).toContain('advisor')
+    expect(keys).toContain('employees')
+  })
+
+  it('removes empty section headings after filtering', () => {
+    const groups = getNavGroups('/app', 'admin', {
+      revenue: false,
+      crm: false,
+      comms: false,
+    })
+    const headings = groups.map((g) => (g.heading ? pick(g.heading, 'en') : null))
+    expect(headings).not.toContain('Revenue')
   })
 })

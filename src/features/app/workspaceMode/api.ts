@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { isInternalDutivaAccount } from '@/lib/billing/adminAccess'
 import { supabase } from '@/lib/supabaseClient'
+import type { Json } from '@/lib/supabase/database.types'
 import type { WorkspaceMode } from './workspaceModeContext'
 import type { OrgMemberRole } from './roles'
 import { isOrgMemberRole } from './roles'
@@ -177,6 +178,9 @@ export interface WorkspaceOrganizationSettings {
   name: string
   industry: string | null
   jurisdictions: string[]
+  /** Workspace-wide module enable/disable. Missing keys default to enabled. */
+  enabledModules: Record<string, boolean>
+  /** Deprecated: finance tab flags, kept for back-fill. Prefer enabledModules. */
   financeFeatures: Record<string, boolean>
 }
 
@@ -185,6 +189,7 @@ const organizationRowSchema = z.object({
   name: z.string(),
   industry: z.string().nullable(),
   jurisdictions: z.array(z.string()),
+  enabled_modules: z.record(z.string(), z.boolean()).nullable().optional(),
   finance_features: z.record(z.string(), z.boolean()).nullable().optional(),
 })
 
@@ -194,6 +199,7 @@ function orgSettingsFromRow(row: z.infer<typeof organizationRowSchema>): Workspa
     name: row.name,
     industry: row.industry,
     jurisdictions: row.jurisdictions,
+    enabledModules: row.enabled_modules ?? {},
     financeFeatures: row.finance_features ?? {},
   }
 }
@@ -205,7 +211,7 @@ export async function fetchOrganizationSettings(
   try {
     const { data, error } = await supabase
       .from('organizations')
-      .select('id, name, industry, jurisdictions, finance_features')
+      .select('id, name, industry, jurisdictions, enabled_modules, finance_features')
       .eq('id', organizationId)
       .maybeSingle()
     if (error || !data) return null
@@ -217,7 +223,7 @@ export async function fetchOrganizationSettings(
 
 export async function updateOrganizationSettings(
   organizationId: string,
-  patch: Partial<Pick<WorkspaceOrganizationSettings, 'industry' | 'jurisdictions' | 'financeFeatures'>>,
+  patch: Partial<Pick<WorkspaceOrganizationSettings, 'industry' | 'jurisdictions' | 'enabledModules' | 'financeFeatures'>>,
 ): Promise<WorkspaceOrganizationSettings | null> {
   if (!supabase) return null
   try {
@@ -226,10 +232,11 @@ export async function updateOrganizationSettings(
       .update({
         industry: patch.industry,
         jurisdictions: patch.jurisdictions,
-        finance_features: patch.financeFeatures,
+        enabled_modules: patch.enabledModules as unknown as Json,
+        finance_features: patch.financeFeatures as unknown as Json,
       })
       .eq('id', organizationId)
-      .select('id, name, industry, jurisdictions, finance_features')
+      .select('id, name, industry, jurisdictions, enabled_modules, finance_features')
       .maybeSingle()
     if (error || !data) return null
     return orgSettingsFromRow(organizationRowSchema.parse(data))

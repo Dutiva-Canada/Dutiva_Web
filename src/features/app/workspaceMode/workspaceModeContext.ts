@@ -24,6 +24,9 @@ export interface WorkspaceOrganization {
   name: string
   industry: string | null
   jurisdictions: string[]
+  /** Workspace-wide module enable/disable. Missing keys default to enabled. */
+  enabledModules: Record<string, boolean>
+  /** Deprecated: finance tab flags, kept for back-fill. Prefer enabledModules. */
   financeFeatures: Record<string, boolean>
 }
 
