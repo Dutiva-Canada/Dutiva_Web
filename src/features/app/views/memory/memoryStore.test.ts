@@ -27,7 +27,7 @@ describe('memoryStore', () => {
     expect(fact.confidence).toBe('confirmed')
     expect(fact.confirmation?.at).toBe('2026-07-11')
     expect(fact.confirmation?.source.type).toBe('manual')
-    expect(store.current.audit[0]).toMatchObject({ action: 'confirm' })
+    expect(store.current.audit[0]).toMatchObject({ action: 'confirmed' })
     /* The fixture itself is untouched (session-scoped edits only). */
     expect(seedMemoryFacts.find((f) => f.id === 'p7')!.confidence).toBe('inferred')
   })
@@ -47,7 +47,7 @@ describe('memoryStore', () => {
       fr: 'Booked vacation Jul 21–25',
     })
     expect(fact.source).toEqual(seedMemoryFacts.find((f) => f.id === 'p9')!.source)
-    expect(store.current.audit[0]).toMatchObject({ action: 'correct' })
+    expect(store.current.audit[0]).toMatchObject({ action: 'edited' })
   })
 
   it('correct rejects an empty statement', () => {
@@ -58,10 +58,12 @@ describe('memoryStore', () => {
     )
   })
 
-  it('forget removes the memory and audit-logs it', () => {
+  it('forget (remove) marks the memory removed and audit-logs it', () => {
     const store = current()
     act(() => memoryActions.forget('p9'))
-    expect(store.current.facts.find((f) => f.id === 'p9')).toBeUndefined()
-    expect(store.current.audit[0]).toMatchObject({ action: 'forget' })
+    const fact = store.current.facts.find((f) => f.id === 'p9')!
+    expect(fact.status).toBe('removed')
+    expect(fact.advisorUsable).toBe(false)
+    expect(store.current.audit[0]).toMatchObject({ action: 'removed' })
   })
 })

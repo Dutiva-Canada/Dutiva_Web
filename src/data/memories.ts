@@ -3,12 +3,9 @@ import type { Bi } from '@/i18n/core'
 import { demoTodayISO } from './calendar'
 import { isCanonicalMemoryDate } from './memoryDates'
 import type {
-  MemoryCategory,
-  MemoryConfirmation,
   MemoryFact,
-  MemoryScope,
+  MemoryRetentionCategory,
   MemorySourceType,
-  MemoryVisibility,
 } from './types'
 
 /**
@@ -136,398 +133,12 @@ export const memoryThreads: MemoryThread[] = [
   },
 ]
 
-/* ------------------------------------------------------------ seed facts */
-
-interface MemoryFactInputBase {
-  id: string
-  scope: MemoryScope
-  entityId: string
-  category: MemoryCategory
-  statement: Bi
-  source: { type: MemorySourceType; detail: Bi }
-  learnedAt: string
-  effectiveAt?: string | null
-  visibility: MemoryVisibility
-  sensitive?: boolean
-}
-
-/** Confirmed facts must not be seeded from Advisor inference alone. */
-type MemoryFactInput =
-  | (MemoryFactInputBase & {
-      confidence: 'confirmed'
-      source: { type: Exclude<MemorySourceType, 'inference'>; detail: Bi }
-      confirmation: MemoryConfirmation
-    })
-  | (MemoryFactInputBase & {
-      confidence: 'inferred'
-      confirmation: null
-    })
-
-const M = (input: MemoryFactInput): MemoryFact => ({
-  id: input.id,
-  scope: input.scope,
-  entityId: input.entityId,
-  category: input.category,
-  statement: input.statement,
-  confidence: input.confidence,
-  source: input.source,
-  learnedAt: input.learnedAt,
-  ...(input.effectiveAt != null ? { effectiveAt: input.effectiveAt } : {}),
-  confirmation: input.confirmation,
-  visibility: input.visibility,
-  sensitive: input.sensitive ?? false,
-})
-
-const peopleRecord = bi('People record', 'Dossier du personnel')
-const caseNoteRiley = bi('Case note · Riley Summers', 'Note de dossier · Riley Summers')
-const caseAmara = bi('CASE-2026-0138', 'CASE-2026-0138')
-
-/** ISO dates for deterministic demo memory (scenario date: Jul 11, 2026). */
-const APR2026 = '2026-04-03'
-const JUN22 = '2026-06-22'
-const JUL2 = '2026-07-02'
-const JUL5 = '2026-07-05'
-const JUL11 = memoryScenarioTodayISO
-
-export const seedMemoryFacts: MemoryFact[] = [
-  /* Jordan — person */
-  M({
-    id: 'p1',
-    scope: 'person',
-    entityId: 'e1',
-    category: 'employment',
-    statement: bi(
-      'Senior Operations Manager on the Operations team',
-      'Gestionnaire principal des opérations, équipe Opérations',
-    ),
-    confidence: 'confirmed',
-    source: { type: 'hris', detail: peopleRecord },
-    learnedAt: JUL2,
-    confirmation: { at: JUL2, source: { type: 'hris', detail: peopleRecord } },
-    visibility: 'hr',
-  }),
-  M({
-    id: 'p2',
-    scope: 'person',
-    entityId: 'e1',
-    category: 'employment',
-    statement: bi(
-      '8 years’ continuous service — started March 2018',
-      '8 ans de service continu — entrée en mars 2018',
-    ),
-    confidence: 'confirmed',
-    source: { type: 'hris', detail: peopleRecord },
-    learnedAt: JUL2,
-    confirmation: { at: JUL2, source: { type: 'hris', detail: peopleRecord } },
-    visibility: 'hr',
-  }),
-  M({
-    id: 'p3',
-    scope: 'person',
-    entityId: 'e1',
-    category: 'employment',
-    statement: bi(
-      'Employed in Ontario — provincially regulated (ESA, 2000)',
-      'Employé en Ontario — réglementation provinciale (LNE, 2000)',
-    ),
-    confidence: 'confirmed',
-    source: {
-      type: 'chat',
-      detail: bi('Confirmed in chat · Jul 2', 'Confirmé en clavardage · 2 juill.'),
-    },
-    learnedAt: JUL2,
-    confirmation: {
-      at: JUL2,
-      source: {
-        type: 'chat',
-        detail: bi('Confirmed in chat · Jul 2', 'Confirmé en clavardage · 2 juill.'),
-      },
-    },
-    visibility: 'hr',
-  }),
-  M({
-    id: 'p4',
-    scope: 'person',
-    entityId: 'e1',
-    category: 'employment',
-    statement: bi(
-      'Employment agreement contains no termination clause',
-      'Le contrat de travail ne comporte aucune clause de licenciement',
-    ),
-    confidence: 'confirmed',
-    source: {
-      type: 'document',
-      detail: bi('Employment Agreement.pdf', 'Employment Agreement.pdf'),
-    },
-    learnedAt: JUL2,
-    confirmation: {
-      at: JUL2,
-      source: {
-        type: 'document',
-        detail: bi('Employment Agreement.pdf', 'Employment Agreement.pdf'),
-      },
-    },
-    visibility: 'case',
-    sensitive: true,
-  }),
-  M({
-    id: 'p5',
-    scope: 'person',
-    entityId: 'e1',
-    category: 'compensation',
-    statement: bi(
-      'Base salary $95,000 + variable commission',
-      'Salaire de base de 95 000 $ + commission variable',
-    ),
-    confidence: 'confirmed',
-    source: { type: 'hris', detail: peopleRecord },
-    learnedAt: JUL11,
-    confirmation: { at: JUL11, source: { type: 'hris', detail: peopleRecord } },
-    visibility: 'restricted',
-    sensitive: true,
-  }),
-  M({
-    id: 'p6',
-    scope: 'person',
-    entityId: 'e1',
-    category: 'record',
-    statement: bi(
-      'No prior formal discipline on file',
-      'Aucune mesure disciplinaire formelle au dossier',
-    ),
-    confidence: 'confirmed',
-    source: { type: 'hris', detail: peopleRecord },
-    learnedAt: JUL2,
-    confirmation: { at: JUL2, source: { type: 'hris', detail: peopleRecord } },
-    visibility: 'hr',
-    sensitive: true,
-  }),
-  M({
-    id: 'p8',
-    scope: 'person',
-    entityId: 'e1',
-    category: 'record',
-    statement: bi('Reports to Morgan Chen', 'Relève de Morgan Chen'),
-    confidence: 'confirmed',
-    source: { type: 'hris', detail: peopleRecord },
-    learnedAt: JUL2,
-    confirmation: { at: JUL2, source: { type: 'hris', detail: peopleRecord } },
-    visibility: 'hr',
-  }),
-  M({
-    id: 'p7',
-    scope: 'person',
-    entityId: 'e1',
-    category: 'matter',
-    statement: bi(
-      'Preliminary common-law reasonable-notice estimate: 9–12 months; subject to additional employee and labour-market factors and counsel review',
-      'Estimation préliminaire du préavis raisonnable en common law : 9 à 12 mois; sous réserve de facteurs additionnels liés à l’employé et au marché du travail ainsi que d’une révision juridique',
-    ),
-    confidence: 'inferred',
-    source: {
-      type: 'inference',
-      detail: bi('Advisor analysis · Jul 5', 'Analyse du Conseiller · 5 juill.'),
-    },
-    learnedAt: JUL5,
-    confirmation: null,
-    visibility: 'case',
-    sensitive: true,
-  }),
-  M({
-    id: 'p9',
-    scope: 'person',
-    entityId: 'e1',
-    category: 'note',
-    statement: bi('Booked vacation Jul 14–18', 'Vacances réservées du 14 au 18 juill.'),
-    confidence: 'inferred',
-    source: {
-      type: 'chat',
-      detail: bi('Mentioned in chat · Jul 5', 'Mentionné en clavardage · 5 juill.'),
-    },
-    learnedAt: JUL5,
-    confirmation: null,
-    visibility: 'hr',
-    sensitive: true,
-  }),
-  /* Jordan — case (termination) */
-  M({
-    id: 'c1',
-    scope: 'case',
-    entityId: 'case1',
-    category: 'case',
-    statement: bi(
-      'Terminating without cause — no offer issued',
-      'Licenciement sans motif — aucune offre émise',
-    ),
-    confidence: 'confirmed',
-    source: { type: 'manual', detail: caseNoteRiley },
-    learnedAt: JUL2,
-    confirmation: { at: JUL2, source: { type: 'manual', detail: caseNoteRiley } },
-    visibility: 'case',
-    sensitive: true,
-  }),
-  M({
-    id: 'c2',
-    scope: 'case',
-    entityId: 'case1',
-    category: 'case',
-    statement: bi('Counsel review requested Jul 5', 'Révision juridique demandée le 5 juill.'),
-    confidence: 'confirmed',
-    source: {
-      type: 'chat',
-      detail: bi('Advisor · Jul 5', 'Conseiller · 5 juill.'),
-    },
-    learnedAt: JUL5,
-    confirmation: {
-      at: JUL5,
-      source: {
-        type: 'chat',
-        detail: bi('Advisor · Jul 5', 'Conseiller · 5 juill.'),
-      },
-    },
-    visibility: 'case',
-    sensitive: true,
-  }),
-  M({
-    id: 'c3',
-    scope: 'case',
-    entityId: 'case1',
-    category: 'case',
-    statement: bi(
-      'Termination letter draft dated Jul 5',
-      'Ébauche de lettre de licenciement datée du 5 juill.',
-    ),
-    confidence: 'confirmed',
-    source: {
-      type: 'document',
-      detail: bi('Termination Letter (draft)', 'Lettre de licenciement (ébauche)'),
-    },
-    learnedAt: JUL5,
-    confirmation: {
-      at: JUL5,
-      source: {
-        type: 'document',
-        detail: bi('Termination Letter (draft)', 'Lettre de licenciement (ébauche)'),
-      },
-    },
-    visibility: 'case',
-    sensitive: true,
-  }),
-  M({
-    id: 'c4',
-    scope: 'case',
-    entityId: 'case1',
-    category: 'case',
-    statement: bi(
-      'ESA minimum: 8 weeks’ termination notice/pay; statutory severance may also apply if eligibility requirements are met',
-      'Minimum LNE : 8 semaines de préavis ou d’indemnité de licenciement; une indemnité de cessation d’emploi peut aussi s’appliquer si les conditions d’admissibilité sont remplies',
-    ),
-    confidence: 'inferred',
-    source: {
-      type: 'inference',
-      detail: bi('Advisor analysis · Jul 2', 'Analyse du Conseiller · 2 juill.'),
-    },
-    learnedAt: JUL2,
-    confirmation: null,
-    visibility: 'case',
-    sensitive: true,
-  }),
-  /* Jordan — thread */
-  M({
-    id: 't1',
-    scope: 'thread',
-    entityId: 'c1',
-    category: 'conversation',
-    statement: bi(
-      'This conversation is about Jordan Mensah’s termination',
-      'Cette conversation porte sur le licenciement de Jordan Mensah',
-    ),
-    confidence: 'confirmed',
-    source: {
-      type: 'chat',
-      detail: bi('Conversation · opened Jul 2', 'Conversation · ouverte le 2 juill.'),
-    },
-    learnedAt: JUL2,
-    confirmation: {
-      at: JUL2,
-      source: {
-        type: 'chat',
-        detail: bi('Conversation · opened Jul 2', 'Conversation · ouverte le 2 juill.'),
-      },
-    },
-    visibility: 'case',
-  }),
-  M({
-    id: 't2',
-    scope: 'thread',
-    entityId: 'c1',
-    category: 'conversation',
-    statement: bi(
-      'You want notice exposure and next steps before contacting Jordan',
-      'Vous voulez l’exposition au préavis et les prochaines étapes avant de contacter Jordan',
-    ),
-    confidence: 'inferred',
-    source: {
-      type: 'inference',
-      detail: bi('Conversation summary', 'Résumé de la conversation'),
-    },
-    learnedAt: JUL5,
-    confirmation: null,
-    visibility: 'case',
-    sensitive: true,
-  }),
-  /* Amara / Devon */
-  M({
-    id: 'a1',
-    scope: 'person',
-    entityId: 'e6',
-    category: 'employment',
-    statement: bi(
-      'Software Engineer, 2.6 years’ service — Ontario',
-      'Ingénieure logicielle, 2,6 ans de service — Ontario',
-    ),
-    confidence: 'confirmed',
-    source: { type: 'hris', detail: peopleRecord },
-    learnedAt: APR2026,
-    confirmation: { at: APR2026, source: { type: 'hris', detail: peopleRecord } },
-    visibility: 'hr',
-  }),
-  M({
-    id: 'a2',
-    scope: 'person',
-    entityId: 'e6',
-    category: 'matter',
-    statement: bi(
-      'Modified-duties accommodation established; 90-day review scheduled for Jul 14',
-      'Accommodement en tâches modifiées établi; révision de 90 jours prévue le 14 juill.',
-    ),
-    confidence: 'confirmed',
-    source: { type: 'case', detail: caseAmara },
-    learnedAt: APR2026,
-    confirmation: { at: APR2026, source: { type: 'case', detail: caseAmara } },
-    visibility: 'case',
-    sensitive: true,
-  }),
-  M({
-    id: 'd1',
-    scope: 'person',
-    entityId: 'e5',
-    category: 'matter',
-    statement: bi(
-      'On a performance improvement plan; 30-day check-in Jul 22',
-      'Sous plan d’amélioration du rendement; suivi de 30 jours le 22 juill.',
-    ),
-    confidence: 'confirmed',
-    source: { type: 'case', detail: bi('Case note', 'Note de dossier') },
-    learnedAt: JUN22,
-    confirmation: {
-      at: JUN22,
-      source: { type: 'case', detail: bi('Case note', 'Note de dossier') },
-    },
-    visibility: 'hr',
-    sensitive: true,
-  }),
-]
+/* ------------------------------------------------------------ seed facts
+   The seed fact array + its `M()` helper live in `./memoryFacts.ts` to keep
+   this file under the 800-line architecture budget. Re-exported here so the
+   `@/data` barrel and existing imports are unchanged. */
+export { seedMemoryFacts } from './memoryFacts'
+import { seedMemoryFacts } from './memoryFacts'
 
 function assertCanonicalDate(factId: string, field: string, value: string): void {
   if (!isCanonicalMemoryDate(value)) {
@@ -584,8 +195,134 @@ export function assertSeedMemoryFactSemantics(facts: readonly MemoryFact[]): voi
         )
       }
     }
+    if (fact.reviewDate != null) {
+      assertCanonicalDate(fact.id, 'reviewDate', fact.reviewDate)
+    }
+    if (fact.expiryDate != null) {
+      assertCanonicalDate(fact.id, 'expiryDate', fact.expiryDate)
+    }
+    if (fact.lastVerifiedAt != null) {
+      assertCanonicalDate(fact.id, 'lastVerifiedAt', fact.lastVerifiedAt)
+    }
   }
 }
 
 assertSeedMemoryFactSemantics(seedMemoryFacts)
 assertSeedMemoryThreadSemantics(memoryThreads)
+
+/* ------------------------------------------------------ governance config */
+
+/**
+ * Retention schedule — category-aware, not a blanket seven-year rule. Each
+ * rule distinguishes its basis (statutory minimum, organization policy,
+ * Dutiva default, case-specific, legal hold). No statutory figures are
+ * encoded in UI strings; durations are descriptive, not legal advice.
+ *
+ * Frontend default fixture — the production backend does not yet persist a
+ * retention schedule (TODO). Organizations configure this per workspace.
+ */
+export interface MemoryRetentionRule {
+  category: MemoryRetentionCategory
+  /** Descriptive duration/rule (never a statutory figure). */
+  rule: Bi
+  /** What starts the retention clock. */
+  trigger: Bi
+  /** Jurisdiction or applicability label. */
+  applicability: Bi
+  /** Source/basis for the rule. */
+  basis: Bi
+  /** Whether the category requires periodic review. */
+  reviewRequired: boolean
+  enabled: boolean
+}
+
+export const memoryRetentionSchedule: MemoryRetentionRule[] = [
+  {
+    category: 'advisor_conversation',
+    rule: bi('24 months from the conversation', '24 mois à partir de la conversation'),
+    trigger: bi('Last conversation turn', 'Dernier échange de la conversation'),
+    applicability: bi('All workspaces (Dutiva default)', 'Tous les espaces (valeur par défaut Dutiva)'),
+    basis: bi('Dutiva default', 'Valeur par défaut Dutiva'),
+    reviewRequired: true,
+    enabled: true,
+  },
+  {
+    category: 'employee_preference',
+    rule: bi('While employed, then removed on request', 'Pendant l’emploi, puis retiré sur demande'),
+    trigger: bi('Preference recorded', 'Préférence enregistrée'),
+    applicability: bi('All workspaces (Dutiva default)', 'Tous les espaces (valeur par défaut Dutiva)'),
+    basis: bi('Dutiva default', 'Valeur par défaut Dutiva'),
+    reviewRequired: false,
+    enabled: true,
+  },
+  {
+    category: 'employment_record',
+    rule: bi('Per your organization’s record-retention policy', 'Selon la politique de conservation de votre organisation'),
+    trigger: bi('Employment ends', 'Fin d’emploi'),
+    applicability: bi('Configured per organization', 'Configuré par organisation'),
+    basis: bi('Organization policy', 'Politique de l’organisation'),
+    reviewRequired: true,
+    enabled: true,
+  },
+  {
+    category: 'payroll_tax',
+    rule: bi('Per applicable tax/payroll retention requirements', 'Selon les exigences de conservation fiscale et de paie applicables'),
+    trigger: bi('Tax year end', 'Fin de l’année fiscale'),
+    applicability: bi('Configured per jurisdiction', 'Configuré par juridiction'),
+    basis: bi('Statutory minimum', 'Minimum statutaire'),
+    reviewRequired: false,
+    enabled: true,
+  },
+  {
+    category: 'investigation',
+    rule: bi('While the case is open, then per organization policy', 'Pendant que le dossier est ouvert, puis selon la politique de l’organisation'),
+    trigger: bi('Case opened', 'Ouverture du dossier'),
+    applicability: bi('Configured per organization', 'Configuré par organisation'),
+    basis: bi('Case-specific + organization policy', 'Spécifique au dossier + politique de l’organisation'),
+    reviewRequired: true,
+    enabled: true,
+  },
+  {
+    category: 'wellbeing_personal',
+    rule: bi('12 months, then reviewed', '12 mois, puis révisé'),
+    trigger: bi('Recorded', 'Enregistrement'),
+    applicability: bi('All workspaces (Dutiva default)', 'Tous les espaces (valeur par défaut Dutiva)'),
+    basis: bi('Dutiva default', 'Valeur par défaut Dutiva'),
+    reviewRequired: true,
+    enabled: true,
+  },
+  {
+    category: 'custom',
+    rule: bi('Defined by your organization', 'Défini par votre organisation'),
+    trigger: bi('As configured', 'Tel que configuré'),
+    applicability: bi('Configured per organization', 'Configuré par organisation'),
+    basis: bi('Organization policy', 'Politique de l’organisation'),
+    reviewRequired: true,
+    enabled: false,
+  },
+]
+
+/**
+ * Privacy, purpose & consent configuration — jurisdiction-aware, not a claim
+ * that every workspace is governed by both PIPEDA and Québec Law 25. The
+ * product serves federally regulated, Ontario and Québec contexts.
+ *
+ * Frontend default fixture — production persistence is a TODO.
+ */
+export interface MemoryPrivacyConfig {
+  /** Jurisdictions the workspace has identified as applicable. */
+  jurisdictions: string[]
+  /** Whether automatic Advisor memory proposals are enabled. */
+  autoProposalsEnabled: boolean
+  /** Whether restricted memories are excluded from Advisor retrieval by default. */
+  restrictAdvisorRetrieval: boolean
+  /** Whether access/correction/retention/deletion requests are subject to legal exceptions. */
+  requestsSubjectToExceptions: boolean
+}
+
+export const memoryPrivacyConfig: MemoryPrivacyConfig = {
+  jurisdictions: ['ON'],
+  autoProposalsEnabled: true,
+  restrictAdvisorRetrieval: true,
+  requestsSubjectToExceptions: true,
+}

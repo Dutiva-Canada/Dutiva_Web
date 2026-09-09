@@ -48,7 +48,9 @@ export function PersonMemoryDemoView() {
     .map((part) => pick(part, lang))
     .join(' · ')
 
-  const mine = facts.filter((f) => f.scope === 'person' && f.entityId === person.id)
+  const mine = facts.filter(
+    (f) => f.scope === 'person' && f.entityId === person.id && (f.status ?? (f.confidence === 'confirmed' ? 'confirmed' : 'proposed')) !== 'removed',
+  )
   const inferredCount = mine.filter((f) => f.confidence === 'inferred').length
   const groups = PERSON_CATEGORY_ORDER.map((category) => ({
     category,

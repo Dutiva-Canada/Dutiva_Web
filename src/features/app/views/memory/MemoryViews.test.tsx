@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, screen } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
 import { PersonMemoryView } from './PersonMemoryView'
 import { CaseMemoryView } from './CaseMemoryView'
@@ -73,7 +73,9 @@ describe('Advisor Memory surfaces', () => {
       renderPerson()
 
       expect(screen.getByText('Booked vacation Jul 14–18')).toBeInTheDocument()
-      fireEvent.click(screen.getAllByRole('button', { name: 'Correct' }).at(-1)!)
+      /* The Correct button is a sibling of the statement text within the row. */
+      const row = screen.getByText('Booked vacation Jul 14–18').closest('.group') as HTMLElement
+      fireEvent.click(within(row).getByRole('button', { name: 'Correct' }))
       const input = screen.getByLabelText('Correct this memory')
       fireEvent.change(input, { target: { value: 'Booked vacation Jul 21–25' } })
       fireEvent.click(screen.getByRole('button', { name: 'Save' }))
@@ -85,7 +87,9 @@ describe('Advisor Memory surfaces', () => {
       renderPerson()
 
       expect(screen.getByText('Booked vacation Jul 14–18')).toBeInTheDocument()
-      fireEvent.click(screen.getAllByRole('button', { name: 'Forget' }).at(-1)!)
+      const row = screen.getByText('Booked vacation Jul 14–18').closest('.group') as HTMLElement
+      const forgetBtn = within(row).getByRole('button', { name: 'Forget' })
+      fireEvent.click(forgetBtn)
       expect(screen.queryByText('Booked vacation Jul 14–18')).not.toBeInTheDocument()
     })
   })
@@ -131,43 +135,93 @@ describe('Advisor Memory surfaces', () => {
     })
   })
 
-  describe('MemoryManagerView', () => {
+  describe('MemoryManagerView (new four-tab workspace)', () => {
     const renderManager = () => renderApp(<MemoryManagerView />, { route: '/app/settings/memory' })
 
-    it('shows the review banner and live tab counts', () => {
+    it('renders the four primary tabs with the Memories tab active', () => {
       renderManager()
 
-      expect(screen.getByText(/4 inferred memories are waiting for review/)).toBeInTheDocument()
-      const allTab = screen.getByRole('tab', { name: /All/ })
-      expect(allTab).toHaveTextContent('18')
-      expect(screen.getByRole('tab', { name: /Needs review/ })).toHaveTextContent('4')
+      expect(screen.getByRole('tab', { name: /Memories/ })).toHaveAttribute('aria-selected', 'true')
+      expect(screen.getByRole('tab', { name: /Review queue/ })).toBeInTheDocument()
+      expect(screen.getByRole('tab', { name: /Activity/ })).toBeInTheDocument()
+      expect(screen.getByRole('tab', { name: /Governance/ })).toBeInTheDocument()
     })
 
-    it('filters to needs-review via the banner action', () => {
+    it('shows the review-count badge on the Review queue tab', () => {
       renderManager()
 
-      fireEvent.click(screen.getByRole('button', { name: 'Review now' }))
-      /* Only the 3 inferred rows remain — all show a Confirm action. */
-      expect(screen.getAllByRole('button', { name: 'Confirm' })).toHaveLength(4)
-      expect(screen.queryByText('Reports to Morgan Chen')).not.toBeInTheDocument()
+      const reviewTab = screen.getByRole('tab', { name: /Review queue/ })
+      expect(reviewTab).toHaveTextContent(String(4))
     })
 
-    it('searches memory statements', () => {
+    it('searches memory statements from the Memories toolbar', () => {
       renderManager()
 
-      fireEvent.change(screen.getByPlaceholderText('Search memory…'), {
+      fireEvent.change(screen.getByPlaceholderText('Search memories'), {
         target: { value: 'vacation' },
       })
       expect(screen.getByText('Booked vacation Jul 14–18')).toBeInTheDocument()
       expect(screen.queryByText('Reports to Morgan Chen')).not.toBeInTheDocument()
     })
 
-    it('records confirm actions in the audit log', () => {
+    it('opens the Review queue and confirms a proposed memory', () => {
       renderManager()
 
-      fireEvent.click(screen.getByRole('tab', { name: /Needs review/ }))
+      fireEvent.click(screen.getByRole('tab', { name: /Review queue/ }))
+      const confirmButtons = screen.getAllByRole('button', { name: 'Confirm' })
+      expect(confirmButtons.length).toBeGreaterThan(0)
+      fireEvent.click(confirmButtons[0]!)
+      /* Confirming reduces the proposed count by one. */
+      const remaining = screen.getAllByRole('button', { name: 'Confirm' })
+      expect(remaining.length).toBe(confirmButtons.length - 1)
+    })
+
+    it('rejects a proposed memory from the Review queue', () => {
+      renderManager()
+
+      fireEvent.click(screen.getByRole('tab', { name: /Review queue/ }))
+      const rejectButtons = screen.getAllByRole('button', { name: 'Reject' })
+      expect(rejectButtons.length).toBeGreaterThan(0)
+      fireEvent.click(rejectButtons[0]!)
+      /* Confirmation dialog appears — click the dialog's Reject confirm. */
+      const dialogRejects = screen.getAllByRole('button', { name: 'Reject' })
+      fireEvent.click(dialogRejects[dialogRejects.length - 1]!)
+      /* The rejected proposal is gone from the queue. */
+      const remaining = screen.queryAllByRole('button', { name: 'Reject' })
+      expect(remaining.length).toBe(rejectButtons.length - 1)
+    })
+
+    it('records confirm actions in the Activity tab audit log', () => {
+      renderManager()
+
+      fireEvent.click(screen.getByRole('tab', { name: /Review queue/ }))
       fireEvent.click(screen.getAllByRole('button', { name: 'Confirm' })[0]!)
-      expect(screen.getByText(/Today — Riley confirmed/)).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('tab', { name: /Activity/ }))
+      /* The audit log renders actor and action in separate table cells.
+         The action label also appears in the event filter dropdown, so scope
+         to the table body. */
+      const table = screen.getByRole('table')
+      expect(within(table).getByText('Riley Summers')).toBeInTheDocument()
+      expect(within(table).getByText(/confirmed a memory/i)).toBeInTheDocument()
+    })
+
+    it('opens the Governance tab with retention schedule and danger zone', () => {
+      renderManager()
+
+      fireEvent.click(screen.getByRole('tab', { name: /Governance/ }))
+      expect(screen.getByText('Retention schedule')).toBeInTheDocument()
+      expect(screen.getByText('Danger zone')).toBeInTheDocument()
+      /* Full deletion is disabled (backend not implemented). */
+      expect(screen.getByRole('button', { name: /Delete memories/ })).toBeDisabled()
+    })
+
+    it('disables Advisor memory from the Governance tab', () => {
+      renderManager()
+
+      fireEvent.click(screen.getByRole('tab', { name: /Governance/ }))
+      fireEvent.click(screen.getByRole('button', { name: /Disable Advisor memory/ }))
+      /* The disabled status appears in both the header badge and the governance section. */
+      expect(screen.getAllByText('Advisor memory disabled').length).toBeGreaterThan(0)
     })
   })
 })
@@ -175,10 +229,27 @@ describe('Advisor Memory surfaces', () => {
 describe('Advisor Memory in production mode', () => {
   it('MemoryManagerProductionView shows the org empty state when no facts exist', async () => {
     const { mockProductionWorkspace, listChain } = await import('@/test/productionWorkspace')
+    /* listFacts chains .eq().is().order().order().range(); listAudit chains
+       .eq().order().limit(); the mock listChain supports order/range/then but
+       not .is() or .limit(), so we wrap them. */
+    const factsChain = () => {
+      const chain = listChain([])
+      return { ...chain, is: () => chain, eq: () => ({ ...chain, is: () => chain }) }
+    }
+    const auditChain = () => {
+      const result = { data: [], error: null }
+      const chain: Record<string, unknown> = {
+        order: () => chain,
+        limit: () => chain,
+        then: (resolve: (value: typeof result) => unknown, reject?: (reason: unknown) => unknown) =>
+          Promise.resolve(result).then(resolve, reject),
+      }
+      return chain
+    }
     mockProductionWorkspace({
       tables: {
-        hr_advisor_memory_facts: () => ({ select: () => ({ eq: () => listChain([]) }) }),
-        hr_advisor_memory_audit: () => ({ select: () => ({ eq: () => listChain([]) }) }),
+        hr_advisor_memory_facts: () => ({ select: () => factsChain() }),
+        hr_advisor_memory_audit: () => ({ select: () => ({ eq: () => auditChain() }) }),
         employees: () => ({ select: () => ({ eq: () => listChain([]) }) }),
         hr_cases: () => ({ select: () => ({ eq: () => listChain([]) }) }),
       },
@@ -190,10 +261,9 @@ describe('Advisor Memory in production mode', () => {
 
     renderAppFresh(<MemoryManagerViewFresh />, { route: '/app/settings/memory' })
 
+    /* The new four-tab workspace renders the Memories tab empty state. */
     expect(
-      await screen.findByText(/Confirmed and inferred facts for people, cases, and conversations/i, undefined, {
-        timeout: 3000,
-      }),
+      await screen.findByText(/No memories yet/i, undefined, { timeout: 3000 }),
     ).toBeInTheDocument()
 
     vi.doUnmock('@/lib/supabaseClient')

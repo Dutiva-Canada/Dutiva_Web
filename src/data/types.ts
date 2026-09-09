@@ -565,11 +565,73 @@ export type MemoryVisibility = 'hr' | 'case' | 'restricted'
 export type MemoryCategory =
   'employment' | 'compensation' | 'matter' | 'record' | 'note' | 'case' | 'conversation'
 
+/**
+ * Memory lifecycle status. An Advisor inference is never a confirmed fact:
+ * it enters as `proposed`/`needs_review` and only reaches `confirmed` after a
+ * human reviews it. `expired` and `removed` are terminal-ish (removed records
+ * stay unavailable to Advisor retrieval; expired ones await disposition).
+ *
+ * Frontend/domain abstraction only — the production table (migration 0086)
+ * still derives status from `confidence` + `forgotten_at`. New columns are a
+ * TODO; see `productionApi.ts`.
+ */
+export type MemoryStatus = 'proposed' | 'needs_review' | 'confirmed' | 'expired' | 'removed'
+
+/**
+ * What kind of record a memory is. HR investigations must not collapse
+ * allegations or opinions into established employee facts — an `allegation`
+ * stays an allegation (with its source and case relationship) until a finding
+ * or decision is recorded separately.
+ */
+export type MemoryClassification =
+  | 'fact'
+  | 'preference'
+  | 'allegation'
+  | 'opinion'
+  | 'evidence'
+  | 'finding'
+  | 'decision'
+  | 'contextual'
+
+/** How the memory entered the system. */
+export type MemoryOrigin = 'explicit' | 'inferred' | 'manual'
+
+/**
+ * Sensitivity tier. `restricted` records (medical, accommodation, protected
+ * ground, investigation, harassment, disciplinary, compensation, financial,
+ * highly personal) are stored but are not automatically usable by Advisor and
+ * carry need-to-know access + extra auditability.
+ */
+export type MemorySensitivity = 'standard' | 'restricted'
+
+/**
+ * Retention category — drives the retention schedule. Category-aware, not a
+ * blanket seven-year rule: statutory minimum, organization policy, Dutiva
+ * default, case-specific, and legal hold are distinct concepts.
+ */
+export type MemoryRetentionCategory =
+  | 'advisor_conversation'
+  | 'employee_preference'
+  | 'employment_record'
+  | 'payroll_tax'
+  | 'investigation'
+  | 'wellbeing_personal'
+  | 'custom'
+
 /** When and through which source a confirmed fact was last affirmed. */
 export interface MemoryConfirmation {
   /** ISO date (YYYY-MM-DD) of the confirmation event. */
   at: string
   source: { type: MemoryAuthoritativeSourceType; detail: Bi }
+}
+
+/** Legal hold on a memory — pauses scheduled expiration/deletion. Role-restricted. */
+export interface MemoryLegalHold {
+  reason: Bi
+  /** ISO date (YYYY-MM-DD) the hold was placed. */
+  placedAt: string
+  /** Actor who placed the hold (name or id label). */
+  placedBy: string
 }
 
 export interface MemoryFact {
@@ -597,4 +659,47 @@ export interface MemoryFact {
   visibility: MemoryVisibility
   /** Access-controlled by default (compensation, health). */
   sensitive: boolean
+
+  /* ---- New domain fields (frontend abstractions; see file header) ---- */
+
+  /** Lifecycle status. When absent, derived from `confidence` for back-compat. */
+  status?: MemoryStatus
+  /** What kind of record this is. Defaults to `fact` for legacy rows. */
+  classification?: MemoryClassification
+  /** How the memory entered the system. Defaults from `source.type`. */
+  origin?: MemoryOrigin
+  /** Sensitivity tier. Derived from `sensitive`/`visibility` when absent. */
+  sensitivity?: MemorySensitivity
+  /**
+   * Whether Advisor may retrieve this memory into context. A record may be
+   * stored without being Advisor-usable (restricted, legal-hold, disabled).
+   * Distinct from whether it is stored at all.
+   */
+  advisorUsable?: boolean
+  /** Retention category driving the retention schedule. */
+  retentionCategory?: MemoryRetentionCategory
+  /** ISO date the memory should next be reviewed. */
+  reviewDate?: string | null
+  /** ISO date the memory is scheduled to expire (paused by legal hold). */
+  expiryDate?: string | null
+  /** ISO date the memory was last verified against its source. */
+  lastVerifiedAt?: string | null
+  /** Legal hold state — when set, scheduled expiration/deletion is paused. */
+  legalHold?: MemoryLegalHold | null
+  /** Purpose for which the memory is held (purpose limitation). */
+  purpose?: Bi | null
+  /** Jurisdiction/applicability label (e.g. 'ON', 'QC', 'federal'). */
+  jurisdiction?: string | null
+  /** Who proposed the memory (for Advisor-proposed records). */
+  proposedBy?: string | null
+  /** Advisor confidence score 0–1 for proposed memories, when available. */
+  confidenceScore?: number | null
+  /** Source excerpt / quote backing the memory, when available. */
+  sourceExcerpt?: Bi | null
+  /** Creator of the record (name or id label). */
+  creator?: string | null
+  /** Who confirmed the record, when distinct from {@link MemoryConfirmation}. */
+  confirmedBy?: string | null
+  /** Free-form tags for search. */
+  tags?: Bi[] | null
 }
