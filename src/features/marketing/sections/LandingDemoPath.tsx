@@ -36,8 +36,8 @@ export function LandingDemoPath() {
                 onClick={() => setOpenStopId(stop.id)}
                 className={`inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold transition-colors ${
                   selected
-                    ? 'border-gold-border bg-gold-subtle text-gold-strong'
-                    : 'border-border bg-bg-soft text-text-2 hover:border-gold-border/60 hover:text-text'
+                    ? 'border-(--accent-soft-border) bg-accent-soft text-accent'
+                    : 'border-border bg-bg-soft text-text-2 hover:border-(--accent-soft-border) hover:text-text'
                 }`}
               >
                 <span className="text-[10px] font-bold tracking-[0.06em] text-text-faint">
@@ -132,7 +132,7 @@ function TourStopPreviewDialog({
                   onClick={() => onSelectStop(item.id)}
                   className={`inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
                     selected
-                      ? 'border-gold-border bg-gold-subtle text-gold-strong'
+                      ? 'border-(--accent-soft-border) bg-accent-soft text-accent'
                       : 'border-border bg-bg-soft text-text-2 hover:text-text'
                   }`}
                 >
@@ -159,7 +159,7 @@ function TourStopPreviewDialog({
           <div className="flex justify-end border-t border-border px-4 py-3 sm:px-5">
             <Link
               to={demoTo}
-              className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+              className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-accent transition-opacity hover:opacity-80"
             >
               {lt('landing_ws_demo_see_more')}
               <ChevronRight size={14} aria-hidden="true" />

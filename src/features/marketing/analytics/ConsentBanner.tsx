@@ -78,7 +78,7 @@ export function ConsentBanner() {
           )}{' '}
           <Link
             to={legalDoc('cookies')}
-            className="font-medium text-gold-strong underline underline-offset-2 hover:opacity-80"
+            className="font-medium text-accent underline underline-offset-2 hover:opacity-80"
           >
             {L('Cookie Policy', 'Politique relative aux témoins')}
           </Link>

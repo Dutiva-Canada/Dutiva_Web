@@ -98,7 +98,7 @@ export function TemplateSamplePanel({
 
       <button
         type="button"
-        className="mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-bg-elevated px-3.5 py-2.5 text-sm font-semibold text-text transition-colors hover:border-gold-border hover:text-gold-strong"
+        className="mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-bg-elevated px-3.5 py-2.5 text-sm font-semibold text-text transition-colors hover:border-(--accent-soft-border) hover:text-accent"
         aria-haspopup="dialog"
         onClick={() => setOpen(true)}
       >

@@ -68,7 +68,7 @@ export function Product() {
           <IconChip icon={FileText} label={lt('landing_cat_termination')} />
           <a
             href={p('templates')}
-            className="ml-1.5 inline-flex items-center gap-1 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+            className="ml-1.5 inline-flex items-center gap-1 text-sm font-semibold text-accent transition-opacity hover:opacity-80"
           >
             {lt('landing_cat_browse')}
             <ChevronRight size={14} />

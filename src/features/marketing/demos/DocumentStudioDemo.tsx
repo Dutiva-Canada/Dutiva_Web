@@ -91,13 +91,13 @@ export function DocumentStudioDemo() {
         <div className="flex flex-wrap gap-4">
           <Link
             to={`${p('demoWorkspace')}/documents/studio`}
-            className="text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+            className="text-sm font-semibold text-accent transition-opacity hover:opacity-80"
           >
             {lt('landing_open_in_demo')}
           </Link>
           <Link
             to={p('templates')}
-            className="text-sm font-semibold text-text-2 transition-opacity hover:text-gold-strong hover:opacity-80"
+            className="text-sm font-semibold text-text-2 transition-opacity hover:text-accent hover:opacity-80"
           >
             {lt('landing_studio_demo_samples_link')}
           </Link>

@@ -31,7 +31,7 @@ export function HomeFaq() {
       </div>
       <Link
         to={p('faq')}
-        className="mt-8 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+        className="mt-8 inline-flex items-center gap-1.5 text-sm font-semibold text-accent transition-opacity hover:opacity-80"
       >
         {lt('landing_faq_more')}
         <ArrowRight size={14} aria-hidden="true" />

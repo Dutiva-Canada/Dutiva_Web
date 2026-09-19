@@ -59,11 +59,11 @@ function NavLink({
 
 /* Compact desktop control pill (lang / theme) — prototype `.hdr-ctrl`. */
 const CTRL =
-  'inline-flex h-9 min-w-9 cursor-pointer items-center justify-center gap-1.5 rounded-[10px] border border-control-border bg-bg-elevated px-3 font-sans text-[0.8125rem] font-semibold text-text transition-[border-color,background-color,color] duration-[160ms] ease-in-out hover:border-gold-border hover:bg-[rgba(127,127,127,0.06)] motion-reduce:transition-none'
+  'inline-flex h-9 min-w-9 cursor-pointer items-center justify-center gap-1.5 rounded-[10px] border border-control-border bg-bg-elevated px-3 font-sans text-[0.8125rem] font-semibold text-text transition-[border-color,background-color,color] duration-[160ms] ease-in-out hover:border-(--accent-soft-border) hover:bg-[rgba(127,127,127,0.06)] motion-reduce:transition-none'
 
 /* Large mobile pill (lang · theme · hamburger) — prototype `.hdr-pill`. */
 const PILL =
-  'inline-flex h-11 min-w-11 cursor-pointer items-center justify-center gap-[7px] rounded-2xl border border-control-border bg-bg-elevated px-3.5 font-sans text-[0.9375rem] font-semibold text-text transition-[border-color,background-color,transform] duration-[160ms] ease-in-out hover:border-gold-border hover:bg-[rgba(255,255,255,0.05)] active:translate-y-px motion-reduce:transition-none sm:h-[46px] sm:min-w-[46px] sm:px-4'
+  'inline-flex h-11 min-w-11 cursor-pointer items-center justify-center gap-[7px] rounded-2xl border border-control-border bg-bg-elevated px-3.5 font-sans text-[0.9375rem] font-semibold text-text transition-[border-color,background-color,transform] duration-[160ms] ease-in-out hover:border-(--accent-soft-border) hover:bg-[rgba(255,255,255,0.05)] active:translate-y-px motion-reduce:transition-none sm:h-[46px] sm:min-w-[46px] sm:px-4'
 
 /**
  * Language toggle. On the public surface (URL-scoped language) it renders a

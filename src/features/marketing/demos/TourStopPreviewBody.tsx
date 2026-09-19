@@ -93,7 +93,7 @@ function TourProductFrame({
         <span className="grid h-6 w-6 place-items-center rounded-md bg-gold-subtle text-gold-strong">
           <Icon size={13} aria-hidden="true" />
         </span>
-        <span className="min-w-0 truncate text-[11px] font-semibold tracking-[0.04em] text-gold">
+        <span className="min-w-0 truncate text-[11px] font-semibold tracking-[0.04em] text-gold-on-navy">
           {x(org)} · {title}
         </span>
       </div>
@@ -106,7 +106,7 @@ function TourProductFrame({
             <NavIcon
               key={index}
               size={14}
-              className={NavIcon === Icon ? 'text-gold' : 'text-gold/35'}
+              className={NavIcon === Icon ? 'text-accent' : 'text-accent/35'}
             />
           ))}
         </div>
@@ -162,8 +162,8 @@ function HomeTourPreview() {
               onClick={() => setActiveId(metric.id)}
               className={`flex min-h-11 cursor-pointer items-baseline gap-1.5 rounded-lg border px-3 py-2 text-left transition-colors ${
                 selected
-                  ? 'border-gold-border bg-gold-subtle'
-                  : 'border-border bg-bg-elevated hover:border-gold-border/60'
+                  ? 'border-(--accent-soft-border) bg-accent-soft'
+                  : 'border-border bg-bg-elevated hover:border-(--accent-soft-border)'
               }`}
             >
               <span className="font-display text-[18px] font-semibold leading-none text-text">
@@ -217,7 +217,7 @@ function StudioTourPreview() {
               onClick={() => setTid(id)}
               className={`min-h-11 cursor-pointer rounded-full border px-3 py-2 text-xs font-semibold transition-colors ${
                 selected
-                  ? 'border-gold-border bg-gold-subtle text-gold-strong'
+                  ? 'border-(--accent-soft-border) bg-accent-soft text-accent'
                   : 'border-border bg-bg-elevated text-text-2 hover:text-text'
               }`}
             >
@@ -274,7 +274,7 @@ function WorkflowsTourPreview() {
               onClick={() => setLabel(item.label)}
               className={`inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold transition-colors ${
                 selected
-                  ? 'border-gold-border bg-gold-subtle text-gold-strong'
+                  ? 'border-(--accent-soft-border) bg-accent-soft text-accent'
                   : 'border-border bg-bg-elevated text-text-2 hover:text-text'
               }`}
             >
@@ -332,7 +332,7 @@ function CasesTourPreview() {
               }}
               className={`min-h-11 cursor-pointer rounded-lg border px-3 py-2 text-left text-xs font-semibold transition-colors ${
                 selected
-                  ? 'border-gold-border bg-gold-subtle text-gold-strong'
+                  ? 'border-(--accent-soft-border) bg-accent-soft text-accent'
                   : 'border-border bg-bg-elevated text-text-2 hover:text-text'
               }`}
             >
@@ -362,7 +362,7 @@ function CasesTourPreview() {
                 onClick={() => setTab(id)}
                 className={`min-h-11 cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold ${
                   selected
-                    ? 'border-gold-border bg-gold-subtle text-gold-strong'
+                    ? 'border-(--accent-soft-border) bg-accent-soft text-accent'
                     : 'border-border bg-bg-soft text-text-2'
                 }`}
               >
@@ -402,8 +402,8 @@ function AnalyticsTourPreview() {
                 onClick={() => setActiveId(row.id)}
                 className={`flex w-full min-h-11 cursor-pointer flex-col gap-2 rounded-lg border px-3 py-2.5 text-left sm:flex-row sm:items-start sm:justify-between ${
                   selected
-                    ? 'border-gold-border bg-gold-subtle'
-                    : 'border-border bg-bg-elevated hover:border-gold-border/60'
+                    ? 'border-(--accent-soft-border) bg-accent-soft'
+                    : 'border-border bg-bg-elevated hover:border-(--accent-soft-border)'
                 }`}
               >
                 <span className="min-w-0 flex-1">

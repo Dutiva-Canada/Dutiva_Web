@@ -112,7 +112,7 @@ export function Pricing() {
         </span>
         <a
           href={p('pricing')}
-          className="ml-auto inline-flex items-center gap-1 font-semibold text-gold-strong transition-opacity hover:opacity-80"
+          className="ml-auto inline-flex items-center gap-1 font-semibold text-accent transition-opacity hover:opacity-80"
         >
           {lt('landing_price_compare')}
           <ChevronRight size={14} />

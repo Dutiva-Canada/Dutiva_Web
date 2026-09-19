@@ -8,7 +8,8 @@
    token layer, so the light theme comes for free.
    ──────────────────────────────────────────────────────────────────────────── */
 
-/* Page background (deep navy + champagne glow + teal wash) */
+/* Page background (deep navy + teal wash). No gold glow on dark — champagne
+   at low alpha over the navy floor read as a brown haze, not a glow. */
 .dutiva-surface,
 body.dutiva-surface {
   color: var(--text);
@@ -17,7 +18,6 @@ body.dutiva-surface {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   background:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(var(--dutiva-gold-rgb), 0.13), transparent),
     radial-gradient(ellipse 50% 40% at 85% 10%, rgba(var(--dutiva-teal-rgb), 0.1), transparent),
     linear-gradient(170deg, #060f1e 0%, #09182c 55%, #0b1f3a 100%);
 }

@@ -119,7 +119,7 @@ export function Footer() {
             {lt('landing_foot_support_prompt')}{' '}
             <a
               href="mailto:support@dutiva.ca"
-              className="font-medium text-gold-strong transition-opacity hover:opacity-80"
+              className="font-medium text-accent transition-opacity hover:opacity-80"
             >
               {lt('landing_foot_support_email')}
             </a>
@@ -145,7 +145,7 @@ export function Footer() {
             {renderLinks(LEGAL_LINKS)}
             <Link
               to={p('legal')}
-              className="mt-2.5 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+              className="mt-2.5 inline-flex items-center gap-1.5 text-sm font-semibold text-accent transition-opacity hover:opacity-80"
             >
               {t('legalHub_viewAll')}
               <ArrowRight size={14} />

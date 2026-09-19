@@ -121,7 +121,7 @@ export function AboutPage() {
                   {labelKey === 'about_fact_support' ? (
                     <a
                       href={`mailto:${value}`}
-                      className="font-medium text-gold-strong hover:opacity-80"
+                      className="font-medium text-accent hover:opacity-80"
                     >
                       {value}
                     </a>
@@ -152,7 +152,7 @@ export function AboutPage() {
                 href={profile.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent transition-opacity hover:opacity-80"
               >
                 <profile.icon size={16} className="flex-none" aria-hidden="true" />
                 {t(profile.labelKey)}

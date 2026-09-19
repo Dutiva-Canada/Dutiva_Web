@@ -139,7 +139,7 @@ export function PageAside({
         <p className="mt-2 max-w-[68ch] text-[0.9375rem] leading-[1.65] text-text-2">{body}</p>
         <Link
           to={to}
-          className="mt-3.5 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+          className="mt-3.5 inline-flex items-center gap-1.5 text-sm font-semibold text-accent transition-opacity hover:opacity-80"
         >
           {action}
           <ArrowRight size={14} aria-hidden="true" />

@@ -64,6 +64,7 @@
      affordances. The bright step holds ≥4.5:1 on this navy ramp. */
   --accent: var(--dutiva-teal-bright);
   --accent-soft: rgba(var(--dutiva-teal-bright-rgb), 0.13);
+  --accent-soft-border: rgba(var(--dutiva-teal-bright-rgb), 0.32);
 
   --success: #34d399;
   --warning: #fbbf24;
@@ -148,6 +149,7 @@
   /* Teal is the interactive accent — ≥4.9:1 on the ivory ramp. */
   --accent: var(--dutiva-teal);
   --accent-soft: rgba(var(--dutiva-teal-rgb), 0.09);
+  --accent-soft-border: rgba(var(--dutiva-teal-rgb), 0.3);
 
   --success: #15803d;
   --warning: #b45309;

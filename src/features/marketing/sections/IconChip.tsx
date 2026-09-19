@@ -29,7 +29,7 @@ export function IconChip({
   const toneClass = highlighted
     ? 'border-gold-border bg-gold-subtle text-gold-strong'
     : 'border-border bg-bg-soft text-text-2'
-  const linkClass = `${baseClass} ${toneClass} min-h-11 hover:border-gold-border/60 hover:text-text active:opacity-90`
+  const linkClass = `${baseClass} ${toneClass} min-h-11 hover:border-(--accent-soft-border) hover:text-text active:opacity-90`
   const content = (
     <>
       <Icon size={14} aria-hidden="true" />

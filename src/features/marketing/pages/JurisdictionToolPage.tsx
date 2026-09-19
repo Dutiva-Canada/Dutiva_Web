@@ -84,7 +84,7 @@ export function JurisdictionToolPage() {
                       key={opt.id}
                       className={`flex cursor-pointer items-center gap-[10px] rounded-[8px] border px-[14px] py-[10px] text-[14px] transition-colors ${
                         selected
-                          ? 'border-gold-fg bg-gold-fg/10 text-text'
+                          ? 'border-accent bg-accent-soft text-text'
                           : 'border-border bg-surface text-text-2 hover:border-text-faint'
                       }`}
                     >
@@ -94,7 +94,7 @@ export function JurisdictionToolPage() {
                         value={opt.id}
                         checked={selected}
                         onChange={() => answer(q.id, opt.id)}
-                        className="h-[16px] w-[16px] accent-gold-fg"
+                        className="h-[16px] w-[16px] accent-accent"
                       />
                       <span className="font-medium">{x(opt.label)}</span>
                     </label>
@@ -138,7 +138,7 @@ export function JurisdictionToolPage() {
                     href={result.officialSource.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-[6px] text-[14px] font-semibold text-gold-strong hover:underline"
+                    className="inline-flex items-center gap-[6px] text-[14px] font-semibold text-accent hover:underline"
                   >
                     {x(result.officialSource.label)}
                     <ExternalLink size={14} aria-hidden="true" />

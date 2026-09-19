@@ -128,7 +128,7 @@ export function BetaSignup() {
           </p>
           <Link
             to={p('demoWorkspace')}
-            className="mt-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+            className="mt-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-accent transition-opacity hover:opacity-80"
           >
             {lt('landing_open_in_demo')}
             <span className="font-normal text-text-3">— {lt('landing_cta_explore_demo')}</span>

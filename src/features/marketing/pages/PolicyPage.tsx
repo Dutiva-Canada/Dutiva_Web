@@ -120,7 +120,7 @@ function PolicyArticle({ row, doc }: { readonly row: LegalHubRow; readonly doc: 
       />
       <Link
         to={seoRoute('legal').path[lang]}
-        className="inline-flex items-center gap-2 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+        className="inline-flex items-center gap-2 text-sm font-semibold text-accent transition-opacity hover:opacity-80"
       >
         <ArrowLeft size={15} />
         {t('legalHub_back')}

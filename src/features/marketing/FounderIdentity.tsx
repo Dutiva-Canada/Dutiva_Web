@@ -36,7 +36,7 @@ export function FounderIdentity({ size }: { readonly size: 'compact' | 'about' }
           href={FOUNDER.linkedinUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+          className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-accent transition-opacity hover:opacity-80"
         >
           <Linkedin size={16} aria-hidden="true" className="flex-none" />
           {t('about_founder_linkedin')}

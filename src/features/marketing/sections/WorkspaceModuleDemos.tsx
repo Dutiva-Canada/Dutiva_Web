@@ -240,7 +240,7 @@ function DemoFooter({ to, label }: { readonly to: string; readonly label: string
     <div className="mt-4 pt-1">
       <Link
         to={to}
-        className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+        className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-accent transition-opacity hover:opacity-80"
       >
         {label}
         <ChevronRight size={14} aria-hidden="true" />

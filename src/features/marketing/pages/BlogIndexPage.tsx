@@ -56,7 +56,7 @@ export function BlogIndexPage() {
               <p className="mt-1.5 text-sm leading-[1.55] text-text-2">{x(post.summary)}</p>
               <Link
                 to={articlePath(post, lang)}
-                className="mt-2.5 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong"
+                className="mt-2.5 inline-flex items-center gap-1.5 text-sm font-semibold text-accent"
               >
                 {x({ en: 'Read the article', fr: 'Lire l’article' })}
                 <ArrowRight

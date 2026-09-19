@@ -84,14 +84,14 @@ export function HelpCenterPage() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t('help_search_placeholder')}
             autoComplete="off"
-            className="w-full rounded-full border border-control-border bg-bg py-3.5 pr-12 pl-11 text-[0.9375rem] text-text shadow-sm outline-none transition-colors focus-visible:border-gold-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-strong"
+            className="w-full rounded-full border border-control-border bg-bg py-3.5 pr-12 pl-11 text-[0.9375rem] text-text shadow-sm outline-none transition-colors focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           />
           {trimmed && (
             <button
               type="button"
               onClick={() => setQuery('')}
               aria-label={t('help_search_clear')}
-              className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-1.5 text-text-3 transition-colors hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-strong"
+              className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-1.5 text-text-3 transition-colors hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               <X size={16} aria-hidden="true" />
             </button>
@@ -207,7 +207,7 @@ function HelpArticleCard({
   return (
     <Link
       to={helpDocPath(article, lang)}
-      className={`group flex items-start justify-between gap-3 rounded-xl border border-border bg-bg px-4 py-3 transition-colors hover:border-gold-strong ${compact ? '' : 'px-[18px] py-4'}`}
+      className={`group flex items-start justify-between gap-3 rounded-xl border border-border bg-bg px-4 py-3 transition-colors hover:border-accent ${compact ? '' : 'px-[18px] py-4'}`}
     >
       <div>
         <div className="text-[0.9375rem] font-semibold text-text">{x(article.title)}</div>

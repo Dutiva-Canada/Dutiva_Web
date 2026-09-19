@@ -70,7 +70,7 @@ export function AdvisorTranscriptPreview({
                 aria-selected={selected}
                 className={`min-h-11 cursor-pointer rounded-full border px-3.5 py-2 text-xs font-semibold transition-colors ${
                   selected
-                    ? 'border-gold-border bg-gold-subtle text-gold-strong'
+                    ? 'border-(--accent-soft-border) bg-accent-soft text-accent'
                     : 'border-border bg-bg-soft text-text-2 hover:text-text'
                 }`}
                 onClick={() => setActiveId(id)}
@@ -120,7 +120,7 @@ function ScenarioTranscript({
 
       <div className="max-w-[94%] rounded-[16px_16px_16px_3px] border border-border bg-bg-elevated px-4 py-3.5">
         {turn.banner?.tone === 'support' ? (
-          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-accent-border bg-accent-soft px-2.25 py-0.75 text-[0.6875rem] font-bold tracking-[0.06em] uppercase text-accent">
+          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-(--accent-soft-border) bg-accent-soft px-2.25 py-0.75 text-[0.6875rem] font-bold tracking-[0.06em] uppercase text-accent">
             <span className="h-1.5 w-1.5 rounded-full bg-accent" />
             {x(turn.banner.title).trim()}
           </div>
@@ -201,7 +201,7 @@ function DocChip({
   readonly onPick: () => void
 }) {
   const className = `flex min-w-0 max-w-full items-center gap-2 rounded-[10px] border py-1.75 pr-2 pl-2.25 text-[0.8125rem] ${
-    pressed ? 'border-gold-border bg-gold-subtle' : 'border-border bg-bg-elevated'
+    pressed ? 'border-(--accent-soft-border) bg-accent-soft' : 'border-border bg-bg-elevated'
   }`
   const inner = (
     <>
@@ -209,7 +209,7 @@ function DocChip({
         <Icon size={12} className="text-text-3" />
       </span>
       <span className="min-w-0 truncate font-semibold text-text">{label}</span>
-      <span className="rounded-md bg-gold-subtle px-2.25 py-1 text-xs font-bold text-gold-strong">
+      <span className="rounded-md bg-accent-soft px-2.25 py-1 text-xs font-bold text-accent">
         {action}
       </span>
     </>

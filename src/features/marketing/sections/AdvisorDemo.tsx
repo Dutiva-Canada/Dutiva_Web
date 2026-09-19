@@ -24,7 +24,7 @@ export function AdvisorDemo() {
     <div id="advisor" className="premium-card animate-fade-up scroll-mt-20 overflow-hidden p-0">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-bg-elevated px-4 py-4 sm:px-5">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-navy text-gold">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-navy text-gold-on-navy">
             <Sparkles size={19} />
           </span>
           <span>
@@ -44,7 +44,7 @@ export function AdvisorDemo() {
       <div className="border-t border-border bg-bg-elevated px-5 py-3">
         <Link
           to={`${p('demoWorkspace')}/advisor`}
-          className="inline-flex items-center gap-1 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+          className="inline-flex items-center gap-1 text-sm font-semibold text-accent transition-opacity hover:opacity-80"
         >
           {lt('landing_open_in_demo')}
           <ChevronRight size={14} aria-hidden="true" />

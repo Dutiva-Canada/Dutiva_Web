@@ -87,7 +87,7 @@ export function HelpArticlePage() {
         />
         <Link
           to={helpIndex}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-accent transition-opacity hover:opacity-80"
         >
           <ArrowLeft size={15} aria-hidden="true" />
           {t('help_back')}
@@ -144,7 +144,7 @@ export function HelpArticlePage() {
                 <li key={a.slug}>
                   <Link
                     to={helpDocPath(a, lang)}
-                    className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-bg px-[18px] py-3.5 transition-colors hover:border-gold-strong"
+                    className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-bg px-[18px] py-3.5 transition-colors hover:border-accent"
                   >
                     <span className="text-[0.9375rem] font-semibold text-text">{x(a.title)}</span>
                     <ArrowRight

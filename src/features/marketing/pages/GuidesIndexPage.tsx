@@ -58,7 +58,7 @@ export function GuidesIndexPage() {
                     {x(guide.title)}
                   </h3>
                   <p className="mt-1.5 text-sm leading-[1.55] text-text-2">{x(guide.summary)}</p>
-                  <span className="mt-2.5 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong">
+                  <span className="mt-2.5 inline-flex items-center gap-1.5 text-sm font-semibold text-accent">
                     {x({ en: 'Read the guide', fr: 'Lire le guide' })}
                     <ArrowRight
                       size={14}
@@ -74,7 +74,7 @@ export function GuidesIndexPage() {
 
         <Link
           to={p('templateUsage')}
-          className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+          className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-accent transition-opacity hover:opacity-80"
         >
           {t('tmplGuide_h1')}
           <ArrowRight size={15} aria-hidden="true" />

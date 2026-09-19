@@ -91,7 +91,7 @@ export function ArticlePage({ collection }: { readonly collection: ArticleCollec
       <article className="mx-auto max-w-[760px] px-6 pt-8 pb-10">
         <Link
           to={indexPath}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-accent transition-opacity hover:opacity-80"
         >
           <ArrowLeft size={15} aria-hidden="true" />
           {x({ en: `Back to ${indexName}`, fr: `Retour à ${indexName}` })}
@@ -168,14 +168,14 @@ export function ArticlePage({ collection }: { readonly collection: ArticleCollec
           <div className="mt-3.5 flex flex-wrap gap-x-5 gap-y-2">
             <Link
               to={p('templates')}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent transition-opacity hover:opacity-80"
             >
               {x({ en: 'Browse HR templates', fr: 'Voir les modèles RH' })}
               <ArrowRight size={14} aria-hidden="true" />
             </Link>
             <Link
               to={p('pricing')}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent transition-opacity hover:opacity-80"
             >
               {x({ en: 'See plans', fr: 'Voir les forfaits' })}
               <ArrowRight size={14} aria-hidden="true" />
@@ -193,7 +193,7 @@ export function ArticlePage({ collection }: { readonly collection: ArticleCollec
                 <li key={a.slug}>
                   <Link
                     to={articlePath(a, lang)}
-                    className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-bg px-[18px] py-3.5 transition-colors hover:border-gold-strong"
+                    className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-bg px-[18px] py-3.5 transition-colors hover:border-accent"
                   >
                     <span className="text-[0.9375rem] font-semibold text-text">{x(a.title)}</span>
                     <ArrowRight

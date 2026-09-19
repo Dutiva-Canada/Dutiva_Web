@@ -13,17 +13,17 @@ export function MarketingTryLinks({ className }: { readonly className?: string }
   return (
     <div className={`flex flex-wrap gap-2.5 ${className ?? ''}`}>
       <Link to={p('templates')} className={linkClass}>
-        <FileText size={15} className="text-gold-strong" aria-hidden="true" />
+        <FileText size={15} className="text-accent" aria-hidden="true" />
         {lt('landing_try_samples')}
         <ChevronRight size={14} className="text-text-3" aria-hidden="true" />
       </Link>
       <Link to={p('demoWorkspace')} className={linkClass}>
-        <LayoutGrid size={15} className="text-gold-strong" aria-hidden="true" />
+        <LayoutGrid size={15} className="text-accent" aria-hidden="true" />
         {lt('landing_open_in_demo')}
         <ChevronRight size={14} className="text-text-3" aria-hidden="true" />
       </Link>
       <Link to={p('jurisdictionTool')} className={linkClass}>
-        <Scale size={15} className="text-gold-strong" aria-hidden="true" />
+        <Scale size={15} className="text-accent" aria-hidden="true" />
         {lt('landing_try_jurisdiction')}
         <ChevronRight size={14} className="text-text-3" aria-hidden="true" />
       </Link>

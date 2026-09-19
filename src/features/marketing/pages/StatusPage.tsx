@@ -93,7 +93,7 @@ export function StatusPage() {
         <p className="mt-8 text-center text-sm text-text-3">
           <Link
             to={seoRoute('contact').path[lang]}
-            className="font-semibold text-gold-strong hover:opacity-80"
+            className="font-semibold text-accent hover:opacity-80"
           >
             {x(M.support_contact_h1)}
           </Link>
