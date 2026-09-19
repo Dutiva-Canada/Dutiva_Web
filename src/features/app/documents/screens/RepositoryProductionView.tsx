@@ -10,7 +10,13 @@ import { DocChip, JurisdictionPill } from '../components'
 import { jurisdictionInfo, reviewStatusInfo, templateByTid } from '../data'
 import type { Jurisdiction, ReviewStatus } from '../data'
 import { PRODUCTION_DOCUMENT_STATUSES, listDocuments } from '../productionApi'
+import { approveDocument } from '../productionApi'
+import { sendDocumentForSignature } from '../signatureApi'
+import { allTemplates } from '../catalogue'
 import type { ProductionDocument, ProductionDocumentStatus } from '../productionApi'
+import { bindModuleContext } from '@/features/app/agent/runtime'
+import { docToAgentRow } from '../agentTools'
+import type { DocumentsAgentContext } from '../agentTools'
 
 /**
  * Document repository in production mode — real persistence on
@@ -63,7 +69,7 @@ function formatUpdated(iso: string, lang: 'en' | 'fr'): string {
 
 export function RepositoryProductionView() {
   const { x, lang } = useI18n()
-  const { organizationId } = useWorkspaceMode()
+  const { organizationId, identity } = useWorkspaceMode()
   const mdUp = useMdUp()
 
   const [rows, setRows] = useState<ProductionDocument[] | null>(null)
@@ -87,6 +93,40 @@ export function RepositoryProductionView() {
   useEffect(() => {
     void load()
   }, [load])
+
+  /* Agent seam — production binding over `hr_generated_documents`. The
+     commits go through the same productionApi/signatureApi calls the
+     detail screen makes, then reload the row set so a second turn sees
+     the write. send_for_signature creates a real envelope — external
+     signing invites go out, which is why the tool is admin-gated. */
+  useEffect(() => {
+    if (!organizationId) return
+    const actorLabel = identity.user.name || identity.user.email || 'Admin'
+    const ctx: DocumentsAgentContext = {
+      documents: () => (rows ?? []).map(docToAgentRow),
+      templates: () =>
+        allTemplates.map((t) => ({
+          tid: t.tid,
+          key: t.key,
+          title: t.name.en,
+          category: t.category,
+        })),
+      approve: async (docId) => {
+        await approveDocument(organizationId, docId, actorLabel)
+        await load()
+      },
+      sendForSignature: async (docId, recipient) => {
+        await sendDocumentForSignature(
+          organizationId,
+          docId,
+          [{ ...recipient, type: 'employee', order: 1, status: 'pending' }],
+          actorLabel,
+        )
+        await load()
+      },
+    }
+    return bindModuleContext('documents', ctx)
+  }, [organizationId, identity, rows, load])
 
   const visible = useMemo(() => {
     const list = rows ?? []

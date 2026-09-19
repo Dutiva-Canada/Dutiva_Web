@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react'
 import { FileText, Loader2, Upload, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { careersMessages as M } from '@/i18n/messages/careers'
-import { extractTextFromFile, ResumeExtractionError } from './resumeExtraction'
+import { extractTextFromFile, ResumeExtractionError } from '@/lib/fileTextExtraction'
 
 type UploadState = 'idle' | 'reading' | 'done' | 'error'
 

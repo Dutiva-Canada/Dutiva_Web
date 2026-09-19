@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { bindModuleContext } from '@/features/app/agent/runtime'
+import type { GovernanceAgentContext } from './agentTools'
 import {
   listGovernanceRecords,
   listGovernanceDecisions,
@@ -459,6 +461,20 @@ export function GovernanceDataProvider({
       removeShareholder,
     ],
   )
+
+  /* Agent seam — the same mutators the screens call, so writes land in the
+     view state in demo and reach `governance_*` tables in production. */
+  useEffect(() => {
+    const ctx: GovernanceAgentContext = {
+      records: () => value.records,
+      decisions: () => value.decisions,
+      officers: () => value.officers,
+      addRecord,
+      addDecision,
+      updateDecision,
+    }
+    return bindModuleContext('governance', ctx)
+  }, [value, addRecord, addDecision, updateDecision])
 
   return <GovernanceDataContext.Provider value={stable}>{children}</GovernanceDataContext.Provider>
 }

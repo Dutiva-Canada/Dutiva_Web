@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { LText } from '@/i18n/core'
 import { advisorCore } from '@/i18n/messages/advisorCore'
-import type { AdvisorTurnSpec, ChatMessage } from './types'
+import type { AdvisorTurnSpec, ChatAttachmentChip, ChatMessage } from './types'
 
 /**
  * Shared Advisor streaming engine — the port of the prototype's chat
@@ -73,7 +73,7 @@ export interface AdvisorEngine {
   /** True while a reply is thinking or streaming (composer-busy state). */
   busy: boolean
   /** Append a user bubble (optionally with structured answer chips). */
-  sendUser: (text: LText, chips?: LText[]) => void
+  sendUser: (text: LText, chips?: LText[], attachments?: ChatAttachmentChip[]) => void
   /** Append an assistant turn and run thinking → streaming → done. */
   pushTurn: (spec: AdvisorTurnSpec) => void
   /** Re-run a failed turn with its `retryText` (prototype `retryMessage`). */
@@ -135,12 +135,13 @@ export function useAdvisorEngine(options: AdvisorEngineOptions = {}): AdvisorEng
   }, [])
 
   const sendUser = useCallback(
-    (text: LText, chips?: LText[]) => {
+    (text: LText, chips?: LText[], attachments?: ChatAttachmentChip[]) => {
       const message: ChatMessage = {
         id: `${idPrefix}-${uid.current++}`,
         author: 'user',
         text,
         userChips: chips,
+        attachments,
         status: 'done',
       }
       setMessages((prev) => [...prev, message])
@@ -158,6 +159,7 @@ export function useAdvisorEngine(options: AdvisorEngineOptions = {}): AdvisorEng
         reasoning: spec.reasoning,
         cards: spec.cards,
         citations: spec.citations,
+        proposedActions: spec.proposedActions,
         errorText: spec.errorText,
         retryText: spec.retryText,
       }

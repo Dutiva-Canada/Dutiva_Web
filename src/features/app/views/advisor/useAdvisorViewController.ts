@@ -14,7 +14,12 @@ import { createAdvisorComposerHandlers } from './advisorComposerHandlers'
 import { computeAdvisorViewPresentation } from './advisorViewPresentation'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 import { useAdvisorEngine } from '@/features/app/advisor/useAdvisorEngine'
-import type { AdvisorTurnSpec, ChatMessage, ToneCardData } from '@/features/app/advisor/types'
+import type {
+  AdvisorTurnSpec,
+  ChatAttachmentChip,
+  ChatMessage,
+  ToneCardData,
+} from '@/features/app/advisor/types'
 import { useAuth } from '@/features/app/auth/authContext'
 import { startAdvisorPackCheckout } from '@/features/app/advisor/packCheckout'
 import type { AdvisorPackSize } from '@/config/advisorUsage'
@@ -172,9 +177,9 @@ export function useAdvisorViewController() {
   const engine = useAdvisorEngine({ idPrefix: enginePrefix, initial: initialMessages.current })
 
   /** Append a user bubble and return its (mirrored) engine id. */
-  const pushUser = (text: LText, chips?: LText[]): string => {
+  const pushUser = (text: LText, chips?: LText[], attachments?: ChatAttachmentChip[]): string => {
     const id = `${enginePrefix}-${nextEngineId.current++}`
-    engine.sendUser(text, chips)
+    engine.sendUser(text, chips, attachments)
     return id
   }
 
@@ -331,7 +336,8 @@ export function useAdvisorViewController() {
   })
   startFlowRef.current = startFlow
 
-  const { sendInThread, handleFollowup } = createAdvisorChatSendHandlers({
+  const { sendInThread, handleFollowup, handleAttachmentIssue } =
+    createAdvisorChatSendHandlers({
     authStatus,
     organizationId,
     getActiveChatId: () => activeChatId,
@@ -453,6 +459,7 @@ export function useAdvisorViewController() {
     getExtras,
     sendInThread,
     handleFollowup,
+    handleAttachmentIssue,
     openDocStudio: openCatalogueDocument,
     onSuggestChip,
     changeQuickField,

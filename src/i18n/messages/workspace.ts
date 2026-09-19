@@ -18,6 +18,7 @@ import { templatesMessages } from './templates'
 import { knowledgeMessages } from './knowledge'
 import { referenceMessages } from './reference'
 import { settingsMessages } from './settings'
+import { aiModelsMessages } from './aiModels'
 import { communicationsMessages } from './communications'
 import { compensationMessages } from './compensation'
 import { wellbeingMessages } from './wellbeing'
@@ -40,6 +41,7 @@ import { specialistsMessages } from './specialists'
 import { revenueMessages } from './revenue'
 import { entityLinksMessages } from './entityLinks'
 import { careersMessages } from './careers'
+import { agentMessages } from './agent'
 import { sharedMessages } from './shared'
 
 /**
@@ -70,6 +72,7 @@ export const workspaceMessages = {
   ...knowledgeMessages,
   ...referenceMessages,
   ...settingsMessages,
+  ...aiModelsMessages,
   ...communicationsMessages,
   ...compensationMessages,
   ...wellbeingMessages,
@@ -92,6 +95,7 @@ export const workspaceMessages = {
   ...revenueMessages,
   ...entityLinksMessages,
   ...careersMessages,
+  ...agentMessages,
   ...sharedMessages,
 } as const
 

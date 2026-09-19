@@ -1,6 +1,8 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { buildAdvisorResponse, detectJurisdictions } from './responsePayload.ts'
+import type { AdvisorResponsePayload } from './responsePayload.ts'
+import { agentActionsEnabled, extractActions, looksActionable } from './agentPropose.ts'
 import { noticeScheduleBlock } from './noticeSchedule.ts'
 import { buildRetrievalQuery } from './retrievalQuery.ts'
 import { memoryBlock, selectMemoryFactsForPrompt } from './memoryFacts.ts'
@@ -21,6 +23,19 @@ import {
 } from '../_shared/aiUsage.ts'
 import { reportAdvisorOverageMeter } from '../_shared/advisorOverageMeter.ts'
 import { readStripeSecretKey } from '../_shared/stripeSecret.ts'
+import {
+  missingModality,
+  parseAttachments,
+  persistedUserContent,
+  postChatCompletion,
+  resolveApiKey,
+  routeModalities,
+  userMessageContent,
+} from '../_shared/modelUpstream.ts'
+import type {
+  AdvisorAttachment,
+  UpstreamMessage,
+} from '../_shared/modelUpstream.ts'
 
 /**
  * Real AI Advisor replies. Looks up the active `advisor_chat` route in
@@ -137,19 +152,29 @@ interface ChatRequest {
   conversationId: string | null
   organizationId: string | null
   timezone: string | null
+  attachments: AdvisorAttachment[]
 }
 
 interface ModelProvider {
   id: string
   provider_key: string
   base_url: string
-  secret_ref: string
+  secret_ref: string | null
   status: string
 }
 
 interface ModelRoute {
   model_name: string
-  config: { max_tokens?: number; temperature?: number } | null
+  config: {
+    max_tokens?: number
+    temperature?: number
+    /** Modalities the routed model accepts (e.g. ["text","image"]). Absent →
+     *  text-only; attachments needing more get refused before metering. */
+    modalities?: unknown
+    /** Per-route override for the upstream fetch timeout (local models are
+     *  slow to warm). */
+    timeout_ms?: number
+  } | null
 }
 
 interface ActiveModelRoute {
@@ -472,12 +497,21 @@ async function readChatRequest(req: Request): Promise<ChatRequest | Response> {
     body = {}
   }
   const message = typeof body.message === 'string' ? body.message.trim() : ''
-  if (!message) return json({ error: 'message is required' }, 400)
+  const parsed = parseAttachments(body.attachments)
+  if ('error' in parsed) {
+    return json({ error: `Invalid attachments (${parsed.error})`, code: 'bad_attachments' }, 400)
+  }
+  /* A turn can be only attachments — a photo of a job posting with no caption
+     is a legitimate question. Substitute a minimal prompt so the message
+     still has text for retrieval and history. */
+  const effectiveMessage = message || (parsed.attachments.length > 0 ? 'See attached.' : '')
+  if (!effectiveMessage) return json({ error: 'message is required' }, 400)
   return {
-    message,
+    message: effectiveMessage,
     conversationId: typeof body.conversation_id === 'string' ? body.conversation_id : null,
     organizationId: typeof body.organization_id === 'string' ? body.organization_id : null,
     timezone: typeof body.timezone === 'string' ? body.timezone : null,
+    attachments: parsed.attachments,
   }
 }
 
@@ -552,21 +586,21 @@ async function requestCompletion(
   route: ModelRoute,
   provider: ModelProvider,
   history: ChatMessage[],
-  userMessage: ChatMessage,
+  userMessage: UpstreamMessage,
   guidance: string,
 ): Promise<{ completion: Completion; latencyMs: number } | Response> {
-  const apiKey = Deno.env.get(provider.secret_ref)
-  if (!apiKey) {
+  const keyResult = resolveApiKey(provider.secret_ref, (name) => Deno.env.get(name))
+  if ('missingSecret' in keyResult) {
     await finalizeAiUsage(adminClient, claimId, { status: 'failed', latencyMs: 0 })
-    return json({ error: `Missing secret ${provider.secret_ref}` }, 500)
+    return json({ error: `Missing secret ${keyResult.missingSecret}` }, 500)
   }
 
   const started = Date.now()
   try {
-    const upstream = await fetch(`${provider.base_url}/chat/completions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({
+    const upstream = await postChatCompletion(
+      provider,
+      keyResult.apiKey,
+      {
         model: route.model_name,
         messages: [
           {
@@ -583,8 +617,9 @@ async function requestCompletion(
         ...(typeof route.config?.temperature === 'number'
           ? { temperature: route.config.temperature }
           : {}),
-      }),
-    })
+      },
+      typeof route.config?.timeout_ms === 'number' ? route.config.timeout_ms : undefined,
+    )
     if (!upstream.ok) {
       const errText = await upstream.text()
       throw new Error(`Upstream ${upstream.status}: ${errText.slice(0, 500)}`)
@@ -678,6 +713,23 @@ Deno.serve(async (req: Request) => {
   if (request instanceof Response) return request
   const activeRoute = await activeModelRoute(authenticated.adminClient)
   if (activeRoute instanceof Response) return activeRoute
+  /* Modality gate — refuse before metering: a turn the routed model cannot
+     even see (an image sent to a text-only route) must not spend budget.
+     Documents inline to text, so only images can trip this. */
+  const missing = missingModality(
+    request.attachments,
+    routeModalities(activeRoute.route.config),
+  )
+  if (missing) {
+    return json(
+      {
+        error: `The active model for this route does not accept ${missing} input.`,
+        code: 'modality_unsupported',
+        modality: missing,
+      },
+      422,
+    )
+  }
   const conversation = await loadConversation(
     authenticated.adminClient,
     authenticated.user.id,
@@ -692,7 +744,17 @@ Deno.serve(async (req: Request) => {
      overflows the context window. 20 messages = 10 user/assistant
      exchanges — far beyond real usage. */
   const history = fullHistory.slice(-20)
-  const userMessage: ChatMessage = { role: 'user', content: request.message }
+  /* Two faces of the same turn: `upstreamUserMessage` carries multimodal
+     content parts to the model; `persistedUserMessage` is the text-only
+     manifest + message stored in conversations.messages. */
+  const upstreamUserMessage: UpstreamMessage = {
+    role: 'user',
+    content: userMessageContent(request.message, request.attachments),
+  }
+  const persistedUserMessage: ChatMessage = {
+    role: 'user',
+    content: persistedUserContent(request.message, request.attachments),
+  }
   /* Retrieval sees the previous user turn too, so a follow-up ("and after
      5 years?") still carries the lexemes that found the right chunk. */
   const retrieval = await retrieveGuidance(
@@ -757,7 +819,7 @@ Deno.serve(async (req: Request) => {
     activeRoute.route,
     activeRoute.provider,
     history,
-    userMessage,
+    upstreamUserMessage,
     guidance,
   )
   if (completionResult instanceof Response) return completionResult
@@ -784,7 +846,11 @@ Deno.serve(async (req: Request) => {
       extracted.candidates,
     )
   }
-  const nextMessages = [...fullHistory, userMessage, { role: 'assistant' as const, content: reply }]
+  const nextMessages = [
+    ...fullHistory,
+    persistedUserMessage,
+    { role: 'assistant' as const, content: reply },
+  ]
   /* Close the claim before persisting the turn: the tokens are already spent
      upstream, so they must be recorded even if the conversation write fails. */
   await recordCompletion(
@@ -825,6 +891,33 @@ Deno.serve(async (req: Request) => {
     console.error('advisor-chat: response payload build failed', error)
   }
 
+  /* Agent proposals — opt-in via ADVISOR_AGENT_ACTIONS, hr turns only, and
+     only when the message plausibly asks for a workspace change (the
+     heuristic is a cost gate; validation happens in the extractor). The
+     proposals go on the wire copy only — the persisted envelope below
+     never carries them, so a reopened conversation can't resurface a
+     stale confirm card. The model proposes; the client executor still
+     gates execution behind human confirmation. */
+  let wireAdvisorResponse: unknown = advisorResponse
+  if (advisorResponse !== null && agentActionsEnabled() && looksActionable(request.message)) {
+    const payload = advisorResponse as AdvisorResponsePayload
+    if (payload.route.responseMode === 'hr' && payload.isCrisis !== true) {
+      const proposedActions = await extractActions(
+        activeRoute.provider,
+        activeRoute.route,
+        request.message,
+        history,
+      )
+      if (proposedActions.length > 0) {
+        wireAdvisorResponse = {
+          ...payload,
+          route: { ...payload.route, actionsAllowed: true },
+          proposedActions,
+        }
+      }
+    }
+  }
+
   const updateResponse = await saveConversation(
     authenticated.adminClient,
     conversation,
@@ -837,7 +930,7 @@ Deno.serve(async (req: Request) => {
     data: {
       reply,
       conversation_id: conversation.id,
-      advisor_response: advisorResponse,
+      advisor_response: wireAdvisorResponse,
       memory_created:
         memoryCreated.length > 0
           ? memoryCreated.map((f) => ({

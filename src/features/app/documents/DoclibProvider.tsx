@@ -15,6 +15,9 @@ import type {
 } from './data'
 import { DoclibContext } from './doclibContext'
 import { activeHeadcount, orgProfileForIdentity } from './orgProfile'
+import { bindModuleContext } from '@/features/app/agent/runtime'
+import { docToAgentRow } from './agentTools'
+import type { DocumentsAgentContext } from './agentTools'
 
 const ROLE_KEY = 'dutiva-doclib-role'
 
@@ -265,6 +268,30 @@ export function DoclibProvider({ children }: { readonly children: ReactNode }) {
     }),
     [data, role, org, sendForSignature, applySignature, getDocumentForEnvelope],
   )
+
+  /* Agent seam — demo only. In production this provider holds a catalogue
+     shell (no generated documents) and its mutators write nothing; the
+     repository view binds the real `hr_generated_documents` seam there.
+     `approve` is deliberately unbound — the demo has no approve mutator,
+     so the tool fails honestly instead of writing nothing. */
+  useEffect(() => {
+    if (mode === 'production') return
+    const ctx: DocumentsAgentContext = {
+      documents: () => (dataRef.current?.documents ?? []).map(docToAgentRow),
+      templates: () =>
+        (dataRef.current?.templates ?? []).map((t) => ({
+          tid: t.tid,
+          key: t.key,
+          title: t.name.en,
+          category: t.category,
+        })),
+      sendForSignature: (docId, recipient) =>
+        sendForSignature(docId, [
+          { ...recipient, type: 'employee', order: 1, status: 'pending' },
+        ]),
+    }
+    return bindModuleContext('documents', ctx)
+  }, [mode, sendForSignature])
 
   return <DoclibContext.Provider value={value}>{children}</DoclibContext.Provider>
 }

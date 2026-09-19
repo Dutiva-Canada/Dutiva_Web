@@ -25,6 +25,8 @@ import type {
   ProductionCommunicationStatus,
 } from './productionApi'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { bindModuleContext } from '@/features/app/agent/runtime'
+import type { CommunicationsAgentContext } from './agentTools'
 
 /**
  * Internal communications in production mode — real persistence on
@@ -123,6 +125,36 @@ export function CommunicationsProductionView() {
   useEffect(() => {
     void load()
   }, [load])
+
+  /* Agent binding (docs/AGENT_LAYER.md): tools run through the same
+     productionApi seam the form uses — adds and mark-sent land in `rows`
+     so the view reflects an agent write exactly like a UI one. */
+  useEffect(() => {
+    if (!organizationId) return
+    const ctx: CommunicationsAgentContext = {
+      list: () =>
+        (rows ?? []).map((comm) => ({
+          id: comm.id,
+          title: comm.title,
+          status: comm.status,
+          audience: comm.audience,
+          channel: comm.channel,
+        })),
+      add: async (fields) => {
+        const added = await addCommunication(organizationId, { ...fields, templateTid: '' })
+        setRows((prev) => [added, ...(prev ?? [])])
+        return added
+      },
+      markSent: async (id) => {
+        const sentOn = today()
+        await markCommunicationSent(id, sentOn)
+        setRows((prev) =>
+          (prev ?? []).map((r) => (r.id === id ? { ...r, status: 'sent', sentOn } : r)),
+        )
+      },
+    }
+    return bindModuleContext('communications', ctx)
+  })
 
   if (!organizationId) {
     return <ProductionEmptyState title={x(M.comms_prod_empty_title)} />

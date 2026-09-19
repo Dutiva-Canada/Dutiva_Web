@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Check } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
@@ -9,6 +9,8 @@ import { statusChipClass } from '@/components/chips'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import { AppPage } from '@/features/app/shell/AppPage'
 import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
+import { bindModuleContext } from '@/features/app/agent/runtime'
+import type { TasksAgentContext } from './agentTools'
 
 function linkedFor(task: Task): Bi | null {
   const linkedCase = cases.find((c) => c.chatId === task.chatId)
@@ -26,6 +28,26 @@ export function TasksDemoView() {
   const isDone = (task: Task) => doneById[task.id] ?? task.done
   const toggleTask = (task: Task) =>
     setDoneById((prev) => ({ ...prev, [task.id]: !(prev[task.id] ?? task.done) }))
+
+  /* Agent binding (docs/AGENT_LAYER.md): the demo checklist is fixture-backed,
+     so it binds `list` + `setDone` only — `create` stays unset and the tool
+     reports the demo as read-only rather than writing an invisible row. */
+  useEffect(() => {
+    const ctx: TasksAgentContext = {
+      list: () =>
+        tasks.map((task) => ({
+          id: task.id,
+          title: x(task.title),
+          done: isDone(task),
+          priority: task.priority,
+          dueDate: x(task.due),
+        })),
+      setDone: (id: string, done: boolean) => {
+        setDoneById((prev) => ({ ...prev, [id]: done }))
+      },
+    }
+    return bindModuleContext('tasks', ctx)
+  })
 
   const openChat = (task: Task) => {
     navigate('/app/advisor', { state: { chatId: task.chatId } satisfies AdvisorSearchNavState })

@@ -76,10 +76,12 @@ Brand-identity tokens in `src/styles/tokens.css` are theme-independent foundatio
 
 | Token | Value | Purpose |
 |---|---|---|
-| `--dutiva-navy` | `#0d1b2a` | Brand navy ground |
-| `--dutiva-gold` | `#d4af37` | Brand gold core |
-| `--gold-gradient` | `#b98512 → #d4af37 → #f4c54b → #ffe37a` | 4-stop gold gradient |
-| `--gold-on-dark` | `#e9c877` | Readable gold for dark surfaces |
+| `--dutiva-navy` | `#0b1f3a` | Brand navy ground |
+| `--dutiva-teal` | `#0f766e` | Interactive accent (people + technology) |
+| `--dutiva-teal-bright` | `#45c4b5` | Accent step for dark surfaces |
+| `--dutiva-gold` | `#c8a96b` | Champagne gold — executive moments only |
+| `--gold-gradient` | `#8a6d3b → #c8a96b → #e6cf9c → #f7ead0` | 4-stop champagne gradient |
+| `--gold-on-dark` | `#e2ca94` | Readable gold for dark surfaces |
 
 [src/styles/tokens.css:10-27]()
 
@@ -94,10 +96,11 @@ Signature marketing classes (`.premium-card`, `.gold-button`, `.badge`, `.dutiva
 graph TD
     subgraph "tokens.css"
         Root[":root"]
-        Root --> Navy["--dutiva-navy: #0d1b2a"]
-        Root --> Gold["--dutiva-gold: #d4af37"]
+        Root --> Navy["--dutiva-navy: #0b1f3a"]
+        Root --> Teal["--dutiva-teal: #0f766e"]
+        Root --> Gold["--dutiva-gold: #c8a96b"]
         Root --> GoldGrad["--gold-gradient"]
-        Root --> GoldOnDark["--gold-on-dark: #e9c877"]
+        Root --> GoldOnDark["--gold-on-dark: #e2ca94"]
     end
 
     subgraph "surfaces.css"
@@ -260,8 +263,9 @@ The "Verified against the product" table contains 12 facts, each with its code s
 | Law-change monitoring | FED, ON, QC confirmed | `monitoringCoverage.ts` |
 | Contact address | support@dutiva.ca | Retired addresses enforced |
 | Languages | EN + FR | `src/i18n/` |
-| Brand gold | `#b98512 → #d4af37 → #f4c54b → #ffe37a` | `tokens.css` `--gold-gradient` |
-| Brand navy | `#0d1b2a` ground, `#081019` deep | `tokens.css` `--dutiva-navy`, `surfaces.css` |
+| Brand gold | `#8a6d3b → #c8a96b → #e6cf9c → #f7ead0` | `tokens.css` `--gold-gradient` |
+| Brand navy | `#0b1f3a` ground, `#060f1e` deep | `tokens.css` `--dutiva-navy`, `surfaces.css` |
+| Brand teal | `#0f766e`; on dark `#45c4b5` | `tokens.css` `--dutiva-teal`, `--dutiva-teal-bright` |
 
 [docs/CANONICAL_FACTS.md:39-54]()
 
@@ -433,7 +437,7 @@ flowchart LR
     CSS1["tokens.css\n:root --gold-gradient"]
     CSS2["tokens.css\n:root --gold-on-dark"]
 
-    MD -->|"regex #rrggbb"| DocSet["documented hex set\n{#b98512, #d4af37,\n#f4c54b, #ffe37a,\n#e9c877}"]
+    MD -->|"regex #rrggbb"| DocSet["documented hex set\n{#8a6d3b, #c8a96b,\n#e6cf9c, #f7ead0,\n#e2ca94}"]
     CSS1 -->|"declaredHexes()"| DeclSet1["declared hexes\nfrom --gold-gradient"]
     CSS2 -->|"declaredHexes()"| DeclSet2["declared hexes\nfrom --gold-on-dark"]
     DeclSet1 --> CSSSet["declared hex set\n(union)"]

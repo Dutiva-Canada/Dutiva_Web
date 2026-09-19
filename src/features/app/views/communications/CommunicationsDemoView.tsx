@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Link, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -10,6 +10,8 @@ import { useRail } from '@/features/app/rail/railContext'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { communicationsMessages as M } from '@/i18n/messages/communications'
 import { AppPage, AppPageLead } from '@/features/app/shell/AppPage'
+import { bindModuleContext } from '@/features/app/agent/runtime'
+import type { CommunicationsAgentContext } from './agentTools'
 
 /** View display order from the prototype's `buildCommunicationsView()`. */
 const DISPLAY_ORDER = ['cm1', 'cm5', 'cm6', 'cm4', 'cm2', 'cm3']
@@ -45,6 +47,29 @@ export function CommunicationsDemoView() {
     setSentIds((prev) => ({ ...prev, [id]: true }))
     showToast(M.comms_sent_toast, 'ok')
   }
+
+  /* Agent binding (docs/AGENT_LAYER.md): the demo register is fixture-backed,
+     so it binds `list` + `markSent` only — `add` stays unset and the log
+     tool reports the demo as read-only rather than writing an invisible row. */
+  useEffect(() => {
+    const ctx: CommunicationsAgentContext = {
+      list: () =>
+        items.map(({ comm }) => {
+          const status0 = comm.status.en
+          const sent = sentIds[comm.id] === true || status0 === 'Sent'
+          return {
+            id: comm.id,
+            title: x(comm.title),
+            status: sent ? 'sent' : status0 === 'Scheduled' ? 'scheduled' : 'draft',
+            audience: x(comm.audience),
+          }
+        }),
+      markSent: (id: string) => {
+        setSentIds((prev) => ({ ...prev, [id]: true }))
+      },
+    }
+    return bindModuleContext('communications', ctx)
+  })
 
   const sendCommunication = (comm: Communication, detail: CommunicationDetail) => {
     if (detail.sensitive) {

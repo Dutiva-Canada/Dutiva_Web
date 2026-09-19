@@ -5,11 +5,13 @@
 import type { RefObject } from 'react'
 import type { LText } from '@/i18n/core'
 import { sendAdvisorMessage } from '@/features/app/advisor/chatApi'
-import type { AdvisorTurnSpec, ToneCardData } from '@/features/app/advisor/types'
+import type { AdvisorAttachment, AttachmentIssue } from '@/features/app/advisor/attachments'
+import type { AdvisorTurnSpec, ChatAttachmentChip, ToneCardData } from '@/features/app/advisor/types'
 import { followupFallbackText, followupReplies } from '@/data'
 import type { FixtureToneCard } from '@/data'
 import type { ProductionConversation } from '@/features/app/views/memory/conversationsApi'
 import type { ToastAction } from '@/features/app/toasts/toastsContext'
+import { advisorCore as CORE } from '@/i18n/messages/advisorCore'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 import { estimatorFollowup, genericAck } from './advisorFlows'
 import type { MessageExtras } from './advisorFlows'
@@ -24,7 +26,7 @@ interface ChatSendHandlersOptions {
   organizationId: string | null
   getActiveChatId: () => string | null
   getResponseState: () => Record<string, ThreadResponseState>
-  pushUser: (text: LText, chips?: LText[]) => string
+  pushUser: (text: LText, chips?: LText[], attachments?: ChatAttachmentChip[]) => string
   pushAdvisor: (spec: AdvisorTurnSpec) => string
   patchResponseState: (chatId: string, patch: Partial<ThreadResponseState>) => void
   setProdThreads: (updater: (prev: ProductionConversation[]) => ProductionConversation[]) => void
@@ -61,9 +63,14 @@ export function createAdvisorChatSendHandlers(options: ChatSendHandlersOptions) 
     showToast,
   } = options
 
-  const sendInThread = (text: string) => {
+  const sendInThread = (text: string, attachments?: AdvisorAttachment[]) => {
     const chatId = getActiveChatId()
-    pushUser(text)
+    /* Bubble shows name+kind chips only — payloads travel on the request
+       wire, never through transcript state. */
+    const chips = attachments?.map(
+      (a): ChatAttachmentChip => ({ name: a.name, kind: a.kind }),
+    )
+    pushUser(text, undefined, chips && chips.length > 0 ? chips : undefined)
     if (interceptCrisis(text, chatId)) return
     const isScenarioThread = chatId !== null && getResponseState()[chatId]?.scenarioId != null
     if (isScenarioThread) {
@@ -75,7 +82,12 @@ export function createAdvisorChatSendHandlers(options: ChatSendHandlersOptions) 
       return
     }
     setSendingReal(true)
-    void sendAdvisorMessage(text, conversationIdRef.current, organizationId)
+    void sendAdvisorMessage(
+      text,
+      conversationIdRef.current,
+      organizationId,
+      attachments ?? [],
+    )
       .then((result) =>
         applyRealChatResult({
           result,
@@ -119,5 +131,21 @@ export function createAdvisorChatSendHandlers(options: ChatSendHandlersOptions) 
     if (reply.isEscalation === true) showToast(M.advisorview_toast_counsel, 'ok')
   }
 
-  return { sendInThread, handleFollowup }
+  /** Refused attachments surface as toasts — the file never entered the
+     transcript, so there is no turn to hang the message on. */
+  const handleAttachmentIssue = (issue: AttachmentIssue) => {
+    const message =
+      issue === 'unsupported_type'
+        ? CORE.advisor_attach_issue_unsupported
+        : issue === 'too_large'
+          ? CORE.advisor_attach_issue_too_large
+          : issue === 'empty'
+            ? CORE.advisor_attach_issue_empty
+            : issue === 'too_many'
+              ? CORE.advisor_attach_issue_too_many
+              : CORE.advisor_attach_issue_read
+    showToast(message, 'info')
+  }
+
+  return { sendInThread, handleFollowup, handleAttachmentIssue }
 }

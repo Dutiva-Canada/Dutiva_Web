@@ -135,8 +135,9 @@ Sources: [docs/README.md:1-108]()
 | Beta capacity | 15 seats | `src/config/beta.ts` `BETA_COHORT_LIMIT` |
 | Rings live | All four complete | `docs/FOUR_RING_FRAMEWORK.md` |
 | Law monitoring | FED, ON, QC confirmed working | `src/features/app/guidance/monitoringCoverage.ts` |
-| Brand gold | `#b98512 → #d4af37 → #f4c54b → #ffe37a` | `tokens.css` `--gold-gradient` |
-| Brand navy | `#0d1b2a` ground, `#081019` deep | `tokens.css` `--dutiva-navy` |
+| Brand gold | `#8a6d3b → #c8a96b → #e6cf9c → #f7ead0` | `tokens.css` `--gold-gradient` |
+| Brand navy | `#0b1f3a` ground, `#060f1e` deep | `tokens.css` `--dutiva-navy` |
+| Brand teal | `#0f766e`; on dark `#45c4b5` | `tokens.css` `--dutiva-teal`, `--dutiva-teal-bright` |
 
 Sources: [docs/CANONICAL_FACTS.md:40-55]()
 

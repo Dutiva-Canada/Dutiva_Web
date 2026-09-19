@@ -22,7 +22,7 @@ Drive documents they replaced did:
   the audit date and the "not confirmed working" claim itself),
   **Advisor replies**, **Advisor replies (catalogue)** —
   `src/canonicalFacts.test.ts`.
-- **Brand gold**, **Brand navy** — `scripts/check-canonical-facts.mjs`
+- **Brand gold**, **Brand navy**, **Brand teal** — `scripts/check-canonical-facts.mjs`
   (`npm run check:facts`), separate because their values live in CSS that
   Vitest cannot read.
 - **Contact address** — partly. The retired addresses in §6 are enforced; that
@@ -52,8 +52,9 @@ people who don't read the repo. Re-export it when this file changes.
 | Contact address             | <support@dutiva.ca>                                                                                                                                                                                                                             | the published support address; retired ones stay retired (§6, enforced)          |
 | Languages                   | EN + FR, both surfaces, prerendered per locale                                                                                                                                                                                                  | `src/i18n/` — EN unprefixed, FR under `/fr`                                      |
 | Advisor replies             | Org-pooled included replies / UTC calendar month: Free **20** · Starter **80** · Growth **200** · Pro **400**. Paid plans may roll unused included replies for 90 days, capped at the current plan’s monthly allowance. Optional packs: **50** for **$5** CAD, **200** for **$15** CAD. Opt-in overage $0.12 CAD/reply, cap **500**/month, paid subscription only. | `src/config/planEntitlements.ts` `ADVISOR_MONTHLY_BY_PLAN`; `src/config/advisorUsage.ts` |
-| Brand gold                  | `#b98512 → #d4af37 → #f4c54b → #ffe37a`; on dark `#e9c877`                                                                                                                                                                                      | `tokens.css` `--gold-gradient`, `--gold-on-dark`                                 |
-| Brand navy                  | `#0d1b2a` ground, `#081019` deep                                                                                                                                                                                                                | `tokens.css` `--dutiva-navy`; `surfaces.css` `.surface-marketing --bg`           |
+| Brand gold                  | `#8a6d3b → #c8a96b → #e6cf9c → #f7ead0`; on dark `#e2ca94`                                                                                                                                                                                      | `tokens.css` `--gold-gradient`, `--gold-on-dark`                                 |
+| Brand navy                  | `#0b1f3a` ground, `#060f1e` deep                                                                                                                                                                                                                | `tokens.css` `--dutiva-navy`; `surfaces.css` `.surface-marketing --bg`           |
+| Brand teal                  | `#0f766e`; on dark `#45c4b5`                                                                                                                                                                                                                  | `tokens.css` `--dutiva-teal`, `--dutiva-teal-bright`                             |
 
 ## Company and legal
 
@@ -277,7 +278,8 @@ both in the same change when a source strategy lands.
 ### 6. Contact and brand
 
 Publish <support@dutiva.ca> only; retire `info@`, `hello@`, `DutivaCanada@`. The
-accent is **gold `#d4af37`**, not amber `#E8A020` — the Drive logo kit is already
+accent is **champagne gold `#c8a96b`** (the 2026-09 rebrand; previously `#d4af37`),
+not amber `#E8A020` — the Drive logo kit is already
 correct, only its written description drifted.
 
 ## Positioning that holds up

@@ -12,23 +12,35 @@
    ──────────────────────────────────────────────────────────────────────────── */
 
 :root {
-  /* ── Brand core (fixed identity — from the Dutiva brand book) ───────────── */
-  --dutiva-navy: #0d1b2a;
-  --dutiva-navy-rgb: 13, 27, 42;
-  --dutiva-gold: #d4af37;
-  --dutiva-gold-rgb: 212, 175, 55;
+  /* ── Brand core (fixed identity — see docs/BRAND.md) ────────────────────── */
+  /* Timeless foundation: deep navy (trust, stability), charcoal (premium,
+     corporate), ivory (warmth, elegance). Evolving accent: teal — people +
+     technology, the primary interactive colour. Champagne gold is reserved
+     for executive / premium moments; it is never the primary UI colour. */
+  --dutiva-navy: #0b1f3a;
+  --dutiva-navy-rgb: 11, 31, 58;
+  --dutiva-charcoal: #1c2530;
+  --dutiva-ivory: #f7f3ea;
+  --dutiva-teal: #0f766e;
+  --dutiva-teal-rgb: 15, 118, 110;
+  /* Teal lifted for dark surfaces — holds ≥4.5:1 on the navy dark ramp where
+     the base teal cannot. */
+  --dutiva-teal-bright: #45c4b5;
+  --dutiva-teal-bright-rgb: 69, 196, 181;
+  --dutiva-gold: #c8a96b;
+  --dutiva-gold-rgb: 200, 169, 107;
   --dutiva-black: #111111;
   --dutiva-white: #ffffff;
-  --gold-gradient: linear-gradient(135deg, #b98512 0%, #d4af37 45%, #f4c54b 70%, #ffe37a 100%);
-  --gold-bright: #f4d03f; /* bright headline gold — end stop of .gradient-text */
+  --gold-gradient: linear-gradient(135deg, #8a6d3b 0%, #c8a96b 45%, #e6cf9c 70%, #f7ead0 100%);
+  --gold-bright: #eeddae; /* bright champagne — end stop of .gradient-text */
   /* Fixed golds for always-dark surfaces (navy chips, auth BrandRail). These
      never theme-flip: the surfaces they sit on stay navy in both themes, so
-     the theme-scoped --gold-fg (#7d600f in light) would vanish there.
+     the theme-scoped --gold-fg (#77571f in light) would vanish there.
      --gold-on-navy is the handoff's "gold-on-navy text"; --gold-on-dark is
      the readable gold copy shade (equals the dark-ramp --gold-fg). */
-  --gold-on-navy: #f2d9a8;
-  --gold-on-navy-rgb: 242, 217, 168;
-  --gold-on-dark: #e9c877;
+  --gold-on-navy: #efdcb2;
+  --gold-on-navy-rgb: 239, 220, 178;
+  --gold-on-dark: #e2ca94;
 
   /* ── Families ────────────────────────────────────────────────────────────── */
   /* Variable faces from src/styles/fonts.css (self-hosted); keep static names as

@@ -34,8 +34,10 @@ import type { PrefKey } from './settingsData'
 import { readSettingsPrefs, writeSettingsPrefs } from './settingsPrefs'
 import { Card, Section, StatusChip, ToggleRow, ToggleSwitch } from './settingsPrimitives'
 import { CapacityAlert } from './CapacityAlert'
+import { SettingsAgentActivity } from './SettingsAgentActivity'
 import { SettingsDemoFixtures } from './SettingsDemoFixtures'
 import { SettingsBillingSection } from './SettingsBillingSection'
+import { AiModelsSection } from './AiModelsSection'
 import { SettingsProductionTeam } from './SettingsProductionTeam'
 import { WorkspaceProfileEditor } from './WorkspaceProfileEditor'
 import { OrganizationProfileEditor } from './OrganizationProfileEditor'
@@ -99,6 +101,10 @@ export function SettingsView() {
   /* Device-local export audit trail (src/lib/exportProtection) — read once
      per mount; signed-in exports also land in export_events for staff. */
   const [exportTrail] = useState(() => readExportAudit().slice(0, 8))
+  /* Agent activity — the session's in-memory audit list, newest first.
+     Read once on mount like the export trail; the durable `agent_audit`
+     table feeds this surface once migration 0157 is applied. */
+
   const [reminderDays, setReminderDays] = useState(3)
   const [reminderSaving, setReminderSaving] = useState(false)
   const [policyReviewDays, setPolicyReviewDaysState] = useState(90)
@@ -537,6 +543,9 @@ export function SettingsView() {
             </div>
           </div>
         </Card>
+        <div className="mt-[12px]">
+          <AiModelsSection />
+        </div>
       </Section>
 
       {/* Roles & permissions */}
@@ -675,6 +684,10 @@ export function SettingsView() {
           )}
         </Card>
       </Section>
+
+      {/* Advisor activity — the session audit list, extracted to keep this
+            view under the 800-line budget. */}
+      <SettingsAgentActivity />
 
       {/* Help & support — the account surface had no support entry point at
             all, so the only in-app route to a ticket was the sidebar profile

@@ -30,6 +30,35 @@ export const advisorCore = defineMessages({
   },
   advisor_send: { en: 'Send', fr: 'Envoyer' }, // [FR self-authored]
 
+  /* ── Attachments (multimodal turns) ─────────────────────────────────────── */
+  advisor_attach: { en: 'Attach a file', fr: 'Joindre un fichier' }, // [FR self-authored]
+  advisor_attach_remove: { en: 'Remove', fr: 'Retirer' }, // [FR self-authored]
+  advisor_attach_truncated: { en: 'truncated', fr: 'tronqué' }, // [FR self-authored]
+  advisor_attach_issue_unsupported: {
+    en: 'That file type isn’t supported. Try an image, PDF, DOCX, XLSX, or text file.',
+    fr: 'Ce type de fichier n’est pas pris en charge. Essayez une image, un PDF, DOCX, XLSX ou un fichier texte.',
+  }, // [FR self-authored]
+  advisor_attach_issue_too_large: {
+    en: 'That file is too large to attach.',
+    fr: 'Ce fichier est trop volumineux pour être joint.',
+  }, // [FR self-authored]
+  advisor_attach_issue_empty: {
+    en: 'That file looks empty.',
+    fr: 'Ce fichier semble vide.',
+  }, // [FR self-authored]
+  advisor_attach_issue_too_many: {
+    en: 'You can attach up to 4 files per message.',
+    fr: 'Vous pouvez joindre jusqu’à 4 fichiers par message.',
+  }, // [FR self-authored]
+  advisor_attach_issue_read: {
+    en: 'That file couldn’t be read. Try another format.',
+    fr: 'Ce fichier n’a pas pu être lu. Essayez un autre format.',
+  }, // [FR self-authored]
+  advisor_attach_modality: {
+    en: 'The model on this route can’t read images. Remove the image or ask an admin for a vision-capable model.',
+    fr: 'Le modèle de cette route ne peut pas lire les images. Retirez l’image ou demandez à un administrateur un modèle capable de vision.',
+  }, // [FR self-authored]
+
   /* ── Rich message formatting (ChatMarkdown / ChatChart) ─────────────────── */
   // Accessible name for the horizontally scrollable frame a Markdown table
   // sits in — screen-reader only. [FR self-authored]

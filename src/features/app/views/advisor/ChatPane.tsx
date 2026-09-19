@@ -6,6 +6,7 @@ import {
   FileText,
   Globe,
   Heart,
+  Image,
   ShieldCheck,
   Sparkle,
   TriangleAlert,
@@ -31,7 +32,9 @@ import { ReasoningExpander } from '@/features/app/advisor/ReasoningExpander'
 import { StreamedText } from '@/features/app/advisor/StreamedText'
 import { SuggestionChips } from '@/features/app/advisor/SuggestionChips'
 import { ToneCard } from '@/features/app/advisor/ToneCard'
+import { AgentActionCard } from '@/features/app/agent/AgentActionCard'
 import { TypingDots } from '@/features/app/advisor/TypingDots'
+import type { AdvisorAttachment, AttachmentIssue } from '@/features/app/advisor/attachments'
 import type { ChatMessage } from '@/features/app/advisor/types'
 import { followupReplies } from '@/data'
 import { resolveDocTitle } from '@/features/app/docstudio/resolveDocTitle'
@@ -56,7 +59,9 @@ export interface ChatPaneProps {
   readonly busy: boolean
   readonly jurisdiction: Bi
   readonly getExtras: (messageId: string) => MessageExtras | undefined
-  readonly onSend: (text: string) => void
+  readonly onSend: (text: string, attachments?: AdvisorAttachment[]) => void
+  /** A file was refused before it could attach (toast surface). */
+  readonly onAttachmentIssue?: (issue: AttachmentIssue, fileName: string) => void
   readonly onRetry: (messageId: string) => void
   readonly onFollowup: (labelEn: string) => void
   readonly onGenerateDoc: (templateKey: string) => void
@@ -155,6 +160,7 @@ export function ChatPane({
   jurisdiction,
   getExtras,
   onSend,
+  onAttachmentIssue,
   onRetry,
   onFollowup,
   onGenerateDoc,
@@ -246,6 +252,8 @@ export function ChatPane({
             placeholder={x(M.advisorview_composer_msg)}
             onSend={onSend}
             disabled={busy}
+            enableAttachments
+            onAttachmentIssue={onAttachmentIssue}
           />
         </div>
         <Disclaimer className="mt-[8px] text-center" />
@@ -259,9 +267,29 @@ export function ChatPane({
 function UserTurn({ message }: { readonly message: ChatMessage }) {
   const { lang } = useI18n()
   const chips = message.userChips ?? []
+  const attachments = message.attachments ?? []
   const text = pickL(message.text, lang)
   return (
     <div className={`flex flex-col items-end gap-[8px] ${ENTRANCE}`}>
+      {attachments.length > 0 && (
+        <div className="flex max-w-[80%] flex-wrap justify-end gap-[6px]">
+          {attachments.map((a) => (
+            <span
+              key={`${a.kind}-${a.name}`}
+              className="flex items-center gap-[6px] rounded-[8px] border border-border bg-surface px-[9px] py-[5px] text-[12px] font-semibold text-text-2"
+            >
+              {a.kind === 'image' ? (
+                <Image size={12} strokeWidth={1.9} aria-hidden="true" />
+              ) : (
+                <FileText size={12} strokeWidth={1.9} aria-hidden="true" />
+              )}
+              <span className="max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap">
+                {a.name}
+              </span>
+            </span>
+          ))}
+        </div>
+      )}
       {chips.length > 0 && (
         <div className="flex max-w-[80%] flex-wrap justify-end gap-[6px]">
           {chips.map((chip) => (
@@ -402,6 +430,14 @@ function AdvisorTurn({
               <div className="flex max-w-[620px] flex-col gap-[10px]">
                 {cards.map((card) => (
                   <ToneCard key={keyOfL(card.title)} card={card} />
+                ))}
+              </div>
+            )}
+
+            {done && (message.proposedActions ?? []).length > 0 && (
+              <div className="flex max-w-[620px] flex-col gap-[10px]">
+                {(message.proposedActions ?? []).map((proposal) => (
+                  <AgentActionCard key={proposal.id} proposal={proposal} />
                 ))}
               </div>
             )}

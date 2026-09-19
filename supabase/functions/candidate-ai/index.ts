@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { postChatCompletion, resolveApiKey } from '../_shared/modelUpstream.ts'
 import {
   SYSTEM_PROMPTS,
   buildUserMessage,
@@ -46,7 +47,7 @@ interface ModelProvider {
   id: string
   provider_key: string
   base_url: string
-  secret_ref: string
+  secret_ref: string | null
   status: string
 }
 
@@ -129,24 +130,22 @@ async function callModel(
   systemPrompt: string,
   userMessage: string,
 ): Promise<{ completion: Completion } | Response> {
-  const apiKey = Deno.env.get(provider.secret_ref)
-  if (!apiKey) return json({ error: `Missing secret ${provider.secret_ref}` }, 500)
+  const keyResult = resolveApiKey(provider.secret_ref, (name) => Deno.env.get(name))
+  if ('missingSecret' in keyResult) {
+    return json({ error: `Missing secret ${keyResult.missingSecret}` }, 500)
+  }
 
   try {
-    const upstream = await fetch(`${provider.base_url}/chat/completions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        model: route.model_name,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage },
-        ],
-        max_tokens: route.config?.max_tokens ?? 1024,
-        ...(typeof route.config?.temperature === 'number'
-          ? { temperature: route.config.temperature }
-          : {}),
-      }),
+    const upstream = await postChatCompletion(provider, keyResult.apiKey, {
+      model: route.model_name,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMessage },
+      ],
+      max_tokens: route.config?.max_tokens ?? 1024,
+      ...(typeof route.config?.temperature === 'number'
+        ? { temperature: route.config.temperature }
+        : {}),
     })
     if (!upstream.ok) {
       const errText = await upstream.text()

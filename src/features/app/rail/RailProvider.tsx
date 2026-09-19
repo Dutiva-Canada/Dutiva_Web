@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import type { LText } from '@/i18n/core'
 import { advisorCore as M } from '@/i18n/messages/advisorCore'
 import { advisorViewMessages } from '@/i18n/messages/advisorView'
+import { agentMessages } from '@/i18n/messages/agent'
+import { proposeAgentAction } from '@/features/app/agent/intent'
 import type { AdvisorTurnSpec } from '@/features/app/advisor/types'
 import { useAdvisorEngine } from '@/features/app/advisor/useAdvisorEngine'
 import { detectCrisisSignal } from '@/features/app/advisor/safety'
@@ -56,6 +58,18 @@ export function RailProvider({ children }: { readonly children: ReactNode }) {
       if (detectCrisisSignal(trimmed)) {
         pushTurn({ text: advisorViewMessages.advisorview_crisis_support })
         void reportSafetyEvent({ conversationId: null, actions: ['crisis-intercept'] })
+        return
+      }
+      /* Agent intent (docs/AGENT_LAYER.md): deterministic parsers propose a
+         tool call — the confirm card decides whether anything runs. Until
+         the Advisor engine emits `proposedActions` over the wire, this is
+         the live end-to-end path. */
+      const proposal = proposeAgentAction(trimmed)
+      if (proposal) {
+        pushTurn({
+          text: agentMessages.agent_rail_proposal_ack,
+          proposedActions: [proposal],
+        })
         return
       }
       /* Canned acknowledgement + "Continue in Advisor Home" card — verbatim

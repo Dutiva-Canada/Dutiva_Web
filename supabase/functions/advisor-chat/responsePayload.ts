@@ -47,6 +47,8 @@ export interface AdvisorResponsePayload {
     legalBasisAllowed: boolean
     documentsAllowed: boolean
     webSearchAllowed: boolean
+    /** Gate for agent proposals — absent means withheld (client contract). */
+    actionsAllowed?: boolean
   }
   jurisdiction: { status: string; value: Bi; note?: Bi }
   risk: { compliance: string; safety: string }
@@ -68,6 +70,16 @@ export interface AdvisorResponsePayload {
   confidence: { label: Bi; pct: number; note?: Bi } | null
   warnings: Bi[]
   isCrisis: boolean
+  /**
+   * Agent tool proposals — attached by index.ts on the wire copy only,
+   * never in the persisted envelope. The client renders each as a
+   * confirmation card; nothing executes without the user's click.
+   */
+  proposedActions?: {
+    toolId: string
+    summary: Bi
+    params: Record<string, unknown>
+  }[]
 }
 
 /* ------------------------------------------------------------- detection */

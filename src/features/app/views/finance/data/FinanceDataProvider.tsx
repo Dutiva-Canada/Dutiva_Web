@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import type { Bi } from '@/i18n/core'
+import { bindModuleContext } from '@/features/app/agent/runtime'
 import { FinanceDataContext } from './FinanceDataContext'
 import type { FinanceDataContextValue } from './FinanceDataContext'
 import { initialFinanceState } from './fixtures'
@@ -63,6 +64,7 @@ import type {
   FinanceTaxScenario,
   FinanceWorkspaceState,
 } from './types'
+import type { FinanceAgentContext } from '../agentTools'
 
 const useSupabase = (): boolean => supabase !== null
 
@@ -558,5 +560,24 @@ export function FinanceDataProvider({
   orgId?: string
 }) {
   const value = useFinanceDataValue(mode === 'production' ? orgId : undefined)
+
+  /* Agent seam — reads bind everywhere; the commit tools check `canWrite`
+     (production-only mutators) before touching the seam. */
+  useEffect(() => {
+    const ctx: FinanceAgentContext = {
+      canWrite: value.canWrite,
+      invoices: () => value.state.invoices,
+      spendRequests: () => value.state.spendRequests,
+      obligations: () => value.state.taxObligations,
+      parties: () => value.state.parties,
+      entities: () => value.state.entities,
+      transitionInvoiceStatus: value.transitionInvoiceStatus,
+      addSpendRequest: value.addSpendRequest,
+      transitionSpendRequestStatus: value.transitionSpendRequestStatus,
+      addTaxObligation: value.addTaxObligation,
+    }
+    return bindModuleContext('finance', ctx)
+  }, [value])
+
   return <FinanceDataContext.Provider value={value}>{children}</FinanceDataContext.Provider>
 }

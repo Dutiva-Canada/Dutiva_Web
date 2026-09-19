@@ -45,7 +45,23 @@ describe('allowedSurfaces', () => {
       legalBasis: false,
       documents: false,
       webSearch: false,
+      /* Agent actions stay withheld until the engine sends actionsAllowed. */
+      actions: false,
     })
+  })
+
+  it('gates proposedActions behind actionsAllowed — absent means withheld', () => {
+    const s4 = advisorScenarioList.find((s) => s.id === 's4')!.turn.response
+    const withActions: AdvisorResponse = {
+      ...s4,
+      route: { ...s4.route, actionsAllowed: true },
+      proposedActions: [
+        { toolId: 'crm.log_activity', summary: 'Log a call', params: { type: 'call' } },
+      ],
+    }
+    expect(advisorResponseSchema.safeParse(withActions).success).toBe(true)
+    expect(allowedSurfaces(withActions).actions).toBe(true)
+    expect(allowedSurfaces(s4).actions).toBe(false)
   })
 
   it('supportive triage gates every structured surface off', () => {

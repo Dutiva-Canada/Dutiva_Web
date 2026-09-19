@@ -65,6 +65,12 @@ export const advisorRouteSchema = z.object({
   documentsAllowed: z.boolean(),
   /** Gate web sources; never carried across turns. */
   webSearchAllowed: z.boolean(),
+  /**
+   * Gate agent tool proposals (`proposedActions`). Optional so pre-agent
+   * engines still validate; absent means withheld — never surfaced.
+   * Supportive and crisis turns always leave this off.
+   */
+  actionsAllowed: z.boolean().optional(),
 })
 export type AdvisorRoute = z.infer<typeof advisorRouteSchema>
 
@@ -158,6 +164,20 @@ export const confidenceReadSchema = z.object({
 })
 export type ConfidenceRead = z.infer<typeof confidenceReadSchema>
 
+/**
+ * An agent tool call the engine proposes for user confirmation — the wire
+ * form of `AgentToolProposal` (the id is minted client-side on ingest).
+ * Rendered only while `route.actionsAllowed` is true; executed only after
+ * the user confirms on the card. The engine proposes; the registry decides
+ * whether the call can run at all.
+ */
+export const proposedActionSchema = z.object({
+  toolId: z.string(),
+  summary: lTextSchema,
+  params: z.record(z.string(), z.unknown()),
+})
+export type ProposedAction = z.infer<typeof proposedActionSchema>
+
 export const advisorResponseSchema = z.object({
   route: advisorRouteSchema,
   jurisdiction: jurisdictionReadSchema,
@@ -171,6 +191,8 @@ export const advisorResponseSchema = z.object({
   memory: memoryUsedReadSchema.nullable().optional(),
   webSearch: webSearchReadSchema.nullable(),
   confidence: confidenceReadSchema.nullable(),
+  /** Agent tool calls proposed this turn — gated by `route.actionsAllowed`. */
+  proposedActions: z.array(proposedActionSchema).optional(),
   /** Conflict / withheld notices surfaced to the operator. */
   warnings: z.array(lTextSchema),
   /** true → resources only, all gates off, cannot be overridden. */
@@ -191,5 +213,6 @@ export function allowedSurfaces(response: AdvisorResponse) {
     legalBasis: !gatesOff && response.route.legalBasisAllowed,
     documents: !gatesOff && response.route.documentsAllowed,
     webSearch: !gatesOff && response.route.webSearchAllowed,
+    actions: !gatesOff && (response.route.actionsAllowed ?? false),
   }
 }

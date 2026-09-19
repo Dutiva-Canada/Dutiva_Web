@@ -1,6 +1,14 @@
 import { bi } from '@/i18n/core'
 import type { CrmState } from './types'
 
+/** Follow-ups are dated relative to today so the dashboard's 7-day
+    "upcoming" window always has rows — a fixed date goes stale. */
+const inDays = (n: number): string => {
+  const d = new Date()
+  d.setDate(d.getDate() + n)
+  return d.toISOString().slice(0, 10)
+}
+
 /** Northgate-style demo fixtures for the lightweight CRM. */
 export const initialCrmState: CrmState = {
   companies: [
@@ -102,7 +110,7 @@ export const initialCrmState: CrmState = {
       type: 'meeting',
       date: '2026-09-05',
       summary: bi('Demoed the Advisor and document studio; questions on RTO policy.', 'Démonstration du Conseiller et du studio de documents; questions sur la politique de retour au bureau.'),
-      followUpDate: '2026-09-12',
+      followUpDate: inDays(3),
     },
     {
       id: 'activity-2',
@@ -111,7 +119,7 @@ export const initialCrmState: CrmState = {
       type: 'email',
       date: '2026-09-06',
       summary: bi('Sent pricing page and calendar link.', 'Envoyé la page de tarification et le lien de calendrier.'),
-      followUpDate: '2026-09-10',
+      followUpDate: inDays(5),
     },
     {
       id: 'activity-3',

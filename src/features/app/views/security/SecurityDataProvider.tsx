@@ -25,6 +25,8 @@ import {
 } from './data/productionApi'
 import { securitySummary as fixtures } from './data/fixtures'
 import { SecurityDataContext } from './SecurityDataContext'
+import { bindModuleContext } from '@/features/app/agent/runtime'
+import type { SecurityAgentContext } from './agentTools'
 import type { SecurityDataValue } from './SecurityDataContext'
 import type {
   SecurityAsset,
@@ -546,6 +548,21 @@ export function SecurityDataProvider({
       removeVendorReview,
     ],
   )
+
+  /* Agent seam — the same mutators the screens call, so writes land in the
+     fixture state in demo and reach `security_*` tables in production. */
+  useEffect(() => {
+    const ctx: SecurityAgentContext = {
+      incidents: () => stable.incidents,
+      risks: () => stable.risks,
+      vendorReviews: () => stable.vendorReviews,
+      accessReviews: () => stable.accessReviews,
+      addIncident,
+      updateIncident,
+      updateAccessReview,
+    }
+    return bindModuleContext('security', ctx)
+  }, [stable, addIncident, updateIncident, updateAccessReview])
 
   return <SecurityDataContext.Provider value={stable}>{children}</SecurityDataContext.Provider>
 }

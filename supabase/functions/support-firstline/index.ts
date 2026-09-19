@@ -6,6 +6,7 @@ import {
   supportFirstLinePolicy,
   usageLimitBody,
 } from '../_shared/aiUsage.ts'
+import { postChatCompletion, resolveApiKey } from '../_shared/modelUpstream.ts'
 
 /**
  * Generative first-line answer for the AUTHENTICATED in-app support form. Given
@@ -76,7 +77,7 @@ function systemPrompt(lang: 'en' | 'fr', context: string): string {
 interface Provider {
   provider_key: string
   base_url: string
-  secret_ref: string
+  secret_ref: string | null
   status: string
 }
 
@@ -147,8 +148,10 @@ Deno.serve(async (req: Request) => {
   if (!route || !provider || provider.status !== 'active') {
     return json({ error: 'The instant-answer helper is unavailable right now.' }, 503)
   }
-  const apiKey = Deno.env.get(provider.secret_ref)
-  if (!apiKey) return json({ error: 'The instant-answer helper is unavailable right now.' }, 503)
+  const keyResult = resolveApiKey(provider.secret_ref, (name) => Deno.env.get(name))
+  if ('missingSecret' in keyResult) {
+    return json({ error: 'The instant-answer helper is unavailable right now.' }, 503)
+  }
 
   /* Meter the call and reserve its telemetry row in one atomic step. This
      replaces a hand-rolled SELECT-then-call limit that never fired: it counted
@@ -182,18 +185,14 @@ Deno.serve(async (req: Request) => {
     usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number }
   }
   try {
-    const upstream = await fetch(`${provider.base_url}/chat/completions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        model: route.model_name,
-        messages: [
-          { role: 'system', content: systemPrompt(lang, context) },
-          { role: 'user', content: question },
-        ],
-        max_tokens: MAX_TOKENS,
-        temperature: 0.2,
-      }),
+    const upstream = await postChatCompletion(provider, keyResult.apiKey, {
+      model: route.model_name,
+      messages: [
+        { role: 'system', content: systemPrompt(lang, context) },
+        { role: 'user', content: question },
+      ],
+      max_tokens: MAX_TOKENS,
+      temperature: 0.2,
     })
     if (!upstream.ok) {
       const errText = await upstream.text()

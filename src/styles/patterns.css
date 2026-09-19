@@ -8,7 +8,7 @@
    token layer, so the light theme comes for free.
    ──────────────────────────────────────────────────────────────────────────── */
 
-/* Page background (deep navy + gold glow) */
+/* Page background (deep navy + champagne glow + teal wash) */
 .dutiva-surface,
 body.dutiva-surface {
   color: var(--text);
@@ -18,14 +18,14 @@ body.dutiva-surface {
   text-rendering: optimizeLegibility;
   background:
     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(var(--dutiva-gold-rgb), 0.13), transparent),
-    radial-gradient(ellipse 50% 40% at 85% 10%, rgba(26, 107, 74, 0.08), transparent),
-    linear-gradient(170deg, #081019 0%, #0a1522 55%, #0d1b2a 100%);
+    radial-gradient(ellipse 50% 40% at 85% 10%, rgba(var(--dutiva-teal-rgb), 0.1), transparent),
+    linear-gradient(170deg, #060f1e 0%, #09182c 55%, #0b1f3a 100%);
 }
 [data-theme='light'] .dutiva-surface,
 [data-theme='light'] body.dutiva-surface {
   background:
     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(var(--dutiva-gold-rgb), 0.06), transparent),
-    linear-gradient(170deg, #eef1fa 0%, #f3f5fa 100%);
+    linear-gradient(170deg, #faf7f0 0%, #f6f2e9 100%);
 }
 
 /* ── Cards ─────────────────────────────────────────────────────────────────── */
@@ -45,7 +45,7 @@ body.dutiva-surface {
 }
 .premium-card-soft {
   border-radius: var(--radius-xl);
-  background: linear-gradient(160deg, rgba(22, 27, 40, 0.98) 0%, rgba(18, 22, 34, 0.98) 100%);
+  background: linear-gradient(160deg, rgba(16, 32, 56, 0.98) 0%, rgba(11, 24, 42, 0.98) 100%);
   border: 1px solid var(--border-strong);
   box-shadow:
     var(--shadow-inset-hi),
@@ -58,20 +58,20 @@ body.dutiva-surface {
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
 }
 [data-theme='light'] .premium-card-soft {
-  background: linear-gradient(160deg, rgba(247, 249, 255, 0.98) 0%, rgba(242, 245, 255, 0.98) 100%);
+  background: linear-gradient(160deg, rgba(255, 252, 246, 0.98) 0%, rgba(250, 245, 236, 0.98) 100%);
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
 }
 
 /* ── Glass panels ────────────────────────────────────────────────────────────*/
 .glass-panel {
-  background: linear-gradient(160deg, rgba(20, 25, 36, 0.97) 0%, rgba(14, 18, 28, 0.97) 100%);
+  background: linear-gradient(160deg, rgba(12, 24, 42, 0.97) 0%, rgba(8, 17, 32, 0.97) 100%);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-lg);
   -webkit-backdrop-filter: blur(var(--blur-sm));
   backdrop-filter: blur(var(--blur-sm));
 }
 .glass-panel-soft {
-  background: linear-gradient(160deg, rgba(28, 33, 46, 0.97) 0%, rgba(22, 27, 40, 0.97) 100%);
+  background: linear-gradient(160deg, rgba(20, 36, 58, 0.97) 0%, rgba(14, 28, 46, 0.97) 100%);
   border: 1px solid var(--border-strong);
   box-shadow:
     var(--shadow-inset-hi),
@@ -81,7 +81,7 @@ body.dutiva-surface {
 }
 [data-theme='light'] .glass-panel,
 [data-theme='light'] .glass-panel-soft {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 253, 248, 0.95);
   border-color: var(--border);
 }
 
@@ -317,28 +317,21 @@ body.dutiva-surface {
   color: var(--text-2);
 }
 
-/* ── Gilded text + glow ──────────────────────────────────────────────────────*/
+/* ── Gilded text + glow ──────────────────────────────────────────────────────
+   Both themes resolve through the same three --gold-grad-* stops; the ramps
+   differ per surface (deeper stops on ivory for AA, all-gold on navy). The
+   gradient is static — a shifting headline read as a rendering artifact,
+   and reduced-motion killed it anyway. */
 .gradient-text {
   background: linear-gradient(
     135deg,
-    var(--gold-strong) 0%,
-    var(--gold) 50%,
-    var(--gold-bright) 100%
+    var(--gold-grad-lo, var(--gold-strong)) 0%,
+    var(--gold-grad-mid, var(--gold)) 50%,
+    var(--gold-grad-hi, var(--gold-bright)) 100%
   );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  background-size: 200% 200%;
-  animation: dutiva-gradient-shift 8s ease infinite;
-}
-@keyframes dutiva-gradient-shift {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
 }
 .glow-gold {
   box-shadow: var(--gold-glow);
@@ -360,9 +353,6 @@ body.dutiva-surface {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .gradient-text {
-    animation: none;
-  }
   .animate-fade-up {
     animation: none;
   }

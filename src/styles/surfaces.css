@@ -19,30 +19,30 @@
 .surface-marketing {
   color-scheme: dark;
 
-  /* Deep floor tinted toward the brand navy (#0d1b2a). Kept darker than
+  /* Deep floor tinted toward the brand navy (#0b1f3a). Kept darker than
      --bg-elevated so the elevation ramp still reads; the .dutiva-surface
      canvas gradient resolves to the literal brand navy at its lower stop. */
-  --bg: #081019;
-  --bg-elevated: #0f1219;
-  --bg-soft: #151922;
-  --bg-softer: #1a1f2c;
+  --bg: #060f1e;
+  --bg-elevated: #0c1a30;
+  --bg-soft: #12233c;
+  --bg-softer: #1a2f4d;
 
-  --border: #222838;
-  --border-strong: #2e3648;
+  --border: #24395c;
+  --border-strong: #31496e;
   /* Boundary for active controls (form fields, outlined buttons, header
      pills). WCAG 1.4.11 requires a control's visual boundary to hold ≥3:1
      against adjacent colours; the structural --border/--border-strong are too
-     faint for that. #5a6780 clears 3:1 against the dark input, elevated and
+     faint for that. #62769a clears 3:1 against the dark input, elevated and
      card fills alike. */
-  --control-border: #5a6780;
+  --control-border: #62769a;
 
-  --text: #f0f2f8;
-  --text-2: #9aa2b4;
+  --text: #f1f4fa;
+  --text-2: #a2b1c8;
   /* text-3 must hold ≥4.5:1 (WCAG AA) on every marketing surface up to
-     --bg-softer; #7d889c lands at 4.6–5.5 across the dark ramp. */
-  --text-3: #7d889c;
-  --muted: #9aa2b4;
-  --muted-2: #7d889c;
+     --bg-softer; #8a9db9 lands ≈4.9:1 against --bg-softer. */
+  --text-3: #8a9db9;
+  --muted: #a2b1c8;
+  --muted-2: #8a9db9;
 
   --gold: var(--dutiva-gold);
   --gold-strong: var(--dutiva-gold);
@@ -53,9 +53,17 @@
   --gold-border: rgba(var(--dutiva-gold-rgb), 0.35);
   --gold-border-hi: rgba(var(--dutiva-gold-rgb), 0.5);
   --gold-glow: 0 0 32px rgba(var(--dutiva-gold-rgb), 0.22), 0 8px 24px rgba(0, 0, 0, 0.4);
+  /* Champagne headline gradient (dark). Every stop stays inside the gold
+     family — the old pale tail (#eeddae) read as cream on navy, so a long
+     headline lost the gold entirely. Deep gold → champagne → bright gold. */
+  --gold-grad-lo: #9a7a40;
+  --gold-grad-mid: #c8a96b;
+  --gold-grad-hi: #e0c48a;
 
-  --accent: #1a6b4a;
-  --accent-soft: rgba(26, 107, 74, 0.12);
+  /* Teal is the interactive accent — links, active states, routine
+     affordances. The bright step holds ≥4.5:1 on this navy ramp. */
+  --accent: var(--dutiva-teal-bright);
+  --accent-soft: rgba(var(--dutiva-teal-bright-rgb), 0.13);
 
   --success: #34d399;
   --warning: #fbbf24;
@@ -67,20 +75,20 @@
 
   --surface-1: var(--card-bg-1);
   --surface-2: var(--bg-soft);
-  --sidebar-bg: #081019;
+  --sidebar-bg: #060f1e;
   --sidebar-border: rgba(255, 255, 255, 0.05);
-  --topbar-bg: rgba(8, 16, 25, 0.88);
-  --card-bg-1: rgba(16, 20, 28, 0.98);
-  --card-bg-2: rgba(12, 15, 22, 0.98);
+  --topbar-bg: rgba(6, 15, 30, 0.88);
+  --card-bg-1: rgba(14, 26, 45, 0.98);
+  --card-bg-2: rgba(9, 18, 33, 0.98);
 
   --input-bg: rgba(255, 255, 255, 0.04);
   --input-border: rgba(255, 255, 255, 0.09);
 
-  --nav-active-bg: rgba(var(--dutiva-gold-rgb), 0.1);
-  --nav-active-color: var(--dutiva-gold);
+  --nav-active-bg: rgba(var(--dutiva-teal-bright-rgb), 0.14);
+  --nav-active-color: var(--dutiva-teal-bright);
 
-  --doc-paper-bg: #f7f8fc;
-  --doc-paper-text: #1a1f2e;
+  --doc-paper-bg: #faf6ee;
+  --doc-paper-text: #16202f;
   --doc-paper-border: rgba(255, 255, 255, 0.08);
 
   /* App-vocabulary aliases for shared components rendered in fixed/portaled
@@ -89,38 +97,39 @@
   --inset: var(--bg-soft);
   --text-muted: var(--muted);
   --text-faint: var(--muted-2);
-  --overlay-scrim-mid: rgba(8, 16, 25, 0.72);
+  --overlay-scrim-mid: rgba(6, 15, 30, 0.72);
   --shadow-token-modal: 0 20px 50px rgba(0, 0, 0, 0.55);
 
-  --focus: rgba(var(--dutiva-gold-rgb), 0.6);
+  --focus: rgba(var(--dutiva-teal-bright-rgb), 0.6);
 }
 
 /* ── Marketing surface — light ───────────────────────────────────────────────── */
 [data-theme='light'] .surface-marketing {
   color-scheme: light;
 
-  --bg: #f3f5fa;
-  --bg-elevated: #ffffff;
-  --bg-soft: #eaecf4;
-  --bg-softer: #e0e4ef;
+  /* Ivory foundation — warm off-white, not clinical SaaS grey. */
+  --bg: #f6f2e9;
+  --bg-elevated: #fffdf8;
+  --bg-soft: #efe9dc;
+  --bg-softer: #e6ddcb;
 
-  --border: #d8dcea;
-  --border-strong: #c4c9d9;
-  /* Control boundary, light ramp (see the dark note). #838b9f clears ≥3:1
-     against both white and the --bg (#f3f5fa) fill behind form controls. */
-  --control-border: #838b9f;
+  --border: #d9d0ba;
+  --border-strong: #c6baa0;
+  /* Control boundary, light ramp (see the dark note). #8f8672 clears ≥3:1
+     against both --bg-elevated and the --bg ivory fill behind form controls. */
+  --control-border: #8f8672;
 
-  --text: #0c1020;
-  --text-2: #424d66;
-  /* Same AA constraint as the dark ramp: #5f6980 holds ≥4.5:1 on the light
-     surfaces in use (white, --bg, --bg-soft). */
-  --text-3: #5f6980;
-  --muted: #565f78;
-  --muted-2: #5f6980;
+  --text: #101a2c;
+  --text-2: #3e4a60;
+  /* Same AA constraint as the dark ramp: #525c6e holds ≥4.5:1 on the light
+     surfaces in use (--bg-elevated, --bg, --bg-soft, --bg-softer). */
+  --text-3: #525c6e;
+  --muted: #4a5468;
+  --muted-2: #525c6e;
 
   --gold: var(--dutiva-gold);
   /* Dark enough to hold ≥4.5:1 (WCAG AA) even on the gold-subtle badge fill. */
-  --gold-strong: #7d600f;
+  --gold-strong: #77571f;
   --gold-subtle: rgba(var(--dutiva-gold-rgb), 0.09);
   --gold-fill-soft: rgba(var(--dutiva-gold-rgb), 0.06);
   --gold-fill-strong: rgba(var(--dutiva-gold-rgb), 0.14);
@@ -128,78 +137,92 @@
   --gold-border: rgba(var(--dutiva-gold-rgb), 0.28);
   --gold-border-hi: rgba(var(--dutiva-gold-rgb), 0.4);
   --gold-glow: 0 0 24px rgba(var(--dutiva-gold-rgb), 0.14), 0 6px 18px rgba(0, 0, 0, 0.08);
+  /* Champagne headline gradient (light). The standard champagne stops sit
+     ≈2:1 on ivory — under WCAG's 3:1 for large text — so the light gradient
+     runs through the deeper stops of the same ramp: --gold-grad-lo →
+     --gold-grad-mid → --gold-grad-hi (≈3.3:1 tail). */
+  --gold-grad-lo: var(--gold-strong);
+  --gold-grad-mid: #8a6d3b;
+  --gold-grad-hi: #9f8148;
 
-  --accent: #15803d;
-  --accent-soft: rgba(21, 128, 61, 0.1);
+  /* Teal is the interactive accent — ≥4.9:1 on the ivory ramp. */
+  --accent: var(--dutiva-teal);
+  --accent-soft: rgba(var(--dutiva-teal-rgb), 0.09);
 
   --success: #15803d;
   --warning: #b45309;
   --danger: #dc2626;
   --info: #2563eb;
 
-  --sidebar-bg: #ffffff;
-  --sidebar-border: rgba(0, 0, 0, 0.07);
-  --topbar-bg: rgba(255, 255, 255, 0.94);
-  --card-bg-1: rgba(255, 255, 255, 0.97);
-  --card-bg-2: rgba(248, 250, 255, 0.97);
+  --sidebar-bg: #fffdf8;
+  --sidebar-border: rgba(16, 26, 44, 0.08);
+  --topbar-bg: rgba(255, 253, 248, 0.92);
+  --card-bg-1: rgba(255, 253, 248, 0.97);
+  --card-bg-2: rgba(250, 246, 238, 0.97);
 
-  --surface-1: #ffffff;
-  --surface-2: #eef1f8;
+  --surface-1: #fffdf8;
+  --surface-2: #f1ecdf;
 
-  --input-bg: rgba(0, 0, 0, 0.03);
-  --input-border: rgba(0, 0, 0, 0.1);
+  --input-bg: rgba(60, 50, 25, 0.04);
+  --input-border: rgba(60, 50, 25, 0.12);
 
-  --nav-active-bg: rgba(var(--dutiva-gold-rgb), 0.09);
-  --nav-active-color: var(--dutiva-gold);
+  --nav-active-bg: rgba(var(--dutiva-teal-rgb), 0.09);
+  --nav-active-color: var(--dutiva-teal);
 
-  --doc-paper-bg: #ffffff;
-  --doc-paper-text: #1a1f2e;
+  --doc-paper-bg: #fffdf8;
+  --doc-paper-text: #16202f;
   --doc-paper-border: var(--border);
 
   --surface: var(--bg-elevated);
   --inset: var(--bg-soft);
   --text-muted: var(--muted);
   --text-faint: var(--muted-2);
-  --overlay-scrim-mid: rgba(12, 16, 32, 0.42);
+  --overlay-scrim-mid: rgba(16, 26, 44, 0.42);
   --shadow-token-modal: 0 16px 40px rgba(0, 0, 0, 0.18);
+
+  --focus: var(--dutiva-teal);
 }
 
 /* ── App surface — light (default) — verbatim from App v2.dc.html ───────────── */
 .surface-app {
   color-scheme: light;
 
-  --bg: #f3f5fa;
-  --desk: #e7eaf2;
-  --inset: #eef1f8;
-  --surface: #ffffff;
-  --surface-2: #f6f8fc;
-  --border: #d8dcea;
-  --border-soft: #e6e9f2;
+  /* Warm-neutral workspace ramp — the same ivory family as marketing light,
+     desaturated a step so long sessions stay quiet (docs/BRAND.md). */
+  --bg: #f5f3ec;
+  --desk: #eae7dd;
+  --inset: #efece2;
+  --surface: #fffdf8;
+  --surface-2: #f7f4ec;
+  --border: #dcd5c2;
+  --border-soft: #e8e2d2;
   /* Toast pill fill — pinned to the dark-ramp ink in both themes so white
      text stays legible (light --ink is too pale for a toast background). */
   --toast-bg: #2a313d;
-  --ink: #c4c9d9;
-  --text: #0c1020;
-  --text-2: #424d66;
+  --ink: #c9c0a8;
+  --text: #101a2c;
+  --text-2: #3e4a60;
   /* text-3/text-faint and the gold text tokens must hold ≥4.5:1 (WCAG AA) on
      every light app surface in use — including the gold-tinted panels
-     (gold-bg over --bg ≈ #f0eee7). Values below are the lightest that pass. */
-  --text-3: #5f6980;
-  --text-muted: #565f78;
-  --text-faint: #666e80;
-  --navy: #1f3a5f;
+     (gold-bg over --bg ≈ #f0ead9). Values below are the lightest that pass. */
+  --text-3: #525c6e;
+  --text-muted: #4a5468;
+  --text-faint: #5f6678;
+  --navy: #1c3a66;
   /* Chart data marks (Analytics). Brand data-mark navy; the dark value is a
      lighter step of the same hue so marks hold ≥3:1 against --surface — both
      validated (lightness band, chroma floor, contrast) with the dataviz
      palette checks. Data only: status colours stay with risk/warn/ok. */
-  --chart-mark: #2f4f8f;
-  --accent: #7d600f;
-  --accent-soft: rgba(var(--dutiva-gold-rgb), 0.1);
-  --accent-soft-border: rgba(var(--dutiva-gold-rgb), 0.28);
-  --gold-fg: #7d600f;
-  --gold-bg: rgba(var(--dutiva-gold-rgb), 0.1);
-  --gold-border: rgba(var(--dutiva-gold-rgb), 0.28);
-  --gold-dot: #7d600f;
+  --chart-mark: #2f5a94;
+  /* Teal is the interactive accent (docs/BRAND.md); champagne stays in the
+     --gold-* tokens for premium moments. */
+  --accent: var(--dutiva-teal);
+  --accent-soft: rgba(var(--dutiva-teal-rgb), 0.1);
+  --accent-soft-border: rgba(var(--dutiva-teal-rgb), 0.3);
+  --gold-fg: #77571f;
+  --gold-bg: rgba(var(--dutiva-gold-rgb), 0.12);
+  --gold-border: rgba(var(--dutiva-gold-rgb), 0.35);
+  --gold-dot: #8a6d3b;
   --risk-bg: #f8e9e7;
   --risk-border: #e7c7c3;
   --risk-fg: #8a3030;
@@ -214,17 +237,17 @@
   --support-border: #cddbe8;
   --support-fg: #2f5488;
   --support-text: #42506a;
-  --cite-bg: rgba(255, 255, 255, 0.7);
-  --focus: #2563eb;
-  --sel: #e6dcbb;
+  --cite-bg: rgba(255, 253, 248, 0.7);
+  --focus: var(--dutiva-teal);
+  --sel: #d9ebe7;
   --logo-glow: none;
 
   /* Entry-stage brand rail (always dark navy — not theme-flipped) */
   --entry-brand-bg: radial-gradient(
     130% 120% at 12% 8%,
-    #1b3350 0%,
+    #1e3a5f 0%,
     var(--dutiva-navy) 46%,
-    #081018 100%
+    #050d1a 100%
   );
   --entry-brand-glow: radial-gradient(circle, var(--dutiva-gold) 0%, transparent 70%);
 
@@ -243,26 +266,28 @@
 [data-theme='dark'] .surface-app {
   color-scheme: dark;
 
-  --bg: #0b0e15;
-  --desk: #070910;
-  --inset: #12161f;
-  --surface: #0f1219;
-  --surface-2: #151922;
-  --border: #222838;
-  --border-soft: #1a1f2c;
+  /* Charcoal-navy workspace ramp — same hues as light, extended down. */
+  --bg: #070e1a;
+  --desk: #04080f;
+  --inset: #0d1728;
+  --surface: #0c1626;
+  --surface-2: #122036;
+  --border: #223655;
+  --border-soft: #172741;
   --toast-bg: #2a313d;
-  --ink: #2a313d;
-  --text: #f0f2f8;
-  --text-2: #c3c9d3;
-  --text-3: #9aa2b4;
-  --text-muted: #8b93a5;
-  --text-faint: #7c8598;
-  --navy: #2f5488;
-  --chart-mark: #5c82c4;
-  --accent: #e9c877;
-  --accent-soft: rgba(var(--dutiva-gold-rgb), 0.14);
-  --accent-soft-border: rgba(var(--dutiva-gold-rgb), 0.3);
-  --gold-fg: #e9c877;
+  --ink: #2a3444;
+  --text: #f0f3f9;
+  --text-2: #c2cad7;
+  --text-3: #9fadc2;
+  --text-muted: #8d99ac;
+  --text-faint: #7e8a9d;
+  --navy: #4a7ab8;
+  --chart-mark: #6b98d2;
+  /* Teal bright holds ≥4.5:1 across this ramp (docs/BRAND.md). */
+  --accent: var(--dutiva-teal-bright);
+  --accent-soft: rgba(var(--dutiva-teal-bright-rgb), 0.13);
+  --accent-soft-border: rgba(var(--dutiva-teal-bright-rgb), 0.32);
+  --gold-fg: var(--gold-on-dark);
   --gold-bg: rgba(var(--dutiva-gold-rgb), 0.14);
   --gold-border: rgba(var(--dutiva-gold-rgb), 0.32);
   --gold-dot: var(--dutiva-gold);
@@ -281,15 +306,15 @@
   --support-fg: #9cc0ec;
   --support-text: #b7c7de;
   --cite-bg: rgba(255, 255, 255, 0.06);
-  --focus: #7fb0f0;
-  --sel: #20344f;
+  --focus: var(--dutiva-teal-bright);
+  --sel: #173a42;
   --logo-glow: drop-shadow(0 0 1px rgba(255, 255, 255, 0.55));
 
   --entry-brand-bg: radial-gradient(
     130% 120% at 12% 8%,
-    #1b3350 0%,
+    #1e3a5f 0%,
     var(--dutiva-navy) 46%,
-    #081018 100%
+    #050d1a 100%
   );
   --entry-brand-glow: radial-gradient(circle, var(--dutiva-gold) 0%, transparent 70%);
 
@@ -325,7 +350,7 @@
   display: grid;
   place-items: center;
   border: 1px solid var(--gold-border-soft);
-  background: linear-gradient(160deg, var(--dutiva-white), #eef0f6);
+  background: linear-gradient(160deg, var(--dutiva-white), #f2eee4);
 }
 .leaf-tile-header {
   height: 46px;

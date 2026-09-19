@@ -6,8 +6,8 @@
   "scope": "/",
   "lang": "en-CA",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#080a0f",
+  "background_color": "#f6f2e9",
+  "theme_color": "#060f1e",
   "icons": [
     {
       "src": "/brand/icon-app-192.png",

@@ -6,7 +6,7 @@
    utilities (bg-navy, bg-risk-bg, text-ok-fg, …) resolve on this page too. */
 
 .surface-marketing {
-  --navy: #2f5488;
+  --navy: #4a7ab8;
   --risk-bg: rgba(220, 90, 80, 0.15);
   --risk-border: rgba(220, 90, 80, 0.34);
   --risk-fg: #f0a9a0;
@@ -19,7 +19,7 @@
 }
 
 [data-theme='light'] .surface-marketing {
-  --navy: #1f3a5f;
+  --navy: #1c3a66;
   --risk-bg: #f8e9e7;
   --risk-border: #e7c7c3;
   --risk-fg: #8a3030;
@@ -32,7 +32,10 @@
 }
 
 .surface-marketing ::selection {
-  background: rgba(var(--dutiva-gold-rgb), 0.25);
+  background: rgba(var(--dutiva-teal-bright-rgb), 0.25);
+}
+[data-theme='light'] .surface-marketing ::selection {
+  background: rgba(var(--dutiva-teal-rgb), 0.2);
 }
 
 /* Prototype: html { scroll-behavior: smooth } — gated on motion preference. */

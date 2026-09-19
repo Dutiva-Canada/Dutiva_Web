@@ -1,4 +1,5 @@
 import type { LText } from '@/i18n/core'
+import type { AgentToolProposal } from '@/features/app/agent/types'
 
 /**
  * Shared Advisor chat vocabulary — used by the Advisor view, the contextual
@@ -42,6 +43,11 @@ export interface AdvisorTurnSpec {
   reasoning?: LText[]
   cards?: ToneCardData[]
   citations?: Citation[]
+  /**
+   * Agent tool calls the turn proposes — each renders as an AgentActionCard
+   * and executes only on user confirmation (docs/AGENT_LAYER.md).
+   */
+  proposedActions?: AgentToolProposal[]
   /** Simulated failure: the turn thinks, then lands in the error + retry state. */
   isError?: boolean
   /** Error bubble copy (defaults to the shared connection-issue message). */
@@ -50,16 +56,27 @@ export interface AdvisorTurnSpec {
   retryText?: LText
 }
 
+/** A file the user attached to their turn — display metadata only; the
+ *  payload itself travels on the request wire (`attachments.ts`). */
+export interface ChatAttachmentChip {
+  name: string
+  kind: 'image' | 'document'
+}
+
 export interface ChatMessage {
   id: string
   author: 'user' | 'assistant'
   text: LText
   /** Structured user answers rendered as chips (prototype quick-form submits). */
   userChips?: LText[]
+  /** Files attached to a user turn, rendered as chips on the bubble. */
+  attachments?: ChatAttachmentChip[]
   /** Advisor reasoning trace lines. */
   reasoning?: LText[]
   cards?: ToneCardData[]
   citations?: Citation[]
+  /** Proposed agent tool calls awaiting user confirmation. */
+  proposedActions?: AgentToolProposal[]
   /**
    * Reply lifecycle, managed by `useAdvisorEngine`. Absent means "done"
    * (seeded transcripts from fixtures never stream).

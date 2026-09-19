@@ -13,7 +13,7 @@
 body {
   margin: 0;
   -webkit-font-smoothing: antialiased;
-  background: var(--bg, #0b0e15);
+  background: var(--bg, #070e1a);
   font-family: var(--font-sans);
   /* index.html opts into viewport-fit=cover so the app's bottom nav can pad
      itself past the home indicator. That also lets the page paint under the
@@ -37,7 +37,7 @@ html {
 }
 
 [data-theme='light'] body {
-  background: var(--bg, #f3f5fa);
+  background: var(--bg, #f5f3ec);
 }
 
 body,
@@ -52,7 +52,7 @@ body,
 }
 
 :focus-visible {
-  outline: 2px solid var(--focus, #2563eb);
+  outline: 2px solid var(--focus, #0f766e);
   outline-offset: 2px;
   border-radius: 6px;
 }
@@ -63,7 +63,7 @@ textarea:focus-visible,
 select:focus-visible,
 [role='button']:focus-visible,
 [tabindex]:focus-visible {
-  outline: 2px solid var(--focus, #2563eb);
+  outline: 2px solid var(--focus, #0f766e);
   outline-offset: 2px;
 }
 :focus:not(:focus-visible) {

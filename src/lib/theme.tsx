@@ -13,7 +13,7 @@ function readTheme(): Theme {
 
 /** Safari's status/toolbar tint per theme. Mirrors the `<meta name="theme-color">
  *  pair in index.html — keep the two in step. */
-const CHROME_TINT: Record<Theme, string> = { dark: '#081019', light: '#f3f5fa' }
+const CHROME_TINT: Record<Theme, string> = { dark: '#060f1e', light: '#f6f2e9' }
 
 /**
  * Stamp the resolved theme onto the document. `data-theme` drives every token;

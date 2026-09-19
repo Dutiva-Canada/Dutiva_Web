@@ -207,7 +207,7 @@ The theme system supports `light` and `dark` modes, driven by a `data-theme` att
 
 [src/lib/theme.tsx:7-12]() — `readTheme()` checks `localStorage` via `readPref(THEME_KEY, '')` (the `THEME_KEY` is `'dutiva-theme'`). Falls back to `window.matchMedia('(prefers-color-scheme: dark)')` when no preference is stored.
 
-[src/lib/theme.tsx:23-28]() — `applyThemeToDocument()` stamps `data-theme` on `<html>` and updates all `<meta name="theme-color">` tags with the resolved tint color (`#081019` for dark, `#f3f5fa` for light). This keeps iOS Safari's chrome area in sync.
+[src/lib/theme.tsx:23-28]() — `applyThemeToDocument()` stamps `data-theme` on `<html>` and updates all `<meta name="theme-color">` tags with the resolved tint color (`#060f1e` for dark, `#f6f2e9` for light). This keeps iOS Safari's chrome area in sync.
 
 [src/lib/themeContext.ts:30-38]() — `useTheme()` includes a **provider-less fallback**: in production, if rendered outside `ThemeProvider`, it reads the theme from `document.documentElement.dataset.theme` and can still flip it. In development it throws immediately (`ThemeProvider` required).
 
@@ -229,8 +229,8 @@ Sources: [src/lib/theme.tsx:1-67](), [src/lib/themeContext.ts:1-49](), [src/lib/
 
 | Media | Color | Purpose |
 |-------|-------|---------|
-| `(prefers-color-scheme: light)` | `#f3f5fa` | Light mode Safari toolbar tint |
-| `(prefers-color-scheme: dark)` | `#081019` | Dark mode Safari toolbar tint |
+| `(prefers-color-scheme: light)` | `#f6f2e9` | Light mode Safari toolbar tint |
+| `(prefers-color-scheme: dark)` | `#060f1e` | Dark mode Safari toolbar tint |
 
 Both tags are re-pointed by the inline script and by `applyThemeToDocument()` on toggle, so the browser chrome follows the persisted theme even when it disagrees with the OS preference.
 

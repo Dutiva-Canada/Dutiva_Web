@@ -66,6 +66,13 @@ const BRAND_ROWS = [
       { file: 'surfaces.css', selector: '.surface-marketing', prop: '--bg' },
     ],
   },
+  {
+    label: 'Brand teal',
+    sources: [
+      { file: 'tokens.css', selector: ':root', prop: '--dutiva-teal' },
+      { file: 'tokens.css', selector: ':root', prop: '--dutiva-teal-bright' },
+    ],
+  },
 ]
 
 const doc = await readFile(docPath, 'utf8')

@@ -100,7 +100,7 @@ describe('ThemeProvider', () => {
         <Probe />
       </ThemeProvider>,
     )
-    expect(themeColors()).toEqual(['#f3f5fa', '#f3f5fa'])
+    expect(themeColors()).toEqual(['#f6f2e9', '#f6f2e9'])
   })
 
   it('re-stamps theme-color on toggle so the chrome follows the page', async () => {
@@ -114,7 +114,7 @@ describe('ThemeProvider', () => {
     )
     await user.click(screen.getByRole('button', { name: 'toggle' }))
     expect(screen.getByTestId('theme')).toHaveTextContent('dark')
-    expect(themeColors()).toEqual(['#081019', '#081019'])
+    expect(themeColors()).toEqual(['#060f1e', '#060f1e'])
   })
 })
 

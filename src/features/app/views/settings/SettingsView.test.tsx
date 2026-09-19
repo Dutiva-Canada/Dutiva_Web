@@ -3,6 +3,9 @@ import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderApp } from '@/test/renderApp'
 import { appendExportAudit, clearExportAudit } from '@/lib/exportProtection'
+import { appendAudit, resetAuditForTest } from '@/features/app/agent/audit'
+/* Registers the documents tools so the activity log resolves their labels. */
+import '@/features/app/documents/agentTools'
 import { SettingsView } from './SettingsView'
 
 describe('SettingsView', () => {
@@ -68,6 +71,58 @@ describe('SettingsView', () => {
     ).toBeInTheDocument()
     expect(screen.getByText('2026-07-30 18:04')).toBeInTheDocument()
     clearExportAudit()
+  })
+
+  it('shows Advisor activity: empty state, then recorded attempts with resolved labels', () => {
+    resetAuditForTest()
+    const { unmount } = renderApp(<SettingsView />, {
+      route: '/app/settings',
+      path: '/app/settings',
+    })
+    expect(
+      screen.getByText('No Advisor actions yet this session — actions you confirm or refuse are listed here.'),
+    ).toBeInTheDocument()
+    unmount()
+
+    appendAudit({
+      id: 'aa-1',
+      toolId: 'documents.send_for_signature',
+      module: 'documents',
+      tier: 'commit',
+      params: { title: 'performance improvement plan', email: 'daniel@northgate.ca' },
+      mode: 'demo',
+      role: null,
+      organizationId: null,
+      status: 'completed',
+      startedAt: '2026-09-18T12:00:00Z',
+      finishedAt: '2026-09-18T12:00:01Z',
+    })
+    appendAudit({
+      id: 'aa-2',
+      toolId: 'documents.approve',
+      module: 'documents',
+      tier: 'commit',
+      params: { title: 'termination letter' },
+      mode: 'demo',
+      role: null,
+      organizationId: null,
+      status: 'failed',
+      errorCode: 'module_unavailable',
+      startedAt: '2026-09-18T12:01:00Z',
+      finishedAt: '2026-09-18T12:01:01Z',
+    })
+
+    renderApp(<SettingsView />, { route: '/app/settings', path: '/app/settings' })
+    /* Tool ids resolve back to bilingual labels through the registry —
+       no raw engineering ids in product chrome. */
+    expect(screen.getByText('Send for signature · Documents')).toBeInTheDocument()
+    expect(screen.getByText('Approve document · Documents')).toBeInTheDocument()
+    expect(screen.getByText('Done')).toBeInTheDocument()
+    expect(screen.getByText('Didn’t go through')).toBeInTheDocument()
+    expect(
+      screen.getByText('This session only — the durable workspace log is on the roadmap.'),
+    ).toBeInTheDocument()
+    resetAuditForTest()
   })
 
   it('flips a preference toggle on click (autoEscalate starts off)', async () => {

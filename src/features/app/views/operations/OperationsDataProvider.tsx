@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { bindModuleContext } from '@/features/app/agent/runtime'
+import type { OperationsAgentContext } from './agentTools'
 import {
   listOperationsProjects,
   listOperationsVendors,
@@ -540,6 +542,20 @@ export function OperationsDataProvider({
       removeLogistics,
     ],
   )
+
+  /* Agent seam — the same mutators the screens call, so writes land in the
+     view state in demo and reach `operations_*` tables in production. */
+  useEffect(() => {
+    const ctx: OperationsAgentContext = {
+      projects: () => value.projects,
+      vendors: () => value.vendors,
+      logistics: () => value.logistics,
+      addVendor,
+      updateLogistics,
+      updateProject,
+    }
+    return bindModuleContext('operations', ctx)
+  }, [value, addVendor, updateLogistics, updateProject])
 
   return <OperationsDataContext.Provider value={stable}>{children}</OperationsDataContext.Provider>
 }

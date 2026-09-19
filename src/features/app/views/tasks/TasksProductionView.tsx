@@ -17,6 +17,8 @@ import {
 } from './productionApi'
 import type { ProductionTask, ProductionTaskPriority } from './productionApi'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { bindModuleContext } from '@/features/app/agent/runtime'
+import type { TasksAgentContext } from './agentTools'
 
 /**
  * Tasks in production mode — the checklist on the backend's own
@@ -70,6 +72,37 @@ export function TasksProductionView() {
   useEffect(() => {
     void load()
   }, [load])
+
+  /* Agent binding (docs/AGENT_LAYER.md): tools run through the same
+     productionApi seam the form uses — creates and done-toggles land in
+     `rows` so the view reflects an agent write exactly like a UI one. */
+  useEffect(() => {
+    if (!organizationId) return
+    const ctx: TasksAgentContext = {
+      list: () =>
+        (rows ?? []).map((task) => ({
+          id: task.id,
+          title: task.title,
+          done: task.done,
+          priority: task.priority,
+          dueDate: task.dueDate,
+        })),
+      create: async (fields) => {
+        const added = await addTask(organizationId, fields)
+        setRows((prev) => [added, ...(prev ?? [])])
+        return added
+      },
+      setDone: async (id, done) => {
+        await setTaskDone(id, done)
+        setRows((prev) =>
+          (prev ?? []).map((r) =>
+            r.id === id ? { ...r, done, status: done ? 'completed' : 'open' } : r,
+          ),
+        )
+      },
+    }
+    return bindModuleContext('tasks', ctx)
+  })
 
   if (!organizationId) {
     return <ProductionEmptyState title={x(M.tasks_prod_empty_title)} />

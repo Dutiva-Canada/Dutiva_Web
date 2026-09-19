@@ -14,7 +14,7 @@
         : 'light'
   }
   document.documentElement.dataset.theme = theme
-  var chrome = theme === 'dark' ? '#081019' : '#f3f5fa'
+  var chrome = theme === 'dark' ? '#060f1e' : '#f6f2e9'
   var tints = document.querySelectorAll('meta[name="theme-color"]')
   for (var i = 0; i < tints.length; i++) {
     tints[i].setAttribute('content', chrome)

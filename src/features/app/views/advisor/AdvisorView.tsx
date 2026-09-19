@@ -31,6 +31,7 @@ export function AdvisorView() {
     getExtras,
     sendInThread,
     handleFollowup,
+    handleAttachmentIssue,
     openDocStudio,
     onSuggestChip,
     changeQuickField,
@@ -84,6 +85,7 @@ export function AdvisorView() {
             jurisdictionTone={jurisdictionTone}
             getExtras={getExtras}
             onSend={sendInThread}
+            onAttachmentIssue={handleAttachmentIssue}
             onRetry={engine.retryTurn}
             onFollowup={handleFollowup}
             onGenerateDoc={openDocStudio}

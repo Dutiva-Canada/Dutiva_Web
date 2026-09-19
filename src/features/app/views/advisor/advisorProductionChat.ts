@@ -2,10 +2,16 @@
  *   Copyright (c) 2026
  *   All rights reserved.
  */
-import { AdvisorUsageLimitError, type AdvisorChatResult } from '@/features/app/advisor/chatApi'
+import {
+  AdvisorModalityError,
+  AdvisorUsageLimitError,
+  type AdvisorChatResult,
+} from '@/features/app/advisor/chatApi'
+import { proposalsFromAdvisorResponse } from '@/features/app/agent/ingest'
 import type { AdvisorTurnSpec } from '@/features/app/advisor/types'
 import type { LText } from '@/i18n/core'
 import { usageLimitReply } from '@/features/app/advisor/usageLimit'
+import { advisorCore as CORE } from '@/i18n/messages/advisorCore'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 import { memoryMessages as MEM } from '@/i18n/messages/memory'
 import type { ProductionConversation } from '@/features/app/views/memory/conversationsApi'
@@ -50,7 +56,14 @@ export function applyRealChatResult(options: {
       ? result.conversationId
       : threadId
   const replyPayload = result.reply || fallbackReply
-  const turnId = pushAdvisor({ text: replyPayload })
+  /* Engine-emitted tool proposals ride this turn as confirm cards — gated
+     by the contract (actionsAllowed, crisis, supportive) in the ingest
+     mapper; nothing executes until the user confirms on the card. */
+  const proposedActions = proposalsFromAdvisorResponse(result.response)
+  const turnId = pushAdvisor({
+    text: replyPayload,
+    ...(proposedActions.length > 0 ? { proposedActions } : {}),
+  })
   if (stateChatId !== null) {
     patchResponseState(stateChatId, { response: result.response })
     setProdThreads((prev) =>
@@ -103,6 +116,19 @@ export function createRealChatFailureHandler(options: {
       if (error.scope === 'commercial') {
         updateExtras((prev) => ({ ...prev, [turnId]: { advisorPackOffer: true } }))
       }
+      return
+    }
+    /* Modality refusal — the routed model can't see an attached file. Not a
+       failure to retry: the fix is removing the attachment (or a vision-
+       capable route), so it lands as the specific message, not the generic
+       connection error. */
+    if (error instanceof AdvisorModalityError) {
+      pushAdvisor({
+        text: '',
+        isError: true,
+        errorText: CORE.advisor_attach_modality,
+        retryText: M.advisorview_real_chat_retry_prompt,
+      })
       return
     }
     pushAdvisor({

@@ -5,6 +5,7 @@ import { keyOfL, pickL } from '@/i18n/core'
 import { useEscapeToClose } from '@/lib/escapeStack'
 import { advisorCore as M } from '@/i18n/messages/advisorCore'
 import { ChatBubble } from '@/features/app/advisor/ChatBubble'
+import { AgentActionCard } from '@/features/app/agent/AgentActionCard'
 import { ChatComposer } from '@/features/app/advisor/ChatComposer'
 import { StreamedText } from '@/features/app/advisor/StreamedText'
 import { ToneCard } from '@/features/app/advisor/ToneCard'
@@ -142,6 +143,10 @@ export function AdvisorRail() {
                     {(message.status === 'done' || message.status === undefined) &&
                       (message.cards ?? []).map((card) => (
                         <ToneCard key={keyOfL(card.title)} card={card} />
+                      ))}
+                    {(message.status === 'done' || message.status === undefined) &&
+                      (message.proposedActions ?? []).map((proposal) => (
+                        <AgentActionCard key={proposal.id} proposal={proposal} />
                       ))}
                   </>
                 )}

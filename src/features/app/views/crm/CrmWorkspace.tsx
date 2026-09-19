@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useI18n } from '@/i18n/context'
 import { crmMessages as M } from '@/i18n/messages/crm'
 import { AppPage, AppPageLead } from '@/features/app/shell/AppPage'
+import { bindModuleContext } from '@/features/app/agent/runtime'
 import { useCrmData } from './useCrmData'
 import { CrmDashboard } from './CrmDashboard'
 import { CrmContacts } from './CrmContacts'
@@ -23,6 +24,13 @@ export function CrmWorkspace({
   const { x } = useI18n()
   const crm = useCrmData(mode, organizationId)
   const [activeTab, setActiveTab] = useState<CrmTab>('dashboard')
+
+  /* Agent binding (docs/AGENT_LAYER.md): while CRM is mounted its live data
+     seam is the `crm` module context tools execute against. The binding
+     re-registers each render so executors never hold a stale snapshot, and
+     unbinds on unmount — a proposal confirmed from another surface then
+     reports "open this workspace first" instead of writing blind. */
+  useEffect(() => bindModuleContext('crm', crm), [crm])
 
   return (
     <AppPage width="wide">
