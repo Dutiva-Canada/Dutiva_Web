@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabaseClient'
  * Platform-admin customer directory. Both RPCs exist in the production schema
  * (supabase/schema.sql) and are SECURITY DEFINER gated by is_admin(auth.uid())
  * — the same gate the support console uses — so a non-admin caller receives an
- * error, not rows. Migration 0157 grants EXECUTE to `authenticated` so an
+ * error, not rows. Migration 0158 grants EXECUTE to `authenticated` so an
  * admin's browser session can call them; anon stays revoked.
  *
  * `plan`/`subscription_status` come from public.profiles, which only has a row
