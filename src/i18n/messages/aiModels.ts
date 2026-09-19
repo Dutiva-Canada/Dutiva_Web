@@ -16,8 +16,8 @@ export const aiModelsMessages = defineMessages({
   /* ── Server providers (admin) ───────────────────────────────────────────── */
   aimodels_providers_title: { en: 'Model providers', fr: 'Fournisseurs de modèles' },
   aimodels_providers_note: {
-    en: 'The Advisor calls the active route’s provider over an OpenAI-compatible endpoint. A local server (Ollama, LM Studio, vLLM) on your network works the same way — register its URL, then point a route at it.',
-    fr: 'Le Conseiller appelle le fournisseur de la route active via un point de terminaison compatible OpenAI. Un serveur local (Ollama, LM Studio, vLLM) sur votre réseau fonctionne de la même façon — enregistrez son URL, puis dirigez une route vers lui.',
+    en: 'The Advisor calls the active route’s provider over an OpenAI-compatible endpoint. A local server (Ollama, LM Studio, vLLM) on your network works the same way — register its URL, then point a route at it. The URL must be reachable from Dutiva’s cloud, not just this browser — a LAN address needs a tunnel or a public hostname.',
+    fr: 'Le Conseiller appelle le fournisseur de la route active via un point de terminaison compatible OpenAI. Un serveur local (Ollama, LM Studio, vLLM) sur votre réseau fonctionne de la même façon — enregistrez son URL, puis dirigez une route vers lui. L’URL doit être joignable depuis l’infonuagique de Dutiva, pas seulement depuis ce navigateur — une adresse de réseau local exige un tunnel ou un nom d’hôte public.',
   },
   aimodels_providers_empty: {
     en: 'No providers yet — register one below.',
@@ -38,7 +38,7 @@ export const aiModelsMessages = defineMessages({
   aimodels_field_name: { en: 'Display name', fr: 'Nom affiché' },
   aimodels_field_name_ph: { en: 'e.g. Office Ollama', fr: 'p. ex. Ollama du bureau' },
   aimodels_field_url: { en: 'Base URL', fr: 'URL de base' },
-  aimodels_field_url_ph: { en: 'http://192.168.1.40:11434/v1', fr: 'http://192.168.1.40:11434/v1' },
+  aimodels_field_url_ph: { en: 'https://llm.your-org.ca/v1', fr: 'https://llm.votre-org.ca/v1' },
   aimodels_field_secret: {
     en: 'Secret env name (optional)',
     fr: 'Nom de la variable secrète (facultatif)',

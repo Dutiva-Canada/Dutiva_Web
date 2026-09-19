@@ -42,6 +42,9 @@ The code outranks this file. Current completion path:
 >   `advisor_chat` at it; users install/remove on-device browser models
 >   (`src/lib/localModels/`, transformers.js) for on-device tasks. Browser
 >   models are **not** the Advisor — see §4 and §8 phase 4.
+> - [LOCAL_ENDPOINTS.md](LOCAL_ENDPOINTS.md) — the operator runbook for
+>   registering a reachable self-hosted endpoint (the edge resolves
+>   `base_url`, so LAN addresses need a tunnel or public URL).
 
 ---
 

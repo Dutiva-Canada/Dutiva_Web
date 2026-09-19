@@ -88,6 +88,7 @@ Editorial rule for public articles — no statutory figures, ever — is stated 
 | [MIGRATION_LEDGER.md](MIGRATION_LEDGER.md)     | Known migration filename exceptions (e.g. applied duplicate `0024`).        |
 | [DATA_MODEL.md](DATA_MODEL.md)                 | HR Documents Library data model, transcribed from the handoff.              |
 | [AUTH_MAGIC_LINK.md](AUTH_MAGIC_LINK.md)       | Magic-link sign-in and the Supabase configuration it needs.                 |
+| [LOCAL_ENDPOINTS.md](LOCAL_ENDPOINTS.md)       | Operator runbook: pointing Advisor routes at a self-hosted OpenAI-compatible endpoint (Ollama, LM Studio, vLLM) — reachability, `/v1`, secrets, rollback. |
 | [BILLING_BETA_AUDIT.md](BILLING_BETA_AUDIT.md) | Stripe billing and beta-signup audit, with remediation status.              |
 | [STRIPE_GO_LIVE.md](STRIPE_GO_LIVE.md)         | Stripe go-live checklist and OA11 completion record (closed 2026-08-27).    |
 | [MAINTAINABILITY.md](MAINTAINABILITY.md)       | Long-term codebase health: patterns, hotspots, template review cadence, CI. |
