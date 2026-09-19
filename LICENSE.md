@@ -14,6 +14,8 @@ Third-party dependencies remain governed by their own licenses. License referenc
 
 Dutiva Canada Inc. may publish selected APIs, SDKs, examples, or documentation under separate terms. Those materials do not change the proprietary status of the core platform or private repository.
 
+In the event of a conflict between this license and any other agreement, this license controls with respect to this software, except to the extent that a written authorization expressly grants a specific right. Any such grant controls for that right only and does not modify this license for any other purpose or person.
+
 This license is governed by the laws of the Province of Ontario and the federal laws of Canada applicable therein.
 
 This software is provided as is, without warranties of any kind, to the maximum extent permitted by law.
