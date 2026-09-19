@@ -251,7 +251,7 @@
     var(--dutiva-navy) 46%,
     #050d1a 100%
   );
-  --entry-brand-glow: radial-gradient(circle, var(--dutiva-gold) 0%, transparent 70%);
+  --entry-brand-glow: radial-gradient(circle, var(--dutiva-teal-bright) 0%, transparent 70%);
 
   /* Overlay scrims + elevation (workspace chrome — popovers, drawers, modals) */
   --overlay-scrim: rgba(20, 25, 32, 0.4);
@@ -318,7 +318,7 @@
     var(--dutiva-navy) 46%,
     #050d1a 100%
   );
-  --entry-brand-glow: radial-gradient(circle, var(--dutiva-gold) 0%, transparent 70%);
+  --entry-brand-glow: radial-gradient(circle, var(--dutiva-teal-bright) 0%, transparent 70%);
 
   --overlay-scrim: rgba(8, 10, 16, 0.55);
   --overlay-scrim-soft: rgba(8, 10, 16, 0.4);

@@ -23,9 +23,7 @@ body.dutiva-surface {
 }
 [data-theme='light'] .dutiva-surface,
 [data-theme='light'] body.dutiva-surface {
-  background:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(var(--dutiva-gold-rgb), 0.06), transparent),
-    linear-gradient(170deg, #faf7f0 0%, #f6f2e9 100%);
+  background: linear-gradient(170deg, #faf7f0 0%, #f6f2e9 100%);
 }
 
 /* ── Cards ─────────────────────────────────────────────────────────────────── */
