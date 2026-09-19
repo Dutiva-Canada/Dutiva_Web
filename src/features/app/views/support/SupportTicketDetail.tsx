@@ -182,108 +182,110 @@ export function SupportTicketDetail() {
   const authorLabel = (role: SupportMessageView['authorRole']) => authorLabelForRole(role, x)
 
   return (
-    <div className="mx-auto max-w-205 px-7 pt-2 pb-16 max-[640px]:px-4">
-      <Link
-        to="/app/support/requests"
-        className="mb-4 inline-flex items-center gap-1.5 py-1 text-[13px] font-semibold text-text-muted hover:text-text"
-      >
-        <ChevronLeft size={15} strokeWidth={2} aria-hidden="true" />
-        {x(M.support_back_to_requests)}
-      </Link>
-
-      {state.kind === 'loading' && (
-        <output className="m-0 text-[14px] text-text-3">{x(M.support_requests_loading)}</output>
-      )}
-      {state.kind === 'error' && (
-        <p
-          className="m-0 rounded-xl border border-risk-border bg-risk-bg px-4 py-3 text-[14px] text-risk-fg"
-          role="alert"
+    <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="mx-auto max-w-205 px-7 pt-2 pb-16 max-[640px]:px-4">
+        <Link
+          to="/app/support/requests"
+          className="mb-4 inline-flex items-center gap-1.5 py-1 text-[13px] font-semibold text-text-muted hover:text-text"
         >
-          {x(M.support_requests_error)}
-        </p>
-      )}
-      {state.kind === 'not_found' && (
-        <p className="m-0 text-[14px] text-text-3">{x(M.support_ticket_not_found)}</p>
-      )}
+          <ChevronLeft size={15} strokeWidth={2} aria-hidden="true" />
+          {x(M.support_back_to_requests)}
+        </Link>
 
-      {state.kind === 'ready' && (
-        <>
-          <header className="mb-4.5">
-            <h1 className="m-0 mb-1.5 font-display text-[22px] font-semibold tracking-[-0.015em] text-text">
-              {state.ticket.subject}
-            </h1>
-            <p className="m-0 text-[12.5px] text-text-muted">
-              {state.ticket.publicReference} · {x(supportCategory(state.ticket.category).label)} ·{' '}
-              {x(M.support_status_label)}: {x(STATUS_LABELS[state.ticket.status])}
-            </p>
-          </header>
+        {state.kind === 'loading' && (
+          <output className="m-0 text-[14px] text-text-3">{x(M.support_requests_loading)}</output>
+        )}
+        {state.kind === 'error' && (
+          <p
+            className="m-0 rounded-xl border border-risk-border bg-risk-bg px-4 py-3 text-[14px] text-risk-fg"
+            role="alert"
+          >
+            {x(M.support_requests_error)}
+          </p>
+        )}
+        {state.kind === 'not_found' && (
+          <p className="m-0 text-[14px] text-text-3">{x(M.support_ticket_not_found)}</p>
+        )}
 
-          <ScheduledCallPanel ticketId={state.ticket.id} />
+        {state.kind === 'ready' && (
+          <>
+            <header className="mb-4.5">
+              <h1 className="m-0 mb-1.5 font-display text-[22px] font-semibold tracking-[-0.015em] text-text">
+                {state.ticket.subject}
+              </h1>
+              <p className="m-0 text-[12.5px] text-text-muted">
+                {state.ticket.publicReference} · {x(supportCategory(state.ticket.category).label)} ·{' '}
+                {x(M.support_status_label)}: {x(STATUS_LABELS[state.ticket.status])}
+              </p>
+            </header>
 
-          <ol className="m-0 mb-5.5 flex list-none flex-col gap-3 p-0">
-            {state.ticket.messages.map((msg) => {
-              const mine = msg.authorRole === 'customer'
-              return (
-                <li
-                  key={msg.id}
-                  className={mine ? 'flex flex-col items-end' : 'flex flex-col items-start'}
-                >
-                  <div
-                    className={
-                      mine
-                        ? 'max-w-[85%] rounded-xl rounded-br-0.75 bg-navy px-4 py-2.75 text-[14px] leading-normal whitespace-pre-wrap text-white'
-                        : 'max-w-[85%] rounded-xl rounded-tl-0.75 border border-border bg-surface px-4 py-2.75 text-[14px] leading-normal whitespace-pre-wrap text-text'
-                    }
+            <ScheduledCallPanel ticketId={state.ticket.id} />
+
+            <ol className="m-0 mb-5.5 flex list-none flex-col gap-3 p-0">
+              {state.ticket.messages.map((msg) => {
+                const mine = msg.authorRole === 'customer'
+                return (
+                  <li
+                    key={msg.id}
+                    className={mine ? 'flex flex-col items-end' : 'flex flex-col items-start'}
                   >
-                    {msg.body}
-                  </div>
-                  <span className="mt-0.75 text-[11px] text-text-faint">
-                    {authorLabel(msg.authorRole)} · {formatDateTime(msg.createdAt, lang)}
-                  </span>
-                </li>
-              )
-            })}
-          </ol>
+                    <div
+                      className={
+                        mine
+                          ? 'max-w-[85%] rounded-xl rounded-br-0.75 bg-navy px-4 py-2.75 text-[14px] leading-normal whitespace-pre-wrap text-white'
+                          : 'max-w-[85%] rounded-xl rounded-tl-0.75 border border-border bg-surface px-4 py-2.75 text-[14px] leading-normal whitespace-pre-wrap text-text'
+                      }
+                    >
+                      {msg.body}
+                    </div>
+                    <span className="mt-0.75 text-[11px] text-text-faint">
+                      {authorLabel(msg.authorRole)} · {formatDateTime(msg.createdAt, lang)}
+                    </span>
+                  </li>
+                )
+              })}
+            </ol>
 
-          <SupportAttachments
-            ticketId={state.ticket.id}
-            canUpload={state.ticket.status !== 'closed'}
-          />
+            <SupportAttachments
+              ticketId={state.ticket.id}
+              canUpload={state.ticket.status !== 'closed'}
+            />
 
-          {state.ticket.status === 'closed' ? (
-            <p className="m-0 rounded-xl border border-border bg-inset px-4 py-3 text-[13px] text-text-2">
-              {x(M.support_reply_closed)}
-            </p>
-          ) : (
-            <form onSubmit={onReply} className="flex flex-col gap-2.5">
-              <label htmlFor="support-reply" className="text-[13px] font-semibold text-text-2">
-                {x(M.support_reply_label)}
-              </label>
-              <textarea
-                id="support-reply"
-                value={reply}
-                onChange={(e) => setReply(e.target.value)}
-                maxLength={20000}
-                className="min-h-25 w-full resize-y rounded-[9px] border border-border bg-surface px-3 py-2.5 text-[14px] text-text"
-              />
-              {replyError && (
-                <p role="alert" className="m-0 text-[12.5px] text-risk-fg">
-                  {replyError}
-                </p>
-              )}
-              <div>
-                <button
-                  type="submit"
-                  disabled={sending || !reply.trim()}
-                  className="cursor-pointer rounded-[9px] border-none bg-navy px-5 py-2.5 text-[14px] font-semibold text-white disabled:opacity-60"
-                >
-                  {sending ? x(M.support_reply_sending) : x(M.support_reply_submit)}
-                </button>
-              </div>
-            </form>
-          )}
-        </>
-      )}
+            {state.ticket.status === 'closed' ? (
+              <p className="m-0 rounded-xl border border-border bg-inset px-4 py-3 text-[13px] text-text-2">
+                {x(M.support_reply_closed)}
+              </p>
+            ) : (
+              <form onSubmit={onReply} className="flex flex-col gap-2.5">
+                <label htmlFor="support-reply" className="text-[13px] font-semibold text-text-2">
+                  {x(M.support_reply_label)}
+                </label>
+                <textarea
+                  id="support-reply"
+                  value={reply}
+                  onChange={(e) => setReply(e.target.value)}
+                  maxLength={20000}
+                  className="min-h-25 w-full resize-y rounded-[9px] border border-border bg-surface px-3 py-2.5 text-[14px] text-text"
+                />
+                {replyError && (
+                  <p role="alert" className="m-0 text-[12.5px] text-risk-fg">
+                    {replyError}
+                  </p>
+                )}
+                <div>
+                  <button
+                    type="submit"
+                    disabled={sending || !reply.trim()}
+                    className="cursor-pointer rounded-[9px] border-none bg-navy px-5 py-2.5 text-[14px] font-semibold text-white disabled:opacity-60"
+                  >
+                    {sending ? x(M.support_reply_sending) : x(M.support_reply_submit)}
+                  </button>
+                </div>
+              </form>
+            )}
+          </>
+        )}
+      </div>
     </div>
   )
 }
