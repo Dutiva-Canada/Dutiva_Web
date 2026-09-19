@@ -8,8 +8,12 @@ No permission is granted to copy, distribute, sublicense, modify, publish, self-
 
 Access to this repository does not transfer ownership or grant rights beyond the scope of the applicable written authorization. Repository access may be provided to employees, contractors, reviewers, auditors, or integration partners subject to the permissions and restrictions approved by Dutiva Canada Inc.
 
+Rights and access granted under a written authorization lapse automatically upon termination of that authorization or of the underlying relationship. Upon termination, all use of this software must cease and any copies must be deleted or returned.
+
 Third-party dependencies remain governed by their own licenses. License references in package metadata or lock files apply only to those third-party dependencies and do not license Dutiva's proprietary source code.
 
 Dutiva Canada Inc. may publish selected APIs, SDKs, examples, or documentation under separate terms. Those materials do not change the proprietary status of the core platform or private repository.
+
+This license is governed by the laws of the Province of Ontario and the federal laws of Canada applicable therein.
 
 This software is provided as is, without warranties of any kind, to the maximum extent permitted by law.
