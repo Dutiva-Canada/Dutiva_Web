@@ -424,4 +424,25 @@ export const supportMessages = defineMessages({
   export_audit_next: { en: 'Next', fr: 'Suivant' },
   export_audit_loading: { en: 'Loading…', fr: 'Chargement…' },
   export_audit_back: { en: 'Back to list', fr: 'Retour à la liste' },
+  support_admin_directory_title: {
+    en: 'Customer directory',
+    fr: 'Répertoire des clients',
+  },
+  support_admin_directory_link: {
+    en: 'Customer directory',
+    fr: 'Répertoire des clients',
+  },
+  support_admin_directory_accounts: { en: 'Accounts', fr: 'Comptes' },
+  support_admin_directory_orgs: { en: 'Workspaces', fr: 'Espaces de travail' },
+  support_admin_directory_col_email: { en: 'Email', fr: 'Courriel' },
+  support_admin_directory_col_company: { en: 'Company', fr: 'Entreprise' },
+  support_admin_directory_col_org: { en: 'Workspace', fr: 'Espace de travail' },
+  support_admin_directory_col_plan: { en: 'Plan', fr: 'Forfait' },
+  support_admin_directory_col_status: { en: 'Status', fr: 'Statut' },
+  support_admin_directory_col_members: { en: 'Members', fr: 'Membres' },
+  support_admin_directory_col_signed_up: { en: 'Signed up', fr: 'Inscription' },
+  support_admin_directory_col_last_sign_in: {
+    en: 'Last sign-in',
+    fr: 'Dernière connexion',
+  },
 })

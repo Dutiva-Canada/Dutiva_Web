@@ -100,6 +100,12 @@ export function SupportAdminView() {
         >
           {x(M.export_audit_title)}
         </Link>
+        <Link
+          to="/app/support/admin/directory"
+          className="rounded-[8px] border border-border bg-surface px-[12px] py-[7px] text-[12.5px] font-semibold text-text-2 hover:bg-inset"
+        >
+          {x(M.support_admin_directory_link)}
+        </Link>
       </div>
 
       <div className="mb-[16px] flex flex-wrap items-center gap-[10px]">

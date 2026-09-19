@@ -130,6 +130,7 @@ import {
 /* prettier-ignore */ const SupportAdminView = lazy(() => import('@/features/app/views/support/SupportAdminView').then((m) => ({ default: m.SupportAdminView })))
 /* prettier-ignore */ const SupportAdminTicket = lazy(() => import('@/features/app/views/support/SupportAdminTicket').then((m) => ({ default: m.SupportAdminTicket })))
 /* prettier-ignore */ const ExportAuditView = lazy(() => import('@/features/app/views/support/ExportAuditView').then((m) => ({ default: m.ExportAuditView })))
+/* prettier-ignore */ const CustomerDirectoryView = lazy(() => import('@/features/app/views/support/CustomerDirectoryView').then((m) => ({ default: m.CustomerDirectoryView })))
 /* Planning section (Tasks + Calendar as sub-tabs) */
 /* prettier-ignore */ const PlanningLayout = lazy(() =>
   preloadPlanningView().then((mods) => ({ default: mods[0].PlanningLayout })),
@@ -189,6 +190,7 @@ function createAppViewRoutes(root: string): RouteObject[] {
     { path: 'support/requests/:ticketId', element: <SupportTicketDetail /> },
     { path: 'support/admin', element: <SupportAdminView /> },
     { path: 'support/admin/exports', element: <ExportAuditView /> },
+    { path: 'support/admin/directory', element: <CustomerDirectoryView /> },
     { path: 'support/admin/:ticketId', element: <SupportAdminTicket /> },
     { path: 'communications', element: <CommunicationsView /> },
     {
