@@ -91,174 +91,178 @@ export function CustomerDirectoryView() {
   }
 
   return (
-    <div className="mx-auto max-w-[1180px] px-[28px] pt-[8px] pb-[64px] max-[640px]:px-[16px]">
-      <header className="mb-[18px] flex flex-wrap items-baseline justify-between gap-[10px]">
-        <h1 className="m-0 font-display text-[24px] font-semibold tracking-[-0.015em] text-text">
-          {x(M.support_admin_directory_title)}
-        </h1>
-        {filteredUsers && (
-          <span className="text-[13px] text-text-muted">
-            {x(M.support_admin_directory_accounts)}:{' '}
-            <span className="font-semibold text-text-2">{filteredUsers.length}</span>
-          </span>
+    <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="mx-auto max-w-[1180px] px-[28px] pt-[8px] pb-[64px] max-[640px]:px-[16px]">
+        <header className="mb-[18px] flex flex-wrap items-baseline justify-between gap-[10px]">
+          <h1 className="m-0 font-display text-[24px] font-semibold tracking-[-0.015em] text-text">
+            {x(M.support_admin_directory_title)}
+          </h1>
+          {filteredUsers && (
+            <span className="text-[13px] text-text-muted">
+              {x(M.support_admin_directory_accounts)}:{' '}
+              <span className="font-semibold text-text-2">{filteredUsers.length}</span>
+            </span>
+          )}
+        </header>
+
+        <div className="mb-[16px]">
+          <input
+            type="search"
+            aria-label={x(M.support_admin_search)}
+            placeholder={x(M.support_admin_search)}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className={`${selectClass} w-full min-w-[220px]`}
+          />
+        </div>
+
+        {error && (
+          <p
+            role="alert"
+            className="m-0 rounded-[12px] border border-risk-border bg-risk-bg px-[16px] py-[12px] text-[14px] text-risk-fg"
+          >
+            {x(M.support_requests_error)}
+          </p>
         )}
-      </header>
 
-      <div className="mb-[16px]">
-        <input
-          type="search"
-          aria-label={x(M.support_admin_search)}
-          placeholder={x(M.support_admin_search)}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className={`${selectClass} w-full min-w-[220px]`}
-        />
+        <h2 className="m-0 mt-[24px] mb-[10px] font-display text-[17px] font-semibold text-text">
+          {x(M.support_admin_directory_accounts)}
+        </h2>
+        {filteredUsers && filteredUsers.length === 0 && !error && (
+          <p className="m-0 text-[14px] text-text-3">{x(M.support_admin_empty)}</p>
+        )}
+        {filteredUsers && filteredUsers.length > 0 && mdUp && (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-[13px]">
+              <thead>
+                <tr className="border-b border-border text-left text-[11.5px] tracking-[0.04em] text-text-muted uppercase">
+                  <th className="py-[8px] pr-[12px] font-semibold">
+                    {x(M.support_admin_directory_col_email)}
+                  </th>
+                  <th className="py-[8px] pr-[12px] font-semibold">
+                    {x(M.support_admin_directory_col_company)}
+                  </th>
+                  <th className="py-[8px] pr-[12px] font-semibold">
+                    {x(M.support_admin_directory_col_plan)}
+                  </th>
+                  <th className="py-[8px] pr-[12px] font-semibold">
+                    {x(M.support_admin_directory_col_status)}
+                  </th>
+                  <th className="py-[8px] pr-[12px] font-semibold">
+                    {x(M.support_admin_directory_col_signed_up)}
+                  </th>
+                  <th className="py-[8px] font-semibold">
+                    {x(M.support_admin_directory_col_last_sign_in)}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.map((u) => (
+                  <tr key={u.userId} className="border-b border-inset hover:bg-inset">
+                    <td className="py-[10px] pr-[12px] font-semibold text-navy">
+                      {u.email ?? '—'}
+                      {u.roles.length > 0 && (
+                        <div className="text-[11.5px] font-normal text-text-muted">
+                          {u.roles.join(', ')}
+                        </div>
+                      )}
+                    </td>
+                    <td className="py-[10px] pr-[12px]">{u.companyName ?? '—'}</td>
+                    <td className="py-[10px] pr-[12px]">{planLabel(u.plan)}</td>
+                    <td className="py-[10px] pr-[12px]">{statusLabel(u.subscriptionStatus)}</td>
+                    <td className="py-[10px] pr-[12px]">{formatDate(u.createdAt, lang)}</td>
+                    <td className="py-[10px]">{formatDate(u.lastSignInAt, lang)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {filteredUsers && filteredUsers.length > 0 && !mdUp && (
+          <ul className="m-0 list-none space-y-[10px] p-0">
+            {filteredUsers.map((u) => (
+              <li
+                key={u.userId}
+                className="rounded-[12px] border border-border bg-surface px-[14px] py-[12px]"
+              >
+                <div className="font-semibold text-navy">{u.email ?? '—'}</div>
+                <div className="mt-[2px] text-[12px] text-text-muted">
+                  {u.companyName ?? '—'} · {planLabel(u.plan)} · {statusLabel(u.subscriptionStatus)}
+                </div>
+                <div className="mt-[2px] text-[12px] text-text-muted">
+                  {x(M.support_admin_directory_col_signed_up)}: {formatDate(u.createdAt, lang)}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <h2 className="m-0 mt-[28px] mb-[10px] font-display text-[17px] font-semibold text-text">
+          {x(M.support_admin_directory_orgs)}
+        </h2>
+        {filteredOrgs && filteredOrgs.length === 0 && !error && (
+          <p className="m-0 text-[14px] text-text-3">{x(M.support_admin_empty)}</p>
+        )}
+        {filteredOrgs && filteredOrgs.length > 0 && mdUp && (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-[13px]">
+              <thead>
+                <tr className="border-b border-border text-left text-[11.5px] tracking-[0.04em] text-text-muted uppercase">
+                  <th className="py-[8px] pr-[12px] font-semibold">
+                    {x(M.support_admin_directory_col_org)}
+                  </th>
+                  <th className="py-[8px] pr-[12px] font-semibold">
+                    {x(M.support_admin_directory_col_plan)}
+                  </th>
+                  <th className="py-[8px] pr-[12px] font-semibold">
+                    {x(M.support_admin_directory_col_status)}
+                  </th>
+                  <th className="py-[8px] pr-[12px] font-semibold">
+                    {x(M.support_admin_directory_col_members)}
+                  </th>
+                  <th className="py-[8px] font-semibold">
+                    {x(M.support_admin_directory_col_signed_up)}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredOrgs.map((o) => (
+                  <tr key={o.organizationId} className="border-b border-inset hover:bg-inset">
+                    <td className="py-[10px] pr-[12px] font-semibold text-navy">
+                      {o.name}
+                      {o.legalName && o.legalName !== o.name && (
+                        <div className="text-[11.5px] font-normal text-text-muted">
+                          {o.legalName}
+                        </div>
+                      )}
+                    </td>
+                    <td className="py-[10px] pr-[12px]">{planLabel(o.plan)}</td>
+                    <td className="py-[10px] pr-[12px]">{statusLabel(o.subscriptionStatus)}</td>
+                    <td className="py-[10px] pr-[12px]">{o.memberCount}</td>
+                    <td className="py-[10px]">{formatDate(o.createdAt, lang)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {filteredOrgs && filteredOrgs.length > 0 && !mdUp && (
+          <ul className="m-0 list-none space-y-[10px] p-0">
+            {filteredOrgs.map((o) => (
+              <li
+                key={o.organizationId}
+                className="rounded-[12px] border border-border bg-surface px-[14px] py-[12px]"
+              >
+                <div className="font-semibold text-navy">{o.name}</div>
+                <div className="mt-[2px] text-[12px] text-text-muted">
+                  {planLabel(o.plan)} · {statusLabel(o.subscriptionStatus)} ·{' '}
+                  {x(M.support_admin_directory_col_members)}: {o.memberCount}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
-
-      {error && (
-        <p
-          role="alert"
-          className="m-0 rounded-[12px] border border-risk-border bg-risk-bg px-[16px] py-[12px] text-[14px] text-risk-fg"
-        >
-          {x(M.support_requests_error)}
-        </p>
-      )}
-
-      <h2 className="m-0 mt-[24px] mb-[10px] font-display text-[17px] font-semibold text-text">
-        {x(M.support_admin_directory_accounts)}
-      </h2>
-      {filteredUsers && filteredUsers.length === 0 && !error && (
-        <p className="m-0 text-[14px] text-text-3">{x(M.support_admin_empty)}</p>
-      )}
-      {filteredUsers && filteredUsers.length > 0 && mdUp && (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-[13px]">
-            <thead>
-              <tr className="border-b border-border text-left text-[11.5px] tracking-[0.04em] text-text-muted uppercase">
-                <th className="py-[8px] pr-[12px] font-semibold">
-                  {x(M.support_admin_directory_col_email)}
-                </th>
-                <th className="py-[8px] pr-[12px] font-semibold">
-                  {x(M.support_admin_directory_col_company)}
-                </th>
-                <th className="py-[8px] pr-[12px] font-semibold">
-                  {x(M.support_admin_directory_col_plan)}
-                </th>
-                <th className="py-[8px] pr-[12px] font-semibold">
-                  {x(M.support_admin_directory_col_status)}
-                </th>
-                <th className="py-[8px] pr-[12px] font-semibold">
-                  {x(M.support_admin_directory_col_signed_up)}
-                </th>
-                <th className="py-[8px] font-semibold">
-                  {x(M.support_admin_directory_col_last_sign_in)}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsers.map((u) => (
-                <tr key={u.userId} className="border-b border-inset hover:bg-inset">
-                  <td className="py-[10px] pr-[12px] font-semibold text-navy">
-                    {u.email ?? '—'}
-                    {u.roles.length > 0 && (
-                      <div className="text-[11.5px] font-normal text-text-muted">
-                        {u.roles.join(', ')}
-                      </div>
-                    )}
-                  </td>
-                  <td className="py-[10px] pr-[12px]">{u.companyName ?? '—'}</td>
-                  <td className="py-[10px] pr-[12px]">{planLabel(u.plan)}</td>
-                  <td className="py-[10px] pr-[12px]">{statusLabel(u.subscriptionStatus)}</td>
-                  <td className="py-[10px] pr-[12px]">{formatDate(u.createdAt, lang)}</td>
-                  <td className="py-[10px]">{formatDate(u.lastSignInAt, lang)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-      {filteredUsers && filteredUsers.length > 0 && !mdUp && (
-        <ul className="m-0 list-none space-y-[10px] p-0">
-          {filteredUsers.map((u) => (
-            <li
-              key={u.userId}
-              className="rounded-[12px] border border-border bg-surface px-[14px] py-[12px]"
-            >
-              <div className="font-semibold text-navy">{u.email ?? '—'}</div>
-              <div className="mt-[2px] text-[12px] text-text-muted">
-                {u.companyName ?? '—'} · {planLabel(u.plan)} · {statusLabel(u.subscriptionStatus)}
-              </div>
-              <div className="mt-[2px] text-[12px] text-text-muted">
-                {x(M.support_admin_directory_col_signed_up)}: {formatDate(u.createdAt, lang)}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <h2 className="m-0 mt-[28px] mb-[10px] font-display text-[17px] font-semibold text-text">
-        {x(M.support_admin_directory_orgs)}
-      </h2>
-      {filteredOrgs && filteredOrgs.length === 0 && !error && (
-        <p className="m-0 text-[14px] text-text-3">{x(M.support_admin_empty)}</p>
-      )}
-      {filteredOrgs && filteredOrgs.length > 0 && mdUp && (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-[13px]">
-            <thead>
-              <tr className="border-b border-border text-left text-[11.5px] tracking-[0.04em] text-text-muted uppercase">
-                <th className="py-[8px] pr-[12px] font-semibold">
-                  {x(M.support_admin_directory_col_org)}
-                </th>
-                <th className="py-[8px] pr-[12px] font-semibold">
-                  {x(M.support_admin_directory_col_plan)}
-                </th>
-                <th className="py-[8px] pr-[12px] font-semibold">
-                  {x(M.support_admin_directory_col_status)}
-                </th>
-                <th className="py-[8px] pr-[12px] font-semibold">
-                  {x(M.support_admin_directory_col_members)}
-                </th>
-                <th className="py-[8px] font-semibold">
-                  {x(M.support_admin_directory_col_signed_up)}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredOrgs.map((o) => (
-                <tr key={o.organizationId} className="border-b border-inset hover:bg-inset">
-                  <td className="py-[10px] pr-[12px] font-semibold text-navy">
-                    {o.name}
-                    {o.legalName && o.legalName !== o.name && (
-                      <div className="text-[11.5px] font-normal text-text-muted">{o.legalName}</div>
-                    )}
-                  </td>
-                  <td className="py-[10px] pr-[12px]">{planLabel(o.plan)}</td>
-                  <td className="py-[10px] pr-[12px]">{statusLabel(o.subscriptionStatus)}</td>
-                  <td className="py-[10px] pr-[12px]">{o.memberCount}</td>
-                  <td className="py-[10px]">{formatDate(o.createdAt, lang)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-      {filteredOrgs && filteredOrgs.length > 0 && !mdUp && (
-        <ul className="m-0 list-none space-y-[10px] p-0">
-          {filteredOrgs.map((o) => (
-            <li
-              key={o.organizationId}
-              className="rounded-[12px] border border-border bg-surface px-[14px] py-[12px]"
-            >
-              <div className="font-semibold text-navy">{o.name}</div>
-              <div className="mt-[2px] text-[12px] text-text-muted">
-                {planLabel(o.plan)} · {statusLabel(o.subscriptionStatus)} ·{' '}
-                {x(M.support_admin_directory_col_members)}: {o.memberCount}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   )
 }

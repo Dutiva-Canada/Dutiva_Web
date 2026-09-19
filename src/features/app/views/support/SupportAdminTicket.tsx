@@ -264,156 +264,158 @@ export function SupportAdminTicket() {
     m.authorRole === 'agent' ? x(M.support_author_dutiva) : L('Customer', 'Client')
 
   return (
-    <div className="mx-auto max-w-215 px-7 pt-2 pb-16 max-[640px]:px-4">
-      <Link
-        to="/app/support/admin"
-        className="mb-4 inline-flex items-center gap-1.5 py-1 text-[13px] font-semibold text-text-muted hover:text-text"
-      >
-        <ChevronLeft size={15} strokeWidth={2} aria-hidden="true" />
-        {x(M.support_admin_title)}
-      </Link>
+    <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="mx-auto max-w-215 px-7 pt-2 pb-16 max-[640px]:px-4">
+        <Link
+          to="/app/support/admin"
+          className="mb-4 inline-flex items-center gap-1.5 py-1 text-[13px] font-semibold text-text-muted hover:text-text"
+        >
+          <ChevronLeft size={15} strokeWidth={2} aria-hidden="true" />
+          {x(M.support_admin_title)}
+        </Link>
 
-      {ticket === null && (
-        <output className="m-0 text-[14px] text-text-3">{x(M.support_requests_loading)}</output>
-      )}
-      {ticket === 'missing' && (
-        <p className="m-0 text-[14px] text-text-3">{x(M.support_ticket_not_found)}</p>
-      )}
+        {ticket === null && (
+          <output className="m-0 text-[14px] text-text-3">{x(M.support_requests_loading)}</output>
+        )}
+        {ticket === 'missing' && (
+          <p className="m-0 text-[14px] text-text-3">{x(M.support_ticket_not_found)}</p>
+        )}
 
-      {ticket && ticket !== 'missing' && (
-        <>
-          <header className="mb-4">
-            <h1 className="m-0 mb-1.5 font-display text-[22px] font-semibold tracking-[-0.015em] text-text">
-              {ticket.subject}
-            </h1>
-            <p className="m-0 text-[12.5px] text-text-muted">
-              {ticket.publicReference} · {x(supportCategory(ticket.category).label)} ·{' '}
-              {ticket.requesterEmail ?? '—'}
-              {ticket.restricted && (
-                <span className="ml-1.5 rounded-1 bg-risk-bg px-1.25 py-px text-[10.5px] font-semibold text-risk-fg">
-                  {x(M.support_admin_restricted_badge)}
-                </span>
+        {ticket && ticket !== 'missing' && (
+          <>
+            <header className="mb-4">
+              <h1 className="m-0 mb-1.5 font-display text-[22px] font-semibold tracking-[-0.015em] text-text">
+                {ticket.subject}
+              </h1>
+              <p className="m-0 text-[12.5px] text-text-muted">
+                {ticket.publicReference} · {x(supportCategory(ticket.category).label)} ·{' '}
+                {ticket.requesterEmail ?? '—'}
+                {ticket.restricted && (
+                  <span className="ml-1.5 rounded-1 bg-risk-bg px-1.25 py-px text-[10.5px] font-semibold text-risk-fg">
+                    {x(M.support_admin_restricted_badge)}
+                  </span>
+                )}
+              </p>
+            </header>
+
+            {/* Operator controls */}
+            <div className="mb-5 flex flex-wrap items-center gap-4 rounded-xl border border-border bg-inset px-4 py-3">
+              <label className="flex items-center gap-2 text-[12.5px] font-semibold text-text-2">
+                {x(M.support_admin_set_status)}
+                <select
+                  className={selectClass}
+                  value={ticket.status}
+                  disabled={busy}
+                  onChange={(e) =>
+                    void act({ action: 'status', status: e.target.value as SupportStatus })
+                  }
+                >
+                  {STATUS_ORDER.map((s) => (
+                    <option key={s} value={s}>
+                      {x(STATUS_LABELS[s])}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex items-center gap-2 text-[12.5px] font-semibold text-text-2">
+                {x(M.support_admin_set_priority)}
+                <select
+                  className={selectClass}
+                  value={ticket.priority}
+                  disabled={busy}
+                  onChange={(e) =>
+                    void act({ action: 'priority', priority: e.target.value as SupportPriority })
+                  }
+                >
+                  {PRIORITIES.map((p) => (
+                    <option key={p} value={p}>
+                      {x(PRIORITY_LABELS[p])}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {busy && (
+                <span className="text-[12px] text-text-muted">{x(M.support_admin_working)}</span>
               )}
-            </p>
-          </header>
+            </div>
 
-          {/* Operator controls */}
-          <div className="mb-5 flex flex-wrap items-center gap-4 rounded-xl border border-border bg-inset px-4 py-3">
-            <label className="flex items-center gap-2 text-[12.5px] font-semibold text-text-2">
-              {x(M.support_admin_set_status)}
-              <select
-                className={selectClass}
-                value={ticket.status}
-                disabled={busy}
-                onChange={(e) =>
-                  void act({ action: 'status', status: e.target.value as SupportStatus })
-                }
+            {actionError && (
+              <p
+                role="alert"
+                className="m-0 mb-3.5 rounded-[10px] border border-risk-border bg-risk-bg px-3.5 py-2.5 text-[13px] text-risk-fg"
               >
-                {STATUS_ORDER.map((s) => (
-                  <option key={s} value={s}>
-                    {x(STATUS_LABELS[s])}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="flex items-center gap-2 text-[12.5px] font-semibold text-text-2">
-              {x(M.support_admin_set_priority)}
-              <select
-                className={selectClass}
-                value={ticket.priority}
-                disabled={busy}
-                onChange={(e) =>
-                  void act({ action: 'priority', priority: e.target.value as SupportPriority })
-                }
-              >
-                {PRIORITIES.map((p) => (
-                  <option key={p} value={p}>
-                    {x(PRIORITY_LABELS[p])}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {busy && (
-              <span className="text-[12px] text-text-muted">{x(M.support_admin_working)}</span>
+                {x(M.support_admin_action_error)}
+              </p>
             )}
-          </div>
 
-          {actionError && (
-            <p
-              role="alert"
-              className="m-0 mb-3.5 rounded-[10px] border border-risk-border bg-risk-bg px-3.5 py-2.5 text-[13px] text-risk-fg"
-            >
-              {x(M.support_admin_action_error)}
-            </p>
-          )}
+            <ProposeCallPanel ticketId={ticket.id} onProposed={() => void load()} />
 
-          <ProposeCallPanel ticketId={ticket.id} onProposed={() => void load()} />
+            <ol className="m-0 mb-5.5 flex list-none flex-col gap-2.5 p-0">
+              {ticket.messages.map((m) => (
+                <li key={m.id}>
+                  <div className={messageBubbleClass(m)}>{m.body}</div>
+                  <span className="mt-0.75 block text-[11px] text-text-faint">
+                    {m.isInternal ? x(M.support_admin_internal_badge) : authorLabel(m)} ·{' '}
+                    {formatDateTime(m.createdAt, lang)}
+                  </span>
+                </li>
+              ))}
+            </ol>
 
-          <ol className="m-0 mb-5.5 flex list-none flex-col gap-2.5 p-0">
-            {ticket.messages.map((m) => (
-              <li key={m.id}>
-                <div className={messageBubbleClass(m)}>{m.body}</div>
-                <span className="mt-0.75 block text-[11px] text-text-faint">
-                  {m.isInternal ? x(M.support_admin_internal_badge) : authorLabel(m)} ·{' '}
-                  {formatDateTime(m.createdAt, lang)}
-                </span>
-              </li>
-            ))}
-          </ol>
+            <SupportAttachments ticketId={ticket.id} canUpload={ticket.status !== 'closed'} />
 
-          <SupportAttachments ticketId={ticket.id} canUpload={ticket.status !== 'closed'} />
-
-          {/* Reply (customer-visible) */}
-          <div className="mb-4 flex flex-col gap-2">
-            <label htmlFor="admin-reply" className="text-[13px] font-semibold text-text-2">
-              {x(M.support_admin_reply_label)}
-            </label>
-            <textarea
-              id="admin-reply"
-              value={reply}
-              onChange={(e) => setReply(e.target.value)}
-              maxLength={20000}
-              className="min-h-22.5 w-full resize-y rounded-[9px] border border-border bg-surface px-3 py-2.5 text-[14px] text-text"
-            />
-            <div>
-              <button
-                type="button"
-                disabled={busy || !reply.trim()}
-                onClick={() =>
-                  void act({ action: 'reply', body: reply.trim() }, () => setReply(''))
-                }
-                className="cursor-pointer rounded-[9px] border-none bg-navy px-4.5 py-2.25 text-[13.5px] font-semibold text-white disabled:opacity-60"
-              >
-                {x(M.support_admin_reply_send)}
-              </button>
+            {/* Reply (customer-visible) */}
+            <div className="mb-4 flex flex-col gap-2">
+              <label htmlFor="admin-reply" className="text-[13px] font-semibold text-text-2">
+                {x(M.support_admin_reply_label)}
+              </label>
+              <textarea
+                id="admin-reply"
+                value={reply}
+                onChange={(e) => setReply(e.target.value)}
+                maxLength={20000}
+                className="min-h-22.5 w-full resize-y rounded-[9px] border border-border bg-surface px-3 py-2.5 text-[14px] text-text"
+              />
+              <div>
+                <button
+                  type="button"
+                  disabled={busy || !reply.trim()}
+                  onClick={() =>
+                    void act({ action: 'reply', body: reply.trim() }, () => setReply(''))
+                  }
+                  className="cursor-pointer rounded-[9px] border-none bg-navy px-4.5 py-2.25 text-[13.5px] font-semibold text-white disabled:opacity-60"
+                >
+                  {x(M.support_admin_reply_send)}
+                </button>
+              </div>
             </div>
-          </div>
 
-          {/* Internal note */}
-          <div className="flex flex-col gap-2">
-            <label htmlFor="admin-note" className="text-[13px] font-semibold text-text-2">
-              {x(M.support_admin_note_label)}
-            </label>
-            <textarea
-              id="admin-note"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              maxLength={20000}
-              className="min-h-17.5 w-full resize-y rounded-[9px] border border-gold-border bg-gold-bg px-3 py-2.5 text-[14px] text-gold-fg"
-            />
-            <div>
-              <button
-                type="button"
-                disabled={busy || !note.trim()}
-                onClick={() => void act({ action: 'note', body: note.trim() }, () => setNote(''))}
-                className="cursor-pointer rounded-[9px] border border-border bg-surface px-4.5 py-2.25 text-[13.5px] font-semibold text-text-2 disabled:opacity-60"
-              >
-                {x(M.support_admin_note_send)}
-              </button>
+            {/* Internal note */}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="admin-note" className="text-[13px] font-semibold text-text-2">
+                {x(M.support_admin_note_label)}
+              </label>
+              <textarea
+                id="admin-note"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                maxLength={20000}
+                className="min-h-17.5 w-full resize-y rounded-[9px] border border-gold-border bg-gold-bg px-3 py-2.5 text-[14px] text-gold-fg"
+              />
+              <div>
+                <button
+                  type="button"
+                  disabled={busy || !note.trim()}
+                  onClick={() => void act({ action: 'note', body: note.trim() }, () => setNote(''))}
+                  className="cursor-pointer rounded-[9px] border border-border bg-surface px-4.5 py-2.25 text-[13.5px] font-semibold text-text-2 disabled:opacity-60"
+                >
+                  {x(M.support_admin_note_send)}
+                </button>
+              </div>
             </div>
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
     </div>
   )
 }

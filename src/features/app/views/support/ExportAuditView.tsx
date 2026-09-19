@@ -111,232 +111,234 @@ export function ExportAuditView() {
   }
 
   return (
-    <div className="mx-auto max-w-[1180px] px-[28px] pt-[8px] pb-[64px] max-[640px]:px-[16px]">
-      <header className="mb-[18px]">
-        <h1 className="m-0 font-display text-[24px] font-semibold tracking-[-0.015em] text-text">
-          {x(M.export_audit_title)}
-        </h1>
-        <p className="mt-[6px] max-w-[80ch] text-[13px] leading-[1.55] text-text-muted">
-          {x(M.export_audit_intro)}
-        </p>
-      </header>
+    <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="mx-auto max-w-[1180px] px-[28px] pt-[8px] pb-[64px] max-[640px]:px-[16px]">
+        <header className="mb-[18px]">
+          <h1 className="m-0 font-display text-[24px] font-semibold tracking-[-0.015em] text-text">
+            {x(M.export_audit_title)}
+          </h1>
+          <p className="mt-[6px] max-w-[80ch] text-[13px] leading-[1.55] text-text-muted">
+            {x(M.export_audit_intro)}
+          </p>
+        </header>
 
-      {/* Forensic lookup */}
-      <div className="mb-[20px] rounded-[12px] border border-border bg-inset px-[16px] py-[14px]">
-        <label className="mb-[8px] block text-[12px] font-semibold uppercase tracking-wide text-text-muted">
-          {x(M.export_audit_lookup_label)}
-        </label>
-        <div className="flex items-center gap-[8px]">
-          <input
-            type="text"
-            value={lookupId}
-            onChange={(e) => setLookupId(e.target.value)}
-            placeholder={x(M.export_audit_lookup_placeholder)}
-            className="flex-1 rounded-[8px] border border-border bg-surface px-[10px] py-[7px] text-[13px] text-text"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleLookup()
-            }}
-          />
-          <button
-            type="button"
-            onClick={handleLookup}
-            className="rounded-[8px] border border-border bg-surface px-[14px] py-[7px] text-[13px] font-semibold text-text hover:bg-inset"
-          >
-            {x(M.export_audit_lookup_button)}
-          </button>
+        {/* Forensic lookup */}
+        <div className="mb-[20px] rounded-[12px] border border-border bg-inset px-[16px] py-[14px]">
+          <label className="mb-[8px] block text-[12px] font-semibold uppercase tracking-wide text-text-muted">
+            {x(M.export_audit_lookup_label)}
+          </label>
+          <div className="flex items-center gap-[8px]">
+            <input
+              type="text"
+              value={lookupId}
+              onChange={(e) => setLookupId(e.target.value)}
+              placeholder={x(M.export_audit_lookup_placeholder)}
+              className="flex-1 rounded-[8px] border border-border bg-surface px-[10px] py-[7px] text-[13px] text-text"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleLookup()
+              }}
+            />
+            <button
+              type="button"
+              onClick={handleLookup}
+              className="rounded-[8px] border border-border bg-surface px-[14px] py-[7px] text-[13px] font-semibold text-text hover:bg-inset"
+            >
+              {x(M.export_audit_lookup_button)}
+            </button>
+          </div>
+          {lookupResult === null && (
+            <p className="mt-[8px] m-0 text-[13px] text-text-muted">
+              {x(M.export_audit_lookup_not_found)}
+            </p>
+          )}
+          {lookupResult && (
+            <div className="mt-[12px] rounded-[8px] border border-border bg-surface px-[14px] py-[10px]">
+              <ExportRowDetail row={lookupResult} lang={lang} x={x} />
+            </div>
+          )}
         </div>
-        {lookupResult === null && (
-          <p className="mt-[8px] m-0 text-[13px] text-text-muted">
-            {x(M.export_audit_lookup_not_found)}
+
+        {/* Filters */}
+        <div className="mb-[16px] flex flex-wrap items-center gap-[10px]">
+          <select
+            aria-label={x(M.export_audit_filter_surface)}
+            value={filters.surface ?? 'all'}
+            onChange={(e) => {
+              const v = e.target.value
+              setFilters((f) => ({ ...f, surface: v === 'all' ? undefined : (v as ExportSurface) }))
+              setPage(1)
+            }}
+            className={selectClass}
+          >
+            <option value="all">
+              {x(M.export_audit_filter_surface)}: {x(M.export_audit_filter_all)}
+            </option>
+            {SURFACES.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label={x(M.export_audit_filter_kind)}
+            value={filters.kind ?? 'all'}
+            onChange={(e) => {
+              const v = e.target.value
+              setFilters((f) => ({ ...f, kind: v === 'all' ? undefined : (v as ExportKind) }))
+              setPage(1)
+            }}
+            className={selectClass}
+          >
+            <option value="all">
+              {x(M.export_audit_filter_kind)}: {x(M.export_audit_filter_all)}
+            </option>
+            {KINDS.map((k) => (
+              <option key={k} value={k}>
+                {k}
+              </option>
+            ))}
+          </select>
+          {rows && (
+            <span className="text-[13px] text-text-muted">
+              {x(M.export_audit_total)}: <span className="font-semibold text-text-2">{total}</span>
+            </span>
+          )}
+        </div>
+
+        {/* Error */}
+        {error && (
+          <p className="m-0 mb-[16px] rounded-[12px] border border-risk-border bg-risk-bg px-[16px] py-[12px] text-[14px] text-risk-fg">
+            {x(M.export_audit_error)}
           </p>
         )}
-        {lookupResult && (
-          <div className="mt-[12px] rounded-[8px] border border-border bg-surface px-[14px] py-[10px]">
-            <ExportRowDetail row={lookupResult} lang={lang} x={x} />
+
+        {/* Table */}
+        {rows && rows.length === 0 && !error && (
+          <p className="m-0 rounded-[12px] border border-border bg-inset px-[16px] py-[12px] text-[14px] text-text-2">
+            {x(M.export_audit_empty)}
+          </p>
+        )}
+        {rows && rows.length > 0 && mdUp && (
+          <div className="overflow-x-auto rounded-[12px] border border-border">
+            <table className="w-full border-collapse text-[12.5px]">
+              <thead>
+                <tr className="border-b border-border bg-inset text-left">
+                  <th className="px-[12px] py-[8px] font-semibold text-text-muted">
+                    {x(M.export_audit_col_id)}
+                  </th>
+                  <th className="px-[12px] py-[8px] font-semibold text-text-muted">
+                    {x(M.export_audit_col_surface)}
+                  </th>
+                  <th className="px-[12px] py-[8px] font-semibold text-text-muted">
+                    {x(M.export_audit_col_kind)}
+                  </th>
+                  <th className="px-[12px] py-[8px] font-semibold text-text-muted">
+                    {x(M.export_audit_col_title)}
+                  </th>
+                  <th className="px-[12px] py-[8px] font-semibold text-text-muted">
+                    {x(M.export_audit_col_user)}
+                  </th>
+                  <th className="px-[12px] py-[8px] font-semibold text-text-muted">
+                    {x(M.export_audit_col_chars)}
+                  </th>
+                  <th className="px-[12px] py-[8px] font-semibold text-text-muted">
+                    {x(M.export_audit_col_created)}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr key={row.id} className="border-b border-border last:border-b-0">
+                    <td className="px-[12px] py-[8px] font-mono text-text-2" title={row.id}>
+                      {shortId(row.id)}
+                    </td>
+                    <td className="px-[12px] py-[8px] text-text-2">{row.surface}</td>
+                    <td className="px-[12px] py-[8px] text-text-2">{row.kind}</td>
+                    <td className="px-[12px] py-[8px] text-text-2">{row.title || '—'}</td>
+                    <td
+                      className="px-[12px] py-[8px] font-mono text-text-muted"
+                      title={row.user_id ?? ''}
+                    >
+                      {row.user_id ? shortId(row.user_id) : '—'}
+                    </td>
+                    <td className="px-[12px] py-[8px] text-text-muted">
+                      {row.content_chars.toLocaleString()}
+                    </td>
+                    <td className="px-[12px] py-[8px] text-text-muted">
+                      {formatDateTime(row.created_at, lang)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {rows && rows.length > 0 && !mdUp && (
+          <div className="flex flex-col gap-[10px]">
+            {rows.map((row) => (
+              <div
+                key={row.id}
+                className="rounded-[12px] border border-border bg-surface px-[14px] py-[12px]"
+              >
+                <div className="font-mono text-[12px] text-text-muted" title={row.id}>
+                  {shortId(row.id)}
+                </div>
+                <div className="mt-1 text-[13.5px] font-semibold text-text">{row.title || '—'}</div>
+                <dl className="mt-3 grid grid-cols-1 gap-y-[6px] text-[12px]">
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-text-muted">{x(M.export_audit_col_surface)}</dt>
+                    <dd className="m-0 text-text-2">{row.surface}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-text-muted">{x(M.export_audit_col_kind)}</dt>
+                    <dd className="m-0 text-text-2">{row.kind}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-text-muted">{x(M.export_audit_col_user)}</dt>
+                    <dd className="m-0 font-mono text-text-muted">
+                      {row.user_id ? shortId(row.user_id) : '—'}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-text-muted">{x(M.export_audit_col_chars)}</dt>
+                    <dd className="m-0 text-text-muted">{row.content_chars.toLocaleString()}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-text-muted">{x(M.export_audit_col_created)}</dt>
+                    <dd className="m-0 text-text-muted">{formatDateTime(row.created_at, lang)}</dd>
+                  </div>
+                </dl>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-[16px] flex items-center gap-[12px]">
+            <button
+              type="button"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="rounded-[8px] border border-border bg-surface px-[14px] py-[7px] text-[13px] font-semibold text-text disabled:opacity-40"
+            >
+              {x(M.export_audit_prev)}
+            </button>
+            <span className="text-[13px] text-text-muted">
+              {x(M.export_audit_page)} {page} / {totalPages}
+            </span>
+            <button
+              type="button"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              className="rounded-[8px] border border-border bg-surface px-[14px] py-[7px] text-[13px] font-semibold text-text disabled:opacity-40"
+            >
+              {x(M.export_audit_next)}
+            </button>
           </div>
         )}
       </div>
-
-      {/* Filters */}
-      <div className="mb-[16px] flex flex-wrap items-center gap-[10px]">
-        <select
-          aria-label={x(M.export_audit_filter_surface)}
-          value={filters.surface ?? 'all'}
-          onChange={(e) => {
-            const v = e.target.value
-            setFilters((f) => ({ ...f, surface: v === 'all' ? undefined : (v as ExportSurface) }))
-            setPage(1)
-          }}
-          className={selectClass}
-        >
-          <option value="all">
-            {x(M.export_audit_filter_surface)}: {x(M.export_audit_filter_all)}
-          </option>
-          {SURFACES.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label={x(M.export_audit_filter_kind)}
-          value={filters.kind ?? 'all'}
-          onChange={(e) => {
-            const v = e.target.value
-            setFilters((f) => ({ ...f, kind: v === 'all' ? undefined : (v as ExportKind) }))
-            setPage(1)
-          }}
-          className={selectClass}
-        >
-          <option value="all">
-            {x(M.export_audit_filter_kind)}: {x(M.export_audit_filter_all)}
-          </option>
-          {KINDS.map((k) => (
-            <option key={k} value={k}>
-              {k}
-            </option>
-          ))}
-        </select>
-        {rows && (
-          <span className="text-[13px] text-text-muted">
-            {x(M.export_audit_total)}: <span className="font-semibold text-text-2">{total}</span>
-          </span>
-        )}
-      </div>
-
-      {/* Error */}
-      {error && (
-        <p className="m-0 mb-[16px] rounded-[12px] border border-risk-border bg-risk-bg px-[16px] py-[12px] text-[14px] text-risk-fg">
-          {x(M.export_audit_error)}
-        </p>
-      )}
-
-      {/* Table */}
-      {rows && rows.length === 0 && !error && (
-        <p className="m-0 rounded-[12px] border border-border bg-inset px-[16px] py-[12px] text-[14px] text-text-2">
-          {x(M.export_audit_empty)}
-        </p>
-      )}
-      {rows && rows.length > 0 && mdUp && (
-        <div className="overflow-x-auto rounded-[12px] border border-border">
-          <table className="w-full border-collapse text-[12.5px]">
-            <thead>
-              <tr className="border-b border-border bg-inset text-left">
-                <th className="px-[12px] py-[8px] font-semibold text-text-muted">
-                  {x(M.export_audit_col_id)}
-                </th>
-                <th className="px-[12px] py-[8px] font-semibold text-text-muted">
-                  {x(M.export_audit_col_surface)}
-                </th>
-                <th className="px-[12px] py-[8px] font-semibold text-text-muted">
-                  {x(M.export_audit_col_kind)}
-                </th>
-                <th className="px-[12px] py-[8px] font-semibold text-text-muted">
-                  {x(M.export_audit_col_title)}
-                </th>
-                <th className="px-[12px] py-[8px] font-semibold text-text-muted">
-                  {x(M.export_audit_col_user)}
-                </th>
-                <th className="px-[12px] py-[8px] font-semibold text-text-muted">
-                  {x(M.export_audit_col_chars)}
-                </th>
-                <th className="px-[12px] py-[8px] font-semibold text-text-muted">
-                  {x(M.export_audit_col_created)}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.id} className="border-b border-border last:border-b-0">
-                  <td className="px-[12px] py-[8px] font-mono text-text-2" title={row.id}>
-                    {shortId(row.id)}
-                  </td>
-                  <td className="px-[12px] py-[8px] text-text-2">{row.surface}</td>
-                  <td className="px-[12px] py-[8px] text-text-2">{row.kind}</td>
-                  <td className="px-[12px] py-[8px] text-text-2">{row.title || '—'}</td>
-                  <td
-                    className="px-[12px] py-[8px] font-mono text-text-muted"
-                    title={row.user_id ?? ''}
-                  >
-                    {row.user_id ? shortId(row.user_id) : '—'}
-                  </td>
-                  <td className="px-[12px] py-[8px] text-text-muted">
-                    {row.content_chars.toLocaleString()}
-                  </td>
-                  <td className="px-[12px] py-[8px] text-text-muted">
-                    {formatDateTime(row.created_at, lang)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {rows && rows.length > 0 && !mdUp && (
-        <div className="flex flex-col gap-[10px]">
-          {rows.map((row) => (
-            <div
-              key={row.id}
-              className="rounded-[12px] border border-border bg-surface px-[14px] py-[12px]"
-            >
-              <div className="font-mono text-[12px] text-text-muted" title={row.id}>
-                {shortId(row.id)}
-              </div>
-              <div className="mt-1 text-[13.5px] font-semibold text-text">{row.title || '—'}</div>
-              <dl className="mt-3 grid grid-cols-1 gap-y-[6px] text-[12px]">
-                <div className="flex justify-between gap-3">
-                  <dt className="text-text-muted">{x(M.export_audit_col_surface)}</dt>
-                  <dd className="m-0 text-text-2">{row.surface}</dd>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <dt className="text-text-muted">{x(M.export_audit_col_kind)}</dt>
-                  <dd className="m-0 text-text-2">{row.kind}</dd>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <dt className="text-text-muted">{x(M.export_audit_col_user)}</dt>
-                  <dd className="m-0 font-mono text-text-muted">
-                    {row.user_id ? shortId(row.user_id) : '—'}
-                  </dd>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <dt className="text-text-muted">{x(M.export_audit_col_chars)}</dt>
-                  <dd className="m-0 text-text-muted">{row.content_chars.toLocaleString()}</dd>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <dt className="text-text-muted">{x(M.export_audit_col_created)}</dt>
-                  <dd className="m-0 text-text-muted">{formatDateTime(row.created_at, lang)}</dd>
-                </div>
-              </dl>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="mt-[16px] flex items-center gap-[12px]">
-          <button
-            type="button"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            className="rounded-[8px] border border-border bg-surface px-[14px] py-[7px] text-[13px] font-semibold text-text disabled:opacity-40"
-          >
-            {x(M.export_audit_prev)}
-          </button>
-          <span className="text-[13px] text-text-muted">
-            {x(M.export_audit_page)} {page} / {totalPages}
-          </span>
-          <button
-            type="button"
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            className="rounded-[8px] border border-border bg-surface px-[14px] py-[7px] text-[13px] font-semibold text-text disabled:opacity-40"
-          >
-            {x(M.export_audit_next)}
-          </button>
-        </div>
-      )}
     </div>
   )
 }
