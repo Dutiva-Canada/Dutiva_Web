@@ -177,7 +177,7 @@ function CategoryGroup({
   return (
     <div className="premium-card-soft p-[clamp(20px,3vw,28px)]">
       <div className="flex items-start gap-3">
-        <span className="flex-none rounded-xl bg-gold-subtle p-2.5 text-gold-strong">
+        <span className="flex-none rounded-xl bg-bg-elevated p-2.5 text-gold-strong">
           <Icon size={20} aria-hidden="true" />
         </span>
         <div>

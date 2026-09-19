@@ -90,7 +90,7 @@ function TourProductFrame({
   return (
     <div className="overflow-hidden rounded-[14px] border border-border bg-bg-soft shadow-[0_16px_40px_-24px_rgba(0,0,0,0.55)]">
       <div className="flex items-center gap-2 border-b border-border bg-navy px-3 py-2">
-        <span className="grid h-6 w-6 place-items-center rounded-md bg-gold-subtle text-gold-strong">
+        <span className="grid h-6 w-6 place-items-center rounded-md bg-white/10 text-gold-on-navy">
           <Icon size={13} aria-hidden="true" />
         </span>
         <span className="min-w-0 truncate text-[11px] font-semibold tracking-[0.04em] text-gold-on-navy">
@@ -145,7 +145,7 @@ function HomeTourPreview() {
 
   return (
     <div className="p-3 sm:p-4">
-      <div className="rounded-[12px] border border-gold-border bg-gold-bg px-3.5 py-3">
+      <div className="rounded-[12px] border border-border bg-bg-elevated px-3.5 py-3">
         <div className="text-[10px] font-bold tracking-[0.08em] text-gold-dot uppercase">
           {x(home.briefTitle)}
         </div>

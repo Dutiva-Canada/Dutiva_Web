@@ -141,7 +141,7 @@ export function BetaSignup() {
         <div>
           <BetaSpotCounter extraTaken={extraTaken} />
           {status === 'done' || status === 'waitlisted' ? (
-            <div className="flex items-center gap-3 rounded-[14px] border border-(--gold-border-soft) bg-gold-subtle px-5 py-4.5">
+            <div className="flex items-center gap-3 rounded-[14px] border border-border bg-bg-elevated px-5 py-4.5">
               {status === 'waitlisted' ? (
                 <Hourglass size={22} className="flex-none text-gold-strong" />
               ) : (

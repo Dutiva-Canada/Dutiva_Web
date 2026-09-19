@@ -27,7 +27,7 @@ export function IconChip({
   const baseClass =
     'inline-flex items-center gap-1.5 rounded-[10px] border px-3 py-2.5 text-sm font-medium transition-colors'
   const toneClass = highlighted
-    ? 'border-gold-border bg-gold-subtle text-gold-strong'
+    ? 'border-gold-border bg-bg-soft text-gold-strong'
     : 'border-border bg-bg-soft text-text-2'
   const linkClass = `${baseClass} ${toneClass} min-h-11 hover:border-(--accent-soft-border) hover:text-text active:opacity-90`
   const content = (

@@ -87,7 +87,7 @@ function BillingToggle({
           className={seg(period === 'annual')}
         >
           {t('pricing_billing_annual')}
-          <span className="rounded-full bg-gold-subtle px-2 py-0.5 text-[0.625rem] font-semibold tracking-wide text-gold-strong">
+          <span className="rounded-full border border-gold-border px-2 py-0.5 text-[0.625rem] font-semibold tracking-wide text-gold-strong">
             {t('pricing_billing_save')}
           </span>
         </button>
@@ -146,7 +146,7 @@ function PriceCard({
     <div
       className={[
         plan.popular
-          ? 'relative flex h-full flex-col rounded-2xl border border-gold-border bg-bg-soft p-6 shadow-[0_0_0_1px_rgba(var(--dutiva-gold-rgb),0.12)]'
+          ? 'relative flex h-full flex-col rounded-2xl border border-gold-border bg-bg-soft p-6'
           : 'relative flex h-full flex-col rounded-2xl border border-border bg-bg-elevated p-6',
         purchasable ? '' : 'opacity-60',
       ].join(' ')}
@@ -156,7 +156,7 @@ function PriceCard({
           {t('pricing_beta_only_badge')}
         </div>
       ) : plan.popular ? (
-        <div className="absolute left-6 top-3 inline-flex items-center gap-1.5 rounded-full border border-gold-border bg-gold-subtle px-2.5 py-0.5 text-[0.6875rem] font-semibold text-gold-strong">
+        <div className="absolute left-6 top-3 inline-flex items-center gap-1.5 rounded-full border border-gold-border px-2.5 py-0.5 text-[0.6875rem] font-semibold text-gold-strong">
           <Sparkles size={12} />
           {t('landing_growth_popular')}
         </div>
@@ -188,7 +188,7 @@ function PriceCard({
       <ul className="m-0 mt-5 flex-1 list-none space-y-3 p-0">
         {planFeatureKeys(plan).map((key) => (
           <li key={key} className="flex items-start gap-3 text-sm text-text-2">
-            <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-gold-subtle text-gold-strong">
+            <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border border-border text-gold-strong">
               <Check size={13} />
             </span>
             {t(key)}
@@ -287,7 +287,7 @@ function ComparisonTable({ priceFor }: { readonly priceFor: (plan: PlanDefinitio
               <th
                 key={plan.id}
                 scope="col"
-                className={`px-4 py-4 text-center ${plan.popular ? 'bg-gold-subtle' : ''}`}
+                className={`px-4 py-4 text-center ${plan.popular ? 'bg-bg-soft' : ''}`}
               >
                 <div
                   className={`text-sm font-semibold ${plan.popular ? 'text-gold-strong' : 'text-text'}`}
@@ -321,7 +321,7 @@ function ComparisonTable({ priceFor }: { readonly priceFor: (plan: PlanDefinitio
                 {PLANS.map((plan) => (
                   <td
                     key={plan.id}
-                    className={`px-4 py-3 text-center text-sm ${plan.popular ? 'bg-gold-subtle' : ''}`}
+                    className={`px-4 py-3 text-center text-sm ${plan.popular ? 'bg-bg-soft' : ''}`}
                   >
                     <span className="inline-flex items-center justify-center">
                       <CellView cell={row.cells[plan.id]} />
@@ -532,7 +532,7 @@ export function PricingPage() {
                 role="status"
                 className="premium-card-soft flex flex-wrap items-center gap-4 border-gold-border p-5"
               >
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-subtle text-gold-strong">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-bg-elevated text-gold-strong">
                   <CircleCheck size={18} />
                 </span>
                 <div className="flex-1">
@@ -559,7 +559,7 @@ export function PricingPage() {
                 role={notice.tone === 'error' ? 'alert' : 'status'}
                 className={
                   notice.tone === 'success'
-                    ? 'rounded-xl border border-gold-border bg-gold-subtle px-4 py-3 text-sm text-gold-strong'
+                    ? 'rounded-xl border border-ok-border bg-ok-bg px-4 py-3 text-sm text-ok-fg'
                     : 'rounded-xl border border-risk-border bg-risk-bg px-4 py-3 text-sm text-risk-fg'
                 }
               >
@@ -589,8 +589,8 @@ export function PricingPage() {
 
       {PAID_PLANS_DISABLED_DURING_BETA ? (
         <Band>
-          <div className="premium-card-soft flex flex-wrap items-center gap-4 border-gold-border p-5">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-subtle text-gold-strong">
+          <div className="premium-card-soft flex flex-wrap items-center gap-4 p-5">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-bg-elevated text-gold-strong">
               <Sparkles size={18} />
             </span>
             <p className="text-sm leading-6 text-text-2">{t('pricing_beta_banner')}</p>

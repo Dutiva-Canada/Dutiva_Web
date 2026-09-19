@@ -43,7 +43,7 @@ export function TestimonialWall() {
               ) : (
                 <span
                   aria-hidden="true"
-                  className="grid h-11 w-11 place-items-center rounded-full bg-gold-subtle text-sm font-semibold text-gold-strong"
+                  className="grid h-11 w-11 place-items-center rounded-full bg-bg-elevated text-sm font-semibold text-gold-strong"
                 >
                   {entry.firstName.charAt(0)}
                 </span>

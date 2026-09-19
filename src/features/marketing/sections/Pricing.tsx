@@ -34,7 +34,7 @@ export function Pricing() {
         sub={lt('landing_price_sub')}
       />
       {PAID_PLANS_DISABLED_DURING_BETA ? (
-        <p className="mb-6 max-w-[68ch] rounded-xl border border-gold-border bg-gold-subtle px-4 py-3 text-sm leading-6 text-text-2">
+        <p className="mb-6 max-w-[68ch] rounded-xl border border-border bg-bg-elevated px-4 py-3 text-sm leading-6 text-text-2">
           {t('pricing_beta_banner')}
         </p>
       ) : null}
@@ -47,7 +47,7 @@ export function Pricing() {
               key={plan.id}
               className={[
                 plan.popular
-                  ? 'flex flex-col rounded-[14px] border border-gold-border bg-bg-soft p-6 shadow-[0_0_0_1px_rgba(var(--dutiva-gold-rgb),0.12)]'
+                  ? 'flex flex-col rounded-[14px] border border-gold-border bg-bg-soft p-6'
                   : 'flex flex-col rounded-[14px] border border-border bg-bg-elevated p-6',
                 purchasable ? '' : 'opacity-60',
               ].join(' ')}
@@ -62,7 +62,7 @@ export function Pricing() {
               ) : plan.popular ? (
                 <div className="flex min-h-7 items-center justify-between gap-2">
                   <span className="text-sm font-semibold text-text">{t(plan.nameKey)}</span>
-                  <span className="rounded-full border border-gold-border bg-gold-subtle px-2.5 py-0.5 text-[0.6875rem] font-semibold text-gold-strong">
+                  <span className="rounded-full border border-gold-border px-2.5 py-0.5 text-[0.6875rem] font-semibold text-gold-strong">
                     {lt('landing_growth_popular')}
                   </span>
                 </div>

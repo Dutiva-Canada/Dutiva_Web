@@ -47,7 +47,7 @@ export function HowItWorks() {
               <span
                 className={`grid h-11 w-11 place-items-center rounded-xl ${
                   step.tone === 'gold'
-                    ? 'bg-gold-subtle text-gold-strong'
+                    ? 'bg-bg-elevated text-gold-strong'
                     : 'bg-accent-soft text-accent'
                 }`}
               >

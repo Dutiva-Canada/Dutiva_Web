@@ -47,7 +47,7 @@ export function BetaSpotCounter({ extraTaken = 0 }: { readonly extraTaken?: numb
               key={i}
               className={
                 i < filled
-                  ? 'inline-block size-7 rounded-full border-2 border-bg bg-gold-subtle ring-1 ring-border'
+                  ? 'inline-block size-7 rounded-full border-2 border-bg bg-accent-soft ring-1 ring-border'
                   : 'inline-block size-7 rounded-full border-2 border-dashed border-border bg-bg-elevated'
               }
             />

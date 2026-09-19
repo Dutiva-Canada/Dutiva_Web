@@ -46,7 +46,7 @@ export function Product() {
             <span
               className={`grid h-11 w-11 place-items-center rounded-xl ${
                 feature.tone === 'gold'
-                  ? 'bg-gold-subtle text-gold-strong'
+                  ? 'bg-bg-elevated text-gold-strong'
                   : 'bg-accent-soft text-accent'
               }`}
             >

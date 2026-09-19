@@ -292,7 +292,7 @@ body.dutiva-surface {
   gap: 0.375rem;
   border-radius: var(--radius-pill);
   border: 1px solid var(--gold-border-soft);
-  background: var(--gold-subtle);
+  background: transparent;
   padding: 0.375rem 0.75rem;
   text-align: center;
   font-family: var(--font-display);

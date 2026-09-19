@@ -107,7 +107,7 @@ export function JurisdictionToolPage() {
 
         {/* Result */}
         {complete && result && (
-          <div className="mt-[24px] rounded-[12px] border border-gold-fg/40 bg-gold-fg/5 px-[24px] py-[20px]">
+          <div className="mt-[24px] rounded-[12px] border border-border bg-bg-elevated px-[24px] py-[20px]">
             <div className="mb-[16px] flex items-center gap-[10px]">
               <MapPin size={20} className="text-gold-strong" aria-hidden="true" />
               <h2 className="m-0 text-[16px] font-semibold text-text">
