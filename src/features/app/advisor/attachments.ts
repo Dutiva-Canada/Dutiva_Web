@@ -68,7 +68,21 @@ export const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024
 export const MAX_DOCUMENT_TEXT_CHARS = 18_000
 
 const IMAGE_MIMES = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif'])
-const IMAGE_EXTS = /\.(png|jpe?g|webp|gif)$/i
+/** Extension → mime, for files the OS hands us with no type. */
+const EXT_MIME: Record<string, string> = {
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  webp: 'image/webp',
+  gif: 'image/gif',
+}
+
+function imageMimeFor(file: File): string | null {
+  const mime = file.type.toLowerCase()
+  if (IMAGE_MIMES.has(mime)) return mime
+  const ext = /\.([a-z0-9]+)$/i.exec(file.name)?.[1]?.toLowerCase() ?? ''
+  return EXT_MIME[ext] ?? null
+}
 const PLAIN_TEXT_EXTS = /\.(txt|md|csv|tsv|json)$/i
 const SPREADSHEET_EXTS = /\.(xlsx|xls)$/i
 const RICH_DOC_EXTS = /\.(pdf|docx)$/i
@@ -76,10 +90,6 @@ const RICH_DOC_EXTS = /\.(pdf|docx)$/i
 /** `<input accept>` value — images, office documents, and plain-text files. */
 export const ATTACHMENT_ACCEPT =
   '.png,.jpg,.jpeg,.webp,.gif,.pdf,.docx,.txt,.md,.csv,.tsv,.json,.xlsx,.xls'
-
-function isImageFile(file: File): boolean {
-  return IMAGE_MIMES.has(file.type.toLowerCase()) || IMAGE_EXTS.test(file.name)
-}
 
 function readAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -120,15 +130,22 @@ export async function attachmentFromFile(file: File): Promise<AdvisorAttachment>
   if (file.size === 0) throw new AttachmentError('empty', `${file.name} is empty.`)
   const id = `att-${nextAttachmentId++}`
 
-  if (isImageFile(file)) {
+  const imageMime = imageMimeFor(file)
+  if (imageMime) {
     if (file.size > MAX_IMAGE_BYTES) {
       throw new AttachmentError('too_large', `${file.name} is too large.`)
     }
-    const dataUrl = await readAsDataUrl(file)
-    if (!dataUrl.startsWith('data:image/')) {
+    const raw = await readAsDataUrl(file)
+    /* FileReader borrows the file's mime for the data URL — a file with no
+       reported type yields `data:application/octet-stream`, which no vision
+       endpoint accepts. Normalize to the extension-derived mime; the base64
+       payload after the comma is untouched. */
+    const comma = raw.indexOf(',')
+    if (comma < 0) {
       throw new AttachmentError('read_failed', `Could not read ${file.name}.`)
     }
-    return { id, kind: 'image', name: file.name, mime: file.type, bytes: file.size, dataUrl }
+    const dataUrl = `data:${imageMime};base64${raw.slice(comma)}`
+    return { id, kind: 'image', name: file.name, mime: imageMime, bytes: file.size, dataUrl }
   }
 
   const name = file.name.toLowerCase()

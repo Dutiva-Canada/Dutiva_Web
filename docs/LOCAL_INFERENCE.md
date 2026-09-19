@@ -26,6 +26,23 @@ The code outranks this file. Current completion path:
 `supabase/functions/advisor-chat/index.ts` → `ai_model_routes` /
 `ai_model_providers` → OpenAI-compatible `POST {base_url}/chat/completions`.
 
+> **Code update (2026-09-18):** parts of Phase 2 / §7(a) now exist as
+> plumbing, without changing the default route:
+>
+> - `supabase/functions/_shared/modelUpstream.ts` — shared upstream dispatch:
+>   keyless providers (empty `secret_ref` → no `Authorization` header), a
+>   per-route `config.timeout_ms`, and OpenAI multimodal content parts.
+> - `advisor-chat` accepts `attachments` — images as `image_url` parts,
+>   documents as client-extracted text — refused pre-metering when the
+>   active route's `config.modalities` doesn't include the needed modality.
+>   The persisted transcript stores a `[Attached …]` manifest, never raw
+>   payloads. `candidate-ai` and `support-firstline` share the same
+>   dispatch, so all three surfaces reach keyless local endpoints.
+> - Settings → AI → "AI models" — admin registers a provider row and points
+>   `advisor_chat` at it; users install/remove on-device browser models
+>   (`src/lib/localModels/`, transformers.js) for on-device tasks. Browser
+>   models are **not** the Advisor — see §4 and §8 phase 4.
+
 ---
 
 ## 1. The question this answers

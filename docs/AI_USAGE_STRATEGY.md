@@ -342,6 +342,11 @@ Everything else in the product is retrieval, templates, rules, or algorithms.
 That is the intended steady state: a small, well-fenced generative core, and a
 large deterministic surround.
 
-On-device or customer-LAN completion is **not** a current route. If that
-changes, it is an owner decision recorded in
-[`LOCAL_INFERENCE.md`](LOCAL_INFERENCE.md), not an implicit extra provider.
+On-device or customer-LAN completion is **not** the active route — but the
+plumbing for it now exists. A provider row may point `base_url` at any
+OpenAI-compatible endpoint (Ollama, LM Studio, vLLM, a customer-LAN GPU);
+`secret_ref` may be null for keyless local servers; and `advisor-chat`
+accepts multimodal turns (image parts + extracted document text) gated on
+the route's declared `config.modalities`. See
+[`LOCAL_INFERENCE.md`](LOCAL_INFERENCE.md) — pointing `advisor_chat` at a
+local endpoint remains an owner decision, not an implicit extra provider.
