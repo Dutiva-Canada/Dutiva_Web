@@ -58,6 +58,34 @@ export const advisorCore = defineMessages({
     en: 'The model on this route can’t read images. Remove the image or ask an admin for a vision-capable model.',
     fr: 'Le modèle de cette route ne peut pas lire les images. Retirez l’image ou demandez à un administrateur un modèle capable de vision.',
   }, // [FR self-authored]
+  advisor_caption_fallback_done: {
+    en: 'The model on this route can’t read images — described on this device and sent as text.',
+    fr: 'Le modèle de cette route ne peut pas lire les images — l’image a été décrite sur cet appareil et envoyée en texte.',
+  }, // [FR self-authored]
+
+  /* ── On-device composer tasks (installed browser models only) ──────────── */
+  advisor_voice_start: { en: 'Record a voice note', fr: 'Enregistrer une note vocale' }, // [FR self-authored]
+  advisor_voice_stop: { en: 'Stop recording', fr: 'Arrêter l’enregistrement' }, // [FR self-authored]
+  advisor_voice_unavailable: {
+    en: 'Voice recording isn’t available in this browser.',
+    fr: 'L’enregistrement vocal n’est pas disponible dans ce navigateur.',
+  }, // [FR self-authored]
+  advisor_voice_denied: {
+    en: 'Microphone access was refused.',
+    fr: 'L’accès au microphone a été refusé.',
+  }, // [FR self-authored]
+  advisor_voice_failed: {
+    en: 'The voice note couldn’t be transcribed on this device.',
+    fr: 'La note vocale n’a pas pu être transcrite sur cet appareil.',
+  }, // [FR self-authored]
+  advisor_rewrite: {
+    en: 'Rewrite draft on this device',
+    fr: 'Réécrire le brouillon sur cet appareil',
+  }, // [FR self-authored]
+  advisor_rewrite_failed: {
+    en: 'The draft couldn’t be rewritten on this device.',
+    fr: 'Le brouillon n’a pas pu être réécrit sur cet appareil.',
+  }, // [FR self-authored]
 
   /* ── Rich message formatting (ChatMarkdown / ChatChart) ─────────────────── */
   // Accessible name for the horizontally scrollable frame a Markdown table

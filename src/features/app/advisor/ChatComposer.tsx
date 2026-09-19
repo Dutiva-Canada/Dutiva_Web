@@ -1,11 +1,31 @@
-import { useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
-import { ArrowUp, FileText, Image as ImageIcon, Paperclip, X } from 'lucide-react'
+import {
+  ArrowUp,
+  FileText,
+  Image as ImageIcon,
+  Loader2,
+  Mic,
+  Paperclip,
+  Sparkles,
+  Square,
+  X,
+} from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import { ToastsContext } from '@/features/app/toasts/toastsContext'
 import { advisorCore as M } from '@/i18n/messages/advisorCore'
 import { ATTACHMENT_ACCEPT, MAX_ATTACHMENTS, attachmentFromFile } from './attachments'
 import type { AdvisorAttachment, AttachmentIssue } from './attachments'
 import { AttachmentError } from './attachments'
+import { useInstalledLocalModels } from '@/lib/localModels/useInstalledLocalModels'
+import { decodeBlobToMono16k } from '@/lib/localModels/audio'
+import {
+  REWRITE_MODEL_ID,
+  VOICE_NOTE_MODEL_ID,
+  onDeviceSpec,
+  rewriteOnDevice,
+  transcribeOnDevice,
+} from './onDeviceTasks'
 
 /**
  * Advisor composer — rounded input shell with the navy send button, per the
@@ -21,6 +41,12 @@ import { AttachmentError } from './attachments'
  * a vision-capable route as `image_url` parts, documents go as text the
  * browser extracted (`./attachments.ts`). Refusals surface through
  * `onAttachmentIssue` so the caller decides how to say it.
+ *
+ * On-device affordances appear only when their model is installed
+ * (Settings → AI → "On this device"): a mic button transcribes a voice note
+ * into the draft (Whisper), and a rewrite button rewrites the draft
+ * (LaMini). Nothing leaves the machine for these — failures toast via the
+ * shared toasts context.
  */
 export interface ChatComposerProps {
   readonly placeholder: string
@@ -77,15 +103,41 @@ export function ChatComposer({
   onAttachmentIssue,
 }: ChatComposerProps) {
   const { x } = useI18n()
+  /* Optional by design — the composer also renders outside ToastsProvider
+     (rail, tests); local-task issues just go unsurfaced there. */
+  const showToast = useContext(ToastsContext)?.showToast
   const [value, setValue] = useState('')
   const [pending, setPending] = useState<AdvisorAttachment[]>([])
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const styles = VARIANTS[variant]
 
+  /* On-device models — buttons render only for installed repos. */
+  const installed = useInstalledLocalModels()
+  const voiceSpec = installed.has('Xenova/whisper-tiny')
+    ? onDeviceSpec(VOICE_NOTE_MODEL_ID)
+    : null
+  const rewriteSpec = installed.has('Xenova/LaMini-Flan-T5-248M')
+    ? onDeviceSpec(REWRITE_MODEL_ID)
+    : null
+  const [recording, setRecording] = useState(false)
+  const [localBusy, setLocalBusy] = useState<'transcribing' | 'rewriting' | null>(null)
+  const recorderRef = useRef<MediaRecorder | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const chunksRef = useRef<Blob[]>([])
+
   useEffect(() => {
     if (autoFocus) textareaRef.current?.focus()
   }, [autoFocus])
+
+  /* Drop the mic stream if the composer unmounts mid-recording. */
+  useEffect(
+    () => () => {
+      recorderRef.current?.stop()
+      streamRef.current?.getTracks().forEach((t) => t.stop())
+    },
+    [],
+  )
 
   const attachFiles = (files: FileList | null) => {
     if (!files) return
@@ -121,6 +173,73 @@ export function ChatComposer({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       send()
+    }
+  }
+
+  /* ── on-device: voice note → draft ─────────────────────────────────────── */
+
+  const finishVoiceNote = async () => {
+    streamRef.current?.getTracks().forEach((t) => t.stop())
+    streamRef.current = null
+    const blob = new Blob(chunksRef.current, { type: recorderRef.current?.mimeType })
+    chunksRef.current = []
+    recorderRef.current = null
+    if (voiceSpec == null || blob.size === 0) return
+    setLocalBusy('transcribing')
+    try {
+      const samples = await decodeBlobToMono16k(blob)
+      const text = await transcribeOnDevice(voiceSpec, samples)
+      if (text) setValue((prev) => (prev.trim() ? `${prev.trim()} ${text}` : text))
+    } catch {
+      showToast?.(M.advisor_voice_failed, 'info')
+    } finally {
+      setLocalBusy(null)
+    }
+  }
+
+  const toggleVoiceNote = async () => {
+    if (recording) {
+      setRecording(false)
+      recorderRef.current?.stop() // onstop → finishVoiceNote
+      return
+    }
+    if (localBusy != null) return
+    if (typeof MediaRecorder === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+      showToast?.(M.advisor_voice_unavailable, 'info')
+      return
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      streamRef.current = stream
+      const rec = new MediaRecorder(stream)
+      chunksRef.current = []
+      rec.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data)
+      }
+      rec.onstop = () => void finishVoiceNote()
+      recorderRef.current = rec
+      rec.start()
+      setRecording(true)
+    } catch {
+      streamRef.current?.getTracks().forEach((t) => t.stop())
+      streamRef.current = null
+      showToast?.(M.advisor_voice_denied, 'info')
+    }
+  }
+
+  /* ── on-device: rewrite the draft ──────────────────────────────────────── */
+
+  const rewriteDraft = async () => {
+    const draft = value.trim()
+    if (rewriteSpec == null || !draft || localBusy != null || recording) return
+    setLocalBusy('rewriting')
+    try {
+      const text = await rewriteOnDevice(rewriteSpec, draft)
+      if (text) setValue(text)
+    } catch {
+      showToast?.(M.advisor_rewrite_failed, 'info')
+    } finally {
+      setLocalBusy(null)
     }
   }
 
@@ -183,6 +302,41 @@ export function ChatComposer({
               <Paperclip size={styles.icon} strokeWidth={1.9} aria-hidden="true" />
             </button>
           </>
+        )}
+        {voiceSpec != null && (
+          <button
+            type="button"
+            aria-label={x(recording ? M.advisor_voice_stop : M.advisor_voice_start)}
+            aria-pressed={recording}
+            disabled={localBusy != null}
+            onClick={() => void toggleVoiceNote()}
+            className={`flex shrink-0 cursor-pointer items-center justify-center self-end rounded-[9px] border-none bg-transparent hover:bg-inset disabled:cursor-default disabled:opacity-60 ${
+              recording ? 'text-risk-dot' : 'text-text-faint hover:text-text-muted'
+            } ${styles.button}`}
+          >
+            {localBusy === 'transcribing' ? (
+              <Loader2 size={styles.icon} strokeWidth={1.9} aria-hidden="true" className="animate-spin" />
+            ) : recording ? (
+              <Square size={styles.icon} strokeWidth={1.9} aria-hidden="true" />
+            ) : (
+              <Mic size={styles.icon} strokeWidth={1.9} aria-hidden="true" />
+            )}
+          </button>
+        )}
+        {rewriteSpec != null && value.trim() !== '' && (
+          <button
+            type="button"
+            aria-label={x(M.advisor_rewrite)}
+            disabled={localBusy != null || recording}
+            onClick={() => void rewriteDraft()}
+            className={`flex shrink-0 cursor-pointer items-center justify-center self-end rounded-[9px] border-none bg-transparent text-text-faint hover:bg-inset hover:text-text-muted disabled:cursor-default disabled:opacity-60 ${styles.button}`}
+          >
+            {localBusy === 'rewriting' ? (
+              <Loader2 size={styles.icon} strokeWidth={1.9} aria-hidden="true" className="animate-spin" />
+            ) : (
+              <Sparkles size={styles.icon} strokeWidth={1.9} aria-hidden="true" />
+            )}
+          </button>
         )}
         <textarea
           ref={textareaRef}

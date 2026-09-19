@@ -187,7 +187,14 @@ export default defineConfig(({ command }) => {
       },
     },
     optimizeDeps: {
-      exclude: ['@xenova/transformers', 'onnxruntime-web'],
+      /* @xenova/transformers ships ESM source and resolves fine served raw.
+         onnxruntime-web needs the explicit include: the dep scanner never
+         reaches it (its only importer is excluded), and its browser entry is
+         a UMD webpack bundle that crashes (registerBackend on undefined) when
+         Vite dev serves it as a native module. Prebundling wraps it in CJS
+         interop. */
+      include: ['onnxruntime-web'],
+      exclude: ['@xenova/transformers'],
     },
     define: {
       /* Bake Vercel's VERCEL_ENV system var ('production' | 'preview' |

@@ -108,6 +108,7 @@ export async function storageEstimate(): Promise<{ usage: number; quota: number 
 
 interface TransformersEnv {
   allowRemoteModels: boolean
+  allowLocalModels: boolean
   useBrowserCache: boolean
   useFSCache: boolean
   backends: { onnx: { wasm: { numThreads: number } } }
@@ -122,6 +123,10 @@ async function transformersRuntime() {
   const mod = await import('@xenova/transformers')
   const env = mod.env as TransformersEnv
   env.allowRemoteModels = true
+  /* Never probe localModelPath first: the SPA fallback answers /models/* with
+     index.html + 200, which the runtime then parses as model JSON. Models only
+     ever come from the remote host into Cache Storage. */
+  env.allowLocalModels = false
   env.useBrowserCache = true
   env.useFSCache = false
   env.backends.onnx.wasm.numThreads = 1

@@ -5,6 +5,7 @@
 import type { RefObject } from 'react'
 import type { LText } from '@/i18n/core'
 import { sendAdvisorMessage } from '@/features/app/advisor/chatApi'
+import type { AdvisorChatResult } from '@/features/app/advisor/chatApi'
 import type { AdvisorAttachment, AttachmentIssue } from '@/features/app/advisor/attachments'
 import type { AdvisorTurnSpec, ChatAttachmentChip, ToneCardData } from '@/features/app/advisor/types'
 import { followupFallbackText, followupReplies } from '@/data'
@@ -17,6 +18,7 @@ import { estimatorFollowup, genericAck } from './advisorFlows'
 import type { MessageExtras } from './advisorFlows'
 import type { ThreadResponseState } from './advisorSession'
 import { applyRealChatResult } from './advisorProductionChat'
+import { captionFallbackAttachments } from './advisorLocalFallback'
 import { scenarioAck, scenarioAckSignedOut } from './advisorScenarios'
 
 import type { AuthStatus } from '@/features/app/auth/authContext'
@@ -82,26 +84,37 @@ export function createAdvisorChatSendHandlers(options: ChatSendHandlersOptions) 
       return
     }
     setSendingReal(true)
-    void sendAdvisorMessage(
-      text,
-      conversationIdRef.current,
-      organizationId,
-      attachments ?? [],
-    )
-      .then((result) =>
-        applyRealChatResult({
-          result,
-          threadId: chatId,
-          userText: text,
-          pushAdvisor,
-          patchResponseState,
-          setProdThreads,
-          updateExtras,
-          bindBackendConversationId,
-          showToast,
-        }),
-      )
-      .catch(handleRealChatFailure)
+    const apply = (result: AdvisorChatResult) =>
+      applyRealChatResult({
+        result,
+        threadId: chatId,
+        userText: text,
+        pushAdvisor,
+        patchResponseState,
+        setProdThreads,
+        updateExtras,
+        bindBackendConversationId,
+        showToast,
+      })
+    const send = (atts: readonly AdvisorAttachment[]) =>
+      sendAdvisorMessage(text, conversationIdRef.current, organizationId, atts).then(apply)
+    void send(attachments ?? [])
+      .catch(async (error: unknown) => {
+        /* Image refused by a text-only route → caption it on-device and retry
+           as a document attachment when the caption model is installed. */
+        const captioned = await captionFallbackAttachments(error, attachments)
+        if (captioned !== null) {
+          try {
+            await send(captioned)
+            showToast(CORE.advisor_caption_fallback_done, 'ok')
+            return
+          } catch (retryError) {
+            handleRealChatFailure(retryError)
+            return
+          }
+        }
+        handleRealChatFailure(error)
+      })
       .finally(() => setSendingReal(false))
   }
 

@@ -5,6 +5,9 @@ let extractorPromise: ReturnType<typeof loadExtractor> | null = null
 async function loadExtractor() {
   const { env, pipeline } = await import('@xenova/transformers')
   env.allowRemoteModels = true
+  /* Same SPA-fallback trap as src/lib/localModels/manager.ts: /models/* would
+     return index.html, not a 404, so never probe the local path. */
+  env.allowLocalModels = false
   env.useBrowserCache = true
   env.useFSCache = false
   env.cacheDir = 'dutiva-transformers-cache'
