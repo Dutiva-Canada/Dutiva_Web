@@ -117,6 +117,7 @@ interface EmailContext {
   provinceLabel?: string
   planLabel?: string
   billingPeriodLabel?: string
+  accountEmail?: string
 }
 
 interface RenderedEmail {
@@ -424,6 +425,7 @@ function renderNotificationEmail(kind: NotificationKind, ctx: EmailContext): Ren
       ])
     case 'account_signup': {
       const details = [
+        ctx.accountEmail ? L(lang, `Account: ${ctx.accountEmail}`, `Compte : ${ctx.accountEmail}`) : '',
         ctx.planLabel ? L(lang, `Plan: ${ctx.planLabel}`, `Forfait : ${ctx.planLabel}`) : '',
         ctx.sourceLabel ? L(lang, `Source: ${ctx.sourceLabel}`, `Source : ${ctx.sourceLabel}`) : '',
       ].filter(Boolean)
@@ -444,6 +446,7 @@ function renderNotificationEmail(kind: NotificationKind, ctx: EmailContext): Ren
     }
     case 'plan_signup': {
       const details = [
+        ctx.accountEmail ? L(lang, `Account: ${ctx.accountEmail}`, `Compte : ${ctx.accountEmail}`) : '',
         ctx.planLabel ? L(lang, `Plan: ${ctx.planLabel}`, `Forfait : ${ctx.planLabel}`) : '',
         ctx.billingPeriodLabel
           ? L(
@@ -491,6 +494,8 @@ interface NotificationRow {
     source?: string
     plan?: string
     billing_period?: string
+    email?: string
+    user_id?: string
   }
   attempts: number
 }
@@ -556,6 +561,7 @@ function buildContext(row: NotificationRow, appUrl: string): EmailContext {
     billingPeriodLabel: row.payload.billing_period
       ? (BILLING_PERIOD_LABELS[row.payload.billing_period]?.[lang] ?? row.payload.billing_period)
       : undefined,
+    accountEmail: row.payload.email,
   }
 }
 
