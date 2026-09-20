@@ -222,14 +222,6 @@ const ACCEPTED_UNTRACKED = new Map([
   ['0147_add_comms_usage_controls', 'applied via Management API with server-generated version 20260908050217'],
   ['0148_add_comms_execution_events', 'applied via Management API with server-generated version 20260908050154'],
   ['0149_add_comms_sources', 'applied via Management API with server-generated version 20260908051056'],
-  [
-    'grant_admin_directory_rpcs',
-    'applied via Management API under sequence 0158 with no repo file (MCP slice); collided with the repo file later renumbered 0160',
-  ],
-  [
-    'signup_alert_identifies_account',
-    'applied via Management API under sequence 0159 with no repo file (MCP slice); collided with the repo file later renumbered 0161',
-  ],
   ...advisorPhaseMcpNameAliases().untracked,
 ])
 
