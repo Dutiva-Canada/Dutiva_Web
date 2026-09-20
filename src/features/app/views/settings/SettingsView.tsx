@@ -38,6 +38,8 @@ import { SettingsAgentActivity } from './SettingsAgentActivity'
 import { SettingsDemoFixtures } from './SettingsDemoFixtures'
 import { SettingsBillingSection } from './SettingsBillingSection'
 import { AiModelsSection } from './AiModelsSection'
+import { IntegrationsSection } from './IntegrationsSection'
+import { integrationsMessages as IM } from '@/i18n/messages/integrations'
 import { SettingsProductionTeam } from './SettingsProductionTeam'
 import { WorkspaceProfileEditor } from './WorkspaceProfileEditor'
 import { OrganizationProfileEditor } from './OrganizationProfileEditor'
@@ -546,6 +548,11 @@ export function SettingsView() {
         <div className="mt-[12px]">
           <AiModelsSection />
         </div>
+      </Section>
+
+      {/* Workspace connections (integrations, phase 1) */}
+      <Section label={x(IM.integ_title)}>
+        <IntegrationsSection />
       </Section>
 
       {/* Roles & permissions */}

@@ -38,6 +38,7 @@ import { governanceMessages } from './governance'
 import { securityMessages } from './security'
 import { operationsMessages } from './operations'
 import { specialistsMessages } from './specialists'
+import { integrationsMessages } from './integrations'
 import { revenueMessages } from './revenue'
 import { entityLinksMessages } from './entityLinks'
 import { careersMessages } from './careers'
@@ -92,6 +93,7 @@ export const workspaceMessages = {
   ...securityMessages,
   ...operationsMessages,
   ...specialistsMessages,
+  ...integrationsMessages,
   ...revenueMessages,
   ...entityLinksMessages,
   ...careersMessages,
