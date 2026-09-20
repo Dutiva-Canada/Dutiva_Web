@@ -67,11 +67,20 @@ export const financeMessages = defineMessages({
   finance_overview_approvals: { en: 'Approvals queue', fr: 'File d’approbations' },
   finance_overview_exceptions: { en: 'Exceptions', fr: 'Exceptions' },
   finance_overview_budget_headroom: { en: 'Budget headroom', fr: 'Marge budgétaire' },
-  finance_overview_no_upcoming: { en: 'No upcoming obligations.', fr: 'Aucune obligation à venir.' },
+  finance_overview_no_upcoming: {
+    en: 'No upcoming obligations.',
+    fr: 'Aucune obligation à venir.',
+  },
   finance_overview_no_exceptions: { en: 'No open exceptions.', fr: 'Aucune exception ouverte.' },
-  finance_overview_no_approvals: { en: 'No items awaiting approval.', fr: 'Aucun élément en attente d’approbation.' },
+  finance_overview_no_approvals: {
+    en: 'No items awaiting approval.',
+    fr: 'Aucun élément en attente d’approbation.',
+  },
   finance_overview_data_freshness: { en: 'Data freshness', fr: 'Fraîcheur des données' },
-  finance_overview_all_areas: { en: 'Open a tab above to drill into a workspace area.', fr: 'Ouvrez un onglet ci-dessus pour explorer un secteur de l’espace de travail.' },
+  finance_overview_all_areas: {
+    en: 'Open a tab above to drill into a workspace area.',
+    fr: 'Ouvrez un onglet ci-dessus pour explorer un secteur de l’espace de travail.',
+  },
 
   /* Transactions */
   finance_transactions_title: { en: 'Transactions', fr: 'Transactions' },
@@ -132,10 +141,13 @@ export const financeMessages = defineMessages({
   finance_payroll_mark_submitted: { en: 'Submit to provider', fr: 'Soumettre au fournisseur' },
   finance_payroll_mark_results: { en: 'Import results', fr: 'Importer les résultats' },
   finance_payroll_mark_reconciled: { en: 'Mark reconciled', fr: 'Marquer rapproché' },
-  finance_payroll_restricted: { en: 'Payroll details are restricted.', fr: 'Les détails de paie sont restreints.' },
+  finance_payroll_restricted: {
+    en: 'Payroll details are restricted.',
+    fr: 'Les détails de paie sont restreints.',
+  },
   finance_payroll_admin_only: {
     en: 'Payroll records are visible to admins only. Ask a workspace admin to grant access or review pay runs.',
-    fr: 'Les dossiers de paie sont visibles par les administrateurs uniquement. Demandez à un administrateur de l\'espace d\'accorder l\'accès ou de réviser les traitements.',
+    fr: "Les dossiers de paie sont visibles par les administrateurs uniquement. Demandez à un administrateur de l'espace d'accorder l'accès ou de réviser les traitements.",
   },
 
   /* Accounting */
@@ -241,13 +253,19 @@ export const financeMessages = defineMessages({
   finance_due_soon: { en: 'Due soon', fr: 'Bientôt à échéance' },
 
   /* Empty filtered state */
-  finance_no_results: { en: 'No results match the current filter.', fr: 'Aucun résultat ne correspond au filtre actuel.' },
+  finance_no_results: {
+    en: 'No results match the current filter.',
+    fr: 'Aucun résultat ne correspond au filtre actuel.',
+  },
 
   /* Status filter */
   finance_filter_all: { en: 'All', fr: 'Tous' },
 
   /* Lifecycle messages */
-  finance_invalid_transition: { en: 'This status transition is not allowed.', fr: 'Cette transition de statut n’est pas autorisée.' },
+  finance_invalid_transition: {
+    en: 'This status transition is not allowed.',
+    fr: 'Cette transition de statut n’est pas autorisée.',
+  },
   finance_not_found: { en: 'Record not found.', fr: 'Dossier introuvable.' },
 
   /* Money representation */
@@ -284,7 +302,10 @@ export const financeMessages = defineMessages({
   /* Invoice actions */
   finance_invoice_issue: { en: 'Issue', fr: 'Émettre' },
   finance_invoice_mark_paid: { en: 'Mark paid', fr: 'Marquer payée' },
-  finance_invoice_mark_partial: { en: 'Record partial payment', fr: 'Enregistrer un paiement partiel' },
+  finance_invoice_mark_partial: {
+    en: 'Record partial payment',
+    fr: 'Enregistrer un paiement partiel',
+  },
   finance_invoice_dispute: { en: 'Dispute', fr: 'Contester' },
   finance_invoice_write_off: { en: 'Write off', fr: 'Passer en perte' },
   finance_invoice_cancel: { en: 'Cancel', fr: 'Annuler' },
@@ -295,7 +316,10 @@ export const financeMessages = defineMessages({
   finance_bills_no_bills: { en: 'No bills.', fr: 'Aucune facture fournisseur.' },
   finance_bill_post: { en: 'Post', fr: 'Afficher' },
   finance_bill_mark_paid: { en: 'Mark paid', fr: 'Marquer payée' },
-  finance_bill_mark_partial: { en: 'Record partial payment', fr: 'Enregistrer un paiement partiel' },
+  finance_bill_mark_partial: {
+    en: 'Record partial payment',
+    fr: 'Enregistrer un paiement partiel',
+  },
   finance_bill_dispute: { en: 'Dispute', fr: 'Contester' },
   finance_bill_cancel: { en: 'Cancel', fr: 'Annuler' },
   finance_bill_mark_overdue: { en: 'Mark overdue', fr: 'Marquer en retard' },
@@ -303,7 +327,10 @@ export const financeMessages = defineMessages({
   /* Journal actions */
   finance_journal_post: { en: 'Post', fr: 'Comptabiliser' },
   finance_journal_reverse: { en: 'Reverse', fr: 'Extourner' },
-  finance_journal_unbalanced: { en: 'Unbalanced — cannot post', fr: 'Non équilibré — comptabilisation impossible' },
+  finance_journal_unbalanced: {
+    en: 'Unbalanced — cannot post',
+    fr: 'Non équilibré — comptabilisation impossible',
+  },
 
   /* Bank item matching */
   finance_bank_accept_suggested: { en: 'Accept match', fr: 'Accepter la correspondance' },
@@ -332,14 +359,17 @@ export const financeMessages = defineMessages({
   finance_reject: { en: 'Reject', fr: 'Rejeter' },
 
   /* External actions */
-  finance_external_prepare_export: { en: 'Prepare export', fr: 'Préparer l\'export' },
+  finance_external_prepare_export: { en: 'Prepare export', fr: "Préparer l'export" },
   finance_external_mark_accepted: { en: 'Mark accepted', fr: 'Marquer accepté' },
   finance_external_mark_settled: { en: 'Mark settled', fr: 'Marquer réglé' },
   finance_external_mark_failed: { en: 'Mark failed', fr: 'Marquer échoué' },
 
   /* Audit trail */
-  finance_audit_title: { en: 'Audit trail', fr: 'Piste d\'audit' },
-  finance_audit_no_events: { en: 'No audit events recorded.', fr: 'Aucun événement d\'audit enregistré.' },
+  finance_audit_title: { en: 'Audit trail', fr: "Piste d'audit" },
+  finance_audit_no_events: {
+    en: 'No audit events recorded.',
+    fr: "Aucun événement d'audit enregistré.",
+  },
   finance_audit_actor: { en: 'Actor', fr: 'Acteur' },
   finance_audit_action: { en: 'Action', fr: 'Action' },
   finance_audit_record: { en: 'Record', fr: 'Dossier' },
@@ -352,8 +382,8 @@ export const financeMessages = defineMessages({
   finance_invoice_create: { en: 'New invoice', fr: 'Nouvelle facture' },
   finance_invoice_number: { en: 'Invoice number', fr: 'Numéro de facture' },
   finance_invoice_customer: { en: 'Customer', fr: 'Client' },
-  finance_invoice_issue_date: { en: 'Issue date', fr: 'Date d\'émission' },
-  finance_invoice_due_date: { en: 'Due date', fr: 'Date d\'échéance' },
+  finance_invoice_issue_date: { en: 'Issue date', fr: "Date d'émission" },
+  finance_invoice_due_date: { en: 'Due date', fr: "Date d'échéance" },
   finance_invoice_subtotal: { en: 'Subtotal', fr: 'Sous-total' },
   finance_invoice_tax: { en: 'Tax', fr: 'Taxe' },
   finance_invoice_total: { en: 'Total', fr: 'Total' },
@@ -457,7 +487,10 @@ export const financeMessages = defineMessages({
   finance_evidence_link_bill: { en: 'Link to bill', fr: 'Lier à une facture' },
   finance_evidence_link_expense: { en: 'Link to expense', fr: 'Lier à une dépense' },
   finance_evidence_link_none: { en: 'No link', fr: 'Aucun lien' },
-  finance_evidence_download_error: { en: 'Could not download file', fr: 'Téléchargement impossible' },
+  finance_evidence_download_error: {
+    en: 'Could not download file',
+    fr: 'Téléchargement impossible',
+  },
 
   /* Budget revise flow */
   finance_budget_revise_lines: { en: 'Revise lines', fr: 'Réviser les lignes' },
@@ -484,9 +517,15 @@ export const financeMessages = defineMessages({
   finance_tax_scenario_baseline: { en: 'Baseline', fr: 'Référence' },
   finance_tax_scenario_decision: { en: 'Proposed decision', fr: 'Décision proposée' },
   finance_tax_scenario_profit: { en: 'Projected profit', fr: 'Bénéfice projeté' },
-  finance_tax_scenario_taxable_income: { en: 'Projected taxable income', fr: 'Revenu imposable projeté' },
+  finance_tax_scenario_taxable_income: {
+    en: 'Projected taxable income',
+    fr: 'Revenu imposable projeté',
+  },
   finance_tax_scenario_projected_tax: { en: 'Projected tax', fr: 'Impôt projeté' },
-  finance_tax_scenario_projected_cashflow: { en: 'Projected cash flow', fr: 'Flux de trésorerie projeté' },
+  finance_tax_scenario_projected_cashflow: {
+    en: 'Projected cash flow',
+    fr: 'Flux de trésorerie projeté',
+  },
   finance_tax_scenario_assumptions: { en: 'Assumptions', fr: 'Hypothèses' },
   finance_tax_scenario_law_version: { en: 'Law version', fr: 'Version de la loi' },
   finance_tax_scenario_enacted: { en: 'Enacted', fr: 'Promulguée' },
@@ -494,7 +533,10 @@ export const financeMessages = defineMessages({
 
   /* Payroll external actions */
   finance_payroll_external_actions: { en: 'Payroll submissions', fr: 'Soumissions de paie' },
-  finance_payroll_no_external_actions: { en: 'No payroll submissions tracked', fr: 'Aucune soumission de paie suivie' },
+  finance_payroll_no_external_actions: {
+    en: 'No payroll submissions tracked',
+    fr: 'Aucune soumission de paie suivie',
+  },
 
   /* Overview KPIs */
   finance_overview_kpis: { en: 'Key metrics', fr: 'Indicateurs clés' },
@@ -518,7 +560,10 @@ export const financeMessages = defineMessages({
   finance_party_create: { en: 'New party', fr: 'Nouvelle partie' },
   finance_party_name: { en: 'Name', fr: 'Nom' },
   finance_party_type: { en: 'Party type', fr: 'Type de partie' },
-  finance_party_banking_on_file: { en: 'Banking details on file', fr: 'Coordonnées bancaires au dossier' },
+  finance_party_banking_on_file: {
+    en: 'Banking details on file',
+    fr: 'Coordonnées bancaires au dossier',
+  },
 
   /* Entities */
   finance_tab_entities: { en: 'Entities', fr: 'Entités' },
@@ -536,19 +581,37 @@ export const financeMessages = defineMessages({
   finance_entity_accounting_source_id: { en: 'Accounting source ID', fr: 'ID source comptable' },
   finance_entity_payroll_source_id: { en: 'Payroll source ID', fr: 'ID source paie' },
   finance_entity_active: { en: 'Active', fr: 'Actif' },
-  finance_entity_empty: { en: 'No legal entities yet. Create one to use bank accounts, invoices, and other finance records.', fr: 'Aucune entité juridique pour l’instant. Créez-en une pour utiliser les comptes bancaires, factures et autres enregistrements financiers.' },
-  finance_entity_select_prompt: { en: 'Create a legal entity in the Entities tab first.', fr: 'Créez d’abord une entité juridique dans l’onglet Entités.' },
-  finance_entity_save_failed: { en: 'Couldn’t save the legal entity. Try again.', fr: 'Impossible d’enregistrer l’entité juridique. Réessayez.' },
+  finance_entity_inactive: { en: 'Inactive', fr: 'Inactif' },
+  finance_entity_edit_title: { en: 'Edit legal entity', fr: 'Modifier l’entité juridique' },
+  finance_entity_integrations: { en: 'Integrations (optional)', fr: 'Intégrations (facultatives)' },
+  finance_entity_empty: {
+    en: 'No legal entities yet. Create one to use bank accounts, invoices, and other finance records.',
+    fr: 'Aucune entité juridique pour l’instant. Créez-en une pour utiliser les comptes bancaires, factures et autres enregistrements financiers.',
+  },
+  finance_entity_select_prompt: {
+    en: 'Create a legal entity in the Entities tab first.',
+    fr: 'Créez d’abord une entité juridique dans l’onglet Entités.',
+  },
+  finance_entity_save_failed: {
+    en: 'Couldn’t save the legal entity. Try again.',
+    fr: 'Impossible d’enregistrer l’entité juridique. Réessayez.',
+  },
   finance_entity_edit: { en: 'Edit', fr: 'Modifier' },
   finance_entity_remove: { en: 'Delete', fr: 'Supprimer' },
-  finance_entity_remove_confirm: { en: 'Delete this legal entity?', fr: 'Supprimer cette entité juridique?' },
+  finance_entity_remove_confirm: {
+    en: 'Delete this legal entity?',
+    fr: 'Supprimer cette entité juridique?',
+  },
 
   finance_subscription_create: { en: 'New subscription', fr: 'Nouvel abonnement' },
   finance_subscription_label: { en: 'Label', fr: 'Libellé' },
   finance_subscription_supplier: { en: 'Supplier', fr: 'Fournisseur' },
   finance_subscription_cost: { en: 'Cost', fr: 'Coût' },
   finance_subscription_renewal_term: { en: 'Renewal term', fr: 'Terme de renouvellement' },
-  finance_subscription_next_renewal: { en: 'Next renewal date', fr: 'Prochaine date de renouvellement' },
+  finance_subscription_next_renewal: {
+    en: 'Next renewal date',
+    fr: 'Prochaine date de renouvellement',
+  },
   finance_subscription_notice_date: { en: 'Notice date', fr: 'Date de préavis' },
   finance_subscription_owner: { en: 'Owner', fr: 'Responsable' },
 
@@ -560,22 +623,31 @@ export const financeMessages = defineMessages({
     fr: 'Téléversez un fichier CSV ou Excel exporté par votre banque. Les transactions sont analysées et catégorisées automatiquement selon vos règles.',
   },
   finance_import_select_account: { en: 'Bank account', fr: 'Compte bancaire' },
-  finance_import_select_file: { en: 'Choose CSV or Excel file', fr: 'Choisir un fichier CSV ou Excel' },
+  finance_import_select_file: {
+    en: 'Choose CSV or Excel file',
+    fr: 'Choisir un fichier CSV ou Excel',
+  },
   finance_import_file_selected: { en: 'File selected', fr: 'Fichier sélectionné' },
   finance_import_process: { en: 'Import', fr: 'Importer' },
   finance_import_result: {
     en: 'Imported {new} new transactions, skipped {dup} duplicates, {err} errors.',
     fr: 'Importé {new} nouvelles transactions, ignoré {dup} doublons, {err} erreurs.',
   },
-  finance_import_no_file: { en: 'Select a file to import.', fr: 'Sélectionnez un fichier à importer.' },
-  finance_import_no_account: { en: 'Select a bank account.', fr: 'Sélectionnez un compte bancaire.' },
+  finance_import_no_file: {
+    en: 'Select a file to import.',
+    fr: 'Sélectionnez un fichier à importer.',
+  },
+  finance_import_no_account: {
+    en: 'Select a bank account.',
+    fr: 'Sélectionnez un compte bancaire.',
+  },
   finance_import_no_accounts: {
     en: 'No bank accounts yet. Create one in the Treasury tab before importing statements.',
     fr: 'Aucun compte bancaire pour l’instant. Créez-en un dans l’onglet Trésorerie avant d’importer des relevés.',
   },
   finance_import_failed: { en: 'Import failed.', fr: 'L’import a échoué.' },
   finance_import_history: { en: 'Import history', fr: 'Historique des imports' },
-  finance_import_no_history: { en: 'No imports yet.', fr: 'Aucun import pour l\'instant.' },
+  finance_import_no_history: { en: 'No imports yet.', fr: "Aucun import pour l'instant." },
   finance_import_file_name: { en: 'File', fr: 'Fichier' },
   finance_import_date: { en: 'Date', fr: 'Date' },
   finance_import_rows: { en: 'Rows', fr: 'Lignes' },
@@ -584,16 +656,28 @@ export const financeMessages = defineMessages({
   finance_import_errors: { en: 'Errors', fr: 'Erreurs' },
   finance_import_amount: { en: 'Amount', fr: 'Montant' },
   finance_import_view_errors: { en: 'View errors', fr: 'Voir les erreurs' },
-  finance_import_download_errors: { en: 'Download error report', fr: 'Télécharger le rapport d’erreurs' },
+  finance_import_download_errors: {
+    en: 'Download error report',
+    fr: 'Télécharger le rapport d’erreurs',
+  },
   finance_import_bulk_wizard: { en: 'Bulk import wizard', fr: 'Assistant d’importation en bloc' },
-  finance_import_xlsx_supported: { en: 'CSV and Excel files are supported.', fr: 'Les fichiers CSV et Excel sont pris en charge.' },
-  finance_import_select_account_first: { en: 'Select a bank account to upload a statement.', fr: 'Sélectionnez un compte bancaire pour téléverser un relevé.' },
+  finance_import_xlsx_supported: {
+    en: 'CSV and Excel files are supported.',
+    fr: 'Les fichiers CSV et Excel sont pris en charge.',
+  },
+  finance_import_select_account_first: {
+    en: 'Select a bank account to upload a statement.',
+    fr: 'Sélectionnez un compte bancaire pour téléverser un relevé.',
+  },
   finance_import_demo_disabled: {
     en: 'Imports are disabled in the demo workspace. Switch to your production workspace to import.',
     fr: 'Les importations sont désactivées dans l’espace de démonstration. Passez à votre espace de production pour importer.',
   },
   finance_import_delete: { en: 'Delete', fr: 'Supprimer' },
-  finance_import_delete_confirm: { en: 'Delete this import and its {count} transactions?', fr: 'Supprimer cet import et ses {count} transactions?' },
+  finance_import_delete_confirm: {
+    en: 'Delete this import and its {count} transactions?',
+    fr: 'Supprimer cet import et ses {count} transactions?',
+  },
 
   /* Auto-categorization */
   finance_categorize_title: { en: 'Auto-categorize', fr: 'Catégorisation automatique' },
@@ -606,7 +690,10 @@ export const financeMessages = defineMessages({
     en: 'Categorized {count} transactions.',
     fr: 'Catégorisé {count} transactions.',
   },
-  finance_categorize_none: { en: 'No transactions matched your category rules.', fr: 'Aucune transaction ne correspond à vos règles de catégorisation.' },
+  finance_categorize_none: {
+    en: 'No transactions matched your category rules.',
+    fr: 'Aucune transaction ne correspond à vos règles de catégorisation.',
+  },
   finance_categorize_no_rules: {
     en: 'Add a category rule to start auto-categorizing.',
     fr: 'Ajoutez une règle de catégorisation pour lancer la catégorisation automatique.',
@@ -627,8 +714,14 @@ export const financeMessages = defineMessages({
   finance_rules_active: { en: 'Active', fr: 'Actif' },
   finance_rules_no_rules: { en: 'No category rules yet.', fr: 'Aucune règle de catégorisation.' },
   finance_rules_seed: { en: 'Load defaults', fr: 'Charger les valeurs par défaut' },
-  finance_rules_seed_result: { en: 'Added {count} default category rules.', fr: 'Ajouté {count} règles de catégorisation par défaut.' },
-  finance_rules_seed_none: { en: 'No default rules were added. You may already have the same patterns, or no entity/book exists.', fr: 'Aucune règle par défaut n’a été ajoutée. Les mêmes motifs existent peut-être déjà, ou aucune entité/livre n’est défini.' },
+  finance_rules_seed_result: {
+    en: 'Added {count} default category rules.',
+    fr: 'Ajouté {count} règles de catégorisation par défaut.',
+  },
+  finance_rules_seed_none: {
+    en: 'No default rules were added. You may already have the same patterns, or no entity/book exists.',
+    fr: 'Aucune règle par défaut n’a été ajoutée. Les mêmes motifs existent peut-être déjà, ou aucune entité/livre n’est défini.',
+  },
   finance_rules_deactivate: { en: 'Deactivate', fr: 'Désactiver' },
   finance_rules_activate: { en: 'Activate', fr: 'Activer' },
   finance_rules_remove: { en: 'Remove', fr: 'Retirer' },
@@ -639,64 +732,112 @@ export const financeMessages = defineMessages({
     en: 'Download finance data as CSV for accounting import or as JSON for backup.',
     fr: 'Téléchargez les données financières en CSV pour importation comptable ou en JSON pour sauvegarde.',
   },
-  finance_export_bank_items: { en: 'Export bank items (CSV)', fr: 'Exporter les écritures bancaires (CSV)' },
-  finance_export_journals: { en: 'Export journals (CSV)', fr: 'Exporter les écritures comptables (CSV)' },
+  finance_export_bank_items: {
+    en: 'Export bank items (CSV)',
+    fr: 'Exporter les écritures bancaires (CSV)',
+  },
+  finance_export_journals: {
+    en: 'Export journals (CSV)',
+    fr: 'Exporter les écritures comptables (CSV)',
+  },
   finance_export_invoices: { en: 'Export invoices (CSV)', fr: 'Exporter les factures (CSV)' },
-  finance_export_bills: { en: 'Export bills (CSV)', fr: 'Exporter les factures fournisseurs (CSV)' },
-  finance_export_workspace: { en: 'Export full workspace (JSON)', fr: 'Exporter l\'espace de travail complet (JSON)' },
+  finance_export_bills: {
+    en: 'Export bills (CSV)',
+    fr: 'Exporter les factures fournisseurs (CSV)',
+  },
+  finance_export_workspace: {
+    en: 'Export full workspace (JSON)',
+    fr: "Exporter l'espace de travail complet (JSON)",
+  },
 
   /* Rule suggestions */
   finance_suggest_rules: { en: 'Suggest rules', fr: 'Suggérer des règles' },
-  finance_suggest_rules_loading: { en: 'Analyzing transactions…', fr: 'Analyse des transactions en cours…' },
-  finance_suggest_rules_none: { en: 'No rule suggestions found.', fr: 'Aucune suggestion de règle trouvée.' },
+  finance_suggest_rules_loading: {
+    en: 'Analyzing transactions…',
+    fr: 'Analyse des transactions en cours…',
+  },
+  finance_suggest_rules_none: {
+    en: 'No rule suggestions found.',
+    fr: 'Aucune suggestion de règle trouvée.',
+  },
   finance_suggest_rules_none_detail: {
     en: 'Either existing rules already cover these transactions, the descriptions do not form a clear group, or there are no ledger accounts for the AI to match against. Try loading defaults or adding ledger accounts.',
     fr: 'Soit les règles existantes couvrent déjà ces transactions, soit les descriptions ne forment pas un groupe clair, soit il n’y a pas de comptes de grand livre contre lesquels l’IA peut faire correspondre. Essayez de charger les valeurs par défaut ou d’ajouter des comptes de grand livre.',
   },
-  finance_suggest_rules_result: { en: '{count} rule suggestion(s).', fr: '{count} suggestion(s) de règle.' },
+  finance_suggest_rules_result: {
+    en: '{count} rule suggestion(s).',
+    fr: '{count} suggestion(s) de règle.',
+  },
   finance_suggest_rules_add: { en: 'Add rule', fr: 'Ajouter la règle' },
   finance_suggest_rules_add_all: { en: 'Add all', fr: 'Tout ajouter' },
   finance_suggest_rules_ignore: { en: 'Ignore', fr: 'Ignorer' },
-  finance_suggest_rules_from: { en: 'From {count} transaction(s)', fr: 'À partir de {count} transaction(s)' },
+  finance_suggest_rules_from: {
+    en: 'From {count} transaction(s)',
+    fr: 'À partir de {count} transaction(s)',
+  },
   finance_suggest_rules_confidence_high: { en: 'High confidence', fr: 'Confiance élevée' },
   finance_suggest_rules_confidence_medium: { en: 'Medium confidence', fr: 'Confiance moyenne' },
   finance_suggest_rules_confidence_low: { en: 'Low confidence', fr: 'Confiance faible' },
   finance_suggest_rules_ai_loading: { en: 'Loading AI model…', fr: 'Chargement du modèle IA…' },
   finance_suggest_rules_ai_toggle: { en: 'Use AI model', fr: 'Utiliser le modèle IA' },
-  finance_suggest_rules_ai_error: { en: 'AI model failed. Falling back to local suggestions.', fr: 'Le modèle IA a échoué. Retour aux suggestions locales.' },
+  finance_suggest_rules_ai_error: {
+    en: 'AI model failed. Falling back to local suggestions.',
+    fr: 'Le modèle IA a échoué. Retour aux suggestions locales.',
+  },
 
   /* AI import analysis */
   finance_ai_note_matched: {
     en: 'AI matched to {account} ({code}). Confidence: {confidence}.',
-    fr: 'L\'IA a associé à {account} ({code}). Confiance : {confidence}.',
+    fr: "L'IA a associé à {account} ({code}). Confiance : {confidence}.",
   },
   finance_ai_note_feedback: {
     en: 'Matched to {account} ({code}) based on a previous correction. Confidence: {confidence}.',
-    fr: 'Associé à {account} ({code}) d\'après une correction antérieure. Confiance : {confidence}.',
+    fr: "Associé à {account} ({code}) d'après une correction antérieure. Confiance : {confidence}.",
   },
   finance_ai_note_review: {
     en: 'Could not confidently match. Review recommended.',
-    fr: 'Impossible d\'associer avec confiance. Révision recommandée.',
+    fr: "Impossible d'associer avec confiance. Révision recommandée.",
   },
   finance_ai_settings_title: { en: 'AI import analysis', fr: 'Analyse des imports par IA' },
   finance_ai_settings_description: {
     en: 'Automatically analyse imported transactions, suggest or apply ledger accounts, and learn from your corrections.',
     fr: 'Analyser automatiquement les transactions importées, suggérer ou appliquer des comptes du grand livre, et apprendre de vos corrections.',
   },
-  finance_ai_settings_enable: { en: 'Analyse imports automatically', fr: 'Analyser les imports automatiquement' },
+  finance_ai_settings_enable: {
+    en: 'Analyse imports automatically',
+    fr: 'Analyser les imports automatiquement',
+  },
   finance_ai_settings_mode: { en: 'AI mode', fr: 'Mode IA' },
   finance_ai_settings_mode_suggest: { en: 'Suggest only', fr: 'Suggérer seulement' },
-  finance_ai_settings_mode_auto_high: { en: 'Auto-apply high confidence', fr: 'Appliquer automatiquement les confiances élevées' },
-  finance_ai_settings_mode_auto_all: { en: 'Auto-apply all matches', fr: 'Appliquer automatiquement toutes les associations' },
-  finance_ai_import_analyzing: { en: 'Analysing imported transactions with AI…', fr: 'Analyse des transactions importées par IA en cours…' },
-  finance_ai_import_result: { en: 'AI analysed {count} transaction(s). {matched} matched, {suggested} suggested for review.', fr: 'L\'IA a analysé {count} transaction(s). {matched} associée(s), {suggested} en attente de révision.' },
-  finance_ai_import_result_none: { en: 'AI could not confidently match any imported transactions.', fr: 'L\'IA n\'a pu associer aucune transaction importée avec confiance.' },
-  finance_ai_import_result_rules: { en: '{count} new categorization rule(s) created.', fr: '{count} nouvelle(s) règle(s) de catégorisation créée(s).' },
+  finance_ai_settings_mode_auto_high: {
+    en: 'Auto-apply high confidence',
+    fr: 'Appliquer automatiquement les confiances élevées',
+  },
+  finance_ai_settings_mode_auto_all: {
+    en: 'Auto-apply all matches',
+    fr: 'Appliquer automatiquement toutes les associations',
+  },
+  finance_ai_import_analyzing: {
+    en: 'Analysing imported transactions with AI…',
+    fr: 'Analyse des transactions importées par IA en cours…',
+  },
+  finance_ai_import_result: {
+    en: 'AI analysed {count} transaction(s). {matched} matched, {suggested} suggested for review.',
+    fr: "L'IA a analysé {count} transaction(s). {matched} associée(s), {suggested} en attente de révision.",
+  },
+  finance_ai_import_result_none: {
+    en: 'AI could not confidently match any imported transactions.',
+    fr: "L'IA n'a pu associer aucune transaction importée avec confiance.",
+  },
+  finance_ai_import_result_rules: {
+    en: '{count} new categorization rule(s) created.',
+    fr: '{count} nouvelle(s) règle(s) de catégorisation créée(s).',
+  },
   finance_ai_import_no_ledger: {
     en: 'AI analysis is on, but there are no ledger accounts yet. Load defaults or add ledger accounts so the AI can match transactions.',
     fr: 'L’analyse IA est activée, mais il n’y a pas encore de comptes de grand livre. Chargez les valeurs par défaut ou ajoutez des comptes de grand livre pour que l’IA puisse faire correspondre les transactions.',
   },
-  finance_transactions_ai_suggestion: { en: 'AI suggestion:', fr: 'Suggestion de l\'IA :' },
+  finance_transactions_ai_suggestion: { en: 'AI suggestion:', fr: "Suggestion de l'IA :" },
   finance_transactions_note: { en: 'Note', fr: 'Note' },
   finance_transactions_change_account: { en: 'Change account', fr: 'Changer de compte' },
   finance_transactions_save_changes: { en: 'Save', fr: 'Enregistrer' },
@@ -714,7 +855,10 @@ export const financeMessages = defineMessages({
   finance_plan_frozen: { en: 'Frozen', fr: 'Gelé' },
 
   /* Reserve goal types */
-  finance_reserve_type_emergency_operating: { en: 'Emergency operating', fr: 'Fonds de fonctionnement d’urgence' },
+  finance_reserve_type_emergency_operating: {
+    en: 'Emergency operating',
+    fr: 'Fonds de fonctionnement d’urgence',
+  },
   finance_reserve_type_payroll: { en: 'Payroll', fr: 'Paie' },
   finance_reserve_type_tax: { en: 'Tax', fr: 'Fiscalité' },
   finance_reserve_type_capital_purchase: { en: 'Capital purchase', fr: 'Achat d’immobilisations' },
@@ -731,8 +875,14 @@ export const financeMessages = defineMessages({
   finance_tax_type_income_tax: { en: 'Income tax', fr: 'Impôt sur le revenu' },
   finance_tax_type_gst_hst: { en: 'GST/HST', fr: 'TPS/TVH' },
   finance_tax_type_qst: { en: 'QST', fr: 'TVQ' },
-  finance_tax_type_payroll_source_deductions: { en: 'Payroll source deductions', fr: 'Retenues à la source sur la paie' },
-  finance_tax_type_employer_contributions: { en: 'Employer contributions', fr: 'Cotisations patronales' },
+  finance_tax_type_payroll_source_deductions: {
+    en: 'Payroll source deductions',
+    fr: 'Retenues à la source sur la paie',
+  },
+  finance_tax_type_employer_contributions: {
+    en: 'Employer contributions',
+    fr: 'Cotisations patronales',
+  },
   finance_tax_type_other: { en: 'Other', fr: 'Autre' },
 
   /* Scenario types */
@@ -740,11 +890,17 @@ export const financeMessages = defineMessages({
   finance_scenario_type_hiring: { en: 'Hiring', fr: 'Embauche' },
   finance_scenario_type_capital_purchase: { en: 'Capital purchase', fr: 'Achat d’immobilisations' },
   finance_scenario_type_financing: { en: 'Financing', fr: 'Financement' },
-  finance_scenario_type_operating_change: { en: 'Operating change', fr: 'Changement d’exploitation' },
+  finance_scenario_type_operating_change: {
+    en: 'Operating change',
+    fr: 'Changement d’exploitation',
+  },
   finance_scenario_type_tax: { en: 'Tax', fr: 'Fiscalité' },
 
   /* Forecast types */
-  finance_forecast_type_monthly_operating: { en: 'Monthly operating', fr: 'Exploitation mensuelle' },
+  finance_forecast_type_monthly_operating: {
+    en: 'Monthly operating',
+    fr: 'Exploitation mensuelle',
+  },
   finance_forecast_type_13_week_cash: { en: '13-week cash', fr: 'Trésorerie de 13 semaines' },
   finance_forecast_type_custom: { en: 'Custom', fr: 'Personnalisé' },
 
@@ -759,9 +915,15 @@ export const financeMessages = defineMessages({
   finance_portfolio_total_value: { en: 'Total market value', fr: 'Valeur marchande totale' },
   finance_portfolio_holdings_count: { en: '{count} holdings', fr: '{count} positions' },
   finance_portfolio_watch_active: { en: 'Watched instruments', fr: 'Instruments suivis' },
-  finance_portfolio_watch_total: { en: '{count} on the watchlist', fr: '{count} à la liste de suivi' },
+  finance_portfolio_watch_total: {
+    en: '{count} on the watchlist',
+    fr: '{count} à la liste de suivi',
+  },
   finance_portfolio_next_review: { en: 'Next review', fr: 'Prochaine révision' },
-  finance_portfolio_journal_count: { en: '{count} journal entries', fr: '{count} entrées au journal' },
+  finance_portfolio_journal_count: {
+    en: '{count} journal entries',
+    fr: '{count} entrées au journal',
+  },
   finance_portfolio_holdings: { en: 'Holdings', fr: 'Positions' },
   finance_portfolio_manage_treasury: { en: 'Manage in Treasury', fr: 'Gérer dans Trésorerie' },
   finance_portfolio_allocation: { en: 'Allocation', fr: 'Répartition' },
