@@ -17,9 +17,16 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
  *
  * Phase-1 probed providers: github, gitlab (PAT). smtp_email stores the
  * password but is never probed — no raw TCP from an edge function — so it
- * stays 'pending' and the UI says "saved, not verified". gmail/outlook and
- * inbound_webhook are rejected outright until their OAuth/webhook flows
- * exist; the catalog marks them 'planned'.
+ * stays 'pending' and the UI says "saved, not verified". gmail/outlook
+ * are rejected outright until their OAuth flows exist; the catalog marks
+ * them 'planned'.
+ *
+ * Phase 2 adds inbound_webhook: 'connect' takes no caller secret — the
+ * function mints an unguessable webhook_key (URL segment) plus an HMAC
+ * signing secret, Vaults the secret, and returns both values once.
+ * Re-running connect on an existing row rotates key+secret. Deliveries
+ * land via the integration-webhook function, which authenticates callers
+ * by signature, not JWT.
  *
  * Auth: bearer JWT → getUser → is_org_admin(row.organization_id, user.id)
  * via the caller's own JWT client. Members can read rows (RLS) but only
@@ -74,6 +81,14 @@ function serverConfig(): ServerConfig | Response {
 
 function secretName(integrationId: string) {
   return `wi_${integrationId}`
+}
+
+function randomHex(bytes: number): string {
+  const buf = new Uint8Array(bytes)
+  crypto.getRandomValues(buf)
+  return Array.from(buf)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
 }
 
 /**
@@ -177,10 +192,15 @@ Deno.serve(async (req: Request) => {
 
   if (action === 'disconnect') {
     await serviceClient.rpc('revoke_integration_secret', { p_name: name })
+    const { webhook_key: _dropped, ...restConfig } = (integration.config ?? {}) as Record<
+      string,
+      unknown
+    >
     const failed = await patchRow({
       status: 'disconnected',
       secret_ref: null,
       last_checked_at: new Date().toISOString(),
+      config: restConfig,
     })
     if (failed) return failed
     return json({ status: 'disconnected' })
@@ -194,6 +214,38 @@ Deno.serve(async (req: Request) => {
     }
     effectiveSecret = stored
   }
+
+  if (integration.provider === 'inbound_webhook') {
+    if (action === 'connect') {
+      // Mint, don't probe: the caller supplies no credential — the
+      // function generates the webhook key + signing secret itself.
+      // Re-running connect on a live row rotates both.
+      const webhookKey = randomHex(24)
+      const signingSecret = `dwhsec_${randomHex(24)}`
+      await serviceClient.rpc('revoke_integration_secret', { p_name: name })
+      const { error: vaultError } = await serviceClient.rpc('store_integration_secret', {
+        p_name: name,
+        p_secret: signingSecret,
+      })
+      if (vaultError) return json({ error: 'Could not store credential' }, 500)
+      const failed = await patchRow({
+        status: 'connected',
+        secret_ref: name,
+        last_checked_at: new Date().toISOString(),
+        config: { ...(integration.config ?? {}), webhook_key: webhookKey },
+      })
+      if (failed) return failed
+      return json({
+        status: 'connected',
+        webhookUrl: `${config.supabaseUrl}/functions/v1/integration-webhook/${webhookKey}`,
+        signingSecret,
+      })
+    }
+    // 'test': the Vault read above already succeeded — the signing
+    // secret is in place, which is all a webhook endpoint needs.
+    return json({ status: 'connected' })
+  }
+
   if (!effectiveSecret) return json({ error: 'Secret required' }, 400)
 
   if (integration.provider === 'smtp_email' && action === 'connect') {

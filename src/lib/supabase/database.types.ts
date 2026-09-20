@@ -8914,6 +8914,54 @@ export type Database = {
           },
         ]
       }
+      integration_events: {
+        Row: {
+          event_type: string | null
+          id: string
+          integration_id: string
+          organization_id: string
+          payload: Json
+          processed_at: string | null
+          provider: string
+          received_at: string
+        }
+        Insert: {
+          event_type?: string | null
+          id?: string
+          integration_id: string
+          organization_id: string
+          payload: Json
+          processed_at?: string | null
+          provider: string
+          received_at?: string
+        }
+        Update: {
+          event_type?: string | null
+          id?: string
+          integration_id?: string
+          organization_id?: string
+          payload?: Json
+          processed_at?: string | null
+          provider?: string
+          received_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_events_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_integrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "integration_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_attempts: {
         Row: {
           attempt_number: number

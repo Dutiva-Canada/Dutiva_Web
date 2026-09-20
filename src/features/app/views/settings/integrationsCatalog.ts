@@ -15,6 +15,8 @@ import { integrationsMessages as M } from '@/i18n/messages/integrations'
  *               probes the provider API and Vaults it only on success
  *   'smtp'    — host/port/user/password stored in Vault, never probed (edge
  *               functions can't open TCP), status stays 'pending'
+ *   'webhook' — no user credential: connect mints a signed ingest URL +
+ *               HMAC secret in Vault and shows them once
  *   'planned' — catalogued, no working flow yet (OAuth or a supported API
  *               that doesn't exist, e.g. Signal)
  */
@@ -26,7 +28,7 @@ export type IntegrationProviderKey =
   | 'smtp_email'
   | 'inbound_webhook'
 
-export type IntegrationAuth = 'pat' | 'smtp' | 'planned'
+export type IntegrationAuth = 'pat' | 'smtp' | 'webhook' | 'planned'
 
 export type IntegrationConfigField = 'instance_url' | 'smtp_host' | 'smtp_port' | 'smtp_user'
 
@@ -86,7 +88,7 @@ export const INTEGRATION_CATALOG: readonly IntegrationProviderSpec[] = [
     icon: Inbox,
     name: M.integ_provider_webhook_name,
     blurb: M.integ_provider_webhook_blurb,
-    auth: 'planned',
+    auth: 'webhook',
   },
 ] as const
 

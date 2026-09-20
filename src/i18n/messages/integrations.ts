@@ -136,4 +136,30 @@ export const integrationsMessages = defineMessages({
     en: 'Receive events from other tools on a workspace URL.',
     fr: 'Recevez des événements d’autres outils sur une URL de l’espace de travail.', // [FR self-authored]
   },
+
+  integ_webhook_create: {
+    en: 'Create endpoint',
+    fr: 'Créer le endpoint', // [FR self-authored]
+  },
+  integ_webhook_endpoint: { en: 'Endpoint URL', fr: 'URL du endpoint' }, // [FR self-authored]
+  integ_webhook_secret: {
+    en: 'Signing secret',
+    fr: 'Secret de signature', // [FR self-authored]
+  },
+  integ_webhook_once: {
+    en: 'Copy these now — the signing secret is shown once and kept only in Vault.',
+    fr: 'Copiez-les maintenant — le secret de signature n’est affiché qu’une fois et conservé seulement dans Vault.', // [FR self-authored]
+  },
+  integ_webhook_hint: {
+    en: 'Senders sign each request with the secret (X-Dutiva-Signature header) — the format is documented in docs/INTEGRATIONS.md.',
+    fr: 'L’expéditeur signe chaque requête avec le secret (en-tête X-Dutiva-Signature) — le format est documenté dans docs/INTEGRATIONS.md.', // [FR self-authored]
+  },
+  integ_webhook_regenerate: { en: 'Regenerate', fr: 'Régénérer' }, // [FR self-authored]
+  integ_webhook_copy: { en: 'Copy', fr: 'Copier' }, // [FR self-authored]
+  integ_webhook_copied: { en: 'Copied.', fr: 'Copié.' }, // [FR self-authored]
+  integ_webhook_done: { en: 'Done', fr: 'Terminé' }, // [FR self-authored]
+  integ_toast_webhook_created: {
+    en: 'Endpoint created — copy the URL and signing secret now.',
+    fr: 'Endpoint créé — copiez l’URL et le secret de signature maintenant.', // [FR self-authored]
+  },
 })

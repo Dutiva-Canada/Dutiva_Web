@@ -77,6 +77,9 @@ export interface IntegrationActionResult {
   account?: string
   providerStatus?: number
   stored?: boolean
+  /** inbound_webhook connect only — minted endpoint + secret, shown once. */
+  webhookUrl?: string
+  signingSecret?: string
   error?: string
 }
 

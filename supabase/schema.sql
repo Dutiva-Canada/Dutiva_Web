@@ -10465,6 +10465,21 @@ CREATE TABLE IF NOT EXISTS "public"."hr_workspace_notifications" (
 ALTER TABLE "public"."hr_workspace_notifications" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."integration_events" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "integration_id" "uuid" NOT NULL,
+    "provider" "text" NOT NULL,
+    "event_type" "text",
+    "payload" "jsonb" NOT NULL,
+    "received_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "processed_at" timestamp with time zone
+);
+
+
+ALTER TABLE "public"."integration_events" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."job_attempts" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "job_id" "uuid" NOT NULL,
@@ -12770,6 +12785,11 @@ ALTER TABLE ONLY "public"."hr_workspace_notifications"
 
 
 
+ALTER TABLE ONLY "public"."integration_events"
+    ADD CONSTRAINT "integration_events_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."job_attempts"
     ADD CONSTRAINT "job_attempts_pkey" PRIMARY KEY ("id");
 
@@ -14578,6 +14598,18 @@ CREATE INDEX "idx_usage_counters_user_period" ON "public"."usage_counters" USING
 
 
 COMMENT ON INDEX "public"."idx_usage_counters_user_period" IS 'Optimizes plan enforcement counter lookups';
+
+
+
+CREATE INDEX "integration_events_integration_id_idx" ON "public"."integration_events" USING "btree" ("integration_id", "received_at" DESC);
+
+
+
+CREATE INDEX "integration_events_organization_id_idx" ON "public"."integration_events" USING "btree" ("organization_id", "received_at" DESC);
+
+
+
+CREATE INDEX "integration_events_unprocessed_idx" ON "public"."integration_events" USING "btree" ("integration_id") WHERE ("processed_at" IS NULL);
 
 
 
@@ -16685,6 +16717,16 @@ ALTER TABLE ONLY "public"."hr_workspace_notifications"
 
 
 
+ALTER TABLE ONLY "public"."integration_events"
+    ADD CONSTRAINT "integration_events_integration_id_fkey" FOREIGN KEY ("integration_id") REFERENCES "public"."workspace_integrations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."integration_events"
+    ADD CONSTRAINT "integration_events_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."job_attempts"
     ADD CONSTRAINT "job_attempts_job_id_fkey" FOREIGN KEY ("job_id") REFERENCES "public"."job_queue"("id") ON DELETE CASCADE;
 
@@ -18404,6 +18446,10 @@ CREATE POLICY "Org admins can delete generated documents" ON "public"."hr_genera
 
 
 
+CREATE POLICY "Org admins can delete integration_events" ON "public"."integration_events" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can delete leaves" ON "public"."hr_leaves" FOR DELETE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
@@ -19283,6 +19329,10 @@ CREATE POLICY "Org members can read finance_watchlist_items" ON "public"."financ
 
 
 CREATE POLICY "Org members can read finance_workspace_settings" ON "public"."finance_workspace_settings" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read integration_events" ON "public"."integration_events" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -20300,6 +20350,9 @@ ALTER TABLE "public"."hr_work_samples" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."hr_workspace_notifications" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."integration_events" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."job_attempts" ENABLE ROW LEVEL SECURITY;
@@ -23553,6 +23606,12 @@ GRANT ALL ON TABLE "public"."hr_work_samples" TO "service_role";
 GRANT ALL ON TABLE "public"."hr_workspace_notifications" TO "anon";
 GRANT ALL ON TABLE "public"."hr_workspace_notifications" TO "authenticated";
 GRANT ALL ON TABLE "public"."hr_workspace_notifications" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."integration_events" TO "anon";
+GRANT ALL ON TABLE "public"."integration_events" TO "authenticated";
+GRANT ALL ON TABLE "public"."integration_events" TO "service_role";
 
 
 

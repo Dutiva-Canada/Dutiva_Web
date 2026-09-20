@@ -28,6 +28,11 @@ verify_jwt = false
 [functions.resend-webhook]
 verify_jwt = false
 
+# Workspace inbound webhooks — callers sign with the per-integration secret
+# (X-Dutiva-Signature); there is no user JWT in the flow.
+[functions.integration-webhook]
+verify_jwt = false
+
 # ── Public, unauthenticated by design ───────────────────────────────────────
 [functions.create-public-support-ticket]
 verify_jwt = false

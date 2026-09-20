@@ -1,14 +1,15 @@
 # Workspace integrations
 
-Phase 1 of connecting the workspace to outside tools. This doc is the
-contract: what exists, what each status word means, and what is deliberately
-not built.
+Connecting the workspace to outside tools. This doc is the contract: what
+exists, what each status word means, and what is deliberately not built.
 
-## What ships in phase 1
+## What ships
 
 - **`workspace_integrations`** table (migration `0161_workspace_integrations.sql`)
   — org-scoped connection records: provider, display name, status, non-secret
   `config`, `secret_ref`, `last_checked_at`. RLS: members read, org admins write.
+- **`integration_events`** table (migration `0162_integration_events.sql`) —
+  verified inbound-webhook deliveries; service-role insert only.
 - **Provider catalog** — `src/features/app/views/settings/integrationsCatalog.ts`,
   the single list the Settings UI renders and the shape the DB CHECK constraint
   mirrors.
@@ -64,23 +65,51 @@ credentials.
 |                 |          | UI says "saved, not verified".                             |
 | `gmail`         | OAuth    | **Planned** — needs the Google OAuth flow; not started.    |
 | `outlook`       | OAuth    | **Planned** — needs Microsoft OAuth; not started.          |
-| `inbound_webhook` | —      | **Planned** — signed endpoint minting not built yet.       |
+| `inbound_webhook` | minted | **Connectable (phase 2)** — the function mints a signed    |
+|                 |          | endpoint + HMAC secret; deliveries land in                 |
+|                 |          | `integration_events` (0162).                               |
 
 **Signal is intentionally absent from the catalog.** It has no supported
 public API for this use case; unofficial bridges are fragile and sit in a
 ToS grey zone. The Settings UI names it in the deferred note so the gap is
 visible rather than silently missing.
 
-What a connected provider actually *does* in-product (linking commits to
-records, syncing mail, inbound events) is per-provider follow-up work —
-phase 1 delivers the connection foundation, not the data flows.
+## Inbound webhooks (phase 2)
+
+Admins create an endpoint in Settings → Connections → Incoming webhook.
+`connect` on an `inbound_webhook` row takes **no** user credential — the
+`workspace-integration` function mints an unguessable `webhook_key`
+(48-hex URL segment) plus a `dwhsec_…` HMAC signing secret, Vaults the
+secret under the usual `wi_<id>` name, and returns the URL + secret once.
+Re-running connect on a live row rotates both ("Regenerate" in the UI).
+
+Senders POST to `…/functions/v1/integration-webhook/<webhook_key>`:
+
+```
+X-Dutiva-Signature: t=<unix_seconds>,v1=<hex>
+X-Dutiva-Event: <event type>            # optional; falls back to payload.type
+```
+
+`v1` is `hex(HMAC_SHA256(signing_secret, "${t}.${raw_body}"))` — the same
+scheme Stripe uses, verified by a WebCrypto-only helper
+(`supabase/functions/integration-webhook/verify-signature.ts`) with a
+5-minute replay window and constant-time compare. `integration-webhook`
+runs with `verify_jwt = false` (config.toml) because there is no user JWT
+in the flow — the signature is the auth.
+
+Valid deliveries insert one row into `integration_events`
+(org-scoped, members read, admins delete, service-role-only insert).
+Nothing consumes those rows yet — event processing is follow-up work.
 
 ## Deploy status
 
-Applied and deployed (2026-08): migration `0161` ran against project
-`khtwpxnvziiyplaflwru` via `scripts/apply-migration.mjs` and is recorded in
-`schema_migrations` (`check:migrations` reconciles clean); the
-`workspace-integration` function is deployed via `supabase functions
-deploy`. verify_jwt stays on (default — no config.toml entry needed).
-Remote row: `select * from workspace_integrations` returns the empty set —
-no connections exist until an admin creates one.
+Applied and deployed: migrations `0161` + `0162` ran against project
+`khtwpxnvziiyplaflwru` via `scripts/apply-migration.mjs` and are recorded
+in `schema_migrations` (`check:migrations` reconciles clean);
+`workspace-integration` and `integration-webhook` are deployed via
+`supabase functions deploy`. `integration-webhook` carries an explicit
+`verify_jwt = false` in `supabase/config.toml`; `workspace-integration`
+keeps the default (JWT on).
+
+Verified: POST to the ingest endpoint with an unknown key returns 404;
+`check:migrations` OK; signature verifier covered by 10 vitest cases.

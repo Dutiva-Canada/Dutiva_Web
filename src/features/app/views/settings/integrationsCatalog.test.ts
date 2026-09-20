@@ -4,9 +4,9 @@ import { INTEGRATION_CATALOG, providerSpec } from './integrationsCatalog'
 /**
  * The catalog is the source of truth the Settings UI renders — these checks
  * keep it consistent with the `workspace_integrations` provider CHECK
- * constraint (migration 0161) and the phase-1 honesty rules: only providers
- * with a real connect flow may leave 'planned', and PAT providers always
- * carry a token hint.
+ * constraint (migration 0161) and the honesty rules: only providers with a
+ * real connect flow may leave 'planned', and PAT providers always carry a
+ * token hint.
  */
 describe('INTEGRATION_CATALOG', () => {
   it('uses only providers allowed by the workspace_integrations CHECK constraint', () => {
@@ -26,10 +26,14 @@ describe('INTEGRATION_CATALOG', () => {
     expect(providerSpec('gitlab')?.auth).toBe('pat')
   })
 
-  it('keeps OAuth/webhook providers planned until their flows exist', () => {
-    for (const key of ['gmail', 'outlook', 'inbound_webhook'] as const) {
+  it('keeps OAuth providers planned until their flows exist', () => {
+    for (const key of ['gmail', 'outlook'] as const) {
       expect(providerSpec(key)?.auth).toBe('planned')
     }
+  })
+
+  it('marks inbound_webhook as self-minting (no user credential)', () => {
+    expect(providerSpec('inbound_webhook')?.auth).toBe('webhook')
   })
 
   it('requires a token hint on every PAT provider', () => {

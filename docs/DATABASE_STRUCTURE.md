@@ -25,12 +25,12 @@ migrations alone cannot reproduce it, see `docs/DATABASE_SCHEMA.md`.
 | `vector` | 0.8.2 |
 | `wrappers` | 0.6.2 |
 
-## Tables — 242 total
+## Tables — 243 total
 
 Grouped by name prefix. RLS = `relrowsecurity`; a table without RLS is
 either intentional (public read) or a finding — check `check:rls`.
 
-### schema `public` (242)
+### schema `public` (243)
 
 **`activity_*`** — 1 table(s)
 
@@ -359,6 +359,12 @@ either intentional (public read) or a finding — check `check:rls`.
 | `hr_wellbeing_initiatives` | 11 | on | 4 |
 | `hr_work_samples` | 15 | on | 2 |
 | `hr_workspace_notifications` | 12 | on | 2 |
+
+**`integration_*`** — 1 table(s)
+
+| Table | Cols | RLS | Policies |
+| ----- | ---- | --- | -------- |
+| `integration_events` | 8 | on | 2 |
 
 **`job_*`** — 2 table(s)
 
@@ -899,7 +905,7 @@ either intentional (public read) or a finding — check `check:rls`.
 | `public.usage_counters` | `set_usage_counters_updated_at` |
 | `public.workspace_integrations` | `workspace_integrations_set_updated_at` |
 
-## RLS policies — 606
+## RLS policies — 608
 
 Names and scope only; full `USING`/`WITH CHECK` expressions are in
 `supabase/schema.sql` and the migrations that created them.
@@ -1333,6 +1339,8 @@ Names and scope only; full `USING`/`WITH CHECK` expressions are in
 | `public.hr_work_samples` | Org members can read work samples | SELECT | public |
 | `public.hr_workspace_notifications` | Users read own workspace notifications | SELECT | public |
 | `public.hr_workspace_notifications` | Users update own workspace notifications | UPDATE | public |
+| `public.integration_events` | Org admins can delete integration_events | DELETE | authenticated |
+| `public.integration_events` | Org members can read integration_events | SELECT | authenticated |
 | `public.job_attempts` | Admins can delete job attempts | DELETE | authenticated |
 | `public.job_attempts` | Admins can insert job attempts | INSERT | authenticated |
 | `public.job_attempts` | Admins can update job attempts | UPDATE | authenticated |
