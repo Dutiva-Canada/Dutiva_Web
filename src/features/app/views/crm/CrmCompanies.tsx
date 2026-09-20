@@ -1,9 +1,15 @@
-import { useState } from 'react'
-import { Plus, X } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Plus, Search, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { crmMessages as M } from '@/i18n/messages/crm'
 import type { UseCrmDataReturn } from './useCrmData'
 import { fromBi, toBi } from './crmUtils'
+import {
+  applyCompanyFilter,
+  companyIndustries,
+  emptyCompanyFilter,
+  isCompanyFilterActive,
+} from './directoryFilters'
 
 const inputClass =
   'w-full rounded-[10px] border border-border bg-surface px-[12px] py-[9px] font-sans text-[13.5px] text-text'
@@ -17,6 +23,14 @@ export function CrmCompanies({ crm }: { readonly crm: UseCrmDataReturn }) {
   const [industry, setIndustry] = useState('')
   const [size, setSize] = useState('')
   const [notes, setNotes] = useState('')
+  const [filter, setFilter] = useState(emptyCompanyFilter)
+
+  const industries = useMemo(() => companyIndustries(crm.state.companies), [crm.state.companies])
+  const filtered = useMemo(
+    () => applyCompanyFilter(crm.state.companies, filter),
+    [crm.state.companies, filter],
+  )
+  const filterActive = isCompanyFilterActive(filter)
 
   const reset = () => {
     setName('')
@@ -52,6 +66,50 @@ export function CrmCompanies({ crm }: { readonly crm: UseCrmDataReturn }) {
           <Plus size={16} />
           {x(M.crm_add_company)}
         </button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-[10px] rounded-[10px] border border-border bg-surface p-[12px] sm:grid-cols-[1fr_220px]">
+        <div className="relative">
+          <Search
+            size={14}
+            className="absolute top-1/2 left-[10px] -translate-y-1/2 text-text-3"
+            aria-hidden="true"
+          />
+          <input
+            value={filter.query}
+            onChange={(e) => setFilter((f) => ({ ...f, query: e.target.value }))}
+            placeholder={x(M.crm_search_companies)}
+            aria-label={x(M.crm_search_companies)}
+            className={`${inputClass} pl-[30px]`}
+          />
+        </div>
+        <select
+          value={filter.industry ?? ''}
+          onChange={(e) => setFilter((f) => ({ ...f, industry: e.target.value || undefined }))}
+          aria-label={x(M.crm_industry)}
+          className={inputClass}
+        >
+          <option value="">{x(M.crm_filter_all_industries)}</option>
+          {industries.map((ind) => (
+            <option key={ind} value={ind}>{ind}</option>
+          ))}
+        </select>
+        {filterActive && (
+          <div className="flex items-center gap-[10px] sm:col-span-2">
+            <span className="text-[11.5px] text-text-3">
+              {x(M.crm_filter_results)
+                .replace('{shown}', String(filtered.length))
+                .replace('{total}', String(crm.state.companies.length))}
+            </span>
+            <button
+              type="button"
+              onClick={() => setFilter(emptyCompanyFilter())}
+              className="text-[12px] font-semibold text-accent hover:underline"
+            >
+              {x(M.crm_filter_clear)}
+            </button>
+          </div>
+        )}
       </div>
 
       {showForm && (
@@ -94,7 +152,7 @@ export function CrmCompanies({ crm }: { readonly crm: UseCrmDataReturn }) {
       )}
 
       <ul className="grid gap-[10px]">
-        {crm.state.companies.map((company) => (
+        {filtered.map((company) => (
           <li key={company.id} className="rounded-[10px] border border-border bg-surface p-[14px]">
             <div className="flex flex-wrap items-start justify-between gap-[8px]">
               <div>
@@ -118,6 +176,9 @@ export function CrmCompanies({ crm }: { readonly crm: UseCrmDataReturn }) {
           </li>
         ))}
       </ul>
+      {filterActive && filtered.length === 0 && (
+        <p className="text-[13px] text-text-3">{x(M.crm_filter_no_results)}</p>
+      )}
     </div>
   )
 }

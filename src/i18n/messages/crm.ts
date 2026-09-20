@@ -233,4 +233,58 @@ export const crmMessages = defineMessages({
     en: 'This is demo data. Switch to a production workspace to add your own records.',
     fr: 'Ce sont des données de démonstration. Passez à un espace de production pour ajouter vos propres enregistrements.',
   },
+
+  /* Directory filters — [FR self-authored] */
+  crm_search_contacts: {
+    en: 'Search name, email, role or company',
+    fr: 'Rechercher par nom, courriel, rôle ou entreprise',
+  },
+  crm_search_companies: {
+    en: 'Search name, domain or industry',
+    fr: 'Rechercher par nom, domaine ou secteur',
+  },
+  crm_filter_all_companies: {
+    en: 'All companies',
+    fr: 'Toutes les entreprises',
+  },
+  crm_filter_unassigned: {
+    en: 'No company assigned',
+    fr: 'Aucune entreprise assignée',
+  },
+  crm_filter_all_industries: {
+    en: 'All industries',
+    fr: 'Tous les secteurs',
+  },
+  crm_filter_clear: {
+    en: 'Clear filters',
+    fr: 'Effacer les filtres',
+  },
+  crm_filter_results: {
+    en: '{shown} of {total}',
+    fr: '{shown} sur {total}',
+  },
+  crm_filter_no_results: {
+    en: 'No records match these filters.',
+    fr: 'Aucun enregistrement ne correspond à ces filtres.',
+  },
+  crm_views_label: {
+    en: 'Views',
+    fr: 'Vues',
+  },
+  crm_view_all: {
+    en: 'All contacts',
+    fr: 'Tous les contacts',
+  },
+  crm_view_save: {
+    en: 'Save view',
+    fr: 'Enregistrer la vue',
+  },
+  crm_view_name_ph: {
+    en: 'View name',
+    fr: 'Nom de la vue',
+  },
+  crm_view_delete: {
+    en: 'Delete view',
+    fr: 'Supprimer la vue',
+  },
 })
