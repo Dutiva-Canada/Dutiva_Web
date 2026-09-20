@@ -1,10 +1,12 @@
 import type { Bi } from '@/i18n/core'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import type {
+  FinanceAssetClass,
   FinanceBankMatchStatus,
   FinanceBudgetStatus,
   FinanceCategoryMatchType,
   FinanceCurrency,
+  FinanceDecisionKind,
   FinanceExternalActionStatus,
   FinanceInvoiceStatus,
   FinanceJournalStatus,
@@ -15,6 +17,7 @@ import type {
   FinanceReserveType,
   FinanceScenarioType,
   FinanceTaxType,
+  FinanceWatchlistStatus,
 } from './data/types'
 
 export const CURRENCY_LABEL: Record<FinanceCurrency, Bi> = {
@@ -133,6 +136,31 @@ export const CATEGORY_MATCH_TYPE_LABEL: Record<FinanceCategoryMatchType, Bi> = {
   exact: { en: 'Exact match', fr: 'Correspondance exacte' },
   starts_with: { en: 'Starts with', fr: 'Commence par' },
   ends_with: { en: 'Ends with', fr: 'Se termine par' },
+}
+
+/* [FR self-authored] */
+export const ASSET_CLASS_LABEL: Record<FinanceAssetClass, Bi> = {
+  equity: { en: 'Equity', fr: 'Actions' },
+  crypto: { en: 'Crypto', fr: 'Cryptoactifs' },
+  fund: { en: 'Fund / ETF', fr: 'Fonds / FNB' },
+  fixed_income: { en: 'Fixed income', fr: 'Revenu fixe' },
+  other: { en: 'Other', fr: 'Autre' },
+}
+
+export const WATCHLIST_STATUS_LABEL: Record<FinanceWatchlistStatus, Bi> = {
+  watching: { en: 'Watching', fr: 'Suivi' },
+  under_review: { en: 'Under review', fr: 'En évaluation' },
+  decided: { en: 'Decided', fr: 'Décidé' },
+  dropped: { en: 'Dropped', fr: 'Abandonné' },
+}
+
+export const DECISION_KIND_LABEL: Record<FinanceDecisionKind, Bi> = {
+  buy: { en: 'Buy', fr: 'Achat' },
+  sell: { en: 'Sell', fr: 'Vente' },
+  hold: { en: 'Hold', fr: 'Conserver' },
+  add: { en: 'Add to position', fr: 'Augmenter la position' },
+  exit: { en: 'Exit', fr: 'Sortir' },
+  review: { en: 'Review', fr: 'Réévaluer' },
 }
 
 export { M as FINANCE_MESSAGES }

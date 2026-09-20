@@ -69,6 +69,20 @@ export interface FinanceDataContextValue {
   addReserveGoal: (item: Omit<import('./types').FinanceReserveGoal, 'id'>) => Promise<import('./types').FinanceReserveGoal | null>
   updateReserveGoalProgress: (id: string, currentAmount: string) => Promise<import('./types').FinanceReserveGoal | null>
   setHoldingStale: (id: string, stale: boolean) => Promise<import('./types').FinanceHolding | null>
+  addWatchlistItem: (
+    item: Omit<import('./types').FinanceWatchlistItem, 'id'>,
+  ) => Promise<import('./types').FinanceWatchlistItem | null>
+  transitionWatchlistStatus: (
+    id: string,
+    status: import('./types').FinanceWatchlistItem['status'],
+  ) => Promise<import('./types').FinanceWatchlistItem | null>
+  addDecisionEntry: (
+    item: Omit<import('./types').FinanceDecisionEntry, 'id'>,
+  ) => Promise<import('./types').FinanceDecisionEntry | null>
+  updateDecisionOutcome: (
+    id: string,
+    outcome: Bi,
+  ) => Promise<import('./types').FinanceDecisionEntry | null>
   transitionDebtStatus: (id: string, nextStatus: import('./types').FinanceDebt['status']) => Promise<import('./types').FinanceDebt | null>
   addTaxScenario: (item: Omit<FinanceTaxScenario, 'id'>) => Promise<FinanceTaxScenario | null>
   markTaxScenarioStale: (id: string, reason: string) => Promise<FinanceTaxScenario | null>

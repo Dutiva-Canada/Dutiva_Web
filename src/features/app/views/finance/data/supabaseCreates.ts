@@ -5,6 +5,7 @@ import type {
   FinanceBankAccount,
   FinanceBudget,
   FinanceDebt,
+  FinanceDecisionEntry,
   FinanceExternalAction,
   FinanceForecast,
   FinanceHolding,
@@ -14,12 +15,14 @@ import type {
   FinanceReserveGoal,
   FinanceScenario,
   FinanceSubscription,
+  FinanceWatchlistItem,
 } from './types'
 import {
   mapBankAccount,
   mapBook,
   mapBudget,
   mapDebt,
+  mapDecisionEntry,
   mapEntity,
   mapExternalAction,
   mapForecast,
@@ -29,6 +32,7 @@ import {
   mapReserveGoal,
   mapScenario,
   mapSubscription,
+  mapWatchlistItem,
 } from './supabaseMappers'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -42,6 +46,8 @@ const TABLES = {
   forecasts: 'finance_forecasts',
   reserveGoals: 'finance_reserve_goals',
   holdings: 'finance_holdings',
+  watchlistItems: 'finance_watchlist_items',
+  decisionEntries: 'finance_decision_entries',
   debts: 'finance_debts',
   externalActions: 'finance_external_actions',
   bankAccounts: 'finance_bank_accounts',
@@ -199,6 +205,75 @@ export async function setHoldingStaleInSupabase(orgId: string, id: string, stale
     .single()
   if (error) throw error
   return mapHolding(data as Record<string, unknown>)
+}
+
+export async function addWatchlistItemInSupabase(orgId: string, item: Omit<FinanceWatchlistItem, 'id'>): Promise<FinanceWatchlistItem | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.watchlistItems)
+    .insert({
+      organization_id: orgId,
+      entity_id: item.entityId,
+      symbol: item.symbol || null,
+      label: item.label,
+      asset_class: item.assetClass,
+      thesis: item.thesis ?? null,
+      target_low: item.targetLow ? Number(item.targetLow) : null,
+      target_high: item.targetHigh ? Number(item.targetHigh) : null,
+      currency: item.currency,
+      status: item.status,
+    })
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapWatchlistItem(data as Record<string, unknown>)
+}
+
+export async function transitionWatchlistStatusInSupabase(orgId: string, id: string, status: FinanceWatchlistItem['status']): Promise<FinanceWatchlistItem | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.watchlistItems)
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq('organization_id', orgId)
+    .eq('id', id)
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapWatchlistItem(data as Record<string, unknown>)
+}
+
+export async function addDecisionEntryInSupabase(orgId: string, item: Omit<FinanceDecisionEntry, 'id'>): Promise<FinanceDecisionEntry | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.decisionEntries)
+    .insert({
+      organization_id: orgId,
+      entity_id: item.entityId,
+      holding_id: item.holdingId ?? null,
+      watchlist_item_id: item.watchlistItemId ?? null,
+      decision: item.decision,
+      decided_at: item.decidedAt,
+      summary: item.summary,
+      rationale: item.rationale ?? null,
+      review_date: item.reviewDate ?? null,
+    })
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapDecisionEntry(data as Record<string, unknown>)
+}
+
+export async function updateDecisionOutcomeInSupabase(orgId: string, id: string, outcome: import('@/i18n/core').Bi): Promise<FinanceDecisionEntry | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.decisionEntries)
+    .update({ outcome, updated_at: new Date().toISOString() })
+    .eq('organization_id', orgId)
+    .eq('id', id)
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapDecisionEntry(data as Record<string, unknown>)
 }
 
 export async function transitionDebtStatusInSupabase(orgId: string, id: string, status: FinanceDebt['status']): Promise<FinanceDebt | null> {

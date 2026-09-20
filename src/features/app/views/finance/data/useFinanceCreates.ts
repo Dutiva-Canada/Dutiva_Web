@@ -6,6 +6,10 @@ import {
   addReserveGoalInSupabase,
   updateReserveGoalProgressInSupabase,
   setHoldingStaleInSupabase,
+  addWatchlistItemInSupabase,
+  transitionWatchlistStatusInSupabase,
+  addDecisionEntryInSupabase,
+  updateDecisionOutcomeInSupabase,
   transitionDebtStatusInSupabase,
   transitionBudgetStatusInSupabase,
   transitionScenarioStatusInSupabase,
@@ -24,6 +28,7 @@ import type {
   FinanceBankAccount,
   FinanceBudget,
   FinanceDebt,
+  FinanceDecisionEntry,
   FinanceExternalAction,
   FinanceForecast,
   FinanceLedgerAccount,
@@ -32,6 +37,7 @@ import type {
   FinanceReserveGoal,
   FinanceScenario,
   FinanceSubscription,
+  FinanceWatchlistItem,
   FinanceWorkspaceState,
 } from './types'
 
@@ -94,6 +100,46 @@ export function useFinanceCreates({
     async (id: string, stale: boolean) => {
       if (!isLive || !orgId || !hasSupabase) return null
       const updated = await setHoldingStaleInSupabase(orgId, id, stale)
+      await reload()
+      return updated
+    },
+    [isLive, orgId, hasSupabase, reload],
+  )
+
+  const addWatchlistItem = useCallback(
+    async (item: Omit<FinanceWatchlistItem, 'id'>) => {
+      if (!isLive || !orgId || !hasSupabase) return null
+      const created = await addWatchlistItemInSupabase(orgId, item)
+      await reload()
+      return created
+    },
+    [isLive, orgId, hasSupabase, reload],
+  )
+
+  const transitionWatchlistStatus = useCallback(
+    async (id: string, status: FinanceWatchlistItem['status']) => {
+      if (!isLive || !orgId || !hasSupabase) return null
+      const updated = await transitionWatchlistStatusInSupabase(orgId, id, status)
+      await reload()
+      return updated
+    },
+    [isLive, orgId, hasSupabase, reload],
+  )
+
+  const addDecisionEntry = useCallback(
+    async (item: Omit<FinanceDecisionEntry, 'id'>) => {
+      if (!isLive || !orgId || !hasSupabase) return null
+      const created = await addDecisionEntryInSupabase(orgId, item)
+      await reload()
+      return created
+    },
+    [isLive, orgId, hasSupabase, reload],
+  )
+
+  const updateDecisionOutcome = useCallback(
+    async (id: string, outcome: import('@/i18n/core').Bi) => {
+      if (!isLive || !orgId || !hasSupabase) return null
+      const updated = await updateDecisionOutcomeInSupabase(orgId, id, outcome)
       await reload()
       return updated
     },
@@ -251,6 +297,10 @@ export function useFinanceCreates({
     addReserveGoal,
     updateReserveGoalProgress,
     setHoldingStale,
+    addWatchlistItem,
+    transitionWatchlistStatus,
+    addDecisionEntry,
+    updateDecisionOutcome,
     transitionDebtStatus,
     transitionBudgetStatus,
     transitionScenarioStatus,

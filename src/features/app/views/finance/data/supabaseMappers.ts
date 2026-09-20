@@ -39,6 +39,8 @@ import type {
   FinanceSubscription,
   FinanceTaxObligation,
   FinanceTaxScenario,
+  FinanceWatchlistItem,
+  FinanceDecisionEntry,
   FinanceWorkspaceState,
 } from './types'
 
@@ -473,6 +475,36 @@ export function mapDebt(r: Record<string, unknown>): FinanceDebt {
     collateralRef: r.collateral_ref as string | undefined,
     covenantRef: r.covenant_ref as string | undefined,
     status: r.status as FinanceDebt['status'],
+  }
+}
+
+export function mapWatchlistItem(r: Record<string, unknown>): FinanceWatchlistItem {
+  return {
+    id: r.id as string,
+    entityId: r.entity_id as string,
+    symbol: r.symbol as string | undefined,
+    label: bi(r.label),
+    assetClass: r.asset_class as FinanceWatchlistItem['assetClass'],
+    thesis: r.thesis ? bi(r.thesis) : undefined,
+    targetLow: r.target_low != null ? num(r.target_low) : undefined,
+    targetHigh: r.target_high != null ? num(r.target_high) : undefined,
+    currency: r.currency as FinanceWatchlistItem['currency'],
+    status: r.status as FinanceWatchlistItem['status'],
+  }
+}
+
+export function mapDecisionEntry(r: Record<string, unknown>): FinanceDecisionEntry {
+  return {
+    id: r.id as string,
+    entityId: r.entity_id as string,
+    holdingId: r.holding_id as string | undefined,
+    watchlistItemId: r.watchlist_item_id as string | undefined,
+    decision: r.decision as FinanceDecisionEntry['decision'],
+    decidedAt: r.decided_at as string,
+    summary: bi(r.summary),
+    rationale: r.rationale ? bi(r.rationale) : undefined,
+    reviewDate: r.review_date as string | undefined,
+    outcome: r.outcome ? bi(r.outcome) : undefined,
   }
 }
 

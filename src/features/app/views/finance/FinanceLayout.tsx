@@ -10,6 +10,7 @@ import {
   PiggyBank,
   Receipt,
   ShoppingBag,
+  TrendingUp,
   Upload,
   Wallet,
 } from 'lucide-react'
@@ -38,6 +39,7 @@ const TABS: FinanceTab[] = [
   { key: 'accounting', to: 'accounting', label: 'finance_tab_accounting', icon: BookOpen },
   { key: 'plans', to: 'plans', label: 'finance_tab_plans', icon: Calculator },
   { key: 'treasury', to: 'treasury', label: 'finance_tab_treasury', icon: PiggyBank },
+  { key: 'portfolio', to: 'portfolio', label: 'finance_tab_portfolio', icon: TrendingUp },
   { key: 'tax', to: 'tax', label: 'finance_tab_tax', icon: Banknote },
   { key: 'evidence', to: 'evidence', label: 'finance_tab_evidence', icon: Paperclip },
   { key: 'import-export', to: 'import-export', label: 'finance_tab_import_export', icon: Upload },

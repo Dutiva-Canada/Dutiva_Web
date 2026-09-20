@@ -543,6 +543,20 @@ export interface FinanceDebt {
   status: 'active' | 'paid_off' | 'defaulted'
 }
 
+/* ---------- Portfolio (watchlist + decision journal) ---------- */
+
+/* Portfolio domain types live in ./portfolioTypes (types.ts is at the
+   800-line source budget). Re-exported here so `from './types'` keeps
+   working for every existing import site. */
+export type {
+  FinanceAssetClass,
+  FinanceWatchlistStatus,
+  FinanceWatchlistItem,
+  FinanceDecisionKind,
+  FinanceDecisionEntry,
+} from './portfolioTypes'
+import type { FinanceDecisionEntry, FinanceWatchlistItem } from './portfolioTypes'
+
 /* ---------- Tax ---------- */
 
 export type FinanceTaxType =
@@ -759,6 +773,8 @@ export interface FinanceWorkspaceState {
   forecasts: FinanceForecast[]
   reserveGoals: FinanceReserveGoal[]
   holdings: FinanceHolding[]
+  watchlistItems: FinanceWatchlistItem[]
+  decisionEntries: FinanceDecisionEntry[]
   debts: FinanceDebt[]
   taxObligations: FinanceTaxObligation[]
   taxScenarios: FinanceTaxScenario[]

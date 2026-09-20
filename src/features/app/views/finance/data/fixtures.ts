@@ -415,6 +415,69 @@ const holding: FinanceWorkspaceState['holdings'][number] = {
   stale: false,
 }
 
+const watchlistItem: FinanceWorkspaceState['watchlistItems'][number] = {
+  id: 'watch-1',
+  entityId: 'ent-1',
+  symbol: 'XEQT',
+  label: bi('All-equity ETF — surplus sweep candidate', 'FNB tout-actions — candidat pour le surplus'),
+  assetClass: 'fund',
+  thesis: bi(
+    'Parking operating surplus beyond the GIC ladder; reviewed quarterly against the cash forecast.',
+    'Placement du surplus d’exploitation au-delà de l’échelle de CPG; révisé chaque trimestre par rapport aux prévisions de trésorerie.',
+  ),
+  targetLow: '28.00',
+  targetHigh: '32.00',
+  currency: 'CAD',
+  status: 'under_review',
+}
+
+const watchlistItem2: FinanceWorkspaceState['watchlistItems'][number] = {
+  id: 'watch-2',
+  entityId: 'ent-1',
+  label: bi('Provincial bond ladder — 1 to 3 year', 'Échelle d’obligations provinciales — 1 à 3 ans'),
+  assetClass: 'fixed_income',
+  thesis: bi(
+    'Match the tax reserve horizon without locking everything into the 90-day GIC.',
+    'Aligner l’horizon de la réserve fiscale sans tout immobiliser dans le CPG de 90 jours.',
+  ),
+  currency: 'CAD',
+  status: 'watching',
+}
+
+const decisionEntry: FinanceWorkspaceState['decisionEntries'][number] = {
+  id: 'dec-1',
+  entityId: 'ent-1',
+  holdingId: 'hold-1',
+  decision: 'hold',
+  decidedAt: '2026-09-01',
+  summary: bi(
+    'Renew the 90-day GIC at maturity; keep $30k in the instrument.',
+    'Renouveler le CPG de 90 jours à l’échéance; conserver 30 000 $ dans l’instrument.',
+  ),
+  rationale: bi(
+    'Rate holds above the money-market sweep and the reserve goal is already funded.',
+    'Le taux reste supérieur au compte du marché monétaire et l’objectif de réserve est déjà financé.',
+  ),
+  reviewDate: '2026-12-01',
+}
+
+const decisionEntry2: FinanceWorkspaceState['decisionEntries'][number] = {
+  id: 'dec-2',
+  entityId: 'ent-1',
+  watchlistItemId: 'watch-1',
+  decision: 'review',
+  decidedAt: '2026-09-10',
+  summary: bi(
+    'Evaluate moving the Q4 surplus into XEQT once payroll reserve tops $50k.',
+    'Évaluer le transfert du surplus du T4 vers XEQT une fois que la réserve de paie dépasse 50 000 $.',
+  ),
+  rationale: bi(
+    'Surplus is real but lumpy; wait until the payroll reserve goal is fully funded.',
+    'Le surplus est réel mais irrégulier; attendre que l’objectif de réserve de paie soit entièrement financé.',
+  ),
+  reviewDate: '2026-10-15',
+}
+
 const debt: FinanceWorkspaceState['debts'][number] = {
   id: 'debt-1',
   entityId: 'ent-1',
@@ -571,6 +634,8 @@ export const initialFinanceState: FinanceWorkspaceState = {
   forecasts: [forecast],
   reserveGoals: [reserveGoal, reserveGoal2],
   holdings: [holding],
+  watchlistItems: [watchlistItem, watchlistItem2],
+  decisionEntries: [decisionEntry, decisionEntry2],
   debts: [debt],
   taxObligations: [taxObligation, taxObligation2],
   taxScenarios: [taxScenario],
