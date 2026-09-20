@@ -657,7 +657,7 @@ either intentional (public read) or a finding — check `check:rls`.
 - `public.v_template_catalog`
 - `public.v_tier_stats`
 
-## Functions / RPCs — 182
+## Functions / RPCs — 183
 
 | Function | Args | Security definer |
 | -------- | ---- | ---------------- |
@@ -671,6 +671,7 @@ either intentional (public read) or a finding — check `check:rls`.
 | `public._hr_signing_recipient_for_envelope` | p_envelope_id text | yes |
 | `public._hr_signing_recipient_for_token` | p_token uuid | yes |
 | `public._hr_signing_request_ip_hash` | — | yes |
+| `public._integration_event_notify_admins` | p_event_id uuid | yes |
 | `public._org_capacity_lock` | p_organization_id uuid |  |
 | `public.accept_ai_recommendation` | target_recommendation_id uuid | yes |
 | `public.acquire_cron_lock` | p_job_name text, p_instance_id text, p_ttl_seconds integer | yes |

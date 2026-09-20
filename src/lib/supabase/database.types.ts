@@ -13411,6 +13411,10 @@ export type Database = {
         }
       }
       _hr_signing_request_ip_hash: { Args: never; Returns: string }
+      _integration_event_notify_admins: {
+        Args: { p_event_id: string }
+        Returns: undefined
+      }
       _org_capacity_lock: {
         Args: { p_organization_id: string }
         Returns: undefined

@@ -162,4 +162,20 @@ export const integrationsMessages = defineMessages({
     en: 'Endpoint created — copy the URL and signing secret now.',
     fr: 'Endpoint créé — copiez l’URL et le secret de signature maintenant.', // [FR self-authored]
   },
+  integ_events_title: {
+    en: 'Recent events',
+    fr: 'Événements récents', // [FR self-authored]
+  },
+  integ_events_empty: {
+    en: 'No deliveries yet — send a signed POST to the endpoint.',
+    fr: 'Aucune livraison pour l’instant — envoyez un POST signé au endpoint.', // [FR self-authored]
+  },
+  integ_events_notified: {
+    en: 'notified',
+    fr: 'notifié', // [FR self-authored]
+  },
+  integ_events_stored: {
+    en: 'stored',
+    fr: 'enregistré', // [FR self-authored]
+  },
 })

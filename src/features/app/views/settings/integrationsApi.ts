@@ -70,6 +70,36 @@ export async function deleteIntegration(id: string): Promise<void> {
   if (error) throw new Error(error.message)
 }
 
+const eventRowSchema = z.object({
+  id: z.string(),
+  event_type: z.string().nullable(),
+  payload: z.unknown(),
+  received_at: z.string(),
+  processed_at: z.string().nullable(),
+})
+
+export type IntegrationEventRow = z.infer<typeof eventRowSchema>
+
+/**
+ * Recent deliveries for one integration — org members can already read
+ * integration_events (0162 RLS), this is the same read the "recent
+ * events" block on the webhook card makes.
+ */
+export async function listIntegrationEvents(
+  integrationId: string,
+  limit = 10,
+): Promise<IntegrationEventRow[]> {
+  if (!supabase) notConfigured()
+  const { data, error } = await supabase
+    .from('integration_events')
+    .select('id, event_type, payload, received_at, processed_at')
+    .eq('integration_id', integrationId)
+    .order('received_at', { ascending: false })
+    .limit(limit)
+  if (error) throw new Error(error.message)
+  return z.array(eventRowSchema).parse(data ?? [])
+}
+
 export type IntegrationAction = 'connect' | 'test' | 'disconnect'
 
 export interface IntegrationActionResult {

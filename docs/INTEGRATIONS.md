@@ -99,11 +99,29 @@ in the flow — the signature is the auth.
 
 Valid deliveries insert one row into `integration_events`
 (org-scoped, members read, admins delete, service-role-only insert).
-Nothing consumes those rows yet — event processing is follow-up work.
+
+**Consumption (migration `0163`).** After storing the row the ingest calls
+`_integration_event_notify_admins(event_id)` — a service-role-only
+function that mirrors the signing-notification fan-out: one
+`hr_workspace_notifications` row (`kind = 'integration_event'`, bilingual
+title, body = `event_type — payload.summary|title|message` truncated to
+180 chars, href → `/app/settings`) per active owner/admin member, then
+`processed_at` is stamped. The kind check on that table gained
+`'integration_event'` in the same migration. If the notify RPC fails the
+delivery still returns 202 and `processed_at` stays NULL — the
+`integration_events_unprocessed_idx` partial index keeps those rows
+findable for a later consumer. A connected webhook row in Settings →
+Connections also shows its last 10 deliveries with a stored/notified
+state chip.
+
+What events do **not** yet do: create or update business records
+(CRM contacts, comms items, …). The notification is the first consumer —
+routing specific `event_type`s into domain tables is the next slice and
+should land beside the notify function, not in the client.
 
 ## Deploy status
 
-Applied and deployed: migrations `0161` + `0162` ran against project
+Applied and deployed: migrations `0161`–`0163` ran against project
 `khtwpxnvziiyplaflwru` via `scripts/apply-migration.mjs` and are recorded
 in `schema_migrations` (`check:migrations` reconciles clean);
 `workspace-integration` and `integration-webhook` are deployed via
@@ -113,3 +131,13 @@ keeps the default (JWT on).
 
 Verified: POST to the ingest endpoint with an unknown key returns 404;
 `check:migrations` OK; signature verifier covered by 10 vitest cases.
+
+Live smoke (2026-09-20, since torn down): a temporary owner/admin user
+in a throwaway org drove the real client path — `workspace_integrations`
+insert over REST (RLS), `connect` with a real GitHub token probed
+`api.github.com/user` and returned `connected` / `account:
+martinconstantineau`, `test` re-probed the Vault-held secret, webhook
+`connect` minted endpoint + `dwhsec_` secret, a signed POST landed a
+`smoke_test` `integration_events` row (processed_at stamped) and an
+`integration_event` notification for the org owner; a bad signature got
+401. Test org, user, rows and Vault secrets were deleted afterward.

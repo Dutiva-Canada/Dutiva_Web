@@ -15,8 +15,11 @@ import { verifyDutivaSignature } from './verify-signature.ts'
  * workspace-integration function and stored in
  * workspace_integrations.config.webhook_key. Knowing the URL alone is not
  * enough — a bad or missing signature is a 401 and nothing is stored.
- * Valid deliveries land in `integration_events` (0162) as unprocessed
- * rows; nothing reads them back yet, processing is a later phase.
+ * Valid deliveries land in `integration_events` (0162); the event id is
+ * then handed to _integration_event_notify_admins (0163), which fans out
+ * one hr_workspace_notifications row to each active owner/admin member
+ * and stamps processed_at. Notify failure never fails the delivery — the
+ * stored row stays unprocessed for a later consumer.
  */
 
 const corsHeaders = {
@@ -88,14 +91,27 @@ Deno.serve(async (req: Request) => {
       ? String((payload as { type: unknown }).type)
       : null)
 
-  const { error: insertError } = await service.from('integration_events').insert({
-    organization_id: integration.organization_id,
-    integration_id: integration.id,
-    provider: 'inbound_webhook',
-    event_type: eventType,
-    payload,
+  const { data: event, error: insertError } = await service
+    .from('integration_events')
+    .insert({
+      organization_id: integration.organization_id,
+      integration_id: integration.id,
+      provider: 'inbound_webhook',
+      event_type: eventType,
+      payload,
+    })
+    .select('id')
+    .single()
+  if (insertError || !event) return json({ error: 'Could not store event' }, 500)
+
+  const { error: notifyError } = await service.rpc('_integration_event_notify_admins', {
+    p_event_id: event.id,
   })
-  if (insertError) return json({ error: 'Could not store event' }, 500)
+  if (notifyError) {
+    // Stored but unnotified: processed_at stays NULL so the row remains
+    // visible to the unprocessed index for a later consumer/retry.
+    console.error('notify failed for event', event.id, notifyError.message)
+  }
 
   return json({ received: true }, 202)
 })

@@ -13,10 +13,11 @@ import type { IntegrationConfigField, IntegrationProviderSpec } from './integrat
 import {
   createIntegration,
   deleteIntegration,
+  listIntegrationEvents,
   listIntegrations,
   runIntegrationAction,
 } from './integrationsApi'
-import type { WorkspaceIntegrationRow } from './integrationsApi'
+import type { IntegrationEventRow, WorkspaceIntegrationRow } from './integrationsApi'
 import { Card } from './settingsPrimitives'
 
 /**
@@ -274,90 +275,90 @@ function ProviderCard({
       </div>
 
       {rows.map((row) => (
-        <div
-          key={row.id}
-          className="mt-[10px] flex items-center justify-between gap-[10px] rounded-[8px] border border-inset bg-bg px-[12px] py-[9px]"
-        >
-          <div className="min-w-0">
-            <div className="flex items-center gap-[8px]">
-              <span className="truncate text-[12.5px] font-semibold text-text">
-                {row.display_name}
-              </span>
-              <span className={statusChipClass(STATUS_TONE[row.status] ?? 'neutral')}>
-                {statusLabel(row.status, x)}
-              </span>
+        <div key={row.id}>
+          <div className="mt-[10px] flex items-center justify-between gap-[10px] rounded-[8px] border border-inset bg-bg px-[12px] py-[9px]">
+            <div className="min-w-0">
+              <div className="flex items-center gap-[8px]">
+                <span className="truncate text-[12.5px] font-semibold text-text">
+                  {row.display_name}
+                </span>
+                <span className={statusChipClass(STATUS_TONE[row.status] ?? 'neutral')}>
+                  {statusLabel(row.status, x)}
+                </span>
+              </div>
+              <div className="mt-[2px] text-[11.5px] text-text-muted">
+                {typeof row.config?.account_login === 'string' ? (
+                  <>
+                    {x(M.integ_account)}: {row.config.account_login} ·{' '}
+                  </>
+                ) : null}
+                {isWebhook && webhookEndpoint(row) ? (
+                  <>
+                    {x(M.integ_webhook_endpoint)}: {webhookEndpoint(row)} ·{' '}
+                  </>
+                ) : null}
+                {row.last_checked_at
+                  ? x(M.integ_last_checked).replace(
+                      '{when}',
+                      new Date(row.last_checked_at).toLocaleString(),
+                    )
+                  : x(M.integ_never_checked)}
+              </div>
             </div>
-            <div className="mt-[2px] text-[11.5px] text-text-muted">
-              {typeof row.config?.account_login === 'string' ? (
-                <>
-                  {x(M.integ_account)}: {row.config.account_login} ·{' '}
-                </>
-              ) : null}
-              {isWebhook && webhookEndpoint(row) ? (
-                <>
-                  {x(M.integ_webhook_endpoint)}: {webhookEndpoint(row)} ·{' '}
-                </>
-              ) : null}
-              {row.last_checked_at
-                ? x(M.integ_last_checked).replace(
-                    '{when}',
-                    new Date(row.last_checked_at).toLocaleString(),
-                  )
-                : x(M.integ_never_checked)}
-            </div>
+            {canManage ? (
+              <div className="flex shrink-0 items-center gap-[6px]">
+                {isWebhook && row.status === 'connected' ? (
+                  <button
+                    type="button"
+                    className={BTN_GHOST}
+                    disabled={busy != null}
+                    onClick={() => onAct(row, 'regenerate')}
+                  >
+                    {busy === row.id + 'regenerate' ? (
+                      <Loader2 className="h-[12px] w-[12px] animate-spin" />
+                    ) : (
+                      x(M.integ_webhook_regenerate)
+                    )}
+                  </button>
+                ) : null}
+                {row.status === 'connected' ? (
+                  <button
+                    type="button"
+                    className={BTN_GHOST}
+                    disabled={busy != null}
+                    onClick={() => onAct(row, 'test')}
+                  >
+                    {busy === row.id + 'test' ? (
+                      <Loader2 className="h-[12px] w-[12px] animate-spin" />
+                    ) : (
+                      x(M.integ_test)
+                    )}
+                  </button>
+                ) : null}
+                {row.status !== 'disconnected' ? (
+                  <button
+                    type="button"
+                    className={BTN_GHOST}
+                    disabled={busy != null}
+                    onClick={() => onAct(row, 'disconnect')}
+                  >
+                    <Unplug className="mr-[4px] inline h-[12px] w-[12px]" />
+                    {x(M.integ_disconnect)}
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className={BTN_GHOST}
+                  disabled={busy != null}
+                  onClick={() => onAct(row, 'remove')}
+                  aria-label={x(M.integ_remove)}
+                >
+                  <Trash2 className="h-[12px] w-[12px]" />
+                </button>
+              </div>
+            ) : null}
           </div>
-          {canManage ? (
-            <div className="flex shrink-0 items-center gap-[6px]">
-              {isWebhook && row.status === 'connected' ? (
-                <button
-                  type="button"
-                  className={BTN_GHOST}
-                  disabled={busy != null}
-                  onClick={() => onAct(row, 'regenerate')}
-                >
-                  {busy === row.id + 'regenerate' ? (
-                    <Loader2 className="h-[12px] w-[12px] animate-spin" />
-                  ) : (
-                    x(M.integ_webhook_regenerate)
-                  )}
-                </button>
-              ) : null}
-              {row.status === 'connected' ? (
-                <button
-                  type="button"
-                  className={BTN_GHOST}
-                  disabled={busy != null}
-                  onClick={() => onAct(row, 'test')}
-                >
-                  {busy === row.id + 'test' ? (
-                    <Loader2 className="h-[12px] w-[12px] animate-spin" />
-                  ) : (
-                    x(M.integ_test)
-                  )}
-                </button>
-              ) : null}
-              {row.status !== 'disconnected' ? (
-                <button
-                  type="button"
-                  className={BTN_GHOST}
-                  disabled={busy != null}
-                  onClick={() => onAct(row, 'disconnect')}
-                >
-                  <Unplug className="mr-[4px] inline h-[12px] w-[12px]" />
-                  {x(M.integ_disconnect)}
-                </button>
-              ) : null}
-              <button
-                type="button"
-                className={BTN_GHOST}
-                disabled={busy != null}
-                onClick={() => onAct(row, 'remove')}
-                aria-label={x(M.integ_remove)}
-              >
-                <Trash2 className="h-[12px] w-[12px]" />
-              </button>
-            </div>
-          ) : null}
+          {isWebhook && row.status === 'connected' ? <RecentEvents integrationId={row.id} /> : null}
         </div>
       ))}
 
@@ -435,6 +436,79 @@ function MintedReveal({
           {x(M.integ_webhook_done)}
         </button>
       </div>
+    </div>
+  )
+}
+
+/* ─────────────────────── recent inbound deliveries ─────────────────────── */
+
+/**
+ * Last deliveries on a connected webhook endpoint — the read half of event
+ * consumption (the write half is the ingest fan-out to workspace
+ * notifications). payload.summary/title/message is surfaced truncated,
+ * matching what the notification body carries.
+ */
+function RecentEvents({ integrationId }: { readonly integrationId: string }) {
+  const { x } = useI18n()
+  const [events, setEvents] = useState<IntegrationEventRow[] | null>(null)
+
+  useEffect(() => {
+    let live = true
+    listIntegrationEvents(integrationId)
+      .then((list) => {
+        if (live) setEvents(list)
+      })
+      .catch(() => {
+        if (live) setEvents([])
+      })
+    return () => {
+      live = false
+    }
+  }, [integrationId])
+
+  if (events == null) return null
+
+  const detail = (e: IntegrationEventRow): string | null => {
+    const p = e.payload
+    if (typeof p !== 'object' || p === null) return null
+    const v =
+      (p as Record<string, unknown>).summary ??
+      (p as Record<string, unknown>).title ??
+      (p as Record<string, unknown>).message
+    return typeof v === 'string' && v.trim() ? v.trim().slice(0, 120) : null
+  }
+
+  return (
+    <div className="mt-[6px] rounded-[8px] border border-inset bg-bg px-[12px] py-[9px]">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.04em] text-text-faint">
+        {x(M.integ_events_title)}
+      </div>
+      {events.length === 0 ? (
+        <div className="mt-[6px] text-[12px] text-text-muted">{x(M.integ_events_empty)}</div>
+      ) : (
+        <ul className="mt-[4px] divide-y divide-inset">
+          {events.map((e) => (
+            <li key={e.id} className="flex items-baseline justify-between gap-[10px] py-[6px]">
+              <div className="min-w-0">
+                <span className="text-[12.5px] font-medium text-text">
+                  {e.event_type ?? 'event'}
+                </span>
+                {detail(e) ? (
+                  <span className="text-[12px] text-text-muted"> — {detail(e)}</span>
+                ) : null}
+                <div className="text-[11px] text-text-faint">
+                  {new Date(e.received_at).toLocaleString()}
+                </div>
+              </div>
+              <span
+                className={statusChipClass(e.processed_at ? 'success' : 'neutral')}
+              >
+                {e.processed_at ? x(M.integ_events_notified) : x(M.integ_events_stored)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }

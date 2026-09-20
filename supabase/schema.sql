@@ -523,6 +523,65 @@ $$;
 ALTER FUNCTION "public"."_hr_signing_request_ip_hash"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."_integration_event_notify_admins"("p_event_id" "uuid") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_event public.integration_events;
+  v_label text;
+  v_detail text;
+  v_body text;
+begin
+  select * into v_event
+  from public.integration_events
+  where id = p_event_id;
+
+  if v_event.id is null then
+    return;
+  end if;
+
+  -- Already fanned out — the ingest calls this once, but keep it
+  -- idempotent so a retried delivery can't double-notify.
+  if v_event.processed_at is not null then
+    return;
+  end if;
+
+  v_label := coalesce(nullif(btrim(v_event.event_type), ''), 'event');
+  v_detail := left(coalesce(
+    nullif(btrim(v_event.payload ->> 'summary'), ''),
+    nullif(btrim(v_event.payload ->> 'title'), ''),
+    nullif(btrim(v_event.payload ->> 'message'), ''),
+    ''), 180);
+  v_body := v_label || case when v_detail <> '' then ' — ' || v_detail else '' end;
+
+  insert into public.hr_workspace_notifications (
+    organization_id, user_id, kind, title_en, title_fr, body_en, body_fr, href
+  )
+  select
+    v_event.organization_id,
+    om.user_id,
+    'integration_event',
+    'Inbound integration event',
+    'Événement d’intégration entrant',
+    v_body,
+    v_body,
+    '/app/settings'
+  from public.organization_members om
+  where om.organization_id = v_event.organization_id
+    and om.status = 'active'
+    and om.role in ('owner', 'admin');
+
+  update public.integration_events
+  set processed_at = now()
+  where id = v_event.id;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."_integration_event_notify_admins"("p_event_id" "uuid") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."_org_capacity_lock"("p_organization_id" "uuid") RETURNS "void"
     LANGUAGE "plpgsql"
     SET "search_path" TO 'public'
@@ -10458,7 +10517,7 @@ CREATE TABLE IF NOT EXISTS "public"."hr_workspace_notifications" (
     "document_id" "uuid",
     "read_at" timestamp with time zone,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    CONSTRAINT "hr_workspace_notifications_kind_check" CHECK (("kind" = ANY (ARRAY['signing_completed'::"text", 'signing_declined'::"text"])))
+    CONSTRAINT "hr_workspace_notifications_kind_check" CHECK (("kind" = ANY (ARRAY['signing_completed'::"text", 'signing_declined'::"text", 'integration_event'::"text"])))
 );
 
 
@@ -21576,6 +21635,11 @@ GRANT ALL ON FUNCTION "public"."_hr_signing_recipient_for_token"("p_token" "uuid
 
 REVOKE ALL ON FUNCTION "public"."_hr_signing_request_ip_hash"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."_hr_signing_request_ip_hash"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_integration_event_notify_admins"("p_event_id" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_integration_event_notify_admins"("p_event_id" "uuid") TO "service_role";
 
 
 
