@@ -28,7 +28,13 @@ try {
   types = execFileSync(
     'npx',
     ['supabase', 'gen', 'types', 'typescript', '--project-id', projectRef],
-    { cwd: root, encoding: 'utf8', env: process.env },
+    {
+      cwd: root,
+      encoding: 'utf8',
+      env: process.env,
+      maxBuffer: 32 * 1024 * 1024,
+      shell: process.platform === 'win32',
+    },
   )
 } catch (error) {
   console.error(
