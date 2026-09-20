@@ -85,10 +85,16 @@ Editorial rule for public articles — no statutory figures, ever — is stated 
 | Document                                       | What it settles                                                             |
 | ---------------------------------------------- | --------------------------------------------------------------------------- |
 | [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md)       | How the live Supabase schema is tracked against the repo.                   |
+| [DATABASE_STRUCTURE.md](DATABASE_STRUCTURE.md) | Generated map of the live DB — every table, RLS flag, policy, function, trigger, cron job — plus the replication recipe. Regenerate: `npm run db:document`. |
 | [MIGRATION_LEDGER.md](MIGRATION_LEDGER.md)     | Known migration filename exceptions (e.g. applied duplicate `0024`).        |
 | [DATA_MODEL.md](DATA_MODEL.md)                 | HR Documents Library data model, transcribed from the handoff.              |
 | [AUTH_MAGIC_LINK.md](AUTH_MAGIC_LINK.md)       | Magic-link sign-in and the Supabase configuration it needs.                 |
 | [LOCAL_ENDPOINTS.md](LOCAL_ENDPOINTS.md)       | Operator runbook: pointing Advisor routes at a self-hosted OpenAI-compatible endpoint (Ollama, LM Studio, vLLM) — reachability, `/v1`, secrets, rollback. |
+| [FS_ACCESS_MODELS.md](FS_ACCESS_MODELS.md)     | The File System Access prototype: importing on-device model files from a user-picked drive/folder — layout, permissions, and what it deliberately is not. |
+| [SELF_HOSTING.md](SELF_HOSTING.md)             | Self-host runbook: `deploy/self-host/` web bundle + compose, Supabase cloud vs self-hosted backend, env surface, and what still points outside. |
+| [INTEGRATIONS.md](INTEGRATIONS.md)             | Workspace integrations phase 1: provider catalog, Vault secret model, the `workspace-integration` edge function, and deferred providers (OAuth, Signal). |
+| [CRM_DIRECTORY_VIEWS.md](CRM_DIRECTORY_VIEWS.md) | Customer-directory filter bar and saved views — scope, storage, and limits. |
+| [FINANCE_PORTFOLIO.md](FINANCE_PORTFOLIO.md)   | Finance → Portfolio screen: holdings summary, watchlist, decision journal — company-investment records, not advice. |
 | [BILLING_BETA_AUDIT.md](BILLING_BETA_AUDIT.md) | Stripe billing and beta-signup audit, with remediation status.              |
 | [STRIPE_GO_LIVE.md](STRIPE_GO_LIVE.md)         | Stripe go-live checklist and OA11 completion record (closed 2026-08-27).    |
 | [MAINTAINABILITY.md](MAINTAINABILITY.md)       | Long-term codebase health: patterns, hotspots, template review cadence, CI. |

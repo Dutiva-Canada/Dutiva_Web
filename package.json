@@ -32,6 +32,7 @@
     "check": "npm run typecheck && npm run lint && npm run test && npm run check:migrations && npm run check:rls && npm run check:facts && npm run check:message-scopes && npm run check:brand-assets && npm run check:architecture",
     "db:types": "node scripts/generate-db-types.mjs",
     "db:snapshot": "supabase db dump -f supabase/schema.sql",
+    "db:document": "node scripts/document-db-structure.mjs",
     "db:snapshot:local": "python scripts/refresh_schema_snapshot.py"
   },
   "dependencies": {

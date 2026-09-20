@@ -15,7 +15,10 @@ That's fine for day-to-day work — new changes go through
 reproduce the live schema from scratch, and a reviewer can't see the real RLS
 policies / function bodies in the diff. `supabase/schema.sql` closes that gap:
 a committed, human-readable snapshot of the whole live schema, refreshed on
-demand.
+demand. For a navigable map — every table grouped by domain with its RLS
+flag and policy count, plus views, functions, triggers and cron jobs — see
+[DATABASE_STRUCTURE.md](DATABASE_STRUCTURE.md), regenerated from the live
+project by `npm run db:document`.
 
 ## Refresh the snapshot
 

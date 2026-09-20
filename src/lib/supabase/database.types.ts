@@ -4817,6 +4817,83 @@ export type Database = {
           },
         ]
       }
+      finance_decision_entries: {
+        Row: {
+          created_at: string
+          decided_at: string
+          decision: string
+          entity_id: string
+          holding_id: string | null
+          id: string
+          organization_id: string
+          outcome: Json | null
+          rationale: Json | null
+          review_date: string | null
+          summary: Json
+          updated_at: string
+          watchlist_item_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          decided_at: string
+          decision: string
+          entity_id: string
+          holding_id?: string | null
+          id?: string
+          organization_id: string
+          outcome?: Json | null
+          rationale?: Json | null
+          review_date?: string | null
+          summary: Json
+          updated_at?: string
+          watchlist_item_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string
+          decision?: string
+          entity_id?: string
+          holding_id?: string | null
+          id?: string
+          organization_id?: string
+          outcome?: Json | null
+          rationale?: Json | null
+          review_date?: string | null
+          summary?: Json
+          updated_at?: string
+          watchlist_item_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_decision_entries_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "finance_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_decision_entries_holding_id_fkey"
+            columns: ["holding_id"]
+            isOneToOne: false
+            referencedRelation: "finance_holdings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_decision_entries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_decision_entries_watchlist_item_id_fkey"
+            columns: ["watchlist_item_id"]
+            isOneToOne: false
+            referencedRelation: "finance_watchlist_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       finance_entities: {
         Row: {
           accounting_source_id: string | null
@@ -6403,6 +6480,69 @@ export type Database = {
           },
           {
             foreignKeyName: "finance_tax_scenarios_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finance_watchlist_items: {
+        Row: {
+          asset_class: string
+          created_at: string
+          currency: string
+          entity_id: string
+          id: string
+          label: Json
+          organization_id: string
+          status: string
+          symbol: string | null
+          target_high: number | null
+          target_low: number | null
+          thesis: Json | null
+          updated_at: string
+        }
+        Insert: {
+          asset_class?: string
+          created_at?: string
+          currency?: string
+          entity_id: string
+          id?: string
+          label: Json
+          organization_id: string
+          status?: string
+          symbol?: string | null
+          target_high?: number | null
+          target_low?: number | null
+          thesis?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          asset_class?: string
+          created_at?: string
+          currency?: string
+          entity_id?: string
+          id?: string
+          label?: Json
+          organization_id?: string
+          status?: string
+          symbol?: string | null
+          target_high?: number | null
+          target_low?: number | null
+          thesis?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_watchlist_items_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "finance_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_watchlist_items_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -12864,6 +13004,56 @@ export type Database = {
           },
         ]
       }
+      workspace_integrations: {
+        Row: {
+          config: Json
+          created_at: string
+          created_by: string | null
+          display_name: string
+          id: string
+          last_checked_at: string | null
+          organization_id: string
+          provider: string
+          secret_ref: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          display_name: string
+          id?: string
+          last_checked_at?: string | null
+          organization_id: string
+          provider: string
+          secret_ref?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          display_name?: string
+          id?: string
+          last_checked_at?: string | null
+          organization_id?: string
+          provider?: string
+          secret_ref?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_integrations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_intelligence_items: {
         Row: {
           body: string | null
@@ -14736,6 +14926,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      read_integration_secret: { Args: { p_name: string }; Returns: string }
       record_advisor_memory: {
         Args: {
           memory_content: string
@@ -14917,6 +15108,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string
       }
+      revoke_integration_secret: {
+        Args: { p_name: string }
+        Returns: undefined
+      }
       rls_grant_gaps: {
         Args: never
         Returns: {
@@ -14975,6 +15170,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      store_integration_secret: {
+        Args: { p_name: string; p_secret: string }
+        Returns: string
       }
       submit_signature_by_token: {
         Args: {

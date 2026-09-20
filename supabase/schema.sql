@@ -1,3 +1,6 @@
+
+
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -218,17 +221,17 @@ begin
   if p_event = 'completed' then
     v_kind := 'signing_completed';
     v_en_title := 'Signing complete';
-    v_fr_title := 'Signature terminÃ©e';
-    v_en_body := coalesce(nullif(btrim(v_title_en), ''), v_ref) || ' â€” all recipients have signed.';
+    v_fr_title := 'Signature terminée';
+    v_en_body := coalesce(nullif(btrim(v_title_en), ''), v_ref) || ' — all recipients have signed.';
     v_fr_body := coalesce(nullif(btrim(v_title_fr), ''), nullif(btrim(v_title_en), ''), v_ref)
-      || ' â€” tous les destinataires ont signÃ©.';
+      || ' — tous les destinataires ont signé.';
   else
     v_kind := 'signing_declined';
     v_en_title := 'Signature declined';
-    v_fr_title := 'Signature refusÃ©e';
-    v_en_body := coalesce(nullif(btrim(v_title_en), ''), v_ref) || ' â€” a recipient declined to sign.';
+    v_fr_title := 'Signature refusée';
+    v_en_body := coalesce(nullif(btrim(v_title_en), ''), v_ref) || ' — a recipient declined to sign.';
     v_fr_body := coalesce(nullif(btrim(v_title_fr), ''), nullif(btrim(v_title_en), ''), v_ref)
-      || ' â€” un destinataire a refusÃ© de signer.';
+      || ' — un destinataire a refusé de signer.';
   end if;
 
   insert into public.hr_workspace_notifications (
@@ -520,6 +523,24 @@ $$;
 ALTER FUNCTION "public"."_hr_signing_request_ip_hash"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."_org_capacity_lock"("p_organization_id" "uuid") RETURNS "void"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+begin
+  if p_organization_id is null then
+    return;
+  end if;
+  perform pg_advisory_xact_lock(
+    hashtext('plan_cap:' || p_organization_id::text)
+  );
+end;
+$$;
+
+
+ALTER FUNCTION "public"."_org_capacity_lock"("p_organization_id" "uuid") OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."ai_recommendations" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "organization_id" "uuid",
@@ -608,6 +629,22 @@ $$;
 
 
 ALTER FUNCTION "public"."acquire_cron_lock"("p_job_name" "text", "p_instance_id" "text", "p_ttl_seconds" integer) OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."active_org_member_role"("target_organization_id" "uuid") RETURNS "text"
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO 'public', 'auth'
+    AS $$
+  SELECT role
+  FROM public.organization_members
+  WHERE organization_id = target_organization_id
+    AND user_id = auth.uid()
+    AND status = 'active'
+  LIMIT 1;
+$$;
+
+
+ALTER FUNCTION "public"."active_org_member_role"("target_organization_id" "uuid") OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."comments" (
@@ -1586,6 +1623,135 @@ $$;
 ALTER FUNCTION "public"."admin_usage_summary"("days_back" integer) OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."advisor_monthly_included"("p_plan" "text") RETURNS integer
+    LANGUAGE "plpgsql" IMMUTABLE
+    SET "search_path" TO 'public'
+    AS $$
+begin
+  return case coalesce(p_plan, 'free')
+    when 'starter' then 80
+    when 'growth' then 200
+    when 'pro' then 400
+    else 20 -- free and unknown
+  end;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."advisor_monthly_included"("p_plan" "text") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."advisor_usage_summary"("p_organization_id" "uuid") RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_uid uuid := auth.uid();
+  v_role text := coalesce(auth.role(), '');
+  v_now timestamptz := timezone('utc', now());
+  v_month date := (date_trunc('month', v_now))::date;
+  v_next_reset timestamptz :=
+    (date_trunc('month', v_now) + interval '1 month') at time zone 'utc';
+  v_plan text;
+  v_limit integer;
+  v_included_used integer := 0;
+  v_rollover integer := 0;
+  v_nearest timestamptz;
+  v_pack integer := 0;
+  v_opt boolean := false;
+  v_sub text;
+  v_cust text;
+  v_overage_used integer := 0;
+  v_overage_enabled boolean := false;
+  v_overage_cap integer := 500;
+begin
+  if p_organization_id is null then
+    raise exception 'organization_id required' using errcode = '22023';
+  end if;
+
+  if v_role is distinct from 'service_role'
+     and (
+       v_uid is null
+       or not public.is_org_member(p_organization_id, v_uid)
+     )
+  then
+    raise exception 'not authorized' using errcode = '42501';
+  end if;
+
+  -- Lazy transition so summary reflects a fresh month bank.
+  perform public.ensure_advisor_month_transition(p_organization_id);
+
+  v_plan := public.organization_effective_plan(p_organization_id);
+  v_limit := public.advisor_monthly_included(v_plan);
+
+  select coalesce(included_used, 0) into v_included_used
+    from public.ai_advisor_month_state
+    where organization_id = p_organization_id
+      and month_start = v_month;
+
+  select
+    coalesce(sum(remaining_replies), 0),
+    min(expires_at) filter (where remaining_replies > 0 and expires_at > v_now)
+  into v_rollover, v_nearest
+    from public.ai_advisor_rollover_credits
+    where organization_id = p_organization_id
+      and remaining_replies > 0
+      and expires_at > v_now;
+
+  select coalesce(sum(remaining_replies), 0) into v_pack
+    from public.ai_advisor_org_credits
+    where organization_id = p_organization_id
+      and remaining_replies > 0;
+
+  select advisor_overage_opt_in, subscription_status, stripe_customer_id
+    into v_opt, v_sub, v_cust
+    from public.organizations
+    where id = p_organization_id;
+
+  v_overage_enabled :=
+    coalesce(v_opt, false)
+    and coalesce(v_sub, '') in ('active', 'trialing')
+    and v_cust is not null
+    and length(btrim(v_cust)) > 0;
+
+  select coalesce(used, 0) into v_overage_used
+    from public.ai_advisor_org_overage_months
+    where organization_id = p_organization_id
+      and month_start = v_month;
+
+  return jsonb_build_object(
+    'organization_id', p_organization_id,
+    'plan', v_plan,
+    'monthly_limit', v_limit,
+    'monthly_used', coalesce(v_included_used, 0),
+    'monthly_remaining', greatest(0, v_limit - coalesce(v_included_used, 0)),
+    'rollover_balance', coalesce(v_rollover, 0),
+    'nearest_rollover_expiry', v_nearest,
+    'pack_balance', coalesce(v_pack, 0),
+    'overage_enabled', v_overage_enabled,
+    'overage_used', coalesce(v_overage_used, 0),
+    'overage_cap', v_overage_cap,
+    'next_reset_at', v_next_reset,
+    'consumption_order', jsonb_build_array(
+      'rollover',
+      'monthly_included',
+      'pack',
+      'overage'
+    ),
+    'consumption_order_keys', jsonb_build_object(
+      'rollover', 'advisor_usage_order_rollover',
+      'monthly_included', 'advisor_usage_order_monthly_included',
+      'pack', 'advisor_usage_order_pack',
+      'overage', 'advisor_usage_order_overage'
+    )
+  );
+end;
+$$;
+
+
+ALTER FUNCTION "public"."advisor_usage_summary"("p_organization_id" "uuid") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."apply_hr_document_signature"("p_envelope_id" "text", "p_signed_name" "text", "p_signature_image" "text" DEFAULT NULL::"text", "p_signature_text" "text" DEFAULT NULL::"text", "p_consent_version" "text" DEFAULT NULL::"text") RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
@@ -1770,7 +1936,7 @@ begin
     v_recipient.document_id,
     'signature_applied',
     trim(p_signed_name),
-    v_recipient.email || ' Â· external link'
+    v_recipient.email || ' · external link'
   );
 
   if v_all_signed then
@@ -1800,6 +1966,192 @@ $$;
 
 
 ALTER FUNCTION "public"."apply_hr_document_signature_by_token"("p_token" "uuid", "p_signed_name" "text", "p_signature_image" "text", "p_signature_text" "text", "p_consent_version" "text") OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."organizations" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "name" "text" NOT NULL,
+    "legal_name" "text",
+    "website" "text",
+    "default_jurisdiction" "text" DEFAULT 'Ontario'::"text" NOT NULL,
+    "default_language" "text" DEFAULT 'EN'::"text" NOT NULL,
+    "plan" "text" DEFAULT 'free'::"text" NOT NULL,
+    "subscription_status" "text" DEFAULT 'inactive'::"text" NOT NULL,
+    "billing_period" "text" DEFAULT 'monthly'::"text" NOT NULL,
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    "signing_reminder_days" integer DEFAULT 3 NOT NULL,
+    "stripe_customer_id" "text",
+    "stripe_subscription_id" "text",
+    "billing_owner_user_id" "uuid",
+    "advisor_overage_opt_in" boolean DEFAULT false NOT NULL,
+    "free_access_starts_at" timestamp with time zone,
+    "free_access_ends_at" timestamp with time zone,
+    "policy_review_days" integer DEFAULT 90 NOT NULL,
+    "industry" "text",
+    "jurisdictions" "text"[] DEFAULT ARRAY[]::"text"[] NOT NULL,
+    "finance_features" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
+    "enabled_modules" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
+    CONSTRAINT "organizations_billing_period_check" CHECK (("billing_period" = ANY (ARRAY['monthly'::"text", 'annual'::"text"]))),
+    CONSTRAINT "organizations_default_jurisdiction_check" CHECK (("default_jurisdiction" = ANY (ARRAY['Ontario'::"text", 'Quebec'::"text", 'British Columbia'::"text", 'Alberta'::"text", 'Federal'::"text", 'Remote Federal'::"text"]))),
+    CONSTRAINT "organizations_default_language_check" CHECK (("default_language" = ANY (ARRAY['EN'::"text", 'FR'::"text", 'BOTH'::"text"]))),
+    CONSTRAINT "organizations_plan_check" CHECK (("plan" = ANY (ARRAY['free'::"text", 'starter'::"text", 'growth'::"text", 'pro'::"text"]))),
+    CONSTRAINT "organizations_policy_review_days_check" CHECK ((("policy_review_days" >= 30) AND ("policy_review_days" <= 365))),
+    CONSTRAINT "organizations_signing_reminder_days_check" CHECK ((("signing_reminder_days" >= 1) AND ("signing_reminder_days" <= 14))),
+    CONSTRAINT "organizations_subscription_status_check" CHECK (("subscription_status" = ANY (ARRAY['active'::"text", 'inactive'::"text", 'past_due'::"text", 'canceled'::"text", 'trialing'::"text"])))
+);
+
+
+ALTER TABLE "public"."organizations" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."organizations"."industry" IS 'Free-form industry or sector label for template defaults and recommendations.';
+
+
+
+COMMENT ON COLUMN "public"."organizations"."jurisdictions" IS 'Array of operating jurisdictions; drives jurisdiction pack and compliance scoping.';
+
+
+
+COMMENT ON COLUMN "public"."organizations"."finance_features" IS 'JSONB map of enabled Finance module tabs. Missing keys default to enabled for backward compatibility.';
+
+
+
+COMMENT ON COLUMN "public"."organizations"."enabled_modules" IS 'JSONB map of enabled top-level workspace modules. Missing keys default to enabled. Mirrors navConfig.ts nav item keys.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."apply_organization_billing"("p_organization_id" "uuid", "p_plan" "text", "p_subscription_status" "text", "p_billing_period" "text", "p_stripe_customer_id" "text" DEFAULT NULL::"text", "p_stripe_subscription_id" "text" DEFAULT NULL::"text", "p_billing_owner_user_id" "uuid" DEFAULT NULL::"uuid") RETURNS "public"."organizations"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_org public.organizations;
+  v_owner uuid;
+  v_prev_plan text;
+  v_prev_status text;
+begin
+  if coalesce(auth.role(), '') in ('authenticated', 'anon') then
+    raise exception 'not authorized'
+      using errcode = '42501';
+  end if;
+
+  if p_organization_id is null then
+    raise exception 'organization_id required'
+      using errcode = '22023';
+  end if;
+
+  if p_plan is null or p_plan not in ('free', 'starter', 'growth', 'pro') then
+    raise exception 'invalid plan'
+      using errcode = '22023';
+  end if;
+
+  if p_subscription_status is null
+     or p_subscription_status not in (
+       'active', 'inactive', 'past_due', 'canceled', 'trialing'
+     )
+  then
+    raise exception 'invalid subscription_status'
+      using errcode = '22023';
+  end if;
+
+  if p_billing_period is null
+     or p_billing_period not in ('monthly', 'annual')
+  then
+    raise exception 'invalid billing_period'
+      using errcode = '22023';
+  end if;
+
+  select plan, subscription_status
+    into v_prev_plan, v_prev_status
+    from public.organizations
+    where id = p_organization_id;
+
+  update public.organizations
+  set
+    plan = p_plan,
+    subscription_status = p_subscription_status,
+    billing_period = p_billing_period,
+    stripe_customer_id = coalesce(p_stripe_customer_id, stripe_customer_id),
+    stripe_subscription_id = coalesce(p_stripe_subscription_id, stripe_subscription_id),
+    billing_owner_user_id = coalesce(p_billing_owner_user_id, billing_owner_user_id),
+    updated_at = timezone('utc', now())
+  where id = p_organization_id
+  returning * into v_org;
+
+  if v_org.id is null then
+    raise exception 'organization not found'
+      using errcode = 'P0002';
+  end if;
+
+  v_owner := coalesce(p_billing_owner_user_id, v_org.billing_owner_user_id);
+
+  if v_owner is not null then
+    insert into public.profiles (
+      id,
+      plan,
+      subscription_status,
+      billing_period,
+      stripe_customer_id,
+      stripe_subscription_id
+    )
+    values (
+      v_owner,
+      p_plan,
+      p_subscription_status,
+      p_billing_period,
+      coalesce(p_stripe_customer_id, v_org.stripe_customer_id),
+      coalesce(p_stripe_subscription_id, v_org.stripe_subscription_id)
+    )
+    on conflict (id) do update
+    set
+      plan = excluded.plan,
+      subscription_status = excluded.subscription_status,
+      billing_period = excluded.billing_period,
+      stripe_customer_id = coalesce(
+        excluded.stripe_customer_id,
+        public.profiles.stripe_customer_id
+      ),
+      stripe_subscription_id = coalesce(
+        excluded.stripe_subscription_id,
+        public.profiles.stripe_subscription_id
+      );
+  end if;
+
+  -- Rollover: expire when paid access ends; otherwise cap to new plan max.
+  if p_plan = 'free'
+     or p_subscription_status not in ('active', 'trialing')
+  then
+    perform public.expire_advisor_rollover_on_cancel(p_organization_id);
+  else
+    perform public.cap_advisor_rollover_to_plan(p_organization_id);
+  end if;
+
+  insert into public.organization_billing_events (
+    organization_id, event_type, payload
+  )
+  values (
+    p_organization_id,
+    'apply_organization_billing',
+    jsonb_build_object(
+      'plan', p_plan,
+      'subscription_status', p_subscription_status,
+      'billing_period', p_billing_period,
+      'stripe_customer_id', coalesce(p_stripe_customer_id, v_org.stripe_customer_id),
+      'stripe_subscription_id', coalesce(p_stripe_subscription_id, v_org.stripe_subscription_id),
+      'billing_owner_user_id', v_owner,
+      'previous_plan', v_prev_plan,
+      'previous_subscription_status', v_prev_status
+    )
+  );
+
+  return v_org;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."apply_organization_billing"("p_organization_id" "uuid", "p_plan" "text", "p_subscription_status" "text", "p_billing_period" "text", "p_stripe_customer_id" "text", "p_stripe_subscription_id" "text", "p_billing_owner_user_id" "uuid") OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."archive_old_document_versions"() RETURNS integer
@@ -1846,6 +2198,215 @@ COMMENT ON FUNCTION "public"."archive_old_document_versions"() IS 'Archives docu
 
 
 
+CREATE OR REPLACE FUNCTION "public"."assert_active_case_capacity"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_plan text;
+  v_limit integer;
+  v_count integer;
+  v_org_id uuid;
+  v_counts boolean;
+begin
+  -- Active case = not resolved/closed/archived (schema today: open|in_review|resolved).
+  v_counts := new.status not in ('resolved', 'closed', 'archived');
+
+  if not v_counts then
+    return new;
+  end if;
+
+  -- Insert-only gate per product requirement (reopening is rare / paid).
+  if tg_op <> 'INSERT' then
+    return new;
+  end if;
+
+  v_org_id := new.organization_id;
+  perform public._org_capacity_lock(v_org_id);
+
+  v_plan := public.organization_effective_plan(v_org_id);
+  v_limit := public.plan_limit(v_plan, 'cases');
+  if v_limit < 0 then
+    return new;
+  end if;
+
+  select count(*)::integer
+  into v_count
+  from public.hr_cases c
+  where c.organization_id = v_org_id
+    and c.status not in ('resolved', 'closed', 'archived');
+
+  if v_count >= v_limit then
+    raise exception 'plan_limit:active_cases'
+      using errcode = 'P0001';
+  end if;
+
+  return new;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."assert_active_case_capacity"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."assert_active_employee_capacity"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_plan text;
+  v_limit integer;
+  v_count integer;
+  v_org_id uuid;
+  v_new_counts boolean;
+  v_old_counts boolean;
+begin
+  -- Count everything except terminated/archived (archived not in CHECK yet).
+  v_new_counts := new.status not in ('terminated', 'archived');
+
+  if not v_new_counts then
+    return new;
+  end if;
+
+  if tg_op = 'UPDATE' then
+    v_old_counts := old.status not in ('terminated', 'archived');
+    if v_old_counts then
+      return new;
+    end if;
+  end if;
+
+  v_org_id := new.organization_id;
+  perform public._org_capacity_lock(v_org_id);
+
+  v_plan := public.organization_effective_plan(v_org_id);
+  v_limit := public.plan_limit(v_plan, 'employees');
+  if v_limit < 0 then
+    return new;
+  end if;
+
+  select count(*)::integer
+  into v_count
+  from public.employees e
+  where e.organization_id = v_org_id
+    and e.status not in ('terminated', 'archived')
+    and (tg_op = 'INSERT' or e.id is distinct from new.id);
+
+  if v_count >= v_limit then
+    raise exception 'plan_limit:active_employees'
+      using errcode = 'P0001';
+  end if;
+
+  return new;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."assert_active_employee_capacity"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."assert_open_task_capacity"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_plan text;
+  v_limit integer;
+  v_count integer;
+  v_org_id uuid;
+begin
+  if new.status in ('completed', 'cancelled') then
+    return new;
+  end if;
+
+  if tg_op <> 'INSERT' then
+    return new;
+  end if;
+
+  v_org_id := new.organization_id;
+  perform public._org_capacity_lock(v_org_id);
+
+  v_plan := public.organization_effective_plan(v_org_id);
+  v_limit := public.plan_limit(v_plan, 'tasks');
+  if v_limit < 0 then
+    return new;
+  end if;
+
+  select count(*)::integer
+  into v_count
+  from public.compliance_tasks t
+  where t.organization_id = v_org_id
+    and t.status not in ('completed', 'cancelled');
+
+  if v_count >= v_limit then
+    raise exception 'plan_limit:open_tasks'
+      using errcode = 'P0001';
+  end if;
+
+  return new;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."assert_open_task_capacity"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."assert_org_member_capacity"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_plan text;
+  v_limit integer;
+  v_count integer;
+  v_org_id uuid;
+begin
+  -- Downgrade / removal paths never block.
+  if tg_op = 'UPDATE'
+     and new.status in ('suspended', 'suspended_plan_limit', 'removed', 'invited')
+  then
+    return new;
+  end if;
+
+  -- Only gate transitions into active (or inserts that are already active).
+  if new.status is distinct from 'active' then
+    return new;
+  end if;
+
+  if tg_op = 'UPDATE'
+     and old.status is not distinct from 'active'
+  then
+    return new;
+  end if;
+
+  v_org_id := new.organization_id;
+  perform public._org_capacity_lock(v_org_id);
+
+  v_plan := public.organization_effective_plan(v_org_id);
+  v_limit := public.plan_limit(v_plan, 'users');
+  if v_limit < 0 then
+    return new;
+  end if;
+
+  select count(*)::integer
+  into v_count
+  from public.organization_members om
+  where om.organization_id = v_org_id
+    and om.status = 'active'
+    and (tg_op = 'INSERT' or om.id is distinct from new.id);
+
+  if v_count >= v_limit then
+    raise exception 'plan_limit:workspace_users'
+      using errcode = 'P0001';
+  end if;
+
+  return new;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."assert_org_member_capacity"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."attachment_scan_status"() RETURNS TABLE("secret_configured" boolean, "job_scheduled" boolean, "pending_count" bigint, "flagged_count" bigint, "skipped_count" bigint, "oldest_pending_at" timestamp with time zone, "last_scanned_at" timestamp with time zone)
     LANGUAGE "sql" SECURITY DEFINER
     SET "search_path" TO 'pg_catalog', 'public'
@@ -1885,6 +2446,81 @@ $$;
 
 
 ALTER FUNCTION "public"."auto_increment_version"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."backfill_organization_billing_from_profiles"() RETURNS integer
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  r record;
+  v_org_id uuid;
+  v_count integer := 0;
+begin
+  if coalesce(auth.role(), '') in ('authenticated', 'anon') then
+    raise exception 'not authorized'
+      using errcode = '42501';
+  end if;
+
+  for r in
+    select
+      p.id as user_id,
+      p.plan,
+      p.subscription_status,
+      p.billing_period,
+      p.stripe_customer_id,
+      p.stripe_subscription_id
+    from public.profiles p
+    where p.plan in ('starter', 'growth', 'pro')
+      and p.subscription_status in ('active', 'trialing')
+  loop
+    select om.organization_id
+    into v_org_id
+    from public.organization_members om
+    where om.user_id = r.user_id
+      and om.status = 'active'
+      and om.role in ('owner', 'admin')
+    order by
+      case when om.role = 'owner' then 0 else 1 end,
+      om.created_at asc
+    limit 1;
+
+    if v_org_id is null then
+      continue;
+    end if;
+
+    if exists (
+      select 1
+      from public.organizations o
+      where o.id = v_org_id
+        and o.plan = r.plan
+        and o.subscription_status = r.subscription_status
+        and o.billing_period = r.billing_period
+        and o.stripe_customer_id is not distinct from r.stripe_customer_id
+        and o.stripe_subscription_id is not distinct from r.stripe_subscription_id
+        and o.billing_owner_user_id is not distinct from r.user_id
+    ) then
+      continue;
+    end if;
+
+    perform public.apply_organization_billing(
+      v_org_id,
+      r.plan,
+      r.subscription_status,
+      coalesce(nullif(r.billing_period, ''), 'monthly'),
+      r.stripe_customer_id,
+      r.stripe_subscription_id,
+      r.user_id
+    );
+    v_count := v_count + 1;
+  end loop;
+
+  return v_count;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."backfill_organization_billing_from_profiles"() OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."organization_maturity_scores" (
@@ -1967,312 +2603,225 @@ CREATE OR REPLACE FUNCTION "public"."cancel_signature_for_owner"("p_signature_id
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$
-
 DECLARE
-
   v_sig public.signatures;
-
 BEGIN
-
   SELECT *
-
   INTO v_sig
-
   FROM public.signatures
-
   WHERE id = p_signature_id
-
     AND user_id = auth.uid()
-
   LIMIT 1;
 
-
-
   IF v_sig.id IS NULL THEN
-
     RAISE EXCEPTION 'Signing request not found.';
-
   END IF;
-
-
 
   IF v_sig.status <> 'pending' THEN
-
     RAISE EXCEPTION 'Only pending signing requests can be cancelled.';
-
   END IF;
-
-
 
   UPDATE public.signatures
-
   SET status = 'cancelled'
-
   WHERE id = v_sig.id
-
     AND user_id = auth.uid()
-
     AND status = 'pending';
 
-
-
   IF NOT FOUND THEN
-
     RAISE EXCEPTION 'Signing request could not be cancelled.';
-
   END IF;
 
-
-
   INSERT INTO public.signature_audit_events (signature_id, document_id, user_id, event_type)
-
   VALUES (v_sig.id, v_sig.document_id, v_sig.user_id, 'signature_cancelled');
-
 END;
-
 $$;
 
 
 ALTER FUNCTION "public"."cancel_signature_for_owner"("p_signature_id" "uuid") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."cap_advisor_rollover_to_plan"("p_organization_id" "uuid") RETURNS integer
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_now timestamptz := timezone('utc', now());
+  v_limit integer;
+  v_bank integer;
+  v_excess integer;
+  v_row record;
+  v_take integer;
+  v_reduced integer := 0;
+begin
+  if p_organization_id is null then
+    return 0;
+  end if;
+
+  v_limit := public.advisor_monthly_included(
+    public.organization_effective_plan(p_organization_id)
+  );
+
+  if v_limit <= 0 then
+    return public.expire_advisor_rollover_on_cancel(p_organization_id);
+  end if;
+
+  select coalesce(sum(remaining_replies), 0) into v_bank
+    from public.ai_advisor_rollover_credits
+    where organization_id = p_organization_id
+      and remaining_replies > 0
+      and expires_at > v_now;
+
+  v_excess := v_bank - v_limit;
+  if v_excess <= 0 then
+    return 0;
+  end if;
+
+  for v_row in
+    select id, remaining_replies
+      from public.ai_advisor_rollover_credits
+      where organization_id = p_organization_id
+        and remaining_replies > 0
+        and expires_at > v_now
+      order by granted_at desc, id desc
+      for update
+  loop
+    exit when v_excess <= 0;
+    v_take := least(v_row.remaining_replies, v_excess);
+    update public.ai_advisor_rollover_credits
+      set remaining_replies = remaining_replies - v_take
+      where id = v_row.id;
+    v_excess := v_excess - v_take;
+    v_reduced := v_reduced + v_take;
+  end loop;
+
+  return v_reduced;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."cap_advisor_rollover_to_plan"("p_organization_id" "uuid") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."check_and_increment_usage_counter"("p_user_id" "uuid", "p_period_start" "date", "p_action" "text", "p_limit" integer) RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$
-
 declare
-
   v_used integer;
-
 begin
-
   if p_user_id is null then
-
     raise exception 'Missing usage counter user id.';
-
   end if;
-
-
 
   if p_period_start is null then
-
     raise exception 'Missing usage counter period start.';
-
   end if;
-
-
 
   if p_limit is null or p_limit < 0 then
-
     raise exception 'Usage limit must be a non-negative integer.';
-
   end if;
-
-
 
   insert into public.usage_counters (user_id, period_start)
-
   values (p_user_id, p_period_start)
-
   on conflict (user_id, period_start) do nothing;
 
-
-
   case p_action
-
     when 'advisor_messages' then
-
       update public.usage_counters
-
         set advisor_messages_used = advisor_messages_used + 1,
-
             updated_at = timezone('utc', now())
-
         where user_id = p_user_id
-
           and period_start = p_period_start
-
           and advisor_messages_used < p_limit
-
         returning advisor_messages_used into v_used;
 
-
-
     when 'documents_generated' then
-
       update public.usage_counters
-
         set documents_generated = documents_generated + 1,
-
             updated_at = timezone('utc', now())
-
         where user_id = p_user_id
-
           and period_start = p_period_start
-
           and documents_generated < p_limit
-
         returning documents_generated into v_used;
 
-
-
     when 'documents_saved' then
-
       update public.usage_counters
-
         set documents_saved = documents_saved + 1,
-
             updated_at = timezone('utc', now())
-
         where user_id = p_user_id
-
           and period_start = p_period_start
-
           and documents_saved < p_limit
-
         returning documents_saved into v_used;
 
-
-
     when 'exports' then
-
       update public.usage_counters
-
         set exports_used = exports_used + 1,
-
             updated_at = timezone('utc', now())
-
         where user_id = p_user_id
-
           and period_start = p_period_start
-
           and exports_used < p_limit
-
         returning exports_used into v_used;
 
-
-
     when 'compliance_reviews' then
-
       update public.usage_counters
-
         set compliance_reviews = compliance_reviews + 1,
-
             updated_at = timezone('utc', now())
-
         where user_id = p_user_id
-
           and period_start = p_period_start
-
           and compliance_reviews < p_limit
-
         returning compliance_reviews into v_used;
 
-
-
     when 'e_signature_sends' then
-
       update public.usage_counters
-
         set e_signature_sends = e_signature_sends + 1,
-
             updated_at = timezone('utc', now())
-
         where user_id = p_user_id
-
           and period_start = p_period_start
-
           and e_signature_sends < p_limit
-
         returning e_signature_sends into v_used;
 
-
-
     else
-
       raise exception 'Unknown usage action: %', p_action;
-
   end case;
-
-
 
   if found then
-
     return jsonb_build_object('allowed', true, 'used', v_used, 'limit', p_limit);
-
   end if;
 
-
-
   case p_action
-
     when 'advisor_messages' then
-
       select advisor_messages_used into v_used
-
       from public.usage_counters
-
       where user_id = p_user_id and period_start = p_period_start;
-
-
 
     when 'documents_generated' then
-
       select documents_generated into v_used
-
       from public.usage_counters
-
       where user_id = p_user_id and period_start = p_period_start;
-
-
 
     when 'documents_saved' then
-
       select documents_saved into v_used
-
       from public.usage_counters
-
       where user_id = p_user_id and period_start = p_period_start;
-
-
 
     when 'exports' then
-
       select exports_used into v_used
-
       from public.usage_counters
-
       where user_id = p_user_id and period_start = p_period_start;
-
-
 
     when 'compliance_reviews' then
-
       select compliance_reviews into v_used
-
       from public.usage_counters
-
       where user_id = p_user_id and period_start = p_period_start;
-
-
 
     when 'e_signature_sends' then
-
       select e_signature_sends into v_used
-
       from public.usage_counters
-
       where user_id = p_user_id and period_start = p_period_start;
-
   end case;
 
-
-
   return jsonb_build_object('allowed', false, 'used', coalesce(v_used, 0), 'limit', p_limit);
-
 end;
-
 $$;
 
 
@@ -2285,6 +2834,7 @@ CREATE OR REPLACE FUNCTION "public"."claim_ai_usage"("p_user_id" "uuid", "p_oper
     AS $$
 declare
   v_now timestamptz := now();
+  v_utc_now timestamptz := timezone('utc', now());
   v_burst_since timestamptz := v_now - make_interval(secs => greatest(p_burst_window_seconds, 1));
   v_day_since timestamptz := v_now - interval '24 hours';
   v_count integer;
@@ -2301,6 +2851,10 @@ declare
   v_month_start timestamptz;
   v_next_month timestamptz;
   v_month_date date;
+  v_plan text;
+  v_monthly_limit integer;
+  v_included_used integer;
+  v_rollover_id uuid;
 begin
   if p_user_id is null then
     return jsonb_build_object('allowed', false, 'scope', 'unauthenticated');
@@ -2308,6 +2862,30 @@ begin
 
   perform pg_advisory_xact_lock(hashtext('ai_usage_claim'));
 
+  -- Staff: meter for visibility, never deny (burst / daily / platform / commercial).
+  if public.user_is_dutiva_staff(p_user_id) then
+    select id into v_org from public.organizations where id = p_organization_id;
+    insert into public.ai_telemetry_events
+      (organization_id, user_id, provider, model, operation, status, metadata)
+    values
+      (
+        v_org,
+        p_user_id,
+        p_provider,
+        p_model,
+        p_operation,
+        'started',
+        jsonb_build_object('commercial', 'included', 'staff_bypass', true)
+      )
+    returning id into v_claim;
+    return jsonb_build_object(
+      'allowed', true,
+      'claim_id', v_claim,
+      'commercial', 'included'
+    );
+  end if;
+
+  -- Burst: this user, this operation, short window.
   select count(*), min(created_at) into v_count, v_oldest
     from public.ai_telemetry_events
     where user_id = p_user_id
@@ -2325,6 +2903,7 @@ begin
     );
   end if;
 
+  -- Daily requests: this user, rolling 24h, every metered operation.
   select count(*), min(created_at) into v_count, v_oldest
     from public.ai_telemetry_events
     where user_id = p_user_id
@@ -2341,6 +2920,7 @@ begin
     );
   end if;
 
+  -- Daily tokens.
   select coalesce(sum(total_tokens), 0), min(created_at) into v_tokens, v_oldest
     from public.ai_telemetry_events
     where user_id = p_user_id
@@ -2359,10 +2939,12 @@ begin
     );
   end if;
 
+  -- Platform ceiling (staff_bypass rows do not consume the shared beta budget).
   select count(*), min(created_at) into v_count, v_oldest
     from public.ai_telemetry_events
     where operation = any(p_metered_operations)
-      and created_at >= v_day_since;
+      and created_at >= v_day_since
+      and coalesce(metadata ->> 'staff_bypass', '') is distinct from 'true';
   if v_count >= greatest(p_platform_daily_limit, 1) then
     return jsonb_build_object(
       'allowed', false,
@@ -2374,87 +2956,203 @@ begin
     );
   end if;
 
+  -- Resolve org (null when absent or unknown id).
+  select id into v_org from public.organizations where id = p_organization_id;
+
+  -- Commercial included / rollover / pack / overage. Advisor `chat` only.
   if p_operation = any(coalesce(p_commercial_operations, array[]::text[])) then
     v_month_start := date_trunc('month', timezone('utc', v_now)) at time zone 'utc';
     v_next_month := (date_trunc('month', timezone('utc', v_now)) + interval '1 month') at time zone 'utc';
     v_month_date := (date_trunc('month', timezone('utc', v_now)))::date;
 
-    select count(*) into v_count
-      from public.ai_telemetry_events
-      where user_id = p_user_id
-        and operation = any(p_commercial_operations)
-        and created_at >= v_month_start
-        and status in ('started', 'completed', 'failed');
+    if v_org is not null then
+      -- ── Org-pooled commercial path ──────────────────────────────────────
+      perform public.ensure_advisor_month_transition(v_org);
 
-    if v_count >= greatest(p_monthly_chat_limit, 0) then
-      update public.ai_advisor_credits
+      v_plan := public.organization_effective_plan(v_org);
+      v_monthly_limit := public.advisor_monthly_included(v_plan);
+
+      -- 1) Oldest unexpired rollover
+      update public.ai_advisor_rollover_credits
         set remaining_replies = remaining_replies - 1
         where id = (
-          select id from public.ai_advisor_credits
-          where user_id = p_user_id and remaining_replies > 0
-          order by created_at
+          select id from public.ai_advisor_rollover_credits
+          where organization_id = v_org
+            and remaining_replies > 0
+            and expires_at > v_utc_now
+          order by expires_at asc, granted_at asc, id asc
           limit 1
           for update
         )
-      returning id into v_credit_id;
+      returning id into v_rollover_id;
 
-      if v_credit_id is not null then
-        v_commercial := 'pack';
-      elsif greatest(p_overage_monthly_cap, 0) <= 0 then
-        return jsonb_build_object(
-          'allowed', false,
-          'scope', 'commercial',
-          'limit', p_monthly_chat_limit,
-          'used', v_count,
-          'retry_after_seconds',
-            greatest(1, ceil(extract(epoch from (v_next_month - v_now)))::integer)
-        );
+      if v_rollover_id is not null then
+        v_commercial := 'rollover';
       else
-        select advisor_overage_opt_in, subscription_status, stripe_customer_id
-          into v_opt, v_sub, v_cust
-          from public.profiles
-          where id = p_user_id;
+        select included_used into v_included_used
+          from public.ai_advisor_month_state
+          where organization_id = v_org
+            and month_start = v_month_date
+          for update;
 
-        if coalesce(v_opt, false)
-           and v_sub in ('active', 'trialing')
-           and v_cust is not null
-           and length(btrim(v_cust)) > 0 then
-          insert into public.ai_advisor_overage_months (user_id, month_start, used)
-          values (p_user_id, v_month_date, 1)
-          on conflict (user_id, month_start) do update
-            set used = public.ai_advisor_overage_months.used + 1
-            where public.ai_advisor_overage_months.used < greatest(p_overage_monthly_cap, 0)
-          returning used into v_overage_used;
+        v_included_used := coalesce(v_included_used, 0);
 
-          if v_overage_used is not null then
-            v_commercial := 'overage';
+        -- 2) Current monthly included
+        if v_included_used < greatest(v_monthly_limit, 0) then
+          update public.ai_advisor_month_state
+            set included_used = included_used + 1
+            where organization_id = v_org
+              and month_start = v_month_date;
+          v_commercial := 'included';
+        else
+          -- 3) Org pack credits (oldest first)
+          update public.ai_advisor_org_credits
+            set remaining_replies = remaining_replies - 1
+            where id = (
+              select id from public.ai_advisor_org_credits
+              where organization_id = v_org and remaining_replies > 0
+              order by created_at
+              limit 1
+              for update
+            )
+          returning id into v_credit_id;
+
+          if v_credit_id is not null then
+            v_commercial := 'pack';
+          elsif greatest(p_overage_monthly_cap, 0) <= 0 then
+            return jsonb_build_object(
+              'allowed', false,
+              'scope', 'commercial',
+              'limit', v_monthly_limit,
+              'used', v_included_used,
+              'retry_after_seconds',
+                greatest(1, ceil(extract(epoch from (v_next_month - v_now)))::integer)
+            );
+          else
+            -- 4) Org overage when opted in + paid + Stripe customer
+            select advisor_overage_opt_in, subscription_status, stripe_customer_id
+              into v_opt, v_sub, v_cust
+              from public.organizations
+              where id = v_org;
+
+            if coalesce(v_opt, false)
+               and v_sub in ('active', 'trialing')
+               and v_cust is not null
+               and length(btrim(v_cust)) > 0 then
+              insert into public.ai_advisor_org_overage_months (
+                organization_id, month_start, used
+              )
+              values (v_org, v_month_date, 1)
+              on conflict (organization_id, month_start) do update
+                set used = public.ai_advisor_org_overage_months.used + 1
+                where public.ai_advisor_org_overage_months.used
+                      < greatest(p_overage_monthly_cap, 0)
+              returning used into v_overage_used;
+
+              if v_overage_used is not null then
+                v_commercial := 'overage';
+              else
+                return jsonb_build_object(
+                  'allowed', false,
+                  'scope', 'commercial',
+                  'limit', v_monthly_limit,
+                  'used', v_included_used,
+                  'retry_after_seconds',
+                    greatest(1, ceil(extract(epoch from (v_next_month - v_now)))::integer)
+                );
+              end if;
+            else
+              return jsonb_build_object(
+                'allowed', false,
+                'scope', 'commercial',
+                'limit', v_monthly_limit,
+                'used', v_included_used,
+                'retry_after_seconds',
+                  greatest(1, ceil(extract(epoch from (v_next_month - v_now)))::integer)
+              );
+            end if;
+          end if;
+        end if;
+      end if;
+    else
+      -- ── Legacy user-scoped path (null org / unknown id) ─────────────────
+      v_monthly_limit := greatest(coalesce(p_monthly_chat_limit, 0), 0);
+
+      select count(*) into v_count
+        from public.ai_telemetry_events
+        where user_id = p_user_id
+          and operation = any(p_commercial_operations)
+          and created_at >= v_month_start
+          and status in ('started', 'completed', 'failed');
+
+      if v_count >= v_monthly_limit then
+        update public.ai_advisor_credits
+          set remaining_replies = remaining_replies - 1
+          where id = (
+            select id from public.ai_advisor_credits
+            where user_id = p_user_id and remaining_replies > 0
+            order by created_at
+            limit 1
+            for update
+          )
+        returning id into v_credit_id;
+
+        if v_credit_id is not null then
+          v_commercial := 'pack';
+        elsif greatest(p_overage_monthly_cap, 0) <= 0 then
+          return jsonb_build_object(
+            'allowed', false,
+            'scope', 'commercial',
+            'limit', v_monthly_limit,
+            'used', v_count,
+            'retry_after_seconds',
+              greatest(1, ceil(extract(epoch from (v_next_month - v_now)))::integer)
+          );
+        else
+          select advisor_overage_opt_in, subscription_status, stripe_customer_id
+            into v_opt, v_sub, v_cust
+            from public.profiles
+            where id = p_user_id;
+
+          if coalesce(v_opt, false)
+             and v_sub in ('active', 'trialing')
+             and v_cust is not null
+             and length(btrim(v_cust)) > 0 then
+            insert into public.ai_advisor_overage_months (user_id, month_start, used)
+            values (p_user_id, v_month_date, 1)
+            on conflict (user_id, month_start) do update
+              set used = public.ai_advisor_overage_months.used + 1
+              where public.ai_advisor_overage_months.used < greatest(p_overage_monthly_cap, 0)
+            returning used into v_overage_used;
+
+            if v_overage_used is not null then
+              v_commercial := 'overage';
+            else
+              return jsonb_build_object(
+                'allowed', false,
+                'scope', 'commercial',
+                'limit', v_monthly_limit,
+                'used', v_count,
+                'retry_after_seconds',
+                  greatest(1, ceil(extract(epoch from (v_next_month - v_now)))::integer)
+              );
+            end if;
           else
             return jsonb_build_object(
               'allowed', false,
               'scope', 'commercial',
-              'limit', p_monthly_chat_limit,
+              'limit', v_monthly_limit,
               'used', v_count,
               'retry_after_seconds',
                 greatest(1, ceil(extract(epoch from (v_next_month - v_now)))::integer)
             );
           end if;
-        else
-          return jsonb_build_object(
-            'allowed', false,
-            'scope', 'commercial',
-            'limit', p_monthly_chat_limit,
-            'used', v_count,
-            'retry_after_seconds',
-              greatest(1, ceil(extract(epoch from (v_next_month - v_now)))::integer)
-          );
         end if;
+      else
+        v_commercial := 'included';
       end if;
-    else
-      v_commercial := 'included';
     end if;
   end if;
-
-  select id into v_org from public.organizations where id = p_organization_id;
 
   insert into public.ai_telemetry_events
     (organization_id, user_id, provider, model, operation, status, metadata)
@@ -2483,6 +3181,113 @@ $$;
 
 
 ALTER FUNCTION "public"."claim_ai_usage"("p_user_id" "uuid", "p_operation" "text", "p_organization_id" "uuid", "p_provider" "text", "p_model" "text", "p_burst_window_seconds" integer, "p_burst_limit" integer, "p_daily_request_limit" integer, "p_daily_token_limit" bigint, "p_platform_daily_limit" integer, "p_metered_operations" "text"[], "p_monthly_chat_limit" integer, "p_commercial_operations" "text"[], "p_overage_monthly_cap" integer) OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."claim_document_save"("p_organization_id" "uuid", "p_document_id" "uuid") RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_plan text;
+  v_limit integer;
+  v_used integer;
+  v_month_start timestamptz;
+  v_actor uuid := auth.uid();
+  v_id uuid;
+begin
+  if p_organization_id is null or p_document_id is null then
+    raise exception 'organization_id and document_id required'
+      using errcode = '22023';
+  end if;
+
+  if coalesce(auth.role(), '') is distinct from 'service_role'
+     and (
+       v_actor is null
+       or not public.is_org_member(p_organization_id, v_actor)
+     )
+  then
+    raise exception 'not authorized' using errcode = '42501';
+  end if;
+
+  perform pg_advisory_xact_lock(
+    hashtext('org_usage:document_save:' || p_organization_id::text)
+  );
+
+  -- Idempotent: same document never double-counts.
+  if exists (
+    select 1
+      from public.organization_usage_events
+      where kind = 'document_save'
+        and resource_id = p_document_id
+  ) then
+    return jsonb_build_object(
+      'allowed', true,
+      'already_counted', true,
+      'resource_id', p_document_id
+    );
+  end if;
+
+  v_plan := public.organization_effective_plan(p_organization_id);
+  v_limit := public.organization_usage_limit(v_plan, 'document_save');
+
+  if v_plan = 'free' then
+    select count(*) into v_used
+      from public.organization_usage_events
+      where organization_id = p_organization_id
+        and kind = 'document_save';
+  else
+    v_month_start := date_trunc('month', timezone('utc', now())) at time zone 'utc';
+    select count(*) into v_used
+      from public.organization_usage_events
+      where organization_id = p_organization_id
+        and kind = 'document_save'
+        and created_at >= v_month_start;
+  end if;
+
+  if coalesce(v_used, 0) >= greatest(v_limit, 0) then
+    raise exception 'plan_limit:saved_documents'
+      using errcode = 'P0001',
+            detail = format('used=%s limit=%s plan=%s', v_used, v_limit, v_plan);
+  end if;
+
+  insert into public.organization_usage_events (
+    organization_id, kind, actor_user_id, resource_id
+  )
+  values (
+    p_organization_id, 'document_save', v_actor, p_document_id
+  )
+  on conflict (kind, resource_id) do nothing
+  returning id into v_id;
+
+  -- Race: concurrent insert of same resource won the unique race.
+  if v_id is null and exists (
+    select 1 from public.organization_usage_events
+    where kind = 'document_save' and resource_id = p_document_id
+  ) then
+    return jsonb_build_object(
+      'allowed', true,
+      'already_counted', true,
+      'resource_id', p_document_id
+    );
+  end if;
+
+  if v_id is null then
+    raise exception 'plan_limit:saved_documents'
+      using errcode = 'P0001';
+  end if;
+
+  return jsonb_build_object(
+    'allowed', true,
+    'already_counted', false,
+    'used', coalesce(v_used, 0) + 1,
+    'limit', v_limit,
+    'event_id', v_id
+  );
+end;
+$$;
+
+
+ALTER FUNCTION "public"."claim_document_save"("p_organization_id" "uuid", "p_document_id" "uuid") OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."claim_export_slot"("p_user_id" "uuid", "p_surface" "text", "p_kind" "text", "p_title" "text", "p_sha256" "text", "p_content_chars" integer, "p_lang" "text", "p_burst_window_seconds" integer, "p_burst_limit" integer, "p_daily_limit" integer) RETURNS "jsonb"
@@ -2521,7 +3326,7 @@ begin
   end if;
 
   -- Rolling daily ceiling: the walk-out-with-the-library shape. One budget
-  -- across every surface â€” moving between Document Studio and Memory must
+  -- across every surface — moving between Document Studio and Memory must
   -- not double it.
   select count(*), min(created_at) into v_count, v_oldest
     from public.export_events
@@ -2589,6 +3394,111 @@ $$;
 ALTER FUNCTION "public"."claim_next_job"("worker_id" "text", "allowed_job_types" "text"[]) OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."claim_signature_send"("p_organization_id" "uuid", "p_envelope_id" "uuid") RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_plan text;
+  v_limit integer;
+  v_used integer;
+  v_month_start timestamptz;
+  v_actor uuid := auth.uid();
+  v_id uuid;
+begin
+  if p_organization_id is null or p_envelope_id is null then
+    raise exception 'organization_id and envelope_id required'
+      using errcode = '22023';
+  end if;
+
+  if coalesce(auth.role(), '') is distinct from 'service_role'
+     and (
+       v_actor is null
+       or not public.is_org_member(p_organization_id, v_actor)
+     )
+  then
+    raise exception 'not authorized' using errcode = '42501';
+  end if;
+
+  perform pg_advisory_xact_lock(
+    hashtext('org_usage:signature_send:' || p_organization_id::text)
+  );
+
+  if exists (
+    select 1
+      from public.organization_usage_events
+      where kind = 'signature_send'
+        and resource_id = p_envelope_id
+  ) then
+    return jsonb_build_object(
+      'allowed', true,
+      'already_counted', true,
+      'resource_id', p_envelope_id
+    );
+  end if;
+
+  v_plan := public.organization_effective_plan(p_organization_id);
+  v_limit := public.organization_usage_limit(v_plan, 'signature_send');
+
+  if v_plan = 'free' then
+    select count(*) into v_used
+      from public.organization_usage_events
+      where organization_id = p_organization_id
+        and kind = 'signature_send';
+  else
+    v_month_start := date_trunc('month', timezone('utc', now())) at time zone 'utc';
+    select count(*) into v_used
+      from public.organization_usage_events
+      where organization_id = p_organization_id
+        and kind = 'signature_send'
+        and created_at >= v_month_start;
+  end if;
+
+  if coalesce(v_used, 0) >= greatest(v_limit, 0) then
+    raise exception 'plan_limit:signature_envelopes'
+      using errcode = 'P0001',
+            detail = format('used=%s limit=%s plan=%s', v_used, v_limit, v_plan);
+  end if;
+
+  insert into public.organization_usage_events (
+    organization_id, kind, actor_user_id, resource_id
+  )
+  values (
+    p_organization_id, 'signature_send', v_actor, p_envelope_id
+  )
+  on conflict (kind, resource_id) do nothing
+  returning id into v_id;
+
+  if v_id is null and exists (
+    select 1 from public.organization_usage_events
+    where kind = 'signature_send' and resource_id = p_envelope_id
+  ) then
+    return jsonb_build_object(
+      'allowed', true,
+      'already_counted', true,
+      'resource_id', p_envelope_id
+    );
+  end if;
+
+  if v_id is null then
+    raise exception 'plan_limit:signature_envelopes'
+      using errcode = 'P0001';
+  end if;
+
+  return jsonb_build_object(
+    'allowed', true,
+    'already_counted', false,
+    'used', coalesce(v_used, 0) + 1,
+    'limit', v_limit,
+    'event_id', v_id
+  );
+end;
+$$;
+
+
+ALTER FUNCTION "public"."claim_signature_send"("p_organization_id" "uuid", "p_envelope_id" "uuid") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."cleanup_old_activity_logs"() RETURNS integer
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
@@ -2612,6 +3522,32 @@ ALTER FUNCTION "public"."cleanup_old_activity_logs"() OWNER TO "postgres";
 
 COMMENT ON FUNCTION "public"."cleanup_old_activity_logs"() IS 'Removes old activity logs based on retention policy. Run via pg_cron or manually.';
 
+
+
+CREATE OR REPLACE FUNCTION "public"."comms_contact_segment_memberships_set_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."comms_contact_segment_memberships_set_updated_at"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."comms_contact_segments_set_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."comms_contact_segments_set_updated_at"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."complete_job"("target_job_id" "uuid", "job_output" "jsonb" DEFAULT '{}'::"jsonb") RETURNS "public"."job_queue"
@@ -3060,13 +3996,13 @@ CREATE OR REPLACE FUNCTION "public"."current_user_is_workspace_member"() RETURNS
   select
     coalesce(auth.jwt() ->> 'email', '') <> ''
     and (
-      lower(auth.jwt() ->> 'email') = 'martin.constantineau@dutiva.ca'
+      right(lower(coalesce(auth.jwt() ->> 'email', '')), 10) = '@dutiva.ca'
       or lower(auth.jwt() ->> 'email') in (
         select lower(email)
         from public.beta_signups
         where status not in ('declined', 'bounced')
         order by created_at asc nulls first, id asc
-        limit 15
+        limit 5
       )
       or exists (
         select 1 from public.admin_beta_access
@@ -3175,7 +4111,7 @@ begin
     v_recipient.document_id,
     'signature_declined',
     v_recipient.name,
-    coalesce(nullif(trim(p_reason), ''), v_recipient.email) || ' Â· external link'
+    coalesce(nullif(trim(p_reason), ''), v_recipient.email) || ' · external link'
   );
 
   perform public._hr_signing_notify_admins(v_recipient.document_id, 'declined');
@@ -3310,6 +4246,147 @@ $$;
 ALTER FUNCTION "public"."enqueue_job"("target_organization_id" "uuid", "target_job_type" "text", "job_payload" "jsonb", "job_priority" integer, "job_run_after" timestamp with time zone, "job_max_attempts" integer) OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."ensure_advisor_month_transition"("p_organization_id" "uuid") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_now timestamptz := timezone('utc', now());
+  v_month_trunc timestamptz := date_trunc('month', v_now);
+  v_month date := v_month_trunc::date;
+  v_prev date := (v_month_trunc - interval '1 month')::date;
+  v_org_created timestamptz;
+  v_plan text;
+  v_limit integer;
+  v_prev_used integer;
+  v_prev_granted boolean;
+  v_unused integer;
+  v_bank integer;
+  v_room integer;
+  v_grant integer;
+begin
+  if p_organization_id is null then
+    return;
+  end if;
+
+  perform pg_advisory_xact_lock(
+    hashtext('advisor_month:' || p_organization_id::text)
+  );
+
+  -- Ensure current month row exists.
+  insert into public.ai_advisor_month_state (
+    organization_id, month_start, included_used, rollover_granted
+  )
+  values (p_organization_id, v_month, 0, false)
+  on conflict (organization_id, month_start) do nothing;
+
+  select created_at into v_org_created
+    from public.organizations
+    where id = p_organization_id;
+
+  -- Brand-new orgs must not earn a full prior-month rollover they never held.
+  if v_org_created is null or v_org_created >= v_month_trunc then
+    return;
+  end if;
+
+  -- Ensure previous month row exists so quiet paid months still roll unused
+  -- base allowance (included_used defaults to 0).
+  insert into public.ai_advisor_month_state (
+    organization_id, month_start, included_used, rollover_granted
+  )
+  values (p_organization_id, v_prev, 0, false)
+  on conflict (organization_id, month_start) do nothing;
+
+  select included_used, rollover_granted
+    into v_prev_used, v_prev_granted
+    from public.ai_advisor_month_state
+    where organization_id = p_organization_id
+      and month_start = v_prev
+    for update;
+
+  if coalesce(v_prev_granted, true) then
+    return;
+  end if;
+
+  v_plan := public.organization_effective_plan(p_organization_id);
+  v_limit := public.advisor_monthly_included(v_plan);
+
+  -- Free: mark processed, never grant.
+  if v_plan = 'free' or v_limit <= 0 then
+    update public.ai_advisor_month_state
+      set rollover_granted = true
+      where organization_id = p_organization_id
+        and month_start = v_prev;
+    return;
+  end if;
+
+  v_unused := greatest(0, v_limit - coalesce(v_prev_used, 0));
+
+  select coalesce(sum(remaining_replies), 0) into v_bank
+    from public.ai_advisor_rollover_credits
+    where organization_id = p_organization_id
+      and remaining_replies > 0
+      and expires_at > v_now;
+
+  -- Cap so total remaining rollover bank <= current plan monthly allowance.
+  v_room := greatest(0, v_limit - v_bank);
+  v_grant := least(v_unused, v_room);
+
+  if v_grant > 0 then
+    insert into public.ai_advisor_rollover_credits (
+      organization_id,
+      granted_replies,
+      remaining_replies,
+      expires_at,
+      source_month
+    )
+    values (
+      p_organization_id,
+      v_grant,
+      v_grant,
+      v_now + interval '90 days',
+      v_prev
+    )
+    on conflict (organization_id, source_month) do nothing;
+  end if;
+
+  update public.ai_advisor_month_state
+    set rollover_granted = true
+    where organization_id = p_organization_id
+      and month_start = v_prev;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."ensure_advisor_month_transition"("p_organization_id" "uuid") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."expire_advisor_rollover_on_cancel"("p_organization_id" "uuid") RETURNS integer
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_n integer;
+begin
+  if p_organization_id is null then
+    return 0;
+  end if;
+
+  update public.ai_advisor_rollover_credits
+    set remaining_replies = 0
+    where organization_id = p_organization_id
+      and remaining_replies > 0
+      and expires_at > timezone('utc', now());
+
+  get diagnostics v_n = row_count;
+  return coalesce(v_n, 0);
+end;
+$$;
+
+
+ALTER FUNCTION "public"."expire_advisor_rollover_on_cancel"("p_organization_id" "uuid") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."fail_job"("target_job_id" "uuid", "error_text" "text", "retry_delay_seconds" integer DEFAULT 300) RETURNS "public"."job_queue"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
@@ -3342,6 +4419,58 @@ $$;
 ALTER FUNCTION "public"."fail_job"("target_job_id" "uuid", "error_text" "text", "retry_delay_seconds" integer) OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."finance_categorization_feedback_set_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."finance_categorization_feedback_set_updated_at"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."finance_category_rules_set_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."finance_category_rules_set_updated_at"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."finance_import_sessions_set_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."finance_import_sessions_set_updated_at"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."finance_workspace_settings_set_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."finance_workspace_settings_set_updated_at"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."flag_guidance_chunks_on_law_change"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'pg_catalog', 'public'
@@ -3356,7 +4485,7 @@ begin
   v_jurisdiction := case new.jurisdiction
     when 'Ontario' then 'ON'
     when 'Quebec' then 'QC'
-    when 'QuÃ©bec' then 'QC'
+    when 'Québec' then 'QC'
     when 'Federal' then 'FED'
     else null
   end;
@@ -3762,6 +4891,44 @@ $$;
 ALTER FUNCTION "public"."get_signature_by_token"("p_token" "uuid") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."grant_ai_advisor_org_pack"("p_organization_id" "uuid", "p_pack_size" integer, "p_stripe_checkout_id" "text", "p_purchaser_user_id" "uuid" DEFAULT NULL::"uuid") RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_id uuid;
+  v_checkout text := nullif(btrim(coalesce(p_stripe_checkout_id, '')), '');
+begin
+  if p_organization_id is null or v_checkout is null then
+    return jsonb_build_object('granted', false, 'reason', 'missing_fields');
+  end if;
+  if p_pack_size not in (50, 200) then
+    return jsonb_build_object('granted', false, 'reason', 'invalid_pack');
+  end if;
+  if not exists (select 1 from public.organizations where id = p_organization_id) then
+    return jsonb_build_object('granted', false, 'reason', 'org_not_found');
+  end if;
+
+  insert into public.ai_advisor_org_credits (
+    organization_id, user_id, remaining_replies, pack_size, stripe_checkout_id
+  )
+  values (
+    p_organization_id, p_purchaser_user_id, p_pack_size, p_pack_size, v_checkout
+  )
+  on conflict (stripe_checkout_id) do nothing
+  returning id into v_id;
+
+  if v_id is null then
+    return jsonb_build_object('granted', false, 'reason', 'duplicate');
+  end if;
+  return jsonb_build_object('granted', true, 'credit_id', v_id);
+end;
+$$;
+
+
+ALTER FUNCTION "public"."grant_ai_advisor_org_pack"("p_organization_id" "uuid", "p_pack_size" integer, "p_stripe_checkout_id" "text", "p_purchaser_user_id" "uuid") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."grant_ai_advisor_pack"("p_user_id" "uuid", "p_pack_size" integer, "p_stripe_checkout_id" "text") RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
@@ -3822,7 +4989,9 @@ begin
       'en',
       jsonb_build_object(
         'plan', 'free',
-        'source', 'auth'
+        'source', 'auth',
+        'email', new.email,
+        'user_id', new.id
       )
     );
   exception when others then
@@ -3835,6 +5004,81 @@ $$;
 
 
 ALTER FUNCTION "public"."handle_new_user"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."hr_policies_flag_overdue_for_review"() RETURNS bigint
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'pg_catalog', 'public'
+    AS $$
+declare
+  v_updated bigint;
+begin
+  with overdue as (
+    select p.id
+    from public.hr_policies p
+    join public.organizations o on o.id = p.organization_id
+    where p.status = 'up_to_date'
+      and (
+        p.last_reviewed is null
+        or p.last_reviewed::timestamptz
+          < now() - (greatest(30, least(365, coalesce(o.policy_review_days, 90))) * interval '1 day')
+      )
+  )
+  update public.hr_policies p
+  set status = 'needs_review',
+      updated_at = now()
+  from overdue
+  where p.id = overdue.id;
+
+  get diagnostics v_updated = row_count;
+  return coalesce(v_updated, 0);
+end;
+$$;
+
+
+ALTER FUNCTION "public"."hr_policies_flag_overdue_for_review"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."hr_policies_orgs_needing_reminder"() RETURNS TABLE("organization_id" "uuid", "organization_name" "text", "policy_count" bigint, "policy_names" "text"[])
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+  with due as (
+    select
+      p.organization_id,
+      p.name,
+      p.last_reminder_sent_at,
+      o.name as org_name,
+      greatest(30, least(365, coalesce(o.policy_review_days, 90))) as review_days
+    from public.hr_policies p
+    join public.organizations o on o.id = p.organization_id
+    where p.status in ('needs_review', 'missing')
+       or (
+         p.status = 'up_to_date'
+         and (
+           p.last_reviewed is null
+           or p.last_reviewed::timestamptz
+             < now() - (greatest(30, least(365, coalesce(o.policy_review_days, 90))) * interval '1 day')
+         )
+       )
+  ),
+  eligible as (
+    select *
+    from due
+    where last_reminder_sent_at is null
+       or last_reminder_sent_at < now() - interval '7 days'
+  )
+  select
+    e.organization_id,
+    max(e.org_name) as organization_name,
+    count(*)::bigint as policy_count,
+    array_agg(e.name order by e.name) as policy_names
+  from eligible e
+  group by e.organization_id;
+$$;
+
+
+ALTER FUNCTION "public"."hr_policies_orgs_needing_reminder"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."hr_signing_recipients_needing_reminder"() RETURNS TABLE("recipient_id" "uuid", "organization_id" "uuid", "document_id" "uuid")
@@ -3882,111 +5126,58 @@ CREATE OR REPLACE FUNCTION "public"."increment_usage_counter"("p_user_id" "uuid"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$
-
 begin
-
   insert into public.usage_counters (user_id, period_start)
-
   values (p_user_id, p_period_start)
-
   on conflict (user_id, period_start) do nothing;
 
-
-
   case p_action
-
     when 'advisor_messages' then
-
       update public.usage_counters
-
         set advisor_messages_used = advisor_messages_used + 1,
-
             updated_at = timezone('utc', now())
-
         where user_id = p_user_id
-
           and period_start = p_period_start;
-
-
 
     when 'documents_generated' then
-
       update public.usage_counters
-
         set documents_generated = documents_generated + 1,
-
             updated_at = timezone('utc', now())
-
         where user_id = p_user_id
-
           and period_start = p_period_start;
-
-
 
     when 'documents_saved' then
-
       update public.usage_counters
-
         set documents_saved = documents_saved + 1,
-
             updated_at = timezone('utc', now())
-
         where user_id = p_user_id
-
           and period_start = p_period_start;
-
-
 
     when 'exports' then
-
       update public.usage_counters
-
         set exports_used = exports_used + 1,
-
             updated_at = timezone('utc', now())
-
         where user_id = p_user_id
-
           and period_start = p_period_start;
-
-
 
     when 'compliance_reviews' then
-
       update public.usage_counters
-
         set compliance_reviews = compliance_reviews + 1,
-
             updated_at = timezone('utc', now())
-
         where user_id = p_user_id
-
           and period_start = p_period_start;
-
-
 
     when 'e_signature_sends' then
-
       update public.usage_counters
-
         set e_signature_sends = e_signature_sends + 1,
-
             updated_at = timezone('utc', now())
-
         where user_id = p_user_id
-
           and period_start = p_period_start;
 
-
-
     else
-
       raise exception 'Unknown usage action: %', p_action;
-
   end case;
-
 end;
-
 $$;
 
 
@@ -4106,6 +5297,12 @@ CREATE OR REPLACE FUNCTION "public"."is_admin"("check_user_id" "uuid") RETURNS b
     from public.user_roles ur
     where ur.user_id = check_user_id
       and ur.role in ('owner','admin')
+  )
+  or exists (
+    select 1
+    from auth.users u
+    where u.id = check_user_id
+      and right(lower(u.email), 10) = '@dutiva.ca'
   );
 $$;
 
@@ -4117,13 +5314,19 @@ CREATE OR REPLACE FUNCTION "public"."is_admin_user"() RETURNS boolean
     LANGUAGE "sql" STABLE SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
-  SELECT COALESCE((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin', false)
-    OR COALESCE((auth.jwt() ->> 'role') = 'admin', false)
-    OR EXISTS (
-      SELECT 1 FROM public.admin_users au
-      WHERE au.user_id = auth.uid()
-      AND au.revoked_at IS NULL
-      AND (au.expires_at IS NULL OR au.expires_at > now())
+  select coalesce((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin', false)
+    or coalesce((auth.jwt() ->> 'role') = 'admin', false)
+    or exists (
+      select 1 from public.admin_users au
+      where au.user_id = auth.uid()
+        and au.revoked_at is null
+        and (au.expires_at is null or au.expires_at > now())
+    )
+    or right(lower(coalesce(auth.jwt() ->> 'email', '')), 10) = '@dutiva.ca'
+    or exists (
+      select 1 from auth.users u
+      where u.id = auth.uid()
+        and right(lower(u.email), 10) = '@dutiva.ca'
     );
 $$;
 
@@ -4135,9 +5338,7 @@ CREATE OR REPLACE FUNCTION "public"."is_internal_admin_user"() RETURNS boolean
     LANGUAGE "sql" STABLE
     SET "search_path" TO 'public'
     AS $$
-
-  select lower(coalesce(auth.jwt() ->> 'email', '')) like '%@dutiva.ca';
-
+  select right(lower(coalesce(auth.jwt() ->> 'email', '')), 10) = '@dutiva.ca';
 $$;
 
 
@@ -4355,44 +5556,21 @@ $$;
 ALTER FUNCTION "public"."mark_notification_read"("target_notification_id" "uuid") OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."match_advisor_guidance"("q" "text", "k" integer DEFAULT 4) RETURNS TABLE("title" "text", "content" "text", "source_url" "text", "source_name" "text", "jurisdiction" "text", "effective_note" "text", "topic" "text", "review_status" "text", "source_changed_at" timestamp with time zone)
+CREATE OR REPLACE FUNCTION "public"."match_advisor_guidance"("q" "text", "k" integer DEFAULT 4) RETURNS TABLE("title" "text", "content" "text", "source_url" "text", "source_name" "text", "jurisdiction" "text", "effective_note" "text", "topic" "text", "review_status" "text")
     LANGUAGE "sql" STABLE
-    SET "search_path" TO 'public'
     AS $$
-  with lex_en as (
+  with lex as (
     select to_tsquery(
       'english',
       string_agg(distinct '''' || replace(lexeme, '''', '''''') || '''', ' | ')
     ) as tq
     from unnest(tsvector_to_array(to_tsvector('english', q))) as lexeme
-  ),
-  lex_fr as (
-    select to_tsquery(
-      'french',
-      string_agg(distinct '''' || replace(lexeme, '''', '''''') || '''', ' | ')
-    ) as tq
-    from unnest(tsvector_to_array(to_tsvector('french', q))) as lexeme
   )
   select c.title, c.content, c.source_url, c.source_name, c.jurisdiction,
-         c.effective_note, c.topic, c.review_status, c.source_changed_at
-  from public.advisor_guidance_chunks c, lex_en, lex_fr
-  where c.status = 'active'
-    and (
-      (lex_en.tq is not null and c.fts @@ lex_en.tq)
-      or (lex_fr.tq is not null and c.fts_fr is not null and c.fts_fr @@ lex_fr.tq)
-    )
-  order by greatest(
-    coalesce(
-      case when lex_en.tq is not null then ts_rank(c.fts, lex_en.tq) end,
-      0
-    ),
-    coalesce(
-      case
-        when lex_fr.tq is not null and c.fts_fr is not null then ts_rank(c.fts_fr, lex_fr.tq)
-      end,
-      0
-    )
-  ) desc
+         c.effective_note, c.topic, c.review_status
+  from public.advisor_guidance_chunks c, lex
+  where c.status = 'active' and lex.tq is not null and c.fts @@ lex.tq
+  order by ts_rank(c.fts, lex.tq) desc
   limit greatest(1, least(k, 8))
 $$;
 
@@ -4460,6 +5638,109 @@ $$;
 ALTER FUNCTION "public"."normalize_document_jurisdiction_label"("p_code" "text", "p_fallback" "text") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."organization_effective_plan"("p_organization_id" "uuid") RETURNS "text"
+    LANGUAGE "plpgsql" STABLE SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_plan text;
+  v_status text;
+begin
+  if p_organization_id is null then
+    return 'free';
+  end if;
+
+  select o.plan, o.subscription_status
+  into v_plan, v_status
+  from public.organizations o
+  where o.id = p_organization_id;
+
+  if v_plan is null then
+    return 'free';
+  end if;
+
+  if v_status in ('active', 'trialing') then
+    if v_plan in ('free', 'starter', 'growth', 'pro') then
+      return v_plan;
+    end if;
+    return 'free';
+  end if;
+
+  return 'free';
+end;
+$$;
+
+
+ALTER FUNCTION "public"."organization_effective_plan"("p_organization_id" "uuid") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."organization_usage_limit"("p_plan" "text", "p_kind" "text") RETURNS integer
+    LANGUAGE "plpgsql" IMMUTABLE
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_plan text := coalesce(p_plan, 'free');
+begin
+  if v_plan not in ('free', 'starter', 'growth', 'pro') then
+    v_plan := 'free';
+  end if;
+
+  if p_kind = 'document_save' then
+    return case v_plan
+      when 'free' then 5
+      when 'starter' then 20
+      when 'growth' then 100
+      when 'pro' then 300
+    end;
+  elsif p_kind = 'signature_send' then
+    return case v_plan
+      when 'free' then 1
+      when 'starter' then 5
+      when 'growth' then 25
+      when 'pro' then 100
+    end;
+  end if;
+
+  raise exception 'unknown usage kind: %', p_kind
+    using errcode = '22023';
+end;
+$$;
+
+
+ALTER FUNCTION "public"."organization_usage_limit"("p_plan" "text", "p_kind" "text") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."pin_organization_billing_columns"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'pg_catalog', 'public'
+    AS $$
+begin
+  if coalesce(auth.role(), '') not in ('authenticated', 'anon') then
+    return new;
+  end if;
+
+  new.plan := old.plan;
+  new.subscription_status := old.subscription_status;
+  new.billing_period := old.billing_period;
+  new.stripe_customer_id := old.stripe_customer_id;
+  new.stripe_subscription_id := old.stripe_subscription_id;
+  new.billing_owner_user_id := old.billing_owner_user_id;
+  new.free_access_starts_at := old.free_access_starts_at;
+  new.free_access_ends_at := old.free_access_ends_at;
+
+  if coalesce(current_setting('dutiva.allow_org_overage_opt_in', true), '') is distinct from '1'
+  then
+    new.advisor_overage_opt_in := old.advisor_overage_opt_in;
+  end if;
+
+  return new;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."pin_organization_billing_columns"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."pin_profile_billing_columns"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     SET "search_path" TO 'pg_catalog', 'public'
@@ -4480,6 +5761,68 @@ $$;
 
 
 ALTER FUNCTION "public"."pin_profile_billing_columns"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."plan_limit"("p_plan" "text", "p_limit_key" "text") RETURNS integer
+    LANGUAGE "plpgsql" IMMUTABLE
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_plan text := coalesce(p_plan, 'free');
+begin
+  if v_plan not in ('free', 'starter', 'growth', 'pro') then
+    v_plan := 'free';
+  end if;
+
+  case p_limit_key
+    when 'users' then
+      return case v_plan
+        when 'free' then 1
+        when 'starter' then 2
+        when 'growth' then 5
+        when 'pro' then 10
+      end;
+    when 'employees' then
+      return case v_plan
+        when 'free' then 5
+        when 'starter' then 10
+        when 'growth' then 50
+        when 'pro' then 100
+      end;
+    when 'cases' then
+      return case v_plan
+        when 'free' then 3
+        else -1
+      end;
+    when 'tasks' then
+      return case v_plan
+        when 'free' then 10
+        else -1
+      end;
+    else
+      raise exception 'unknown limit_key: %', p_limit_key
+        using errcode = '22023';
+  end case;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."plan_limit"("p_plan" "text", "p_limit_key" "text") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."policy_review_scheduler_status"() RETURNS TABLE("secret_configured" boolean, "job_scheduled" boolean, "orgs_awaiting_reminder" bigint, "last_reminder_sent" timestamp with time zone)
+    LANGUAGE "sql" SECURITY DEFINER
+    SET "search_path" TO 'pg_catalog', 'public'
+    AS $$
+  select
+    exists (select 1 from vault.decrypted_secrets where name = 'support_notify_secret'),
+    exists (select 1 from cron.job where jobname = 'policy-review-sweep' and active),
+    (select count(*) from public.hr_policies_orgs_needing_reminder()),
+    (select max(last_reminder_sent_at) from public.hr_policies);
+$$;
+
+
+ALTER FUNCTION "public"."policy_review_scheduler_status"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."process_expired_data_deletions"() RETURNS integer
@@ -4611,6 +5954,24 @@ $$;
 
 
 ALTER FUNCTION "public"."queue_notification_delivery"("target_notification_id" "uuid", "delivery_provider" "text", "delivery_recipient" "text") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."read_integration_secret"("p_name" "text") RETURNS "text"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'pg_catalog', 'public'
+    AS $$
+DECLARE
+  v_secret TEXT;
+BEGIN
+  SELECT decrypted_secret INTO v_secret
+    FROM vault.decrypted_secrets
+   WHERE name = p_name;
+  RETURN v_secret;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."read_integration_secret"("p_name" "text") OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."advisor_memories" (
@@ -4899,7 +6260,7 @@ begin
     v_recipient.document_id,
     'signature_viewed',
     v_recipient.name,
-    v_recipient.email || ' Â· external link'
+    v_recipient.email || ' · external link'
   );
 end;
 $$;
@@ -5053,6 +6414,68 @@ $$;
 ALTER FUNCTION "public"."release_cron_lock"("p_job_name" "text", "p_instance_id" "text") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."resolve_user_billing_organization"("p_user_id" "uuid") RETURNS "uuid"
+    LANGUAGE "plpgsql" STABLE SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_org_id uuid;
+begin
+  if p_user_id is null then
+    return null;
+  end if;
+
+  select om.organization_id
+  into v_org_id
+  from public.organization_members om
+  join public.organizations o on o.id = om.organization_id
+  where om.user_id = p_user_id
+    and om.status = 'active'
+    and om.role = 'owner'
+    and o.plan in ('starter', 'growth', 'pro')
+    and o.subscription_status in ('active', 'trialing')
+  order by o.updated_at desc nulls last, om.created_at asc
+  limit 1;
+
+  if v_org_id is not null then
+    return v_org_id;
+  end if;
+
+  select om.organization_id
+  into v_org_id
+  from public.organization_members om
+  where om.user_id = p_user_id
+    and om.status = 'active'
+  order by
+    case om.role
+      when 'owner' then 0
+      when 'admin' then 1
+      else 2
+    end,
+    om.created_at asc
+  limit 1;
+
+  return v_org_id;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."resolve_user_billing_organization"("p_user_id" "uuid") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."revoke_integration_secret"("p_name" "text") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'pg_catalog', 'public'
+    AS $$
+BEGIN
+  DELETE FROM vault.secrets WHERE name = p_name;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."revoke_integration_secret"("p_name" "text") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."rls_auto_enable"() RETURNS "event_trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'pg_catalog'
@@ -5138,6 +6561,7 @@ CREATE OR REPLACE FUNCTION "public"."set_advisor_overage_opt_in"("p_opt_in" bool
 declare
   v_uid uuid := auth.uid();
   v_opt boolean := coalesce(p_opt_in, false);
+  v_org uuid;
 begin
   if v_uid is null then
     raise exception 'not signed in' using errcode = '28000';
@@ -5147,6 +6571,15 @@ begin
   values (v_uid, v_opt)
   on conflict (id) do update
     set advisor_overage_opt_in = excluded.advisor_overage_opt_in;
+
+  v_org := public.resolve_user_billing_organization(v_uid);
+  if v_org is not null then
+    perform set_config('dutiva.allow_org_overage_opt_in', '1', true);
+    update public.organizations
+      set advisor_overage_opt_in = v_opt,
+          updated_at = timezone('utc', now())
+      where id = v_org;
+  end if;
 
   return v_opt;
 end;
@@ -5253,89 +6686,65 @@ $$;
 ALTER FUNCTION "public"."start_playbook_run"("target_organization_id" "uuid", "target_playbook_key" "text", "run_input" "jsonb") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."store_integration_secret"("p_name" "text", "p_secret" "text") RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'pg_catalog', 'public'
+    AS $$
+BEGIN
+  IF p_secret IS NULL OR length(btrim(p_secret)) = 0 THEN
+    RAISE EXCEPTION 'secret must not be empty';
+  END IF;
+  RETURN vault.create_secret(p_secret, p_name);
+END;
+$$;
+
+
+ALTER FUNCTION "public"."store_integration_secret"("p_name" "text", "p_secret" "text") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."submit_signature_by_token"("p_token" "uuid", "p_signature_data" "text", "p_signature_type" "text") RETURNS "void"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$
-
 DECLARE
-
   v_sig public.signatures;
-
 BEGIN
-
   SELECT * INTO v_sig FROM public.signatures WHERE token = p_token LIMIT 1;
 
-
-
   IF v_sig.id IS NULL THEN
-
     RAISE EXCEPTION 'Signing link not found or invalid.';
-
   END IF;
-
-
 
   IF v_sig.status = 'signed' THEN
-
     RAISE EXCEPTION 'This document has already been signed.';
-
   END IF;
-
-
 
   IF v_sig.status = 'cancelled' THEN
-
     RAISE EXCEPTION 'This signing request has been cancelled by the sender.';
-
   END IF;
-
-
 
   IF v_sig.expires_at IS NOT NULL AND v_sig.expires_at <= timezone('utc', now()) THEN
-
     INSERT INTO public.signature_audit_events (signature_id, document_id, user_id, event_type)
-
     VALUES (v_sig.id, v_sig.document_id, v_sig.user_id, 'signature_failed_or_expired');
-
     RAISE EXCEPTION 'This signing link has expired.';
-
   END IF;
-
-
 
   UPDATE public.signatures
-
   SET    signature_data = p_signature_data,
-
          status         = 'signed',
-
          signed_at      = timezone('utc', now()),
-
          signature_type = p_signature_type
-
   WHERE  token      = p_token
-
     AND  status     = 'pending'
-
     AND  (expires_at IS NULL OR expires_at > timezone('utc', now()));
 
-
-
   IF NOT FOUND THEN
-
     RAISE EXCEPTION 'Signing link not found, already signed, cancelled, or expired.';
-
   END IF;
 
-
-
   INSERT INTO public.signature_audit_events (signature_id, document_id, user_id, event_type)
-
   VALUES (v_sig.id, v_sig.document_id, v_sig.user_id, 'signature_submitted');
-
 END;
-
 $$;
 
 
@@ -5421,6 +6830,72 @@ $$;
 
 
 ALTER FUNCTION "public"."support_call_scheduler_status"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."suspend_excess_members_for_plan"("p_organization_id" "uuid") RETURNS integer
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_plan text;
+  v_limit integer;
+  v_active integer;
+  v_to_suspend integer;
+  v_suspended integer := 0;
+begin
+  if coalesce(auth.role(), '') in ('authenticated', 'anon') then
+    raise exception 'not authorized'
+      using errcode = '42501';
+  end if;
+
+  if p_organization_id is null then
+    return 0;
+  end if;
+
+  perform public._org_capacity_lock(p_organization_id);
+
+  v_plan := public.organization_effective_plan(p_organization_id);
+  v_limit := public.plan_limit(v_plan, 'users');
+  if v_limit < 0 then
+    return 0;
+  end if;
+
+  select count(*)::integer
+  into v_active
+  from public.organization_members om
+  where om.organization_id = p_organization_id
+    and om.status = 'active';
+
+  if v_active <= v_limit then
+    return 0;
+  end if;
+
+  v_to_suspend := v_active - v_limit;
+
+  -- Newest non-owners first; owners are never suspended.
+  with ranked as (
+    select om.id
+    from public.organization_members om
+    where om.organization_id = p_organization_id
+      and om.status = 'active'
+      and om.role is distinct from 'owner'
+    order by om.created_at desc nulls last, om.id desc
+    limit v_to_suspend
+  )
+  update public.organization_members om
+  set
+    status = 'suspended_plan_limit',
+    updated_at = timezone('utc', now())
+  from ranked
+  where om.id = ranked.id;
+
+  get diagnostics v_suspended = row_count;
+  return coalesce(v_suspended, 0);
+end;
+$$;
+
+
+ALTER FUNCTION "public"."suspend_excess_members_for_plan"("p_organization_id" "uuid") OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."sync_document_jurisdiction_fields"() RETURNS "trigger"
@@ -5540,7 +7015,7 @@ CREATE TABLE IF NOT EXISTS "public"."documents" (
 ALTER TABLE "public"."documents" OWNER TO "postgres";
 
 
-COMMENT ON COLUMN "public"."documents"."jurisdiction_code" IS 'Engine code (ON/QC/BC/AB/FED) at generation time â€” used by complianceAlerts engine.';
+COMMENT ON COLUMN "public"."documents"."jurisdiction_code" IS 'Engine code (ON/QC/BC/AB/FED) at generation time — used by complianceAlerts engine.';
 
 
 
@@ -5621,6 +7096,34 @@ $$;
 
 
 ALTER FUNCTION "public"."transition_document_status"("target_document_id" "uuid", "new_status" "text", "note" "text") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."trg_claim_document_save"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+begin
+  perform public.claim_document_save(new.organization_id, new.id);
+  return new;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."trg_claim_document_save"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."trg_claim_signature_send"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+begin
+  perform public.claim_signature_send(new.organization_id, new.id);
+  return new;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."trg_claim_signature_send"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."trigger_attachment_scan"() RETURNS "void"
@@ -5719,6 +7222,43 @@ $$;
 
 
 ALTER FUNCTION "public"."trigger_law_update_digest"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."trigger_policy_review_scheduler"() RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'pg_catalog', 'public'
+    AS $$
+declare
+  v_key text;
+  v_secret text;
+begin
+  select decrypted_secret into v_key
+    from vault.decrypted_secrets
+   where name = 'support_scheduler_service_key';
+  select decrypted_secret into v_secret
+    from vault.decrypted_secrets
+   where name = 'support_notify_secret';
+
+  if v_secret is null or length(btrim(v_secret)) = 0 then
+    raise warning '[policy-review-scheduler] vault secret "support_notify_secret" is not set; skipping run';
+    return;
+  end if;
+
+  perform net.http_post(
+    url := 'https://khtwpxnvziiyplaflwru.supabase.co/functions/v1/policy-review-scheduler',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer ' || coalesce(v_key, ''),
+      'x-trigger-secret', v_secret
+    ),
+    body := '{}'::jsonb,
+    timeout_milliseconds := 120000
+  );
+end;
+$$;
+
+
+ALTER FUNCTION "public"."trigger_policy_review_scheduler"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."trigger_score_snapshots"() RETURNS "void"
@@ -5827,6 +7367,19 @@ $$;
 ALTER FUNCTION "public"."trigger_support_call_scheduler"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."update_candidate_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_candidate_updated_at"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."update_capacity_config"("p_capacity_limit" integer, "p_capacity_enforcement_enabled" boolean, "p_capacity_mode" "text") RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
@@ -5893,6 +7446,35 @@ $$;
 
 
 ALTER FUNCTION "public"."update_updated_at"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."update_updated_at_column"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_updated_at_column"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."user_is_dutiva_staff"("p_user_id" "uuid") RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select exists (
+    select 1
+      from auth.users u
+     where u.id = p_user_id
+       and right(lower(u.email), 10) = '@dutiva.ca'
+  );
+$$;
+
+
+ALTER FUNCTION "public"."user_is_dutiva_staff"("p_user_id" "uuid") OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."void_hr_document_signature"("p_document_id" "uuid") RETURNS "void"
@@ -6105,6 +7687,31 @@ COMMENT ON COLUMN "public"."advisor_guidance_chunks"."source_changed_at" IS 'Sta
 
 
 
+CREATE TABLE IF NOT EXISTS "public"."agent_audit" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "actor_id" "uuid" DEFAULT "auth"."uid"() NOT NULL,
+    "tool_id" "text" NOT NULL,
+    "module" "text" NOT NULL,
+    "tier" "text" NOT NULL,
+    "params" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
+    "mode" "text" DEFAULT 'production'::"text" NOT NULL,
+    "role" "text",
+    "status" "text" NOT NULL,
+    "error_code" "text",
+    "started_at" timestamp with time zone NOT NULL,
+    "finished_at" timestamp with time zone NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "agent_audit_mode_check" CHECK (("mode" = ANY (ARRAY['demo'::"text", 'production'::"text"]))),
+    CONSTRAINT "agent_audit_role_check" CHECK ((("role" IS NULL) OR ("role" = ANY (ARRAY['viewer'::"text", 'consultant'::"text", 'member'::"text", 'professional'::"text", 'manager'::"text", 'admin'::"text", 'owner'::"text"])))),
+    CONSTRAINT "agent_audit_status_check" CHECK (("status" = ANY (ARRAY['completed'::"text", 'failed'::"text"]))),
+    CONSTRAINT "agent_audit_tier_check" CHECK (("tier" = ANY (ARRAY['read'::"text", 'draft'::"text", 'commit'::"text"])))
+);
+
+
+ALTER TABLE "public"."agent_audit" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."ai_advisor_credits" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "user_id" "uuid" NOT NULL,
@@ -6120,6 +7727,45 @@ CREATE TABLE IF NOT EXISTS "public"."ai_advisor_credits" (
 ALTER TABLE "public"."ai_advisor_credits" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."ai_advisor_month_state" (
+    "organization_id" "uuid" NOT NULL,
+    "month_start" "date" NOT NULL,
+    "included_used" integer DEFAULT 0 NOT NULL,
+    "rollover_granted" boolean DEFAULT false NOT NULL,
+    CONSTRAINT "ai_advisor_month_state_included_used_check" CHECK (("included_used" >= 0))
+);
+
+
+ALTER TABLE "public"."ai_advisor_month_state" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."ai_advisor_org_credits" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "user_id" "uuid",
+    "remaining_replies" integer NOT NULL,
+    "pack_size" integer NOT NULL,
+    "stripe_checkout_id" "text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    CONSTRAINT "ai_advisor_org_credits_pack_size_check" CHECK (("pack_size" = ANY (ARRAY[50, 200]))),
+    CONSTRAINT "ai_advisor_org_credits_remaining_replies_check" CHECK (("remaining_replies" >= 0))
+);
+
+
+ALTER TABLE "public"."ai_advisor_org_credits" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."ai_advisor_org_overage_months" (
+    "organization_id" "uuid" NOT NULL,
+    "month_start" "date" NOT NULL,
+    "used" integer DEFAULT 0 NOT NULL,
+    CONSTRAINT "ai_advisor_org_overage_months_used_check" CHECK (("used" >= 0))
+);
+
+
+ALTER TABLE "public"."ai_advisor_org_overage_months" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."ai_advisor_overage_months" (
     "user_id" "uuid" NOT NULL,
     "month_start" "date" NOT NULL,
@@ -6129,6 +7775,22 @@ CREATE TABLE IF NOT EXISTS "public"."ai_advisor_overage_months" (
 
 
 ALTER TABLE "public"."ai_advisor_overage_months" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."ai_advisor_rollover_credits" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "granted_replies" integer NOT NULL,
+    "remaining_replies" integer NOT NULL,
+    "granted_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    "expires_at" timestamp with time zone NOT NULL,
+    "source_month" "date" NOT NULL,
+    CONSTRAINT "ai_advisor_rollover_credits_granted_replies_check" CHECK (("granted_replies" > 0)),
+    CONSTRAINT "ai_advisor_rollover_credits_remaining_replies_check" CHECK (("remaining_replies" >= 0))
+);
+
+
+ALTER TABLE "public"."ai_advisor_rollover_credits" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."ai_agents" (
@@ -6240,6 +7902,64 @@ CREATE TABLE IF NOT EXISTS "public"."beta_signup_intake" (
 ALTER TABLE "public"."beta_signup_intake" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."candidate_applications" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "candidate_id" "uuid" NOT NULL,
+    "job_posting_id" "uuid" NOT NULL,
+    "status" "text" DEFAULT 'submitted'::"text" NOT NULL,
+    "cover_letter" "text",
+    "submitted_resume" "text" DEFAULT ''::"text" NOT NULL,
+    "ai_match_score" integer,
+    "ai_suggestions" "jsonb",
+    "applied_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "candidate_applications_status_check" CHECK (("status" = ANY (ARRAY['submitted'::"text", 'under_review'::"text", 'shortlisted'::"text", 'interview'::"text", 'offered'::"text", 'hired'::"text", 'rejected'::"text", 'withdrawn'::"text"])))
+);
+
+
+ALTER TABLE "public"."candidate_applications" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."candidate_profiles" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "name" "text" DEFAULT ''::"text" NOT NULL,
+    "email" "text" DEFAULT ''::"text" NOT NULL,
+    "phone" "text",
+    "location" "text" DEFAULT ''::"text" NOT NULL,
+    "headline" "text" DEFAULT ''::"text" NOT NULL,
+    "summary" "text" DEFAULT ''::"text" NOT NULL,
+    "resume_text" "text" DEFAULT ''::"text" NOT NULL,
+    "linkedin" "text",
+    "website" "text",
+    "current_role" "text",
+    "years_experience" integer,
+    "work_authorization" "text" DEFAULT 'unknown'::"text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "cover_letter" "text",
+    CONSTRAINT "candidate_profiles_work_authorization_check" CHECK (("work_authorization" = ANY (ARRAY['authorized'::"text", 'needs_sponsorship'::"text", 'unknown'::"text"])))
+);
+
+
+ALTER TABLE "public"."candidate_profiles" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."candidate_resumes" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "candidate_id" "uuid" NOT NULL,
+    "title" "text" DEFAULT 'My resume'::"text" NOT NULL,
+    "content" "text" DEFAULT ''::"text" NOT NULL,
+    "is_base" boolean DEFAULT false NOT NULL,
+    "tailored_for_posting_id" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."candidate_resumes" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."categories" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
     "name" "text" NOT NULL,
@@ -6315,6 +8035,414 @@ CREATE TABLE IF NOT EXISTS "public"."comment_mentions" (
 
 
 ALTER TABLE "public"."comment_mentions" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."comms_approvals" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "content_item_id" "uuid" NOT NULL,
+    "approver" "text" NOT NULL,
+    "policy_version" "text",
+    "decision" "text" NOT NULL,
+    "rationale" "jsonb",
+    "decided_at" "text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "comms_approvals_decision_check" CHECK (("decision" = ANY (ARRAY['approved'::"text", 'rejected'::"text", 'changes_requested'::"text"])))
+);
+
+
+ALTER TABLE "public"."comms_approvals" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."comms_brand_claims" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "text" "jsonb" NOT NULL,
+    "evidence" "jsonb" NOT NULL,
+    "owner" "text" NOT NULL,
+    "review_date" "text",
+    "status" "text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "comms_brand_claims_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'expired'::"text", 'rejected'::"text"])))
+);
+
+
+ALTER TABLE "public"."comms_brand_claims" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."comms_contact_segment_memberships" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "comms_contact_id" "uuid" NOT NULL,
+    "comms_segment_id" "uuid" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."comms_contact_segment_memberships" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."comms_contact_segments" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "name" "jsonb" NOT NULL,
+    "description" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."comms_contact_segments" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."comms_contacts" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "comms_organization_id" "uuid",
+    "name" "text" NOT NULL,
+    "type" "text" NOT NULL,
+    "role" "jsonb",
+    "purpose" "jsonb",
+    "channel_preference" "jsonb",
+    "source" "jsonb",
+    "active" boolean DEFAULT true NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "comms_contacts_type_check" CHECK (("type" = ANY (ARRAY['media'::"text", 'institutional'::"text", 'partner'::"text", 'creator'::"text", 'audience'::"text"])))
+);
+
+
+ALTER TABLE "public"."comms_contacts" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."comms_content_items" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "initiative_id" "uuid" NOT NULL,
+    "title" "jsonb" NOT NULL,
+    "language" "text" NOT NULL,
+    "channel" "text" NOT NULL,
+    "status" "text" NOT NULL,
+    "delivery_status" "text" NOT NULL,
+    "body" "jsonb",
+    "revision_note" "jsonb",
+    "due_date" "text",
+    "scheduled_for" "text",
+    "time_zone" "text",
+    "owner" "text" NOT NULL,
+    "source_revision_id" "text",
+    "needs_translation_review" boolean,
+    "delivery_note" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "comms_content_items_channel_check" CHECK (("channel" = ANY (ARRAY['email'::"text", 'intranet'::"text", 'social_linkedin'::"text", 'social_x'::"text", 'press_release'::"text", 'website'::"text", 'newsletter'::"text", 'meeting'::"text", 'other'::"text"]))),
+    CONSTRAINT "comms_content_items_delivery_status_check" CHECK (("delivery_status" = ANY (ARRAY['not_queued'::"text", 'ready'::"text", 'scheduled'::"text", 'paused'::"text", 'sending'::"text", 'confirmed'::"text", 'failed'::"text", 'unknown'::"text", 'cancelled'::"text"]))),
+    CONSTRAINT "comms_content_items_language_check" CHECK (("language" = ANY (ARRAY['en'::"text", 'fr'::"text", 'bilingual'::"text"]))),
+    CONSTRAINT "comms_content_items_status_check" CHECK (("status" = ANY (ARRAY['draft'::"text", 'in_review'::"text", 'changes_requested'::"text", 'approved'::"text", 'superseded'::"text", 'withdrawn'::"text", 'rejected'::"text"])))
+);
+
+
+ALTER TABLE "public"."comms_content_items" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."comms_coverage_items" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "initiative_id" "uuid",
+    "source_id" "uuid",
+    "outlet" "jsonb" NOT NULL,
+    "headline" "jsonb" NOT NULL,
+    "language" "text" NOT NULL,
+    "published_date" "text",
+    "url" "text",
+    "reach" integer,
+    "sentiment" "text",
+    "provenance" "text" NOT NULL,
+    "owner" "text" NOT NULL,
+    "notes" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "comms_coverage_items_language_check" CHECK (("language" = ANY (ARRAY['en'::"text", 'fr'::"text", 'bilingual'::"text"]))),
+    CONSTRAINT "comms_coverage_items_provenance_check" CHECK (("provenance" = ANY (ARRAY['manual'::"text", 'provider'::"text", 'ai_estimate'::"text"]))),
+    CONSTRAINT "comms_coverage_items_sentiment_check" CHECK (("sentiment" = ANY (ARRAY['positive'::"text", 'neutral'::"text", 'negative'::"text", 'mixed'::"text"])))
+);
+
+
+ALTER TABLE "public"."comms_coverage_items" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."comms_execution_events" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "content_item_id" "uuid" NOT NULL,
+    "action" "text" NOT NULL,
+    "previous_status" "text",
+    "new_status" "text",
+    "actor" "text" NOT NULL,
+    "note" "jsonb",
+    "timestamp" "text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "comms_execution_events_action_check" CHECK (("action" = ANY (ARRAY['schedule'::"text", 'unschedule'::"text", 'pause'::"text", 'resume'::"text", 'mark_sent'::"text", 'mark_failed'::"text", 'retry'::"text", 'reconcile'::"text", 'cancel'::"text"]))),
+    CONSTRAINT "comms_execution_events_new_status_check" CHECK ((("new_status" IS NULL) OR ("new_status" = ANY (ARRAY['not_queued'::"text", 'ready'::"text", 'scheduled'::"text", 'paused'::"text", 'sending'::"text", 'confirmed'::"text", 'failed'::"text", 'unknown'::"text", 'cancelled'::"text"])))),
+    CONSTRAINT "comms_execution_events_previous_status_check" CHECK ((("previous_status" IS NULL) OR ("previous_status" = ANY (ARRAY['not_queued'::"text", 'ready'::"text", 'scheduled'::"text", 'paused'::"text", 'sending'::"text", 'confirmed'::"text", 'failed'::"text", 'unknown'::"text", 'cancelled'::"text"]))))
+);
+
+
+ALTER TABLE "public"."comms_execution_events" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."comms_feeds" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "url" "text" NOT NULL,
+    "label" "jsonb" NOT NULL,
+    "source_type" "text" NOT NULL,
+    "initiative_id" "uuid",
+    "enabled" boolean DEFAULT true NOT NULL,
+    "format" "text" NOT NULL,
+    "last_fetched_at" "text",
+    "last_fetch_status" "text",
+    "last_fetch_message" "text",
+    "jurisdiction" "text",
+    "create_coverage_drafts" boolean DEFAULT false NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "comms_feeds_format_check" CHECK (("format" = ANY (ARRAY['rss'::"text", 'atom'::"text", 'auto'::"text"]))),
+    CONSTRAINT "comms_feeds_jurisdiction_check" CHECK ((("jurisdiction" IS NULL) OR ("jurisdiction" = ANY (ARRAY['federal'::"text", 'provincial'::"text", 'municipal'::"text", 'internal'::"text"])))),
+    CONSTRAINT "comms_feeds_last_fetch_status_check" CHECK ((("last_fetch_status" IS NULL) OR ("last_fetch_status" = ANY (ARRAY['ok'::"text", 'error'::"text"])))),
+    CONSTRAINT "comms_feeds_source_type_check" CHECK (("source_type" = ANY (ARRAY['official_notice'::"text", 'news'::"text", 'social'::"text", 'press_release'::"text", 'internal'::"text", 'partner'::"text", 'manual'::"text"])))
+);
+
+
+ALTER TABLE "public"."comms_feeds" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."comms_initiatives" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "title" "jsonb" NOT NULL,
+    "type" "text" NOT NULL,
+    "domain" "text" NOT NULL,
+    "owner" "text" NOT NULL,
+    "audience" "jsonb",
+    "intended_outcome" "jsonb",
+    "baseline" "text",
+    "target" "text",
+    "start_date" "text",
+    "end_date" "text",
+    "risk" "text",
+    "budget" integer,
+    "currency" "text",
+    "status" "text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "comms_initiatives_domain_check" CHECK (("domain" = ANY (ARRAY['pr'::"text", 'corporate'::"text", 'social'::"text", 'public_affairs'::"text", 'marketing'::"text", 'advertising'::"text", 'imc'::"text"]))),
+    CONSTRAINT "comms_initiatives_risk_check" CHECK (("risk" = ANY (ARRAY['low'::"text", 'medium'::"text", 'high'::"text", 'critical'::"text"]))),
+    CONSTRAINT "comms_initiatives_status_check" CHECK (("status" = ANY (ARRAY['planning'::"text", 'active'::"text", 'paused'::"text", 'completed'::"text", 'cancelled'::"text"]))),
+    CONSTRAINT "comms_initiatives_type_check" CHECK (("type" = ANY (ARRAY['campaign'::"text", 'programme'::"text", 'announcement'::"text", 'policy_consultation'::"text", 'event'::"text", 'issue_response'::"text", 'standalone'::"text"])))
+);
+
+
+ALTER TABLE "public"."comms_initiatives" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."comms_integrations" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "type" "jsonb" NOT NULL,
+    "status" "text" NOT NULL,
+    "owner" "text" NOT NULL,
+    "notes" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "comms_integrations_status_check" CHECK (("status" = ANY (ARRAY['connected'::"text", 'disconnected'::"text", 'pending'::"text"])))
+);
+
+
+ALTER TABLE "public"."comms_integrations" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."comms_interactions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "initiative_id" "uuid",
+    "contact_id" "uuid",
+    "type" "text" NOT NULL,
+    "source" "jsonb" NOT NULL,
+    "visibility" "text" NOT NULL,
+    "summary" "jsonb" NOT NULL,
+    "response_target" "text",
+    "owner" "text" NOT NULL,
+    "status" "text" NOT NULL,
+    "escalation_reason" "jsonb",
+    "moderation_reason" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "comms_interactions_status_check" CHECK (("status" = ANY (ARRAY['open'::"text", 'pending'::"text", 'responded'::"text", 'escalated'::"text", 'closed'::"text"]))),
+    CONSTRAINT "comms_interactions_type_check" CHECK (("type" = ANY (ARRAY['inquiry'::"text", 'comment'::"text", 'dm'::"text", 'pitch'::"text", 'meeting'::"text", 'submission'::"text"]))),
+    CONSTRAINT "comms_interactions_visibility_check" CHECK (("visibility" = ANY (ARRAY['public'::"text", 'internal'::"text", 'restricted'::"text"])))
+);
+
+
+ALTER TABLE "public"."comms_interactions" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."comms_issues" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "initiative_id" "uuid",
+    "title" "jsonb" NOT NULL,
+    "severity" "text" NOT NULL,
+    "status" "text" NOT NULL,
+    "lead" "text" NOT NULL,
+    "spokesperson" "text",
+    "affected_channels" "text"[] DEFAULT '{}'::"text"[] NOT NULL,
+    "restricted" boolean DEFAULT false NOT NULL,
+    "summary" "jsonb",
+    "resolution" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "comms_issues_severity_check" CHECK (("severity" = ANY (ARRAY['low'::"text", 'medium'::"text", 'high'::"text", 'critical'::"text"]))),
+    CONSTRAINT "comms_issues_status_check" CHECK (("status" = ANY (ARRAY['open'::"text", 'monitoring'::"text", 'resolved'::"text", 'closed'::"text"])))
+);
+
+
+ALTER TABLE "public"."comms_issues" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."comms_metrics" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "initiative_id" "uuid" NOT NULL,
+    "name" "jsonb" NOT NULL,
+    "period" "jsonb",
+    "value" numeric,
+    "baseline" numeric,
+    "target" numeric,
+    "provenance" "text" NOT NULL,
+    "owner" "text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "comms_metrics_provenance_check" CHECK (("provenance" = ANY (ARRAY['manual'::"text", 'provider'::"text", 'ai_estimate'::"text"])))
+);
+
+
+ALTER TABLE "public"."comms_metrics" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."comms_objectives" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "initiative_id" "uuid" NOT NULL,
+    "label" "jsonb" NOT NULL,
+    "baseline" "text",
+    "target" "text",
+    "period" "jsonb",
+    "owner" "text" NOT NULL,
+    "evidence_source" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."comms_objectives" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."comms_organizations" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "type" "jsonb",
+    "jurisdiction" "jsonb",
+    "notes" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."comms_organizations" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."comms_policy_files" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "initiative_id" "uuid",
+    "jurisdiction" "jsonb" NOT NULL,
+    "authority" "jsonb" NOT NULL,
+    "objective" "jsonb" NOT NULL,
+    "source_url" "text",
+    "stage" "text" NOT NULL,
+    "deadline" "text",
+    "owner" "text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "comms_policy_files_stage_check" CHECK (("stage" = ANY (ARRAY['proposed'::"text", 'enacted'::"text", 'in_force'::"text", 'consultation_open'::"text", 'consultation_closed'::"text"])))
+);
+
+
+ALTER TABLE "public"."comms_policy_files" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."comms_sources" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "initiative_id" "uuid",
+    "issue_id" "uuid",
+    "source_type" "text" NOT NULL,
+    "url" "text",
+    "publisher" "jsonb" NOT NULL,
+    "published_date" "text",
+    "retrieved_at" "text",
+    "jurisdiction" "jsonb",
+    "rights" "jsonb",
+    "classification" "jsonb" NOT NULL,
+    "supports" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "comms_sources_source_type_check" CHECK (("source_type" = ANY (ARRAY['official_notice'::"text", 'news'::"text", 'social'::"text", 'press_release'::"text", 'internal'::"text", 'partner'::"text", 'manual'::"text"])))
+);
+
+
+ALTER TABLE "public"."comms_sources" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."comms_submissions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "initiative_id" "uuid" NOT NULL,
+    "policy_file_id" "uuid",
+    "authority" "jsonb" NOT NULL,
+    "submitted_at" "text",
+    "deadline" "text",
+    "method" "jsonb" NOT NULL,
+    "confirmation_ref" "text",
+    "owner" "text" NOT NULL,
+    "status" "text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "comms_submissions_status_check" CHECK (("status" = ANY (ARRAY['planned'::"text", 'submitted'::"text", 'recorded'::"text", 'withdrawn'::"text"])))
+);
+
+
+ALTER TABLE "public"."comms_submissions" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."comms_usage_controls" (
+    "organization_id" "uuid" NOT NULL,
+    "monthly_content_budget" numeric,
+    "monthly_interaction_budget" numeric,
+    "alert_threshold_percent" numeric,
+    "default_review_days" numeric,
+    "content_retention_days" numeric,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."comms_usage_controls" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."compliance_assessments" (
@@ -6473,6 +8601,10 @@ CREATE TABLE IF NOT EXISTS "public"."employees" (
     "probation_end_date" "date",
     "termination_date" "date",
     "manager_id" "uuid",
+    "department" "text",
+    "employment_type" "text",
+    "phone" "text",
+    CONSTRAINT "employees_employment_type_check" CHECK (("employment_type" = ANY (ARRAY['full_time'::"text", 'part_time'::"text", 'contract'::"text", 'intern'::"text"]))),
     CONSTRAINT "employees_manager_not_self" CHECK (("manager_id" IS DISTINCT FROM "id")),
     CONSTRAINT "employees_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'on_leave'::"text", 'terminated'::"text"])))
 );
@@ -6481,7 +8613,7 @@ CREATE TABLE IF NOT EXISTS "public"."employees" (
 ALTER TABLE "public"."employees" OWNER TO "postgres";
 
 
-COMMENT ON COLUMN "public"."employees"."jurisdiction" IS 'Employment jurisdiction â€” full English name (e.g. Ontario, Quebec).';
+COMMENT ON COLUMN "public"."employees"."jurisdiction" IS 'Employment jurisdiction — full English name (e.g. Ontario, Quebec).';
 
 
 
@@ -6494,6 +8626,18 @@ COMMENT ON COLUMN "public"."employees"."termination_date" IS 'Date employment en
 
 
 COMMENT ON COLUMN "public"."employees"."manager_id" IS 'Direct line manager within the organization; null when unset or unknown.';
+
+
+
+COMMENT ON COLUMN "public"."employees"."department" IS 'Free-form department or team name.';
+
+
+
+COMMENT ON COLUMN "public"."employees"."employment_type" IS 'Full-time, part-time, contract, or intern.';
+
+
+
+COMMENT ON COLUMN "public"."employees"."phone" IS 'Work or direct phone number.';
 
 
 
@@ -6546,6 +8690,23 @@ CREATE TABLE IF NOT EXISTS "public"."employer_tiers" (
 ALTER TABLE "public"."employer_tiers" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."entity_links" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "from_table" "text" NOT NULL,
+    "from_id" "uuid" NOT NULL,
+    "to_table" "text" NOT NULL,
+    "to_id" "uuid" NOT NULL,
+    "relationship" "text" DEFAULT 'relates_to'::"text" NOT NULL,
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."entity_links" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."export_events" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "user_id" "uuid",
@@ -6570,6 +8731,852 @@ ALTER TABLE "public"."export_events" OWNER TO "postgres";
 
 COMMENT ON TABLE "public"."export_events" IS 'One row per authorized export of company-generated content; the artifact''s embedded export id is this row''s id. Written only by record-export (service role).';
 
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_approvals" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "record_type" "text" NOT NULL,
+    "record_id" "text" NOT NULL,
+    "approver" "text" NOT NULL,
+    "decision" "text" NOT NULL,
+    "approved_amount" numeric(18,2) DEFAULT 0 NOT NULL,
+    "approved_currency" "text" NOT NULL,
+    "payee_version" "text",
+    "rationale" "jsonb",
+    "decided_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_approvals_approved_currency_check" CHECK (("approved_currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_approvals_decision_check" CHECK (("decision" = ANY (ARRAY['approved'::"text", 'rejected'::"text", 'changes_requested'::"text"]))),
+    CONSTRAINT "finance_approvals_record_type_check" CHECK (("record_type" = ANY (ARRAY['spend_request'::"text", 'expense'::"text", 'journal'::"text", 'pay_run'::"text", 'close_period'::"text", 'tax_scenario'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_approvals" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_audit_events" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "actor" "text" NOT NULL,
+    "action" "jsonb" NOT NULL,
+    "record_type" "text" NOT NULL,
+    "record_id" "text" NOT NULL,
+    "timestamp" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "outcome" "jsonb" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."finance_audit_events" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_bank_accounts" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "label" "jsonb" NOT NULL,
+    "currency" "text" NOT NULL,
+    "last4" "text",
+    "restricted" boolean DEFAULT false NOT NULL,
+    "earmarked_amount" numeric(18,2),
+    "maturity_date" "date",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_bank_accounts_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_bank_accounts" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_bank_items" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "bank_account_id" "uuid" NOT NULL,
+    "date" "date" NOT NULL,
+    "amount" numeric(18,2) DEFAULT 0 NOT NULL,
+    "currency" "text" NOT NULL,
+    "description" "text" NOT NULL,
+    "match_status" "text" DEFAULT 'unmatched'::"text" NOT NULL,
+    "matched_journal_id" "text",
+    "matched_invoice_id" "text",
+    "matched_bill_id" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "import_session_id" "uuid",
+    "ai_suggestion" "jsonb",
+    "note" "jsonb",
+    CONSTRAINT "finance_bank_items_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_bank_items_match_status_check" CHECK (("match_status" = ANY (ARRAY['unmatched'::"text", 'suggested'::"text", 'matched'::"text", 'exception'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_bank_items" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_bills" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "supplier_id" "uuid" NOT NULL,
+    "number" "text" NOT NULL,
+    "issue_date" "date" NOT NULL,
+    "due_date" "date" NOT NULL,
+    "currency" "text" NOT NULL,
+    "subtotal" numeric(18,2) DEFAULT 0 NOT NULL,
+    "tax_total" numeric(18,2) DEFAULT 0 NOT NULL,
+    "total" numeric(18,2) DEFAULT 0 NOT NULL,
+    "paid_amount" numeric(18,2) DEFAULT 0 NOT NULL,
+    "status" "text" DEFAULT 'draft'::"text" NOT NULL,
+    "purchase_order_id" "text",
+    "project_id" "text",
+    "source_system" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_bills_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_bills_status_check" CHECK (("status" = ANY (ARRAY['draft'::"text", 'posted'::"text", 'partial'::"text", 'paid'::"text", 'overdue'::"text", 'disputed'::"text", 'cancelled'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_bills" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_books" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "label" "jsonb" NOT NULL,
+    "basis" "text" NOT NULL,
+    "authoritative_source" "jsonb" NOT NULL,
+    "last_synced_at" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_books_basis_check" CHECK (("basis" = ANY (ARRAY['accrual'::"text", 'cash'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_books" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_budgets" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "label" "jsonb" NOT NULL,
+    "status" "text" DEFAULT 'draft'::"text" NOT NULL,
+    "currency" "text" NOT NULL,
+    "lines" "jsonb" DEFAULT '[]'::"jsonb" NOT NULL,
+    "owner" "text" NOT NULL,
+    "approved_at" timestamp with time zone,
+    "version" integer DEFAULT 1 NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_budgets_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_budgets_status_check" CHECK (("status" = ANY (ARRAY['draft'::"text", 'approved'::"text", 'revised'::"text", 'archived'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_budgets" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_categorization_feedback" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "description" "text" NOT NULL,
+    "original_ledger_account_id" "text",
+    "corrected_ledger_account_id" "text" NOT NULL,
+    "corrected_direction" "text" NOT NULL,
+    "corrected_note" "jsonb",
+    "corrected_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_categorization_feedback_corrected_direction_check" CHECK (("corrected_direction" = ANY (ARRAY['debit'::"text", 'credit'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_categorization_feedback" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_category_rules" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "pattern" "text" NOT NULL,
+    "match_type" "text" DEFAULT 'contains'::"text" NOT NULL,
+    "ledger_account_id" "uuid" NOT NULL,
+    "direction" "text" DEFAULT 'debit'::"text" NOT NULL,
+    "priority" integer DEFAULT 50 NOT NULL,
+    "active" boolean DEFAULT true NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_category_rules_direction_check" CHECK (("direction" = ANY (ARRAY['debit'::"text", 'credit'::"text"]))),
+    CONSTRAINT "finance_category_rules_match_type_check" CHECK (("match_type" = ANY (ARRAY['contains'::"text", 'exact'::"text", 'starts_with'::"text", 'ends_with'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_category_rules" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_close_periods" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "book_id" "uuid" NOT NULL,
+    "period_id" "text" NOT NULL,
+    "status" "text" DEFAULT 'open'::"text" NOT NULL,
+    "approver" "text",
+    "approved_at" timestamp with time zone,
+    "reopen_reason" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_close_periods_status_check" CHECK (("status" = ANY (ARRAY['open'::"text", 'in_review'::"text", 'approved'::"text", 'locked'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_close_periods" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_credits" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "party_id" "uuid" NOT NULL,
+    "direction" "text" NOT NULL,
+    "number" "text" NOT NULL,
+    "date" "date" NOT NULL,
+    "currency" "text" NOT NULL,
+    "amount" numeric(18,2) DEFAULT 0 NOT NULL,
+    "applied_to_id" "text",
+    "reason" "jsonb" NOT NULL,
+    "status" "text" DEFAULT 'open'::"text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_credits_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_credits_direction_check" CHECK (("direction" = ANY (ARRAY['receivable'::"text", 'payable'::"text"]))),
+    CONSTRAINT "finance_credits_status_check" CHECK (("status" = ANY (ARRAY['open'::"text", 'applied'::"text", 'cancelled'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_credits" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_debts" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "label" "jsonb" NOT NULL,
+    "lender" "jsonb" NOT NULL,
+    "principal" numeric(18,2) DEFAULT 0 NOT NULL,
+    "balance" numeric(18,2) DEFAULT 0 NOT NULL,
+    "interest_rate" "text" NOT NULL,
+    "currency" "text" NOT NULL,
+    "maturity_date" "date" NOT NULL,
+    "notice_period" "text",
+    "collateral_ref" "text",
+    "covenant_ref" "text",
+    "status" "text" DEFAULT 'active'::"text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_debts_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_debts_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'paid_off'::"text", 'defaulted'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_debts" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_decision_entries" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "holding_id" "uuid",
+    "watchlist_item_id" "uuid",
+    "decision" "text" NOT NULL,
+    "decided_at" "date" NOT NULL,
+    "summary" "jsonb" NOT NULL,
+    "rationale" "jsonb",
+    "review_date" "date",
+    "outcome" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_decision_entries_decision_check" CHECK (("decision" = ANY (ARRAY['buy'::"text", 'sell'::"text", 'hold'::"text", 'add'::"text", 'exit'::"text", 'review'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_decision_entries" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_entities" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "legal_name" "text" NOT NULL,
+    "legal_form" "text" NOT NULL,
+    "fiscal_year_start" "text" NOT NULL,
+    "functional_currency" "text" DEFAULT 'CAD'::"text" NOT NULL,
+    "jurisdictions" "text"[] DEFAULT ARRAY[]::"text"[] NOT NULL,
+    "accounting_source_id" "text",
+    "payroll_source_id" "text",
+    "active" boolean DEFAULT true NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_entities_functional_currency_check" CHECK (("functional_currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_entities_legal_form_check" CHECK (("legal_form" = ANY (ARRAY['corporation'::"text", 'partnership'::"text", 'sole_proprietor'::"text", 'nonprofit'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_entities" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_expenses" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "employee_id" "text",
+    "requester" "text" NOT NULL,
+    "purpose" "jsonb" NOT NULL,
+    "amount" numeric(18,2) DEFAULT 0 NOT NULL,
+    "currency" "text" NOT NULL,
+    "project_id" "text",
+    "receipt_id" "text",
+    "status" "text" DEFAULT 'draft'::"text" NOT NULL,
+    "taxable" boolean DEFAULT false NOT NULL,
+    "submitted_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_expenses_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_expenses_status_check" CHECK (("status" = ANY (ARRAY['draft'::"text", 'submitted'::"text", 'approved'::"text", 'reimbursed'::"text", 'rejected'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_expenses" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_external_actions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "record_type" "text" NOT NULL,
+    "record_id" "text" NOT NULL,
+    "status" "text" DEFAULT 'internal_approval'::"text" NOT NULL,
+    "payload_version" "text" NOT NULL,
+    "idempotency_key" "text" NOT NULL,
+    "provider_ref" "text",
+    "confirmed_at" timestamp with time zone,
+    "notes" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_external_actions_record_type_check" CHECK (("record_type" = ANY (ARRAY['payment'::"text", 'filing'::"text", 'remittance'::"text", 'payroll_submission'::"text"]))),
+    CONSTRAINT "finance_external_actions_status_check" CHECK (("status" = ANY (ARRAY['internal_approval'::"text", 'export_prepared'::"text", 'provider_accepted'::"text", 'settled'::"text", 'filing_accepted'::"text", 'failed'::"text", 'returned'::"text", 'unknown'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_external_actions" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_fiscal_periods" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "label" "text" NOT NULL,
+    "start_date" "date" NOT NULL,
+    "end_date" "date" NOT NULL,
+    "status" "text" DEFAULT 'open'::"text" NOT NULL,
+    CONSTRAINT "finance_fiscal_periods_status_check" CHECK (("status" = ANY (ARRAY['open'::"text", 'closing'::"text", 'closed'::"text", 'locked'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_fiscal_periods" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_forecasts" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "label" "jsonb" NOT NULL,
+    "type" "text" NOT NULL,
+    "baseline_scenario_id" "text",
+    "currency" "text" NOT NULL,
+    "periods" "jsonb" DEFAULT '[]'::"jsonb" NOT NULL,
+    "owner" "text" NOT NULL,
+    "frozen_at" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_forecasts_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_forecasts_type_check" CHECK (("type" = ANY (ARRAY['13_week_cash'::"text", 'monthly_operating'::"text", 'custom'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_forecasts" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_holdings" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "label" "jsonb" NOT NULL,
+    "institution" "jsonb" NOT NULL,
+    "units" "text",
+    "cost_basis" numeric(18,2),
+    "carrying_value" numeric(18,2),
+    "market_value" numeric(18,2),
+    "currency" "text" NOT NULL,
+    "as_of_date" "date" NOT NULL,
+    "realized_result" numeric(18,2),
+    "unrealized_change" numeric(18,2),
+    "income_ytd" numeric(18,2),
+    "fees_ytd" numeric(18,2),
+    "valuation_source" "jsonb" NOT NULL,
+    "stale" boolean DEFAULT false NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_holdings_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_holdings" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_import_sessions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "bank_account_id" "uuid" NOT NULL,
+    "file_name" "text" NOT NULL,
+    "imported_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "total_rows" integer DEFAULT 0 NOT NULL,
+    "new_items" integer DEFAULT 0 NOT NULL,
+    "duplicates" integer DEFAULT 0 NOT NULL,
+    "errors" integer DEFAULT 0 NOT NULL,
+    "status" "text" DEFAULT 'imported'::"text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "error_details" "jsonb",
+    CONSTRAINT "finance_import_sessions_status_check" CHECK (("status" = ANY (ARRAY['pending'::"text", 'imported'::"text", 'reviewed'::"text", 'archived'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_import_sessions" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_invoices" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "customer_id" "uuid" NOT NULL,
+    "number" "text" NOT NULL,
+    "issue_date" "date" NOT NULL,
+    "due_date" "date" NOT NULL,
+    "currency" "text" NOT NULL,
+    "subtotal" numeric(18,2) DEFAULT 0 NOT NULL,
+    "tax_total" numeric(18,2) DEFAULT 0 NOT NULL,
+    "total" numeric(18,2) DEFAULT 0 NOT NULL,
+    "paid_amount" numeric(18,2) DEFAULT 0 NOT NULL,
+    "status" "text" DEFAULT 'draft'::"text" NOT NULL,
+    "project_id" "text",
+    "source_system" "jsonb",
+    "notes" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_invoices_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_invoices_status_check" CHECK (("status" = ANY (ARRAY['draft'::"text", 'issued'::"text", 'partial'::"text", 'paid'::"text", 'overdue'::"text", 'disputed'::"text", 'written_off'::"text", 'cancelled'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_invoices" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_journals" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "book_id" "uuid" NOT NULL,
+    "number" "text" NOT NULL,
+    "date" "date" NOT NULL,
+    "description" "jsonb" NOT NULL,
+    "lines" "jsonb" DEFAULT '[]'::"jsonb" NOT NULL,
+    "currency" "text" NOT NULL,
+    "status" "text" DEFAULT 'draft'::"text" NOT NULL,
+    "source" "text" NOT NULL,
+    "reversed_by_id" "text",
+    "balanced" boolean DEFAULT false NOT NULL,
+    "period_id" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_journals_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_journals_source_check" CHECK (("source" = ANY (ARRAY['import'::"text", 'manual'::"text", 'adjustment'::"text", 'payroll'::"text", 'close'::"text"]))),
+    CONSTRAINT "finance_journals_status_check" CHECK (("status" = ANY (ARRAY['draft'::"text", 'posted'::"text", 'reversed'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_journals" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_ledger_accounts" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "book_id" "uuid" NOT NULL,
+    "code" "text" NOT NULL,
+    "name" "jsonb" NOT NULL,
+    "type" "text" NOT NULL,
+    "sensitive" boolean DEFAULT false NOT NULL,
+    "active" boolean DEFAULT true NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_ledger_accounts_type_check" CHECK (("type" = ANY (ARRAY['asset'::"text", 'liability'::"text", 'equity'::"text", 'revenue'::"text", 'expense'::"text", 'contra'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_ledger_accounts" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_parties" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "type" "text" NOT NULL,
+    "external_id" "text",
+    "banking_details_on_file" boolean DEFAULT false NOT NULL,
+    "active" boolean DEFAULT true NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_parties_type_check" CHECK (("type" = ANY (ARRAY['customer'::"text", 'supplier'::"text", 'employee'::"text", 'bank'::"text", 'advisor'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_parties" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_pay_periods" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "label" "text" NOT NULL,
+    "start_date" "date" NOT NULL,
+    "end_date" "date" NOT NULL,
+    "pay_date" "date" NOT NULL,
+    "frequency" "text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_pay_periods_frequency_check" CHECK (("frequency" = ANY (ARRAY['weekly'::"text", 'biweekly'::"text", 'semimonthly'::"text", 'monthly'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_pay_periods" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_pay_runs" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "period_id" "uuid" NOT NULL,
+    "status" "text" DEFAULT 'inputs_open'::"text" NOT NULL,
+    "gross_pay" numeric(18,2) DEFAULT 0 NOT NULL,
+    "employee_deductions" numeric(18,2) DEFAULT 0 NOT NULL,
+    "employer_contributions" numeric(18,2) DEFAULT 0 NOT NULL,
+    "net_pay" numeric(18,2) DEFAULT 0 NOT NULL,
+    "provider_fees" numeric(18,2) DEFAULT 0 NOT NULL,
+    "currency" "text" NOT NULL,
+    "jurisdictions" "text"[] DEFAULT ARRAY[]::"text"[] NOT NULL,
+    "calculation_source" "jsonb" NOT NULL,
+    "rule_version" "text",
+    "approved_by" "text",
+    "approved_at" timestamp with time zone,
+    "submitted_at" timestamp with time zone,
+    "reconciled_at" timestamp with time zone,
+    "exceptions" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_pay_runs_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_pay_runs_status_check" CHECK (("status" = ANY (ARRAY['inputs_open'::"text", 'inputs_approved'::"text", 'submitted'::"text", 'results_imported'::"text", 'reconciled'::"text", 'exception'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_pay_runs" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_payroll_liabilities" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "pay_run_id" "uuid",
+    "type" "text" NOT NULL,
+    "amount" numeric(18,2) DEFAULT 0 NOT NULL,
+    "currency" "text" NOT NULL,
+    "due_date" "date" NOT NULL,
+    "settled" boolean DEFAULT false NOT NULL,
+    "settled_at" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_payroll_liabilities_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_payroll_liabilities_type_check" CHECK (("type" = ANY (ARRAY['source_deductions'::"text", 'employer_contributions'::"text", 'remittance'::"text", 'other'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_payroll_liabilities" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_purchase_orders" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "supplier_id" "uuid" NOT NULL,
+    "number" "text" NOT NULL,
+    "date" "date" NOT NULL,
+    "currency" "text" NOT NULL,
+    "total" numeric(18,2) DEFAULT 0 NOT NULL,
+    "matched_amount" numeric(18,2) DEFAULT 0 NOT NULL,
+    "status" "text" DEFAULT 'open'::"text" NOT NULL,
+    "project_id" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_purchase_orders_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_purchase_orders_status_check" CHECK (("status" = ANY (ARRAY['open'::"text", 'partial'::"text", 'received'::"text", 'closed'::"text", 'cancelled'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_purchase_orders" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_receipts" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "bill_id" "text",
+    "expense_id" "text",
+    "file_name" "jsonb" NOT NULL,
+    "storage_path" "text" NOT NULL,
+    "file_sha256" "text",
+    "size_bytes" bigint,
+    "content_type" "text" DEFAULT 'application/octet-stream'::"text" NOT NULL,
+    "uploaded_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "reviewed" boolean DEFAULT false NOT NULL,
+    "reviewed_by" "text",
+    "reviewed_at" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."finance_receipts" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_reconciliations" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "bank_account_id" "uuid" NOT NULL,
+    "period_id" "text" NOT NULL,
+    "opening_balance" numeric(18,2) DEFAULT 0 NOT NULL,
+    "closing_balance" numeric(18,2) DEFAULT 0 NOT NULL,
+    "statement_total" numeric(18,2) DEFAULT 0 NOT NULL,
+    "book_total" numeric(18,2) DEFAULT 0 NOT NULL,
+    "difference" numeric(18,2) DEFAULT 0 NOT NULL,
+    "status" "text" DEFAULT 'in_progress'::"text" NOT NULL,
+    "reviewer" "text",
+    "reviewed_at" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_reconciliations_status_check" CHECK (("status" = ANY (ARRAY['in_progress'::"text", 'reconciled'::"text", 'exception'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_reconciliations" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_reserve_goals" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "type" "text" NOT NULL,
+    "label" "jsonb" NOT NULL,
+    "target_amount" numeric(18,2) DEFAULT 0 NOT NULL,
+    "current_amount" numeric(18,2) DEFAULT 0 NOT NULL,
+    "currency" "text" NOT NULL,
+    "linked_bank_account_id" "text",
+    "due_date" "date",
+    "owner" "text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_reserve_goals_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_reserve_goals_type_check" CHECK (("type" = ANY (ARRAY['payroll'::"text", 'tax'::"text", 'emergency_operating'::"text", 'capital_purchase'::"text", 'other'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_reserve_goals" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_scenarios" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "label" "jsonb" NOT NULL,
+    "type" "text" NOT NULL,
+    "assumptions" "jsonb" NOT NULL,
+    "cutoff_date" "date" NOT NULL,
+    "currency" "text" NOT NULL,
+    "projected_revenue" numeric(18,2) DEFAULT 0 NOT NULL,
+    "projected_expense" numeric(18,2) DEFAULT 0 NOT NULL,
+    "projected_cash_flow" numeric(18,2) DEFAULT 0 NOT NULL,
+    "status" "text" DEFAULT 'draft'::"text" NOT NULL,
+    "reviewer" "text",
+    "reviewed_at" timestamp with time zone,
+    "stale_reason" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_scenarios_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_scenarios_status_check" CHECK (("status" = ANY (ARRAY['draft'::"text", 'reviewed'::"text", 'accepted'::"text", 'stale'::"text"]))),
+    CONSTRAINT "finance_scenarios_type_check" CHECK (("type" = ANY (ARRAY['baseline'::"text", 'hiring'::"text", 'capital_purchase'::"text", 'financing'::"text", 'operating_change'::"text", 'tax'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_scenarios" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_spend_requests" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "requester" "text" NOT NULL,
+    "purpose" "jsonb" NOT NULL,
+    "supplier_id" "uuid",
+    "project_id" "text",
+    "amount" numeric(18,2) DEFAULT 0 NOT NULL,
+    "currency" "text" NOT NULL,
+    "evidence_ref" "text",
+    "status" "text" DEFAULT 'draft'::"text" NOT NULL,
+    "approver" "text",
+    "approved_at" timestamp with time zone,
+    "approval_version" "text",
+    "submitted_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_spend_requests_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_spend_requests_status_check" CHECK (("status" = ANY (ARRAY['draft'::"text", 'submitted'::"text", 'approved'::"text", 'rejected'::"text", 'committed'::"text", 'cancelled'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_spend_requests" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_subscriptions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "label" "jsonb" NOT NULL,
+    "supplier_id" "uuid" NOT NULL,
+    "cost" numeric(18,2) DEFAULT 0 NOT NULL,
+    "currency" "text" NOT NULL,
+    "renewal_term" "jsonb" NOT NULL,
+    "next_renewal_date" "date" NOT NULL,
+    "notice_date" "date",
+    "owner" "text" NOT NULL,
+    "cancellation_evidence" "text",
+    "active" boolean DEFAULT true NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_subscriptions_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_subscriptions" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_tax_obligations" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "type" "text" NOT NULL,
+    "jurisdiction" "jsonb" NOT NULL,
+    "period" "text" NOT NULL,
+    "due_date" "date" NOT NULL,
+    "payment_due_date" "date",
+    "estimated_amount" numeric(18,2) DEFAULT 0 NOT NULL,
+    "confirmed_amount" numeric(18,2),
+    "currency" "text" NOT NULL,
+    "preparer" "text",
+    "reviewer" "text",
+    "status" "text" DEFAULT 'planned'::"text" NOT NULL,
+    "evidence_refs" "text"[] DEFAULT ARRAY[]::"text"[] NOT NULL,
+    "filing_ref" "text",
+    "notes" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_tax_obligations_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_tax_obligations_status_check" CHECK (("status" = ANY (ARRAY['planned'::"text", 'in_preparation'::"text", 'reviewed'::"text", 'filed'::"text", 'paid'::"text", 'confirmed'::"text", 'overdue'::"text", 'withdrawn'::"text"]))),
+    CONSTRAINT "finance_tax_obligations_type_check" CHECK (("type" = ANY (ARRAY['income_tax'::"text", 'gst_hst'::"text", 'qst'::"text", 'payroll_source_deductions'::"text", 'employer_contributions'::"text", 'other'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_tax_obligations" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_tax_scenarios" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "label" "jsonb" NOT NULL,
+    "baseline" "text" NOT NULL,
+    "proposed_decision" "jsonb" NOT NULL,
+    "projected_profit" numeric(18,2) DEFAULT 0 NOT NULL,
+    "projected_taxable_income" numeric(18,2) DEFAULT 0 NOT NULL,
+    "projected_tax" numeric(18,2) DEFAULT 0 NOT NULL,
+    "projected_cash_flow" numeric(18,2) DEFAULT 0 NOT NULL,
+    "currency" "text" NOT NULL,
+    "assumptions" "jsonb" NOT NULL,
+    "law_version" "jsonb" NOT NULL,
+    "enacted" boolean DEFAULT true NOT NULL,
+    "reviewer" "text",
+    "reviewed_at" timestamp with time zone,
+    "status" "text" DEFAULT 'draft'::"text" NOT NULL,
+    "stale_reason" "jsonb",
+    "disclaimer" "jsonb" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_tax_scenarios_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_tax_scenarios_status_check" CHECK (("status" = ANY (ARRAY['draft'::"text", 'reviewed'::"text", 'accepted'::"text", 'stale'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_tax_scenarios" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_watchlist_items" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "symbol" "text",
+    "label" "jsonb" NOT NULL,
+    "asset_class" "text" DEFAULT 'other'::"text" NOT NULL,
+    "thesis" "jsonb",
+    "target_low" numeric(18,2),
+    "target_high" numeric(18,2),
+    "currency" "text" DEFAULT 'CAD'::"text" NOT NULL,
+    "status" "text" DEFAULT 'watching'::"text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_watchlist_items_asset_class_check" CHECK (("asset_class" = ANY (ARRAY['equity'::"text", 'crypto'::"text", 'fund'::"text", 'fixed_income'::"text", 'other'::"text"]))),
+    CONSTRAINT "finance_watchlist_items_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_watchlist_items_status_check" CHECK (("status" = ANY (ARRAY['watching'::"text", 'under_review'::"text", 'decided'::"text", 'dropped'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_watchlist_items" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_workspace_settings" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "ai_import_enabled" boolean DEFAULT false NOT NULL,
+    "ai_import_mode" "text" DEFAULT 'auto_high'::"text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_workspace_settings_ai_import_mode_check" CHECK (("ai_import_mode" = ANY (ARRAY['suggest'::"text", 'auto_high'::"text", 'auto_all'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_workspace_settings" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."frontend_feature_flags" (
@@ -6633,6 +9640,84 @@ ALTER VIEW "public"."generator_templates" OWNER TO "postgres";
 
 COMMENT ON VIEW "public"."generator_templates" IS 'Data API view of enabled generator templates used by the browser client.';
 
+
+
+CREATE TABLE IF NOT EXISTS "public"."governance_decisions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "title" "text" NOT NULL,
+    "decision_date" "date",
+    "decided_by" "text",
+    "rationale" "text",
+    "status" "text" DEFAULT 'adopted'::"text" NOT NULL,
+    "viewer_visible" boolean DEFAULT false NOT NULL,
+    "related_record_id" "uuid",
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "governance_decisions_status_check" CHECK (("status" = ANY (ARRAY['proposed'::"text", 'adopted'::"text", 'rescinded'::"text"])))
+);
+
+
+ALTER TABLE "public"."governance_decisions" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."governance_officers" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "role" "text" NOT NULL,
+    "appointed_date" "date",
+    "resigned_date" "date",
+    "contact_email" "text",
+    "is_active" boolean DEFAULT true NOT NULL,
+    "viewer_visible" boolean DEFAULT false NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "governance_officers_role_check" CHECK (("role" = ANY (ARRAY['director'::"text", 'officer_president'::"text", 'officer_secretary'::"text", 'officer_treasurer'::"text"])))
+);
+
+
+ALTER TABLE "public"."governance_officers" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."governance_records" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "title" "text" NOT NULL,
+    "record_type" "text" NOT NULL,
+    "jurisdiction" "text",
+    "effective_date" "date",
+    "review_due_date" "date",
+    "status" "text" DEFAULT 'active'::"text" NOT NULL,
+    "viewer_visible" boolean DEFAULT false NOT NULL,
+    "document_id" "uuid",
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "governance_records_record_type_check" CHECK (("record_type" = ANY (ARRAY['articles'::"text", 'bylaw'::"text", 'resolution'::"text", 'minutes'::"text", 'register'::"text"]))),
+    CONSTRAINT "governance_records_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'superseded'::"text", 'pending_review'::"text"])))
+);
+
+
+ALTER TABLE "public"."governance_records" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."governance_shareholders" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "share_class" "text",
+    "shares_issued" integer,
+    "issue_date" "date",
+    "contact_email" "text",
+    "viewer_visible" boolean DEFAULT false NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."governance_shareholders" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."guidance_chunks" (
@@ -6732,7 +9817,7 @@ CREATE TABLE IF NOT EXISTS "public"."hr_advisor_memory_audit" (
     "statement_en" "text" NOT NULL,
     "statement_fr" "text" NOT NULL,
     "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
-    CONSTRAINT "hr_advisor_memory_audit_action_check" CHECK (("action" = ANY (ARRAY['confirm'::"text", 'correct'::"text", 'forget'::"text", 'create'::"text"])))
+    CONSTRAINT "hr_advisor_memory_audit_action_check" CHECK (("action" = ANY (ARRAY['create'::"text", 'confirm'::"text", 'correct'::"text", 'forget'::"text", 'proposed'::"text", 'rejected'::"text", 'edited'::"text", 'restored'::"text", 'expired'::"text", 'exported'::"text", 'legal_hold_added'::"text", 'legal_hold_removed'::"text", 'review_requested'::"text", 'memory_disabled'::"text", 'memory_enabled'::"text"])))
 );
 
 
@@ -6764,11 +9849,42 @@ CREATE TABLE IF NOT EXISTS "public"."hr_advisor_memory_facts" (
     "updated_by" "uuid",
     "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    "status" "text",
+    "classification" "text",
+    "origin" "text",
+    "sensitivity" "text",
+    "advisor_usable" boolean,
+    "retention_category" "text",
+    "review_date" timestamp with time zone,
+    "expiry_date" timestamp with time zone,
+    "last_verified_at" timestamp with time zone,
+    "legal_hold_reason_en" "text",
+    "legal_hold_reason_fr" "text",
+    "legal_hold_placed_by" "text",
+    "legal_hold_placed_at" timestamp with time zone,
+    "purpose_en" "text",
+    "purpose_fr" "text",
+    "jurisdiction" "text",
+    "proposed_by" "text",
+    "confidence_score" numeric,
+    "creator_label" "text",
+    "confirmed_by_label" "text",
+    "source_excerpt_en" "text",
+    "source_excerpt_fr" "text",
+    "retrieval_scope_type" "text",
+    "retrieval_scope_id" "text",
     CONSTRAINT "hr_advisor_memory_facts_category_check" CHECK (("category" = ANY (ARRAY['employment'::"text", 'compensation'::"text", 'matter'::"text", 'record'::"text", 'note'::"text", 'case'::"text", 'conversation'::"text"]))),
+    CONSTRAINT "hr_advisor_memory_facts_classification_check" CHECK (("classification" = ANY (ARRAY['fact'::"text", 'preference'::"text", 'allegation'::"text", 'opinion'::"text", 'evidence'::"text", 'finding'::"text", 'decision'::"text", 'contextual'::"text"]))),
     CONSTRAINT "hr_advisor_memory_facts_confidence_check" CHECK (("confidence" = ANY (ARRAY['confirmed'::"text", 'inferred'::"text"]))),
+    CONSTRAINT "hr_advisor_memory_facts_confidence_score_check" CHECK ((("confidence_score" >= (0)::numeric) AND ("confidence_score" <= (1)::numeric))),
     CONSTRAINT "hr_advisor_memory_facts_confirmed_coherence" CHECK (((("confidence" = 'inferred'::"text") AND ("confirmed_at" IS NULL)) OR ("confidence" = 'confirmed'::"text"))),
+    CONSTRAINT "hr_advisor_memory_facts_origin_check" CHECK (("origin" = ANY (ARRAY['explicit'::"text", 'inferred'::"text", 'manual'::"text"]))),
+    CONSTRAINT "hr_advisor_memory_facts_retention_category_check" CHECK (("retention_category" = ANY (ARRAY['advisor_conversation'::"text", 'employee_preference'::"text", 'employment_record'::"text", 'payroll_tax'::"text", 'investigation'::"text", 'wellbeing_personal'::"text", 'custom'::"text"]))),
+    CONSTRAINT "hr_advisor_memory_facts_retrieval_scope_type_check" CHECK (("retrieval_scope_type" = ANY (ARRAY['workspace'::"text", 'case'::"text", 'conversation'::"text", 'workflow'::"text"]))),
     CONSTRAINT "hr_advisor_memory_facts_scope_check" CHECK (("scope" = ANY (ARRAY['person'::"text", 'case'::"text", 'thread'::"text"]))),
+    CONSTRAINT "hr_advisor_memory_facts_sensitivity_check" CHECK (("sensitivity" = ANY (ARRAY['standard'::"text", 'restricted'::"text"]))),
     CONSTRAINT "hr_advisor_memory_facts_source_type_check" CHECK (("source_type" = ANY (ARRAY['hris'::"text", 'document'::"text", 'chat'::"text", 'manual'::"text", 'inference'::"text", 'case'::"text"]))),
+    CONSTRAINT "hr_advisor_memory_facts_status_check" CHECK (("status" = ANY (ARRAY['proposed'::"text", 'needs_review'::"text", 'confirmed'::"text", 'expired'::"text", 'removed'::"text"]))),
     CONSTRAINT "hr_advisor_memory_facts_visibility_check" CHECK (("visibility" = ANY (ARRAY['hr'::"text", 'case'::"text", 'restricted'::"text"])))
 );
 
@@ -6776,8 +9892,85 @@ CREATE TABLE IF NOT EXISTS "public"."hr_advisor_memory_facts" (
 ALTER TABLE "public"."hr_advisor_memory_facts" OWNER TO "postgres";
 
 
-COMMENT ON TABLE "public"."hr_advisor_memory_facts" IS 'Advisor Memory governed facts (one row = one fact). Soft-forget via forgotten_at.';
+COMMENT ON TABLE "public"."hr_advisor_memory_facts" IS 'Advisor Memory governed facts (one row = one fact). Soft-forget via forgotten_at. Migration 0155 added governance columns (status, classification, sensitivity, retention, legal hold, Advisor-usable, purpose, jurisdiction, provenance, retrieval scope).';
 
+
+
+COMMENT ON COLUMN "public"."hr_advisor_memory_facts"."status" IS 'Lifecycle status. When null, derived from confidence + forgotten_at for back-compat.';
+
+
+
+COMMENT ON COLUMN "public"."hr_advisor_memory_facts"."classification" IS 'Record kind (fact, preference, allegation, opinion, evidence, finding, decision, contextual). Allegations/opinions are not verified facts.';
+
+
+
+COMMENT ON COLUMN "public"."hr_advisor_memory_facts"."sensitivity" IS 'Sensitivity tier. When null, derived from the sensitive boolean for back-compat.';
+
+
+
+COMMENT ON COLUMN "public"."hr_advisor_memory_facts"."advisor_usable" IS 'Whether Advisor may retrieve this memory into context. Distinct from whether it is stored.';
+
+
+
+COMMENT ON COLUMN "public"."hr_advisor_memory_facts"."legal_hold_placed_at" IS 'When the legal hold was placed. While set, scheduled expiration/deletion is paused.';
+
+
+
+COMMENT ON COLUMN "public"."hr_advisor_memory_facts"."retrieval_scope_type" IS 'Where Advisor may use this memory. Distinct from the subject scope.';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."hr_authenticity_scores" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "candidate_id" "uuid" NOT NULL,
+    "qualification" "text" NOT NULL,
+    "evidence" "text" NOT NULL,
+    "capability" "text" NOT NULL,
+    "reasoning" "text" NOT NULL,
+    "motivation" "text" NOT NULL,
+    "overall" "text" NOT NULL,
+    "explanations" "jsonb" DEFAULT '[]'::"jsonb" NOT NULL,
+    "last_updated" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "hr_authenticity_scores_capability_check" CHECK (("capability" = ANY (ARRAY['high'::"text", 'medium'::"text", 'low'::"text", 'insufficient'::"text"]))),
+    CONSTRAINT "hr_authenticity_scores_evidence_check" CHECK (("evidence" = ANY (ARRAY['high'::"text", 'medium'::"text", 'low'::"text", 'insufficient'::"text"]))),
+    CONSTRAINT "hr_authenticity_scores_motivation_check" CHECK (("motivation" = ANY (ARRAY['high'::"text", 'medium'::"text", 'low'::"text", 'insufficient'::"text"]))),
+    CONSTRAINT "hr_authenticity_scores_overall_check" CHECK (("overall" = ANY (ARRAY['high'::"text", 'medium'::"text", 'low'::"text"]))),
+    CONSTRAINT "hr_authenticity_scores_qualification_check" CHECK (("qualification" = ANY (ARRAY['high'::"text", 'medium'::"text", 'low'::"text", 'insufficient'::"text"]))),
+    CONSTRAINT "hr_authenticity_scores_reasoning_check" CHECK (("reasoning" = ANY (ARRAY['high'::"text", 'medium'::"text", 'low'::"text", 'insufficient'::"text"])))
+);
+
+
+ALTER TABLE "public"."hr_authenticity_scores" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."hr_candidates" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "email" "text" NOT NULL,
+    "phone" "text",
+    "location" "text" NOT NULL,
+    "resume" "text" NOT NULL,
+    "linkedin" "text",
+    "position" "text" NOT NULL,
+    "current_role" "text" NOT NULL,
+    "years_experience" integer NOT NULL,
+    "work_authorization" "text" NOT NULL,
+    "compensation_expectations" "text",
+    "status" "text" DEFAULT 'application'::"text" NOT NULL,
+    "applied_date" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "assigned_to" "text",
+    "knockout_criteria" "jsonb" DEFAULT '{"meets_requirements": false, "missing_requirements": [], "required_qualifications": []}'::"jsonb" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "hr_candidates_status_check" CHECK (("status" = ANY (ARRAY['application'::"text", 'basic_qualified'::"text", 'evidence_qualified'::"text", 'work_sample'::"text", 'interview'::"text", 'hired'::"text", 'rejected'::"text"]))),
+    CONSTRAINT "hr_candidates_work_authorization_check" CHECK (("work_authorization" = ANY (ARRAY['authorized'::"text", 'needs_sponsorship'::"text", 'unknown'::"text"])))
+);
+
+
+ALTER TABLE "public"."hr_candidates" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."hr_case_notes" (
@@ -6813,7 +10006,7 @@ CREATE TABLE IF NOT EXISTS "public"."hr_cases" (
 ALTER TABLE "public"."hr_cases" OWNER TO "postgres";
 
 
-COMMENT ON COLUMN "public"."hr_cases"."jurisdiction" IS 'Governing jurisdiction for the case â€” full English name (e.g. Ontario, Quebec).';
+COMMENT ON COLUMN "public"."hr_cases"."jurisdiction" IS 'Governing jurisdiction for the case — full English name (e.g. Ontario, Quebec).';
 
 
 
@@ -6857,6 +10050,26 @@ CREATE TABLE IF NOT EXISTS "public"."hr_compensation_records" (
 
 
 ALTER TABLE "public"."hr_compensation_records" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."hr_defense_interviews" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "candidate_id" "uuid" NOT NULL,
+    "work_sample_id" "uuid" NOT NULL,
+    "format" "text" NOT NULL,
+    "scheduled_date" timestamp with time zone NOT NULL,
+    "interviewers" "text"[] DEFAULT ARRAY[]::"text"[] NOT NULL,
+    "status" "text" DEFAULT 'scheduled'::"text" NOT NULL,
+    "conversation" "jsonb" DEFAULT '[]'::"jsonb" NOT NULL,
+    "assessment" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "hr_defense_interviews_format_check" CHECK (("format" = ANY (ARRAY['defend_work'::"text", 'technical_deep_dive'::"text", 'behavioral'::"text"]))),
+    CONSTRAINT "hr_defense_interviews_status_check" CHECK (("status" = ANY (ARRAY['scheduled'::"text", 'completed'::"text", 'cancelled'::"text"])))
+);
+
+
+ALTER TABLE "public"."hr_defense_interviews" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."hr_document_audit_events" (
@@ -6974,6 +10187,28 @@ CREATE TABLE IF NOT EXISTS "public"."hr_employee_notes" (
 ALTER TABLE "public"."hr_employee_notes" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."hr_evidence_screening" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "candidate_id" "uuid" NOT NULL,
+    "relevant_experience" "jsonb" DEFAULT '[]'::"jsonb" NOT NULL,
+    "scope" "jsonb" DEFAULT '{"scale": "", "team_size": "", "complexity": "", "confidence": "medium"}'::"jsonb" NOT NULL,
+    "outcomes" "jsonb" DEFAULT '[]'::"jsonb" NOT NULL,
+    "skills" "jsonb" DEFAULT '[]'::"jsonb" NOT NULL,
+    "career_trajectory" "jsonb" DEFAULT '{"evidence": "", "learning": "", "confidence": "medium", "progression": "moderate"}'::"jsonb" NOT NULL,
+    "domain_knowledge" "jsonb" DEFAULT '{"level": "intermediate", "domain": "", "evidence": "", "confidence": "medium"}'::"jsonb" NOT NULL,
+    "evidence_quality" "text" NOT NULL,
+    "confidence" "text" NOT NULL,
+    "missing_info" "text"[] DEFAULT ARRAY[]::"text"[] NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "hr_evidence_screening_confidence_check" CHECK (("confidence" = ANY (ARRAY['high'::"text", 'medium'::"text", 'low'::"text"]))),
+    CONSTRAINT "hr_evidence_screening_evidence_quality_check" CHECK (("evidence_quality" = ANY (ARRAY['high'::"text", 'medium'::"text", 'low'::"text", 'generic'::"text"])))
+);
+
+
+ALTER TABLE "public"."hr_evidence_screening" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."hr_expiry_records" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "organization_id" "uuid" NOT NULL,
@@ -7027,6 +10262,29 @@ CREATE TABLE IF NOT EXISTS "public"."hr_generated_documents" (
 ALTER TABLE "public"."hr_generated_documents" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."hr_job_postings" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "title" "text" NOT NULL,
+    "department" "text" NOT NULL,
+    "location" "text" NOT NULL,
+    "type" "text" NOT NULL,
+    "description" "text" NOT NULL,
+    "requirements" "text"[] DEFAULT ARRAY[]::"text"[] NOT NULL,
+    "knockout_criteria" "text"[] DEFAULT ARRAY[]::"text"[] NOT NULL,
+    "work_sample_scenario" "text" NOT NULL,
+    "status" "text" DEFAULT 'draft'::"text" NOT NULL,
+    "posted_date" timestamp with time zone,
+    "closing_date" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "hr_job_postings_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'closed'::"text", 'draft'::"text"])))
+);
+
+
+ALTER TABLE "public"."hr_job_postings" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."hr_leaves" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "organization_id" "uuid" NOT NULL,
@@ -7066,6 +10324,45 @@ CREATE TABLE IF NOT EXISTS "public"."hr_obligations" (
 ALTER TABLE "public"."hr_obligations" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."hr_onboarding_tasks" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "employee_id" "uuid" NOT NULL,
+    "title" "text" NOT NULL,
+    "due_date" "date",
+    "completed" boolean DEFAULT false NOT NULL,
+    "completed_at" timestamp with time zone,
+    "assignee_employee_id" "uuid",
+    "notes" "text",
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."hr_onboarding_tasks" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."hr_performance_reviews" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "employee_id" "uuid" NOT NULL,
+    "review_date" "date" NOT NULL,
+    "reviewer_id" "uuid",
+    "goals" "text",
+    "rating" "text",
+    "notes" "text",
+    "next_review_date" "date",
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "hr_performance_reviews_rating_check" CHECK (("rating" = ANY (ARRAY['exceeds'::"text", 'meets'::"text", 'needs_improvement'::"text", 'unrated'::"text"])))
+);
+
+
+ALTER TABLE "public"."hr_performance_reviews" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."hr_policies" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "organization_id" "uuid" NOT NULL,
@@ -7075,6 +10372,7 @@ CREATE TABLE IF NOT EXISTS "public"."hr_policies" (
     "created_by" "uuid",
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "last_reminder_sent_at" timestamp with time zone,
     CONSTRAINT "hr_policies_status_check" CHECK (("status" = ANY (ARRAY['up_to_date'::"text", 'needs_review'::"text", 'missing'::"text"])))
 );
 
@@ -7121,6 +10419,30 @@ CREATE TABLE IF NOT EXISTS "public"."hr_wellbeing_initiatives" (
 
 
 ALTER TABLE "public"."hr_wellbeing_initiatives" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."hr_work_samples" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "candidate_id" "uuid" NOT NULL,
+    "assessment_type" "text" NOT NULL,
+    "scenario" "text" NOT NULL,
+    "submission" "text" NOT NULL,
+    "ai_allowed" boolean DEFAULT true NOT NULL,
+    "ai_detected" boolean DEFAULT false NOT NULL,
+    "time_taken" "text",
+    "status" "text" DEFAULT 'pending'::"text" NOT NULL,
+    "evaluator" "text",
+    "evaluation" "jsonb",
+    "assigned_date" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "completed_date" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "hr_work_samples_assessment_type_check" CHECK (("assessment_type" = ANY (ARRAY['product_manager'::"text", 'sales'::"text", 'engineer'::"text", 'marketer'::"text", 'general'::"text"]))),
+    CONSTRAINT "hr_work_samples_status_check" CHECK (("status" = ANY (ARRAY['pending'::"text", 'in_progress'::"text", 'completed'::"text", 'skipped'::"text"])))
+);
+
+
+ALTER TABLE "public"."hr_work_samples" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."hr_workspace_notifications" (
@@ -7277,6 +10599,103 @@ CREATE TABLE IF NOT EXISTS "public"."offer_workflow_states" (
 ALTER TABLE "public"."offer_workflow_states" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."operations_logistics" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "title" "text" NOT NULL,
+    "owner_id" "uuid",
+    "assigned_to" "uuid",
+    "status" "text" DEFAULT 'in_transit'::"text" NOT NULL,
+    "expected_date" "date",
+    "delivered_date" "date",
+    "notes" "text",
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "operations_logistics_status_check" CHECK (("status" = ANY (ARRAY['in_transit'::"text", 'delivered'::"text", 'delayed'::"text", 'returned'::"text"])))
+);
+
+
+ALTER TABLE "public"."operations_logistics" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."operations_projects" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "title" "text" NOT NULL,
+    "owner_id" "uuid",
+    "status" "text" DEFAULT 'planning'::"text" NOT NULL,
+    "start_date" "date",
+    "target_date" "date",
+    "description" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "operations_projects_status_check" CHECK (("status" = ANY (ARRAY['planning'::"text", 'active'::"text", 'on_hold'::"text", 'completed'::"text", 'cancelled'::"text"])))
+);
+
+
+ALTER TABLE "public"."operations_projects" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."operations_quality_checks" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "title" "text" NOT NULL,
+    "assigned_to" "uuid",
+    "reviewer_id" "uuid",
+    "checklist" "jsonb" DEFAULT '[]'::"jsonb",
+    "due_date" "date",
+    "completed_date" "date",
+    "status" "text" DEFAULT 'pending'::"text" NOT NULL,
+    "non_conformance" "text",
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "operations_quality_checks_status_check" CHECK (("status" = ANY (ARRAY['pending'::"text", 'passed'::"text", 'failed'::"text", 'overdue'::"text"])))
+);
+
+
+ALTER TABLE "public"."operations_quality_checks" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."operations_technology" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "system_type" "text",
+    "owner_id" "uuid",
+    "status" "text" DEFAULT 'active'::"text" NOT NULL,
+    "renewal_date" "date",
+    "integration_notes" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "operations_technology_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'deprecated'::"text", 'planned'::"text"]))),
+    CONSTRAINT "operations_technology_system_type_check" CHECK ((("system_type" IS NULL) OR ("system_type" = ANY (ARRAY['internal'::"text", 'customer_facing'::"text", 'integration'::"text", 'infrastructure'::"text"]))))
+);
+
+
+ALTER TABLE "public"."operations_technology" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."operations_vendors" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "finance_party_id" "uuid",
+    "name" "text" NOT NULL,
+    "vendor_type" "text",
+    "status" "text" DEFAULT 'active'::"text" NOT NULL,
+    "contract_expiry" "date",
+    "notes" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "operations_vendors_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'inactive'::"text", 'under_review'::"text"]))),
+    CONSTRAINT "operations_vendors_vendor_type_check" CHECK ((("vendor_type" IS NULL) OR ("vendor_type" = ANY (ARRAY['supplier'::"text", 'logistics'::"text", 'technology'::"text", 'professional_service'::"text"]))))
+);
+
+
+ALTER TABLE "public"."operations_vendors" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."organization_admission_log" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "event_type" "text" NOT NULL,
@@ -7314,6 +10733,18 @@ COMMENT ON TABLE "public"."organization_admission_waitlist" IS 'Users waiting fo
 
 
 
+CREATE TABLE IF NOT EXISTS "public"."organization_billing_events" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "event_type" "text" NOT NULL,
+    "payload" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL
+);
+
+
+ALTER TABLE "public"."organization_billing_events" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."organization_invitations" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "organization_id" "uuid" NOT NULL,
@@ -7325,7 +10756,7 @@ CREATE TABLE IF NOT EXISTS "public"."organization_invitations" (
     "expires_at" timestamp with time zone DEFAULT ("timezone"('utc'::"text", "now"()) + '14 days'::interval) NOT NULL,
     "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
     "accepted_at" timestamp with time zone,
-    CONSTRAINT "organization_invitations_role_check" CHECK (("role" = ANY (ARRAY['admin'::"text", 'manager'::"text", 'member'::"text", 'viewer'::"text"]))),
+    CONSTRAINT "organization_invitations_role_check" CHECK (("role" = ANY (ARRAY['owner'::"text", 'admin'::"text", 'manager'::"text", 'professional'::"text", 'member'::"text", 'consultant'::"text", 'viewer'::"text"]))),
     CONSTRAINT "organization_invitations_status_check" CHECK (("status" = ANY (ARRAY['pending'::"text", 'accepted'::"text", 'revoked'::"text", 'expired'::"text"])))
 );
 
@@ -7341,38 +10772,28 @@ CREATE TABLE IF NOT EXISTS "public"."organization_members" (
     "status" "text" DEFAULT 'active'::"text" NOT NULL,
     "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
-    CONSTRAINT "organization_members_role_check" CHECK (("role" = ANY (ARRAY['owner'::"text", 'admin'::"text", 'manager'::"text", 'member'::"text", 'viewer'::"text"]))),
-    CONSTRAINT "organization_members_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'invited'::"text", 'suspended'::"text", 'removed'::"text"])))
+    "granted_modules" "text"[] DEFAULT '{}'::"text"[],
+    "access_expires_at" timestamp with time zone,
+    CONSTRAINT "organization_members_role_check" CHECK (("role" = ANY (ARRAY['owner'::"text", 'admin'::"text", 'manager'::"text", 'professional'::"text", 'member'::"text", 'consultant'::"text", 'viewer'::"text"]))),
+    CONSTRAINT "organization_members_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'invited'::"text", 'suspended'::"text", 'suspended_plan_limit'::"text", 'removed'::"text"])))
 );
 
 
 ALTER TABLE "public"."organization_members" OWNER TO "postgres";
 
 
-CREATE TABLE IF NOT EXISTS "public"."organizations" (
+CREATE TABLE IF NOT EXISTS "public"."organization_usage_events" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "name" "text" NOT NULL,
-    "legal_name" "text",
-    "website" "text",
-    "default_jurisdiction" "text" DEFAULT 'Ontario'::"text" NOT NULL,
-    "default_language" "text" DEFAULT 'EN'::"text" NOT NULL,
-    "plan" "text" DEFAULT 'free'::"text" NOT NULL,
-    "subscription_status" "text" DEFAULT 'inactive'::"text" NOT NULL,
-    "billing_period" "text" DEFAULT 'monthly'::"text" NOT NULL,
-    "created_by" "uuid",
+    "organization_id" "uuid" NOT NULL,
+    "kind" "text" NOT NULL,
     "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
-    "updated_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
-    "signing_reminder_days" integer DEFAULT 3 NOT NULL,
-    CONSTRAINT "organizations_billing_period_check" CHECK (("billing_period" = ANY (ARRAY['monthly'::"text", 'annual'::"text"]))),
-    CONSTRAINT "organizations_default_jurisdiction_check" CHECK (("default_jurisdiction" = ANY (ARRAY['Ontario'::"text", 'Quebec'::"text", 'British Columbia'::"text", 'Alberta'::"text", 'Federal'::"text", 'Remote Federal'::"text"]))),
-    CONSTRAINT "organizations_default_language_check" CHECK (("default_language" = ANY (ARRAY['EN'::"text", 'FR'::"text", 'BOTH'::"text"]))),
-    CONSTRAINT "organizations_plan_check" CHECK (("plan" = ANY (ARRAY['free'::"text", 'growth'::"text", 'advanced'::"text", 'enterprise'::"text"]))),
-    CONSTRAINT "organizations_signing_reminder_days_check" CHECK ((("signing_reminder_days" >= 1) AND ("signing_reminder_days" <= 14))),
-    CONSTRAINT "organizations_subscription_status_check" CHECK (("subscription_status" = ANY (ARRAY['active'::"text", 'inactive'::"text", 'past_due'::"text", 'canceled'::"text", 'trialing'::"text"])))
+    "actor_user_id" "uuid",
+    "resource_id" "uuid" NOT NULL,
+    CONSTRAINT "organization_usage_events_kind_check" CHECK (("kind" = ANY (ARRAY['document_save'::"text", 'signature_send'::"text"])))
 );
 
 
-ALTER TABLE "public"."organizations" OWNER TO "postgres";
+ALTER TABLE "public"."organization_usage_events" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."platform_capacity_config" (
@@ -7394,6 +10815,53 @@ COMMENT ON TABLE "public"."platform_capacity_config" IS 'Single-row configuratio
 
 
 
+CREATE TABLE IF NOT EXISTS "public"."revenue_invoices" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "stream_id" "uuid",
+    "customer_name" "text" NOT NULL,
+    "amount" numeric(18,2) DEFAULT 0 NOT NULL,
+    "currency" "text" DEFAULT 'CAD'::"text" NOT NULL,
+    "status" "text" DEFAULT 'draft'::"text" NOT NULL,
+    "issue_date" "date",
+    "due_date" "date",
+    "paid_date" "date",
+    "notes" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "revenue_invoices_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "revenue_invoices_status_check" CHECK (("status" = ANY (ARRAY['draft'::"text", 'sent'::"text", 'paid'::"text", 'overdue'::"text", 'cancelled'::"text"])))
+);
+
+
+ALTER TABLE "public"."revenue_invoices" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."revenue_streams" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "stream_type" "text" DEFAULT 'recurring'::"text" NOT NULL,
+    "status" "text" DEFAULT 'active'::"text" NOT NULL,
+    "amount" numeric(18,2) DEFAULT 0 NOT NULL,
+    "currency" "text" DEFAULT 'CAD'::"text" NOT NULL,
+    "frequency" "text",
+    "start_date" "date",
+    "end_date" "date",
+    "notes" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "revenue_streams_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "revenue_streams_dates_check" CHECK ((("end_date" IS NULL) OR ("start_date" IS NULL) OR ("end_date" >= "start_date"))),
+    CONSTRAINT "revenue_streams_frequency_check" CHECK ((("frequency" IS NULL) OR ("frequency" = ANY (ARRAY['monthly'::"text", 'quarterly'::"text", 'annually'::"text"])))),
+    CONSTRAINT "revenue_streams_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'paused'::"text", 'completed'::"text", 'cancelled'::"text"]))),
+    CONSTRAINT "revenue_streams_stream_type_check" CHECK (("stream_type" = ANY (ARRAY['recurring'::"text", 'one_time'::"text"])))
+);
+
+
+ALTER TABLE "public"."revenue_streams" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."scheduled_operations" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "organization_id" "uuid",
@@ -7412,6 +10880,109 @@ CREATE TABLE IF NOT EXISTS "public"."scheduled_operations" (
 
 
 ALTER TABLE "public"."scheduled_operations" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."security_access_reviews" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "title" "text" NOT NULL,
+    "assigned_to" "uuid",
+    "reviewer_id" "uuid",
+    "review_due_date" "date",
+    "completed_date" "date",
+    "status" "text" DEFAULT 'pending'::"text" NOT NULL,
+    "findings" "text",
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "security_access_reviews_status_check" CHECK (("status" = ANY (ARRAY['pending'::"text", 'in_progress'::"text", 'completed'::"text", 'overdue'::"text"])))
+);
+
+
+ALTER TABLE "public"."security_access_reviews" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."security_assets" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "asset_type" "text" NOT NULL,
+    "owner_id" "uuid",
+    "status" "text" DEFAULT 'active'::"text" NOT NULL,
+    "criticality" "text",
+    "renewal_date" "date",
+    "notes" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "security_assets_asset_type_check" CHECK (("asset_type" = ANY (ARRAY['hardware'::"text", 'software'::"text", 'cloud_service'::"text", 'domain'::"text", 'data_store'::"text"]))),
+    CONSTRAINT "security_assets_criticality_check" CHECK ((("criticality" IS NULL) OR ("criticality" = ANY (ARRAY['critical'::"text", 'high'::"text", 'medium'::"text", 'low'::"text"])))),
+    CONSTRAINT "security_assets_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'decommissioned'::"text", 'at_risk'::"text"])))
+);
+
+
+ALTER TABLE "public"."security_assets" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."security_incidents" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "title" "text" NOT NULL,
+    "severity" "text" NOT NULL,
+    "status" "text" DEFAULT 'open'::"text" NOT NULL,
+    "reported_by" "uuid",
+    "assigned_to" "uuid",
+    "reported_at" timestamp with time zone DEFAULT "now"(),
+    "resolved_at" timestamp with time zone,
+    "summary" "text",
+    "impact" "text",
+    "remediation" "text",
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "security_incidents_severity_check" CHECK (("severity" = ANY (ARRAY['critical'::"text", 'high'::"text", 'medium'::"text", 'low'::"text"]))),
+    CONSTRAINT "security_incidents_status_check" CHECK (("status" = ANY (ARRAY['open'::"text", 'contained'::"text", 'resolved'::"text", 'closed'::"text"])))
+);
+
+
+ALTER TABLE "public"."security_incidents" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."security_risks" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "title" "text" NOT NULL,
+    "likelihood" "text",
+    "impact" "text",
+    "owner" "text",
+    "mitigation" "text",
+    "status" "text" DEFAULT 'open'::"text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "security_risks_impact_check" CHECK ((("impact" IS NULL) OR ("impact" = ANY (ARRAY['high'::"text", 'medium'::"text", 'low'::"text"])))),
+    CONSTRAINT "security_risks_likelihood_check" CHECK ((("likelihood" IS NULL) OR ("likelihood" = ANY (ARRAY['high'::"text", 'medium'::"text", 'low'::"text"])))),
+    CONSTRAINT "security_risks_status_check" CHECK (("status" = ANY (ARRAY['open'::"text", 'mitigated'::"text", 'accepted'::"text", 'closed'::"text"])))
+);
+
+
+ALTER TABLE "public"."security_risks" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."security_vendor_reviews" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "vendor_name" "text" NOT NULL,
+    "vendor_type" "text",
+    "privacy_agreement" boolean,
+    "security_review_date" "date",
+    "next_review_date" "date",
+    "notes" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "security_vendor_reviews_vendor_type_check" CHECK ((("vendor_type" IS NULL) OR ("vendor_type" = ANY (ARRAY['lawyer'::"text", 'accountant'::"text", 'insurance'::"text", 'it_security'::"text", 'other'::"text"]))))
+);
+
+
+ALTER TABLE "public"."security_vendor_reviews" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."service_status" (
@@ -7471,6 +11042,50 @@ COMMENT ON COLUMN "public"."signatures"."signature_type" IS 'How the signature w
 
 COMMENT ON COLUMN "public"."signatures"."signer_role" IS 'Role of the signer on this document: employee or employer';
 
+
+
+CREATE TABLE IF NOT EXISTS "public"."specialist_engagements" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "specialist_id" "uuid" NOT NULL,
+    "engagement_date" "date",
+    "engagement_type" "text",
+    "summary" "text",
+    "follow_up_date" "date",
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "specialist_engagements_type_check" CHECK ((("engagement_type" IS NULL) OR ("engagement_type" = ANY (ARRAY['call'::"text", 'email'::"text", 'meeting'::"text", 'contract'::"text", 'task'::"text"]))))
+);
+
+
+ALTER TABLE "public"."specialist_engagements" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."specialists" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "specialty" "text" NOT NULL,
+    "company" "text",
+    "email" "text",
+    "phone" "text",
+    "crm_contact_id" "uuid",
+    "finance_party_id" "uuid",
+    "workspace_access" boolean DEFAULT false,
+    "workspace_role" "text" DEFAULT 'consultant'::"text",
+    "granted_modules" "text"[] DEFAULT '{}'::"text"[],
+    "access_expires_at" timestamp with time zone,
+    "organization_member_id" "uuid",
+    "notes" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "specialists_specialty_check" CHECK (("specialty" = ANY (ARRAY['lawyer'::"text", 'accountant'::"text", 'tax'::"text", 'insurance'::"text", 'it_security'::"text", 'hr_consultant'::"text", 'bookkeeper'::"text", 'other'::"text"]))),
+    CONSTRAINT "specialists_workspace_role_check" CHECK (("workspace_role" = ANY (ARRAY['consultant'::"text", 'viewer'::"text"])))
+);
+
+
+ALTER TABLE "public"."specialists" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."stripe_webhook_events" (
@@ -8143,6 +11758,26 @@ CREATE TABLE IF NOT EXISTS "public"."workflows" (
 ALTER TABLE "public"."workflows" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."workspace_integrations" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "provider" "text" NOT NULL,
+    "display_name" "text" NOT NULL,
+    "status" "text" DEFAULT 'pending'::"text" NOT NULL,
+    "config" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
+    "secret_ref" "text",
+    "last_checked_at" timestamp with time zone,
+    "created_by" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "workspace_integrations_provider_check" CHECK (("provider" = ANY (ARRAY['github'::"text", 'gitlab'::"text", 'gmail'::"text", 'outlook'::"text", 'smtp_email'::"text", 'inbound_webhook'::"text"]))),
+    CONSTRAINT "workspace_integrations_status_check" CHECK (("status" = ANY (ARRAY['pending'::"text", 'connected'::"text", 'error'::"text", 'disconnected'::"text"])))
+);
+
+
+ALTER TABLE "public"."workspace_integrations" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."workspace_notes" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "organization_id" "uuid" NOT NULL,
@@ -8245,6 +11880,11 @@ ALTER TABLE ONLY "public"."advisor_memories"
 
 
 
+ALTER TABLE ONLY "public"."agent_audit"
+    ADD CONSTRAINT "agent_audit_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."agent_runs"
     ADD CONSTRAINT "agent_runs_pkey" PRIMARY KEY ("id");
 
@@ -8265,8 +11905,38 @@ ALTER TABLE ONLY "public"."ai_advisor_credits"
 
 
 
+ALTER TABLE ONLY "public"."ai_advisor_month_state"
+    ADD CONSTRAINT "ai_advisor_month_state_pkey" PRIMARY KEY ("organization_id", "month_start");
+
+
+
+ALTER TABLE ONLY "public"."ai_advisor_org_credits"
+    ADD CONSTRAINT "ai_advisor_org_credits_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."ai_advisor_org_credits"
+    ADD CONSTRAINT "ai_advisor_org_credits_stripe_checkout_id_key" UNIQUE ("stripe_checkout_id");
+
+
+
+ALTER TABLE ONLY "public"."ai_advisor_org_overage_months"
+    ADD CONSTRAINT "ai_advisor_org_overage_months_pkey" PRIMARY KEY ("organization_id", "month_start");
+
+
+
 ALTER TABLE ONLY "public"."ai_advisor_overage_months"
     ADD CONSTRAINT "ai_advisor_overage_months_pkey" PRIMARY KEY ("user_id", "month_start");
+
+
+
+ALTER TABLE ONLY "public"."ai_advisor_rollover_credits"
+    ADD CONSTRAINT "ai_advisor_rollover_credits_organization_id_source_month_key" UNIQUE ("organization_id", "source_month");
+
+
+
+ALTER TABLE ONLY "public"."ai_advisor_rollover_credits"
+    ADD CONSTRAINT "ai_advisor_rollover_credits_pkey" PRIMARY KEY ("id");
 
 
 
@@ -8345,6 +12015,31 @@ ALTER TABLE ONLY "public"."billing_events"
 
 
 
+ALTER TABLE ONLY "public"."candidate_applications"
+    ADD CONSTRAINT "candidate_applications_candidate_id_job_posting_id_key" UNIQUE ("candidate_id", "job_posting_id");
+
+
+
+ALTER TABLE ONLY "public"."candidate_applications"
+    ADD CONSTRAINT "candidate_applications_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."candidate_profiles"
+    ADD CONSTRAINT "candidate_profiles_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."candidate_profiles"
+    ADD CONSTRAINT "candidate_profiles_user_id_key" UNIQUE ("user_id");
+
+
+
+ALTER TABLE ONLY "public"."candidate_resumes"
+    ADD CONSTRAINT "candidate_resumes_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."categories"
     ADD CONSTRAINT "categories_name_key" UNIQUE ("name");
 
@@ -8382,6 +12077,111 @@ ALTER TABLE ONLY "public"."comment_mentions"
 
 ALTER TABLE ONLY "public"."comments"
     ADD CONSTRAINT "comments_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."comms_approvals"
+    ADD CONSTRAINT "comms_approvals_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."comms_brand_claims"
+    ADD CONSTRAINT "comms_brand_claims_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."comms_contact_segment_memberships"
+    ADD CONSTRAINT "comms_contact_segment_memberships_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."comms_contact_segment_memberships"
+    ADD CONSTRAINT "comms_contact_segment_memberships_unique_membership" UNIQUE ("comms_contact_id", "comms_segment_id");
+
+
+
+ALTER TABLE ONLY "public"."comms_contact_segments"
+    ADD CONSTRAINT "comms_contact_segments_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."comms_contacts"
+    ADD CONSTRAINT "comms_contacts_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."comms_content_items"
+    ADD CONSTRAINT "comms_content_items_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."comms_coverage_items"
+    ADD CONSTRAINT "comms_coverage_items_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."comms_execution_events"
+    ADD CONSTRAINT "comms_execution_events_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."comms_feeds"
+    ADD CONSTRAINT "comms_feeds_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."comms_initiatives"
+    ADD CONSTRAINT "comms_initiatives_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."comms_integrations"
+    ADD CONSTRAINT "comms_integrations_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."comms_interactions"
+    ADD CONSTRAINT "comms_interactions_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."comms_issues"
+    ADD CONSTRAINT "comms_issues_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."comms_metrics"
+    ADD CONSTRAINT "comms_metrics_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."comms_objectives"
+    ADD CONSTRAINT "comms_objectives_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."comms_organizations"
+    ADD CONSTRAINT "comms_organizations_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."comms_policy_files"
+    ADD CONSTRAINT "comms_policy_files_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."comms_sources"
+    ADD CONSTRAINT "comms_sources_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."comms_submissions"
+    ADD CONSTRAINT "comms_submissions_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."comms_usage_controls"
+    ADD CONSTRAINT "comms_usage_controls_pkey" PRIMARY KEY ("organization_id");
 
 
 
@@ -8480,6 +12280,16 @@ ALTER TABLE ONLY "public"."employer_tiers"
 
 
 
+ALTER TABLE ONLY "public"."entity_links"
+    ADD CONSTRAINT "entity_links_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."entity_links"
+    ADD CONSTRAINT "entity_links_unique_pair" UNIQUE ("organization_id", "from_table", "from_id", "to_table", "to_id", "relationship");
+
+
+
 ALTER TABLE ONLY "public"."entity_relationships"
     ADD CONSTRAINT "entity_relationships_organization_id_source_table_source_id_key" UNIQUE ("organization_id", "source_table", "source_id", "target_table", "target_id", "relationship_type");
 
@@ -8510,6 +12320,206 @@ ALTER TABLE ONLY "public"."external_integrations"
 
 
 
+ALTER TABLE ONLY "public"."finance_approvals"
+    ADD CONSTRAINT "finance_approvals_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_audit_events"
+    ADD CONSTRAINT "finance_audit_events_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_bank_accounts"
+    ADD CONSTRAINT "finance_bank_accounts_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_bank_items"
+    ADD CONSTRAINT "finance_bank_items_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_bills"
+    ADD CONSTRAINT "finance_bills_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_books"
+    ADD CONSTRAINT "finance_books_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_budgets"
+    ADD CONSTRAINT "finance_budgets_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_categorization_feedback"
+    ADD CONSTRAINT "finance_categorization_feedback_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_category_rules"
+    ADD CONSTRAINT "finance_category_rules_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_close_periods"
+    ADD CONSTRAINT "finance_close_periods_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_credits"
+    ADD CONSTRAINT "finance_credits_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_debts"
+    ADD CONSTRAINT "finance_debts_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_decision_entries"
+    ADD CONSTRAINT "finance_decision_entries_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_entities"
+    ADD CONSTRAINT "finance_entities_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_expenses"
+    ADD CONSTRAINT "finance_expenses_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_external_actions"
+    ADD CONSTRAINT "finance_external_actions_idempotency_key_key" UNIQUE ("idempotency_key");
+
+
+
+ALTER TABLE ONLY "public"."finance_external_actions"
+    ADD CONSTRAINT "finance_external_actions_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_fiscal_periods"
+    ADD CONSTRAINT "finance_fiscal_periods_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_forecasts"
+    ADD CONSTRAINT "finance_forecasts_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_holdings"
+    ADD CONSTRAINT "finance_holdings_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_import_sessions"
+    ADD CONSTRAINT "finance_import_sessions_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_invoices"
+    ADD CONSTRAINT "finance_invoices_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_journals"
+    ADD CONSTRAINT "finance_journals_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_ledger_accounts"
+    ADD CONSTRAINT "finance_ledger_accounts_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_parties"
+    ADD CONSTRAINT "finance_parties_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_pay_periods"
+    ADD CONSTRAINT "finance_pay_periods_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_pay_runs"
+    ADD CONSTRAINT "finance_pay_runs_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_payroll_liabilities"
+    ADD CONSTRAINT "finance_payroll_liabilities_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_purchase_orders"
+    ADD CONSTRAINT "finance_purchase_orders_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_receipts"
+    ADD CONSTRAINT "finance_receipts_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_reconciliations"
+    ADD CONSTRAINT "finance_reconciliations_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_reserve_goals"
+    ADD CONSTRAINT "finance_reserve_goals_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_scenarios"
+    ADD CONSTRAINT "finance_scenarios_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_spend_requests"
+    ADD CONSTRAINT "finance_spend_requests_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_subscriptions"
+    ADD CONSTRAINT "finance_subscriptions_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_tax_obligations"
+    ADD CONSTRAINT "finance_tax_obligations_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_tax_scenarios"
+    ADD CONSTRAINT "finance_tax_scenarios_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_watchlist_items"
+    ADD CONSTRAINT "finance_watchlist_items_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_workspace_settings"
+    ADD CONSTRAINT "finance_workspace_settings_organization_id_key" UNIQUE ("organization_id");
+
+
+
+ALTER TABLE ONLY "public"."finance_workspace_settings"
+    ADD CONSTRAINT "finance_workspace_settings_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."frontend_feature_flags"
     ADD CONSTRAINT "frontend_feature_flags_key_key" UNIQUE ("key");
 
@@ -8527,6 +12537,26 @@ ALTER TABLE ONLY "public"."generator_document_templates"
 
 ALTER TABLE ONLY "public"."generator_document_templates"
     ADD CONSTRAINT "generator_document_templates_template_slug_key" UNIQUE ("template_slug");
+
+
+
+ALTER TABLE ONLY "public"."governance_decisions"
+    ADD CONSTRAINT "governance_decisions_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."governance_officers"
+    ADD CONSTRAINT "governance_officers_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."governance_records"
+    ADD CONSTRAINT "governance_records_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."governance_shareholders"
+    ADD CONSTRAINT "governance_shareholders_pkey" PRIMARY KEY ("id");
 
 
 
@@ -8565,6 +12595,21 @@ ALTER TABLE ONLY "public"."hr_advisor_memory_facts"
 
 
 
+ALTER TABLE ONLY "public"."hr_authenticity_scores"
+    ADD CONSTRAINT "hr_authenticity_scores_candidate_id_key" UNIQUE ("candidate_id");
+
+
+
+ALTER TABLE ONLY "public"."hr_authenticity_scores"
+    ADD CONSTRAINT "hr_authenticity_scores_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."hr_candidates"
+    ADD CONSTRAINT "hr_candidates_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."hr_case_notes"
     ADD CONSTRAINT "hr_case_notes_pkey" PRIMARY KEY ("id");
 
@@ -8587,6 +12632,11 @@ ALTER TABLE ONLY "public"."hr_compensation_records"
 
 ALTER TABLE ONLY "public"."hr_compensation_records"
     ADD CONSTRAINT "hr_compensation_records_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."hr_defense_interviews"
+    ADD CONSTRAINT "hr_defense_interviews_pkey" PRIMARY KEY ("id");
 
 
 
@@ -8640,6 +12690,16 @@ ALTER TABLE ONLY "public"."hr_employee_notes"
 
 
 
+ALTER TABLE ONLY "public"."hr_evidence_screening"
+    ADD CONSTRAINT "hr_evidence_screening_candidate_id_key" UNIQUE ("candidate_id");
+
+
+
+ALTER TABLE ONLY "public"."hr_evidence_screening"
+    ADD CONSTRAINT "hr_evidence_screening_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."hr_expiry_records"
     ADD CONSTRAINT "hr_expiry_records_pkey" PRIMARY KEY ("id");
 
@@ -8655,6 +12715,11 @@ ALTER TABLE ONLY "public"."hr_generated_documents"
 
 
 
+ALTER TABLE ONLY "public"."hr_job_postings"
+    ADD CONSTRAINT "hr_job_postings_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."hr_leaves"
     ADD CONSTRAINT "hr_leaves_pkey" PRIMARY KEY ("id");
 
@@ -8662,6 +12727,16 @@ ALTER TABLE ONLY "public"."hr_leaves"
 
 ALTER TABLE ONLY "public"."hr_obligations"
     ADD CONSTRAINT "hr_obligations_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."hr_onboarding_tasks"
+    ADD CONSTRAINT "hr_onboarding_tasks_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."hr_performance_reviews"
+    ADD CONSTRAINT "hr_performance_reviews_pkey" PRIMARY KEY ("id");
 
 
 
@@ -8677,6 +12752,16 @@ ALTER TABLE ONLY "public"."hr_signing_rpc_rate_limit"
 
 ALTER TABLE ONLY "public"."hr_wellbeing_initiatives"
     ADD CONSTRAINT "hr_wellbeing_initiatives_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."hr_work_samples"
+    ADD CONSTRAINT "hr_work_samples_candidate_id_key" UNIQUE ("candidate_id");
+
+
+
+ALTER TABLE ONLY "public"."hr_work_samples"
+    ADD CONSTRAINT "hr_work_samples_pkey" PRIMARY KEY ("id");
 
 
 
@@ -8780,6 +12865,31 @@ ALTER TABLE ONLY "public"."operational_bottlenecks"
 
 
 
+ALTER TABLE ONLY "public"."operations_logistics"
+    ADD CONSTRAINT "operations_logistics_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."operations_projects"
+    ADD CONSTRAINT "operations_projects_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."operations_quality_checks"
+    ADD CONSTRAINT "operations_quality_checks_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."operations_technology"
+    ADD CONSTRAINT "operations_technology_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."operations_vendors"
+    ADD CONSTRAINT "operations_vendors_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."organization_admission_log"
     ADD CONSTRAINT "organization_admission_log_pkey" PRIMARY KEY ("id");
 
@@ -8787,6 +12897,11 @@ ALTER TABLE ONLY "public"."organization_admission_log"
 
 ALTER TABLE ONLY "public"."organization_admission_waitlist"
     ADD CONSTRAINT "organization_admission_waitlist_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."organization_billing_events"
+    ADD CONSTRAINT "organization_billing_events_pkey" PRIMARY KEY ("id");
 
 
 
@@ -8817,6 +12932,16 @@ ALTER TABLE ONLY "public"."organization_members"
 
 ALTER TABLE ONLY "public"."organization_risk_snapshots"
     ADD CONSTRAINT "organization_risk_snapshots_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."organization_usage_events"
+    ADD CONSTRAINT "organization_usage_events_kind_resource_id_key" UNIQUE ("kind", "resource_id");
+
+
+
+ALTER TABLE ONLY "public"."organization_usage_events"
+    ADD CONSTRAINT "organization_usage_events_pkey" PRIMARY KEY ("id");
 
 
 
@@ -8855,8 +12980,43 @@ ALTER TABLE ONLY "public"."queue_health_snapshots"
 
 
 
+ALTER TABLE ONLY "public"."revenue_invoices"
+    ADD CONSTRAINT "revenue_invoices_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."revenue_streams"
+    ADD CONSTRAINT "revenue_streams_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."scheduled_operations"
     ADD CONSTRAINT "scheduled_operations_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."security_access_reviews"
+    ADD CONSTRAINT "security_access_reviews_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."security_assets"
+    ADD CONSTRAINT "security_assets_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."security_incidents"
+    ADD CONSTRAINT "security_incidents_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."security_risks"
+    ADD CONSTRAINT "security_risks_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."security_vendor_reviews"
+    ADD CONSTRAINT "security_vendor_reviews_pkey" PRIMARY KEY ("id");
 
 
 
@@ -8872,6 +13032,16 @@ ALTER TABLE ONLY "public"."signature_audit_events"
 
 ALTER TABLE ONLY "public"."signatures"
     ADD CONSTRAINT "signatures_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."specialist_engagements"
+    ADD CONSTRAINT "specialist_engagements_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."specialists"
+    ADD CONSTRAINT "specialists_pkey" PRIMARY KEY ("id");
 
 
 
@@ -9130,6 +13300,16 @@ ALTER TABLE ONLY "public"."workflows"
 
 
 
+ALTER TABLE ONLY "public"."workspace_integrations"
+    ADD CONSTRAINT "workspace_integrations_organization_id_provider_display_nam_key" UNIQUE ("organization_id", "provider", "display_name");
+
+
+
+ALTER TABLE ONLY "public"."workspace_integrations"
+    ADD CONSTRAINT "workspace_integrations_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."workspace_intelligence_items"
     ADD CONSTRAINT "workspace_intelligence_items_pkey" PRIMARY KEY ("id");
 
@@ -9229,6 +13409,18 @@ CREATE INDEX "advisor_memories_user_id_fkey_idx" ON "public"."advisor_memories" 
 
 
 
+CREATE INDEX "agent_audit_created_at_idx" ON "public"."agent_audit" USING "btree" ("created_at");
+
+
+
+CREATE INDEX "agent_audit_organization_id_idx" ON "public"."agent_audit" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "agent_audit_tool_id_idx" ON "public"."agent_audit" USING "btree" ("tool_id");
+
+
+
 CREATE INDEX "agent_runs_agent_id_fkey_idx" ON "public"."agent_runs" USING "btree" ("agent_id");
 
 
@@ -9254,6 +13446,14 @@ CREATE INDEX "ai_action_runs_recommendation_id_fkey_idx" ON "public"."ai_action_
 
 
 CREATE INDEX "ai_advisor_credits_user_id_fkey_idx" ON "public"."ai_advisor_credits" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "ai_advisor_org_credits_org_remaining_idx" ON "public"."ai_advisor_org_credits" USING "btree" ("organization_id", "created_at") WHERE ("remaining_replies" > 0);
+
+
+
+CREATE INDEX "ai_advisor_rollover_credits_org_remaining_idx" ON "public"."ai_advisor_rollover_credits" USING "btree" ("organization_id", "expires_at") WHERE ("remaining_replies" > 0);
 
 
 
@@ -9362,6 +13562,162 @@ CREATE INDEX "comments_organization_id_fkey_idx" ON "public"."comments" USING "b
 
 
 CREATE INDEX "comments_parent_comment_id_fkey_idx" ON "public"."comments" USING "btree" ("parent_comment_id");
+
+
+
+CREATE INDEX "comms_approvals_content_item_id_idx" ON "public"."comms_approvals" USING "btree" ("content_item_id");
+
+
+
+CREATE INDEX "comms_approvals_organization_id_idx" ON "public"."comms_approvals" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "comms_brand_claims_organization_id_idx" ON "public"."comms_brand_claims" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "comms_contact_segment_memberships_contact_id_idx" ON "public"."comms_contact_segment_memberships" USING "btree" ("comms_contact_id");
+
+
+
+CREATE INDEX "comms_contact_segment_memberships_organization_id_idx" ON "public"."comms_contact_segment_memberships" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "comms_contact_segment_memberships_segment_id_idx" ON "public"."comms_contact_segment_memberships" USING "btree" ("comms_segment_id");
+
+
+
+CREATE INDEX "comms_contact_segments_organization_id_idx" ON "public"."comms_contact_segments" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "comms_contacts_comms_organization_id_idx" ON "public"."comms_contacts" USING "btree" ("comms_organization_id");
+
+
+
+CREATE INDEX "comms_contacts_name_idx" ON "public"."comms_contacts" USING "btree" ("name");
+
+
+
+CREATE INDEX "comms_contacts_organization_id_idx" ON "public"."comms_contacts" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "comms_content_items_initiative_id_idx" ON "public"."comms_content_items" USING "btree" ("initiative_id");
+
+
+
+CREATE INDEX "comms_content_items_organization_id_idx" ON "public"."comms_content_items" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "comms_coverage_items_organization_id_idx" ON "public"."comms_coverage_items" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "comms_coverage_items_published_date_idx" ON "public"."comms_coverage_items" USING "btree" ("published_date" DESC NULLS LAST);
+
+
+
+CREATE INDEX "comms_execution_events_content_item_id_idx" ON "public"."comms_execution_events" USING "btree" ("content_item_id");
+
+
+
+CREATE INDEX "comms_execution_events_organization_id_idx" ON "public"."comms_execution_events" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "comms_feeds_initiative_id_idx" ON "public"."comms_feeds" USING "btree" ("initiative_id");
+
+
+
+CREATE INDEX "comms_feeds_organization_id_idx" ON "public"."comms_feeds" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "comms_initiatives_organization_id_idx" ON "public"."comms_initiatives" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "comms_initiatives_status_idx" ON "public"."comms_initiatives" USING "btree" ("status");
+
+
+
+CREATE INDEX "comms_integrations_organization_id_idx" ON "public"."comms_integrations" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "comms_interactions_contact_id_idx" ON "public"."comms_interactions" USING "btree" ("contact_id");
+
+
+
+CREATE INDEX "comms_interactions_initiative_id_idx" ON "public"."comms_interactions" USING "btree" ("initiative_id");
+
+
+
+CREATE INDEX "comms_interactions_organization_id_idx" ON "public"."comms_interactions" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "comms_issues_initiative_id_idx" ON "public"."comms_issues" USING "btree" ("initiative_id");
+
+
+
+CREATE INDEX "comms_issues_organization_id_idx" ON "public"."comms_issues" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "comms_metrics_initiative_id_idx" ON "public"."comms_metrics" USING "btree" ("initiative_id");
+
+
+
+CREATE INDEX "comms_metrics_organization_id_idx" ON "public"."comms_metrics" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "comms_objectives_initiative_id_idx" ON "public"."comms_objectives" USING "btree" ("initiative_id");
+
+
+
+CREATE INDEX "comms_objectives_organization_id_idx" ON "public"."comms_objectives" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "comms_organizations_name_idx" ON "public"."comms_organizations" USING "btree" ("name");
+
+
+
+CREATE INDEX "comms_organizations_organization_id_idx" ON "public"."comms_organizations" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "comms_policy_files_initiative_id_idx" ON "public"."comms_policy_files" USING "btree" ("initiative_id");
+
+
+
+CREATE INDEX "comms_policy_files_organization_id_idx" ON "public"."comms_policy_files" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "comms_sources_initiative_id_idx" ON "public"."comms_sources" USING "btree" ("initiative_id");
+
+
+
+CREATE INDEX "comms_sources_issue_id_idx" ON "public"."comms_sources" USING "btree" ("issue_id");
+
+
+
+CREATE INDEX "comms_sources_organization_id_idx" ON "public"."comms_sources" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "comms_submissions_initiative_id_idx" ON "public"."comms_submissions" USING "btree" ("initiative_id");
+
+
+
+CREATE INDEX "comms_submissions_organization_id_idx" ON "public"."comms_submissions" USING "btree" ("organization_id");
 
 
 
@@ -9501,6 +13857,18 @@ CREATE INDEX "employer_profiles_owner_id_fkey_idx" ON "public"."employer_profile
 
 
 
+CREATE INDEX "entity_links_from_idx" ON "public"."entity_links" USING "btree" ("from_table", "from_id");
+
+
+
+CREATE INDEX "entity_links_organization_id_idx" ON "public"."entity_links" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "entity_links_to_idx" ON "public"."entity_links" USING "btree" ("to_table", "to_id");
+
+
+
 CREATE INDEX "entity_relationships_created_by_fkey_idx" ON "public"."entity_relationships" USING "btree" ("created_by");
 
 
@@ -9522,6 +13890,246 @@ CREATE INDEX "export_events_user_created_idx" ON "public"."export_events" USING 
 
 
 CREATE INDEX "external_integrations_created_by_fkey_idx" ON "public"."external_integrations" USING "btree" ("created_by");
+
+
+
+CREATE INDEX "finance_approvals_organization_id_idx" ON "public"."finance_approvals" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_audit_events_organization_id_idx" ON "public"."finance_audit_events" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_bank_accounts_organization_id_idx" ON "public"."finance_bank_accounts" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_bank_items_import_session_id_idx" ON "public"."finance_bank_items" USING "btree" ("import_session_id");
+
+
+
+CREATE INDEX "finance_bank_items_match_status_idx" ON "public"."finance_bank_items" USING "btree" ("match_status");
+
+
+
+CREATE INDEX "finance_bank_items_organization_id_idx" ON "public"."finance_bank_items" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_bills_organization_id_idx" ON "public"."finance_bills" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_bills_status_idx" ON "public"."finance_bills" USING "btree" ("status");
+
+
+
+CREATE INDEX "finance_books_entity_id_idx" ON "public"."finance_books" USING "btree" ("entity_id");
+
+
+
+CREATE INDEX "finance_books_organization_id_idx" ON "public"."finance_books" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_budgets_organization_id_idx" ON "public"."finance_budgets" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_categorization_feedback_entity_id_idx" ON "public"."finance_categorization_feedback" USING "btree" ("entity_id");
+
+
+
+CREATE INDEX "finance_categorization_feedback_organization_id_idx" ON "public"."finance_categorization_feedback" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_category_rules_active_priority_idx" ON "public"."finance_category_rules" USING "btree" ("active", "priority" DESC);
+
+
+
+CREATE INDEX "finance_category_rules_entity_id_idx" ON "public"."finance_category_rules" USING "btree" ("entity_id");
+
+
+
+CREATE INDEX "finance_category_rules_organization_id_idx" ON "public"."finance_category_rules" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_close_periods_organization_id_idx" ON "public"."finance_close_periods" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_credits_organization_id_idx" ON "public"."finance_credits" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_debts_organization_id_idx" ON "public"."finance_debts" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_decision_entries_organization_id_idx" ON "public"."finance_decision_entries" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_decision_entries_review_date_idx" ON "public"."finance_decision_entries" USING "btree" ("review_date") WHERE ("review_date" IS NOT NULL);
+
+
+
+CREATE INDEX "finance_entities_organization_id_idx" ON "public"."finance_entities" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_expenses_organization_id_idx" ON "public"."finance_expenses" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_external_actions_idempotency_key_idx" ON "public"."finance_external_actions" USING "btree" ("idempotency_key");
+
+
+
+CREATE INDEX "finance_external_actions_organization_id_idx" ON "public"."finance_external_actions" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_fiscal_periods_organization_id_idx" ON "public"."finance_fiscal_periods" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_forecasts_organization_id_idx" ON "public"."finance_forecasts" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_holdings_organization_id_idx" ON "public"."finance_holdings" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_import_sessions_bank_account_id_idx" ON "public"."finance_import_sessions" USING "btree" ("bank_account_id");
+
+
+
+CREATE INDEX "finance_import_sessions_imported_at_idx" ON "public"."finance_import_sessions" USING "btree" ("imported_at" DESC);
+
+
+
+CREATE INDEX "finance_import_sessions_organization_id_idx" ON "public"."finance_import_sessions" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_invoices_due_date_idx" ON "public"."finance_invoices" USING "btree" ("due_date");
+
+
+
+CREATE INDEX "finance_invoices_organization_id_idx" ON "public"."finance_invoices" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_invoices_status_idx" ON "public"."finance_invoices" USING "btree" ("status");
+
+
+
+CREATE INDEX "finance_journals_book_id_idx" ON "public"."finance_journals" USING "btree" ("book_id");
+
+
+
+CREATE INDEX "finance_journals_organization_id_idx" ON "public"."finance_journals" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_journals_status_idx" ON "public"."finance_journals" USING "btree" ("status");
+
+
+
+CREATE INDEX "finance_ledger_accounts_book_id_idx" ON "public"."finance_ledger_accounts" USING "btree" ("book_id");
+
+
+
+CREATE INDEX "finance_ledger_accounts_organization_id_idx" ON "public"."finance_ledger_accounts" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_parties_organization_id_idx" ON "public"."finance_parties" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_pay_periods_organization_id_idx" ON "public"."finance_pay_periods" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_pay_runs_organization_id_idx" ON "public"."finance_pay_runs" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_pay_runs_status_idx" ON "public"."finance_pay_runs" USING "btree" ("status");
+
+
+
+CREATE INDEX "finance_payroll_liabilities_organization_id_idx" ON "public"."finance_payroll_liabilities" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_purchase_orders_organization_id_idx" ON "public"."finance_purchase_orders" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_receipts_organization_id_idx" ON "public"."finance_receipts" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_receipts_storage_path_idx" ON "public"."finance_receipts" USING "btree" ("storage_path") WHERE ("storage_path" IS NOT NULL);
+
+
+
+CREATE INDEX "finance_reconciliations_organization_id_idx" ON "public"."finance_reconciliations" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_reserve_goals_organization_id_idx" ON "public"."finance_reserve_goals" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_scenarios_organization_id_idx" ON "public"."finance_scenarios" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_spend_requests_organization_id_idx" ON "public"."finance_spend_requests" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_spend_requests_status_idx" ON "public"."finance_spend_requests" USING "btree" ("status");
+
+
+
+CREATE INDEX "finance_subscriptions_organization_id_idx" ON "public"."finance_subscriptions" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_tax_obligations_due_date_idx" ON "public"."finance_tax_obligations" USING "btree" ("due_date");
+
+
+
+CREATE INDEX "finance_tax_obligations_organization_id_idx" ON "public"."finance_tax_obligations" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_tax_obligations_status_idx" ON "public"."finance_tax_obligations" USING "btree" ("status");
+
+
+
+CREATE INDEX "finance_tax_scenarios_organization_id_idx" ON "public"."finance_tax_scenarios" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_watchlist_items_organization_id_idx" ON "public"."finance_watchlist_items" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_watchlist_items_status_idx" ON "public"."finance_watchlist_items" USING "btree" ("status");
+
+
+
+CREATE INDEX "finance_workspace_settings_organization_id_idx" ON "public"."finance_workspace_settings" USING "btree" ("organization_id");
 
 
 
@@ -9570,6 +14178,10 @@ CREATE INDEX "hr_advisor_memory_facts_created_by_fkey_idx" ON "public"."hr_advis
 
 
 CREATE INDEX "hr_advisor_memory_facts_entity_idx" ON "public"."hr_advisor_memory_facts" USING "btree" ("organization_id", "scope", "entity_id") WHERE ("forgotten_at" IS NULL);
+
+
+
+CREATE INDEX "hr_advisor_memory_facts_status_idx" ON "public"."hr_advisor_memory_facts" USING "btree" ("organization_id", "status") WHERE ("forgotten_at" IS NULL);
 
 
 
@@ -9757,11 +14369,31 @@ CREATE INDEX "hr_obligations_organization_id_idx" ON "public"."hr_obligations" U
 
 
 
+CREATE INDEX "hr_onboarding_tasks_employee_id_idx" ON "public"."hr_onboarding_tasks" USING "btree" ("employee_id");
+
+
+
+CREATE INDEX "hr_onboarding_tasks_organization_id_idx" ON "public"."hr_onboarding_tasks" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "hr_performance_reviews_employee_id_idx" ON "public"."hr_performance_reviews" USING "btree" ("employee_id");
+
+
+
+CREATE INDEX "hr_performance_reviews_organization_id_idx" ON "public"."hr_performance_reviews" USING "btree" ("organization_id");
+
+
+
 CREATE INDEX "hr_policies_created_by_fkey_idx" ON "public"."hr_policies" USING "btree" ("created_by");
 
 
 
 CREATE INDEX "hr_policies_organization_id_idx" ON "public"."hr_policies" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "hr_policies_review_reminder_idx" ON "public"."hr_policies" USING "btree" ("organization_id", "last_reviewed", "status") WHERE ("status" = ANY (ARRAY['up_to_date'::"text", 'needs_review'::"text", 'missing'::"text"]));
 
 
 
@@ -9790,6 +14422,154 @@ CREATE INDEX "hr_workspace_notifications_org_idx" ON "public"."hr_workspace_noti
 
 
 CREATE INDEX "hr_workspace_notifications_user_idx" ON "public"."hr_workspace_notifications" USING "btree" ("user_id", "created_at" DESC);
+
+
+
+CREATE INDEX "idx_candidate_applications_candidate" ON "public"."candidate_applications" USING "btree" ("candidate_id");
+
+
+
+CREATE INDEX "idx_candidate_applications_posting" ON "public"."candidate_applications" USING "btree" ("job_posting_id");
+
+
+
+CREATE INDEX "idx_candidate_applications_status" ON "public"."candidate_applications" USING "btree" ("status");
+
+
+
+CREATE INDEX "idx_candidate_profiles_user" ON "public"."candidate_profiles" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "idx_candidate_resumes_base" ON "public"."candidate_resumes" USING "btree" ("candidate_id", "is_base");
+
+
+
+CREATE INDEX "idx_candidate_resumes_candidate" ON "public"."candidate_resumes" USING "btree" ("candidate_id");
+
+
+
+CREATE INDEX "idx_governance_decisions_org" ON "public"."governance_decisions" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_governance_officers_org" ON "public"."governance_officers" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_governance_records_org" ON "public"."governance_records" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_governance_records_type" ON "public"."governance_records" USING "btree" ("record_type");
+
+
+
+CREATE INDEX "idx_governance_shareholders_org" ON "public"."governance_shareholders" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_hr_authenticity_scores_candidate" ON "public"."hr_authenticity_scores" USING "btree" ("candidate_id");
+
+
+
+CREATE INDEX "idx_hr_candidates_applied_date" ON "public"."hr_candidates" USING "btree" ("applied_date" DESC);
+
+
+
+CREATE INDEX "idx_hr_candidates_organization" ON "public"."hr_candidates" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_hr_candidates_status" ON "public"."hr_candidates" USING "btree" ("status");
+
+
+
+CREATE INDEX "idx_hr_defense_interviews_candidate" ON "public"."hr_defense_interviews" USING "btree" ("candidate_id");
+
+
+
+CREATE INDEX "idx_hr_defense_interviews_scheduled" ON "public"."hr_defense_interviews" USING "btree" ("scheduled_date");
+
+
+
+CREATE INDEX "idx_hr_evidence_screening_candidate" ON "public"."hr_evidence_screening" USING "btree" ("candidate_id");
+
+
+
+CREATE INDEX "idx_hr_job_postings_organization" ON "public"."hr_job_postings" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_hr_job_postings_status" ON "public"."hr_job_postings" USING "btree" ("status");
+
+
+
+CREATE INDEX "idx_hr_work_samples_candidate" ON "public"."hr_work_samples" USING "btree" ("candidate_id");
+
+
+
+CREATE INDEX "idx_hr_work_samples_status" ON "public"."hr_work_samples" USING "btree" ("status");
+
+
+
+CREATE INDEX "idx_operations_logistics_org" ON "public"."operations_logistics" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_operations_projects_org" ON "public"."operations_projects" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_operations_quality_checks_org" ON "public"."operations_quality_checks" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_operations_technology_org" ON "public"."operations_technology" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_operations_vendors_org" ON "public"."operations_vendors" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_organization_members_expiry" ON "public"."organization_members" USING "btree" ("access_expires_at") WHERE ("access_expires_at" IS NOT NULL);
+
+
+
+CREATE INDEX "idx_organization_members_role" ON "public"."organization_members" USING "btree" ("role");
+
+
+
+CREATE INDEX "idx_security_access_reviews_org" ON "public"."security_access_reviews" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_security_assets_org" ON "public"."security_assets" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_security_incidents_org" ON "public"."security_incidents" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_security_risks_org" ON "public"."security_risks" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_security_vendor_reviews_org" ON "public"."security_vendor_reviews" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_specialist_engagements_org" ON "public"."specialist_engagements" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_specialist_engagements_specialist" ON "public"."specialist_engagements" USING "btree" ("specialist_id");
+
+
+
+CREATE INDEX "idx_specialists_org" ON "public"."specialists" USING "btree" ("organization_id");
 
 
 
@@ -9893,6 +14673,10 @@ CREATE UNIQUE INDEX "organization_admission_waitlist_one_waiting_per_user" ON "p
 
 
 
+CREATE INDEX "organization_billing_events_org_created_idx" ON "public"."organization_billing_events" USING "btree" ("organization_id", "created_at" DESC);
+
+
+
 CREATE INDEX "organization_invitations_invited_by_fkey_idx" ON "public"."organization_invitations" USING "btree" ("invited_by");
 
 
@@ -9913,7 +14697,19 @@ CREATE INDEX "organization_risk_snapshots_organization_id_fkey_idx" ON "public".
 
 
 
+CREATE INDEX "organization_usage_events_org_kind_created_idx" ON "public"."organization_usage_events" USING "btree" ("organization_id", "kind", "created_at" DESC);
+
+
+
+CREATE INDEX "organizations_billing_owner_user_id_idx" ON "public"."organizations" USING "btree" ("billing_owner_user_id") WHERE ("billing_owner_user_id" IS NOT NULL);
+
+
+
 CREATE INDEX "organizations_created_by_fkey_idx" ON "public"."organizations" USING "btree" ("created_by");
+
+
+
+CREATE INDEX "organizations_stripe_customer_id_idx" ON "public"."organizations" USING "btree" ("stripe_customer_id") WHERE ("stripe_customer_id" IS NOT NULL);
 
 
 
@@ -9938,6 +14734,18 @@ CREATE INDEX "policy_gap_analyses_organization_id_fkey_idx" ON "public"."policy_
 
 
 CREATE INDEX "predictive_risk_forecasts_organization_id_fkey_idx" ON "public"."predictive_risk_forecasts" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "revenue_invoices_organization_id_idx" ON "public"."revenue_invoices" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "revenue_invoices_stream_id_idx" ON "public"."revenue_invoices" USING "btree" ("stream_id");
+
+
+
+CREATE INDEX "revenue_streams_organization_id_idx" ON "public"."revenue_streams" USING "btree" ("organization_id");
 
 
 
@@ -10145,6 +14953,14 @@ CREATE INDEX "workflows_template_version_id_fkey_idx" ON "public"."workflows" US
 
 
 
+CREATE INDEX "workspace_integrations_organization_id_idx" ON "public"."workspace_integrations" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "workspace_integrations_provider_idx" ON "public"."workspace_integrations" USING "btree" ("provider");
+
+
+
 CREATE INDEX "workspace_intelligence_items_organization_id_fkey_idx" ON "public"."workspace_intelligence_items" USING "btree" ("organization_id");
 
 
@@ -10177,7 +14993,59 @@ CREATE OR REPLACE TRIGGER "advisor_guidance_chunks_touch_updated_at" BEFORE UPDA
 
 
 
+CREATE OR REPLACE TRIGGER "comms_contact_segment_memberships_set_updated_at" BEFORE UPDATE ON "public"."comms_contact_segment_memberships" FOR EACH ROW EXECUTE FUNCTION "public"."comms_contact_segment_memberships_set_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "comms_contact_segments_set_updated_at" BEFORE UPDATE ON "public"."comms_contact_segments" FOR EACH ROW EXECUTE FUNCTION "public"."comms_contact_segments_set_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "compliance_tasks_assert_capacity" BEFORE INSERT ON "public"."compliance_tasks" FOR EACH ROW EXECUTE FUNCTION "public"."assert_open_task_capacity"();
+
+
+
+CREATE OR REPLACE TRIGGER "employees_assert_capacity" BEFORE INSERT OR UPDATE OF "status" ON "public"."employees" FOR EACH ROW EXECUTE FUNCTION "public"."assert_active_employee_capacity"();
+
+
+
+CREATE OR REPLACE TRIGGER "finance_categorization_feedback_set_updated_at" BEFORE UPDATE ON "public"."finance_categorization_feedback" FOR EACH ROW EXECUTE FUNCTION "public"."finance_categorization_feedback_set_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "finance_category_rules_updated_at" BEFORE UPDATE ON "public"."finance_category_rules" FOR EACH ROW EXECUTE FUNCTION "public"."finance_category_rules_set_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "finance_import_sessions_updated_at" BEFORE UPDATE ON "public"."finance_import_sessions" FOR EACH ROW EXECUTE FUNCTION "public"."finance_import_sessions_set_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "finance_workspace_settings_set_updated_at" BEFORE UPDATE ON "public"."finance_workspace_settings" FOR EACH ROW EXECUTE FUNCTION "public"."finance_workspace_settings_set_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "hr_cases_assert_capacity" BEFORE INSERT ON "public"."hr_cases" FOR EACH ROW EXECUTE FUNCTION "public"."assert_active_case_capacity"();
+
+
+
+CREATE OR REPLACE TRIGGER "hr_document_signatures_claim_send" BEFORE INSERT ON "public"."hr_document_signatures" FOR EACH ROW EXECUTE FUNCTION "public"."trg_claim_signature_send"();
+
+
+
+CREATE OR REPLACE TRIGGER "hr_generated_documents_claim_save" BEFORE INSERT ON "public"."hr_generated_documents" FOR EACH ROW EXECUTE FUNCTION "public"."trg_claim_document_save"();
+
+
+
 CREATE OR REPLACE TRIGGER "law_updates_flag_guidance" AFTER INSERT ON "public"."law_updates" FOR EACH ROW EXECUTE FUNCTION "public"."flag_guidance_chunks_on_law_change"();
+
+
+
+CREATE OR REPLACE TRIGGER "organization_members_assert_capacity" BEFORE INSERT OR UPDATE OF "status" ON "public"."organization_members" FOR EACH ROW EXECUTE FUNCTION "public"."assert_org_member_capacity"();
+
+
+
+CREATE OR REPLACE TRIGGER "organizations_pin_billing_columns" BEFORE UPDATE ON "public"."organizations" FOR EACH ROW EXECUTE FUNCTION "public"."pin_organization_billing_columns"();
 
 
 
@@ -10262,6 +15130,58 @@ CREATE OR REPLACE TRIGGER "trg_template_documents_updated_at" BEFORE UPDATE ON "
 
 
 CREATE OR REPLACE TRIGGER "trg_templates_updated_at" BEFORE UPDATE ON "public"."templates" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_candidate_applications_updated_at" BEFORE UPDATE ON "public"."candidate_applications" FOR EACH ROW EXECUTE FUNCTION "public"."update_candidate_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_candidate_profiles_updated_at" BEFORE UPDATE ON "public"."candidate_profiles" FOR EACH ROW EXECUTE FUNCTION "public"."update_candidate_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_candidate_resumes_updated_at" BEFORE UPDATE ON "public"."candidate_resumes" FOR EACH ROW EXECUTE FUNCTION "public"."update_candidate_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_entity_links_updated_at" BEFORE UPDATE ON "public"."entity_links" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_hr_authenticity_scores_updated_at" BEFORE UPDATE ON "public"."hr_authenticity_scores" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_hr_candidates_updated_at" BEFORE UPDATE ON "public"."hr_candidates" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_hr_defense_interviews_updated_at" BEFORE UPDATE ON "public"."hr_defense_interviews" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_hr_evidence_screening_updated_at" BEFORE UPDATE ON "public"."hr_evidence_screening" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_hr_job_postings_updated_at" BEFORE UPDATE ON "public"."hr_job_postings" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_hr_work_samples_updated_at" BEFORE UPDATE ON "public"."hr_work_samples" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_revenue_invoices_updated_at" BEFORE UPDATE ON "public"."revenue_invoices" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_revenue_streams_updated_at" BEFORE UPDATE ON "public"."revenue_streams" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "workspace_integrations_set_updated_at" BEFORE UPDATE ON "public"."workspace_integrations" FOR EACH ROW EXECUTE FUNCTION "public"."set_updated_at"();
 
 
 
@@ -10365,6 +15285,11 @@ ALTER TABLE ONLY "public"."advisor_memories"
 
 
 
+ALTER TABLE ONLY "public"."agent_audit"
+    ADD CONSTRAINT "agent_audit_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
+
+
+
 ALTER TABLE ONLY "public"."agent_runs"
     ADD CONSTRAINT "agent_runs_agent_id_fkey" FOREIGN KEY ("agent_id") REFERENCES "public"."ai_agents"("id") ON DELETE SET NULL;
 
@@ -10400,8 +15325,33 @@ ALTER TABLE ONLY "public"."ai_advisor_credits"
 
 
 
+ALTER TABLE ONLY "public"."ai_advisor_month_state"
+    ADD CONSTRAINT "ai_advisor_month_state_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."ai_advisor_org_credits"
+    ADD CONSTRAINT "ai_advisor_org_credits_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."ai_advisor_org_credits"
+    ADD CONSTRAINT "ai_advisor_org_credits_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."ai_advisor_org_overage_months"
+    ADD CONSTRAINT "ai_advisor_org_overage_months_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."ai_advisor_overage_months"
     ADD CONSTRAINT "ai_advisor_overage_months_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."ai_advisor_rollover_credits"
+    ADD CONSTRAINT "ai_advisor_rollover_credits_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
 
 
 
@@ -10475,6 +15425,31 @@ ALTER TABLE ONLY "public"."billing_events"
 
 
 
+ALTER TABLE ONLY "public"."candidate_applications"
+    ADD CONSTRAINT "candidate_applications_candidate_id_fkey" FOREIGN KEY ("candidate_id") REFERENCES "public"."candidate_profiles"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."candidate_applications"
+    ADD CONSTRAINT "candidate_applications_job_posting_id_fkey" FOREIGN KEY ("job_posting_id") REFERENCES "public"."hr_job_postings"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."candidate_profiles"
+    ADD CONSTRAINT "candidate_profiles_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."candidate_resumes"
+    ADD CONSTRAINT "candidate_resumes_candidate_id_fkey" FOREIGN KEY ("candidate_id") REFERENCES "public"."candidate_profiles"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."candidate_resumes"
+    ADD CONSTRAINT "candidate_resumes_tailored_for_posting_id_fkey" FOREIGN KEY ("tailored_for_posting_id") REFERENCES "public"."hr_job_postings"("id") ON DELETE SET NULL;
+
+
+
 ALTER TABLE ONLY "public"."clients"
     ADD CONSTRAINT "clients_jurisdiction_id_fkey" FOREIGN KEY ("jurisdiction_id") REFERENCES "public"."jurisdictions"("id") ON DELETE SET NULL;
 
@@ -10507,6 +15482,121 @@ ALTER TABLE ONLY "public"."comments"
 
 ALTER TABLE ONLY "public"."comments"
     ADD CONSTRAINT "comments_parent_comment_id_fkey" FOREIGN KEY ("parent_comment_id") REFERENCES "public"."comments"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_approvals"
+    ADD CONSTRAINT "comms_approvals_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_brand_claims"
+    ADD CONSTRAINT "comms_brand_claims_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_contact_segment_memberships"
+    ADD CONSTRAINT "comms_contact_segment_memberships_comms_contact_id_fkey" FOREIGN KEY ("comms_contact_id") REFERENCES "public"."comms_contacts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_contact_segment_memberships"
+    ADD CONSTRAINT "comms_contact_segment_memberships_comms_segment_id_fkey" FOREIGN KEY ("comms_segment_id") REFERENCES "public"."comms_contact_segments"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_contact_segment_memberships"
+    ADD CONSTRAINT "comms_contact_segment_memberships_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_contact_segments"
+    ADD CONSTRAINT "comms_contact_segments_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_contacts"
+    ADD CONSTRAINT "comms_contacts_comms_organization_id_fkey" FOREIGN KEY ("comms_organization_id") REFERENCES "public"."comms_organizations"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."comms_contacts"
+    ADD CONSTRAINT "comms_contacts_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_content_items"
+    ADD CONSTRAINT "comms_content_items_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_coverage_items"
+    ADD CONSTRAINT "comms_coverage_items_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_execution_events"
+    ADD CONSTRAINT "comms_execution_events_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_feeds"
+    ADD CONSTRAINT "comms_feeds_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_initiatives"
+    ADD CONSTRAINT "comms_initiatives_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_integrations"
+    ADD CONSTRAINT "comms_integrations_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_interactions"
+    ADD CONSTRAINT "comms_interactions_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_issues"
+    ADD CONSTRAINT "comms_issues_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_metrics"
+    ADD CONSTRAINT "comms_metrics_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_objectives"
+    ADD CONSTRAINT "comms_objectives_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_organizations"
+    ADD CONSTRAINT "comms_organizations_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_policy_files"
+    ADD CONSTRAINT "comms_policy_files_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_sources"
+    ADD CONSTRAINT "comms_sources_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_submissions"
+    ADD CONSTRAINT "comms_submissions_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."comms_usage_controls"
+    ADD CONSTRAINT "comms_usage_controls_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
 
 
 
@@ -10685,6 +15775,16 @@ ALTER TABLE ONLY "public"."employer_profiles"
 
 
 
+ALTER TABLE ONLY "public"."entity_links"
+    ADD CONSTRAINT "entity_links_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."profiles"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."entity_links"
+    ADD CONSTRAINT "entity_links_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
+
+
+
 ALTER TABLE ONLY "public"."entity_relationships"
     ADD CONSTRAINT "entity_relationships_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
 
@@ -10722,6 +15822,481 @@ ALTER TABLE ONLY "public"."external_integrations"
 
 ALTER TABLE ONLY "public"."external_integrations"
     ADD CONSTRAINT "external_integrations_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_approvals"
+    ADD CONSTRAINT "finance_approvals_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_approvals"
+    ADD CONSTRAINT "finance_approvals_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_audit_events"
+    ADD CONSTRAINT "finance_audit_events_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_audit_events"
+    ADD CONSTRAINT "finance_audit_events_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_bank_accounts"
+    ADD CONSTRAINT "finance_bank_accounts_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_bank_accounts"
+    ADD CONSTRAINT "finance_bank_accounts_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_bank_items"
+    ADD CONSTRAINT "finance_bank_items_bank_account_id_fkey" FOREIGN KEY ("bank_account_id") REFERENCES "public"."finance_bank_accounts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_bank_items"
+    ADD CONSTRAINT "finance_bank_items_import_session_id_fkey" FOREIGN KEY ("import_session_id") REFERENCES "public"."finance_import_sessions"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_bank_items"
+    ADD CONSTRAINT "finance_bank_items_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_bills"
+    ADD CONSTRAINT "finance_bills_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_bills"
+    ADD CONSTRAINT "finance_bills_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_bills"
+    ADD CONSTRAINT "finance_bills_supplier_id_fkey" FOREIGN KEY ("supplier_id") REFERENCES "public"."finance_parties"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_books"
+    ADD CONSTRAINT "finance_books_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_books"
+    ADD CONSTRAINT "finance_books_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_budgets"
+    ADD CONSTRAINT "finance_budgets_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_budgets"
+    ADD CONSTRAINT "finance_budgets_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_categorization_feedback"
+    ADD CONSTRAINT "finance_categorization_feedback_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_categorization_feedback"
+    ADD CONSTRAINT "finance_categorization_feedback_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_category_rules"
+    ADD CONSTRAINT "finance_category_rules_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_category_rules"
+    ADD CONSTRAINT "finance_category_rules_ledger_account_id_fkey" FOREIGN KEY ("ledger_account_id") REFERENCES "public"."finance_ledger_accounts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_category_rules"
+    ADD CONSTRAINT "finance_category_rules_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_close_periods"
+    ADD CONSTRAINT "finance_close_periods_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "public"."finance_books"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_close_periods"
+    ADD CONSTRAINT "finance_close_periods_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_credits"
+    ADD CONSTRAINT "finance_credits_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_credits"
+    ADD CONSTRAINT "finance_credits_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_credits"
+    ADD CONSTRAINT "finance_credits_party_id_fkey" FOREIGN KEY ("party_id") REFERENCES "public"."finance_parties"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_debts"
+    ADD CONSTRAINT "finance_debts_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_debts"
+    ADD CONSTRAINT "finance_debts_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_decision_entries"
+    ADD CONSTRAINT "finance_decision_entries_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_decision_entries"
+    ADD CONSTRAINT "finance_decision_entries_holding_id_fkey" FOREIGN KEY ("holding_id") REFERENCES "public"."finance_holdings"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."finance_decision_entries"
+    ADD CONSTRAINT "finance_decision_entries_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_decision_entries"
+    ADD CONSTRAINT "finance_decision_entries_watchlist_item_id_fkey" FOREIGN KEY ("watchlist_item_id") REFERENCES "public"."finance_watchlist_items"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."finance_entities"
+    ADD CONSTRAINT "finance_entities_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_expenses"
+    ADD CONSTRAINT "finance_expenses_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_expenses"
+    ADD CONSTRAINT "finance_expenses_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_external_actions"
+    ADD CONSTRAINT "finance_external_actions_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_external_actions"
+    ADD CONSTRAINT "finance_external_actions_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_fiscal_periods"
+    ADD CONSTRAINT "finance_fiscal_periods_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_fiscal_periods"
+    ADD CONSTRAINT "finance_fiscal_periods_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_forecasts"
+    ADD CONSTRAINT "finance_forecasts_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_forecasts"
+    ADD CONSTRAINT "finance_forecasts_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_holdings"
+    ADD CONSTRAINT "finance_holdings_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_holdings"
+    ADD CONSTRAINT "finance_holdings_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_import_sessions"
+    ADD CONSTRAINT "finance_import_sessions_bank_account_id_fkey" FOREIGN KEY ("bank_account_id") REFERENCES "public"."finance_bank_accounts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_import_sessions"
+    ADD CONSTRAINT "finance_import_sessions_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_import_sessions"
+    ADD CONSTRAINT "finance_import_sessions_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_invoices"
+    ADD CONSTRAINT "finance_invoices_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES "public"."finance_parties"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_invoices"
+    ADD CONSTRAINT "finance_invoices_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_invoices"
+    ADD CONSTRAINT "finance_invoices_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_journals"
+    ADD CONSTRAINT "finance_journals_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "public"."finance_books"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_journals"
+    ADD CONSTRAINT "finance_journals_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_ledger_accounts"
+    ADD CONSTRAINT "finance_ledger_accounts_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "public"."finance_books"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_ledger_accounts"
+    ADD CONSTRAINT "finance_ledger_accounts_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_parties"
+    ADD CONSTRAINT "finance_parties_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_parties"
+    ADD CONSTRAINT "finance_parties_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_pay_periods"
+    ADD CONSTRAINT "finance_pay_periods_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_pay_periods"
+    ADD CONSTRAINT "finance_pay_periods_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_pay_runs"
+    ADD CONSTRAINT "finance_pay_runs_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_pay_runs"
+    ADD CONSTRAINT "finance_pay_runs_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_pay_runs"
+    ADD CONSTRAINT "finance_pay_runs_period_id_fkey" FOREIGN KEY ("period_id") REFERENCES "public"."finance_pay_periods"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_payroll_liabilities"
+    ADD CONSTRAINT "finance_payroll_liabilities_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_payroll_liabilities"
+    ADD CONSTRAINT "finance_payroll_liabilities_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_payroll_liabilities"
+    ADD CONSTRAINT "finance_payroll_liabilities_pay_run_id_fkey" FOREIGN KEY ("pay_run_id") REFERENCES "public"."finance_pay_runs"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."finance_purchase_orders"
+    ADD CONSTRAINT "finance_purchase_orders_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_purchase_orders"
+    ADD CONSTRAINT "finance_purchase_orders_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_purchase_orders"
+    ADD CONSTRAINT "finance_purchase_orders_supplier_id_fkey" FOREIGN KEY ("supplier_id") REFERENCES "public"."finance_parties"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_receipts"
+    ADD CONSTRAINT "finance_receipts_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_receipts"
+    ADD CONSTRAINT "finance_receipts_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_reconciliations"
+    ADD CONSTRAINT "finance_reconciliations_bank_account_id_fkey" FOREIGN KEY ("bank_account_id") REFERENCES "public"."finance_bank_accounts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_reconciliations"
+    ADD CONSTRAINT "finance_reconciliations_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_reserve_goals"
+    ADD CONSTRAINT "finance_reserve_goals_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_reserve_goals"
+    ADD CONSTRAINT "finance_reserve_goals_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_scenarios"
+    ADD CONSTRAINT "finance_scenarios_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_scenarios"
+    ADD CONSTRAINT "finance_scenarios_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_spend_requests"
+    ADD CONSTRAINT "finance_spend_requests_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_spend_requests"
+    ADD CONSTRAINT "finance_spend_requests_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_spend_requests"
+    ADD CONSTRAINT "finance_spend_requests_supplier_id_fkey" FOREIGN KEY ("supplier_id") REFERENCES "public"."finance_parties"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."finance_subscriptions"
+    ADD CONSTRAINT "finance_subscriptions_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_subscriptions"
+    ADD CONSTRAINT "finance_subscriptions_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_subscriptions"
+    ADD CONSTRAINT "finance_subscriptions_supplier_id_fkey" FOREIGN KEY ("supplier_id") REFERENCES "public"."finance_parties"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_tax_obligations"
+    ADD CONSTRAINT "finance_tax_obligations_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_tax_obligations"
+    ADD CONSTRAINT "finance_tax_obligations_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_tax_scenarios"
+    ADD CONSTRAINT "finance_tax_scenarios_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_tax_scenarios"
+    ADD CONSTRAINT "finance_tax_scenarios_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_watchlist_items"
+    ADD CONSTRAINT "finance_watchlist_items_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_watchlist_items"
+    ADD CONSTRAINT "finance_watchlist_items_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_workspace_settings"
+    ADD CONSTRAINT "finance_workspace_settings_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."governance_decisions"
+    ADD CONSTRAINT "governance_decisions_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."profiles"("id");
+
+
+
+ALTER TABLE ONLY "public"."governance_decisions"
+    ADD CONSTRAINT "governance_decisions_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
+
+
+
+ALTER TABLE ONLY "public"."governance_decisions"
+    ADD CONSTRAINT "governance_decisions_related_record_id_fkey" FOREIGN KEY ("related_record_id") REFERENCES "public"."governance_records"("id");
+
+
+
+ALTER TABLE ONLY "public"."governance_officers"
+    ADD CONSTRAINT "governance_officers_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
+
+
+
+ALTER TABLE ONLY "public"."governance_records"
+    ADD CONSTRAINT "governance_records_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."profiles"("id");
+
+
+
+ALTER TABLE ONLY "public"."governance_records"
+    ADD CONSTRAINT "governance_records_document_id_fkey" FOREIGN KEY ("document_id") REFERENCES "public"."documents"("id");
+
+
+
+ALTER TABLE ONLY "public"."governance_records"
+    ADD CONSTRAINT "governance_records_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
+
+
+
+ALTER TABLE ONLY "public"."governance_shareholders"
+    ADD CONSTRAINT "governance_shareholders_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
 
 
 
@@ -10795,6 +16370,16 @@ ALTER TABLE ONLY "public"."hr_advisor_memory_facts"
 
 
 
+ALTER TABLE ONLY "public"."hr_authenticity_scores"
+    ADD CONSTRAINT "hr_authenticity_scores_candidate_id_fkey" FOREIGN KEY ("candidate_id") REFERENCES "public"."hr_candidates"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."hr_candidates"
+    ADD CONSTRAINT "hr_candidates_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."hr_case_notes"
     ADD CONSTRAINT "hr_case_notes_case_id_fkey" FOREIGN KEY ("case_id") REFERENCES "public"."hr_cases"("id") ON DELETE CASCADE;
 
@@ -10847,6 +16432,16 @@ ALTER TABLE ONLY "public"."hr_compensation_records"
 
 ALTER TABLE ONLY "public"."hr_compensation_records"
     ADD CONSTRAINT "hr_compensation_records_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."hr_defense_interviews"
+    ADD CONSTRAINT "hr_defense_interviews_candidate_id_fkey" FOREIGN KEY ("candidate_id") REFERENCES "public"."hr_candidates"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."hr_defense_interviews"
+    ADD CONSTRAINT "hr_defense_interviews_work_sample_id_fkey" FOREIGN KEY ("work_sample_id") REFERENCES "public"."hr_work_samples"("id") ON DELETE CASCADE;
 
 
 
@@ -10935,6 +16530,11 @@ ALTER TABLE ONLY "public"."hr_employee_notes"
 
 
 
+ALTER TABLE ONLY "public"."hr_evidence_screening"
+    ADD CONSTRAINT "hr_evidence_screening_candidate_id_fkey" FOREIGN KEY ("candidate_id") REFERENCES "public"."hr_candidates"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."hr_expiry_records"
     ADD CONSTRAINT "hr_expiry_records_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
 
@@ -10975,6 +16575,11 @@ ALTER TABLE ONLY "public"."hr_generated_documents"
 
 
 
+ALTER TABLE ONLY "public"."hr_job_postings"
+    ADD CONSTRAINT "hr_job_postings_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."hr_leaves"
     ADD CONSTRAINT "hr_leaves_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
 
@@ -11000,6 +16605,46 @@ ALTER TABLE ONLY "public"."hr_obligations"
 
 
 
+ALTER TABLE ONLY "public"."hr_onboarding_tasks"
+    ADD CONSTRAINT "hr_onboarding_tasks_assignee_employee_id_fkey" FOREIGN KEY ("assignee_employee_id") REFERENCES "public"."employees"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."hr_onboarding_tasks"
+    ADD CONSTRAINT "hr_onboarding_tasks_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."hr_onboarding_tasks"
+    ADD CONSTRAINT "hr_onboarding_tasks_employee_id_fkey" FOREIGN KEY ("employee_id") REFERENCES "public"."employees"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."hr_onboarding_tasks"
+    ADD CONSTRAINT "hr_onboarding_tasks_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."hr_performance_reviews"
+    ADD CONSTRAINT "hr_performance_reviews_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."hr_performance_reviews"
+    ADD CONSTRAINT "hr_performance_reviews_employee_id_fkey" FOREIGN KEY ("employee_id") REFERENCES "public"."employees"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."hr_performance_reviews"
+    ADD CONSTRAINT "hr_performance_reviews_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."hr_performance_reviews"
+    ADD CONSTRAINT "hr_performance_reviews_reviewer_id_fkey" FOREIGN KEY ("reviewer_id") REFERENCES "public"."employees"("id") ON DELETE SET NULL;
+
+
+
 ALTER TABLE ONLY "public"."hr_policies"
     ADD CONSTRAINT "hr_policies_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
 
@@ -11017,6 +16662,11 @@ ALTER TABLE ONLY "public"."hr_wellbeing_initiatives"
 
 ALTER TABLE ONLY "public"."hr_wellbeing_initiatives"
     ADD CONSTRAINT "hr_wellbeing_initiatives_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."hr_work_samples"
+    ADD CONSTRAINT "hr_work_samples_candidate_id_fkey" FOREIGN KEY ("candidate_id") REFERENCES "public"."hr_candidates"("id") ON DELETE CASCADE;
 
 
 
@@ -11135,6 +16785,81 @@ ALTER TABLE ONLY "public"."operational_bottlenecks"
 
 
 
+ALTER TABLE ONLY "public"."operations_logistics"
+    ADD CONSTRAINT "operations_logistics_assigned_to_fkey" FOREIGN KEY ("assigned_to") REFERENCES "public"."profiles"("id");
+
+
+
+ALTER TABLE ONLY "public"."operations_logistics"
+    ADD CONSTRAINT "operations_logistics_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."profiles"("id");
+
+
+
+ALTER TABLE ONLY "public"."operations_logistics"
+    ADD CONSTRAINT "operations_logistics_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
+
+
+
+ALTER TABLE ONLY "public"."operations_logistics"
+    ADD CONSTRAINT "operations_logistics_owner_id_fkey" FOREIGN KEY ("owner_id") REFERENCES "public"."profiles"("id");
+
+
+
+ALTER TABLE ONLY "public"."operations_projects"
+    ADD CONSTRAINT "operations_projects_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
+
+
+
+ALTER TABLE ONLY "public"."operations_projects"
+    ADD CONSTRAINT "operations_projects_owner_id_fkey" FOREIGN KEY ("owner_id") REFERENCES "public"."profiles"("id");
+
+
+
+ALTER TABLE ONLY "public"."operations_quality_checks"
+    ADD CONSTRAINT "operations_quality_checks_assigned_to_fkey" FOREIGN KEY ("assigned_to") REFERENCES "public"."profiles"("id");
+
+
+
+ALTER TABLE ONLY "public"."operations_quality_checks"
+    ADD CONSTRAINT "operations_quality_checks_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."profiles"("id");
+
+
+
+ALTER TABLE ONLY "public"."operations_quality_checks"
+    ADD CONSTRAINT "operations_quality_checks_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
+
+
+
+ALTER TABLE ONLY "public"."operations_quality_checks"
+    ADD CONSTRAINT "operations_quality_checks_reviewer_id_fkey" FOREIGN KEY ("reviewer_id") REFERENCES "public"."profiles"("id");
+
+
+
+ALTER TABLE ONLY "public"."operations_technology"
+    ADD CONSTRAINT "operations_technology_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
+
+
+
+ALTER TABLE ONLY "public"."operations_technology"
+    ADD CONSTRAINT "operations_technology_owner_id_fkey" FOREIGN KEY ("owner_id") REFERENCES "public"."profiles"("id");
+
+
+
+ALTER TABLE ONLY "public"."operations_vendors"
+    ADD CONSTRAINT "operations_vendors_finance_party_id_fkey" FOREIGN KEY ("finance_party_id") REFERENCES "public"."finance_parties"("id");
+
+
+
+ALTER TABLE ONLY "public"."operations_vendors"
+    ADD CONSTRAINT "operations_vendors_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
+
+
+
+ALTER TABLE ONLY "public"."organization_billing_events"
+    ADD CONSTRAINT "organization_billing_events_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."organization_invitations"
     ADD CONSTRAINT "organization_invitations_invited_by_fkey" FOREIGN KEY ("invited_by") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
 
@@ -11162,6 +16887,21 @@ ALTER TABLE ONLY "public"."organization_members"
 
 ALTER TABLE ONLY "public"."organization_risk_snapshots"
     ADD CONSTRAINT "organization_risk_snapshots_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."organization_usage_events"
+    ADD CONSTRAINT "organization_usage_events_actor_user_id_fkey" FOREIGN KEY ("actor_user_id") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."organization_usage_events"
+    ADD CONSTRAINT "organization_usage_events_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."organizations"
+    ADD CONSTRAINT "organizations_billing_owner_user_id_fkey" FOREIGN KEY ("billing_owner_user_id") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
 
 
 
@@ -11205,6 +16945,21 @@ ALTER TABLE ONLY "public"."profiles"
 
 
 
+ALTER TABLE ONLY "public"."revenue_invoices"
+    ADD CONSTRAINT "revenue_invoices_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
+
+
+
+ALTER TABLE ONLY "public"."revenue_invoices"
+    ADD CONSTRAINT "revenue_invoices_stream_id_fkey" FOREIGN KEY ("stream_id") REFERENCES "public"."revenue_streams"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."revenue_streams"
+    ADD CONSTRAINT "revenue_streams_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
+
+
+
 ALTER TABLE ONLY "public"."scheduled_operations"
     ADD CONSTRAINT "scheduled_operations_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
 
@@ -11212,6 +16967,66 @@ ALTER TABLE ONLY "public"."scheduled_operations"
 
 ALTER TABLE ONLY "public"."scheduled_operations"
     ADD CONSTRAINT "scheduled_operations_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."security_access_reviews"
+    ADD CONSTRAINT "security_access_reviews_assigned_to_fkey" FOREIGN KEY ("assigned_to") REFERENCES "public"."profiles"("id");
+
+
+
+ALTER TABLE ONLY "public"."security_access_reviews"
+    ADD CONSTRAINT "security_access_reviews_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."profiles"("id");
+
+
+
+ALTER TABLE ONLY "public"."security_access_reviews"
+    ADD CONSTRAINT "security_access_reviews_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
+
+
+
+ALTER TABLE ONLY "public"."security_access_reviews"
+    ADD CONSTRAINT "security_access_reviews_reviewer_id_fkey" FOREIGN KEY ("reviewer_id") REFERENCES "public"."profiles"("id");
+
+
+
+ALTER TABLE ONLY "public"."security_assets"
+    ADD CONSTRAINT "security_assets_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
+
+
+
+ALTER TABLE ONLY "public"."security_assets"
+    ADD CONSTRAINT "security_assets_owner_id_fkey" FOREIGN KEY ("owner_id") REFERENCES "public"."profiles"("id");
+
+
+
+ALTER TABLE ONLY "public"."security_incidents"
+    ADD CONSTRAINT "security_incidents_assigned_to_fkey" FOREIGN KEY ("assigned_to") REFERENCES "public"."profiles"("id");
+
+
+
+ALTER TABLE ONLY "public"."security_incidents"
+    ADD CONSTRAINT "security_incidents_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."profiles"("id");
+
+
+
+ALTER TABLE ONLY "public"."security_incidents"
+    ADD CONSTRAINT "security_incidents_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
+
+
+
+ALTER TABLE ONLY "public"."security_incidents"
+    ADD CONSTRAINT "security_incidents_reported_by_fkey" FOREIGN KEY ("reported_by") REFERENCES "public"."profiles"("id");
+
+
+
+ALTER TABLE ONLY "public"."security_risks"
+    ADD CONSTRAINT "security_risks_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
+
+
+
+ALTER TABLE ONLY "public"."security_vendor_reviews"
+    ADD CONSTRAINT "security_vendor_reviews_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
 
 
 
@@ -11237,6 +17052,36 @@ ALTER TABLE ONLY "public"."signatures"
 
 ALTER TABLE ONLY "public"."signatures"
     ADD CONSTRAINT "signatures_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."specialist_engagements"
+    ADD CONSTRAINT "specialist_engagements_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."profiles"("id");
+
+
+
+ALTER TABLE ONLY "public"."specialist_engagements"
+    ADD CONSTRAINT "specialist_engagements_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
+
+
+
+ALTER TABLE ONLY "public"."specialist_engagements"
+    ADD CONSTRAINT "specialist_engagements_specialist_id_fkey" FOREIGN KEY ("specialist_id") REFERENCES "public"."specialists"("id");
+
+
+
+ALTER TABLE ONLY "public"."specialists"
+    ADD CONSTRAINT "specialists_finance_party_id_fkey" FOREIGN KEY ("finance_party_id") REFERENCES "public"."finance_parties"("id");
+
+
+
+ALTER TABLE ONLY "public"."specialists"
+    ADD CONSTRAINT "specialists_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
+
+
+
+ALTER TABLE ONLY "public"."specialists"
+    ADD CONSTRAINT "specialists_organization_member_id_fkey" FOREIGN KEY ("organization_member_id") REFERENCES "public"."organization_members"("id");
 
 
 
@@ -11487,6 +17332,16 @@ ALTER TABLE ONLY "public"."workflows"
 
 ALTER TABLE ONLY "public"."workflows"
     ADD CONSTRAINT "workflows_template_version_id_fkey" FOREIGN KEY ("template_version_id") REFERENCES "public"."template_versions"("id");
+
+
+
+ALTER TABLE ONLY "public"."workspace_integrations"
+    ADD CONSTRAINT "workspace_integrations_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."workspace_integrations"
+    ADD CONSTRAINT "workspace_integrations_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
 
 
 
@@ -12101,7 +17956,23 @@ CREATE POLICY "Deny client API access" ON "public"."ai_advisor_credits" TO "anon
 
 
 
+CREATE POLICY "Deny client API access" ON "public"."ai_advisor_month_state" TO "anon", "authenticated" USING (false) WITH CHECK (false);
+
+
+
+CREATE POLICY "Deny client API access" ON "public"."ai_advisor_org_credits" TO "anon", "authenticated" USING (false) WITH CHECK (false);
+
+
+
+CREATE POLICY "Deny client API access" ON "public"."ai_advisor_org_overage_months" TO "anon", "authenticated" USING (false) WITH CHECK (false);
+
+
+
 CREATE POLICY "Deny client API access" ON "public"."ai_advisor_overage_months" TO "anon", "authenticated" USING (false) WITH CHECK (false);
+
+
+
+CREATE POLICY "Deny client API access" ON "public"."ai_advisor_rollover_credits" TO "anon", "authenticated" USING (false) WITH CHECK (false);
 
 
 
@@ -12118,6 +17989,14 @@ CREATE POLICY "Deny client API access" ON "public"."hr_documents" TO "anon", "au
 
 
 CREATE POLICY "Deny client API access" ON "public"."hr_signing_rpc_rate_limit" TO "anon", "authenticated" USING (false) WITH CHECK (false);
+
+
+
+CREATE POLICY "Deny client API access" ON "public"."organization_billing_events" TO "anon", "authenticated" USING (false) WITH CHECK (false);
+
+
+
+CREATE POLICY "Deny client API access" ON "public"."organization_usage_events" TO "anon", "authenticated" USING (false) WITH CHECK (false);
 
 
 
@@ -12327,6 +18206,12 @@ CREATE POLICY "Members can view workflow metrics" ON "public"."workflow_metrics_
 
 
 
+CREATE POLICY "Org admins can delete candidates" ON "public"."hr_candidates" FOR DELETE USING (("organization_id" IN ( SELECT "organization_members"."organization_id"
+   FROM "public"."organization_members"
+  WHERE (("organization_members"."user_id" = "auth"."uid"()) AND ("organization_members"."role" = 'admin'::"text")))));
+
+
+
 CREATE POLICY "Org admins can delete case narratives" ON "public"."hr_advisor_case_narratives" FOR DELETE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
@@ -12363,6 +18248,158 @@ CREATE POLICY "Org admins can delete expiry records" ON "public"."hr_expiry_reco
 
 
 
+CREATE POLICY "Org admins can delete finance_approvals" ON "public"."finance_approvals" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_audit_events" ON "public"."finance_audit_events" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_bank_accounts" ON "public"."finance_bank_accounts" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_bank_items" ON "public"."finance_bank_items" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_bills" ON "public"."finance_bills" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_books" ON "public"."finance_books" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_budgets" ON "public"."finance_budgets" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_categorization_feedback" ON "public"."finance_categorization_feedback" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_category_rules" ON "public"."finance_category_rules" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_close_periods" ON "public"."finance_close_periods" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_credits" ON "public"."finance_credits" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_debts" ON "public"."finance_debts" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_decision_entries" ON "public"."finance_decision_entries" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_entities" ON "public"."finance_entities" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_expenses" ON "public"."finance_expenses" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_external_actions" ON "public"."finance_external_actions" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_fiscal_periods" ON "public"."finance_fiscal_periods" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_forecasts" ON "public"."finance_forecasts" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_holdings" ON "public"."finance_holdings" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_import_sessions" ON "public"."finance_import_sessions" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_invoices" ON "public"."finance_invoices" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_journals" ON "public"."finance_journals" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_ledger_accounts" ON "public"."finance_ledger_accounts" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_parties" ON "public"."finance_parties" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_pay_periods" ON "public"."finance_pay_periods" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_pay_runs" ON "public"."finance_pay_runs" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_payroll_liabilities" ON "public"."finance_payroll_liabilities" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_purchase_orders" ON "public"."finance_purchase_orders" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_receipts" ON "public"."finance_receipts" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_reconciliations" ON "public"."finance_reconciliations" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_reserve_goals" ON "public"."finance_reserve_goals" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_scenarios" ON "public"."finance_scenarios" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_spend_requests" ON "public"."finance_spend_requests" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_subscriptions" ON "public"."finance_subscriptions" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_tax_obligations" ON "public"."finance_tax_obligations" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_tax_scenarios" ON "public"."finance_tax_scenarios" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_watchlist_items" ON "public"."finance_watchlist_items" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_workspace_settings" ON "public"."finance_workspace_settings" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can delete generated documents" ON "public"."hr_generated_documents" FOR DELETE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
@@ -12383,6 +18420,10 @@ CREATE POLICY "Org admins can delete organization members" ON "public"."organiza
 
 
 
+CREATE POLICY "Org admins can delete performance reviews" ON "public"."hr_performance_reviews" FOR DELETE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can delete policies" ON "public"."hr_policies" FOR DELETE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
@@ -12392,6 +18433,16 @@ CREATE POLICY "Org admins can delete score snapshots" ON "public"."compliance_sc
 
 
 CREATE POLICY "Org admins can delete wellbeing initiatives" ON "public"."hr_wellbeing_initiatives" FOR DELETE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete workspace_integrations" ON "public"."workspace_integrations" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert candidates" ON "public"."hr_candidates" FOR INSERT WITH CHECK (("organization_id" IN ( SELECT "organization_members"."organization_id"
+   FROM "public"."organization_members"
+  WHERE (("organization_members"."user_id" = "auth"."uid"()) AND ("organization_members"."role" = 'admin'::"text")))));
 
 
 
@@ -12451,6 +18502,158 @@ CREATE POLICY "Org admins can insert expiry records" ON "public"."hr_expiry_reco
 
 
 
+CREATE POLICY "Org admins can insert finance_approvals" ON "public"."finance_approvals" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_audit_events" ON "public"."finance_audit_events" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_bank_accounts" ON "public"."finance_bank_accounts" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_bank_items" ON "public"."finance_bank_items" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_bills" ON "public"."finance_bills" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_books" ON "public"."finance_books" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_budgets" ON "public"."finance_budgets" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_categorization_feedback" ON "public"."finance_categorization_feedback" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_category_rules" ON "public"."finance_category_rules" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_close_periods" ON "public"."finance_close_periods" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_credits" ON "public"."finance_credits" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_debts" ON "public"."finance_debts" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_decision_entries" ON "public"."finance_decision_entries" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_entities" ON "public"."finance_entities" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_expenses" ON "public"."finance_expenses" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_external_actions" ON "public"."finance_external_actions" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_fiscal_periods" ON "public"."finance_fiscal_periods" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_forecasts" ON "public"."finance_forecasts" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_holdings" ON "public"."finance_holdings" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_import_sessions" ON "public"."finance_import_sessions" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_invoices" ON "public"."finance_invoices" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_journals" ON "public"."finance_journals" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_ledger_accounts" ON "public"."finance_ledger_accounts" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_parties" ON "public"."finance_parties" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_pay_periods" ON "public"."finance_pay_periods" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_pay_runs" ON "public"."finance_pay_runs" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_payroll_liabilities" ON "public"."finance_payroll_liabilities" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_purchase_orders" ON "public"."finance_purchase_orders" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_receipts" ON "public"."finance_receipts" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_reconciliations" ON "public"."finance_reconciliations" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_reserve_goals" ON "public"."finance_reserve_goals" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_scenarios" ON "public"."finance_scenarios" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_spend_requests" ON "public"."finance_spend_requests" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_subscriptions" ON "public"."finance_subscriptions" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_tax_obligations" ON "public"."finance_tax_obligations" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_tax_scenarios" ON "public"."finance_tax_scenarios" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_watchlist_items" ON "public"."finance_watchlist_items" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_workspace_settings" ON "public"."finance_workspace_settings" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can insert generated documents" ON "public"."hr_generated_documents" FOR INSERT WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
@@ -12475,6 +18678,10 @@ CREATE POLICY "Org admins can insert organization members" ON "public"."organiza
 
 
 
+CREATE POLICY "Org admins can insert performance reviews" ON "public"."hr_performance_reviews" FOR INSERT WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can insert policies" ON "public"."hr_policies" FOR INSERT WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
@@ -12487,11 +18694,143 @@ CREATE POLICY "Org admins can insert wellbeing initiatives" ON "public"."hr_well
 
 
 
+CREATE POLICY "Org admins can insert workspace_integrations" ON "public"."workspace_integrations" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage approvals" ON "public"."comms_approvals" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage authenticity scores" ON "public"."hr_authenticity_scores" USING (("candidate_id" IN ( SELECT "hr_candidates"."id"
+   FROM "public"."hr_candidates"
+  WHERE ("hr_candidates"."organization_id" IN ( SELECT "organization_members"."organization_id"
+           FROM "public"."organization_members"
+          WHERE (("organization_members"."user_id" = "auth"."uid"()) AND ("organization_members"."role" = 'admin'::"text")))))));
+
+
+
+CREATE POLICY "Org admins can manage brand claims" ON "public"."comms_brand_claims" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage comms contacts" ON "public"."comms_contacts" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage comms organizations" ON "public"."comms_organizations" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage contact segment memberships" ON "public"."comms_contact_segment_memberships" TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage contact segments" ON "public"."comms_contact_segments" TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage content items" ON "public"."comms_content_items" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage coverage items" ON "public"."comms_coverage_items" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage evidence screening" ON "public"."hr_evidence_screening" USING (("candidate_id" IN ( SELECT "hr_candidates"."id"
+   FROM "public"."hr_candidates"
+  WHERE ("hr_candidates"."organization_id" IN ( SELECT "organization_members"."organization_id"
+           FROM "public"."organization_members"
+          WHERE (("organization_members"."user_id" = "auth"."uid"()) AND ("organization_members"."role" = 'admin'::"text")))))));
+
+
+
+CREATE POLICY "Org admins can manage execution events" ON "public"."comms_execution_events" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage feeds" ON "public"."comms_feeds" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage initiatives" ON "public"."comms_initiatives" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage integrations" ON "public"."comms_integrations" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can manage integrations" ON "public"."external_integrations" TO "authenticated" USING (("public"."is_admin"(( SELECT "auth"."uid"() AS "uid")) OR "public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")))) WITH CHECK (("public"."is_admin"(( SELECT "auth"."uid"() AS "uid")) OR "public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))));
 
 
 
+CREATE POLICY "Org admins can manage interactions" ON "public"."comms_interactions" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage interviews" ON "public"."hr_defense_interviews" USING (("candidate_id" IN ( SELECT "hr_candidates"."id"
+   FROM "public"."hr_candidates"
+  WHERE ("hr_candidates"."organization_id" IN ( SELECT "organization_members"."organization_id"
+           FROM "public"."organization_members"
+          WHERE (("organization_members"."user_id" = "auth"."uid"()) AND ("organization_members"."role" = 'admin'::"text")))))));
+
+
+
 CREATE POLICY "Org admins can manage invitations" ON "public"."organization_invitations" TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage issues" ON "public"."comms_issues" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage job postings" ON "public"."hr_job_postings" USING (("organization_id" IN ( SELECT "organization_members"."organization_id"
+   FROM "public"."organization_members"
+  WHERE (("organization_members"."user_id" = "auth"."uid"()) AND ("organization_members"."role" = 'admin'::"text")))));
+
+
+
+CREATE POLICY "Org admins can manage metrics" ON "public"."comms_metrics" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage objectives" ON "public"."comms_objectives" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage onboarding tasks" ON "public"."hr_onboarding_tasks" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage policy files" ON "public"."comms_policy_files" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage sources" ON "public"."comms_sources" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage submissions" ON "public"."comms_submissions" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage usage controls" ON "public"."comms_usage_controls" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can manage work samples" ON "public"."hr_work_samples" USING (("candidate_id" IN ( SELECT "hr_candidates"."id"
+   FROM "public"."hr_candidates"
+  WHERE ("hr_candidates"."organization_id" IN ( SELECT "organization_members"."organization_id"
+           FROM "public"."organization_members"
+          WHERE (("organization_members"."user_id" = "auth"."uid"()) AND ("organization_members"."role" = 'admin'::"text")))))));
+
+
+
+CREATE POLICY "Org admins can update candidates" ON "public"."hr_candidates" FOR UPDATE USING (("organization_id" IN ( SELECT "organization_members"."organization_id"
+   FROM "public"."organization_members"
+  WHERE (("organization_members"."user_id" = "auth"."uid"()) AND ("organization_members"."role" = 'admin'::"text")))));
 
 
 
@@ -12519,6 +18858,158 @@ CREATE POLICY "Org admins can update expiry records" ON "public"."hr_expiry_reco
 
 
 
+CREATE POLICY "Org admins can update finance_approvals" ON "public"."finance_approvals" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_audit_events" ON "public"."finance_audit_events" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_bank_accounts" ON "public"."finance_bank_accounts" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_bank_items" ON "public"."finance_bank_items" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_bills" ON "public"."finance_bills" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_books" ON "public"."finance_books" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_budgets" ON "public"."finance_budgets" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_categorization_feedback" ON "public"."finance_categorization_feedback" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_category_rules" ON "public"."finance_category_rules" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_close_periods" ON "public"."finance_close_periods" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_credits" ON "public"."finance_credits" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_debts" ON "public"."finance_debts" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_decision_entries" ON "public"."finance_decision_entries" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_entities" ON "public"."finance_entities" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_expenses" ON "public"."finance_expenses" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_external_actions" ON "public"."finance_external_actions" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_fiscal_periods" ON "public"."finance_fiscal_periods" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_forecasts" ON "public"."finance_forecasts" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_holdings" ON "public"."finance_holdings" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_import_sessions" ON "public"."finance_import_sessions" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_invoices" ON "public"."finance_invoices" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_journals" ON "public"."finance_journals" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_ledger_accounts" ON "public"."finance_ledger_accounts" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_parties" ON "public"."finance_parties" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_pay_periods" ON "public"."finance_pay_periods" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_pay_runs" ON "public"."finance_pay_runs" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_payroll_liabilities" ON "public"."finance_payroll_liabilities" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_purchase_orders" ON "public"."finance_purchase_orders" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_receipts" ON "public"."finance_receipts" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_reconciliations" ON "public"."finance_reconciliations" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_reserve_goals" ON "public"."finance_reserve_goals" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_scenarios" ON "public"."finance_scenarios" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_spend_requests" ON "public"."finance_spend_requests" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_subscriptions" ON "public"."finance_subscriptions" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_tax_obligations" ON "public"."finance_tax_obligations" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_tax_scenarios" ON "public"."finance_tax_scenarios" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_watchlist_items" ON "public"."finance_watchlist_items" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_workspace_settings" ON "public"."finance_workspace_settings" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can update generated documents" ON "public"."hr_generated_documents" FOR UPDATE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
@@ -12543,6 +19034,10 @@ CREATE POLICY "Org admins can update organizations" ON "public"."organizations" 
 
 
 
+CREATE POLICY "Org admins can update performance reviews" ON "public"."hr_performance_reviews" FOR UPDATE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can update policies" ON "public"."hr_policies" FOR UPDATE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
@@ -12552,6 +19047,10 @@ CREATE POLICY "Org admins can update score snapshots" ON "public"."compliance_sc
 
 
 CREATE POLICY "Org admins can update wellbeing initiatives" ON "public"."hr_wellbeing_initiatives" FOR UPDATE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update workspace_integrations" ON "public"."workspace_integrations" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -12605,6 +19104,222 @@ CREATE POLICY "Org members can manage compliance tasks" ON "public"."compliance_
 
 
 
+CREATE POLICY "Org members can read applications to their postings" ON "public"."candidate_applications" FOR SELECT USING (("job_posting_id" IN ( SELECT "hr_job_postings"."id"
+   FROM "public"."hr_job_postings"
+  WHERE ("hr_job_postings"."organization_id" IN ( SELECT "organization_members"."organization_id"
+           FROM "public"."organization_members"
+          WHERE ("organization_members"."user_id" = "auth"."uid"()))))));
+
+
+
+CREATE POLICY "Org members can read authenticity scores" ON "public"."hr_authenticity_scores" FOR SELECT USING (("candidate_id" IN ( SELECT "hr_candidates"."id"
+   FROM "public"."hr_candidates"
+  WHERE ("hr_candidates"."organization_id" IN ( SELECT "organization_members"."organization_id"
+           FROM "public"."organization_members"
+          WHERE ("organization_members"."user_id" = "auth"."uid"()))))));
+
+
+
+CREATE POLICY "Org members can read candidates" ON "public"."hr_candidates" FOR SELECT USING (("organization_id" IN ( SELECT "organization_members"."organization_id"
+   FROM "public"."organization_members"
+  WHERE ("organization_members"."user_id" = "auth"."uid"()))));
+
+
+
+CREATE POLICY "Org members can read evidence screening" ON "public"."hr_evidence_screening" FOR SELECT USING (("candidate_id" IN ( SELECT "hr_candidates"."id"
+   FROM "public"."hr_candidates"
+  WHERE ("hr_candidates"."organization_id" IN ( SELECT "organization_members"."organization_id"
+           FROM "public"."organization_members"
+          WHERE ("organization_members"."user_id" = "auth"."uid"()))))));
+
+
+
+CREATE POLICY "Org members can read finance_approvals" ON "public"."finance_approvals" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_audit_events" ON "public"."finance_audit_events" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_bank_accounts" ON "public"."finance_bank_accounts" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_bank_items" ON "public"."finance_bank_items" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_bills" ON "public"."finance_bills" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_books" ON "public"."finance_books" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_budgets" ON "public"."finance_budgets" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_categorization_feedback" ON "public"."finance_categorization_feedback" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_category_rules" ON "public"."finance_category_rules" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_close_periods" ON "public"."finance_close_periods" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_credits" ON "public"."finance_credits" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_debts" ON "public"."finance_debts" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_decision_entries" ON "public"."finance_decision_entries" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_entities" ON "public"."finance_entities" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_expenses" ON "public"."finance_expenses" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_external_actions" ON "public"."finance_external_actions" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_fiscal_periods" ON "public"."finance_fiscal_periods" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_forecasts" ON "public"."finance_forecasts" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_holdings" ON "public"."finance_holdings" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_import_sessions" ON "public"."finance_import_sessions" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_invoices" ON "public"."finance_invoices" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_journals" ON "public"."finance_journals" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_ledger_accounts" ON "public"."finance_ledger_accounts" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_parties" ON "public"."finance_parties" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_pay_periods" ON "public"."finance_pay_periods" FOR SELECT TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_pay_runs" ON "public"."finance_pay_runs" FOR SELECT TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_payroll_liabilities" ON "public"."finance_payroll_liabilities" FOR SELECT TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_purchase_orders" ON "public"."finance_purchase_orders" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_receipts" ON "public"."finance_receipts" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_reconciliations" ON "public"."finance_reconciliations" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_reserve_goals" ON "public"."finance_reserve_goals" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_scenarios" ON "public"."finance_scenarios" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_spend_requests" ON "public"."finance_spend_requests" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_subscriptions" ON "public"."finance_subscriptions" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_tax_obligations" ON "public"."finance_tax_obligations" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_tax_scenarios" ON "public"."finance_tax_scenarios" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_watchlist_items" ON "public"."finance_watchlist_items" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_workspace_settings" ON "public"."finance_workspace_settings" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read interviews" ON "public"."hr_defense_interviews" FOR SELECT USING (("candidate_id" IN ( SELECT "hr_candidates"."id"
+   FROM "public"."hr_candidates"
+  WHERE ("hr_candidates"."organization_id" IN ( SELECT "organization_members"."organization_id"
+           FROM "public"."organization_members"
+          WHERE ("organization_members"."user_id" = "auth"."uid"()))))));
+
+
+
+CREATE POLICY "Org members can read job postings" ON "public"."hr_job_postings" FOR SELECT USING (("organization_id" IN ( SELECT "organization_members"."organization_id"
+   FROM "public"."organization_members"
+  WHERE ("organization_members"."user_id" = "auth"."uid"()))));
+
+
+
+CREATE POLICY "Org members can read work samples" ON "public"."hr_work_samples" FOR SELECT USING (("candidate_id" IN ( SELECT "hr_candidates"."id"
+   FROM "public"."hr_candidates"
+  WHERE ("hr_candidates"."organization_id" IN ( SELECT "organization_members"."organization_id"
+           FROM "public"."organization_members"
+          WHERE ("organization_members"."user_id" = "auth"."uid"()))))));
+
+
+
+CREATE POLICY "Org members can read workspace_integrations" ON "public"."workspace_integrations" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can view approvals" ON "public"."comms_approvals" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can view brand claims" ON "public"."comms_brand_claims" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org members can view case narratives" ON "public"."hr_advisor_case_narratives" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
@@ -12621,7 +19336,31 @@ CREATE POLICY "Org members can view cases" ON "public"."hr_cases" FOR SELECT USI
 
 
 
+CREATE POLICY "Org members can view comms contacts" ON "public"."comms_contacts" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can view comms organizations" ON "public"."comms_organizations" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org members can view communications" ON "public"."hr_communications" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can view contact segment memberships" ON "public"."comms_contact_segment_memberships" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can view contact segments" ON "public"."comms_contact_segments" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can view content items" ON "public"."comms_content_items" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can view coverage items" ON "public"."comms_coverage_items" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -12653,11 +19392,35 @@ CREATE POLICY "Org members can view employees" ON "public"."employees" FOR SELEC
 
 
 
+CREATE POLICY "Org members can view execution events" ON "public"."comms_execution_events" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org members can view expiry records" ON "public"."hr_expiry_records" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
+CREATE POLICY "Org members can view feeds" ON "public"."comms_feeds" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org members can view generated documents" ON "public"."hr_generated_documents" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can view initiatives" ON "public"."comms_initiatives" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can view integrations" ON "public"."comms_integrations" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can view interactions" ON "public"."comms_interactions" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can view issues" ON "public"."comms_issues" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -12673,7 +19436,23 @@ CREATE POLICY "Org members can view memory facts" ON "public"."hr_advisor_memory
 
 
 
+CREATE POLICY "Org members can view metrics" ON "public"."comms_metrics" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can view objectives" ON "public"."comms_objectives" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org members can view obligations" ON "public"."hr_obligations" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can view onboarding tasks" ON "public"."hr_onboarding_tasks" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can view performance reviews" ON "public"."hr_performance_reviews" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -12681,7 +19460,23 @@ CREATE POLICY "Org members can view policies" ON "public"."hr_policies" FOR SELE
 
 
 
+CREATE POLICY "Org members can view policy files" ON "public"."comms_policy_files" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org members can view score snapshots" ON "public"."compliance_score_snapshots" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can view sources" ON "public"."comms_sources" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can view submissions" ON "public"."comms_submissions" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can view usage controls" ON "public"."comms_usage_controls" FOR SELECT USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -12720,6 +19515,10 @@ CREATE POLICY "Owners can manage their signatures" ON "public"."signatures" TO "
 CREATE POLICY "Owners can read their signature audit events" ON "public"."signature_audit_events" FOR SELECT TO "authenticated" USING ((EXISTS ( SELECT 1
    FROM "public"."signatures" "s"
   WHERE (("s"."id" = "signature_audit_events"."signature_id") AND ("s"."user_id" = ( SELECT "auth"."uid"() AS "uid"))))));
+
+
+
+CREATE POLICY "Public can read active job postings" ON "public"."hr_job_postings" FOR SELECT USING (("status" = 'active'::"text"));
 
 
 
@@ -12785,6 +19584,22 @@ CREATE POLICY "Users can create own generation runs" ON "public"."document_gener
 
 
 
+CREATE POLICY "Users can delete own candidate applications" ON "public"."candidate_applications" FOR DELETE USING (("candidate_id" IN ( SELECT "candidate_profiles"."id"
+   FROM "public"."candidate_profiles"
+  WHERE ("candidate_profiles"."user_id" = "auth"."uid"()))));
+
+
+
+CREATE POLICY "Users can delete own candidate profile" ON "public"."candidate_profiles" FOR DELETE USING (("user_id" = "auth"."uid"()));
+
+
+
+CREATE POLICY "Users can delete own candidate resumes" ON "public"."candidate_resumes" FOR DELETE USING (("candidate_id" IN ( SELECT "candidate_profiles"."id"
+   FROM "public"."candidate_profiles"
+  WHERE ("candidate_profiles"."user_id" = "auth"."uid"()))));
+
+
+
 CREATE POLICY "Users can delete their own documents" ON "public"."documents" FOR DELETE TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
 
 
@@ -12794,6 +19609,22 @@ CREATE POLICY "Users can delete their own employer profiles" ON "public"."employ
 
 
 CREATE POLICY "Users can delete their own workflow states" ON "public"."offer_workflow_states" FOR DELETE TO "authenticated" USING (("owner_id" = ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Users can insert own candidate applications" ON "public"."candidate_applications" FOR INSERT WITH CHECK (("candidate_id" IN ( SELECT "candidate_profiles"."id"
+   FROM "public"."candidate_profiles"
+  WHERE ("candidate_profiles"."user_id" = "auth"."uid"()))));
+
+
+
+CREATE POLICY "Users can insert own candidate profile" ON "public"."candidate_profiles" FOR INSERT WITH CHECK (("user_id" = "auth"."uid"()));
+
+
+
+CREATE POLICY "Users can insert own candidate resumes" ON "public"."candidate_resumes" FOR INSERT WITH CHECK (("candidate_id" IN ( SELECT "candidate_profiles"."id"
+   FROM "public"."candidate_profiles"
+  WHERE ("candidate_profiles"."user_id" = "auth"."uid"()))));
 
 
 
@@ -12821,7 +19652,43 @@ CREATE POLICY "Users can manage their own conversations" ON "public"."conversati
 
 
 
+CREATE POLICY "Users can read own candidate applications" ON "public"."candidate_applications" FOR SELECT USING (("candidate_id" IN ( SELECT "candidate_profiles"."id"
+   FROM "public"."candidate_profiles"
+  WHERE ("candidate_profiles"."user_id" = "auth"."uid"()))));
+
+
+
+CREATE POLICY "Users can read own candidate profile" ON "public"."candidate_profiles" FOR SELECT USING (("user_id" = "auth"."uid"()));
+
+
+
+CREATE POLICY "Users can read own candidate resumes" ON "public"."candidate_resumes" FOR SELECT USING (("candidate_id" IN ( SELECT "candidate_profiles"."id"
+   FROM "public"."candidate_profiles"
+  WHERE ("candidate_profiles"."user_id" = "auth"."uid"()))));
+
+
+
 CREATE POLICY "Users can read own generation runs" ON "public"."document_generation_runs" FOR SELECT USING ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users can update own candidate applications" ON "public"."candidate_applications" FOR UPDATE USING (("candidate_id" IN ( SELECT "candidate_profiles"."id"
+   FROM "public"."candidate_profiles"
+  WHERE ("candidate_profiles"."user_id" = "auth"."uid"())))) WITH CHECK (("candidate_id" IN ( SELECT "candidate_profiles"."id"
+   FROM "public"."candidate_profiles"
+  WHERE ("candidate_profiles"."user_id" = "auth"."uid"()))));
+
+
+
+CREATE POLICY "Users can update own candidate profile" ON "public"."candidate_profiles" FOR UPDATE USING (("user_id" = "auth"."uid"())) WITH CHECK (("user_id" = "auth"."uid"()));
+
+
+
+CREATE POLICY "Users can update own candidate resumes" ON "public"."candidate_resumes" FOR UPDATE USING (("candidate_id" IN ( SELECT "candidate_profiles"."id"
+   FROM "public"."candidate_profiles"
+  WHERE ("candidate_profiles"."user_id" = "auth"."uid"())))) WITH CHECK (("candidate_id" IN ( SELECT "candidate_profiles"."id"
+   FROM "public"."candidate_profiles"
+  WHERE ("candidate_profiles"."user_id" = "auth"."uid"()))));
 
 
 
@@ -12941,6 +19808,17 @@ ALTER TABLE "public"."advisor_guidance_chunks" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."advisor_memories" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."agent_audit" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "agent_audit_insert" ON "public"."agent_audit" FOR INSERT TO "authenticated" WITH CHECK (("public"."is_org_member"("organization_id", "auth"."uid"()) AND ("actor_id" = "auth"."uid"())));
+
+
+
+CREATE POLICY "agent_audit_select" ON "public"."agent_audit" FOR SELECT TO "authenticated" USING ("public"."is_org_admin"("organization_id", "auth"."uid"()));
+
+
+
 ALTER TABLE "public"."agent_runs" ENABLE ROW LEVEL SECURITY;
 
 
@@ -12950,7 +19828,19 @@ ALTER TABLE "public"."ai_action_runs" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."ai_advisor_credits" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."ai_advisor_month_state" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."ai_advisor_org_credits" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."ai_advisor_org_overage_months" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."ai_advisor_overage_months" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."ai_advisor_rollover_credits" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."ai_agents" ENABLE ROW LEVEL SECURITY;
@@ -12986,6 +19876,15 @@ ALTER TABLE "public"."beta_signups" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."billing_events" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."candidate_applications" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."candidate_profiles" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."candidate_resumes" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."categories" ENABLE ROW LEVEL SECURITY;
 
 
@@ -13002,6 +19901,66 @@ ALTER TABLE "public"."comment_mentions" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."comments" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."comms_approvals" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."comms_brand_claims" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."comms_contact_segment_memberships" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."comms_contact_segments" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."comms_contacts" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."comms_content_items" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."comms_coverage_items" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."comms_execution_events" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."comms_feeds" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."comms_initiatives" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."comms_integrations" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."comms_interactions" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."comms_issues" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."comms_metrics" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."comms_objectives" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."comms_organizations" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."comms_policy_files" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."comms_sources" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."comms_submissions" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."comms_usage_controls" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."compliance_assessments" ENABLE ROW LEVEL SECURITY;
@@ -13049,6 +20008,17 @@ ALTER TABLE "public"."employer_profiles" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."employer_tiers" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."entity_links" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "entity_links_select" ON "public"."entity_links" FOR SELECT TO "authenticated" USING (("public"."is_org_admin"("organization_id", "auth"."uid"()) OR "public"."is_org_member"("organization_id", "auth"."uid"())));
+
+
+
+CREATE POLICY "entity_links_write" ON "public"."entity_links" TO "authenticated" USING ("public"."is_org_admin"("organization_id", "auth"."uid"())) WITH CHECK ("public"."is_org_admin"("organization_id", "auth"."uid"()));
+
+
+
 ALTER TABLE "public"."entity_relationships" ENABLE ROW LEVEL SECURITY;
 
 
@@ -13061,10 +20031,176 @@ ALTER TABLE "public"."export_events" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."external_integrations" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."finance_approvals" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_audit_events" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_bank_accounts" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_bank_items" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_bills" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_books" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_budgets" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_categorization_feedback" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_category_rules" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_close_periods" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_credits" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_debts" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_decision_entries" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_entities" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_expenses" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_external_actions" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_fiscal_periods" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_forecasts" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_holdings" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_import_sessions" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_invoices" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_journals" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_ledger_accounts" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_parties" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_pay_periods" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_pay_runs" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_payroll_liabilities" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_purchase_orders" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_receipts" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_reconciliations" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_reserve_goals" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_scenarios" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_spend_requests" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_subscriptions" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_tax_obligations" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_tax_scenarios" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_watchlist_items" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_workspace_settings" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."frontend_feature_flags" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."generator_document_templates" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."governance_decisions" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "governance_decisions_select" ON "public"."governance_decisions" FOR SELECT TO "authenticated" USING (("public"."is_org_admin"("organization_id", "auth"."uid"()) OR ("public"."is_org_member"("organization_id", "auth"."uid"()) AND ("viewer_visible" = true) AND (EXISTS ( SELECT 1
+   FROM "public"."organization_members" "om"
+  WHERE (("om"."organization_id" = "governance_decisions"."organization_id") AND ("om"."user_id" = "auth"."uid"()) AND ("om"."status" = 'active'::"text") AND ("om"."role" = 'viewer'::"text")))))));
+
+
+
+CREATE POLICY "governance_decisions_write" ON "public"."governance_decisions" TO "authenticated" USING ("public"."is_org_admin"("organization_id", "auth"."uid"())) WITH CHECK ("public"."is_org_admin"("organization_id", "auth"."uid"()));
+
+
+
+ALTER TABLE "public"."governance_officers" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "governance_officers_select" ON "public"."governance_officers" FOR SELECT TO "authenticated" USING (("public"."is_org_admin"("organization_id", "auth"."uid"()) OR ("public"."is_org_member"("organization_id", "auth"."uid"()) AND ("viewer_visible" = true) AND (EXISTS ( SELECT 1
+   FROM "public"."organization_members" "om"
+  WHERE (("om"."organization_id" = "governance_officers"."organization_id") AND ("om"."user_id" = "auth"."uid"()) AND ("om"."status" = 'active'::"text") AND ("om"."role" = 'viewer'::"text")))))));
+
+
+
+CREATE POLICY "governance_officers_write" ON "public"."governance_officers" TO "authenticated" USING ("public"."is_org_admin"("organization_id", "auth"."uid"())) WITH CHECK ("public"."is_org_admin"("organization_id", "auth"."uid"()));
+
+
+
+ALTER TABLE "public"."governance_records" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "governance_records_select" ON "public"."governance_records" FOR SELECT TO "authenticated" USING (("public"."is_org_admin"("organization_id", "auth"."uid"()) OR ("public"."is_org_member"("organization_id", "auth"."uid"()) AND ("viewer_visible" = true) AND (EXISTS ( SELECT 1
+   FROM "public"."organization_members" "om"
+  WHERE (("om"."organization_id" = "governance_records"."organization_id") AND ("om"."user_id" = "auth"."uid"()) AND ("om"."status" = 'active'::"text") AND ("om"."role" = 'viewer'::"text")))))));
+
+
+
+CREATE POLICY "governance_records_write" ON "public"."governance_records" TO "authenticated" USING ("public"."is_org_admin"("organization_id", "auth"."uid"())) WITH CHECK ("public"."is_org_admin"("organization_id", "auth"."uid"()));
+
+
+
+ALTER TABLE "public"."governance_shareholders" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "governance_shareholders_select" ON "public"."governance_shareholders" FOR SELECT TO "authenticated" USING (("public"."is_org_admin"("organization_id", "auth"."uid"()) OR ("public"."is_org_member"("organization_id", "auth"."uid"()) AND ("viewer_visible" = true) AND (EXISTS ( SELECT 1
+   FROM "public"."organization_members" "om"
+  WHERE (("om"."organization_id" = "governance_shareholders"."organization_id") AND ("om"."user_id" = "auth"."uid"()) AND ("om"."status" = 'active'::"text") AND ("om"."role" = 'viewer'::"text")))))));
+
+
+
+CREATE POLICY "governance_shareholders_write" ON "public"."governance_shareholders" TO "authenticated" USING ("public"."is_org_admin"("organization_id", "auth"."uid"())) WITH CHECK ("public"."is_org_admin"("organization_id", "auth"."uid"()));
+
 
 
 ALTER TABLE "public"."guidance_chunks" ENABLE ROW LEVEL SECURITY;
@@ -13085,6 +20221,12 @@ ALTER TABLE "public"."hr_advisor_memory_audit" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."hr_advisor_memory_facts" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."hr_authenticity_scores" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."hr_candidates" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."hr_case_notes" ENABLE ROW LEVEL SECURITY;
 
 
@@ -13095,6 +20237,9 @@ ALTER TABLE "public"."hr_communications" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."hr_compensation_records" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."hr_defense_interviews" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."hr_document_audit_events" ENABLE ROW LEVEL SECURITY;
@@ -13118,16 +20263,28 @@ ALTER TABLE "public"."hr_documents" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."hr_employee_notes" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."hr_evidence_screening" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."hr_expiry_records" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."hr_generated_documents" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."hr_job_postings" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."hr_leaves" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."hr_obligations" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."hr_onboarding_tasks" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."hr_performance_reviews" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."hr_policies" ENABLE ROW LEVEL SECURITY;
@@ -13137,6 +20294,9 @@ ALTER TABLE "public"."hr_signing_rpc_rate_limit" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."hr_wellbeing_initiatives" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."hr_work_samples" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."hr_workspace_notifications" ENABLE ROW LEVEL SECURITY;
@@ -13187,10 +20347,68 @@ ALTER TABLE "public"."offer_workflow_states" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."operational_bottlenecks" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."operations_logistics" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "operations_logistics_select" ON "public"."operations_logistics" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", "auth"."uid"()));
+
+
+
+CREATE POLICY "operations_logistics_write" ON "public"."operations_logistics" TO "authenticated" USING ("public"."is_org_admin"("organization_id", "auth"."uid"())) WITH CHECK ("public"."is_org_admin"("organization_id", "auth"."uid"()));
+
+
+
+ALTER TABLE "public"."operations_projects" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "operations_projects_select" ON "public"."operations_projects" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", "auth"."uid"()));
+
+
+
+CREATE POLICY "operations_projects_write" ON "public"."operations_projects" TO "authenticated" USING ("public"."is_org_admin"("organization_id", "auth"."uid"())) WITH CHECK ("public"."is_org_admin"("organization_id", "auth"."uid"()));
+
+
+
+ALTER TABLE "public"."operations_quality_checks" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "operations_quality_checks_select" ON "public"."operations_quality_checks" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", "auth"."uid"()));
+
+
+
+CREATE POLICY "operations_quality_checks_write" ON "public"."operations_quality_checks" TO "authenticated" USING ("public"."is_org_admin"("organization_id", "auth"."uid"())) WITH CHECK ("public"."is_org_admin"("organization_id", "auth"."uid"()));
+
+
+
+ALTER TABLE "public"."operations_technology" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "operations_technology_select" ON "public"."operations_technology" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", "auth"."uid"()));
+
+
+
+CREATE POLICY "operations_technology_write" ON "public"."operations_technology" TO "authenticated" USING ("public"."is_org_admin"("organization_id", "auth"."uid"())) WITH CHECK ("public"."is_org_admin"("organization_id", "auth"."uid"()));
+
+
+
+ALTER TABLE "public"."operations_vendors" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "operations_vendors_select" ON "public"."operations_vendors" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", "auth"."uid"()));
+
+
+
+CREATE POLICY "operations_vendors_write" ON "public"."operations_vendors" TO "authenticated" USING ("public"."is_org_admin"("organization_id", "auth"."uid"())) WITH CHECK ("public"."is_org_admin"("organization_id", "auth"."uid"()));
+
+
+
 ALTER TABLE "public"."organization_admission_log" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."organization_admission_waitlist" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."organization_billing_events" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."organization_invitations" ENABLE ROW LEVEL SECURITY;
@@ -13203,6 +20421,9 @@ ALTER TABLE "public"."organization_members" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."organization_risk_snapshots" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."organization_usage_events" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."organizations" ENABLE ROW LEVEL SECURITY;
@@ -13226,7 +20447,88 @@ ALTER TABLE "public"."profiles" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."queue_health_snapshots" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."revenue_invoices" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "revenue_invoices_select" ON "public"."revenue_invoices" FOR SELECT TO "authenticated" USING (("public"."is_org_admin"("organization_id", "auth"."uid"()) OR ("public"."is_org_member"("organization_id", "auth"."uid"()) AND ("public"."active_org_member_role"("organization_id") <> 'viewer'::"text"))));
+
+
+
+CREATE POLICY "revenue_invoices_write" ON "public"."revenue_invoices" TO "authenticated" USING ("public"."is_org_admin"("organization_id", "auth"."uid"())) WITH CHECK ("public"."is_org_admin"("organization_id", "auth"."uid"()));
+
+
+
+ALTER TABLE "public"."revenue_streams" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "revenue_streams_select" ON "public"."revenue_streams" FOR SELECT TO "authenticated" USING (("public"."is_org_admin"("organization_id", "auth"."uid"()) OR ("public"."is_org_member"("organization_id", "auth"."uid"()) AND ("public"."active_org_member_role"("organization_id") <> 'viewer'::"text"))));
+
+
+
+CREATE POLICY "revenue_streams_write" ON "public"."revenue_streams" TO "authenticated" USING ("public"."is_org_admin"("organization_id", "auth"."uid"())) WITH CHECK ("public"."is_org_admin"("organization_id", "auth"."uid"()));
+
+
+
 ALTER TABLE "public"."scheduled_operations" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."security_access_reviews" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "security_access_reviews_select" ON "public"."security_access_reviews" FOR SELECT TO "authenticated" USING (("public"."is_org_admin"("organization_id", "auth"."uid"()) OR ("public"."is_org_member"("organization_id", "auth"."uid"()) AND ("public"."active_org_member_role"("organization_id") <> 'viewer'::"text"))));
+
+
+
+CREATE POLICY "security_access_reviews_write" ON "public"."security_access_reviews" TO "authenticated" USING ("public"."is_org_admin"("organization_id", "auth"."uid"())) WITH CHECK ("public"."is_org_admin"("organization_id", "auth"."uid"()));
+
+
+
+ALTER TABLE "public"."security_assets" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "security_assets_select" ON "public"."security_assets" FOR SELECT TO "authenticated" USING (("public"."is_org_admin"("organization_id", "auth"."uid"()) OR ("public"."is_org_member"("organization_id", "auth"."uid"()) AND ("public"."active_org_member_role"("organization_id") <> 'viewer'::"text"))));
+
+
+
+CREATE POLICY "security_assets_write" ON "public"."security_assets" TO "authenticated" USING ("public"."is_org_admin"("organization_id", "auth"."uid"())) WITH CHECK ("public"."is_org_admin"("organization_id", "auth"."uid"()));
+
+
+
+ALTER TABLE "public"."security_incidents" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "security_incidents_report" ON "public"."security_incidents" FOR INSERT TO "authenticated" WITH CHECK (("public"."is_org_member"("organization_id", "auth"."uid"()) AND ("public"."active_org_member_role"("organization_id") <> 'viewer'::"text") AND ("reported_by" = "auth"."uid"())));
+
+
+
+CREATE POLICY "security_incidents_select" ON "public"."security_incidents" FOR SELECT TO "authenticated" USING (("public"."is_org_admin"("organization_id", "auth"."uid"()) OR ("public"."is_org_member"("organization_id", "auth"."uid"()) AND ("public"."active_org_member_role"("organization_id") <> 'viewer'::"text"))));
+
+
+
+CREATE POLICY "security_incidents_write" ON "public"."security_incidents" TO "authenticated" USING ("public"."is_org_admin"("organization_id", "auth"."uid"())) WITH CHECK ("public"."is_org_admin"("organization_id", "auth"."uid"()));
+
+
+
+ALTER TABLE "public"."security_risks" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "security_risks_select" ON "public"."security_risks" FOR SELECT TO "authenticated" USING (("public"."is_org_admin"("organization_id", "auth"."uid"()) OR ("public"."is_org_member"("organization_id", "auth"."uid"()) AND ("public"."active_org_member_role"("organization_id") <> 'viewer'::"text"))));
+
+
+
+CREATE POLICY "security_risks_write" ON "public"."security_risks" TO "authenticated" USING ("public"."is_org_admin"("organization_id", "auth"."uid"())) WITH CHECK ("public"."is_org_admin"("organization_id", "auth"."uid"()));
+
+
+
+ALTER TABLE "public"."security_vendor_reviews" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "security_vendor_reviews_select" ON "public"."security_vendor_reviews" FOR SELECT TO "authenticated" USING (("public"."is_org_admin"("organization_id", "auth"."uid"()) OR ("public"."is_org_member"("organization_id", "auth"."uid"()) AND ("public"."active_org_member_role"("organization_id") <> 'viewer'::"text"))));
+
+
+
+CREATE POLICY "security_vendor_reviews_write" ON "public"."security_vendor_reviews" TO "authenticated" USING ("public"."is_org_admin"("organization_id", "auth"."uid"())) WITH CHECK ("public"."is_org_admin"("organization_id", "auth"."uid"()));
+
 
 
 ALTER TABLE "public"."service_status" ENABLE ROW LEVEL SECURITY;
@@ -13236,6 +20538,28 @@ ALTER TABLE "public"."signature_audit_events" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."signatures" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."specialist_engagements" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "specialist_engagements_select" ON "public"."specialist_engagements" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", "auth"."uid"()));
+
+
+
+CREATE POLICY "specialist_engagements_write" ON "public"."specialist_engagements" TO "authenticated" USING ("public"."is_org_admin"("organization_id", "auth"."uid"())) WITH CHECK ("public"."is_org_admin"("organization_id", "auth"."uid"()));
+
+
+
+ALTER TABLE "public"."specialists" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "specialists_select" ON "public"."specialists" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", "auth"."uid"()));
+
+
+
+CREATE POLICY "specialists_write" ON "public"."specialists" TO "authenticated" USING ("public"."is_org_admin"("organization_id", "auth"."uid"())) WITH CHECK ("public"."is_org_admin"("organization_id", "auth"."uid"()));
+
 
 
 ALTER TABLE "public"."stripe_webhook_events" ENABLE ROW LEVEL SECURITY;
@@ -13334,6 +20658,9 @@ ALTER TABLE "public"."workflow_responses" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."workflows" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."workspace_integrations" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."workspace_intelligence_items" ENABLE ROW LEVEL SECURITY;
 
 
@@ -13389,9 +20716,6 @@ ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."notifications";
 
 
 ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."workspace_intelligence_items";
-
-
-
 
 
 
@@ -14202,6 +21526,11 @@ GRANT ALL ON FUNCTION "public"."_hr_signing_request_ip_hash"() TO "service_role"
 
 
 
+REVOKE ALL ON FUNCTION "public"."_org_capacity_lock"("p_organization_id" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_org_capacity_lock"("p_organization_id" "uuid") TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."ai_recommendations" TO "anon";
 GRANT ALL ON TABLE "public"."ai_recommendations" TO "authenticated";
 GRANT ALL ON TABLE "public"."ai_recommendations" TO "service_role";
@@ -14216,6 +21545,12 @@ GRANT ALL ON FUNCTION "public"."accept_ai_recommendation"("target_recommendation
 
 REVOKE ALL ON FUNCTION "public"."acquire_cron_lock"("p_job_name" "text", "p_instance_id" "text", "p_ttl_seconds" integer) FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."acquire_cron_lock"("p_job_name" "text", "p_instance_id" "text", "p_ttl_seconds" integer) TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."active_org_member_role"("target_organization_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."active_org_member_role"("target_organization_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."active_org_member_role"("target_organization_id" "uuid") TO "service_role";
 
 
 
@@ -14393,6 +21728,7 @@ GRANT ALL ON FUNCTION "public"."admin_list_legal_ingestion_runs"("run_status" "t
 
 REVOKE ALL ON FUNCTION "public"."admin_list_organizations"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."admin_list_organizations"() TO "service_role";
+GRANT ALL ON FUNCTION "public"."admin_list_organizations"() TO "authenticated";
 
 
 
@@ -14420,6 +21756,7 @@ GRANT ALL ON FUNCTION "public"."admin_list_risk_forecasts"("forecast_kind" "text
 
 REVOKE ALL ON FUNCTION "public"."admin_list_users"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."admin_list_users"() TO "service_role";
+GRANT ALL ON FUNCTION "public"."admin_list_users"() TO "authenticated";
 
 
 
@@ -14465,6 +21802,18 @@ GRANT ALL ON FUNCTION "public"."admin_usage_summary"("days_back" integer) TO "se
 
 
 
+REVOKE ALL ON FUNCTION "public"."advisor_monthly_included"("p_plan" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."advisor_monthly_included"("p_plan" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."advisor_monthly_included"("p_plan" "text") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."advisor_usage_summary"("p_organization_id" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."advisor_usage_summary"("p_organization_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."advisor_usage_summary"("p_organization_id" "uuid") TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."apply_hr_document_signature"("p_envelope_id" "text", "p_signed_name" "text", "p_signature_image" "text", "p_signature_text" "text", "p_consent_version" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."apply_hr_document_signature"("p_envelope_id" "text", "p_signed_name" "text", "p_signature_image" "text", "p_signature_text" "text", "p_consent_version" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."apply_hr_document_signature"("p_envelope_id" "text", "p_signed_name" "text", "p_signature_image" "text", "p_signature_text" "text", "p_consent_version" "text") TO "service_role";
@@ -14477,8 +21826,39 @@ GRANT ALL ON FUNCTION "public"."apply_hr_document_signature_by_token"("p_token" 
 
 
 
+GRANT ALL ON TABLE "public"."organizations" TO "anon";
+GRANT ALL ON TABLE "public"."organizations" TO "authenticated";
+GRANT ALL ON TABLE "public"."organizations" TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."apply_organization_billing"("p_organization_id" "uuid", "p_plan" "text", "p_subscription_status" "text", "p_billing_period" "text", "p_stripe_customer_id" "text", "p_stripe_subscription_id" "text", "p_billing_owner_user_id" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."apply_organization_billing"("p_organization_id" "uuid", "p_plan" "text", "p_subscription_status" "text", "p_billing_period" "text", "p_stripe_customer_id" "text", "p_stripe_subscription_id" "text", "p_billing_owner_user_id" "uuid") TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."archive_old_document_versions"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."archive_old_document_versions"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."assert_active_case_capacity"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."assert_active_case_capacity"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."assert_active_employee_capacity"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."assert_active_employee_capacity"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."assert_open_task_capacity"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."assert_open_task_capacity"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."assert_org_member_capacity"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."assert_org_member_capacity"() TO "service_role";
 
 
 
@@ -14490,6 +21870,11 @@ GRANT ALL ON FUNCTION "public"."attachment_scan_status"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."auto_increment_version"() TO "anon";
 GRANT ALL ON FUNCTION "public"."auto_increment_version"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."auto_increment_version"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."backfill_organization_billing_from_profiles"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."backfill_organization_billing_from_profiles"() TO "service_role";
 
 
 
@@ -14511,6 +21896,11 @@ GRANT ALL ON FUNCTION "public"."cancel_signature_for_owner"("p_signature_id" "uu
 
 
 
+REVOKE ALL ON FUNCTION "public"."cap_advisor_rollover_to_plan"("p_organization_id" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."cap_advisor_rollover_to_plan"("p_organization_id" "uuid") TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."check_and_increment_usage_counter"("p_user_id" "uuid", "p_period_start" "date", "p_action" "text", "p_limit" integer) FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."check_and_increment_usage_counter"("p_user_id" "uuid", "p_period_start" "date", "p_action" "text", "p_limit" integer) TO "service_role";
 
@@ -14518,6 +21908,12 @@ GRANT ALL ON FUNCTION "public"."check_and_increment_usage_counter"("p_user_id" "
 
 REVOKE ALL ON FUNCTION "public"."claim_ai_usage"("p_user_id" "uuid", "p_operation" "text", "p_organization_id" "uuid", "p_provider" "text", "p_model" "text", "p_burst_window_seconds" integer, "p_burst_limit" integer, "p_daily_request_limit" integer, "p_daily_token_limit" bigint, "p_platform_daily_limit" integer, "p_metered_operations" "text"[], "p_monthly_chat_limit" integer, "p_commercial_operations" "text"[], "p_overage_monthly_cap" integer) FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."claim_ai_usage"("p_user_id" "uuid", "p_operation" "text", "p_organization_id" "uuid", "p_provider" "text", "p_model" "text", "p_burst_window_seconds" integer, "p_burst_limit" integer, "p_daily_request_limit" integer, "p_daily_token_limit" bigint, "p_platform_daily_limit" integer, "p_metered_operations" "text"[], "p_monthly_chat_limit" integer, "p_commercial_operations" "text"[], "p_overage_monthly_cap" integer) TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."claim_document_save"("p_organization_id" "uuid", "p_document_id" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."claim_document_save"("p_organization_id" "uuid", "p_document_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."claim_document_save"("p_organization_id" "uuid", "p_document_id" "uuid") TO "service_role";
 
 
 
@@ -14531,8 +21927,26 @@ GRANT ALL ON FUNCTION "public"."claim_next_job"("worker_id" "text", "allowed_job
 
 
 
+REVOKE ALL ON FUNCTION "public"."claim_signature_send"("p_organization_id" "uuid", "p_envelope_id" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."claim_signature_send"("p_organization_id" "uuid", "p_envelope_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."claim_signature_send"("p_organization_id" "uuid", "p_envelope_id" "uuid") TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."cleanup_old_activity_logs"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."cleanup_old_activity_logs"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."comms_contact_segment_memberships_set_updated_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."comms_contact_segment_memberships_set_updated_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."comms_contact_segment_memberships_set_updated_at"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."comms_contact_segments_set_updated_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."comms_contact_segments_set_updated_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."comms_contact_segments_set_updated_at"() TO "service_role";
 
 
 
@@ -14649,8 +22063,42 @@ GRANT ALL ON FUNCTION "public"."enqueue_job"("target_organization_id" "uuid", "t
 
 
 
+REVOKE ALL ON FUNCTION "public"."ensure_advisor_month_transition"("p_organization_id" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."ensure_advisor_month_transition"("p_organization_id" "uuid") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."expire_advisor_rollover_on_cancel"("p_organization_id" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."expire_advisor_rollover_on_cancel"("p_organization_id" "uuid") TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."fail_job"("target_job_id" "uuid", "error_text" "text", "retry_delay_seconds" integer) FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."fail_job"("target_job_id" "uuid", "error_text" "text", "retry_delay_seconds" integer) TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."finance_categorization_feedback_set_updated_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."finance_categorization_feedback_set_updated_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."finance_categorization_feedback_set_updated_at"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."finance_category_rules_set_updated_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."finance_category_rules_set_updated_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."finance_category_rules_set_updated_at"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."finance_import_sessions_set_updated_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."finance_import_sessions_set_updated_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."finance_import_sessions_set_updated_at"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."finance_workspace_settings_set_updated_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."finance_workspace_settings_set_updated_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."finance_workspace_settings_set_updated_at"() TO "service_role";
 
 
 
@@ -14730,6 +22178,11 @@ GRANT ALL ON FUNCTION "public"."get_signature_by_token"("p_token" "uuid") TO "se
 
 
 
+REVOKE ALL ON FUNCTION "public"."grant_ai_advisor_org_pack"("p_organization_id" "uuid", "p_pack_size" integer, "p_stripe_checkout_id" "text", "p_purchaser_user_id" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."grant_ai_advisor_org_pack"("p_organization_id" "uuid", "p_pack_size" integer, "p_stripe_checkout_id" "text", "p_purchaser_user_id" "uuid") TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."grant_ai_advisor_pack"("p_user_id" "uuid", "p_pack_size" integer, "p_stripe_checkout_id" "text") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."grant_ai_advisor_pack"("p_user_id" "uuid", "p_pack_size" integer, "p_stripe_checkout_id" "text") TO "service_role";
 
@@ -14737,6 +22190,16 @@ GRANT ALL ON FUNCTION "public"."grant_ai_advisor_pack"("p_user_id" "uuid", "p_pa
 
 REVOKE ALL ON FUNCTION "public"."handle_new_user"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."handle_new_user"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."hr_policies_flag_overdue_for_review"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."hr_policies_flag_overdue_for_review"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."hr_policies_orgs_needing_reminder"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."hr_policies_orgs_needing_reminder"() TO "service_role";
 
 
 
@@ -14849,8 +22312,36 @@ GRANT ALL ON FUNCTION "public"."normalize_document_jurisdiction_label"("p_code" 
 
 
 
+REVOKE ALL ON FUNCTION "public"."organization_effective_plan"("p_organization_id" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."organization_effective_plan"("p_organization_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."organization_effective_plan"("p_organization_id" "uuid") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."organization_usage_limit"("p_plan" "text", "p_kind" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."organization_usage_limit"("p_plan" "text", "p_kind" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."organization_usage_limit"("p_plan" "text", "p_kind" "text") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."pin_organization_billing_columns"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."pin_organization_billing_columns"() TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."pin_profile_billing_columns"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."pin_profile_billing_columns"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."plan_limit"("p_plan" "text", "p_limit_key" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."plan_limit"("p_plan" "text", "p_limit_key" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."plan_limit"("p_plan" "text", "p_limit_key" "text") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."policy_review_scheduler_status"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."policy_review_scheduler_status"() TO "service_role";
 
 
 
@@ -14882,6 +22373,11 @@ GRANT ALL ON TABLE "public"."notification_deliveries" TO "service_role";
 
 REVOKE ALL ON FUNCTION "public"."queue_notification_delivery"("target_notification_id" "uuid", "delivery_provider" "text", "delivery_recipient" "text") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."queue_notification_delivery"("target_notification_id" "uuid", "delivery_provider" "text", "delivery_recipient" "text") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."read_integration_secret"("p_name" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."read_integration_secret"("p_name" "text") TO "service_role";
 
 
 
@@ -14969,6 +22465,17 @@ GRANT ALL ON FUNCTION "public"."release_cron_lock"("p_job_name" "text", "p_insta
 
 
 
+REVOKE ALL ON FUNCTION "public"."resolve_user_billing_organization"("p_user_id" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."resolve_user_billing_organization"("p_user_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."resolve_user_billing_organization"("p_user_id" "uuid") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."revoke_integration_secret"("p_name" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."revoke_integration_secret"("p_name" "text") TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."rls_auto_enable"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."rls_auto_enable"() TO "service_role";
 
@@ -15018,6 +22525,11 @@ GRANT ALL ON FUNCTION "public"."start_playbook_run"("target_organization_id" "uu
 
 
 
+REVOKE ALL ON FUNCTION "public"."store_integration_secret"("p_name" "text", "p_secret" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."store_integration_secret"("p_name" "text", "p_secret" "text") TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."submit_signature_by_token"("p_token" "uuid", "p_signature_data" "text", "p_signature_type" "text") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."submit_signature_by_token"("p_token" "uuid", "p_signature_data" "text", "p_signature_type" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."submit_signature_by_token"("p_token" "uuid", "p_signature_data" "text", "p_signature_type" "text") TO "service_role";
@@ -15036,6 +22548,11 @@ GRANT ALL ON FUNCTION "public"."support_analytics_status"() TO "service_role";
 
 REVOKE ALL ON FUNCTION "public"."support_call_scheduler_status"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."support_call_scheduler_status"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."suspend_excess_members_for_plan"("p_organization_id" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."suspend_excess_members_for_plan"("p_organization_id" "uuid") TO "service_role";
 
 
 
@@ -15081,6 +22598,16 @@ GRANT ALL ON FUNCTION "public"."transition_document_status"("target_document_id"
 
 
 
+REVOKE ALL ON FUNCTION "public"."trg_claim_document_save"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."trg_claim_document_save"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."trg_claim_signature_send"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."trg_claim_signature_send"() TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."trigger_attachment_scan"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."trigger_attachment_scan"() TO "service_role";
 
@@ -15093,6 +22620,11 @@ GRANT ALL ON FUNCTION "public"."trigger_law_monitor"() TO "service_role";
 
 REVOKE ALL ON FUNCTION "public"."trigger_law_update_digest"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."trigger_law_update_digest"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."trigger_policy_review_scheduler"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."trigger_policy_review_scheduler"() TO "service_role";
 
 
 
@@ -15111,6 +22643,12 @@ GRANT ALL ON FUNCTION "public"."trigger_support_call_scheduler"() TO "service_ro
 
 
 
+GRANT ALL ON FUNCTION "public"."update_candidate_updated_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_candidate_updated_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_candidate_updated_at"() TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."update_capacity_config"("p_capacity_limit" integer, "p_capacity_enforcement_enabled" boolean, "p_capacity_mode" "text") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."update_capacity_config"("p_capacity_limit" integer, "p_capacity_enforcement_enabled" boolean, "p_capacity_mode" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_capacity_config"("p_capacity_limit" integer, "p_capacity_enforcement_enabled" boolean, "p_capacity_mode" "text") TO "service_role";
@@ -15120,6 +22658,19 @@ GRANT ALL ON FUNCTION "public"."update_capacity_config"("p_capacity_limit" integ
 GRANT ALL ON FUNCTION "public"."update_updated_at"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_updated_at"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_updated_at"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."user_is_dutiva_staff"("p_user_id" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."user_is_dutiva_staff"("p_user_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."user_is_dutiva_staff"("p_user_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."user_is_dutiva_staff"("p_user_id" "uuid") TO "service_role";
 
 
 
@@ -15225,15 +22776,41 @@ GRANT ALL ON TABLE "public"."advisor_guidance_chunks" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."agent_audit" TO "anon";
+GRANT ALL ON TABLE "public"."agent_audit" TO "authenticated";
+GRANT ALL ON TABLE "public"."agent_audit" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."ai_advisor_credits" TO "anon";
 GRANT ALL ON TABLE "public"."ai_advisor_credits" TO "authenticated";
 GRANT ALL ON TABLE "public"."ai_advisor_credits" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."ai_advisor_month_state" TO "service_role";
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE "public"."ai_advisor_month_state" TO "authenticated";
+
+
+
+GRANT ALL ON TABLE "public"."ai_advisor_org_credits" TO "service_role";
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE "public"."ai_advisor_org_credits" TO "authenticated";
+
+
+
+GRANT ALL ON TABLE "public"."ai_advisor_org_overage_months" TO "service_role";
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE "public"."ai_advisor_org_overage_months" TO "authenticated";
+
+
+
 GRANT ALL ON TABLE "public"."ai_advisor_overage_months" TO "anon";
 GRANT ALL ON TABLE "public"."ai_advisor_overage_months" TO "authenticated";
 GRANT ALL ON TABLE "public"."ai_advisor_overage_months" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."ai_advisor_rollover_credits" TO "service_role";
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE "public"."ai_advisor_rollover_credits" TO "authenticated";
 
 
 
@@ -15273,6 +22850,24 @@ GRANT ALL ON TABLE "public"."beta_signup_intake" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."candidate_applications" TO "anon";
+GRANT ALL ON TABLE "public"."candidate_applications" TO "authenticated";
+GRANT ALL ON TABLE "public"."candidate_applications" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."candidate_profiles" TO "anon";
+GRANT ALL ON TABLE "public"."candidate_profiles" TO "authenticated";
+GRANT ALL ON TABLE "public"."candidate_profiles" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."candidate_resumes" TO "anon";
+GRANT ALL ON TABLE "public"."candidate_resumes" TO "authenticated";
+GRANT ALL ON TABLE "public"."candidate_resumes" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."categories" TO "anon";
 GRANT ALL ON TABLE "public"."categories" TO "authenticated";
 GRANT ALL ON TABLE "public"."categories" TO "service_role";
@@ -15303,6 +22898,126 @@ GRANT ALL ON TABLE "public"."comment_mentions" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."comms_approvals" TO "anon";
+GRANT ALL ON TABLE "public"."comms_approvals" TO "authenticated";
+GRANT ALL ON TABLE "public"."comms_approvals" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."comms_brand_claims" TO "anon";
+GRANT ALL ON TABLE "public"."comms_brand_claims" TO "authenticated";
+GRANT ALL ON TABLE "public"."comms_brand_claims" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."comms_contact_segment_memberships" TO "anon";
+GRANT ALL ON TABLE "public"."comms_contact_segment_memberships" TO "authenticated";
+GRANT ALL ON TABLE "public"."comms_contact_segment_memberships" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."comms_contact_segments" TO "anon";
+GRANT ALL ON TABLE "public"."comms_contact_segments" TO "authenticated";
+GRANT ALL ON TABLE "public"."comms_contact_segments" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."comms_contacts" TO "anon";
+GRANT ALL ON TABLE "public"."comms_contacts" TO "authenticated";
+GRANT ALL ON TABLE "public"."comms_contacts" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."comms_content_items" TO "anon";
+GRANT ALL ON TABLE "public"."comms_content_items" TO "authenticated";
+GRANT ALL ON TABLE "public"."comms_content_items" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."comms_coverage_items" TO "anon";
+GRANT ALL ON TABLE "public"."comms_coverage_items" TO "authenticated";
+GRANT ALL ON TABLE "public"."comms_coverage_items" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."comms_execution_events" TO "anon";
+GRANT ALL ON TABLE "public"."comms_execution_events" TO "authenticated";
+GRANT ALL ON TABLE "public"."comms_execution_events" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."comms_feeds" TO "anon";
+GRANT ALL ON TABLE "public"."comms_feeds" TO "authenticated";
+GRANT ALL ON TABLE "public"."comms_feeds" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."comms_initiatives" TO "anon";
+GRANT ALL ON TABLE "public"."comms_initiatives" TO "authenticated";
+GRANT ALL ON TABLE "public"."comms_initiatives" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."comms_integrations" TO "anon";
+GRANT ALL ON TABLE "public"."comms_integrations" TO "authenticated";
+GRANT ALL ON TABLE "public"."comms_integrations" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."comms_interactions" TO "anon";
+GRANT ALL ON TABLE "public"."comms_interactions" TO "authenticated";
+GRANT ALL ON TABLE "public"."comms_interactions" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."comms_issues" TO "anon";
+GRANT ALL ON TABLE "public"."comms_issues" TO "authenticated";
+GRANT ALL ON TABLE "public"."comms_issues" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."comms_metrics" TO "anon";
+GRANT ALL ON TABLE "public"."comms_metrics" TO "authenticated";
+GRANT ALL ON TABLE "public"."comms_metrics" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."comms_objectives" TO "anon";
+GRANT ALL ON TABLE "public"."comms_objectives" TO "authenticated";
+GRANT ALL ON TABLE "public"."comms_objectives" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."comms_organizations" TO "anon";
+GRANT ALL ON TABLE "public"."comms_organizations" TO "authenticated";
+GRANT ALL ON TABLE "public"."comms_organizations" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."comms_policy_files" TO "anon";
+GRANT ALL ON TABLE "public"."comms_policy_files" TO "authenticated";
+GRANT ALL ON TABLE "public"."comms_policy_files" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."comms_sources" TO "anon";
+GRANT ALL ON TABLE "public"."comms_sources" TO "authenticated";
+GRANT ALL ON TABLE "public"."comms_sources" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."comms_submissions" TO "anon";
+GRANT ALL ON TABLE "public"."comms_submissions" TO "authenticated";
+GRANT ALL ON TABLE "public"."comms_submissions" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."comms_usage_controls" TO "anon";
+GRANT ALL ON TABLE "public"."comms_usage_controls" TO "authenticated";
+GRANT ALL ON TABLE "public"."comms_usage_controls" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."compliance_assessments" TO "anon";
 GRANT ALL ON TABLE "public"."compliance_assessments" TO "authenticated";
 GRANT ALL ON TABLE "public"."compliance_assessments" TO "service_role";
@@ -15322,6 +23037,7 @@ GRANT ALL ON TABLE "public"."conversations" TO "service_role";
 
 
 GRANT ALL ON TABLE "public"."cron_locks" TO "service_role";
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE "public"."cron_locks" TO "authenticated";
 
 
 
@@ -15361,7 +23077,242 @@ GRANT ALL ON TABLE "public"."employer_tiers" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."entity_links" TO "anon";
+GRANT ALL ON TABLE "public"."entity_links" TO "authenticated";
+GRANT ALL ON TABLE "public"."entity_links" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."export_events" TO "service_role";
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE "public"."export_events" TO "authenticated";
+
+
+
+GRANT ALL ON TABLE "public"."finance_approvals" TO "anon";
+GRANT ALL ON TABLE "public"."finance_approvals" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_approvals" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_audit_events" TO "anon";
+GRANT ALL ON TABLE "public"."finance_audit_events" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_audit_events" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_bank_accounts" TO "anon";
+GRANT ALL ON TABLE "public"."finance_bank_accounts" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_bank_accounts" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_bank_items" TO "anon";
+GRANT ALL ON TABLE "public"."finance_bank_items" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_bank_items" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_bills" TO "anon";
+GRANT ALL ON TABLE "public"."finance_bills" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_bills" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_books" TO "anon";
+GRANT ALL ON TABLE "public"."finance_books" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_books" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_budgets" TO "anon";
+GRANT ALL ON TABLE "public"."finance_budgets" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_budgets" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_categorization_feedback" TO "anon";
+GRANT ALL ON TABLE "public"."finance_categorization_feedback" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_categorization_feedback" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_category_rules" TO "anon";
+GRANT ALL ON TABLE "public"."finance_category_rules" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_category_rules" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_close_periods" TO "anon";
+GRANT ALL ON TABLE "public"."finance_close_periods" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_close_periods" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_credits" TO "anon";
+GRANT ALL ON TABLE "public"."finance_credits" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_credits" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_debts" TO "anon";
+GRANT ALL ON TABLE "public"."finance_debts" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_debts" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_decision_entries" TO "anon";
+GRANT ALL ON TABLE "public"."finance_decision_entries" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_decision_entries" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_entities" TO "anon";
+GRANT ALL ON TABLE "public"."finance_entities" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_entities" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_expenses" TO "anon";
+GRANT ALL ON TABLE "public"."finance_expenses" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_expenses" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_external_actions" TO "anon";
+GRANT ALL ON TABLE "public"."finance_external_actions" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_external_actions" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_fiscal_periods" TO "anon";
+GRANT ALL ON TABLE "public"."finance_fiscal_periods" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_fiscal_periods" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_forecasts" TO "anon";
+GRANT ALL ON TABLE "public"."finance_forecasts" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_forecasts" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_holdings" TO "anon";
+GRANT ALL ON TABLE "public"."finance_holdings" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_holdings" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_import_sessions" TO "anon";
+GRANT ALL ON TABLE "public"."finance_import_sessions" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_import_sessions" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_invoices" TO "anon";
+GRANT ALL ON TABLE "public"."finance_invoices" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_invoices" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_journals" TO "anon";
+GRANT ALL ON TABLE "public"."finance_journals" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_journals" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_ledger_accounts" TO "anon";
+GRANT ALL ON TABLE "public"."finance_ledger_accounts" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_ledger_accounts" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_parties" TO "anon";
+GRANT ALL ON TABLE "public"."finance_parties" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_parties" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_pay_periods" TO "anon";
+GRANT ALL ON TABLE "public"."finance_pay_periods" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_pay_periods" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_pay_runs" TO "anon";
+GRANT ALL ON TABLE "public"."finance_pay_runs" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_pay_runs" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_payroll_liabilities" TO "anon";
+GRANT ALL ON TABLE "public"."finance_payroll_liabilities" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_payroll_liabilities" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_purchase_orders" TO "anon";
+GRANT ALL ON TABLE "public"."finance_purchase_orders" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_purchase_orders" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_receipts" TO "anon";
+GRANT ALL ON TABLE "public"."finance_receipts" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_receipts" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_reconciliations" TO "anon";
+GRANT ALL ON TABLE "public"."finance_reconciliations" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_reconciliations" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_reserve_goals" TO "anon";
+GRANT ALL ON TABLE "public"."finance_reserve_goals" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_reserve_goals" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_scenarios" TO "anon";
+GRANT ALL ON TABLE "public"."finance_scenarios" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_scenarios" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_spend_requests" TO "anon";
+GRANT ALL ON TABLE "public"."finance_spend_requests" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_spend_requests" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_subscriptions" TO "anon";
+GRANT ALL ON TABLE "public"."finance_subscriptions" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_subscriptions" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_tax_obligations" TO "anon";
+GRANT ALL ON TABLE "public"."finance_tax_obligations" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_tax_obligations" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_tax_scenarios" TO "anon";
+GRANT ALL ON TABLE "public"."finance_tax_scenarios" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_tax_scenarios" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_watchlist_items" TO "anon";
+GRANT ALL ON TABLE "public"."finance_watchlist_items" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_watchlist_items" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_workspace_settings" TO "anon";
+GRANT ALL ON TABLE "public"."finance_workspace_settings" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_workspace_settings" TO "service_role";
 
 
 
@@ -15380,6 +23331,30 @@ GRANT ALL ON TABLE "public"."generator_document_templates" TO "service_role";
 GRANT ALL ON TABLE "public"."generator_templates" TO "anon";
 GRANT ALL ON TABLE "public"."generator_templates" TO "authenticated";
 GRANT ALL ON TABLE "public"."generator_templates" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."governance_decisions" TO "anon";
+GRANT ALL ON TABLE "public"."governance_decisions" TO "authenticated";
+GRANT ALL ON TABLE "public"."governance_decisions" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."governance_officers" TO "anon";
+GRANT ALL ON TABLE "public"."governance_officers" TO "authenticated";
+GRANT ALL ON TABLE "public"."governance_officers" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."governance_records" TO "anon";
+GRANT ALL ON TABLE "public"."governance_records" TO "authenticated";
+GRANT ALL ON TABLE "public"."governance_records" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."governance_shareholders" TO "anon";
+GRANT ALL ON TABLE "public"."governance_shareholders" TO "authenticated";
+GRANT ALL ON TABLE "public"."governance_shareholders" TO "service_role";
 
 
 
@@ -15419,6 +23394,18 @@ GRANT ALL ON TABLE "public"."hr_advisor_memory_facts" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."hr_authenticity_scores" TO "anon";
+GRANT ALL ON TABLE "public"."hr_authenticity_scores" TO "authenticated";
+GRANT ALL ON TABLE "public"."hr_authenticity_scores" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."hr_candidates" TO "anon";
+GRANT ALL ON TABLE "public"."hr_candidates" TO "authenticated";
+GRANT ALL ON TABLE "public"."hr_candidates" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."hr_case_notes" TO "anon";
 GRANT ALL ON TABLE "public"."hr_case_notes" TO "authenticated";
 GRANT ALL ON TABLE "public"."hr_case_notes" TO "service_role";
@@ -15440,6 +23427,12 @@ GRANT ALL ON TABLE "public"."hr_communications" TO "service_role";
 GRANT ALL ON TABLE "public"."hr_compensation_records" TO "anon";
 GRANT ALL ON TABLE "public"."hr_compensation_records" TO "authenticated";
 GRANT ALL ON TABLE "public"."hr_compensation_records" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."hr_defense_interviews" TO "anon";
+GRANT ALL ON TABLE "public"."hr_defense_interviews" TO "authenticated";
+GRANT ALL ON TABLE "public"."hr_defense_interviews" TO "service_role";
 
 
 
@@ -15479,6 +23472,12 @@ GRANT ALL ON TABLE "public"."hr_employee_notes" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."hr_evidence_screening" TO "anon";
+GRANT ALL ON TABLE "public"."hr_evidence_screening" TO "authenticated";
+GRANT ALL ON TABLE "public"."hr_evidence_screening" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."hr_expiry_records" TO "anon";
 GRANT ALL ON TABLE "public"."hr_expiry_records" TO "authenticated";
 GRANT ALL ON TABLE "public"."hr_expiry_records" TO "service_role";
@@ -15491,6 +23490,12 @@ GRANT ALL ON TABLE "public"."hr_generated_documents" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."hr_job_postings" TO "anon";
+GRANT ALL ON TABLE "public"."hr_job_postings" TO "authenticated";
+GRANT ALL ON TABLE "public"."hr_job_postings" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."hr_leaves" TO "anon";
 GRANT ALL ON TABLE "public"."hr_leaves" TO "authenticated";
 GRANT ALL ON TABLE "public"."hr_leaves" TO "service_role";
@@ -15500,6 +23505,18 @@ GRANT ALL ON TABLE "public"."hr_leaves" TO "service_role";
 GRANT ALL ON TABLE "public"."hr_obligations" TO "anon";
 GRANT ALL ON TABLE "public"."hr_obligations" TO "authenticated";
 GRANT ALL ON TABLE "public"."hr_obligations" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."hr_onboarding_tasks" TO "anon";
+GRANT ALL ON TABLE "public"."hr_onboarding_tasks" TO "authenticated";
+GRANT ALL ON TABLE "public"."hr_onboarding_tasks" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."hr_performance_reviews" TO "anon";
+GRANT ALL ON TABLE "public"."hr_performance_reviews" TO "authenticated";
+GRANT ALL ON TABLE "public"."hr_performance_reviews" TO "service_role";
 
 
 
@@ -15524,6 +23541,12 @@ GRANT ALL ON SEQUENCE "public"."hr_signing_rpc_rate_limit_id_seq" TO "service_ro
 GRANT ALL ON TABLE "public"."hr_wellbeing_initiatives" TO "anon";
 GRANT ALL ON TABLE "public"."hr_wellbeing_initiatives" TO "authenticated";
 GRANT ALL ON TABLE "public"."hr_wellbeing_initiatives" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."hr_work_samples" TO "anon";
+GRANT ALL ON TABLE "public"."hr_work_samples" TO "authenticated";
+GRANT ALL ON TABLE "public"."hr_work_samples" TO "service_role";
 
 
 
@@ -15575,14 +23598,50 @@ GRANT ALL ON TABLE "public"."offer_workflow_states" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."operations_logistics" TO "anon";
+GRANT ALL ON TABLE "public"."operations_logistics" TO "authenticated";
+GRANT ALL ON TABLE "public"."operations_logistics" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."operations_projects" TO "anon";
+GRANT ALL ON TABLE "public"."operations_projects" TO "authenticated";
+GRANT ALL ON TABLE "public"."operations_projects" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."operations_quality_checks" TO "anon";
+GRANT ALL ON TABLE "public"."operations_quality_checks" TO "authenticated";
+GRANT ALL ON TABLE "public"."operations_quality_checks" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."operations_technology" TO "anon";
+GRANT ALL ON TABLE "public"."operations_technology" TO "authenticated";
+GRANT ALL ON TABLE "public"."operations_technology" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."operations_vendors" TO "anon";
+GRANT ALL ON TABLE "public"."operations_vendors" TO "authenticated";
+GRANT ALL ON TABLE "public"."operations_vendors" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."organization_admission_log" TO "anon";
 GRANT ALL ON TABLE "public"."organization_admission_log" TO "service_role";
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE "public"."organization_admission_log" TO "authenticated";
 
 
 
 GRANT ALL ON TABLE "public"."organization_admission_waitlist" TO "anon";
 GRANT ALL ON TABLE "public"."organization_admission_waitlist" TO "service_role";
-GRANT SELECT,UPDATE ON TABLE "public"."organization_admission_waitlist" TO "authenticated";
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE "public"."organization_admission_waitlist" TO "authenticated";
+
+
+
+GRANT ALL ON TABLE "public"."organization_billing_events" TO "service_role";
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE "public"."organization_billing_events" TO "authenticated";
 
 
 
@@ -15598,20 +23657,62 @@ GRANT ALL ON TABLE "public"."organization_members" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."organizations" TO "anon";
-GRANT ALL ON TABLE "public"."organizations" TO "authenticated";
-GRANT ALL ON TABLE "public"."organizations" TO "service_role";
+GRANT ALL ON TABLE "public"."organization_usage_events" TO "service_role";
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE "public"."organization_usage_events" TO "authenticated";
 
 
 
 GRANT ALL ON TABLE "public"."platform_capacity_config" TO "anon";
 GRANT ALL ON TABLE "public"."platform_capacity_config" TO "service_role";
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE "public"."platform_capacity_config" TO "authenticated";
+
+
+
+GRANT ALL ON TABLE "public"."revenue_invoices" TO "anon";
+GRANT ALL ON TABLE "public"."revenue_invoices" TO "authenticated";
+GRANT ALL ON TABLE "public"."revenue_invoices" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."revenue_streams" TO "anon";
+GRANT ALL ON TABLE "public"."revenue_streams" TO "authenticated";
+GRANT ALL ON TABLE "public"."revenue_streams" TO "service_role";
 
 
 
 GRANT ALL ON TABLE "public"."scheduled_operations" TO "anon";
 GRANT ALL ON TABLE "public"."scheduled_operations" TO "authenticated";
 GRANT ALL ON TABLE "public"."scheduled_operations" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."security_access_reviews" TO "anon";
+GRANT ALL ON TABLE "public"."security_access_reviews" TO "authenticated";
+GRANT ALL ON TABLE "public"."security_access_reviews" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."security_assets" TO "anon";
+GRANT ALL ON TABLE "public"."security_assets" TO "authenticated";
+GRANT ALL ON TABLE "public"."security_assets" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."security_incidents" TO "anon";
+GRANT ALL ON TABLE "public"."security_incidents" TO "authenticated";
+GRANT ALL ON TABLE "public"."security_incidents" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."security_risks" TO "anon";
+GRANT ALL ON TABLE "public"."security_risks" TO "authenticated";
+GRANT ALL ON TABLE "public"."security_risks" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."security_vendor_reviews" TO "anon";
+GRANT ALL ON TABLE "public"."security_vendor_reviews" TO "authenticated";
+GRANT ALL ON TABLE "public"."security_vendor_reviews" TO "service_role";
 
 
 
@@ -15630,6 +23731,18 @@ GRANT ALL ON TABLE "public"."signature_audit_events" TO "service_role";
 GRANT SELECT,REFERENCES,TRIGGER,TRUNCATE,MAINTAIN ON TABLE "public"."signatures" TO "anon";
 GRANT ALL ON TABLE "public"."signatures" TO "authenticated";
 GRANT ALL ON TABLE "public"."signatures" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."specialist_engagements" TO "anon";
+GRANT ALL ON TABLE "public"."specialist_engagements" TO "authenticated";
+GRANT ALL ON TABLE "public"."specialist_engagements" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."specialists" TO "anon";
+GRANT ALL ON TABLE "public"."specialists" TO "authenticated";
+GRANT ALL ON TABLE "public"."specialists" TO "service_role";
 
 
 
@@ -15843,6 +23956,12 @@ GRANT ALL ON TABLE "public"."workflows" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."workspace_integrations" TO "anon";
+GRANT ALL ON TABLE "public"."workspace_integrations" TO "authenticated";
+GRANT ALL ON TABLE "public"."workspace_integrations" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."workspace_notes" TO "anon";
 GRANT ALL ON TABLE "public"."workspace_notes" TO "authenticated";
 GRANT ALL ON TABLE "public"."workspace_notes" TO "service_role";
@@ -15885,3 +24004,38 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "anon";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "authenticated";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "service_role";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
