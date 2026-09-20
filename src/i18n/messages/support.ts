@@ -445,4 +445,13 @@ export const supportMessages = defineMessages({
     en: 'Last sign-in',
     fr: 'Dernière connexion',
   },
+  support_admin_directory_filter_plan: { en: 'Plan', fr: 'Forfait' },
+  support_admin_directory_filter_status: { en: 'Status', fr: 'Statut' },
+  support_admin_directory_filter_all_plans: { en: 'All plans', fr: 'Tous les forfaits' },
+  support_admin_directory_filter_all_statuses: { en: 'All statuses', fr: 'Tous les statuts' },
+  support_admin_directory_filter_clear: { en: 'Clear filters', fr: 'Effacer les filtres' },
+  support_admin_directory_filter_results: {
+    en: '{shown} of {total} shown',
+    fr: '{shown} sur {total} affichés',
+  },
 })

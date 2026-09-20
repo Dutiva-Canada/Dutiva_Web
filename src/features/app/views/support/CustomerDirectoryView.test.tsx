@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { LangProvider } from '@/i18n/LangProvider'
 
@@ -86,5 +86,72 @@ describe('CustomerDirectoryView', () => {
     expect(screen.getByText('Acme Workspace')).toBeInTheDocument()
     // Null plan renders as free (0013 convention).
     expect(screen.getAllByText('free').length).toBeGreaterThan(0)
+  })
+
+  it('filters accounts and workspaces independently', async () => {
+    isCurrentUserAdmin.mockResolvedValue(true)
+    adminListUsers.mockResolvedValue([
+      {
+        userId: 'u1',
+        email: 'active@acme.test',
+        companyName: 'Acme Corp',
+        plan: 'growth',
+        subscriptionStatus: 'active',
+        billingPeriod: 'monthly',
+        roles: [],
+        createdAt: '2026-09-18T12:00:00Z',
+        lastSignInAt: null,
+      },
+      {
+        userId: 'u2',
+        email: 'trial@beta.test',
+        companyName: 'Beta Inc',
+        plan: 'starter',
+        subscriptionStatus: 'trialing',
+        billingPeriod: 'monthly',
+        roles: [],
+        createdAt: '2026-09-18T12:00:00Z',
+        lastSignInAt: null,
+      },
+    ])
+    adminListOrganizations.mockResolvedValue([
+      {
+        organizationId: 'o1',
+        name: 'Acme Workspace',
+        legalName: 'Acme Corp Inc.',
+        plan: 'growth',
+        subscriptionStatus: 'active',
+        billingPeriod: 'monthly',
+        memberCount: 3,
+        createdAt: '2026-09-18T12:00:00Z',
+      },
+      {
+        organizationId: 'o2',
+        name: 'Beta Workspace',
+        legalName: 'Beta Inc.',
+        plan: 'starter',
+        subscriptionStatus: 'trialing',
+        billingPeriod: 'monthly',
+        memberCount: 1,
+        createdAt: '2026-09-18T12:00:00Z',
+      },
+    ])
+    renderView()
+
+    expect(await screen.findByText('active@acme.test')).toBeInTheDocument()
+    const accountPlan = screen.getByRole('combobox', {
+      name: /accounts.*plan/i,
+    })
+    fireEvent.change(accountPlan, { target: { value: 'growth' } })
+    expect(screen.getByText('active@acme.test')).toBeInTheDocument()
+    expect(screen.queryByText('trial@beta.test')).not.toBeInTheDocument()
+    expect(screen.getByText('Beta Workspace')).toBeInTheDocument()
+
+    const workspaceStatus = screen.getByRole('combobox', {
+      name: /workspaces.*status/i,
+    })
+    fireEvent.change(workspaceStatus, { target: { value: 'trialing' } })
+    expect(screen.queryByText('Acme Workspace')).not.toBeInTheDocument()
+    expect(screen.getByText('Beta Workspace')).toBeInTheDocument()
   })
 })
