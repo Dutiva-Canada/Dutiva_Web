@@ -70,21 +70,23 @@ export function ApplicabilitySummary({
       aria-label={t('doclib_profile_title')}
       className="mb-4 rounded-[12px] border border-border bg-surface px-[14px] py-[12px] max-[640px]:px-[10px]"
     >
-      <div className="flex flex-wrap items-center gap-3">
-        <span className="grid h-[30px] w-[30px] shrink-0 place-items-center rounded-[8px] bg-navy text-gold-on-navy">
-          <Building2 size={15} strokeWidth={1.8} aria-hidden="true" />
-        </span>
-        <div className="min-w-0 flex-1 leading-tight">
-          <div className="text-[12.5px] font-bold text-text">{t('doclib_profile_title')}</div>
-          <p className="mt-0.5 text-[12.5px] text-text-muted">{summaryLine}</p>
-          {complete && tier && (
-            <span className="sr-only">
-              {x(tier.label)}
-              {federallyRegulated ? ` · ${t('doclib_profile_regulated')}` : ''}
-            </span>
-          )}
+      <div className="flex flex-wrap items-center gap-3 max-[640px]:items-start">
+        <div className="flex min-w-0 flex-1 items-start gap-3 max-[640px]:w-full">
+          <span className="grid h-[30px] w-[30px] shrink-0 place-items-center rounded-[8px] bg-navy text-gold-on-navy">
+            <Building2 size={15} strokeWidth={1.8} aria-hidden="true" />
+          </span>
+          <div className="min-w-0 flex-1 leading-tight">
+            <div className="text-[12.5px] font-bold text-text">{t('doclib_profile_title')}</div>
+            <p className="mt-0.5 text-[12.5px] text-text-muted">{summaryLine}</p>
+            {complete && tier && (
+              <span className="sr-only">
+                {x(tier.label)}
+                {federallyRegulated ? ` · ${t('doclib_profile_regulated')}` : ''}
+              </span>
+            )}
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 max-[640px]:w-full max-[640px]:justify-end">
           <button
             type="button"
             aria-expanded={whyOpen}
