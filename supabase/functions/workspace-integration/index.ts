@@ -246,6 +246,32 @@ Deno.serve(async (req: Request) => {
     return json({ status: 'connected' })
   }
 
+  if (integration.provider === 'inbound_email') {
+    if (action === 'connect') {
+      // Mint, don't probe: no credential involved — the function
+      // generates the routing key and composes the workspace address.
+      // The address only receives mail once the inbound domain's MX +
+      // Resend webhook are configured (docs/INTEGRATIONS.md); that part
+      // is account-level setup, not per-integration state.
+      const emailKey = randomHex(24)
+      const domain = Deno.env.get('INBOUND_EMAIL_DOMAIN') ?? 'in.dutiva.ca'
+      const address = `in-${emailKey}@${domain}`
+      const failed = await patchRow({
+        status: 'connected',
+        last_checked_at: new Date().toISOString(),
+        config: {
+          ...(integration.config ?? {}),
+          email_key: emailKey,
+          inbound_address: address,
+        },
+      })
+      if (failed) return failed
+      return json({ status: 'connected', inboundAddress: address })
+    }
+    // 'test': nothing to probe — the row either routes or it doesn't.
+    return json({ status: 'connected' })
+  }
+
   if (!effectiveSecret) return json({ error: 'Secret required' }, 400)
 
   if (integration.provider === 'smtp_email' && action === 'connect') {

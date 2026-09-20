@@ -90,3 +90,8 @@ verify_jwt = false
 
 [functions.notify-signing-status]
 verify_jwt = false
+
+# Public inbound email ingest — Resend's `email.received` webhook has no
+# user JWT; authentication is the Svix signature over the raw body.
+[functions.inbound-email]
+verify_jwt = false

@@ -178,4 +178,45 @@ export const integrationsMessages = defineMessages({
     en: 'stored',
     fr: 'enregistré', // [FR self-authored]
   },
+
+  integ_provider_inbound_name: {
+    en: 'Inbound email',
+    fr: 'Courriel entrant', // [FR self-authored]
+  },
+  integ_provider_inbound_blurb: {
+    en: 'Receive mail on a workspace address — no mailbox login needed.',
+    fr: 'Recevez du courriel sur une adresse de l’espace de travail — aucune connexion à une boîte requise.', // [FR self-authored]
+  },
+  integ_email_create: {
+    en: 'Create address',
+    fr: 'Créer l’adresse', // [FR self-authored]
+  },
+  integ_email_address: {
+    en: 'Workspace address',
+    fr: 'Adresse de l’espace', // [FR self-authored]
+  },
+  integ_email_ready: {
+    en: 'Your workspace address — send mail here to land it in Dutiva.',
+    fr: 'Votre adresse d’espace de travail — envoyez du courriel ici pour le recevoir dans Dutiva.', // [FR self-authored]
+  },
+  integ_email_hint: {
+    en: 'Mail sent to this address lands in the workspace and notifies admins. Attachments are listed, not stored.',
+    fr: 'Le courriel envoyé à cette adresse arrive dans l’espace de travail et notifie les admins. Les pièces jointes sont listées, pas conservées.', // [FR self-authored]
+  },
+  integ_email_dns: {
+    en: 'Delivery needs the inbound domain (MX records + Resend webhook) configured once — see docs/INTEGRATIONS.md.',
+    fr: 'La réception exige le domaine entrant (enregistrements MX + webhook Resend) configuré une fois — voir docs/INTEGRATIONS.md.', // [FR self-authored]
+  },
+  integ_toast_address_created: {
+    en: 'Address created.',
+    fr: 'Adresse créée.', // [FR self-authored]
+  },
+  integ_mail_title: {
+    en: 'Recent mail',
+    fr: 'Courriels récents', // [FR self-authored]
+  },
+  integ_mail_empty: {
+    en: 'No mail received yet — send a message to the address.',
+    fr: 'Aucun courriel reçu pour l’instant — envoyez un message à l’adresse.', // [FR self-authored]
+  },
 })

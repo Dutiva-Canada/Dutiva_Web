@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabaseClient'
 
 export interface WorkspaceNotification {
   id: string
-  kind: 'signing_completed' | 'signing_declined' | 'integration_event'
+  kind: 'signing_completed' | 'signing_declined' | 'integration_event' | 'inbound_email'
   title: Bi
   body: Bi | null
   href: string | null
@@ -20,7 +20,7 @@ export interface WorkspaceNotification {
 
 const rowSchema = z.object({
   id: z.string(),
-  kind: z.enum(['signing_completed', 'signing_declined', 'integration_event']),
+  kind: z.enum(['signing_completed', 'signing_declined', 'integration_event', 'inbound_email']),
   title_en: z.string(),
   title_fr: z.string(),
   body_en: z.string().nullable().optional(),

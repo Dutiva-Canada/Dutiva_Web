@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
-import { Github, Gitlab, Inbox, Mail, MailOpen } from 'lucide-react'
+import { Github, Gitlab, Inbox, Mail, MailOpen, MailPlus } from 'lucide-react'
 import type { Bi } from '@/i18n/core'
 import { integrationsMessages as M } from '@/i18n/messages/integrations'
 
@@ -17,6 +17,8 @@ import { integrationsMessages as M } from '@/i18n/messages/integrations'
  *               functions can't open TCP), status stays 'pending'
  *   'webhook' — no user credential: connect mints a signed ingest URL +
  *               HMAC secret in Vault and shows them once
+ *   'email'   — no user credential: connect mints a workspace inbound
+ *               address; Resend delivers mail to inbound_emails (0164)
  *   'planned' — catalogued, no working flow yet (OAuth or a supported API
  *               that doesn't exist, e.g. Signal)
  */
@@ -27,8 +29,9 @@ export type IntegrationProviderKey =
   | 'outlook'
   | 'smtp_email'
   | 'inbound_webhook'
+  | 'inbound_email'
 
-export type IntegrationAuth = 'pat' | 'smtp' | 'webhook' | 'planned'
+export type IntegrationAuth = 'pat' | 'smtp' | 'webhook' | 'email' | 'planned'
 
 export type IntegrationConfigField = 'instance_url' | 'smtp_host' | 'smtp_port' | 'smtp_user'
 
@@ -89,6 +92,13 @@ export const INTEGRATION_CATALOG: readonly IntegrationProviderSpec[] = [
     name: M.integ_provider_webhook_name,
     blurb: M.integ_provider_webhook_blurb,
     auth: 'webhook',
+  },
+  {
+    key: 'inbound_email',
+    icon: MailPlus,
+    name: M.integ_provider_inbound_name,
+    blurb: M.integ_provider_inbound_blurb,
+    auth: 'email',
   },
 ] as const
 

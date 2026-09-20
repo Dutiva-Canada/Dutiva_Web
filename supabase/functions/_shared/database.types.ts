@@ -8914,6 +8914,69 @@ export type Database = {
           },
         ]
       }
+      inbound_emails: {
+        Row: {
+          attachments: Json
+          from_address: string
+          html_body: string | null
+          id: string
+          integration_id: string
+          message_id: string | null
+          organization_id: string
+          processed_at: string | null
+          provider_email_id: string
+          received_at: string
+          subject: string | null
+          text_body: string | null
+          to_addresses: string[]
+        }
+        Insert: {
+          attachments?: Json
+          from_address: string
+          html_body?: string | null
+          id?: string
+          integration_id: string
+          message_id?: string | null
+          organization_id: string
+          processed_at?: string | null
+          provider_email_id: string
+          received_at?: string
+          subject?: string | null
+          text_body?: string | null
+          to_addresses?: string[]
+        }
+        Update: {
+          attachments?: Json
+          from_address?: string
+          html_body?: string | null
+          id?: string
+          integration_id?: string
+          message_id?: string | null
+          organization_id?: string
+          processed_at?: string | null
+          provider_email_id?: string
+          received_at?: string
+          subject?: string | null
+          text_body?: string | null
+          to_addresses?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inbound_emails_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_integrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inbound_emails_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integration_events: {
         Row: {
           event_type: string | null
@@ -13411,6 +13474,10 @@ export type Database = {
         }
       }
       _hr_signing_request_ip_hash: { Args: never; Returns: string }
+      _inbound_email_notify_admins: {
+        Args: { p_email_id: string }
+        Returns: undefined
+      }
       _integration_event_notify_admins: {
         Args: { p_event_id: string }
         Returns: undefined

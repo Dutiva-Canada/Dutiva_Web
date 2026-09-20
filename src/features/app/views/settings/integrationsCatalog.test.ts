@@ -4,13 +4,21 @@ import { INTEGRATION_CATALOG, providerSpec } from './integrationsCatalog'
 /**
  * The catalog is the source of truth the Settings UI renders — these checks
  * keep it consistent with the `workspace_integrations` provider CHECK
- * constraint (migration 0161) and the honesty rules: only providers with a
- * real connect flow may leave 'planned', and PAT providers always carry a
- * token hint.
+ * constraint (migration 0161, extended by 0164) and the honesty rules: only
+ * providers with a real connect flow may leave 'planned', and PAT providers
+ * always carry a token hint.
  */
 describe('INTEGRATION_CATALOG', () => {
   it('uses only providers allowed by the workspace_integrations CHECK constraint', () => {
-    const allowed = ['github', 'gitlab', 'gmail', 'outlook', 'smtp_email', 'inbound_webhook']
+    const allowed = [
+      'github',
+      'gitlab',
+      'gmail',
+      'outlook',
+      'smtp_email',
+      'inbound_webhook',
+      'inbound_email',
+    ]
     for (const spec of INTEGRATION_CATALOG) {
       expect(allowed).toContain(spec.key)
     }

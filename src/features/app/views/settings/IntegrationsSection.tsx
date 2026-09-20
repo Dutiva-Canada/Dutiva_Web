@@ -13,11 +13,16 @@ import type { IntegrationConfigField, IntegrationProviderSpec } from './integrat
 import {
   createIntegration,
   deleteIntegration,
+  listInboundEmails,
   listIntegrationEvents,
   listIntegrations,
   runIntegrationAction,
 } from './integrationsApi'
-import type { IntegrationEventRow, WorkspaceIntegrationRow } from './integrationsApi'
+import type {
+  InboundEmailRow,
+  IntegrationEventRow,
+  WorkspaceIntegrationRow,
+} from './integrationsApi'
 import { Card } from './settingsPrimitives'
 
 /**
@@ -97,9 +102,10 @@ function ProviderList({
   const [rows, setRows] = useState<WorkspaceIntegrationRow[] | null>(null)
   const [openProvider, setOpenProvider] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
-  // Minted webhook credentials, held only until the admin dismisses the
-  // copy-now block — they never persist to state beyond this page.
-  const [minted, setMinted] = useState<Record<string, { url: string; secret: string }>>({})
+  // Minted values (webhook URL+secret / inbound address), held only until
+  // the admin dismisses the reveal block — webhook secrets never persist
+  // to state beyond this page.
+  const [minted, setMinted] = useState<Record<string, MintedRevealData>>({})
 
   const reload = useCallback(async () => {
     if (!organizationId) {
@@ -138,14 +144,32 @@ function ProviderList({
         await deleteIntegration(row.id)
         showToast(M.integ_toast_disconnected, 'ok')
       } else if (action === 'regenerate') {
-        // Re-mint the webhook endpoint: new key + signing secret.
+        // Re-mint the endpoint: new key + signing secret (webhook) or new
+        // address key (inbound email).
         const result = await runIntegrationAction('connect', row.id)
         if (result.webhookUrl && result.signingSecret) {
           setMinted((prev) => ({
             ...prev,
-            [row.id]: { url: result.webhookUrl!, secret: result.signingSecret! },
+            [row.id]: {
+              title: M.integ_webhook_once,
+              hint: M.integ_webhook_hint,
+              items: [
+                { label: M.integ_webhook_endpoint, value: result.webhookUrl! },
+                { label: M.integ_webhook_secret, value: result.signingSecret! },
+              ],
+            },
           }))
           showToast(M.integ_toast_webhook_created, 'ok')
+        } else if (result.inboundAddress) {
+          setMinted((prev) => ({
+            ...prev,
+            [row.id]: {
+              title: M.integ_email_ready,
+              hint: M.integ_email_dns,
+              items: [{ label: M.integ_email_address, value: result.inboundAddress! }],
+            },
+          }))
+          showToast(M.integ_toast_address_created, 'ok')
         } else {
           showToast(M.integ_toast_check_failed, 'info')
         }
@@ -219,6 +243,11 @@ function webhookEndpoint(row: WorkspaceIntegrationRow): string | null {
   return `${base}/functions/v1/integration-webhook/${key}`
 }
 
+function inboundAddress(row: WorkspaceIntegrationRow): string | null {
+  const addr = row.config?.inbound_address
+  return typeof addr === 'string' && addr ? addr : null
+}
+
 function ProviderCard({
   spec,
   rows,
@@ -246,13 +275,14 @@ function ProviderCard({
   ) => void
   readonly onChanged: () => Promise<void>
   readonly showToast: (msg: { en: string; fr: string }, tone: 'ok' | 'info') => void
-  readonly minted: Record<string, { url: string; secret: string }>
+  readonly minted: Record<string, MintedRevealData>
   readonly onDismissMinted: (id: string) => void
 }) {
   const { x } = useI18n()
   const Icon = spec.icon
   const planned = spec.auth === 'planned'
   const isWebhook = spec.key === 'inbound_webhook'
+  const isEmail = spec.key === 'inbound_email'
 
   return (
     <div className="border-t border-inset px-[18px] py-[14px]">
@@ -297,6 +327,11 @@ function ProviderCard({
                     {x(M.integ_webhook_endpoint)}: {webhookEndpoint(row)} ·{' '}
                   </>
                 ) : null}
+                {isEmail && inboundAddress(row) ? (
+                  <>
+                    {x(M.integ_email_address)}: {inboundAddress(row)} ·{' '}
+                  </>
+                ) : null}
                 {row.last_checked_at
                   ? x(M.integ_last_checked).replace(
                       '{when}',
@@ -307,7 +342,7 @@ function ProviderCard({
             </div>
             {canManage ? (
               <div className="flex shrink-0 items-center gap-[6px]">
-                {isWebhook && row.status === 'connected' ? (
+                {(isWebhook || isEmail) && row.status === 'connected' ? (
                   <button
                     type="button"
                     className={BTN_GHOST}
@@ -358,7 +393,10 @@ function ProviderCard({
               </div>
             ) : null}
           </div>
-          {isWebhook && row.status === 'connected' ? <RecentEvents integrationId={row.id} /> : null}
+          {isWebhook && row.status === 'connected' ? (
+            <RecentEvents integrationId={row.id} />
+          ) : null}
+          {isEmail && row.status === 'connected' ? <RecentMail integrationId={row.id} /> : null}
         </div>
       ))}
 
@@ -367,8 +405,7 @@ function ProviderCard({
         return creds ? (
           <MintedReveal
             key={`minted-${row.id}`}
-            url={creds.url}
-            secret={creds.secret}
+            data={creds}
             onDone={() => onDismissMinted(row.id)}
             showToast={showToast}
           />
@@ -392,14 +429,18 @@ function ProviderCard({
 
 /* ───────────────────── minted webhook credentials ──────────────────────── */
 
+interface MintedRevealData {
+  title: { en: string; fr: string }
+  hint: { en: string; fr: string }
+  items: { label: { en: string; fr: string }; value: string }[]
+}
+
 function MintedReveal({
-  url,
-  secret,
+  data,
   onDone,
   showToast,
 }: {
-  readonly url: string
-  readonly secret: string
+  readonly data: MintedRevealData
   readonly onDone: () => void
   readonly showToast: (msg: { en: string; fr: string }, tone: 'ok' | 'info') => void
 }) {
@@ -409,16 +450,13 @@ function MintedReveal({
   }
   return (
     <div className="mt-[10px] rounded-[8px] border border-border bg-accent-soft/40 px-[12px] py-[12px]">
-      <div className="text-[11.5px] font-semibold text-text">{x(M.integ_webhook_once)}</div>
+      <div className="text-[11.5px] font-semibold text-text">{x(data.title)}</div>
       <div className="mt-[8px] space-y-[6px]">
-        {[
-          { label: x(M.integ_webhook_endpoint), value: url },
-          { label: x(M.integ_webhook_secret), value: secret },
-        ].map((item) => (
-          <div key={item.label} className="flex items-center gap-[8px]">
+        {data.items.map((item) => (
+          <div key={item.label.en} className="flex items-center gap-[8px]">
             <div className="min-w-0 flex-1">
               <div className="text-[10.5px] font-semibold uppercase tracking-[0.04em] text-text-faint">
-                {item.label}
+                {x(item.label)}
               </div>
               <code className="block truncate text-[11.5px] text-text">{item.value}</code>
             </div>
@@ -428,9 +466,7 @@ function MintedReveal({
           </div>
         ))}
       </div>
-      <div className="mt-[8px] text-[11.5px] leading-[1.5] text-text-muted">
-        {x(M.integ_webhook_hint)}
-      </div>
+      <div className="mt-[8px] text-[11.5px] leading-[1.5] text-text-muted">{x(data.hint)}</div>
       <div className="mt-[10px]">
         <button type="button" className={BTN} onClick={onDone}>
           {x(M.integ_webhook_done)}
@@ -513,6 +549,63 @@ function RecentEvents({ integrationId }: { readonly integrationId: string }) {
   )
 }
 
+/* ─────────────────────── recent inbound mail ──────────────────────────── */
+
+/** Last deliveries to a connected inbound address (inbound_emails, 0164). */
+function RecentMail({ integrationId }: { readonly integrationId: string }) {
+  const { x } = useI18n()
+  const [mails, setMails] = useState<InboundEmailRow[] | null>(null)
+
+  useEffect(() => {
+    let live = true
+    listInboundEmails(integrationId)
+      .then((list) => {
+        if (live) setMails(list)
+      })
+      .catch(() => {
+        if (live) setMails([])
+      })
+    return () => {
+      live = false
+    }
+  }, [integrationId])
+
+  if (mails == null) return null
+
+  return (
+    <div className="mt-[6px] rounded-[8px] border border-inset bg-bg px-[12px] py-[9px]">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.04em] text-text-faint">
+        {x(M.integ_mail_title)}
+      </div>
+      {mails.length === 0 ? (
+        <div className="mt-[6px] text-[12px] text-text-muted">{x(M.integ_mail_empty)}</div>
+      ) : (
+        <ul className="mt-[4px] divide-y divide-inset">
+          {mails.map((m) => (
+            <li key={m.id} className="flex items-baseline justify-between gap-[10px] py-[6px]">
+              <div className="min-w-0">
+                <span className="text-[12.5px] font-medium text-text">
+                  {m.subject?.trim() || '(no subject)'}
+                </span>
+                <span className="text-[12px] text-text-muted"> — {m.from_address}</span>
+                <div className="text-[11px] text-text-faint">
+                  {new Date(m.received_at).toLocaleString()}
+                  {Array.isArray(m.attachments) && m.attachments.length > 0
+                    ? ` · ${m.attachments.length} attachment${m.attachments.length > 1 ? 's' : ''}`
+                    : ''}
+                </div>
+              </div>
+              <span className={statusChipClass(m.processed_at ? 'success' : 'neutral')}>
+                {m.processed_at ? x(M.integ_events_notified) : x(M.integ_events_stored)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 /* ───────────────────────────── setup form ──────────────────────────────── */
 
 function SetupForm({
@@ -531,12 +624,14 @@ function SetupForm({
   const [fields, setFields] = useState<Record<string, string>>({})
   const [secret, setSecret] = useState('')
   const [saving, setSaving] = useState(false)
-  const [mintedResult, setMintedResult] = useState<{ url: string; secret: string } | null>(null)
+  const [mintedResult, setMintedResult] = useState<MintedRevealData | null>(null)
   const isWebhook = spec.auth === 'webhook'
+  const isEmail = spec.auth === 'email'
+  const isMinted = isWebhook || isEmail
 
   const submit = async () => {
     if (saving) return
-    if (!name.trim() || (!isWebhook && !secret.trim())) {
+    if (!name.trim() || (!isMinted && !secret.trim())) {
       showToast(M.integ_toast_save_failed, 'info')
       return
     }
@@ -556,11 +651,27 @@ function SetupForm({
       const result = await runIntegrationAction(
         'connect',
         row.id,
-        isWebhook ? undefined : secret.trim(),
+        isMinted ? undefined : secret.trim(),
       )
       if (isWebhook && result.webhookUrl && result.signingSecret) {
-        setMintedResult({ url: result.webhookUrl, secret: result.signingSecret })
+        setMintedResult({
+          title: M.integ_webhook_once,
+          hint: M.integ_webhook_hint,
+          items: [
+            { label: M.integ_webhook_endpoint, value: result.webhookUrl },
+            { label: M.integ_webhook_secret, value: result.signingSecret },
+          ],
+        })
         showToast(M.integ_toast_webhook_created, 'ok')
+        return
+      }
+      if (isEmail && result.inboundAddress) {
+        setMintedResult({
+          title: M.integ_email_ready,
+          hint: M.integ_email_dns,
+          items: [{ label: M.integ_email_address, value: result.inboundAddress }],
+        })
+        showToast(M.integ_toast_address_created, 'ok')
         return
       }
       if (result.status === 'connected') {
@@ -586,12 +697,7 @@ function SetupForm({
 
   if (mintedResult) {
     return (
-      <MintedReveal
-        url={mintedResult.url}
-        secret={mintedResult.secret}
-        onDone={() => void onDone()}
-        showToast={showToast}
-      />
+      <MintedReveal data={mintedResult} onDone={() => void onDone()} showToast={showToast} />
     )
   }
 
@@ -618,7 +724,7 @@ function SetupForm({
             />
           </div>
         ))}
-        {!isWebhook ? (
+        {!isMinted ? (
           <div>
             <label className={LABEL}>
               {spec.auth === 'smtp' ? x(M.integ_field_smtp_password) : x(M.integ_field_token)}
@@ -646,10 +752,19 @@ function SetupForm({
           {x(M.integ_webhook_hint)}
         </div>
       ) : null}
+      {isEmail ? (
+        <div className="mt-[8px] text-[11.5px] leading-[1.5] text-text-muted">
+          {x(M.integ_email_hint)} {x(M.integ_email_dns)}
+        </div>
+      ) : null}
       <div className="mt-[10px]">
         <button type="button" className={BTN} disabled={saving} onClick={() => void submit()}>
           {saving ? <Loader2 className="mr-[5px] inline h-[12px] w-[12px] animate-spin" /> : null}
-          {isWebhook ? x(M.integ_webhook_create) : x(M.integ_connect)}
+          {isWebhook
+            ? x(M.integ_webhook_create)
+            : isEmail
+              ? x(M.integ_email_create)
+              : x(M.integ_connect)}
         </button>
       </div>
     </div>

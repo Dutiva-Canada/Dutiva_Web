@@ -25,12 +25,12 @@ migrations alone cannot reproduce it, see `docs/DATABASE_SCHEMA.md`.
 | `vector` | 0.8.2 |
 | `wrappers` | 0.6.2 |
 
-## Tables — 243 total
+## Tables — 244 total
 
 Grouped by name prefix. RLS = `relrowsecurity`; a table without RLS is
 either intentional (public read) or a finding — check `check:rls`.
 
-### schema `public` (243)
+### schema `public` (244)
 
 **`activity_*`** — 1 table(s)
 
@@ -360,6 +360,12 @@ either intentional (public read) or a finding — check `check:rls`.
 | `hr_work_samples` | 15 | on | 2 |
 | `hr_workspace_notifications` | 12 | on | 2 |
 
+**`inbound_*`** — 1 table(s)
+
+| Table | Cols | RLS | Policies |
+| ----- | ---- | --- | -------- |
+| `inbound_emails` | 13 | on | 2 |
+
 **`integration_*`** — 1 table(s)
 
 | Table | Cols | RLS | Policies |
@@ -657,7 +663,7 @@ either intentional (public read) or a finding — check `check:rls`.
 - `public.v_template_catalog`
 - `public.v_tier_stats`
 
-## Functions / RPCs — 183
+## Functions / RPCs — 184
 
 | Function | Args | Security definer |
 | -------- | ---- | ---------------- |
@@ -671,6 +677,7 @@ either intentional (public read) or a finding — check `check:rls`.
 | `public._hr_signing_recipient_for_envelope` | p_envelope_id text | yes |
 | `public._hr_signing_recipient_for_token` | p_token uuid | yes |
 | `public._hr_signing_request_ip_hash` | — | yes |
+| `public._inbound_email_notify_admins` | p_email_id uuid | yes |
 | `public._integration_event_notify_admins` | p_event_id uuid | yes |
 | `public._org_capacity_lock` | p_organization_id uuid |  |
 | `public.accept_ai_recommendation` | target_recommendation_id uuid | yes |
@@ -906,7 +913,7 @@ either intentional (public read) or a finding — check `check:rls`.
 | `public.usage_counters` | `set_usage_counters_updated_at` |
 | `public.workspace_integrations` | `workspace_integrations_set_updated_at` |
 
-## RLS policies — 608
+## RLS policies — 610
 
 Names and scope only; full `USING`/`WITH CHECK` expressions are in
 `supabase/schema.sql` and the migrations that created them.
@@ -1340,6 +1347,8 @@ Names and scope only; full `USING`/`WITH CHECK` expressions are in
 | `public.hr_work_samples` | Org members can read work samples | SELECT | public |
 | `public.hr_workspace_notifications` | Users read own workspace notifications | SELECT | public |
 | `public.hr_workspace_notifications` | Users update own workspace notifications | UPDATE | public |
+| `public.inbound_emails` | Org admins can delete inbound_emails | DELETE | authenticated |
+| `public.inbound_emails` | Org members can read inbound_emails | SELECT | authenticated |
 | `public.integration_events` | Org admins can delete integration_events | DELETE | authenticated |
 | `public.integration_events` | Org members can read integration_events | SELECT | authenticated |
 | `public.job_attempts` | Admins can delete job attempts | DELETE | authenticated |

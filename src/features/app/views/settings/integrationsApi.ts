@@ -16,7 +16,15 @@ import type { Json } from '@/lib/supabase/types'
 const rowSchema = z.object({
   id: z.string(),
   organization_id: z.string(),
-  provider: z.enum(['github', 'gitlab', 'gmail', 'outlook', 'smtp_email', 'inbound_webhook']),
+  provider: z.enum([
+    'github',
+    'gitlab',
+    'gmail',
+    'outlook',
+    'smtp_email',
+    'inbound_webhook',
+    'inbound_email',
+  ]),
   display_name: z.string(),
   status: z.enum(['pending', 'connected', 'error', 'disconnected']),
   config: z.record(z.string(), z.unknown()).nullable(),
@@ -100,6 +108,33 @@ export async function listIntegrationEvents(
   return z.array(eventRowSchema).parse(data ?? [])
 }
 
+const mailRowSchema = z.object({
+  id: z.string(),
+  from_address: z.string(),
+  subject: z.string().nullable(),
+  attachments: z.unknown(),
+  received_at: z.string(),
+  processed_at: z.string().nullable(),
+})
+
+export type InboundEmailRow = z.infer<typeof mailRowSchema>
+
+/** Recent deliveries for one inbound_email integration — same RLS read. */
+export async function listInboundEmails(
+  integrationId: string,
+  limit = 10,
+): Promise<InboundEmailRow[]> {
+  if (!supabase) notConfigured()
+  const { data, error } = await supabase
+    .from('inbound_emails')
+    .select('id, from_address, subject, attachments, received_at, processed_at')
+    .eq('integration_id', integrationId)
+    .order('received_at', { ascending: false })
+    .limit(limit)
+  if (error) throw new Error(error.message)
+  return z.array(mailRowSchema).parse(data ?? [])
+}
+
 export type IntegrationAction = 'connect' | 'test' | 'disconnect'
 
 export interface IntegrationActionResult {
@@ -110,6 +145,8 @@ export interface IntegrationActionResult {
   /** inbound_webhook connect only — minted endpoint + secret, shown once. */
   webhookUrl?: string
   signingSecret?: string
+  /** inbound_email connect only — the minted workspace address. */
+  inboundAddress?: string
   error?: string
 }
 

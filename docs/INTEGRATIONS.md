@@ -68,6 +68,9 @@ credentials.
 | `inbound_webhook` | minted | **Connectable (phase 2)** — the function mints a signed    |
 |                 |          | endpoint + HMAC secret; deliveries land in                 |
 |                 |          | `integration_events` (0162).                               |
+| `inbound_email` | minted | **Connectable** — the function mints a receiving address;  |
+|                 |          | mail forwarded to it lands in `inbound_emails` (0164) via  |
+|                 |          | Resend's `email.received` webhook.                         |
 
 **Signal is intentionally absent from the catalog.** It has no supported
 public API for this use case; unofficial bridges are fragile and sit in a
@@ -119,18 +122,74 @@ What events do **not** yet do: create or update business records
 routing specific `event_type`s into domain tables is the next slice and
 should land beside the notify function, not in the client.
 
+## Inbound email — the practical alternative to mailbox OAuth
+
+Gmail/Outlook OAuth stays **planned**: it needs Google/Azure app
+registrations and review, and most of what a workspace wants — "mail that
+matters lands where the team can see it" — doesn't need it. `inbound_email`
+covers that share with a receiving address instead of mailbox access.
+
+Admins create it in Settings → Connections → Inbound email. `connect` on an
+`inbound_email` row takes **no** credential — `workspace-integration`
+mints an unguessable `email_key` (48-hex), writes `config.email_key` +
+`config.inbound_address`, marks the row `connected`, and returns the full
+address once: `in-<key>@<inbound-domain>` (`INBOUND_EMAIL_DOMAIN` env,
+default `in.dutiva.ca`). The address stays readable in `config` — it isn't
+a secret, just unguessable. Users forward or BCC mail to it from any mail
+client.
+
+The receive path:
+
+1. **MX** — the inbound domain's MX records point at Resend's inbound
+   servers (Resend dashboard → Domains → receiving). One-time DNS setup.
+2. **Webhook** — a Resend webhook subscribed to `email.received` posts to
+   `…/functions/v1/inbound-email`. That webhook's signing secret goes in
+   `RESEND_INBOUND_WEBHOOK_SECRET` (the function falls back to
+   `RESEND_WEBHOOK_SECRET`, but the delivery webhook and the inbound
+   webhook are separate Resend endpoints with separate secrets — set the
+   dedicated one).
+3. **Verify** — `inbound-email` runs `verify_jwt = false` (config.toml);
+   auth is the Svix signature (`svix-id` / `svix-timestamp` /
+   `svix-signature`, 5-minute tolerance, constant-time compare — the same
+   scheme `resend-webhook` verifies). Missing secret → 503; bad or stale
+   signature → 401; non-`email.received` types → ignored with 200.
+4. **Route** — the `email.received` payload is **metadata only** (no
+   body). The function extracts the `in-<key>` local part from `to` /
+   `received_for` (`addressKey.ts`) and resolves it to the connected
+   `inbound_email` row via `config->>email_key`. Unknown key → 404.
+5. **Fetch** — the body is pulled from Resend's Receiving API
+   (`GET /emails/receiving/<email_id>`) with `RESEND_API_KEY`, truncated
+   at 200 KB text / 500 KB HTML. Best-effort: if the fetch fails the row
+   still stores with null bodies — the delivery isn't lost and the
+   metadata (from, subject, attachment list) is intact.
+6. **Store + notify** — one `inbound_emails` row (org-scoped; members
+   read, admins delete, service-role-only insert) then
+   `_inbound_email_notify_admins(email_id)` fans out a bilingual
+   `hr_workspace_notifications` row (`kind = 'inbound_email'`) to active
+   owner/admins and stamps `processed_at`. A unique
+   `(integration_id, provider_email_id)` index makes Resend retries
+   return `202 {duplicate:true}` without re-notifying. Settings shows the
+   last 10 received messages on the connected row.
+
+What this is **not**: it does not read or sync an existing Gmail/Outlook
+mailbox, does not send as the user, and does not replace provider OAuth —
+if full two-way mailbox sync ships later it's a separate flow. Attachment
+bodies aren't stored (metadata only); they're fetchable later by
+`provider_email_id` if a download surface ships.
+
 ## Deploy status
 
-Applied and deployed: migrations `0161`–`0163` ran against project
+Applied and deployed: migrations `0161`–`0164` ran against project
 `khtwpxnvziiyplaflwru` via `scripts/apply-migration.mjs` and are recorded
 in `schema_migrations` (`check:migrations` reconciles clean);
-`workspace-integration` and `integration-webhook` are deployed via
-`supabase functions deploy`. `integration-webhook` carries an explicit
-`verify_jwt = false` in `supabase/config.toml`; `workspace-integration`
-keeps the default (JWT on).
+`workspace-integration`, `integration-webhook`, and `inbound-email` are
+deployed via `supabase functions deploy`. `integration-webhook` and
+`inbound-email` carry explicit `verify_jwt = false` in
+`supabase/config.toml`; `workspace-integration` keeps the default (JWT on).
 
-Verified: POST to the ingest endpoint with an unknown key returns 404;
-`check:migrations` OK; signature verifier covered by 10 vitest cases.
+Verified: POST to the ingest endpoints unsigned returns 401;
+`check:migrations` OK; signature verifiers and the address-key extractor
+covered by vitest cases.
 
 Live smoke (2026-09-20, since torn down): a temporary owner/admin user
 in a throwaway org drove the real client path — `workspace_integrations`

@@ -523,6 +523,59 @@ $$;
 ALTER FUNCTION "public"."_hr_signing_request_ip_hash"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."_inbound_email_notify_admins"("p_email_id" "uuid") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_email public.inbound_emails;
+  v_body text;
+begin
+  select * into v_email
+  from public.inbound_emails
+  where id = p_email_id;
+
+  if v_email.id is null then
+    return;
+  end if;
+
+  if v_email.processed_at is not null then
+    return;
+  end if;
+
+  v_body := left(
+    v_email.from_address || ' — ' ||
+    coalesce(nullif(btrim(v_email.subject), ''), '(no subject)'),
+    220
+  );
+
+  insert into public.hr_workspace_notifications (
+    organization_id, user_id, kind, title_en, title_fr, body_en, body_fr, href
+  )
+  select
+    v_email.organization_id,
+    om.user_id,
+    'inbound_email',
+    'Inbound email received',
+    'Courriel entrant reçu',
+    v_body,
+    v_body,
+    '/app/settings'
+  from public.organization_members om
+  where om.organization_id = v_email.organization_id
+    and om.status = 'active'
+    and om.role in ('owner', 'admin');
+
+  update public.inbound_emails
+  set processed_at = now()
+  where id = v_email.id;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."_inbound_email_notify_admins"("p_email_id" "uuid") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."_integration_event_notify_admins"("p_event_id" "uuid") RETURNS "void"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
@@ -10517,11 +10570,31 @@ CREATE TABLE IF NOT EXISTS "public"."hr_workspace_notifications" (
     "document_id" "uuid",
     "read_at" timestamp with time zone,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    CONSTRAINT "hr_workspace_notifications_kind_check" CHECK (("kind" = ANY (ARRAY['signing_completed'::"text", 'signing_declined'::"text", 'integration_event'::"text"])))
+    CONSTRAINT "hr_workspace_notifications_kind_check" CHECK (("kind" = ANY (ARRAY['signing_completed'::"text", 'signing_declined'::"text", 'integration_event'::"text", 'inbound_email'::"text"])))
 );
 
 
 ALTER TABLE "public"."hr_workspace_notifications" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."inbound_emails" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "integration_id" "uuid" NOT NULL,
+    "provider_email_id" "text" NOT NULL,
+    "message_id" "text",
+    "from_address" "text" NOT NULL,
+    "to_addresses" "text"[] DEFAULT '{}'::"text"[] NOT NULL,
+    "subject" "text",
+    "text_body" "text",
+    "html_body" "text",
+    "attachments" "jsonb" DEFAULT '[]'::"jsonb" NOT NULL,
+    "received_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "processed_at" timestamp with time zone
+);
+
+
+ALTER TABLE "public"."inbound_emails" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."integration_events" (
@@ -11844,7 +11917,7 @@ CREATE TABLE IF NOT EXISTS "public"."workspace_integrations" (
     "created_by" "uuid",
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    CONSTRAINT "workspace_integrations_provider_check" CHECK (("provider" = ANY (ARRAY['github'::"text", 'gitlab'::"text", 'gmail'::"text", 'outlook'::"text", 'smtp_email'::"text", 'inbound_webhook'::"text"]))),
+    CONSTRAINT "workspace_integrations_provider_check" CHECK (("provider" = ANY (ARRAY['github'::"text", 'gitlab'::"text", 'gmail'::"text", 'outlook'::"text", 'smtp_email'::"text", 'inbound_webhook'::"text", 'inbound_email'::"text"]))),
     CONSTRAINT "workspace_integrations_status_check" CHECK (("status" = ANY (ARRAY['pending'::"text", 'connected'::"text", 'error'::"text", 'disconnected'::"text"])))
 );
 
@@ -12841,6 +12914,11 @@ ALTER TABLE ONLY "public"."hr_work_samples"
 
 ALTER TABLE ONLY "public"."hr_workspace_notifications"
     ADD CONSTRAINT "hr_workspace_notifications_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."inbound_emails"
+    ADD CONSTRAINT "inbound_emails_pkey" PRIMARY KEY ("id");
 
 
 
@@ -14657,6 +14735,18 @@ CREATE INDEX "idx_usage_counters_user_period" ON "public"."usage_counters" USING
 
 
 COMMENT ON INDEX "public"."idx_usage_counters_user_period" IS 'Optimizes plan enforcement counter lookups';
+
+
+
+CREATE INDEX "inbound_emails_integration_id_idx" ON "public"."inbound_emails" USING "btree" ("integration_id", "received_at" DESC);
+
+
+
+CREATE INDEX "inbound_emails_organization_id_idx" ON "public"."inbound_emails" USING "btree" ("organization_id", "received_at" DESC);
+
+
+
+CREATE UNIQUE INDEX "inbound_emails_provider_email_id_uniq" ON "public"."inbound_emails" USING "btree" ("integration_id", "provider_email_id");
 
 
 
@@ -16776,6 +16866,16 @@ ALTER TABLE ONLY "public"."hr_workspace_notifications"
 
 
 
+ALTER TABLE ONLY "public"."inbound_emails"
+    ADD CONSTRAINT "inbound_emails_integration_id_fkey" FOREIGN KEY ("integration_id") REFERENCES "public"."workspace_integrations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."inbound_emails"
+    ADD CONSTRAINT "inbound_emails_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."integration_events"
     ADD CONSTRAINT "integration_events_integration_id_fkey" FOREIGN KEY ("integration_id") REFERENCES "public"."workspace_integrations"("id") ON DELETE CASCADE;
 
@@ -18505,6 +18605,10 @@ CREATE POLICY "Org admins can delete generated documents" ON "public"."hr_genera
 
 
 
+CREATE POLICY "Org admins can delete inbound_emails" ON "public"."inbound_emails" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can delete integration_events" ON "public"."integration_events" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
@@ -19388,6 +19492,10 @@ CREATE POLICY "Org members can read finance_watchlist_items" ON "public"."financ
 
 
 CREATE POLICY "Org members can read finance_workspace_settings" ON "public"."finance_workspace_settings" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read inbound_emails" ON "public"."inbound_emails" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -20409,6 +20517,9 @@ ALTER TABLE "public"."hr_work_samples" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."hr_workspace_notifications" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."inbound_emails" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."integration_events" ENABLE ROW LEVEL SECURITY;
@@ -21635,6 +21746,11 @@ GRANT ALL ON FUNCTION "public"."_hr_signing_recipient_for_token"("p_token" "uuid
 
 REVOKE ALL ON FUNCTION "public"."_hr_signing_request_ip_hash"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."_hr_signing_request_ip_hash"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_inbound_email_notify_admins"("p_email_id" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_inbound_email_notify_admins"("p_email_id" "uuid") TO "service_role";
 
 
 
@@ -23670,6 +23786,12 @@ GRANT ALL ON TABLE "public"."hr_work_samples" TO "service_role";
 GRANT ALL ON TABLE "public"."hr_workspace_notifications" TO "anon";
 GRANT ALL ON TABLE "public"."hr_workspace_notifications" TO "authenticated";
 GRANT ALL ON TABLE "public"."hr_workspace_notifications" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."inbound_emails" TO "anon";
+GRANT ALL ON TABLE "public"."inbound_emails" TO "authenticated";
+GRANT ALL ON TABLE "public"."inbound_emails" TO "service_role";
 
 
 
