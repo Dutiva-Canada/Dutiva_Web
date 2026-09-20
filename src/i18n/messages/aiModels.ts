@@ -116,4 +116,42 @@ export const aiModelsMessages = defineMessages({
     fr: '{used} de stockage navigateur utilisé.',
   },
   aimodels_size_mb: { en: '~{size} MB download', fr: 'Téléchargement ~{size} Mo' },
+
+  /* ── Drive/folder import (File System Access prototype) ─────────────────── */
+  aimodels_drive_title: {
+    en: 'Load from a folder or drive',
+    fr: 'Charger depuis un dossier ou un disque', // [FR self-authored]
+  },
+  aimodels_drive_note: {
+    en: 'Point at a folder laid out as Org/Model/files (e.g. Xenova/whisper-tiny/onnx/model_quantized.onnx). Files are copied into browser storage — the drive is never mounted, and nothing loads until you pick it.',
+    fr: 'Pointez vers un dossier structuré Organisation/Modèle/fichiers (p. ex. Xenova/whisper-tiny/onnx/model_quantized.onnx). Les fichiers sont copiés dans le stockage du navigateur — le disque n’est jamais monté, et rien ne se charge tant que vous ne l’avez pas choisi.', // [FR self-authored]
+  },
+  aimodels_drive_choose: {
+    en: 'Choose folder',
+    fr: 'Choisir un dossier', // [FR self-authored]
+  },
+  aimodels_drive_regrant: {
+    en: 'Allow access again',
+    fr: 'Autoriser l’accès de nouveau', // [FR self-authored]
+  },
+  aimodels_drive_linked: {
+    en: 'Linked folder: {name}',
+    fr: 'Dossier lié : {name}', // [FR self-authored]
+  },
+  aimodels_drive_importing: {
+    en: 'Importing {done}/{total}…',
+    fr: 'Importation {done}/{total}…', // [FR self-authored]
+  },
+  aimodels_drive_done: {
+    en: 'Imported {count} file(s) across {repos} model(s).',
+    fr: '{count} fichier(s) importé(s) pour {repos} modèle(s).', // [FR self-authored]
+  },
+  aimodels_drive_nothing: {
+    en: 'No Organization/Model folders found in that folder.',
+    fr: 'Aucun dossier Organisation/Modèle trouvé dans ce dossier.', // [FR self-authored]
+  },
+  aimodels_drive_unsupported: {
+    en: 'Folder picking needs a Chromium-based browser — the download buttons above work everywhere.',
+    fr: 'Le choix de dossier exige un navigateur Chromium — les boutons de téléchargement ci-dessus fonctionnent partout.', // [FR self-authored]
+  },
 })

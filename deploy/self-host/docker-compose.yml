@@ -1,0 +1,50 @@
+# Self-host compose — the *web* half only. The backend half is a Supabase
+# project (cloud or self-hosted); this file deliberately does NOT vendor
+# Supabase's ~15-container stack. docs/SELF_HOSTING.md walks both backend
+# paths and the env each needs.
+#
+#   docker compose --env-file .env.selfhost up -d --build
+#
+# Required in .env.selfhost (see .env.selfhost.example):
+#   VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY — baked into the bundle at
+#     image build; rebuild to change
+#   SELFHOST_SUPABASE_ORIGIN                   — CSP connect-src entry
+# Optional:
+#   VITE_SITE_ORIGIN        — canonical origin for metadata/sitemap
+#   SELFHOST_SUPABASE_WSS   — realtime origin (wss://…), if realtime is used
+#   WEB_PORT                — host port to publish (default 8080)
+
+services:
+  web:
+    build:
+      context: ../..
+      dockerfile: deploy/self-host/Dockerfile.web
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+        VITE_SITE_ORIGIN: ${VITE_SITE_ORIGIN:-}
+    environment:
+      SELFHOST_SUPABASE_ORIGIN: ${SELFHOST_SUPABASE_ORIGIN:?set it in .env.selfhost — it becomes the CSP connect-src}
+      SELFHOST_SUPABASE_WSS: ${SELFHOST_SUPABASE_WSS:-}
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    restart: unless-stopped
+
+  # Optional local model runtime for development: `ollama` serves an
+  # OpenAI-compatible endpoint an admin can register under Settings → AI
+  # (docs/LOCAL_ENDPOINTS.md). Profile-gated so a default `up` doesn't pull
+  # a multi-GB runtime image. Caveat from the docs, unchanged here: a
+  # *server-routed* route only reaches this if the Supabase edge functions
+  # can reach this container — true when Supabase is self-hosted on the same
+  # network, NOT when the project is Supabase cloud.
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["local-ai"]
+    volumes:
+      - ollama-models:/root/.ollama
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+
+volumes:
+  ollama-models:

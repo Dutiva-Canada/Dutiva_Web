@@ -1,0 +1,54 @@
+# nginx vhost for the self-hosted Dutiva bundle. envsubst substitutes only
+# SELFHOST_* variables (NGINX_ENVSUBST_FILTER in Dockerfile.web); every nginx
+# $var below is left alone.
+#
+# SELFHOST_SUPABASE_ORIGIN — https origin of the Supabase project the bundle
+#   was built against (e.g. https://khtwpxnvziiyplaflwru.supabase.co or
+#   https://supabase.internal.example.com). Required: it lands in
+#   connect-src, and a wrong value means the app loads but every API call is
+#   blocked by CSP — a confusing failure, so fail the container fast instead
+#   (see docker-compose.yml healthcheck + the required-var note in
+#   docs/SELF_HOSTING.md).
+# SELFHOST_SUPABASE_WSS — same origin as wss:// for realtime. Optional.
+
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+
+    # Security headers — mirror of vercel.json, with connect-src parameterised
+    # on SELFHOST_SUPABASE_ORIGIN instead of the hardcoded cloud project.
+    # huggingface.co + cdn.jsdelivr.net stay: on-device browser models
+    # (transformers.js) download from both at first install.
+    add_header Content-Security-Policy "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; worker-src 'self' blob:; manifest-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' ${SELFHOST_SUPABASE_ORIGIN} ${SELFHOST_SUPABASE_WSS} https://huggingface.co https://cdn.jsdelivr.net; upgrade-insecure-requests" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # Hashed Vite assets are immutable; everything else revalidates.
+    location /assets/ {
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        try_files $uri =404;
+    }
+
+    # Workspace SPA: every /app and /demo route serves the app shell. Matches
+    # the vercel.json rewrites — app.html is the second entry point.
+    location /app {
+        try_files $uri /app.html;
+    }
+    location /demo {
+        try_files $uri /app.html;
+    }
+    location /fr/demo {
+        try_files $uri /app.html;
+    }
+
+    # Marketing pages + any prerendered route: file first, SPA shell last.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

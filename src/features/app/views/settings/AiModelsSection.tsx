@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Cable, Cpu, Download, FlaskConical, Loader2, Trash2 } from 'lucide-react'
+import { Cable, Cpu, Download, FlaskConical, FolderOpen, HardDrive, Loader2, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pickL } from '@/i18n/core'
 import { useAuth } from '@/features/app/auth/authContext'
@@ -15,6 +15,14 @@ import {
   storageEstimate,
 } from '@/lib/localModels/manager'
 import type { InstallProgress } from '@/lib/localModels/manager'
+import {
+  importDriveFolder,
+  isDriveImportSupported,
+  pickDriveFolder,
+  regrantDriveFolder,
+  storedDriveFolder,
+} from '@/lib/localModels/driveImport'
+import type { DriveFolderState } from '@/lib/localModels/driveImport'
 import {
   assignRoute,
   listProviders,
@@ -540,6 +548,118 @@ function DeviceModelsPanel() {
         <FlaskConical size={11} strokeWidth={1.9} aria-hidden="true" />
         {storage ? x(M.aimodels_storage).replace('{used}', fmtMb(storage.usage)) : null}
       </div>
+
+      <DriveImportPanel onImported={refresh} />
+    </div>
+  )
+}
+
+/* ─────────────────────── drive/folder import (FS Access) ───────────────── */
+
+/**
+ * The web-feasible slice of "models on an external drive": pick a folder,
+ * copy its <org>/<repo>/ trees into the transformers.js browser cache. The
+ * drive is never mounted and nothing loads unprompted — see
+ * src/lib/localModels/driveImport.ts for the honest boundary.
+ */
+function DriveImportPanel({ onImported }: { readonly onImported: () => Promise<void> }) {
+  const { x } = useI18n()
+  const { showToast } = useToasts()
+  const [supported] = useState(isDriveImportSupported)
+  const [folder, setFolder] = useState<DriveFolderState | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
+
+  useEffect(() => {
+    if (supported) void storedDriveFolder().then(setFolder)
+  }, [supported])
+
+  const runImport = async (state: DriveFolderState) => {
+    if (busy) return
+    setBusy(true)
+    setProgress(null)
+    try {
+      const result = await importDriveFolder(state.handle, (done, total) =>
+        setProgress({ done, total }),
+      )
+      const repos = Object.keys(result.repos).length
+      if (repos === 0) {
+        showToast(M.aimodels_drive_nothing, 'info')
+      } else {
+        const count = Object.values(result.repos).reduce((a, b) => a + b, 0)
+        showToast(
+          {
+            en: M.aimodels_drive_done.en
+              .replace('{count}', String(count))
+              .replace('{repos}', String(repos)),
+            fr: M.aimodels_drive_done.fr
+              .replace('{count}', String(count))
+              .replace('{repos}', String(repos)),
+          },
+          'ok',
+        )
+      }
+      await onImported()
+    } catch {
+      showToast(M.aimodels_install_failed, 'info')
+    } finally {
+      setBusy(false)
+      setProgress(null)
+    }
+  }
+
+  const choose = async () => {
+    const state = await pickDriveFolder()
+    if (!state) return
+    setFolder(state)
+    await runImport(state)
+  }
+
+  const regrant = async () => {
+    const state = await regrantDriveFolder()
+    if (!state) return
+    setFolder(state)
+    if (state.permission === 'granted') await runImport(state)
+  }
+
+  return (
+    <div className="mt-[12px] rounded-[10px] border border-border bg-bg px-[12px] py-[10px]">
+      <div className="flex items-center gap-[8px]">
+        <HardDrive size={14} strokeWidth={1.9} className="text-text-muted" aria-hidden="true" />
+        <div className="text-[12.5px] font-bold text-text">{x(M.aimodels_drive_title)}</div>
+      </div>
+      <div className="mt-[4px] text-[12px] leading-[1.5] text-text-muted">
+        {x(M.aimodels_drive_note)}
+      </div>
+      {supported ? (
+        <div className="mt-[8px] flex flex-wrap items-center gap-[8px]">
+          {folder?.permission === 'prompt' ? (
+            <button type="button" className={BTN} disabled={busy} onClick={() => void regrant()}>
+              <FolderOpen size={12} strokeWidth={1.9} aria-hidden="true" className="mr-[4px] inline" />
+              {x(M.aimodels_drive_regrant)}
+            </button>
+          ) : (
+            <button type="button" className={BTN} disabled={busy} onClick={() => void choose()}>
+              <FolderOpen size={12} strokeWidth={1.9} aria-hidden="true" className="mr-[4px] inline" />
+              {x(M.aimodels_drive_choose)}
+            </button>
+          )}
+          {folder ? (
+            <span className="text-[11.5px] text-text-muted">
+              {x(M.aimodels_drive_linked).replace('{name}', folder.name)}
+            </span>
+          ) : null}
+          {progress ? (
+            <span className="text-[11px] text-text-faint">
+              {x(M.aimodels_drive_importing)
+                .replace('{done}', String(progress.done))
+                .replace('{total}', String(progress.total))}
+            </span>
+          ) : null}
+        </div>
+      ) : (
+        <div className="mt-[6px] text-[11.5px] text-text-faint">{x(M.aimodels_drive_unsupported)}</div>
+      )}
     </div>
   )
 }

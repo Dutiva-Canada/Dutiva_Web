@@ -393,6 +393,28 @@ second product to try WebGPU.
 
 ---
 
+## 9a. What has shipped since (2026-08)
+
+Two slices of this document's option space are now real, without changing
+the decision itself:
+
+- **File System Access import** — Settings → AI → "Load from a folder or
+  drive" lets a user pick a folder (external drive included) and copy its
+  `<org>/<repo>/` model trees into the browser's transformers.js cache.
+  This is the web-feasible version of "models on a drive": a copy step,
+  not a mount; no silent USB detection; Chromium only. See
+  [FS_ACCESS_MODELS.md](FS_ACCESS_MODELS.md). The "true portable runtime on
+  a drive" option remains unbuilt — still a desktop/helper product, not a
+  web feature.
+- **Self-host scaffold** — `deploy/self-host/` + [SELF_HOSTING.md](SELF_HOSTING.md)
+  package the static bundle (Dockerfile + nginx + compose, optional ollama
+  profile) and document the Supabase-cloud vs self-hosted split. The
+  reachability rule from [LOCAL_ENDPOINTS.md](LOCAL_ENDPOINTS.md) is
+  unchanged: a server-routed Advisor only sees a LAN endpoint if the edge
+  functions can reach it.
+
+---
+
 ## 10. Sources (dated)
 
 - This repository: `advisor-chat`, `aiUsage.ts`, `advisorUsage.ts`,
