@@ -191,6 +191,16 @@ Verified: POST to the ingest endpoints unsigned returns 401;
 `check:migrations` OK; signature verifiers and the address-key extractor
 covered by vitest cases.
 
+Live inbound-email smoke (2026-09-20, since torn down): a throwaway org +
+owner drove the real path — `connect` minted `in-<48-hex>@in.dutiva.ca`;
+a Svix-signed `email.received` POST returned 202, stored the row (null
+bodies — synthetic `email_id` 404s on the Receiving API, the best-effort
+fallback working as designed), fanned out the bilingual admin
+notification, and stamped `processed_at`; a repeat delivery returned
+`202 duplicate`; bad signature → 401; unknown key → 404; non-received
+event type → ignored. All fixtures and the temporary signing secret were
+removed afterward.
+
 Live smoke (2026-09-20, since torn down): a temporary owner/admin user
 in a throwaway org drove the real client path — `workspace_integrations`
 insert over REST (RLS), `connect` with a real GitHub token probed
