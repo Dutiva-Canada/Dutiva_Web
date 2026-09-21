@@ -27,6 +27,7 @@
  */
 
 import { readFile, readdir } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -52,8 +53,10 @@ function topLevelKeys(source) {
   return [...source.matchAll(/^(\w+): \{/gm)].map((m) => m[1])
 }
 
-async function keysOfLandingSections() {
-  const dir = path.join(messagesDir, 'landing')
+/** Section modules under a directory (`landing/`, `finance/`) — each .ts file
+ * is one section, aggregated by the directory's index.ts. */
+async function keysOfSectionDir(name) {
+  const dir = path.join(messagesDir, name)
   const keys = []
   for (const entry of await readdir(dir)) {
     if (!entry.endsWith('.ts') || entry === 'index.ts') continue
@@ -64,9 +67,12 @@ async function keysOfLandingSections() {
 }
 
 async function keysOfModule(name) {
-  if (name === 'landing/index' || name === 'landing') return keysOfLandingSections()
-  const source = await readFile(path.join(messagesDir, `${name}.ts`), 'utf8')
-  return topLevelKeys(source)
+  const base = name === 'landing/index' ? 'landing' : name
+  if (existsSync(path.join(messagesDir, `${base}.ts`))) {
+    const source = await readFile(path.join(messagesDir, `${base}.ts`), 'utf8')
+    return topLevelKeys(source)
+  }
+  return keysOfSectionDir(base)
 }
 
 /** Every key contributed by the modules `workspace.ts` / `marketing.ts` import, minus `shared`. */

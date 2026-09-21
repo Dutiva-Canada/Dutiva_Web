@@ -86,6 +86,10 @@ for (const file of files) {
     errors.push('landing.ts monolith restored — use src/i18n/messages/landing/ section modules')
   }
 
+  if (r === 'src/i18n/messages/finance.ts') {
+    errors.push('finance.ts monolith restored — use src/i18n/messages/finance/ section modules')
+  }
+
   if (
     r.startsWith('src/features/app/views/') &&
     r.endsWith('View.tsx') &&
