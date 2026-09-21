@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { CircleHelp, MessageCircle, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick, pickL } from '@/i18n/core'
@@ -68,7 +67,7 @@ export function AdvisorHome({
 }: AdvisorHomeProps) {
   const { x, lang } = useI18n()
   const { mode } = useWorkspaceMode()
-  const { loading, stats, dueItems, totalRecords } = useHomeProductionStats()
+  const { loading, dueItems, totalRecords } = useHomeProductionStats()
   const [whyOpen, setWhyOpen] = useState<Record<string, boolean>>({})
   const brief = useMemo(() => buildDailyBrief(), [])
 
@@ -82,8 +81,9 @@ export function AdvisorHome({
     })
   const showThreadsAccess = onOpenThreads != null && !threadsOpen
 
-  /* Production: live stat row + due-soon strip when the workspace has records;
-     otherwise the reset-stage sub copy and starter prompt chips. */
+  /* Production: chat-first like the demo state — the "On my radar" strip
+     lists due-soon items as conversation starters (each row asks Advisor
+     about that record; the record links themselves stay on Home). */
   if (mode === 'production') {
     const subCopy =
       !loading && totalRecords === 0 ? x(HM.home_production_body) : x(WM.wsmode_advisor_sub)
@@ -101,45 +101,40 @@ export function AdvisorHome({
             </h1>
             <p className="m-0 mb-5.5 text-[14.5px] leading-[1.55] text-text-muted">{subCopy}</p>
 
-            {!loading && totalRecords > 0 && (
-              <>
-                <div className="mb-4 flex flex-wrap justify-center gap-2.5 text-left">
-                  {stats.map((stat) => (
-                    <Link
-                      key={stat.label.en}
-                      to={stat.to}
-                      className="min-w-[120px] flex-1 rounded-xl border border-border bg-surface px-3.5 py-3 transition-[border-color,transform] duration-150 hover:-translate-y-px hover:border-(--accent-soft-border)"
+            {!loading && totalRecords > 0 && dueItems.length > 0 && (
+              <div className="mb-5 text-left">
+                <div className="mb-2.5 font-display text-[16px] font-semibold text-text">
+                  {x(M.advisorview_radar_title)}
+                </div>
+                <div className="overflow-hidden rounded-xl border border-border bg-surface">
+                  {dueItems.map((item) => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() =>
+                        onSend(x(M.advisorview_prod_ask_item).replace('{title}', item.title))
+                      }
+                      className="group flex w-full cursor-pointer items-center gap-2.5 border-t border-inset bg-transparent px-3.5 py-2.75 text-left font-sans first:border-t-0 hover:bg-inset"
                     >
-                      <div className="font-display text-[24px] font-semibold leading-none text-text">
-                        {stat.value}
-                      </div>
-                      <div className="mt-1 text-[11.5px] text-text-muted">{x(stat.label)}</div>
-                    </Link>
+                      <span className={statusChipClass(item.overdue ? 'risk' : 'info')}>
+                        {item.overdue ? x(HM.home_prod_overdue) : x(item.kind)}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-[13px] font-semibold text-text">
+                        {item.title}
+                      </span>
+                      <span className="shrink-0 text-[11.5px] text-text-muted">
+                        {item.dueDate}
+                      </span>
+                      <MessageCircle
+                        size={12}
+                        strokeWidth={2}
+                        className="shrink-0 text-text-faint transition-colors duration-150 group-hover:text-accent"
+                        aria-hidden="true"
+                      />
+                    </button>
                   ))}
                 </div>
-
-                {dueItems.length > 0 && (
-                  <div className="mb-5 overflow-hidden rounded-xl border border-border bg-surface text-left">
-                    {dueItems.map((item) => (
-                      <Link
-                        key={item.key}
-                        to={item.to}
-                        className="flex items-center gap-2.5 border-t border-inset px-3.5 py-2.75 first:border-t-0 hover:bg-inset"
-                      >
-                        <span className={statusChipClass(item.overdue ? 'risk' : 'info')}>
-                          {item.overdue ? x(HM.home_prod_overdue) : x(item.kind)}
-                        </span>
-                        <span className="min-w-0 flex-1 truncate text-[13px] font-semibold text-text">
-                          {item.title}
-                        </span>
-                        <span className="shrink-0 text-[11.5px] text-text-muted">
-                          {item.dueDate}
-                        </span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </>
+              </div>
             )}
 
             <div className="text-left">

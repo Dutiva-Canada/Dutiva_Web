@@ -46,6 +46,12 @@ export const advisorViewMessages = defineMessages({
     en: 'Help me draft a sensitive employee communication.',
     fr: 'Aidez-moi à rédiger une communication sensible à un employé.',
   },
+  /* Production radar rows: clicking a due-soon item sends this prompt
+     ({title} is the record's own title, not translated). */
+  advisorview_prod_ask_item: {
+    en: 'Catch me up on {title} — what should I do next?',
+    fr: 'Fais le point sur {title} — que devrais-je faire ensuite?', // [FR self-authored]
+  },
   advisorview_composer_msg: { en: 'Message Advisor…', fr: 'Écrire au Conseiller…' },
 
   /* ── Thread list ────────────────────────────────────────────────────────── */
