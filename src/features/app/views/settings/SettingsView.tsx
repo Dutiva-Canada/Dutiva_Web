@@ -324,6 +324,15 @@ export function SettingsView() {
               <p className="mt-[8px] max-w-[52ch] text-[11.5px] leading-[1.45] text-text-faint">
                 {x(M.settings_workspace_mode_note)}
               </p>
+              <a
+                href={lang === 'fr' ? '/fr/demo' : '/demo'}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-[8px] inline-flex items-center gap-[5px] text-[12px] font-semibold text-accent transition-opacity hover:opacity-80"
+              >
+                {x(M.settings_workspace_demo_link)}
+                <ExternalLink size={12} strokeWidth={2} aria-hidden="true" />
+              </a>
               <CapacityAlert />
             </div>
           )}

@@ -50,6 +50,10 @@ export const settingsMessages = defineMessages({
     en: 'Demo uses Northgate Logistics Inc. sample data for training. Production is your live workspace.',
     fr: 'Le mode Démo utilise les données d’exemple de Northgate Logistics Inc. pour la formation. Le mode Production est votre espace de travail en direct.', // [FR self-authored]
   },
+  settings_workspace_demo_link: {
+    en: 'Open the public demo',
+    fr: 'Ouvrir la démo publique', // [FR self-authored]
+  },
   /* Cadence controls — [FR self-authored] */
   settings_reminders: { en: 'Reminders', fr: 'Rappels' },
   settings_signing_reminder_days: {
