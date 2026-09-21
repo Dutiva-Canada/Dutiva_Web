@@ -235,6 +235,7 @@ export const doclibMessages = defineMessages({
   doclib_filter_employee: { en: 'Employee', fr: 'Employé' },
   doclib_filter_all: { en: 'All', fr: 'Tous' },
   doclib_docd_back: { en: 'Back to My documents', fr: 'Retour à Mes documents' }, // [FR self-authored]
+  doclib_docd_details: { en: 'Details', fr: 'Détails' },
   doclib_docd_tabPreview: { en: 'Preview', fr: 'Aperçu' },
   doclib_docd_tabFields: { en: 'Fields', fr: 'Champs' },
   doclib_docd_tabVersions: { en: 'Versions', fr: 'Versions' },

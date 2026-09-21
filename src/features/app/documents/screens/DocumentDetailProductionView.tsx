@@ -496,14 +496,19 @@ export function DocumentDetailProductionView() {
             </tr>
           </thead>
           <tbody>
-            {Object.entries(detail.answers).map(([key, value]) => (
-              <tr key={key} className="border-b border-border">
-                <td className="py-2.5 pr-4 font-mono text-[12px] text-text-muted">{key}</td>
-                <td className="py-2.5 text-text">
-                  {value.trim() ? value : x(M.doclib_prod_not_filled)}
-                </td>
-              </tr>
-            ))}
+            {Object.entries(detail.answers).map(([key, value]) => {
+              const question = template?.questions.find((q) => q.id === key)
+              return (
+                <tr key={key} className="border-b border-border">
+                  <td className="py-2.5 pr-4 text-[13px] text-text-muted">
+                    {question ? x(question.label) : key.replaceAll('_', ' ')}
+                  </td>
+                  <td className="py-2.5 text-text">
+                    {value.trim() ? value : x(M.doclib_prod_not_filled)}
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       )}

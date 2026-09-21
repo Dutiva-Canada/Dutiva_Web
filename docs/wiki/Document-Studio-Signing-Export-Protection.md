@@ -184,7 +184,7 @@ Special banners render for restricted roles: `viewer` sees a read-only banner wi
 
 ### Metadata Rail
 
-A sticky sidebar renders key document metadata with the handoff's authoritative Supabase column names shown in monospace below each value (e.g. `documents.template_id`, `documents.jurisdiction`).
+A sticky sidebar renders key document metadata (reference, template, jurisdiction, language, employee, case, version, created/updated). The design handoff annotated each row with its Supabase column name; those were dropped as internal schema detail.
 
 [src/features/app/documents/screens/DocumentDetailScreen.tsx:395-442]()
 

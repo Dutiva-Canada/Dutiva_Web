@@ -47,10 +47,11 @@ describe('DocumentDetailScreen', () => {
     expect(screen.getAllByRole('tab')).toHaveLength(5)
     expect(screen.getByRole('tab', { name: 'Preview', selected: true })).toBeInTheDocument()
 
-    /* Metadata rail labels each row with its Supabase column (handoff content). */
-    expect(screen.getByText('documents.id / ref')).toBeInTheDocument()
-    expect(screen.getByText('documents.jurisdiction')).toBeInTheDocument()
-    expect(screen.getByText('documents.current_version_id')).toBeInTheDocument()
+    /* Metadata rail renders labels + values; Supabase column names are not
+       user-facing (handoff device, dropped). */
+    expect(screen.getByText('Reference')).toBeInTheDocument()
+    expect(screen.getByText('Current version')).toBeInTheDocument()
+    expect(screen.queryByText(/documents\./)).not.toBeInTheDocument()
     expect(screen.getByText('v2 / 2')).toBeInTheDocument()
     expect(screen.getByText('T09 · Québec offer letter')).toBeInTheDocument()
   })

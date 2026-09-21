@@ -60,8 +60,8 @@ import {
  * (`HR Documents Library.dc.html`, markup ~670–775 + `docVals()`): header with
  * the four status chips, role-gated action bar (demo-simulated via toasts),
  * five tabs (Preview / Fields / Versions / Recipients & signatures / Audit
- * trail), and the sticky "Details · documents" metadata rail whose mono
- * sub-labels are the handoff's authoritative Supabase column names.
+ * trail), and the sticky "Details" metadata rail. The handoff rendered
+ * Supabase column names under each row — dropped as internal schema detail.
  */
 
 const TABS = DETAIL_TABS
@@ -319,54 +319,34 @@ function DocumentDetailDemoScreen() {
   const employee = doc.employeeId ? data.employees.find((e) => e.id === doc.employeeId) : undefined
   const docCase = doc.caseId ? data.cases.find((c) => c.id === doc.caseId) : undefined
 
-  /* The mono `col` strings are the handoff's authoritative Supabase column
-     names — render them verbatim. */
-  const metaRows: { label: string; value: string; col: string }[] = [
-    { label: x(REFERENCE_LABEL), value: doc.ref, col: 'documents.id / ref' },
+  const metaRows: { label: string; value: string }[] = [
+    { label: x(REFERENCE_LABEL), value: doc.ref },
     {
       label: t('doclib_docd_template'),
       value: `${doc.templateTid} · ${template ? x(template.name) : doc.templateKey}`,
-      col: 'documents.template_id',
     },
     {
       label: x(TEMPLATE_VERSION_LABEL),
       value: template ? `${template.version} (${fmtDate(template.effectiveDate, lang)})` : '—',
-      col: 'documents.template_version_id (frozen)',
     },
     {
       label: t('doclib_docd_jurisdiction'),
       value: juris ? x(juris.name) : doc.jurisdiction,
-      col: 'documents.jurisdiction',
     },
-    {
-      label: t('doclib_filter_language'),
-      value: doc.language.toUpperCase(),
-      col: 'documents.language',
-    },
+    { label: t('doclib_filter_language'), value: doc.language.toUpperCase() },
     {
       label: t('doclib_col_employee'),
       value: employee ? employee.name : t('doclib_repo_orgWide'),
-      col: 'documents.employee_id',
     },
-    {
-      label: x(CASE_FILE_LABEL),
-      value: docCase ? x(docCase.title) : '—',
-      col: 'documents.case_id',
-    },
-    {
-      label: x(CURRENT_VERSION_LABEL),
-      value: `v${doc.currentVersion} / ${doc.versions.length}`,
-      col: 'documents.current_version_id',
-    },
+    { label: x(CASE_FILE_LABEL), value: docCase ? x(docCase.title) : '—' },
+    { label: x(CURRENT_VERSION_LABEL), value: `v${doc.currentVersion} / ${doc.versions.length}` },
     {
       label: t('doclib_docd_created'),
       value: `${fmtDate(doc.createdAt, lang)} · ${doc.createdBy}`,
-      col: 'documents.created_by / created_at',
     },
     {
       label: t('doclib_docd_updated'),
       value: `${fmtDate(doc.updatedAt, lang)} · ${doc.updatedBy}`,
-      col: 'documents.updated_by / updated_at',
     },
   ]
 
@@ -636,18 +616,16 @@ function DocumentDetailDemoScreen() {
         {/* ── Right: metadata rail ── */}
         <aside className="w-80 shrink-0 max-[1023px]:w-full min-[1024px]:sticky min-[1024px]:top-[14px]">
           <div className="overflow-hidden rounded-[14px] border border-border bg-surface">
-            {/* Handoff schema-speak header — literal on purpose. */}
             <div className="border-b border-border bg-inset px-4 py-3 font-display text-[11px] font-bold tracking-[0.12em] text-text-muted uppercase">
-              Details · documents
+              {t('doclib_docd_details')}
             </div>
             <div className="px-4 pt-1 pb-2">
               {metaRows.map((row) => (
-                <div key={row.col} className="border-b border-inset py-2.25 last:border-b-0">
+                <div key={row.label} className="border-b border-inset py-2.25 last:border-b-0">
                   <div className="mb-0.5 text-[11px] text-text-muted">{row.label}</div>
                   <div className="text-[13px] leading-[1.35] font-medium text-text">
                     {row.value}
                   </div>
-                  <div className="mt-0.5 font-mono text-[10.5px] text-text-faint">{row.col}</div>
                 </div>
               ))}
             </div>
