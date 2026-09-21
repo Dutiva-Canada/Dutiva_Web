@@ -3,11 +3,8 @@ import { BETA_COHORT_LIMIT } from '@/config/beta'
 import { getBetaCohortStatus } from '../betaCohortApi'
 import { useLanding } from '../useLanding'
 
-/** Decorative placeholder circles shown beside the spot counter — not photos. */
-const AVATAR_SLOTS = 10
-
 /**
- * Live "X of 15 beta spots taken" counter with a decorative avatar stack.
+ * Live "X of N beta spots taken" counter with a decorative circle per seat.
  * Fetches an aggregate count only (no signup PII). `extraTaken` lets the
  * parent bump the display after a successful non-waitlisted signup without
  * a refetch.
@@ -33,7 +30,7 @@ export function BetaSpotCounter({ extraTaken = 0 }: { readonly extraTaken?: numb
   }, [])
 
   const displayTaken = Math.min(taken + extraTaken, limit)
-  const filled = Math.min(displayTaken, AVATAR_SLOTS)
+  const filled = Math.min(displayTaken, limit)
   const label = lt('landing_cta_spots')
     .replace('{taken}', String(displayTaken))
     .replace('{limit}', String(limit))
@@ -42,7 +39,7 @@ export function BetaSpotCounter({ extraTaken = 0 }: { readonly extraTaken?: numb
     <div className="mb-4" aria-live="polite">
       <div className="flex items-center gap-3">
         <div className="flex -space-x-2" aria-hidden="true">
-          {Array.from({ length: AVATAR_SLOTS }, (_, i) => (
+          {Array.from({ length: limit }, (_, i) => (
             <span
               key={i}
               className={
