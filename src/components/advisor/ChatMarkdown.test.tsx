@@ -1,15 +1,13 @@
 import { render, screen, within } from '@testing-library/react'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { LangProvider } from '@/i18n/LangProvider'
 import { ChatMarkdown } from './ChatMarkdown'
 import { hideIncompleteTable } from './chatMarkdownUtils'
 
-beforeAll(
-  () =>
-    /* Warm the lazy ChatChart chunk so chart-fence tests don't time out
-     waiting for the dynamic import under concurrent test runs. */
-    import('./ChatChart'),
-)
+/* Load the lazy ChatChart chunk up front — outside any timed hook — so
+   chart-fence tests don't time out waiting for the dynamic import under
+   concurrent test runs. */
+import './ChatChart'
 
 function renderMd(markdown: string, streaming = false) {
   return render(

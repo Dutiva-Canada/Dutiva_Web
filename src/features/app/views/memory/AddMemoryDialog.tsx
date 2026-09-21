@@ -5,7 +5,6 @@ import { pick } from '@/i18n/core'
 import { memoryMessages as M } from '@/i18n/messages/memory'
 import { cases, employees } from '@/data'
 import type {
-  MemoryCategory,
   MemoryClassification,
   MemoryRetentionCategory,
   MemoryRetrievalScopeType,
@@ -365,14 +364,3 @@ export function AddMemoryDialog({ open, onClose }: AddMemoryDialogProps) {
     </div>
   )
 }
-
-/** Category options kept for parity with the production form. */
-export const ADD_MEMORY_CATEGORIES: MemoryCategory[] = [
-  'employment',
-  'compensation',
-  'matter',
-  'record',
-  'note',
-  'case',
-  'conversation',
-]

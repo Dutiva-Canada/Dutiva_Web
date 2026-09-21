@@ -374,3 +374,20 @@ import from a module the router touches drags its whole tree onto the marketing
 critical path, and nothing else notices. If the check fires, the fix is almost
 always to import the pure part rather than to widen the allowlist —
 `shell/navLabels.ts` exists for exactly that reason.
+
+### Release: GitLab → GitHub → Vercel
+
+`main` lives on GitLab (`gitlab.com:dutiva-canada1/dutiva-web`). Vercel builds
+production from the GitHub mirror (`Dutiva-Canada/Dutiva_Web`), so a change is
+not live until it reaches GitHub `main`. Pushing to GitHub via
+`git-receive-pack` fails while the account email is unverified; instead run
+`scripts/github-sync.mjs`, which recreates the commits through the Git Data
+API (trees + commits + ref) with identical SHAs when content allows:
+
+```bash
+GH_TOKEN=$(gh auth token) node scripts/github-sync.mjs <localTipSha> <githubBaseSha>
+```
+
+It verifies each recreated tree against the local one and refuses to
+fast-forward past a divergence. The deploy then appears under
+`vercel ls` within a minute or so.

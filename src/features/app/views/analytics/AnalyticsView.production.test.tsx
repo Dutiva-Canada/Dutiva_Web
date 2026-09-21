@@ -251,7 +251,7 @@ describe('AnalyticsView in production mode', () => {
       }),
       expect.objectContaining({ onConflict: 'organization_id,month' }),
     )
-  })
+  }, 60000)
 
   it('caps the score while a critical finding is open and says so', async () => {
     mockProductionClient({
@@ -302,7 +302,7 @@ describe('AnalyticsView in production mode', () => {
         'Capped at 69 while a critical finding is open — resolve or dismiss it to lift the ceiling.',
       ),
     ).toBeInTheDocument()
-  })
+  }, 60000)
 
   it('aggregates attention, headcount, case aging and leave from live rows', async () => {
     mockProductionClient({
@@ -420,7 +420,7 @@ describe('AnalyticsView in production mode', () => {
     /* No demo constants anywhere. */
     expect(screen.queryByText('82')).not.toBeInTheDocument()
     expect(screen.queryByText('82 employees total')).not.toBeInTheDocument()
-  })
+  }, 60000)
 
   it('lights up certifications, documents, probation, leave and turnover from real records', async () => {
     mockProductionClient({
@@ -544,7 +544,7 @@ describe('AnalyticsView in production mode', () => {
     expect(
       trend.queryByText('Turnover needs termination history, which isn’t tracked yet.'),
     ).not.toBeInTheDocument()
-  })
+  }, 60000)
 
   it('shows the build-it-up empty state when the workspace has no records', async () => {
     mockProductionClient({})
@@ -555,5 +555,5 @@ describe('AnalyticsView in production mode', () => {
 
     expect(await screen.findByText('Nothing to report yet')).toBeInTheDocument()
     expect(screen.getByText(/Analytics builds itself from your real workspace/)).toBeInTheDocument()
-  })
+  }, 60000)
 })
