@@ -7,6 +7,8 @@ import { usePublicPath } from '@/seo/usePublicPath'
 import { BLOG_ARTICLES, articlePath } from '../articles'
 import { ArticlePublishedLabel } from '../articles/ArticlePublishedLabel'
 import { MarketingPageShell, PageAside, PageCta, PageHero } from './MarketingPage'
+import { blogMessages } from '@/i18n/messages/blog'
+import { LangScope } from '@/i18n/LangScope'
 
 /**
  * /blog — article index. Cards render from the article registry
@@ -20,7 +22,17 @@ import { MarketingPageShell, PageAside, PageCta, PageHero } from './MarketingPag
  * `articles/articleModel.ts`; the `PageAside` sends a reader who wants the
  * document rather than the obligation over to `/guides`.
  */
+const SCOPE = blogMessages
+
 export function BlogIndexPage() {
+  return (
+    <LangScope messages={SCOPE}>
+      <BlogIndexPageInner />
+    </LangScope>
+  )
+}
+
+function BlogIndexPageInner() {
   const { t, x, lang } = useI18n()
   const { p } = usePublicPath()
   return (

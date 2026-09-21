@@ -11,10 +11,6 @@ export const changelogMessages = defineMessages({
     fr: 'Mises à jour datées du produit Dutiva — ce qui a changé et quand.',
   },
   /* SEO meta only — page hero keeps the shorter changelog_intro. */
-  changelog_meta_description: {
-    en: 'Dated product updates from Dutiva — what changed, when, and how it affects Canadian HR compliance workflows on the platform.',
-    fr: 'Mises à jour datées du produit Dutiva — ce qui a changé, quand, et l’effet sur les processus de conformité RH au Canada.',
-  },
   changelog_byline: {
     en: 'Updates from Martin Constantineau, Founder & CEO',
     fr: 'Mises à jour de Martin Constantineau, fondateur et chef de la direction',

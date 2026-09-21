@@ -4,7 +4,6 @@ import {
   Banknote,
   Book,
   BookOpen,
-  Brain,
   CalendarCheck,
   ChartNoAxesColumn,
   Contact,
@@ -29,7 +28,10 @@ import type { Bi } from '@/i18n/core'
 import { bi } from '@/i18n/core'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import type { OrgMemberRole } from '@/features/app/workspaceMode/roles'
-import { isModuleEnabled, type WorkspaceModuleKey } from '@/features/app/workspaceMode/workspaceModules'
+import {
+  isModuleEnabled,
+  type WorkspaceModuleKey,
+} from '@/features/app/workspaceMode/workspaceModules'
 import { commsMessages as COMMS } from '@/i18n/messages/comms'
 import { crmMessages as CRM } from '@/i18n/messages/crm'
 import { financeMessages as FINANCE } from '@/i18n/messages/finance'
@@ -78,8 +80,23 @@ const WELLBEING_BADGE = String(
 const OWNER_ADMIN: OrgMemberRole[] = ['owner', 'admin']
 const PROFESSIONAL: OrgMemberRole[] = ['owner', 'admin', 'manager', 'professional']
 const CONSULTANT: OrgMemberRole[] = ['owner', 'admin', 'manager', 'professional', 'consultant']
-const OPERATORS: OrgMemberRole[] = ['owner', 'admin', 'manager', 'professional', 'member', 'consultant']
-const ALL_ROLES: OrgMemberRole[] = ['owner', 'admin', 'manager', 'professional', 'member', 'consultant', 'viewer']
+const OPERATORS: OrgMemberRole[] = [
+  'owner',
+  'admin',
+  'manager',
+  'professional',
+  'member',
+  'consultant',
+]
+const ALL_ROLES: OrgMemberRole[] = [
+  'owner',
+  'admin',
+  'manager',
+  'professional',
+  'member',
+  'consultant',
+  'viewer',
+]
 
 function itemVisible(
   item: NavItem,
@@ -108,13 +125,6 @@ export function getNavGroups(
           to: p('advisor'),
           icon: MessageCircle,
           label: M.shell_nav_advisor_home,
-        },
-        {
-          key: 'memory',
-          to: p('settings/memory'),
-          icon: Brain,
-          label: MEM.memory_title,
-          isActive: (pathname) => pathname.includes('/settings/memory'),
         },
         {
           key: 'workflows',
@@ -309,7 +319,6 @@ export const NAV_GROUPS: NavGroup[] = getNavGroups('/app')
 export const PUBLIC_DEMO_NAV_KEYS = new Set([
   'home',
   'advisor',
-  'memory',
   'workflows',
   'employees',
   'cases',

@@ -35,10 +35,6 @@ export const pricingMessages = defineMessages({
     fr: 'Aucun contrat à long terme ni frais d’installation. Annulez à tout moment — votre forfait reste actif jusqu’à la fin de votre période de facturation. Prix en CAD.',
   },
   /* SEO meta only — kept 120–155 chars so SERP snippets are not truncated. */
-  pricing_meta_description: {
-    en: 'Public CAD plans for Canadian employers — Free waitlist, Starter, Growth, and Professional. Monthly billing, no setup fees, cancel anytime.',
-    fr: 'Forfaits publics en CAD pour employeurs canadiens — liste d’attente, Starter, Growth et Professional. Facturation mensuelle, annulation en tout temps.',
-  },
   pricing_mo: {
     en: '/mo',
     fr: '/mois',

@@ -5,6 +5,8 @@ import { useI18n } from '@/i18n/context'
 import type { MarketingMessageKey } from '@/i18n/messages'
 import { Seo } from '@/seo/Seo'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
+import { limitsMessages } from '@/i18n/messages/knownLimitations'
+import { LangScope } from '@/i18n/LangScope'
 
 const SECTIONS: {
   titleKey: MarketingMessageKey
@@ -35,7 +37,17 @@ function renderLimitation(text: string): ReactNode {
 }
 
 /** /known-limitations — honest constraints of Advisor and documents (limits_* strings). */
+const SCOPE = limitsMessages
+
 export function KnownLimitationsPage() {
+  return (
+    <LangScope messages={SCOPE}>
+      <KnownLimitationsPageInner />
+    </LangScope>
+  )
+}
+
+function KnownLimitationsPageInner() {
   const { t } = useI18n()
   return (
     <MarketingPageShell>

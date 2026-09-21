@@ -4,9 +4,21 @@ import { usePublicPath } from '@/seo/usePublicPath'
 import { formatArticleMonthYear } from '@/seo/dates'
 import { CHANGELOG_ENTRIES, latestChangelogDate } from '../changelog/changelogEntries'
 import { MarketingPageShell, PageCta, PageHero } from './MarketingPage'
+import { changelogMessages } from '@/i18n/messages/changelog'
+import { LangScope } from '@/i18n/LangScope'
 
 /** /changelog — dated public product updates (changelogEntries data). */
+const SCOPE = changelogMessages
+
 export function ChangelogPage() {
+  return (
+    <LangScope messages={SCOPE}>
+      <ChangelogPageInner />
+    </LangScope>
+  )
+}
+
+function ChangelogPageInner() {
   const { t, x, lang } = useI18n()
   const { p } = usePublicPath()
   return (

@@ -10,10 +10,6 @@ import { defineMessages } from '../core'
 export const faqMessages = defineMessages({
   faq_eyebrow: { en: 'FAQ', fr: 'FAQ' },
   faq_h1: { en: 'Frequently asked questions.', fr: 'Foire aux questions.' },
-  faq_intro: {
-    en: 'Answers to common questions about Dutiva — what it does, how it handles Canadian compliance, and how your data is protected.',
-    fr: 'Réponses aux questions courantes sur Dutiva — ce qu’il fait, comment il gère la conformité canadienne et comment vos données sont protégées.',
-  },
   faq_g_title: { en: 'General', fr: 'Général' },
   faq_q1: { en: 'Is Dutiva a law firm?', fr: 'Dutiva est-il un cabinet d’avocats ?' },
   faq_a1: {

@@ -6,7 +6,24 @@ import { LangContext } from './context'
 import type { LangContextValue } from './context'
 import type { Lang } from './core'
 import { HTML_LANG, buildLangContextValue, writeLang } from './lang'
-import { marketingMessages } from './messages/marketing'
+import { common } from './messages/common'
+import { landingChrome } from './messages/landing/chrome'
+import { landingFooter } from './messages/landing/footer'
+import { seoMetaMessages } from './messages/seoMeta'
+
+/**
+ * The catalogue available to every marketing page without a `LangScope`:
+ * shared chrome (Header/Footer strings), the SEO meta copy `seo/routes.ts`
+ * reads eagerly, and the legal disclaimer. Page-specific sections are merged
+ * in by each page's own `LangScope`, so they ship inside the page's lazy
+ * chunk — see LangScope.tsx for why.
+ */
+const MARKETING_CHROME = {
+  ...common,
+  ...seoMetaMessages,
+  ...landingChrome,
+  ...landingFooter,
+} as const
 
 /**
  * URL-scoped language provider for the public marketing surface. The route
@@ -49,7 +66,7 @@ export function ForcedLangProvider({
   )
 
   const value = useMemo<LangContextValue>(
-    () => buildLangContextValue(lang, updateLang, marketingMessages, alternateHref),
+    () => buildLangContextValue(lang, updateLang, MARKETING_CHROME, alternateHref),
     [lang, updateLang, alternateHref],
   )
 

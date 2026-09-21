@@ -73,6 +73,15 @@ export function CapacityAdminControl() {
     setSaving(false)
   }
 
+  /* The API returns utilization 0 as a sentinel when monitoring is off —
+     rendering "0%" next to an over-limit org count reads as a bug. */
+  const monitoringOff = status?.thresholdStatus === 'monitoring_disabled'
+  const dirty =
+    status != null &&
+    (limit !== status.limit ||
+      enforcementEnabled !== status.enforcementEnabled ||
+      mode !== status.mode)
+
   if (loading) return null
   if (!status) {
     return (
@@ -105,7 +114,7 @@ export function CapacityAdminControl() {
         <div className="rounded-[8px] border border-border bg-surface px-[12px] py-[10px]">
           <div className="text-[11.5px] text-text-muted">{x(M.capacity_admin_utilization)}</div>
           <div className="text-[18px] font-semibold text-text">
-            {status.utilization}% —{' '}
+            {monitoringOff ? '' : `${status.utilization}% — `}
             {x(THRESHOLD_LABELS[status.thresholdStatus] ?? M.capacity_threshold_normal)}
           </div>
         </div>
@@ -164,7 +173,7 @@ export function CapacityAdminControl() {
         <button
           type="button"
           onClick={() => void save()}
-          disabled={saving}
+          disabled={saving || (!dirty && !saved)}
           className="cursor-pointer rounded-[8px] border border-border bg-surface px-[14px] py-[7px] text-[13px] font-semibold text-text-2 disabled:opacity-60"
         >
           {saving

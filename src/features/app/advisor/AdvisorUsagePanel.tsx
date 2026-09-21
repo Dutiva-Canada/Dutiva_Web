@@ -30,11 +30,11 @@ function planLabel(plan: string, lang: 'en' | 'fr'): string {
 }
 
 /**
- * Compact org Advisor usage from `advisor_usage_summary`. For @dutiva.ca staff,
+ * Org Advisor usage from `advisor_usage_summary`, shown in Settings. For @dutiva.ca staff,
  * replies aren't capped — the org meter is budget visibility only (see
  * `.cursor/rules/dutiva-internal-accounts.mdc`).
  */
-export function AdvisorUsagePanel({ compact = false }: { readonly compact?: boolean }) {
+export function AdvisorUsagePanel() {
   const { x, lang } = useI18n()
   const { organizationId } = useWorkspaceMode()
   const { isAdmin: isStaff } = usePlan()
@@ -56,12 +56,8 @@ export function AdvisorUsagePanel({ compact = false }: { readonly compact?: bool
 
   if (!organizationId || !summary) return null
 
-  const shellClass = compact
-    ? 'mb-4 overflow-hidden rounded-xl border border-border bg-surface px-[14px] py-[10px] text-left'
-    : 'border-t border-inset px-[18px] py-[14px]'
-  const titleClass = compact
-    ? 'text-[12px] font-bold tracking-[0.04em] text-text-muted uppercase'
-    : 'text-[13.5px] font-semibold text-text'
+  const shellClass = 'border-t border-inset px-[18px] py-[14px]'
+  const titleClass = 'text-[13.5px] font-semibold text-text'
 
   if (isStaff) {
     const meterLine = pickL(M.settings_advisor_usage_staff_meter, lang)

@@ -41,6 +41,9 @@ export const landingFooter = defineMessages({
     en: 'Legal',
     fr: 'Mentions légales',
   },
+  /* Footer link to the legal hub — chrome copy, lives here so it stays in
+     the eager marketing catalogue (Footer renders on every public page). */
+  legalHub_viewAll: { en: 'View all policies', fr: 'Voir toutes les politiques' },
   landing_foot_copyright: {
     en: '© 2026 Dutiva Canada Inc. All rights reserved.',
     fr: '© 2026 Dutiva Canada Inc. Tous droits réservés.',

@@ -24,13 +24,18 @@ const selectClass =
 export function ServiceStatusControl() {
   const { x } = useI18n()
   const [rows, setRows] = useState<ServiceStatusRow[] | null>(null)
+  /* Last persisted snapshot per component — drives the dirty state on Update. */
+  const [baseline, setBaseline] = useState<ServiceStatusRow[] | null>(null)
   const [savingId, setSavingId] = useState<ServiceComponent | null>(null)
   const [savedId, setSavedId] = useState<ServiceComponent | null>(null)
   const [error, setError] = useState(false)
 
   useEffect(() => {
     getServiceStatus()
-      .then(setRows)
+      .then((rs) => {
+        setRows(rs)
+        setBaseline(rs)
+      })
       .catch(() => setError(true))
   }, [])
 
@@ -45,6 +50,7 @@ export function ServiceStatusControl() {
     setError(false)
     try {
       await setServiceStatus(row.component, row.status, row.message ?? '')
+      setBaseline((rs) => rs?.map((r) => (r.component === row.component ? { ...row } : r)) ?? rs)
       setSavedId(row.component)
     } catch (e) {
       console.error('status: update failed', e)
@@ -54,14 +60,29 @@ export function ServiceStatusControl() {
     }
   }
 
-  if (!rows) return null
+  const sectionClass = 'mb-[20px] rounded-[12px] border border-border bg-inset px-[16px] py-[14px]'
+  const titleClass = 'm-0 mb-[10px] text-[13px] font-semibold text-text-2'
+
+  if (!rows) {
+    if (!error) return null
+    return (
+      <section className={sectionClass}>
+        <h2 className={titleClass}>{x(M.status_admin_title)}</h2>
+        <p role="alert" className="m-0 mt-[8px] text-[12.5px] text-risk-fg">
+          {x(M.support_admin_action_error)}
+        </p>
+      </section>
+    )
+  }
   const label = (id: ServiceComponent) => x(SERVICE_COMPONENTS.find((c) => c.id === id)!.label)
+  const isDirty = (row: ServiceStatusRow) => {
+    const base = baseline?.find((b) => b.component === row.component)
+    return !base || base.status !== row.status || (base.message ?? '') !== (row.message ?? '')
+  }
 
   return (
-    <section className="mb-[20px] rounded-[12px] border border-border bg-inset px-[16px] py-[14px]">
-      <h2 className="m-0 mb-[10px] text-[13px] font-semibold text-text-2">
-        {x(M.status_admin_title)}
-      </h2>
+    <section className={sectionClass}>
+      <h2 className={titleClass}>{x(M.status_admin_title)}</h2>
       <div className="grid gap-[8px]">
         {rows.map((row) => (
           <div key={row.component} className="flex flex-wrap items-center gap-[8px]">
@@ -96,7 +117,11 @@ export function ServiceStatusControl() {
               type="button"
               onClick={() => void save(row)}
               disabled={savingId === row.component}
-              className="cursor-pointer rounded-[7px] border border-border bg-surface px-[12px] py-[6px] text-[12.5px] font-semibold text-text-2 disabled:opacity-60"
+              className={`cursor-pointer rounded-[7px] border px-[12px] py-[6px] text-[12.5px] font-semibold disabled:opacity-60 ${
+                isDirty(row)
+                  ? 'border-navy bg-navy text-white'
+                  : 'border-border bg-surface text-text-2'
+              }`}
             >
               {savingId === row.component
                 ? x(M.support_admin_working)

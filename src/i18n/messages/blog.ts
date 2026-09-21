@@ -26,10 +26,6 @@ export const blogMessages = defineMessages({
   },
   /* SEO meta only — kept ≤155 chars so SERP snippets are not truncated.
      Page hero keeps the longer blog_intro. [FR self-authored] */
-  blog_meta_description: {
-    en: 'Employment regimes, required policies, and record-keeping obligations for Canadian employers — practical HR compliance orientation from Dutiva.',
-    fr: 'Régimes d’emploi, politiques exigées et conservation des dossiers pour employeurs canadiens — orientation conformité RH par Dutiva.',
-  },
   /* Visible on blog cards and article pages. {date} is month-year. [FR self-authored] */
   blog_published: {
     en: 'Published {date}',

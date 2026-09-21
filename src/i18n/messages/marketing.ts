@@ -10,6 +10,7 @@ import { legalHubMessages } from './legalHub'
 import { jurisdictionToolMessages } from './jurisdictionTool'
 import { changelogMessages } from './changelog'
 import { comparisonMessages } from './comparison'
+import { seoMetaMessages } from './seoMeta'
 import { sharedMessages } from './shared'
 
 /**
@@ -32,6 +33,7 @@ export const marketingMessages = {
   ...jurisdictionToolMessages,
   ...changelogMessages,
   ...comparisonMessages,
+  ...seoMetaMessages,
   ...sharedMessages,
 } as const
 

@@ -6,9 +6,21 @@ import { legalDocPath } from '@/seo/routes'
 import { LEGAL_HUB_GROUPS } from '../legal/legalHubData'
 import type { LegalHubRow } from '../legal/legalHubData'
 import { MarketingPageShell, PageHero, PageSection } from './MarketingPage'
+import { legalHubMessages } from '@/i18n/messages/legalHub'
+import { LangScope } from '@/i18n/LangScope'
 
 /** /legal — index of the 26 policy documents, grouped per the prototype (legalHub_* strings). */
+const SCOPE = legalHubMessages
+
 export function LegalHubPage() {
+  return (
+    <LangScope messages={SCOPE}>
+      <LegalHubPageInner />
+    </LangScope>
+  )
+}
+
+function LegalHubPageInner() {
   const { t, L, lang } = useI18n()
   return (
     <MarketingPageShell>

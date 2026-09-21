@@ -40,6 +40,10 @@ import { webApplicationNode } from '@/seo/jsonld'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
 import { ReviewTrustSignals } from '../ReviewTrustSignals'
 import { TestimonialWall } from '../sections/TestimonialWall'
+import { pricingMessages } from '@/i18n/messages/pricing'
+import { landingPricing } from '@/i18n/messages/landing/pricing'
+import { landingTestimonials } from '@/i18n/messages/landing/testimonials'
+import { LangScope } from '@/i18n/LangScope'
 
 /** Full-width band with no heading — for the admin-bypass banner and checkout notice. */
 function Band({ children }: { readonly children: ReactNode }) {
@@ -367,7 +371,17 @@ const ENTITLED_FOOTNOTES: MarketingMessageKey[] = [
  * Checkout goes through the `create-checkout-session` Supabase function; an
  * internal Dutiva account bypasses it (adminAccess.ts) without a public banner.
  */
+const SCOPE = { ...pricingMessages, ...landingPricing, ...landingTestimonials }
+
 export function PricingPage() {
+  return (
+    <LangScope messages={SCOPE}>
+      <PricingPageInner />
+    </LangScope>
+  )
+}
+
+function PricingPageInner() {
   const { t, lang } = useI18n()
   const { p, home } = usePublicPath()
   const { status } = useAuth()
@@ -502,7 +516,9 @@ export function PricingPage() {
       if (result.ok) return
       setNotice({
         tone: 'error',
-        text: t(result.reason === 'unavailable' ? 'pricing_checkout_unavailable' : 'pricing_portal_error'),
+        text: t(
+          result.reason === 'unavailable' ? 'pricing_checkout_unavailable' : 'pricing_portal_error',
+        ),
       })
     } finally {
       setPortalLoading(false)

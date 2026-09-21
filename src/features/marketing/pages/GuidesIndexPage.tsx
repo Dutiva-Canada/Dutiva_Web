@@ -6,6 +6,9 @@ import { maxIsoDate } from '@/seo/dates'
 import { usePublicPath } from '@/seo/usePublicPath'
 import { GUIDE_ARTICLES, articlePath } from '../articles'
 import { MarketingPageShell, PageAside, PageCta, PageHero, PageSection } from './MarketingPage'
+import { guidesIndexMessages } from '@/i18n/messages/guidesIndex'
+import { tmplGuideMessages } from '@/i18n/messages/templateUsage'
+import { LangScope } from '@/i18n/LangScope'
 
 /**
  * /guides — index of the evergreen employment-law guides. Cards render from
@@ -19,7 +22,17 @@ import { MarketingPageShell, PageAside, PageCta, PageHero, PageSection } from '.
  * otherwise reachable only from the footer and one landing-page link. See the
  * collection split in `articles/articleModel.ts`.
  */
+const SCOPE = { ...guidesIndexMessages, ...tmplGuideMessages }
+
 export function GuidesIndexPage() {
+  return (
+    <LangScope messages={SCOPE}>
+      <GuidesIndexPageInner />
+    </LangScope>
+  )
+}
+
+function GuidesIndexPageInner() {
   const { t, x, lang } = useI18n()
   const { p } = usePublicPath()
 

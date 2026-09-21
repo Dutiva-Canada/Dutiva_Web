@@ -198,7 +198,6 @@ export const legalHubMessages = defineMessages({
     en: 'All legal & compliance documents',
     fr: 'Tous les documents juridiques et de conformité',
   },
-  legalHub_viewAll: { en: 'View all policies', fr: 'Voir toutes les politiques' },
   legalHub_lastUpdated: { en: 'Last updated', fr: 'Dernière mise à jour' },
   legalHub_effective: { en: 'Effective date', fr: 'Date d’entrée en vigueur' },
   legalHub_frOnly: {

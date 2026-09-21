@@ -17,6 +17,8 @@ import { ArticlePublishedLabel } from '@/features/marketing/articles/ArticlePubl
    see articles/content.ts. This route is lazy, so it lands in this chunk. */
 import { articleSections } from '@/features/marketing/articles/content'
 import { Breadcrumbs, MarketingPageShell } from './MarketingPage'
+import { blogMessages } from '@/i18n/messages/blog'
+import { LangScope } from '@/i18n/LangScope'
 
 /**
  * One editorial article: `/guides/:slug` (EN) / `/fr/guides/:slug` (FR), or
@@ -27,7 +29,17 @@ import { Breadcrumbs, MarketingPageShell } from './MarketingPage'
  * PolicyPage and HelpArticlePage. `/guides/template-usage` is a separate
  * static route and is matched ahead of this one by the router's ranking.
  */
-export function ArticlePage({ collection }: { readonly collection: ArticleCollection }) {
+const SCOPE = blogMessages
+
+export function ArticlePage(props: { readonly collection: ArticleCollection }) {
+  return (
+    <LangScope messages={SCOPE}>
+      <ArticlePageInner {...props} />
+    </LangScope>
+  )
+}
+
+function ArticlePageInner({ collection }: { readonly collection: ArticleCollection }) {
   const { slug } = useParams()
   const { pathname } = useLocation()
   const { t, x, lang } = useI18n()

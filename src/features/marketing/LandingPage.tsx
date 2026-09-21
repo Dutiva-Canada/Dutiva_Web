@@ -22,6 +22,9 @@ import { Pricing } from './sections/Pricing'
 import { Guides } from './sections/Guides'
 import { BetaSignup } from './sections/BetaSignup'
 import { Footer } from './sections/Footer'
+import { landing } from '@/i18n/messages/landing/index'
+import { aboutMessages } from '@/i18n/messages/about'
+import { LangScope } from '@/i18n/LangScope'
 
 /**
  * Marketing landing page (dutiva.ca) — ported from
@@ -30,7 +33,17 @@ import { Footer } from './sections/Footer'
  * Document Studio → one workspace → beta testimonials (when published) →
  * coverage → pricing → guides → beta signup → footer.
  */
+const SCOPE = { ...landing, ...aboutMessages }
+
 export function LandingPage() {
+  return (
+    <LangScope messages={SCOPE}>
+      <LandingPageInner />
+    </LangScope>
+  )
+}
+
+function LandingPageInner() {
   const { lang, x, L } = useI18n()
   useScrollToHash()
   /* BreadcrumbList JSON-LD for search; the homepage has no trail to draw. */

@@ -7,6 +7,8 @@ import { howToNode } from '@/seo/jsonld'
 import { seoRoute } from '@/seo/routes'
 import { usePublicPath } from '@/seo/usePublicPath'
 import { Breadcrumbs, MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
+import { tmplGuideMessages } from '@/i18n/messages/templateUsage'
+import { LangScope } from '@/i18n/LangScope'
 
 const STEPS: { titleKey: MarketingMessageKey; bodyKey: MarketingMessageKey }[] = [
   { titleKey: 'tmplGuide_st1t', bodyKey: 'tmplGuide_st1p' },
@@ -33,7 +35,17 @@ const PRACTICES: MarketingMessageKey[] = [
 ]
 
 /** /guides/template-usage — how template generation works (tmplGuide_* strings). */
+const SCOPE = tmplGuideMessages
+
 export function TemplateUsagePage() {
+  return (
+    <LangScope messages={SCOPE}>
+      <TemplateUsagePageInner />
+    </LangScope>
+  )
+}
+
+function TemplateUsagePageInner() {
   const { t, lang } = useI18n()
   const { p, home } = usePublicPath()
   const route = seoRoute('templateUsage')

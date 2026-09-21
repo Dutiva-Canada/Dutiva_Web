@@ -26,6 +26,8 @@ import { HelpContactCta } from '@/features/support/help/HelpContactCta'
 import { searchHelpArticles } from '@/features/support/help/helpSearch'
 import { trackEvent } from '@/features/support/analytics/supportAnalytics'
 import { MarketingPageShell, PageHero } from './MarketingPage'
+import { helpCenterMessages } from '@/i18n/messages/helpCenter'
+import { LangScope } from '@/i18n/LangScope'
 
 const CATEGORY_ICONS: Record<HelpIcon, LucideIcon> = {
   rocket: Rocket,
@@ -37,7 +39,17 @@ const CATEGORY_ICONS: Record<HelpIcon, LucideIcon> = {
 }
 
 /** /help (EN) · /fr/aide (FR) — searchable, category-organized self-service hub. */
+const SCOPE = helpCenterMessages
+
 export function HelpCenterPage() {
+  return (
+    <LangScope messages={SCOPE}>
+      <HelpCenterPageInner />
+    </LangScope>
+  )
+}
+
+function HelpCenterPageInner() {
   const { t, x, lang } = useI18n()
   const [query, setQuery] = useState('')
   const trimmed = query.trim()

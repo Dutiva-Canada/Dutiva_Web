@@ -5,6 +5,8 @@ import { supportMessages as M } from '@/i18n/messages/support'
 import type { SupportCategory } from '@/config/support'
 import { PublicSupportForm } from '@/features/support/PublicSupportForm'
 import { MarketingPageShell, PageHero } from './MarketingPage'
+import { supportMessages } from '@/i18n/messages/support'
+import { LangScope } from '@/i18n/LangScope'
 
 /** `?topic=` deep links (from the Help Centre, footer, or legal pages) preselect a category. */
 const TOPIC_MAP: Record<string, SupportCategory> = {
@@ -16,7 +18,17 @@ const TOPIC_MAP: Record<string, SupportCategory> = {
 }
 
 /** /contact (EN) · /fr/contact (FR) — public, unauthenticated support intake. */
+const SCOPE = supportMessages
+
 export function ContactPage() {
+  return (
+    <LangScope messages={SCOPE}>
+      <ContactPageInner />
+    </LangScope>
+  )
+}
+
+function ContactPageInner() {
   const { x } = useI18n()
   const [params] = useSearchParams()
   const topic = TOPIC_MAP[params.get('topic') ?? '']

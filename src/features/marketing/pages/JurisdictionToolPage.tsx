@@ -11,6 +11,8 @@ import {
   isSupported,
 } from '../tools/jurisdictionLogic'
 import type { Answers, QuestionId } from '../tools/jurisdictionLogic'
+import { jurisdictionToolMessages } from '@/i18n/messages/jurisdictionTool'
+import { LangScope } from '@/i18n/LangScope'
 
 /**
  * Jurisdiction-scoping questionnaire — a free, public, linkable tool that
@@ -23,7 +25,17 @@ import type { Answers, QuestionId } from '../tools/jurisdictionLogic'
  * the editorial rule in `articleModel.ts` (no notice periods, thresholds,
  * or deadline counts). See docs/SEO_AUTHORITY_PLAYBOOK.md § Open items 3.
  */
+const SCOPE = jurisdictionToolMessages
+
 export function JurisdictionToolPage() {
+  return (
+    <LangScope messages={SCOPE}>
+      <JurisdictionToolPageInner />
+    </LangScope>
+  )
+}
+
+function JurisdictionToolPageInner() {
   const { t, x } = useI18n()
   const { p } = usePublicPath()
   const [answers, setAnswers] = useState<Answers>({})

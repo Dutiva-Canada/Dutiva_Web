@@ -5,6 +5,13 @@ import type { MessageKey } from './messages'
 export interface LangContextValue {
   lang: Lang
   setLang: (lang: Lang) => void
+  /**
+   * The catalogue `t()` resolves against. Exposed so `LangScope` can merge a
+   * page's own message modules on top of the surface catalogue — that is
+   * what keeps each lazy marketing page's strings inside its own chunk
+   * instead of one eager `messages-marketing` bundle.
+   */
+  catalogue: Record<string, Bi>
   /** Look up a UI-chrome string by key. */
   t: (key: MessageKey) => string
   /** Inline bilingual pair — mirrors the prototype's `L(en, fr)`. */

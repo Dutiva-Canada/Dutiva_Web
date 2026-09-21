@@ -3,6 +3,9 @@ import { useI18n } from '@/i18n/context'
 import type { MarketingMessageKey } from '@/i18n/messages'
 import { Seo } from '@/seo/Seo'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
+import { faqMessages } from '@/i18n/messages/faq'
+import { landingFaq } from '@/i18n/messages/landing/faq'
+import { LangScope } from '@/i18n/LangScope'
 
 const GROUPS: {
   titleKey: MarketingMessageKey
@@ -56,7 +59,17 @@ const GROUPS: {
 ]
 
 /** /faq — four question groups of native no-JS <details> accordions (faq_* strings). */
+const SCOPE = { ...faqMessages, ...landingFaq }
+
 export function FaqPage() {
+  return (
+    <LangScope messages={SCOPE}>
+      <FaqPageInner />
+    </LangScope>
+  )
+}
+
+function FaqPageInner() {
   const { t } = useI18n()
   /* FAQPage JSON-LD is built from the exact GROUPS rendered below, so the
      markup can never diverge from the visible questions and answers. */

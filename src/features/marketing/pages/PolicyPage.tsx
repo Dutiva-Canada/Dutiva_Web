@@ -4,19 +4,14 @@ import { ArrowLeft, Info } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { Seo } from '@/seo/Seo'
 import { parseDisplayDate } from '@/seo/dates'
-import {
-  legalDocDescription,
-  legalDocPath,
-  legalDocTitle,
-  legalRowByFrSlug,
-  legalRowBySlug,
-  langOfPath,
-  seoRoute,
-} from '@/seo/routes'
+import { legalDocDescription, legalDocTitle } from '@/seo/publicPages'
+import { legalDocPath, legalRowByFrSlug, legalRowBySlug, langOfPath, seoRoute } from '@/seo/routes'
 import type { LegalHubRow } from '../legal/legalHubData'
 import { groupPolicyBlocks, policyDoc, policyEditionResource } from '../legal/policyContent'
 import type { PolicyDoc } from '../legal/policyContent'
 import { MarketingPageShell } from './MarketingPage'
+import { legalHubMessages } from '@/i18n/messages/legalHub'
+import { LangScope } from '@/i18n/LangScope'
 
 /**
  * One policy document from the bilingual legal content collection, at
@@ -30,7 +25,17 @@ import { MarketingPageShell } from './MarketingPage'
  * editions; if a future document lands French-first, the French edition
  * renders under the EN UI with a notice and `lang="fr"` on the article.
  */
+const SCOPE = legalHubMessages
+
 export function PolicyPage() {
+  return (
+    <LangScope messages={SCOPE}>
+      <PolicyPageInner />
+    </LangScope>
+  )
+}
+
+function PolicyPageInner() {
   const { slug } = useParams()
   const { pathname } = useLocation()
   const { lang } = useI18n()
@@ -188,7 +193,6 @@ function PolicyArticle({ row, doc }: { readonly row: LegalHubRow; readonly doc: 
           )}
         </section>
       ))}
-
     </article>
   )
 }

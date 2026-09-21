@@ -4,7 +4,7 @@ import { latestChangelogDate } from '@/features/marketing/changelog/changelogEnt
 import { HELP_ARTICLES } from '@/features/support/help/helpCenterData'
 import { maxIsoDate } from './dates'
 import { lastmodFor } from './lastmod'
-import { allPublicPages } from './routes'
+import { allPublicPages } from './publicPages'
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/
 

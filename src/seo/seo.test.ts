@@ -18,14 +18,8 @@ import {
   webPageNode,
   webSiteNode,
 } from './jsonld'
-import {
-  LEGAL_ROWS,
-  SEO_ROUTES,
-  allPublicPages,
-  alternatePathFor,
-  langOfPath,
-  legalDocPath,
-} from './routes'
+import { LEGAL_ROWS, SEO_ROUTES, alternatePathFor, langOfPath, legalDocPath } from './routes'
+import { allPublicPages } from './publicPages'
 import { HELP_ARTICLES } from '@/features/support/help/helpCenterData'
 import { ALL_ARTICLES, BLOG_ARTICLES, GUIDE_ARTICLES } from '@/features/marketing/articles'
 import { FOUNDER, ORG, SITE_ORIGIN, absoluteUrl } from './site'

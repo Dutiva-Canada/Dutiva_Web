@@ -148,6 +148,18 @@ export async function adminListTickets(
     })
 }
 
+/* True open-queue size for the dashboard header — independent of the
+   filtered, 200-row page the table is showing. */
+export async function adminCountOpenTickets(): Promise<number | null> {
+  if (!supabase) return null
+  const { count, error } = await supabase
+    .from('support_tickets')
+    .select('id', { count: 'exact', head: true })
+    .not('status', 'in', '("resolved","closed")')
+  if (error) return null
+  return count ?? 0
+}
+
 export async function adminGetTicket(id: string): Promise<AdminTicket | null> {
   if (!supabase) return null
   const { data: ticket, error } = await supabase

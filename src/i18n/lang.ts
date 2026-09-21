@@ -52,6 +52,7 @@ export function buildLangContextValue(
   return {
     lang,
     setLang,
+    catalogue,
     t,
     L: (en, fr) => (lang === 'fr' ? fr : en),
     x: (v) => pick(v, lang),

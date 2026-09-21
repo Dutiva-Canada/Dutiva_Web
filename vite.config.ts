@@ -2,7 +2,6 @@
  *   Copyright (c) 2026
  *   All rights reserved.
  */
-import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { defineConfig, configDefaults } from 'vitest/config'
 import type { Plugin } from 'vite'
@@ -58,43 +57,6 @@ function devSourceLocation(): Plugin {
   }
 }
 
-/**
- * Every npm package reachable from `roots` through `dependencies` — the tree
- * that ships when those roots are imported. Used to keep a dependency tree out
- * of the eager `vendor` chunk without hand-maintaining the member list: the
- * markdown renderer alone pulls 99 packages (micromark, mdast-util-*,
- * hast-util-*, unified, …), and a list that long drifts the first time a
- * plugin is added.
- *
- * Peer dependencies are deliberately not followed — react is a peer of
- * react-markdown, and swallowing it would empty the vendor chunk. `keepInVendor`
- * is the belt to that braces: a package named there is never excluded, however
- * it was reached.
- */
-function dependencyClosure(roots: readonly string[], keepInVendor: readonly string[]): Set<string> {
-  const keep = new Set(keepInVendor)
-  const seen = new Set<string>()
-  const queue = [...roots]
-  while (queue.length) {
-    const name = queue.pop()!
-    if (seen.has(name) || keep.has(name)) continue
-    seen.add(name)
-    let pkg: { dependencies?: Record<string, string> }
-    try {
-      pkg = JSON.parse(
-        readFileSync(
-          fileURLToPath(new URL(`./node_modules/${name}/package.json`, import.meta.url)),
-          'utf8',
-        ),
-      )
-    } catch {
-      continue // not installed (optional/platform dep) — nothing to exclude
-    }
-    queue.push(...Object.keys(pkg.dependencies ?? {}))
-  }
-  return seen
-}
-
 /** Depth-first walk over a Babel AST, visiting every node with a `type`. */
 function walkAst(node: any, visit: (n: any) => void): void {
   if (!node || typeof node !== 'object') return
@@ -138,85 +100,35 @@ function preloadLcpFont(): Plugin {
   }
 }
 
-/* Packages that are legitimately eager no matter which lazy root reaches
-   them — the keepInVendor argument to every dependencyClosure below. */
-const EAGER_FAMILY = ['react', 'react-dom', 'react-router', 'react-router-dom', 'scheduler']
-
-/* Dependency trees that must stay out of the eager `vendor` chunk, computed
-   so transitive deps can't drift back in: the markdown renderer alone pulls
-   99 packages (micromark, mdast-util-*, hast-util-*, …), onnxruntime-web
-   pulls onnxruntime-common/flatbuffers/long/…, and recharts pulls redux /
-   redux-thunk / react-is through @reduxjs/toolkit — all of which leaked into
-   vendor under the previous hand-maintained regex. */
-const MARKDOWN_TREE = dependencyClosure(['react-markdown', 'remark-gfm'], EAGER_FAMILY)
-const DOCX_TREE = dependencyClosure(['docx'], EAGER_FAMILY)
-const READ_EXCEL_FILE_TREE = dependencyClosure(['read-excel-file'], EAGER_FAMILY)
-const TRANSFORMERS_TREE = dependencyClosure(
-  ['@xenova/transformers', 'onnxruntime-web'],
-  EAGER_FAMILY,
-)
-const RECHARTS_TREE = dependencyClosure(['recharts', 'victory-vendor'], EAGER_FAMILY)
-
-/** Packages excluded from vendor by exact name — lazy-only deps whose trees
-    are either computed above or small enough to list. */
-const VENDOR_EXCLUDE_EXACT = new Set<string>([
-  'recharts',
-  'victory-vendor',
-  'internmap',
-  '@reduxjs/toolkit',
-  'react-redux',
-  'reselect',
-  'immer',
-  'use-sync-external-store',
-  'es-toolkit',
-  'decimal.js-light',
-  'eventemitter3',
-  'redux',
-  'redux-thunk',
-  'pdf-lib',
-  'pako',
-  'docx',
-  'jszip',
-  'read-excel-file',
-  'pdfjs-dist',
-  'onnxruntime-web',
-  'onnxruntime-common',
-  'sharp',
-  /* zod serves only lazy surfaces — ~40 productionApi/supportApi/careers
-     files under features/, none eager. In vendor it cost every marketing
-     visitor ~50kB of schema parsing they never execute. */
-  'zod',
-  ...MARKDOWN_TREE,
-  ...DOCX_TREE,
-  ...READ_EXCEL_FILE_TREE,
-  ...TRANSFORMERS_TREE,
-  ...RECHARTS_TREE,
+/* The eager runtime core — the only packages the `vendor` chunk claims.
+   Everything else in node_modules falls through to rolldown's default
+   chunking, which is what keeps lazy-only dependencies lazy: a catch-all
+   vendor group instead hoisted every non-excluded module into the eager
+   graph, and the exclusion list could never keep up — 175 lucide-react
+   icon modules shipped eagerly although marketing's entry uses a small
+   fraction of them, and transitive deps (onnxruntime-common, redux,
+   nested pdf-lib/node_modules/tslib copies) leaked past a regex that
+   inspected only one path segment. */
+const VENDOR_PACKAGES = new Set([
+  'react',
+  'react-dom',
+  'react-router',
+  'react-router-dom',
+  'scheduler',
+  'web-vitals',
 ])
 
-/** Whole scopes/prefixes excluded from vendor — catches packages added to
-    these trees later without waiting for a hand-maintained list to drift. */
-const VENDOR_EXCLUDE_SCOPE = /^(@supabase|@pdf-lib|@huggingface|@xenova)[/\\]|^d3-/
-
 /** Every package name appearing at a `node_modules/` boundary in `id`,
-    outermost→innermost. Checking each segment — not just the innermost
-    package — is what keeps `pdf-lib/node_modules/tslib` counted as
-    pdf-lib's tree instead of vendor's. */
-function packagesInPath(id: string): string[] {
-  return id
-    .split(/[\\/]node_modules[\\/]/)
-    .slice(1)
-    .map((seg) =>
-      seg
-        .split(/[\\/]/)
-        .slice(0, seg.startsWith('@') ? 2 : 1)
-        .join('/'),
-    )
-}
-
-function isVendorExcluded(id: string): boolean {
-  return packagesInPath(id).some(
-    (pkg) => VENDOR_EXCLUDE_EXACT.has(pkg) || VENDOR_EXCLUDE_SCOPE.test(pkg),
-  )
+    outermost→innermost. The vendor test uses the innermost segment — the
+    module's own package — so `react-router/node_modules/tslib` counts as
+    tslib, not react-router. */
+function packageOfModule(id: string): string | undefined {
+  const seg = id.split(/[\\/]node_modules[\\/]/).at(-1)
+  if (!seg || seg === id) return undefined
+  return seg
+    .split(/[\\/]/)
+    .slice(0, seg.startsWith('@') ? 2 : 1)
+    .join('/')
 }
 
 // https://vite.dev/config/
@@ -334,65 +246,63 @@ export default defineConfig(({ command }) => {
                  opposite reason: left to default chunking with no split at
                  all, the catalogue became 25+ separate files, each
                  modulepreloaded from every prerendered page. */
+              /* Message catalogues split per consumer so a lazy page's
+                 strings ride its own chunk instead of one eager bundle —
+                 ForcedLangProvider keeps only common + seoMeta + landing
+                 chrome/footer eagerly (see LangScope.tsx), and those stay
+                 OUT of every group below: one eager member would make the
+                 whole grouped chunk a preload again.
+
+                 messages-marketing: pure-marketing sections (pages scope
+                 them via LangScope). messages-shared: the dual-surface set
+                 (support/helpCenter back /contact and in-app forms; shared.ts
+                 is the aggregate both providers merge). landing/*: left
+                 ungrouped — the leaf modules follow their importers
+                 (LandingPage/PricingPage scopes, the workspace catalogue via
+                 shared.ts), which is finer-grained than a 55kB forced chunk.
+                 common.ts, seoMeta.ts and landing/{chrome,footer}.ts are
+                 excluded everywhere and fall through to the entry chunk. */
               {
                 name: 'messages-marketing',
-                test: /[\\/]src[\\/]i18n[\\/]messages[\\/](marketing|shared|common|landing|pricing|templatesPreview|guidesIndex|about|faq|blog|templateUsage|knownLimitations|legalHub|support|helpCenter)\.ts$/,
+                test: /[\\/]src[\\/]i18n[\\/]messages[\\/](marketing|pricing|templatesPreview|guidesIndex|about|faq|blog|templateUsage|knownLimitations|legalHub|changelog|comparison|jurisdictionTool)\.ts$/,
+                /* false matters as much as the test: the default true pulls
+                   each member's whole dependency subtree into the chunk —
+                   marketing.ts → shared.ts → common.ts + all of landing/*,
+                   and landing/pricing.ts → config/plans.ts → messages/index.ts
+                   — which re-captures the eager chrome modules and pins the
+                   chunk back onto every page. */
+                includeDependenciesRecursively: false,
+              },
+              {
+                name: 'messages-shared',
+                test: /[\\/]src[\\/]i18n[\\/]messages[\\/](shared|support|helpCenter)\.ts$/,
+                includeDependenciesRecursively: false,
               },
               {
                 name: 'messages-workspace',
-                test: /[\\/]src[\\/]i18n[\\/]messages[\\/](?!shell\.ts$)(?!workspaceMode\.ts$)/,
+                test: /[\\/]src[\\/]i18n[\\/]messages[\\/](?!shell\.ts$)(?!workspaceMode\.ts$)(?!common\.ts$)(?!seoMeta\.ts$)(?!landing[\\/])/,
                 includeDependenciesRecursively: false,
               },
-              /* @supabase is excluded from vendor so default chunking keeps it
-                 with its only importers (the lazy app surface and /pricing) —
-                 prerendered marketing pages never download or preload it. A
-                 dedicated `supabase` group would instead attract the shared
-                 vite/preload-helper module and get pulled back into the eager
-                 entry graph.
-
-                 recharts and its d3 / redux tree are excluded for the same
-                 reason, and it matters more: ~430kB raw, serving exactly one
-                 thing — the ```chart block in an Advisor reply. ChatMarkdown
-                 imports ChatChart dynamically, so left ungrouped those modules
-                 form an on-demand chunk fetched the first time a reply
-                 actually contains a chart. Naming them as a group instead
-                 makes the chunk static, and AdvisorView links it eagerly.
-
-                 react-markdown's tree (MARKDOWN_TREE) is excluded on the same
-                 grounds: ~158kB parsing Markdown for Advisor replies, reached
-                 only through ChatMarkdown, which only the lazy Advisor surface
-                 renders. In vendor it rode the eager entry graph, so every
-                 marketing visitor downloaded a Markdown parser to read a
-                 landing page. It is computed rather than listed because the
-                 tree is 99 packages deep.
-
-                 pdf-lib (+ @pdf-lib/* + pako) is excluded the same way:
-                 ~500kB+ raw for watermarked signed-PDF export, reached only
-                 from the lazy documents surface (`signedDocumentPdf.ts`). In
-                 vendor it rode every marketing page's modulepreload set.
-
-                 docx (+ jszip tree) is excluded the same way: OOXML Word
-                 export is reached only from Document Studio via a dynamic
-                 import of wordDoc.ts. In vendor it inflated every public
-                 page's eager graph past the entry budget.
-
-                 read-excel-file is excluded the same way: XLSX parsing is
-                 reached only from the lazy BulkImportWizard, so the parser
-                 tree stays in the import chunk and off the marketing landing
-                 path.
-
-                 zod is excluded the same way: ~40 lazy productionApi files
-                 are its only importers, so it belongs to their chunks.
-
-                 The test is a function, not a regex: membership is decided
-                 per `node_modules/` segment (see isVendorExcluded), which
-                 the single-segment lookahead regex could not express — it
-                 missed both nested copies (pdf-lib/node_modules/tslib) and
-                 transitive deps of excluded roots (onnxruntime-common via
-                 onnxruntime-web; redux/redux-thunk via @reduxjs/toolkit). */
+              /* vendor is a whitelist (VENDOR_PACKAGES), not a catch-all:
+                 only the eager runtime core belongs here. Everything else —
+                 @supabase (lazy app surface + /pricing), react-markdown
+                 (~158kB, Advisor replies), recharts + d3/redux (~430kB, one
+                 ```chart block), pdf-lib + pako (~500kB, signed-PDF export),
+                 docx/jszip (Word export), read-excel-file (XLSX import),
+                 @xenova/transformers + onnxruntime (browser AI), zod (lazy
+                 API schemas), and every lucide icon only workspace screens
+                 use — follows its importers and stays off the marketing
+                 landing path. Giving any of those a named group would
+                 backfire: a shared chunk attracts the vite/preload-helper
+                 and gets pulled back into the eager entry graph, and a
+                 dynamic-import tree like ChatChart's would turn into a
+                 static chunk AdvisorView preloads. */
               {
                 name: 'vendor',
-                test: (id: string) => /[\\/]node_modules[\\/]/.test(id) && !isVendorExcluded(id),
+                test: (id: string) => {
+                  const pkg = packageOfModule(id)
+                  return pkg !== undefined && VENDOR_PACKAGES.has(pkg)
+                },
               },
             ],
           },

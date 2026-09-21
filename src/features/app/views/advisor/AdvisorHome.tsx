@@ -7,7 +7,6 @@ import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
 import { homeMessages as HM } from '@/i18n/messages/home'
 import { workspaceModeMessages as WM } from '@/i18n/messages/workspaceMode'
 import { ChatComposer } from '@/features/app/advisor/ChatComposer'
-import { AdvisorUsagePanel } from '@/features/app/advisor/AdvisorUsagePanel'
 import { SuggestionChipGrid, SuggestionChips } from '@/features/app/advisor/SuggestionChips'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { dotToneClass, statusChipClass } from '@/components/chips'
@@ -157,8 +156,6 @@ export function AdvisorHome({
                 )}
               </>
             )}
-
-            <AdvisorUsagePanel compact />
 
             <div className="text-left">
               <ChatComposer

@@ -15,9 +15,21 @@ import {
 } from '@/features/support/statusApi'
 import type { ServiceStatusRow } from '@/features/support/statusApi'
 import { MarketingPageShell, PageHero } from './MarketingPage'
+import { supportMessages } from '@/i18n/messages/support'
+import { LangScope } from '@/i18n/LangScope'
 
 /** /status (EN) · /fr/etat (FR) — public, self-reported service status board. */
+const SCOPE = supportMessages
+
 export function StatusPage() {
+  return (
+    <LangScope messages={SCOPE}>
+      <StatusPageInner />
+    </LangScope>
+  )
+}
+
+function StatusPageInner() {
   const { x, lang } = useI18n()
   const [rows, setRows] = useState<ServiceStatusRow[]>(() =>
     SERVICE_COMPONENTS.map((c) => ({

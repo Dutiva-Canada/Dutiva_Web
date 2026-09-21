@@ -24,6 +24,8 @@ import { HelpfulnessWidget } from '@/features/support/help/HelpfulnessWidget'
 import { HelpContactCta } from '@/features/support/help/HelpContactCta'
 import { trackEvent } from '@/features/support/analytics/supportAnalytics'
 import { MarketingPageShell } from './MarketingPage'
+import { helpCenterMessages } from '@/i18n/messages/helpCenter'
+import { LangScope } from '@/i18n/LangScope'
 
 /**
  * One Help Centre article at /help/:slug (EN) or /fr/aide/:slug (FR — localized
@@ -33,7 +35,17 @@ import { MarketingPageShell } from './MarketingPage'
  * slug space still resolves, with its canonical tag pointing at the correct
  * localized URL.
  */
+const SCOPE = helpCenterMessages
+
 export function HelpArticlePage() {
+  return (
+    <LangScope messages={SCOPE}>
+      <HelpArticlePageInner />
+    </LangScope>
+  )
+}
+
+function HelpArticlePageInner() {
   const { slug } = useParams()
   const { pathname } = useLocation()
   const { t, x, lang } = useI18n()

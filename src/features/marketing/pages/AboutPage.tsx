@@ -17,6 +17,8 @@ import { FOUNDER, ORG } from '@/seo/site'
 import { FounderIdentity } from '../FounderIdentity'
 import { MarketingPageShell, PageAside, PageCta, PageHero, PageSection } from './MarketingPage'
 import { usePublicPath } from '@/seo/usePublicPath'
+import { aboutMessages } from '@/i18n/messages/about'
+import { LangScope } from '@/i18n/LangScope'
 
 const VALUES: { icon: LucideIcon; titleKey: MarketingMessageKey; bodyKey: MarketingMessageKey }[] =
   [
@@ -38,7 +40,17 @@ const COMPANY_PROFILES: {
 ]
 
 /** /about — company story, values, built-in-Canada band (about_* strings). */
+const SCOPE = aboutMessages
+
 export function AboutPage() {
+  return (
+    <LangScope messages={SCOPE}>
+      <AboutPageInner />
+    </LangScope>
+  )
+}
+
+function AboutPageInner() {
   const { t, lang } = useI18n()
   const { p } = usePublicPath()
   return (

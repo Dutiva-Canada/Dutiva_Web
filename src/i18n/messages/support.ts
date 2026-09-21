@@ -24,6 +24,10 @@ export const supportMessages = defineMessages({
     en: 'Do not include unnecessary employee personal information, medical information, investigation evidence or other confidential workplace records. Dutiva will provide secure instructions if additional information is required.',
     fr: 'N’incluez pas inutilement de renseignements personnels sur des employés, de renseignements médicaux, de preuves liées à une enquête ou d’autres dossiers confidentiels du milieu de travail. Dutiva fournira des instructions sécurisées si des renseignements supplémentaires sont nécessaires.',
   },
+  support_targets_title: {
+    en: 'Initial response targets',
+    fr: 'Cibles de première réponse',
+  },
   support_targets_note: {
     en: 'These are initial-response targets, not guaranteed resolution times. Business days exclude weekends and Ontario statutory holidays. Priority may be reassessed after review, and privacy and security incidents may follow separate procedures. You may submit a request at any time; Dutiva does not currently offer continuously staffed 24/7 support.',
     fr: 'Il s’agit de cibles de première réponse, et non de délais de résolution garantis. Les jours ouvrables excluent les fins de semaine et les jours fériés légaux de l’Ontario. La priorité peut être réévaluée après examen, et les incidents de confidentialité et de sécurité peuvent suivre des procédures distinctes. Vous pouvez soumettre une demande en tout temps ; Dutiva n’offre pas pour le moment de soutien continu 24 heures sur 24, 7 jours sur 7.',

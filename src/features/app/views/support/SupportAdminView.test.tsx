@@ -5,7 +5,12 @@ import { LangProvider } from '@/i18n/LangProvider'
 
 const isCurrentUserAdmin = vi.hoisted(() => vi.fn())
 const adminListTickets = vi.hoisted(() => vi.fn())
-vi.mock('@/features/support/supportAdminApi', () => ({ isCurrentUserAdmin, adminListTickets }))
+const adminCountOpenTickets = vi.hoisted(() => vi.fn())
+vi.mock('@/features/support/supportAdminApi', () => ({
+  isCurrentUserAdmin,
+  adminListTickets,
+  adminCountOpenTickets,
+}))
 
 import { SupportAdminView } from './SupportAdminView'
 
@@ -23,6 +28,8 @@ beforeEach(() => {
   isCurrentUserAdmin.mockReset()
   adminListTickets.mockReset()
   adminListTickets.mockResolvedValue([])
+  adminCountOpenTickets.mockReset()
+  adminCountOpenTickets.mockResolvedValue(0)
   vi.stubGlobal(
     'matchMedia',
     vi.fn((query: string) => ({

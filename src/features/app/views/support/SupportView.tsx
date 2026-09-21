@@ -3,7 +3,7 @@ import { useI18n } from '@/i18n/context'
 import { pickL } from '@/i18n/core'
 import { legalDocPath, legalRowBySlug, seoRoute } from '@/seo/routes'
 import { supportMessages as M } from '@/i18n/messages/support'
-import { RESPONSE_TARGETS, SUPPORT_CHANNELS } from '@/config/support'
+import { PRIORITY_LABELS, RESPONSE_TARGETS, SUPPORT_CHANNELS } from '@/config/support'
 import { SupportRequestForm } from '@/features/support/SupportRequestForm'
 import { onboardingSupportPrefill } from '@/features/app/views/settings/onboardingRequest'
 import { SupportSectionNav } from './SupportSectionNav'
@@ -58,12 +58,13 @@ export function SupportView() {
           <aside className="w-[300px] shrink-0 flex-col gap-[16px] max-[1023px]:w-full">
             <section className="mb-[16px] rounded-[14px] border border-border bg-surface p-[18px]">
               <h2 className="m-0 mb-[10px] font-display text-[13px] font-bold tracking-[0.04em] text-text-muted uppercase">
-                {x(M.support_field_response_method)}
+                {x(M.support_targets_title)}
               </h2>
               <ul className="m-0 flex list-none flex-col gap-[6px] p-0">
                 {PRIORITY_ORDER.map((p) => (
                   <li key={p} className="flex justify-between gap-[8px] text-[13px]">
-                    <span className="text-text-2">{x(RESPONSE_TARGETS[p].label)}</span>
+                    <span className="font-semibold text-text-2">{x(PRIORITY_LABELS[p])}</span>
+                    <span className="text-text-muted">{x(RESPONSE_TARGETS[p].label)}</span>
                   </li>
                 ))}
               </ul>

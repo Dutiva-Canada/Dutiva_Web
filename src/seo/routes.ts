@@ -10,7 +10,7 @@ import { HELP_ARTICLES } from '@/features/support/help/helpCenterData'
 import type { HelpArticle } from '@/features/support/help/helpCenterData'
 import { ALL_ARTICLES, articlePath } from '@/features/marketing/articles'
 import type { Article } from '@/features/marketing/articles'
-import { marketingMessages } from '@/i18n/messages/marketing'
+import { seoMetaMessages } from '@/i18n/messages/seoMeta'
 import { formatMetaDescription } from './metaDescription'
 
 /**
@@ -70,11 +70,11 @@ export interface SeoRoute {
 }
 
 /** Bilingual page copy reused from the message catalogue, keeping metadata
-    aligned with the visible H1/intro copy it summarizes. Scoped to the
-    marketing catalogue (this file is entirely public-surface) rather than
-    the full merged one, so importing it does not pull workspace message
-    modules into the eager marketing bundle. */
-const t = (key: keyof typeof marketingMessages): Bi => marketingMessages[key]
+    aligned with the visible H1/intro copy it summarizes. Scoped to the tiny
+    `seoMeta` module — this file sits in the eager entry chunk, so importing
+    the full marketing aggregate here would defeat the per-page LangScope
+    split. */
+const t = (key: keyof typeof seoMetaMessages): Bi => seoMetaMessages[key]
 
 export const SEO_ROUTES: readonly SeoRoute[] = [
   {
@@ -333,21 +333,6 @@ export function legalDocPath(row: LegalHubRow, lang: Lang): string {
   return lang === 'fr' ? `/fr/juridique/${row.frSlug}` : `/legal/${row.slug}`
 }
 
-/** Localized document title / short description from the message catalogue. */
-export function legalDocTitle(row: LegalHubRow, lang: Lang): string {
-  return pick(marketingMessages[row.titleKey], lang)
-}
-
-export function legalDocDescription(row: LegalHubRow, lang: Lang): string {
-  const title = legalDocTitle(row, lang)
-  const desc = pick(marketingMessages[row.descKey], lang)
-  const suffix =
-    lang === 'fr'
-      ? ' Document officiel Dutiva Canada Inc.'
-      : ' Official Dutiva Canada Inc. policy document.'
-  return formatMetaDescription(`${title}: ${desc}`, lang, suffix)
-}
-
 /* ------------------------------------------------------------------ */
 /* Help Centre articles (dynamic /help/:slug pages)                    */
 /* ------------------------------------------------------------------ */
@@ -389,68 +374,18 @@ export function articleDescription(article: Article, lang: Lang): string {
 /* Locale path mapping (language toggle + hreflang)                    */
 /* ------------------------------------------------------------------ */
 
-export interface PublicPage {
-  /** Registry route id, or `legalDoc:<slug>` for policy documents. */
-  key: string
-  path: Record<Lang, string>
-  title: Bi
-  description: Bi
-  indexable: boolean
-}
-
-/** Every public page (static routes + the 26 policy documents), one entry per
-    EN/FR pair. Drives the sitemap, llms.txt, and prerender manifest. */
-export function allPublicPages(): PublicPage[] {
-  const staticPages: PublicPage[] = SEO_ROUTES.map((r) => ({
-    key: r.id,
-    path: r.path,
-    title: r.title,
-    description: r.description,
-    indexable: r.indexable,
-  }))
-  const legalPages: PublicPage[] = LEGAL_ROWS.map((row) => ({
-    key: `legalDoc:${row.slug}`,
-    path: { en: legalDocPath(row, 'en'), fr: legalDocPath(row, 'fr') },
-    title: {
-      en: `${legalDocTitle(row, 'en')} | Dutiva`,
-      fr: `${legalDocTitle(row, 'fr')} | Dutiva`,
-    },
-    description: {
-      en: legalDocDescription(row, 'en'),
-      fr: legalDocDescription(row, 'fr'),
-    },
-    indexable: true,
-  }))
-  const helpPages: PublicPage[] = HELP_ARTICLES.map((article) => ({
-    key: `helpDoc:${article.slug}`,
-    path: { en: helpDocPath(article, 'en'), fr: helpDocPath(article, 'fr') },
-    title: {
-      en: `${helpDocTitle(article, 'en')} | Dutiva Help`,
-      fr: `${helpDocTitle(article, 'fr')} | Aide Dutiva`,
-    },
-    description: {
-      en: helpDocDescription(article, 'en'),
-      fr: helpDocDescription(article, 'fr'),
-    },
-    indexable: true,
-  }))
-  /* Editorial articles — `/guides/<slug>` and `/blog/<slug>`, keyed by
-     collection so the two never collide even if a slug were ever reused. */
-  const articlePages: PublicPage[] = ALL_ARTICLES.map((article) => ({
-    key: `${article.collection}Doc:${article.slug}`,
-    path: { en: articlePath(article, 'en'), fr: articlePath(article, 'fr') },
-    title: {
-      en: `${articleTitle(article, 'en')} | Dutiva`,
-      fr: `${articleTitle(article, 'fr')} | Dutiva`,
-    },
-    description: {
-      en: articleDescription(article, 'en'),
-      fr: articleDescription(article, 'fr'),
-    },
-    indexable: true,
-  }))
-  return [...staticPages, ...legalPages, ...helpPages, ...articlePages]
-}
+/* Every public pathname pair, without titles/descriptions — resolving those
+   needs the legalHub message module, which lives in the lazy page chunks.
+   `allPublicPages()` in ./publicPages.ts builds the titled version for SSR
+   and the sitemap; this list exists so `alternatePathFor` (called eagerly by
+   ForcedLangProvider on every marketing render) never pulls a message module
+   into the entry chunk. */
+const ALL_PUBLIC_PATHS: readonly Record<Lang, string>[] = [
+  ...SEO_ROUTES.map((r) => r.path),
+  ...LEGAL_ROWS.map((row) => ({ en: legalDocPath(row, 'en'), fr: legalDocPath(row, 'fr') })),
+  ...HELP_ARTICLES.map((a) => ({ en: helpDocPath(a, 'en'), fr: helpDocPath(a, 'fr') })),
+  ...ALL_ARTICLES.map((a) => ({ en: articlePath(a, 'en'), fr: articlePath(a, 'fr') })),
+]
 
 /**
  * The same page's pathname in the other locale, for the language toggle and
@@ -459,8 +394,8 @@ export function allPublicPages(): PublicPage[] {
  */
 export function alternatePathFor(pathname: string, target: Lang): string | undefined {
   const normalized = pathname !== '/' ? pathname.replace(/\/+$/, '') : '/'
-  for (const page of allPublicPages()) {
-    if (page.path.en === normalized || page.path.fr === normalized) return page.path[target]
+  for (const path of ALL_PUBLIC_PATHS) {
+    if (path.en === normalized || path.fr === normalized) return path[target]
   }
   /* Careers job detail pages are dynamic (/careers/jobs/:postingId) and not
      in the static registry. Map the locale prefix directly so the language

@@ -29,10 +29,6 @@ export const guidesIndexMessages = defineMessages({
     fr: 'Des guides en langage clair pour aider les employeurs canadiens à comprendre le droit du travail et à s’y conformer — contrats, probation, accommodement, cessation d’emploi, et plus encore — conçus pour compléter notre Conseiller IA et nos modèles de documents. En cas de doute ou d’inquiétude, un avocat devrait toujours être votre premier recours.', // [FR self-authored]
   },
   /* SEO meta only — page hero keeps the longer guidesIdx_intro. */
-  guidesIdx_meta_description: {
-    en: 'Practical HR guides for Canadian employers — contracts, probation, accommodation, and termination, written to complement Dutiva templates and AI guidance.',
-    fr: 'Guides RH pratiques pour employeurs canadiens — contrats, probation, accommodement et cessation, pour compléter les modèles et le Conseiller IA de Dutiva.',
-  },
   guidesIdx_section_title: {
     en: 'All guides',
     fr: 'Tous les guides',

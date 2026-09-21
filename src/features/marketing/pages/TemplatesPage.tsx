@@ -8,6 +8,8 @@ import { TemplateSamplePanel } from '@/features/marketing/demos/TemplateSamplePa
 import { Seo } from '@/seo/Seo'
 import { usePublicPath } from '@/seo/usePublicPath'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
+import { templatesPreviewMessages } from '@/i18n/messages/templatesPreview'
+import { LangScope } from '@/i18n/LangScope'
 
 const RISK_CLASS: Record<DocRiskLevel, string> = {
   low: 'bg-ok-bg text-ok-fg',
@@ -28,7 +30,17 @@ const JURISDICTION_LABEL: Record<Jurisdiction, string> = {
  * category, so this page can't drift out of sync with what Document Studio
  * actually ships — no separate marketing-only content to maintain.
  */
+const SCOPE = templatesPreviewMessages
+
 export function TemplatesPage() {
+  return (
+    <LangScope messages={SCOPE}>
+      <TemplatesPageInner />
+    </LangScope>
+  )
+}
+
+function TemplatesPageInner() {
   const { t, x, lang } = useI18n()
   const { p } = usePublicPath()
   const riskLabel: Record<DocRiskLevel, string> = {

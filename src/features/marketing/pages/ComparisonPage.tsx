@@ -3,13 +3,25 @@ import { Seo } from '@/seo/Seo'
 import { comparisonPage, type ComparisonCompetitorId } from '../comparison/comparisonPages'
 import { MarketingPageShell, PageCta, PageHero, PageSection } from './MarketingPage'
 import { usePublicPath } from '@/seo/usePublicPath'
+import { comparisonMessages } from '@/i18n/messages/comparison'
+import { LangScope } from '@/i18n/LangScope'
 
 interface ComparisonPageProps {
   readonly competitorId: ComparisonCompetitorId
 }
 
 /** Shared layout for /vs/hrdownloads and /vs/sixfifty. */
-export function ComparisonPage({ competitorId }: ComparisonPageProps) {
+const SCOPE = comparisonMessages
+
+export function ComparisonPage(props: ComparisonPageProps) {
+  return (
+    <LangScope messages={SCOPE}>
+      <ComparisonPageInner {...props} />
+    </LangScope>
+  )
+}
+
+function ComparisonPageInner({ competitorId }: ComparisonPageProps) {
   const { t, x } = useI18n()
   const { p } = usePublicPath()
   const page = comparisonPage(competitorId)
