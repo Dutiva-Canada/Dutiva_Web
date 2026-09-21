@@ -1,4 +1,5 @@
-import { NavLink } from 'react-router-dom'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
+
 import { useI18n } from '@/i18n/context'
 import { supportMessages as M } from '@/i18n/messages/support'
 import { cx } from '@/features/app/shell/cx'
@@ -14,12 +15,12 @@ export function SupportSectionNav({ active }: { readonly active: 'new' | 'reques
 
   return (
     <nav className="mb-[20px] flex gap-[18px] border-b border-border" aria-label="Support">
-      <NavLink to="/app/support" end className={() => tabClass(active === 'new')}>
+      <Link to="/app/support" className={tabClass(active === 'new')}>
         {x(M.support_new_request)}
-      </NavLink>
-      <NavLink to="/app/support/requests" className={() => tabClass(active === 'requests')}>
+      </Link>
+      <Link to="/app/support/requests" className={tabClass(active === 'requests')}>
         {x(M.support_my_requests)}
-      </NavLink>
+      </Link>
     </nav>
   )
 }

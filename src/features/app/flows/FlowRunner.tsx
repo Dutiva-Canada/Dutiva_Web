@@ -1,6 +1,8 @@
 import { ProgressFill } from '@/components/ProgressFill'
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
+
 import { AlertTriangle, ArrowLeft, ChevronRight, Circle, FileText, RotateCcw } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { Disclaimer } from '@/components/Disclaimer'

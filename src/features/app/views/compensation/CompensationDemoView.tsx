@@ -1,5 +1,6 @@
 import type { MouseEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
+
 import { Lock, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { bi } from '@/i18n/core'
@@ -43,7 +44,7 @@ const GRID_COLS = 'grid-cols-[2.2fr_1.6fr_0.9fr_1.1fr_1fr_34px]'
 /** Northgate compensation fixtures — demo workspace and public `/demo` only. */
 export function CompensationDemoView() {
   const { x } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const { openRail } = useRail()
 
   const openCompensationTab = (employeeId: string) => {

@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
+
 import { statusChipClass } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'

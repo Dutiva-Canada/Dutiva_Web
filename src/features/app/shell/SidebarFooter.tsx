@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
+
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { LogIn, Settings } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
@@ -20,7 +23,7 @@ interface SidebarFooterProps {
 
 export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterProps) {
   const { x, L, lang } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const { root, isPublicDemo } = useWorkspaceRoot()
   const helpCentrePath = seoRoute('help').path[lang]
   const { pathname } = useLocation()

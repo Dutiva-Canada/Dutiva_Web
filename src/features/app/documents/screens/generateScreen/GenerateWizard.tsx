@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { ChevronLeft } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { bi } from '@/i18n/core'
@@ -54,7 +55,7 @@ export function GenerateWizard({
   const { t, x, lang } = useI18n()
   const { org, role } = useDoclib()
   const { showToast } = useToasts()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const { mode: workspaceMode, organizationId, isOrgAdmin, identity } = useWorkspaceMode()
   const [saving, setSaving] = useState(false)
 

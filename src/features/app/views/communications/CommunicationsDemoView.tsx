@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
+
 import { Link, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
@@ -29,7 +30,7 @@ const dimLabels: Record<(typeof DIM_KEYS)[number], Bi> = {
 /** Northgate fixture pipeline — demo workspace and public `/demo` only. */
 export function CommunicationsDemoView() {
   const { x, lang } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const { openRail, closeRail } = useRail()
   const { showToast } = useToasts()
   /** Comms sent in this session (prototype `state.commStatus`). */

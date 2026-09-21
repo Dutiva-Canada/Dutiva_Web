@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { ChevronLeft } from 'lucide-react'
 import { Disclaimer } from '@/components/Disclaimer'
 import { useI18n } from '@/i18n/context'
@@ -26,7 +27,7 @@ function SigningDemoScreen() {
   const { envelopeId } = useParams<{ envelopeId: string }>()
   const [searchParams] = useSearchParams()
   const { t } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const { showToast } = useToasts()
   const { data, org, applySignature } = useDoclib()
   const [selectedEmail, setSelectedEmail] = useState<string | null>(() =>

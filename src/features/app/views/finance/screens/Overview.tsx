@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
+
 import { statusChipClass, type ChipTone } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'

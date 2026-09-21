@@ -1,4 +1,7 @@
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
+import { WorkspaceNavigate as Navigate } from '@/features/app/workspaceRoot/WorkspaceLink'
+
 import type { ReactNode } from 'react'
 import { ArrowRight, ChevronLeft, CircleCheck, Scale, TriangleAlert } from 'lucide-react'
 import { useI18n } from '@/i18n/context'

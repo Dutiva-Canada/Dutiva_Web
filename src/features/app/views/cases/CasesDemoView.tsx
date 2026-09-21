@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
+
 import { Plus } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pickL } from '@/i18n/core'
@@ -15,7 +16,7 @@ import { NewCaseModal } from './NewCaseModal'
 /** Northgate case files — demo workspace and public `/demo` only. */
 export function CasesDemoView() {
   const { x, lang } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const { showToast } = useToasts()
   const [newCaseOpen, setNewCaseOpen] = useState(false)
 

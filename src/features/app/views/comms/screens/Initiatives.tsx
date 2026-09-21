@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
+
 import { Pause, Play, Plus, X } from 'lucide-react'
 import { statusChipClass } from '@/components/chips'
 import type { Bi } from '@/i18n/core'

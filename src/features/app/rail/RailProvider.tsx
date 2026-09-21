@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import type { ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
+
 import type { LText } from '@/i18n/core'
 import { advisorCore as M } from '@/i18n/messages/advisorCore'
 import { advisorViewMessages } from '@/i18n/messages/advisorView'
@@ -31,7 +32,7 @@ const CLOSED: RailHead = { open: false, title: '', meta: {} }
 export function RailProvider({ children }: { readonly children: ReactNode }) {
   const [head, setHead] = useState<RailHead>(CLOSED)
   const engine = useAdvisorEngine({ idPrefix: 'rail' })
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const { reset, pushTurn, sendUser } = engine
 
   const openRail = useCallback(

@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
+
 import { Shield } from 'lucide-react'
 import { ProgressFill } from '@/components/ProgressFill'
 import { useI18n } from '@/i18n/context'
@@ -64,7 +65,7 @@ const flagRowLabelClass = 'w-[96px] shrink-0 text-[11px] font-bold tracking-[0.0
 /** Northgate fixtures — demo workspace and public `/demo` only. */
 export function ComplianceDemoView() {
   const { x } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const { openRail, closeRail } = useRail()
   const { showToast } = useToasts()
   const [jur, setJur] = useState('All')

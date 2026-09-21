@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
+
 import { ExternalLink, LifeBuoy, Brain, ShieldCheck } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { supportChannel } from '@/config/support'

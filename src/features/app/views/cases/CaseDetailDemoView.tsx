@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
+
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { ChevronLeft, Brain, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pickL } from '@/i18n/core'
@@ -132,7 +135,7 @@ function buildActivity(
 
 function CaseDetail({ caze }: Readonly<{ caze: WorkspaceCase }>) {
   const { x, lang } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const { openRail, closeRail } = useRail()
   const { showToast } = useToasts()
   const { openDocFromLibrary } = useDocStudio()

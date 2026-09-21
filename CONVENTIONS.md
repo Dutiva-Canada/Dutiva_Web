@@ -213,6 +213,15 @@ Regenerate a demo split with `node scripts/extract-demo-view.mjs <ComponentName>
 Do **not** delete demo fixtures until a module is production-default for all
 users with no demo-only UX. Full program notes: [docs/MAINTAINABILITY.md](MAINTAINABILITY.md).
 
+**Root-aware navigation (enforced by `npm run check:workspace-links`):** the
+same route tree renders under `/app`, `/demo`, and `/fr/demo`, so a hardcoded
+`to="/app/…"` or `navigate('/app/…')` in any demo-renderable file bounces
+public visitors to the sign-in gate. Use `WorkspaceLink` / `WorkspaceNavigate`
+(`/app` `to=` targets are rewritten) or `useWorkspaceNavigate()` for imperative
+calls; `workspacePath(root, '…')` when you need the string. Exempt by
+construction: `*ProductionView.tsx`, auth gates, the demo banner/tour CTAs, and
+`/app/welcome` targets (the gate lives at `/app` only — that hop is intended).
+
 **Employees is the reference implementation** (Phase 3): the context
 exposes `organizationId` (auto-provisioned via the backend's
 `create_organization()` RPC on the admin's first switch to production),

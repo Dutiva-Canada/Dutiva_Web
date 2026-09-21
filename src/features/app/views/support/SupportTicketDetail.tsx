@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
+
 import { ChevronLeft } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { LangContextValue } from '@/i18n/context'

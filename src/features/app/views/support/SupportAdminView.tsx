@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
+
 import { useI18n } from '@/i18n/context'
 import { supportMessages as M } from '@/i18n/messages/support'
 import {

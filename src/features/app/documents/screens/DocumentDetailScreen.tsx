@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import type { Dispatch, KeyboardEvent, SetStateAction } from 'react'
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
+import { WorkspaceNavigate as Navigate } from '@/features/app/workspaceRoot/WorkspaceLink'
+
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { ChevronLeft, Lock, TriangleAlert } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { dotToneClass } from '@/components/chips'
@@ -285,7 +289,7 @@ function DocumentDetailDemoScreen() {
   const { t, x, lang } = useI18n()
   const { data, role, org, sendForSignature } = useDoclib()
   const { showToast } = useToasts()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const { docId } = useParams()
   const [tab, setTab] = useState<TabKey>('preview')
   const [isSignModalOpen, setIsSignModalOpen] = useState(false)

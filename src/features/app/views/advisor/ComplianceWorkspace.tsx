@@ -12,7 +12,8 @@ import {
   X,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
+
 import { ProgressFill } from '@/components/ProgressFill'
 import { useI18n } from '@/i18n/context'
 import { keyOfL, pickL } from '@/i18n/core'
