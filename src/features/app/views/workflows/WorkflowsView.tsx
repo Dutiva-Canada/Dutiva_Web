@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Lock, Route } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { markEmptyWorkspaceWorkflowVisited } from '@/features/app/workspaceMode/emptyWorkspaceOnboarding'
 import { Disclaimer } from '@/components/Disclaimer'
 import { workflowsMessages as M } from '@/i18n/messages/workflows'
@@ -40,6 +41,7 @@ function FlowCardGrid({
 }) {
   const { x } = useI18n()
   const { plan, isAdmin } = usePlan()
+  const { root } = useWorkspaceRoot()
 
   return (
     <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-[10px]">
@@ -70,7 +72,7 @@ function FlowCardGrid({
         return (
           <Link
             key={flow.slug}
-            to={`/app/workflows/${flow.slug}`}
+            to={workspacePath(root, `workflows/${flow.slug}`)}
             className="flex flex-col gap-[5px] rounded-[12px] border border-border bg-surface px-[16px] py-[14px] transition-[border-color,background-color] hover:border-(--accent-soft-border) hover:bg-inset focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           >
             <span className="flex items-center gap-[8px]">
@@ -139,12 +141,12 @@ export function WorkflowsView() {
   return (
     <AppPage width="default">
       <AppPageLead>{x(M.workflows_sub)}</AppPageLead>
-      <GuidedProcesses gateWorkflows={gateWorkflows} />
       {!showFixtures && (
         <p className="mb-[24px] max-w-[620px] text-[13px] leading-[1.6] text-text-muted">
           {x(M.workflows_prod_intro)}
         </p>
       )}
+      <GuidedProcesses gateWorkflows={gateWorkflows} />
       {showFixtures && <WorkflowsDemoFixtures />}
       <Disclaimer className="mt-[18px]" />
     </AppPage>

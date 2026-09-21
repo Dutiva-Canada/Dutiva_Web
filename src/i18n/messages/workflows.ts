@@ -21,6 +21,9 @@ export const workflowsMessages = defineMessages({
   },
   workflows_inflight_title: { en: 'In flight', fr: 'En cours' },
   workflows_start_title: { en: 'Start a workflow', fr: 'Démarrer un processus' },
+  /* Tile badge when the catalogue entry opens a real guided flow rather than
+     an Advisor conversation. */
+  workflows_guided: { en: 'Guided', fr: 'Guidé' }, // [FR self-authored]
   workflows_next: { en: 'Next', fr: 'Prochaine étape' },
   workflows_continue: { en: 'Continue', fr: 'Continuer' },
   workflows_flagship_eyebrow: { en: 'Flagship workflow', fr: 'Processus phare' },

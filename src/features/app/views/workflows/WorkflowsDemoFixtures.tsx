@@ -67,7 +67,12 @@ export function WorkflowsDemoFixtures() {
       </div>
       <div className="mb-[24px] overflow-hidden rounded-[12px] border border-border bg-surface">
         {inFlightWorkflows.map((w) => (
-          <div key={w.id} className="border-t border-inset px-[16px] py-[14px]">
+          <button
+            key={w.id}
+            type="button"
+            onClick={() => openWorkflow(w.open)}
+            className="block w-full cursor-pointer border-t border-inset px-[16px] py-[14px] text-left font-sans transition-colors first:border-t-0 hover:bg-inset"
+          >
             <div className="flex flex-wrap items-center gap-[14px]">
               <div className="min-w-[180px] flex-[1.2_1_180px]">
                 <div className="flex flex-wrap items-center gap-[8px]">
@@ -100,13 +105,9 @@ export function WorkflowsDemoFixtures() {
                 <span className="text-text-muted">{x(M.workflows_next)}</span>
                 {` · ${x(w.next)}`}
               </div>
-              <button
-                type="button"
-                onClick={() => openWorkflow(w.open)}
-                className="shrink-0 cursor-pointer rounded-[7px] border-none bg-navy px-[13px] py-[7px] font-sans text-[12px] font-bold text-white hover:opacity-[.92]"
-              >
+              <span className="shrink-0 rounded-[7px] bg-navy px-[13px] py-[7px] text-[12px] font-bold text-white">
                 {x(M.workflows_continue)}
-              </button>
+              </span>
             </div>
             <div className="mt-[9px] flex flex-wrap items-center gap-[14px] border-t border-dashed border-border-soft pt-[9px] text-[11.5px] text-text-muted">
               <span className="inline-flex items-center gap-[5px]">
@@ -126,7 +127,7 @@ export function WorkflowsDemoFixtures() {
                 {x(w.impact)}
               </span>
             </div>
-          </div>
+          </button>
         ))}
       </div>
 
@@ -160,14 +161,20 @@ export function WorkflowsDemoFixtures() {
         </div>
         {mapOpen && (
           <div className="px-[18px] pt-[6px] pb-[14px]">
-            {terminationStages.map((st) => {
+            {terminationStages.map((st, i) => {
               const chip = stageChips[st.state]
+              const last = i === terminationStages.length - 1
               return (
                 <div
                   key={st.n}
-                  className="flex items-start gap-[12px] border-b border-border-soft py-[12px] sm:py-[10px]"
+                  className="flex items-stretch gap-[12px] border-b border-border-soft py-[12px] last:border-b-0 sm:py-[10px]"
                 >
-                  <StageMarker n={st.n} state={st.state} />
+                  <div className="flex w-[22px] shrink-0 flex-col items-center">
+                    <StageMarker n={st.n} state={st.state} />
+                    {!last && (
+                      <div className="mt-[3px] w-px flex-1 bg-border-soft" aria-hidden="true" />
+                    )}
+                  </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-[8px] sm:gap-[12px]">
                       <span className="text-[13px] font-semibold text-text">{x(st.title)}</span>
@@ -226,7 +233,14 @@ export function WorkflowsDemoFixtures() {
                 <Icon size={15} strokeWidth={1.8} aria-hidden="true" />
               </div>
               <div>
-                <div className="text-[13px] font-bold text-text">{x(item.label)}</div>
+                <div className="flex items-center gap-[6px] text-[13px] font-bold text-text">
+                  {x(item.label)}
+                  {item.flowSlug !== undefined && (
+                    <span className="rounded-[4px] bg-accent-soft px-[5px] py-px text-[9.5px] font-bold tracking-[.05em] text-accent uppercase">
+                      {x(M.workflows_guided)}
+                    </span>
+                  )}
+                </div>
                 <div className="mt-[2px] text-[11.5px] text-text-muted">{x(item.sub)}</div>
               </div>
             </button>

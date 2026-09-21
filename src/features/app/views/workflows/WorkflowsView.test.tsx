@@ -51,8 +51,9 @@ describe('WorkflowsView', () => {
   it('routes the accommodation catalogue tile to the flow, not the Advisor', async () => {
     const user = userEvent.setup()
     renderWorkflows()
-    /* The tile is a button; its subtitle is the process name. */
-    const tile = screen.getByRole('button', { name: /Accommodation/ })
+    /* The catalogue tile carries the 'Guided' badge; the in-flight
+       Accommodation row is a separate button. */
+    const tile = screen.getByRole('button', { name: /Accommodation\s*Guided/ })
     await user.click(tile)
     expect(screen.getByTestId('pathname')).toHaveTextContent('/app/workflows/duty-to-accommodate')
   })
@@ -117,9 +118,8 @@ describe('WorkflowsView', () => {
     const user = userEvent.setup()
     renderWorkflows()
 
-    const continueButtons = screen.getAllByRole('button', { name: 'Continue' })
-    expect(continueButtons).toHaveLength(3)
-    await user.click(continueButtons[0]!)
+    /* The whole in-flight row is the button; 'Continue' is its styled affordance. */
+    await user.click(screen.getByRole('button', { name: /Jordan Mensah · Ontario/ }))
     expect(screen.getByTestId('pathname')).toHaveTextContent('/app/cases/case1')
   })
 
@@ -127,8 +127,7 @@ describe('WorkflowsView', () => {
     const user = userEvent.setup()
     renderWorkflows()
 
-    const continueButtons = screen.getAllByRole('button', { name: 'Continue' })
-    await user.click(continueButtons[2]!)
+    await user.click(screen.getByRole('button', { name: /Senior Analyst · Ontario/ }))
     expect(screen.getByTestId('pathname')).toHaveTextContent('/app/advisor')
     expect(screen.getByTestId('state')).toHaveTextContent('{"chatId":"c2"}')
   })
