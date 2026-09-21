@@ -105,8 +105,12 @@ export function Evidence() {
   return (
     <div className="flex flex-col gap-[16px]">
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[4px] text-[15px] font-semibold text-text">{x(M.finance_evidence_checklist)}</h2>
-        <p className="mb-[12px] text-[12px] text-text-muted">{x(M.finance_evidence_checklist_hint)}</p>
+        <h2 className="mb-[4px] text-[15px] font-semibold text-text">
+          {x(M.finance_evidence_checklist)}
+        </h2>
+        <p className="mb-[12px] text-[12px] text-text-muted">
+          {x(M.finance_evidence_checklist_hint)}
+        </p>
         {checklist.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_none)}</p>
         ) : (
@@ -117,10 +121,10 @@ export function Evidence() {
                 className="flex items-center justify-between gap-[12px] rounded-[8px] bg-inset px-[10px] py-[6px]"
               >
                 <span className="text-[13px] text-text">{item.label}</span>
-                <span
-                  className={statusChipClass(item.hasEvidence ? 'success' : 'warning')}
-                >
-                  {item.hasEvidence ? x(M.finance_evidence_attached) : x(M.finance_evidence_missing)}
+                <span className={statusChipClass(item.hasEvidence ? 'success' : 'warning')}>
+                  {item.hasEvidence
+                    ? x(M.finance_evidence_attached)
+                    : x(M.finance_evidence_missing)}
                 </span>
               </li>
             ))}
@@ -162,23 +166,41 @@ export function Evidence() {
             <span className="text-[12px] text-text-muted">{x(M.finance_evidence_link_bill)}:</span>
             <select
               value={linkTarget.billId ?? ''}
-              onChange={(e) => setLinkTarget((prev) => ({ ...prev, billId: e.target.value || undefined, expenseId: undefined }))}
+              onChange={(e) =>
+                setLinkTarget((prev) => ({
+                  ...prev,
+                  billId: e.target.value || undefined,
+                  expenseId: undefined,
+                }))
+              }
               className="rounded-[6px] border border-border bg-surface px-[6px] py-[3px] text-[12px]"
             >
               <option value="">{x(M.finance_evidence_link_none)}</option>
               {state.bills.map((b) => (
-                <option key={b.id} value={b.id}>{b.number}</option>
+                <option key={b.id} value={b.id}>
+                  {b.number}
+                </option>
               ))}
             </select>
-            <span className="text-[12px] text-text-muted">{x(M.finance_evidence_link_expense)}:</span>
+            <span className="text-[12px] text-text-muted">
+              {x(M.finance_evidence_link_expense)}:
+            </span>
             <select
               value={linkTarget.expenseId ?? ''}
-              onChange={(e) => setLinkTarget((prev) => ({ ...prev, expenseId: e.target.value || undefined, billId: undefined }))}
+              onChange={(e) =>
+                setLinkTarget((prev) => ({
+                  ...prev,
+                  expenseId: e.target.value || undefined,
+                  billId: undefined,
+                }))
+              }
               className="rounded-[6px] border border-border bg-surface px-[6px] py-[3px] text-[12px]"
             >
               <option value="">{x(M.finance_evidence_link_none)}</option>
               {state.expenses.map((e) => (
-                <option key={e.id} value={e.id}>{x(e.purpose)}</option>
+                <option key={e.id} value={e.id}>
+                  {x(e.purpose)}
+                </option>
               ))}
             </select>
           </div>
@@ -210,13 +232,16 @@ export function Evidence() {
                     {(linkedBill || linkedExpense) && (
                       <div className="text-[12px] text-text-muted">
                         {linkedBill && `${x(M.finance_evidence_link_bill)}: ${linkedBill.number}`}
-                        {linkedExpense && `${x(M.finance_evidence_link_expense)}: ${x(linkedExpense.purpose)}`}
+                        {linkedExpense &&
+                          `${x(M.finance_evidence_link_expense)}: ${x(linkedExpense.purpose)}`}
                       </div>
                     )}
                   </div>
                   <div className="flex items-center gap-[8px]">
                     <span className={statusChipClass(receipt.reviewed ? 'success' : 'warning')}>
-                      {receipt.reviewed ? x(M.finance_evidence_reviewed) : x(M.finance_evidence_pending)}
+                      {receipt.reviewed
+                        ? x(M.finance_evidence_reviewed)
+                        : x(M.finance_evidence_pending)}
                     </span>
                     <button
                       type="button"

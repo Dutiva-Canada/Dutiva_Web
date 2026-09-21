@@ -223,10 +223,7 @@ export function effectiveSensitivity(fact: MemoryFact): MemorySensitivity {
  * Resolve whether Advisor may retrieve this memory. A record may be stored
  * without being Advisor-usable (restricted, legal hold, memory disabled).
  */
-export function effectiveAdvisorUsable(
-  fact: MemoryFact,
-  memoryEnabled: boolean,
-): boolean {
+export function effectiveAdvisorUsable(fact: MemoryFact, memoryEnabled: boolean): boolean {
   if (!memoryEnabled) return false
   if (fact.advisorUsable != null) return fact.advisorUsable
   /* Legacy default: restricted/compensation/health items are not auto-usable. */

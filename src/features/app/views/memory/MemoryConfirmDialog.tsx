@@ -90,10 +90,15 @@ export function MemoryConfirmDialog({
             <X size={16} strokeWidth={2} aria-hidden="true" />
           </button>
         </div>
-        {children != null && <div className="mb-[12px] text-[13px] leading-normal text-text-muted">{children}</div>}
+        {children != null && (
+          <div className="mb-[12px] text-[13px] leading-normal text-text-muted">{children}</div>
+        )}
         {inputLabel != null && (
           <div className="mb-[12px]">
-            <label className="mb-[5px] block text-[12px] font-semibold text-text-3" htmlFor="mem-confirm-input">
+            <label
+              className="mb-[5px] block text-[12px] font-semibold text-text-3"
+              htmlFor="mem-confirm-input"
+            >
               {inputLabel}
             </label>
             <input

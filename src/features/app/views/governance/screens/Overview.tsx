@@ -3,10 +3,7 @@ import { FileText, Gavel, Users, TrendingUp, ChevronRight } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { governanceMessages as M } from '@/i18n/messages/governance'
 import { statusChipClass } from '@/components/chips'
-import {
-  useWorkspaceRoot,
-  workspacePath,
-} from '@/features/app/workspaceRoot/workspaceRootContext'
+import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { useGovernanceData } from '../GovernanceDataContext'
 
 export function Overview() {

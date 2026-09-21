@@ -20,8 +20,21 @@ const inputClass =
   'w-full rounded-[10px] border border-border bg-surface px-[12px] py-[9px] font-sans text-[13.5px] text-text'
 const labelClass = 'mb-[4px] block text-[12px] font-semibold text-text-3'
 
-const INTERACTION_TYPES: CommsInteractionType[] = ['inquiry', 'comment', 'dm', 'pitch', 'meeting', 'submission']
-const INTERACTION_STATUSES: CommsInteractionStatus[] = ['open', 'pending', 'responded', 'escalated', 'closed']
+const INTERACTION_TYPES: CommsInteractionType[] = [
+  'inquiry',
+  'comment',
+  'dm',
+  'pitch',
+  'meeting',
+  'submission',
+]
+const INTERACTION_STATUSES: CommsInteractionStatus[] = [
+  'open',
+  'pending',
+  'responded',
+  'escalated',
+  'closed',
+]
 const VISIBILITIES: CommsInteractionVisibility[] = ['public', 'internal', 'restricted']
 
 const VISIBILITY_LABEL: Record<CommsInteractionVisibility, keyof typeof M> = {
@@ -89,7 +102,10 @@ function InteractionForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]">
+    <form
+      onSubmit={onSubmit}
+      className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]"
+    >
       <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
         <div>
           <label className={labelClass}>{x(M.comms_engagement_inquiry)}</label>
@@ -99,7 +115,9 @@ function InteractionForm({
             className={inputClass}
           >
             {INTERACTION_TYPES.map((t) => (
-              <option key={t} value={t}>{x(INTERACTION_TYPE_LABEL[t])}</option>
+              <option key={t} value={t}>
+                {x(INTERACTION_TYPE_LABEL[t])}
+              </option>
             ))}
           </select>
         </div>
@@ -111,7 +129,9 @@ function InteractionForm({
             className={inputClass}
           >
             {VISIBILITIES.map((v) => (
-              <option key={v} value={v}>{x(M[VISIBILITY_LABEL[v]])}</option>
+              <option key={v} value={v}>
+                {x(M[VISIBILITY_LABEL[v]])}
+              </option>
             ))}
           </select>
         </div>
@@ -127,7 +147,11 @@ function InteractionForm({
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_engagement_source)}</label>
-          <input value={source} onChange={(e) => setSource(e.target.value)} className={inputClass} />
+          <input
+            value={source}
+            onChange={(e) => setSource(e.target.value)}
+            className={inputClass}
+          />
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_engagement_target)}</label>
@@ -140,7 +164,12 @@ function InteractionForm({
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_engagement_owner)}</label>
-          <input value={owner} onChange={(e) => setOwner(e.target.value)} className={inputClass} required />
+          <input
+            value={owner}
+            onChange={(e) => setOwner(e.target.value)}
+            className={inputClass}
+            required
+          />
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_engagement_status)}</label>
@@ -150,7 +179,9 @@ function InteractionForm({
             className={inputClass}
           >
             {INTERACTION_STATUSES.map((s) => (
-              <option key={s} value={s}>{x(M[`comms_interaction_status_${s}` as keyof typeof M])}</option>
+              <option key={s} value={s}>
+                {x(M[`comms_interaction_status_${s}` as keyof typeof M])}
+              </option>
             ))}
           </select>
         </div>
@@ -163,7 +194,9 @@ function InteractionForm({
           >
             <option value="">{x(M.comms_org_none)}</option>
             {contacts.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
             ))}
           </select>
         </div>
@@ -176,17 +209,27 @@ function InteractionForm({
           >
             <option value="">{x(M.comms_org_none)}</option>
             {initiatives.map((i) => (
-              <option key={i.id} value={i.id}>{x(i.title)}</option>
+              <option key={i.id} value={i.id}>
+                {x(i.title)}
+              </option>
             ))}
           </select>
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_engagement_escalation)}</label>
-          <input value={escalationReason} onChange={(e) => setEscalationReason(e.target.value)} className={inputClass} />
+          <input
+            value={escalationReason}
+            onChange={(e) => setEscalationReason(e.target.value)}
+            className={inputClass}
+          />
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_engagement_moderation)}</label>
-          <input value={moderationReason} onChange={(e) => setModerationReason(e.target.value)} className={inputClass} />
+          <input
+            value={moderationReason}
+            onChange={(e) => setModerationReason(e.target.value)}
+            className={inputClass}
+          />
         </div>
       </div>
       <div className="mt-[14px] flex gap-[8px]">
@@ -231,7 +274,13 @@ export function Engagement() {
         )}
       </div>
 
-      {adding && <InteractionForm onCancel={() => setAdding(false)} contacts={contacts} initiatives={initiatives} />}
+      {adding && (
+        <InteractionForm
+          onCancel={() => setAdding(false)}
+          contacts={contacts}
+          initiatives={initiatives}
+        />
+      )}
 
       {interactions.length === 0 ? (
         <p className="text-[13px] text-text-muted">{x(M.comms_engagement_empty)}</p>
@@ -241,10 +290,14 @@ export function Engagement() {
             <div key={item.id} className="rounded-[12px] border border-border bg-surface p-[16px]">
               <div className="flex flex-wrap items-start justify-between gap-[12px]">
                 <div>
-                  <div className="text-[14px] font-semibold text-text">{x(INTERACTION_TYPE_LABEL[item.type])}</div>
+                  <div className="text-[14px] font-semibold text-text">
+                    {x(INTERACTION_TYPE_LABEL[item.type])}
+                  </div>
                   <div className="text-[12px] text-text-muted">
                     {x(item.source)} · {x(M[VISIBILITY_LABEL[item.visibility]])} · {item.owner}
-                    {item.responseTarget ? ` · ${x(M.comms_engagement_target)} ${item.responseTarget}` : ''}
+                    {item.responseTarget
+                      ? ` · ${x(M.comms_engagement_target)} ${item.responseTarget}`
+                      : ''}
                   </div>
                 </div>
                 <div className="flex items-center gap-[8px]">

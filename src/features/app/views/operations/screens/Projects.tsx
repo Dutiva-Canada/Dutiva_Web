@@ -6,7 +6,13 @@ import { FormField, FormInput, FormSelect, FormTextarea } from '@/components/For
 import { useOperationsData } from '../OperationsDataContext'
 import type { OperationsProject, OperationsProjectStatus } from '../data/types'
 
-const STATUSES: OperationsProjectStatus[] = ['planning', 'active', 'on_hold', 'completed', 'cancelled']
+const STATUSES: OperationsProjectStatus[] = [
+  'planning',
+  'active',
+  'on_hold',
+  'completed',
+  'cancelled',
+]
 
 const STATUS_LABELS: Record<OperationsProjectStatus, keyof typeof M> = {
   planning: 'ops_project_status_planning',
@@ -16,7 +22,10 @@ const STATUS_LABELS: Record<OperationsProjectStatus, keyof typeof M> = {
   cancelled: 'ops_project_status_cancelled',
 }
 
-const STATUS_TONE: Record<OperationsProjectStatus, 'warning' | 'success' | 'neutral' | 'neutral' | 'neutral'> = {
+const STATUS_TONE: Record<
+  OperationsProjectStatus,
+  'warning' | 'success' | 'neutral' | 'neutral' | 'neutral'
+> = {
   planning: 'warning',
   active: 'success',
   on_hold: 'neutral',
@@ -56,7 +65,9 @@ function ProjectRow({
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
       <div className="min-w-0 flex-1">
-        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">{project.title}</div>
+        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">
+          {project.title}
+        </div>
         <div className="text-[12px] text-text-muted">
           {project.start_date ? `${project.start_date}` : null}
           {project.target_date ? ` → ${project.target_date}` : null}
@@ -64,7 +75,9 @@ function ProjectRow({
         </div>
       </div>
       <div className="flex items-center gap-[10px]">
-        <span className={statusChipClass(STATUS_TONE[project.status])}>{x(M[STATUS_LABELS[project.status]])}</span>
+        <span className={statusChipClass(STATUS_TONE[project.status])}>
+          {x(M[STATUS_LABELS[project.status]])}
+        </span>
         <button
           type="button"
           onClick={() => onEdit(project)}
@@ -159,7 +172,10 @@ export function Projects() {
             <FormInput value={title} onChange={(e) => setTitle(e.target.value)} required />
           </FormField>
           <FormField label={x(M.ops_status)}>
-            <FormSelect value={status} onChange={(e) => setStatus(e.target.value as OperationsProjectStatus)}>
+            <FormSelect
+              value={status}
+              onChange={(e) => setStatus(e.target.value as OperationsProjectStatus)}
+            >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {x(M[STATUS_LABELS[s]])}
@@ -168,10 +184,18 @@ export function Projects() {
             </FormSelect>
           </FormField>
           <FormField label={x(M.ops_start_date)}>
-            <FormInput type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            <FormInput
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.ops_target_date)}>
-            <FormInput type="date" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} />
+            <FormInput
+              type="date"
+              value={targetDate}
+              onChange={(e) => setTargetDate(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.ops_description)} className="sm:col-span-2">
             <FormTextarea value={description} onChange={(e) => setDescription(e.target.value)} />
@@ -205,7 +229,10 @@ export function Projects() {
             <ProjectRow
               key={project.id}
               project={project}
-              onEdit={(p) => { setEditing(p); setShow(true) }}
+              onEdit={(p) => {
+                setEditing(p)
+                setShow(true)
+              }}
               onRemove={(id) => removeProject(id)}
             />
           ))}

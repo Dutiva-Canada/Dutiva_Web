@@ -95,7 +95,12 @@ export function AddMemoryDialog({ open, onClose }: AddMemoryDialogProps) {
       ...(purpose.trim().length > 0 ? { purpose: { en: purpose.trim(), fr: purpose.trim() } } : {}),
       ...(retention !== '' ? { retentionCategory: retention } : {}),
       ...(retrievalScope !== ''
-        ? { retrievalScope: { type: retrievalScope, ...(scope === 'case' && caseId ? { id: caseId } : {}) } }
+        ? {
+            retrievalScope: {
+              type: retrievalScope,
+              ...(scope === 'case' && caseId ? { id: caseId } : {}),
+            },
+          }
         : {}),
     }
     memoryActions.addMemory(input)
@@ -120,7 +125,9 @@ export function AddMemoryDialog({ open, onClose }: AddMemoryDialogProps) {
         className="w-full max-w-[560px] rounded-[14px] border border-border bg-surface-2 p-[18px] shadow-lg motion-safe:animate-[fadeIn_0.12s_ease-out]"
       >
         <div className="mb-[14px] flex items-start justify-between gap-[10px]">
-          <h2 className="m-0 font-display text-[16px] font-semibold text-text">{x(M.memory_add_title)}</h2>
+          <h2 className="m-0 font-display text-[16px] font-semibold text-text">
+            {x(M.memory_add_title)}
+          </h2>
           <button
             ref={closeBtnRef}
             type="button"
@@ -304,7 +311,9 @@ export function AddMemoryDialog({ open, onClose }: AddMemoryDialogProps) {
                 <select
                   id="mem-add-scope-retrieval"
                   value={retrievalScope}
-                  onChange={(e) => setRetrievalScope(e.target.value as MemoryRetrievalScopeType | '')}
+                  onChange={(e) =>
+                    setRetrievalScope(e.target.value as MemoryRetrievalScopeType | '')
+                  }
                   className={inputClass}
                 >
                   <option value="">{x(M.memory_filter_none)}</option>
@@ -329,7 +338,9 @@ export function AddMemoryDialog({ open, onClose }: AddMemoryDialogProps) {
                 className="mt-[1px] shrink-0 text-risk-dot"
                 aria-hidden="true"
               />
-              <div className="text-[12px] leading-normal text-text-muted">{x(M.memory_add_sensitive_warning)}</div>
+              <div className="text-[12px] leading-normal text-text-muted">
+                {x(M.memory_add_sensitive_warning)}
+              </div>
             </div>
           )}
         </div>

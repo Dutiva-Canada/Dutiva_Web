@@ -26,7 +26,13 @@ const labelClass = 'mb-[4px] block text-[12px] font-semibold text-text-3'
 const checkboxClass =
   'h-[18px] w-[18px] rounded-[4px] border border-border bg-surface text-accent accent-accent'
 
-const POLICY_STAGES: CommsPolicyStage[] = ['proposed', 'enacted', 'in_force', 'consultation_open', 'consultation_closed']
+const POLICY_STAGES: CommsPolicyStage[] = [
+  'proposed',
+  'enacted',
+  'in_force',
+  'consultation_open',
+  'consultation_closed',
+]
 const ISSUE_SEVERITIES: CommsIssueSeverity[] = ['low', 'medium', 'high', 'critical']
 const ISSUE_STATUSES: CommsIssueStatus[] = ['open', 'monitoring', 'resolved', 'closed']
 
@@ -76,7 +82,10 @@ function PolicyFileForm({ onCancel }: { onCancel: () => void }) {
     e.preventDefault()
     if (!authority.trim() || !owner.trim()) return
     await addPolicyFile({
-      authority: biInput(authority, lang) ?? { en: authority.trim(), fr: `[FR review] ${authority.trim()}` },
+      authority: biInput(authority, lang) ?? {
+        en: authority.trim(),
+        fr: `[FR review] ${authority.trim()}`,
+      },
       jurisdiction: biInput(jurisdiction, lang) ?? { en: '', fr: '' },
       objective: biInput(objective, lang) ?? { en: '', fr: '' },
       sourceUrl: sourceUrl.trim() || undefined,
@@ -88,15 +97,27 @@ function PolicyFileForm({ onCancel }: { onCancel: () => void }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]">
+    <form
+      onSubmit={onSubmit}
+      className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]"
+    >
       <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
         <div>
           <label className={labelClass}>{x(M.comms_policy_authority)}</label>
-          <input value={authority} onChange={(e) => setAuthority(e.target.value)} className={inputClass} required />
+          <input
+            value={authority}
+            onChange={(e) => setAuthority(e.target.value)}
+            className={inputClass}
+            required
+          />
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_policy_jurisdiction)}</label>
-          <input value={jurisdiction} onChange={(e) => setJurisdiction(e.target.value)} className={inputClass} />
+          <input
+            value={jurisdiction}
+            onChange={(e) => setJurisdiction(e.target.value)}
+            className={inputClass}
+          />
         </div>
         <div className="sm:col-span-2">
           <label className={labelClass}>{x(M.comms_policy_objective)}</label>
@@ -119,7 +140,12 @@ function PolicyFileForm({ onCancel }: { onCancel: () => void }) {
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_policy_owner)}</label>
-          <input value={owner} onChange={(e) => setOwner(e.target.value)} className={inputClass} required />
+          <input
+            value={owner}
+            onChange={(e) => setOwner(e.target.value)}
+            className={inputClass}
+            required
+          />
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_policy_stage)}</label>
@@ -129,7 +155,9 @@ function PolicyFileForm({ onCancel }: { onCancel: () => void }) {
             className={inputClass}
           >
             {POLICY_STAGES.map((s) => (
-              <option key={s} value={s}>{x(POLICY_STAGE_LABEL[s])}</option>
+              <option key={s} value={s}>
+                {x(POLICY_STAGE_LABEL[s])}
+              </option>
             ))}
           </select>
         </div>
@@ -201,11 +229,19 @@ function IssueForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]">
+    <form
+      onSubmit={onSubmit}
+      className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]"
+    >
       <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
         <div className="sm:col-span-2">
           <label className={labelClass}>{x(M.comms_issue_title)}</label>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputClass} required />
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className={inputClass}
+            required
+          />
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_issue_severity)}</label>
@@ -215,7 +251,9 @@ function IssueForm({
             className={inputClass}
           >
             {ISSUE_SEVERITIES.map((s) => (
-              <option key={s} value={s}>{x(ISSUE_SEVERITY_LABEL[s])}</option>
+              <option key={s} value={s}>
+                {x(ISSUE_SEVERITY_LABEL[s])}
+              </option>
             ))}
           </select>
         </div>
@@ -227,17 +265,28 @@ function IssueForm({
             className={inputClass}
           >
             {ISSUE_STATUSES.map((s) => (
-              <option key={s} value={s}>{x(ISSUE_STATUS_LABEL[s])}</option>
+              <option key={s} value={s}>
+                {x(ISSUE_STATUS_LABEL[s])}
+              </option>
             ))}
           </select>
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_issue_lead)}</label>
-          <input value={lead} onChange={(e) => setLead(e.target.value)} className={inputClass} required />
+          <input
+            value={lead}
+            onChange={(e) => setLead(e.target.value)}
+            className={inputClass}
+            required
+          />
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_issue_spokesperson)}</label>
-          <input value={spokesperson} onChange={(e) => setSpokesperson(e.target.value)} className={inputClass} />
+          <input
+            value={spokesperson}
+            onChange={(e) => setSpokesperson(e.target.value)}
+            className={inputClass}
+          />
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_issue_affected_channels)}</label>
@@ -257,7 +306,9 @@ function IssueForm({
           >
             <option value="">{x(M.comms_org_none)}</option>
             {initiatives.map((i) => (
-              <option key={i.id} value={i.id}>{x(i.title)}</option>
+              <option key={i.id} value={i.id}>
+                {x(i.title)}
+              </option>
             ))}
           </select>
         </div>
@@ -406,7 +457,9 @@ export function Intelligence() {
           )}
         </div>
 
-        {addingIssue && <IssueForm onCancel={() => setAddingIssue(false)} initiatives={initiatives} />}
+        {addingIssue && (
+          <IssueForm onCancel={() => setAddingIssue(false)} initiatives={initiatives} />
+        )}
 
         {issues.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.comms_intelligence_empty)}</p>
@@ -419,7 +472,9 @@ export function Intelligence() {
                     <div className="text-[14px] font-semibold text-text">{x(issue.title)}</div>
                     <div className="text-[12px] text-text-muted">
                       {x(M.comms_issue_lead)} {issue.lead}
-                      {issue.spokesperson ? ` · ${x(M.comms_issue_spokesperson)} ${issue.spokesperson}` : ''}
+                      {issue.spokesperson
+                        ? ` · ${x(M.comms_issue_spokesperson)} ${issue.spokesperson}`
+                        : ''}
                     </div>
                   </div>
                   <div className="flex items-center gap-[8px]">
@@ -440,7 +495,10 @@ export function Intelligence() {
                 </div>
                 <div className="mt-[8px] flex flex-wrap gap-[6px]">
                   {issue.affectedChannels.map((channel) => (
-                    <span key={channel} className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] text-text-muted">
+                    <span
+                      key={channel}
+                      className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] text-text-muted"
+                    >
                       {channel}
                     </span>
                   ))}
@@ -453,15 +511,23 @@ export function Intelligence() {
                 {canWrite && issue.initiativeId && (
                   <button
                     type="button"
-                    onClick={() => toggleInitiativePause(issue.initiativeId!, issue.status === 'open')}
+                    onClick={() =>
+                      toggleInitiativePause(issue.initiativeId!, issue.status === 'open')
+                    }
                     className="mt-[10px] flex items-center gap-[4px] rounded-[6px] border border-border bg-surface px-[8px] py-[4px] font-sans text-[11.5px] font-semibold text-text hover:bg-inset"
                   >
                     {x(M.comms_initiative_pause_publications)}
                   </button>
                 )}
-                {issue.summary && <p className="mt-[10px] text-[13px] leading-normal text-text-2">{x(issue.summary)}</p>}
+                {issue.summary && (
+                  <p className="mt-[10px] text-[13px] leading-normal text-text-2">
+                    {x(issue.summary)}
+                  </p>
+                )}
                 {issue.resolution && (
-                  <p className="mt-[6px] text-[13px] leading-normal text-text-2">{x(issue.resolution)}</p>
+                  <p className="mt-[6px] text-[13px] leading-normal text-text-2">
+                    {x(issue.resolution)}
+                  </p>
                 )}
                 <div className="mt-[8px] text-[12px] text-text-muted">
                   {x(ISSUE_STATUS_LABEL[issue.status])}

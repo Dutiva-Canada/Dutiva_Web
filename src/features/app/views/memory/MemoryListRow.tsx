@@ -1,4 +1,13 @@
-import { Check, Clock, Gavel, Lock, MoreHorizontal, Pencil, Trash2, AlertTriangle } from 'lucide-react'
+import {
+  Check,
+  Clock,
+  Gavel,
+  Lock,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  AlertTriangle,
+} from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick, pickL } from '@/i18n/core'
 import type { Lang } from '@/i18n/core'
@@ -73,13 +82,13 @@ export function MemoryListRow({
           className="min-w-0 flex-1 cursor-pointer border-none bg-transparent p-0 text-left"
         >
           <div className="flex flex-wrap items-center gap-x-[8px] gap-y-[3px]">
-            <span className={`inline-flex items-center gap-[4px] rounded-[100px] border px-[7px] py-[2px] text-[10px] font-bold ${statusMeta.badge}`}>
+            <span
+              className={`inline-flex items-center gap-[4px] rounded-[100px] border px-[7px] py-[2px] text-[10px] font-bold ${statusMeta.badge}`}
+            >
               <StatusIcon size={11} strokeWidth={2} aria-hidden="true" />
               {pick(statusMeta.label, lang)}
             </span>
-            <span className="text-[13px] font-medium text-text">
-              {pickL(fact.statement, lang)}
-            </span>
+            <span className="text-[13px] font-medium text-text">{pickL(fact.statement, lang)}</span>
           </div>
           <div className="mt-[5px] flex flex-wrap items-center gap-x-[12px] gap-y-[4px] text-[11.5px] text-text-faint">
             <span className="inline-flex items-center gap-[4px]">
@@ -97,7 +106,9 @@ export function MemoryListRow({
               </span>
             )}
             {dueDate != null && (
-              <span className={`inline-flex items-center gap-[4px] ${expiring ? 'font-semibold text-gold-fg' : ''}`}>
+              <span
+                className={`inline-flex items-center gap-[4px] ${expiring ? 'font-semibold text-gold-fg' : ''}`}
+              >
                 <AlertTriangle size={12} strokeWidth={1.7} aria-hidden="true" />
                 {dueLabel} {formatMemoryDate(dueDate, lang, todayISO)}
               </span>
@@ -120,7 +131,9 @@ export function MemoryListRow({
               <Lock size={12} strokeWidth={2} aria-hidden="true" />
             </span>
           )}
-          <span className={`hidden items-center gap-[4px] rounded-[100px] border px-[7px] py-[2px] text-[10px] font-bold sm:inline-flex ${sensMeta.badge}`}>
+          <span
+            className={`hidden items-center gap-[4px] rounded-[100px] border px-[7px] py-[2px] text-[10px] font-bold sm:inline-flex ${sensMeta.badge}`}
+          >
             <SensIcon size={11} strokeWidth={2} aria-hidden="true" />
             {pick(sensMeta.label, lang)}
           </span>

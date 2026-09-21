@@ -2,7 +2,11 @@ import { AdvisorModalityError } from '@/features/app/advisor/chatApi'
 import type { AdvisorAttachment } from '@/features/app/advisor/attachments'
 import { isModelInstalled } from '@/lib/localModels/manager'
 import type { LocalModelSpec } from '@/lib/localModels/catalog'
-import { CAPTION_MODEL_ID, captionOnDevice, onDeviceSpec } from '@/features/app/advisor/onDeviceTasks'
+import {
+  CAPTION_MODEL_ID,
+  captionOnDevice,
+  onDeviceSpec,
+} from '@/features/app/advisor/onDeviceTasks'
 
 /**
  * On-device caption fallback for multimodal turns.

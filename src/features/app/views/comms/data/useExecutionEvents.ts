@@ -21,7 +21,9 @@ export function useExecutionEvents(): UseExecutionEventsResult {
   const { showToast } = useToasts()
   const isProduction = mode === 'production' && organizationId != null
 
-  const [executionEvents, setExecutionEvents] = useState<CommsExecutionEvent[]>(initialCommsState.executionEvents)
+  const [executionEvents, setExecutionEvents] = useState<CommsExecutionEvent[]>(
+    initialCommsState.executionEvents,
+  )
   const [loading, setLoading] = useState(false)
 
   const load = useCallback(async () => {

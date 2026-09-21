@@ -1,5 +1,9 @@
 import { Navigate, useParams } from 'react-router-dom'
-import { useWorkspaceNavigate, useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
+import {
+  useWorkspaceNavigate,
+  useWorkspaceRoot,
+  workspacePath,
+} from '@/features/app/workspaceRoot/workspaceRootContext'
 import { Brain, Briefcase, History, Info, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick } from '@/i18n/core'
@@ -44,7 +48,8 @@ export function CaseMemoryDemoView() {
 
   const memoryCase = memoryCases.find((c) => c.id === caseId)
   const content = caseId !== undefined ? memoryCaseContent[caseId] : undefined
-  if (!memoryCase || !content) return <Navigate to={workspacePath(root, 'settings/memory')} replace />
+  if (!memoryCase || !content)
+    return <Navigate to={workspacePath(root, 'settings/memory')} replace />
 
   const person = memoryPeople.find((p) => p.id === memoryCase.personId)
   const employee = employees.find((e) => e.id === memoryCase.personId)

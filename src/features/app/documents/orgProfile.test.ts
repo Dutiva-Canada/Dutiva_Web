@@ -40,11 +40,7 @@ describe('orgProfileForIdentity', () => {
 describe('activeHeadcount', () => {
   it('counts active and on-leave people, not terminated', () => {
     expect(
-      activeHeadcount([
-        { status: 'active' },
-        { status: 'on_leave' },
-        { status: 'terminated' },
-      ]),
+      activeHeadcount([{ status: 'active' }, { status: 'on_leave' }, { status: 'terminated' }]),
     ).toBe(2)
   })
 

@@ -16,7 +16,8 @@ vi.mock('@/features/careers/data/applicationsApi', () => ({
   withdrawApplication: vi.fn(),
 }))
 
-const { listMyApplications, withdrawApplication } = await import('@/features/careers/data/applicationsApi')
+const { listMyApplications, withdrawApplication } =
+  await import('@/features/careers/data/applicationsApi')
 
 const MOCK_APPLICATIONS: CandidateApplication[] = [
   {
@@ -30,7 +31,13 @@ const MOCK_APPLICATIONS: CandidateApplication[] = [
     aiSuggestions: null,
     appliedAt: '2026-01-20T00:00:00Z',
     updatedAt: '2026-01-20T00:00:00Z',
-    jobPosting: { id: 'jp-1', title: 'Senior PM', department: 'Product', location: 'Toronto', type: 'Full-time' },
+    jobPosting: {
+      id: 'jp-1',
+      title: 'Senior PM',
+      department: 'Product',
+      location: 'Toronto',
+      type: 'Full-time',
+    },
   },
   {
     id: 'a2',
@@ -43,7 +50,13 @@ const MOCK_APPLICATIONS: CandidateApplication[] = [
     aiSuggestions: null,
     appliedAt: '2026-01-15T00:00:00Z',
     updatedAt: '2026-01-15T00:00:00Z',
-    jobPosting: { id: 'jp-2', title: 'Frontend Engineer', department: 'Engineering', location: 'Remote', type: 'Full-time' },
+    jobPosting: {
+      id: 'jp-2',
+      title: 'Frontend Engineer',
+      department: 'Engineering',
+      location: 'Remote',
+      type: 'Full-time',
+    },
   },
 ]
 

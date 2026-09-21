@@ -146,7 +146,10 @@ export function HiringProductionView() {
       setEditingPosting(null)
       void load()
     } catch {
-      showToast(editingPosting ? M.hiring_posting_update_error : M.hiring_posting_create_error, 'info')
+      showToast(
+        editingPosting ? M.hiring_posting_update_error : M.hiring_posting_create_error,
+        'info',
+      )
     } finally {
       setPostingSaving(false)
     }
@@ -187,7 +190,10 @@ export function HiringProductionView() {
     }
   }
 
-  const onCandidateStatusChange = async (candidate: ProductionCandidate, next: ProductionCandidateStatus) => {
+  const onCandidateStatusChange = async (
+    candidate: ProductionCandidate,
+    next: ProductionCandidateStatus,
+  ) => {
     if (statusUpdatingId || next === candidate.status) return
     setStatusUpdatingId(candidate.id)
     try {
@@ -212,7 +218,9 @@ export function HiringProductionView() {
 
   const tabClass = (tab: Tab) =>
     `cursor-pointer rounded-[8px] border-none px-[14px] py-[7px] font-sans text-[12.5px] font-semibold ${
-      activeTab === tab ? 'bg-surface text-text shadow-(--shadow-sm)' : 'bg-transparent text-text-muted'
+      activeTab === tab
+        ? 'bg-surface text-text shadow-(--shadow-sm)'
+        : 'bg-transparent text-text-muted'
     }`
 
   const openCandidate = (candidateId: string) => navigate(`/app/hiring/candidates/${candidateId}`)
@@ -293,8 +301,9 @@ export function HiringProductionView() {
                 />
               </div>
               <span className="text-[13px] text-text-muted">
-                {x(M.hiring_candidates_showing)} {filteredCandidates.length} {x(M.hiring_candidates_of)}{' '}
-                {(candidates ?? []).length} {x(M.hiring_candidates_candidates)}
+                {x(M.hiring_candidates_showing)} {filteredCandidates.length}{' '}
+                {x(M.hiring_candidates_of)} {(candidates ?? []).length}{' '}
+                {x(M.hiring_candidates_candidates)}
               </span>
             </div>
 
@@ -459,7 +468,9 @@ export function HiringProductionView() {
                     key={candidate.id}
                     className="grid min-w-[900px] grid-cols-[2fr_1.5fr_1fr_1.5fr_1fr_1fr_1fr] items-center gap-[10px] border-t border-t-inset px-[16px] py-[12px]"
                   >
-                    <div className="font-sans text-[13.5px] font-semibold text-text">{candidate.name}</div>
+                    <div className="font-sans text-[13.5px] font-semibold text-text">
+                      {candidate.name}
+                    </div>
                     <div className="overflow-hidden text-[13px] text-ellipsis whitespace-nowrap text-text-2">
                       {candidate.position}
                     </div>
@@ -478,8 +489,12 @@ export function HiringProductionView() {
                         className="w-full rounded-[8px] border border-border bg-surface px-[8px] py-[6px] font-sans text-[12.5px] text-text"
                       >
                         <option value="application">{x(M.hiring_status_application)}</option>
-                        <option value="basic_qualified">{x(M.hiring_status_basic_qualified)}</option>
-                        <option value="evidence_qualified">{x(M.hiring_status_evidence_qualified)}</option>
+                        <option value="basic_qualified">
+                          {x(M.hiring_status_basic_qualified)}
+                        </option>
+                        <option value="evidence_qualified">
+                          {x(M.hiring_status_evidence_qualified)}
+                        </option>
                         <option value="work_sample">{x(M.hiring_status_work_sample)}</option>
                         <option value="interview">{x(M.hiring_status_interview)}</option>
                         <option value="hired">{x(M.hiring_status_hired)}</option>
@@ -523,8 +538,12 @@ export function HiringProductionView() {
                   >
                     <div className="flex items-center justify-between gap-[10px]">
                       <div className="min-w-0 flex-1">
-                        <div className="text-[14.5px] font-semibold text-text">{candidate.name}</div>
-                        <div className="mt-[2px] text-[12px] text-text-muted">{candidate.position}</div>
+                        <div className="text-[14.5px] font-semibold text-text">
+                          {candidate.name}
+                        </div>
+                        <div className="mt-[2px] text-[12px] text-text-muted">
+                          {candidate.position}
+                        </div>
                       </div>
                       <span className={statusChipClass(getStatusTone(candidate.status))}>
                         {x(getStatusLabel(candidate.status))}
@@ -547,8 +566,12 @@ export function HiringProductionView() {
             </div>
           ) : (
             <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
-              <div className="mb-[4px] text-[14.5px] font-semibold text-text">{x(M.hiring_no_candidates)}</div>
-              <div className="mb-[14px] text-[13px] text-text-muted">{x(M.hiring_no_candidates_body)}</div>
+              <div className="mb-[4px] text-[14.5px] font-semibold text-text">
+                {x(M.hiring_no_candidates)}
+              </div>
+              <div className="mb-[14px] text-[13px] text-text-muted">
+                {x(M.hiring_no_candidates_body)}
+              </div>
             </div>
           )}
         </>
@@ -632,7 +655,9 @@ export function HiringProductionView() {
             ))
           ) : (
             <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
-              <div className="text-[14.5px] font-semibold text-text">{x(M.hiring_postings_no_postings)}</div>
+              <div className="text-[14.5px] font-semibold text-text">
+                {x(M.hiring_postings_no_postings)}
+              </div>
             </div>
           )}
         </div>
@@ -653,10 +678,15 @@ function FunnelAnalytics({ funnel }: { funnel: ProductionFunnelMetrics }) {
         <div className="space-y-[8px]">
           {STAGES.map((stage, index) => {
             const count = funnel[stage.key]
-            const width = funnel.totalApplications > 0 ? Math.round((count / funnel.totalApplications) * 100) : 0
+            const width =
+              funnel.totalApplications > 0
+                ? Math.round((count / funnel.totalApplications) * 100)
+                : 0
             return (
               <div key={stage.key} className="flex items-center gap-[12px]">
-                <div className="w-[140px] shrink-0 text-[13px] text-text-2">{x(M[stage.label])}</div>
+                <div className="w-[140px] shrink-0 text-[13px] text-text-2">
+                  {x(M[stage.label])}
+                </div>
                 <div className="flex-1">
                   <div className="mb-[4px] flex items-center justify-between text-[12px]">
                     <span className="font-semibold text-text">{count}</span>
@@ -732,4 +762,3 @@ function nextStage(status: ProductionCandidateStatus): ProductionCandidateStatus
   if (idx < 0 || idx >= STAGE_FLOW.length - 1) return null
   return STAGE_FLOW[idx + 1] ?? null
 }
-

@@ -28,22 +28,20 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-
-
 The Dutiva billing subsystem connects a four-tier plan catalogue (Free / Starter / Growth / Pro) to Stripe Checkout, a webhook pipeline that keeps the `profiles` table in sync, and a client-side `PlanProvider` + `PlanGate` enforcement layer. **All paid plans are currently disabled** via the `PAID_PLANS_DISABLED_DURING_BETA` flag — the code is wired end-to-end but no purchase can complete until the flag is flipped and Stripe secrets are configured. Internal `@dutiva.ca` accounts bypass the paywall entirely at every layer.
 
 ## Beta Billing State
 
 The billing system was subjected to a thorough audit documented in `docs/BILLING_BETA_AUDIT.md`. The current operational state:
 
-| Aspect | Status |
-|---|---|
-| `PAID_PLANS_DISABLED_DURING_BETA` | `true` — paid CTAs show "coming soon" |
-| Stripe secrets on Supabase project | Not yet set |
-| Annual price IDs in Stripe | Do not exist yet (TODO.md OA11) |
-| `stripe_webhook_events` table | Exists (migration 0024 applied) |
-| `profiles` plan constraint | Accepts `free`, `starter`, `growth`, `pro`, `advanced`, `enterprise` |
-| Billing toggle on `/pricing` | Hidden while beta flag is on |
+| Aspect                             | Status                                                               |
+| ---------------------------------- | -------------------------------------------------------------------- |
+| `PAID_PLANS_DISABLED_DURING_BETA`  | `true` — paid CTAs show "coming soon"                                |
+| Stripe secrets on Supabase project | Not yet set                                                          |
+| Annual price IDs in Stripe         | Do not exist yet (TODO.md OA11)                                      |
+| `stripe_webhook_events` table      | Exists (migration 0024 applied)                                      |
+| `profiles` plan constraint         | Accepts `free`, `starter`, `growth`, `pro`, `advanced`, `enterprise` |
+| Billing toggle on `/pricing`       | Hidden while beta flag is on                                         |
 
 Sources: [docs/BILLING_BETA_AUDIT.md:1-10](), [src/config/plans.ts:79]()
 
@@ -90,12 +88,12 @@ Sources: [supabase/functions/create-checkout-session/index.ts:85-184](), [supaba
 
 The `PLANS` array defines four tiers with CAD monthly prices:
 
-| Plan ID | Monthly (CAD) | `stripePriceEnvVar` | Purchasable during beta? |
-|---|---|---|---|
-| `free` | $0 | `null` | Yes (enters app directly) |
-| `starter` | $24 | `STRIPE_PRICE_STARTER_MONTHLY` | No |
-| `growth` | $49 | `STRIPE_PRICE_GROWTH_MONTHLY` | No (marked `popular`) |
-| `pro` | $99 | `STRIPE_PRICE_PRO_MONTHLY` | No |
+| Plan ID   | Monthly (CAD) | `stripePriceEnvVar`            | Purchasable during beta?  |
+| --------- | ------------- | ------------------------------ | ------------------------- |
+| `free`    | $0            | `null`                         | Yes (enters app directly) |
+| `starter` | $24           | `STRIPE_PRICE_STARTER_MONTHLY` | No                        |
+| `growth`  | $49           | `STRIPE_PRICE_GROWTH_MONTHLY`  | No (marked `popular`)     |
+| `pro`     | $99           | `STRIPE_PRICE_PRO_MONTHLY`     | No                        |
 
 The type `PlanId` is the union `'free' | 'starter' | 'growth' | 'pro'` [src/config/plans.ts:3](). Plans have a numeric rank (`PLAN_RANK`) used by `hasPlanAccess()` to check whether a user's current plan meets or exceeds a required tier [src/config/plans.ts:111-123]().
 
@@ -135,11 +133,11 @@ The client-side `bypassesPaywall(email)` returns `true` if the email is in the e
 
 Three helper functions are exported from the client-side module:
 
-| Function | Purpose |
-|---|---|
-| `isAdminEmail(email)` | Checks the explicit admin list |
-| `isInternalDutivaAccount(email)` | Checks the `@dutiva.ca` domain suffix |
-| `bypassesPaywall(email)` | Either of the above — the paywall check |
+| Function                         | Purpose                                 |
+| -------------------------------- | --------------------------------------- |
+| `isAdminEmail(email)`            | Checks the explicit admin list          |
+| `isInternalDutivaAccount(email)` | Checks the `@dutiva.ca` domain suffix   |
+| `bypassesPaywall(email)`         | Either of the above — the paywall check |
 
 The test suite verifies case-insensitivity, whitespace trimming, lookalike domain rejection (`@notdutiva.ca.evil.com`), and null/undefined safety [src/lib/billing/adminAccess.test.ts:1-36]().
 
@@ -173,13 +171,13 @@ Sources: [src/features/app/billing/PlanProvider.tsx:1-95](), [src/features/app/b
 
 `PlanGate` is a declarative paywall gate for workspace views. It accepts a `required` plan tier and renders children or an upgrade nudge:
 
-| Condition | Behavior |
-|---|---|
-| `loading` | Renders nothing |
-| `mode === 'demo'` | Always renders children (demo shows full product) |
-| `isAdmin` | Always renders children (admin bypass) |
-| `hasPlanAccess(plan, required)` | Renders children |
-| Otherwise | Renders `UpgradeNudge` linking to `/pricing?upgrade={required}` |
+| Condition                       | Behavior                                                        |
+| ------------------------------- | --------------------------------------------------------------- |
+| `loading`                       | Renders nothing                                                 |
+| `mode === 'demo'`               | Always renders children (demo shows full product)               |
+| `isAdmin`                       | Always renders children (admin bypass)                          |
+| `hasPlanAccess(plan, required)` | Renders children                                                |
+| Otherwise                       | Renders `UpgradeNudge` linking to `/pricing?upgrade={required}` |
 
 [src/features/app/billing/PlanGate.tsx:25-39]()
 
@@ -206,10 +204,10 @@ The function flow:
 
 The `PRICE_ENV_KEYS` matrix maps billing period × plan to environment variable names:
 
-| Period | Starter | Growth | Pro |
-|---|---|---|---|
+| Period  | Starter                        | Growth                        | Pro                        |
+| ------- | ------------------------------ | ----------------------------- | -------------------------- |
 | monthly | `STRIPE_PRICE_STARTER_MONTHLY` | `STRIPE_PRICE_GROWTH_MONTHLY` | `STRIPE_PRICE_PRO_MONTHLY` |
-| annual | `STRIPE_PRICE_STARTER_ANNUAL` | `STRIPE_PRICE_GROWTH_ANNUAL` | `STRIPE_PRICE_PRO_ANNUAL` |
+| annual  | `STRIPE_PRICE_STARTER_ANNUAL`  | `STRIPE_PRICE_GROWTH_ANNUAL`  | `STRIPE_PRICE_PRO_ANNUAL`  |
 
 [supabase/functions/create-checkout-session/index.ts:42-53]()
 
@@ -272,13 +270,13 @@ Sources: [supabase/functions/stripe-webhook/index.ts:1-267](), [supabase/functio
 
 ### Handled Stripe Events
 
-| Event | Handler | Profile Update |
-|---|---|---|
-| `checkout.session.completed` | `getCheckoutProfilePatch()` then `enqueuePlanSignupNotification()` | `plan`, `subscription_status='active'`, `billing_period`, `stripe_customer_id`, `stripe_subscription_id`; operator `plan_signup` outbox row |
-| `customer.subscription.created` | `getSubscriptionProfileUpdate()` | `plan` (from price lookup), `subscription_status`, `billing_period`, `stripe_subscription_id` |
-| `customer.subscription.updated` | `getSubscriptionProfileUpdate()` | Same as above — handles plan changes and status transitions |
-| `invoice.payment_failed` | Inline | `subscription_status='past_due'` |
-| `customer.subscription.deleted` | Inline | `plan='free'`, `subscription_status='canceled'` |
+| Event                           | Handler                                                            | Profile Update                                                                                                                              |
+| ------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `checkout.session.completed`    | `getCheckoutProfilePatch()` then `enqueuePlanSignupNotification()` | `plan`, `subscription_status='active'`, `billing_period`, `stripe_customer_id`, `stripe_subscription_id`; operator `plan_signup` outbox row |
+| `customer.subscription.created` | `getSubscriptionProfileUpdate()`                                   | `plan` (from price lookup), `subscription_status`, `billing_period`, `stripe_subscription_id`                                               |
+| `customer.subscription.updated` | `getSubscriptionProfileUpdate()`                                   | Same as above — handles plan changes and status transitions                                                                                 |
+| `invoice.payment_failed`        | Inline                                                             | `subscription_status='past_due'`                                                                                                            |
+| `customer.subscription.deleted` | Inline                                                             | `plan='free'`, `subscription_status='canceled'`                                                                                             |
 
 Sources: [supabase/functions/stripe-webhook/index.ts:153-231]()
 
@@ -306,17 +304,17 @@ When the price is unrecognized and metadata is silent, `billing_period` is **omi
 
 Maps Stripe's wider status vocabulary onto the five values the `profiles` CHECK constraint accepts:
 
-| Stripe Status | Stored As |
-|---|---|
-| `active` | `active` |
-| `trialing` | `trialing` |
-| `past_due` | `past_due` |
-| `canceled` | `canceled` |
-| `unpaid` | `past_due` |
-| `incomplete` | `inactive` |
+| Stripe Status        | Stored As  |
+| -------------------- | ---------- |
+| `active`             | `active`   |
+| `trialing`           | `trialing` |
+| `past_due`           | `past_due` |
+| `canceled`           | `canceled` |
+| `unpaid`             | `past_due` |
+| `incomplete`         | `inactive` |
 | `incomplete_expired` | `inactive` |
-| `paused` | `inactive` |
-| Anything else | `inactive` |
+| `paused`             | `inactive` |
+| Anything else        | `inactive` |
 
 This fails closed: an unrecognized status reads as `inactive` rather than something that would grant entitlement [supabase/functions/stripe-webhook/billing-event.ts:57-71]().
 
@@ -328,17 +326,17 @@ Sources: [supabase/functions/stripe-webhook/billing-event.ts:1-165](), [supabase
 
 Created by migration `0013_add_billing_profiles.sql`, reconciled by `0024`, and extended by `0043`:
 
-| Column | Type | Default | Constraint |
-|---|---|---|---|
-| `id` | `uuid` PK | — | FK → `auth.users(id) ON DELETE CASCADE` |
-| `account_email` | `text` | — | — |
-| `plan` | `text` | `'free'` | `IN ('free','starter','growth','pro','advanced','enterprise')` |
-| `subscription_status` | `text` | `'inactive'` | `IN ('active','trialing','past_due','canceled','inactive')` |
-| `billing_period` | `text` | `'monthly'` | `IN ('monthly','annual')` (after migration 0043) |
-| `stripe_customer_id` | `text` | — | Indexed where not null |
-| `stripe_subscription_id` | `text` | — | — |
-| `created_at` | `timestamptz` | `now()` | — |
-| `updated_at` | `timestamptz` | `now()` | Auto-set by trigger |
+| Column                   | Type          | Default      | Constraint                                                     |
+| ------------------------ | ------------- | ------------ | -------------------------------------------------------------- |
+| `id`                     | `uuid` PK     | —            | FK → `auth.users(id) ON DELETE CASCADE`                        |
+| `account_email`          | `text`        | —            | —                                                              |
+| `plan`                   | `text`        | `'free'`     | `IN ('free','starter','growth','pro','advanced','enterprise')` |
+| `subscription_status`    | `text`        | `'inactive'` | `IN ('active','trialing','past_due','canceled','inactive')`    |
+| `billing_period`         | `text`        | `'monthly'`  | `IN ('monthly','annual')` (after migration 0043)               |
+| `stripe_customer_id`     | `text`        | —            | Indexed where not null                                         |
+| `stripe_subscription_id` | `text`        | —            | —                                                              |
+| `created_at`             | `timestamptz` | `now()`      | —                                                              |
+| `updated_at`             | `timestamptz` | `now()`      | Auto-set by trigger                                            |
 
 [supabase/migrations/0013_add_billing_profiles.sql:12-25]()
 
@@ -348,11 +346,11 @@ Created by migration `0013_add_billing_profiles.sql`, reconciled by `0024`, and 
 
 ### `stripe_webhook_events` Table
 
-| Column | Type | Notes |
-|---|---|---|
-| `event_id` | `text` PK | Stripe event ID, unique constraint provides dedup |
-| `event_type` | `text` | e.g. `checkout.session.completed` |
-| `received_at` | `timestamptz` | Default `now()` |
+| Column        | Type          | Notes                                             |
+| ------------- | ------------- | ------------------------------------------------- |
+| `event_id`    | `text` PK     | Stripe event ID, unique constraint provides dedup |
+| `event_type`  | `text`        | e.g. `checkout.session.completed`                 |
+| `received_at` | `timestamptz` | Default `now()`                                   |
 
 RLS enabled with no policies — only the service-role key can read/write [supabase/migrations/0013_add_billing_profiles.sql:63-69]().
 
@@ -390,13 +388,13 @@ sequenceDiagram
 
 ### Usage Ceilings
 
-| Ceiling | Default | Env Override | Scope |
-|---|---|---|---|
-| Burst (chat) | 10 requests / 300s | `AI_BURST_LIMIT_CHAT` | Per-user, per-operation |
-| Burst (support) | 6 requests / 300s | `AI_BURST_LIMIT_SUPPORT` | Per-user, per-operation |
-| Daily requests | 120 | `AI_DAILY_REQUEST_LIMIT` | Per-user, all operations |
-| Daily tokens | 250,000 | `AI_DAILY_TOKEN_LIMIT` | Per-user, all operations |
-| Platform daily | 2,000 | `AI_PLATFORM_DAILY_LIMIT` | All users combined |
+| Ceiling         | Default            | Env Override              | Scope                    |
+| --------------- | ------------------ | ------------------------- | ------------------------ |
+| Burst (chat)    | 10 requests / 300s | `AI_BURST_LIMIT_CHAT`     | Per-user, per-operation  |
+| Burst (support) | 6 requests / 300s  | `AI_BURST_LIMIT_SUPPORT`  | Per-user, per-operation  |
+| Daily requests  | 120                | `AI_DAILY_REQUEST_LIMIT`  | Per-user, all operations |
+| Daily tokens    | 250,000            | `AI_DAILY_TOKEN_LIMIT`    | Per-user, all operations |
+| Platform daily  | 2,000              | `AI_PLATFORM_DAILY_LIMIT` | All users combined       |
 
 [supabase/functions/_shared/aiUsage.ts:74-79]()
 
@@ -425,14 +423,14 @@ Sources: [src/features/marketing/pages/PricingPage.tsx:1-606]()
 
 These must be set as Supabase function secrets before billing goes live:
 
-| Secret | Used By | Notes |
-|---|---|---|
-| `STRIPE_SECRET_KEY` | `create-checkout-session`, `create-portal-session` | — |
-| `STRIPE_WEBHOOK_SECRET` | `stripe-webhook` | The `whsec_…` for the webhook endpoint |
-| `STRIPE_PRICE_STARTER_MONTHLY` | `create-checkout-session`, `stripe-webhook` | Stripe Price ID |
-| `STRIPE_PRICE_GROWTH_MONTHLY` | `create-checkout-session`, `stripe-webhook` | Stripe Price ID |
-| `STRIPE_PRICE_PRO_MONTHLY` | `create-checkout-session`, `stripe-webhook` | Stripe Price ID |
-| `SITE_URL` | `create-checkout-session`, `create-portal-session` | Set to `https://dutiva.ca` (the default `www.` redirects) |
+| Secret                         | Used By                                            | Notes                                                     |
+| ------------------------------ | -------------------------------------------------- | --------------------------------------------------------- |
+| `STRIPE_SECRET_KEY`            | `create-checkout-session`, `create-portal-session` | —                                                         |
+| `STRIPE_WEBHOOK_SECRET`        | `stripe-webhook`                                   | The `whsec_…` for the webhook endpoint                    |
+| `STRIPE_PRICE_STARTER_MONTHLY` | `create-checkout-session`, `stripe-webhook`        | Stripe Price ID                                           |
+| `STRIPE_PRICE_GROWTH_MONTHLY`  | `create-checkout-session`, `stripe-webhook`        | Stripe Price ID                                           |
+| `STRIPE_PRICE_PRO_MONTHLY`     | `create-checkout-session`, `stripe-webhook`        | Stripe Price ID                                           |
+| `SITE_URL`                     | `create-checkout-session`, `create-portal-session` | Set to `https://dutiva.ca` (the default `www.` redirects) |
 
 The Stripe webhook endpoint must be pointed at `https://<project>.supabase.co/functions/v1/stripe-webhook` and subscribed to `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, and `invoice.payment_failed` [docs/BILLING_BETA_AUDIT.md:263-268]().
 
@@ -440,15 +438,15 @@ Sources: [docs/BILLING_BETA_AUDIT.md:248-268]()
 
 ## Security Properties
 
-| Property | Implementation |
-|---|---|
-| Client cannot set own plan | `pin_profile_billing_columns` trigger reverts billing columns for authenticated roles [supabase/migrations/0024_reconcile_billing_schema.sql:56-80]() |
-| Client cannot supply price ID | `create-checkout-session` maps plan → env var → price ID server-side [supabase/functions/create-checkout-session/index.ts:133-139]() |
-| Webhook signature verified | HMAC-SHA-256 with constant-time compare and 300s replay window [supabase/functions/stripe-webhook/verify-signature.ts:35-72]() |
-| No filter injection | Email lookup uses parameterized `.eq()`, not `.or()` string interpolation [supabase/functions/stripe-webhook/index.ts:90-94]() |
-| Unrecognized plan defaults to free | `normalizePlan()` returns `null` for unknown values; checkout defaults to `'free'` [supabase/functions/stripe-webhook/billing-event.ts:115]() |
-| Failed writes cause Stripe retry | `fail()` deletes the dedup row and returns 500, triggering Stripe's retry [supabase/functions/stripe-webhook/index.ts:146-151]() |
-| Admin bypass is domain-checked | Only `@dutiva.ca` accounts bypass; lookalike domains are rejected [src/lib/billing/adminAccess.test.ts:22-23]() |
+| Property                           | Implementation                                                                                                                                        |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Client cannot set own plan         | `pin_profile_billing_columns` trigger reverts billing columns for authenticated roles [supabase/migrations/0024_reconcile_billing_schema.sql:56-80]() |
+| Client cannot supply price ID      | `create-checkout-session` maps plan → env var → price ID server-side [supabase/functions/create-checkout-session/index.ts:133-139]()                  |
+| Webhook signature verified         | HMAC-SHA-256 with constant-time compare and 300s replay window [supabase/functions/stripe-webhook/verify-signature.ts:35-72]()                        |
+| No filter injection                | Email lookup uses parameterized `.eq()`, not `.or()` string interpolation [supabase/functions/stripe-webhook/index.ts:90-94]()                        |
+| Unrecognized plan defaults to free | `normalizePlan()` returns `null` for unknown values; checkout defaults to `'free'` [supabase/functions/stripe-webhook/billing-event.ts:115]()         |
+| Failed writes cause Stripe retry   | `fail()` deletes the dedup row and returns 500, triggering Stripe's retry [supabase/functions/stripe-webhook/index.ts:146-151]()                      |
+| Admin bypass is domain-checked     | Only `@dutiva.ca` accounts bypass; lookalike domains are rejected [src/lib/billing/adminAccess.test.ts:22-23]()                                       |
 
 Sources: [supabase/migrations/0024_reconcile_billing_schema.sql:56-80](), [supabase/functions/stripe-webhook/verify-signature.ts:35-86](), [supabase/functions/stripe-webhook/index.ts:87-105](), [src/lib/billing/adminAccess.test.ts:22-23]()
 

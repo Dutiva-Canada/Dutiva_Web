@@ -8,7 +8,13 @@ import { FormField, FormInput, FormSelect, FormCheckbox } from '@/components/For
 import { useGovernanceData } from '../GovernanceDataContext'
 import type { GovernanceRecord, GovernanceRecordStatus, GovernanceRecordType } from '../data/types'
 
-const RECORD_TYPES: GovernanceRecordType[] = ['articles', 'bylaw', 'resolution', 'minutes', 'register']
+const RECORD_TYPES: GovernanceRecordType[] = [
+  'articles',
+  'bylaw',
+  'resolution',
+  'minutes',
+  'register',
+]
 const STATUSES: GovernanceRecordStatus[] = ['active', 'superseded', 'pending_review']
 
 const RECORD_TYPE_LABELS: Record<GovernanceRecordType, keyof typeof M> = {
@@ -67,7 +73,9 @@ function RecordRow({
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
       <div className="min-w-0 flex-1">
-        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">{record.title}</div>
+        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">
+          {record.title}
+        </div>
         <div className="text-[12px] text-text-muted">
           {x(M[RECORD_TYPE_LABELS[record.record_type]])}
           {record.jurisdiction ? ` · ${record.jurisdiction}` : null}
@@ -76,11 +84,16 @@ function RecordRow({
       </div>
       <div className="flex items-center gap-[10px]">
         {record.document_id ? (
-          <Link to={`${root}/documents/${record.document_id}`} className="text-[12px] text-accent hover:underline">
+          <Link
+            to={`${root}/documents/${record.document_id}`}
+            className="text-[12px] text-accent hover:underline"
+          >
             {x(M.gov_link_document)}
           </Link>
         ) : null}
-        <span className={statusChipClass(STATUS_TONE[record.status])}>{x(M[STATUS_LABELS[record.status]])}</span>
+        <span className={statusChipClass(STATUS_TONE[record.status])}>
+          {x(M[STATUS_LABELS[record.status]])}
+        </span>
         <button
           type="button"
           onClick={() => onEdit(record)}
@@ -184,7 +197,10 @@ export function Records() {
             <FormInput value={title} onChange={(e) => setTitle(e.target.value)} required />
           </FormField>
           <FormField label={x(M.gov_record_type)}>
-            <FormSelect value={recordType} onChange={(e) => setRecordType(e.target.value as GovernanceRecordType)}>
+            <FormSelect
+              value={recordType}
+              onChange={(e) => setRecordType(e.target.value as GovernanceRecordType)}
+            >
               {RECORD_TYPES.map((t) => (
                 <option key={t} value={t}>
                   {x(M[RECORD_TYPE_LABELS[t]])}
@@ -193,7 +209,10 @@ export function Records() {
             </FormSelect>
           </FormField>
           <FormField label={x(M.gov_status)}>
-            <FormSelect value={status} onChange={(e) => setStatus(e.target.value as GovernanceRecordStatus)}>
+            <FormSelect
+              value={status}
+              onChange={(e) => setStatus(e.target.value as GovernanceRecordStatus)}
+            >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {x(M[STATUS_LABELS[s]])}
@@ -205,13 +224,25 @@ export function Records() {
             <FormInput value={jurisdiction} onChange={(e) => setJurisdiction(e.target.value)} />
           </FormField>
           <FormField label={x(M.gov_effective_date)}>
-            <FormInput type="date" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} />
+            <FormInput
+              type="date"
+              value={effectiveDate}
+              onChange={(e) => setEffectiveDate(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.gov_review_due_date)}>
-            <FormInput type="date" value={reviewDueDate} onChange={(e) => setReviewDueDate(e.target.value)} />
+            <FormInput
+              type="date"
+              value={reviewDueDate}
+              onChange={(e) => setReviewDueDate(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.gov_viewer_visible)}>
-            <FormCheckbox label={x(M.gov_viewer_visible)} checked={viewerVisible} onChange={setViewerVisible} />
+            <FormCheckbox
+              label={x(M.gov_viewer_visible)}
+              checked={viewerVisible}
+              onChange={setViewerVisible}
+            />
           </FormField>
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button
@@ -242,7 +273,10 @@ export function Records() {
             <RecordRow
               key={record.id}
               record={record}
-              onEdit={(r) => { setEditing(r); setShow(true) }}
+              onEdit={(r) => {
+                setEditing(r)
+                setShow(true)
+              }}
               onRemove={(id) => removeRecord(id)}
             />
           ))}

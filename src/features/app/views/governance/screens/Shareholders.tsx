@@ -37,10 +37,14 @@ function ShareholderRow({
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
       <div className="min-w-0 flex-1">
-        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">{shareholder.name}</div>
+        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">
+          {shareholder.name}
+        </div>
         <div className="text-[12px] text-text-muted">
           {shareholder.share_class ? `${shareholder.share_class}` : null}
-          {shareholder.shares_issued ? ` · ${shareholder.shares_issued} ${x(M.gov_shareholder_total_shares)}` : null}
+          {shareholder.shares_issued
+            ? ` · ${shareholder.shares_issued} ${x(M.gov_shareholder_total_shares)}`
+            : null}
           {shareholder.issue_date ? ` · ${shareholder.issue_date}` : null}
           {shareholder.contact_email ? ` · ${shareholder.contact_email}` : null}
         </div>
@@ -138,13 +142,25 @@ export function Shareholders() {
             <FormInput value={name} onChange={(e) => setName(e.target.value)} required />
           </FormField>
           <FormField label={x(M.gov_shares_issued)}>
-            <FormInput type="number" value={sharesIssued} onChange={(e) => setSharesIssued(e.target.value)} />
+            <FormInput
+              type="number"
+              value={sharesIssued}
+              onChange={(e) => setSharesIssued(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.gov_contact_email)}>
-            <FormInput type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} />
+            <FormInput
+              type="email"
+              value={contactEmail}
+              onChange={(e) => setContactEmail(e.target.value)}
+            />
           </FormField>
           <div className="sm:col-span-2">
-            <FormCheckbox label={x(M.gov_viewer_visible)} checked={viewerVisible} onChange={setViewerVisible} />
+            <FormCheckbox
+              label={x(M.gov_viewer_visible)}
+              checked={viewerVisible}
+              onChange={setViewerVisible}
+            />
           </div>
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button
@@ -175,7 +191,10 @@ export function Shareholders() {
             <ShareholderRow
               key={shareholder.id}
               shareholder={shareholder}
-              onEdit={(s) => { setEditing(s); setShow(true) }}
+              onEdit={(s) => {
+                setEditing(s)
+                setShow(true)
+              }}
               onRemove={(id) => removeShareholder(id)}
             />
           ))}

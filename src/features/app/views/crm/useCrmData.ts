@@ -32,7 +32,10 @@ export interface UseCrmDataReturn {
   dealTitle: (id?: string) => string
 }
 
-export function useCrmData(mode: 'demo' | 'production', orgId: string | undefined): UseCrmDataReturn {
+export function useCrmData(
+  mode: 'demo' | 'production',
+  orgId: string | undefined,
+): UseCrmDataReturn {
   const isLive = mode === 'production' && orgId != null && orgId !== ''
   const [state, setState] = useState<CrmState>(() => {
     if (!isLive || !orgId) return initialCrmState
@@ -95,10 +98,12 @@ export function useCrmData(mode: 'demo' | 'production', orgId: string | undefine
       replace({
         ...state,
         companies: state.companies.filter((c) => c.id !== id),
-        contacts: state.contacts.map((c) => (c.companyId === id ? { ...c, companyId: undefined } : c)),
+        contacts: state.contacts.map((c) =>
+          c.companyId === id ? { ...c, companyId: undefined } : c,
+        ),
         deals: state.deals.map((d) => (d.companyId === id ? { ...d, companyId: undefined } : d)),
         activities: state.activities.map((a) =>
-          a.companyId === id ? { ...a, companyId: undefined } : a
+          a.companyId === id ? { ...a, companyId: undefined } : a,
         ),
       })
     },
@@ -138,7 +143,7 @@ export function useCrmData(mode: 'demo' | 'production', orgId: string | undefine
         contacts: state.contacts.filter((c) => c.id !== id),
         deals: state.deals.map((d) => (d.contactId === id ? { ...d, contactId: undefined } : d)),
         activities: state.activities.map((a) =>
-          a.contactId === id ? { ...a, contactId: undefined } : a
+          a.contactId === id ? { ...a, contactId: undefined } : a,
         ),
       })
     },
@@ -147,7 +152,11 @@ export function useCrmData(mode: 'demo' | 'production', orgId: string | undefine
 
   const addDeal = useCallback(
     (item: Omit<CrmDeal, 'id'>) => {
-      const created: CrmDeal = { ...item, id: createId('deal'), currency: item.currency || defaultCurrency() }
+      const created: CrmDeal = {
+        ...item,
+        id: createId('deal'),
+        currency: item.currency || defaultCurrency(),
+      }
       replace({ ...state, deals: [created, ...state.deals] })
       return created
     },
@@ -176,7 +185,9 @@ export function useCrmData(mode: 'demo' | 'production', orgId: string | undefine
       replace({
         ...state,
         deals: state.deals.filter((d) => d.id !== id),
-        activities: state.activities.map((a) => (a.dealId === id ? { ...a, dealId: undefined } : a)),
+        activities: state.activities.map((a) =>
+          a.dealId === id ? { ...a, dealId: undefined } : a,
+        ),
       })
     },
     [state, replace],
@@ -226,9 +237,15 @@ export function useCrmData(mode: 'demo' | 'production', orgId: string | undefine
     return { companies, contacts, deals }
   }, [state])
 
-  const companyName = useCallback((id?: string) => (id ? lookup.companies.get(id) ?? '' : ''), [lookup])
-  const contactName = useCallback((id?: string) => (id ? lookup.contacts.get(id) ?? '' : ''), [lookup])
-  const dealTitle = useCallback((id?: string) => (id ? lookup.deals.get(id) ?? '' : ''), [lookup])
+  const companyName = useCallback(
+    (id?: string) => (id ? (lookup.companies.get(id) ?? '') : ''),
+    [lookup],
+  )
+  const contactName = useCallback(
+    (id?: string) => (id ? (lookup.contacts.get(id) ?? '') : ''),
+    [lookup],
+  )
+  const dealTitle = useCallback((id?: string) => (id ? (lookup.deals.get(id) ?? '') : ''), [lookup])
 
   return {
     state,

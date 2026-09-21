@@ -24,7 +24,11 @@ if (!version || !file) {
   process.exit(1)
 }
 
-const fileName = file.split(/[\\/]/).pop()?.replace(/\.sql$/, '') ?? ''
+const fileName =
+  file
+    .split(/[\\/]/)
+    .pop()
+    ?.replace(/\.sql$/, '') ?? ''
 if (!fileName) {
   console.error('record-migration: could not determine migration name from file path')
   process.exit(1)
@@ -155,4 +159,6 @@ if (!response.ok) {
   process.exit(1)
 }
 
-console.log(`record-migration: updated schema_migrations row for version ${version} to name ${slug}`)
+console.log(
+  `record-migration: updated schema_migrations row for version ${version} to name ${slug}`,
+)

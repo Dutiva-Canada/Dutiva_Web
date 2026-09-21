@@ -4,9 +4,18 @@ import { operationsMessages as M } from '@/i18n/messages/operations'
 import { statusChipClass } from '@/components/chips'
 import { FormField, FormInput, FormSelect } from '@/components/FormField'
 import { useOperationsData } from '../OperationsDataContext'
-import type { OperationsTechnology, OperationsTechnologyStatus, OperationsTechnologyType } from '../data/types'
+import type {
+  OperationsTechnology,
+  OperationsTechnologyStatus,
+  OperationsTechnologyType,
+} from '../data/types'
 
-const TYPES: NonNullable<OperationsTechnologyType>[] = ['internal', 'customer_facing', 'integration', 'infrastructure']
+const TYPES: NonNullable<OperationsTechnologyType>[] = [
+  'internal',
+  'customer_facing',
+  'integration',
+  'infrastructure',
+]
 const STATUSES: OperationsTechnologyStatus[] = ['active', 'deprecated', 'planned']
 
 const TYPE_LABELS: Record<NonNullable<OperationsTechnologyType>, keyof typeof M> = {
@@ -68,7 +77,9 @@ function TechnologyRow({
         </div>
       </div>
       <div className="flex items-center gap-[10px]">
-        <span className={statusChipClass(STATUS_TONE[tech.status])}>{x(M[STATUS_LABELS[tech.status]])}</span>
+        <span className={statusChipClass(STATUS_TONE[tech.status])}>
+          {x(M[STATUS_LABELS[tech.status]])}
+        </span>
         <button
           type="button"
           onClick={() => onEdit(tech)}
@@ -96,7 +107,9 @@ export function Technology() {
 
   const initial = editing ?? emptyTechnology()
   const [name, setName] = useState(initial.name)
-  const [systemType, setSystemType] = useState<NonNullable<OperationsTechnologyType>>(initial.system_type ?? 'internal')
+  const [systemType, setSystemType] = useState<NonNullable<OperationsTechnologyType>>(
+    initial.system_type ?? 'internal',
+  )
   const [status, setStatus] = useState<OperationsTechnologyStatus>(initial.status)
   const [renewalDate, setRenewalDate] = useState(initial.renewal_date ?? '')
   const [integrationNotes, setIntegrationNotes] = useState(initial.integration_notes ?? '')
@@ -163,7 +176,12 @@ export function Technology() {
             <FormInput value={name} onChange={(e) => setName(e.target.value)} required />
           </FormField>
           <FormField label={x(M.ops_type)}>
-            <FormSelect value={systemType} onChange={(e) => setSystemType(e.target.value as NonNullable<OperationsTechnologyType>)}>
+            <FormSelect
+              value={systemType}
+              onChange={(e) =>
+                setSystemType(e.target.value as NonNullable<OperationsTechnologyType>)
+              }
+            >
               {TYPES.map((t) => (
                 <option key={t} value={t}>
                   {x(M[TYPE_LABELS[t]])}
@@ -172,7 +190,10 @@ export function Technology() {
             </FormSelect>
           </FormField>
           <FormField label={x(M.ops_status)}>
-            <FormSelect value={status} onChange={(e) => setStatus(e.target.value as OperationsTechnologyStatus)}>
+            <FormSelect
+              value={status}
+              onChange={(e) => setStatus(e.target.value as OperationsTechnologyStatus)}
+            >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {x(M[STATUS_LABELS[s]])}
@@ -181,10 +202,17 @@ export function Technology() {
             </FormSelect>
           </FormField>
           <FormField label={x(M.ops_renewal_date)}>
-            <FormInput type="date" value={renewalDate} onChange={(e) => setRenewalDate(e.target.value)} />
+            <FormInput
+              type="date"
+              value={renewalDate}
+              onChange={(e) => setRenewalDate(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.ops_notes)}>
-            <FormInput value={integrationNotes} onChange={(e) => setIntegrationNotes(e.target.value)} />
+            <FormInput
+              value={integrationNotes}
+              onChange={(e) => setIntegrationNotes(e.target.value)}
+            />
           </FormField>
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button
@@ -215,7 +243,10 @@ export function Technology() {
             <TechnologyRow
               key={tech.id}
               tech={tech}
-              onEdit={(t) => { setEditing(t); setShow(true) }}
+              onEdit={(t) => {
+                setEditing(t)
+                setShow(true)
+              }}
               onRemove={(id) => removeTechnology(id)}
             />
           ))}

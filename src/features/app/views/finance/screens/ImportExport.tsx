@@ -29,7 +29,9 @@ export function ImportExport() {
     <div className="flex flex-col gap-[16px]">
       {/* Import section */}
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[8px] text-[15px] font-semibold text-text">{x(M.finance_import_title)}</h2>
+        <h2 className="mb-[8px] text-[15px] font-semibold text-text">
+          {x(M.finance_import_title)}
+        </h2>
         <p className="mb-[12px] text-[13px] text-text-muted">{x(M.finance_import_description)}</p>
 
         <div className="flex flex-col gap-[10px]">
@@ -76,10 +78,14 @@ export function ImportExport() {
             <p className="text-[12px] text-risk-fg">{x(M.finance_import_demo_disabled)}</p>
           )}
           {!canWrite && mode !== 'demo' && (
-            <p className="text-[12px] text-text-muted">{x(M.finance_import_select_account_first)}</p>
+            <p className="text-[12px] text-text-muted">
+              {x(M.finance_import_select_account_first)}
+            </p>
           )}
           {canWrite && !a.selectedAccountId && (
-            <p className="text-[12px] text-text-muted">{x(M.finance_import_select_account_first)}</p>
+            <p className="text-[12px] text-text-muted">
+              {x(M.finance_import_select_account_first)}
+            </p>
           )}
           {a.selectedFileName && (
             <div className="text-[12px] text-text-muted">
@@ -118,9 +124,11 @@ export function ImportExport() {
           {a.importResult && (
             <div className="flex flex-col gap-[8px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text">
               <span>{a.importResult}</span>
-              {state.aiImportSettings.aiImportEnabled && !a.aiImportResult && state.ledgerAccounts.length === 0 && (
-                <span className="text-text-muted">{x(M.finance_ai_import_no_ledger)}</span>
-              )}
+              {state.aiImportSettings.aiImportEnabled &&
+                !a.aiImportResult &&
+                state.ledgerAccounts.length === 0 && (
+                  <span className="text-text-muted">{x(M.finance_ai_import_no_ledger)}</span>
+                )}
               {a.importErrorDetails.length > 0 && (
                 <div className="flex flex-col gap-[8px]">
                   <div className="flex flex-wrap gap-[8px]">
@@ -175,8 +183,12 @@ export function ImportExport() {
 
       {/* Auto-categorize section */}
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[8px] text-[15px] font-semibold text-text">{x(M.finance_categorize_title)}</h2>
-        <p className="mb-[12px] text-[13px] text-text-muted">{x(M.finance_categorize_description)}</p>
+        <h2 className="mb-[8px] text-[15px] font-semibold text-text">
+          {x(M.finance_categorize_title)}
+        </h2>
+        <p className="mb-[12px] text-[13px] text-text-muted">
+          {x(M.finance_categorize_description)}
+        </p>
         <div className="flex items-center gap-[10px]">
           {canWrite && (
             <button
@@ -189,9 +201,7 @@ export function ImportExport() {
               {x(M.finance_categorize_run)}
             </button>
           )}
-          <span className="text-[12px] text-text-muted">
-            {a.unmatchedCount} unmatched
-          </span>
+          <span className="text-[12px] text-text-muted">{a.unmatchedCount} unmatched</span>
         </div>
         {a.categorizeResult && (
           <div className="mt-[8px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text">
@@ -207,8 +217,12 @@ export function ImportExport() {
 
       {/* AI import settings */}
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[8px] text-[15px] font-semibold text-text">{x(M.finance_ai_settings_title)}</h2>
-        <p className="mb-[12px] text-[13px] text-text-muted">{x(M.finance_ai_settings_description)}</p>
+        <h2 className="mb-[8px] text-[15px] font-semibold text-text">
+          {x(M.finance_ai_settings_title)}
+        </h2>
+        <p className="mb-[12px] text-[13px] text-text-muted">
+          {x(M.finance_ai_settings_description)}
+        </p>
         <div className="flex flex-col gap-[10px]">
           <label className="flex items-center gap-[8px] text-[13px] text-text-2">
             <input
@@ -223,7 +237,9 @@ export function ImportExport() {
             {x(M.finance_ai_settings_enable)}
           </label>
           <div className="flex items-center gap-[10px]">
-            <label className="text-[12px] font-semibold text-text-2">{x(M.finance_ai_settings_mode)}</label>
+            <label className="text-[12px] font-semibold text-text-2">
+              {x(M.finance_ai_settings_mode)}
+            </label>
             <select
               value={state.aiImportSettings.aiImportMode}
               onChange={async (e) => {
@@ -312,7 +328,11 @@ export function ImportExport() {
 
         {a.suggesting && (
           <div className="mb-[8px] rounded-[8px] bg-inset px-[10px] py-[8px] text-[12px] text-text-muted">
-            {x(a.useAiSuggestions ? M.finance_suggest_rules_ai_loading : M.finance_suggest_rules_loading)}
+            {x(
+              a.useAiSuggestions
+                ? M.finance_suggest_rules_ai_loading
+                : M.finance_suggest_rules_loading,
+            )}
           </div>
         )}
 
@@ -363,10 +383,12 @@ export function ImportExport() {
                     </div>
                   </div>
                   <div className="text-[12px] text-text-muted">
-                    {suggestion.accountName} · {suggestion.direction} · {x(M.finance_suggest_rules_from).replace('{count}', String(suggestion.count))}
+                    {suggestion.accountName} · {suggestion.direction} ·{' '}
+                    {x(M.finance_suggest_rules_from).replace('{count}', String(suggestion.count))}
                   </div>
                   <div className="text-[11px] text-text-muted">
-                    {x(a.CONFIDENCE_MESSAGES[suggestion.confidence])} · {suggestion.sampleDescriptions.slice(0, 3).join(' · ')}
+                    {x(a.CONFIDENCE_MESSAGES[suggestion.confidence])} ·{' '}
+                    {suggestion.sampleDescriptions.slice(0, 3).join(' · ')}
                   </div>
                 </li>
               ))}
@@ -388,17 +410,13 @@ export function ImportExport() {
                     className="flex flex-col gap-[4px] rounded-[10px] bg-inset p-[10px]"
                   >
                     <div className="flex items-center justify-between gap-[8px]">
-                      <div className="text-[13px] font-semibold text-text">
-                        {rule.pattern}
-                      </div>
+                      <div className="text-[13px] font-semibold text-text">{rule.pattern}</div>
                       <div className="flex items-center gap-[6px]">
                         {canWrite && (
                           <>
                             <button
                               type="button"
-                              onClick={() =>
-                                updateCategoryRule(rule.id, { active: !rule.active })
-                              }
+                              onClick={() => updateCategoryRule(rule.id, { active: !rule.active })}
                               className="rounded-[6px] bg-surface px-[6px] py-[2px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
                             >
                               {rule.active
@@ -417,7 +435,9 @@ export function ImportExport() {
                       </div>
                     </div>
                     <div className="text-[12px] text-text-muted">
-                      {x(CATEGORY_MATCH_TYPE_LABEL[rule.matchType])} · {account?.code ?? '—'} {account?.name.en ?? ''} · {rule.direction} · {x(M.finance_rules_priority)}: {rule.priority}
+                      {x(CATEGORY_MATCH_TYPE_LABEL[rule.matchType])} · {account?.code ?? '—'}{' '}
+                      {account?.name.en ?? ''} · {rule.direction} · {x(M.finance_rules_priority)}:{' '}
+                      {rule.priority}
                     </div>
                   </li>
                 )
@@ -428,7 +448,9 @@ export function ImportExport() {
 
       {/* Export section */}
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[8px] text-[15px] font-semibold text-text">{x(M.finance_export_title)}</h2>
+        <h2 className="mb-[8px] text-[15px] font-semibold text-text">
+          {x(M.finance_export_title)}
+        </h2>
         <p className="mb-[12px] text-[13px] text-text-muted">{x(M.finance_export_description)}</p>
         <div className="flex flex-wrap gap-[8px]">
           <button
@@ -476,7 +498,9 @@ export function ImportExport() {
 
       {/* Import history */}
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[8px] text-[15px] font-semibold text-text">{x(M.finance_import_history)}</h2>
+        <h2 className="mb-[8px] text-[15px] font-semibold text-text">
+          {x(M.finance_import_history)}
+        </h2>
         {state.importSessions.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_import_no_history)}</p>
         ) : (

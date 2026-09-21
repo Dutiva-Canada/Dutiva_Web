@@ -40,9 +40,7 @@ export function CrmDashboard({ crm }: { readonly crm: UseCrmDataReturn }) {
 
       <div className="grid gap-[12px] lg:grid-cols-2">
         <div className="rounded-[10px] border border-border bg-surface p-[16px]">
-          <h3 className="mb-[12px] text-[14px] font-semibold text-text">
-            {x(M.crm_tab_deals)}
-          </h3>
+          <h3 className="mb-[12px] text-[14px] font-semibold text-text">{x(M.crm_tab_deals)}</h3>
           {crm.state.deals.length === 0 ? (
             <p className="text-[13px] text-text-2">{x(M.crm_no_deal)}</p>
           ) : (

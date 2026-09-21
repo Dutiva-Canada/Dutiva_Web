@@ -12,7 +12,13 @@ import type { NewTask, ProductionTask } from './productionApi'
 const DEMO: AgentToolExecution = { mode: 'demo', role: null, organizationId: null }
 
 const ROWS: TasksAgentRow[] = [
-  { id: 't-1', title: 'Review severance policy', done: false, priority: 'high', dueDate: '2026-10-01' },
+  {
+    id: 't-1',
+    title: 'Review severance policy',
+    done: false,
+    priority: 'high',
+    dueDate: '2026-10-01',
+  },
   { id: 't-2', title: 'Call the broker', done: false, priority: 'medium', dueDate: null },
   { id: 't-3', title: 'File last quarter’s report', done: true, priority: 'low', dueDate: null },
 ]
@@ -65,7 +71,9 @@ describe('tasks agent tools', () => {
     setupTasks()
     const { outcome } = await run('tasks.list', {})
     expect(outcome.status === 'completed' && outcome.message.en).toContain('2 tasks')
-    expect(outcome.status === 'completed' && outcome.message.en).toContain('Review severance policy (2026-10-01)')
+    expect(outcome.status === 'completed' && outcome.message.en).toContain(
+      'Review severance policy (2026-10-01)',
+    )
     expect(outcome.status === 'completed' && outcome.message.en).not.toContain('File last')
   })
 

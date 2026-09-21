@@ -41,36 +41,36 @@ Credentials never pass through the table. The flow on connect:
    in the UI always disconnects first so no orphan secrets survive the row.
 
 What a client-side reader can ever see: provider, name, status, config,
-a Vault *name* — never a secret. The wrappers are not executable by
+a Vault _name_ — never a secret. The wrappers are not executable by
 `authenticated`, so even a fully compromised user JWT cannot read or write
 credentials.
 
 ## Status words mean what they say
 
-| Status         | Meaning                                                        |
-| -------------- | -------------------------------------------------------------- |
-| `pending`      | Row exists; no probe has succeeded (or store-only, see SMTP).    |
-| `connected`    | A live provider probe succeeded — written only by the function.  |
-| `error`        | A probe ran and failed (bad token, unreachable instance).        |
-| `disconnected` | Secret revoked from Vault; `secret_ref` cleared.                 |
+| Status         | Meaning                                                         |
+| -------------- | --------------------------------------------------------------- |
+| `pending`      | Row exists; no probe has succeeded (or store-only, see SMTP).   |
+| `connected`    | A live provider probe succeeded — written only by the function. |
+| `error`        | A probe ran and failed (bad token, unreachable instance).       |
+| `disconnected` | Secret revoked from Vault; `secret_ref` cleared.                |
 
 ## Providers
 
-| Provider        | Auth     | Phase 1 state                                              |
-| --------------- | -------- | ---------------------------------------------------------- |
-| `github`        | PAT      | Connectable — probe against github.com.                    |
-| `gitlab`        | PAT      | Connectable — gitlab.com or self-managed `instance_url`.   |
-| `smtp_email`    | password | Credentials stored in Vault; **never probed** — edge       |
-|                 |          | functions can't open TCP. Status stays `pending` and the   |
-|                 |          | UI says "saved, not verified".                             |
-| `gmail`         | OAuth    | **Planned** — needs the Google OAuth flow; not started.    |
-| `outlook`       | OAuth    | **Planned** — needs Microsoft OAuth; not started.          |
-| `inbound_webhook` | minted | **Connectable (phase 2)** — the function mints a signed    |
-|                 |          | endpoint + HMAC secret; deliveries land in                 |
-|                 |          | `integration_events` (0162).                               |
-| `inbound_email` | minted | **Connectable** — the function mints a receiving address;  |
-|                 |          | mail forwarded to it lands in `inbound_emails` (0164) via  |
-|                 |          | Resend's `email.received` webhook.                         |
+| Provider          | Auth     | Phase 1 state                                             |
+| ----------------- | -------- | --------------------------------------------------------- |
+| `github`          | PAT      | Connectable — probe against github.com.                   |
+| `gitlab`          | PAT      | Connectable — gitlab.com or self-managed `instance_url`.  |
+| `smtp_email`      | password | Credentials stored in Vault; **never probed** — edge      |
+|                   |          | functions can't open TCP. Status stays `pending` and the  |
+|                   |          | UI says "saved, not verified".                            |
+| `gmail`           | OAuth    | **Planned** — needs the Google OAuth flow; not started.   |
+| `outlook`         | OAuth    | **Planned** — needs Microsoft OAuth; not started.         |
+| `inbound_webhook` | minted   | **Connectable (phase 2)** — the function mints a signed   |
+|                   |          | endpoint + HMAC secret; deliveries land in                |
+|                   |          | `integration_events` (0162).                              |
+| `inbound_email`   | minted   | **Connectable** — the function mints a receiving address; |
+|                   |          | mail forwarded to it lands in `inbound_emails` (0164) via |
+|                   |          | Resend's `email.received` webhook.                        |
 
 **Signal is intentionally absent from the catalog.** It has no supported
 public API for this use case; unofficial bridges are fragile and sit in a
@@ -208,5 +208,4 @@ insert over REST (RLS), `connect` with a real GitHub token probed
 martinconstantineau`, `test` re-probed the Vault-held secret, webhook
 `connect` minted endpoint + `dwhsec_` secret, a signed POST landed a
 `smoke_test` `integration_events` row (processed_at stamped) and an
-`integration_event` notification for the org owner; a bad signature got
-401. Test org, user, rows and Vault secrets were deleted afterward.
+`integration_event` notification for the org owner; a bad signature got 401. Test org, user, rows and Vault secrets were deleted afterward.

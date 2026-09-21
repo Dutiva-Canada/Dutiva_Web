@@ -70,7 +70,8 @@ function patchToRow(patch: Partial<CommsFeed>) {
   if (patch.lastFetchStatus !== undefined) row.last_fetch_status = patch.lastFetchStatus ?? null
   if (patch.lastFetchMessage !== undefined) row.last_fetch_message = patch.lastFetchMessage ?? null
   if (patch.jurisdiction !== undefined) row.jurisdiction = patch.jurisdiction ?? null
-  if (patch.createCoverageDrafts !== undefined) row.create_coverage_drafts = patch.createCoverageDrafts
+  if (patch.createCoverageDrafts !== undefined)
+    row.create_coverage_drafts = patch.createCoverageDrafts
   return row
 }
 

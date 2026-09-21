@@ -57,17 +57,29 @@ export interface FinanceDataContextValue {
   ) => Promise<FinanceTaxObligation | null>
   addBudget: (item: Omit<FinanceBudget, 'id'>) => Promise<FinanceBudget | null>
   reviseBudget: (id: string, lines: FinanceBudget['lines']) => Promise<FinanceBudget | null>
-  transitionBudgetStatus: (id: string, nextStatus: FinanceBudget['status']) => Promise<FinanceBudget | null>
-  addScenario: (item: Omit<import('./types').FinanceScenario, 'id'>) => Promise<import('./types').FinanceScenario | null>
+  transitionBudgetStatus: (
+    id: string,
+    nextStatus: FinanceBudget['status'],
+  ) => Promise<FinanceBudget | null>
+  addScenario: (
+    item: Omit<import('./types').FinanceScenario, 'id'>,
+  ) => Promise<import('./types').FinanceScenario | null>
   transitionScenarioStatus: (
     id: string,
     nextStatus: import('./types').FinanceScenario['status'],
     reviewer?: string,
   ) => Promise<import('./types').FinanceScenario | null>
-  addForecast: (item: Omit<import('./types').FinanceForecast, 'id'>) => Promise<import('./types').FinanceForecast | null>
+  addForecast: (
+    item: Omit<import('./types').FinanceForecast, 'id'>,
+  ) => Promise<import('./types').FinanceForecast | null>
   freezeForecast: (id: string) => Promise<import('./types').FinanceForecast | null>
-  addReserveGoal: (item: Omit<import('./types').FinanceReserveGoal, 'id'>) => Promise<import('./types').FinanceReserveGoal | null>
-  updateReserveGoalProgress: (id: string, currentAmount: string) => Promise<import('./types').FinanceReserveGoal | null>
+  addReserveGoal: (
+    item: Omit<import('./types').FinanceReserveGoal, 'id'>,
+  ) => Promise<import('./types').FinanceReserveGoal | null>
+  updateReserveGoalProgress: (
+    id: string,
+    currentAmount: string,
+  ) => Promise<import('./types').FinanceReserveGoal | null>
   setHoldingStale: (id: string, stale: boolean) => Promise<import('./types').FinanceHolding | null>
   addWatchlistItem: (
     item: Omit<import('./types').FinanceWatchlistItem, 'id'>,
@@ -83,7 +95,10 @@ export interface FinanceDataContextValue {
     id: string,
     outcome: Bi,
   ) => Promise<import('./types').FinanceDecisionEntry | null>
-  transitionDebtStatus: (id: string, nextStatus: import('./types').FinanceDebt['status']) => Promise<import('./types').FinanceDebt | null>
+  transitionDebtStatus: (
+    id: string,
+    nextStatus: import('./types').FinanceDebt['status'],
+  ) => Promise<import('./types').FinanceDebt | null>
   addTaxScenario: (item: Omit<FinanceTaxScenario, 'id'>) => Promise<FinanceTaxScenario | null>
   markTaxScenarioStale: (id: string, reason: string) => Promise<FinanceTaxScenario | null>
   transitionTaxScenarioStatus: (
@@ -91,15 +106,33 @@ export interface FinanceDataContextValue {
     nextStatus: FinanceTaxScenario['status'],
     reviewer?: string,
   ) => Promise<FinanceTaxScenario | null>
-  addExternalAction: (item: Omit<import('./types').FinanceExternalAction, 'id'>) => Promise<import('./types').FinanceExternalAction | null>
-  updateForecastPeriods: (id: string, periods: import('./types').FinanceForecast['periods']) => Promise<import('./types').FinanceForecast | null>
-  addEntity: (item: Omit<import('./types').FinanceLegalEntity, 'id'>) => Promise<import('./types').FinanceLegalEntity | null>
-  updateEntity: (id: string, patch: Partial<Omit<import('./types').FinanceLegalEntity, 'id'>>) => Promise<import('./types').FinanceLegalEntity | null>
+  addExternalAction: (
+    item: Omit<import('./types').FinanceExternalAction, 'id'>,
+  ) => Promise<import('./types').FinanceExternalAction | null>
+  updateForecastPeriods: (
+    id: string,
+    periods: import('./types').FinanceForecast['periods'],
+  ) => Promise<import('./types').FinanceForecast | null>
+  addEntity: (
+    item: Omit<import('./types').FinanceLegalEntity, 'id'>,
+  ) => Promise<import('./types').FinanceLegalEntity | null>
+  updateEntity: (
+    id: string,
+    patch: Partial<Omit<import('./types').FinanceLegalEntity, 'id'>>,
+  ) => Promise<import('./types').FinanceLegalEntity | null>
   removeEntity: (id: string) => Promise<boolean>
-  addBankAccount: (item: Omit<import('./types').FinanceBankAccount, 'id'>) => Promise<import('./types').FinanceBankAccount | null>
-  addLedgerAccount: (item: Omit<import('./types').FinanceLedgerAccount, 'id'>) => Promise<import('./types').FinanceLedgerAccount | null>
-  addParty: (item: Omit<import('./types').FinanceParty, 'id'>) => Promise<import('./types').FinanceParty | null>
-  addSubscription: (item: Omit<import('./types').FinanceSubscription, 'id'>) => Promise<import('./types').FinanceSubscription | null>
+  addBankAccount: (
+    item: Omit<import('./types').FinanceBankAccount, 'id'>,
+  ) => Promise<import('./types').FinanceBankAccount | null>
+  addLedgerAccount: (
+    item: Omit<import('./types').FinanceLedgerAccount, 'id'>,
+  ) => Promise<import('./types').FinanceLedgerAccount | null>
+  addParty: (
+    item: Omit<import('./types').FinanceParty, 'id'>,
+  ) => Promise<import('./types').FinanceParty | null>
+  addSubscription: (
+    item: Omit<import('./types').FinanceSubscription, 'id'>,
+  ) => Promise<import('./types').FinanceSubscription | null>
   transitionExternalActionStatus: (
     id: string,
     nextStatus: FinanceExternalActionStatus,
@@ -147,15 +180,27 @@ export interface FinanceDataContextValue {
     fileContent: string,
   ) => Promise<FinanceBankStatementImportResult | null>
   deleteImportSession: (id: string) => Promise<boolean>
-  addCategoryRule: (rule: Omit<import('./types').FinanceCategoryRule, 'id'>) => Promise<import('./types').FinanceCategoryRule | null>
-  updateCategoryRule: (id: string, patch: Partial<import('./types').FinanceCategoryRule>) => Promise<import('./types').FinanceCategoryRule | null>
+  addCategoryRule: (
+    rule: Omit<import('./types').FinanceCategoryRule, 'id'>,
+  ) => Promise<import('./types').FinanceCategoryRule | null>
+  updateCategoryRule: (
+    id: string,
+    patch: Partial<import('./types').FinanceCategoryRule>,
+  ) => Promise<import('./types').FinanceCategoryRule | null>
   removeCategoryRule: (id: string) => Promise<boolean>
   /** Run auto-categorization on all unmatched bank items. */
   runAutoCategorize: () => Promise<number>
   /** Seed the workspace with default ledger accounts and category rules. */
   seedDefaultCategoryRules: () => Promise<number>
   /** Analyse a single import session with AI, categorizing its bank items. */
-  analyseImportWithAi: (sessionId: string) => Promise<{ itemsAnalysed: number; itemsMatched: number; itemsSuggested: number; rulesAdded: number } | null>
+  analyseImportWithAi: (
+    sessionId: string,
+  ) => Promise<{
+    itemsAnalysed: number
+    itemsMatched: number
+    itemsSuggested: number
+    rulesAdded: number
+  } | null>
   /** Update a bank item's AI categorization, note, and match status. */
   updateBankItemCategorization: (
     id: string,
@@ -171,7 +216,9 @@ export interface FinanceDataContextValue {
     feedback: Omit<import('./types').FinanceCategorizationFeedback, 'id' | 'correctedAt'>,
   ) => Promise<import('./types').FinanceCategorizationFeedback | null>
   /** Update workspace AI import settings. */
-  updateAiImportSettings: (patch: Partial<import('./types').FinanceAiImportSettings>) => Promise<import('./types').FinanceAiImportSettings | null>
+  updateAiImportSettings: (
+    patch: Partial<import('./types').FinanceAiImportSettings>,
+  ) => Promise<import('./types').FinanceAiImportSettings | null>
 }
 
 export const FinanceDataContext = createContext<FinanceDataContextValue | null>(null)

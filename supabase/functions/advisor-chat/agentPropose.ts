@@ -17,10 +17,7 @@
 
 import { AGENT_TOOLS, findCatalogTool } from './agentCatalog.ts'
 import type { AgentCatalogTool } from './agentCatalog.ts'
-import {
-  postChatCompletion,
-  resolveApiKey,
-} from '../_shared/modelUpstream.ts'
+import { postChatCompletion, resolveApiKey } from '../_shared/modelUpstream.ts'
 
 export interface ProposedActionDraft {
   toolId: string
@@ -108,10 +105,7 @@ export function buildExtractionMessages(
 
 /* ── Parse + validate ───────────────────────────────────────────────────── */
 
-function coerceValue(
-  type: string,
-  value: unknown,
-): { ok: true; value: unknown } | { ok: false } {
+function coerceValue(type: string, value: unknown): { ok: true; value: unknown } | { ok: false } {
   switch (type) {
     case 'string':
       return typeof value === 'string' && value.trim() !== ''
@@ -144,10 +138,7 @@ function coerceValue(
  * forms), and return `null` when a *required* param is missing or
  * ill-typed — a proposal that can't execute honestly isn't proposed.
  */
-function validateParams(
-  tool: AgentCatalogTool,
-  raw: unknown,
-): Record<string, unknown> | null {
+function validateParams(tool: AgentCatalogTool, raw: unknown): Record<string, unknown> | null {
   const params =
     raw !== null && typeof raw === 'object' && !Array.isArray(raw)
       ? (raw as Record<string, unknown>)
@@ -165,7 +156,10 @@ function validateParams(
         continue
       }
       /* "On hold" / "Completed" → the closed vocabulary's exact form. */
-      const needle = value.trim().toLowerCase().replace(/[\s-]+/g, '_')
+      const needle = value
+        .trim()
+        .toLowerCase()
+        .replace(/[\s-]+/g, '_')
       const match = (param.enum ?? []).find((e) => e.toLowerCase() === needle)
       if (!match) {
         if (param.required) return null

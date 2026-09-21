@@ -23,7 +23,10 @@ export interface UseStakeholdersResult {
   updateContact: (id: string, patch: Partial<CommsContact>) => Promise<CommsContact | null>
   removeContact: (id: string) => Promise<void>
   addOrganization: (item: Omit<CommsOrganization, 'id'>) => Promise<CommsOrganization | null>
-  updateOrganization: (id: string, patch: Partial<CommsOrganization>) => Promise<CommsOrganization | null>
+  updateOrganization: (
+    id: string,
+    patch: Partial<CommsOrganization>,
+  ) => Promise<CommsOrganization | null>
   removeOrganization: (id: string) => Promise<void>
   refresh: () => Promise<void>
 }
@@ -34,7 +37,9 @@ export function useStakeholders(): UseStakeholdersResult {
   const isProduction = mode === 'production' && organizationId != null
 
   const [contacts, setContacts] = useState<CommsContact[]>(initialCommsState.contacts)
-  const [organizations, setOrganizations] = useState<CommsOrganization[]>(initialCommsState.organizations)
+  const [organizations, setOrganizations] = useState<CommsOrganization[]>(
+    initialCommsState.organizations,
+  )
   const [loading, setLoading] = useState(false)
 
   const load = useCallback(async () => {

@@ -26,9 +26,33 @@ function item(description: string): FinanceBankItem {
 }
 
 const accounts: FinanceLedgerAccount[] = [
-  { id: 'la-6000', bookId: 'book-1', code: '6000', name: { en: 'Salaries and wages', fr: 'Salaires et traitements' }, type: 'expense', sensitive: false, active: true },
-  { id: 'la-5000', bookId: 'book-1', code: '5000', name: { en: 'Revenue — Services', fr: 'Revenus — Services' }, type: 'revenue', sensitive: false, active: true },
-  { id: 'la-6100', bookId: 'book-1', code: '6100', name: { en: 'Bank fees', fr: 'Frais bancaires' }, type: 'expense', sensitive: false, active: true },
+  {
+    id: 'la-6000',
+    bookId: 'book-1',
+    code: '6000',
+    name: { en: 'Salaries and wages', fr: 'Salaires et traitements' },
+    type: 'expense',
+    sensitive: false,
+    active: true,
+  },
+  {
+    id: 'la-5000',
+    bookId: 'book-1',
+    code: '5000',
+    name: { en: 'Revenue — Services', fr: 'Revenus — Services' },
+    type: 'revenue',
+    sensitive: false,
+    active: true,
+  },
+  {
+    id: 'la-6100',
+    bookId: 'book-1',
+    code: '6100',
+    name: { en: 'Bank fees', fr: 'Frais bancaires' },
+    type: 'expense',
+    sensitive: false,
+    active: true,
+  },
 ]
 
 function embeddingFor(text: string): number[] {
@@ -101,6 +125,8 @@ describe('suggestCategoryRulesWithAi', () => {
     vi.mocked(pipeline).mockRejectedValue(new Error('network failure'))
 
     const { suggestCategoryRulesWithAi } = await import('./ruleSuggestionAi')
-    await expect(suggestCategoryRulesWithAi([item('SALARY DEPOSIT')], accounts, [])).rejects.toThrow('network failure')
+    await expect(
+      suggestCategoryRulesWithAi([item('SALARY DEPOSIT')], accounts, []),
+    ).rejects.toThrow('network failure')
   })
 })

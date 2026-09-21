@@ -22,7 +22,15 @@ import {
   RISK_LABEL,
 } from '../commsLabels'
 
-const DOMAINS: CommsDomain[] = ['pr', 'corporate', 'social', 'public_affairs', 'marketing', 'advertising', 'imc']
+const DOMAINS: CommsDomain[] = [
+  'pr',
+  'corporate',
+  'social',
+  'public_affairs',
+  'marketing',
+  'advertising',
+  'imc',
+]
 const TYPES: CommsInitiativeType[] = [
   'campaign',
   'programme',
@@ -102,17 +110,29 @@ function InitiativeForm({
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_initiatives_type)}</label>
-          <select value={type} onChange={(e) => setType(e.target.value as CommsInitiativeType)} className={inputClass}>
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value as CommsInitiativeType)}
+            className={inputClass}
+          >
             {TYPES.map((t) => (
-              <option key={t} value={t}>{x(INITIATIVE_TYPE_LABEL[t])}</option>
+              <option key={t} value={t}>
+                {x(INITIATIVE_TYPE_LABEL[t])}
+              </option>
             ))}
           </select>
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_initiatives_domain)}</label>
-          <select value={domain} onChange={(e) => setDomain(e.target.value as CommsDomain)} className={inputClass}>
+          <select
+            value={domain}
+            onChange={(e) => setDomain(e.target.value as CommsDomain)}
+            className={inputClass}
+          >
             {DOMAINS.map((d) => (
-              <option key={d} value={d}>{x(DOMAIN_LABEL[d])}</option>
+              <option key={d} value={d}>
+                {x(DOMAIN_LABEL[d])}
+              </option>
             ))}
           </select>
         </div>
@@ -122,26 +142,45 @@ function InitiativeForm({
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_initiatives_status)}</label>
-          <select value={status} onChange={(e) => setStatus(e.target.value as CommsInitiativeStatus)} className={inputClass}>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value as CommsInitiativeStatus)}
+            className={inputClass}
+          >
             {STATUSES.map((s) => (
-              <option key={s} value={s}>{x(INITIATIVE_STATUS_LABEL[s])}</option>
+              <option key={s} value={s}>
+                {x(INITIATIVE_STATUS_LABEL[s])}
+              </option>
             ))}
           </select>
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_initiatives_risk)}</label>
-          <select value={risk} onChange={(e) => setRisk(e.target.value as CommsRiskLevel)} className={inputClass}>
+          <select
+            value={risk}
+            onChange={(e) => setRisk(e.target.value as CommsRiskLevel)}
+            className={inputClass}
+          >
             {RISKS.map((r) => (
-              <option key={r} value={r}>{x(RISK_LABEL[r])}</option>
+              <option key={r} value={r}>
+                {x(RISK_LABEL[r])}
+              </option>
             ))}
           </select>
         </div>
       </div>
       <div className="mt-[14px] flex gap-[8px]">
-        <button type="submit" className="rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white">
+        <button
+          type="submit"
+          className="rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
+        >
           {x(editing ? M.comms_save : M.comms_create)}
         </button>
-        <button type="button" onClick={onCancel} className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text"
+        >
           {x(M.comms_cancel)}
         </button>
       </div>
@@ -213,7 +252,10 @@ function ObjectivesSection({ initiatives }: { initiatives: CommsInitiative[] }) 
       </div>
 
       {open && (
-        <form onSubmit={onSubmit} className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]">
+        <form
+          onSubmit={onSubmit}
+          className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]"
+        >
           <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
             <div>
               <label className={labelClass}>{x(M.comms_objective_initiative)}</label>
@@ -225,40 +267,75 @@ function ObjectivesSection({ initiatives }: { initiatives: CommsInitiative[] }) 
               >
                 <option value="">{x(M.comms_org_none)}</option>
                 {initiatives.map((i) => (
-                  <option key={i.id} value={i.id}>{x(i.title)}</option>
+                  <option key={i.id} value={i.id}>
+                    {x(i.title)}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_objective_owner)}</label>
-              <input value={owner} onChange={(e) => setOwner(e.target.value)} className={inputClass} required />
+              <input
+                value={owner}
+                onChange={(e) => setOwner(e.target.value)}
+                className={inputClass}
+                required
+              />
             </div>
             <div className="sm:col-span-2">
               <label className={labelClass}>{x(M.comms_objective_label)}</label>
-              <input value={label} onChange={(e) => setLabel(e.target.value)} className={inputClass} required />
+              <input
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+                className={inputClass}
+                required
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_objective_baseline)}</label>
-              <input value={baseline} onChange={(e) => setBaseline(e.target.value)} className={inputClass} />
+              <input
+                value={baseline}
+                onChange={(e) => setBaseline(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_objective_target)}</label>
-              <input value={target} onChange={(e) => setTarget(e.target.value)} className={inputClass} />
+              <input
+                value={target}
+                onChange={(e) => setTarget(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_objective_period)}</label>
-              <input value={period} onChange={(e) => setPeriod(e.target.value)} className={inputClass} />
+              <input
+                value={period}
+                onChange={(e) => setPeriod(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_objective_evidence)}</label>
-              <input value={evidence} onChange={(e) => setEvidence(e.target.value)} className={inputClass} />
+              <input
+                value={evidence}
+                onChange={(e) => setEvidence(e.target.value)}
+                className={inputClass}
+              />
             </div>
           </div>
           <div className="mt-[14px] flex gap-[8px]">
-            <button type="submit" className="rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white">
+            <button
+              type="submit"
+              className="rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
+            >
               {x(M.comms_create)}
             </button>
-            <button type="button" onClick={reset} className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text">
+            <button
+              type="button"
+              onClick={reset}
+              className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text"
+            >
               {x(M.comms_cancel)}
             </button>
           </div>
@@ -282,7 +359,9 @@ function ObjectivesSection({ initiatives }: { initiatives: CommsInitiative[] }) 
                         <div>
                           <div className="text-[14px] font-semibold text-text">{x(obj.label)}</div>
                           <div className="text-[12px] text-text-muted">
-                            {obj.baseline ? `${x(M.comms_objective_baseline)}: ${obj.baseline}` : ''}
+                            {obj.baseline
+                              ? `${x(M.comms_objective_baseline)}: ${obj.baseline}`
+                              : ''}
                             {obj.baseline && obj.target ? ' · ' : ''}
                             {obj.target ? `${x(M.comms_objective_target)}: ${obj.target}` : ''}
                           </div>
@@ -329,7 +408,10 @@ export function Initiatives() {
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
 
-  const editing = useMemo(() => initiatives.find((i) => i.id === editingId), [editingId, initiatives])
+  const editing = useMemo(
+    () => initiatives.find((i) => i.id === editingId),
+    [editingId, initiatives],
+  )
 
   const onCancel = () => {
     setOpen(false)
@@ -365,7 +447,14 @@ export function Initiatives() {
         )}
       </div>
 
-      {open && <InitiativeForm editing={editing} onCancel={onCancel} onAdd={addInitiative} onUpdate={updateInitiative} />}
+      {open && (
+        <InitiativeForm
+          editing={editing}
+          onCancel={onCancel}
+          onAdd={addInitiative}
+          onUpdate={updateInitiative}
+        />
+      )}
 
       {sorted.length === 0 ? (
         <p className="text-[13px] text-text-muted">{x(M.comms_initiatives_empty)}</p>
@@ -375,19 +464,39 @@ export function Initiatives() {
             <div key={init.id} className="rounded-[12px] border border-border bg-surface p-[16px]">
               <div className="flex flex-wrap items-start justify-between gap-[12px]">
                 <div>
-                  <Link to={`/app/comms/initiatives/${init.id}`} className="text-[14.5px] font-semibold text-accent no-underline hover:underline">
+                  <Link
+                    to={`/app/comms/initiatives/${init.id}`}
+                    className="text-[14.5px] font-semibold text-accent no-underline hover:underline"
+                  >
                     {x(init.title)}
                   </Link>
                   <div className="text-[12px] text-text-muted">
-                    {x(INITIATIVE_TYPE_LABEL[init.type])} · {x(DOMAIN_LABEL[init.domain])} · {init.owner}
+                    {x(INITIATIVE_TYPE_LABEL[init.type])} · {x(DOMAIN_LABEL[init.domain])} ·{' '}
+                    {init.owner}
                   </div>
                 </div>
-                <span className={statusChipClass(init.status === 'active' ? 'success' : init.status === 'cancelled' ? 'risk' : 'neutral')}>
+                <span
+                  className={statusChipClass(
+                    init.status === 'active'
+                      ? 'success'
+                      : init.status === 'cancelled'
+                        ? 'risk'
+                        : 'neutral',
+                  )}
+                >
                   {x(INITIATIVE_STATUS_LABEL[init.status])}
                 </span>
               </div>
               <div className="mt-[8px] flex flex-wrap items-center gap-[8px]">
-                <span className={statusChipClass(init.risk === 'critical' ? 'risk' : init.risk === 'high' ? 'warning' : 'neutral')}>
+                <span
+                  className={statusChipClass(
+                    init.risk === 'critical'
+                      ? 'risk'
+                      : init.risk === 'high'
+                        ? 'warning'
+                        : 'neutral',
+                  )}
+                >
                   {x(RISK_LABEL[init.risk])}
                 </span>
                 {canWrite && (
@@ -405,7 +514,9 @@ export function Initiatives() {
                       className="flex items-center gap-[3px] text-[12px] font-semibold text-text-2"
                     >
                       {init.status === 'paused' ? <Play size={12} /> : <Pause size={12} />}
-                      {init.status === 'paused' ? x(M.comms_initiative_resume_publications) : x(M.comms_initiative_pause_publications)}
+                      {init.status === 'paused'
+                        ? x(M.comms_initiative_resume_publications)
+                        : x(M.comms_initiative_pause_publications)}
                     </button>
                     <button
                       type="button"

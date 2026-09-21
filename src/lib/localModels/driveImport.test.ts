@@ -1,9 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import {
-  hfCacheUrl,
-  importDriveFolder,
-  isDriveImportSupported,
-} from './driveImport'
+import { hfCacheUrl, importDriveFolder, isDriveImportSupported } from './driveImport'
 import type { FsDirLike, FsFileLike } from './driveImport'
 
 /**
@@ -75,9 +71,13 @@ describe('importDriveFolder', () => {
     ])
     const result = await importDriveFolder(root)
     expect(result.repos['Xenova/whisper-tiny']).toBe(2)
-    expect(stored.has('https://huggingface.co/Xenova/whisper-tiny/resolve/main/config.json')).toBe(true)
+    expect(stored.has('https://huggingface.co/Xenova/whisper-tiny/resolve/main/config.json')).toBe(
+      true,
+    )
     expect(
-      stored.has('https://huggingface.co/Xenova/whisper-tiny/resolve/main/onnx/model_quantized.onnx'),
+      stored.has(
+        'https://huggingface.co/Xenova/whisper-tiny/resolve/main/onnx/model_quantized.onnx',
+      ),
     ).toBe(true)
   })
 

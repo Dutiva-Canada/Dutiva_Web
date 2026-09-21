@@ -15,16 +15,43 @@ function item(description: string): FinanceBankItem {
 }
 
 const accounts: FinanceLedgerAccount[] = [
-  { id: 'la-6000', bookId: 'book-1', code: '6000', name: { en: 'Salaries and wages', fr: 'Salaires et traitements' }, type: 'expense', sensitive: false, active: true },
-  { id: 'la-5000', bookId: 'book-1', code: '5000', name: { en: 'Revenue — Services', fr: 'Revenus — Services' }, type: 'revenue', sensitive: false, active: true },
-  { id: 'la-6100', bookId: 'book-1', code: '6100', name: { en: 'Bank fees', fr: 'Frais bancaires' }, type: 'expense', sensitive: false, active: true },
+  {
+    id: 'la-6000',
+    bookId: 'book-1',
+    code: '6000',
+    name: { en: 'Salaries and wages', fr: 'Salaires et traitements' },
+    type: 'expense',
+    sensitive: false,
+    active: true,
+  },
+  {
+    id: 'la-5000',
+    bookId: 'book-1',
+    code: '5000',
+    name: { en: 'Revenue — Services', fr: 'Revenus — Services' },
+    type: 'revenue',
+    sensitive: false,
+    active: true,
+  },
+  {
+    id: 'la-6100',
+    bookId: 'book-1',
+    code: '6100',
+    name: { en: 'Bank fees', fr: 'Frais bancaires' },
+    type: 'expense',
+    sensitive: false,
+    active: true,
+  },
 ]
 
 const rules: FinanceCategoryRule[] = []
 
 describe('suggestCategoryRules', () => {
   it('returns empty when there are no unmatched items', () => {
-    const matched = [item('PAYROLL DEPOSIT')].map((i) => ({ ...i, matchStatus: 'matched' as const }))
+    const matched = [item('PAYROLL DEPOSIT')].map((i) => ({
+      ...i,
+      matchStatus: 'matched' as const,
+    }))
     const result = suggestCategoryRules(matched, accounts, rules)
     expect(result).toHaveLength(0)
   })
@@ -38,7 +65,10 @@ describe('suggestCategoryRules', () => {
     ]
     const result = suggestCategoryRules(items, accounts, rules)
     expect(result.length).toBeGreaterThanOrEqual(1)
-    const salary = result.find((r) => r.pattern.toLowerCase().includes('salary') || r.pattern.toLowerCase().includes('wages'))
+    const salary = result.find(
+      (r) =>
+        r.pattern.toLowerCase().includes('salary') || r.pattern.toLowerCase().includes('wages'),
+    )
     expect(salary).toBeDefined()
     expect(salary!.ledgerAccountId).toBe('la-6000')
     expect(salary!.direction).toBe('debit')
@@ -56,7 +86,18 @@ describe('suggestCategoryRules', () => {
 
   it('skips suggestions that match an existing rule pattern', () => {
     const items = [item('SALARY DEPOSIT'), item('SALARY DIRECT DEPOSIT')]
-    const existing = [{ pattern: 'SALARY', matchType: 'contains' as const, ledgerAccountId: 'la-6000', direction: 'debit' as const, priority: 100, active: true, entityId: 'ent-1', id: 'rule-1' }]
+    const existing = [
+      {
+        pattern: 'SALARY',
+        matchType: 'contains' as const,
+        ledgerAccountId: 'la-6000',
+        direction: 'debit' as const,
+        priority: 100,
+        active: true,
+        entityId: 'ent-1',
+        id: 'rule-1',
+      },
+    ]
     const result = suggestCategoryRules(items, accounts, existing)
     expect(result).toHaveLength(0)
   })

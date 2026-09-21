@@ -46,11 +46,7 @@ export function emptyCompanyFilter(): CrmCompanyFilter {
 }
 
 export function isContactFilterActive(filter: CrmContactFilter): boolean {
-  return (
-    filter.query.trim() !== '' ||
-    filter.statuses.length > 0 ||
-    filter.companyId !== undefined
-  )
+  return filter.query.trim() !== '' || filter.statuses.length > 0 || filter.companyId !== undefined
 }
 
 export function isCompanyFilterActive(filter: CrmCompanyFilter): boolean {
@@ -114,7 +110,10 @@ const storageKey = (scope: string) => `dutiva-crm-contact-views-${scope}`
  * is per-org. Views are per-user-per-browser, same as the CRM records
  * themselves today.
  */
-export function contactViewsScope(mode: 'demo' | 'production', orgId: string | null | undefined): string {
+export function contactViewsScope(
+  mode: 'demo' | 'production',
+  orgId: string | null | undefined,
+): string {
   return mode === 'production' && orgId ? orgId : 'demo'
 }
 

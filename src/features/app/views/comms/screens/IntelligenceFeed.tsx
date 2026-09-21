@@ -116,7 +116,9 @@ export function IntelligenceFeed() {
           >
             <option value="all">{x(M.comms_intelligence_filter_all)}</option>
             {SOURCE_TYPES.map((t) => (
-              <option key={t} value={t}>{x(SOURCE_TYPE_LABEL[t])}</option>
+              <option key={t} value={t}>
+                {x(SOURCE_TYPE_LABEL[t])}
+              </option>
             ))}
           </select>
         </div>
@@ -129,53 +131,99 @@ export function IntelligenceFeed() {
           >
             <option value="all">{x(M.comms_intelligence_filter_all)}</option>
             {jurisdictions.map((j) => (
-              <option key={j} value={j}>{j}</option>
+              <option key={j} value={j}>
+                {j}
+              </option>
             ))}
           </select>
         </div>
       </div>
 
       {open && (
-        <form onSubmit={onSubmit} className="mb-[12px] rounded-[10px] border border-border bg-inset p-[12px]">
+        <form
+          onSubmit={onSubmit}
+          className="mb-[12px] rounded-[10px] border border-border bg-inset p-[12px]"
+        >
           <div className="grid grid-cols-1 gap-[12px] sm:grid-cols-2">
             <div className="sm:col-span-2">
               <label className={labelClass}>{x(M.comms_intelligence_outlet)}</label>
-              <input required value={publisher} onChange={(e) => setPublisher(e.target.value)} className={inputClass} />
+              <input
+                required
+                value={publisher}
+                onChange={(e) => setPublisher(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_intelligence_filter_source_type)}</label>
-              <select value={sourceType} onChange={(e) => setSourceType(e.target.value as CommsSourceType)} className={inputClass}>
+              <select
+                value={sourceType}
+                onChange={(e) => setSourceType(e.target.value as CommsSourceType)}
+                className={inputClass}
+              >
                 {SOURCE_TYPES.map((t) => (
-                  <option key={t} value={t}>{x(SOURCE_TYPE_LABEL[t])}</option>
+                  <option key={t} value={t}>
+                    {x(SOURCE_TYPE_LABEL[t])}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_intelligence_filter_jurisdiction)}</label>
-              <input value={jurisdiction} onChange={(e) => setJurisdiction(e.target.value)} className={inputClass} />
+              <input
+                value={jurisdiction}
+                onChange={(e) => setJurisdiction(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_policy_stage)}</label>
-              <input required value={classification} onChange={(e) => setClassification(e.target.value)} className={inputClass} />
+              <input
+                required
+                value={classification}
+                onChange={(e) => setClassification(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_content_due)}</label>
-              <input type="date" value={publishedDate} onChange={(e) => setPublishedDate(e.target.value)} className={inputClass} />
+              <input
+                type="date"
+                value={publishedDate}
+                onChange={(e) => setPublishedDate(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div className="sm:col-span-2">
               <label className={labelClass}>{x(M.comms_url)}</label>
-              <input type="url" value={url} onChange={(e) => setUrl(e.target.value)} className={inputClass} />
+              <input
+                type="url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div className="sm:col-span-2">
               <label className={labelClass}>{x(M.comms_intelligence_supports)}</label>
-              <input value={supports} onChange={(e) => setSupports(e.target.value)} className={inputClass} />
+              <input
+                value={supports}
+                onChange={(e) => setSupports(e.target.value)}
+                className={inputClass}
+              />
             </div>
           </div>
           <div className="mt-[12px] flex gap-[8px]">
-            <button type="submit" className="rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white">
+            <button
+              type="submit"
+              className="rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
+            >
               {x(M.comms_create)}
             </button>
-            <button type="button" onClick={reset} className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text">
+            <button
+              type="button"
+              onClick={reset}
+              className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text"
+            >
               {x(M.comms_cancel)}
             </button>
           </div>
@@ -195,17 +243,22 @@ export function IntelligenceFeed() {
                     {x(SOURCE_TYPE_LABEL[source.sourceType])}
                     {source.jurisdiction ? ` · ${x(source.jurisdiction)}` : ''}
                     {source.publishedDate ? ` · ${source.publishedDate}` : ''}
-                    {source.retrievedAt ? ` · ${x(M.comms_intelligence_retrieved)} ${source.retrievedAt}` : ''}
+                    {source.retrievedAt
+                      ? ` · ${x(M.comms_intelligence_retrieved)} ${source.retrievedAt}`
+                      : ''}
                   </div>
                 </div>
-                <span className={`rounded-[100px] px-[10px] py-[3px] text-[12px] font-semibold whitespace-nowrap ${sourceTone(source.sourceType) === 'info' ? 'bg-accent-soft text-accent' : sourceTone(source.sourceType) === 'success' ? 'bg-ok-bg text-ok-fg' : sourceTone(source.sourceType) === 'warning' ? 'bg-warn-bg text-warn-fg' : 'bg-inset text-text-muted'}`}>
+                <span
+                  className={`rounded-[100px] px-[10px] py-[3px] text-[12px] font-semibold whitespace-nowrap ${sourceTone(source.sourceType) === 'info' ? 'bg-accent-soft text-accent' : sourceTone(source.sourceType) === 'success' ? 'bg-ok-bg text-ok-fg' : sourceTone(source.sourceType) === 'warning' ? 'bg-warn-bg text-warn-fg' : 'bg-inset text-text-muted'}`}
+                >
                   {x(SOURCE_TYPE_LABEL[source.sourceType])}
                 </span>
               </div>
               <div className="mt-[6px] text-[13px] text-text-2">{x(source.classification)}</div>
               {source.supports && (
                 <div className="mt-[4px] text-[12px] text-text-muted">
-                  <span className="font-semibold">{x(M.comms_intelligence_supports)}:</span> {x(source.supports)}
+                  <span className="font-semibold">{x(M.comms_intelligence_supports)}:</span>{' '}
+                  {x(source.supports)}
                 </div>
               )}
               {source.url && (

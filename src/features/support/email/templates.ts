@@ -369,7 +369,9 @@ export function renderSupportEmail(kind: NotificationKind, ctx: EmailContext): R
       ])
     case 'account_signup': {
       const details = [
-        ctx.accountEmail ? pick(lang, `Account: ${ctx.accountEmail}`, `Compte : ${ctx.accountEmail}`) : '',
+        ctx.accountEmail
+          ? pick(lang, `Account: ${ctx.accountEmail}`, `Compte : ${ctx.accountEmail}`)
+          : '',
         ctx.planLabel ? pick(lang, `Plan: ${ctx.planLabel}`, `Forfait : ${ctx.planLabel}`) : '',
         ctx.sourceLabel
           ? pick(lang, `Source: ${ctx.sourceLabel}`, `Source : ${ctx.sourceLabel}`)
@@ -392,7 +394,9 @@ export function renderSupportEmail(kind: NotificationKind, ctx: EmailContext): R
     }
     case 'plan_signup': {
       const details = [
-        ctx.accountEmail ? pick(lang, `Account: ${ctx.accountEmail}`, `Compte : ${ctx.accountEmail}`) : '',
+        ctx.accountEmail
+          ? pick(lang, `Account: ${ctx.accountEmail}`, `Compte : ${ctx.accountEmail}`)
+          : '',
         ctx.planLabel ? pick(lang, `Plan: ${ctx.planLabel}`, `Forfait : ${ctx.planLabel}`) : '',
         ctx.billingPeriodLabel
           ? pick(

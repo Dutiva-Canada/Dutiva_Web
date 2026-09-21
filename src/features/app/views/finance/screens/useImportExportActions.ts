@@ -4,10 +4,7 @@ import { financeMessages as M } from '@/i18n/messages/finance'
 import { buildExportBundles, downloadFile } from '../data/importExport'
 import { statementFileToCsv } from '../data/statementParser'
 import { suggestCategoryRules, type RuleSuggestion } from '../data/ruleSuggestion'
-import type {
-  FinanceImportRowError,
-  FinanceImportSession,
-} from '../data/types'
+import type { FinanceImportRowError, FinanceImportSession } from '../data/types'
 import type { FinanceDataContextValue } from '../data/FinanceDataContext'
 
 interface UseImportExportActionsArgs {
@@ -128,8 +125,11 @@ export function useImportExportActions({ finance }: UseImportExportActionsArgs) 
                 .replace('{count}', String(result.aiSummary.itemsAnalysed))
                 .replace('{matched}', String(result.aiSummary.itemsMatched))
                 .replace('{suggested}', String(result.aiSummary.itemsSuggested)) +
-              ' ' +
-              x(M.finance_ai_import_result_rules).replace('{count}', String(result.aiSummary.rulesAdded)),
+                ' ' +
+                x(M.finance_ai_import_result_rules).replace(
+                  '{count}',
+                  String(result.aiSummary.rulesAdded),
+                ),
             )
           }
         }
@@ -152,12 +152,19 @@ export function useImportExportActions({ finance }: UseImportExportActionsArgs) 
       err.reason,
     ])
     const csv = [header.join(','), ...lines.map((l) => l.join(','))].join('\n')
-    downloadFile(csv, `import-errors-${selectedAccountId}-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv')
+    downloadFile(
+      csv,
+      `import-errors-${selectedAccountId}-${new Date().toISOString().slice(0, 10)}.csv`,
+      'text/csv',
+    )
   }
 
   const handleDeleteSession = async (session: FinanceImportSession) => {
     if (!canWrite) return
-    const confirmMessage = x(M.finance_import_delete_confirm).replace('{count}', String(session.newItems))
+    const confirmMessage = x(M.finance_import_delete_confirm).replace(
+      '{count}',
+      String(session.newItems),
+    )
     if (typeof window !== 'undefined' && window.confirm(confirmMessage)) {
       await deleteImportSession(session.id)
     }
@@ -194,7 +201,11 @@ export function useImportExportActions({ finance }: UseImportExportActionsArgs) 
         let result: RuleSuggestion[]
         if (useAiSuggestions) {
           const { suggestCategoryRulesWithAi } = await import('../data/ruleSuggestionAi')
-          result = await suggestCategoryRulesWithAi(state.bankItems, state.ledgerAccounts, state.categoryRules)
+          result = await suggestCategoryRulesWithAi(
+            state.bankItems,
+            state.ledgerAccounts,
+            state.categoryRules,
+          )
         } else {
           result = suggestCategoryRules(state.bankItems, state.ledgerAccounts, state.categoryRules)
         }
@@ -207,7 +218,11 @@ export function useImportExportActions({ finance }: UseImportExportActionsArgs) 
       } catch {
         if (useAiSuggestions) {
           try {
-            const fallback = suggestCategoryRules(state.bankItems, state.ledgerAccounts, state.categoryRules)
+            const fallback = suggestCategoryRules(
+              state.bankItems,
+              state.ledgerAccounts,
+              state.categoryRules,
+            )
             setSuggestions(fallback)
             setSuggestResult(
               fallback.length > 0
@@ -239,7 +254,11 @@ export function useImportExportActions({ finance }: UseImportExportActionsArgs) 
       priority: suggestion.priority,
       active: true,
     })
-    setSuggestions((prev) => prev.filter((s) => s.pattern !== suggestion.pattern || s.ledgerAccountId !== suggestion.ledgerAccountId))
+    setSuggestions((prev) =>
+      prev.filter(
+        (s) => s.pattern !== suggestion.pattern || s.ledgerAccountId !== suggestion.ledgerAccountId,
+      ),
+    )
   }
 
   const handleAddAllSuggestions = async () => {
@@ -261,7 +280,11 @@ export function useImportExportActions({ finance }: UseImportExportActionsArgs) 
   }
 
   const handleIgnoreSuggestion = (suggestion: RuleSuggestion) => {
-    setSuggestions((prev) => prev.filter((s) => s.pattern !== suggestion.pattern || s.ledgerAccountId !== suggestion.ledgerAccountId))
+    setSuggestions((prev) =>
+      prev.filter(
+        (s) => s.pattern !== suggestion.pattern || s.ledgerAccountId !== suggestion.ledgerAccountId,
+      ),
+    )
   }
 
   const handleExport = (bundleIndex: number) => {

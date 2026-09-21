@@ -5,23 +5,53 @@ import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
 import { CURRENCY_LABEL, REQUEST_STATUS_LABEL } from '../financeLabels'
-import type { FinanceBillStatus, FinanceCurrency, FinanceExpenseStatus, FinanceRequestStatus } from '../data/types'
+import type {
+  FinanceBillStatus,
+  FinanceCurrency,
+  FinanceExpenseStatus,
+  FinanceRequestStatus,
+} from '../data/types'
 
 const FILTERS: ('all' | FinanceRequestStatus)[] = [
-  'all', 'draft', 'submitted', 'approved', 'rejected', 'committed', 'cancelled',
+  'all',
+  'draft',
+  'submitted',
+  'approved',
+  'rejected',
+  'committed',
+  'cancelled',
 ]
 
-const VALID_TRANSITIONS: Record<FinanceRequestStatus, { status: FinanceRequestStatus; label: keyof typeof M }[]> = {
-  draft: [{ status: 'submitted', label: 'finance_purchases_mark_submitted' }, { status: 'cancelled', label: 'finance_purchases_mark_cancelled' }],
-  submitted: [{ status: 'approved', label: 'finance_purchases_mark_approved' }, { status: 'rejected', label: 'finance_purchases_mark_rejected' }, { status: 'cancelled', label: 'finance_purchases_mark_cancelled' }],
-  approved: [{ status: 'committed', label: 'finance_purchases_mark_committed' }, { status: 'cancelled', label: 'finance_purchases_mark_cancelled' }],
+const VALID_TRANSITIONS: Record<
+  FinanceRequestStatus,
+  { status: FinanceRequestStatus; label: keyof typeof M }[]
+> = {
+  draft: [
+    { status: 'submitted', label: 'finance_purchases_mark_submitted' },
+    { status: 'cancelled', label: 'finance_purchases_mark_cancelled' },
+  ],
+  submitted: [
+    { status: 'approved', label: 'finance_purchases_mark_approved' },
+    { status: 'rejected', label: 'finance_purchases_mark_rejected' },
+    { status: 'cancelled', label: 'finance_purchases_mark_cancelled' },
+  ],
+  approved: [
+    { status: 'committed', label: 'finance_purchases_mark_committed' },
+    { status: 'cancelled', label: 'finance_purchases_mark_cancelled' },
+  ],
   rejected: [],
   committed: [],
   cancelled: [],
 }
 
-const BILL_TRANSITIONS: Record<FinanceBillStatus, { status: FinanceBillStatus; label: keyof typeof M }[]> = {
-  draft: [{ status: 'posted', label: 'finance_bill_post' }, { status: 'cancelled', label: 'finance_bill_cancel' }],
+const BILL_TRANSITIONS: Record<
+  FinanceBillStatus,
+  { status: FinanceBillStatus; label: keyof typeof M }[]
+> = {
+  draft: [
+    { status: 'posted', label: 'finance_bill_post' },
+    { status: 'cancelled', label: 'finance_bill_cancel' },
+  ],
   posted: [
     { status: 'paid', label: 'finance_bill_mark_paid' },
     { status: 'partial', label: 'finance_bill_mark_partial' },
@@ -40,13 +70,22 @@ const BILL_TRANSITIONS: Record<FinanceBillStatus, { status: FinanceBillStatus; l
     { status: 'disputed', label: 'finance_bill_dispute' },
     { status: 'cancelled', label: 'finance_bill_cancel' },
   ],
-  disputed: [{ status: 'posted', label: 'finance_bill_post' }, { status: 'cancelled', label: 'finance_bill_cancel' }],
+  disputed: [
+    { status: 'posted', label: 'finance_bill_post' },
+    { status: 'cancelled', label: 'finance_bill_cancel' },
+  ],
   cancelled: [],
 }
 
-const EXPENSE_TRANSITIONS: Record<FinanceExpenseStatus, { status: FinanceExpenseStatus; label: keyof typeof M }[]> = {
+const EXPENSE_TRANSITIONS: Record<
+  FinanceExpenseStatus,
+  { status: FinanceExpenseStatus; label: keyof typeof M }[]
+> = {
   draft: [{ status: 'submitted', label: 'finance_expense_submit' }],
-  submitted: [{ status: 'approved', label: 'finance_expense_approve' }, { status: 'rejected', label: 'finance_expense_reject' }],
+  submitted: [
+    { status: 'approved', label: 'finance_expense_approve' },
+    { status: 'rejected', label: 'finance_expense_reject' },
+  ],
   approved: [{ status: 'reimbursed', label: 'finance_expense_reimburse' }],
   reimbursed: [],
   rejected: [],
@@ -54,18 +93,31 @@ const EXPENSE_TRANSITIONS: Record<FinanceExpenseStatus, { status: FinanceExpense
 
 export function Purchases() {
   const { x } = useI18n()
-  const { state, canWrite, transitionSpendRequestStatus, transitionBillStatus, transitionExpenseStatus, addSpendRequest, addParty, addSubscription } = useFinanceData()
+  const {
+    state,
+    canWrite,
+    transitionSpendRequestStatus,
+    transitionBillStatus,
+    transitionExpenseStatus,
+    addSpendRequest,
+    addParty,
+    addSubscription,
+  } = useFinanceData()
   const [filter, setFilter] = useState<'all' | FinanceRequestStatus>('all')
   const [showForm, setShowForm] = useState(false)
   const [showPartyForm, setShowPartyForm] = useState(false)
   const [showSubForm, setShowSubForm] = useState(false)
 
   const requests = useMemo(
-    () => (filter === 'all' ? state.spendRequests : state.spendRequests.filter((sr) => sr.status === filter)),
+    () =>
+      filter === 'all'
+        ? state.spendRequests
+        : state.spendRequests.filter((sr) => sr.status === filter),
     [state.spendRequests, filter],
   )
 
-  const supplierName = (id?: string) => (id ? state.parties.find((p) => p.id === id)?.name ?? id : '—')
+  const supplierName = (id?: string) =>
+    id ? (state.parties.find((p) => p.id === id)?.name ?? id) : '—'
 
   return (
     <div className="flex flex-col gap-[16px]">
@@ -94,7 +146,9 @@ export function Purchases() {
       )}
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_purchases_requests)}</h2>
+        <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+          {x(M.finance_purchases_requests)}
+        </h2>
         <div className="mb-[12px] flex flex-wrap gap-[6px]">
           {FILTERS.map((f) => (
             <button
@@ -102,7 +156,9 @@ export function Purchases() {
               type="button"
               onClick={() => setFilter(f)}
               className={`rounded-[8px] px-[10px] py-[5px] text-[12px] font-semibold transition-colors ${
-                filter === f ? 'bg-navy text-white' : 'bg-inset text-text-2 hover:bg-surface border border-border'
+                filter === f
+                  ? 'bg-navy text-white'
+                  : 'bg-inset text-text-2 hover:bg-surface border border-border'
               }`}
             >
               {f === 'all' ? x(M.finance_filter_all) : x(REQUEST_STATUS_LABEL[f])}
@@ -119,7 +175,8 @@ export function Purchases() {
                   <div>
                     <div className="text-[13px] font-semibold text-text">{x(sr.purpose)}</div>
                     <div className="text-[12px] text-text-muted">
-                      {sr.requester} · {supplierName(sr.supplierId)} · {x(CURRENCY_LABEL[sr.currency])} {sr.amount}
+                      {sr.requester} · {supplierName(sr.supplierId)} ·{' '}
+                      {x(CURRENCY_LABEL[sr.currency])} {sr.amount}
                     </div>
                     {sr.approver && (
                       <div className="text-[12px] text-text-muted">
@@ -146,7 +203,9 @@ export function Purchases() {
                       <button
                         key={t.status}
                         type="button"
-                        onClick={() => transitionSpendRequestStatus(sr.id, t.status, 'Workspace user')}
+                        onClick={() =>
+                          transitionSpendRequestStatus(sr.id, t.status, 'Workspace user')
+                        }
                         className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
                       >
                         {x(M[t.label])}
@@ -161,7 +220,9 @@ export function Purchases() {
       </section>
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_bills_title)}</h2>
+        <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+          {x(M.finance_bills_title)}
+        </h2>
         {state.bills.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_bills_no_bills)}</p>
         ) : (
@@ -169,22 +230,30 @@ export function Purchases() {
             {state.bills.map((bill) => {
               const outstanding = Number(bill.total) - Number(bill.paidAmount)
               return (
-                <li key={bill.id} className="flex flex-col gap-[8px] rounded-[10px] bg-inset p-[12px]">
+                <li
+                  key={bill.id}
+                  className="flex flex-col gap-[8px] rounded-[10px] bg-inset p-[12px]"
+                >
                   <div className="flex items-start justify-between gap-[12px]">
                     <div>
                       <div className="text-[13px] font-semibold text-text">{bill.number}</div>
                       <div className="text-[12px] text-text-muted">
-                        {supplierName(bill.supplierId)} · {bill.issueDate} · {x(M.finance_due_date)}: {bill.dueDate}
+                        {supplierName(bill.supplierId)} · {bill.issueDate} · {x(M.finance_due_date)}
+                        : {bill.dueDate}
                       </div>
                       <div className="text-[12px] text-text-muted">
-                        {x(CURRENCY_LABEL[bill.currency])} {bill.total} ·{' '}
-                        {x(M.finance_sales_paid)}: {bill.paidAmount} ·{' '}
-                        {x(M.finance_sales_outstanding)}: {outstanding.toFixed(2)}
+                        {x(CURRENCY_LABEL[bill.currency])} {bill.total} · {x(M.finance_sales_paid)}:{' '}
+                        {bill.paidAmount} · {x(M.finance_sales_outstanding)}:{' '}
+                        {outstanding.toFixed(2)}
                       </div>
                     </div>
                     <span
                       className={statusChipClass(
-                        bill.status === 'paid' ? 'success' : bill.status === 'overdue' ? 'risk' : 'neutral',
+                        bill.status === 'paid'
+                          ? 'success'
+                          : bill.status === 'overdue'
+                            ? 'risk'
+                            : 'neutral',
                       )}
                     >
                       {bill.status}
@@ -212,7 +281,9 @@ export function Purchases() {
       </section>
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_purchases_pos)}</h2>
+        <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+          {x(M.finance_purchases_pos)}
+        </h2>
         {state.purchaseOrders.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_none)}</p>
         ) : (
@@ -222,7 +293,8 @@ export function Purchases() {
                 <div>
                   <div className="text-[13px] font-semibold text-text">{po.number}</div>
                   <div className="text-[12px] text-text-muted">
-                    {supplierName(po.supplierId)} · {po.date} · {x(CURRENCY_LABEL[po.currency])} {po.total}
+                    {supplierName(po.supplierId)} · {po.date} · {x(CURRENCY_LABEL[po.currency])}{' '}
+                    {po.total}
                   </div>
                 </div>
                 <span className={statusChipClass(po.status === 'closed' ? 'success' : 'neutral')}>
@@ -235,7 +307,9 @@ export function Purchases() {
       </section>
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_purchases_expenses)}</h2>
+        <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+          {x(M.finance_purchases_expenses)}
+        </h2>
         {state.expenses.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_none)}</p>
         ) : (
@@ -252,7 +326,11 @@ export function Purchases() {
                   </div>
                   <span
                     className={statusChipClass(
-                      exp.status === 'reimbursed' ? 'success' : exp.status === 'rejected' ? 'risk' : 'warning',
+                      exp.status === 'reimbursed'
+                        ? 'success'
+                        : exp.status === 'rejected'
+                          ? 'risk'
+                          : 'warning',
                     )}
                   >
                     {exp.status}
@@ -280,14 +358,24 @@ export function Purchases() {
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
         <div className="mb-[12px] flex items-center justify-between">
-          <h2 className="text-[15px] font-semibold text-text">{x(M.finance_purchases_subscriptions)}</h2>
+          <h2 className="text-[15px] font-semibold text-text">
+            {x(M.finance_purchases_subscriptions)}
+          </h2>
           {canWrite && (
             <div className="flex gap-[8px]">
-              <button type="button" onClick={() => setShowPartyForm((v) => !v)} className="flex items-center gap-[6px] text-[13px] font-semibold text-accent">
+              <button
+                type="button"
+                onClick={() => setShowPartyForm((v) => !v)}
+                className="flex items-center gap-[6px] text-[13px] font-semibold text-accent"
+              >
                 <Plus size={14} />
                 {x(M.finance_party_create)}
               </button>
-              <button type="button" onClick={() => setShowSubForm((v) => !v)} className="flex items-center gap-[6px] text-[13px] font-semibold text-accent">
+              <button
+                type="button"
+                onClick={() => setShowSubForm((v) => !v)}
+                className="flex items-center gap-[6px] text-[13px] font-semibold text-accent"
+              >
                 <Plus size={14} />
                 {x(M.finance_subscription_create)}
               </button>
@@ -296,14 +384,20 @@ export function Purchases() {
         </div>
         {showPartyForm && canWrite && (
           <PartyForm
-            onSubmit={(p) => { addParty(p); setShowPartyForm(false) }}
+            onSubmit={(p) => {
+              addParty(p)
+              setShowPartyForm(false)
+            }}
             onCancel={() => setShowPartyForm(false)}
             entities={state.entities}
           />
         )}
         {showSubForm && canWrite && (
           <SubscriptionForm
-            onSubmit={(s) => { addSubscription(s); setShowSubForm(false) }}
+            onSubmit={(s) => {
+              addSubscription(s)
+              setShowSubForm(false)
+            }}
             onCancel={() => setShowSubForm(false)}
             entities={state.entities}
             parties={state.parties}
@@ -355,23 +449,42 @@ function PartyForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]">
+    <form
+      onSubmit={handleSubmit}
+      className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]"
+    >
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_invoice_entity)}</span>
-          <select value={entityId} onChange={(e) => setEntityId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
-            {entities.map((ent) => <option key={ent.id} value={ent.id}>{ent.legalName}</option>)}
+          <select
+            value={entityId}
+            onChange={(e) => setEntityId(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          >
+            {entities.map((ent) => (
+              <option key={ent.id} value={ent.id}>
+                {ent.legalName}
+              </option>
+            ))}
           </select>
         </label>
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_party_name)}</span>
-          <input value={name} onChange={(e) => setName(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
       </div>
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_party_type)}</span>
-          <select value={type} onChange={(e) => setType(e.target.value as import('../data/types').FinancePartyType)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value as import('../data/types').FinancePartyType)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          >
             <option value="supplier">{x(M.finance_party_type_supplier)}</option>
             <option value="customer">{x(M.finance_party_type_customer)}</option>
             <option value="employee">{x(M.finance_party_type_employee)}</option>
@@ -380,13 +493,28 @@ function PartyForm({
           </select>
         </label>
         <label className="flex items-center gap-[6px] pt-[20px]">
-          <input type="checkbox" checked={bankingDetailsOnFile} onChange={(e) => setBankingDetailsOnFile(e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={bankingDetailsOnFile}
+            onChange={(e) => setBankingDetailsOnFile(e.target.checked)}
+          />
           <span className="text-[12px] text-text-muted">{x(M.finance_party_banking_on_file)}</span>
         </label>
       </div>
       <div className="flex justify-end gap-[8px]">
-        <button type="button" onClick={onCancel} className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border">{x(M.finance_cancel)}</button>
-        <button type="submit" className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">{x(M.finance_save)}</button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border"
+        >
+          {x(M.finance_cancel)}
+        </button>
+        <button
+          type="submit"
+          className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white"
+        >
+          {x(M.finance_save)}
+        </button>
       </div>
     </form>
   )
@@ -431,55 +559,121 @@ function SubscriptionForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]">
+    <form
+      onSubmit={handleSubmit}
+      className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]"
+    >
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_invoice_entity)}</span>
-          <select value={entityId} onChange={(e) => setEntityId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
-            {entities.map((ent) => <option key={ent.id} value={ent.id}>{ent.legalName}</option>)}
+          <select
+            value={entityId}
+            onChange={(e) => setEntityId(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          >
+            {entities.map((ent) => (
+              <option key={ent.id} value={ent.id}>
+                {ent.legalName}
+              </option>
+            ))}
           </select>
         </label>
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_subscription_label)}</span>
-          <input value={label} onChange={(e) => setLabel(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
       </div>
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_subscription_supplier)}</span>
-          <select value={supplierId} onChange={(e) => setSupplierId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+          <select
+            value={supplierId}
+            onChange={(e) => setSupplierId(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          >
             <option value="">—</option>
-            {parties.filter((p) => p.type === 'supplier').map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            {parties
+              .filter((p) => p.type === 'supplier')
+              .map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
           </select>
         </label>
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_subscription_cost)}</span>
-          <input value={cost} onChange={(e) => setCost(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={cost}
+            onChange={(e) => setCost(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
       </div>
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
-          <span className="text-[12px] text-text-muted">{x(M.finance_subscription_renewal_term)}</span>
-          <input value={renewalTerm} onChange={(e) => setRenewalTerm(e.target.value)} placeholder="Annual" className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <span className="text-[12px] text-text-muted">
+            {x(M.finance_subscription_renewal_term)}
+          </span>
+          <input
+            value={renewalTerm}
+            onChange={(e) => setRenewalTerm(e.target.value)}
+            placeholder="Annual"
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
         <label className="flex flex-col gap-[4px]">
-          <span className="text-[12px] text-text-muted">{x(M.finance_subscription_next_renewal)}</span>
-          <input type="date" value={nextRenewalDate} onChange={(e) => setNextRenewalDate(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <span className="text-[12px] text-text-muted">
+            {x(M.finance_subscription_next_renewal)}
+          </span>
+          <input
+            type="date"
+            value={nextRenewalDate}
+            onChange={(e) => setNextRenewalDate(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
       </div>
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
-          <span className="text-[12px] text-text-muted">{x(M.finance_subscription_notice_date)}</span>
-          <input type="date" value={noticeDate} onChange={(e) => setNoticeDate(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <span className="text-[12px] text-text-muted">
+            {x(M.finance_subscription_notice_date)}
+          </span>
+          <input
+            type="date"
+            value={noticeDate}
+            onChange={(e) => setNoticeDate(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_subscription_owner)}</span>
-          <input value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="Workspace user" className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={owner}
+            onChange={(e) => setOwner(e.target.value)}
+            placeholder="Workspace user"
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
       </div>
       <div className="flex justify-end gap-[8px]">
-        <button type="button" onClick={onCancel} className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border">{x(M.finance_cancel)}</button>
-        <button type="submit" className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">{x(M.finance_save)}</button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border"
+        >
+          {x(M.finance_cancel)}
+        </button>
+        <button
+          type="submit"
+          className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white"
+        >
+          {x(M.finance_save)}
+        </button>
       </div>
     </form>
   )
@@ -519,45 +713,80 @@ function SpendRequestForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]">
+    <form
+      onSubmit={handleSubmit}
+      className="mt-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]"
+    >
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_invoice_entity)}</span>
-          <select value={entityId} onChange={(e) => setEntityId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+          <select
+            value={entityId}
+            onChange={(e) => setEntityId(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          >
             {entities.map((ent) => (
-              <option key={ent.id} value={ent.id}>{ent.legalName}</option>
+              <option key={ent.id} value={ent.id}>
+                {ent.legalName}
+              </option>
             ))}
           </select>
         </label>
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_spend_requester)}</span>
-          <input value={requester} onChange={(e) => setRequester(e.target.value)} placeholder="Workspace user" className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={requester}
+            onChange={(e) => setRequester(e.target.value)}
+            placeholder="Workspace user"
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
       </div>
       <label className="flex flex-col gap-[4px]">
         <span className="text-[12px] text-text-muted">{x(M.finance_spend_purpose)}</span>
-        <input value={purpose} onChange={(e) => setPurpose(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        <input
+          value={purpose}
+          onChange={(e) => setPurpose(e.target.value)}
+          className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+        />
       </label>
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_spend_supplier)}</span>
-          <select value={supplierId} onChange={(e) => setSupplierId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+          <select
+            value={supplierId}
+            onChange={(e) => setSupplierId(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          >
             <option value="">—</option>
             {suppliers.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
             ))}
           </select>
         </label>
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_spend_amount)}</span>
-          <input value={amount} onChange={(e) => setAmount(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
       </div>
       <div className="flex justify-end gap-[8px]">
-        <button type="button" onClick={onCancel} className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border"
+        >
           {x(M.finance_cancel)}
         </button>
-        <button type="submit" className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">
+        <button
+          type="submit"
+          className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white"
+        >
           {x(M.finance_save)}
         </button>
       </div>

@@ -5,7 +5,12 @@ import { FormField, FormInput, FormSelect, FormCheckbox } from '@/components/For
 import { useGovernanceData } from '../GovernanceDataContext'
 import type { GovernanceOfficer, GovernanceOfficerRole } from '../data/types'
 
-const ROLES: GovernanceOfficerRole[] = ['director', 'officer_president', 'officer_secretary', 'officer_treasurer']
+const ROLES: GovernanceOfficerRole[] = [
+  'director',
+  'officer_president',
+  'officer_secretary',
+  'officer_treasurer',
+]
 
 const ROLE_LABELS: Record<GovernanceOfficerRole, keyof typeof M> = {
   director: 'gov_officer_role_director',
@@ -47,7 +52,9 @@ function OfficerRow({
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
       <div className="min-w-0 flex-1">
-        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">{officer.name}</div>
+        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">
+          {officer.name}
+        </div>
         <div className="text-[12px] text-text-muted">
           {x(M[ROLE_LABELS[officer.role]])}
           {officer.appointed_date ? ` · ${officer.appointed_date}` : null}
@@ -167,7 +174,10 @@ export function Officers() {
             <FormInput value={name} onChange={(e) => setName(e.target.value)} required />
           </FormField>
           <FormField label={x(M.gov_role)}>
-            <FormSelect value={role} onChange={(e) => setRole(e.target.value as GovernanceOfficerRole)}>
+            <FormSelect
+              value={role}
+              onChange={(e) => setRole(e.target.value as GovernanceOfficerRole)}
+            >
               {ROLES.map((r) => (
                 <option key={r} value={r}>
                   {x(M[ROLE_LABELS[r]])}
@@ -176,19 +186,39 @@ export function Officers() {
             </FormSelect>
           </FormField>
           <FormField label={x(M.gov_appointed_date)}>
-            <FormInput type="date" value={appointedDate} onChange={(e) => setAppointedDate(e.target.value)} />
+            <FormInput
+              type="date"
+              value={appointedDate}
+              onChange={(e) => setAppointedDate(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.gov_resigned_date)}>
-            <FormInput type="date" value={resignedDate} onChange={(e) => setResignedDate(e.target.value)} />
+            <FormInput
+              type="date"
+              value={resignedDate}
+              onChange={(e) => setResignedDate(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.gov_contact_email)}>
-            <FormInput type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} />
+            <FormInput
+              type="email"
+              value={contactEmail}
+              onChange={(e) => setContactEmail(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.gov_viewer_visible)}>
-            <FormCheckbox label={x(M.gov_viewer_visible)} checked={viewerVisible} onChange={setViewerVisible} />
+            <FormCheckbox
+              label={x(M.gov_viewer_visible)}
+              checked={viewerVisible}
+              onChange={setViewerVisible}
+            />
           </FormField>
           <div className="sm:col-span-2">
-            <FormCheckbox label={x(M.gov_officer_active)} checked={isActive} onChange={setIsActive} />
+            <FormCheckbox
+              label={x(M.gov_officer_active)}
+              checked={isActive}
+              onChange={setIsActive}
+            />
           </div>
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button
@@ -219,7 +249,10 @@ export function Officers() {
             <OfficerRow
               key={officer.id}
               officer={officer}
-              onEdit={(o) => { setEditing(o); setShow(true) }}
+              onEdit={(o) => {
+                setEditing(o)
+                setShow(true)
+              }}
               onRemove={(id) => removeOfficer(id)}
             />
           ))}

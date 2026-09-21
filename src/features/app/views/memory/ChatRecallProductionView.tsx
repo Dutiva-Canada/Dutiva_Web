@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
-import { useWorkspaceNavigate, useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
+import {
+  useWorkspaceNavigate,
+  useWorkspaceRoot,
+  workspacePath,
+} from '@/features/app/workspaceRoot/workspaceRootContext'
 import { Info, MessageCircle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pickL } from '@/i18n/core'
@@ -129,7 +133,9 @@ export function ChatRecallProductionView() {
           <button
             type="button"
             onClick={() =>
-              navigate('/app/advisor', { state: { chatId: threadId } satisfies AdvisorSearchNavState })
+              navigate('/app/advisor', {
+                state: { chatId: threadId } satisfies AdvisorSearchNavState,
+              })
             }
             className="cursor-pointer rounded-[9px] border border-border bg-surface px-[12px] py-[8px] font-sans text-[12.5px] font-semibold text-text-2"
           >

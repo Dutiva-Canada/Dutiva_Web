@@ -31,8 +31,6 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-
-
 The Dutiva workspace contains **18+ feature modules** beyond the AI Advisor and Document Management systems covered in earlier pages. Each module follows a consistent **phased rollout pattern**: a demo mode renders rich fixture data (the "Northgate Logistics Inc." diorama from `src/data/`), while production mode reads and writes real Supabase tables through a per-module `productionApi.ts` boundary file. The mode dispatch happens either via the route-level `ModeGate` wrapper or inside the view component itself.
 
 Two larger workspace modules — **Communications Platform** (`/app/comms`) and **Finance** (`/app/finance`) — follow a multi-screen layout pattern with their own data providers, context, bilingual message catalogues, and shared bulk-import adapters. These modules are integration-led: they connect to external accounting, payroll, and publishing systems rather than replacing them.
@@ -139,19 +137,19 @@ Sources: [src/features/app/views/employees/EmployeesView.tsx:27-31](), [src/feat
 
 Eleven modules have `productionApi.ts` files. Each follows the same contract: org-scoped queries, throw-on-failure semantics. The HR modules use Zod-validated Supabase rows; the Communications Platform and Finance modules use a context-provider pattern with localStorage demo persistence and Supabase production persistence.
 
-| Module | `productionApi.ts` path | Supabase Table(s) | Key Exports |
-|--------|------------------------|-------------------|-------------|
-| Employees | `views/employees/productionApi.ts` | `employees`, `hr_employee_notes`, `hr_expiry_records`, `hr_leaves` | `listEmployees`, `addEmployee`, `removeEmployee`, `getEmployee`, `updateEmployeeStatus`, `listEmployeeNotes`, `addEmployeeNote`, `listExpiryRecords`, `listLeaves`, `addLeave`, `endLeave` |
-| Cases | `views/cases/productionApi.ts` | `hr_cases`, `hr_case_notes` | `listCases`, `addCase`, `updateCaseStatus`, `removeCase`, `getCase`, `listCaseNotes`, `addCaseNote` |
-| Tasks | `views/tasks/productionApi.ts` | `compliance_tasks` | `listTasks`, `addTask`, `addProbationReviewTask`, `toggleTaskDone`, `removeTask` |
-| Compliance | `views/compliance/productionApi.ts` | `compliance_findings`, `hr_obligations` | `listFindings`, `addFinding`, `setFindingResolved`, `removeFinding`, `countOpenFindings`, `listObligations`, `addObligation` |
-| Policies | `views/policies/productionApi.ts` | `hr_policies` | `listPolicies`, `addPolicy`, `setPolicyStatus`, `removePolicy` |
-| Communications | `views/communications/productionApi.ts` | `hr_communications` | `listCommunications`, `addCommunication`, `markCommunicationSent`, `removeCommunication` |
-| Compensation | `views/compensation/productionApi.ts` | `hr_compensation_records` | `listCompensationRecords`, `addCompensationRecord`, `removeCompensationRecord`, `deltaFromMidpoint` |
-| Wellbeing | `views/wellbeing/productionApi.ts` | `hr_wellbeing_initiatives` | `listInitiatives`, `addInitiative`, `setInitiativeStatus`, `removeInitiative`, `overdueReviews` |
-| Analytics | `views/analytics/productionApi.ts` | `compliance_score_snapshots` | `listScoreSnapshots`, `upsertScoreSnapshot` |
-| Comms Platform | `views/comms/data/productionApi.ts` | localStorage (no migration yet) | `loadCommsState`, `listInitiatives`, `addInitiative`, `updateInitiative`, `removeInitiative`, `listObjectives`, `addObjective`, `updateObjective`, `removeObjective`, `listContentItems`, `addContentItem`, `updateContentItem`, `removeContentItem`, `transitionDeliveryStatus`, `addSource`, `removeSource`, `addCoverageItem`, `removeCoverageItem`, `addSubmission`, `removeSubmission`, `addFeed`, `syncFeed`, `addContact`, `updateContact`, `removeContact`, `addOrganization`, `updateOrganization`, `removeOrganization`, `addInteraction`, `removeInteraction`, `addPolicyFile`, `removePolicyFile`, `addIssue`, `updateIssue`, `removeIssue`, `addMetric`, `updateMetric`, `removeMetric`, `addIntegration`, `updateIntegration`, `removeIntegration`, `addExecutionEvent` |
-| Finance | `views/finance/data/productionApi.ts` | 32 `finance_*` tables (migration 0119) | `loadFinanceState`, `addInvoice`, `addSpendRequest`, `addJournal`, `transitionPayRunStatus`, `settlePayrollLiability`, `addTaxObligation`, `addBudget`, `reviseBudget`, `addTaxScenario`, `addScenario`, `addForecast`, `addReserveGoal`, `addBankAccount`, `addLedgerAccount`, `addParty`, `addSubscription`, `importBankStatement`, `deleteImportSession`, `runAutoCategorize`, `seedDefaultCategoryRules`, `addCategoryRule`, `updateCategoryRule`, `removeCategoryRule`, `updateAiImportSettings`, `buildExportBundles` |
+| Module         | `productionApi.ts` path                 | Supabase Table(s)                                                  | Key Exports                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| -------------- | --------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Employees      | `views/employees/productionApi.ts`      | `employees`, `hr_employee_notes`, `hr_expiry_records`, `hr_leaves` | `listEmployees`, `addEmployee`, `removeEmployee`, `getEmployee`, `updateEmployeeStatus`, `listEmployeeNotes`, `addEmployeeNote`, `listExpiryRecords`, `listLeaves`, `addLeave`, `endLeave`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Cases          | `views/cases/productionApi.ts`          | `hr_cases`, `hr_case_notes`                                        | `listCases`, `addCase`, `updateCaseStatus`, `removeCase`, `getCase`, `listCaseNotes`, `addCaseNote`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Tasks          | `views/tasks/productionApi.ts`          | `compliance_tasks`                                                 | `listTasks`, `addTask`, `addProbationReviewTask`, `toggleTaskDone`, `removeTask`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| Compliance     | `views/compliance/productionApi.ts`     | `compliance_findings`, `hr_obligations`                            | `listFindings`, `addFinding`, `setFindingResolved`, `removeFinding`, `countOpenFindings`, `listObligations`, `addObligation`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Policies       | `views/policies/productionApi.ts`       | `hr_policies`                                                      | `listPolicies`, `addPolicy`, `setPolicyStatus`, `removePolicy`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Communications | `views/communications/productionApi.ts` | `hr_communications`                                                | `listCommunications`, `addCommunication`, `markCommunicationSent`, `removeCommunication`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Compensation   | `views/compensation/productionApi.ts`   | `hr_compensation_records`                                          | `listCompensationRecords`, `addCompensationRecord`, `removeCompensationRecord`, `deltaFromMidpoint`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Wellbeing      | `views/wellbeing/productionApi.ts`      | `hr_wellbeing_initiatives`                                         | `listInitiatives`, `addInitiative`, `setInitiativeStatus`, `removeInitiative`, `overdueReviews`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Analytics      | `views/analytics/productionApi.ts`      | `compliance_score_snapshots`                                       | `listScoreSnapshots`, `upsertScoreSnapshot`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Comms Platform | `views/comms/data/productionApi.ts`     | localStorage (no migration yet)                                    | `loadCommsState`, `listInitiatives`, `addInitiative`, `updateInitiative`, `removeInitiative`, `listObjectives`, `addObjective`, `updateObjective`, `removeObjective`, `listContentItems`, `addContentItem`, `updateContentItem`, `removeContentItem`, `transitionDeliveryStatus`, `addSource`, `removeSource`, `addCoverageItem`, `removeCoverageItem`, `addSubmission`, `removeSubmission`, `addFeed`, `syncFeed`, `addContact`, `updateContact`, `removeContact`, `addOrganization`, `updateOrganization`, `removeOrganization`, `addInteraction`, `removeInteraction`, `addPolicyFile`, `removePolicyFile`, `addIssue`, `updateIssue`, `removeIssue`, `addMetric`, `updateMetric`, `removeMetric`, `addIntegration`, `updateIntegration`, `removeIntegration`, `addExecutionEvent` |
+| Finance        | `views/finance/data/productionApi.ts`   | 32 `finance_*` tables (migration 0119)                             | `loadFinanceState`, `addInvoice`, `addSpendRequest`, `addJournal`, `transitionPayRunStatus`, `settlePayrollLiability`, `addTaxObligation`, `addBudget`, `reviseBudget`, `addTaxScenario`, `addScenario`, `addForecast`, `addReserveGoal`, `addBankAccount`, `addLedgerAccount`, `addParty`, `addSubscription`, `importBankStatement`, `deleteImportSession`, `runAutoCategorize`, `seedDefaultCategoryRules`, `addCategoryRule`, `updateCategoryRule`, `removeCategoryRule`, `updateAiImportSettings`, `buildExportBundles`                                                                                                                                                                                                                                                           |
 
 Sources: [src/features/app/views/employees/productionApi.ts:1-405](), [src/features/app/views/cases/productionApi.ts:1-60](), [src/features/app/views/tasks/productionApi.ts:1-93](), [src/features/app/views/compliance/productionApi.ts:1-132](), [src/features/app/views/policies/productionApi.ts:1-107](), [src/features/app/views/communications/productionApi.ts:1-99](), [src/features/app/views/compensation/productionApi.ts:1-118](), [src/features/app/views/wellbeing/productionApi.ts:1-148](), [src/features/app/views/analytics/productionApi.ts:1-74](), [src/features/app/views/comms/data/productionApi.ts:1-552](), [src/features/app/views/finance/data/productionApi.ts:1-622]()
 
@@ -211,16 +209,16 @@ Two workspace modules follow a different pattern from the single-view modules ab
 
 The Comms Platform is a planning-and-approval workspace for internal communications. It manages initiatives, content calendar, stakeholder relationships, engagement tracking, intelligence feeds (RSS/Atom), and results reporting. Eight screens are nested under `CommsLayout`:
 
-| Screen | Route | Purpose |
-|--------|-------|---------|
-| Overview | `/app/comms/overview` | Initiative summary, active campaigns, coverage, recent activity log |
-| Initiatives | `/app/comms/initiatives` | Create/edit/pause communications initiatives and objectives |
-| Content Calendar | `/app/comms/content` | Content items with delivery status tracking and Markdown body support |
-| Relationships | `/app/comms/relationships` | Stakeholder and audience mapping; bulk import contacts and organizations |
-| Engagement | `/app/comms/engagement` | Engagement metrics and outreach tracking |
-| Intelligence | `/app/comms/intelligence` | RSS/Atom feed monitoring, policy files, and issue tracking |
-| Results | `/app/comms/results` | Submission tracking, metrics, coverage, and outcome reporting |
-| Settings | `/app/comms/settings` | Feed sources, coverage items, integrations, usage controls, claims, and approvals |
+| Screen           | Route                      | Purpose                                                                           |
+| ---------------- | -------------------------- | --------------------------------------------------------------------------------- |
+| Overview         | `/app/comms/overview`      | Initiative summary, active campaigns, coverage, recent activity log               |
+| Initiatives      | `/app/comms/initiatives`   | Create/edit/pause communications initiatives and objectives                       |
+| Content Calendar | `/app/comms/content`       | Content items with delivery status tracking and Markdown body support             |
+| Relationships    | `/app/comms/relationships` | Stakeholder and audience mapping; bulk import contacts and organizations          |
+| Engagement       | `/app/comms/engagement`    | Engagement metrics and outreach tracking                                          |
+| Intelligence     | `/app/comms/intelligence`  | RSS/Atom feed monitoring, policy files, and issue tracking                        |
+| Results          | `/app/comms/results`       | Submission tracking, metrics, coverage, and outcome reporting                     |
+| Settings         | `/app/comms/settings`      | Feed sources, coverage items, integrations, usage controls, claims, and approvals |
 
 The data layer (`views/comms/data/`) provides `CommsDataContext`, `CommsDataProvider`, `useCommsData`, typed fixtures, and a `productionApi.ts` with localStorage persistence. Bulk-import adapters live in `views/comms/bulkImport/` and reuse the shared `BulkImportWizard`. External publishing, ad execution, and AI drafting are intentionally out of scope. No Supabase migration exists yet — production mode uses localStorage.
 
@@ -230,18 +228,18 @@ Sources: [src/features/app/views/comms/CommsView.tsx:1-20](), [src/features/app/
 
 The Finance workspace is an integration-led financial management module for Canadian SMBs (Ontario and Québec initially). It answers: what do we own and owe, what money is available, what must be paid/collected/filed, what can we afford, and how will decisions affect the business. Ten screens are nested under `FinanceLayout`:
 
-| Screen | Route | Purpose |
-|--------|-------|---------|
-| Overview | `/app/finance/overview` | AR, AP, burn-rate KPIs, entity summary |
-| Transactions | `/app/finance/transactions` | Bank items, matching, reconciliation |
-| Sales | `/app/finance/sales` | Invoices, credits, AR lifecycle |
-| Purchases | `/app/finance/purchases` | Bills, expenses, spend requests, parties, subscriptions |
-| Payroll | `/app/finance/payroll` | Pay runs, payroll liabilities (admin-restricted in production) |
-| Accounting | `/app/finance/accounting` | Journals, ledger accounts, close periods, books |
-| Plans | `/app/finance/plans` | Budgets, scenarios, forecasts, variance reporting |
-| Treasury | `/app/finance/treasury` | Bank accounts, reserves, holdings, debt |
-| Tax | `/app/finance/tax` | Tax obligations, tax-planning scenarios |
-| Evidence | `/app/finance/evidence` | Receipt upload, review, signed download URLs |
+| Screen        | Route                        | Purpose                                                                                                      |
+| ------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Overview      | `/app/finance/overview`      | AR, AP, burn-rate KPIs, entity summary                                                                       |
+| Transactions  | `/app/finance/transactions`  | Bank items, matching, reconciliation                                                                         |
+| Sales         | `/app/finance/sales`         | Invoices, credits, AR lifecycle                                                                              |
+| Purchases     | `/app/finance/purchases`     | Bills, expenses, spend requests, parties, subscriptions                                                      |
+| Payroll       | `/app/finance/payroll`       | Pay runs, payroll liabilities (admin-restricted in production)                                               |
+| Accounting    | `/app/finance/accounting`    | Journals, ledger accounts, close periods, books                                                              |
+| Plans         | `/app/finance/plans`         | Budgets, scenarios, forecasts, variance reporting                                                            |
+| Treasury      | `/app/finance/treasury`      | Bank accounts, reserves, holdings, debt                                                                      |
+| Tax           | `/app/finance/tax`           | Tax obligations, tax-planning scenarios                                                                      |
+| Evidence      | `/app/finance/evidence`      | Receipt upload, review, signed download URLs                                                                 |
 | Import/Export | `/app/finance/import-export` | Bank statement and CSV import, auto-categorization, rule suggestions, export bundles, and bulk import wizard |
 
 The data layer (`views/finance/data/`) provides `FinanceDataContext`, `FinanceDataProvider`, `useFinanceData`, typed fixtures, a `productionApi.ts` (localStorage demo), and a full Supabase persistence layer split across:
@@ -354,26 +352,26 @@ Sources: [src/data/types.ts:1-148](), [CONVENTIONS.md:17-38]()
 
 ## Module Rollout Status Summary
 
-| Module | Demo | Production | Gating |
-|--------|------|------------|--------|
-| Home | `HomeView` | `HomeProductionView` | Self-dispatch |
-| Employees | `EmployeesDemoView` | `EmployeesProductionView` | Self-dispatch |
-| Cases | `CasesDemoView` | `CasesProductionView` | Self-dispatch |
-| Compliance | `ComplianceDemoView` | `ComplianceProductionView` | Self-dispatch |
-| Policies | `PoliciesDemoView` | `PoliciesProductionView` | Self-dispatch |
-| Tasks | `TasksDemoView` | `TasksProductionView` | Self-dispatch |
-| Calendar | `CalendarView` (demo) | `CalendarProductionView` | Self-dispatch |
-| Analytics | `AnalyticsDemoView` | `AnalyticsProductionView` | Self-dispatch |
-| Communications | `CommunicationsDemoView` | `CommunicationsProductionView` | Self-dispatch |
-| Compensation | `CompensationDemoView` | `CompensationProductionView` | Self-dispatch |
-| Wellbeing | `WellbeingDemoView` | `WellbeingProductionView` | Self-dispatch |
-| Workflows | `WorkflowsView` (mixed) | Guided flows only | Self-dispatch (partial) |
-| Knowledge | `KnowledgeView` | Same (real content) | Ungated |
-| Settings | `SettingsView` | Same (hosts toggle) | Ungated |
-| Memory | `MemoryLayout` + sub-views | `ProductionEmptyState` | `gated()` via `ModeGate` |
-| Hiring | `HiringView` (demo) | `HiringView` (production) | Self-dispatch |
-| Comms Platform | `CommsDemoView` (8 screens) | `CommsProductionView` (localStorage) | Self-dispatch |
-| Finance | `FinanceView` (10 screens, fixtures) | `FinanceView` (Supabase, migration 0119 pending) | Self-dispatch |
+| Module         | Demo                                 | Production                                       | Gating                   |
+| -------------- | ------------------------------------ | ------------------------------------------------ | ------------------------ |
+| Home           | `HomeView`                           | `HomeProductionView`                             | Self-dispatch            |
+| Employees      | `EmployeesDemoView`                  | `EmployeesProductionView`                        | Self-dispatch            |
+| Cases          | `CasesDemoView`                      | `CasesProductionView`                            | Self-dispatch            |
+| Compliance     | `ComplianceDemoView`                 | `ComplianceProductionView`                       | Self-dispatch            |
+| Policies       | `PoliciesDemoView`                   | `PoliciesProductionView`                         | Self-dispatch            |
+| Tasks          | `TasksDemoView`                      | `TasksProductionView`                            | Self-dispatch            |
+| Calendar       | `CalendarView` (demo)                | `CalendarProductionView`                         | Self-dispatch            |
+| Analytics      | `AnalyticsDemoView`                  | `AnalyticsProductionView`                        | Self-dispatch            |
+| Communications | `CommunicationsDemoView`             | `CommunicationsProductionView`                   | Self-dispatch            |
+| Compensation   | `CompensationDemoView`               | `CompensationProductionView`                     | Self-dispatch            |
+| Wellbeing      | `WellbeingDemoView`                  | `WellbeingProductionView`                        | Self-dispatch            |
+| Workflows      | `WorkflowsView` (mixed)              | Guided flows only                                | Self-dispatch (partial)  |
+| Knowledge      | `KnowledgeView`                      | Same (real content)                              | Ungated                  |
+| Settings       | `SettingsView`                       | Same (hosts toggle)                              | Ungated                  |
+| Memory         | `MemoryLayout` + sub-views           | `ProductionEmptyState`                           | `gated()` via `ModeGate` |
+| Hiring         | `HiringView` (demo)                  | `HiringView` (production)                        | Self-dispatch            |
+| Comms Platform | `CommsDemoView` (8 screens)          | `CommsProductionView` (localStorage)             | Self-dispatch            |
+| Finance        | `FinanceView` (10 screens, fixtures) | `FinanceView` (Supabase, migration 0119 pending) | Self-dispatch            |
 
 Sources: [src/app/appViews.tsx:71-237](), [src/features/app/views/employees/EmployeesView.tsx:27-31](), [src/features/app/views/cases/CasesView.tsx:24-27](), [src/features/app/views/compliance/ComplianceView.tsx:64-67](), [src/features/app/views/tasks/TasksView.tsx:33-35](), [src/features/app/views/communications/CommunicationsView.tsx:40-43](), [src/features/app/views/compensation/CompensationView.tsx:56-59](), [src/features/app/views/wellbeing/WellbeingView.tsx:28-31](), [src/features/app/views/analytics/AnalyticsView.tsx:69-72](), [src/features/app/views/policies/PoliciesView.tsx:34-37](), [src/features/app/views/home/HomeView.tsx:29-46](), [src/features/app/views/knowledge/KnowledgeView.tsx:27-28](), [src/features/app/views/comms/CommsView.tsx:1-20](), [src/features/app/views/finance/FinanceView.tsx]()
 

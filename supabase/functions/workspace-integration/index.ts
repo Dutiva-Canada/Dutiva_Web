@@ -106,14 +106,19 @@ async function probeProvider(
   try {
     if (provider === 'github') {
       const res = await fetch('https://api.github.com/user', {
-        headers: { ...headers, Authorization: `Bearer ${secret}`, Accept: 'application/vnd.github+json' },
+        headers: {
+          ...headers,
+          Authorization: `Bearer ${secret}`,
+          Accept: 'application/vnd.github+json',
+        },
       })
       if (!res.ok) return { ok: false, providerStatus: res.status }
       const body = (await res.json()) as { login?: string }
       return { ok: true, account: body.login ?? 'github' }
     }
     if (provider === 'gitlab') {
-      const raw = typeof config?.instance_url === 'string' ? config.instance_url : 'https://gitlab.com'
+      const raw =
+        typeof config?.instance_url === 'string' ? config.instance_url : 'https://gitlab.com'
       const base = raw.replace(/\/+$/, '')
       if (!/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(base)) return { ok: false, providerStatus: 0 }
       const res = await fetch(`${base}/api/v4/user`, {

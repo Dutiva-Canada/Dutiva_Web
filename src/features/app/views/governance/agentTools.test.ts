@@ -126,9 +126,7 @@ function setupGovernance() {
   const updatedDecisions: GovernanceDecision[] = []
   const ctx: GovernanceAgentContext = {
     records: () => RECORDS,
-    decisions: () => DECISIONS.map(
-      (d) => updatedDecisions.find((u) => u.id === d.id) ?? d,
-    ),
+    decisions: () => DECISIONS.map((d) => updatedDecisions.find((u) => u.id === d.id) ?? d),
     officers: () => OFFICERS,
     addRecord: async (record) => {
       addedRecords.push(record)
@@ -157,7 +155,9 @@ describe('governance agent tools', () => {
     setupGovernance()
     const { outcome } = await run('governance.records', {})
     expect(outcome.status === 'completed' && outcome.message.en).toContain('2 records')
-    expect(outcome.status === 'completed' && outcome.message.en).toContain('Corporate Governance (active) ⚠')
+    expect(outcome.status === 'completed' && outcome.message.en).toContain(
+      'Corporate Governance (active) ⚠',
+    )
   })
 
   it('filters records by type', async () => {

@@ -16,15 +16,59 @@ export interface RuleSuggestion {
 
 const ACCOUNT_KEYWORDS: Record<string, string[]> = {
   // Salaries and wages
-  '6000': ['salary', 'salaries', 'wage', 'wages', 'payroll', 'pay', 'payroll', 'paycheque', 'paycheck', 'paie'],
+  '6000': [
+    'salary',
+    'salaries',
+    'wage',
+    'wages',
+    'payroll',
+    'pay',
+    'payroll',
+    'paycheque',
+    'paycheck',
+    'paie',
+  ],
   // Bank fees
-  '6100': ['bank', 'fee', 'fees', 'service', 'charge', 'charges', 'nsf', 'overdraft', 'frais', 'bancaires'],
+  '6100': [
+    'bank',
+    'fee',
+    'fees',
+    'service',
+    'charge',
+    'charges',
+    'nsf',
+    'overdraft',
+    'frais',
+    'bancaires',
+  ],
   // Utilities
-  '6200': ['hydro', 'telecom', 'internet', 'utility', 'utilities', 'electricity', 'gas', 'phone', 'eau'],
+  '6200': [
+    'hydro',
+    'telecom',
+    'internet',
+    'utility',
+    'utilities',
+    'electricity',
+    'gas',
+    'phone',
+    'eau',
+  ],
   // Office expenses
   '6300': ['office', 'supplies', 'staples', 'amazon', 'paper', 'fournitures', 'bureau'],
   // Revenue — Services
-  '5000': ['stripe', 'shopify', 'square', 'revenue', 'sales', 'sale', 'income', 'payout', 'deposit', 'revenu', 'vente'],
+  '5000': [
+    'stripe',
+    'shopify',
+    'square',
+    'revenue',
+    'sales',
+    'sale',
+    'income',
+    'payout',
+    'deposit',
+    'revenu',
+    'vente',
+  ],
   // Rent
   '5100': ['rent', 'rental', 'lease', 'loyer', 'bail'],
   // Accounts payable / receivable
@@ -32,8 +76,40 @@ const ACCOUNT_KEYWORDS: Record<string, string[]> = {
   '2000': ['supplier', 'vendor', 'payable', 'bill'],
 }
 const STOP_WORDS = new Set([
-  'the', 'and', 'for', 'from', 'with', 'via', 'to', 'of', 'in', 'on', 'at', 'a', 'an', 'is', 'are', 'was', 'were',
-  'de', 'et', 'pour', 'des', 'du', 'le', 'la', 'les', 'un', 'une', 'dans', 'sur', 'avec', 'par', 'à', 'au', 'aux',
+  'the',
+  'and',
+  'for',
+  'from',
+  'with',
+  'via',
+  'to',
+  'of',
+  'in',
+  'on',
+  'at',
+  'a',
+  'an',
+  'is',
+  'are',
+  'was',
+  'were',
+  'de',
+  'et',
+  'pour',
+  'des',
+  'du',
+  'le',
+  'la',
+  'les',
+  'un',
+  'une',
+  'dans',
+  'sur',
+  'avec',
+  'par',
+  'à',
+  'au',
+  'aux',
 ])
 
 function tokenize(text: string): string[] {
@@ -58,7 +134,10 @@ function termFrequency(tokens: string[]): Map<string, number> {
   return tf
 }
 
-function buildTfidfVectors(items: string[]): { vectors: Map<string, number>[]; idf: Map<string, number> } {
+function buildTfidfVectors(items: string[]): {
+  vectors: Map<string, number>[]
+  idf: Map<string, number>
+} {
   const tokenLists = items.map(tokenize)
   const documentFrequency = new Map<string, number>()
   for (const tokens of tokenLists) {
@@ -114,7 +193,12 @@ function cosineTfidfSimilarity(a: Map<string, number>, b: Map<string, number>): 
   return dot / (normA * normB)
 }
 
-function similarity(a: Map<string, number>, b: Map<string, number>, tokenSetA: Set<string>, tokenSetB: Set<string>): number {
+function similarity(
+  a: Map<string, number>,
+  b: Map<string, number>,
+  tokenSetA: Set<string>,
+  tokenSetB: Set<string>,
+): number {
   return 0.5 * jaccardSimilarity(tokenSetA, tokenSetB) + 0.5 * cosineTfidfSimilarity(a, b)
 }
 
@@ -134,7 +218,11 @@ class UnionFind {
   }
 }
 
-function clusterItems(vectors: Map<string, number>[], tokenSets: Set<string>[], threshold: number): number[][] {
+function clusterItems(
+  vectors: Map<string, number>[],
+  tokenSets: Set<string>[],
+  threshold: number,
+): number[][] {
   const n = vectors.length
   if (n === 0) return []
   const uf = new UnionFind(n)
@@ -185,7 +273,11 @@ function mostCommonNGram(tokenLists: string[][]): string {
         const gram = grams[pos]!
         if (seen.has(gram)) continue
         seen.add(gram)
-        const entry = coverage.get(gram) ?? { count: 0, total: 0, minPosition: Number.POSITIVE_INFINITY }
+        const entry = coverage.get(gram) ?? {
+          count: 0,
+          total: 0,
+          minPosition: Number.POSITIVE_INFINITY,
+        }
         entry.count += 1
         entry.total += 1
         entry.minPosition = Math.min(entry.minPosition, pos)
@@ -213,7 +305,11 @@ function accountScore(
   account: FinanceLedgerAccount,
   idf: Map<string, number>,
 ): number {
-  const accountNameTokens = [...tokenize(account.name.en), ...tokenize(account.name.fr), ...tokenize(account.code)]
+  const accountNameTokens = [
+    ...tokenize(account.name.en),
+    ...tokenize(account.name.fr),
+    ...tokenize(account.code),
+  ]
   const keywords = new Set(ACCOUNT_KEYWORDS[account.code] ?? [])
   const allAccountTokens = [...new Set([...accountNameTokens, ...keywords])]
 
@@ -253,7 +349,9 @@ export function suggestCategoryRules(
   existingRules: Pick<FinanceCategoryRule, 'pattern' | 'entityId'>[],
   threshold = 0.35,
 ): RuleSuggestion[] {
-  const unmatched = bankItems.filter((bi) => bi.matchStatus === 'unmatched' && bi.description.trim())
+  const unmatched = bankItems.filter(
+    (bi) => bi.matchStatus === 'unmatched' && bi.description.trim(),
+  )
   if (unmatched.length === 0 || ledgerAccounts.length === 0) return []
 
   const descriptions = unmatched.map((bi) => bi.description)

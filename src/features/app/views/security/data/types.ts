@@ -71,7 +71,8 @@ export interface SecurityRisk {
   updated_at: string
 }
 
-export type SecurityVendorType = 'lawyer' | 'accountant' | 'insurance' | 'it_security' | 'other' | null
+export type SecurityVendorType =
+  'lawyer' | 'accountant' | 'insurance' | 'it_security' | 'other' | null
 
 export interface SecurityVendorReview {
   id: string

@@ -52,7 +52,11 @@ export function BulkImportWizard<T>({ adapter, onClose }: BulkImportWizardProps<
       <div className="w-full max-w-[720px] max-h-[90vh] overflow-y-auto rounded-[12px] border border-border bg-surface p-[20px] shadow-lg">
         <div className="mb-[16px] flex items-center justify-between">
           <h2 className="text-[17px] font-semibold text-text">{x(M.bulk_import_title)}</h2>
-          <button type="button" onClick={onClose} className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset"
+          >
             <X size={18} />
           </button>
         </div>
@@ -96,7 +100,8 @@ export function BulkImportWizard<T>({ adapter, onClose }: BulkImportWizardProps<
         {step === 'map' && parseResult && (
           <div className="flex flex-col gap-[16px]">
             <p className="text-[13px] text-text-muted">
-              {x(M.bulk_upload_map_columns)} <span className="text-text-2">({parseResult.fileName})</span>
+              {x(M.bulk_upload_map_columns)}{' '}
+              <span className="text-text-2">({parseResult.fileName})</span>
             </p>
             <table className="w-full text-[13px]">
               <thead>
@@ -139,7 +144,11 @@ export function BulkImportWizard<T>({ adapter, onClose }: BulkImportWizardProps<
               </tbody>
             </table>
             <div className="flex justify-end gap-[8px]">
-              <button type="button" onClick={reset} className="rounded-[6px] border border-border bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2">
+              <button
+                type="button"
+                onClick={reset}
+                className="rounded-[6px] border border-border bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2"
+              >
                 {x(M.bulk_back)}
               </button>
               <button
@@ -157,12 +166,15 @@ export function BulkImportWizard<T>({ adapter, onClose }: BulkImportWizardProps<
           <div className="flex flex-col gap-[16px]">
             <div className="rounded-[8px] bg-inset p-[12px]">
               <div className="text-[13px] font-semibold text-text">
-                {validCount} {x(M.bulk_preview_summary_valid)} · {errorCount} {x(M.bulk_preview_summary_errors)}
+                {validCount} {x(M.bulk_preview_summary_valid)} · {errorCount}{' '}
+                {x(M.bulk_preview_summary_errors)}
               </div>
             </div>
             {errorCount > 0 && (
               <div className="max-h-[240px] overflow-y-auto rounded-[8px] border border-border p-[10px]">
-                <h3 className="mb-[8px] text-[13px] font-semibold text-text">{x(M.bulk_preview_errors)}</h3>
+                <h3 className="mb-[8px] text-[13px] font-semibold text-text">
+                  {x(M.bulk_preview_errors)}
+                </h3>
                 <ul className="m-0 flex flex-col gap-[6px] p-0">
                   {mappedRows
                     .filter((r) => !r.valid)
@@ -177,11 +189,14 @@ export function BulkImportWizard<T>({ adapter, onClose }: BulkImportWizardProps<
             )}
             {step === 'done' && importResult && (
               <div className="rounded-[8px] bg-inset p-[12px] text-[13px] text-text">
-                {importResult.created} {x(M.bulk_import_done_created)} · {importResult.failed} {x(M.bulk_import_done_failed)}
+                {importResult.created} {x(M.bulk_import_done_created)} · {importResult.failed}{' '}
+                {x(M.bulk_import_done_failed)}
                 {importResult.errors.length > 0 && (
                   <ul className="mt-[8px] flex flex-col gap-[4px]">
                     {importResult.errors.map((err, i) => (
-                      <li key={i} className="text-[12px] text-red-600">{err}</li>
+                      <li key={i} className="text-[12px] text-red-600">
+                        {err}
+                      </li>
                     ))}
                   </ul>
                 )}
@@ -189,7 +204,11 @@ export function BulkImportWizard<T>({ adapter, onClose }: BulkImportWizardProps<
             )}
             <div className="flex justify-end gap-[8px]">
               {step === 'done' ? (
-                <button type="button" onClick={onClose} className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white"
+                >
                   {x(M.bulk_close)}
                 </button>
               ) : (

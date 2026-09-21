@@ -6,7 +6,13 @@ import { FormField, FormInput, FormSelect, FormCheckbox } from '@/components/For
 import { useSecurityData } from '../SecurityDataContext'
 import type { SecurityVendorReview, SecurityVendorType } from '../data/types'
 
-const TYPES: NonNullable<SecurityVendorType>[] = ['lawyer', 'accountant', 'insurance', 'it_security', 'other']
+const TYPES: NonNullable<SecurityVendorType>[] = [
+  'lawyer',
+  'accountant',
+  'insurance',
+  'it_security',
+  'other',
+]
 
 const VENDOR_TYPE_LABELS: Record<NonNullable<SecurityVendorType>, keyof typeof M> = {
   lawyer: 'sec_vendor_type_lawyer',
@@ -48,7 +54,9 @@ function VendorRow({
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
       <div className="min-w-0 flex-1">
-        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">{vendor.vendor_name}</div>
+        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">
+          {vendor.vendor_name}
+        </div>
         <div className="text-[12px] text-text-muted">
           {vendor.vendor_type ? x(M[VENDOR_TYPE_LABELS[vendor.vendor_type]]) : null}
           {vendor.privacy_agreement !== null
@@ -84,13 +92,16 @@ function VendorRow({
 
 export function Vendors() {
   const { x } = useI18n()
-  const { vendorReviews, addVendorReview, updateVendorReview, removeVendorReview } = useSecurityData()
+  const { vendorReviews, addVendorReview, updateVendorReview, removeVendorReview } =
+    useSecurityData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<SecurityVendorReview | null>(null)
 
   const initial = editing ?? emptyVendorReview()
   const [vendorName, setVendorName] = useState(initial.vendor_name)
-  const [vendorType, setVendorType] = useState<NonNullable<SecurityVendorType>>(initial.vendor_type ?? 'other')
+  const [vendorType, setVendorType] = useState<NonNullable<SecurityVendorType>>(
+    initial.vendor_type ?? 'other',
+  )
   const [privacyAgreement, setPrivacyAgreement] = useState(initial.privacy_agreement ?? false)
   const [securityReviewDate, setSecurityReviewDate] = useState(initial.security_review_date ?? '')
   const [nextReviewDate, setNextReviewDate] = useState(initial.next_review_date ?? '')
@@ -158,7 +169,11 @@ export function Vendors() {
       {show ? (
         <div className="grid grid-cols-1 gap-[14px] rounded-[12px] border border-border bg-surface p-[16px] sm:grid-cols-2">
           <FormField label={x(M.sec_vendor_name)} className="sm:col-span-2">
-            <FormInput value={vendorName} onChange={(e) => setVendorName(e.target.value)} required />
+            <FormInput
+              value={vendorName}
+              onChange={(e) => setVendorName(e.target.value)}
+              required
+            />
           </FormField>
           <FormField label={x(M.sec_type)}>
             <FormSelect
@@ -173,10 +188,18 @@ export function Vendors() {
             </FormSelect>
           </FormField>
           <FormField label={x(M.sec_security_review_date)}>
-            <FormInput type="date" value={securityReviewDate} onChange={(e) => setSecurityReviewDate(e.target.value)} />
+            <FormInput
+              type="date"
+              value={securityReviewDate}
+              onChange={(e) => setSecurityReviewDate(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.sec_next_review_date)}>
-            <FormInput type="date" value={nextReviewDate} onChange={(e) => setNextReviewDate(e.target.value)} />
+            <FormInput
+              type="date"
+              value={nextReviewDate}
+              onChange={(e) => setNextReviewDate(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.sec_notes)} className="sm:col-span-2">
             <FormInput value={notes} onChange={(e) => setNotes(e.target.value)} />
@@ -217,7 +240,10 @@ export function Vendors() {
             <VendorRow
               key={vendor.id}
               vendor={vendor}
-              onEdit={(v) => { setEditing(v); setShow(true) }}
+              onEdit={(v) => {
+                setEditing(v)
+                setShow(true)
+              }}
               onRemove={(id) => removeVendorReview(id)}
             />
           ))}

@@ -39,10 +39,7 @@ function fromContactRow(row: {
   }
 }
 
-function toContactRow(
-  organizationId: string,
-  contact: Omit<CommsContact, 'id'>,
-) {
+function toContactRow(organizationId: string, contact: Omit<CommsContact, 'id'>) {
   return {
     organization_id: organizationId,
     comms_organization_id: contact.organizationId ?? null,
@@ -72,10 +69,7 @@ function fromOrganizationRow(row: {
   }
 }
 
-function toOrganizationRow(
-  organizationId: string,
-  organization: Omit<CommsOrganization, 'id'>,
-) {
+function toOrganizationRow(organizationId: string, organization: Omit<CommsOrganization, 'id'>) {
   return {
     organization_id: organizationId,
     name: organization.name,
@@ -85,9 +79,7 @@ function toOrganizationRow(
   }
 }
 
-export async function listOrganizations(
-  workspaceOrgId: string,
-): Promise<CommsOrganization[]> {
+export async function listOrganizations(workspaceOrgId: string): Promise<CommsOrganization[]> {
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_organizations')
@@ -134,10 +126,7 @@ export async function updateOrganization(
   return data ? fromOrganizationRow(data) : null
 }
 
-export async function removeOrganization(
-  workspaceOrgId: string,
-  id: string,
-): Promise<void> {
+export async function removeOrganization(workspaceOrgId: string, id: string): Promise<void> {
   if (!supabase) throw new Error('Supabase is not configured')
   const { error } = await supabase
     .from('comms_organizations')
@@ -147,9 +136,7 @@ export async function removeOrganization(
   if (error) throw error
 }
 
-export async function listContacts(
-  workspaceOrgId: string,
-): Promise<CommsContact[]> {
+export async function listContacts(workspaceOrgId: string): Promise<CommsContact[]> {
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_contacts')
@@ -181,8 +168,7 @@ export async function updateContact(
 ): Promise<CommsContact | null> {
   if (!supabase) throw new Error('Supabase is not configured')
   const row: Record<string, unknown> = {}
-  if (patch.organizationId !== undefined)
-    row.comms_organization_id = patch.organizationId ?? null
+  if (patch.organizationId !== undefined) row.comms_organization_id = patch.organizationId ?? null
   if (patch.name !== undefined) row.name = patch.name
   if (patch.type !== undefined) row.type = patch.type
   if (patch.role !== undefined) row.role = patch.role ?? null
@@ -202,10 +188,7 @@ export async function updateContact(
   return data ? fromContactRow(data) : null
 }
 
-export async function removeContact(
-  workspaceOrgId: string,
-  id: string,
-): Promise<void> {
+export async function removeContact(workspaceOrgId: string, id: string): Promise<void> {
   if (!supabase) throw new Error('Supabase is not configured')
   const { error } = await supabase
     .from('comms_contacts')

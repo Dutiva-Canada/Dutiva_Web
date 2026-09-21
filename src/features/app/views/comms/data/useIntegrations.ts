@@ -23,7 +23,9 @@ export function useIntegrations(): UseIntegrationsResult {
   const { showToast } = useToasts()
   const isProduction = mode === 'production' && organizationId != null
 
-  const [integrations, setIntegrations] = useState<CommsIntegration[]>(initialCommsState.integrations)
+  const [integrations, setIntegrations] = useState<CommsIntegration[]>(
+    initialCommsState.integrations,
+  )
   const [loading, setLoading] = useState(false)
 
   const load = useCallback(async () => {

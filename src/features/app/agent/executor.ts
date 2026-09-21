@@ -82,7 +82,11 @@ function validateParams(
     if (!paramTypeOk(param, value)) {
       return { ok: false, outcome: fail('invalid_params', M.agent_err_bad_param, param.name) }
     }
-    if (param.maxLength !== undefined && typeof value === 'string' && value.length > param.maxLength) {
+    if (
+      param.maxLength !== undefined &&
+      typeof value === 'string' &&
+      value.length > param.maxLength
+    ) {
       return { ok: false, outcome: fail('invalid_params', M.agent_err_bad_param, param.name) }
     }
     clean[param.name] = value

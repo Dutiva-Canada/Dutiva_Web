@@ -130,11 +130,7 @@ export function Overview() {
               >
                 <span className="min-w-0 truncate text-[13px] font-medium text-text">{label}</span>
                 <span className="flex shrink-0 items-center gap-[6px]">
-                  <span
-                    className={statusChipClass(
-                      stat.count > 0 ? stat.tone : 'neutral',
-                    )}
-                  >
+                  <span className={statusChipClass(stat.count > 0 ? stat.tone : 'neutral')}>
                     {stat.count}
                   </span>
                   <ChevronRight size={14} className="text-text-faint" aria-hidden="true" />

@@ -57,8 +57,6 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-
-
 This page is a comprehensive glossary of codebase-specific terms, jargon, abbreviations, and domain concepts used throughout the Dutiva platform. Each entry includes code pointers (file paths, class/function names) so readers can jump directly to the implementation.
 
 ---
@@ -141,13 +139,13 @@ Sources: [src/features/app/views/advisor/AdvisorView.tsx:66-81](), [supabase/fun
 
 The machine-readable structured payload the Advisor engine returns for every turn. Defined as a Zod schema in `contract.ts`. Contains `route` (gating flags like `workspaceAllowed`, `legalBasisAllowed`), `jurisdiction` (status + value), `risk` (compliance + safety levels), `legalBasis`, `retrieval`, `webSources`, `professionalReview`, `warnings`, and an `isCrisis` flag. The Compliance Workspace sidebar only renders sections whose corresponding `route.*Allowed` gate is `true`.
 
-| Field | Type | Purpose |
-|---|---|---|
-| `route.responseMode` | `'hr' \| 'escalation' \| 'supportive'` | Drives the mode chip |
-| `jurisdiction.status` | `'known' \| 'assumed' \| 'unknown' \| 'conflict' \| 'not_applicable'` | Jurisdiction confidence |
-| `risk.compliance` | `'low' \| 'medium' \| 'high' \| 'critical'` | Compliance risk meter |
-| `risk.safety` | `'none' \| 'watch' \| 'urgent' \| 'critical'` | Safety risk meter |
-| `isCrisis` | `boolean` | Gates all structured surfaces off when `true` |
+| Field                 | Type                                                                  | Purpose                                       |
+| --------------------- | --------------------------------------------------------------------- | --------------------------------------------- |
+| `route.responseMode`  | `'hr' \| 'escalation' \| 'supportive'`                                | Drives the mode chip                          |
+| `jurisdiction.status` | `'known' \| 'assumed' \| 'unknown' \| 'conflict' \| 'not_applicable'` | Jurisdiction confidence                       |
+| `risk.compliance`     | `'low' \| 'medium' \| 'high' \| 'critical'`                           | Compliance risk meter                         |
+| `risk.safety`         | `'none' \| 'watch' \| 'urgent' \| 'critical'`                         | Safety risk meter                             |
+| `isCrisis`            | `boolean`                                                             | Gates all structured surfaces off when `true` |
 
 Sources: [src/features/app/advisor/contract.ts:1-119]()
 
@@ -184,7 +182,10 @@ Sources: [src/config/beta.ts:1-19]()
 The bilingual string type `{ en: string; fr: string }`. Every user-facing string ships both EN and FR. Created via the `bi(en, fr)` factory function. The structural type ensures a key cannot exist in one language only.
 
 ```typescript
-export interface Bi { en: string; fr: string }
+export interface Bi {
+  en: string
+  fr: string
+}
 export const bi = (en: string, fr: string): Bi => ({ en, fr })
 ```
 
@@ -204,11 +205,11 @@ Sources: [supabase/functions/_shared/caslConsent.ts]()
 
 Type in `monitoringCoverage.ts` describing whether law-change monitoring actually detects amendments for a jurisdiction:
 
-| Status | Meaning |
-|---|---|
-| `'active'` | Verified to fetch real legislation and detect changes |
-| `'unavailable'` | Reachable but unusable — cannot detect an amendment |
-| `'unverified'` | Not confirmed either way since the last audit |
+| Status          | Meaning                                               |
+| --------------- | ----------------------------------------------------- |
+| `'active'`      | Verified to fetch real legislation and detect changes |
+| `'unavailable'` | Reachable but unusable — cannot detect an amendment   |
+| `'unverified'`  | Not confirmed either way since the last audit         |
 
 This is a **maintained claim** — deliberately not derived from `law_page_hashes` to prevent silent drift. The audit date is stored in `COVERAGE_AUDITED_ON`.
 
@@ -279,11 +280,11 @@ Sources: [src/features/app/documents/]()
 
 Abbreviations for the three employment standards statutes Dutiva supports:
 
-| Abbreviation | Full name | Jurisdiction |
-|---|---|---|
-| **ESA** | Employment Standards Act, 2000 | Ontario (ON) |
-| **CNESST** (administers LNT) | Loi sur les normes du travail | Quebec (QC) |
-| **CLC** | Canada Labour Code, Part III | Federal (FED) |
+| Abbreviation                 | Full name                      | Jurisdiction  |
+| ---------------------------- | ------------------------------ | ------------- |
+| **ESA**                      | Employment Standards Act, 2000 | Ontario (ON)  |
+| **CNESST** (administers LNT) | Loi sur les normes du travail  | Quebec (QC)   |
+| **CLC**                      | Canada Labour Code, Part III   | Federal (FED) |
 
 Sources: [docs/CANONICAL_FACTS.md:44]()
 
@@ -301,12 +302,12 @@ Sources: [supabase/schema.sql:90-97]()
 
 The guided-workflow engine. `FlowRunner` is the React component (route `/app/workflows/:slug`) that drives a user through a `Flow` — a graph of `FlowStep` nodes. `FlowStep` is a discriminated union of four kinds:
 
-| Kind | Purpose |
-|---|---|
-| `choice` | Branching question — the selected option decides the next step |
-| `task` | Instructional step with points; one exit |
-| `outcome` | Terminal step reached by branching |
-| `result` | Terminal step reached by scoring, with `FlowBand` thresholds |
+| Kind      | Purpose                                                        |
+| --------- | -------------------------------------------------------------- |
+| `choice`  | Branching question — the selected option decides the next step |
+| `task`    | Instructional step with points; one exit                       |
+| `outcome` | Terminal step reached by branching                             |
+| `result`  | Terminal step reached by scoring, with `FlowBand` thresholds   |
 
 The pure engine functions (`startRun`, `advance`, `back`, `scoreRun`, `bandFor`) live in `flowEngine.ts`. Flow data files live under `src/data/`.
 
@@ -316,12 +317,12 @@ Sources: [src/features/app/flows/flowModel.ts:1-192](), [src/app/appViews.tsx:29
 
 The organizational model for Dutiva's HR compliance content. Templates, flows, and policies are categorized into four concentric rings of increasing complexity:
 
-| Ring | Scope |
-|---|---|
-| Ring 1 | Core HR (employment agreements, onboarding) |
+| Ring   | Scope                                          |
+| ------ | ---------------------------------------------- |
+| Ring 1 | Core HR (employment agreements, onboarding)    |
 | Ring 2 | Compliance & risk (accommodation, termination) |
-| Ring 3 | Programs (wellbeing, communications) |
-| Ring 4 | Compensation & benefits |
+| Ring 3 | Programs (wellbeing, communications)           |
+| Ring 4 | Compensation & benefits                        |
 
 Documented in `docs/FOUR_RING_FRAMEWORK.md`. Each `Flow` carries a `ring` field.
 
@@ -513,11 +514,11 @@ Sources: [src/features/app/shell/Sidebar.tsx:19]()
 
 The three Canadian jurisdictions Dutiva provides compliance coverage for:
 
-| Code | Jurisdiction | Primary statute |
-|---|---|---|
-| `ON` | Ontario | Employment Standards Act, 2000 (ESA) |
-| `QC` | Quebec | Loi sur les normes du travail (LNT) |
-| `FED` | Federal | Canada Labour Code, Part III (CLC) |
+| Code  | Jurisdiction | Primary statute                      |
+| ----- | ------------ | ------------------------------------ |
+| `ON`  | Ontario      | Employment Standards Act, 2000 (ESA) |
+| `QC`  | Quebec       | Loi sur les normes du travail (LNT)  |
+| `FED` | Federal      | Canada Labour Code, Part III (CLC)   |
 
 The law monitor sweeps 14 jurisdictions but the product only claims coverage for these three. `MONITORING_COVERAGE` in `monitoringCoverage.ts` records the status of each.
 
@@ -531,10 +532,10 @@ Sources: [docs/CANONICAL_FACTS.md:44](), [src/features/app/guidance/monitoringCo
 
 The three i18n resolution functions returned by `useI18n()`:
 
-| Function | Signature | Purpose |
-|---|---|---|
-| `t(key)` | `(key: MessageKey) => string` | Look up a UI-chrome string by message key |
-| `x(value)` | `(value: Bi) => string` | Resolve a bilingual data field `{ en, fr }` |
+| Function    | Signature                            | Purpose                                           |
+| ----------- | ------------------------------------ | ------------------------------------------------- |
+| `t(key)`    | `(key: MessageKey) => string`        | Look up a UI-chrome string by message key         |
+| `x(value)`  | `(value: Bi) => string`              | Resolve a bilingual data field `{ en, fr }`       |
 | `L(en, fr)` | `(en: string, fr: string) => string` | Inline bilingual pair (mirrors prototype's `L()`) |
 
 All three resolve to the current `lang` from context.
@@ -628,52 +629,52 @@ Sources: [src/features/app/advisor/safety/safetyBackstop.ts:1-155](), [src/featu
 
 ## Alphabetical Index
 
-| Term | Definition location | Key file(s) |
-|---|---|---|
-| Advisor | [§A](#a) | `AdvisorView.tsx`, `advisor-chat/index.ts` |
-| AdvisorResponse | [§A](#a) | `contract.ts` |
-| `ANNUAL_MONTHS_BILLED` | [§A](#a) | `plans.ts:95` |
-| `applySafetyBackstop()` | [§A](#a) | `safety/safetyBackstop.ts` |
-| `acquire_cron_lock()` | [§A](#a) | `schema.sql` |
-| `BETA_COHORT_LIMIT` | [§B](#b) | `beta.ts:19` |
-| `Bi` | [§B](#b) | `core.ts:4-7` |
-| CASL | [§C](#c) | `_shared/caslConsent.ts` |
-| `CoverageStatus` | [§C](#c) | `monitoringCoverage.ts:34-40` |
-| Compliance Score | [§C](#c) | `aggregation.ts` |
-| Configured or inert | [§C](#c) | `supabaseClient.ts` |
-| Crisis intercept | [§C](#c) | `crisisSignals.ts`, `safetyBackstop.ts` |
-| Critical ceiling | [§C](#c) | `aggregation.ts` |
-| `defineMessages()` | [§D](#d) | `core.ts:16-18` |
-| Demo mode | [§D](#d) | `workspaceModeContext.ts` |
-| Doclib | [§D](#d) | `documents/` |
-| ESA / CNESST / CLC | [§E](#e) | `CANONICAL_FACTS.md` |
-| Envelope | [§E](#e) | `schema.sql:90-97` |
-| `FlowRunner` / `FlowStep` | [§F](#f) | `flowModel.ts`, `appViews.tsx` |
-| Four Ring Framework | [§F](#f) | `FOUR_RING_FRAMEWORK.md` |
-| `GuidanceSourcesPanel` | [§G](#g) | `GuidanceSourcesPanel.tsx` |
-| `gated()` | [§G](#g) | `appViews.tsx:23-25` |
-| `is_admin()` / `is_org_member()` | [§H–I](#hi) | `schema.sql` |
-| Job queue | [§J](#j) | `schema.sql` |
-| `Lang` | [§K–L](#kl) | `core.ts:1` |
-| `LText` | [§K–L](#kl) | `core.ts:30-31` |
-| Law Monitor | [§K–L](#kl) | `monitor-law-changes/index.ts` |
-| Light flows | [§K–L](#kl) | `advisorFlows.ts` |
-| `ModeGate` | [§M](#m) | `ModeGate.tsx` |
-| `OrgMemberRole` | [§N–O](#no) | `roles.ts` |
-| PIPEDA | [§P](#p) | Legal docs |
-| `PlanGate` | [§P](#p) | `PlanGate.tsx` |
-| `PAID_PLANS_DISABLED_DURING_BETA` | [§P](#p) | `plans.ts:79` |
-| Production mode | [§P](#p) | `workspaceModeContext.ts` |
-| `productionApi.ts` | [§P](#p) | Per-module files |
-| Provenanced task | [§P](#p) | `aggregation.ts` |
-| Quebec Law 25 | [§Q](#q) | `analyticsConsent.ts` |
-| RLS | [§R](#r) | `schema.sql` |
-| Safety backstop | [§S](#s) | `safetyBackstop.ts` |
-| Scenario | [§S](#s) | `advisorScenarios.ts` |
-| `SidebarMode` | [§S](#s) | `Sidebar.tsx:19` |
-| Supported jurisdictions | [§S](#s) | `monitoringCoverage.ts` |
-| `t()` / `x()` / `L()` | [§T–U](#tu) | `context.ts:8-13` |
-| Usage counters | [§T–U](#tu) | `_shared/aiUsage.ts` |
-| Vault secrets | [§V](#v) | `schema.sql:62` |
-| `WorkspaceMode` | [§W](#w) | `workspaceModeContext.ts:5` |
-| `WorkspaceModeProvider` | [§W](#w) | `WorkspaceModeProvider.tsx` |
+| Term                              | Definition location | Key file(s)                                |
+| --------------------------------- | ------------------- | ------------------------------------------ |
+| Advisor                           | [§A](#a)            | `AdvisorView.tsx`, `advisor-chat/index.ts` |
+| AdvisorResponse                   | [§A](#a)            | `contract.ts`                              |
+| `ANNUAL_MONTHS_BILLED`            | [§A](#a)            | `plans.ts:95`                              |
+| `applySafetyBackstop()`           | [§A](#a)            | `safety/safetyBackstop.ts`                 |
+| `acquire_cron_lock()`             | [§A](#a)            | `schema.sql`                               |
+| `BETA_COHORT_LIMIT`               | [§B](#b)            | `beta.ts:19`                               |
+| `Bi`                              | [§B](#b)            | `core.ts:4-7`                              |
+| CASL                              | [§C](#c)            | `_shared/caslConsent.ts`                   |
+| `CoverageStatus`                  | [§C](#c)            | `monitoringCoverage.ts:34-40`              |
+| Compliance Score                  | [§C](#c)            | `aggregation.ts`                           |
+| Configured or inert               | [§C](#c)            | `supabaseClient.ts`                        |
+| Crisis intercept                  | [§C](#c)            | `crisisSignals.ts`, `safetyBackstop.ts`    |
+| Critical ceiling                  | [§C](#c)            | `aggregation.ts`                           |
+| `defineMessages()`                | [§D](#d)            | `core.ts:16-18`                            |
+| Demo mode                         | [§D](#d)            | `workspaceModeContext.ts`                  |
+| Doclib                            | [§D](#d)            | `documents/`                               |
+| ESA / CNESST / CLC                | [§E](#e)            | `CANONICAL_FACTS.md`                       |
+| Envelope                          | [§E](#e)            | `schema.sql:90-97`                         |
+| `FlowRunner` / `FlowStep`         | [§F](#f)            | `flowModel.ts`, `appViews.tsx`             |
+| Four Ring Framework               | [§F](#f)            | `FOUR_RING_FRAMEWORK.md`                   |
+| `GuidanceSourcesPanel`            | [§G](#g)            | `GuidanceSourcesPanel.tsx`                 |
+| `gated()`                         | [§G](#g)            | `appViews.tsx:23-25`                       |
+| `is_admin()` / `is_org_member()`  | [§H–I](#hi)         | `schema.sql`                               |
+| Job queue                         | [§J](#j)            | `schema.sql`                               |
+| `Lang`                            | [§K–L](#kl)         | `core.ts:1`                                |
+| `LText`                           | [§K–L](#kl)         | `core.ts:30-31`                            |
+| Law Monitor                       | [§K–L](#kl)         | `monitor-law-changes/index.ts`             |
+| Light flows                       | [§K–L](#kl)         | `advisorFlows.ts`                          |
+| `ModeGate`                        | [§M](#m)            | `ModeGate.tsx`                             |
+| `OrgMemberRole`                   | [§N–O](#no)         | `roles.ts`                                 |
+| PIPEDA                            | [§P](#p)            | Legal docs                                 |
+| `PlanGate`                        | [§P](#p)            | `PlanGate.tsx`                             |
+| `PAID_PLANS_DISABLED_DURING_BETA` | [§P](#p)            | `plans.ts:79`                              |
+| Production mode                   | [§P](#p)            | `workspaceModeContext.ts`                  |
+| `productionApi.ts`                | [§P](#p)            | Per-module files                           |
+| Provenanced task                  | [§P](#p)            | `aggregation.ts`                           |
+| Quebec Law 25                     | [§Q](#q)            | `analyticsConsent.ts`                      |
+| RLS                               | [§R](#r)            | `schema.sql`                               |
+| Safety backstop                   | [§S](#s)            | `safetyBackstop.ts`                        |
+| Scenario                          | [§S](#s)            | `advisorScenarios.ts`                      |
+| `SidebarMode`                     | [§S](#s)            | `Sidebar.tsx:19`                           |
+| Supported jurisdictions           | [§S](#s)            | `monitoringCoverage.ts`                    |
+| `t()` / `x()` / `L()`             | [§T–U](#tu)         | `context.ts:8-13`                          |
+| Usage counters                    | [§T–U](#tu)         | `_shared/aiUsage.ts`                       |
+| Vault secrets                     | [§V](#v)            | `schema.sql:62`                            |
+| `WorkspaceMode`                   | [§W](#w)            | `workspaceModeContext.ts:5`                |
+| `WorkspaceModeProvider`           | [§W](#w)            | `WorkspaceModeProvider.tsx`                |

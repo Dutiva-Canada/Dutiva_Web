@@ -1,5 +1,10 @@
 import { insertCategoryRule } from './supabaseImports'
-import { DEFAULT_CATEGORY_RULES, DEFAULT_ENTITY, DEFAULT_LEDGER_ACCOUNTS, DEFAULT_BOOK } from './defaultCategoryRules'
+import {
+  DEFAULT_CATEGORY_RULES,
+  DEFAULT_ENTITY,
+  DEFAULT_LEDGER_ACCOUNTS,
+  DEFAULT_BOOK,
+} from './defaultCategoryRules'
 import { supabase as supabaseTyped } from '@/lib/supabaseClient'
 import type {
   FinanceBankAccount,
@@ -59,7 +64,10 @@ const TABLES = {
 
 /* ---------- Entity management ---------- */
 
-export async function addEntityInSupabase(orgId: string, item: Omit<FinanceLegalEntity, 'id'>): Promise<FinanceLegalEntity | null> {
+export async function addEntityInSupabase(
+  orgId: string,
+  item: Omit<FinanceLegalEntity, 'id'>,
+): Promise<FinanceLegalEntity | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.entities)
@@ -109,14 +117,21 @@ export async function updateEntityInSupabase(
 
 export async function deleteEntityInSupabase(orgId: string, id: string): Promise<boolean> {
   if (!supabase) return false
-  const { error } = await supabase.from(TABLES.entities).delete().eq('organization_id', orgId).eq('id', id)
+  const { error } = await supabase
+    .from(TABLES.entities)
+    .delete()
+    .eq('organization_id', orgId)
+    .eq('id', id)
   if (error) throw error
   return true
 }
 
 /* ---------- Scenario / forecast / reserve / holding / debt lifecycle ---------- */
 
-export async function addScenarioInSupabase(orgId: string, item: Omit<FinanceScenario, 'id'>): Promise<FinanceScenario | null> {
+export async function addScenarioInSupabase(
+  orgId: string,
+  item: Omit<FinanceScenario, 'id'>,
+): Promise<FinanceScenario | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.scenarios)
@@ -139,7 +154,10 @@ export async function addScenarioInSupabase(orgId: string, item: Omit<FinanceSce
   return mapScenario(data as Record<string, unknown>)
 }
 
-export async function addForecastInSupabase(orgId: string, item: Omit<FinanceForecast, 'id'>): Promise<FinanceForecast | null> {
+export async function addForecastInSupabase(
+  orgId: string,
+  item: Omit<FinanceForecast, 'id'>,
+): Promise<FinanceForecast | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.forecasts)
@@ -159,7 +177,10 @@ export async function addForecastInSupabase(orgId: string, item: Omit<FinanceFor
   return mapForecast(data as Record<string, unknown>)
 }
 
-export async function addReserveGoalInSupabase(orgId: string, item: Omit<FinanceReserveGoal, 'id'>): Promise<FinanceReserveGoal | null> {
+export async function addReserveGoalInSupabase(
+  orgId: string,
+  item: Omit<FinanceReserveGoal, 'id'>,
+): Promise<FinanceReserveGoal | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.reserveGoals)
@@ -181,7 +202,11 @@ export async function addReserveGoalInSupabase(orgId: string, item: Omit<Finance
   return mapReserveGoal(data as Record<string, unknown>)
 }
 
-export async function updateReserveGoalProgressInSupabase(orgId: string, id: string, currentAmount: string): Promise<FinanceReserveGoal | null> {
+export async function updateReserveGoalProgressInSupabase(
+  orgId: string,
+  id: string,
+  currentAmount: string,
+): Promise<FinanceReserveGoal | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.reserveGoals)
@@ -194,7 +219,11 @@ export async function updateReserveGoalProgressInSupabase(orgId: string, id: str
   return mapReserveGoal(data as Record<string, unknown>)
 }
 
-export async function setHoldingStaleInSupabase(orgId: string, id: string, stale: boolean): Promise<FinanceHolding | null> {
+export async function setHoldingStaleInSupabase(
+  orgId: string,
+  id: string,
+  stale: boolean,
+): Promise<FinanceHolding | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.holdings)
@@ -207,7 +236,10 @@ export async function setHoldingStaleInSupabase(orgId: string, id: string, stale
   return mapHolding(data as Record<string, unknown>)
 }
 
-export async function addWatchlistItemInSupabase(orgId: string, item: Omit<FinanceWatchlistItem, 'id'>): Promise<FinanceWatchlistItem | null> {
+export async function addWatchlistItemInSupabase(
+  orgId: string,
+  item: Omit<FinanceWatchlistItem, 'id'>,
+): Promise<FinanceWatchlistItem | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.watchlistItems)
@@ -229,7 +261,11 @@ export async function addWatchlistItemInSupabase(orgId: string, item: Omit<Finan
   return mapWatchlistItem(data as Record<string, unknown>)
 }
 
-export async function transitionWatchlistStatusInSupabase(orgId: string, id: string, status: FinanceWatchlistItem['status']): Promise<FinanceWatchlistItem | null> {
+export async function transitionWatchlistStatusInSupabase(
+  orgId: string,
+  id: string,
+  status: FinanceWatchlistItem['status'],
+): Promise<FinanceWatchlistItem | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.watchlistItems)
@@ -242,7 +278,10 @@ export async function transitionWatchlistStatusInSupabase(orgId: string, id: str
   return mapWatchlistItem(data as Record<string, unknown>)
 }
 
-export async function addDecisionEntryInSupabase(orgId: string, item: Omit<FinanceDecisionEntry, 'id'>): Promise<FinanceDecisionEntry | null> {
+export async function addDecisionEntryInSupabase(
+  orgId: string,
+  item: Omit<FinanceDecisionEntry, 'id'>,
+): Promise<FinanceDecisionEntry | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.decisionEntries)
@@ -263,7 +302,11 @@ export async function addDecisionEntryInSupabase(orgId: string, item: Omit<Finan
   return mapDecisionEntry(data as Record<string, unknown>)
 }
 
-export async function updateDecisionOutcomeInSupabase(orgId: string, id: string, outcome: import('@/i18n/core').Bi): Promise<FinanceDecisionEntry | null> {
+export async function updateDecisionOutcomeInSupabase(
+  orgId: string,
+  id: string,
+  outcome: import('@/i18n/core').Bi,
+): Promise<FinanceDecisionEntry | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.decisionEntries)
@@ -276,7 +319,11 @@ export async function updateDecisionOutcomeInSupabase(orgId: string, id: string,
   return mapDecisionEntry(data as Record<string, unknown>)
 }
 
-export async function transitionDebtStatusInSupabase(orgId: string, id: string, status: FinanceDebt['status']): Promise<FinanceDebt | null> {
+export async function transitionDebtStatusInSupabase(
+  orgId: string,
+  id: string,
+  status: FinanceDebt['status'],
+): Promise<FinanceDebt | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.debts)
@@ -289,7 +336,11 @@ export async function transitionDebtStatusInSupabase(orgId: string, id: string, 
   return mapDebt(data as Record<string, unknown>)
 }
 
-export async function transitionBudgetStatusInSupabase(orgId: string, id: string, status: FinanceBudget['status']): Promise<FinanceBudget | null> {
+export async function transitionBudgetStatusInSupabase(
+  orgId: string,
+  id: string,
+  status: FinanceBudget['status'],
+): Promise<FinanceBudget | null> {
   if (!supabase) return null
   const patch: Record<string, unknown> = { status, updated_at: new Date().toISOString() }
   if (status === 'approved') patch.approved_at = new Date().toISOString()
@@ -304,7 +355,12 @@ export async function transitionBudgetStatusInSupabase(orgId: string, id: string
   return mapBudget(data as Record<string, unknown>)
 }
 
-export async function transitionScenarioStatusInSupabase(orgId: string, id: string, status: FinanceScenario['status'], reviewer?: string): Promise<FinanceScenario | null> {
+export async function transitionScenarioStatusInSupabase(
+  orgId: string,
+  id: string,
+  status: FinanceScenario['status'],
+  reviewer?: string,
+): Promise<FinanceScenario | null> {
   if (!supabase) return null
   const patch: Record<string, unknown> = { status, updated_at: new Date().toISOString() }
   if (reviewer && (status === 'reviewed' || status === 'accepted')) {
@@ -322,7 +378,10 @@ export async function transitionScenarioStatusInSupabase(orgId: string, id: stri
   return mapScenario(data as Record<string, unknown>)
 }
 
-export async function freezeForecastInSupabase(orgId: string, id: string): Promise<FinanceForecast | null> {
+export async function freezeForecastInSupabase(
+  orgId: string,
+  id: string,
+): Promise<FinanceForecast | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.forecasts)
@@ -336,7 +395,11 @@ export async function freezeForecastInSupabase(orgId: string, id: string): Promi
   return mapForecast(data as Record<string, unknown>)
 }
 
-export async function updateForecastPeriodsInSupabase(orgId: string, id: string, periods: FinanceForecast['periods']): Promise<FinanceForecast | null> {
+export async function updateForecastPeriodsInSupabase(
+  orgId: string,
+  id: string,
+  periods: FinanceForecast['periods'],
+): Promise<FinanceForecast | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.forecasts)
@@ -349,7 +412,10 @@ export async function updateForecastPeriodsInSupabase(orgId: string, id: string,
   return mapForecast(data as Record<string, unknown>)
 }
 
-export async function addExternalActionInSupabase(orgId: string, item: Omit<FinanceExternalAction, 'id'>): Promise<FinanceExternalAction | null> {
+export async function addExternalActionInSupabase(
+  orgId: string,
+  item: Omit<FinanceExternalAction, 'id'>,
+): Promise<FinanceExternalAction | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.externalActions)
@@ -371,7 +437,10 @@ export async function addExternalActionInSupabase(orgId: string, item: Omit<Fina
   return mapExternalAction(data as Record<string, unknown>)
 }
 
-export async function addBankAccountInSupabase(orgId: string, item: Omit<FinanceBankAccount, 'id'>): Promise<FinanceBankAccount | null> {
+export async function addBankAccountInSupabase(
+  orgId: string,
+  item: Omit<FinanceBankAccount, 'id'>,
+): Promise<FinanceBankAccount | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.bankAccounts)
@@ -391,7 +460,10 @@ export async function addBankAccountInSupabase(orgId: string, item: Omit<Finance
   return mapBankAccount(data as Record<string, unknown>)
 }
 
-export async function addLedgerAccountInSupabase(orgId: string, item: Omit<FinanceLedgerAccount, 'id'>): Promise<FinanceLedgerAccount | null> {
+export async function addLedgerAccountInSupabase(
+  orgId: string,
+  item: Omit<FinanceLedgerAccount, 'id'>,
+): Promise<FinanceLedgerAccount | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.ledgerAccounts)
@@ -410,7 +482,10 @@ export async function addLedgerAccountInSupabase(orgId: string, item: Omit<Finan
   return mapLedgerAccount(data as Record<string, unknown>)
 }
 
-export async function addPartyInSupabase(orgId: string, item: Omit<FinanceParty, 'id'>): Promise<FinanceParty | null> {
+export async function addPartyInSupabase(
+  orgId: string,
+  item: Omit<FinanceParty, 'id'>,
+): Promise<FinanceParty | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.parties)
@@ -429,7 +504,10 @@ export async function addPartyInSupabase(orgId: string, item: Omit<FinanceParty,
   return mapParty(data as Record<string, unknown>)
 }
 
-export async function addSubscriptionInSupabase(orgId: string, item: Omit<FinanceSubscription, 'id'>): Promise<FinanceSubscription | null> {
+export async function addSubscriptionInSupabase(
+  orgId: string,
+  item: Omit<FinanceSubscription, 'id'>,
+): Promise<FinanceSubscription | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.subscriptions)
@@ -499,8 +577,12 @@ export async function seedDefaultCategoryRulesInSupabase(orgId: string): Promise
     .select('*')
     .eq('organization_id', orgId)
   if (ledgerError) throw ledgerError
-  const existingAccounts: FinanceLedgerAccount[] = (ledgerRows ?? []).map((r: Record<string, unknown>) => mapLedgerAccount(r))
-  const accountsByCode = new Map(existingAccounts.map((la) => [la.code, la] as [string, FinanceLedgerAccount]))
+  const existingAccounts: FinanceLedgerAccount[] = (ledgerRows ?? []).map(
+    (r: Record<string, unknown>) => mapLedgerAccount(r),
+  )
+  const accountsByCode = new Map(
+    existingAccounts.map((la) => [la.code, la] as [string, FinanceLedgerAccount]),
+  )
 
   for (const defaultAccount of DEFAULT_LEDGER_ACCOUNTS) {
     if (accountsByCode.has(defaultAccount.code)) continue

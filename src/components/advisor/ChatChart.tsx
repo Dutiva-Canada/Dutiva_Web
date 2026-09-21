@@ -96,7 +96,10 @@ function parseSpec(source: string): ChartSpec | null {
     const value: unknown = JSON.parse(source)
     if (!isRecord(value)) return null
 
-    if (value.type !== undefined && (typeof value.type !== 'string' || !CHART_TYPES.has(value.type))) {
+    if (
+      value.type !== undefined &&
+      (typeof value.type !== 'string' || !CHART_TYPES.has(value.type))
+    ) {
       return null
     }
 
@@ -141,8 +144,7 @@ function parseSpec(source: string): ChartSpec | null {
           isRecord(row) &&
           Object.values(row).every(
             (cell) =>
-              typeof cell === 'string' ||
-              (typeof cell === 'number' && Number.isFinite(cell)),
+              typeof cell === 'string' || (typeof cell === 'number' && Number.isFinite(cell)),
           ),
       )
     ) {

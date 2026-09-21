@@ -82,7 +82,9 @@ function IncidentRow({
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
       <div className="min-w-0 flex-1">
-        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">{incident.title}</div>
+        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">
+          {incident.title}
+        </div>
         <div className="text-[12px] text-text-muted">
           {incident.reported_at ? incident.reported_at.slice(0, 10) : null}
           {incident.assigned_to ? ` · assigned` : null}
@@ -90,8 +92,12 @@ function IncidentRow({
         </div>
       </div>
       <div className="flex shrink-0 flex-wrap items-center gap-2">
-        <span className={statusChipClass(SEVERITY_TONE[incident.severity])}>{x(M[SEVERITY_LABELS[incident.severity]])}</span>
-        <span className={statusChipClass(STATUS_TONE[incident.status])}>{x(M[STATUS_LABELS[incident.status]])}</span>
+        <span className={statusChipClass(SEVERITY_TONE[incident.severity])}>
+          {x(M[SEVERITY_LABELS[incident.severity]])}
+        </span>
+        <span className={statusChipClass(STATUS_TONE[incident.status])}>
+          {x(M[STATUS_LABELS[incident.status]])}
+        </span>
         <button
           type="button"
           onClick={() => onEdit(incident)}
@@ -122,7 +128,9 @@ export function Incidents() {
   const [severity, setSeverity] = useState<SecuritySeverity>(initial.severity)
   const [status, setStatus] = useState<SecurityIncidentStatus>(initial.status)
   const [reportedAt, setReportedAt] = useState(incidentDateToInput(initial.reported_at))
-  const [resolvedAt, setResolvedAt] = useState(initial.resolved_at ? incidentDateToInput(initial.resolved_at) : '')
+  const [resolvedAt, setResolvedAt] = useState(
+    initial.resolved_at ? incidentDateToInput(initial.resolved_at) : '',
+  )
   const [summary, setSummary] = useState(initial.summary ?? '')
   const [impact, setImpact] = useState(initial.impact ?? '')
   const [remediation, setRemediation] = useState(initial.remediation ?? '')
@@ -199,7 +207,10 @@ export function Incidents() {
             <FormInput value={title} onChange={(e) => setTitle(e.target.value)} required />
           </FormField>
           <FormField label={x(M.sec_severity)}>
-            <FormSelect value={severity} onChange={(e) => setSeverity(e.target.value as SecuritySeverity)}>
+            <FormSelect
+              value={severity}
+              onChange={(e) => setSeverity(e.target.value as SecuritySeverity)}
+            >
               {SEVERITIES.map((s) => (
                 <option key={s} value={s}>
                   {x(M[SEVERITY_LABELS[s]])}
@@ -208,7 +219,10 @@ export function Incidents() {
             </FormSelect>
           </FormField>
           <FormField label={x(M.sec_status)}>
-            <FormSelect value={status} onChange={(e) => setStatus(e.target.value as SecurityIncidentStatus)}>
+            <FormSelect
+              value={status}
+              onChange={(e) => setStatus(e.target.value as SecurityIncidentStatus)}
+            >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {x(M[STATUS_LABELS[s]])}
@@ -217,10 +231,18 @@ export function Incidents() {
             </FormSelect>
           </FormField>
           <FormField label={x(M.sec_reported_at)}>
-            <FormInput type="date" value={reportedAt} onChange={(e) => setReportedAt(e.target.value)} />
+            <FormInput
+              type="date"
+              value={reportedAt}
+              onChange={(e) => setReportedAt(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.sec_resolved_at)}>
-            <FormInput type="date" value={resolvedAt} onChange={(e) => setResolvedAt(e.target.value)} />
+            <FormInput
+              type="date"
+              value={resolvedAt}
+              onChange={(e) => setResolvedAt(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.sec_summary)} className="sm:col-span-2">
             <FormTextarea value={summary} onChange={(e) => setSummary(e.target.value)} />
@@ -260,7 +282,10 @@ export function Incidents() {
             <IncidentRow
               key={incident.id}
               incident={incident}
-              onEdit={(i) => { setEditing(i); setShow(true) }}
+              onEdit={(i) => {
+                setEditing(i)
+                setShow(true)
+              }}
               onRemove={(id) => removeIncident(id)}
             />
           ))}

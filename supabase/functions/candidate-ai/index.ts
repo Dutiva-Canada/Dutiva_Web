@@ -101,9 +101,7 @@ async function authenticateRequest(
  * back to `advisor_chat` so the feature works before a dedicated route is
  * configured. Returns a 503 with a clear message when neither is available.
  */
-async function activeModelRoute(
-  adminClient: SupabaseClient,
-): Promise<ActiveModelRoute | Response> {
+async function activeModelRoute(adminClient: SupabaseClient): Promise<ActiveModelRoute | Response> {
   for (const routeKey of ['candidate_ai', 'advisor_chat']) {
     const { data: route, error: routeError } = await adminClient
       .from('ai_model_routes')
@@ -192,7 +190,12 @@ Deno.serve(async (req: Request) => {
   const systemPrompt = SYSTEM_PROMPTS[feature]
   const userMessage = buildUserMessage(feature, payloadCheck.value)
 
-  const modelResult = await callModel(activeRoute.route, activeRoute.provider, systemPrompt, userMessage)
+  const modelResult = await callModel(
+    activeRoute.route,
+    activeRoute.provider,
+    systemPrompt,
+    userMessage,
+  )
   if (modelResult instanceof Response) return modelResult
 
   const content = modelResult.completion.choices?.[0]?.message?.content ?? ''

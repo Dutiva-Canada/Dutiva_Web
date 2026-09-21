@@ -47,7 +47,10 @@ export function proposeTasksAction(text: string): AgentToolProposal | null {
   if (!input) return null
 
   const create =
-    CREATE_RE.exec(input) ?? CREATE_FR_RE.exec(input) ?? REMIND_RE.exec(input) ?? REMIND_FR_RE.exec(input)
+    CREATE_RE.exec(input) ??
+    CREATE_FR_RE.exec(input) ??
+    REMIND_RE.exec(input) ??
+    REMIND_FR_RE.exec(input)
   if (create) {
     const title = (create[1] ?? '').trim()
     if (!title) return null
@@ -68,10 +71,7 @@ export function proposeTasksAction(text: string): AgentToolProposal | null {
     if (!title) return null
     return createProposal(
       'tasks.complete',
-      bi(
-        `Mark the task as done — “${title}”.`,
-        `Marquer la tâche comme terminée — « ${title} ».`,
-      ),
+      bi(`Mark the task as done — “${title}”.`, `Marquer la tâche comme terminée — « ${title} ».`),
       { title },
     )
   }

@@ -107,7 +107,9 @@ export async function listGovernanceRecords(organizationId: string): Promise<Gov
   return parsed.map(toRecord)
 }
 
-export async function listGovernanceDecisions(organizationId: string): Promise<GovernanceDecision[]> {
+export async function listGovernanceDecisions(
+  organizationId: string,
+): Promise<GovernanceDecision[]> {
   const client = getClient()
   const data = await fetchAllPages((from, to) =>
     client
@@ -231,7 +233,11 @@ export async function createGovernanceShareholder(
 ): Promise<GovernanceShareholder> {
   const client = getClient()
   const insert = shareholderInsertSchema.parse({ ...values, organization_id: organizationId })
-  const { data, error } = await client.from('governance_shareholders').insert(insert).select().single()
+  const { data, error } = await client
+    .from('governance_shareholders')
+    .insert(insert)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = shareholderRowSchema.parse(data)
   return toShareholder(parsed)
@@ -243,7 +249,12 @@ export async function updateGovernanceRecord(
 ): Promise<GovernanceRecord> {
   const client = getClient()
   const update = recordInsertSchema.parse(values)
-  const { data, error } = await client.from('governance_records').update(update).eq('id', id).select().single()
+  const { data, error } = await client
+    .from('governance_records')
+    .update(update)
+    .eq('id', id)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = recordRowSchema.parse(data)
   return toRecord(parsed)
@@ -255,7 +266,12 @@ export async function updateGovernanceDecision(
 ): Promise<GovernanceDecision> {
   const client = getClient()
   const update = decisionInsertSchema.parse(values)
-  const { data, error } = await client.from('governance_decisions').update(update).eq('id', id).select().single()
+  const { data, error } = await client
+    .from('governance_decisions')
+    .update(update)
+    .eq('id', id)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = decisionRowSchema.parse(data)
   return toDecision(parsed)
@@ -267,7 +283,12 @@ export async function updateGovernanceOfficer(
 ): Promise<GovernanceOfficer> {
   const client = getClient()
   const update = officerInsertSchema.parse(values)
-  const { data, error } = await client.from('governance_officers').update(update).eq('id', id).select().single()
+  const { data, error } = await client
+    .from('governance_officers')
+    .update(update)
+    .eq('id', id)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = officerRowSchema.parse(data)
   return toOfficer(parsed)
@@ -279,7 +300,12 @@ export async function updateGovernanceShareholder(
 ): Promise<GovernanceShareholder> {
   const client = getClient()
   const update = shareholderInsertSchema.parse(values)
-  const { data, error } = await client.from('governance_shareholders').update(update).eq('id', id).select().single()
+  const { data, error } = await client
+    .from('governance_shareholders')
+    .update(update)
+    .eq('id', id)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = shareholderRowSchema.parse(data)
   return toShareholder(parsed)

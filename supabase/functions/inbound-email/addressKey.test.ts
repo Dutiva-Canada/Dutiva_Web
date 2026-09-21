@@ -13,9 +13,7 @@ describe('extractEmailKey', () => {
   })
 
   it('falls back to received_for when `to` lacks the key', () => {
-    expect(
-      extractEmailKey(['someone@elsewhere.com'], [`in-${KEY}@in.dutiva.ca`]),
-    ).toBe(KEY)
+    expect(extractEmailKey(['someone@elsewhere.com'], [`in-${KEY}@in.dutiva.ca`])).toBe(KEY)
   })
 
   it('accepts a string `to` (not just arrays)', () => {

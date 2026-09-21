@@ -69,9 +69,9 @@ describe('analyticsCardVisible', () => {
 
   it('org admins always pass the role floor; plan still applies unless bypassed', () => {
     expect(analyticsCardVisible('score', null, true, 'starter')).toBe(false)
-    expect(
-      analyticsCardVisible('score', null, true, 'starter', { bypassPlanGates: true }),
-    ).toBe(true)
+    expect(analyticsCardVisible('score', null, true, 'starter', { bypassPlanGates: true })).toBe(
+      true,
+    )
   })
 
   it('a raised floor hides the card below it and keeps it above', () => {

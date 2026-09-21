@@ -7,7 +7,11 @@ import type { LText } from '@/i18n/core'
 import { sendAdvisorMessage } from '@/features/app/advisor/chatApi'
 import type { AdvisorChatResult } from '@/features/app/advisor/chatApi'
 import type { AdvisorAttachment, AttachmentIssue } from '@/features/app/advisor/attachments'
-import type { AdvisorTurnSpec, ChatAttachmentChip, ToneCardData } from '@/features/app/advisor/types'
+import type {
+  AdvisorTurnSpec,
+  ChatAttachmentChip,
+  ToneCardData,
+} from '@/features/app/advisor/types'
 import { followupFallbackText, followupReplies } from '@/data'
 import type { FixtureToneCard } from '@/data'
 import type { ProductionConversation } from '@/features/app/views/memory/conversationsApi'
@@ -69,9 +73,7 @@ export function createAdvisorChatSendHandlers(options: ChatSendHandlersOptions) 
     const chatId = getActiveChatId()
     /* Bubble shows name+kind chips only — payloads travel on the request
        wire, never through transcript state. */
-    const chips = attachments?.map(
-      (a): ChatAttachmentChip => ({ name: a.name, kind: a.kind }),
-    )
+    const chips = attachments?.map((a): ChatAttachmentChip => ({ name: a.name, kind: a.kind }))
     pushUser(text, undefined, chips && chips.length > 0 ? chips : undefined)
     if (interceptCrisis(text, chatId)) return
     const isScenarioThread = chatId !== null && getResponseState()[chatId]?.scenarioId != null

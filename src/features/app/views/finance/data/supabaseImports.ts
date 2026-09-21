@@ -87,10 +87,7 @@ export async function updateCategoryRuleInSupabase(
   return mapCategoryRule(data as Record<string, unknown>)
 }
 
-export async function deleteCategoryRuleFromSupabase(
-  orgId: string,
-  id: string,
-): Promise<boolean> {
+export async function deleteCategoryRuleFromSupabase(orgId: string, id: string): Promise<boolean> {
   if (!supabase) return false
   const { error } = await supabase
     .from(TABLES.categoryRules)
@@ -169,9 +166,7 @@ export async function importBankStatementInSupabase(
     .eq('organization_id', orgId)
     .eq('bank_account_id', bankAccountId)
   if (fetchError) throw fetchError
-  const existingItems = (existingRows ?? []).map((r: Record<string, unknown>) =>
-    mapBankItem(r),
-  )
+  const existingItems = (existingRows ?? []).map((r: Record<string, unknown>) => mapBankItem(r))
 
   // Fetch the bank account to get its currency
   const { data: bankAccountRow, error: bankError } = await supabase
@@ -239,7 +234,11 @@ export async function importBankStatementInSupabase(
     // leaving a partial audit record. Best-effort: don't let delete failure
     // hide the original error.
     try {
-      await supabase.from(TABLES.importSessions).delete().eq('id', sessionId).eq('organization_id', orgId)
+      await supabase
+        .from(TABLES.importSessions)
+        .delete()
+        .eq('id', sessionId)
+        .eq('organization_id', orgId)
     } catch {
       /* ignore */
     }
@@ -261,8 +260,8 @@ export async function runAutoCategorizeInSupabase(orgId: string): Promise<number
     .eq('organization_id', orgId)
     .eq('match_status', 'unmatched')
   if (fetchError) throw fetchError
-  const unmatchedItems: FinanceBankItem[] = (unmatchedRows ?? []).map((r: Record<string, unknown>) =>
-    mapBankItem(r),
+  const unmatchedItems: FinanceBankItem[] = (unmatchedRows ?? []).map(
+    (r: Record<string, unknown>) => mapBankItem(r),
   )
   if (unmatchedItems.length === 0) return 0
 

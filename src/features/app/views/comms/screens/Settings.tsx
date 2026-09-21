@@ -43,7 +43,13 @@ const decisionTone = (decision: CommsApprovalDecision) => {
   }
 }
 
-function ContentItemOption({ item, x }: { item: CommsContentItem; x: (b: import('@/i18n/core').Bi) => string }) {
+function ContentItemOption({
+  item,
+  x,
+}: {
+  item: CommsContentItem
+  x: (b: import('@/i18n/core').Bi) => string
+}) {
   return <option value={item.id}>{x(item.title)}</option>
 }
 
@@ -119,7 +125,10 @@ function RolesAndApprovals() {
       </div>
 
       {open && (
-        <form onSubmit={onSubmit} className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]">
+        <form
+          onSubmit={onSubmit}
+          className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]"
+        >
           <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
             <div className="sm:col-span-2">
               <label className={labelClass}>{x(M.comms_approval_content_item)}</label>
@@ -151,7 +160,9 @@ function RolesAndApprovals() {
                 className={inputClass}
               >
                 {APPROVAL_DECISIONS.map((d) => (
-                  <option key={d} value={d}>{x(M[`comms_approval_decision_${d}` as keyof typeof M])}</option>
+                  <option key={d} value={d}>
+                    {x(M[`comms_approval_decision_${d}` as keyof typeof M])}
+                  </option>
                 ))}
               </select>
             </div>
@@ -189,10 +200,15 @@ function RolesAndApprovals() {
         <div className="flex flex-col gap-[14px]">
           {pending.length > 0 && (
             <div>
-              <h4 className="mb-[8px] text-[13px] font-semibold text-text-2">{x(M.comms_approval_pending)}</h4>
+              <h4 className="mb-[8px] text-[13px] font-semibold text-text-2">
+                {x(M.comms_approval_pending)}
+              </h4>
               <ul className="m-0 flex flex-col gap-[8px] p-0">
                 {pending.map((item) => (
-                  <li key={item.id} className="flex items-center justify-between gap-[12px] rounded-[8px] bg-inset p-[10px]">
+                  <li
+                    key={item.id}
+                    className="flex items-center justify-between gap-[12px] rounded-[8px] bg-inset p-[10px]"
+                  >
                     <div>
                       <div className="text-[13.5px] font-semibold text-text">{x(item.title)}</div>
                       <div className="text-[12px] text-text-muted">
@@ -216,7 +232,9 @@ function RolesAndApprovals() {
 
           {approvals.length > 0 && (
             <div>
-              <h4 className="mb-[8px] text-[13px] font-semibold text-text-2">{x(M.comms_approval_history)}</h4>
+              <h4 className="mb-[8px] text-[13px] font-semibold text-text-2">
+                {x(M.comms_approval_history)}
+              </h4>
               <ul className="m-0 flex flex-col gap-[8px] p-0">
                 {approvals.map((approval) => {
                   const item = itemTitle(approval.contentItemId)
@@ -246,7 +264,9 @@ function RolesAndApprovals() {
                         {approval.approver} · {new Date(approval.decidedAt).toLocaleDateString()}
                       </div>
                       {approval.rationale && (
-                        <div className="mt-[6px] text-[12px] text-text-2">{x(approval.rationale)}</div>
+                        <div className="mt-[6px] text-[12px] text-text-2">
+                          {x(approval.rationale)}
+                        </div>
                       )}
                     </li>
                   )
@@ -413,15 +433,27 @@ function Integrations() {
       </div>
 
       {open && (
-        <form onSubmit={onSubmit} className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]">
+        <form
+          onSubmit={onSubmit}
+          className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]"
+        >
           <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
             <div>
               <label className={labelClass}>{x(M.comms_integration_name)}</label>
-              <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} required />
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={inputClass}
+                required
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_integration_type)}</label>
-              <input value={type} onChange={(e) => setType(e.target.value)} className={inputClass} />
+              <input
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_integration_status)}</label>
@@ -431,13 +463,20 @@ function Integrations() {
                 className={inputClass}
               >
                 {INTEGRATION_STATUSES.map((s) => (
-                  <option key={s} value={s}>{x(M[`comms_integration_status_${s}` as keyof typeof M])}</option>
+                  <option key={s} value={s}>
+                    {x(M[`comms_integration_status_${s}` as keyof typeof M])}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_integration_owner)}</label>
-              <input value={owner} onChange={(e) => setOwner(e.target.value)} className={inputClass} required />
+              <input
+                value={owner}
+                onChange={(e) => setOwner(e.target.value)}
+                className={inputClass}
+                required
+              />
             </div>
             <div className="sm:col-span-2">
               <label className={labelClass}>{x(M.comms_integration_notes)}</label>
@@ -498,7 +537,9 @@ function Integrations() {
                 </div>
               </div>
               {integration.notes && (
-                <p className="mt-[6px] text-[13px] leading-normal text-text-2">{x(integration.notes)}</p>
+                <p className="mt-[6px] text-[13px] leading-normal text-text-2">
+                  {x(integration.notes)}
+                </p>
               )}
             </li>
           ))}
@@ -568,10 +609,15 @@ export function Settings() {
         </div>
 
         {open && (
-          <form onSubmit={onSubmit} className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]">
+          <form
+            onSubmit={onSubmit}
+            className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]"
+          >
             <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <label className={labelClass}>{x(M.comms_brand_claim_text)} — {x(M.comms_language_en)}</label>
+                <label className={labelClass}>
+                  {x(M.comms_brand_claim_text)} — {x(M.comms_language_en)}
+                </label>
                 <input
                   value={textEn}
                   onChange={(e) => setTextEn(e.target.value)}
@@ -580,7 +626,9 @@ export function Settings() {
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className={labelClass}>{x(M.comms_brand_claim_text)} — {x(M.comms_language_fr)}</label>
+                <label className={labelClass}>
+                  {x(M.comms_brand_claim_text)} — {x(M.comms_language_fr)}
+                </label>
                 <input
                   value={textFr}
                   onChange={(e) => setTextFr(e.target.value)}
@@ -588,16 +636,32 @@ export function Settings() {
                 />
               </div>
               <div>
-                <label className={labelClass}>{x(M.comms_brand_claim_evidence)} — {x(M.comms_language_en)}</label>
-                <input value={evidenceEn} onChange={(e) => setEvidenceEn(e.target.value)} className={inputClass} />
+                <label className={labelClass}>
+                  {x(M.comms_brand_claim_evidence)} — {x(M.comms_language_en)}
+                </label>
+                <input
+                  value={evidenceEn}
+                  onChange={(e) => setEvidenceEn(e.target.value)}
+                  className={inputClass}
+                />
               </div>
               <div>
-                <label className={labelClass}>{x(M.comms_brand_claim_evidence)} — {x(M.comms_language_fr)}</label>
-                <input value={evidenceFr} onChange={(e) => setEvidenceFr(e.target.value)} className={inputClass} />
+                <label className={labelClass}>
+                  {x(M.comms_brand_claim_evidence)} — {x(M.comms_language_fr)}
+                </label>
+                <input
+                  value={evidenceFr}
+                  onChange={(e) => setEvidenceFr(e.target.value)}
+                  className={inputClass}
+                />
               </div>
               <div>
                 <label className={labelClass}>{x(M.comms_content_owner)}</label>
-                <input value={owner} onChange={(e) => setOwner(e.target.value)} className={inputClass} />
+                <input
+                  value={owner}
+                  onChange={(e) => setOwner(e.target.value)}
+                  className={inputClass}
+                />
               </div>
               <div>
                 <label className={labelClass}>{x(M.comms_brand_claim_review_date)}</label>
@@ -616,7 +680,9 @@ export function Settings() {
                   className={inputClass}
                 >
                   {BRAND_CLAIM_STATUSES.map((s) => (
-                    <option key={s} value={s}>{x(M[`comms_claim_status_${s}` as keyof typeof M])}</option>
+                    <option key={s} value={s}>
+                      {x(M[`comms_claim_status_${s}` as keyof typeof M])}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -650,7 +716,11 @@ export function Settings() {
                   <div className="flex items-center gap-[8px]">
                     <span
                       className={statusChipClass(
-                        claim.status === 'active' ? 'success' : claim.status === 'expired' ? 'warning' : 'risk',
+                        claim.status === 'active'
+                          ? 'success'
+                          : claim.status === 'expired'
+                            ? 'warning'
+                            : 'risk',
                       )}
                     >
                       {x(M[`comms_claim_status_${claim.status}` as keyof typeof M])}

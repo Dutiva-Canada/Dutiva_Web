@@ -31,7 +31,10 @@ import type {
   GovernanceShareholder,
 } from './data/types'
 
-const EMPTY: Pick<GovernanceDataValue, 'records' | 'decisions' | 'officers' | 'shareholders' | 'loading' | 'error'> = {
+const EMPTY: Pick<
+  GovernanceDataValue,
+  'records' | 'decisions' | 'officers' | 'shareholders' | 'loading' | 'error'
+> = {
   records: [],
   decisions: [],
   officers: [],
@@ -49,7 +52,10 @@ export function GovernanceDataProvider({
 }) {
   const { organizationId } = useWorkspaceMode()
   const [value, setValue] = useState<
-    Pick<GovernanceDataValue, 'records' | 'decisions' | 'officers' | 'shareholders' | 'loading' | 'error'>
+    Pick<
+      GovernanceDataValue,
+      'records' | 'decisions' | 'officers' | 'shareholders' | 'loading' | 'error'
+    >
   >(() =>
     mode === 'demo'
       ? {
@@ -408,12 +414,18 @@ export function GovernanceDataProvider({
   const removeShareholder = useCallback(
     async (id: string) => {
       if (mode !== 'production' || !organizationId) {
-        setValue((prev) => ({ ...prev, shareholders: prev.shareholders.filter((s) => s.id !== id) }))
+        setValue((prev) => ({
+          ...prev,
+          shareholders: prev.shareholders.filter((s) => s.id !== id),
+        }))
         return
       }
       try {
         await deleteGovernanceShareholder(id)
-        setValue((prev) => ({ ...prev, shareholders: prev.shareholders.filter((s) => s.id !== id) }))
+        setValue((prev) => ({
+          ...prev,
+          shareholders: prev.shareholders.filter((s) => s.id !== id),
+        }))
       } catch (err) {
         setValue((prev) => ({
           ...prev,

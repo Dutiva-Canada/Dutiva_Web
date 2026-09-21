@@ -29,8 +29,7 @@ import type { FinanceTaxType } from './data/types'
 
 const MARK_PAID_RE =
   /^(?:mark|record)\s+(?:the\s+)?(?:invoice\s+)?(.+?)\s+(?:invoice\s+)?as\s+paid$/i
-const MARK_PAID_FR_RE =
-  /^marque[rz]?\s+(?:la\s+)?facture\s+(.+?)\s+comme\s+payée$/i
+const MARK_PAID_FR_RE = /^marque[rz]?\s+(?:la\s+)?facture\s+(.+?)\s+comme\s+payée$/i
 
 const AMOUNT = String.raw`([\d][\d,]*(?:\.\d{1,2})?)`
 const ADD_SPEND_RE = new RegExp(
@@ -44,17 +43,14 @@ const ADD_SPEND_FR_RE = new RegExp(
 
 const APPROVE_SPEND_RE =
   /^(?:approve|sign off on)\s+(?:the\s+)?(?:spend\s+)?request\s+(?:for\s+|on\s+|:\s*)?(.+)$/i
-const APPROVE_SPEND_FR_RE =
-  /^approuve[rz]?\s+(?:la\s+)?demande\s+(?:pour\s+|de\s+|:\s*)?(.+)$/i
+const APPROVE_SPEND_FR_RE = /^approuve[rz]?\s+(?:la\s+)?demande\s+(?:pour\s+|de\s+|:\s*)?(.+)$/i
 
-const TAX_WORDS_EN =
-  String.raw`(gst\/hst|gst|hst|sales tax|qst|income tax|corporate tax|payroll|source deductions?|employer contributions?|other)`
+const TAX_WORDS_EN = String.raw`(gst\/hst|gst|hst|sales tax|qst|income tax|corporate tax|payroll|source deductions?|employer contributions?|other)`
 const ADD_OBLIGATION_RE = new RegExp(
   String.raw`^(?:add|file|record|log)\s+(?:a\s+|an\s+|the\s+)?${TAX_WORDS_EN}\s+(?:obligation|remittance|filing|payment)\s+(?:for\s+)?(.+?)\s+due\s+(\d{4}-\d{2}-\d{2})$`,
   'i',
 )
-const TAX_WORDS_FR =
-  String.raw`(tps\/tvh|tps|tvh|tvq|impôt(?:\s+sur\s+le\s+revenu)?|retenues?(?:\s+à\s+la\s+source)?|cotisations?\s+employeur|paie|autre)`
+const TAX_WORDS_FR = String.raw`(tps\/tvh|tps|tvh|tvq|impôt(?:\s+sur\s+le\s+revenu)?|retenues?(?:\s+à\s+la\s+source)?|cotisations?\s+employeur|paie|autre)`
 const ADD_OBLIGATION_FR_RE = new RegExp(
   String.raw`^(?:ajoute[rz]?|consigne[rz]?|enregistre[rz]?)\s+(?:une\s+)?obligation\s+${TAX_WORDS_FR}\s+(?:pour\s+(?:le\s+|la\s+)?)?(.+?)\s+(?:échéance|due)\s+(\d{4}-\d{2}-\d{2})$`,
   'i',
@@ -80,16 +76,16 @@ const TAX_TYPE_FR: Record<string, FinanceTaxType> = {
   tps: 'gst_hst',
   tvh: 'gst_hst',
   tvq: 'qst',
-  'impôt': 'income_tax',
+  impôt: 'income_tax',
   'impôt sur le revenu': 'income_tax',
-  'retenue': 'payroll_source_deductions',
-  'retenues': 'payroll_source_deductions',
+  retenue: 'payroll_source_deductions',
+  retenues: 'payroll_source_deductions',
   'retenue à la source': 'payroll_source_deductions',
   'retenues à la source': 'payroll_source_deductions',
   'cotisation employeur': 'employer_contributions',
   'cotisations employeur': 'employer_contributions',
-  'paie': 'payroll_source_deductions',
-  'autre': 'other',
+  paie: 'payroll_source_deductions',
+  autre: 'other',
 }
 
 function toAmount(raw: string): number | null {
@@ -111,7 +107,10 @@ export function proposeFinanceAction(text: string): AgentToolProposal | null {
     if (!title) return null
     return createProposal(
       'finance.mark_invoice_paid',
-      bi(`Mark the invoice as paid — “${title}”.`, `Marquer la facture comme payée — « ${title} ».`),
+      bi(
+        `Mark the invoice as paid — “${title}”.`,
+        `Marquer la facture comme payée — « ${title} ».`,
+      ),
       { title },
     )
   }

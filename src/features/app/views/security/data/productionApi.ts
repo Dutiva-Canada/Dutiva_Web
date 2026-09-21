@@ -252,7 +252,11 @@ export async function createSecurityAccessReview(
 ): Promise<SecurityAccessReview> {
   const client = getClient()
   const insert = accessReviewInsertSchema.parse({ ...values, organization_id: organizationId })
-  const { data, error } = await client.from('security_access_reviews').insert(insert).select().single()
+  const { data, error } = await client
+    .from('security_access_reviews')
+    .insert(insert)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = accessReviewRowSchema.parse(data)
   return toAccessReview(parsed)
@@ -288,7 +292,11 @@ export async function createSecurityVendorReview(
 ): Promise<SecurityVendorReview> {
   const client = getClient()
   const insert = vendorReviewInsertSchema.parse({ ...values, organization_id: organizationId })
-  const { data, error } = await client.from('security_vendor_reviews').insert(insert).select().single()
+  const { data, error } = await client
+    .from('security_vendor_reviews')
+    .insert(insert)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = vendorReviewRowSchema.parse(data)
   return toVendorReview(parsed)
@@ -300,7 +308,12 @@ export async function updateSecurityAsset(
 ): Promise<SecurityAsset> {
   const client = getClient()
   const update = assetInsertSchema.parse(values)
-  const { data, error } = await client.from('security_assets').update(update).eq('id', id).select().single()
+  const { data, error } = await client
+    .from('security_assets')
+    .update(update)
+    .eq('id', id)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = assetRowSchema.parse(data)
   return toAsset(parsed)
@@ -312,7 +325,12 @@ export async function updateSecurityAccessReview(
 ): Promise<SecurityAccessReview> {
   const client = getClient()
   const update = accessReviewInsertSchema.parse(values)
-  const { data, error } = await client.from('security_access_reviews').update(update).eq('id', id).select().single()
+  const { data, error } = await client
+    .from('security_access_reviews')
+    .update(update)
+    .eq('id', id)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = accessReviewRowSchema.parse(data)
   return toAccessReview(parsed)
@@ -324,7 +342,12 @@ export async function updateSecurityIncident(
 ): Promise<SecurityIncident> {
   const client = getClient()
   const update = incidentInsertSchema.parse(values)
-  const { data, error } = await client.from('security_incidents').update(update).eq('id', id).select().single()
+  const { data, error } = await client
+    .from('security_incidents')
+    .update(update)
+    .eq('id', id)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = incidentRowSchema.parse(data)
   return toIncident(parsed)
@@ -336,7 +359,12 @@ export async function updateSecurityRisk(
 ): Promise<SecurityRisk> {
   const client = getClient()
   const update = riskInsertSchema.parse(values)
-  const { data, error } = await client.from('security_risks').update(update).eq('id', id).select().single()
+  const { data, error } = await client
+    .from('security_risks')
+    .update(update)
+    .eq('id', id)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = riskRowSchema.parse(data)
   return toRisk(parsed)
@@ -348,7 +376,12 @@ export async function updateSecurityVendorReview(
 ): Promise<SecurityVendorReview> {
   const client = getClient()
   const update = vendorReviewInsertSchema.parse(values)
-  const { data, error } = await client.from('security_vendor_reviews').update(update).eq('id', id).select().single()
+  const { data, error } = await client
+    .from('security_vendor_reviews')
+    .update(update)
+    .eq('id', id)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = vendorReviewRowSchema.parse(data)
   return toVendorReview(parsed)

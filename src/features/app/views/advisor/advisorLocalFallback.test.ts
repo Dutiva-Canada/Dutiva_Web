@@ -39,12 +39,18 @@ const notInstalled: CaptionFallbackDeps = {
 
 describe('captionFallbackAttachments', () => {
   it('returns null for non-modality errors', async () => {
-    expect(await captionFallbackAttachments(new Error('boom'), [imageAtt('a')], installed)).toBeNull()
+    expect(
+      await captionFallbackAttachments(new Error('boom'), [imageAtt('a')], installed),
+    ).toBeNull()
   })
 
   it('returns null when the refused modality is not image', async () => {
     expect(
-      await captionFallbackAttachments(new AdvisorModalityError('input'), [imageAtt('a')], installed),
+      await captionFallbackAttachments(
+        new AdvisorModalityError('input'),
+        [imageAtt('a')],
+        installed,
+      ),
     ).toBeNull()
   })
 
@@ -72,7 +78,11 @@ describe('captionFallbackAttachments', () => {
     )
     expect(out).not.toBeNull()
     expect(out).toHaveLength(3)
-    expect(out![0]).toMatchObject({ kind: 'document', name: 'a.png', text: 'caption of data:image/png;base64,a' })
+    expect(out![0]).toMatchObject({
+      kind: 'document',
+      name: 'a.png',
+      text: 'caption of data:image/png;base64,a',
+    })
     expect(out![0]!.dataUrl).toBeUndefined()
     expect(out![1]).toMatchObject({ kind: 'document', name: 'd.txt', text: 'hi' })
     expect(out![2]).toMatchObject({ kind: 'document', name: 'b.png' })
@@ -80,7 +90,12 @@ describe('captionFallbackAttachments', () => {
 
   it('bails when a caption throws or comes back empty', async () => {
     const err = new AdvisorModalityError('image')
-    const throwing: CaptionFallbackDeps = { isInstalled: async () => true, caption: async () => { throw new Error('x') } }
+    const throwing: CaptionFallbackDeps = {
+      isInstalled: async () => true,
+      caption: async () => {
+        throw new Error('x')
+      },
+    }
     expect(await captionFallbackAttachments(err, [imageAtt('a')], throwing)).toBeNull()
     const empty: CaptionFallbackDeps = { isInstalled: async () => true, caption: async () => '   ' }
     expect(await captionFallbackAttachments(err, [imageAtt('a')], empty)).toBeNull()

@@ -30,7 +30,11 @@ export function useBulkImport<T>({ adapter }: UseBulkImportOptions<T>): UseBulkI
   const [step, setStep] = useState<BulkImportStep>('upload')
   const [parseResult, setParseResult] = useState<BulkImportParseResult | null>(null)
   const [columnMapping, setColumnMapping] = useState<Record<number, keyof T>>({})
-  const [importResult, setImportResult] = useState<{ created: number; failed: number; errors: string[] } | null>(null)
+  const [importResult, setImportResult] = useState<{
+    created: number
+    failed: number
+    errors: string[]
+  } | null>(null)
 
   const mappedRows = useMemo(() => {
     if (!parseResult) return []
@@ -61,7 +65,11 @@ export function useBulkImport<T>({ adapter }: UseBulkImportOptions<T>): UseBulkI
       setImportResult({ ...result, errors: result.errors ?? [] })
       setStep('done')
     } catch (err) {
-      setImportResult({ created: 0, failed: validRows.length, errors: [err instanceof Error ? err.message : String(err)] })
+      setImportResult({
+        created: 0,
+        failed: validRows.length,
+        errors: [err instanceof Error ? err.message : String(err)],
+      })
       setStep('done')
     }
   }, [mappedRows, adapter])

@@ -19,24 +19,24 @@ export const FEATURES: readonly AiFeature[] = [
    instruction so the model returns parseable output. */
 export const SYSTEM_PROMPTS: Record<AiFeature, string> = {
   'tailor-resume':
-    'You are a resume tailoring assistant. Rewrite the candidate\'s resume to ' +
+    "You are a resume tailoring assistant. Rewrite the candidate's resume to " +
     'highlight experience most relevant to the job posting. Keep all facts ' +
     'accurate — never invent experience. Return only the tailored resume text.',
   'cover-letter':
     'You are a cover letter writing assistant. Draft a professional cover ' +
-    'letter based on the candidate\'s resume and the job posting. Keep it ' +
-    'concise (3-4 paragraphs). Use the candidate\'s name. Never invent ' +
+    "letter based on the candidate's resume and the job posting. Keep it " +
+    "concise (3-4 paragraphs). Use the candidate's name. Never invent " +
     'experience not in the resume.',
   'match-score':
-    'You are a job match analyzer. Compare the candidate\'s resume to the job ' +
+    "You are a job match analyzer. Compare the candidate's resume to the job " +
     'requirements. Return a match score from 0-100 and specific, actionable ' +
-    'suggestions for improvement. Be honest — don\'t inflate the score.\n\n' +
+    "suggestions for improvement. Be honest — don't inflate the score.\n\n" +
     'Respond as JSON with this exact shape: ' +
     '{"score": <number 0-100>, "suggestions": ["<string>", ...]}. ' +
     'Return only the JSON, no other text.',
   'interview-prep':
     'You are an interview prep assistant. Generate 5-7 practice questions and ' +
-    '3-5 talking points based on the job posting and the candidate\'s ' +
+    "3-5 talking points based on the job posting and the candidate's " +
     'background.\n\n' +
     'Respond as JSON with this exact shape: ' +
     '{"questions": ["<string>", ...], "talkingPoints": ["<string>", ...]}. ' +
@@ -62,9 +62,7 @@ export type ValidationResult<T> = { ok: true; value: T } | { ok: false; error: s
 
 /* --- Auth header ---------------------------------------------------------- */
 
-export function validateAuthHeader(
-  authHeader: string | null,
-): ValidationResult<string> {
+export function validateAuthHeader(authHeader: string | null): ValidationResult<string> {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return { ok: false, error: 'Missing bearer token' }
   }
@@ -183,10 +181,7 @@ function tryParse(text: string): unknown | null {
   }
 }
 
-export function parseModelResponse(
-  feature: AiFeature,
-  content: string,
-): ValidationResult<unknown> {
+export function parseModelResponse(feature: AiFeature, content: string): ValidationResult<unknown> {
   if (feature === 'tailor-resume') {
     const text = content.trim()
     if (!text) return { ok: false, error: 'Empty response from model' }

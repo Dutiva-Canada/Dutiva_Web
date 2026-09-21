@@ -4,7 +4,13 @@ import { commsMessages as C } from '@/i18n/messages/comms'
 import type { Bi } from '@/i18n/core'
 import type { CommsContact, CommsContactType, CommsOrganization } from '../data/types'
 
-const CONTACT_TYPES: CommsContactType[] = ['media', 'institutional', 'partner', 'creator', 'audience']
+const CONTACT_TYPES: CommsContactType[] = [
+  'media',
+  'institutional',
+  'partner',
+  'creator',
+  'audience',
+]
 
 export interface ContactImportRow {
   name?: string
@@ -20,7 +26,9 @@ export interface ContactImportRow {
 function parseType(value: string): CommsContactType | undefined {
   const v = value.trim().toLowerCase()
   if (!v) return undefined
-  return CONTACT_TYPES.find((t) => t === v || C[`comms_contact_type_${t}` as keyof typeof C].en.toLowerCase() === v)
+  return CONTACT_TYPES.find(
+    (t) => t === v || C[`comms_contact_type_${t}` as keyof typeof C].en.toLowerCase() === v,
+  )
 }
 
 function parseActive(value: string): boolean | undefined {
@@ -56,7 +64,8 @@ export function createContactBulkImportAdapter(
       label: B.bulk_field_contact_type,
       required: true,
       parse: parseType,
-      validate: (v) => (v && CONTACT_TYPES.includes(v as CommsContactType) ? undefined : 'invalid type'),
+      validate: (v) =>
+        v && CONTACT_TYPES.includes(v as CommsContactType) ? undefined : 'invalid type',
       headerHints: ['type', 'contact type', 'role type', 'type de contact'],
     },
     {
@@ -88,7 +97,8 @@ export function createContactBulkImportAdapter(
       key: 'active',
       label: B.bulk_field_contact_active,
       parse: parseActive,
-      validate: (v) => (v === undefined && typeof v !== 'boolean' ? 'invalid active value' : undefined),
+      validate: (v) =>
+        v === undefined && typeof v !== 'boolean' ? 'invalid active value' : undefined,
       headerHints: ['active', 'status', 'actif'],
     },
   ]
@@ -102,11 +112,20 @@ export function createContactBulkImportAdapter(
         const raw = h.trim().toLowerCase()
         if (raw.includes('name') || raw === 'nom' || raw === 'contact') mapping[h] = 'name'
         else if (raw.includes('type')) mapping[h] = 'type'
-        else if (raw.includes('org') || raw === 'company' || raw === 'organisation' || raw === 'organization') mapping[h] = 'organizationName'
-        else if (raw.includes('role') || raw === 'title' || raw === 'rôle' || raw === 'job title') mapping[h] = 'role'
-        else if (raw.includes('purpose') || raw === 'notes' || raw === 'remarques') mapping[h] = 'purpose'
+        else if (
+          raw.includes('org') ||
+          raw === 'company' ||
+          raw === 'organisation' ||
+          raw === 'organization'
+        )
+          mapping[h] = 'organizationName'
+        else if (raw.includes('role') || raw === 'title' || raw === 'rôle' || raw === 'job title')
+          mapping[h] = 'role'
+        else if (raw.includes('purpose') || raw === 'notes' || raw === 'remarques')
+          mapping[h] = 'purpose'
         else if (raw.includes('channel') || raw === 'canal') mapping[h] = 'preferredChannel'
-        else if (raw.includes('source') || raw === 'origin' || raw === 'provenance') mapping[h] = 'source'
+        else if (raw.includes('source') || raw === 'origin' || raw === 'provenance')
+          mapping[h] = 'source'
         else if (raw === 'active' || raw === 'status' || raw === 'actif') mapping[h] = 'active'
       })
       return mapping
@@ -117,7 +136,9 @@ export function createContactBulkImportAdapter(
       const errors: string[] = []
       for (const row of rows) {
         try {
-          const org = organizations.find((o) => o.name.toLowerCase() === (row.organizationName ?? '').trim().toLowerCase())
+          const org = organizations.find(
+            (o) => o.name.toLowerCase() === (row.organizationName ?? '').trim().toLowerCase(),
+          )
           const name = row.name?.trim() ?? ''
           if (!name || !row.type) {
             failed++
@@ -144,6 +165,15 @@ export function createContactBulkImportAdapter(
       }
       return { created, failed, errors }
     },
-    sampleTemplate: ['name', 'type', 'organizationName', 'role', 'purpose', 'preferredChannel', 'source', 'active'],
+    sampleTemplate: [
+      'name',
+      'type',
+      'organizationName',
+      'role',
+      'purpose',
+      'preferredChannel',
+      'source',
+      'active',
+    ],
   }
 }

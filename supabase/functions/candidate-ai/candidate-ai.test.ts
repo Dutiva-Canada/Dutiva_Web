@@ -105,7 +105,10 @@ describe('validatePayload', () => {
   })
 
   it('accepts cover-letter with candidateName', () => {
-    const result = validatePayload('cover-letter', { ...validBasePayload, candidateName: 'Jane Doe' })
+    const result = validatePayload('cover-letter', {
+      ...validBasePayload,
+      candidateName: 'Jane Doe',
+    })
     expect(result.ok).toBe(true)
   })
 
@@ -174,7 +177,10 @@ describe('parseModelResponse', () => {
   })
 
   it('parses match-score JSON and clamps the score', () => {
-    const mockModelOutput = JSON.stringify({ score: 85, suggestions: ['Add more project details.'] })
+    const mockModelOutput = JSON.stringify({
+      score: 85,
+      suggestions: ['Add more project details.'],
+    })
     const result = parseModelResponse('match-score', mockModelOutput)
     expect(result.ok).toBe(true)
     if (result.ok) {

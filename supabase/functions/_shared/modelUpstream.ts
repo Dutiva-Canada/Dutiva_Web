@@ -26,8 +26,7 @@ export interface UpstreamProvider {
 /** OpenAI multimodal content part. Text is still sent as a plain string when
  *  there are no attachments — not every local server accepts parts arrays. */
 export type UpstreamContentPart =
-  | { type: 'text'; text: string }
-  | { type: 'image_url'; image_url: { url: string } }
+  { type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }
 
 export interface UpstreamMessage {
   role: 'system' | 'user' | 'assistant'
@@ -64,12 +63,7 @@ const MAX_ATTACHMENT_NAME_CHARS = 120
 /** Data-URL images the vision pipeline accepts. SVG is excluded on purpose —
  *  it is markup, not a raster, and an HTML-bearing payload has no business
  *  being inlined into a prompt. */
-export const IMAGE_MIME_ALLOWLIST = new Set([
-  'image/png',
-  'image/jpeg',
-  'image/webp',
-  'image/gif',
-])
+export const IMAGE_MIME_ALLOWLIST = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif'])
 
 /* ── Provider plumbing ─────────────────────────────────────────────────── */
 
@@ -131,16 +125,9 @@ export async function postChatCompletion(
 /* ── Attachments ───────────────────────────────────────────────────────── */
 
 export type AttachmentError =
-  | 'too_many'
-  | 'bad_shape'
-  | 'bad_image_mime'
-  | 'image_too_large'
-  | 'document_too_large'
-  | 'empty'
+  'too_many' | 'bad_shape' | 'bad_image_mime' | 'image_too_large' | 'document_too_large' | 'empty'
 
-export type AttachmentsResult =
-  | { attachments: AdvisorAttachment[] }
-  | { error: AttachmentError }
+export type AttachmentsResult = { attachments: AdvisorAttachment[] } | { error: AttachmentError }
 
 const DATA_URL_RE = /^data:([a-z0-9.+-]+\/[a-z0-9.+-]+);base64,[a-z0-9+/=\s]+$/i
 
@@ -258,8 +245,6 @@ export function userMessageContent(
  */
 export function persistedUserContent(message: string, attachments: AdvisorAttachment[]): string {
   if (attachments.length === 0) return message
-  const manifest = attachments
-    .map((a) => `[Attached ${a.kind}: ${a.name}]`)
-    .join('\n')
+  const manifest = attachments.map((a) => `[Attached ${a.kind}: ${a.name}]`).join('\n')
   return `${manifest}\n${message}`
 }

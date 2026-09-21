@@ -4,7 +4,12 @@ import { useI18n } from '@/i18n/context'
 import { employeesMessages as M } from '@/i18n/messages/employees'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import type { ProductionEmployee, ProductionOnboardingTask } from './productionApi'
-import { addOnboardingTask, listEmployeeOnboardingTasks, removeOnboardingTask, toggleOnboardingTask } from './productionApi'
+import {
+  addOnboardingTask,
+  listEmployeeOnboardingTasks,
+  removeOnboardingTask,
+  toggleOnboardingTask,
+} from './productionApi'
 
 const inputClass =
   'w-full rounded-[10px] border border-border bg-surface px-[12px] py-[9px] font-sans text-[13.5px] text-text'
@@ -67,7 +72,11 @@ export function OnboardingTasks({
         notes: notes.trim(),
       })
       setTasks((prev) =>
-        [...prev, added].sort((a, b) => Number(a.completed) - Number(b.completed) || (a.dueDate ?? '').localeCompare(b.dueDate ?? '')),
+        [...prev, added].sort(
+          (a, b) =>
+            Number(a.completed) - Number(b.completed) ||
+            (a.dueDate ?? '').localeCompare(b.dueDate ?? ''),
+        ),
       )
       reset()
       showToast(M.employees_prod_onboarding_added, 'ok')
@@ -83,8 +92,20 @@ export function OnboardingTasks({
       await toggleOnboardingTask(task.id, !task.completed)
       setTasks((prev) =>
         prev
-          .map((t) => (t.id === task.id ? { ...t, completed: !t.completed, completedAt: t.completed ? null : new Date().toISOString() } : t))
-          .sort((a, b) => Number(a.completed) - Number(b.completed) || (a.dueDate ?? '').localeCompare(b.dueDate ?? '')),
+          .map((t) =>
+            t.id === task.id
+              ? {
+                  ...t,
+                  completed: !t.completed,
+                  completedAt: t.completed ? null : new Date().toISOString(),
+                }
+              : t,
+          )
+          .sort(
+            (a, b) =>
+              Number(a.completed) - Number(b.completed) ||
+              (a.dueDate ?? '').localeCompare(b.dueDate ?? ''),
+          ),
       )
       showToast(M.employees_prod_onboarding_updated, 'ok')
     } catch {
@@ -112,7 +133,9 @@ export function OnboardingTasks({
         <div className="text-[13px] text-text-muted">{x(M.employees_prod_loading)}</div>
       ) : tasks.length === 0 ? (
         <div className="rounded-[12px] border border-border bg-surface px-[18px] py-[24px] text-center">
-          <p className="m-0 text-[13.5px] text-text-muted">{x(M.employees_prod_onboarding_empty)}</p>
+          <p className="m-0 text-[13.5px] text-text-muted">
+            {x(M.employees_prod_onboarding_empty)}
+          </p>
         </div>
       ) : (
         <div className="mb-[14px] overflow-hidden rounded-[12px] border border-border bg-surface">
@@ -126,7 +149,11 @@ export function OnboardingTasks({
                   type="button"
                   onClick={() => void onToggle(task)}
                   className="mt-[2px] shrink-0 border-none bg-transparent p-0 text-text-muted"
-                  aria-label={task.completed ? x(M.employees_prod_onboarding_mark_incomplete) : x(M.employees_prod_onboarding_mark_complete)}
+                  aria-label={
+                    task.completed
+                      ? x(M.employees_prod_onboarding_mark_incomplete)
+                      : x(M.employees_prod_onboarding_mark_complete)
+                  }
                 >
                   {task.completed ? (
                     <Check size={18} strokeWidth={1.7} aria-hidden="true" className="text-navy" />
@@ -135,15 +162,23 @@ export function OnboardingTasks({
                   )}
                 </button>
                 <div className="min-w-0 flex-1">
-                  <div className={`text-[13.5px] font-semibold ${task.completed ? 'text-text-3 line-through' : 'text-text'}`}>
+                  <div
+                    className={`text-[13.5px] font-semibold ${task.completed ? 'text-text-3 line-through' : 'text-text'}`}
+                  >
                     {task.title}
                   </div>
                   <div className="mt-[2px] text-[12px] text-text-muted">
-                    {task.dueDate ? `${x(M.employees_prod_onboarding_due)} ${task.dueDate}` : x(M.employees_prod_onboarding_no_due)}
+                    {task.dueDate
+                      ? `${x(M.employees_prod_onboarding_due)} ${task.dueDate}`
+                      : x(M.employees_prod_onboarding_no_due)}
                     {task.assigneeName ? ` · ${task.assigneeName}` : null}
                   </div>
                   {task.notes ? (
-                    <div className={`mt-[6px] text-[13px] leading-relaxed ${task.completed ? 'text-text-3' : 'text-text-2'}`}>{task.notes}</div>
+                    <div
+                      className={`mt-[6px] text-[13px] leading-relaxed ${task.completed ? 'text-text-3' : 'text-text-2'}`}
+                    >
+                      {task.notes}
+                    </div>
                   ) : null}
                 </div>
               </div>
@@ -163,7 +198,10 @@ export function OnboardingTasks({
       )}
 
       {isOrgAdmin && (
-        <form onSubmit={(e) => void onSubmit(e)} className="rounded-[12px] border border-border bg-surface p-[16px]">
+        <form
+          onSubmit={(e) => void onSubmit(e)}
+          className="rounded-[12px] border border-border bg-surface p-[16px]"
+        >
           <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
             <div className="sm:col-span-2">
               <label className={labelClass}>{x(M.employees_prod_onboarding_task)}</label>

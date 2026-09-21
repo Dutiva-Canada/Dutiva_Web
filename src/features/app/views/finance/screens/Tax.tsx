@@ -9,29 +9,58 @@ import { CURRENCY_LABEL, OBLIGATION_STATUS_LABEL, TAX_TYPE_LABEL } from '../fina
 import type { FinanceCurrency, FinanceObligationStatus, FinanceTaxType } from '../data/types'
 
 const FILTERS: ('all' | FinanceObligationStatus)[] = [
-  'all', 'planned', 'in_preparation', 'reviewed', 'filed', 'paid', 'confirmed', 'overdue', 'withdrawn',
+  'all',
+  'planned',
+  'in_preparation',
+  'reviewed',
+  'filed',
+  'paid',
+  'confirmed',
+  'overdue',
+  'withdrawn',
 ]
 
-const VALID_TRANSITIONS: Record<FinanceObligationStatus, { status: FinanceObligationStatus; label: keyof typeof M }[]> = {
-  planned: [{ status: 'in_preparation', label: 'finance_tax_mark_in_preparation' }, { status: 'withdrawn', label: 'finance_tax_mark_withdrawn' }],
+const VALID_TRANSITIONS: Record<
+  FinanceObligationStatus,
+  { status: FinanceObligationStatus; label: keyof typeof M }[]
+> = {
+  planned: [
+    { status: 'in_preparation', label: 'finance_tax_mark_in_preparation' },
+    { status: 'withdrawn', label: 'finance_tax_mark_withdrawn' },
+  ],
   in_preparation: [{ status: 'reviewed', label: 'finance_tax_mark_reviewed' }],
   reviewed: [{ status: 'filed', label: 'finance_tax_mark_filed' }],
   filed: [{ status: 'paid', label: 'finance_tax_mark_paid' }],
   paid: [{ status: 'confirmed', label: 'finance_tax_mark_confirmed' }],
   confirmed: [],
-  overdue: [{ status: 'in_preparation', label: 'finance_tax_mark_in_preparation' }, { status: 'filed', label: 'finance_tax_mark_filed' }],
+  overdue: [
+    { status: 'in_preparation', label: 'finance_tax_mark_in_preparation' },
+    { status: 'filed', label: 'finance_tax_mark_filed' },
+  ],
   withdrawn: [{ status: 'planned', label: 'finance_tax_mark_in_preparation' }],
 }
 
 export function Tax() {
   const { x } = useI18n()
-  const { state, canWrite, addTaxObligation, addTaxScenario, transitionObligationStatus, transitionExternalActionStatus, markTaxScenarioStale, transitionTaxScenarioStatus } = useFinanceData()
+  const {
+    state,
+    canWrite,
+    addTaxObligation,
+    addTaxScenario,
+    transitionObligationStatus,
+    transitionExternalActionStatus,
+    markTaxScenarioStale,
+    transitionTaxScenarioStatus,
+  } = useFinanceData()
   const [filter, setFilter] = useState<'all' | FinanceObligationStatus>('all')
   const [showObligationForm, setShowObligationForm] = useState(false)
   const [showScenarioForm, setShowScenarioForm] = useState(false)
 
   const obligations = useMemo(
-    () => (filter === 'all' ? state.taxObligations : state.taxObligations.filter((o) => o.status === filter)),
+    () =>
+      filter === 'all'
+        ? state.taxObligations
+        : state.taxObligations.filter((o) => o.status === filter),
     [state.taxObligations, filter],
   )
 
@@ -41,7 +70,11 @@ export function Tax() {
         <div className="mb-[12px] flex items-center justify-between">
           <h2 className="text-[15px] font-semibold text-text">{x(M.finance_tax_obligations)}</h2>
           {canWrite && (
-            <button type="button" onClick={() => setShowObligationForm((v) => !v)} className="flex items-center gap-[6px] text-[13px] font-semibold text-accent">
+            <button
+              type="button"
+              onClick={() => setShowObligationForm((v) => !v)}
+              className="flex items-center gap-[6px] text-[13px] font-semibold text-accent"
+            >
               <Plus size={14} />
               {x(M.finance_tax_create_obligation)}
             </button>
@@ -49,7 +82,10 @@ export function Tax() {
         </div>
         {showObligationForm && canWrite && (
           <TaxObligationForm
-            onSubmit={(ob) => { addTaxObligation(ob); setShowObligationForm(false) }}
+            onSubmit={(ob) => {
+              addTaxObligation(ob)
+              setShowObligationForm(false)
+            }}
             onCancel={() => setShowObligationForm(false)}
             entities={state.entities}
           />
@@ -61,7 +97,9 @@ export function Tax() {
               type="button"
               onClick={() => setFilter(f)}
               className={`rounded-[8px] px-[10px] py-[5px] text-[12px] font-semibold transition-colors ${
-                filter === f ? 'bg-navy text-white' : 'bg-inset text-text-2 hover:bg-surface border border-border'
+                filter === f
+                  ? 'bg-navy text-white'
+                  : 'bg-inset text-text-2 hover:bg-surface border border-border'
               }`}
             >
               {f === 'all' ? x(M.finance_filter_all) : x(OBLIGATION_STATUS_LABEL[f])}
@@ -84,11 +122,15 @@ export function Tax() {
                       <div className="text-[12px] text-text-muted">
                         {x(M.finance_tax_jurisdiction)}: {x(ob.jurisdiction)} ·{' '}
                         {x(M.finance_due_date)}: {ob.dueDate}
-                        {ob.paymentDueDate && ob.paymentDueDate !== ob.dueDate && ` · ${x(M.finance_tax_payment_due)}: ${ob.paymentDueDate}`}
+                        {ob.paymentDueDate &&
+                          ob.paymentDueDate !== ob.dueDate &&
+                          ` · ${x(M.finance_tax_payment_due)}: ${ob.paymentDueDate}`}
                       </div>
                       <div className="text-[12px] text-text-muted">
-                        {x(M.finance_tax_estimated)}: {x(CURRENCY_LABEL[ob.currency])} {ob.estimatedAmount}
-                        {ob.confirmedAmount && ` · ${x(M.finance_tax_confirmed)}: ${ob.confirmedAmount}`}
+                        {x(M.finance_tax_estimated)}: {x(CURRENCY_LABEL[ob.currency])}{' '}
+                        {ob.estimatedAmount}
+                        {ob.confirmedAmount &&
+                          ` · ${x(M.finance_tax_confirmed)}: ${ob.confirmedAmount}`}
                       </div>
                       {ob.preparer && (
                         <div className="text-[12px] text-text-muted">
@@ -105,7 +147,11 @@ export function Tax() {
                     <div className="flex flex-col items-end gap-[6px]">
                       <span
                         className={statusChipClass(
-                          ob.status === 'confirmed' ? 'success' : ob.status === 'overdue' ? 'risk' : 'neutral',
+                          ob.status === 'confirmed'
+                            ? 'success'
+                            : ob.status === 'overdue'
+                              ? 'risk'
+                              : 'neutral',
                         )}
                       >
                         {x(OBLIGATION_STATUS_LABEL[ob.status])}
@@ -124,7 +170,9 @@ export function Tax() {
                         <button
                           key={t.status}
                           type="button"
-                          onClick={() => transitionObligationStatus(ob.id, t.status, 'Workspace user')}
+                          onClick={() =>
+                            transitionObligationStatus(ob.id, t.status, 'Workspace user')
+                          }
                           className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
                         >
                           {x(M[t.label])}
@@ -143,7 +191,11 @@ export function Tax() {
         <div className="mb-[12px] flex items-center justify-between">
           <h2 className="text-[15px] font-semibold text-text">{x(M.finance_tax_scenarios)}</h2>
           {canWrite && (
-            <button type="button" onClick={() => setShowScenarioForm((v) => !v)} className="flex items-center gap-[6px] text-[13px] font-semibold text-accent">
+            <button
+              type="button"
+              onClick={() => setShowScenarioForm((v) => !v)}
+              className="flex items-center gap-[6px] text-[13px] font-semibold text-accent"
+            >
               <Plus size={14} />
               {x(M.finance_tax_create_scenario)}
             </button>
@@ -151,7 +203,10 @@ export function Tax() {
         </div>
         {showScenarioForm && canWrite && (
           <TaxScenarioForm
-            onSubmit={(ts) => { addTaxScenario(ts); setShowScenarioForm(false) }}
+            onSubmit={(ts) => {
+              addTaxScenario(ts)
+              setShowScenarioForm(false)
+            }}
             onCancel={() => setShowScenarioForm(false)}
             entities={state.entities}
           />
@@ -165,27 +220,36 @@ export function Tax() {
                 <div className="flex items-start justify-between gap-[12px]">
                   <div>
                     <div className="text-[13px] font-semibold text-text">{x(ts.label)}</div>
-                    <div className="text-[12px] text-text-muted">
-                      {x(ts.proposedDecision)}
-                    </div>
+                    <div className="text-[12px] text-text-muted">{x(ts.proposedDecision)}</div>
                     <div className="mt-[4px] text-[12px] text-text-muted">
-                      {x(M.finance_tax_estimated)} tax: {x(CURRENCY_LABEL[ts.currency])} {ts.projectedTax} ·{' '}
-                      Cash flow: {ts.projectedCashFlow}
+                      {x(M.finance_tax_estimated)} tax: {x(CURRENCY_LABEL[ts.currency])}{' '}
+                      {ts.projectedTax} · Cash flow: {ts.projectedCashFlow}
                     </div>
                     <div className="text-[12px] text-text-muted">
                       {x(M.finance_plans_assumptions)}: {x(ts.assumptions)}
                     </div>
                     <div className="text-[12px] text-text-muted">
-                      {ts.enacted ? x(M.finance_tax_enacted) : x(M.finance_tax_proposed)}: {x(ts.lawVersion)}
+                      {ts.enacted ? x(M.finance_tax_enacted) : x(M.finance_tax_proposed)}:{' '}
+                      {x(ts.lawVersion)}
                       {ts.reviewer && ` · ${x(M.finance_tax_reviewer)}: ${ts.reviewer}`}
                     </div>
                   </div>
                   <span
                     className={statusChipClass(
-                      ts.status === 'accepted' ? 'success' : ts.status === 'stale' ? 'risk' : 'warning',
+                      ts.status === 'accepted'
+                        ? 'success'
+                        : ts.status === 'stale'
+                          ? 'risk'
+                          : 'warning',
                     )}
                   >
-                    {ts.status === 'draft' ? 'Draft' : ts.status === 'reviewed' ? 'Reviewed' : ts.status === 'accepted' ? 'Accepted' : x(M.finance_plans_stale)}
+                    {ts.status === 'draft'
+                      ? 'Draft'
+                      : ts.status === 'reviewed'
+                        ? 'Reviewed'
+                        : ts.status === 'accepted'
+                          ? 'Accepted'
+                          : x(M.finance_plans_stale)}
                   </span>
                 </div>
                 <div className="mt-[8px] rounded-[6px] border border-border bg-surface px-[10px] py-[6px] text-[11px] text-text-muted">
@@ -196,7 +260,9 @@ export function Tax() {
                     {ts.status === 'draft' && (
                       <button
                         type="button"
-                        onClick={() => transitionTaxScenarioStatus(ts.id, 'reviewed', 'Workspace user')}
+                        onClick={() =>
+                          transitionTaxScenarioStatus(ts.id, 'reviewed', 'Workspace user')
+                        }
                         className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
                       >
                         {x(M.finance_tax_scenario_review)}
@@ -206,7 +272,9 @@ export function Tax() {
                       <>
                         <button
                           type="button"
-                          onClick={() => transitionTaxScenarioStatus(ts.id, 'accepted', 'Workspace user')}
+                          onClick={() =>
+                            transitionTaxScenarioStatus(ts.id, 'accepted', 'Workspace user')
+                          }
                           className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
                         >
                           {x(M.finance_tax_scenario_accept)}
@@ -237,15 +305,22 @@ export function Tax() {
 
       {state.externalActions.length > 0 && (
         <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-          <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_tax_external_actions)}</h2>
+          <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+            {x(M.finance_tax_external_actions)}
+          </h2>
           <ul className="m-0 flex flex-col gap-[12px] p-0">
             {state.externalActions
               .filter((ea) => ea.recordType === 'filing' || ea.recordType === 'payment')
               .map((ea) => (
-                <li key={ea.id} className="flex flex-col gap-[8px] rounded-[10px] bg-inset p-[12px]">
+                <li
+                  key={ea.id}
+                  className="flex flex-col gap-[8px] rounded-[10px] bg-inset p-[12px]"
+                >
                   <div className="flex items-start justify-between gap-[12px]">
                     <div>
-                      <div className="text-[13px] font-semibold text-text">{ea.recordType} · {ea.recordId}</div>
+                      <div className="text-[13px] font-semibold text-text">
+                        {ea.recordType} · {ea.recordId}
+                      </div>
                       <div className="text-[12px] text-text-muted">
                         {ea.providerRef && ` · ${ea.providerRef}`}
                         {ea.confirmedAt && ` · ${ea.confirmedAt}`}
@@ -345,22 +420,41 @@ function TaxObligationForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]">
+    <form
+      onSubmit={handleSubmit}
+      className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]"
+    >
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_invoice_entity)}</span>
-          <select value={entityId} onChange={(e) => setEntityId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
-            {entities.map((ent) => <option key={ent.id} value={ent.id}>{ent.legalName}</option>)}
+          <select
+            value={entityId}
+            onChange={(e) => setEntityId(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          >
+            {entities.map((ent) => (
+              <option key={ent.id} value={ent.id}>
+                {ent.legalName}
+              </option>
+            ))}
           </select>
         </label>
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_tax_type)}</span>
-          <select value={type} onChange={(e) => setType(e.target.value as FinanceTaxType)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value as FinanceTaxType)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          >
             <option value="income_tax">{x(M.finance_tax_type_income_tax)}</option>
             <option value="gst_hst">{x(M.finance_tax_type_gst_hst)}</option>
             <option value="qst">{x(M.finance_tax_type_qst)}</option>
-            <option value="payroll_source_deductions">{x(M.finance_tax_type_payroll_source_deductions)}</option>
-            <option value="employer_contributions">{x(M.finance_tax_type_employer_contributions)}</option>
+            <option value="payroll_source_deductions">
+              {x(M.finance_tax_type_payroll_source_deductions)}
+            </option>
+            <option value="employer_contributions">
+              {x(M.finance_tax_type_employer_contributions)}
+            </option>
             <option value="other">{x(M.finance_tax_type_other)}</option>
           </select>
         </label>
@@ -368,36 +462,74 @@ function TaxObligationForm({
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_tax_jurisdiction)}</span>
-          <input value={jurisdiction} onChange={(e) => setJurisdiction(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={jurisdiction}
+            onChange={(e) => setJurisdiction(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_tax_period)}</span>
-          <input value={period} onChange={(e) => setPeriod(e.target.value)} placeholder="Q3 2026" className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
+            placeholder="Q3 2026"
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
       </div>
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_tax_due_date)}</span>
-          <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_tax_payment_due)}</span>
-          <input type="date" value={paymentDueDate} onChange={(e) => setPaymentDueDate(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            type="date"
+            value={paymentDueDate}
+            onChange={(e) => setPaymentDueDate(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
       </div>
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_tax_estimated)}</span>
-          <input value={estimatedAmount} onChange={(e) => setEstimatedAmount(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={estimatedAmount}
+            onChange={(e) => setEstimatedAmount(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_tax_preparer)}</span>
-          <input value={preparer} onChange={(e) => setPreparer(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={preparer}
+            onChange={(e) => setPreparer(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
       </div>
       <div className="flex justify-end gap-[8px]">
-        <button type="button" onClick={onCancel} className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border">{x(M.finance_cancel)}</button>
-        <button type="submit" className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">{x(M.finance_save)}</button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border"
+        >
+          {x(M.finance_cancel)}
+        </button>
+        <button
+          type="submit"
+          className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white"
+        >
+          {x(M.finance_save)}
+        </button>
       </div>
     </form>
   )
@@ -450,64 +582,134 @@ function TaxScenarioForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]">
+    <form
+      onSubmit={handleSubmit}
+      className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]"
+    >
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_invoice_entity)}</span>
-          <select value={entityId} onChange={(e) => setEntityId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
-            {entities.map((ent) => <option key={ent.id} value={ent.id}>{ent.legalName}</option>)}
+          <select
+            value={entityId}
+            onChange={(e) => setEntityId(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          >
+            {entities.map((ent) => (
+              <option key={ent.id} value={ent.id}>
+                {ent.legalName}
+              </option>
+            ))}
           </select>
         </label>
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_tax_scenario_label)}</span>
-          <input value={label} onChange={(e) => setLabel(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
       </div>
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_tax_scenario_baseline)}</span>
-          <input value={baseline} onChange={(e) => setBaseline(e.target.value)} placeholder="2026 baseline" className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={baseline}
+            onChange={(e) => setBaseline(e.target.value)}
+            placeholder="2026 baseline"
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
         <label className="flex flex-col gap-[4px]">
-          <span className="text-[12px] text-text-muted">{x(M.finance_tax_scenario_law_version)}</span>
-          <input value={lawVersion} onChange={(e) => setLawVersion(e.target.value)} placeholder="Enacted 2025 rates" className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <span className="text-[12px] text-text-muted">
+            {x(M.finance_tax_scenario_law_version)}
+          </span>
+          <input
+            value={lawVersion}
+            onChange={(e) => setLawVersion(e.target.value)}
+            placeholder="Enacted 2025 rates"
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
       </div>
       <label className="flex flex-col gap-[4px]">
         <span className="text-[12px] text-text-muted">{x(M.finance_tax_scenario_decision)}</span>
-        <input value={proposedDecision} onChange={(e) => setProposedDecision(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        <input
+          value={proposedDecision}
+          onChange={(e) => setProposedDecision(e.target.value)}
+          className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+        />
       </label>
       <label className="flex flex-col gap-[4px]">
         <span className="text-[12px] text-text-muted">{x(M.finance_tax_scenario_assumptions)}</span>
-        <input value={assumptions} onChange={(e) => setAssumptions(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        <input
+          value={assumptions}
+          onChange={(e) => setAssumptions(e.target.value)}
+          className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+        />
       </label>
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_tax_scenario_profit)}</span>
-          <input value={projectedProfit} onChange={(e) => setProjectedProfit(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={projectedProfit}
+            onChange={(e) => setProjectedProfit(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
         <label className="flex flex-col gap-[4px]">
-          <span className="text-[12px] text-text-muted">{x(M.finance_tax_scenario_taxable_income)}</span>
-          <input value={projectedTaxableIncome} onChange={(e) => setProjectedTaxableIncome(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <span className="text-[12px] text-text-muted">
+            {x(M.finance_tax_scenario_taxable_income)}
+          </span>
+          <input
+            value={projectedTaxableIncome}
+            onChange={(e) => setProjectedTaxableIncome(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
       </div>
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
-          <span className="text-[12px] text-text-muted">{x(M.finance_tax_scenario_projected_tax)}</span>
-          <input value={projectedTax} onChange={(e) => setProjectedTax(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <span className="text-[12px] text-text-muted">
+            {x(M.finance_tax_scenario_projected_tax)}
+          </span>
+          <input
+            value={projectedTax}
+            onChange={(e) => setProjectedTax(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
         <label className="flex flex-col gap-[4px]">
-          <span className="text-[12px] text-text-muted">{x(M.finance_tax_scenario_projected_cashflow)}</span>
-          <input value={projectedCashFlow} onChange={(e) => setProjectedCashFlow(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <span className="text-[12px] text-text-muted">
+            {x(M.finance_tax_scenario_projected_cashflow)}
+          </span>
+          <input
+            value={projectedCashFlow}
+            onChange={(e) => setProjectedCashFlow(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
       </div>
       <label className="flex items-center gap-[6px]">
         <input type="checkbox" checked={enacted} onChange={(e) => setEnacted(e.target.checked)} />
-        <span className="text-[12px] text-text-muted">{enacted ? x(M.finance_tax_scenario_enacted) : x(M.finance_tax_scenario_proposed)}</span>
+        <span className="text-[12px] text-text-muted">
+          {enacted ? x(M.finance_tax_scenario_enacted) : x(M.finance_tax_scenario_proposed)}
+        </span>
       </label>
       <div className="flex justify-end gap-[8px]">
-        <button type="button" onClick={onCancel} className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border">{x(M.finance_cancel)}</button>
-        <button type="submit" className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">{x(M.finance_save)}</button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border"
+        >
+          {x(M.finance_cancel)}
+        </button>
+        <button
+          type="submit"
+          className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white"
+        >
+          {x(M.finance_save)}
+        </button>
       </div>
     </form>
   )

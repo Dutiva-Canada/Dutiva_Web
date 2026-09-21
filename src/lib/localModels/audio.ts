@@ -47,9 +47,7 @@ export async function decodeBlobToMono16k(blob: Blob): Promise<Float32Array> {
   const ctx = new AudioContext()
   try {
     const buf = await ctx.decodeAudioData(await blob.arrayBuffer())
-    const channels = Array.from({ length: buf.numberOfChannels }, (_, i) =>
-      buf.getChannelData(i),
-    )
+    const channels = Array.from({ length: buf.numberOfChannels }, (_, i) => buf.getChannelData(i))
     return resampleLinear(mixdownToMono(channels), buf.sampleRate, VOICE_SAMPLE_RATE)
   } finally {
     void ctx.close()

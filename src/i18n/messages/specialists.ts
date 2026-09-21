@@ -14,7 +14,10 @@ export const specialistsMessages = defineMessages({
   spec_tab_directory: { en: 'Directory', fr: 'Répertoire' },
   spec_tab_engagements: { en: 'Engagements', fr: 'Engagements' },
   spec_overview_section_title: { en: 'At a glance', fr: 'En un coup d’œil' },
-  spec_overview_active_access: { en: 'Active workspace access', fr: 'Accès actif à l’espace de travail' },
+  spec_overview_active_access: {
+    en: 'Active workspace access',
+    fr: 'Accès actif à l’espace de travail',
+  },
   spec_overview_engagements_month: { en: 'Engagements this month', fr: 'Engagements ce mois-ci' },
   spec_overview_followups_due: { en: 'Follow-ups due in 7 days', fr: 'Suivis dus sous 7 jours' },
   spec_overview_overdue_followups: { en: 'Overdue follow-ups', fr: 'Suivis en retard' },

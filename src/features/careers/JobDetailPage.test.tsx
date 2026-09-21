@@ -47,7 +47,11 @@ const SIGNED_IN_AUTH: AuthContextValue = {
 
 function renderCareers(
   ui: ReactElement,
-  { path = '/careers/jobs/:postingId', route = '/careers/jobs/jp-1', auth }: {
+  {
+    path = '/careers/jobs/:postingId',
+    route = '/careers/jobs/jp-1',
+    auth,
+  }: {
     path?: string
     route?: string
     auth?: AuthContextValue
@@ -93,7 +97,9 @@ describe('JobDetailPage', () => {
     renderCareers(<JobDetailPage />)
 
     // Title renders as h1
-    expect(await screen.findByRole('heading', { level: 1, name: 'Senior Product Manager' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Senior Product Manager' }),
+    ).toBeInTheDocument()
 
     // Metadata
     expect(screen.getByText('Product')).toBeInTheDocument()
@@ -114,7 +120,10 @@ describe('JobDetailPage', () => {
     expect(screen.queryByRole('link', { name: /Apply to this role/i })).not.toBeInTheDocument()
 
     // The sign-in CTA links to the candidate portal
-    expect(screen.getByRole('link', { name: /Sign in to apply/i })).toHaveAttribute('href', '/careers/portal')
+    expect(screen.getByRole('link', { name: /Sign in to apply/i })).toHaveAttribute(
+      'href',
+      '/careers/portal',
+    )
   })
 
   it('renders the apply button when the candidate is signed in', async () => {
@@ -123,7 +132,9 @@ describe('JobDetailPage', () => {
     renderCareers(<JobDetailPage />, { auth: SIGNED_IN_AUTH })
 
     // Wait for the posting to load, then the apply CTA should be a direct link
-    expect(await screen.findByRole('heading', { level: 1, name: 'Senior Product Manager' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Senior Product Manager' }),
+    ).toBeInTheDocument()
     const applyLink = await screen.findByRole('link', { name: /Apply to this role/i })
     expect(applyLink).toHaveAttribute('href', '/careers/portal/jobs/jp-1/apply')
   })

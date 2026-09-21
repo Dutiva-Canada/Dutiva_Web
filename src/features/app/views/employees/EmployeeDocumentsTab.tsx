@@ -36,11 +36,7 @@ export function EmployeeDocumentsTab({
 }: Readonly<{
   isOrgAdmin: boolean
   records: ProductionExpiryRecord[]
-  onAddRecord: (
-    kind: ExpiryRecordKind,
-    name: string,
-    expiryDate: string,
-  ) => Promise<void>
+  onAddRecord: (kind: ExpiryRecordKind, name: string, expiryDate: string) => Promise<void>
   onRemoveRecord: (id: string) => Promise<void>
 }>) {
   const { x } = useI18n()
@@ -124,9 +120,7 @@ export function EmployeeDocumentsTab({
               onChange={(e) => setRecordKind(e.target.value as ExpiryRecordKind)}
               className={`${inputClass} cursor-pointer`}
             >
-              <option value="certification">
-                {x(M.employees_prod_record_kind_certification)}
-              </option>
+              <option value="certification">{x(M.employees_prod_record_kind_certification)}</option>
               <option value="document">{x(M.employees_prod_record_kind_document)}</option>
             </select>
           </label>

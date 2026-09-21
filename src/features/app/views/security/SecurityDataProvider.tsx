@@ -36,7 +36,10 @@ import type {
   SecurityVendorReview,
 } from './data/types'
 
-const EMPTY: Pick<SecurityDataValue, 'assets' | 'accessReviews' | 'incidents' | 'risks' | 'vendorReviews' | 'loading' | 'error'> = {
+const EMPTY: Pick<
+  SecurityDataValue,
+  'assets' | 'accessReviews' | 'incidents' | 'risks' | 'vendorReviews' | 'loading' | 'error'
+> = {
   assets: [],
   accessReviews: [],
   incidents: [],
@@ -55,10 +58,11 @@ export function SecurityDataProvider({
 }) {
   const { organizationId } = useWorkspaceMode()
   const [value, setValue] = useState<
-    Pick<SecurityDataValue, 'assets' | 'accessReviews' | 'incidents' | 'risks' | 'vendorReviews' | 'loading' | 'error'>
-  >(() =>
-    mode === 'demo' ? { ...fixtures, loading: false, error: null } : EMPTY,
-  )
+    Pick<
+      SecurityDataValue,
+      'assets' | 'accessReviews' | 'incidents' | 'risks' | 'vendorReviews' | 'loading' | 'error'
+    >
+  >(() => (mode === 'demo' ? { ...fixtures, loading: false, error: null } : EMPTY))
 
   useEffect(() => {
     if (mode !== 'production') return
@@ -399,12 +403,18 @@ export function SecurityDataProvider({
   const removeAccessReview = useCallback(
     async (id: string) => {
       if (mode !== 'production' || !organizationId) {
-        setValue((prev) => ({ ...prev, accessReviews: prev.accessReviews.filter((r) => r.id !== id) }))
+        setValue((prev) => ({
+          ...prev,
+          accessReviews: prev.accessReviews.filter((r) => r.id !== id),
+        }))
         return
       }
       try {
         await deleteSecurityAccessReview(id)
-        setValue((prev) => ({ ...prev, accessReviews: prev.accessReviews.filter((r) => r.id !== id) }))
+        setValue((prev) => ({
+          ...prev,
+          accessReviews: prev.accessReviews.filter((r) => r.id !== id),
+        }))
       } catch (err) {
         setValue((prev) => ({
           ...prev,
@@ -456,12 +466,18 @@ export function SecurityDataProvider({
   const removeVendorReview = useCallback(
     async (id: string) => {
       if (mode !== 'production' || !organizationId) {
-        setValue((prev) => ({ ...prev, vendorReviews: prev.vendorReviews.filter((r) => r.id !== id) }))
+        setValue((prev) => ({
+          ...prev,
+          vendorReviews: prev.vendorReviews.filter((r) => r.id !== id),
+        }))
         return
       }
       try {
         await deleteSecurityVendorReview(id)
-        setValue((prev) => ({ ...prev, vendorReviews: prev.vendorReviews.filter((r) => r.id !== id) }))
+        setValue((prev) => ({
+          ...prev,
+          vendorReviews: prev.vendorReviews.filter((r) => r.id !== id),
+        }))
       } catch (err) {
         setValue((prev) => ({
           ...prev,

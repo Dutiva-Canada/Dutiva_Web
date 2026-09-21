@@ -49,11 +49,11 @@ const RECORD_TYPE_EN: Record<string, GovernanceRecordType> = {
   register: 'register',
 }
 const RECORD_TYPE_FR: Record<string, GovernanceRecordType> = {
-  'règlement': 'bylaw',
-  'résolution': 'resolution',
+  règlement: 'bylaw',
+  résolution: 'resolution',
   'procès-verbal': 'minutes',
-  'statuts': 'articles',
-  'registre': 'register',
+  statuts: 'articles',
+  registre: 'register',
 }
 
 /**

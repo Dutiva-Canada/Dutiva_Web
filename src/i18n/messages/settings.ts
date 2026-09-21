@@ -461,8 +461,14 @@ export const settingsMessages = defineMessages({
   settings_audit_kind_permissions: { en: 'Permissions', fr: 'Permissions' },
   settings_audit_kind_retention: { en: 'Retention', fr: 'Conservation' },
   settings_agent_activity: { en: 'Advisor activity', fr: 'Activité du Conseiller' }, // [FR self-authored]
-  settings_agent_activity_empty: { en: 'No Advisor actions yet this session — actions you confirm or refuse are listed here.', fr: 'Aucune action du Conseiller pour l’instant — celles que vous confirmez ou refusez s’affichent ici.' }, // [FR self-authored]
-  settings_agent_activity_note: { en: 'This session only — the durable workspace log is on the roadmap.', fr: 'Cette session seulement — le journal durable de l’espace de travail est à venir.' }, // [FR self-authored]
+  settings_agent_activity_empty: {
+    en: 'No Advisor actions yet this session — actions you confirm or refuse are listed here.',
+    fr: 'Aucune action du Conseiller pour l’instant — celles que vous confirmez ou refusez s’affichent ici.',
+  }, // [FR self-authored]
+  settings_agent_activity_note: {
+    en: 'This session only — the durable workspace log is on the roadmap.',
+    fr: 'Cette session seulement — le journal durable de l’espace de travail est à venir.',
+  }, // [FR self-authored]
   settings_agent_status_done: { en: 'Done', fr: 'Effectué' }, // [FR self-authored]
   settings_agent_status_failed: { en: 'Didn’t go through', fr: 'Non aboutie' }, // [FR self-authored]
   settings_audit_ev1_text: {

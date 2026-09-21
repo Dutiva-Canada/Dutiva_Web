@@ -12,7 +12,10 @@ import type { CandidateProfileFormValues } from './CandidateProfileForm'
 type ExtractedFields = Partial<CandidateProfileFormValues>
 
 function normalizeWhitespace(text: string): string {
-  return text.replace(/\r/g, '\n').replace(/[ \t]+/g, ' ').trim()
+  return text
+    .replace(/\r/g, '\n')
+    .replace(/[ \t]+/g, ' ')
+    .trim()
 }
 
 function getLines(text: string): string[] {
@@ -104,20 +107,32 @@ function extractName(lines: string[]): string | undefined {
 
 function extractHeadline(lines: string[], name: string | undefined): string | undefined {
   const nextLine = lines.find((line) => line !== name && line.length > 3 && line.length < 80)
-  if (nextLine && !/^(?:summary|profile|experience|education|skills|contact|objective)\b/i.test(nextLine)) {
+  if (
+    nextLine &&
+    !/^(?:summary|profile|experience|education|skills|contact|objective)\b/i.test(nextLine)
+  ) {
     return nextLine.replace(/[:-]+$/, '').trim()
   }
   return undefined
 }
 
-const SUMMARY_HEADERS = ['summary', 'professional summary', 'profile', 'about me', 'objective', 'career objective']
+const SUMMARY_HEADERS = [
+  'summary',
+  'professional summary',
+  'profile',
+  'about me',
+  'objective',
+  'career objective',
+]
 
 function extractSummary(text: string): string | undefined {
   const lines = getLines(text)
   let start = -1
 
   for (let i = 0; i < lines.length; i++) {
-    const normalized = lines[i]!.toLowerCase().replace(/[:-]+$/, '').trim()
+    const normalized = lines[i]!.toLowerCase()
+      .replace(/[:-]+$/, '')
+      .trim()
     if (SUMMARY_HEADERS.includes(normalized)) {
       start = i + 1
       break
@@ -143,7 +158,9 @@ function extractSummary(text: string): string | undefined {
   ])
 
   for (let i = start; i < lines.length; i++) {
-    const line = lines[i]!.toLowerCase().replace(/[:-]+$/, '').trim()
+    const line = lines[i]!.toLowerCase()
+      .replace(/[:-]+$/, '')
+      .trim()
     if (sectionBreakers.has(line)) {
       end = i
       break
@@ -210,7 +227,11 @@ function extractCurrentRole(text: string): string | undefined {
   let experienceStart = -1
   for (let i = 0; i < lines.length; i++) {
     const lower = lines[i]!.toLowerCase()
-    if (lower === 'experience' || lower === 'work experience' || lower === 'professional experience') {
+    if (
+      lower === 'experience' ||
+      lower === 'work experience' ||
+      lower === 'professional experience'
+    ) {
       experienceStart = i + 1
       break
     }

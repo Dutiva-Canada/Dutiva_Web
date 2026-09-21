@@ -40,18 +40,18 @@ is forward-compatible with a real runtime mount later.
 ## What it deliberately is not
 
 - **No live streaming off the drive.** Browsers can't mount filesystems;
-   import copies into browser storage. Running weights straight off the
-   drive needs a service-worker route or a desktop runtime — future work,
-   documented in LOCAL_INFERENCE.md.
+  import copies into browser storage. Running weights straight off the
+  drive needs a service-worker route or a desktop runtime — future work,
+  documented in LOCAL_INFERENCE.md.
 - **No silent USB mounting.** Nothing loads when a drive is plugged in;
-   the picker requires a user gesture every session where permission isn't
-   already granted.
+  the picker requires a user gesture every session where permission isn't
+  already granted.
 - **Not the Advisor.** Imported files feed the on-device task models only
-   (captioning, transcription, short rewrites, embeddings). The Advisor
-   stays server-routed and metered.
+  (captioning, transcription, short rewrites, embeddings). The Advisor
+  stays server-routed and metered.
 - **Chromium only.** `showDirectoryPicker` has no Safari/Firefox support
-   at writing; the UI shows a one-line note and the download buttons keep
-   working everywhere.
+  at writing; the UI shows a one-line note and the download buttons keep
+  working everywhere.
 
 ## Failure modes worth knowing
 

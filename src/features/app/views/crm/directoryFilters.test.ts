@@ -68,18 +68,24 @@ describe('applyContactFilter', () => {
       ),
     ).toEqual(['c1'])
     expect(
-      applyContactFilter(contacts, { query: '', statuses: [], companyId: NO_COMPANY }, companyName).map(
-        (c) => c.id,
-      ),
+      applyContactFilter(
+        contacts,
+        { query: '', statuses: [], companyId: NO_COMPANY },
+        companyName,
+      ).map((c) => c.id),
     ).toEqual(['c3'])
   })
 
   it('matches query against name, role, email and company name', () => {
     expect(
-      applyContactFilter(contacts, { query: 'hr manager', statuses: [] }, companyName).map((c) => c.id),
+      applyContactFilter(contacts, { query: 'hr manager', statuses: [] }, companyName).map(
+        (c) => c.id,
+      ),
     ).toEqual(['c1'])
     expect(
-      applyContactFilter(contacts, { query: 'north.io', statuses: [] }, companyName).map((c) => c.id),
+      applyContactFilter(contacts, { query: 'north.io', statuses: [] }, companyName).map(
+        (c) => c.id,
+      ),
     ).toEqual(['c2'])
     expect(
       applyContactFilter(contacts, { query: 'acme freight', statuses: [] }, companyName).map(
@@ -148,7 +154,11 @@ describe('saved views', () => {
     const scope = `test-bad-${Date.now()}`
     localStorage.setItem(
       `dutiva-crm-contact-views-${scope}`,
-      JSON.stringify([{ id: 'ok', name: 'Fine', filter: { query: '', statuses: [] } }, { bad: true }, 42]),
+      JSON.stringify([
+        { id: 'ok', name: 'Fine', filter: { query: '', statuses: [] } },
+        { bad: true },
+        42,
+      ]),
     )
     const loaded = loadContactViews(scope)
     expect(loaded).toHaveLength(1)

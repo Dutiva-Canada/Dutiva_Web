@@ -147,7 +147,19 @@ describe('computeOrgScore — the job-side row mapping', () => {
       todayISO: '2026-01-15',
     })
     expect(components.map((c) => c.pct)).toEqual([
-      75, 80, 89, 67, null, null, null, null, null, null, null, null, null,
+      75,
+      80,
+      89,
+      67,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
     ])
     /* (75 + 80 + 89 + 67) / 4 = 77.75 → 78; no open critical, no ceiling. */
     expect(score).toBe(78)

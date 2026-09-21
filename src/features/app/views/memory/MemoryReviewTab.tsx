@@ -47,7 +47,12 @@ export function MemoryReviewTab() {
       <div className="mx-auto max-w-[920px] px-[16px] pt-[18px] pb-[40px] md:px-[24px]">
         {proposed.length === 0 ? (
           <div className="rounded-[14px] border border-border-soft bg-surface px-[24px] py-[40px] text-center">
-            <Check size={22} strokeWidth={1.8} className="mx-auto mb-[10px] text-ok-fg" aria-hidden="true" />
+            <Check
+              size={22}
+              strokeWidth={1.8}
+              className="mx-auto mb-[10px] text-ok-fg"
+              aria-hidden="true"
+            />
             <p className="m-0 text-[13px] text-text-muted">{x(M.memory_review_empty)}</p>
           </div>
         ) : (
@@ -109,13 +114,18 @@ export function MemoryReviewTab() {
                         <SourceIcon size={12} strokeWidth={1.7} aria-hidden="true" />
                         {subject.label} · {pick(sourceMeta.kind, lang)}
                       </span>
-                      <span>{x(M.memory_review_proposed_at)} {formatMemoryDate(fact.learnedAt, lang, todayISO)}</span>
+                      <span>
+                        {x(M.memory_review_proposed_at)}{' '}
+                        {formatMemoryDate(fact.learnedAt, lang, todayISO)}
+                      </span>
                       {fact.confidenceScore != null && (
                         <span className="font-semibold text-text-muted">
                           {x(M.memory_details_confidence)} {Math.round(fact.confidenceScore * 100)}%
                         </span>
                       )}
-                      <span className={`inline-flex items-center gap-[4px] rounded-[100px] border px-[7px] py-[2px] text-[10px] font-bold ${sensMeta.badge}`}>
+                      <span
+                        className={`inline-flex items-center gap-[4px] rounded-[100px] border px-[7px] py-[2px] text-[10px] font-bold ${sensMeta.badge}`}
+                      >
                         <SensIcon size={11} strokeWidth={2} aria-hidden="true" />
                         {pick(sensMeta.label, lang)}
                       </span>
@@ -137,8 +147,15 @@ export function MemoryReviewTab() {
                     {/* Sensitive warning */}
                     {restricted && (
                       <div className="mb-[10px] flex items-start gap-[8px] rounded-[10px] border border-risk-border bg-surface px-[11px] py-[9px]">
-                        <AlertTriangle size={14} strokeWidth={1.8} className="mt-[1px] shrink-0 text-risk-dot" aria-hidden="true" />
-                        <div className="text-[12px] leading-normal text-text-muted">{x(M.memory_review_sensitive_warning)}</div>
+                        <AlertTriangle
+                          size={14}
+                          strokeWidth={1.8}
+                          className="mt-[1px] shrink-0 text-risk-dot"
+                          aria-hidden="true"
+                        />
+                        <div className="text-[12px] leading-normal text-text-muted">
+                          {x(M.memory_review_sensitive_warning)}
+                        </div>
                       </div>
                     )}
 

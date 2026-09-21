@@ -57,11 +57,20 @@ const MOCK_APPLICATIONS: CandidateApplication[] = [
     aiSuggestions: null,
     appliedAt: '2026-01-20T00:00:00Z',
     updatedAt: '2026-01-20T00:00:00Z',
-    jobPosting: { id: 'jp-1', title: 'Senior PM', department: 'Product', location: 'Toronto', type: 'Full-time' },
+    jobPosting: {
+      id: 'jp-1',
+      title: 'Senior PM',
+      department: 'Product',
+      location: 'Toronto',
+      type: 'Full-time',
+    },
   },
 ]
 
-function renderCareers(ui: ReactElement, { path = '/careers/portal', route = '/careers/portal' } = {}) {
+function renderCareers(
+  ui: ReactElement,
+  { path = '/careers/portal', route = '/careers/portal' } = {},
+) {
   return render(
     <ThemeProvider>
       <LangProvider>

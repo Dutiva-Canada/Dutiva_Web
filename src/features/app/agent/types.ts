@@ -69,10 +69,7 @@ export type AgentToolOutcome =
     }
 
 export type AgentToolErrorCode =
-  | 'unknown_tool'
-  | 'module_unavailable'
-  | 'forbidden'
-  | 'invalid_params'
+  'unknown_tool' | 'module_unavailable' | 'forbidden' | 'invalid_params'
 
 /**
  * `ModuleContext` is whatever the module's data seam exposes — for CRM the

@@ -99,7 +99,10 @@ function seeded(): MemoryStore {
     })),
     audit: [],
     memoryEnabled: true,
-    privacyConfig: { ...memoryPrivacyConfig, jurisdictions: [...memoryPrivacyConfig.jurisdictions] },
+    privacyConfig: {
+      ...memoryPrivacyConfig,
+      jurisdictions: [...memoryPrivacyConfig.jurisdictions],
+    },
     retentionSchedule: memoryRetentionSchedule.map((r) => ({ ...r })),
   }
 }
@@ -123,7 +126,9 @@ export function useMemoryStore(): MemoryStore {
 
 /** Active facts — excludes removed records from the working list. */
 export function activeFacts(facts: readonly MemoryFact[]): MemoryFact[] {
-  return facts.filter((f) => (f.status ?? (f.confidence === 'confirmed' ? 'confirmed' : 'proposed')) !== 'removed')
+  return facts.filter(
+    (f) => (f.status ?? (f.confidence === 'confirmed' ? 'confirmed' : 'proposed')) !== 'removed',
+  )
 }
 
 function subjectLabelFor(fact: MemoryFact): Bi | null {
@@ -189,7 +194,10 @@ export const memoryActions = {
         detail: input.sourceDetail ?? bi('Manual entry', 'Saisie manuelle'),
       },
       learnedAt: now,
-      confirmation: { at: now, source: { type: 'manual', detail: bi('Manual entry', 'Saisie manuelle') } },
+      confirmation: {
+        at: now,
+        source: { type: 'manual', detail: bi('Manual entry', 'Saisie manuelle') },
+      },
       visibility: restricted ? 'restricted' : 'hr',
       sensitive: restricted,
       status: 'confirmed',
@@ -226,7 +234,10 @@ export const memoryActions = {
               status: 'confirmed',
               confirmation: {
                 at: TODAY_ISO,
-                source: { type: 'manual', detail: bi('Confirmed in Memory', 'Confirmé dans la Mémoire') },
+                source: {
+                  type: 'manual',
+                  detail: bi('Confirmed in Memory', 'Confirmé dans la Mémoire'),
+                },
               },
               confirmedBy: ACTOR,
               ...(f.advisorUsable == null ? { advisorUsable: effectiveSensitivityDefault(f) } : {}),
@@ -285,7 +296,9 @@ export const memoryActions = {
     emit({
       ...store,
       facts: store.facts.map((f) =>
-        f.id === id ? { ...f, status: priorStatus, advisorUsable: effectiveSensitivityDefault(f) } : f,
+        f.id === id
+          ? { ...f, status: priorStatus, advisorUsable: effectiveSensitivityDefault(f) }
+          : f,
       ),
       audit: [appendAudit('restored', fact, fact.statement), ...store.audit],
     })
@@ -333,7 +346,10 @@ export const memoryActions = {
     emit({
       ...store,
       memoryEnabled: enabled,
-      audit: [appendAudit(enabled ? 'memory_enabled' : 'memory_disabled', null, null), ...store.audit],
+      audit: [
+        appendAudit(enabled ? 'memory_enabled' : 'memory_disabled', null, null),
+        ...store.audit,
+      ],
     })
   },
 

@@ -71,7 +71,9 @@ export function CrmDeals({ crm }: { readonly crm: UseCrmDataReturn }) {
           >
             <option value="">{x(M.crm_stage)}</option>
             {CRM_DEAL_STAGES.map((s) => (
-              <option key={s} value={s}>{x(M[`crm_stage_${s}` as keyof typeof M])}</option>
+              <option key={s} value={s}>
+                {x(M[`crm_stage_${s}` as keyof typeof M])}
+              </option>
             ))}
           </select>
           <button
@@ -86,62 +88,115 @@ export function CrmDeals({ crm }: { readonly crm: UseCrmDataReturn }) {
       </div>
 
       {showForm && (
-        <form onSubmit={onSubmit} className="mb-[8px] rounded-[10px] border border-border bg-inset p-[14px]">
+        <form
+          onSubmit={onSubmit}
+          className="mb-[8px] rounded-[10px] border border-border bg-inset p-[14px]"
+        >
           <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
             <div className="sm:col-span-2">
               <label className={labelClass}>{x(M.crm_title_deal)}</label>
-              <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputClass} required />
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className={inputClass}
+                required
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.crm_company)}</label>
-              <select value={companyId} onChange={(e) => { setCompanyId(e.target.value); setContactId('') }} className={inputClass}>
+              <select
+                value={companyId}
+                onChange={(e) => {
+                  setCompanyId(e.target.value)
+                  setContactId('')
+                }}
+                className={inputClass}
+              >
                 <option value="">{x(M.crm_no_company)}</option>
                 {crm.state.companies.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
               <label className={labelClass}>{x(M.crm_contact)}</label>
-              <select value={contactId} onChange={(e) => setContactId(e.target.value)} className={inputClass}>
+              <select
+                value={contactId}
+                onChange={(e) => setContactId(e.target.value)}
+                className={inputClass}
+              >
                 <option value="">{x(M.crm_no_contact)}</option>
                 {contactsForCompany.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
               <label className={labelClass}>{x(M.crm_stage)}</label>
-              <select value={stage} onChange={(e) => setStage(e.target.value as typeof CRM_DEAL_STAGES[number])} className={inputClass}>
+              <select
+                value={stage}
+                onChange={(e) => setStage(e.target.value as (typeof CRM_DEAL_STAGES)[number])}
+                className={inputClass}
+              >
                 {CRM_DEAL_STAGES.map((s) => (
-                  <option key={s} value={s}>{x(M[`crm_stage_${s}` as keyof typeof M])}</option>
+                  <option key={s} value={s}>
+                    {x(M[`crm_stage_${s}` as keyof typeof M])}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
               <label className={labelClass}>{x(M.crm_value)}</label>
-              <input type="number" value={value} onChange={(e) => setValue(e.target.value)} className={inputClass} />
+              <input
+                type="number"
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.crm_currency)}</label>
-              <input value={currency} onChange={(e) => setCurrency(e.target.value)} className={inputClass} />
+              <input
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.crm_close_date)}</label>
-              <input type="date" value={closeDate} onChange={(e) => setCloseDate(e.target.value)} className={inputClass} />
+              <input
+                type="date"
+                value={closeDate}
+                onChange={(e) => setCloseDate(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div className="sm:col-span-2">
               <label className={labelClass}>{x(M.crm_notes)}</label>
-              <input value={notes} onChange={(e) => setNotes(e.target.value)} className={inputClass} />
+              <input
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className={inputClass}
+              />
             </div>
           </div>
           <div className="mt-[14px] flex gap-[8px]">
-            <button type="submit" className="rounded-[8px] border-none bg-navy px-[14px] py-[8px] text-[13px] font-semibold text-white">
+            <button
+              type="submit"
+              className="rounded-[8px] border-none bg-navy px-[14px] py-[8px] text-[13px] font-semibold text-white"
+            >
               {x(M.crm_save)}
             </button>
             <button
               type="button"
-              onClick={() => { reset(); setShowForm(false) }}
+              onClick={() => {
+                reset()
+                setShowForm(false)
+              }}
               className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] font-semibold text-text"
             >
               {x(M.crm_cancel)}
@@ -164,7 +219,9 @@ export function CrmDeals({ crm }: { readonly crm: UseCrmDataReturn }) {
                 </div>
               </div>
               <div className="flex items-center gap-[8px]">
-                <span className="text-[13px] font-semibold text-text">${(deal.value ?? 0).toLocaleString()}</span>
+                <span className="text-[13px] font-semibold text-text">
+                  ${(deal.value ?? 0).toLocaleString()}
+                </span>
                 <span className="rounded-[6px] bg-inset px-[8px] py-[3px] text-[11px] font-semibold text-text-2">
                   {x(M[`crm_stage_${deal.stage}` as keyof typeof M])}
                 </span>

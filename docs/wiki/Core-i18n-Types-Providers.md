@@ -23,8 +23,6 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-
-
 This page documents the bilingual (English / French Canadian) internationalization system: the foundational types (`Bi`, `Lang`, `LText`), the factory and helper functions, the `useI18n()` hook, the two language providers (`LangProvider` and `ForcedLangProvider`), the `buildLangContextValue` factory with graceful degradation, and the HTML `lang` tag strategy.
 
 ## Type System Overview
@@ -55,11 +53,11 @@ The `bi()` factory constructs `Bi` values concisely:
 
 ### Helper Functions
 
-| Function | Signature | Purpose |
-|---|---|---|
-| `pick` | `(value: Bi, lang: Lang) => string` | Resolves one side of a `Bi` |
-| `pickL` | `(value: LText, lang: Lang) => string` | Resolves a plain string passthrough or a `Bi` |
-| `keyOfL` | `(value: LText) => string` | Stable React key: returns the string itself, or `value.en` for a `Bi` |
+| Function         | Signature                                          | Purpose                                                                                                         |
+| ---------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `pick`           | `(value: Bi, lang: Lang) => string`                | Resolves one side of a `Bi`                                                                                     |
+| `pickL`          | `(value: LText, lang: Lang) => string`             | Resolves a plain string passthrough or a `Bi`                                                                   |
+| `keyOfL`         | `(value: LText) => string`                         | Stable React key: returns the string itself, or `value.en` for a `Bi`                                           |
 | `defineMessages` | `<T extends Record<string, Bi>>(messages: T) => T` | Identity function that pins a message module to `Record<key, Bi>` while preserving literal keys for full typing |
 
 [src/i18n/core.ts:20-22]() — `pick`
@@ -114,13 +112,13 @@ Sources: [src/i18n/core.ts:1-39](), [src/i18n/messages/index.ts:86-92](), [src/i
 
 The `useI18n()` hook is the single consumer-facing API for all i18n resolution. It reads from `LangContext` and returns a `LangContextValue` with five members:
 
-| Member | Type | Description |
-|---|---|---|
-| `lang` | `Lang` | Current active language (`'en'` or `'fr'`) |
-| `setLang` | `(lang: Lang) => void` | Switch language — behavior differs by provider |
-| `t` | `(key: MessageKey) => string` | Look up a UI-chrome string by message key |
-| `L` | `(en: string, fr: string) => string` | Inline bilingual pair — `L('Hello', 'Bonjour')` |
-| `x` | `(value: Bi) => string` | Resolve a bilingual data field |
+| Member    | Type                                 | Description                                     |
+| --------- | ------------------------------------ | ----------------------------------------------- |
+| `lang`    | `Lang`                               | Current active language (`'en'` or `'fr'`)      |
+| `setLang` | `(lang: Lang) => void`               | Switch language — behavior differs by provider  |
+| `t`       | `(key: MessageKey) => string`        | Look up a UI-chrome string by message key       |
+| `L`       | `(en: string, fr: string) => string` | Inline bilingual pair — `L('Hello', 'Bonjour')` |
+| `x`       | `(value: Bi) => string`              | Resolve a bilingual data field                  |
 
 An optional `alternateHref` property is exposed on public pages for the language toggle to render a crawlable cross-language link.
 
@@ -204,6 +202,7 @@ Used for `/app/...` routes. Language follows the persisted `dutiva-lang` localSt
 [src/i18n/LangProvider.tsx:26-44]()
 
 Key behavior:
+
 1. Reads initial language from `readLang()` which checks `localStorage` via the safe `readPref` wrapper (defaults to `'en'`)
 2. On language change, calls `writeLang()` to persist the preference, then `setLang()` to trigger re-render
 3. Sets `document.documentElement.lang` to the BCP 47 tag via `useEffect`
@@ -227,6 +226,7 @@ Used for all public marketing routes. The URL is the source of truth: `/fr/...` 
 [src/i18n/ForcedLangProvider.tsx:22-57]()
 
 Key behavior:
+
 1. Receives `lang` as a prop from the route structure (determined by `PublicShell`)
 2. "Switching language" means **navigating** to the alternate URL via the SEO route registry (`alternatePathFor`)
 3. Still calls `writeLang()` so the app surface follows the visitor's last explicit choice
@@ -274,9 +274,9 @@ Sources: [src/i18n/lang.ts:37-60](), [src/i18n/messages/index.ts:77-83]()
 Both providers set `document.documentElement.lang` to BCP 47 Canadian locale tags via `useEffect`:
 
 | `Lang` value | HTML tag |
-|---|---|
-| `'en'` | `en-CA` |
-| `'fr'` | `fr-CA` |
+| ------------ | -------- |
+| `'en'`       | `en-CA`  |
+| `'fr'`       | `fr-CA`  |
 
 The mapping is defined as:
 
@@ -337,12 +337,12 @@ Sources: [src/i18n/messages/index.ts:1-92](), [src/i18n/messages/workspace.ts:1-
 
 ### Catalogue Composition
 
-| Group | File | Module count | Consumer |
-|---|---|---|---|
-| Workspace-only | `workspace.ts` | 29 | `LangProvider` (via merged `messages`) |
-| Marketing-only | `marketing.ts` | 10 | `ForcedLangProvider` |
-| Shared | `shared.ts` | 4 (`common`, `landing`, `support`, `helpCenter`) | Both providers |
-| Full merged | `index.ts` | All | Tests, `LangProvider` |
+| Group          | File           | Module count                                     | Consumer                               |
+| -------------- | -------------- | ------------------------------------------------ | -------------------------------------- |
+| Workspace-only | `workspace.ts` | 29                                               | `LangProvider` (via merged `messages`) |
+| Marketing-only | `marketing.ts` | 10                                               | `ForcedLangProvider`                   |
+| Shared         | `shared.ts`    | 4 (`common`, `landing`, `support`, `helpCenter`) | Both providers                         |
+| Full merged    | `index.ts`     | All                                              | Tests, `LangProvider`                  |
 
 The shared group contains `landing` because plan copy in `src/config/plans.ts` references `landing_*` keys, and the workspace's `PlanGate` resolves those through `t()`.
 
@@ -414,12 +414,12 @@ Sources: [src/app/appSurface.tsx:56-68](), [src/features/app/AppProviders.tsx:25
 
 `LText` (`string | Bi`) is used extensively in the Advisor system and rail for content that must survive re-renders across language toggles:
 
-| Module | Usage |
-|---|---|
-| `AdvisorTurnSpec` | `text: LText`, `reasoning?: LText[]`, card labels | 
-| `ChatMessage` | `text: LText`, `userChips?: LText[]`, `errorText?: LText` |
-| `RailHead` | `title: LText` |
-| `ToneCardData` | `title: LText`, `body: LText`, `confidence?: LText` |
+| Module            | Usage                                                     |
+| ----------------- | --------------------------------------------------------- |
+| `AdvisorTurnSpec` | `text: LText`, `reasoning?: LText[]`, card labels         |
+| `ChatMessage`     | `text: LText`, `userChips?: LText[]`, `errorText?: LText` |
+| `RailHead`        | `title: LText`                                            |
+| `ToneCardData`    | `title: LText`, `body: LText`, `confidence?: LText`       |
 
 [src/features/app/advisor/types.ts:1]() — imports `LText`
 [src/features/app/advisor/types.ts:39-51]() — `AdvisorTurnSpec` uses `LText`
@@ -473,20 +473,20 @@ Sources: [src/i18n/i18n.test.tsx:1-77](), [src/i18n/messages/scopes.test.ts:1-78
 
 ## File Inventory
 
-| File | Role |
-|---|---|
-| `src/i18n/core.ts` | `Bi`, `Lang`, `LText`, `bi()`, `pick()`, `pickL()`, `keyOfL()`, `defineMessages()` |
-| `src/i18n/context.ts` | `LangContext`, `LangContextValue` interface, `useI18n()` hook |
-| `src/i18n/lang.ts` | `LANG_KEY`, `HTML_LANG`, `readLang()`, `writeLang()`, `buildLangContextValue()` |
-| `src/i18n/LangProvider.tsx` | Preference-scoped provider for `/app` routes |
-| `src/i18n/ForcedLangProvider.tsx` | URL-scoped provider for marketing routes |
-| `src/i18n/messages/index.ts` | Merged catalogue, `MessageKey` type |
-| `src/i18n/messages/workspace.ts` | Workspace catalogue (29 modules + shared) |
-| `src/i18n/messages/marketing.ts` | Marketing catalogue (10 modules + shared) |
-| `src/i18n/messages/shared.ts` | Dual-surface modules (common, landing, support, helpCenter) |
-| `src/i18n/messages/scopes.test.ts` | Compile-time disjointness guards |
-| `src/i18n/i18n.test.tsx` | Unit tests for providers and catalogue |
-| `src/lib/prefs.ts` | Safe localStorage wrapper used by `readLang`/`writeLang` |
+| File                               | Role                                                                               |
+| ---------------------------------- | ---------------------------------------------------------------------------------- |
+| `src/i18n/core.ts`                 | `Bi`, `Lang`, `LText`, `bi()`, `pick()`, `pickL()`, `keyOfL()`, `defineMessages()` |
+| `src/i18n/context.ts`              | `LangContext`, `LangContextValue` interface, `useI18n()` hook                      |
+| `src/i18n/lang.ts`                 | `LANG_KEY`, `HTML_LANG`, `readLang()`, `writeLang()`, `buildLangContextValue()`    |
+| `src/i18n/LangProvider.tsx`        | Preference-scoped provider for `/app` routes                                       |
+| `src/i18n/ForcedLangProvider.tsx`  | URL-scoped provider for marketing routes                                           |
+| `src/i18n/messages/index.ts`       | Merged catalogue, `MessageKey` type                                                |
+| `src/i18n/messages/workspace.ts`   | Workspace catalogue (29 modules + shared)                                          |
+| `src/i18n/messages/marketing.ts`   | Marketing catalogue (10 modules + shared)                                          |
+| `src/i18n/messages/shared.ts`      | Dual-surface modules (common, landing, support, helpCenter)                        |
+| `src/i18n/messages/scopes.test.ts` | Compile-time disjointness guards                                                   |
+| `src/i18n/i18n.test.tsx`           | Unit tests for providers and catalogue                                             |
+| `src/lib/prefs.ts`                 | Safe localStorage wrapper used by `readLang`/`writeLang`                           |
 
 Sources: all files listed above.
 

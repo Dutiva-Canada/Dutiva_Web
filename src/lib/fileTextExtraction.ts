@@ -6,7 +6,8 @@
  * round-trip for text extraction.
  */
 
-export type ExtractionErrorReason = 'unsupported_type' | 'empty_file' | 'too_large' | 'corrupt' | 'read_failed'
+export type ExtractionErrorReason =
+  'unsupported_type' | 'empty_file' | 'too_large' | 'corrupt' | 'read_failed'
 
 export class ResumeExtractionError extends Error {
   constructor(
@@ -38,14 +39,18 @@ function assertValidFile(file: File): void {
 
   if (file.size === 0) throw new ResumeExtractionError('empty_file', 'The file is empty.')
   if (file.size > MAX_BYTES) {
-    throw new ResumeExtractionError('too_large', `The file is too large (max ${MAX_BYTES / 1024 / 1024} MB).`)
+    throw new ResumeExtractionError(
+      'too_large',
+      `The file is too large (max ${MAX_BYTES / 1024 / 1024} MB).`,
+    )
   }
 }
 
 function readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
-    reader.onerror = () => reject(new ResumeExtractionError('read_failed', 'Could not read the file.'))
+    reader.onerror = () =>
+      reject(new ResumeExtractionError('read_failed', 'Could not read the file.'))
     reader.onload = () => resolve(reader.result as ArrayBuffer)
     reader.readAsArrayBuffer(file)
   })
@@ -69,14 +74,21 @@ async function extractTextFromPdf(data: ArrayBuffer): Promise<string> {
   try {
     pdf = await pdfjs.getDocument({ data }).promise
   } catch {
-    throw new ResumeExtractionError('corrupt', 'The PDF could not be opened — it may be corrupt or password-protected.')
+    throw new ResumeExtractionError(
+      'corrupt',
+      'The PDF could not be opened — it may be corrupt or password-protected.',
+    )
   }
 
   const pages: string[] = []
   for (let n = 1; n <= pdf.numPages; n++) {
     const page = await pdf.getPage(n)
     const textContent = await page.getTextContent()
-    pages.push(pageItemsToText(textContent.items as Array<{ str?: string; hasEOL?: boolean; type?: string }>))
+    pages.push(
+      pageItemsToText(
+        textContent.items as Array<{ str?: string; hasEOL?: boolean; type?: string }>,
+      ),
+    )
   }
   return pages.join('\n\n').trim()
 }
@@ -97,7 +109,10 @@ async function extractTextFromDocx(data: ArrayBuffer): Promise<string> {
 
   const xml = await zip.file('word/document.xml')?.async('text')
   if (!xml) {
-    throw new ResumeExtractionError('corrupt', 'The DOCX does not contain a readable document body.')
+    throw new ResumeExtractionError(
+      'corrupt',
+      'The DOCX does not contain a readable document body.',
+    )
   }
 
   const parser = new DOMParser()

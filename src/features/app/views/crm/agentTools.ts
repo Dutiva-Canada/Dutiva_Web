@@ -2,11 +2,7 @@ import { bi } from '@/i18n/core'
 import { agentMessages as M } from '@/i18n/messages/agent'
 import { defineTool } from '@/features/app/agent/registry'
 import { findByName, ok, str, today } from '@/features/app/agent/match'
-import {
-  CRM_ACTIVITY_TYPES,
-  CRM_CONTACT_STATUSES,
-  CRM_DEAL_STAGES,
-} from './crmUtils'
+import { CRM_ACTIVITY_TYPES, CRM_CONTACT_STATUSES, CRM_DEAL_STAGES } from './crmUtils'
 import type { UseCrmDataReturn } from './useCrmData'
 import type { CrmActivityType, CrmContactStatus, CrmDealStage } from './types'
 
@@ -106,7 +102,8 @@ defineTool<CrmCtx>({
     const now = today()
     const horizon = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
     const due = crm.state.activities.filter(
-      (activity) => activity.followUpDate && activity.followUpDate >= now && activity.followUpDate <= horizon,
+      (activity) =>
+        activity.followUpDate && activity.followUpDate >= now && activity.followUpDate <= horizon,
     )
     if (due.length === 0) {
       return { status: 'completed', message: M.agent_crm_result_no_followups }
@@ -132,7 +129,13 @@ defineTool<CrmCtx>({
   label: M.agent_crm_add_contact_label,
   description: M.agent_crm_add_contact_desc,
   params: [
-    { name: 'name', type: 'string', required: true, description: M.agent_crm_p_name, maxLength: 120 },
+    {
+      name: 'name',
+      type: 'string',
+      required: true,
+      description: M.agent_crm_p_name,
+      maxLength: 120,
+    },
     { name: 'email', type: 'string', description: M.agent_crm_p_email, maxLength: 200 },
     { name: 'phone', type: 'string', description: M.agent_crm_p_phone, maxLength: 40 },
     { name: 'company', type: 'string', description: M.agent_crm_p_company, maxLength: 160 },
@@ -203,10 +206,7 @@ defineTool<CrmCtx>({
       summary: bi(text, text),
       followUpDate: str(params, 'followUpDate'),
     })
-    return ok(
-      { en: `Activity logged — ${text}.`, fr: `Activité consignée — ${text}.` },
-      created.id,
-    )
+    return ok({ en: `Activity logged — ${text}.`, fr: `Activité consignée — ${text}.` }, created.id)
   },
 })
 
@@ -248,7 +248,10 @@ defineTool<CrmCtx>({
       return { status: 'failed', message: M.agent_err_failed }
     }
     return ok(
-      { en: `Deal moved — ${updated.title} → ${stage}.`, fr: `Occasion déplacée — ${updated.title} → ${stage}.` },
+      {
+        en: `Deal moved — ${updated.title} → ${stage}.`,
+        fr: `Occasion déplacée — ${updated.title} → ${stage}.`,
+      },
       updated.id,
     )
   },

@@ -9,7 +9,11 @@ import type { ChipTone } from '@/components/chips'
 import { employees, memoryPeople } from '@/data'
 import type { MemoryPersonChip } from '@/data'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
-import { useWorkspaceNavigate, useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
+import {
+  useWorkspaceNavigate,
+  useWorkspaceRoot,
+  workspacePath,
+} from '@/features/app/workspaceRoot/workspaceRootContext'
 import { CATEGORY_LABELS, PERSON_CATEGORY_ORDER } from './memoryModel'
 import { memoryScenarioTodayISO } from '@/data'
 import { MemoryFactRow } from './MemoryFactRow'
@@ -49,7 +53,10 @@ export function PersonMemoryDemoView() {
     .join(' · ')
 
   const mine = facts.filter(
-    (f) => f.scope === 'person' && f.entityId === person.id && (f.status ?? (f.confidence === 'confirmed' ? 'confirmed' : 'proposed')) !== 'removed',
+    (f) =>
+      f.scope === 'person' &&
+      f.entityId === person.id &&
+      (f.status ?? (f.confidence === 'confirmed' ? 'confirmed' : 'proposed')) !== 'removed',
   )
   const inferredCount = mine.filter((f) => f.confidence === 'inferred').length
   const groups = PERSON_CATEGORY_ORDER.map((category) => ({

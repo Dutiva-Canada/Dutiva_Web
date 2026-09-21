@@ -26,9 +26,10 @@ export interface AgentActionCardProps {
 }
 
 function outcomeLine(outcome: AgentToolOutcome, lang: 'en' | 'fr'): string {
-  const detail = outcome.status === 'failed' && outcome.detail !== undefined
-    ? ` — ${pickL(outcome.detail, lang)}`
-    : ''
+  const detail =
+    outcome.status === 'failed' && outcome.detail !== undefined
+      ? ` — ${pickL(outcome.detail, lang)}`
+      : ''
   return `${pickL(outcome.message, lang)}${detail}`
 }
 
@@ -67,12 +68,20 @@ export function AgentActionCard({ proposal }: AgentActionCardProps) {
           {x(M.agent_action_eyebrow)}
         </div>
         <span className="ml-auto rounded-[100px] border border-(--accent-soft-border) bg-surface px-[8px] py-[1px] text-[10.5px] font-semibold text-text-3">
-          {x(tier === 'read' ? M.agent_tier_read : tier === 'draft' ? M.agent_tier_draft : M.agent_tier_commit)}
+          {x(
+            tier === 'read'
+              ? M.agent_tier_read
+              : tier === 'draft'
+                ? M.agent_tier_draft
+                : M.agent_tier_commit,
+          )}
         </span>
       </div>
 
       <div className="text-[13.5px] font-bold text-text">{title}</div>
-      <div className="text-[13.5px] leading-[1.55] text-text-2">{pickL(proposal.summary, lang)}</div>
+      <div className="text-[13.5px] leading-[1.55] text-text-2">
+        {pickL(proposal.summary, lang)}
+      </div>
 
       {params.length > 0 && (
         <dl className="m-0 flex flex-col gap-[3px] border-t border-(--accent-soft-border) pt-[8px] text-[12px] text-text-3">
@@ -91,7 +100,12 @@ export function AgentActionCard({ proposal }: AgentActionCardProps) {
             outcome.status === 'completed' ? 'text-accent' : 'text-risk-fg'
           }`}
         >
-          <CircleCheck size={14} strokeWidth={1.8} className="mt-[1px] shrink-0" aria-hidden="true" />
+          <CircleCheck
+            size={14}
+            strokeWidth={1.8}
+            className="mt-[1px] shrink-0"
+            aria-hidden="true"
+          />
           <span>{outcomeLine(outcome, lang)}</span>
         </div>
       ) : (
@@ -105,7 +119,13 @@ export function AgentActionCard({ proposal }: AgentActionCardProps) {
             {state === 'executing' && (
               <LoaderCircle size={13} className="animate-spin" aria-hidden="true" />
             )}
-            {x(state === 'executing' ? M.agent_working : tier === 'read' ? M.agent_run : M.agent_confirm)}
+            {x(
+              state === 'executing'
+                ? M.agent_working
+                : tier === 'read'
+                  ? M.agent_run
+                  : M.agent_confirm,
+            )}
           </button>
           <button
             type="button"

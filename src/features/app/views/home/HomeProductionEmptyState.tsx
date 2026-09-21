@@ -140,7 +140,10 @@ export function HomeProductionEmptyState({
       </ol>
 
       <p className="m-0 mb-[22px] text-[12.5px] leading-[1.5] text-text-muted">
-        <Link to={workspacePath(root, 'settings')} className="font-semibold text-accent hover:opacity-80">
+        <Link
+          to={workspacePath(root, 'settings')}
+          className="font-semibold text-accent hover:opacity-80"
+        >
           {x(M.home_production_demo_link)}
         </Link>
       </p>

@@ -18,7 +18,10 @@ export const initialCrmState: CrmState = {
       domain: 'lakeside-mfg.ca',
       industry: 'Manufacturing',
       size: '50–200',
-      notes: bi('Looking for HR policy refresh and advisor access.', 'À la recherche d’une mise à jour des politiques RH et d’un accès conseiller.'),
+      notes: bi(
+        'Looking for HR policy refresh and advisor access.',
+        'À la recherche d’une mise à jour des politiques RH et d’un accès conseiller.',
+      ),
     },
     {
       id: 'company-2',
@@ -26,7 +29,10 @@ export const initialCrmState: CrmState = {
       domain: 'ccg.qc.ca',
       industry: 'Consulting',
       size: '10–50',
-      notes: bi('Referral from existing customer; evaluating team plan.', 'Référence d’un client existant; évalue le plan équipe.'),
+      notes: bi(
+        'Referral from existing customer; evaluating team plan.',
+        'Référence d’un client existant; évalue le plan équipe.',
+      ),
     },
     {
       id: 'company-3',
@@ -45,7 +51,10 @@ export const initialCrmState: CrmState = {
       companyId: 'company-1',
       role: 'HR Director',
       status: 'prospect',
-      notes: bi('Met at Ontario HR summit; follow-up scheduled.', 'Rencontrée au sommet RH de l’Ontario; suivi planifié.'),
+      notes: bi(
+        'Met at Ontario HR summit; follow-up scheduled.',
+        'Rencontrée au sommet RH de l’Ontario; suivi planifié.',
+      ),
     },
     {
       id: 'contact-2',
@@ -76,7 +85,10 @@ export const initialCrmState: CrmState = {
       value: 4800,
       currency: 'CAD',
       closeDate: '2026-10-15',
-      notes: bi('Security review pending; reference check requested.', 'Examen de sécurité en cours; vérification de référence demandée.'),
+      notes: bi(
+        'Security review pending; reference check requested.',
+        'Examen de sécurité en cours; vérification de référence demandée.',
+      ),
     },
     {
       id: 'deal-2',
@@ -87,7 +99,10 @@ export const initialCrmState: CrmState = {
       value: 3600,
       currency: 'CAD',
       closeDate: '2026-09-30',
-      notes: bi('Waiting on internal budget approval.', 'En attente de l’approbation budgétaire interne.'),
+      notes: bi(
+        'Waiting on internal budget approval.',
+        'En attente de l’approbation budgétaire interne.',
+      ),
     },
     {
       id: 'deal-3',
@@ -109,7 +124,10 @@ export const initialCrmState: CrmState = {
       dealId: 'deal-1',
       type: 'meeting',
       date: '2026-09-05',
-      summary: bi('Demoed the Advisor and document studio; questions on RTO policy.', 'Démonstration du Conseiller et du studio de documents; questions sur la politique de retour au bureau.'),
+      summary: bi(
+        'Demoed the Advisor and document studio; questions on RTO policy.',
+        'Démonstration du Conseiller et du studio de documents; questions sur la politique de retour au bureau.',
+      ),
       followUpDate: inDays(3),
     },
     {
@@ -118,7 +136,10 @@ export const initialCrmState: CrmState = {
       companyId: 'company-2',
       type: 'email',
       date: '2026-09-06',
-      summary: bi('Sent pricing page and calendar link.', 'Envoyé la page de tarification et le lien de calendrier.'),
+      summary: bi(
+        'Sent pricing page and calendar link.',
+        'Envoyé la page de tarification et le lien de calendrier.',
+      ),
       followUpDate: inDays(5),
     },
     {
@@ -128,7 +149,10 @@ export const initialCrmState: CrmState = {
       dealId: 'deal-3',
       type: 'call',
       date: '2026-09-04',
-      summary: bi('Renewal call; customer is happy but wants volume pricing.', 'Appel de renouvellement; client satisfait mais veut un prix de volume.'),
+      summary: bi(
+        'Renewal call; customer is happy but wants volume pricing.',
+        'Appel de renouvellement; client satisfait mais veut un prix de volume.',
+      ),
     },
   ],
 } as const

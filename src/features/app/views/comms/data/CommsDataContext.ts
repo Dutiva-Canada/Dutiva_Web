@@ -30,7 +30,10 @@ export interface CommsDataContextValue {
   updateInitiative: (id: string, patch: Partial<CommsInitiative>) => Promise<CommsInitiative | null>
   removeInitiative: (id: string) => Promise<void>
   addContentItem: (item: Omit<CommsContentItem, 'id'>) => Promise<CommsContentItem | null>
-  updateContentItem: (id: string, patch: Partial<CommsContentItem>) => Promise<CommsContentItem | null>
+  updateContentItem: (
+    id: string,
+    patch: Partial<CommsContentItem>,
+  ) => Promise<CommsContentItem | null>
   removeContentItem: (id: string) => Promise<void>
   transitionDeliveryStatus: (
     contentItemId: string,
@@ -38,8 +41,16 @@ export interface CommsDataContextValue {
     actor: string,
     note?: string,
   ) => Promise<CommsContentItem | null>
-  recordManualReceipt: (contentItemId: string, actor: string, note?: string) => Promise<CommsContentItem | null>
-  toggleInitiativePause: (initiativeId: string, paused: boolean, actor: string) => Promise<CommsInitiative | null>
+  recordManualReceipt: (
+    contentItemId: string,
+    actor: string,
+    note?: string,
+  ) => Promise<CommsContentItem | null>
+  toggleInitiativePause: (
+    initiativeId: string,
+    paused: boolean,
+    actor: string,
+  ) => Promise<CommsInitiative | null>
   addSource: (item: Omit<CommsSource, 'id'>) => Promise<CommsSource | null>
   updateSource: (id: string, patch: Partial<CommsSource>) => Promise<CommsSource | null>
   removeSource: (id: string) => Promise<void>
@@ -49,7 +60,10 @@ export interface CommsDataContextValue {
   syncFeed: (feedId: string) => Promise<FeedSyncResult>
   syncAllFeeds: () => Promise<({ feedId: string } & FeedSyncResult)[]>
   addCoverageItem: (item: Omit<CommsCoverageItem, 'id'>) => Promise<CommsCoverageItem | null>
-  updateCoverageItem: (id: string, patch: Partial<CommsCoverageItem>) => Promise<CommsCoverageItem | null>
+  updateCoverageItem: (
+    id: string,
+    patch: Partial<CommsCoverageItem>,
+  ) => Promise<CommsCoverageItem | null>
   removeCoverageItem: (id: string) => Promise<void>
   addSubmission: (item: Omit<CommsSubmission, 'id'>) => Promise<CommsSubmission | null>
   updateSubmission: (id: string, patch: Partial<CommsSubmission>) => Promise<CommsSubmission | null>
@@ -68,10 +82,16 @@ export interface CommsDataContextValue {
   updateContact: (id: string, patch: Partial<CommsContact>) => Promise<CommsContact | null>
   removeContact: (id: string) => Promise<void>
   addOrganization: (item: Omit<CommsOrganization, 'id'>) => Promise<CommsOrganization | null>
-  updateOrganization: (id: string, patch: Partial<CommsOrganization>) => Promise<CommsOrganization | null>
+  updateOrganization: (
+    id: string,
+    patch: Partial<CommsOrganization>,
+  ) => Promise<CommsOrganization | null>
   removeOrganization: (id: string) => Promise<void>
   addInteraction: (item: Omit<CommsInteraction, 'id'>) => Promise<CommsInteraction | null>
-  updateInteraction: (id: string, patch: Partial<CommsInteraction>) => Promise<CommsInteraction | null>
+  updateInteraction: (
+    id: string,
+    patch: Partial<CommsInteraction>,
+  ) => Promise<CommsInteraction | null>
   removeInteraction: (id: string) => Promise<void>
   addPolicyFile: (item: Omit<CommsPolicyFile, 'id'>) => Promise<CommsPolicyFile | null>
   removePolicyFile: (id: string) => Promise<void>
@@ -85,7 +105,10 @@ export interface CommsDataContextValue {
   updateObjective: (id: string, patch: Partial<CommsObjective>) => Promise<CommsObjective | null>
   removeObjective: (id: string) => Promise<void>
   addIntegration: (item: Omit<CommsIntegration, 'id'>) => Promise<CommsIntegration | null>
-  updateIntegration: (id: string, patch: Partial<CommsIntegration>) => Promise<CommsIntegration | null>
+  updateIntegration: (
+    id: string,
+    patch: Partial<CommsIntegration>,
+  ) => Promise<CommsIntegration | null>
   removeIntegration: (id: string) => Promise<void>
   updateUsageControls: (controls: Partial<CommsUsageControls>) => Promise<CommsUsageControls | null>
 }

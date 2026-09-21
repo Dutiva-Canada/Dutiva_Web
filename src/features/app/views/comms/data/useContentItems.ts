@@ -17,9 +17,16 @@ export interface UseContentItemsResult {
   loading: boolean
   canWrite: boolean
   addContentItem: (item: Omit<CommsContentItem, 'id'>) => Promise<CommsContentItem | null>
-  updateContentItem: (id: string, patch: Partial<CommsContentItem>) => Promise<CommsContentItem | null>
+  updateContentItem: (
+    id: string,
+    patch: Partial<CommsContentItem>,
+  ) => Promise<CommsContentItem | null>
   removeContentItem: (id: string) => Promise<void>
-  transitionDeliveryStatus: (id: string, action: CommsExecutionAction, note?: Bi) => Promise<CommsContentItem | null>
+  transitionDeliveryStatus: (
+    id: string,
+    action: CommsExecutionAction,
+    note?: Bi,
+  ) => Promise<CommsContentItem | null>
   refresh: () => Promise<void>
 }
 
@@ -28,7 +35,9 @@ export function useContentItems(): UseContentItemsResult {
   const { showToast } = useToasts()
   const isProduction = mode === 'production' && organizationId != null
 
-  const [contentItems, setContentItems] = useState<CommsContentItem[]>(initialCommsState.contentItems)
+  const [contentItems, setContentItems] = useState<CommsContentItem[]>(
+    initialCommsState.contentItems,
+  )
   const [loading, setLoading] = useState(false)
 
   const load = useCallback(async () => {
@@ -107,7 +116,10 @@ export function useContentItems(): UseContentItemsResult {
         }
         return updated
       } catch (err) {
-        showToast(err instanceof Error ? err.message : 'Failed to transition delivery status', 'info')
+        showToast(
+          err instanceof Error ? err.message : 'Failed to transition delivery status',
+          'info',
+        )
         return null
       }
     },

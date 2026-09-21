@@ -15,7 +15,10 @@ export interface UseSubmissionsResult {
   loading: boolean
   canWrite: boolean
   addSubmission: (item: Omit<CommsSubmission, 'id'>) => Promise<CommsSubmission | null>
-  transitionSubmissionStatus: (id: string, nextStatus: CommsSubmissionStatus) => Promise<CommsSubmission | null>
+  transitionSubmissionStatus: (
+    id: string,
+    nextStatus: CommsSubmissionStatus,
+  ) => Promise<CommsSubmission | null>
   removeSubmission: (id: string) => Promise<void>
   refresh: () => Promise<void>
 }

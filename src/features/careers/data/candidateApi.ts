@@ -48,10 +48,7 @@ export interface CandidateProfileInput {
 export async function getMyCandidateProfile(): Promise<CandidateProfile | null> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
-  const { data, error } = await client
-    .from('candidate_profiles')
-    .select('*')
-    .maybeSingle()
+  const { data, error } = await client.from('candidate_profiles').select('*').maybeSingle()
   if (error) throw error
   if (!data) return null
   return toProfile(data)

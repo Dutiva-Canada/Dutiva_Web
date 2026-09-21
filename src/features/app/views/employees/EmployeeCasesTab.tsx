@@ -18,9 +18,7 @@ function SectionHeading({ text }: { readonly text: string }) {
   )
 }
 
-export function EmployeeCasesTab({
-  openCases,
-}: Readonly<{ openCases: ProductionCase[] }>) {
+export function EmployeeCasesTab({ openCases }: Readonly<{ openCases: ProductionCase[] }>) {
   const { x } = useI18n()
   return (
     <>

@@ -6,11 +6,7 @@ import type { AgentToolExecution } from '@/features/app/agent/types'
 /* Registers the six operations tools on import — the module under test. */
 import './agentTools'
 import type { OperationsAgentContext } from './agentTools'
-import type {
-  OperationsLogistics,
-  OperationsProject,
-  OperationsVendor,
-} from './data/types'
+import type { OperationsLogistics, OperationsProject, OperationsVendor } from './data/types'
 
 const DEMO: AgentToolExecution = { mode: 'demo', role: null, organizationId: null }
 

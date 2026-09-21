@@ -74,7 +74,10 @@ export function useRemoveCallback<T extends { id: string }>(
       if (!isLive || !orgId) return
       try {
         await removeFn(orgId, id)
-        setState((prev) => ({ ...prev, [key]: (prev[key] as T[]).filter((item) => item.id !== id) }))
+        setState((prev) => ({
+          ...prev,
+          [key]: (prev[key] as T[]).filter((item) => item.id !== id),
+        }))
       } catch {
         // keep current state on failure
       }

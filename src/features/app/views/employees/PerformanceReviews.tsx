@@ -4,14 +4,23 @@ import { useI18n } from '@/i18n/context'
 import { employeesMessages as M } from '@/i18n/messages/employees'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import type { ProductionEmployee, ProductionPerformanceReview } from './productionApi'
-import { addPerformanceReview, listEmployeePerformanceReviews, removePerformanceReview } from './productionApi'
+import {
+  addPerformanceReview,
+  listEmployeePerformanceReviews,
+  removePerformanceReview,
+} from './productionApi'
 
-const RATINGS: ProductionPerformanceReview['rating'][] = ['exceeds', 'meets', 'needs_improvement', 'unrated']
+const RATINGS: ProductionPerformanceReview['rating'][] = [
+  'exceeds',
+  'meets',
+  'needs_improvement',
+  'unrated',
+]
 
 const RATING_LABELS: Record<ProductionPerformanceReview['rating'], keyof typeof M> = {
   exceeds: 'employees_rating_exceeds',
   meets: 'employees_rating_meets',
-  'needs_improvement': 'employees_rating_needs_improvement',
+  needs_improvement: 'employees_rating_needs_improvement',
   unrated: 'employees_rating_unrated',
 }
 
@@ -81,7 +90,9 @@ export function PerformanceReviews({
         notes: notes.trim(),
         nextReviewDate: nextReviewDate || null,
       })
-      setReviews((prev) => [added, ...prev].sort((a, b) => b.reviewDate.localeCompare(a.reviewDate)))
+      setReviews((prev) =>
+        [added, ...prev].sort((a, b) => b.reviewDate.localeCompare(a.reviewDate)),
+      )
       reset()
       showToast(M.employees_prod_review_added, 'ok')
     } catch {
@@ -127,13 +138,19 @@ export function PerformanceReviews({
                 </div>
                 <div className="mt-[2px] text-[12px] text-text-muted">
                   {x(M[RATING_LABELS[review.rating]])}
-                  {review.nextReviewDate ? ` · ${x(M.employees_prod_review_next)} ${review.nextReviewDate}` : null}
+                  {review.nextReviewDate
+                    ? ` · ${x(M.employees_prod_review_next)} ${review.nextReviewDate}`
+                    : null}
                 </div>
                 {review.goals ? (
-                  <div className="mt-[6px] text-[13px] leading-relaxed text-text-2">{review.goals}</div>
+                  <div className="mt-[6px] text-[13px] leading-relaxed text-text-2">
+                    {review.goals}
+                  </div>
                 ) : null}
                 {review.notes ? (
-                  <div className="mt-[4px] text-[13px] leading-relaxed text-text-3">{review.notes}</div>
+                  <div className="mt-[4px] text-[13px] leading-relaxed text-text-3">
+                    {review.notes}
+                  </div>
                 ) : null}
               </div>
               {isOrgAdmin && (
@@ -152,7 +169,10 @@ export function PerformanceReviews({
       )}
 
       {isOrgAdmin && (
-        <form onSubmit={(e) => void onSubmit(e)} className="rounded-[12px] border border-border bg-surface p-[16px]">
+        <form
+          onSubmit={(e) => void onSubmit(e)}
+          className="rounded-[12px] border border-border bg-surface p-[16px]"
+        >
           <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
             <div>
               <label className={labelClass}>{x(M.employees_prod_review_date)}</label>

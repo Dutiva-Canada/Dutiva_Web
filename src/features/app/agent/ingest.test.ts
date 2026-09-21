@@ -43,9 +43,7 @@ const LOG_CALL: ProposedAction = {
 
 describe('proposalsFromAdvisorResponse', () => {
   it('maps a gated-on action into a proposal with a client-minted id', () => {
-    const proposals = proposalsFromAdvisorResponse(
-      makeResponse({ proposedActions: [LOG_CALL] }),
-    )
+    const proposals = proposalsFromAdvisorResponse(makeResponse({ proposedActions: [LOG_CALL] }))
     expect(proposals).toHaveLength(1)
     expect(proposals[0]?.toolId).toBe('crm.log_activity')
     expect(proposals[0]?.id).toMatch(/^agent-/)
@@ -100,10 +98,7 @@ describe('proposalsFromAdvisorResponse', () => {
   it('drops actions naming tools the client registry does not know', () => {
     const proposals = proposalsFromAdvisorResponse(
       makeResponse({
-        proposedActions: [
-          LOG_CALL,
-          { toolId: 'payroll.run', summary: 'Run payroll', params: {} },
-        ],
+        proposedActions: [LOG_CALL, { toolId: 'payroll.run', summary: 'Run payroll', params: {} }],
       }),
     )
     expect(proposals).toHaveLength(1)

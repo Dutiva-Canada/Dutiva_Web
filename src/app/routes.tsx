@@ -163,7 +163,7 @@ function NotFoundRoute() {
  *                          isn't the one allowed account back to /app/welcome)
  *   /app/<view>            the 16 workspace views
  *   /app/cases/:caseId     case detail
-*   /app/employees/:employeeId  employee profile
+ *   /app/employees/:employeeId  employee profile
  *   /careers               public job board — browse active postings
  *   /careers/jobs/:postingId   job detail (public, no login)
  *   /fr/carrieres          French job board (URL-scoped language)
@@ -243,10 +243,7 @@ function routeTree(): RouteObject[] {
           <PublicDemoWorkspace root="/fr/demo" />
         </Suspense>
       ),
-      children: [
-        { index: true, loader: () => redirect('/fr/demo/home') },
-        ...frDemoViewRoutes,
-      ],
+      children: [{ index: true, loader: () => redirect('/fr/demo/home') }, ...frDemoViewRoutes],
     },
     {
       path: '/app',

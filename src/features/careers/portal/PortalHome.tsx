@@ -8,7 +8,10 @@ import type { ChipTone } from '@/components/chips'
 import { getMyCandidateProfile } from '@/features/careers/data/candidateApi'
 import type { CandidateProfile } from '@/features/careers/data/candidateApi'
 import { listMyApplications } from '@/features/careers/data/applicationsApi'
-import type { CandidateApplication, ApplicationStatus } from '@/features/careers/data/applicationsApi'
+import type {
+  CandidateApplication,
+  ApplicationStatus,
+} from '@/features/careers/data/applicationsApi'
 
 type LoadState = 'loading' | 'ready' | 'failed'
 
@@ -112,7 +115,9 @@ export function PortalHome() {
   if (state === 'failed') {
     return (
       <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
-        <div className="mb-[4px] text-[14.5px] font-semibold text-text">{x(M.careers_error_generic)}</div>
+        <div className="mb-[4px] text-[14.5px] font-semibold text-text">
+          {x(M.careers_error_generic)}
+        </div>
         <button
           type="button"
           onClick={() => void load()}
@@ -130,7 +135,9 @@ export function PortalHome() {
         <div className="mx-auto mb-[16px] flex h-[48px] w-[48px] items-center justify-center rounded-full bg-accent-soft text-accent">
           <FileText size={22} strokeWidth={1.8} aria-hidden="true" />
         </div>
-        <h1 className="m-0 text-[18px] font-semibold text-text">{x(M.careers_profile_not_created)}</h1>
+        <h1 className="m-0 text-[18px] font-semibold text-text">
+          {x(M.careers_profile_not_created)}
+        </h1>
         <Link
           to="/careers/portal/profile"
           className="mt-[18px] inline-flex items-center gap-[7px] rounded-[10px] border-none bg-navy px-[18px] py-[10px] text-[14px] font-semibold text-white no-underline"

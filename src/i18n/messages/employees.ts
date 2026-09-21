@@ -346,7 +346,10 @@ export const employeesMessages = defineMessages({
     en: 'Couldn’t load reviews.',
     fr: 'Impossible de charger les évaluations.',
   },
-  employees_prod_onboarding_title: { en: 'Onboarding checklist', fr: 'Liste de vérification de l’intégration' },
+  employees_prod_onboarding_title: {
+    en: 'Onboarding checklist',
+    fr: 'Liste de vérification de l’intégration',
+  },
   employees_prod_onboarding_empty: {
     en: 'No onboarding tasks yet.',
     fr: 'Aucune tâche d’intégration pour l’instant.',
@@ -374,7 +377,10 @@ export const employeesMessages = defineMessages({
     fr: 'Impossible de mettre à jour la tâche.',
   },
   employees_prod_onboarding_mark_complete: { en: 'Mark complete', fr: 'Marquer comme terminée' },
-  employees_prod_onboarding_mark_incomplete: { en: 'Mark incomplete', fr: 'Marquer comme incomplète' },
+  employees_prod_onboarding_mark_incomplete: {
+    en: 'Mark incomplete',
+    fr: 'Marquer comme incomplète',
+  },
   employees_prod_onboarding_load_failed: {
     en: 'Couldn’t load onboarding tasks.',
     fr: 'Impossible de charger les tâches d’intégration.',
@@ -502,7 +508,7 @@ export const employeesMessages = defineMessages({
   },
   employees_prod_tab_compensation_empty_body: {
     en: 'Salary, band, and market comparison data will appear here once compensation tracking is enabled for your workspace.',
-    fr: "Les données de salaire, d’échelle et de comparaison du marché apparaîtront ici une fois le suivi de la rémunération activé pour votre espace de travail.",
+    fr: 'Les données de salaire, d’échelle et de comparaison du marché apparaîtront ici une fois le suivi de la rémunération activé pour votre espace de travail.',
   },
   employees_prod_tab_compliance_empty_title: {
     en: 'No compliance flags',
@@ -510,7 +516,7 @@ export const employeesMessages = defineMessages({
   },
   employees_prod_tab_compliance_empty_body: {
     en: 'Compliance flags will appear here as they are raised through cases and reviews.',
-    fr: "Les signalements de conformité apparaîtront ici au fur et à mesure qu’ils sont soulevés par les dossiers et les évaluations.",
+    fr: 'Les signalements de conformité apparaîtront ici au fur et à mesure qu’ils sont soulevés par les dossiers et les évaluations.',
   },
   employees_prod_tab_timeline_empty_title: {
     en: 'Timeline coming soon',
@@ -518,7 +524,7 @@ export const employeesMessages = defineMessages({
   },
   employees_prod_tab_timeline_empty_body: {
     en: 'Key dates, status changes, and case milestones will appear here once timeline tracking is enabled.',
-    fr: "Les dates clés, les changements de statut et les étapes des dossiers apparaîtront ici une fois le suivi de la chronologie activé.",
+    fr: 'Les dates clés, les changements de statut et les étapes des dossiers apparaîtront ici une fois le suivi de la chronologie activé.',
   },
   employees_prod_tab_wellbeing_empty_title: {
     en: 'Wellbeing tracking coming soon',
@@ -526,6 +532,6 @@ export const employeesMessages = defineMessages({
   },
   employees_prod_tab_wellbeing_empty_body: {
     en: 'Leave patterns, workload indicators, and check-in notes will appear here once wellbeing tracking is enabled.',
-    fr: "Les tendances de congés, les indicateurs de charge de travail et les notes de suivi apparaîtront ici une fois le suivi du bien-être activé.",
+    fr: 'Les tendances de congés, les indicateurs de charge de travail et les notes de suivi apparaîtront ici une fois le suivi du bien-être activé.',
   },
 })

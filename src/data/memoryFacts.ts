@@ -277,7 +277,10 @@ export const seedMemoryFacts: MemoryFact[] = [
     advisorUsable: false,
     retentionCategory: 'investigation',
     reviewDate: JUL11,
-    purpose: bi('Termination notice exposure analysis', 'Analyse de l’exposition au préavis de licenciement'),
+    purpose: bi(
+      'Termination notice exposure analysis',
+      'Analyse de l’exposition au préavis de licenciement',
+    ),
     jurisdiction: 'ON',
     proposedBy: 'Advisor',
     confidenceScore: 0.78,
@@ -610,7 +613,10 @@ export const seedMemoryFacts: MemoryFact[] = [
     learnedAt: '2026-03-10',
     confirmation: {
       at: '2026-03-10',
-      source: { type: 'document', detail: bi('Disciplinary Warning.pdf', 'Avertissement disciplinaire.pdf') },
+      source: {
+        type: 'document',
+        detail: bi('Disciplinary Warning.pdf', 'Avertissement disciplinaire.pdf'),
+      },
     },
     visibility: 'restricted',
     sensitive: true,
@@ -623,7 +629,10 @@ export const seedMemoryFacts: MemoryFact[] = [
     expiryDate: '2026-07-09',
     lastVerifiedAt: '2026-03-10',
     legalHold: {
-      reason: bi('Litigation hold — Mensah v. Northgate', 'Conservation pour litige — Mensah c. Northgate'),
+      reason: bi(
+        'Litigation hold — Mensah v. Northgate',
+        'Conservation pour litige — Mensah c. Northgate',
+      ),
       placedAt: '2026-06-30',
       placedBy: 'Riley Summers',
     },
@@ -675,7 +684,10 @@ export const seedMemoryFacts: MemoryFact[] = [
     learnedAt: '2026-06-28',
     confirmation: {
       at: '2026-06-28',
-      source: { type: 'chat', detail: bi('Mentioned in chat · Jun 28', 'Mentionné en clavardage · 28 juin') },
+      source: {
+        type: 'chat',
+        detail: bi('Mentioned in chat · Jun 28', 'Mentionné en clavardage · 28 juin'),
+      },
     },
     visibility: 'hr',
     status: 'confirmed',

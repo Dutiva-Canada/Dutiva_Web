@@ -16,7 +16,9 @@ export async function suggestCategoryRulesWithAi(
   existingRules: Pick<FinanceCategoryRule, 'pattern' | 'entityId'>[],
   _threshold = 0.35,
 ): Promise<RuleSuggestion[]> {
-  const unmatched = bankItems.filter((bi) => bi.matchStatus === 'unmatched' && bi.description.trim())
+  const unmatched = bankItems.filter(
+    (bi) => bi.matchStatus === 'unmatched' && bi.description.trim(),
+  )
   if (unmatched.length === 0 || ledgerAccounts.length === 0) return []
 
   const extractor = await getExtractor()

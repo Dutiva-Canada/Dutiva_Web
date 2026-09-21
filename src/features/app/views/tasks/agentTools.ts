@@ -2,11 +2,7 @@ import { agentMessages as M } from '@/i18n/messages/agent'
 import { defineTool } from '@/features/app/agent/registry'
 import { findByName, ok, str } from '@/features/app/agent/match'
 import { PRODUCTION_TASK_PRIORITIES } from './productionApi'
-import type {
-  NewTask,
-  ProductionTask,
-  ProductionTaskPriority,
-} from './productionApi'
+import type { NewTask, ProductionTask, ProductionTaskPriority } from './productionApi'
 
 /**
  * Tasks agent tools — the checklist seam (docs/AGENT_LAYER.md).
@@ -42,7 +38,11 @@ const LIST_FILTERS = ['open', 'done', 'all'] as const
 type ListFilter = (typeof LIST_FILTERS)[number]
 
 function unavailable() {
-  return { status: 'failed', code: 'module_unavailable', message: M.agent_err_capability_demo } as const
+  return {
+    status: 'failed',
+    code: 'module_unavailable',
+    message: M.agent_err_capability_demo,
+  } as const
 }
 
 /* ── Reads ────────────────────────────────────────────────────────────────── */
@@ -64,9 +64,7 @@ defineTool<TasksCtx>({
   ],
   run: (tasks, params) => {
     const filter = (str(params, 'status') as ListFilter | undefined) ?? 'open'
-    const items = tasks
-      .list()
-      .filter((row) => filter === 'all' || (filter === 'done') === row.done)
+    const items = tasks.list().filter((row) => filter === 'all' || (filter === 'done') === row.done)
     if (items.length === 0) {
       return { status: 'completed', message: M.agent_tasks_result_none }
     }
@@ -91,7 +89,13 @@ defineTool<TasksCtx>({
   label: M.agent_tasks_create_label,
   description: M.agent_tasks_create_desc,
   params: [
-    { name: 'title', type: 'string', required: true, description: M.agent_tasks_p_title, maxLength: 200 },
+    {
+      name: 'title',
+      type: 'string',
+      required: true,
+      description: M.agent_tasks_p_title,
+      maxLength: 200,
+    },
     {
       name: 'priority',
       type: 'enum',
@@ -104,8 +108,7 @@ defineTool<TasksCtx>({
     if (!tasks.create) return unavailable()
     const created = await tasks.create({
       title: str(params, 'title') ?? '',
-      priority:
-        (str(params, 'priority') as ProductionTaskPriority | undefined) ?? 'medium',
+      priority: (str(params, 'priority') as ProductionTaskPriority | undefined) ?? 'medium',
       dueDate: str(params, 'dueDate') ?? '',
     })
     return ok(

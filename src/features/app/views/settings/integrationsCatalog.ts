@@ -23,13 +23,7 @@ import { integrationsMessages as M } from '@/i18n/messages/integrations'
  *               that doesn't exist, e.g. Signal)
  */
 export type IntegrationProviderKey =
-  | 'github'
-  | 'gitlab'
-  | 'gmail'
-  | 'outlook'
-  | 'smtp_email'
-  | 'inbound_webhook'
-  | 'inbound_email'
+  'github' | 'gitlab' | 'gmail' | 'outlook' | 'smtp_email' | 'inbound_webhook' | 'inbound_email'
 
 export type IntegrationAuth = 'pat' | 'smtp' | 'webhook' | 'email' | 'planned'
 

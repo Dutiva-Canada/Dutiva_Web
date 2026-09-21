@@ -98,13 +98,21 @@ export function ProductionMemoriesTab({
 }: ProductionMemoriesTabProps) {
   const { x, lang } = useI18n()
   if (loading) {
-    return <div className="px-[24px] py-[40px] text-center text-[13px] text-text-faint">{x(M.memory_prod_loading)}</div>
+    return (
+      <div className="px-[24px] py-[40px] text-center text-[13px] text-text-faint">
+        {x(M.memory_prod_loading)}
+      </div>
+    )
   }
   if (loadFailed) {
     return (
       <div className="px-[24px] py-[40px] text-center">
         <p className="m-0 mb-[12px] text-[13px] text-text-muted">{x(M.memory_prod_error)}</p>
-        <button type="button" onClick={onRetry} className="cursor-pointer rounded-[9px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text-2">
+        <button
+          type="button"
+          onClick={onRetry}
+          className="cursor-pointer rounded-[9px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text-2"
+        >
           {x(M.memory_prod_retry)}
         </button>
       </div>
@@ -116,7 +124,9 @@ export function ProductionMemoriesTab({
         <div className="mb-[12px] flex flex-wrap items-center gap-[8px]">
           <div className="flex min-w-[200px] flex-1 items-center gap-[8px] rounded-[9px] border border-border bg-surface px-[11px] py-[7px]">
             <Search size={14} strokeWidth={1.7} className="text-text-faint" aria-hidden="true" />
-            <label className="sr-only" htmlFor="mem-prod-search">{x(M.memory_filter_search)}</label>
+            <label className="sr-only" htmlFor="mem-prod-search">
+              {x(M.memory_filter_search)}
+            </label>
             <input
               id="mem-prod-search"
               value={query}
@@ -125,7 +135,9 @@ export function ProductionMemoriesTab({
               className="min-w-0 flex-1 border-none bg-transparent font-sans text-[12.5px] text-text outline-none"
             />
           </div>
-          <label className="sr-only" htmlFor="mem-prod-filter-subject">{x(M.memory_filter_subject)}</label>
+          <label className="sr-only" htmlFor="mem-prod-filter-subject">
+            {x(M.memory_filter_subject)}
+          </label>
           <select
             id="mem-prod-filter-subject"
             value={subjectFilter}
@@ -141,7 +153,12 @@ export function ProductionMemoriesTab({
 
         {rows.length === 0 ? (
           <div className="rounded-[14px] border border-border-soft bg-surface px-[24px] py-[40px] text-center">
-            <Lightbulb size={20} strokeWidth={1.7} className="mx-auto mb-[10px] text-gold-fg" aria-hidden="true" />
+            <Lightbulb
+              size={20}
+              strokeWidth={1.7}
+              className="mx-auto mb-[10px] text-gold-fg"
+              aria-hidden="true"
+            />
             <p className="m-0 text-[13px] text-text-muted">{x(M.memory_prod_empty)}</p>
           </div>
         ) : (
@@ -168,19 +185,32 @@ export function ProductionMemoriesTab({
                       }}
                       className="min-w-0 flex-1 rounded-[8px] border border-gold-dot px-[10px] py-[7px] font-sans text-[13.5px] text-text outline-none"
                     />
-                    <button type="button" onClick={() => onSaveEdit(fact.id)} className="cursor-pointer rounded-[7px] border-none bg-navy px-[11px] py-[7px] font-sans text-[12px] font-bold text-white">
+                    <button
+                      type="button"
+                      onClick={() => onSaveEdit(fact.id)}
+                      className="cursor-pointer rounded-[7px] border-none bg-navy px-[11px] py-[7px] font-sans text-[12px] font-bold text-white"
+                    >
                       {x(M.memory_action_save)}
                     </button>
-                    <button type="button" onClick={onCancelEdit} className="cursor-pointer rounded-[7px] border border-border bg-surface px-[10px] py-[7px] font-sans text-[12px] font-semibold text-text-muted">
+                    <button
+                      type="button"
+                      onClick={onCancelEdit}
+                      className="cursor-pointer rounded-[7px] border border-border bg-surface px-[10px] py-[7px] font-sans text-[12px] font-semibold text-text-muted"
+                    >
                       {x(M.memory_action_cancel)}
                     </button>
                   </div>
                 )
               }
               return (
-                <div key={fact.id} className="border-t border-inset px-[14px] py-[11px] first:border-t-0 hover:bg-surface-2">
+                <div
+                  key={fact.id}
+                  className="border-t border-inset px-[14px] py-[11px] first:border-t-0 hover:bg-surface-2"
+                >
                   <div className="flex flex-wrap items-center gap-x-[8px] gap-y-[3px]">
-                    <span className={`inline-flex items-center gap-[4px] rounded-[100px] border px-[7px] py-[2px] text-[10px] font-bold ${statusMeta.badge}`}>
+                    <span
+                      className={`inline-flex items-center gap-[4px] rounded-[100px] border px-[7px] py-[2px] text-[10px] font-bold ${statusMeta.badge}`}
+                    >
                       <StatusIcon size={11} strokeWidth={2} aria-hidden="true" />
                       {pick(statusMeta.label, lang)}
                     </span>
@@ -195,13 +225,17 @@ export function ProductionMemoriesTab({
                         {x(M.memory_row_legal_hold)}
                       </span>
                     )}
-                    <span className="text-[13px] font-medium text-text">{pickL(fact.statement, lang)}</span>
+                    <span className="text-[13px] font-medium text-text">
+                      {pickL(fact.statement, lang)}
+                    </span>
                   </div>
                   <div className="mt-[5px] flex flex-wrap items-center gap-x-[12px] gap-y-[4px] text-[11.5px] text-text-faint">
                     <span className="inline-flex items-center gap-[4px]">
                       <SourceIcon size={12} strokeWidth={1.7} aria-hidden="true" />
                       {href != null ? (
-                        <Link to={href} className="text-text-2 no-underline hover:underline">{subjectLabel(fact)}</Link>
+                        <Link to={href} className="text-text-2 no-underline hover:underline">
+                          {subjectLabel(fact)}
+                        </Link>
                       ) : (
                         subjectLabel(fact)
                       )}
@@ -214,46 +248,79 @@ export function ProductionMemoriesTab({
                       </span>
                     )}
                     {sensitivity === 'restricted' && (
-                      <span className={`inline-flex items-center gap-[4px] rounded-[100px] border px-[7px] py-[2px] text-[10px] font-bold ${sensMeta.badge}`}>
+                      <span
+                        className={`inline-flex items-center gap-[4px] rounded-[100px] border px-[7px] py-[2px] text-[10px] font-bold ${sensMeta.badge}`}
+                      >
                         <Lock size={11} strokeWidth={2} aria-hidden="true" />
                         {pick(sensMeta.label, lang)}
                       </span>
                     )}
                     {fact.retrievalScope != null && fact.retrievalScope.type !== 'workspace' && (
                       <span className="inline-flex items-center gap-[3px]">
-                        · {x(M.memory_retrieval_scope)}: {pick(RETRIEVAL_SCOPE_META[fact.retrievalScope.type].label, lang)}
+                        · {x(M.memory_retrieval_scope)}:{' '}
+                        {pick(RETRIEVAL_SCOPE_META[fact.retrievalScope.type].label, lang)}
                       </span>
                     )}
                   </div>
                   <div className="mt-[6px] flex flex-wrap gap-[6px]">
                     {status === 'proposed' && (
-                      <button type="button" onClick={() => onConfirm(fact.id)} className="flex cursor-pointer items-center gap-[4px] rounded-[7px] border-none bg-ok-bg px-[10px] py-[5px] font-sans text-[11.5px] font-bold text-ok-fg">
+                      <button
+                        type="button"
+                        onClick={() => onConfirm(fact.id)}
+                        className="flex cursor-pointer items-center gap-[4px] rounded-[7px] border-none bg-ok-bg px-[10px] py-[5px] font-sans text-[11.5px] font-bold text-ok-fg"
+                      >
                         <Check size={12} strokeWidth={2.2} aria-hidden="true" />
                         {x(M.memory_action_confirm)}
                       </button>
                     )}
                     {status !== 'needs_review' && status !== 'removed' && (
-                      <button type="button" onClick={() => onMarkForReview(fact.id)} className="flex cursor-pointer items-center gap-[4px] rounded-[7px] border border-border bg-surface px-[9px] py-[5px] font-sans text-[11.5px] font-semibold text-text-muted">
+                      <button
+                        type="button"
+                        onClick={() => onMarkForReview(fact.id)}
+                        className="flex cursor-pointer items-center gap-[4px] rounded-[7px] border border-border bg-surface px-[9px] py-[5px] font-sans text-[11.5px] font-semibold text-text-muted"
+                      >
                         <Clock size={12} strokeWidth={1.7} aria-hidden="true" />
                         {x(M.memory_action_mark_review)}
                       </button>
                     )}
-                    <button type="button" onClick={() => onStartEdit(fact)} className="flex cursor-pointer items-center gap-[4px] rounded-[7px] border border-border bg-surface px-[9px] py-[5px] font-sans text-[11.5px] font-semibold text-text-muted">
+                    <button
+                      type="button"
+                      onClick={() => onStartEdit(fact)}
+                      className="flex cursor-pointer items-center gap-[4px] rounded-[7px] border border-border bg-surface px-[9px] py-[5px] font-sans text-[11.5px] font-semibold text-text-muted"
+                    >
                       <Pencil size={12} strokeWidth={1.7} aria-hidden="true" />
                       {x(M.memory_action_edit)}
                     </button>
                     {fact.legalHold != null ? (
-                      <button type="button" onClick={() => onRemoveLegalHold(fact.id)} className="flex cursor-pointer items-center gap-[4px] rounded-[7px] border border-border bg-surface px-[9px] py-[5px] font-sans text-[11.5px] font-semibold text-text-muted">
+                      <button
+                        type="button"
+                        onClick={() => onRemoveLegalHold(fact.id)}
+                        className="flex cursor-pointer items-center gap-[4px] rounded-[7px] border border-border bg-surface px-[9px] py-[5px] font-sans text-[11.5px] font-semibold text-text-muted"
+                      >
                         <Gavel size={12} strokeWidth={1.7} aria-hidden="true" />
                         {x(M.memory_action_remove_hold)}
                       </button>
                     ) : (
-                      <button type="button" onClick={() => onAddLegalHold(fact.id, pickL(fact.statement, 'en'), pickL(fact.statement, 'fr'))} className="flex cursor-pointer items-center gap-[4px] rounded-[7px] border border-border bg-surface px-[9px] py-[5px] font-sans text-[11.5px] font-semibold text-text-muted">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onAddLegalHold(
+                            fact.id,
+                            pickL(fact.statement, 'en'),
+                            pickL(fact.statement, 'fr'),
+                          )
+                        }
+                        className="flex cursor-pointer items-center gap-[4px] rounded-[7px] border border-border bg-surface px-[9px] py-[5px] font-sans text-[11.5px] font-semibold text-text-muted"
+                      >
                         <Gavel size={12} strokeWidth={1.7} aria-hidden="true" />
                         {x(M.memory_action_add_hold)}
                       </button>
                     )}
-                    <button type="button" onClick={() => onForget(fact.id)} className="flex cursor-pointer items-center gap-[4px] rounded-[7px] border border-risk-border bg-surface px-[9px] py-[5px] font-sans text-[11.5px] font-semibold text-risk-dot">
+                    <button
+                      type="button"
+                      onClick={() => onForget(fact.id)}
+                      className="flex cursor-pointer items-center gap-[4px] rounded-[7px] border border-risk-border bg-surface px-[9px] py-[5px] font-sans text-[11.5px] font-semibold text-risk-dot"
+                    >
                       <Trash2 size={12} strokeWidth={1.7} aria-hidden="true" />
                       {x(M.memory_action_remove)}
                     </button>
@@ -286,7 +353,12 @@ export function ProductionReviewTab({
     return (
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto max-w-[920px] px-[24px] py-[40px] text-center">
-          <Check size={22} strokeWidth={1.8} className="mx-auto mb-[10px] text-ok-fg" aria-hidden="true" />
+          <Check
+            size={22}
+            strokeWidth={1.8}
+            className="mx-auto mb-[10px] text-ok-fg"
+            aria-hidden="true"
+          />
           <p className="m-0 text-[13px] text-text-muted">{x(M.memory_review_empty)}</p>
         </div>
       </div>
@@ -300,21 +372,37 @@ export function ProductionReviewTab({
             const sourceMeta = SOURCE_META[fact.source.type]
             const SourceIcon = sourceMeta.icon
             return (
-              <li key={fact.id} className="overflow-hidden rounded-[13px] border border-gold-border bg-surface px-[15px] py-[13px]">
-                <div className="mb-[8px] text-[14px] font-medium leading-normal text-text">{pickL(fact.statement, lang)}</div>
+              <li
+                key={fact.id}
+                className="overflow-hidden rounded-[13px] border border-gold-border bg-surface px-[15px] py-[13px]"
+              >
+                <div className="mb-[8px] text-[14px] font-medium leading-normal text-text">
+                  {pickL(fact.statement, lang)}
+                </div>
                 <div className="mb-[8px] flex flex-wrap items-center gap-x-[12px] gap-y-[4px] text-[11.5px] text-text-faint">
                   <span className="inline-flex items-center gap-[4px]">
                     <SourceIcon size={12} strokeWidth={1.7} aria-hidden="true" />
                     {subjectLabel(fact)} · {pick(sourceMeta.kind, lang)}
                   </span>
-                  <span>{x(M.memory_review_proposed_at)} {formatMemoryDate(fact.learnedAt, lang, fact.learnedAt)}</span>
+                  <span>
+                    {x(M.memory_review_proposed_at)}{' '}
+                    {formatMemoryDate(fact.learnedAt, lang, fact.learnedAt)}
+                  </span>
                 </div>
                 <div className="flex flex-wrap gap-[7px]">
-                  <button type="button" onClick={() => onConfirm(fact.id)} className="flex cursor-pointer items-center gap-[5px] rounded-[8px] border-none bg-ok-bg px-[12px] py-[7px] font-sans text-[12.5px] font-bold text-ok-fg">
+                  <button
+                    type="button"
+                    onClick={() => onConfirm(fact.id)}
+                    className="flex cursor-pointer items-center gap-[5px] rounded-[8px] border-none bg-ok-bg px-[12px] py-[7px] font-sans text-[12.5px] font-bold text-ok-fg"
+                  >
                     <Check size={14} strokeWidth={2.2} aria-hidden="true" />
                     {x(M.memory_action_confirm)}
                   </button>
-                  <button type="button" onClick={() => onReject(fact.id)} className="flex cursor-pointer items-center gap-[5px] rounded-[8px] border border-risk-border bg-surface px-[11px] py-[7px] font-sans text-[12.5px] font-semibold text-risk-dot">
+                  <button
+                    type="button"
+                    onClick={() => onReject(fact.id)}
+                    className="flex cursor-pointer items-center gap-[5px] rounded-[8px] border border-risk-border bg-surface px-[11px] py-[7px] font-sans text-[12.5px] font-semibold text-risk-dot"
+                  >
                     <X size={14} strokeWidth={2} aria-hidden="true" />
                     {x(M.memory_action_reject)}
                   </button>
@@ -348,7 +436,11 @@ const AUDIT_ACTION_LABEL: Record<ProductionMemoryAuditEntry['action'], Bi> = {
   memory_enabled: M.memory_audit_memory_enabled,
 }
 
-export function ProductionActivityTab({ audit }: { readonly audit: readonly ProductionMemoryAuditEntry[] }) {
+export function ProductionActivityTab({
+  audit,
+}: {
+  readonly audit: readonly ProductionMemoryAuditEntry[]
+}) {
   const { x, lang } = useI18n()
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
@@ -366,21 +458,33 @@ export function ProductionActivityTab({ audit }: { readonly audit: readonly Prod
             <table className="w-full border-collapse text-left">
               <thead>
                 <tr className="border-b border-border-soft text-[11px] font-bold tracking-wider text-text-faint uppercase">
-                  <th scope="col" className="px-[14px] py-[9px]">{x(M.memory_activity_event)}</th>
-                  <th scope="col" className="px-[14px] py-[9px]">{x(M.memory_activity_actor)}</th>
-                  <th scope="col" className="px-[14px] py-[9px] hidden md:table-cell">{x(M.memory_activity_when)}</th>
+                  <th scope="col" className="px-[14px] py-[9px]">
+                    {x(M.memory_activity_event)}
+                  </th>
+                  <th scope="col" className="px-[14px] py-[9px]">
+                    {x(M.memory_activity_actor)}
+                  </th>
+                  <th scope="col" className="px-[14px] py-[9px] hidden md:table-cell">
+                    {x(M.memory_activity_when)}
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {audit.map((entry) => (
                   <tr key={entry.id} className="border-t border-inset align-top">
                     <td className="px-[14px] py-[10px] text-[12.5px] text-text-2">
-                      <span className="font-semibold">{pick(AUDIT_ACTION_LABEL[entry.action], lang)}</span>
+                      <span className="font-semibold">
+                        {pick(AUDIT_ACTION_LABEL[entry.action], lang)}
+                      </span>
                       {entry.statement != null && (
-                        <div className="mt-[2px] text-[12px] text-text-faint">“{pickL(entry.statement, lang)}”</div>
+                        <div className="mt-[2px] text-[12px] text-text-faint">
+                          “{pickL(entry.statement, lang)}”
+                        </div>
                       )}
                     </td>
-                    <td className="px-[14px] py-[10px] text-[12.5px] text-text-muted">{entry.actorUserId ?? '—'}</td>
+                    <td className="px-[14px] py-[10px] text-[12.5px] text-text-muted">
+                      {entry.actorUserId ?? '—'}
+                    </td>
                     <td className="px-[14px] py-[10px] text-[12.5px] text-text-faint hidden md:table-cell">
                       {formatMemoryDate(entry.createdAt, lang, entry.createdAt)}
                     </td>
@@ -428,29 +532,47 @@ export function ProductionGovernanceTab({
               <Power size={15} strokeWidth={1.8} className="text-text-muted" aria-hidden="true" />
               {x(M.memory_gov_status_title)}
             </div>
-            <p className="m-0 mb-[12px] text-[12.5px] leading-normal text-text-muted">{x(M.memory_gov_status_note)}</p>
+            <p className="m-0 mb-[12px] text-[12.5px] leading-normal text-text-muted">
+              {x(M.memory_gov_status_note)}
+            </p>
             <button
               type="button"
               onClick={() => setMemoryEnabled(!memoryEnabled)}
               className={`cursor-pointer rounded-[9px] border px-[14px] py-[9px] font-sans text-[13px] font-bold ${
-                memoryEnabled ? 'border-risk-border bg-surface text-risk-dot' : 'border-navy bg-navy text-white'
+                memoryEnabled
+                  ? 'border-risk-border bg-surface text-risk-dot'
+                  : 'border-navy bg-navy text-white'
               }`}
             >
               {memoryEnabled ? x(M.memory_gov_status_disable) : x(M.memory_gov_status_enable)}
             </button>
             <p className="mt-[8px] flex items-start gap-[6px] text-[11.5px] leading-normal text-text-faint">
-              <AlertTriangle size={13} strokeWidth={1.7} className="mt-[1px] shrink-0" aria-hidden="true" />
+              <AlertTriangle
+                size={13}
+                strokeWidth={1.7}
+                className="mt-[1px] shrink-0"
+                aria-hidden="true"
+              />
               {x(M.memory_prod_gov_toggle_session_only)}
             </p>
           </section>
 
           <section className={cardClass}>
             <div className="mb-[8px] flex items-center gap-[7px] text-[13px] font-bold text-text">
-              <ShieldCheck size={15} strokeWidth={1.8} className="text-text-muted" aria-hidden="true" />
+              <ShieldCheck
+                size={15}
+                strokeWidth={1.8}
+                className="text-text-muted"
+                aria-hidden="true"
+              />
               {x(M.memory_gov_privacy_title)}
             </div>
-            <p className="m-0 mb-[10px] text-[12.5px] leading-normal text-text-muted">{x(M.memory_gov_privacy_note)}</p>
-            <p className="m-0 text-[12px] leading-normal text-text-faint">{x(M.memory_gov_privacy_rights)}</p>
+            <p className="m-0 mb-[10px] text-[12.5px] leading-normal text-text-muted">
+              {x(M.memory_gov_privacy_note)}
+            </p>
+            <p className="m-0 text-[12px] leading-normal text-text-faint">
+              {x(M.memory_gov_privacy_rights)}
+            </p>
           </section>
 
           <section className={cardClass}>
@@ -458,7 +580,9 @@ export function ProductionGovernanceTab({
               <Clock size={15} strokeWidth={1.8} className="text-text-muted" aria-hidden="true" />
               {x(M.memory_gov_retention_title)}
             </div>
-            <p className="m-0 text-[12.5px] leading-normal text-text-muted">{x(M.memory_prod_retention_note)}</p>
+            <p className="m-0 text-[12.5px] leading-normal text-text-muted">
+              {x(M.memory_prod_retention_note)}
+            </p>
           </section>
 
           <section className={cardClass}>
@@ -466,15 +590,24 @@ export function ProductionGovernanceTab({
               <Lock size={15} strokeWidth={1.8} className="text-text-muted" aria-hidden="true" />
               {x(M.memory_gov_access_title)}
             </div>
-            <p className="m-0 text-[12.5px] leading-normal text-text-muted">{x(M.memory_gov_access_note)}</p>
+            <p className="m-0 text-[12.5px] leading-normal text-text-muted">
+              {x(M.memory_gov_access_note)}
+            </p>
           </section>
 
           <section className={cardClass}>
             <div className="mb-[8px] flex items-center gap-[7px] text-[13px] font-bold text-text">
-              <FileText size={15} strokeWidth={1.8} className="text-text-muted" aria-hidden="true" />
+              <FileText
+                size={15}
+                strokeWidth={1.8}
+                className="text-text-muted"
+                aria-hidden="true"
+              />
               {x(M.memory_gov_data_title)}
             </div>
-            <p className="m-0 mb-[12px] text-[12.5px] leading-normal text-text-muted">{x(M.memory_gov_data_export_note)}</p>
+            <p className="m-0 mb-[12px] text-[12.5px] leading-normal text-text-muted">
+              {x(M.memory_gov_data_export_note)}
+            </p>
             <button
               type="button"
               onClick={onExport}
@@ -486,14 +619,22 @@ export function ProductionGovernanceTab({
             <div className="rounded-[10px] border border-border-soft bg-surface-2 px-[12px] py-[11px]">
               <div className="mb-[6px] flex items-center gap-[6px]">
                 <Trash2 size={14} strokeWidth={1.8} className="text-risk-dot" aria-hidden="true" />
-                <span className="text-[12.5px] font-bold text-risk-dot">{x(M.memory_gov_data_remove_person)}</span>
+                <span className="text-[12.5px] font-bold text-risk-dot">
+                  {x(M.memory_gov_data_remove_person)}
+                </span>
               </div>
-              <p className="m-0 mb-[10px] text-[12px] leading-normal text-text-muted">{x(M.memory_gov_data_remove_person_note)}</p>
+              <p className="m-0 mb-[10px] text-[12px] leading-normal text-text-muted">
+                {x(M.memory_gov_data_remove_person_note)}
+              </p>
               {peopleWithFacts.length === 0 ? (
-                <div className="text-[12px] text-text-faint">{x(M.memory_gov_data_remove_person_none)}</div>
+                <div className="text-[12px] text-text-faint">
+                  {x(M.memory_gov_data_remove_person_none)}
+                </div>
               ) : (
                 <div className="flex flex-col gap-[8px] sm:flex-row">
-                  <label className="sr-only" htmlFor="mem-prod-forget">{x(M.memory_gov_data_remove_person)}</label>
+                  <label className="sr-only" htmlFor="mem-prod-forget">
+                    {x(M.memory_gov_data_remove_person)}
+                  </label>
                   <select
                     id="mem-prod-forget"
                     value={forgetPersonId}
@@ -502,7 +643,9 @@ export function ProductionGovernanceTab({
                   >
                     <option value="">{x(M.memory_gov_data_remove_person_select)}</option>
                     {peopleWithFacts.map((e) => (
-                      <option key={e.id} value={e.id}>{e.name}</option>
+                      <option key={e.id} value={e.id}>
+                        {e.name}
+                      </option>
                     ))}
                   </select>
                   <button
@@ -524,7 +667,9 @@ export function ProductionGovernanceTab({
               <AlertTriangle size={15} strokeWidth={1.8} aria-hidden="true" />
               {x(M.memory_gov_danger_title)}
             </div>
-            <p className="m-0 mb-[10px] text-[12.5px] leading-normal text-text-muted">{x(M.memory_gov_danger_delete_note)}</p>
+            <p className="m-0 mb-[10px] text-[12.5px] leading-normal text-text-muted">
+              {x(M.memory_gov_danger_delete_note)}
+            </p>
             <button
               type="button"
               disabled

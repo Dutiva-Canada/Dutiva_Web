@@ -4,7 +4,12 @@ import { securityMessages as M } from '@/i18n/messages/security'
 import { statusChipClass } from '@/components/chips'
 import { FormField, FormInput, FormSelect, FormTextarea } from '@/components/FormField'
 import { useSecurityData } from '../SecurityDataContext'
-import type { SecurityRisk, SecurityRiskStatus, SecurityRiskLikelihood, SecurityRiskImpact } from '../data/types'
+import type {
+  SecurityRisk,
+  SecurityRiskStatus,
+  SecurityRiskLikelihood,
+  SecurityRiskImpact,
+} from '../data/types'
 
 const STATUSES: SecurityRiskStatus[] = ['open', 'mitigated', 'accepted', 'closed']
 const LIKELIHOODS: NonNullable<SecurityRiskLikelihood>[] = ['high', 'medium', 'low']
@@ -77,7 +82,9 @@ function RiskRow({
         </div>
       </div>
       <div className="flex items-center gap-[10px]">
-        <span className={statusChipClass(STATUS_TONE[risk.status])}>{x(M[STATUS_LABELS[risk.status]])}</span>
+        <span className={statusChipClass(STATUS_TONE[risk.status])}>
+          {x(M[STATUS_LABELS[risk.status]])}
+        </span>
         <button
           type="button"
           onClick={() => onEdit(risk)}
@@ -106,7 +113,9 @@ export function Risks() {
   const initial = editing ?? emptyRisk()
   const [title, setTitle] = useState(initial.title)
   const [status, setStatus] = useState<SecurityRiskStatus>(initial.status)
-  const [likelihood, setLikelihood] = useState<NonNullable<SecurityRiskLikelihood>>(initial.likelihood ?? 'low')
+  const [likelihood, setLikelihood] = useState<NonNullable<SecurityRiskLikelihood>>(
+    initial.likelihood ?? 'low',
+  )
   const [impact, setImpact] = useState<NonNullable<SecurityRiskImpact>>(initial.impact ?? 'low')
   const [owner, setOwner] = useState(initial.owner ?? '')
   const [mitigation, setMitigation] = useState(initial.mitigation ?? '')
@@ -176,7 +185,10 @@ export function Risks() {
             <FormInput value={title} onChange={(e) => setTitle(e.target.value)} required />
           </FormField>
           <FormField label={x(M.sec_status)}>
-            <FormSelect value={status} onChange={(e) => setStatus(e.target.value as SecurityRiskStatus)}>
+            <FormSelect
+              value={status}
+              onChange={(e) => setStatus(e.target.value as SecurityRiskStatus)}
+            >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {x(M[STATUS_LABELS[s]])}
@@ -200,7 +212,10 @@ export function Risks() {
             </FormSelect>
           </FormField>
           <FormField label={x(M.sec_severity)}>
-            <FormSelect value={impact} onChange={(e) => setImpact(e.target.value as NonNullable<SecurityRiskImpact>)}>
+            <FormSelect
+              value={impact}
+              onChange={(e) => setImpact(e.target.value as NonNullable<SecurityRiskImpact>)}
+            >
               {IMPACTS.map((i) => (
                 <option key={i} value={i}>
                   {x(M[IMPACT_LABELS[i]])}
@@ -240,7 +255,10 @@ export function Risks() {
             <RiskRow
               key={risk.id}
               risk={risk}
-              onEdit={(r) => { setEditing(r); setShow(true) }}
+              onEdit={(r) => {
+                setEditing(r)
+                setShow(true)
+              }}
               onRemove={(id) => removeRisk(id)}
             />
           ))}

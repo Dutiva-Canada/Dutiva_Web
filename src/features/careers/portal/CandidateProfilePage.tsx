@@ -9,7 +9,10 @@ import {
   getMyCandidateProfile,
   updateCandidateProfile,
 } from '@/features/careers/data/candidateApi'
-import type { CandidateProfile, CandidateWorkAuthorization } from '@/features/careers/data/candidateApi'
+import type {
+  CandidateProfile,
+  CandidateWorkAuthorization,
+} from '@/features/careers/data/candidateApi'
 import { CandidateProfileForm } from './CandidateProfileForm'
 import type { CandidateProfileFormValues } from './CandidateProfileForm'
 
@@ -64,9 +67,7 @@ export function CandidateProfilePage() {
 
   const [state, setState] = useState<LoadState>('loading')
   const [existing, setExisting] = useState<CandidateProfile | null>(null)
-  const [form, setForm] = useState<CandidateProfileFormValues>(
-    emptyForm(session?.user.email ?? ''),
-  )
+  const [form, setForm] = useState<CandidateProfileFormValues>(emptyForm(session?.user.email ?? ''))
   const [saving, setSaving] = useState(false)
 
   const load = useCallback(async () => {
@@ -130,7 +131,9 @@ export function CandidateProfilePage() {
   if (state === 'failed') {
     return (
       <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
-        <div className="mb-[4px] text-[14.5px] font-semibold text-text">{x(M.careers_error_generic)}</div>
+        <div className="mb-[4px] text-[14.5px] font-semibold text-text">
+          {x(M.careers_error_generic)}
+        </div>
         <button
           type="button"
           onClick={() => void load()}
@@ -142,12 +145,5 @@ export function CandidateProfilePage() {
     )
   }
 
-  return (
-    <CandidateProfileForm
-      values={form}
-      onChange={setForm}
-      onSubmit={onSave}
-      saving={saving}
-    />
-  )
+  return <CandidateProfileForm values={form} onChange={setForm} onSubmit={onSave} saving={saving} />
 }

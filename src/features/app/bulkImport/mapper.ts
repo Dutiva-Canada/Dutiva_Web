@@ -15,7 +15,11 @@ export function inferMapping<T>(
     const lower = header.toLowerCase().trim()
     for (const field of fields) {
       if (used.has(field.key)) continue
-      if (field.headerHints.some((hint) => lower === hint.toLowerCase() || lower.includes(hint.toLowerCase()))) {
+      if (
+        field.headerHints.some(
+          (hint) => lower === hint.toLowerCase() || lower.includes(hint.toLowerCase()),
+        )
+      ) {
         mapping[index] = field.key
         used.add(field.key)
         break

@@ -101,11 +101,19 @@ export interface FinanceAgentContext {
 }
 
 function unavailable() {
-  return { status: 'failed', code: 'module_unavailable', message: M.agent_err_capability_demo } as const
+  return {
+    status: 'failed',
+    code: 'module_unavailable',
+    message: M.agent_err_capability_demo,
+  } as const
 }
 
 function writeFailed() {
-  return { status: 'failed', code: 'invalid_params', message: M.agent_fin_result_write_failed } as const
+  return {
+    status: 'failed',
+    code: 'invalid_params',
+    message: M.agent_fin_result_write_failed,
+  } as const
 }
 
 function partyName(parties: readonly FinanceParty[], id: string | undefined): string {
@@ -175,7 +183,9 @@ defineTool<FinanceAgentContext>({
     if (items.length === 0) {
       return { status: 'completed', message: M.agent_fin_spend_none }
     }
-    const titles = items.slice(0, 5).map((r) => `${r.purpose.en} — ${r.requester} — ${r.currency} ${r.amount} (${r.status})`)
+    const titles = items
+      .slice(0, 5)
+      .map((r) => `${r.purpose.en} — ${r.requester} — ${r.currency} ${r.amount} (${r.status})`)
     const extra = items.length - titles.length
     return ok({
       en: `${items.length} request${items.length === 1 ? '' : 's'}: ${titles.join(', ')}${extra > 0 ? ` +${extra} more` : ''}.`,
@@ -203,7 +213,9 @@ defineTool<FinanceAgentContext>({
     const status = str(params, 'status') as FinanceObligationStatus | undefined
     const items = fin
       .obligations()
-      .filter((o) => (status ? o.status === status : !['paid', 'confirmed', 'withdrawn'].includes(o.status)))
+      .filter((o) =>
+        status ? o.status === status : !['paid', 'confirmed', 'withdrawn'].includes(o.status),
+      )
       .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
     if (items.length === 0) {
       return { status: 'completed', message: M.agent_fin_obligations_none }
@@ -277,7 +289,13 @@ defineTool<FinanceAgentContext>({
   label: M.agent_fin_add_spend_label,
   description: M.agent_fin_add_spend_desc,
   params: [
-    { name: 'purpose', type: 'string', required: true, description: M.agent_fin_p_purpose, maxLength: 200 },
+    {
+      name: 'purpose',
+      type: 'string',
+      required: true,
+      description: M.agent_fin_p_purpose,
+      maxLength: 200,
+    },
     { name: 'amount', type: 'number', required: true, description: M.agent_fin_p_amount },
     { name: 'currency', type: 'enum', enum: CURRENCIES, description: M.agent_fin_p_currency },
     { name: 'requester', type: 'string', description: M.agent_fin_p_requester, maxLength: 160 },
@@ -305,7 +323,11 @@ defineTool<FinanceAgentContext>({
     if (!created) return writeFailed()
     /* Same two steps the UI takes: the form files a draft, the button
        submits it for approval. */
-    const submitted = await fin.transitionSpendRequestStatus(created.id, 'submitted', 'Workspace user')
+    const submitted = await fin.transitionSpendRequestStatus(
+      created.id,
+      'submitted',
+      'Workspace user',
+    )
     if (!submitted) {
       return ok(
         {
@@ -386,10 +408,21 @@ defineTool<FinanceAgentContext>({
       required: true,
       description: M.agent_fin_p_obligation_type,
     },
-    { name: 'period', type: 'string', required: true, description: M.agent_fin_p_period, maxLength: 60 },
+    {
+      name: 'period',
+      type: 'string',
+      required: true,
+      description: M.agent_fin_p_period,
+      maxLength: 60,
+    },
     { name: 'dueDate', type: 'date', required: true, description: M.agent_fin_p_due },
     { name: 'estimatedAmount', type: 'number', description: M.agent_fin_p_estimated },
-    { name: 'jurisdiction', type: 'string', description: M.agent_fin_p_jurisdiction, maxLength: 120 },
+    {
+      name: 'jurisdiction',
+      type: 'string',
+      description: M.agent_fin_p_jurisdiction,
+      maxLength: 120,
+    },
   ],
   run: async (fin, params) => {
     if (!fin.canWrite) return unavailable()

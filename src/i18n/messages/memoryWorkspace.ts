@@ -117,17 +117,26 @@ export const memoryWorkspaceMessages = defineMessages({
     fr: 'Les éléments que vous ajoutez ou approuvez apparaîtront ici. Le Conseiller peut aussi proposer des renseignements à retenir, à réviser.',
   }, // [FR self-authored]
   memory_empty_add: { en: 'Add memory', fr: 'Ajouter un élément à la mémoire' }, // [FR self-authored]
-  memory_empty_learn: { en: 'Learn how memory works', fr: 'Découvrir le fonctionnement de la mémoire' }, // [FR self-authored]
+  memory_empty_learn: {
+    en: 'Learn how memory works',
+    fr: 'Découvrir le fonctionnement de la mémoire',
+  }, // [FR self-authored]
   memory_empty_normal: {
     en: 'An empty workspace is normal when you’re getting started.',
     fr: 'Un espace vide est normal au démarrage.',
   }, // [FR self-authored]
-  memory_no_results_title: { en: 'No memories match your filters', fr: 'Aucun élément ne correspond à vos filtres' }, // [FR self-authored]
+  memory_no_results_title: {
+    en: 'No memories match your filters',
+    fr: 'Aucun élément ne correspond à vos filtres',
+  }, // [FR self-authored]
   memory_no_results_body: {
     en: 'Try clearing filters or searching for something different.',
     fr: 'Essayez d’effacer les filtres ou de rechercher autre chose.',
   }, // [FR self-authored]
-  memory_disabled_title: { en: 'Advisor memory is disabled', fr: 'La mémoire du Conseiller est désactivée' }, // [FR self-authored]
+  memory_disabled_title: {
+    en: 'Advisor memory is disabled',
+    fr: 'La mémoire du Conseiller est désactivée',
+  }, // [FR self-authored]
   memory_disabled_body: {
     en: 'Advisor is not retrieving memory or proposing new memories. Existing records are preserved. Enable memory in Governance to resume.',
     fr: 'Le Conseiller ne récupère pas la mémoire et ne propose pas de nouveaux éléments. Les enregistrements existants sont conservés. Activez la mémoire dans Gouvernance pour reprendre.',
@@ -160,12 +169,18 @@ export const memoryWorkspaceMessages = defineMessages({
   memory_details_legal_hold_by: { en: 'Placed by', fr: 'Placée par' }, // [FR self-authored]
   memory_details_legal_hold_at: { en: 'Placed', fr: 'Placée le' }, // [FR self-authored]
   memory_details_activity: { en: 'Activity for this memory', fr: 'Activité pour cet élément' }, // [FR self-authored]
-  memory_details_no_activity: { en: 'No activity recorded yet.', fr: 'Aucune activité enregistrée.' }, // [FR self-authored]
+  memory_details_no_activity: {
+    en: 'No activity recorded yet.',
+    fr: 'Aucune activité enregistrée.',
+  }, // [FR self-authored]
   memory_details_yes: { en: 'Yes', fr: 'Oui' },
   memory_details_no: { en: 'No', fr: 'Non' },
 
   memory_action_reject: { en: 'Reject', fr: 'Rejeter' }, // [FR self-authored]
-  memory_action_remove: { en: 'Remove from Advisor memory', fr: 'Retirer de la mémoire du Conseiller' }, // [FR self-authored]
+  memory_action_remove: {
+    en: 'Remove from Advisor memory',
+    fr: 'Retirer de la mémoire du Conseiller',
+  }, // [FR self-authored]
   memory_action_edit: { en: 'Edit', fr: 'Modifier' }, // [FR self-authored]
   memory_action_edit_confirm: { en: 'Edit & confirm', fr: 'Modifier et confirmer' }, // [FR self-authored]
   memory_action_review_source: { en: 'Review source', fr: 'Réviser la source' }, // [FR self-authored]
@@ -210,7 +225,10 @@ export const memoryWorkspaceMessages = defineMessages({
   memory_audit_confirmed: { en: 'confirmed a memory', fr: 'a confirmé un élément' }, // [FR self-authored]
   memory_audit_rejected: { en: 'rejected a proposed memory', fr: 'a rejeté un élément proposé' }, // [FR self-authored]
   memory_audit_edited: { en: 'edited a memory', fr: 'a modifié un élément' }, // [FR self-authored]
-  memory_audit_removed: { en: 'removed a memory from Advisor', fr: 'a retiré un élément du Conseiller' }, // [FR self-authored]
+  memory_audit_removed: {
+    en: 'removed a memory from Advisor',
+    fr: 'a retiré un élément du Conseiller',
+  }, // [FR self-authored]
   memory_audit_restored: { en: 'restored a memory', fr: 'a restauré un élément' }, // [FR self-authored]
   memory_audit_expired: { en: 'a memory expired', fr: 'un élément a expiré' }, // [FR self-authored]
   memory_audit_exported: { en: 'exported memory data', fr: 'a exporté des données de mémoire' }, // [FR self-authored]
@@ -237,7 +255,10 @@ export const memoryWorkspaceMessages = defineMessages({
 
   memory_gov_status_title: { en: 'Advisor memory status', fr: 'État de la mémoire du Conseiller' }, // [FR self-authored]
   memory_gov_status_enable: { en: 'Enable Advisor memory', fr: 'Activer la mémoire du Conseiller' }, // [FR self-authored]
-  memory_gov_status_disable: { en: 'Disable Advisor memory', fr: 'Désactiver la mémoire du Conseiller' }, // [FR self-authored]
+  memory_gov_status_disable: {
+    en: 'Disable Advisor memory',
+    fr: 'Désactiver la mémoire du Conseiller',
+  }, // [FR self-authored]
   memory_gov_status_note: {
     en: 'Disabling stops new Advisor memory retrieval and automatic proposals. It does not delete records — existing memories are preserved subject to their retention rules.',
     fr: 'La désactivation interrompt la récupération de mémoire par le Conseiller et les propositions automatiques. Elle ne supprime pas les enregistrements — les éléments existants sont conservés selon leurs règles de conservation.',
@@ -361,7 +382,10 @@ export const memoryWorkspaceMessages = defineMessages({
   memory_add_cancel: { en: 'Cancel', fr: 'Annuler' },
   memory_add_toast: { en: 'Memory added.', fr: 'Élément ajouté.' }, // [FR self-authored]
 
-  memory_confirm_remove_title: { en: 'Remove from Advisor memory', fr: 'Retirer de la mémoire du Conseiller' }, // [FR self-authored]
+  memory_confirm_remove_title: {
+    en: 'Remove from Advisor memory',
+    fr: 'Retirer de la mémoire du Conseiller',
+  }, // [FR self-authored]
   memory_confirm_remove_body: {
     en: 'This makes the memory immediately unavailable to Advisor retrieval. The stored record is preserved subject to its retention rules.',
     fr: 'Cela rend l’élément immédiatement indisponible à la récupération du Conseiller. L’enregistrement conservé est préservé selon ses règles de conservation.',

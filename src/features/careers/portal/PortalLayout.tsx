@@ -28,7 +28,9 @@ export function PortalLayout() {
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     `rounded-[8px] px-[12px] py-[7px] text-[13px] font-semibold transition-[background,color] duration-150 ${
-      isActive ? 'bg-surface text-text shadow-[0_1px_3px_rgba(13,27,42,0.10)]' : 'text-text-muted hover:text-text-2'
+      isActive
+        ? 'bg-surface text-text shadow-[0_1px_3px_rgba(13,27,42,0.10)]'
+        : 'text-text-muted hover:text-text-2'
     }`
 
   return (

@@ -92,12 +92,7 @@ export function EmployeeLeaveTab({
             </span>
             {leave.isProtected && (
               <span className={`${sourceChipClass('info')} items-center`}>
-                <ShieldCheck
-                  size={11}
-                  strokeWidth={1.9}
-                  className="mr-[4px]"
-                  aria-hidden="true"
-                />
+                <ShieldCheck size={11} strokeWidth={1.9} className="mr-[4px]" aria-hidden="true" />
                 {x(M.employees_prod_leave_protected)}
               </span>
             )}
@@ -105,10 +100,7 @@ export function EmployeeLeaveTab({
               {leave.endedOn !== null
                 ? x(M.employees_prod_leave_ended_on).replace('{date}', leave.endedOn)
                 : leave.expectedReturnDate !== null
-                  ? x(M.employees_prod_leave_returns).replace(
-                      '{date}',
-                      leave.expectedReturnDate,
-                    )
+                  ? x(M.employees_prod_leave_returns).replace('{date}', leave.expectedReturnDate)
                   : x(M.employees_prod_leave_current)}
             </span>
             {isOrgAdmin && leave.endedOn === null && (
@@ -181,4 +173,3 @@ export function EmployeeLeaveTab({
     </>
   )
 }
-

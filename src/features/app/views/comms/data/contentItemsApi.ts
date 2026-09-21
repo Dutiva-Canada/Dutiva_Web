@@ -91,7 +91,10 @@ function actionToDeliveryStatus(
     case 'schedule':
       return { deliveryStatus: 'scheduled' }
     case 'unschedule':
-      return { deliveryStatus: current === 'scheduled' ? 'ready' : current, extra: { scheduledFor: undefined, timeZone: undefined } }
+      return {
+        deliveryStatus: current === 'scheduled' ? 'ready' : current,
+        extra: { scheduledFor: undefined, timeZone: undefined },
+      }
     case 'pause':
       return { deliveryStatus: 'paused' }
     case 'resume':

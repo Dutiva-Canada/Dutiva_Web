@@ -393,10 +393,14 @@ export function SettingsView() {
               <>
                 <div>
                   <span className="text-[12px] text-text-muted">{x(M.settings_company)}</span>
-                  <div className="text-[14px] font-semibold text-text">Northgate Logistics Inc.</div>
+                  <div className="text-[14px] font-semibold text-text">
+                    Northgate Logistics Inc.
+                  </div>
                 </div>
                 <div>
-                  <span className="text-[12px] text-text-muted">{x(M.settings_provinces_of_op)}</span>
+                  <span className="text-[12px] text-text-muted">
+                    {x(M.settings_provinces_of_op)}
+                  </span>
                   <div className="mt-[6px] flex flex-wrap gap-[6px]">
                     {provinces.map((prov) => (
                       <span
@@ -489,9 +493,7 @@ export function SettingsView() {
             )
           })}
           <div className="border-t border-inset px-[18px] py-[10px] text-[11px] text-text-faint">
-            {x(
-              isBillingAdmin ? M.settings_ai_prefs_note_staff : M.settings_ai_prefs_note,
-            )}
+            {x(isBillingAdmin ? M.settings_ai_prefs_note_staff : M.settings_ai_prefs_note)}
           </div>
           <Link
             to="/app/settings/memory"

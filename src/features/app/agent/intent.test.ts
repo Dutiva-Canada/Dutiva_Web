@@ -66,9 +66,7 @@ describe('proposeAgentAction', () => {
   })
 
   it('routes operations intents to the ops seam', () => {
-    expect(proposeAgentAction('add a vendor Groupe Alimex')?.toolId).toBe(
-      'operations.add_vendor',
-    )
+    expect(proposeAgentAction('add a vendor Groupe Alimex')?.toolId).toBe('operations.add_vendor')
     expect(proposeAgentAction('mark the workstation shipment as delivered')?.toolId).toBe(
       'operations.deliver_shipment',
     )
@@ -89,12 +87,10 @@ describe('proposeAgentAction', () => {
     expect(proposeAgentAction('approve the offer letter for Chen')?.toolId).toBe(
       'documents.approve',
     )
-    expect(
-      proposeAgentAction('send the contract to jane@northgate.ca for signature')?.toolId,
-    ).toBe('documents.send_for_signature')
-    expect(proposeAgentAction('approuve le contrat de travail')?.toolId).toBe(
-      'documents.approve',
+    expect(proposeAgentAction('send the contract to jane@northgate.ca for signature')?.toolId).toBe(
+      'documents.send_for_signature',
     )
+    expect(proposeAgentAction('approuve le contrat de travail')?.toolId).toBe('documents.approve')
   })
 
   it('keeps document nouns separate from governance and finance', () => {
@@ -106,9 +102,7 @@ describe('proposeAgentAction', () => {
     expect(proposeAgentAction('approve the request for laptops')?.toolId).toBe(
       'finance.approve_spend',
     )
-    expect(proposeAgentAction('approve the contract for Chen')?.toolId).toBe(
-      'documents.approve',
-    )
+    expect(proposeAgentAction('approve the contract for Chen')?.toolId).toBe('documents.approve')
   })
 
   it('routes security intents to the security seam', () => {

@@ -13,7 +13,8 @@ export interface OperationsProject {
   updated_at: string
 }
 
-export type OperationsVendorType = 'supplier' | 'logistics' | 'technology' | 'professional_service' | null
+export type OperationsVendorType =
+  'supplier' | 'logistics' | 'technology' | 'professional_service' | null
 export type OperationsVendorStatus = 'active' | 'inactive' | 'under_review'
 
 export interface OperationsVendor {
@@ -47,7 +48,8 @@ export interface OperationsQualityCheck {
   updated_at: string
 }
 
-export type OperationsTechnologyType = 'internal' | 'customer_facing' | 'integration' | 'infrastructure' | null
+export type OperationsTechnologyType =
+  'internal' | 'customer_facing' | 'integration' | 'infrastructure' | null
 export type OperationsTechnologyStatus = 'active' | 'deprecated' | 'planned'
 
 export interface OperationsTechnology {

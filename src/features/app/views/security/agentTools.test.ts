@@ -224,7 +224,11 @@ describe('security.resolve_incident', () => {
     let updated: SecurityIncident | undefined
     bind({ updateIncident: (i) => void (updated = i) })
     const { outcome: out } = await executeAgentProposal(
-      createProposal('security.resolve_incident', { en: 'x', fr: 'x' }, { title: 'suspicious login' }),
+      createProposal(
+        'security.resolve_incident',
+        { en: 'x', fr: 'x' },
+        { title: 'suspicious login' },
+      ),
       DEMO,
     )
     expect(out.status).toBe('completed')
@@ -240,7 +244,11 @@ describe('security.resolve_incident', () => {
       updateIncident: () => void (ran = true),
     })
     const { outcome: out } = await executeAgentProposal(
-      createProposal('security.resolve_incident', { en: 'x', fr: 'x' }, { title: 'suspicious login' }),
+      createProposal(
+        'security.resolve_incident',
+        { en: 'x', fr: 'x' },
+        { title: 'suspicious login' },
+      ),
       DEMO,
     )
     expect(out.status).toBe('completed')
@@ -263,7 +271,11 @@ describe('security.resolve_incident', () => {
   it('fails on an unmatched title', async () => {
     bind()
     const { outcome: out } = await executeAgentProposal(
-      createProposal('security.resolve_incident', { en: 'x', fr: 'x' }, { title: 'no such incident' }),
+      createProposal(
+        'security.resolve_incident',
+        { en: 'x', fr: 'x' },
+        { title: 'no such incident' },
+      ),
       DEMO,
     )
     expect(out.status).toBe('failed')

@@ -62,18 +62,15 @@ async function callCandidateAi<T>(feature: AiFeature, payload: unknown): Promise
   const { data: sessionData } = await client.auth.getSession()
   const session = sessionData.session
   if (!session) throw new Error('Not signed in')
-  const response = await fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/candidate-ai`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${session.access_token}`,
-        apikey: import.meta.env.VITE_SUPABASE_ANON_KEY ?? '',
-      },
-      body: JSON.stringify({ feature, payload }),
+  const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/candidate-ai`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: import.meta.env.VITE_SUPABASE_ANON_KEY ?? '',
     },
-  )
+    body: JSON.stringify({ feature, payload }),
+  })
   if (!response.ok) {
     throw new Error(`AI request failed: ${response.status}`)
   }

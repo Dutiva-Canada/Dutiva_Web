@@ -1,5 +1,9 @@
 import { Link } from 'react-router-dom'
-import { useWorkspaceNavigate, useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
+import {
+  useWorkspaceNavigate,
+  useWorkspaceRoot,
+  workspacePath,
+} from '@/features/app/workspaceRoot/workspaceRootContext'
 import { Brain, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { useEscapeToClose } from '@/lib/escapeStack'

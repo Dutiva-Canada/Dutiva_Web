@@ -2,11 +2,7 @@ import { bi } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import { demoTodayISO } from './calendar'
 import { isCanonicalMemoryDate } from './memoryDates'
-import type {
-  MemoryFact,
-  MemoryRetentionCategory,
-  MemorySourceType,
-} from './types'
+import type { MemoryFact, MemoryRetentionCategory, MemorySourceType } from './types'
 
 /**
  * Advisor Memory seed fixtures — typed transcription of the Advisor Memory
@@ -241,23 +237,35 @@ export const memoryRetentionSchedule: MemoryRetentionRule[] = [
     category: 'advisor_conversation',
     rule: bi('24 months from the conversation', '24 mois à partir de la conversation'),
     trigger: bi('Last conversation turn', 'Dernier échange de la conversation'),
-    applicability: bi('All workspaces (Dutiva default)', 'Tous les espaces (valeur par défaut Dutiva)'),
+    applicability: bi(
+      'All workspaces (Dutiva default)',
+      'Tous les espaces (valeur par défaut Dutiva)',
+    ),
     basis: bi('Dutiva default', 'Valeur par défaut Dutiva'),
     reviewRequired: true,
     enabled: true,
   },
   {
     category: 'employee_preference',
-    rule: bi('While employed, then removed on request', 'Pendant l’emploi, puis retiré sur demande'),
+    rule: bi(
+      'While employed, then removed on request',
+      'Pendant l’emploi, puis retiré sur demande',
+    ),
     trigger: bi('Preference recorded', 'Préférence enregistrée'),
-    applicability: bi('All workspaces (Dutiva default)', 'Tous les espaces (valeur par défaut Dutiva)'),
+    applicability: bi(
+      'All workspaces (Dutiva default)',
+      'Tous les espaces (valeur par défaut Dutiva)',
+    ),
     basis: bi('Dutiva default', 'Valeur par défaut Dutiva'),
     reviewRequired: false,
     enabled: true,
   },
   {
     category: 'employment_record',
-    rule: bi('Per your organization’s record-retention policy', 'Selon la politique de conservation de votre organisation'),
+    rule: bi(
+      'Per your organization’s record-retention policy',
+      'Selon la politique de conservation de votre organisation',
+    ),
     trigger: bi('Employment ends', 'Fin d’emploi'),
     applicability: bi('Configured per organization', 'Configuré par organisation'),
     basis: bi('Organization policy', 'Politique de l’organisation'),
@@ -266,7 +274,10 @@ export const memoryRetentionSchedule: MemoryRetentionRule[] = [
   },
   {
     category: 'payroll_tax',
-    rule: bi('Per applicable tax/payroll retention requirements', 'Selon les exigences de conservation fiscale et de paie applicables'),
+    rule: bi(
+      'Per applicable tax/payroll retention requirements',
+      'Selon les exigences de conservation fiscale et de paie applicables',
+    ),
     trigger: bi('Tax year end', 'Fin de l’année fiscale'),
     applicability: bi('Configured per jurisdiction', 'Configuré par juridiction'),
     basis: bi('Statutory minimum', 'Minimum statutaire'),
@@ -275,10 +286,16 @@ export const memoryRetentionSchedule: MemoryRetentionRule[] = [
   },
   {
     category: 'investigation',
-    rule: bi('While the case is open, then per organization policy', 'Pendant que le dossier est ouvert, puis selon la politique de l’organisation'),
+    rule: bi(
+      'While the case is open, then per organization policy',
+      'Pendant que le dossier est ouvert, puis selon la politique de l’organisation',
+    ),
     trigger: bi('Case opened', 'Ouverture du dossier'),
     applicability: bi('Configured per organization', 'Configuré par organisation'),
-    basis: bi('Case-specific + organization policy', 'Spécifique au dossier + politique de l’organisation'),
+    basis: bi(
+      'Case-specific + organization policy',
+      'Spécifique au dossier + politique de l’organisation',
+    ),
     reviewRequired: true,
     enabled: true,
   },
@@ -286,7 +303,10 @@ export const memoryRetentionSchedule: MemoryRetentionRule[] = [
     category: 'wellbeing_personal',
     rule: bi('12 months, then reviewed', '12 mois, puis révisé'),
     trigger: bi('Recorded', 'Enregistrement'),
-    applicability: bi('All workspaces (Dutiva default)', 'Tous les espaces (valeur par défaut Dutiva)'),
+    applicability: bi(
+      'All workspaces (Dutiva default)',
+      'Tous les espaces (valeur par défaut Dutiva)',
+    ),
     basis: bi('Dutiva default', 'Valeur par défaut Dutiva'),
     reviewRequired: true,
     enabled: true,

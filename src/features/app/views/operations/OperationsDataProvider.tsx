@@ -36,7 +36,10 @@ import type {
   OperationsLogistics,
 } from './data/types'
 
-const EMPTY: Pick<OperationsDataValue, 'projects' | 'vendors' | 'qualityChecks' | 'technology' | 'logistics' | 'loading' | 'error'> = {
+const EMPTY: Pick<
+  OperationsDataValue,
+  'projects' | 'vendors' | 'qualityChecks' | 'technology' | 'logistics' | 'loading' | 'error'
+> = {
   projects: [],
   vendors: [],
   qualityChecks: [],
@@ -54,11 +57,12 @@ export function OperationsDataProvider({
   readonly children: ReactNode
 }) {
   const { organizationId } = useWorkspaceMode()
-  const [value, setValue] = useState<Pick<OperationsDataValue, 'projects' | 'vendors' | 'qualityChecks' | 'technology' | 'logistics' | 'loading' | 'error'>>
-  (
-    () =>
-      mode === 'demo' ? { ...fixtures, loading: false, error: null } : EMPTY,
-  )
+  const [value, setValue] = useState<
+    Pick<
+      OperationsDataValue,
+      'projects' | 'vendors' | 'qualityChecks' | 'technology' | 'logistics' | 'loading' | 'error'
+    >
+  >(() => (mode === 'demo' ? { ...fixtures, loading: false, error: null } : EMPTY))
 
   useEffect(() => {
     if (mode !== 'production') return
@@ -444,12 +448,18 @@ export function OperationsDataProvider({
   const removeQualityCheck = useCallback(
     async (id: string) => {
       if (mode !== 'production' || !organizationId) {
-        setValue((prev) => ({ ...prev, qualityChecks: prev.qualityChecks.filter((c) => c.id !== id) }))
+        setValue((prev) => ({
+          ...prev,
+          qualityChecks: prev.qualityChecks.filter((c) => c.id !== id),
+        }))
         return
       }
       try {
         await deleteOperationsQualityCheck(id)
-        setValue((prev) => ({ ...prev, qualityChecks: prev.qualityChecks.filter((c) => c.id !== id) }))
+        setValue((prev) => ({
+          ...prev,
+          qualityChecks: prev.qualityChecks.filter((c) => c.id !== id),
+        }))
       } catch (err) {
         setValue((prev) => ({
           ...prev,

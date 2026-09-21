@@ -15,7 +15,10 @@ export interface UseCoverageResult {
   loading: boolean
   canWrite: boolean
   addCoverageItem: (item: Omit<CommsCoverageItem, 'id'>) => Promise<CommsCoverageItem | null>
-  updateCoverageItem: (id: string, patch: Partial<CommsCoverageItem>) => Promise<CommsCoverageItem | null>
+  updateCoverageItem: (
+    id: string,
+    patch: Partial<CommsCoverageItem>,
+  ) => Promise<CommsCoverageItem | null>
   removeCoverageItem: (id: string) => Promise<void>
   refresh: () => Promise<void>
 }
@@ -25,7 +28,9 @@ export function useCoverage(): UseCoverageResult {
   const { showToast } = useToasts()
   const isProduction = mode === 'production' && organizationId != null
 
-  const [coverageItems, setCoverageItems] = useState<CommsCoverageItem[]>(initialCommsState.coverageItems)
+  const [coverageItems, setCoverageItems] = useState<CommsCoverageItem[]>(
+    initialCommsState.coverageItems,
+  )
   const [loading, setLoading] = useState(false)
 
   const load = useCallback(async () => {

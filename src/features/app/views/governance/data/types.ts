@@ -34,7 +34,8 @@ export interface GovernanceDecision {
   updated_at: string
 }
 
-export type GovernanceOfficerRole = 'director' | 'officer_president' | 'officer_secretary' | 'officer_treasurer'
+export type GovernanceOfficerRole =
+  'director' | 'officer_president' | 'officer_secretary' | 'officer_treasurer'
 
 export interface GovernanceOfficer {
   id: string

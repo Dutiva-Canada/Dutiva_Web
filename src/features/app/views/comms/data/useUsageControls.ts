@@ -21,7 +21,9 @@ export function useUsageControls(): UseUsageControlsResult {
   const { showToast } = useToasts()
   const isProduction = mode === 'production' && organizationId != null
 
-  const [usageControls, setUsageControls] = useState<CommsUsageControls>(initialCommsState.usageControls)
+  const [usageControls, setUsageControls] = useState<CommsUsageControls>(
+    initialCommsState.usageControls,
+  )
   const [loading, setLoading] = useState(false)
 
   const load = useCallback(async () => {

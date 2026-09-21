@@ -73,7 +73,9 @@ export function preloadCommsView(): Promise<ViewDefaultExport> {
 }
 
 export function preloadFinanceView(): Promise<ViewDefaultExport> {
-  return import('@/features/app/views/finance/FinanceView').then((m) => ({ default: m.FinanceView }))
+  return import('@/features/app/views/finance/FinanceView').then((m) => ({
+    default: m.FinanceView,
+  }))
 }
 
 export function preloadWellbeingView(): Promise<ViewDefaultExport> {

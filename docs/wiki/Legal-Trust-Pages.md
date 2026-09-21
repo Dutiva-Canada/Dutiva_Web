@@ -47,8 +47,6 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-
-
 The Legal Hub is a system of 26 bilingual policy documents published on the Dutiva marketing surface. It covers privacy (PIPEDA-conscious), cookies, AI technology disclosure, terms of service, subscription agreement, refund policy, data processing agreement, subprocessors, cross-border transfer, human-review escalation, AI risk disclosure, support policy, incident response, accessibility, disclaimer, and more. This page documents the data model, lazy-loading content pipeline, page rendering, SEO integration, and the companion `SECURITY.md` / `security.txt` vulnerability reporting policy.
 
 ## System Architecture Overview
@@ -92,34 +90,34 @@ All 26 documents are registered in `LEGAL_HUB_GROUPS`, organized into six sectio
 
 [src/features/marketing/legal/legalHubData.ts:27-214]()
 
-| # | Section (`titleKey`) | Slug | EN Title |
-|---|---|---|---|
-| 1 | `legalHub_s1` (Core legal) | `terms` | Terms of Service |
-| 2 | `legalHub_s1` | `privacy` | Privacy Policy |
-| 3 | `legalHub_s1` | `disclaimer` | Legal Disclaimer |
-| 4 | `legalHub_s1` | `cookies` | Cookie Policy |
-| 5 | `legalHub_s1` | `accessibility` | Accessibility Statement |
-| 6 | `legalHub_s2` (Canadian compliance) | `pipeda-compliance` | PIPEDA Compliance Statement |
-| 7 | `legalHub_s2` | `quebec-law-25` | Quebec Law 25 Compliance Documentation |
-| 8 | `legalHub_s2` | `casl-compliance` | CASL Compliance Policy |
-| 9 | `legalHub_s2` | `cross-border-transfer` | Cross-Border Data Transfer Disclosure |
-| 10 | `legalHub_s3` (AI governance) | `ai-technology` | AI & Technology Policy |
-| 11 | `legalHub_s3` | `ai-usage-disclosure` | AI Usage Disclosure |
-| 12 | `legalHub_s3` | `ai-risk-disclosure` | AI Risk Disclosure Framework |
-| 13 | `legalHub_s3` | `human-review-escalation` | Human Review Escalation Policy |
-| 14 | `legalHub_s4` (Data & security) | `data-processing-agreement` | Data Processing Agreement |
-| 15 | `legalHub_s4` | `data-retention` | Data Retention and Deletion Policy |
-| 16 | `legalHub_s4` | `data-deletion` | User Data Deletion Procedures |
-| 17 | `legalHub_s4` | `incident-response-policy` | Incident and Breach Response Policy |
-| 18 | `legalHub_s4` | `security` | Security Overview |
-| 19 | `legalHub_s4` | `subprocessors` | Subprocessor List |
-| 20 | `legalHub_s5` (Billing & support) | `subscription-agreement` | SaaS Subscription Agreement |
-| 21 | `legalHub_s5` | `refund-policy` | Refund and Cancellation Policy |
-| 22 | `legalHub_s5` | `support-policy` | Customer Support Policy |
-| 23 | `legalHub_s6` (Intellectual property) | `acceptable-use` | Acceptable Use Policy |
-| 24 | `legalHub_s6` | `copyright` | Copyright Policy |
-| 25 | `legalHub_s6` | `trademark-policy` | Trademark Usage Policy |
-| 26 | `legalHub_s6` | `dmca-takedown` | Content Takedown Procedure |
+| #   | Section (`titleKey`)                  | Slug                        | EN Title                               |
+| --- | ------------------------------------- | --------------------------- | -------------------------------------- |
+| 1   | `legalHub_s1` (Core legal)            | `terms`                     | Terms of Service                       |
+| 2   | `legalHub_s1`                         | `privacy`                   | Privacy Policy                         |
+| 3   | `legalHub_s1`                         | `disclaimer`                | Legal Disclaimer                       |
+| 4   | `legalHub_s1`                         | `cookies`                   | Cookie Policy                          |
+| 5   | `legalHub_s1`                         | `accessibility`             | Accessibility Statement                |
+| 6   | `legalHub_s2` (Canadian compliance)   | `pipeda-compliance`         | PIPEDA Compliance Statement            |
+| 7   | `legalHub_s2`                         | `quebec-law-25`             | Quebec Law 25 Compliance Documentation |
+| 8   | `legalHub_s2`                         | `casl-compliance`           | CASL Compliance Policy                 |
+| 9   | `legalHub_s2`                         | `cross-border-transfer`     | Cross-Border Data Transfer Disclosure  |
+| 10  | `legalHub_s3` (AI governance)         | `ai-technology`             | AI & Technology Policy                 |
+| 11  | `legalHub_s3`                         | `ai-usage-disclosure`       | AI Usage Disclosure                    |
+| 12  | `legalHub_s3`                         | `ai-risk-disclosure`        | AI Risk Disclosure Framework           |
+| 13  | `legalHub_s3`                         | `human-review-escalation`   | Human Review Escalation Policy         |
+| 14  | `legalHub_s4` (Data & security)       | `data-processing-agreement` | Data Processing Agreement              |
+| 15  | `legalHub_s4`                         | `data-retention`            | Data Retention and Deletion Policy     |
+| 16  | `legalHub_s4`                         | `data-deletion`             | User Data Deletion Procedures          |
+| 17  | `legalHub_s4`                         | `incident-response-policy`  | Incident and Breach Response Policy    |
+| 18  | `legalHub_s4`                         | `security`                  | Security Overview                      |
+| 19  | `legalHub_s4`                         | `subprocessors`             | Subprocessor List                      |
+| 20  | `legalHub_s5` (Billing & support)     | `subscription-agreement`    | SaaS Subscription Agreement            |
+| 21  | `legalHub_s5`                         | `refund-policy`             | Refund and Cancellation Policy         |
+| 22  | `legalHub_s5`                         | `support-policy`            | Customer Support Policy                |
+| 23  | `legalHub_s6` (Intellectual property) | `acceptable-use`            | Acceptable Use Policy                  |
+| 24  | `legalHub_s6`                         | `copyright`                 | Copyright Policy                       |
+| 25  | `legalHub_s6`                         | `trademark-policy`          | Trademark Usage Policy                 |
+| 26  | `legalHub_s6`                         | `dmca-takedown`             | Content Takedown Procedure             |
 
 Sources: [src/features/marketing/legal/legalHubData.ts:27-214](), [src/i18n/messages/legalHub.ts:19-24]()
 
@@ -146,14 +144,14 @@ LegalHubRow {
 
 The content pipeline is defined in `policyContent.ts` with these core types:
 
-| Type | Purpose |
-|---|---|
-| `PolicyBlock` | A single content block: `{ type: 'p' \| 'li', text: string }` |
-| `PolicySection` | `{ title: string, blocks: PolicyBlock[] }` — one numbered section |
-| `PolicyEdition` | One language edition: `title`, optional `lastUpdated`, `effectiveDate`, `callout[]`, and `sections[]` |
-| `PolicyDoc` | `{ slug: string, en?: EditionLoader, fr?: EditionLoader }` — lazy loaders for both editions |
-| `ResolvedPolicyEdition` | `{ edition: PolicyEdition, lang: Lang }` — the loaded edition with its actual language |
-| `PolicyBlockGroup` | Rendering helper: consecutive `li` blocks grouped into `{ kind: 'list', items[] }`, `p` blocks stay as `{ kind: 'p', text }` |
+| Type                    | Purpose                                                                                                                      |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `PolicyBlock`           | A single content block: `{ type: 'p' \| 'li', text: string }`                                                                |
+| `PolicySection`         | `{ title: string, blocks: PolicyBlock[] }` — one numbered section                                                            |
+| `PolicyEdition`         | One language edition: `title`, optional `lastUpdated`, `effectiveDate`, `callout[]`, and `sections[]`                        |
+| `PolicyDoc`             | `{ slug: string, en?: EditionLoader, fr?: EditionLoader }` — lazy loaders for both editions                                  |
+| `ResolvedPolicyEdition` | `{ edition: PolicyEdition, lang: Lang }` — the loaded edition with its actual language                                       |
+| `PolicyBlockGroup`      | Rendering helper: consecutive `li` blocks grouped into `{ kind: 'list', items[] }`, `p` blocks stay as `{ kind: 'p', text }` |
 
 [src/features/marketing/legal/policyContent.ts:21-46](), [src/features/marketing/legal/policyContent.ts:114-128]()
 
@@ -317,6 +315,7 @@ The routes are registered in `src/app/routes.tsx` via the `publicRoutes()` funct
 ### SEO Route Registry
 
 The `legal` route is registered in `SEO_ROUTES` with:
+
 - EN path: `/legal`, FR path: `/fr/juridique`
 - Title: `Legal & compliance documentation | Dutiva`
 - Description covering PIPEDA, Quebec Law 25, CASL, AI governance
@@ -329,13 +328,13 @@ Individual documents are included in `allPublicPages()` as dynamic pages keyed `
 
 ### URL Helpers
 
-| Function | Purpose |
-|---|---|
-| `legalRowBySlug(slug)` | Find a `LegalHubRow` by its EN slug |
-| `legalRowByFrSlug(frSlug)` | Find a `LegalHubRow` by its FR slug |
-| `legalDocPath(row, lang)` | Canonical pathname: `/legal/<slug>` or `/fr/juridique/<frSlug>` |
-| `legalDocTitle(row, lang)` | Localized title from `marketingMessages[row.titleKey]` |
-| `legalDocDescription(row, lang)` | Localized description with appended attribution |
+| Function                         | Purpose                                                         |
+| -------------------------------- | --------------------------------------------------------------- |
+| `legalRowBySlug(slug)`           | Find a `LegalHubRow` by its EN slug                             |
+| `legalRowByFrSlug(frSlug)`       | Find a `LegalHubRow` by its FR slug                             |
+| `legalDocPath(row, lang)`        | Canonical pathname: `/legal/<slug>` or `/fr/juridique/<frSlug>` |
+| `legalDocTitle(row, lang)`       | Localized title from `marketingMessages[row.titleKey]`          |
+| `legalDocDescription(row, lang)` | Localized description with appended attribution                 |
 
 Sources: [src/seo/routes.ts:240-265]()
 
@@ -343,12 +342,12 @@ Sources: [src/seo/routes.ts:240-265]()
 
 The `legalHubMessages` message module (registered in `src/i18n/messages/index.ts`) provides all bilingual strings for the legal hub and policy page chrome. Keys are `legalHub_`-prefixed per CONVENTIONS.md.
 
-| Key pattern | Count | Purpose |
-|---|---|---|
-| `legalHub_s1` – `legalHub_s6` | 6 | Section group headings |
-| `legalHub_row<N>_title` / `_desc` | 52 (26×2) | Document title + short description |
-| `legalHub_eyebrow`, `_h1`, `_intro` | 3 | Hub page hero copy |
-| `legalHub_back`, `_viewAll`, `_lastUpdated`, `_effective`, `_frOnly` | 5 | PolicyPage chrome strings |
+| Key pattern                                                          | Count     | Purpose                            |
+| -------------------------------------------------------------------- | --------- | ---------------------------------- |
+| `legalHub_s1` – `legalHub_s6`                                        | 6         | Section group headings             |
+| `legalHub_row<N>_title` / `_desc`                                    | 52 (26×2) | Document title + short description |
+| `legalHub_eyebrow`, `_h1`, `_intro`                                  | 3         | Hub page hero copy                 |
+| `legalHub_back`, `_viewAll`, `_lastUpdated`, `_effective`, `_frOnly` | 5         | PolicyPage chrome strings          |
 
 [src/i18n/messages/legalHub.ts:1-208]()
 
@@ -370,13 +369,13 @@ Additional tests cover `loadPolicyEdition()` language fallback behavior and `gro
 
 Five test cases exercise the renderer:
 
-| Test | Assertion |
-|---|---|
-| EN rendering | Terms of Service h1, "Last updated: June 1, 2026", section headings, back-link to `/legal` |
-| FR language toggle | Click language toggle → h1 becomes "Conditions d'utilisation", back-link → `/fr/juridique` |
-| FR-only fallback | EN-first document has no fallback notice |
-| Cross-locale slug | FR slug under EN UI still resolves the document |
-| Unknown slug redirect | No `<main>` rendered; redirect to hub |
+| Test                  | Assertion                                                                                  |
+| --------------------- | ------------------------------------------------------------------------------------------ |
+| EN rendering          | Terms of Service h1, "Last updated: June 1, 2026", section headings, back-link to `/legal` |
+| FR language toggle    | Click language toggle → h1 becomes "Conditions d'utilisation", back-link → `/fr/juridique` |
+| FR-only fallback      | EN-first document has no fallback notice                                                   |
+| Cross-locale slug     | FR slug under EN UI still resolves the document                                            |
+| Unknown slug redirect | No `<main>` rendered; redirect to hub                                                      |
 
 [src/features/marketing/pages/PolicyPage.test.tsx:1-82]()
 
@@ -420,13 +419,13 @@ Sources: [src/features/marketing/legal/content/incident-response-policy.en.ts:1-
 
 The repo-root `SECURITY.md` defines the coordinated vulnerability disclosure policy:
 
-| Field | Value |
-|---|---|
-| Contact | `security@dutiva.ca` |
-| Acknowledgment SLA | 3 business days |
-| Languages accepted | English, French |
-| Scope | dutiva.ca and subdomains, this repository |
-| Out of scope | Third-party services, compromised device findings |
+| Field              | Value                                             |
+| ------------------ | ------------------------------------------------- |
+| Contact            | `security@dutiva.ca`                              |
+| Acknowledgment SLA | 3 business days                                   |
+| Languages accepted | English, French                                   |
+| Scope              | dutiva.ca and subdomains, this repository         |
+| Out of scope       | Third-party services, compromised device findings |
 
 The safe harbour section permits good-faith security research with constraints: access only your own data, no DoS, no exfiltration, reasonable remediation time before disclosure.
 

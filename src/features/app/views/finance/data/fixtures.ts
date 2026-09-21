@@ -80,15 +80,17 @@ const taxAccount: FinanceWorkspaceState['bankAccounts'][number] = {
   earmarkedAmount: '12000.00',
 }
 
-const ledgerAccounts: FinanceWorkspaceState['ledgerAccounts'] = DEFAULT_LEDGER_ACCOUNTS.map((la) => ({
-  id: `acct-${la.code}`,
-  bookId: book.id,
-  code: la.code,
-  name: la.name,
-  type: la.type,
-  sensitive: la.sensitive ?? false,
-  active: true,
-}))
+const ledgerAccounts: FinanceWorkspaceState['ledgerAccounts'] = DEFAULT_LEDGER_ACCOUNTS.map(
+  (la) => ({
+    id: `acct-${la.code}`,
+    bookId: book.id,
+    code: la.code,
+    name: la.name,
+    type: la.type,
+    sensitive: la.sensitive ?? false,
+    active: true,
+  }),
+)
 
 const invoice: FinanceWorkspaceState['invoices'][number] = {
   id: 'inv-1',
@@ -275,7 +277,10 @@ const payRun: FinanceWorkspaceState['payRuns'][number] = {
   approvedAt: '2026-09-04T12:00:00Z',
   submittedAt: '2026-09-04T13:00:00Z',
   exceptions: [
-    bi('QC employee YTD total differs from prior period by $320.', 'Le total cumulatif de l’employé QC diffère de la période précédente de 320 $.'),
+    bi(
+      'QC employee YTD total differs from prior period by $320.',
+      'Le total cumulatif de l’employé QC diffère de la période précédente de 320 $.',
+    ),
   ],
 }
 
@@ -419,7 +424,10 @@ const watchlistItem: FinanceWorkspaceState['watchlistItems'][number] = {
   id: 'watch-1',
   entityId: 'ent-1',
   symbol: 'XEQT',
-  label: bi('All-equity ETF — surplus sweep candidate', 'FNB tout-actions — candidat pour le surplus'),
+  label: bi(
+    'All-equity ETF — surplus sweep candidate',
+    'FNB tout-actions — candidat pour le surplus',
+  ),
   assetClass: 'fund',
   thesis: bi(
     'Parking operating surplus beyond the GIC ladder; reviewed quarterly against the cash forecast.',
@@ -434,7 +442,10 @@ const watchlistItem: FinanceWorkspaceState['watchlistItems'][number] = {
 const watchlistItem2: FinanceWorkspaceState['watchlistItems'][number] = {
   id: 'watch-2',
   entityId: 'ent-1',
-  label: bi('Provincial bond ladder — 1 to 3 year', 'Échelle d’obligations provinciales — 1 à 3 ans'),
+  label: bi(
+    'Provincial bond ladder — 1 to 3 year',
+    'Échelle d’obligations provinciales — 1 à 3 ans',
+  ),
   assetClass: 'fixed_income',
   thesis: bi(
     'Match the tax reserve horizon without locking everything into the 90-day GIC.',
@@ -525,7 +536,10 @@ const taxScenario: FinanceWorkspaceState['taxScenarios'][number] = {
   entityId: 'ent-1',
   label: bi('Accelerated CCA on warehouse equipment', 'DPA accélérée sur l’équipement d’entrepôt'),
   baseline: '2026 baseline',
-  proposedDecision: bi('Purchase $20k equipment in Q4, claim Class 8 at 50%', 'Acheter 20k d’équipement au T4, réclamer la classe 8 à 50%'),
+  proposedDecision: bi(
+    'Purchase $20k equipment in Q4, claim Class 8 at 50%',
+    'Acheter 20k d’équipement au T4, réclamer la classe 8 à 50%',
+  ),
   projectedProfit: '180000.00',
   projectedTaxableIncome: '160000.00',
   projectedTax: '24000.00',
@@ -580,19 +594,24 @@ const externalAction: FinanceWorkspaceState['externalActions'][number] = {
   payloadVersion: 'v1',
   idempotencyKey: 'pr-1-v1',
   providerRef: 'ADP-2026-18-001',
-  notes: bi('Pay run submitted to ADP; results imported.', 'Traitement de paie soumis à ADP; résultats importés.'),
+  notes: bi(
+    'Pay run submitted to ADP; results imported.',
+    'Traitement de paie soumis à ADP; résultats importés.',
+  ),
 }
 
-const categoryRules: FinanceWorkspaceState['categoryRules'] = DEFAULT_CATEGORY_RULES.map((rule, index) => ({
-  id: `cat-rule-${index + 1}`,
-  entityId: entity.id,
-  pattern: rule.pattern,
-  matchType: rule.matchType,
-  ledgerAccountId: `acct-${rule.ledgerAccountCode}`,
-  direction: rule.direction,
-  priority: rule.priority,
-  active: true,
-}))
+const categoryRules: FinanceWorkspaceState['categoryRules'] = DEFAULT_CATEGORY_RULES.map(
+  (rule, index) => ({
+    id: `cat-rule-${index + 1}`,
+    entityId: entity.id,
+    pattern: rule.pattern,
+    matchType: rule.matchType,
+    ledgerAccountId: `acct-${rule.ledgerAccountCode}`,
+    direction: rule.direction,
+    priority: rule.priority,
+    active: true,
+  }),
+)
 
 const importSession: FinanceWorkspaceState['importSessions'][number] = {
   id: 'imp-1',

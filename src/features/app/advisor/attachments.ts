@@ -45,11 +45,7 @@ export interface WireAttachment {
 }
 
 export type AttachmentIssue =
-  | 'unsupported_type'
-  | 'too_large'
-  | 'empty'
-  | 'too_many'
-  | 'read_failed'
+  'unsupported_type' | 'too_large' | 'empty' | 'too_many' | 'read_failed'
 
 export class AttachmentError extends Error {
   constructor(

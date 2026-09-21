@@ -12,7 +12,13 @@ import type { ProductionCommunication } from './productionApi'
 const DEMO: AgentToolExecution = { mode: 'demo', role: null, organizationId: null }
 
 const ROWS: CommsAgentRow[] = [
-  { id: 'cm-1', title: 'RTO policy update', status: 'draft', audience: 'All staff', channel: 'email' },
+  {
+    id: 'cm-1',
+    title: 'RTO policy update',
+    status: 'draft',
+    audience: 'All staff',
+    channel: 'email',
+  },
   { id: 'cm-2', title: 'Harassment policy reminder', status: 'scheduled', channel: 'intranet' },
   { id: 'cm-3', title: 'Termination letter — J. Doe', status: 'sent', channel: 'letter' },
 ]
@@ -66,7 +72,9 @@ describe('communications agent tools', () => {
     const { outcome } = await run('communications.list', {})
     expect(outcome.status).toBe('completed')
     expect(outcome.status === 'completed' && outcome.message.en).toContain('3 communications')
-    expect(outcome.status === 'completed' && outcome.message.en).toContain('RTO policy update (draft)')
+    expect(outcome.status === 'completed' && outcome.message.en).toContain(
+      'RTO policy update (draft)',
+    )
   })
 
   it('filters the list by status', async () => {

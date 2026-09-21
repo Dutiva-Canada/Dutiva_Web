@@ -31,10 +31,22 @@ const ENTITY: FinanceLegalEntity = {
 }
 
 const PARTIES: FinanceParty[] = [
-  { id: 'pty-1', entityId: 'ent-1', name: 'Maple Freight Co.', type: 'customer', bankingDetailsOnFile: false, active: true },
+  {
+    id: 'pty-1',
+    entityId: 'ent-1',
+    name: 'Maple Freight Co.',
+    type: 'customer',
+    bankingDetailsOnFile: false,
+    active: true,
+  },
 ]
 
-function invoice(id: string, number: string, status: FinanceInvoiceStatus, dueDate = '2026-10-01'): FinanceInvoice {
+function invoice(
+  id: string,
+  number: string,
+  status: FinanceInvoiceStatus,
+  dueDate = '2026-10-01',
+): FinanceInvoice {
   return {
     id,
     entityId: 'ent-1',
@@ -64,7 +76,11 @@ function spend(id: string, purpose: string, status: FinanceRequestStatus): Finan
   }
 }
 
-function obligation(id: string, status: FinanceObligationStatus, dueDate = '2026-09-30'): FinanceTaxObligation {
+function obligation(
+  id: string,
+  status: FinanceObligationStatus,
+  dueDate = '2026-09-30',
+): FinanceTaxObligation {
   return {
     id,
     entityId: 'ent-1',
@@ -103,15 +119,21 @@ interface FinCalls {
 }
 
 function setupFinance(opts?: { canWrite?: boolean; failWrites?: boolean; noEntity?: boolean }) {
-  const calls: FinCalls = { invoiceTransitions: [], addedSpends: [], spendTransitions: [], addedObligations: [] }
+  const calls: FinCalls = {
+    invoiceTransitions: [],
+    addedSpends: [],
+    spendTransitions: [],
+    addedObligations: [],
+  }
   const writable = opts?.canWrite !== false && !opts?.failWrites
   const ctx: FinanceAgentContext = {
     canWrite: opts?.canWrite !== false,
     invoices: () => INVOICES,
-    spendRequests: () => SPEND.map((r) => {
-      const t = calls.spendTransitions.find((x) => x.id === r.id)
-      return t ? { ...r, status: t.next } : r
-    }),
+    spendRequests: () =>
+      SPEND.map((r) => {
+        const t = calls.spendTransitions.find((x) => x.id === r.id)
+        return t ? { ...r, status: t.next } : r
+      }),
     obligations: () => OBLIGATIONS,
     parties: () => PARTIES,
     entities: () => (opts?.noEntity ? [] : [ENTITY]),
@@ -149,7 +171,9 @@ describe('finance agent tools', () => {
     setupFinance()
     const { outcome } = await run('finance.invoices', {})
     expect(outcome.status === 'completed' && outcome.message.en).toContain('3 invoices')
-    expect(outcome.status === 'completed' && outcome.message.en).toContain('INV-2026-0042 — Maple Freight Co. — CAD 1250.00 (issued) ⚠')
+    expect(outcome.status === 'completed' && outcome.message.en).toContain(
+      'INV-2026-0042 — Maple Freight Co. — CAD 1250.00 (issued) ⚠',
+    )
   })
 
   it('filters invoices by status', async () => {
@@ -198,8 +222,13 @@ describe('finance agent tools', () => {
 
   it('files and submits a spend request with the amount normalized', async () => {
     const calls = setupFinance()
-    const { outcome } = await run('finance.add_spend_request', { purpose: 'New laptops', amount: 3600 })
-    expect(outcome.status === 'completed' && outcome.message.en).toContain('Spend request submitted')
+    const { outcome } = await run('finance.add_spend_request', {
+      purpose: 'New laptops',
+      amount: 3600,
+    })
+    expect(outcome.status === 'completed' && outcome.message.en).toContain(
+      'Spend request submitted',
+    )
     expect(calls.addedSpends[0]).toMatchObject({
       entityId: 'ent-1',
       requester: 'Workspace user',
@@ -207,7 +236,9 @@ describe('finance agent tools', () => {
       currency: 'CAD',
       status: 'draft',
     })
-    expect(calls.spendTransitions).toEqual([{ id: 'sr-new', next: 'submitted', approver: 'Workspace user' }])
+    expect(calls.spendTransitions).toEqual([
+      { id: 'sr-new', next: 'submitted', approver: 'Workspace user' },
+    ])
   })
 
   it('reports a draft when the submit step fails', async () => {
@@ -245,7 +276,9 @@ describe('finance agent tools', () => {
     const calls = setupFinance()
     const { outcome } = await run('finance.approve_spend', { title: 'laptops' })
     expect(outcome.status === 'completed' && outcome.message.en).toContain('Approved')
-    expect(calls.spendTransitions).toEqual([{ id: 'sr-1', next: 'approved', approver: 'Workspace user' }])
+    expect(calls.spendTransitions).toEqual([
+      { id: 'sr-1', next: 'approved', approver: 'Workspace user' },
+    ])
   })
 
   it('refuses to approve a draft — submit first', async () => {

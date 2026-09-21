@@ -37,10 +37,7 @@ export function findByName<T extends { id: string }>(
   )
 }
 
-export function ok(
-  message: { en: string; fr: string },
-  entityId?: string,
-): AgentToolOutcome {
+export function ok(message: { en: string; fr: string }, entityId?: string): AgentToolOutcome {
   return {
     status: 'completed',
     message: bi(message.en, message.fr),

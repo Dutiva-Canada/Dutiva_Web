@@ -69,7 +69,9 @@ export function MemoryActivityTab() {
     <div className="min-h-0 flex-1 overflow-y-auto">
       <div className="mx-auto max-w-[1000px] px-[16px] pt-[18px] pb-[40px] md:px-[24px]">
         <div className="mb-[10px] flex flex-wrap items-center gap-[8px]">
-          <label className="sr-only" htmlFor="mem-activity-filter">{x(M.memory_activity_event)}</label>
+          <label className="sr-only" htmlFor="mem-activity-filter">
+            {x(M.memory_activity_event)}
+          </label>
           <select
             id="mem-activity-filter"
             value={event}
@@ -94,10 +96,18 @@ export function MemoryActivityTab() {
             <table className="w-full border-collapse text-left">
               <thead>
                 <tr className="border-b border-border-soft text-[11px] font-bold tracking-wider text-text-faint uppercase">
-                  <th scope="col" className="px-[14px] py-[9px]">{x(M.memory_activity_event)}</th>
-                  <th scope="col" className="px-[14px] py-[9px]">{x(M.memory_activity_actor)}</th>
-                  <th scope="col" className="px-[14px] py-[9px]">{x(M.memory_row_subject)}</th>
-                  <th scope="col" className="px-[14px] py-[9px] hidden md:table-cell">{x(M.memory_activity_when)}</th>
+                  <th scope="col" className="px-[14px] py-[9px]">
+                    {x(M.memory_activity_event)}
+                  </th>
+                  <th scope="col" className="px-[14px] py-[9px]">
+                    {x(M.memory_activity_actor)}
+                  </th>
+                  <th scope="col" className="px-[14px] py-[9px]">
+                    {x(M.memory_row_subject)}
+                  </th>
+                  <th scope="col" className="px-[14px] py-[9px] hidden md:table-cell">
+                    {x(M.memory_activity_when)}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -106,13 +116,19 @@ export function MemoryActivityTab() {
                     <td className="px-[14px] py-[10px] text-[12.5px] text-text-2">
                       <span className="font-semibold">{actionLabel(entry.action, lang)}</span>
                       {entry.statement != null && (
-                        <div className="mt-[2px] text-[12px] text-text-faint">“{pickL(entry.statement, lang)}”</div>
+                        <div className="mt-[2px] text-[12px] text-text-faint">
+                          “{pickL(entry.statement, lang)}”
+                        </div>
                       )}
                       {entry.statement == null && entry.sensitive && (
-                        <div className="mt-[2px] text-[12px] italic text-text-faint">{x(M.memory_activity_redacted)}</div>
+                        <div className="mt-[2px] text-[12px] italic text-text-faint">
+                          {x(M.memory_activity_redacted)}
+                        </div>
                       )}
                     </td>
-                    <td className="px-[14px] py-[10px] text-[12.5px] text-text-muted">{entry.actor}</td>
+                    <td className="px-[14px] py-[10px] text-[12.5px] text-text-muted">
+                      {entry.actor}
+                    </td>
                     <td className="px-[14px] py-[10px] text-[12.5px] text-text-muted">
                       {entry.subjectLabel != null ? pick(entry.subjectLabel, lang) : '—'}
                     </td>

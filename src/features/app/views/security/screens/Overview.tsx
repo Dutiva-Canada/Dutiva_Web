@@ -1,12 +1,17 @@
 import { Link } from 'react-router-dom'
-import { Shield, Package, ClipboardList, AlertTriangle, Radar, Truck, ChevronRight } from 'lucide-react'
+import {
+  Shield,
+  Package,
+  ClipboardList,
+  AlertTriangle,
+  Radar,
+  Truck,
+  ChevronRight,
+} from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { securityMessages as M } from '@/i18n/messages/security'
 import { statusChipClass } from '@/components/chips'
-import {
-  useWorkspaceRoot,
-  workspacePath,
-} from '@/features/app/workspaceRoot/workspaceRootContext'
+import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { useSecurityData } from '../SecurityDataContext'
 
 export function Overview() {
@@ -40,9 +45,7 @@ export function Overview() {
   ).length
   const vendorsDueSoon = vendorReviews.filter(
     (v) =>
-      v.next_review_date !== null &&
-      v.next_review_date >= todayISO &&
-      v.next_review_date <= in7ISO,
+      v.next_review_date !== null && v.next_review_date >= todayISO && v.next_review_date <= in7ISO,
   ).length
 
   const cards = [

@@ -15,9 +15,8 @@ vi.mock('@/features/careers/data/candidateApi', () => ({
   updateCandidateProfile: vi.fn(),
 }))
 
-const { getMyCandidateProfile, createCandidateProfile, updateCandidateProfile } = await import(
-  '@/features/careers/data/candidateApi'
-)
+const { getMyCandidateProfile, createCandidateProfile, updateCandidateProfile } =
+  await import('@/features/careers/data/candidateApi')
 
 const MOCK_PROFILE: CandidateProfile = {
   id: 'p1',

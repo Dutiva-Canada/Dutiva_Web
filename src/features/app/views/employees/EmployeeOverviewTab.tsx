@@ -2,10 +2,7 @@ import { useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { useI18n } from '@/i18n/context'
 import { employeesMessages as M } from '@/i18n/messages/employees'
-import type {
-  ProductionEmployee,
-  ProductionEmployeeNote,
-} from './productionApi'
+import type { ProductionEmployee, ProductionEmployeeNote } from './productionApi'
 import { PerformanceReviews } from './PerformanceReviews'
 import { OnboardingTasks } from './OnboardingTasks'
 
@@ -78,10 +75,7 @@ export function EmployeeOverviewTab({
           </div>
         )}
         {notes.map((note) => (
-          <div
-            key={note.id}
-            className="border-t border-inset px-[18px] py-[12px] first:border-t-0"
-          >
+          <div key={note.id} className="border-t border-inset px-[18px] py-[12px] first:border-t-0">
             <div className="text-[13px] leading-[1.55] whitespace-pre-wrap text-text">
               {note.body}
             </div>

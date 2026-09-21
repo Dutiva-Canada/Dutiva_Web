@@ -36,25 +36,23 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-
-
 This page documents the 13 scripts under `scripts/`, the shared `lib/secrets.mjs` credential helper, and how they integrate into the CI pipeline and `npm run build` chain. Every script is dependency-free (Node global `fetch` and `fs` only) to avoid rotting behind package upgrades.
 
 ## Script Inventory & Execution Context
 
-| Script | Trigger | Credentials | Exits Non-Zero On |
-|---|---|---|---|
-| `check-migrations.mjs` | `npm run check`, CI `live-checks` | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF` (drift half) | Bad filename, forward/reverse drift |
-| `check-rls.mjs` | `npm run check:rls`, CI `live-checks` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` | Sensitive table readable by anon role |
-| `check-canonical-facts.mjs` | `npm run check:facts`, CI `check` | None | Brand palette hex drift between CSS and docs |
-| `check-message-scopes.mjs` | `npm run check:message-scopes`, CI `check` | None | `t('key')` literal crossing surface boundary |
-| `check-entry-graph.mjs` | `npm run build` (post-build) | None | Budget exceeded, barred package/source in eager graph |
-| `prerender.mjs` | `npm run build` (post-SSR) | None | Missing `<Seo>`, undersized body |
-| `validate-seo.mjs` | `npm run build` (post-prerender) | None | Any SEO invariant violation |
-| `generate-sw.mjs` | `npm run build` (last step) | None | No assets in `dist/` |
-| `relocate-sourcemaps.mjs` | `npm run build` (after `vite build`) | None | I/O error |
-| `apply-auth-email-templates.mjs` | Manual `npm run auth:email-templates` | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF` | Template not applied |
-| `generate-doclib.mjs` | One-shot (historical, not runnable) | None | N/A |
+| Script                           | Trigger                                    | Credentials                                                  | Exits Non-Zero On                                     |
+| -------------------------------- | ------------------------------------------ | ------------------------------------------------------------ | ----------------------------------------------------- |
+| `check-migrations.mjs`           | `npm run check`, CI `live-checks`          | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF` (drift half) | Bad filename, forward/reverse drift                   |
+| `check-rls.mjs`                  | `npm run check:rls`, CI `live-checks`      | `SUPABASE_URL`, `SUPABASE_ANON_KEY`                          | Sensitive table readable by anon role                 |
+| `check-canonical-facts.mjs`      | `npm run check:facts`, CI `check`          | None                                                         | Brand palette hex drift between CSS and docs          |
+| `check-message-scopes.mjs`       | `npm run check:message-scopes`, CI `check` | None                                                         | `t('key')` literal crossing surface boundary          |
+| `check-entry-graph.mjs`          | `npm run build` (post-build)               | None                                                         | Budget exceeded, barred package/source in eager graph |
+| `prerender.mjs`                  | `npm run build` (post-SSR)                 | None                                                         | Missing `<Seo>`, undersized body                      |
+| `validate-seo.mjs`               | `npm run build` (post-prerender)           | None                                                         | Any SEO invariant violation                           |
+| `generate-sw.mjs`                | `npm run build` (last step)                | None                                                         | No assets in `dist/`                                  |
+| `relocate-sourcemaps.mjs`        | `npm run build` (after `vite build`)       | None                                                         | I/O error                                             |
+| `apply-auth-email-templates.mjs` | Manual `npm run auth:email-templates`      | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`              | Template not applied                                  |
+| `generate-doclib.mjs`            | One-shot (historical, not runnable)        | None                                                         | N/A                                                   |
 
 Sources: [package.json:6-26](), [.github/workflows/ci.yml:1-130]()
 
@@ -138,7 +136,7 @@ Every CI credential passes through `cleanSecret()` before use. The function stri
 
 `cleanSecret(raw)` strips outer whitespace, one layer of quotes (`"…"` or `'…'`), and a `Bearer ` prefix, returning `undefined` for empty or missing values. [scripts/lib/secrets.mjs:31-39]()
 
-`describeSecret(raw)` produces a log-safe description of a credential's *shape* (length after cleaning, presence of whitespace/quotes/Bearer prefix) without revealing the value. This is used in error messages throughout the scripts. [scripts/lib/secrets.mjs:47-58]()
+`describeSecret(raw)` produces a log-safe description of a credential's _shape_ (length after cleaning, presence of whitespace/quotes/Bearer prefix) without revealing the value. This is used in error messages throughout the scripts. [scripts/lib/secrets.mjs:47-58]()
 
 `ACCESS_TOKEN_HELP` is a shared remediation string for rejected Supabase personal access tokens, used by both `check-migrations.mjs` and `apply-auth-email-templates.mjs`. [scripts/lib/secrets.mjs:64-68]()
 
@@ -197,7 +195,7 @@ Sources: [scripts/check-migrations.mjs:1-291]()
 
 ## `check-rls.mjs` — Runtime RLS Regression Probing
 
-Born from the 2026-08-08 incident where three tables (`beta_signups`, `hr_documents`, `signatures`) had world-open `using (true)` SELECT policies applied out-of-band. This script is the *runtime mirror* of `check-migrations.mjs` — it tests what the database actually does, not what the repo says it should do.
+Born from the 2026-08-08 incident where three tables (`beta_signups`, `hr_documents`, `signatures`) had world-open `using (true)` SELECT policies applied out-of-band. This script is the _runtime mirror_ of `check-migrations.mjs` — it tests what the database actually does, not what the repo says it should do.
 
 ### Positive Control
 
@@ -224,6 +222,7 @@ Enforces agreement between `docs/CANONICAL_FACTS.md` and the actual CSS declarat
 `BRAND_ROWS` defines two rows — "Brand gold" and "Brand navy" — each with an array of CSS declaration sources specifying file, selector, and property name. [scripts/check-canonical-facts.mjs:50-65]()
 
 For each row:
+
 1. The hex values from the markdown table row are extracted via regex [scripts/check-canonical-facts.mjs:122]()
 2. The hex values from the CSS declarations are extracted by `declaredHexes()`, which strips comments, then finds the matching selector block and property [scripts/check-canonical-facts.mjs:80-94]()
 3. An **exact set comparison** (both directions, order-independent) catches both invented-in-document values and undocumented palette additions [scripts/check-canonical-facts.mjs:155-166]()
@@ -248,10 +247,10 @@ Rather than hand-listing allowed keys, the script derives them empirically:
 
 Two surface definitions map directories to their allowed key sets:
 
-| Surface | Directories scanned | Allowed keys |
-|---|---|---|
+| Surface   | Directories scanned                                                      | Allowed keys       |
+| --------- | ------------------------------------------------------------------------ | ------------------ |
 | workspace | `src/features/app`, `src/components/advisor`, `src/lib/exportProtection` | workspace + shared |
-| marketing | `src/features/marketing` | marketing + shared |
+| marketing | `src/features/marketing`                                                 | marketing + shared |
 
 [scripts/check-message-scopes.mjs:76-87]()
 
@@ -265,10 +264,10 @@ A post-build guard that reads the built `dist/index.html` to identify the entry 
 
 ### Budget Ceilings
 
-| Ceiling | Current Value | Purpose |
-|---|---|---|
-| `MAX_PRELOADS` | 9 | Limits parallel request count |
-| `MAX_EAGER_KB` | 580 | Raw uncompressed size cap |
+| Ceiling        | Current Value | Purpose                       |
+| -------------- | ------------- | ----------------------------- |
+| `MAX_PRELOADS` | 9             | Limits parallel request count |
+| `MAX_EAGER_KB` | 580           | Raw uncompressed size cap     |
 
 [scripts/check-entry-graph.mjs:48-49]()
 
@@ -282,11 +281,11 @@ Four categories of violations are detected:
 
 **Barred packages** — `BARRED_PACKAGES` defines three package families that must stay out of the eager graph:
 
-| Pattern | What | Reason |
-|---|---|---|
-| `react-markdown`, `remark`, `micromark`, `mdast-util`, `hast-util`, `unified` | Markdown parser tree | Only the lazy Advisor uses ChatMarkdown |
-| `@supabase/*` | Supabase client | Only app surface and /pricing use it, both lazily |
-| `recharts`, `victory-vendor`, `d3-*` | Charting tree | Only chart blocks in Advisor replies |
+| Pattern                                                                       | What                 | Reason                                            |
+| ----------------------------------------------------------------------------- | -------------------- | ------------------------------------------------- |
+| `react-markdown`, `remark`, `micromark`, `mdast-util`, `hast-util`, `unified` | Markdown parser tree | Only the lazy Advisor uses ChatMarkdown           |
+| `@supabase/*`                                                                 | Supabase client      | Only app surface and /pricing use it, both lazily |
+| `recharts`, `victory-vendor`, `d3-*`                                          | Charting tree        | Only chart blocks in Advisor replies              |
 
 [scripts/check-entry-graph.mjs:87-103]()
 
@@ -360,20 +359,20 @@ Crawls the built `dist/` output (the actual HTML files, not React state) and fai
 
 For each prerendered page:
 
-| Check | Failure condition |
-|---|---|
-| `<title>` | Missing, empty, placeholder (`/undefined\|NaN\|TODO\|Lorem ipsum/`), or duplicate |
-| Meta description | Missing, too short (< 40 chars), or placeholder |
-| Robots meta | Missing |
-| `<html lang>` | Does not match expected `en-CA` or `fr-CA` based on route prefix |
-| Canonical | Not self-referencing, or shared with another route |
-| Hreflang | Missing `en-CA`, `fr-CA`, or `x-default`; not self-referencing; `x-default ≠ en-CA` |
-| Open Graph | Missing `og:title`, `og:description`, `og:url`, `og:image`, `og:locale` |
-| `og:image` | Image file does not exist in `dist/` |
-| JSON-LD | Does not parse, contains placeholder values, URLs off canonical origin |
-| `<h1>` | Not exactly one |
-| `<main>` | Missing landmark |
-| Visible text | Less than 500 characters after stripping tags/scripts |
+| Check            | Failure condition                                                                   |
+| ---------------- | ----------------------------------------------------------------------------------- |
+| `<title>`        | Missing, empty, placeholder (`/undefined\|NaN\|TODO\|Lorem ipsum/`), or duplicate   |
+| Meta description | Missing, too short (< 40 chars), or placeholder                                     |
+| Robots meta      | Missing                                                                             |
+| `<html lang>`    | Does not match expected `en-CA` or `fr-CA` based on route prefix                    |
+| Canonical        | Not self-referencing, or shared with another route                                  |
+| Hreflang         | Missing `en-CA`, `fr-CA`, or `x-default`; not self-referencing; `x-default ≠ en-CA` |
+| Open Graph       | Missing `og:title`, `og:description`, `og:url`, `og:image`, `og:locale`             |
+| `og:image`       | Image file does not exist in `dist/`                                                |
+| JSON-LD          | Does not parse, contains placeholder values, URLs off canonical origin              |
+| `<h1>`           | Not exactly one                                                                     |
+| `<main>`         | Missing landmark                                                                    |
+| Visible text     | Less than 500 characters after stripping tags/scripts                               |
 
 [scripts/validate-seo.mjs:83-189]()
 
@@ -404,6 +403,7 @@ Generates `dist/sw.js` with a deterministic precache manifest. The cache version
 ### Precache Set
 
 Three URL groups are collected:
+
 - All files under `dist/assets/` [scripts/generate-sw.mjs:49]()
 - All files under `dist/brand/` [scripts/generate-sw.mjs:50]()
 - Shell files: `/`, `/app.html`, `/404.html`, `/site.webmanifest` (if they exist) [scripts/generate-sw.mjs:55-58]()
@@ -414,11 +414,11 @@ Source maps are explicitly excluded. [scripts/generate-sw.mjs:63-64]()
 
 The generated service worker uses four named caches (`dutiva-precache-`, `dutiva-runtime-`, `dutiva-pages-`, `dutiva-fonts-`) and three strategies:
 
-| Strategy | Used for | Behavior |
-|---|---|---|
-| `cacheFirst` | Hashed assets under `/assets/`, `/brand/` | Serve from cache; on miss, fetch and stash |
-| `networkFirstPage` | Navigation requests | Fetch first (online users/crawlers get fresh HTML); fall back to cached page, then shell (`/` or `/app.html`), then 503 |
-| `staleWhileRevalidate` | Google Fonts (`fonts.googleapis.com`, `fonts.gstatic.com`) | Serve cached immediately, refresh in background |
+| Strategy               | Used for                                                   | Behavior                                                                                                                |
+| ---------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `cacheFirst`           | Hashed assets under `/assets/`, `/brand/`                  | Serve from cache; on miss, fetch and stash                                                                              |
+| `networkFirstPage`     | Navigation requests                                        | Fetch first (online users/crawlers get fresh HTML); fall back to cached page, then shell (`/` or `/app.html`), then 503 |
+| `staleWhileRevalidate` | Google Fonts (`fonts.googleapis.com`, `fonts.gstatic.com`) | Serve cached immediately, refresh in background                                                                         |
 
 [scripts/generate-sw.mjs:121-224]()
 
@@ -484,6 +484,7 @@ flowchart TD
 ```
 
 This pattern is implemented identically in:
+
 - `check-migrations.mjs` → `announceSkippedDriftCheck()` [scripts/check-migrations.mjs:156-176]()
 - `check-rls.mjs` → `announceSkippedCheck()` [scripts/check-rls.mjs:68-86]()
 

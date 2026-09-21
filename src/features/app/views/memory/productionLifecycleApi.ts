@@ -1,12 +1,6 @@
 import type { MemoryFact } from '@/data'
 import { supabase } from '@/lib/supabaseClient'
-import {
-  requireUserId,
-  insertAudit,
-  factRowSchema,
-  SELECT_COLUMNS,
-  toFact,
-} from './productionApi'
+import { requireUserId, insertAudit, factRowSchema, SELECT_COLUMNS, toFact } from './productionApi'
 
 /**
  * Lifecycle + legal-hold actions for Advisor Memory facts — split out of

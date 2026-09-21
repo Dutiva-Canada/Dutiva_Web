@@ -64,9 +64,7 @@ describe('proposeDocumentsAction — send for signature', () => {
   })
 
   it('proposes send_for_signature for "envoie … à EMAIL pour signature"', () => {
-    const p = proposeDocumentsAction(
-      'envoie le contrat à jane@northgate.ca pour signature',
-    )
+    const p = proposeDocumentsAction('envoie le contrat à jane@northgate.ca pour signature')
     expect(p?.toolId).toBe('documents.send_for_signature')
     expect(p?.params).toEqual({ title: 'contrat', email: 'jane@northgate.ca' })
   })

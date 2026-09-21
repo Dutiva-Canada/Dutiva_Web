@@ -17,7 +17,13 @@ const labelClass = 'mb-[4px] block text-[12px] font-semibold text-text-3'
 const checkboxClass =
   'h-[18px] w-[18px] rounded-[4px] border border-border bg-surface text-accent accent-accent'
 
-const CONTACT_TYPES: CommsContactType[] = ['media', 'institutional', 'partner', 'creator', 'audience']
+const CONTACT_TYPES: CommsContactType[] = [
+  'media',
+  'institutional',
+  'partner',
+  'creator',
+  'audience',
+]
 
 function biInput(value: string, lang: 'en' | 'fr'): Bi | undefined {
   const text = value.trim()
@@ -79,11 +85,19 @@ function ContactForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]">
+    <form
+      onSubmit={onSubmit}
+      className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]"
+    >
       <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
         <div className="sm:col-span-2">
           <label className={labelClass}>{x(M.comms_contact_name)}</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} required />
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className={inputClass}
+            required
+          />
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_contact_type)}</label>
@@ -93,7 +107,9 @@ function ContactForm({
             className={inputClass}
           >
             {CONTACT_TYPES.map((t) => (
-              <option key={t} value={t}>{x(CONTACT_TYPE_LABEL[t])}</option>
+              <option key={t} value={t}>
+                {x(CONTACT_TYPE_LABEL[t])}
+              </option>
             ))}
           </select>
         </div>
@@ -106,7 +122,9 @@ function ContactForm({
           >
             <option value="">{x(M.comms_org_none)}</option>
             {organizations.map((org) => (
-              <option key={org.id} value={org.id}>{org.name}</option>
+              <option key={org.id} value={org.id}>
+                {org.name}
+              </option>
             ))}
           </select>
         </div>
@@ -116,15 +134,27 @@ function ContactForm({
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_contact_purpose)}</label>
-          <input value={purpose} onChange={(e) => setPurpose(e.target.value)} className={inputClass} />
+          <input
+            value={purpose}
+            onChange={(e) => setPurpose(e.target.value)}
+            className={inputClass}
+          />
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_contact_preference)}</label>
-          <input value={channel} onChange={(e) => setChannel(e.target.value)} className={inputClass} />
+          <input
+            value={channel}
+            onChange={(e) => setChannel(e.target.value)}
+            className={inputClass}
+          />
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_contact_source)}</label>
-          <input value={source} onChange={(e) => setSource(e.target.value)} className={inputClass} />
+          <input
+            value={source}
+            onChange={(e) => setSource(e.target.value)}
+            className={inputClass}
+          />
         </div>
         <div className="flex items-center gap-[8px]">
           <input
@@ -205,11 +235,19 @@ function OrganizationForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]">
+    <form
+      onSubmit={onSubmit}
+      className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]"
+    >
       <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
         <div className="sm:col-span-2">
           <label className={labelClass}>{x(M.comms_org_name)}</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} required />
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className={inputClass}
+            required
+          />
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_org_type)}</label>
@@ -217,7 +255,11 @@ function OrganizationForm({
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_org_jurisdiction)}</label>
-          <input value={jurisdiction} onChange={(e) => setJurisdiction(e.target.value)} className={inputClass} />
+          <input
+            value={jurisdiction}
+            onChange={(e) => setJurisdiction(e.target.value)}
+            className={inputClass}
+          />
         </div>
         <div className="sm:col-span-2">
           <label className={labelClass}>{x(M.comms_org_notes)}</label>
@@ -259,11 +301,7 @@ export function Relationships() {
     removeContact,
     removeOrganization,
   } = useStakeholders()
-  const {
-    segments,
-    segmentMemberships,
-    addContact: assignToSegment,
-  } = useSegments()
+  const { segments, segmentMemberships, addContact: assignToSegment } = useSegments()
   const [addingContact, setAddingContact] = useState(false)
   const [addingOrg, setAddingOrg] = useState(false)
   const [bulkImport, setBulkImport] = useState<'contact' | 'organization' | null>(null)
@@ -284,9 +322,7 @@ export function Relationships() {
 
   const filteredContacts = segmentFilter
     ? contacts.filter((c) =>
-        segmentMemberships.some(
-          (m) => m.segmentId === segmentFilter && m.contactId === c.id,
-        ),
+        segmentMemberships.some((m) => m.segmentId === segmentFilter && m.contactId === c.id),
       )
     : contacts
 
@@ -379,7 +415,9 @@ export function Relationships() {
                     </button>
                   )}
                 </div>
-                {contact.role && <div className="mt-[4px] text-[12px] text-text-muted">{x(contact.role)}</div>}
+                {contact.role && (
+                  <div className="mt-[4px] text-[12px] text-text-muted">{x(contact.role)}</div>
+                )}
                 {contact.organizationId && (
                   <div className="text-[12px] text-text-muted">
                     {organizations.find((o) => o.id === contact.organizationId)?.name}
@@ -387,12 +425,14 @@ export function Relationships() {
                 )}
                 {contact.purpose && (
                   <div className="mt-[6px] text-[12px] text-text-2">
-                    <span className="font-semibold">{x(M.comms_contact_purpose)}:</span> {x(contact.purpose)}
+                    <span className="font-semibold">{x(M.comms_contact_purpose)}:</span>{' '}
+                    {x(contact.purpose)}
                   </div>
                 )}
                 {contact.channelPreference && (
                   <div className="text-[12px] text-text-2">
-                    <span className="font-semibold">{x(M.comms_contact_preference)}:</span> {x(contact.channelPreference)}
+                    <span className="font-semibold">{x(M.comms_contact_preference)}:</span>{' '}
+                    {x(contact.channelPreference)}
                   </div>
                 )}
                 {(segmentsByContact.get(contact.id)?.length ?? 0) > 0 && (
@@ -438,7 +478,9 @@ export function Relationships() {
           )}
         </div>
 
-        {addingOrg && <OrganizationForm onCancel={() => setAddingOrg(false)} onAdd={addOrganization} />}
+        {addingOrg && (
+          <OrganizationForm onCancel={() => setAddingOrg(false)} onAdd={addOrganization} />
+        )}
 
         {organizations.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.comms_relationships_empty)}</p>

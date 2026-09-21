@@ -155,7 +155,9 @@ export function ResumeUpload({ values, onChange }: ResumeUploadProps) {
             ? x(M.careers_profile_resume_upload_processing)
             : x(M.careers_profile_resume_upload_prompt)}
         </span>
-        <span className="text-[12px] text-text-muted">{x(M.careers_profile_resume_upload_hint)}</span>
+        <span className="text-[12px] text-text-muted">
+          {x(M.careers_profile_resume_upload_hint)}
+        </span>
       </div>
 
       {(fileName || state === 'error') && (
@@ -179,7 +181,9 @@ export function ResumeUpload({ values, onChange }: ResumeUploadProps) {
 
       {error && <p className="m-0 text-[12.5px] text-risk-fg">{error}</p>}
 
-      <p className="m-0 text-[12px] text-text-muted">{x(M.careers_profile_resume_upload_disclaimer)}</p>
+      <p className="m-0 text-[12px] text-text-muted">
+        {x(M.careers_profile_resume_upload_disclaimer)}
+      </p>
     </div>
   )
 }

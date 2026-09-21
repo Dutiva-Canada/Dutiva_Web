@@ -178,7 +178,10 @@ function ruleMatches(rule: { pattern: string; matchType: string }, text: string)
 function ruleBasedCategorizations(
   bankItems: FinanceBankItem[],
   ledgerAccounts: FinanceLedgerAccount[],
-  rules: Pick<FinanceCategoryRule, 'pattern' | 'matchType' | 'ledgerAccountId' | 'direction' | 'priority' | 'entityId'>[],
+  rules: Pick<
+    FinanceCategoryRule,
+    'pattern' | 'matchType' | 'ledgerAccountId' | 'direction' | 'priority' | 'entityId'
+  >[],
   mode: 'suggest' | 'auto_high' | 'auto_all',
 ): AiImportAnalysisResult {
   const sorted = [...rules].sort((a, b) => (b.priority ?? 50) - (a.priority ?? 50))
@@ -216,11 +219,16 @@ function ruleBasedCategorizations(
 export async function analyzeImportWithAi(
   bankItems: FinanceBankItem[],
   ledgerAccounts: FinanceLedgerAccount[],
-  existingRules: Pick<FinanceCategoryRule, 'pattern' | 'matchType' | 'ledgerAccountId' | 'direction' | 'priority' | 'entityId'>[],
+  existingRules: Pick<
+    FinanceCategoryRule,
+    'pattern' | 'matchType' | 'ledgerAccountId' | 'direction' | 'priority' | 'entityId'
+  >[],
   feedback: FinanceCategorizationFeedback[],
   mode: 'suggest' | 'auto_high' | 'auto_all',
 ): Promise<AiImportAnalysisResult> {
-  const unmatched = bankItems.filter((bi) => bi.matchStatus === 'unmatched' && bi.description.trim())
+  const unmatched = bankItems.filter(
+    (bi) => bi.matchStatus === 'unmatched' && bi.description.trim(),
+  )
   if (unmatched.length === 0 || ledgerAccounts.length === 0) {
     return { categorizations: [], ruleSuggestions: [] }
   }
@@ -233,163 +241,171 @@ export async function analyzeImportWithAi(
       extractor,
     )
 
-  const accountLabels = ledgerAccounts.map(
-    (la) => `${la.name.en} ${la.name.fr ?? ''} ${la.code} ${la.type}`,
-  )
-  const accountEmbeddings = await extractEmbeddings(accountLabels, extractor)
+    const accountLabels = ledgerAccounts.map(
+      (la) => `${la.name.en} ${la.name.fr ?? ''} ${la.code} ${la.type}`,
+    )
+    const accountEmbeddings = await extractEmbeddings(accountLabels, extractor)
 
-  const feedbackTexts = feedback.map((f) => f.description)
-  const feedbackEmbeddings =
-    feedbackTexts.length > 0 ? await extractEmbeddings(feedbackTexts, extractor) : []
+    const feedbackTexts = feedback.map((f) => f.description)
+    const feedbackEmbeddings =
+      feedbackTexts.length > 0 ? await extractEmbeddings(feedbackTexts, extractor) : []
 
-  // Cluster unmatched descriptions to derive rule suggestions
-  const clusters: number[][] = []
-  const visited = new Set<number>()
-  for (let i = 0; i < descEmbeddings.length; i++) {
-    if (visited.has(i)) continue
-    const cluster: number[] = [i]
-    visited.add(i)
-    for (let j = i + 1; j < descEmbeddings.length; j++) {
-      if (visited.has(j)) continue
-      const sim = cosineSimilarity(descEmbeddings[i]!, descEmbeddings[j]!)
-      if (sim >= 0.7) {
-        cluster.push(j)
-        visited.add(j)
-      }
-    }
-    clusters.push(cluster)
-  }
-
-  const existingPatterns = new Set(existingRules.map((r) => r.pattern.toLowerCase()))
-
-  function patternExists(pattern: string): boolean {
-    const p = pattern.toLowerCase()
-    for (const existing of existingPatterns) {
-      if (p === existing || p.includes(existing) || existing.includes(p)) return true
-    }
-    return false
-  }
-
-  // Build rule suggestions from clusters
-  const ruleSuggestions: RuleSuggestion[] = []
-  const ruleForPattern = new Map<string, RuleSuggestion>()
-
-  for (const cluster of clusters) {
-    const clusterItems = cluster.map((i) => unmatched[i]!)
-    const tokenLists = clusterItems.map((bi) => tokenize(bi.description))
-    const rawGram = mostCommonNGram(tokenLists)
-    const pattern = rawGram
-      .split(' ')
-      .map((t) => t.toUpperCase())
-      .join(' ')
-
-    if (patternExists(pattern)) continue
-
-    const clusterEmbedding = meanEmbedding(cluster.map((i) => descEmbeddings[i]!))
-    const best = findBestAccount(clusterEmbedding, accountEmbeddings, ledgerAccounts)
-    if (!best || best.score < 0.25) continue
-
-    const count = clusterItems.length
-    const confidence: RuleSuggestion['confidence'] =
-      count >= 3 && best.score >= 0.55 ? 'high' : count >= 2 || best.score >= 0.4 ? 'medium' : 'low'
-    const priority = Math.min(50 + count * 5, 80)
-    const rule: RuleSuggestion = {
-      pattern,
-      matchType: 'contains',
-      ledgerAccountId: best.account.id,
-      direction: directionForAccount(best.account),
-      priority,
-      confidence,
-      sampleDescriptions: clusterItems.slice(0, 3).map((bi) => bi.description),
-      count,
-      accountName: best.account.name.en,
-    }
-    ruleSuggestions.push(rule)
-    ruleForPattern.set(pattern, rule)
-    existingPatterns.add(pattern.toLowerCase())
-  }
-
-  // Per-item categorization
-  const categorizations: AiCategorizationResult[] = unmatched.map((bi, i) => {
-    const feedbackMatch =
-      feedbackEmbeddings.length > 0 ? findBestFeedback(descEmbeddings[i]!, feedbackEmbeddings, feedback) : null
-
-    if (feedbackMatch) {
-      const account = ledgerAccounts.find((la) => la.id === feedbackMatch.correctedLedgerAccountId)
-      if (account) {
-        const confidence: FinanceAiBankItemSuggestion['confidence'] = 'high'
-        return {
-          bankItemId: bi.id,
-          ledgerAccountId: account.id,
-          direction: feedbackMatch.correctedDirection,
-          confidence,
-          reasonKey: 'feedback_match',
-          note: buildNote('feedback_match', account, confidence),
-          matchStatus: statusFromConfidence(confidence, mode),
+    // Cluster unmatched descriptions to derive rule suggestions
+    const clusters: number[][] = []
+    const visited = new Set<number>()
+    for (let i = 0; i < descEmbeddings.length; i++) {
+      if (visited.has(i)) continue
+      const cluster: number[] = [i]
+      visited.add(i)
+      for (let j = i + 1; j < descEmbeddings.length; j++) {
+        if (visited.has(j)) continue
+        const sim = cosineSimilarity(descEmbeddings[i]!, descEmbeddings[j]!)
+        if (sim >= 0.7) {
+          cluster.push(j)
+          visited.add(j)
         }
       }
+      clusters.push(cluster)
     }
 
-    // First try to match a generated rule pattern (exact text contains)
-    let ruleMatch: RuleSuggestion | null = null
-    for (const [pattern, rule] of ruleForPattern) {
-      if (bi.description.toUpperCase().includes(pattern)) {
-        if (!ruleMatch || rule.priority > ruleMatch.priority) ruleMatch = rule
+    const existingPatterns = new Set(existingRules.map((r) => r.pattern.toLowerCase()))
+
+    function patternExists(pattern: string): boolean {
+      const p = pattern.toLowerCase()
+      for (const existing of existingPatterns) {
+        if (p === existing || p.includes(existing) || existing.includes(p)) return true
       }
+      return false
     }
 
-    if (ruleMatch) {
-      const account = ledgerAccounts.find((la) => la.id === ruleMatch!.ledgerAccountId)
-      if (account) {
-        const confidence: FinanceAiBankItemSuggestion['confidence'] = ruleMatch.confidence
-        return {
-          bankItemId: bi.id,
-          ledgerAccountId: account.id,
-          direction: ruleMatch.direction,
-          confidence,
-          reasonKey: 'rule_match',
-          note: buildNote('rule_match', account, confidence),
-          matchStatus: statusFromConfidence(confidence, mode),
-          pattern: ruleMatch.pattern,
+    // Build rule suggestions from clusters
+    const ruleSuggestions: RuleSuggestion[] = []
+    const ruleForPattern = new Map<string, RuleSuggestion>()
+
+    for (const cluster of clusters) {
+      const clusterItems = cluster.map((i) => unmatched[i]!)
+      const tokenLists = clusterItems.map((bi) => tokenize(bi.description))
+      const rawGram = mostCommonNGram(tokenLists)
+      const pattern = rawGram
+        .split(' ')
+        .map((t) => t.toUpperCase())
+        .join(' ')
+
+      if (patternExists(pattern)) continue
+
+      const clusterEmbedding = meanEmbedding(cluster.map((i) => descEmbeddings[i]!))
+      const best = findBestAccount(clusterEmbedding, accountEmbeddings, ledgerAccounts)
+      if (!best || best.score < 0.25) continue
+
+      const count = clusterItems.length
+      const confidence: RuleSuggestion['confidence'] =
+        count >= 3 && best.score >= 0.55
+          ? 'high'
+          : count >= 2 || best.score >= 0.4
+            ? 'medium'
+            : 'low'
+      const priority = Math.min(50 + count * 5, 80)
+      const rule: RuleSuggestion = {
+        pattern,
+        matchType: 'contains',
+        ledgerAccountId: best.account.id,
+        direction: directionForAccount(best.account),
+        priority,
+        confidence,
+        sampleDescriptions: clusterItems.slice(0, 3).map((bi) => bi.description),
+        count,
+        accountName: best.account.name.en,
+      }
+      ruleSuggestions.push(rule)
+      ruleForPattern.set(pattern, rule)
+      existingPatterns.add(pattern.toLowerCase())
+    }
+
+    // Per-item categorization
+    const categorizations: AiCategorizationResult[] = unmatched.map((bi, i) => {
+      const feedbackMatch =
+        feedbackEmbeddings.length > 0
+          ? findBestFeedback(descEmbeddings[i]!, feedbackEmbeddings, feedback)
+          : null
+
+      if (feedbackMatch) {
+        const account = ledgerAccounts.find(
+          (la) => la.id === feedbackMatch.correctedLedgerAccountId,
+        )
+        if (account) {
+          const confidence: FinanceAiBankItemSuggestion['confidence'] = 'high'
+          return {
+            bankItemId: bi.id,
+            ledgerAccountId: account.id,
+            direction: feedbackMatch.correctedDirection,
+            confidence,
+            reasonKey: 'feedback_match',
+            note: buildNote('feedback_match', account, confidence),
+            matchStatus: statusFromConfidence(confidence, mode),
+          }
         }
       }
-    }
 
-    // Fall back to direct semantic similarity
-    const best = findBestAccount(descEmbeddings[i]!, accountEmbeddings, ledgerAccounts)
-    if (!best || best.score < 0.15) {
+      // First try to match a generated rule pattern (exact text contains)
+      let ruleMatch: RuleSuggestion | null = null
+      for (const [pattern, rule] of ruleForPattern) {
+        if (bi.description.toUpperCase().includes(pattern)) {
+          if (!ruleMatch || rule.priority > ruleMatch.priority) ruleMatch = rule
+        }
+      }
+
+      if (ruleMatch) {
+        const account = ledgerAccounts.find((la) => la.id === ruleMatch!.ledgerAccountId)
+        if (account) {
+          const confidence: FinanceAiBankItemSuggestion['confidence'] = ruleMatch.confidence
+          return {
+            bankItemId: bi.id,
+            ledgerAccountId: account.id,
+            direction: ruleMatch.direction,
+            confidence,
+            reasonKey: 'rule_match',
+            note: buildNote('rule_match', account, confidence),
+            matchStatus: statusFromConfidence(confidence, mode),
+            pattern: ruleMatch.pattern,
+          }
+        }
+      }
+
+      // Fall back to direct semantic similarity
+      const best = findBestAccount(descEmbeddings[i]!, accountEmbeddings, ledgerAccounts)
+      if (!best || best.score < 0.15) {
+        return {
+          bankItemId: bi.id,
+          ledgerAccountId: ledgerAccounts[0]!.id,
+          direction: directionForAccount(ledgerAccounts[0]!),
+          confidence: 'none',
+          reasonKey: 'fallback',
+          note: buildNote('fallback', ledgerAccounts[0]!, 'none'),
+          matchStatus: statusFromConfidence('none', mode),
+        }
+      }
+
+      const confidence = confidenceFromScore(best.score, false)
       return {
         bankItemId: bi.id,
-        ledgerAccountId: ledgerAccounts[0]!.id,
-        direction: directionForAccount(ledgerAccounts[0]!),
-        confidence: 'none',
-        reasonKey: 'fallback',
-        note: buildNote('fallback', ledgerAccounts[0]!, 'none'),
-        matchStatus: statusFromConfidence('none', mode),
+        ledgerAccountId: best.account.id,
+        direction: directionForAccount(best.account),
+        confidence,
+        reasonKey: 'semantic_match',
+        note: buildNote('semantic_match', best.account, confidence),
+        matchStatus: statusFromConfidence(confidence, mode),
       }
-    }
+    })
 
-    const confidence = confidenceFromScore(best.score, false)
     return {
-      bankItemId: bi.id,
-      ledgerAccountId: best.account.id,
-      direction: directionForAccount(best.account),
-      confidence,
-      reasonKey: 'semantic_match',
-      note: buildNote('semantic_match', best.account, confidence),
-      matchStatus: statusFromConfidence(confidence, mode),
+      categorizations,
+      ruleSuggestions: ruleSuggestions.sort((a, b) => {
+        const confidenceOrder = { high: 3, medium: 2, low: 1 } as const
+        const diff = confidenceOrder[b.confidence] - confidenceOrder[a.confidence]
+        if (diff !== 0) return diff
+        return b.count - a.count
+      }),
     }
-  })
-
-  return {
-    categorizations,
-    ruleSuggestions: ruleSuggestions.sort((a, b) => {
-      const confidenceOrder = { high: 3, medium: 2, low: 1 } as const
-      const diff = confidenceOrder[b.confidence] - confidenceOrder[a.confidence]
-      if (diff !== 0) return diff
-      return b.count - a.count
-    }),
-  }
   } catch {
     return ruleBasedCategorizations(unmatched, ledgerAccounts, existingRules, mode)
   }

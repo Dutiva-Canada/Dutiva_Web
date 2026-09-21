@@ -54,10 +54,23 @@ export function createOrganizationBulkImportAdapter(
       const mapping: Record<string, keyof OrganizationImportRow> = {}
       headers.forEach((h) => {
         const raw = h.trim().toLowerCase()
-        if (raw.includes('name') || raw === 'nom' || raw === 'company' || raw === 'organisation') mapping[h] = 'name'
+        if (raw.includes('name') || raw === 'nom' || raw === 'company' || raw === 'organisation')
+          mapping[h] = 'name'
         else if (raw.includes('type')) mapping[h] = 'type'
-        else if (raw.includes('jurisdiction') || raw === 'location' || raw === 'territory' || raw === 'territoire') mapping[h] = 'jurisdiction'
-        else if (raw.includes('note') || raw === 'comments' || raw === 'description' || raw === 'remarques') mapping[h] = 'notes'
+        else if (
+          raw.includes('jurisdiction') ||
+          raw === 'location' ||
+          raw === 'territory' ||
+          raw === 'territoire'
+        )
+          mapping[h] = 'jurisdiction'
+        else if (
+          raw.includes('note') ||
+          raw === 'comments' ||
+          raw === 'description' ||
+          raw === 'remarques'
+        )
+          mapping[h] = 'notes'
       })
       return mapping
     },

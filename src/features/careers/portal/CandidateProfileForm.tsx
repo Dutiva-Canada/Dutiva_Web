@@ -174,11 +174,15 @@ export function CandidateProfileForm({
             <select
               id="cp-auth"
               value={values.workAuthorization}
-              onChange={(e) => set('workAuthorization', e.target.value as CandidateWorkAuthorization)}
+              onChange={(e) =>
+                set('workAuthorization', e.target.value as CandidateWorkAuthorization)
+              }
               className={fieldClass}
             >
               <option value="authorized">{x(M.careers_profile_work_auth_authorized)}</option>
-              <option value="needs_sponsorship">{x(M.careers_profile_work_auth_sponsorship)}</option>
+              <option value="needs_sponsorship">
+                {x(M.careers_profile_work_auth_sponsorship)}
+              </option>
               <option value="unknown">{x(M.careers_profile_work_auth_unknown)}</option>
             </select>
           </div>
@@ -264,7 +268,10 @@ export function CandidateProfileForm({
             {x(M.careers_profile_cover_letter)}
           </label>
           <div className="mb-[12px]">
-            <CoverLetterUpload value={values.coverLetter} onChange={(value) => set('coverLetter', value)} />
+            <CoverLetterUpload
+              value={values.coverLetter}
+              onChange={(value) => set('coverLetter', value)}
+            />
           </div>
           <MarkdownEditor
             value={values.coverLetter}

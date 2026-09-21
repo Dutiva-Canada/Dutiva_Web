@@ -1,6 +1,15 @@
 /* oxlint-disable react/only-export-components -- module exports a thread-title helper used by the parent view. */
 import { useState } from 'react'
-import { ChevronDown, List, MessageCircle, PanelLeftClose, Plus, Star, Trash2, X } from 'lucide-react'
+import {
+  ChevronDown,
+  List,
+  MessageCircle,
+  PanelLeftClose,
+  Plus,
+  Star,
+  Trash2,
+  X,
+} from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
 import { advisorViewMessages as M } from '@/i18n/messages/advisorView'
@@ -201,11 +210,7 @@ function ThreadListPanel({
 }
 
 /** Desktop thread column (hidden below md). */
-export function ThreadList({
-  open = true,
-  onClose,
-  ...props
-}: ThreadListProps) {
+export function ThreadList({ open = true, onClose, ...props }: ThreadListProps) {
   const { x } = useI18n()
   const mdUp = useMdUp()
   if (!mdUp || !open) return null

@@ -19,16 +19,16 @@ board (`/careers`), and applications flow back into the employer's hiring pipeli
 
 ## URL structure
 
-| Route | Surface | Auth |
-|-------|---------|------|
-| `/careers` | Public job board | None |
-| `/careers/jobs/:postingId` | Job detail | None |
-| `/fr/carrieres` | Public job board (French) | None |
-| `/fr/carrieres/jobs/:postingId` | Job detail (French) | None |
-| `/careers/portal` | Portal home | Required |
-| `/careers/portal/profile` | Profile editor | Required |
-| `/careers/portal/applications` | Applications list | Required |
-| `/careers/portal/jobs/:postingId/apply` | Apply form + AI tools | Required |
+| Route                                   | Surface                   | Auth     |
+| --------------------------------------- | ------------------------- | -------- |
+| `/careers`                              | Public job board          | None     |
+| `/careers/jobs/:postingId`              | Job detail                | None     |
+| `/fr/carrieres`                         | Public job board (French) | None     |
+| `/fr/carrieres/jobs/:postingId`         | Job detail (French)       | None     |
+| `/careers/portal`                       | Portal home               | Required |
+| `/careers/portal/profile`               | Profile editor            | Required |
+| `/careers/portal/applications`          | Applications list         | Required |
+| `/careers/portal/jobs/:postingId/apply` | Apply form + AI tools     | Required |
 
 The careers surface is a third surface — not marketing (no locale URLs, no SEO
 registry) and not the workspace (no org membership, no admin gate). It uses

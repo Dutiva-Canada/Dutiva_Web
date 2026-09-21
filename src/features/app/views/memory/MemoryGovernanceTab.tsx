@@ -74,17 +74,32 @@ export function MemoryGovernanceTab() {
       (f) => f.entityId === targetId && (f.status ?? 'confirmed') !== 'removed',
     ).length
     if (count === 0) return
-    const tmpl = count === 1 ? M.memory_gov_data_remove_person_confirm_one : M.memory_gov_data_remove_person_confirm_many
-    if (!window.confirm(pick(tmpl, lang).replace('{count}', String(count)).replace('{name}', name))) return
+    const tmpl =
+      count === 1
+        ? M.memory_gov_data_remove_person_confirm_one
+        : M.memory_gov_data_remove_person_confirm_many
+    if (!window.confirm(pick(tmpl, lang).replace('{count}', String(count)).replace('{name}', name)))
+      return
     setForgetting(true)
     /* Remove each active person memory from Advisor retrieval. */
-    for (const f of personFacts.filter((f) => f.entityId === targetId && (f.status ?? 'confirmed') !== 'removed')) {
+    for (const f of personFacts.filter(
+      (f) => f.entityId === targetId && (f.status ?? 'confirmed') !== 'removed',
+    )) {
       memoryActions.remove(f.id)
     }
     setForgetPersonId('')
     setForgetting(false)
-    const doneTmpl = count === 1 ? M.memory_gov_data_remove_person_done_one : M.memory_gov_data_remove_person_done_many
-    showToast({ en: pick(doneTmpl, 'en').replace('{count}', String(count)).replace('{name}', name), fr: pick(doneTmpl, 'fr').replace('{count}', String(count)).replace('{name}', name) }, 'ok')
+    const doneTmpl =
+      count === 1
+        ? M.memory_gov_data_remove_person_done_one
+        : M.memory_gov_data_remove_person_done_many
+    showToast(
+      {
+        en: pick(doneTmpl, 'en').replace('{count}', String(count)).replace('{name}', name),
+        fr: pick(doneTmpl, 'fr').replace('{count}', String(count)).replace('{name}', name),
+      },
+      'ok',
+    )
   }
 
   return (
@@ -109,7 +124,9 @@ export function MemoryGovernanceTab() {
                 {memoryEnabled ? x(M.memory_ws_enabled) : x(M.memory_ws_disabled)}
               </span>
             </div>
-            <p className="m-0 mb-[12px] text-[12.5px] leading-normal text-text-muted">{x(M.memory_gov_status_note)}</p>
+            <p className="m-0 mb-[12px] text-[12.5px] leading-normal text-text-muted">
+              {x(M.memory_gov_status_note)}
+            </p>
             <button
               type="button"
               onClick={() => memoryActions.setMemoryEnabled(!memoryEnabled)}
@@ -126,26 +143,46 @@ export function MemoryGovernanceTab() {
           {/* 2. Privacy configuration */}
           <section className={cardClass}>
             <div className={sectionTitleClass}>
-              <ShieldCheck size={15} strokeWidth={1.8} className="text-text-muted" aria-hidden="true" />
+              <ShieldCheck
+                size={15}
+                strokeWidth={1.8}
+                className="text-text-muted"
+                aria-hidden="true"
+              />
               {x(M.memory_gov_privacy_title)}
             </div>
-            <p className="m-0 mb-[12px] text-[12.5px] leading-normal text-text-muted">{x(M.memory_gov_privacy_note)}</p>
+            <p className="m-0 mb-[12px] text-[12.5px] leading-normal text-text-muted">
+              {x(M.memory_gov_privacy_note)}
+            </p>
             <dl className="m-0 mb-[10px]">
               <div className="flex gap-[10px] py-[3px]">
-                <dt className="w-[150px] shrink-0 text-[12px] font-semibold text-text-faint">{x(M.memory_gov_privacy_jurisdictions)}</dt>
-                <dd className="m-0 text-[12.5px] text-text-2">{privacyConfig.jurisdictions.join(', ') || '—'}</dd>
+                <dt className="w-[150px] shrink-0 text-[12px] font-semibold text-text-faint">
+                  {x(M.memory_gov_privacy_jurisdictions)}
+                </dt>
+                <dd className="m-0 text-[12.5px] text-text-2">
+                  {privacyConfig.jurisdictions.join(', ') || '—'}
+                </dd>
               </div>
             </dl>
-            <p className="m-0 text-[12px] leading-normal text-text-faint">{x(M.memory_gov_privacy_rights)}</p>
+            <p className="m-0 text-[12px] leading-normal text-text-faint">
+              {x(M.memory_gov_privacy_rights)}
+            </p>
           </section>
 
           {/* 3. Automatic memory proposal settings */}
           <section className={cardClass}>
             <div className={sectionTitleClass}>
-              <Database size={15} strokeWidth={1.8} className="text-text-muted" aria-hidden="true" />
+              <Database
+                size={15}
+                strokeWidth={1.8}
+                className="text-text-muted"
+                aria-hidden="true"
+              />
               {x(M.memory_gov_privacy_auto)}
             </div>
-            <p className="m-0 mb-[12px] text-[12.5px] leading-normal text-text-muted">{x(M.memory_gov_privacy_auto_note)}</p>
+            <p className="m-0 mb-[12px] text-[12.5px] leading-normal text-text-muted">
+              {x(M.memory_gov_privacy_auto_note)}
+            </p>
             <label className="flex cursor-pointer items-center gap-[8px]">
               <input
                 type="checkbox"
@@ -176,10 +213,18 @@ export function MemoryGovernanceTab() {
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="border-b border-border-soft text-[10.5px] font-bold tracking-wider text-text-faint uppercase">
-                    <th scope="col" className="px-[10px] py-[7px]">{x(M.memory_gov_retention_rule)}</th>
-                    <th scope="col" className="px-[10px] py-[7px] hidden md:table-cell">{x(M.memory_gov_retention_trigger)}</th>
-                    <th scope="col" className="px-[10px] py-[7px] hidden lg:table-cell">{x(M.memory_gov_retention_basis)}</th>
-                    <th scope="col" className="px-[10px] py-[7px]">{x(M.memory_gov_retention_enabled)}</th>
+                    <th scope="col" className="px-[10px] py-[7px]">
+                      {x(M.memory_gov_retention_rule)}
+                    </th>
+                    <th scope="col" className="px-[10px] py-[7px] hidden md:table-cell">
+                      {x(M.memory_gov_retention_trigger)}
+                    </th>
+                    <th scope="col" className="px-[10px] py-[7px] hidden lg:table-cell">
+                      {x(M.memory_gov_retention_basis)}
+                    </th>
+                    <th scope="col" className="px-[10px] py-[7px]">
+                      {x(M.memory_gov_retention_enabled)}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -198,7 +243,9 @@ export function MemoryGovernanceTab() {
                         {pick(rule.basis, lang)}
                       </td>
                       <td className="px-[10px] py-[8px]">
-                        <span className={`inline-flex items-center gap-[4px] text-[11px] font-semibold ${rule.enabled ? 'text-ok-fg' : 'text-text-faint'}`}>
+                        <span
+                          className={`inline-flex items-center gap-[4px] text-[11px] font-semibold ${rule.enabled ? 'text-ok-fg' : 'text-text-faint'}`}
+                        >
                           {rule.enabled ? '●' : '○'}
                           {rule.enabled ? x(M.memory_gov_retention_enabled) : '—'}
                         </span>
@@ -216,16 +263,25 @@ export function MemoryGovernanceTab() {
               <Lock size={15} strokeWidth={1.8} className="text-text-muted" aria-hidden="true" />
               {x(M.memory_gov_access_title)}
             </div>
-            <p className="m-0 text-[12.5px] leading-normal text-text-muted">{x(M.memory_gov_access_note)}</p>
+            <p className="m-0 text-[12.5px] leading-normal text-text-muted">
+              {x(M.memory_gov_access_note)}
+            </p>
           </section>
 
           {/* 6. Data management */}
           <section className={cardClass}>
             <div className={sectionTitleClass}>
-              <FileText size={15} strokeWidth={1.8} className="text-text-muted" aria-hidden="true" />
+              <FileText
+                size={15}
+                strokeWidth={1.8}
+                className="text-text-muted"
+                aria-hidden="true"
+              />
               {x(M.memory_gov_data_title)}
             </div>
-            <p className="m-0 mb-[12px] text-[12.5px] leading-normal text-text-muted">{x(M.memory_gov_data_export_note)}</p>
+            <p className="m-0 mb-[12px] text-[12.5px] leading-normal text-text-muted">
+              {x(M.memory_gov_data_export_note)}
+            </p>
             <button
               type="button"
               onClick={() => void exportRecord()}
@@ -238,14 +294,22 @@ export function MemoryGovernanceTab() {
             <div className="rounded-[10px] border border-border-soft bg-surface-2 px-[12px] py-[11px]">
               <div className="mb-[6px] flex items-center gap-[6px]">
                 <Trash2 size={14} strokeWidth={1.8} className="text-risk-dot" aria-hidden="true" />
-                <span className="text-[12.5px] font-bold text-risk-dot">{x(M.memory_gov_data_remove_person)}</span>
+                <span className="text-[12.5px] font-bold text-risk-dot">
+                  {x(M.memory_gov_data_remove_person)}
+                </span>
               </div>
-              <p className="m-0 mb-[10px] text-[12px] leading-normal text-text-muted">{x(M.memory_gov_data_remove_person_note)}</p>
+              <p className="m-0 mb-[10px] text-[12px] leading-normal text-text-muted">
+                {x(M.memory_gov_data_remove_person_note)}
+              </p>
               {peopleWithFacts.length === 0 ? (
-                <div className="text-[12px] text-text-faint">{x(M.memory_gov_data_remove_person_none)}</div>
+                <div className="text-[12px] text-text-faint">
+                  {x(M.memory_gov_data_remove_person_none)}
+                </div>
               ) : (
                 <div className="flex flex-col gap-[8px] sm:flex-row">
-                  <label className="sr-only" htmlFor="mem-gov-forget">{x(M.memory_gov_data_remove_person)}</label>
+                  <label className="sr-only" htmlFor="mem-gov-forget">
+                    {x(M.memory_gov_data_remove_person)}
+                  </label>
                   <select
                     id="mem-gov-forget"
                     value={forgetPersonId}
@@ -254,7 +318,9 @@ export function MemoryGovernanceTab() {
                   >
                     <option value="">{x(M.memory_gov_data_remove_person_select)}</option>
                     {peopleWithFacts.map((e) => (
-                      <option key={e.id} value={e.id}>{e.name}</option>
+                      <option key={e.id} value={e.id}>
+                        {e.name}
+                      </option>
                     ))}
                   </select>
                   <button
@@ -277,7 +343,9 @@ export function MemoryGovernanceTab() {
               <AlertTriangle size={15} strokeWidth={1.8} aria-hidden="true" />
               {x(M.memory_gov_danger_title)}
             </div>
-            <p className="m-0 mb-[10px] text-[12.5px] leading-normal text-text-muted">{x(M.memory_gov_danger_delete_note)}</p>
+            <p className="m-0 mb-[10px] text-[12.5px] leading-normal text-text-muted">
+              {x(M.memory_gov_danger_delete_note)}
+            </p>
             <button
               type="button"
               disabled

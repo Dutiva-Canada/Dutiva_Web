@@ -258,7 +258,12 @@ export function EmployeeProfileProductionView() {
     ? [
         { label: M.employees_prod_detail_title, value: employee.title },
         { label: M.employees_prod_detail_department, value: employee.department },
-        { label: M.employees_prod_detail_employment_type, value: employee.employmentType ? x(M[`employees_employment_type_${employee.employmentType}` as keyof typeof M]) : null },
+        {
+          label: M.employees_prod_detail_employment_type,
+          value: employee.employmentType
+            ? x(M[`employees_employment_type_${employee.employmentType}` as keyof typeof M])
+            : null,
+        },
         { label: M.employees_prod_detail_email, value: employee.email },
         { label: M.employees_prod_detail_phone, value: employee.phone },
         { label: M.employees_prod_detail_jurisdiction, value: employee.jurisdiction },

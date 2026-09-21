@@ -1,4 +1,10 @@
-import { useRef, useState, type ReactNode, type RefObject, type TextareaHTMLAttributes } from 'react'
+import {
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+  type TextareaHTMLAttributes,
+} from 'react'
 import { Bold, Heading, Italic, Link, List, ListOrdered } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import type { Bi } from '@/i18n/core'
@@ -6,8 +12,12 @@ import { useI18n } from '@/i18n/context'
 
 const markdownComponents = {
   p: ({ children }: { children?: ReactNode }) => <p className="mb-[8px] last:mb-0">{children}</p>,
-  ul: ({ children }: { children?: ReactNode }) => <ul className="mb-[8px] list-disc pl-[20px]">{children}</ul>,
-  ol: ({ children }: { children?: ReactNode }) => <ol className="mb-[8px] list-decimal pl-[20px]">{children}</ol>,
+  ul: ({ children }: { children?: ReactNode }) => (
+    <ul className="mb-[8px] list-disc pl-[20px]">{children}</ul>
+  ),
+  ol: ({ children }: { children?: ReactNode }) => (
+    <ol className="mb-[8px] list-decimal pl-[20px]">{children}</ol>
+  ),
   li: ({ children }: { children?: ReactNode }) => <li className="mb-[4px]">{children}</li>,
   h1: ({ children }: { children?: ReactNode }) => (
     <h2 className="mb-[8px] text-[16px] font-semibold text-text">{children}</h2>
@@ -18,15 +28,24 @@ const markdownComponents = {
   h3: ({ children }: { children?: ReactNode }) => (
     <h3 className="mb-[8px] text-[15px] font-semibold text-text">{children}</h3>
   ),
-  strong: ({ children }: { children?: ReactNode }) => <strong className="font-semibold text-text">{children}</strong>,
+  strong: ({ children }: { children?: ReactNode }) => (
+    <strong className="font-semibold text-text">{children}</strong>
+  ),
   em: ({ children }: { children?: ReactNode }) => <em className="italic text-text">{children}</em>,
   a: ({ children, href }: { children?: ReactNode; href?: string }) => (
-    <a href={href} target="_blank" rel="noopener noreferrer" className="text-accent underline hover:text-accent-hover">
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-accent underline hover:text-accent-hover"
+    >
       {children}
     </a>
   ),
   blockquote: ({ children }: { children?: ReactNode }) => (
-    <blockquote className="mb-[8px] border-l-2 border-border pl-[12px] italic text-text-muted">{children}</blockquote>
+    <blockquote className="mb-[8px] border-l-2 border-border pl-[12px] italic text-text-muted">
+      {children}
+    </blockquote>
   ),
 }
 
@@ -62,7 +81,9 @@ interface MarkdownToolbarProps {
 export function MarkdownToolbar({ value, textareaRef, setValue, messages }: MarkdownToolbarProps) {
   const { x } = useI18n()
 
-  const apply = (fn: (text: string, start: number, end: number) => { text: string; start: number; end: number }) => {
+  const apply = (
+    fn: (text: string, start: number, end: number) => { text: string; start: number; end: number },
+  ) => {
     const ta = textareaRef.current
     if (!ta) return
     const start = ta.selectionStart
@@ -95,7 +116,9 @@ export function MarkdownToolbar({ value, textareaRef, setValue, messages }: Mark
       const selection = text.slice(start, end)
       if (selection) {
         const lines = selection.split('\n')
-        const prefixed = lines.map((line) => (line.startsWith(prefix) ? line : `${prefix}${line}`)).join('\n')
+        const prefixed = lines
+          .map((line) => (line.startsWith(prefix) ? line : `${prefix}${line}`))
+          .join('\n')
         const next = text.slice(0, start) + prefixed + text.slice(end)
         return { text: next, start, end: start + prefixed.length }
       }
@@ -103,7 +126,11 @@ export function MarkdownToolbar({ value, textareaRef, setValue, messages }: Mark
       const line = text.slice(range.start, range.end)
       const prefixed = line.startsWith(prefix) ? line : `${prefix}${line}`
       const next = text.slice(0, range.start) + prefixed + text.slice(range.end)
-      return { text: next, start: range.start + prefixed.length, end: range.start + prefixed.length }
+      return {
+        text: next,
+        start: range.start + prefixed.length,
+        end: range.start + prefixed.length,
+      }
     })
   }
 
@@ -140,7 +167,9 @@ export function MarkdownToolbar({ value, textareaRef, setValue, messages }: Mark
       {iconButton(<List size={14} />, messages.bulletList, () => prefixLines('- '))}
       {iconButton(<ListOrdered size={14} />, messages.numberedList, () => prefixLines('1. '))}
       {iconButton(<Link size={14} />, messages.link, insertLink)}
-      {messages.hint && <span className="ml-auto text-[11px] text-text-faint">{x(messages.hint)}</span>}
+      {messages.hint && (
+        <span className="ml-auto text-[11px] text-text-faint">{x(messages.hint)}</span>
+      )}
     </div>
   )
 }
@@ -165,7 +194,13 @@ interface MarkdownEditorProps {
   className?: string
 }
 
-export function MarkdownEditor({ value, onChange, messages, textareaProps, className }: MarkdownEditorProps) {
+export function MarkdownEditor({
+  value,
+  onChange,
+  messages,
+  textareaProps,
+  className,
+}: MarkdownEditorProps) {
   const { x } = useI18n()
   const [mode, setMode] = useState<'write' | 'preview'>('write')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -191,7 +226,12 @@ export function MarkdownEditor({ value, onChange, messages, textareaProps, class
       </div>
       {mode === 'write' ? (
         <>
-          <MarkdownToolbar value={value} textareaRef={textareaRef} setValue={onChange} messages={messages} />
+          <MarkdownToolbar
+            value={value}
+            textareaRef={textareaRef}
+            setValue={onChange}
+            messages={messages}
+          />
           <textarea
             ref={textareaRef}
             value={value}
@@ -202,7 +242,11 @@ export function MarkdownEditor({ value, onChange, messages, textareaProps, class
         </>
       ) : (
         <div className="min-h-[160px] rounded-b-[10px] border border-t-0 border-border bg-surface p-[12px] text-[13px] leading-relaxed text-text">
-          {value ? <MarkdownBody>{value}</MarkdownBody> : <p className="text-text-muted">{x(messages.preview)}</p>}
+          {value ? (
+            <MarkdownBody>{value}</MarkdownBody>
+          ) : (
+            <p className="text-text-muted">{x(messages.preview)}</p>
+          )}
         </div>
       )}
     </div>

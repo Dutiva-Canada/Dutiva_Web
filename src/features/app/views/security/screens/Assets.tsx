@@ -4,7 +4,12 @@ import { securityMessages as M } from '@/i18n/messages/security'
 import { statusChipClass } from '@/components/chips'
 import { FormField, FormInput, FormSelect } from '@/components/FormField'
 import { useSecurityData } from '../SecurityDataContext'
-import type { SecurityAsset, SecurityAssetStatus, SecurityAssetType, SecurityCriticality } from '../data/types'
+import type {
+  SecurityAsset,
+  SecurityAssetStatus,
+  SecurityAssetType,
+  SecurityCriticality,
+} from '../data/types'
 
 const TYPES: SecurityAssetType[] = ['hardware', 'software', 'cloud_service', 'domain', 'data_store']
 const STATUSES: SecurityAssetStatus[] = ['active', 'decommissioned', 'at_risk']
@@ -78,7 +83,9 @@ function AssetRow({
         </div>
       </div>
       <div className="flex items-center gap-[10px]">
-        <span className={statusChipClass(STATUS_TONE[asset.status])}>{x(M[STATUS_LABELS[asset.status]])}</span>
+        <span className={statusChipClass(STATUS_TONE[asset.status])}>
+          {x(M[STATUS_LABELS[asset.status]])}
+        </span>
         <button
           type="button"
           onClick={() => onEdit(asset)}
@@ -108,7 +115,9 @@ export function Assets() {
   const [name, setName] = useState(initial.name)
   const [assetType, setAssetType] = useState<SecurityAssetType>(initial.asset_type)
   const [status, setStatus] = useState<SecurityAssetStatus>(initial.status)
-  const [criticality, setCriticality] = useState<NonNullable<SecurityCriticality>>(initial.criticality ?? 'low')
+  const [criticality, setCriticality] = useState<NonNullable<SecurityCriticality>>(
+    initial.criticality ?? 'low',
+  )
   const [renewalDate, setRenewalDate] = useState(initial.renewal_date ?? '')
   const [notes, setNotes] = useState(initial.notes ?? '')
 
@@ -177,7 +186,10 @@ export function Assets() {
             <FormInput value={name} onChange={(e) => setName(e.target.value)} required />
           </FormField>
           <FormField label={x(M.sec_type)}>
-            <FormSelect value={assetType} onChange={(e) => setAssetType(e.target.value as SecurityAssetType)}>
+            <FormSelect
+              value={assetType}
+              onChange={(e) => setAssetType(e.target.value as SecurityAssetType)}
+            >
               {TYPES.map((t) => (
                 <option key={t} value={t}>
                   {x(M[TYPE_LABELS[t]])}
@@ -186,7 +198,10 @@ export function Assets() {
             </FormSelect>
           </FormField>
           <FormField label={x(M.sec_status)}>
-            <FormSelect value={status} onChange={(e) => setStatus(e.target.value as SecurityAssetStatus)}>
+            <FormSelect
+              value={status}
+              onChange={(e) => setStatus(e.target.value as SecurityAssetStatus)}
+            >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {x(M[STATUS_LABELS[s]])}
@@ -207,7 +222,11 @@ export function Assets() {
             </FormSelect>
           </FormField>
           <FormField label={x(M.sec_renewal_date)}>
-            <FormInput type="date" value={renewalDate} onChange={(e) => setRenewalDate(e.target.value)} />
+            <FormInput
+              type="date"
+              value={renewalDate}
+              onChange={(e) => setRenewalDate(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.sec_notes)} className="sm:col-span-2">
             <FormInput value={notes} onChange={(e) => setNotes(e.target.value)} />
@@ -241,7 +260,10 @@ export function Assets() {
             <AssetRow
               key={asset.id}
               asset={asset}
-              onEdit={(a) => { setEditing(a); setShow(true) }}
+              onEdit={(a) => {
+                setEditing(a)
+                setShow(true)
+              }}
               onRemove={(id) => removeAsset(id)}
             />
           ))}

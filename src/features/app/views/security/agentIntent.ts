@@ -33,8 +33,7 @@ import type { AgentToolProposal } from '@/features/app/agent/types'
 const REPORT_RE =
   /^(?:report|log|record|file)\s+(?:a\s+|an\s+|the\s+|new\s+)?(?:security\s+)?incident\s*[:—–-]?\s+(.+)$/i
 /* Trailing-noun variant — "report a phishing incident". */
-const REPORT_TAIL_RE =
-  /^(?:report|log|record|file)\s+(?:a\s+|an\s+|the\s+)?(.+?)\s+incident$/i
+const REPORT_TAIL_RE = /^(?:report|log|record|file)\s+(?:a\s+|an\s+|the\s+)?(.+?)\s+incident$/i
 const REPORT_FR_RE =
   /^(?:consigne|signale|enregistre|déclare)[rz]?\s+(?:un\s+)?incident\s*(?:de\s+sécurité)?\s*(?:[:—–-]\s*|\s+)(?:de\s+)?(.+)$/i
 
@@ -44,24 +43,20 @@ const RESOLVE_A_RE = /^resolve\s+(?:the\s+)?(?:security\s+)?incident\s+(.+)$/i
 const RESOLVE_B_RE =
   /^mark\s+(?:the\s+)?(?:security\s+)?incident\s+(.+?)\s+as\s+(?:resolved|closed|done)$/i
 const RESOLVE_C_RE = /^resolve\s+(?:the\s+)?(.+?)\s+incident$/i
-const RESOLVE_D_RE =
-  /^mark\s+(?:the\s+)?(.+?)\s+incident\s+as\s+(?:resolved|closed|done)$/i
+const RESOLVE_D_RE = /^mark\s+(?:the\s+)?(.+?)\s+incident\s+as\s+(?:resolved|closed|done)$/i
 const RESOLVE_FR_A_RE = /^(?:résous|résolvez|régle[rz]?)\s+(?:l'|le\s+)?incident\s+(.+)$/i
 const RESOLVE_FR_B_RE =
   /^marque[rz]?\s+(?:l'|le\s+)?incident\s+(.+?)\s+comme\s+(?:résolu|fermé|terminé)$/i
 
 const REVIEW_A_RE =
   /^mark\s+(?:the\s+)?access\s+review\s+(.+?)\s+as\s+(?:done|complete|completed|finished)$/i
-const REVIEW_B_RE =
-  /^(?:complete|finish|close)\s+(?:the\s+)?access\s+review\s+(.+)$/i
+const REVIEW_B_RE = /^(?:complete|finish|close)\s+(?:the\s+)?access\s+review\s+(.+)$/i
 const REVIEW_C_RE =
   /^mark\s+(?:the\s+)?(.+?)\s+access\s+review\s+as\s+(?:done|complete|completed|finished)$/i
-const REVIEW_D_RE =
-  /^(?:complete|finish|close)\s+(?:the\s+)?(.+?)\s+access\s+review$/i
+const REVIEW_D_RE = /^(?:complete|finish|close)\s+(?:the\s+)?(.+?)\s+access\s+review$/i
 const REVIEW_FR_A_RE =
   /^marque[rz]?\s+(?:la\s+)?revue\s+d'accès\s+(.+?)\s+comme\s+(?:terminée?|faite)$/i
-const REVIEW_FR_B_RE =
-  /^(?:termine[rz]?|clôture[rz]?)\s+(?:la\s+)?revue\s+d'accès\s+(.+)$/i
+const REVIEW_FR_B_RE = /^(?:termine[rz]?|clôture[rz]?)\s+(?:la\s+)?revue\s+d'accès\s+(.+)$/i
 
 /**
  * Parse a free-text rail message into a security proposal, or `null` when
@@ -71,8 +66,7 @@ export function proposeSecurityAction(text: string): AgentToolProposal | null {
   const input = text.trim().replace(/[.!]+$/, '')
   if (!input) return null
 
-  const report =
-    REPORT_RE.exec(input) ?? REPORT_TAIL_RE.exec(input) ?? REPORT_FR_RE.exec(input)
+  const report = REPORT_RE.exec(input) ?? REPORT_TAIL_RE.exec(input) ?? REPORT_FR_RE.exec(input)
   if (report) {
     const title = stripArticle(report[1] ?? '')
     if (!title) return null
@@ -95,10 +89,7 @@ export function proposeSecurityAction(text: string): AgentToolProposal | null {
     if (!title) return null
     return createProposal(
       'security.resolve_incident',
-      bi(
-        `Resolve the incident — “${title}”.`,
-        `Résoudre l'incident — « ${title} ».`,
-      ),
+      bi(`Resolve the incident — “${title}”.`, `Résoudre l'incident — « ${title} ».`),
       { title },
     )
   }
@@ -115,10 +106,7 @@ export function proposeSecurityAction(text: string): AgentToolProposal | null {
     if (!title) return null
     return createProposal(
       'security.complete_access_review',
-      bi(
-        `Complete the access review — “${title}”.`,
-        `Terminer la revue d'accès — « ${title} ».`,
-      ),
+      bi(`Complete the access review — “${title}”.`, `Terminer la revue d'accès — « ${title} ».`),
       { title },
     )
   }

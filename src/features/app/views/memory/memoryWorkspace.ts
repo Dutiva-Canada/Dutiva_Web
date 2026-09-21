@@ -33,23 +33,36 @@ export function demoSubjectMaps(): SubjectMaps {
   return {
     personNames: Object.fromEntries(employees.map((e) => [e.id, e.name])),
     caseTitles: Object.fromEntries(cases.map((c) => [c.id, pick(c.title, 'en')])),
-    threadLabels: Object.fromEntries(
-      memoryThreads.map((t) => [t.id, pick(t.navLabel, 'en')]),
-    ),
+    threadLabels: Object.fromEntries(memoryThreads.map((t) => [t.id, pick(t.navLabel, 'en')])),
   }
 }
 
 export function resolveSubject(fact: MemoryFact, maps: SubjectMaps, _lang: Lang): SubjectRef {
   if (fact.scope === 'person') {
     const name = maps.personNames[fact.entityId] ?? fact.entityId
-    return { scope: 'person', id: fact.entityId, label: name, href: `/app/settings/memory/people/${fact.entityId}` }
+    return {
+      scope: 'person',
+      id: fact.entityId,
+      label: name,
+      href: `/app/settings/memory/people/${fact.entityId}`,
+    }
   }
   if (fact.scope === 'case') {
     const title = maps.caseTitles[fact.entityId] ?? fact.entityId
-    return { scope: 'case', id: fact.entityId, label: title, href: `/app/settings/memory/cases/${fact.entityId}` }
+    return {
+      scope: 'case',
+      id: fact.entityId,
+      label: title,
+      href: `/app/settings/memory/cases/${fact.entityId}`,
+    }
   }
   const label = maps.threadLabels[fact.entityId] ?? fact.entityId
-  return { scope: 'thread', id: fact.entityId, label, href: `/app/settings/memory/conversations/${fact.entityId}` }
+  return {
+    scope: 'thread',
+    id: fact.entityId,
+    label,
+    href: `/app/settings/memory/conversations/${fact.entityId}`,
+  }
 }
 
 export interface MemoryFilterState {
@@ -120,12 +133,17 @@ export function computeMetrics(facts: readonly MemoryFact[], todayISO: string): 
 }
 
 /** Distinct subject options that actually have memories, for the filter. */
-export function subjectOptions(facts: readonly MemoryFact[]): { scope: MemoryScope; count: number }[] {
+export function subjectOptions(
+  facts: readonly MemoryFact[],
+): { scope: MemoryScope; count: number }[] {
   const counts: Record<MemoryScope, number> = { person: 0, case: 0, thread: 0 }
   for (const f of facts) {
     const status = f.status ?? (f.confidence === 'confirmed' ? 'confirmed' : 'proposed')
     if (status === 'removed') continue
     counts[f.scope] += 1
   }
-  return (['person', 'case', 'thread'] as MemoryScope[]).map((scope) => ({ scope, count: counts[scope] }))
+  return (['person', 'case', 'thread'] as MemoryScope[]).map((scope) => ({
+    scope,
+    count: counts[scope],
+  }))
 }

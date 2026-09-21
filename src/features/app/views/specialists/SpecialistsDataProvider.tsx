@@ -31,9 +31,9 @@ export function SpecialistsDataProvider({
   readonly children: ReactNode
 }) {
   const { organizationId } = useWorkspaceMode()
-  const [value, setValue] = useState<Pick<SpecialistsDataValue, 'specialists' | 'engagements' | 'loading' | 'error'>>(
-    () => (mode === 'demo' ? { ...fixtures, loading: false, error: null } : EMPTY),
-  )
+  const [value, setValue] = useState<
+    Pick<SpecialistsDataValue, 'specialists' | 'engagements' | 'loading' | 'error'>
+  >(() => (mode === 'demo' ? { ...fixtures, loading: false, error: null } : EMPTY))
 
   useEffect(() => {
     if (mode !== 'production') return
@@ -271,8 +271,18 @@ export function SpecialistsDataProvider({
       updateEngagement: saveEngagement,
       removeEngagement,
     }),
-    [value, addSpecialist, saveSpecialist, removeSpecialist, addEngagement, saveEngagement, removeEngagement],
+    [
+      value,
+      addSpecialist,
+      saveSpecialist,
+      removeSpecialist,
+      addEngagement,
+      saveEngagement,
+      removeEngagement,
+    ],
   )
 
-  return <SpecialistsDataContext.Provider value={stable}>{children}</SpecialistsDataContext.Provider>
+  return (
+    <SpecialistsDataContext.Provider value={stable}>{children}</SpecialistsDataContext.Provider>
+  )
 }

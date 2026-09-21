@@ -24,9 +24,37 @@ export interface ContentImportRow {
   timeZone?: string
 }
 
-const CHANNELS: CommsChannel[] = ['email', 'intranet', 'social_linkedin', 'social_x', 'press_release', 'website', 'newsletter', 'meeting', 'other']
-const STATUSES: CommsContentStatus[] = ['draft', 'in_review', 'changes_requested', 'approved', 'superseded', 'withdrawn', 'rejected']
-const DELIVERY_STATUSES: CommsDeliveryStatus[] = ['not_queued', 'ready', 'scheduled', 'paused', 'sending', 'confirmed', 'failed', 'unknown', 'cancelled']
+const CHANNELS: CommsChannel[] = [
+  'email',
+  'intranet',
+  'social_linkedin',
+  'social_x',
+  'press_release',
+  'website',
+  'newsletter',
+  'meeting',
+  'other',
+]
+const STATUSES: CommsContentStatus[] = [
+  'draft',
+  'in_review',
+  'changes_requested',
+  'approved',
+  'superseded',
+  'withdrawn',
+  'rejected',
+]
+const DELIVERY_STATUSES: CommsDeliveryStatus[] = [
+  'not_queued',
+  'ready',
+  'scheduled',
+  'paused',
+  'sending',
+  'confirmed',
+  'failed',
+  'unknown',
+  'cancelled',
+]
 
 function biFromString(value: string, lang: 'en' | 'fr'): Bi | undefined {
   const text = value.trim()
@@ -123,7 +151,8 @@ export function createContentBulkImportAdapter(
       label: B.bulk_field_content_language,
       required: true,
       parse: parseLanguage,
-      validate: (v) => (v === 'en' || v === 'fr' || v === 'bilingual' ? undefined : 'invalid language'),
+      validate: (v) =>
+        v === 'en' || v === 'fr' || v === 'bilingual' ? undefined : 'invalid language',
       headerHints: ['language', 'lang', 'langue'],
     },
     {
@@ -146,7 +175,10 @@ export function createContentBulkImportAdapter(
       key: 'deliveryStatus',
       label: B.bulk_field_content_delivery_status,
       parse: parseDeliveryStatus,
-      validate: (v) => (v === undefined || DELIVERY_STATUSES.includes(v as CommsDeliveryStatus) ? undefined : 'invalid delivery status'),
+      validate: (v) =>
+        v === undefined || DELIVERY_STATUSES.includes(v as CommsDeliveryStatus)
+          ? undefined
+          : 'invalid delivery status',
       headerHints: ['delivery status', 'delivery', 'publish status', 'statut de diffusion'],
     },
     {
@@ -183,17 +215,46 @@ export function createContentBulkImportAdapter(
       const mapping: Record<string, keyof ContentImportRow> = {}
       headers.forEach((h) => {
         const raw = h.trim().toLowerCase()
-        if (raw.includes('initiative') || raw === 'campaign' || raw === 'programme' || raw === 'program') mapping[h] = 'initiative'
-        else if (raw.includes('title') || raw === 'headline' || raw === 'titre') mapping[h] = 'title'
-        else if (raw === 'body' || raw === 'content' || raw === 'text' || raw === 'message' || raw === 'corps') mapping[h] = 'body'
+        if (
+          raw.includes('initiative') ||
+          raw === 'campaign' ||
+          raw === 'programme' ||
+          raw === 'program'
+        )
+          mapping[h] = 'initiative'
+        else if (raw.includes('title') || raw === 'headline' || raw === 'titre')
+          mapping[h] = 'title'
+        else if (
+          raw === 'body' ||
+          raw === 'content' ||
+          raw === 'text' ||
+          raw === 'message' ||
+          raw === 'corps'
+        )
+          mapping[h] = 'body'
         else if (raw === 'language' || raw === 'lang' || raw === 'langue') mapping[h] = 'language'
-        else if (raw.includes('channel') || raw === 'canal' || raw === 'medium') mapping[h] = 'channel'
+        else if (raw.includes('channel') || raw === 'canal' || raw === 'medium')
+          mapping[h] = 'channel'
         else if (raw === 'status' || raw === 'statut') mapping[h] = 'status'
         else if (raw.includes('delivery') || raw === 'publish status') mapping[h] = 'deliveryStatus'
-        else if (raw.includes('due') || raw === 'deadline' || raw === 'échéance') mapping[h] = 'dueDate'
-        else if (raw.includes('schedule') || raw.includes('scheduled') || raw === 'planifié') mapping[h] = 'scheduledFor'
-        else if (raw === 'owner' || raw === 'author' || raw === 'responsable' || raw === 'responsible') mapping[h] = 'owner'
-        else if (raw.includes('time zone') || raw === 'timezone' || raw === 'tz' || raw === 'fuseau') mapping[h] = 'timeZone'
+        else if (raw.includes('due') || raw === 'deadline' || raw === 'échéance')
+          mapping[h] = 'dueDate'
+        else if (raw.includes('schedule') || raw.includes('scheduled') || raw === 'planifié')
+          mapping[h] = 'scheduledFor'
+        else if (
+          raw === 'owner' ||
+          raw === 'author' ||
+          raw === 'responsable' ||
+          raw === 'responsible'
+        )
+          mapping[h] = 'owner'
+        else if (
+          raw.includes('time zone') ||
+          raw === 'timezone' ||
+          raw === 'tz' ||
+          raw === 'fuseau'
+        )
+          mapping[h] = 'timeZone'
       })
       return mapping
     },
@@ -215,7 +276,9 @@ export function createContentBulkImportAdapter(
             continue
           }
           const initiative = initiatives.find(
-            (i) => i.title.en.toLowerCase() === initiativeName.toLowerCase() || i.title.fr.toLowerCase() === initiativeName.toLowerCase(),
+            (i) =>
+              i.title.en.toLowerCase() === initiativeName.toLowerCase() ||
+              i.title.fr.toLowerCase() === initiativeName.toLowerCase(),
           )
           if (!initiative) {
             failed++
@@ -248,6 +311,18 @@ export function createContentBulkImportAdapter(
       }
       return { created, failed, errors }
     },
-    sampleTemplate: ['initiative', 'title', 'body', 'language', 'channel', 'status', 'deliveryStatus', 'dueDate', 'scheduledFor', 'owner', 'timeZone'],
+    sampleTemplate: [
+      'initiative',
+      'title',
+      'body',
+      'language',
+      'channel',
+      'status',
+      'deliveryStatus',
+      'dueDate',
+      'scheduledFor',
+      'owner',
+      'timeZone',
+    ],
   }
 }

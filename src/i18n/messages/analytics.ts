@@ -57,8 +57,14 @@ export const analyticsMessages = defineMessages({
     en: 'Security incidents & risks resolved',
     fr: 'Incidents et risques de sécurité résolus',
   },
-  analytics_comp_operations: { en: 'Operations projects completed', fr: 'Projets opérationnels terminés' },
-  analytics_comp_governance: { en: 'Governance decisions made', fr: 'Décisions de gouvernance prises' },
+  analytics_comp_operations: {
+    en: 'Operations projects completed',
+    fr: 'Projets opérationnels terminés',
+  },
+  analytics_comp_governance: {
+    en: 'Governance decisions made',
+    fr: 'Décisions de gouvernance prises',
+  },
   analytics_comp_revenue: { en: 'Revenue invoices paid', fr: 'Factures de revenu payées' },
   analytics_comp_specialists: {
     en: 'Specialist follow-ups on time',
@@ -325,9 +331,18 @@ export const analyticsMessages = defineMessages({
     fr: 'Spécialistes externes et journal d’engagements.',
   },
   analytics_specialists_active: { en: 'Active specialists', fr: 'Spécialistes actifs' },
-  analytics_specialists_workspace_access: { en: 'Workspace access', fr: 'Accès à l’espace de travail' },
-  analytics_specialists_engagements_month: { en: 'Engagements this month', fr: 'Engagements ce mois-ci' },
-  analytics_specialists_followups_due: { en: 'Follow-ups due in 7 days', fr: 'Suivis dus sous 7 jours' },
+  analytics_specialists_workspace_access: {
+    en: 'Workspace access',
+    fr: 'Accès à l’espace de travail',
+  },
+  analytics_specialists_engagements_month: {
+    en: 'Engagements this month',
+    fr: 'Engagements ce mois-ci',
+  },
+  analytics_specialists_followups_due: {
+    en: 'Follow-ups due in 7 days',
+    fr: 'Suivis dus sous 7 jours',
+  },
   analytics_specialists_overdue_followups: { en: 'Overdue follow-ups', fr: 'Suivis en retard' },
   analytics_specialists_empty: {
     en: 'No specialists records yet.',

@@ -23,7 +23,7 @@ The wiki is copied from `Dutiva_Web.wiki` via `npm run wiki:sync`. Edit the GitH
 | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [CANONICAL_FACTS.md](CANONICAL_FACTS.md)             | **Source of record for every load-bearing fact** — counts, pricing, jurisdictions, company details, and the claims that must not be made. Read before writing any customer-facing or investor-facing number. |
 | [NATURAL_LANGUAGE_COPY.md](NATURAL_LANGUAGE_COPY.md) | **How we write** — natural, human prose for marketing and app UI; AI-tell ban list; draft → revise checklist. Does not override CANONICAL_FACTS on claims.                                                   |
-| [BRAND.md](BRAND.md)                                 | **How we look** — the colour system (navy/charcoal/ivory foundation, teal interactive accent, champagne executive accent), theme rules, and the BusinessTech direction the brand carries.                 |
+| [BRAND.md](BRAND.md)                                 | **How we look** — the colour system (navy/charcoal/ivory foundation, teal interactive accent, champagne executive accent), theme rules, and the BusinessTech direction the brand carries.                    |
 
 Its rule — _where this file disagrees with the code, the code wins_ — is
 enforced by `npm run check`, in two halves: `src/canonicalFacts.test.ts` for
@@ -50,22 +50,22 @@ the moment an item closes; when you close one, delete its prompt too.
 Dutiva is a compliance product, so a wrong fact is a product defect. These
 govern what the product is allowed to assert.
 
-| Document                                                                       | What it settles                                                                                                                                                                                    |
-| ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [FOUR_RING_FRAMEWORK.md](FOUR_RING_FRAMEWORK.md)                               | Product scope as four rings, and tool by tool what is actually built. Supersedes the April 2026 Drive framework, whose jurisdiction, pricing and launch claims are corrected there.                |
-| [AI_USAGE_STRATEGY.md](AI_USAGE_STRATEGY.md)                                   | Where an LLM is used and where it deliberately is not — "the LLM proposes, deterministic code disposes". Statutory clauses, notice math and crisis text are never model-authored.                  |
+| Document                                                                       | What it settles                                                                                                                                                                                      |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [FOUR_RING_FRAMEWORK.md](FOUR_RING_FRAMEWORK.md)                               | Product scope as four rings, and tool by tool what is actually built. Supersedes the April 2026 Drive framework, whose jurisdiction, pricing and launch claims are corrected there.                  |
+| [AI_USAGE_STRATEGY.md](AI_USAGE_STRATEGY.md)                                   | Where an LLM is used and where it deliberately is not — "the LLM proposes, deterministic code disposes". Statutory clauses, notice math and crisis text are never model-authored.                    |
 | [AGENT_LAYER.md](AGENT_LAYER.md)                                               | How business functions run through AI agents: the tool registry, risk tiers, the propose→gate→confirm→execute path, permissions ("the agent is the user"), audit, and what is honest to claim today. |
-| [LOCAL_INFERENCE.md](LOCAL_INFERENCE.md)                                       | **Undecided.** On-device / LAN / OS-model Advisor vs DigitalOcean Gradient: physics, product fit, TOR1 Dedicated, and short- vs long-term cost. Do not ship from this doc until the owner decides. |
-| [SCORING_LOGIC.md](SCORING_LOGIC.md)                                           | How every score is computed: the compliance score (formula v3 — severity-weighted, critical-capped, obligations, versioned), flow scoring, Advisor risk/confidence, Analytics rules.               |
-| [LAW_MONITORING.md](LAW_MONITORING.md)                                         | How law-change monitoring works, the 2026-07-30 coverage audit, and why sweeping a page is not detecting an amendment on it.                                                                       |
-| [LAW_CHANGE_NOTIFICATIONS.md](LAW_CHANGE_NOTIFICATIONS.md)                     | Internal-only weekly digest: decided and built 2026-08-06. Nothing sends until the owner deploy steps (§7 / TODO.md OA13) are done.                                                                |
-| [advisor-corpus-review-pack-ontario.md](advisor-corpus-review-pack-ontario.md) | The first human-review pass, prepared: all 14 Ontario chunks with figures to verify, priority order, and per-chunk sign-off SQL. Review itself is a human act (TODO L5).                           |
-| [notice-bands-review-pack.md](notice-bands-review-pack.md)                     | QC/FED statutory notice band research pack for qualified legal sign-off (TODO L6).                                                                                                                 |
-| [notice-bands-decision.md](notice-bands-decision.md)                           | Interim product decision to keep QC/FED at `bands: null` and hard UI hedges until sign-off.                                                                                                        |
-| [GAP_AUDIT_STATUS.md](GAP_AUDIT_STATUS.md)                                     | Engineering completion status for the cross-cutting gap audit (legal, product, architecture, security, maintainability, testing).                                                                  |
-| [advisor-guidance-corpus-2026-07-26.md](advisor-guidance-corpus-2026-07-26.md) | Grounding corpus seed — ON/QC/FED termination notice. Machine-curated, pending human review.                                                                                                       |
-| [advisor-guidance-corpus-2026-07-27.md](advisor-guidance-corpus-2026-07-27.md) | Second tranche — leaves, public holidays, hours of work, accommodation.                                                                                                                            |
-| [advisor-guidance-corpus-2026-07-29.md](advisor-guidance-corpus-2026-07-29.md) | Third tranche — pay & deductions, records retention, layoffs & recall, constructive dismissal, workplace injury.                                                                                   |
+| [LOCAL_INFERENCE.md](LOCAL_INFERENCE.md)                                       | **Undecided.** On-device / LAN / OS-model Advisor vs DigitalOcean Gradient: physics, product fit, TOR1 Dedicated, and short- vs long-term cost. Do not ship from this doc until the owner decides.   |
+| [SCORING_LOGIC.md](SCORING_LOGIC.md)                                           | How every score is computed: the compliance score (formula v3 — severity-weighted, critical-capped, obligations, versioned), flow scoring, Advisor risk/confidence, Analytics rules.                 |
+| [LAW_MONITORING.md](LAW_MONITORING.md)                                         | How law-change monitoring works, the 2026-07-30 coverage audit, and why sweeping a page is not detecting an amendment on it.                                                                         |
+| [LAW_CHANGE_NOTIFICATIONS.md](LAW_CHANGE_NOTIFICATIONS.md)                     | Internal-only weekly digest: decided and built 2026-08-06. Nothing sends until the owner deploy steps (§7 / TODO.md OA13) are done.                                                                  |
+| [advisor-corpus-review-pack-ontario.md](advisor-corpus-review-pack-ontario.md) | The first human-review pass, prepared: all 14 Ontario chunks with figures to verify, priority order, and per-chunk sign-off SQL. Review itself is a human act (TODO L5).                             |
+| [notice-bands-review-pack.md](notice-bands-review-pack.md)                     | QC/FED statutory notice band research pack for qualified legal sign-off (TODO L6).                                                                                                                   |
+| [notice-bands-decision.md](notice-bands-decision.md)                           | Interim product decision to keep QC/FED at `bands: null` and hard UI hedges until sign-off.                                                                                                          |
+| [GAP_AUDIT_STATUS.md](GAP_AUDIT_STATUS.md)                                     | Engineering completion status for the cross-cutting gap audit (legal, product, architecture, security, maintainability, testing).                                                                    |
+| [advisor-guidance-corpus-2026-07-26.md](advisor-guidance-corpus-2026-07-26.md) | Grounding corpus seed — ON/QC/FED termination notice. Machine-curated, pending human review.                                                                                                         |
+| [advisor-guidance-corpus-2026-07-27.md](advisor-guidance-corpus-2026-07-27.md) | Second tranche — leaves, public holidays, hours of work, accommodation.                                                                                                                              |
+| [advisor-guidance-corpus-2026-07-29.md](advisor-guidance-corpus-2026-07-29.md) | Third tranche — pay & deductions, records retention, layoffs & recall, constructive dismissal, workplace injury.                                                                                     |
 
 Editorial rule for public articles — no statutory figures, ever — is stated in
 `src/features/marketing/articles/articleModel.ts` and enforced by
@@ -82,23 +82,23 @@ Editorial rule for public articles — no statutory figures, ever — is stated 
 
 ## Data and platform
 
-| Document                                       | What it settles                                                             |
-| ---------------------------------------------- | --------------------------------------------------------------------------- |
-| [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md)       | How the live Supabase schema is tracked against the repo.                   |
-| [DATABASE_STRUCTURE.md](DATABASE_STRUCTURE.md) | Generated map of the live DB — every table, RLS flag, policy, function, trigger, cron job — plus the replication recipe. Regenerate: `npm run db:document`. |
-| [MIGRATION_LEDGER.md](MIGRATION_LEDGER.md)     | Known migration filename exceptions (e.g. applied duplicate `0024`).        |
-| [DATA_MODEL.md](DATA_MODEL.md)                 | HR Documents Library data model, transcribed from the handoff.              |
-| [AUTH_MAGIC_LINK.md](AUTH_MAGIC_LINK.md)       | Magic-link sign-in and the Supabase configuration it needs.                 |
-| [LOCAL_ENDPOINTS.md](LOCAL_ENDPOINTS.md)       | Operator runbook: pointing Advisor routes at a self-hosted OpenAI-compatible endpoint (Ollama, LM Studio, vLLM) — reachability, `/v1`, secrets, rollback. |
-| [FS_ACCESS_MODELS.md](FS_ACCESS_MODELS.md)     | The File System Access prototype: importing on-device model files from a user-picked drive/folder — layout, permissions, and what it deliberately is not. |
-| [SELF_HOSTING.md](SELF_HOSTING.md)             | Self-host runbook: `deploy/self-host/` web bundle + compose, Supabase cloud vs self-hosted backend, env surface, and what still points outside. |
-| [INTEGRATIONS.md](INTEGRATIONS.md)             | Workspace integrations phase 1: provider catalog, Vault secret model, the `workspace-integration` edge function, and deferred providers (OAuth, Signal). |
-| [CRM_DIRECTORY_VIEWS.md](CRM_DIRECTORY_VIEWS.md) | Customer-directory filter bar and saved views — scope, storage, and limits. |
-| [FINANCE_PORTFOLIO.md](FINANCE_PORTFOLIO.md)   | Finance → Portfolio screen: holdings summary, watchlist, decision journal — company-investment records, not advice. |
-| [BILLING_BETA_AUDIT.md](BILLING_BETA_AUDIT.md) | Stripe billing and beta-signup audit, with remediation status.              |
-| [STRIPE_GO_LIVE.md](STRIPE_GO_LIVE.md)         | Stripe go-live checklist and OA11 completion record (closed 2026-08-27).    |
-| [MAINTAINABILITY.md](MAINTAINABILITY.md)       | Long-term codebase health: patterns, hotspots, template review cadence, CI. |
-| [OFFLINE_PWA.md](OFFLINE_PWA.md)               | Service worker, offline behaviour, and how to test it.                      |
+| Document                                         | What it settles                                                                                                                                             |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md)         | How the live Supabase schema is tracked against the repo.                                                                                                   |
+| [DATABASE_STRUCTURE.md](DATABASE_STRUCTURE.md)   | Generated map of the live DB — every table, RLS flag, policy, function, trigger, cron job — plus the replication recipe. Regenerate: `npm run db:document`. |
+| [MIGRATION_LEDGER.md](MIGRATION_LEDGER.md)       | Known migration filename exceptions (e.g. applied duplicate `0024`).                                                                                        |
+| [DATA_MODEL.md](DATA_MODEL.md)                   | HR Documents Library data model, transcribed from the handoff.                                                                                              |
+| [AUTH_MAGIC_LINK.md](AUTH_MAGIC_LINK.md)         | Magic-link sign-in and the Supabase configuration it needs.                                                                                                 |
+| [LOCAL_ENDPOINTS.md](LOCAL_ENDPOINTS.md)         | Operator runbook: pointing Advisor routes at a self-hosted OpenAI-compatible endpoint (Ollama, LM Studio, vLLM) — reachability, `/v1`, secrets, rollback.   |
+| [FS_ACCESS_MODELS.md](FS_ACCESS_MODELS.md)       | The File System Access prototype: importing on-device model files from a user-picked drive/folder — layout, permissions, and what it deliberately is not.   |
+| [SELF_HOSTING.md](SELF_HOSTING.md)               | Self-host runbook: `deploy/self-host/` web bundle + compose, Supabase cloud vs self-hosted backend, env surface, and what still points outside.             |
+| [INTEGRATIONS.md](INTEGRATIONS.md)               | Workspace integrations phase 1: provider catalog, Vault secret model, the `workspace-integration` edge function, and deferred providers (OAuth, Signal).    |
+| [CRM_DIRECTORY_VIEWS.md](CRM_DIRECTORY_VIEWS.md) | Customer-directory filter bar and saved views — scope, storage, and limits.                                                                                 |
+| [FINANCE_PORTFOLIO.md](FINANCE_PORTFOLIO.md)     | Finance → Portfolio screen: holdings summary, watchlist, decision journal — company-investment records, not advice.                                         |
+| [BILLING_BETA_AUDIT.md](BILLING_BETA_AUDIT.md)   | Stripe billing and beta-signup audit, with remediation status.                                                                                              |
+| [STRIPE_GO_LIVE.md](STRIPE_GO_LIVE.md)           | Stripe go-live checklist and OA11 completion record (closed 2026-08-27).                                                                                    |
+| [MAINTAINABILITY.md](MAINTAINABILITY.md)         | Long-term codebase health: patterns, hotspots, template review cadence, CI.                                                                                 |
+| [OFFLINE_PWA.md](OFFLINE_PWA.md)                 | Service worker, offline behaviour, and how to test it.                                                                                                      |
 
 ## Web surface
 

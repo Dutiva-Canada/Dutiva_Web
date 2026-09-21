@@ -63,11 +63,19 @@ function MetricForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]">
+    <form
+      onSubmit={onSubmit}
+      className="mb-[16px] rounded-[10px] border border-border bg-inset p-[14px]"
+    >
       <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
         <div className="sm:col-span-2">
           <label className={labelClass}>{x(M.comms_results_name)}</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} required />
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className={inputClass}
+            required
+          />
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_results_metric_initiative)}</label>
@@ -79,25 +87,46 @@ function MetricForm({
           >
             <option value="">{x(M.comms_org_none)}</option>
             {initiatives.map((i) => (
-              <option key={i.id} value={i.id}>{x(i.title)}</option>
+              <option key={i.id} value={i.id}>
+                {x(i.title)}
+              </option>
             ))}
           </select>
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_results_period)}</label>
-          <input value={period} onChange={(e) => setPeriod(e.target.value)} className={inputClass} />
+          <input
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
+            className={inputClass}
+          />
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_results_value)}</label>
-          <input type="number" value={value} onChange={(e) => setValue(e.target.value)} className={inputClass} />
+          <input
+            type="number"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            className={inputClass}
+          />
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_results_baseline)}</label>
-          <input type="number" value={baseline} onChange={(e) => setBaseline(e.target.value)} className={inputClass} />
+          <input
+            type="number"
+            value={baseline}
+            onChange={(e) => setBaseline(e.target.value)}
+            className={inputClass}
+          />
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_results_target)}</label>
-          <input type="number" value={target} onChange={(e) => setTarget(e.target.value)} className={inputClass} />
+          <input
+            type="number"
+            value={target}
+            onChange={(e) => setTarget(e.target.value)}
+            className={inputClass}
+          />
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_results_provenance_label)}</label>
@@ -107,13 +136,20 @@ function MetricForm({
             className={inputClass}
           >
             {PROVENANCES.map((p) => (
-              <option key={p} value={p}>{x(M[`comms_results_provenance_${p}` as keyof typeof M])}</option>
+              <option key={p} value={p}>
+                {x(M[`comms_results_provenance_${p}` as keyof typeof M])}
+              </option>
             ))}
           </select>
         </div>
         <div>
           <label className={labelClass}>{x(M.comms_results_owner)}</label>
-          <input value={owner} onChange={(e) => setOwner(e.target.value)} className={inputClass} required />
+          <input
+            value={owner}
+            onChange={(e) => setOwner(e.target.value)}
+            className={inputClass}
+            required
+          />
         </div>
       </div>
       <div className="mt-[14px] flex gap-[8px]">
@@ -165,7 +201,10 @@ export function Results() {
       ) : (
         <div className="flex flex-col gap-[10px]">
           {metrics.map((metric) => (
-            <div key={metric.id} className="rounded-[12px] border border-border bg-surface p-[16px]">
+            <div
+              key={metric.id}
+              className="rounded-[12px] border border-border bg-surface p-[16px]"
+            >
               <div className="flex flex-wrap items-start justify-between gap-[12px]">
                 <div>
                   <div className="text-[14.5px] font-semibold text-text">{x(metric.name)}</div>
@@ -199,11 +238,13 @@ export function Results() {
               </div>
               {metric.baseline != null && (
                 <div className="mt-[10px] text-[12px] text-text-2">
-                  <span className="font-semibold">{x(M.comms_results_baseline)}:</span> {metric.baseline}
+                  <span className="font-semibold">{x(M.comms_results_baseline)}:</span>{' '}
+                  {metric.baseline}
                 </div>
               )}
               <div className="mt-[6px] text-[11px] text-text-faint">
-                {x(M.comms_results_provenance)}: {x(M[`comms_results_provenance_${metric.provenance}` as keyof typeof M])}
+                {x(M.comms_results_provenance)}:{' '}
+                {x(M[`comms_results_provenance_${metric.provenance}` as keyof typeof M])}
               </div>
             </div>
           ))}
@@ -211,16 +252,22 @@ export function Results() {
       )}
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h3 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.comms_results_coverage)}</h3>
+        <h3 className="mb-[12px] text-[15px] font-semibold text-text">
+          {x(M.comms_results_coverage)}
+        </h3>
         {coverageItems.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.comms_intelligence_coverage_empty)}</p>
         ) : (
           <>
             <div className="mb-[12px] grid grid-cols-1 gap-[10px] sm:grid-cols-2">
               <div className="rounded-[8px] bg-inset px-[12px] py-[10px]">
-                <div className="text-[12px] text-text-muted">{x(M.comms_results_coverage_total)}</div>
+                <div className="text-[12px] text-text-muted">
+                  {x(M.comms_results_coverage_total)}
+                </div>
                 <div className="mt-[4px] text-[18px] font-bold text-text">
-                  {coverageItems.reduce((sum, item) => sum + (item.reach ?? 0), 0).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
+                  {coverageItems
+                    .reduce((sum, item) => sum + (item.reach ?? 0), 0)
+                    .toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
                 </div>
               </div>
             </div>
@@ -228,10 +275,15 @@ export function Results() {
               {coverageItems.map((item) => {
                 const initiative = initiatives.find((i) => i.id === item.initiativeId)
                 return (
-                  <li key={item.id} className="flex flex-col gap-[4px] rounded-[8px] bg-inset p-[12px]">
+                  <li
+                    key={item.id}
+                    className="flex flex-col gap-[4px] rounded-[8px] bg-inset p-[12px]"
+                  >
                     <div className="flex flex-wrap items-start justify-between gap-[12px]">
                       <div>
-                        <div className="text-[14px] font-semibold text-text">{x(item.headline)}</div>
+                        <div className="text-[14px] font-semibold text-text">
+                          {x(item.headline)}
+                        </div>
                         <div className="text-[12px] text-text-muted">
                           {x(item.outlet)} · {initiative ? x(initiative.title) : x(M.comms_none)}
                           {item.publishedDate ? ` · ${item.publishedDate}` : ''}
@@ -261,7 +313,12 @@ export function Results() {
                       </div>
                     )}
                     {item.url && (
-                      <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-[12px] text-accent hover:underline">
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[12px] text-accent hover:underline"
+                      >
                         {item.url}
                       </a>
                     )}
@@ -269,7 +326,9 @@ export function Results() {
                 )
               })}
             </ul>
-            <p className="mt-[10px] text-[11px] leading-normal text-text-faint">{x(M.comms_results_coverage_disclaimer)}</p>
+            <p className="mt-[10px] text-[11px] leading-normal text-text-faint">
+              {x(M.comms_results_coverage_disclaimer)}
+            </p>
           </>
         )}
       </section>

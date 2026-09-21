@@ -65,7 +65,9 @@ function QualityRow({
         </div>
       </div>
       <div className="flex items-center gap-[10px]">
-        <span className={statusChipClass(STATUS_TONE[check.status])}>{x(M[STATUS_LABELS[check.status]])}</span>
+        <span className={statusChipClass(STATUS_TONE[check.status])}>
+          {x(M[STATUS_LABELS[check.status]])}
+        </span>
         <button
           type="button"
           onClick={() => onEdit(check)}
@@ -87,7 +89,8 @@ function QualityRow({
 
 export function QualityChecks() {
   const { x } = useI18n()
-  const { qualityChecks, addQualityCheck, updateQualityCheck, removeQualityCheck } = useOperationsData()
+  const { qualityChecks, addQualityCheck, updateQualityCheck, removeQualityCheck } =
+    useOperationsData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<OperationsQualityCheck | null>(null)
 
@@ -161,7 +164,10 @@ export function QualityChecks() {
             <FormInput value={title} onChange={(e) => setTitle(e.target.value)} required />
           </FormField>
           <FormField label={x(M.ops_status)}>
-            <FormSelect value={status} onChange={(e) => setStatus(e.target.value as OperationsQualityStatus)}>
+            <FormSelect
+              value={status}
+              onChange={(e) => setStatus(e.target.value as OperationsQualityStatus)}
+            >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {x(M[STATUS_LABELS[s]])}
@@ -173,10 +179,17 @@ export function QualityChecks() {
             <FormInput type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
           </FormField>
           <FormField label={x(M.ops_completed_date)}>
-            <FormInput type="date" value={completedDate} onChange={(e) => setCompletedDate(e.target.value)} />
+            <FormInput
+              type="date"
+              value={completedDate}
+              onChange={(e) => setCompletedDate(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.ops_non_conformance)} className="sm:col-span-2">
-            <FormTextarea value={nonConformance} onChange={(e) => setNonConformance(e.target.value)} />
+            <FormTextarea
+              value={nonConformance}
+              onChange={(e) => setNonConformance(e.target.value)}
+            />
           </FormField>
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button
@@ -207,7 +220,10 @@ export function QualityChecks() {
             <QualityRow
               key={check.id}
               check={check}
-              onEdit={(c) => { setEditing(c); setShow(true) }}
+              onEdit={(c) => {
+                setEditing(c)
+                setShow(true)
+              }}
               onRemove={(id) => removeQualityCheck(id)}
             />
           ))}

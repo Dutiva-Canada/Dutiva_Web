@@ -5,10 +5,7 @@ import { useI18n } from '@/i18n/context'
 import { entityLinksMessages as M } from '@/i18n/messages/entityLinks'
 import { FormField, FormSelect } from '@/components/FormField'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
-import {
-  useWorkspaceRoot,
-  workspacePath,
-} from '@/features/app/workspaceRoot/workspaceRootContext'
+import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { createEntityLink, deleteEntityLink, listEntityLinks } from './data/productionApi'
 import { entityLinks as fixtureLinks, entityLinksDemoOrgId } from './data/fixtures'
 import type { EntityLink, EntityTable, LinkCandidate } from './data/types'

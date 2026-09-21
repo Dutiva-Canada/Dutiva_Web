@@ -3,7 +3,9 @@ import { useEffect, useState } from 'react'
 
 export type HiringTab = 'candidates' | 'funnel' | 'postings'
 
-export function useHiringTab(defaultTab: HiringTab = 'candidates'): [HiringTab, (tab: HiringTab) => void] {
+export function useHiringTab(
+  defaultTab: HiringTab = 'candidates',
+): [HiringTab, (tab: HiringTab) => void] {
   const [searchParams, setSearchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState<HiringTab>(() => {
     const fromUrl = searchParams.get('tab')

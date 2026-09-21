@@ -58,11 +58,15 @@ export function JobPostingDetailProductionView() {
         {x(M.hiring_posting_back)}
       </Link>
 
-      {state === 'loading' && <div className="text-[13px] text-text-muted">{x(M.hiring_prod_loading)}</div>}
+      {state === 'loading' && (
+        <div className="text-[13px] text-text-muted">{x(M.hiring_prod_loading)}</div>
+      )}
 
       {state === 'failed' && (
         <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
-          <div className="mb-[4px] text-[14.5px] font-semibold text-text">{x(M.hiring_prod_error)}</div>
+          <div className="mb-[4px] text-[14.5px] font-semibold text-text">
+            {x(M.hiring_prod_error)}
+          </div>
           <button
             type="button"
             onClick={() => void load()}
@@ -75,7 +79,9 @@ export function JobPostingDetailProductionView() {
 
       {state === 'ready' && !posting && (
         <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
-          <div className="text-[14.5px] font-semibold text-text">{x(M.hiring_posting_not_found)}</div>
+          <div className="text-[14.5px] font-semibold text-text">
+            {x(M.hiring_posting_not_found)}
+          </div>
         </div>
       )}
 
@@ -104,13 +110,19 @@ export function JobPostingDetailProductionView() {
 
           <div className="flex flex-col gap-[16px]">
             <section className="rounded-[12px] border border-border bg-surface p-[20px]">
-              <h2 className="mb-[12px] text-[16px] font-bold text-text">{x(M.hiring_posting_description_label)}</h2>
-              <p className="whitespace-pre-line text-[13px] leading-relaxed text-text-2">{posting.description}</p>
+              <h2 className="mb-[12px] text-[16px] font-bold text-text">
+                {x(M.hiring_posting_description_label)}
+              </h2>
+              <p className="whitespace-pre-line text-[13px] leading-relaxed text-text-2">
+                {posting.description}
+              </p>
             </section>
 
             {posting.requirements.length > 0 && (
               <section className="rounded-[12px] border border-border bg-surface p-[20px]">
-                <h2 className="mb-[12px] text-[16px] font-bold text-text">{x(M.hiring_posting_requirements_label)}</h2>
+                <h2 className="mb-[12px] text-[16px] font-bold text-text">
+                  {x(M.hiring_posting_requirements_label)}
+                </h2>
                 <ul className="ml-[16px] list-disc space-y-[6px] text-[13px] text-text-2">
                   {posting.requirements.map((req, idx) => (
                     <li key={idx}>{req}</li>
@@ -121,7 +133,9 @@ export function JobPostingDetailProductionView() {
 
             {posting.knockoutCriteria.length > 0 && (
               <section className="rounded-[12px] border border-border bg-surface p-[20px]">
-                <h2 className="mb-[12px] text-[16px] font-bold text-text">{x(M.hiring_posting_knockout_label)}</h2>
+                <h2 className="mb-[12px] text-[16px] font-bold text-text">
+                  {x(M.hiring_posting_knockout_label)}
+                </h2>
                 <ul className="ml-[16px] list-disc space-y-[6px] text-[13px] text-text-2">
                   {posting.knockoutCriteria.map((criterion, idx) => (
                     <li key={idx}>{criterion}</li>
@@ -131,7 +145,9 @@ export function JobPostingDetailProductionView() {
             )}
 
             <section className="rounded-[12px] border border-border bg-surface p-[20px]">
-              <h2 className="mb-[12px] text-[16px] font-bold text-text">{x(M.hiring_posting_work_sample_label)}</h2>
+              <h2 className="mb-[12px] text-[16px] font-bold text-text">
+                {x(M.hiring_posting_work_sample_label)}
+              </h2>
               <div className="rounded-[8px] border border-inset bg-inset p-[12px] text-[13px] text-text-2">
                 {posting.workSampleScenario}
               </div>
@@ -147,5 +163,3 @@ export function JobPostingDetailProductionView() {
     </AppPage>
   )
 }
-
-

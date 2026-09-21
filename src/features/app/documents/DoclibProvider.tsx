@@ -286,9 +286,7 @@ export function DoclibProvider({ children }: { readonly children: ReactNode }) {
           category: t.category,
         })),
       sendForSignature: (docId, recipient) =>
-        sendForSignature(docId, [
-          { ...recipient, type: 'employee', order: 1, status: 'pending' },
-        ]),
+        sendForSignature(docId, [{ ...recipient, type: 'employee', order: 1, status: 'pending' }]),
     }
     return bindModuleContext('documents', ctx)
   }, [mode, sendForSignature])

@@ -7,7 +7,10 @@ import { statusChipClass } from '@/components/chips'
 import type { ChipTone } from '@/components/chips'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { listMyApplications, withdrawApplication } from '@/features/careers/data/applicationsApi'
-import type { ApplicationStatus, CandidateApplication } from '@/features/careers/data/applicationsApi'
+import type {
+  ApplicationStatus,
+  CandidateApplication,
+} from '@/features/careers/data/applicationsApi'
 
 type LoadState = 'loading' | 'ready' | 'failed'
 
@@ -129,7 +132,9 @@ export function ApplicationsPage() {
   if (state === 'failed') {
     return (
       <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
-        <div className="mb-[4px] text-[14.5px] font-semibold text-text">{x(M.careers_error_generic)}</div>
+        <div className="mb-[4px] text-[14.5px] font-semibold text-text">
+          {x(M.careers_error_generic)}
+        </div>
         <button
           type="button"
           onClick={() => void load()}
@@ -163,10 +168,7 @@ export function ApplicationsPage() {
           {applications.map((app) => {
             const canWithdraw = !TERMINAL_STATUSES.has(app.status)
             return (
-              <div
-                key={app.id}
-                className="rounded-[12px] border border-border bg-surface p-[18px]"
-              >
+              <div key={app.id} className="rounded-[12px] border border-border bg-surface p-[18px]">
                 <div className="flex flex-wrap items-start justify-between gap-[12px]">
                   <div className="min-w-0 flex-1">
                     <Link
@@ -180,8 +182,7 @@ export function ApplicationsPage() {
                       {app.jobPosting?.location ? ` · ${app.jobPosting.location}` : ''}
                     </div>
                     <div className="mt-[4px] text-[12.5px] text-text-faint">
-                      {x(M.careers_applications_applied)}{' '}
-                      {formatDate(app.appliedAt, lang)}
+                      {x(M.careers_applications_applied)} {formatDate(app.appliedAt, lang)}
                     </div>
                   </div>
                   <div className="flex items-center gap-[10px]">

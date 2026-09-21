@@ -58,19 +58,19 @@ const STATUS_EN: Record<string, OperationsProjectStatus> = {
   planning: 'planning',
 }
 const STATUS_FR: Record<string, OperationsProjectStatus> = {
-  'terminé': 'completed',
-  'terminée': 'completed',
-  'fini': 'completed',
-  'finie': 'completed',
-  'complété': 'completed',
-  'complétée': 'completed',
-  'actif': 'active',
-  'actifs': 'active',
+  terminé: 'completed',
+  terminée: 'completed',
+  fini: 'completed',
+  finie: 'completed',
+  complété: 'completed',
+  complétée: 'completed',
+  actif: 'active',
+  actifs: 'active',
   'en pause': 'on_hold',
   'en attente': 'on_hold',
-  'annulé': 'cancelled',
-  'annulée': 'cancelled',
-  'planification': 'planning',
+  annulé: 'cancelled',
+  annulée: 'cancelled',
+  planification: 'planning',
 }
 
 const STATUS_SUMMARY_LABEL: Record<OperationsProjectStatus, { en: string; fr: string }> = {
@@ -115,8 +115,7 @@ export function proposeOperationsAction(text: string): AgentToolProposal | null 
     )
   }
 
-  const project =
-    PROJECT_RE.exec(input) ?? PROJECT_SET_RE.exec(input) ?? PROJECT_FR_RE.exec(input)
+  const project = PROJECT_RE.exec(input) ?? PROJECT_SET_RE.exec(input) ?? PROJECT_FR_RE.exec(input)
   if (project) {
     return projectProposal(project[1] ?? '', project[2] ?? '')
   }

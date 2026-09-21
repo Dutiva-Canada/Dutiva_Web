@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
-import { useWorkspaceNavigate, useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
+import {
+  useWorkspaceNavigate,
+  useWorkspaceRoot,
+  workspacePath,
+} from '@/features/app/workspaceRoot/workspaceRootContext'
 import { Brain, Briefcase, Plus, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick } from '@/i18n/core'

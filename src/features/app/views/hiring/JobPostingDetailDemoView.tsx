@@ -21,7 +21,9 @@ export function JobPostingDetailDemoView() {
     return (
       <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
         <div className="mx-auto max-w-[800px] rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
-          <div className="text-[14.5px] font-semibold text-text">{x(M.hiring_posting_not_found)}</div>
+          <div className="text-[14.5px] font-semibold text-text">
+            {x(M.hiring_posting_not_found)}
+          </div>
         </div>
       </div>
     )
@@ -61,13 +63,19 @@ export function JobPostingDetailDemoView() {
 
         <div className="flex flex-col gap-[16px]">
           <section className="rounded-[12px] border border-border bg-surface p-[20px]">
-            <h2 className="mb-[12px] text-[16px] font-bold text-text">{x(M.hiring_posting_description_label)}</h2>
-            <p className="whitespace-pre-line text-[13px] leading-relaxed text-text-2">{x(posting.description)}</p>
+            <h2 className="mb-[12px] text-[16px] font-bold text-text">
+              {x(M.hiring_posting_description_label)}
+            </h2>
+            <p className="whitespace-pre-line text-[13px] leading-relaxed text-text-2">
+              {x(posting.description)}
+            </p>
           </section>
 
           {posting.requirements.length > 0 && (
             <section className="rounded-[12px] border border-border bg-surface p-[20px]">
-              <h2 className="mb-[12px] text-[16px] font-bold text-text">{x(M.hiring_posting_requirements_label)}</h2>
+              <h2 className="mb-[12px] text-[16px] font-bold text-text">
+                {x(M.hiring_posting_requirements_label)}
+              </h2>
               <ul className="ml-[16px] list-disc space-y-[6px] text-[13px] text-text-2">
                 {posting.requirements.map((req, idx) => (
                   <li key={idx}>{x(req)}</li>
@@ -78,7 +86,9 @@ export function JobPostingDetailDemoView() {
 
           {posting.knockoutCriteria.length > 0 && (
             <section className="rounded-[12px] border border-border bg-surface p-[20px]">
-              <h2 className="mb-[12px] text-[16px] font-bold text-text">{x(M.hiring_posting_knockout_label)}</h2>
+              <h2 className="mb-[12px] text-[16px] font-bold text-text">
+                {x(M.hiring_posting_knockout_label)}
+              </h2>
               <ul className="ml-[16px] list-disc space-y-[6px] text-[13px] text-text-2">
                 {posting.knockoutCriteria.map((criterion, idx) => (
                   <li key={idx}>{criterion}</li>
@@ -88,7 +98,9 @@ export function JobPostingDetailDemoView() {
           )}
 
           <section className="rounded-[12px] border border-border bg-surface p-[20px]">
-            <h2 className="mb-[12px] text-[16px] font-bold text-text">{x(M.hiring_posting_work_sample_label)}</h2>
+            <h2 className="mb-[12px] text-[16px] font-bold text-text">
+              {x(M.hiring_posting_work_sample_label)}
+            </h2>
             <div className="rounded-[8px] border border-inset bg-inset p-[12px] text-[13px] text-text-2">
               {x(posting.workSampleScenario)}
             </div>
@@ -103,5 +115,3 @@ export function JobPostingDetailDemoView() {
     </div>
   )
 }
-
-

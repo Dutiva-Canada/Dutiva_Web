@@ -46,7 +46,9 @@ export async function updateUsageControls(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_usage_controls')
-    .upsert({ organization_id: workspaceOrgId, ...toRow(item) } as any, { onConflict: 'organization_id' })
+    .upsert({ organization_id: workspaceOrgId, ...toRow(item) } as any, {
+      onConflict: 'organization_id',
+    })
     .select('*')
     .single()
   if (error) throw error

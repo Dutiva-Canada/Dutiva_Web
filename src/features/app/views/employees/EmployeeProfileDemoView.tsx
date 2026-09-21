@@ -34,7 +34,11 @@ import {
   EmployeeWellbeingTab,
 } from './employeeProfileTabs'
 import { AppPage } from '@/features/app/shell/AppPage'
-import { useWorkspaceNavigate, useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
+import {
+  useWorkspaceNavigate,
+  useWorkspaceRoot,
+  workspacePath,
+} from '@/features/app/workspaceRoot/workspaceRootContext'
 
 /**
  * Employee profile hub — the prototype's `isProfileView` markup (App

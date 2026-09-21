@@ -51,9 +51,7 @@ export function CrmWorkspace({
         ))}
       </div>
 
-      {mode === 'demo' && (
-        <AppPageLead>{x(M.crm_demo_note)}</AppPageLead>
-      )}
+      {mode === 'demo' && <AppPageLead>{x(M.crm_demo_note)}</AppPageLead>}
 
       {activeTab === 'dashboard' && <CrmDashboard crm={crm} />}
       {activeTab === 'contacts' && <CrmContacts crm={crm} />}

@@ -147,13 +147,19 @@ export function MemoryDetailsDrawer({
         {/* Header */}
         <div className="flex shrink-0 items-start justify-between gap-[10px] border-b border-border-soft px-[18px] py-[14px]">
           <div className="min-w-0">
-            <h2 className="m-0 font-display text-[16px] font-semibold text-text">{x(M.memory_details_title)}</h2>
+            <h2 className="m-0 font-display text-[16px] font-semibold text-text">
+              {x(M.memory_details_title)}
+            </h2>
             <div className="mt-[6px] flex flex-wrap items-center gap-[6px]">
-              <span className={`inline-flex items-center gap-[5px] rounded-[100px] border px-[9px] py-[3px] text-[10.5px] font-bold ${statusMeta.badge}`}>
+              <span
+                className={`inline-flex items-center gap-[5px] rounded-[100px] border px-[9px] py-[3px] text-[10.5px] font-bold ${statusMeta.badge}`}
+              >
                 <StatusIcon size={12} strokeWidth={2} aria-hidden="true" />
                 {pick(statusMeta.label, lang)}
               </span>
-              <span className={`inline-flex items-center gap-[5px] rounded-[100px] border px-[9px] py-[3px] text-[10.5px] font-bold ${sensMeta.badge}`}>
+              <span
+                className={`inline-flex items-center gap-[5px] rounded-[100px] border px-[9px] py-[3px] text-[10.5px] font-bold ${sensMeta.badge}`}
+              >
                 <SensIcon size={12} strokeWidth={2} aria-hidden="true" />
                 {pick(sensMeta.label, lang)}
               </span>
@@ -183,7 +189,9 @@ export function MemoryDetailsDrawer({
             <div className="mb-[5px] text-[11px] font-bold tracking-wider text-text-faint uppercase">
               {x(M.memory_details_statement)}
             </div>
-            <p className="m-0 text-[14.5px] leading-relaxed text-text">{pickL(fact.statement, lang)}</p>
+            <p className="m-0 text-[14.5px] leading-relaxed text-text">
+              {pickL(fact.statement, lang)}
+            </p>
           </div>
 
           {/* Subject + source */}
@@ -191,7 +199,10 @@ export function MemoryDetailsDrawer({
             {subject != null && (
               <Row label={x(M.memory_details_subject)}>
                 {subject.href != null ? (
-                  <Link to={subject.href} className="font-semibold text-accent no-underline hover:underline">
+                  <Link
+                    to={subject.href}
+                    className="font-semibold text-accent no-underline hover:underline"
+                  >
                     {subject.label}
                   </Link>
                 ) : (
@@ -228,7 +239,10 @@ export function MemoryDetailsDrawer({
             )}
             {subject?.href != null && (
               <Row label="">
-                <Link to={subject.href} className="inline-flex items-center gap-[5px] text-[12px] font-semibold text-accent no-underline hover:underline">
+                <Link
+                  to={subject.href}
+                  className="inline-flex items-center gap-[5px] text-[12px] font-semibold text-accent no-underline hover:underline"
+                >
                   <Eye size={13} strokeWidth={1.7} aria-hidden="true" />
                   {x(M.memory_details_view_source)}
                 </Link>
@@ -283,8 +297,12 @@ export function MemoryDetailsDrawer({
           {/* Purpose + jurisdiction + retrieval scope */}
           {(fact.purpose != null || fact.jurisdiction != null || fact.retrievalScope != null) && (
             <dl className="mb-[14px]">
-              {fact.purpose != null && <Row label={x(M.memory_details_purpose)}>{pickL(fact.purpose, lang)}</Row>}
-              {fact.jurisdiction != null && <Row label={x(M.memory_details_jurisdiction)}>{fact.jurisdiction}</Row>}
+              {fact.purpose != null && (
+                <Row label={x(M.memory_details_purpose)}>{pickL(fact.purpose, lang)}</Row>
+              )}
+              {fact.jurisdiction != null && (
+                <Row label={x(M.memory_details_jurisdiction)}>{fact.jurisdiction}</Row>
+              )}
               {fact.retrievalScope != null && (
                 <Row label={x(M.memory_retrieval_scope)}>
                   <span className="inline-flex items-center gap-[5px]">
@@ -333,8 +351,14 @@ export function MemoryDetailsDrawer({
                 </Row>
               )}
               <Row label={x(M.memory_details_advisor_usable)}>
-                <span className={`inline-flex items-center gap-[5px] font-semibold ${advisorUsable ? 'text-ok-fg' : 'text-text-muted'}`}>
-                  {advisorUsable ? <Check size={13} strokeWidth={2.2} aria-hidden="true" /> : <Lock size={13} strokeWidth={2} aria-hidden="true" />}
+                <span
+                  className={`inline-flex items-center gap-[5px] font-semibold ${advisorUsable ? 'text-ok-fg' : 'text-text-muted'}`}
+                >
+                  {advisorUsable ? (
+                    <Check size={13} strokeWidth={2.2} aria-hidden="true" />
+                  ) : (
+                    <Lock size={13} strokeWidth={2} aria-hidden="true" />
+                  )}
                   {advisorUsable ? x(M.memory_details_yes) : x(M.memory_details_no)}
                 </span>
               </Row>
@@ -351,7 +375,9 @@ export function MemoryDetailsDrawer({
                 </span>
               </div>
               <dl className="m-0">
-                <Row label={x(M.memory_details_legal_hold_reason)}>{pickL(fact.legalHold.reason, lang)}</Row>
+                <Row label={x(M.memory_details_legal_hold_reason)}>
+                  {pickL(fact.legalHold.reason, lang)}
+                </Row>
                 <Row label={x(M.memory_details_legal_hold_by)}>{fact.legalHold.placedBy}</Row>
                 <Row label={x(M.memory_details_legal_hold_at)}>
                   {formatMemoryDate(fact.legalHold.placedAt, lang, todayISO)}
@@ -371,11 +397,15 @@ export function MemoryDetailsDrawer({
               <ul className="m-0 list-none space-y-[5px] pl-0">
                 {factActivity.map((a) => (
                   <li key={a.id} className="text-[12px] leading-normal text-text-muted">
-                    <span className="font-semibold text-text-2">{a.actor}</span> {auditActionLabel(a.action, lang)}
+                    <span className="font-semibold text-text-2">{a.actor}</span>{' '}
+                    {auditActionLabel(a.action, lang)}
                     {a.statement != null && (
                       <span className="text-text-faint"> — “{pickL(a.statement, lang)}”</span>
                     )}
-                    <span className="text-text-faint"> · {formatMemoryDate(a.timestamp, lang, todayISO)}</span>
+                    <span className="text-text-faint">
+                      {' '}
+                      · {formatMemoryDate(a.timestamp, lang, todayISO)}
+                    </span>
                   </li>
                 ))}
               </ul>

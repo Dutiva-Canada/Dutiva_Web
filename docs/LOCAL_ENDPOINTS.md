@@ -24,11 +24,11 @@ edge**, so:
 
 To make a LAN endpoint reachable from the edge, pick one:
 
-| Option | When |
-| ------ | ---- |
-| Public HTTPS endpoint (reverse proxy / firewall pinhole) | Permanent deployment; you control TLS and auth |
-| Named tunnel (Cloudflare Tunnel, Tailscale Funnel, ngrok) | No inbound firewall change; use a *named* tunnel for anything beyond a test |
-| Self-host Supabase (edge runtime on the LAN) | Fully on-prem posture; the biggest lift |
+| Option                                                    | When                                                                        |
+| --------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Public HTTPS endpoint (reverse proxy / firewall pinhole)  | Permanent deployment; you control TLS and auth                              |
+| Named tunnel (Cloudflare Tunnel, Tailscale Funnel, ngrok) | No inbound firewall change; use a _named_ tunnel for anything beyond a test |
+| Self-host Supabase (edge runtime on the LAN)              | Fully on-prem posture; the biggest lift                                     |
 
 An ephemeral `trycloudflare.com` quick tunnel works for a smoke test —
 it is public and short-lived, so never leave one pointed at a keyless
@@ -38,10 +38,10 @@ server.
 
 Dutiva speaks OpenAI chat-completions to whatever URL you register:
 
-| Call | Purpose |
-| ---- | ------- |
-| `GET {base_url}/models` | Settings → AI "Test" probe (browser-side reachability) |
-| `POST {base_url}/chat/completions` | Every completion on routes that point at the provider |
+| Call                               | Purpose                                                |
+| ---------------------------------- | ------------------------------------------------------ |
+| `GET {base_url}/models`            | Settings → AI "Test" probe (browser-side reachability) |
+| `POST {base_url}/chat/completions` | Every completion on routes that point at the provider  |
 
 - **`base_url` must include the API prefix.** For Ollama that is
   `https://your-host/v1`, not the bare host — the adapter appends
@@ -55,9 +55,9 @@ Dutiva speaks OpenAI chat-completions to whatever URL you register:
 
 ## 3. Auth
 
-| `secret_ref` | Behaviour |
-| ------------ | --------- |
-| empty | No `Authorization` header — keyless LAN servers |
+| `secret_ref`     | Behaviour                                                            |
+| ---------------- | -------------------------------------------------------------------- |
+| empty            | No `Authorization` header — keyless LAN servers                      |
 | `MY_SECRET_NAME` | Reads env var `MY_SECRET_NAME` on the edge runtime, sent as `Bearer` |
 
 `secret_ref` is the **name** of an edge-function secret, never the key —
@@ -106,4 +106,4 @@ temporary provider, access grant, conversation, and user deleted.
   Settings → AI handle on-device tasks only (LOCAL_INFERENCE.md §4, §8).
 - Not private-by-default — prompts still reach Dutiva's edge for
   retrieval, metering, and safety; the endpoint move changes where the
-  *completion* is decoded.
+  _completion_ is decoded.

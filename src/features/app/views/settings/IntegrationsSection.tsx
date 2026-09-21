@@ -58,7 +58,10 @@ function statusLabel(status: string, x: (v: { en: string; fr: string }) => strin
   return x(M.integ_status_pending)
 }
 
-function configFieldLabel(field: IntegrationConfigField, x: (v: { en: string; fr: string }) => string): string {
+function configFieldLabel(
+  field: IntegrationConfigField,
+  x: (v: { en: string; fr: string }) => string,
+): string {
   if (field === 'instance_url') return x(M.integ_field_instance)
   if (field === 'smtp_host') return x(M.integ_field_smtp_host)
   if (field === 'smtp_port') return x(M.integ_field_smtp_port)
@@ -183,10 +186,7 @@ function ProviderList({
               return next
             })
           }
-          showToast(
-            action === 'test' ? M.integ_toast_connected : M.integ_toast_disconnected,
-            'ok',
-          )
+          showToast(action === 'test' ? M.integ_toast_connected : M.integ_toast_disconnected, 'ok')
         } else {
           showToast(M.integ_toast_check_failed, 'info')
         }
@@ -393,9 +393,7 @@ function ProviderCard({
               </div>
             ) : null}
           </div>
-          {isWebhook && row.status === 'connected' ? (
-            <RecentEvents integrationId={row.id} />
-          ) : null}
+          {isWebhook && row.status === 'connected' ? <RecentEvents integrationId={row.id} /> : null}
           {isEmail && row.status === 'connected' ? <RecentMail integrationId={row.id} /> : null}
         </div>
       ))}
@@ -536,9 +534,7 @@ function RecentEvents({ integrationId }: { readonly integrationId: string }) {
                   {new Date(e.received_at).toLocaleString()}
                 </div>
               </div>
-              <span
-                className={statusChipClass(e.processed_at ? 'success' : 'neutral')}
-              >
+              <span className={statusChipClass(e.processed_at ? 'success' : 'neutral')}>
                 {e.processed_at ? x(M.integ_events_notified) : x(M.integ_events_stored)}
               </span>
             </li>
@@ -696,9 +692,7 @@ function SetupForm({
   }
 
   if (mintedResult) {
-    return (
-      <MintedReveal data={mintedResult} onDone={() => void onDone()} showToast={showToast} />
-    )
+    return <MintedReveal data={mintedResult} onDone={() => void onDone()} showToast={showToast} />
   }
 
   return (
@@ -740,7 +734,9 @@ function SetupForm({
         ) : null}
       </div>
       {spec.tokenHint ? (
-        <div className="mt-[8px] text-[11.5px] leading-[1.5] text-text-muted">{x(spec.tokenHint)}</div>
+        <div className="mt-[8px] text-[11.5px] leading-[1.5] text-text-muted">
+          {x(spec.tokenHint)}
+        </div>
       ) : null}
       {spec.auth === 'smtp' ? (
         <div className="mt-[8px] text-[11.5px] leading-[1.5] text-text-muted">

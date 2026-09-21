@@ -10,10 +10,19 @@ import { CURRENCY_LABEL, PAY_RUN_STATUS_LABEL } from '../financeLabels'
 import type { FinancePayRunStatus } from '../data/types'
 
 const FILTERS: ('all' | FinancePayRunStatus)[] = [
-  'all', 'inputs_open', 'inputs_approved', 'submitted', 'results_imported', 'reconciled', 'exception',
+  'all',
+  'inputs_open',
+  'inputs_approved',
+  'submitted',
+  'results_imported',
+  'reconciled',
+  'exception',
 ]
 
-const VALID_TRANSITIONS: Record<FinancePayRunStatus, { status: FinancePayRunStatus; label: keyof typeof M }[]> = {
+const VALID_TRANSITIONS: Record<
+  FinancePayRunStatus,
+  { status: FinancePayRunStatus; label: keyof typeof M }[]
+> = {
   inputs_open: [{ status: 'inputs_approved', label: 'finance_payroll_mark_inputs_approved' }],
   inputs_approved: [{ status: 'submitted', label: 'finance_payroll_mark_submitted' }],
   submitted: [{ status: 'results_imported', label: 'finance_payroll_mark_results' }],
@@ -25,7 +34,8 @@ const VALID_TRANSITIONS: Record<FinancePayRunStatus, { status: FinancePayRunStat
 export function Payroll() {
   const { x } = useI18n()
   const { memberRole, mode } = useWorkspaceMode()
-  const { state, canWrite, transitionPayRunStatus, settlePayrollLiability, addExternalAction } = useFinanceData()
+  const { state, canWrite, transitionPayRunStatus, settlePayrollLiability, addExternalAction } =
+    useFinanceData()
   const [filter, setFilter] = useState<'all' | FinancePayRunStatus>('all')
 
   const payRuns = useMemo(
@@ -63,7 +73,9 @@ export function Payroll() {
       </div>
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_payroll_runs)}</h2>
+        <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+          {x(M.finance_payroll_runs)}
+        </h2>
         <div className="mb-[12px] flex flex-wrap gap-[6px]">
           {FILTERS.map((f) => (
             <button
@@ -71,7 +83,9 @@ export function Payroll() {
               type="button"
               onClick={() => setFilter(f)}
               className={`rounded-[8px] px-[10px] py-[5px] text-[12px] font-semibold transition-colors ${
-                filter === f ? 'bg-navy text-white' : 'bg-inset text-text-2 hover:bg-surface border border-border'
+                filter === f
+                  ? 'bg-navy text-white'
+                  : 'bg-inset text-text-2 hover:bg-surface border border-border'
               }`}
             >
               {f === 'all' ? x(M.finance_filter_all) : x(PAY_RUN_STATUS_LABEL[f])}
@@ -86,13 +100,15 @@ export function Payroll() {
               <li key={pr.id} className="flex flex-col gap-[8px] rounded-[10px] bg-inset p-[12px]">
                 <div className="flex items-start justify-between gap-[12px]">
                   <div>
-                    <div className="text-[13px] font-semibold text-text">{periodLabel(pr.periodId)}</div>
+                    <div className="text-[13px] font-semibold text-text">
+                      {periodLabel(pr.periodId)}
+                    </div>
                     <div className="text-[12px] text-text-muted">
                       {x(M.finance_payroll_gross)}: {x(CURRENCY_LABEL[pr.currency])} {pr.grossPay} ·{' '}
                       {x(M.finance_payroll_deductions)}: {pr.employeeDeductions} ·{' '}
                       {x(M.finance_payroll_employer)}: {pr.employerContributions} ·{' '}
-                      {x(M.finance_payroll_net)}: {pr.netPay} ·{' '}
-                      {x(M.finance_payroll_fees)}: {pr.providerFees}
+                      {x(M.finance_payroll_net)}: {pr.netPay} · {x(M.finance_payroll_fees)}:{' '}
+                      {pr.providerFees}
                     </div>
                     <div className="text-[12px] text-text-muted">
                       {x(M.finance_payroll_jurisdictions)}: {pr.jurisdictions.join(', ')} ·{' '}
@@ -102,7 +118,11 @@ export function Payroll() {
                   </div>
                   <span
                     className={statusChipClass(
-                      pr.status === 'reconciled' ? 'success' : pr.status === 'exception' ? 'risk' : 'warning',
+                      pr.status === 'reconciled'
+                        ? 'success'
+                        : pr.status === 'exception'
+                          ? 'risk'
+                          : 'warning',
                     )}
                   >
                     {x(PAY_RUN_STATUS_LABEL[pr.status])}
@@ -110,10 +130,14 @@ export function Payroll() {
                 </div>
                 {pr.exceptions && pr.exceptions.length > 0 && (
                   <div className="rounded-[6px] border border-risk-border bg-risk-surface px-[10px] py-[6px]">
-                    <div className="text-[12px] font-semibold text-risk-fg">{x(M.finance_payroll_exceptions)}</div>
+                    <div className="text-[12px] font-semibold text-risk-fg">
+                      {x(M.finance_payroll_exceptions)}
+                    </div>
                     <ul className="m-0 mt-[4px] flex flex-col gap-[2px] p-0">
                       {pr.exceptions.map((exc, idx) => (
-                        <li key={idx} className="text-[12px] text-risk-fg">{x(exc)}</li>
+                        <li key={idx} className="text-[12px] text-risk-fg">
+                          {x(exc)}
+                        </li>
                       ))}
                     </ul>
                   </div>
@@ -151,7 +175,9 @@ export function Payroll() {
       </section>
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_payroll_liabilities)}</h2>
+        <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+          {x(M.finance_payroll_liabilities)}
+        </h2>
         {state.payrollLiabilities.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_none)}</p>
         ) : (
@@ -161,7 +187,8 @@ export function Payroll() {
                 <div>
                   <div className="text-[13px] font-semibold text-text">{liab.type}</div>
                   <div className="text-[12px] text-text-muted">
-                    {x(CURRENCY_LABEL[liab.currency])} {liab.amount} · {x(M.finance_due_date)}: {liab.dueDate}
+                    {x(CURRENCY_LABEL[liab.currency])} {liab.amount} · {x(M.finance_due_date)}:{' '}
+                    {liab.dueDate}
                   </div>
                   {canWrite && !liab.settled && (
                     <button
@@ -184,18 +211,30 @@ export function Payroll() {
 
       {payrollExternalActions.length > 0 && (
         <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-          <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_payroll_external_actions)}</h2>
+          <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+            {x(M.finance_payroll_external_actions)}
+          </h2>
           <ul className="m-0 flex flex-col gap-[10px] p-0">
             {payrollExternalActions.map((ea) => (
               <li key={ea.id} className="flex items-start justify-between gap-[12px]">
                 <div>
-                  <div className="text-[13px] font-semibold text-text">{ea.recordType.replace(/_/g, ' ')} · {ea.recordId}</div>
+                  <div className="text-[13px] font-semibold text-text">
+                    {ea.recordType.replace(/_/g, ' ')} · {ea.recordId}
+                  </div>
                   <div className="text-[12px] text-text-muted">
                     {ea.providerRef && ` · ${ea.providerRef}`}
                     {ea.confirmedAt && ` · ${ea.confirmedAt}`}
                   </div>
                 </div>
-                <span className={statusChipClass(ea.status === 'settled' ? 'success' : ea.status === 'failed' ? 'risk' : 'neutral')}>
+                <span
+                  className={statusChipClass(
+                    ea.status === 'settled'
+                      ? 'success'
+                      : ea.status === 'failed'
+                        ? 'risk'
+                        : 'neutral',
+                  )}
+                >
                   {ea.status.replace(/_/g, ' ')}
                 </span>
               </li>

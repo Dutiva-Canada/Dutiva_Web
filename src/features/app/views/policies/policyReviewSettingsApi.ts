@@ -24,10 +24,7 @@ export async function getPolicyReviewDays(organizationId: string): Promise<numbe
   return clampPolicyReviewDays(days)
 }
 
-export async function setPolicyReviewDays(
-  organizationId: string,
-  days: number,
-): Promise<number> {
+export async function setPolicyReviewDays(organizationId: string, days: number): Promise<number> {
   if (!supabase) throw new Error('Supabase is not configured')
   const clamped = clampPolicyReviewDays(days)
   const { data, error } = await supabase

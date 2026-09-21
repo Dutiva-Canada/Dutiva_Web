@@ -41,11 +41,7 @@ const VENDOR_TYPES: readonly NonNullable<OperationsVendorType>[] = [
   'technology',
   'professional_service',
 ]
-const VENDOR_STATUSES: readonly OperationsVendorStatus[] = [
-  'active',
-  'inactive',
-  'under_review',
-]
+const VENDOR_STATUSES: readonly OperationsVendorStatus[] = ['active', 'inactive', 'under_review']
 const SHIPMENT_OPEN: readonly OperationsLogisticsStatus[] = ['in_transit', 'delayed']
 
 const STATUS_LABEL_FR: Record<OperationsProjectStatus, string> = {
@@ -131,7 +127,9 @@ defineTool<OperationsAgentContext>({
     const status = str(params, 'status') as OperationsVendorStatus | undefined
     const items = ops
       .vendors()
-      .filter((v) => (!vendorType || v.vendor_type === vendorType) && (!status || v.status === status))
+      .filter(
+        (v) => (!vendorType || v.vendor_type === vendorType) && (!status || v.status === status),
+      )
     if (items.length === 0) {
       return { status: 'completed', message: M.agent_ops_vendors_none }
     }
@@ -182,7 +180,13 @@ defineTool<OperationsAgentContext>({
   label: M.agent_ops_add_vendor_label,
   description: M.agent_ops_add_vendor_desc,
   params: [
-    { name: 'name', type: 'string', required: true, description: M.agent_ops_p_name, maxLength: 200 },
+    {
+      name: 'name',
+      type: 'string',
+      required: true,
+      description: M.agent_ops_p_name,
+      maxLength: 200,
+    },
     {
       name: 'vendorType',
       type: 'enum',

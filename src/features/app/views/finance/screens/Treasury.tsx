@@ -10,7 +10,15 @@ import type { FinanceCurrency, FinanceReserveType } from '../data/types'
 
 export function Treasury() {
   const { x } = useI18n()
-  const { state, canWrite, addReserveGoal, updateReserveGoalProgress, setHoldingStale, transitionDebtStatus, addBankAccount } = useFinanceData()
+  const {
+    state,
+    canWrite,
+    addReserveGoal,
+    updateReserveGoalProgress,
+    setHoldingStale,
+    transitionDebtStatus,
+    addBankAccount,
+  } = useFinanceData()
   const [showReserveForm, setShowReserveForm] = useState(false)
   const [showBankForm, setShowBankForm] = useState(false)
   const [progressEdit, setProgressEdit] = useState<string | null>(null)
@@ -22,7 +30,11 @@ export function Treasury() {
         <div className="mb-[12px] flex items-center justify-between">
           <h2 className="text-[15px] font-semibold text-text">{x(M.finance_treasury_accounts)}</h2>
           {canWrite && (
-            <button type="button" onClick={() => setShowBankForm((v) => !v)} className="flex items-center gap-[6px] text-[13px] font-semibold text-accent">
+            <button
+              type="button"
+              onClick={() => setShowBankForm((v) => !v)}
+              className="flex items-center gap-[6px] text-[13px] font-semibold text-accent"
+            >
               <Plus size={14} />
               {x(M.finance_bank_account_create)}
             </button>
@@ -30,7 +42,10 @@ export function Treasury() {
         </div>
         {showBankForm && canWrite && (
           <BankAccountForm
-            onSubmit={(acc) => { addBankAccount(acc); setShowBankForm(false) }}
+            onSubmit={(acc) => {
+              addBankAccount(acc)
+              setShowBankForm(false)
+            }}
             onCancel={() => setShowBankForm(false)}
             entities={state.entities}
           />
@@ -54,12 +69,16 @@ export function Treasury() {
                   <div className="text-[12px] text-text-muted">
                     {x(CURRENCY_LABEL[acc.currency])}
                     {acc.last4 && ` · ••••${acc.last4}`}
-                    {acc.earmarkedAmount && ` · ${x(M.finance_treasury_earmarked)}: ${acc.earmarkedAmount}`}
-                    {acc.maturityDate && ` · ${x(M.finance_treasury_maturity)}: ${acc.maturityDate}`}
+                    {acc.earmarkedAmount &&
+                      ` · ${x(M.finance_treasury_earmarked)}: ${acc.earmarkedAmount}`}
+                    {acc.maturityDate &&
+                      ` · ${x(M.finance_treasury_maturity)}: ${acc.maturityDate}`}
                   </div>
                 </div>
                 {acc.restricted && (
-                  <span className={statusChipClass('warning')}>{x(M.finance_treasury_restricted)}</span>
+                  <span className={statusChipClass('warning')}>
+                    {x(M.finance_treasury_restricted)}
+                  </span>
                 )}
               </li>
             ))}
@@ -97,13 +116,17 @@ export function Treasury() {
         ) : (
           <ul className="m-0 flex flex-col gap-[10px] p-0">
             {state.reserveGoals.map((rg) => {
-              const pct = Number(rg.targetAmount) > 0 ? (Number(rg.currentAmount) / Number(rg.targetAmount)) * 100 : 0
+              const pct =
+                Number(rg.targetAmount) > 0
+                  ? (Number(rg.currentAmount) / Number(rg.targetAmount)) * 100
+                  : 0
               return (
                 <li key={rg.id} className="flex items-start justify-between gap-[12px]">
                   <div>
                     <div className="text-[13px] font-semibold text-text">{x(rg.label)}</div>
                     <div className="text-[12px] text-text-muted">
-                      {x(RESERVE_TYPE_LABEL[rg.type])} · {x(M.finance_treasury_current)}: {x(CURRENCY_LABEL[rg.currency])} {rg.currentAmount} /{' '}
+                      {x(RESERVE_TYPE_LABEL[rg.type])} · {x(M.finance_treasury_current)}:{' '}
+                      {x(CURRENCY_LABEL[rg.currency])} {rg.currentAmount} /{' '}
                       {x(M.finance_treasury_target)}: {rg.targetAmount} ({pct.toFixed(0)}%)
                       {rg.dueDate && ` · ${x(M.finance_due_date)}: ${rg.dueDate}`}
                     </div>
@@ -148,7 +171,11 @@ export function Treasury() {
                       </button>
                     )}
                   </div>
-                  <span className={statusChipClass(pct >= 100 ? 'success' : pct >= 75 ? 'neutral' : 'warning')}>
+                  <span
+                    className={statusChipClass(
+                      pct >= 100 ? 'success' : pct >= 75 ? 'neutral' : 'warning',
+                    )}
+                  >
                     {pct.toFixed(0)}%
                   </span>
                 </li>
@@ -159,7 +186,9 @@ export function Treasury() {
       </section>
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_treasury_holdings)}</h2>
+        <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+          {x(M.finance_treasury_holdings)}
+        </h2>
         {state.holdings.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_treasury_no_holdings)}</p>
         ) : (
@@ -169,8 +198,10 @@ export function Treasury() {
                 <div>
                   <div className="text-[13px] font-semibold text-text">{x(h.label)}</div>
                   <div className="text-[12px] text-text-muted">
-                    {x(h.institution)} · {x(M.finance_treasury_cost_basis)}: {x(CURRENCY_LABEL[h.currency])} {h.costBasis} ·{' '}
-                    {x(M.finance_treasury_market_value)}: {h.marketValue} · {x(M.finance_treasury_as_of)}: {h.asOfDate}
+                    {x(h.institution)} · {x(M.finance_treasury_cost_basis)}:{' '}
+                    {x(CURRENCY_LABEL[h.currency])} {h.costBasis} ·{' '}
+                    {x(M.finance_treasury_market_value)}: {h.marketValue} ·{' '}
+                    {x(M.finance_treasury_as_of)}: {h.asOfDate}
                   </div>
                   <div className="text-[12px] text-text-muted">
                     {x(M.finance_source)}: {x(h.valuationSource)}
@@ -195,7 +226,9 @@ export function Treasury() {
       </section>
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_treasury_debt)}</h2>
+        <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+          {x(M.finance_treasury_debt)}
+        </h2>
         {state.debts.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_treasury_no_debt)}</p>
         ) : (
@@ -205,8 +238,8 @@ export function Treasury() {
                 <div>
                   <div className="text-[13px] font-semibold text-text">{x(d.label)}</div>
                   <div className="text-[12px] text-text-muted">
-                    {x(d.lender)} · {x(M.finance_treasury_balance)}: {x(CURRENCY_LABEL[d.currency])} {d.balance} ·{' '}
-                    {x(M.finance_treasury_interest_rate)}: {d.interestRate}% ·{' '}
+                    {x(d.lender)} · {x(M.finance_treasury_balance)}: {x(CURRENCY_LABEL[d.currency])}{' '}
+                    {d.balance} · {x(M.finance_treasury_interest_rate)}: {d.interestRate}% ·{' '}
                     {x(M.finance_treasury_maturity)}: {d.maturityDate}
                   </div>
                   {canWrite && d.status === 'active' && (
@@ -219,8 +252,20 @@ export function Treasury() {
                     </button>
                   )}
                 </div>
-                <span className={statusChipClass(d.status === 'active' ? 'warning' : d.status === 'paid_off' ? 'success' : 'risk')}>
-                  {d.status === 'active' ? 'Active' : d.status === 'paid_off' ? 'Paid off' : 'Defaulted'}
+                <span
+                  className={statusChipClass(
+                    d.status === 'active'
+                      ? 'warning'
+                      : d.status === 'paid_off'
+                        ? 'success'
+                        : 'risk',
+                  )}
+                >
+                  {d.status === 'active'
+                    ? 'Active'
+                    : d.status === 'paid_off'
+                      ? 'Paid off'
+                      : 'Defaulted'}
                 </span>
               </li>
             ))}
@@ -269,20 +314,35 @@ function ReserveGoalForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]">
+    <form
+      onSubmit={handleSubmit}
+      className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]"
+    >
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_invoice_entity)}</span>
-          <select value={entityId} onChange={(e) => setEntityId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+          <select
+            value={entityId}
+            onChange={(e) => setEntityId(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          >
             {entities.map((ent) => (
-              <option key={ent.id} value={ent.id}>{ent.legalName}</option>
+              <option key={ent.id} value={ent.id}>
+                {ent.legalName}
+              </option>
             ))}
           </select>
         </label>
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_reserve_type)}</span>
-          <select value={type} onChange={(e) => setType(e.target.value as FinanceReserveType)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
-            <option value="emergency_operating">{x(M.finance_reserve_type_emergency_operating)}</option>
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value as FinanceReserveType)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          >
+            <option value="emergency_operating">
+              {x(M.finance_reserve_type_emergency_operating)}
+            </option>
             <option value="payroll">{x(M.finance_reserve_type_payroll)}</option>
             <option value="tax">{x(M.finance_reserve_type_tax)}</option>
             <option value="capital_purchase">{x(M.finance_reserve_type_capital_purchase)}</option>
@@ -292,42 +352,77 @@ function ReserveGoalForm({
       </div>
       <label className="flex flex-col gap-[4px]">
         <span className="text-[12px] text-text-muted">{x(M.finance_reserve_label)}</span>
-        <input value={label} onChange={(e) => setLabel(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+        <input
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+        />
       </label>
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_reserve_target)}</span>
-          <input value={targetAmount} onChange={(e) => setTargetAmount(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={targetAmount}
+            onChange={(e) => setTargetAmount(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_reserve_current)}</span>
-          <input value={currentAmount} onChange={(e) => setCurrentAmount(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={currentAmount}
+            onChange={(e) => setCurrentAmount(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
       </div>
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_reserve_owner)}</span>
-          <input value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="Workspace user" className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={owner}
+            onChange={(e) => setOwner(e.target.value)}
+            placeholder="Workspace user"
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_reserve_due_date)}</span>
-          <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
       </div>
       <label className="flex flex-col gap-[4px]">
         <span className="text-[12px] text-text-muted">{x(M.finance_treasury_accounts)}</span>
-        <select value={linkedBankAccountId} onChange={(e) => setLinkedBankAccountId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+        <select
+          value={linkedBankAccountId}
+          onChange={(e) => setLinkedBankAccountId(e.target.value)}
+          className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+        >
           <option value="">—</option>
           {bankAccounts.map((acc) => (
-            <option key={acc.id} value={acc.id}>{acc.label.en}</option>
+            <option key={acc.id} value={acc.id}>
+              {acc.label.en}
+            </option>
           ))}
         </select>
       </label>
       <div className="flex justify-end gap-[8px]">
-        <button type="button" onClick={onCancel} className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border"
+        >
           {x(M.finance_cancel)}
         </button>
-        <button type="submit" className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">
+        <button
+          type="submit"
+          className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white"
+        >
           {x(M.finance_save)}
         </button>
       </div>
@@ -378,42 +473,89 @@ function BankAccountForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]">
+    <form
+      onSubmit={handleSubmit}
+      className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]"
+    >
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_invoice_entity)}</span>
-          <select value={entityId} onChange={(e) => setEntityId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
-            {entities.map((ent) => <option key={ent.id} value={ent.id}>{ent.legalName}</option>)}
+          <select
+            value={entityId}
+            onChange={(e) => setEntityId(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          >
+            {entities.map((ent) => (
+              <option key={ent.id} value={ent.id}>
+                {ent.legalName}
+              </option>
+            ))}
           </select>
         </label>
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_bank_account_label)}</span>
-          <input value={label} onChange={(e) => setLabel(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
       </div>
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_bank_account_last4)}</span>
-          <input value={last4} onChange={(e) => setLast4(e.target.value)} maxLength={4} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={last4}
+            onChange={(e) => setLast4(e.target.value)}
+            maxLength={4}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_bank_account_earmarked)}</span>
-          <input value={earmarkedAmount} onChange={(e) => setEarmarkedAmount(e.target.value)} placeholder="0.00" className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={earmarkedAmount}
+            onChange={(e) => setEarmarkedAmount(e.target.value)}
+            placeholder="0.00"
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
       </div>
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_bank_account_maturity)}</span>
-          <input type="date" value={maturityDate} onChange={(e) => setMaturityDate(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            type="date"
+            value={maturityDate}
+            onChange={(e) => setMaturityDate(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
         <label className="flex items-center gap-[6px] pt-[20px]">
-          <input type="checkbox" checked={restricted} onChange={(e) => setRestricted(e.target.checked)} />
-          <span className="text-[12px] text-text-muted">{x(M.finance_bank_account_restricted)}</span>
+          <input
+            type="checkbox"
+            checked={restricted}
+            onChange={(e) => setRestricted(e.target.checked)}
+          />
+          <span className="text-[12px] text-text-muted">
+            {x(M.finance_bank_account_restricted)}
+          </span>
         </label>
       </div>
       <div className="flex justify-end gap-[8px]">
-        <button type="button" onClick={onCancel} className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border">{x(M.finance_cancel)}</button>
-        <button type="submit" className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">{x(M.finance_save)}</button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border"
+        >
+          {x(M.finance_cancel)}
+        </button>
+        <button
+          type="submit"
+          className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white"
+        >
+          {x(M.finance_save)}
+        </button>
       </div>
     </form>
   )

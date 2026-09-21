@@ -42,9 +42,7 @@ export function proposalsFromAdvisorResponse(
   if (!allowedSurfaces(response).actions) return []
   return (response.proposedActions ?? [])
     .filter((action) => getTool(action.toolId) !== undefined)
-    .map((action) =>
-      createProposal(action.toolId, toBi(action.summary), action.params),
-    )
+    .map((action) => createProposal(action.toolId, toBi(action.summary), action.params))
 }
 
 function toBi(text: LText) {

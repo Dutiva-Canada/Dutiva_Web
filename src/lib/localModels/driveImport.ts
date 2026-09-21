@@ -53,10 +53,7 @@ interface PermDirHandle {
 }
 
 interface PickerWindow {
-  showDirectoryPicker?: (opts: {
-    id?: string
-    mode?: 'read' | 'readwrite'
-  }) => Promise<FsDirLike>
+  showDirectoryPicker?: (opts: { id?: string; mode?: 'read' | 'readwrite' }) => Promise<FsDirLike>
 }
 
 /** True where the File System Access directory picker exists (Chromium). */
@@ -116,7 +113,10 @@ export interface DriveFolderState {
   handle: FsDirLike
 }
 
-function folderState(handle: PermDirHandle, permission: PermissionState | undefined): DriveFolderState {
+function folderState(
+  handle: PermDirHandle,
+  permission: PermissionState | undefined,
+): DriveFolderState {
   return {
     name: handle.name,
     permission:
@@ -190,7 +190,10 @@ export function hfCacheUrl(repoId: string, relPath: string): string {
   return `${HF_HOST}/${repoId}/resolve/main/${relPath}`
 }
 
-async function* walkFiles(dir: FsDirLike, prefix = ''): AsyncGenerator<{ path: string; file: FsFileLike }> {
+async function* walkFiles(
+  dir: FsDirLike,
+  prefix = '',
+): AsyncGenerator<{ path: string; file: FsFileLike }> {
   for await (const entry of dir.values()) {
     if (entry.kind === 'file') yield { path: `${prefix}${entry.name}`, file: entry }
     else yield* walkFiles(entry, `${prefix}${entry.name}/`)

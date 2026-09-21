@@ -403,7 +403,9 @@ export async function createFact(
       ...(fields.retrievalScope != null
         ? {
             retrieval_scope_type: fields.retrievalScope.type,
-            ...(fields.retrievalScope.id != null ? { retrieval_scope_id: fields.retrievalScope.id } : {}),
+            ...(fields.retrievalScope.id != null
+              ? { retrieval_scope_id: fields.retrievalScope.id }
+              : {}),
           }
         : {}),
     })
@@ -590,4 +592,3 @@ export async function forgetFactsForEntity(
   }
   return rows.length
 }
-

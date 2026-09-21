@@ -243,7 +243,9 @@ describe('Advisor Memory surfaces', () => {
       })
       expect(screen.getByText('No memories match your filters')).toBeInTheDocument()
       /* The no-results Clear filters button lives inside the memory list card. */
-      const listCard = screen.getByText('No memories match your filters').closest('div.rounded-\\[14px\\]')
+      const listCard = screen
+        .getByText('No memories match your filters')
+        .closest('div.rounded-\\[14px\\]')
       expect(listCard).not.toBeNull()
       expect(listCard!.querySelector('button')).not.toBeNull()
     })
@@ -253,13 +255,18 @@ describe('Advisor Memory surfaces', () => {
 
       /* The Needs review metric is a clickable element inside the metrics row.
          Scope to the metrics area to avoid matching the Review queue tab. */
-      const metricsRow = screen.getByText('Active memories').closest('div.flex.flex-wrap') as HTMLElement | null
+      const metricsRow = screen
+        .getByText('Active memories')
+        .closest('div.flex.flex-wrap') as HTMLElement | null
       expect(metricsRow).not.toBeNull()
       const reviewMetric = within(metricsRow!).getByText('Needs review').closest('[role="button"]')
       expect(reviewMetric).not.toBeNull()
       fireEvent.click(reviewMetric!)
       /* The Review queue tab should now be active. */
-      expect(screen.getByRole('tab', { name: /Review queue/ })).toHaveAttribute('aria-selected', 'true')
+      expect(screen.getByRole('tab', { name: /Review queue/ })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      )
     })
 
     it('shows the retrieval scope in the details drawer for case-scoped memories', () => {

@@ -2,10 +2,19 @@ import { defineMessages } from '../core'
 
 export const bulkImportMessages = defineMessages({
   bulk_import_title: { en: 'Bulk import', fr: 'Importation en bloc' },
-  bulk_upload_description: { en: 'Upload a CSV or Excel file to import many records at once.', fr: 'Téléversez un fichier CSV ou Excel pour importer plusieurs enregistrements à la fois.' },
-  bulk_upload_drop_or_click: { en: 'Drop a CSV or Excel file here or click to browse', fr: 'Déposez un fichier CSV ou Excel ici ou cliquez pour parcourir' },
+  bulk_upload_description: {
+    en: 'Upload a CSV or Excel file to import many records at once.',
+    fr: 'Téléversez un fichier CSV ou Excel pour importer plusieurs enregistrements à la fois.',
+  },
+  bulk_upload_drop_or_click: {
+    en: 'Drop a CSV or Excel file here or click to browse',
+    fr: 'Déposez un fichier CSV ou Excel ici ou cliquez pour parcourir',
+  },
   bulk_download_template: { en: 'Download template', fr: 'Télécharger le modèle' },
-  bulk_upload_map_columns: { en: 'Map file columns to fields', fr: 'Associer les colonnes du fichier aux champs' },
+  bulk_upload_map_columns: {
+    en: 'Map file columns to fields',
+    fr: 'Associer les colonnes du fichier aux champs',
+  },
   bulk_file_column: { en: 'File column', fr: 'Colonne du fichier' },
   bulk_field: { en: 'Field', fr: 'Champ' },
   bulk_preview: { en: 'Preview', fr: 'Aperçu' },

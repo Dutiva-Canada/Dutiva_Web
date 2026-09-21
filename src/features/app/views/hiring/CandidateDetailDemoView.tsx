@@ -3,8 +3,20 @@ import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { hiringMessages as M } from '@/i18n/messages/hiring'
-import { demoCandidates, demoEvidenceScreening, demoWorkSamples, demoInterviews, demoAuthenticityScores } from '@/data'
-import type { Candidate, EvidenceScreening, WorkSampleAssessment, DefenseInterview, AuthenticityScores } from '@/data'
+import {
+  demoCandidates,
+  demoEvidenceScreening,
+  demoWorkSamples,
+  demoInterviews,
+  demoAuthenticityScores,
+} from '@/data'
+import type {
+  Candidate,
+  EvidenceScreening,
+  WorkSampleAssessment,
+  DefenseInterview,
+  AuthenticityScores,
+} from '@/data'
 import { statusChipClass } from '@/components/chips'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 
@@ -16,14 +28,18 @@ export function CandidateDetailDemoView() {
   const { x } = useI18n()
   const { root } = useWorkspaceRoot()
   const { candidateId } = useParams<{ candidateId: string }>()
-  const [activeTab, setActiveTab] = useState<'overview' | 'evidence' | 'work_sample' | 'interview' | 'scores'>('overview')
+  const [activeTab, setActiveTab] = useState<
+    'overview' | 'evidence' | 'work_sample' | 'interview' | 'scores'
+  >('overview')
 
   const candidate = demoCandidates.find((c) => c.id === candidateId)
   if (!candidate) {
     return (
       <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
         <div className="mx-auto max-w-[800px] rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
-          <div className="text-[14.5px] font-semibold text-text">{x(M.hiring_candidate_not_found)}</div>
+          <div className="text-[14.5px] font-semibold text-text">
+            {x(M.hiring_candidate_not_found)}
+          </div>
         </div>
       </div>
     )
@@ -36,7 +52,9 @@ export function CandidateDetailDemoView() {
 
   const tabClass = (tab: typeof activeTab) =>
     `cursor-pointer rounded-[8px] border-none px-[14px] py-[7px] font-sans text-[12.5px] font-semibold ${
-      activeTab === tab ? 'bg-surface text-text shadow-(--shadow-sm)' : 'bg-transparent text-text-muted'
+      activeTab === tab
+        ? 'bg-surface text-text shadow-(--shadow-sm)'
+        : 'bg-transparent text-text-muted'
     }`
 
   return (
@@ -130,21 +148,29 @@ function OverviewTab({ candidate }: { candidate: Candidate }) {
     <div className="flex flex-col gap-[16px]">
       {/* Application details */}
       <div className="rounded-[12px] border border-border bg-surface p-[20px]">
-        <h2 className="mb-[16px] text-[16px] font-bold text-text">{x(M.hiring_overview_application)}</h2>
-        
+        <h2 className="mb-[16px] text-[16px] font-bold text-text">
+          {x(M.hiring_overview_application)}
+        </h2>
+
         <div className="grid gap-[12px] md:grid-cols-2">
           <DetailRow label={M.hiring_overview_email} value={candidate.email} />
           {candidate.phone && <DetailRow label={M.hiring_overview_phone} value={candidate.phone} />}
           <DetailRow label={M.hiring_overview_location} value={x(candidate.location)} />
           <DetailRow label={M.hiring_overview_position} value={x(candidate.position)} />
           <DetailRow label={M.hiring_overview_current_role} value={x(candidate.currentRole)} />
-          <DetailRow label={M.hiring_overview_experience} value={`${candidate.yearsExperience} years`} />
-          <DetailRow 
-            label={M.hiring_overview_authorization} 
-            value={x(getAuthLabel(candidate.workAuthorization))} 
+          <DetailRow
+            label={M.hiring_overview_experience}
+            value={`${candidate.yearsExperience} years`}
+          />
+          <DetailRow
+            label={M.hiring_overview_authorization}
+            value={x(getAuthLabel(candidate.workAuthorization))}
           />
           {candidate.compensationExpectations && (
-            <DetailRow label={M.hiring_overview_compensation} value={candidate.compensationExpectations} />
+            <DetailRow
+              label={M.hiring_overview_compensation}
+              value={candidate.compensationExpectations}
+            />
           )}
         </div>
 
@@ -164,8 +190,10 @@ function OverviewTab({ candidate }: { candidate: Candidate }) {
 
       {/* Knockout criteria */}
       <div className="rounded-[12px] border border-border bg-surface p-[20px]">
-        <h2 className="mb-[16px] text-[16px] font-bold text-text">{x(M.hiring_overview_knockout)}</h2>
-        
+        <h2 className="mb-[16px] text-[16px] font-bold text-text">
+          {x(M.hiring_overview_knockout)}
+        </h2>
+
         <div className="mb-[12px] flex items-center gap-[8px]">
           {candidate.knockoutCriteria.meetsRequirements ? (
             <CheckCircle size={16} className="text-success" strokeWidth={2} />
@@ -173,16 +201,17 @@ function OverviewTab({ candidate }: { candidate: Candidate }) {
             <XCircle size={16} className="text-risk" strokeWidth={2} />
           )}
           <span className="text-[13px] font-semibold text-text">
-            {candidate.knockoutCriteria.meetsRequirements 
-              ? x(M.hiring_overview_meets_requirements) 
-              : x(M.hiring_overview_does_not_meet)
-            }
+            {candidate.knockoutCriteria.meetsRequirements
+              ? x(M.hiring_overview_meets_requirements)
+              : x(M.hiring_overview_does_not_meet)}
           </span>
         </div>
 
         {candidate.knockoutCriteria.requiredQualifications.length > 0 && (
           <div className="mb-[8px]">
-            <div className="mb-[4px] text-[12px] font-semibold text-text-muted">{x(M.hiring_overview_requirements)}</div>
+            <div className="mb-[4px] text-[12px] font-semibold text-text-muted">
+              {x(M.hiring_overview_requirements)}
+            </div>
             <ul className="ml-[16px] list-disc space-y-[4px] text-[13px] text-text-2">
               {candidate.knockoutCriteria.requiredQualifications.map((qual, idx) => (
                 <li key={idx}>{qual}</li>
@@ -193,7 +222,9 @@ function OverviewTab({ candidate }: { candidate: Candidate }) {
 
         {candidate.knockoutCriteria.missingRequirements.length > 0 && (
           <div>
-            <div className="mb-[4px] text-[12px] font-semibold text-risk">{x(M.hiring_overview_missing)}</div>
+            <div className="mb-[4px] text-[12px] font-semibold text-risk">
+              {x(M.hiring_overview_missing)}
+            </div>
             <ul className="ml-[16px] list-disc space-y-[4px] text-[13px] text-risk">
               {candidate.knockoutCriteria.missingRequirements.map((req, idx) => (
                 <li key={idx}>{req}</li>
@@ -212,7 +243,9 @@ function EvidenceTab({ evidence }: { evidence?: EvidenceScreening }) {
   if (!evidence) {
     return (
       <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
-        <div className="mb-[4px] text-[14.5px] font-semibold text-text">{x(M.hiring_empty_evidence)}</div>
+        <div className="mb-[4px] text-[14.5px] font-semibold text-text">
+          {x(M.hiring_empty_evidence)}
+        </div>
         <div className="text-[13px] text-text-muted">{x(M.hiring_empty_evidence_body)}</div>
       </div>
     )
@@ -227,7 +260,9 @@ function EvidenceTab({ evidence }: { evidence?: EvidenceScreening }) {
             <span className={statusChipClass(getEvidenceQualityTone(evidence.evidenceQuality))}>
               {x(getEvidenceQualityLabel(evidence.evidenceQuality))}
             </span>
-            <span className="text-[12px] text-text-muted">{x(M.hiring_evidence_confidence)}: {evidence.confidence}</span>
+            <span className="text-[12px] text-text-muted">
+              {x(M.hiring_evidence_confidence)}: {evidence.confidence}
+            </span>
           </div>
         </div>
         <p className="text-[13px] text-text-muted">{x(M.hiring_evidence_description)}</p>
@@ -235,18 +270,24 @@ function EvidenceTab({ evidence }: { evidence?: EvidenceScreening }) {
 
       {/* Relevant experience */}
       <div className="rounded-[12px] border border-border bg-surface p-[20px]">
-        <h3 className="mb-[12px] text-[14px] font-bold text-text">{x(M.hiring_evidence_relevant_experience)}</h3>
+        <h3 className="mb-[12px] text-[14px] font-bold text-text">
+          {x(M.hiring_evidence_relevant_experience)}
+        </h3>
         <div className="space-y-[12px]">
           {evidence.relevantExperience.map((claim, idx) => (
             <div key={idx} className="rounded-[8px] border border-inset bg-inset p-[12px]">
               <div className="mb-[4px] text-[13px] font-semibold text-text">{x(claim.claim)}</div>
               <div className="mb-[4px] text-[12px] text-text-2">{x(claim.evidence)}</div>
               <div className="flex gap-[8px] text-[11px] text-text-muted">
-                <span>{x(M.hiring_evidence_specificity)}: {x(getSpecificityLabel(claim.specificity))}</span>
+                <span>
+                  {x(M.hiring_evidence_specificity)}: {x(getSpecificityLabel(claim.specificity))}
+                </span>
                 <span>Confidence: {claim.confidence}</span>
               </div>
               {claim.missingInfo && (
-                <div className="mt-[4px] text-[11px] text-risk">{x(M.hiring_evidence_missing)}: {claim.missingInfo}</div>
+                <div className="mt-[4px] text-[11px] text-risk">
+                  {x(M.hiring_evidence_missing)}: {claim.missingInfo}
+                </div>
               )}
             </div>
           ))}
@@ -272,7 +313,9 @@ function EvidenceTab({ evidence }: { evidence?: EvidenceScreening }) {
       {/* Missing info */}
       {evidence.missingInfo.length > 0 && (
         <div className="rounded-[12px] border border-border bg-surface p-[20px]">
-          <h3 className="mb-[8px] text-[14px] font-bold text-text">{x(M.hiring_evidence_missing)}</h3>
+          <h3 className="mb-[8px] text-[14px] font-bold text-text">
+            {x(M.hiring_evidence_missing)}
+          </h3>
           <ul className="ml-[16px] list-disc space-y-[4px] text-[13px] text-text-2">
             {evidence.missingInfo.map((info, idx) => (
               <li key={idx}>{info}</li>
@@ -290,7 +333,9 @@ function WorkSampleTab({ workSample }: { workSample?: WorkSampleAssessment }) {
   if (!workSample) {
     return (
       <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
-        <div className="mb-[4px] text-[14.5px] font-semibold text-text">{x(M.hiring_empty_work_sample)}</div>
+        <div className="mb-[4px] text-[14.5px] font-semibold text-text">
+          {x(M.hiring_empty_work_sample)}
+        </div>
         <div className="text-[13px] text-text-muted">{x(M.hiring_empty_work_sample_body)}</div>
         <button
           type="button"
@@ -307,7 +352,9 @@ function WorkSampleTab({ workSample }: { workSample?: WorkSampleAssessment }) {
       <div className="rounded-[12px] border border-border bg-surface p-[20px]">
         <div className="mb-[16px] flex items-center justify-between">
           <h2 className="text-[16px] font-bold text-text">{x(M.hiring_work_sample_title)}</h2>
-          <span className={statusChipClass(workSample.status === 'completed' ? 'success' : 'neutral')}>
+          <span
+            className={statusChipClass(workSample.status === 'completed' ? 'success' : 'neutral')}
+          >
             {x(getWorkSampleStatusLabel(workSample.status))}
           </span>
         </div>
@@ -316,7 +363,9 @@ function WorkSampleTab({ workSample }: { workSample?: WorkSampleAssessment }) {
 
       {/* Scenario */}
       <div className="rounded-[12px] border border-border bg-surface p-[20px]">
-        <h3 className="mb-[8px] text-[14px] font-bold text-text">{x(M.hiring_work_sample_scenario)}</h3>
+        <h3 className="mb-[8px] text-[14px] font-bold text-text">
+          {x(M.hiring_work_sample_scenario)}
+        </h3>
         <div className="rounded-[8px] border border-inset bg-inset p-[12px] text-[13px] text-text-2">
           {x(workSample.scenario)}
         </div>
@@ -324,21 +373,31 @@ function WorkSampleTab({ workSample }: { workSample?: WorkSampleAssessment }) {
 
       {/* Submission */}
       <div className="rounded-[12px] border border-border bg-surface p-[20px]">
-        <h3 className="mb-[8px] text-[14px] font-bold text-text">{x(M.hiring_work_sample_submission)}</h3>
+        <h3 className="mb-[8px] text-[14px] font-bold text-text">
+          {x(M.hiring_work_sample_submission)}
+        </h3>
         <div className="rounded-[8px] border border-inset bg-inset p-[12px] text-[13px] text-text-2">
           {x(workSample.submission)}
         </div>
         <div className="mt-[8px] flex flex-wrap gap-[12px] text-[12px] text-text-muted">
-          <span>{x(M.hiring_work_sample_ai_allowed)}: {workSample.aiAllowed ? 'Yes' : 'No'}</span>
+          <span>
+            {x(M.hiring_work_sample_ai_allowed)}: {workSample.aiAllowed ? 'Yes' : 'No'}
+          </span>
           {workSample.aiDetected && <span>{x(M.hiring_work_sample_ai_detected)}: Yes</span>}
-          {workSample.timeTaken && <span>{x(M.hiring_work_sample_time)}: {workSample.timeTaken}</span>}
+          {workSample.timeTaken && (
+            <span>
+              {x(M.hiring_work_sample_time)}: {workSample.timeTaken}
+            </span>
+          )}
         </div>
       </div>
 
       {/* Evaluation */}
       {workSample.evaluation && (
         <div className="rounded-[12px] border border-border bg-surface p-[20px]">
-          <h3 className="mb-[12px] text-[14px] font-bold text-text">{x(M.hiring_work_sample_evaluation)}</h3>
+          <h3 className="mb-[12px] text-[14px] font-bold text-text">
+            {x(M.hiring_work_sample_evaluation)}
+          </h3>
           <div className="space-y-[8px]">
             <div className="flex justify-between text-[13px]">
               <span className="text-text-muted">{x(M.hiring_work_sample_quality)}</span>
@@ -350,12 +409,16 @@ function WorkSampleTab({ workSample }: { workSample?: WorkSampleAssessment }) {
             </div>
             <div className="flex justify-between text-[13px]">
               <span className="text-text-muted">{x(M.hiring_work_sample_recommendation)}</span>
-              <span className={`font-semibold ${workSample.evaluation.recommendation === 'advance' ? 'text-success' : 'text-risk'}`}>
+              <span
+                className={`font-semibold ${workSample.evaluation.recommendation === 'advance' ? 'text-success' : 'text-risk'}`}
+              >
                 {workSample.evaluation.recommendation}
               </span>
             </div>
             <div className="mt-[12px] rounded-[8px] border border-inset bg-inset p-[12px]">
-              <div className="mb-[4px] text-[12px] font-semibold text-text-muted">{x(M.hiring_work_sample_feedback)}</div>
+              <div className="mb-[4px] text-[12px] font-semibold text-text-muted">
+                {x(M.hiring_work_sample_feedback)}
+              </div>
               <div className="text-[13px] text-text-2">{x(workSample.evaluation.feedback)}</div>
             </div>
           </div>
@@ -371,7 +434,9 @@ function InterviewTab({ interview }: { interview?: DefenseInterview }) {
   if (!interview) {
     return (
       <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
-        <div className="mb-[4px] text-[14.5px] font-semibold text-text">{x(M.hiring_empty_interview)}</div>
+        <div className="mb-[4px] text-[14.5px] font-semibold text-text">
+          {x(M.hiring_empty_interview)}
+        </div>
         <div className="text-[13px] text-text-muted">{x(M.hiring_empty_interview_body)}</div>
         <button
           type="button"
@@ -388,7 +453,9 @@ function InterviewTab({ interview }: { interview?: DefenseInterview }) {
       <div className="rounded-[12px] border border-border bg-surface p-[20px]">
         <div className="mb-[16px] flex items-center justify-between">
           <h2 className="text-[16px] font-bold text-text">{x(M.hiring_interview_title)}</h2>
-          <span className={statusChipClass(interview.status === 'completed' ? 'success' : 'neutral')}>
+          <span
+            className={statusChipClass(interview.status === 'completed' ? 'success' : 'neutral')}
+          >
             {interview.status}
           </span>
         </div>
@@ -400,21 +467,31 @@ function InterviewTab({ interview }: { interview?: DefenseInterview }) {
 
       {/* Conversation */}
       <div className="rounded-[12px] border border-border bg-surface p-[20px]">
-        <h3 className="mb-[12px] text-[14px] font-bold text-text">{x(M.hiring_interview_conversation)}</h3>
+        <h3 className="mb-[12px] text-[14px] font-bold text-text">
+          {x(M.hiring_interview_conversation)}
+        </h3>
         <div className="space-y-[12px]">
           {interview.conversation.map((exchange, idx) => (
             <div key={idx} className="rounded-[8px] border border-inset bg-inset p-[12px]">
               <div className="mb-[8px]">
-                <div className="mb-[4px] text-[12px] font-semibold text-text-muted">{x(M.hiring_interview_question)}</div>
+                <div className="mb-[4px] text-[12px] font-semibold text-text-muted">
+                  {x(M.hiring_interview_question)}
+                </div>
                 <div className="text-[13px] text-text">{x(exchange.question)}</div>
               </div>
               <div>
-                <div className="mb-[4px] text-[12px] font-semibold text-text-muted">{x(M.hiring_interview_response)}</div>
+                <div className="mb-[4px] text-[12px] font-semibold text-text-muted">
+                  {x(M.hiring_interview_response)}
+                </div>
                 <div className="text-[13px] text-text-2">{x(exchange.response)}</div>
               </div>
               <div className="mt-[8px] flex flex-wrap gap-[8px] text-[11px] text-text-muted">
-                <span>{x(M.hiring_interview_depth)}: {exchange.depth}</span>
-                <span>{x(M.hiring_interview_reasoning)}: {exchange.reasoning}</span>
+                <span>
+                  {x(M.hiring_interview_depth)}: {exchange.depth}
+                </span>
+                <span>
+                  {x(M.hiring_interview_reasoning)}: {exchange.reasoning}
+                </span>
                 <span>Confidence: {exchange.confidence}</span>
               </div>
             </div>
@@ -425,11 +502,15 @@ function InterviewTab({ interview }: { interview?: DefenseInterview }) {
       {/* Assessment */}
       {interview.assessment && (
         <div className="rounded-[12px] border border-border bg-surface p-[20px]">
-          <h3 className="mb-[12px] text-[14px] font-bold text-text">{x(M.hiring_interview_assessment)}</h3>
+          <h3 className="mb-[12px] text-[14px] font-bold text-text">
+            {x(M.hiring_interview_assessment)}
+          </h3>
           <div className="space-y-[8px]">
             <div className="flex justify-between text-[13px]">
               <span className="text-text-muted">{x(M.hiring_interview_reasoning_capability)}</span>
-              <span className="font-semibold text-text">{interview.assessment.reasoningCapability}</span>
+              <span className="font-semibold text-text">
+                {interview.assessment.reasoningCapability}
+              </span>
             </div>
             <div className="flex justify-between text-[13px]">
               <span className="text-text-muted">{x(M.hiring_interview_defense_ability)}</span>
@@ -441,7 +522,9 @@ function InterviewTab({ interview }: { interview?: DefenseInterview }) {
             </div>
             <div className="flex justify-between text-[13px]">
               <span className="text-text-muted">{x(M.hiring_interview_recommendation)}</span>
-              <span className={`font-semibold ${interview.assessment.recommendation === 'hire' ? 'text-success' : 'text-risk'}`}>
+              <span
+                className={`font-semibold ${interview.assessment.recommendation === 'hire' ? 'text-success' : 'text-risk'}`}
+              >
                 {interview.assessment.recommendation}
               </span>
             </div>
@@ -458,18 +541,40 @@ function ScoresTab({ scores }: { scores?: AuthenticityScores }) {
   if (!scores) {
     return (
       <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
-        <div className="mb-[4px] text-[14.5px] font-semibold text-text">{x(M.hiring_empty_scores)}</div>
+        <div className="mb-[4px] text-[14.5px] font-semibold text-text">
+          {x(M.hiring_empty_scores)}
+        </div>
         <div className="text-[13px] text-text-muted">{x(M.hiring_empty_scores_body)}</div>
       </div>
     )
   }
 
   const dimensions = [
-    { key: 'qualification' as const, label: M.hiring_scores_qualification, desc: M.hiring_scores_qualification_desc },
-    { key: 'evidence' as const, label: M.hiring_scores_evidence, desc: M.hiring_scores_evidence_desc },
-    { key: 'capability' as const, label: M.hiring_scores_capability, desc: M.hiring_scores_capability_desc },
-    { key: 'reasoning' as const, label: M.hiring_scores_reasoning, desc: M.hiring_scores_reasoning_desc },
-    { key: 'motivation' as const, label: M.hiring_scores_motivation, desc: M.hiring_scores_motivation_desc },
+    {
+      key: 'qualification' as const,
+      label: M.hiring_scores_qualification,
+      desc: M.hiring_scores_qualification_desc,
+    },
+    {
+      key: 'evidence' as const,
+      label: M.hiring_scores_evidence,
+      desc: M.hiring_scores_evidence_desc,
+    },
+    {
+      key: 'capability' as const,
+      label: M.hiring_scores_capability,
+      desc: M.hiring_scores_capability_desc,
+    },
+    {
+      key: 'reasoning' as const,
+      label: M.hiring_scores_reasoning,
+      desc: M.hiring_scores_reasoning_desc,
+    },
+    {
+      key: 'motivation' as const,
+      label: M.hiring_scores_motivation,
+      desc: M.hiring_scores_motivation_desc,
+    },
   ]
 
   return (
@@ -496,11 +601,15 @@ function ScoresTab({ scores }: { scores?: AuthenticityScores }) {
                 <div className="text-[11px] text-text-muted">{x(dim.desc)}</div>
               </div>
               <div className="mb-[8px]">
-                <span className={statusChipClass(getScoreTone(score))}>{x(getScoreLabel(score))}</span>
+                <span className={statusChipClass(getScoreTone(score))}>
+                  {x(getScoreLabel(score))}
+                </span>
               </div>
               {explanation && (
                 <div className="rounded-[8px] border border-inset bg-inset p-[10px]">
-                  <div className="mb-[4px] text-[11px] font-semibold text-text-muted">{x(M.hiring_scores_evidence_label)}</div>
+                  <div className="mb-[4px] text-[11px] font-semibold text-text-muted">
+                    {x(M.hiring_scores_evidence_label)}
+                  </div>
                   <div className="text-[12px] text-text-2">{x(explanation.evidence)}</div>
                   <div className="mt-[4px] text-[10px] text-text-muted">
                     {x(M.hiring_scores_confidence)}: {explanation.confidence}

@@ -61,7 +61,13 @@ export function normalize(text: string): string {
 }
 
 export function tokenize(text: string): string[] {
-  return [...new Set(normalize(text).split(' ').filter((t) => t.length >= 2))]
+  return [
+    ...new Set(
+      normalize(text)
+        .split(' ')
+        .filter((t) => t.length >= 2),
+    ),
+  ]
 }
 
 export function mostCommonNGram(tokenLists: string[][]): string {

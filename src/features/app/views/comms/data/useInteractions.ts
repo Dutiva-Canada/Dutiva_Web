@@ -15,7 +15,10 @@ export interface UseInteractionsResult {
   loading: boolean
   canWrite: boolean
   addInteraction: (item: Omit<CommsInteraction, 'id'>) => Promise<CommsInteraction | null>
-  updateInteraction: (id: string, patch: Partial<CommsInteraction>) => Promise<CommsInteraction | null>
+  updateInteraction: (
+    id: string,
+    patch: Partial<CommsInteraction>,
+  ) => Promise<CommsInteraction | null>
   removeInteraction: (id: string) => Promise<void>
   refresh: () => Promise<void>
 }
@@ -25,7 +28,9 @@ export function useInteractions(): UseInteractionsResult {
   const { showToast } = useToasts()
   const isProduction = mode === 'production' && organizationId != null
 
-  const [interactions, setInteractions] = useState<CommsInteraction[]>(initialCommsState.interactions)
+  const [interactions, setInteractions] = useState<CommsInteraction[]>(
+    initialCommsState.interactions,
+  )
   const [loading, setLoading] = useState(false)
 
   const load = useCallback(async () => {

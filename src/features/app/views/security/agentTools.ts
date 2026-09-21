@@ -133,9 +133,7 @@ defineTool<SecurityAgentContext>({
   ],
   run: (sec, params) => {
     const status = str(params, 'status')
-    const items = sec
-      .risks()
-      .filter((r) => (status ? r.status === status : r.status === 'open'))
+    const items = sec.risks().filter((r) => (status ? r.status === status : r.status === 'open'))
     if (items.length === 0) {
       return { status: 'completed', message: M.agent_sec_risks_none }
     }
@@ -196,9 +194,7 @@ defineTool<SecurityAgentContext>({
   description: M.agent_sec_access_desc,
   params: [],
   run: (sec) => {
-    const items = sec
-      .accessReviews()
-      .filter((r) => ACCESS_REVIEW_OPEN.includes(r.status))
+    const items = sec.accessReviews().filter((r) => ACCESS_REVIEW_OPEN.includes(r.status))
     if (items.length === 0) {
       return { status: 'completed', message: M.agent_sec_access_none }
     }
@@ -365,7 +361,10 @@ defineTool<SecurityAgentContext>({
       updated_at: now,
     })
     return ok(
-      { en: `Access review completed — ${review.title}.`, fr: `Revue d’accès terminée — ${review.title}.` },
+      {
+        en: `Access review completed — ${review.title}.`,
+        fr: `Revue d’accès terminée — ${review.title}.`,
+      },
       review.id,
     )
   },

@@ -152,10 +152,7 @@ export function MemoryManagerProductionView() {
     () => Object.fromEntries(employees.map((e) => [e.id, e.name])),
     [employees],
   )
-  const caseTitles = useMemo(
-    () => Object.fromEntries(cases.map((c) => [c.id, c.title])),
-    [cases],
-  )
+  const caseTitles = useMemo(() => Object.fromEntries(cases.map((c) => [c.id, c.title])), [cases])
 
   const subjectLabel = (fact: MemoryFact): string => {
     if (fact.scope === 'person') return personNames[fact.entityId] ?? fact.entityId
@@ -185,7 +182,8 @@ export function MemoryManagerProductionView() {
   const onCreate = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!organizationId || saving) return
-    const entityId = form.scope === 'person' ? form.employeeId : form.scope === 'case' ? form.caseId : ''
+    const entityId =
+      form.scope === 'person' ? form.employeeId : form.scope === 'case' ? form.caseId : ''
     if (!entityId || !form.statementEn.trim()) return
     setSaving(true)
     try {
@@ -202,7 +200,14 @@ export function MemoryManagerProductionView() {
         visibility: 'hr',
         sensitive: false,
       })
-      setForm({ employeeId: '', caseId: '', scope: 'person', category: 'note', statementEn: '', statementFr: '' })
+      setForm({
+        employeeId: '',
+        caseId: '',
+        scope: 'person',
+        category: 'note',
+        statementEn: '',
+        statementFr: '',
+      })
       setFormOpen(false)
       await load()
       showToast(M.memory_add_toast, 'ok')
@@ -289,15 +294,32 @@ export function MemoryManagerProductionView() {
     const name = personNames[forgetPersonId] ?? forgetPersonId
     const count = active.filter((f) => f.scope === 'person' && f.entityId === forgetPersonId).length
     if (count === 0) return
-    const tmpl = count === 1 ? M.memory_gov_data_remove_person_confirm_one : M.memory_gov_data_remove_person_confirm_many
-    if (!window.confirm(`${pick(tmpl, 'en').replace('{count}', String(count)).replace('{name}', name)} / ${pick(tmpl, 'fr').replace('{count}', String(count)).replace('{name}', name)}`)) return
+    const tmpl =
+      count === 1
+        ? M.memory_gov_data_remove_person_confirm_one
+        : M.memory_gov_data_remove_person_confirm_many
+    if (
+      !window.confirm(
+        `${pick(tmpl, 'en').replace('{count}', String(count)).replace('{name}', name)} / ${pick(tmpl, 'fr').replace('{count}', String(count)).replace('{name}', name)}`,
+      )
+    )
+      return
     setForgetting(true)
     try {
       await forgetFactsForEntity(organizationId, 'person', forgetPersonId)
       setForgetPersonId('')
       await load()
-      const doneTmpl = count === 1 ? M.memory_gov_data_remove_person_done_one : M.memory_gov_data_remove_person_done_many
-      showToast({ en: pick(doneTmpl, 'en').replace('{count}', String(count)).replace('{name}', name), fr: pick(doneTmpl, 'fr').replace('{count}', String(count)).replace('{name}', name) }, 'ok')
+      const doneTmpl =
+        count === 1
+          ? M.memory_gov_data_remove_person_done_one
+          : M.memory_gov_data_remove_person_done_many
+      showToast(
+        {
+          en: pick(doneTmpl, 'en').replace('{count}', String(count)).replace('{name}', name),
+          fr: pick(doneTmpl, 'fr').replace('{count}', String(count)).replace('{name}', name),
+        },
+        'ok',
+      )
     } catch {
       showToast(M.memory_prod_error, 'info')
     } finally {
@@ -370,7 +392,11 @@ export function MemoryManagerProductionView() {
           </div>
 
           {/* Tab navigation */}
-          <div className="mt-[14px] flex gap-[2px] overflow-x-auto" role="tablist" aria-label={x(M.memory_tabs_aria)}>
+          <div
+            className="mt-[14px] flex gap-[2px] overflow-x-auto"
+            role="tablist"
+            aria-label={x(M.memory_tabs_aria)}
+          >
             {TABS.map((t) => {
               const activeTab = tab === t.key
               const badge = t.key === 'review' && proposed.length > 0 ? proposed.length : null
@@ -384,7 +410,9 @@ export function MemoryManagerProductionView() {
                   id={`mem-prod-tab-${t.key}`}
                   onClick={() => setTab(t.key)}
                   className={`relative flex shrink-0 cursor-pointer items-center gap-[7px] border-b-2 px-[14px] py-[9px] font-sans text-[13px] font-semibold ${
-                    activeTab ? 'border-gold-fg text-text' : 'border-transparent text-text-muted hover:text-text-2'
+                    activeTab
+                      ? 'border-gold-fg text-text'
+                      : 'border-transparent text-text-muted hover:text-text-2'
                   }`}
                 >
                   {pick(t.label, lang)}
@@ -474,7 +502,9 @@ export function MemoryManagerProductionView() {
             className="w-full max-w-[520px] rounded-[14px] border border-border bg-surface-2 p-[18px] shadow-lg"
           >
             <div className="mb-[14px] flex items-start justify-between gap-[10px]">
-              <h2 className="m-0 font-display text-[16px] font-semibold text-text">{x(M.memory_add_title)}</h2>
+              <h2 className="m-0 font-display text-[16px] font-semibold text-text">
+                {x(M.memory_add_title)}
+              </h2>
               <button
                 type="button"
                 onClick={() => setFormOpen(false)}
@@ -487,11 +517,15 @@ export function MemoryManagerProductionView() {
             <div className="grid gap-[12px]">
               <div className="grid gap-[12px] sm:grid-cols-2">
                 <div>
-                  <label className={labelClass} htmlFor="mem-prod-scope">{x(M.memory_add_subject)}</label>
+                  <label className={labelClass} htmlFor="mem-prod-scope">
+                    {x(M.memory_add_subject)}
+                  </label>
                   <select
                     id="mem-prod-scope"
                     value={form.scope}
-                    onChange={(e) => setForm((f) => ({ ...f, scope: e.target.value as MemoryScope }))}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, scope: e.target.value as MemoryScope }))
+                    }
                     className={inputClass}
                   >
                     <option value="person">{x(M.memory_add_person)}</option>
@@ -501,7 +535,9 @@ export function MemoryManagerProductionView() {
                 <div>
                   {form.scope === 'person' ? (
                     <>
-                      <label className={labelClass} htmlFor="mem-prod-person">{x(M.memory_add_person)}</label>
+                      <label className={labelClass} htmlFor="mem-prod-person">
+                        {x(M.memory_add_person)}
+                      </label>
                       <select
                         id="mem-prod-person"
                         value={form.employeeId}
@@ -511,13 +547,17 @@ export function MemoryManagerProductionView() {
                       >
                         <option value="">{x(M.memory_add_select_person)}</option>
                         {employees.map((e) => (
-                          <option key={e.id} value={e.id}>{e.name}</option>
+                          <option key={e.id} value={e.id}>
+                            {e.name}
+                          </option>
                         ))}
                       </select>
                     </>
                   ) : (
                     <>
-                      <label className={labelClass} htmlFor="mem-prod-case">{x(M.memory_add_case)}</label>
+                      <label className={labelClass} htmlFor="mem-prod-case">
+                        {x(M.memory_add_case)}
+                      </label>
                       <select
                         id="mem-prod-case"
                         value={form.caseId}
@@ -527,7 +567,9 @@ export function MemoryManagerProductionView() {
                       >
                         <option value="">{x(M.memory_add_select_case)}</option>
                         {cases.map((c) => (
-                          <option key={c.id} value={c.id}>{c.title}</option>
+                          <option key={c.id} value={c.id}>
+                            {c.title}
+                          </option>
                         ))}
                       </select>
                     </>
@@ -535,20 +577,28 @@ export function MemoryManagerProductionView() {
                 </div>
               </div>
               <div>
-                <label className={labelClass} htmlFor="mem-prod-cat">{x(M.memory_prod_category)}</label>
+                <label className={labelClass} htmlFor="mem-prod-cat">
+                  {x(M.memory_prod_category)}
+                </label>
                 <select
                   id="mem-prod-cat"
                   value={form.category}
-                  onChange={(e) => setForm((f) => ({ ...f, category: e.target.value as MemoryCategory }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, category: e.target.value as MemoryCategory }))
+                  }
                   className={inputClass}
                 >
                   {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{pick(CATEGORY_LABEL[c], lang)}</option>
+                    <option key={c} value={c}>
+                      {pick(CATEGORY_LABEL[c], lang)}
+                    </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className={labelClass} htmlFor="mem-prod-en">{x(M.memory_add_text)}</label>
+                <label className={labelClass} htmlFor="mem-prod-en">
+                  {x(M.memory_add_text)}
+                </label>
                 <textarea
                   id="mem-prod-en"
                   value={form.statementEn}
@@ -559,7 +609,9 @@ export function MemoryManagerProductionView() {
                 />
               </div>
               <div>
-                <label className={labelClass} htmlFor="mem-prod-fr">{x(M.memory_add_text_fr)}</label>
+                <label className={labelClass} htmlFor="mem-prod-fr">
+                  {x(M.memory_add_text_fr)}
+                </label>
                 <input
                   id="mem-prod-fr"
                   value={form.statementFr}

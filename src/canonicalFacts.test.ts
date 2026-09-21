@@ -205,7 +205,6 @@ describe('docs/CANONICAL_FACTS.md matches the code it claims to describe', () =>
     )
   })
 
-
   it('states the beta cohort capacity, in every copy of the number', () => {
     /* The capacity lives in places that cannot import each other:
        BETA_COHORT_LIMIT (which the marketing copy interpolates, so the copy

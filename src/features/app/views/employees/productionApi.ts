@@ -517,7 +517,9 @@ const performanceReviewRowSchema = z.object({
 const PERFORMANCE_REVIEW_SELECT =
   'id, employee_id, review_date, reviewer_id, goals, rating, notes, next_review_date, employees ( name ), reviewers ( name )'
 
-function toPerformanceReview(row: z.infer<typeof performanceReviewRowSchema>): ProductionPerformanceReview {
+function toPerformanceReview(
+  row: z.infer<typeof performanceReviewRowSchema>,
+): ProductionPerformanceReview {
   return {
     id: row.id,
     employeeId: row.employee_id,

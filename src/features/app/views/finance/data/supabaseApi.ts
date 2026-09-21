@@ -137,7 +137,12 @@ export async function loadFinanceStateFromSupabase(orgId: string): Promise<Finan
   ): Promise<T[]> => {
     try {
       return await fetchAllPages((from, to) =>
-        supabase!.from(table).select('*').eq('organization_id', orgId).order(orderBy, { ascending: false }).range(from, to),
+        supabase!
+          .from(table)
+          .select('*')
+          .eq('organization_id', orgId)
+          .order(orderBy, { ascending: false })
+          .range(from, to),
       ).then((rows) => rows.map((r) => mapper(r as Record<string, unknown>)))
     } catch {
       // Keep the workspace usable even if one finance table is unavailable or
@@ -148,14 +153,42 @@ export async function loadFinanceStateFromSupabase(orgId: string): Promise<Finan
 
   // Payroll tables are admin-only; non-admins get empty arrays (RLS handles this)
   const [
-    entities, books, fiscalPeriods, parties, bankAccounts, ledgerAccounts,
-    invoices, bills, credits, receipts, spendRequests, purchaseOrders, expenses,
-    subscriptions, journals, bankItems, reconciliations, closePeriods,
-    payPeriods, payRuns, payrollLiabilities, budgets, scenarios, forecasts,
-    reserveGoals, holdings, watchlistItems, decisionEntries,
-    debts, taxObligations, taxScenarios,
-    approvals, auditEvents, externalActions,
-    categoryRules, importSessions,
+    entities,
+    books,
+    fiscalPeriods,
+    parties,
+    bankAccounts,
+    ledgerAccounts,
+    invoices,
+    bills,
+    credits,
+    receipts,
+    spendRequests,
+    purchaseOrders,
+    expenses,
+    subscriptions,
+    journals,
+    bankItems,
+    reconciliations,
+    closePeriods,
+    payPeriods,
+    payRuns,
+    payrollLiabilities,
+    budgets,
+    scenarios,
+    forecasts,
+    reserveGoals,
+    holdings,
+    watchlistItems,
+    decisionEntries,
+    debts,
+    taxObligations,
+    taxScenarios,
+    approvals,
+    auditEvents,
+    externalActions,
+    categoryRules,
+    importSessions,
     categorizationFeedback,
   ] = await Promise.all([
     selectAll(TABLES.entities, mapEntity),
@@ -200,20 +233,50 @@ export async function loadFinanceStateFromSupabase(orgId: string): Promise<Finan
   const aiImportSettings = await loadAiImportSettingsSupabase(orgId)
 
   return {
-    entities, books, fiscalPeriods, parties, bankAccounts, ledgerAccounts,
-    invoices, bills, credits, receipts, spendRequests, purchaseOrders, expenses,
-    subscriptions, journals, bankItems, reconciliations, closePeriods,
-    payPeriods, payRuns, payrollLiabilities, budgets, scenarios, forecasts,
-    reserveGoals, holdings, watchlistItems, decisionEntries,
-    debts, taxObligations, taxScenarios,
-    approvals, auditEvents, externalActions,
-    categoryRules, importSessions,
+    entities,
+    books,
+    fiscalPeriods,
+    parties,
+    bankAccounts,
+    ledgerAccounts,
+    invoices,
+    bills,
+    credits,
+    receipts,
+    spendRequests,
+    purchaseOrders,
+    expenses,
+    subscriptions,
+    journals,
+    bankItems,
+    reconciliations,
+    closePeriods,
+    payPeriods,
+    payRuns,
+    payrollLiabilities,
+    budgets,
+    scenarios,
+    forecasts,
+    reserveGoals,
+    holdings,
+    watchlistItems,
+    decisionEntries,
+    debts,
+    taxObligations,
+    taxScenarios,
+    approvals,
+    auditEvents,
+    externalActions,
+    categoryRules,
+    importSessions,
     aiImportSettings,
     categorizationFeedback,
   }
 }
 
-async function loadAiImportSettingsSupabase(orgId: string): Promise<import('./types').FinanceAiImportSettings> {
+async function loadAiImportSettingsSupabase(
+  orgId: string,
+): Promise<import('./types').FinanceAiImportSettings> {
   if (!supabase) return { aiImportEnabled: false, aiImportMode: 'auto_high' }
   try {
     const { data, error } = await supabase
@@ -236,7 +299,11 @@ async function loadAiImportSettingsSupabase(orgId: string): Promise<import('./ty
  * Check whether a book's period is locked. Returns true if the close period
  * status is 'locked' or 'approved' — ordinary edits must be rejected.
  */
-export async function isPeriodLocked(orgId: string, bookId: string, periodId: string): Promise<boolean> {
+export async function isPeriodLocked(
+  orgId: string,
+  bookId: string,
+  periodId: string,
+): Promise<boolean> {
   if (!supabase) return false
   const { data } = await supabase
     .from(TABLES.closePeriods)
@@ -250,7 +317,10 @@ export async function isPeriodLocked(orgId: string, bookId: string, periodId: st
 
 /* ---------- Insert helpers ---------- */
 
-export async function insertInvoice(orgId: string, item: Omit<FinanceInvoice, 'id'>): Promise<FinanceInvoice | null> {
+export async function insertInvoice(
+  orgId: string,
+  item: Omit<FinanceInvoice, 'id'>,
+): Promise<FinanceInvoice | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.invoices)
@@ -277,7 +347,10 @@ export async function insertInvoice(orgId: string, item: Omit<FinanceInvoice, 'i
   return mapInvoice(data as Record<string, unknown>)
 }
 
-export async function insertSpendRequest(orgId: string, item: Omit<FinanceSpendRequest, 'id'>): Promise<FinanceSpendRequest | null> {
+export async function insertSpendRequest(
+  orgId: string,
+  item: Omit<FinanceSpendRequest, 'id'>,
+): Promise<FinanceSpendRequest | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.spendRequests)
@@ -327,7 +400,10 @@ export async function updateSpendRequestStatus(
   return mapSpendRequest(data as Record<string, unknown>)
 }
 
-export async function insertJournal(orgId: string, journal: Omit<FinanceJournal, 'id' | 'balanced'>): Promise<FinanceJournal | null> {
+export async function insertJournal(
+  orgId: string,
+  journal: Omit<FinanceJournal, 'id' | 'balanced'>,
+): Promise<FinanceJournal | null> {
   if (!supabase) return null
   const balanced = isJournalBalanced(journal.lines)
   // Unbalanced journals cannot become posted actuals.
@@ -399,7 +475,10 @@ export async function settlePayrollLiabilityInSupabase(
   return mapPayrollLiability(data as Record<string, unknown>)
 }
 
-export async function insertTaxObligation(orgId: string, item: Omit<FinanceTaxObligation, 'id'>): Promise<FinanceTaxObligation | null> {
+export async function insertTaxObligation(
+  orgId: string,
+  item: Omit<FinanceTaxObligation, 'id'>,
+): Promise<FinanceTaxObligation | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.taxObligations)
@@ -447,7 +526,10 @@ export async function updateTaxObligationStatus(
   return mapTaxObligation(data as Record<string, unknown>)
 }
 
-export async function insertBudget(orgId: string, item: Omit<FinanceBudget, 'id'>): Promise<FinanceBudget | null> {
+export async function insertBudget(
+  orgId: string,
+  item: Omit<FinanceBudget, 'id'>,
+): Promise<FinanceBudget | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.budgets)
@@ -468,7 +550,11 @@ export async function insertBudget(orgId: string, item: Omit<FinanceBudget, 'id'
   return mapBudget(data as Record<string, unknown>)
 }
 
-export async function reviseBudgetInSupabase(orgId: string, id: string, lines: FinanceBudget['lines']): Promise<FinanceBudget | null> {
+export async function reviseBudgetInSupabase(
+  orgId: string,
+  id: string,
+  lines: FinanceBudget['lines'],
+): Promise<FinanceBudget | null> {
   if (!supabase) return null
   // Fetch current version
   const { data: current } = await supabase
@@ -500,7 +586,10 @@ export async function reviseBudgetInSupabase(orgId: string, id: string, lines: F
   return mapBudget(data as Record<string, unknown>)
 }
 
-export async function insertTaxScenario(orgId: string, item: Omit<FinanceTaxScenario, 'id'>): Promise<FinanceTaxScenario | null> {
+export async function insertTaxScenario(
+  orgId: string,
+  item: Omit<FinanceTaxScenario, 'id'>,
+): Promise<FinanceTaxScenario | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.taxScenarios)
@@ -529,7 +618,11 @@ export async function insertTaxScenario(orgId: string, item: Omit<FinanceTaxScen
   return mapTaxScenario(data as Record<string, unknown>)
 }
 
-export async function markTaxScenarioStaleInSupabase(orgId: string, id: string, reason: string): Promise<FinanceTaxScenario | null> {
+export async function markTaxScenarioStaleInSupabase(
+  orgId: string,
+  id: string,
+  reason: string,
+): Promise<FinanceTaxScenario | null> {
   if (!supabase) return null
   const { data, error } = await supabase
     .from(TABLES.taxScenarios)

@@ -114,9 +114,7 @@ export function ChatComposer({
 
   /* On-device models — buttons render only for installed repos. */
   const installed = useInstalledLocalModels()
-  const voiceSpec = installed.has('Xenova/whisper-tiny')
-    ? onDeviceSpec(VOICE_NOTE_MODEL_ID)
-    : null
+  const voiceSpec = installed.has('Xenova/whisper-tiny') ? onDeviceSpec(VOICE_NOTE_MODEL_ID) : null
   const rewriteSpec = installed.has('Xenova/LaMini-Flan-T5-248M')
     ? onDeviceSpec(REWRITE_MODEL_ID)
     : null
@@ -148,9 +146,7 @@ export function ChatComposer({
       }
       void attachmentFromFile(file)
         .then((attachment) =>
-          setPending((prev) =>
-            prev.length >= MAX_ATTACHMENTS ? prev : [...prev, attachment],
-          ),
+          setPending((prev) => (prev.length >= MAX_ATTACHMENTS ? prev : [...prev, attachment])),
         )
         .catch((error: unknown) =>
           onAttachmentIssue?.(
@@ -315,7 +311,12 @@ export function ChatComposer({
             } ${styles.button}`}
           >
             {localBusy === 'transcribing' ? (
-              <Loader2 size={styles.icon} strokeWidth={1.9} aria-hidden="true" className="animate-spin" />
+              <Loader2
+                size={styles.icon}
+                strokeWidth={1.9}
+                aria-hidden="true"
+                className="animate-spin"
+              />
             ) : recording ? (
               <Square size={styles.icon} strokeWidth={1.9} aria-hidden="true" />
             ) : (
@@ -332,7 +333,12 @@ export function ChatComposer({
             className={`flex shrink-0 cursor-pointer items-center justify-center self-end rounded-[9px] border-none bg-transparent text-text-faint hover:bg-inset hover:text-text-muted disabled:cursor-default disabled:opacity-60 ${styles.button}`}
           >
             {localBusy === 'rewriting' ? (
-              <Loader2 size={styles.icon} strokeWidth={1.9} aria-hidden="true" className="animate-spin" />
+              <Loader2
+                size={styles.icon}
+                strokeWidth={1.9}
+                aria-hidden="true"
+                className="animate-spin"
+              />
             ) : (
               <Sparkles size={styles.icon} strokeWidth={1.9} aria-hidden="true" />
             )}

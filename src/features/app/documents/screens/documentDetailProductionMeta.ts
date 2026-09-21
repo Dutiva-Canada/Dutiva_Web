@@ -84,9 +84,7 @@ export function signatureInfoForStatus(status: string): StatusInfo | undefined {
   return status in signatureStatusInfo ? signatureStatusInfo[status as SignatureStatus] : undefined
 }
 
-export function inviteDeliveryInfo(
-  recipient: ProductionDocumentRecipient,
-): StatusInfo | undefined {
+export function inviteDeliveryInfo(recipient: ProductionDocumentRecipient): StatusInfo | undefined {
   if (!recipient.inviteLastSentAt) return undefined
   const status = recipient.inviteDeliveryStatus
   if (!status) return { tone: 'neutral', label: M.doclib_invite_delivery_sent }

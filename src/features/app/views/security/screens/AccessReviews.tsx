@@ -56,7 +56,9 @@ function AccessReviewRow({
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
       <div className="min-w-0 flex-1">
-        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">{review.title}</div>
+        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">
+          {review.title}
+        </div>
         <div className="text-[12px] text-text-muted">
           {review.review_due_date ? `${review.review_due_date}` : null}
           {review.completed_date ? ` · completed ${review.completed_date}` : null}
@@ -64,7 +66,9 @@ function AccessReviewRow({
         </div>
       </div>
       <div className="flex items-center gap-[10px]">
-        <span className={statusChipClass(STATUS_TONE[review.status])}>{x(M[STATUS_LABELS[review.status]])}</span>
+        <span className={statusChipClass(STATUS_TONE[review.status])}>
+          {x(M[STATUS_LABELS[review.status]])}
+        </span>
         <button
           type="button"
           onClick={() => onEdit(review)}
@@ -86,7 +90,8 @@ function AccessReviewRow({
 
 export function AccessReviews() {
   const { x } = useI18n()
-  const { accessReviews, addAccessReview, updateAccessReview, removeAccessReview } = useSecurityData()
+  const { accessReviews, addAccessReview, updateAccessReview, removeAccessReview } =
+    useSecurityData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<SecurityAccessReview | null>(null)
 
@@ -160,7 +165,10 @@ export function AccessReviews() {
             <FormInput value={title} onChange={(e) => setTitle(e.target.value)} required />
           </FormField>
           <FormField label={x(M.sec_status)}>
-            <FormSelect value={status} onChange={(e) => setStatus(e.target.value as SecurityAccessReviewStatus)}>
+            <FormSelect
+              value={status}
+              onChange={(e) => setStatus(e.target.value as SecurityAccessReviewStatus)}
+            >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {x(M[STATUS_LABELS[s]])}
@@ -169,10 +177,18 @@ export function AccessReviews() {
             </FormSelect>
           </FormField>
           <FormField label={x(M.sec_review_due_date)}>
-            <FormInput type="date" value={reviewDueDate} onChange={(e) => setReviewDueDate(e.target.value)} />
+            <FormInput
+              type="date"
+              value={reviewDueDate}
+              onChange={(e) => setReviewDueDate(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.sec_completed_date)}>
-            <FormInput type="date" value={completedDate} onChange={(e) => setCompletedDate(e.target.value)} />
+            <FormInput
+              type="date"
+              value={completedDate}
+              onChange={(e) => setCompletedDate(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.sec_summary)} className="sm:col-span-2">
             <FormTextarea value={findings} onChange={(e) => setFindings(e.target.value)} />
@@ -206,7 +222,10 @@ export function AccessReviews() {
             <AccessReviewRow
               key={review.id}
               review={review}
-              onEdit={(r) => { setEditing(r); setShow(true) }}
+              onEdit={(r) => {
+                setEditing(r)
+                setShow(true)
+              }}
               onRemove={(id) => removeAccessReview(id)}
             />
           ))}

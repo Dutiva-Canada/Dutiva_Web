@@ -20,7 +20,15 @@ describe('exportBankItemsCSV', () => {
 
   it('escapes commas in descriptions', () => {
     const csv = exportBankItemsCSV([
-      { id: 'bi-1', bankAccountId: 'bank-1', date: '2026-08-15', amount: '100.00', currency: 'CAD', description: 'PAYMENT, VENDOR', matchStatus: 'unmatched' },
+      {
+        id: 'bi-1',
+        bankAccountId: 'bank-1',
+        date: '2026-08-15',
+        amount: '100.00',
+        currency: 'CAD',
+        description: 'PAYMENT, VENDOR',
+        matchStatus: 'unmatched',
+      },
     ])
     expect(csv).toContain('"PAYMENT, VENDOR"')
   })

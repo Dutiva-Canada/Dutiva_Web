@@ -112,7 +112,9 @@ export function CandidateDetailProductionView() {
 
   const tabClass = (tab: Tab) =>
     `cursor-pointer rounded-[8px] border-none px-[14px] py-[7px] font-sans text-[12.5px] font-semibold ${
-      activeTab === tab ? 'bg-surface text-text shadow-(--shadow-sm)' : 'bg-transparent text-text-muted'
+      activeTab === tab
+        ? 'bg-surface text-text shadow-(--shadow-sm)'
+        : 'bg-transparent text-text-muted'
     }`
 
   return (
@@ -125,11 +127,15 @@ export function CandidateDetailProductionView() {
         {x(M.hiring_candidate_back)}
       </Link>
 
-      {state === 'loading' && <div className="text-[13px] text-text-muted">{x(M.hiring_prod_loading)}</div>}
+      {state === 'loading' && (
+        <div className="text-[13px] text-text-muted">{x(M.hiring_prod_loading)}</div>
+      )}
 
       {state === 'failed' && (
         <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
-          <div className="mb-[4px] text-[14.5px] font-semibold text-text">{x(M.hiring_prod_error)}</div>
+          <div className="mb-[4px] text-[14.5px] font-semibold text-text">
+            {x(M.hiring_prod_error)}
+          </div>
           <button
             type="button"
             onClick={() => void load()}
@@ -142,7 +148,9 @@ export function CandidateDetailProductionView() {
 
       {state === 'ready' && !candidate && (
         <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
-          <div className="text-[14.5px] font-semibold text-text">{x(M.hiring_candidate_not_found)}</div>
+          <div className="text-[14.5px] font-semibold text-text">
+            {x(M.hiring_candidate_not_found)}
+          </div>
         </div>
       )}
 
@@ -260,7 +268,10 @@ function OverviewTab({
         </div>
         <div className="grid gap-[12px] md:grid-cols-2">
           <div>
-            <label htmlFor="cand-status-select" className="mb-[4px] block text-[12px] font-semibold text-text-3">
+            <label
+              htmlFor="cand-status-select"
+              className="mb-[4px] block text-[12px] font-semibold text-text-3"
+            >
               {x(M.hiring_candidate_status)}
             </label>
             <select
@@ -280,7 +291,10 @@ function OverviewTab({
             </select>
           </div>
           <div>
-            <label htmlFor="cand-assign-input" className="mb-[4px] block text-[12px] font-semibold text-text-3">
+            <label
+              htmlFor="cand-assign-input"
+              className="mb-[4px] block text-[12px] font-semibold text-text-3"
+            >
               {x(M.hiring_candidate_assign)}
             </label>
             <div className="flex gap-[8px]">
@@ -304,7 +318,9 @@ function OverviewTab({
       </div>
 
       <div className="rounded-[12px] border border-border bg-surface p-[20px]">
-        <h2 className="mb-[16px] text-[16px] font-bold text-text">{x(M.hiring_overview_application)}</h2>
+        <h2 className="mb-[16px] text-[16px] font-bold text-text">
+          {x(M.hiring_overview_application)}
+        </h2>
 
         <div className="grid gap-[12px] md:grid-cols-2">
           <DetailRow label={M.hiring_overview_email} value={candidate.email} />
@@ -318,7 +334,10 @@ function OverviewTab({
             value={x(getAuthLabel(candidate.workAuthorization))}
           />
           {candidate.compensationExpectations && (
-            <DetailRow label={M.hiring_overview_compensation} value={candidate.compensationExpectations} />
+            <DetailRow
+              label={M.hiring_overview_compensation}
+              value={candidate.compensationExpectations}
+            />
           )}
         </div>
 
@@ -337,7 +356,9 @@ function OverviewTab({
       </div>
 
       <div className="rounded-[12px] border border-border bg-surface p-[20px]">
-        <h2 className="mb-[16px] text-[16px] font-bold text-text">{x(M.hiring_overview_knockout)}</h2>
+        <h2 className="mb-[16px] text-[16px] font-bold text-text">
+          {x(M.hiring_overview_knockout)}
+        </h2>
 
         <div className="mb-[12px] flex items-center gap-[8px]">
           {candidate.knockoutCriteria.meets_requirements ? (
@@ -367,7 +388,9 @@ function OverviewTab({
 
         {candidate.knockoutCriteria.missing_requirements.length > 0 && (
           <div>
-            <div className="mb-[4px] text-[12px] font-semibold text-risk">{x(M.hiring_overview_missing)}</div>
+            <div className="mb-[4px] text-[12px] font-semibold text-risk">
+              {x(M.hiring_overview_missing)}
+            </div>
             <ul className="ml-[16px] list-disc space-y-[4px] text-[13px] text-risk">
               {candidate.knockoutCriteria.missing_requirements.map((req, idx) => (
                 <li key={idx}>{req}</li>
@@ -386,7 +409,9 @@ function EvidenceTab({ evidence }: { evidence: ProductionEvidenceScreening | nul
   if (!evidence) {
     return (
       <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
-        <div className="mb-[4px] text-[14.5px] font-semibold text-text">{x(M.hiring_empty_evidence)}</div>
+        <div className="mb-[4px] text-[14.5px] font-semibold text-text">
+          {x(M.hiring_empty_evidence)}
+        </div>
         <div className="text-[13px] text-text-muted">{x(M.hiring_empty_evidence_body)}</div>
       </div>
     )
@@ -410,7 +435,9 @@ function EvidenceTab({ evidence }: { evidence: ProductionEvidenceScreening | nul
       </div>
 
       <div className="rounded-[12px] border border-border bg-surface p-[20px]">
-        <h3 className="mb-[12px] text-[14px] font-bold text-text">{x(M.hiring_evidence_relevant_experience)}</h3>
+        <h3 className="mb-[12px] text-[14px] font-bold text-text">
+          {x(M.hiring_evidence_relevant_experience)}
+        </h3>
         <div className="space-y-[12px]">
           {evidence.relevantExperience.map((claim, idx) => (
             <div key={idx} className="rounded-[8px] border border-inset bg-inset p-[12px]">
@@ -451,7 +478,9 @@ function EvidenceTab({ evidence }: { evidence: ProductionEvidenceScreening | nul
 
       {evidence.missingInfo.length > 0 && (
         <div className="rounded-[12px] border border-border bg-surface p-[20px]">
-          <h3 className="mb-[8px] text-[14px] font-bold text-text">{x(M.hiring_evidence_missing)}</h3>
+          <h3 className="mb-[8px] text-[14px] font-bold text-text">
+            {x(M.hiring_evidence_missing)}
+          </h3>
           <ul className="ml-[16px] list-disc space-y-[4px] text-[13px] text-text-2">
             {evidence.missingInfo.map((info, idx) => (
               <li key={idx}>{info}</li>
@@ -469,7 +498,9 @@ function WorkSampleTab({ workSample }: { workSample: ProductionWorkSample | null
   if (!workSample) {
     return (
       <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
-        <div className="mb-[4px] text-[14.5px] font-semibold text-text">{x(M.hiring_empty_work_sample)}</div>
+        <div className="mb-[4px] text-[14.5px] font-semibold text-text">
+          {x(M.hiring_empty_work_sample)}
+        </div>
         <div className="text-[13px] text-text-muted">{x(M.hiring_empty_work_sample_body)}</div>
       </div>
     )
@@ -488,14 +519,18 @@ function WorkSampleTab({ workSample }: { workSample: ProductionWorkSample | null
       </div>
 
       <div className="rounded-[12px] border border-border bg-surface p-[20px]">
-        <h3 className="mb-[8px] text-[14px] font-bold text-text">{x(M.hiring_work_sample_scenario)}</h3>
+        <h3 className="mb-[8px] text-[14px] font-bold text-text">
+          {x(M.hiring_work_sample_scenario)}
+        </h3>
         <div className="rounded-[8px] border border-inset bg-inset p-[12px] text-[13px] text-text-2">
           {workSample.scenario}
         </div>
       </div>
 
       <div className="rounded-[12px] border border-border bg-surface p-[20px]">
-        <h3 className="mb-[8px] text-[14px] font-bold text-text">{x(M.hiring_work_sample_submission)}</h3>
+        <h3 className="mb-[8px] text-[14px] font-bold text-text">
+          {x(M.hiring_work_sample_submission)}
+        </h3>
         <div className="rounded-[8px] border border-inset bg-inset p-[12px] text-[13px] text-text-2">
           {workSample.submission}
         </div>
@@ -503,11 +538,7 @@ function WorkSampleTab({ workSample }: { workSample: ProductionWorkSample | null
           <span>
             {x(M.hiring_work_sample_ai_allowed)}: {workSample.aiAllowed ? 'Yes' : 'No'}
           </span>
-          {workSample.aiDetected && (
-            <span>
-              {x(M.hiring_work_sample_ai_detected)}: Yes
-            </span>
-          )}
+          {workSample.aiDetected && <span>{x(M.hiring_work_sample_ai_detected)}: Yes</span>}
           {workSample.timeTaken && (
             <span>
               {x(M.hiring_work_sample_time)}: {workSample.timeTaken}
@@ -518,7 +549,9 @@ function WorkSampleTab({ workSample }: { workSample: ProductionWorkSample | null
 
       {workSample.evaluation && (
         <div className="rounded-[12px] border border-border bg-surface p-[20px]">
-          <h3 className="mb-[12px] text-[14px] font-bold text-text">{x(M.hiring_work_sample_evaluation)}</h3>
+          <h3 className="mb-[12px] text-[14px] font-bold text-text">
+            {x(M.hiring_work_sample_evaluation)}
+          </h3>
           <DataBlock value={workSample.evaluation} />
         </div>
       )}
@@ -532,7 +565,9 @@ function InterviewTab({ interview }: { interview: ProductionDefenseInterview | n
   if (!interview) {
     return (
       <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
-        <div className="mb-[4px] text-[14.5px] font-semibold text-text">{x(M.hiring_empty_interview)}</div>
+        <div className="mb-[4px] text-[14.5px] font-semibold text-text">
+          {x(M.hiring_empty_interview)}
+        </div>
         <div className="text-[13px] text-text-muted">{x(M.hiring_empty_interview_body)}</div>
       </div>
     )
@@ -543,7 +578,9 @@ function InterviewTab({ interview }: { interview: ProductionDefenseInterview | n
       <div className="rounded-[12px] border border-border bg-surface p-[20px]">
         <div className="mb-[16px] flex items-center justify-between">
           <h2 className="text-[16px] font-bold text-text">{x(M.hiring_interview_title)}</h2>
-          <span className={statusChipClass(interview.status === 'completed' ? 'success' : 'neutral')}>
+          <span
+            className={statusChipClass(interview.status === 'completed' ? 'success' : 'neutral')}
+          >
             {interview.status}
           </span>
         </div>
@@ -562,7 +599,9 @@ function InterviewTab({ interview }: { interview: ProductionDefenseInterview | n
       </div>
 
       <div className="rounded-[12px] border border-border bg-surface p-[20px]">
-        <h3 className="mb-[12px] text-[14px] font-bold text-text">{x(M.hiring_interview_conversation)}</h3>
+        <h3 className="mb-[12px] text-[14px] font-bold text-text">
+          {x(M.hiring_interview_conversation)}
+        </h3>
         <div className="space-y-[12px]">
           {interview.conversation.map((exchange, idx) => (
             <div key={idx} className="rounded-[8px] border border-inset bg-inset p-[12px]">
@@ -574,7 +613,9 @@ function InterviewTab({ interview }: { interview: ProductionDefenseInterview | n
 
       {interview.assessment && (
         <div className="rounded-[12px] border border-border bg-surface p-[20px]">
-          <h3 className="mb-[12px] text-[14px] font-bold text-text">{x(M.hiring_interview_assessment)}</h3>
+          <h3 className="mb-[12px] text-[14px] font-bold text-text">
+            {x(M.hiring_interview_assessment)}
+          </h3>
           <DataBlock value={interview.assessment} />
         </div>
       )}
@@ -588,14 +629,20 @@ function ScoresTab({ scores }: { scores: ProductionAuthenticityScores | null }) 
   if (!scores) {
     return (
       <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
-        <div className="mb-[4px] text-[14.5px] font-semibold text-text">{x(M.hiring_empty_scores)}</div>
+        <div className="mb-[4px] text-[14.5px] font-semibold text-text">
+          {x(M.hiring_empty_scores)}
+        </div>
         <div className="text-[13px] text-text-muted">{x(M.hiring_empty_scores_body)}</div>
       </div>
     )
   }
 
   const dimensions = [
-    { key: 'qualification', label: M.hiring_scores_qualification, desc: M.hiring_scores_qualification_desc },
+    {
+      key: 'qualification',
+      label: M.hiring_scores_qualification,
+      desc: M.hiring_scores_qualification_desc,
+    },
     { key: 'evidence', label: M.hiring_scores_evidence, desc: M.hiring_scores_evidence_desc },
     { key: 'capability', label: M.hiring_scores_capability, desc: M.hiring_scores_capability_desc },
     { key: 'reasoning', label: M.hiring_scores_reasoning, desc: M.hiring_scores_reasoning_desc },
@@ -625,7 +672,9 @@ function ScoresTab({ scores }: { scores: ProductionAuthenticityScores | null }) 
                 <div className="text-[11px] text-text-muted">{x(dim.desc)}</div>
               </div>
               <div className="mb-[8px]">
-                <span className={statusChipClass(getScoreTone(score))}>{x(getScoreLabel(score))}</span>
+                <span className={statusChipClass(getScoreTone(score))}>
+                  {x(getScoreLabel(score))}
+                </span>
               </div>
               {explanation && (
                 <div className="rounded-[8px] border border-inset bg-inset p-[10px]">
@@ -687,59 +736,112 @@ function DataBlock({ value }: { value: unknown }) {
 
 function getStatusTone(status: string): 'success' | 'info' | 'warning' | 'risk' | 'neutral' {
   if (status === 'hired') return 'success'
-  if (status === 'interview' || status === 'work_sample' || status === 'evidence_qualified') return 'info'
+  if (status === 'interview' || status === 'work_sample' || status === 'evidence_qualified')
+    return 'info'
   if (status === 'basic_qualified') return 'warning'
   if (status === 'rejected') return 'risk'
   return 'neutral'
 }
 
 function getStatusLabel(status: string) {
-  return ({
-    application: M.hiring_status_application, basic_qualified: M.hiring_status_basic_qualified,
-    evidence_qualified: M.hiring_status_evidence_qualified, work_sample: M.hiring_status_work_sample,
-    interview: M.hiring_status_interview, hired: M.hiring_status_hired, rejected: M.hiring_status_rejected,
-  } as Record<string, Bi>)[status] ?? M.hiring_status_application
+  return (
+    (
+      {
+        application: M.hiring_status_application,
+        basic_qualified: M.hiring_status_basic_qualified,
+        evidence_qualified: M.hiring_status_evidence_qualified,
+        work_sample: M.hiring_status_work_sample,
+        interview: M.hiring_status_interview,
+        hired: M.hiring_status_hired,
+        rejected: M.hiring_status_rejected,
+      } as Record<string, Bi>
+    )[status] ?? M.hiring_status_application
+  )
 }
 
 function getAuthLabel(auth: string) {
-  return auth === 'authorized' ? M.hiring_auth_authorized
-    : auth === 'needs_sponsorship' ? M.hiring_auth_needs_sponsorship : M.hiring_auth_unknown
+  return auth === 'authorized'
+    ? M.hiring_auth_authorized
+    : auth === 'needs_sponsorship'
+      ? M.hiring_auth_needs_sponsorship
+      : M.hiring_auth_unknown
 }
 
 function getEvidenceQualityTone(quality: string): 'success' | 'info' | 'warning' | 'risk' {
-  return ({ high: 'success', medium: 'info', low: 'warning', generic: 'risk' } as const)[quality as 'high'] ?? 'info'
+  return (
+    ({ high: 'success', medium: 'info', low: 'warning', generic: 'risk' } as const)[
+      quality as 'high'
+    ] ?? 'info'
+  )
 }
 
 function getEvidenceQualityLabel(quality: string) {
-  return ({ high: M.hiring_evidence_high_quality, medium: M.hiring_evidence_medium_quality,
-    low: M.hiring_evidence_low_quality, generic: M.hiring_evidence_generic,
-  } as Record<string, Bi>)[quality] ?? M.hiring_evidence_generic
+  return (
+    (
+      {
+        high: M.hiring_evidence_high_quality,
+        medium: M.hiring_evidence_medium_quality,
+        low: M.hiring_evidence_low_quality,
+        generic: M.hiring_evidence_generic,
+      } as Record<string, Bi>
+    )[quality] ?? M.hiring_evidence_generic
+  )
 }
 
 function getSpecificityLabel(specificity: string) {
-  return ({ specific: M.hiring_evidence_specificity_specific, moderate: M.hiring_evidence_specificity_moderate,
-    generic: M.hiring_evidence_specificity_generic,
-  } as Record<string, Bi>)[specificity] ?? M.hiring_evidence_specificity_generic
+  return (
+    (
+      {
+        specific: M.hiring_evidence_specificity_specific,
+        moderate: M.hiring_evidence_specificity_moderate,
+        generic: M.hiring_evidence_specificity_generic,
+      } as Record<string, Bi>
+    )[specificity] ?? M.hiring_evidence_specificity_generic
+  )
 }
 
-function getWorkSampleStatusTone(status: string): 'success' | 'info' | 'warning' | 'risk' | 'neutral' {
-  return ({ completed: 'success', in_progress: 'info', pending: 'neutral', skipped: 'warning' } as const)[status as 'completed'] ?? 'neutral'
+function getWorkSampleStatusTone(
+  status: string,
+): 'success' | 'info' | 'warning' | 'risk' | 'neutral' {
+  return (
+    (
+      { completed: 'success', in_progress: 'info', pending: 'neutral', skipped: 'warning' } as const
+    )[status as 'completed'] ?? 'neutral'
+  )
 }
 
 function getWorkSampleStatusLabel(status: string) {
-  return ({ pending: M.hiring_work_sample_pending, in_progress: M.hiring_work_sample_in_progress,
-    completed: M.hiring_work_sample_completed, skipped: M.hiring_work_sample_skipped,
-  } as Record<string, Bi>)[status] ?? M.hiring_work_sample_pending
+  return (
+    (
+      {
+        pending: M.hiring_work_sample_pending,
+        in_progress: M.hiring_work_sample_in_progress,
+        completed: M.hiring_work_sample_completed,
+        skipped: M.hiring_work_sample_skipped,
+      } as Record<string, Bi>
+    )[status] ?? M.hiring_work_sample_pending
+  )
 }
 
 function getScoreTone(score: string): 'success' | 'info' | 'warning' | 'risk' {
-  return ({ high: 'success', medium: 'info', low: 'warning', insufficient: 'risk' } as const)[score as 'high'] ?? 'info'
+  return (
+    ({ high: 'success', medium: 'info', low: 'warning', insufficient: 'risk' } as const)[
+      score as 'high'
+    ] ?? 'info'
+  )
 }
 
 function getScoreLabel(score: string) {
-  return ({ high: M.hiring_scores_high, medium: M.hiring_scores_medium, low: M.hiring_scores_low,
-    insufficient: M.hiring_scores_insufficient,
-  } as Record<string, Bi>)[score] ?? M.hiring_scores_insufficient
+  return (
+    (
+      {
+        high: M.hiring_scores_high,
+        medium: M.hiring_scores_medium,
+        low: M.hiring_scores_low,
+        insufficient: M.hiring_scores_insufficient,
+      } as Record<string, Bi>
+    )[score] ?? M.hiring_scores_insufficient
+  )
 }
 
 function getOverallScoreTone(overall: string): 'success' | 'info' | 'warning' | 'risk' {

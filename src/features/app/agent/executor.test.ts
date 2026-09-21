@@ -126,10 +126,7 @@ describe('executeAgentProposal', () => {
     defineTool(readTool())
     defineTool(commitTool())
     bindModuleContext('test', ctx)
-    const read = await executeAgentProposal(
-      createProposal('test.read', bi('x', 'x'), {}),
-      VIEWER,
-    )
+    const read = await executeAgentProposal(createProposal('test.read', bi('x', 'x'), {}), VIEWER)
     expect(read.outcome.status).toBe('completed')
   })
 
@@ -166,7 +163,9 @@ describe('executeAgentProposal', () => {
       DEMO,
     )
     expect(outcome.status === 'failed' && outcome.code).toBe('module_unavailable')
-    expect(outcome.status === 'failed' && outcome.detail).toEqual(bi('the test module', 'le module de test'))
+    expect(outcome.status === 'failed' && outcome.detail).toEqual(
+      bi('the test module', 'le module de test'),
+    )
   })
 
   it('audits both successes and refusals', async () => {

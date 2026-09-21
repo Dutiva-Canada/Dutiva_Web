@@ -138,51 +138,74 @@ Deno.serve(async (req) => {
   for (const org of orgs) {
     try {
       const [
-          policies,
-          tasks,
-          findings,
-          obligations,
-          employees,
-          issues,
-          submissions,
-          brandClaims,
-          policyFiles,
-          securityIncidents,
-          securityRisks,
-          operationsProjects,
-          governanceDecisions,
-          revenueInvoices,
-          specialistEngagements,
-        ] =
-        await Promise.all([
-          fetchAll<{ status: string }>(supabase, 'hr_policies', 'id, status', org.id),
-          fetchAll<{ status: string; category: string; metadata: Record<string, unknown> | null }>(
-            supabase,
-            'compliance_tasks',
-            'id, status, category, metadata',
-            org.id,
-          ),
-          fetchAll<{ severity: string; status: string }>(
-            supabase,
-            'compliance_findings',
-            'id, severity, status',
-            org.id,
-          ),
-          fetchAll<{ status: string }>(supabase, 'hr_obligations', 'id, status', org.id, {
-            optionalTable: true,
-          }),
-          fetchAll<{ status: string }>(supabase, 'employees', 'id, status', org.id),
-          fetchAll<{ status: string }>(supabase, 'comms_issues', 'id, status', org.id, { optionalTable: true }),
-          fetchAll<{ status: string }>(supabase, 'comms_submissions', 'id, status', org.id, { optionalTable: true }),
-          fetchAll<{ status: string }>(supabase, 'comms_brand_claims', 'id, status', org.id, { optionalTable: true }),
-          fetchAll<{ stage: string }>(supabase, 'comms_policy_files', 'id, stage', org.id, { optionalTable: true }),
-          fetchAll<{ status: string }>(supabase, 'security_incidents', 'id, status', org.id, { optionalTable: true }),
-          fetchAll<{ status: string }>(supabase, 'security_risks', 'id, status', org.id, { optionalTable: true }),
-          fetchAll<{ status: string }>(supabase, 'operations_projects', 'id, status', org.id, { optionalTable: true }),
-          fetchAll<{ status: string }>(supabase, 'governance_decisions', 'id, status', org.id, { optionalTable: true }),
-          fetchAll<{ status: string }>(supabase, 'revenue_invoices', 'id, status', org.id, { optionalTable: true }),
-          fetchAll<{ follow_up_date: string | null }>(supabase, 'specialist_engagements', 'id, follow_up_date', org.id, { optionalTable: true }),
-        ])
+        policies,
+        tasks,
+        findings,
+        obligations,
+        employees,
+        issues,
+        submissions,
+        brandClaims,
+        policyFiles,
+        securityIncidents,
+        securityRisks,
+        operationsProjects,
+        governanceDecisions,
+        revenueInvoices,
+        specialistEngagements,
+      ] = await Promise.all([
+        fetchAll<{ status: string }>(supabase, 'hr_policies', 'id, status', org.id),
+        fetchAll<{ status: string; category: string; metadata: Record<string, unknown> | null }>(
+          supabase,
+          'compliance_tasks',
+          'id, status, category, metadata',
+          org.id,
+        ),
+        fetchAll<{ severity: string; status: string }>(
+          supabase,
+          'compliance_findings',
+          'id, severity, status',
+          org.id,
+        ),
+        fetchAll<{ status: string }>(supabase, 'hr_obligations', 'id, status', org.id, {
+          optionalTable: true,
+        }),
+        fetchAll<{ status: string }>(supabase, 'employees', 'id, status', org.id),
+        fetchAll<{ status: string }>(supabase, 'comms_issues', 'id, status', org.id, {
+          optionalTable: true,
+        }),
+        fetchAll<{ status: string }>(supabase, 'comms_submissions', 'id, status', org.id, {
+          optionalTable: true,
+        }),
+        fetchAll<{ status: string }>(supabase, 'comms_brand_claims', 'id, status', org.id, {
+          optionalTable: true,
+        }),
+        fetchAll<{ stage: string }>(supabase, 'comms_policy_files', 'id, stage', org.id, {
+          optionalTable: true,
+        }),
+        fetchAll<{ status: string }>(supabase, 'security_incidents', 'id, status', org.id, {
+          optionalTable: true,
+        }),
+        fetchAll<{ status: string }>(supabase, 'security_risks', 'id, status', org.id, {
+          optionalTable: true,
+        }),
+        fetchAll<{ status: string }>(supabase, 'operations_projects', 'id, status', org.id, {
+          optionalTable: true,
+        }),
+        fetchAll<{ status: string }>(supabase, 'governance_decisions', 'id, status', org.id, {
+          optionalTable: true,
+        }),
+        fetchAll<{ status: string }>(supabase, 'revenue_invoices', 'id, status', org.id, {
+          optionalTable: true,
+        }),
+        fetchAll<{ follow_up_date: string | null }>(
+          supabase,
+          'specialist_engagements',
+          'id, follow_up_date',
+          org.id,
+          { optionalTable: true },
+        ),
+      ])
 
       const { score, components } = computeOrgScore({
         policyStatuses: policies.map((r) => r.status),

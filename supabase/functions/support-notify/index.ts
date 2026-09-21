@@ -425,7 +425,9 @@ function renderNotificationEmail(kind: NotificationKind, ctx: EmailContext): Ren
       ])
     case 'account_signup': {
       const details = [
-        ctx.accountEmail ? L(lang, `Account: ${ctx.accountEmail}`, `Compte : ${ctx.accountEmail}`) : '',
+        ctx.accountEmail
+          ? L(lang, `Account: ${ctx.accountEmail}`, `Compte : ${ctx.accountEmail}`)
+          : '',
         ctx.planLabel ? L(lang, `Plan: ${ctx.planLabel}`, `Forfait : ${ctx.planLabel}`) : '',
         ctx.sourceLabel ? L(lang, `Source: ${ctx.sourceLabel}`, `Source : ${ctx.sourceLabel}`) : '',
       ].filter(Boolean)
@@ -446,7 +448,9 @@ function renderNotificationEmail(kind: NotificationKind, ctx: EmailContext): Ren
     }
     case 'plan_signup': {
       const details = [
-        ctx.accountEmail ? L(lang, `Account: ${ctx.accountEmail}`, `Compte : ${ctx.accountEmail}`) : '',
+        ctx.accountEmail
+          ? L(lang, `Account: ${ctx.accountEmail}`, `Compte : ${ctx.accountEmail}`)
+          : '',
         ctx.planLabel ? L(lang, `Plan: ${ctx.planLabel}`, `Forfait : ${ctx.planLabel}`) : '',
         ctx.billingPeriodLabel
           ? L(

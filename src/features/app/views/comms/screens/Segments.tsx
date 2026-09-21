@@ -151,9 +151,17 @@ function SegmentCard({
           className="flex min-w-0 flex-1 cursor-pointer items-start gap-[8px] border-none bg-transparent p-0 text-left font-sans"
         >
           {expanded ? (
-            <ChevronDown size={15} className="mt-[2px] shrink-0 text-text-muted" aria-hidden="true" />
+            <ChevronDown
+              size={15}
+              className="mt-[2px] shrink-0 text-text-muted"
+              aria-hidden="true"
+            />
           ) : (
-            <ChevronRight size={15} className="mt-[2px] shrink-0 text-text-muted" aria-hidden="true" />
+            <ChevronRight
+              size={15}
+              className="mt-[2px] shrink-0 text-text-muted"
+              aria-hidden="true"
+            />
           )}
           <span className="min-w-0">
             <span className="block text-[14px] font-semibold text-text">{x(segment.name)}</span>
@@ -285,11 +293,7 @@ function SegmentCard({
 
 export function Segments() {
   const { x } = useI18n()
-  const {
-    contacts,
-    organizations,
-    loading: contactsLoading,
-  } = useStakeholders()
+  const { contacts, organizations, loading: contactsLoading } = useStakeholders()
   const {
     segments,
     segmentMemberships,
@@ -328,9 +332,7 @@ export function Segments() {
       <div className="flex items-start justify-between gap-[12px]">
         <div>
           <h2 className="m-0 text-[18px] font-semibold text-text">{x(M.comms_segments_title)}</h2>
-          <p className="m-0 mt-[4px] text-[13px] text-text-muted">
-            {x(M.comms_segments_subtitle)}
-          </p>
+          <p className="m-0 mt-[4px] text-[13px] text-text-muted">{x(M.comms_segments_subtitle)}</p>
         </div>
         {canWrite && !adding && (
           <button

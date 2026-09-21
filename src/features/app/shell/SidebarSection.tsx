@@ -44,7 +44,10 @@ export function SidebarSection({
           </span>
           <span className="flex shrink-0 items-center gap-1.5">
             {!open && (
-              <span className="text-[11px] font-medium tabular-nums text-text-faint" aria-hidden="true">
+              <span
+                className="text-[11px] font-medium tabular-nums text-text-faint"
+                aria-hidden="true"
+              >
                 {itemCount}
               </span>
             )}

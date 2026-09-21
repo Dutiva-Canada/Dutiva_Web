@@ -2,7 +2,13 @@ import { useEffect, useState } from 'react'
 import { useI18n } from '@/i18n/context'
 import { governanceMessages as M } from '@/i18n/messages/governance'
 import { statusChipClass } from '@/components/chips'
-import { FormField, FormInput, FormSelect, FormTextarea, FormCheckbox } from '@/components/FormField'
+import {
+  FormField,
+  FormInput,
+  FormSelect,
+  FormTextarea,
+  FormCheckbox,
+} from '@/components/FormField'
 import { useGovernanceData } from '../GovernanceDataContext'
 import type { GovernanceDecision, GovernanceDecisionStatus } from '../data/types'
 
@@ -54,7 +60,9 @@ function DecisionRow({
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
       <div className="min-w-0 flex-1">
-        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">{decision.title}</div>
+        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">
+          {decision.title}
+        </div>
         <div className="text-[12px] text-text-muted">
           {decision.decision_date ? `${decision.decision_date}` : null}
           {decision.decided_by ? ` · ${decision.decided_by}` : null}
@@ -62,7 +70,9 @@ function DecisionRow({
         </div>
       </div>
       <div className="flex items-center gap-[10px]">
-        <span className={statusChipClass(STATUS_TONE[decision.status])}>{x(M[STATUS_LABELS[decision.status]])}</span>
+        <span className={statusChipClass(STATUS_TONE[decision.status])}>
+          {x(M[STATUS_LABELS[decision.status]])}
+        </span>
         <button
           type="button"
           onClick={() => onEdit(decision)}
@@ -162,10 +172,17 @@ export function Decisions() {
             <FormInput value={title} onChange={(e) => setTitle(e.target.value)} required />
           </FormField>
           <FormField label={x(M.gov_decision_date)}>
-            <FormInput type="date" value={decisionDate} onChange={(e) => setDecisionDate(e.target.value)} />
+            <FormInput
+              type="date"
+              value={decisionDate}
+              onChange={(e) => setDecisionDate(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.gov_status)}>
-            <FormSelect value={status} onChange={(e) => setStatus(e.target.value as GovernanceDecisionStatus)}>
+            <FormSelect
+              value={status}
+              onChange={(e) => setStatus(e.target.value as GovernanceDecisionStatus)}
+            >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {x(M[STATUS_LABELS[s]])}
@@ -177,7 +194,11 @@ export function Decisions() {
             <FormTextarea value={rationale} onChange={(e) => setRationale(e.target.value)} />
           </FormField>
           <div className="sm:col-span-2">
-            <FormCheckbox label={x(M.gov_viewer_visible)} checked={viewerVisible} onChange={setViewerVisible} />
+            <FormCheckbox
+              label={x(M.gov_viewer_visible)}
+              checked={viewerVisible}
+              onChange={setViewerVisible}
+            />
           </div>
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button
@@ -208,7 +229,10 @@ export function Decisions() {
             <DecisionRow
               key={decision.id}
               decision={decision}
-              onEdit={(d) => { setEditing(d); setShow(true) }}
+              onEdit={(d) => {
+                setEditing(d)
+                setShow(true)
+              }}
               onRemove={(id) => removeDecision(id)}
             />
           ))}

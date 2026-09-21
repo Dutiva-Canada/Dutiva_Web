@@ -1,12 +1,4 @@
-import {
-  Document,
-  Footer,
-  HeadingLevel,
-  Packer,
-  Paragraph,
-  TextRun,
-  BorderStyle,
-} from 'docx'
+import { Document, Footer, HeadingLevel, Packer, Paragraph, TextRun, BorderStyle } from 'docx'
 import type { Lang } from '@/i18n/core'
 
 /**

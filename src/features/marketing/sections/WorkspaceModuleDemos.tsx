@@ -202,7 +202,8 @@ export function WorkspaceModuleDemos() {
               </ul>
               <p className="mt-3 border-t border-border pt-2 text-xs text-text-3">
                 <span className="font-semibold text-text-2">
-                  {lt('landing_ws_demo_hiring_time')}: </span>
+                  {lt('landing_ws_demo_hiring_time')}:{' '}
+                </span>
                 {x(hiring.timeToHire)}
               </p>
             </div>

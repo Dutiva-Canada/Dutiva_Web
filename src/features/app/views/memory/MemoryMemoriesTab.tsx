@@ -66,7 +66,11 @@ const SUBJECT_LABEL: Record<MemoryScope, Bi> = {
 const selectClass =
   'rounded-[9px] border border-border bg-surface px-[10px] py-[7px] font-sans text-[12.5px] text-text outline-none'
 
-export function MemoryMemoriesTab({ onAddMemory, onGoToReview, onGoToGovernance }: MemoryMemoriesTabProps) {
+export function MemoryMemoriesTab({
+  onAddMemory,
+  onGoToReview,
+  onGoToGovernance,
+}: MemoryMemoriesTabProps) {
   const { x, lang } = useI18n()
   const { facts, audit, memoryEnabled } = useMemoryStore()
   const maps = useMemo(() => demoSubjectMaps(), [])
@@ -88,17 +92,47 @@ export function MemoryMemoriesTab({ onAddMemory, onGoToReview, onGoToGovernance 
     .filter((f) => (filter.subject === 'all' ? true : f.scope === filter.subject))
     .filter((f) => (filter.status === 'all' ? true : effectiveStatus(f) === filter.status))
     .filter((f) => (filter.source === 'all' ? true : f.source.type === filter.source))
-    .filter((f) => (filter.sensitivity === 'all' ? true : effectiveSensitivity(f) === filter.sensitivity))
+    .filter((f) =>
+      filter.sensitivity === 'all' ? true : effectiveSensitivity(f) === filter.sensitivity,
+    )
     .filter((f) => memoryMatchesQuery(f, filter.query, maps, lang))
 
-  const openFact = openId != null ? facts.find((f) => f.id === openId) ?? null : null
+  const openFact = openId != null ? (facts.find((f) => f.id === openId) ?? null) : null
   const openSubject = openFact != null ? resolveSubject(openFact, maps, lang) : null
 
   const metricItems = [
-    { key: 'active', label: M.memory_metric_active, value: metrics.active, icon: ShieldCheck, tone: 'text-text-2', onClick: undefined as (() => void) | undefined },
-    { key: 'review', label: M.memory_metric_needs_review, value: metrics.needsReview, icon: AlertTriangle, tone: metrics.needsReview > 0 ? 'text-gold-fg' : 'text-text-faint', onClick: onGoToReview },
-    { key: 'expiring', label: M.memory_metric_expiring, value: metrics.expiringSoon, icon: Clock, tone: metrics.expiringSoon > 0 ? 'text-gold-fg' : 'text-text-faint', onClick: undefined },
-    { key: 'restricted', label: M.memory_metric_restricted, value: metrics.restricted, icon: Lock, tone: metrics.restricted > 0 ? 'text-risk-dot' : 'text-text-faint', onClick: undefined },
+    {
+      key: 'active',
+      label: M.memory_metric_active,
+      value: metrics.active,
+      icon: ShieldCheck,
+      tone: 'text-text-2',
+      onClick: undefined as (() => void) | undefined,
+    },
+    {
+      key: 'review',
+      label: M.memory_metric_needs_review,
+      value: metrics.needsReview,
+      icon: AlertTriangle,
+      tone: metrics.needsReview > 0 ? 'text-gold-fg' : 'text-text-faint',
+      onClick: onGoToReview,
+    },
+    {
+      key: 'expiring',
+      label: M.memory_metric_expiring,
+      value: metrics.expiringSoon,
+      icon: Clock,
+      tone: metrics.expiringSoon > 0 ? 'text-gold-fg' : 'text-text-faint',
+      onClick: undefined,
+    },
+    {
+      key: 'restricted',
+      label: M.memory_metric_restricted,
+      value: metrics.restricted,
+      icon: Lock,
+      tone: metrics.restricted > 0 ? 'text-risk-dot' : 'text-text-faint',
+      onClick: undefined,
+    },
   ]
 
   return (
@@ -108,10 +142,19 @@ export function MemoryMemoriesTab({ onAddMemory, onGoToReview, onGoToGovernance 
         {!memoryEnabled && (
           <div className="mb-[14px] rounded-[13px] border border-border-soft bg-surface-2 px-[16px] py-[14px]">
             <div className="flex items-start gap-[10px]">
-              <AlertTriangle size={16} strokeWidth={1.8} className="mt-[1px] shrink-0 text-gold-fg" aria-hidden="true" />
+              <AlertTriangle
+                size={16}
+                strokeWidth={1.8}
+                className="mt-[1px] shrink-0 text-gold-fg"
+                aria-hidden="true"
+              />
               <div className="min-w-0 flex-1">
-                <p className="m-0 mb-[8px] text-[13px] font-semibold text-text">{x(M.memory_disabled_title)}</p>
-                <p className="m-0 mb-[10px] text-[12.5px] leading-normal text-text-muted">{x(M.memory_disabled_body)}</p>
+                <p className="m-0 mb-[8px] text-[13px] font-semibold text-text">
+                  {x(M.memory_disabled_title)}
+                </p>
+                <p className="m-0 mb-[10px] text-[12.5px] leading-normal text-text-muted">
+                  {x(M.memory_disabled_body)}
+                </p>
                 {onGoToGovernance != null && (
                   <button
                     type="button"
@@ -131,9 +174,7 @@ export function MemoryMemoriesTab({ onAddMemory, onGoToReview, onGoToGovernance 
           {metricItems.map((m) => {
             const Icon = m.icon
             const interactive = m.onClick != null
-            const cls = interactive
-              ? 'cursor-pointer hover:border-border'
-              : ''
+            const cls = interactive ? 'cursor-pointer hover:border-border' : ''
             return (
               <div
                 key={m.key}
@@ -141,7 +182,16 @@ export function MemoryMemoriesTab({ onAddMemory, onGoToReview, onGoToGovernance 
                 className={`flex items-center gap-[7px] rounded-[9px] border border-border-soft bg-surface px-[11px] py-[7px] ${cls}`}
                 role={interactive ? 'button' : undefined}
                 tabIndex={interactive ? 0 : undefined}
-                onKeyDown={interactive ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); m.onClick?.() } } : undefined}
+                onKeyDown={
+                  interactive
+                    ? (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          m.onClick?.()
+                        }
+                      }
+                    : undefined
+                }
               >
                 <Icon size={14} strokeWidth={1.8} className={m.tone} aria-hidden="true" />
                 <span className="text-[16px] font-bold text-text">{m.value}</span>
@@ -166,11 +216,15 @@ export function MemoryMemoriesTab({ onAddMemory, onGoToReview, onGoToGovernance 
               className="min-w-0 flex-1 border-none bg-transparent font-sans text-[12.5px] text-text outline-none"
             />
           </div>
-          <label className="sr-only" htmlFor="mem-filter-subject">{x(M.memory_filter_subject)}</label>
+          <label className="sr-only" htmlFor="mem-filter-subject">
+            {x(M.memory_filter_subject)}
+          </label>
           <select
             id="mem-filter-subject"
             value={filter.subject}
-            onChange={(e) => setFilter((f) => ({ ...f, subject: e.target.value as MemoryScope | 'all' }))}
+            onChange={(e) =>
+              setFilter((f) => ({ ...f, subject: e.target.value as MemoryScope | 'all' }))
+            }
             className={selectClass}
           >
             <option value="all">{x(M.memory_filter_subject)}</option>
@@ -180,7 +234,9 @@ export function MemoryMemoriesTab({ onAddMemory, onGoToReview, onGoToGovernance 
               </option>
             ))}
           </select>
-          <label className="sr-only" htmlFor="mem-filter-status">{x(M.memory_filter_status)}</label>
+          <label className="sr-only" htmlFor="mem-filter-status">
+            {x(M.memory_filter_status)}
+          </label>
           <select
             id="mem-filter-status"
             value={filter.status}
@@ -193,7 +249,9 @@ export function MemoryMemoriesTab({ onAddMemory, onGoToReview, onGoToGovernance 
               </option>
             ))}
           </select>
-          <label className="sr-only" htmlFor="mem-filter-source">{x(M.memory_filter_source)}</label>
+          <label className="sr-only" htmlFor="mem-filter-source">
+            {x(M.memory_filter_source)}
+          </label>
           <select
             id="mem-filter-source"
             value={filter.source}
@@ -206,7 +264,9 @@ export function MemoryMemoriesTab({ onAddMemory, onGoToReview, onGoToGovernance 
               </option>
             ))}
           </select>
-          <label className="sr-only" htmlFor="mem-filter-sensitivity">{x(M.memory_filter_sensitivity)}</label>
+          <label className="sr-only" htmlFor="mem-filter-sensitivity">
+            {x(M.memory_filter_sensitivity)}
+          </label>
           <select
             id="mem-filter-sensitivity"
             value={filter.sensitivity}
@@ -237,9 +297,18 @@ export function MemoryMemoriesTab({ onAddMemory, onGoToReview, onGoToGovernance 
           <div className="overflow-hidden rounded-[14px] border border-border-soft bg-surface">
             {filtered.length === 0 ? (
               <div className="px-[24px] py-[28px] text-center">
-                <Search size={18} strokeWidth={1.7} className="mx-auto mb-[8px] text-text-faint" aria-hidden="true" />
-                <p className="m-0 mb-[4px] text-[13px] font-semibold text-text-2">{x(M.memory_no_results_title)}</p>
-                <p className="m-0 mb-[12px] text-[12.5px] text-text-muted">{x(M.memory_no_results_body)}</p>
+                <Search
+                  size={18}
+                  strokeWidth={1.7}
+                  className="mx-auto mb-[8px] text-text-faint"
+                  aria-hidden="true"
+                />
+                <p className="m-0 mb-[4px] text-[13px] font-semibold text-text-2">
+                  {x(M.memory_no_results_title)}
+                </p>
+                <p className="m-0 mb-[12px] text-[12.5px] text-text-muted">
+                  {x(M.memory_no_results_body)}
+                </p>
                 <button
                   type="button"
                   onClick={() => setFilter(emptyMemoryFilter)}
@@ -362,7 +431,9 @@ function EmptyMemories({ onAddMemory }: { readonly onAddMemory: () => void }) {
       <div className="mx-auto mb-[10px] flex h-[40px] w-[40px] items-center justify-center rounded-[11px] bg-surface-2">
         <Brain size={18} strokeWidth={1.7} className="text-gold-fg" aria-hidden="true" />
       </div>
-      <h3 className="m-0 mb-[5px] font-display text-[16px] font-semibold text-text">{x(M.memory_empty_title)}</h3>
+      <h3 className="m-0 mb-[5px] font-display text-[16px] font-semibold text-text">
+        {x(M.memory_empty_title)}
+      </h3>
       <p className="mx-auto mb-[10px] max-w-[420px] text-[12.5px] leading-normal text-text-muted">
         {x(M.memory_empty_body)}
       </p>

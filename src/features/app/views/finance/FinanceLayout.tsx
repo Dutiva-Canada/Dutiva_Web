@@ -54,11 +54,14 @@ export function FinanceLayout({ mode }: FinanceLayoutProps) {
   const { hasSupabase } = useFinanceData()
   const { organization } = useWorkspaceMode()
 
-  const visibleTabs = mode === 'demo' ? TABS : TABS.filter((tab) => {
-    const flags = organization?.financeFeatures
-    if (!flags || Object.keys(flags).length === 0) return true
-    return flags[tab.key] !== false
-  })
+  const visibleTabs =
+    mode === 'demo'
+      ? TABS
+      : TABS.filter((tab) => {
+          const flags = organization?.financeFeatures
+          if (!flags || Object.keys(flags).length === 0) return true
+          return flags[tab.key] !== false
+        })
 
   const modeMessage = (() => {
     if (mode === 'demo') return x(M.finance_demo_read_only)

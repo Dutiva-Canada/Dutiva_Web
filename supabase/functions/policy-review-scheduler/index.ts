@@ -45,9 +45,11 @@ function policyReminderEmail(input: {
   policiesUrl: string
 }): { subject: string; text: string } {
   const count = input.policyNames.length
-  const listed = input.policyNames.slice(0, 12).map((n) => `• ${n}`).join('\n')
-  const more =
-    count > 12 ? `\n…and ${count - 12} more.` : ''
+  const listed = input.policyNames
+    .slice(0, 12)
+    .map((n) => `• ${n}`)
+    .join('\n')
+  const more = count > 12 ? `\n…and ${count - 12} more.` : ''
   return {
     subject:
       count === 1
@@ -115,8 +117,7 @@ Deno.serve(async (req: Request) => {
     })
   }
 
-  const from =
-    Deno.env.get('SUPPORT_EMAIL_FROM') ?? 'Dutiva <noreply@dutiva.ca>'
+  const from = Deno.env.get('SUPPORT_EMAIL_FROM') ?? 'Dutiva <noreply@dutiva.ca>'
   const siteUrl = (Deno.env.get('SITE_URL') ?? 'https://dutiva.ca').replace(/\/+$/, '')
 
   const { data: dueRows, error: dueError } = await db.rpc('hr_policies_orgs_needing_reminder')

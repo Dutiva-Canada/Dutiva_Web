@@ -7,7 +7,16 @@ const specialistRowSchema = z.object({
   id: z.string(),
   organization_id: z.string(),
   name: z.string(),
-  specialty: z.enum(['lawyer', 'accountant', 'tax', 'insurance', 'it_security', 'hr_consultant', 'bookkeeper', 'other']),
+  specialty: z.enum([
+    'lawyer',
+    'accountant',
+    'tax',
+    'insurance',
+    'it_security',
+    'hr_consultant',
+    'bookkeeper',
+    'other',
+  ]),
   company: z.string().nullable(),
   email: z.string().nullable(),
   phone: z.string().nullable(),
@@ -67,7 +76,16 @@ export async function listSpecialists(organizationId: string): Promise<Specialis
 const specialistInsertSchema = z.object({
   organization_id: z.string(),
   name: z.string().min(1),
-  specialty: z.enum(['lawyer', 'accountant', 'tax', 'insurance', 'it_security', 'hr_consultant', 'bookkeeper', 'other']),
+  specialty: z.enum([
+    'lawyer',
+    'accountant',
+    'tax',
+    'insurance',
+    'it_security',
+    'hr_consultant',
+    'bookkeeper',
+    'other',
+  ]),
   company: z.string().nullable(),
   email: z.string().nullable(),
   phone: z.string().nullable(),
@@ -111,7 +129,11 @@ export async function createSpecialistEngagement(
 ): Promise<SpecialistEngagement> {
   const client = getClient()
   const insert = engagementInsertSchema.parse({ ...values, organization_id: organizationId })
-  const { data, error } = await client.from('specialist_engagements').insert(insert).select().single()
+  const { data, error } = await client
+    .from('specialist_engagements')
+    .insert(insert)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = engagementRowSchema.parse(data)
   return toEngagement(parsed)
@@ -123,7 +145,12 @@ export async function updateSpecialist(
 ): Promise<Specialist> {
   const client = getClient()
   const update = specialistInsertSchema.parse(values)
-  const { data, error } = await client.from('specialists').update(update).eq('id', id).select().single()
+  const { data, error } = await client
+    .from('specialists')
+    .update(update)
+    .eq('id', id)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = specialistRowSchema.parse(data)
   return toSpecialist(parsed)
@@ -135,7 +162,12 @@ export async function updateSpecialistEngagement(
 ): Promise<SpecialistEngagement> {
   const client = getClient()
   const update = engagementInsertSchema.parse(values)
-  const { data, error } = await client.from('specialist_engagements').update(update).eq('id', id).select().single()
+  const { data, error } = await client
+    .from('specialist_engagements')
+    .update(update)
+    .eq('id', id)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = engagementRowSchema.parse(data)
   return toEngagement(parsed)
@@ -158,7 +190,9 @@ export async function deleteSpecialistEngagement(id: string): Promise<void> {
   if (error) throw new Error(error.message)
 }
 
-export async function listSpecialistEngagements(organizationId: string): Promise<SpecialistEngagement[]> {
+export async function listSpecialistEngagements(
+  organizationId: string,
+): Promise<SpecialistEngagement[]> {
   const client = getClient()
   const data = await fetchAllPages((from, to) =>
     client

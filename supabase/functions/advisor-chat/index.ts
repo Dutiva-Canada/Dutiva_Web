@@ -32,10 +32,7 @@ import {
   routeModalities,
   userMessageContent,
 } from '../_shared/modelUpstream.ts'
-import type {
-  AdvisorAttachment,
-  UpstreamMessage,
-} from '../_shared/modelUpstream.ts'
+import type { AdvisorAttachment, UpstreamMessage } from '../_shared/modelUpstream.ts'
 
 /**
  * Real AI Advisor replies. Looks up the active `advisor_chat` route in
@@ -716,10 +713,7 @@ Deno.serve(async (req: Request) => {
   /* Modality gate — refuse before metering: a turn the routed model cannot
      even see (an image sent to a text-only route) must not spend budget.
      Documents inline to text, so only images can trip this. */
-  const missing = missingModality(
-    request.attachments,
-    routeModalities(activeRoute.route.config),
-  )
+  const missing = missingModality(request.attachments, routeModalities(activeRoute.route.config))
   if (missing) {
     return json(
       {

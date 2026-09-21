@@ -2,7 +2,6 @@ import type { BulkImportAdapter, BulkImportField } from '@/features/app/bulkImpo
 import { bulkImportMessages as B } from '@/i18n/messages/bulkImport'
 import type { FinanceBankStatementImportResult } from '../data/types'
 
-
 export interface BankStatementImportRow {
   date?: string
   description?: string
@@ -129,8 +128,11 @@ export function createBankStatementBulkImportAdapter(
     name: B.bulk_import_bank_statement,
     fields: bankStatementBulkImportFields,
     import: async (rows: Partial<BankStatementImportRow>[]) => {
-      const validRows = rows.filter((r) => r.date && (r.amount || r.debit || r.credit) && r.description)
-      if (validRows.length === 0) return { created: 0, failed: rows.length, errors: ['No valid rows to import'] }
+      const validRows = rows.filter(
+        (r) => r.date && (r.amount || r.debit || r.credit) && r.description,
+      )
+      if (validRows.length === 0)
+        return { created: 0, failed: rows.length, errors: ['No valid rows to import'] }
 
       const csv = generateStatementCSV(validRows)
       try {
@@ -138,7 +140,11 @@ export function createBankStatementBulkImportAdapter(
         if (!result) return { created: 0, failed: rows.length, errors: ['Import returned null'] }
         return { created: result.newItems, failed: result.duplicates + result.errors, errors: [] }
       } catch (err) {
-        return { created: 0, failed: rows.length, errors: [err instanceof Error ? err.message : String(err)] }
+        return {
+          created: 0,
+          failed: rows.length,
+          errors: [err instanceof Error ? err.message : String(err)],
+        }
       }
     },
     sampleTemplate: bankStatementBulkImportFields.map((f) => String(f.key)),

@@ -13,11 +13,7 @@ import {
   DECISION_KIND_LABEL,
   WATCHLIST_STATUS_LABEL,
 } from '../financeLabels'
-import type {
-  FinanceAssetClass,
-  FinanceDecisionKind,
-  FinanceWatchlistStatus,
-} from '../data/types'
+import type { FinanceAssetClass, FinanceDecisionKind, FinanceWatchlistStatus } from '../data/types'
 
 /**
  * Finance → Portfolio — company investment tracking adapted from the
@@ -63,7 +59,8 @@ export function Portfolio() {
     [state.holdings],
   )
   const activeWatch = useMemo(
-    () => state.watchlistItems.filter((w) => w.status === 'watching' || w.status === 'under_review'),
+    () =>
+      state.watchlistItems.filter((w) => w.status === 'watching' || w.status === 'under_review'),
     [state.watchlistItems],
   )
   const nextReview = useMemo(() => {
@@ -102,7 +99,10 @@ export function Portfolio() {
           </div>
           <div className="mt-[6px] text-[20px] font-bold text-text">CAD {toMoney(totalMarket)}</div>
           <div className="mt-[2px] text-[11.5px] text-text-muted">
-            {x(M.finance_portfolio_holdings_count).replace('{count}', String(state.holdings.length))}
+            {x(M.finance_portfolio_holdings_count).replace(
+              '{count}',
+              String(state.holdings.length),
+            )}
           </div>
         </div>
         <div className="rounded-[12px] border border-border bg-surface p-[16px]">
@@ -111,7 +111,10 @@ export function Portfolio() {
           </div>
           <div className="mt-[6px] text-[20px] font-bold text-text">{activeWatch.length}</div>
           <div className="mt-[2px] text-[11.5px] text-text-muted">
-            {x(M.finance_portfolio_watch_total).replace('{count}', String(state.watchlistItems.length))}
+            {x(M.finance_portfolio_watch_total).replace(
+              '{count}',
+              String(state.watchlistItems.length),
+            )}
           </div>
         </div>
         <div className="rounded-[12px] border border-border bg-surface p-[16px]">
@@ -120,7 +123,10 @@ export function Portfolio() {
           </div>
           <div className="mt-[6px] text-[20px] font-bold text-text">{nextReview ?? '—'}</div>
           <div className="mt-[2px] text-[11.5px] text-text-muted">
-            {x(M.finance_portfolio_journal_count).replace('{count}', String(state.decisionEntries.length))}
+            {x(M.finance_portfolio_journal_count).replace(
+              '{count}',
+              String(state.decisionEntries.length),
+            )}
           </div>
         </div>
       </section>
@@ -131,7 +137,10 @@ export function Portfolio() {
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
         <div className="mb-[12px] flex items-center justify-between">
           <h2 className="text-[15px] font-semibold text-text">{x(M.finance_portfolio_holdings)}</h2>
-          <NavLink to="../treasury" className="text-[12.5px] font-semibold text-accent hover:underline">
+          <NavLink
+            to="../treasury"
+            className="text-[12.5px] font-semibold text-accent hover:underline"
+          >
             {x(M.finance_portfolio_manage_treasury)}
           </NavLink>
         </div>
@@ -151,11 +160,14 @@ export function Portfolio() {
                       {` · ${x(M.finance_portfolio_allocation)}: ${share.toFixed(1)}%`}
                     </div>
                     <div className="text-[12px] text-text-muted">
-                      {x(M.finance_treasury_as_of)}: {h.asOfDate} · {x(M.finance_source)}: {x(h.valuationSource)}
+                      {x(M.finance_treasury_as_of)}: {h.asOfDate} · {x(M.finance_source)}:{' '}
+                      {x(h.valuationSource)}
                     </div>
                   </div>
                   {h.stale && (
-                    <span className={statusChipClass('warning')}>{x(M.finance_treasury_stale)}</span>
+                    <span className={statusChipClass('warning')}>
+                      {x(M.finance_treasury_stale)}
+                    </span>
                   )}
                 </li>
               )
@@ -167,7 +179,9 @@ export function Portfolio() {
       {/* Watchlist */}
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
         <div className="mb-[12px] flex items-center justify-between">
-          <h2 className="text-[15px] font-semibold text-text">{x(M.finance_portfolio_watchlist)}</h2>
+          <h2 className="text-[15px] font-semibold text-text">
+            {x(M.finance_portfolio_watchlist)}
+          </h2>
           {canWrite && (
             <button
               type="button"
@@ -197,7 +211,8 @@ export function Portfolio() {
               <li key={w.id} className="flex items-start justify-between gap-[12px]">
                 <div className="min-w-0">
                   <div className="text-[13px] font-semibold text-text">
-                    {w.symbol ? `${w.symbol} — ` : ''}{x(w.label)}
+                    {w.symbol ? `${w.symbol} — ` : ''}
+                    {x(w.label)}
                   </div>
                   <div className="text-[12px] text-text-muted">
                     {x(ASSET_CLASS_LABEL[w.assetClass])} · {x(CURRENCY_LABEL[w.currency])}
@@ -218,7 +233,9 @@ export function Portfolio() {
                     className="shrink-0 rounded-[6px] border border-border bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2"
                   >
                     {(Object.keys(WATCHLIST_STATUS_LABEL) as FinanceWatchlistStatus[]).map((s) => (
-                      <option key={s} value={s}>{x(WATCHLIST_STATUS_LABEL[s])}</option>
+                      <option key={s} value={s}>
+                        {x(WATCHLIST_STATUS_LABEL[s])}
+                      </option>
                     ))}
                   </select>
                 ) : (
@@ -251,7 +268,11 @@ export function Portfolio() {
           <DecisionForm
             entityId={firstEntityId}
             subjects={[
-              ...state.holdings.map((h) => ({ key: `h:${h.id}`, name: pickL(h.label, lang), holdingId: h.id })),
+              ...state.holdings.map((h) => ({
+                key: `h:${h.id}`,
+                name: pickL(h.label, lang),
+                holdingId: h.id,
+              })),
               ...state.watchlistItems.map((w) => ({
                 key: `w:${w.id}`,
                 name: w.symbol ? `${w.symbol} — ${pickL(w.label, lang)}` : pickL(w.label, lang),
@@ -274,13 +295,15 @@ export function Portfolio() {
                 <div className="flex items-start justify-between gap-[12px]">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-[8px]">
-                      <span className={statusChipClass(
-                        d.decision === 'buy' || d.decision === 'add'
-                          ? 'success'
-                          : d.decision === 'sell' || d.decision === 'exit'
-                            ? 'risk'
-                            : 'neutral',
-                      )}>
+                      <span
+                        className={statusChipClass(
+                          d.decision === 'buy' || d.decision === 'add'
+                            ? 'success'
+                            : d.decision === 'sell' || d.decision === 'exit'
+                              ? 'risk'
+                              : 'neutral',
+                        )}
+                      >
                         {x(DECISION_KIND_LABEL[d.decision])}
                       </span>
                       <span className="text-[13px] font-semibold text-text">{x(d.summary)}</span>
@@ -288,7 +311,8 @@ export function Portfolio() {
                     <div className="mt-[3px] text-[12px] text-text-muted">
                       {x(M.finance_portfolio_decided_at)}: {d.decidedAt}
                       {' · '}
-                      {x(M.finance_portfolio_subject)}: {subjectName(d.holdingId, d.watchlistItemId)}
+                      {x(M.finance_portfolio_subject)}:{' '}
+                      {subjectName(d.holdingId, d.watchlistItemId)}
                       {d.reviewDate && ` · ${x(M.finance_portfolio_review_date)}: ${d.reviewDate}`}
                     </div>
                     {d.rationale && (
@@ -383,9 +407,7 @@ function WatchlistForm({
       symbol: symbol.trim() || undefined,
       label: { en: label.trim(), fr: label.trim() },
       assetClass,
-      thesis: thesisText
-          ? ({ en: thesisText, fr: thesisText } satisfies Bi as Bi)
-          : undefined,
+      thesis: thesisText ? ({ en: thesisText, fr: thesisText } satisfies Bi as Bi) : undefined,
       targetLow: targetLow.trim() || undefined,
       targetHigh: targetHigh.trim() || undefined,
       currency: 'CAD',
@@ -395,11 +417,18 @@ function WatchlistForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]">
+    <form
+      onSubmit={handleSubmit}
+      className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]"
+    >
       <div className="grid grid-cols-2 gap-[10px]">
         <label className={labelClass}>
           <span>{x(M.finance_portfolio_symbol)}</span>
-          <input value={symbol} onChange={(e) => setSymbol(e.target.value)} className={inputClass} />
+          <input
+            value={symbol}
+            onChange={(e) => setSymbol(e.target.value)}
+            className={inputClass}
+          />
         </label>
         <label className={labelClass}>
           <span>{x(M.finance_portfolio_asset_class)}</span>
@@ -409,14 +438,21 @@ function WatchlistForm({
             className={inputClass}
           >
             {(Object.keys(ASSET_CLASS_LABEL) as FinanceAssetClass[]).map((c) => (
-              <option key={c} value={c}>{x(ASSET_CLASS_LABEL[c])}</option>
+              <option key={c} value={c}>
+                {x(ASSET_CLASS_LABEL[c])}
+              </option>
             ))}
           </select>
         </label>
       </div>
       <label className={labelClass}>
         <span>{x(M.finance_name)}</span>
-        <input value={label} onChange={(e) => setLabel(e.target.value)} className={inputClass} required />
+        <input
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          className={inputClass}
+          required
+        />
       </label>
       <label className={labelClass}>
         <span>{x(M.finance_portfolio_thesis)}</span>
@@ -425,18 +461,33 @@ function WatchlistForm({
       <div className="grid grid-cols-2 gap-[10px]">
         <label className={labelClass}>
           <span>{x(M.finance_portfolio_target_low)}</span>
-          <input value={targetLow} onChange={(e) => setTargetLow(e.target.value)} className={inputClass} />
+          <input
+            value={targetLow}
+            onChange={(e) => setTargetLow(e.target.value)}
+            className={inputClass}
+          />
         </label>
         <label className={labelClass}>
           <span>{x(M.finance_portfolio_target_high)}</span>
-          <input value={targetHigh} onChange={(e) => setTargetHigh(e.target.value)} className={inputClass} />
+          <input
+            value={targetHigh}
+            onChange={(e) => setTargetHigh(e.target.value)}
+            className={inputClass}
+          />
         </label>
       </div>
       <div className="flex justify-end gap-[8px]">
-        <button type="button" onClick={onCancel} className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border"
+        >
           {x(M.finance_cancel)}
         </button>
-        <button type="submit" className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">
+        <button
+          type="submit"
+          className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white"
+        >
           {x(M.finance_save)}
         </button>
       </div>
@@ -480,14 +531,23 @@ function DecisionForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]">
+    <form
+      onSubmit={handleSubmit}
+      className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]"
+    >
       <div className="grid grid-cols-2 gap-[10px]">
         <label className={labelClass}>
           <span>{x(M.finance_portfolio_subject)}</span>
-          <select value={subjectKey} onChange={(e) => setSubjectKey(e.target.value)} className={inputClass}>
+          <select
+            value={subjectKey}
+            onChange={(e) => setSubjectKey(e.target.value)}
+            className={inputClass}
+          >
             <option value="">—</option>
             {subjects.map((s) => (
-              <option key={s.key} value={s.key}>{s.name}</option>
+              <option key={s.key} value={s.key}>
+                {s.name}
+              </option>
             ))}
           </select>
         </label>
@@ -499,34 +559,62 @@ function DecisionForm({
             className={inputClass}
           >
             {(Object.keys(DECISION_KIND_LABEL) as FinanceDecisionKind[]).map((k) => (
-              <option key={k} value={k}>{x(DECISION_KIND_LABEL[k])}</option>
+              <option key={k} value={k}>
+                {x(DECISION_KIND_LABEL[k])}
+              </option>
             ))}
           </select>
         </label>
       </div>
       <label className={labelClass}>
         <span>{x(M.finance_summary)}</span>
-        <input value={summary} onChange={(e) => setSummary(e.target.value)} className={inputClass} required />
+        <input
+          value={summary}
+          onChange={(e) => setSummary(e.target.value)}
+          className={inputClass}
+          required
+        />
       </label>
       <label className={labelClass}>
         <span>{x(M.finance_portfolio_rationale)}</span>
-        <input value={rationale} onChange={(e) => setRationale(e.target.value)} className={inputClass} />
+        <input
+          value={rationale}
+          onChange={(e) => setRationale(e.target.value)}
+          className={inputClass}
+        />
       </label>
       <div className="grid grid-cols-2 gap-[10px]">
         <label className={labelClass}>
           <span>{x(M.finance_portfolio_decided_at)}</span>
-          <input type="date" value={decidedAt} onChange={(e) => setDecidedAt(e.target.value)} className={inputClass} />
+          <input
+            type="date"
+            value={decidedAt}
+            onChange={(e) => setDecidedAt(e.target.value)}
+            className={inputClass}
+          />
         </label>
         <label className={labelClass}>
           <span>{x(M.finance_portfolio_review_date)}</span>
-          <input type="date" value={reviewDate} onChange={(e) => setReviewDate(e.target.value)} className={inputClass} />
+          <input
+            type="date"
+            value={reviewDate}
+            onChange={(e) => setReviewDate(e.target.value)}
+            className={inputClass}
+          />
         </label>
       </div>
       <div className="flex justify-end gap-[8px]">
-        <button type="button" onClick={onCancel} className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border"
+        >
           {x(M.finance_cancel)}
         </button>
-        <button type="submit" className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">
+        <button
+          type="submit"
+          className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white"
+        >
           {x(M.finance_save)}
         </button>
       </div>

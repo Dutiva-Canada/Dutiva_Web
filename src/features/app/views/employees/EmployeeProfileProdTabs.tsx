@@ -60,10 +60,7 @@ export function ProfileTabStrip({
 }
 
 /** Empty-state panel for tabs that don't have a production data source yet. */
-export function ProfileEmptyTab({
-  title,
-  body,
-}: Readonly<{ title: Bi; body: Bi }>) {
+export function ProfileEmptyTab({ title, body }: Readonly<{ title: Bi; body: Bi }>) {
   const { x } = useI18n()
   return (
     <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[48px] text-center">

@@ -270,12 +270,18 @@ export const casesMessages = defineMessages({
   cases_prod_tabs_aria: { en: 'Case workspace sections', fr: 'Sections du dossier' },
   cases_prod_detail_created: { en: 'Opened', fr: 'Ouvert le' },
   cases_prod_detail_employee_none: { en: 'No linked employee', fr: 'Aucun employé lié' },
-  cases_prod_risk_empty_title: { en: 'Risk review not yet available', fr: "Examen des risques non disponible" },
+  cases_prod_risk_empty_title: {
+    en: 'Risk review not yet available',
+    fr: 'Examen des risques non disponible',
+  },
   cases_prod_risk_empty_body: {
     en: 'Risk factors and mitigation notes will appear here once case management expands to include risk assessment.',
     fr: "Les facteurs de risque et les notes d'atténuation apparaîtront ici lorsque la gestion des dossiers évoluera pour inclure l'évaluation des risques.",
   },
-  cases_prod_legal_empty_title: { en: 'Legal review not yet available', fr: 'Révision juridique non disponible' },
+  cases_prod_legal_empty_title: {
+    en: 'Legal review not yet available',
+    fr: 'Révision juridique non disponible',
+  },
   cases_prod_legal_empty_body: {
     en: 'Legal references, statutes and external counsel will appear here as case management expands.',
     fr: 'Cette section sera disponible au fur et à mesure que la gestion des dossiers évolue.',

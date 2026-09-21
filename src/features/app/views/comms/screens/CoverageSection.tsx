@@ -100,28 +100,51 @@ export function CoverageSection() {
       </div>
 
       {open && (
-        <form onSubmit={onSubmit} className="mb-[12px] rounded-[10px] border border-border bg-inset p-[12px]">
+        <form
+          onSubmit={onSubmit}
+          className="mb-[12px] rounded-[10px] border border-border bg-inset p-[12px]"
+        >
           <div className="grid grid-cols-1 gap-[12px] sm:grid-cols-2">
             <div className="sm:col-span-2">
               <label className={labelClass}>{x(M.comms_intelligence_headline)}</label>
-              <input required value={headline} onChange={(e) => setHeadline(e.target.value)} className={inputClass} />
+              <input
+                required
+                value={headline}
+                onChange={(e) => setHeadline(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_intelligence_outlet)}</label>
-              <input required value={outlet} onChange={(e) => setOutlet(e.target.value)} className={inputClass} />
+              <input
+                required
+                value={outlet}
+                onChange={(e) => setOutlet(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_initiatives_name)}</label>
-              <select value={initiativeId} onChange={(e) => setInitiativeId(e.target.value)} className={inputClass}>
+              <select
+                value={initiativeId}
+                onChange={(e) => setInitiativeId(e.target.value)}
+                className={inputClass}
+              >
                 <option value="">{x(M.comms_none)}</option>
                 {initiatives.map((i) => (
-                  <option key={i.id} value={i.id}>{x(i.title)}</option>
+                  <option key={i.id} value={i.id}>
+                    {x(i.title)}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_content_language)}</label>
-              <select value={language} onChange={(e) => setLanguage(e.target.value as typeof language)} className={inputClass}>
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value as typeof language)}
+                className={inputClass}
+              >
                 <option value="en">{x(M.comms_language_en)}</option>
                 <option value="fr">{x(M.comms_language_fr)}</option>
                 <option value="bilingual">{x(M.comms_language_bilingual)}</option>
@@ -129,23 +152,44 @@ export function CoverageSection() {
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_content_due)}</label>
-              <input type="date" value={publishedDate} onChange={(e) => setPublishedDate(e.target.value)} className={inputClass} />
+              <input
+                type="date"
+                value={publishedDate}
+                onChange={(e) => setPublishedDate(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_intelligence_sentiment)}</label>
-              <select value={sentiment} onChange={(e) => setSentiment(e.target.value as CommsCoverageSentiment)} className={inputClass}>
+              <select
+                value={sentiment}
+                onChange={(e) => setSentiment(e.target.value as CommsCoverageSentiment)}
+                className={inputClass}
+              >
                 {SENTIMENTS.map((s) => (
-                  <option key={s} value={s}>{x(SENTIMENT_LABEL[s])}</option>
+                  <option key={s} value={s}>
+                    {x(SENTIMENT_LABEL[s])}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_intelligence_reach)}</label>
-              <input type="number" min={0} value={reach} onChange={(e) => setReach(e.target.value)} className={inputClass} />
+              <input
+                type="number"
+                min={0}
+                value={reach}
+                onChange={(e) => setReach(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_results_provenance)}</label>
-              <select value={provenance} onChange={(e) => setProvenance(e.target.value as CommsCoverageItem['provenance'])} className={inputClass}>
+              <select
+                value={provenance}
+                onChange={(e) => setProvenance(e.target.value as CommsCoverageItem['provenance'])}
+                className={inputClass}
+              >
                 <option value="manual">{x(M.comms_results_provenance_manual)}</option>
                 <option value="provider">{x(M.comms_results_provenance_provider)}</option>
                 <option value="ai_estimate">{x(M.comms_results_provenance_ai_estimate)}</option>
@@ -153,18 +197,34 @@ export function CoverageSection() {
             </div>
             <div className="sm:col-span-2">
               <label className={labelClass}>{x(M.comms_url)}</label>
-              <input type="url" value={url} onChange={(e) => setUrl(e.target.value)} className={inputClass} />
+              <input
+                type="url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div className="sm:col-span-2">
               <label className={labelClass}>{x(M.comms_notes)}</label>
-              <input value={notes} onChange={(e) => setNotes(e.target.value)} className={inputClass} />
+              <input
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className={inputClass}
+              />
             </div>
           </div>
           <div className="mt-[12px] flex gap-[8px]">
-            <button type="submit" className="rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white">
+            <button
+              type="submit"
+              className="rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
+            >
               {x(M.comms_create)}
             </button>
-            <button type="button" onClick={reset} className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text">
+            <button
+              type="button"
+              onClick={reset}
+              className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text"
+            >
               {x(M.comms_cancel)}
             </button>
           </div>
@@ -190,22 +250,33 @@ export function CoverageSection() {
                     </div>
                   </div>
                   {item.sentiment && (
-                    <span className={`rounded-[100px] px-[10px] py-[3px] text-[12px] font-semibold whitespace-nowrap ${tone === 'success' ? 'bg-ok-bg text-ok-fg' : tone === 'risk' ? 'bg-risk-bg text-risk-fg' : tone === 'warning' ? 'bg-warn-bg text-warn-fg' : 'bg-inset text-text-muted'}`}>
+                    <span
+                      className={`rounded-[100px] px-[10px] py-[3px] text-[12px] font-semibold whitespace-nowrap ${tone === 'success' ? 'bg-ok-bg text-ok-fg' : tone === 'risk' ? 'bg-risk-bg text-risk-fg' : tone === 'warning' ? 'bg-warn-bg text-warn-fg' : 'bg-inset text-text-muted'}`}
+                    >
                       {x(SENTIMENT_LABEL[item.sentiment])}
                     </span>
                   )}
                 </div>
                 {typeof item.reach === 'number' && (
                   <div className="mt-[6px] text-[13px] text-text">
-                    {x(M.comms_intelligence_reach)}: {item.reach.toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
+                    {x(M.comms_intelligence_reach)}:{' '}
+                    {item.reach.toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
                   </div>
                 )}
                 <div className="mt-[4px] text-[12px] text-text-muted">
-                  {x(M.comms_results_provenance)}: {x(M[`comms_results_provenance_${item.provenance}` as keyof typeof M])}
+                  {x(M.comms_results_provenance)}:{' '}
+                  {x(M[`comms_results_provenance_${item.provenance}` as keyof typeof M])}
                 </div>
-                {item.notes && <div className="mt-[4px] text-[12px] text-text-2">{x(item.notes)}</div>}
+                {item.notes && (
+                  <div className="mt-[4px] text-[12px] text-text-2">{x(item.notes)}</div>
+                )}
                 {item.url && (
-                  <a href={item.url} target="_blank" rel="noopener noreferrer" className="mt-[4px] inline-block text-[12px] text-accent hover:underline">
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-[4px] inline-block text-[12px] text-accent hover:underline"
+                  >
                     {item.url}
                   </a>
                 )}
@@ -224,7 +295,9 @@ export function CoverageSection() {
         </ul>
       )}
 
-      <p className="mt-[10px] text-[11px] leading-normal text-text-faint">{x(M.comms_intelligence_reach_note)}</p>
+      <p className="mt-[10px] text-[11px] leading-normal text-text-faint">
+        {x(M.comms_intelligence_reach_note)}
+      </p>
     </section>
   )
 }

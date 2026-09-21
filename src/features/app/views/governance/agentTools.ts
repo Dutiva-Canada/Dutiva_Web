@@ -40,11 +40,7 @@ const RECORD_STATUSES: readonly GovernanceRecordStatus[] = [
   'superseded',
   'pending_review',
 ]
-const DECISION_STATUSES: readonly GovernanceDecisionStatus[] = [
-  'proposed',
-  'adopted',
-  'rescinded',
-]
+const DECISION_STATUSES: readonly GovernanceDecisionStatus[] = ['proposed', 'adopted', 'rescinded']
 
 export interface GovernanceAgentContext {
   records(): readonly GovernanceRecord[]
@@ -87,7 +83,9 @@ defineTool<GovernanceAgentContext>({
     const status = str(params, 'status') as GovernanceRecordStatus | undefined
     const items = gov
       .records()
-      .filter((r) => (!recordType || r.record_type === recordType) && (!status || r.status === status))
+      .filter(
+        (r) => (!recordType || r.record_type === recordType) && (!status || r.status === status),
+      )
     if (items.length === 0) {
       return { status: 'completed', message: M.agent_gov_records_none }
     }
@@ -146,7 +144,9 @@ defineTool<GovernanceAgentContext>({
     if (items.length === 0) {
       return { status: 'completed', message: M.agent_gov_officers_none }
     }
-    const names = items.slice(0, 6).map((o) => `${o.name} (${o.role.replace('officer_', '').replace('_', ' ')})`)
+    const names = items
+      .slice(0, 6)
+      .map((o) => `${o.name} (${o.role.replace('officer_', '').replace('_', ' ')})`)
     const extra = items.length - names.length
     return ok({
       en: `${items.length} active officer${items.length === 1 ? '' : 's'}: ${names.join(', ')}${extra > 0 ? ` +${extra} more` : ''}.`,
@@ -165,7 +165,13 @@ defineTool<GovernanceAgentContext>({
   label: M.agent_gov_add_decision_label,
   description: M.agent_gov_add_decision_desc,
   params: [
-    { name: 'title', type: 'string', required: true, description: M.agent_gov_p_title, maxLength: 200 },
+    {
+      name: 'title',
+      type: 'string',
+      required: true,
+      description: M.agent_gov_p_title,
+      maxLength: 200,
+    },
     {
       name: 'status',
       type: 'enum',
@@ -265,7 +271,13 @@ defineTool<GovernanceAgentContext>({
   label: M.agent_gov_add_record_label,
   description: M.agent_gov_add_record_desc,
   params: [
-    { name: 'title', type: 'string', required: true, description: M.agent_gov_p_title, maxLength: 200 },
+    {
+      name: 'title',
+      type: 'string',
+      required: true,
+      description: M.agent_gov_p_title,
+      maxLength: 200,
+    },
     {
       name: 'recordType',
       type: 'enum',
@@ -273,7 +285,12 @@ defineTool<GovernanceAgentContext>({
       required: true,
       description: M.agent_gov_p_record_type,
     },
-    { name: 'jurisdiction', type: 'string', description: M.agent_gov_p_jurisdiction, maxLength: 120 },
+    {
+      name: 'jurisdiction',
+      type: 'string',
+      description: M.agent_gov_p_jurisdiction,
+      maxLength: 120,
+    },
     { name: 'effectiveDate', type: 'date', description: M.agent_gov_p_effective },
     { name: 'reviewDueDate', type: 'date', description: M.agent_gov_p_review_due },
   ],

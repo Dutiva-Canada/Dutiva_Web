@@ -83,14 +83,15 @@ export function CommsAnalytics() {
   }
 
   const openContentItems = contentItems.filter(
-    (c) => c.deliveryStatus === 'scheduled' || c.deliveryStatus === 'sending' || c.deliveryStatus === 'ready',
+    (c) =>
+      c.deliveryStatus === 'scheduled' ||
+      c.deliveryStatus === 'sending' ||
+      c.deliveryStatus === 'ready',
   )
   const openInteractions = interactions.filter(
     (i) => i.status === 'open' || i.status === 'pending' || i.status === 'escalated',
   )
-  const openIssues = issues.filter(
-    (i) => i.status === 'open' || i.status === 'monitoring',
-  )
+  const openIssues = issues.filter((i) => i.status === 'open' || i.status === 'monitoring')
   const activeSubmissions = submissions.filter(
     (s) => s.status === 'planned' || s.status === 'submitted',
   )
@@ -102,13 +103,13 @@ export function CommsAnalytics() {
     memberCountBySegment.set(m.segmentId, (memberCountBySegment.get(m.segmentId) ?? 0) + 1)
     segmentedContactIds.add(m.contactId)
   }
-  const topSegment = segments.reduce<{ name: (typeof segments)[number]['name']; count: number } | null>(
-    (best, s) => {
-      const count = memberCountBySegment.get(s.id) ?? 0
-      return !best || count > best.count ? { name: s.name, count } : best
-    },
-    null,
-  )
+  const topSegment = segments.reduce<{
+    name: (typeof segments)[number]['name']
+    count: number
+  } | null>((best, s) => {
+    const count = memberCountBySegment.get(s.id) ?? 0
+    return !best || count > best.count ? { name: s.name, count } : best
+  }, null)
   const contactCountByType = new Map<CommsContactType, number>()
   for (const c of contacts) {
     contactCountByType.set(c.type, (contactCountByType.get(c.type) ?? 0) + 1)
@@ -126,15 +127,27 @@ export function CommsAnalytics() {
       )}
 
       <div className="flex flex-wrap gap-[10px]">
-        <Stat value={String(initiatives.initiatives.length)} label={x(M.comms_analytics_initiatives)} />
+        <Stat
+          value={String(initiatives.initiatives.length)}
+          label={x(M.comms_analytics_initiatives)}
+        />
         <Stat value={String(openContentItems.length)} label={x(M.comms_analytics_content_items)} />
-        <Stat value={String(openInteractions.length)} label={x(M.comms_analytics_open_interactions)} />
+        <Stat
+          value={String(openInteractions.length)}
+          label={x(M.comms_analytics_open_interactions)}
+        />
         <Stat value={String(openIssues.length)} label={x(M.comms_analytics_open_issues)} />
         <Stat value={String(activeSubmissions.length)} label={x(M.comms_analytics_submissions)} />
-        <Stat value={String(brandClaims.filter((c) => c.status === 'active').length)} label={x(M.comms_analytics_brand_claims)} />
+        <Stat
+          value={String(brandClaims.filter((c) => c.status === 'active').length)}
+          label={x(M.comms_analytics_brand_claims)}
+        />
         <Stat value={String(totalReach)} label={x(M.comms_analytics_coverage)} />
         <Stat value={String(segments.length)} label={x(M.comms_analytics_segments)} />
-        <Stat value={String(segmentedContactIds.size)} label={x(M.comms_analytics_contacts_in_segments)} />
+        <Stat
+          value={String(segmentedContactIds.size)}
+          label={x(M.comms_analytics_contacts_in_segments)}
+        />
         {topSegment && topSegment.count > 0 && (
           <Stat
             value={x(topSegment.name)}

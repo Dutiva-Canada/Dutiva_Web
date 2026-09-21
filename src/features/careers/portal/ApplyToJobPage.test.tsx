@@ -86,7 +86,10 @@ const MOCK_APPLICATION: CandidateApplication = {
 
 function renderCareers(
   ui: ReactElement,
-  { path = '/careers/portal/jobs/:postingId/apply', route = '/careers/portal/jobs/jp-1/apply' } = {},
+  {
+    path = '/careers/portal/jobs/:postingId/apply',
+    route = '/careers/portal/jobs/jp-1/apply',
+  } = {},
 ) {
   return render(
     <ThemeProvider>

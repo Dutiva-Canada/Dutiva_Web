@@ -8,11 +8,25 @@ import { CURRENCY_LABEL, INVOICE_STATUS_LABEL } from '../financeLabels'
 import type { FinanceCurrency, FinanceInvoiceStatus } from '../data/types'
 
 const FILTERS: ('all' | FinanceInvoiceStatus)[] = [
-  'all', 'draft', 'issued', 'partial', 'paid', 'overdue', 'disputed', 'written_off', 'cancelled',
+  'all',
+  'draft',
+  'issued',
+  'partial',
+  'paid',
+  'overdue',
+  'disputed',
+  'written_off',
+  'cancelled',
 ]
 
-const VALID_TRANSITIONS: Record<FinanceInvoiceStatus, { status: FinanceInvoiceStatus; label: keyof typeof M }[]> = {
-  draft: [{ status: 'issued', label: 'finance_invoice_issue' }, { status: 'cancelled', label: 'finance_invoice_cancel' }],
+const VALID_TRANSITIONS: Record<
+  FinanceInvoiceStatus,
+  { status: FinanceInvoiceStatus; label: keyof typeof M }[]
+> = {
+  draft: [
+    { status: 'issued', label: 'finance_invoice_issue' },
+    { status: 'cancelled', label: 'finance_invoice_cancel' },
+  ],
   issued: [
     { status: 'paid', label: 'finance_invoice_mark_paid' },
     { status: 'partial', label: 'finance_invoice_mark_partial' },
@@ -47,7 +61,8 @@ export function Sales() {
   const [showForm, setShowForm] = useState(false)
 
   const invoices = useMemo(
-    () => (filter === 'all' ? state.invoices : state.invoices.filter((inv) => inv.status === filter)),
+    () =>
+      filter === 'all' ? state.invoices : state.invoices.filter((inv) => inv.status === filter),
     [state.invoices, filter],
   )
 
@@ -80,7 +95,9 @@ export function Sales() {
       )}
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_sales_invoices)}</h2>
+        <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+          {x(M.finance_sales_invoices)}
+        </h2>
         <div className="mb-[12px] flex flex-wrap gap-[6px]">
           {FILTERS.map((f) => (
             <button
@@ -88,7 +105,9 @@ export function Sales() {
               type="button"
               onClick={() => setFilter(f)}
               className={`rounded-[8px] px-[10px] py-[5px] text-[12px] font-semibold transition-colors ${
-                filter === f ? 'bg-navy text-white' : 'bg-inset text-text-2 hover:bg-surface border border-border'
+                filter === f
+                  ? 'bg-navy text-white'
+                  : 'bg-inset text-text-2 hover:bg-surface border border-border'
               }`}
             >
               {f === 'all' ? x(M.finance_filter_all) : x(INVOICE_STATUS_LABEL[f])}
@@ -102,12 +121,16 @@ export function Sales() {
             {invoices.map((inv) => {
               const outstanding = Number(inv.total) - Number(inv.paidAmount)
               return (
-                <li key={inv.id} className="flex flex-col gap-[8px] rounded-[10px] bg-inset p-[12px]">
+                <li
+                  key={inv.id}
+                  className="flex flex-col gap-[8px] rounded-[10px] bg-inset p-[12px]"
+                >
                   <div className="flex items-start justify-between gap-[12px]">
                     <div>
                       <div className="text-[13px] font-semibold text-text">{inv.number}</div>
                       <div className="text-[12px] text-text-muted">
-                        {customerName(inv.customerId)} · {inv.issueDate} · {x(M.finance_due_date)}: {inv.dueDate}
+                        {customerName(inv.customerId)} · {inv.issueDate} · {x(M.finance_due_date)}:{' '}
+                        {inv.dueDate}
                       </div>
                       <div className="text-[12px] text-text-muted">
                         {x(M.finance_sales_total)}: {x(CURRENCY_LABEL[inv.currency])} {inv.total} ·{' '}
@@ -117,7 +140,11 @@ export function Sales() {
                     </div>
                     <span
                       className={statusChipClass(
-                        inv.status === 'paid' ? 'success' : inv.status === 'overdue' ? 'risk' : 'neutral',
+                        inv.status === 'paid'
+                          ? 'success'
+                          : inv.status === 'overdue'
+                            ? 'risk'
+                            : 'neutral',
                       )}
                     >
                       {x(INVOICE_STATUS_LABEL[inv.status])}
@@ -145,7 +172,9 @@ export function Sales() {
       </section>
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_sales_credits)}</h2>
+        <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+          {x(M.finance_sales_credits)}
+        </h2>
         {state.credits.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_none)}</p>
         ) : (
@@ -159,7 +188,11 @@ export function Sales() {
                   </div>
                 </div>
                 <span className={statusChipClass(cr.status === 'applied' ? 'success' : 'neutral')}>
-                  {cr.status === 'applied' ? 'Applied' : cr.status === 'cancelled' ? 'Cancelled' : 'Open'}
+                  {cr.status === 'applied'
+                    ? 'Applied'
+                    : cr.status === 'cancelled'
+                      ? 'Cancelled'
+                      : 'Open'}
                 </span>
               </li>
             ))}
@@ -211,21 +244,36 @@ function InvoiceForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]">
+    <form
+      onSubmit={handleSubmit}
+      className="mt-[12px] flex flex-col gap-[10px] rounded-[10px] bg-inset p-[12px]"
+    >
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_invoice_entity)}</span>
-          <select value={entityId} onChange={(e) => setEntityId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+          <select
+            value={entityId}
+            onChange={(e) => setEntityId(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          >
             {entities.map((ent) => (
-              <option key={ent.id} value={ent.id}>{ent.legalName}</option>
+              <option key={ent.id} value={ent.id}>
+                {ent.legalName}
+              </option>
             ))}
           </select>
         </label>
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_invoice_customer)}</span>
-          <select value={customerId} onChange={(e) => setCustomerId(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]">
+          <select
+            value={customerId}
+            onChange={(e) => setCustomerId(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          >
             {customers.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
             ))}
           </select>
         </label>
@@ -233,34 +281,66 @@ function InvoiceForm({
       <div className="grid grid-cols-2 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_invoice_number)}</span>
-          <input value={number} onChange={(e) => setNumber(e.target.value)} placeholder={`INV-${Date.now()}`} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={number}
+            onChange={(e) => setNumber(e.target.value)}
+            placeholder={`INV-${Date.now()}`}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_invoice_issue_date)}</span>
-          <input type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            type="date"
+            value={issueDate}
+            onChange={(e) => setIssueDate(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
       </div>
       <div className="grid grid-cols-3 gap-[10px]">
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_invoice_due_date)}</span>
-          <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_invoice_subtotal)}</span>
-          <input value={subtotal} onChange={(e) => setSubtotal(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={subtotal}
+            onChange={(e) => setSubtotal(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
         <label className="flex flex-col gap-[4px]">
           <span className="text-[12px] text-text-muted">{x(M.finance_invoice_tax)}</span>
-          <input value={taxTotal} onChange={(e) => setTaxTotal(e.target.value)} className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]" />
+          <input
+            value={taxTotal}
+            onChange={(e) => setTaxTotal(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
       </div>
       <div className="flex items-center justify-between">
-        <span className="text-[13px] font-semibold text-text">{x(M.finance_invoice_total)}: {currency} {total}</span>
+        <span className="text-[13px] font-semibold text-text">
+          {x(M.finance_invoice_total)}: {currency} {total}
+        </span>
         <div className="flex gap-[8px]">
-          <button type="button" onClick={onCancel} className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border"
+          >
             {x(M.finance_cancel)}
           </button>
-          <button type="submit" className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white">
+          <button
+            type="submit"
+            className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white"
+          >
             {x(M.finance_save)}
           </button>
         </div>

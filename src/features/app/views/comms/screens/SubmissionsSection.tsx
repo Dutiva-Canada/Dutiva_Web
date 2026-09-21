@@ -65,7 +65,8 @@ function nextActions(status: CommsSubmissionStatus): { label: Bi; next: CommsSub
 
 export function SubmissionsSection() {
   const { x } = useI18n()
-  const { submissions, canWrite, addSubmission, removeSubmission, transitionSubmissionStatus } = useSubmissions()
+  const { submissions, canWrite, addSubmission, removeSubmission, transitionSubmissionStatus } =
+    useSubmissions()
   const { initiatives } = useInitiatives()
   const [open, setOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<CommsSubmissionStatus | 'all'>('all')
@@ -112,7 +113,9 @@ export function SubmissionsSection() {
   return (
     <section className="rounded-[12px] border border-border bg-surface p-[16px]">
       <div className="mb-[12px] flex flex-wrap items-center justify-between gap-[12px]">
-        <h3 className="text-[15px] font-semibold text-text">{x(M.comms_intelligence_submissions)}</h3>
+        <h3 className="text-[15px] font-semibold text-text">
+          {x(M.comms_intelligence_submissions)}
+        </h3>
         {canWrite && !open && (
           <button
             type="button"
@@ -129,51 +132,100 @@ export function SubmissionsSection() {
       </div>
 
       {open && (
-        <form onSubmit={onSubmit} className="mb-[12px] rounded-[10px] border border-border bg-inset p-[12px]">
+        <form
+          onSubmit={onSubmit}
+          className="mb-[12px] rounded-[10px] border border-border bg-inset p-[12px]"
+        >
           <div className="grid grid-cols-1 gap-[12px] sm:grid-cols-2">
             <div>
               <label className={labelClass}>{x(M.comms_initiatives_name)}</label>
-              <select required value={initiativeId} onChange={(e) => setInitiativeId(e.target.value)} className={inputClass}>
+              <select
+                required
+                value={initiativeId}
+                onChange={(e) => setInitiativeId(e.target.value)}
+                className={inputClass}
+              >
                 <option value="">{x(M.comms_none)}</option>
                 {initiatives.map((i) => (
-                  <option key={i.id} value={i.id}>{x(i.title)}</option>
+                  <option key={i.id} value={i.id}>
+                    {x(i.title)}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_intelligence_submission_status)}</label>
-              <select value={status} onChange={(e) => setStatus(e.target.value as CommsSubmissionStatus)} className={inputClass}>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as CommsSubmissionStatus)}
+                className={inputClass}
+              >
                 {STATUSES.map((s) => (
-                  <option key={s} value={s}>{x(SUBMISSION_STATUS_LABEL[s])}</option>
+                  <option key={s} value={s}>
+                    {x(SUBMISSION_STATUS_LABEL[s])}
+                  </option>
                 ))}
               </select>
             </div>
             <div className="sm:col-span-2">
               <label className={labelClass}>{x(M.comms_intelligence_submission_authority)}</label>
-              <input required value={authority} onChange={(e) => setAuthority(e.target.value)} className={inputClass} />
+              <input
+                required
+                value={authority}
+                onChange={(e) => setAuthority(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_intelligence_submission_method)}</label>
-              <input required value={method} onChange={(e) => setMethod(e.target.value)} className={inputClass} />
+              <input
+                required
+                value={method}
+                onChange={(e) => setMethod(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div>
-              <label className={labelClass}>{x(M.comms_intelligence_submission_confirmation)}</label>
-              <input value={confirmationRef} onChange={(e) => setConfirmationRef(e.target.value)} className={inputClass} />
+              <label className={labelClass}>
+                {x(M.comms_intelligence_submission_confirmation)}
+              </label>
+              <input
+                value={confirmationRef}
+                onChange={(e) => setConfirmationRef(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_intelligence_submission_deadline)}</label>
-              <input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} className={inputClass} />
+              <input
+                type="date"
+                value={deadline}
+                onChange={(e) => setDeadline(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.comms_interaction_status_responded)}</label>
-              <input type="date" value={submittedAt} onChange={(e) => setSubmittedAt(e.target.value)} className={inputClass} />
+              <input
+                type="date"
+                value={submittedAt}
+                onChange={(e) => setSubmittedAt(e.target.value)}
+                className={inputClass}
+              />
             </div>
           </div>
           <div className="mt-[12px] flex gap-[8px]">
-            <button type="submit" className="rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white">
+            <button
+              type="submit"
+              className="rounded-[8px] border-none bg-navy px-[14px] py-[8px] font-sans text-[13px] font-semibold text-white"
+            >
               {x(M.comms_create)}
             </button>
-            <button type="button" onClick={reset} className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text">
+            <button
+              type="button"
+              onClick={reset}
+              className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text"
+            >
               {x(M.comms_cancel)}
             </button>
           </div>
@@ -189,7 +241,9 @@ export function SubmissionsSection() {
         >
           <option value="all">{x(M.comms_all)}</option>
           {STATUSES.map((s) => (
-            <option key={s} value={s}>{x(SUBMISSION_STATUS_LABEL[s])}</option>
+            <option key={s} value={s}>
+              {x(SUBMISSION_STATUS_LABEL[s])}
+            </option>
           ))}
         </select>
       </div>
@@ -205,7 +259,9 @@ export function SubmissionsSection() {
               <li key={submission.id} className="rounded-[8px] bg-inset p-[12px]">
                 <div className="flex flex-wrap items-start justify-between gap-[12px]">
                   <div>
-                    <div className="text-[14px] font-semibold text-text">{x(submission.authority)}</div>
+                    <div className="text-[14px] font-semibold text-text">
+                      {x(submission.authority)}
+                    </div>
                     <div className="text-[12px] text-text-muted">
                       {initiative ? x(initiative.title) : x(M.comms_none)} · {x(submission.method)}
                     </div>
@@ -223,10 +279,14 @@ export function SubmissionsSection() {
                     </span>
                   )}
                   {submission.submittedAt && (
-                    <span>{x(M.comms_interaction_status_responded)} {submission.submittedAt}</span>
+                    <span>
+                      {x(M.comms_interaction_status_responded)} {submission.submittedAt}
+                    </span>
                   )}
                   {submission.confirmationRef && (
-                    <span>{x(M.comms_intelligence_submission_confirmation)} {submission.confirmationRef}</span>
+                    <span>
+                      {x(M.comms_intelligence_submission_confirmation)} {submission.confirmationRef}
+                    </span>
                   )}
                 </div>
                 {canWrite && (

@@ -8,7 +8,12 @@ import { FormField, FormInput, FormSelect } from '@/components/FormField'
 import { useOperationsData } from '../OperationsDataContext'
 import type { OperationsVendor, OperationsVendorStatus, OperationsVendorType } from '../data/types'
 
-const TYPES: NonNullable<OperationsVendorType>[] = ['supplier', 'logistics', 'technology', 'professional_service']
+const TYPES: NonNullable<OperationsVendorType>[] = [
+  'supplier',
+  'logistics',
+  'technology',
+  'professional_service',
+]
 const STATUSES: OperationsVendorStatus[] = ['active', 'inactive', 'under_review']
 
 const TYPE_LABELS: Record<NonNullable<OperationsVendorType>, keyof typeof M> = {
@@ -76,7 +81,9 @@ function VendorRow({
             {x(M.ops_link_finance)}
           </Link>
         ) : null}
-        <span className={statusChipClass(STATUS_TONE[vendor.status])}>{x(M[STATUS_LABELS[vendor.status]])}</span>
+        <span className={statusChipClass(STATUS_TONE[vendor.status])}>
+          {x(M[STATUS_LABELS[vendor.status]])}
+        </span>
         <button
           type="button"
           onClick={() => onEdit(vendor)}
@@ -104,7 +111,9 @@ export function Vendors() {
 
   const initial = editing ?? emptyVendor()
   const [name, setName] = useState(initial.name)
-  const [vendorType, setVendorType] = useState<NonNullable<OperationsVendorType>>(initial.vendor_type ?? 'supplier')
+  const [vendorType, setVendorType] = useState<NonNullable<OperationsVendorType>>(
+    initial.vendor_type ?? 'supplier',
+  )
   const [status, setStatus] = useState<OperationsVendorStatus>(initial.status)
   const [contractExpiry, setContractExpiry] = useState(initial.contract_expiry ?? '')
   const [notes, setNotes] = useState(initial.notes ?? '')
@@ -171,7 +180,10 @@ export function Vendors() {
             <FormInput value={name} onChange={(e) => setName(e.target.value)} required />
           </FormField>
           <FormField label={x(M.ops_type)}>
-            <FormSelect value={vendorType} onChange={(e) => setVendorType(e.target.value as NonNullable<OperationsVendorType>)}>
+            <FormSelect
+              value={vendorType}
+              onChange={(e) => setVendorType(e.target.value as NonNullable<OperationsVendorType>)}
+            >
               {TYPES.map((t) => (
                 <option key={t} value={t}>
                   {x(M[TYPE_LABELS[t]])}
@@ -180,7 +192,10 @@ export function Vendors() {
             </FormSelect>
           </FormField>
           <FormField label={x(M.ops_status)}>
-            <FormSelect value={status} onChange={(e) => setStatus(e.target.value as OperationsVendorStatus)}>
+            <FormSelect
+              value={status}
+              onChange={(e) => setStatus(e.target.value as OperationsVendorStatus)}
+            >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {x(M[STATUS_LABELS[s]])}
@@ -189,7 +204,11 @@ export function Vendors() {
             </FormSelect>
           </FormField>
           <FormField label={x(M.ops_contract_expiry)}>
-            <FormInput type="date" value={contractExpiry} onChange={(e) => setContractExpiry(e.target.value)} />
+            <FormInput
+              type="date"
+              value={contractExpiry}
+              onChange={(e) => setContractExpiry(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.ops_notes)}>
             <FormInput value={notes} onChange={(e) => setNotes(e.target.value)} />
@@ -223,7 +242,10 @@ export function Vendors() {
             <VendorRow
               key={vendor.id}
               vendor={vendor}
-              onEdit={(v) => { setEditing(v); setShow(true) }}
+              onEdit={(v) => {
+                setEditing(v)
+                setShow(true)
+              }}
               onRemove={(id) => removeVendor(id)}
             />
           ))}

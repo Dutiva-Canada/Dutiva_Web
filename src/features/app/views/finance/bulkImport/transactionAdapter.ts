@@ -74,7 +74,10 @@ export const transactionBulkImportFields: BulkImportField<FinanceBankItem>[] = [
     key: 'currency',
     label: B.bulk_field_currency,
     parse: (v) => v.trim().toUpperCase(),
-    validate: (v) => (typeof v === 'string' && ['CAD', 'USD', 'EUR', 'GBP'].includes(v) ? undefined : 'must be CAD, USD, EUR, or GBP'),
+    validate: (v) =>
+      typeof v === 'string' && ['CAD', 'USD', 'EUR', 'GBP'].includes(v)
+        ? undefined
+        : 'must be CAD, USD, EUR, or GBP',
     headerHints: ['currency', 'ccy'],
   },
 ]

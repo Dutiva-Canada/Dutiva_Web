@@ -172,7 +172,8 @@ export function computeOrgScore(rows: OrgScoreRows): OrgScore {
     ),
     scoreComponent(
       'comms_policy_files',
-      rows.commsPolicyFileStages.filter((s) => s === 'in_force' || s === 'consultation_closed').length,
+      rows.commsPolicyFileStages.filter((s) => s === 'in_force' || s === 'consultation_closed')
+        .length,
       rows.commsPolicyFileStages.length,
     ),
     scoreComponent(

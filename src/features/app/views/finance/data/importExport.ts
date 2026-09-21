@@ -46,7 +46,17 @@ export function exportBankItemsCSV(bankItems: FinanceBankItem[]): string {
 /* ---------- Journals export ---------- */
 
 export function exportJournalsCSV(journals: FinanceJournal[]): string {
-  const headers = ['Journal #', 'Date', 'Description (EN)', 'Description (FR)', 'Status', 'Source', 'Account ID', 'Debit', 'Credit']
+  const headers = [
+    'Journal #',
+    'Date',
+    'Description (EN)',
+    'Description (FR)',
+    'Status',
+    'Source',
+    'Account ID',
+    'Debit',
+    'Credit',
+  ]
   const rows: string[][] = []
   for (const j of journals) {
     for (const line of j.lines) {
@@ -69,7 +79,17 @@ export function exportJournalsCSV(journals: FinanceJournal[]): string {
 /* ---------- Invoices export ---------- */
 
 export function exportInvoicesCSV(invoices: FinanceInvoice[]): string {
-  const headers = ['Invoice #', 'Issue Date', 'Due Date', 'Currency', 'Subtotal', 'Tax', 'Total', 'Paid', 'Status']
+  const headers = [
+    'Invoice #',
+    'Issue Date',
+    'Due Date',
+    'Currency',
+    'Subtotal',
+    'Tax',
+    'Total',
+    'Paid',
+    'Status',
+  ]
   const rows = invoices.map((inv) => [
     inv.number,
     inv.issueDate,
@@ -87,7 +107,17 @@ export function exportInvoicesCSV(invoices: FinanceInvoice[]): string {
 /* ---------- Bills export ---------- */
 
 export function exportBillsCSV(bills: FinanceBill[]): string {
-  const headers = ['Bill #', 'Issue Date', 'Due Date', 'Currency', 'Subtotal', 'Tax', 'Total', 'Paid', 'Status']
+  const headers = [
+    'Bill #',
+    'Issue Date',
+    'Due Date',
+    'Currency',
+    'Subtotal',
+    'Tax',
+    'Total',
+    'Paid',
+    'Status',
+  ]
   const rows = bills.map((b) => [
     b.number,
     b.issueDate,

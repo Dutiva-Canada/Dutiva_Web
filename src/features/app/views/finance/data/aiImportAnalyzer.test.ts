@@ -25,15 +25,47 @@ function item(description: string, amount = '100.00'): FinanceBankItem {
 }
 
 const accounts: FinanceLedgerAccount[] = [
-  { id: 'la-6000', bookId: 'book-1', code: '6000', name: { en: 'Salaries and wages', fr: 'Salaires et traitements' }, type: 'expense', sensitive: false, active: true },
-  { id: 'la-5000', bookId: 'book-1', code: '5000', name: { en: 'Revenue — Services', fr: 'Revenus — Services' }, type: 'revenue', sensitive: false, active: true },
-  { id: 'la-6100', bookId: 'book-1', code: '6100', name: { en: 'Bank fees', fr: 'Frais bancaires' }, type: 'expense', sensitive: false, active: true },
+  {
+    id: 'la-6000',
+    bookId: 'book-1',
+    code: '6000',
+    name: { en: 'Salaries and wages', fr: 'Salaires et traitements' },
+    type: 'expense',
+    sensitive: false,
+    active: true,
+  },
+  {
+    id: 'la-5000',
+    bookId: 'book-1',
+    code: '5000',
+    name: { en: 'Revenue — Services', fr: 'Revenus — Services' },
+    type: 'revenue',
+    sensitive: false,
+    active: true,
+  },
+  {
+    id: 'la-6100',
+    bookId: 'book-1',
+    code: '6100',
+    name: { en: 'Bank fees', fr: 'Frais bancaires' },
+    type: 'expense',
+    sensitive: false,
+    active: true,
+  },
 ]
 
 function embeddingFor(text: string): number[] {
   const t = text.toLowerCase()
-  if (t.includes('salary') || t.includes('salaries') || t.includes('payroll') || t.includes('pay') || t.includes('6000')) return [1, 0, 0]
-  if (t.includes('revenue') || t.includes('5000') || t.includes('stripe') || t.includes('payout')) return [0, 1, 0]
+  if (
+    t.includes('salary') ||
+    t.includes('salaries') ||
+    t.includes('payroll') ||
+    t.includes('pay') ||
+    t.includes('6000')
+  )
+    return [1, 0, 0]
+  if (t.includes('revenue') || t.includes('5000') || t.includes('stripe') || t.includes('payout'))
+    return [0, 1, 0]
   if (t.includes('bank') || t.includes('fee') || t.includes('6100')) return [0, 0, 1]
   return [0.1, 0.1, 0.1]
 }
@@ -90,10 +122,25 @@ describe('analyzeImportWithAi', () => {
 
     const { analyzeImportWithAi } = await import('./aiImportAnalyzer')
     const rules = [
-      { id: 'cr-1', entityId: 'ent-1', pattern: 'SALARY', matchType: 'contains' as const, ledgerAccountId: 'la-6000', direction: 'debit' as const, priority: 50, active: true },
+      {
+        id: 'cr-1',
+        entityId: 'ent-1',
+        pattern: 'SALARY',
+        matchType: 'contains' as const,
+        ledgerAccountId: 'la-6000',
+        direction: 'debit' as const,
+        priority: 50,
+        active: true,
+      },
     ]
 
-    const result = await analyzeImportWithAi([item('SALARY DIRECT DEPOSIT')], accounts, rules, [], 'auto_high')
+    const result = await analyzeImportWithAi(
+      [item('SALARY DIRECT DEPOSIT')],
+      accounts,
+      rules,
+      [],
+      'auto_high',
+    )
 
     const first = result.categorizations[0]!
     expect(first.ledgerAccountId).toBe('la-6000')
@@ -114,7 +161,13 @@ describe('analyzeImportWithAi', () => {
       },
     ]
 
-    const result = await analyzeImportWithAi([item('STRIPE PAYOUT', '250.00')], accounts, [], feedback, 'auto_high')
+    const result = await analyzeImportWithAi(
+      [item('STRIPE PAYOUT', '250.00')],
+      accounts,
+      [],
+      feedback,
+      'auto_high',
+    )
 
     const first = result.categorizations[0]!
     expect(first.ledgerAccountId).toBe('la-5000')

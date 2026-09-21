@@ -96,7 +96,9 @@ describe('parseAttachments', () => {
 
   it('rejects non-allowlisted image types and malformed data URLs', () => {
     expect(
-      parseAttachments([{ kind: 'image', name: 'x.svg', data_url: 'data:image/svg+xml;base64,PHN2Zz4=' }]),
+      parseAttachments([
+        { kind: 'image', name: 'x.svg', data_url: 'data:image/svg+xml;base64,PHN2Zz4=' },
+      ]),
     ).toEqual({ error: 'bad_image_mime' })
     expect(
       parseAttachments([{ kind: 'image', name: 'x.png', data_url: 'not-a-data-url' }]),

@@ -33,7 +33,9 @@ export function HiringDemoView() {
 
   const tabClass = (tab: typeof activeTab) =>
     `cursor-pointer rounded-[8px] border-none px-[14px] py-[7px] font-sans text-[12.5px] font-semibold ${
-      activeTab === tab ? 'bg-surface text-text shadow-(--shadow-sm)' : 'bg-transparent text-text-muted'
+      activeTab === tab
+        ? 'bg-surface text-text shadow-(--shadow-sm)'
+        : 'bg-transparent text-text-muted'
     }`
 
   return (
@@ -45,7 +47,7 @@ export function HiringDemoView() {
             <h1 className="text-[20px] font-bold text-text">{x(M.hiring_module_title)}</h1>
             <p className="mt-[2px] text-[13px] text-text-muted">{x(M.hiring_module_description)}</p>
           </div>
-          
+
           {/* Tab navigation */}
           <div
             role="tablist"
@@ -94,7 +96,9 @@ export function HiringDemoView() {
                 className="min-w-[280px] rounded-[9px] border border-border bg-surface px-[14px] py-[9px] font-sans text-[13.5px] text-text"
               />
               <div className="text-[13px] text-text-muted">
-                {x(M.hiring_candidates_showing)} {filteredCandidates.length} {x(M.hiring_candidates_of)} {demoCandidates.length} {x(M.hiring_candidates_candidates)}
+                {x(M.hiring_candidates_showing)} {filteredCandidates.length}{' '}
+                {x(M.hiring_candidates_of)} {demoCandidates.length}{' '}
+                {x(M.hiring_candidates_candidates)}
               </div>
             </div>
 
@@ -116,8 +120,12 @@ export function HiringDemoView() {
                       key={candidate.id}
                       className="grid min-w-[800px] grid-cols-[2fr_1.5fr_1fr_1fr_1fr_1fr_0.5fr] items-center gap-[10px] border-t border-t-inset px-[16px] py-[12px]"
                     >
-                      <div className="font-sans text-[13.5px] font-semibold text-text">{candidate.name}</div>
-                      <div className="overflow-hidden text-[13px] text-ellipsis whitespace-nowrap text-text-2">{x(candidate.position)}</div>
+                      <div className="font-sans text-[13.5px] font-semibold text-text">
+                        {candidate.name}
+                      </div>
+                      <div className="overflow-hidden text-[13px] text-ellipsis whitespace-nowrap text-text-2">
+                        {x(candidate.position)}
+                      </div>
                       <div className="text-[13px] text-text-2">{x(candidate.location)}</div>
                       <div>
                         <span className={statusChipClass(getStatusTone(candidate.status))}>
@@ -149,8 +157,12 @@ export function HiringDemoView() {
                     >
                       <div className="flex items-center justify-between gap-[10px]">
                         <div className="min-w-0 flex-1">
-                          <div className="text-[14.5px] font-semibold text-text">{candidate.name}</div>
-                          <div className="mt-[2px] text-[12px] text-text-muted">{x(candidate.position)}</div>
+                          <div className="text-[14.5px] font-semibold text-text">
+                            {candidate.name}
+                          </div>
+                          <div className="mt-[2px] text-[12px] text-text-muted">
+                            {x(candidate.position)}
+                          </div>
                         </div>
                         <span className={statusChipClass(getStatusTone(candidate.status))}>
                           {x(getStatusLabel(candidate.status))}
@@ -173,8 +185,12 @@ export function HiringDemoView() {
               </div>
             ) : (
               <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
-                <div className="mb-[4px] text-[14.5px] font-semibold text-text">{x(M.hiring_no_candidates)}</div>
-                <div className="mb-[14px] text-[13px] text-text-muted">{x(M.hiring_no_candidates_body)}</div>
+                <div className="mb-[4px] text-[14.5px] font-semibold text-text">
+                  {x(M.hiring_no_candidates)}
+                </div>
+                <div className="mb-[14px] text-[13px] text-text-muted">
+                  {x(M.hiring_no_candidates_body)}
+                </div>
                 <button
                   type="button"
                   onClick={() => setFilter('')}
@@ -201,9 +217,21 @@ function FunnelAnalytics({ metrics }: { metrics: typeof demoFunnelMetrics }) {
   const { x } = useI18n()
 
   const stages = [
-    { key: 'totalApplications', label: M.hiring_funnel_applications, count: metrics.totalApplications },
-    { key: 'basicQualified', label: M.hiring_funnel_basic_qualified, count: metrics.basicQualified },
-    { key: 'evidenceQualified', label: M.hiring_funnel_evidence_qualified, count: metrics.evidenceQualified },
+    {
+      key: 'totalApplications',
+      label: M.hiring_funnel_applications,
+      count: metrics.totalApplications,
+    },
+    {
+      key: 'basicQualified',
+      label: M.hiring_funnel_basic_qualified,
+      count: metrics.basicQualified,
+    },
+    {
+      key: 'evidenceQualified',
+      label: M.hiring_funnel_evidence_qualified,
+      count: metrics.evidenceQualified,
+    },
     { key: 'workSamples', label: M.hiring_funnel_work_samples, count: metrics.workSamples },
     { key: 'interviews', label: M.hiring_funnel_interviews, count: metrics.interviews },
     { key: 'hires', label: M.hiring_funnel_hires, count: metrics.hires },
@@ -226,7 +254,8 @@ function FunnelAnalytics({ metrics }: { metrics: typeof demoFunnelMetrics }) {
         {/* Funnel visualization */}
         <div className="space-y-[8px]">
           {stages.map((stage, index) => {
-            const width = index === 0 ? 100 : Math.round((stage.count / metrics.totalApplications) * 100)
+            const width =
+              index === 0 ? 100 : Math.round((stage.count / metrics.totalApplications) * 100)
             const rate = conversionRateByStage[stage.key]
             return (
               <div key={stage.key} className="flex items-center gap-[12px]">
@@ -235,9 +264,7 @@ function FunnelAnalytics({ metrics }: { metrics: typeof demoFunnelMetrics }) {
                   <div className="mb-[4px] flex items-center justify-between text-[12px]">
                     <span className="font-semibold text-text">{stage.count}</span>
                     {rate !== undefined && (
-                      <span className="text-text-muted">
-                        {Math.round(rate * 100)}% conversion
-                      </span>
+                      <span className="text-text-muted">{Math.round(rate * 100)}% conversion</span>
                     )}
                   </div>
                   <div className="h-[24px] overflow-hidden rounded-[6px] bg-inset">
@@ -257,7 +284,9 @@ function FunnelAnalytics({ metrics }: { metrics: typeof demoFunnelMetrics }) {
       <div className="grid gap-[12px] md:grid-cols-2">
         <div className="rounded-[12px] border border-border bg-surface p-[16px]">
           <div className="text-[12px] text-text-muted">{x(M.hiring_funnel_time_to_hire)}</div>
-          <div className="mt-[4px] text-[20px] font-bold text-text">{metrics.averageTimeToHire}</div>
+          <div className="mt-[4px] text-[20px] font-bold text-text">
+            {metrics.averageTimeToHire}
+          </div>
         </div>
         <div className="rounded-[12px] border border-border bg-surface p-[16px]">
           <div className="text-[12px] text-text-muted">{x(M.hiring_funnel_conversion)}</div>
@@ -304,7 +333,9 @@ function JobPostings({ postings }: { postings: typeof demoJobPostings }) {
         ))
       ) : (
         <div className="rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
-          <div className="text-[14.5px] font-semibold text-text">{x(M.hiring_postings_no_postings)}</div>
+          <div className="text-[14.5px] font-semibold text-text">
+            {x(M.hiring_postings_no_postings)}
+          </div>
         </div>
       )}
     </div>
@@ -312,7 +343,9 @@ function JobPostings({ postings }: { postings: typeof demoJobPostings }) {
 }
 
 // Helper functions
-function getStatusTone(status: Candidate['status']): 'success' | 'info' | 'warning' | 'risk' | 'neutral' {
+function getStatusTone(
+  status: Candidate['status'],
+): 'success' | 'info' | 'warning' | 'risk' | 'neutral' {
   switch (status) {
     case 'hired':
       return 'success'
@@ -351,4 +384,3 @@ function getStatusLabel(status: Candidate['status']) {
       return M.hiring_status_application
   }
 }
-

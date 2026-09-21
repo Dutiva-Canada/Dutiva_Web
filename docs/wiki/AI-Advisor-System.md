@@ -29,8 +29,6 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-
-
 The AI Advisor is Dutiva's chat-based HR compliance assistant, accessible at `/app/advisor`. It provides jurisdiction-aware guidance for Canadian employers across Ontario, Québec, and federally regulated workplaces. The system operates in two execution modes — a **scripted demo mode** (fixture-driven, no backend required) and a **real AI mode** (Supabase edge function calling an upstream LLM) — and layers a deterministic safety system over every model response.
 
 The guiding design principle, codified in `docs/AI_USAGE_STRATEGY.md`, is: **the LLM proposes, deterministic code disposes**. The model writes prose; routing, gating, risk classification, jurisdiction detection, crisis intercept, and statutory figures are all computed by rules that are exact, reproducible, and auditable.
@@ -99,13 +97,13 @@ Sources: [src/features/app/views/advisor/AdvisorView.tsx:1-64](), [src/features/
 
 The Advisor runs in one of two modes depending on the user's authentication status and workspace mode.
 
-| Aspect | Demo Mode (scripted) | Real AI Mode |
-|---|---|---|
-| **Trigger** | Signed out, or workspace mode = `demo` | Signed in, workspace mode = `production` |
-| **Response source** | `advisorScenarios`, `lightFlows`, `followupReplies` fixture data | `advisor-chat` edge function → upstream LLM |
-| **Streaming** | Client-side simulated: 850ms thinking → 3 chars/16ms | Server response rendered through same `useAdvisorEngine` |
-| **Safety layer** | Crisis intercept only (`detectCrisisSignal`) | Full `applySafetyBackstop` pipeline (crisis + jurisdiction gate + notice cross-check) |
-| **Workspace panel** | Pre-built `AdvisorResponse` fixtures per scenario | Live structured payload from `buildAdvisorResponse` |
+| Aspect              | Demo Mode (scripted)                                             | Real AI Mode                                                                          |
+| ------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| **Trigger**         | Signed out, or workspace mode = `demo`                           | Signed in, workspace mode = `production`                                              |
+| **Response source** | `advisorScenarios`, `lightFlows`, `followupReplies` fixture data | `advisor-chat` edge function → upstream LLM                                           |
+| **Streaming**       | Client-side simulated: 850ms thinking → 3 chars/16ms             | Server response rendered through same `useAdvisorEngine`                              |
+| **Safety layer**    | Crisis intercept only (`detectCrisisSignal`)                     | Full `applySafetyBackstop` pipeline (crisis + jurisdiction gate + notice cross-check) |
+| **Workspace panel** | Pre-built `AdvisorResponse` fixtures per scenario                | Live structured payload from `buildAdvisorResponse`                                   |
 
 In demo mode, six pre-authored scenarios (`s1`–`s6` in `advisorScenarios`) demonstrate the three response modes (`hr`, `escalation`, `supportive`) along with jurisdiction-unknown and web-search experiences. The `routeFlowKeyFromText` function does keyword routing for typed queries to select flows like `termination`, `hiring`, `accommodation`, etc. In real AI mode, `sendAdvisorMessage` in `chatApi.ts` invokes the `advisor-chat` edge function, validates the response against the `advisorResponseSchema` Zod contract, and passes it through the safety backstop before rendering.
 
@@ -157,16 +155,16 @@ flowchart LR
     CB --> CM
 ```
 
-| Component | File | Role |
-|---|---|---|
-| `AdvisorView` | `src/features/app/views/advisor/AdvisorView.tsx` | Top-level view; owns thread selection, mode dispatch, crisis intercept |
-| `AdvisorHome` | `src/features/app/views/advisor/AdvisorHome.tsx` | Empty-state: metrics, daily brief, priorities, home composer, suggestion grid |
-| `ChatPane` | `src/features/app/views/advisor/ChatPane.tsx` | Active transcript: jurisdiction pill, user/advisor turns, composer footer |
+| Component             | File                                                     | Role                                                                                                                                                   |
+| --------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `AdvisorView`         | `src/features/app/views/advisor/AdvisorView.tsx`         | Top-level view; owns thread selection, mode dispatch, crisis intercept                                                                                 |
+| `AdvisorHome`         | `src/features/app/views/advisor/AdvisorHome.tsx`         | Empty-state: metrics, daily brief, priorities, home composer, suggestion grid                                                                          |
+| `ChatPane`            | `src/features/app/views/advisor/ChatPane.tsx`            | Active transcript: jurisdiction pill, user/advisor turns, composer footer                                                                              |
 | `ComplianceWorkspace` | `src/features/app/views/advisor/ComplianceWorkspace.tsx` | Structured payload panel (mode, risk, jurisdiction, legal basis, retrieval, confidence). Inline 384px aside at `≥1024px`; full-screen sheet below `lg` |
-| `ThreadList` | `src/features/app/views/advisor/ThreadList.tsx` | Desktop left column: grouped threads (Pinned / Today / 7 days / Older). Below `md`, replaced by `ThreadListMobileAccess` bar + sheet |
-| `AdvisorRail` | `src/features/app/rail/AdvisorRail.tsx` | 400px slide-over panel for contextual Advisor from other workspace views |
-| `useAdvisorEngine` | `src/features/app/advisor/useAdvisorEngine.ts` | Streaming lifecycle hook: thinking → streaming → done |
-| `advisorSession` | `src/features/app/views/advisor/advisorSession.ts` | Module-level session store: transcripts, extras, response state |
+| `ThreadList`          | `src/features/app/views/advisor/ThreadList.tsx`          | Desktop left column: grouped threads (Pinned / Today / 7 days / Older). Below `md`, replaced by `ThreadListMobileAccess` bar + sheet                   |
+| `AdvisorRail`         | `src/features/app/rail/AdvisorRail.tsx`                  | 400px slide-over panel for contextual Advisor from other workspace views                                                                               |
+| `useAdvisorEngine`    | `src/features/app/advisor/useAdvisorEngine.ts`           | Streaming lifecycle hook: thinking → streaming → done                                                                                                  |
+| `advisorSession`      | `src/features/app/views/advisor/advisorSession.ts`       | Module-level session store: transcripts, extras, response state                                                                                        |
 
 Sources: [src/features/app/views/advisor/AdvisorView.tsx:32-63](), [src/features/app/views/advisor/AdvisorHome.tsx:17-66](), [src/features/app/views/advisor/ChatPane.tsx:35-65](), [src/features/app/views/advisor/ComplianceWorkspace.tsx:44-60](), [src/features/app/views/advisor/ThreadList.tsx:1-34](), [src/features/app/rail/AdvisorRail.tsx:14-21](), [src/features/app/advisor/useAdvisorEngine.ts:71-93](), [src/features/app/views/advisor/advisorSession.ts:46-64]()
 
@@ -219,17 +217,17 @@ Sources: [supabase/functions/advisor-chat/index.ts:43-103](), [supabase/function
 
 The `AdvisorResponse` is a Zod-validated contract (`advisorResponseSchema`) that carries the structured payload between the server and the `ComplianceWorkspace` panel. It is defined in `src/features/app/advisor/contract.ts` and mirrored in the edge function's `responsePayload.ts`.
 
-| Field | Type | Purpose |
-|---|---|---|
-| `route` | `AdvisorRoute` | Response mode (`hr`/`escalation`/`supportive`) + five boolean gates |
-| `jurisdiction` | `JurisdictionRead` | Status (`known`/`assumed`/`unknown`/`conflict`/`not_applicable`) + display value |
-| `risk` | `RiskRead` | Dual ramps: `compliance` (low→critical) and `safety` (none→critical) |
-| `professionalReview` | `ProfessionalReview?` | Recommended review type (legal, medical, hr, union, emergency) |
-| `supportNotice` | `boolean` | Show "support mode — intentionally off" in the workspace |
-| `legalBasis` | `LegalBasisRead` | Statute citation items, each marked `valid` (human-reviewed) or not |
-| `retrieval` | `RetrievalRead` | Corpus tags (e.g. "Termination · ON") |
-| `confidence` | `ConfidenceRead?` | Label + 0–100 meter fill |
-| `isCrisis` | `boolean` | When true, all structured surfaces are gated off |
+| Field                | Type                  | Purpose                                                                          |
+| -------------------- | --------------------- | -------------------------------------------------------------------------------- |
+| `route`              | `AdvisorRoute`        | Response mode (`hr`/`escalation`/`supportive`) + five boolean gates              |
+| `jurisdiction`       | `JurisdictionRead`    | Status (`known`/`assumed`/`unknown`/`conflict`/`not_applicable`) + display value |
+| `risk`               | `RiskRead`            | Dual ramps: `compliance` (low→critical) and `safety` (none→critical)             |
+| `professionalReview` | `ProfessionalReview?` | Recommended review type (legal, medical, hr, union, emergency)                   |
+| `supportNotice`      | `boolean`             | Show "support mode — intentionally off" in the workspace                         |
+| `legalBasis`         | `LegalBasisRead`      | Statute citation items, each marked `valid` (human-reviewed) or not              |
+| `retrieval`          | `RetrievalRead`       | Corpus tags (e.g. "Termination · ON")                                            |
+| `confidence`         | `ConfidenceRead?`     | Label + 0–100 meter fill                                                         |
+| `isCrisis`           | `boolean`             | When true, all structured surfaces are gated off                                 |
 
 The `allowedSurfaces` function is the single gating check — no workspace block renders without passing its corresponding gate.
 
@@ -241,12 +239,12 @@ Sources: [src/features/app/advisor/contract.ts:56-170]()
 
 During the beta, the AI surface is metered by `claimAiUsage`/`finalizeAiUsage` in `supabase/functions/_shared/aiUsage.ts`. Four ceilings apply:
 
-| Ceiling | Default | Scope |
-|---|---|---|
-| Burst | 10 requests / 300s | Per-user, per-operation |
-| Daily requests | 120 / day | Per-user, shared across operations |
-| Daily tokens | 250,000 / day | Per-user |
-| Platform daily | 2,000 / day | Beta-wide |
+| Ceiling        | Default            | Scope                              |
+| -------------- | ------------------ | ---------------------------------- |
+| Burst          | 10 requests / 300s | Per-user, per-operation            |
+| Daily requests | 120 / day          | Per-user, shared across operations |
+| Daily tokens   | 250,000 / day      | Per-user                           |
+| Platform daily | 2,000 / day        | Beta-wide                          |
 
 A refused turn returns HTTP 429, surfaced to the user via `AdvisorUsageLimitError` with a friendly message and a `retryAfterSeconds` countdown. All ceilings are env-overridable. The claim is taken **before** the model call and finalized after; an unfinalized claim stays counted as a fail-safe against retry loops.
 
@@ -297,10 +295,10 @@ Sources: [src/features/app/views/advisor/AdvisorView.tsx:126-139](), [src/featur
 
 ## Child Pages
 
-| Page | Scope |
-|---|---|
-| [Advisor Chat Interface & Demo Flows](#3.1) | `AdvisorView`, `ChatPane`, `ComplianceWorkspace`, `ThreadList`, `AdvisorHome`, the streaming engine (`useAdvisorEngine`), demo scenarios (`advisorScenarios`), light flows, the termination quick form, suggestion chips, province prompt, `AdvisorRail` |
-| [Advisor Safety & Guardrails](#3.2) | Crisis intercept (`detectCrisisSignal`, 9-8-8 resource), `applySafetyBackstop` (monotonic tightening), `mentionsStatutoryFigure`, jurisdiction gate, `statutoryCrossCheck`, safety telemetry (`advisor-safety-event`), AI usage metering (`claimAiUsage`/`finalizeAiUsage`, `AdvisorUsageLimitError`) |
-| [Advisor Edge Function & Response Contract](#3.3) | The `advisor-chat` edge function pipeline, `buildAdvisorResponse` deterministic payload builder, `advisorResponseSchema` Zod contract, response modes, workspace state kinds, `match_advisor_guidance` RPC, notice schedule injection, `ChatMarkdown` renderer, `ChatChart` fenced blocks |
+| Page                                              | Scope                                                                                                                                                                                                                                                                                                 |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Advisor Chat Interface & Demo Flows](#3.1)       | `AdvisorView`, `ChatPane`, `ComplianceWorkspace`, `ThreadList`, `AdvisorHome`, the streaming engine (`useAdvisorEngine`), demo scenarios (`advisorScenarios`), light flows, the termination quick form, suggestion chips, province prompt, `AdvisorRail`                                              |
+| [Advisor Safety & Guardrails](#3.2)               | Crisis intercept (`detectCrisisSignal`, 9-8-8 resource), `applySafetyBackstop` (monotonic tightening), `mentionsStatutoryFigure`, jurisdiction gate, `statutoryCrossCheck`, safety telemetry (`advisor-safety-event`), AI usage metering (`claimAiUsage`/`finalizeAiUsage`, `AdvisorUsageLimitError`) |
+| [Advisor Edge Function & Response Contract](#3.3) | The `advisor-chat` edge function pipeline, `buildAdvisorResponse` deterministic payload builder, `advisorResponseSchema` Zod contract, response modes, workspace state kinds, `match_advisor_guidance` RPC, notice schedule injection, `ChatMarkdown` renderer, `ChatChart` fenced blocks             |
 
 ---

@@ -5,7 +5,13 @@ import { useI18n } from '@/i18n/context'
 import { specialistsMessages as M } from '@/i18n/messages/specialists'
 import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { statusChipClass } from '@/components/chips'
-import { FormField, FormInput, FormSelect, FormTextarea, FormCheckbox } from '@/components/FormField'
+import {
+  FormField,
+  FormInput,
+  FormSelect,
+  FormTextarea,
+  FormCheckbox,
+} from '@/components/FormField'
 import { useSpecialistsData } from '../SpecialistsDataContext'
 import type { Specialist, SpecialistSpecialty, SpecialistWorkspaceRole } from '../data/types'
 
@@ -78,7 +84,9 @@ function SpecialistRow({
   return (
     <div className="flex items-start justify-between gap-[12px] border-t border-inset px-[14px] py-[12px] first:border-t-0">
       <div className="min-w-0 flex-1">
-        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">{specialist.name}</div>
+        <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">
+          {specialist.name}
+        </div>
         <div className="text-[12px] text-text-muted">
           {x(M[SPECIALTY_LABELS[specialist.specialty]])}
           {specialist.company ? ` · ${specialist.company}` : null}
@@ -97,7 +105,9 @@ function SpecialistRow({
           </Link>
         ) : null}
         {specialist.workspace_access ? (
-          <span className={statusChipClass('success')}>{x(M[ROLE_LABELS[specialist.workspace_role]])}</span>
+          <span className={statusChipClass('success')}>
+            {x(M[ROLE_LABELS[specialist.workspace_role]])}
+          </span>
         ) : null}
         <button
           type="button"
@@ -133,7 +143,9 @@ export function Directory() {
   const [email, setEmail] = useState(initial.email ?? '')
   const [phone, setPhone] = useState(initial.phone ?? '')
   const [workspaceAccess, setWorkspaceAccess] = useState(initial.workspace_access)
-  const [workspaceRole, setWorkspaceRole] = useState<SpecialistWorkspaceRole>(initial.workspace_role)
+  const [workspaceRole, setWorkspaceRole] = useState<SpecialistWorkspaceRole>(
+    initial.workspace_role,
+  )
   const [notes, setNotes] = useState(initial.notes ?? '')
 
   useEffect(() => {
@@ -208,7 +220,10 @@ export function Directory() {
             <FormInput value={name} onChange={(e) => setName(e.target.value)} required />
           </FormField>
           <FormField label={x(M.spec_specialty)}>
-            <FormSelect value={specialty} onChange={(e) => setSpecialty(e.target.value as SpecialistSpecialty)}>
+            <FormSelect
+              value={specialty}
+              onChange={(e) => setSpecialty(e.target.value as SpecialistSpecialty)}
+            >
               {SPECIALTIES.map((s) => (
                 <option key={s} value={s}>
                   {x(M[SPECIALTY_LABELS[s]])}
@@ -278,7 +293,10 @@ export function Directory() {
             <SpecialistRow
               key={specialist.id}
               specialist={specialist}
-              onEdit={(s) => { setEditing(s); setShow(true) }}
+              onEdit={(s) => {
+                setEditing(s)
+                setShow(true)
+              }}
               onRemove={removeSpecialist}
             />
           ))}

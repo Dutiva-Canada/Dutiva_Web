@@ -104,7 +104,10 @@ export const TAX_TYPE_LABEL: Record<FinanceTaxType, Bi> = {
   income_tax: { en: 'Income tax', fr: 'Impôt sur le revenu' },
   gst_hst: { en: 'GST/HST', fr: 'TPS/TVH' },
   qst: { en: 'QST', fr: 'TVQ' },
-  payroll_source_deductions: { en: 'Payroll source deductions', fr: 'Retenues à la source sur la paie' },
+  payroll_source_deductions: {
+    en: 'Payroll source deductions',
+    fr: 'Retenues à la source sur la paie',
+  },
   employer_contributions: { en: 'Employer contributions', fr: 'Cotisations patronales' },
   other: { en: 'Other', fr: 'Autre' },
 }

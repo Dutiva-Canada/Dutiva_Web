@@ -40,10 +40,7 @@ await page.goto(`${BASE}/app/documents`, { waitUntil: 'networkidle' })
 await openRail(page)
 let r = await railTurn(page, 'approve the termination letter', 'Confirm')
 report('EN approve — card rendered', r.card)
-report(
-  'EN approve — honest demo refusal',
-  /Not available in the demo workspace/i.test(r.body),
-)
+report('EN approve — honest demo refusal', /Not available in the demo workspace/i.test(r.body))
 await page.screenshot({ path: `${OUT}/docs-approve-en.png` })
 
 /* ── 2. EN: send an unapproved doc → "must be approved" refusal ─────────── */
@@ -70,10 +67,7 @@ r = await railTurn(
   'Confirm',
 )
 report('EN send existing — card rendered', r.card)
-report(
-  'EN send existing — envelope refusal',
-  /signature envelope already exists/i.test(r.body),
-)
+report('EN send existing — envelope refusal', /signature envelope already exists/i.test(r.body))
 await page.screenshot({ path: `${OUT}/docs-send-existing-en.png` })
 
 /* ── 4. EN: send an approved+unsent doc → the simulated envelope lands ──── */
@@ -89,10 +83,7 @@ report(
   'EN send approved — envelope created',
   /Sent for signature/i.test(r.body) && /daniel@northgate\.ca/i.test(r.body),
 )
-report(
-  'EN send approved — register row flipped',
-  /Performance improvement plan/.test(r.body),
-)
+report('EN send approved — register row flipped', /Performance improvement plan/.test(r.body))
 await page.screenshot({ path: `${OUT}/docs-send-ok-en.png` })
 
 /* ── 5. Dark + FR: approuve la lettre → honest demo refusal ─────────────── */
@@ -108,10 +99,7 @@ if (!(await page.getByRole('button', { name: /Demander au Conseiller/ }).count()
 await openRail(page)
 r = await railTurn(page, 'approuve la lettre de cessation', 'Confirmer')
 report('FR approve — card rendered', r.card)
-report(
-  'FR approve — honest demo refusal',
-  /espace de démo|démonstration/i.test(r.body),
-)
+report('FR approve — honest demo refusal', /espace de démo|démonstration/i.test(r.body))
 await page.screenshot({ path: `${OUT}/docs-approve-fr-dark.png` })
 
 await browser.close()

@@ -32,7 +32,7 @@ function parseRss(doc: Document, fallbackPublisher?: string): ParsedFeedItem[] {
     url: linkHref(item),
     publishedDate: selectText(item, ['pubDate', 'date']),
     publisher: channelTitle,
-    summary: selectText(item, ['description', 'summary'])
+    summary: selectText(item, ['description', 'summary']),
   }))
 }
 
@@ -47,8 +47,7 @@ function parseAtom(doc: Document, fallbackPublisher?: string): ParsedFeedItem[] 
       title: selectText(entry, ['title']) ?? '(untitled)',
       url,
       publishedDate:
-        selectText(entry, ['updated', 'published', 'issued']) ??
-        selectText(entry, ['modified']),
+        selectText(entry, ['updated', 'published', 'issued']) ?? selectText(entry, ['modified']),
       publisher: feedTitle,
       summary: selectText(entry, ['summary', 'content', 'subtitle']),
     }

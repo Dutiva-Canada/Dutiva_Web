@@ -119,21 +119,21 @@ function unavailable(): AgentToolOutcome {
   return { status: 'failed', code: 'module_unavailable', message: M.agent_err_capability_demo }
 }
 
-function matchDoc(docs: DocumentsAgentContext, needle: string | undefined): DocAgentRow | undefined {
+function matchDoc(
+  docs: DocumentsAgentContext,
+  needle: string | undefined,
+): DocAgentRow | undefined {
   const found =
     findByName(docs.documents(), needle, (d) => d.title) ??
     findByName(docs.documents(), needle, (d) => d.ref)
   if (found || !needle) return found
   /* "document DOC-2026-0138" / "contract remote work" — a leading doc noun
      is phrasing, not part of the title. */
-  const bare = needle.replace(
-    /^(?:document|doc|letter|contract|agreement|offer|policy)\s+/i,
-    '',
-  )
+  const bare = needle.replace(/^(?:document|doc|letter|contract|agreement|offer|policy)\s+/i, '')
   return bare === needle
     ? undefined
-    : findByName(docs.documents(), bare, (d) => d.title) ??
-        findByName(docs.documents(), bare, (d) => d.ref)
+    : (findByName(docs.documents(), bare, (d) => d.title) ??
+        findByName(docs.documents(), bare, (d) => d.ref))
 }
 
 /**
@@ -154,9 +154,7 @@ export function docToAgentRow(d: {
     title: d.title.en,
     status: d.status,
     signatureStatus: d.signatureStatus,
-    awaitingEmails: (d.recipients ?? [])
-      .filter((r) => r.status !== 'signed')
-      .map((r) => r.email),
+    awaitingEmails: (d.recipients ?? []).filter((r) => r.status !== 'signed').map((r) => r.email),
   }
 }
 
@@ -192,7 +190,10 @@ defineTool<DocumentsAgentContext>({
       en: `${items.length} document${items.length === 1 ? '' : 's'}: ${titles.join(', ')}${extra > 0 ? ` +${extra} more` : ''}.`,
       fr: `${items.length} document${items.length === 1 ? '' : 's'} : ${items
         .slice(0, 5)
-        .map((d) => `${d.ref} — ${d.title} (${statusLabel(d.status).fr})${SIGNING_PENDING.includes(d.signatureStatus) ? ' ⚠' : ''}`)
+        .map(
+          (d) =>
+            `${d.ref} — ${d.title} (${statusLabel(d.status).fr})${SIGNING_PENDING.includes(d.signatureStatus) ? ' ⚠' : ''}`,
+        )
         .join(', ')}${extra > 0 ? ` +${extra} autre${extra === 1 ? '' : 's'}` : ''}.`,
     })
   },
@@ -245,9 +246,7 @@ defineTool<DocumentsAgentContext>({
   description: M.agent_docs_signing_desc,
   params: [],
   run: (docs) => {
-    const items = docs
-      .documents()
-      .filter((d) => SIGNING_PENDING.includes(d.signatureStatus))
+    const items = docs.documents().filter((d) => SIGNING_PENDING.includes(d.signatureStatus))
     if (items.length === 0) {
       return { status: 'completed', message: M.agent_docs_signing_none }
     }

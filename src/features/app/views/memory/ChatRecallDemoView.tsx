@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
-import { useWorkspaceNavigate, useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
+import {
+  useWorkspaceNavigate,
+  useWorkspaceRoot,
+  workspacePath,
+} from '@/features/app/workspaceRoot/workspaceRootContext'
 import { Brain, History, Info, Sparkle, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { bi, pick, pickL } from '@/i18n/core'

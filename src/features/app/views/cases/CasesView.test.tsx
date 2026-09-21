@@ -443,27 +443,19 @@ describe('CaseDetailView in production mode', () => {
 
     /* Risk tab shows the bilingual empty state. */
     fireEvent.click(screen.getByRole('tab', { name: 'Risk review' }))
-    expect(
-      await screen.findByText('Risk review not yet available'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Risk review not yet available')).toBeInTheDocument()
 
     /* Legal tab shows the bilingual empty state. */
     fireEvent.click(screen.getByRole('tab', { name: 'Legal review' }))
-    expect(
-      await screen.findByText('Legal review not yet available'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Legal review not yet available')).toBeInTheDocument()
 
     /* Activity tab shows the existing note as a timeline entry. */
     fireEvent.click(screen.getByRole('tab', { name: 'Activity log' }))
-    expect(
-      await screen.findByText('Assessment scheduled with provider.'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Assessment scheduled with provider.')).toBeInTheDocument()
 
     /* Notes tab shows the notes thread + composer. */
     fireEvent.click(screen.getByRole('tab', { name: 'Notes' }))
-    expect(
-      await screen.findByText('Assessment scheduled with provider.'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Assessment scheduled with provider.')).toBeInTheDocument()
 
     /* Add a note through the real path. */
     fireEvent.change(screen.getByLabelText('Add a note to the case record…'), {

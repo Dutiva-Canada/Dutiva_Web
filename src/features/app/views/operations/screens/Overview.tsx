@@ -1,19 +1,9 @@
 import { Link } from 'react-router-dom'
-import {
-  FolderKanban,
-  Truck,
-  ClipboardCheck,
-  Cpu,
-  PackageCheck,
-  ChevronRight,
-} from 'lucide-react'
+import { FolderKanban, Truck, ClipboardCheck, Cpu, PackageCheck, ChevronRight } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { operationsMessages as M } from '@/i18n/messages/operations'
 import { statusChipClass } from '@/components/chips'
-import {
-  useWorkspaceRoot,
-  workspacePath,
-} from '@/features/app/workspaceRoot/workspaceRootContext'
+import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { useOperationsData } from '../OperationsDataContext'
 
 export function Overview() {
@@ -94,7 +84,12 @@ export function Overview() {
           )
         })}
         <div className="col-span-1 flex items-center gap-[14px] rounded-[12px] border border-border bg-surface p-[16px] sm:col-span-2 lg:col-span-3">
-          <FolderKanban size={20} strokeWidth={1.6} className="text-text-muted" aria-hidden="true" />
+          <FolderKanban
+            size={20}
+            strokeWidth={1.6}
+            className="text-text-muted"
+            aria-hidden="true"
+          />
           <p className="m-0 text-[13px] text-text-muted">{x(M.ops_disclaimer)}</p>
         </div>
       </div>

@@ -64,14 +64,14 @@ This creates room for **professional employees** — employees who do real work 
 
 ### Role model
 
-| Role | Typical user | What they see and do |
-|---|---|---|
-| **Owner / Admin** | Founder, CEO, senior leader | Full workspace: executive cockpit, governance, security, finance, revenue, all operations and people modules. |
-| **Manager** | Department lead, operations or people manager | Team view in People; tasks, projects, quality, and vendor records in Operations; read or limited write access to Finance and Security; access to Revenue (CRM/Comms) if in scope for their function. |
-| **Professional employee** | In-house HR, finance, operations, security, or IT lead | Performs work in the app: processes cases, runs payroll checks, completes and reviews quality checks, manages projects, triages security incidents, owns vendor records. May see more than a self-service member but less than a manager in modules outside their function. |
-| **Member** | Employee, individual contributor | Self-service: own employee profile, assigned tasks and calendar events, policies, wellbeing resources. Can complete operational work only when explicitly assigned (a quality check, a project task, a security training). No access to governance, finance, revenue, or sensitive HR records unless explicitly shared. |
-| **Consultant / Freelancer** | External bookkeeper, HR consultant, IT/security contractor, legal counsel | Scoped, time-limited access to one or more modules (e.g., Finance, Security, People). Appears in `/app/specialists` and can be granted a workspace seat with an expiry date. No access to governance or executive features unless explicitly granted. |
-| **Viewer** | Board observer, auditor, external advisor | Read-only access to selected governance records, policies, and analytics. No write access; no access to compensation, cases, or personal employee data unless granted. |
+| Role                        | Typical user                                                              | What they see and do                                                                                                                                                                                                                                                                                                    |
+| --------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Owner / Admin**           | Founder, CEO, senior leader                                               | Full workspace: executive cockpit, governance, security, finance, revenue, all operations and people modules.                                                                                                                                                                                                           |
+| **Manager**                 | Department lead, operations or people manager                             | Team view in People; tasks, projects, quality, and vendor records in Operations; read or limited write access to Finance and Security; access to Revenue (CRM/Comms) if in scope for their function.                                                                                                                    |
+| **Professional employee**   | In-house HR, finance, operations, security, or IT lead                    | Performs work in the app: processes cases, runs payroll checks, completes and reviews quality checks, manages projects, triages security incidents, owns vendor records. May see more than a self-service member but less than a manager in modules outside their function.                                             |
+| **Member**                  | Employee, individual contributor                                          | Self-service: own employee profile, assigned tasks and calendar events, policies, wellbeing resources. Can complete operational work only when explicitly assigned (a quality check, a project task, a security training). No access to governance, finance, revenue, or sensitive HR records unless explicitly shared. |
+| **Consultant / Freelancer** | External bookkeeper, HR consultant, IT/security contractor, legal counsel | Scoped, time-limited access to one or more modules (e.g., Finance, Security, People). Appears in `/app/specialists` and can be granted a workspace seat with an expiry date. No access to governance or executive features unless explicitly granted.                                                                   |
+| **Viewer**                  | Board observer, auditor, external advisor                                 | Read-only access to selected governance records, policies, and analytics. No write access; no access to compensation, cases, or personal employee data unless granted.                                                                                                                                                  |
 
 ### What changes per role
 
@@ -95,22 +95,22 @@ This does not turn Dutiva into a full employee portal, but it makes the platform
 
 ## Module map
 
-| Org layer | Module | Route | Current state | New or changed |
-|---|---|---|---|---|
-| Executive | Home | `/app/home` | exists | redesign to cockpit |
-| Revenue | Revenue | `/app/revenue` | new | overview pulling from CRM + Comms |
-| Revenue | CRM | `/app/crm` | exists | keep, link from Revenue |
-| Revenue | Comms | `/app/comms/*` | exists | keep, link from Revenue |
-| Operations | Operations | `/app/operations/*` | new | projects, vendors, quality, tech, logistics |
-| People | Employees | `/app/employees` | exists | unchanged |
-| People | Cases | `/app/cases` | exists | unchanged |
-| People | Hiring | `/app/hiring` | exists | unchanged |
-| People | Wellbeing | `/app/wellbeing` | exists | unchanged |
-| Finance | Finance | `/app/finance/*` | exists | unchanged; links to Operations vendors and Payroll |
-| Finance | Compensation | `/app/compensation` | exists | unchanged |
-| Governance | Governance | `/app/governance/*` | new | records, decisions, officers, shareholders |
-| Security | Security | `/app/security/*` | new | asset register, access reviews, incidents, risks, vendors |
-| External | Specialists | `/app/specialists/*` | new | directory and engagement log |
+| Org layer  | Module       | Route                | Current state | New or changed                                            |
+| ---------- | ------------ | -------------------- | ------------- | --------------------------------------------------------- |
+| Executive  | Home         | `/app/home`          | exists        | redesign to cockpit                                       |
+| Revenue    | Revenue      | `/app/revenue`       | new           | overview pulling from CRM + Comms                         |
+| Revenue    | CRM          | `/app/crm`           | exists        | keep, link from Revenue                                   |
+| Revenue    | Comms        | `/app/comms/*`       | exists        | keep, link from Revenue                                   |
+| Operations | Operations   | `/app/operations/*`  | new           | projects, vendors, quality, tech, logistics               |
+| People     | Employees    | `/app/employees`     | exists        | unchanged                                                 |
+| People     | Cases        | `/app/cases`         | exists        | unchanged                                                 |
+| People     | Hiring       | `/app/hiring`        | exists        | unchanged                                                 |
+| People     | Wellbeing    | `/app/wellbeing`     | exists        | unchanged                                                 |
+| Finance    | Finance      | `/app/finance/*`     | exists        | unchanged; links to Operations vendors and Payroll        |
+| Finance    | Compensation | `/app/compensation`  | exists        | unchanged                                                 |
+| Governance | Governance   | `/app/governance/*`  | new           | records, decisions, officers, shareholders                |
+| Security   | Security     | `/app/security/*`    | new           | asset register, access reviews, incidents, risks, vendors |
+| External   | Specialists  | `/app/specialists/*` | new           | directory and engagement log                              |
 
 ## Sidebar restructure
 

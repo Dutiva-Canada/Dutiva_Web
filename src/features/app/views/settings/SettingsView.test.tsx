@@ -40,7 +40,9 @@ describe('SettingsView', () => {
       screen.getByText('Riley Summers viewed compensation — Jordan Mensah'),
     ).toBeInTheDocument()
     expect(
-      screen.getByText('These switches remember your choice on this browser. Delivery isn’t live yet.'),
+      screen.getByText(
+        'These switches remember your choice on this browser. Delivery isn’t live yet.',
+      ),
     ).toBeInTheDocument()
   })
 
@@ -80,7 +82,9 @@ describe('SettingsView', () => {
       path: '/app/settings',
     })
     expect(
-      screen.getByText('No Advisor actions yet this session — actions you confirm or refuse are listed here.'),
+      screen.getByText(
+        'No Advisor actions yet this session — actions you confirm or refuse are listed here.',
+      ),
     ).toBeInTheDocument()
     unmount()
 

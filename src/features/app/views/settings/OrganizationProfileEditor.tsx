@@ -65,7 +65,8 @@ export function OrganizationProfileEditor() {
     if (!organization) return false
     return (
       industry !== (organization.industry ?? '') ||
-      JSON.stringify(jurisdictions.sort()) !== JSON.stringify([...organization.jurisdictions].sort()) ||
+      JSON.stringify(jurisdictions.sort()) !==
+        JSON.stringify([...organization.jurisdictions].sort()) ||
       JSON.stringify(financeFeatures) !== JSON.stringify(organization.financeFeatures)
     )
   }, [industry, jurisdictions, financeFeatures, organization])

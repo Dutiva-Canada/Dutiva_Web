@@ -193,7 +193,9 @@ const organizationRowSchema = z.object({
   finance_features: z.record(z.string(), z.boolean()).nullable().optional(),
 })
 
-function orgSettingsFromRow(row: z.infer<typeof organizationRowSchema>): WorkspaceOrganizationSettings {
+function orgSettingsFromRow(
+  row: z.infer<typeof organizationRowSchema>,
+): WorkspaceOrganizationSettings {
   return {
     id: row.id,
     name: row.name,
@@ -223,7 +225,12 @@ export async function fetchOrganizationSettings(
 
 export async function updateOrganizationSettings(
   organizationId: string,
-  patch: Partial<Pick<WorkspaceOrganizationSettings, 'industry' | 'jurisdictions' | 'enabledModules' | 'financeFeatures'>>,
+  patch: Partial<
+    Pick<
+      WorkspaceOrganizationSettings,
+      'industry' | 'jurisdictions' | 'enabledModules' | 'financeFeatures'
+    >
+  >,
 ): Promise<WorkspaceOrganizationSettings | null> {
   if (!supabase) return null
   try {

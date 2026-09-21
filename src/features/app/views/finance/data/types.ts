@@ -96,14 +96,7 @@ export interface FinanceLedgerAccount {
 /* ---------- Commercial documents ---------- */
 
 export type FinanceInvoiceStatus =
-  | 'draft'
-  | 'issued'
-  | 'partial'
-  | 'paid'
-  | 'overdue'
-  | 'disputed'
-  | 'written_off'
-  | 'cancelled'
+  'draft' | 'issued' | 'partial' | 'paid' | 'overdue' | 'disputed' | 'written_off' | 'cancelled'
 
 export interface FinanceInvoice {
   id: string
@@ -126,13 +119,7 @@ export interface FinanceInvoice {
 }
 
 export type FinanceBillStatus =
-  | 'draft'
-  | 'posted'
-  | 'partial'
-  | 'paid'
-  | 'overdue'
-  | 'disputed'
-  | 'cancelled'
+  'draft' | 'posted' | 'partial' | 'paid' | 'overdue' | 'disputed' | 'cancelled'
 
 export interface FinanceBill {
   id: string
@@ -183,12 +170,7 @@ export interface FinanceReceipt {
 /* ---------- Spend and procurement ---------- */
 
 export type FinanceRequestStatus =
-  | 'draft'
-  | 'submitted'
-  | 'approved'
-  | 'rejected'
-  | 'committed'
-  | 'cancelled'
+  'draft' | 'submitted' | 'approved' | 'rejected' | 'committed' | 'cancelled'
 
 export interface FinanceSpendRequest {
   id: string
@@ -359,12 +341,7 @@ export interface FinanceClosePeriod {
 /* ---------- Payroll ---------- */
 
 export type FinancePayRunStatus =
-  | 'inputs_open'
-  | 'inputs_approved'
-  | 'submitted'
-  | 'results_imported'
-  | 'reconciled'
-  | 'exception'
+  'inputs_open' | 'inputs_approved' | 'submitted' | 'results_imported' | 'reconciled' | 'exception'
 
 export interface FinancePayPeriod {
   id: string
@@ -442,7 +419,8 @@ export interface FinanceBudget {
   version: number
 }
 
-export type FinanceScenarioType = 'baseline' | 'hiring' | 'capital_purchase' | 'financing' | 'operating_change' | 'tax'
+export type FinanceScenarioType =
+  'baseline' | 'hiring' | 'capital_purchase' | 'financing' | 'operating_change' | 'tax'
 
 export interface FinanceScenario {
   id: string
@@ -488,11 +466,7 @@ export interface FinanceForecastPeriod {
 /* ---------- Treasury ---------- */
 
 export type FinanceReserveType =
-  | 'payroll'
-  | 'tax'
-  | 'emergency_operating'
-  | 'capital_purchase'
-  | 'other'
+  'payroll' | 'tax' | 'emergency_operating' | 'capital_purchase' | 'other'
 
 export interface FinanceReserveGoal {
   id: string

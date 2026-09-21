@@ -11,7 +11,8 @@ import type {
   FinanceBudget,
   FinanceCategoryRule,
   FinanceClosePeriod,
-  FinanceCategorizationFeedback,  FinanceCredit,
+  FinanceCategorizationFeedback,
+  FinanceCredit,
   FinanceDebt,
   FinanceExternalAction,
   FinanceExternalActionStatus,
@@ -605,7 +606,8 @@ export function mapImportSession(r: Record<string, unknown>): FinanceImportSessi
     newItems: r.new_items as number,
     duplicates: r.duplicates as number,
     errors: r.errors as number,
-    errorDetails: (r.error_details as import('./types').FinanceImportRowError[] | undefined) ?? undefined,
+    errorDetails:
+      (r.error_details as import('./types').FinanceImportRowError[] | undefined) ?? undefined,
     status: r.status as FinanceImportSession['status'],
   }
 }
@@ -637,7 +639,9 @@ export function mapReceipt(r: Record<string, unknown>): FinanceReceipt {
   }
 }
 
-export function mapCategorizationFeedback(r: Record<string, unknown>): FinanceCategorizationFeedback {
+export function mapCategorizationFeedback(
+  r: Record<string, unknown>,
+): FinanceCategorizationFeedback {
   return {
     id: r.id as string,
     entityId: r.entity_id as string,

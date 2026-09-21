@@ -327,7 +327,10 @@ export const memoryMessages = defineMessages({
   },
   memory_prod_loading: { en: 'Loading memory…', fr: 'Chargement de la mémoire…' }, // [FR self-authored]
   memory_prod_retry: { en: 'Retry', fr: 'Réessayer' }, // [FR self-authored]
-  memory_prod_error: { en: 'Could not update that memory.', fr: 'Impossible de mettre à jour cet élément.' }, // [FR self-authored]
+  memory_prod_error: {
+    en: 'Could not update that memory.',
+    fr: 'Impossible de mettre à jour cet élément.',
+  }, // [FR self-authored]
   memory_prod_empty: {
     en: 'No memories yet. Add one, or confirm ones Advisor records later.',
     fr: 'Aucun élément pour l’instant. Ajoutez-en un, ou confirmez ceux que le Conseiller enregistrera plus tard.',

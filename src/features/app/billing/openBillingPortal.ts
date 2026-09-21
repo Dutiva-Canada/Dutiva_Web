@@ -4,9 +4,7 @@ import { supabase } from '@/lib/supabaseClient'
  * Opens the Stripe customer portal for the signed-in billing owner.
  * Returns an error code the UI can map to existing pricing/settings copy.
  */
-export type OpenBillingPortalResult =
-  | { ok: true }
-  | { ok: false; reason: 'unavailable' | 'failed' }
+export type OpenBillingPortalResult = { ok: true } | { ok: false; reason: 'unavailable' | 'failed' }
 
 export async function openBillingPortal(): Promise<OpenBillingPortalResult> {
   if (!supabase) return { ok: false, reason: 'unavailable' }

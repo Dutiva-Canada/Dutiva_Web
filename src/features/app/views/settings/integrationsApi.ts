@@ -43,7 +43,9 @@ export async function listIntegrations(orgId: string): Promise<WorkspaceIntegrat
   if (!supabase) notConfigured()
   const { data, error } = await supabase
     .from('workspace_integrations')
-    .select('id, organization_id, provider, display_name, status, config, secret_ref, last_checked_at, created_at')
+    .select(
+      'id, organization_id, provider, display_name, status, config, secret_ref, last_checked_at, created_at',
+    )
     .eq('organization_id', orgId)
     .order('created_at', { ascending: false })
   if (error) throw new Error(error.message)
@@ -66,7 +68,9 @@ export async function createIntegration(input: {
       config: (input.config ?? {}) as Json,
       status: 'pending',
     })
-    .select('id, organization_id, provider, display_name, status, config, secret_ref, last_checked_at, created_at')
+    .select(
+      'id, organization_id, provider, display_name, status, config, secret_ref, last_checked_at, created_at',
+    )
     .single()
   if (error) throw new Error(error.message)
   return rowSchema.parse(data)

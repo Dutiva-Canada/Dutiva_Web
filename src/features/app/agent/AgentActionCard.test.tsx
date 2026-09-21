@@ -93,11 +93,7 @@ describe('AgentActionCard', () => {
     registerEcho(() => ({ status: 'completed', message: bi('done', 'fait') }))
     renderCard(createProposal('test.echo', bi('Do it', 'Exécuter'), { name: 'Amara' }))
     fireEvent.click(screen.getByRole('button', { name: 'Confirm' }))
-    await waitFor(() =>
-      expect(
-        screen.getByText(/Open this workspace first/),
-      ).toBeTruthy(),
-    )
+    await waitFor(() => expect(screen.getByText(/Open this workspace first/)).toBeTruthy())
   })
 
   it('Decline marks the proposal declined — nothing executes', () => {

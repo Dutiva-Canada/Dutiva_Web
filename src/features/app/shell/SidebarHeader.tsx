@@ -2,7 +2,10 @@ import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
-import type { WorkspaceIdentity, WorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import type {
+  WorkspaceIdentity,
+  WorkspaceMode,
+} from '@/features/app/workspaceMode/workspaceModeContext'
 import { SidebarTooltip } from './SidebarTooltip'
 import { cx } from './cx'
 

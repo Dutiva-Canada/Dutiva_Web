@@ -64,7 +64,9 @@ function LogisticsRow({
         </div>
       </div>
       <div className="flex items-center gap-[10px]">
-        <span className={statusChipClass(STATUS_TONE[row.status])}>{x(M[STATUS_LABELS[row.status]])}</span>
+        <span className={statusChipClass(STATUS_TONE[row.status])}>
+          {x(M[STATUS_LABELS[row.status]])}
+        </span>
         <button
           type="button"
           onClick={() => onEdit(row)}
@@ -159,7 +161,10 @@ export function Logistics() {
             <FormInput value={title} onChange={(e) => setTitle(e.target.value)} required />
           </FormField>
           <FormField label={x(M.ops_status)}>
-            <FormSelect value={status} onChange={(e) => setStatus(e.target.value as OperationsLogisticsStatus)}>
+            <FormSelect
+              value={status}
+              onChange={(e) => setStatus(e.target.value as OperationsLogisticsStatus)}
+            >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {x(M[STATUS_LABELS[s]])}
@@ -168,10 +173,18 @@ export function Logistics() {
             </FormSelect>
           </FormField>
           <FormField label={x(M.ops_expected_date)}>
-            <FormInput type="date" value={expectedDate} onChange={(e) => setExpectedDate(e.target.value)} />
+            <FormInput
+              type="date"
+              value={expectedDate}
+              onChange={(e) => setExpectedDate(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.ops_delivered_date)}>
-            <FormInput type="date" value={deliveredDate} onChange={(e) => setDeliveredDate(e.target.value)} />
+            <FormInput
+              type="date"
+              value={deliveredDate}
+              onChange={(e) => setDeliveredDate(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.ops_notes)} className="sm:col-span-2">
             <FormTextarea value={notes} onChange={(e) => setNotes(e.target.value)} />
@@ -205,7 +218,10 @@ export function Logistics() {
             <LogisticsRow
               key={row.id}
               row={row}
-              onEdit={(r) => { setEditing(r); setShow(true) }}
+              onEdit={(r) => {
+                setEditing(r)
+                setShow(true)
+              }}
               onRemove={(id) => removeLogistics(id)}
             />
           ))}

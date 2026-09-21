@@ -52,7 +52,11 @@ export interface CommunicationsAgentContext {
 type CommsCtx = CommunicationsAgentContext
 
 function unavailable() {
-  return { status: 'failed', code: 'module_unavailable', message: M.agent_err_capability_demo } as const
+  return {
+    status: 'failed',
+    code: 'module_unavailable',
+    message: M.agent_err_capability_demo,
+  } as const
 }
 
 /* ── Reads ────────────────────────────────────────────────────────────────── */
@@ -97,7 +101,13 @@ defineTool<CommsCtx>({
   label: M.agent_comms_log_label,
   description: M.agent_comms_log_desc,
   params: [
-    { name: 'title', type: 'string', required: true, description: M.agent_comms_p_title, maxLength: 200 },
+    {
+      name: 'title',
+      type: 'string',
+      required: true,
+      description: M.agent_comms_p_title,
+      maxLength: 200,
+    },
     { name: 'audience', type: 'string', description: M.agent_comms_p_audience, maxLength: 160 },
     {
       name: 'channel',
@@ -116,8 +126,7 @@ defineTool<CommsCtx>({
   ],
   run: async (comms, params) => {
     if (!comms.add) return unavailable()
-    const status =
-      (str(params, 'status') as ProductionCommunicationStatus | undefined) ?? 'draft'
+    const status = (str(params, 'status') as ProductionCommunicationStatus | undefined) ?? 'draft'
     const created = await comms.add({
       title: str(params, 'title') ?? '',
       audience: str(params, 'audience') ?? '',

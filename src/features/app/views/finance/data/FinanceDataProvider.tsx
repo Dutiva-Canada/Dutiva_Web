@@ -239,9 +239,7 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
 
   const isPeriodLocked = useCallback(
     (bookId: string, periodId: string) => {
-      const cp = state.closePeriods.find(
-        (p) => p.bookId === bookId && p.periodId === periodId,
-      )
+      const cp = state.closePeriods.find((p) => p.bookId === bookId && p.periodId === periodId)
       return cp?.status === 'locked' || cp?.status === 'approved'
     },
     [state.closePeriods],
@@ -309,7 +307,13 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
       reopenReason?: string,
     ) => {
       if (!isLive || !orgId || !hasSupabase) return null
-      const updated = await updateClosePeriodStatusSupa(orgId, id, nextStatus, approver, reopenReason)
+      const updated = await updateClosePeriodStatusSupa(
+        orgId,
+        id,
+        nextStatus,
+        approver,
+        reopenReason,
+      )
       await reload()
       return updated
     },
@@ -329,7 +333,12 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
   const importBankStatement = useCallback(
     async (bankAccountId: string, fileName: string, fileContent: string) => {
       if (!isLive || !orgId || !hasSupabase) return null
-      const result = await importBankStatementInSupabase(orgId, bankAccountId, fileName, fileContent)
+      const result = await importBankStatementInSupabase(
+        orgId,
+        bankAccountId,
+        fileName,
+        fileContent,
+      )
       let aiSummary: import('./types').FinanceBankStatementImportResult['aiSummary'] = undefined
       if (result?.sessionId) {
         try {
@@ -536,16 +545,42 @@ function useFinanceDataValue(orgId: string | undefined): FinanceDataContextValue
 
 function emptyState(): FinanceWorkspaceState {
   return {
-    entities: [], books: [], fiscalPeriods: [], parties: [], bankAccounts: [],
-    ledgerAccounts: [], invoices: [], bills: [], credits: [], receipts: [],
-    spendRequests: [], purchaseOrders: [], expenses: [], subscriptions: [],
-    journals: [], bankItems: [], reconciliations: [], closePeriods: [],
-    payPeriods: [], payRuns: [], payrollLiabilities: [], budgets: [],
-    scenarios: [], forecasts: [], reserveGoals: [], holdings: [],
-    watchlistItems: [], decisionEntries: [], debts: [],
-    taxObligations: [], taxScenarios: [], approvals: [], auditEvents: [],
+    entities: [],
+    books: [],
+    fiscalPeriods: [],
+    parties: [],
+    bankAccounts: [],
+    ledgerAccounts: [],
+    invoices: [],
+    bills: [],
+    credits: [],
+    receipts: [],
+    spendRequests: [],
+    purchaseOrders: [],
+    expenses: [],
+    subscriptions: [],
+    journals: [],
+    bankItems: [],
+    reconciliations: [],
+    closePeriods: [],
+    payPeriods: [],
+    payRuns: [],
+    payrollLiabilities: [],
+    budgets: [],
+    scenarios: [],
+    forecasts: [],
+    reserveGoals: [],
+    holdings: [],
+    watchlistItems: [],
+    decisionEntries: [],
+    debts: [],
+    taxObligations: [],
+    taxScenarios: [],
+    approvals: [],
+    auditEvents: [],
     externalActions: [],
-    categoryRules: [], importSessions: [],
+    categoryRules: [],
+    importSessions: [],
     aiImportSettings: { aiImportEnabled: false, aiImportMode: 'auto_high' },
     categorizationFeedback: [],
   }

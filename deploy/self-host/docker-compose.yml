@@ -27,7 +27,7 @@ services:
       SELFHOST_SUPABASE_ORIGIN: ${SELFHOST_SUPABASE_ORIGIN:?set it in .env.selfhost — it becomes the CSP connect-src}
       SELFHOST_SUPABASE_WSS: ${SELFHOST_SUPABASE_WSS:-}
     ports:
-      - "${WEB_PORT:-8080}:80"
+      - '${WEB_PORT:-8080}:80'
     restart: unless-stopped
 
   # Optional local model runtime for development: `ollama` serves an
@@ -39,11 +39,11 @@ services:
   # network, NOT when the project is Supabase cloud.
   ollama:
     image: ollama/ollama:latest
-    profiles: ["local-ai"]
+    profiles: ['local-ai']
     volumes:
       - ollama-models:/root/.ollama
     ports:
-      - "11434:11434"
+      - '11434:11434'
     restart: unless-stopped
 
 volumes:

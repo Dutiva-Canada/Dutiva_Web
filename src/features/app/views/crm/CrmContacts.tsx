@@ -58,9 +58,7 @@ export function CrmContacts({ crm }: { readonly crm: UseCrmDataReturn }) {
   const toggleStatus = (s: CrmContactStatus) =>
     setFilter((f) => ({
       ...f,
-      statuses: f.statuses.includes(s)
-        ? f.statuses.filter((v) => v !== s)
-        : [...f.statuses, s],
+      statuses: f.statuses.includes(s) ? f.statuses.filter((v) => v !== s) : [...f.statuses, s],
     }))
 
   const applyView = (id: string) => {
@@ -164,7 +162,9 @@ export function CrmContacts({ crm }: { readonly crm: UseCrmDataReturn }) {
             <option value="">{x(M.crm_filter_all_companies)}</option>
             <option value={NO_COMPANY}>{x(M.crm_filter_unassigned)}</option>
             {crm.state.companies.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
             ))}
           </select>
         </div>
@@ -221,7 +221,9 @@ export function CrmContacts({ crm }: { readonly crm: UseCrmDataReturn }) {
           >
             <option value="">{x(M.crm_view_all)}</option>
             {views.map((v) => (
-              <option key={v.id} value={v.id}>{v.name}</option>
+              <option key={v.id} value={v.id}>
+                {v.name}
+              </option>
             ))}
           </select>
           {namingView ? (
@@ -242,7 +244,10 @@ export function CrmContacts({ crm }: { readonly crm: UseCrmDataReturn }) {
               </button>
               <button
                 type="button"
-                onClick={() => { setNamingView(false); setViewName('') }}
+                onClick={() => {
+                  setNamingView(false)
+                  setViewName('')
+                }}
                 className="text-[12px] font-semibold text-text-3 hover:text-text"
               >
                 {x(M.crm_cancel)}
@@ -278,49 +283,88 @@ export function CrmContacts({ crm }: { readonly crm: UseCrmDataReturn }) {
           <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
             <div className="sm:col-span-2">
               <label className={labelClass}>{x(M.crm_name)}</label>
-              <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} required />
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={inputClass}
+                required
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.crm_email)}</label>
-              <input value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />
+              <input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.crm_phone)}</label>
-              <input value={phone} onChange={(e) => setPhone(e.target.value)} className={inputClass} />
+              <input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.crm_company)}</label>
-              <select value={companyId} onChange={(e) => setCompanyId(e.target.value)} className={inputClass}>
+              <select
+                value={companyId}
+                onChange={(e) => setCompanyId(e.target.value)}
+                className={inputClass}
+              >
                 <option value="">{x(M.crm_no_company)}</option>
                 {crm.state.companies.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
               <label className={labelClass}>{x(M.crm_role)}</label>
-              <input value={role} onChange={(e) => setRole(e.target.value)} className={inputClass} />
+              <input
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.crm_status)}</label>
-              <select value={status} onChange={(e) => setStatus(e.target.value as typeof CRM_CONTACT_STATUSES[number])} className={inputClass}>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as (typeof CRM_CONTACT_STATUSES)[number])}
+                className={inputClass}
+              >
                 {CRM_CONTACT_STATUSES.map((s) => (
-                  <option key={s} value={s}>{x(M[`crm_status_${s}` as keyof typeof M])}</option>
+                  <option key={s} value={s}>
+                    {x(M[`crm_status_${s}` as keyof typeof M])}
+                  </option>
                 ))}
               </select>
             </div>
             <div className="sm:col-span-2">
               <label className={labelClass}>{x(M.crm_notes)}</label>
-              <input value={notes} onChange={(e) => setNotes(e.target.value)} className={inputClass} />
+              <input
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className={inputClass}
+              />
             </div>
           </div>
           <div className="mt-[14px] flex gap-[8px]">
-            <button type="submit" className="rounded-[8px] border-none bg-navy px-[14px] py-[8px] text-[13px] font-semibold text-white">
+            <button
+              type="submit"
+              className="rounded-[8px] border-none bg-navy px-[14px] py-[8px] text-[13px] font-semibold text-white"
+            >
               {x(M.crm_save)}
             </button>
             <button
               type="button"
-              onClick={() => { reset(); setShowForm(false) }}
+              onClick={() => {
+                reset()
+                setShowForm(false)
+              }}
               className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] font-semibold text-text"
             >
               {x(M.crm_cancel)}
@@ -331,10 +375,7 @@ export function CrmContacts({ crm }: { readonly crm: UseCrmDataReturn }) {
 
       <ul className="grid gap-[10px]">
         {filtered.map((contact) => (
-          <li
-            key={contact.id}
-            className="rounded-[10px] border border-border bg-surface p-[14px]"
-          >
+          <li key={contact.id} className="rounded-[10px] border border-border bg-surface p-[14px]">
             <div className="flex flex-wrap items-start justify-between gap-[8px]">
               <div>
                 <div className="text-[14px] font-semibold text-text">{contact.name}</div>

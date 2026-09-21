@@ -19,7 +19,11 @@ import {
   listEmployees,
   removeEmployee,
 } from './productionApi'
-import type { ProductionEmployee, ProductionEmployeeStatus, ProductionEmploymentType } from './productionApi'
+import type {
+  ProductionEmployee,
+  ProductionEmployeeStatus,
+  ProductionEmploymentType,
+} from './productionApi'
 import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
@@ -53,7 +57,12 @@ const inputClass =
   'w-full rounded-[10px] border border-border bg-surface px-[12px] py-[9px] font-sans text-[13.5px] text-text'
 const labelClass = 'mb-[4px] block text-[12px] font-semibold text-text-3'
 
-const EMPLOYMENT_TYPES: ProductionEmploymentType[] = ['full_time', 'part_time', 'contract', 'intern']
+const EMPLOYMENT_TYPES: ProductionEmploymentType[] = [
+  'full_time',
+  'part_time',
+  'contract',
+  'intern',
+]
 
 const EMPLOYMENT_TYPE_LABELS: Record<ProductionEmploymentType, keyof typeof M> = {
   full_time: 'employees_employment_type_full_time',
@@ -179,10 +188,7 @@ export function EmployeesProductionView() {
       </div>
 
       {showBulkImport && (
-        <BulkImportWizard
-          adapter={employeeAdapter}
-          onClose={() => setShowBulkImport(false)}
-        />
+        <BulkImportWizard adapter={employeeAdapter} onClose={() => setShowBulkImport(false)} />
       )}
 
       {loadFailed && (
@@ -286,7 +292,12 @@ export function EmployeesProductionView() {
               <select
                 id="emp-employment-type"
                 value={form.employmentType}
-                onChange={(e) => setForm((f) => ({ ...f, employmentType: e.target.value as ProductionEmploymentType | '' }))}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    employmentType: e.target.value as ProductionEmploymentType | '',
+                  }))
+                }
                 className={inputClass}
               >
                 <option value="">{x(M.employees_prod_employment_type_unset)}</option>
@@ -389,7 +400,14 @@ export function EmployeesProductionView() {
               <Link to={`/app/employees/${emp.id}`} className="min-w-0 flex-1 hover:opacity-80">
                 <div className="truncate text-[13.5px] font-semibold text-text">{emp.name}</div>
                 <div className="truncate text-[12px] text-text-muted">
-                  {[emp.title, emp.department, emp.employmentType ? x(M[EMPLOYMENT_TYPE_LABELS[emp.employmentType]]) : null, emp.jurisdiction].filter(Boolean).join(' · ')}
+                  {[
+                    emp.title,
+                    emp.department,
+                    emp.employmentType ? x(M[EMPLOYMENT_TYPE_LABELS[emp.employmentType]]) : null,
+                    emp.jurisdiction,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
                 </div>
               </Link>
               <span className={statusChipClass(STATUS_TONE[emp.status])}>

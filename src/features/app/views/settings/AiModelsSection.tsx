@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Cable, Cpu, Download, FlaskConical, FolderOpen, HardDrive, Loader2, Trash2 } from 'lucide-react'
+import {
+  Cable,
+  Cpu,
+  Download,
+  FlaskConical,
+  FolderOpen,
+  HardDrive,
+  Loader2,
+  Trash2,
+} from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pickL } from '@/i18n/core'
 import { useAuth } from '@/features/app/auth/authContext'
@@ -94,7 +103,9 @@ function ProviderPanel() {
   const [secretRef, setSecretRef] = useState('')
   const [mods, setMods] = useState<Set<string>>(new Set(['text']))
   const [saving, setSaving] = useState(false)
-  const [probe, setProbe] = useState<Record<string, { state: 'busy' | 'ok' | 'fail'; count: number }>>({})
+  const [probe, setProbe] = useState<
+    Record<string, { state: 'busy' | 'ok' | 'fail'; count: number }>
+  >({})
   const [routeModel, setRouteModel] = useState('')
   const [routeProviderId, setRouteProviderId] = useState('')
   const [routeSaving, setRouteSaving] = useState(false)
@@ -168,8 +179,7 @@ function ProviderPanel() {
   const applyRoute = async () => {
     if (!advisorRoute || !effectiveRouteProviderId || !routeModel.trim() || routeSaving) return
     const provider = providers?.find((p) => p.id === effectiveRouteProviderId)
-    const providerMods =
-      (provider?.metadata?.modalities as string[] | undefined) ?? ['text']
+    const providerMods = (provider?.metadata?.modalities as string[] | undefined) ?? ['text']
     setRouteSaving(true)
     try {
       await assignRoute({
@@ -330,7 +340,9 @@ function ProviderPanel() {
             </button>
           </>
         ) : (
-          <div className="mt-[8px] text-[11.5px] text-text-faint">{x(M.aimodels_route_missing)}</div>
+          <div className="mt-[8px] text-[11.5px] text-text-faint">
+            {x(M.aimodels_route_missing)}
+          </div>
         )}
       </div>
 
@@ -520,7 +532,12 @@ function DeviceModelsPanel() {
               <div className="flex shrink-0 items-center gap-[6px]">
                 {isInstalled ? (
                   <button type="button" onClick={() => void remove(m.id)} className={BTN_GHOST}>
-                    <Trash2 size={12} strokeWidth={1.9} aria-hidden="true" className="mr-[4px] inline" />
+                    <Trash2
+                      size={12}
+                      strokeWidth={1.9}
+                      aria-hidden="true"
+                      className="mr-[4px] inline"
+                    />
                     {x(M.aimodels_remove)}
                   </button>
                 ) : (
@@ -531,9 +548,18 @@ function DeviceModelsPanel() {
                     className={BTN}
                   >
                     {installing ? (
-                      <Loader2 size={12} className="mr-[4px] inline animate-spin" aria-hidden="true" />
+                      <Loader2
+                        size={12}
+                        className="mr-[4px] inline animate-spin"
+                        aria-hidden="true"
+                      />
                     ) : (
-                      <Download size={12} strokeWidth={1.9} aria-hidden="true" className="mr-[4px] inline" />
+                      <Download
+                        size={12}
+                        strokeWidth={1.9}
+                        aria-hidden="true"
+                        className="mr-[4px] inline"
+                      />
                     )}
                     {installing ? x(M.aimodels_installing) : x(M.aimodels_install)}
                   </button>
@@ -635,12 +661,22 @@ function DriveImportPanel({ onImported }: { readonly onImported: () => Promise<v
         <div className="mt-[8px] flex flex-wrap items-center gap-[8px]">
           {folder?.permission === 'prompt' ? (
             <button type="button" className={BTN} disabled={busy} onClick={() => void regrant()}>
-              <FolderOpen size={12} strokeWidth={1.9} aria-hidden="true" className="mr-[4px] inline" />
+              <FolderOpen
+                size={12}
+                strokeWidth={1.9}
+                aria-hidden="true"
+                className="mr-[4px] inline"
+              />
               {x(M.aimodels_drive_regrant)}
             </button>
           ) : (
             <button type="button" className={BTN} disabled={busy} onClick={() => void choose()}>
-              <FolderOpen size={12} strokeWidth={1.9} aria-hidden="true" className="mr-[4px] inline" />
+              <FolderOpen
+                size={12}
+                strokeWidth={1.9}
+                aria-hidden="true"
+                className="mr-[4px] inline"
+              />
               {x(M.aimodels_drive_choose)}
             </button>
           )}
@@ -658,7 +694,9 @@ function DriveImportPanel({ onImported }: { readonly onImported: () => Promise<v
           ) : null}
         </div>
       ) : (
-        <div className="mt-[6px] text-[11.5px] text-text-faint">{x(M.aimodels_drive_unsupported)}</div>
+        <div className="mt-[6px] text-[11.5px] text-text-faint">
+          {x(M.aimodels_drive_unsupported)}
+        </div>
       )}
     </div>
   )

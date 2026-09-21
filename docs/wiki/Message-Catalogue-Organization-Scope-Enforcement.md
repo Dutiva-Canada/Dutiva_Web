@@ -30,8 +30,6 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-
-
 The Dutiva i18n message catalogue is split across **43 feature-specific module files**, grouped into three surface-scoped aggregations — **workspace** (29 modules), **marketing** (10 modules), and **shared** (4 dual-surface modules). This split is enforced at three layers: TypeScript's type system, a compile-time disjointness test, and a runtime CI guard script. The result is that marketing visitors never download workspace-only message strings.
 
 ## The `defineMessages` Pattern
@@ -133,37 +131,37 @@ Sources: [src/i18n/messages/workspace.ts:1-78](), [src/i18n/messages/marketing.t
 
 [src/i18n/messages/workspace.ts:1-30]()
 
-| Module file | Exported constant | Key prefix | Domain |
-|---|---|---|---|
-| `shell.ts` | `shellMessages` | `shell_*` | App shell chrome, sidebar, topbar |
-| `advisorCore.ts` | `advisorCore` | `advisor_*` | Chat primitives, rail overlay |
-| `advisorView.ts` | `advisorViewMessages` | `advisor_*` | Advisor view chrome |
-| `advisorWorkspace.ts` | `advisorWorkspaceMessages` | `advisor_*` | Compliance workspace sidebar |
-| `home.ts` | `homeMessages` | `home_*` | Command Centre / Home view |
-| `search.ts` | `searchMessages` | `search_*` | ⌘K search overlay |
-| `docstudio.ts` | `docstudioMessages` | `docstudio_*` | Document Studio |
-| `doclib.ts` | `doclibMessages` | `doclib_*` | HR Document Library |
-| `templates.ts` | `templatesMessages` | `templates_*` | Template catalogue |
-| `cases.ts` | `casesMessages` | `cases_*` | Case Files |
-| `employees.ts` | `employeesMessages` | `employees_*` | Employees roster/profiles |
-| `compliance.ts` | `complianceMessages` | `compliance_*` | Compliance dashboard |
-| `policies.ts` | `policiesMessages` | `policies_*` | Policies view |
-| `tasks.ts` | `tasksMessages` | `tasks_*` | Task management |
-| `calendar.ts` | `calendarMessages` | `calendar_*` | Calendar view |
-| `analytics.ts` | `analyticsMessages` | `analytics_*` | Analytics dashboard |
-| `workflows.ts` | `workflowsMessages` | `workflows_*` | Workflow catalogue |
-| `flows.ts` | `flowsMessages` | `flows_*` | FlowRunner engine UI |
-| `knowledge.ts` | `knowledgeMessages` | `knowledge_*` | Knowledge view |
-| `reference.ts` | `referenceMessages` | `reference_*` | Reference guides |
-| `guidance.ts` | `guidanceMessages` | `guidance_*` | Guidance sources |
-| `settings.ts` | `settingsMessages` | `settings_*` | Settings view |
-| `communications.ts` | `communicationsMessages` | `comms_*` | Communications |
-| `compensation.ts` | `compensationMessages` | `comp_*` | Compensation |
-| `wellbeing.ts` | `wellbeingMessages` | `wellbeing_*` | Wellbeing |
-| `memory.ts` | `memoryMessages` | `memory_*` | Memory system |
-| `auth.ts` | `authMessages` | `auth_*` | Auth UI (magic-link) |
-| `workspaceMode.ts` | `workspaceModeMessages` | `wsmode_*` | Demo/production mode |
-| `exportProtection.ts` | `exportProtectionMessages` | `exportprot_*` | Export watermarks |
+| Module file           | Exported constant          | Key prefix     | Domain                            |
+| --------------------- | -------------------------- | -------------- | --------------------------------- |
+| `shell.ts`            | `shellMessages`            | `shell_*`      | App shell chrome, sidebar, topbar |
+| `advisorCore.ts`      | `advisorCore`              | `advisor_*`    | Chat primitives, rail overlay     |
+| `advisorView.ts`      | `advisorViewMessages`      | `advisor_*`    | Advisor view chrome               |
+| `advisorWorkspace.ts` | `advisorWorkspaceMessages` | `advisor_*`    | Compliance workspace sidebar      |
+| `home.ts`             | `homeMessages`             | `home_*`       | Command Centre / Home view        |
+| `search.ts`           | `searchMessages`           | `search_*`     | ⌘K search overlay                 |
+| `docstudio.ts`        | `docstudioMessages`        | `docstudio_*`  | Document Studio                   |
+| `doclib.ts`           | `doclibMessages`           | `doclib_*`     | HR Document Library               |
+| `templates.ts`        | `templatesMessages`        | `templates_*`  | Template catalogue                |
+| `cases.ts`            | `casesMessages`            | `cases_*`      | Case Files                        |
+| `employees.ts`        | `employeesMessages`        | `employees_*`  | Employees roster/profiles         |
+| `compliance.ts`       | `complianceMessages`       | `compliance_*` | Compliance dashboard              |
+| `policies.ts`         | `policiesMessages`         | `policies_*`   | Policies view                     |
+| `tasks.ts`            | `tasksMessages`            | `tasks_*`      | Task management                   |
+| `calendar.ts`         | `calendarMessages`         | `calendar_*`   | Calendar view                     |
+| `analytics.ts`        | `analyticsMessages`        | `analytics_*`  | Analytics dashboard               |
+| `workflows.ts`        | `workflowsMessages`        | `workflows_*`  | Workflow catalogue                |
+| `flows.ts`            | `flowsMessages`            | `flows_*`      | FlowRunner engine UI              |
+| `knowledge.ts`        | `knowledgeMessages`        | `knowledge_*`  | Knowledge view                    |
+| `reference.ts`        | `referenceMessages`        | `reference_*`  | Reference guides                  |
+| `guidance.ts`         | `guidanceMessages`         | `guidance_*`   | Guidance sources                  |
+| `settings.ts`         | `settingsMessages`         | `settings_*`   | Settings view                     |
+| `communications.ts`   | `communicationsMessages`   | `comms_*`      | Communications                    |
+| `compensation.ts`     | `compensationMessages`     | `comp_*`       | Compensation                      |
+| `wellbeing.ts`        | `wellbeingMessages`        | `wellbeing_*`  | Wellbeing                         |
+| `memory.ts`           | `memoryMessages`           | `memory_*`     | Memory system                     |
+| `auth.ts`             | `authMessages`             | `auth_*`       | Auth UI (magic-link)              |
+| `workspaceMode.ts`    | `workspaceModeMessages`    | `wsmode_*`     | Demo/production mode              |
+| `exportProtection.ts` | `exportProtectionMessages` | `exportprot_*` | Export watermarks                 |
 
 Sources: [src/i18n/messages/workspace.ts:39-70]()
 
@@ -173,18 +171,18 @@ Sources: [src/i18n/messages/workspace.ts:39-70]()
 
 [src/i18n/messages/marketing.ts:1-36]()
 
-| Module file | Exported constant | Key prefix |
-|---|---|---|
-| `pricing.ts` | `pricingMessages` | `pricing_*` |
+| Module file           | Exported constant          | Key prefix     |
+| --------------------- | -------------------------- | -------------- |
+| `pricing.ts`          | `pricingMessages`          | `pricing_*`    |
 | `templatesPreview.ts` | `templatesPreviewMessages` | `tplPreview_*` |
-| `guidesIndex.ts` | `guidesIndexMessages` | `guidesIdx_*` |
-| `about.ts` | `aboutMessages` | `about_*` |
-| `faq.ts` | `faqMessages` | `faq_*` |
-| `blog.ts` | `blogMessages` | `blog_*` |
-| `templateUsage.ts` | `tmplGuideMessages` | `tmplGuide_*` |
-| `knownLimitations.ts` | `limitsMessages` | `limits_*` |
-| `legalHub.ts` | `legalHubMessages` | `legalHub_*` |
-| `jurisdictionTool.ts` | `jurisdictionToolMessages` | `jur_tool_*` |
+| `guidesIndex.ts`      | `guidesIndexMessages`      | `guidesIdx_*`  |
+| `about.ts`            | `aboutMessages`            | `about_*`      |
+| `faq.ts`              | `faqMessages`              | `faq_*`        |
+| `blog.ts`             | `blogMessages`             | `blog_*`       |
+| `templateUsage.ts`    | `tmplGuideMessages`        | `tmplGuide_*`  |
+| `knownLimitations.ts` | `limitsMessages`           | `limits_*`     |
+| `legalHub.ts`         | `legalHubMessages`         | `legalHub_*`   |
+| `jurisdictionTool.ts` | `jurisdictionToolMessages` | `jur_tool_*`   |
 
 Sources: [src/i18n/messages/marketing.ts:1-32]()
 
@@ -194,12 +192,12 @@ Sources: [src/i18n/messages/marketing.ts:1-32]()
 
 [src/i18n/messages/shared.ts:1-32]()
 
-| Module file | Why shared |
-|---|---|
-| `common.ts` | Brand name, legal disclaimer, theme/lang toggle — used by marketing legal pages, workspace, and `Disclaimer.tsx` |
-| `landing.ts` | Plan copy (`landing_free_desc`, etc.) referenced by `src/config/plans.ts`, resolved by workspace's `PlanGate` via `t()` |
-| `support.ts` | Dual-surface support feature: public `/contact` form + in-app request form |
-| `helpCenter.ts` | Help Centre is a marketing surface whose widgets live under `src/features/support/` |
+| Module file     | Why shared                                                                                                              |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `common.ts`     | Brand name, legal disclaimer, theme/lang toggle — used by marketing legal pages, workspace, and `Disclaimer.tsx`        |
+| `landing.ts`    | Plan copy (`landing_free_desc`, etc.) referenced by `src/config/plans.ts`, resolved by workspace's `PlanGate` via `t()` |
+| `support.ts`    | Dual-surface support feature: public `/contact` form + in-app request form                                              |
+| `helpCenter.ts` | Help Centre is a marketing surface whose widgets live under `src/features/support/`                                     |
 
 The `landing.ts` module is the most surprising shared member — it exists in the shared group because plan description keys like `landing_free_desc` are stored in `plans.ts` and resolved via `t()` inside the workspace's `PlanGate.tsx`. Moving `landing` out of shared would crash a workspace component, not a marketing page.
 
@@ -288,14 +286,14 @@ Sources: [src/i18n/ForcedLangProvider.tsx:1-57](), [src/i18n/LangProvider.tsx:1-
 
 The test verifies six constraints with three sample keys:
 
-| Assertion | Expected result |
-|---|---|
+| Assertion                                  | Expected result          |
+| ------------------------------------------ | ------------------------ |
 | Workspace-only key → `MarketingMessageKey` | ❌ Type error (expected) |
-| Workspace-only key → `SharedMessageKey` | ❌ Type error (expected) |
+| Workspace-only key → `SharedMessageKey`    | ❌ Type error (expected) |
 | Marketing-only key → `WorkspaceMessageKey` | ❌ Type error (expected) |
-| Marketing-only key → `SharedMessageKey` | ❌ Type error (expected) |
-| Shared key → `WorkspaceMessageKey` | ✅ Assignable |
-| Shared key → `MarketingMessageKey` | ✅ Assignable |
+| Marketing-only key → `SharedMessageKey`    | ❌ Type error (expected) |
+| Shared key → `WorkspaceMessageKey`         | ✅ Assignable            |
+| Shared key → `MarketingMessageKey`         | ✅ Assignable            |
 
 The runtime portion of the test pins the sample keys to real catalogue entries (`messages` must `.toHaveProperty(key)`) so the type assertions cannot silently rot into testing typos.
 
@@ -357,10 +355,10 @@ The surface split has a concrete bundle-size payoff configured in `vite.config.t
 
 [vite.config.ts:171-218]()
 
-| Group name | Regex `test` | Contents |
-|---|---|---|
+| Group name           | Regex `test`                                                                                                                                                                                       | Contents                       |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
 | `messages-marketing` | Matches `marketing`, `shared`, `common`, `landing`, `pricing`, `templatesPreview`, `guidesIndex`, `about`, `faq`, `blog`, `templateUsage`, `knownLimitations`, `legalHub`, `support`, `helpCenter` | All marketing + shared modules |
-| `messages-workspace` | Matches everything in `src/i18n/messages/` except `shell.ts` and `workspaceMode.ts`; `includeDependenciesRecursively: false` | All workspace modules |
+| `messages-workspace` | Matches everything in `src/i18n/messages/` except `shell.ts` and `workspaceMode.ts`; `includeDependenciesRecursively: false`                                                                       | All workspace modules          |
 
 [vite.config.ts:211-218]()
 
@@ -402,61 +400,61 @@ The `src/i18n/messages/` directory contains 48 files total: 43 feature modules, 
 
 ### Feature Modules (43 files)
 
-| # | File | Surface | Key prefix | Exported constant |
-|---|---|---|---|---|
-| 1 | `about.ts` | marketing | `about_*` | `aboutMessages` |
-| 2 | `advisorCore.ts` | workspace | `advisor_*` | `advisorCore` |
-| 3 | `advisorView.ts` | workspace | `advisor_*` | `advisorViewMessages` |
-| 4 | `advisorWorkspace.ts` | workspace | `advisor_*` | `advisorWorkspaceMessages` |
-| 5 | `analytics.ts` | workspace | `analytics_*` | `analyticsMessages` |
-| 6 | `auth.ts` | workspace | `auth_*` | `authMessages` |
-| 7 | `blog.ts` | marketing | `blog_*` | `blogMessages` |
-| 8 | `calendar.ts` | workspace | `calendar_*` | `calendarMessages` |
-| 9 | `cases.ts` | workspace | `cases_*` | `casesMessages` |
-| 10 | `common.ts` | **shared** | `brand_*`, `disclaimer*`, `theme_*`, `lang_*` | `common` |
-| 11 | `communications.ts` | workspace | `comms_*` | `communicationsMessages` |
-| 12 | `compensation.ts` | workspace | `comp_*` | `compensationMessages` |
-| 13 | `compliance.ts` | workspace | `compliance_*` | `complianceMessages` |
-| 14 | `doclib.ts` | workspace | `doclib_*` | `doclibMessages` |
-| 15 | `docstudio.ts` | workspace | `docstudio_*` | `docstudioMessages` |
-| 16 | `employees.ts` | workspace | `employees_*` | `employeesMessages` |
-| 17 | `exportProtection.ts` | workspace | `exportprot_*` | `exportProtectionMessages` |
-| 18 | `faq.ts` | marketing | `faq_*` | `faqMessages` |
-| 19 | `flows.ts` | workspace | `flows_*` | `flowsMessages` |
-| 20 | `guidance.ts` | workspace | `guidance_*` | `guidanceMessages` |
-| 21 | `guidesIndex.ts` | marketing | `guidesIdx_*` | `guidesIndexMessages` |
-| 22 | `helpCenter.ts` | **shared** | `help_*` | `helpCenterMessages` |
-| 23 | `home.ts` | workspace | `home_*` | `homeMessages` |
-| 24 | `jurisdictionTool.ts` | marketing | `jur_tool_*` | `jurisdictionToolMessages` |
-| 25 | `knowledge.ts` | workspace | `knowledge_*` | `knowledgeMessages` |
-| 26 | `knownLimitations.ts` | marketing | `limits_*` | `limitsMessages` |
-| 27 | `landing.ts` | **shared** | `landing_*` | `landing` |
-| 28 | `legalHub.ts` | marketing | `legalHub_*` | `legalHubMessages` |
-| 29 | `memory.ts` | workspace | `memory_*` | `memoryMessages` |
-| 30 | `policies.ts` | workspace | `policies_*` | `policiesMessages` |
-| 31 | `pricing.ts` | marketing | `pricing_*` | `pricingMessages` |
-| 32 | `reference.ts` | workspace | `reference_*` | `referenceMessages` |
-| 33 | `search.ts` | workspace | `search_*` | `searchMessages` |
-| 34 | `settings.ts` | workspace | `settings_*` | `settingsMessages` |
-| 35 | `shell.ts` | workspace | `shell_*` | `shellMessages` |
-| 36 | `support.ts` | **shared** | `support_*` | `supportMessages` |
-| 37 | `tasks.ts` | workspace | `tasks_*` | `tasksMessages` |
-| 38 | `templateUsage.ts` | marketing | `tmplGuide_*` | `tmplGuideMessages` |
-| 39 | `templates.ts` | workspace | `templates_*` | `templatesMessages` |
-| 40 | `templatesPreview.ts` | marketing | `tplPreview_*` | `templatesPreviewMessages` |
-| 41 | `wellbeing.ts` | workspace | `wellbeing_*` | `wellbeingMessages` |
-| 42 | `workflows.ts` | workspace | `workflows_*` | `workflowsMessages` |
-| 43 | `workspaceMode.ts` | workspace | `wsmode_*` | `workspaceModeMessages` |
+| #   | File                  | Surface    | Key prefix                                    | Exported constant          |
+| --- | --------------------- | ---------- | --------------------------------------------- | -------------------------- |
+| 1   | `about.ts`            | marketing  | `about_*`                                     | `aboutMessages`            |
+| 2   | `advisorCore.ts`      | workspace  | `advisor_*`                                   | `advisorCore`              |
+| 3   | `advisorView.ts`      | workspace  | `advisor_*`                                   | `advisorViewMessages`      |
+| 4   | `advisorWorkspace.ts` | workspace  | `advisor_*`                                   | `advisorWorkspaceMessages` |
+| 5   | `analytics.ts`        | workspace  | `analytics_*`                                 | `analyticsMessages`        |
+| 6   | `auth.ts`             | workspace  | `auth_*`                                      | `authMessages`             |
+| 7   | `blog.ts`             | marketing  | `blog_*`                                      | `blogMessages`             |
+| 8   | `calendar.ts`         | workspace  | `calendar_*`                                  | `calendarMessages`         |
+| 9   | `cases.ts`            | workspace  | `cases_*`                                     | `casesMessages`            |
+| 10  | `common.ts`           | **shared** | `brand_*`, `disclaimer*`, `theme_*`, `lang_*` | `common`                   |
+| 11  | `communications.ts`   | workspace  | `comms_*`                                     | `communicationsMessages`   |
+| 12  | `compensation.ts`     | workspace  | `comp_*`                                      | `compensationMessages`     |
+| 13  | `compliance.ts`       | workspace  | `compliance_*`                                | `complianceMessages`       |
+| 14  | `doclib.ts`           | workspace  | `doclib_*`                                    | `doclibMessages`           |
+| 15  | `docstudio.ts`        | workspace  | `docstudio_*`                                 | `docstudioMessages`        |
+| 16  | `employees.ts`        | workspace  | `employees_*`                                 | `employeesMessages`        |
+| 17  | `exportProtection.ts` | workspace  | `exportprot_*`                                | `exportProtectionMessages` |
+| 18  | `faq.ts`              | marketing  | `faq_*`                                       | `faqMessages`              |
+| 19  | `flows.ts`            | workspace  | `flows_*`                                     | `flowsMessages`            |
+| 20  | `guidance.ts`         | workspace  | `guidance_*`                                  | `guidanceMessages`         |
+| 21  | `guidesIndex.ts`      | marketing  | `guidesIdx_*`                                 | `guidesIndexMessages`      |
+| 22  | `helpCenter.ts`       | **shared** | `help_*`                                      | `helpCenterMessages`       |
+| 23  | `home.ts`             | workspace  | `home_*`                                      | `homeMessages`             |
+| 24  | `jurisdictionTool.ts` | marketing  | `jur_tool_*`                                  | `jurisdictionToolMessages` |
+| 25  | `knowledge.ts`        | workspace  | `knowledge_*`                                 | `knowledgeMessages`        |
+| 26  | `knownLimitations.ts` | marketing  | `limits_*`                                    | `limitsMessages`           |
+| 27  | `landing.ts`          | **shared** | `landing_*`                                   | `landing`                  |
+| 28  | `legalHub.ts`         | marketing  | `legalHub_*`                                  | `legalHubMessages`         |
+| 29  | `memory.ts`           | workspace  | `memory_*`                                    | `memoryMessages`           |
+| 30  | `policies.ts`         | workspace  | `policies_*`                                  | `policiesMessages`         |
+| 31  | `pricing.ts`          | marketing  | `pricing_*`                                   | `pricingMessages`          |
+| 32  | `reference.ts`        | workspace  | `reference_*`                                 | `referenceMessages`        |
+| 33  | `search.ts`           | workspace  | `search_*`                                    | `searchMessages`           |
+| 34  | `settings.ts`         | workspace  | `settings_*`                                  | `settingsMessages`         |
+| 35  | `shell.ts`            | workspace  | `shell_*`                                     | `shellMessages`            |
+| 36  | `support.ts`          | **shared** | `support_*`                                   | `supportMessages`          |
+| 37  | `tasks.ts`            | workspace  | `tasks_*`                                     | `tasksMessages`            |
+| 38  | `templateUsage.ts`    | marketing  | `tmplGuide_*`                                 | `tmplGuideMessages`        |
+| 39  | `templates.ts`        | workspace  | `templates_*`                                 | `templatesMessages`        |
+| 40  | `templatesPreview.ts` | marketing  | `tplPreview_*`                                | `templatesPreviewMessages` |
+| 41  | `wellbeing.ts`        | workspace  | `wellbeing_*`                                 | `wellbeingMessages`        |
+| 42  | `workflows.ts`        | workspace  | `workflows_*`                                 | `workflowsMessages`        |
+| 43  | `workspaceMode.ts`    | workspace  | `wsmode_*`                                    | `workspaceModeMessages`    |
 
 ### Infrastructure Files (5 files)
 
-| File | Role |
-|---|---|
-| `workspace.ts` | Aggregates 29 workspace modules + shared into `workspaceMessages`; exports `WorkspaceMessageKey` |
-| `marketing.ts` | Aggregates 10 marketing modules + shared into `marketingMessages`; exports `MarketingMessageKey` |
-| `shared.ts` | Aggregates 4 dual-surface modules into `sharedMessages`; exports `SharedMessageKey` |
-| `index.ts` | Merges `workspaceMessages` + `marketingMessages` into `messages`; exports `MessageKey` union |
-| `scopes.test.ts` | Compile-time disjointness assertions for the three scoped key types |
+| File             | Role                                                                                             |
+| ---------------- | ------------------------------------------------------------------------------------------------ |
+| `workspace.ts`   | Aggregates 29 workspace modules + shared into `workspaceMessages`; exports `WorkspaceMessageKey` |
+| `marketing.ts`   | Aggregates 10 marketing modules + shared into `marketingMessages`; exports `MarketingMessageKey` |
+| `shared.ts`      | Aggregates 4 dual-surface modules into `sharedMessages`; exports `SharedMessageKey`              |
+| `index.ts`       | Merges `workspaceMessages` + `marketingMessages` into `messages`; exports `MessageKey` union     |
+| `scopes.test.ts` | Compile-time disjointness assertions for the three scoped key types                              |
 
 Sources: [src/i18n/messages/workspace.ts:1-78](), [src/i18n/messages/marketing.ts:1-36](), [src/i18n/messages/shared.ts:1-32](), [src/i18n/messages/index.ts:1-93](), [src/i18n/messages/scopes.test.ts:1-78]()
 

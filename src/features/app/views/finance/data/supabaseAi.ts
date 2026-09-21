@@ -3,11 +3,7 @@ import type { Bi } from '@/i18n/core'
 import { analyzeImportWithAi } from './aiImportAnalyzer'
 import type { AiCategorizationResult } from './aiImportAnalyzer'
 import { insertCategoryRule, loadFinanceStateFromSupabase } from './supabaseApi'
-import {
-  mapAiImportSettings,
-  mapBankItem,
-  mapCategorizationFeedback,
-} from './supabaseMappers'
+import { mapAiImportSettings, mapBankItem, mapCategorizationFeedback } from './supabaseMappers'
 import type {
   FinanceAiImportSettings,
   FinanceBankItem,
@@ -93,7 +89,9 @@ export async function analyseImportWithAiSupa(
     }
 
     const itemsMatched = result.categorizations.filter((c) => c.matchStatus === 'matched').length
-    const itemsSuggested = result.categorizations.filter((c) => c.matchStatus === 'suggested').length
+    const itemsSuggested = result.categorizations.filter(
+      (c) => c.matchStatus === 'suggested',
+    ).length
     return {
       itemsAnalysed: result.categorizations.length,
       itemsMatched,

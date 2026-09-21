@@ -83,7 +83,15 @@ const candidateRowSchema = z.object({
   years_experience: z.number(),
   work_authorization: z.enum(['authorized', 'needs_sponsorship', 'unknown']),
   compensation_expectations: z.string().nullable(),
-  status: z.enum(['application', 'basic_qualified', 'evidence_qualified', 'work_sample', 'interview', 'hired', 'rejected']),
+  status: z.enum([
+    'application',
+    'basic_qualified',
+    'evidence_qualified',
+    'work_sample',
+    'interview',
+    'hired',
+    'rejected',
+  ]),
   applied_date: z.string(),
   assigned_to: z.string().nullable(),
   knockout_criteria: z.object({
@@ -194,10 +202,7 @@ export async function updateCandidateStatus(
   if (error) throw error
 }
 
-export async function assignCandidate(
-  id: string,
-  assignedTo: string,
-): Promise<void> {
+export async function assignCandidate(id: string, assignedTo: string): Promise<void> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
   const { error } = await client
@@ -340,7 +345,9 @@ function toEvidenceScreening(row: z.infer<typeof evidenceRowSchema>): Production
   }
 }
 
-export async function getEvidenceScreening(candidateId: string): Promise<ProductionEvidenceScreening | null> {
+export async function getEvidenceScreening(
+  candidateId: string,
+): Promise<ProductionEvidenceScreening | null> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
   const { data, error } = await client
@@ -381,7 +388,8 @@ export async function upsertEvidenceScreening(
 
 /* ── Work Samples ───────────────────────────────────────────────────────── */
 
-export type ProductionAssessmentType = 'product_manager' | 'sales' | 'engineer' | 'marketer' | 'general'
+export type ProductionAssessmentType =
+  'product_manager' | 'sales' | 'engineer' | 'marketer' | 'general'
 export type ProductionAssessmentStatus = 'pending' | 'in_progress' | 'completed' | 'skipped'
 
 export interface ProductionWorkSample {
@@ -496,10 +504,7 @@ export async function updateWorkSample(
   if (updates.evaluator !== undefined) row.evaluator = updates.evaluator
   if (updates.evaluation !== undefined) row.evaluation = updates.evaluation as unknown as Json
   if (updates.completedDate !== undefined) row.completed_date = updates.completedDate
-  const { error } = await client
-    .from('hr_work_samples')
-    .update(row)
-    .eq('id', id)
+  const { error } = await client.from('hr_work_samples').update(row).eq('id', id)
   if (error) throw error
 }
 
@@ -529,7 +534,9 @@ const defenseInterviewRowSchema = z.object({
   assessment: z.record(z.string(), z.unknown()).nullable(),
 })
 
-function toDefenseInterview(row: z.infer<typeof defenseInterviewRowSchema>): ProductionDefenseInterview {
+function toDefenseInterview(
+  row: z.infer<typeof defenseInterviewRowSchema>,
+): ProductionDefenseInterview {
   return {
     id: row.id,
     candidateId: row.candidate_id,
@@ -546,7 +553,9 @@ function toDefenseInterview(row: z.infer<typeof defenseInterviewRowSchema>): Pro
 const DEFENSE_INTERVIEW_SELECT_COLUMNS =
   'id, candidate_id, work_sample_id, format, scheduled_date, interviewers, status, conversation, assessment'
 
-export async function getDefenseInterview(candidateId: string): Promise<ProductionDefenseInterview | null> {
+export async function getDefenseInterview(
+  candidateId: string,
+): Promise<ProductionDefenseInterview | null> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
   const { data, error } = await client
@@ -591,7 +600,9 @@ const authenticityScoresRowSchema = z.object({
   last_updated: z.string(),
 })
 
-function toAuthenticityScores(row: z.infer<typeof authenticityScoresRowSchema>): ProductionAuthenticityScores {
+function toAuthenticityScores(
+  row: z.infer<typeof authenticityScoresRowSchema>,
+): ProductionAuthenticityScores {
   return {
     id: row.id,
     candidateId: row.candidate_id,
@@ -609,7 +620,9 @@ function toAuthenticityScores(row: z.infer<typeof authenticityScoresRowSchema>):
 const AUTHENTICITY_SCORES_SELECT_COLUMNS =
   'id, candidate_id, qualification, evidence, capability, reasoning, motivation, overall, explanations, last_updated'
 
-export async function getAuthenticityScores(candidateId: string): Promise<ProductionAuthenticityScores | null> {
+export async function getAuthenticityScores(
+  candidateId: string,
+): Promise<ProductionAuthenticityScores | null> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
   const { data, error } = await client
@@ -666,19 +679,36 @@ export interface ProductionJobPosting {
 }
 
 const jobPostingRowSchema = z.object({
-  id: z.string(), organization_id: z.string(), title: z.string(), department: z.string(),
-  location: z.string(), type: z.string(), description: z.string(),
-  requirements: z.array(z.string()), knockout_criteria: z.array(z.string()),
-  work_sample_scenario: z.string(), status: z.string(),
-  posted_date: z.string().nullable(), closing_date: z.string().nullable(),
+  id: z.string(),
+  organization_id: z.string(),
+  title: z.string(),
+  department: z.string(),
+  location: z.string(),
+  type: z.string(),
+  description: z.string(),
+  requirements: z.array(z.string()),
+  knockout_criteria: z.array(z.string()),
+  work_sample_scenario: z.string(),
+  status: z.string(),
+  posted_date: z.string().nullable(),
+  closing_date: z.string().nullable(),
 })
 
 function toJobPosting(row: z.infer<typeof jobPostingRowSchema>): ProductionJobPosting {
   return {
-    id: row.id, organizationId: row.organization_id, title: row.title, department: row.department,
-    location: row.location, type: row.type, description: row.description, requirements: row.requirements,
-    knockoutCriteria: row.knockout_criteria, workSampleScenario: row.work_sample_scenario,
-    status: row.status, postedDate: row.posted_date, closingDate: row.closing_date,
+    id: row.id,
+    organizationId: row.organization_id,
+    title: row.title,
+    department: row.department,
+    location: row.location,
+    type: row.type,
+    description: row.description,
+    requirements: row.requirements,
+    knockoutCriteria: row.knockout_criteria,
+    workSampleScenario: row.work_sample_scenario,
+    status: row.status,
+    postedDate: row.posted_date,
+    closingDate: row.closing_date,
   }
 }
 
@@ -699,17 +729,27 @@ export async function listJobPostings(organizationId: string): Promise<Productio
 export async function getJobPosting(id: string): Promise<ProductionJobPosting | null> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
-  const { data, error } = await client.from('hr_job_postings').select('*').eq('id', id).maybeSingle()
+  const { data, error } = await client
+    .from('hr_job_postings')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle()
   if (error) throw error
   if (!data) return null
   return toJobPosting(jobPostingRowSchema.parse(data))
 }
 
 export interface NewJobPosting {
-  title: string; department: string; location: string; type: string
-  description: string; status: string
-  requirements?: string[]; knockoutCriteria?: string[]
-  workSampleScenario?: string; closingDate?: string | null
+  title: string
+  department: string
+  location: string
+  type: string
+  description: string
+  status: string
+  requirements?: string[]
+  knockoutCriteria?: string[]
+  workSampleScenario?: string
+  closingDate?: string | null
 }
 
 export async function createJobPosting(
@@ -718,14 +758,24 @@ export async function createJobPosting(
 ): Promise<ProductionJobPosting> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
-  const { data, error } = await client.from('hr_job_postings').insert({
-    organization_id: organizationId, title: posting.title, department: posting.department,
-    location: posting.location, type: posting.type, description: posting.description,
-    status: posting.status, requirements: posting.requirements ?? [],
-    knockout_criteria: posting.knockoutCriteria ?? [], work_sample_scenario: posting.workSampleScenario ?? '',
-    closing_date: posting.closingDate ?? null,
-    posted_date: posting.status === 'active' ? new Date().toISOString() : null,
-  }).select('*').single()
+  const { data, error } = await client
+    .from('hr_job_postings')
+    .insert({
+      organization_id: organizationId,
+      title: posting.title,
+      department: posting.department,
+      location: posting.location,
+      type: posting.type,
+      description: posting.description,
+      status: posting.status,
+      requirements: posting.requirements ?? [],
+      knockout_criteria: posting.knockoutCriteria ?? [],
+      work_sample_scenario: posting.workSampleScenario ?? '',
+      closing_date: posting.closingDate ?? null,
+      posted_date: posting.status === 'active' ? new Date().toISOString() : null,
+    })
+    .select('*')
+    .single()
   if (error) throw error
   if (!data) throw new Error('Failed to create job posting')
   return toJobPosting(jobPostingRowSchema.parse(data))
@@ -749,7 +799,13 @@ export async function updateJobPosting(
   if (patch.knockoutCriteria !== undefined) row.knockout_criteria = patch.knockoutCriteria
   if (patch.workSampleScenario !== undefined) row.work_sample_scenario = patch.workSampleScenario
   if (patch.closingDate !== undefined) row.closing_date = patch.closingDate
-  const { data, error } = await client.from('hr_job_postings').update(row).eq('id', id).eq('organization_id', organizationId).select('*').maybeSingle()
+  const { data, error } = await client
+    .from('hr_job_postings')
+    .update(row)
+    .eq('id', id)
+    .eq('organization_id', organizationId)
+    .select('*')
+    .maybeSingle()
   if (error) throw error
   if (!data) return null
   return toJobPosting(jobPostingRowSchema.parse(data))
@@ -758,7 +814,11 @@ export async function updateJobPosting(
 export async function deleteJobPosting(organizationId: string, id: string): Promise<void> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
-  const { error } = await client.from('hr_job_postings').delete().eq('id', id).eq('organization_id', organizationId)
+  const { error } = await client
+    .from('hr_job_postings')
+    .delete()
+    .eq('id', id)
+    .eq('organization_id', organizationId)
   if (error) throw error
 }
 
@@ -774,17 +834,27 @@ export interface ProductionFunnelMetrics {
 }
 
 const STAGE_ORDER: ProductionCandidateStatus[] = [
-  'application', 'basic_qualified', 'evidence_qualified', 'work_sample', 'interview', 'hired',
+  'application',
+  'basic_qualified',
+  'evidence_qualified',
+  'work_sample',
+  'interview',
+  'hired',
 ]
 
 export async function getFunnelMetrics(organizationId: string): Promise<ProductionFunnelMetrics> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
-  const { data: candidates, error } = await client.from('hr_candidates').select('status').eq('organization_id', organizationId)
+  const { data: candidates, error } = await client
+    .from('hr_candidates')
+    .select('status')
+    .eq('organization_id', organizationId)
   if (error) throw error
   const active = (candidates ?? []).filter(
     (c): c is { status: ProductionCandidateStatus } =>
-      !!c.status && c.status !== 'rejected' && STAGE_ORDER.includes(c.status as ProductionCandidateStatus),
+      !!c.status &&
+      c.status !== 'rejected' &&
+      STAGE_ORDER.includes(c.status as ProductionCandidateStatus),
   )
   return {
     totalApplications: active.filter((c) => STAGE_ORDER.indexOf(c.status) >= 0).length,

@@ -128,17 +128,17 @@ CREATE INDEX idx_organization_members_expiry ON organization_members(access_expi
 
 ### Role permissions by module
 
-| Module | Owner/Admin | Manager | Professional | Member | Consultant | Viewer |
-|---|---|---|---|---|---|---|
-| Home | Executive cockpit | Manager cockpit | Work queue | My stuff | Module cockpit for granted scope | Read-only summary, if granted |
-| Revenue | Full CRM/Comms | Read/write CRM if assigned | Read/write if function is revenue/sales | No access | CRM/Comms if granted | No access |
-| Operations | Full | Create/edit projects, quality, vendors, tech, logistics; approve member submissions | Manage projects, quality, tech, logistics; own vendor records | View assigned tasks/projects, complete assigned quality checks, submit concern | Granted modules (e.g., quality, logistics) | No access |
-| People | Full | Full for their team | Process cases, manage hiring, run reviews | View own profile, tasks, policies, wellbeing | Granted modules (e.g., hiring support) | No access |
-| Finance | Full | View or limited read | Reconcile, manage payables, own treasury tasks | View own compensation if enabled | Finance/accounting if granted | No access |
-| Governance | Full | No access unless delegated | No access unless delegated | No access | No access | Read-only selected records |
-| Security | Full | Create/edit incidents, risks, access reviews; assign to members | Triage incidents, own risks and assets, run access reviews | View own security training, report incident | Security if granted | No access |
-| External | Full | View | View | View limited directory | View own record and engagements | View if granted |
-| Analytics | Full | Team-scoped | Module-scoped | Self-scoped | Scope-limited | Read-only, if granted |
+| Module     | Owner/Admin       | Manager                                                                             | Professional                                                  | Member                                                                         | Consultant                                 | Viewer                        |
+| ---------- | ----------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------ | ----------------------------- |
+| Home       | Executive cockpit | Manager cockpit                                                                     | Work queue                                                    | My stuff                                                                       | Module cockpit for granted scope           | Read-only summary, if granted |
+| Revenue    | Full CRM/Comms    | Read/write CRM if assigned                                                          | Read/write if function is revenue/sales                       | No access                                                                      | CRM/Comms if granted                       | No access                     |
+| Operations | Full              | Create/edit projects, quality, vendors, tech, logistics; approve member submissions | Manage projects, quality, tech, logistics; own vendor records | View assigned tasks/projects, complete assigned quality checks, submit concern | Granted modules (e.g., quality, logistics) | No access                     |
+| People     | Full              | Full for their team                                                                 | Process cases, manage hiring, run reviews                     | View own profile, tasks, policies, wellbeing                                   | Granted modules (e.g., hiring support)     | No access                     |
+| Finance    | Full              | View or limited read                                                                | Reconcile, manage payables, own treasury tasks                | View own compensation if enabled                                               | Finance/accounting if granted              | No access                     |
+| Governance | Full              | No access unless delegated                                                          | No access unless delegated                                    | No access                                                                      | No access                                  | Read-only selected records    |
+| Security   | Full              | Create/edit incidents, risks, access reviews; assign to members                     | Triage incidents, own risks and assets, run access reviews    | View own security training, report incident                                    | Security if granted                        | No access                     |
+| External   | Full              | View                                                                                | View                                                          | View limited directory                                                         | View own record and engagements            | View if granted               |
+| Analytics  | Full              | Team-scoped                                                                         | Module-scoped                                                 | Self-scoped                                                                    | Scope-limited                              | Read-only, if granted         |
 
 ### Navigation gating
 

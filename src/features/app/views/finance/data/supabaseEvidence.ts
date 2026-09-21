@@ -28,16 +28,24 @@ export async function uploadReceiptFile(
   const storagePath = financeEvidencePath(organizationId, entityId, receiptId, ext)
   const { error } = await supabase.storage
     .from(EVIDENCE_BUCKET)
-    .upload(storagePath, file, { contentType: file.type || 'application/octet-stream', upsert: false })
+    .upload(storagePath, file, {
+      contentType: file.type || 'application/octet-stream',
+      upsert: false,
+    })
   if (error) throw error
   // SHA-256 is computed server-side by the edge function in a future phase;
   // for now we record size only.
   return { storagePath, sha256: '', sizeBytes: file.size }
 }
 
-export async function createReceiptDownloadUrl(storagePath: string, expiresInSeconds = 3600): Promise<string> {
+export async function createReceiptDownloadUrl(
+  storagePath: string,
+  expiresInSeconds = 3600,
+): Promise<string> {
   if (!supabase) throw new Error('Supabase is not configured')
-  const { data, error } = await supabase.storage.from(EVIDENCE_BUCKET).createSignedUrl(storagePath, expiresInSeconds)
+  const { data, error } = await supabase.storage
+    .from(EVIDENCE_BUCKET)
+    .createSignedUrl(storagePath, expiresInSeconds)
   if (error) throw error
   if (!data?.signedUrl) throw new Error('Could not create download URL')
   return data.signedUrl
@@ -45,7 +53,12 @@ export async function createReceiptDownloadUrl(storagePath: string, expiresInSec
 
 export async function insertReceipt(
   orgId: string,
-  item: Omit<FinanceReceipt, 'id'> & { storagePath: string; sha256?: string; sizeBytes?: number; contentType?: string },
+  item: Omit<FinanceReceipt, 'id'> & {
+    storagePath: string
+    sha256?: string
+    sizeBytes?: number
+    contentType?: string
+  },
 ): Promise<FinanceReceipt | null> {
   if (!supabase) return null
   const { data, error } = await supabase

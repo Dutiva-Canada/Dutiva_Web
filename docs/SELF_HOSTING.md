@@ -76,13 +76,13 @@ applying, and record what you verified.
 
 ## What still points outside
 
-| Dependency    | Needed for                                     | Off if unset?                                        |
-| ------------- | ---------------------------------------------- | ---------------------------------------------------- |
-| huggingface.co, cdn.jsdelivr.net | first install of on-device browser models | yes — models simply can't install            |
-| Stripe        | billing, Advisor reply packs                   | yes — checkout functions answer 503, app still runs  |
-| Resend        | support notification email                     | yes — notifications queue, nothing sends             |
-| Turnstile/hCaptcha | public contact/intake spam check          | yes — verification is skipped with no secret         |
-| GA4/GTM       | marketing analytics                            | yes — inert                                          |
+| Dependency                       | Needed for                                | Off if unset?                                       |
+| -------------------------------- | ----------------------------------------- | --------------------------------------------------- |
+| huggingface.co, cdn.jsdelivr.net | first install of on-device browser models | yes — models simply can't install                   |
+| Stripe                           | billing, Advisor reply packs              | yes — checkout functions answer 503, app still runs |
+| Resend                           | support notification email                | yes — notifications queue, nothing sends            |
+| Turnstile/hCaptcha               | public contact/intake spam check          | yes — verification is skipped with no secret        |
+| GA4/GTM                          | marketing analytics                       | yes — inert                                         |
 
 All of these are server-side secrets configured per `.env.example`; none
 are required for the workspace to boot.

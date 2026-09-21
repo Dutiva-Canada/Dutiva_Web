@@ -5,9 +5,7 @@ import type { CrmActivityType, CrmContactStatus, CrmDealStage } from './types'
 export function toBi(value: string, lang: Lang): Bi | undefined {
   const text = value.trim()
   if (!text) return undefined
-  return lang === 'fr'
-    ? bi(`[EN review] ${text}`, text)
-    : bi(text, `[FR review] ${text}`)
+  return lang === 'fr' ? bi(`[EN review] ${text}`, text) : bi(text, `[FR review] ${text}`)
 }
 
 export function fromBi(value: Bi | undefined, lang: Lang): string {

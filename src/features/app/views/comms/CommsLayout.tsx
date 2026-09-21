@@ -77,9 +77,7 @@ export function CommsLayout({ mode }: CommsLayoutProps) {
 
       <Outlet />
 
-      <div className="mt-[24px] text-[11px] text-text-faint">
-        {x(M.comms_disclaimer)}
-      </div>
+      <div className="mt-[24px] text-[11px] text-text-faint">{x(M.comms_disclaimer)}</div>
     </AppPage>
   )
 }

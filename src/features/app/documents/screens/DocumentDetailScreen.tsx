@@ -68,7 +68,6 @@ const AUDIT_LABEL = DETAIL_AUDIT_LABEL
 const fmtDate = fmtDemoDetailDate
 const signatureInfo = signatureInfoForDemoStatus
 
-
 /** Prototype `auditTone()` → status-dot fill. */
 function auditDotClass(event: AuditEventType): string {
   if (event === 'review_rejected' || event === 'document_voided') return dotToneClass('risk')

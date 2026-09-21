@@ -54,8 +54,14 @@ export const commsMessages = defineMessages({
   comms_overview_approvals: { en: 'Approvals queue', fr: 'File d’approbations' },
   comms_overview_no_upcoming: { en: 'No upcoming deadlines.', fr: 'Aucune échéance à venir.' },
   comms_overview_activity: { en: 'Recent activity', fr: 'Activité récente' },
-  comms_overview_no_activity: { en: 'No recorded activity yet.', fr: 'Aucune activité consignée pour l’instant.' },
-  comms_overview_all_areas: { en: 'Open a tab above to drill into a workspace area.', fr: 'Ouvrez un onglet ci-dessus pour explorer un secteur de l’espace de travail.' },
+  comms_overview_no_activity: {
+    en: 'No recorded activity yet.',
+    fr: 'Aucune activité consignée pour l’instant.',
+  },
+  comms_overview_all_areas: {
+    en: 'Open a tab above to drill into a workspace area.',
+    fr: 'Ouvrez un onglet ci-dessus pour explorer un secteur de l’espace de travail.',
+  },
 
   /* Initiatives */
   comms_initiatives_title: { en: 'Initiatives', fr: 'Initiatives' },
@@ -75,7 +81,10 @@ export const commsMessages = defineMessages({
   comms_initiative_type_campaign: { en: 'Campaign', fr: 'Campagne' },
   comms_initiative_type_programme: { en: 'Programme', fr: 'Programme' },
   comms_initiative_type_announcement: { en: 'Announcement', fr: 'Annonce' },
-  comms_initiative_type_policy_consultation: { en: 'Policy consultation', fr: 'Consultation publique' },
+  comms_initiative_type_policy_consultation: {
+    en: 'Policy consultation',
+    fr: 'Consultation publique',
+  },
   comms_initiative_type_event: { en: 'Event', fr: 'Événement' },
   comms_initiative_type_issue_response: { en: 'Issue response', fr: 'Réponse à un enjeu' },
   comms_initiative_type_standalone: { en: 'Standalone', fr: 'Autonome' },
@@ -86,7 +95,10 @@ export const commsMessages = defineMessages({
   comms_domain_public_affairs: { en: 'Public affairs', fr: 'Affaires publiques' },
   comms_domain_marketing: { en: 'Marketing', fr: 'Marketing' },
   comms_domain_advertising: { en: 'Advertising', fr: 'Publicité' },
-  comms_domain_imc: { en: 'Integrated marketing communications', fr: 'Communications marketing intégrées' },
+  comms_domain_imc: {
+    en: 'Integrated marketing communications',
+    fr: 'Communications marketing intégrées',
+  },
 
   comms_status_planning: { en: 'Planning', fr: 'Planification' },
   comms_status_active: { en: 'Active', fr: 'Active' },
@@ -101,7 +113,10 @@ export const commsMessages = defineMessages({
 
   /* Content & calendar */
   comms_content_title: { en: 'Content & calendar', fr: 'Contenu et calendrier' },
-  comms_content_empty: { en: 'No content items yet.', fr: 'Aucun élément de contenu pour l’instant.' },
+  comms_content_empty: {
+    en: 'No content items yet.',
+    fr: 'Aucun élément de contenu pour l’instant.',
+  },
   comms_content_add: { en: 'Add content item', fr: 'Ajouter un élément de contenu' },
   comms_content_item: { en: 'Content item', fr: 'Élément de contenu' },
   comms_content_language: { en: 'Language', fr: 'Langue' },
@@ -139,7 +154,10 @@ export const commsMessages = defineMessages({
 
   comms_content_status_draft: { en: 'Draft', fr: 'Brouillon' },
   comms_content_status_in_review: { en: 'In review', fr: 'En révision' },
-  comms_content_status_changes_requested: { en: 'Changes requested', fr: 'Modifications demandées' },
+  comms_content_status_changes_requested: {
+    en: 'Changes requested',
+    fr: 'Modifications demandées',
+  },
   comms_content_status_approved: { en: 'Approved', fr: 'Approuvé' },
   comms_content_status_superseded: { en: 'Superseded', fr: 'Remplacé' },
   comms_content_status_withdrawn: { en: 'Withdrawn', fr: 'Retiré' },
@@ -182,7 +200,10 @@ export const commsMessages = defineMessages({
   comms_content_failure_note: { en: 'Failure note', fr: 'Note d’échec' },
   comms_content_receipt_note: { en: 'Receipt note', fr: 'Note d’accusé de réception' },
   comms_execution_log: { en: 'Execution log', fr: 'Journal d’exécution' },
-  comms_execution_empty: { en: 'No delivery actions recorded yet.', fr: 'Aucune action de diffusion consignée pour l’instant.' },
+  comms_execution_empty: {
+    en: 'No delivery actions recorded yet.',
+    fr: 'Aucune action de diffusion consignée pour l’instant.',
+  },
   comms_execution_actor: { en: 'Actor', fr: 'Acteur' },
   comms_execution_timestamp: { en: 'Time', fr: 'Heure' },
   comms_execution_action: { en: 'Action', fr: 'Action' },
@@ -197,8 +218,14 @@ export const commsMessages = defineMessages({
   comms_action_retry: { en: 'Retry', fr: 'Réessayer' },
   comms_action_reconcile: { en: 'Reconcile', fr: 'Réconcilier' },
   comms_action_cancel: { en: 'Cancel', fr: 'Annuler' },
-  comms_initiative_pause_publications: { en: 'Pause publications', fr: 'Suspendre les publications' },
-  comms_initiative_resume_publications: { en: 'Resume publications', fr: 'Reprendre les publications' },
+  comms_initiative_pause_publications: {
+    en: 'Pause publications',
+    fr: 'Suspendre les publications',
+  },
+  comms_initiative_resume_publications: {
+    en: 'Resume publications',
+    fr: 'Reprendre les publications',
+  },
   comms_initiative_paused_notice: {
     en: 'Publications for this initiative are paused.',
     fr: 'Les publications pour cette initiative sont suspendues.',
@@ -210,7 +237,10 @@ export const commsMessages = defineMessages({
 
   /* Relationships */
   comms_relationships_title: { en: 'Relationships', fr: 'Relations' },
-  comms_relationships_empty: { en: 'No contacts or organizations yet.', fr: 'Aucun contact ou organisme pour l’instant.' },
+  comms_relationships_empty: {
+    en: 'No contacts or organizations yet.',
+    fr: 'Aucun contact ou organisme pour l’instant.',
+  },
   comms_contacts: { en: 'Contacts', fr: 'Contacts' },
   comms_organizations: { en: 'Organizations', fr: 'Organismes' },
   comms_contact_type: { en: 'Type', fr: 'Type' },
@@ -261,7 +291,10 @@ export const commsMessages = defineMessages({
 
   /* Engagement */
   comms_engagement_title: { en: 'Engagement', fr: 'Interactions' },
-  comms_engagement_empty: { en: 'No inquiries or conversations yet.', fr: 'Aucune demande ou conversation pour l’instant.' },
+  comms_engagement_empty: {
+    en: 'No inquiries or conversations yet.',
+    fr: 'Aucune demande ou conversation pour l’instant.',
+  },
   comms_engagement_inquiry: { en: 'Inquiry', fr: 'Demande' },
   comms_engagement_comment: { en: 'Comment', fr: 'Commentaire' },
   comms_engagement_dm: { en: 'Direct message', fr: 'Message privé' },
@@ -292,7 +325,10 @@ export const commsMessages = defineMessages({
 
   /* Intelligence & issues */
   comms_intelligence_title: { en: 'Intelligence & issues', fr: 'Veille et enjeux' },
-  comms_intelligence_empty: { en: 'No sources or policy files yet.', fr: 'Aucune source ou dossier politique pour l’instant.' },
+  comms_intelligence_empty: {
+    en: 'No sources or policy files yet.',
+    fr: 'Aucune source ou dossier politique pour l’instant.',
+  },
   comms_policy_files: { en: 'Policy files', fr: 'Dossiers politiques' },
   comms_sources: { en: 'Sources', fr: 'Sources' },
   comms_issues: { en: 'Issues', fr: 'Enjeux' },
@@ -337,8 +373,14 @@ export const commsMessages = defineMessages({
   comms_intelligence_supports: { en: 'Supports', fr: 'Appuie' },
   comms_intelligence_rights: { en: 'Rights', fr: 'Droits' },
   comms_intelligence_coverage: { en: 'Coverage', fr: 'Couverture' },
-  comms_intelligence_coverage_empty: { en: 'No coverage items recorded yet.', fr: 'Aucun élément de couverture consigné pour l’instant.' },
-  comms_intelligence_add_coverage: { en: 'Add coverage item', fr: 'Ajouter un élément de couverture' },
+  comms_intelligence_coverage_empty: {
+    en: 'No coverage items recorded yet.',
+    fr: 'Aucun élément de couverture consigné pour l’instant.',
+  },
+  comms_intelligence_add_coverage: {
+    en: 'Add coverage item',
+    fr: 'Ajouter un élément de couverture',
+  },
   comms_intelligence_outlet: { en: 'Outlet', fr: 'Média' },
   comms_intelligence_headline: { en: 'Headline', fr: 'Titre' },
   comms_intelligence_sentiment: { en: 'Sentiment', fr: 'Sentiment' },
@@ -347,26 +389,44 @@ export const commsMessages = defineMessages({
     en: 'Reach values are provided by the outlet or estimated manually. Cross-platform reach is not de-duplicated.',
     fr: 'Les valeurs de portée sont fournies par le média ou estimées manuellement. La portée entre plateformes n’est pas dédupliquée.',
   },
-  comms_intelligence_public_affairs: { en: 'Public affairs tracker', fr: 'Suivi des affaires publiques' },
+  comms_intelligence_public_affairs: {
+    en: 'Public affairs tracker',
+    fr: 'Suivi des affaires publiques',
+  },
   comms_intelligence_submissions: { en: 'Submissions', fr: 'Soumissions' },
-  comms_intelligence_submissions_empty: { en: 'No submissions recorded yet.', fr: 'Aucune soumission consignée pour l’instant.' },
+  comms_intelligence_submissions_empty: {
+    en: 'No submissions recorded yet.',
+    fr: 'Aucune soumission consignée pour l’instant.',
+  },
   comms_intelligence_add_submission: { en: 'Add submission', fr: 'Ajouter une soumission' },
   comms_intelligence_submission_status: { en: 'Status', fr: 'Statut' },
   comms_intelligence_submission_method: { en: 'Method', fr: 'Méthode' },
   comms_intelligence_submission_deadline: { en: 'Deadline', fr: 'Échéance' },
-  comms_intelligence_submission_confirmation: { en: 'Confirmation ref.', fr: 'Réf. de confirmation' },
+  comms_intelligence_submission_confirmation: {
+    en: 'Confirmation ref.',
+    fr: 'Réf. de confirmation',
+  },
   comms_intelligence_submission_authority: { en: 'Authority', fr: 'Autorité' },
   comms_notes: { en: 'Notes', fr: 'Notes' },
   comms_intelligence_feeds: { en: 'Monitoring feeds', fr: 'Fils de veille' },
-  comms_intelligence_feeds_empty: { en: 'No feeds configured yet.', fr: 'Aucun fil de veille configuré pour l’instant.' },
+  comms_intelligence_feeds_empty: {
+    en: 'No feeds configured yet.',
+    fr: 'Aucun fil de veille configuré pour l’instant.',
+  },
   comms_intelligence_add_feed: { en: 'Add feed', fr: 'Ajouter un fil' },
   comms_intelligence_feed_label: { en: 'Label', fr: 'Libellé' },
   comms_url: { en: 'URL', fr: 'URL' },
   comms_intelligence_feed_format: { en: 'Format', fr: 'Format' },
-  comms_intelligence_feed_enabled: { en: 'Enabled for auto-sync', fr: 'Activé pour la synchronisation automatique' },
+  comms_intelligence_feed_enabled: {
+    en: 'Enabled for auto-sync',
+    fr: 'Activé pour la synchronisation automatique',
+  },
   comms_intelligence_feed_sync: { en: 'Sync now', fr: 'Synchroniser' },
   comms_intelligence_feed_items_added: { en: 'items added', fr: 'éléments ajoutés' },
-  comms_intelligence_curated_feeds: { en: 'Curated Canadian feeds', fr: 'Fils canadiens sélectionnés' },
+  comms_intelligence_curated_feeds: {
+    en: 'Curated Canadian feeds',
+    fr: 'Fils canadiens sélectionnés',
+  },
   comms_intelligence_add_preset: { en: 'Add preset', fr: 'Ajouter le préréglage' },
   comms_intelligence_feed_added: { en: 'Added', fr: 'Ajouté' },
   comms_intelligence_sync_all: { en: 'Sync all enabled', fr: 'Synchroniser tous les fils activés' },
@@ -430,7 +490,10 @@ export const commsMessages = defineMessages({
   comms_results_metric_initiative: { en: 'Initiative', fr: 'Initiative' },
   comms_results_coverage: { en: 'Coverage', fr: 'Couverture' },
   comms_results_coverage_total: { en: 'Total recorded reach', fr: 'Portée totale consignée' },
-  comms_results_coverage_by_initiative: { en: 'Coverage by initiative', fr: 'Couverture par initiative' },
+  comms_results_coverage_by_initiative: {
+    en: 'Coverage by initiative',
+    fr: 'Couverture par initiative',
+  },
   comms_results_coverage_disclaimer: {
     en: 'Coverage and reach are manually recorded. Cross-platform reach is not de-duplicated and does not represent unique people.',
     fr: 'La couverture et la portée sont consignées manuellement. La portée entre plateformes n’est pas dédupliquée et ne représente pas des personnes uniques.',
@@ -448,7 +511,10 @@ export const commsMessages = defineMessages({
 
   /* Settings */
   comms_settings_title: { en: 'Communications settings', fr: 'Paramètres des communications' },
-  comms_settings_empty: { en: 'Workspace settings will appear here once enabled.', fr: 'Les paramètres de l’espace de travail apparaîtront ici une fois activés.' },
+  comms_settings_empty: {
+    en: 'Workspace settings will appear here once enabled.',
+    fr: 'Les paramètres de l’espace de travail apparaîtront ici une fois activés.',
+  },
   comms_brand_profile: { en: 'Brand profile', fr: 'Profil de marque' },
   comms_brand_claims: { en: 'Approved claims', fr: 'Revendications approuvées' },
   comms_roles: { en: 'Roles and approvals', fr: 'Rôles et approbations' },
@@ -483,17 +549,29 @@ export const commsMessages = defineMessages({
   comms_approval_empty: { en: 'No approvals recorded.', fr: 'Aucune approbation enregistrée.' },
   comms_approval_decision_approved: { en: 'Approved', fr: 'Approuvé' },
   comms_approval_decision_rejected: { en: 'Rejected', fr: 'Rejeté' },
-  comms_approval_decision_changes_requested: { en: 'Changes requested', fr: 'Modifications demandées' },
+  comms_approval_decision_changes_requested: {
+    en: 'Changes requested',
+    fr: 'Modifications demandées',
+  },
   comms_usage_content_budget: { en: 'Monthly content budget', fr: 'Budget de contenu mensuel' },
-  comms_usage_interaction_budget: { en: 'Monthly interaction budget', fr: 'Budget d’interactions mensuel' },
+  comms_usage_interaction_budget: {
+    en: 'Monthly interaction budget',
+    fr: 'Budget d’interactions mensuel',
+  },
   comms_usage_alert_threshold: { en: 'Alert threshold (%)', fr: 'Seuil d’alerte (%)' },
   comms_usage_review_days: { en: 'Default review days', fr: 'Délai de révision par défaut' },
-  comms_usage_retention_days: { en: 'Content retention days', fr: 'Jours de conservation du contenu' },
+  comms_usage_retention_days: {
+    en: 'Content retention days',
+    fr: 'Jours de conservation du contenu',
+  },
   comms_usage_update: { en: 'Update controls', fr: 'Mettre à jour les contrôles' },
 
   /* Analytics */
   comms_analytics_title: { en: 'Communications analytics', fr: 'Analytique des communications' },
-  comms_analytics_subtitle: { en: 'Activity and volume across initiatives, content, and engagement.', fr: 'Activité et volume par initiative, contenu et interactions.' },
+  comms_analytics_subtitle: {
+    en: 'Activity and volume across initiatives, content, and engagement.',
+    fr: 'Activité et volume par initiative, contenu et interactions.',
+  },
   comms_analytics_initiatives: { en: 'Initiatives', fr: 'Initiatives' },
   comms_analytics_content_items: { en: 'Content items', fr: 'Éléments de contenu' },
   comms_analytics_open_interactions: { en: 'Open interactions', fr: 'Interactions ouvertes' },
@@ -512,7 +590,10 @@ export const commsMessages = defineMessages({
     en: 'Contacts per segment',
     fr: 'Contacts par segment',
   },
-  comms_analytics_empty: { en: 'No Comms activity to report yet.', fr: 'Aucune activité Comms à rapporter pour l’instant.' },
+  comms_analytics_empty: {
+    en: 'No Comms activity to report yet.',
+    fr: 'Aucune activité Comms à rapporter pour l’instant.',
+  },
 
   /* Demo / production notices */
   comms_demo_read_only: {

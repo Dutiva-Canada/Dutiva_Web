@@ -84,10 +84,26 @@ export function useHomeProductionStats() {
     const openCases = data.cases.filter((c) => c.status !== 'resolved')
     const openTasks = data.tasks.filter((t) => !t.done)
     return [
-      { value: data.employees, label: M.home_prod_stat_employees, to: workspacePath(root, 'employees') },
-      { value: openCases.length, label: M.home_prod_stat_open_cases, to: workspacePath(root, 'cases') },
-      { value: openTasks.length, label: M.home_prod_stat_open_tasks, to: workspacePath(root, 'planning/tasks') },
-      { value: data.openFindings, label: M.home_prod_stat_open_findings, to: workspacePath(root, 'compliance') },
+      {
+        value: data.employees,
+        label: M.home_prod_stat_employees,
+        to: workspacePath(root, 'employees'),
+      },
+      {
+        value: openCases.length,
+        label: M.home_prod_stat_open_cases,
+        to: workspacePath(root, 'cases'),
+      },
+      {
+        value: openTasks.length,
+        label: M.home_prod_stat_open_tasks,
+        to: workspacePath(root, 'planning/tasks'),
+      },
+      {
+        value: data.openFindings,
+        label: M.home_prod_stat_open_findings,
+        to: workspacePath(root, 'compliance'),
+      },
     ]
   }, [data, root])
 

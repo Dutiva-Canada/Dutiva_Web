@@ -75,7 +75,8 @@ export function parseCSV(text: string, options: CSVOptions = {}): ParsedCSV {
   }
 
   const firstRow = parseCSVLine(lines[0] ?? '', delimiter)
-  const inferredHeader = options.hasHeader ?? firstRow.some((cell) => /^[A-Za-z_][A-Za-z0-9_\s]*$/.test(cell.trim()))
+  const inferredHeader =
+    options.hasHeader ?? firstRow.some((cell) => /^[A-Za-z_][A-Za-z0-9_\s]*$/.test(cell.trim()))
 
   const dataStart = inferredHeader ? 1 : 0
   const rows: string[][] = []

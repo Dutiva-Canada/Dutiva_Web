@@ -27,7 +27,10 @@ import { usePayRail, useWellbeingRail } from '@/features/app/rail/useEntityRails
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useOpenCatalogueDocument } from '@/features/app/documents/useOpenCatalogueDocument'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
-import { useWorkspaceNavigate, useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
+import {
+  useWorkspaceNavigate,
+  useWorkspaceRoot,
+} from '@/features/app/workspaceRoot/workspaceRootContext'
 import { chats } from '@/data'
 import type { FixtureAction, FixtureToneCard } from '@/data'
 import type { FlowKeyOrFallback } from './advisorFlows'
@@ -336,8 +339,7 @@ export function useAdvisorViewController() {
   })
   startFlowRef.current = startFlow
 
-  const { sendInThread, handleFollowup, handleAttachmentIssue } =
-    createAdvisorChatSendHandlers({
+  const { sendInThread, handleFollowup, handleAttachmentIssue } = createAdvisorChatSendHandlers({
     authStatus,
     organizationId,
     getActiveChatId: () => activeChatId,

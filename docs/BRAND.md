@@ -40,15 +40,15 @@ charcoal, ivory — is chosen to age well and to carry a BusinessTech brand,
 not just an HR one. The accent layer is where the brand can evolve without
 repainting the house.
 
-| Role | Colour | Hex | Meaning | Token |
-|---|---|---|---|---|
-| Foundation | Deep navy | `#0b1f3a` | Trust, stability, professionalism | `--dutiva-navy` |
-| Foundation | Charcoal | `#1c2530` | Premium, serious, corporate | `--dutiva-charcoal` |
-| Foundation | Ivory | `#f7f3ea` | Warmth, elegance; the light floor | `--dutiva-ivory` |
-| Accent | Teal | `#0f766e` | People + technology; **the interactive accent** | `--dutiva-teal` |
-| Accent (dark) | Teal bright | `#45c4b5` | Teal lifted to hold ≥4.5:1 on navy | `--dutiva-teal-bright` |
-| Executive | Champagne gold | `#c8a96b` | Premium / executive moments only | `--dutiva-gold` |
-| — | Deep floor | `#060f1e` | Navy darkened past brand for dark surfaces | `.surface-marketing --bg` |
+| Role          | Colour         | Hex       | Meaning                                         | Token                     |
+| ------------- | -------------- | --------- | ----------------------------------------------- | ------------------------- |
+| Foundation    | Deep navy      | `#0b1f3a` | Trust, stability, professionalism               | `--dutiva-navy`           |
+| Foundation    | Charcoal       | `#1c2530` | Premium, serious, corporate                     | `--dutiva-charcoal`       |
+| Foundation    | Ivory          | `#f7f3ea` | Warmth, elegance; the light floor               | `--dutiva-ivory`          |
+| Accent        | Teal           | `#0f766e` | People + technology; **the interactive accent** | `--dutiva-teal`           |
+| Accent (dark) | Teal bright    | `#45c4b5` | Teal lifted to hold ≥4.5:1 on navy              | `--dutiva-teal-bright`    |
+| Executive     | Champagne gold | `#c8a96b` | Premium / executive moments only                | `--dutiva-gold`           |
+| —             | Deep floor     | `#060f1e` | Navy darkened past brand for dark surfaces      | `.surface-marketing --bg` |
 
 Alternatives considered and why they lost: electric blue and violet read
 tech-forward but date faster (violet especially — the AI-purple wave is a
@@ -114,15 +114,15 @@ above, not the old `#d4af37`.
 
 ## 4. Token map
 
-| Token | Lives in | Carries |
-|---|---|---|
-| `--dutiva-navy`, `--dutiva-charcoal`, `--dutiva-ivory` | `tokens.css :root` | Foundation |
-| `--dutiva-teal`, `--dutiva-teal-bright` (+ `-rgb`) | `tokens.css :root` | Interactive accent |
-| `--dutiva-gold`, `--gold-gradient`, `--gold-bright`, `--gold-on-navy`, `--gold-on-dark` | `tokens.css :root` | Executive accent |
-| `--accent`, `--accent-soft`, `--focus`, `--nav-active-*` | `surfaces.css` per surface+theme | Resolve to teal |
-| `--gold-*` surface set | `surfaces.css` per surface+theme | Resolve to champagne |
-| `--bg`, `--surface`, `--border`, `--text-*` | `surfaces.css` per surface+theme | Navy/charcoal/ivory ramps |
-| `--risk-*`, `--warn-*`, `--ok-*`, `--support-*`, `--success`, `--info` | `surfaces.css` | Semantic status — off-limits to branding |
+| Token                                                                                   | Lives in                         | Carries                                  |
+| --------------------------------------------------------------------------------------- | -------------------------------- | ---------------------------------------- |
+| `--dutiva-navy`, `--dutiva-charcoal`, `--dutiva-ivory`                                  | `tokens.css :root`               | Foundation                               |
+| `--dutiva-teal`, `--dutiva-teal-bright` (+ `-rgb`)                                      | `tokens.css :root`               | Interactive accent                       |
+| `--dutiva-gold`, `--gold-gradient`, `--gold-bright`, `--gold-on-navy`, `--gold-on-dark` | `tokens.css :root`               | Executive accent                         |
+| `--accent`, `--accent-soft`, `--focus`, `--nav-active-*`                                | `surfaces.css` per surface+theme | Resolve to teal                          |
+| `--gold-*` surface set                                                                  | `surfaces.css` per surface+theme | Resolve to champagne                     |
+| `--bg`, `--surface`, `--border`, `--text-*`                                             | `surfaces.css` per surface+theme | Navy/charcoal/ivory ramps                |
+| `--risk-*`, `--warn-*`, `--ok-*`, `--support-*`, `--success`, `--info`                  | `surfaces.css`                   | Semantic status — off-limits to branding |
 
 Rule that outlives this palette: **use the token, never the hex.** A colour
 that exists as a token must be referenced as one (`bg-surface`,

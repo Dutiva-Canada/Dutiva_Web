@@ -434,11 +434,7 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
         neutral(e.summary ?? ''),
       ]),
       restricted: false,
-      match: joinBi([
-        neutral(name),
-        neutral(e.engagement_type ?? ''),
-        neutral(e.summary ?? ''),
-      ]),
+      match: joinBi([neutral(name), neutral(e.engagement_type ?? ''), neutral(e.summary ?? '')]),
       nav: { kind: 'view', view: 'specialists/engagements' },
     }
   })

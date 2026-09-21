@@ -134,7 +134,9 @@ describe('HiringView in production mode', () => {
     expect(screen.getByLabelText(/Type|Type/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/Description/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/Status|Statut/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Save posting|Enregistrer l'offre/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /Save posting|Enregistrer l'offre/i }),
+    ).toBeInTheDocument()
   })
 
   it('exposes a candidate status-change control on each candidate row', async () => {
@@ -145,7 +147,10 @@ describe('HiringView in production mode', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { HiringView: HiringViewFresh } = await import('./HiringView')
 
-    renderAppFresh(<HiringViewFresh />, { route: '/app/hiring?tab=candidates', path: '/app/hiring' })
+    renderAppFresh(<HiringViewFresh />, {
+      route: '/app/hiring?tab=candidates',
+      path: '/app/hiring',
+    })
 
     // Wait for the candidate to appear (rendered in both desktop table and mobile cards)
     expect((await screen.findAllByText('Jane Doe')).length).toBeGreaterThan(0)
@@ -156,6 +161,8 @@ describe('HiringView in production mode', () => {
     expect(statusSelect).toHaveValue('application')
 
     // The advance button should also be present
-    expect(screen.getByRole('button', { name: /Advance stage|Avancer l'étape/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /Advance stage|Avancer l'étape/i }),
+    ).toBeInTheDocument()
   })
 })

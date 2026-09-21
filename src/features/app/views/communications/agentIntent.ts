@@ -25,8 +25,7 @@ import type { AgentToolProposal } from '@/features/app/agent/types'
  */
 
 const LOG_SENT_RE = /^(?:log|record)\s+(?:that\s+)?(?:we\s+)?sent\s+(.+)$/i
-const LOG_SENT_FR_RE =
-  /^consigne[rz]?\s+(?:que\s+)?(?:nous\s+avons\s+|on\s+a\s+)?envoyé\s+(.+)$/i
+const LOG_SENT_FR_RE = /^consigne[rz]?\s+(?:que\s+)?(?:nous\s+avons\s+|on\s+a\s+)?envoyé\s+(.+)$/i
 const LOG_RE = /^(?:log|record|add)\s+a\s+communication\s+(?:to\s+|for\s+|:\s*)?(.+)$/i
 const LOG_FR_RE = /^consigne[rz]?\s+une\s+communication\s+(?:pour\s+|à\s+|:\s*)?(.+)$/i
 const MARK_SENT_RE = /^mark\s+(.+?)\s+as\s+sent$/i
@@ -42,10 +41,7 @@ function logProposal(title: string, sent: boolean): AgentToolProposal | null {
           `Log a sent communication — “${trimmed}”.`,
           `Consigner une communication envoyée — « ${trimmed} ».`,
         )
-      : bi(
-          `Log a communication — “${trimmed}”.`,
-          `Consigner une communication — « ${trimmed} ».`,
-        ),
+      : bi(`Log a communication — “${trimmed}”.`, `Consigner une communication — « ${trimmed} ».`),
     {
       title: trimmed,
       ...(sent ? { status: 'sent' } : {}),
@@ -73,10 +69,7 @@ export function proposeCommsAction(text: string): AgentToolProposal | null {
     if (!title) return null
     return createProposal(
       'communications.mark_sent',
-      bi(
-        `Record as sent — “${title}”.`,
-        `Consigner comme envoyée — « ${title} ».`,
-      ),
+      bi(`Record as sent — “${title}”.`, `Consigner comme envoyée — « ${title} ».`),
       { title },
     )
   }

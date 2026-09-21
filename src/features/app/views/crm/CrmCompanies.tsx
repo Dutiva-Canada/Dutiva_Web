@@ -91,7 +91,9 @@ export function CrmCompanies({ crm }: { readonly crm: UseCrmDataReturn }) {
         >
           <option value="">{x(M.crm_filter_all_industries)}</option>
           {industries.map((ind) => (
-            <option key={ind} value={ind}>{ind}</option>
+            <option key={ind} value={ind}>
+              {ind}
+            </option>
           ))}
         </select>
         {filterActive && (
@@ -113,36 +115,66 @@ export function CrmCompanies({ crm }: { readonly crm: UseCrmDataReturn }) {
       </div>
 
       {showForm && (
-        <form onSubmit={onSubmit} className="mb-[8px] rounded-[10px] border border-border bg-inset p-[14px]">
+        <form
+          onSubmit={onSubmit}
+          className="mb-[8px] rounded-[10px] border border-border bg-inset p-[14px]"
+        >
           <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
             <div className="sm:col-span-2">
               <label className={labelClass}>{x(M.crm_name)}</label>
-              <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} required />
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={inputClass}
+                required
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.crm_domain)}</label>
-              <input value={domain} onChange={(e) => setDomain(e.target.value)} className={inputClass} />
+              <input
+                value={domain}
+                onChange={(e) => setDomain(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div>
               <label className={labelClass}>{x(M.crm_industry)}</label>
-              <input value={industry} onChange={(e) => setIndustry(e.target.value)} className={inputClass} />
+              <input
+                value={industry}
+                onChange={(e) => setIndustry(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div className="sm:col-span-2">
               <label className={labelClass}>{x(M.crm_size)}</label>
-              <input value={size} onChange={(e) => setSize(e.target.value)} className={inputClass} />
+              <input
+                value={size}
+                onChange={(e) => setSize(e.target.value)}
+                className={inputClass}
+              />
             </div>
             <div className="sm:col-span-2">
               <label className={labelClass}>{x(M.crm_notes)}</label>
-              <input value={notes} onChange={(e) => setNotes(e.target.value)} className={inputClass} />
+              <input
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className={inputClass}
+              />
             </div>
           </div>
           <div className="mt-[14px] flex gap-[8px]">
-            <button type="submit" className="rounded-[8px] border-none bg-navy px-[14px] py-[8px] text-[13px] font-semibold text-white">
+            <button
+              type="submit"
+              className="rounded-[8px] border-none bg-navy px-[14px] py-[8px] text-[13px] font-semibold text-white"
+            >
               {x(M.crm_save)}
             </button>
             <button
               type="button"
-              onClick={() => { reset(); setShowForm(false) }}
+              onClick={() => {
+                reset()
+                setShowForm(false)
+              }}
               className="rounded-[8px] border border-border bg-surface px-[14px] py-[8px] text-[13px] font-semibold text-text"
             >
               {x(M.crm_cancel)}
@@ -158,7 +190,8 @@ export function CrmCompanies({ crm }: { readonly crm: UseCrmDataReturn }) {
               <div>
                 <div className="text-[14px] font-semibold text-text">{company.name}</div>
                 <div className="text-[12px] text-text-2">
-                  {company.domain} {company.industry && `· ${company.industry}`} {company.size && `· ${company.size}`}
+                  {company.domain} {company.industry && `· ${company.industry}`}{' '}
+                  {company.size && `· ${company.size}`}
                 </div>
               </div>
               <button

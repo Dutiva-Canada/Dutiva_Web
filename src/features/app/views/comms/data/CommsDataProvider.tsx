@@ -48,10 +48,7 @@ import {
   removeSubmission as removeSubmissionApi,
   updateSubmission as updateSubmissionApi,
 } from './submissionsApi'
-import {
-  addApproval as addApprovalApi,
-  removeApproval as removeApprovalApi,
-} from './approvalsApi'
+import { addApproval as addApprovalApi, removeApproval as removeApprovalApi } from './approvalsApi'
 import {
   addBrandClaim as addBrandClaimApi,
   removeBrandClaim as removeBrandClaimApi,
@@ -67,10 +64,7 @@ import {
   removeIssue as removeIssueApi,
   updateIssue as updateIssueApi,
 } from './issuesApi'
-import {
-  addMetric as addMetricApi,
-  removeMetric as removeMetricApi,
-} from './metricsApi'
+import { addMetric as addMetricApi, removeMetric as removeMetricApi } from './metricsApi'
 import {
   addObjective as addObjectiveApi,
   removeObjective as removeObjectiveApi,
@@ -125,13 +119,43 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
   const updateContact = useUpdateCallback(orgId, isLive, setState, 'contacts', updateContactApi)
   const removeContact = useRemoveCallback(orgId, isLive, setState, 'contacts', removeContactApi)
 
-  const addOrganization = useAddCallback(orgId, isLive, setState, 'organizations', addOrganizationApi)
-  const updateOrganization = useUpdateCallback(orgId, isLive, setState, 'organizations', updateOrganizationApi)
-  const removeOrganization = useRemoveCallback(orgId, isLive, setState, 'organizations', removeOrganizationApi)
+  const addOrganization = useAddCallback(
+    orgId,
+    isLive,
+    setState,
+    'organizations',
+    addOrganizationApi,
+  )
+  const updateOrganization = useUpdateCallback(
+    orgId,
+    isLive,
+    setState,
+    'organizations',
+    updateOrganizationApi,
+  )
+  const removeOrganization = useRemoveCallback(
+    orgId,
+    isLive,
+    setState,
+    'organizations',
+    removeOrganizationApi,
+  )
 
   const addInteraction = useAddCallback(orgId, isLive, setState, 'interactions', addInteractionApi)
-  const updateInteraction = useUpdateCallback(orgId, isLive, setState, 'interactions', updateInteractionApi)
-  const removeInteraction = useRemoveCallback(orgId, isLive, setState, 'interactions', removeInteractionApi)
+  const updateInteraction = useUpdateCallback(
+    orgId,
+    isLive,
+    setState,
+    'interactions',
+    updateInteractionApi,
+  )
+  const removeInteraction = useRemoveCallback(
+    orgId,
+    isLive,
+    setState,
+    'interactions',
+    removeInteractionApi,
+  )
 
   const addSource = useAddCallback(orgId, isLive, setState, 'sources', addSourceApi)
   const updateSource = useUpdateCallback(orgId, isLive, setState, 'sources', updateSourceApi)
@@ -141,17 +165,59 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
   const updateFeed = useUpdateCallback(orgId, isLive, setState, 'feeds', updateFeedApi)
   const removeFeed = useRemoveCallback(orgId, isLive, setState, 'feeds', removeFeedApi)
 
-  const addCoverageItem = useAddCallback(orgId, isLive, setState, 'coverageItems', addCoverageItemApi)
-  const updateCoverageItem = useUpdateCallback(orgId, isLive, setState, 'coverageItems', updateCoverageItemApi)
-  const removeCoverageItem = useRemoveCallback(orgId, isLive, setState, 'coverageItems', removeCoverageItemApi)
+  const addCoverageItem = useAddCallback(
+    orgId,
+    isLive,
+    setState,
+    'coverageItems',
+    addCoverageItemApi,
+  )
+  const updateCoverageItem = useUpdateCallback(
+    orgId,
+    isLive,
+    setState,
+    'coverageItems',
+    updateCoverageItemApi,
+  )
+  const removeCoverageItem = useRemoveCallback(
+    orgId,
+    isLive,
+    setState,
+    'coverageItems',
+    removeCoverageItemApi,
+  )
 
   const addSubmission = useAddCallback(orgId, isLive, setState, 'submissions', addSubmissionApi)
-  const updateSubmission = useUpdateCallback(orgId, isLive, setState, 'submissions', updateSubmissionApi)
-  const removeSubmission = useRemoveCallback(orgId, isLive, setState, 'submissions', removeSubmissionApi)
+  const updateSubmission = useUpdateCallback(
+    orgId,
+    isLive,
+    setState,
+    'submissions',
+    updateSubmissionApi,
+  )
+  const removeSubmission = useRemoveCallback(
+    orgId,
+    isLive,
+    setState,
+    'submissions',
+    removeSubmissionApi,
+  )
 
   const addBrandClaim = useAddCallback(orgId, isLive, setState, 'brandClaims', addBrandClaimApi)
-  const updateBrandClaim = useUpdateCallback(orgId, isLive, setState, 'brandClaims', updateBrandClaimApi)
-  const removeBrandClaim = useRemoveCallback(orgId, isLive, setState, 'brandClaims', removeBrandClaimApi)
+  const updateBrandClaim = useUpdateCallback(
+    orgId,
+    isLive,
+    setState,
+    'brandClaims',
+    updateBrandClaimApi,
+  )
+  const removeBrandClaim = useRemoveCallback(
+    orgId,
+    isLive,
+    setState,
+    'brandClaims',
+    removeBrandClaimApi,
+  )
 
   const addIssue = useAddCallback(orgId, isLive, setState, 'issues', addIssueApi)
   const updateIssue = useUpdateCallback(orgId, isLive, setState, 'issues', updateIssueApi)
@@ -161,20 +227,56 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
   const removeMetric = useRemoveCallback(orgId, isLive, setState, 'metrics', removeMetricApi)
 
   const addObjective = useAddCallback(orgId, isLive, setState, 'objectives', addObjectiveApi)
-  const updateObjective = useUpdateCallback(orgId, isLive, setState, 'objectives', updateObjectiveApi)
-  const removeObjective = useRemoveCallback(orgId, isLive, setState, 'objectives', removeObjectiveApi)
+  const updateObjective = useUpdateCallback(
+    orgId,
+    isLive,
+    setState,
+    'objectives',
+    updateObjectiveApi,
+  )
+  const removeObjective = useRemoveCallback(
+    orgId,
+    isLive,
+    setState,
+    'objectives',
+    removeObjectiveApi,
+  )
 
   const addPolicyFile = useAddCallback(orgId, isLive, setState, 'policyFiles', addPolicyFileApi)
-  const removePolicyFile = useRemoveCallback(orgId, isLive, setState, 'policyFiles', removePolicyFileApi)
+  const removePolicyFile = useRemoveCallback(
+    orgId,
+    isLive,
+    setState,
+    'policyFiles',
+    removePolicyFileApi,
+  )
 
   const addIntegration = useAddCallback(orgId, isLive, setState, 'integrations', addIntegrationApi)
-  const updateIntegration = useUpdateCallback(orgId, isLive, setState, 'integrations', updateIntegrationApi)
-  const removeIntegration = useRemoveCallback(orgId, isLive, setState, 'integrations', removeIntegrationApi)
+  const updateIntegration = useUpdateCallback(
+    orgId,
+    isLive,
+    setState,
+    'integrations',
+    updateIntegrationApi,
+  )
+  const removeIntegration = useRemoveCallback(
+    orgId,
+    isLive,
+    setState,
+    'integrations',
+    removeIntegrationApi,
+  )
 
   // --- Custom CRUD (side effects or domain-specific logic) -----------------
 
   const addInitiative = useAddCallback(orgId, isLive, setState, 'initiatives', addInitiativeApi)
-  const updateInitiative = useUpdateCallback(orgId, isLive, setState, 'initiatives', updateInitiativeApi)
+  const updateInitiative = useUpdateCallback(
+    orgId,
+    isLive,
+    setState,
+    'initiatives',
+    updateInitiativeApi,
+  )
 
   const removeInitiative = useCallback(
     async (id: string) => {
@@ -196,7 +298,13 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
   )
 
   const addContentItem = useAddCallback(orgId, isLive, setState, 'contentItems', addContentItemApi)
-  const updateContentItem = useUpdateCallback(orgId, isLive, setState, 'contentItems', updateContentItemApi)
+  const updateContentItem = useUpdateCallback(
+    orgId,
+    isLive,
+    setState,
+    'contentItems',
+    updateContentItemApi,
+  )
 
   const removeContentItem = useCallback(
     async (id: string) => {
@@ -220,7 +328,12 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
     async (contentItemId: string, action: CommsExecutionAction, _actor: string, note?: string) => {
       if (!isLive || !orgId) return null
       try {
-        const updated = await transitionDeliveryStatusApi(orgId, contentItemId, action, noteToBi(note))
+        const updated = await transitionDeliveryStatusApi(
+          orgId,
+          contentItemId,
+          action,
+          noteToBi(note),
+        )
         if (updated) {
           setState((prev) => ({
             ...prev,
@@ -281,15 +394,12 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
     [isLive, orgId, refresh],
   )
 
-  const syncAllFeeds = useCallback(
-    async (): Promise<({ feedId: string } & FeedSyncResult)[]> => {
-      if (!isLive || !orgId) return []
-      const results = await syncAllFeedsApi(orgId)
-      await refresh()
-      return results
-    },
-    [isLive, orgId, refresh],
-  )
+  const syncAllFeeds = useCallback(async (): Promise<({ feedId: string } & FeedSyncResult)[]> => {
+    if (!isLive || !orgId) return []
+    const results = await syncAllFeedsApi(orgId)
+    await refresh()
+    return results
+  }, [isLive, orgId, refresh])
 
   useEffect(() => {
     if (!isLive || !orgId) return undefined
@@ -435,24 +545,61 @@ function useCommsDataValue(orgId: string | undefined): CommsDataContextValue {
       removeObjective,
     }),
     [
-      state, isLive,
-      addInitiative, updateInitiative, removeInitiative,
-      addContentItem, updateContentItem, removeContentItem,
-      transitionDeliveryStatus, recordManualReceipt, toggleInitiativePause,
-      addSource, updateSource, removeSource,
-      addFeed, updateFeed, removeFeed, syncFeed, syncAllFeeds,
-      addCoverageItem, updateCoverageItem, removeCoverageItem,
-      addSubmission, updateSubmission, transitionSubmissionStatus, removeSubmission,
-      addBrandClaim, updateBrandClaim, removeBrandClaim,
-      addApproval, removeApproval,
-      addContact, updateContact, removeContact,
-      addOrganization, updateOrganization, removeOrganization,
-      addInteraction, updateInteraction, removeInteraction,
-      updateUsageControls, addPolicyFile, removePolicyFile,
-      addIssue, updateIssue, removeIssue,
-      addMetric, updateMetric, removeMetric,
-      addIntegration, updateIntegration, removeIntegration,
-      addObjective, updateObjective, removeObjective,
+      state,
+      isLive,
+      addInitiative,
+      updateInitiative,
+      removeInitiative,
+      addContentItem,
+      updateContentItem,
+      removeContentItem,
+      transitionDeliveryStatus,
+      recordManualReceipt,
+      toggleInitiativePause,
+      addSource,
+      updateSource,
+      removeSource,
+      addFeed,
+      updateFeed,
+      removeFeed,
+      syncFeed,
+      syncAllFeeds,
+      addCoverageItem,
+      updateCoverageItem,
+      removeCoverageItem,
+      addSubmission,
+      updateSubmission,
+      transitionSubmissionStatus,
+      removeSubmission,
+      addBrandClaim,
+      updateBrandClaim,
+      removeBrandClaim,
+      addApproval,
+      removeApproval,
+      addContact,
+      updateContact,
+      removeContact,
+      addOrganization,
+      updateOrganization,
+      removeOrganization,
+      addInteraction,
+      updateInteraction,
+      removeInteraction,
+      updateUsageControls,
+      addPolicyFile,
+      removePolicyFile,
+      addIssue,
+      updateIssue,
+      removeIssue,
+      addMetric,
+      updateMetric,
+      removeMetric,
+      addIntegration,
+      updateIntegration,
+      removeIntegration,
+      addObjective,
+      updateObjective,
+      removeObjective,
     ],
   )
 }

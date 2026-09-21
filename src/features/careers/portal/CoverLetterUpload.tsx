@@ -11,7 +11,9 @@ interface CoverLetterUploadProps {
   onChange: (value: string) => void
 }
 
-function errorMessageForReason(reason: 'unsupported_type' | 'empty_file' | 'too_large' | 'corrupt' | 'read_failed') {
+function errorMessageForReason(
+  reason: 'unsupported_type' | 'empty_file' | 'too_large' | 'corrupt' | 'read_failed',
+) {
   switch (reason) {
     case 'unsupported_type':
       return M.careers_file_error_unsupported_type
@@ -116,7 +118,9 @@ export function CoverLetterUpload({ value, onChange }: CoverLetterUploadProps) {
             ? x(M.careers_apply_cover_letter_upload_processing)
             : x(M.careers_apply_cover_letter_upload_prompt)}
         </span>
-        <span className="text-[12px] text-text-muted">{x(M.careers_apply_cover_letter_upload_hint)}</span>
+        <span className="text-[12px] text-text-muted">
+          {x(M.careers_apply_cover_letter_upload_hint)}
+        </span>
       </div>
 
       {(fileName || state === 'error') && (
@@ -140,7 +144,9 @@ export function CoverLetterUpload({ value, onChange }: CoverLetterUploadProps) {
 
       {error && <p className="m-0 text-[12.5px] text-risk-fg">{error}</p>}
 
-      <p className="m-0 text-[12px] text-text-muted">{x(M.careers_apply_cover_letter_upload_disclaimer)}</p>
+      <p className="m-0 text-[12px] text-text-muted">
+        {x(M.careers_apply_cover_letter_upload_disclaimer)}
+      </p>
     </div>
   )
 }

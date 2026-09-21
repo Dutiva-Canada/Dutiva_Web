@@ -5,7 +5,21 @@ import { bulkImportMessages as B } from '@/i18n/messages/bulkImport'
 
 const LEGAL_FORMS = ['corporation', 'partnership', 'sole_proprietor', 'nonprofit'] as const
 const CURRENCIES = ['CAD', 'USD', 'EUR', 'GBP'] as const
-const JURISDICTIONS = ['CA-AB', 'CA-BC', 'CA-MB', 'CA-NB', 'CA-NL', 'CA-NS', 'CA-NT', 'CA-NU', 'CA-ON', 'CA-PE', 'CA-QC', 'CA-SK', 'CA-YT']
+const JURISDICTIONS = [
+  'CA-AB',
+  'CA-BC',
+  'CA-MB',
+  'CA-NB',
+  'CA-NL',
+  'CA-NS',
+  'CA-NT',
+  'CA-NU',
+  'CA-ON',
+  'CA-PE',
+  'CA-QC',
+  'CA-SK',
+  'CA-YT',
+]
 
 function parseJurisdictions(value: string): string[] {
   if (!value) return []
@@ -30,14 +44,14 @@ function parseDate(value: string): string | undefined {
 }
 
 function validateLegalForm(value: unknown): string | undefined {
-  if (typeof value !== 'string' || !LEGAL_FORMS.includes(value as typeof LEGAL_FORMS[number])) {
+  if (typeof value !== 'string' || !LEGAL_FORMS.includes(value as (typeof LEGAL_FORMS)[number])) {
     return 'must be corporation, partnership, sole_proprietor, or nonprofit'
   }
   return undefined
 }
 
 function validateCurrency(value: unknown): string | undefined {
-  if (typeof value !== 'string' || !CURRENCIES.includes(value as typeof CURRENCIES[number])) {
+  if (typeof value !== 'string' || !CURRENCIES.includes(value as (typeof CURRENCIES)[number])) {
     return 'must be CAD, USD, EUR, or GBP'
   }
   return undefined
@@ -78,7 +92,8 @@ export const entityBulkImportFields: BulkImportField<FinanceLegalEntity>[] = [
     key: 'jurisdictions',
     label: M.finance_entity_jurisdictions,
     parse: parseJurisdictions,
-    validate: (v) => (Array.isArray(v) && v.length > 0 ? undefined : 'at least one jurisdiction required'),
+    validate: (v) =>
+      Array.isArray(v) && v.length > 0 ? undefined : 'at least one jurisdiction required',
     headerHints: ['jurisdictions', 'provinces', 'territories', 'locations'],
   },
   {

@@ -37,19 +37,17 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-
-
 This page documents the three design handoff packages that bridge prototype-stage design work into the production codebase, and the advisor guidance corpus — the curated set of statutory fact-chunks that ground the AI Advisor's legal citations. It covers the handoff folder structure, how each package maps to implemented code, the corpus data model and retrieval pipeline, the multi-tranche corpus lifecycle, the review-pack workflow, and the sign-off SQL templates that promote chunks from `machine_curated` to `reviewed`.
 
 ## Design Handoff Packages — Overview
 
 Three design handoff folders live under `docs/`:
 
-| Handoff folder | Feature scope | Prototype files | Screenshots | Status |
-|---|---|---|---|---|
-| `design-handoff-advisor-chat/` | Advisor chat, Compliance Workspace, Memory | 3 DC prototypes + `support.js` + `AGENT.md` | 11 annotated PNGs | Built (2026-08-07) |
-| `design-handoff-hr-documents-library/` | Document Studio, Repository, Signing | 1 DC prototype + `dutiva-data.js` + assets | 6 annotated PNGs | Built |
-| `design-handoff-analytics/` | Analytics dashboard (Reports rebuild) | 1 static HTML mockup | — | Built (Phase 1 PR #170) |
+| Handoff folder                         | Feature scope                              | Prototype files                             | Screenshots       | Status                  |
+| -------------------------------------- | ------------------------------------------ | ------------------------------------------- | ----------------- | ----------------------- |
+| `design-handoff-advisor-chat/`         | Advisor chat, Compliance Workspace, Memory | 3 DC prototypes + `support.js` + `AGENT.md` | 11 annotated PNGs | Built (2026-08-07)      |
+| `design-handoff-hr-documents-library/` | Document Studio, Repository, Signing       | 1 DC prototype + `dutiva-data.js` + assets  | 6 annotated PNGs  | Built                   |
+| `design-handoff-analytics/`            | Analytics dashboard (Reports rebuild)      | 1 static HTML mockup                        | —                 | Built (Phase 1 PR #170) |
 
 Sources: [docs/design-handoff-advisor-chat/README.md:1-8](), [docs/design-handoff-hr-documents-library/README.md:1-13](), [docs/design-handoff-analytics/README.md:1-35]()
 
@@ -92,17 +90,17 @@ The advisor chat handoff is the largest package. It contains three HTML prototyp
 
 **Handoff-to-implementation mapping from the README:**
 
-| Handoff piece | Production implementation |
-|---|---|
-| Chat, thread list, home (`/app/advisor`) | `src/features/app/views/advisor/` — `AdvisorView`, `ChatPane`, `ThreadList`, `AdvisorHome` |
-| Compliance Workspace | `src/features/app/views/advisor/ComplianceWorkspace.tsx` |
-| Chat primitives (bubbles, composer, streaming) | `src/features/app/advisor/` — `ChatBubble`, `ChatComposer`, `StreamedText`, `TypingDots` |
-| Response contract (Roadmap P0) | `src/features/app/advisor/contract.ts` (Zod schema) |
-| Engine | `supabase/functions/advisor-chat/index.ts` |
-| `AGENT.md` safety rules | `src/features/app/advisor/safety/` |
-| Advisor Memory | `src/features/app/views/memory/` |
-| Demo scenarios | `src/features/app/views/advisor/advisorScenarios.ts` |
-| Bilingual strings | `src/i18n/messages/advisorView.ts` |
+| Handoff piece                                  | Production implementation                                                                  |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Chat, thread list, home (`/app/advisor`)       | `src/features/app/views/advisor/` — `AdvisorView`, `ChatPane`, `ThreadList`, `AdvisorHome` |
+| Compliance Workspace                           | `src/features/app/views/advisor/ComplianceWorkspace.tsx`                                   |
+| Chat primitives (bubbles, composer, streaming) | `src/features/app/advisor/` — `ChatBubble`, `ChatComposer`, `StreamedText`, `TypingDots`   |
+| Response contract (Roadmap P0)                 | `src/features/app/advisor/contract.ts` (Zod schema)                                        |
+| Engine                                         | `supabase/functions/advisor-chat/index.ts`                                                 |
+| `AGENT.md` safety rules                        | `src/features/app/advisor/safety/`                                                         |
+| Advisor Memory                                 | `src/features/app/views/memory/`                                                           |
+| Demo scenarios                                 | `src/features/app/views/advisor/advisorScenarios.ts`                                       |
+| Bilingual strings                              | `src/i18n/messages/advisorView.ts`                                                         |
 
 Sources: [docs/design-handoff-advisor-chat/README.md:22-32]()
 
@@ -180,14 +178,14 @@ Sources: [docs/design-handoff-hr-documents-library/README.md:54-120](), [docs/de
 
 The data model from this handoff was implemented as Supabase tables (documented separately in `docs/DATA_MODEL.md`):
 
-| Handoff entity | Domain | Key fields |
-|---|---|---|
-| `organizations` | Identity & access | `id`, `name`, `employee_count`, `size_tier`, `unionized`, `sector` |
-| `document_templates` | Template library | `template_key`, `name_en/fr`, `jurisdictions_supported[]`, `risk_level` |
-| `document_template_versions` | Template library | `version_number`, `body_content`, `schema_json`, `question_flow_json` |
-| `document_generation_sessions` | Generated documents | `answers_json`, `language`, `jurisdiction` |
-| `documents` | Generated documents | `status`, `risk_level`, `review_status`, `signature_status` |
-| `document_audit_events` | Signatures & audit | `event_type`, `event_metadata` — append-only |
+| Handoff entity                 | Domain              | Key fields                                                              |
+| ------------------------------ | ------------------- | ----------------------------------------------------------------------- |
+| `organizations`                | Identity & access   | `id`, `name`, `employee_count`, `size_tier`, `unionized`, `sector`      |
+| `document_templates`           | Template library    | `template_key`, `name_en/fr`, `jurisdictions_supported[]`, `risk_level` |
+| `document_template_versions`   | Template library    | `version_number`, `body_content`, `schema_json`, `question_flow_json`   |
+| `document_generation_sessions` | Generated documents | `answers_json`, `language`, `jurisdiction`                              |
+| `documents`                    | Generated documents | `status`, `risk_level`, `review_status`, `signature_status`             |
+| `document_audit_events`        | Signatures & audit  | `event_type`, `event_metadata` — append-only                            |
 
 Sources: [docs/design-handoff-hr-documents-library/README.md:209-228](), [docs/DATA_MODEL.md:17-138]()
 
@@ -196,6 +194,7 @@ Sources: [docs/design-handoff-hr-documents-library/README.md:209-228](), [docs/D
 The smallest handoff. `dutiva-reports-mockup.html` is a static 393px mobile frame showing Phase 1 cards: compliance score hero, windowed trend, driver meters, needs attention, headcount by jurisdiction, open cases, and policy acknowledgments.
 
 Deliberate divergences from the mockup:
+
 - Colours use app tokens (`--chart-mark`, `--navy`, chip tone classes), not inline hex
 - Chips use shared `statusChipClass` vocabulary
 - Demo diorama's fixed "today" is July 5, 2026 (from calendar fixtures), so card numbers differ
@@ -210,23 +209,23 @@ The corpus is the curated set of statutory fact-chunks stored in `advisor_guidan
 
 Created in migration `0022`:
 
-| Column | Type | Purpose |
-|---|---|---|
-| `id` | `uuid` (PK) | Row identity |
-| `jurisdiction` | `text` | `'ON'`, `'QC'`, `'FED'`, `'ALL'` — CHECK constraint |
-| `topic` | `text` | e.g. `minimum_wage`, `termination_notice`, `leaves` |
-| `title` / `title_fr` | `text` | EN/FR chunk title (FR added in 0029) |
-| `content` / `content_fr` | `text` | EN/FR chunk body (FR added in 0029) |
-| `source_url` | `text` | Official government source URL |
-| `source_name` | `text` | Human-readable source name |
-| `effective_note` | `text` | In-force dates, verification notes |
-| `retrieved_at` | `date` | Date the figure was fetched |
-| `status` | `text` | `'active'` or `'retired'` |
-| `review_status` | `text` | `'machine_curated'` or `'reviewed'` |
-| `fts` | `tsvector` (GENERATED) | English FTS index over `title \|\| content` |
-| `fts_fr` | `tsvector` (GENERATED) | French FTS index over `title_fr \|\| content_fr` |
-| `source_changed_at` | `timestamptz` | Stamped by law monitor trigger (0071) |
-| `source_change_note` | `text` | Name of law that changed |
+| Column                   | Type                   | Purpose                                             |
+| ------------------------ | ---------------------- | --------------------------------------------------- |
+| `id`                     | `uuid` (PK)            | Row identity                                        |
+| `jurisdiction`           | `text`                 | `'ON'`, `'QC'`, `'FED'`, `'ALL'` — CHECK constraint |
+| `topic`                  | `text`                 | e.g. `minimum_wage`, `termination_notice`, `leaves` |
+| `title` / `title_fr`     | `text`                 | EN/FR chunk title (FR added in 0029)                |
+| `content` / `content_fr` | `text`                 | EN/FR chunk body (FR added in 0029)                 |
+| `source_url`             | `text`                 | Official government source URL                      |
+| `source_name`            | `text`                 | Human-readable source name                          |
+| `effective_note`         | `text`                 | In-force dates, verification notes                  |
+| `retrieved_at`           | `date`                 | Date the figure was fetched                         |
+| `status`                 | `text`                 | `'active'` or `'retired'`                           |
+| `review_status`          | `text`                 | `'machine_curated'` or `'reviewed'`                 |
+| `fts`                    | `tsvector` (GENERATED) | English FTS index over `title \|\| content`         |
+| `fts_fr`                 | `tsvector` (GENERATED) | French FTS index over `title_fr \|\| content_fr`    |
+| `source_changed_at`      | `timestamptz`          | Stamped by law monitor trigger (0071)               |
+| `source_change_note`     | `text`                 | Name of law that changed                            |
 
 RLS is enabled with no policies — only the service role (used by `advisor-chat`) can read/write.
 
@@ -238,14 +237,15 @@ The `match_advisor_guidance(q text, k integer)` RPC is the single retrieval entr
 
 The function's evolution through three migrations:
 
-| Migration | Change |
-|---|---|
-| `0023` | Initial: English-only FTS, OR-ed lexemes, `ts_rank` ordering |
-| `0024` | Added `topic` and `review_status` to return columns |
-| `0029` | Bilingual merged-rank: builds both `english` and `french` tsquery, matches against `fts OR fts_fr`, ranks by `greatest()` |
-| `0071` | Added `source_changed_at` to return columns |
+| Migration | Change                                                                                                                    |
+| --------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `0023`    | Initial: English-only FTS, OR-ed lexemes, `ts_rank` ordering                                                              |
+| `0024`    | Added `topic` and `review_status` to return columns                                                                       |
+| `0029`    | Bilingual merged-rank: builds both `english` and `french` tsquery, matches against `fts OR fts_fr`, ranks by `greatest()` |
+| `0071`    | Added `source_changed_at` to return columns                                                                               |
 
 Key implementation details:
+
 - Each lexeme is single-quoted with `''` escaping before re-parsing — prevents tsquery syntax errors from URLs/hosts
 - Results limited to `greatest(1, least(k, 8))` — between 1 and 8 chunks
 - Access revoked from `public`, `anon`, `authenticated` — service-role only
@@ -292,11 +292,11 @@ Sources: [supabase/migrations/0071_corpus_source_change_flags.sql:44-84](), [sup
 
 `NOTICE_SCHEDULES` in `src/features/app/advisor/safety/statutoryNotice.ts` is a parallel grounding mechanism for notice-of-termination figures. It uses typed `NoticeBand[]` arrays rather than free-text corpus chunks.
 
-| Jurisdiction | Status | Source |
-|---|---|---|
-| Ontario | Populated — ESA s. 57, bands from 0 months (0 weeks) to 96 months (8 weeks) | [src/features/app/advisor/safety/statutoryNotice.ts:52-62]() |
-| Québec | `bands: null` — pending legal review | [src/features/app/advisor/safety/statutoryNotice.ts:83]() |
-| Federal | `bands: null` — pending legal review | [src/features/app/advisor/safety/statutoryNotice.ts:95]() |
+| Jurisdiction | Status                                                                      | Source                                                       |
+| ------------ | --------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Ontario      | Populated — ESA s. 57, bands from 0 months (0 weeks) to 96 months (8 weeks) | [src/features/app/advisor/safety/statutoryNotice.ts:52-62]() |
+| Québec       | `bands: null` — pending legal review                                        | [src/features/app/advisor/safety/statutoryNotice.ts:83]()    |
+| Federal      | `bands: null` — pending legal review                                        | [src/features/app/advisor/safety/statutoryNotice.ts:95]()    |
 
 The `lookupStatutoryNoticeWeeks(jurisdiction, completedMonths)` function returns `null` when a schedule is unpopulated — triggering the Advisor to hedge rather than state a figure.
 
@@ -308,13 +308,13 @@ The corpus content is documented in dated snapshot files. Each is a point-in-tim
 
 ### Tranche Timeline
 
-| File | Date | Scope | Jurisdictions | Chunk count |
-|---|---|---|---|---|
-| `advisor-guidance-corpus-2026-07-26.md` | 2026-07-26 | Initial seed: termination notice, severance, vacation, overtime, minimum wage | ON, QC, FED | ~14 |
-| `advisor-guidance-corpus-2026-07-27.md` | 2026-07-27 | Expansion: leaves, public holidays, hours of work, accommodation basics | ON, QC, FED | ~14 |
-| `advisor-guidance-corpus-2026-07-29.md` | 2026-07-29 | Expansion: pay/deductions, records retention, layoffs/recall, constructive dismissal, workplace injury | ON, QC, FED | ~14 |
-| `advisor-corpus-verification-2026-08-02.md` | 2026-08-02 | **Blocked** verification cycle — no chunks changed; egress proxy refused all official hosts | — | 0 |
-| `advisor-guidance-corpus-2026-08-04.md` | 2026-08-04 | Amendment tranche closing WI1/WI2/WI3 from the blocked cycle | ON, QC, FED | 3 updated |
+| File                                        | Date       | Scope                                                                                                  | Jurisdictions | Chunk count |
+| ------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------ | ------------- | ----------- |
+| `advisor-guidance-corpus-2026-07-26.md`     | 2026-07-26 | Initial seed: termination notice, severance, vacation, overtime, minimum wage                          | ON, QC, FED   | ~14         |
+| `advisor-guidance-corpus-2026-07-27.md`     | 2026-07-27 | Expansion: leaves, public holidays, hours of work, accommodation basics                                | ON, QC, FED   | ~14         |
+| `advisor-guidance-corpus-2026-07-29.md`     | 2026-07-29 | Expansion: pay/deductions, records retention, layoffs/recall, constructive dismissal, workplace injury | ON, QC, FED   | ~14         |
+| `advisor-corpus-verification-2026-08-02.md` | 2026-08-02 | **Blocked** verification cycle — no chunks changed; egress proxy refused all official hosts            | —             | 0           |
+| `advisor-guidance-corpus-2026-08-04.md`     | 2026-08-04 | Amendment tranche closing WI1/WI2/WI3 from the blocked cycle                                           | ON, QC, FED   | 3 updated   |
 
 Sources: [docs/advisor-guidance-corpus-2026-07-26.md:1-6](), [docs/advisor-guidance-corpus-2026-07-27.md:1-6](), [docs/advisor-guidance-corpus-2026-07-29.md:1-9](), [docs/advisor-corpus-verification-2026-08-02.md:1-11](), [docs/advisor-guidance-corpus-2026-08-04.md:1-18]()
 
@@ -334,11 +334,11 @@ Sources: [docs/advisor-corpus-verification-2026-08-02.md:100-113](), [docs/advis
 
 The amendment tranche (`0042_corpus_amendment_tranche_2026_08_04.sql`) closed three work items from the blocked 08-02 cycle:
 
-| Work item | Issue | Resolution |
-|---|---|---|
-| **WI3** — ON minimum wage | Special-category rates only carried period ending 2026-09-30; went stale Oct 1 | Updated with both periods (student $16.90, homeworker $19.70, guides $89.75/$179.50) |
-| **WI1** — FED statutory leaves | Pregnancy Loss Leave (CLC s. 206.51) omitted from chunk | Added to `content` and `content_fr`; "Leave for Placement of a Child" confirmed non-existent |
-| **WI2** — CNESST URLs | Competing long/short URL forms | Canonical SHORT form confirmed via live 301 trace; 2 URLs corrected in 07-26 snapshot |
+| Work item                      | Issue                                                                          | Resolution                                                                                   |
+| ------------------------------ | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| **WI3** — ON minimum wage      | Special-category rates only carried period ending 2026-09-30; went stale Oct 1 | Updated with both periods (student $16.90, homeworker $19.70, guides $89.75/$179.50)         |
+| **WI1** — FED statutory leaves | Pregnancy Loss Leave (CLC s. 206.51) omitted from chunk                        | Added to `content` and `content_fr`; "Leave for Placement of a Child" confirmed non-existent |
+| **WI2** — CNESST URLs          | Competing long/short URL forms                                                 | Canonical SHORT form confirmed via live 301 trace; 2 URLs corrected in 07-26 snapshot        |
 
 The migration uses `UPDATE … WHERE jurisdiction = 'X' AND topic = 'Y'` to amend specific chunks. It explicitly does **not** touch `review_status` — rows remain `machine_curated`.
 
@@ -414,9 +414,9 @@ This pack addresses whether to populate `NOTICE_SCHEDULES` for Québec and Feder
 
 ```ts
 const QUEBEC_BANDS: NoticeBand[] = [
-  { minMonths: 3, weeks: 1 },   // 3 months to < 1 year
-  { minMonths: 12, weeks: 2 },  // 1 year to < 5 years
-  { minMonths: 60, weeks: 4 },  // 5 years to < 10 years
+  { minMonths: 3, weeks: 1 }, // 3 months to < 1 year
+  { minMonths: 12, weeks: 2 }, // 1 year to < 5 years
+  { minMonths: 60, weeks: 4 }, // 5 years to < 10 years
   { minMonths: 120, weeks: 8 }, // 10 years or more
 ]
 ```
@@ -427,13 +427,13 @@ const QUEBEC_BANDS: NoticeBand[] = [
 
 ```ts
 const FEDERAL_BANDS: NoticeBand[] = [
-  { minMonths: 3, weeks: 2 },   // at least 3 consecutive months
-  { minMonths: 36, weeks: 3 },  // at least 3 consecutive years
+  { minMonths: 3, weeks: 2 }, // at least 3 consecutive months
+  { minMonths: 36, weeks: 3 }, // at least 3 consecutive years
   { minMonths: 48, weeks: 4 },
   { minMonths: 60, weeks: 5 },
   { minMonths: 72, weeks: 6 },
   { minMonths: 84, weeks: 7 },
-  { minMonths: 96, weeks: 8 },  // 8+ years (statutory maximum)
+  { minMonths: 96, weeks: 8 }, // 8+ years (statutory maximum)
 ]
 ```
 
@@ -488,31 +488,31 @@ Sources: [supabase/migrations/0022_advisor_guidance_chunks.sql:1-58](), [supabas
 
 ## Migration History for `advisor_guidance_chunks`
 
-| Migration | Purpose |
-|---|---|
-| `0022` | Create table with English FTS, RLS enabled (no policies = service-role only), `updated_at` trigger |
-| `0023` | Create `match_advisor_guidance(q, k)` — OR-ed English lexemes, `ts_rank` ordering |
-| `0024` | Add `topic` and `review_status` to `match_advisor_guidance` return columns |
-| `0029` | Add `title_fr`, `content_fr`, `fts_fr` (French generated tsvector); rewrite `match_advisor_guidance` for bilingual merged-rank retrieval |
-| `0032` | French corpus backfill for remaining 40 rows |
-| `0042` | Amendment tranche: update ON minimum_wage, FED leaves, FED minimum_wage rows |
-| `0058` | Quote lexemes in `match_advisor_guidance` to prevent tsquery syntax errors from URLs |
-| `0059` | Recovered `touch_advisor_guidance_updated_at` trigger (applied directly to live, committed retroactively) |
-| `0071` | Add `source_changed_at`/`source_change_note` columns; create `flag_guidance_chunks_on_law_change()` trigger on `law_updates`; rewrite `match_advisor_guidance` to return `source_changed_at` |
+| Migration | Purpose                                                                                                                                                                                      |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `0022`    | Create table with English FTS, RLS enabled (no policies = service-role only), `updated_at` trigger                                                                                           |
+| `0023`    | Create `match_advisor_guidance(q, k)` — OR-ed English lexemes, `ts_rank` ordering                                                                                                            |
+| `0024`    | Add `topic` and `review_status` to `match_advisor_guidance` return columns                                                                                                                   |
+| `0029`    | Add `title_fr`, `content_fr`, `fts_fr` (French generated tsvector); rewrite `match_advisor_guidance` for bilingual merged-rank retrieval                                                     |
+| `0032`    | French corpus backfill for remaining 40 rows                                                                                                                                                 |
+| `0042`    | Amendment tranche: update ON minimum_wage, FED leaves, FED minimum_wage rows                                                                                                                 |
+| `0058`    | Quote lexemes in `match_advisor_guidance` to prevent tsquery syntax errors from URLs                                                                                                         |
+| `0059`    | Recovered `touch_advisor_guidance_updated_at` trigger (applied directly to live, committed retroactively)                                                                                    |
+| `0071`    | Add `source_changed_at`/`source_change_note` columns; create `flag_guidance_chunks_on_law_change()` trigger on `law_updates`; rewrite `match_advisor_guidance` to return `source_changed_at` |
 
 Sources: [supabase/migrations/0022_advisor_guidance_chunks.sql:1-58](), [supabase/migrations/0023_match_advisor_guidance.sql:1-43](), [supabase/migrations/0024_match_advisor_guidance_review_topic.sql:1-42](), [supabase/migrations/0029_bilingual_guidance_retrieval.sql:1-143](), [supabase/migrations/0042_corpus_amendment_tranche_2026_08_04.sql:1-39](), [supabase/migrations/0059_advisor_guidance_chunks_touch_updated_at.sql:1-29](), [supabase/migrations/0071_corpus_source_change_flags.sql:1-150]()
 
 ## Summary of Key Invariants
 
-| Invariant | Enforcement |
-|---|---|
-| Only a human flips `review_status` to `'reviewed'` | Convention, documented in every corpus file and migration |
-| `fts`/`fts_fr` are never hand-written | GENERATED ALWAYS AS columns; Postgres recomputes on every INSERT/UPDATE |
-| French body authored from live French source, never machine-translated | Authoring standard documented in 0029 and 08-02 verification |
-| Figures fetched twice (author + independent verify) | Corpus standard; 08-04 tranche explicitly records both fetch dates |
-| A detected law change demotes all jurisdiction citations | `flag_guidance_chunks_on_law_change()` trigger (0071) |
-| Unknown/unpopulated schedule yields `null`, never a guessed figure | `lookupStatutoryNoticeWeeks()` fail-safe return |
-| Point-in-time snapshot figures are never retroactively edited | Convention; exceptions (URL corrections) are documented inline |
+| Invariant                                                              | Enforcement                                                             |
+| ---------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Only a human flips `review_status` to `'reviewed'`                     | Convention, documented in every corpus file and migration               |
+| `fts`/`fts_fr` are never hand-written                                  | GENERATED ALWAYS AS columns; Postgres recomputes on every INSERT/UPDATE |
+| French body authored from live French source, never machine-translated | Authoring standard documented in 0029 and 08-02 verification            |
+| Figures fetched twice (author + independent verify)                    | Corpus standard; 08-04 tranche explicitly records both fetch dates      |
+| A detected law change demotes all jurisdiction citations               | `flag_guidance_chunks_on_law_change()` trigger (0071)                   |
+| Unknown/unpopulated schedule yields `null`, never a guessed figure     | `lookupStatutoryNoticeWeeks()` fail-safe return                         |
+| Point-in-time snapshot figures are never retroactively edited          | Convention; exceptions (URL corrections) are documented inline          |
 
 Sources: [supabase/migrations/0022_advisor_guidance_chunks.sql:8-11](), [docs/advisor-corpus-verification-2026-08-02.md:74-79](), [docs/advisor-guidance-corpus-2026-08-04.md:13-14](), [src/features/app/advisor/safety/statutoryNotice.ts:108-121](), [docs/advisor-guidance-corpus-2026-07-26.md:100-103]()
 

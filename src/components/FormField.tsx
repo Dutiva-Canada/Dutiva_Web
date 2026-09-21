@@ -1,4 +1,10 @@
-import type { ChangeEvent, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
+import type {
+  ChangeEvent,
+  InputHTMLAttributes,
+  ReactNode,
+  SelectHTMLAttributes,
+  TextareaHTMLAttributes,
+} from 'react'
 
 const inputClass =
   'w-full rounded-[10px] border border-border bg-surface px-[12px] py-[9px] font-sans text-[13.5px] text-text'
@@ -29,7 +35,12 @@ export function FormSelect(props: SelectHTMLAttributes<HTMLSelectElement>) {
 }
 
 export function FormTextarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea {...props} className={`${inputClass} min-h-[80px] resize-y ${props.className ?? ''}`} />
+  return (
+    <textarea
+      {...props}
+      className={`${inputClass} min-h-[80px] resize-y ${props.className ?? ''}`}
+    />
+  )
 }
 
 export function FormCheckbox({

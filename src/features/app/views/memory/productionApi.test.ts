@@ -364,7 +364,13 @@ describe('memory productionApi', () => {
     vi.resetModules()
     const api = await import('./productionLifecycleApi')
 
-    const fact = await api.addLegalHold('org-1', 'fact-1', 'Pending litigation', 'Litige en cours', 'Riley Summers')
+    const fact = await api.addLegalHold(
+      'org-1',
+      'fact-1',
+      'Pending litigation',
+      'Litige en cours',
+      'Riley Summers',
+    )
     expect(update).toHaveBeenCalledWith(
       expect.objectContaining({
         legal_hold_reason_en: 'Pending litigation',

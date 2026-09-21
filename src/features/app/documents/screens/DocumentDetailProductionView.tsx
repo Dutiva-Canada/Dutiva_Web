@@ -415,7 +415,9 @@ export function DocumentDetailProductionView() {
             {x(detail.title)}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <DocChip tone={PROD_STATUS_TONE[detail.status]}>{x(PROD_STATUS_LABEL[detail.status])}</DocChip>
+            <DocChip tone={PROD_STATUS_TONE[detail.status]}>
+              {x(PROD_STATUS_LABEL[detail.status])}
+            </DocChip>
             <DocChip tone={riskInfo.tone}>{x(riskInfo.label)}</DocChip>
             <DocChip tone={reviewInfo.tone}>{x(reviewInfo.label)}</DocChip>
             <JurisdictionPill code={detail.jurisdiction} />

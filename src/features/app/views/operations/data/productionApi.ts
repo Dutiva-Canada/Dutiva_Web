@@ -152,7 +152,9 @@ export async function listOperationsQualityChecks(
   return parsed.map(toQualityCheck)
 }
 
-export async function listOperationsTechnology(organizationId: string): Promise<OperationsTechnology[]> {
+export async function listOperationsTechnology(
+  organizationId: string,
+): Promise<OperationsTechnology[]> {
   const client = getClient()
   const data = await fetchAllPages((from, to) =>
     client
@@ -258,7 +260,11 @@ export async function createOperationsQualityCheck(
 ): Promise<OperationsQualityCheck> {
   const client = getClient()
   const insert = qualityInsertSchema.parse({ ...values, organization_id: organizationId })
-  const { data, error } = await client.from('operations_quality_checks').insert(insert).select().single()
+  const { data, error } = await client
+    .from('operations_quality_checks')
+    .insert(insert)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = qualityRowSchema.parse(data)
   return toQualityCheck(parsed)
@@ -270,7 +276,11 @@ export async function createOperationsTechnology(
 ): Promise<OperationsTechnology> {
   const client = getClient()
   const insert = technologyInsertSchema.parse({ ...values, organization_id: organizationId })
-  const { data, error } = await client.from('operations_technology').insert(insert).select().single()
+  const { data, error } = await client
+    .from('operations_technology')
+    .insert(insert)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = technologyRowSchema.parse(data)
   return toTechnology(parsed)
@@ -294,7 +304,12 @@ export async function updateOperationsProject(
 ): Promise<OperationsProject> {
   const client = getClient()
   const update = projectInsertSchema.parse(values)
-  const { data, error } = await client.from('operations_projects').update(update).eq('id', id).select().single()
+  const { data, error } = await client
+    .from('operations_projects')
+    .update(update)
+    .eq('id', id)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = projectRowSchema.parse(data)
   return toProject(parsed)
@@ -306,7 +321,12 @@ export async function updateOperationsVendor(
 ): Promise<OperationsVendor> {
   const client = getClient()
   const update = vendorInsertSchema.parse(values)
-  const { data, error } = await client.from('operations_vendors').update(update).eq('id', id).select().single()
+  const { data, error } = await client
+    .from('operations_vendors')
+    .update(update)
+    .eq('id', id)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = vendorRowSchema.parse(data)
   return toVendor(parsed)
@@ -318,7 +338,12 @@ export async function updateOperationsQualityCheck(
 ): Promise<OperationsQualityCheck> {
   const client = getClient()
   const update = qualityInsertSchema.parse(values)
-  const { data, error } = await client.from('operations_quality_checks').update(update).eq('id', id).select().single()
+  const { data, error } = await client
+    .from('operations_quality_checks')
+    .update(update)
+    .eq('id', id)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = qualityRowSchema.parse(data)
   return toQualityCheck(parsed)
@@ -330,7 +355,12 @@ export async function updateOperationsTechnology(
 ): Promise<OperationsTechnology> {
   const client = getClient()
   const update = technologyInsertSchema.parse(values)
-  const { data, error } = await client.from('operations_technology').update(update).eq('id', id).select().single()
+  const { data, error } = await client
+    .from('operations_technology')
+    .update(update)
+    .eq('id', id)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = technologyRowSchema.parse(data)
   return toTechnology(parsed)
@@ -342,7 +372,12 @@ export async function updateOperationsLogistics(
 ): Promise<OperationsLogistics> {
   const client = getClient()
   const update = logisticsInsertSchema.parse(values)
-  const { data, error } = await client.from('operations_logistics').update(update).eq('id', id).select().single()
+  const { data, error } = await client
+    .from('operations_logistics')
+    .update(update)
+    .eq('id', id)
+    .select()
+    .single()
   if (error) throw new Error(error.message)
   const parsed = logisticsRowSchema.parse(data)
   return toLogistics(parsed)
@@ -378,7 +413,9 @@ export async function deleteOperationsLogistics(id: string): Promise<void> {
   if (error) throw new Error(error.message)
 }
 
-export async function listOperationsLogistics(organizationId: string): Promise<OperationsLogistics[]> {
+export async function listOperationsLogistics(
+  organizationId: string,
+): Promise<OperationsLogistics[]> {
   const client = getClient()
   const data = await fetchAllPages((from, to) =>
     client

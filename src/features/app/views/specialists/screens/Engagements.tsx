@@ -6,7 +6,13 @@ import { FormField, FormInput, FormSelect, FormTextarea } from '@/components/For
 import { useSpecialistsData } from '../SpecialistsDataContext'
 import type { SpecialistEngagement, SpecialistEngagementType } from '../data/types'
 
-const ENGAGEMENT_TYPES: NonNullable<SpecialistEngagementType>[] = ['call', 'email', 'meeting', 'contract', 'task']
+const ENGAGEMENT_TYPES: NonNullable<SpecialistEngagementType>[] = [
+  'call',
+  'email',
+  'meeting',
+  'contract',
+  'task',
+]
 
 const TYPE_LABELS: Record<NonNullable<SpecialistEngagementType>, keyof typeof M> = {
   call: 'spec_engagement_type_call',
@@ -53,14 +59,20 @@ function EngagementRow({
         <div className="mb-[2px] truncate text-[13.5px] font-semibold text-text">{name}</div>
         <div className="text-[12px] text-text-muted">
           {engagement.engagement_date}
-          {engagement.engagement_type ? ` · ${x(M[TYPE_LABELS[engagement.engagement_type]])}` : null}
+          {engagement.engagement_type
+            ? ` · ${x(M[TYPE_LABELS[engagement.engagement_type]])}`
+            : null}
           {engagement.summary ? ` · ${engagement.summary}` : null}
-          {engagement.follow_up_date ? ` · ${x(M.spec_upcoming_followup)} ${engagement.follow_up_date}` : null}
+          {engagement.follow_up_date
+            ? ` · ${x(M.spec_upcoming_followup)} ${engagement.follow_up_date}`
+            : null}
         </div>
       </div>
       <div className="flex items-center gap-[10px]">
         {engagement.engagement_type ? (
-          <span className={statusChipClass('info')}>{x(M[TYPE_LABELS[engagement.engagement_type]])}</span>
+          <span className={statusChipClass('info')}>
+            {x(M[TYPE_LABELS[engagement.engagement_type]])}
+          </span>
         ) : null}
         <button
           type="button"
@@ -83,12 +95,15 @@ function EngagementRow({
 
 export function Engagements() {
   const { x } = useI18n()
-  const { specialists, engagements, addEngagement, updateEngagement, removeEngagement } = useSpecialistsData()
+  const { specialists, engagements, addEngagement, updateEngagement, removeEngagement } =
+    useSpecialistsData()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<SpecialistEngagement | null>(null)
 
   const initial = editing ?? emptyEngagement()
-  const [specialistId, setSpecialistId] = useState(initial.specialist_id || specialists[0]?.id || '')
+  const [specialistId, setSpecialistId] = useState(
+    initial.specialist_id || specialists[0]?.id || '',
+  )
   const [engagementDate, setEngagementDate] = useState(initial.engagement_date ?? '')
   const [engagementType, setEngagementType] = useState<NonNullable<SpecialistEngagementType>>(
     initial.engagement_type ?? 'call',
@@ -168,7 +183,9 @@ export function Engagements() {
           <FormField label={x(M.spec_engagement_type)}>
             <FormSelect
               value={engagementType}
-              onChange={(e) => setEngagementType(e.target.value as NonNullable<SpecialistEngagementType>)}
+              onChange={(e) =>
+                setEngagementType(e.target.value as NonNullable<SpecialistEngagementType>)
+              }
             >
               {ENGAGEMENT_TYPES.map((t) => (
                 <option key={t} value={t}>
@@ -178,10 +195,18 @@ export function Engagements() {
             </FormSelect>
           </FormField>
           <FormField label={x(M.spec_engagement_date)}>
-            <FormInput type="date" value={engagementDate} onChange={(e) => setEngagementDate(e.target.value)} />
+            <FormInput
+              type="date"
+              value={engagementDate}
+              onChange={(e) => setEngagementDate(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.spec_follow_up_date)}>
-            <FormInput type="date" value={followUpDate} onChange={(e) => setFollowUpDate(e.target.value)} />
+            <FormInput
+              type="date"
+              value={followUpDate}
+              onChange={(e) => setFollowUpDate(e.target.value)}
+            />
           </FormField>
           <FormField label={x(M.spec_engagement_summary)} className="sm:col-span-2">
             <FormTextarea value={summary} onChange={(e) => setSummary(e.target.value)} />
@@ -216,7 +241,10 @@ export function Engagements() {
               key={engagement.id}
               engagement={engagement}
               name={namesById.get(engagement.specialist_id) ?? 'Unknown'}
-              onEdit={(e) => { setEditing(e); setShow(true) }}
+              onEdit={(e) => {
+                setEditing(e)
+                setShow(true)
+              }}
               onRemove={removeEngagement}
             />
           ))}

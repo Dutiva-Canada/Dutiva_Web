@@ -15,10 +15,7 @@ import { useI18n } from '@/i18n/context'
 import { revenueMessages as M } from '@/i18n/messages/revenue'
 import { entityLinksMessages as EM } from '@/i18n/messages/entityLinks'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
-import {
-  useWorkspaceRoot,
-  workspacePath,
-} from '@/features/app/workspaceRoot/workspaceRootContext'
+import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { useCrmData } from '@/features/app/views/crm/useCrmData'
 import { useCommsState } from '@/features/app/views/comms/data/useCommsState'
 import { listSpecialists } from '@/features/app/views/specialists/data/productionApi'
@@ -111,9 +108,7 @@ export function Overview() {
         const rows = await listEntityLinks(orgId)
         if (!cancelled) {
           setProdLinks(
-            rows.filter(
-              (l) => REVENUE_TABLES.has(l.from_table) || REVENUE_TABLES.has(l.to_table),
-            ),
+            rows.filter((l) => REVENUE_TABLES.has(l.from_table) || REVENUE_TABLES.has(l.to_table)),
           )
         }
       } catch {
@@ -203,7 +198,16 @@ export function Overview() {
       })
     }
     return map
-  }, [streams, invoices, crmState.deals, commsState.initiatives, x, isProduction, prodSpecialists, prodCases])
+  }, [
+    streams,
+    invoices,
+    crmState.deals,
+    commsState.initiatives,
+    x,
+    isProduction,
+    prodSpecialists,
+    prodCases,
+  ])
 
   const links = useMemo(() => {
     if (isProduction) return prodLinks

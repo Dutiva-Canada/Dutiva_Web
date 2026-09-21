@@ -202,26 +202,86 @@ const ACCEPTED_UNTRACKED = new Map([
     'hr_signing_reminder_schedule_part2',
     'intermediate MCP apply slice of 0083_hr_signing_reminder_schedule.sql; live schema matches the repo file',
   ],
-  ['0130_add_employee_detail_fields', 'applied via Management API with server-generated version 20260908040031'],
-  ['0131_add_performance_reviews', 'applied via Management API with server-generated version 20260908040042'],
-  ['0132_add_onboarding_tasks', 'applied via Management API with server-generated version 20260908040034'],
-  ['0133_add_comms_stakeholders', 'applied via Management API with server-generated version 20260908042147'],
-  ['0134_add_comms_coverage', 'applied via Management API with server-generated version 20260908042934'],
-  ['0135_add_comms_initiatives', 'applied via Management API with server-generated version 20260908043351'],
-  ['0136_add_comms_content_items', 'applied via Management API with server-generated version 20260908045122'],
-  ['0137_add_comms_interactions', 'applied via Management API with server-generated version 20260908045632'],
-  ['0138_add_comms_objectives', 'applied via Management API with server-generated version 20260908045756'],
-  ['0139_add_comms_metrics', 'applied via Management API with server-generated version 20260908045923'],
-  ['0140_add_comms_submissions', 'applied via Management API with server-generated version 20260908050150'],
-  ['0141_add_comms_feeds', 'applied via Management API with server-generated version 20260908050206'],
-  ['0142_add_comms_policy_files', 'applied via Management API with server-generated version 20260908050151'],
-  ['0143_add_comms_issues', 'applied via Management API with server-generated version 20260908050210'],
-  ['0144_add_comms_approvals', 'applied via Management API with server-generated version 20260908050152'],
-  ['0145_add_comms_integrations', 'applied via Management API with server-generated version 20260908050213'],
-  ['0146_add_comms_brand_claims', 'applied via Management API with server-generated version 20260908050153'],
-  ['0147_add_comms_usage_controls', 'applied via Management API with server-generated version 20260908050217'],
-  ['0148_add_comms_execution_events', 'applied via Management API with server-generated version 20260908050154'],
-  ['0149_add_comms_sources', 'applied via Management API with server-generated version 20260908051056'],
+  [
+    '0130_add_employee_detail_fields',
+    'applied via Management API with server-generated version 20260908040031',
+  ],
+  [
+    '0131_add_performance_reviews',
+    'applied via Management API with server-generated version 20260908040042',
+  ],
+  [
+    '0132_add_onboarding_tasks',
+    'applied via Management API with server-generated version 20260908040034',
+  ],
+  [
+    '0133_add_comms_stakeholders',
+    'applied via Management API with server-generated version 20260908042147',
+  ],
+  [
+    '0134_add_comms_coverage',
+    'applied via Management API with server-generated version 20260908042934',
+  ],
+  [
+    '0135_add_comms_initiatives',
+    'applied via Management API with server-generated version 20260908043351',
+  ],
+  [
+    '0136_add_comms_content_items',
+    'applied via Management API with server-generated version 20260908045122',
+  ],
+  [
+    '0137_add_comms_interactions',
+    'applied via Management API with server-generated version 20260908045632',
+  ],
+  [
+    '0138_add_comms_objectives',
+    'applied via Management API with server-generated version 20260908045756',
+  ],
+  [
+    '0139_add_comms_metrics',
+    'applied via Management API with server-generated version 20260908045923',
+  ],
+  [
+    '0140_add_comms_submissions',
+    'applied via Management API with server-generated version 20260908050150',
+  ],
+  [
+    '0141_add_comms_feeds',
+    'applied via Management API with server-generated version 20260908050206',
+  ],
+  [
+    '0142_add_comms_policy_files',
+    'applied via Management API with server-generated version 20260908050151',
+  ],
+  [
+    '0143_add_comms_issues',
+    'applied via Management API with server-generated version 20260908050210',
+  ],
+  [
+    '0144_add_comms_approvals',
+    'applied via Management API with server-generated version 20260908050152',
+  ],
+  [
+    '0145_add_comms_integrations',
+    'applied via Management API with server-generated version 20260908050213',
+  ],
+  [
+    '0146_add_comms_brand_claims',
+    'applied via Management API with server-generated version 20260908050153',
+  ],
+  [
+    '0147_add_comms_usage_controls',
+    'applied via Management API with server-generated version 20260908050217',
+  ],
+  [
+    '0148_add_comms_execution_events',
+    'applied via Management API with server-generated version 20260908050154',
+  ],
+  [
+    '0149_add_comms_sources',
+    'applied via Management API with server-generated version 20260908051056',
+  ],
   ...advisorPhaseMcpNameAliases().untracked,
 ])
 

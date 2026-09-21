@@ -80,11 +80,17 @@ export function MemoryManagerDemoView() {
           </div>
 
           {!memoryEnabled && (
-            <p className="mt-[8px] text-[12px] leading-normal text-text-faint">{x(M.memory_ws_disabled_note)}</p>
+            <p className="mt-[8px] text-[12px] leading-normal text-text-faint">
+              {x(M.memory_ws_disabled_note)}
+            </p>
           )}
 
           {/* Tab navigation */}
-          <div className="mt-[14px] flex gap-[2px] overflow-x-auto" role="tablist" aria-label={x(M.memory_tabs_aria)}>
+          <div
+            className="mt-[14px] flex gap-[2px] overflow-x-auto"
+            role="tablist"
+            aria-label={x(M.memory_tabs_aria)}
+          >
             {TABS.map((t) => {
               const active = tab === t.key
               const badge = t.key === 'review' && reviewCount > 0 ? reviewCount : null

@@ -40,9 +40,7 @@ describe('LOCAL_MODEL_CATALOG', () => {
   })
 
   it('localModelById resolves catalogue entries only', () => {
-    expect(localModelById(LOCAL_MODEL_CATALOG[0]!.id)?.repoId).toBe(
-      LOCAL_MODEL_CATALOG[0]!.repoId,
-    )
+    expect(localModelById(LOCAL_MODEL_CATALOG[0]!.id)?.repoId).toBe(LOCAL_MODEL_CATALOG[0]!.repoId)
     expect(localModelById('nope')).toBeUndefined()
   })
 })

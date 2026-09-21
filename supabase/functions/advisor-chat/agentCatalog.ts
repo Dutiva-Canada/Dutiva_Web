@@ -49,7 +49,14 @@ const INVOICE_STATUSES = [
   'written_off',
   'cancelled',
 ] as const
-const REQUEST_STATUSES = ['draft', 'submitted', 'approved', 'rejected', 'committed', 'cancelled'] as const
+const REQUEST_STATUSES = [
+  'draft',
+  'submitted',
+  'approved',
+  'rejected',
+  'committed',
+  'cancelled',
+] as const
 const OBLIGATION_STATUSES = [
   'planned',
   'in_preparation',
@@ -341,7 +348,8 @@ export const AGENT_TOOLS: readonly AgentCatalogTool[] = [
   },
   {
     id: 'documents.send_for_signature',
-    purpose: 'Send an approved document to one recipient for signature — emails a real invite in production.',
+    purpose:
+      'Send an approved document to one recipient for signature — emails a real invite in production.',
     params: [
       { name: 'title', type: 'string', required: true },
       { name: 'email', type: 'string', required: true },
