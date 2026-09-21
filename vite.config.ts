@@ -95,14 +95,6 @@ function dependencyClosure(roots: readonly string[], keepInVendor: readonly stri
   return seen
 }
 
-/** `a/b` and `c` → `(?:a[\\/]b|c)`, safe to embed in the vendor group's test. */
-function packageAlternation(names: Iterable<string>): string {
-  const escaped = [...names]
-    .sort()
-    .map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\//g, '[\\\\/]'))
-  return `(?:${escaped.join('|')})`
-}
-
 /** Depth-first walk over a Babel AST, visiting every node with a `type`. */
 function walkAst(node: any, visit: (n: any) => void): void {
   if (!node || typeof node !== 'object') return
@@ -146,24 +138,86 @@ function preloadLcpFont(): Plugin {
   }
 }
 
-/* The markdown renderer's dependency tree, as a regex alternation for the
-   vendor group's test below. Computed once at config load. */
-const MARKDOWN_TREE = packageAlternation(
-  dependencyClosure(
-    ['react-markdown', 'remark-gfm'],
-    ['react', 'react-dom', 'react-router', 'react-router-dom', 'scheduler'],
-  ),
-)
+/* Packages that are legitimately eager no matter which lazy root reaches
+   them — the keepInVendor argument to every dependencyClosure below. */
+const EAGER_FAMILY = ['react', 'react-dom', 'react-router', 'react-router-dom', 'scheduler']
 
-/* Document Studio Word (.docx) export — keep OOXML + JSZip out of vendor. */
-const DOCX_TREE = packageAlternation(
-  dependencyClosure(['docx'], ['react', 'react-dom', 'react-router', 'react-router-dom', 'scheduler']),
+/* Dependency trees that must stay out of the eager `vendor` chunk, computed
+   so transitive deps can't drift back in: the markdown renderer alone pulls
+   99 packages (micromark, mdast-util-*, hast-util-*, …), onnxruntime-web
+   pulls onnxruntime-common/flatbuffers/long/…, and recharts pulls redux /
+   redux-thunk / react-is through @reduxjs/toolkit — all of which leaked into
+   vendor under the previous hand-maintained regex. */
+const MARKDOWN_TREE = dependencyClosure(['react-markdown', 'remark-gfm'], EAGER_FAMILY)
+const DOCX_TREE = dependencyClosure(['docx'], EAGER_FAMILY)
+const READ_EXCEL_FILE_TREE = dependencyClosure(['read-excel-file'], EAGER_FAMILY)
+const TRANSFORMERS_TREE = dependencyClosure(
+  ['@xenova/transformers', 'onnxruntime-web'],
+  EAGER_FAMILY,
 )
+const RECHARTS_TREE = dependencyClosure(['recharts', 'victory-vendor'], EAGER_FAMILY)
 
-/* Bulk import XLSX/CSV parser — keep the Excel reader tree in the lazy import chunk. */
-const READ_EXCEL_FILE_TREE = packageAlternation(
-  dependencyClosure(['read-excel-file'], ['react', 'react-dom', 'react-router', 'react-router-dom', 'scheduler']),
-)
+/** Packages excluded from vendor by exact name — lazy-only deps whose trees
+    are either computed above or small enough to list. */
+const VENDOR_EXCLUDE_EXACT = new Set<string>([
+  'recharts',
+  'victory-vendor',
+  'internmap',
+  '@reduxjs/toolkit',
+  'react-redux',
+  'reselect',
+  'immer',
+  'use-sync-external-store',
+  'es-toolkit',
+  'decimal.js-light',
+  'eventemitter3',
+  'redux',
+  'redux-thunk',
+  'pdf-lib',
+  'pako',
+  'docx',
+  'jszip',
+  'read-excel-file',
+  'pdfjs-dist',
+  'onnxruntime-web',
+  'onnxruntime-common',
+  'sharp',
+  /* zod serves only lazy surfaces — ~40 productionApi/supportApi/careers
+     files under features/, none eager. In vendor it cost every marketing
+     visitor ~50kB of schema parsing they never execute. */
+  'zod',
+  ...MARKDOWN_TREE,
+  ...DOCX_TREE,
+  ...READ_EXCEL_FILE_TREE,
+  ...TRANSFORMERS_TREE,
+  ...RECHARTS_TREE,
+])
+
+/** Whole scopes/prefixes excluded from vendor — catches packages added to
+    these trees later without waiting for a hand-maintained list to drift. */
+const VENDOR_EXCLUDE_SCOPE = /^(@supabase|@pdf-lib|@huggingface|@xenova)[/\\]|^d3-/
+
+/** Every package name appearing at a `node_modules/` boundary in `id`,
+    outermost→innermost. Checking each segment — not just the innermost
+    package — is what keeps `pdf-lib/node_modules/tslib` counted as
+    pdf-lib's tree instead of vendor's. */
+function packagesInPath(id: string): string[] {
+  return id
+    .split(/[\\/]node_modules[\\/]/)
+    .slice(1)
+    .map((seg) =>
+      seg
+        .split(/[\\/]/)
+        .slice(0, seg.startsWith('@') ? 2 : 1)
+        .join('/'),
+    )
+}
+
+function isVendorExcluded(id: string): boolean {
+  return packagesInPath(id).some(
+    (pkg) => VENDOR_EXCLUDE_EXACT.has(pkg) || VENDOR_EXCLUDE_SCOPE.test(pkg),
+  )
+}
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => {
@@ -325,16 +379,20 @@ export default defineConfig(({ command }) => {
                  read-excel-file is excluded the same way: XLSX parsing is
                  reached only from the lazy BulkImportWizard, so the parser
                  tree stays in the import chunk and off the marketing landing
-                 path. */
+                 path.
+
+                 zod is excluded the same way: ~40 lazy productionApi files
+                 are its only importers, so it belongs to their chunks.
+
+                 The test is a function, not a regex: membership is decided
+                 per `node_modules/` segment (see isVendorExcluded), which
+                 the single-segment lookahead regex could not express — it
+                 missed both nested copies (pdf-lib/node_modules/tslib) and
+                 transitive deps of excluded roots (onnxruntime-common via
+                 onnxruntime-web; redux/redux-thunk via @reduxjs/toolkit). */
               {
                 name: 'vendor',
-                test: new RegExp(
-                  `node_modules[\\\\/](?!@supabase[\\\\/])(?!@pdf-lib[\\\\/])(?!${MARKDOWN_TREE}[\\\\/])(?!${DOCX_TREE}[\\\\/])(?!${READ_EXCEL_FILE_TREE}[\\\\/])` +
-                    `(?!(?:recharts|victory-vendor|d3-[a-z-]+|internmap|@reduxjs[\\\\/]toolkit` +
-                    `|react-redux|reselect|immer|use-sync-external-store|es-toolkit` +
-                    `|decimal\\.js-light|eventemitter3|pdf-lib|pako|docx|jszip|read-excel-file|pdfjs-dist` +
-                    `|@xenova[\\\\/]transformers|onnxruntime-web|sharp|@huggingface[\\\\/]jinja)[\\\\/])`,
-                ),
+                test: (id: string) => /[\\/]node_modules[\\/]/.test(id) && !isVendorExcluded(id),
               },
             ],
           },
