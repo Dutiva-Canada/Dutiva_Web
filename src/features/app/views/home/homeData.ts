@@ -60,9 +60,11 @@ export interface HomePriority {
   why: Bi
   actionLabel: Bi
   action: HomeAction
-  /** "Ask Advisor" prompt (Act now items only) — prototype `onAsk`. */
+  /** "Ask Advisor" prompt — prototype `onAsk` (Act now items) plus the
+      conversation-starter prompts the Advisor home sends for every row. */
   ask?: Bi
-  /** Explicit flow key for `ask` — prototype 4784–4786 (pr1 fallback, pr2 policy). */
+  /** Explicit flow key for `ask` — prototype 4784–4786 (pr1 fallback, pr2
+      policy); later rows added for the Advisor home use 'fallback'. */
   askFlowKey?: FlowKeyOrFallback
   /** Due pill for This-week rows (prototype `dueMap`). */
   due?: { label: Bi; warn: boolean }
@@ -136,6 +138,11 @@ export const homePriorities: HomePriority[] = [
     ),
     actionLabel: bi('Open case', 'Ouvrir le dossier'),
     action: { kind: 'route', to: '/app/cases/case3' },
+    ask: bi(
+      "What should we confirm before Amara Okafor's accommodation review on Jul 14?",
+      'Que devrions-nous confirmer avant l’examen d’accommodement d’Amara Okafor le 14 juillet?',
+    ), // [FR self-authored]
+    askFlowKey: 'fallback',
     due: { label: bi('7d', '7 j'), warn: true },
   },
   {
@@ -156,6 +163,11 @@ export const homePriorities: HomePriority[] = [
     ),
     actionLabel: bi('Open case', 'Ouvrir le dossier'),
     action: { kind: 'route', to: '/app/cases/case2' },
+    ask: bi(
+      "What should Devon Clarke's PIP check-in cover to stay defensible?",
+      'Que doit couvrir le suivi du PAR de Devon Clarke pour demeurer défendable?',
+    ), // [FR self-authored]
+    askFlowKey: 'fallback',
     due: { label: bi('15d', '15 j'), warn: false },
   },
   {
@@ -176,6 +188,11 @@ export const homePriorities: HomePriority[] = [
     ),
     actionLabel: bi('Review pay', 'Réviser le salaire'),
     action: { kind: 'comp-rail', employeeId: 'e10' },
+    ask: bi(
+      'How should we model a pay adjustment for Théo Lavoie at the next comp cycle?',
+      'Comment modéliser un ajustement salarial pour Théo Lavoie au prochain cycle de rémunération?',
+    ), // [FR self-authored]
+    askFlowKey: 'fallback',
     due: { label: bi('Cycle', 'Cycle'), warn: false },
   },
   {
@@ -193,6 +210,11 @@ export const homePriorities: HomePriority[] = [
     ),
     actionLabel: bi('Support', 'Soutenir'),
     action: { kind: 'wellbeing-rail', employeeId: 'e11' },
+    ask: bi(
+      'How should we open a workload conversation with Grace Osei?',
+      'Comment amorcer une conversation sur la charge de travail avec Grace Osei?',
+    ), // [FR self-authored]
+    askFlowKey: 'fallback',
   },
 ]
 

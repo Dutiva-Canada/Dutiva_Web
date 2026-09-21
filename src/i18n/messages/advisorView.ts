@@ -20,16 +20,12 @@ export const advisorViewMessages = defineMessages({
     fr: 'Voici ce que le Conseiller a remarqué depuis hier.',
   },
   advisorview_daily_brief: { en: "Advisor's daily brief", fr: 'Bilan quotidien du Conseiller' },
-  advisorview_priorities_title: { en: 'Priorities today', fr: 'Priorités du jour' },
+  /* Watch-list title — the priorities are rendered as conversation starters
+     (each row's ask prompt), not as Home's action queue. Matches the brief's
+     "signals are on my radar" phrasing. [FR self-authored] */
+  advisorview_radar_title: { en: 'On my radar', fr: 'Sur mon radar' },
   advisorview_signals_label: { en: 'signals', fr: 'signaux' },
   advisorview_why: { en: 'Why', fr: 'Pourquoi' },
-
-  /* Metric tiles (prototype `buildAdvisorHomeWidgets`, inline L pairs). */
-  advisorview_metric_compliance: { en: 'Compliance score', fr: 'Score de conformité' },
-  advisorview_metric_risk: { en: 'Open risk items', fr: 'Éléments à risque ouverts' },
-  advisorview_metric_cases: { en: 'Active cases', fr: 'Dossiers actifs' },
-  advisorview_metric_signals: { en: 'Support signals', fr: 'Signaux de soutien' },
-  /* Trend lines live in advisorHomeData.ts as interpolated bi() values. */
 
   /* ── Composer + footer ──────────────────────────────────────────────────── */
   advisorview_composer_home: {

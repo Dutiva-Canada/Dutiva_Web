@@ -1,88 +1,16 @@
 import { bi } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
-import { cases, complianceItems, complianceScore, employeeDetails, employees, tasks } from '@/data'
 import { homePriorities } from '@/features/app/views/home/homeData'
 
 /**
- * Advisor home (empty state) widgets — the port of the prototype's
- * `buildAdvisorHomeWidgets()` and `buildPriorities()`. Counts are derived
- * from the fixtures the same way the prototype derives them from its state.
+ * Advisor home (empty state) — the daily brief, ported from the prototype's
+ * `buildAdvisorHomeWidgets()`. The watch list itself is the canonical
+ * `homePriorities` fixture, rendered as conversation starters (each row's
+ * `ask` prompt) rather than Home's action queue; the prototype's metric
+ * tiles were dropped when the two surfaces were differentiated.
  *
- * EN verbatim; FR from the prototype's inline `L(en, fr)` pairs and the
- * `fr ? … : …` branches of `buildPriorities()`.
+ * EN verbatim; FR from the prototype's inline `L(en, fr)` pairs.
  */
-
-export type MetricTone = 'risk' | 'warning' | 'info' | 'success'
-export type TrendTone = 'risk' | 'success' | 'muted'
-
-export interface HomeMetric {
-  value: string
-  suffix: string
-  tone: MetricTone
-  trend: Bi
-  trendTone: TrendTone
-  /** Workspace view the tile deep-links to (route segment under /app). */
-  view: 'compliance' | 'cases' | 'wellbeing'
-  /** Message key resolved by the view (advisorViewMessages). */
-  labelKey: 'compliance' | 'risk' | 'cases' | 'signals'
-}
-
-/** Prototype `buildWellbeingView().attention` — sentiment < 55 head-count. */
-export function supportAttentionCount(): number {
-  return employees.filter((e) => {
-    const sentiment = employeeDetails[e.id]?.sentiment
-    return sentiment != null && sentiment < 55
-  }).length
-}
-
-export function buildHomeMetrics(): HomeMetric[] {
-  const openCases = cases.filter((c) => c.status.en !== 'Resolved').length
-  const openTasks = tasks.filter((t) => !t.done).length
-  const openRisk = complianceItems.filter((c) => c.severity !== 'Resolved').length
-  const highRisk = complianceItems.filter((c) => c.severity === 'High').length
-  const attention = supportAttentionCount()
-  return [
-    {
-      labelKey: 'compliance',
-      value: String(complianceScore),
-      suffix: '/100',
-      tone: 'warning',
-      trend: bi('+8 in 6 mo', '+8 en 6 mois'),
-      trendTone: 'success',
-      view: 'compliance',
-    },
-    {
-      labelKey: 'risk',
-      value: String(openRisk),
-      suffix: '',
-      tone: 'risk',
-      trend: bi(`${highRisk} high`, `${highRisk} élevés`),
-      trendTone: 'risk',
-      view: 'compliance',
-    },
-    {
-      labelKey: 'cases',
-      value: String(openCases),
-      suffix: '',
-      tone: 'info',
-      trend: bi(`${openTasks} open tasks`, `${openTasks} tâches ouvertes`),
-      trendTone: 'muted',
-      view: 'cases',
-    },
-    {
-      labelKey: 'signals',
-      value: String(attention),
-      suffix: '',
-      tone: attention ? 'warning' : 'success',
-      trend: bi('supportive follow-up only', 'suivi de soutien seulement'),
-      trendTone: 'muted',
-      view: 'wellbeing',
-    },
-  ]
-}
-
-/* Priorities live in the home feature (homeData.ts homePriorities /
-   severityLabels) — the Advisor home renders that canonical list. */
 
 /* ------------------------------------------------------------- daily brief */
 

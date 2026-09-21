@@ -26,28 +26,36 @@ describe('AdvisorView', () => {
     localStorage.removeItem('dutiva.advisor.threads.open.v1')
   })
 
-  it('renders the advisor home empty state with metrics, brief and priorities', () => {
+  it('renders the advisor home empty state with brief, radar and composer', () => {
     renderApp(<AdvisorView />, { route: '/app/advisor' })
 
     expect(screen.getByText('Good to see you, Riley.')).toBeInTheDocument()
     expect(screen.getByText("Here's what Advisor noticed since yesterday.")).toBeInTheDocument()
 
-    /* Metric tiles (fixture-derived counts). */
-    expect(screen.getByText('Compliance score')).toBeInTheDocument()
-    expect(screen.getByText('82')).toBeInTheDocument()
-    expect(screen.getByText('Active cases')).toBeInTheDocument()
-    expect(screen.getByText('4 open tasks')).toBeInTheDocument()
-
-    /* Daily brief + priorities feed. */
+    /* Conversation-first home: the daily brief + radar watch list stay, the
+       duplicated Home metric tiles and action queue do not. */
     expect(screen.getByText(/2 items need action today, and 6 signals/)).toBeInTheDocument()
-    expect(screen.getByText('Priorities today')).toBeInTheDocument()
+    expect(screen.getByText('On my radar')).toBeInTheDocument()
     expect(screen.getByText('Jordan Mensah — counsel response outstanding')).toBeInTheDocument()
+    expect(screen.queryByText('Compliance score')).not.toBeInTheDocument()
+    expect(screen.queryByText('Priorities today')).not.toBeInTheDocument()
 
     /* Thread list groups from the chats fixtures (c1 is pinned + today). */
     fireEvent.click(screen.getByRole('button', { name: 'Open conversations' }))
     expect(screen.getByText('Pinned')).toBeInTheDocument()
     expect(screen.getByText('Previous 7 days')).toBeInTheDocument()
     expect(screen.getAllByText('Terminating Jordan Mensah — Ontario').length).toBeGreaterThan(0)
+  })
+
+  it('starts a conversation from a radar row using its ask prompt', () => {
+    renderApp(<AdvisorView />, { route: '/app/advisor' })
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /Jordan Mensah — counsel response outstanding/ }),
+    )
+    expect(
+      screen.getAllByText(/What's our exposure if counsel doesn't reply this week/).length,
+    ).toBeGreaterThan(0)
   })
 
   it('toggles a priority "Why" expander', () => {

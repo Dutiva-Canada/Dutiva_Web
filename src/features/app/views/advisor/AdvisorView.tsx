@@ -119,7 +119,6 @@ export function AdvisorView() {
           onSend={homeSend}
           onScenario={(scenarioId) => startScenario(scenarioId)}
           onPriorityAction={runPriorityAction}
-          onMetricClick={(view) => navigate(`/app/${view}`)}
           onOpenThreads={() => setThreadsOpen(true)}
           threadsOpen={threadsOpen}
         />
