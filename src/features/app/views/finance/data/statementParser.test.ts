@@ -4,7 +4,8 @@ import type { FinanceBankItem } from './types'
 
 describe('parseStatementCSV', () => {
   it('parses a standard CSV with headers', () => {
-    const csv = 'Date,Amount,Description\n2026-08-15,100.00,STRIPE PAYOUT\n2026-08-16,-50.00,RENT PAYMENT'
+    const csv =
+      'Date,Amount,Description\n2026-08-15,100.00,STRIPE PAYOUT\n2026-08-16,-50.00,RENT PAYMENT'
     const result = parseStatementCSV(csv, 'CAD')
     expect(result.totalRows).toBe(2)
     expect(result.errorRows).toBe(0)
@@ -79,6 +80,27 @@ describe('parseStatementCSV', () => {
     expect(result.rows[0]?.date).toBe('2026-08-15')
     expect(result.rows[0]?.description).toBe('NO HEADER HERE')
   })
+
+  it('does not map a time column into description or amount', () => {
+    const csv = 'Date,Amount,Time\n2026-07-16,-46.00,22:38:22\n2026-08-29,-20.00,10:26:33'
+    const result = parseStatementCSV(csv, 'CAD')
+    expect(result.rows[0]?.description).toBe('')
+    expect(result.rows[0]?.amount).toBe('-46.00')
+    expect(result.rows[1]?.description).toBe('')
+  })
+
+  it('strips a time-like value that lands in the description slot', () => {
+    const csv = '2026-07-16,-46.00,22:38:22'
+    const result = parseStatementCSV(csv, 'CAD')
+    expect(result.rows[0]?.description).toBe('')
+  })
+
+  it('infers a real text column as description over a time column', () => {
+    const csv = 'Date,Memo2,Amount,Time\n2026-07-16,GROCERY STORE,-46.00,22:38:22'
+    const result = parseStatementCSV(csv, 'CAD')
+    expect(result.rows[0]?.description).toBe('GROCERY STORE')
+    expect(result.rows[0]?.amount).toBe('-46.00')
+  })
 })
 
 describe('rowsToBankItems', () => {
@@ -121,7 +143,8 @@ describe('rowsToBankItems', () => {
   })
 
   it('falls back to header inference for unrecognized bank headers', () => {
-    const csv = 'effective_date,effective_time,settlement_date\n2026-08-15,100.00,PAYMENT\n2026-08-16,-50.00,RENT'
+    const csv =
+      'effective_date,effective_time,settlement_date\n2026-08-15,100.00,PAYMENT\n2026-08-16,-50.00,RENT'
     const parsed = parseStatementCSV(csv, 'CAD')
     expect(parsed.errorRows).toBe(0)
     expect(parsed.totalRows).toBe(2)

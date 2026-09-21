@@ -43,6 +43,7 @@ export interface StatementRowError extends FinanceImportRowError {}
 export interface ColumnMap {
   date: number
   amount: number
+  /** Column index for description; -1 when the file has no usable description column. */
   description: number
   /** Optional: separate debit column (some banks split deposits/withdrawals). */
   debitColumn?: number
@@ -62,7 +63,14 @@ const DATE_HEADERS = [
   'value date',
   'book date',
 ]
-const AMOUNT_HEADERS = ['amount', 'transaction amount', 'amount (cad)', 'amount cad', 'value', 'net amount']
+const AMOUNT_HEADERS = [
+  'amount',
+  'transaction amount',
+  'amount (cad)',
+  'amount cad',
+  'value',
+  'net amount',
+]
 const DEBIT_HEADERS = ['debit', 'withdrawal', 'withdrawals', 'debit (cad)', 'outflow']
 const CREDIT_HEADERS = ['credit', 'deposit', 'deposits', 'credit (cad)', 'inflow']
 const DESCRIPTION_HEADERS = [
@@ -78,6 +86,11 @@ const DESCRIPTION_HEADERS = [
   'reference',
 ]
 
+/** HH:MM or HH:MM:SS — statement files often carry a separate time column. */
+const TIME_LIKE = /^\d{1,2}:\d{2}(?::\d{2})?$/
+/** Cells containing letters are description candidates; digits/punctuation are not. */
+const TEXT_LIKE = /[a-zA-ZÀ-ÿ]/
+
 /**
  * Parse CSV text into structured statement rows. Auto-detects delimiter and
  * column layout from the header row. If no header is found, assumes
@@ -87,7 +100,14 @@ export function parseStatementCSV(text: string, _currency: FinanceCurrency): Sta
   const delimiter = detectDelimiter(text)
   const lines = splitLines(text)
   if (lines.length === 0) {
-    return { rows: [], totalRows: 0, errorRows: 0, columnMap: { date: 0, amount: 1, description: 2 }, delimiter, errorDetails: [] }
+    return {
+      rows: [],
+      totalRows: 0,
+      errorRows: 0,
+      columnMap: { date: 0, amount: 1, description: 2 },
+      delimiter,
+      errorDetails: [],
+    }
   }
 
   const firstRow = parseCSVLine(lines[0] ?? '', delimiter)
@@ -184,7 +204,10 @@ function parseStatementRows(
     const rowIndex = i
 
     const dateRaw = fields[map.date]?.trim() ?? ''
-    const description = fields[map.description]?.trim() ?? ''
+    let description = map.description >= 0 ? (fields[map.description]?.trim() ?? '') : ''
+    // A time column leaked into the description slot (positional fallback or
+    // a manual column pick in the bulk wizard) — don't surface HH:MM:SS as a payee.
+    if (TIME_LIKE.test(description)) description = ''
 
     let amountRaw = ''
     if (map.debitColumn != null && map.creditColumn != null) {
@@ -292,6 +315,7 @@ function inferColumnMap(dataRows: string[][]): ColumnMap | null {
   let dateIdx = -1
   let amountIdx = -1
   let descIdx = -1
+  const timeCols = new Set<number>()
 
   // Look for the column that has the most valid dates and the one that has
   // the most valid amounts, among the first 50 rows.
@@ -302,6 +326,7 @@ function inferColumnMap(dataRows: string[][]): ColumnMap | null {
   for (let col = 0; col < columnCount; col++) {
     let dates = 0
     let amounts = 0
+    let times = 0
     let nonEmpty = 0
     for (const row of sample) {
       const cell = row[col]?.trim() ?? ''
@@ -312,19 +337,25 @@ function inferColumnMap(dataRows: string[][]): ColumnMap | null {
         dates++
         continue
       }
+      // Times parse as fake amounts ("22:38:22" -> 22.00) — track separately.
+      if (TIME_LIKE.test(cell)) {
+        times++
+        continue
+      }
       const normalizedAmount = normalizeAmount(cell)
       if (normalizedAmount !== '' && Number.parseFloat(normalizedAmount) !== 0) amounts++
     }
 
     // Require a minimum density to avoid a column of noise being selected.
     if (nonEmpty > 0) {
+      if (times / nonEmpty >= 0.5) timeCols.add(col)
       const dateScore = dates / nonEmpty
       const amountScore = amounts / nonEmpty
       if (dateScore > bestDateScore && dateScore >= 0.5) {
         bestDateScore = dateScore
         dateIdx = col
       }
-      if (amountScore > bestAmountScore && amountScore >= 0.5) {
+      if (!timeCols.has(col) && amountScore > bestAmountScore && amountScore >= 0.5) {
         bestAmountScore = amountScore
         amountIdx = col
       }
@@ -333,17 +364,17 @@ function inferColumnMap(dataRows: string[][]): ColumnMap | null {
 
   if (dateIdx < 0 || amountIdx < 0) return null
 
-  // Description is the non-date, non-amount column with the most text.
+  // Description is the non-date, non-amount, non-time column with the most text.
   let bestDescScore = 0
   for (let col = 0; col < columnCount; col++) {
-    if (col === dateIdx || col === amountIdx) continue
+    if (col === dateIdx || col === amountIdx || timeCols.has(col)) continue
     let text = 0
     let nonEmpty = 0
     for (const row of sample) {
       const cell = row[col]?.trim() ?? ''
       if (cell === '') continue
       nonEmpty++
-      if (normalizeDate(cell) === '' && normalizeAmount(cell) === '') text++
+      if (TEXT_LIKE.test(cell) && !normalizeDate(cell)) text++
     }
     if (nonEmpty > 0) {
       const score = text / nonEmpty
@@ -355,8 +386,8 @@ function inferColumnMap(dataRows: string[][]): ColumnMap | null {
   }
 
   if (descIdx < 0) {
-    // If no clear description column, pick the first remaining column.
-    descIdx = [0, 1, 2].find((i) => i !== dateIdx && i !== amountIdx) ?? 2
+    // Last resort: first remaining non-time column; -1 means no description.
+    descIdx = [0, 1, 2].find((i) => i !== dateIdx && i !== amountIdx && !timeCols.has(i)) ?? -1
   }
 
   return { date: dateIdx, amount: amountIdx, description: descIdx }
@@ -478,8 +509,10 @@ function normalizeDate(raw: string): string {
     const first = Number.parseInt(a, 10)
     const second = Number.parseInt(b, 10)
     // If first > 12, it's a day. If second > 12, first is month.
-    if (first > 12) return `${year}-${String(second).padStart(2, '0')}-${String(first).padStart(2, '0')}`
-    if (second > 12) return `${year}-${String(first).padStart(2, '0')}-${String(second).padStart(2, '0')}`
+    if (first > 12)
+      return `${year}-${String(second).padStart(2, '0')}-${String(first).padStart(2, '0')}`
+    if (second > 12)
+      return `${year}-${String(first).padStart(2, '0')}-${String(second).padStart(2, '0')}`
     // Ambiguous: default to DD/MM (common Canadian format)
     return `${year}-${String(second).padStart(2, '0')}-${String(first).padStart(2, '0')}`
   }
@@ -492,13 +525,29 @@ function normalizeDate(raw: string): string {
     const year = dashMatch[3] ?? '2000'
     const first = Number.parseInt(a, 10)
     const second = Number.parseInt(b, 10)
-    if (first > 12) return `${year}-${String(second).padStart(2, '0')}-${String(first).padStart(2, '0')}`
+    if (first > 12)
+      return `${year}-${String(second).padStart(2, '0')}-${String(first).padStart(2, '0')}`
     return `${year}-${String(first).padStart(2, '0')}-${String(second).padStart(2, '0')}`
   }
 
   // Aug 15, 2026 or 15 Aug 2026 / 15-Aug-2026 with textual month
-  const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
-  const textMatch = trimmed.match(/^(?:([A-Za-z]{3})[a-z]*[-\s,]+(\d{1,2})[-\s,]+(\d{4})|(\d{1,2})[-\s,]+([A-Za-z]{3})[a-z]*[-\s,]+(\d{4}))$/)
+  const monthNames = [
+    'jan',
+    'feb',
+    'mar',
+    'apr',
+    'may',
+    'jun',
+    'jul',
+    'aug',
+    'sep',
+    'oct',
+    'nov',
+    'dec',
+  ]
+  const textMatch = trimmed.match(
+    /^(?:([A-Za-z]{3})[a-z]*[-\s,]+(\d{1,2})[-\s,]+(\d{4})|(\d{1,2})[-\s,]+([A-Za-z]{3})[a-z]*[-\s,]+(\d{4}))$/,
+  )
   if (textMatch) {
     const monthText = (textMatch[1] ?? textMatch[5] ?? '').toLowerCase()
     const day = Number.parseInt(textMatch[2] ?? textMatch[4] ?? '0', 10)

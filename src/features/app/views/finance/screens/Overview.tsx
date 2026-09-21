@@ -1,11 +1,23 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { statusChipClass } from '@/components/chips'
+import { statusChipClass, type ChipTone } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
+import type { Bi } from '@/i18n/core'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
 import { deadlineState } from '../data/productionApi'
-import { REQUEST_STATUS_LABEL } from '../financeLabels'
+import { BANK_MATCH_LABEL, PAY_RUN_STATUS_LABEL, REQUEST_STATUS_LABEL } from '../financeLabels'
+
+type ExceptionRow = {
+  key: string
+  typeLabel: Bi
+  title: string | Bi
+  subLabel?: Bi
+  sub: string
+  statusLabel: Bi
+  tone: ChipTone
+  to: string
+}
 
 export function Overview() {
   const { x } = useI18n()
@@ -13,12 +25,17 @@ export function Overview() {
 
   const kpis = useMemo(() => {
     const outstandingAR = state.invoices
-      .filter((inv) => inv.status === 'issued' || inv.status === 'partial' || inv.status === 'overdue')
+      .filter(
+        (inv) => inv.status === 'issued' || inv.status === 'partial' || inv.status === 'overdue',
+      )
       .reduce((sum, inv) => sum + Number(inv.total) - Number(inv.paidAmount), 0)
     const outstandingAP = state.bills
       .filter((b) => b.status === 'posted' || b.status === 'partial')
       .reduce((sum, b) => sum + Number(b.total) - Number(b.paidAmount), 0)
-    const cashOnHand = state.bankAccounts.reduce((sum, acc) => sum + Number(acc.earmarkedAmount ?? '0'), 0)
+    const cashOnHand = state.bankAccounts.reduce(
+      (sum, acc) => sum + Number(acc.earmarkedAmount ?? '0'),
+      0,
+    )
     const monthlyBurn = state.expenses
       .filter((e) => e.status === 'approved' || e.status === 'reimbursed')
       .reduce((sum, e) => sum + Number(e.amount), 0)
@@ -53,20 +70,57 @@ export function Overview() {
     [state.spendRequests],
   )
 
-  const exceptions = useMemo(
+  const exceptions = useMemo<ExceptionRow[]>(
     () => [
-      ...state.bankItems.filter((bi) => bi.matchStatus === 'unmatched' || bi.matchStatus === 'exception'),
-      ...state.reconciliations.filter((r) => r.status === 'exception'),
-      ...state.payRuns.filter((pr) => pr.status === 'exception'),
+      ...state.bankItems
+        .filter((bi) => bi.matchStatus === 'unmatched' || bi.matchStatus === 'exception')
+        .map((bi) => ({
+          key: `bi-${bi.id}`,
+          typeLabel: M.finance_exception_type_bank,
+          title: bi.description.trim() ? bi.description : M.finance_transactions_no_description,
+          sub: `${bi.date} · ${bi.currency} ${bi.amount}`,
+          statusLabel: BANK_MATCH_LABEL[bi.matchStatus],
+          tone: (bi.matchStatus === 'exception' ? 'risk' : 'warning') as ChipTone,
+          to: '/app/finance/transactions',
+        })),
+      ...state.reconciliations
+        .filter((r) => r.status === 'exception')
+        .map((r) => ({
+          key: `rec-${r.id}`,
+          typeLabel: M.finance_exception_type_reconciliation,
+          title:
+            state.bankAccounts.find((a) => a.id === r.bankAccountId)?.label ??
+            M.finance_exception_type_reconciliation,
+          subLabel: M.finance_transactions_difference,
+          sub: r.difference,
+          statusLabel: BANK_MATCH_LABEL.exception,
+          tone: 'risk' as ChipTone,
+          to: '/app/finance/transactions',
+        })),
+      ...state.payRuns
+        .filter((pr) => pr.status === 'exception')
+        .map((pr) => ({
+          key: `pr-${pr.id}`,
+          typeLabel: M.finance_exception_type_payroll,
+          title:
+            state.payPeriods.find((p) => p.id === pr.periodId)?.label ??
+            M.finance_exception_type_payroll,
+          subLabel: M.finance_payroll_net,
+          sub: `${pr.currency} ${pr.netPay}`,
+          statusLabel: PAY_RUN_STATUS_LABEL[pr.status],
+          tone: 'risk' as ChipTone,
+          to: '/app/finance/payroll',
+        })),
     ],
-    [state.bankItems, state.reconciliations, state.payRuns],
+    [state.bankItems, state.reconciliations, state.payRuns, state.bankAccounts, state.payPeriods],
   )
 
   const cashByAccount = useMemo(
-    () => state.bankAccounts.map((acc) => ({
-      ...acc,
-      earmarked: acc.earmarkedAmount ?? '0.00',
-    })),
+    () =>
+      state.bankAccounts.map((acc) => ({
+        ...acc,
+        earmarked: acc.earmarkedAmount ?? '0.00',
+      })),
     [state.bankAccounts],
   )
 
@@ -88,29 +142,41 @@ export function Overview() {
   return (
     <div className="flex flex-col gap-[16px]">
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_overview_kpis)}</h2>
+        <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+          {x(M.finance_overview_kpis)}
+        </h2>
         <div className="grid grid-cols-2 gap-[10px] sm:grid-cols-4">
           <div className="rounded-[8px] bg-inset px-[12px] py-[10px]">
             <div className="text-[12px] text-text-muted">{x(M.finance_overview_cash_total)}</div>
-            <div className="mt-[4px] text-[16px] font-semibold text-text">CAD {kpis.cashOnHand.toFixed(2)}</div>
+            <div className="mt-[4px] text-[16px] font-semibold text-text">
+              CAD {kpis.cashOnHand.toFixed(2)}
+            </div>
           </div>
           <div className="rounded-[8px] bg-inset px-[12px] py-[10px]">
             <div className="text-[12px] text-text-muted">{x(M.finance_overview_ar)}</div>
-            <div className="mt-[4px] text-[16px] font-semibold text-text">CAD {kpis.outstandingAR.toFixed(2)}</div>
+            <div className="mt-[4px] text-[16px] font-semibold text-text">
+              CAD {kpis.outstandingAR.toFixed(2)}
+            </div>
           </div>
           <div className="rounded-[8px] bg-inset px-[12px] py-[10px]">
             <div className="text-[12px] text-text-muted">{x(M.finance_overview_ap)}</div>
-            <div className="mt-[4px] text-[16px] font-semibold text-text">CAD {kpis.outstandingAP.toFixed(2)}</div>
+            <div className="mt-[4px] text-[16px] font-semibold text-text">
+              CAD {kpis.outstandingAP.toFixed(2)}
+            </div>
           </div>
           <div className="rounded-[8px] bg-inset px-[12px] py-[10px]">
             <div className="text-[12px] text-text-muted">{x(M.finance_overview_burn_rate)}</div>
-            <div className="mt-[4px] text-[16px] font-semibold text-text">CAD {kpis.monthlyBurn.toFixed(2)}</div>
+            <div className="mt-[4px] text-[16px] font-semibold text-text">
+              CAD {kpis.monthlyBurn.toFixed(2)}
+            </div>
           </div>
         </div>
       </section>
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_overview_cash_position)}</h2>
+        <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+          {x(M.finance_overview_cash_position)}
+        </h2>
         {cashByAccount.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_none)}</p>
         ) : (
@@ -122,7 +188,9 @@ export function Overview() {
                   {acc.currency} {acc.earmarked}
                 </div>
                 {acc.restricted && (
-                  <div className="mt-[2px] text-[11px] text-text-muted">{x(M.finance_treasury_restricted)}</div>
+                  <div className="mt-[2px] text-[11px] text-text-muted">
+                    {x(M.finance_treasury_restricted)}
+                  </div>
                 )}
               </div>
             ))}
@@ -131,7 +199,9 @@ export function Overview() {
       </section>
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_overview_upcoming)}</h2>
+        <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+          {x(M.finance_overview_upcoming)}
+        </h2>
         {upcomingObligations.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_overview_no_upcoming)}</p>
         ) : (
@@ -141,9 +211,7 @@ export function Overview() {
               return (
                 <li key={item.id} className="flex items-start justify-between gap-[12px]">
                   <div>
-                    <div className="text-[13px] font-semibold text-text">
-                      {x(item.label)}
-                    </div>
+                    <div className="text-[13px] font-semibold text-text">{x(item.label)}</div>
                     <div className="text-[12px] text-text-muted">
                       {item.dueDate} · {item.currency} {item.amount}
                     </div>
@@ -167,7 +235,9 @@ export function Overview() {
       </section>
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_overview_approvals)}</h2>
+        <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+          {x(M.finance_overview_approvals)}
+        </h2>
         {approvalsQueue.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_overview_no_approvals)}</p>
         ) : (
@@ -186,13 +256,17 @@ export function Overview() {
                       {sr.requester} · {sr.currency} {sr.amount}
                     </div>
                   </div>
-                  <span className={statusChipClass('warning')}>{x(REQUEST_STATUS_LABEL[sr.status])}</span>
+                  <span className={statusChipClass('warning')}>
+                    {x(REQUEST_STATUS_LABEL[sr.status])}
+                  </span>
                 </div>
                 {canWrite && (
                   <div className="flex flex-wrap gap-[6px]">
                     <button
                       type="button"
-                      onClick={() => transitionSpendRequestStatus(sr.id, 'approved', 'Workspace user')}
+                      onClick={() =>
+                        transitionSpendRequestStatus(sr.id, 'approved', 'Workspace user')
+                      }
                       className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
                     >
                       {x(M.finance_approve)}
@@ -213,24 +287,28 @@ export function Overview() {
       </section>
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_overview_exceptions)}</h2>
+        <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+          {x(M.finance_overview_exceptions)}
+        </h2>
         {exceptions.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_overview_no_exceptions)}</p>
         ) : (
           <ul className="m-0 flex flex-col gap-[10px] p-0">
-            {exceptions.map((exc, idx) => (
-              <li key={idx} className="flex items-start justify-between gap-[12px]">
-                <div>
-                  <div className="text-[13px] font-semibold text-text">
-                    {'description' in exc ? exc.description : 'id' in exc ? exc.id : 'Exception'}
+            {exceptions.slice(0, 5).map((exc) => (
+              <li key={exc.key} className="flex items-center justify-between gap-[12px]">
+                <div className="min-w-0">
+                  <Link
+                    to={exc.to}
+                    className="block truncate text-[13px] font-semibold text-accent no-underline hover:underline"
+                  >
+                    {typeof exc.title === 'string' ? exc.title : x(exc.title)}
+                  </Link>
+                  <div className="text-[12px] text-text-muted">
+                    {x(exc.typeLabel)} · {exc.subLabel ? `${x(exc.subLabel)}: ` : ''}
+                    {exc.sub}
                   </div>
-                  {'difference' in exc && (
-                    <div className="text-[12px] text-text-muted">
-                      {x(M.finance_transactions_difference)}: {exc.difference}
-                    </div>
-                  )}
                 </div>
-                <span className={statusChipClass('risk')}>{x(M.finance_overview_exceptions)}</span>
+                <span className={statusChipClass(exc.tone)}>{x(exc.statusLabel)}</span>
               </li>
             ))}
           </ul>
@@ -238,7 +316,9 @@ export function Overview() {
       </section>
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_overview_budget_headroom)}</h2>
+        <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+          {x(M.finance_overview_budget_headroom)}
+        </h2>
         {budgetHeadroom.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_none)}</p>
         ) : (
@@ -254,7 +334,13 @@ export function Overview() {
                   </div>
                 </div>
                 <span
-                  className={statusChipClass(line.headroom < 0 ? 'risk' : line.headroom < line.budgeted * 0.15 ? 'warning' : 'success')}
+                  className={statusChipClass(
+                    line.headroom < 0
+                      ? 'risk'
+                      : line.headroom < line.budgeted * 0.15
+                        ? 'warning'
+                        : 'success',
+                  )}
                 >
                   {x(M.finance_plans_headroom)}: {line.currency} {line.headroom.toFixed(2)}
                 </span>
@@ -265,12 +351,16 @@ export function Overview() {
       </section>
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_overview_data_freshness)}</h2>
+        <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+          {x(M.finance_overview_data_freshness)}
+        </h2>
         <div className="text-[13px] text-text-muted">
           {state.books.map((book) => (
             <div key={book.id}>
-              {x(book.label)} — {x(M.finance_accounting_authoritative_source)}: {x(book.authoritativeSource)}
-              {book.lastSyncedAt && ` · ${x(M.finance_accounting_last_synced)}: ${book.lastSyncedAt}`}
+              {x(book.label)} — {x(M.finance_accounting_authoritative_source)}:{' '}
+              {x(book.authoritativeSource)}
+              {book.lastSyncedAt &&
+                ` · ${x(M.finance_accounting_last_synced)}: ${book.lastSyncedAt}`}
             </div>
           ))}
         </div>

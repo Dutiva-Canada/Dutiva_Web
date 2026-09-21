@@ -53,8 +53,9 @@ describe('FinanceView', () => {
   it('shows cash position and upcoming obligations on the overview', () => {
     renderAt('/app/finance/overview')
 
-    expect(screen.getByText('Operating account')).toBeInTheDocument()
-    expect(screen.getByText('Tax reserve account')).toBeInTheDocument()
+    // Account names can also appear in the exceptions list — allow multiples.
+    expect(screen.getAllByText('Operating account').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Tax reserve account').length).toBeGreaterThan(0)
   })
 
   it('lists invoices on the sales tab', () => {

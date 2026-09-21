@@ -8,9 +8,15 @@ import { BANK_MATCH_LABEL, CURRENCY_LABEL } from '../financeLabels'
 import { BulkImportWizard } from '@/features/app/bulkImport/BulkImportWizard'
 import { createTransactionBulkImportAdapter } from '../bulkImport/transactionAdapter'
 import type { FinanceBankItem, FinanceBankMatchStatus, FinanceReconciliation } from '../data/types'
-import { Upload } from 'lucide-react'
+import { CheckCheck, Sparkles, Upload } from 'lucide-react'
 
-const FILTERS: ('all' | FinanceBankMatchStatus)[] = ['all', 'unmatched', 'suggested', 'matched', 'exception']
+const FILTERS: ('all' | FinanceBankMatchStatus)[] = [
+  'all',
+  'unmatched',
+  'suggested',
+  'matched',
+  'exception',
+]
 
 export function Transactions() {
   const { x } = useI18n()
@@ -29,15 +35,33 @@ export function Transactions() {
   const [editingAccountId, setEditingAccountId] = useState<string>('')
   const transactionAdapter = createTransactionBulkImportAdapter(importBankStatement)
 
-  const bankItems = useMemo(
-    () => (filter === 'all' ? state.bankItems : state.bankItems.filter((bi) => bi.matchStatus === filter)),
-    [state.bankItems, filter],
-  )
+  const counts = useMemo(() => {
+    const c: Record<'all' | FinanceBankMatchStatus, number> = {
+      all: state.bankItems.length,
+      unmatched: 0,
+      suggested: 0,
+      matched: 0,
+      exception: 0,
+    }
+    for (const bi of state.bankItems) c[bi.matchStatus]++
+    return c
+  }, [state.bankItems])
 
-  const matchedRef = (bi: { matchedJournalId?: string; matchedInvoiceId?: string; matchedBillId?: string }) => {
-    if (bi.matchedJournalId) return `${x(M.finance_bank_matched_to)}: ${bi.matchedJournalId}`
-    if (bi.matchedInvoiceId) return `${x(M.finance_bank_matched_to)}: ${bi.matchedInvoiceId}`
-    if (bi.matchedBillId) return `${x(M.finance_bank_matched_to)}: ${bi.matchedBillId}`
+  const bankItems = useMemo(() => {
+    const items =
+      filter === 'all'
+        ? [...state.bankItems]
+        : state.bankItems.filter((bi) => bi.matchStatus === filter)
+    return items.sort((a, b) => b.date.localeCompare(a.date))
+  }, [state.bankItems, filter])
+
+  const matchedRef = (bi: FinanceBankItem) => {
+    const invoice = bi.matchedInvoiceId && state.invoices.find((i) => i.id === bi.matchedInvoiceId)
+    if (invoice) return `${x(M.finance_bank_matched_to)}: ${invoice.number}`
+    const bill = bi.matchedBillId && state.bills.find((b) => b.id === bi.matchedBillId)
+    if (bill) return `${x(M.finance_bank_matched_to)}: ${bill.number}`
+    const journal = bi.matchedJournalId && state.journals.find((j) => j.id === bi.matchedJournalId)
+    if (journal) return `${x(M.finance_bank_matched_to)}: ${journal.number}`
     return null
   }
 
@@ -52,7 +76,10 @@ export function Transactions() {
     const originalAccountId = bi.aiSuggestion?.ledgerAccountId
     await updateBankItemCategorization(bi.id, {
       ledgerAccountId: account.id,
-      direction: account.type === 'revenue' || account.type === 'liability' || account.type === 'equity' ? 'credit' : 'debit',
+      direction:
+        account.type === 'revenue' || account.type === 'liability' || account.type === 'equity'
+          ? 'credit'
+          : 'debit',
       matchStatus: 'suggested',
     })
     if (originalAccountId && originalAccountId !== account.id) {
@@ -61,7 +88,10 @@ export function Transactions() {
         description: bi.description,
         originalLedgerAccountId: originalAccountId,
         correctedLedgerAccountId: account.id,
-        correctedDirection: account.type === 'revenue' || account.type === 'liability' || account.type === 'equity' ? 'credit' : 'debit',
+        correctedDirection:
+          account.type === 'revenue' || account.type === 'liability' || account.type === 'equity'
+            ? 'credit'
+            : 'debit',
       })
     }
     setEditingId(null)
@@ -91,11 +121,19 @@ export function Transactions() {
     await updateBankItemCategorization(bi.id, { matchStatus: 'exception' })
   }
 
+  const acceptAllSuggestions = async () => {
+    for (const bi of state.bankItems) {
+      if (bi.aiSuggestion && bi.matchStatus !== 'matched') await acceptSuggestion(bi)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-[16px]">
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
         <div className="mb-[12px] flex items-center justify-between">
-          <h2 className="text-[15px] font-semibold text-text">{x(M.finance_transactions_bank_items)}</h2>
+          <h2 className="text-[15px] font-semibold text-text">
+            {x(M.finance_transactions_bank_items)}
+          </h2>
           {canWrite && (
             <button
               type="button"
@@ -110,19 +148,35 @@ export function Transactions() {
         {showBulkImport && (
           <BulkImportWizard adapter={transactionAdapter} onClose={() => setShowBulkImport(false)} />
         )}
-        <div className="mb-[12px] flex flex-wrap gap-[6px]">
+        <div className="mb-[12px] flex flex-wrap items-center gap-[6px]">
           {FILTERS.map((f) => (
             <button
               key={f}
               type="button"
               onClick={() => setFilter(f)}
               className={`rounded-[8px] px-[10px] py-[5px] text-[12px] font-semibold transition-colors ${
-                filter === f ? 'bg-navy text-white' : 'bg-inset text-text-2 hover:bg-surface border border-border'
+                filter === f
+                  ? 'bg-navy text-white'
+                  : 'bg-inset text-text-2 hover:bg-surface border border-border'
               }`}
             >
               {f === 'all' ? x(M.finance_filter_all) : x(BANK_MATCH_LABEL[f])}
+              <span className={filter === f ? 'text-white/70' : 'text-text-faint'}>
+                {' '}
+                {counts[f]}
+              </span>
             </button>
           ))}
+          {canWrite && counts.suggested > 0 && (
+            <button
+              type="button"
+              onClick={() => void acceptAllSuggestions()}
+              className="ml-auto flex items-center gap-[5px] rounded-[8px] border border-border bg-surface px-[10px] py-[5px] text-[12px] font-semibold text-accent hover:bg-inset"
+            >
+              <CheckCheck size={13} />
+              {x(M.finance_transactions_accept_all)}
+            </button>
+          )}
         </div>
         {bankItems.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_transactions_no_bank_items)}</p>
@@ -134,31 +188,63 @@ export function Transactions() {
               const suggestedAccount = bi.aiSuggestion
                 ? state.ledgerAccounts.find((la) => la.id === bi.aiSuggestion!.ledgerAccountId)
                 : undefined
+              const account = state.bankAccounts.find((a) => a.id === bi.bankAccountId)
+              const inflow = Number(bi.amount) >= 0
               return (
-                <li key={bi.id} className="flex flex-col gap-[8px] rounded-[10px] bg-inset p-[12px]">
-                  <div className="flex items-start justify-between gap-[12px]">
+                <li
+                  key={bi.id}
+                  className="flex flex-col gap-[8px] rounded-[10px] bg-inset px-[12px] py-[10px]"
+                >
+                  <div className="flex items-start gap-[12px]">
                     <div className="min-w-0 flex-1">
-                      <div className="text-[13px] font-semibold text-text">{bi.description}</div>
-                      <div className="text-[12px] text-text-muted">
-                        {bi.date} · {x(CURRENCY_LABEL[bi.currency])} {bi.amount}
+                      <div className="truncate text-[13px] font-semibold text-text">
+                        {bi.description.trim() ? (
+                          bi.description
+                        ) : (
+                          <span className="font-normal text-text-faint">
+                            {x(M.finance_transactions_no_description)}
+                          </span>
+                        )}
                       </div>
-                      {ref && <div className="text-[12px] text-text-muted">{ref}</div>}
+                      <div className="mt-[1px] text-[12px] text-text-muted">
+                        {bi.date}
+                        {account && ` · ${x(account.label)}`}
+                        {ref && ` · ${ref}`}
+                      </div>
+                      {bi.aiSuggestion && suggestedAccount && bi.matchStatus !== 'matched' && (
+                        <div className="mt-[3px] flex items-center gap-[5px] text-[12px] text-accent">
+                          <Sparkles size={11} aria-hidden />
+                          {suggestedAccount.code} — {x(suggestedAccount.name)} ·{' '}
+                          {bi.aiSuggestion.direction}
+                        </div>
+                      )}
                       {bi.note && (
-                        <div className="mt-[4px] text-[12px] text-text-muted">
-                          <span className="font-semibold text-text-2">{x(M.finance_transactions_note)}: </span>
+                        <div className="mt-[3px] text-[12px] text-text-muted">
+                          <span className="font-semibold text-text-2">
+                            {x(M.finance_transactions_note)}:{' '}
+                          </span>
                           {x(bi.note)}
                         </div>
                       )}
-                      {bi.aiSuggestion && suggestedAccount && (
-                        <div className="mt-[4px] text-[12px] text-text-muted">
-                          <span className="font-semibold text-text-2">{x(M.finance_transactions_ai_suggestion)} </span>
-                          {suggestedAccount.code} — {x(suggestedAccount.name)} ({bi.aiSuggestion.direction})
-                        </div>
-                      )}
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <div
+                        className={`text-[13px] font-semibold tabular-nums ${inflow ? 'text-ok-fg' : 'text-text'}`}
+                      >
+                        {inflow ? '+' : ''}
+                        {bi.amount}
+                      </div>
+                      <div className="text-[11px] text-text-muted">
+                        {x(CURRENCY_LABEL[bi.currency])}
+                      </div>
                     </div>
                     <span
                       className={statusChipClass(
-                        bi.matchStatus === 'matched' ? 'success' : bi.matchStatus === 'exception' ? 'risk' : 'warning',
+                        bi.matchStatus === 'matched'
+                          ? 'success'
+                          : bi.matchStatus === 'exception'
+                            ? 'risk'
+                            : 'warning',
                       )}
                     >
                       {x(BANK_MATCH_LABEL[bi.matchStatus])}
@@ -180,7 +266,7 @@ export function Transactions() {
                       <button
                         type="button"
                         onClick={() => void saveEdit(bi)}
-                        className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                        className="rounded-[6px] bg-navy px-[8px] py-[3px] text-[11px] font-semibold text-white"
                       >
                         {x(M.finance_transactions_save_changes)}
                       </button>
@@ -189,17 +275,18 @@ export function Transactions() {
                         onClick={() => setEditingId(null)}
                         className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
                       >
-                        {x(M.finance_suggest_rules_ignore)}
+                        {x(M.finance_cancel)}
                       </button>
                     </div>
                   ) : (
-                    canWrite && (
+                    canWrite &&
+                    bi.matchStatus !== 'matched' && (
                       <div className="flex flex-wrap gap-[6px]">
-                        {bi.aiSuggestion && bi.matchStatus !== 'matched' && (
+                        {bi.aiSuggestion && bi.matchStatus === 'suggested' && (
                           <button
                             type="button"
                             onClick={() => void acceptSuggestion(bi)}
-                            className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                            className="rounded-[6px] bg-navy px-[8px] py-[3px] text-[11px] font-semibold text-white"
                           >
                             {x(M.finance_transactions_accept_suggestion)}
                           </button>
@@ -209,27 +296,35 @@ export function Transactions() {
                           onClick={() => startEdit(bi)}
                           className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
                         >
-                          {x(M.finance_transactions_change_account)}
+                          {bi.matchStatus === 'unmatched'
+                            ? x(M.finance_transactions_categorize)
+                            : x(M.finance_transactions_change_account)}
                         </button>
-                        {bi.matchStatus !== 'exception' && (
+                        {bi.matchStatus === 'exception' ? (
                           <button
                             type="button"
-                            onClick={() => transitionBankItemMatchStatus(bi.id, 'matched')}
+                            onClick={() => transitionBankItemMatchStatus(bi.id, 'unmatched')}
                             className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
                           >
-                            {bi.matchStatus === 'suggested'
-                              ? x(M.finance_bank_accept_suggested)
-                              : x(M.finance_bank_mark_matched)}
+                            {x(M.finance_bank_reopen)}
                           </button>
-                        )}
-                        {bi.matchStatus !== 'exception' && (
-                          <button
-                            type="button"
-                            onClick={() => void rejectSuggestion(bi)}
-                            className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
-                          >
-                            {x(M.finance_bank_mark_exception)}
-                          </button>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => transitionBankItemMatchStatus(bi.id, 'matched')}
+                              className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                            >
+                              {x(M.finance_bank_mark_matched)}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void rejectSuggestion(bi)}
+                              className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                            >
+                              {x(M.finance_bank_mark_exception)}
+                            </button>
+                          </>
                         )}
                       </div>
                     )
@@ -242,7 +337,9 @@ export function Transactions() {
       </section>
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-        <h2 className="mb-[12px] text-[15px] font-semibold text-text">{x(M.finance_transactions_reconciliations)}</h2>
+        <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+          {x(M.finance_transactions_reconciliations)}
+        </h2>
         {state.reconciliations.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_none)}</p>
         ) : (
@@ -252,7 +349,8 @@ export function Transactions() {
                 <div className="flex items-start justify-between gap-[12px]">
                   <div className="flex flex-col gap-[2px]">
                     <div className="text-[13px] font-semibold text-text">
-                      {x(M.finance_transactions_opening)}: {rec.openingBalance} → {x(M.finance_transactions_closing)}: {rec.closingBalance}
+                      {x(M.finance_transactions_opening)}: {rec.openingBalance} →{' '}
+                      {x(M.finance_transactions_closing)}: {rec.closingBalance}
                     </div>
                     <div className="text-[12px] text-text-muted">
                       {x(M.finance_transactions_difference)}: {rec.difference}
@@ -261,7 +359,11 @@ export function Transactions() {
                   </div>
                   <span
                     className={statusChipClass(
-                      rec.status === 'reconciled' ? 'success' : rec.status === 'exception' ? 'risk' : 'warning',
+                      rec.status === 'reconciled'
+                        ? 'success'
+                        : rec.status === 'exception'
+                          ? 'risk'
+                          : 'warning',
                     )}
                   >
                     {rec.status === 'reconciled'
@@ -275,7 +377,9 @@ export function Transactions() {
                   <div className="flex flex-wrap gap-[6px]">
                     <button
                       type="button"
-                      onClick={() => transitionReconciliationStatus(rec.id, 'reconciled', 'Workspace user')}
+                      onClick={() =>
+                        transitionReconciliationStatus(rec.id, 'reconciled', 'Workspace user')
+                      }
                       className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
                     >
                       {x(M.finance_reconciliation_mark_reconciled)}

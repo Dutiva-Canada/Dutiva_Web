@@ -72,6 +72,9 @@ export const financeMessages = defineMessages({
     fr: 'Aucune obligation à venir.',
   },
   finance_overview_no_exceptions: { en: 'No open exceptions.', fr: 'Aucune exception ouverte.' },
+  finance_exception_type_bank: { en: 'Bank item', fr: 'Élément bancaire' },
+  finance_exception_type_reconciliation: { en: 'Reconciliation', fr: 'Rapprochement' },
+  finance_exception_type_payroll: { en: 'Payroll run', fr: 'Traitement de paie' },
   finance_overview_no_approvals: {
     en: 'No items awaiting approval.',
     fr: 'Aucun élément en attente d’approbation.',
@@ -337,6 +340,7 @@ export const financeMessages = defineMessages({
   finance_bank_mark_matched: { en: 'Mark matched', fr: 'Marquer rapproché' },
   finance_bank_mark_exception: { en: 'Mark exception', fr: 'Marquer comme exception' },
   finance_bank_matched_to: { en: 'Matched to', fr: 'Rapproché avec' },
+  finance_bank_reopen: { en: 'Reopen', fr: 'Rouvrir' },
 
   /* Reconciliation actions */
   finance_reconciliation_mark_reconciled: { en: 'Mark reconciled', fr: 'Marquer rapproché' },
@@ -840,6 +844,12 @@ export const financeMessages = defineMessages({
   finance_transactions_ai_suggestion: { en: 'AI suggestion:', fr: "Suggestion de l'IA :" },
   finance_transactions_note: { en: 'Note', fr: 'Note' },
   finance_transactions_change_account: { en: 'Change account', fr: 'Changer de compte' },
+  finance_transactions_categorize: { en: 'Categorize', fr: 'Catégoriser' },
+  finance_transactions_accept_all: {
+    en: 'Accept all suggested',
+    fr: 'Accepter toutes les suggestions',
+  },
+  finance_transactions_no_description: { en: '(no description)', fr: '(sans description)' },
   finance_transactions_save_changes: { en: 'Save', fr: 'Enregistrer' },
   finance_transactions_accept_suggestion: { en: 'Accept', fr: 'Accepter' },
 
