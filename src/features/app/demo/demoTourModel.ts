@@ -110,13 +110,4 @@ export const DEMO_TOUR_STOPS: readonly DemoTourStop[] = [
       'Tâches et calendrier pour l’ensemble de l’espace.',
     ),
   },
-  {
-    id: 'specialists',
-    pathSuffix: 'specialists',
-    title: bi('Specialists', 'Spécialistes'),
-    blurb: bi(
-      'Your external bench — lawyers, accountants, and providers, with engagement tracking.',
-      'Votre équipe externe — avocats, comptables et fournisseurs, avec suivi des engagements.',
-    ),
-  },
 ]
