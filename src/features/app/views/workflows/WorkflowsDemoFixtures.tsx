@@ -71,7 +71,7 @@ export function WorkflowsDemoFixtures() {
             key={w.id}
             type="button"
             onClick={() => openWorkflow(w.open)}
-            className="block w-full cursor-pointer border-t border-inset px-[16px] py-[14px] text-left font-sans transition-colors first:border-t-0 hover:bg-inset"
+            className="block w-full cursor-pointer border-t border-inset px-[16px] py-[14px] text-left font-sans transition-colors first:border-t-0 hover:bg-inset focus-visible:bg-inset focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
           >
             <div className="flex flex-wrap items-center gap-[14px]">
               <div className="min-w-[180px] flex-[1.2_1_180px]">
@@ -154,7 +154,7 @@ export function WorkflowsDemoFixtures() {
             type="button"
             onClick={() => setMapOpen((open) => !open)}
             aria-expanded={mapOpen}
-            className="shrink-0 cursor-pointer rounded-[7px] border border-gold-border bg-surface px-[12px] py-[6px] font-sans text-[12px] font-semibold text-gold-fg"
+            className="shrink-0 cursor-pointer rounded-[7px] border border-gold-border bg-surface px-[12px] py-[6px] font-sans text-[12px] font-semibold text-gold-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           >
             {mapOpen ? x(M.workflows_flagship_collapse) : x(M.workflows_flagship_expand)}
           </button>
@@ -195,7 +195,7 @@ export function WorkflowsDemoFixtures() {
               <button
                 type="button"
                 onClick={() => navigate('/app/cases/case1')}
-                className="cursor-pointer rounded-[8px] border-none bg-navy px-[15px] py-[8px] font-sans text-[12.5px] font-bold text-white hover:opacity-[.92]"
+                className="cursor-pointer rounded-[8px] border-none bg-navy px-[15px] py-[8px] font-sans text-[12.5px] font-bold text-white hover:opacity-[.92] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
                 {x(M.workflows_flagship_cta)}
               </button>
@@ -227,7 +227,7 @@ export function WorkflowsDemoFixtures() {
                       } satisfies AdvisorStartFlowNavState,
                     })
               }
-              className="flex cursor-pointer flex-col items-start gap-[9px] rounded-[12px] border border-border bg-surface p-[14px] text-left font-sans transition-[border-color,transform] duration-150 hover:-translate-y-px hover:border-(--accent-soft-border)"
+              className="flex cursor-pointer flex-col items-start gap-[9px] rounded-[12px] border border-border bg-surface p-[14px] text-left font-sans transition-[border-color,transform] duration-150 hover:-translate-y-px hover:border-(--accent-soft-border) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
               <div className="flex h-[29px] w-[29px] items-center justify-center rounded-[8px] bg-navy text-gold-on-navy">
                 <Icon size={15} strokeWidth={1.8} aria-hidden="true" />
