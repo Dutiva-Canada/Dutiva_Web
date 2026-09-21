@@ -11,6 +11,7 @@ import { guideBySlug } from './data'
 import { groupGuideBlocks } from './guideModel'
 import type { GuideSection, ReferenceGuide } from './guideModel'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 
 /**
  * Renders an in-product reference guide (docs/FOUR_RING_FRAMEWORK.md).
@@ -67,10 +68,11 @@ export function GuideView() {
 
 function BackLink() {
   const { x } = useI18n()
+  const { root } = useWorkspaceRoot()
   return (
     <Link
-      to="/app/knowledge"
-      className="inline-flex items-center gap-[6px] text-[12.5px] font-semibold text-text-muted"
+      to={workspacePath(root, 'knowledge')}
+      className="inline-flex items-center gap-[6px] rounded-[4px] text-[12.5px] font-semibold text-text-muted hover:text-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
     >
       <ArrowLeft size={13} strokeWidth={2} aria-hidden="true" />
       {x(M.reference_back)}
@@ -194,6 +196,7 @@ function JurisdictionNotes({ guide }: { readonly guide: ReferenceGuide }) {
 /** Where the reader goes next — the whole reason this lives in-product. */
 function Related({ guide }: { readonly guide: ReferenceGuide }) {
   const { x } = useI18n()
+  const { root } = useWorkspaceRoot()
   const templates = (guide.relatedTemplates ?? []).map(templateFor).filter((t) => t !== undefined)
   const relatedFlows = (guide.relatedFlows ?? [])
     .map((s) => flowBySlug.get(s))
@@ -211,8 +214,8 @@ function Related({ guide }: { readonly guide: ReferenceGuide }) {
             {relatedFlows.map((flow) => (
               <Link
                 key={flow.slug}
-                to={`/app/workflows/${flow.slug}`}
-                className="flex items-center gap-[9px] text-[13px] font-semibold text-text"
+                to={workspacePath(root, `workflows/${flow.slug}`)}
+                className="flex items-center gap-[9px] rounded-[4px] text-[13px] font-semibold text-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
                 <Route
                   size={14}
@@ -236,8 +239,8 @@ function Related({ guide }: { readonly guide: ReferenceGuide }) {
             {templates.map((template) => (
               <Link
                 key={template.tid}
-                to={`/app/documents/templates/${template.tid}`}
-                className="flex items-center gap-[9px] text-[13px] font-semibold text-text"
+                to={workspacePath(root, `documents/templates/${template.tid}`)}
+                className="flex items-center gap-[9px] rounded-[4px] text-[13px] font-semibold text-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
                 <FileText
                   size={14}

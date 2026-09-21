@@ -58,6 +58,18 @@ describe('KnowledgeView', () => {
     expect(articles.getAllByRole('button')).toHaveLength(knowledgeItems.length)
   })
 
+  it('shows an empty state when the filter matches nothing', () => {
+    renderApp(<KnowledgeView />, { route: '/app/knowledge', path: '/app/knowledge' })
+    const input = screen.getByPlaceholderText('Search HR knowledge…')
+
+    fireEvent.change(input, { target: { value: 'zzz-no-such-topic' } })
+
+    expect(screen.getByText('No guides or articles match that search.')).toBeInTheDocument()
+    expect(within(screen.getByTestId('knowledge-articles')).queryAllByRole('button')).toHaveLength(
+      0,
+    )
+  })
+
   it('opens the Advisor rail on the article when clicked', () => {
     const k4 = knowledgeItems.find((k) => k.id === 'k4')!
     renderApp(

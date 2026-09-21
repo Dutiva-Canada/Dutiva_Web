@@ -22,4 +22,10 @@ export const knowledgeMessages = defineMessages({
     en: 'Here’s a summary of what this covers, and how it applies to your workspace.',
     fr: 'Voici un résumé de ce que cela couvre et de la façon dont cela s’applique à votre espace de travail.',
   },
+
+  /* Empty state when the search filter matches nothing — FR self-authored. */
+  knowledge_no_results: {
+    en: 'No guides or articles match that search.',
+    fr: 'Aucun guide ni article ne correspond à cette recherche.',
+  },
 })
