@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { governanceMessages as M } from '@/i18n/messages/governance'
 import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
@@ -7,6 +6,7 @@ import { statusChipClass } from '@/components/chips'
 import { FormField, FormInput, FormSelect, FormCheckbox } from '@/components/FormField'
 import { useGovernanceData } from '../GovernanceDataContext'
 import type { GovernanceRecord, GovernanceRecordStatus, GovernanceRecordType } from '../data/types'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 const RECORD_TYPES: GovernanceRecordType[] = [
   'articles',

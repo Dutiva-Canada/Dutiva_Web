@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { pickL } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
@@ -9,6 +8,7 @@ import { settingsMessages as M } from '@/i18n/messages/settings'
 import { auditEvents, team } from './settingsData'
 import type { ChipTone } from './settingsData'
 import { Card, Section, StatusChip } from './settingsPrimitives'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 /** Northgate team, integrations, billing, and audit log — demo workspace only. */
 export function SettingsDemoFixtures() {

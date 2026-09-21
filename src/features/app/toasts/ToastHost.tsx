@@ -1,7 +1,7 @@
-import { Link } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { pickL } from '@/i18n/core'
 import { useToasts } from './toastsContext'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 /**
  * Bottom-right toast stack — the port of the prototype's `toastsView` markup:

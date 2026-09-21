@@ -38,9 +38,11 @@ export function workspaceSegments(pathname: string): string[] {
     .filter(Boolean)
 }
 
-/** Rewrite hardcoded /app paths when rendering inside /demo. */
+/** Rewrite hardcoded /app paths when rendering inside /demo. `/app/welcome`
+    stays put — the sign-in gate lives only there; that hop is the intended
+    conversion, and `/demo/welcome` does not exist. */
 export function rewriteAppPath(path: string, root: WorkspaceRoot): string {
-  if (root === '/app' || !path.startsWith('/app/')) return path
+  if (root === '/app' || !path.startsWith('/app/') || path.startsWith('/app/welcome')) return path
   return path.replace(/^\/app/, root)
 }
 

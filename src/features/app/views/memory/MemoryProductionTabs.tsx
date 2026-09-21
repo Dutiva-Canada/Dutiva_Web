@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import {
   AlertTriangle,
   Check,
@@ -33,6 +32,7 @@ import {
   effectiveStatus,
 } from './memoryModel'
 import { formatMemoryDate } from './memoryDates'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 /**
  * Production tab components for the Advisor Memory workspace. Split out of

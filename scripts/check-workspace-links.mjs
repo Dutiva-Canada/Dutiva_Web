@@ -29,6 +29,7 @@ const EXEMPT_FILE = [
   /ProductionEmptyState\.tsx$/,
   /^src\/features\/app\/auth\//,
   /^src\/features\/app\/demo\//,
+  /^src\/features\/app\/workspaceRoot\//,
   /shell\/EntryStage\.tsx$/,
   /\.test\.tsx?$/,
 ]
@@ -36,6 +37,16 @@ const EXEMPT_FILE = [
 const LITERAL = /(?:to|href)=\{?["'`]\/app\/|navigate\(\s*["'`]\/app\//g
 /** Elements that already rewrite /app targets — literals on them are correct. */
 const ROOT_AWARE_TAGS = new Set(['WorkspaceLink', 'WorkspaceNavigate'])
+
+/* Raw nav primitives in a demo-renderable file are the escape vector even
+   when the /app literal sits in a variable, constant, or prop — see the
+   repository docHref / wizard STUDIO_PATH / briefing go() bugs. WorkspaceLink,
+   WorkspaceNavigate and useWorkspaceNavigate are strict supersets (non-/app
+   targets pass through untouched), so there is no legitimate reason to import
+   these from react-router-dom here. NavLink stays legal: its call sites take
+   workspacePath()-resolved or relative targets and need isActive styling. */
+const RAW_NAV_IMPORT = /import\s+\{([^}]+)\}\s+from\s+['"]react-router-dom['"]/g
+const RAW_NAV_SPEC = /^(?:type\s+)?(Link|Navigate|useNavigate)\b/
 
 /** Nearest JSX tag name opening before `pos` (scans back across lines). */
 function enclosingTag(lines, lineIdx, colIdx) {
@@ -65,6 +76,17 @@ for (const dir of SCAN_DIRS) {
   for (const file of walk(dir)) {
     if (EXEMPT_FILE.some((re) => re.test(file))) continue
     const text = readFileSync(join(ROOT, file), 'utf8')
+    for (const m of text.matchAll(RAW_NAV_IMPORT)) {
+      for (const spec of m[1].split(',')) {
+        const bad = RAW_NAV_SPEC.exec(spec.trim())
+        if (bad) {
+          const line = text.slice(0, m.index).split('\n').length
+          errors.push(
+            `${file}:${line} — raw ${bad[1]} import (use WorkspaceLink/WorkspaceNavigate or useWorkspaceNavigate())`,
+          )
+        }
+      }
+    }
     const hasWorkspaceNavigate = text.includes('useWorkspaceNavigate')
     // `WorkspaceLink as Link` / `WorkspaceNavigate as Navigate` aliases make
     // the local tag name root-aware too.

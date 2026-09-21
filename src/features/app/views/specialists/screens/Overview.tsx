@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { BookOpen, Users, ChevronRight } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { specialistsMessages as M } from '@/i18n/messages/specialists'
@@ -7,6 +6,7 @@ import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/wo
 import { useSpecialistsData } from '../SpecialistsDataContext'
 import { fill } from '@/features/app/views/analytics/format'
 import type { SpecialistSpecialty } from '../data/types'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 const SPECIALTIES: SpecialistSpecialty[] = [
   'lawyer',

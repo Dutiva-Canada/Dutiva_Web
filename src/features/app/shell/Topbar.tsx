@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { Bell, PanelLeftClose, PanelLeftOpen, Search, Sparkle } from 'lucide-react'
 import { notifications as demoNotificationFixtures } from '@/data/notifications'
 import { useI18n } from '@/i18n/context'
@@ -15,6 +15,7 @@ import { workspaceModeMessages as WM } from '@/i18n/messages/workspaceMode'
 import { AuthMenuButton } from '@/features/app/auth/AuthMenuButton'
 import { LangToggle, ThemeToggle } from './ShellControls'
 import { cx } from './cx'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import {
   listWorkspaceNotifications,
   markAllWorkspaceNotificationsRead,
@@ -41,7 +42,7 @@ export function Topbar({
   const { openSearch } = useSearch()
   const askAdvisor = useAskAdvisorBriefing()
   const { pathname } = useLocation()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const { root } = useWorkspaceRoot()
 
   const { mode } = useWorkspaceMode()

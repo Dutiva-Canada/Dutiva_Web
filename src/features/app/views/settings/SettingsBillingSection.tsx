@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { usePlan } from '@/features/app/billing/planContext'
@@ -8,6 +7,7 @@ import { getPlanById } from '@/config/plans'
 import { seoRoute } from '@/seo/routes'
 import { settingsMessages as M } from '@/i18n/messages/settings'
 import { Card, Section } from './settingsPrimitives'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 /** Production billing: current plan + Stripe portal / pricing deep-links. */
 export function SettingsBillingSection() {

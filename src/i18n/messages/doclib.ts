@@ -222,7 +222,7 @@ export const doclibMessages = defineMessages({
   doclib_col_status: { en: 'Status', fr: 'Statut' },
   doclib_col_review: { en: 'Review', fr: 'Révision' },
   doclib_col_signature: { en: 'Signature', fr: 'Signature' },
-  doclib_col_risk: { en: 'Review', fr: 'Révision' },
+  doclib_col_risk: { en: 'Review level', fr: 'Niveau de révision' },
   doclib_col_updated: { en: 'Updated', fr: 'Mis à jour' },
   doclib_col_version: { en: 'Ver.', fr: 'Vers.' },
   doclib_filter_category: { en: 'Category', fr: 'Catégorie' },

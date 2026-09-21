@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { pickL } from '@/i18n/core'
 import { legalDocPath, legalRowBySlug, seoRoute } from '@/seo/routes'
@@ -7,6 +7,7 @@ import { PRIORITY_LABELS, RESPONSE_TARGETS, SUPPORT_CHANNELS } from '@/config/su
 import { SupportRequestForm } from '@/features/support/SupportRequestForm'
 import { onboardingSupportPrefill } from '@/features/app/views/settings/onboardingRequest'
 import { SupportSectionNav } from './SupportSectionNav'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 const PRIORITY_ORDER = ['critical', 'high', 'standard', 'low'] as const
 

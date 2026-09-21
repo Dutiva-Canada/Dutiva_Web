@@ -1,10 +1,10 @@
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { FileStack, Folder, MessageCircle, Plus, Send, Users, Waypoints } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { SidebarTooltip } from './SidebarTooltip'
 import { cx } from './cx'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 
 type CreateActionKey =
   'conversation' | 'workflow' | 'case' | 'document' | 'employee' | 'communication'
@@ -70,7 +70,7 @@ interface SidebarCreateMenuProps {
 
 export function SidebarCreateMenu({ expanded, onNavigate }: SidebarCreateMenuProps) {
   const { x } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const actions = useCreateActions()
   const [open, setOpen] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 import { CheckCircle2, Send } from 'lucide-react'
 import { ProgressFill } from '@/components/ProgressFill'
 import { useI18n } from '@/i18n/context'

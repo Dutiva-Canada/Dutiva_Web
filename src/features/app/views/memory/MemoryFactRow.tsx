@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { Check, Clock, Pencil, Trash2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -10,6 +9,7 @@ import type { MemoryFact } from '@/data'
 import { CONFIDENCE_META, SOURCE_META, VISIBILITY_META } from './memoryModel'
 import { formatMemoryDate, memoryDateReferenceISO } from './memoryDates'
 import { memoryActions } from './memoryStore'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 /**
  * One governed memory row (Advisor Memory prototype `memRowVO` markup):

@@ -1,11 +1,11 @@
 import { useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { bi } from '@/i18n/core'
 import { moneyOrUnset } from '@/lib/money'
 import { employeeDetails, employees } from '@/data'
 import { compensationMessages as COMP } from '@/i18n/messages/compensation'
 import { wellbeingMessages as WB } from '@/i18n/messages/wellbeing'
 import { useRail } from './railContext'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 
 /**
  * The per-employee "Ask Advisor about pay" and wellbeing check-in rails —
@@ -17,7 +17,7 @@ import { useRail } from './railContext'
 
 /** Pay-review rail (`askAboutComp`). No-op for unknown ids. */
 export function usePayRail(): (employeeId: string) => void {
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const { openRail, closeRail } = useRail()
 
   return useCallback(
@@ -79,7 +79,7 @@ export function usePayRail(): (employeeId: string) => void {
 
 /** Supportive, non-diagnostic wellbeing check-in rail (`askAboutWellbeing`). */
 export function useWellbeingRail(): (employeeId: string) => void {
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const { openRail, closeRail } = useRail()
 
   return useCallback(

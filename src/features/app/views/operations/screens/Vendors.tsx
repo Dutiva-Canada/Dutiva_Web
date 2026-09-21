@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { operationsMessages as M } from '@/i18n/messages/operations'
 import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
@@ -7,6 +6,7 @@ import { statusChipClass } from '@/components/chips'
 import { FormField, FormInput, FormSelect } from '@/components/FormField'
 import { useOperationsData } from '../OperationsDataContext'
 import type { OperationsVendor, OperationsVendorStatus, OperationsVendorType } from '../data/types'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 const TYPES: NonNullable<OperationsVendorType>[] = [
   'supplier',

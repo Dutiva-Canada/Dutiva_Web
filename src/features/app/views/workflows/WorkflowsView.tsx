@@ -1,5 +1,4 @@
 ﻿import { useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import { Lock, Route } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
@@ -16,6 +15,7 @@ import { UpgradeNudge } from '@/features/app/billing/PlanGate'
 import { canAccessWorkflow } from '@/features/app/billing/planAccess'
 import { PLAN_FEATURE_GATES_ENABLED } from '@/config/plans'
 import { WorkflowsDemoFixtures } from './WorkflowsDemoFixtures'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 /**
  * Workflows view — guided multi-step HR processes (prototype markup 548–627,

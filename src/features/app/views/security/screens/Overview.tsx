@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import {
   Shield,
   Package,
@@ -13,6 +12,7 @@ import { securityMessages as M } from '@/i18n/messages/security'
 import { statusChipClass } from '@/components/chips'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { useSecurityData } from '../SecurityDataContext'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 export function Overview() {
   const { x } = useI18n()

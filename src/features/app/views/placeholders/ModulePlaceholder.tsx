@@ -1,9 +1,9 @@
-import { Link } from 'react-router-dom'
 import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { placeholderMessages as M } from '@/i18n/messages/placeholder'
 import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { Construction } from 'lucide-react'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 export function ModulePlaceholder({ title }: { readonly title: Bi }) {
   const { x } = useI18n()

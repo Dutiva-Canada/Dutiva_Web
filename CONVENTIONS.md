@@ -216,11 +216,17 @@ users with no demo-only UX. Full program notes: [docs/MAINTAINABILITY.md](MAINTA
 **Root-aware navigation (enforced by `npm run check:workspace-links`):** the
 same route tree renders under `/app`, `/demo`, and `/fr/demo`, so a hardcoded
 `to="/app/…"` or `navigate('/app/…')` in any demo-renderable file bounces
-public visitors to the sign-in gate. Use `WorkspaceLink` / `WorkspaceNavigate`
-(`/app` `to=` targets are rewritten) or `useWorkspaceNavigate()` for imperative
-calls; `workspacePath(root, '…')` when you need the string. Exempt by
-construction: `*ProductionView.tsx`, auth gates, the demo banner/tour CTAs, and
-`/app/welcome` targets (the gate lives at `/app` only — that hop is intended).
+public visitors to the sign-in gate — *including* literals reached through a
+variable, constant, or prop. The check therefore bans importing `Link`,
+`Navigate`, or `useNavigate` from `react-router-dom` in demo-renderable files:
+use `WorkspaceLink` / `WorkspaceNavigate` (`/app` `to=` targets are rewritten;
+everything else passes through untouched) or `useWorkspaceNavigate()` for
+imperative calls; `workspacePath(root, '…')` when you need the string.
+`NavLink` stays legal where `isActive` styling is needed — its `to` values
+must already be workspace-resolved. `/app/welcome` is never rewritten (the
+sign-in gate lives at `/app` only — that hop is the intended conversion).
+Exempt by construction: `*ProductionView.tsx` / `*ProductionEmptyState.tsx`,
+auth gates, the demo banner/tour CTAs, `EntryStage`, `workspaceRoot/` itself.
 
 **Employees is the reference implementation** (Phase 3): the context
 exposes `organizationId` (auto-provisioned via the backend's

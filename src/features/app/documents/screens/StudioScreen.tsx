@@ -283,6 +283,35 @@ export function StudioScreen() {
                 id={listboxId}
                 role="listbox"
                 aria-label={t('doclib_studio_catalogue')}
+                onKeyDown={(event) => {
+                  /* listbox semantics — arrows move focus between options. */
+                  if (
+                    event.key !== 'ArrowDown' &&
+                    event.key !== 'ArrowUp' &&
+                    event.key !== 'Home' &&
+                    event.key !== 'End'
+                  )
+                    return
+                  const options = Array.from(
+                    event.currentTarget.querySelectorAll<HTMLElement>('[role="option"]'),
+                  )
+                  if (options.length === 0) return
+                  event.preventDefault()
+                  const index = options.indexOf(document.activeElement as HTMLElement)
+                  const next =
+                    event.key === 'Home'
+                      ? 0
+                      : event.key === 'End'
+                        ? options.length - 1
+                        : event.key === 'ArrowDown'
+                          ? index < options.length - 1
+                            ? index + 1
+                            : 0
+                          : index > 0
+                            ? index - 1
+                            : options.length - 1
+                  options[next]?.focus()
+                }}
                 className="max-h-[min(640px,70vh)] space-y-0.5 overflow-y-auto p-2"
               >
                 {filtered.map((template) => (

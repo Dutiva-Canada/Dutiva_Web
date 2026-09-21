@@ -1,7 +1,7 @@
-import { Navigate } from 'react-router-dom'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { TemplatesView } from '@/features/app/views/templates/TemplatesView'
+import { WorkspaceNavigate as Navigate } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 /**
  * Demo renders the legacy HR Library gallery; production redirects to Studio

@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import {
   useWorkspaceNavigate,
   useWorkspaceRoot,
@@ -14,6 +13,7 @@ import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import { statusChipClass } from '@/components/chips'
 import { RiskFlagCard } from './RiskFlagCard'
 import { useAskAdvisorAboutEmployee } from './useAskAdvisorAboutEmployee'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 /**
  * Employee quick drawer — the 400px right-hand profile peek (prototype

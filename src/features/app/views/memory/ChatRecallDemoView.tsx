@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Navigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import {
   useWorkspaceNavigate,
   useWorkspaceRoot,
@@ -20,6 +20,7 @@ import { CONFIDENCE_META, SOURCE_META } from './memoryModel'
 import { KnowFact } from './KnowFact'
 import { useMemoryStore } from './memoryStore'
 import { useLgUp } from '@/lib/useMediaQuery'
+import { WorkspaceNavigate as Navigate } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 /**
  * Chat recall (`Advisor Memory.dc.html` CHAT surface): the "Resumed from…"

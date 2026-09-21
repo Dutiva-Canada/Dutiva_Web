@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { BookOpen } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick } from '@/i18n/core'
@@ -11,6 +10,7 @@ import { useRail } from '@/features/app/rail/railContext'
 import { GuidanceSourcesPanel } from '@/features/app/guidance/GuidanceSourcesPanel'
 import { AppPage } from '@/features/app/shell/AppPage'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 /**
  * Shared HR library — rendered in every workspace root, including production

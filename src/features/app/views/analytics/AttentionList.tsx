@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 import { TriangleAlert } from 'lucide-react'
 import { statusChipClass } from '@/components/chips'
 import type { AttentionStatus } from './aggregation'

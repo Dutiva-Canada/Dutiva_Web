@@ -193,9 +193,7 @@ export interface FinanceDataContextValue {
   /** Seed the workspace with default ledger accounts and category rules. */
   seedDefaultCategoryRules: () => Promise<number>
   /** Analyse a single import session with AI, categorizing its bank items. */
-  analyseImportWithAi: (
-    sessionId: string,
-  ) => Promise<{
+  analyseImportWithAi: (sessionId: string) => Promise<{
     itemsAnalysed: number
     itemsMatched: number
     itemsSuggested: number

@@ -26,12 +26,10 @@ export async function uploadReceiptFile(
   if (!supabase) throw new Error('Supabase is not configured')
   const ext = file.name.split('.').pop()?.toLowerCase() ?? 'bin'
   const storagePath = financeEvidencePath(organizationId, entityId, receiptId, ext)
-  const { error } = await supabase.storage
-    .from(EVIDENCE_BUCKET)
-    .upload(storagePath, file, {
-      contentType: file.type || 'application/octet-stream',
-      upsert: false,
-    })
+  const { error } = await supabase.storage.from(EVIDENCE_BUCKET).upload(storagePath, file, {
+    contentType: file.type || 'application/octet-stream',
+    upsert: false,
+  })
   if (error) throw error
   // SHA-256 is computed server-side by the edge function in a future phase;
   // for now we record size only.

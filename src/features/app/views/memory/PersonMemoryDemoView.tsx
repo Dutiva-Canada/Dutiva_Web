@@ -1,4 +1,4 @@
-import { Navigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { Brain, Briefcase, Clock, Eye, ShieldCheck, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick } from '@/i18n/core'
@@ -18,6 +18,7 @@ import { CATEGORY_LABELS, PERSON_CATEGORY_ORDER } from './memoryModel'
 import { memoryScenarioTodayISO } from '@/data'
 import { MemoryFactRow } from './MemoryFactRow'
 import { useMemoryStore } from './memoryStore'
+import { WorkspaceNavigate as Navigate } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 /**
  * Person memory (`Advisor Memory.dc.html` PERSON surface): profile header

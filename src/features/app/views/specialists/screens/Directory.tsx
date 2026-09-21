@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { Pencil } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { specialistsMessages as M } from '@/i18n/messages/specialists'
@@ -14,6 +13,7 @@ import {
 } from '@/components/FormField'
 import { useSpecialistsData } from '../SpecialistsDataContext'
 import type { Specialist, SpecialistSpecialty, SpecialistWorkspaceRole } from '../data/types'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 const SPECIALTIES: SpecialistSpecialty[] = [
   'lawyer',

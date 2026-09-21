@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { Briefcase, FileStack, House, Menu, Search, Sparkle } from 'lucide-react'
 import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
@@ -11,6 +11,7 @@ import { cx } from './cx'
 import { isNavActive } from './navConfig'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { usePrefetchIntent } from './viewPrefetch'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 /**
  * Mobile (<768px) chrome — App v2 `showMobileTopbar` bar and the bottom

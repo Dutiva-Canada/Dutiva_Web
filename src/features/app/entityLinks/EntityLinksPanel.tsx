@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { Link2, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { entityLinksMessages as M } from '@/i18n/messages/entityLinks'
@@ -9,6 +8,7 @@ import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/wo
 import { createEntityLink, deleteEntityLink, listEntityLinks } from './data/productionApi'
 import { entityLinks as fixtureLinks, entityLinksDemoOrgId } from './data/fixtures'
 import type { EntityLink, EntityTable, LinkCandidate } from './data/types'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 function generateId() {
   return `elink-${Math.random().toString(36).slice(2, 9)}`

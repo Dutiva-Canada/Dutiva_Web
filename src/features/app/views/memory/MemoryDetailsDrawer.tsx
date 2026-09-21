@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
 import {
   Check,
   Clock,
@@ -36,6 +35,7 @@ import {
 import { formatMemoryDate } from './memoryDates'
 import type { SubjectRef } from './memoryWorkspace'
 import { memoryActions, type MemoryAuditEntry } from './memoryStore'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 /**
  * Right-hand details drawer for a selected memory. Exposes the full record —

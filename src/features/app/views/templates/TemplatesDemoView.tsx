@@ -1,18 +1,19 @@
 import { useEffect, useRef } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { FileText } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { templatesMessages as M } from '@/i18n/messages/templates'
 import { documentTemplates } from '@/data'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
 import type { TemplatesSearchNavState } from '@/features/app/search/searchCorpus'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 
 /** Northgate fixtures — demo workspace and public `/demo` only. */
 export function TemplatesDemoView() {
   const { x } = useI18n()
   const { openDocFromLibrary } = useDocStudio()
   const location = useLocation()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   /* Handled-by-identity guard: StrictMode-safe, but a LATER navigation with a
      new state object (e.g. a second search-result click while already on this
      view) is handled again. */

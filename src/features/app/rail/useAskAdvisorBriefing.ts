@@ -1,11 +1,14 @@
 import { useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
 import type { LText } from '@/i18n/core'
 import { advisorCore as M } from '@/i18n/messages/advisorCore'
 import type { AdvisorTurnSpec } from '@/features/app/advisor/types'
 import { cases } from '@/data'
 import { useDocStudio } from '@/features/app/docstudio/docStudioContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import {
+  useWorkspaceNavigate,
+  workspaceSegments,
+} from '@/features/app/workspaceRoot/workspaceRootContext'
 import { useRail } from './railContext'
 
 /**
@@ -26,10 +29,9 @@ function caseRouteForChat(chatId: string): string {
   return match ? `/app/cases/${match.id}` : '/app/cases'
 }
 
-/** First path segment under /app — the briefing key for a location. */
+/** First path segment under the workspace root — the briefing key for a location. */
 export function railViewKeyFromPathname(pathname: string): string {
-  const match = /^\/app\/([^/]+)/.exec(pathname)
-  return match?.[1] ?? ''
+  return workspaceSegments(pathname)[0] ?? ''
 }
 
 interface Briefing {
@@ -39,7 +41,7 @@ interface Briefing {
 
 export function useAskAdvisorBriefing(): (viewKey: string) => void {
   const { openRail, closeRail } = useRail()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const { openDocFromLibrary } = useDocStudio()
   const { mode } = useWorkspaceMode()
 

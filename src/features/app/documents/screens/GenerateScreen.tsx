@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Navigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import { WorkspaceNavigate as Navigate } from '@/features/app/workspaceRoot/WorkspaceLink'
 import { bi } from '@/i18n/core'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { listEmployees } from '@/features/app/views/employees/productionApi'

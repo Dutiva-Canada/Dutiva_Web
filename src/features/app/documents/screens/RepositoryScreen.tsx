@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 
 import { Archive, FileText, Lock, Search } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -167,6 +167,7 @@ function RepositoryDemoScreen() {
     setQuery('')
     setFilters(NO_FILTERS)
   }
+  const filtersActive = q !== '' || Object.values(filters).some((value) => value !== 'all')
 
   return (
     <div className="pb-8">
@@ -294,13 +295,15 @@ function RepositoryDemoScreen() {
                 label: employee.name,
               }))}
             />
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="cursor-pointer px-[4px] text-[12.5px] font-bold text-gold-fg"
-            >
-              {t('doclib_studio_clear')}
-            </button>
+            {filtersActive && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="cursor-pointer px-[4px] text-[12.5px] font-bold text-gold-fg"
+              >
+                {t('doclib_studio_clear')}
+              </button>
+            )}
           </div>
 
           {visible.length === 0 ? (
@@ -346,7 +349,7 @@ function DocTable({
   readonly employeeById: Map<string, DocEmployee>
 }) {
   const { t, x } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   return (
     <div className="hidden overflow-x-auto rounded-[12px] border border-border bg-surface md:block">
       <table className="w-full border-collapse">

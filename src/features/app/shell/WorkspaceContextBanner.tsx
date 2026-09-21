@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom'
 import { X } from 'lucide-react'
 import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
@@ -6,6 +5,7 @@ import { shellMessages as M } from '@/i18n/messages/shell'
 import { useWorkspaceContext } from '@/features/app/workspaceContext/workspaceContextStore'
 import type { WorkspaceEntityType } from '@/features/app/workspaceContext/workspaceContextStore'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 
 const ENTITY_LABELS: Record<WorkspaceEntityType, Bi> = {
   employee: M.shell_ctx_employee,
@@ -25,7 +25,7 @@ const ENTITY_LABELS: Record<WorkspaceEntityType, Bi> = {
  */
 export function WorkspaceContextBanner() {
   const { x } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   const { root } = useWorkspaceRoot()
   const { context, clearContext, removeContextMeta } = useWorkspaceContext()
 

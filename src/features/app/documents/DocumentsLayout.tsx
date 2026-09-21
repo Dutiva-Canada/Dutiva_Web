@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import { UserRound } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
@@ -15,6 +15,7 @@ import { DoclibProvider } from './DoclibProvider'
 import { useDoclib } from './doclibContext'
 import { workspaceRoles } from './data'
 import type { WorkspaceRole } from './data'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 /**
  * Documents sub-tabs: Templates | My documents.

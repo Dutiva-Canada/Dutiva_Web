@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { ArrowRight, Lock } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { seoRoute } from '@/seo/routes'
@@ -15,6 +14,7 @@ import { hasPlanFeature, requiredPlanForFeature } from '@/config/planEntitlement
 import { useContext } from 'react'
 import { PlanContext } from './planContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 function meetsRequirement(plan: PlanId, subscriptionStatus: string, required: PlanId): boolean {
   if (!hasPlanAccess(plan, required)) return false

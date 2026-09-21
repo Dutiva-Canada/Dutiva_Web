@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { ArrowRight, BookOpen, Briefcase, FileText, MessageSquare, Scale } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -8,6 +7,7 @@ import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/wo
 import { DocChip, JurisdictionPill } from '../../components'
 import type { DocTemplate, OrgProfile, TemplateCategoryId } from '../../data'
 import { displayTemplateTitle, presentApplicability, reviewLevelInfo } from '../../presentation'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 const CATEGORY_ICON: Partial<Record<TemplateCategoryId, LucideIcon>> = {
   hiring: Briefcase,

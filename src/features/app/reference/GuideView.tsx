@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { ArrowLeft, Check, Circle, FileText, Route, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
@@ -12,6 +12,7 @@ import { groupGuideBlocks } from './guideModel'
 import type { GuideSection, ReferenceGuide } from './guideModel'
 import { AppPage } from '@/features/app/shell/AppPage'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 /**
  * Renders an in-product reference guide (docs/FOUR_RING_FRAMEWORK.md).

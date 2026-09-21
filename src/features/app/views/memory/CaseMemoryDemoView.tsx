@@ -1,4 +1,4 @@
-import { Navigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import {
   useWorkspaceNavigate,
   useWorkspaceRoot,
@@ -20,6 +20,7 @@ import { KnowFact } from './KnowFact'
 import { memoryScenarioTodayISO } from '@/data'
 import { MemoryFactRow } from './MemoryFactRow'
 import { useMemoryStore } from './memoryStore'
+import { WorkspaceNavigate as Navigate } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 /**
  * Case memory (`Advisor Memory.dc.html` CASE surface): the "Picking up where

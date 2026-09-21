@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom'
 import { Copy, Mail, RefreshCw } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { doclibMessages as M } from '@/i18n/messages/doclib'
@@ -8,6 +7,7 @@ import type { StoredDocumentExport } from '../exportStorageApi'
 import type { SigningCompletionRecord } from '../completionRecord'
 import { isSigningTokenExpired } from '../signatureQueries'
 import type { ProductionDocumentRecipient, ProductionDocumentSignature } from '../signatureQueries'
+import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import {
   PROD_RECIPIENT_TYPE,
   fmtDetailDate,
@@ -58,7 +58,7 @@ export function RecipientsTab({
   onDownloadCompletionRecord,
 }: RecipientsTabProps) {
   const { x, lang } = useI18n()
-  const navigate = useNavigate()
+  const navigate = useWorkspaceNavigate()
   return (
     <div>
       {undeliveredInviteCount > 0 && (

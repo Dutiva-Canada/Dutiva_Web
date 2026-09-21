@@ -1,8 +1,9 @@
-import { Link, Outlet, useLocation } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { specialistsMessages as M } from '@/i18n/messages/specialists'
 import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 const TABS = [
   { key: 'overview', to: 'overview' },

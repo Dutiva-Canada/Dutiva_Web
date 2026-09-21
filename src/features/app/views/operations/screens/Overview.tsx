@@ -1,10 +1,10 @@
-import { Link } from 'react-router-dom'
 import { FolderKanban, Truck, ClipboardCheck, Cpu, PackageCheck, ChevronRight } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { operationsMessages as M } from '@/i18n/messages/operations'
 import { statusChipClass } from '@/components/chips'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { useOperationsData } from '../OperationsDataContext'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 export function Overview() {
   const { x } = useI18n()

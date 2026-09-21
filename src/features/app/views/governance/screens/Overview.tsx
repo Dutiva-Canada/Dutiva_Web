@@ -1,10 +1,10 @@
-import { Link } from 'react-router-dom'
 import { FileText, Gavel, Users, TrendingUp, ChevronRight } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { governanceMessages as M } from '@/i18n/messages/governance'
 import { statusChipClass } from '@/components/chips'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { useGovernanceData } from '../GovernanceDataContext'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 export function Overview() {
   const { x } = useI18n()

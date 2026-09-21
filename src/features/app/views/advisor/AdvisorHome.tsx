@@ -122,9 +122,7 @@ export function AdvisorHome({
                       <span className="min-w-0 flex-1 truncate text-[13px] font-semibold text-text">
                         {item.title}
                       </span>
-                      <span className="shrink-0 text-[11.5px] text-text-muted">
-                        {item.dueDate}
-                      </span>
+                      <span className="shrink-0 text-[11.5px] text-text-muted">{item.dueDate}</span>
                       <MessageCircle
                         size={12}
                         strokeWidth={2}

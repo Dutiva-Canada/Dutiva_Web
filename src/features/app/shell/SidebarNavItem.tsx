@@ -1,11 +1,11 @@
 /* oxlint-disable react/only-export-components -- module exports shared active-state classes used by sibling nav components. */
-import { Link } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import type { NavItem } from './navConfig'
 import { cx } from './cx'
 import { SidebarBadge } from './SidebarBadge'
 import { SidebarTooltip } from './SidebarTooltip'
 import { usePrefetchIntent } from './viewPrefetch'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 interface SidebarNavItemProps {
   readonly item: NavItem

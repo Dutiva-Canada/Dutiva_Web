@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { ListChecks } from 'lucide-react'
 import { readPref, writePref } from '@/lib/prefs'
 import { useI18n } from '@/i18n/context'
@@ -19,6 +19,7 @@ import { SidebarNavItem } from './SidebarNavItem'
 import { SidebarSearch } from './SidebarSearch'
 import { SidebarSection } from './SidebarSection'
 import { useProductionWorkspaceEmpty } from './useProductionWorkspaceEmpty'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 export type SidebarMode = 'expanded' | 'compact' | 'drawer'
 
