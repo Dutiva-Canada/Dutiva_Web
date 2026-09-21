@@ -81,12 +81,12 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
     id: 'home',
     path: { en: '/', fr: '/fr' },
     title: {
-      en: 'Dutiva — Canadian HR compliance for documents, deadlines, and workplace decisions',
-      fr: 'Dutiva — Soutien à la conformité RH canadienne pour les documents, échéances et décisions',
+      en: 'Dutiva — Canadian HR compliance, and the operations around it',
+      fr: 'Dutiva — Conformité RH canadienne, et les opérations qui l’entourent',
     },
     description: {
-      en: 'Dutiva helps Canadian employers manage HR compliance — documents, deadlines, and decisions — with AI-assisted guidance for ON, QC, and federal workplaces.',
-      fr: 'Dutiva aide les employeurs canadiens à gérer la conformité RH — documents, échéances et décisions — avec accompagnement IA pour l’ON, le QC et le fédéral.',
+      en: 'Dutiva helps Canadian employers manage HR compliance — and the documents, hiring, and operations around it. For ON, QC, and federal workplaces.',
+      fr: 'Dutiva aide les employeurs canadiens avec la conformité RH — et les documents, l’embauche et les opérations connexes. Pour l’ON, le QC et le fédéral.',
     },
     indexable: true,
   },

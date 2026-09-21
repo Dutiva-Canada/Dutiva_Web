@@ -13,6 +13,10 @@ export const landingChrome = defineMessages({
     en: 'Document Studio',
     fr: 'Studio de documents',
   },
+  landing_nav_workspace: {
+    en: 'Workspace',
+    fr: 'Espace de travail',
+  },
   landing_nav_coverage: {
     en: 'Coverage',
     fr: 'Couverture',

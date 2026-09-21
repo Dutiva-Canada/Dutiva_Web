@@ -6,8 +6,8 @@ export const landingFooter = defineMessages({
     fr: "Dutiva offre un soutien pratique aux processus RH et des conseils axés sur la conformité. L'entreprise ne fournit pas d'avis juridique, fiscal, médical ou financier.",
   },
   landing_foot_desc: {
-    en: 'Practical HR compliance support for Canadian employers — guidance and review-ready documents when the work gets complicated.',
-    fr: 'Soutien pratique à la conformité RH pour les employeurs canadiens — conseils et documents prêts à réviser quand le travail se complique.',
+    en: 'Compliance-led workspace for Canadian employers — HR guidance, review-ready documents, and the day-to-day operations around your people.',
+    fr: 'Espace de travail axé sur la conformité pour les employeurs canadiens — conseils RH, documents prêts à réviser et les opérations quotidiennes autour de votre personnel.',
   },
   landing_foot_support_prompt: {
     en: 'Stuck on a workflow?',

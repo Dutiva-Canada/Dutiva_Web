@@ -14,6 +14,8 @@ export const HOME_FAQ_ITEMS = [
   { q: 'landing_faq4_q', a: 'landing_faq4_a' },
   { q: 'landing_faq5_q', a: 'landing_faq5_a' },
   { q: 'landing_faq6_q', a: 'landing_faq6_a' },
+  { q: 'landing_faq7_q', a: 'landing_faq7_a' },
+  { q: 'landing_faq8_q', a: 'landing_faq8_a' },
 ] as const satisfies readonly { q: LandingMessageKey; a: LandingMessageKey }[]
 
 export function homeFaqEntries(lang: Lang): { question: string; answer: string }[] {

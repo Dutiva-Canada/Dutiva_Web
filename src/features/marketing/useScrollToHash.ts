@@ -20,7 +20,17 @@ export function scrollToHash(hash: string): boolean {
 export function useScrollToHash(): void {
   const { hash } = useLocation()
   useEffect(() => {
-    if (!hash) return
-    scrollToHash(hash)
+    if (!hash || scrollToHash(hash)) return
+    /* The anchor can live inside a lazily loaded section — watch the DOM
+       until it mounts rather than racing it and losing the jump. */
+    const observer = new MutationObserver(() => {
+      if (scrollToHash(hash)) observer.disconnect()
+    })
+    observer.observe(document.body, { childList: true, subtree: true })
+    const timeout = setTimeout(() => observer.disconnect(), 5000)
+    return () => {
+      observer.disconnect()
+      clearTimeout(timeout)
+    }
   }, [hash])
 }

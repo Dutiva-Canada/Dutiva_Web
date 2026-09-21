@@ -30,11 +30,11 @@ export function WhyDutiva() {
           <p className="mt-3 text-sm text-text-3">{lt('landing_why_foot')}</p>
           <FounderIdentity size="compact" />
         </div>
-        <div className="grid gap-3">
+        <div className="flex h-full flex-col gap-3">
           {POINTS.map((point) => (
             <div
               key={point.title}
-              className="flex items-start gap-3.5 rounded-[14px] border border-border bg-bg-elevated p-[18px]"
+              className="flex flex-1 items-start gap-3.5 rounded-[14px] border border-border bg-bg-elevated p-[18px]"
             >
               <point.icon size={20} className="mt-0.5 flex-none text-gold-strong" />
               <div>

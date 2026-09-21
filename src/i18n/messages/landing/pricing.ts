@@ -34,6 +34,60 @@ export const landingPricing = defineMessages({
     en: 'Hiring',
     fr: 'Recrutement',
   },
+  /* Full-workspace chips in the landing showcase — labels mirror the shell
+     nav vocabulary (src/i18n/messages/shell.ts). */
+  landing_mod9_label: {
+    en: 'AI Advisor',
+    fr: 'Conseiller IA',
+  },
+  landing_mod10_label: {
+    en: 'Workflows',
+    fr: 'Processus',
+  },
+  landing_mod11_label: {
+    en: 'Documents',
+    fr: 'Documents',
+  },
+  landing_mod12_label: {
+    en: 'Planning',
+    fr: 'Planification',
+  },
+  landing_mod13_label: {
+    en: 'Operations',
+    fr: 'Opérations',
+  },
+  landing_mod14_label: {
+    en: 'Finance',
+    fr: 'Finances',
+  },
+  landing_mod15_label: {
+    en: 'Revenue',
+    fr: 'Revenus',
+  },
+  landing_mod16_label: {
+    en: 'CRM',
+    fr: 'CRM',
+  },
+  landing_mod17_label: {
+    en: 'Governance',
+    fr: 'Gouvernance',
+  },
+  landing_mod18_label: {
+    en: 'Security',
+    fr: 'Sécurité',
+  },
+  landing_mod19_label: {
+    en: 'Specialists',
+    fr: 'Spécialistes',
+  },
+  landing_mod20_label: {
+    en: 'Policies',
+    fr: 'Politiques',
+  },
+  landing_mod21_label: {
+    en: 'Message log',
+    fr: 'Journal des messages',
+  },
   landing_price_badge: {
     en: 'Pricing',
     fr: 'Tarifs',

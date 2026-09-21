@@ -1,18 +1,30 @@
 import { BETA_COHORT_LIMIT } from '@/config/beta'
+import { getPlanById } from '@/config/plans'
 import { defineMessages } from '../../core'
+
+/* Interpolated from the canonical plan catalogue — never hardcode the price. */
+const STARTER_PRICE = getPlanById('starter')!.monthlyPrice
 
 export const landingWaitlistCta = defineMessages({
   landing_cta_badge: {
-    en: 'Prefer not to pay yet?',
-    fr: 'Vous préférez ne pas payer pour l’instant ?',
+    en: 'Start today',
+    fr: 'Commencez aujourd’hui',
   },
   landing_cta_title: {
-    en: 'Join the waitlist for a free seat.',
-    fr: 'Joignez-vous à la liste d’attente pour une place gratuite.',
+    en: 'Choose a plan — or join the free-seat waitlist.',
+    fr: 'Choisissez un forfait — ou joignez la liste d’attente.',
   },
   landing_cta_p: {
-    en: 'A paid plan starts today. If you’d rather wait, leave your email — we’ll write when a free seat opens.',
-    fr: 'Un forfait payant commence aujourd’hui. Si vous préférez attendre, laissez votre courriel — nous vous écrirons dès qu’une place gratuite se libère.',
+    en: `Paid plans start at $${STARTER_PRICE} CAD/month — checkout takes minutes and the workspace opens right away.`,
+    fr: `Les forfaits payants commencent à ${STARTER_PRICE} $ CA/mois — le paiement prend quelques minutes et l’espace s’ouvre aussitôt.`,
+  },
+  landing_cta_waitlist_title: {
+    en: 'Prefer a free seat?',
+    fr: 'Vous préférez une place gratuite ?',
+  },
+  landing_cta_waitlist_sub: {
+    en: 'Leave your email — we’ll write when a seat opens.',
+    fr: 'Laissez votre courriel — nous vous écrirons dès qu’une place se libère.',
   },
   landing_cta_explore_demo: {
     en: 'Explore the demo first — no sign-in required.',

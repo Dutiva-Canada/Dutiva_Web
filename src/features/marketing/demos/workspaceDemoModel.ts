@@ -25,3 +25,7 @@ export function landingAttentionPreview() {
 export function landingHiringPreview() {
   return LANDING_WORKSPACE_FIXTURES.hiring
 }
+
+export function landingFinancePreview() {
+  return LANDING_WORKSPACE_FIXTURES.finance
+}

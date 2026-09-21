@@ -82,4 +82,32 @@ export const DEMO_TOUR_STOPS: readonly DemoTourStop[] = [
       'Entonnoir fondé sur des preuves — candidats, échantillons et entretiens de défense.',
     ),
   },
+  /* Business-ops stops — the tour ends on the wider-than-HR reveal. */
+  {
+    id: 'finance',
+    pathSuffix: 'finance/overview',
+    title: bi('Finance', 'Finances'),
+    blurb: bi(
+      'Entities, ledger transactions, and reconciliation status in one view.',
+      'Entités, opérations du grand livre et état du rapprochement en une vue.',
+    ),
+  },
+  {
+    id: 'governance',
+    pathSuffix: 'governance',
+    title: bi('Governance', 'Gouvernance'),
+    blurb: bi(
+      'Records, decisions, officers, and shareholders — the corporate side.',
+      'Registres, décisions, dirigeants et actionnaires — le volet corporatif.',
+    ),
+  },
+  {
+    id: 'planning',
+    pathSuffix: 'planning/tasks',
+    title: bi('Planning', 'Planification'),
+    blurb: bi(
+      'Tasks and calendar work spanning the whole workspace.',
+      'Tâches et calendrier pour l’ensemble de l’espace.',
+    ),
+  },
 ]

@@ -57,6 +57,22 @@ export const landingFaq = defineMessages({
     en: 'Email support@dutiva.ca or send a written request at dutiva.ca/contact without an account — product questions, privacy, security, and accessibility. We reply in writing to the same ticket. The Help Centre covers sign-in, documents, Advisor, billing, and privacy. General inbound phone support is not offered. When writing cannot reasonably resolve it, we may arrange a scheduled call.',
     fr: 'Écrivez à support@dutiva.ca ou envoyez une demande écrite sur dutiva.ca/contact sans compte — questions produit, confidentialité, sécurité et accessibilité. Nous répondons par écrit dans le même billet. Le Centre d’aide couvre la connexion, les documents, le Conseiller, la facturation et la confidentialité. Le soutien téléphonique entrant général n’est pas offert. Lorsque l’écrit ne peut raisonnablement pas régler la situation, nous pouvons organiser un appel planifié.',
   },
+  landing_faq7_q: {
+    en: 'Is Dutiva only for HR?',
+    fr: 'Dutiva sert-il seulement aux RH ?',
+  },
+  landing_faq7_a: {
+    en: 'HR compliance is the core, but the same workspace also covers documents and e-signatures, hiring, message logs, planning, compensation, finance ledgers, governance, and security records — the back office around your people at a small or mid-sized business. Module availability depends on the plan.',
+    fr: 'La conformité RH est au cœur, mais le même espace couvre aussi les documents et signatures électroniques, l’embauche, le journal des messages, la planification, la rémunération, les livres de finances, la gouvernance et les registres de sécurité — l’arrière-boutique autour de votre personnel dans une PME. Les modules disponibles dépendent du forfait.',
+  },
+  landing_faq8_q: {
+    en: 'Does Dutiva replace our HRIS or payroll?',
+    fr: 'Dutiva remplace-t-il notre SIRH ou notre paie ?',
+  },
+  landing_faq8_a: {
+    en: 'No. Dutiva is not a payroll processor or an enterprise HRIS replacement — payroll processing and tax remittance stay with your provider. The workspace keeps the compliance, documents, and guided workflows around your people, plus the ledgers and records around the business, in one place.',
+    fr: 'Non. Dutiva n’est pas un processeur de paie ni un remplacement de SIRH d’entreprise — le traitement de la paie et les remises fiscales restent chez votre fournisseur. L’espace regroupe la conformité, les documents et les processus guidés autour de votre personnel, ainsi que les livres et registres de l’entreprise, au même endroit.',
+  },
   landing_faq_more: {
     en: 'More questions on the FAQ',
     fr: 'D’autres questions dans la FAQ',
