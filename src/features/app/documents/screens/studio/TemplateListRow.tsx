@@ -35,10 +35,6 @@ export function TemplateListRow({
         }`}
       >
         <div className="flex items-start gap-2">
-          <span
-            className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${selected ? 'bg-navy' : 'bg-transparent border border-border'}`}
-            aria-hidden="true"
-          />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <span className="text-[13.5px] leading-snug font-semibold text-text">{title}</span>

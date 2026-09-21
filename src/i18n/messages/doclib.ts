@@ -340,6 +340,7 @@ export const doclibMessages = defineMessages({
     en: 'Used to recommend templates. Not a legal determination.',
     fr: 'Sert à recommander des modèles. Ce n’est pas une détermination juridique.', // [FR self-authored]
   },
+  doclib_profile_employee: { en: 'employee', fr: 'employé' },
   doclib_profile_employees: { en: 'employees', fr: 'employés' },
   doclib_profile_union: { en: 'Unionized', fr: 'Syndiqué' },
   doclib_profile_nonunion: { en: 'Non-union', fr: 'Non syndiqué' },
@@ -349,7 +350,7 @@ export const doclibMessages = defineMessages({
   doclib_profile_headcount: { en: 'Headcount', fr: 'Effectif' },
   doclib_profile_unionToggle: { en: 'Union status', fr: 'Statut syndical' },
   doclib_profile_edit: { en: 'Edit profile', fr: 'Modifier le profil' },
-  doclib_profile_why: { en: 'Why this applies', fr: 'Pourquoi cela s’applique' },
+  doclib_profile_why: { en: 'Why these templates', fr: 'Pourquoi ces modèles' },
   doclib_profile_whyBody: {
     en: 'Recommendations use your jurisdiction, workforce size, sector (including whether it is federally regulated), and union status. They do not guarantee that a template is legally required or sufficient for your situation.',
     fr: 'Les recommandations tiennent compte de votre territoire de compétence, de la taille de votre effectif, de votre secteur (y compris s’il est de compétence fédérale) et de votre statut syndical. Elles ne garantissent pas qu’un modèle est légalement requis ou suffisant pour votre situation.', // [FR self-authored]

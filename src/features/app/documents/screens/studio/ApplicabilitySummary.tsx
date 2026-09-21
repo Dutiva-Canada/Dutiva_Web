@@ -57,7 +57,7 @@ export function ApplicabilitySummary({
   const summaryLine = complete
     ? [
         juris ? x(juris.name) : null,
-        `${org.headcount} ${t('doclib_profile_employees')}`,
+        `${org.headcount} ${t(org.headcount === 1 ? 'doclib_profile_employee' : 'doclib_profile_employees')}`,
         summary.sectorName ? x(summary.sectorName) : null,
         x(summary.unionLabel),
       ]

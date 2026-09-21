@@ -178,7 +178,7 @@ function SigningDemoScreen() {
         </div>
 
         <aside className="w-full shrink-0 lg:w-90">
-          <div className="sticky top-[14px] rounded-[14px] border border-border bg-surface p-5">
+          <div className="sticky top-14 rounded-[14px] border border-border bg-surface p-5">
             <h2 className="mb-1 font-display text-[16px] font-semibold text-text">
               {t('doclib_sign_title')}
             </h2>

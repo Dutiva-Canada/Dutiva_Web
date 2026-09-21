@@ -614,7 +614,7 @@ function DocumentDetailDemoScreen() {
         </div>
 
         {/* ── Right: metadata rail ── */}
-        <aside className="w-80 shrink-0 max-[1023px]:w-full min-[1024px]:sticky min-[1024px]:top-[14px]">
+        <aside className="w-80 shrink-0 max-[1023px]:w-full min-[1024px]:sticky min-[1024px]:top-14">
           <div className="overflow-hidden rounded-[14px] border border-border bg-surface">
             <div className="border-b border-border bg-inset px-4 py-3 font-display text-[11px] font-bold tracking-[0.12em] text-text-muted uppercase">
               {t('doclib_docd_details')}

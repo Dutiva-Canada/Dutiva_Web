@@ -41,7 +41,7 @@ function DocumentsTabs() {
   return (
     <nav
       aria-label={x(M.shell_nav_library)}
-      className="mb-[16px] flex gap-[2px] overflow-x-auto border-b border-border"
+      className="sticky top-0 z-20 mb-[16px] flex gap-[2px] overflow-x-auto border-b border-border bg-bg"
     >
       <Link
         to={workspacePath(root, 'documents/studio')}

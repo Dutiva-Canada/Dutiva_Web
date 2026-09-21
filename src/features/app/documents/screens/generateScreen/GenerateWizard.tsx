@@ -334,7 +334,7 @@ export function GenerateWizard({
         </div>
 
         {/* Sticky live-preview rail */}
-        <aside className="sticky top-4 min-w-0 self-start max-[1023px]:static">
+        <aside className="sticky top-14 min-w-0 self-start max-[1023px]:static">
           <div className="mb-2 flex items-center justify-between gap-2">
             <h2 className="text-[12px] font-bold tracking-wider uppercase text-text-muted">
               {t('doclib_gen_livePreview')}

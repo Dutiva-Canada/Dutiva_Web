@@ -337,7 +337,7 @@ export function TemplateDetailScreen() {
         </div>
 
         {/* ── Right rail — sample preview + CTA ───────────────────────── */}
-        <aside className="min-w-0 lg:sticky lg:top-4">
+        <aside className="min-w-0 lg:sticky lg:top-14">
           <div className="mb-[6px] font-display text-[11px] font-bold tracking-[0.14em] text-text-muted uppercase">
             {t('doclib_detail_preview')}
           </div>

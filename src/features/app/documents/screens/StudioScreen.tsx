@@ -329,7 +329,7 @@ export function StudioScreen() {
         )}
 
         {showDetail && (
-          <div className="min-h-[320px] lg:sticky lg:top-4 lg:self-start">
+          <div className="min-h-[320px] lg:sticky lg:top-14 lg:self-start">
             {!lgUp && (
               <button
                 type="button"
