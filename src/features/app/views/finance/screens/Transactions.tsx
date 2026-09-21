@@ -33,6 +33,7 @@ export function Transactions() {
   const [showBulkImport, setShowBulkImport] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingAccountId, setEditingAccountId] = useState<string>('')
+  const [selected, setSelected] = useState<Set<string>>(new Set())
   const transactionAdapter = createTransactionBulkImportAdapter(importBankStatement)
 
   const counts = useMemo(() => {
@@ -127,6 +128,56 @@ export function Transactions() {
     }
   }
 
+  const isSelectable = (bi: FinanceBankItem) => canWrite && bi.matchStatus !== 'matched'
+
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const selectableVisible = bankItems.filter(isSelectable)
+  const allVisibleSelected =
+    selectableVisible.length > 0 && selectableVisible.every((bi) => selected.has(bi.id))
+
+  const toggleSelectAll = () => {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (allVisibleSelected) selectableVisible.forEach((bi) => next.delete(bi.id))
+      else selectableVisible.forEach((bi) => next.add(bi.id))
+      return next
+    })
+  }
+
+  const selectedItems = state.bankItems.filter((bi) => selected.has(bi.id))
+  const selectedSuggested = selectedItems.filter(
+    (bi) => bi.matchStatus === 'suggested' && bi.aiSuggestion,
+  )
+  const selectedExceptions = selectedItems.filter((bi) => bi.matchStatus === 'exception')
+  const selectedOpen = selectedItems.filter((bi) => bi.matchStatus !== 'matched')
+
+  const applyToSelected = async (
+    items: FinanceBankItem[],
+    fn: (bi: FinanceBankItem) => unknown,
+  ) => {
+    for (const bi of items) await fn(bi)
+    setSelected(new Set())
+  }
+
+  const bulkAccept = () => applyToSelected(selectedSuggested, (bi) => acceptSuggestion(bi))
+  const bulkMarkMatched = () =>
+    applyToSelected(selectedOpen, (bi) => transitionBankItemMatchStatus(bi.id, 'matched'))
+  const bulkMarkException = () =>
+    applyToSelected(
+      selectedOpen.filter((bi) => bi.matchStatus !== 'exception'),
+      (bi) => transitionBankItemMatchStatus(bi.id, 'exception'),
+    )
+  const bulkReopen = () =>
+    applyToSelected(selectedExceptions, (bi) => transitionBankItemMatchStatus(bi.id, 'unmatched'))
+
   return (
     <div className="flex flex-col gap-[16px]">
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
@@ -153,7 +204,10 @@ export function Transactions() {
             <button
               key={f}
               type="button"
-              onClick={() => setFilter(f)}
+              onClick={() => {
+                setFilter(f)
+                setSelected(new Set())
+              }}
               className={`rounded-[8px] px-[10px] py-[5px] text-[12px] font-semibold transition-colors ${
                 filter === f
                   ? 'bg-navy text-white'
@@ -178,6 +232,69 @@ export function Transactions() {
             </button>
           )}
         </div>
+        {canWrite && selected.size > 0 && (
+          <div className="mb-[10px] flex flex-wrap items-center gap-[6px] rounded-[8px] border border-border bg-inset px-[10px] py-[7px]">
+            <span className="text-[12px] font-semibold text-text">
+              {x(M.finance_transactions_selected_count).replace('{count}', String(selected.size))}
+            </span>
+            {selectedSuggested.length > 0 && (
+              <button
+                type="button"
+                onClick={() => void bulkAccept()}
+                className="rounded-[6px] bg-navy px-[8px] py-[3px] text-[11px] font-semibold text-white"
+              >
+                {x(M.finance_transactions_accept_selected)} ({selectedSuggested.length})
+              </button>
+            )}
+            {selectedOpen.length > 0 && (
+              <button
+                type="button"
+                onClick={() => void bulkMarkMatched()}
+                className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-surface border border-border"
+              >
+                {x(M.finance_bank_mark_matched)} ({selectedOpen.length})
+              </button>
+            )}
+            {selectedOpen.some((bi) => bi.matchStatus !== 'exception') && (
+              <button
+                type="button"
+                onClick={() => void bulkMarkException()}
+                className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-surface border border-border"
+              >
+                {x(M.finance_bank_mark_exception)} (
+                {selectedOpen.filter((bi) => bi.matchStatus !== 'exception').length})
+              </button>
+            )}
+            {selectedExceptions.length > 0 && (
+              <button
+                type="button"
+                onClick={() => void bulkReopen()}
+                className="rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-surface border border-border"
+              >
+                {x(M.finance_bank_reopen)} ({selectedExceptions.length})
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setSelected(new Set())}
+              className="ml-auto rounded-[6px] px-[8px] py-[3px] text-[11px] font-semibold text-text-muted hover:text-text"
+            >
+              {x(M.finance_transactions_clear_selection)}
+            </button>
+          </div>
+        )}
+        {canWrite && selectableVisible.length > 0 && (
+          <label className="mb-[8px] flex w-fit cursor-pointer items-center gap-[8px] text-[12px] text-text-muted">
+            <input
+              type="checkbox"
+              checked={allVisibleSelected}
+              onChange={toggleSelectAll}
+              aria-label={x(M.finance_transactions_select_all)}
+              className="h-[14px] w-[14px] cursor-pointer"
+            />
+            {x(M.finance_transactions_select_all)}
+          </label>
+        )}
         {bankItems.length === 0 ? (
           <p className="text-[13px] text-text-muted">{x(M.finance_transactions_no_bank_items)}</p>
         ) : (
@@ -196,6 +313,20 @@ export function Transactions() {
                   className="flex flex-col gap-[8px] rounded-[10px] bg-inset px-[12px] py-[10px]"
                 >
                   <div className="flex items-start gap-[12px]">
+                    {canWrite &&
+                      (isSelectable(bi) ? (
+                        <input
+                          type="checkbox"
+                          checked={selected.has(bi.id)}
+                          onChange={() => toggleSelect(bi.id)}
+                          aria-label={
+                            bi.description.trim() || x(M.finance_transactions_no_description)
+                          }
+                          className="mt-[2px] h-[14px] w-[14px] shrink-0 cursor-pointer"
+                        />
+                      ) : (
+                        <span className="w-[14px] shrink-0" aria-hidden />
+                      ))}
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-[13px] font-semibold text-text">
                         {bi.description.trim() ? (

@@ -852,6 +852,16 @@ export const financeMessages = defineMessages({
   finance_transactions_no_description: { en: '(no description)', fr: '(sans description)' },
   finance_transactions_save_changes: { en: 'Save', fr: 'Enregistrer' },
   finance_transactions_accept_suggestion: { en: 'Accept', fr: 'Accepter' },
+  finance_transactions_select_all: { en: 'Select all', fr: 'Tout sélectionner' },
+  finance_transactions_selected_count: {
+    en: '{count} selected',
+    fr: '{count} sélectionné(s)',
+  },
+  finance_transactions_accept_selected: {
+    en: 'Accept suggested',
+    fr: 'Accepter les suggestions',
+  },
+  finance_transactions_clear_selection: { en: 'Clear', fr: 'Effacer' },
 
   /* Account types (ledger account form) */
   finance_account_type_asset: { en: 'Asset', fr: 'Actif' },
