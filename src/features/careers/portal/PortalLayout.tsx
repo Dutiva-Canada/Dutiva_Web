@@ -1,5 +1,5 @@
 import { NavLink, Outlet, Link } from 'react-router-dom'
-import { Globe, LogOut } from 'lucide-react'
+import { Globe, LogOut, Settings } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Lang } from '@/i18n/core'
 import { careersMessages as M } from '@/i18n/messages/careers'
@@ -88,19 +88,41 @@ export function PortalLayout() {
               <NavLink to="/careers/portal/applications" className={navLinkClass}>
                 {x(M.careers_portal_nav_applications)}
               </NavLink>
+              <NavLink to="/careers/portal/ai-tools" className={navLinkClass}>
+                {x(M.careers_portal_nav_ai_tools)}
+              </NavLink>
               <NavLink to={paths.board} className={navLinkClass}>
                 {x(M.careers_portal_nav_browse)}
               </NavLink>
             </nav>
           </div>
-          <button
-            type="button"
-            onClick={() => void signOut()}
-            className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[13px] font-semibold text-text-2 hover:bg-inset"
-          >
-            <LogOut size={14} strokeWidth={2} aria-hidden="true" />
-            {x(M.careers_auth_sign_out)}
-          </button>
+          <div className="flex items-center gap-[8px]">
+            <button
+              type="button"
+              onClick={() => setLang(other)}
+              className="inline-flex h-[34px] min-w-[34px] cursor-pointer items-center justify-center gap-1.5 rounded-[8px] border border-border bg-transparent px-[10px] text-[12px] font-semibold text-text-2 transition-colors hover:bg-inset"
+              aria-label={L('Toggle language', 'Changer de langue')}
+            >
+              <Globe size={13} aria-hidden="true" />
+              {label}
+            </button>
+            <NavLink
+              to="/careers/portal/settings"
+              className="inline-flex h-[34px] w-[34px] items-center justify-center rounded-[8px] border border-border text-text-2 no-underline transition-colors hover:bg-inset"
+              aria-label={x(M.careers_portal_nav_settings)}
+              title={x(M.careers_portal_nav_settings)}
+            >
+              <Settings size={15} strokeWidth={2} aria-hidden="true" />
+            </NavLink>
+            <button
+              type="button"
+              onClick={() => void signOut()}
+              className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[13px] font-semibold text-text-2 hover:bg-inset"
+            >
+              <LogOut size={14} strokeWidth={2} aria-hidden="true" />
+              {x(M.careers_auth_sign_out)}
+            </button>
+          </div>
         </div>
       </header>
       <main className="mx-auto w-full max-w-[960px] flex-1 px-[20px] py-[32px]">
