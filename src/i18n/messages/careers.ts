@@ -51,6 +51,7 @@ export const careersMessages = defineMessages({
     en: 'Could not load job openings. Please try again.',
     fr: 'Impossible de charger les postes ouverts. Veuillez réessayer.',
   },
+  careers_board_retry: { en: 'Try again', fr: 'Réessayer' },
   careers_board_how_title: {
     en: 'How it works',
     fr: 'Comment ça fonctionne',

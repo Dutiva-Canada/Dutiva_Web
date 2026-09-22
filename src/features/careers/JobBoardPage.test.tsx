@@ -129,9 +129,17 @@ describe('JobBoardPage', () => {
   it('shows the error state when the API fails', async () => {
     vi.mocked(listActiveJobPostings).mockRejectedValue(new Error('network'))
     const { JobBoardPage } = await import('./JobBoardPage')
+    const { userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
     renderCareers(<JobBoardPage />)
 
     expect(await screen.findByText(/Could not load job openings/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Try again/i })).toBeInTheDocument()
+
+    vi.mocked(listActiveJobPostings).mockResolvedValue(MOCK_POSTINGS)
+    await user.click(screen.getByRole('button', { name: /Try again/i }))
+    expect(await screen.findByText('Senior Product Manager')).toBeInTheDocument()
+    expect(listActiveJobPostings).toHaveBeenCalledTimes(2)
   })
 
   it('shows the empty state when the search has no matches', async () => {
