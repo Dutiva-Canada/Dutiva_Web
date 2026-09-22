@@ -349,7 +349,7 @@ either intentional (public read) or a finding — check `check:rls`.
 | `hr_evidence_screening` | 13 | on | 2 |
 | `hr_expiry_records` | 9 | on | 4 |
 | `hr_generated_documents` | 23 | on | 4 |
-| `hr_job_postings` | 15 | on | 2 |
+| `hr_job_postings` | 15 | on | 3 |
 | `hr_leaves` | 11 | on | 4 |
 | `hr_obligations` | 13 | on | 4 |
 | `hr_onboarding_tasks` | 12 | on | 2 |
@@ -917,7 +917,7 @@ either intentional (public read) or a finding — check `check:rls`.
 | `public.usage_counters` | `set_usage_counters_updated_at` |
 | `public.workspace_integrations` | `workspace_integrations_set_updated_at` |
 
-## RLS policies — 607
+## RLS policies — 608
 
 Names and scope only; full `USING`/`WITH CHECK` expressions are in
 `supabase/schema.sql` and the migrations that created them.
@@ -1319,6 +1319,7 @@ Names and scope only; full `USING`/`WITH CHECK` expressions are in
 | `public.hr_generated_documents` | Org admins can insert generated documents | INSERT | public |
 | `public.hr_generated_documents` | Org admins can update generated documents | UPDATE | public |
 | `public.hr_generated_documents` | Org members can view generated documents | SELECT | public |
+| `public.hr_job_postings` | Anon can read active job posting columns | SELECT | anon |
 | `public.hr_job_postings` | Org admins can manage job postings | ALL | public |
 | `public.hr_job_postings` | Org members can read job postings | SELECT | public |
 | `public.hr_leaves` | Org admins can delete leaves | DELETE | public |
