@@ -92,14 +92,14 @@ async function gql(query, variables, token) {
 
 // --- guards ---------------------------------------------------------------
 
-// Untracked files are harmless for a sync — only tracked drift matters.
-if (!gitOk('diff', '--quiet') || !gitOk('diff', '--cached', '--quiet'))
-  throw new Error('working tree has uncommitted changes — commit or stash first')
+if (git('status', '--porcelain').length > 0)
+  throw new Error('working tree is not clean — commit or stash first')
 if (git('branch', '--show-current') !== 'main') throw new Error('run from main')
 
 git('fetch', 'origin', 'main')
 git('fetch', 'github', 'main')
 const localTip = git('rev-parse', 'main')
+const ghBase = git('rev-parse', 'github/main')
 const ghTree = git('rev-parse', 'github/main^{tree}')
 const localTree = git('rev-parse', 'main^{tree}')
 if (ghTree === localTree) {
@@ -109,17 +109,10 @@ if (ghTree === localTree) {
 
 // --- signing ---------------------------------------------------------------
 
-// Signature presence: read the raw object — %GG/%G? emit nothing for SSH
-// signatures when local verification can't run (no allowedSignersFile).
-const isSigned = (sha) => git('cat-file', 'commit', sha).includes('\ngpgsig ')
-// github/main's tip is a squash commit that already contains the synced
-// changes — replaying onto it conflicts every pick. The rebase base is the
-// merge-base (the last commit both histories share).
-const fork = git('merge-base', 'main', 'github/main')
-const unsigned = git('rev-list', `${fork}..${localTip}`)
+const unsigned = git('rev-list', `${ghBase}..${localTip}`)
   .split('\n')
   .filter(Boolean)
-  .filter((sha) => !isSigned(sha))
+  .filter((sha) => !git('log', '-1', '--format=%GG', sha).trim())
 
 if (unsigned.length > 0) {
   if (!existsSync(SIGNING_PUB))
@@ -139,12 +132,12 @@ if (unsigned.length > 0) {
     '-c', 'user.name=Martin Constantineau',
     '-c', 'user.email=Martin.Constantineau@dutiva.ca',
   ]
-  if (!gitOk(...signingArgs, 'rebase', '--force-rebase', fork, 'main'))
+  if (!gitOk(...signingArgs, 'rebase', '--force-rebase', ghBase, 'main'))
     throw new Error('rebase-sign failed — check `git status` for a stopped rebase')
-  const stillUnsigned = git('rev-list', `${fork}..HEAD`)
+  const stillUnsigned = git('rev-list', `${ghBase}..HEAD`)
     .split('\n')
     .filter(Boolean)
-    .filter((sha) => !isSigned(sha))
+    .filter((sha) => !git('log', '-1', '--format=%GG', sha).trim())
   if (stillUnsigned.length > 0)
     throw new Error(`signing incomplete — ${stillUnsigned.length} commits still unsigned`)
   // SHAs changed — keep GitLab and local in agreement
