@@ -290,6 +290,10 @@ export const careersMessages = defineMessages({
   careers_applications_status_rejected: { en: 'Not selected', fr: 'Non retenu' },
   careers_applications_status_withdrawn: { en: 'Withdrawn', fr: 'Retirée' },
   careers_applications_view_job: { en: 'View job posting', fr: "Voir l'offre" },
+  careers_applications_posting_closed: {
+    en: 'Posting no longer listed',
+    fr: "Offre n'est plus affichée",
+  },
   careers_applications_withdraw: { en: 'Withdraw', fr: 'Retirer' },
   careers_applications_withdraw_confirm: {
     en: 'Withdraw this application? This cannot be undone.',
@@ -369,7 +373,7 @@ export const careersMessages = defineMessages({
   },
   careers_ai_daily_limit: {
     en: "You've reached today's AI limit. Try again tomorrow — you can still submit your application without them.",
-    fr: "Vous avez atteint la limite IA du jour. Réessayez demain — vous pouvez quand même soumettre votre candidature.",
+    fr: 'Vous avez atteint la limite IA du jour. Réessayez demain — vous pouvez quand même soumettre votre candidature.',
   },
   careers_ai_match_score_label: { en: 'Match score', fr: 'Score de correspondance' },
   careers_ai_match_suggestions: { en: 'Suggestions', fr: 'Suggestions' },
