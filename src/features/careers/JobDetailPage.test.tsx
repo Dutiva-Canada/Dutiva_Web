@@ -17,6 +17,7 @@ import type { PublicJobPosting } from './data/jobBoardApi'
 const MOCK_POSTING: PublicJobPosting = {
   id: 'jp-1',
   organizationId: 'org-1',
+  organizationName: 'Northgate Logistics Inc.',
   title: 'Senior Product Manager',
   department: 'Product',
   location: 'Toronto, ON',

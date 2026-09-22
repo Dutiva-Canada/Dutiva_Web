@@ -9,11 +9,13 @@ import { AuthProvider } from '@/features/app/auth/AuthProvider'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import type { CandidateApplication } from '@/features/careers/data/applicationsApi'
 
-vi.mock('@/features/careers/data/applicationsApi', () => ({
+vi.mock('@/features/careers/data/applicationsApi', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/careers/data/applicationsApi')>()),
   listMyApplications: vi.fn(),
   hasApplied: vi.fn(),
   submitApplication: vi.fn(),
   withdrawApplication: vi.fn(),
+  deleteApplication: vi.fn(),
 }))
 
 const { listMyApplications, withdrawApplication } =

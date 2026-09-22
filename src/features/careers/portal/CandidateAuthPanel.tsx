@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { SubmitEvent } from 'react'
+import { useLocation } from 'react-router-dom'
 import { ArrowLeft, Loader2, MailCheck } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { careersMessages as M } from '@/i18n/messages/careers'
@@ -25,6 +26,9 @@ const primaryBtnClass =
 export function CandidateAuthPanel() {
   const { x } = useI18n()
   const { signInWithEmail, verifyEmailCode } = useAuth()
+  /* The panel gates every portal route — return link-clickers to the page
+     they were on (e.g. a job's apply form), not just the portal home. */
+  const { pathname } = useLocation()
   const [mode, setMode] = useState<Mode>('signin')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -38,7 +42,12 @@ export function CandidateAuthPanel() {
     setSending(true)
     setError(undefined)
     setCode('')
-    void signInWithEmail(targetEmail, withName ? { name } : undefined).then((nextError) => {
+    void signInWithEmail(targetEmail, {
+      /* The emailed magic link lands on /app/auth/confirm — `next` returns
+         the visitor here instead of dropping them into the workspace. */
+      next: pathname.startsWith('/careers/portal') ? pathname : '/careers/portal',
+      ...(withName ? { name } : {}),
+    }).then((nextError) => {
       setSending(false)
       if (nextError) setError(x(M.careers_auth_error_generic))
       else setSentTo(targetEmail)
@@ -171,6 +180,9 @@ export function CandidateAuthPanel() {
       <h1 className="m-0 font-display text-[22px] font-semibold tracking-[-0.01em] text-text">
         {x(mode === 'signin' ? M.careers_auth_welcome : M.careers_auth_welcome_new)}
       </h1>
+      <p className="m-0 mt-[8px] text-[13px] leading-[1.55] text-text-3">
+        {x(M.careers_auth_passwordless_hint)}
+      </p>
 
       <form onSubmit={handleSubmit} className="mt-[22px] flex flex-col gap-[14px]">
         {mode === 'signup' && (

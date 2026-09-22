@@ -394,6 +394,64 @@ describe('AuthProvider', () => {
     )
   })
 
+  it('carries a root-relative next path on the confirm URL, and drops unsafe ones', async () => {
+    const signInWithOtp = vi.fn().mockResolvedValue({ error: null })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () => Promise.resolve({ data: { session: null } }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+          signInWithOtp,
+        },
+      },
+    }))
+    vi.resetModules()
+    const { AuthProvider } = await import('./AuthProvider')
+    const { useAuth } = await import('./authContext')
+    const { LangProvider } = await import('@/i18n/LangProvider')
+
+    function Probe() {
+      const { signInWithEmail } = useAuth()
+      return (
+        <div>
+          <button onClick={() => void signInWithEmail('a@b.com', { next: '/careers/portal' })}>
+            portal
+          </button>
+          <button onClick={() => void signInWithEmail('a@b.com', { next: 'https://evil.example' })}>
+            evil
+          </button>
+        </div>
+      )
+    }
+
+    const user = userEvent.setup()
+    render(
+      <LangProvider>
+        <AuthProvider>
+          <Probe />
+        </AuthProvider>
+      </LangProvider>,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'portal' }))
+    expect(signInWithOtp).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({
+          emailRedirectTo: expect.stringContaining('?next=%2Fcareers%2Fportal'),
+        }),
+      }),
+    )
+
+    await user.click(screen.getByRole('button', { name: 'evil' }))
+    expect(signInWithOtp).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({
+          emailRedirectTo: expect.not.stringContaining('next='),
+        }),
+      }),
+    )
+  })
+
   it('omits user metadata when signing in without a name', async () => {
     const signInWithOtp = vi.fn().mockResolvedValue({ error: null })
     vi.doMock('@/lib/supabaseClient', () => ({

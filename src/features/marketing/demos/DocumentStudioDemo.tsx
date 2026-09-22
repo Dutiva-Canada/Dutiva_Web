@@ -14,8 +14,9 @@ import { useLanding } from '../useLanding'
 const STUDIO_DEMO_TID = 'T01'
 const WIZARD_QUESTION_IDS = ['employee_name', 'position_title', 'start_date'] as const
 
-/** Static Document Studio frame on the landing `#product` section. */
-export function DocumentStudioDemo() {
+/** Static Document Studio frame on the landing showcase. `embedded` drops the
+    top margin and the section header — the tab panel supplies those. */
+export function DocumentStudioDemo({ embedded = false }: { embedded?: boolean }) {
   const { lt } = useLanding()
   const { x, lang } = useI18n()
   const { p } = usePublicPath()
@@ -30,13 +31,17 @@ export function DocumentStudioDemo() {
   ).filter((question): question is NonNullable<typeof question> => question !== undefined)
 
   return (
-    <div className="mt-10 rounded-[22px] border border-border bg-bg-elevated p-4 sm:p-6">
-      <div className="mb-5">
-        <div className="text-sm font-semibold text-text">{lt('landing_studio_demo_title')}</div>
-        <p className="mt-1.5 text-sm leading-[1.55] text-text-2">
-          {lt('landing_studio_demo_intro')}
-        </p>
-      </div>
+    <div
+      className={`${embedded ? '' : 'mt-10 '}rounded-[22px] border border-border bg-bg-elevated p-4 sm:p-6`}
+    >
+      {!embedded && (
+        <div className="mb-5">
+          <div className="text-sm font-semibold text-text">{lt('landing_studio_demo_title')}</div>
+          <p className="mt-1.5 text-sm leading-[1.55] text-text-2">
+            {lt('landing_studio_demo_intro')}
+          </p>
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
         <div className="rounded-xl border border-border bg-bg-soft p-4">

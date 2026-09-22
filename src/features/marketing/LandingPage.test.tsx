@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
 import { landing } from '@/i18n/messages/landing'
 import { GUIDE_ARTICLES } from './articles'
@@ -63,11 +63,10 @@ describe('LandingPage', () => {
     const href = (name: string) => within(nav!).getByRole('link', { name }).getAttribute('href')
 
     expect(href('How it works')).toBe('/#how')
-    expect(href('Workflows')).toBe('/#workflows')
-    expect(href('Document Studio')).toBe('/#product')
-    expect(href('Coverage')).toBe('/#coverage')
+    expect(href('Workspace')).toBe('/#workspace')
     expect(href('Pricing')).toBe('/pricing')
     expect(href('Guides')).toBe('/guides')
+    expect(href('Careers')).toBe('/careers')
 
     const header = document.querySelector('header')!
     expect(within(header).getByRole('link', { name: 'Sign in' })).toHaveAttribute(
@@ -87,7 +86,7 @@ describe('LandingPage', () => {
     ).toBeInTheDocument()
   })
 
-  it('scrolls the hash target into view when the landing page mounts with a hash', () => {
+  it('scrolls the hash target into view when the landing page mounts with a hash', async () => {
     const spy = vi.fn()
     Object.defineProperty(Element.prototype, 'scrollIntoView', {
       configurable: true,
@@ -96,8 +95,12 @@ describe('LandingPage', () => {
     })
     try {
       renderApp(<LandingPage />, { route: '/#product', path: '/' })
-      expect(document.getElementById('product')).not.toBeNull()
-      expect(spy).toHaveBeenCalled()
+      /* The anchor lives inside the lazily loaded showcase chunk — its
+         dynamic import can take seconds under vitest transform load. */
+      await waitFor(() => expect(document.getElementById('product')).not.toBeNull(), {
+        timeout: 15_000,
+      })
+      await waitFor(() => expect(spy).toHaveBeenCalled())
     } finally {
       Reflect.deleteProperty(Element.prototype, 'scrollIntoView')
     }

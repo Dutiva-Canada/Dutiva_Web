@@ -6,12 +6,32 @@ export const landingWorkspaceDemos = defineMessages({
     fr: 'Aperçu de l’espace',
   },
   landing_ws_demo_title: {
-    en: 'See how modules connect in one place',
-    fr: 'Voyez comment les modules se rejoignent au même endroit',
+    en: 'One workspace — HR compliance to business operations.',
+    fr: 'Un seul espace — de la conformité RH aux opérations quotidiennes.',
   },
   landing_ws_demo_sub: {
-    en: 'Sample Northgate data — open the read-only demo for the full workspace.',
-    fr: 'Données types Northgate — ouvrez la démo en lecture seule pour l’espace complet.',
+    en: 'Sample Northgate data across the modules — open the read-only demo for the full workspace.',
+    fr: 'Données types Northgate dans les modules — ouvrez la démo en lecture seule pour l’espace complet.',
+  },
+  landing_ws_tabs_label: {
+    en: 'Workspace modules',
+    fr: 'Modules de l’espace',
+  },
+  landing_ws_demo_finance_title: {
+    en: 'Finance & operations',
+    fr: 'Finances et opérations',
+  },
+  landing_ws_demo_finance_sub: {
+    en: 'Ledger, reconciliation, and cash position — the operations side of the same workspace.',
+    fr: 'Grand livre, rapprochement et position de trésorerie — le volet opérationnel du même espace.',
+  },
+  landing_ws_demo_studio_title: {
+    en: 'Document Studio',
+    fr: 'Studio de documents',
+  },
+  landing_ws_demo_studio_sub: {
+    en: '50 HR templates drafted through guided questions — reviewed beside the guidance that shaped them.',
+    fr: '50 modèles RH rédigés par questions guidées — révisés à côté des conseils qui les ont façonnés.',
   },
   landing_ws_demo_analytics_title: {
     en: 'Analytics',

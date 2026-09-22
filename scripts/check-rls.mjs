@@ -66,7 +66,25 @@ const SENSITIVE_TABLES = [
   'hr_document_exports',
   'ai_advisor_credits',
   'ai_advisor_overage_months',
+  // Candidate Portal (0153/0165/0167): PII and application data must never
+  // reach anon. hr_job_postings is probed with select=* — anon holds only a
+  // column-scoped grant for the public board fields, so a full-row read must
+  // still be denied on the ungranted internal columns. The INTERNAL_COLUMNS
+  // probe below asserts that denial directly.
+  'candidate_profiles',
+  'candidate_applications',
+  'candidate_ai_usage',
+  'hr_job_postings',
 ]
+
+/**
+ * Employer-internal columns on hr_job_postings that must stay ungranted to
+ * anon (0167 grants only the public board columns). Probed one column at a
+ * time — select=<col> must be denied, and a column that is ever granted back
+ * would expose active postings' screening internals to anyone with the anon
+ * key.
+ */
+const INTERNAL_JOB_POSTING_COLUMNS = ['knockout_criteria', 'work_sample_scenario']
 
 /**
  * A table the anonymous role is MEANT to read, with at least one row. Its only
@@ -243,6 +261,33 @@ for (const table of SENSITIVE_TABLES) {
     continue
   }
   console.log(`check-rls: ${table} returns no rows to anon — OK`)
+}
+
+/* ── 3. Column-level check: internal job-posting columns must stay denied ── */
+
+for (const column of INTERNAL_JOB_POSTING_COLUMNS) {
+  let status
+  let body = ''
+  try {
+    const response = await fetch(
+      `${base}/rest/v1/hr_job_postings?select=${encodeURIComponent(column)}&limit=1`,
+      { headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` } },
+    )
+    status = response.status
+    body = (await response.text()).slice(0, 200)
+  } catch (error) {
+    console.error(`check-rls: could not probe hr_job_postings.${column} — ${error.message}`)
+    process.exit(1)
+  }
+  if (status === 401 || status === 403) {
+    console.log(`check-rls: hr_job_postings.${column} denied to anon (${status}) — OK`)
+  } else {
+    problems.push(
+      `hr_job_postings.${column}: readable by the anonymous role (${status}) — ` +
+        'internal screening columns must never be granted to anon' +
+        (body ? ` (body: ${body})` : ''),
+    )
+  }
 }
 
 if (problems.length > 0) {

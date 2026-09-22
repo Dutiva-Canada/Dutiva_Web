@@ -17,6 +17,7 @@ const MOCK_POSTINGS: PublicJobPosting[] = [
   {
     id: 'jp-1',
     organizationId: 'org-1',
+    organizationName: 'Northgate Logistics Inc.',
     title: 'Senior Product Manager',
     department: 'Product',
     location: 'Toronto, ON',
@@ -25,11 +26,12 @@ const MOCK_POSTINGS: PublicJobPosting[] = [
     requirements: ['5+ years PM experience', 'B2B SaaS background'],
     status: 'active',
     postedDate: '2026-01-15',
-    closingDate: null,
+    closingDate: '2026-03-01',
   },
   {
     id: 'jp-2',
     organizationId: 'org-1',
+    organizationName: 'Northgate Logistics Inc.',
     title: 'Frontend Engineer',
     department: 'Engineering',
     location: 'Remote (Canada)',
@@ -94,6 +96,19 @@ describe('JobBoardPage', () => {
     expect(detailLinks[1]).toHaveAttribute('href', '/careers/jobs/jp-2')
   })
 
+  it('renders the employer name and the closing date when present', async () => {
+    vi.mocked(listActiveJobPostings).mockResolvedValue(MOCK_POSTINGS)
+    const { JobBoardPage } = await import('./JobBoardPage')
+    renderCareers(<JobBoardPage />)
+
+    await screen.findByText('Senior Product Manager')
+
+    // Employer name shows on each card
+    expect(screen.getAllByText('Northgate Logistics Inc.')).toHaveLength(2)
+    // Closing date renders for jp-1 only (en-CA short format)
+    expect(screen.getByText(/Mar 1, 2026/)).toBeInTheDocument()
+  })
+
   it('shows the loading state before data arrives', async () => {
     let resolveList: (value: PublicJobPosting[]) => void = () => {}
     vi.mocked(listActiveJobPostings).mockImplementation(
@@ -134,5 +149,35 @@ describe('JobBoardPage', () => {
     await user.type(search, 'zzzznope')
 
     expect(await screen.findByText(/No open positions match/i)).toBeInTheDocument()
+
+    // Clear search restores the listings
+    await user.click(screen.getByRole('button', { name: /Clear search/i }))
+    expect(await screen.findByText('Senior Product Manager')).toBeInTheDocument()
+  })
+
+  it('shows a distinct empty state with a profile CTA when no postings exist', async () => {
+    vi.mocked(listActiveJobPostings).mockResolvedValue([])
+    const { JobBoardPage } = await import('./JobBoardPage')
+    renderCareers(<JobBoardPage />)
+
+    // Zero-postings copy — not the "no search match" wording
+    expect(await screen.findByText(/No open positions right now/i)).toBeInTheDocument()
+    expect(screen.queryByText(/match your search/i)).not.toBeInTheDocument()
+
+    // The empty state offers a next action: create a profile via the portal
+    const cta = screen.getByRole('link', { name: /Create a free profile/i })
+    expect(cta).toHaveAttribute('href', '/careers/portal')
+  })
+
+  it('renders the explainer as a headed bullet list', async () => {
+    vi.mocked(listActiveJobPostings).mockResolvedValue(MOCK_POSTINGS)
+    const { JobBoardPage } = await import('./JobBoardPage')
+    renderCareers(<JobBoardPage />)
+
+    await screen.findByText('Senior Product Manager')
+    expect(screen.getByRole('heading', { name: /How it works/i })).toBeInTheDocument()
+    expect(screen.getByText(/no account needed to look/i)).toBeInTheDocument()
+    expect(screen.getByText(/reuse it for every application/i)).toBeInTheDocument()
+    expect(screen.getByText(/tailor your resume/i)).toBeInTheDocument()
   })
 })

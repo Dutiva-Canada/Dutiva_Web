@@ -82,6 +82,41 @@ export const LANDING_WORKSPACE_FIXTURES = {
     ],
     timeToHire: bi('18 days avg.', '18 jours en moy.'),
   },
+  /* Business-ops pane — the expansion past HR: finance reconciliation as the
+     legible "not just HR" proof. Mirrors the Finance demo's entity/ledger
+     shape without importing @/data. */
+  finance: {
+    entity: 'Northgate Logistics Inc.',
+    month: bi('September 2026', 'Septembre 2026'),
+    stats: [
+      { key: 'transactions', label: bi('Transactions', 'Opérations'), value: '214' },
+      { key: 'reconciled', label: bi('Reconciled', 'Rapprochées'), value: '96%' },
+      { key: 'cash', label: bi('Cash on hand', 'Encaisse'), value: '$48,230' },
+    ],
+    rows: [
+      {
+        key: 'r1',
+        name: bi('Shopify payout', 'Versement Shopify'),
+        amount: '+$3,412.18',
+        status: bi('Matched', 'Rapprochée'),
+        tone: 'success' as PreviewTone,
+      },
+      {
+        key: 'r2',
+        name: bi('Diesel — fleet card', 'Diesel — carte flotte'),
+        amount: '-$618.40',
+        status: bi('Needs review', 'À vérifier'),
+        tone: 'warning' as PreviewTone,
+      },
+      {
+        key: 'r3',
+        name: bi('CN freight — contract', 'Fret CN — contrat'),
+        amount: '-$8,140.00',
+        status: bi('Matched', 'Rapprochée'),
+        tone: 'success' as PreviewTone,
+      },
+    ],
+  },
 } as const
 
 export type LandingAttentionStatus = (typeof LANDING_WORKSPACE_FIXTURES.attention)[number]['status']

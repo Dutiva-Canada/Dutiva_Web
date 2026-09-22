@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, CircleCheck, LayoutGrid, ShieldCheck } from 'lucide-react'
-import { allTemplates } from '@/features/app/documents/catalogue'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
 import { usePublicPath } from '@/seo/usePublicPath'
+import { trackMarketingEvent } from '../analytics/track'
 import { AdvisorDemo } from './AdvisorDemo'
 
 const CHECK_KEYS: LandingMessageKey[] = [
@@ -21,7 +21,6 @@ const CHECK_KEYS: LandingMessageKey[] = [
 export function Hero() {
   const { lt } = useLanding()
   const { p } = usePublicPath()
-  const templateCount = String(allTemplates.length)
   return (
     <section
       id="top"
@@ -41,16 +40,22 @@ export function Hero() {
           </p>
 
           <div className="mt-7 flex flex-wrap gap-3">
-            <Link to={p('pricing')} className="gold-button gold-button-lg px-6">
+            <Link
+              to={p('pricing')}
+              className="gold-button gold-button-lg px-6"
+              onClick={() =>
+                trackMarketingEvent('cta_click', { cta: 'see_plans', location: 'hero' })
+              }
+            >
               {lt('landing_cta_nocard')}
               <ArrowRight size={16} />
             </Link>
-            <a href="#how" className="ghost-button ghost-button-lg px-[22px]">
-              {lt('landing_cta_seehow')}
-            </a>
             <Link
               to={`${p('demoWorkspace')}/home`}
               className="ghost-button ghost-button-lg inline-flex items-center gap-2 px-[22px]"
+              onClick={() =>
+                trackMarketingEvent('cta_click', { cta: 'open_demo', location: 'hero' })
+              }
             >
               <LayoutGrid size={16} aria-hidden="true" />
               {lt('landing_open_in_demo')}
@@ -66,15 +71,6 @@ export function Hero() {
             {lt('landing_hero_scope')}
           </p>
 
-          {/* Slim stat strip — values from docs/CANONICAL_FACTS.md */}
-          <div className="mt-7 grid grid-cols-3 gap-4 rounded-2xl border border-border bg-bg-elevated px-4 py-4 sm:flex sm:flex-wrap sm:items-center sm:gap-7 sm:px-6 sm:py-4.5">
-            <HeroStat value={templateCount} label={lt('landing_stat_templates')} />
-            <span className="hidden w-px self-stretch bg-border sm:block" aria-hidden="true" />
-            <HeroStat value="3" label={lt('landing_stat_legal')} />
-            <span className="hidden w-px self-stretch bg-border sm:block" aria-hidden="true" />
-            <HeroStat value="EN/FR" label={lt('landing_stat_bilingual')} />
-          </div>
-
           <div className="mt-5 grid gap-2.5 text-[0.9375rem] text-text-2">
             {CHECK_KEYS.map((key) => (
               <div key={key} className="flex items-start gap-2">
@@ -89,16 +85,5 @@ export function Hero() {
         <AdvisorDemo />
       </div>
     </section>
-  )
-}
-
-function HeroStat({ value, label }: { readonly value: string; readonly label: string }) {
-  return (
-    <span className="text-center">
-      <span className="gradient-text block font-display text-[1.75rem] font-bold">{value}</span>
-      <span className="mt-0.5 block text-[0.6875rem] font-semibold tracking-[0.14em] uppercase text-text-3">
-        {label}
-      </span>
-    </span>
   )
 }

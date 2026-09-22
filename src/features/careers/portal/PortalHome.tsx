@@ -4,60 +4,14 @@ import { ArrowRight, Briefcase, FileText, Loader2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { careersMessages as M } from '@/i18n/messages/careers'
 import { statusChipClass } from '@/components/chips'
-import type { ChipTone } from '@/components/chips'
 import { getMyCandidateProfile } from '@/features/careers/data/candidateApi'
 import type { CandidateProfile } from '@/features/careers/data/candidateApi'
 import { listMyApplications } from '@/features/careers/data/applicationsApi'
-import type {
-  CandidateApplication,
-  ApplicationStatus,
-} from '@/features/careers/data/applicationsApi'
+import type { CandidateApplication } from '@/features/careers/data/applicationsApi'
+import { applicationStatusLabel, applicationStatusTone } from '@/features/careers/applicationStatus'
+import { useCareersPath } from '@/features/careers/useCareersPath'
 
 type LoadState = 'loading' | 'ready' | 'failed'
-
-/** Status → chip tone for the application badges. */
-function statusTone(status: ApplicationStatus): ChipTone {
-  switch (status) {
-    case 'submitted':
-    case 'under_review':
-      return 'info'
-    case 'shortlisted':
-    case 'interview':
-    case 'offered':
-    case 'hired':
-      return 'success'
-    case 'rejected':
-      return 'risk'
-    case 'withdrawn':
-      return 'neutral'
-    default:
-      return 'neutral'
-  }
-}
-
-/** Status → message key for the localized label. */
-function statusLabel(status: ApplicationStatus) {
-  switch (status) {
-    case 'submitted':
-      return M.careers_applications_status_submitted
-    case 'under_review':
-      return M.careers_applications_status_under_review
-    case 'shortlisted':
-      return M.careers_applications_status_shortlisted
-    case 'interview':
-      return M.careers_applications_status_interview
-    case 'offered':
-      return M.careers_applications_status_offered
-    case 'hired':
-      return M.careers_applications_status_hired
-    case 'rejected':
-      return M.careers_applications_status_rejected
-    case 'withdrawn':
-      return M.careers_applications_status_withdrawn
-    default:
-      return M.careers_applications_status_submitted
-  }
-}
 
 /** Rough profile-completeness percentage based on filled fields. */
 function profileCompleteness(profile: CandidateProfile): number {
@@ -83,6 +37,7 @@ function profileCompleteness(profile: CandidateProfile): number {
  */
 export function PortalHome() {
   const { x } = useI18n()
+  const paths = useCareersPath()
   const [state, setState] = useState<LoadState>('loading')
   const [profile, setProfile] = useState<CandidateProfile | null>(null)
   const [applications, setApplications] = useState<CandidateApplication[]>([])
@@ -123,7 +78,7 @@ export function PortalHome() {
           onClick={() => void load()}
           className="mt-[12px] cursor-pointer rounded-[8px] border-none bg-navy px-[14px] py-[8px] text-[13px] font-semibold text-white"
         >
-          {x(M.careers_error_generic)}
+          {x(M.careers_retry)}
         </button>
       </div>
     )
@@ -206,15 +161,15 @@ export function PortalHome() {
               >
                 <div className="min-w-0">
                   <div className="truncate text-[13.5px] font-semibold text-text">
-                    {app.jobPosting?.title ?? app.jobPostingId}
+                    {app.jobPosting?.title ?? x(M.careers_applications_posting_closed)}
                   </div>
                   <div className="truncate text-[12.5px] text-text-muted">
                     {app.jobPosting?.department}
                     {app.jobPosting?.location ? ` · ${app.jobPosting.location}` : ''}
                   </div>
                 </div>
-                <span className={statusChipClass(statusTone(app.status))}>
-                  {x(statusLabel(app.status))}
+                <span className={statusChipClass(applicationStatusTone(app.status))}>
+                  {x(applicationStatusLabel(app.status))}
                 </span>
               </div>
             ))}
@@ -224,7 +179,7 @@ export function PortalHome() {
 
       {/* Browse jobs CTA */}
       <Link
-        to="/careers"
+        to={paths.board}
         className="flex items-center justify-center gap-[8px] rounded-[11px] border-none bg-navy px-[20px] py-[14px] text-[15px] font-semibold text-white no-underline"
       >
         {x(M.careers_portal_nav_browse)}

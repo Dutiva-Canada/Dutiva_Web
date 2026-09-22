@@ -9,6 +9,7 @@ import { createBetaSignup, BetaSignupError } from '../betaSignupApi'
 import type { BetaProvince } from '../betaSignupApi'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
+import { trackMarketingEvent } from '../analytics/track'
 import { BetaSpotCounter } from './BetaSpotCounter'
 
 /** Same validation shape as the prototype's beta-form handler (linear-time). */
@@ -102,6 +103,9 @@ export function BetaSignup() {
         setExtraTaken((n) => n + 1)
         setStatus('done')
       }
+      trackMarketingEvent('waitlist_submit', {
+        result: result.waitlisted ? 'waitlisted' : 'admitted',
+      })
     } catch (error) {
       const code = error instanceof BetaSignupError ? error.code : 'error'
       setMessage({ key: errorKeyForCode(code), isError: true })
@@ -126,20 +130,43 @@ export function BetaSignup() {
           <p className="mt-3.5 max-w-[44ch] text-base leading-[1.6] text-text-2">
             {lt('landing_cta_p')}
           </p>
+          <div className="mt-5">
+            <Link
+              to={p('pricing')}
+              className="gold-button gold-button-lg px-6"
+              onClick={() =>
+                trackMarketingEvent('cta_click', { cta: 'see_plans', location: 'final_cta' })
+              }
+            >
+              {lt('landing_start_free')}
+              <ArrowRight size={16} />
+            </Link>
+          </div>
           <Link
             to={p('demoWorkspace')}
             className="mt-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-accent transition-opacity hover:opacity-80"
+            onClick={() =>
+              trackMarketingEvent('cta_click', { cta: 'open_demo', location: 'final_cta' })
+            }
           >
             {lt('landing_open_in_demo')}
             <span className="font-normal text-text-3">— {lt('landing_cta_explore_demo')}</span>
           </Link>
-          <p className="mt-3 max-w-[46ch] text-[0.8125rem] leading-normal text-text-2">
-            {lt('landing_cta_capacity')}
-          </p>
         </div>
 
-        <div>
-          <BetaSpotCounter extraTaken={extraTaken} />
+        <div className="premium-card-soft p-5 sm:p-6">
+          <h3 className="m-0 text-base font-semibold text-text">
+            {lt('landing_cta_waitlist_title')}
+          </h3>
+          <p className="m-0 mt-1 text-sm leading-normal text-text-2">
+            {lt('landing_cta_waitlist_sub')}
+          </p>
+          <p className="m-0 mt-2 text-[0.8125rem] leading-normal text-text-3">
+            {lt('landing_cta_capacity')}
+          </p>
+          <div className="mt-3">
+            <BetaSpotCounter extraTaken={extraTaken} />
+          </div>
           {status === 'done' || status === 'waitlisted' ? (
             <div className="flex items-center gap-3 rounded-[14px] border border-border bg-bg-elevated px-5 py-4.5">
               {status === 'waitlisted' ? (

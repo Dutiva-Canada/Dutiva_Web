@@ -18,28 +18,58 @@ export const careersMessages = defineMessages({
     en: 'Search by title, department, or location…',
     fr: 'Rechercher par titre, département ou lieu…',
   },
+  careers_board_empty: {
+    en: 'No open positions right now.',
+    fr: 'Aucun poste ouvert pour le moment.',
+  },
+  careers_board_empty_body: {
+    en: 'New roles are posted regularly — create a free candidate profile and you can apply the moment one opens.',
+    fr: "De nouveaux postes sont publiés régulièrement — créez un profil candidat gratuit et vous pourrez postuler dès qu'un poste est publié.",
+  },
+  careers_board_empty_cta: {
+    en: 'Create a free profile',
+    fr: 'Créer un profil gratuit',
+  },
   careers_board_no_results: {
     en: 'No open positions match your search.',
     fr: 'Aucun poste ouvert ne correspond à votre recherche.',
+  },
+  careers_board_clear_search: {
+    en: 'Clear search',
+    fr: 'Effacer la recherche',
   },
   careers_board_no_results_body: {
     en: 'Try different keywords or check back soon — new roles are posted regularly.',
     fr: "Essayez d'autres mots-clés ou revenez bientôt — de nouveaux postes sont publiés régulièrement.",
   },
-  careers_board_view_all: { en: 'View all open roles', fr: 'Voir tous les postes ouverts' },
   careers_board_apply: { en: 'Apply now', fr: 'Postuler maintenant' },
   careers_board_view_detail: { en: 'View details', fr: 'Voir les détails' },
   careers_board_posted: { en: 'Posted', fr: 'Publié' },
-  careers_board_closing: { en: 'Closing', fr: 'Clôture' },
-  careers_board_openings: { en: 'openings', fr: 'postes' },
+  careers_board_closing: { en: 'Closes', fr: 'Clôture' },
   careers_board_loading: { en: 'Loading job openings…', fr: 'Chargement des postes ouverts…' },
   careers_board_load_error: {
     en: 'Could not load job openings. Please try again.',
     fr: 'Impossible de charger les postes ouverts. Veuillez réessayer.',
   },
-  careers_board_how_it_works: {
-    en: 'For candidates: Dutiva Careers lets you browse open positions from Canadian employers, create a profile, and apply with optional AI tools for resume tailoring and interview preparation. Employers post jobs through the B2B hiring module; candidates see the same active postings here. Sign in to save your profile, track applications, and get AI-assisted guidance.',
-    fr: "Pour les candidats : Dutiva Carrières vous permet de parcourir les postes ouverts offerts par des employeurs canadiens, de créer un profil et de postuler avec des outils IA optionnels pour l'adaptation du CV et la préparation d'entretien. Les employeurs publient les offres via le module B2B de recrutement ; les candidats voient les mêmes postes actifs ici. Connectez-vous pour enregistrer votre profil, suivre les candidatures et obtenir de l'aide IA.",
+  careers_board_how_title: {
+    en: 'How it works',
+    fr: 'Comment ça fonctionne',
+  },
+  careers_board_how_lead: {
+    en: 'Dutiva Careers is the public job board for employers hiring through Dutiva — candidates see the same active postings the hiring team publishes.',
+    fr: "Dutiva Carrières est le tableau d'offres public des employeurs qui recrutent via Dutiva — les candidats y voient les mêmes postes actifs que publie l'équipe de recrutement.",
+  },
+  careers_board_how_1: {
+    en: 'Browse every open role from employers hiring through Dutiva — no account needed to look.',
+    fr: "Parcourez tous les postes ouverts d'employeurs qui recrutent via Dutiva — aucun compte requis.",
+  },
+  careers_board_how_2: {
+    en: 'Create a free candidate profile once; reuse it for every application.',
+    fr: 'Créez un profil candidat gratuit une fois ; réutilisez-le pour chaque candidature.',
+  },
+  careers_board_how_3: {
+    en: 'Optional AI tools can tailor your resume, draft a cover letter, and help you prep for interviews.',
+    fr: 'Des outils IA optionnels peuvent adapter votre CV, rédiger une lettre de motivation et vous préparer aux entretiens.',
   },
 
   /* ── Job detail page ──────────────────────────────────────────────────── */
@@ -96,6 +126,10 @@ export const careersMessages = defineMessages({
   },
   careers_auth_welcome: { en: 'Welcome back', fr: 'Bon retour' },
   careers_auth_welcome_new: { en: 'Welcome to Dutiva', fr: 'Bienvenue sur Dutiva' },
+  careers_auth_passwordless_hint: {
+    en: "We'll email you a 6-digit sign-in code — no password needed.",
+    fr: 'Nous vous envoyons un code de connexion à 6 chiffres — aucun mot de passe requis.',
+  },
   careers_auth_sign_out: { en: 'Sign out', fr: 'Se déconnecter' },
 
   /* ── Candidate portal — layout ────────────────────────────────────────── */
@@ -252,6 +286,26 @@ export const careersMessages = defineMessages({
     fr: 'Complétez votre profil pour commencer à postuler.',
   },
 
+  /* ── Profile deletion ─────────────────────────────────────────────────── */
+  careers_profile_delete_title: { en: 'Delete your data', fr: 'Supprimer vos données' },
+  careers_profile_delete_body: {
+    en: 'Permanently removes your candidate profile and every application you have submitted. Employers can no longer see your information. This cannot be undone.',
+    fr: 'Supprime définitivement votre profil candidat et toutes vos candidatures. Les employeurs ne pourront plus voir vos informations. Cette action est irréversible.',
+  },
+  careers_profile_delete_action: { en: 'Delete my profile', fr: 'Supprimer mon profil' },
+  careers_profile_delete_confirm: {
+    en: 'Permanently delete your profile and all of your applications? This cannot be undone.',
+    fr: 'Supprimer définitivement votre profil et toutes vos candidatures ? Cette action est irréversible.',
+  },
+  careers_profile_deleted: {
+    en: 'Your profile and applications were deleted.',
+    fr: 'Votre profil et vos candidatures ont été supprimés.',
+  },
+  careers_profile_delete_error: {
+    en: 'Could not delete your profile. Please try again.',
+    fr: 'Impossible de supprimer votre profil. Veuillez réessayer.',
+  },
+
   /* ── Applications list ────────────────────────────────────────────────── */
   careers_applications_title: { en: 'Your applications', fr: 'Vos candidatures' },
   careers_applications_empty: {
@@ -272,10 +326,18 @@ export const careersMessages = defineMessages({
   careers_applications_status_rejected: { en: 'Not selected', fr: 'Non retenu' },
   careers_applications_status_withdrawn: { en: 'Withdrawn', fr: 'Retirée' },
   careers_applications_view_job: { en: 'View job posting', fr: "Voir l'offre" },
+  careers_applications_posting_closed: {
+    en: 'Posting no longer listed',
+    fr: "Offre n'est plus affichée",
+  },
   careers_applications_withdraw: { en: 'Withdraw', fr: 'Retirer' },
   careers_applications_withdraw_confirm: {
     en: 'Withdraw this application? This cannot be undone.',
     fr: 'Retirer cette candidature ? Cette action est irréversible.',
+  },
+  careers_applications_withdraw_success: {
+    en: 'Application withdrawn.',
+    fr: 'Candidature retirée.',
   },
 
   /* ── Apply form ───────────────────────────────────────────────────────── */
@@ -293,8 +355,6 @@ export const careersMessages = defineMessages({
     fr: 'Pourquoi êtes-vous un bon candidat pour ce poste ?',
   },
   careers_apply_resume: { en: 'Resume', fr: 'CV' },
-  careers_apply_resume_base: { en: 'Use my base resume', fr: 'Utiliser mon CV de base' },
-  careers_apply_resume_tailored: { en: 'Tailored for this role', fr: 'Adapté à ce poste' },
   careers_apply_submit: { en: 'Submit application', fr: 'Soumettre la candidature' },
   careers_apply_submitting: { en: 'Submitting…', fr: 'Envoi…' },
   careers_apply_submitted: { en: 'Application submitted', fr: 'Candidature soumise' },
@@ -334,8 +394,8 @@ export const careersMessages = defineMessages({
   },
   careers_ai_match_score: { en: 'Check my match', fr: 'Évaluer ma correspondance' },
   careers_ai_match_score_desc: {
-    en: 'See how well your profile aligns with the role and get suggestions.',
-    fr: 'Voyez dans quelle mesure votre profil correspond au poste et obtenez des suggestions.',
+    en: 'See how well your profile aligns with the role. If you run this check, the score and suggestions are included with your application and visible to the employer.',
+    fr: "Voyez dans quelle mesure votre profil correspond au poste. Si vous lancez cette évaluation, le score et les suggestions sont joints à votre candidature et visibles par l'employeur.",
   },
   careers_ai_interview_prep: { en: 'Interview prep', fr: "Préparation à l'entretien" },
   careers_ai_interview_prep_desc: {
@@ -343,10 +403,13 @@ export const careersMessages = defineMessages({
     fr: 'Questions de pratique et points de discussion pour ce poste.',
   },
   careers_ai_generating: { en: 'Generating…', fr: 'Génération…' },
-  careers_ai_generated: { en: 'Generated', fr: 'Généré' },
   careers_ai_error: {
     en: 'AI tool unavailable. You can still apply without it.',
     fr: 'Outil IA indisponible. Vous pouvez toujours postuler sans.',
+  },
+  careers_ai_daily_limit: {
+    en: "You've reached today's AI limit. Try again tomorrow — you can still submit your application without them.",
+    fr: 'Vous avez atteint la limite IA du jour. Réessayez demain — vous pouvez quand même soumettre votre candidature.',
   },
   careers_ai_match_score_label: { en: 'Match score', fr: 'Score de correspondance' },
   careers_ai_match_suggestions: { en: 'Suggestions', fr: 'Suggestions' },
@@ -361,6 +424,7 @@ export const careersMessages = defineMessages({
 
   /* ── Misc ─────────────────────────────────────────────────────────────── */
   careers_loading: { en: 'Loading…', fr: 'Chargement…' },
+  careers_retry: { en: 'Try again', fr: 'Réessayer' },
   careers_error_generic: {
     en: 'Something went wrong. Please try again.',
     fr: "Une erreur s'est produite. Veuillez réessayer.",

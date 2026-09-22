@@ -1,7 +1,14 @@
 import { useSearchParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 
-export type HiringTab = 'candidates' | 'funnel' | 'postings'
+export type HiringTab = 'candidates' | 'applications' | 'funnel' | 'postings'
+
+const VALID_TABS: ReadonlySet<string> = new Set([
+  'candidates',
+  'applications',
+  'funnel',
+  'postings',
+])
 
 export function useHiringTab(
   defaultTab: HiringTab = 'candidates',
@@ -9,17 +16,12 @@ export function useHiringTab(
   const [searchParams, setSearchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState<HiringTab>(() => {
     const fromUrl = searchParams.get('tab')
-    if (fromUrl === 'candidates' || fromUrl === 'funnel' || fromUrl === 'postings') return fromUrl
-    return defaultTab
+    return fromUrl && VALID_TABS.has(fromUrl) ? (fromUrl as HiringTab) : defaultTab
   })
 
   useEffect(() => {
     const fromUrl = searchParams.get('tab')
-    if (fromUrl === 'candidates' || fromUrl === 'funnel' || fromUrl === 'postings') {
-      setActiveTab(fromUrl)
-    } else {
-      setActiveTab(defaultTab)
-    }
+    setActiveTab(fromUrl && VALID_TABS.has(fromUrl) ? (fromUrl as HiringTab) : defaultTab)
   }, [searchParams, defaultTab])
 
   const selectTab = (tab: HiringTab) => {

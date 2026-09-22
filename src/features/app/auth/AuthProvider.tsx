@@ -11,6 +11,7 @@ import { isInternalDutivaAccount } from '@/lib/billing/adminAccess'
 import { supabase } from '@/lib/supabaseClient'
 import { AuthContext } from './authContext'
 import type { AuthStatus } from './authContext'
+import { safeNextPath } from './safeNextPath'
 
 /**
  * Tracks the Supabase auth session (magic-link only) and exposes it via
@@ -88,13 +89,14 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
   }, [status, session?.user.id, session?.user.email])
 
   const signInWithEmail = useCallback(
-    async (email: string, opts?: { name?: string }) => {
+    async (email: string, opts?: { name?: string; next?: string }) => {
       if (!supabase) return x(M.auth_not_configured)
       /* The sign-up tab collects a display name; carry it as user metadata on
          the same passwordless OTP call. signInWithOtp already creates the user
          on first sign-in, so "sign up" and "sign in" are the same magic-link
          action — the name just personalizes the created account. */
       const name = opts?.name?.trim()
+      const next = safeNextPath(opts?.next)
       const { error } = await supabase.auth.signInWithOtp({
         email,
         /* Land the magic link on the dedicated confirm route, which exchanges
@@ -102,9 +104,12 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
            not window.location.href — keeps the `#signin` fragment and any
            transient state out of the redirect target. Pair with a Supabase
            email template pointing at {{ .RedirectTo }}?token_hash=…&
-           type=magiclink so scanner prefetches can't burn the one-time token. */
+           type=magiclink so scanner prefetches can't burn the one-time token.
+           `next` rides along as a query param so AuthConfirm can return the
+           visitor to the surface they signed in from (the candidate portal)
+           rather than always entering the workspace. */
         options: {
-          emailRedirectTo: `${window.location.origin}/app/auth/confirm`,
+          emailRedirectTo: `${window.location.origin}/app/auth/confirm${next ? `?next=${encodeURIComponent(next)}` : ''}`,
           ...(name ? { data: { full_name: name } } : {}),
         },
       })

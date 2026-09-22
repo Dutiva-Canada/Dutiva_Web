@@ -1,18 +1,6 @@
 import { defineMessages } from '../../core'
 
 export const landingProduct = defineMessages({
-  landing_prod_badge: {
-    en: 'Document Studio',
-    fr: 'Studio de documents',
-  },
-  landing_prod_title: {
-    en: 'HR documents drafted through guided questions — ready to review.',
-    fr: 'Des documents RH rédigés par questions guidées — prêts à réviser.',
-  },
-  landing_prod_sub: {
-    en: '50 HR templates, generated through guided questions and reviewed beside the guidance that shaped them.',
-    fr: '50 modèles RH, générés par des questions guidées et révisés à côté des conseils qui les ont façonnés.',
-  },
   landing_prod1_t: {
     en: '50 HR templates',
     fr: '50 modèles RH',

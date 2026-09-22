@@ -11,7 +11,7 @@ export function Guides() {
   const { x, lang } = useI18n()
   const { p } = usePublicPath()
   return (
-    <section id="guides" className="mx-auto max-w-300 scroll-mt-20 px-4 py-12 sm:px-6 sm:py-16">
+    <section id="guides" className="mx-auto max-w-300 scroll-mt-20 px-4 py-8 sm:px-6 sm:py-10">
       <SectionIntro
         badge={lt('landing_guides_badge')}
         title={lt('landing_guides_title')}
@@ -25,7 +25,7 @@ export function Guides() {
           <Link
             key={guide.slug}
             to={articlePath(guide, lang)}
-            className="premium-card-soft block p-5.5"
+            className="premium-card-soft block p-4"
           >
             <div className="flex items-start gap-3">
               <BookOpen size={16} className="mt-0.5 flex-none text-gold-strong" />

@@ -3,16 +3,16 @@ import { defineMessages } from '../../core'
 export const landingHero = defineMessages({
   /* Hero badge copy. [FR self-authored] */
   landing_hero_badge: {
-    en: 'AI-powered · Human support on demand · Canadian · Compliance-oriented',
-    fr: "Propulsé par l'IA · Soutien humain sur demande · Canadien · Axé sur la conformité",
+    en: 'Canadian · Bilingual EN/FR · Human support on demand · Compliance-oriented',
+    fr: 'Canadien · Bilingue FR/EN · Soutien humain sur demande · Axé sur la conformité',
   },
   landing_h_dir_a: {
-    en: 'Canadian HR compliance support ',
-    fr: 'Soutien à la conformité RH canadienne ',
+    en: 'HR compliance support for Canadian employers ',
+    fr: 'Soutien à la conformité RH pour les employeurs canadiens ',
   },
   landing_h_dir_b: {
-    en: 'for documents, deadlines, and workplace decisions.',
-    fr: 'pour les documents, les échéances et les décisions en milieu de travail.',
+    en: '— and the operations around it.',
+    fr: '— et les opérations qui l’entourent.',
   },
   landing_h_inf_a: {
     en: 'Canadian HR compliance support',
@@ -35,8 +35,8 @@ export const landingHero = defineMessages({
     fr: 'Arrêtez de perdre le sommeil à cause des normes du travail qui changent.',
   },
   landing_sub_dir_rest: {
-    en: ' We guide you from a blank page to a review-ready document, safely. Practical guidance across the employee lifecycle — grounded in the exact statutes that apply to your workplace.',
-    fr: ' Nous vous guidons d’une page blanche à un document prêt à réviser, en toute sécurité. Des conseils pratiques tout au long du cycle de vie de l’employé — ancrés dans les lois exactes qui s’appliquent à votre milieu de travail.',
+    en: ' We guide you from a blank page to a review-ready document, safely. Grounded in the exact statutes that apply to your workplace — and connected to the hiring, communications, compensation, and day-to-day operations around it.',
+    fr: ' Nous vous guidons d’une page blanche à un document prêt à réviser, en toute sécurité. Ancré dans les lois exactes qui s’appliquent à votre milieu de travail — et relié à l’embauche, aux communications, à la rémunération et aux opérations quotidiennes qui l’entourent.',
   },
   landing_sub_inf: {
     en: 'Jurisdiction-aware HR guidance and review-ready documents across the full employee lifecycle — grounded in the actual employment standards, in English or French.',

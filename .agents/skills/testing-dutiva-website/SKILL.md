@@ -38,10 +38,12 @@ None.
 ## What to look for on i18n changes
 
 - Strings are defined in `src/i18n/messages/*.ts` as `{ en, fr }` pairs.
-- The landing page product section is in `src/features/marketing/sections/Product.tsx`
-  and is reached from the top nav under **Document Studio** (`#product`).
-- Verify both the section subtitle (`landing_prod_sub`) and the matching feature
-  card title (`landing_prod1_t`) on both `/` and `/fr`.
+- The landing page product showcase is in
+  `src/features/marketing/sections/WorkspaceModuleDemos.tsx` — a tabbed section
+  reached from the top nav under **Workspace** (`#workspace`); the footer
+  Templates link lands on its tab bar (`#product`, studio tab default).
+- Verify the studio pane (`landing_ws_demo_studio_title`) plus one switched tab
+  (e.g. Finance) and a feature card (`landing_prod1_t`) on both `/` and `/fr`.
 
 ## Common pitfalls
 

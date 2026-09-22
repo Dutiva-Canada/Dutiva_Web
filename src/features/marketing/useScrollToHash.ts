@@ -20,7 +20,25 @@ export function scrollToHash(hash: string): boolean {
 export function useScrollToHash(): void {
   const { hash } = useLocation()
   useEffect(() => {
-    if (!hash) return
-    scrollToHash(hash)
+    if (!hash || scrollToHash(hash)) return
+    /* The anchor can live inside a lazily loaded section — watch the DOM
+       until it mounts rather than racing it and losing the jump. The timer
+       resets on each mutation, so the observer survives a slow chunk and
+       only gives up once the DOM has been quiet for five seconds. */
+    let timeout: ReturnType<typeof setTimeout>
+    const observer = new MutationObserver(() => {
+      if (scrollToHash(hash)) {
+        observer.disconnect()
+        return
+      }
+      clearTimeout(timeout)
+      timeout = setTimeout(() => observer.disconnect(), 5000)
+    })
+    observer.observe(document.body, { childList: true, subtree: true })
+    timeout = setTimeout(() => observer.disconnect(), 5000)
+    return () => {
+      observer.disconnect()
+      clearTimeout(timeout)
+    }
   }, [hash])
 }

@@ -11,6 +11,8 @@ import { Seo } from '@/seo/Seo'
 import { seoRoute } from '@/seo/routes'
 import { useAuth } from '@/features/app/auth/authContext'
 import { useCareersPath } from './useCareersPath'
+import { formatCareersDate } from './dates'
+import { seoDescription } from './seo'
 import { getPublicJobPosting } from './data/jobBoardApi'
 import type { PublicJobPosting } from './data/jobBoardApi'
 
@@ -21,7 +23,7 @@ import type { PublicJobPosting } from './data/jobBoardApi'
  * card that routes to the candidate portal.
  */
 export function JobDetailPage() {
-  const { x } = useI18n()
+  const { x, lang } = useI18n()
   const paths = useCareersPath()
   const { postingId } = useParams<{ postingId: string }>()
   const [posting, setPosting] = useState<PublicJobPosting | null | undefined>(undefined)
@@ -77,8 +79,8 @@ export function JobDetailPage() {
             fr: `${posting.title} — ${posting.department} | Carrières Dutiva`,
           },
           description: {
-            en: posting.description.slice(0, 155),
-            fr: posting.description.slice(0, 155),
+            en: seoDescription(posting.description),
+            fr: seoDescription(posting.description),
           },
           path: {
             en: `${seoRoute('careers').path.en}/jobs/${posting.id}`,
@@ -92,6 +94,7 @@ export function JobDetailPage() {
       <h1 className="mt-6 font-display text-[clamp(1.75rem,3vw,2.25rem)] font-semibold tracking-[-0.02em] text-text">
         {posting.title}
       </h1>
+      <p className="mt-2 text-[15px] font-medium text-text-muted">{posting.organizationName}</p>
 
       {/* Metadata row */}
       <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-text-2">
@@ -114,7 +117,14 @@ export function JobDetailPage() {
           <span className="flex items-center gap-1.5">
             <Calendar size={15} strokeWidth={1.7} className="text-text-muted" aria-hidden="true" />
             <span className="text-text-muted">{x(M.careers_board_posted)}:</span>
-            <span>{formatDate(posting.postedDate)}</span>
+            <span>{formatCareersDate(posting.postedDate, lang)}</span>
+          </span>
+        )}
+        {posting.closingDate && (
+          <span className="flex items-center gap-1.5">
+            <Calendar size={15} strokeWidth={1.7} className="text-text-muted" aria-hidden="true" />
+            <span className="text-text-muted">{x(M.careers_board_closing)}:</span>
+            <span>{formatCareersDate(posting.closingDate, lang)}</span>
           </span>
         )}
       </div>
@@ -208,11 +218,4 @@ function ApplyCta({ postingId }: { readonly postingId: string }) {
       </Link>
     </section>
   )
-}
-
-/** ISO date → locale-aware short date. Falls back to the raw string. */
-function formatDate(iso: string): string {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
-  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 }

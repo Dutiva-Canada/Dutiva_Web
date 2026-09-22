@@ -18,9 +18,7 @@ import type { LandingMessageKey } from '../useLanding'
    page instead of a homepage section. */
 const NAV_ITEMS: { key: LandingMessageKey; hash?: string; route?: SeoRouteId }[] = [
   { hash: 'how', key: 'landing_nav_how' },
-  { hash: 'workflows', key: 'landing_nav_workflows' },
-  { hash: 'product', key: 'landing_nav_docs' },
-  { hash: 'coverage', key: 'landing_nav_coverage' },
+  { hash: 'workspace', key: 'landing_nav_workspace' },
   { route: 'pricing', key: 'landing_nav_pricing' },
   { route: 'guides', key: 'landing_nav_guides' },
   { route: 'careers', key: 'landing_nav_careers' },

@@ -10,6 +10,8 @@ import type { PublicJobPosting } from '@/features/careers/data/jobBoardApi'
 import { getMyCandidateProfile } from '@/features/careers/data/candidateApi'
 import type { CandidateProfile } from '@/features/careers/data/candidateApi'
 import { hasApplied, submitApplication } from '@/features/careers/data/applicationsApi'
+import { DuplicateApplicationError } from '@/features/careers/data/applicationsApi'
+import { useCareersPath } from '@/features/careers/useCareersPath'
 import { AiTools } from './AiTools'
 import { MarkdownEditor } from '@/components/MarkdownEditor'
 import { CoverLetterUpload } from './CoverLetterUpload'
@@ -29,6 +31,7 @@ export function ApplyToJobPage() {
   const { x } = useI18n()
   const { showToast } = useToasts()
   const navigate = useNavigate()
+  const paths = useCareersPath()
   const { postingId } = useParams<{ postingId: string }>()
 
   const [state, setState] = useState<LoadState>('loading')
@@ -82,8 +85,14 @@ export function ApplyToJobPage() {
       })
       showToast(M.careers_apply_submitted, 'ok')
       navigate('/careers/portal/applications')
-    } catch {
-      showToast(M.careers_apply_submit_error, 'info')
+    } catch (err) {
+      // Unique constraint — a race or a stale tab double-submitted.
+      if (err instanceof DuplicateApplicationError) {
+        setAlreadyApplied(true)
+        showToast(M.careers_apply_already_applied, 'info')
+      } else {
+        showToast(M.careers_apply_submit_error, 'info')
+      }
     } finally {
       setSubmitting(false)
     }
@@ -106,7 +115,7 @@ export function ApplyToJobPage() {
         </div>
         <p className="m-0 text-[13px] text-text-muted">{x(M.careers_detail_not_found_body)}</p>
         <Link
-          to="/careers"
+          to={paths.board}
           className="mt-[14px] inline-flex items-center gap-[6px] text-[13px] font-semibold text-accent hover:underline"
         >
           <ArrowLeft size={14} strokeWidth={2} aria-hidden="true" />
@@ -222,6 +231,22 @@ export function ApplyToJobPage() {
           </div>
         </div>
 
+        {/* AI tools sit inside the form above the submit button so candidates
+            discover them before submitting — all their controls are type="button". */}
+        <AiTools
+          resumeText={resumeText || profile.resumeText}
+          jobTitle={job.title}
+          jobDescription={job.description}
+          requirements={job.requirements}
+          candidateName={profile.name}
+          onUseTailoredResume={(text) => setResumeText(text)}
+          onUseCoverLetter={(text) => setCoverLetter(text)}
+          onMatchScored={(score, suggestions) => {
+            setAiMatchScore(score)
+            setAiSuggestions(suggestions)
+          }}
+        />
+
         <button
           type="submit"
           disabled={submitting || !resumeText.trim()}
@@ -231,20 +256,6 @@ export function ApplyToJobPage() {
           {submitting ? x(M.careers_apply_submitting) : x(M.careers_apply_submit)}
         </button>
       </form>
-
-      <AiTools
-        resumeText={resumeText || profile.resumeText}
-        jobTitle={job.title}
-        jobDescription={job.description}
-        requirements={job.requirements}
-        candidateName={profile.name}
-        onUseTailoredResume={(text) => setResumeText(text)}
-        onUseCoverLetter={(text) => setCoverLetter(text)}
-        onMatchScored={(score, suggestions) => {
-          setAiMatchScore(score)
-          setAiSuggestions(suggestions)
-        }}
-      />
     </div>
   )
 }
@@ -252,10 +263,11 @@ export function ApplyToJobPage() {
 /** Compact job posting summary shown at the top of the apply page. */
 function JobSummary({ job }: { job: PublicJobPosting }) {
   const { x } = useI18n()
+  const paths = useCareersPath()
   return (
     <div>
       <Link
-        to={`/careers/jobs/${job.id}`}
+        to={paths.jobDetail(job.id)}
         className="mb-[10px] inline-flex items-center gap-[6px] text-[13px] font-semibold text-text-muted hover:text-text"
       >
         <ArrowLeft size={14} strokeWidth={2} aria-hidden="true" />

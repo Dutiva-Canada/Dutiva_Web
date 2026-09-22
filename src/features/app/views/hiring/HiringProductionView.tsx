@@ -18,23 +18,29 @@ import {
   getFunnelMetrics,
   listCandidates,
   listJobPostings,
+  listPortalApplications,
   updateCandidateStatus,
   updateJobPosting,
+  updatePortalApplicationStatus,
 } from './productionApi'
 import type {
   NewJobPosting,
+  PortalApplication,
   ProductionCandidate,
   ProductionCandidateStatus,
   ProductionFunnelMetrics,
   ProductionJobPosting,
 } from './productionApi'
+import type { ApplicationStatus } from '@/features/careers/data/applicationsApi'
+import { PortalInbox } from './PortalInbox'
+import { candidateStatusLabel, candidateStatusTone } from './hiringStatusHelpers'
 
 /**
  * Production mode view for the hiring module.
  * Tabs: Candidates (searchable list + add form), Funnel analytics, Job postings.
  */
 
-type Tab = 'candidates' | 'funnel' | 'postings'
+type Tab = 'candidates' | 'applications' | 'funnel' | 'postings'
 
 const STAGES: { key: keyof ProductionFunnelMetrics; label: keyof typeof M }[] = [
   { key: 'totalApplications', label: 'hiring_funnel_applications' },
@@ -79,19 +85,23 @@ export function HiringProductionView() {
   const [postingSaving, setPostingSaving] = useState(false)
   const [deletingPostingId, setDeletingPostingId] = useState<string | null>(null)
   const [statusUpdatingId, setStatusUpdatingId] = useState<string | null>(null)
+  const [portalApplications, setPortalApplications] = useState<PortalApplication[] | null>(null)
+  const [appStatusUpdatingId, setAppStatusUpdatingId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     if (!organizationId) return
     setLoadFailed(false)
     try {
-      const [c, f, p] = await Promise.all([
+      const [c, f, p, apps] = await Promise.all([
         listCandidates(organizationId),
         getFunnelMetrics(organizationId),
         listJobPostings(organizationId),
+        listPortalApplications(organizationId),
       ])
       setCandidates(c)
       setFunnel(f)
       setPostings(p)
+      setPortalApplications(apps)
     } catch {
       setLoadFailed(true)
     }
@@ -207,6 +217,23 @@ export function HiringProductionView() {
     }
   }
 
+  const onPortalApplicationStatusChange = async (
+    app: PortalApplication,
+    next: ApplicationStatus,
+  ) => {
+    if (appStatusUpdatingId || next === app.status) return
+    setAppStatusUpdatingId(app.id)
+    try {
+      await updatePortalApplicationStatus(app.id, next)
+      showToast(M.hiring_candidate_status_updated, 'ok')
+      void load()
+    } catch {
+      showToast(M.hiring_candidate_status_error, 'info')
+    } finally {
+      setAppStatusUpdatingId(null)
+    }
+  }
+
   const q = filter.toLowerCase()
   const filteredCandidates = (candidates ?? []).filter(
     (c) =>
@@ -246,6 +273,15 @@ export function HiringProductionView() {
             className={tabClass('candidates')}
           >
             {x(M.hiring_candidates_title)}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'applications'}
+            onClick={() => setActiveTab('applications')}
+            className={tabClass('applications')}
+          >
+            {x(M.hiring_inbox_title)}
           </button>
           <button
             type="button"
@@ -545,8 +581,8 @@ export function HiringProductionView() {
                           {candidate.position}
                         </div>
                       </div>
-                      <span className={statusChipClass(getStatusTone(candidate.status))}>
-                        {x(getStatusLabel(candidate.status))}
+                      <span className={statusChipClass(candidateStatusTone(candidate.status))}>
+                        {x(candidateStatusLabel(candidate.status))}
                       </span>
                     </div>
                     <div className="flex flex-wrap items-center gap-[8px] text-[12px] text-text-muted">
@@ -575,6 +611,14 @@ export function HiringProductionView() {
             </div>
           )}
         </>
+      )}
+
+      {activeTab === 'applications' && (
+        <PortalInbox
+          applications={portalApplications}
+          updatingId={appStatusUpdatingId}
+          onStatusChange={(app, next) => void onPortalApplicationStatusChange(app, next)}
+        />
       )}
 
       {activeTab === 'funnel' && (funnel ? <FunnelAnalytics funnel={funnel} /> : null)}
@@ -706,46 +750,6 @@ function FunnelAnalytics({ funnel }: { funnel: ProductionFunnelMetrics }) {
       </div>
     </div>
   )
-}
-
-function getStatusTone(status: string): 'success' | 'info' | 'warning' | 'risk' | 'neutral' {
-  switch (status) {
-    case 'hired':
-      return 'success'
-    case 'interview':
-    case 'work_sample':
-    case 'evidence_qualified':
-      return 'info'
-    case 'basic_qualified':
-      return 'warning'
-    case 'application':
-      return 'neutral'
-    case 'rejected':
-      return 'risk'
-    default:
-      return 'neutral'
-  }
-}
-
-function getStatusLabel(status: string) {
-  switch (status) {
-    case 'application':
-      return M.hiring_status_application
-    case 'basic_qualified':
-      return M.hiring_status_basic_qualified
-    case 'evidence_qualified':
-      return M.hiring_status_evidence_qualified
-    case 'work_sample':
-      return M.hiring_status_work_sample
-    case 'interview':
-      return M.hiring_status_interview
-    case 'hired':
-      return M.hiring_status_hired
-    case 'rejected':
-      return M.hiring_status_rejected
-    default:
-      return M.hiring_status_application
-  }
 }
 
 const STAGE_FLOW: ProductionCandidateStatus[] = [

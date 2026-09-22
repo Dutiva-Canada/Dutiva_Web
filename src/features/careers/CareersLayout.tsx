@@ -8,6 +8,7 @@ import { useI18n } from '@/i18n/context'
 import type { Lang } from '@/i18n/core'
 import { HTML_LANG, writeLang } from '@/i18n/lang'
 import { careersMessages as M } from '@/i18n/messages/careers'
+import { useAuth } from '@/features/app/auth/authContext'
 import { usePublicPath } from '@/seo/usePublicPath'
 import { useCareersPath } from './useCareersPath'
 
@@ -24,6 +25,7 @@ import { useCareersPath } from './useCareersPath'
  */
 export function CareersLayout() {
   const { x, L, lang, alternateHref } = useI18n()
+  const { status } = useAuth()
   const { legalDoc } = usePublicPath()
   const paths = useCareersPath()
 
@@ -59,7 +61,9 @@ export function CareersLayout() {
               to={paths.portal}
               className="inline-flex items-center gap-1.5 rounded-[10px] border border-border bg-surface px-3.5 py-2 text-sm font-semibold text-text transition-[border-color] hover:border-gold-border"
             >
-              {x(M.careers_auth_signin_tab)}
+              {status === 'signed-in'
+                ? x(M.careers_portal_nav_applications)
+                : x(M.careers_auth_signin_tab)}
               <ArrowRight size={14} aria-hidden="true" />
             </Link>
           </div>
