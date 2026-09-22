@@ -141,9 +141,6 @@ export function JobBoardPage() {
           <h2 className="text-center font-display text-xl font-semibold tracking-[-0.01em] text-text">
             {x(M.careers_board_how_title)}
           </h2>
-          <p className="mx-auto mt-3 max-w-[64ch] text-center text-[15px] leading-[1.65] text-text-2">
-            {x(M.careers_board_how_lead)}
-          </p>
           <ul className="mx-auto mt-6 flex max-w-[560px] list-none flex-col gap-4 p-0">
             <li className="flex items-start gap-3 text-[15px] leading-[1.6] text-text-2">
               <Search

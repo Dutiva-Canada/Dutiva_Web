@@ -1,6 +1,7 @@
 import { NavLink, Outlet, Link } from 'react-router-dom'
-import { LogOut } from 'lucide-react'
+import { Globe, LogOut } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import type { Lang } from '@/i18n/core'
 import { careersMessages as M } from '@/i18n/messages/careers'
 import { useAuth } from '@/features/app/auth/authContext'
 import { useCareersPath } from '@/features/careers/useCareersPath'
@@ -14,16 +15,50 @@ import { CandidateAuthPanel } from './CandidateAuthPanel'
  * the routed page via <Outlet />.
  */
 export function PortalLayout() {
-  const { x } = useI18n()
+  const { x, L, lang, setLang } = useI18n()
   const { status, signOut } = useAuth()
   const paths = useCareersPath()
 
+  const other: Lang = lang === 'fr' ? 'en' : 'fr'
+  const label = lang === 'en' ? 'FR' : 'EN'
+
   if (status !== 'signed-in') {
     return (
-      <div className="flex min-h-[100dvh] items-center justify-center bg-bg px-[20px] py-[40px]">
-        <div className="w-full max-w-[420px]">
-          <CandidateAuthPanel />
-        </div>
+      <div className="surface-app flex min-h-[100dvh] flex-col bg-bg text-text">
+        <header className="border-b border-border bg-bg-elevated">
+          <div className="mx-auto flex max-w-[960px] items-center justify-between gap-[16px] px-[20px] py-3">
+            <Link to={paths.board} className="flex items-center gap-2 no-underline">
+              <span className="font-display text-lg font-bold text-text">
+                Duti<span className="text-gold-strong">va</span>
+              </span>
+              <span className="text-[0.625rem] font-semibold tracking-[0.28em] text-text-3">
+                {x(M.careers_portal_title)}
+              </span>
+            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setLang(other)}
+                className="inline-flex h-9 min-w-9 cursor-pointer items-center justify-center gap-1.5 rounded-[10px] border border-control-border bg-bg-elevated px-3 font-sans text-[0.8125rem] font-semibold text-text transition-[border-color] duration-[160ms] ease-in-out hover:border-gold-border"
+                aria-label={L('Toggle language', 'Changer de langue')}
+              >
+                <Globe size={15} aria-hidden="true" />
+                {label}
+              </button>
+              <Link
+                to={paths.board}
+                className="inline-flex items-center gap-1.5 rounded-[10px] border border-border bg-surface px-3.5 py-2 text-sm font-semibold text-text no-underline transition-[border-color] hover:border-gold-border"
+              >
+                {x(M.careers_portal_nav_browse)}
+              </Link>
+            </div>
+          </div>
+        </header>
+        <main className="flex flex-1 items-center justify-center px-[20px] py-[40px]">
+          <div className="w-full max-w-[420px]">
+            <CandidateAuthPanel />
+          </div>
+        </main>
       </div>
     )
   }
