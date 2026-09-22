@@ -17,9 +17,12 @@ vi.mock('@/features/careers/data/candidateApi', async (importOriginal) => ({
   deleteMyCandidateProfile: vi.fn(),
 }))
 
-const { getMyCandidateProfile, createCandidateProfile, updateCandidateProfile } = await import(
-  '@/features/careers/data/candidateApi'
-)
+const {
+  getMyCandidateProfile,
+  createCandidateProfile,
+  updateCandidateProfile,
+  deleteMyCandidateProfile,
+} = await import('@/features/careers/data/candidateApi')
 
 const MOCK_PROFILE: CandidateProfile = {
   id: 'p1',
@@ -148,15 +151,34 @@ describe('CandidateProfilePage', () => {
     expect(await screen.findByRole('button', { name: /^Try again$/i })).toBeInTheDocument()
   })
 
-  /* The delete-your-data flow lives on /careers/portal/settings — its tests
-     are in PortalSettingsPage.test.tsx. The profile editor no longer renders
-     a destructive control. */
-  it('does not render the delete panel — destructive controls live in Settings', async () => {
+  it('deletes the profile after confirmation', async () => {
     vi.mocked(getMyCandidateProfile).mockResolvedValue(MOCK_PROFILE)
+    vi.mocked(deleteMyCandidateProfile).mockResolvedValue(undefined)
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
     const { CandidateProfilePage } = await import('./CandidateProfilePage')
+    const { default: userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
     renderCareers(<CandidateProfilePage />)
 
     await screen.findByLabelText(/Full name/i)
-    expect(screen.queryByRole('button', { name: /Delete my profile/i })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /Delete my profile/i }))
+
+    await vi.waitFor(() => {
+      expect(deleteMyCandidateProfile).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('does not delete without confirmation', async () => {
+    vi.mocked(getMyCandidateProfile).mockResolvedValue(MOCK_PROFILE)
+    vi.spyOn(window, 'confirm').mockReturnValue(false)
+    const { CandidateProfilePage } = await import('./CandidateProfilePage')
+    const { default: userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
+    renderCareers(<CandidateProfilePage />)
+
+    await screen.findByLabelText(/Full name/i)
+    await user.click(screen.getByRole('button', { name: /Delete my profile/i }))
+
+    expect(deleteMyCandidateProfile).not.toHaveBeenCalled()
   })
 })

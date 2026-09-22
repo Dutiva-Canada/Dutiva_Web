@@ -11,7 +11,6 @@ const { fromMock, builder, queueResponse, selectSpy } = vi.hoisted(() => {
   const b = {
     select: vi.fn((_columns?: string) => b),
     eq: vi.fn(() => b),
-    in: vi.fn(() => b),
     order: vi.fn(() => b),
     insert: vi.fn(() => b),
     update: vi.fn(() => b),
@@ -53,14 +52,15 @@ const ROW = {
   ai_suggestions: ['Mention logistics'],
   applied_at: '2026-01-20T00:00:00Z',
   updated_at: '2026-01-20T00:00:00Z',
-}
-
-const POSTING = {
-  id: 'jp-1',
-  title: 'Senior PM',
-  department: 'Product',
-  location: 'Toronto',
-  type: 'Full-time',
+  // PostgREST embed aliased as job_posting — the scalar job_posting_id above
+  // must survive next to it.
+  job_posting: {
+    id: 'jp-1',
+    title: 'Senior PM',
+    department: 'Product',
+    location: 'Toronto',
+    type: 'Full-time',
+  },
 }
 
 describe('applicationsApi', () => {
@@ -68,36 +68,17 @@ describe('applicationsApi', () => {
     vi.clearAllMocks()
   })
 
-  it('joins posting details from public_job_postings (not the protected table)', async () => {
+  it('keeps the scalar job_posting_id next to the aliased embed', async () => {
     queueResponse({ data: [ROW], error: null })
-    queueResponse({ data: [POSTING], error: null })
     const [app] = await listMyApplications()
 
     expect(app?.jobPostingId).toBe('jp-1')
     expect(app?.jobPosting?.id).toBe('jp-1')
     expect(app?.jobPosting?.title).toBe('Senior PM')
-    // Candidates can't read hr_job_postings under RLS — the lookup must hit
-    // the safe public view, and the posting select must not re-embed the base
-    // table (which would resolve to null).
-    expect(fromMock).toHaveBeenNthCalledWith(1, 'candidate_applications')
-    expect(fromMock).toHaveBeenNthCalledWith(2, 'public_job_postings')
+    // The select list must alias the embed — an unaliased job_posting_id(...)
+    // embed overwrites the scalar column in the PostgREST result.
     const selectArg = selectSpy.mock.calls[0]?.[0] ?? ''
-    expect(selectArg).not.toContain('job_posting_id(')
-  })
-
-  it('leaves jobPosting undefined when the posting is no longer listed', async () => {
-    queueResponse({ data: [ROW], error: null })
-    queueResponse({ data: [], error: null })
-    const [app] = await listMyApplications()
-
-    expect(app?.jobPostingId).toBe('jp-1')
-    expect(app?.jobPosting).toBeUndefined()
-  })
-
-  it('skips the postings lookup when there are no applications', async () => {
-    queueResponse({ data: [], error: null })
-    await listMyApplications()
-    expect(fromMock).toHaveBeenCalledTimes(1)
+    expect(selectArg).toContain('job_posting:job_posting_id(')
   })
 
   it('throws DuplicateApplicationError on the 23505 unique violation', async () => {

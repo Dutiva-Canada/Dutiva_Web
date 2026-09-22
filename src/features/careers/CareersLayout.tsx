@@ -2,7 +2,7 @@
  *   Copyright (c) 2026
  *   All rights reserved.
  */
-import { Link, Outlet, useLocation } from 'react-router-dom'
+import { Link, Outlet } from 'react-router-dom'
 import { ArrowRight, Globe } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Lang } from '@/i18n/core'
@@ -28,8 +28,6 @@ export function CareersLayout() {
   const { status } = useAuth()
   const { legalDoc } = usePublicPath()
   const paths = useCareersPath()
-  const { pathname } = useLocation()
-  const isEmployerDoor = pathname.startsWith('/employer') || pathname.startsWith('/fr/employeur')
 
   const other: Lang = lang === 'fr' ? 'en' : 'fr'
   const label = lang === 'en' ? 'FR' : 'EN'
@@ -43,7 +41,7 @@ export function CareersLayout() {
               Duti<span className="text-gold-strong">va</span>
             </span>
             <span className="text-[0.625rem] font-semibold tracking-[0.28em] text-text-3">
-              {x(isEmployerDoor ? M.careers_employer_tag : M.careers_portal_title)}
+              {x(M.careers_portal_title)}
             </span>
           </Link>
           <div className="flex items-center gap-2">
@@ -63,11 +61,9 @@ export function CareersLayout() {
               to={paths.portal}
               className="inline-flex items-center gap-1.5 rounded-[10px] border border-border bg-surface px-3.5 py-2 text-sm font-semibold text-text transition-[border-color] hover:border-gold-border"
             >
-              {isEmployerDoor
-                ? x(M.careers_portal_title)
-                : status === 'signed-in'
-                  ? x(M.careers_portal_nav_applications)
-                  : x(M.careers_auth_signin_tab)}
+              {status === 'signed-in'
+                ? x(M.careers_portal_nav_applications)
+                : x(M.careers_auth_signin_tab)}
               <ArrowRight size={14} aria-hidden="true" />
             </Link>
           </div>

@@ -1,7 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { postChatCompletion, resolveApiKey } from '../_shared/modelUpstream.ts'
-import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
 import {
   SYSTEM_PROMPTS,
   buildUserMessage,
@@ -82,7 +81,7 @@ function serverConfig(): ServerConfig | Response {
 async function authenticateRequest(
   req: Request,
   config: ServerConfig,
-): Promise<{ user: { id: string; email: string | null }; adminClient: SupabaseClient } | Response> {
+): Promise<{ user: { id: string }; adminClient: SupabaseClient } | Response> {
   const authCheck = validateAuthHeader(req.headers.get('Authorization'))
   if (!authCheck.ok) return json({ error: authCheck.error }, 401)
 
@@ -94,7 +93,7 @@ async function authenticateRequest(
   if (userError || !user) return json({ error: 'Invalid user token' }, 401)
 
   return {
-    user: { id: user.id, email: user.email ?? null },
+    user: { id: user.id },
     adminClient: createClient(config.supabaseUrl, config.serviceRoleKey),
   }
 }
@@ -187,21 +186,17 @@ Deno.serve(async (req: Request) => {
 
   /* Daily rail — one atomic counter row per user per day, claimed before the
      model call so a timed-out call still counts. A refusal is a wait, not a
-     paywall: the client maps the 429 to a localized "try again tomorrow".
-     Internal @dutiva.ca accounts are uncapped, same as every other staff
-     surface (see _shared/adminAccess.ts). */
-  if (!isInternalDutivaAccount(authenticated.user.email)) {
-    const { data: underLimit, error: claimError } = await authenticated.adminClient.rpc(
-      'claim_candidate_ai_call',
-      { p_user_id: authenticated.user.id },
-    )
-    if (claimError) {
-      console.error('candidate-ai: usage claim failed', claimError)
-      return json({ error: 'Usage check failed' }, 500)
-    }
-    if (!underLimit) {
-      return json({ error: 'Daily AI limit reached', code: 'daily_limit' }, 429)
-    }
+     paywall: the client maps the 429 to a localized "try again tomorrow". */
+  const { data: underLimit, error: claimError } = await authenticated.adminClient.rpc(
+    'claim_candidate_ai_call',
+    { p_user_id: authenticated.user.id },
+  )
+  if (claimError) {
+    console.error('candidate-ai: usage claim failed', claimError)
+    return json({ error: 'Usage check failed' }, 500)
+  }
+  if (!underLimit) {
+    return json({ error: 'Daily AI limit reached', code: 'daily_limit' }, 429)
   }
 
   /* Look up model route */
