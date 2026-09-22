@@ -55,6 +55,10 @@ export const careersMessages = defineMessages({
     en: 'How it works',
     fr: 'Comment ça fonctionne',
   },
+  careers_board_how_lead: {
+    en: 'Dutiva Careers is the public job board for employers hiring through Dutiva — candidates see the same active postings the hiring team publishes.',
+    fr: "Dutiva Carrières est le tableau d'offres public des employeurs qui recrutent via Dutiva — les candidats y voient les mêmes postes actifs que publie l'équipe de recrutement.",
+  },
   careers_board_how_1: {
     en: 'Browse every open role from employers hiring through Dutiva — no account needed to look.',
     fr: "Parcourez tous les postes ouverts d'employeurs qui recrutent via Dutiva — aucun compte requis.",
