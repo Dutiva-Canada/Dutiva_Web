@@ -23,7 +23,7 @@ const primaryBtnClass =
  * name). Renders two states — the form and the "check your inbox"
  * confirmation with code entry.
  */
-export function CandidateAuthPanel({ next }: { next?: string }) {
+export function CandidateAuthPanel() {
   const { x } = useI18n()
   const { signInWithEmail, verifyEmailCode } = useAuth()
   /* The panel gates every portal route — return link-clickers to the page
@@ -45,7 +45,7 @@ export function CandidateAuthPanel({ next }: { next?: string }) {
     void signInWithEmail(targetEmail, {
       /* The emailed magic link lands on /app/auth/confirm — `next` returns
          the visitor here instead of dropping them into the workspace. */
-      next: next ?? (pathname.startsWith('/careers/portal') ? pathname : '/careers/portal'),
+      next: pathname.startsWith('/careers/portal') ? pathname : '/careers/portal',
       ...(withName ? { name } : {}),
     }).then((nextError) => {
       setSending(false)
