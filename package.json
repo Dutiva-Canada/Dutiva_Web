@@ -40,9 +40,9 @@
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",
     "@fontsource-variable/montserrat": "^5.3.0",
+    "@huggingface/transformers": "^4.3.0",
     "@supabase/supabase-js": "^2.110.2",
     "@tailwindcss/vite": "^4.3.2",
-    "@xenova/transformers": "^2.17.2",
     "docx": "^9.7.1",
     "jszip": "^3.10.1",
     "lucide-react": "^0.542.0",

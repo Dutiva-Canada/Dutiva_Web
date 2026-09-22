@@ -3,7 +3,7 @@ import type { FinanceLedgerAccount } from './types'
 let extractorPromise: ReturnType<typeof loadExtractor> | null = null
 
 async function loadExtractor() {
-  const { env, pipeline } = await import('@xenova/transformers')
+  const { env, pipeline } = await import('@huggingface/transformers')
   env.allowRemoteModels = true
   /* Same SPA-fallback trap as src/lib/localModels/manager.ts: /models/* would
      return index.html, not a 404, so never probe the local path. */
@@ -12,9 +12,9 @@ async function loadExtractor() {
   env.useFSCache = false
   env.cacheDir = 'dutiva-transformers-cache'
   // Avoid SharedArrayBuffer/COEP requirements and keep the browser permission surface small.
-  env.backends.onnx.wasm.numThreads = 1
+  env.backends.onnx.wasm!.numThreads = 1
   return await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2', {
-    quantized: true,
+    dtype: 'q8',
   })
 }
 

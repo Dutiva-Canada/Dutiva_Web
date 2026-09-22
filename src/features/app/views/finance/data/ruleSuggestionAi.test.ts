@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { FinanceBankItem, FinanceCategoryRule, FinanceLedgerAccount } from './types'
 import type { RuleSuggestion } from './ruleSuggestion'
 
-vi.mock('@xenova/transformers', () => ({
+vi.mock('@huggingface/transformers', () => ({
   pipeline: vi.fn(),
   env: {
     backends: {
@@ -73,7 +73,7 @@ describe('suggestCategoryRulesWithAi', () => {
   beforeEach(async () => {
     vi.resetModules()
     vi.clearAllMocks()
-    const { pipeline } = await import('@xenova/transformers')
+    const { pipeline } = await import('@huggingface/transformers')
     vi.mocked(pipeline).mockResolvedValue(mockExtractor as any)
   })
 
@@ -121,7 +121,7 @@ describe('suggestCategoryRulesWithAi', () => {
   })
 
   it('propagates an error when the pipeline fails to load', async () => {
-    const { pipeline } = await import('@xenova/transformers')
+    const { pipeline } = await import('@huggingface/transformers')
     vi.mocked(pipeline).mockRejectedValue(new Error('network failure'))
 
     const { suggestCategoryRulesWithAi } = await import('./ruleSuggestionAi')

@@ -120,7 +120,7 @@ interface TransformersEnv {
  * the same cache and the same single-threaded WASM backend.
  */
 async function transformersRuntime() {
-  const mod = await import('@xenova/transformers')
+  const mod = await import('@huggingface/transformers')
   const env = mod.env as TransformersEnv
   env.allowRemoteModels = true
   /* Never probe localModelPath first: the SPA fallback answers /models/* with
@@ -145,7 +145,7 @@ export async function installModel(
   const pipeline = await transformersRuntime()
   try {
     await pipeline(spec.task, spec.repoId, {
-      quantized: true,
+      dtype: 'q8',
       progress_callback: (e: { file?: string; status?: string; progress?: number }) => {
         onProgress?.({ file: e.file ?? '', status: e.status ?? '', progress: e.progress })
       },

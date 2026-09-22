@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { FinanceBankItem, FinanceCategorizationFeedback, FinanceLedgerAccount } from './types'
 
-vi.mock('@xenova/transformers', () => ({
+vi.mock('@huggingface/transformers', () => ({
   pipeline: vi.fn(),
   env: {
     backends: {
@@ -80,7 +80,7 @@ describe('analyzeImportWithAi', () => {
   beforeEach(async () => {
     vi.resetModules()
     vi.clearAllMocks()
-    const { pipeline } = await import('@xenova/transformers')
+    const { pipeline } = await import('@huggingface/transformers')
     vi.mocked(pipeline).mockResolvedValue(mockExtractor as any)
     const { clearExtractorForTests } = await import('./aiEmbeddings')
     clearExtractorForTests()
@@ -114,7 +114,7 @@ describe('analyzeImportWithAi', () => {
   })
 
   it('falls back to rule-based matching when the model fails to load', async () => {
-    const { pipeline } = await import('@xenova/transformers')
+    const { pipeline } = await import('@huggingface/transformers')
     vi.mocked(pipeline).mockRejectedValue(new Error('model unavailable'))
 
     const { clearExtractorForTests } = await import('./aiEmbeddings')
