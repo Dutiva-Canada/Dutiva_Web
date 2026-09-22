@@ -515,6 +515,7 @@ describe('EmployeeProfileProductionView for a non-admin member', () => {
         value={{
           mode: 'production',
           isAdmin: false,
+          canUseProduction: true,
           identity: {
             companyName: 'Acme Co.',
             user: { name: 'Vic Member', initials: 'VM', role: { en: 'HR', fr: 'RH' }, email: '' },

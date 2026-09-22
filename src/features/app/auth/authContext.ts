@@ -63,6 +63,14 @@ export interface AuthContextValue {
    */
   verifyEmailCode: (email: string, code: string) => Promise<string | undefined>
   signOut: () => Promise<void>
+  /**
+   * Re-run the workspace-membership check for the current session. Needed
+   * after a membership materializes mid-session — e.g. the employer door's
+   * create_organization bootstrap or a claimed invitation — because the
+   * provider only evaluates `authorized` when the session itself changes.
+   * No-op while signed out.
+   */
+  refreshAuthorization: () => Promise<void>
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)

@@ -34,6 +34,12 @@ export interface WorkspaceModeContextValue {
   mode: WorkspaceMode
   /** True for platform admins (`@dutiva.ca` or `is_admin_user()`). */
   isAdmin: boolean
+  /**
+   * True when the signed-in user may use production mode: platform admin, or
+   * holder of any organization_members row. The mode switch and production
+   * surfaces render for either; RLS still scopes what each role can write.
+   */
+  canUseProduction: boolean
   /** Northgate Logistics Inc. fixture identity in demo; the admin's real profile in production. */
   identity: WorkspaceIdentity
   /**
@@ -62,7 +68,7 @@ export interface WorkspaceModeContextValue {
    * database would refuse.
    */
   isOrgAdmin: boolean
-  /** No-op for non-admins — the toggle is only ever rendered for isAdmin. */
+  /** No-op when the user may not use production mode (not admin, no org). */
   setMode: (mode: WorkspaceMode) => Promise<void>
   /**
    * The signed-in admin's real organization settings (industry, jurisdictions,

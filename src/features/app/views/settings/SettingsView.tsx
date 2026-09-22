@@ -86,6 +86,7 @@ export function SettingsView() {
   const {
     mode: workspaceMode,
     isAdmin,
+    canUseProduction,
     organizationId,
     setMode: setWorkspaceMode,
   } = useWorkspaceMode()
@@ -131,7 +132,7 @@ export function SettingsView() {
   }, [authStatus])
 
   useEffect(() => {
-    if (workspaceMode !== 'production' || !organizationId || !isAdmin) return
+    if (workspaceMode !== 'production' || !organizationId || !canUseProduction) return
     let cancelled = false
     void getSigningReminderDays(organizationId)
       .then((days) => {
@@ -150,7 +151,7 @@ export function SettingsView() {
     return () => {
       cancelled = true
     }
-  }, [workspaceMode, organizationId, isAdmin])
+  }, [workspaceMode, organizationId, canUseProduction])
 
   const saveReminderDays = async (raw: number) => {
     if (!organizationId || reminderSaving) return
@@ -293,7 +294,7 @@ export function SettingsView() {
       {/* Workspace */}
       <Section label={x(M.settings_workspace)}>
         <div className="flex flex-col rounded-[12px] border border-border bg-surface px-[20px] py-[18px]">
-          {isAdmin && (
+          {canUseProduction && (
             <div>
               <span className="block text-[12px] text-text-muted">
                 {x(M.settings_workspace_mode)}
@@ -337,7 +338,7 @@ export function SettingsView() {
               <CapacityAlert />
             </div>
           )}
-          {isAdmin && workspaceMode === 'production' && organizationId && (
+          {canUseProduction && workspaceMode === 'production' && organizationId && (
             <div className="mt-[18px] border-t border-border pt-[18px]">
               <div className="mb-[14px] text-[12px] font-semibold text-text-3">
                 {x(M.settings_reminders)}
@@ -389,7 +390,7 @@ export function SettingsView() {
           )}
           <div
             className={
-              isAdmin
+              canUseProduction
                 ? 'mt-[18px] flex flex-col gap-[12px] border-t border-border pt-[18px]'
                 : 'flex flex-col gap-[12px]'
             }

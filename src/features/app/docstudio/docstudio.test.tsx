@@ -44,6 +44,7 @@ function Opener() {
 const DEMO_MODE_CTX: WorkspaceModeContextValue = {
   mode: 'demo',
   isAdmin: false,
+  canUseProduction: false,
   identity: {
     companyName: 'Northgate Logistics Inc.',
     user: {

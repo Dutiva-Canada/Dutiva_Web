@@ -18,6 +18,7 @@ const fetchMock = vi.mocked(fetchAdvisorUsageSummary)
 const MODE: WorkspaceModeContextValue = {
   mode: 'production',
   isAdmin: true,
+  canUseProduction: true,
   identity: {
     companyName: 'Dutiva Canada Inc.',
     user: {

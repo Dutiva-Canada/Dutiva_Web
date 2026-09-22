@@ -54,39 +54,52 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
+  /* The workspace-membership check, extracted so refreshAuthorization can
+     re-run it after a membership materializes mid-session (org bootstrap,
+     claimed invite) without waiting for a session change. Returns the
+     verdict; the caller decides whether to apply it (the effect applies it
+     unless the session changed in flight). */
+  const checkMembership = useCallback(async (): Promise<boolean> => {
+    if (!supabase) return false
+    /* Staff domain is admitted in SQL (0114); short-circuit here so the UI
+       unlocks even if the membership RPC is briefly stale or unreachable. */
+    if (isInternalDutivaAccount(session?.user.email)) return true
+    try {
+      const { data, error } = await supabase.rpc('current_user_is_workspace_member')
+      if (error) {
+        console.error('auth: workspace membership check failed —', error)
+        return false
+      }
+      return data === true
+    } catch (error) {
+      console.error('auth: workspace membership check rejected —', error)
+      return false
+    }
+  }, [session?.user.email])
+
   useEffect(() => {
     if (!supabase || status !== 'signed-in') {
       setAuthorized(null)
       return
     }
-    /* Staff domain is admitted in SQL (0114); short-circuit here so the UI
-       unlocks even if the membership RPC is briefly stale or unreachable. */
     if (isInternalDutivaAccount(session?.user.email)) {
       setAuthorized(true)
       return
     }
     let cancelled = false
     setAuthorized(null)
-    supabase.rpc('current_user_is_workspace_member').then(
-      ({ data, error }) => {
-        if (cancelled) return
-        if (error) {
-          console.error('auth: workspace membership check failed —', error)
-          setAuthorized(false)
-          return
-        }
-        setAuthorized(data === true)
-      },
-      (error) => {
-        if (cancelled) return
-        console.error('auth: workspace membership check rejected —', error)
-        setAuthorized(false)
-      },
-    )
+    void checkMembership().then((ok) => {
+      if (!cancelled) setAuthorized(ok)
+    })
     return () => {
       cancelled = true
     }
-  }, [status, session?.user.id, session?.user.email])
+  }, [status, session?.user.id, session?.user.email, checkMembership])
+
+  const refreshAuthorization = useCallback(async () => {
+    if (!supabase || status !== 'signed-in' || !session) return
+    setAuthorized(await checkMembership())
+  }, [status, session, checkMembership])
 
   const signInWithEmail = useCallback(
     async (email: string, opts?: { name?: string; next?: string }) => {
@@ -160,8 +173,24 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
   }, [])
 
   const value = useMemo(
-    () => ({ status, session, authorized, signInWithEmail, verifyEmailCode, signOut }),
-    [status, session, authorized, signInWithEmail, verifyEmailCode, signOut],
+    () => ({
+      status,
+      session,
+      authorized,
+      signInWithEmail,
+      verifyEmailCode,
+      signOut,
+      refreshAuthorization,
+    }),
+    [
+      status,
+      session,
+      authorized,
+      signInWithEmail,
+      verifyEmailCode,
+      signOut,
+      refreshAuthorization,
+    ],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

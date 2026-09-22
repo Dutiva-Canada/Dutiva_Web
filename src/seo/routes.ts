@@ -381,6 +381,9 @@ export function articleDescription(article: Article, lang: Lang): string {
    ForcedLangProvider on every marketing render) never pulls a message module
    into the entry chunk. */
 const ALL_PUBLIC_PATHS: readonly Record<Lang, string>[] = [
+  /* The employer sign-in door is locale-paired for the language toggle but
+     deliberately absent from SEO_ROUTES — an auth page is not indexable. */
+  { en: '/employer', fr: '/fr/employeur' },
   ...SEO_ROUTES.map((r) => r.path),
   ...LEGAL_ROWS.map((row) => ({ en: legalDocPath(row, 'en'), fr: legalDocPath(row, 'fr') })),
   ...HELP_ARTICLES.map((a) => ({ en: helpDocPath(a, 'en'), fr: helpDocPath(a, 'fr') })),

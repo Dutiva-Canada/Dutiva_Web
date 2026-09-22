@@ -44,6 +44,7 @@ const SIGNED_IN_AUTH: AuthContextValue = {
   signInWithEmail: vi.fn(),
   verifyEmailCode: vi.fn(),
   signOut: vi.fn(),
+    refreshAuthorization: vi.fn(async () => {}),
 }
 
 function renderCareers(

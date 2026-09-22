@@ -35,6 +35,7 @@ import type { PlanFeature } from '@/config/planEntitlements'
 const DEMO_MODE: WorkspaceModeContextValue = {
   mode: 'demo',
   isAdmin: false,
+  canUseProduction: false,
   identity: {
     companyName: 'Northgate Logistics Inc.',
     user: {

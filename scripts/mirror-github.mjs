@@ -100,7 +100,6 @@ if (git('branch', '--show-current') !== 'main') throw new Error('run from main')
 git('fetch', 'origin', 'main')
 git('fetch', 'github', 'main')
 const localTip = git('rev-parse', 'main')
-const ghBase = git('rev-parse', 'github/main')
 const ghTree = git('rev-parse', 'github/main^{tree}')
 const localTree = git('rev-parse', 'main^{tree}')
 if (ghTree === localTree) {

@@ -30,6 +30,7 @@ vi.mock('@/features/app/auth/authContext', () => ({
     session: { user: { email: 'buyer@example.com' } },
     signInWithEmail: vi.fn(),
     signOut: vi.fn(),
+    refreshAuthorization: vi.fn(async () => {}),
   }),
 }))
 vi.mock('@/features/app/billing/planContext', () => ({
