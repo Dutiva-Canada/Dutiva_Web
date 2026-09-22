@@ -153,14 +153,14 @@ export default defineConfig(({ command }) => {
       },
     },
     optimizeDeps: {
-      /* @xenova/transformers ships ESM source and resolves fine served raw.
+      /* @huggingface/transformers ships ESM source and resolves fine served raw.
          onnxruntime-web needs the explicit include: the dep scanner never
          reaches it (its only importer is excluded), and its browser entry is
          a UMD webpack bundle that crashes (registerBackend on undefined) when
          Vite dev serves it as a native module. Prebundling wraps it in CJS
          interop. */
       include: ['onnxruntime-web'],
-      exclude: ['@xenova/transformers'],
+      exclude: ['@huggingface/transformers'],
     },
     define: {
       /* Bake Vercel's VERCEL_ENV system var ('production' | 'preview' |
@@ -289,7 +289,7 @@ export default defineConfig(({ command }) => {
                  (~158kB, Advisor replies), recharts + d3/redux (~430kB, one
                  ```chart block), pdf-lib + pako (~500kB, signed-PDF export),
                  docx/jszip (Word export), read-excel-file (XLSX import),
-                 @xenova/transformers + onnxruntime (browser AI), zod (lazy
+                 @huggingface/transformers + onnxruntime (browser AI), zod (lazy
                  API schemas), and every lucide icon only workspace screens
                  use — follows its importers and stays off the marketing
                  landing path. Giving any of those a named group would

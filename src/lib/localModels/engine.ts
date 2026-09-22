@@ -19,15 +19,15 @@ async function loadPipeline(spec: LocalModelSpec): Promise<PipelineFn> {
   let pending = pipelines.get(spec.repoId)
   if (!pending) {
     pending = (async () => {
-      const mod = await import('@xenova/transformers')
+      const mod = await import('@huggingface/transformers')
       mod.env.allowRemoteModels = true
       /* Same as manager.ts: the SPA fallback answers /models/* with
          index.html + 200, which the runtime parses as model JSON. */
       mod.env.allowLocalModels = false
       mod.env.useBrowserCache = true
       mod.env.useFSCache = false
-      mod.env.backends.onnx.wasm.numThreads = 1
-      const pipe = (await mod.pipeline(spec.task, spec.repoId, { quantized: true })) as PipelineFn
+      mod.env.backends.onnx.wasm!.numThreads = 1
+      const pipe = (await mod.pipeline(spec.task, spec.repoId, { dtype: 'q8' })) as PipelineFn
       return pipe
     })()
     pipelines.set(spec.repoId, pending)

@@ -117,7 +117,7 @@ const BARRED_PACKAGES = [
   {
     match: (pkg) => /^(onnxruntime|@xenova\/|@huggingface\/|flatbuffers|onnx-proto)/.test(pkg),
     what: 'the in-browser inference tree',
-    why: 'only the lazy rule-suggestion AI path runs @xenova/transformers',
+    why: 'only the lazy rule-suggestion AI path runs @huggingface/transformers',
   },
 ]
 
