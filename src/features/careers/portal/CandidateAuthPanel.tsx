@@ -171,6 +171,9 @@ export function CandidateAuthPanel() {
       <h1 className="m-0 font-display text-[22px] font-semibold tracking-[-0.01em] text-text">
         {x(mode === 'signin' ? M.careers_auth_welcome : M.careers_auth_welcome_new)}
       </h1>
+      <p className="m-0 mt-[8px] text-[13px] leading-[1.55] text-text-3">
+        {x(M.careers_auth_passwordless_hint)}
+      </p>
 
       <form onSubmit={handleSubmit} className="mt-[22px] flex flex-col gap-[14px]">
         {mode === 'signup' && (

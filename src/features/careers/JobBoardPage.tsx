@@ -5,7 +5,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Briefcase, Calendar, MapPin, Search } from 'lucide-react'
+import {
+  ArrowRight,
+  Briefcase,
+  Calendar,
+  Clock,
+  MapPin,
+  Search,
+  Sparkles,
+  UserRound,
+} from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { careersMessages as M } from '@/i18n/messages/careers'
 import { Seo } from '@/seo/Seo'
@@ -21,6 +30,7 @@ import type { PublicJobPosting } from './data/jobBoardApi'
  */
 export function JobBoardPage() {
   const { x } = useI18n()
+  const paths = useCareersPath()
   const [postings, setPostings] = useState<PublicJobPosting[] | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
   const [filter, setFilter] = useState('')
@@ -92,10 +102,29 @@ export function JobBoardPage() {
           </div>
         ) : postings === null ? (
           <p className="py-12 text-center text-sm text-text-muted">{x(M.careers_board_loading)}</p>
+        ) : postings.length === 0 ? (
+          <div className="mx-auto max-w-[480px] rounded-[12px] border border-border bg-surface px-6 py-10 text-center">
+            <p className="font-semibold text-text">{x(M.careers_board_empty)}</p>
+            <p className="mt-2 text-sm text-text-2">{x(M.careers_board_empty_body)}</p>
+            <Link
+              to={paths.portal}
+              className="mt-5 inline-flex items-center gap-1.5 rounded-[10px] bg-navy px-5 py-2.5 text-sm font-semibold text-white no-underline transition-opacity hover:opacity-90"
+            >
+              {x(M.careers_board_empty_cta)}
+              <ArrowRight size={14} aria-hidden="true" />
+            </Link>
+          </div>
         ) : filtered !== null && filtered.length === 0 ? (
           <div className="mx-auto max-w-[480px] rounded-[12px] border border-border bg-surface px-6 py-10 text-center">
             <p className="font-semibold text-text">{x(M.careers_board_no_results)}</p>
             <p className="mt-2 text-sm text-text-2">{x(M.careers_board_no_results_body)}</p>
+            <button
+              type="button"
+              onClick={() => setFilter('')}
+              className="mt-5 inline-flex cursor-pointer items-center gap-1.5 rounded-[10px] border border-border bg-surface px-4 py-2 text-sm font-semibold text-text transition-[border-color] hover:border-gold-border"
+            >
+              {x(M.careers_board_clear_search)}
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -109,9 +138,38 @@ export function JobBoardPage() {
       {/* Explainer */}
       <section className="border-t border-border bg-bg-elevated">
         <div className="mx-auto max-w-[1200px] px-4 py-12 sm:px-6 sm:py-16">
-          <p className="mx-auto max-w-[80ch] text-center text-base leading-[1.7] text-text-2">
-            {x(M.careers_board_how_it_works)}
-          </p>
+          <h2 className="text-center font-display text-xl font-semibold tracking-[-0.01em] text-text">
+            {x(M.careers_board_how_title)}
+          </h2>
+          <ul className="mx-auto mt-6 flex max-w-[560px] list-none flex-col gap-4 p-0">
+            <li className="flex items-start gap-3 text-[15px] leading-[1.6] text-text-2">
+              <Search
+                size={18}
+                strokeWidth={1.7}
+                className="mt-[2px] shrink-0 text-gold-strong"
+                aria-hidden="true"
+              />
+              <span>{x(M.careers_board_how_1)}</span>
+            </li>
+            <li className="flex items-start gap-3 text-[15px] leading-[1.6] text-text-2">
+              <UserRound
+                size={18}
+                strokeWidth={1.7}
+                className="mt-[2px] shrink-0 text-gold-strong"
+                aria-hidden="true"
+              />
+              <span>{x(M.careers_board_how_2)}</span>
+            </li>
+            <li className="flex items-start gap-3 text-[15px] leading-[1.6] text-text-2">
+              <Sparkles
+                size={18}
+                strokeWidth={1.7}
+                className="mt-[2px] shrink-0 text-gold-strong"
+                aria-hidden="true"
+              />
+              <span>{x(M.careers_board_how_3)}</span>
+            </li>
+          </ul>
         </div>
       </section>
     </div>
@@ -138,7 +196,7 @@ function JobCard({ posting }: { readonly posting: PublicJobPosting }) {
           <span>{posting.location}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <Briefcase size={14} strokeWidth={1.7} className="text-text-muted" aria-hidden="true" />
+          <Clock size={14} strokeWidth={1.7} className="text-text-muted" aria-hidden="true" />
           <span>{posting.type}</span>
         </div>
         {posting.postedDate && (

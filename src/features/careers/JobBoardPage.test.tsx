@@ -149,5 +149,35 @@ describe('JobBoardPage', () => {
     await user.type(search, 'zzzznope')
 
     expect(await screen.findByText(/No open positions match/i)).toBeInTheDocument()
+
+    // Clear search restores the listings
+    await user.click(screen.getByRole('button', { name: /Clear search/i }))
+    expect(await screen.findByText('Senior Product Manager')).toBeInTheDocument()
+  })
+
+  it('shows a distinct empty state with a profile CTA when no postings exist', async () => {
+    vi.mocked(listActiveJobPostings).mockResolvedValue([])
+    const { JobBoardPage } = await import('./JobBoardPage')
+    renderCareers(<JobBoardPage />)
+
+    // Zero-postings copy — not the "no search match" wording
+    expect(await screen.findByText(/No open positions right now/i)).toBeInTheDocument()
+    expect(screen.queryByText(/match your search/i)).not.toBeInTheDocument()
+
+    // The empty state offers a next action: create a profile via the portal
+    const cta = screen.getByRole('link', { name: /Create a free profile/i })
+    expect(cta).toHaveAttribute('href', '/careers/portal')
+  })
+
+  it('renders the explainer as a headed bullet list', async () => {
+    vi.mocked(listActiveJobPostings).mockResolvedValue(MOCK_POSTINGS)
+    const { JobBoardPage } = await import('./JobBoardPage')
+    renderCareers(<JobBoardPage />)
+
+    await screen.findByText('Senior Product Manager')
+    expect(screen.getByRole('heading', { name: /How it works/i })).toBeInTheDocument()
+    expect(screen.getByText(/no account needed to look/i)).toBeInTheDocument()
+    expect(screen.getByText(/reuse it for every application/i)).toBeInTheDocument()
+    expect(screen.getByText(/tailor your resume/i)).toBeInTheDocument()
   })
 })
