@@ -34,6 +34,7 @@ export function JobBoardPage() {
   const [postings, setPostings] = useState<PublicJobPosting[] | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
   const [filter, setFilter] = useState('')
+  const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -48,7 +49,7 @@ export function JobBoardPage() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [retryKey])
 
   const q = filter.trim().toLowerCase()
   const filtered = useMemo(() => {
@@ -99,6 +100,17 @@ export function JobBoardPage() {
         {loadFailed ? (
           <div className="rounded-[12px] border border-risk-border bg-risk-bg px-5 py-4 text-center">
             <p className="text-sm text-risk-fg">{x(M.careers_board_load_error)}</p>
+            <button
+              type="button"
+              onClick={() => {
+                setPostings(null)
+                setLoadFailed(false)
+                setRetryKey((key) => key + 1)
+              }}
+              className="mt-3 inline-flex cursor-pointer items-center rounded-[9px] border border-risk-border bg-surface px-4 py-2 text-sm font-semibold text-risk-fg transition-[background-color] hover:bg-risk-bg"
+            >
+              {x(M.careers_board_retry)}
+            </button>
           </div>
         ) : postings === null ? (
           <p className="py-12 text-center text-sm text-text-muted">{x(M.careers_board_loading)}</p>

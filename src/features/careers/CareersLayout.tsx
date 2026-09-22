@@ -38,15 +38,15 @@ export function CareersLayout() {
     <div className="surface-app min-h-screen bg-bg text-text">
       <header className="sticky top-0 z-30 border-b border-border bg-bg-elevated backdrop-blur-[18px]">
         <div className="mx-auto flex max-w-[1200px] items-center justify-between px-4 py-3 sm:px-6">
-          <Link to={paths.board} className="flex items-center gap-2">
-            <span className="font-display text-lg font-bold text-text">
+          <Link to={paths.board} className="flex min-w-0 items-center gap-2">
+            <span className="shrink-0 font-display text-lg font-bold text-text">
               Duti<span className="text-gold-strong">va</span>
             </span>
-            <span className="text-[0.625rem] font-semibold tracking-[0.28em] text-text-3">
+            <span className="hidden truncate text-[0.625rem] font-semibold tracking-[0.28em] text-text-3 min-[360px]:inline">
               {x(isEmployerDoor ? M.careers_employer_tag : M.careers_portal_title)}
             </span>
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             {alternateHref && (
               <Link
                 to={alternateHref}
