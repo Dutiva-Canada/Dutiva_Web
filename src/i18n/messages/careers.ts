@@ -18,9 +18,25 @@ export const careersMessages = defineMessages({
     en: 'Search by title, department, or location…',
     fr: 'Rechercher par titre, département ou lieu…',
   },
+  careers_board_empty: {
+    en: 'No open positions right now.',
+    fr: 'Aucun poste ouvert pour le moment.',
+  },
+  careers_board_empty_body: {
+    en: 'New roles are posted regularly — create a free candidate profile and you can apply the moment one opens.',
+    fr: "De nouveaux postes sont publiés régulièrement — créez un profil candidat gratuit et vous pourrez postuler dès qu'un poste est publié.",
+  },
+  careers_board_empty_cta: {
+    en: 'Create a free profile',
+    fr: 'Créer un profil gratuit',
+  },
   careers_board_no_results: {
     en: 'No open positions match your search.',
     fr: 'Aucun poste ouvert ne correspond à votre recherche.',
+  },
+  careers_board_clear_search: {
+    en: 'Clear search',
+    fr: 'Effacer la recherche',
   },
   careers_board_no_results_body: {
     en: 'Try different keywords or check back soon — new roles are posted regularly.',
@@ -35,9 +51,21 @@ export const careersMessages = defineMessages({
     en: 'Could not load job openings. Please try again.',
     fr: 'Impossible de charger les postes ouverts. Veuillez réessayer.',
   },
-  careers_board_how_it_works: {
-    en: 'For candidates: Dutiva Careers lets you browse open positions from Canadian employers, create a profile, and apply with optional AI tools for resume tailoring and interview preparation. Employers post jobs through the B2B hiring module; candidates see the same active postings here. Sign in to save your profile, track applications, and get AI-assisted guidance.',
-    fr: "Pour les candidats : Dutiva Carrières vous permet de parcourir les postes ouverts offerts par des employeurs canadiens, de créer un profil et de postuler avec des outils IA optionnels pour l'adaptation du CV et la préparation d'entretien. Les employeurs publient les offres via le module B2B de recrutement ; les candidats voient les mêmes postes actifs ici. Connectez-vous pour enregistrer votre profil, suivre les candidatures et obtenir de l'aide IA.",
+  careers_board_how_title: {
+    en: 'How it works',
+    fr: 'Comment ça fonctionne',
+  },
+  careers_board_how_1: {
+    en: 'Browse every open role from employers hiring through Dutiva — no account needed to look.',
+    fr: "Parcourez tous les postes ouverts d'employeurs qui recrutent via Dutiva — aucun compte requis.",
+  },
+  careers_board_how_2: {
+    en: 'Create a free candidate profile once; reuse it for every application.',
+    fr: 'Créez un profil candidat gratuit une fois ; réutilisez-le pour chaque candidature.',
+  },
+  careers_board_how_3: {
+    en: 'Optional AI tools can tailor your resume, draft a cover letter, and help you prep for interviews.',
+    fr: 'Des outils IA optionnels peuvent adapter votre CV, rédiger une lettre de motivation et vous préparer aux entretiens.',
   },
 
   /* ── Job detail page ──────────────────────────────────────────────────── */
@@ -94,6 +122,10 @@ export const careersMessages = defineMessages({
   },
   careers_auth_welcome: { en: 'Welcome back', fr: 'Bon retour' },
   careers_auth_welcome_new: { en: 'Welcome to Dutiva', fr: 'Bienvenue sur Dutiva' },
+  careers_auth_passwordless_hint: {
+    en: "We'll email you a 6-digit sign-in code — no password needed.",
+    fr: 'Nous vous envoyons un code de connexion à 6 chiffres — aucun mot de passe requis.',
+  },
   careers_auth_sign_out: { en: 'Sign out', fr: 'Se déconnecter' },
 
   /* ── Candidate portal — layout ────────────────────────────────────────── */
