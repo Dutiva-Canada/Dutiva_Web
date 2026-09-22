@@ -105,13 +105,38 @@ function extractName(lines: string[]): string | undefined {
   return undefined
 }
 
+/**
+ * A headline is a role title ("Senior Product Manager") — the line right
+ * under the candidate's name on most resumes. The lines that actually sit
+ * there in practice are the contact block: location, phone, email, URLs,
+ * usually pipe-separated. Those are skipped so the field never fills with
+ * "Toronto, ON | 416-555-0100 | jane@example.com".
+ */
+function looksLikeContactInfo(line: string): boolean {
+  if (line.includes('@')) return true
+  if (line.includes('|')) return true
+  if (/https?:\/\/|www\.|linkedin\.com/i.test(line)) return true
+  // Phone numbers, postal codes, "10+ years" — a real job title has no digits.
+  if (/\d/.test(line)) return true
+  return false
+}
+
 function extractHeadline(lines: string[], name: string | undefined): string | undefined {
-  const nextLine = lines.find((line) => line !== name && line.length > 3 && line.length < 80)
-  if (
-    nextLine &&
-    !/^(?:summary|profile|experience|education|skills|contact|objective)\b/i.test(nextLine)
-  ) {
-    return nextLine.replace(/[:-]+$/, '').trim()
+  const sectionHeaders =
+    /^(?:summary|profile|experience|work experience|education|skills|contact|objective|references|languages)\b/i
+  // Scan only the lines following the detected name (or the top of the
+  // document when no name was found) — deeper lines are body content, not a
+  // headline.
+  const nameIndex = name ? lines.indexOf(name) : -1
+  const candidates = nameIndex >= 0 ? lines.slice(nameIndex + 1) : lines
+  for (const line of candidates.slice(0, 8)) {
+    if (line === name) continue
+    if (line.length <= 3 || line.length >= 80) continue
+    // The headline lives in the header block — the first section heading
+    // means that window is over and deeper lines are body content.
+    if (sectionHeaders.test(line)) break
+    if (looksLikeContactInfo(line)) continue
+    return line.replace(/[:-]+$/, '').trim()
   }
   return undefined
 }

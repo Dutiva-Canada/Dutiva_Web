@@ -2,12 +2,22 @@ import { useState } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { hiringMessages as M } from '@/i18n/messages/hiring'
-import { demoCandidates, demoFunnelMetrics, demoJobPostings } from '@/data'
-import type { Candidate } from '@/data'
+import {
+  demoCandidates,
+  demoFunnelMetrics,
+  demoJobPostings,
+  demoPortalApplications,
+} from '@/data'
+import type { DemoPortalApplication } from '@/data'
 import { statusChipClass } from '@/components/chips'
 import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { JobPostingCard } from './JobPostingCard'
 import { useHiringTab } from './useHiringTab'
+import {
+  applicationStatusLabel,
+  applicationStatusTone,
+} from '@/features/careers/applicationStatus'
+import { candidateStatusLabel, candidateStatusTone } from './hiringStatusHelpers'
 
 /**
  * Hiring demo view — Northgate fixture data for the demo workspace.
@@ -81,6 +91,15 @@ export function HiringDemoView() {
             >
               {x(M.hiring_postings_title)}
             </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'applications'}
+              onClick={() => setActiveTab('applications')}
+              className={tabClass('applications')}
+            >
+              {x(M.hiring_inbox_title)}
+            </button>
           </div>
         </div>
 
@@ -128,8 +147,8 @@ export function HiringDemoView() {
                       </div>
                       <div className="text-[13px] text-text-2">{x(candidate.location)}</div>
                       <div>
-                        <span className={statusChipClass(getStatusTone(candidate.status))}>
-                          {x(getStatusLabel(candidate.status))}
+                        <span className={statusChipClass(candidateStatusTone(candidate.status))}>
+                          {x(candidateStatusLabel(candidate.status))}
                         </span>
                       </div>
                       <div className="text-[13px] text-text-2">{candidate.appliedDate}</div>
@@ -164,8 +183,8 @@ export function HiringDemoView() {
                             {x(candidate.position)}
                           </div>
                         </div>
-                        <span className={statusChipClass(getStatusTone(candidate.status))}>
-                          {x(getStatusLabel(candidate.status))}
+                        <span className={statusChipClass(candidateStatusTone(candidate.status))}>
+                          {x(candidateStatusLabel(candidate.status))}
                         </span>
                       </div>
                       <div className="flex flex-wrap items-center gap-[8px] text-[12px] text-text-muted">
@@ -208,6 +227,11 @@ export function HiringDemoView() {
 
         {/* Postings Tab */}
         {activeTab === 'postings' && <JobPostings postings={demoJobPostings} />}
+
+        {/* Portal applications inbox */}
+        {activeTab === 'applications' && (
+          <PortalInbox applications={demoPortalApplications} />
+        )}
       </div>
     </div>
   )
@@ -342,45 +366,43 @@ function JobPostings({ postings }: { postings: typeof demoJobPostings }) {
   )
 }
 
-// Helper functions
-function getStatusTone(
-  status: Candidate['status'],
-): 'success' | 'info' | 'warning' | 'risk' | 'neutral' {
-  switch (status) {
-    case 'hired':
-      return 'success'
-    case 'interview':
-    case 'work_sample':
-    case 'evidence_qualified':
-      return 'info'
-    case 'basic_qualified':
-      return 'warning'
-    case 'application':
-      return 'neutral'
-    case 'rejected':
-      return 'risk'
-    default:
-      return 'neutral'
-  }
-}
+function PortalInbox({ applications }: { applications: DemoPortalApplication[] }) {
+  const { x } = useI18n()
 
-function getStatusLabel(status: Candidate['status']) {
-  switch (status) {
-    case 'application':
-      return M.hiring_status_application
-    case 'basic_qualified':
-      return M.hiring_status_basic_qualified
-    case 'evidence_qualified':
-      return M.hiring_status_evidence_qualified
-    case 'work_sample':
-      return M.hiring_status_work_sample
-    case 'interview':
-      return M.hiring_status_interview
-    case 'hired':
-      return M.hiring_status_hired
-    case 'rejected':
-      return M.hiring_status_rejected
-    default:
-      return M.hiring_status_application
-  }
+  return (
+    <div className="flex flex-col gap-[12px]">
+      <div className="flex items-center justify-between">
+        <h2 className="text-[16px] font-bold text-text">{x(M.hiring_inbox_title)}</h2>
+      </div>
+      {applications.map((app) => (
+        <div key={app.id} className="rounded-[12px] border border-border bg-surface p-[16px]">
+          <div className="flex flex-wrap items-start justify-between gap-[12px]">
+            <div className="min-w-0 flex-1">
+              <div className="text-[14px] font-semibold text-text">{app.candidateName}</div>
+              <div className="mt-[2px] truncate text-[12.5px] text-text-muted">
+                {x(app.candidateHeadline)} · {app.candidateEmail}
+              </div>
+              <div className="mt-[4px] flex flex-wrap items-center gap-[6px] text-[12px] text-text-faint">
+                <span className="font-semibold text-text-2">{x(app.jobPostingTitle)}</span>
+                <span aria-hidden="true">·</span>
+                <span>{x(app.candidateLocation)}</span>
+                <span aria-hidden="true">·</span>
+                <span>{app.appliedDate}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-[8px]">
+              {app.aiMatchScore != null && (
+                <span className={statusChipClass('info')}>
+                  {x(M.hiring_inbox_match)} {app.aiMatchScore}
+                </span>
+              )}
+              <span className={statusChipClass(applicationStatusTone(app.status))}>
+                {x(applicationStatusLabel(app.status))}
+              </span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
 }

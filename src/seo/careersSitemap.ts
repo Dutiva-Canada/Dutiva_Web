@@ -7,8 +7,9 @@ import { createClient } from '@supabase/supabase-js'
 /**
  * Build-time query for active job postings — used by `buildPrerenderManifest`
  * to add dynamic `/careers/jobs/:postingId` URLs to the sitemap and prerender
- * manifest. The public job board RLS policy (migration 0153) allows anonymous
- * SELECT on active rows, so the anon key is sufficient.
+ * manifest. Reads the `public_job_postings` view (migration 0165): only
+ * active rows and candidate-facing columns exist there, and the anon key is
+ * sufficient.
  *
  * Returns an empty list when Supabase is not configured (no `.env` or missing
  * vars), so local builds without a backend simply omit job detail URLs from
@@ -37,9 +38,8 @@ export async function getActiveJobPostingsForSitemap(): Promise<SitemapJobPostin
 
   const client = createClient(url, anonKey)
   const { data, error } = await client
-    .from('hr_job_postings')
+    .from('public_job_postings')
     .select('id, title, description, posted_date')
-    .eq('status', 'active')
     .order('posted_date', { ascending: false, nullsFirst: false })
 
   if (error) {

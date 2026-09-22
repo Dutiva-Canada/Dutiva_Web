@@ -3,14 +3,17 @@ import { supabase } from '@/lib/supabaseClient'
 import { fetchAllPages } from '@/lib/supabasePagination'
 
 /**
- * Public job board API — reads active job postings from hr_job_postings.
- * No auth required: the "Public can read active job postings" RLS policy
- * (migration 0153) allows anonymous SELECT on rows where status = 'active'.
+ * Public job board API — reads active job postings through the
+ * `public_job_postings` view (migration 0165). The view exposes only
+ * candidate-facing columns plus the employer's organization name; the base
+ * table is no longer readable by anonymous callers, so internal screening
+ * fields (knockout criteria, work-sample scenario) never leave the server.
  */
 
 export interface PublicJobPosting {
   id: string
   organizationId: string
+  organizationName: string
   title: string
   department: string
   location: string
@@ -25,6 +28,7 @@ export interface PublicJobPosting {
 const jobPostingRowSchema = z.object({
   id: z.string(),
   organization_id: z.string(),
+  organization_name: z.string(),
   title: z.string(),
   department: z.string(),
   location: z.string(),
@@ -40,6 +44,7 @@ function toPosting(row: z.infer<typeof jobPostingRowSchema>): PublicJobPosting {
   return {
     id: row.id,
     organizationId: row.organization_id,
+    organizationName: row.organization_name,
     title: row.title,
     department: row.department,
     location: row.location,
@@ -53,7 +58,7 @@ function toPosting(row: z.infer<typeof jobPostingRowSchema>): PublicJobPosting {
 }
 
 const COLUMNS =
-  'id, organization_id, title, department, location, type, description, requirements, status, posted_date, closing_date'
+  'id, organization_id, organization_name, title, department, location, type, description, requirements, status, posted_date, closing_date'
 
 /** List all active job postings, newest first. Public — no org scope. */
 export async function listActiveJobPostings(): Promise<PublicJobPosting[]> {
@@ -61,9 +66,8 @@ export async function listActiveJobPostings(): Promise<PublicJobPosting[]> {
   if (!client) throw new Error('Supabase is not configured')
   const data = await fetchAllPages((from, to) =>
     client
-      .from('hr_job_postings')
+      .from('public_job_postings')
       .select(COLUMNS)
-      .eq('status', 'active')
       .order('posted_date', { ascending: false, nullsFirst: false })
       .range(from, to),
   )
@@ -75,10 +79,9 @@ export async function getPublicJobPosting(id: string): Promise<PublicJobPosting 
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
   const { data, error } = await client
-    .from('hr_job_postings')
+    .from('public_job_postings')
     .select(COLUMNS)
     .eq('id', id)
-    .eq('status', 'active')
     .maybeSingle()
   if (error) throw error
   if (!data) return null

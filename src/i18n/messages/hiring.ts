@@ -303,6 +303,19 @@ export const hiringMessages = defineMessages({
     fr: "Impossible de supprimer l'offre.",
   },
 
+  /* ── Applications inbox (candidate portal submissions) ────────────────── */
+  hiring_inbox_title: { en: 'Applications', fr: 'Candidatures' },
+  hiring_inbox_empty: { en: 'No applications yet', fr: "Aucune candidature pour l'instant" },
+  hiring_inbox_empty_body: {
+    en: 'Applications submitted through your active job postings appear here.',
+    fr: 'Les candidatures soumises via vos offres actives apparaîtront ici.',
+  },
+  hiring_inbox_match: { en: 'Match', fr: 'Correspondance' },
+  hiring_inbox_cover_letter: { en: 'Cover letter', fr: 'Lettre de motivation' },
+  hiring_inbox_resume: { en: 'Submitted resume', fr: 'CV soumis' },
+  hiring_inbox_ai_suggestions: { en: 'AI suggestions', fr: "Suggestions de l'IA" },
+  hiring_inbox_view_details: { en: 'View details', fr: 'Voir les détails' },
+
   /* ── Job Posting Detail View ───────────────────────────────────────────── */
   hiring_open_posting: { en: 'Open job posting', fr: "Ouvrir l'offre d'emploi" },
   hiring_posting_back: { en: 'All job postings', fr: "Toutes les offres d'emploi" },

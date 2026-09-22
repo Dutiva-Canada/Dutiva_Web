@@ -17,6 +17,7 @@ const MOCK_POSTINGS: PublicJobPosting[] = [
   {
     id: 'jp-1',
     organizationId: 'org-1',
+    organizationName: 'Northgate Logistics Inc.',
     title: 'Senior Product Manager',
     department: 'Product',
     location: 'Toronto, ON',
@@ -25,11 +26,12 @@ const MOCK_POSTINGS: PublicJobPosting[] = [
     requirements: ['5+ years PM experience', 'B2B SaaS background'],
     status: 'active',
     postedDate: '2026-01-15',
-    closingDate: null,
+    closingDate: '2026-03-01',
   },
   {
     id: 'jp-2',
     organizationId: 'org-1',
+    organizationName: 'Northgate Logistics Inc.',
     title: 'Frontend Engineer',
     department: 'Engineering',
     location: 'Remote (Canada)',
@@ -92,6 +94,19 @@ describe('JobBoardPage', () => {
     expect(detailLinks).toHaveLength(2)
     expect(detailLinks[0]).toHaveAttribute('href', '/careers/jobs/jp-1')
     expect(detailLinks[1]).toHaveAttribute('href', '/careers/jobs/jp-2')
+  })
+
+  it('renders the employer name and the closing date when present', async () => {
+    vi.mocked(listActiveJobPostings).mockResolvedValue(MOCK_POSTINGS)
+    const { JobBoardPage } = await import('./JobBoardPage')
+    renderCareers(<JobBoardPage />)
+
+    await screen.findByText('Senior Product Manager')
+
+    // Employer name shows on each card
+    expect(screen.getAllByText('Northgate Logistics Inc.')).toHaveLength(2)
+    // Closing date renders for jp-1 only (en-CA short format)
+    expect(screen.getByText(/Mar 1, 2026/)).toBeInTheDocument()
   })
 
   it('shows the loading state before data arrives', async () => {

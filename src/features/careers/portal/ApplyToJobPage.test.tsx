@@ -11,16 +11,20 @@ import type { CandidateProfile } from '@/features/careers/data/candidateApi'
 import type { CandidateApplication } from '@/features/careers/data/applicationsApi'
 import type { PublicJobPosting } from '@/features/careers/data/jobBoardApi'
 
-vi.mock('@/features/careers/data/candidateApi', () => ({
+vi.mock('@/features/careers/data/candidateApi', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/careers/data/candidateApi')>()),
   getMyCandidateProfile: vi.fn(),
   createCandidateProfile: vi.fn(),
   updateCandidateProfile: vi.fn(),
+  deleteMyCandidateProfile: vi.fn(),
 }))
-vi.mock('@/features/careers/data/applicationsApi', () => ({
+vi.mock('@/features/careers/data/applicationsApi', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/careers/data/applicationsApi')>()),
   listMyApplications: vi.fn(),
   hasApplied: vi.fn(),
   submitApplication: vi.fn(),
   withdrawApplication: vi.fn(),
+  deleteApplication: vi.fn(),
 }))
 vi.mock('@/features/careers/data/jobBoardApi', () => ({
   listActiveJobPostings: vi.fn(),
@@ -40,6 +44,7 @@ const { getPublicJobPosting } = await import('@/features/careers/data/jobBoardAp
 const MOCK_JOB: PublicJobPosting = {
   id: 'jp-1',
   organizationId: 'org-1',
+  organizationName: 'Northgate Logistics Inc.',
   title: 'Senior Product Manager',
   department: 'Product',
   location: 'Toronto, ON',

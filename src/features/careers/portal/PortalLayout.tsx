@@ -3,6 +3,7 @@ import { LogOut } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { careersMessages as M } from '@/i18n/messages/careers'
 import { useAuth } from '@/features/app/auth/authContext'
+import { useCareersPath } from '@/features/careers/useCareersPath'
 import { CandidateAuthPanel } from './CandidateAuthPanel'
 
 /**
@@ -15,6 +16,7 @@ import { CandidateAuthPanel } from './CandidateAuthPanel'
 export function PortalLayout() {
   const { x } = useI18n()
   const { status, signOut } = useAuth()
+  const paths = useCareersPath()
 
   if (status !== 'signed-in') {
     return (
@@ -51,7 +53,7 @@ export function PortalLayout() {
               <NavLink to="/careers/portal/applications" className={navLinkClass}>
                 {x(M.careers_portal_nav_applications)}
               </NavLink>
-              <NavLink to="/careers" className={navLinkClass}>
+              <NavLink to={paths.board} className={navLinkClass}>
                 {x(M.careers_portal_nav_browse)}
               </NavLink>
             </nav>

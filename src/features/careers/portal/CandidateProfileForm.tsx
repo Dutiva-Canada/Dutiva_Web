@@ -3,6 +3,7 @@ import { Loader2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { careersMessages as M } from '@/i18n/messages/careers'
 import type { CandidateWorkAuthorization } from '@/features/careers/data/candidateApi'
+import { MAX_YEARS_EXPERIENCE } from '@/features/careers/data/candidateApi'
 import { ResumeUpload } from './ResumeUpload'
 import { CoverLetterUpload } from './CoverLetterUpload'
 import { MarkdownEditor } from '@/components/MarkdownEditor'
@@ -160,6 +161,8 @@ export function CandidateProfileForm({
               id="cp-years"
               type="number"
               min={0}
+              max={MAX_YEARS_EXPERIENCE}
+              step={1}
               value={values.yearsExperience}
               onChange={(e) => set('yearsExperience', e.target.value)}
               className={fieldClass}

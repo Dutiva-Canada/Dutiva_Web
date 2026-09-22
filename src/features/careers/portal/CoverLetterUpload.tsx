@@ -70,7 +70,7 @@ export function CoverLetterUpload({ value, onChange }: CoverLetterUploadProps) {
   )
 
   const onDrop = useCallback(
-    (e: React.DragEvent<HTMLDivElement>) => {
+    (e: React.DragEvent<HTMLButtonElement>) => {
       e.preventDefault()
       e.stopPropagation()
       const file = e.dataTransfer.files?.[0]
@@ -79,7 +79,7 @@ export function CoverLetterUpload({ value, onChange }: CoverLetterUploadProps) {
     [handleFile],
   )
 
-  const onDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const onDragOver = useCallback((e: React.DragEvent<HTMLButtonElement>) => {
     e.preventDefault()
   }, [])
 
@@ -102,11 +102,12 @@ export function CoverLetterUpload({ value, onChange }: CoverLetterUploadProps) {
         aria-label={x(M.careers_apply_cover_letter_upload_label)}
       />
 
-      <div
+      <button
+        type="button"
         onDrop={onDrop}
         onDragOver={onDragOver}
         onClick={() => inputRef.current?.click()}
-        className="flex cursor-pointer flex-col items-center justify-center gap-[8px] rounded-[10px] border border-dashed border-border bg-bg px-[20px] py-[24px] transition-[border-color,background-color] duration-150 hover:border-navy hover:bg-inset"
+        className="flex w-full cursor-pointer flex-col items-center justify-center gap-[8px] rounded-[10px] border border-dashed border-border bg-bg px-[20px] py-[24px] font-sans transition-[border-color,background-color,box-shadow] duration-150 hover:border-navy hover:bg-inset focus-visible:border-navy focus-visible:shadow-[0_0_0_3px_var(--accent-soft)] focus-visible:outline-none"
       >
         {state === 'reading' ? (
           <Loader2 size={24} className="animate-spin text-text-muted" aria-hidden="true" />
@@ -121,7 +122,7 @@ export function CoverLetterUpload({ value, onChange }: CoverLetterUploadProps) {
         <span className="text-[12px] text-text-muted">
           {x(M.careers_apply_cover_letter_upload_hint)}
         </span>
-      </div>
+      </button>
 
       {(fileName || state === 'error') && (
         <div className="flex items-center justify-between gap-[12px] rounded-[8px] border border-border bg-surface px-[12px] py-[10px]">

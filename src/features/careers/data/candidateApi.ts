@@ -8,6 +8,24 @@ import { supabase } from '@/lib/supabaseClient'
 
 export type CandidateWorkAuthorization = 'authorized' | 'needs_sponsorship' | 'unknown'
 
+/**
+ * Upper bound for self-reported years of experience. 60 covers a full career
+ * starting at ~16; anything past it is a data-entry error, not a signal.
+ */
+export const MAX_YEARS_EXPERIENCE = 60
+
+/**
+ * Normalize a candidate-entered years-of-experience value to a whole-year
+ * integer in [0, MAX_YEARS_EXPERIENCE]. Returns null for empty/invalid input
+ * so the column stays null rather than storing junk.
+ */
+export function clampYearsExperience(
+  value: number | null | undefined,
+): number | null {
+  if (value === null || value === undefined || !Number.isFinite(value)) return null
+  return Math.min(MAX_YEARS_EXPERIENCE, Math.max(0, Math.round(value)))
+}
+
 export interface CandidateProfile {
   id: string
   userId: string
@@ -76,7 +94,7 @@ export async function createCandidateProfile(
       cover_letter: input.coverLetter ?? null,
       linkedin: input.linkedin ?? null,
       website: input.website ?? null,
-      years_experience: input.yearsExperience ?? null,
+      years_experience: clampYearsExperience(input.yearsExperience),
       work_authorization: input.workAuthorization,
       current_role: input.currentRole ?? null,
     })
@@ -103,7 +121,8 @@ export async function updateCandidateProfile(
   if (patch.coverLetter !== undefined) row.cover_letter = patch.coverLetter
   if (patch.linkedin !== undefined) row.linkedin = patch.linkedin
   if (patch.website !== undefined) row.website = patch.website
-  if (patch.yearsExperience !== undefined) row.years_experience = patch.yearsExperience
+  if (patch.yearsExperience !== undefined)
+    row.years_experience = clampYearsExperience(patch.yearsExperience)
   if (patch.workAuthorization !== undefined) row.work_authorization = patch.workAuthorization
   if (patch.currentRole !== undefined) row.current_role = patch.currentRole
   const { data, error } = await client
@@ -114,6 +133,18 @@ export async function updateCandidateProfile(
   if (error) throw error
   if (!data) return null
   return toProfile(data)
+}
+
+/**
+ * Permanently delete the signed-in user's candidate profile. Applications
+ * and resume rows cascade (ON DELETE CASCADE, migration 0153); the DELETE
+ * policy scopes this to the caller's own row.
+ */
+export async function deleteMyCandidateProfile(): Promise<void> {
+  const client = supabase
+  if (!client) throw new Error('Supabase is not configured')
+  const { error } = await client.from('candidate_profiles').delete()
+  if (error) throw error
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

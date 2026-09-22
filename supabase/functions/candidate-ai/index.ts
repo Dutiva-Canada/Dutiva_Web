@@ -15,8 +15,10 @@ import {
  * Candidate-ai edge function — optional AI features for the candidate portal
  * (resume tailoring, cover letter generation, match scoring, interview prep).
  *
- * Unlike advisor-chat this is a free B2C surface: no usage metering, no
- * retrieval/grounding, no memory extraction. Auth follows the same bearer-JWT
+ * Unlike advisor-chat this is a free B2C surface: no retrieval/grounding, no
+ * memory extraction, no commercial metering — but it still calls a paid model,
+ * so each user gets a fixed number of calls per UTC day via
+ * claim_candidate_ai_call (migration 0165). Auth follows the same bearer-JWT
  * pattern as the other dutiva-* functions. The model route is looked up in
  * ai_model_routes (route_key `candidate_ai`), falling back to `advisor_chat`
  * when the dedicated route is not configured.
@@ -181,6 +183,21 @@ Deno.serve(async (req: Request) => {
 
   const payloadCheck = validatePayload(feature, body['payload'])
   if (!payloadCheck.ok) return json({ error: payloadCheck.error }, 400)
+
+  /* Daily rail — one atomic counter row per user per day, claimed before the
+     model call so a timed-out call still counts. A refusal is a wait, not a
+     paywall: the client maps the 429 to a localized "try again tomorrow". */
+  const { data: underLimit, error: claimError } = await authenticated.adminClient.rpc(
+    'claim_candidate_ai_call',
+    { p_user_id: authenticated.user.id },
+  )
+  if (claimError) {
+    console.error('candidate-ai: usage claim failed', claimError)
+    return json({ error: 'Usage check failed' }, 500)
+  }
+  if (!underLimit) {
+    return json({ error: 'Daily AI limit reached', code: 'daily_limit' }, 429)
+  }
 
   /* Look up model route */
   const activeRoute = await activeModelRoute(authenticated.adminClient)

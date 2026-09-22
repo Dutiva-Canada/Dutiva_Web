@@ -26,12 +26,10 @@ export const careersMessages = defineMessages({
     en: 'Try different keywords or check back soon — new roles are posted regularly.',
     fr: "Essayez d'autres mots-clés ou revenez bientôt — de nouveaux postes sont publiés régulièrement.",
   },
-  careers_board_view_all: { en: 'View all open roles', fr: 'Voir tous les postes ouverts' },
   careers_board_apply: { en: 'Apply now', fr: 'Postuler maintenant' },
   careers_board_view_detail: { en: 'View details', fr: 'Voir les détails' },
   careers_board_posted: { en: 'Posted', fr: 'Publié' },
-  careers_board_closing: { en: 'Closing', fr: 'Clôture' },
-  careers_board_openings: { en: 'openings', fr: 'postes' },
+  careers_board_closing: { en: 'Closes', fr: 'Clôture' },
   careers_board_loading: { en: 'Loading job openings…', fr: 'Chargement des postes ouverts…' },
   careers_board_load_error: {
     en: 'Could not load job openings. Please try again.',
@@ -252,6 +250,26 @@ export const careersMessages = defineMessages({
     fr: 'Complétez votre profil pour commencer à postuler.',
   },
 
+  /* ── Profile deletion ─────────────────────────────────────────────────── */
+  careers_profile_delete_title: { en: 'Delete your data', fr: 'Supprimer vos données' },
+  careers_profile_delete_body: {
+    en: 'Permanently removes your candidate profile and every application you have submitted. Employers can no longer see your information. This cannot be undone.',
+    fr: 'Supprime définitivement votre profil candidat et toutes vos candidatures. Les employeurs ne pourront plus voir vos informations. Cette action est irréversible.',
+  },
+  careers_profile_delete_action: { en: 'Delete my profile', fr: 'Supprimer mon profil' },
+  careers_profile_delete_confirm: {
+    en: 'Permanently delete your profile and all of your applications? This cannot be undone.',
+    fr: 'Supprimer définitivement votre profil et toutes vos candidatures ? Cette action est irréversible.',
+  },
+  careers_profile_deleted: {
+    en: 'Your profile and applications were deleted.',
+    fr: 'Votre profil et vos candidatures ont été supprimés.',
+  },
+  careers_profile_delete_error: {
+    en: 'Could not delete your profile. Please try again.',
+    fr: 'Impossible de supprimer votre profil. Veuillez réessayer.',
+  },
+
   /* ── Applications list ────────────────────────────────────────────────── */
   careers_applications_title: { en: 'Your applications', fr: 'Vos candidatures' },
   careers_applications_empty: {
@@ -277,6 +295,10 @@ export const careersMessages = defineMessages({
     en: 'Withdraw this application? This cannot be undone.',
     fr: 'Retirer cette candidature ? Cette action est irréversible.',
   },
+  careers_applications_withdraw_success: {
+    en: 'Application withdrawn.',
+    fr: 'Candidature retirée.',
+  },
 
   /* ── Apply form ───────────────────────────────────────────────────────── */
   careers_apply_title: { en: 'Apply to', fr: 'Postuler à' },
@@ -293,8 +315,6 @@ export const careersMessages = defineMessages({
     fr: 'Pourquoi êtes-vous un bon candidat pour ce poste ?',
   },
   careers_apply_resume: { en: 'Resume', fr: 'CV' },
-  careers_apply_resume_base: { en: 'Use my base resume', fr: 'Utiliser mon CV de base' },
-  careers_apply_resume_tailored: { en: 'Tailored for this role', fr: 'Adapté à ce poste' },
   careers_apply_submit: { en: 'Submit application', fr: 'Soumettre la candidature' },
   careers_apply_submitting: { en: 'Submitting…', fr: 'Envoi…' },
   careers_apply_submitted: { en: 'Application submitted', fr: 'Candidature soumise' },
@@ -334,8 +354,8 @@ export const careersMessages = defineMessages({
   },
   careers_ai_match_score: { en: 'Check my match', fr: 'Évaluer ma correspondance' },
   careers_ai_match_score_desc: {
-    en: 'See how well your profile aligns with the role and get suggestions.',
-    fr: 'Voyez dans quelle mesure votre profil correspond au poste et obtenez des suggestions.',
+    en: 'See how well your profile aligns with the role. If you run this check, the score and suggestions are included with your application and visible to the employer.',
+    fr: "Voyez dans quelle mesure votre profil correspond au poste. Si vous lancez cette évaluation, le score et les suggestions sont joints à votre candidature et visibles par l'employeur.",
   },
   careers_ai_interview_prep: { en: 'Interview prep', fr: "Préparation à l'entretien" },
   careers_ai_interview_prep_desc: {
@@ -343,10 +363,13 @@ export const careersMessages = defineMessages({
     fr: 'Questions de pratique et points de discussion pour ce poste.',
   },
   careers_ai_generating: { en: 'Generating…', fr: 'Génération…' },
-  careers_ai_generated: { en: 'Generated', fr: 'Généré' },
   careers_ai_error: {
     en: 'AI tool unavailable. You can still apply without it.',
     fr: 'Outil IA indisponible. Vous pouvez toujours postuler sans.',
+  },
+  careers_ai_daily_limit: {
+    en: "You've reached today's AI limit. Try again tomorrow — you can still submit your application without them.",
+    fr: "Vous avez atteint la limite IA du jour. Réessayez demain — vous pouvez quand même soumettre votre candidature.",
   },
   careers_ai_match_score_label: { en: 'Match score', fr: 'Score de correspondance' },
   careers_ai_match_suggestions: { en: 'Suggestions', fr: 'Suggestions' },
@@ -361,6 +384,7 @@ export const careersMessages = defineMessages({
 
   /* ── Misc ─────────────────────────────────────────────────────────────── */
   careers_loading: { en: 'Loading…', fr: 'Chargement…' },
+  careers_retry: { en: 'Try again', fr: 'Réessayer' },
   careers_error_generic: {
     en: 'Something went wrong. Please try again.',
     fr: "Une erreur s'est produite. Veuillez réessayer.",

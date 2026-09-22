@@ -66,6 +66,16 @@ const SENSITIVE_TABLES = [
   'hr_document_exports',
   'ai_advisor_credits',
   'ai_advisor_overage_months',
+  // Candidate Portal (0153/0165): PII and application data must never reach
+  // anon. hr_job_postings is probed too — the base table must stay denied now
+  // that the public board reads the public_job_postings view; a leftover or
+  // recreated world-open policy would re-expose knockout_criteria and
+  // work_sample_scenario.
+  'candidate_profiles',
+  'candidate_applications',
+  'candidate_resumes',
+  'candidate_ai_usage',
+  'hr_job_postings',
 ]
 
 /**

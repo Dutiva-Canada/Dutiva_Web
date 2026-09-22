@@ -16,6 +16,19 @@ export type ApplicationStatus =
   | 'rejected'
   | 'withdrawn'
 
+/**
+ * Thrown when the database rejects an application because the candidate has
+ * already applied to the posting (unique(candidate_id, job_posting_id)).
+ * UI catches this to show the localized "already applied" message instead of
+ * a generic failure.
+ */
+export class DuplicateApplicationError extends Error {
+  constructor() {
+    super('already_applied')
+    this.name = 'DuplicateApplicationError'
+  }
+}
+
 export interface CandidateApplication {
   id: string
   candidateId: string
@@ -52,7 +65,7 @@ export async function listMyApplications(): Promise<CandidateApplication[]> {
   const { data, error } = await client
     .from('candidate_applications')
     .select(
-      'id, candidate_id, job_posting_id, status, cover_letter, submitted_resume, ai_match_score, ai_suggestions, applied_at, updated_at, job_posting_id(id, title, department, location, type)',
+      'id, candidate_id, job_posting_id, status, cover_letter, submitted_resume, ai_match_score, ai_suggestions, applied_at, updated_at, job_posting:job_posting_id(id, title, department, location, type)',
     )
     .order('applied_at', { ascending: false })
   if (error) throw error
@@ -97,7 +110,11 @@ export async function submitApplication(input: NewApplication): Promise<Candidat
       'id, candidate_id, job_posting_id, status, cover_letter, submitted_resume, ai_match_score, ai_suggestions, applied_at, updated_at',
     )
     .single()
-  if (error) throw error
+  if (error) {
+    // Postgres unique-violation on UNIQUE(candidate_id, job_posting_id)
+    if (error.code === '23505') throw new DuplicateApplicationError()
+    throw error
+  }
   return toApplication(data)
 }
 
@@ -109,6 +126,17 @@ export async function withdrawApplication(id: string): Promise<void> {
     .from('candidate_applications')
     .update({ status: 'withdrawn' })
     .eq('id', id)
+  if (error) throw error
+}
+
+/**
+ * Permanently delete an application row. Candidate-only via RLS; distinct
+ * from withdraw — this removes the record entirely.
+ */
+export async function deleteApplication(id: string): Promise<void> {
+  const client = supabase
+  if (!client) throw new Error('Supabase is not configured')
+  const { error } = await client.from('candidate_applications').delete().eq('id', id)
   if (error) throw error
 }
 
@@ -125,13 +153,13 @@ function toApplication(row: any): CandidateApplication {
     aiSuggestions: row.ai_suggestions,
     appliedAt: row.applied_at,
     updatedAt: row.updated_at,
-    jobPosting: row.job_posting_id
+    jobPosting: row.job_posting
       ? {
-          id: row.job_posting_id.id,
-          title: row.job_posting_id.title,
-          department: row.job_posting_id.department,
-          location: row.job_posting_id.location,
-          type: row.job_posting_id.type,
+          id: row.job_posting.id,
+          title: row.job_posting.title,
+          department: row.job_posting.department,
+          location: row.job_posting.location,
+          type: row.job_posting.type,
         }
       : undefined,
   }

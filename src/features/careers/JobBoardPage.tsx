@@ -10,6 +10,7 @@ import { useI18n } from '@/i18n/context'
 import { careersMessages as M } from '@/i18n/messages/careers'
 import { Seo } from '@/seo/Seo'
 import { useCareersPath } from './useCareersPath'
+import { formatCareersDate } from './dates'
 import { listActiveJobPostings } from './data/jobBoardApi'
 import type { PublicJobPosting } from './data/jobBoardApi'
 
@@ -118,7 +119,7 @@ export function JobBoardPage() {
 }
 
 function JobCard({ posting }: { readonly posting: PublicJobPosting }) {
-  const { x } = useI18n()
+  const { x, lang } = useI18n()
   const paths = useCareersPath()
   return (
     <Link
@@ -126,6 +127,7 @@ function JobCard({ posting }: { readonly posting: PublicJobPosting }) {
       className="flex flex-col rounded-[12px] border border-border bg-surface p-5 transition-[border-color] hover:border-gold-border"
     >
       <h2 className="text-base font-semibold text-text">{posting.title}</h2>
+      <p className="mt-1 text-[13px] font-medium text-text-muted">{posting.organizationName}</p>
       <div className="mt-3 space-y-1.5 text-sm text-text-2">
         <div className="flex items-center gap-1.5">
           <Briefcase size={14} strokeWidth={1.7} className="text-text-muted" aria-hidden="true" />
@@ -143,7 +145,15 @@ function JobCard({ posting }: { readonly posting: PublicJobPosting }) {
           <div className="flex items-center gap-1.5 text-xs text-text-muted">
             <Calendar size={13} strokeWidth={1.7} aria-hidden="true" />
             <span>
-              {x(M.careers_board_posted)} {formatDate(posting.postedDate)}
+              {x(M.careers_board_posted)} {formatCareersDate(posting.postedDate, lang)}
+            </span>
+          </div>
+        )}
+        {posting.closingDate && (
+          <div className="flex items-center gap-1.5 text-xs text-text-muted">
+            <Calendar size={13} strokeWidth={1.7} aria-hidden="true" />
+            <span>
+              {x(M.careers_board_closing)} {formatCareersDate(posting.closingDate, lang)}
             </span>
           </div>
         )}
@@ -154,11 +164,4 @@ function JobCard({ posting }: { readonly posting: PublicJobPosting }) {
       </div>
     </Link>
   )
-}
-
-/** ISO date → locale-aware short date. Falls back to the raw string. */
-function formatDate(iso: string): string {
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
-  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 }

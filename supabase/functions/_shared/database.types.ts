@@ -1442,6 +1442,24 @@ export type Database = {
           },
         ]
       }
+      candidate_ai_usage: {
+        Row: {
+          calls: number
+          day: string
+          user_id: string
+        }
+        Insert: {
+          calls?: number
+          day: string
+          user_id: string
+        }
+        Update: {
+          calls?: number
+          day?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       candidate_applications: {
         Row: {
           ai_match_score: number | null
@@ -13327,6 +13345,23 @@ export type Database = {
         }
         Relationships: []
       }
+      public_job_postings: {
+        Row: {
+          closing_date: string | null
+          department: string | null
+          description: string | null
+          id: string | null
+          location: string | null
+          organization_id: string | null
+          organization_name: string | null
+          posted_date: string | null
+          requirements: string[] | null
+          status: string | null
+          title: string | null
+          type: string | null
+        }
+        Relationships: []
+      }
       v_navigation_tree: {
         Row: {
           category_code: string | null
@@ -14230,6 +14265,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: Json
+      }
+      claim_candidate_ai_call: {
+        Args: { p_user_id: string }
+        Returns: boolean
       }
       claim_ai_usage: {
         Args: {

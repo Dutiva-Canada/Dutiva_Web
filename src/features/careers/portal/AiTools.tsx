@@ -7,6 +7,7 @@ import {
   interviewPrep,
   scoreMatch,
   tailorResume,
+  CandidateAiDailyLimitError,
 } from '@/features/careers/data/candidateAi'
 import type {
   CoverLetterResult,
@@ -29,7 +30,12 @@ interface AiToolsProps {
   onMatchScored: (score: number, suggestions: string[]) => void
 }
 
-type ToolState = 'idle' | 'loading' | 'done' | 'error'
+type ToolState = 'idle' | 'loading' | 'done' | 'error' | 'limited'
+
+/** 'limited' when the per-user daily AI rail refused the call. */
+function toolStateFromError(err: unknown): ToolState {
+  return err instanceof CandidateAiDailyLimitError ? 'limited' : 'error'
+}
 
 /**
  * The four optional AI tool cards for the apply page. Each runs
@@ -72,8 +78,8 @@ export function AiTools({
       })
       setTailoredResume(result.tailoredResume)
       setTailorState('done')
-    } catch {
-      setTailorState('error')
+    } catch (err) {
+      setTailorState(toolStateFromError(err))
     }
   }
 
@@ -89,8 +95,8 @@ export function AiTools({
       })
       setCoverLetter(result.coverLetter)
       setCoverState('done')
-    } catch {
-      setCoverState('error')
+    } catch (err) {
+      setCoverState(toolStateFromError(err))
     }
   }
 
@@ -106,8 +112,8 @@ export function AiTools({
       setMatchResult(result)
       onMatchScored(result.score, result.suggestions)
       setMatchState('done')
-    } catch {
-      setMatchState('error')
+    } catch (err) {
+      setMatchState(toolStateFromError(err))
     }
   }
 
@@ -122,8 +128,8 @@ export function AiTools({
       })
       setPrepResult(result)
       setPrepState('done')
-    } catch {
-      setPrepState('error')
+    } catch (err) {
+      setPrepState(toolStateFromError(err))
     }
   }
 
@@ -299,10 +305,12 @@ function AiToolCard({ icon, title, desc, state, onRun, children }: AiToolCardPro
         {state === 'loading' ? x(M.careers_ai_generating) : title}
       </button>
 
-      {state === 'error' && (
+      {(state === 'error' || state === 'limited') && (
         <div className="mt-[10px] flex items-center gap-[6px] rounded-[8px] border border-risk-border bg-risk-bg px-[10px] py-[8px]">
           <AlertCircle size={14} className="text-risk-fg" strokeWidth={2} aria-hidden="true" />
-          <span className="text-[12px] text-risk-fg">{x(M.careers_ai_error)}</span>
+          <span className="text-[12px] text-risk-fg">
+            {x(state === 'limited' ? M.careers_ai_daily_limit : M.careers_ai_error)}
+          </span>
         </div>
       )}
 

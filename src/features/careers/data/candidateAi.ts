@@ -56,25 +56,31 @@ export interface InterviewPrepResult {
 
 type AiFeature = 'tailor-resume' | 'cover-letter' | 'match-score' | 'interview-prep'
 
+/**
+ * Thrown when the per-user daily AI rail (claim_candidate_ai_call, migration
+ * 0165) refuses the call. UI maps this to the localized "try again tomorrow"
+ * message instead of a generic failure.
+ */
+export class CandidateAiDailyLimitError extends Error {
+  constructor() {
+    super('daily_limit')
+    this.name = 'CandidateAiDailyLimitError'
+  }
+}
+
 async function callCandidateAi<T>(feature: AiFeature, payload: unknown): Promise<T> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
-  const { data: sessionData } = await client.auth.getSession()
-  const session = sessionData.session
-  if (!session) throw new Error('Not signed in')
-  const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/candidate-ai`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${session.access_token}`,
-      apikey: import.meta.env.VITE_SUPABASE_ANON_KEY ?? '',
-    },
-    body: JSON.stringify({ feature, payload }),
+  const { data, error } = await client.functions.invoke('candidate-ai', {
+    body: { feature, payload },
   })
-  if (!response.ok) {
-    throw new Error(`AI request failed: ${response.status}`)
+  if (error) {
+    // Non-2xx surfaces as FunctionsHttpError carrying the raw Response.
+    const status = (error as { context?: { status?: number } }).context?.status
+    if (status === 429) throw new CandidateAiDailyLimitError()
+    throw error
   }
-  return (await response.json()) as T
+  return data as T
 }
 
 export async function tailorResume(req: TailorResumeRequest): Promise<TailorResumeResult> {

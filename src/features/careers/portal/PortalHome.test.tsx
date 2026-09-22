@@ -10,16 +10,20 @@ import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import type { CandidateProfile } from '@/features/careers/data/candidateApi'
 import type { CandidateApplication } from '@/features/careers/data/applicationsApi'
 
-vi.mock('@/features/careers/data/candidateApi', () => ({
+vi.mock('@/features/careers/data/candidateApi', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/careers/data/candidateApi')>()),
   getMyCandidateProfile: vi.fn(),
   createCandidateProfile: vi.fn(),
   updateCandidateProfile: vi.fn(),
+  deleteMyCandidateProfile: vi.fn(),
 }))
-vi.mock('@/features/careers/data/applicationsApi', () => ({
+vi.mock('@/features/careers/data/applicationsApi', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/careers/data/applicationsApi')>()),
   listMyApplications: vi.fn(),
   hasApplied: vi.fn(),
   submitApplication: vi.fn(),
   withdrawApplication: vi.fn(),
+  deleteApplication: vi.fn(),
 }))
 
 const { getMyCandidateProfile } = await import('@/features/careers/data/candidateApi')
