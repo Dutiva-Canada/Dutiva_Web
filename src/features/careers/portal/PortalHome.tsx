@@ -8,10 +8,7 @@ import { getMyCandidateProfile } from '@/features/careers/data/candidateApi'
 import type { CandidateProfile } from '@/features/careers/data/candidateApi'
 import { listMyApplications } from '@/features/careers/data/applicationsApi'
 import type { CandidateApplication } from '@/features/careers/data/applicationsApi'
-import {
-  applicationStatusLabel,
-  applicationStatusTone,
-} from '@/features/careers/applicationStatus'
+import { applicationStatusLabel, applicationStatusTone } from '@/features/careers/applicationStatus'
 import { useCareersPath } from '@/features/careers/useCareersPath'
 
 type LoadState = 'loading' | 'ready' | 'failed'
@@ -164,7 +161,7 @@ export function PortalHome() {
               >
                 <div className="min-w-0">
                   <div className="truncate text-[13.5px] font-semibold text-text">
-                    {app.jobPosting?.title ?? app.jobPostingId}
+                    {app.jobPosting?.title ?? x(M.careers_applications_posting_closed)}
                   </div>
                   <div className="truncate text-[12.5px] text-text-muted">
                     {app.jobPosting?.department}
