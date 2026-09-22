@@ -9,10 +9,21 @@ import type { FsDirLike, FsFileLike } from './driveImport'
  */
 
 function fakeFile(name: string, bytes = 4): FsFileLike {
+  const contents = new Uint8Array(bytes)
+  const file = new File([contents], name)
+  Object.defineProperty(file, 'stream', {
+    value: () =>
+      new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(contents)
+          controller.close()
+        },
+      }),
+  })
   return {
     kind: 'file',
     name,
-    getFile: async () => new File([new Uint8Array(bytes)], name),
+    getFile: async () => file,
   }
 }
 

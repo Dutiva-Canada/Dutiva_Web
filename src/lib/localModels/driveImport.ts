@@ -239,7 +239,7 @@ export async function importDriveFolder(
   for (const item of pending) {
     try {
       const blob = await item.file.getFile()
-      const res = new Response(await blob.arrayBuffer(), {
+      const res = new Response(blob, {
         headers: { 'Content-Type': mimeFor(item.relPath) },
       })
       await cache.put(new Request(hfCacheUrl(item.repoId, item.relPath)), res)
