@@ -29,6 +29,7 @@
     "check:architecture": "node scripts/check-architecture.mjs",
     "check:workspace-links": "node scripts/check-workspace-links.mjs",
     "wiki:sync": "node scripts/sync-wiki.mjs",
+    "mirror": "node scripts/mirror-github.mjs",
     "optimize:brand": "node scripts/optimize-brand-assets.mjs",
     "check": "npm run typecheck && npm run lint && npm run test && npm run check:migrations && npm run check:rls && npm run check:facts && npm run check:message-scopes && npm run check:brand-assets && npm run check:architecture && npm run check:workspace-links",
     "db:types": "node scripts/generate-db-types.mjs",
