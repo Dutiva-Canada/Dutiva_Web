@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import { supabase } from '@/lib/supabaseClient'
 
 /**
@@ -58,18 +59,49 @@ export interface NewApplication {
   aiSuggestions?: unknown | null
 }
 
-/** List the signed-in candidate's applications, newest first. */
+// View rows lose NOT NULL at the type level; the base columns are required.
+const postingRowSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  department: z.string(),
+  location: z.string(),
+  type: z.string(),
+})
+
+/**
+ * List the signed-in candidate's applications, newest first.
+ *
+ * Posting details come from `public_job_postings` in a second query rather
+ * than an FK embed — since migration 0165 the base table is org-member-only,
+ * so a candidate embed resolves to null. Postings that have since closed are
+ * absent from the view and surface as `jobPosting: undefined`.
+ */
 export async function listMyApplications(): Promise<CandidateApplication[]> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
   const { data, error } = await client
     .from('candidate_applications')
     .select(
-      'id, candidate_id, job_posting_id, status, cover_letter, submitted_resume, ai_match_score, ai_suggestions, applied_at, updated_at, job_posting:job_posting_id(id, title, department, location, type)',
+      'id, candidate_id, job_posting_id, status, cover_letter, submitted_resume, ai_match_score, ai_suggestions, applied_at, updated_at',
     )
     .order('applied_at', { ascending: false })
   if (error) throw error
-  return (data ?? []).map(toApplication)
+  const rows = data ?? []
+  const postingIds = [...new Set(rows.map((row) => row.job_posting_id))]
+  const postings = new Map<string, NonNullable<CandidateApplication['jobPosting']>>()
+  if (postingIds.length > 0) {
+    const { data: postingRows, error: postingError } = await client
+      .from('public_job_postings')
+      .select('id, title, department, location, type')
+      .in('id', postingIds)
+    if (postingError) throw postingError
+    for (const posting of z.array(postingRowSchema).parse(postingRows ?? [])) {
+      postings.set(posting.id, posting)
+    }
+  }
+  return rows.map((row) =>
+    toApplication({ ...row, job_posting: postings.get(row.job_posting_id) ?? null }),
+  )
 }
 
 /** Check if the candidate has already applied to a specific job posting. */

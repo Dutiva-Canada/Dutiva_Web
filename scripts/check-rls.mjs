@@ -73,7 +73,6 @@ const SENSITIVE_TABLES = [
   // work_sample_scenario.
   'candidate_profiles',
   'candidate_applications',
-  'candidate_resumes',
   'candidate_ai_usage',
   'hr_job_postings',
 ]

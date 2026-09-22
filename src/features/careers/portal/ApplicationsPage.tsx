@@ -111,20 +111,25 @@ export function ApplicationsPage() {
               <div key={app.id} className="rounded-[12px] border border-border bg-surface p-[18px]">
                 <div className="flex flex-wrap items-start justify-between gap-[12px]">
                   <div className="min-w-0 flex-1">
-                    <Link
-                      to={paths.jobDetail(app.jobPostingId)}
-                      aria-label={x(M.careers_applications_view_job)}
-                      className="text-[15px] font-semibold text-text hover:underline"
-                    >
-                      {app.jobPosting?.title ?? app.jobPostingId}
-                    </Link>
+                    {app.jobPosting ? (
+                      <Link
+                        to={paths.jobDetail(app.jobPostingId)}
+                        aria-label={x(M.careers_applications_view_job)}
+                        className="text-[15px] font-semibold text-text hover:underline"
+                      >
+                        {app.jobPosting.title}
+                      </Link>
+                    ) : (
+                      <span className="text-[15px] font-semibold text-text">
+                        {x(M.careers_applications_posting_closed)}
+                      </span>
+                    )}
                     <div className="mt-[3px] text-[13px] text-text-muted">
                       {app.jobPosting?.department}
                       {app.jobPosting?.location ? ` · ${app.jobPosting.location}` : ''}
                     </div>
                     <div className="mt-[4px] text-[12.5px] text-text-faint">
-                      {x(M.careers_applications_applied)}{' '}
-                      {formatCareersDate(app.appliedAt, lang)}
+                      {x(M.careers_applications_applied)} {formatCareersDate(app.appliedAt, lang)}
                     </div>
                   </div>
                   <div className="flex items-center gap-[10px]">
