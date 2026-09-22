@@ -137,6 +137,118 @@ export const careersMessages = defineMessages({
   careers_portal_nav_profile: { en: 'Profile', fr: 'Profil' },
   careers_portal_nav_applications: { en: 'Applications', fr: 'Candidatures' },
   careers_portal_nav_browse: { en: 'Browse jobs', fr: 'Parcourir les emplois' },
+  careers_portal_nav_ai_tools: { en: 'AI tools', fr: 'Outils IA' },
+  careers_portal_nav_settings: { en: 'Settings', fr: 'Paramètres' },
+
+  /* ── Candidate portal — settings ─────────────────────────────────────── */
+  careers_settings_preferences: { en: 'Preferences', fr: 'Préférences' },
+  careers_settings_language: { en: 'Language', fr: 'Langue' },
+  careers_settings_theme: { en: 'Theme', fr: 'Thème' },
+  careers_settings_theme_light: { en: 'Light', fr: 'Clair' },
+  careers_settings_theme_dark: { en: 'Dark', fr: 'Sombre' },
+  careers_settings_account: { en: 'Account', fr: 'Compte' },
+  careers_settings_account_body: {
+    en: 'Signed in with a one-time email code.',
+    fr: 'Connecté avec un code unique envoyé par courriel.',
+  },
+
+  /* ── Candidate portal — standalone AI tools ──────────────────────────── */
+  careers_ai_tools_lead: {
+    en: 'Pick a job to work on — one of your applications, or a posting you paste in.',
+    fr: 'Choisissez un emploi — l’une de vos candidatures ou une offre que vous collez.',
+  },
+  careers_ai_tools_pick_job: { en: 'Choose a job', fr: 'Choisir un emploi' },
+  careers_ai_tools_pick_job_body: {
+    en: 'The tools tailor your resume and prep against this posting.',
+    fr: 'Les outils adaptent votre CV et votre préparation à cette offre.',
+  },
+  careers_ai_tools_from_application: {
+    en: 'From my applications',
+    fr: 'Depuis mes candidatures',
+  },
+  careers_ai_tools_choose_application: {
+    en: 'Select an application…',
+    fr: 'Sélectionnez une candidature…',
+  },
+  careers_ai_tools_posting_closed: {
+    en: 'That posting is closed, so its details are no longer available. Paste the job description below instead.',
+    fr: 'Cette offre est fermée et ses détails ne sont plus disponibles. Collez la description ci-dessous.',
+  },
+  careers_ai_tools_or_paste: {
+    en: 'Or paste a job posting',
+    fr: 'Ou collez une offre d’emploi',
+  },
+  careers_ai_tools_paste_title_placeholder: {
+    en: 'Job title',
+    fr: 'Titre du poste',
+  },
+  careers_ai_tools_paste_placeholder: {
+    en: 'Paste the job description here…',
+    fr: 'Collez la description du poste ici…',
+  },
+  careers_ai_tools_use_posting: { en: 'Use this posting', fr: 'Utiliser cette offre' },
+  careers_ai_tools_resume_required: {
+    en: 'Add your resume first',
+    fr: 'Ajoutez d’abord votre CV',
+  },
+  careers_ai_tools_resume_required_body: {
+    en: 'The AI tools work from the resume text in your profile. Add it there, then come back.',
+    fr: 'Les outils IA partent du texte du CV dans votre profil. Ajoutez-le, puis revenez.',
+  },
+  careers_ai_copied: {
+    en: 'Copied — paste it where you need it.',
+    fr: 'Copié — collez-le où vous en avez besoin.',
+  },
+
+  /* ── Employer door (/employer) ───────────────────────────────────────── */
+  careers_employer_tag: { en: 'Employers', fr: 'Employeurs' },
+  careers_employer_title: { en: 'Dutiva for employers', fr: 'Dutiva pour les employeurs' },
+  careers_employer_lead: {
+    en: 'Your organization’s workspace — postings, applicants and HR compliance tools in one place.',
+    fr: 'L’espace de travail de votre organisation — offres, candidatures et outils de conformité RH au même endroit.', // [FR self-authored]
+  },
+  careers_employer_member_body: {
+    en: 'You’re signed in — open your organization’s workspace to manage postings and applicants.',
+    fr: 'Vous êtes connecté — ouvrez l’espace de travail de votre organisation pour gérer les offres et les candidatures.', // [FR self-authored]
+  },
+  careers_employer_open_workspace: {
+    en: 'Open your workspace',
+    fr: 'Ouvrir votre espace de travail',
+  },
+  careers_employer_create_title: {
+    en: 'Create your organization',
+    fr: 'Créez votre organisation',
+  },
+  careers_employer_create_body: {
+    en: 'Name your organization to set up its workspace. You can invite teammates after.',
+    fr: 'Nommez votre organisation pour créer son espace de travail. Vous pourrez inviter des collègues ensuite.', // [FR self-authored]
+  },
+  careers_employer_org_name: { en: 'Organization name', fr: 'Nom de l’organisation' },
+  careers_employer_org_name_placeholder: {
+    en: 'e.g., Northgate Logistics Inc.',
+    fr: 'p. ex., Logistique Northgate inc.',
+  },
+  careers_employer_create_cta: {
+    en: 'Create workspace',
+    fr: 'Créer l’espace de travail',
+  },
+  careers_employer_creating: { en: 'Creating…', fr: 'Création…' },
+  careers_employer_created: {
+    en: 'Workspace created.',
+    fr: 'Espace de travail créé.',
+  },
+  careers_employer_create_error: {
+    en: 'Couldn’t create the workspace. Try again.',
+    fr: 'Impossible de créer l’espace de travail. Réessayez.',
+  },
+  careers_employer_create_capacity: {
+    en: 'We’re at capacity right now — your request has been noted. Try again soon.',
+    fr: 'Nous sommes à pleine capacité pour l’instant — votre demande a été notée. Réessayez bientôt.', // [FR self-authored]
+  },
+  careers_employer_create_waitlist: {
+    en: 'You’ve been added to the waitlist — we’ll email you when a spot opens.',
+    fr: 'Vous êtes sur la liste d’attente — nous vous écrirons quand une place se libérera.', // [FR self-authored]
+  },
 
   /* ── Candidate profile ────────────────────────────────────────────────── */
   careers_profile_title: { en: 'Your profile', fr: 'Votre profil' },
