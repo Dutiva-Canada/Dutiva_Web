@@ -38,8 +38,16 @@ export interface AuthContextValue {
    * that function's own comment). Ineligible sign-ins still get in only as
    * far as `/app/welcome`'s "not authorized" screen — the real boundary is
    * enforced server-side regardless (RLS, the edge-function checks).
+   *
+   * `next` is the path AuthConfirm lands on after the link verifies —
+   * callers outside the workspace (the candidate portal) pass their own
+   * route so link-clickers return to the surface they started on instead of
+   * being dropped into /app. Root-relative only; anything else is ignored.
    */
-  signInWithEmail: (email: string, opts?: { name?: string }) => Promise<string | undefined>
+  signInWithEmail: (
+    email: string,
+    opts?: { name?: string; next?: string },
+  ) => Promise<string | undefined>
   /**
    * Verifies the 6-digit code from the sign-in email; resolves to an error
    * message, or undefined on success (the session then arrives through

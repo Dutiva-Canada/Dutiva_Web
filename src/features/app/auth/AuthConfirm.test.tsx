@@ -31,6 +31,7 @@ function renderAt(search: string) {
           <Route path="/app/auth/confirm" element={<AuthConfirm />} />
           <Route path="/app/home" element={<div>WORKSPACE HOME</div>} />
           <Route path="/app/welcome" element={<div>WELCOME</div>} />
+          <Route path="/careers/portal" element={<div>CANDIDATE PORTAL</div>} />
         </Routes>
       </MemoryRouter>
     </LangProvider>,
@@ -95,5 +96,29 @@ describe('AuthConfirm', () => {
     await waitFor(() => expect(screen.getByText('WORKSPACE HOME')).toBeInTheDocument())
     expect(authMock.exchangeCodeForSession).toHaveBeenCalledWith('pkce-code')
     expect(authMock.verifyOtp).not.toHaveBeenCalled()
+  })
+
+  it('returns to the ?next= surface after verification (portal sign-in)', async () => {
+    renderAt('?token_hash=abc123&type=magiclink&next=%2Fcareers%2Fportal')
+
+    await userEvent.click(await screen.findByRole('button', { name: /confirm sign-in/i }))
+
+    await waitFor(() => expect(screen.getByText('CANDIDATE PORTAL')).toBeInTheDocument())
+  })
+
+  it('ignores a non-root-relative ?next= (no open redirect)', async () => {
+    renderAt('?code=pkce-code&next=https%3A%2F%2Fevil.example%2Fsteal')
+
+    await waitFor(() => expect(screen.getByText('WORKSPACE HOME')).toBeInTheDocument())
+  })
+
+  it('points the retry link back at the origin surface on failure', async () => {
+    authMock.verifyOtp.mockResolvedValue({ error: { message: 'Token has expired' } })
+    renderAt('?token_hash=stale&type=magiclink&next=%2Fcareers%2Fportal')
+
+    await userEvent.click(await screen.findByRole('button', { name: /confirm sign-in/i }))
+
+    const retry = await screen.findByRole('link', { name: /back to sign in/i })
+    expect(retry).toHaveAttribute('href', '/careers/portal')
   })
 })

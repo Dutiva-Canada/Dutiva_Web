@@ -4,6 +4,7 @@ import type { EmailOtpType } from '@supabase/supabase-js'
 import { useI18n } from '@/i18n/context'
 import { authMessages as M } from '@/i18n/messages/auth'
 import { supabase } from '@/lib/supabaseClient'
+import { safeNextPath } from './safeNextPath'
 
 const EMAIL_OTP_TYPES = new Set<EmailOtpType>([
   'magiclink',
@@ -61,6 +62,11 @@ export function AuthConfirm() {
   const [verifying, setVerifying] = useState(false)
   const ran = useRef(false)
 
+  /* `?next=` is the surface the sign-in started from (e.g. the candidate
+     portal passes /careers/portal). Validated to root-relative only; anything
+     else falls back to the workspace home. */
+  const destination = safeNextPath(params.get('next')) ?? '/app/home'
+
   useEffect(() => {
     if (ran.current) return
     ran.current = true
@@ -107,13 +113,13 @@ export function AuthConfirm() {
           const { data } = await client.auth.getSession()
           if (!data.session) throw new Error('No sign-in token in the confirmation link.')
         }
-        navigate('/app/home', { replace: true })
+        navigate(destination, { replace: true })
       } catch (error) {
         console.error('auth confirm: verification failed —', error)
         setFailed(true)
       }
     })()
-  }, [navigate, params, location.hash])
+  }, [navigate, params, location.hash, destination])
 
   const confirm = () => {
     if (!supabase || !pending) return
@@ -126,7 +132,7 @@ export function AuthConfirm() {
           type: pending.type,
         })
         if (error) throw error
-        navigate('/app/home', { replace: true })
+        navigate(destination, { replace: true })
       } catch (error) {
         console.error('auth confirm: verification failed —', error)
         setFailed(true)
@@ -148,7 +154,7 @@ export function AuthConfirm() {
             </h1>
             <p className="m-0 text-[13.5px] text-text-muted">{x(M.auth_confirm_error_body)}</p>
             <Link
-              to="/app/welcome"
+              to={destination === '/app/home' ? '/app/welcome' : destination}
               className="self-center rounded-[8px] bg-navy px-[16px] py-[9px] text-[13.5px] font-semibold text-white"
             >
               {x(M.auth_confirm_retry)}
