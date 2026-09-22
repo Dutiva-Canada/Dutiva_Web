@@ -14259,6 +14259,7 @@ export type Database = {
         Returns: Json
       }
       claim_candidate_ai_call: { Args: { p_user_id: string }; Returns: boolean }
+      claim_org_invitations: { Args: never; Returns: number }
       claim_document_save: {
         Args: { p_document_id: string; p_organization_id: string }
         Returns: Json
@@ -14996,6 +14997,20 @@ export type Database = {
       normalize_document_jurisdiction_label: {
         Args: { p_code: string; p_fallback?: string }
         Returns: string
+      }
+      org_member_directory: {
+        Args: { p_org: string }
+        Returns: {
+          member_id: string
+          user_id: string
+          email: string | null
+          display_name: string | null
+          role: string | null
+          status: string
+          granted_modules: string[] | null
+          access_expires_at: string | null
+          created_at: string
+        }[]
       }
       organization_effective_plan: {
         Args: { p_organization_id: string }

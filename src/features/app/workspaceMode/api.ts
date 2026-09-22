@@ -206,6 +206,179 @@ function orgSettingsFromRow(
   }
 }
 
+/**
+ * Materialize the caller's pending organization_invitations into active
+ * memberships (SECURITY DEFINER RPC — migration 0168). Called once per
+ * signed-in load before membership resolution so an invited teammate lands
+ * in production on first sign-in. Returns the number of invites claimed.
+ */
+export async function claimOrgInvitations(): Promise<number> {
+  if (!supabase) return 0
+  try {
+    const { data, error } = await supabase.rpc('claim_org_invitations')
+    if (error || typeof data !== 'number') return 0
+    return data
+  } catch {
+    return 0
+  }
+}
+
+export interface OrgDirectoryMember {
+  memberId: string
+  userId: string
+  email: string
+  displayName: string
+  role: OrgMemberRole | null
+  status: string
+  accessExpiresAt: string | null
+}
+
+const directoryRowSchema = z.object({
+  member_id: z.string(),
+  user_id: z.string(),
+  email: z.string().nullable(),
+  display_name: z.string().nullable(),
+  role: z.string().nullable(),
+  status: z.string(),
+  access_expires_at: z.string().nullable(),
+})
+
+/** Org-admin-only member list with emails (SECURITY DEFINER — migration 0168). */
+export async function listOrgMembers(organizationId: string): Promise<OrgDirectoryMember[]> {
+  if (!supabase) return []
+  try {
+    const { data, error } = await supabase.rpc('org_member_directory', { p_org: organizationId })
+    if (error || !data) return []
+    return z.array(directoryRowSchema).parse(data).map((row) => ({
+      memberId: row.member_id,
+      userId: row.user_id,
+      email: row.email ?? '',
+      displayName: row.display_name ?? '',
+      role: isOrgMemberRole(row.role) ? row.role : null,
+      status: row.status,
+      accessExpiresAt: row.access_expires_at,
+    }))
+  } catch {
+    return []
+  }
+}
+
+export interface OrgInvitation {
+  id: string
+  email: string
+  role: OrgMemberRole | null
+  status: string
+  expiresAt: string
+}
+
+const invitationRowSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  role: z.string(),
+  status: z.string(),
+  expires_at: z.string(),
+})
+
+/** Pending invitations for the org (admin-only via RLS — migration 0168). */
+export async function listOrgInvitations(organizationId: string): Promise<OrgInvitation[]> {
+  if (!supabase) return []
+  try {
+    const { data, error } = await supabase
+      .from('organization_invitations')
+      .select('id, email, role, status, expires_at')
+      .eq('organization_id', organizationId)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+    if (error || !data) return []
+    return z.array(invitationRowSchema).parse(data).map((row) => ({
+      id: row.id,
+      email: row.email,
+      role: isOrgMemberRole(row.role) ? row.role : null,
+      status: row.status,
+      expiresAt: row.expires_at,
+    }))
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Invite an email to the org: insert the pending invitation (admin-only RLS),
+ * then ask the send-org-invite edge function to deliver it. A mail failure
+ * never blocks the invite — claim_org_invitations() still admits the address
+ * on sign-in. Returns the invitation id on success, null on failure.
+ */
+export async function inviteOrgMember(
+  organizationId: string,
+  email: string,
+  role: OrgMemberRole,
+): Promise<{ id: string; emailed: boolean } | { error: string }> {
+  if (!supabase) return { error: 'offline' }
+  const normalized = email.trim().toLowerCase()
+  try {
+    const { data, error } = await supabase
+      .from('organization_invitations')
+      .insert({ organization_id: organizationId, email: normalized, role, status: 'pending' })
+      .select('id')
+      .single()
+    if (error || !data) return { error: error?.message ?? 'insert failed' }
+    const invitationId = (data as { id: string }).id
+
+    let emailed = false
+    try {
+      const { data: fnData, error: fnError } = await supabase.functions.invoke(
+        'send-org-invite',
+        { body: { invitationId } },
+      )
+      emailed = !fnError && (fnData as { emailed?: boolean } | null)?.emailed === true
+    } catch {
+      emailed = false
+    }
+    return { id: invitationId, emailed }
+  } catch {
+    return { error: 'offline' }
+  }
+}
+
+/** Revoke a pending invitation (hard delete — no revoked status is needed). */
+export async function revokeOrgInvitation(invitationId: string): Promise<boolean> {
+  if (!supabase) return false
+  try {
+    const { error } = await supabase
+      .from('organization_invitations')
+      .delete()
+      .eq('id', invitationId)
+    return !error
+  } catch {
+    return false
+  }
+}
+
+/** Change a member's role (admin-only RLS on organization_members). */
+export async function updateMemberRole(memberId: string, role: OrgMemberRole): Promise<boolean> {
+  if (!supabase) return false
+  try {
+    const { error } = await supabase
+      .from('organization_members')
+      .update({ role })
+      .eq('id', memberId)
+    return !error
+  } catch {
+    return false
+  }
+}
+
+/** Remove a member row entirely (admin-only RLS). */
+export async function removeOrgMember(memberId: string): Promise<boolean> {
+  if (!supabase) return false
+  try {
+    const { error } = await supabase.from('organization_members').delete().eq('id', memberId)
+    return !error
+  } catch {
+    return false
+  }
+}
+
 export async function fetchOrganizationSettings(
   organizationId: string,
 ): Promise<WorkspaceOrganizationSettings | null> {

@@ -111,10 +111,57 @@ export const settingsMessages = defineMessages({
     en: 'Sample Northgate roster for the demo walkthrough — not a live team list.',
     fr: 'Liste d’exemple Northgate pour la démo — pas une équipe en direct.', // [FR self-authored]
   },
-  settings_team_production_note: {
-    en: 'You’re on this workspace. Invites and role changes aren’t available in Settings yet.',
-    fr: 'Vous êtes sur cet espace de travail. Les invitations et les changements de rôle ne sont pas encore disponibles dans Paramètres.', // [FR self-authored]
+  settings_role_member: { en: 'Member', fr: 'Membre' }, // [FR self-authored]
+  settings_role_professional: { en: 'Professional', fr: 'Professionnel·le' }, // [FR self-authored]
+  settings_role_consultant: { en: 'Consultant', fr: 'Consultant·e' }, // [FR self-authored]
+
+  /* Team management (production) — [FR self-authored] */
+  settings_team_pending_heading: {
+    en: 'Pending invitations',
+    fr: 'Invitations en attente',
   },
+  settings_team_invite_email: { en: 'Email', fr: 'Courriel' },
+  settings_team_invite_email_placeholder: {
+    en: 'teammate@company.ca',
+    fr: 'collegue@entreprise.ca',
+  },
+  settings_team_invite_role: { en: 'Role', fr: 'Rôle' },
+  settings_team_invite_send: { en: 'Send invite', fr: 'Envoyer l’invitation' },
+  settings_team_invite_sent: { en: 'Invite sent.', fr: 'Invitation envoyée.' },
+  settings_team_invite_saved: {
+    en: 'Invite saved — they’ll get access when they sign in with that email.',
+    fr: 'Invitation enregistrée — l’accès sera activé à sa connexion avec ce courriel.',
+  },
+  settings_team_invite_error: {
+    en: 'Couldn’t send the invite. Try again.',
+    fr: 'Impossible d’envoyer l’invitation. Réessayez.',
+  },
+  settings_team_invite_note: {
+    en: 'Invited teammates get access the first time they sign in with that email.',
+    fr: 'Les personnes invitées obtiennent l’accès à leur première connexion avec ce courriel.',
+  },
+  settings_team_member_note: {
+    en: 'Only owners and admins can invite teammates or change roles.',
+    fr: 'Seuls les propriétaires et admins peuvent inviter des collègues ou changer les rôles.',
+  },
+  settings_team_role_label: { en: 'Member role', fr: 'Rôle du membre' },
+  settings_team_role_changed: { en: 'Role updated.', fr: 'Rôle mis à jour.' },
+  settings_team_role_error: {
+    en: 'Couldn’t update the role. Try again.',
+    fr: 'Impossible de modifier le rôle. Réessayez.',
+  },
+  settings_team_remove: { en: 'Remove {name}', fr: 'Retirer {name}' },
+  settings_team_remove_confirm: {
+    en: 'Remove {name} from this workspace? They’ll lose access immediately.',
+    fr: 'Retirer {name} de cet espace de travail? L’accès sera révoqué immédiatement.',
+  },
+  settings_team_removed: { en: 'Member removed.', fr: 'Membre retiré.' },
+  settings_team_remove_error: {
+    en: 'Couldn’t update the team. Try again.',
+    fr: 'Impossible de mettre l’équipe à jour. Réessayez.',
+  },
+  settings_team_revoke: { en: 'Revoke', fr: 'Révoquer' },
+  settings_team_revoked: { en: 'Invitation revoked.', fr: 'Invitation révoquée.' },
 
   /* Workspace profile edit — [FR self-authored] */
   settings_profile_edit: {

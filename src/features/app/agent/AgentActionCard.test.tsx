@@ -14,6 +14,7 @@ import type { AgentTool, AgentToolProposal } from './types'
 const workspaceStub: WorkspaceModeContextValue = {
   mode: 'demo',
   isAdmin: false,
+  canUseProduction: false,
   identity: {
     companyName: 'Northgate Logistics Inc.',
     user: { name: 'Demo', initials: 'D', role: bi('Owner', 'Propriétaire'), email: 'demo@x.ca' },

@@ -23,6 +23,7 @@ function renderPanel(overrides: Partial<AuthContextValue> = {}) {
     signInWithEmail: vi.fn(async () => undefined),
     verifyEmailCode: vi.fn(async () => undefined),
     signOut: vi.fn(async () => {}),
+    refreshAuthorization: vi.fn(async () => {}),
     ...overrides,
   }
   render(
