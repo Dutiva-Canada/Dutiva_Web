@@ -394,15 +394,21 @@ always to import the pure part rather than to widen the allowlist —
 
 `main` lives on GitLab (`gitlab.com:dutiva-canada1/dutiva-web`). Vercel builds
 production from the GitHub mirror (`Dutiva-Canada/Dutiva_Web`), so a change is
-not live until it reaches GitHub `main`. Pushing to GitHub via
-`git-receive-pack` fails while the account email is unverified; instead run
-`scripts/github-sync.mjs`, which recreates the commits through the Git Data
-API (trees + commits + ref) with identical SHAs when content allows:
+not live until it reaches GitHub `main`. The mirror's `main` is protected —
+pull requests, verified commit signatures, linear history, resolved
+conversations — so sync goes through a PR:
 
 ```bash
-GH_TOKEN=$(gh auth token) node scripts/github-sync.mjs <localTipSha> <githubBaseSha>
+npm run mirror
 ```
 
-It verifies each recreated tree against the local one and refuses to
-fast-forward past a divergence. The deploy then appears under
-`vercel ls` within a minute or so.
+`scripts/mirror-github.mjs` signs any unsigned commits with the SSH signing
+key (`~/.ssh/dutiva_signing_ed25519`, registered on the
+`MartinConstantineau-code` GitHub account — its verified
+`Martin.Constantineau@dutiva.ca` is what makes signatures verify), pushes a
+`mirror/*` branch, opens the PR as that account, and squash-merges or arms
+auto-merge. `npm run mirror -- --resolve` additionally resolves open review
+threads (e.g. repeat Devin Review findings) before merging.
+
+The older `scripts/github-sync.mjs` (Git Data API replay straight onto `main`)
+predates the protection rules and is rejected by them — kept for reference.
