@@ -92,8 +92,9 @@ async function gql(query, variables, token) {
 
 // --- guards ---------------------------------------------------------------
 
-if (git('status', '--porcelain').length > 0)
-  throw new Error('working tree is not clean — commit or stash first')
+// Untracked files are harmless for a sync — only tracked drift matters.
+if (!gitOk('diff', '--quiet') || !gitOk('diff', '--cached', '--quiet'))
+  throw new Error('working tree has uncommitted changes — commit or stash first')
 if (git('branch', '--show-current') !== 'main') throw new Error('run from main')
 
 git('fetch', 'origin', 'main')
