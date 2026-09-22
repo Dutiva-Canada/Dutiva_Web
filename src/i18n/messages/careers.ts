@@ -18,25 +18,9 @@ export const careersMessages = defineMessages({
     en: 'Search by title, department, or location…',
     fr: 'Rechercher par titre, département ou lieu…',
   },
-  careers_board_empty: {
-    en: 'No open positions right now.',
-    fr: 'Aucun poste ouvert pour le moment.',
-  },
-  careers_board_empty_body: {
-    en: 'New roles are posted regularly — create a free candidate profile and you can apply the moment one opens.',
-    fr: "De nouveaux postes sont publiés régulièrement — créez un profil candidat gratuit et vous pourrez postuler dès qu'un poste est publié.",
-  },
-  careers_board_empty_cta: {
-    en: 'Create a free profile',
-    fr: 'Créer un profil gratuit',
-  },
   careers_board_no_results: {
     en: 'No open positions match your search.',
     fr: 'Aucun poste ouvert ne correspond à votre recherche.',
-  },
-  careers_board_clear_search: {
-    en: 'Clear search',
-    fr: 'Effacer la recherche',
   },
   careers_board_no_results_body: {
     en: 'Try different keywords or check back soon — new roles are posted regularly.',
@@ -51,25 +35,9 @@ export const careersMessages = defineMessages({
     en: 'Could not load job openings. Please try again.',
     fr: 'Impossible de charger les postes ouverts. Veuillez réessayer.',
   },
-  careers_board_how_title: {
-    en: 'How it works',
-    fr: 'Comment ça fonctionne',
-  },
-  careers_board_how_lead: {
-    en: 'Dutiva Careers is the public job board for employers hiring through Dutiva — candidates see the same active postings the hiring team publishes.',
-    fr: "Dutiva Carrières est le tableau d'offres public des employeurs qui recrutent via Dutiva — les candidats y voient les mêmes postes actifs que publie l'équipe de recrutement.",
-  },
-  careers_board_how_1: {
-    en: 'Browse every open role from employers hiring through Dutiva — no account needed to look.',
-    fr: "Parcourez tous les postes ouverts d'employeurs qui recrutent via Dutiva — aucun compte requis.",
-  },
-  careers_board_how_2: {
-    en: 'Create a free candidate profile once; reuse it for every application.',
-    fr: 'Créez un profil candidat gratuit une fois ; réutilisez-le pour chaque candidature.',
-  },
-  careers_board_how_3: {
-    en: 'Optional AI tools can tailor your resume, draft a cover letter, and help you prep for interviews.',
-    fr: 'Des outils IA optionnels peuvent adapter votre CV, rédiger une lettre de motivation et vous préparer aux entretiens.',
+  careers_board_how_it_works: {
+    en: 'For candidates: Dutiva Careers lets you browse open positions from Canadian employers, create a profile, and apply with optional AI tools for resume tailoring and interview preparation. Employers post jobs through the B2B hiring module; candidates see the same active postings here. Sign in to save your profile, track applications, and get AI-assisted guidance.',
+    fr: "Pour les candidats : Dutiva Carrières vous permet de parcourir les postes ouverts offerts par des employeurs canadiens, de créer un profil et de postuler avec des outils IA optionnels pour l'adaptation du CV et la préparation d'entretien. Les employeurs publient les offres via le module B2B de recrutement ; les candidats voient les mêmes postes actifs ici. Connectez-vous pour enregistrer votre profil, suivre les candidatures et obtenir de l'aide IA.",
   },
 
   /* ── Job detail page ──────────────────────────────────────────────────── */
@@ -126,10 +94,6 @@ export const careersMessages = defineMessages({
   },
   careers_auth_welcome: { en: 'Welcome back', fr: 'Bon retour' },
   careers_auth_welcome_new: { en: 'Welcome to Dutiva', fr: 'Bienvenue sur Dutiva' },
-  careers_auth_passwordless_hint: {
-    en: "We'll email you a 6-digit sign-in code — no password needed.",
-    fr: 'Nous vous envoyons un code de connexion à 6 chiffres — aucun mot de passe requis.',
-  },
   careers_auth_sign_out: { en: 'Sign out', fr: 'Se déconnecter' },
 
   /* ── Candidate portal — layout ────────────────────────────────────────── */
@@ -137,118 +101,6 @@ export const careersMessages = defineMessages({
   careers_portal_nav_profile: { en: 'Profile', fr: 'Profil' },
   careers_portal_nav_applications: { en: 'Applications', fr: 'Candidatures' },
   careers_portal_nav_browse: { en: 'Browse jobs', fr: 'Parcourir les emplois' },
-  careers_portal_nav_ai_tools: { en: 'AI tools', fr: 'Outils IA' },
-  careers_portal_nav_settings: { en: 'Settings', fr: 'Paramètres' },
-
-  /* ── Candidate portal — settings ─────────────────────────────────────── */
-  careers_settings_preferences: { en: 'Preferences', fr: 'Préférences' },
-  careers_settings_language: { en: 'Language', fr: 'Langue' },
-  careers_settings_theme: { en: 'Theme', fr: 'Thème' },
-  careers_settings_theme_light: { en: 'Light', fr: 'Clair' },
-  careers_settings_theme_dark: { en: 'Dark', fr: 'Sombre' },
-  careers_settings_account: { en: 'Account', fr: 'Compte' },
-  careers_settings_account_body: {
-    en: 'Signed in with a one-time email code.',
-    fr: 'Connecté avec un code unique envoyé par courriel.',
-  },
-
-  /* ── Candidate portal — standalone AI tools ──────────────────────────── */
-  careers_ai_tools_lead: {
-    en: 'Pick a job to work on — one of your applications, or a posting you paste in.',
-    fr: 'Choisissez un emploi — l’une de vos candidatures ou une offre que vous collez.',
-  },
-  careers_ai_tools_pick_job: { en: 'Choose a job', fr: 'Choisir un emploi' },
-  careers_ai_tools_pick_job_body: {
-    en: 'The tools tailor your resume and prep against this posting.',
-    fr: 'Les outils adaptent votre CV et votre préparation à cette offre.',
-  },
-  careers_ai_tools_from_application: {
-    en: 'From my applications',
-    fr: 'Depuis mes candidatures',
-  },
-  careers_ai_tools_choose_application: {
-    en: 'Select an application…',
-    fr: 'Sélectionnez une candidature…',
-  },
-  careers_ai_tools_posting_closed: {
-    en: 'That posting is closed, so its details are no longer available. Paste the job description below instead.',
-    fr: 'Cette offre est fermée et ses détails ne sont plus disponibles. Collez la description ci-dessous.',
-  },
-  careers_ai_tools_or_paste: {
-    en: 'Or paste a job posting',
-    fr: 'Ou collez une offre d’emploi',
-  },
-  careers_ai_tools_paste_title_placeholder: {
-    en: 'Job title',
-    fr: 'Titre du poste',
-  },
-  careers_ai_tools_paste_placeholder: {
-    en: 'Paste the job description here…',
-    fr: 'Collez la description du poste ici…',
-  },
-  careers_ai_tools_use_posting: { en: 'Use this posting', fr: 'Utiliser cette offre' },
-  careers_ai_tools_resume_required: {
-    en: 'Add your resume first',
-    fr: 'Ajoutez d’abord votre CV',
-  },
-  careers_ai_tools_resume_required_body: {
-    en: 'The AI tools work from the resume text in your profile. Add it there, then come back.',
-    fr: 'Les outils IA partent du texte du CV dans votre profil. Ajoutez-le, puis revenez.',
-  },
-  careers_ai_copied: {
-    en: 'Copied — paste it where you need it.',
-    fr: 'Copié — collez-le où vous en avez besoin.',
-  },
-
-  /* ── Employer door (/employer) ───────────────────────────────────────── */
-  careers_employer_tag: { en: 'Employers', fr: 'Employeurs' },
-  careers_employer_title: { en: 'Dutiva for employers', fr: 'Dutiva pour les employeurs' },
-  careers_employer_lead: {
-    en: 'Your organization’s workspace — postings, applicants and HR compliance tools in one place.',
-    fr: 'L’espace de travail de votre organisation — offres, candidatures et outils de conformité RH au même endroit.', // [FR self-authored]
-  },
-  careers_employer_member_body: {
-    en: 'You’re signed in — open your organization’s workspace to manage postings and applicants.',
-    fr: 'Vous êtes connecté — ouvrez l’espace de travail de votre organisation pour gérer les offres et les candidatures.', // [FR self-authored]
-  },
-  careers_employer_open_workspace: {
-    en: 'Open your workspace',
-    fr: 'Ouvrir votre espace de travail',
-  },
-  careers_employer_create_title: {
-    en: 'Create your organization',
-    fr: 'Créez votre organisation',
-  },
-  careers_employer_create_body: {
-    en: 'Name your organization to set up its workspace. You can invite teammates after.',
-    fr: 'Nommez votre organisation pour créer son espace de travail. Vous pourrez inviter des collègues ensuite.', // [FR self-authored]
-  },
-  careers_employer_org_name: { en: 'Organization name', fr: 'Nom de l’organisation' },
-  careers_employer_org_name_placeholder: {
-    en: 'e.g., Northgate Logistics Inc.',
-    fr: 'p. ex., Logistique Northgate inc.',
-  },
-  careers_employer_create_cta: {
-    en: 'Create workspace',
-    fr: 'Créer l’espace de travail',
-  },
-  careers_employer_creating: { en: 'Creating…', fr: 'Création…' },
-  careers_employer_created: {
-    en: 'Workspace created.',
-    fr: 'Espace de travail créé.',
-  },
-  careers_employer_create_error: {
-    en: 'Couldn’t create the workspace. Try again.',
-    fr: 'Impossible de créer l’espace de travail. Réessayez.',
-  },
-  careers_employer_create_capacity: {
-    en: 'We’re at capacity right now — your request has been noted. Try again soon.',
-    fr: 'Nous sommes à pleine capacité pour l’instant — votre demande a été notée. Réessayez bientôt.', // [FR self-authored]
-  },
-  careers_employer_create_waitlist: {
-    en: 'You’ve been added to the waitlist — we’ll email you when a spot opens.',
-    fr: 'Vous êtes sur la liste d’attente — nous vous écrirons quand une place se libérera.', // [FR self-authored]
-  },
 
   /* ── Candidate profile ────────────────────────────────────────────────── */
   careers_profile_title: { en: 'Your profile', fr: 'Votre profil' },
@@ -438,10 +290,6 @@ export const careersMessages = defineMessages({
   careers_applications_status_rejected: { en: 'Not selected', fr: 'Non retenu' },
   careers_applications_status_withdrawn: { en: 'Withdrawn', fr: 'Retirée' },
   careers_applications_view_job: { en: 'View job posting', fr: "Voir l'offre" },
-  careers_applications_posting_closed: {
-    en: 'Posting no longer listed',
-    fr: "Offre n'est plus affichée",
-  },
   careers_applications_withdraw: { en: 'Withdraw', fr: 'Retirer' },
   careers_applications_withdraw_confirm: {
     en: 'Withdraw this application? This cannot be undone.',
@@ -521,7 +369,7 @@ export const careersMessages = defineMessages({
   },
   careers_ai_daily_limit: {
     en: "You've reached today's AI limit. Try again tomorrow — you can still submit your application without them.",
-    fr: 'Vous avez atteint la limite IA du jour. Réessayez demain — vous pouvez quand même soumettre votre candidature.',
+    fr: "Vous avez atteint la limite IA du jour. Réessayez demain — vous pouvez quand même soumettre votre candidature.",
   },
   careers_ai_match_score_label: { en: 'Match score', fr: 'Score de correspondance' },
   careers_ai_match_suggestions: { en: 'Suggestions', fr: 'Suggestions' },

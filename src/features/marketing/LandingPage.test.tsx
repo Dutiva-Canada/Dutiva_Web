@@ -95,8 +95,11 @@ describe('LandingPage', () => {
     })
     try {
       renderApp(<LandingPage />, { route: '/#product', path: '/' })
-      /* The anchor lives inside the lazily loaded showcase chunk. */
-      await waitFor(() => expect(document.getElementById('product')).not.toBeNull())
+      /* The anchor lives inside the lazily loaded showcase chunk — its
+         dynamic import can take seconds under vitest transform load. */
+      await waitFor(() => expect(document.getElementById('product')).not.toBeNull(), {
+        timeout: 15_000,
+      })
       await waitFor(() => expect(spy).toHaveBeenCalled())
     } finally {
       Reflect.deleteProperty(Element.prototype, 'scrollIntoView')
