@@ -21,8 +21,10 @@ export function StickyMobileCta() {
 
   useEffect(() => {
     let pastHero = false
-    let inConversionZone = false
-    const update = () => setVisible(pastHero && !inConversionZone)
+    /* Entries only carry sections whose state changed — tracking each target
+       separately keeps the flag true while any zone remains on screen. */
+    const visibleZones = new Set<string>()
+    const update = () => setVisible(pastHero && visibleZones.size === 0)
 
     const onScroll = () => {
       pastHero = window.scrollY > window.innerHeight * 0.75
@@ -34,7 +36,10 @@ export function StickyMobileCta() {
       typeof IntersectionObserver === 'undefined'
         ? null
         : new IntersectionObserver((entries) => {
-            inConversionZone = entries.some((entry) => entry.isIntersecting)
+            for (const entry of entries) {
+              if (entry.isIntersecting) visibleZones.add(entry.target.id)
+              else visibleZones.delete(entry.target.id)
+            }
             update()
           })
     if (observer) {
