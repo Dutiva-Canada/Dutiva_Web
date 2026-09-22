@@ -118,6 +118,9 @@ function looksLikeContactInfo(line: string): boolean {
   if (/https?:\/\/|www\.|linkedin\.com/i.test(line)) return true
   // Phone numbers, postal codes, "10+ years" — a real job title has no digits.
   if (/\d/.test(line)) return true
+  // A standalone location ("Toronto, ON", "Montréal, Canada") is part of the
+  // contact block too — without this it parses as the headline.
+  if (/^[\p{L}][\p{L}\s.'-]+,\s*(?:[A-Z]{2}|Canada)$/u.test(line)) return true
   return false
 }
 
