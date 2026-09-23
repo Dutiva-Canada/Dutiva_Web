@@ -150,6 +150,29 @@ export const homeMessages = defineMessages({
     en: 'Couldn’t add the steps to Tasks — try again.',
     fr: 'Impossible d’ajouter les étapes aux tâches — réessayez.', // [FR self-authored]
   },
+  /* ── Inline company-profile mini-setup — step 1 of the path, completable
+     without leaving Home while the org has no jurisdictions configured.
+     Field labels reuse settings_* keys. [FR self-authored] ──────────────── */
+  home_setup_profile_title: {
+    en: 'Start here — confirm your company profile',
+    fr: 'Commencez ici — confirmez le profil de votre entreprise', // [FR self-authored]
+  },
+  home_setup_profile_note: {
+    en: 'Province and city tell Dutiva where you operate — they scope monitoring and the templates it suggests.',
+    fr: 'Votre province et votre ville indiquent où vous opérez — elles déterminent ce que Dutiva surveille et les modèles suggérés.', // [FR self-authored]
+  },
+  home_setup_profile_save: {
+    en: 'Save and continue',
+    fr: 'Enregistrer et continuer', // [FR self-authored]
+  },
+  home_setup_profile_saved: {
+    en: 'Profile saved.',
+    fr: 'Profil enregistré.', // [FR self-authored]
+  },
+  home_setup_profile_failed: {
+    en: 'Couldn’t save your profile — try again.',
+    fr: 'Impossible d’enregistrer le profil — réessayez.', // [FR self-authored]
+  },
   home_setup_ask_label: {
     en: 'Or ask the Advisor',
     fr: 'Ou demandez au Conseiller', // [FR self-authored]

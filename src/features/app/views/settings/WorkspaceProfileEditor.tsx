@@ -4,25 +4,8 @@ import { useAuth } from '@/features/app/auth/authContext'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { updateAdminProfile } from '@/features/app/workspaceMode/api'
+import { JURISDICTION_OPTIONS } from '@/features/app/workspaceMode/jurisdictionOptions'
 import { settingsMessages as M } from '@/i18n/messages/settings'
-
-/** Stored `profiles.province` values — Federal means Canada Labour Code. */
-const JURISDICTION_OPTIONS = [
-  { value: 'Federal', label: M.settings_prov_federal },
-  { value: 'Alberta', label: null },
-  { value: 'British Columbia', label: null },
-  { value: 'Manitoba', label: null },
-  { value: 'New Brunswick', label: null },
-  { value: 'Newfoundland and Labrador', label: null },
-  { value: 'Nova Scotia', label: null },
-  { value: 'Ontario', label: null },
-  { value: 'Prince Edward Island', label: null },
-  { value: 'Quebec', label: null },
-  { value: 'Saskatchewan', label: null },
-  { value: 'Northwest Territories', label: null },
-  { value: 'Nunavut', label: null },
-  { value: 'Yukon', label: null },
-] as const
 
 const fieldClass =
   'block w-full max-w-[320px] rounded-[8px] border border-border bg-bg px-[10px] py-[7px] text-[13.5px] text-text'
