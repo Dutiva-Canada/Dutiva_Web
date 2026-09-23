@@ -13251,16 +13251,19 @@ export type Database = {
       workspace_preferences: {
         Row: {
           mode: string
+          onboarding: Json
           updated_at: string
           user_id: string
         }
         Insert: {
           mode?: string
+          onboarding?: Json
           updated_at?: string
           user_id: string
         }
         Update: {
           mode?: string
+          onboarding?: Json
           updated_at?: string
           user_id?: string
         }
@@ -14306,6 +14309,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      claim_org_invitations: { Args: never; Returns: number }
       claim_signature_send: {
         Args: { p_envelope_id: string; p_organization_id: string }
         Returns: Json
@@ -14997,6 +15001,20 @@ export type Database = {
         Args: { p_code: string; p_fallback?: string }
         Returns: string
       }
+      org_member_directory: {
+        Args: { p_org: string }
+        Returns: {
+          access_expires_at: string
+          created_at: string
+          display_name: string
+          email: string
+          granted_modules: string[]
+          member_id: string
+          role: string
+          status: string
+          user_id: string
+        }[]
+      }
       organization_effective_plan: {
         Args: { p_organization_id: string }
         Returns: string
@@ -15019,6 +15037,10 @@ export type Database = {
         }[]
       }
       process_expired_data_deletions: { Args: never; Returns: number }
+      profile_applied_to_member_org: {
+        Args: { p_candidate_id: string }
+        Returns: boolean
+      }
       purge_ai_telemetry_data: { Args: never; Returns: undefined }
       purge_client_error_data: { Args: never; Returns: undefined }
       purge_support_analytics_rate_limit: { Args: never; Returns: undefined }
