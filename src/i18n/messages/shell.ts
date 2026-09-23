@@ -58,6 +58,7 @@ export const shellMessages = defineMessages({
   shell_new_conversation: { en: 'New conversation', fr: 'Nouvelle conversation' },
   shell_search: { en: 'Search', fr: 'Rechercher' },
   shell_ask_advisor: { en: 'Ask Advisor', fr: 'Demander au Conseiller' },
+  shell_ask_ai: { en: 'Ask AI', fr: 'Demander à l’IA' }, // [FR self-authored]
   shell_hr_workspace: { en: 'HR workspace', fr: 'Espace de travail RH' },
   shell_demo_workspace: { en: 'Demo workspace', fr: 'Espace démo' }, // [FR self-authored]
   shell_powered_by: { en: 'Powered by', fr: 'Propulsé par' },

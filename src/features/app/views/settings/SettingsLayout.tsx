@@ -16,8 +16,8 @@ function SettingsTabs() {
   const { pathname } = useLocation()
   const memory = pathname.startsWith('/app/settings/memory')
   const linkClass = (active: boolean) =>
-    `shrink-0 rounded-none border-b-2 px-[14px] py-[9px] font-sans text-[13px] font-semibold whitespace-nowrap ${
-      active ? 'border-navy text-text' : 'border-transparent text-text-muted'
+    `relative shrink-0 rounded-none border-b-2 border-transparent px-[14px] py-[9px] font-sans text-[13px] font-semibold whitespace-nowrap transition-[color] duration-200 ease-out after:absolute after:right-[14px] after:bottom-[-2px] after:left-[14px] after:h-[2px] after:origin-left after:rounded-full after:bg-navy after:transition-transform after:duration-200 after:ease-out after:content-[""] ${
+      active ? 'text-text after:scale-x-100' : 'text-text-muted after:scale-x-0'
     }`
   return (
     <nav

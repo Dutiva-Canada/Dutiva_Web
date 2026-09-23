@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { LangProvider } from '@/i18n/LangProvider'
@@ -96,29 +96,41 @@ describe('AppShell', () => {
     expect(screen.getByRole('button', { name: /Create/i })).toHaveTextContent('Create')
   })
 
-  it('opens and closes the mobile drawer around primary navigation', () => {
+  it('opens and closes the mobile drawer around primary navigation', async () => {
     stubLayoutMode('mobile')
     renderShell('/app/home')
 
     fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
-    expect(screen.getByRole('button', { name: 'More' })).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('button', { name: 'Close menu' })).toBeInTheDocument()
+    const mobileNav = within(screen.getAllByRole('navigation', { name: 'Primary navigation' })[0]!)
+    expect(mobileNav.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/app/home')
+    expect(mobileNav.getByRole('link', { name: 'Planning' })).toHaveAttribute(
+      'href',
+      '/app/planning/tasks',
+    )
+    expect(screen.getByRole('button', { name: 'Ask AI' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ask' })).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('link', { name: 'People' }))
     expect(screen.getByText('People outlet')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'More' })).toHaveAttribute('aria-expanded', 'false')
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Close menu' })).not.toBeInTheDocument(),
+    )
   })
 
-  it('closes the mobile drawer when the scrim is clicked', () => {
+  it('closes the mobile drawer when the scrim is clicked', async () => {
     stubLayoutMode('mobile')
     renderShell('/app/home')
 
     fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
-    expect(screen.getByRole('button', { name: 'More' })).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('button', { name: 'Close menu' })).toBeInTheDocument()
 
     const scrim = document.querySelector('.fixed.inset-0.z-60')
     expect(scrim).toBeTruthy()
     fireEvent.click(scrim!)
 
-    expect(screen.getByRole('button', { name: 'More' })).toHaveAttribute('aria-expanded', 'false')
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Close menu' })).not.toBeInTheDocument(),
+    )
   })
 })
