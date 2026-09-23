@@ -144,7 +144,7 @@ export function HomeOrgProfileSetup() {
           type="button"
           disabled={saving || !companyName.trim() || !city.trim()}
           onClick={() => void save()}
-          className="mt-[2px] w-fit cursor-pointer rounded-[8px] border border-border bg-surface px-[12px] py-[7px] font-sans text-[12px] font-bold text-text disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-[2px] w-fit cursor-pointer rounded-[8px] border border-border bg-surface px-[12px] py-[11px] font-sans text-[12px] font-bold text-text disabled:cursor-not-allowed disabled:opacity-60 md:py-[7px]"
         >
           {x(M.home_setup_profile_save)}
         </button>

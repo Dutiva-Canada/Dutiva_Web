@@ -147,7 +147,7 @@ export function HomeProductionEmptyState({
             type="button"
             disabled={addingTasks}
             onClick={() => void addTasks()}
-            className="inline-flex cursor-pointer items-center gap-[7px] rounded-[9px] border border-border bg-surface px-[14px] py-[9px] font-sans text-[12.5px] font-semibold text-text hover:border-(--accent-soft-border) disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex cursor-pointer items-center gap-[7px] rounded-[9px] border border-border bg-surface px-[14px] py-[12px] font-sans text-[12.5px] font-semibold text-text hover:border-(--accent-soft-border) disabled:cursor-not-allowed disabled:opacity-60 md:py-[9px]"
           >
             <ListTodo size={14} strokeWidth={1.9} aria-hidden="true" />
             {addingTasks ? x(M.home_setup_adding_tasks) : x(M.home_setup_add_tasks)}
@@ -186,7 +186,12 @@ export function HomeProductionEmptyState({
           variant="chat"
           placeholder={x(M.home_composer_placeholder)}
           onSend={onSend}
-          autoFocus
+          // No autofocus on phones: it would pop the keyboard on arrival and
+          // cover the setup path the page exists to show.
+          autoFocus={
+            typeof window.matchMedia === 'function' &&
+            window.matchMedia('(min-width: 768px)').matches
+          }
         />
       </div>
       <Disclaimer className="mt-[8px] text-center" />

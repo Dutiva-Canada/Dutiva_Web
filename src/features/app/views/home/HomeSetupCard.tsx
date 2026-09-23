@@ -52,7 +52,7 @@ export function HomeSetupCard({
         <button
           type="button"
           onClick={onDismiss}
-          className="inline-flex cursor-pointer items-center gap-[5px] rounded-[7px] border-none bg-transparent px-[8px] py-[4px] font-sans text-[12px] font-semibold text-text-muted hover:bg-inset"
+          className="inline-flex cursor-pointer items-center gap-[5px] rounded-[7px] border-none bg-transparent px-[8px] py-[10px] font-sans text-[12px] font-semibold text-text-muted hover:bg-inset md:py-[4px]"
         >
           <X size={13} strokeWidth={2} aria-hidden="true" />
           {x(M.home_setup_card_dismiss)}
@@ -68,7 +68,7 @@ export function HomeSetupCard({
                 onClick={() =>
                   step.marksWorkflowVisit && markEmptyWorkspaceWorkflowVisited(organizationId)
                 }
-                className="flex items-center gap-[10px] rounded-[9px] border border-border-soft bg-inset px-[12px] py-[9px] text-[12.5px] font-semibold text-text hover:border-(--accent-soft-border)"
+                className="flex items-center gap-[10px] rounded-[9px] border border-border-soft bg-inset px-[12px] py-[12px] text-[12.5px] font-semibold text-text hover:border-(--accent-soft-border) md:py-[9px]"
               >
                 <Icon size={14} strokeWidth={1.9} className="shrink-0 text-text-muted" aria-hidden="true" />
                 <span className="min-w-0 flex-1 truncate">{x(step.label)}</span>
@@ -88,7 +88,7 @@ export function HomeSetupCard({
           type="button"
           disabled={adding}
           onClick={() => void addTasks()}
-          className="mt-[10px] inline-flex cursor-pointer items-center gap-[6px] rounded-[8px] border-none bg-transparent px-[2px] py-[2px] font-sans text-[12px] font-semibold text-accent hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-[4px] inline-flex cursor-pointer items-center gap-[6px] rounded-[8px] border-none bg-transparent px-[2px] py-[12px] font-sans text-[12px] font-semibold text-accent hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-60 md:mt-[10px] md:py-[2px]"
         >
           <ListTodo size={13} strokeWidth={1.9} aria-hidden="true" />
           {adding ? x(M.home_setup_adding_tasks) : x(M.home_setup_add_tasks)}
