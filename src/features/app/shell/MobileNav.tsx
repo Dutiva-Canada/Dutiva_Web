@@ -1,79 +1,88 @@
-import type { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Briefcase, FileStack, House, Menu, Search, Sparkle } from 'lucide-react'
-import type { Bi } from '@/i18n/core'
+import { Menu, Search, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { useSearch } from '@/features/app/search/searchContext'
 import { AuthMenuButton } from '@/features/app/auth/AuthMenuButton'
-import { ThemeToggle } from './ShellControls'
 import { cx } from './cx'
 import { isNavActive } from './navConfig'
+import {
+  useAskAdvisorBriefing,
+  railViewKeyFromPathname,
+} from '@/features/app/rail/useAskAdvisorBriefing'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { usePrefetchIntent } from './viewPrefetch'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 /**
- * Mobile (<768px) chrome — App v2 `showMobileTopbar` bar and the bottom
- * compact nav (`isMobileFrame` footer): Home · Case Files · Ask (raised navy
- * sparkle) · Documents · More.
+ * Mobile (<768px) chrome — branded app bar, horizontal primary navigation and
+ * a floating Ask action. The mobile web layout deliberately avoids a fixed
+ * bottom nav so the browser's own chrome has room to breathe.
  */
 
 export function MobileTopbar({
-  title,
   onOpenDrawer,
   triggerRef,
 }: {
-  readonly title: string
   readonly onOpenDrawer: () => void
   readonly triggerRef?: React.RefObject<HTMLButtonElement | null>
 }) {
   const { x } = useI18n()
   const { openSearch } = useSearch()
+  const { pathname } = useLocation()
+  const { root } = useWorkspaceRoot()
+  const askAdvisor = useAskAdvisorBriefing()
+  const showAskAdvisor = !pathname.startsWith(`${root}/advisor`)
+
   return (
-    <header className="flex h-[56px] shrink-0 items-center justify-between border-b border-border bg-surface px-[14px]">
-      {/* min-h/min-w 44px on every control: the icons stay their design size,
-          but the hit area meets the iOS 44pt touch-target floor instead of the
-          ~30px box a bare 6px pad around a 19px glyph produced. */}
+    <header className="flex h-[64px] shrink-0 items-center gap-[10px] border-b border-border bg-surface px-[12px]">
       <button
         ref={triggerRef}
         type="button"
         onClick={onOpenDrawer}
         aria-label={x(M.shell_open_menu)}
-        className="flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center border-none bg-transparent p-[6px]"
+        className="flex min-h-[44px] min-w-[44px] shrink-0 cursor-pointer items-center justify-center rounded-full border border-border bg-surface p-[6px] shadow-[0_1px_3px_rgba(15,23,42,0.08)]"
       >
-        <Menu size={20} strokeWidth={1.8} className="text-text" />
+        <Menu size={22} strokeWidth={1.8} className="text-text" />
       </button>
-      <h1 className="m-0 font-display text-[16px] font-semibold">{title}</h1>
-      <div className="flex items-center gap-[2px]">
-        <ThemeToggle
-          className="flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center border-none bg-transparent p-[6px] text-text"
-          iconSize={18}
-        />
+
+      <div className="min-w-0 flex-1 truncate font-display text-[24px] leading-none font-bold tracking-[-0.06em] text-navy">
+        dutiva
+      </div>
+
+      <div className="flex shrink-0 items-center gap-[4px]">
         <button
           type="button"
           onClick={openSearch}
           aria-label={x(M.shell_search)}
-          className="flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center border-none bg-transparent p-[6px]"
+          className="flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-[6px] text-text"
         >
           <Search size={19} strokeWidth={1.8} className="text-text" />
         </button>
+        {showAskAdvisor && (
+          <button
+            type="button"
+            onClick={() => askAdvisor(railViewKeyFromPathname(pathname))}
+            className="flex min-h-[40px] items-center gap-[6px] rounded-full bg-navy px-[13px] text-[13px] font-semibold whitespace-nowrap text-white shadow-[0_4px_10px_rgba(15,35,72,0.18)]"
+          >
+            <Sparkle size={14} fill="currentColor" strokeWidth={0} aria-hidden="true" />
+            {x(M.shell_ask_ai)}
+          </button>
+        )}
         <AuthMenuButton compact />
       </div>
     </header>
   )
 }
 
-function MobileTab({
+function MobilePrimaryTab({
   to,
-  icon,
   label,
   active,
   prefetchKey,
 }: {
   readonly to: string
-  readonly icon: ReactNode
-  readonly label: Bi
+  readonly label: typeof M.shell_tab_home
   readonly active: boolean
   readonly prefetchKey?: string
 }) {
@@ -86,89 +95,73 @@ function MobileTab({
       aria-current={active ? 'page' : undefined}
       {...prefetch}
       className={cx(
-        'relative flex flex-1 flex-col items-center gap-[3px] pt-[7px] pb-[6px] text-[10px] font-semibold',
-        active ? 'text-accent' : 'text-text-muted',
+        'relative flex min-h-[44px] shrink-0 items-center border-b-2 border-transparent px-[14px] text-[13px] font-semibold whitespace-nowrap transition-[color] duration-200 ease-out after:absolute after:right-[14px] after:bottom-[-2px] after:left-[14px] after:h-[2px] after:origin-left after:rounded-full after:bg-navy after:transition-transform after:duration-200 after:ease-out after:content-[""]',
+        active ? 'text-text after:scale-x-100' : 'text-text-muted after:scale-x-0',
       )}
     >
-      {icon}
       <span>{x(label)}</span>
     </Link>
   )
 }
 
-export function MobileNav({
-  drawerOpen,
-  onOpenDrawer,
-  moreTriggerRef,
-}: {
-  readonly drawerOpen: boolean
-  readonly onOpenDrawer: () => void
-  readonly moreTriggerRef?: React.RefObject<HTMLButtonElement | null>
-}) {
+export function MobilePrimaryNav() {
   const { x } = useI18n()
   const { pathname } = useLocation()
   const { root } = useWorkspaceRoot()
   const home = workspacePath(root, 'home')
   const cases = workspacePath(root, 'cases')
-  const advisor = workspacePath(root, 'advisor')
+  const planning = workspacePath(root, 'planning/tasks')
   const documents = workspacePath(root, 'documents/studio')
-  const advisorPrefetch = usePrefetchIntent('advisor')
-  /* The bottom pad carries the safe-area inset so the tabs clear the home
-     indicator once Safari's toolbar auto-hides on scroll. Resolves to the plain
-     5px on devices without an inset — and needs viewport-fit=cover in
-     index.html to be anything but 0. */
+
   return (
     <nav
       aria-label={x(M.shell_primary_nav)}
-      className="relative z-50 flex shrink-0 items-end justify-around border-t border-border bg-surface px-[4px] pb-[calc(5px_+_env(safe-area-inset-bottom))] transition-transform duration-300 ease-out transform-gpu"
+      className="flex shrink-0 overflow-x-auto border-b border-border bg-surface px-[4px]"
     >
-      <MobileTab
+      <MobilePrimaryTab
         to={home}
-        icon={<House size={21} strokeWidth={1.8} />}
-        label={M.shell_tab_home}
+        label={M.shell_nav_home}
         active={isNavActive(home, pathname)}
         prefetchKey="home"
       />
-      <MobileTab
+      <MobilePrimaryTab
         to={cases}
-        icon={<Briefcase size={21} strokeWidth={1.8} />}
         label={M.shell_nav_cases}
         active={isNavActive(cases, pathname)}
         prefetchKey="cases"
       />
-      <Link
-        to={advisor}
-        state={{ newConversation: true }}
-        aria-label={x(M.shell_ask_advisor)}
-        {...advisorPrefetch}
-        className="flex flex-none flex-col items-center gap-[3px] px-[4px]"
-      >
-        <span className="mt-[-16px] flex h-[50px] w-[50px] items-center justify-center rounded-full border-[3px] border-surface bg-navy shadow-[0_6px_18px_-4px_rgba(31,58,95,0.5)]">
-          <Sparkle size={22} strokeWidth={0} className="fill-gold-on-navy" aria-hidden="true" />
-        </span>
-        <span className="text-[10px] font-semibold text-accent">{x(M.shell_tab_ask)}</span>
-      </Link>
-      <MobileTab
+      <MobilePrimaryTab
+        to={planning}
+        label={M.shell_nav_planning}
+        active={pathname.startsWith(`${root}/planning`)}
+        prefetchKey="planning"
+      />
+      <MobilePrimaryTab
         to={documents}
-        icon={<FileStack size={21} strokeWidth={1.8} />}
         label={M.shell_nav_library}
         active={pathname.startsWith(`${root}/documents`)}
         prefetchKey="documents"
       />
-      <button
-        ref={moreTriggerRef}
-        type="button"
-        onClick={onOpenDrawer}
-        aria-label={x(M.shell_tab_more)}
-        aria-expanded={drawerOpen}
-        className={cx(
-          'relative flex flex-1 cursor-pointer flex-col items-center gap-[3px] border-none bg-transparent pt-[7px] pb-[6px] text-[10px] font-semibold',
-          drawerOpen ? 'text-accent' : 'text-text-muted',
-        )}
-      >
-        <Menu size={21} strokeWidth={1.8} />
-        <span>{x(M.shell_tab_more)}</span>
-      </button>
     </nav>
+  )
+}
+
+export function MobileAskFab() {
+  const { x } = useI18n()
+  const { pathname } = useLocation()
+  const { root } = useWorkspaceRoot()
+  const askAdvisor = useAskAdvisorBriefing()
+
+  if (pathname.startsWith(`${root}/advisor`)) return null
+
+  return (
+    <button
+      type="button"
+      onClick={() => askAdvisor(railViewKeyFromPathname(pathname))}
+      className="fixed right-[16px] bottom-[max(16px,env(safe-area-inset-bottom))] z-40 flex min-h-[48px] items-center gap-[7px] rounded-full bg-navy px-[17px] text-[15px] font-semibold text-white shadow-[0_8px_20px_rgba(15,35,72,0.28)]"
+    >
+      <Sparkle size={17} fill="currentColor" strokeWidth={0} aria-hidden="true" />
+      {x(M.shell_tab_ask)}
+    </button>
   )
 }

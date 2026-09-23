@@ -14,7 +14,7 @@ import { Seo } from '@/seo/Seo'
 import { Sidebar } from './Sidebar'
 import { cx } from './cx'
 import { Topbar } from './Topbar'
-import { MobileNav, MobileTopbar } from './MobileNav'
+import { MobileAskFab, MobilePrimaryNav, MobileTopbar } from './MobileNav'
 import { DemoTourRail } from '@/features/app/demo/DemoTourRail'
 import { PublicDemoBanner } from '@/features/app/demo/PublicDemoBanner'
 import { WorkspaceContextBanner } from './WorkspaceContextBanner'
@@ -26,7 +26,7 @@ import { moduleLabelFor, viewLabelFor } from './navConfig'
  *
  * - desktop ≥1024px — expanded or compact sidebar, user toggled, persisted.
  * - tablet 768–1023px — compact by default; same toggle + persistence as desktop.
- * - mobile <768px — hamburger topbar, slide-in drawer + scrim, bottom tab nav.
+ * - mobile <768px — branded topbar, horizontal primary nav, slide-in drawer + scrim.
  */
 type LayoutMode = 'desktop' | 'tablet' | 'mobile'
 
@@ -92,8 +92,6 @@ export function AppShell() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [sidebarExpanded, setSidebarExpanded] = useState(readExpandedPref)
   const drawerTopbarTriggerRef = useRef<HTMLButtonElement>(null)
-  const drawerMoreTriggerRef = useRef<HTMLButtonElement>(null)
-  const drawerTriggerSource = useRef<'topbar' | 'more'>('topbar')
 
   useEffect(() => {
     setDrawerOpen(false)
@@ -102,17 +100,12 @@ export function AppShell() {
   const previousDrawerOpen = useRef(drawerOpen)
   useEffect(() => {
     if (previousDrawerOpen.current && !drawerOpen) {
-      const ref =
-        drawerTriggerSource.current === 'more' ? drawerMoreTriggerRef : drawerTopbarTriggerRef
-      ref.current?.focus()
+      drawerTopbarTriggerRef.current?.focus()
     }
     previousDrawerOpen.current = drawerOpen
   }, [drawerOpen])
 
-  const openDrawerFrom = useCallback((source: 'topbar' | 'more') => {
-    drawerTriggerSource.current = source
-    setDrawerOpen(true)
-  }, [])
+  const openDrawer = useCallback(() => setDrawerOpen(true), [])
 
   const isMobile = layout === 'mobile'
   useEscapeToClose(isMobile && drawerOpen, () => setDrawerOpen(false))
@@ -162,7 +155,7 @@ export function AppShell() {
 
   /* h-dvh, not h-screen: iOS Safari resolves 100vh against the *large*
      viewport — the page as it would be with the browser chrome retracted — so a
-     100vh frame with the bottom nav as its last child parks that nav roughly
+     100vh frame with mobile chrome as its last child parks that chrome roughly
      100px below the real fold, behind Safari's toolbar. 100dvh tracks the
      visible viewport instead.
 
@@ -178,11 +171,7 @@ export function AppShell() {
      topbar and the sidebar clear of it together. Only non-zero in an installed
      PWA (the manifest is `display: standalone`); Safari's own chrome already
      reserves that space when browsing normally. The bottom inset is paid by
-     MobileNav, and the horizontal ones by body in base.css — except that
-     MobileNav only renders below 768px, so above that the frame pays the
-     bottom inset itself. That covers standalone iPads and, more to the point,
-     a landscape iPhone: rotating one takes it past 768px, out of `isMobile`
-     and away from the nav that would otherwise have paid it. */
+     the floating Ask action, and the horizontal ones by body in base.css. */
   return (
     <div
       className={cx(
@@ -191,13 +180,8 @@ export function AppShell() {
       )}
     >
       {isPublicDemo ? <Seo route="demoWorkspace" pageType="WebPage" /> : null}
-      {isMobile && (
-        <MobileTopbar
-          title={title}
-          onOpenDrawer={() => openDrawerFrom('topbar')}
-          triggerRef={drawerTopbarTriggerRef}
-        />
-      )}
+      {isMobile && <MobileTopbar onOpenDrawer={openDrawer} triggerRef={drawerTopbarTriggerRef} />}
+      {isMobile && <MobilePrimaryNav />}
 
       <PublicDemoBanner />
       <DemoTourRail />
@@ -230,10 +214,6 @@ export function AppShell() {
           </>
         )}
 
-        {/* No bottom padding to clear the mobile nav: that nav is a sibling
-            flex child of the same column, so it already claims its own height
-            in normal flow. Reserving 60px here too left a dead band of
-            unusable background above it on every app screen. */}
         <main className="relative flex min-w-0 flex-1 flex-col bg-bg">
           {!isMobile && (
             <Topbar
@@ -246,19 +226,18 @@ export function AppShell() {
           <ModuleContextBanner />
           <div className="relative flex min-h-0 flex-1 flex-col">
             <Suspense fallback={null}>
-              <Outlet />
+              <div
+                key={pathname}
+                className="flex min-h-0 min-w-0 flex-1 flex-col motion-safe:animate-[fadeInUp_.18s_cubic-bezier(.22,1,.36,1)]"
+              >
+                <Outlet />
+              </div>
             </Suspense>
           </div>
         </main>
       </div>
 
-      {isMobile && (
-        <MobileNav
-          drawerOpen={drawerOpen}
-          onOpenDrawer={() => openDrawerFrom('more')}
-          moreTriggerRef={drawerMoreTriggerRef}
-        />
-      )}
+      {isMobile && <MobileAskFab />}
 
       <SearchOverlay />
       <AdvisorRail />
