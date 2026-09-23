@@ -159,11 +159,12 @@ to their exact vocabulary. Proposals ride the **wire copy only** — the
 persisted `last_advisor_response` never carries them, so a reopened
 conversation can't resurface a stale confirm card. The whole path sits
 behind `ADVISOR_AGENT_ACTIONS=true` and hr-mode, non-crisis turns.
-**Deployed 2026-09-19** — `advisor-chat` v44 live on
-`khtwpxnvziiyplaflwru` with `ADVISOR_AGENT_ACTIONS=true` set. Live
-emission end-to-end still needs an authenticated app session to confirm —
-the function rejects unauthenticated calls by design, so deploy +
-flag-set is verified, not a full turn.
+**Deployed 2026-09-19** — `advisor-chat` live on
+`khtwpxnvziiyplaflwru` with `ADVISOR_AGENT_ACTIONS=true` set (re-confirmed
+on the project 2026-09-23; function at v47). Live emission end-to-end
+still needs an authenticated app session to confirm — the function
+rejects unauthenticated calls by design, so deploy + flag-set is
+verified, not a full turn.
 
 Alongside it, the deterministic rail proposer stays live: `agent/intent.ts`
 tries each module's parser (operations → tasks → comms → crm → governance
@@ -244,10 +245,11 @@ registry, executor, card, contract, and audit are already generic.
   the durable `agent_audit` write path — **applied 2026-09-19**,
   append-only policies verified on the live project.
 - Deployed, pending live confirmation: engine-side `proposedActions` —
-  `advisor-chat` v44 is live with `ADVISOR_AGENT_ACTIONS=true`
-  (2026-09-19). Emission through a real authenticated turn hasn't been
-  observed yet — the code path is tested (extraction/validation/parity
-  suites), the deploy is verified, the live turn is not.
+  `advisor-chat` is live with `ADVISOR_AGENT_ACTIONS=true` (deployed
+  2026-09-19, flag re-confirmed 2026-09-23). Emission through a real
+  authenticated turn hasn't been observed yet — the code path is tested
+  (extraction/validation/parity suites), the deploy is verified, the
+  live turn is not.
 - Not shipped: server-side/unattended execution; a durable-read audit
   surface (the table exists; nothing renders it yet); tools for the
   remaining modules; local inference.
