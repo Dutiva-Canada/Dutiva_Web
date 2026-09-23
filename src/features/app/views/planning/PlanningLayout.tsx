@@ -16,7 +16,7 @@ function PlanningTabs() {
   const { pathname } = useLocation()
   const calendar = pathname.startsWith('/app/planning/calendar')
   const linkClass = (active: boolean) =>
-    `shrink-0 rounded-none border-b-2 px-[14px] py-[9px] font-sans text-[13px] font-semibold whitespace-nowrap ${
+    `inline-flex min-h-[44px] shrink-0 items-center rounded-none border-b-2 px-[14px] py-[9px] font-sans text-[13px] font-semibold whitespace-nowrap ${
       active ? 'border-navy text-text' : 'border-transparent text-text-muted'
     }`
   return (
