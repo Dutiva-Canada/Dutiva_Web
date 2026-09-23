@@ -79,45 +79,103 @@ export const homeMessages = defineMessages({
     fr: 'Votre espace de travail est prêt.',
   },
   home_production_body: {
-    en: 'Nothing here yet — that’s expected. Start with a person, a document, or a guided process. Or ask the Advisor.',
-    fr: 'Rien ici pour l’instant — c’est normal. Commencez par une personne, un document ou un processus guidé. Ou posez une question au Conseiller.', // [FR self-authored]
+    en: 'Nothing here yet — that’s expected. The setup path below walks you through the essentials in order, and stays on Home until it’s done.',
+    fr: 'Rien ici pour l’instant — c’est normal. Le parcours ci-dessous vous guide à travers l’essentiel, dans l’ordre, et reste sur l’accueil tant qu’il n’est pas terminé.', // [FR self-authored]
   },
   home_production_workspace_label: { en: 'Workspace', fr: 'Espace de travail' },
-  home_production_checklist_label: {
-    en: 'Three useful first steps',
-    fr: 'Trois premiers pas utiles', // [FR self-authored]
-  },
-  home_production_step_person: {
-    en: 'Add a person',
-    fr: 'Ajouter une personne', // [FR self-authored]
-  },
-  home_production_step_person_hint: {
-    en: 'Name, role, and location for your first employee',
-    fr: 'Nom, rôle et lieu pour votre premier employé', // [FR self-authored]
-  },
-  home_production_step_studio: {
-    en: 'Draft in Studio',
-    fr: 'Rédiger dans le Studio', // [FR self-authored]
-  },
-  home_production_step_studio_hint: {
-    en: 'Start from a Canadian HR template',
-    fr: 'Partez d’un modèle RH canadien', // [FR self-authored]
-  },
-  home_production_step_workflow: {
-    en: 'Run a guided process',
-    fr: 'Lancer un processus guidé', // [FR self-authored]
-  },
-  home_production_step_workflow_hint: {
-    en: 'Notice, severance, or accommodation — Ontario pinned below',
-    fr: 'Préavis, indemnité de départ ou accommodement — Ontario ci-dessous', // [FR self-authored]
-  },
   home_production_demo_link: {
     en: 'Want a walkthrough with sample data? Open Demo in Settings',
     fr: 'Vous voulez une visite avec des données d’exemple ? Ouvrez la Démo dans les paramètres', // [FR self-authored]
   },
-  home_production_pinned_label: {
-    en: 'Or jump into a calculator',
-    fr: 'Ou ouvrez un calculateur', // [FR self-authored]
+
+  /* ── Production setup path — foundation-first ordering for workspaces with
+     no employees yet (docs/EMPTY_WORKSPACE_ONBOARDING.md). [FR self-authored] ── */
+  home_setup_label: {
+    en: 'Your setup path',
+    fr: 'Votre parcours de démarrage', // [FR self-authored]
+  },
+  home_setup_step_profile: {
+    en: 'Confirm your company profile',
+    fr: 'Confirmez le profil de votre entreprise', // [FR self-authored]
+  },
+  home_setup_step_profile_hint: {
+    en: 'Where you operate and your industry — they scope what Dutiva monitors for you.',
+    fr: 'Votre province et votre industrie — elles déterminent ce que Dutiva surveille pour vous.', // [FR self-authored]
+  },
+  home_setup_step_documents: {
+    en: 'Prepare your first-hire documents',
+    fr: 'Préparez vos documents d’embauche', // [FR self-authored]
+  },
+  home_setup_step_documents_hint: {
+    en: 'Start from a Canadian HR template in Studio — agreements, letters, policies.',
+    fr: 'Partez d’un modèle RH canadien dans le Studio — contrats, lettres, politiques.', // [FR self-authored]
+  },
+  home_setup_step_policies: {
+    en: 'Start your policy register',
+    fr: 'Ouvrez votre registre de politiques', // [FR self-authored]
+  },
+  home_setup_step_policies_hint: {
+    en: 'Track the policies you have — and the gaps you’ll want to close as you grow.',
+    fr: 'Suivez les politiques en place — et les lacunes à combler au fil de votre croissance.', // [FR self-authored]
+  },
+  home_setup_step_explore: {
+    en: 'See how a guided process works',
+    fr: 'Découvrez un processus guidé', // [FR self-authored]
+  },
+  home_setup_step_explore_hint: {
+    en: 'Notice, severance, accommodation — Dutiva walks you through step by step.',
+    fr: 'Préavis, indemnité de départ, accommodement — Dutiva vous guide étape par étape.', // [FR self-authored]
+  },
+  home_setup_step_people: {
+    en: 'Add your first person when you’re ready',
+    fr: 'Ajoutez votre première personne quand vous êtes prêt', // [FR self-authored]
+  },
+  home_setup_step_people_hint: {
+    en: 'Solo for now? This step waits — team records start here.',
+    fr: 'Solo pour l’instant ? Cette étape attend — les dossiers d’équipe commencent ici.', // [FR self-authored]
+  },
+  home_setup_add_tasks: {
+    en: 'Add the remaining steps to Tasks',
+    fr: 'Ajouter les étapes restantes aux tâches', // [FR self-authored]
+  },
+  home_setup_adding_tasks: {
+    en: 'Adding…',
+    fr: 'Ajout…', // [FR self-authored]
+  },
+  home_setup_tasks_done: {
+    en: 'Steps added to Tasks.',
+    fr: 'Étapes ajoutées aux tâches.', // [FR self-authored]
+  },
+  home_setup_tasks_failed: {
+    en: 'Couldn’t add the steps to Tasks — try again.',
+    fr: 'Impossible d’ajouter les étapes aux tâches — réessayez.', // [FR self-authored]
+  },
+  home_setup_ask_label: {
+    en: 'Or ask the Advisor',
+    fr: 'Ou demandez au Conseiller', // [FR self-authored]
+  },
+  home_setup_prompt_solo: {
+    en: 'I’m a solo founder with no employees yet — what should I set up first?',
+    fr: 'Je suis un fondateur solo sans employé — par quoi dois-je commencer ?', // [FR self-authored]
+  },
+  home_setup_prompt_first_hire: {
+    en: 'What should I have in place before my first hire?',
+    fr: 'Que dois-je avoir en place avant ma première embauche ?', // [FR self-authored]
+  },
+
+  /* ── Keep-going card on the populated Home — the same path, kept visible
+     until done or dismissed (device-local). [FR self-authored] ─────────────── */
+  home_setup_card_title: {
+    en: 'Finish setting up',
+    fr: 'Terminez la configuration', // [FR self-authored]
+  },
+  home_setup_card_done: {
+    en: 'steps done',
+    fr: 'étapes terminées', // [FR self-authored]
+  },
+  home_setup_card_dismiss: {
+    en: 'Hide this',
+    fr: 'Masquer', // [FR self-authored]
   },
 
   /* ── Production command centre (live counts once the workspace has data —

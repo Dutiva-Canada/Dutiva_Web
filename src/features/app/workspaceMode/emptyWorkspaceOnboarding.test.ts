@@ -1,13 +1,15 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import {
+  dismissSetupCard,
+  isSetupCardDismissed,
   markEmptyWorkspaceStudioVisited,
   markEmptyWorkspaceWorkflowVisited,
   readEmptyWorkspaceProgress,
 } from './emptyWorkspaceOnboarding'
 
-describe('emptyWorkspaceOnboarding session progress', () => {
+describe('emptyWorkspaceOnboarding device-local progress', () => {
   afterEach(() => {
-    sessionStorage.clear()
+    localStorage.clear()
   })
 
   it('starts empty when nothing is stored', () => {
@@ -36,5 +38,13 @@ describe('emptyWorkspaceOnboarding session progress', () => {
       studioVisited: false,
       workflowVisited: false,
     })
+  })
+
+  it('dismisses the setup card per organization, device-local', () => {
+    expect(isSetupCardDismissed('org-1')).toBe(false)
+    dismissSetupCard('org-1')
+    expect(isSetupCardDismissed('org-1')).toBe(true)
+    expect(isSetupCardDismissed('org-2')).toBe(false)
+    expect(isSetupCardDismissed(null)).toBe(false)
   })
 })

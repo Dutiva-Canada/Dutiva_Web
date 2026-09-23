@@ -163,11 +163,22 @@ describe('HomeView in production mode', () => {
 
     expect(await screen.findByText('Your workspace is ready.')).toBeInTheDocument()
     expect(screen.getByText(/Dutiva Canada Inc\./)).toBeInTheDocument()
-    expect(screen.getByText('Three useful first steps')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Add a person/ })).toHaveAttribute(
+
+    /* The foundation-first setup path — people last, not first. */
+    expect(screen.getByText('Your setup path')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Confirm your company profile/ })).toHaveAttribute(
+      'href',
+      '/app/settings',
+    )
+    expect(screen.getByRole('link', { name: /Add your first person/ })).toHaveAttribute(
       'href',
       '/app/employees?new=1',
     )
+    expect(
+      screen.getByRole('button', { name: /Add the remaining steps to Tasks/ }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /solo founder/ })).toBeInTheDocument()
+
     expect(screen.queryByText('Good to see you, Riley.')).not.toBeInTheDocument()
     expect(screen.queryByText(/Switch back to Demo/)).not.toBeInTheDocument()
   })
@@ -351,6 +362,15 @@ describe('HomeView production command centre', () => {
       'href',
       '/app/policies',
     )
+
+    /* Keep-going card — the setup path survives graduation while steps
+       remain (profile + documents + explore still open here). */
+    expect(screen.getByText('Finish setting up')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Confirm your company profile/ })).toHaveAttribute(
+      'href',
+      '/app/settings',
+    )
+    expect(screen.queryByRole('link', { name: /Add your first person/ })).not.toBeInTheDocument()
 
     /* No welcome state, no Northgate fixtures. */
     expect(screen.queryByText('Your workspace is ready.')).not.toBeInTheDocument()
