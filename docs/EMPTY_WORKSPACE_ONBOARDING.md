@@ -5,8 +5,8 @@ Product note for first-run guidance when a company (or individual) lands in a
 
 Status: **v2 shipping** — foundation-first setup path + inline company-profile
 mini-setup + Keep-going card past graduation + plan-as-tasks + Advisor
-prompts. When this disagrees with code, the code wins and this note should be
-updated in the same PR.
+prompts + server-synced soft marks (migration 0169). When this disagrees with
+code, the code wins and this note should be updated in the same PR.
 
 Related: [CONVENTIONS.md](../CONVENTIONS.md) (workspace mode),
 [GAP_AUDIT_STATUS.md](GAP_AUDIT_STATUS.md) (production still admin-only),
@@ -76,7 +76,12 @@ Demo remains useful for walkthroughs. It must not be the primary answer to
 4. **Advisor prompts** — two suggestion chips under the composer send a
    pre-written setup question to the Advisor.
 5. **Durable soft marks** — onboarding progress moved from `sessionStorage`
-   to `localStorage` (key v2) so the workflow-visit step survives sessions.
+   to `localStorage` (key v2), then synced to `workspace_preferences.onboarding`
+   (migration 0169): `hydrateEmptyWorkspaceOnboarding` OR-merges the server's
+   per-org marks into localStorage when the workspace resolves and pushes the
+   union back, so a dismissal or visit on one device lands on all of them.
+   `workspace_preferences` RLS is platform-admin-only, so non-admin members
+   keep the device-local behavior unchanged.
 6. **Org mini-setup on the empty Home** (`HomeOrgProfileSetup`) — while the
    org has no jurisdictions, step 1 is an inline form, not a link to
    Settings: company name / province / city write `profiles` via
@@ -91,7 +96,7 @@ Demo remains useful for walkthroughs. It must not be the primary answer to
 | --------------------------------------------- | ------------------------------------------------------ |
 | Open production mode to beta members          | Access policy / capacity; tracked in gap audit.        |
 | Org mini-setup after `bootstrapOrganization`  | Superseded by "In" #6 — the inline Home card covers orgs that predate the feature too, without a provisioning-time modal. |
-| Server-side onboarding state                  | Card dismissal + visit marks are device-local today.   |
+| Member-scoped onboarding state                | `workspace_preferences` is admin-RLS'd; non-admin members' marks stay device-local until the policy is widened (access-policy decision). |
 | Durable flow-run records                      | Would make the explore step live-data like the others. |
 | Advisor-generated setup plans                 | Chips send fixed prompts; generated plans are bigger.  |
 | Sample-data import into production            | Conflicts with principle 1.                            |
@@ -139,7 +144,8 @@ Copy lives in `src/i18n/messages/home.ts` and `workspaceMode.ts`.
 | Step derivation    | `views/home/setupPath.ts` (`computeSetupSteps`)             |
 | Profile mini-setup | `views/home/HomeOrgProfileSetup.tsx`                        |
 | Province→org codes | `workspaceMode/jurisdictionOptions.ts`                      |
-| Soft marks + dismiss | `workspaceMode/emptyWorkspaceOnboarding.ts` (localStorage) |
+| Soft marks + dismiss | `workspaceMode/emptyWorkspaceOnboarding.ts` (localStorage + server sync) |
+| Server marks         | `workspace_preferences.onboarding` jsonb (migration 0169), `api.ts` `fetchOnboardingMarks`/`saveOnboardingMarks` |
 | Keep-going card    | `views/home/HomeSetupCard.tsx`                              |
 | Home empty         | `views/home/HomeProductionEmptyState.tsx`                   |
 | Card wiring + plan→Tasks | `views/home/HomeProductionView.tsx` (`addStepsAsTasks`) |
@@ -161,7 +167,8 @@ Copy lives in `src/i18n/messages/home.ts` and `workspaceMode.ts`.
    card that persists. (v1 used session visits; superseded.)
 4. **No due dates on generated tasks.** The plan goes into Tasks without
    invented deadlines — urgency is the user's to set.
-5. **Card dismissal is device-local** (`localStorage`, org-scoped) — same
-   tradeoff as Settings prefs; a server-side onboarding column is a
-   follow-up, not a prerequisite.
+5. **Card dismissal syncs** — org-scoped, per-user on
+   `workspace_preferences.onboarding`, merged into localStorage on workspace
+   load so first paint stays synchronous. Platform admins sync; non-admin
+   members stay device-local (the table's RLS is admin-only today).
 6. **Studio "done"** — generated document row (was: session visit in v1).

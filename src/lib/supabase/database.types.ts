@@ -13251,16 +13251,19 @@ export type Database = {
       workspace_preferences: {
         Row: {
           mode: string
+          onboarding: Json
           updated_at: string
           user_id: string
         }
         Insert: {
           mode?: string
+          onboarding?: Json
           updated_at?: string
           user_id: string
         }
         Update: {
           mode?: string
+          onboarding?: Json
           updated_at?: string
           user_id?: string
         }
