@@ -226,12 +226,24 @@ The `AdvisorResponse` is a Zod-validated contract (`advisorResponseSchema`) that
 | `supportNotice`      | `boolean`             | Show "support mode — intentionally off" in the workspace                         |
 | `legalBasis`         | `LegalBasisRead`      | Statute citation items, each marked `valid` (human-reviewed) or not              |
 | `retrieval`          | `RetrievalRead`       | Corpus tags (e.g. "Termination · ON")                                            |
+| `memory`             | `MemoryUsedRead?`     | Confirmed org memory used this turn                                              |
 | `confidence`         | `ConfidenceRead?`     | Label + 0–100 meter fill                                                         |
+| `proposedActions`    | `ProposedAction[]?`   | Agent tool calls proposed for user confirmation (gated by `route.actionsAllowed`) |
 | `isCrisis`           | `boolean`             | When true, all structured surfaces are gated off                                 |
 
 The `allowedSurfaces` function is the single gating check — no workspace block renders without passing its corresponding gate.
 
-Sources: [src/features/app/advisor/contract.ts:56-170]()
+Sources: [src/features/app/advisor/contract.ts:56-220]()
+
+### Agent Actions (propose → confirm → execute)
+
+Behind the `ADVISOR_AGENT_ACTIONS` flag, `advisor-chat` can propose workspace tool calls. When the flag is on and the message looks actionable, the function runs an isolated extraction pass (`agentPropose.ts`) over the tool catalogue (`agentCatalog.ts`, which includes `tasks.create`); non-empty proposals on an `hr` non-crisis turn set `route.actionsAllowed: true` and attach `proposedActions` to the wire payload.
+
+The client agent layer (`src/features/app/agent/`) ingests each proposal into an `AgentActionCard` — a confirmation card the user explicitly approves or dismisses. `executeAgentProposal` re-validates params against the tool's schema, role-gates the caller, runs the real API, and writes an audit record (`audit.ts`). Nothing executes unattended, and proposals never appear on crisis or gated-off turns.
+
+Verified state: `ADVISOR_AGENT_ACTIONS=true` is set on the deployed project and `advisor-chat` is active; an authenticated live turn emitting a proposal card is the remaining end-to-end check.
+
+Sources: [supabase/functions/advisor-chat/agentPropose.ts](), [supabase/functions/advisor-chat/agentCatalog.ts](), [supabase/functions/advisor-chat/index.ts:895-912](), [src/features/app/agent/registry.ts](), [src/features/app/agent/executor.ts](), [src/features/app/agent/AgentActionCard.tsx](), [docs/AGENT_LAYER.md]()
 
 ---
 

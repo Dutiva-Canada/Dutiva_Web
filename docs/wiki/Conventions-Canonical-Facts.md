@@ -174,12 +174,12 @@ Navigation between entities uses route paths, never view-state flags.
 
 ### Phased Rollout Strategy (Workspace Mode)
 
-`useWorkspaceMode()` resolves to `'demo'` or `'production'`. Production only activates for a signed-in, confirmed admin who has stored that preference. The rollout follows a phased approach documented across 14+ phases:
+`useWorkspaceMode()` resolves to `'demo'` or `'production'`. Production activates only for a signed-in user who can hold a production workspace — platform admin or active org member (`canUseProduction`) — and has stored that preference. The rollout followed a phased approach documented across 14+ phases:
 
 | Phase | Module                     | Pattern                                                         |
 | ----- | -------------------------- | --------------------------------------------------------------- |
 | 1     | Toggle + Shell identity    | Settings admin toggle, `Sidebar.tsx` identity                   |
-| 2     | Route-level gating         | `ModeGate` / `gated()` wrapper in `appViews.tsx`                |
+| 2     | Route-level gating         | `ModeGate` / `gated()` wrapper in `appViews.tsx` (later removed — dispatch moved inside views) |
 | 3     | Employees (reference impl) | Per-tenant table, `productionApi.ts`, `EmployeesProductionView` |
 | 4     | Cases                      | `hr_cases`, migration 0007                                      |
 | 5     | Tasks                      | Zero-migration, reused `compliance_tasks`                       |
@@ -195,27 +195,19 @@ Navigation between entities uses route paths, never view-state flags.
 
 [CONVENTIONS.md:144-237]()
 
-The `gated()` function in `src/app/appViews.tsx` wraps a fixture-driven view in `ModeGate`: demo renders it unchanged, production renders the shared `ProductionEmptyState` titled by module.
-
-[src/app/appViews.tsx:23-25]()
+Historically a `gated()` helper wrapped fixture-only views in `ModeGate` (demo → view unchanged, production → `ProductionEmptyState`). The wrapper has been removed — every module now dispatches on mode internally and renders `ProductionEmptyState`/`ModuleEmptyBlock` only where the org has no records.
 
 **Phased rollout flow**
 
 ```mermaid
 flowchart LR
-    subgraph "Route table (appViews.tsx)"
-        G["gated(View)"]
-    end
-    G --> MG["ModeGate"]
-    MG -->|"mode === demo"| DV["Fixture-driven\nView"]
-    MG -->|"mode === production"| PES["ProductionEmptyState"]
-
-    subgraph "Ungated module (e.g. Employees)"
+    subgraph "Module view (e.g. Employees)"
         EV["EmployeesView"]
         EV -->|"mode === demo"| DF["Demo fixtures"]
         EV -->|"mode === production"| EPV["EmployeesProductionView"]
         EPV --> PA["productionApi.ts"]
         PA --> SB["Supabase RLS\n(org-scoped)"]
+        EPV -->|"no records"| PES["ProductionEmptyState /\nModuleEmptyBlock"]
     end
 ```
 
@@ -256,7 +248,7 @@ The "Verified against the product" table contains 12 facts, each with its code s
 | Pricing               | Free / $24 / $49 / $99 CAD/mo           | `PLANS` in `src/config/plans.ts`                     |
 | Annual billing        | 10 of 12 months                         | `ANNUAL_MONTHS_BILLED` in `plans.ts`                 |
 | Beta state            | Shown but not sold                      | `PAID_PLANS_DISABLED_DURING_BETA` in `plans.ts`      |
-| Beta capacity         | **15**                                  | `BETA_COHORT_LIMIT` in `src/config/beta.ts`          |
+| Beta capacity         | **5**                                  | `BETA_COHORT_LIMIT` in `src/config/beta.ts`          |
 | Rings live            | All four complete                       | `docs/FOUR_RING_FRAMEWORK.md`                        |
 | Law-change monitoring | FED, ON, QC confirmed                   | `monitoringCoverage.ts`                              |
 | Contact address       | support@dutiva.ca                       | Retired addresses enforced                           |
@@ -368,12 +360,12 @@ This Vitest file reads `CANONICAL_FACTS.md` as raw text via `import.meta.glob` w
 | `states every paid plan price, and no price that is not a plan`   | Bold dollar figures equal `PLANS` monthly prices as a set                                                                                     | Yes — exact set       |
 | `states the annual billing ratio`                                 | Row contains `"10 of 12"` matching `ANNUAL_MONTHS_BILLED`                                                                                     | One-way               |
 | `describes the beta paid-plan state`                              | `PAID_PLANS_DISABLED_DURING_BETA === true` and row contains "not sold"                                                                        | One-way               |
-| `states the beta cohort capacity, in every copy`                  | Bold number matches `BETA_COHORT_LIMIT`; migration 0067 SQL contains `limit 15`; signup edge function contains `const BETA_COHORT_LIMIT = 15` | Three-way cross-check |
+| `states the beta cohort capacity, in every copy`                  | Bold number matches `BETA_COHORT_LIMIT`; migration 0116 SQL contains `limit 5`; signup edge function contains `const BETA_COHORT_LIMIT = 5` | Three-way cross-check |
 | `states the law-monitoring claim`                                 | Row contains `COVERAGE_AUDITED_ON` date; branch on `noSupportedJurisdictionCovered()` checks wording against actual coverage status           | Adaptive              |
 
 [src/canonicalFacts.test.ts:82-213]()
 
-The beta capacity test is notable for its **three-way cross-check**: the number 15 lives in three places that cannot import each other (TypeScript `BETA_COHORT_LIMIT`, SQL migration `0067`, Deno edge function `create-beta-signup`), and the test reads all three as raw text:
+The beta capacity test is notable for its **three-way cross-check**: the number 5 lives in places that cannot import each other (TypeScript `BETA_COHORT_LIMIT`, SQL migration `0116_beta_cohort_capacity_five`, Deno edge functions `create-beta-signup` / `beta-cohort-status`), and the test reads all three as raw text:
 
 [src/canonicalFacts.test.ts:149-177]()
 [src/config/beta.ts:1-19]()

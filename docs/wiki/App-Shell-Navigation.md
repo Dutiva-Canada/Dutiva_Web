@@ -119,6 +119,13 @@ Opening the drawer moves focus to the header close button (44px target). Closing
 
 [src/features/app/shell/AppShell.tsx:46-68](), [src/features/app/shell/AppShell.tsx:172-195]()
 
+### Mobile Input Zoom Guard & Touch Targets
+
+Two mobile conventions live outside the shell components:
+
+- **16px form-control floor** — iOS Safari page-zooms toward any focused input under 16px. Inputs sit at 13–15px by design on desktop, so `base.css` forces `font-size: 16px` on `input`/`textarea`/`select` below the 768px breakpoint. The literal 16px is the browser's behavioural threshold, not a design token. [src/styles/base.css:122-132]()
+- **Touch targets** — interactive controls bump to ≥44px effective height below `md:` (e.g. `py-[14px] md:py-[6px]`), and mobile surfaces suppress `autoFocus` so the keyboard doesn't open on arrival and cover the page's content. [src/features/app/views/home/HomeBriefHero.tsx](), [src/features/app/views/home/HomeProductionEmptyState.tsx]()
+
 ### Title Derivation
 
 The topbar/mobile-topbar title adapts to workspace mode. In **production** mode, `moduleLabelFor()` returns the module's canonical label (never a fixture person's name). In **demo** mode, `viewLabelFor()` uses richer labels including employee names on profile routes.
@@ -338,7 +345,7 @@ In demo mode, badge counts are computed from fixture data at module load time:
 
 ### navLabels.ts — Entry Graph Safety
 
-The route-to-label vocabulary is split into a separate `navLabels.ts` file to keep `@/data` fixtures out of the eager entry graph. `ModeGate` imports labels from `navLabels.ts` (not `navConfig.ts`), because `navConfig.ts` value-imports fixture data for badge counts. The `check-entry-graph.mjs` CI script enforces this boundary.
+The route-to-label vocabulary is split into a separate `navLabels.ts` file to keep `@/data` fixtures out of the eager entry graph. The workspace-mode primitives (`ModeGate.tsx` — now a vestige with no callers — plus `ProductionEmptyState.tsx` and `workspaceModeContext.ts`) import labels from `navLabels.ts` rather than `navConfig.ts`, because `navConfig.ts` value-imports fixture data for badge counts. The `check-entry-graph.mjs` CI script enforces this boundary.
 
 [src/features/app/shell/navLabels.ts:4-18]()
 

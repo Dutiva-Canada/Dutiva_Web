@@ -21,7 +21,7 @@ The following files were used as context for generating this wiki page:
 - [docs/design-handoff-advisor-chat/screenshots/05-response-jurisdiction.png](docs/design-handoff-advisor-chat/screenshots/05-response-jurisdiction.png)
 - [src/data/analytics.ts](src/data/analytics.ts)
 - [src/features/app/views/analytics/AnalyticsProductionView.tsx](src/features/app/views/analytics/AnalyticsProductionView.tsx)
-- [src/features/app/views/analytics/AnalyticsView.test.tsx](src/features/app/views/analytics/AnalyticsView.test.tsx)
+- [src/features/app/views/analytics/AnalyticsView.production.test.tsx](src/features/app/views/analytics/AnalyticsView.production.test.tsx)
 - [src/features/app/views/analytics/aggregation.test.ts](src/features/app/views/analytics/aggregation.test.ts)
 - [src/features/app/views/analytics/aggregation.ts](src/features/app/views/analytics/aggregation.ts)
 - [src/features/app/views/analytics/productionApi.ts](src/features/app/views/analytics/productionApi.ts)
@@ -88,7 +88,7 @@ graph LR
     FOUR["FOUR_RING_FRAMEWORK.md"] -->|"governs"| Cat["catalogue.ts"]
     DATA["DATA_MODEL.md"] -->|"governs"| Schema["supabase/schema.sql"]
     AUTH["AUTH_MAGIC_LINK.md"] -->|"governs"| AuthProv["src/features/app/auth/\nAuthProvider.tsx"]
-    SEO["SEO_ROUTE_MATRIX.md"] -->|"governs"| Routes["src/routes.ts"]
+    SEO["SEO_ROUTE_MATRIX.md"] -->|"governs"| Routes["src/app/routes.tsx"]
     LEGAL["LEGAL_REVIEW_INVENTORY.md"] -->|"scopes review for"| Templates["src/features/app/\ndocuments/data/templates/"]
     LEGAL -->|"scopes review for"| Corpus["advisor_guidance_chunks\ntable"]
     BILLING["BILLING_BETA_AUDIT.md"] -->|"governs"| Stripe["supabase/functions/\nstripe-webhook/"]

@@ -31,7 +31,7 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-The Dutiva workspace contains **18+ feature modules** beyond the AI Advisor and Document Management systems covered in earlier pages. Each module follows a consistent **phased rollout pattern**: a demo mode renders rich fixture data (the "Northgate Logistics Inc." diorama from `src/data/`), while production mode reads and writes real Supabase tables through a per-module `productionApi.ts` boundary file. The mode dispatch happens either via the route-level `ModeGate` wrapper or inside the view component itself.
+The Dutiva workspace contains **27 feature-module directories** under `src/features/app/views/` beyond the AI Advisor and Document Management systems covered in earlier pages. Each module follows a consistent **phased rollout pattern**: a demo mode renders rich fixture data (the "Northgate Logistics Inc." diorama from `src/data/`), while production mode reads and writes real Supabase tables through a per-module `productionApi.ts` boundary file. The mode dispatch happens inside each view component — modules render a `*ProductionView` (or their own mode-aware variant) against real tables, falling back to empty-state primitives when the org has no records yet.
 
 Two larger workspace modules — **Communications Platform** (`/app/comms`) and **Finance** (`/app/finance`) — follow a multi-screen layout pattern with their own data providers, context, bilingual message catalogues, and shared bulk-import adapters. These modules are integration-led: they connect to external accounting, payroll, and publishing systems rather than replacing them.
 
@@ -40,28 +40,21 @@ This page provides a high-level map of all workspace modules, their rollout stat
 - **[Employees, Cases & HR Records](#10.1)** — the Employees and Cases modules with their production persistence layers, profile views, org chart, and case detail tabs.
 - **[Planning, Settings & Other Modules](#10.2)** — Tasks, Calendar, Policies, Settings, Memory, Home, Communications, Compensation, Wellbeing, Knowledge, and the global Search overlay.
 
-## Module Routing and Gating
+## Module Routing and Mode Dispatch
 
-All workspace modules are lazy-loaded through `React.lazy()` in the route table at `appViews.tsx`. The `gated()` helper wraps fixture-only views in `ModeGate`, which renders a `ProductionEmptyState` placeholder in production mode. Modules that have gained real persistence dispatch on `useWorkspaceMode().mode` internally and no longer use the gate.
+All workspace modules are lazy-loaded through `React.lazy()` in the route table at `appViews.tsx`. There is no route-level gate: every module handles both modes itself. Fixture-backed surfaces decide their production/demo behaviour within the view or its mode-aware dependencies — Home and Advisor have production variants; Knowledge, Settings, Document Studio, repository/detail, Advisor Memory, and Signing have real production-backed behaviour; the legacy hr-library gallery redirects to Document Studio in production via `HrLibraryRoute`.
 
-[src/app/appViews.tsx:23-25]()
-[src/features/app/workspaceMode/ModeGate.tsx:20-29]()
+[src/app/appViews.tsx:30-42]()
 
-**Route-level gating** (via `gated()`) applies to modules that still lack production persistence — currently only the Memory sub-routes and several Document Library screens:
-
-[src/app/appViews.tsx:142-143]()
-[src/app/appViews.tsx:156-163]()
-
-**Self-dispatching** modules check `workspaceMode` in their root component and render their own `*ProductionView` variant. This list includes Employees, Cases, Compliance, Policies, Tasks, Calendar, Analytics, Communications, Compensation, Wellbeing, Home, Comms Platform, Finance, and Hiring:
+**Self-dispatching** modules check `workspaceMode` in their root component and render their own `*ProductionView` variant. This includes Employees, Cases, Compliance, Policies, Tasks, Calendar, Analytics, Communications, Compensation, Wellbeing, Home, Comms Platform, Finance, Hiring, and the Memory screens:
 
 [src/app/appViews.tsx:79-118]()
 
-**Ungated** modules render real content in both modes: Home (own production variant), Advisor (own variant), Knowledge (reference guides + guidance panel are real content), Settings (hosts the mode toggle), Workflows (guided flows are real), and Support:
+**Empty production data** renders `ProductionEmptyState` (module-level) or `ModuleEmptyBlock` (in-view) primitives rather than fixtures — a fresh production workspace is intentionally empty, and Home adds a five-step setup path on top (see [Workspace Mode & Provider Stack](#2.3)):
 
-[src/app/appViews.tsx:72-77]()
-[src/app/appViews.tsx:97-101]()
+[src/features/app/workspaceMode/ProductionEmptyState.tsx](), [src/features/app/workspaceMode/ModuleEmptyBlock.tsx](), [src/features/app/views/home/HomeProductionEmptyState.tsx]()
 
-Sources: [src/app/appViews.tsx:1-166](), [src/features/app/workspaceMode/ModeGate.tsx:1-29](), [src/features/app/workspaceMode/ProductionEmptyState.tsx:1-47]()
+Sources: [src/app/appViews.tsx:1-166](), [src/features/app/workspaceMode/ProductionEmptyState.tsx:1-47]()
 
 ### Module routing map
 
@@ -110,7 +103,7 @@ Sources: [src/app/appViews.tsx:71-237]()
 Every workspace module follows a three-layer architecture:
 
 1. **Demo view** — renders fixture data from `src/data/` (the `employees`, `cases`, `tasks`, etc. arrays). This is the "Northgate Logistics Inc." diorama that every visitor sees before signing in.
-2. **Production view** — a leaner variant (`*ProductionView`) that reads real rows from Supabase through the module's `productionApi.ts` boundary. Only rendered for signed-in admins who have toggled to production mode.
+2. **Production view** — a leaner variant (`*ProductionView`) that reads real rows from Supabase through the module's `productionApi.ts` boundary. Rendered for signed-in workspace members (platform admins or active org members) who have toggled to production mode.
 3. **`productionApi.ts`** — a self-contained data boundary file per module. Each exports typed async functions (`listX`, `addX`, `removeX`, etc.) that call `supabase.from(table)` with Zod validation. These files throw on failure (unlike the workspace-mode API which degrades silently).
 
 The `WorkspaceModeProvider` resolves the active mode and exposes `organizationId` for scoping every production query.
@@ -258,7 +251,7 @@ The data layer (`views/finance/data/`) provides `FinanceDataContext`, `FinanceDa
 - `aiImportAnalyzer.ts` and `productionAi.ts` — AI-assisted import analysis with rule fallback
 - `bulkImport/bankStatementAdapter.ts`, `entityAdapter.ts`, `transactionAdapter.ts` — `BulkImportWizard` adapters
 
-Migration `0119_add_finance_module.sql` creates 32 `finance_*` tables with org-scoped RLS. The migration is committed but **not yet applied** to the Supabase project — production mode falls back to localStorage until it is applied. Sensitive payroll tables are admin-only at the RLS level and gated by `useWorkspaceMode().memberRole` on the client.
+Migration `0119_add_finance_module.sql` creates 32 `finance_*` tables with org-scoped RLS; it is applied to the live project (`check:migrations` green at 170/170). Sensitive payroll tables are admin-only at the RLS level and gated by `useWorkspaceMode().memberRole` on the client.
 
 The product does not provide native accounting, payroll, tax filing, investment execution, or professional advice. The selected accounting system remains authoritative for posted books; the payroll provider remains authoritative for completed pay runs. Dutiva owns budgets, forecasts, review work, approvals, and source-record links.
 

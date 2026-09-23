@@ -91,7 +91,7 @@ graph LR
         APP_ENTRY["AppWelcome /app/welcome"]
         WORKSPACE["Workspace → AppShell"]
         WORKSPACE --- HOME["HomeView /app/home"]
-        WORKSPACE --- MORE_APP["... 18+ view routes"]
+        WORKSPACE --- MORE_APP["... ~100 view routes"]
     end
 
     MarketingSurface -. "code-split boundary" .-> DemoSurface
@@ -102,7 +102,7 @@ Sources: [src/app/routes.tsx:198-227](), [src/app/appSurface.tsx:77-91](), [src/
 
 ### Marketing surface
 
-Public pages are bilingual via URL prefix — English at unprefixed paths (`/about`), French under `/fr` with localized slugs (`/fr/a-propos`). Language is forced by `ForcedLangProvider` wrapping each locale tree. All 14 static routes plus legal docs, help articles, and editorial articles are registered in the SEO route registry at `src/seo/routes.ts`. Pages are prerendered to static HTML at build time by `scripts/prerender.mjs` and indexed by search engines.
+Public pages are bilingual via URL prefix — English at unprefixed paths (`/about`), French under `/fr` with localized slugs (`/fr/a-propos`). Language is forced by `ForcedLangProvider` wrapping each locale tree. All 19 static routes plus legal docs, help articles, and editorial articles are registered in the SEO route registry at `src/seo/routes.ts`. Pages are prerendered to static HTML at build time by `scripts/prerender.mjs` and indexed by search engines.
 
 Sources: [src/seo/routes.ts:1-50](), [src/app/routes.tsx:80-111](), [CONVENTIONS.md:42-61]()
 
@@ -110,7 +110,7 @@ Sources: [src/seo/routes.ts:1-50](), [src/app/routes.tsx:80-111](), [CONVENTIONS
 
 The read-only demo at `/demo` (English) and `/fr/demo` (French) reuses the same `AppShell` and Northgate Logistics fixtures as demo mode, without sign-in. `PublicDemoProvider` sets `isPublicDemo` and `readOnly`; `WorkspaceModeProvider` forces demo mode on this surface. Language is URL-scoped via `ForcedWorkspaceLangProvider`, which loads the **workspace** message catalogue (not marketing-only keys) so doclib and Advisor strings resolve.
 
-The shell adds `PublicDemoBanner` (sample data, read-only) and `DemoTourRail` (**seven** guided stops: Home, Advisor, Document Studio, Workflows, Cases, Analytics, Communications). On phone widths the tour compacts to the active stop + **Next →** link + expandable **All stops** tray ([#279](https://github.com/Dutiva-Canada/Dutiva_Web/pull/279), [#280](https://github.com/Dutiva-Canada/Dutiva_Web/pull/280)). Public demo nav includes Communications, Compensation, Wellbeing, and Analytics via `PUBLIC_DEMO_NAV_KEYS`. Landing-page `#workspace` mini-simulations and module chips link into `/demo/*`. Subpaths rewrite to `app.html` on Vercel; `/demo` and `/fr/demo` index pages are prerendered for SEO (`demoWorkspace` route).
+The shell adds `PublicDemoBanner` (sample data, read-only) and `DemoTourRail` (**12** guided stops: Home, Advisor, Document Studio, Workflows, Cases, Analytics, Communications, Hiring, Finance, Governance, Planning, Specialists). On phone widths the tour compacts to the active stop + **Next →** link + expandable **All stops** tray ([#279](https://github.com/Dutiva-Canada/Dutiva_Web/pull/279), [#280](https://github.com/Dutiva-Canada/Dutiva_Web/pull/280)). Public demo nav includes Communications, Compensation, Wellbeing, and Analytics via `PUBLIC_DEMO_NAV_KEYS`. Landing-page `#workspace` mini-simulations and module chips link into `/demo/*`. Subpaths rewrite to `app.html` on Vercel; `/demo` and `/fr/demo` index pages are prerendered for SEO (`demoWorkspace` route).
 
 Sources: [src/app/appSurface.tsx:77-91](), [src/i18n/ForcedWorkspaceLangProvider.tsx:1-52](), [src/features/app/demo/DemoTourRail.tsx:1-73](), [vercel.json](), [src/seo/routes.ts:285-288]()
 
@@ -165,8 +165,8 @@ graph TB
 
     subgraph Backend["Supabase Backend"]
         SUPA_CLIENT["supabaseClient.ts<br>null when unconfigured"]
-        EDGE_FNS["24 edge functions"]
-        SCHEMA["schema.sql<br>124 tables, 218 RLS policies"]
+        EDGE_FNS["35 edge functions"]
+        SCHEMA["schema.sql<br>244 tables, 610 RLS policies"]
     end
 
     ROUTER --> ROUTES
@@ -184,13 +184,13 @@ Sources: [src/app/router.tsx:1-8](), [src/app/routes.tsx:1-30](), [src/seo/route
 
 ## Workspace Mode: Demo vs Production
 
-The workspace defaults to a **demo** experience powered by typed bilingual fixture data (`src/data/`) portraying a fictional company called Northgate Logistics Inc. A signed-in admin can switch to **production** mode via `useWorkspaceMode()`, which provisions a real organization via the `create_organization()` RPC and scopes all reads and writes to that `organization_id`.
+The workspace defaults to a **demo** experience powered by typed bilingual fixture data (`src/data/`) portraying a fictional company called Northgate Logistics Inc. — also reachable publicly at `/demo`. A signed-in member of an organization (admin or active member) can switch to **production** mode via `useWorkspaceMode()`; production is backed by the real Supabase schema and scopes all reads and writes to the member's `organization_id`. New organizations are provisioned via the `create_organization()` RPC.
 
-`WorkspaceModeProvider` resolves the mode by checking admin status (`checkIsAdmin()`), reading the stored preference (`fetchStoredMode()`), and loading the admin's profile and organization membership. The `ModeGate` component and the `gated()` wrapper in `appViews.tsx` control which views show fixture data vs. production data.
+`WorkspaceModeProvider` resolves the mode by checking admin status (`checkIsAdmin()`), reading the stored preference (`fetchStoredMode()` from `workspace_preferences`), and loading the profile and organization membership — `canUseProduction` is `isAdmin || membership !== null`. Each module ships a real `*ProductionView` alongside its demo view; where production data doesn't exist yet, views render `ModuleEmptyBlock`/`ProductionEmptyState` primitives rather than fixture content.
 
-Modules are ungated individually as they gain real persistence — employees, cases, communications, compensation, wellbeing, hiring, comms platform, and finance have already been ungated and dispatch on mode internally. Still-gated modules render a `ProductionEmptyState` in production mode.
+A fresh production workspace is **empty on purpose** — no seed records. Home detects the empty state and renders a five-step setup path (company profile → first-hire documents → policy register → guided process → first person), a persistent "Keep going" card that survives the first record, Advisor starter prompts, and a plan-to-Tasks bridge. Progress marks live in `workspace_preferences.onboarding` keyed by org id, OR-merged across devices, with localStorage as the synchronous first-paint layer.
 
-Sources: [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:1-60](), [src/features/app/workspaceMode/workspaceModeContext.ts:1-55](), [src/app/appViews.tsx:14-25]()
+Sources: [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:1-60](), [src/features/app/workspaceMode/workspaceModeContext.ts:1-55](), [src/features/app/workspaceMode/emptyWorkspaceOnboarding.ts](), [src/features/app/views/home/HomeProductionEmptyState.tsx](), [src/app/appViews.tsx:14-25]()
 
 ---
 
@@ -219,8 +219,8 @@ The platform is in **beta**. Key operational facts, enforced by CI:
 
 | Fact           | Value                                                                   | Source of Truth                                                    |
 | -------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| Beta capacity  | **15** individuals/organizations                                        | `BETA_COHORT_LIMIT` in `src/config/beta.ts`                        |
-| Paid plans     | **Open** — support membership; free cohort of **15** remains waitlisted | `PAID_PLANS_DISABLED_DURING_BETA = false` in `src/config/plans.ts` |
+| Beta capacity  | **5** individuals/organizations                                         | `BETA_COHORT_LIMIT` in `src/config/beta.ts`                        |
+| Paid plans     | **Open** — support membership; free cohort of **5** remains waitlisted  | `PAID_PLANS_DISABLED_DURING_BETA = false` in `src/config/plans.ts` |
 | Plan tiers     | Free · Starter $24 · Growth $49 · Pro $99 CAD/mo                        | `PLANS` array in `src/config/plans.ts`                             |
 | Annual billing | 10 of 12 months charged                                                 | `ANNUAL_MONTHS_BILLED = 10`                                        |
 | Jurisdictions  | 3 — ON, QC, FED                                                         | `MONITORING_COVERAGE` in `monitoringCoverage.ts`                   |
@@ -228,7 +228,7 @@ The platform is in **beta**. Key operational facts, enforced by CI:
 | Languages      | EN + FR, both surfaces                                                  | `src/i18n/` — EN unprefixed, FR under `/fr`                        |
 | Law monitoring | All 3 jurisdictions confirmed active (audit 2026-08-10)                 | `COVERAGE_AUDITED_ON` in `monitoringCoverage.ts`                   |
 
-The beta cohort limit is enforced server-side in the `current_user_is_workspace_member()` RPC (migration `0067_beta_cohort_capacity.sql`) and the `create-beta-signup` edge function. The signup form continues accepting interest as a waiting list after the cohort fills. `src/canonicalFacts.test.ts` fails the build if any copy of the limit drifts.
+The beta cohort limit is enforced server-side in the `current_user_is_workspace_member()` RPC (live gate: migration `0116_beta_cohort_capacity_five.sql`; earlier migrations `0067`/`0089`/`0114` keep their historical `limit 15`) and in the `create-beta-signup` / `beta-cohort-status` edge functions. The signup form continues accepting interest as a waiting list after the cohort fills. `src/canonicalFacts.test.ts` fails the build if any copy of the limit drifts.
 
 Sources: [src/config/beta.ts:1-19](), [src/config/plans.ts:72-80](), [src/canonicalFacts.test.ts:82-190](), [docs/CANONICAL_FACTS.md:40-55](), [src/features/app/guidance/monitoringCoverage.ts:32-79]()
 
@@ -249,7 +249,7 @@ Sources: [docs/CANONICAL_FACTS.md:1-35](), [src/canonicalFacts.test.ts:1-33](), 
 
 ## Backend at a Glance
 
-The Supabase backend comprises a 150+ table Postgres schema with 218+ RLS policies and 24 edge functions. Edge functions are split by authentication mode — some use JWT verification, while webhooks, cron workers, and public intake forms authenticate in-band. The `supabase/config.toml` pins `verify_jwt` per function to prevent accidental lockouts during deployment.
+The Supabase backend comprises a 244-table Postgres schema with 610 RLS policies and 35 edge functions. Edge functions are split by authentication mode — some use JWT verification, while webhooks, cron workers, and public intake forms authenticate in-band. The `supabase/config.toml` pins `verify_jwt` per function to prevent accidental lockouts during deployment.
 
 **Backend topology**
 
@@ -266,8 +266,8 @@ graph LR
 
     subgraph Supabase["Supabase Project"]
         AUTH["Auth (magic-link OTP)"]
-        DB["Postgres<br>schema.sql — 150+ tables"]
-        EDGE["Edge Functions (24)"]
+        DB["Postgres<br>schema.sql — 244 tables"]
+        EDGE["Edge Functions (35)"]
         VAULT["Vault secrets"]
         CRON["pg_cron schedules"]
     end
@@ -334,9 +334,51 @@ Sources: [src/features/marketing/landing.css](), [src/features/app/views/advisor
 
 ## Child Pages
 
-| Page                                        | What It Covers                                                                                                                                                                                                     |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [Getting Started & Environment Setup](#1.1) | Cloning, `npm` scripts, `.env.example` variables, Supabase project setup, Vercel deployment, the configured-or-inert pattern where `supabaseClient` returns `null` when unconfigured                               |
-| [Conventions & Canonical Facts](#1.2)       | `CONVENTIONS.md` engineering standards (surface scopes, CSS tokens, i18n, routing), `CANONICAL_FACTS.md` governance, the bidirectional CI drift guards in `canonicalFacts.test.ts` and `check-canonical-facts.mjs` |
+| Page                                                                        | What It Covers                                                                                                                                                                                                                                                          |
+| --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Getting Started & Environment Setup](Getting-Started-Environment-Setup)     | Cloning, `npm` scripts, `.env.example` variables, Supabase project setup, Vercel deployment, the configured-or-inert pattern where `supabaseClient` returns `null` when unconfigured                                                                                      |
+| [Conventions & Canonical Facts](Conventions-Canonical-Facts)                 | `CONVENTIONS.md` engineering standards (surface scopes, CSS tokens, i18n, routing), `CANONICAL_FACTS.md` governance, the bidirectional CI drift guards in `canonicalFacts.test.ts` and `check-canonical-facts.mjs`                                                        |
+| [Core Application Architecture](Core-Application-Architecture)               | Single-page React 19 app serving the public marketing site and the signed-in workspace from one route tree; three-surface model, provider stack, mode dispatch                                                                                                            |
+| [App Shell & Navigation](App-Shell-Navigation)                               | `AppShell` layout (sidebar, topbar, bottom tab nav below 768px), `navConfig`/`navLabels` split, mobile drawer + safe-area handling, 16px mobile form-control floor                                                                                                        |
+| [Routing & Code Splitting](Routing-Code-Splitting)                           | Three-surface route table, `SEO_ROUTES` registry (19 static entries), lazy `appViews` modules, entry-graph budget                                                                                                                                                        |
+| [Workspace Mode & Provider Stack](Workspace-Mode-Provider-Stack)             | Demo vs production modes, `WorkspaceModeProvider` lifecycle (invite claim → parallel fetch → onboarding hydration), member vs admin access, empty-workspace onboarding, `workspace_preferences` persistence                                                                |
+| [Workspace Modules](Workspace-Modules)                                       | The 27 feature-module directories under `src/features/app/views/`, the shared demo/production dispatch pattern, `productionApi.ts` boundaries                                                                                                                             |
+| [Employees, Cases & HR Records](Employees-Cases-HR-Records)                  | Employees and Cases modules, HR record data boundary, production views over `hr_employees`/`hr_cases`                                                                                                                                                                     |
+| [Planning, Settings & Other Modules](Planning-Settings-Other-Modules)        | Planning (Tasks + Calendar), Policies, Settings, Advisor Memory, Home command centre, Communications, Compensation, Wellbeing, Knowledge, Search                                                                                                                          |
+| [AI Advisor System](AI-Advisor-System)                                       | The Advisor at `/app/advisor`: jurisdiction-aware guidance, citation discipline, demo flows vs production edge function                                                                                                                                                   |
+| [Advisor Chat Interface & Demo Flows](Advisor-Chat-Interface-Demo-Flows)     | Full-page chat surface, `ChatPane`, composer, tone card, suggestion chips, quick forms, agent action proposal cards, crisis intercept                                                                                                                                      |
+| [Advisor Edge Function Response Contract](Advisor-Edge-Function-Response-Contract) | The `advisor-chat` edge function pipeline: request/response contract, `proposedActions` agent layer, safety backstop                                                                                                                                                  |
+| [Advisor Safety Guardrails](Advisor-Safety-Guardrails)                       | Deterministic safety rule layer on every advisor turn, statutory-figure guards, crisis signals                                                                                                                                                                            |
+| [Template Catalogue & Engine](Template-Catalogue-Engine)                     | The 50-template (T01–T50) authoring system powering the HR Document Library                                                                                                                                                                                             |
+| [Document Management System](Document-Management-System)                     | Authoring, generating, signing, and exporting HR documents; repository and library surfaces                                                                                                                                                                              |
+| [Document Studio, Signing & Export Protection](Document-Studio-Signing-Export-Protection) | `DoclibProvider`/`DoclibContext`, signing flow, `authorizeExport` pipeline                                                                                                                                                                                       |
+| [Guided Workflows & Reference Guides](Guided-Workflows-Reference-Guides)     | `FlowRunner` engine for interactive guided workflows and the Reference Guides system                                                                                                                                                                                    |
+| [Compliance Scoring & Analytics Dashboard](Compliance-Scoring-Analytics-Dashboard) | Compliance score formula (v3), `aggregation.ts` pure functions, `AnalyticsView` surfaces                                                                                                                                                                           |
+| [Law Monitoring & Compliance](Law-Monitoring-Compliance)                     | Why monitoring matters, coverage claims (ON/QC/FED supported vs 14 jurisdictions monitored), `monitoringCoverage.ts`                                                                                                                                                       |
+| [Law Change Monitor](Law-Change-Monitor)                                     | Nightly `monitor-law-changes` cron function: 43 monitored pages, four source strategies, `law_updates` log, `GuidanceSourcesPanel` surface                                                                                                                                |
+| [Authentication System](Authentication-System)                               | Passwordless magic-link Supabase OTP flow, admin admission, invitation claim path, beta cohort gate (5 seats)                                                                                                                                                             |
+| [Billing & Stripe Integration](Billing-Stripe-Integration)                   | Four-tier plan catalogue (Free/Starter/Growth/Pro, $0/$24/$49/$99 CAD), Stripe Checkout, annual billing (10 months billed), `PAID_PLANS_DISABLED_DURING_BETA`                                                                                                             |
+| [Support System](Support-System)                                             | Digital-first asynchronous support model, self-service defaults, scheduled calls                                                                                                                                                                                        |
+| [Support Architecture & Ticket Lifecycle](Support-Architecture-Ticket-Lifecycle) | Ticket lifecycle, `create-public-support-ticket` function, category gates                                                                                                                                                                                          |
+| [Attachment Scanner, Help Centre & Notifications](Attachment-Scanner-Help-Centre-Notifications) | ClamAV attachment scanning, the 13-article Help Centre, notification plumbing                                                                                                                                                                        |
+| [Fixture Data System](Fixture-Data-System)                                   | `src/data/` typed bilingual fixtures powering the Northgate Logistics demo workspace                                                                                                                                                                                    |
+| [Core i18n Types & Providers](Core-i18n-Types-Providers)                     | `Bi`/`defineMessages` bilingual system, `LangProvider`, FR self-authoring markers                                                                                                                                                                                        |
+| [Message Catalogue, Organization & Scope Enforcement](Message-Catalogue-Organization-Scope-Enforcement) | The 62 feature message modules, three-surface grouping, `check:message-scopes`                                                                                                                                                                     |
+| [Internationalization (i18n)](Internationalization-i18n)                     | EN/FR parity rules, message scope conventions, locale routing (`/fr`)                                                                                                                                                                                                    |
+| [Marketing Surface](Marketing-Surface)                                       | Public pages, landing section composition (`WorkspaceModuleDemos`), `/demo` public workspace tour, trust surfaces                                                                                                                                                         |
+| [Landing Page, Pricing & Beta Signup](Landing-Page-Pricing-Beta-Signup)      | `LandingPage` section order, `PricingPage`, `BetaSignup` waiting-list flow, 5-seat cohort gate                                                                                                                                                                            |
+| [SEO, Prerendering & Content Marketing](SEO-Prerendering-Content-Marketing)  | Route registry → static prerender pipeline, 19 static routes + dynamic articles, 12 editorial articles (6 guides + 6 blog), sitemap/robots                                                                                                                                 |
+| [Legal & Trust Pages](Legal-Trust-Pages)                                     | The Legal Hub: 26 bilingual policy documents, trust surface structure                                                                                                                                                                                                    |
+| [Database Backend Architecture](Database-Backend-Architecture)               | Supabase project `khtwpxnvziiyplaflwru`: 244 tables, 187+ functions/RPCs, ~610 RLS policies, cron jobs, views, extensions                                                                                                                                                 |
+| [Database Schema & Migrations](Database-Schema-Migrations)                   | Migration discipline (`NNNN_slug.sql`, merged ≠ applied), `check-migrations.mjs` drift detection, sequence `0024` shared-version history                                                                                                                                  |
+| [Edge Functions & Shared Modules](Edge-Functions-Shared-Modules)             | The 35 Deno edge functions, 16 shared `_shared/` modules, `verify_jwt` inventory, deploy ≠ merge caveat                                                                                                                                                                   |
+| [Build Scripts & Integrity Guards](Build-Scripts-Integrity-Guards)           | The `scripts/` integrity guards, `lib/secrets.mjs` credential helper, `check:*` scripts                                                                                                                                                                                   |
+| [CI Pipeline & Testing](CI-Pipeline-Testing)                                 | `npm run check` composition (typecheck + lint + test + six guard checks), Vitest/Playwright strategy                                                                                                                                                                      |
+| [Infrastructure & CI/CD](Infrastructure-CICD)                                | Vite build, Supabase backend, Vercel hosting, deployment surfaces                                                                                                                                                                                                       |
+| [Error Reporting, Theme & Shared Libraries](Error-Reporting-Theme-Shared-Libraries) | Privacy-first error reporting, light/dark theme tokens, shared client libraries                                                                                                                                                                                    |
+| [Documentation Index & Strategy Docs](Documentation-Index-Strategy-Docs)     | `docs/` system, `docs/README.md` index, `EMPTY_WORKSPACE_ONBOARDING.md`, `AGENT_LAYER.md`, `MIGRATION_LEDGER.md`                                                                                                                                                          |
+| [Design Handoff Documentation](Design-Handoff-Documentation)                 | The `docs/` handoff packages that drive feature work                                                                                                                                                                                                                    |
+| [Design Handoffs & Advisor Corpus](Design-Handoffs-Advisor-Corpus)           | The three design handoff packages bridging prototype work into the product                                                                                                                                                                                              |
+| [Glossary](Glossary)                                                         | Codebase-specific terms, abbreviations, domain concepts                                                                                                                                                                                                                 |
 
 ---

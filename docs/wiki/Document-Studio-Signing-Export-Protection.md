@@ -35,7 +35,7 @@ The following files were used as context for generating this wiki page:
 - [src/features/app/views/cases/caseDetailTabs.tsx](src/features/app/views/cases/caseDetailTabs.tsx)
 - [src/features/app/views/employees/EmployeeDrawer.test.tsx](src/features/app/views/employees/EmployeeDrawer.test.tsx)
 - [src/features/app/views/employees/employeeProfileTabs.tsx](src/features/app/views/employees/employeeProfileTabs.tsx)
-- [src/features/marketing/sections/Product.tsx](src/features/marketing/sections/Product.tsx)
+- [src/features/marketing/sections/WorkspaceModuleDemos.tsx](src/features/marketing/sections/WorkspaceModuleDemos.tsx)
 - [src/lib/exportProtection/localAudit.test.ts](src/lib/exportProtection/localAudit.test.ts)
 - [src/lib/exportProtection/localAudit.ts](src/lib/exportProtection/localAudit.ts)
 - [src/lib/supabaseClient.ts](src/lib/supabaseClient.ts)

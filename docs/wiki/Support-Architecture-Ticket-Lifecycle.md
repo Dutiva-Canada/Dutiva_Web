@@ -569,7 +569,7 @@ Sources: [supabase/functions/support-confirm-call/index.ts:1-182](), [supabase/f
 
 ## Route Structure
 
-All support routes are registered in `appViewRoutes` and are lazy-loaded. Support views are **ungated** (not wrapped in `ModeGate`) — they are real features, not demo fixtures.
+All support routes are registered in `appViewRoutes` and are lazy-loaded. Support views dispatch on mode internally — they are real features, not demo fixtures.
 
 | Route                             | Component                 | Access                          |
 | --------------------------------- | ------------------------- | ------------------------------- |

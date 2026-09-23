@@ -258,8 +258,10 @@ classDiagram
         +boolean supportNotice
         +LegalBasisRead legalBasis
         +RetrievalRead retrieval
+        +MemoryUsedRead? memory
         +WebSearchRead? webSearch
         +ConfidenceRead? confidence
+        +ProposedAction[]? proposedActions
         +LText[] warnings
         +boolean isCrisis
     }
@@ -270,6 +272,12 @@ classDiagram
         +boolean legalBasisAllowed
         +boolean documentsAllowed
         +boolean webSearchAllowed
+        +boolean actionsAllowed?
+    }
+    class ProposedAction {
+        +string toolId
+        +LText summary
+        +Record~string, unknown~ params
     }
     class JurisdictionRead {
         +JurisdictionStatus status
@@ -304,10 +312,21 @@ classDiagram
     AdvisorResponse --> ProfessionalReview
     AdvisorResponse --> LegalBasisRead
     AdvisorResponse --> ConfidenceRead
+    AdvisorResponse --> ProposedAction
     LegalBasisRead --> LegalBasisItem
 ```
 
-Sources: [src/features/app/advisor/contract.ts:1-170]()
+### `proposedActions` — Agent Tool Proposals
+
+When the `ADVISOR_AGENT_ACTIONS` flag is enabled server-side and the user message looks actionable, the function runs an isolated extraction pass (`agentPropose.ts`) against the tool catalogue (`agentCatalog.ts` — includes `tasks.create` and other workspace tools). If proposals come back non-empty on an `hr` non-crisis turn, the wire payload gains `route.actionsAllowed: true` plus the `proposedActions` array.
+
+On the client, proposals are ingested into `AgentActionCard` confirmation cards (`src/features/app/agent/`): each card shows the proposed tool call, and execution happens **only after explicit user confirm** through `executeAgentProposal` — which re-validates params, role-gates the caller, runs the real API, and writes an audit record. The engine proposes; the user disposes. Nothing executes unattended.
+
+Verified state: the flag is set on the deployed project (`advisor-chat` active, v47+); a live authenticated turn emitting a proposal card has not yet been observed end-to-end.
+
+Sources: [supabase/functions/advisor-chat/agentPropose.ts](), [supabase/functions/advisor-chat/agentCatalog.ts](), [supabase/functions/advisor-chat/index.ts:895-912](), [src/features/app/advisor/contract.ts:168-196](), [src/features/app/agent/executor.ts](), [src/features/app/agent/AgentActionCard.tsx](), [docs/AGENT_LAYER.md]()
+
+Sources: [src/features/app/advisor/contract.ts:1-220]()
 
 ### Key Enums
 

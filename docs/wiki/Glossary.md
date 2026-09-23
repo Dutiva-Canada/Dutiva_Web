@@ -97,16 +97,15 @@ Sources: [src/i18n/core.ts:1-39](), [src/i18n/context.ts:1-29]()
 
 ---
 
-## Term Relationship Map: Workspace Mode & Gating
+## Term Relationship Map: Workspace Mode & Production Views
 
 ```mermaid
 graph TD
     WM["WorkspaceMode ('demo' | 'production')"]
     WMP["WorkspaceModeProvider"]
     WMC["useWorkspaceMode()"]
-    MG["ModeGate"]
-    gated["gated()"]
-    PES["ProductionEmptyState"]
+    PV["*ProductionView (per module)"]
+    PES["ProductionEmptyState / ModuleEmptyBlock"]
     PG["PlanGate"]
     pApi["productionApi.ts (per-module)"]
     DM["Demo mode (fixtures)"]
@@ -114,16 +113,15 @@ graph TD
 
     WMP -->|"provides"| WMC
     WMC -->|"reads"| WM
-    MG -->|"checks"| WMC
-    gated -->|"wraps view in"| MG
-    MG -->|"mode=production →"| PES
-    MG -->|"mode=demo →"| DM
+    PV -->|"dispatches on"| WMC
+    PV -->|"no records →"| PES
+    PV -->|"mode=demo →"| DM
     PG -->|"checks plan via"| WMC
     pApi -->|"reads/writes to"| PM
     PM -->|"scoped by"| WMC
 ```
 
-Sources: [src/features/app/workspaceMode/workspaceModeContext.ts:1-56](), [src/features/app/workspaceMode/ModeGate.tsx:1-29](), [src/app/appViews.tsx:9-25](), [src/features/app/billing/PlanGate.tsx:1-62]()
+Sources: [src/features/app/workspaceMode/workspaceModeContext.ts:1-56](), [src/features/app/workspaceMode/ProductionEmptyState.tsx](), [src/features/app/workspaceMode/ModuleEmptyBlock.tsx](), [src/app/appViews.tsx:9-25](), [src/features/app/billing/PlanGate.tsx:1-62]()
 
 ---
 
@@ -173,7 +171,7 @@ Sources: [supabase/schema.sql:170-194]()
 
 ### `BETA_COHORT_LIMIT`
 
-Constant set to `15` in `src/config/beta.ts`. The maximum number of individuals/organizations auto-admitted to the beta workspace. Enforced server-side by `current_user_is_workspace_member()` (migration `0067`). Signup stays open past capacity as a waiting list. CI (`canonicalFacts.test.ts`) fails if any copy drifts from this value.
+Constant set to `5` in `src/config/beta.ts`. The maximum number of individuals/organizations auto-admitted to the beta workspace. Enforced server-side by `current_user_is_workspace_member()` (live gate: migration `0116_beta_cohort_capacity_five`). Signup stays open past capacity as a waiting list. CI (`canonicalFacts.test.ts`) fails if any copy drifts from this value.
 
 Sources: [src/config/beta.ts:1-19]()
 
@@ -262,9 +260,9 @@ Sources: [src/i18n/core.ts:16-18]()
 
 ### Demo mode
 
-The default `WorkspaceMode` — the workspace runs on fixture data from `src/data/` (Northgate Logistics Inc. sample company). Every workspace module renders its full UI with realistic bilingual sample data. No Supabase connection required. The `ModeGate` component renders fixture views in this mode. Toggled via `setMode` on `WorkspaceModeContextValue`.
+The default `WorkspaceMode` — the workspace runs on fixture data from `src/data/` (Northgate Logistics Inc. sample company). Every workspace module renders its full UI with realistic bilingual sample data. No Supabase connection required; also reachable publicly at `/demo`. Toggled via `setMode` on `WorkspaceModeContextValue`.
 
-Sources: [src/features/app/workspaceMode/workspaceModeContext.ts:5](), [src/features/app/workspaceMode/ModeGate.tsx:20-29]()
+Sources: [src/features/app/workspaceMode/workspaceModeContext.ts:5](), [src/features/app/workspaceMode/ProductionEmptyState.tsx]()
 
 ### Doclib
 
@@ -338,17 +336,11 @@ React component in `src/features/app/guidance/GuidanceSourcesPanel.tsx` that dis
 
 Sources: [src/features/app/guidance/GuidanceSourcesPanel.test.tsx:1-96](), [src/features/app/guidance/monitoringCoverage.ts:94-104]()
 
-### `gated()`
+### `gated()` (removed)
 
-Helper function in `appViews.tsx` that wraps a fixture-driven view in `ModeGate`. In demo mode, the view renders normally; in production mode, it renders `ProductionEmptyState`. Views are ungated when they gain real persistence (e.g., communications, compensation, wellbeing).
+Former helper in `appViews.tsx` that wrapped a fixture-driven view in `ModeGate` — demo rendered it, production rendered `ProductionEmptyState`. Removed once every module gained a `*ProductionView`; dispatch now lives inside each view.
 
-```typescript
-function gated(view: ReactNode) {
-  return <ModeGate>{view}</ModeGate>
-}
-```
-
-Sources: [src/app/appViews.tsx:23-25]()
+Sources: [src/app/appViews.tsx:30-42]()
 
 ---
 
@@ -394,7 +386,7 @@ Sources: [src/i18n/core.ts:30-31]()
 
 ### Law Monitor
 
-The `monitor-law-changes` edge function — a nightly cron that sweeps 19 legislation pages across 14 Canadian jurisdictions. Four source strategies: HTML hash, Ontario e-Laws API, Québec CKAN datasets, Justice Canada XML. Records events (`first_seen`, `change`, `redirect`, `broken`) to `law_updates`. Scheduled via `pg_cron` at 07:00 UTC. Uses `acquire_cron_lock` to prevent concurrent runs.
+The `monitor-law-changes` edge function — a nightly cron that sweeps 43 legislation pages across 14 Canadian jurisdictions. Four source strategies: HTML hash, Ontario e-Laws API, Québec CKAN datasets, Justice Canada XML. Records events (`first_seen`, `change`, `redirect`, `broken`) to `law_updates`. Scheduled via `pg_cron` at 07:00 UTC. Uses `acquire_cron_lock` to prevent concurrent runs.
 
 Sources: [docs/LAW_MONITORING.md:1-10](), [supabase/schema.sql:170-194]()
 
@@ -408,11 +400,17 @@ Sources: [src/features/app/views/advisor/AdvisorView.tsx:29-30](), [src/features
 
 ## M
 
-### `ModeGate`
+### `ModeGate` (vestige)
 
-React component that conditionally renders its children based on `WorkspaceMode`. In `'production'` mode, renders `ProductionEmptyState` with the module's label; in `'demo'` mode, passes children through unchanged. Used by `gated()` in the route table.
+Former React component that gated a route on `WorkspaceMode` — production showed `ProductionEmptyState`, demo passed children through. No longer imported anywhere; modules handle the demo/production split themselves via `*ProductionView` variants. The file remains in the tree and in the entry-graph `ALLOWED_APP_MODULES` allowlist.
 
-Sources: [src/features/app/workspaceMode/ModeGate.tsx:20-29]()
+Sources: [src/features/app/workspaceMode/ModeGate.tsx](), [scripts/check-entry-graph.mjs:78]()
+
+### `ModuleEmptyBlock`
+
+In-view empty-state primitive used inside production views that keep their chrome (e.g. Communications, Compensation, Wellbeing `*ProductionView`s) — renders the "no records yet" block where fixture content would mislead. Sibling of `ProductionEmptyState` (the module-level empty card).
+
+Sources: [src/features/app/workspaceMode/ModuleEmptyBlock.tsx]()
 
 ---
 
@@ -452,7 +450,7 @@ Sources: [src/config/plans.ts:79]()
 
 ### Production mode
 
-The `WorkspaceMode` for real data. When a signed-in admin switches to production, `WorkspaceModeProvider` auto-provisions an organization via `create_organization()` RPC. Every read/write is scoped to the real `organizationId`. Modules that haven't gained persistence yet show `ProductionEmptyState` via `ModeGate`.
+The `WorkspaceMode` for real data. When a signed-in workspace member (platform admin or active org member — `canUseProduction`) switches to production, `WorkspaceModeProvider` auto-provisions an organization via `create_organization()` RPC if none exists. Every read/write is scoped to the real `organizationId`. Views with no records yet render `ProductionEmptyState`/`ModuleEmptyBlock` primitives inside the module's own `*ProductionView`; a fully empty workspace gets the Home setup path.
 
 Sources: [src/features/app/workspaceMode/workspaceModeContext.ts:5-48]()
 
@@ -484,7 +482,7 @@ Sources: [src/lib/analyticsConsent.ts:1-77]()
 
 ### RLS
 
-**Row-Level Security** — PostgreSQL's built-in access control enforced on every table. The Dutiva schema carries **218 RLS policies** and **136 functions** (many `SECURITY DEFINER`). Key authorization functions used in policies: `is_admin()`, `is_org_member()`, `is_org_admin()`, `current_user_is_workspace_member()`. The CI pipeline includes `check-rls.mjs` which probes live Supabase with positive/negative controls.
+**Row-Level Security** — PostgreSQL's built-in access control enforced on every table. The Dutiva schema carries **610 RLS policies** and **187+ functions/RPCs** (many `SECURITY DEFINER`). Key authorization functions used in policies: `is_admin()`, `is_org_member()`, `is_org_admin()`, `current_user_is_workspace_member()`. The CI pipeline includes `check-rls.mjs` which probes live Supabase with positive/negative controls.
 
 Sources: [supabase/schema.sql](), [docs/CANONICAL_FACTS.md:1-55]()
 
@@ -602,11 +600,11 @@ graph LR
 
     subgraph "Workspace Gating"
         WM2["WorkspaceMode"]
-        MG2["ModeGate / gated()"]
+        PV2["*ProductionView dispatch"]
         PG2["PlanGate"]
-        PE["ProductionEmptyState"]
-        WM2 --> MG2
-        MG2 -->|"production + ungated"| PE
+        PE["ProductionEmptyState / ModuleEmptyBlock"]
+        WM2 --> PV2
+        PV2 -->|"production, no records"| PE
         PG2 -->|"checks plan tier"| WM2
     end
 
@@ -659,7 +657,8 @@ Sources: [src/features/app/advisor/safety/safetyBackstop.ts:1-155](), [src/featu
 | `LText`                           | [§K–L](#kl)         | `core.ts:30-31`                            |
 | Law Monitor                       | [§K–L](#kl)         | `monitor-law-changes/index.ts`             |
 | Light flows                       | [§K–L](#kl)         | `advisorFlows.ts`                          |
-| `ModeGate`                        | [§M](#m)            | `ModeGate.tsx`                             |
+| `ModeGate`                        | [§M](#m)            | `ModeGate.tsx` (vestige — no callers)      |
+| `ModuleEmptyBlock`                | [§M](#m)            | `ModuleEmptyBlock.tsx`                     |
 | `OrgMemberRole`                   | [§N–O](#no)         | `roles.ts`                                 |
 | PIPEDA                            | [§P](#p)            | Legal docs                                 |
 | `PlanGate`                        | [§P](#p)            | `PlanGate.tsx`                             |
