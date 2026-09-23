@@ -491,7 +491,7 @@ graph TD
     LEGACY["/app/templates"] -- "redirect" --> HR
 ```
 
-`StudioScreen`, `TemplateDetailScreen`, and `GenerateScreen` are **ungated** — the template catalogue is real product content. Only the fixture-driven screens (repository, document detail, signing, HR library) are wrapped in `ModeGate`.
+`StudioScreen`, `TemplateDetailScreen`, and `GenerateScreen` are real product content in both modes. The repository, document-detail, and signing screens also have production behaviour now — `documents/*` routes render real records scoped to the org — and the legacy hr-library gallery redirects to Document Studio in production via `HrLibraryRoute`.
 
 Sources: [src/app/appViews.tsx:153-166](), [src/app/appViews.tsx:9-22]()
 

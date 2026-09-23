@@ -48,7 +48,7 @@ The Advisor is Dutiva's full-page AI chat surface, mounted at `/app/advisor`. It
 
 ## Route Registration & Lazy Loading
 
-`AdvisorView` is registered in the app route table as a lazy-loaded view. Unlike most workspace views, it is **not** wrapped in the `gated()` / `ModeGate` gate — it has its own production variant logic internally.
+`AdvisorView` is registered in the app route table as a lazy-loaded view. Like every workspace module, it dispatches on mode internally — production renders its own real-data variant rather than fixtures or a placeholder.
 
 ```
 /app/advisor  →  AdvisorView (lazy, ungated)
@@ -476,6 +476,14 @@ Two chip variants and a grid:
 The termination intake quick form is defined by `QuickFormState` with five `QuickFormFieldSpec` fields [src/features/app/views/advisor/advisorFlows.ts:124-136](). Each field renders as segmented pill options in the chat transcript. On submit, the view pushes `terminationAssessment` with risk/warning cards and doc chips [src/features/app/views/advisor/advisorFlows.ts:246-307]().
 
 Sources: [src/features/app/advisor/ChatComposer.tsx:1-110](), [src/features/app/advisor/ToneCard.tsx:1-75](), [src/features/app/advisor/SuggestionChips.tsx:1-66](), [src/features/app/views/advisor/advisorFlows.ts:124-220]()
+
+## Agent Action Proposals
+
+When the server-side agent layer emits `proposedActions` on a turn (see [[Advisor Edge Function Response Contract]]), `ChatPane` renders each proposal as an `AgentActionCard` beneath the completed assistant message — a confirm/dismiss card that runs the action through `useAgentExecution` (Supabase RPC + typed `execution.results`) on confirm. `AdvisorRail` forwards the same execution hook so proposals surfaced in the rail resolve identically.
+
+Demo turns never carry `proposedActions`, so the card only appears for signed-in production conversations. End-to-end emission is enabled via `ADVISOR_AGENT_ACTIONS` on the deployed `advisor-chat` function; a live proposal turn has not yet been observed in production.
+
+Sources: [src/features/app/views/advisor/ChatPane.tsx:435-445](), [src/features/app/agent/AgentActionCard.tsx](), [src/features/app/agent/useAgentExecution.ts](), [src/features/app/rail/AdvisorRail.tsx]()
 
 ## Crisis Intercept
 

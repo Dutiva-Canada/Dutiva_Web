@@ -34,7 +34,7 @@ The following files were used as context for generating this wiki page:
 - [docs/design-handoff-hr-documents-library/screenshots/05-document-detail.png](docs/design-handoff-hr-documents-library/screenshots/05-document-detail.png)
 - [src/data/analytics.ts](src/data/analytics.ts)
 - [src/features/app/views/analytics/AnalyticsProductionView.tsx](src/features/app/views/analytics/AnalyticsProductionView.tsx)
-- [src/features/app/views/analytics/AnalyticsView.test.tsx](src/features/app/views/analytics/AnalyticsView.test.tsx)
+- [src/features/app/views/analytics/AnalyticsView.production.test.tsx](src/features/app/views/analytics/AnalyticsView.production.test.tsx)
 - [src/features/app/views/analytics/aggregation.test.ts](src/features/app/views/analytics/aggregation.test.ts)
 - [src/features/app/views/analytics/aggregation.ts](src/features/app/views/analytics/aggregation.ts)
 - [src/features/app/views/analytics/productionApi.ts](src/features/app/views/analytics/productionApi.ts)
@@ -106,8 +106,8 @@ Sources: [docs/README.md:1-108](), [docs/CANONICAL_FACTS.md:1-15]()
 | Section                 | Documents                                                                                                                             | Purpose                                 |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
 | Start here              | `CANONICAL_FACTS.md`                                                                                                                  | Source of record for load-bearing facts |
-| What is still open      | `TODO.md`, `DEVIN_PROMPTS.md`, `LEGAL_REVIEW_INVENTORY.md`                                                                            | Open work and delegation                |
-| What is true            | `FOUR_RING_FRAMEWORK.md`, `AI_USAGE_STRATEGY.md`, `SCORING_LOGIC.md`, `LAW_MONITORING.md`, `LAW_CHANGE_NOTIFICATIONS.md`, corpus docs | Product truth assertions                |
+| What is still open      | `TODO.md`, `DEVIN_PROMPTS.md`, `LEGAL_REVIEW_INVENTORY.md`, `EMPTY_WORKSPACE_ONBOARDING.md`                                           | Open work and delegation                |
+| What is true            | `FOUR_RING_FRAMEWORK.md`, `AI_USAGE_STRATEGY.md`, `AGENT_LAYER.md`, `SCORING_LOGIC.md`, `LAW_MONITORING.md`, `LAW_CHANGE_NOTIFICATIONS.md`, corpus docs | Product truth assertions                |
 | Privacy, security, data | `SECURITY_HEADERS.md`, `ERROR_REPORTING.md`, `EXPORT_PROTECTION.md`, `do-residency-confirmation-request.md`                           | Security and privacy posture            |
 | Data and platform       | `DATABASE_SCHEMA.md`, `DATA_MODEL.md`, `AUTH_MAGIC_LINK.md`, `BILLING_BETA_AUDIT.md`, `OFFLINE_PWA.md`                                | Backend and platform config             |
 | Web surface             | `SEO_GEO_IMPLEMENTATION.md`, `SEO_ROUTE_MATRIX.md`, `SEO_AUTHORITY_PLAYBOOK.md`, `DEV_ANNOTATIONS.md`                                 | Marketing site SEO and tooling          |
@@ -129,8 +129,8 @@ Sources: [docs/README.md:1-108]()
 | Jurisdictions     | **3** — ON, QC, FED                      | Jurisdiction codes in code                           |
 | Pricing           | Free / $24 / $49 / $99 CAD/mo            | `src/config/plans.ts` → `PLANS`                      |
 | Annual billing    | 10 of 12 months (`ANNUAL_MONTHS_BILLED`) | `src/config/plans.ts`                                |
-| Beta state        | Paid plans shown but not sold            | `PAID_PLANS_DISABLED_DURING_BETA`                    |
-| Beta capacity     | 15 seats                                 | `src/config/beta.ts` `BETA_COHORT_LIMIT`             |
+| Beta state        | Paid plans open (`PAID_PLANS_DISABLED_DURING_BETA = false`) | `src/config/plans.ts`                                |
+| Beta capacity     | 5 seats                                 | `src/config/beta.ts` `BETA_COHORT_LIMIT`             |
 | Rings live        | All four complete                        | `docs/FOUR_RING_FRAMEWORK.md`                        |
 | Law monitoring    | FED, ON, QC confirmed working            | `src/features/app/guidance/monitoringCoverage.ts`    |
 | Brand gold        | `#8a6d3b → #c8a96b → #e6cf9c → #f7ead0`  | `tokens.css` `--gold-gradient`                       |

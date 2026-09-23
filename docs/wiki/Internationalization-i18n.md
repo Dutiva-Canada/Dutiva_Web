@@ -21,7 +21,7 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-Dutiva is a bilingual Canadian HR platform — every user-facing string ships in both English and French Canadian. The i18n system is a lightweight, compile-time-safe layer built on a single `Bi` type (`{ en, fr }`), two React context providers that differ by surface, and a 47-file message catalogue split into three scope groups. There is no third-party i18n library; the entire system lives under `src/i18n/`.
+Dutiva is a bilingual Canadian HR platform — every user-facing string ships in both English and French Canadian. The i18n system is a lightweight, compile-time-safe layer built on a single `Bi` type (`{ en, fr }`), two React context providers that differ by surface, and a 62-module message catalogue split into three scope groups. There is no third-party i18n library; the entire system lives under `src/i18n/`.
 
 ## Architecture at a Glance
 
@@ -91,8 +91,8 @@ The system uses three providers for three surfaces with different language-selec
 
 | Provider                      | Surface                           | Language Source                | Persistence                       | Message Catalogue                           |
 | ----------------------------- | --------------------------------- | ------------------------------ | --------------------------------- | ------------------------------------------- |
-| `LangProvider`                | Workspace (`/app…`)               | `dutiva-lang` localStorage key | User preference, toggles in-place | `workspaceMessages` (29 + 4 shared modules) |
-| `ForcedLangProvider`          | Marketing (public pages)          | URL path (`/fr/…` prefix)      | URL is source of truth            | `marketingMessages` (10 + 4 shared modules) |
+| `LangProvider`                | Workspace (`/app…`)               | `dutiva-lang` localStorage key | User preference, toggles in-place | `workspaceMessages` (45 + 4 shared modules) |
+| `ForcedLangProvider`          | Marketing (public pages)          | URL path (`/fr/…` prefix)      | URL is source of truth            | `marketingMessages` (13 + 4 shared modules) |
 | `ForcedWorkspaceLangProvider` | Public demo (`/demo`, `/fr/demo`) | URL path (`/fr/demo` → French) | URL is source of truth            | `workspaceMessages` (same as `/app`)        |
 
 `LangProvider` reads the persisted preference via `readLang()` and allows the user to switch language at will. Both forced providers derive language from the URL so shared links render consistently for visitors and crawlers. The public demo uses the **workspace** catalogue — not marketing — so doclib, Advisor, and shell keys resolve on `/demo`.
@@ -181,7 +181,7 @@ For details, see [Message Catalogue Organization & Scope Enforcement](#8.2).
 
 ## Bundle Optimization
 
-The three-group split has a direct impact on bundle size. Because `ForcedLangProvider` imports `marketingMessages` directly (not the full merged catalogue), marketing pages only pull the 10 marketing + 4 shared message modules into their JavaScript bundle. The 29 workspace-only modules are code-split behind the `/app` lazy route boundary. Vite's `codeSplitting.groups` configuration mirrors this boundary with `messages-marketing` and `messages-workspace` chunk groups.
+The three-group split has a direct impact on bundle size. Because `ForcedLangProvider` imports `marketingMessages` directly (not the full merged catalogue), marketing pages only pull the 13 marketing + 4 shared message modules into their JavaScript bundle. The 45 workspace-only modules are code-split behind the `/app` lazy route boundary. Vite's `codeSplitting.groups` configuration mirrors this boundary with `messages-marketing` and `messages-workspace` chunk groups.
 
 [src/i18n/ForcedLangProvider.tsx:9](), [src/i18n/messages/index.ts:46-60]()
 

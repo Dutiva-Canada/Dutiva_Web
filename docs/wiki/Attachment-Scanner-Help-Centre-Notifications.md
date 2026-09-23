@@ -417,7 +417,7 @@ Sources: [src/features/support/help/helpCenterData.ts:1-333](), [src/features/su
 
 [src/features/support/help/helpCenterData.ts:17-97]()
 
-`HELP_ARTICLES` defines 12 articles, each with:
+`HELP_ARTICLES` defines 13 articles, each with:
 
 | Field      | Type             | Purpose                                                    |
 | ---------- | ---------------- | ---------------------------------------------------------- |
@@ -621,7 +621,7 @@ flowchart TB
         SVX["verifySvixSignature()\n(HMAC-SHA256, replay guard)"]
     end
     subgraph HelpCentre["Help Centre"]
-        HCD2["helpCenterData.ts\n(12 articles, 6 categories)"]
+        HCD2["helpCenterData.ts\n(13 articles, 6 categories)"]
         HC2["helpContent.ts\n(article bodies)"]
         HS2["helpSearch.ts\n(in-memory search)"]
         FLA2["firstLineAssist.ts\n(HUMAN_ONLY_CATEGORIES)"]

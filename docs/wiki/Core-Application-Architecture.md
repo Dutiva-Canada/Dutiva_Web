@@ -25,7 +25,7 @@ The following files were used as context for generating this wiki page:
 - [src/features/app/workspaceMode/WorkspaceModeProvider.tsx](src/features/app/workspaceMode/WorkspaceModeProvider.tsx)
 - [src/features/app/workspaceMode/api.ts](src/features/app/workspaceMode/api.ts)
 - [src/features/app/workspaceMode/workspaceModeContext.ts](src/features/app/workspaceMode/workspaceModeContext.ts)
-- [src/features/marketing/sections/Product.tsx](src/features/marketing/sections/Product.tsx)
+- [src/features/marketing/sections/WorkspaceModuleDemos.tsx](src/features/marketing/sections/WorkspaceModuleDemos.tsx)
 
 </details>
 
@@ -87,13 +87,13 @@ Sources: [src/features/app/auth/AuthProvider.tsx:16-134](), [src/features/app/au
 
 The workspace operates in one of two modes — `demo` or `production` — governed by the `WorkspaceModeProvider` [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:52-155](). The `WorkspaceMode` type is a union of `'demo' | 'production'` [src/features/app/workspaceMode/workspaceModeContext.ts:5]().
 
-In **demo mode**, views render fixture data from `src/data/`. In **production mode**, views read and write real Supabase data scoped to an `organizationId`. The mode resolves to `'production'` only when a signed-in admin has explicitly stored that preference [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:138-140](). On first switch to production, the `create_organization()` RPC provisions the organization atomically [src/features/app/workspaceMode/api.ts:106-121]().
+In **demo mode**, views render fixture data from `src/data/`. In **production mode**, views read and write real Supabase data scoped to an `organizationId`. The mode resolves to `'production'` only when a signed-in user who can hold a production workspace — a platform admin or an active `organization_members` row — has explicitly stored that preference (`canUseProduction = isAdmin || membership !== null`) [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:119](). On first switch to production, the `create_organization()` RPC provisions the organization atomically [src/features/app/workspaceMode/api.ts:106-121]().
 
-The `gated()` wrapper in `appViews.tsx` wraps fixture-driven views in `ModeGate` — in demo mode the view renders normally, in production mode it shows `ProductionEmptyState` [src/app/appViews.tsx:23-25](), [src/features/app/workspaceMode/ModeGate.tsx:20-29](). Views that have gained real persistence (e.g. employees, cases, communications) have their gate removed and handle both modes internally.
+The mode dispatch lives inside each view, not in a route-level gate: modules ship a `*ProductionView` (or `*DemoView`) counterpart, and empty production data renders `ModuleEmptyBlock` / `ProductionEmptyState` primitives rather than fixtures. The earlier `gated()`/`ModeGate` route wrapper is gone — `ModeGate.tsx` remains in the tree only as a vestige with no callers.
 
 For details, see [Workspace Mode & Provider Stack](#2.3).
 
-Sources: [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:52-155](), [src/features/app/workspaceMode/workspaceModeContext.ts:5-56](), [src/features/app/workspaceMode/ModeGate.tsx:20-29](), [src/app/appViews.tsx:23-25]()
+Sources: [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:52-155](), [src/features/app/workspaceMode/workspaceModeContext.ts:5-56](), [src/features/app/workspaceMode/ProductionEmptyState.tsx](), [src/app/appViews.tsx:23-25]()
 
 ## Provider Hierarchy
 
@@ -170,11 +170,10 @@ flowchart TD
 
     Outlet -->|"resolved by"| AppViews["appViews.tsx route table"]
     AppViews -->|"demo mode"| DemoView["Fixture-driven view"]
-    AppViews -->|"production + gated"| ModeGateComp["ModeGate -> ProductionEmptyState"]
-    AppViews -->|"production + ungated"| ProdView["Production view (real Supabase data)"]
+    AppViews -->|"production mode"| ProdView["*ProductionView — real Supabase data, empty-state primitives when bare"]
 ```
 
-Sources: [src/main.tsx:18-39](), [src/app/App.tsx:29-39](), [src/app/routes.tsx:133-175](), [src/app/appSurface.tsx:31-68](), [src/features/app/AppProviders.tsx:25-43](), [src/features/app/auth/RequireAdminSession.tsx:33-53](), [src/features/app/shell/AppShell.tsx:84-221](), [src/app/appViews.tsx:71-166](), [src/features/app/workspaceMode/ModeGate.tsx:20-29]()
+Sources: [src/main.tsx:18-39](), [src/app/App.tsx:29-39](), [src/app/routes.tsx:133-175](), [src/app/appSurface.tsx:31-68](), [src/features/app/AppProviders.tsx:25-43](), [src/features/app/auth/RequireAdminSession.tsx:33-53](), [src/features/app/shell/AppShell.tsx:84-221](), [src/app/appViews.tsx:71-166](), [src/features/app/workspaceMode/ProductionEmptyState.tsx]()
 
 ## Key Files Quick Reference
 
@@ -185,12 +184,12 @@ Sources: [src/main.tsx:18-39](), [src/app/App.tsx:29-39](), [src/app/routes.tsx:
 | `src/app/router.tsx`                                       | Creates `createBrowserRouter` from the route table                |
 | `src/app/routes.tsx`                                       | Full route tree — public (EN + FR) and workspace                  |
 | `src/app/appSurface.tsx`                                   | Lazy-loaded workspace entry — LangProvider + AppProviders + shell |
-| `src/app/appViews.tsx`                                     | Workspace view route table with `React.lazy()` + `gated()`        |
+| `src/app/appViews.tsx`                                     | Workspace view route table with `React.lazy()` + per-mode dispatch |
 | `src/features/app/AppProviders.tsx`                        | Provider composition stack (9 providers)                          |
 | `src/features/app/auth/AuthProvider.tsx`                   | Supabase session tracking, magic-link OTP                         |
 | `src/features/app/auth/RequireAdminSession.tsx`            | Workspace access gate                                             |
 | `src/features/app/workspaceMode/WorkspaceModeProvider.tsx` | Demo/production mode resolution                                   |
-| `src/features/app/workspaceMode/ModeGate.tsx`              | Per-route demo/production view gate                               |
+| `src/features/app/workspaceMode/ModuleEmptyBlock.tsx`      | Empty-state primitive inside production views                     |
 | `src/features/app/shell/AppShell.tsx`                      | Workspace shell — sidebar, topbar, overlays                       |
 | `src/features/app/shell/navConfig.ts`                      | Navigation model — `NAV_GROUPS`, `isNavActive`                    |
 

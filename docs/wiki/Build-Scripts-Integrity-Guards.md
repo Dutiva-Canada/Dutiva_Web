@@ -20,10 +20,10 @@ The following files were used as context for generating this wiki page:
 - [src/features/marketing/articles/articleModel.ts](src/features/marketing/articles/articleModel.ts)
 - [src/features/marketing/articles/articles.test.ts](src/features/marketing/articles/articles.test.ts)
 - [src/features/marketing/articles/blogArticles.ts](src/features/marketing/articles/blogArticles.ts)
-- [src/features/marketing/articles/blogContent.ts](src/features/marketing/articles/blogContent.ts)
+- [src/features/marketing/articles/blogContent/index.ts](src/features/marketing/articles/blogContent/index.ts)
 - [src/features/marketing/articles/content.ts](src/features/marketing/articles/content.ts)
 - [src/features/marketing/articles/guideArticles.ts](src/features/marketing/articles/guideArticles.ts)
-- [src/features/marketing/articles/guideContent.ts](src/features/marketing/articles/guideContent.ts)
+- [src/features/marketing/articles/guideContent/index.ts](src/features/marketing/articles/guideContent/index.ts)
 - [src/features/marketing/pages/ArticlePage.test.tsx](src/features/marketing/pages/ArticlePage.test.tsx)
 - [src/features/marketing/pages/ArticlePage.tsx](src/features/marketing/pages/ArticlePage.tsx)
 - [src/features/marketing/pages/BlogIndexPage.test.tsx](src/features/marketing/pages/BlogIndexPage.test.tsx)
@@ -46,6 +46,9 @@ This page documents the 13 scripts under `scripts/`, the shared `lib/secrets.mjs
 | `check-rls.mjs`                  | `npm run check:rls`, CI `live-checks`      | `SUPABASE_URL`, `SUPABASE_ANON_KEY`                          | Sensitive table readable by anon role                 |
 | `check-canonical-facts.mjs`      | `npm run check:facts`, CI `check`          | None                                                         | Brand palette hex drift between CSS and docs          |
 | `check-message-scopes.mjs`       | `npm run check:message-scopes`, CI `check` | None                                                         | `t('key')` literal crossing surface boundary          |
+| `check-brand-assets.mjs`         | `npm run check`, CI `check`                | None                                                         | Required `public/brand/` asset missing                |
+| `check-architecture.mjs`         | `npm run check`, CI `check`                | None                                                         | Marketing importing `@/data` fixtures, >800-line source, inline `*DemoView` in a `*View.tsx` shell, oversized dispatch shell |
+| `check-workspace-links.mjs`      | `npm run check`, CI `check`                | None                                                         | Literal `/app/…` navigation in components that can render under `/demo`/`/fr/demo` |
 | `check-entry-graph.mjs`          | `npm run build` (post-build)               | None                                                         | Budget exceeded, barred package/source in eager graph |
 | `prerender.mjs`                  | `npm run build` (post-SSR)                 | None                                                         | Missing `<Seo>`, undersized body                      |
 | `validate-seo.mjs`               | `npm run build` (post-prerender)           | None                                                         | Any SEO invariant violation                           |
@@ -160,9 +163,9 @@ Reads all `.sql` files under `supabase/migrations/` and enforces the `NNNN_lower
 
 When `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF` are present, the script queries `supabase_migrations.schema_migrations` via the Supabase Management API and performs bidirectional comparison:
 
-**Forward drift** — repo files not applied to the live project. Each local slug is checked against the applied set; slugs listed in `ACCEPTED_UNAPPLIED` (3 entries with documented reasons) are noted but not failed. [scripts/check-migrations.mjs:235-239]()
+**Forward drift** — repo files not applied to the live project. Each local slug is checked against the applied set; slugs listed in `ACCEPTED_UNAPPLIED` (currently 23 entries, each with a documented reason) are noted but not failed. [scripts/check-migrations.mjs:89-195]()
 
-**Reverse drift** — applied migrations with no repo file. Starting from `REPO_HISTORY_BEGINS_AT = 'doclib_schema'` (everything before is pre-repo scaffolding), applied slugs missing from the repo are reported. `ACCEPTED_UNTRACKED` (2 entries) handles known intentional differences. [scripts/check-migrations.mjs:252-267]()
+**Reverse drift** — applied migrations with no repo file. Starting from `REPO_HISTORY_BEGINS_AT = 'doclib_schema'` (everything before is pre-repo scaffolding), applied slugs missing from the repo are reported. `ACCEPTED_UNTRACKED` (currently 23 entries) handles known intentional differences — mostly migrations applied via the Management API under server-generated timestamp versions. [scripts/check-migrations.mjs:198-267]()
 
 ### Loud Skipping
 

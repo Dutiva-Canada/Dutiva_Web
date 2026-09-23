@@ -23,12 +23,12 @@ The following files were used as context for generating this wiki page:
 - [src/features/marketing/sections/BetaSignup.tsx](src/features/marketing/sections/BetaSignup.tsx)
 - [src/i18n/messages/auth.ts](src/i18n/messages/auth.ts)
 - [src/i18n/messages/faq.ts](src/i18n/messages/faq.ts)
-- [src/i18n/messages/landing.ts](src/i18n/messages/landing.ts)
+- [src/i18n/messages/landing/index.ts](src/i18n/messages/landing/index.ts)
 - [supabase/functions/create-beta-signup/index.ts](supabase/functions/create-beta-signup/index.ts)
 
 </details>
 
-The Dutiva workspace uses a **passwordless magic-link** authentication flow built on Supabase OTP. There are no passwords anywhere in the system. Authentication is provided by `AuthProvider`, consumed via the `useAuth()` hook, and enforced by `RequireAdminSession`. Workspace membership authorization is resolved server-side by the `current_user_is_workspace_member()` Postgres RPC, which implements beta cohort admission logic capped at `BETA_COHORT_LIMIT` (15) signups.
+The Dutiva workspace uses a **passwordless magic-link** authentication flow built on Supabase OTP. There are no passwords anywhere in the system. Authentication is provided by `AuthProvider`, consumed via the `useAuth()` hook, and enforced by `RequireAdminSession`. Workspace membership authorization is resolved server-side by the `current_user_is_workspace_member()` Postgres RPC, which implements beta cohort admission logic capped at `BETA_COHORT_LIMIT` (5) signups.
 
 ## Architecture Overview
 
@@ -344,7 +344,7 @@ sequenceDiagram
     Supabase-->>AuthProvider: "Session (via onAuthStateChange)"
     AuthProvider->>AuthProvider: "status = 'signed-in'"
     AuthProvider->>RPC: "supabase.rpc('current_user_is_workspace_member')"
-    RPC->>DB: "Check admin email, beta_signups (LIMIT 15), admin_beta_access"
+    RPC->>DB: "Check admin email, beta_signups (LIMIT 5), admin_beta_access"
     DB-->>RPC: "boolean"
     RPC-->>AuthProvider: "authorized = true/false"
     AuthProvider-->>User: "Redirect to /app/home or show 'not authorized'"
@@ -357,10 +357,10 @@ The function grants access if the caller's email matches any of three sources:
 | Source              | Condition                                                                                 | Purpose                                 |
 | ------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------- |
 | Hardcoded admin     | `lower(email) = 'martin.constantineau@dutiva.ca'`                                         | Founder/admin always admitted           |
-| `beta_signups`      | First 15 rows (by `created_at ASC, id ASC`) where `status NOT IN ('declined', 'bounced')` | Self-serve beta cohort, capacity-capped |
+| `beta_signups`      | First 5 rows (by `created_at ASC, id ASC`) where `status NOT IN ('declined', 'bounced')` | Self-serve beta cohort, capacity-capped |
 | `admin_beta_access` | `status IN ('invited', 'active')`                                                         | Manual operator invites, unlimited      |
 
-The `LIMIT 15` on `beta_signups` matches `BETA_COHORT_LIMIT` in `src/config/beta.ts` and `create-beta-signup/index.ts`. Drift between these three copies is caught by `canonicalFacts.test.ts`.
+The `LIMIT 5` on `beta_signups` matches `BETA_COHORT_LIMIT` in `src/config/beta.ts` and `create-beta-signup/index.ts`. Drift between these three copies is caught by `canonicalFacts.test.ts`.
 
 Freeing a seat is done by setting a signup's status to `'declined'` (via the admin UPDATE policy from migration 0055), which excludes it from the cohort window without deleting the CASL consent record.
 

@@ -107,7 +107,10 @@ Sources: [tsconfig.json:1-11](), [tsconfig.app.json:1-35](), [tsconfig.node.json
 | `check:rls`            | `node scripts/check-rls.mjs`                                                                                           | RLS regression guard (anon role probing)     |
 | `check:facts`          | `node scripts/check-canonical-facts.mjs`                                                                               | Brand palette drift check                    |
 | `check:message-scopes` | `node scripts/check-message-scopes.mjs`                                                                                | i18n surface boundary guard                  |
-| `check`                | typecheck → lint → test → check:migrations → check:rls → check:facts → check:message-scopes                            | Local pre-commit gate                        |
+| `check:brand-assets`   | `node scripts/check-brand-assets.mjs`                                                                                  | Brand asset presence/integrity               |
+| `check:architecture`   | `node scripts/check-architecture.mjs`                                                                                  | Demo/production file-split guards            |
+| `check:workspace-links`| `node scripts/check-workspace-links.mjs`                                                                               | Workspace internal-link integrity            |
+| `check`                | typecheck → lint → test → check:migrations → check:rls → check:facts → check:message-scopes → check:brand-assets → check:architecture → check:workspace-links | Local pre-commit gate                        |
 | `db:snapshot`          | `supabase db dump -f supabase/schema.sql`                                                                              | Dump live schema to repo                     |
 | `auth:email-templates` | `node scripts/apply-auth-email-templates.mjs`                                                                          | Push auth email templates                    |
 
@@ -481,7 +484,10 @@ flowchart TD
     Lint --> Test["npm run test:coverage"]
     Test --> Scopes["npm run check:message-scopes"]
     Scopes --> Facts["npm run check:facts"]
-    Facts --> Build["npm run build (+ SEO validation)"]
+    Facts --> Brand["npm run check:brand-assets"]
+    Brand --> Arch["npm run check:architecture"]
+    Arch --> Links["npm run check:workspace-links"]
+    Links --> Build["npm run build (+ SEO validation)"]
 
     Live --> Drift["check:migrations (needs SUPABASE_ACCESS_TOKEN)"]
     Drift --> RLS["check:rls (needs SUPABASE_ANON_KEY)"]

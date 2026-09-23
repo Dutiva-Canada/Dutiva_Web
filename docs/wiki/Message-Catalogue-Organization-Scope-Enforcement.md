@@ -30,7 +30,7 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-The Dutiva i18n message catalogue is split across **43 feature-specific module files**, grouped into three surface-scoped aggregations — **workspace** (29 modules), **marketing** (10 modules), and **shared** (4 dual-surface modules). This split is enforced at three layers: TypeScript's type system, a compile-time disjointness test, and a runtime CI guard script. The result is that marketing visitors never download workspace-only message strings.
+The Dutiva i18n message catalogue is split across **62 feature-specific module files**, grouped into three surface-scoped aggregations — **workspace** (45 modules), **marketing** (13 modules), and **shared** (4 dual-surface modules). This split is enforced at three layers: TypeScript's type system, a compile-time disjointness test, and a runtime CI guard script. The result is that marketing visitors never download workspace-only message strings.
 
 ## The `defineMessages` Pattern
 
@@ -127,7 +127,7 @@ Sources: [src/i18n/messages/workspace.ts:1-78](), [src/i18n/messages/marketing.t
 
 ### Workspace Group (29 modules)
 
-`workspace.ts` imports and re-exports 29 workspace-only modules plus the shared set. These modules are read exclusively from `src/features/app/**` (plus `src/components/advisor/` and `src/lib/exportProtection/`).
+`workspace.ts` imports and re-exports 45 workspace-only modules plus the shared set. These modules are read exclusively from `src/features/app/**` (plus `src/components/advisor/` and `src/lib/exportProtection/`).
 
 [src/i18n/messages/workspace.ts:1-30]()
 
@@ -167,7 +167,7 @@ Sources: [src/i18n/messages/workspace.ts:39-70]()
 
 ### Marketing Group (10 modules)
 
-`marketing.ts` imports 10 marketing-only modules plus the shared set. These are read exclusively from `src/features/marketing/**` and `src/seo/routes.ts`.
+`marketing.ts` imports 13 marketing-only modules plus the shared set. These are read exclusively from `src/features/marketing/**` and `src/seo/routes.ts`.
 
 [src/i18n/messages/marketing.ts:1-36]()
 
@@ -388,24 +388,24 @@ flowchart LR
     WS_ENTRY --> WS_CHUNK
     WS_ENTRY --> MK_CHUNK
 
-    MK_CHUNK --- MK_CONTENT["marketing.ts + shared.ts\n(14 modules)"]
-    WS_CHUNK --- WS_CONTENT["workspace.ts modules\n(29 modules, excl. shell + workspaceMode)"]
+    MK_CHUNK --- MK_CONTENT["marketing.ts + shared.ts\n(17 modules)"]
+    WS_CHUNK --- WS_CONTENT["workspace.ts modules\n(45 modules)"]
 ```
 
 Sources: [vite.config.ts:170-253](), [src/i18n/messages/index.ts:46-60]()
 
 ## Complete Message Module Inventory
 
-The `src/i18n/messages/` directory contains 48 files total: 43 feature modules, 3 surface aggregation files, 1 merged index, and 1 scope test.
+The `src/i18n/messages/` directory contains 62 feature modules (45 workspace + 13 marketing + 4 shared), 3 surface aggregation files, a merged index, and a scope test — plus the `landing/` and `finance/` subdirectories that each merge section-level message files into one exported object.
 
-### Feature Modules (43 files)
+### Feature Modules (62)
 
 | #   | File                  | Surface    | Key prefix                                    | Exported constant          |
 | --- | --------------------- | ---------- | --------------------------------------------- | -------------------------- |
 | 1   | `about.ts`            | marketing  | `about_*`                                     | `aboutMessages`            |
 | 2   | `advisorCore.ts`      | workspace  | `advisor_*`                                   | `advisorCore`              |
-| 3   | `advisorView.ts`      | workspace  | `advisor_*`                                   | `advisorViewMessages`      |
-| 4   | `advisorWorkspace.ts` | workspace  | `advisor_*`                                   | `advisorWorkspaceMessages` |
+| 3   | `advisorView.ts`      | workspace  | `advisorview_*`                               | `advisorViewMessages`      |
+| 4   | `advisorWorkspace.ts` | workspace  | `advws_*`                                     | `advisorWorkspaceMessages` |
 | 5   | `analytics.ts`        | workspace  | `analytics_*`                                 | `analyticsMessages`        |
 | 6   | `auth.ts`             | workspace  | `auth_*`                                      | `authMessages`             |
 | 7   | `blog.ts`             | marketing  | `blog_*`                                      | `blogMessages`             |
@@ -428,7 +428,7 @@ The `src/i18n/messages/` directory contains 48 files total: 43 feature modules, 
 | 24  | `jurisdictionTool.ts` | marketing  | `jur_tool_*`                                  | `jurisdictionToolMessages` |
 | 25  | `knowledge.ts`        | workspace  | `knowledge_*`                                 | `knowledgeMessages`        |
 | 26  | `knownLimitations.ts` | marketing  | `limits_*`                                    | `limitsMessages`           |
-| 27  | `landing.ts`          | **shared** | `landing_*`                                   | `landing`                  |
+| 27  | `landing/`            | **shared** | `landing_*` (19 section files merged by `landing/index.ts`) | `landing`    |
 | 28  | `legalHub.ts`         | marketing  | `legalHub_*`                                  | `legalHubMessages`         |
 | 29  | `memory.ts`           | workspace  | `memory_*`                                    | `memoryMessages`           |
 | 30  | `policies.ts`         | workspace  | `policies_*`                                  | `policiesMessages`         |
@@ -445,13 +445,32 @@ The `src/i18n/messages/` directory contains 48 files total: 43 feature modules, 
 | 41  | `wellbeing.ts`        | workspace  | `wellbeing_*`                                 | `wellbeingMessages`        |
 | 42  | `workflows.ts`        | workspace  | `workflows_*`                                 | `workflowsMessages`        |
 | 43  | `workspaceMode.ts`    | workspace  | `wsmode_*`                                    | `workspaceModeMessages`    |
+| 44  | `agent.ts`            | workspace  | `agent_*`                                     | `agentMessages`            |
+| 45  | `aiModels.ts`         | workspace  | `aimodels_*`                                  | `aiModelsMessages`         |
+| 46  | `bulkImport.ts`       | workspace  | `bulk_*`                                      | `bulkImportMessages`       |
+| 47  | `capacity.ts`         | workspace  | `capacity_*`                                  | `capacityMessages`         |
+| 48  | `careers.ts`          | workspace  | `careers_*`                                   | `careersMessages`          |
+| 49  | `changelog.ts`        | marketing  | `changelog_*`                                 | `changelogMessages`        |
+| 50  | `comms.ts`            | workspace  | `comms_*`                                     | `commsMessages`            |
+| 51  | `comparison.ts`       | marketing  | `comparison_*`                                | `comparisonMessages`       |
+| 52  | `entityLinks.ts`      | workspace  | `el_*`                                        | `entityLinksMessages`      |
+| 53  | `finance/`            | workspace  | `finance_*` (section files merged by `finance/index.ts`) | `financeMessages`  |
+| 54  | `governance.ts`       | workspace  | `gov_*`                                       | `governanceMessages`       |
+| 55  | `hiring.ts`           | workspace  | `hiring_*`                                    | `hiringMessages`           |
+| 56  | `integrations.ts`     | workspace  | `integ_*`                                     | `integrationsMessages`     |
+| 57  | `operations.ts`       | workspace  | `ops_*`                                       | `operationsMessages`       |
+| 58  | `placeholder.ts`      | workspace  | `placeholder_*`                               | `placeholderMessages`      |
+| 59  | `revenue.ts`          | workspace  | `rev_*`                                       | `revenueMessages`          |
+| 60  | `security.ts`         | workspace  | `sec_*`                                       | `securityMessages`         |
+| 61  | `seoMeta.ts`          | marketing  | per-route meta keys (`*_meta_description`, `*_intro`) | `seoMetaMessages`  |
+| 62  | `specialists.ts`      | workspace  | `spec_*`                                      | `specialistsMessages`      |
 
 ### Infrastructure Files (5 files)
 
 | File             | Role                                                                                             |
 | ---------------- | ------------------------------------------------------------------------------------------------ |
-| `workspace.ts`   | Aggregates 29 workspace modules + shared into `workspaceMessages`; exports `WorkspaceMessageKey` |
-| `marketing.ts`   | Aggregates 10 marketing modules + shared into `marketingMessages`; exports `MarketingMessageKey` |
+| `workspace.ts`   | Aggregates 45 workspace modules + shared into `workspaceMessages`; exports `WorkspaceMessageKey` |
+| `marketing.ts`   | Aggregates 13 marketing modules + shared into `marketingMessages`; exports `MarketingMessageKey` |
 | `shared.ts`      | Aggregates 4 dual-surface modules into `sharedMessages`; exports `SharedMessageKey`              |
 | `index.ts`       | Merges `workspaceMessages` + `marketingMessages` into `messages`; exports `MessageKey` union     |
 | `scopes.test.ts` | Compile-time disjointness assertions for the three scoped key types                              |

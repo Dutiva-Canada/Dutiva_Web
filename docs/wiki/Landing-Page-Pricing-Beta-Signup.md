@@ -35,7 +35,7 @@ The following files were used as context for generating this wiki page:
 - [src/features/marketing/sections/IconChip.tsx](src/features/marketing/sections/IconChip.tsx)
 - [src/features/marketing/sections/Pricing.tsx](src/features/marketing/sections/Pricing.tsx)
 - [src/i18n/messages/faq.ts](src/i18n/messages/faq.ts)
-- [src/i18n/messages/landing.ts](src/i18n/messages/landing.ts)
+- [src/i18n/messages/landing/index.ts](src/i18n/messages/landing/index.ts)
 - [src/i18n/messages/pricing.ts](src/i18n/messages/pricing.ts)
 - [supabase/functions/_shared/caslConsent.test.ts](supabase/functions/_shared/caslConsent.test.ts)
 - [supabase/functions/_shared/caslConsent.ts](supabase/functions/_shared/caslConsent.ts)
@@ -54,20 +54,23 @@ This page covers the public marketing funnel: the `LandingPage` component and it
 
 ### Section Composition Order
 
-| Order | Component    | Anchor       | Description                                                                 |
-| ----- | ------------ | ------------ | --------------------------------------------------------------------------- |
-| 1     | `Header`     | —            | Sticky nav bar with section anchors, lang/theme toggles, sign-in/start CTAs |
-| 2     | `Hero`       | `#top`       | Headline + `AdvisorDemo` product frame                                      |
-| 3     | `TrustStrip` | —            | Ottawa · PIPEDA · Law 25 · Bilingual pills                                  |
-| 4     | `HowItWorks` | `#how`       | Three-step cards (Ask → Get guidance → Generate)                            |
-| 5     | `Workflows`  | `#workflows` | 8 workflow tiles + example workflow card                                    |
-| 6     | `Product`    | `#product`   | Document Studio features + template category chips                          |
-| 7     | `Modules`    | —            | 7 workspace module `IconChip` components                                    |
-| 8     | `WhyDutiva`  | —            | Differentiator cards                                                        |
-| 9     | `Coverage`   | `#coverage`  | Jurisdiction cards (ON, QC, Federal, Remote)                                |
-| 10    | `Pricing`    | `#pricing`   | Plan tier teaser cards (links to `#start`)                                  |
-| 11    | `Guides`     | `#guides`    | Guide article teasers from `GUIDE_ARTICLES`                                 |
-| 12    | `BetaSignup` | `#start`     | Waiting-list form                                                           |
+| Order | Component               | Anchor       | Description                                                                 |
+| ----- | ----------------------- | ------------ | --------------------------------------------------------------------------- |
+| 1     | `Header`                | —            | Sticky nav bar with section anchors, lang/theme toggles, sign-in/start CTAs |
+| 2     | `Hero`                  | `#top`       | Headline + `AdvisorDemo` product frame                                      |
+| 3     | `TrustStrip`            | —            | Ottawa · PIPEDA · Law 25 · Bilingual pills                                  |
+| 4     | `HowItWorks`            | `#how`       | Three-step cards (Ask → Get guidance → Generate)                            |
+| 5     | `WorkspaceModuleDemos`  | `#product`   | Guided tour entry + tabbed module previews + module chip strip (lazy-loaded)|
+| 6     | `Coverage`              | `#coverage`  | Jurisdiction cards (ON, QC, Federal, Remote)                                |
+| 7     | `Workflows`             | `#workflows` | Workflow tiles + example workflow card                                      |
+| 8     | `WhyDutiva`             | —            | Differentiator cards                                                        |
+| 9     | `TestimonialWall`       | —            | Testimonial quotes                                                          |
+| 10    | `Guides`                | `#guides`    | Guide article teasers from `GUIDE_ARTICLES`                                 |
+| 11    | `Pricing`               | `#pricing`   | Plan tier teaser cards (links to `#start`)                                  |
+| 12    | `HomeFaq`               | —            | FAQ accordion                                                               |
+| 13    | `BetaSignup`            | `#start`     | Waiting-list form                                                           |
+| —     | `StickyMobileCta`       | —            | Mobile sticky CTA                                                           |
+| —     | `Footer`                | —            | Footer                                                                      |
 
 **Landing page section composition diagram:**
 
@@ -77,19 +80,21 @@ graph TD
     LP --> Hero["Hero"]
     LP --> TS["TrustStrip"]
     LP --> HIW["HowItWorks"]
-    LP --> WF["Workflows"]
-    LP --> Prod["Product"]
-    LP --> Mod["Modules"]
-    LP --> WD["WhyDutiva"]
+    LP --> WMD["WorkspaceModuleDemos (lazy)"]
     LP --> Cov["Coverage"]
-    LP --> Pr["Pricing"]
+    LP --> WF["Workflows"]
+    LP --> WD["WhyDutiva"]
+    LP --> TW["TestimonialWall"]
     LP --> Gu["Guides"]
+    LP --> Pr["Pricing"]
+    LP --> HF["HomeFaq"]
     LP --> BS["BetaSignup"]
+    LP --> SMC["StickyMobileCta"]
     LP --> Footer["Footer"]
 
     Hero --> AD["AdvisorDemo"]
-    Prod --> IC["IconChip"]
-    Mod --> IC2["IconChip"]
+    WMD --> IC["IconChip strip → /demo deep-links"]
+    WMD --> LDP["LandingDemoPath (guided tour)"]
     BS --> CSF["CaptchaField"]
     BS --> BSAPI["betaSignupApi"]
 ```
@@ -106,7 +111,7 @@ The `landing` message module is classified as **shared** (not marketing-only) in
 
 [src/features/marketing/useLanding.ts:12-25]()
 
-Sources: [src/features/marketing/useLanding.ts:1-32](), [src/i18n/messages/landing.ts:1-10]()
+Sources: [src/features/marketing/useLanding.ts:1-32](), [src/i18n/messages/landing/index.ts:1-10]()
 
 ### Hero & AdvisorDemo
 
@@ -128,21 +133,15 @@ The `Coverage` section renders four jurisdiction cards defined in the `REGIONS` 
 
 Sources: [src/features/marketing/sections/Coverage.tsx:1-72]()
 
-### Product Section (Template Catalogue Chips)
+### Workspace Showcase (`WorkspaceModuleDemos`)
 
-The `Product` section shows five feature cards (Document Studio, Jurisdiction-aware, AI Advisor, Risk flagging, E-signatures) and a template category chip bar with four `IconChip` components (Hiring, Policies, Discipline, Termination) plus a "Browse all templates" link.
+The workspace showcase section — `id="product"` so the footer "Templates" anchor still lands here — combines three pieces: `LandingDemoPath` (the guided demo tour entry), a **tabbed preview** with one pane per module family (Document Studio is the default tab), and a chip strip covering the full module surface. Each module chip deep-links into the matching `/demo/*` screen, so the breadth claim is verifiable by clicking.
 
-[src/features/marketing/sections/Product.tsx:52-68]()
+A template-category chip bar under the tabs carries four `IconChip`s (Hiring, Policies, Discipline, Termination) plus a "Browse all templates" link.
 
-Sources: [src/features/marketing/sections/Product.tsx:1-71]()
+[src/features/marketing/sections/WorkspaceModuleDemos.tsx:56-105]()
 
-### Modules Section
-
-Seven workspace modules are displayed as `IconChip` components: Compliance, Employees, Knowledge, Compensation, Communications, Wellbeing, and Analytics. The `roadmap` flag mechanism exists but currently no module carries it.
-
-[src/features/marketing/sections/Modules.tsx:28-36]()
-
-Sources: [src/features/marketing/sections/Modules.tsx:1-72]()
+Sources: [src/features/marketing/sections/WorkspaceModuleDemos.tsx:1-240](), [src/features/marketing/sections/LandingDemoPath.tsx]()
 
 ## Plans Configuration
 
@@ -401,7 +400,7 @@ The function processes requests through a strict ordered pipeline:
 
 5. **Rate limiting** — Queries `beta_signup_intake` table for SHA-256 hashed IP and email within windows. Limits: 5 per IP per 60 min, 3 per email per 60 min. Returns 429 on breach. [supabase/functions/create-beta-signup/index.ts:242-263]()
 
-6. **Cohort capacity check** — Counts eligible signups (`status NOT IN ('declined','bounced')`) BEFORE the insert. If count ≥ `BETA_COHORT_LIMIT` (15), sets `cohort_full = true`. [supabase/functions/create-beta-signup/index.ts:269]()
+6. **Cohort capacity check** — Counts eligible signups (`status NOT IN ('declined','bounced')`) BEFORE the insert. If count ≥ `BETA_COHORT_LIMIT` (5), sets `cohort_full = true`. [supabase/functions/create-beta-signup/index.ts:269]()
 
 7. **Insert** — Writes to `beta_signups` with CASL consent record from `buildConsentRecord()`. [supabase/functions/create-beta-signup/index.ts:271-281]()
 
@@ -437,13 +436,13 @@ Sources: [supabase/functions/_shared/caslConsent.ts:1-64](), [supabase/migration
 
 ### Beta Cohort Capacity
 
-The `BETA_COHORT_LIMIT` is 15, defined as the source of truth in `src/config/beta.ts`:
+The `BETA_COHORT_LIMIT` is 5, defined as the source of truth in `src/config/beta.ts`:
 
 [src/config/beta.ts:19]()
 
 This value is duplicated in three places (TypeScript, Deno edge function, SQL migration) because SQL and Deno cannot import the TypeScript module. `canonicalFacts.test.ts` enforces that all copies stay in sync.
 
-**Server-side enforcement** lives in `current_user_is_workspace_member()` (migration `0067`), which only admits the first 15 eligible `beta_signups` rows (ordered by `created_at ASC, id ASC`, excluding `declined`/`bounced`):
+**Server-side enforcement** lives in `current_user_is_workspace_member()` (live gate: migration `0116_beta_cohort_capacity_five`), which only admits the first 5 eligible `beta_signups` rows (ordered by `created_at ASC, id ASC`, excluding `declined`/`bounced`):
 
 [supabase/migrations/0067_beta_cohort_capacity.sql:40-64]()
 
@@ -453,13 +452,13 @@ graph LR
     EF -->|"INSERT"| BST["beta_signups table"]
     EF -->|"cohort_full bit"| BS
 
-    BST -->|"first 15 rows"| CUIWM["current_user_is_workspace_member()"]
+    BST -->|"first 5 rows"| CUIWM["current_user_is_workspace_member()"]
     CUIWM -->|"used by"| RLS["RLS policies"]
     CUIWM -->|"used by"| AUTH["AuthProvider"]
     CUIWM -->|"used by"| AC["advisor-chat"]
 
     ABA["admin_beta_access"] -->|"override path"| CUIWM
-    BETA["BETA_COHORT_LIMIT = 15"] -.->|"src/config/beta.ts"| EF
+    BETA["BETA_COHORT_LIMIT = 5"] -.->|"src/config/beta.ts"| EF
     BETA -.->|"migration 0067"| CUIWM
 ```
 
@@ -490,7 +489,7 @@ Pricing-specific copy lives in `src/i18n/messages/pricing.ts` (`pricingMessages`
 
 [src/i18n/messages/pricing.ts:1-9]()
 
-Sources: [src/i18n/messages/pricing.ts:1-60](), [src/i18n/messages/landing.ts:1-10]()
+Sources: [src/i18n/messages/pricing.ts:1-60](), [src/i18n/messages/landing/index.ts:1-10]()
 
 ## Test Coverage
 
@@ -502,6 +501,6 @@ Sources: [src/i18n/messages/pricing.ts:1-60](), [src/i18n/messages/landing.ts:1-
 | `BetaSignup.test.tsx`   | (exists as referenced sibling test)                                                                                                          |
 | `caslConsent.test.ts`   | Consent text pinning to i18n source                                                                                                          |
 
-Sources: [src/config/plans.test.ts:1-30](), [src/features/marketing/pages/PricingPage.test.ts:1-143](), [src/features/marketing/betaSignupApi.test.ts:1-132]()
+Sources: [src/config/plans.test.ts:1-30](), [src/features/marketing/pages/PricingPage.test.tsx:1-143](), [src/features/marketing/betaSignupApi.test.ts:1-132]()
 
 ---

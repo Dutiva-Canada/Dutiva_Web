@@ -309,7 +309,7 @@ flowchart LR
         helpCenter["helpCenterMessages"]
     end
 
-    subgraph WorkspaceGroup["workspaceMessages (workspace.ts)\n29 modules"]
+    subgraph WorkspaceGroup["workspaceMessages (workspace.ts)\n45 modules"]
         shell["shellMessages"]
         advisorCore["advisorCore"]
         home["homeMessages"]
@@ -318,7 +318,7 @@ flowchart LR
         etc1["... 24 more"]
     end
 
-    subgraph MarketingGroup["marketingMessages (marketing.ts)\n10 modules"]
+    subgraph MarketingGroup["marketingMessages (marketing.ts)\n13 modules"]
         pricing["pricingMessages"]
         about["aboutMessages"]
         faq["faqMessages"]
@@ -481,8 +481,8 @@ Sources: [src/i18n/i18n.test.tsx:1-77](), [src/i18n/messages/scopes.test.ts:1-78
 | `src/i18n/LangProvider.tsx`        | Preference-scoped provider for `/app` routes                                       |
 | `src/i18n/ForcedLangProvider.tsx`  | URL-scoped provider for marketing routes                                           |
 | `src/i18n/messages/index.ts`       | Merged catalogue, `MessageKey` type                                                |
-| `src/i18n/messages/workspace.ts`   | Workspace catalogue (29 modules + shared)                                          |
-| `src/i18n/messages/marketing.ts`   | Marketing catalogue (10 modules + shared)                                          |
+| `src/i18n/messages/workspace.ts`   | Workspace catalogue (45 modules + shared)                                          |
+| `src/i18n/messages/marketing.ts`   | Marketing catalogue (13 modules + shared)                                          |
 | `src/i18n/messages/shared.ts`      | Dual-surface modules (common, landing, support, helpCenter)                        |
 | `src/i18n/messages/scopes.test.ts` | Compile-time disjointness guards                                                   |
 | `src/i18n/i18n.test.tsx`           | Unit tests for providers and catalogue                                             |

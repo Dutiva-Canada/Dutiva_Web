@@ -43,7 +43,7 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-The Law Change Monitor is a nightly cron-driven edge function (`monitor-law-changes`) that sweeps 19 Canadian employment legislation pages across all 14 jurisdictions, detects amendments through four distinct source strategies, and logs structured events to the `law_updates` table. The customer-facing surface is the `GuidanceSourcesPanel` in the Knowledge view, which filters the log to show only real changes in supported jurisdictions.
+The Law Change Monitor is a nightly cron-driven edge function (`monitor-law-changes`) that sweeps 43 configured Canadian employment legislation pages across all 14 jurisdictions, detects amendments through four distinct source strategies, and logs structured events to the `law_updates` table. The customer-facing surface is the `GuidanceSourcesPanel` in the Knowledge view, which filters the log to show only real changes in supported jurisdictions.
 
 ## System Architecture Overview
 
@@ -62,7 +62,7 @@ graph TD
         ef["monitor-law-changes/index.ts\nDeno.serve()"]
         auth["isAuthorizedTrigger()"]
         lock["acquire_cron_lock()"]
-        sweep["MONITORED_PAGES loop\n19 pages"]
+        sweep["MONITORED_PAGES loop\n43 pages"]
         unlock["release_cron_lock()"]
     end
 
@@ -119,7 +119,7 @@ Sources: [supabase/functions/monitor-law-changes/index.ts:1-40](), [supabase/mig
 
 ## Monitored Pages Configuration
 
-The `MONITORED_PAGES` array defines all 19 legislation pages across 14 Canadian jurisdictions. Each entry is a `PageConfig` with jurisdiction, law name, primary URL, fallback URLs, and an optional `source` discriminant.
+The `MONITORED_PAGES` array defines all 43 legislation pages across 14 Canadian jurisdictions. Each entry is a `PageConfig` with jurisdiction, law name, primary URL, fallback URLs, and an optional `source` discriminant.
 
 | Jurisdiction                               | Law                                      | Source Strategy     | URL Pattern                                                        |
 | ------------------------------------------ | ---------------------------------------- | ------------------- | ------------------------------------------------------------------ |

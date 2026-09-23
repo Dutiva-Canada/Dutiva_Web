@@ -19,7 +19,7 @@ The following files were used as context for generating this wiki page:
 - [src/features/app/documents/doclibContext.ts](src/features/app/documents/doclibContext.ts)
 - [src/features/app/documents/screens/DocumentDetailScreen.tsx](src/features/app/documents/screens/DocumentDetailScreen.tsx)
 - [src/features/app/documents/screens/SigningScreen.tsx](src/features/app/documents/screens/SigningScreen.tsx)
-- [src/features/marketing/sections/Product.tsx](src/features/marketing/sections/Product.tsx)
+- [src/features/marketing/sections/WorkspaceModuleDemos.tsx](src/features/marketing/sections/WorkspaceModuleDemos.tsx)
 - [src/i18n/messages/doclib.ts](src/i18n/messages/doclib.ts)
 
 </details>

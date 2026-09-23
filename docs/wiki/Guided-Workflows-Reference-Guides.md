@@ -406,7 +406,7 @@ Sources: [src/features/app/flows/FlowRunner.tsx:1-388](), [src/features/app/flow
 
 ## WorkflowsView Catalogue
 
-`WorkflowsView` at route `/app/workflows` is the entry point. It renders in both workspace modes without a `ModeGate` — guided flows are real content, while prototype fixture content (in-flight rows, termination map, Advisor catalogue) is demo-only.
+`WorkflowsView` at route `/app/workflows` is the entry point. It renders in both workspace modes — guided flows are real content, while prototype fixture content (in-flight rows, termination map, Advisor catalogue) is demo-only.
 
 [src/features/app/views/workflows/WorkflowsView.tsx:107-120](), [src/app/appViews.tsx:74-78]()
 
