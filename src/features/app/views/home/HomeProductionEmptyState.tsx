@@ -20,6 +20,7 @@ import {
   type SetupDataSignals,
   type SetupStep,
 } from './setupPath'
+import { HomeOrgProfileSetup } from './HomeOrgProfileSetup'
 import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
@@ -93,6 +94,10 @@ export function HomeProductionEmptyState({
       <p className="m-0 mb-[24px] text-[13.5px] leading-[1.6] text-text-muted">
         {x(body ?? M.home_production_body)}
       </p>
+
+      {/* Step 1 inline — until the org has a jurisdiction, the basics are
+          the first thing on the page, not a link away. */}
+      {!signals.jurisdictionsConfigured && <HomeOrgProfileSetup />}
 
       <div className="mb-[10px] text-left text-[11px] font-bold tracking-wider text-text-muted uppercase">
         {x(M.home_setup_label)}

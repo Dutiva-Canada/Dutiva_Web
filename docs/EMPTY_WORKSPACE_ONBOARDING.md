@@ -3,9 +3,10 @@
 Product note for first-run guidance when a company (or individual) lands in a
 **real, empty** production workspace and does not know where to start.
 
-Status: **v2 shipping** — foundation-first setup path + Keep-going card past
-graduation + plan-as-tasks + Advisor prompts. When this disagrees with code,
-the code wins and this note should be updated in the same PR.
+Status: **v2 shipping** — foundation-first setup path + inline company-profile
+mini-setup + Keep-going card past graduation + plan-as-tasks + Advisor
+prompts. When this disagrees with code, the code wins and this note should be
+updated in the same PR.
 
 Related: [CONVENTIONS.md](../CONVENTIONS.md) (workspace mode),
 [GAP_AUDIT_STATUS.md](GAP_AUDIT_STATUS.md) (production still admin-only),
@@ -76,7 +77,12 @@ Demo remains useful for walkthroughs. It must not be the primary answer to
    pre-written setup question to the Advisor.
 5. **Durable soft marks** — onboarding progress moved from `sessionStorage`
    to `localStorage` (key v2) so the workflow-visit step survives sessions.
-6. **Empty → create** for Employees / Cases / Tasks via `?new=1`
+6. **Org mini-setup on the empty Home** (`HomeOrgProfileSetup`) — while the
+   org has no jurisdictions, step 1 is an inline form, not a link to
+   Settings: company name / province / city write `profiles` via
+   `updateAdminProfile`, and province maps onto `organizations.jurisdictions`
+   via `PROVINCE_TO_JURISDICTION`. Saving completes step 1 on the spot.
+7. **Empty → create** for Employees / Cases / Tasks via `?new=1`
    (`useOpenCreateFormFromQuery`), unchanged from v1.
 
 ### Out (later)
@@ -84,7 +90,7 @@ Demo remains useful for walkthroughs. It must not be the primary answer to
 | Item                                          | Why later                                              |
 | --------------------------------------------- | ------------------------------------------------------ |
 | Open production mode to beta members          | Access policy / capacity; tracked in gap audit.        |
-| Org mini-setup after `bootstrapOrganization`  | Confirm company name / province / city — separate PR.  |
+| Org mini-setup after `bootstrapOrganization`  | Superseded by "In" #6 — the inline Home card covers orgs that predate the feature too, without a provisioning-time modal. |
 | Server-side onboarding state                  | Card dismissal + visit marks are device-local today.   |
 | Durable flow-run records                      | Would make the explore step live-data like the others. |
 | Advisor-generated setup plans                 | Chips send fixed prompts; generated plans are bigger.  |
@@ -98,7 +104,7 @@ Demo remains useful for walkthroughs. It must not be the primary answer to
 
 | Step                        | Done when                                              |
 | --------------------------- | ------------------------------------------------------ |
-| Confirm your company profile | `organizations.jurisdictions` non-empty               |
+| Confirm your company profile | `organizations.jurisdictions` non-empty — inline form on the empty Home, or Settings |
 | Prepare first-hire documents | ≥ 1 `hr_generated_documents` row                       |
 | Start your policy register   | ≥ 1 `hr_policies` row (written policy or flagged gap)  |
 | See a guided process         | Workflows catalog or flow runner visited (localStorage, org-scoped) |
@@ -131,6 +137,8 @@ Copy lives in `src/i18n/messages/home.ts` and `workspaceMode.ts`.
 | Piece              | Path                                                        |
 | ------------------ | ----------------------------------------------------------- |
 | Step derivation    | `views/home/setupPath.ts` (`computeSetupSteps`)             |
+| Profile mini-setup | `views/home/HomeOrgProfileSetup.tsx`                        |
+| Province→org codes | `workspaceMode/jurisdictionOptions.ts`                      |
 | Soft marks + dismiss | `workspaceMode/emptyWorkspaceOnboarding.ts` (localStorage) |
 | Keep-going card    | `views/home/HomeSetupCard.tsx`                              |
 | Home empty         | `views/home/HomeProductionEmptyState.tsx`                   |
