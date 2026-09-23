@@ -14,8 +14,8 @@ export const workspaceModeMessages = defineMessages({
   },
   wsmode_empty_why: { en: 'Why is this empty?', fr: 'Pourquoi est-ce vide ?' },
   wsmode_empty_hint: {
-    en: 'Start from Home — add a person, open Studio, or run a guided process.',
-    fr: 'Commencez depuis l’accueil — ajoutez une personne, ouvrez le Studio ou lancez un processus guidé.', // [FR self-authored]
+    en: 'Start from Home — your setup path is there.',
+    fr: 'Commencez depuis l’accueil — votre parcours de démarrage s’y trouve.', // [FR self-authored]
   },
   wsmode_empty_settings_link: {
     en: 'Want sample data? Open Demo in Settings',

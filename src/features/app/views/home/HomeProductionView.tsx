@@ -1,4 +1,4 @@
-import { useContext } from 'react'
+import { useCallback, useContext, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { BookOpen } from 'lucide-react'
@@ -14,6 +14,15 @@ import { UpgradeNudge } from '@/features/app/billing/PlanGate'
 import { hasPlanFeature } from '@/features/app/billing/planAccess'
 import { PLAN_FEATURE_GATES_ENABLED, hasActiveSubscription } from '@/config/plans'
 import { HomeProductionEmptyState } from './HomeProductionEmptyState'
+import { HomeSetupCard } from './HomeSetupCard'
+import { computeSetupSteps, remainingSetupSteps, type SetupStep } from './setupPath'
+import {
+  dismissSetupCard,
+  isSetupCardDismissed,
+  readEmptyWorkspaceProgress,
+} from '@/features/app/workspaceMode/emptyWorkspaceOnboarding'
+import { addTask } from '@/features/app/views/tasks/productionApi'
+import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useHomeProductionStats } from './useHomeProductionStats'
 import { homeRoleProfile } from './homeRoleConfig'
 import { AppPage } from '@/features/app/shell/AppPage'
@@ -34,7 +43,8 @@ import { AppPage } from '@/features/app/shell/AppPage'
 export function HomeProductionView({ onSend }: { readonly onSend: (text: string) => void }) {
   const { x } = useI18n()
   const { root } = useWorkspaceRoot()
-  const { identity, organizationId } = useWorkspaceMode()
+  const { identity, organizationId, organization, isOrgAdmin } = useWorkspaceMode()
+  const { showToast } = useToasts()
   const role = useOrgRole()
   const profile = homeRoleProfile(role)
   /* Optional: production view tests reimport after vi.resetModules(), which can
@@ -42,6 +52,49 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
      keep the full dashboard (parity with PLAN_FEATURE_GATES_ENABLED = false). */
   const planCtx = useContext(PlanContext)
   const { data, loadFailed, reload, stats, dueItems, totalRecords } = useHomeProductionStats()
+
+  /* Setup path — the same signals feed the empty Home checklist and the
+     Keep-going card that survives graduation until setup is done or the
+     card is dismissed (device-local). */
+  const setupSignals = {
+    jurisdictionsConfigured: (organization?.jurisdictions.length ?? 0) > 0,
+    documents: data?.documents ?? 0,
+    policies: data?.policiesTracked ?? 0,
+    employees: data?.employees ?? 0,
+  }
+  const setupSteps = computeSetupSteps({
+    ...setupSignals,
+    workflowVisited: readEmptyWorkspaceProgress(organizationId).workflowVisited,
+  })
+  const setupRemaining = remainingSetupSteps(setupSteps)
+  const [setupCardDismissed, setSetupCardDismissed] = useState(() =>
+    isSetupCardDismissed(organizationId),
+  )
+  useEffect(() => {
+    setSetupCardDismissed(isSetupCardDismissed(organizationId))
+  }, [organizationId])
+
+  const addStepsAsTasks = useCallback(
+    async (steps: readonly SetupStep[]) => {
+      if (!organizationId || steps.length === 0) return
+      try {
+        for (const step of steps) {
+          await addTask(organizationId, {
+            title: x(step.label),
+            priority: 'medium',
+            dueDate: '',
+          })
+        }
+        showToast(M.home_setup_tasks_done, 'ok')
+      } catch {
+        showToast(M.home_setup_tasks_failed, 'info')
+      }
+      /* Real records now exist — reload so Home can graduate to the
+         dashboard with the Keep-going card carrying the remaining steps. */
+      await reload()
+    },
+    [organizationId, x, showToast, reload],
+  )
 
   const showOperationalDashboard =
     !PLAN_FEATURE_GATES_ENABLED ||
@@ -57,7 +110,8 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
       <HomeProductionEmptyState
         identity={identity}
         onSend={onSend}
-        employeeCount={0}
+        signals={setupSignals}
+        onAddStepsAsTasks={addStepsAsTasks}
         title={profile.emptyTitle}
         body={profile.emptyBody}
       />
@@ -90,7 +144,8 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
       <HomeProductionEmptyState
         identity={identity}
         onSend={onSend}
-        employeeCount={0}
+        signals={setupSignals}
+        onAddStepsAsTasks={addStepsAsTasks}
         title={profile.emptyTitle}
         body={profile.emptyBody}
       />
@@ -102,7 +157,8 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
       <HomeProductionEmptyState
         identity={identity}
         onSend={onSend}
-        employeeCount={data.employees}
+        signals={setupSignals}
+        onAddStepsAsTasks={addStepsAsTasks}
         title={profile.emptyTitle}
         body={profile.emptyBody}
       />
@@ -114,7 +170,8 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
       <HomeProductionEmptyState
         identity={identity}
         onSend={onSend}
-        employeeCount={data.employees}
+        signals={setupSignals}
+        onAddStepsAsTasks={addStepsAsTasks}
         title={profile.emptyTitle}
         body={profile.emptyBody}
         afterChecklist={
@@ -134,7 +191,8 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
       <HomeProductionEmptyState
         identity={identity}
         onSend={onSend}
-        employeeCount={data.employees}
+        signals={setupSignals}
+        onAddStepsAsTasks={addStepsAsTasks}
         title={profile.emptyTitle}
         body={profile.emptyBody}
       />
@@ -153,6 +211,18 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
         </h1>
         <p className="m-0 text-[13.5px] text-text-muted">{x(profile.sub)}</p>
       </div>
+
+      {/* Setup path carried past graduation — stays until done or dismissed */}
+      {setupRemaining.length > 0 && !setupCardDismissed && (
+        <HomeSetupCard
+          steps={setupSteps}
+          onDismiss={() => {
+            dismissSetupCard(organizationId)
+            setSetupCardDismissed(true)
+          }}
+          onAddStepsAsTasks={isOrgAdmin ? addStepsAsTasks : undefined}
+        />
+      )}
 
       {/* Stat tiles → modules */}
       <div className="mb-[20px] flex flex-wrap gap-[14px]">
