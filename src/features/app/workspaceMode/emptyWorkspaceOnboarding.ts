@@ -13,8 +13,8 @@ import { fetchOnboardingMarks, saveOnboardingMarks } from './api'
  * server fire-and-forget, and `hydrateEmptyWorkspaceOnboarding` merges the
  * server copy down when the workspace resolves. Marks are monotonic — a
  * visit or dismissal never un-happens — so merging is OR, never overwrite.
- * Non-admin org members can't write workspace_preferences (RLS); they keep
- * the device-local behavior unchanged.
+ * The table's RLS admits platform admins and active org members on their own
+ * row (migration 0170); anyone else keeps the device-local behavior.
  * See docs/EMPTY_WORKSPACE_ONBOARDING.md.
  */
 
