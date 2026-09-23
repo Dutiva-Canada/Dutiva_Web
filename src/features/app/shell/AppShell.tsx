@@ -226,7 +226,12 @@ export function AppShell() {
           <ModuleContextBanner />
           <div className="relative flex min-h-0 flex-1 flex-col">
             <Suspense fallback={null}>
-              <Outlet />
+              <div
+                key={pathname}
+                className="flex min-h-0 min-w-0 flex-1 flex-col motion-safe:animate-[fadeInUp_.18s_cubic-bezier(.22,1,.36,1)]"
+              >
+                <Outlet />
+              </div>
             </Suspense>
           </div>
         </main>
