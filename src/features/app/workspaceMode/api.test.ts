@@ -192,6 +192,87 @@ describe('workspaceMode api', () => {
     )
   })
 
+  it('fetchOnboardingMarks reads the per-org onboarding map', async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: { onboarding: { 'org-1': { workflowVisited: true } } },
+      error: null,
+    })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ maybeSingle }) }),
+        }),
+      },
+    }))
+    vi.resetModules()
+    const api = await import('./api')
+
+    expect(await api.fetchOnboardingMarks('u1')).toEqual({
+      'org-1': { workflowVisited: true },
+    })
+  })
+
+  it('fetchOnboardingMarks returns {} when the row or column is absent', async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ maybeSingle }) }),
+        }),
+      },
+    }))
+    vi.resetModules()
+    const api = await import('./api')
+
+    expect(await api.fetchOnboardingMarks('u1')).toEqual({})
+  })
+
+  it('saveOnboardingMarks merges into the org entry and upserts', async () => {
+    const upsert = vi.fn().mockResolvedValue({ error: null })
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: { onboarding: { 'org-1': { workflowVisited: true } } },
+      error: null,
+    })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: vi
+            .fn()
+            .mockResolvedValue({ data: { session: { user: { id: 'u1' } } } }),
+        },
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ maybeSingle }) }),
+          upsert,
+        }),
+      },
+    }))
+    vi.resetModules()
+    const api = await import('./api')
+
+    expect(await api.saveOnboardingMarks('org-1', { setupCardDismissed: true })).toBe(true)
+    expect(upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user_id: 'u1',
+        onboarding: { 'org-1': { workflowVisited: true, setupCardDismissed: true } },
+      }),
+    )
+  })
+
+  it('saveOnboardingMarks returns false when signed out', async () => {
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+        },
+        from: vi.fn(),
+      },
+    }))
+    vi.resetModules()
+    const api = await import('./api')
+
+    expect(await api.saveOnboardingMarks('org-1', { workflowVisited: true })).toBe(false)
+  })
+
   it('bootstrapOrganization returns success for a created organization', async () => {
     vi.doMock('@/lib/supabaseClient', () => ({
       supabase: {
