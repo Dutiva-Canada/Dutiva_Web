@@ -10,13 +10,18 @@ import { listTasks } from '@/features/app/views/tasks/productionApi'
 import type { ProductionTask } from '@/features/app/views/tasks/productionApi'
 import { listFindings } from '@/features/app/views/compliance/productionApi'
 import { listPolicies } from '@/features/app/views/policies/productionApi'
+import { listDocuments } from '@/features/app/documents/productionApi'
 
 export interface HomeProductionData {
   employees: number
   cases: ProductionCase[]
   tasks: ProductionTask[]
   openFindings: number
+  /** All hr_policies register rows — written policies and flagged gaps. */
+  policiesTracked: number
   policiesNeedingAttention: number
+  /** hr_generated_documents rows — feeds the setup path's document step. */
+  documents: number
 }
 
 export interface HomeDueItem {
@@ -44,19 +49,22 @@ export function useHomeProductionStats() {
     }
     setLoadFailed(false)
     try {
-      const [employees, cases, tasks, findings, policies] = await Promise.all([
+      const [employees, cases, tasks, findings, policies, documents] = await Promise.all([
         listEmployees(organizationId),
         listCases(organizationId),
         listTasks(organizationId),
         listFindings(organizationId),
         listPolicies(organizationId),
+        listDocuments(organizationId),
       ])
       setData({
         employees: employees.length,
         cases,
         tasks,
         openFindings: findings.filter((f) => !f.resolved).length,
+        policiesTracked: policies.length,
         policiesNeedingAttention: policies.filter((p) => p.status !== 'up_to_date').length,
+        documents: documents.length,
       })
     } catch {
       setData(null)
@@ -75,7 +83,8 @@ export function useHomeProductionStats() {
       data.cases.length +
       data.tasks.length +
       data.openFindings +
-      data.policiesNeedingAttention
+      data.policiesTracked +
+      data.documents
     )
   }, [data])
 

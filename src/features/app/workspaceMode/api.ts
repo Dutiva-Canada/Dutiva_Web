@@ -78,6 +78,73 @@ export async function saveStoredMode(userId: string, mode: WorkspaceMode): Promi
   }
 }
 
+/**
+ * Server-side onboarding marks (migration 0169): the `onboarding` jsonb
+ * column on workspace_preferences, keyed by organization id. Marks are
+ * monotonic — a visit or dismissal never un-happens — so reads merge with
+ * OR semantics and writes carry the union back.
+ */
+const onboardingMarksSchema = z.object({
+  studioVisited: z.boolean().optional(),
+  workflowVisited: z.boolean().optional(),
+  setupCardDismissed: z.boolean().optional(),
+})
+
+export type OnboardingMarks = z.infer<typeof onboardingMarksSchema>
+
+const onboardingMapSchema = z.record(z.string(), onboardingMarksSchema)
+
+export async function fetchOnboardingMarks(
+  userId: string,
+): Promise<Record<string, OnboardingMarks>> {
+  if (!supabase) return {}
+  try {
+    const { data, error } = await supabase
+      .from('workspace_preferences')
+      .select('onboarding')
+      .eq('user_id', userId)
+      .maybeSingle()
+    if (error || !data) return {}
+    /* Column missing (migration not applied) or unexpected shape → no marks. */
+    return onboardingMapSchema.parse(data.onboarding ?? {})
+  } catch {
+    return {}
+  }
+}
+
+/**
+ * Merge `marks` into the caller's onboarding entry for `organizationId`.
+ * Resolves the session itself so call sites (Studio, Workflows, Home) only
+ * pass what they know. Returns false when unauthenticated/unconfigured —
+ * callers keep their localStorage write either way.
+ */
+export async function saveOnboardingMarks(
+  organizationId: string,
+  marks: OnboardingMarks,
+): Promise<boolean> {
+  if (!supabase) return false
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    const userId = session?.user?.id
+    if (!userId) return false
+    const existing = await fetchOnboardingMarks(userId)
+    const merged = {
+      ...existing,
+      [organizationId]: { ...existing[organizationId], ...marks },
+    }
+    const { error } = await supabase.from('workspace_preferences').upsert({
+      user_id: userId,
+      onboarding: merged as Json,
+      updated_at: new Date().toISOString(),
+    })
+    return !error
+  } catch {
+    return false
+  }
+}
+
 export interface OrganizationMembership {
   organizationId: string
   /** Null when the row predates role reads or carries an unknown value. */

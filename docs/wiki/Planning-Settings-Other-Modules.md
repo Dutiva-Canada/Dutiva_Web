@@ -33,6 +33,7 @@ The following files were used as context for generating this wiki page:
 - [src/features/app/views/tasks/TasksView.test.tsx](src/features/app/views/tasks/TasksView.test.tsx)
 - [src/features/app/views/tasks/TasksView.tsx](src/features/app/views/tasks/TasksView.tsx)
 - [src/features/app/workspaceMode/ModeGate.tsx](src/features/app/workspaceMode/ModeGate.tsx)
+- [src/features/app/workspaceMode/ModuleEmptyBlock.tsx](src/features/app/workspaceMode/ModuleEmptyBlock.tsx)
 - [src/features/app/workspaceMode/WorkspaceModeProvider.test.tsx](src/features/app/workspaceMode/WorkspaceModeProvider.test.tsx)
 - [src/features/app/workspaceMode/api.test.ts](src/features/app/workspaceMode/api.test.ts)
 - [src/i18n/messages/calendar.ts](src/i18n/messages/calendar.ts)
@@ -60,7 +61,7 @@ flowchart TD
         POLICIES["path: policies\nPoliciesView"]
         SETTINGS["path: settings\nSettingsLayout"]
         SETTINGS_GEN["path: settings (index)\nSettingsView"]
-        MEMORY["path: settings/memory\ngated(MemoryLayout)"]
+        MEMORY["path: settings/memory\nMemoryLayout"]
         MEM_MGR["index\nMemoryManagerView"]
         MEM_PERSON["people/:personId\nPersonMemoryView"]
         MEM_CASE["cases/:caseId\nCaseMemoryView"]
@@ -202,7 +203,7 @@ Sources: [src/features/app/views/policies/PoliciesView.tsx:1-104](), [src/featur
 | --------------------- | -------------------------------------------------------------------- |
 | Appearance + Language | Segmented controls driving `ThemeProvider` / `LangProvider`          |
 | Data & Privacy        | Law 25 (Quebec) notice banner                                        |
-| Workspace             | Mode toggle (demo ↔ production), admin-only                          |
+| Workspace             | Mode toggle (demo ↔ production), shown when `canUseProduction` (platform admin or active org member) |
 | Notifications         | Toggle rows: email digest, risk alerts, auto-escalate, weekly digest |
 | AI preferences        | Toggle rows: AI context, AI citations                                |
 | Integrations          | E-sign (connected), Payroll (connected), Calendar (error → retry)    |
@@ -241,9 +242,9 @@ Sources: [src/features/app/views/settings/SettingsLayout.tsx:1-53](), [src/featu
 
 ## Memory System
 
-The Advisor Memory system provides human-governed memory for the AI Advisor. It is nested under Settings at `/app/settings/memory` and wrapped in `gated()` (demo-only until production persistence exists).
+The Advisor Memory system provides human-governed memory for the AI Advisor. It is nested under Settings at `/app/settings/memory` and dispatches on workspace mode internally — each view delegates to a `*DemoView` (session-scoped `memoryStore`) or a `*ProductionView` backed by `productionApi.ts` / `productionLifecycleApi.ts` over the `hr_advisor_memory_facts` tables.
 
-[src/app/appViews.tsx:142-150]()
+[src/app/appViews.tsx:154-160]()
 
 ### MemoryLayout
 
@@ -543,20 +544,20 @@ Sources: [src/features/app/views/home/HomeProductionView.tsx:56-78](), [src/feat
 
 ## Module Gating Summary
 
-The route table in `appViews.tsx` controls which modules are gated (demo-only in production until backed by real data) vs ungated (dispatch on mode themselves):
+Every module in `appViews.tsx` now dispatches on workspace mode internally — the `gated()`/`ModeGate` route wrapper is gone. How each module resolves production:
 
-| Module         | Gating    | Notes                                                         |
-| -------------- | --------- | ------------------------------------------------------------- |
-| Home           | Ungated   | Own production variant (`HomeProductionView`)                 |
-| Tasks          | Ungated   | Dispatches via `useWorkspaceMode()` → `TasksProductionView`   |
-| Calendar       | Ungated   | Dispatches → `CalendarProductionView`                         |
-| Policies       | Ungated   | Dispatches → `PoliciesProductionView`                         |
-| Settings       | Ungated   | Hosts mode toggle; real `ThemeProvider`/`LangProvider`        |
-| Memory         | `gated()` | Demo-only (session-scoped `memoryStore`)                      |
-| Communications | Ungated   | Dispatches → `CommunicationsProductionView` (migration 0040)  |
-| Compensation   | Ungated   | Dispatches → `CompensationProductionView` (migration 0039)    |
-| Wellbeing      | Ungated   | Dispatches → `WellbeingProductionView` (migration 0041)       |
-| Knowledge      | Ungated   | Generic HR-law reference + real `GuidanceSourcesPanel`        |
+| Module         | Notes                                                                       |
+| -------------- | --------------------------------------------------------------------------- |
+| Home           | Own production variant (`HomeProductionView` + `HomeProductionEmptyState`)  |
+| Tasks          | Dispatches via `useWorkspaceMode()` → `TasksProductionView`                 |
+| Calendar       | Dispatches → `CalendarProductionView`                                       |
+| Policies       | Dispatches → `PoliciesProductionView`                                       |
+| Settings       | Hosts mode toggle; real `ThemeProvider`/`LangProvider`                      |
+| Memory         | Dispatches → `*ProductionView` over `hr_advisor_memory_facts`               |
+| Communications | Dispatches → `CommunicationsProductionView` (migration 0040)                |
+| Compensation   | Dispatches → `CompensationProductionView` (migration 0039)                  |
+| Wellbeing      | Dispatches → `WellbeingProductionView` (migration 0041)                     |
+| Knowledge      | Generic HR-law reference + real `GuidanceSourcesPanel`                      |
 | Search         | N/A       | Overlay; corpus is fixture-based, returns empty in production |
 
 Sources: [src/app/appViews.tsx:14-21](), [src/app/appViews.tsx:71-166]()

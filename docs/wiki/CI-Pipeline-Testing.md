@@ -80,7 +80,8 @@ flowchart TD
     E --> F["npm run test:coverage\n(vitest run --coverage)"]
     F --> G["npm run check:message-scopes\n(check-message-scopes.mjs)"]
     G --> H["npm run check:facts\n(check-canonical-facts.mjs)"]
-    H --> I["npm run build\n(build + SEO validation)"]
+    H --> H2["check:brand-assets → check:architecture → check:workspace-links"]
+    H2 --> I["npm run build\n(build + SEO validation)"]
 ```
 
 | Step               | npm script                     | Tool                                                                    | What it catches                                    |
@@ -90,6 +91,9 @@ flowchart TD
 | Test with coverage | `npm run test:coverage`        | `vitest run --coverage`                                                 | Unit/integration failures, coverage regression     |
 | Message scopes     | `npm run check:message-scopes` | `check-message-scopes.mjs`                                              | i18n key crossing surface boundary                 |
 | Canonical facts    | `npm run check:facts`          | `check-canonical-facts.mjs`                                             | Brand palette drift vs CSS                         |
+| Brand assets       | `npm run check:brand-assets`   | `check-brand-assets.mjs`                                                | Missing `public/brand/` asset                      |
+| Architecture       | `npm run check:architecture`   | `check-architecture.mjs`                                                | Marketing→`@/data` fixture import, file-size budget, inline demo views |
+| Workspace links    | `npm run check:workspace-links`| `check-workspace-links.mjs`                                             | `/app/…` link reachable from the public `/demo` tree |
 | Build + SEO        | `npm run build`                | vite build → prerender → validate-seo → check-entry-graph → generate-sw | Build, metadata, sitemap, entry-graph budget drift |
 
 The build script is a multi-step chain defined in `package.json` [package.json:8]():

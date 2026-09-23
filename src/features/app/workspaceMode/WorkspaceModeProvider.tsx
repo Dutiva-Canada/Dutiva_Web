@@ -14,6 +14,7 @@ import {
   saveStoredMode,
 } from './api'
 import type { WorkspaceOrganizationSettings } from './api'
+import { hydrateEmptyWorkspaceOnboarding } from './emptyWorkspaceOnboarding'
 import { resetAdvisorSession } from '@/features/app/views/advisor/advisorSession'
 import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { resolveContactDisplayName } from './contactDisplayName'
@@ -157,6 +158,12 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
       }
       if (organizationId && !cancelled) {
         organization = await fetchOrganizationSettings(organizationId)
+        /* Pull onboarding marks down before production mounts so the setup
+           path / Keep-going card read post-merge localStorage on first
+           paint — a card dismissed on another device stays dismissed. */
+        if (storedMode === 'production') {
+          await hydrateEmptyWorkspaceOnboarding(userId, organizationId)
+        }
       }
 
       /* The workspace's company name is the org's name (the tenant), not the
@@ -245,6 +252,9 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
       let organization: WorkspaceOrganizationSettings | null = null
       if (organizationId) {
         organization = await fetchOrganizationSettings(organizationId)
+      }
+      if (next === 'production' && organizationId) {
+        await hydrateEmptyWorkspaceOnboarding(userId, organizationId)
       }
       resetAdvisorSession()
       setAdmin((prev) => ({

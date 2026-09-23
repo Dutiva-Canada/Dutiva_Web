@@ -1,10 +1,11 @@
 # Dutiva Web
 
 Dutiva is a Canadian HR-compliance platform — AI-assisted, jurisdiction-aware,
-bilingual EN/FR. This repo implements the redesigned marketing landing page
-(dutiva.ca) and the full product workspace (AI Advisor, cases, employees,
-compliance, policies, document studio, and supporting modules) from the
-high-fidelity design handoff.
+bilingual EN/FR. This repo implements the dutiva.ca marketing site and the
+product workspace (AI Advisor, cases, employees, compliance, policies,
+document studio, hiring and the careers portal, and supporting modules) —
+backed by Supabase Postgres + edge functions, with row-level security
+across the org-scoped data.
 
 ## Getting started
 
@@ -14,10 +15,18 @@ npm run dev        # start the dev server
 ```
 
 - `/` — marketing landing page (`/fr` in French)
+- `/demo` — public read-only demo workspace, Northgate fixtures (`/fr/demo`)
 - `/pricing` — plan comparison + Stripe checkout (`/fr/tarifs`)
 - `/templates` — template catalogue preview (`/fr/modeles`)
-- `/app/welcome` — app entry stage
-- `/app/home` — the workspace
+- `/help` — Help Centre (`/fr/aide`)
+- `/careers` — public job board (`/fr/carrieres`)
+- `/employer` — employer sign-in, leads into the workspace (`/fr/employeur`)
+- `/app` → `/app/home` — the workspace
+
+No env vars are needed for the marketing pages or the demo — both run on
+bundled fixtures. Sign-in and the production workspace need
+`VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY`: copy `.env.example` to `.env`
+and fill them in. The full route map is in CONVENTIONS.md.
 
 Both surfaces are fully bilingual and themed (light/dark, persisted as
 `dutiva-theme`). Public pages are language-scoped by URL (English unprefixed,
@@ -38,7 +47,9 @@ the app surface follows the persisted `dutiva-lang` preference. See
 | `npm run test:e2e`      | Playwright smoke on `dist/` (hermetic — no Supabase; see [e2e/README.md](e2e/README.md))            |
 | `npm run test:e2e:auth` | Playwright production CRUD matrix (Supabase env required; skips cleanly when unset)                 |
 | `npm run format`        | Prettier                                                                                            |
-| `npm run check`         | typecheck + lint + test + `check:migrations` + `check:rls` + `check:facts` + `check:message-scopes` |
+| `npm run db:types`      | Regenerate `src/lib/supabase/database.types.ts` (and the edge-function copy) from the linked project |
+| `npm run db:snapshot`   | `supabase db dump` → `supabase/schema.sql`; `db:document` regenerates the schema doc from it         |
+| `npm run check`         | typecheck + lint + test + `check:migrations` + `check:rls` + `check:facts` + `check:message-scopes` + `check:brand-assets` + `check:architecture` + `check:workspace-links` |
 
 ## End-to-end tests
 
@@ -48,6 +59,50 @@ Two Playwright suites run against the production build — see [e2e/README.md](e
 - **`npm run test:e2e:auth`** — signed-in admin production CRUD matrix (employees, cases, tasks, communications, memory). Requires Supabase env at build time plus `SUPABASE_SERVICE_ROLE_KEY`; exits 0 and skips when unset.
 
 Woodpecker: `.woodpecker/e2e.yml` (hermetic) and `.woodpecker/e2e-auth.yml` (auth).
+
+## Workspace modes: demo and production
+
+The app has two modes. **Demo** — the Northgate Logistics fixture workspace —
+is the public `/demo` surface and the signed-out default; it never touches a
+database. **Production** is a real org's own records, persisted to Supabase
+with RLS; a signed-in org member switches via Settings, and new employers
+self-provision at `/employer` (capacity-gated). Demo views live in
+`*DemoView.tsx` / `*DemoFixtures.tsx`, never inline in `*View.tsx`.
+
+A production workspace starts **empty on purpose** — nothing is sample data.
+Home leads with a five-step setup path (company profile → first-hire
+documents → policies → a guided process → people when ready), with an inline
+profile form as step one, a Keep-going card that persists after the first
+record, and a one-tap plan→Tasks bridge. Progress syncs per-user across
+devices via `workspace_preferences.onboarding`. See
+[docs/EMPTY_WORKSPACE_ONBOARDING.md](docs/EMPTY_WORKSPACE_ONBOARDING.md).
+
+## Supabase: schema, RLS, edge functions
+
+Schema lives in `supabase/migrations/`; `npm run check:migrations` fails on
+any repo migration not applied to the linked project — **a migration merged
+is not a migration applied**. `npm run check:rls` probes the sensitive tables
+as the anonymous role. Edge functions under
+`supabase/functions/` run the Advisor, the law monitor, Stripe webhooks and
+scheduled jobs — merging one does not deploy it. Quirks of the applied
+history are recorded in [docs/MIGRATION_LEDGER.md](docs/MIGRATION_LEDGER.md);
+the schema itself in [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md).
+
+## Advisor agent actions
+
+The Advisor can propose real workspace actions — creating a task, for
+instance — rendered as confirm cards the user approves or dismisses. Nothing
+executes unattended; every commit is role-gated and audited. It ships behind
+`ADVISOR_AGENT_ACTIONS` on the `advisor-chat` edge function — flag set, live
+emission pending an authenticated turn. Design and status:
+[docs/AGENT_LAYER.md](docs/AGENT_LAYER.md).
+
+## Mobile
+
+Below 768px the app shell is a hamburger topbar, slide-in drawer and bottom
+tab nav with safe-area insets; primary controls carry 44px touch targets and
+form controls a 16px floor so iOS Safari doesn't zoom on focus. Marketing
+pages are fluid at the same widths.
 
 ## Offline / PWA
 
@@ -151,8 +206,12 @@ i18n rules, data layer, and the quality bar, and
   utilities via `@theme inline`.
 - **i18n**: every user-facing string is a `{ en, fr }` pair — parity is enforced
   by the type system.
-- **Data**: realistic sample fixtures in `src/data/` behind typed modules,
-  designed to be swapped for a real backend (Supabase) without touching views.
+- **Data**: Northgate fixtures in `src/data/` power the `/demo` surface and
+  signed-out demo mode; production persists to Supabase behind RLS, reached
+  through feature-level `api.ts` modules — the swap the fixtures were built
+  for is done.
+- **Responsive**: desktop sidebar ↔ mobile drawer + bottom nav at 768px,
+  token-driven light/dark themes on both surfaces.
 
 ## Fidelity notes
 

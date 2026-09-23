@@ -16,7 +16,8 @@ The following files were used as context for generating this wiki page:
 - [src/features/app/views/analytics/AckMeter.tsx](src/features/app/views/analytics/AckMeter.tsx)
 - [src/features/app/views/analytics/AnalyticsCard.tsx](src/features/app/views/analytics/AnalyticsCard.tsx)
 - [src/features/app/views/analytics/AnalyticsProductionView.tsx](src/features/app/views/analytics/AnalyticsProductionView.tsx)
-- [src/features/app/views/analytics/AnalyticsView.test.tsx](src/features/app/views/analytics/AnalyticsView.test.tsx)
+- [src/features/app/views/analytics/AnalyticsView.demo.test.tsx](src/features/app/views/analytics/AnalyticsView.demo.test.tsx)
+- [src/features/app/views/analytics/AnalyticsView.production.test.tsx](src/features/app/views/analytics/AnalyticsView.production.test.tsx)
 - [src/features/app/views/analytics/AnalyticsView.tsx](src/features/app/views/analytics/AnalyticsView.tsx)
 - [src/features/app/views/analytics/ScoreBreakdownMeters.tsx](src/features/app/views/analytics/ScoreBreakdownMeters.tsx)
 - [src/features/app/views/analytics/ScoreHero.tsx](src/features/app/views/analytics/ScoreHero.tsx)
@@ -603,11 +604,11 @@ Tests the full demo view rendering:
 - Probation review task detection
 - Leave overview with protected-leave marking
 
-[src/features/app/views/analytics/AnalyticsView.test.tsx:7-136]()
+[src/features/app/views/analytics/AnalyticsView.demo.test.tsx:7-136]()
 
 Also tests production mode rendering, score computation, component meters, and critical ceiling messaging.
 
-[src/features/app/views/analytics/AnalyticsView.test.tsx:157-502]()
+[src/features/app/views/analytics/AnalyticsView.production.test.tsx]()
 
 ### Drift Test (`scoring.test.ts`)
 
@@ -615,7 +616,7 @@ Ensures the edge function's scoring copy produces identical results to the clien
 
 [supabase/functions/record-score-snapshots/scoring.test.ts:1-200]()
 
-Sources: [src/features/app/views/analytics/aggregation.test.ts:1-415](), [src/features/app/views/analytics/AnalyticsView.test.tsx:1-502](), [supabase/functions/record-score-snapshots/scoring.test.ts:1-200]()
+Sources: [src/features/app/views/analytics/aggregation.test.ts:1-415](), [src/features/app/views/analytics/AnalyticsView.demo.test.tsx](), [src/features/app/views/analytics/AnalyticsView.production.test.tsx](), [supabase/functions/record-score-snapshots/scoring.test.ts:1-200]()
 
 ## Component Architecture Summary
 

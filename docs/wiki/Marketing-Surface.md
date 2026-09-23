@@ -23,7 +23,7 @@ The following files were used as context for generating this wiki page:
 - [src/features/marketing/sections/LandingDemoPath.tsx](src/features/marketing/sections/LandingDemoPath.tsx)
 - [src/features/marketing/sections/WorkspaceModuleDemos.tsx](src/features/marketing/sections/WorkspaceModuleDemos.tsx)
 - [src/i18n/messages/faq.ts](src/i18n/messages/faq.ts)
-- [src/i18n/messages/landing.ts](src/i18n/messages/landing.ts)
+- [src/i18n/messages/landing/index.ts](src/i18n/messages/landing/index.ts)
 - [supabase/functions/create-beta-signup/index.ts](supabase/functions/create-beta-signup/index.ts)
 
 </details>
@@ -80,7 +80,7 @@ Sources: [src/app/routes.tsx:71-99]()
 
 ## Landing Page, Pricing & Beta Signup
 
-The `LandingPage` component composes sections in a fixed sequence: `Hero` → `TrustStrip` → `HowItWorks` → `HomeFaq` → `Workflows` → `WhyDutiva` → `Product` → **`WorkspaceModuleDemos`** (`#workspace`) → `TestimonialWall` → `Coverage` → `Pricing` → `Guides` → `BetaSignup` → `Footer`.
+The `LandingPage` component composes sections in a fixed sequence: `Hero` → `TrustStrip` → `HowItWorks` → **`WorkspaceModuleDemos`** (`#product`, lazy-loaded) → `Coverage` → `Workflows` → `WhyDutiva` → `TestimonialWall` → `Guides` → `Pricing` → `HomeFaq` → `BetaSignup` → `Footer` (plus `StickyMobileCta` on phones).
 
 The unified **`#workspace`** section ([#279](https://github.com/Dutiva-Canada/Dutiva_Web/pull/279), [#280](https://github.com/Dutiva-Canada/Dutiva_Web/pull/280)) combines:
 
@@ -94,11 +94,11 @@ The hero embeds a static `AdvisorDemo` mock; `DocumentStudioDemo` and workspace 
 
 Sources: [src/features/marketing/LandingPage.tsx:25-47](), [src/features/marketing/useLanding.ts:27-32]()
 
-The **pricing tiers** (Free/$0, Starter/$24, Growth/$49, Pro/$99 — all CAD/month) are defined in `src/config/plans.ts`. Paid plans are **open** (`PAID_PLANS_DISABLED_DURING_BETA = false`); paying skips the beta waitlist and includes founder-led support. A free cohort of **15** seats remains waitlisted via `create-beta-signup`. The standalone `/pricing` page adds a full comparison table and billing-period toggle.
+The **pricing tiers** (Free/$0, Starter/$24, Growth/$49, Pro/$99 — all CAD/month) are defined in `src/config/plans.ts`. Paid plans are **open** (`PAID_PLANS_DISABLED_DURING_BETA = false`); paying skips the beta waitlist and includes founder-led support. A free cohort of **5** seats remains waitlisted via `create-beta-signup`. The standalone `/pricing` page adds a full comparison table and billing-period toggle.
 
 Sources: [src/config/plans.ts:28-66](), [src/config/plans.ts:79-84](), [src/features/marketing/sections/Pricing.tsx:25-27]()
 
-The **beta signup** flow begins at the `BetaSignup` component's `#start` anchor. The form collects email, company, province, CASL express consent, a honeypot field, and an optional CAPTCHA token. Submissions pass through `createBetaSignup()` in `betaSignupApi.ts`, which invokes the `create-beta-signup` Supabase edge function. The server enforces per-IP/email rate limits, CAPTCHA verification, and a cohort capacity check (`BETA_COHORT_LIMIT = 15`). The response indicates whether the signup was admitted to the first cohort or waitlisted.
+The **beta signup** flow begins at the `BetaSignup` component's `#start` anchor. The form collects email, company, province, CASL express consent, a honeypot field, and an optional CAPTCHA token. Submissions pass through `createBetaSignup()` in `betaSignupApi.ts`, which invokes the `create-beta-signup` Supabase edge function. The server enforces per-IP/email rate limits, CAPTCHA verification, and a cohort capacity check (`BETA_COHORT_LIMIT = 5`). The response indicates whether the signup was admitted to the first cohort or waitlisted.
 
 Sources: [src/features/marketing/sections/BetaSignup.tsx:45-108](), [src/features/marketing/betaSignupApi.ts:76-101](), [supabase/functions/create-beta-signup/index.ts:149-155](), [src/config/beta.ts:19]()
 
@@ -120,7 +120,7 @@ Sources: [src/features/marketing/landing.css](), [src/features/marketing/demos/T
 
 ## SEO, Prerendering & Content Marketing
 
-Every public URL is registered in the `SEO_ROUTES` array in `src/seo/routes.ts` — 14 static page entries plus dynamic generators for 26 legal documents, help articles, and editorial articles. The `Seo` component renders page-specific `<head>` metadata including title, description, canonical, hreflang alternates (en-CA/fr-CA), Open Graph tags, and a JSON-LD `@graph` (containing `Organization`, `WebSite`, `WebPage`, `BreadcrumbList`, and optionally `FAQPage` and `WebApplication` nodes).
+Every public URL is registered in the `SEO_ROUTES` array in `src/seo/routes.ts` — 19 static page entries plus dynamic generators for 26 legal documents, help articles, and editorial articles. The `Seo` component renders page-specific `<head>` metadata including title, description, canonical, hreflang alternates (en-CA/fr-CA), Open Graph tags, and a JSON-LD `@graph` (containing `Organization`, `WebSite`, `WebPage`, `BreadcrumbList`, and optionally `FAQPage` and `WebApplication` nodes).
 
 Sources: [src/seo/routes.ts:29-227](), [src/seo/Seo.tsx:62-112](), [src/seo/jsonld.ts:22-87]()
 
@@ -219,7 +219,7 @@ The following table maps each marketing subsystem to its primary source files:
 | Prerendering      | `scripts/prerender.mjs`, `scripts/validate-seo.mjs`, `scripts/check-entry-graph.mjs`                                                                                                                                                                                    |
 | Content marketing | `articles/articleModel.ts`, `articles/blogArticles.ts`, `articles/guideArticles.ts`, `articles/blogContent.ts`, `articles/guideContent.ts`, `pages/ArticlePage.tsx`                                                                                                     |
 | Legal hub         | `legal/legalHubData.ts`, `legal/policyContent.ts`, `legal/content/*.ts` (52 edition files), `pages/LegalHubPage.tsx`, `pages/PolicyPage.tsx`                                                                                                                            |
-| i18n messages     | `src/i18n/messages/landing.ts`, `src/i18n/messages/faq.ts`, `src/i18n/messages/marketing.ts`                                                                                                                                                                            |
+| i18n messages     | `src/i18n/messages/landing/index.ts`, `src/i18n/messages/faq.ts`, `src/i18n/messages/marketing.ts`                                                                                                                                                                            |
 | Other pages       | `pages/FaqPage.tsx`, `pages/AboutPage.tsx`, `pages/ContactPage.tsx`, `pages/StatusPage.tsx`, `pages/HelpCenterPage.tsx`, `pages/TemplatesPage.tsx`, `pages/GuidesIndexPage.tsx`, `pages/KnownLimitationsPage.tsx`, `pages/JurisdictionToolPage.tsx`                     |
 
 Sources: [src/features/marketing/LandingPage.tsx:1-17](), [src/config/plans.ts:1-3](), [src/seo/routes.ts:1-9](), [src/features/marketing/legal/legalHubData.ts:27-214](), [src/features/marketing/articles/index.ts:1-8]()
@@ -228,7 +228,7 @@ Sources: [src/features/marketing/LandingPage.tsx:1-17](), [src/config/plans.ts:1
 
 As of August 2026:
 
-- **Paid plans are open** — checkout is live for admitted accounts; the free beta cohort of **15** remains waitlisted.
+- **Paid plans are open** — checkout is live for admitted accounts; the free beta cohort of **5** remains waitlisted.
 - **Public demo** — `/demo` and `/fr/demo` offer a read-only Northgate preview with a guided tour; no sign-in required.
 - **Changelog** — `/changelog` lists dated product updates (`src/features/marketing/changelog/changelogEntries.ts`).
 

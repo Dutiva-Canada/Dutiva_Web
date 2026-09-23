@@ -301,7 +301,7 @@ Sources: [src/features/app/views/cases/caseModel.ts:1-287]()
 Each module has a `productionApi.ts` file that forms the data boundary between the UI and Supabase. All follow the same contract:
 
 1. **Zod-validated rows** — every row from Supabase passes through a `z.object(...)` schema before reaching the UI.
-2. **Throws on failure** — unlike the workspace-mode API which degrades silently, these APIs throw on error since they only run for signed-in admins.
+2. **Throws on failure** — unlike the workspace-mode API which degrades silently, these APIs throw on error since they only run for signed-in workspace members in production mode.
 3. **`supabase` null guard** — every function starts with `if (!supabase) throw new Error('Supabase is not configured')`.
 4. **camelCase mapping** — a `toX()` function converts snake_case DB rows to camelCase TypeScript interfaces.
 

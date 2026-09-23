@@ -34,7 +34,7 @@ The Dutiva workspace supports two runtime modes — **demo** and **production** 
 
 ## Workspace Mode Overview
 
-`WorkspaceMode` is a discriminated string literal: `'demo' | 'production'`. Demo mode is the default for every visitor — it shows the full product with bilingual fixture data. Production mode activates only for a signed-in, RPC-confirmed admin who has explicitly stored that preference.
+`WorkspaceMode` is a discriminated string literal: `'demo' | 'production'`. Demo mode is the default for every visitor — it shows the full product with bilingual fixture data. Production mode activates only for a signed-in user who can hold a production workspace — platform admin or active org member (`canUseProduction = isAdmin || membership !== null`) — and has explicitly stored that preference.
 
 [src/features/app/workspaceMode/workspaceModeContext.ts:5-5]()
 
@@ -52,10 +52,13 @@ Sources: [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:138-141](), [
 
 `WorkspaceModeProvider` sits inside `AuthProvider` and reads the auth session to resolve the mode. On mount (or when the session changes), it runs an async `load()` sequence:
 
-1. **Admin check** — calls `checkIsAdmin()`, which invokes the `is_admin_user()` Supabase RPC. Returns `false` if Supabase is unconfigured, the RPC errors, or the user is not an admin. [src/features/app/workspaceMode/api.ts:33-41]()
-2. **Parallel fetch** — if admin, fetches three things concurrently via `Promise.all`: stored mode preference from `workspace_preferences`, admin profile from `profiles`, and organization membership from `organization_members`. [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:73-77]()
-3. **Org provisioning** — if the stored mode is `'production'` but no organization membership exists, calls `bootstrapOrganization()` which invokes the `create_organization()` RPC. This SECURITY DEFINER function atomically creates the org and inserts the caller as its active owner. [src/features/app/workspaceMode/api.ts:106-121](), [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:87-89]()
-4. **Identity assembly** — builds a `WorkspaceIdentity` from the profile (company name, contact name, province, city, email). In demo mode, this falls back to `DEMO_IDENTITY` (Northgate Logistics Inc.). [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:19-19](), [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:93-109]()
+1. **Invite claim** — `claimOrgInvitations()` (migration `0168`) converts pending `organization_invitations` addressed to the sign-in email into real memberships first, so an invited teammate's first sign-in already sees the org. [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:105]()
+2. **Parallel fetch** — for every signed-in user, fetches four things concurrently via `Promise.all`: `checkIsAdmin()` (the `is_admin_user()` RPC), stored mode preference from `workspace_preferences`, profile from `profiles`, and organization membership from `organization_members`. [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:108-113]()
+3. **Eligibility** — `canUseProduction = isAdmin || membership !== null`. Platform admins and active org members can hold a production workspace; everyone else stays in demo (a non-member can still create an org through the `/employer` onboarding door — `create_organization` is self-serve). [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:116-123]()
+4. **Invite intent** — a freshly claimed invite plus a stored `'demo'` preference flips the preference to `'production'` so the teammate lands in the real org. [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:125-132]()
+5. **Org provisioning** — if the stored mode is `'production'` but no organization membership exists, calls `bootstrapOrganization()` which invokes the `create_organization()` RPC. This SECURITY DEFINER function atomically creates the org and inserts the caller as its active owner; capacity/waitlist outcomes surface as `admissionStatus`. [src/features/app/workspaceMode/api.ts:106-121](), [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:141-157]()
+6. **Org settings + onboarding hydration** — with an org resolved, fetches `fetchOrganizationSettings(orgId)`; in production mode it then awaits `hydrateEmptyWorkspaceOnboarding(userId, orgId)`, which OR-merges server-side onboarding marks (`workspace_preferences.onboarding`) into localStorage so the setup path and Keep-going card render post-merge state on first paint. [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:159-166](), [src/features/app/workspaceMode/emptyWorkspaceOnboarding.ts]()
+7. **Identity assembly** — builds a `WorkspaceIdentity` from the org/profile (company name, contact name, province, city, email). In demo mode, this falls back to `DEMO_IDENTITY` (Northgate Logistics Inc.). [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:169]()
 
 ### Resolution Lifecycle Diagram
 
@@ -67,34 +70,43 @@ sequenceDiagram
     participant SB as "Supabase"
 
     AP->>WMP: "session (signed-in)"
-    WMP->>API: "checkIsAdmin()"
-    API->>SB: "rpc('is_admin_user')"
-    SB-->>API: "true/false"
-    API-->>WMP: "isAdmin"
+    WMP->>API: "claimOrgInvitations()"
+    API->>SB: "rpc('claim_org_invitations')"
+    SB-->>API: "claimed count"
 
-    alt "isAdmin = false"
+    par "Parallel fetches (every signed-in user)"
+        WMP->>API: "checkIsAdmin()"
+        API->>SB: "rpc('is_admin_user')"
+        SB-->>API: "true/false"
+    and
+        WMP->>API: "fetchStoredMode(userId)"
+        API->>SB: "from('workspace_preferences').select()"
+        SB-->>API: "{mode: 'production'}"
+    and
+        WMP->>API: "fetchAdminProfile(userId)"
+        API->>SB: "from('profiles').select()"
+        SB-->>API: "profile row"
+    and
+        WMP->>API: "fetchOrganizationMembership(userId)"
+        API->>SB: "from('organization_members').select()"
+        SB-->>API: "membership row or null"
+    end
+
+    alt "canUseProduction = false"
         WMP->>WMP: "setAdmin(SIGNED_OUT_STATE) → mode='demo'"
-    else "isAdmin = true"
-        par "Parallel fetches"
-            WMP->>API: "fetchStoredMode(userId)"
-            API->>SB: "from('workspace_preferences').select()"
-            SB-->>API: "{mode: 'production'}"
-        and
-            WMP->>API: "fetchAdminProfile(userId)"
-            API->>SB: "from('profiles').select()"
-            SB-->>API: "profile row"
-        and
-            WMP->>API: "fetchOrganizationMembership(userId)"
-            API->>SB: "from('organization_members').select()"
-            SB-->>API: "membership row or null"
+    else "admin or active member"
+        opt "claimed invite + stored 'demo'"
+            WMP->>API: "saveStoredMode('production')"
         end
-
-        alt "production + no org"
+        opt "production + no org"
             WMP->>API: "bootstrapOrganization()"
             API->>SB: "rpc('create_organization')"
             SB-->>API: "{id: 'org-xxx'}"
         end
-
+        opt "org resolved + production"
+            WMP->>API: "fetchOrganizationSettings(orgId)"
+            WMP->>API: "hydrateEmptyWorkspaceOnboarding(userId, orgId)"
+        end
         WMP->>WMP: "setAdmin({isAdmin, storedMode, identity, organizationId})"
     end
 ```
@@ -103,13 +115,13 @@ Sources: [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:56-117](), [s
 
 ## Mode Toggle Persistence
 
-The mode toggle is rendered only for confirmed admins (in SettingsView). Switching calls `setMode(next)` on the context, which:
+The mode toggle is rendered in SettingsView only when `canUseProduction` — platform admins and active org members. Switching calls `setMode(next)` on the context, which:
 
-1. Persists via `saveStoredMode()` — upserts the `workspace_preferences` table row keyed by `user_id`. [src/features/app/workspaceMode/api.ts:58-68]()
+1. Persists via `saveStoredMode()` — upserts the `workspace_preferences` table row keyed by `user_id`. (Since migration `0170`, RLS lets platform admins and active org members write their own row; before that the policy was admin-only.) [src/features/app/workspaceMode/api.ts:58-68](), [supabase/migrations/0170_workspace_prefs_members.sql]()
 2. On first switch to production with no existing org, provisions via `bootstrapOrganization()`. [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:128-130]()
 3. Updates local state so the UI re-renders immediately. [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:133-133]()
 
-The `setMode` callback is a no-op for non-admins — the toggle UI is never rendered for them. [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:121-121]()
+The `setMode` callback is a no-op for users who can't hold a production workspace — the toggle UI is never rendered for them. [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:121-121]()
 
 Sources: [src/features/app/workspaceMode/WorkspaceModeProvider.tsx:119-136](), [src/features/app/views/settings/SettingsView.test.tsx:110-177]()
 
@@ -119,13 +131,16 @@ The context value exposes everything downstream consumers need:
 
 | Field            | Type                      | Description                                            |
 | ---------------- | ------------------------- | ------------------------------------------------------ |
-| `mode`           | `'demo' \| 'production'`  | Resolved mode                                          |
-| `isAdmin`        | `boolean`                 | Real `is_admin_user()` RPC result                      |
-| `identity`       | `WorkspaceIdentity`       | Northgate fixtures (demo) or real profile (production) |
-| `organizationId` | `string \| null`          | The admin's org ID; always `null` in demo              |
-| `memberRole`     | `OrgMemberRole \| null`   | From `organization_members.role`                       |
-| `isOrgAdmin`     | `boolean`                 | Client mirror of RLS's `is_org_admin`                  |
-| `setMode`        | `(mode) => Promise<void>` | Persists and switches mode                             |
+| `mode`             | `'demo' \| 'production'`  | Resolved mode                                                       |
+| `isAdmin`          | `boolean`                 | Real `is_admin_user()` RPC result                                   |
+| `canUseProduction` | `boolean`                 | `isAdmin \|\| membership !== null` — who may hold a production org  |
+| `identity`         | `WorkspaceIdentity`       | Northgate fixtures (demo) or real profile (production)              |
+| `organizationId`   | `string \| null`          | The member's org ID; always `null` in demo                          |
+| `memberRole`       | `OrgMemberRole \| null`   | From `organization_members.role`                                    |
+| `isOrgAdmin`       | `boolean`                 | Client mirror of RLS's `is_org_admin`                               |
+| `organization`     | `WorkspaceOrganization \| null` | Org settings row (industry, jurisdictions, feature flags)       |
+| `admissionStatus`  | `AdmissionStatus`         | `idle` / `capacity` / `waitlist` / `error` from provisioning        |
+| `setMode`          | `(mode) => Promise<void>` | Persists and switches mode                                          |
 
 The `useWorkspaceMode()` hook provides access and throws if called outside the provider. [src/features/app/workspaceMode/workspaceModeContext.ts:52-56]()
 
@@ -155,7 +170,7 @@ Every function in `api.ts` wraps its Supabase call in a `try/catch` and checks f
 - `fetchAdminProfile()` → returns `null` on any failure [src/features/app/workspaceMode/api.ts:123-142]()
 - `bootstrapOrganization()` → returns `null` on any failure [src/features/app/workspaceMode/api.ts:106-121]()
 
-This contrasts with the per-module `productionApi.ts` files (covered below), which **throw** on failure — they only run for signed-in admins in production mode where errors must surface.
+This contrasts with the per-module `productionApi.ts` files (covered below), which **throw** on failure — they only run for signed-in workspace members in production mode where errors must surface.
 
 Sources: [src/features/app/workspaceMode/api.ts:24-30](), [src/features/app/workspaceMode/api.test.ts:15-24]()
 
@@ -192,35 +207,17 @@ graph TD
 
 Sources: [src/features/app/AppProviders.tsx:1-43]()
 
-## ModeGate and gated() Wrapper
+## Per-View Mode Dispatch (formerly `ModeGate`)
 
-`ModeGate` is the route-level gate that controls whether a fixture-driven view renders or is replaced by `ProductionEmptyState`. [src/features/app/workspaceMode/ModeGate.tsx:20-29]()
+The route table no longer wraps views in a gate. The earlier `gated()` helper and `ModeGate` route wrapper have been removed from `appViews.tsx`; `ModeGate.tsx` remains in the tree but has no callers. Instead, every workspace module dispatches on `useWorkspaceMode().mode` internally and renders either its fixture view or a `*ProductionView`.
 
-The `gated()` helper in `appViews.tsx` wraps a view's element in `ModeGate`:
+Where a production workspace has no data, views render shared empty-state primitives rather than fixtures:
 
-```typescript
-function gated(view: ReactNode) {
-  return <ModeGate>{view}</ModeGate>
-}
-```
+- `ProductionEmptyState` — module-level empty card with the module's label (derived from the route via `moduleLabelFor()`), an explanation that the production workspace starts empty, and a link onward. [src/features/app/workspaceMode/ProductionEmptyState.tsx:13-47](), [src/features/app/shell/navLabels.ts:59-64]()
+- `ModuleEmptyBlock` — in-view empty block used by production views that keep their chrome (e.g. Communications, Compensation, Wellbeing). [src/features/app/workspaceMode/ModuleEmptyBlock.tsx]()
+- `HomeProductionEmptyState` — the dedicated first-run surface for an empty production Home (setup path, Advisor prompts, plan-to-Tasks). [src/features/app/views/home/HomeProductionEmptyState.tsx]()
 
-[src/app/appViews.tsx:23-25]()
-
-### Decision Flow
-
-```mermaid
-flowchart TD
-    A["Route element"] --> B{"Wrapped in gated()"}
-    B -- "Yes" --> C{"mode === 'production'?"}
-    C -- "Yes" --> D["ProductionEmptyState"]
-    C -- "No (demo)" --> E["Render fixture view"]
-    B -- "No (ungated)" --> F["View handles mode itself"]
-    D --> G["Shows module title + 'starts empty' + Settings link"]
-```
-
-`ProductionEmptyState` renders a shared empty state with the module's label (derived from the route via `moduleLabelFor()`), an explanation that the production workspace starts empty, and a link to Settings where the demo/production toggle lives. [src/features/app/workspaceMode/ProductionEmptyState.tsx:13-47](), [src/features/app/shell/navLabels.ts:59-64]()
-
-Sources: [src/features/app/workspaceMode/ModeGate.tsx:1-29](), [src/features/app/workspaceMode/ModeGate.test.tsx:29-71]()
+Sources: [src/app/appViews.tsx:30-42](), [src/features/app/workspaceMode/ProductionEmptyState.tsx:1-47](), [src/features/app/workspaceMode/ModuleEmptyBlock.tsx]()
 
 ## Per-Module productionApi.ts Boundary Pattern
 
@@ -228,7 +225,7 @@ Each workspace module that has gained real persistence exposes a `productionApi.
 
 1. **Zod-validated rows** — every row from Supabase is parsed through a `z.object()` schema before being returned
 2. **Org-scoped queries** — every read/write includes `.eq('organization_id', organizationId)` (RLS enforces this server-side too)
-3. **Throws on failure** — unlike `api.ts` in the workspace mode module, these throw errors because they only run for signed-in admins where failures must surface
+3. **Throws on failure** — unlike `api.ts` in the workspace mode module, these throw errors because they only run for signed-in workspace members in production mode, where failures must surface
 4. **Snake-to-camel mapping** — a `toXxx()` function converts database column names to TypeScript interface fields
 
 ### productionApi.ts Inventory
@@ -291,7 +288,7 @@ flowchart TD
     ADM -- "no" --> NUDGE["UpgradeNudge"]
 ```
 
-During beta (`PAID_PLANS_DISABLED_DURING_BETA` = true), every user resolves to the `free` plan because the Stripe webhook never grants a paid plan. The gates exist and are wired but don't block until the flag is flipped. [src/features/app/billing/PlanGate.tsx:18-23]()
+`PAID_PLANS_DISABLED_DURING_BETA` is currently `false` — paid plans are open, so `PlanGate` actively enforces tiers in production while demo mode stays fully unlocked. [src/features/app/billing/PlanGate.tsx:18-23](), [src/config/plans.ts:103]()
 
 Sources: [src/features/app/billing/PlanGate.tsx:1-62](), [src/features/app/billing/PlanProvider.tsx:1-95]()
 
@@ -314,57 +311,42 @@ This lets ungated modules render entirely different component trees in productio
 
 Sources: [src/features/app/views/home/HomeView.tsx:29-93]()
 
-## Phased Rollout Strategy for Ungating Modules
+## Empty Production Workspace Onboarding
 
-The route table in `appViews.tsx` documents the ungating lifecycle. As described in the comment at the top of that file:
+A fresh production workspace is intentionally empty — no seed records. Home detects the empty state (`useHomeProductionStats` — zero people, zero tasks) and renders `HomeProductionEmptyState` instead of the command centre. The surface exists so a brand-new workspace tells the user where to start rather than presenting blank modules.
 
-> Remove a view's gate when it gains real persistence — communications, compensation and wellbeing came off this way (migrations 0039–0041) and now dispatch on mode themselves.
+The centerpiece is a five-step **setup path** computed by `computeSetupSteps(signals)` in `setupPath.ts` — ordered foundation-first: confirm the company profile, prepare first-hire documents, start the policy register, see a guided process, then add the first person when ready. Steps light up from live signals (org profile completeness, Studio/Workflow visits) rather than a static checklist. `HomeOrgProfileSetup` provides an inline mini-setup for company profile + jurisdiction without leaving Home.
 
-[src/app/appViews.tsx:9-22]()
+Three marks persist progress: `studioVisited`, `workflowVisited`, `setupCardDismissed` — exposed via `markEmptyWorkspaceStudioVisited` / `markEmptyWorkspaceWorkflowVisited` / `dismissSetupCard` in `emptyWorkspaceOnboarding.ts`. The "Keep going" card (`HomeSetupCard`) keeps the remaining steps visible on Home even after the first real record exists, and remaining steps can be pushed into the real Tasks module.
 
-### Current Gate Status
+Persistence is two-layer: localStorage is the synchronous first-paint read source; `workspace_preferences.onboarding` (migration `0169`) stores the same marks keyed by organization id server-side. Every mark writes through to the server fire-and-forget; `hydrateEmptyWorkspaceOnboarding()` (awaited during provider `load()` in production) OR-merges server marks down and pushes the union back up — devices converge in both directions, and dismissal marks are monotonic so there is no conflict surface. Migration `0170` widened the `workspace_preferences` RLS policy from platform-admins-only to admins **or** active `organization_members` writing their own row, so members' mode and onboarding prefs persist too.
 
-| Status                          | Routes                                                                                                                                                                               | Notes                                                            |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
-| **Ungated — handle both modes** | `home`, `advisor`, `cases`, `cases/:caseId`, `employees`, `employees/:employeeId`, `compliance`, `policies`, `analytics`, `communications`, `compensation`, `wellbeing`, `workflows` | Each dispatches on `mode` internally                             |
-| **Ungated — real content**      | `knowledge`, `knowledge/:slug`, `settings`, `support/*`, `documents/studio`, `documents/templates/:tid`, `documents/generate/:templateId`                                            | Template catalogue and reference guides are real product content |
-| **Still gated via `gated()`**   | `documents` (index/repository), `documents/hr-library`, `documents/sign/:envelopeId`, `documents/:docId`, `settings/memory/*`                                                        | Fixture-driven, show `ProductionEmptyState` in production        |
+On mobile the composer suppresses `autoFocus` below the 768px shell breakpoint (so the keyboard doesn't cover the setup path), and setup-card controls carry ≥44px touch targets.
 
-[src/app/appViews.tsx:71-166]()
+Sources: [src/features/app/views/home/setupPath.ts:34-99](), [src/features/app/workspaceMode/emptyWorkspaceOnboarding.ts:21-97](), [src/features/app/workspaceMode/api.ts:82-109](), [src/features/app/views/home/HomeProductionEmptyState.tsx](), [src/features/app/views/home/HomeSetupCard.tsx](), [src/features/app/views/home/HomeOrgProfileSetup.tsx](), [src/features/app/views/home/useHomeProductionStats.ts](), [supabase/migrations/0169_workspace_onboarding_prefs.sql](), [supabase/migrations/0170_workspace_prefs_members.sql](), [docs/EMPTY_WORKSPACE_ONBOARDING.md]()
 
-### Ungating Lifecycle
+## How Modules Went Production
 
-```mermaid
-stateDiagram-v2
-    state "gated(view)" as GATED
-    state "View dispatches\non mode internally" as INTERNAL
-    state "ModeGate wraps\nfixture view" as EMPTY
+The route table in `appViews.tsx` documents how fixture-only surfaces gained real persistence — the pattern that replaced the old route-level gate:
 
-    [*] --> GATED: "Module created\n(fixture-only)"
-    GATED --> EMPTY: "production mode"
-    GATED --> INTERNAL: "Migration adds table +\nproductionApi.ts created"
-    INTERNAL --> [*]: "Both modes\nfully supported"
+> Fixture-backed surfaces decide their production/demo behaviour within the view or its mode-aware dependencies. Home and Advisor have production variants; Knowledge, Settings, Document Studio, repository/detail, Advisor Memory, and Signing have real production-backed behaviour. The legacy hr-library gallery redirects to Document Studio in production via `HrLibraryRoute`.
 
-    note right of GATED
-        gated() in appViews.tsx
-    end note
-    note right of INTERNAL
-        View reads useWorkspaceMode()
-        and renders ProductionView
-        or fixture view
-    end note
-```
+[src/app/appViews.tsx:30-42]()
 
-The ungating process for a module follows these steps:
+**No module is gated today.** Every workspace route either renders real content in both modes (template catalogue, reference guides, workflows) or dispatches on mode internally to a production implementation — including the last holdouts: Documents repository/detail/signing and the Settings → Memory screens.
+
+[src/app/appViews.tsx:71-237]()
+
+The pattern for bringing a module to production remains:
 
 1. **Database migration** — add the org-scoped table with RLS policies (e.g. `0006` for employees, `0007` for cases)
 2. **Create `productionApi.ts`** — Zod-validated CRUD boundary file in the module's directory
 3. **Create production view** — e.g. `EmployeesProductionView`, reading `organizationId` from `useWorkspaceMode()`
 4. **Mode dispatch in parent view** — the main view checks `mode` and renders either the production or demo variant
-5. **Remove `gated()` wrapper** — in `appViews.tsx`, change from `gated(<View />)` to plain `<View />`
+5. **Empty-state primitives** — `ProductionEmptyState` / `ModuleEmptyBlock` where the org has no records yet
 6. **Add nav badge count** — optionally add a `countOpenXxx()` function and wire it into `useProductionNavBadges`
 
-Sources: [src/app/appViews.tsx:9-22](), [src/app/appViews.tsx:71-166](), [CONVENTIONS.md:17-38]()
+Sources: [src/app/appViews.tsx:30-42](), [src/app/appViews.tsx:71-237](), [CONVENTIONS.md:17-38]()
 
 ## Test Infrastructure
 

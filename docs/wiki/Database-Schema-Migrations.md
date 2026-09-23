@@ -47,7 +47,7 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-The Dutiva platform stores all workspace state in a single Supabase-managed PostgreSQL database. The full schema snapshot lives in `supabase/schema.sql`, while incremental changes are tracked by 119 numbered migration files under `supabase/migrations/` (sequence through `0119`) and 6 archived legacy migrations under `supabase/legacy-migrations/`. This page documents the schema design conventions, table taxonomy, key functions, RLS security model, migration lifecycle, and drift-detection tooling.
+The Dutiva platform stores all workspace state in a single Supabase-managed PostgreSQL database. The full schema snapshot lives in `supabase/schema.sql`, while incremental changes are tracked by 170 numbered migration files under `supabase/migrations/` (sequence through `0170`) and 6 archived legacy migrations under `supabase/legacy-migrations/`. This page documents the schema design conventions, table taxonomy, key functions, RLS security model, migration lifecycle, and drift-detection tooling.
 
 ## Schema Overview
 
@@ -164,7 +164,7 @@ The tables are organized into nine domains:
 | `organizations`         | Pre-repo      | Tenant entity with compliance profile                                        |
 | `organization_members`  | Pre-repo      | Join table: profile ↔ organization + role (owner/hr/manager/viewer/external) |
 | `user_roles`            | Pre-repo      | Global platform roles (admin)                                                |
-| `workspace_preferences` | 0005          | Per-workspace user settings                                                  |
+| `workspace_preferences` | 0005          | Per-workspace user settings (mode; `onboarding` marks jsonb added in 0169; member-writable since 0170) |
 
 **HR Records**
 
@@ -422,7 +422,7 @@ Sources: [supabase/migrations/0004_revoke_anon_execute_security_definer.sql:1-67
 
 ## Key Functions
 
-The schema defines ~136 functions. They fall into several categories:
+The schema defines 187+ functions/RPCs. They fall into several categories:
 
 ### Authorization Helpers
 
@@ -735,7 +735,7 @@ Carries CASL (Canada's Anti-Spam Legislation) consent evidence:
 - `consent_text text` — verbatim wording shown to the user, frozen at signup time
 - `consent_at timestamptz` — when consent was given
 
-The `beta_signup_intake` sibling table holds peppered IP hashes for rate limiting, decoupled from the actual signup data. The capacity check function `beta_cohort_remaining()` (migration 0067) enforces the 15-seat beta cohort limit.
+The `beta_signup_intake` sibling table holds peppered IP hashes for rate limiting, decoupled from the actual signup data. The capacity check function `beta_cohort_remaining()` (migration 0067) enforces the 5-seat beta cohort limit.
 
 Sources: [supabase/schema.sql:478-511](), [supabase/migrations/0055_beta_signups.sql:12-72](), [supabase/migrations/0037_beta_signups_consent_record.sql]()
 

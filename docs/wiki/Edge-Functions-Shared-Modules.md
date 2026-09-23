@@ -22,7 +22,7 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-This page covers the 24 Supabase Deno edge functions that comprise Dutiva's server-side logic, the 10 shared modules under `_shared/`, the `config.toml` JWT settings that control gateway authentication, and the Vault secrets management pattern.
+This page covers the 35 Supabase Deno edge functions that comprise Dutiva's server-side logic, the 16 shared modules under `_shared/`, the `config.toml` JWT settings that control gateway authentication, and the Vault secrets management pattern.
 
 ## Function Inventory by Authentication Mode
 
@@ -48,6 +48,13 @@ These functions handle their own authentication in-band (shared secrets, provide
 | `support-notify`               | Cron: outbox email sender (Resend)          | Shared secret / service key        |
 | `send-law-updates`             | Weekly law-change digest email              | Shared secret / service key        |
 | `record-score-snapshots`       | Daily/month-close compliance score job      | Service key exact match            |
+| `beta-cohort-status`           | Public read of cohort fill (spot counter)   | None — aggregate count only        |
+| `send-signing-invite`          | Dutiva Signature invite emails              | JWT org admin or `x-trigger-secret` + service key |
+| `signing-reminder-scheduler`   | Cron: stale signature-invite reminders      | Shared secret / service key        |
+| `notify-signing-status`        | Emails org admins on signed/declined envelopes | Trigger secret via `pg_net`     |
+| `policy-review-scheduler`      | Cron: flag overdue policies + admin digest  | Shared secret / service key        |
+| `integration-webhook`          | Inbound webhook ingest (integrations phase 2) | Provider signature verification |
+| `inbound-email`                | Resend `email.received` inbound ingest      | Svix HMAC signature verification   |
 
 Sources: [supabase/config.toml:25-72]()
 
@@ -69,6 +76,10 @@ These functions rely on the Supabase gateway to enforce a valid JWT, then perfor
 | `set-service-status`        | Update service status board                | `is_admin()`                          |
 | `create-checkout-session`   | Stripe checkout session creation           | Bearer JWT + paywall bypass check     |
 | `create-portal-session`     | Stripe billing portal session              | Bearer JWT + paywall bypass check     |
+| `create-advisor-pack-checkout` | One-time Stripe Checkout for Advisor reply packs | Bearer JWT + `auth.getUser()` |
+| `send-org-invite`           | Emails `organization_invitations` rows      | Bearer JWT + org admin role           |
+| `workspace-integration`     | Connect/test/disconnect `workspace_integrations` | Bearer JWT + `is_org_admin()`    |
+| `candidate-ai`              | Candidate-portal AI (résumé, cover letter, match) | Bearer JWT + `auth.getUser()`   |
 
 Sources: [supabase/functions/advisor-chat/index.ts:236-266](), [supabase/functions/advisor-safety-event/index.ts:63-88](), [supabase/functions/support-agent-action/index.ts:60-64](), [supabase/functions/record-export/index.ts:63-85](), [supabase/functions/export-audit-trail/index.ts:62-78](), [supabase/functions/set-service-status/index.ts:38-49](), [supabase/functions/create-checkout-session/index.ts:99-114](), [supabase/functions/support-confirm-call/index.ts:56-63]()
 
@@ -233,7 +244,20 @@ Cron-triggered functions use `verify_jwt = false` and authenticate the caller th
 
 ## Shared Server Modules (`_shared/`)
 
-The `supabase/functions/_shared/` directory contains 10 modules reused across multiple edge functions. They are deliberately free of `npm:@supabase/supabase-js` imports so they can be unit-tested under Vitest (which cannot resolve `npm:`/`jsr:` specifiers).
+The `supabase/functions/_shared/` directory contains 16 modules reused across multiple edge functions. They are deliberately free of `npm:@supabase/supabase-js` imports so they can be unit-tested under Vitest (which cannot resolve `npm:`/`jsr:` specifiers).
+
+The ten documented below (`aiUsage`, `exportGuard`, `lawUpdateRelevance`, `lawUpdateDigest`, `resendSend`, `caslConsent`, `scheduledCalls`, `supportAnalytics`, `googleCalendar`, `adminAccess`) carry the oldest logic. Six more modules arrived with later features:
+
+| Module                  | Purpose                                                                                      |
+| ----------------------- | -------------------------------------------------------------------------------------------- |
+| `modelUpstream.ts`      | Shared dispatch to OpenAI-compatible providers (`ai_model_routes`), incl. local/LAN upstreams |
+| `advisorOverageMeter.ts`| Best-effort Stripe Billing meter event for overage Advisor replies                            |
+| `stripeSecret.ts`       | Sanitizes Stripe secret keys pasted into dashboards (ByteString-safe; accepts `rk_` keys)     |
+| `signingInvite.ts`      | Dutiva Signature invite send helpers shared by `send-signing-invite` and the reminder cron    |
+| `signingStatusEmail.ts` | EN/FR signing-status email renderer (mirror of the client-side copy)                          |
+| `database.types.ts`     | Generated Supabase types copy for edge functions — regenerated by `npm run db:types`          |
+
+Sources: [supabase/functions/_shared/modelUpstream.ts](), [supabase/functions/_shared/advisorOverageMeter.ts](), [supabase/functions/_shared/stripeSecret.ts](), [supabase/functions/_shared/signingInvite.ts](), [supabase/functions/_shared/signingStatusEmail.ts]()
 
 ### `aiUsage.ts` — AI Usage Metering (Claim/Finalize Pattern)
 

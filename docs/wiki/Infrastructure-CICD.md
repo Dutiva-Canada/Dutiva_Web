@@ -144,7 +144,7 @@ flowchart LR
 
     subgraph SupabaseProject["Supabase (ca-central-1)"]
         direction TB
-        DB["Postgres\n(124 tables, 218 RLS policies)"]
+        DB["Postgres\n(244 tables, 610 RLS policies)"]
         Auth["GoTrue Auth\n(magic-link OTP)"]
         EdgeFns["24 Edge Functions"]
         Vault["Vault Secrets"]

@@ -73,6 +73,67 @@ export const HELP_SECTIONS: Record<string, readonly HelpSection[]> = {
       ],
     },
   ],
+  'your-empty-workspace': [
+    {
+      blocks: [
+        p(
+          'A new production workspace has no employees, cases, or documents in it — that’s the point. Nothing you see is sample data, and there’s nothing to clean up. When you don’t know where to begin, Home lists the first moves in order.',
+          'Un nouvel espace de production ne contient ni employés, ni dossiers, ni documents — c’est voulu. Rien de ce que vous voyez n’est une donnée d’exemple, et il n’y a rien à nettoyer. Quand vous ne savez pas par où commencer, Accueil liste les premières actions dans l’ordre.',
+        ),
+      ],
+    },
+    {
+      heading: bi('The setup path', 'Le parcours de configuration'),
+      blocks: [
+        li(
+          'Confirm your company profile — your province and city tell Dutiva where you operate, which scopes what it monitors and the templates it suggests. Until it’s done you can fill it in right on Home; afterwards it lives in Settings.',
+          'Confirmez le profil de votre entreprise — votre province et votre ville indiquent où vous opérez, ce qui détermine ce que Dutiva surveille et les modèles suggérés. Tant que ce n’est pas fait, vous pouvez le remplir directement sur Accueil; ensuite, ça se gère dans Paramètres.',
+        ),
+        li(
+          'Prepare first-hire documents — open Document Studio and draft from a template, even before you’ve hired anyone.',
+          'Préparez les documents de première embauche — ouvrez le Studio de documents et rédigez une ébauche à partir d’un modèle, même avant d’avoir embauché.',
+        ),
+        li(
+          'Start your policy register — add a written policy, or note a gap to come back to.',
+          'Commencez votre registre de politiques — ajoutez une politique rédigée ou notez une lacune à revoir.',
+        ),
+        li(
+          'See how a guided process works — open Workflows and walk through a flow before you need it.',
+          'Découvrez un processus guidé — ouvrez Processus et parcourez un flux avant d’en avoir besoin.',
+        ),
+        li(
+          'Add your first person — whenever you’re ready. Solo for now is a normal state; this step waits.',
+          'Ajoutez votre première personne — quand vous êtes prêt. Être solo pour l’instant est normal; cette étape attend.',
+        ),
+      ],
+    },
+    {
+      heading: bi('Once something exists', 'Quand quelque chose existe'),
+      blocks: [
+        p(
+          'The path doesn’t vanish after your first record. A “Finish setting up” card stays on Home with the remaining steps until setup is done — or until you hide it.',
+          'Le parcours ne disparaît pas après votre premier enregistrement. Une carte « Terminez la configuration » reste sur Accueil avec les étapes restantes, jusqu’à ce que la configuration soit terminée — ou jusqu’à ce que vous la masquiez.',
+        ),
+        p(
+          '“Add the remaining steps to Tasks” writes the open steps as real tasks — no invented due dates, just the plan in the same list as the rest of your work.',
+          '« Ajouter les étapes restantes aux tâches » inscrit les étapes ouvertes comme de vraies tâches — aucune date d’échéance inventée, juste le plan dans la même liste que le reste de votre travail.',
+        ),
+      ],
+    },
+    {
+      heading: bi('If you don’t know what to ask', 'Si vous ne savez pas quoi demander'),
+      blocks: [
+        p(
+          'Two suggestion chips under the composer on Home send a starter question to the Advisor — for example, what to set up first when you’re on your own. It’s a way in, not a script.',
+          'Deux suggestions sous le champ de rédaction sur Accueil envoient une question de départ au Conseiller — par exemple, quoi configurer en premier quand on est seul. C’est un point d’entrée, pas un script.',
+        ),
+        p(
+          'Steps check themselves off from real records — there’s nothing to tick by hand. Start with the first one; the rest will still be there.',
+          'Les étapes se cochent d’elles-mêmes à partir de vrais enregistrements — rien à cocher à la main. Commencez par la première; les autres seront toujours là.',
+        ),
+      ],
+    },
+  ],
   'generate-a-document': [
     {
       blocks: [

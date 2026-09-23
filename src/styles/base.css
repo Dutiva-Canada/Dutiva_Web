@@ -118,3 +118,16 @@ iframe.gtm-ns {
     --control-height: 40px;
   }
 }
+
+/* iOS Safari zooms the page toward any focused form control under 16px —
+   it treats small text as illegible while editing. Inputs sit at 13–15px by
+   design on desktop, so under the shell's 768px mobile breakpoint they get
+   the 16px floor instead. 16px is the browser's behavioural threshold, not
+   a design token, hence the literal value. */
+@media (max-width: 767px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}

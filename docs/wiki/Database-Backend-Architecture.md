@@ -18,7 +18,7 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-Dutiva's backend is a **Supabase** project (project id `khtwpxnvziiyplaflwru`) comprising a PostgreSQL database with 124 tables, 218 RLS policies, 136 functions, and 24 Deno edge functions. The browser connects through a nullable `supabase` client that returns `null` when env vars are missing — the "configured or inert" pattern — so the entire workspace gracefully degrades to demo fixtures when unconfigured.
+Dutiva's backend is a **Supabase** project (project id `khtwpxnvziiyplaflwru`) comprising a PostgreSQL database with 244 tables, 610 RLS policies, 187+ functions/RPCs, and 35 Deno edge functions. The browser connects through a nullable `supabase` client that returns `null` when env vars are missing — the "configured or inert" pattern — so the entire workspace gracefully degrades to demo fixtures when unconfigured.
 
 [src/lib/supabaseClient.ts:1-17]()
 
@@ -28,8 +28,8 @@ Dutiva's backend is a **Supabase** project (project id `khtwpxnvziiyplaflwru`) c
 graph TD
     Browser["Browser (supabaseClient.ts)"]
     PostgREST["PostgREST / Realtime"]
-    EdgeFunctions["24 Edge Functions (Deno)"]
-    Postgres["PostgreSQL (124 tables, 218 RLS policies)"]
+    EdgeFunctions["35 Edge Functions (Deno)"]
+    Postgres["PostgreSQL (244 tables, 610 RLS policies)"]
     Vault["supabase_vault (secrets)"]
     PgCron["pg_cron + pg_net"]
     Stripe["Stripe API"]
@@ -58,7 +58,7 @@ Sources: [supabase/config.toml:1-73](), [src/lib/supabaseClient.ts:12-16](), [su
 
 ## Database Schema
 
-The full schema lives in `supabase/schema.sql` — a 124-table PostgreSQL database using a **multi-tenant** design where most workspace tables carry an `organization_id` FK. Tables use CHECK constraints for enum-like columns (status, priority, category), UTC timestamps via `timezone('utc', now())`, and `metadata jsonb` columns for extensibility.
+The full schema lives in `supabase/schema.sql` — a 244-table PostgreSQL database using a **multi-tenant** design where most workspace tables carry an `organization_id` FK. Tables use CHECK constraints for enum-like columns (status, priority, category), UTC timestamps via `timezone('utc', now())`, and `metadata jsonb` columns for extensibility.
 
 Key PostgreSQL extensions enable the backend's capabilities:
 
@@ -73,13 +73,13 @@ Key PostgreSQL extensions enable the backend's capabilities:
 
 Three authorization helpers — `is_admin()`, `is_org_member()`, and `is_org_admin()` — underpin RLS policies across 71, 46, and 13 tables respectively. These are `SECURITY DEFINER` functions granted to the `authenticated` role (migration `0050`) so that signed-in users can read their own data.
 
-For details on the 124-table schema, multi-tenant design, key tables, 75+ migrations, and the 218 RLS policies, see [Database Schema & Migrations](#9.1).
+For details on the 244-table schema, multi-tenant design, key tables, 170 migrations, and the 610 RLS policies, see [Database Schema & Migrations](#9.1).
 
 Sources: [supabase/schema.sql:16-83](), [supabase/migrations/0050_grant_rls_predicate_helpers_to_authenticated.sql:1-48](), [supabase/migrations/0053_rls_grant_gaps_check.sql:1-76]()
 
 ## Edge Functions & Shared Modules
 
-The 24 edge functions are Deno TypeScript handlers under `supabase/functions/`. They split into two authentication modes controlled by `supabase/config.toml`:
+The 35 edge functions are Deno TypeScript handlers under `supabase/functions/`. They split into two authentication modes controlled by `supabase/config.toml`:
 
 **Edge function authentication map**
 

@@ -18,7 +18,7 @@ The following files were used as context for generating this wiki page:
 - [src/features/marketing/pages/NotFoundPage.test.tsx](src/features/marketing/pages/NotFoundPage.test.tsx)
 - [src/features/marketing/pages/NotFoundPage.tsx](src/features/marketing/pages/NotFoundPage.tsx)
 - [src/features/marketing/sections/Footer.tsx](src/features/marketing/sections/Footer.tsx)
-- [src/features/marketing/sections/Product.tsx](src/features/marketing/sections/Product.tsx)
+- [src/features/marketing/sections/WorkspaceModuleDemos.tsx](src/features/marketing/sections/WorkspaceModuleDemos.tsx)
 - [src/seo/routes.ts](src/seo/routes.ts)
 - [src/seo/seo.test.ts](src/seo/seo.test.ts)
 
@@ -100,7 +100,7 @@ Each locale tree is wrapped in a `PublicShell` that provides `ForcedLangProvider
 
 [src/app/routes.tsx:50-63]()
 
-The 14 static `SeoRouteId` values are: `home`, `about`, `faq`, `blog`, `pricing`, `templates`, `guides`, `templateUsage`, `knownLimitations`, `legal`, `help`, `contact`, `status`, `jurisdictionTool`.
+The 19 static `SeoRouteId` values are: `home`, `about`, `faq`, `blog`, `pricing`, `templates`, `guides`, `templateUsage`, `knownLimitations`, `legal`, `help`, `contact`, `status`, `changelog`, `vsHrdownloads`, `vsSixfifty`, `jurisdictionTool`, `demoWorkspace`, `careers`.
 
 [src/seo/routes.ts:29-43]()
 
@@ -132,8 +132,8 @@ The `Workspace` export wraps `AppShell` inside `RequireAdminSession`, which boun
 graph LR
     Entry["Entry chunk (eager)"] --> Router["routes.tsx"]
     Router --> AppViewsFile["appViews.tsx"]
-    AppViewsFile --> MGate["ModeGate.tsx"]
-    MGate --> NavLabels["navLabels.ts"]
+    AppViewsFile --> ProdEmpty["ProductionEmptyState.tsx"]
+    ProdEmpty --> NavLabels["navLabels.ts"]
 
     Router -->|"lazy()"| MktChunk["Marketing chunk"]
     MktChunk --> LP["LandingPage"]
@@ -204,7 +204,7 @@ The `vite.config.ts` configures `codeSplitting.groups` to control chunk boundari
 | `messages-workspace` | All other i18n modules (29 feature modules)                          | Lazy — only `/app` surface needs them    |
 | `vendor`             | Third-party deps excluding `@supabase`, markdown tree, recharts tree | Shared vendor chunk with long cache life |
 
-The `messages-workspace` group uses `includeDependenciesRecursively: false` to prevent `shell.ts` and `workspaceMode.ts` from being dragged into the workspace message chunk (they belong in the eager graph as dependencies of `ModeGate`).
+The `messages-workspace` group uses `includeDependenciesRecursively: false` to prevent `shell.ts` and `workspaceMode.ts` from being dragged into the workspace message chunk (they belong in the eager graph as dependencies of the allowlisted workspace-mode modules).
 
 [vite.config.ts:171-252]()
 
@@ -251,68 +251,23 @@ The `appViewRoutes` array in `appViews.tsx` defines all child routes rendered in
 
 [src/app/appViews.tsx:71-237]()
 
-## `gated()` Wrapper and `ModeGate`
+## Per-View Mode Dispatch and Empty States
 
-The `gated()` function wraps a fixture-driven view in `ModeGate`:
+Each workspace module ships a demo view and a `*ProductionView` — the route table points at a single entry that dispatches on `useWorkspaceMode().mode` internally. There is no route-level gate anymore; the earlier `gated()`/`ModeGate` wrapper has been removed from `appViews.tsx`.
 
-```typescript
-function gated(view: ReactNode) {
-  return <ModeGate>{view}</ModeGate>
-}
-```
+When a production workspace has no data yet, views render shared empty-state primitives — `ProductionEmptyState` (module-level empty card) and `ModuleEmptyBlock` (in-view empty block) — rather than fixture content:
 
-[src/app/appViews.tsx:23-25]()
+[src/features/app/workspaceMode/ProductionEmptyState.tsx](), [src/features/app/workspaceMode/ModuleEmptyBlock.tsx]()
 
-`ModeGate` reads the current workspace mode from `useWorkspaceMode()`. In **demo** mode, it renders the child view unchanged. In **production** mode, it renders `ProductionEmptyState` — a shared placeholder that shows the module name and links to Settings where the toggle lives.
-
-[src/features/app/workspaceMode/ModeGate.tsx:20-29]()
-
-The module title is resolved via `moduleLabelFor(pathname)`, which maps the first `/app/<segment>` to a `Bi` label from `VIEW_LABELS`:
+The module title for empty states is resolved via `moduleLabelFor(pathname)`, which maps the first `/app/<segment>` to a `Bi` label from `VIEW_LABELS`:
 
 [src/features/app/shell/navLabels.ts:59-64]()
 
-`ProductionEmptyState` displays an empty-state card explaining "Why is this empty?" and links to `/app/settings`:
+No routes are gated anymore — every module handles both modes. Document Studio, repository/detail, Advisor Memory, and Signing all have real production-backed behaviour; the legacy hr-library gallery redirects to Document Studio in production via `HrLibraryRoute`. Communications, Compensation, and Wellbeing dispatch on workspace mode internally (migrations 0039–0041).
 
-[src/features/app/workspaceMode/ProductionEmptyState.tsx:13-47]()
+[src/app/appViews.tsx:30-42]()
 
-### Gating Lifecycle
-
-**Diagram: how a view transitions from gated to ungated:**
-
-```mermaid
-stateDiagram-v2
-    state "gated(view) in appViews.tsx" as Gated
-    state "ModeGate checks useWorkspaceMode()" as Check
-    state "Demo mode: render view as-is" as Demo
-    state "Production mode: ProductionEmptyState" as ProdEmpty
-    state "View handles both modes itself" as Ungated
-
-    Gated --> Check
-    Check --> Demo: "mode === 'demo'"
-    Check --> ProdEmpty: "mode === 'production'"
-
-    note right of Ungated
-        Remove gated() wrapper when module
-        gains real Supabase persistence.
-        View dispatches on mode internally.
-    end note
-```
-
-Currently gated views (wrapped in `gated()`) are limited to nested children of `DocumentsLayout` and `SettingsLayout`:
-
-- `RepositoryScreen` (documents index)
-- `TemplatesView` (HR library tab)
-- `SigningScreen`
-- `DocumentDetailScreen`
-- `MemoryLayout` (under settings/memory)
-
-[src/app/appViews.tsx:156-164](), [src/app/appViews.tsx:142-149]()
-
-Views that were previously gated but now handle both modes themselves include `CommunicationsView`, `CompensationView`, and `WellbeingView` (ungated via migrations 0039–0041).
-
-[src/app/appViews.tsx:111-118]()
-
-Sources: [src/app/appViews.tsx:9-22](), [src/features/app/workspaceMode/ModeGate.tsx:1-29]()
+Sources: [src/app/appViews.tsx:9-22](), [src/features/app/workspaceMode/ProductionEmptyState.tsx](), [src/features/app/workspaceMode/ModuleEmptyBlock.tsx]()
 
 ## Nested Layouts
 
@@ -430,7 +385,7 @@ The English locale uses unprefixed paths (`/about`), while French uses `/fr` wit
 
 [src/seo/routes.ts:376-382]()
 
-Beyond the 14 static routes, the registry also generates pages for 26 legal policy documents, help centre articles, and editorial articles (blog + guides) via `allPublicPages()`:
+Beyond the 19 static routes, the registry also generates pages for 26 legal policy documents, help centre articles, and editorial articles (blog + guides) via `allPublicPages()`:
 
 [src/seo/routes.ts:319-369]()
 
