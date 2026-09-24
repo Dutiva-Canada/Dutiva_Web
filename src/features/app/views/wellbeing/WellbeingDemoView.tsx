@@ -91,7 +91,7 @@ export function WellbeingDemoView() {
                       state: { tab: 'wellbeing' },
                     })
                   }
-                  className="cursor-pointer rounded-[8px] border border-border bg-surface px-[12px] py-[6px] font-sans text-[12px] font-semibold text-text"
+                  className="cursor-pointer rounded-[8px] border border-border bg-surface px-[12px] py-[8px] font-sans text-[12px] font-semibold text-text"
                 >
                   {x(M.wellbeing_open_profile)}
                 </button>
@@ -99,7 +99,7 @@ export function WellbeingDemoView() {
               <button
                 type="button"
                 onClick={() => draftCheckIn(signal.employeeId)}
-                className="cursor-pointer rounded-[8px] border-none bg-accent-soft px-[12px] py-[6px] font-sans text-[12px] font-semibold text-accent"
+                className="cursor-pointer rounded-[8px] border-none bg-accent-soft px-[12px] py-[8px] font-sans text-[12px] font-semibold text-accent"
               >
                 {x(M.wellbeing_draft_checkin)}
               </button>

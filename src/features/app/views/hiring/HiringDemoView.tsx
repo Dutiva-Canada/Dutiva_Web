@@ -42,14 +42,14 @@ export function HiringDemoView() {
   const openCandidate = (candidateId: string) => navigate(`/app/hiring/candidates/${candidateId}`)
 
   const tabClass = (tab: typeof activeTab) =>
-    `cursor-pointer rounded-[8px] border-none px-[14px] py-[7px] font-sans text-[12.5px] font-semibold ${
+    `shrink-0 cursor-pointer rounded-[8px] border-none px-[14px] py-[7px] font-sans text-[12.5px] font-semibold whitespace-nowrap ${
       activeTab === tab
         ? 'bg-surface text-text shadow-(--shadow-sm)'
         : 'bg-transparent text-text-muted'
     }`
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
+    <div className="flex-1 overflow-y-auto px-[14px] pt-[22px] pb-[80px] sm:px-[32px] sm:pt-[28px] sm:pb-[60px]">
       <div className="mx-auto max-w-[1000px]">
         {/* Header */}
         <div className="mb-[18px] flex flex-wrap items-center justify-between gap-[16px]">
@@ -62,7 +62,7 @@ export function HiringDemoView() {
           <div
             role="tablist"
             aria-label="Hiring sections"
-            className="inline-flex gap-[2px] rounded-[10px] border border-border bg-inset p-[3px]"
+            className="inline-flex max-w-full gap-[2px] overflow-x-auto rounded-[10px] border border-border bg-inset p-[3px]"
           >
             <button
               type="button"
@@ -106,13 +106,13 @@ export function HiringDemoView() {
         {/* Candidates Tab */}
         {activeTab === 'candidates' && (
           <>
-            <div className="mb-[18px] flex items-center justify-between gap-[12px]">
+            <div className="mb-[18px] flex flex-wrap items-center justify-between gap-[12px]">
               <input
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 placeholder={x(M.hiring_candidates_filter_placeholder)}
                 aria-label={x(M.hiring_candidates_filter_placeholder)}
-                className="min-w-[280px] rounded-[9px] border border-border bg-surface px-[14px] py-[9px] font-sans text-[13.5px] text-text"
+                className="min-w-[280px] max-w-full flex-1 rounded-[9px] border border-border bg-surface px-[14px] py-[9px] font-sans text-[13.5px] text-text"
               />
               <div className="text-[13px] text-text-muted">
                 {x(M.hiring_candidates_showing)} {filteredCandidates.length}{' '}

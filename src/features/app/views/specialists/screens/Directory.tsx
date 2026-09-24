@@ -112,7 +112,7 @@ function SpecialistRow({
         <button
           type="button"
           onClick={() => onEdit(specialist)}
-          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+          className="relative rounded-[6px] p-[4px] text-text-muted after:absolute after:inset-[-10px] after:content-[''] hover:bg-inset hover:text-text"
           aria-label={x(M.spec_edit)}
         >
           <Pencil size={14} />
@@ -120,7 +120,7 @@ function SpecialistRow({
         <button
           type="button"
           onClick={() => onRemove(specialist.id)}
-          className="rounded-[6px] p-[4px] text-text-muted hover:bg-inset hover:text-text"
+          className="relative rounded-[6px] p-[4px] text-text-muted after:absolute after:inset-[-10px] after:content-[''] hover:bg-inset hover:text-text"
           aria-label={x(M.spec_remove)}
         >
           {x(M.spec_remove)}
