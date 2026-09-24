@@ -23,7 +23,7 @@ const CONTACT_TYPES: CommsContactType[] = [
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="min-w-0 flex-1 rounded-[10px] border border-border-soft bg-surface-2 px-[12px] py-[10px]">
+    <div className="min-w-[110px] flex-1 rounded-[10px] border border-border-soft bg-surface-2 px-[12px] py-[10px]">
       <div className="font-display text-[22px] font-bold text-text">{value}</div>
       <div className="mt-[2px] text-[11.5px] text-text-muted">{label}</div>
     </div>

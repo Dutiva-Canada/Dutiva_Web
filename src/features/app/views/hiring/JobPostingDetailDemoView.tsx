@@ -20,7 +20,7 @@ export function JobPostingDetailDemoView() {
   const posting = demoJobPostings.find((p) => p.id === postingId)
   if (!posting) {
     return (
-      <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
+      <div className="flex-1 overflow-y-auto px-[14px] pt-[22px] pb-[80px] sm:px-[32px] sm:pt-[28px] sm:pb-[60px]">
         <div className="mx-auto max-w-[800px] rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
           <div className="text-[14.5px] font-semibold text-text">
             {x(M.hiring_posting_not_found)}
@@ -31,7 +31,7 @@ export function JobPostingDetailDemoView() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
+    <div className="flex-1 overflow-y-auto px-[14px] pt-[22px] pb-[80px] sm:px-[32px] sm:pt-[28px] sm:pb-[60px]">
       <div className="mx-auto max-w-[900px]">
         <Link
           to={{ pathname: workspacePath(root, 'hiring'), search: '?tab=postings' }}

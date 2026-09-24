@@ -36,7 +36,7 @@ export function CandidateDetailDemoView() {
   const candidate = demoCandidates.find((c) => c.id === candidateId)
   if (!candidate) {
     return (
-      <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
+      <div className="flex-1 overflow-y-auto px-[14px] pt-[22px] pb-[80px] sm:px-[32px] sm:pt-[28px] sm:pb-[60px]">
         <div className="mx-auto max-w-[800px] rounded-[12px] border border-border bg-surface px-[20px] py-[56px] text-center">
           <div className="text-[14.5px] font-semibold text-text">
             {x(M.hiring_candidate_not_found)}
@@ -52,14 +52,14 @@ export function CandidateDetailDemoView() {
   const scores = demoAuthenticityScores.find((s) => s.candidateId === candidateId)
 
   const tabClass = (tab: typeof activeTab) =>
-    `cursor-pointer rounded-[8px] border-none px-[14px] py-[7px] font-sans text-[12.5px] font-semibold ${
+    `shrink-0 cursor-pointer rounded-[8px] border-none px-[14px] py-[7px] font-sans text-[12.5px] font-semibold whitespace-nowrap ${
       activeTab === tab
         ? 'bg-surface text-text shadow-(--shadow-sm)'
         : 'bg-transparent text-text-muted'
     }`
 
   return (
-    <div className="flex-1 overflow-y-auto px-[32px] pt-[28px] pb-[60px]">
+    <div className="flex-1 overflow-y-auto px-[14px] pt-[22px] pb-[80px] sm:px-[32px] sm:pt-[28px] sm:pb-[60px]">
       <div className="mx-auto max-w-[900px]">
         {/* Header */}
         <div className="mb-[18px] flex items-center gap-[12px]">
@@ -82,7 +82,7 @@ export function CandidateDetailDemoView() {
         <div
           role="tablist"
           aria-label="Candidate sections"
-          className="mb-[20px] inline-flex gap-[2px] rounded-[10px] border border-border bg-inset p-[3px]"
+          className="mb-[20px] inline-flex max-w-full gap-[2px] overflow-x-auto rounded-[10px] border border-border bg-inset p-[3px]"
         >
           <button
             type="button"
