@@ -33,8 +33,10 @@ function ControlLabel({
 }
 
 /**
- * Compact applicability summary — one line of profile facts, Edit / Why,
- * and an optional inline editor. Does not duplicate badges + fields at once.
+ * Applicability summary — a one-line pill on phones (the profile rarely
+ * changes, so it shouldn't own a card's worth of screen), the fuller
+ * bordered card from sm up where there's room for icon + title + buttons.
+ * Both variants expand the same Why explainer and inline editor.
  */
 export function ApplicabilitySummary({
   org,
@@ -65,13 +67,55 @@ export function ApplicabilitySummary({
         .join(' · ')
     : t('doclib_profile_incomplete')
 
+  const summaryLineShort = complete
+    ? [
+        juris ? x(juris.name) : null,
+        `${org.headcount} ${t(org.headcount === 1 ? 'doclib_profile_employee' : 'doclib_profile_employees')}`,
+        summary.sectorName ? x(summary.sectorName) : null,
+      ]
+        .filter(Boolean)
+        .join(' · ')
+    : t('doclib_profile_incomplete')
+
+  const collapsed = !editing && !whyOpen
+
   return (
     <section
       aria-label={t('doclib_profile_title')}
-      className="mb-4 rounded-[12px] border border-border bg-surface px-[14px] py-[12px] max-[640px]:px-[10px]"
+      className={`mb-4 border border-border bg-surface ${
+        collapsed
+          ? 'rounded-[12px] px-[14px] py-[12px] max-[640px]:mx-auto max-[640px]:w-fit max-[640px]:max-w-full max-[640px]:rounded-full max-[640px]:py-1.5 max-[640px]:pr-1.5 max-[640px]:pl-3.5'
+          : 'rounded-[12px] px-[14px] py-[12px] max-[640px]:px-[10px]'
+      }`}
     >
-      <div className="flex flex-wrap items-center gap-3 max-[640px]:items-start">
-        <div className="flex min-w-0 flex-1 items-start gap-3 max-[640px]:w-full">
+      {/* Pill content — phones only. */}
+      <div className="flex min-w-0 items-center gap-1 sm:hidden">
+        <p className="min-w-0 flex-1 truncate text-center text-[12px] font-medium text-text-muted">
+          {summaryLineShort}
+        </p>
+        <button
+          type="button"
+          aria-expanded={whyOpen}
+          aria-controls={whyId}
+          aria-label={t('doclib_profile_why')}
+          onClick={() => setWhyOpen((v) => !v)}
+          className="flex min-h-[32px] min-w-[32px] shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent text-text-faint hover:bg-inset hover:text-text"
+        >
+          <CircleHelp size={15} strokeWidth={1.9} aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          aria-expanded={editing}
+          onClick={() => setEditing((v) => !v)}
+          className="min-h-[32px] shrink-0 cursor-pointer rounded-full border-none bg-transparent px-1.5 text-[12px] font-semibold text-navy underline underline-offset-2"
+        >
+          {t('doclib_profile_editShort')}
+        </button>
+      </div>
+
+      {/* Card content — sm and up. */}
+      <div className="hidden flex-wrap items-center gap-3 sm:flex">
+        <div className="flex min-w-0 flex-1 items-start gap-3">
           <span className="grid h-[30px] w-[30px] shrink-0 place-items-center rounded-[8px] bg-navy text-gold-on-navy">
             <Building2 size={15} strokeWidth={1.8} aria-hidden="true" />
           </span>
@@ -86,7 +130,7 @@ export function ApplicabilitySummary({
             )}
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2 max-[640px]:w-full max-[640px]:justify-end">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             aria-expanded={whyOpen}

@@ -80,6 +80,14 @@
     opacity: 1;
   }
 }
+@keyframes slideUpSheet {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
 
 .pulse-dot-delay-0 {
   animation-delay: 0s;

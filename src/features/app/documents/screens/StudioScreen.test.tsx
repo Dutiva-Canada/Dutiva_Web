@@ -50,24 +50,26 @@ describe('StudioScreen', () => {
 
     expect(
       await screen.findByRole('heading', {
-        name: 'Recommended templates for your organization',
+        name: 'Recommended for your organization',
       }),
     ).toBeInTheDocument()
 
-    expect(await screen.findByText('Offer of employment letter')).toBeInTheDocument()
-    expect(screen.getByText('Confidentiality agreement')).toBeInTheDocument()
     const listbox = screen.getByRole('listbox', { name: 'Templates' })
+    expect(within(listbox).getByText('Offer of employment letter')).toBeInTheDocument()
+    expect(within(listbox).getByText('Confidentiality agreement')).toBeInTheDocument()
     expect(within(listbox).getAllByRole('option')).toHaveLength(CATALOGUE_SIZE)
     expect(screen.getByText(`${CATALOGUE_SIZE} templates found`)).toBeInTheDocument()
   })
 
   it('exposes labelled filters and narrows results by search', async () => {
     renderStudio()
-    await screen.findByText('Offer of employment letter')
+    await screen.findByRole('listbox', { name: 'Templates' })
 
-    expect(screen.getByLabelText('Category')).toBeInTheDocument()
-    expect(screen.getByLabelText('Jurisdiction')).toBeInTheDocument()
-    expect(screen.getByLabelText('Review level')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Filters' }))
+    expect(screen.getByRole('radiogroup', { name: 'Category' })).toBeInTheDocument()
+    expect(screen.getByRole('radiogroup', { name: 'Jurisdiction' })).toBeInTheDocument()
+    expect(screen.getByRole('radiogroup', { name: 'Review level' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /^Show results/ }))
 
     fireEvent.change(screen.getByLabelText('Search templates…'), {
       target: { value: 'offer' },
@@ -87,7 +89,7 @@ describe('StudioScreen', () => {
 
   it('maps review level and opens Advisor with safe template context', async () => {
     renderStudio()
-    await screen.findByText('Offer of employment letter')
+    await within(await screen.findByRole('listbox', { name: 'Templates' })).findByText('Offer of employment letter')
 
     fireEvent.click(
       within(screen.getByRole('listbox')).getByRole('option', {
@@ -105,7 +107,7 @@ describe('StudioScreen', () => {
 
   it('updates the detail panel when a template is selected', async () => {
     renderStudio()
-    await screen.findByText('Offer of employment letter')
+    await within(await screen.findByRole('listbox', { name: 'Templates' })).findByText('Offer of employment letter')
 
     fireEvent.click(
       within(screen.getByRole('listbox')).getByRole('option', {
@@ -129,7 +131,7 @@ describe('StudioScreen', () => {
 
   it('reselects deterministically when filters remove the current template', async () => {
     renderStudio()
-    await screen.findByText('Offer of employment letter')
+    await within(await screen.findByRole('listbox', { name: 'Templates' })).findByText('Offer of employment letter')
 
     fireEvent.click(
       within(screen.getByRole('listbox')).getByRole('option', {
@@ -138,7 +140,8 @@ describe('StudioScreen', () => {
     )
     await screen.findByRole('article', { name: /Confidentiality agreement/i })
 
-    fireEvent.change(screen.getByLabelText('Category'), { target: { value: 'hiring' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Filters' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Hiring & onboarding' }))
 
     const options = within(screen.getByRole('listbox')).getAllByRole('option')
     expect(options.length).toBeGreaterThan(0)
@@ -152,7 +155,7 @@ describe('StudioScreen', () => {
 
   it('shows Required in the detail panel only when the size trigger fires', async () => {
     renderStudio()
-    await screen.findByText('Group termination notice')
+    await within(await screen.findByRole('listbox', { name: 'Templates' })).findByText('Group termination notice')
 
     fireEvent.click(
       within(screen.getByRole('listbox')).getByRole('option', {

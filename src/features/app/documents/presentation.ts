@@ -14,9 +14,11 @@ import type {
   DocChipTone,
   DocRiskLevel,
   DocTemplate,
+  GeneratedDoc,
   Jurisdiction,
   OrgProfile,
   RiskLevelInfo,
+  TemplateCategory,
 } from './data'
 
 export type ReviewLevelId = DocRiskLevel
@@ -226,4 +228,47 @@ export function filterTemplates(
     }
     return true
   })
+}
+
+export interface TemplateCategoryGroup {
+  category: TemplateCategory | null
+  templates: DocTemplate[]
+}
+
+/**
+ * Bucket templates under their category in lifecycle order — the
+ * "browse by need" grouping for the unfiltered catalogue. Categories
+ * with no matching templates are omitted entirely.
+ */
+export function groupTemplatesByCategory(
+  templates: readonly DocTemplate[],
+  categories: readonly TemplateCategory[],
+): TemplateCategoryGroup[] {
+  const ordered = [...categories].sort((a, b) => a.order - b.order)
+  const groups: TemplateCategoryGroup[] = []
+  const uncategorized: DocTemplate[] = []
+  for (const cat of ordered) {
+    const members = templates.filter((tpl) => tpl.category === cat.id)
+    if (members.length > 0) groups.push({ category: cat, templates: members })
+  }
+  for (const tpl of templates) {
+    if (!ordered.some((cat) => cat.id === tpl.category)) uncategorized.push(tpl)
+  }
+  if (uncategorized.length > 0) groups.push({ category: null, templates: uncategorized })
+  return groups
+}
+
+/** Statuses that mean "started, not finished" for the Continue-drafting rail. */
+const DRAFTING_STATUSES: ReadonlySet<GeneratedDoc['status']> = new Set([
+  'draft',
+  'in_review',
+  'needs_revision',
+])
+
+/** In-progress documents for the Studio "Continue drafting" rail, newest first. */
+export function draftingDocuments(documents: readonly GeneratedDoc[]): GeneratedDoc[] {
+  return documents
+    .filter((doc) => DRAFTING_STATUSES.has(doc.status) && !doc.archived)
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    .slice(0, 4)
 }
