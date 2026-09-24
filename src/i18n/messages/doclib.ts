@@ -52,6 +52,22 @@ export const doclibMessages = defineMessages({
   doclib_studio_results: { en: 'templates found', fr: 'modèles trouvés' },
   doclib_studio_result: { en: 'template found', fr: 'modèle trouvé' },
   doclib_studio_catalogue: { en: 'Templates', fr: 'Modèles' },
+  doclib_studio_recommendedFor: {
+    en: 'Recommended for your organization',
+    fr: 'Recommandés pour votre organisation', // [FR self-authored]
+  },
+  doclib_studio_browseNeed: { en: 'Browse by need', fr: 'Parcourir par besoin' }, // [FR self-authored]
+  doclib_studio_continueDrafting: {
+    en: 'Continue drafting',
+    fr: 'Continuer la rédaction', // [FR self-authored]
+  },
+  doclib_studio_preview: { en: 'Preview', fr: 'Aperçu' }, // [FR self-authored]
+  doclib_studio_useTemplate: { en: 'Use template', fr: 'Utiliser ce modèle' }, // [FR self-authored]
+  doclib_studio_showResults: {
+    en: 'Show results',
+    fr: 'Afficher les résultats', // [FR self-authored]
+  },
+  doclib_studio_close: { en: 'Close', fr: 'Fermer' }, // [FR self-authored]
   doclib_studio_noResults: {
     en: 'No templates match these filters',
     fr: 'Aucun modèle ne correspond à ces filtres',
@@ -350,6 +366,7 @@ export const doclibMessages = defineMessages({
   doclib_profile_headcount: { en: 'Headcount', fr: 'Effectif' },
   doclib_profile_unionToggle: { en: 'Union status', fr: 'Statut syndical' },
   doclib_profile_edit: { en: 'Edit profile', fr: 'Modifier le profil' },
+  doclib_profile_editShort: { en: 'Edit', fr: 'Modifier' }, // [FR self-authored]
   doclib_profile_why: { en: 'Why these templates', fr: 'Pourquoi ces modèles' },
   doclib_profile_whyBody: {
     en: 'Recommendations use your jurisdiction, workforce size, sector (including whether it is federally regulated), and union status. They do not guarantee that a template is legally required or sufficient for your situation.',
