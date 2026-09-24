@@ -9,7 +9,10 @@
  * robots policy, correct <html lang>, reciprocal hreflang (including
  * x-default and self), parseable JSON-LD on the canonical origin, exactly
  * one H1, a <main> landmark, substantive visible text, and no placeholder
- * junk. Site-wide: **exact coverage** of the route registry (every public
+ * junk. Editorial article pages additionally require a substantive
+ * <article> body of their own — chrome alone (nav, footer, headings) can
+ * clear the page-level text floor while the body failed to render, which
+ * is exactly what reads as a soft 404 to crawlers. Site-wide: **exact coverage** of the route registry (every public
  * page prerendered, every indexable one in the sitemap, and nothing extra),
  * sitemap ↔ file ↔ canonical consistency, no private or noindex URL in the
  * sitemap or llms.txt, robots.txt policy, resolvable internal links, and a
@@ -116,6 +119,25 @@ function metaDescriptionContent(tag) {
 }
 
 const PLACEHOLDER = /undefined|\[object Object\]|NaN|TODO|Lorem ipsum/
+
+/* Editorial article routes (ArticlePage) render their body inside <article>.
+   A page whose <article> is thin reads as a soft 404 to crawlers even when
+   nav/footer/headings push whole-page visible text over the generic floor —
+   so these routes get their own, stricter body check below. */
+const EDITORIAL_ARTICLE_PATTERNS = [
+  /^\/guides\/(?!template-usage$)[^/]+$/,
+  /^\/blog\/[^/]+$/,
+  /^\/fr\/guides\/(?!utilisation-des-modeles$)[^/]+$/,
+  /^\/fr\/blogue\/[^/]+$/,
+]
+const isEditorialArticleRoute = (route) =>
+  EDITORIAL_ARTICLE_PATTERNS.some((re) => re.test(route))
+/* Minimum visible characters inside <article> for an editorial page.
+   Measured 2026-09-24: real articles carry 6.4k–7.8k chars; chrome alone
+   (h1 + summary + CTA + related + disclaimer, body sections missing) is
+   ~1.3k. 2000 fails a body-less render with wide margin and can never
+   false-positive on a real article. */
+const MIN_ARTICLE_CHARS = 2000
 const seenTitles = new Map()
 const seenCanonicals = new Map()
 const canonicalByRoute = new Map()
@@ -218,11 +240,7 @@ for (const { route, file } of pages) {
         const types = new Set(
           graph.flatMap((n) => (Array.isArray(n['@type']) ? n['@type'] : [n['@type']])),
         )
-        const isEditorialArticle =
-          /^\/guides\/(?!template-usage$)[^/]+$/.test(route) ||
-          /^\/blog\/[^/]+$/.test(route) ||
-          /^\/fr\/guides\/(?!utilisation-des-modeles$)[^/]+$/.test(route) ||
-          /^\/fr\/blogue\/[^/]+$/.test(route)
+        const isEditorialArticle = isEditorialArticleRoute(route)
         if (isEditorialArticle) {
           if (!types.has('Article')) fail(`${route}: editorial page missing Article JSON-LD`)
           const article = graph.find((n) => n['@type'] === 'Article')
@@ -254,6 +272,23 @@ for (const { route, file } of pages) {
   }
   visible = visible.replace(/\s+/g, ' ')
   if (visible.length < 500) fail(`${route}: visible text too small (${visible.length} chars)`)
+  if (isEditorialArticleRoute(route)) {
+    const articleHtml = /<article[\s\S]*?<\/article>/.exec(body)?.[0]
+    if (!articleHtml) {
+      fail(`${route}: editorial page rendered no <article> element`)
+    } else {
+      const articleText = articleHtml
+        .replace(/<script[\s\S]*?<\/script>/g, '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+      if (articleText.length < MIN_ARTICLE_CHARS) {
+        fail(
+          `${route}: article body too small (${articleText.length} chars, need ${MIN_ARTICLE_CHARS}) — page would read as a soft 404`,
+        )
+      }
+    }
+  }
 }
 
 /* ---------- hreflang reciprocity across files ---------- */
@@ -421,6 +456,7 @@ if (!notFound.includes('noindex')) fail('404.html: missing noindex')
 const knownRoutes = new Set(pages.map((p) => p.route))
 for (const { route, file } of pages) {
   const doc = await readFile(file, 'utf8')
+  const head = doc.split('</head>')[0]
   const body = doc.split('<div id="root">')[1] ?? ''
   for (const m of body.matchAll(/href="(\/[^"#]*)(#[^"]*)?"/g)) {
     /* Drop the query before resolving, the same way the hash is already
