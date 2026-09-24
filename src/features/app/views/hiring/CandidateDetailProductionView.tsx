@@ -118,7 +118,7 @@ export function CandidateDetailProductionView() {
   }
 
   const tabClass = (tab: Tab) =>
-    `cursor-pointer rounded-[8px] border-none px-[14px] py-[7px] font-sans text-[12.5px] font-semibold ${
+    `shrink-0 cursor-pointer rounded-[8px] border-none px-[14px] py-[7px] font-sans text-[12.5px] font-semibold whitespace-nowrap ${
       activeTab === tab
         ? 'bg-surface text-text shadow-(--shadow-sm)'
         : 'bg-transparent text-text-muted'
@@ -176,7 +176,7 @@ export function CandidateDetailProductionView() {
           <div
             role="tablist"
             aria-label="Candidate sections"
-            className="mb-[20px] inline-flex gap-[2px] rounded-[10px] border border-border bg-inset p-[3px]"
+            className="mb-[20px] inline-flex max-w-full gap-[2px] overflow-x-auto rounded-[10px] border border-border bg-inset p-[3px]"
           >
             <button
               type="button"

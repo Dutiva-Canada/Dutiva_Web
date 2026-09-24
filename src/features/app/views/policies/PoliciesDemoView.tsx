@@ -55,7 +55,7 @@ export function PoliciesDemoView() {
         {policies.map((p) => (
           <div
             key={p.id}
-            className="flex items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[15px]"
+            className="flex flex-wrap items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[15px]"
           >
             <div className="min-w-0">
               <div className="text-[14px] font-semibold text-text">{x(p.title)}</div>
