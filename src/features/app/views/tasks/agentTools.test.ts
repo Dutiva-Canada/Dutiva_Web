@@ -32,6 +32,10 @@ function fakeTask(fields: NewTask): ProductionTask {
     done: false,
     category: 'general',
     dueDate: fields.dueDate || null,
+    description: fields.details ?? null,
+    jurisdiction: null,
+    assignedTo: null,
+    notes: [],
     linkedEmployeeId: null,
     linkedKind: null,
   }

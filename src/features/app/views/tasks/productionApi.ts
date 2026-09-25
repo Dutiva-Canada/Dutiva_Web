@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { supabase } from '@/lib/supabaseClient'
+import type { Json } from '@/lib/supabase/database.types'
 import { fetchAllPages } from '@/lib/supabasePagination'
 
 /**
@@ -25,6 +26,14 @@ export const PRODUCTION_TASK_PRIORITIES: readonly ProductionTaskPriority[] = [
   'critical',
 ]
 
+/** A user note on a task, stored in the row's jsonb metadata.notes. */
+export interface TaskNote {
+  id: string
+  text: string
+  /** ISO timestamp. */
+  at: string
+}
+
 export interface ProductionTask {
   id: string
   title: string
@@ -35,6 +44,12 @@ export interface ProductionTask {
   category: string
   /** YYYY-MM-DD, derived from the table's timestamptz due_at. */
   dueDate: string | null
+  /** Advisor-authored work plan — the table's own description column. */
+  description: string | null
+  jurisdiction: string | null
+  assignedTo: string | null
+  /** User notes from metadata.notes. */
+  notes: TaskNote[]
   /** From metadata.employee_id, when the task is linked to a person. */
   linkedEmployeeId: string | null
   /** From metadata.kind — e.g. 'probation_review' for tasks this app creates. */
@@ -45,7 +60,15 @@ export interface NewTask {
   title: string
   priority: ProductionTaskPriority
   dueDate: string
+  /** Optional Advisor-authored plan, stored to the description column. */
+  details?: string
 }
+
+const noteSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+  at: z.string(),
+})
 
 const rowSchema = z.object({
   id: z.string(),
@@ -54,16 +77,24 @@ const rowSchema = z.object({
   status: z.string(),
   category: z.string(),
   due_at: z.string().nullable(),
+  /* Nullish (not just nullable): real rows always return these columns, but
+     older test mocks may omit the keys entirely. */
+  description: z.string().nullish(),
+  jurisdiction: z.string().nullish(),
+  assigned_to: z.string().nullish(),
   /* Optional-tolerant: the table's jsonb metadata carries the employee
-     linkage this app writes ({employee_id, kind}); rows from the backend's
-     pipeline (or older test mocks) may have anything or nothing here. */
+     linkage this app writes ({employee_id, kind}) and the user notes list
+     ({notes: TaskNote[]}); rows from the backend's pipeline (or older test
+     mocks) may have anything or nothing here. */
   metadata: z.record(z.string(), z.unknown()).nullable().optional(),
 })
 
-const SELECT_COLUMNS = 'id, title, priority, status, category, due_at, metadata'
+const SELECT_COLUMNS =
+  'id, title, priority, status, category, due_at, description, jurisdiction, assigned_to, metadata'
 
 function toTask(row: z.infer<typeof rowSchema>): ProductionTask {
   const meta = row.metadata ?? {}
+  const notes = z.array(noteSchema).safeParse(meta.notes)
   return {
     id: row.id,
     title: row.title,
@@ -72,6 +103,10 @@ function toTask(row: z.infer<typeof rowSchema>): ProductionTask {
     category: row.category,
     done: row.status === 'completed',
     dueDate: row.due_at ? row.due_at.slice(0, 10) : null,
+    description: row.description ?? null,
+    jurisdiction: row.jurisdiction ?? null,
+    assignedTo: row.assigned_to ?? null,
+    notes: notes.success ? notes.data : [],
     linkedEmployeeId: typeof meta.employee_id === 'string' ? meta.employee_id : null,
     linkedKind: typeof meta.kind === 'string' ? meta.kind : null,
   }
@@ -101,11 +136,60 @@ export async function addTask(organizationId: string, fields: NewTask): Promise<
       title: fields.title,
       priority: fields.priority,
       due_at: fields.dueDate || null,
+      description: fields.details || null,
     })
     .select(SELECT_COLUMNS)
     .single()
   if (error) throw error
   return toTask(rowSchema.parse(data))
+}
+
+/** Single row for the detail route. */
+export async function getTask(id: string): Promise<ProductionTask> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { data, error } = await supabase
+    .from('compliance_tasks')
+    .select(SELECT_COLUMNS)
+    .eq('id', id)
+    .single()
+  if (error) throw error
+  return toTask(rowSchema.parse(data))
+}
+
+/** Overwrite the Advisor-authored plan on the detail view. */
+export async function updateTaskDescription(id: string, description: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { error } = await supabase
+    .from('compliance_tasks')
+    .update({ description, updated_at: new Date().toISOString() })
+    .eq('id', id)
+  if (error) throw error
+}
+
+/**
+ * Append a user note to metadata.notes — read-modify-write so the merge keeps
+ * sibling keys (employee_id, kind) the row already carries.
+ */
+export async function addTaskNote(id: string, text: string): Promise<TaskNote> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { data, error } = await supabase
+    .from('compliance_tasks')
+    .select('metadata')
+    .eq('id', id)
+    .single()
+  if (error) throw error
+  const meta = (data?.metadata ?? {}) as Record<string, unknown>
+  const prev = z.array(noteSchema).safeParse(meta.notes)
+  const note: TaskNote = { id: crypto.randomUUID(), text, at: new Date().toISOString() }
+  const { error: updateError } = await supabase
+    .from('compliance_tasks')
+    .update({
+      metadata: { ...meta, notes: [...(prev.success ? prev.data : []), note] } as unknown as Json,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+  if (updateError) throw updateError
+  return note
 }
 
 /**

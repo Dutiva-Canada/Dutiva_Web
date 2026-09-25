@@ -71,16 +71,16 @@ describe('TasksView', () => {
     expect(screen.getByText('4 open')).toBeInTheDocument()
   })
 
-  it('opens the linked Advisor conversation when a row body is clicked', () => {
+  it('opens the task detail route when a row body is clicked', () => {
     renderTasks()
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'Open linked conversation for Review termination notice exposure — Jordan Mensah',
+        name: 'Open task details for Review termination notice exposure — Jordan Mensah',
       }),
     )
 
-    expect(screen.getByTestId('location')).toHaveTextContent('/app/advisor|c1')
+    expect(screen.getByTestId('location')).toHaveTextContent('/app/planning/tasks/tk1|')
   })
 })
 

@@ -41,6 +41,10 @@ describe('tasks productionApi', () => {
       category: 'general',
       done: false,
       dueDate: '2026-07-20',
+      description: null,
+      jurisdiction: null,
+      assignedTo: null,
+      notes: [],
       linkedEmployeeId: null,
       linkedKind: null,
     })
@@ -81,6 +85,7 @@ describe('tasks productionApi', () => {
       title: 'File ROE for departing employee',
       priority: 'high',
       due_at: null,
+      description: null,
     })
   })
 
@@ -116,5 +121,54 @@ describe('tasks productionApi', () => {
 
     expect(await api.countOpenTasks('org-1')).toBe(2)
     expect(neq).toHaveBeenCalledWith('status', 'completed')
+  })
+
+  it('addTask writes details into the description column', async () => {
+    const single = vi.fn().mockResolvedValue({ data: ROW, error: null })
+    const select = vi.fn().mockReturnValue({ single })
+    const insert = vi.fn().mockReturnValue({ select })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: { from: vi.fn().mockReturnValue({ insert }) },
+    }))
+    vi.resetModules()
+    const api = await import('./productionApi')
+
+    await api.addTask('org-1', {
+      title: 'File ROE for departing employee',
+      priority: 'high',
+      dueDate: '2026-07-20',
+      details: 'Check the ROE deadline, then file.',
+    })
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({ description: 'Check the ROE deadline, then file.' }),
+    )
+  })
+
+  it('addTaskNote appends to metadata.notes without dropping sibling keys', async () => {
+    const single = vi.fn().mockResolvedValue({
+      data: { metadata: { employee_id: 'emp-1', kind: 'probation_review' } },
+      error: null,
+    })
+    const selectEq = vi.fn().mockReturnValue({ single })
+    const select = vi.fn().mockReturnValue({ eq: selectEq })
+    const updateEq = vi.fn().mockResolvedValue({ error: null })
+    const update = vi.fn().mockReturnValue({ eq: updateEq })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: { from: vi.fn().mockReturnValue({ select, update }) },
+    }))
+    vi.resetModules()
+    const api = await import('./productionApi')
+
+    const note = await api.addTaskNote('task-1', 'Called the employee — review Friday.')
+    expect(note.text).toBe('Called the employee — review Friday.')
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: expect.objectContaining({
+          employee_id: 'emp-1',
+          kind: 'probation_review',
+          notes: [expect.objectContaining({ text: 'Called the employee — review Friday.' })],
+        }),
+      }),
+    )
   })
 })

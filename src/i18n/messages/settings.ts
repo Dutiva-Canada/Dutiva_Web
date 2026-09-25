@@ -189,6 +189,49 @@ export const settingsMessages = defineMessages({
     en: 'Industry',
     fr: 'Secteur d’activité',
   },
+  settings_org_industry_note: {
+    en: 'Shapes which modules and Advisor context Dutiva emphasizes.',
+    fr: 'Détermine les modules et le contexte du Conseiller que Dutiva met de l’avant.',
+  },
+  /* Org industry options — stable keys stored on organizations.industry.
+     [FR self-authored] */
+  settings_org_industry_opt_technology: { en: 'Technology', fr: 'Technologie' },
+  settings_org_industry_opt_retail: {
+    en: 'Retail & e-commerce',
+    fr: 'Commerce de détail et en ligne',
+  },
+  settings_org_industry_opt_manufacturing: { en: 'Manufacturing', fr: 'Fabrication' },
+  settings_org_industry_opt_construction: { en: 'Construction', fr: 'Construction' },
+  settings_org_industry_opt_logistics: {
+    en: 'Transportation & logistics',
+    fr: 'Transport et logistique',
+  },
+  settings_org_industry_opt_healthcare: { en: 'Health care', fr: 'Soins de santé' },
+  settings_org_industry_opt_hospitality: {
+    en: 'Hospitality & food service',
+    fr: 'Hôtellerie et restauration',
+  },
+  settings_org_industry_opt_professional: {
+    en: 'Professional services',
+    fr: 'Services professionnels',
+  },
+  settings_org_industry_opt_investment_firm: {
+    en: 'Investment firm',
+    fr: 'Société d’investissement',
+  },
+  settings_org_industry_opt_holding_company: {
+    en: 'Holding company',
+    fr: 'Société de portefeuille',
+  },
+  settings_org_industry_opt_trading_firm: {
+    en: 'Trading firm',
+    fr: 'Société de négoce',
+  },
+  settings_org_industry_opt_equity_firm: {
+    en: 'Equity firm',
+    fr: 'Société de capital-investissement',
+  },
+  settings_org_industry_opt_other: { en: 'Other', fr: 'Autre' },
   settings_org_jurisdictions: {
     en: 'Operating jurisdictions',
     fr: 'Territoires d’exploitation',

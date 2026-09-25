@@ -17,8 +17,10 @@ import {
 } from './productionApi'
 import type { ProductionTask, ProductionTaskPriority } from './productionApi'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { WorkspaceLink } from '@/features/app/workspaceRoot/WorkspaceLink'
 import { bindModuleContext } from '@/features/app/agent/runtime'
 import type { TasksAgentContext } from './agentTools'
+import { taskDetailPath } from './paths'
 
 /**
  * Tasks in production mode — the checklist on the backend's own
@@ -299,7 +301,11 @@ export function TasksProductionView() {
                   <Check size={13} strokeWidth={3} className="text-white" aria-hidden="true" />
                 )}
               </button>
-              <div className="min-w-0 flex-1">
+              <WorkspaceLink
+                to={taskDetailPath(task.id)}
+                aria-label={`${x(M.tasks_open_detail_aria).replace('{title}', task.title)}`}
+                className="min-w-0 flex-1"
+              >
                 <div
                   className={`text-[13.5px] font-semibold ${
                     task.done ? 'text-text-faint line-through' : 'text-text'
@@ -310,7 +316,7 @@ export function TasksProductionView() {
                 {task.dueDate && (
                   <div className="mt-[3px] text-[12px] text-text-muted">{task.dueDate}</div>
                 )}
-              </div>
+              </WorkspaceLink>
               <span className={statusChipClass(PRIORITY_TONE[task.priority])}>
                 {x(PRIORITY_LABEL[task.priority])}
               </span>

@@ -146,6 +146,10 @@ export const homeMessages = defineMessages({
     en: 'Steps added to Tasks.',
     fr: 'Étapes ajoutées aux tâches.', // [FR self-authored]
   },
+  home_setup_view_tasks: {
+    en: 'Open Tasks',
+    fr: 'Ouvrir les tâches', // [FR self-authored]
+  },
   home_setup_tasks_failed: {
     en: 'Couldn’t add the steps to Tasks — try again.',
     fr: 'Impossible d’ajouter les étapes aux tâches — réessayez.', // [FR self-authored]

@@ -36,7 +36,7 @@ import { commsMessages as COMMS } from '@/i18n/messages/comms'
 import { crmMessages as CRM } from '@/i18n/messages/crm'
 import { financeMessages as FINANCE } from '@/i18n/messages/finance'
 import { memoryMessages as MEM } from '@/i18n/messages/memory'
-import { cases, employeeDetails, employees } from '@/data'
+import { cases, employeeDetails, employees, tasks } from '@/data'
 import { VIEW_LABELS, isDoclibStudioPath } from './navLabels'
 import { workspaceSegments } from '@/features/app/workspaceRoot/workspaceRootContext'
 
@@ -72,6 +72,9 @@ export interface NavGroup {
    live count in either mode (guided processes are a catalogue, not a queue),
    so it ships without a badge rather than a misleading "3". */
 const CASES_BADGE = String(cases.filter((c) => c.status.en !== 'Resolved').length)
+/* Open fixture tasks — the demo badge on Planning; production replaces it with
+   the live count via useProductionNavBadges (key 'planning'). */
+const TASKS_BADGE = String(tasks.filter((t) => !t.done).length)
 const COMPLIANCE_BADGE = '3'
 const WELLBEING_BADGE = String(
   Object.values(employeeDetails).filter((d) => d.sentiment != null && d.sentiment < 55).length,
@@ -176,6 +179,7 @@ export function getNavGroups(
           to: p('planning/tasks'),
           icon: CalendarCheck,
           label: M.shell_nav_planning,
+          badge: { value: TASKS_BADGE, tone: 'neutral' },
           isActive: (pathname) => pathname.startsWith(`${root}/planning`),
         },
         {
@@ -372,7 +376,12 @@ export function viewLabelFor(pathname: string): Bi {
     return isDoclibStudioPath(pathname) ? M.shell_hr_studio_studio : M.shell_hr_studio_library
   }
   if (segment === 'planning') {
-    return pathname.includes('/planning/calendar') ? M.shell_nav_calendar : M.shell_nav_tasks
+    if (pathname.includes('/planning/calendar')) return M.shell_nav_calendar
+    if (parts[1] === 'tasks' && parts[2]) {
+      const task = tasks.find((t) => t.id === parts[2])
+      if (task) return task.title
+    }
+    return M.shell_nav_tasks
   }
   if (segment === 'settings' && pathname.includes('/settings/memory')) {
     return MEM.memory_title

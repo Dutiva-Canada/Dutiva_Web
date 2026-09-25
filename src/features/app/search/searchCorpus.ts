@@ -65,6 +65,7 @@ export type SearchNav =
   | { kind: 'employee'; employeeId: string }
   | { kind: 'case'; caseId: string }
   | { kind: 'chat'; chatId: string }
+  | { kind: 'task'; taskId: string }
   | { kind: 'document'; docKey: string }
   | { kind: 'generatedDocument'; docId: string }
   | { kind: 'workflow'; flowSlug: string }
@@ -212,7 +213,7 @@ const taskEntries: SearchEntry[] = tasks.map((t) => ({
   sub: t.due,
   restricted: false,
   match: t.title,
-  nav: { kind: 'view', view: 'tasks' },
+  nav: { kind: 'task', taskId: t.id },
 }))
 
 const complianceEntries: SearchEntry[] = complianceItems.map((ci) => ({

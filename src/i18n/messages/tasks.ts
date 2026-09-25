@@ -33,9 +33,59 @@ export const tasksMessages = defineMessages({
     en: 'Toggle task done',
     fr: 'Basculer l’état de la tâche', // [FR self-authored]
   },
-  tasks_open_chat_aria: {
-    en: 'Open linked conversation for {title}',
-    fr: 'Ouvrir la conversation liée pour {title}', // [FR self-authored]
+  tasks_open_detail_aria: {
+    en: 'Open task details for {title}',
+    fr: 'Ouvrir les détails de la tâche pour {title}', // [FR self-authored]
+  },
+
+  /* ── Task detail view (/planning/tasks/:id) — no design-handoff counterpart;
+     [FR self-authored] throughout ─────────────────────────────────────────── */
+  tasks_detail_back: { en: 'Tasks', fr: 'Tâches' },
+  tasks_detail_not_found: {
+    en: 'This task isn’t in the list anymore.',
+    fr: 'Cette tâche n’est plus dans la liste.',
+  },
+  tasks_detail_plan_title: { en: 'Advisor plan', fr: 'Plan du Conseiller' },
+  tasks_detail_plan_empty: {
+    en: 'No plan on this task yet.',
+    fr: 'Aucun plan sur cette tâche pour l’instant.',
+  },
+  tasks_detail_generate: {
+    en: 'Draft a plan with Advisor',
+    fr: 'Rédiger un plan avec le Conseiller',
+  },
+  tasks_detail_regenerate: { en: 'Draft again', fr: 'Rédiger à nouveau' },
+  tasks_detail_generating: { en: 'Drafting…', fr: 'Rédaction…' },
+  tasks_detail_generate_failed: {
+    en: 'Couldn’t draft the plan. Try again.',
+    fr: 'Impossible de rédiger le plan. Réessayez.',
+  },
+  /* Sent to advisor-chat when the detail page drafts a plan. {title} is the
+     task title. */
+  tasks_detail_generate_prompt: {
+    en: 'Draft a practical work plan for this task: "{title}". Give the steps, what to check, and what done looks like — under 200 words.',
+    fr: 'Rédigez un plan de travail pratique pour cette tâche : « {title} ». Donnez les étapes, ce qu’il faut vérifier et le critère de fin — moins de 200 mots.',
+  },
+  tasks_detail_notes_title: { en: 'Notes', fr: 'Notes' },
+  tasks_detail_notes_empty: {
+    en: 'No notes yet — context you add here stays with the task.',
+    fr: 'Aucune note pour l’instant — le contexte ajouté ici reste avec la tâche.',
+  },
+  tasks_detail_note_placeholder: { en: 'Add a note…', fr: 'Ajouter une note…' },
+  tasks_detail_note_add: { en: 'Add note', fr: 'Ajouter la note' },
+  tasks_detail_note_failed: {
+    en: 'Couldn’t save the note.',
+    fr: 'Impossible d’enregistrer la note.',
+  },
+  tasks_detail_linked_chat: {
+    en: 'Open linked conversation',
+    fr: 'Ouvrir la conversation liée',
+  },
+  tasks_detail_mark_done: { en: 'Mark done', fr: 'Marquer comme terminée' },
+  tasks_detail_reopen: { en: 'Reopen', fr: 'Rouvrir' },
+  tasks_detail_load_failed: {
+    en: 'Couldn’t load the task.',
+    fr: 'Impossible de charger la tâche.',
   },
 
   /* ── Production tasks (real persistence — no design-handoff counterpart;

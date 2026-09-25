@@ -132,6 +132,10 @@ export const advisorCore = defineMessages({
 
   /* ── Briefing card actions ──────────────────────────────────────────────── */
   advisor_action_open_case: { en: 'Open case', fr: 'Ouvrir le dossier' },
+  advisor_action_open_tasks: {
+    en: 'Open Tasks',
+    fr: 'Ouvrir les tâches', // [FR self-authored]
+  },
   advisor_action_view_compliance: { en: 'View in Compliance', fr: 'Voir dans Conformité' },
   advisor_action_draft_refresh: { en: 'Draft the refresh', fr: 'Rédiger la mise à jour' }, // [FR self-authored]
 

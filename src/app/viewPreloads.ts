@@ -88,6 +88,7 @@ export function preloadPlanningView() {
   return Promise.all([
     import('@/features/app/views/planning/PlanningLayout'),
     import('@/features/app/views/tasks/TasksView'),
+    import('@/features/app/views/tasks/TaskDetailView'),
   ] as const)
 }
 

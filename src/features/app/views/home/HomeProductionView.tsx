@@ -85,7 +85,12 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
             dueDate: '',
           })
         }
-        showToast(M.home_setup_tasks_done, 'ok')
+        /* Action link closes the loop — the toast was a dead end and users
+           couldn't find where the new tasks landed. */
+        showToast(M.home_setup_tasks_done, 'ok', {
+          label: M.home_setup_view_tasks,
+          to: '/app/planning/tasks',
+        })
       } catch {
         showToast(M.home_setup_tasks_failed, 'info')
       }

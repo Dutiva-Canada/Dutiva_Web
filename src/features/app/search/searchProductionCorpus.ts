@@ -221,7 +221,7 @@ export async function buildProductionSearchEntries(organizationId: string): Prom
     sub: t.dueDate ? neutral(t.dueDate) : undefined,
     restricted: false,
     match: neutral(t.title),
-    nav: { kind: 'view', view: 'tasks' },
+    nav: { kind: 'task', taskId: t.id },
   }))
 
   const complianceEntries: SearchEntry[] = findings
