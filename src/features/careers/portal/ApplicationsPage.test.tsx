@@ -8,6 +8,7 @@ import { ThemeProvider } from '@/lib/theme'
 import { AuthProvider } from '@/features/app/auth/AuthProvider'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import type { CandidateApplication } from '@/features/careers/data/applicationsApi'
+import type { ExternalApplication } from '@/features/careers/data/agentApi'
 
 vi.mock('@/features/careers/data/applicationsApi', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/features/careers/data/applicationsApi')>()),
@@ -18,8 +19,17 @@ vi.mock('@/features/careers/data/applicationsApi', async (importOriginal) => ({
   deleteApplication: vi.fn(),
 }))
 
+vi.mock('@/features/careers/data/agentApi', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/careers/data/agentApi')>()),
+  listExternalApplications: vi.fn().mockResolvedValue([]),
+  skipExternalApplication: vi.fn(),
+  submitExternalApplication: vi.fn(),
+}))
+
 const { listMyApplications, withdrawApplication } =
   await import('@/features/careers/data/applicationsApi')
+const { listExternalApplications, submitExternalApplication } =
+  await import('@/features/careers/data/agentApi')
 
 const MOCK_APPLICATIONS: CandidateApplication[] = [
   {
@@ -156,5 +166,106 @@ describe('ApplicationsPage', () => {
     renderCareers(<ApplicationsPage />)
 
     expect((await screen.findAllByText(/Something went wrong/i)).length).toBeGreaterThan(0)
+  })
+
+  it('renders external applications with status chips and review actions', async () => {
+    vi.mocked(listMyApplications).mockResolvedValue([])
+    vi.mocked(listExternalApplications).mockResolvedValue([
+      {
+        id: 'ea1',
+        discoveredJobId: 'dj1',
+        status: 'needs_review',
+        tailoredResume: 'tailored',
+        coverLetter: 'letter',
+        matchScore: 82,
+        channel: null,
+        submittedAt: null,
+        response: null,
+        error: null,
+        createdAt: '2026-01-22T00:00:00Z',
+        job: {
+          company: 'Acme Corp',
+          title: 'Payroll Lead',
+          location: 'Montreal, QC',
+          url: 'https://boards.greenhouse.io/acme/jobs/1',
+          applyUrl: 'https://boards.greenhouse.io/acme/jobs/1',
+          source: 'greenhouse',
+        },
+      },
+      {
+        id: 'ea2',
+        discoveredJobId: 'dj2',
+        status: 'submitted',
+        tailoredResume: 'tailored',
+        coverLetter: 'letter',
+        matchScore: 91,
+        channel: 'greenhouse_api',
+        submittedAt: '2026-01-21T00:00:00Z',
+        response: null,
+        error: null,
+        createdAt: '2026-01-20T00:00:00Z',
+        job: {
+          company: 'Northstar',
+          title: 'HR Advisor',
+          location: 'Remote — Canada',
+          url: 'https://boards.greenhouse.io/northstar/jobs/9',
+          applyUrl: 'https://boards.greenhouse.io/northstar/jobs/9',
+          source: 'greenhouse',
+        },
+      },
+    ] satisfies ExternalApplication[])
+    const { ApplicationsPage } = await import('./ApplicationsPage')
+    renderCareers(<ApplicationsPage />)
+
+    expect(await screen.findByText('External applications')).toBeInTheDocument()
+    expect(screen.getByText('Payroll Lead')).toBeInTheDocument()
+    expect(screen.getByText('HR Advisor')).toBeInTheDocument()
+    expect(screen.getByText('Needs review')).toBeInTheDocument()
+    expect(screen.getByText('Submitted')).toBeInTheDocument()
+    // needs_review gets submit + skip; submitted gets neither
+    expect(screen.getByRole('button', { name: /Submit application/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Skip$/i })).toBeInTheDocument()
+  })
+
+  it('approving a needs_review external application calls the submit action', async () => {
+    vi.mocked(listMyApplications).mockResolvedValue([])
+    vi.mocked(listExternalApplications).mockResolvedValue([
+      {
+        id: 'ea1',
+        discoveredJobId: 'dj1',
+        status: 'needs_review',
+        tailoredResume: 't',
+        coverLetter: 'c',
+        matchScore: 80,
+        channel: null,
+        submittedAt: null,
+        response: null,
+        error: null,
+        createdAt: '2026-01-22T00:00:00Z',
+        job: {
+          company: 'Acme',
+          title: 'Payroll Lead',
+          location: 'Montreal',
+          url: 'https://example.com',
+          applyUrl: null,
+          source: 'greenhouse',
+        },
+      },
+    ] satisfies ExternalApplication[])
+    vi.mocked(submitExternalApplication).mockResolvedValue({
+      status: 'submitted',
+      channel: 'greenhouse_api',
+    })
+    const { ApplicationsPage } = await import('./ApplicationsPage')
+    const { default: userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
+    renderCareers(<ApplicationsPage />)
+
+    await user.click(
+      await screen.findByRole('button', { name: /Submit application/i }),
+    )
+    await vi.waitFor(() => {
+      expect(submitExternalApplication).toHaveBeenCalledWith('ea1')
+    })
   })
 })
