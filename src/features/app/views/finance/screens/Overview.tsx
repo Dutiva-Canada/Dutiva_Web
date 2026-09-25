@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { CalendarClock, Landmark, Target } from 'lucide-react'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 import { statusChipClass, type ChipTone } from '@/components/chips'
@@ -6,6 +7,7 @@ import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
+import { computeFinanceAttention, type FinanceAttentionItem } from '../data/financeAttention'
 import { deadlineState } from '../data/productionApi'
 import { BANK_MATCH_LABEL, PAY_RUN_STATUS_LABEL, REQUEST_STATUS_LABEL } from '../financeLabels'
 
@@ -18,6 +20,23 @@ type ExceptionRow = {
   statusLabel: Bi
   tone: ChipTone
   to: string
+}
+
+function attentionLabel(messages: typeof M, item: FinanceAttentionItem): Bi {
+  if (item.kind === 'debt') {
+    return item.severity === 'overdue'
+      ? messages.finance_attention_debt_overdue
+      : messages.finance_attention_debt_soon
+  }
+  if (item.kind === 'deal') return messages.finance_attention_deal_behind
+  if (item.kind === 'commitment_call') {
+    return item.severity === 'overdue'
+      ? messages.finance_attention_call_overdue
+      : messages.finance_attention_commitment_upcoming
+  }
+  return item.severity === 'overdue'
+    ? messages.finance_attention_call_overdue
+    : messages.finance_attention_call_soon
 }
 
 export function Overview() {
@@ -125,6 +144,11 @@ export function Overview() {
     [state.bankAccounts],
   )
 
+  const attentionItems = useMemo(
+    () => computeFinanceAttention(state, new Date().toISOString().slice(0, 10)),
+    [state],
+  )
+
   const budgetHeadroom = useMemo(() => {
     return state.budgets.flatMap((b) =>
       b.lines.map((line) => ({
@@ -172,6 +196,50 @@ export function Overview() {
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="rounded-[12px] border border-border bg-surface p-[16px]">
+        <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+          {x(M.finance_attention_title)}
+        </h2>
+        {attentionItems.length === 0 ? (
+          <p className="text-[13px] text-text-muted">{x(M.finance_attention_none)}</p>
+        ) : (
+          <ul className="m-0 flex flex-col gap-[10px] p-0">
+            {attentionItems.map((item) => {
+              const tone: ChipTone =
+                item.severity === 'overdue' ? 'risk' : item.severity === 'due_soon' ? 'warning' : 'neutral'
+              const icon =
+                item.kind === 'debt' ? (
+                  <Landmark className="size-[15px] shrink-0 text-text-faint" aria-hidden />
+                ) : item.kind === 'deal' ? (
+                  <Target className="size-[15px] shrink-0 text-text-faint" aria-hidden />
+                ) : (
+                  <CalendarClock className="size-[15px] shrink-0 text-text-faint" aria-hidden />
+                )
+              return (
+                <li key={item.key} className="flex items-start justify-between gap-[12px]">
+                  <div className="flex min-w-0 items-start gap-[8px]">
+                    {icon}
+                    <div className="min-w-0">
+                      <Link
+                        to={item.to}
+                        className="block truncate text-[13px] font-semibold text-accent no-underline hover:underline"
+                      >
+                        {typeof item.title === 'string' ? item.title : x(item.title)}
+                      </Link>
+                      <div className="text-[12px] text-text-muted">
+                        {item.qualifier ? `${x(item.qualifier)} · ` : ''}
+                        {item.sub}
+                      </div>
+                    </div>
+                  </div>
+                  <span className={statusChipClass(tone)}>{x(attentionLabel(M, item))}</span>
+                </li>
+              )
+            })}
+          </ul>
+        )}
       </section>
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
