@@ -535,6 +535,78 @@ export const careersMessages = defineMessages({
     fr: "Les suggestions de l'IA sont un point de départ. Révisez et modifiez avant de soumettre.",
   },
 
+  /* ── Job search agent ─────────────────────────────────────────────────── */
+  careers_agent_title: { en: 'Job search agent', fr: 'Agent de recherche d’emploi' },
+  careers_agent_body: {
+    en: 'Dutiva checks the company job boards you list, scores each new posting against your resume, and drafts a tailored resume and cover letter for the ones that fit.',
+    fr: 'Dutiva consulte les sites d’emploi des entreprises que vous indiquez, évalue chaque nouvelle offre par rapport à votre CV et rédige un CV adapté et une lettre de présentation pour celles qui correspondent.',
+  },
+  careers_agent_enable: { en: 'Enable agent', fr: 'Activer l’agent' },
+  careers_agent_autonomy_label: { en: 'When a posting matches', fr: 'Quand une offre correspond' },
+  careers_agent_review_each: { en: 'Prepare it for my review', fr: 'La préparer pour ma révision' },
+  careers_agent_auto_submit: { en: 'Submit it automatically', fr: 'La soumettre automatiquement' },
+  careers_agent_auto_note: {
+    en: 'Automatic submission only runs on boards with an application endpoint (Greenhouse). Other matches are prepared for you to finish on the company site.',
+    fr: 'La soumission automatique ne fonctionne que sur les plateformes dotées d’un point d’application (Greenhouse). Les autres offres sont préparées pour que vous les terminiez sur le site de l’entreprise.',
+  },
+  careers_agent_keywords: { en: 'Target roles', fr: 'Rôles visés' },
+  careers_agent_keywords_hint: {
+    en: 'Comma-separated — e.g. payroll, HR coordinator',
+    fr: 'Séparés par des virgules — p. ex. paie, coordonnateur RH',
+  },
+  careers_agent_locations: { en: 'Locations', fr: 'Lieux' },
+  careers_agent_locations_hint: {
+    en: 'Comma-separated cities or provinces',
+    fr: 'Villes ou provinces séparées par des virgules',
+  },
+  careers_agent_remote: { en: 'Include remote jobs', fr: 'Inclure les emplois à distance' },
+  careers_agent_boards: { en: 'Company job boards', fr: 'Sites d’emploi des entreprises' },
+  careers_agent_boards_hint: {
+    en: 'One per line — greenhouse:company or lever:company, using the name in their careers URL',
+    fr: 'Un par ligne — greenhouse:entreprise ou lever:entreprise, selon le nom dans l’URL de leur page carrières',
+  },
+  careers_agent_min_score: { en: 'Minimum match score (0–100)', fr: 'Score minimum (0–100)' },
+  careers_agent_daily_cap: {
+    en: 'Maximum submissions per day',
+    fr: 'Soumissions maximales par jour',
+  },
+  careers_agent_save: { en: 'Save agent settings', fr: 'Enregistrer les paramètres' },
+  careers_agent_saved: { en: 'Agent settings saved', fr: 'Paramètres de l’agent enregistrés' },
+  careers_agent_run_now: { en: 'Run a search now', fr: 'Lancer une recherche' },
+  careers_agent_running: { en: 'Searching…', fr: 'Recherche en cours…' },
+  careers_agent_scan_done: {
+    en: 'Search finished — {count} new posting(s) found.',
+    fr: 'Recherche terminée — {count} nouvelle(s) offre(s) trouvée(s).',
+  },
+  careers_agent_scan_none: {
+    en: 'Search finished — nothing new this time.',
+    fr: 'Recherche terminée — rien de nouveau cette fois.',
+  },
+  careers_agent_run_needs_setup: {
+    en: 'Enable the agent and add at least one job board first.',
+    fr: 'Activez l’agent et ajoutez au moins un site d’emploi d’abord.',
+  },
+
+  /* ── External applications (agent log) ──────────────────────────────────── */
+  careers_external_title: { en: 'External applications', fr: 'Candidatures externes' },
+  careers_external_body: {
+    en: 'Every posting your agent applied to or prepared — the company, the package it used, and the outcome.',
+    fr: 'Chaque offre pour laquelle votre agent a postulé ou préparé un dossier — l’entreprise, les documents utilisés et le résultat.',
+  },
+  careers_external_match: { en: 'Match', fr: 'Correspondance' },
+  careers_external_submitted_on: { en: 'Submitted', fr: 'Soumise le' },
+  careers_external_prepared_on: { en: 'Prepared', fr: 'Préparée le' },
+  careers_external_open: { en: 'Open posting', fr: 'Voir l’offre' },
+  careers_external_approve: { en: 'Submit application', fr: 'Soumettre la candidature' },
+  careers_external_skip: { en: 'Skip', fr: 'Ignorer' },
+  careers_external_via: { en: 'via {source}', fr: 'via {source}' },
+  careers_external_status_needs_review: { en: 'Needs review', fr: 'À réviser' },
+  careers_external_status_queued: { en: 'Queued', fr: 'En file' },
+  careers_external_status_submitted: { en: 'Submitted', fr: 'Soumise' },
+  careers_external_status_manual: { en: 'Finish on company site', fr: 'À compléter sur le site' },
+  careers_external_status_skipped: { en: 'Skipped', fr: 'Ignorée' },
+  careers_external_status_failed: { en: 'Failed', fr: 'Échec' },
+
   /* ── Misc ─────────────────────────────────────────────────────────────── */
   careers_loading: { en: 'Loading…', fr: 'Chargement…' },
   careers_retry: { en: 'Try again', fr: 'Réessayer' },

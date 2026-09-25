@@ -1448,6 +1448,48 @@ export type Database = {
           },
         ]
       }
+      candidate_agent_settings: {
+        Row: {
+          autonomy: string
+          boards: Json
+          created_at: string
+          daily_apply_cap: number
+          enabled: boolean
+          keywords: string[]
+          locations: string[]
+          min_match_score: number
+          remote_ok: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          autonomy?: string
+          boards?: Json
+          created_at?: string
+          daily_apply_cap?: number
+          enabled?: boolean
+          keywords?: string[]
+          locations?: string[]
+          min_match_score?: number
+          remote_ok?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          autonomy?: string
+          boards?: Json
+          created_at?: string
+          daily_apply_cap?: number
+          enabled?: boolean
+          keywords?: string[]
+          locations?: string[]
+          min_match_score?: number
+          remote_ok?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       candidate_ai_usage: {
         Row: {
           calls: number
@@ -1523,6 +1565,131 @@ export type Database = {
             columns: ["job_posting_id"]
             isOneToOne: false
             referencedRelation: "public_job_postings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_discovered_jobs: {
+        Row: {
+          apply_url: string | null
+          candidate_id: string
+          company: string
+          description: string
+          discovered_at: string
+          error: string | null
+          external_id: string
+          id: string
+          location: string
+          match_score: number | null
+          source: string
+          status: string
+          title: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          apply_url?: string | null
+          candidate_id: string
+          company?: string
+          description?: string
+          discovered_at?: string
+          error?: string | null
+          external_id: string
+          id?: string
+          location?: string
+          match_score?: number | null
+          source: string
+          status?: string
+          title?: string
+          updated_at?: string
+          url?: string
+        }
+        Update: {
+          apply_url?: string | null
+          candidate_id?: string
+          company?: string
+          description?: string
+          discovered_at?: string
+          error?: string | null
+          external_id?: string
+          id?: string
+          location?: string
+          match_score?: number | null
+          source?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_discovered_jobs_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_external_applications: {
+        Row: {
+          candidate_id: string
+          channel: string | null
+          cover_letter: string
+          created_at: string
+          discovered_job_id: string
+          error: string | null
+          id: string
+          match_score: number | null
+          response: string | null
+          status: string
+          submitted_at: string | null
+          tailored_resume: string
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          channel?: string | null
+          cover_letter?: string
+          created_at?: string
+          discovered_job_id: string
+          error?: string | null
+          id?: string
+          match_score?: number | null
+          response?: string | null
+          status?: string
+          submitted_at?: string | null
+          tailored_resume?: string
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          channel?: string | null
+          cover_letter?: string
+          created_at?: string
+          discovered_job_id?: string
+          error?: string | null
+          id?: string
+          match_score?: number | null
+          response?: string | null
+          status?: string
+          submitted_at?: string | null
+          tailored_resume?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_external_applications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_external_applications_discovered_job_id_fkey"
+            columns: ["discovered_job_id"]
+            isOneToOne: true
+            referencedRelation: "candidate_discovered_jobs"
             referencedColumns: ["id"]
           },
         ]
@@ -4474,6 +4641,143 @@ export type Database = {
           },
         ]
       }
+      finance_capital_calls: {
+        Row: {
+          amount: number
+          commitment_id: string
+          created_at: string
+          due_date: string
+          id: string
+          notes: Json | null
+          organization_id: string
+          received_date: string | null
+          reference: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          commitment_id: string
+          created_at?: string
+          due_date: string
+          id?: string
+          notes?: Json | null
+          organization_id: string
+          received_date?: string | null
+          reference?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          commitment_id?: string
+          created_at?: string
+          due_date?: string
+          id?: string
+          notes?: Json | null
+          organization_id?: string
+          received_date?: string | null
+          reference?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_capital_calls_commitment_id_fkey"
+            columns: ["commitment_id"]
+            isOneToOne: false
+            referencedRelation: "finance_commitments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_capital_calls_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finance_cash_sweeps: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          entity_id: string
+          executed_date: string | null
+          from_account_id: string
+          id: string
+          notes: Json | null
+          organization_id: string
+          reference: string | null
+          scheduled_date: string
+          status: string
+          to_account_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          entity_id: string
+          executed_date?: string | null
+          from_account_id: string
+          id?: string
+          notes?: Json | null
+          organization_id: string
+          reference?: string | null
+          scheduled_date: string
+          status?: string
+          to_account_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          entity_id?: string
+          executed_date?: string | null
+          from_account_id?: string
+          id?: string
+          notes?: Json | null
+          organization_id?: string
+          reference?: string | null
+          scheduled_date?: string
+          status?: string
+          to_account_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_cash_sweeps_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "finance_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_cash_sweeps_from_account_id_fkey"
+            columns: ["from_account_id"]
+            isOneToOne: false
+            referencedRelation: "finance_bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_cash_sweeps_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_cash_sweeps_to_account_id_fkey"
+            columns: ["to_account_id"]
+            isOneToOne: false
+            referencedRelation: "finance_bank_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       finance_categorization_feedback: {
         Row: {
           corrected_at: string
@@ -4649,6 +4953,76 @@ export type Database = {
           },
         ]
       }
+      finance_commitments: {
+        Row: {
+          called: number
+          committed: number
+          created_at: string
+          currency: string
+          entity_id: string
+          id: string
+          label: Json | null
+          next_call_date: string | null
+          notes: Json | null
+          organization_id: string
+          party_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          called?: number
+          committed?: number
+          created_at?: string
+          currency?: string
+          entity_id: string
+          id?: string
+          label?: Json | null
+          next_call_date?: string | null
+          notes?: Json | null
+          organization_id: string
+          party_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          called?: number
+          committed?: number
+          created_at?: string
+          currency?: string
+          entity_id?: string
+          id?: string
+          label?: Json | null
+          next_call_date?: string | null
+          notes?: Json | null
+          organization_id?: string
+          party_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_commitments_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "finance_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_commitments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_commitments_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "finance_parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       finance_credits: {
         Row: {
           amount: number
@@ -4722,6 +5096,92 @@ export type Database = {
           },
         ]
       }
+      finance_deals: {
+        Row: {
+          counterparty: string | null
+          created_at: string
+          currency: string
+          entity_id: string
+          holding_id: string | null
+          id: string
+          kind: string
+          name: Json
+          notes: Json | null
+          organization_id: string
+          owner: string | null
+          stage: string
+          target_date: string | null
+          updated_at: string
+          value: number | null
+          watchlist_item_id: string | null
+        }
+        Insert: {
+          counterparty?: string | null
+          created_at?: string
+          currency?: string
+          entity_id: string
+          holding_id?: string | null
+          id?: string
+          kind?: string
+          name: Json
+          notes?: Json | null
+          organization_id: string
+          owner?: string | null
+          stage?: string
+          target_date?: string | null
+          updated_at?: string
+          value?: number | null
+          watchlist_item_id?: string | null
+        }
+        Update: {
+          counterparty?: string | null
+          created_at?: string
+          currency?: string
+          entity_id?: string
+          holding_id?: string | null
+          id?: string
+          kind?: string
+          name?: Json
+          notes?: Json | null
+          organization_id?: string
+          owner?: string | null
+          stage?: string
+          target_date?: string | null
+          updated_at?: string
+          value?: number | null
+          watchlist_item_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_deals_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "finance_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_deals_holding_id_fkey"
+            columns: ["holding_id"]
+            isOneToOne: false
+            referencedRelation: "finance_holdings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_deals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_deals_watchlist_item_id_fkey"
+            columns: ["watchlist_item_id"]
+            isOneToOne: false
+            referencedRelation: "finance_watchlist_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       finance_debts: {
         Row: {
           balance: number
@@ -4735,6 +5195,7 @@ export type Database = {
           label: Json
           lender: Json
           maturity_date: string
+          maturity_notified_at: string | null
           notice_period: string | null
           organization_id: string
           principal: number
@@ -4753,6 +5214,7 @@ export type Database = {
           label: Json
           lender: Json
           maturity_date: string
+          maturity_notified_at?: string | null
           notice_period?: string | null
           organization_id: string
           principal?: number
@@ -4771,6 +5233,7 @@ export type Database = {
           label?: Json
           lender?: Json
           maturity_date?: string
+          maturity_notified_at?: string | null
           notice_period?: string | null
           organization_id?: string
           principal?: number
@@ -4871,6 +5334,64 @@ export type Database = {
           },
         ]
       }
+      finance_document_links: {
+        Row: {
+          created_at: string
+          deal_id: string | null
+          document_id: string
+          document_ref: string | null
+          holding_id: string | null
+          id: string
+          organization_id: string
+          title: Json | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deal_id?: string | null
+          document_id: string
+          document_ref?: string | null
+          holding_id?: string | null
+          id?: string
+          organization_id: string
+          title?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deal_id?: string | null
+          document_id?: string
+          document_ref?: string | null
+          holding_id?: string | null
+          id?: string
+          organization_id?: string
+          title?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_document_links_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "finance_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_document_links_holding_id_fkey"
+            columns: ["holding_id"]
+            isOneToOne: false
+            referencedRelation: "finance_holdings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_document_links_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       finance_entities: {
         Row: {
           accounting_source_id: string | null
@@ -4883,6 +5404,8 @@ export type Database = {
           legal_form: string
           legal_name: string
           organization_id: string
+          ownership_pct: number | null
+          parent_entity_id: string | null
           payroll_source_id: string | null
           updated_at: string
         }
@@ -4897,6 +5420,8 @@ export type Database = {
           legal_form: string
           legal_name: string
           organization_id: string
+          ownership_pct?: number | null
+          parent_entity_id?: string | null
           payroll_source_id?: string | null
           updated_at?: string
         }
@@ -4911,6 +5436,8 @@ export type Database = {
           legal_form?: string
           legal_name?: string
           organization_id?: string
+          ownership_pct?: number | null
+          parent_entity_id?: string | null
           payroll_source_id?: string | null
           updated_at?: string
         }
@@ -4920,6 +5447,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_entities_parent_entity_id_fkey"
+            columns: ["parent_entity_id"]
+            isOneToOne: false
+            referencedRelation: "finance_entities"
             referencedColumns: ["id"]
           },
         ]
@@ -5527,6 +6061,9 @@ export type Database = {
         Row: {
           active: boolean
           banking_details_on_file: boolean
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
           created_at: string
           entity_id: string
           external_id: string | null
@@ -5539,6 +6076,9 @@ export type Database = {
         Insert: {
           active?: boolean
           banking_details_on_file?: boolean
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
           entity_id: string
           external_id?: string | null
@@ -5551,6 +6091,9 @@ export type Database = {
         Update: {
           active?: boolean
           banking_details_on_file?: boolean
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
           entity_id?: string
           external_id?: string | null
@@ -13380,6 +13923,15 @@ export type Database = {
       }
     }
     Functions: {
+      _finance_call_notify_admins: {
+        Args: { p_call_id: string }
+        Returns: undefined
+      }
+      _finance_debt_maturity_scan: { Args: never; Returns: undefined }
+      _finance_debt_notify_admins: {
+        Args: { p_debt_id: string }
+        Returns: undefined
+      }
       _hr_org_admin_emails: { Args: { p_org_id: string }; Returns: string[] }
       _hr_signing_actor_email: { Args: never; Returns: string }
       _hr_signing_assert_turn: {
@@ -15393,6 +15945,7 @@ export type Database = {
         }
       }
       trigger_attachment_scan: { Args: never; Returns: undefined }
+      trigger_candidate_job_agent: { Args: never; Returns: undefined }
       trigger_law_monitor: { Args: never; Returns: undefined }
       trigger_law_update_digest: { Args: never; Returns: undefined }
       trigger_policy_review_scheduler: { Args: never; Returns: undefined }
