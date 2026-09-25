@@ -13,6 +13,7 @@ import { Plans } from './screens/Plans'
 import { Treasury } from './screens/Treasury'
 import { Portfolio } from './screens/Portfolio'
 import { Deals } from './screens/Deals'
+import { Governance } from './screens/Governance'
 import { Entities } from './screens/Entities'
 import { Tax } from './screens/Tax'
 import { Evidence } from './screens/Evidence'
@@ -31,6 +32,7 @@ function renderAt(route: string) {
         <Route path="treasury" element={<Treasury />} />
         <Route path="portfolio" element={<Portfolio />} />
         <Route path="deals" element={<Deals />} />
+        <Route path="governance" element={<Governance />} />
         <Route path="entities" element={<Entities />} />
         <Route path="tax" element={<Tax />} />
         <Route path="evidence" element={<Evidence />} />
@@ -55,6 +57,7 @@ describe('FinanceView', () => {
     expect(screen.getByRole('link', { name: 'Treasury' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Portfolio' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Deals' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Governance' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Tax' })).toBeInTheDocument()
   })
 
@@ -172,6 +175,31 @@ describe('FinanceView', () => {
     expect(
       screen.getByText(/does not broker deals or provide investment advice/),
     ).toBeInTheDocument()
+  })
+
+  it('renders the board governance view: cap table, partner roster, audit trail', () => {
+    renderAt('/app/finance/governance')
+
+    expect(screen.getByRole('heading', { name: 'Cap table' })).toBeInTheDocument()
+    // Both entities render; the child carries its ownership edge.
+    expect(screen.getByText('Northgate Holdings Inc.')).toBeInTheDocument()
+    expect(screen.getByText('Northgate Logistics Inc.')).toBeInTheDocument()
+    expect(screen.getByText(/100% · Parent: Northgate Holdings Inc\./)).toBeInTheDocument()
+    // Capital partners with commitment totals across the roster.
+    expect(screen.getByRole('heading', { name: 'Capital partners' })).toBeInTheDocument()
+    expect(screen.getByText('Laurentian Growth Partners')).toBeInTheDocument()
+    expect(screen.getByText(/Committed CAD 1500000\.00/)).toBeInTheDocument()
+    expect(screen.getByText(/Uncalled CAD 900000\.00/)).toBeInTheDocument()
+    // Full audit trail — newest first, including finance-lifecycle events.
+    expect(screen.getByRole('heading', { name: 'Audit trail' })).toBeInTheDocument()
+    expect(screen.getByText(/Advanced deal stage/)).toBeInTheDocument()
+    expect(screen.getByText(/Recorded capital call receipt/)).toBeInTheDocument()
+    expect(screen.getByText(/Created capital commitment/)).toBeInTheDocument()
+    // The trail sorts newest first: 2026-09-18 before 2026-07-02.
+    const trail = screen.getByRole('heading', { name: 'Audit trail' }).closest('section')!
+    const texts = Array.from(trail.querySelectorAll('li')).map((li) => li.textContent ?? '')
+    expect(texts[0]).toContain('Advanced deal stage')
+    expect(texts[texts.length - 1]).toContain('Created capital commitment')
   })
 
   it('renders the ownership structure tree on the entities tab', () => {
