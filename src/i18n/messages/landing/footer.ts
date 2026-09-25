@@ -41,6 +41,14 @@ export const landingFooter = defineMessages({
     en: 'Legal',
     fr: 'Mentions légales',
   },
+  landing_foot_investors: {
+    en: 'Investors',
+    fr: 'Investisseurs',
+  },
+  landing_foot_invest_portal: {
+    en: 'Client sign-in',
+    fr: 'Connexion client',
+  },
   /* Footer link to the legal hub — chrome copy, lives here so it stays in
      the eager marketing catalogue (Footer renders on every public page). */
   legalHub_viewAll: { en: 'View all policies', fr: 'Voir toutes les politiques' },

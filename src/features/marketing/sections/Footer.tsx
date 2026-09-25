@@ -44,6 +44,12 @@ const COMPANY_LINKS: FooterLink[] = [
   { key: 'landing_fc_openapp', to: '/app/welcome' },
 ]
 
+/* The invite-only invest portal — public overview page + direct sign-in. */
+const INVESTOR_LINKS: FooterLink[] = [
+  { key: 'landing_foot_investors', route: 'investors' },
+  { key: 'landing_foot_invest_portal', to: '/invest' },
+]
+
 /* The five most-visited policies (content migration); the rest live behind
    the "View all policies" link to the legal hub, which indexes all 26. */
 const LEGAL_LINKS: FooterLink[] = [
@@ -139,6 +145,10 @@ export function Footer() {
           <div>
             <FooterHeading>{lt('landing_foot_company')}</FooterHeading>
             {renderLinks(COMPANY_LINKS)}
+          </div>
+          <div>
+            <FooterHeading>{lt('landing_foot_investors')}</FooterHeading>
+            {renderLinks(INVESTOR_LINKS)}
           </div>
           <div>
             <FooterHeading>{lt('landing_foot_legal')}</FooterHeading>

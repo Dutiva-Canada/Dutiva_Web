@@ -36,6 +36,7 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const VsHrdownloadsPage = lazy(() => import('@/features/marketing/pages/ComparisonPage').then((m) => ({ default: m.VsHrdownloadsPage })))
 /* prettier-ignore */ const VsSixfiftyPage = lazy(() => import('@/features/marketing/pages/ComparisonPage').then((m) => ({ default: m.VsSixfiftyPage })))
 /* prettier-ignore */ const JurisdictionToolPage = lazy(() => import('@/features/marketing/pages/JurisdictionToolPage').then((m) => ({ default: m.JurisdictionToolPage })))
+/* prettier-ignore */ const InvestorsPage = lazy(() => import('@/features/marketing/pages/InvestorsPage').then((m) => ({ default: m.InvestorsPage })))
 /* prettier-ignore */ const PricingShell = lazy(() => import('@/features/marketing/pages/PricingShell').then((m) => ({ default: m.PricingShell })))
 /* prettier-ignore */ const TemplatesPage = lazy(() => import('@/features/marketing/pages/TemplatesPage').then((m) => ({ default: m.TemplatesPage })))
 /* prettier-ignore */ const GuidesIndexPage = lazy(() => import('@/features/marketing/pages/GuidesIndexPage').then((m) => ({ default: m.GuidesIndexPage })))
@@ -64,6 +65,13 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const PortalSettingsPage = lazy(() => import('@/features/careers/portal/PortalSettingsPage').then((m) => ({ default: m.PortalSettingsPage })))
 /* prettier-ignore */ const EmployerDoorPage = lazy(() => import('@/features/careers/portal/EmployerDoorPage').then((m) => ({ default: m.EmployerDoorPage })))
 /* prettier-ignore */ const ExternalSigningView = lazy(() => import('@/features/app/documents/screens/ExternalSigningView').then((m) => ({ default: m.ExternalSigningView })))
+/* Invest surface — standalone invite-only portal (/invest), see investSurface.tsx. */
+/* prettier-ignore */ const InvestPortalSurface = lazy(() => import('./investSurface').then((m) => ({ default: m.InvestPortalSurface })))
+/* prettier-ignore */ const InvestHomePage = lazy(() => import('@/features/invest/portal/InvestHomePage').then((m) => ({ default: m.InvestHomePage })))
+/* prettier-ignore */ const InvestPortfolioPage = lazy(() => import('@/features/invest/portal/InvestPortfolioPage').then((m) => ({ default: m.InvestPortfolioPage })))
+/* prettier-ignore */ const InvestOrdersPage = lazy(() => import('@/features/invest/portal/InvestOrdersPage').then((m) => ({ default: m.InvestOrdersPage })))
+/* prettier-ignore */ const InvestSignalsPage = lazy(() => import('@/features/invest/portal/InvestSignalsPage').then((m) => ({ default: m.InvestSignalsPage })))
+/* prettier-ignore */ const InvestStrategiesPage = lazy(() => import('@/features/invest/portal/InvestStrategiesPage').then((m) => ({ default: m.InvestStrategiesPage })))
 
 /**
  * Layout wrapper for the public marketing surface: the URL decides the
@@ -131,6 +139,7 @@ function publicRoutes(lang: Lang): RouteObject {
       { path: p('vsHrdownloads'), element: <VsHrdownloadsPage /> },
       { path: p('vsSixfifty'), element: <VsSixfiftyPage /> },
       { path: p('jurisdictionTool'), element: <JurisdictionToolPage /> },
+      { path: p('investors'), element: <InvestorsPage /> },
     ],
   }
 }
@@ -177,6 +186,13 @@ function NotFoundRoute() {
  *   /careers/portal/ai-tools   standalone AI tools (application or pasted job context)
  *   /careers/portal/settings   language, theme, sign-out, delete-data
  *   /careers/portal/jobs/:postingId/apply   apply to a role with optional AI
+ *   /investors & /fr/investisseurs   public door to the invest portal
+ *   /invest                 invest portal — standalone shell, shared auth,
+ *                           gated by an invest_access grant (invite-only)
+ *   /invest/portfolio       accounts + positions + price updates
+ *   /invest/orders          order log — record, execute, cancel
+ *   /invest/signals         bot-emitted signals with acknowledge/dismiss
+ *   /invest/strategies      rules-based bot strategies + run history
  *   /employer & /fr/employeur   employer door — sign-in → org bootstrap → /app
  *   /sign/:token               external Dutiva Signature (no login)
  *   /fr/sign/:token            external signing (French UI)
@@ -318,6 +334,23 @@ function routeTree(): RouteObject[] {
         { path: 'ai-tools', element: <PortalAiToolsPage /> },
         { path: 'settings', element: <PortalSettingsPage /> },
         { path: 'jobs/:postingId/apply', element: <ApplyToJobPage /> },
+      ],
+    },
+    /* Standalone invest portal — shared auth + invest_access grant, own
+       shell. Invite-only; no demo mode. */
+    {
+      path: '/invest',
+      element: (
+        <Suspense fallback={null}>
+          <InvestPortalSurface />
+        </Suspense>
+      ),
+      children: [
+        { index: true, element: <InvestHomePage /> },
+        { path: 'portfolio', element: <InvestPortfolioPage /> },
+        { path: 'orders', element: <InvestOrdersPage /> },
+        { path: 'signals', element: <InvestSignalsPage /> },
+        { path: 'strategies', element: <InvestStrategiesPage /> },
       ],
     },
     { path: '*', element: <NotFoundRoute /> },

@@ -53,4 +53,8 @@ export const seoMetaMessages = defineMessages({
     en: 'Explore Advisor, Document Studio, analytics, communications, workflows, and HR cases — Northgate sample data, read-only, no sign-in.',
     fr: 'Parcourez le Conseiller, le Studio, l’analytique, les communications, les processus et dossiers — données Northgate, lecture seule.',
   },
+  investors_meta_description: {
+    en: 'Invite-only portfolio tracking, rules-based signals, and paper trading across asset classes. Informational only — not investment advice.',
+    fr: 'Suivi de portefeuille sur invitation, signaux fondés sur des règles et négociation simulée — informatif seulement, pas un conseil.',
+  },
 })

@@ -51,6 +51,7 @@ export type SeoRouteId =
   | 'jurisdictionTool'
   | 'demoWorkspace'
   | 'careers'
+  | 'investors'
 
 export interface SeoRoute {
   id: SeoRouteId
@@ -304,6 +305,17 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
     },
     indexable: true,
     updated: '2026-09-08',
+  },
+  {
+    id: 'investors',
+    path: { en: '/investors', fr: '/fr/investisseurs' },
+    title: {
+      en: 'Dutiva Invest — portfolio tracking, signals, paper trading | Dutiva',
+      fr: 'Dutiva Investir — suivi de portefeuille, signaux, transactions simulées | Dutiva',
+    },
+    description: t('investors_meta_description'),
+    indexable: true,
+    updated: '2026-11-28',
   },
 ] as const
 
