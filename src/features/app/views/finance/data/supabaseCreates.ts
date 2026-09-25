@@ -27,6 +27,7 @@ import {
   mapBook,
   mapBudget,
   mapDebt,
+  mapDeal,
   mapDecisionEntry,
   mapEntity,
   mapExternalAction,
@@ -53,6 +54,7 @@ const TABLES = {
   holdings: 'finance_holdings',
   watchlistItems: 'finance_watchlist_items',
   decisionEntries: 'finance_decision_entries',
+  deals: 'finance_deals',
   debts: 'finance_debts',
   externalActions: 'finance_external_actions',
   bankAccounts: 'finance_bank_accounts',
@@ -80,6 +82,8 @@ export async function addEntityInSupabase(
       jurisdictions: item.jurisdictions,
       accounting_source_id: item.accountingSourceId,
       payroll_source_id: item.payrollSourceId,
+      parent_entity_id: item.parentEntityId || null,
+      ownership_pct: item.ownershipPct ? Number(item.ownershipPct) : null,
       active: item.active,
     })
     .select('*')
@@ -104,6 +108,15 @@ export async function updateEntityInSupabase(
       jurisdictions: patch.jurisdictions,
       accounting_source_id: patch.accountingSourceId,
       payroll_source_id: patch.payrollSourceId,
+      /* Partial-update contract: absent keys serialize as undefined and are
+         dropped from the payload; only write ownership when the caller
+         actually passed the fields ('' / undefined-clearing → null). */
+      ...(patch.parentEntityId !== undefined
+        ? { parent_entity_id: patch.parentEntityId || null }
+        : {}),
+      ...(patch.ownershipPct !== undefined
+        ? { ownership_pct: patch.ownershipPct ? Number(patch.ownershipPct) : null }
+        : {}),
       active: patch.active,
       updated_at: new Date().toISOString(),
     })
@@ -317,6 +330,99 @@ export async function updateDecisionOutcomeInSupabase(
     .single()
   if (error) throw error
   return mapDecisionEntry(data as Record<string, unknown>)
+}
+
+/* ---------- Deals pipeline ---------- */
+
+export async function addDealInSupabase(
+  orgId: string,
+  item: Omit<import('./types').FinanceDeal, 'id'>,
+): Promise<import('./types').FinanceDeal | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.deals)
+    .insert({
+      organization_id: orgId,
+      entity_id: item.entityId,
+      name: item.name,
+      kind: item.kind,
+      stage: item.stage,
+      counterparty: item.counterparty ?? null,
+      value: item.value ? Number(item.value) : null,
+      currency: item.currency,
+      target_date: item.targetDate ?? null,
+      owner: item.owner ?? null,
+      notes: item.notes ?? null,
+      watchlist_item_id: item.watchlistItemId ?? null,
+      holding_id: item.holdingId ?? null,
+    })
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapDeal(data as Record<string, unknown>)
+}
+
+export async function updateDealInSupabase(
+  orgId: string,
+  id: string,
+  patch: Partial<Omit<import('./types').FinanceDeal, 'id'>>,
+): Promise<import('./types').FinanceDeal | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.deals)
+    .update({
+      /* Same Partial contract as updateEntityInSupabase — absent keys are
+         dropped from the payload, present keys write (or clear). */
+      ...(patch.entityId !== undefined ? { entity_id: patch.entityId } : {}),
+      ...(patch.name !== undefined ? { name: patch.name } : {}),
+      ...(patch.kind !== undefined ? { kind: patch.kind } : {}),
+      ...(patch.stage !== undefined ? { stage: patch.stage } : {}),
+      ...(patch.counterparty !== undefined ? { counterparty: patch.counterparty || null } : {}),
+      ...(patch.value !== undefined ? { value: patch.value ? Number(patch.value) : null } : {}),
+      ...(patch.currency !== undefined ? { currency: patch.currency } : {}),
+      ...(patch.targetDate !== undefined ? { target_date: patch.targetDate || null } : {}),
+      ...(patch.owner !== undefined ? { owner: patch.owner || null } : {}),
+      ...(patch.notes !== undefined ? { notes: patch.notes ?? null } : {}),
+      ...(patch.watchlistItemId !== undefined
+        ? { watchlist_item_id: patch.watchlistItemId || null }
+        : {}),
+      ...(patch.holdingId !== undefined ? { holding_id: patch.holdingId || null } : {}),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('organization_id', orgId)
+    .eq('id', id)
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapDeal(data as Record<string, unknown>)
+}
+
+export async function transitionDealStageInSupabase(
+  orgId: string,
+  id: string,
+  stage: import('./types').FinanceDealStage,
+): Promise<import('./types').FinanceDeal | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.deals)
+    .update({ stage, updated_at: new Date().toISOString() })
+    .eq('organization_id', orgId)
+    .eq('id', id)
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapDeal(data as Record<string, unknown>)
+}
+
+export async function removeDealInSupabase(orgId: string, id: string): Promise<boolean> {
+  if (!supabase) return false
+  const { error } = await supabase
+    .from(TABLES.deals)
+    .delete()
+    .eq('organization_id', orgId)
+    .eq('id', id)
+  if (error) throw error
+  return true
 }
 
 export async function transitionDebtStatusInSupabase(

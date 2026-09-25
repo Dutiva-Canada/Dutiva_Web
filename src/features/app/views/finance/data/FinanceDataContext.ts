@@ -95,6 +95,18 @@ export interface FinanceDataContextValue {
     id: string,
     outcome: Bi,
   ) => Promise<import('./types').FinanceDecisionEntry | null>
+  addDeal: (
+    item: Omit<import('./types').FinanceDeal, 'id'>,
+  ) => Promise<import('./types').FinanceDeal | null>
+  updateDeal: (
+    id: string,
+    patch: Partial<Omit<import('./types').FinanceDeal, 'id'>>,
+  ) => Promise<import('./types').FinanceDeal | null>
+  transitionDealStage: (
+    id: string,
+    stage: import('./types').FinanceDealStage,
+  ) => Promise<import('./types').FinanceDeal | null>
+  removeDeal: (id: string) => Promise<boolean>
   transitionDebtStatus: (
     id: string,
     nextStatus: import('./types').FinanceDebt['status'],

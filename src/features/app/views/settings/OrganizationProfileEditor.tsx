@@ -34,6 +34,8 @@ const FINANCE_TAB_KEYS: { key: string; label: keyof typeof FM }[] = [
   { key: 'accounting', label: 'finance_tab_accounting' },
   { key: 'plans', label: 'finance_tab_plans' },
   { key: 'treasury', label: 'finance_tab_treasury' },
+  { key: 'portfolio', label: 'finance_tab_portfolio' },
+  { key: 'deals', label: 'finance_tab_deals' },
   { key: 'tax', label: 'finance_tab_tax' },
   { key: 'evidence', label: 'finance_tab_evidence' },
   { key: 'import-export', label: 'finance_tab_import_export' },

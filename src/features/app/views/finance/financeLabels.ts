@@ -6,6 +6,8 @@ import type {
   FinanceBudgetStatus,
   FinanceCategoryMatchType,
   FinanceCurrency,
+  FinanceDealKind,
+  FinanceDealStage,
   FinanceDecisionKind,
   FinanceExternalActionStatus,
   FinanceInvoiceStatus,
@@ -32,6 +34,8 @@ export const LEGAL_FORM_LABEL: Record<FinanceLegalForm, Bi> = {
   partnership: { en: 'Partnership', fr: 'Société en nom collectif' },
   sole_proprietor: { en: 'Sole proprietor', fr: 'Entreprise individuelle' },
   nonprofit: { en: 'Non-profit', fr: 'Organisme sans but lucratif' },
+  /* [FR self-authored] */
+  trust: { en: 'Trust', fr: 'Fiducie' },
 }
 
 export const INVOICE_STATUS_LABEL: Record<FinanceInvoiceStatus, Bi> = {
@@ -165,5 +169,35 @@ export const DECISION_KIND_LABEL: Record<FinanceDecisionKind, Bi> = {
   exit: { en: 'Exit', fr: 'Sortir' },
   review: { en: 'Review', fr: 'Réévaluer' },
 }
+
+/* [FR self-authored] — kept in sync with finance_deals_* messages; these
+   exist as a map so stage/kind render consistently across chips, selects,
+   and summary strips. */
+export const DEAL_KIND_LABEL: Record<FinanceDealKind, Bi> = {
+  acquisition: { en: 'Acquisition', fr: 'Acquisition' },
+  investment: { en: 'Investment', fr: 'Investissement' },
+  divestiture: { en: 'Divestiture', fr: 'Cession' },
+  financing: { en: 'Financing', fr: 'Financement' },
+  other: { en: 'Other', fr: 'Autre' },
+}
+
+export const DEAL_STAGE_LABEL: Record<FinanceDealStage, Bi> = {
+  sourcing: { en: 'Sourcing', fr: 'Prospection' },
+  diligence: { en: 'Diligence', fr: 'Vérification' },
+  negotiation: { en: 'Negotiation', fr: 'Négociation' },
+  agreement: { en: 'Agreement', fr: 'Entente' },
+  closed: { en: 'Closed', fr: 'Conclue' },
+  passed: { en: 'Passed', fr: 'Écartée' },
+}
+
+/** Order the pipeline renders stages in — closed and passed trail the list. */
+export const DEAL_STAGE_ORDER: readonly FinanceDealStage[] = [
+  'sourcing',
+  'diligence',
+  'negotiation',
+  'agreement',
+  'closed',
+  'passed',
+]
 
 export { M as FINANCE_MESSAGES }
