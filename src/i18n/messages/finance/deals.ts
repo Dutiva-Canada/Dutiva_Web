@@ -101,4 +101,34 @@ export const financeDeals = defineMessages({
     en: 'Couldn’t save the commitment. Try again.',
     fr: 'Impossible d’enregistrer l’engagement. Réessayez.',
   },
+  /* Capital calls (finance_capital_calls, 0173) — the event log behind
+     each commitment's called figure. [FR self-authored] */
+  finance_commitment_called_locked: {
+    en: 'Tracked by capital calls',
+    fr: 'Suivi par les appels de fonds',
+  },
+  finance_call_log: { en: 'Log a call', fr: 'Enregistrer un appel' },
+  finance_call_create: { en: 'New capital call', fr: 'Nouvel appel de fonds' },
+  finance_call_status_scheduled: { en: 'Scheduled', fr: 'Prévu' },
+  finance_call_status_notified: { en: 'Notified', fr: 'Notifié' },
+  finance_call_status_received: { en: 'Received', fr: 'Reçu' },
+  finance_call_status_cancelled: { en: 'Cancelled', fr: 'Annulé' },
+  finance_call_mark_notified: { en: 'Mark notified', fr: 'Marquer notifié' },
+  finance_call_mark_received: { en: 'Mark received', fr: 'Marquer reçu' },
+  finance_call_cancel_call: { en: 'Cancel call', fr: 'Annuler l’appel' },
+  finance_call_remove: { en: 'Delete call', fr: 'Supprimer l’appel' },
+  finance_call_remove_confirm: {
+    en: 'Delete this capital call?',
+    fr: 'Supprimer cet appel de fonds?',
+  },
+  finance_call_reference: { en: 'Reference', fr: 'Référence' },
+  finance_call_received_on: { en: 'Received', fr: 'Reçu le' },
+  finance_call_save_failed: {
+    en: 'Couldn’t save the capital call. Try again.',
+    fr: 'Impossible d’enregistrer l’appel de fonds. Réessayez.',
+  },
+  finance_call_exceeds: {
+    en: 'That would exceed the committed amount.',
+    fr: 'Cela dépasserait le montant engagé.',
+  },
 })

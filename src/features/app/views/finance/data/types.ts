@@ -82,6 +82,11 @@ export interface FinanceParty {
   externalId?: string
   /** Restricted payee details are masked in general views. */
   bankingDetailsOnFile: boolean
+  /** Point of contact — used mostly for investors/lenders, but the
+      columns exist on every party. */
+  contactName?: string
+  contactEmail?: string
+  contactPhone?: string
   active: boolean
 }
 
@@ -555,8 +560,10 @@ export type {
   FinanceDeal,
   FinanceCommitmentStatus,
   FinanceCommitment,
+  FinanceCapitalCallStatus,
+  FinanceCapitalCall,
 } from './dealTypes'
-import type { FinanceCommitment, FinanceDeal } from './dealTypes'
+import type { FinanceCapitalCall, FinanceCommitment, FinanceDeal } from './dealTypes'
 
 /* ---------- Tax ---------- */
 
@@ -779,6 +786,8 @@ export interface FinanceWorkspaceState {
   deals: FinanceDeal[]
   /** Capital-partner commitments (investor/lender ledger), migration 0172. */
   commitments: FinanceCommitment[]
+  /** Discrete call events against commitments, migration 0173. */
+  capitalCalls: FinanceCapitalCall[]
   debts: FinanceDebt[]
   taxObligations: FinanceTaxObligation[]
   taxScenarios: FinanceTaxScenario[]

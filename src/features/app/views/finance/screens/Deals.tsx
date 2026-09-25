@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ListPlus, NotebookPen, Pencil, Plus, Trash2 } from 'lucide-react'
+import { ListPlus, NotebookPen, Pencil, Plus, RotateCcw, Trash2 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { statusChipClass } from '@/components/chips'
 import type { ChipTone } from '@/components/chips'
@@ -16,8 +16,13 @@ import {
   DEAL_STAGE_LABEL,
   DEAL_STAGE_ORDER,
 } from '../financeLabels'
-import { CommitmentForm, DealDecisionForm, DealForm } from './DealForms'
-import type { FinanceCommitment, FinanceDeal, FinanceDealStage } from '../data/types'
+import { CapitalCallForm, CommitmentForm, DealDecisionForm, DealForm } from './DealForms'
+import type {
+  FinanceCapitalCallStatus,
+  FinanceCommitment,
+  FinanceDeal,
+  FinanceDealStage,
+} from '../data/types'
 
 /**
  * Finance → Deals — the transaction pipeline for orgs acting like a
@@ -44,6 +49,13 @@ const STAGE_TONE: Record<FinanceDealStage, ChipTone> = {
   passed: 'neutral',
 }
 
+const CALL_TONE: Record<FinanceCapitalCallStatus, ChipTone> = {
+  scheduled: 'neutral',
+  notified: 'info',
+  received: 'success',
+  cancelled: 'neutral',
+}
+
 /** Stages that still count toward the pipeline — closed and passed don't. */
 const ACTIVE_STAGES: ReadonlySet<FinanceDealStage> = new Set([
   'sourcing',
@@ -65,6 +77,9 @@ export function Deals() {
     addCommitment,
     updateCommitment,
     removeCommitment,
+    addCapitalCall,
+    transitionCapitalCallStatus,
+    removeCapitalCall,
   } = useFinanceData()
   const { organizationId } = useWorkspaceMode()
   const { showToast } = useToasts()
@@ -77,6 +92,9 @@ export function Deals() {
   const [commitForm, setCommitForm] = useState<
     { mode: 'add'; partyId: string } | { mode: 'edit'; commitment: FinanceCommitment } | null
   >(null)
+  /* Which commitment's call form is open — calls are add/transition/remove
+     only; amount edits mean delete + re-log. */
+  const [callFormFor, setCallFormFor] = useState<string | null>(null)
 
   const activeDeals = useMemo(
     () => state.deals.filter((d) => ACTIVE_STAGES.has(d.stage)),
@@ -379,6 +397,13 @@ export function Deals() {
                         {x(M[`finance_party_type_${p.type}` as keyof typeof M])} ·{' '}
                         {entityName(p.entityId)}
                       </div>
+                      {(p.contactName || p.contactEmail || p.contactPhone) && (
+                        <div className="text-[11.5px] text-text-faint">
+                          {[p.contactName, p.contactEmail, p.contactPhone]
+                            .filter(Boolean)
+                            .join(' · ')}
+                        </div>
+                      )}
                     </div>
                     <div className="flex shrink-0 items-center gap-[6px]">
                       {p.bankingDetailsOnFile && (
@@ -424,6 +449,146 @@ export function Deals() {
                               <div className="text-[11.5px] text-text-faint">
                                 {x(M.finance_commitment_next_call)}: {c.nextCallDate}
                               </div>
+                            )}
+                            {/* Capital calls — the event log behind the
+                                called figure. Receiving a call bumps
+                                `called` in the API layer, so the two can't
+                                drift apart. */}
+                            {state.capitalCalls
+                              .filter((call) => call.commitmentId === c.id)
+                              .map((call) => (
+                                <div
+                                  key={call.id}
+                                  className="mt-[4px] flex items-start justify-between gap-[8px]"
+                                >
+                                  <div className="flex min-w-0 flex-col gap-[1px]">
+                                    <div className="text-[12px] text-text-2">
+                                      {call.reference ?? x(M.finance_call_create)} ·{' '}
+                                      {x(CURRENCY_LABEL[c.currency])} {call.amount}
+                                    </div>
+                                    <div className="text-[11.5px] text-text-faint">
+                                      {x(M.finance_due_date)}: {call.dueDate}
+                                      {call.status === 'received' && call.receivedDate
+                                        ? ` · ${x(M.finance_call_received_on)} ${call.receivedDate}`
+                                        : ''}
+                                    </div>
+                                  </div>
+                                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-[4px]">
+                                    <span className={statusChipClass(CALL_TONE[call.status])}>
+                                      {x(
+                                        M[
+                                          `finance_call_status_${call.status}` as keyof typeof M
+                                        ],
+                                      )}
+                                    </span>
+                                    {canWrite && call.status === 'scheduled' && (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          void transitionCapitalCallStatus(call.id, 'notified')
+                                        }
+                                        className="rounded-[6px] border border-border bg-surface px-[6px] py-[2px] text-[10.5px] font-semibold text-text-2"
+                                      >
+                                        {x(M.finance_call_mark_notified)}
+                                      </button>
+                                    )}
+                                    {canWrite &&
+                                      (call.status === 'scheduled' ||
+                                        call.status === 'notified') && (
+                                        <>
+                                          <button
+                                            type="button"
+                                            onClick={async () => {
+                                              /* Pre-check the committed ceiling so the
+                                                 error is a clear message, not a raw
+                                                 CHECK-constraint rejection. */
+                                              if (
+                                                toAmount(c.called) + toAmount(call.amount) >
+                                                toAmount(c.committed)
+                                              ) {
+                                                showToast(M.finance_call_exceeds, 'info')
+                                                return
+                                              }
+                                              try {
+                                                await transitionCapitalCallStatus(
+                                                  call.id,
+                                                  'received',
+                                                )
+                                              } catch {
+                                                showToast(M.finance_call_save_failed, 'info')
+                                              }
+                                            }}
+                                            className="rounded-[6px] border border-border bg-surface px-[6px] py-[2px] text-[10.5px] font-semibold text-text-2"
+                                          >
+                                            {x(M.finance_call_mark_received)}
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              void transitionCapitalCallStatus(
+                                                call.id,
+                                                'cancelled',
+                                              )
+                                            }
+                                            className="rounded-[6px] border border-border bg-surface px-[6px] py-[2px] text-[10.5px] font-semibold text-text-muted"
+                                          >
+                                            {x(M.finance_call_cancel_call)}
+                                          </button>
+                                        </>
+                                      )}
+                                    {canWrite && call.status === 'received' && (
+                                      /* Undo a mistaken mark-received —
+                                         bumps `called` back down in the API. */
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          void transitionCapitalCallStatus(call.id, 'scheduled')
+                                        }
+                                        className="rounded-[6px] p-[3px] text-text-muted hover:text-text"
+                                        aria-label={x(M.finance_call_status_scheduled)}
+                                        title={x(M.finance_call_status_scheduled)}
+                                      >
+                                        <RotateCcw size={12} />
+                                      </button>
+                                    )}
+                                    {canWrite && (
+                                      <button
+                                        type="button"
+                                        onClick={async () => {
+                                          if (!confirm(x(M.finance_call_remove_confirm))) return
+                                          await removeCapitalCall(call.id)
+                                        }}
+                                        className="rounded-[6px] p-[3px] text-text-muted hover:text-red-600"
+                                        aria-label={x(M.finance_call_remove)}
+                                      >
+                                        <Trash2 size={12} />
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            {canWrite && c.status === 'active' && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setCallFormFor((cur) => (cur === c.id ? null : c.id))
+                                }
+                                className="mt-[4px] flex items-center gap-[4px] rounded-[6px] px-[6px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-surface"
+                              >
+                                <Plus size={11} aria-hidden />
+                                {x(M.finance_call_log)}
+                              </button>
+                            )}
+                            {canWrite && callFormFor === c.id && (
+                              <CapitalCallForm
+                                commitmentId={c.id}
+                                onSubmit={async (item) => {
+                                  const created = await addCapitalCall(item)
+                                  if (!created) throw new Error('addCapitalCall returned null')
+                                  setCallFormFor(null)
+                                }}
+                                onCancel={() => setCallFormFor(null)}
+                              />
                             )}
                           </div>
                           <div className="flex shrink-0 items-center gap-[4px]">
@@ -473,6 +638,9 @@ export function Deals() {
                               entities={state.entities}
                               defaultEntityId={p.entityId}
                               initial={c}
+                              hasCalls={state.capitalCalls.some(
+                                (call) => call.commitmentId === c.id,
+                              )}
                               onSubmit={async (item) => {
                                 const updated = await updateCommitment(c.id, item)
                                 if (!updated) throw new Error('updateCommitment returned null')

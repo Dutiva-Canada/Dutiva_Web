@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { mapCommitment, mapDeal, mapEntity } from './supabaseMappers'
+import { mapCapitalCall, mapCommitment, mapDeal, mapEntity, mapParty } from './supabaseMappers'
 
 describe('supabaseMappers.mapEntity — ownership fields', () => {
   const baseRow = {
@@ -152,5 +152,67 @@ describe('supabaseMappers.mapCommitment', () => {
     const c = mapCommitment({ ...row, label: null, next_call_date: null })
     expect(c.label).toBeUndefined()
     expect(c.nextCallDate).toBeUndefined()
+  })
+})
+
+describe('supabaseMappers.mapCapitalCall', () => {
+  const row = {
+    id: 'call-1',
+    organization_id: 'org-1',
+    commitment_id: 'cmt-1',
+    amount: '250000.00',
+    due_date: '2026-11-15',
+    status: 'notified',
+    reference: 'Call notice 2026-02',
+    received_date: null,
+    notes: null,
+  }
+
+  it('maps snake_case columns to the FinanceCapitalCall shape', () => {
+    expect(mapCapitalCall(row)).toEqual({
+      id: 'call-1',
+      commitmentId: 'cmt-1',
+      amount: '250000.00',
+      dueDate: '2026-11-15',
+      status: 'notified',
+      reference: 'Call notice 2026-02',
+      receivedDate: undefined,
+      notes: undefined,
+    })
+  })
+
+  it('coerces numeric amount and keeps the received date', () => {
+    const c = mapCapitalCall({ ...row, amount: 250000, status: 'received', received_date: '2026-11-10' })
+    expect(c.amount).toBe('250000')
+    expect(c.receivedDate).toBe('2026-11-10')
+  })
+})
+
+describe('supabaseMappers.mapParty — contact fields (0173)', () => {
+  const row = {
+    id: 'party-1',
+    entity_id: 'ent-2',
+    name: 'Laurentian Growth Partners',
+    type: 'investor',
+    banking_details_on_file: true,
+    active: true,
+    contact_name: 'Amélie Bouchard',
+    contact_email: 'abouchard@example.com',
+    contact_phone: null,
+  }
+
+  it('maps contact columns to camelCase', () => {
+    const p = mapParty(row)
+    expect(p.contactName).toBe('Amélie Bouchard')
+    expect(p.contactEmail).toBe('abouchard@example.com')
+    expect(p.contactPhone).toBeUndefined()
+  })
+
+  it('leaves contact fields undefined on rows predating the columns', () => {
+    const { contact_name: _n, contact_email: _e, contact_phone: _p, ...oldRow } = row
+    const p = mapParty(oldRow)
+    expect(p.contactName).toBeUndefined()
+    expect(p.contactEmail).toBeUndefined()
+    expect(p.contactPhone).toBeUndefined()
   })
 })
