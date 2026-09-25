@@ -13,6 +13,7 @@ import { Plans } from './screens/Plans'
 import { Treasury } from './screens/Treasury'
 import { Portfolio } from './screens/Portfolio'
 import { Deals } from './screens/Deals'
+import { Entities } from './screens/Entities'
 import { Tax } from './screens/Tax'
 import { Evidence } from './screens/Evidence'
 
@@ -30,6 +31,7 @@ function renderAt(route: string) {
         <Route path="treasury" element={<Treasury />} />
         <Route path="portfolio" element={<Portfolio />} />
         <Route path="deals" element={<Deals />} />
+        <Route path="entities" element={<Entities />} />
         <Route path="tax" element={<Tax />} />
         <Route path="evidence" element={<Evidence />} />
       </Route>
@@ -122,6 +124,19 @@ describe('FinanceView', () => {
     expect(
       screen.getByText(/does not broker deals or provide investment advice/),
     ).toBeInTheDocument()
+  })
+
+  it('renders the ownership structure tree on the entities tab', () => {
+    renderAt('/app/finance/entities')
+
+    expect(
+      screen.getByRole('heading', { name: 'Ownership structure' }),
+    ).toBeInTheDocument()
+    // Both entities appear once in the registry list and once in the tree.
+    expect(screen.getAllByText('Northgate Holdings Inc.').length).toBe(2)
+    expect(screen.getAllByText('Northgate Logistics Inc.').length).toBe(2)
+    // The child's ownership edge renders as a percentage badge.
+    expect(screen.getAllByText('100%').length).toBeGreaterThan(0)
   })
 
   it('lists tax obligations on the tax tab', () => {

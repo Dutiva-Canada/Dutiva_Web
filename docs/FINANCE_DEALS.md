@@ -21,8 +21,10 @@ tables, all per legal entity (`finance_entities`):
 - **Ownership structure** — `finance_entities` gains `parent_entity_id` +
   `ownership_pct`, so the registry reads as a holdings structure
   ("Holdings Inc. owns 100% of Logistics Inc.") and `legal_form` gains
-  `trust`. The Entities screen shows an "owned by" line and a parent +
-  ownership-% picker.
+  `trust`. The Entities screen shows an "owned by" line, a parent +
+  ownership-% picker, and — once at least one link exists — an "Ownership
+  structure" tree that renders the hierarchy (cycle-guarded; a parent id
+  outside the registry leaves the entity at the root).
 - **Capital partners** — `finance_parties.type` gains `investor` and
   `lender`, so investors and lenders share the existing party table; the
   Deals screen surfaces them in a dedicated section next to the pipeline.
@@ -33,6 +35,21 @@ RLS in `0171`. Loaded through the finance data layer (`supabaseApi` →
 the fixture set pairs Northgate Logistics Inc. (operating co) with
 Northgate Holdings Inc. (holdco, 100% parent) and four deals across the
 pipeline stages.
+
+## Lifecycle wiring
+
+A deal row carries two outbound actions (production only — `canWrite`):
+
+- **Log a decision** — a compact journal entry that posts to
+  `finance_decision_entries` with the deal's `entityId` plus its
+  `holdingId`/`watchlistItemId` links, so a closed acquisition lands in
+  the same Portfolio decision journal as a market call.
+- **Add follow-up task** — `addDealFollowupTask` inserts a
+  `compliance_tasks` row (category `review`, in the table's CHECK
+  vocabulary) with `metadata: { deal_id, kind: 'deal_followup' }` and the
+  deal's target date as the due date. The task detail page reads
+  `metadata.deal_id` back into a "View in Deals" link, closing the loop
+  both ways. The success toast deep-links to the new task.
 
 ## What it deliberately is not
 
@@ -55,8 +72,9 @@ does not move money.
 
 ## Deploy status
 
-Migration `0171` ships with the feature but must be applied to the
-Supabase project (`khtwpxnvziiyplaflwru`) before production mode reads
-live rows — until then `selectAll` returns an empty deals slice and the
-screen renders its empty state. Verify with `check:migrations` after
-applying.
+Migration `0171` is applied to the Supabase project
+(`khtwpxnvziiyplaflwru`) — `check:migrations` reports 171/171 applied, 0
+differences, and the live schema carries `finance_deals`, its 4 RLS
+policies, the entity-ownership columns, and both updated CHECK
+constraints. The task hand-off needs no migration — it writes the
+existing `compliance_tasks.metadata` jsonb.

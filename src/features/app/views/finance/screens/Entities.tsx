@@ -176,7 +176,63 @@ export function Entities() {
           </ul>
         )}
       </section>
+      {/* Ownership structure — the parent_entity_id edges rendered as a
+          tree. Read-only in both modes; hidden until a link exists since a
+          flat list of roots would just duplicate the registry above. */}
+      {state.entities.some((e) => e.parentEntityId) && (
+        <section className="rounded-[12px] border border-border bg-surface p-[16px]">
+          <h2 className="mb-[10px] text-[15px] font-semibold text-text">
+            {x(M.finance_entity_structure_title)}
+          </h2>
+          <EntityTree entities={state.entities} />
+        </section>
+      )}
     </div>
+  )
+}
+
+function EntityTree({ entities }: { entities: FinanceLegalEntity[] }) {
+  const ids = new Set(entities.map((e) => e.id))
+  const childrenOf = new Map<string, FinanceLegalEntity[]>()
+  const roots: FinanceLegalEntity[] = []
+  for (const ent of entities) {
+    /* A parent id pointing outside this org's registry (or nowhere) leaves
+       the entity at the root — better than dropping it from the view. */
+    if (ent.parentEntityId && ids.has(ent.parentEntityId)) {
+      const kids = childrenOf.get(ent.parentEntityId) ?? []
+      kids.push(ent)
+      childrenOf.set(ent.parentEntityId, kids)
+    } else {
+      roots.push(ent)
+    }
+  }
+
+  /* The form only blocks self-parenting, so edits can still form a cycle
+     (A→B→A). `seen` is per-path: it stops infinite recursion without hiding
+     an entity that two branches legitimately share. */
+  const renderNode = (ent: FinanceLegalEntity, seen: ReadonlySet<string>) => {
+    if (seen.has(ent.id)) return null
+    const path = new Set(seen).add(ent.id)
+    const kids = childrenOf.get(ent.id) ?? []
+    return (
+      <li key={ent.id}>
+        <div className="flex items-center gap-[8px] py-[3px]">
+          <span className="text-[13px] font-semibold text-text">{ent.legalName}</span>
+          {ent.ownershipPct && (
+            <span className={statusChipClass('neutral')}>{ent.ownershipPct}%</span>
+          )}
+        </div>
+        {kids.length > 0 && (
+          <ul className="m-0 ml-[10px] flex list-none flex-col border-l border-border pl-[14px]">
+            {kids.map((k) => renderNode(k, path))}
+          </ul>
+        )}
+      </li>
+    )
+  }
+
+  return (
+    <ul className="m-0 flex list-none flex-col p-0">{roots.map((r) => renderNode(r, new Set()))}</ul>
   )
 }
 

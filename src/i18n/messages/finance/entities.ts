@@ -26,6 +26,7 @@ export const financeEntities = defineMessages({
   finance_entity_ownership_pct: { en: 'Ownership %', fr: 'Participation %' },
   finance_entity_owned_by: { en: '{pct}% owned by {parent}', fr: '{pct} % détenue par {parent}' },
   finance_entity_owned_by_no_pct: { en: 'Owned by {parent}', fr: 'Détenue par {parent}' },
+  finance_entity_structure_title: { en: 'Ownership structure', fr: 'Structure de propriété' },
   finance_entity_edit_title: { en: 'Edit legal entity', fr: 'Modifier l’entité juridique' },
   finance_entity_integrations: { en: 'Integrations (optional)', fr: 'Intégrations (facultatives)' },
   finance_entity_empty: {

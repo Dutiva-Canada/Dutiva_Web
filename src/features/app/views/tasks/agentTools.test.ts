@@ -37,6 +37,7 @@ function fakeTask(fields: NewTask): ProductionTask {
     assignedTo: null,
     notes: [],
     linkedEmployeeId: null,
+    linkedDealId: null,
     linkedKind: null,
   }
 }
