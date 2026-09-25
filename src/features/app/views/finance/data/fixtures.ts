@@ -521,6 +521,32 @@ const decisionEntry2: FinanceWorkspaceState['decisionEntries'][number] = {
   reviewDate: '2026-10-15',
 }
 
+/* Capital commitments — the investor's subscription is partially called;
+   the lender's facility is fully drawn but still open. Both hang off the
+   holdco (ent-2) like the parties themselves. */
+const commitmentInvestor: FinanceWorkspaceState['commitments'][number] = {
+  id: 'cmt-1',
+  entityId: 'ent-2',
+  partyId: 'party-inv-1',
+  label: bi('Growth equity commitment', 'Engagement en capital de croissance'),
+  committed: '1500000.00',
+  called: '600000.00',
+  currency: 'CAD',
+  nextCallDate: '2026-11-15',
+  status: 'active',
+}
+
+const commitmentLender: FinanceWorkspaceState['commitments'][number] = {
+  id: 'cmt-2',
+  entityId: 'ent-2',
+  partyId: 'party-len-1',
+  label: bi('Acquisition credit facility', 'Facilité de crédit d’acquisition'),
+  committed: '750000.00',
+  called: '750000.00',
+  currency: 'CAD',
+  status: 'active',
+}
+
 const debt: FinanceWorkspaceState['debts'][number] = {
   id: 'debt-1',
   entityId: 'ent-1',
@@ -530,7 +556,12 @@ const debt: FinanceWorkspaceState['debts'][number] = {
   balance: '32000.00',
   interestRate: '7.25',
   currency: 'CAD',
-  maturityDate: '2027-06-30',
+  maturityDate: '2026-11-30',
+  /* Covenant + notice columns exist since the debts table shipped but were
+     never rendered — the fixture exercises them on the Treasury tab, and
+     the near maturity exercises the "maturing soon" marker. */
+  noticePeriod: '60 days',
+  covenantRef: 'DSC ≥ 1.25×',
   status: 'active',
 }
 
@@ -755,6 +786,7 @@ export const initialFinanceState: FinanceWorkspaceState = {
   watchlistItems: [watchlistItem, watchlistItem2],
   decisionEntries: [decisionEntry, decisionEntry2],
   deals: [dealAcquisition, dealInvestment, dealFinancing, dealPassed],
+  commitments: [commitmentInvestor, commitmentLender],
   debts: [debt],
   taxObligations: [taxObligation, taxObligation2],
   taxScenarios: [taxScenario],

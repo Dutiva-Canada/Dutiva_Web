@@ -549,8 +549,14 @@ import type { FinanceDecisionEntry, FinanceWatchlistItem } from './portfolioType
 
 /* Deals domain types live in ./dealTypes (same 800-line budget split).
    Re-exported here so `from './types'` keeps working. */
-export type { FinanceDealKind, FinanceDealStage, FinanceDeal } from './dealTypes'
-import type { FinanceDeal } from './dealTypes'
+export type {
+  FinanceDealKind,
+  FinanceDealStage,
+  FinanceDeal,
+  FinanceCommitmentStatus,
+  FinanceCommitment,
+} from './dealTypes'
+import type { FinanceCommitment, FinanceDeal } from './dealTypes'
 
 /* ---------- Tax ---------- */
 
@@ -771,6 +777,8 @@ export interface FinanceWorkspaceState {
   watchlistItems: FinanceWatchlistItem[]
   decisionEntries: FinanceDecisionEntry[]
   deals: FinanceDeal[]
+  /** Capital-partner commitments (investor/lender ledger), migration 0172. */
+  commitments: FinanceCommitment[]
   debts: FinanceDebt[]
   taxObligations: FinanceTaxObligation[]
   taxScenarios: FinanceTaxScenario[]

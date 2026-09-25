@@ -28,6 +28,13 @@ tables, all per legal entity (`finance_entities`):
 - **Capital partners** — `finance_parties.type` gains `investor` and
   `lender`, so investors and lenders share the existing party table; the
   Deals screen surfaces them in a dedicated section next to the pipeline.
+- **Commitments** — `finance_commitments` (migration `0172`): the
+  committed / called / uncalled ledger per partner, with an optional
+  next-call date. Each partner card in the Deals partners section lists
+  its commitments and offers add/edit/remove in production. `called <=
+  committed` is enforced by a CHECK constraint and pre-validated in the
+  form. Rows hang off `finance_parties` + `finance_entities`, same
+  member-read / admin-write RLS as the rest.
 
 Same org-scoped model as the rest of finance: members read, admins write,
 RLS in `0171`. Loaded through the finance data layer (`supabaseApi` →
@@ -50,6 +57,14 @@ A deal row carries two outbound actions (production only — `canWrite`):
   deal's target date as the due date. The task detail page reads
   `metadata.deal_id` back into a "View in Deals" link, closing the loop
   both ways. The success toast deep-links to the new task.
+
+## Treasury debt terms
+
+`finance_debts` has carried `covenant_ref`, `notice_period`, and
+`maturity_date` since the debts table shipped, but nothing rendered the
+first two. The Treasury debt rows now show a covenant / notice line under
+the terms, and an active facility inside 90 days of maturity gets a
+"Maturing soon" chip — no schema change.
 
 ## What it deliberately is not
 
