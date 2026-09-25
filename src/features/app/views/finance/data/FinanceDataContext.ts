@@ -123,6 +123,14 @@ export interface FinanceDataContextValue {
     nextStatus: import('./types').FinanceCapitalCallStatus,
   ) => Promise<import('./types').FinanceCapitalCall | null>
   removeCapitalCall: (id: string) => Promise<boolean>
+  addCashSweep: (
+    item: Omit<import('./types').FinanceCashSweep, 'id'>,
+  ) => Promise<import('./types').FinanceCashSweep | null>
+  transitionCashSweepStatus: (
+    id: string,
+    nextStatus: import('./types').FinanceCashSweepStatus,
+  ) => Promise<import('./types').FinanceCashSweep | null>
+  removeCashSweep: (id: string) => Promise<boolean>
   transitionDebtStatus: (
     id: string,
     nextStatus: import('./types').FinanceDebt['status'],

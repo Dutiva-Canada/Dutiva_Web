@@ -9,6 +9,7 @@ import { supabase as supabaseTyped } from '@/lib/supabaseClient'
 import type {
   FinanceBankAccount,
   FinanceBudget,
+  FinanceCashSweep,
   FinanceDebt,
   FinanceDecisionEntry,
   FinanceExternalAction,
@@ -41,6 +42,7 @@ import {
   mapWatchlistItem,
   mapCommitment,
   mapCapitalCall,
+  mapCashSweep,
 } from './supabaseMappers'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -59,6 +61,7 @@ const TABLES = {
   deals: 'finance_deals',
   commitments: 'finance_commitments',
   capitalCalls: 'finance_capital_calls',
+  cashSweeps: 'finance_cash_sweeps',
   debts: 'finance_debts',
   externalActions: 'finance_external_actions',
   bankAccounts: 'finance_bank_accounts',
@@ -500,6 +503,100 @@ export async function removeCommitmentInSupabase(
     .eq('id', id)
   if (error) throw error
   return true
+}
+
+/* ---------- Treasury cash sweeps ---------- */
+
+export async function addCashSweepInSupabase(
+  orgId: string,
+  item: Omit<FinanceCashSweep, 'id'>,
+): Promise<FinanceCashSweep | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.cashSweeps)
+    .insert({
+      organization_id: orgId,
+      entity_id: item.entityId,
+      from_account_id: item.fromAccountId,
+      to_account_id: item.toAccountId,
+      amount: Number(item.amount || 0),
+      currency: item.currency,
+      status: item.status,
+      scheduled_date: item.scheduledDate,
+      executed_date: item.executedDate ?? null,
+      reference: item.reference ?? null,
+      notes: item.notes ?? null,
+    })
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapCashSweep(data as Record<string, unknown>)
+}
+
+export async function updateCashSweepInSupabase(
+  orgId: string,
+  id: string,
+  patch: Partial<Omit<FinanceCashSweep, 'id'>>,
+): Promise<FinanceCashSweep | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.cashSweeps)
+    .update({
+      ...(patch.entityId !== undefined ? { entity_id: patch.entityId } : {}),
+      ...(patch.fromAccountId !== undefined ? { from_account_id: patch.fromAccountId } : {}),
+      ...(patch.toAccountId !== undefined ? { to_account_id: patch.toAccountId } : {}),
+      ...(patch.amount !== undefined ? { amount: Number(patch.amount || 0) } : {}),
+      ...(patch.currency !== undefined ? { currency: patch.currency } : {}),
+      ...(patch.status !== undefined ? { status: patch.status } : {}),
+      ...(patch.scheduledDate !== undefined ? { scheduled_date: patch.scheduledDate } : {}),
+      ...(patch.executedDate !== undefined
+        ? { executed_date: patch.executedDate || null }
+        : {}),
+      ...(patch.reference !== undefined ? { reference: patch.reference ?? null } : {}),
+      ...(patch.notes !== undefined ? { notes: patch.notes ?? null } : {}),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('organization_id', orgId)
+    .eq('id', id)
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapCashSweep(data as Record<string, unknown>)
+}
+
+export async function removeCashSweepInSupabase(
+  orgId: string,
+  id: string,
+): Promise<boolean> {
+  if (!supabase) return false
+  const { error } = await supabase
+    .from(TABLES.cashSweeps)
+    .delete()
+    .eq('organization_id', orgId)
+    .eq('id', id)
+  if (error) throw error
+  return true
+}
+
+export async function transitionCashSweepStatusInSupabase(
+  orgId: string,
+  id: string,
+  status: FinanceCashSweep['status'],
+): Promise<FinanceCashSweep | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.cashSweeps)
+    .update({
+      status,
+      ...(status === 'executed' ? { executed_date: new Date().toISOString().slice(0, 10) } : {}),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('organization_id', orgId)
+    .eq('id', id)
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapCashSweep(data as Record<string, unknown>)
 }
 
 /* ---------- Capital calls ---------- */

@@ -132,6 +132,23 @@ describe('FinanceView', () => {
     )
   })
 
+  it('lists cash sweeps on the treasury tab with their lifecycle', () => {
+    renderAt('/app/finance/treasury')
+
+    expect(screen.getByRole('heading', { name: 'Cash sweeps' })).toBeInTheDocument()
+    // Executed + scheduled fixture sweeps, both operating → tax reserve.
+    expect(screen.getAllByText(/Operating account → Tax reserve account/)).toHaveLength(2)
+    expect(screen.getByText(/CAD 4000\.00 · 2026-09-15/)).toBeInTheDocument()
+    expect(screen.getByText(/CAD 2500\.00 · 2026-10-01/)).toBeInTheDocument()
+    expect(screen.getByText('Executed')).toBeInTheDocument()
+    expect(screen.getByText('Scheduled')).toBeInTheDocument()
+    expect(screen.getByText(/Q3 instalment sweep/)).toBeInTheDocument()
+    expect(screen.getByText(/Q4 instalment sweep/)).toBeInTheDocument()
+    // Demo mode is read-only — the write controls stay hidden.
+    expect(screen.queryByText('Mark executed')).not.toBeInTheDocument()
+    expect(screen.queryByText('Record a sweep')).not.toBeInTheDocument()
+  })
+
   it('shows covenant, notice, and the maturing marker on treasury debt', () => {
     renderAt('/app/finance/treasury')
 
