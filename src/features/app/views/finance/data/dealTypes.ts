@@ -74,3 +74,26 @@ export interface FinanceCommitment {
   status: FinanceCommitmentStatus
   notes?: Bi
 }
+
+/* ---------- Capital calls (migration 0173) ---------- */
+
+export type FinanceCapitalCallStatus = 'scheduled' | 'notified' | 'received' | 'cancelled'
+
+/**
+ * A discrete capital call against a commitment — the event log that feeds
+ * the commitment's `called` ledger figure. Entity and currency come from
+ * the parent commitment rather than duplicating columns.
+ */
+export interface FinanceCapitalCall {
+  id: string
+  commitmentId: string
+  /** Call amount, decimal string like other money fields. */
+  amount: string
+  dueDate: string
+  status: FinanceCapitalCallStatus
+  /** Call-notice or wire reference. */
+  reference?: string
+  /** When the money actually landed, if received. */
+  receivedDate?: string
+  notes?: Bi
+}

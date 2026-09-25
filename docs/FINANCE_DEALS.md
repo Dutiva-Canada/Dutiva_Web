@@ -35,6 +35,16 @@ tables, all per legal entity (`finance_entities`):
   committed` is enforced by a CHECK constraint and pre-validated in the
   form. Rows hang off `finance_parties` + `finance_entities`, same
   member-read / admin-write RLS as the rest.
+- **Capital calls** — `finance_capital_calls` (migration `0173`): discrete
+  call events (`scheduled → notified → received | cancelled`) against a
+  commitment, with amount, due date, reference, and received date. The
+  API layer bumps the commitment's `called` when a call moves into
+  `received` (and decrements on un-receive or delete-of-received), so the
+  event log and the ledger can't drift; when a commitment has calls, the
+  edit form renders `called` read-only. Receiving a call that would push
+  `called` past `committed` is refused up front. Partner records also
+  gained `contact_name` / `contact_email` / `contact_phone` (0173),
+  captured in the Purchases party form and shown on the partner cards.
 
 Same org-scoped model as the rest of finance: members read, admins write,
 RLS in `0171`. Loaded through the finance data layer (`supabaseApi` →
@@ -87,8 +97,8 @@ does not move money.
 
 ## Deploy status
 
-Migrations `0171` (deals + ownership + partner types) and `0172`
-(commitments) are applied to the Supabase project
-(`khtwpxnvziiyplaflwru`) — `check:migrations` reports 172/172 applied, 0
-differences. The task hand-off needs no migration — it writes the
-existing `compliance_tasks.metadata` jsonb.
+Migrations `0171` (deals + ownership + partner types), `0172`
+(commitments), and `0173` (capital calls + party contacts) are applied
+to the Supabase project (`khtwpxnvziiyplaflwru`) — `check:migrations`
+reports 173/173 applied, 0 differences. The task hand-off needs no
+migration — it writes the existing `compliance_tasks.metadata` jsonb.

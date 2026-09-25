@@ -11,6 +11,7 @@ import {
   DECISION_KIND_LABEL,
 } from '../financeLabels'
 import type {
+  FinanceCapitalCall,
   FinanceCommitment,
   FinanceCommitmentStatus,
   FinanceCurrency,
@@ -359,6 +360,7 @@ export function CommitmentForm({
   entities,
   defaultEntityId,
   initial,
+  hasCalls,
   onSubmit,
   onCancel,
 }: {
@@ -366,6 +368,9 @@ export function CommitmentForm({
   entities: FinanceLegalEntity[]
   defaultEntityId: string
   initial?: FinanceCommitment
+  /** When the commitment has capital calls, `called` is derived from them
+      — render it as a value, not an input, so the ledger can't drift. */
+  hasCalls?: boolean
   onSubmit: (item: Omit<FinanceCommitment, 'id'>) => Promise<unknown>
   onCancel: () => void
 }) {
@@ -461,14 +466,20 @@ export function CommitmentForm({
         </label>
         <label className={labelClass}>
           <span>{x(M.finance_commitment_called)}</span>
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            value={called}
-            onChange={(e) => setCalled(e.target.value)}
-            className={inputClass}
-          />
+          {hasCalls ? (
+            <span className="rounded-[6px] bg-inset px-[8px] py-[4px] text-[13px] text-text-2">
+              {called} · {x(M.finance_commitment_called_locked)}
+            </span>
+          ) : (
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={called}
+              onChange={(e) => setCalled(e.target.value)}
+              className={inputClass}
+            />
+          )}
         </label>
         <label className={labelClass}>
           <span>{x(M.finance_currency)}</span>
@@ -530,6 +541,117 @@ export function CommitmentForm({
         <button
           type="submit"
           disabled={saving || calledOverCommitted}
+          className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white disabled:opacity-60"
+        >
+          {x(M.finance_save)}
+        </button>
+      </div>
+    </form>
+  )
+}
+
+/**
+ * Log a capital call against a commitment — always enters as `scheduled`;
+ * notified/received happen through the row's transition buttons so the
+ * called-ledger bump stays in one place.
+ */
+export function CapitalCallForm({
+  commitmentId,
+  onSubmit,
+  onCancel,
+}: {
+  commitmentId: string
+  onSubmit: (item: Omit<FinanceCapitalCall, 'id'>) => Promise<unknown>
+  onCancel: () => void
+}) {
+  const { x } = useI18n()
+  const [amount, setAmount] = useState('')
+  const [dueDate, setDueDate] = useState('')
+  const [reference, setReference] = useState('')
+  const [notes, setNotes] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (saving || !amount.trim() || !dueDate) return
+    setSaving(true)
+    setError(null)
+    try {
+      await onSubmit({
+        commitmentId,
+        amount: amount.trim(),
+        dueDate,
+        status: 'scheduled',
+        reference: reference.trim() || undefined,
+        notes: notes.trim()
+          ? ({ en: notes.trim(), fr: notes.trim() } satisfies Bi as Bi)
+          : undefined,
+      })
+    } catch {
+      setError(x(M.finance_call_save_failed))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <form
+      onSubmit={(e) => void handleSubmit(e)}
+      className="mt-[6px] flex flex-col gap-[8px] rounded-[8px] border border-border bg-surface p-[10px]"
+    >
+      <div className="text-[12px] font-semibold text-text">{x(M.finance_call_create)}</div>
+      <div className="grid grid-cols-2 gap-[8px]">
+        <label className={labelClass}>
+          <span>{x(M.finance_amount)}</span>
+          <input
+            type="number"
+            min="0.01"
+            step="0.01"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className={inputClass}
+            required
+          />
+        </label>
+        <label className={labelClass}>
+          <span>{x(M.finance_due_date)}</span>
+          <input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            className={inputClass}
+            required
+          />
+        </label>
+      </div>
+      <div className="grid grid-cols-2 gap-[8px]">
+        <label className={labelClass}>
+          <span>{x(M.finance_call_reference)}</span>
+          <input
+            value={reference}
+            onChange={(e) => setReference(e.target.value)}
+            className={inputClass}
+          />
+        </label>
+        <label className={labelClass}>
+          <span>{x(M.finance_deals_notes)}</span>
+          <input value={notes} onChange={(e) => setNotes(e.target.value)} className={inputClass} />
+        </label>
+      </div>
+      {error && <p className="m-0 text-[12px] text-red-600">{error}</p>}
+      <div className="flex justify-end gap-[8px]">
+        <button
+          type="button"
+          disabled={saving}
+          onClick={onCancel}
+          className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border disabled:opacity-60"
+        >
+          {x(M.finance_cancel)}
+        </button>
+        <button
+          type="submit"
+          disabled={saving}
           className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white disabled:opacity-60"
         >
           {x(M.finance_save)}

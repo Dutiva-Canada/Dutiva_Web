@@ -17,6 +17,9 @@ import {
   addCommitmentInSupabase,
   updateCommitmentInSupabase,
   removeCommitmentInSupabase,
+  addCapitalCallInSupabase,
+  removeCapitalCallInSupabase,
+  transitionCapitalCallStatusInSupabase,
   transitionDebtStatusInSupabase,
   transitionBudgetStatusInSupabase,
   transitionScenarioStatusInSupabase,
@@ -34,6 +37,8 @@ import {
 import type {
   FinanceBankAccount,
   FinanceBudget,
+  FinanceCapitalCall,
+  FinanceCapitalCallStatus,
   FinanceCommitment,
   FinanceDeal,
   FinanceDealStage,
@@ -254,6 +259,57 @@ export function useFinanceCreates({
         setState((prev) => ({
           ...prev,
           commitments: prev.commitments.filter((c) => c.id !== id),
+          // ON DELETE CASCADE removes the commitment's calls server-side.
+          capitalCalls: prev.capitalCalls.filter((c) => c.commitmentId !== id),
+        }))
+      }
+      await reload()
+      return ok
+    },
+    [isLive, orgId, hasSupabase, reload, setState],
+  )
+
+  /* Capital calls — the called-bump on receive/un-receive happens in the
+     API layer (it reads the commitment row fresh), so these callbacks
+     only keep local state tidy. */
+
+  const addCapitalCall = useCallback(
+    async (item: Omit<FinanceCapitalCall, 'id'>) => {
+      if (!isLive || !orgId || !hasSupabase) return null
+      const created = await addCapitalCallInSupabase(orgId, item)
+      if (created) {
+        setState((prev) => ({ ...prev, capitalCalls: [...prev.capitalCalls, created] }))
+      }
+      await reload()
+      return created
+    },
+    [isLive, orgId, hasSupabase, reload, setState],
+  )
+
+  const transitionCapitalCallStatus = useCallback(
+    async (id: string, nextStatus: FinanceCapitalCallStatus) => {
+      if (!isLive || !orgId || !hasSupabase) return null
+      const updated = await transitionCapitalCallStatusInSupabase(orgId, id, nextStatus)
+      if (updated) {
+        setState((prev) => ({
+          ...prev,
+          capitalCalls: prev.capitalCalls.map((c) => (c.id === id ? updated : c)),
+        }))
+      }
+      await reload()
+      return updated
+    },
+    [isLive, orgId, hasSupabase, reload, setState],
+  )
+
+  const removeCapitalCall = useCallback(
+    async (id: string) => {
+      if (!isLive || !orgId || !hasSupabase) return false
+      const ok = await removeCapitalCallInSupabase(orgId, id)
+      if (ok) {
+        setState((prev) => ({
+          ...prev,
+          capitalCalls: prev.capitalCalls.filter((c) => c.id !== id),
         }))
       }
       await reload()
@@ -424,6 +480,9 @@ export function useFinanceCreates({
     addCommitment,
     updateCommitment,
     removeCommitment,
+    addCapitalCall,
+    transitionCapitalCallStatus,
+    removeCapitalCall,
     transitionDebtStatus,
     transitionBudgetStatus,
     transitionScenarioStatus,

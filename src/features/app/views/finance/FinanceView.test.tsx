@@ -136,6 +136,13 @@ describe('FinanceView', () => {
     expect(screen.getByText('Acquisition credit facility')).toBeInTheDocument()
     expect(screen.getAllByText(/Uncalled 900000\.00/).length).toBe(1)
     expect(screen.getByText(/Next call: 2026-11-15/)).toBeInTheDocument()
+    // Capital calls render as the event log under their commitment.
+    expect(screen.getByText(/Call notice 2026-01/)).toBeInTheDocument()
+    expect(screen.getByText(/Call notice 2026-02/)).toBeInTheDocument()
+    expect(screen.getByText('Received')).toBeInTheDocument()
+    expect(screen.getByText('Notified')).toBeInTheDocument()
+    // Partner contact details (0173) render on the card.
+    expect(screen.getByText(/Amélie Bouchard/)).toBeInTheDocument()
     // The hedging note stays on the record/workflow wording.
     expect(
       screen.getByText(/does not broker deals or provide investment advice/),

@@ -62,6 +62,10 @@ export const financeTreasury = defineMessages({
     en: 'Banking details on file',
     fr: 'Coordonnées bancaires au dossier',
   },
+  /* Party contacts (0173) — [FR self-authored] */
+  finance_party_contact_name: { en: 'Contact name', fr: 'Nom du contact' },
+  finance_party_contact_email: { en: 'Contact email', fr: 'Courriel du contact' },
+  finance_party_contact_phone: { en: 'Contact phone', fr: 'Téléphone du contact' },
 
   /* Reserve goal types */
   finance_reserve_type_emergency_operating: {

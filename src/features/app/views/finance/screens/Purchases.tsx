@@ -442,10 +442,22 @@ function PartyForm({
   const [name, setName] = useState('')
   const [type, setType] = useState<import('../data/types').FinancePartyType>('supplier')
   const [bankingDetailsOnFile, setBankingDetailsOnFile] = useState(false)
+  const [contactName, setContactName] = useState('')
+  const [contactEmail, setContactEmail] = useState('')
+  const [contactPhone, setContactPhone] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit({ entityId, name, type, bankingDetailsOnFile, active: true })
+    onSubmit({
+      entityId,
+      name,
+      type,
+      bankingDetailsOnFile,
+      contactName: contactName.trim() || undefined,
+      contactEmail: contactEmail.trim() || undefined,
+      contactPhone: contactPhone.trim() || undefined,
+      active: true,
+    })
   }
 
   return (
@@ -501,6 +513,36 @@ function PartyForm({
             onChange={(e) => setBankingDetailsOnFile(e.target.checked)}
           />
           <span className="text-[12px] text-text-muted">{x(M.finance_party_banking_on_file)}</span>
+        </label>
+      </div>
+      {/* Point of contact — mainly used for investors/lenders on the
+          Deals tab, but the columns exist on every party. */}
+      <div className="grid grid-cols-3 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_party_contact_name)}</span>
+          <input
+            value={contactName}
+            onChange={(e) => setContactName(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_party_contact_email)}</span>
+          <input
+            type="email"
+            value={contactEmail}
+            onChange={(e) => setContactEmail(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_party_contact_phone)}</span>
+          <input
+            type="tel"
+            value={contactPhone}
+            onChange={(e) => setContactPhone(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          />
         </label>
       </div>
       <div className="flex justify-end gap-[8px]">

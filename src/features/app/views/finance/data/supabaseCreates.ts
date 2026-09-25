@@ -40,6 +40,7 @@ import {
   mapSubscription,
   mapWatchlistItem,
   mapCommitment,
+  mapCapitalCall,
 } from './supabaseMappers'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -57,6 +58,7 @@ const TABLES = {
   decisionEntries: 'finance_decision_entries',
   deals: 'finance_deals',
   commitments: 'finance_commitments',
+  capitalCalls: 'finance_capital_calls',
   debts: 'finance_debts',
   externalActions: 'finance_external_actions',
   bankAccounts: 'finance_bank_accounts',
@@ -500,6 +502,160 @@ export async function removeCommitmentInSupabase(
   return true
 }
 
+/* ---------- Capital calls ---------- */
+
+/**
+ * Bumps a commitment's `called` ledger by `delta` (can be negative).
+ * Reads the row fresh so concurrent-ish edits don't need client state;
+ * the `called <= committed` CHECK on finance_commitments makes an
+ * over-commitment write fail, which the caller surfaces as an error.
+ */
+async function bumpCommitmentCalled(
+  orgId: string,
+  commitmentId: string,
+  delta: number,
+): Promise<void> {
+  const { data: cur, error: readErr } = await supabase
+    .from(TABLES.commitments)
+    .select('called, committed')
+    .eq('organization_id', orgId)
+    .eq('id', commitmentId)
+    .single()
+  if (readErr) throw readErr
+  const next = Math.max(0, Math.round((Number(cur.called ?? 0) + delta) * 100) / 100)
+  const { error } = await supabase
+    .from(TABLES.commitments)
+    .update({ called: next, updated_at: new Date().toISOString() })
+    .eq('organization_id', orgId)
+    .eq('id', commitmentId)
+  if (error) throw error
+}
+
+export async function addCapitalCallInSupabase(
+  orgId: string,
+  item: Omit<import('./types').FinanceCapitalCall, 'id'>,
+): Promise<import('./types').FinanceCapitalCall | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.capitalCalls)
+    .insert({
+      organization_id: orgId,
+      commitment_id: item.commitmentId,
+      amount: Number(item.amount || 0),
+      due_date: item.dueDate,
+      status: item.status,
+      reference: item.reference ?? null,
+      received_date: item.receivedDate ?? null,
+      notes: item.notes ?? null,
+    })
+    .select('*')
+    .single()
+  if (error) throw error
+  const created = mapCapitalCall(data as Record<string, unknown>)
+  if (created.status === 'received') {
+    try {
+      await bumpCommitmentCalled(orgId, created.commitmentId, Number(created.amount))
+    } catch (e) {
+      // Roll back the insert so a rejected bump can't leave a phantom
+      // received call that never reached the ledger.
+      await supabase
+        .from(TABLES.capitalCalls)
+        .delete()
+        .eq('organization_id', orgId)
+        .eq('id', created.id)
+      throw e
+    }
+  }
+  return created
+}
+
+export async function updateCapitalCallInSupabase(
+  orgId: string,
+  id: string,
+  patch: Partial<Omit<import('./types').FinanceCapitalCall, 'id'>>,
+): Promise<import('./types').FinanceCapitalCall | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.capitalCalls)
+    .update({
+      ...(patch.commitmentId !== undefined ? { commitment_id: patch.commitmentId } : {}),
+      ...(patch.amount !== undefined ? { amount: Number(patch.amount || 0) } : {}),
+      ...(patch.dueDate !== undefined ? { due_date: patch.dueDate } : {}),
+      ...(patch.status !== undefined ? { status: patch.status } : {}),
+      ...(patch.reference !== undefined ? { reference: patch.reference || null } : {}),
+      ...(patch.receivedDate !== undefined
+        ? { received_date: patch.receivedDate || null }
+        : {}),
+      ...(patch.notes !== undefined ? { notes: patch.notes ?? null } : {}),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('organization_id', orgId)
+    .eq('id', id)
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapCapitalCall(data as Record<string, unknown>)
+}
+
+export async function removeCapitalCallInSupabase(
+  orgId: string,
+  id: string,
+): Promise<boolean> {
+  if (!supabase) return false
+  const { data: cur, error: readErr } = await supabase
+    .from(TABLES.capitalCalls)
+    .select('commitment_id, amount, status')
+    .eq('organization_id', orgId)
+    .eq('id', id)
+    .single()
+  if (readErr) throw readErr
+  if (cur.status === 'received') {
+    await bumpCommitmentCalled(orgId, cur.commitment_id, -Number(cur.amount))
+  }
+  const { error } = await supabase
+    .from(TABLES.capitalCalls)
+    .delete()
+    .eq('organization_id', orgId)
+    .eq('id', id)
+  if (error) throw error
+  return true
+}
+
+/**
+ * Lifecycle transition for a call. Moving into `received` bumps the
+ * parent commitment's `called`; moving back out decrements it. The bump
+ * runs first so a CHECK violation on `called <= committed` aborts the
+ * transition rather than recording money the ledger can't hold.
+ */
+export async function transitionCapitalCallStatusInSupabase(
+  orgId: string,
+  id: string,
+  nextStatus: import('./types').FinanceCapitalCallStatus,
+): Promise<import('./types').FinanceCapitalCall | null> {
+  if (!supabase) return null
+  const { data: cur, error: readErr } = await supabase
+    .from(TABLES.capitalCalls)
+    .select('commitment_id, amount, status')
+    .eq('organization_id', orgId)
+    .eq('id', id)
+    .single()
+  if (readErr) throw readErr
+  const wasReceived = cur.status === 'received'
+  const willBeReceived = nextStatus === 'received'
+  if (wasReceived === willBeReceived) {
+    return updateCapitalCallInSupabase(orgId, id, { status: nextStatus })
+  }
+  await bumpCommitmentCalled(
+    orgId,
+    cur.commitment_id,
+    willBeReceived ? Number(cur.amount) : -Number(cur.amount),
+  )
+  return updateCapitalCallInSupabase(orgId, id, {
+    status: nextStatus,
+    receivedDate: willBeReceived ? new Date().toISOString().slice(0, 10) : '',
+  })
+}
+
 export async function transitionDebtStatusInSupabase(
   orgId: string,
   id: string,
@@ -677,6 +833,9 @@ export async function addPartyInSupabase(
       type: item.type,
       external_id: item.externalId,
       banking_details_on_file: item.bankingDetailsOnFile,
+      contact_name: item.contactName ?? null,
+      contact_email: item.contactEmail ?? null,
+      contact_phone: item.contactPhone ?? null,
       active: item.active,
     })
     .select('*')
