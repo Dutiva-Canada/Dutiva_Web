@@ -585,8 +585,14 @@ export type {
   FinanceCommitment,
   FinanceCapitalCallStatus,
   FinanceCapitalCall,
+  FinanceDocumentLink,
 } from './dealTypes'
-import type { FinanceCapitalCall, FinanceCommitment, FinanceDeal } from './dealTypes'
+import type {
+  FinanceCapitalCall,
+  FinanceCommitment,
+  FinanceDeal,
+  FinanceDocumentLink,
+} from './dealTypes'
 
 /* ---------- Tax ---------- */
 
@@ -812,6 +818,7 @@ export interface FinanceWorkspaceState {
   /** Discrete call events against commitments, migration 0173. */
   capitalCalls: FinanceCapitalCall[]
   cashSweeps: FinanceCashSweep[]
+  documentLinks: FinanceDocumentLink[]
   debts: FinanceDebt[]
   taxObligations: FinanceTaxObligation[]
   taxScenarios: FinanceTaxScenario[]

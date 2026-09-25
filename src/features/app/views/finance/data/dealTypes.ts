@@ -97,3 +97,21 @@ export interface FinanceCapitalCall {
   receivedDate?: string
   notes?: Bi
 }
+
+/* ---------- Deal/holding document links (migration 0175) ---------- */
+
+/**
+ * A finance-side pointer to a document in the HR Documents module
+ * (hr_generated_documents). Snapshots the ref + bilingual title so
+ * finance screens render the link without joining across modules;
+ * deep links resolve to /app/documents/<documentId>.
+ */
+export interface FinanceDocumentLink {
+  id: string
+  /** Exactly one of dealId / holdingId is set. */
+  dealId?: string
+  holdingId?: string
+  documentId: string
+  documentRef?: string
+  title?: Bi
+}

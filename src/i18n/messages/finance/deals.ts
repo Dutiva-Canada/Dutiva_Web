@@ -131,4 +131,23 @@ export const financeDeals = defineMessages({
     en: 'That would exceed the committed amount.',
     fr: 'Cela dépasserait le montant engagé.',
   },
+
+  /* Deal/holding document links (0175) — [FR self-authored] */
+  finance_doc_links_title: { en: 'Documents', fr: 'Documents' },
+  finance_doc_link_none: { en: 'No linked documents.', fr: 'Aucun document lié.' },
+  finance_doc_link_add: { en: 'Link a document', fr: 'Lier un document' },
+  finance_doc_link_pick: { en: 'Document', fr: 'Document' },
+  finance_doc_link_ref: { en: 'Reference', fr: 'Référence' },
+  finance_doc_link_title_en: { en: 'Title (EN)', fr: 'Titre (EN)' },
+  finance_doc_link_title_fr: { en: 'Title (FR)', fr: 'Titre (FR)' },
+  finance_doc_link_save: { en: 'Link', fr: 'Lier' },
+  finance_doc_link_save_failed: {
+    en: 'Could not link the document.',
+    fr: 'Impossible de lier le document.',
+  },
+  finance_doc_link_remove: { en: 'Unlink', fr: 'Dissocier' },
+  finance_doc_link_remove_confirm: {
+    en: 'Unlink this document?',
+    fr: 'Dissocier ce document ?',
+  },
 })

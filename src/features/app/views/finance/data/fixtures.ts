@@ -619,6 +619,25 @@ const sweepScheduled: FinanceWorkspaceState['cashSweeps'][number] = {
   reference: 'Q4 instalment sweep',
 }
 
+/* Deal/holding document links (0175) — snapshots of documents in the HR
+   Documents module (hr_generated_documents); deep links resolve to
+   /app/documents/<documentId>. */
+const linkDeal: FinanceWorkspaceState['documentLinks'][number] = {
+  id: 'link-1',
+  dealId: 'deal-1',
+  documentId: 'doc_002',
+  documentRef: 'DOC-2026-0151',
+  title: bi('Employment agreement — Grace Osei', 'Contrat de travail — Grace Osei'),
+}
+
+const linkHolding: FinanceWorkspaceState['documentLinks'][number] = {
+  id: 'link-2',
+  holdingId: 'hold-1',
+  documentId: 'doc_003',
+  documentRef: 'DOC-2026-0138',
+  title: bi('Termination letter — Jordan Mensah', 'Lettre de licenciement — Jordan Mensah'),
+}
+
 const taxObligation: FinanceWorkspaceState['taxObligations'][number] = {
   id: 'tax-1',
   entityId: 'ent-1',
@@ -880,6 +899,7 @@ export const initialFinanceState: FinanceWorkspaceState = {
   capitalCalls: [capitalCallReceived, capitalCallScheduled],
   debts: [debt],
   cashSweeps: [sweepExecuted, sweepScheduled],
+  documentLinks: [linkDeal, linkHolding],
   taxObligations: [taxObligation, taxObligation2],
   taxScenarios: [taxScenario],
   approvals: [approval],

@@ -131,6 +131,10 @@ export interface FinanceDataContextValue {
     nextStatus: import('./types').FinanceCashSweepStatus,
   ) => Promise<import('./types').FinanceCashSweep | null>
   removeCashSweep: (id: string) => Promise<boolean>
+  addDocumentLink: (
+    item: Omit<import('./dealTypes').FinanceDocumentLink, 'id'>,
+  ) => Promise<import('./dealTypes').FinanceDocumentLink | null>
+  removeDocumentLink: (id: string) => Promise<boolean>
   transitionDebtStatus: (
     id: string,
     nextStatus: import('./types').FinanceDebt['status'],

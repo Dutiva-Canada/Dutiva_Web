@@ -23,6 +23,8 @@ import {
   addCashSweepInSupabase,
   removeCashSweepInSupabase,
   transitionCashSweepStatusInSupabase,
+  addDocumentLinkInSupabase,
+  removeDocumentLinkInSupabase,
   transitionDebtStatusInSupabase,
   transitionBudgetStatusInSupabase,
   transitionScenarioStatusInSupabase,
@@ -44,6 +46,7 @@ import type {
   FinanceCapitalCallStatus,
   FinanceCashSweep,
   FinanceCashSweepStatus,
+  FinanceDocumentLink,
   FinanceCommitment,
   FinanceDeal,
   FinanceDealStage,
@@ -368,6 +371,35 @@ export function useFinanceCreates({
     [isLive, orgId, hasSupabase, reload, setState],
   )
 
+  const addDocumentLink = useCallback(
+    async (item: Omit<FinanceDocumentLink, 'id'>) => {
+      if (!isLive || !orgId || !hasSupabase) return null
+      const created = await addDocumentLinkInSupabase(orgId, item)
+      if (created) {
+        setState((prev) => ({ ...prev, documentLinks: [...prev.documentLinks, created] }))
+      }
+      await reload()
+      return created
+    },
+    [isLive, orgId, hasSupabase, reload, setState],
+  )
+
+  const removeDocumentLink = useCallback(
+    async (id: string) => {
+      if (!isLive || !orgId || !hasSupabase) return false
+      const ok = await removeDocumentLinkInSupabase(orgId, id)
+      if (ok) {
+        setState((prev) => ({
+          ...prev,
+          documentLinks: prev.documentLinks.filter((l) => l.id !== id),
+        }))
+      }
+      await reload()
+      return ok
+    },
+    [isLive, orgId, hasSupabase, reload, setState],
+  )
+
   const transitionDebtStatus = useCallback(
     async (id: string, nextStatus: FinanceDebt['status']) => {
       if (!isLive || !orgId || !hasSupabase) return null
@@ -536,6 +568,8 @@ export function useFinanceCreates({
     addCashSweep,
     transitionCashSweepStatus,
     removeCashSweep,
+    addDocumentLink,
+    removeDocumentLink,
     transitionDebtStatus,
     transitionBudgetStatus,
     transitionScenarioStatus,
