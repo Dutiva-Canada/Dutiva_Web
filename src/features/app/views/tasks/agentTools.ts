@@ -103,6 +103,12 @@ defineTool<TasksCtx>({
       description: M.agent_tasks_p_priority,
     },
     { name: 'dueDate', type: 'date', description: M.agent_tasks_p_due },
+    {
+      name: 'details',
+      type: 'string',
+      description: M.agent_tasks_p_details,
+      maxLength: 2000,
+    },
   ],
   run: async (tasks, params) => {
     if (!tasks.create) return unavailable()
@@ -110,6 +116,7 @@ defineTool<TasksCtx>({
       title: str(params, 'title') ?? '',
       priority: (str(params, 'priority') as ProductionTaskPriority | undefined) ?? 'medium',
       dueDate: str(params, 'dueDate') ?? '',
+      details: str(params, 'details') || undefined,
     })
     return ok(
       {

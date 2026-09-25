@@ -170,6 +170,10 @@ export function useAskAdvisorBriefing(): (viewKey: string) => void {
                     primary: true,
                     onClick: go(caseRouteForChat('c1')),
                   },
+                  {
+                    label: M.advisor_action_open_tasks,
+                    onClick: go('/app/planning/tasks'),
+                  },
                 ],
               },
             ],
@@ -189,6 +193,10 @@ export function useAskAdvisorBriefing(): (viewKey: string) => void {
                     label: M.advisor_action_open_case,
                     primary: true,
                     onClick: go(caseRouteForChat('c1')),
+                  },
+                  {
+                    label: M.advisor_action_open_tasks,
+                    onClick: go('/app/planning/tasks'),
                   },
                 ],
               },

@@ -39,6 +39,26 @@ const FINANCE_TAB_KEYS: { key: string; label: keyof typeof FM }[] = [
   { key: 'import-export', label: 'finance_tab_import_export' },
 ]
 
+/* Org industry options — stable keys persisted on organizations.industry so
+   module visibility and Advisor context can key off them later. A stored
+   free-text value that predates the list renders as its own option so the
+   select never silently clobbers it. */
+const INDUSTRY_OPTIONS: { value: string; label: keyof typeof M }[] = [
+  { value: 'technology', label: 'settings_org_industry_opt_technology' },
+  { value: 'retail', label: 'settings_org_industry_opt_retail' },
+  { value: 'manufacturing', label: 'settings_org_industry_opt_manufacturing' },
+  { value: 'construction', label: 'settings_org_industry_opt_construction' },
+  { value: 'logistics', label: 'settings_org_industry_opt_logistics' },
+  { value: 'healthcare', label: 'settings_org_industry_opt_healthcare' },
+  { value: 'hospitality', label: 'settings_org_industry_opt_hospitality' },
+  { value: 'professional_services', label: 'settings_org_industry_opt_professional' },
+  { value: 'investment_firm', label: 'settings_org_industry_opt_investment_firm' },
+  { value: 'holding_company', label: 'settings_org_industry_opt_holding_company' },
+  { value: 'trading_firm', label: 'settings_org_industry_opt_trading_firm' },
+  { value: 'equity_firm', label: 'settings_org_industry_opt_equity_firm' },
+  { value: 'other', label: 'settings_org_industry_opt_other' },
+]
+
 const fieldClass =
   'block w-full max-w-[320px] rounded-[8px] border border-border bg-bg px-[10px] py-[7px] text-[13.5px] text-text'
 
@@ -113,14 +133,26 @@ export function OrganizationProfileEditor() {
           <label htmlFor="settings-org-industry" className={labelClass}>
             {x(M.settings_org_industry)}
           </label>
-          <input
+          <p className="m-0 text-[12px] text-text-muted">{x(M.settings_org_industry_note)}</p>
+          <select
             id="settings-org-industry"
-            type="text"
             value={industry}
             disabled={saving}
             onChange={(e) => setIndustry(e.target.value)}
             className={fieldClass}
-          />
+          >
+            <option value="">—</option>
+            {INDUSTRY_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {x(M[opt.label])}
+              </option>
+            ))}
+            {/* Legacy free-text value not in the list — keep it visible and
+                saveable until the org picks a structured key. */}
+            {industry !== '' && !INDUSTRY_OPTIONS.some((o) => o.value === industry) && (
+              <option value={industry}>{industry}</option>
+            )}
+          </select>
         </div>
         <div className="flex flex-col gap-[6px]">
           <span className={labelClass}>{x(M.settings_org_jurisdictions)}</span>

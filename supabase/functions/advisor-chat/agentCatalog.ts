@@ -159,6 +159,7 @@ export const AGENT_TOOLS: readonly AgentCatalogTool[] = [
       { name: 'title', type: 'string', required: true },
       { name: 'priority', type: 'enum', enum: TASK_PRIORITIES },
       { name: 'dueDate', type: 'date' },
+      { name: 'details', type: 'string' },
     ],
   },
   {

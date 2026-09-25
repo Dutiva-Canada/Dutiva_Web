@@ -240,6 +240,10 @@ export const agentMessages = defineMessages({
     fr: 'Priorité — basse, moyenne, haute ou critique',
   }, // [FR self-authored]
   agent_tasks_p_due: { en: 'Due date (YYYY-MM-DD)', fr: 'Échéance (AAAA-MM-JJ)' }, // [FR self-authored]
+  agent_tasks_p_details: {
+    en: 'Work plan for the task detail view — steps, context, what done looks like',
+    fr: 'Plan de travail pour la page de la tâche — étapes, contexte, critère de fin',
+  }, // [FR self-authored]
   agent_tasks_p_status: {
     en: 'Which tasks to list — open, done or all',
     fr: 'Quelles tâches lister — ouvertes, terminées ou toutes',

@@ -20,6 +20,7 @@ import type {
   TemplatesSearchNavState,
 } from './searchCorpus'
 import { buildProductionSearchEntries, pinnedProductionChats } from './searchProductionCorpus'
+import { taskDetailPath } from '@/features/app/views/tasks/paths'
 
 /**
  * Global search overlay (⌘K / topbar search) — App v2 `buildSearchView()` +
@@ -134,6 +135,9 @@ function SearchDialog() {
           navigate('/app/advisor', {
             state: { chatId: nav.chatId } satisfies AdvisorSearchNavState,
           })
+          break
+        case 'task':
+          navigate(taskDetailPath(nav.taskId))
           break
         case 'document': {
           const generatePath = catalogueGeneratePath(nav.docKey)

@@ -139,6 +139,9 @@ import {
 /* prettier-ignore */ const TasksView = lazy(() =>
   preloadPlanningView().then((mods) => ({ default: mods[1].TasksView })),
 )
+/* prettier-ignore */ const TaskDetailView = lazy(() =>
+  preloadPlanningView().then((mods) => ({ default: mods[2].TaskDetailView })),
+)
 /* prettier-ignore */ const CalendarView = lazy(() => import('@/features/app/views/calendar/CalendarView').then((m) => ({ default: m.CalendarView })))
 /* Settings section (General + Memory as sub-tabs) */
 /* prettier-ignore */ const SettingsLayout = lazy(() =>
@@ -305,6 +308,7 @@ function createAppViewRoutes(root: string): RouteObject[] {
       children: [
         { index: true, loader: () => redirect(r('planning/tasks')) },
         { path: 'tasks', element: <TasksView /> },
+        { path: 'tasks/:taskId', element: <TaskDetailView /> },
         { path: 'calendar', element: <CalendarView /> },
       ],
     },

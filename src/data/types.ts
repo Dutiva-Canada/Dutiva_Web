@@ -222,6 +222,8 @@ export interface Task {
   chatId: string
   owner: string
   jur: Bi
+  /** Advisor-authored work plan shown on the task detail view. */
+  detail?: Bi
   blocked?: Bi
   evidence?: Bi
 }

@@ -6,11 +6,11 @@ import { tasksMessages as M } from '@/i18n/messages/tasks'
 import { cases, chats, taskPriorityLabels, taskPriorityTones, tasks } from '@/data'
 import type { Task, Tone } from '@/data'
 import { statusChipClass } from '@/components/chips'
-import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import { AppPage } from '@/features/app/shell/AppPage'
 import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { bindModuleContext } from '@/features/app/agent/runtime'
 import type { TasksAgentContext } from './agentTools'
+import { taskDetailPath } from './paths'
 
 function linkedFor(task: Task): Bi | null {
   const linkedCase = cases.find((c) => c.chatId === task.chatId)
@@ -49,8 +49,8 @@ export function TasksDemoView() {
     return bindModuleContext('tasks', ctx)
   })
 
-  const openChat = (task: Task) => {
-    navigate('/app/advisor', { state: { chatId: task.chatId } satisfies AdvisorSearchNavState })
+  const openDetail = (task: Task) => {
+    navigate(taskDetailPath(task.id))
   }
 
   const openCount = tasks.filter((task) => !isDone(task)).length
@@ -93,8 +93,8 @@ export function TasksDemoView() {
               </button>
               <button
                 type="button"
-                onClick={() => openChat(task)}
-                aria-label={x(M.tasks_open_chat_aria).replace('{title}', x(task.title))}
+                onClick={() => openDetail(task)}
+                aria-label={x(M.tasks_open_detail_aria).replace('{title}', x(task.title))}
                 className="min-w-0 flex-1 cursor-pointer border-none bg-transparent p-0 text-left font-sans"
               >
                 <div
