@@ -76,4 +76,7 @@ export const financeTreasury = defineMessages({
   finance_party_type_employee: { en: 'Employee', fr: 'Employé' },
   finance_party_type_bank: { en: 'Bank', fr: 'Banque' },
   finance_party_type_advisor: { en: 'Advisor', fr: 'Conseiller' },
+  /* Capital partners — [FR self-authored] */
+  finance_party_type_investor: { en: 'Investor', fr: 'Investisseur' },
+  finance_party_type_lender: { en: 'Lender', fr: 'Prêteur' },
 })

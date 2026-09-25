@@ -42,6 +42,7 @@ import type {
   FinanceTaxScenario,
   FinanceWatchlistItem,
   FinanceDecisionEntry,
+  FinanceDeal,
   FinanceWorkspaceState,
 } from './types'
 
@@ -71,6 +72,8 @@ export function mapEntity(r: Record<string, unknown>): FinanceLegalEntity {
     jurisdictions: (r.jurisdictions ?? []) as string[],
     accountingSourceId: r.accounting_source_id as string | undefined,
     payrollSourceId: r.payroll_source_id as string | undefined,
+    parentEntityId: (r.parent_entity_id as string | null) ?? undefined,
+    ownershipPct: r.ownership_pct != null ? num(r.ownership_pct) : undefined,
     active: r.active as boolean,
   }
 }
@@ -506,6 +509,24 @@ export function mapDecisionEntry(r: Record<string, unknown>): FinanceDecisionEnt
     rationale: r.rationale ? bi(r.rationale) : undefined,
     reviewDate: r.review_date as string | undefined,
     outcome: r.outcome ? bi(r.outcome) : undefined,
+  }
+}
+
+export function mapDeal(r: Record<string, unknown>): FinanceDeal {
+  return {
+    id: r.id as string,
+    entityId: r.entity_id as string,
+    name: bi(r.name),
+    kind: r.kind as FinanceDeal['kind'],
+    stage: r.stage as FinanceDeal['stage'],
+    counterparty: (r.counterparty as string | null) ?? undefined,
+    value: r.value != null ? num(r.value) : undefined,
+    currency: r.currency as FinanceDeal['currency'],
+    targetDate: (r.target_date as string | null) ?? undefined,
+    owner: (r.owner as string | null) ?? undefined,
+    notes: r.notes ? bi(r.notes) : undefined,
+    watchlistItemId: (r.watchlist_item_id as string | null) ?? undefined,
+    holdingId: (r.holding_id as string | null) ?? undefined,
   }
 }
 

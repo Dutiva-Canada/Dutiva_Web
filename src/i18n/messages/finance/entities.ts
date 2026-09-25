@@ -11,6 +11,8 @@ export const financeEntities = defineMessages({
   finance_entity_legal_form_partnership: { en: 'Partnership', fr: 'Société en nom collectif' },
   finance_entity_legal_form_sole_proprietor: { en: 'Sole proprietor', fr: 'Travailleur autonome' },
   finance_entity_legal_form_nonprofit: { en: 'Non-profit', fr: 'Organisme sans but lucratif' },
+  /* [FR self-authored] */
+  finance_entity_legal_form_trust: { en: 'Trust', fr: 'Fiducie' },
   finance_entity_fiscal_year_start: { en: 'Fiscal year start', fr: 'Début d’exercice' },
   finance_entity_functional_currency: { en: 'Functional currency', fr: 'Devise fonctionnelle' },
   finance_entity_jurisdictions: { en: 'Jurisdictions', fr: 'Territoires de compétence' },
@@ -18,6 +20,12 @@ export const financeEntities = defineMessages({
   finance_entity_payroll_source_id: { en: 'Payroll source ID', fr: 'ID source paie' },
   finance_entity_active: { en: 'Active', fr: 'Actif' },
   finance_entity_inactive: { en: 'Inactive', fr: 'Inactif' },
+  /* Ownership structure — [FR self-authored] */
+  finance_entity_parent: { en: 'Parent entity', fr: 'Entité mère' },
+  finance_entity_parent_none: { en: 'None (top level)', fr: 'Aucune (premier niveau)' },
+  finance_entity_ownership_pct: { en: 'Ownership %', fr: 'Participation %' },
+  finance_entity_owned_by: { en: '{pct}% owned by {parent}', fr: '{pct} % détenue par {parent}' },
+  finance_entity_owned_by_no_pct: { en: 'Owned by {parent}', fr: 'Détenue par {parent}' },
   finance_entity_edit_title: { en: 'Edit legal entity', fr: 'Modifier l’entité juridique' },
   finance_entity_integrations: { en: 'Integrations (optional)', fr: 'Intégrations (facultatives)' },
   finance_entity_empty: {

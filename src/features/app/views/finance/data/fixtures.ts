@@ -19,6 +19,20 @@ const entity: FinanceWorkspaceState['entities'][number] = {
   jurisdictions: ['ON', 'QC'],
   accountingSourceId: 'qb-001',
   payrollSourceId: 'adp-001',
+  /* The operating company is wholly owned by the holding company below —
+     this edge is what turns the entity registry into a holdings structure. */
+  parentEntityId: 'ent-2',
+  ownershipPct: '100',
+  active: true,
+}
+
+const holdingEntity: FinanceWorkspaceState['entities'][number] = {
+  id: 'ent-2',
+  legalName: 'Northgate Holdings Inc.',
+  legalForm: 'corporation',
+  fiscalYearStart: '2026-01-01',
+  functionalCurrency: 'CAD',
+  jurisdictions: ['ON'],
   active: true,
 }
 
@@ -56,6 +70,24 @@ const supplier: FinanceWorkspaceState['parties'][number] = {
   name: 'TechSupply Canada',
   type: 'supplier',
   externalId: 'QB-V-2001',
+  bankingDetailsOnFile: true,
+  active: true,
+}
+
+const investor: FinanceWorkspaceState['parties'][number] = {
+  id: 'party-inv-1',
+  entityId: 'ent-2',
+  name: 'Laurentian Growth Partners',
+  type: 'investor',
+  bankingDetailsOnFile: true,
+  active: true,
+}
+
+const lender: FinanceWorkspaceState['parties'][number] = {
+  id: 'party-len-1',
+  entityId: 'ent-2',
+  name: 'Big Five Bank',
+  type: 'lender',
   bankingDetailsOnFile: true,
   active: true,
 }
@@ -613,6 +645,73 @@ const categoryRules: FinanceWorkspaceState['categoryRules'] = DEFAULT_CATEGORY_R
   }),
 )
 
+const dealAcquisition: FinanceWorkspaceState['deals'][number] = {
+  id: 'deal-1',
+  entityId: 'ent-2',
+  name: bi('Verdun Freight Lines — tuck-in', 'Verdun Freight Lines — acquisition complémentaire'),
+  kind: 'acquisition',
+  stage: 'diligence',
+  counterparty: 'Verdun Freight Lines Ltd.',
+  value: '850000.00',
+  currency: 'CAD',
+  targetDate: '2026-11-30',
+  owner: 'Martin Constantineau',
+  notes: bi(
+    'Fleet overlaps the QC corridor; diligence focused on contracts and equipment liens.',
+    'La flotte recoupe le corridor québécois; la vérification porte sur les contrats et les privilèges sur l’équipement.',
+  ),
+}
+
+const dealInvestment: FinanceWorkspaceState['deals'][number] = {
+  id: 'deal-2',
+  entityId: 'ent-2',
+  name: bi('Great Lakes Cold Storage — minority stake', 'Great Lakes Cold Storage — participation minoritaire'),
+  kind: 'investment',
+  stage: 'negotiation',
+  counterparty: 'Great Lakes Cold Storage Inc.',
+  value: '250000.00',
+  currency: 'CAD',
+  targetDate: '2026-12-15',
+  owner: 'Martin Constantineau',
+  notes: bi(
+    'Term sheet circulated; board approval needed before signature.',
+    'La convention de principe circule; l’approbation du conseil est requise avant la signature.',
+  ),
+}
+
+const dealFinancing: FinanceWorkspaceState['deals'][number] = {
+  id: 'deal-3',
+  entityId: 'ent-2',
+  name: bi('Holdco credit facility', 'Facilité de crédit de la société de portefeuille'),
+  kind: 'financing',
+  stage: 'agreement',
+  counterparty: 'Big Five Bank',
+  value: '500000.00',
+  currency: 'CAD',
+  targetDate: '2026-10-15',
+  owner: 'Jordan Lee',
+  notes: bi(
+    'Secured against holdco assets; funds earmarked for the Verdun closing.',
+    'Garantie sur les actifs de la société de portefeuille; fonds réservés à la clôture de Verdun.',
+  ),
+}
+
+const dealPassed: FinanceWorkspaceState['deals'][number] = {
+  id: 'deal-4',
+  entityId: 'ent-2',
+  name: bi('Logistics SaaS seed round', 'Premier tour de financement — SaaS logistique'),
+  kind: 'other',
+  stage: 'passed',
+  counterparty: 'RouteBase Software',
+  value: '100000.00',
+  currency: 'CAD',
+  owner: 'Martin Constantineau',
+  notes: bi(
+    'Passed — valuation ran ahead of the record the round was priced on.',
+    'Écarté — la valorisation dépassait ce que justifiait le dossier sur lequel le tour était fixé.',
+  ),
+}
+
 const importSession: FinanceWorkspaceState['importSessions'][number] = {
   id: 'imp-1',
   entityId: 'ent-1',
@@ -627,10 +726,10 @@ const importSession: FinanceWorkspaceState['importSessions'][number] = {
 }
 
 export const initialFinanceState: FinanceWorkspaceState = {
-  entities: [entity],
+  entities: [entity, holdingEntity],
   books: [book],
   fiscalPeriods: [period],
-  parties: [customer, supplier],
+  parties: [customer, supplier, investor, lender],
   bankAccounts: [bankAccount, taxAccount],
   ledgerAccounts,
   invoices: [invoice, overdueInvoice],
@@ -655,6 +754,7 @@ export const initialFinanceState: FinanceWorkspaceState = {
   holdings: [holding],
   watchlistItems: [watchlistItem, watchlistItem2],
   decisionEntries: [decisionEntry, decisionEntry2],
+  deals: [dealAcquisition, dealInvestment, dealFinancing, dealPassed],
   debts: [debt],
   taxObligations: [taxObligation, taxObligation2],
   taxScenarios: [taxScenario],

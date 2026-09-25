@@ -490,6 +490,8 @@ function PartyForm({
             <option value="employee">{x(M.finance_party_type_employee)}</option>
             <option value="bank">{x(M.finance_party_type_bank)}</option>
             <option value="advisor">{x(M.finance_party_type_advisor)}</option>
+            <option value="investor">{x(M.finance_party_type_investor)}</option>
+            <option value="lender">{x(M.finance_party_type_lender)}</option>
           </select>
         </label>
         <label className="flex items-center gap-[6px] pt-[20px]">
