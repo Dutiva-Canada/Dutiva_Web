@@ -104,6 +104,31 @@ describe('FinanceView', () => {
     expect(screen.getByText('Payroll reserve — 2 cycles')).toBeInTheDocument()
   })
 
+  it('surfaces derived attention items on the overview', () => {
+    renderAt('/app/finance/overview')
+
+    expect(
+      screen.getByRole('heading', { name: 'Needs attention' }),
+    ).toBeInTheDocument()
+    // The notified tranche is due 2026-10-10 (inside 30 days).
+    expect(screen.getByText('Call due soon')).toBeInTheDocument()
+    expect(screen.getByText(/250000\.00 · 2026-10-10/)).toBeInTheDocument()
+    // The fixture debt matures inside 90 days.
+    expect(screen.getByText('Maturing soon')).toBeInTheDocument()
+    // The financing deal passed its target date while still in agreement.
+    expect(screen.getByText('Behind target')).toBeInTheDocument()
+    expect(screen.getByText('Holdco credit facility')).toBeInTheDocument()
+    // Links resolve to the tab that owns each item.
+    expect(screen.getAllByRole('link', { name: 'Growth equity commitment' })[0]).toHaveAttribute(
+      'href',
+      '/app/finance/deals',
+    )
+    expect(screen.getByRole('link', { name: 'Business line of credit' })).toHaveAttribute(
+      'href',
+      '/app/finance/treasury',
+    )
+  })
+
   it('shows covenant, notice, and the maturing marker on treasury debt', () => {
     renderAt('/app/finance/treasury')
 
@@ -135,7 +160,7 @@ describe('FinanceView', () => {
     expect(screen.getByText('Growth equity commitment')).toBeInTheDocument()
     expect(screen.getByText('Acquisition credit facility')).toBeInTheDocument()
     expect(screen.getAllByText(/Uncalled 900000\.00/).length).toBe(1)
-    expect(screen.getByText(/Next call: 2026-11-15/)).toBeInTheDocument()
+    expect(screen.getByText(/Next call: 2026-10-10/)).toBeInTheDocument()
     // Capital calls render as the event log under their commitment.
     expect(screen.getByText(/Call notice 2026-01/)).toBeInTheDocument()
     expect(screen.getByText(/Call notice 2026-02/)).toBeInTheDocument()

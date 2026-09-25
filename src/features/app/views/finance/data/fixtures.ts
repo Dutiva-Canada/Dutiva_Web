@@ -537,7 +537,7 @@ const commitmentInvestor: FinanceWorkspaceState['commitments'][number] = {
   committed: '1500000.00',
   called: '600000.00',
   currency: 'CAD',
-  nextCallDate: '2026-11-15',
+  nextCallDate: '2026-10-10',
   status: 'active',
 }
 
@@ -553,8 +553,8 @@ const commitmentLender: FinanceWorkspaceState['commitments'][number] = {
 }
 
 /* Capital calls — the investor's called figure came in as one draw, and
-   the next tranche is already scheduled (matching the commitment's
-   nextCallDate). */
+   the next tranche is already notified (due mid-October; the commitment's
+   nextCallDate tracks the same tranche). */
 const capitalCallReceived: FinanceWorkspaceState['capitalCalls'][number] = {
   id: 'call-1',
   commitmentId: 'cmt-1',
@@ -569,7 +569,7 @@ const capitalCallScheduled: FinanceWorkspaceState['capitalCalls'][number] = {
   id: 'call-2',
   commitmentId: 'cmt-1',
   amount: '250000.00',
-  dueDate: '2026-11-15',
+  dueDate: '2026-10-10',
   status: 'notified',
   reference: 'Call notice 2026-02',
 }
@@ -746,7 +746,7 @@ const dealFinancing: FinanceWorkspaceState['deals'][number] = {
   counterparty: 'Big Five Bank',
   value: '500000.00',
   currency: 'CAD',
-  targetDate: '2026-10-15',
+  targetDate: '2026-09-15',
   owner: 'Jordan Lee',
   notes: bi(
     'Secured against holdco assets; funds earmarked for the Verdun closing.',
