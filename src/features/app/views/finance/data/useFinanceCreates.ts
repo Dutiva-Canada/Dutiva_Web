@@ -10,6 +10,10 @@ import {
   transitionWatchlistStatusInSupabase,
   addDecisionEntryInSupabase,
   updateDecisionOutcomeInSupabase,
+  addDealInSupabase,
+  updateDealInSupabase,
+  transitionDealStageInSupabase,
+  removeDealInSupabase,
   transitionDebtStatusInSupabase,
   transitionBudgetStatusInSupabase,
   transitionScenarioStatusInSupabase,
@@ -27,6 +31,8 @@ import {
 import type {
   FinanceBankAccount,
   FinanceBudget,
+  FinanceDeal,
+  FinanceDealStage,
   FinanceDebt,
   FinanceDecisionEntry,
   FinanceExternalAction,
@@ -144,6 +150,67 @@ export function useFinanceCreates({
       return updated
     },
     [isLive, orgId, hasSupabase, reload],
+  )
+
+  const addDeal = useCallback(
+    async (item: Omit<FinanceDeal, 'id'>) => {
+      if (!isLive || !orgId || !hasSupabase) return null
+      const created = await addDealInSupabase(orgId, item)
+      if (created) {
+        setState((prev) => ({ ...prev, deals: [...prev.deals, created] }))
+      }
+      await reload()
+      return created
+    },
+    [isLive, orgId, hasSupabase, reload, setState],
+  )
+
+  const updateDeal = useCallback(
+    async (id: string, patch: Partial<Omit<FinanceDeal, 'id'>>) => {
+      if (!isLive || !orgId || !hasSupabase) return null
+      const updated = await updateDealInSupabase(orgId, id, patch)
+      if (updated) {
+        setState((prev) => ({
+          ...prev,
+          deals: prev.deals.map((d) => (d.id === id ? updated : d)),
+        }))
+      }
+      await reload()
+      return updated
+    },
+    [isLive, orgId, hasSupabase, reload, setState],
+  )
+
+  const transitionDealStage = useCallback(
+    async (id: string, stage: FinanceDealStage) => {
+      if (!isLive || !orgId || !hasSupabase) return null
+      const updated = await transitionDealStageInSupabase(orgId, id, stage)
+      if (updated) {
+        setState((prev) => ({
+          ...prev,
+          deals: prev.deals.map((d) => (d.id === id ? updated : d)),
+        }))
+      }
+      await reload()
+      return updated
+    },
+    [isLive, orgId, hasSupabase, reload, setState],
+  )
+
+  const removeDeal = useCallback(
+    async (id: string) => {
+      if (!isLive || !orgId || !hasSupabase) return false
+      const ok = await removeDealInSupabase(orgId, id)
+      if (ok) {
+        setState((prev) => ({
+          ...prev,
+          deals: prev.deals.filter((d) => d.id !== id),
+        }))
+      }
+      await reload()
+      return ok
+    },
+    [isLive, orgId, hasSupabase, reload, setState],
   )
 
   const transitionDebtStatus = useCallback(
@@ -301,6 +368,10 @@ export function useFinanceCreates({
     transitionWatchlistStatus,
     addDecisionEntry,
     updateDecisionOutcome,
+    addDeal,
+    updateDeal,
+    transitionDealStage,
+    removeDeal,
     transitionDebtStatus,
     transitionBudgetStatus,
     transitionScenarioStatus,

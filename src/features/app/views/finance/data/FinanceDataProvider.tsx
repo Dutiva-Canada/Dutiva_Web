@@ -573,6 +573,7 @@ function emptyState(): FinanceWorkspaceState {
     holdings: [],
     watchlistItems: [],
     decisionEntries: [],
+    deals: [],
     debts: [],
     taxObligations: [],
     taxScenarios: [],

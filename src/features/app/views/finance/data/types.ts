@@ -18,7 +18,12 @@ import type { Bi } from '@/i18n/core'
 
 export type FinanceCurrency = 'CAD' | 'USD' | 'EUR' | 'GBP'
 
-export type FinanceLegalForm = 'corporation' | 'partnership' | 'sole_proprietor' | 'nonprofit'
+export type FinanceLegalForm =
+  | 'corporation'
+  | 'partnership'
+  | 'sole_proprietor'
+  | 'nonprofit'
+  | 'trust'
 
 export interface FinanceLegalEntity {
   id: string
@@ -32,6 +37,10 @@ export interface FinanceLegalEntity {
   accountingSourceId?: string
   /** External payroll provider identifier. */
   payrollSourceId?: string
+  /** Owning entity in the holdings structure — e.g. a holdco. */
+  parentEntityId?: string
+  /** The parent's stake in this entity, decimal percent string. */
+  ownershipPct?: string
   active: boolean
 }
 
@@ -56,7 +65,14 @@ export interface FinanceFiscalPeriod {
 
 /* ---------- Parties and accounts ---------- */
 
-export type FinancePartyType = 'customer' | 'supplier' | 'employee' | 'bank' | 'advisor'
+export type FinancePartyType =
+  | 'customer'
+  | 'supplier'
+  | 'employee'
+  | 'bank'
+  | 'advisor'
+  | 'investor'
+  | 'lender'
 
 export interface FinanceParty {
   id: string
@@ -531,6 +547,11 @@ export type {
 } from './portfolioTypes'
 import type { FinanceDecisionEntry, FinanceWatchlistItem } from './portfolioTypes'
 
+/* Deals domain types live in ./dealTypes (same 800-line budget split).
+   Re-exported here so `from './types'` keeps working. */
+export type { FinanceDealKind, FinanceDealStage, FinanceDeal } from './dealTypes'
+import type { FinanceDeal } from './dealTypes'
+
 /* ---------- Tax ---------- */
 
 export type FinanceTaxType =
@@ -749,6 +770,7 @@ export interface FinanceWorkspaceState {
   holdings: FinanceHolding[]
   watchlistItems: FinanceWatchlistItem[]
   decisionEntries: FinanceDecisionEntry[]
+  deals: FinanceDeal[]
   debts: FinanceDebt[]
   taxObligations: FinanceTaxObligation[]
   taxScenarios: FinanceTaxScenario[]

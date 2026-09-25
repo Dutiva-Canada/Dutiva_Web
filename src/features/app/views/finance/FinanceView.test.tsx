@@ -11,6 +11,8 @@ import { Payroll } from './screens/Payroll'
 import { Accounting } from './screens/Accounting'
 import { Plans } from './screens/Plans'
 import { Treasury } from './screens/Treasury'
+import { Portfolio } from './screens/Portfolio'
+import { Deals } from './screens/Deals'
 import { Tax } from './screens/Tax'
 import { Evidence } from './screens/Evidence'
 
@@ -26,6 +28,8 @@ function renderAt(route: string) {
         <Route path="accounting" element={<Accounting />} />
         <Route path="plans" element={<Plans />} />
         <Route path="treasury" element={<Treasury />} />
+        <Route path="portfolio" element={<Portfolio />} />
+        <Route path="deals" element={<Deals />} />
         <Route path="tax" element={<Tax />} />
         <Route path="evidence" element={<Evidence />} />
       </Route>
@@ -47,6 +51,8 @@ describe('FinanceView', () => {
     expect(screen.getByRole('link', { name: 'Accounting' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Plans & budgets' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Treasury' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Portfolio' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Deals' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Tax' })).toBeInTheDocument()
   })
 
@@ -94,6 +100,28 @@ describe('FinanceView', () => {
 
     expect(screen.getByText('Q3 tax instalment reserve')).toBeInTheDocument()
     expect(screen.getByText('Payroll reserve — 2 cycles')).toBeInTheDocument()
+  })
+
+  it('renders the deal pipeline grouped by stage with capital partners', () => {
+    renderAt('/app/finance/deals')
+
+    // Summary strip + section heading share the same label — target the h2.
+    expect(screen.getByRole('heading', { name: 'Deal pipeline' })).toBeInTheDocument()
+    // Stage groups
+    expect(screen.getByText('Diligence')).toBeInTheDocument()
+    expect(screen.getByText('Negotiation')).toBeInTheDocument()
+    expect(screen.getByText('Agreement')).toBeInTheDocument()
+    expect(screen.getByText('Passed')).toBeInTheDocument()
+    // Deal rows
+    expect(screen.getByText('Verdun Freight Lines — tuck-in')).toBeInTheDocument()
+    expect(screen.getByText('Great Lakes Cold Storage — minority stake')).toBeInTheDocument()
+    // Capital partners section surfaces investor/lender parties.
+    expect(screen.getByText('Capital partners')).toBeInTheDocument()
+    expect(screen.getByText('Laurentian Growth Partners')).toBeInTheDocument()
+    // The hedging note stays on the record/workflow wording.
+    expect(
+      screen.getByText(/does not broker deals or provide investment advice/),
+    ).toBeInTheDocument()
   })
 
   it('lists tax obligations on the tax tab', () => {

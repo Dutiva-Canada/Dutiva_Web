@@ -121,6 +121,7 @@ import {
 /* prettier-ignore */ const FinancePlans = lazy(() => import('@/features/app/views/finance/screens/Plans').then((m) => ({ default: m.Plans })))
 /* prettier-ignore */ const FinanceTreasury = lazy(() => import('@/features/app/views/finance/screens/Treasury').then((m) => ({ default: m.Treasury })))
 /* prettier-ignore */ const FinancePortfolio = lazy(() => import('@/features/app/views/finance/screens/Portfolio').then((m) => ({ default: m.Portfolio })))
+/* prettier-ignore */ const FinanceDeals = lazy(() => import('@/features/app/views/finance/screens/Deals').then((m) => ({ default: m.Deals })))
 /* prettier-ignore */ const FinanceTax = lazy(() => import('@/features/app/views/finance/screens/Tax').then((m) => ({ default: m.Tax })))
 /* prettier-ignore */ const FinanceEvidence = lazy(() => import('@/features/app/views/finance/screens/Evidence').then((m) => ({ default: m.Evidence })))
 /* prettier-ignore */ const FinanceImportExport = lazy(() => import('@/features/app/views/finance/screens/ImportExport').then((m) => ({ default: m.ImportExport })))
@@ -229,6 +230,7 @@ function createAppViewRoutes(root: string): RouteObject[] {
         { path: 'plans', element: <FinancePlans /> },
         { path: 'treasury', element: <FinanceTreasury /> },
         { path: 'portfolio', element: <FinancePortfolio /> },
+        { path: 'deals', element: <FinanceDeals /> },
         { path: 'tax', element: <FinanceTax /> },
         { path: 'evidence', element: <FinanceEvidence /> },
         { path: 'import-export', element: <FinanceImportExport /> },

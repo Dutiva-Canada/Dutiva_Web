@@ -14,6 +14,7 @@ const LEGAL_FORMS: FinanceLegalForm[] = [
   'partnership',
   'sole_proprietor',
   'nonprofit',
+  'trust',
 ]
 const CURRENCIES: FinanceCurrency[] = ['CAD', 'USD', 'EUR', 'GBP']
 const JURISDICTIONS = [
@@ -74,6 +75,7 @@ export function Entities() {
         {form && canWrite && (
           <EntityForm
             key={form.mode === 'edit' ? form.entity.id : 'add'}
+            entities={state.entities}
             initial={form.mode === 'edit' ? form.entity : undefined}
             onSubmit={async (ent) => {
               if (form.mode === 'edit') {
@@ -116,6 +118,22 @@ export function Entities() {
                     {x(M[`finance_entity_legal_form_${ent.legalForm}` as keyof typeof M])} ·{' '}
                     {ent.fiscalYearStart} · {ent.functionalCurrency}
                   </div>
+                  {ent.parentEntityId && (
+                    <div className="text-[12px] text-text-muted">
+                      {(() => {
+                        const parent = state.entities.find((p) => p.id === ent.parentEntityId)
+                        if (!parent) return null
+                        return ent.ownershipPct
+                          ? x(M.finance_entity_owned_by)
+                              .replace('{pct}', ent.ownershipPct)
+                              .replace('{parent}', parent.legalName)
+                          : x(M.finance_entity_owned_by_no_pct).replace(
+                              '{parent}',
+                              parent.legalName,
+                            )
+                      })()}
+                    </div>
+                  )}
                   {ent.jurisdictions.length > 0 && (
                     <div className="flex flex-wrap gap-[4px]">
                       {ent.jurisdictions.map((code) => (
@@ -163,10 +181,12 @@ export function Entities() {
 }
 
 function EntityForm({
+  entities,
   initial,
   onSubmit,
   onCancel,
 }: {
+  entities: FinanceLegalEntity[]
   initial?: FinanceLegalEntity
   onSubmit: (ent: Omit<FinanceLegalEntity, 'id'>) => Promise<unknown>
   onCancel: () => void
@@ -183,6 +203,8 @@ function EntityForm({
   )
   const [accountingSourceId, setAccountingSourceId] = useState(initial?.accountingSourceId ?? '')
   const [payrollSourceId, setPayrollSourceId] = useState(initial?.payrollSourceId ?? '')
+  const [parentEntityId, setParentEntityId] = useState(initial?.parentEntityId ?? '')
+  const [ownershipPct, setOwnershipPct] = useState(initial?.ownershipPct ?? '')
   const [active, setActive] = useState(initial?.active ?? true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -207,6 +229,10 @@ function EntityForm({
         jurisdictions: selectedJurisdictions,
         accountingSourceId: accountingSourceId || undefined,
         payrollSourceId: payrollSourceId || undefined,
+        /* Pass raw strings — '' clears the column on update (the API layer
+           maps '' → null); undefined would leave the old value in place. */
+        parentEntityId: parentEntityId,
+        ownershipPct: parentEntityId ? ownershipPct.trim() : '',
         active,
       })
     } catch {
@@ -277,6 +303,42 @@ function EntityForm({
               </option>
             ))}
           </select>
+        </label>
+      </div>
+      {/* Ownership edge — who holds this entity. Self is excluded from the
+          options so the form can't create a trivial cycle. */}
+      <div className="grid grid-cols-2 gap-[10px]">
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">{x(M.finance_entity_parent)}</span>
+          <select
+            value={parentEntityId}
+            onChange={(e) => setParentEntityId(e.target.value)}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
+          >
+            <option value="">{x(M.finance_entity_parent_none)}</option>
+            {entities
+              .filter((ent) => ent.id !== initial?.id)
+              .map((ent) => (
+                <option key={ent.id} value={ent.id}>
+                  {ent.legalName}
+                </option>
+              ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-[4px]">
+          <span className="text-[12px] text-text-muted">
+            {x(M.finance_entity_ownership_pct)}
+          </span>
+          <input
+            type="number"
+            min="0"
+            max="100"
+            step="0.01"
+            value={ownershipPct}
+            onChange={(e) => setOwnershipPct(e.target.value)}
+            disabled={!parentEntityId}
+            className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px] disabled:opacity-60"
+          />
         </label>
       </div>
       <div className="flex flex-col gap-[6px]">
