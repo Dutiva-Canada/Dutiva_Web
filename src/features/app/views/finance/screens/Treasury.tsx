@@ -233,42 +233,73 @@ export function Treasury() {
           <p className="text-[13px] text-text-muted">{x(M.finance_treasury_no_debt)}</p>
         ) : (
           <ul className="m-0 flex flex-col gap-[10px] p-0">
-            {state.debts.map((d) => (
-              <li key={d.id} className="flex items-start justify-between gap-[12px]">
-                <div>
-                  <div className="text-[13px] font-semibold text-text">{x(d.label)}</div>
-                  <div className="text-[12px] text-text-muted">
-                    {x(d.lender)} · {x(M.finance_treasury_balance)}: {x(CURRENCY_LABEL[d.currency])}{' '}
-                    {d.balance} · {x(M.finance_treasury_interest_rate)}: {d.interestRate}% ·{' '}
-                    {x(M.finance_treasury_maturity)}: {d.maturityDate}
+            {state.debts.map((d) => {
+              /* Covenant + notice columns existed on finance_debts before
+                 anything rendered them — surface them under the terms line,
+                 and flag an active facility inside 90 days of maturity. */
+              const daysToMaturity =
+                (Date.parse(d.maturityDate) - Date.now()) / 86400000
+              const maturingSoon =
+                d.status === 'active' && daysToMaturity >= 0 && daysToMaturity <= 90
+              return (
+                <li key={d.id} className="flex items-start justify-between gap-[12px]">
+                  <div>
+                    <div className="text-[13px] font-semibold text-text">{x(d.label)}</div>
+                    <div className="text-[12px] text-text-muted">
+                      {x(d.lender)} · {x(M.finance_treasury_balance)}:{' '}
+                      {x(CURRENCY_LABEL[d.currency])} {d.balance} ·{' '}
+                      {x(M.finance_treasury_interest_rate)}: {d.interestRate}% ·{' '}
+                      {x(M.finance_treasury_maturity)}: {d.maturityDate}
+                    </div>
+                    {(d.covenantRef || d.noticePeriod) && (
+                      <div className="text-[12px] text-text-muted">
+                        {[
+                          d.covenantRef
+                            ? `${x(M.finance_debt_covenant)}: ${d.covenantRef}`
+                            : null,
+                          d.noticePeriod
+                            ? `${x(M.finance_debt_notice)}: ${d.noticePeriod}`
+                            : null,
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </div>
+                    )}
+                    {canWrite && d.status === 'active' && (
+                      <button
+                        type="button"
+                        onClick={() => transitionDebtStatus(d.id, 'paid_off')}
+                        className="mt-[6px] rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                      >
+                        {x(M.finance_debt_mark_paid_off)}
+                      </button>
+                    )}
                   </div>
-                  {canWrite && d.status === 'active' && (
-                    <button
-                      type="button"
-                      onClick={() => transitionDebtStatus(d.id, 'paid_off')}
-                      className="mt-[6px] rounded-[6px] bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:bg-inset border border-border"
+                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-[4px]">
+                    {maturingSoon && (
+                      <span className={statusChipClass('warning')}>
+                        {x(M.finance_debt_maturing)}
+                      </span>
+                    )}
+                    <span
+                      className={statusChipClass(
+                        d.status === 'active'
+                          ? 'warning'
+                          : d.status === 'paid_off'
+                            ? 'success'
+                            : 'risk',
+                      )}
                     >
-                      {x(M.finance_debt_mark_paid_off)}
-                    </button>
-                  )}
-                </div>
-                <span
-                  className={statusChipClass(
-                    d.status === 'active'
-                      ? 'warning'
-                      : d.status === 'paid_off'
-                        ? 'success'
-                        : 'risk',
-                  )}
-                >
-                  {d.status === 'active'
-                    ? 'Active'
-                    : d.status === 'paid_off'
-                      ? 'Paid off'
-                      : 'Defaulted'}
-                </span>
-              </li>
-            ))}
+                      {d.status === 'active'
+                        ? 'Active'
+                        : d.status === 'paid_off'
+                          ? 'Paid off'
+                          : 'Defaulted'}
+                    </span>
+                  </div>
+                </li>
+              )
+            })}
           </ul>
         )}
       </section>

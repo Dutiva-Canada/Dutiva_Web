@@ -5,7 +5,6 @@ import { statusChipClass } from '@/components/chips'
 import type { ChipTone } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { pickL } from '@/i18n/core'
-import type { Bi } from '@/i18n/core'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
@@ -16,15 +15,9 @@ import {
   DEAL_KIND_LABEL,
   DEAL_STAGE_LABEL,
   DEAL_STAGE_ORDER,
-  DECISION_KIND_LABEL,
 } from '../financeLabels'
-import type {
-  FinanceCurrency,
-  FinanceDeal,
-  FinanceDealKind,
-  FinanceDealStage,
-  FinanceDecisionKind,
-} from '../data/types'
+import { CommitmentForm, DealDecisionForm, DealForm } from './DealForms'
+import type { FinanceCommitment, FinanceDeal, FinanceDealStage } from '../data/types'
 
 /**
  * Finance → Deals — the transaction pipeline for orgs acting like a
@@ -36,10 +29,6 @@ import type {
  * types. Dutiva records where each deal stands — it does not broker deals
  * or provide investment advice.
  */
-
-const inputClass =
-  'w-full rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px] text-text'
-const labelClass = 'flex flex-col gap-[4px] text-[12px] text-text-muted'
 
 function toAmount(v: string | undefined): number {
   const n = Number(v)
@@ -65,8 +54,18 @@ const ACTIVE_STAGES: ReadonlySet<FinanceDealStage> = new Set([
 
 export function Deals() {
   const { x, lang } = useI18n()
-  const { state, canWrite, addDeal, updateDeal, transitionDealStage, removeDeal, addDecisionEntry } =
-    useFinanceData()
+  const {
+    state,
+    canWrite,
+    addDeal,
+    updateDeal,
+    transitionDealStage,
+    removeDeal,
+    addDecisionEntry,
+    addCommitment,
+    updateCommitment,
+    removeCommitment,
+  } = useFinanceData()
   const { organizationId } = useWorkspaceMode()
   const { showToast } = useToasts()
 
@@ -75,6 +74,9 @@ export function Deals() {
   )
   const [decisionFor, setDecisionFor] = useState<string | null>(null)
   const [taskBusy, setTaskBusy] = useState<string | null>(null)
+  const [commitForm, setCommitForm] = useState<
+    { mode: 'add'; partyId: string } | { mode: 'edit'; commitment: FinanceCommitment } | null
+  >(null)
 
   const activeDeals = useMemo(
     () => state.deals.filter((d) => ACTIVE_STAGES.has(d.stage)),
@@ -366,339 +368,141 @@ export function Deals() {
           <p className="text-[13px] text-text-muted">{x(M.finance_partners_empty)}</p>
         ) : (
           <ul className="m-0 flex flex-col gap-[10px] p-0">
-            {capitalPartners.map((p) => (
-              <li key={p.id} className="flex items-start justify-between gap-[12px]">
-                <div className="min-w-0">
-                  <div className="text-[13px] font-semibold text-text">{p.name}</div>
-                  <div className="text-[12px] text-text-muted">
-                    {x(M[`finance_party_type_${p.type}` as keyof typeof M])} ·{' '}
-                    {entityName(p.entityId)}
+            {capitalPartners.map((p) => {
+              const commitments = state.commitments.filter((c) => c.partyId === p.id)
+              return (
+                <li key={p.id} className="rounded-[10px] bg-inset px-[12px] py-[10px]">
+                  <div className="flex items-start justify-between gap-[12px]">
+                    <div className="min-w-0">
+                      <div className="text-[13px] font-semibold text-text">{p.name}</div>
+                      <div className="text-[12px] text-text-muted">
+                        {x(M[`finance_party_type_${p.type}` as keyof typeof M])} ·{' '}
+                        {entityName(p.entityId)}
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-[6px]">
+                      {p.bankingDetailsOnFile && (
+                        <span className={statusChipClass('success')}>
+                          {x(M.finance_party_banking_on_file)}
+                        </span>
+                      )}
+                      {canWrite && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCommitForm((cur) =>
+                              cur?.mode === 'add' && cur.partyId === p.id
+                                ? null
+                                : { mode: 'add', partyId: p.id },
+                            )
+                          }
+                          className="flex items-center gap-[4px] rounded-[6px] border border-border bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:border-(--accent-soft-border)"
+                        >
+                          <Plus size={11} aria-hidden />
+                          {x(M.finance_commitment_add)}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-                {p.bankingDetailsOnFile && (
-                  <span className={statusChipClass('success')}>
-                    {x(M.finance_party_banking_on_file)}
-                  </span>
-                )}
-              </li>
-            ))}
+                  {/* Commitment ledger — committed / called / uncalled per
+                      partner, plus the next call date when one is set. */}
+                  {commitments.map((c) => {
+                    const uncalled = Math.max(0, toAmount(c.committed) - toAmount(c.called))
+                    return (
+                      <div key={c.id} className="mt-[8px] border-t border-border pt-[8px]">
+                        <div className="flex items-start justify-between gap-[8px]">
+                          <div className="flex min-w-0 flex-col gap-[2px]">
+                            <div className="text-[12.5px] font-semibold text-text">
+                              {c.label ? x(c.label) : x(M.finance_commitment_committed)}
+                            </div>
+                            <div className="text-[12px] text-text-muted">
+                              {x(M.finance_commitment_committed)} {x(CURRENCY_LABEL[c.currency])}{' '}
+                              {c.committed} · {x(M.finance_commitment_called)} {c.called} ·{' '}
+                              {x(M.finance_commitment_uncalled)} {uncalled.toFixed(2)}
+                            </div>
+                            {c.nextCallDate && c.status === 'active' && (
+                              <div className="text-[11.5px] text-text-faint">
+                                {x(M.finance_commitment_next_call)}: {c.nextCallDate}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex shrink-0 items-center gap-[4px]">
+                            <span
+                              className={statusChipClass(
+                                c.status === 'active' ? 'success' : 'neutral',
+                              )}
+                            >
+                              {x(
+                                c.status === 'active'
+                                  ? M.finance_commitment_status_active
+                                  : M.finance_commitment_status_closed,
+                              )}
+                            </span>
+                            {canWrite && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setCommitForm({ mode: 'edit', commitment: c })
+                                  }
+                                  className="rounded-[6px] p-[4px] text-text-muted hover:bg-surface hover:text-text"
+                                  aria-label={x(M.finance_commitment_edit)}
+                                >
+                                  <Pencil size={13} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    if (!confirm(x(M.finance_commitment_remove_confirm))) return
+                                    await removeCommitment(c.id)
+                                  }}
+                                  className="rounded-[6px] p-[4px] text-text-muted hover:bg-surface hover:text-red-600"
+                                  aria-label={x(M.finance_commitment_remove)}
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        {canWrite &&
+                          commitForm?.mode === 'edit' &&
+                          commitForm.commitment.id === c.id && (
+                            <CommitmentForm
+                              partyId={p.id}
+                              entities={state.entities}
+                              defaultEntityId={p.entityId}
+                              initial={c}
+                              onSubmit={async (item) => {
+                                const updated = await updateCommitment(c.id, item)
+                                if (!updated) throw new Error('updateCommitment returned null')
+                                setCommitForm(null)
+                              }}
+                              onCancel={() => setCommitForm(null)}
+                            />
+                          )}
+                      </div>
+                    )
+                  })}
+                  {canWrite && commitForm?.mode === 'add' && commitForm.partyId === p.id && (
+                    <CommitmentForm
+                      partyId={p.id}
+                      entities={state.entities}
+                      defaultEntityId={p.entityId}
+                      onSubmit={async (item) => {
+                        const created = await addCommitment(item)
+                        if (!created) throw new Error('addCommitment returned null')
+                        setCommitForm(null)
+                      }}
+                      onCancel={() => setCommitForm(null)}
+                    />
+                  )}
+                </li>
+              )
+            })}
           </ul>
         )}
       </section>
     </div>
-  )
-}
-
-/* ---------- Form ---------- */
-
-function DealForm({
-  entities,
-  defaultEntityId,
-  initial,
-  onSubmit,
-  onCancel,
-}: {
-  entities: import('../data/types').FinanceLegalEntity[]
-  defaultEntityId: string
-  initial?: FinanceDeal
-  onSubmit: (item: Omit<FinanceDeal, 'id'>) => Promise<unknown>
-  onCancel: () => void
-}) {
-  const { x } = useI18n()
-  const [entityId, setEntityId] = useState(initial?.entityId ?? defaultEntityId)
-  const [name, setName] = useState(initial ? pickL(initial.name, 'en') : '')
-  const [kind, setKind] = useState<FinanceDealKind>(initial?.kind ?? 'investment')
-  const [stage, setStage] = useState<FinanceDealStage>(initial?.stage ?? 'sourcing')
-  const [counterparty, setCounterparty] = useState(initial?.counterparty ?? '')
-  const [value, setValue] = useState(initial?.value ?? '')
-  const [currency, setCurrency] = useState<FinanceCurrency>(initial?.currency ?? 'CAD')
-  const [targetDate, setTargetDate] = useState(initial?.targetDate ?? '')
-  const [owner, setOwner] = useState(initial?.owner ?? '')
-  const [notes, setNotes] = useState(initial?.notes ? pickL(initial.notes, 'en') : '')
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (saving || !entityId || !name.trim()) return
-    setSaving(true)
-    setError(null)
-    try {
-      await onSubmit({
-        entityId,
-        name: { en: name.trim(), fr: name.trim() } satisfies Bi as Bi,
-        kind,
-        stage,
-        counterparty: counterparty.trim() || undefined,
-        value: value.trim() || undefined,
-        currency,
-        targetDate: targetDate || undefined,
-        owner: owner.trim() || undefined,
-        notes: notes.trim() ? ({ en: notes.trim(), fr: notes.trim() } satisfies Bi as Bi) : undefined,
-      })
-    } catch {
-      setError(x(M.finance_deals_save_failed))
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="mb-[12px] flex flex-col gap-[10px] rounded-[10px] border border-border bg-inset p-[12px]"
-    >
-      <div className="text-[13px] font-semibold text-text">
-        {initial ? x(M.finance_deals_edit_title) : x(M.finance_deals_create)}
-      </div>
-      <div className="grid grid-cols-2 gap-[10px]">
-        <label className={labelClass}>
-          <span>{x(M.finance_deals_name)}</span>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className={inputClass}
-            required
-          />
-        </label>
-        <label className={labelClass}>
-          <span>{x(M.finance_deals_entity)}</span>
-          <select
-            value={entityId}
-            onChange={(e) => setEntityId(e.target.value)}
-            className={inputClass}
-            required
-          >
-            {entities.map((ent) => (
-              <option key={ent.id} value={ent.id}>
-                {ent.legalName}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-      <div className="grid grid-cols-2 gap-[10px]">
-        <label className={labelClass}>
-          <span>{x(M.finance_deals_kind)}</span>
-          <select
-            value={kind}
-            onChange={(e) => setKind(e.target.value as FinanceDealKind)}
-            className={inputClass}
-          >
-            {(Object.keys(DEAL_KIND_LABEL) as FinanceDealKind[]).map((k) => (
-              <option key={k} value={k}>
-                {x(DEAL_KIND_LABEL[k])}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className={labelClass}>
-          <span>{x(M.finance_deals_stage)}</span>
-          <select
-            value={stage}
-            onChange={(e) => setStage(e.target.value as FinanceDealStage)}
-            className={inputClass}
-          >
-            {DEAL_STAGE_ORDER.map((s) => (
-              <option key={s} value={s}>
-                {x(DEAL_STAGE_LABEL[s])}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-      <div className="grid grid-cols-2 gap-[10px]">
-        <label className={labelClass}>
-          <span>{x(M.finance_deals_counterparty)}</span>
-          <input
-            value={counterparty}
-            onChange={(e) => setCounterparty(e.target.value)}
-            className={inputClass}
-          />
-        </label>
-        <label className={labelClass}>
-          <span>{x(M.finance_deals_owner)}</span>
-          <input
-            value={owner}
-            onChange={(e) => setOwner(e.target.value)}
-            className={inputClass}
-          />
-        </label>
-      </div>
-      <div className="grid grid-cols-3 gap-[10px]">
-        <label className={labelClass}>
-          <span>{x(M.finance_deals_value)}</span>
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            className={inputClass}
-          />
-        </label>
-        <label className={labelClass}>
-          <span>{x(M.finance_currency)}</span>
-          <select
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value as FinanceCurrency)}
-            className={inputClass}
-          >
-            {(Object.keys(CURRENCY_LABEL) as FinanceCurrency[]).map((c) => (
-              <option key={c} value={c}>
-                {x(CURRENCY_LABEL[c])}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className={labelClass}>
-          <span>{x(M.finance_deals_target_date)}</span>
-          <input
-            type="date"
-            value={targetDate}
-            onChange={(e) => setTargetDate(e.target.value)}
-            className={inputClass}
-          />
-        </label>
-      </div>
-      <label className={labelClass}>
-        <span>{x(M.finance_deals_notes)}</span>
-        <input value={notes} onChange={(e) => setNotes(e.target.value)} className={inputClass} />
-      </label>
-      {error && <p className="m-0 text-[12px] text-red-600">{error}</p>}
-      <div className="flex justify-end gap-[8px]">
-        <button
-          type="button"
-          disabled={saving}
-          onClick={onCancel}
-          className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border disabled:opacity-60"
-        >
-          {x(M.finance_cancel)}
-        </button>
-        <button
-          type="submit"
-          disabled={saving}
-          className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white disabled:opacity-60"
-        >
-          {x(M.finance_save)}
-        </button>
-      </div>
-    </form>
-  )
-}
-
-/**
- * Compact journal entry for a deal — same fields as Portfolio's
- * DecisionForm, minus the subject picker: the entry inherits the deal's
- * own holdingId/watchlistItemId links and its entityId.
- */
-function DealDecisionForm({
-  deal,
-  onSubmit,
-  onCancel,
-}: {
-  deal: FinanceDeal
-  onSubmit: (entry: Omit<import('../data/types').FinanceDecisionEntry, 'id'>) => Promise<unknown>
-  onCancel: () => void
-}) {
-  const { x, lang } = useI18n()
-  const [decision, setDecision] = useState<FinanceDecisionKind>('review')
-  const [decidedAt, setDecidedAt] = useState(() => new Date().toISOString().slice(0, 10))
-  const [summary, setSummary] = useState(() => pickL(deal.name, lang))
-  const [rationale, setRationale] = useState('')
-  const [reviewDate, setReviewDate] = useState('')
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!summary.trim()) return
-    await onSubmit({
-      entityId: deal.entityId,
-      holdingId: deal.holdingId,
-      watchlistItemId: deal.watchlistItemId,
-      decision,
-      decidedAt,
-      summary: { en: summary.trim(), fr: summary.trim() } satisfies Bi as Bi,
-      rationale: rationale.trim()
-        ? ({ en: rationale.trim(), fr: rationale.trim() } satisfies Bi as Bi)
-        : undefined,
-      reviewDate: reviewDate || undefined,
-    })
-  }
-
-  return (
-    <form
-      onSubmit={(e) => void handleSubmit(e)}
-      className="mt-[8px] flex flex-col gap-[8px] rounded-[8px] border border-border bg-surface p-[10px]"
-    >
-      <div className="text-[12px] font-semibold text-text">
-        {x(M.finance_deals_log_decision)} — {x(deal.name)}
-      </div>
-      <div className="grid grid-cols-2 gap-[8px]">
-        <label className={labelClass}>
-          <span>{x(M.finance_portfolio_decision)}</span>
-          <select
-            value={decision}
-            onChange={(e) => setDecision(e.target.value as FinanceDecisionKind)}
-            className={inputClass}
-          >
-            {(Object.keys(DECISION_KIND_LABEL) as FinanceDecisionKind[]).map((k) => (
-              <option key={k} value={k}>
-                {x(DECISION_KIND_LABEL[k])}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className={labelClass}>
-          <span>{x(M.finance_portfolio_decided_at)}</span>
-          <input
-            type="date"
-            value={decidedAt}
-            onChange={(e) => setDecidedAt(e.target.value)}
-            className={inputClass}
-          />
-        </label>
-      </div>
-      <label className={labelClass}>
-        <span>{x(M.finance_summary)}</span>
-        <input
-          value={summary}
-          onChange={(e) => setSummary(e.target.value)}
-          className={inputClass}
-          required
-        />
-      </label>
-      <label className={labelClass}>
-        <span>{x(M.finance_portfolio_rationale)}</span>
-        <input
-          value={rationale}
-          onChange={(e) => setRationale(e.target.value)}
-          className={inputClass}
-        />
-      </label>
-      <label className={labelClass}>
-        <span>{x(M.finance_portfolio_review_date)}</span>
-        <input
-          type="date"
-          value={reviewDate}
-          onChange={(e) => setReviewDate(e.target.value)}
-          className={inputClass}
-        />
-      </label>
-      <div className="flex justify-end gap-[8px]">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border"
-        >
-          {x(M.finance_cancel)}
-        </button>
-        <button
-          type="submit"
-          className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white"
-        >
-          {x(M.finance_save)}
-        </button>
-      </div>
-    </form>
   )
 }

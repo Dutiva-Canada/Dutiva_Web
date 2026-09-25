@@ -14,6 +14,9 @@ import {
   updateDealInSupabase,
   transitionDealStageInSupabase,
   removeDealInSupabase,
+  addCommitmentInSupabase,
+  updateCommitmentInSupabase,
+  removeCommitmentInSupabase,
   transitionDebtStatusInSupabase,
   transitionBudgetStatusInSupabase,
   transitionScenarioStatusInSupabase,
@@ -31,6 +34,7 @@ import {
 import type {
   FinanceBankAccount,
   FinanceBudget,
+  FinanceCommitment,
   FinanceDeal,
   FinanceDealStage,
   FinanceDebt,
@@ -213,6 +217,51 @@ export function useFinanceCreates({
     [isLive, orgId, hasSupabase, reload, setState],
   )
 
+  const addCommitment = useCallback(
+    async (item: Omit<FinanceCommitment, 'id'>) => {
+      if (!isLive || !orgId || !hasSupabase) return null
+      const created = await addCommitmentInSupabase(orgId, item)
+      if (created) {
+        setState((prev) => ({ ...prev, commitments: [...prev.commitments, created] }))
+      }
+      await reload()
+      return created
+    },
+    [isLive, orgId, hasSupabase, reload, setState],
+  )
+
+  const updateCommitment = useCallback(
+    async (id: string, patch: Partial<Omit<FinanceCommitment, 'id'>>) => {
+      if (!isLive || !orgId || !hasSupabase) return null
+      const updated = await updateCommitmentInSupabase(orgId, id, patch)
+      if (updated) {
+        setState((prev) => ({
+          ...prev,
+          commitments: prev.commitments.map((c) => (c.id === id ? updated : c)),
+        }))
+      }
+      await reload()
+      return updated
+    },
+    [isLive, orgId, hasSupabase, reload, setState],
+  )
+
+  const removeCommitment = useCallback(
+    async (id: string) => {
+      if (!isLive || !orgId || !hasSupabase) return false
+      const ok = await removeCommitmentInSupabase(orgId, id)
+      if (ok) {
+        setState((prev) => ({
+          ...prev,
+          commitments: prev.commitments.filter((c) => c.id !== id),
+        }))
+      }
+      await reload()
+      return ok
+    },
+    [isLive, orgId, hasSupabase, reload, setState],
+  )
+
   const transitionDebtStatus = useCallback(
     async (id: string, nextStatus: FinanceDebt['status']) => {
       if (!isLive || !orgId || !hasSupabase) return null
@@ -372,6 +421,9 @@ export function useFinanceCreates({
     updateDeal,
     transitionDealStage,
     removeDeal,
+    addCommitment,
+    updateCommitment,
+    removeCommitment,
     transitionDebtStatus,
     transitionBudgetStatus,
     transitionScenarioStatus,

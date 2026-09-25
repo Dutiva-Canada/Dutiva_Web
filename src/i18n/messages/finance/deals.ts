@@ -77,4 +77,28 @@ export const financeDeals = defineMessages({
     en: 'No investors or lenders yet. Add one in the Purchases tab under Parties.',
     fr: 'Aucun investisseur ou prêteur pour l’instant. Ajoutez-en un dans l’onglet Achats, sous Parties.',
   },
+  /* Commitments (finance_commitments, 0172) — the committed/called ledger
+     per partner. Dutiva records the ledger; it does not process calls. */
+  finance_commitment_add: { en: 'Add commitment', fr: 'Ajouter un engagement' },
+  finance_commitment_create: { en: 'New commitment', fr: 'Nouvel engagement' },
+  finance_commitment_edit_title: { en: 'Edit commitment', fr: 'Modifier l’engagement' },
+  finance_commitment_label: { en: 'Label', fr: 'Libellé' },
+  finance_commitment_committed: { en: 'Committed', fr: 'Engagé' },
+  finance_commitment_called: { en: 'Called', fr: 'Appelé' },
+  finance_commitment_uncalled: { en: 'Uncalled', fr: 'Non appelé' },
+  finance_commitment_next_call: { en: 'Next call', fr: 'Prochain appel' },
+  finance_commitment_status_active: { en: 'Active', fr: 'Actif' },
+  finance_commitment_status_closed: { en: 'Closed', fr: 'Fermé' },
+  finance_commitment_status: { en: 'Status', fr: 'Statut' },
+  finance_commitment_entity: { en: 'Entity', fr: 'Entité' },
+  finance_commitment_edit: { en: 'Edit commitment', fr: 'Modifier l’engagement' },
+  finance_commitment_remove: { en: 'Delete commitment', fr: 'Supprimer l’engagement' },
+  finance_commitment_remove_confirm: {
+    en: 'Delete this commitment?',
+    fr: 'Supprimer cet engagement?',
+  },
+  finance_commitment_save_failed: {
+    en: 'Couldn’t save the commitment. Try again.',
+    fr: 'Impossible d’enregistrer l’engagement. Réessayez.',
+  },
 })
