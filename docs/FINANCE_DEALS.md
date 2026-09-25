@@ -141,6 +141,21 @@ chip. `computeFinanceAttention(input, today)` is a pure function with an
 injectable clock, so the window rules are unit-tested against fixed
 dates.
 
+## Capital-call notifications
+
+Migration `0176` wires the call lifecycle into the existing
+`hr_workspace_notifications` surface (the Topbar bell). When a call's
+status *becomes* `notified`, a trigger
+(`finance_capital_calls_notify` → `_finance_call_notify_admins`, the
+same service-role fan-out pattern signing and integration events use)
+inserts one bilingual row per active owner/admin member — party, amount,
+due date, optional reference — linking to `/app/finance/deals`. The
+trigger's `when` clause fires only on the transition into `notified`, so
+re-saving a notified call doesn't double-notify. Scheduling, receiving,
+and cancelling calls produce no notifications — `notified` is the
+externally meaningful event. The date-driven items stay on the
+derived Overview strip above; the bell only carries the event.
+
 ## What it deliberately is not
 
 - **Not deal brokerage or investment advice.** The screen records where a
@@ -164,7 +179,8 @@ does not move money.
 
 Migrations `0171` (deals + ownership + partner types), `0172`
 (commitments), `0173` (capital calls + party contacts), `0174`
-(cash sweeps), and `0175` (deal/holding document links) are applied to
-the Supabase project (`khtwpxnvziiyplaflwru`) — `check:migrations`
-reports 175/175 applied, 0 differences. The task hand-off needs no
-migration — it writes the existing `compliance_tasks.metadata` jsonb.
+(cash sweeps), `0175` (deal/holding document links), and `0176`
+(capital-call notifications) are applied to the Supabase project
+(`khtwpxnvziiyplaflwru`) — `check:migrations` reports 176/176 applied,
+0 differences. The task hand-off needs no migration — it writes the
+existing `compliance_tasks.metadata` jsonb.

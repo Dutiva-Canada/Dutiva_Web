@@ -3,13 +3,19 @@ import { bi, type Bi } from '@/i18n/core'
 import { supabase } from '@/lib/supabaseClient'
 
 /**
- * Production in-app notifications for org admins (signing complete/decline).
+ * Production in-app notifications for org admins (signing complete/decline,
+ * integration events, inbound email, finance capital calls).
  * Demo mode continues to use fixture data in the Topbar.
  */
 
 export interface WorkspaceNotification {
   id: string
-  kind: 'signing_completed' | 'signing_declined' | 'integration_event' | 'inbound_email'
+  kind:
+    | 'signing_completed'
+    | 'signing_declined'
+    | 'integration_event'
+    | 'inbound_email'
+    | 'finance_call'
   title: Bi
   body: Bi | null
   href: string | null
@@ -20,7 +26,13 @@ export interface WorkspaceNotification {
 
 const rowSchema = z.object({
   id: z.string(),
-  kind: z.enum(['signing_completed', 'signing_declined', 'integration_event', 'inbound_email']),
+  kind: z.enum([
+    'signing_completed',
+    'signing_declined',
+    'integration_event',
+    'inbound_email',
+    'finance_call',
+  ]),
   title_en: z.string(),
   title_fr: z.string(),
   body_en: z.string().nullable().optional(),
